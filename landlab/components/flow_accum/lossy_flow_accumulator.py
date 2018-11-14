@@ -442,120 +442,27 @@ class LossyFlowAccumulator(FlowAccumulator):
         _ = self.grid.add_zeros('node', 'surface_water__discharge_loss',
                                 dtype=float, noclobber=False)
 
-    def accumulate_flow(self, update_flow_director=True):
+    def _accumulate_A_Q_to_one(self, s, r):
         """
-        Function to make FlowAccumulator calculate drainage area and discharge.
-
-        Running run_one_step() results in the following to occur:
-            1. Flow directions are updated (unless update_flow_director is set
-            as False).
-            2. Intermediate steps that analyse the drainage network topology
-            and create datastructures for efficient drainage area and discharge
-            calculations.
-            3. Calculation of drainage area and discharge.
-            4. Depression finding and mapping, which updates drainage area and
-            discharge.
+        Accumulate area and discharge for a route-to-one scheme.
         """
-        # step 1. Find flow directions by specified method
-        if update_flow_director == True:
-            self.flow_director.run_one_step()
+        link = self._grid.at_node['flow__link_to_receiver_node']
+        a, q = flow_accum_bw.find_drainage_area_and_discharge_lossy(
+            s, r, link, self._lossfunc, self._grid, self.node_cell_area,
+            self._grid.at_node["water__unit_flux_in"]
+        )
+        return a, q
 
-        # further steps vary depending on how many recievers are present
-        # one set of steps is for route to one (D8, Steepest/D4)
-        if self.flow_director.to_n_receivers == "one":
-
-            # step 3. Run depression finder if passed
-            # Depression finder reaccumulates flow at the end of its routine.
-            if self.depression_finder_provided is not None:
-                # prevent internal flow rerouting (which ignores loss), and
-                # do it (more slowly) here instead
-                self.depression_finder.map_depressions()
-
-            # step 2. Get r
-            r = self._grid["node"]["flow__receiver_node"]
-
-            # step 2. Stack, D, delta construction
-            nd = flow_accum_bw._make_number_of_donors_array(r)
-            delta = flow_accum_bw._make_delta_array(nd)
-            D = flow_accum_bw._make_array_of_donors(r, delta)
-            s = flow_accum_bw.make_ordered_node_array(r)
-            link = self._grid.at_node['flow__link_to_receiver_node']
-
-            # put theese in grid so that depression finder can use it.
-            # store the generated data in the grid
-            self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
-            self._grid["link"]["flow__data_structure_D"][: len(D)] = D
-            self._grid["node"]["flow__upstream_node_order"][:] = s
-
-            # step 4. Accumulate (to one or to N depending on direction
-            # method. )
-            a, q = flow_accum_bw.find_drainage_area_and_discharge_lossy(
-                s, r, link, self._lossfunc, self._grid, self.node_cell_area,
-                self._grid.at_node["water__unit_flux_in"]
-            )
-            self._grid["node"]["drainage_area"][:] = a
-            self._grid["node"]["surface_water__discharge"][:] = q
-            # note the loss info is stored w/i the find... func above
-
-        else:
-            # step 2. Get r and p
-            r = self._grid["node"]["flow__receiver_node"]
-            p = self._grid["node"]["flow__receiver_proportions"]
-            link = self._grid.at_node['flow__link_to_receiver_node']
-
-            # step 2. Stack, D, delta construction
-            nd = flow_accum_to_n._make_number_of_donors_array_to_n(r, p)
-            delta = flow_accum_to_n._make_delta_array_to_n(nd)
-            D = flow_accum_to_n._make_array_of_donors_to_n(r, p, delta)
-            s = flow_accum_to_n.make_ordered_node_array_to_n(r, p)
-
-            # put these in grid so that depression finder can use it.
-            # store the generated data in the grid
-            self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
-
-            if self._is_raster:
-                tempD = BAD_INDEX_VALUE * np.ones(
-                    (self._grid.number_of_links * 2))
-                tempD[: len(D)] = D
-                self._grid["link"]["flow__data_structure_D"][
-                    :] = tempD.reshape((self._grid.number_of_links, 2))
-            else:
-                self._grid["link"]["flow__data_structure_D"][: len(D)] = D
-            self._grid["node"]["flow__upstream_node_order"][:] = s
-
-            # step 3. Run depression finder if passed
-            # at present this must go at the end.
-
-            # step 4. Accumulate (to one or to N depending on dir method. )
-            a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n_lossy(
-                s, r, link, p, self._lossfunc, self._grid, self.node_cell_area,
-                self._grid.at_node["water__unit_flux_in"]
-            )
-            # store drainage area and discharge.
-            self._grid["node"]["drainage_area"][:] = a
-            self._grid["node"]["surface_water__discharge"][:] = q
-            # note the loss info is stored w/i the find... func above
-
-            # at the moment, this is where the depression finder needs to live.
-            # at the moment, no depression finders work with to-many
-            # if self.depression_finder_provided is not None:
-            #     self.depression_finder.map_depressions()
-
-        return (a, q)
-
-    def run_one_step(self):
+    def _accumulate_A_Q_to_n(self, s, r, p):
         """
-        Accumulate flow and save to the model grid.
-
-        run_one_step() checks for updated boundary conditions, calculates
-        slopes on links, finds baselevel nodes based on the status at node,
-        calculates flow directions, and accumulates flow and saves results to
-        the grid.
-
-        An alternative to run_one_step() is accumulate_flow() which does the
-        same things but also returns the drainage area and discharge.
+        Accumulate area and discharge for a route-to-one scheme.
         """
-        self.accumulate_flow()
+        link = self._grid.at_node['flow__link_to_receiver_node']
+        a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n_lossy(
+            s, r, link, p, self._lossfunc, self._grid, self.node_cell_area,
+            self._grid.at_node["water__unit_flux_in"]
+        )
+        return a, q
 
 
 if __name__ == "__main__":  # pragma: no cover

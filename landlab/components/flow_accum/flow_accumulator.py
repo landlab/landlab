@@ -945,36 +945,36 @@ class FlowAccumulator(Component):
 
                 self.depression_finder.map_depressions()
 
-                a = self._grid["node"]["drainage_area"]
-                q = self._grid["node"]["surface_water__discharge"]
+            a = self._grid["node"]["drainage_area"]
+            q = self._grid["node"]["surface_water__discharge"]
 
-            else:
-                # step 2. Get r
-                r = self._grid["node"]["flow__receiver_node"]
+            # step 2. Get r
+            r = self._grid["node"]["flow__receiver_node"]
 
-                # step 2. Stack, D, delta construction
-                nd = flow_accum_bw._make_number_of_donors_array(r)
-                delta = flow_accum_bw._make_delta_array(nd)
-                D = flow_accum_bw._make_array_of_donors(r, delta)
-                s = flow_accum_bw.make_ordered_node_array(r)
+            # step 2. Stack, D, delta construction
+            nd = flow_accum_bw._make_number_of_donors_array(r)
+            delta = flow_accum_bw._make_delta_array(nd)
+            D = flow_accum_bw._make_array_of_donors(r, delta)
+            s = flow_accum_bw.make_ordered_node_array(r)
+            ###############link = self._grid.at_node['flow__link_to_receiver_node']
 
-                # put theese in grid so that depression finder can use it.
-                # store the generated data in the grid
-                self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
-                self._grid["link"]["flow__data_structure_D"][: len(D)] = D
-                self._grid["node"]["flow__upstream_node_order"][:] = s
+            # put these in grid so that depression finder can use it.
+            # store the generated data in the grid
+            self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
+            self._grid["link"]["flow__data_structure_D"][: len(D)] = D
+            self._grid["node"]["flow__upstream_node_order"][:] = s
 
-                # step 4. Accumulate (to one or to N depending on direction method. )
-                a, q = flow_accum_bw.find_drainage_area_and_discharge(
-                    s, r, self.node_cell_area, self._grid.at_node["water__unit_flux_in"]
-                )
-                self._grid["node"]["drainage_area"][:] = a
-                self._grid["node"]["surface_water__discharge"][:] = q
+            # step 4. Accumulate (to one or to N depending on direction method. )
+            a, q = self._accumulate_A_Q_to_one(s, r)
+
+            self._grid["node"]["drainage_area"][:] = a
+            self._grid["node"]["surface_water__discharge"][:] = q
 
         else:
             # step 2. Get r and p
             r = self._grid["node"]["flow__receiver_node"]
             p = self._grid["node"]["flow__receiver_proportions"]
+            #################link = self._grid.at_node['flow__link_to_receiver_node']
 
             # step 2. Stack, D, delta construction
             nd = flow_accum_to_n._make_number_of_donors_array_to_n(r, p)
@@ -987,11 +987,11 @@ class FlowAccumulator(Component):
             self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
 
             if self._is_raster:
-                tempD = BAD_INDEX_VALUE * np.ones((self._grid.number_of_links * 2))
+                tempD = BAD_INDEX_VALUE * np.ones(
+                    (self._grid.number_of_links * 2))
                 tempD[: len(D)] = D
-                self._grid["link"]["flow__data_structure_D"][:] = tempD.reshape(
-                    (self._grid.number_of_links, 2)
-                )
+                self._grid["link"]["flow__data_structure_D"][
+                    :] = tempD.reshape((self._grid.number_of_links, 2))
             else:
                 self._grid["link"]["flow__data_structure_D"][: len(D)] = D
             self._grid["node"]["flow__upstream_node_order"][:] = s
@@ -1000,9 +1000,8 @@ class FlowAccumulator(Component):
             # at present this must go at the end.
 
             # step 4. Accumulate (to one or to N depending on direction method. )
-            a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n(
-                s, r, p, self.node_cell_area, self._grid.at_node["water__unit_flux_in"]
-            )
+            a, q = self._accumulate_A_Q_to_n(s, r, p)
+
             # store drainage area and discharge.
             self._grid["node"]["drainage_area"][:] = a
             self._grid["node"]["surface_water__discharge"][:] = q
@@ -1013,6 +1012,28 @@ class FlowAccumulator(Component):
             #     self.depression_finder.map_depressions()
 
         return (a, q)
+
+    def _accumulate_A_Q_to_one(self, s, r):
+        """
+        Accumulate area and discharge for a route-to-one scheme. Note this
+        can be overridden in inherited components.
+        """
+        a, q = flow_accum_bw.find_drainage_area_and_discharge(
+            s, r, self.node_cell_area,
+            self._grid.at_node["water__unit_flux_in"]
+        )
+        return a, q
+
+    def _accumulate_A_Q_to_n(self, s, r, p):
+        """
+        Accumulate area and discharge for a route-to-many scheme. Note this
+        can be overridden in inherited components.
+        """
+        a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n(
+            s, r, p, self.node_cell_area,
+            self._grid.at_node["water__unit_flux_in"]
+        )
+        return a, q
 
     def run_one_step(self):
         """
