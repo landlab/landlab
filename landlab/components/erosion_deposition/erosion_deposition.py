@@ -55,7 +55,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         "flow__receiver_node",
         "flow__upstream_node_order",
         "topographic__steepest_slope",
-        "drainage_area",
+        "surface_water__discharge",
     )
 
     _output_var_names = "topographic__elevation"
@@ -64,7 +64,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         "flow__receiver_node": "-",
         "flow__upstream_node_order": "-",
         "topographic__steepest_slope": "-",
-        "drainage_area": "m**2",
+        "surface_water__discharge": "m**2/s",
         "topographic__elevation": "m",
     }
 
@@ -72,7 +72,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         "flow__receiver_node": "node",
         "flow__upstream_node_order": "node",
         "topographic__steepest_slope": "node",
-        "drainage_area": "node",
+        "surface_water__discharge": "node",
         "topographic__elevation": "node",
     }
 
@@ -82,8 +82,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
         "node IDs",
         "topographic__steepest_slope": "Topographic slope at each node",
-        "drainage_area": "Upstream accumulated surface area contributing to the node's "
-        "discharge",
+        "surface_water__discharge": "Water discharge at each node",
         "topographic__elevation": "Land surface topographic elevation",
     }
 
@@ -115,7 +114,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         v_s : float
             Effective settling velocity for chosen grain size metric [L/T].
         m_sp : float
-            Drainage area exponent (units vary)
+            Discharge exponent (units vary)
         n_sp : float
             Slope exponent (units vary)
         sp_crit : float, field name, or array
