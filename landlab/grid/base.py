@@ -1605,6 +1605,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         >>> mg.axis_units
         ('degrees_north', 'degrees_east')
         >>> mg.axis_units = "m"
+        >>> mg.axis_units
         ('m', 'm')
 
         LLCATS: GINF
