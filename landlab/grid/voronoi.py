@@ -236,18 +236,6 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         self._create_link_unit_vectors()
 
     @property
-    def nodes_at_patch(self):
-        """Get the four nodes at the corners of each patch in a regular grid.
-
-        LLCATS: PINF NINF CONN
-        """
-        try:
-            return self._nodes_at_patch
-        except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node, self.vor)
-            return self._nodes_at_patch
-
-    @property
     @return_readonly_id_array
     def patches_at_node(self):
         """
