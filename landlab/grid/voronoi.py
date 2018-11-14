@@ -237,31 +237,6 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
     @property
     @return_readonly_id_array
-    def links_at_patch(self):
-        """Returns the links forming each patch.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> mg = HexModelGrid(3, 2)
-        >>> mg.links_at_patch
-        array([[ 3,  2,  0],
-               [ 5,  1,  2],
-               [ 6,  3,  4],
-               [ 8,  7,  5],
-               [10,  9,  6],
-               [11,  8,  9]])
-
-        LLCATS: LINF PINF CONN
-        """
-        try:
-            return self._links_at_patch
-        except AttributeError:
-            self._create_patches_from_delaunay_diagram(self._xy_of_node, self.vor)
-            return self._links_at_patch
-
-    @property
-    @return_readonly_id_array
     def patches_at_link(self):
         """Returns the patches adjoined to each link.
 
