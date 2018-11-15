@@ -7,12 +7,13 @@ while permitting gain or loss of discharge during flow.
 DEJH, late 2018
 """
 
-from landlab.components.flow_accum import flow_accum_bw
-from landlab.components.flow_accum import flow_accum_to_n
-from landlab.components.flow_accum import FlowAccumulator
-
 import sys
-import numpy as np
+
+from landlab.components.flow_accum import (
+    FlowAccumulator,
+    flow_accum_bw,
+    flow_accum_to_n,
+)
 
 if sys.version_info[0] >= 3:
     from inspect import signature
