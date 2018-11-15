@@ -5,26 +5,28 @@
 # Created on Thurs Nov 12, 2015
 import os
 
-import pytest
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 import landlab
-from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid, FieldError
+from landlab import (
+    BAD_INDEX_VALUE as XX,
+    CLOSED_BOUNDARY,
+    FieldError,
+    HexModelGrid,
+    RadialModelGrid,
+    RasterModelGrid,
+)
 from landlab.components import LinearDiffuser
 from landlab.components.flow_accum import LossyFlowAccumulator
-
-from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
-
 from landlab.components.flow_director import (
     FlowDirectorD8,
     FlowDirectorDINF,
     FlowDirectorMFD,
     FlowDirectorSteepest,
 )
-
-from landlab import CLOSED_BOUNDARY
-from landlab import BAD_INDEX_VALUE as XX
+from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -52,10 +54,10 @@ def test_loss_func_arguments():
         return 0.
 
     def funcbad2(x):
-        return 'booooooo'
+        return "booooooo"
 
     def funcbad3(x, y):
-        return np.array([0., ])
+        return np.array([0.])
 
     def funcbad4(x, y, z):
         return (0, 1)
@@ -77,51 +79,67 @@ def test_loss_func_arguments():
 def test_run_with_2_fn_args():
     mg = RasterModelGrid((3, 5), (1, 2))
     mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
-    z = mg.add_field('topographic__elevation',
-                     mg.node_x + mg.node_y,
-                     at='node')
+    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 
     def mylossfunction(qw, nodeID):
         return 0.5 * qw
 
-    fa = LossyFlowAccumulator(mg, 'topographic__elevation',
-                              flow_director=FlowDirectorSteepest,
-                              routing='D4', loss_function=mylossfunction)
+    fa = LossyFlowAccumulator(
+        mg,
+        "topographic__elevation",
+        flow_director=FlowDirectorSteepest,
+        routing="D4",
+        loss_function=mylossfunction,
+    )
     fa.run_one_step()
 
-    assert np.allclose(mg.at_node['drainage_area'].reshape(mg.shape),
-                       np.array([[0.,  0.,  0.,  0.,  0.],
-                                 [6.,  6.,  4.,  2.,  0.],
-                                 [0.,  0.,  0.,  0.,  0.]]))
-    assert np.allclose(mg.at_node['surface_water__discharge'].reshape(mg.shape),
-                       np.array([[0.00,  0.00,  0.00,  0.00,  0.00],
-                                 [1.75,  3.50,  3.00,  2.00,  0.00],
-                                 [0.00,  0.00,  0.00,  0.00,  0.00]]))
+    assert np.allclose(
+        mg.at_node["drainage_area"].reshape(mg.shape),
+        np.array([[0., 0., 0., 0., 0.], [6., 6., 4., 2., 0.], [0., 0., 0., 0., 0.]]),
+    )
+    assert np.allclose(
+        mg.at_node["surface_water__discharge"].reshape(mg.shape),
+        np.array(
+            [
+                [0.00, 0.00, 0.00, 0.00, 0.00],
+                [1.75, 3.50, 3.00, 2.00, 0.00],
+                [0.00, 0.00, 0.00, 0.00, 0.00],
+            ]
+        ),
+    )
 
 
 def test_run_with_3_fn_args():
     mg = RasterModelGrid((3, 5), (1, 2))
     mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
-    z = mg.add_field('topographic__elevation',
-                     mg.node_x + mg.node_y,
-                     at='node')
+    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 
     def mylossfunction(qw, nodeID, linkID):
         return 0.5 * qw
 
-    fa = LossyFlowAccumulator(mg, 'topographic__elevation',
-                              flow_director=FlowDirectorSteepest,
-                              routing='D4', loss_function=mylossfunction)
+    fa = LossyFlowAccumulator(
+        mg,
+        "topographic__elevation",
+        flow_director=FlowDirectorSteepest,
+        routing="D4",
+        loss_function=mylossfunction,
+    )
     fa.run_one_step()
 
-    assert np.allclose(mg.at_node['drainage_area'].reshape(mg.shape),
-                       np.array([[0.,  0.,  0.,  0.,  0.],
-                                 [6.,  6.,  4.,  2.,  0.],
-                                 [0.,  0.,  0.,  0.,  0.]]))
-    assert np.allclose(mg.at_node['surface_water__discharge'].reshape(mg.shape),
-                       np.array([[0.00,  0.00,  0.00,  0.00,  0.00],
-                                 [1.75,  3.50,  3.00,  2.00,  0.00],
-                                 [0.00,  0.00,  0.00,  0.00,  0.00]]))
+    assert np.allclose(
+        mg.at_node["drainage_area"].reshape(mg.shape),
+        np.array([[0., 0., 0., 0., 0.], [6., 6., 4., 2., 0.], [0., 0., 0., 0., 0.]]),
+    )
+    assert np.allclose(
+        mg.at_node["surface_water__discharge"].reshape(mg.shape),
+        np.array(
+            [
+                [0.00, 0.00, 0.00, 0.00, 0.00],
+                [1.75, 3.50, 3.00, 2.00, 0.00],
+                [0.00, 0.00, 0.00, 0.00, 0.00],
+            ]
+        ),
+    )
 
 
 def test_check_fields():
@@ -1113,7 +1131,9 @@ def test_depression_finder_bad_uninstantiated_component():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
     z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(ValueError):
-        fa = LossyFlowAccumulator(mg, flow_director="D8", depression_finder=LinearDiffuser)
+        fa = LossyFlowAccumulator(
+            mg, flow_director="D8", depression_finder=LinearDiffuser
+        )
 
 
 def test_hex_mfd():
