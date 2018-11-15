@@ -298,12 +298,18 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     "closed". If an edge location key is missing, that edge is assumed to be
     *open*.
 
+    *Deprecation Warning*: The keywords *spacing* and *origin* have been
+    deprecated as of Landlab v1.5.5. They will be removed in v2.0.
+
     Parameters
     ----------
     shape : tuple of int
         Shape of the grid in nodes.
-    spacing : float, optional
-        Row and column node spacing.
+    xy_spacing : tuple or float, optional
+        dx and dy spacing. Either provided as a float or a
+        (dx, dy) tuple.
+    xy_lower_left: tuple, optional
+        (x, y) coordinates of the lower left corner.
     bc : dict, optional
         Edge boundary conditions.
 
@@ -332,9 +338,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     A `RasterModelGrid` can have different node spacings in the *x* and *y*
     directions.
 
-    >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
-    >>> grid.dy, grid.dx
-    (1.0, 2.0)
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=(2, 1))
+    >>> grid.dx, grid.dy
+    (2.0, 1.0)
     >>> grid.node_y # doctest: +NORMALIZE_WHITESPACE
     array([ 0., 0., 0., 0., 0.,
             1., 1., 1., 1., 1.,
@@ -362,22 +368,20 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         At the moment, num_rows and num_cols MUST be specified. Both must be
         >=3 to allow correct automated setup of boundary conditions.
 
-        Note that to mirror the shape as (nrows, ncols) the spacing is
-        specified as (dy, dx) and the origin is specified as (y, x)
+        *Deprecation Warning*: The keywords *spacing* and *origin* have been
+        deprecated as of Landlab v1.5.5. They will be removed in v2.0.
 
         Parameters
         ----------
         shape : tuple of int
             Shape of the grid in nodes as (nrows, ncols).
-        spacing : tuple or float, optional
-            Row and column node spacing. If provided as a
-            tuple, provide as (dy, dx).
+        xy_spacing : tuple or float, optional
+            dx and dy spacing. Either provided as a float or a
+            (dx, dy) tuple.
+        xy_lower_left: tuple, optional
+            (x, y) coordinates of the lower left corner.
         bc : dict, optional
             Edge boundary conditions.
-        origin : tuple, optional
-            Provides the values (y, x) of the
-            lower left corner of the grid. Default
-            value is (0.0, 0.0)
 
         Returns
         -------
@@ -391,10 +395,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         defined. Either we force users to give arguments on instantiation,
         or set it up such that one can create a zero-node grid.
         """
-        dx = kwds.pop("dx", None)
+
         num_rows = kwds.pop("num_rows", None)
         num_cols = kwds.pop("num_cols", None)
-        self._origin = kwds.pop("origin", None) or (0., 0.)
 
         if num_rows is None and num_cols is None:
             num_rows, num_cols = _parse_grid_shape_from_args(args)
@@ -403,11 +406,48 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                 "number of args must be 0 when using keywords for grid shape"
             )
 
-        if dx is None:
-            dx = kwds.pop("spacing", _parse_grid_spacing_from_args(args) or 1.)
-
         if num_rows <= 0 or num_cols <= 0:
             raise ValueError("number of rows and columns must be positive")
+
+        if "spacing" in kwds:
+            msg =  ""
+            raise DeprecationWarning(msg)
+            xy_spacing = kwds.pop("spacing")
+
+        elif "dx" in kwds:
+            msg = ""
+            raise DeprecationWarning
+            dx = kwds.pop("dx", None)
+
+            if dx is None:
+                msg = ""
+                raise DeprecationWarning
+                dx = kwds.pop("spacing", _parse_grid_spacing_from_args(args) or 1.)
+
+            xy_spacing = (dx, dx)
+        elif "xy_spacing" in kwds:
+            xy_spacing = kwds.pop("xy_spacing")
+
+            Test if Float, Tuple, and lenght of tuple.
+
+        else:
+            xy_spacing = (1., 1.)
+        if "origin" in kwds:
+            msg =  ""
+            raise DeprecationWarning(msg)
+            xy_lower_left = kwds.pop("origin")
+        else:
+            xy_lower_left = kwds.pop("xy_lower_left", None) or (0., 0.)
+
+        Test shape of xy_lower_left
+
+        self._origin = xy_lower_left
+
+
+
+
+
+
 
         self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
 
