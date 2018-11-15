@@ -346,7 +346,6 @@ class LossyFlowAccumulator(FlowAccumulator):
 
         if loss_function is not None:
             if sys.version_info[0] >= 3:
-                import signature
                 sig = signature(loss_function)
                 num_params = len(sig.parameters)
             else:  # Python 2
