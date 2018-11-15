@@ -129,6 +129,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     First, a very simple example. Here's a 50% loss of discharge every time
     flow moves along a node:
 
+    >>> import numpy as np
     >>> from landlab import RasterModelGrid, HexModelGrid
     >>> from landlab.components import FlowDirectorSteepest
     >>> from landlab.components import DepressionFinderAndRouter
@@ -166,8 +167,8 @@ class LossyFlowAccumulator(FlowAccumulator):
     >>> dx=(2./(3.**0.5))**0.5  # area to be 100.
     >>> hmg = HexModelGrid(5,3, dx)
     >>> z = hmg.add_field('topographic__elevation',
-    ...                     hmg.node_x**2 + np.round(hmg.node_y)**2,
-    ...                     at = 'node')
+    ...                   hmg.node_x**2 + np.round(hmg.node_y)**2,
+    ...                   at = 'node')
     >>> z[9] = -10.  # poke a hole
     >>> lossy = hmg.add_zeros('node', 'mylossterm', dtype=float)
     >>> lossy[14] = 1.  # suppress all flow from node 14
@@ -416,8 +417,8 @@ class LossyFlowAccumulator(FlowAccumulator):
 
         # add the new loss discharge field if necessary:
         if 'surface_water__discharge_loss' not in grid.at_link:
-            _ = self.grid.add_zeros('node', 'surface_water__discharge_loss',
-                                    dtype=float, noclobber=False)
+            self.grid.add_zeros('node', 'surface_water__discharge_loss',
+                                dtype=float, noclobber=False)
 
     def _accumulate_A_Q_to_one(self, s, r):
         """
