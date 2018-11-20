@@ -31,16 +31,17 @@ def test_id_as_int():
 
 def test_width_of_face():
     grid = RasterModelGrid((3, 3))
-    assert_array_equal(grid.width_of_face, [ 1.,  1.,  1.,  1.])
+    assert_array_equal(grid.width_of_face, [1., 1., 1., 1.])
 
     grid = RasterModelGrid((3, 3), spacing=2.)
-    assert_array_equal(grid.width_of_face, [ 2.,  2.,  2.,  2.])
+    assert_array_equal(grid.width_of_face, [2., 2., 2., 2.])
 
     grid = RasterModelGrid((3, 3), spacing=(2., 3.))
-    assert_array_equal(grid.width_of_face, [ 3.,  2.,  2.,  3.])
+    assert_array_equal(grid.width_of_face, [3., 2., 2., 3.])
 
 
 def test_id_as_array():
     grid = RasterModelGrid((4, 5))
-    assert_array_equal(grid.faces_at_cell[[0, 1]],
-                       np.array([[4, 7, 3, 0], [5, 8, 4, 1]]))
+    assert_array_equal(
+        grid.faces_at_cell[[0, 1]], np.array([[4, 7, 3, 0], [5, 8, 4, 1]])
+    )

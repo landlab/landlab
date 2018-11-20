@@ -1,5 +1,5 @@
-from pylab import figure, plot, xlabel, ylabel, title, loglog, show
 import numpy as np
+from pylab import figure, loglog, plot, show, title, xlabel, ylabel
 
 limit_of_steepening=[]
 max_S = 0.

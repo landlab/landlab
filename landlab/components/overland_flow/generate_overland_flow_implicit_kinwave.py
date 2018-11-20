@@ -9,14 +9,15 @@ Created on Fri May 27 14:26:13 2016
 """
 
 
+import numpy as np
+from scipy.optimize import newton
+
 from landlab import Component
 from landlab.components import FlowAccumulator
-from scipy.optimize import newton
-import numpy as np
 
 
 def water_fn(x, a, b, c, d, e):
-    """Evaluates the solution to the water-depth equation.
+    r"""Evaluates the solution to the water-depth equation.
 
     Called by scipy.newton() to find solution for :math:`x`
     using Newton's method.
@@ -51,7 +52,7 @@ def water_fn(x, a, b, c, d, e):
     .. math::
 
         \alpha = \frac{\Delta t \sum S^{1/2}}{C_f A}
-    
+
     where :math:`H` is water depth at the given node at the new
     time step, :math:`H_0` is water depth at the prior time step,
     :math:`w` is a weighting factor, :math:`d` is the depth-discharge
@@ -66,33 +67,33 @@ def water_fn(x, a, b, c, d, e):
 
 
 class KinwaveImplicitOverlandFlow(Component):
-    """Calculate shallow water flow over topography.
+    r"""Calculate shallow water flow over topography.
 
     Landlab component that implements a two-dimensional kinematic wave model.
     This is a form of the 2D shallow-water equations in which energy slope is
     assumed to equal bed slope. The solution method is locally implicit, and
     works as follows. At each time step, we iterate from upstream to downstream
     over the topography. Because we are working downstream, we can assume that
-    we know the total water inflow to a given cell. We solve the following mass 
+    we know the total water inflow to a given cell. We solve the following mass
     conservation equation at each cell:
-    
+
     .. math::
 
         (H^{t+1} - H^t)/\Delta t = Q_{in}/A - Q_{out}/A + R
-        
+
     where :math:`H` is water depth, :math:`t` indicates time step
     number, :math:`\Delta t` is time step duration, :math:`Q_{in}` is
     total inflow discharge, :math:`Q_{out}` is total outflow
     discharge, :math:`A` is cell area, and :math:`R` is local
     runoff rate (precipitation minus infiltration; could be
     negative if runon infiltration is occurring).
-    
+
     The specific outflow discharge leaving a cell along one of its faces is:
 
     .. math::
 
         q = (1/C_r) H^\alpha S^{1/2}
-    
+
     where :math:`C_r` is a roughness coefficient (such as
     Manning's n), :math:`\alpha` is an exponent equal to :math:`5/3`
     for the Manning equation and :math:`3/2` for the Chezy family,
@@ -105,17 +106,17 @@ class KinwaveImplicitOverlandFlow(Component):
     .. math::
 
         Q_{out} = \sum_{i=1}^N (1/C_r) H^\alpha S_i^{1/2} W_i
-        
+
     where :math:`N` is the number of outflow faces (i.e., faces
     where the ground slopes downhill away from the cell's node),
     and :math:`W_i` is the width of face :math:`i`.
-    
+
     We use the depth at the cell's node, so this simplifies to:
 
     .. math::
 
         Q_{out} = (1/C_r) H'^\alpha \sum_{i=1}^N S_i^{1/2} W_i
-        
+
     We define :math:`H` in the above as a weighted sum of
     the "old" (time step :math:`t`) and "new" (time step :math:`t+1`)
     depth values:
@@ -123,10 +124,10 @@ class KinwaveImplicitOverlandFlow(Component):
     .. math::
 
         H' = w H^{t+1} + (1-w) H^t
-    
+
     If :math:`w=1`, the method is fully implicit. If :math:`w=0`,
     it is a simple forward explicit method.
-    
+
     When we combine these equations, we have an equation that includes the
     unknown :math:`H^{t+1}` and a bunch of terms that are known.
     If :math:`w\ne 0`, it is a nonlinear equation in :math:`H^{t+1}`,
@@ -147,54 +148,56 @@ class KinwaveImplicitOverlandFlow(Component):
     array([ 0.,  0.,  0.])
     """
 
-    _name = 'KinwaveImplicitOverlandFlow'
+    _name = "KinwaveImplicitOverlandFlow"
 
-    _input_var_names = (
-        'topographic__elevation',
-    )
+    _input_var_names = ("topographic__elevation",)
 
     _output_var_names = (
-        'topographic__gradient',
-        'surface_water__depth',
-        #'water__velocity',
-        #'water__specific_discharge',
-        'surface_water_inflow__discharge',
+        "topographic__gradient",
+        "surface_water__depth",
+        # 'water__velocity',
+        # 'water__specific_discharge',
+        "surface_water_inflow__discharge",
     )
 
     _var_units = {
-        'topographic__elevation': 'm',
-        'topographic__slope': 'm/m',
-        'surface_water__depth': 'm',
-        'water__velocity': 'm/s',
-        'water__specific_discharge': 'm2/s',
+        "topographic__elevation": "m",
+        "topographic__slope": "m/m",
+        "surface_water__depth": "m",
+        "water__velocity": "m/s",
+        "water__specific_discharge": "m2/s",
     }
 
     _var_mapping = {
-        'topographic__elevation': 'node',
-        'topographic__gradient': 'link',
-        'surface_water__depth': 'node',
-        #'water__velocity': 'link',
-        #'water__specific_discharge': 'link',
-        'surface_water_inflow__discharge' : 'node',
+        "topographic__elevation": "node",
+        "topographic__gradient": "link",
+        "surface_water__depth": "node",
+        # 'water__velocity': 'link',
+        # 'water__specific_discharge': 'link',
+        "surface_water_inflow__discharge": "node",
     }
 
     _var_doc = {
-        'topographic__elevation':
-            'elevation of the ground surface relative to some datum',
-        'topographic__gradient':
-            'gradient of the ground surface',
-        'surface_water__depth':
-            'depth of water',
-#        'water__velocity':
-#            'flow velocity component in the direction of the link',
-#        'water__specific_discharge':
-#            'flow discharge component in the direction of the link',
-        'surface_water_inflow__discharge':
-            'water volume inflow rate to the cell around each node'
+        "topographic__elevation": "elevation of the ground surface relative to some datum",
+        "topographic__gradient": "gradient of the ground surface",
+        "surface_water__depth": "depth of water",
+        #        'water__velocity':
+        #            'flow velocity component in the direction of the link',
+        #        'water__specific_discharge':
+        #            'flow discharge component in the direction of the link',
+        "surface_water_inflow__discharge": "water volume inflow rate to the cell around each node",
     }
 
-    def __init__(self, grid, runoff_rate=1.0, roughness=0.01,
-                 changing_topo=False, depth_exp=1.5, weight=1.0, **kwds):
+    def __init__(
+        self,
+        grid,
+        runoff_rate=1.0,
+        roughness=0.01,
+        changing_topo=False,
+        depth_exp=1.5,
+        weight=1.0,
+        **kwds
+    ):
         """Initialize the KinwaveOverlandFlowModel.
 
         Parameters
@@ -224,52 +227,51 @@ class KinwaveImplicitOverlandFlow(Component):
         self.weight = weight
 
         # Get elevation field
-        try:
-            self.elev = grid.at_node['topographic__elevation']
-        except:
-            raise
+        self.elev = grid.at_node["topographic__elevation"]
 
         # Create fields...
         #  Water depth
-        if 'surface_water__depth' in grid.at_node:
-            self.depth = grid.at_node['surface_water__depth']
+        if "surface_water__depth" in grid.at_node:
+            self.depth = grid.at_node["surface_water__depth"]
         else:
-            self.depth = grid.add_zeros('node', 'surface_water__depth')
+            self.depth = grid.add_zeros("node", "surface_water__depth")
         #   Slope
-        if 'topographic__gradient' in grid.at_link:
-            self.slope = grid.at_link['topographic__gradient']
+        if "topographic__gradient" in grid.at_link:
+            self.slope = grid.at_link["topographic__gradient"]
         else:
-            self.slope = grid.add_zeros('link', 'topographic__gradient')
+            self.slope = grid.add_zeros("link", "topographic__gradient")
         #  Velocity
-#        if 'water__velocity' in grid.at_link:
-#            self.vel = grid.at_link['water__velocity']
-#        else:
-#            self.vel = grid.add_zeros('link', 'water__velocity')
+        #        if 'water__velocity' in grid.at_link:
+        #            self.vel = grid.at_link['water__velocity']
+        #        else:
+        #            self.vel = grid.add_zeros('link', 'water__velocity')
         #  Discharge
-#        if 'surface_water__specific_discharge' in grid.at_link:
-#            self.disch = grid.at_link['surface_water__specific_discharge']
-#        else:
-#            self.disch = grid.add_zeros('link',
-#                                        'surface_water__specific_discharge')
+        #        if 'surface_water__specific_discharge' in grid.at_link:
+        #            self.disch = grid.at_link['surface_water__specific_discharge']
+        #        else:
+        #            self.disch = grid.add_zeros('link',
+        #                                        'surface_water__specific_discharge')
         #  Inflow discharge at nodes
-        if 'surface_water_inflow__discharge' in grid.at_node:
-            self.disch_in = grid.at_node['surface_water_inflow__discharge']
+        if "surface_water_inflow__discharge" in grid.at_node:
+            self.disch_in = grid.at_node["surface_water_inflow__discharge"]
         else:
-            self.disch_in = grid.add_zeros('node',
-                                           'surface_water_inflow__discharge')
+            self.disch_in = grid.add_zeros("node", "surface_water_inflow__discharge")
 
         # This array holds, for each node, the sum of sqrt(slope) x face width
         # for each link/face.
-        self.grad_width_sum = grid.zeros('node')
+        self.grad_width_sum = grid.zeros("node")
 
         # This array holds the prefactor in the algebraic equation that we
         # will find a solution for.
-        self.alpha = grid.zeros('node')
+        self.alpha = grid.zeros("node")
 
         # Instantiate flow router
-        self.flow_accum = FlowAccumulator(grid, 'topographic__elevation',
-                                    flow_director='MFD',
-                                    partition_method='square_root_of_slope')
+        self.flow_accum = FlowAccumulator(
+            grid,
+            "topographic__elevation",
+            flow_director="MFD",
+            partition_method="square_root_of_slope",
+        )
 
         # Flag to let us know whether this is our first iteration
         self.first_iteration = True
@@ -282,36 +284,43 @@ class KinwaveImplicitOverlandFlow(Component):
             runoff_rate = self.runoff_rate
 
         # If it's our first iteration, or if the topography may be changing,
-        # do flow routing and calculate square root of slopes at links     
+        # do flow routing and calculate square root of slopes at links
         if self.changing_topo or self.first_iteration:
 
             # Calculate the ground-surface slope
-            self.slope[self.grid.active_links] = \
-                self._grid.calc_grad_at_link(self.elev)[self._grid.active_links]
-                
+            self.slope[self.grid.active_links] = self._grid.calc_grad_at_link(
+                self.elev
+            )[self._grid.active_links]
+
             # Take square root of slope magnitude for use in velocity eqn
             self.sqrt_slope = np.sqrt(np.abs(self.slope))
 
             # Re-route flow, which gives us the downstream-to-upstream
             # ordering
             self.flow_accum.run_one_step()
-            self.nodes_ordered = self.grid.at_node['flow__upstream_node_order']
-            self.flow_lnks = self.grid.at_node['flow__links_to_receiver_nodes']
+            self.nodes_ordered = self.grid.at_node["flow__upstream_node_order"]
+            self.flow_lnks = self.grid.at_node["flow__link_to_receiver_node"]
 
             # (Re)calculate, for each node, sum of sqrt(gradient) x width
             self.grad_width_sum[:] = 0.0
             for i in range(self.flow_lnks.shape[1]):
-                self.grad_width_sum[:] += (self.sqrt_slope[self.flow_lnks[:,i]]
+                self.grad_width_sum[:] += (
+                    self.sqrt_slope[self.flow_lnks[:, i]]
                     * self._grid.width_of_face[
-                            self.grid.face_at_link[self.flow_lnks[:,i]]])
+                        self.grid.face_at_link[self.flow_lnks[:, i]]
+                    ]
+                )
 
             # Calculate values of alpha, which is defined as
             #
             #   $\alpha = \frac{\Sigma W S^{1/2} \Delta t}{A C_r}$
             cores = self.grid.core_nodes
             self.alpha[cores] = (
-                self.vel_coef * self.grad_width_sum[cores] * dt 
-                / (self.grid.area_of_cell[self.grid.cell_at_node[cores]]))
+                self.vel_coef
+                * self.grad_width_sum[cores]
+                * dt
+                / (self.grid.area_of_cell[self.grid.cell_at_node[cores]])
+            )
 
         # Zero out inflow discharge
         self.disch_in[:] = 0.0
@@ -324,18 +333,22 @@ class KinwaveImplicitOverlandFlow(Component):
                 # Solve for new water depth
                 aa = self.alpha[n]
                 cc = self.depth[n]
-                ee = ((dt * runoff_rate) 
-                       + (dt * self.disch_in[n] 
-                          / self.grid.area_of_cell[self.grid.cell_at_node[n]]))
-                self.depth[n] = newton(water_fn, self.depth[n], 
-                                       args=(aa, self.weight, cc, 
-                                             self.depth_exp, ee))
+                ee = (dt * runoff_rate) + (
+                    dt
+                    * self.disch_in[n]
+                    / self.grid.area_of_cell[self.grid.cell_at_node[n]]
+                )
+                self.depth[n] = newton(
+                    water_fn,
+                    self.depth[n],
+                    args=(aa, self.weight, cc, self.depth_exp, ee),
+                )
 
                 # Calc outflow
-                Heff = (self.weight * self.depth[n]
-                        + (1.0 - self.weight) * cc)
-                outflow = (self.vel_coef * (Heff ** self.depth_exp)
-                           * self.grad_width_sum[n])  # this is manning/chezy/darcy
+                Heff = self.weight * self.depth[n] + (1.0 - self.weight) * cc
+                outflow = (
+                    self.vel_coef * (Heff ** self.depth_exp) * self.grad_width_sum[n]
+                )  # this is manning/chezy/darcy
 
                 # Send flow downstream. Here we take total inflow discharge
                 # and partition it among the node's neighbors. For this, we use
@@ -346,8 +359,9 @@ class KinwaveImplicitOverlandFlow(Component):
                 # we have a raster grid, there will be four neighbors and four
                 # proportions, some of which may be zero and some between 0 and
                 # 1.
-                self.disch_in[self.grid.adjacent_nodes_at_node[n]] += (outflow
-                    * self.flow_accum.flow_director.proportions[n])
+                self.disch_in[self.grid.adjacent_nodes_at_node[n]] += (
+                    outflow * self.flow_accum.flow_director.proportions[n]
+                )
 
                 # TODO: the above is enough to implement the solution for flow
                 # depth, but it does not provide any information about flow
@@ -355,6 +369,7 @@ class KinwaveImplicitOverlandFlow(Component):
                 # optional method, perhaps done just before output.
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

@@ -1,9 +1,7 @@
-import pytest
 import numpy as np
+import pytest
 
 from landlab import RasterModelGrid
-from landlab import BAD_INDEX_VALUE as XX
-from landlab.components.sink_fill import SinkFiller
 
 
 @pytest.fixture
@@ -107,8 +105,6 @@ def sink_grid4():
     sink_grid.lake1 = lake1
     sink_grid.lake2 = lake2
 
-    # fr = FlowRouter(mg)
-
     return sink_grid
 
 
@@ -158,5 +154,4 @@ def sink_grid5():
     sink_grid.lake1 = lake1
     sink_grid.lake2 = lake2
 
-    # fr = FlowRouter(mg)
     return sink_grid

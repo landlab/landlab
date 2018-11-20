@@ -3,100 +3,101 @@ from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
 
-
-ELEMENTS = ['node', 'cell', 'link', 'face']
+ELEMENTS = ["node", "cell", "link", "face"]
 # ELEMENTS += ['core_node', 'core_cell', 'active_link', 'active_face']
-TYPES = ['float', 'int', 'bool']
+TYPES = ["float", "int", "bool"]
 
 
 # def generate_zeros_tests():
 def test_zeros():
     for element in ELEMENTS:
         for type in TYPES:
+
             def _test():
                 rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
-                assert_array_equal(rmg.zeros(centering=element),
-                                   np.zeros(number_of_elements, dtype=np.float))
-            _test.description = '%s.test_zeros_%s_%s' % (
-                __name__, type, element)
+                assert_array_equal(
+                    rmg.zeros(centering=element),
+                    np.zeros(number_of_elements, dtype=np.float),
+                )
+
+            _test.description = "%s.test_zeros_%s_%s" % (__name__, type, element)
             yield _test
 
 
 def test_add_zeros():
     for element in ELEMENTS:
         for type in TYPES:
+
             def _test():
                 rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
-                rtn_values = rmg.add_zeros(element, 'name')
-                assert rtn_values is rmg.field_values(element, 'name')
+                rtn_values = rmg.add_zeros(element, "name")
+                assert rtn_values is rmg.field_values(element, "name")
                 assert_array_equal(
-                    rtn_values, np.zeros(number_of_elements, dtype=np.float))
-            _test.description = '%s.test_add_zeros_%s_%s' % (
-                __name__, type, element)
+                    rtn_values, np.zeros(number_of_elements, dtype=np.float)
+                )
+
+            _test.description = "%s.test_add_zeros_%s_%s" % (__name__, type, element)
             yield _test
 
 
 def test_ones():
     for element in ELEMENTS:
         for type in TYPES:
+
             def _test():
                 rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
-                assert_array_equal(rmg.ones(centering=element),
-                                   np.ones(number_of_elements, dtype=np.float))
-            _test.description = '%s.test_zeros_%s_%s' % (
-                __name__, type, element)
+                assert_array_equal(
+                    rmg.ones(centering=element),
+                    np.ones(number_of_elements, dtype=np.float),
+                )
+
+            _test.description = "%s.test_zeros_%s_%s" % (__name__, type, element)
             yield _test
 
 
 def test_add_ones():
     for element in ELEMENTS:
         for type in TYPES:
+
             def _test():
                 rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
-                rtn_values = rmg.add_ones(element, 'name')
-                assert rtn_values is rmg.field_values(element, 'name')
+                rtn_values = rmg.add_ones(element, "name")
+                assert rtn_values is rmg.field_values(element, "name")
                 assert_array_equal(
-                    rtn_values, np.ones(number_of_elements, dtype=np.float))
-            _test.description = '%s.test_add_zeros_%s_%s' % (
-                __name__, type, element)
+                    rtn_values, np.ones(number_of_elements, dtype=np.float)
+                )
+
+            _test.description = "%s.test_add_zeros_%s_%s" % (__name__, type, element)
             yield _test
 
 
 def test_empty():
-    elements = ['node', 'cell', 'link', 'face']
-    # elements += ['core_node', 'core_cell', 'active_link', 'active_face']
-
-    types = ['float', 'int', 'bool']
-
     for element in ELEMENTS:
         for type in TYPES:
+
             def _test():
                 rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
                 assert rmg.empty(centering=element).size == number_of_elements
-            _test.description = '%s.test_zeros_%s_%s' % (
-                __name__, type, element)
+
+            _test.description = "%s.test_zeros_%s_%s" % (__name__, type, element)
             yield _test
 
 
 def test_add_empty():
-    elements = ['node', 'cell', 'link', 'face']
-    # elements += ['core_node', 'core_cell', 'active_link', 'active_face']
-
-    types = ['float', 'int', 'bool']
-
     for element in ELEMENTS:
         for type in TYPES:
+
             def _test():
                 rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
-                rtn_values = rmg.add_empty(element, 'name')
-                assert rtn_values is rmg.field_values(element, 'name')
+                rtn_values = rmg.add_empty(element, "name")
+                assert rtn_values is rmg.field_values(element, "name")
                 assert_array_equal(rtn_values.size, number_of_elements)
-            _test.description = '%s.test_zeros_%s_%s' % (
-                __name__, type, element)
+
+            _test.description = "%s.test_zeros_%s_%s" % (__name__, type, element)
             yield _test

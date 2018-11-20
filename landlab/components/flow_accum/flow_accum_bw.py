@@ -26,10 +26,11 @@ Created: GT Nov 2013
 """
 import numpy
 from six.moves import range
+
 from .cfuncs import _add_to_stack
 
-class _DrainageStack():
 
+class _DrainageStack:
 
     """
     Implements Braun & Willett's add_to_stack function.
@@ -103,14 +104,14 @@ def _make_number_of_donors_array(r):
     array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
     """
     # Vectorized, DEJH, 5/20/14
-#    np = len(r)
-#    nd = numpy.zeros(np, dtype=int)
-#    for i in range(np):
-#        nd[r[i]] += 1
+    #    np = len(r)
+    #    nd = numpy.zeros(np, dtype=int)
+    #    for i in range(np):
+    #        nd[r[i]] += 1
 
     nd = numpy.zeros(r.size, dtype=int)
     max_index = numpy.max(r)
-    nd[:(max_index + 1)] = numpy.bincount(r)
+    nd[: (max_index + 1)] = numpy.bincount(r)
     return nd
 
 
@@ -146,19 +147,20 @@ def _make_delta_array(nd):
     >>> delta
     array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
     """
-    #np = len(nd)
-    #delta = numpy.zeros(np+1, dtype=int)
-    #delta[np] = np   # not np+1 as in B&W because here we number from 0
-    #for i in range(np-1, -1, -1):
+    # np = len(nd)
+    # delta = numpy.zeros(np+1, dtype=int)
+    # delta[np] = np   # not np+1 as in B&W because here we number from 0
+    # for i in range(np-1, -1, -1):
     #    delta[i] = delta[i+1] - nd[i]
-    #return delta
+    # return delta
 
-    #DEJH efficient delooping (only a small gain)
+    # DEJH efficient delooping (only a small gain)
     np = len(nd)
-    delta = numpy.zeros(np+1, dtype=int)
+    delta = numpy.zeros(np + 1, dtype=int)
     delta.fill(np)
     delta[-2::-1] -= numpy.cumsum(nd[::-1])
     return delta
+
 
 def _make_array_of_donors(r, delta):
 
@@ -191,23 +193,23 @@ def _make_array_of_donors(r, delta):
 
     for i in range(np):
         ri = r[i]
-        D[delta[ri]+w[ri]] = i
+        D[delta[ri] + w[ri]] = i
         w[ri] += 1
 
     return D
 
-    #DEJH notes that for reasons he's not clear on, this looped version is
-    #actually much slower!
-    #D = numpy.zeros(np, dtype=int)
-    #wri_fin = numpy.bincount(r)
-    #wri_fin_nz = wri_fin.nonzero()[0]
-    #wri_fin_nz_T = wri_fin_nz.reshape((wri_fin_nz.size,1))
-    #logical = numpy.tile(r,(wri_fin_nz.size,1))==wri_fin_nz_T
-    #cum_logical = numpy.cumsum(logical, axis=1)
-    #wri = numpy.sum(numpy.where(logical, cum_logical-1,0) ,axis=0)
-    #D_index = delta[r] + wri
-    #D[D_index] = numpy.arange(r.size)
-    #return D
+    # DEJH notes that for reasons he's not clear on, this looped version is
+    # actually much slower!
+    # D = numpy.zeros(np, dtype=int)
+    # wri_fin = numpy.bincount(r)
+    # wri_fin_nz = wri_fin.nonzero()[0]
+    # wri_fin_nz_T = wri_fin_nz.reshape((wri_fin_nz.size,1))
+    # logical = numpy.tile(r,(wri_fin_nz.size,1))==wri_fin_nz_T
+    # cum_logical = numpy.cumsum(logical, axis=1)
+    # wri = numpy.sum(numpy.where(logical, cum_logical-1,0) ,axis=0)
+    # D_index = delta[r] + wri
+    # D[D_index] = numpy.arange(r.size)
+    # return D
 
 
 def make_ordered_node_array(receiver_nodes):
@@ -230,20 +232,21 @@ def make_ordered_node_array(receiver_nodes):
     array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     """
     node_id = numpy.arange(receiver_nodes.size)
-    baselevel_nodes = numpy.where(node_id==receiver_nodes)[0]
+    baselevel_nodes = numpy.where(node_id == receiver_nodes)[0]
     nd = _make_number_of_donors_array(receiver_nodes)
     delta = _make_delta_array(nd)
     D = _make_array_of_donors(receiver_nodes, delta)
     dstack = _DrainageStack(delta, D)
     add_it = dstack.add_to_stack
     for k in baselevel_nodes:
-        add_it(k) #don't think this is a bottleneck, so no C++
+        add_it(k)  # don't think this is a bottleneck, so no C++
 
     return dstack.s
 
 
-def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
-                                     boundary_nodes=None):
+def find_drainage_area_and_discharge(
+    s, r, node_cell_area=1.0, runoff=1.0, boundary_nodes=None
+):
 
     """Calculate the drainage area and water discharge at each node.
 
@@ -259,7 +262,9 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     runoff : float or ndarray
         Local runoff rate at each cell (in water depth per time). If it's an
         array, must have same length as s (that is, the number of nodes).
-
+    boundary_nodes: list, optional
+        Array of boundary nodes to have discharge and drainage area set to zero.
+        Default value is None.
     Returns
     -------
     tuple of ndarray
@@ -299,7 +304,7 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     # donors) grows from there. Discharge starts out as the cell's local runoff
     # rate times the cell's surface area.
     drainage_area = numpy.zeros(np, dtype=int) + node_cell_area
-    discharge = numpy.zeros(np, dtype=int) + node_cell_area*runoff
+    discharge = numpy.zeros(np, dtype=int) + node_cell_area * runoff
 
     # Optionally zero out drainage area and discharge at boundary nodes
     if boundary_nodes is not None:
@@ -308,7 +313,7 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
 
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
-    for i in range(np-1, -1, -1):
+    for i in range(np - 1, -1, -1):
         donor = s[i]
         recvr = r[donor]
         if donor != recvr:
@@ -318,8 +323,9 @@ def find_drainage_area_and_discharge(s, r, node_cell_area=1.0, runoff=1.0,
     return drainage_area, discharge
 
 
-def flow_accumulation(receiver_nodes, node_cell_area=1.0,
-                      runoff_rate=1.0, boundary_nodes=None):
+def flow_accumulation(
+    receiver_nodes, node_cell_area=1.0, runoff_rate=1.0, boundary_nodes=None
+):
 
     """Calculate drainage area and (steady) discharge.
 
@@ -341,16 +347,18 @@ def flow_accumulation(receiver_nodes, node_cell_area=1.0,
     """
 
     s = make_ordered_node_array(receiver_nodes)
-    #Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't!
-    #But as we don't have a copy of the grid accessible here, we'll solve this
-    #problem as part of route_flow_dn.
+    # Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't!
+    # But as we don't have a copy of the grid accessible here, we'll solve this
+    # problem as part of route_flow_dn.
 
-    a, q = find_drainage_area_and_discharge(s, receiver_nodes, node_cell_area,
-                                            runoff_rate, boundary_nodes)
+    a, q = find_drainage_area_and_discharge(
+        s, receiver_nodes, node_cell_area, runoff_rate, boundary_nodes
+    )
 
     return a, q, s
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":  # pragma: no cover
     import doctest
+
     doctest.testmod()

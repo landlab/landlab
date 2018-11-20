@@ -1,10 +1,9 @@
 import numpy as np
+import six
 import xarray as xr
 
-import six
-
-from .scalar_data_fields import FieldError
 from .grouped import GroupError
+from .scalar_data_fields import FieldError
 
 
 def reshape_for_storage(array, field_size=None):
@@ -125,10 +124,10 @@ def shape_for_storage(array, field_size=None):
         field_size = array.size
 
     if array.size % field_size != 0:
-        raise ValueError('unable to reshape array to field size')
+        raise ValueError("unable to reshape array to field size")
 
     if field_size in (1, array.size):
-        shape = (array.size, )
+        shape = (array.size,)
     else:
         shape = (field_size, array.size // field_size)
 
@@ -149,7 +148,7 @@ class FieldDataset(dict):
 
     def __init__(self, *args, **kwds):
         self._name, self._size = args[0], args[1]
-        self._fixed_size = bool(kwds.get('fixed_size', True))
+        self._fixed_size = bool(kwds.get("fixed_size", True))
         self._ds = xr.Dataset()
         self._units = {}
 
@@ -174,7 +173,7 @@ class FieldDataset(dict):
 
     def set_value(self, name, value_array, attrs=None):
         attrs = attrs or {}
-        attrs.setdefault('units', '?')
+        attrs.setdefault("units", "?")
 
         value_array = np.asarray(value_array)
 
@@ -182,28 +181,26 @@ class FieldDataset(dict):
             self._size = value_array.size
 
         if name in self._ds and self._ds[name].values is value_array:
-            self._ds[name].values.shape = shape_for_storage(value_array,
-                                                            self.size)
+            self._ds[name].values.shape = shape_for_storage(value_array, self.size)
             return
 
         value_array = reshape_for_storage(value_array, self._size)
 
         if self.size == 1:
             if value_array.ndim > 0:
-                dims = (name + '_per_' + self._name, )
+                dims = (name + "_per_" + self._name,)
             else:
                 dims = ()
         else:
-            dims = (self._name, )
+            dims = (self._name,)
             if value_array.ndim > 1:
-                dims += (name + '_per_' + self._name, )
+                dims += (name + "_per_" + self._name,)
 
         if name in self._ds:
             self._ds = self._ds.drop(name)
 
-        self._ds.update({name: xr.DataArray(value_array, dims=dims,
-                                            attrs=attrs)})
-        self._units[name] = attrs['units']
+        self._ds.update({name: xr.DataArray(value_array, dims=dims, attrs=attrs)})
+        self._units[name] = attrs["units"]
 
     def __getitem__(self, name):
         if isinstance(name, six.string_types):
@@ -212,7 +209,7 @@ class FieldDataset(dict):
             except KeyError:
                 raise FieldError(name)
         else:
-            raise TypeError('field name not a string')
+            raise TypeError("field name not a string")
 
     def __setitem__(self, name, value_array):
         self.set_value(name, value_array)
@@ -321,11 +318,11 @@ class GraphFields(object):
         for loc in dims:
             self.new_field_location(loc, dims[loc])
 
-        self.default_group = kwds.get('default_group', None)
+        self.default_group = kwds.get("default_group", None)
 
     def __getitem__(self, name):
         try:
-            return getattr(self, 'at_' + name)
+            return getattr(self, "at_" + name)
         except AttributeError:
             raise GroupError(name)
 
@@ -338,7 +335,7 @@ class GraphFields(object):
         if self.has_group(loc) or loc is None:
             self._default_group = loc
         else:
-            raise ValueError('{loc} is not a valid group name'.format(loc=loc))
+            raise ValueError("{loc} is not a valid group name".format(loc=loc))
 
     def new_field_location(self, loc, size=None):
         """Add a new quantity to a field.
@@ -392,12 +389,12 @@ class GraphFields(object):
 
         LLCATS: FIELDCR
         """
-        dataset_name = 'at_' + loc
+        dataset_name = "at_" + loc
         if loc not in self._groups:
             setattr(self, dataset_name, FieldDataset(loc, size))
             self._groups.add(loc)
         else:
-            raise ValueError('{loc} location already exists'.format(loc=loc))
+            raise ValueError("{loc} location already exists".format(loc=loc))
 
     @property
     def groups(self):
@@ -621,7 +618,7 @@ class GraphFields(object):
 
         LLCATS: FIELDINF
         """
-        return self[group]._ds[field].attrs['units']
+        return self[group]._ds[field].attrs["units"]
 
     def empty(self, *args, **kwds):
         """Uninitialized array whose size is that of the field.
@@ -660,20 +657,22 @@ class GraphFields(object):
         LLCATS: FIELDCR
         """
         if len(args) == 0:
-            group = kwds.pop('at', kwds.pop('centering', 'node'))
+            group = kwds.pop("at", kwds.pop("centering", "node"))
         else:
             group = args[0]
-        
-        if group == 'grid':
-            raise ValueError("ones is not supported for at='grid', if you "
-                             "want to create a field at the grid, use\n"
-                             "grid.at_grid['value_name']=value\n"
-                             "instead.\nAlternatively, if you want ones"
-                             "of the shape stored at_grid, use np.array(1).")
 
-        size = getattr(self, 'at_{group}'.format(group=group)).size
+        if group == "grid":
+            raise ValueError(
+                "ones is not supported for at='grid', if you "
+                "want to create a field at the grid, use\n"
+                "grid.at_grid['value_name']=value\n"
+                "instead.\nAlternatively, if you want ones"
+                "of the shape stored at_grid, use np.array(1)."
+            )
+
+        size = getattr(self, "at_{group}".format(group=group)).size
         if size is None:
-            raise ValueError('group is not yet sized.')
+            raise ValueError("group is not yet sized.")
 
         return np.empty(size, **kwds)
 
@@ -728,8 +727,8 @@ class GraphFields(object):
         Return a new array of the data field size, filled with zeros. Keyword
         arguments are the same as that for the equivalent numpy function.
 
-        This method is not valid for the group *grid*.        
-        
+        This method is not valid for the group *grid*.
+
         See Also
         --------
         numpy.zeros : See for a description of optional keywords.
@@ -765,9 +764,9 @@ class GraphFields(object):
         Add an array of data values to a collection of fields and associate it
         with the key, *name*. Use the *copy* keyword to, optionally, add a
         copy of the provided array.
-        
+
         In the case of adding to the collection *grid*, the added field is a
-        numpy scalar rather than a numpy array. 
+        numpy scalar rather than a numpy array.
 
         Parameters
         ----------
@@ -834,34 +833,33 @@ class GraphFields(object):
         if len(args) == 3:
             at, name, value_array = args
         elif len(args) == 2:
-            at, name, value_array = (kwds.pop('at', None),
-                                     args[0], args[1])
+            at, name, value_array = (kwds.pop("at", None), args[0], args[1])
         else:
-            raise ValueError('number of arguments must be 2 or 3')
+            raise ValueError("number of arguments must be 2 or 3")
 
-        units = kwds.get('units', '?')
-        copy = kwds.get('copy', False)
-        noclobber = kwds.get('noclobber', True)
+        units = kwds.get("units", "?")
+        copy = kwds.get("copy", False)
+        noclobber = kwds.get("noclobber", True)
         value_array = np.asarray(value_array)
 
         at = at or self.default_group
         if at is None:
-            raise ValueError('no group specified')
+            raise ValueError("no group specified")
 
-        attrs = {'long_name': name}
-        attrs['units'] = units
+        attrs = {"long_name": name}
+        attrs["units"] = units
 
         if copy:
             value_array = value_array.copy()
 
-        ds = getattr(self, 'at_' + at)
+        ds = getattr(self, "at_" + at)
 
         if noclobber and name in ds:
-            raise FieldError('{name}@{at}'.format(name=name, at=at))
+            raise FieldError("{name}@{at}".format(name=name, at=at))
 
-        dims = (at, )
+        dims = (at,)
         if value_array.ndim > 1:
-            dims += (name + '_per_' + at, )
+            dims += (name + "_per_" + at,)
             value_array = value_array.reshape((value_array.shape[0], -1))
 
         ds[name] = value_array
@@ -885,7 +883,7 @@ class GraphFields(object):
         LLCATS: FIELDCR
         """
         try:
-            ds = getattr(self, 'at_' + loc)
+            ds = getattr(self, "at_" + loc)
         except AttributeError:
             raise KeyError(loc)
         ds._ds = ds._ds.drop(name)
@@ -899,7 +897,7 @@ class GraphFields(object):
         entries, and add it to the field as *name*. The *units* keyword gives
         the units of the new fields as a string. Remaining keyword arguments
         are the same as that for the equivalent numpy function.
-        
+
         This method is not valid for the group *grid*.
 
         Parameters
@@ -932,14 +930,20 @@ class GraphFields(object):
         if len(args) == 2:
             loc, name = args
         elif len(args) == 1:
-            loc, name = kwds.pop('at'), args[0]
+            loc, name = kwds.pop("at"), args[0]
         else:
-            raise ValueError('number of arguments must be 1 or 2')
-        units = kwds.pop('units', '?')
-        copy = kwds.pop('copy', False)
-        noclobber = kwds.pop('noclobber', True)
-        return self.add_field(name, self.empty(at=loc, **kwds), at=loc,
-                              units=units, copy=copy, noclobber=noclobber)
+            raise ValueError("number of arguments must be 1 or 2")
+        units = kwds.pop("units", "?")
+        copy = kwds.pop("copy", False)
+        noclobber = kwds.pop("noclobber", True)
+        return self.add_field(
+            name,
+            self.empty(at=loc, **kwds),
+            at=loc,
+            units=units,
+            copy=copy,
+            noclobber=noclobber,
+        )
 
     def add_ones(self, *args, **kwds):
         """add_ones(name, at='node', units='-', noclobber=True)
@@ -950,7 +954,7 @@ class GraphFields(object):
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
         as that for the equivalent numpy function.
-        
+
         This method is not valid for the group *grid*.
 
         Parameters
@@ -1073,7 +1077,7 @@ class GraphFields(object):
         elif len(args) == 2:
             fill_value = args[1]
         else:
-            raise ValueError('number of arguments must be 2 or 3')
+            raise ValueError("number of arguments must be 2 or 3")
 
         data = self.add_empty(*args, **kwds)
         data.fill(fill_value)

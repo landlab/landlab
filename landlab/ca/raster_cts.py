@@ -10,8 +10,8 @@ pair-based CA.
 Created GT Sep 2014, starting from link_ca.py.
 """
 
-from .celllab_cts import CellLabCTSModel
 from ..grid import RasterModelGrid
+from .celllab_cts import CellLabCTSModel
 
 
 class RasterCTS(CellLabCTSModel):
@@ -51,8 +51,16 @@ class RasterCTS(CellLabCTSModel):
     >>> nsg = mg.add_zeros('node', 'node_state_grid')
     >>> rcts = RasterCTS(mg, nsd, xnlist, nsg)
     """
-    def __init__(self, model_grid, node_state_dict, transition_list,
-                 initial_node_states, prop_data=None, prop_reset_value=None):
+
+    def __init__(
+        self,
+        model_grid,
+        node_state_dict,
+        transition_list,
+        initial_node_states,
+        prop_data=None,
+        prop_reset_value=None,
+    ):
         """
         RasterLCA constructor: sets number of orientations to 1 and calls
         base-class constructor.
@@ -76,7 +84,7 @@ class RasterCTS(CellLabCTSModel):
         """
         # Make sure caller has sent the right grid type
         if not isinstance(model_grid, RasterModelGrid):
-            raise TypeError('model_grid must be a Landlab RasterModelGrid')
+            raise TypeError("model_grid must be a Landlab RasterModelGrid")
 
         # Define the number of distinct cell-pair orientations: here just 1,
         # because RasterLCA represents a non-oriented CA model.
@@ -84,10 +92,17 @@ class RasterCTS(CellLabCTSModel):
 
         # Call the LandlabCellularAutomaton.__init__() method to do the rest of
         # the initialization
-        super(RasterCTS, self).__init__(model_grid, node_state_dict,
-            transition_list, initial_node_states, prop_data, prop_reset_value)
+        super(RasterCTS, self).__init__(
+            model_grid,
+            node_state_dict,
+            transition_list,
+            initial_node_states,
+            prop_data,
+            prop_reset_value,
+        )
 
 
-if __name__=='__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

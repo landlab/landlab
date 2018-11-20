@@ -6,21 +6,30 @@ Created on Sun Sep 27 09:52:50, 2015
 
 @author: gtucker, amended dejh
 """
+import numpy as np  # for use of np.round
+import pytest
+from numpy import pi, sin
+from numpy.testing import assert_array_equal
 from pytest import approx
 
-import landlab
-from landlab import RasterModelGrid
-from landlab.components.flow_routing import FlowRouter, DepressionFinderAndRouter
-from numpy import sin, pi
-import numpy as np  # for use of np.round
-from numpy.testing import assert_array_equal
-from landlab import BAD_INDEX_VALUE as XX
-
+from landlab import BAD_INDEX_VALUE as XX, RasterModelGrid
+from landlab.components import DepressionFinderAndRouter, FlowAccumulator
 
 NUM_GRID_ROWS = 8
 NUM_GRID_COLS = 8
 PERIOD_X = 8.
 PERIOD_Y = 4.
+
+
+def test_route_to_multiple_error_raised():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros("node", "topographic__elevation")
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg, flow_director="MFD")
+    fa.run_one_step()
+
+    with pytest.raises(NotImplementedError):
+        DepressionFinderAndRouter(mg)
 
 
 def create_test_grid():
@@ -53,7 +62,7 @@ def check_fields1(grid):
         grid.at_node["depression__depth"]
         grid.at_node["depression__outlet_node"]
         grid.at_node["is_pit"]
-    except:
+    except KeyError:
         print("Test failure in check_fields")
         raise
 
@@ -496,7 +505,7 @@ def check_fields2(grid):
         grid.at_node["depression__depth"]
         grid.at_node["depression__outlet_node"]
         grid.at_node["is_pit"]
-    except:
+    except KeyError:
         print("Test failure in check_fields")
         raise
 
@@ -954,18 +963,18 @@ def test_lake_mapper():
 
 def test_initial_routing(dans_grid3):
     """
-    Test the action of fr.route_flow() on the grid.
+    Test the action of fr.run_one_step() on the grid.
     """
-    dans_grid3.fr.route_flow()
+    dans_grid3.fr.run_one_step()
     assert dans_grid3.mg.at_node["flow__receiver_node"] == approx(dans_grid3.r_old)
     assert dans_grid3.mg.at_node["drainage_area"] == approx(dans_grid3.A_old)
 
 
 def test_rerouting_with_supplied_pits(dans_grid3):
     """
-    Test with the output from a successful run of fr.route_flow.
+    Test with the output from a successful run of fr.run_one_step.
     """
-    dans_grid3.fr.route_flow()
+    dans_grid3.fr.run_one_step()
     assert_array_equal(
         dans_grid3.mg.at_node["flow__link_to_receiver_node"], dans_grid3.links_old
     )
@@ -983,7 +992,7 @@ def test_rerouting_with_supplied_pits(dans_grid3):
 
 def test_changing_slopes(dans_grid3):
     """
-    Test with the output from a successful run of fr.route_flow.
+    Test with the output from a successful run of fr.run_one_step.
     """
     slope_old = np.array(
         [
@@ -1100,7 +1109,7 @@ def test_changing_slopes(dans_grid3):
 def test_filling_alone(dans_grid3):
     """
     Test the filler alone, w/o supplying information on the pits.
-    
+
     Setting the the *pits* parameter to None causes the mapper to look for pits
     using its _find_pits method.
     """
@@ -1119,7 +1128,7 @@ def test_filling_supplied_pits(dans_grid3):
     aready routing information available!
     Also tests the supply of an array for 'pits'
     """
-    dans_grid3.fr.route_flow()
+    dans_grid3.fr.run_one_step()
     dans_grid3.lf.map_depressions(
         pits=dans_grid3.mg.at_node["flow__sink_flag"], reroute_flow=False
     )
@@ -1130,7 +1139,7 @@ def test_pits_as_IDs(dans_grid3):
     """
     Smoke test for passing specific IDs, not an array, to the mapper.
     """
-    dans_grid3.fr.route_flow()
+    dans_grid3.fr.run_one_step()
     dans_grid3.lf.map_depressions(
         pits=np.where(dans_grid3.mg.at_node["flow__sink_flag"])[0]
     )
@@ -1267,10 +1276,10 @@ def test_edge_draining():
 
     mg.add_field("node", "topographic__elevation", z, units="-")
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director="D8")
     lf = DepressionFinderAndRouter(mg)
 
-    fr.route_flow()
+    fr.run_one_step()
     lf.map_depressions()
     assert mg.at_node["drainage_area"] == approx(A_new)
     assert lf.depression_outlet_map == approx(depr_outlet_target)
@@ -1288,11 +1297,11 @@ def test_degenerate_drainage():
     z_init[22] = 0.  # the common spill pt for both lakes
     z_init[21] = 0.1  # an adverse bump in the spillway
     z_init[20] = -0.2  # the spillway
-    z = mg.add_field("node", "topographic__elevation", z_init)
+    mg.add_field("node", "topographic__elevation", z_init)
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director="D8")
     lf = DepressionFinderAndRouter(mg)
-    fr.route_flow()
+    fr.run_one_step()
     lf.map_depressions()
 
     #    correct_A = np.array([ 0.,   0.,   0.,   0.,   0.,
@@ -1355,8 +1364,6 @@ def test_degenerate_drainage():
         ]
     )
 
-    thelake = np.concatenate((lake_pits, [22])).sort()
-
     assert mg.at_node["drainage_area"] == approx(correct_A)
 
 
@@ -1375,9 +1382,9 @@ def test_three_pits():
     z[43] = 1.
     z[37] = 4.
     z[74:76] = 1.
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director="D8")
     lf = DepressionFinderAndRouter(mg)
-    fr.route_flow()
+    fr.run_one_step()
     lf.map_depressions()
 
     flow_sinks_target = np.zeros(100, dtype=bool)
@@ -1532,9 +1539,9 @@ def test_composite_pits():
     # make an outlet
     z[71] = 0.9
 
-    fr = FlowRouter(mg)
+    fr = FlowAccumulator(mg, flow_director="D8")
     lf = DepressionFinderAndRouter(mg)
-    fr.route_flow()
+    fr.run_one_step()
     lf.map_depressions()
 
     flow_sinks_target = np.zeros(100, dtype=bool)
@@ -1816,8 +1823,8 @@ def test_D8_D4_route(d4_grid):
     """
     Tests the functionality of D4 routing.
     """
-    d4_grid.frD8.route_flow()
-    d4_grid.frD4.route_flow()
+    d4_grid.frD8.run_one_step()
+    d4_grid.frD4.run_one_step()
     d4_grid.lfD8.map_depressions()
     d4_grid.lfD4.map_depressions()
     assert d4_grid.lfD8.number_of_lakes == 1

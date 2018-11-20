@@ -4,6 +4,7 @@ env:
   - TRAVIS_PYTHON_VERSION="3.5" BUILD_DOCS=0 REPORT_TO_COVERALLS=0 DEPLOY=0
   - TRAVIS_PYTHON_VERSION="3.6" BUILD_DOCS=0 REPORT_TO_COVERALLS=0 DEPLOY=0
   global:
+  - MPLBACKEND=Agg
   - CONDA_PREFIX=$HOME/miniconda
   - MINICONDA_URL_BASE="https://repo.continuum.io/miniconda/Miniconda3-latest"
   - secure: wuv2O1M29pkfAjPbOK1MetIf3teDrG4VTepDOps2YFLMzcoJBlJeTqEneVcHb/q2dz5SefjxQQrbLjgZNOURiS1IT2z24srNDPbp8OAsv9nsqAGZO40eWecCRa+u+P+Wh0pZ8urz/ptTir0qFIQ/yz5hoEPx4ScktHkn23V+/fM=
@@ -11,6 +12,7 @@ env:
 os:
 - linux
 - osx
+osx_image: xcode6.4
 sudo: false
 filter_secrets: false
 before_install:
@@ -32,6 +34,9 @@ before_install:
   if [[ "$TRAVIS_TAG" == v* ]]; then
     DEPLOY=1
   fi
+- |
+  mkdir -p $HOME/.matplotlib
+  echo "backend: Agg" > $HOME/.matplotlib/matplotlibrc
 install:
 - echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION, $TRAVIS_TAG"
 - |
@@ -47,20 +52,20 @@ install:
 - conda config --set always_yes yes --set changeps1 no
 - conda create -n _testing python=$TRAVIS_PYTHON_VERSION
 - source activate _testing
-- conda install -q conda-build=3.0 anaconda-client coverage coveralls sphinx pytest pytest-cov
+- conda install -q conda-build=3.0 anaconda-client coverage coveralls sphinx pytest pytest-cov flake8
 - conda info -a && conda list
 script:
 - conda install --file=requirements.txt
 - python setup.py develop
 - pytest --cov --cov-report=xml:$(pwd)/coverage.xml
+- make lint
 - |
   if [[ "$REPORT_TO_COVERALLS" == "1" ]]; then
     coveralls
   fi
 - |
   if [[ "$BUILD_DOCS" == "1" ]]; then
-    echo "WARNING: NOT BUILDING DOCS"
-    # (cd docs && make html)
+    (cd docs && make html)
   fi
 - |
   if [[ "$DEPLOY" == "1" ]]; then

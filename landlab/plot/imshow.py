@@ -14,19 +14,23 @@ Plotting functions
 """
 
 
-import numpy as np
 import inspect
+
+import numpy as np
+
 from landlab.field.scalar_data_fields import FieldError
-try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    import warnings
-    warnings.warn('matplotlib not found', ImportWarning)
 from landlab.grid import CLOSED_BOUNDARY
 from landlab.grid.raster import RasterModelGrid
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 from landlab.plot.event_handler import query_grid_on_button_press
 from landlab.utils.decorators import deprecated
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    import warnings
+
+    warnings.warn("matplotlib not found", ImportWarning)
 
 
 def imshow_grid_at_node(grid, values, **kwds):
@@ -118,29 +122,31 @@ def imshow_grid_at_node(grid, values, **kwds):
     if isinstance(values, str):
         values_at_node = grid.at_node[values]
     else:
-        values_at_node = values.reshape((-1, ))
+        values_at_node = values.reshape((-1,))
 
     if values_at_node.size != grid.number_of_nodes:
-        raise ValueError('number of values does not match number of nodes')
+        raise ValueError("number of values does not match number of nodes")
 
     values_at_node = np.ma.masked_where(
-        grid.status_at_node == CLOSED_BOUNDARY, values_at_node)
+        grid.status_at_node == CLOSED_BOUNDARY, values_at_node
+    )
 
     try:
         shape = grid.shape
     except AttributeError:
-        shape = (-1, )
+        shape = (-1,)
 
     _imshow_grid_values(grid, values_at_node.reshape(shape), **kwds)
 
     if isinstance(values, str):
         plt.title(values)
 
-    plt.gcf().canvas.mpl_connect('button_press_event',
-       lambda event: query_grid_on_button_press(event, grid))
+    plt.gcf().canvas.mpl_connect(
+        "button_press_event", lambda event: query_grid_on_button_press(event, grid)
+    )
 
 
-@deprecated(use='imshow_grid_at_node', version='0.5')
+@deprecated(use="imshow_grid_at_node", version="0.5")
 def imshow_node_grid(grid, values, **kwds):
     imshow_grid_at_node(grid, values, **kwds)
 
@@ -232,16 +238,17 @@ def imshow_grid_at_cell(grid, values, **kwds):
         values_at_cell = values_at_cell[grid.node_at_cell]
 
     if values_at_cell.size != grid.number_of_cells:
-        raise ValueError('number of values must match number of cells or '
-                         'number of nodes')
+        raise ValueError(
+            "number of values must match number of cells or " "number of nodes"
+        )
 
     values_at_cell = np.ma.asarray(values_at_cell)
     values_at_cell.mask = True
     values_at_cell.mask[grid.core_cells] = False
 
-    myimage = _imshow_grid_values(grid,
-                                  values_at_cell.reshape(grid.cell_grid_shape),
-                                  **kwds)
+    myimage = _imshow_grid_values(
+        grid, values_at_cell.reshape(grid.cell_grid_shape), **kwds
+    )
 
     if isinstance(values, str):
         plt.title(values)
@@ -249,19 +256,32 @@ def imshow_grid_at_cell(grid, values, **kwds):
     return myimage
 
 
-@deprecated(use='imshow_grid_at_cell', version='0.5')
+@deprecated(use="imshow_grid_at_cell", version="0.5")
 def imshow_cell_grid(grid, values, **kwds):
     imshow_grid_at_cell(grid, values, **kwds)
 
 
-def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
-                        var_units=None, grid_units=(None, None),
-                        symmetric_cbar=False, cmap='pink', limits=None,
-                        colorbar_label = None,
-                        allow_colorbar=True, vmin=None, vmax=None,
-                        norm=None, shrink=1., color_for_closed='black',
-                        color_for_background=None, show_elements=False,
-                        output=None):
+def _imshow_grid_values(
+    grid,
+    values,
+    plot_name=None,
+    var_name=None,
+    var_units=None,
+    grid_units=(None, None),
+    symmetric_cbar=False,
+    cmap="pink",
+    limits=None,
+    colorbar_label=None,
+    allow_colorbar=True,
+    vmin=None,
+    vmax=None,
+    norm=None,
+    shrink=1.,
+    color_for_closed="black",
+    color_for_background=None,
+    show_elements=False,
+    output=None,
+):
 
     gridtypes = inspect.getmro(grid.__class__)
 
@@ -273,36 +293,40 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
 
     if isinstance(grid, RasterModelGrid):
         if values.ndim != 2:
-            raise ValueError('values must have ndim == 2')
+            raise ValueError("values must have ndim == 2")
 
         y = np.arange(values.shape[0] + 1) * grid.dy - grid.dy * .5
         x = np.arange(values.shape[1] + 1) * grid.dx - grid.dx * .5
 
         kwds = dict(cmap=cmap)
-        (kwds['vmin'], kwds['vmax']) = (values.min(), values.max())
+        (kwds["vmin"], kwds["vmax"]) = (values.min(), values.max())
         if (limits is None) and ((vmin is None) and (vmax is None)):
             if symmetric_cbar:
                 (var_min, var_max) = (values.min(), values.max())
                 limit = max(abs(var_min), abs(var_max))
-                (kwds['vmin'], kwds['vmax']) = (- limit, limit)
+                (kwds["vmin"], kwds["vmax"]) = (-limit, limit)
         elif limits is not None:
-            (kwds['vmin'], kwds['vmax']) = (limits[0], limits[1])
+            (kwds["vmin"], kwds["vmax"]) = (limits[0], limits[1])
         else:
             if vmin is not None:
-                kwds['vmin'] = vmin
+                kwds["vmin"] = vmin
             if vmax is not None:
-                kwds['vmax'] = vmax
+                kwds["vmax"] = vmax
 
         if np.isclose(grid.dx, grid.dy):
             if values.size == grid.number_of_nodes:
                 myimage = plt.imshow(
-                    values.reshape(grid.shape), origin='lower',
-                    extent=(x[0], x[-1], y[0], y[-1]), **kwds)
+                    values.reshape(grid.shape),
+                    origin="lower",
+                    extent=(x[0], x[-1], y[0], y[-1]),
+                    **kwds
+                )
             else:  # this is a cell grid, and has been reshaped already...
-                myimage = plt.imshow(values, origin='lower',
-                                     extent=(x[0], x[-1], y[0], y[-1]), **kwds)
+                myimage = plt.imshow(
+                    values, origin="lower", extent=(x[0], x[-1], y[0], y[-1]), **kwds
+                )
         myimage = plt.pcolormesh(x, y, values, **kwds)
-
+        myimage.set_rasterized(True)
         plt.gca().set_aspect(1.)
         plt.autoscale(tight=True)
 
@@ -320,19 +344,24 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
         from scipy.spatial import voronoi_plot_2d
         import matplotlib.colors as colors
         import matplotlib.cm as cmx
+
         cm = plt.get_cmap(cmap)
 
         if (limits is None) and ((vmin is None) and (vmax is None)):
             # only want to work with NOT CLOSED nodes
             open_nodes = grid.status_at_node != 4
             if symmetric_cbar:
-                (var_min, var_max) = (values.flat[
-                    open_nodes].min(), values.flat[open_nodes].max())
+                (var_min, var_max) = (
+                    values.flat[open_nodes].min(),
+                    values.flat[open_nodes].max(),
+                )
                 limit = max(abs(var_min), abs(var_max))
-                (vmin, vmax) = (- limit, limit)
+                (vmin, vmax) = (-limit, limit)
             else:
-                (vmin, vmax) = (values.flat[
-                    open_nodes].min(), values.flat[open_nodes].max())
+                (vmin, vmax) = (
+                    values.flat[open_nodes].min(),
+                    values.flat[open_nodes].max(),
+                )
         elif limits is not None:
             (vmin, vmax) = (limits[0], limits[1])
         else:
@@ -347,8 +376,7 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
         colorVal = scalarMap.to_rgba(values)
 
         if show_elements:
-            myimage = voronoi_plot_2d(grid.vor, show_vertices=False,
-                                      show_points=False)
+            myimage = voronoi_plot_2d(grid.vor, show_vertices=False, show_points=False)
 
         # show_points to be supported in scipy0.18, but harmless for now
         mycolors = (i for i in colorVal)
@@ -374,36 +402,36 @@ def _imshow_grid_values(grid, values, plot_name=None, var_name=None,
 
     if grid_units[1] is None and grid_units[0] is None:
         grid_units = grid.axis_units
-        if grid_units[1] == '-' and grid_units[0] == '-':
-            plt.xlabel('X')
-            plt.ylabel('Y')
+        if grid_units[1] == "-" and grid_units[0] == "-":
+            plt.xlabel("X")
+            plt.ylabel("Y")
         else:
-            plt.xlabel('X (%s)' % grid_units[1])
-            plt.ylabel('Y (%s)' % grid_units[0])
+            plt.xlabel("X (%s)" % grid_units[1])
+            plt.ylabel("Y (%s)" % grid_units[0])
     else:
-        plt.xlabel('X (%s)' % grid_units[1])
-        plt.ylabel('Y (%s)' % grid_units[0])
+        plt.xlabel("X (%s)" % grid_units[1])
+        plt.ylabel("Y (%s)" % grid_units[0])
 
     if plot_name is not None:
-        plt.title('%s' % (plot_name))
+        plt.title("%s" % (plot_name))
 
     if var_name is not None or var_units is not None:
         if var_name is not None:
             assert type(var_name) is str
             if var_units is not None:
                 assert type(var_units) is str
-                colorbar_label = var_name + ' (' + var_units + ')'
+                colorbar_label = var_name + " (" + var_units + ")"
             else:
                 colorbar_label = var_name
         else:
             assert type(var_units) is str
-            colorbar_label = '(' + var_units + ')'
+            colorbar_label = "(" + var_units + ")"
         assert type(colorbar_label) is str
         assert allow_colorbar
         cb.set_label(colorbar_label)
 
     if color_for_background is not None:
-        plt.gca().set_axis_bgcolor(color_for_background)
+        plt.gca().set_facecolor(color_for_background)
 
     if output is not None:
         if type(output) is str:
@@ -501,9 +529,9 @@ def imshow_grid(grid, values, **kwds):
         plt.savefig([string]) itself. If True, the function will call
         plt.show() itself once plotting is complete.
     """
-    show = kwds.pop('show', False)
-    values_at = kwds.pop('values_at', 'node')
-    values_at = kwds.pop('at', values_at)
+    show = kwds.pop("show", False)
+    values_at = kwds.pop("values_at", "node")
+    values_at = kwds.pop("at", values_at)
 
     if isinstance(values, str):
         values = grid.field_values(values_at, values)
@@ -511,12 +539,12 @@ def imshow_grid(grid, values, **kwds):
     if isinstance(values, str):
         values = grid.field_values(values_at, values)
 
-    if values_at == 'node':
+    if values_at == "node":
         imshow_grid_at_node(grid, values, **kwds)
-    elif values_at == 'cell':
+    elif values_at == "cell":
         imshow_grid_at_cell(grid, values, **kwds)
     else:
-        raise TypeError('value location %s not understood' % values_at)
+        raise TypeError("value location %s not understood" % values_at)
 
     # retained for backwards compatibility:
     if show:

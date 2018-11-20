@@ -10,8 +10,10 @@ automated fashion. To modify the text seen on the web, edit the files
 
 import numpy as np
 
-from .base import ModelGrid
+from landlab.utils.decorators import deprecated
+
 from ..graph import DualRadialGraph
+from .base import ModelGrid
 
 
 class RadialModelGrid(DualRadialGraph, ModelGrid):
@@ -66,8 +68,7 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
             1.,  2.,  1.,  2.,  2.,  2.,  2.])
     """
 
-    def __init__(self, num_shells=0, dr=1.0, origin_x=0.0, origin_y=0.0,
-                 **kwds):
+    def __init__(self, num_shells=0, dr=1.0, origin_x=0.0, origin_y=0.0, **kwds):
         """Create a circular grid.
 
         Create a circular grid in which grid nodes are placed at regular
@@ -99,8 +100,7 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         by six other nodes.
 
         >>> from landlab import RadialModelGrid
-        >>> omg = RadialModelGrid(num_shells=1, dr=1., origin_x=0.,
-        ...                       origin_y=0.)
+        >>> omg = RadialModelGrid(num_shells=1, dr=1.)
         >>> omg.number_of_nodes
         7
         >>> omg.number_of_cells
@@ -110,14 +110,25 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
 
         >>> omg = RadialModelGrid(2)
         >>> omg.number_of_nodes
-        20
+        19
         """
-        shape = (num_shells + 1, 6)
-        spacing = dr
-        origin = origin_y, origin_x
+        # shape = (num_shells + 1, 6)
+        # spacing = dr
+        # origin = origin_y, origin_x
 
-        DualRadialGraph.__init__(self, shape, spacing=spacing, origin=origin)
+        if "xy_of_center" not in kwds:
+            DualRadialGraph.__init__(
+                self,
+                (num_shells, int(2. * np.pi / dr)),
+                **kwds,
+                xy_of_center=(origin_x, origin_y)
+            )
+        else:
+            DualRadialGraph.__init__(self, (num_shells, int(2. * np.pi / dr)), **kwds)
         ModelGrid.__init__(self, **kwds)
+
+        # DualRadialGraph.__init__(self, shape, spacing=spacing, origin=origin)
+        # ModelGrid.__init__(self, **kwds)
 
         self._node_status = np.full(self.number_of_nodes,
                                     self.BC_NODE_IS_CORE, dtype=np.uint8)
@@ -128,9 +139,8 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         """
         LLCATS: GINF
         """
-        num_shells = params['num_shells']
-        dr = params.get('dr', 1.)
-        origin = params.get('origin', (0., 0.))
+        num_shells = params["num_shells"]
+        dr = params.get("dr", 1.)
+        origin = params.get("origin", (0., 0.))
 
-        return cls(num_shells=num_shells, dr=dr, origin_x=origin[0],
-                   origin_y=origin[1])
+        return cls(num_shells=num_shells, dr=dr, origin_x=origin[0], origin_y=origin[1])
