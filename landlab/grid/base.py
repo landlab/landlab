@@ -2131,7 +2131,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             return big_ordered_array
 
     @property
-    def faces_at_cell(self):
+    def REMOVE_faces_at_cell(self):
         """Return array containing face IDs at each cell.
 
         Creates array if it doesn't already exist.
@@ -2197,15 +2197,15 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             ]
             self._faces_at_cell[cell, :] = sorted_faces
 
-    def _create_faces_at_cell(self):
+    def REMOVE_create_faces_at_cell(self):
         """Construct faces_at_cell array.
 
         Examples
         --------
         >>> from landlab import HexModelGrid
         >>> hg = HexModelGrid(3, 3)
-        >>> hg._create_faces_at_cell()
-        >>> hg._faces_at_cell
+        >>> # hg._create_faces_at_cell()
+        >>> hg.faces_at_cell
         array([[ 5,  8,  7,  4,  0,  1],
                [ 6, 10,  9,  5,  2,  3]])
         """
@@ -3868,26 +3868,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         assert np.all(self._all_node_distances_map >= 0.)
 
         return self._all_node_distances_map, self._all_node_azimuths_map
-
-    def _sort_links_by_midpoint(self):
-        """Sort links in order first by midpoint x coordinate, then y.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid(3, 3)
-        >>> hg._sort_links_by_midpoint()
-        """
-        pts = np.zeros((self.number_of_links, 2))
-        pts[:, 0] = (
-            self.node_x[self.node_at_link_tail] + self.node_x[self.node_at_link_head]
-        ) / 2
-        pts[:, 1] = (
-            self.node_y[self.node_at_link_tail] + self.node_y[self.node_at_link_head]
-        ) / 2
-        indices = argsort_points_by_x_then_y(pts)
-        self.node_at_link_tail[:] = self.node_at_link_tail[indices]
-        self.node_at_link_head[:] = self.node_at_link_head[indices]
 
     def move_origin(self, origin):
         """Changes the x, y values of all nodes.  Initially a grid will have

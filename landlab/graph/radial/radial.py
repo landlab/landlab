@@ -1,6 +1,8 @@
 import numpy as np
 
+from ...core.utils import argsort_points_by_x_then_y
 from ..voronoi.voronoi import VoronoiGraph
+from ...utils.decorators import store_result_in_grid, read_only_array
 
 
 def number_of_nodes(shape):
@@ -13,16 +15,22 @@ def create_xy_of_node(shape, spacing=1., xy_of_center=(0., 0.)):
 
     x = np.empty((n_nodes,), dtype=float)
     y = np.empty((n_nodes,), dtype=float)
+    # nodes_per_shell = np.round(2. * np.pi * np.arange(1, n_shells + 1)).astype(int)
+    # n_nodes = np.sum(nodes_per_shell) + 1
 
     x[0] = y[0] = 0.
     offset = 1
+    # for shell in range(0, n_shells):
     for shell in range(1, n_shells + 1):
+        # rho = spacing * (shell + 1)
         rho = spacing * shell
         d_theta = np.pi * 2 / (shell * shape[1])
         theta = np.arange(shell * shape[1]) * d_theta
 
         y[offset : offset + len(theta)] = rho * np.sin(theta)
         x[offset : offset + len(theta)] = rho * np.cos(theta)
+        # d_theta = 2. * np.pi / nodes_per_shell[shell]
+        # theta = np.arange(nodes_per_shell[shell]) * d_theta
 
         offset += len(theta)
 
@@ -35,7 +43,170 @@ def create_xy_of_node(shape, spacing=1., xy_of_center=(0., 0.)):
     return (x, y)
 
 
-class RadialGraph(VoronoiGraph):
+class RadialNodeLayout(object):
+
+    def __init__(self, n_shells, spacing=1., origin=0.):
+        self._n_shells = n_shells
+
+        self._n_shells = int(n_shells)
+        self._spacing_of_shells = float(spacing)
+        self._origin = tuple(np.broadcast_to(origin, (2, )).astype(float))
+
+        # self._shell_at_node = np.repeat(np.arange(self.number_of_shells),
+        #                                 self.nodes_per_shell)
+
+        # y_of_node = graph.radius_at_node * np.sin(graph.angle_at_node) - origin[0]
+        # x_of_node = graph.radius_at_node * np.cos(graph.angle_at_node) - origin[1]
+
+        # sorted_nodes = argsort_points_by_x_then_y((x_of_node, y_of_node))
+
+    @property
+    def origin(self):
+        return self._origin
+
+    @property
+    def y_of_node(self):
+        return self.radius_at_node * np.sin(self.angle_at_node) - self.origin[0]
+
+    @property
+    def x_of_node(self):
+        return self.radius_at_node * np.cos(self.angle_at_node) - self.origin[1]
+
+    @property
+    def xy_of_node(self):
+        return self.x_of_node, self.y_of_node
+
+    @property
+    def number_of_shells(self):
+        return self._n_shells
+
+    @property
+    def spacing_of_shells(self):
+        return self._spacing_of_shells
+
+    @property
+    @read_only_array
+    def radius_of_shell(self):
+        return np.arange(0, self.number_of_shells, dtype=float) * self.spacing_of_shells
+
+    @property
+    @read_only_array
+    def shell_at_node(self):
+        return np.repeat(np.arange(self.number_of_shells), self.nodes_per_shell)
+
+    @property
+    @read_only_array
+    def radius_at_node(self):
+        return self.radius_of_shell[self.shell_at_node]
+
+    @property
+    @read_only_array
+    def angle_at_node(self):
+        angle_at_node = np.empty(self.nodes_per_shell.sum(), dtype=float)
+        angle_at_node[0] = 0.
+        offset = 1
+        for n_nodes in self.nodes_per_shell[1:]:
+            angles, step = np.linspace(0., 2 * np.pi, n_nodes, endpoint=False,
+                                       retstep=True, dtype=float)
+            angle_at_node[offset:offset + n_nodes] = np.add(angles, .5 * step, out=angles)
+            offset += n_nodes
+        return angle_at_node
+
+    @property
+    @read_only_array
+    def nodes_per_shell(self):
+        # nodes_per_shell = np.arange(self.number_of_shells, dtype=int) * self.shape[1]
+        # nodes_per_shell[0] = 1
+        # return nodes_per_shell
+        nodes_per_shell = np.empty(self.number_of_shells, dtype=int)
+        nodes_per_shell[0] = 1
+        nodes_per_shell[1:] = np.round(2. * np.pi * np.arange(1, self.number_of_shells))
+        return nodes_per_shell
+
+
+class RadialGraphExtras(object):
+
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def spacing(self):
+        return self._spacing
+
+    @property
+    def origin(self):
+        return self._origin
+
+    @property
+    def number_of_shells(self):
+        return self.shape[0]
+
+    @property
+    def spacing_of_shells(self):
+        return self.spacing
+
+    @property
+    # @store_result_in_grid()
+    @read_only_array
+    def radius_of_shell(self):
+        return np.arange(0, self.number_of_shells, dtype=float) * self.spacing_of_shells
+
+    @property
+    # @store_result_in_grid()
+    @read_only_array
+    def angle_spacing_of_shell(self):
+        return 2. * np.pi / self.nodes_per_shell
+
+    @property
+    # @store_result_in_grid()
+    @read_only_array
+    def nodes_per_shell(self):
+        # nodes_per_shell = np.arange(self.number_of_shells, dtype=int) * self.shape[1]
+        # nodes_per_shell[0] = 1
+        # return nodes_per_shell
+        nodes_per_shell = np.empty(self.number_of_shells, dtype=int)
+        nodes_per_shell[0] = 1
+        nodes_per_shell[1:] = np.round(2. * np.pi * np.arange(1, self.number_of_shells))
+        return nodes_per_shell
+
+    @property
+    # @store_result_in_grid()
+    @read_only_array
+    def shell_at_node(self):
+        return np.repeat(np.arange(self.number_of_shells), self.nodes_per_shell)
+
+    @property
+    # @store_result_in_grid()
+    @read_only_array
+    def radius_at_node(self):
+        return self.radius_of_shell[self.shell_at_node]
+
+    @property
+    # @store_result_in_grid()
+    @read_only_array
+    def angle_at_node(self):
+        angle_at_node = np.empty(self.nodes_per_shell.sum(), dtype=float)
+        angle_at_node[0] = 0.
+        offset = 1
+        for n_nodes in self.nodes_per_shell[1:]:
+            angles, step = np.linspace(0., 2 * np.pi, n_nodes, endpoint=False,
+                                       retstep=True, dtype=float)
+            angle_at_node[offset:offset + n_nodes] = np.add(angles, .5 * step, out=angles)
+            offset += n_nodes
+        return angle_at_node
+
+    def empty_cache(self):
+        for attr in ('_angle_at_node', '_radius_at_node', '_shell_at_node',
+                     '_nodes_per_shell', '_angle_spacing_of_shell',
+                     '_radius_of_shell', ):
+            try:
+                del self.__dict__[attr]
+            except KeyError:
+                pass
+
+
+class RadialGraph(RadialGraphExtras, VoronoiGraph):
 
     """Graph of a series of points on concentric circles.
 
@@ -44,8 +215,8 @@ class RadialGraph(VoronoiGraph):
     >>> import numpy as np
     >>> from landlab.graph import RadialGraph
     >>> graph = RadialGraph((1, 4))
-    >>> graph.number_of_nodes == 5
-    True
+    >>> graph.number_of_nodes
+    5
     >>> graph.y_of_node
     array([-1.,  0.,  0.,  0.,  1.])
     >>> graph.x_of_node
@@ -65,6 +236,13 @@ class RadialGraph(VoronoiGraph):
         xy_of_center : tuple of float, optional
             Coordinates of the node at the center of the grid.
         """
+        # x_of_node, y_of_node = create_xy_of_node(shape, spacing=spacing,
+        #                                          origin=origin)
+        # graph = RadialGraphMaker(shape, spacing=spacing, origin=origin)
+
+        # self._shape = graph._shape
+        # self._spacing = graph.spacing
+        # self._origin = graph.origin
         try:
             spacing = float(spacing)
         except TypeError:
@@ -76,13 +254,19 @@ class RadialGraph(VoronoiGraph):
             shape, spacing=spacing, xy_of_center=xy_of_center
         )
 
-        super(RadialGraph, self).__init__(
-            (y_of_node, x_of_node), xy_sort=True, rot_sort=True
-        )
+        # super(RadialGraph, self).__init__(
+        #     (y_of_node, x_of_node), xy_sort=True, rot_sort=True
+        # )
 
         self._shell_spacing = spacing
         self._shape = tuple(shape)
         self._xy_of_center = xy_of_center
+
+        # nodes = RadialNodeLayout(self.shape[0], spacing=spacing, origin=xy_of_center)
+
+        VoronoiGraph.__init__(
+            self, (y_of_node, x_of_node), xy_sort=True, rot_sort=True
+        )
 
     @property
     def xy_of_center(self):

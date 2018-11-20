@@ -16,8 +16,8 @@ def test_create():
     assert graph.number_of_links == 23
     assert graph.number_of_patches == 12
 
-    assert graph.number_of_corners == 10
-    assert graph.number_of_faces == 11
+    assert graph.number_of_corners == 12
+    assert graph.number_of_faces == 13
     assert graph.number_of_cells == 2
 
 
@@ -42,8 +42,8 @@ def test_create_rect1():
     assert graph.number_of_links == 28
     assert graph.number_of_patches == 15
 
-    assert graph.number_of_corners == 13
-    assert graph.number_of_faces == 15
+    assert graph.number_of_corners == 15
+    assert graph.number_of_faces == 17
     assert graph.number_of_cells == 3
 
 
@@ -62,22 +62,26 @@ def test_origin():
 
     assert graph.y_of_node[0] == approx(0.)
     assert graph.x_of_node[0] == approx(0.)
-    assert graph.x_of_corner[0] == approx(1.5)
+    assert graph.x_of_corner[0] == approx(0.5)
 
     graph = DualHexGraph((4, 3), origin=(.5, .25))
 
     assert graph.y_of_node[0] == approx(.5)
     assert graph.x_of_node[0] == approx(.25)
-    assert graph.x_of_corner[0] == approx(1.75)
+    assert graph.x_of_corner[0] == approx(0.75)
 
 
 def test_orientation():
     """Test vertical and horizontal orientation."""
     graph = DualHexGraph((3, 4), orientation="vertical")
-    assert_array_almost_equal(graph.y_of_corner, [.5, .5, 1, 1, 1, 1.5, 1.5, 1.5, 2, 2])
+    assert graph.y_of_corner == approx(
+        [ 0.5,  0.5,  0.5,  1. ,  1. ,  1. ,  1.5,  1.5,  1.5,  2. ,  2. , 2. ]
+    )
 
     graph = DualHexGraph((4, 3), orientation="horizontal")
-    assert_array_almost_equal(graph.x_of_corner, [1.5, 1, 2, 1, 2, .5, 1.5, .5, 1.5, 1])
+    assert graph.x_of_corner == approx(
+        [ 0.5,  1.5,  1. ,  2. ,  1. ,  2. ,  0.5,  1.5,  0.5,  1.5,  1. , 2. ]
+    )
 
 
 def test_adjacent_corners_at_corner():

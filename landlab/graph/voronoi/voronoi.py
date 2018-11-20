@@ -104,7 +104,8 @@ class VoronoiGraph(Graph):
         array([[ 0,  2, -1, -1], [ 1,  4,  3,  0], [ 6,  5,  1, -1],
                [ 7,  2,  3, -1], [ 8,  7,  4,  5], [ 8,  6, -1, -1]])
         >>> graph.links_at_patch # doctest: +NORMALIZE_WHITESPACE
-        array([[3, 2, 0], [5, 4, 1], [4, 7, 3], [6, 8, 5]])
+        array([[3, 2, 0], [5, 4, 1], [7, 3, 4], [8, 5, 6]])
+
         >>> graph.nodes_at_patch # doctest: +NORMALIZE_WHITESPACE
         array([[3, 0, 1], [4, 1, 2], [4, 3, 1], [5, 4, 2]])
         """

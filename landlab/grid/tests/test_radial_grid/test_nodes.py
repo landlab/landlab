@@ -32,4 +32,3 @@ def test_number_of_shells():
 def test_nodes_per_shell():
     grid = RadialModelGrid(2)
     assert_array_equal(grid.nodes_per_shell, [1, 6, 13])
-

@@ -297,10 +297,10 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         >>> hg = HexModelGrid(3, 3, shape='rect', dx=2.0)
         >>> hg.status_at_node
         array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=uint8)
-        >>> hg = HexModelGrid(3, 3, shape='rect', orientation='vert')
+        >>> hg = HexModelGrid(3, 3, shape='rect', orientation="vertical")
         >>> hg.status_at_node
         array([1, 1, 1, 1, 1, 0, 1, 1, 1], dtype=uint8)
-        >>> hg = HexModelGrid(4, 4, shape='rect', orientation='vert')
+        >>> hg = HexModelGrid(4, 4, shape='rect', orientation="vertcal")
         >>> hg.status_at_node
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
         >>> hg = HexModelGrid(3, 4, shape='rect')
@@ -615,10 +615,10 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(3, 4, shape='rect', orientation='vert')
+        >>> grid = HexModelGrid(3, 4, shape='rect', orientation='vertical')
         >>> grid.node_row_and_column(5)
         (1, 2)
-        >>> grid = HexModelGrid(3, 5, shape='rect', orientation='vert')
+        >>> grid = HexModelGrid(3, 5, shape='rect', orientation='vertical')
         >>> grid.node_row_and_column(13)
         (2, 1)
         """

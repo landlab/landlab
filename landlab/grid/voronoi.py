@@ -173,7 +173,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         # DualVoronoiGraph.__init__(self, (y, x), **kwds)
         # ModelGrid.__init__(self, **kwds)
 
-    def _initialize(self, x, y, reorient_links=True):
+    def REMOVE_initialize(self, x, y, reorient_links=True):
         """
         Creates an unstructured grid around the given (x,y) points.
         """
@@ -338,14 +338,14 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         array([1, 2, 4])
         """
         assert ncells == np.count_nonzero(
-            node_status == self.BC_NODE_IS_CORE
+            node_status == ModelGrid.BC_NODE_IS_CORE
         ), "ncells must equal number of CORE_NODE values in node_status"
 
         cell = 0
         node_cell = np.ones(len(node_status), dtype=int) * BAD_INDEX_VALUE
         cell_node = np.zeros(ncells, dtype=int)
         for node in range(len(node_cell)):
-            if node_status[node] == self.BC_NODE_IS_CORE:
+            if node_status[node] == ModelGrid.BC_NODE_IS_CORE:
                 node_cell[node] = cell
                 cell_node[cell] = node
                 cell += 1

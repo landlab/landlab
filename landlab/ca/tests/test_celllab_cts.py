@@ -164,8 +164,8 @@ def test_oriented_raster_cts():
 
 def test_hex_cts():
     """Tests instantiation of a HexCTS() object"""
-    mg = HexModelGrid(3, 2, 1.0, orientation="vertical", reorient_links=True)
-    nsd = {0: "zero", 1: "one"}
+    mg = HexModelGrid(3, 2, 1.0, orientation='vertical', node_layout='hex', reorient_links=True)
+    nsd = {0 : "zero", 1 : "one"}
     xnlist = []
     xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "transitioning"))
     nsg = mg.add_zeros("node", "node_state_grid")
@@ -177,8 +177,8 @@ def test_hex_cts():
 
 def test_oriented_hex_cts():
     """Tests instantiation of an OrientedHexCTS() object"""
-    mg = HexModelGrid(3, 2, 1.0, orientation="vertical", reorient_links=True)
-    nsd = {0: "zero", 1: "one"}
+    mg = HexModelGrid(3, 2, 1.0, orientation="vertical", node_layout="hex", reorient_links=True)
+    nsd = {0 : "zero", 1 : "one"}
     xnlist = []
     xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "transitioning"))
     nsg = mg.add_zeros("node", "node_state_grid")

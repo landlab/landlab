@@ -137,8 +137,8 @@ def calc_center_of_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
     cdef int offset
     cdef int n_links
     cdef int n_patches = len(xy_at_patch)
-    cdef float x
-    cdef float y
+    cdef double x
+    cdef double y
 
     for patch in range(n_patches):
         offset = offset_to_patch[patch]
@@ -259,10 +259,10 @@ def get_angle_of_link(np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
                       np.ndarray[np.float_t, ndim=2] xy_of_node,
                       np.ndarray[np.float_t, ndim=1] angle_of_link):
     cdef int link
-    cdef float link_tail_x
-    cdef float link_tail_y
-    cdef float link_head_x
-    cdef float link_head_y
+    cdef double link_tail_x
+    cdef double link_tail_y
+    cdef double link_head_x
+    cdef double link_head_y
     cdef int n_links = nodes_at_link.shape[0]
 
     for link in range(n_links):

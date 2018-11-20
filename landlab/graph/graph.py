@@ -69,7 +69,7 @@ from .quantity.of_link import (
     get_midpoint_of_link,
 )
 from .quantity.of_patch import get_area_of_patch, get_centroid_of_patch
-from .sort import reindex_by_xy, reorder_links_at_patch
+from .sort import reindex_by_xy, reorder_links_at_patch, sort_links_at_patch
 from .sort.sort import reorient_link_dirs, reverse_one_to_many
 from .ugrid import ugrid_from_unstructured
 
@@ -161,7 +161,17 @@ class Graph(object):
         with self.thawed():
             reorient_link_dirs(self)
             sorted_nodes, sorted_links, sorted_patches = reindex_by_xy(self)
-            reorder_links_at_patch(self)
+            try:
+                self.links_at_patch
+            except KeyError:
+                pass
+            else:
+                sort_links_at_patch(
+                    self.links_at_patch,
+                    self.nodes_at_link,
+                    self.xy_of_node,
+                )
+            # reorder_links_at_patch(self)
 
         return sorted_nodes, sorted_links, sorted_patches
 
@@ -445,6 +455,16 @@ class Graph(object):
                [4, 6, 3, 1]])
         """
         return self.ds["links_at_patch"].values
+        from .sort.sort import sort_spokes_at_hub
+        links_at_patch = self.ds["links_at_patch"].values
+        sort_spokes_at_hub(
+            links_at_patch,
+            self.xy_of_patch,
+            self.xy_of_link,
+            inplace=True,
+        )
+        return links_at_patch
+        # return self.ds['links_at_patch'].values
 
     @property
     # @store_result_in_grid()
@@ -468,7 +488,16 @@ class Graph(object):
         array([[4, 3, 0, 1],
                [5, 4, 1, 2]])
         """
-        return get_nodes_at_patch(self)
+        from .sort.sort import sort_spokes_at_hub
+        nodes_at_patch = get_nodes_at_patch(self)
+        sort_spokes_at_hub(
+            nodes_at_patch,
+            self.xy_of_patch,
+            self.xy_of_node,
+            inplace=True,
+        )
+        return nodes_at_patch
+        # return get_nodes_at_patch(self)
 
     @property
     @store_result_in_grid()
@@ -487,10 +516,18 @@ class Graph(object):
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches)
         >>> graph.patches_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 0, -1], [ 0,  1], [ 1, -1],
+        array([[ 0, -1], [ 1,  0], [ 1, -1],
                [ 0, -1], [ 0,  1], [ 1, -1]])
         """
-        return reverse_one_to_many(self.nodes_at_patch)
+        from .sort.sort import sort_spokes_at_hub
+        patches_at_node = reverse_one_to_many(self.nodes_at_patch)
+        sort_spokes_at_hub(
+            patches_at_node,
+            self.xy_of_node,
+            self.xy_of_patch,
+            inplace=True,
+        )
+        return patches_at_node
 
     @property
     @store_result_in_grid()
@@ -514,20 +551,17 @@ class Graph(object):
                [ 0, -1], [ 1, -1]])
         """
         return reverse_one_to_many(self.links_at_patch, min_counts=2)
-        try:
-            return self.ds["patches_at_link"].values
-        except KeyError:
-            patches_at_link = xr.DataArray(
-                data=reverse_one_to_many(self.links_at_patch, min_counts=2),
-                dims=("link", "Two"),
-                attrs={
-                    "cf_role": "edge_node_connectivity",
-                    "long_name": "patches on either side of a link",
-                    "start_index": 0,
-                },
-            )
-            self.ds.update({"patches_at_link": patches_at_link})
-            return self.ds["patches_at_link"].values
+        # try:
+        #     return self.ds['patches_at_link'].values
+        # except KeyError:
+        #     patches_at_link = xr.DataArray(
+        #         data=reverse_one_to_many(self.links_at_patch, min_counts=2),
+        #         dims=('link', 'Two'),
+        #         attrs={'cf_role': 'edge_node_connectivity',
+        #                'long_name': 'patches on either side of a link',
+        #                'start_index': 0})
+        #     self.ds.update({'patches_at_link': patches_at_link})
+        #     return self.ds['patches_at_link'].values
 
     @property
     def number_of_patches(self):

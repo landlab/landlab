@@ -1,103 +1,58 @@
 import numpy as np
-from numpy.testing import assert_array_equal
+from pytest import approx
 
 from landlab import RasterModelGrid
 
-ELEMENTS = ["node", "cell", "link", "face"]
-# ELEMENTS += ['core_node', 'core_cell', 'active_link', 'active_face']
-TYPES = ["float", "int", "bool"]
+
+field_dtype = float
 
 
-# def generate_zeros_tests():
-def test_zeros():
-    for element in ELEMENTS:
-        for type in TYPES:
-
-            def _test():
-                rmg = RasterModelGrid((4, 5))
-                number_of_elements = rmg.number_of_elements(element)
-                assert_array_equal(
-                    rmg.zeros(centering=element),
-                    np.zeros(number_of_elements, dtype=np.float),
-                )
-
-            _test.description = "%s.test_zeros_%s_%s" % (__name__, type, element)
-            yield _test
+def test_zeros(graph_element):
+    grid = RasterModelGrid((4, 5))
+    number_of_elements = grid.number_of_elements(graph_element)
+    assert np.all(
+        grid.zeros(at=graph_element, dtype=field_dtype) ==
+        approx(np.zeros(number_of_elements, dtype=field_dtype)),
+    )
 
 
-def test_add_zeros():
-    for element in ELEMENTS:
-        for type in TYPES:
-
-            def _test():
-                rmg = RasterModelGrid((4, 5))
-                number_of_elements = rmg.number_of_elements(element)
-                rtn_values = rmg.add_zeros(element, "name")
-                assert rtn_values is rmg.field_values(element, "name")
-                assert_array_equal(
-                    rtn_values, np.zeros(number_of_elements, dtype=np.float)
-                )
-
-            _test.description = "%s.test_add_zeros_%s_%s" % (__name__, type, element)
-            yield _test
+def test_add_zeros(graph_element):
+    grid = RasterModelGrid((4, 5))
+    number_of_elements = grid.number_of_elements(graph_element)
+    rtn_values = grid.add_zeros("name", at=graph_element, dtype=field_dtype)
+    assert rtn_values is grid.field_values(graph_element, "name")
+    assert np.all(
+        rtn_values == approx(np.zeros(number_of_elements, dtype=field_dtype))
+    )
 
 
-def test_ones():
-    for element in ELEMENTS:
-        for type in TYPES:
-
-            def _test():
-                rmg = RasterModelGrid((4, 5))
-                number_of_elements = rmg.number_of_elements(element)
-                assert_array_equal(
-                    rmg.ones(centering=element),
-                    np.ones(number_of_elements, dtype=np.float),
-                )
-
-            _test.description = "%s.test_zeros_%s_%s" % (__name__, type, element)
-            yield _test
+def test_ones(graph_element):
+    grid = RasterModelGrid((4, 5))
+    number_of_elements = grid.number_of_elements(graph_element)
+    assert np.all(
+        grid.ones(at=graph_element) ==
+        approx(np.ones(number_of_elements, dtype=field_dtype)),
+    )
 
 
-def test_add_ones():
-    for element in ELEMENTS:
-        for type in TYPES:
-
-            def _test():
-                rmg = RasterModelGrid((4, 5))
-                number_of_elements = rmg.number_of_elements(element)
-                rtn_values = rmg.add_ones(element, "name")
-                assert rtn_values is rmg.field_values(element, "name")
-                assert_array_equal(
-                    rtn_values, np.ones(number_of_elements, dtype=np.float)
-                )
-
-            _test.description = "%s.test_add_zeros_%s_%s" % (__name__, type, element)
-            yield _test
+def test_add_ones(graph_element):
+    grid = RasterModelGrid((4, 5))
+    number_of_elements = grid.number_of_elements(graph_element)
+    rtn_values = grid.add_ones("name", at=graph_element, dtype=field_dtype)
+    assert rtn_values is grid.field_values(graph_element, "name")
+    assert np.all(
+        rtn_values == approx(np.ones(number_of_elements, dtype=field_dtype))
+    )
 
 
-def test_empty():
-    for element in ELEMENTS:
-        for type in TYPES:
-
-            def _test():
-                rmg = RasterModelGrid((4, 5))
-                number_of_elements = rmg.number_of_elements(element)
-                assert rmg.empty(centering=element).size == number_of_elements
-
-            _test.description = "%s.test_zeros_%s_%s" % (__name__, type, element)
-            yield _test
+def test_empty(graph_element):
+    grid = RasterModelGrid((4, 5))
+    number_of_elements = grid.number_of_elements(graph_element)
+    assert grid.empty(at=graph_element, dtype=field_dtype).size == number_of_elements
 
 
-def test_add_empty():
-    for element in ELEMENTS:
-        for type in TYPES:
-
-            def _test():
-                rmg = RasterModelGrid((4, 5))
-                number_of_elements = rmg.number_of_elements(element)
-                rtn_values = rmg.add_empty(element, "name")
-                assert rtn_values is rmg.field_values(element, "name")
-                assert_array_equal(rtn_values.size, number_of_elements)
-
-            _test.description = "%s.test_zeros_%s_%s" % (__name__, type, element)
-            yield _test
+def test_add_empty(graph_element):
+    grid = RasterModelGrid((4, 5))
+    number_of_elements = grid.number_of_elements(graph_element)
+    rtn_values = grid.add_empty("name", at=graph_element, dtype=field_dtype)
+    assert rtn_values is grid.field_values(graph_element, "name")
