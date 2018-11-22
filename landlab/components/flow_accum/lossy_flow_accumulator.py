@@ -112,7 +112,7 @@ class LossyFlowAccumulator(FlowAccumulator):
         path geometry (e.g., flow length). The grid is passed to allow fields
         or grid properties describing values across the grid to be accessed
         for the loss calculation (see examples).
-        This function should take (float, [int, [int, [ModelGrid]]]), and
+        This function expects (float, [int, [int, [ModelGrid]]]), and
         return a single float.
     **kwargs : optional
         Any additional parameters to pass to a FlowDirector or
