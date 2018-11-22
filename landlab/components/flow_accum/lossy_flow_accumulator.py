@@ -103,16 +103,18 @@ class LossyFlowAccumulator(FlowAccumulator):
         A function of the form f(Qw, [node_ID, [linkID, [grid]]]), where Qw is
         the discharge at a node, node_ID the ID of the node at which the loss
         is to be calculated, linkID is the ID of the link down which the
-        outflow drains, and grid is a Landlab ModelGrid. Note that if a linkID
-        is needed, a nodeID must also be specified, even if only as a dummy
-        parameter; similarly, if a grid is to be passed, all of the preceding
-        parameters must be specified. Both nodeID and linkID are required to
-        permit spatially variable losses, and also losses dependent on flow
-        path geometry (e.g., flow length). The grid is passed to allow fields
-        or grid properties describing values across the grid to be accessed
-        for the loss calculation (see examples).
+        outflow drains (or a d8 ID if the routing is d8), and grid is a Landlab
+        ModelGrid. The function then returns the new discharge at the node
+        after the function is applied.
+        Note that if a linkID is needed, a nodeID must also be specified, even
+        if only as a dummy parameter; similarly, if a grid is to be passed, all
+        of the preceding parameters must be specified. Both nodeID and linkID
+        are required to permit spatially variable losses, and also losses
+        dependent on flow path geometry (e.g., flow length). The grid is passed
+        to allow fields or grid properties describing values across the grid
+        to be accessed for the loss calculation (see examples).
         This function should take (float, [int, [int, [ModelGrid]]]), and
-        return a single float.
+        return a single float, the new discharge value.
     **kwargs : optional
         Any additional parameters to pass to a FlowDirector or
         DepressionFinderAndRouter instance (e.g., partion_method for
