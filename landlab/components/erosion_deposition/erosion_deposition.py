@@ -12,7 +12,38 @@ DEFAULT_MINIMUM_TIME_STEP = 0.001  # default minimum time step duration
 
 class ErosionDeposition(_GeneralizedErosionDeposition):
     """
-    Erosion-Deposition model in the style of Davy and Lague (2009)
+    Erosion-Deposition model in the style of Davy and Lague (2009). It uses a
+    mass balance approach across the total sediment mass both in the bed and
+    in transport coupled with explicit representation of the sediment
+    transport lengthscale (the "xi-q" model) to derive a range of erosional
+    and depositional responses in river channels.
+
+    This implementation is close to the Davy & Lague scheme, with a few
+    deviations:
+    - Sediment porosity is handled explicitly in this implementation.
+    - A fraction of the eroded sediment is permitted to enter the wash load,
+      and lost to the mass balance (F_f).
+    - Here an incision threshold is permitted, where it was not by Davy &
+      Lague. It is implemented with an exponentially smoothed form to prevent
+      discontinuities in the parameter space. See the
+      StreamPowerSmoothThresholdEroder for more documentation.
+    - This component uses an "effective" settling velocity, v_s, as one of its
+      inputs. This parameter is simply equal to Davy & Lague's `d_star * V`
+      dimensionless number.
+
+    Erosion of the bed follows a stream power formulation, i.e.,
+
+    E = K * q ** m_sp * S ** n_sp - optional threshold (see above)
+
+    Note that the transition between transport-limited and detachment-limited
+    behavior is controlled by the dimensionless ratio (v_s/r) where r is the
+    runoff ratio (Q=Ar). r can be changed in the flow accumulation component
+    but is not changed within ErosionDeposition. Because the runoff ratio r
+    is not changed within the ErosionDeposition component,  v_s becomes the
+    parameter that fundamentally controls response style. Very small v_s will
+    lead to a detachment-limited response style, very large v_s will lead to a
+    transport-limited response style. v_s == 1 means equal contributions from
+    transport and erosion, and a hybrid response as described by Davy & Lague.
 
     Component written by C. Shobe, K. Barnhart, and G. Tucker.
     """
@@ -23,7 +54,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         "flow__receiver_node",
         "flow__upstream_node_order",
         "topographic__steepest_slope",
-        "drainage_area",
+        "surface_water__discharge",
     )
 
     _output_var_names = "topographic__elevation"
@@ -32,7 +63,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         "flow__receiver_node": "-",
         "flow__upstream_node_order": "-",
         "topographic__steepest_slope": "-",
-        "drainage_area": "m**2",
+        "surface_water__discharge": "m**2/s",
         "topographic__elevation": "m",
     }
 
@@ -40,7 +71,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         "flow__receiver_node": "node",
         "flow__upstream_node_order": "node",
         "topographic__steepest_slope": "node",
-        "drainage_area": "node",
+        "surface_water__discharge": "node",
         "topographic__elevation": "node",
     }
 
@@ -50,8 +81,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
         "node IDs",
         "topographic__steepest_slope": "Topographic slope at each node",
-        "drainage_area": "Upstream accumulated surface area contributing to the node's "
-        "discharge",
+        "surface_water__discharge": "Water discharge at each node",
         "topographic__elevation": "Land surface topographic elevation",
     }
 
@@ -83,7 +113,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         v_s : float
             Effective settling velocity for chosen grain size metric [L/T].
         m_sp : float
-            Drainage area exponent (units vary)
+            Discharge exponent (units vary)
         n_sp : float
             Slope exponent (units vary)
         sp_crit : float, field name, or array
@@ -225,7 +255,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             omega, self.sp_crit, out=np.zeros_like(omega), where=self.sp_crit != 0
         )
 
-        self.erosion_term = omega - self.sp_crit * (1.0 - np.exp(-omega_over_sp_crit))
+        self.erosion_term = omega - self.sp_crit * (
+            1.0 - np.exp(-omega_over_sp_crit))
 
     def run_one_step_basic(self, dt=1.0, flooded_nodes=[], **kwds):
         """Calculate change in rock and alluvium thickness for
@@ -297,7 +328,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             if not first_iteration:
                 # update the link slopes
                 self._update_flow_link_slopes()
-                # update where nodes are flooded. This shouuldn't happen because
+                # update where nodes are flooded. This shouuldn't happen bc
                 # of the dynamic timestepper, but just incase, we update here.
                 new_flooded_nodes = np.where(self.slope < 0)[0]
                 flooded_nodes = np.asarray(
