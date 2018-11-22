@@ -7,12 +7,13 @@ while permitting gain or loss of discharge during flow.
 DEJH, late 2018
 """
 
-from landlab.components.flow_accum import flow_accum_bw
-from landlab.components.flow_accum import flow_accum_to_n
-from landlab.components.flow_accum import FlowAccumulator
-
 import sys
-import numpy as np
+
+from landlab.components.flow_accum import (
+    FlowAccumulator,
+    flow_accum_bw,
+    flow_accum_to_n,
+)
 
 if sys.version_info[0] >= 3:
     from inspect import signature
@@ -113,8 +114,9 @@ class LossyFlowAccumulator(FlowAccumulator):
         dependent on flow path geometry (e.g., flow length). The grid is passed
         to allow fields or grid properties describing values across the grid
         to be accessed for the loss calculation (see examples).
-        This function should take (float, [int, [int, [ModelGrid]]]), and
-        return a single float, the new discharge value.
+        This function expects (float, [int, [int, [ModelGrid]]]), and
+        return a single float, the new discharge value. This behavior is
+        verified during component instantiation.
     **kwargs : optional
         Any additional parameters to pass to a FlowDirector or
         DepressionFinderAndRouter instance (e.g., partion_method for
@@ -130,6 +132,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     First, a very simple example. Here's a 50% loss of discharge every time
     flow moves along a node:
 
+    >>> import numpy as np
     >>> from landlab import RasterModelGrid, HexModelGrid
     >>> from landlab.components import FlowDirectorSteepest
     >>> from landlab.components import DepressionFinderAndRouter
@@ -167,8 +170,8 @@ class LossyFlowAccumulator(FlowAccumulator):
     >>> dx=(2./(3.**0.5))**0.5  # area to be 100.
     >>> hmg = HexModelGrid(5,3, dx)
     >>> z = hmg.add_field('topographic__elevation',
-    ...                     hmg.node_x**2 + np.round(hmg.node_y)**2,
-    ...                     at = 'node')
+    ...                   hmg.node_x**2 + np.round(hmg.node_y)**2,
+    ...                   at = 'node')
     >>> z[9] = -10.  # poke a hole
     >>> lossy = hmg.add_zeros('node', 'mylossterm', dtype=float)
     >>> lossy[14] = 1.  # suppress all flow from node 14
@@ -303,25 +306,25 @@ class LossyFlowAccumulator(FlowAccumulator):
     }
     _var_doc = {
         "topographic__elevation": "Land surface topographic elevation",
-        "flow__receiver_node": "Node array of receivers (node that receives " +
-        "flow from current node)",
-        "drainage_area": "Upstream accumulated surface area contributing to " +
-        "the node's discharge",
+        "flow__receiver_node": "Node array of receivers (node that "
+        + "receives flow from current node)",
+        "drainage_area": "Upstream accumulated surface area contributing "
+        + "to the node's discharge",
         "surface_water__discharge": "Discharge of water through each node",
-        "surface_water__discharge_loss": "Total volume of water per second " +
-        "lost during all flow out of the node",
-        "water__unit_flux_in": "External volume water per area per time " +
-        "input to each node (e.g., rainfall rate)",
-        "flow__upstream_node_order": "Node array containing downstream-to-" +
-        "upstream ordered list of node IDs",
-        "flow__data_structure_delta": "Node array containing the elements " +
-        "delta[1:] of the data structure 'delta' used for construction of " +
-        "the downstream-to-upstream node array",
-        "flow__data_structure_D": "Link array containing the data structure " +
-        "D used for construction of the downstream-to-upstream node array",
-        "flow__nodes_not_in_stack": "Boolean value indicating if there are " +
-        "any nodes that have not yet been added to the stack stored in " +
-        "flow__upstream_node_order.",
+        "surface_water__discharge_loss": "Total volume of water per second "
+        + "lost during all flow out of the node",
+        "water__unit_flux_in": "External volume water per area per time "
+        + "input to each node (e.g., rainfall rate)",
+        "flow__upstream_node_order": "Node array containing "
+        + "downstream-to-upstream ordered list of node IDs",
+        "flow__data_structure_delta": "Node array containing the "
+        + "elements delta[1:] of the data structure 'delta' used for "
+        + "construction of the downstream-to-upstream node array",
+        "flow__data_structure_D": "Link array containing the data structure "
+        + "D used for construction of the downstream-to-upstream node array",
+        "flow__nodes_not_in_stack": "Boolean value indicating if there "
+        + "are any nodes that have not yet been added to the stack stored "
+        + "in flow__upstream_node_order.",
     }
 
     def __init__(
@@ -342,13 +345,16 @@ class LossyFlowAccumulator(FlowAccumulator):
         the argument of runoff_rate, and initializes new fields.
         """
         super(LossyFlowAccumulator, self).__init__(
-            grid, surface=surface, flow_director=flow_director,
-            runoff_rate=runoff_rate, depression_finder=depression_finder,
-            **kwargs)
+            grid,
+            surface=surface,
+            flow_director=flow_director,
+            runoff_rate=runoff_rate,
+            depression_finder=depression_finder,
+            **kwargs
+        )
 
         if loss_function is not None:
             if sys.version_info[0] >= 3:
-                import signature
                 sig = signature(loss_function)
                 num_params = len(sig.parameters)
             else:  # Python 2
@@ -359,8 +365,9 @@ class LossyFlowAccumulator(FlowAccumulator):
                 # single value:
                 if not isinstance(loss_function(1.), float):
                     raise TypeError(
-                        'The loss_function should take a float, and return ' +
-                        'a float.')
+                        "The loss_function should take a float, and return "
+                        "a float."
+                    )
                 # now, for logical consistency in our calls to
                 # find_drainage_area_and_discharge, wrap the func so it has two
                 # arguments:
@@ -375,8 +382,9 @@ class LossyFlowAccumulator(FlowAccumulator):
                 # single value:
                 if not isinstance(loss_function(1., 0), float):
                     raise TypeError(
-                        'The loss_function should take (float, int), and ' +
-                        'return a float.')
+                        "The loss_function should take (float, int), and "
+                        "return a float."
+                    )
                 # now, for logical consistency in our calls to
                 # find_drainage_area_and_discharge, wrap the func so it has two
                 # arguments:
@@ -391,8 +399,9 @@ class LossyFlowAccumulator(FlowAccumulator):
                 # single value:
                 if not isinstance(loss_function(1., 0, 0), float):
                     raise TypeError(
-                        'The loss_function should take (float, int, int), ' +
-                        'and return a float.')
+                        "The loss_function should take (float, int, int), "
+                        "and return a float."
+                    )
 
                 def lossfunc(Qw, nodeID, linkID, dummygrid):
                     return float(loss_function(Qw, nodeID, linkID))
@@ -404,31 +413,38 @@ class LossyFlowAccumulator(FlowAccumulator):
                 self._lossfunc = loss_function
             else:
                 raise ValueError(
-                    'The loss_function must have only a single argument, ' +
-                    'which should be the discharge at a node; a pair of ' +
-                    'arguments, which should be the discharge at a node and ' +
-                    'the node ID; or three arguments, which should be the ' +
-                    'discharge at a node, the node ID, and the link along ' +
-                    'which that discharge will flow.')
+                    "The loss_function must have only a single argument, "
+                    "which should be the discharge at a node; a pair of "
+                    "arguments, which should be the discharge at a node and "
+                    "the node ID; or three arguments, which should be the "
+                    "discharge at a node, the node ID, and the link along "
+                    "which that discharge will flow."
+                )
         else:
             # make a dummy
             def lossfunc(Qw, dummyn, dummyl, dummygrid):
                 return float(Qw)
+
             self._lossfunc = lossfunc
 
         # add the new loss discharge field if necessary:
         if 'surface_water__discharge_loss' not in grid.at_node:
-            _ = self.grid.add_zeros('node', 'surface_water__discharge_loss',
-                                    dtype=float, noclobber=False)
+            self.grid.add_zeros('node', 'surface_water__discharge_loss',
+                                dtype=float, noclobber=False)
 
     def _accumulate_A_Q_to_one(self, s, r):
         """
         Accumulate area and discharge for a route-to-one scheme.
         """
-        link = self._grid.at_node['flow__link_to_receiver_node']
+        link = self._grid.at_node["flow__link_to_receiver_node"]
         a, q = flow_accum_bw.find_drainage_area_and_discharge_lossy(
-            s, r, link, self._lossfunc, self._grid, self.node_cell_area,
-            self._grid.at_node["water__unit_flux_in"]
+            s,
+            r,
+            link,
+            self._lossfunc,
+            self._grid,
+            self.node_cell_area,
+            self._grid.at_node["water__unit_flux_in"],
         )
         return a, q
 
@@ -436,7 +452,7 @@ class LossyFlowAccumulator(FlowAccumulator):
         """
         Accumulate area and discharge for a route-to-one scheme.
         """
-        link = self._grid.at_node['flow__link_to_receiver_node']
+        link = self._grid.at_node["flow__link_to_receiver_node"]
         a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n_lossy(
             s, r, link, p, self._lossfunc, self._grid, self.node_cell_area,
             self._grid.at_node["water__unit_flux_in"]

@@ -1032,7 +1032,7 @@ class FlowAccumulator(Component):
         An alternative to run_one_step() is accumulate_flow() which does the
         same things but also returns the drainage area and discharge.
         """
-        _ = self.accumulate_flow()
+        self.accumulate_flow()
 
 
 if __name__ == "__main__":  # pragma: no cover
