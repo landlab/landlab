@@ -415,7 +415,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             self._lossfunc = lossfunc
 
         # add the new loss discharge field if necessary:
-        if 'surface_water__discharge_loss' not in grid.at_link:
+        if 'surface_water__discharge_loss' not in grid.at_node:
             _ = self.grid.add_zeros('node', 'surface_water__discharge_loss',
                                     dtype=float, noclobber=False)
 
