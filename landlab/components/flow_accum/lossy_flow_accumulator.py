@@ -113,7 +113,7 @@ class LossyFlowAccumulator(FlowAccumulator):
         or grid properties describing values across the grid to be accessed
         for the loss calculation (see examples).
         This function expects (float, [int, [int, [ModelGrid]]]), and
-        return a single float.
+        must return a single float. This behavior is verified during component instantiation. 
     **kwargs : optional
         Any additional parameters to pass to a FlowDirector or
         DepressionFinderAndRouter instance (e.g., partion_method for
