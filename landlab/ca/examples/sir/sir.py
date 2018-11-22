@@ -10,14 +10,16 @@ GT Sep 2014
 """
 from __future__ import print_function
 
-_DEBUG = False
-
 import time
-from landlab import HexModelGrid
-from numpy import where, logical_and
-from landlab.ca.celllab_cts import Transition, CAPlotter
-from landlab.ca.hex_cts import HexCTS
+
 import pylab
+from numpy import logical_and, where
+
+from landlab import HexModelGrid
+from landlab.ca.celllab_cts import CAPlotter, Transition
+from landlab.ca.hex_cts import HexCTS
+
+_DEBUG = False
 
 
 def setup_transition_list(infection_rate):
@@ -56,20 +58,29 @@ def setup_transition_list(infection_rate):
     """
     xn_list = []
 
-    xn_list.append( Transition((0,1,0), (1,1,0), infection_rate, 'infection') )
-    xn_list.append( Transition((0,1,0), (0,2,0), 1., 'recovery') )
-    xn_list.append( Transition((1,0,0), (1,1,0), infection_rate, 'infection') )
-    xn_list.append( Transition((1,0,0), (2,0,0), 1., 'recovery') )
-    xn_list.append( Transition((1,1,0), (1,2,0), 1., 'recovery') )
-    xn_list.append( Transition((1,1,0), (2,1,0), 1., 'recovery') )
-    xn_list.append( Transition((1,2,0), (2,2,0), 1., 'recovery') )
-    xn_list.append( Transition((2,1,0), (2,2,0), 1., 'recovery') )
+    xn_list.append(Transition((0, 1, 0), (1, 1, 0), infection_rate, "infection"))
+    xn_list.append(Transition((0, 1, 0), (0, 2, 0), 1., "recovery"))
+    xn_list.append(Transition((1, 0, 0), (1, 1, 0), infection_rate, "infection"))
+    xn_list.append(Transition((1, 0, 0), (2, 0, 0), 1., "recovery"))
+    xn_list.append(Transition((1, 1, 0), (1, 2, 0), 1., "recovery"))
+    xn_list.append(Transition((1, 1, 0), (2, 1, 0), 1., "recovery"))
+    xn_list.append(Transition((1, 2, 0), (2, 2, 0), 1., "recovery"))
+    xn_list.append(Transition((2, 1, 0), (2, 2, 0), 1., "recovery"))
 
     if _DEBUG:
         print()
-        print('setup_transition_list(): list has',len(xn_list),'transitions:')
+        print("setup_transition_list(): list has", len(xn_list), "transitions:")
         for t in xn_list:
-            print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
+            print(
+                "  From state",
+                t.from_state,
+                "to state",
+                t.to_state,
+                "at rate",
+                t.rate,
+                "called",
+                t.name,
+            )
 
     return xn_list
 
@@ -85,7 +96,7 @@ def main():
     run_duration = 5.0
     report_interval = 5.0  # report interval, in real-time seconds
     infection_rate = 8.0
-    outfilename = 'sirmodel'+str(int(infection_rate))+'ir'
+    outfilename = "sirmodel" + str(int(infection_rate)) + "ir"
 
     # Remember the clock time, and calculate when we next want to report
     # progress.
@@ -99,15 +110,15 @@ def main():
 
     # Set up the states and pair transitions.
     # Transition data here represent the disease status of a population.
-    ns_dict = { 0 : 'susceptible', 1 : 'infectious', 2: 'recovered' }
+    ns_dict = {0: "susceptible", 1: "infectious", 2: "recovered"}
     xn_list = setup_transition_list(infection_rate)
 
     # Create data and initialize values
-    node_state_grid = hmg.add_zeros('node', 'node_state_grid')
-    wid = nc-1.0
-    ht = (nr-1.0)*0.866
-    is_middle_rows = logical_and(hmg.node_y>=0.4*ht, hmg.node_y<=0.5*ht)
-    is_middle_cols = logical_and(hmg.node_x>=0.4*wid, hmg.node_x<=0.6*wid)
+    node_state_grid = hmg.add_zeros("node", "node_state_grid")
+    wid = nc - 1.0
+    ht = (nr - 1.0) * 0.866
+    is_middle_rows = logical_and(hmg.node_y >= 0.4 * ht, hmg.node_y <= 0.5 * ht)
+    is_middle_cols = logical_and(hmg.node_x >= 0.4 * wid, hmg.node_x <= 0.6 * wid)
     middle_area = where(logical_and(is_middle_rows, is_middle_cols))[0]
     node_state_grid[middle_area] = 1
     node_state_grid[0] = 2  # to force full color range, set lower left to 'recovered'
@@ -117,6 +128,7 @@ def main():
 
     # Set up the color map
     import matplotlib
+
     susceptible_color = (0.5, 0.5, 0.5)  # gray
     infectious_color = (0.5, 0.0, 0.0)  # dark red
     recovered_color = (0.0, 0.0, 1.0)  # blue
@@ -128,9 +140,9 @@ def main():
 
     # Plot the initial grid
     ca_plotter.update_plot()
-    pylab.axis('off')
-    savename = outfilename+'0'
-    pylab.savefig(savename+'.pdf', format='pdf')
+    pylab.axis("off")
+    savename = outfilename + "0"
+    pylab.savefig(savename + ".pdf", format="pdf")
 
     # RUN
     current_time = 0.0
@@ -140,20 +152,27 @@ def main():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
+            print(
+                "Current sim time",
+                current_time,
+                "(",
+                100 * current_time / run_duration,
+                "%)",
+            )
             next_report = current_real_time + report_interval
 
         # Run the model forward in time until the next output step
-        ca.run(current_time+plot_interval, ca.node_state,
-               plot_each_transition=False) #True, plotter=ca_plotter)
+        ca.run(
+            current_time + plot_interval, ca.node_state, plot_each_transition=False
+        )  # True, plotter=ca_plotter)
         current_time += plot_interval
 
         # Plot the current grid
         ca_plotter.update_plot()
-        pylab.axis('off')
+        pylab.axis("off")
         time_slice += 1
-        savename = outfilename+str(time_slice)
-        pylab.savefig(savename+'.pdf', format='pdf')
+        savename = outfilename + str(time_slice)
+        pylab.savefig(savename + ".pdf", format="pdf")
 
     # FINALIZE
 
@@ -161,5 +180,5 @@ def main():
     ca_plotter.finalize()
 
 
-if __name__=='__main__':
+if __name__ == "__main__":
     main()

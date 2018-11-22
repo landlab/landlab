@@ -1,4 +1,4 @@
 from .generate_fire import FireGenerator
 
 
-__all__ = ['FireGenerator', ]
+__all__ = ["FireGenerator"]

@@ -14,17 +14,18 @@ from __future__ import print_function
 
 import warnings
 
-from landlab import FieldError, Component
-from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
-from landlab.utils.return_array import return_array_at_node
-from landlab.core.messages import warning_message
-
-from landlab.components.flow_accum import flow_accum_bw
-from landlab.components.flow_accum import flow_accum_to_n
-
-from landlab import BAD_INDEX_VALUE
-import six
 import numpy as np
+import six
+
+from landlab import (  # for type tests
+    BAD_INDEX_VALUE,
+    Component,
+    RasterModelGrid,
+    VoronoiDelaunayGrid,
+)
+from landlab.components.flow_accum import flow_accum_bw, flow_accum_to_n
+from landlab.core.messages import warning_message
+from landlab.utils.return_array import return_array_at_node
 
 
 class FlowAccumulator(Component):
@@ -736,12 +737,6 @@ class FlowAccumulator(Component):
             "FlowDirectorDINF",
         ]
 
-        # find keyword args to pass along:
-        try:
-            component_name = flow_director._name
-        except:
-            component_name = None
-
         potential_kwargs = ["partition_method", "diagonals"]
         kw = {}
         for p_k in potential_kwargs:
@@ -937,7 +932,7 @@ class FlowAccumulator(Component):
             discharge.
         """
         # step 1. Find flow directions by specified method
-        if update_flow_director == True:
+        if update_flow_director:
             self.flow_director.run_one_step()
 
         # further steps vary depending on how many recievers are present

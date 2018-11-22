@@ -1,21 +1,27 @@
 # -*- coding: utf-8 -*-
 #this driver runs 0.001->0.01 perturbation of NMG2 for both simple SP & simple transport limited response
 
-from landlab.components import FlowAccumulator, StreamPowerEroder, TransportLimitedEroder
-from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
-from landlab import ModelParameterDictionary
-from landlab.plot import imshow
-from landlab.plot.video_out import VideoPlotter
-from landlab.plot import channel_profile as prf
-from landlab.plot.imshow import imshow_node_grid
-from pylab import colorbar, show, plot, loglog, figure, savefig, close, ylim, xlim, gca
+from copy import copy, deepcopy
+from time import time
 
-from landlab import RasterModelGrid
 import numpy as np
 import pylab
-from copy import copy, deepcopy
+from pylab import close, colorbar, figure, gca, loglog, plot, savefig, show, xlim, ylim
 
-from time import time
+from landlab import (
+    CLOSED_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+    ModelParameterDictionary,
+    RasterModelGrid,
+)
+from landlab.components import (
+    FlowAccumulator,
+    StreamPowerEroder,
+    TransportLimitedEroder,
+)
+from landlab.plot import channel_profile as prf, imshow
+from landlab.plot.imshow import imshow_node_grid
+from landlab.plot.video_out import VideoPlotter
 
 show_figs_in_run = True #disable to run straight through
 DL_or_TL = 'DL'
@@ -46,7 +52,7 @@ dt = inputs.read_float('dt')
 #check we have a plaubible grid
 mg = RasterModelGrid(nrows,ncols,dx)
 assert mg.number_of_nodes == nrows*ncols
-assert mg.node_spacing == dx
+assert mg.dx == dx
 
 # Display a message
 print 'Running ...'

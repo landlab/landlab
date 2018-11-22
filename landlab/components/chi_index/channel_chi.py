@@ -5,11 +5,11 @@ Created March 2016.
 @author: dejh
 """
 from __future__ import print_function
-from six.moves import range  # this is Python 3's generator, not P2's list
 
-from landlab import ModelParameterDictionary, Component, FieldError, \
-                    FIXED_VALUE_BOUNDARY, BAD_INDEX_VALUE, CLOSED_BOUNDARY
 import numpy as np
+
+from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY, Component
+
 try:
     from itertools import izip
 except ImportError:
@@ -26,6 +26,7 @@ class ChiFinder(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
     >>> from landlab.components import FlowAccumulator, FastscapeEroder
+    >>> from landlab.components import ChiFinder
     >>> mg = RasterModelGrid((3, 4), 1.)
     >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
     ...               mg.nodes_at_top_edge):
@@ -81,56 +82,69 @@ class ChiFinder(Component):
            [ True,  True,  True,  True,  True]], dtype=bool)
 
     """
-    _name = 'ChiFinder'
+
+    _name = "ChiFinder"
 
     _input_var_names = (
-        'topographic__elevation',
-        'drainage_area',
-        'topographic__steepest_slope',
-        'flow__receiver_node',
-        'flow__upstream_node_order',
-        'flow__link_to_receiver_node',
+        "topographic__elevation",
+        "drainage_area",
+        "topographic__steepest_slope",
+        "flow__receiver_node",
+        "flow__upstream_node_order",
+        "flow__link_to_receiver_node",
     )
 
-    _output_var_names = (
-        'channel__chi_index',
-    )
+    _output_var_names = ("channel__chi_index",)
 
-    _var_units = {'topographic__elevation': 'm',
-                  'drainage_area': 'm**2',
-                  'topographic__steepest_slope': '-',
-                  'flow__receiver_node': '-',
-                  'flow__upstream_node_order': '-',
-                  'flow__link_to_receiver_node': '-',
-                  'channel__chi_index': 'variable',
-                  }
+    _var_units = {
+        "topographic__elevation": "m",
+        "drainage_area": "m**2",
+        "topographic__steepest_slope": "-",
+        "flow__receiver_node": "-",
+        "flow__upstream_node_order": "-",
+        "flow__link_to_receiver_node": "-",
+        "channel__chi_index": "variable",
+    }
 
-    _var_mapping = {'topographic__elevation': 'node',
-                    'drainage_area': 'node',
-                    'topographic__steepest_slope': 'node',
-                    'flow__receiver_node': 'node',
-                    'flow__upstream_node_order': 'node',
-                    'flow__link_to_receiver_node': 'node',
-                    'channel__chi_index': 'node',
-                    }
+    _var_mapping = {
+        "topographic__elevation": "node",
+        "drainage_area": "node",
+        "topographic__steepest_slope": "node",
+        "flow__receiver_node": "node",
+        "flow__upstream_node_order": "node",
+        "flow__link_to_receiver_node": "node",
+        "channel__chi_index": "node",
+    }
 
-    _var_doc = {'topographic__elevation': 'Surface topographic elevation',
-                'drainage_area': 'upstream drainage area',
-                'topographic__steepest_slope': ('the steepest downslope ' +
-                                                'rise/run leaving the node'),
-                'flow__receiver_node': ('the downstream node at the end of the ' +
-                                  'steepest link'),
-                'flow__upstream_node_order': ('node order such that nodes must ' +
-                                        'appear in the list after all nodes ' +
-                                        'downstream of them'),
-                'flow__link_to_receiver_node':
-                    ('ID of link downstream of each node, which carries the ' +
-                     'discharge'),
-                'channel__chi_index': 'the local steepness index',
-                }
+    _var_doc = {
+        "topographic__elevation": "Surface topographic elevation",
+        "drainage_area": "upstream drainage area",
+        "topographic__steepest_slope": (
+            "the steepest downslope " + "rise/run leaving the node"
+        ),
+        "flow__receiver_node": (
+            "the downstream node at the end of the " + "steepest link"
+        ),
+        "flow__upstream_node_order": (
+            "node order such that nodes must "
+            + "appear in the list after all nodes "
+            + "downstream of them"
+        ),
+        "flow__link_to_receiver_node": (
+            "ID of link downstream of each node, which carries the " + "discharge"
+        ),
+        "channel__chi_index": "the local steepness index",
+    }
 
-    def __init__(self, grid, reference_concavity=0.5, min_drainage_area=1.e6,
-                 reference_area=1., use_true_dx=False, **kwds):
+    def __init__(
+        self,
+        grid,
+        reference_concavity=0.5,
+        min_drainage_area=1.e6,
+        reference_area=1.,
+        use_true_dx=False,
+        **kwds
+    ):
         """
         Parameters
         ----------
@@ -150,12 +164,14 @@ class ChiFinder(Component):
             and is not preferred by Taylor & Royden). If False, the mean value of
             node spacing along the all channels is assumed everywhere.
         """
-        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
-            msg = ('A route-to-multiple flow director has been '
-                   'run on this grid. The landlab development team has not '
-                   'verified that ChiFinder is compatible with '
-                   'route-to-multiple methods. Please open a GitHub Issue '
-                   'to start this process.')
+        if grid.at_node["flow__receiver_node"].size != grid.size("node"):
+            msg = (
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that ChiFinder is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
             raise NotImplementedError(msg)
         self._grid = grid
         self._reftheta = reference_concavity
@@ -164,16 +180,15 @@ class ChiFinder(Component):
             try:
                 self._A0 = float(self.grid.cell_area_at_node)
             except TypeError:  # was an array
-                self._A0 = self.grid.cell_area_at_node[
-                    self.grid.core_nodes].mean()
+                self._A0 = self.grid.cell_area_at_node[self.grid.core_nodes].mean()
         else:
             assert reference_area > 0.
             self._A0 = reference_area
         self.use_true_dx = use_true_dx
-        self.chi = self._grid.add_zeros('node', 'channel__chi_index')
-        self._mask = self.grid.ones('node', dtype=bool)
+        self.chi = self._grid.add_zeros("node", "channel__chi_index")
+        self._mask = self.grid.ones("node", dtype=bool)
         # this one needs modifying if smooth_elev
-        self._elev = self.grid.at_node['topographic__elevation']
+        self._elev = self.grid.at_node["topographic__elevation"]
 
     def calculate_chi(self, **kwds):
         """
@@ -190,40 +205,41 @@ class ChiFinder(Component):
         self._mask.fill(True)
         self.chi.fill(0.)
         # test for new kwds:
-        reftheta = kwds.get('reference_concavity', self._reftheta)
-        min_drainage = kwds.get('min_drainage_area', self.min_drainage)
-        A0 = kwds.get('reference_area', self._A0)
+        reftheta = kwds.get("reference_concavity", self._reftheta)
+        min_drainage = kwds.get("min_drainage_area", self.min_drainage)
+        A0 = kwds.get("reference_area", self._A0)
         if A0 is None:
             try:
                 A0 = float(self.grid.cell_area_at_node)
             except TypeError:
                 A0 = self.grid.cell_area_at_node[self.grid.core_nodes].mean()
         assert A0 > 0.
-        use_true_dx = kwds.get('use_true_dx', self.use_true_dx)
+        use_true_dx = kwds.get("use_true_dx", self.use_true_dx)
 
-        upstr_order = self.grid.at_node['flow__upstream_node_order']
+        upstr_order = self.grid.at_node["flow__upstream_node_order"]
         # get an array of only nodes with A above threshold:
-        valid_upstr_order = upstr_order[self.grid.at_node['drainage_area'][
-            upstr_order] >= min_drainage]
-        valid_upstr_areas = self.grid.at_node['drainage_area'][
-            valid_upstr_order]
+        valid_upstr_order = upstr_order[
+            self.grid.at_node["drainage_area"][upstr_order] >= min_drainage
+        ]
+        valid_upstr_areas = self.grid.at_node["drainage_area"][valid_upstr_order]
         if not use_true_dx:
-            chi_integrand = (A0/valid_upstr_areas)**reftheta
+            chi_integrand = (A0 / valid_upstr_areas) ** reftheta
             mean_dx = self.mean_channel_node_spacing(valid_upstr_order)
-            self.integrate_chi_avg_dx(valid_upstr_order, chi_integrand,
-                                      self.chi, mean_dx)
+            self.integrate_chi_avg_dx(
+                valid_upstr_order, chi_integrand, self.chi, mean_dx
+            )
         else:
-            chi_integrand = self.grid.zeros('node')
-            chi_integrand[valid_upstr_order] = (A0/valid_upstr_areas)**reftheta
-            self.integrate_chi_each_dx(valid_upstr_order, chi_integrand,
-                                       self.chi)
+            chi_integrand = self.grid.zeros("node")
+            chi_integrand[valid_upstr_order] = (A0 / valid_upstr_areas) ** reftheta
+            self.integrate_chi_each_dx(valid_upstr_order, chi_integrand, self.chi)
         # stamp over the closed nodes, as it's possible they can receive infs
         # if min_drainage_area < grid.cell_area_at_node
         self.chi[self.grid.status_at_node == CLOSED_BOUNDARY] = 0.
         self._mask[valid_upstr_order] = False
 
-    def integrate_chi_avg_dx(self, valid_upstr_order, chi_integrand,
-                             chi_array, mean_dx):
+    def integrate_chi_avg_dx(
+        self, valid_upstr_order, chi_integrand, chi_array, mean_dx
+    ):
         """
         Calculates chi at each channel node by summing chi_integrand.
 
@@ -246,6 +262,7 @@ class ChiFinder(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowAccumulator
+        >>> from landlab.components import ChiFinder
         >>> mg = RasterModelGrid((5, 4), 1.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
@@ -267,7 +284,7 @@ class ChiFinder(Component):
                [ 1.5,  3. ,  4.5,  0. ],
                [ 0. ,  0. ,  0. ,  0. ]])
         """
-        receivers = self.grid.at_node['flow__receiver_node']
+        receivers = self.grid.at_node["flow__receiver_node"]
         # because chi_array is all zeros, BC cases where node is receiver
         # resolve themselves
         for (node, integrand) in izip(valid_upstr_order, chi_integrand):
@@ -275,8 +292,9 @@ class ChiFinder(Component):
             chi_array[node] = chi_array[dstr_node] + integrand
         chi_array *= mean_dx
 
-    def integrate_chi_each_dx(self, valid_upstr_order, chi_integrand_at_nodes,
-                              chi_array):
+    def integrate_chi_each_dx(
+        self, valid_upstr_order, chi_integrand_at_nodes, chi_array
+    ):
         """
         Calculates chi at each channel node by summing chi_integrand*dx.
 
@@ -298,6 +316,7 @@ class ChiFinder(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowAccumulator
+        >>> from landlab.components import ChiFinder
         >>> mg = RasterModelGrid((5, 4), 3.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
@@ -352,8 +371,8 @@ class ChiFinder(Component):
                [   0. ,  100. ,  200.        ,  300.        ,    0. ],
                [   0. ,    0. ,    0.        ,    0.        ,    0. ]])
         """
-        receivers = self.grid.at_node['flow__receiver_node']
-        links = self.grid.at_node['flow__link_to_receiver_node']
+        receivers = self.grid.at_node["flow__receiver_node"]
+        links = self.grid.at_node["flow__link_to_receiver_node"]
         link_lengths = self.grid.length_of_d8
         # because chi_array is all zeros, BC cases where node is receiver
         # resolve themselves
@@ -388,6 +407,7 @@ class ChiFinder(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowAccumulator
+        >>> from landlab.components import ChiFinder
         >>> mg = RasterModelGrid((5, 4), 2.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
@@ -402,7 +422,7 @@ class ChiFinder(Component):
         >>> cf.mean_channel_node_spacing(ch_nodes)
         2.2761423749153966
         """
-        ch_links = self.grid.at_node['flow__link_to_receiver_node'][ch_nodes]
+        ch_links = self.grid.at_node["flow__link_to_receiver_node"][ch_nodes]
         ch_links_valid = ch_links[ch_links != BAD_INDEX_VALUE]
         valid_link_lengths = self.grid.length_of_d8[ch_links_valid]
         return valid_link_lengths.mean()
@@ -444,6 +464,7 @@ class ChiFinder(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowAccumulator
+        >>> from landlab.components import ChiFinder
         >>> mg = RasterModelGrid((3, 4), 1.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
@@ -466,7 +487,7 @@ class ChiFinder(Component):
         else:
             good_vals = np.array(ch_nodes)
         chi_vals = self.chi_indices[good_vals]
-        elev_vals = self.grid.at_node['topographic__elevation'][good_vals]
+        elev_vals = self.grid.at_node["topographic__elevation"][good_vals]
         coeffs = np.polyfit(chi_vals, elev_vals, 1)
         return coeffs
 
@@ -483,7 +504,7 @@ class ChiFinder(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> from landlab.components import FlowAccumulator
+        >>> from landlab.components import FlowAccumulator, ChiFinder
         >>> mg = RasterModelGrid((3, 4), 1.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
@@ -503,19 +524,24 @@ class ChiFinder(Component):
         ch_nodes = []
         current_node = channel_head
         while True:
-            ch_A = self.grid.at_node['drainage_area'][current_node]
+            ch_A = self.grid.at_node["drainage_area"][current_node]
             if ch_A > self.min_drainage:
                 ch_nodes.append(current_node)
-            next_node = self.grid.at_node['flow__receiver_node'][
-                        current_node]
+            next_node = self.grid.at_node["flow__receiver_node"][current_node]
             if next_node == current_node:
                 break
             else:
                 current_node = next_node
         return ch_nodes
 
-    def create_chi_plot(self, channel_heads=None, label_axes=True,
-                        symbol='kx', plot_line=False, line_symbol='r-'):
+    def create_chi_plot(
+        self,
+        channel_heads=None,
+        label_axes=True,
+        symbol="kx",
+        plot_line=False,
+        line_symbol="r-",
+    ):
         """
         Plots a "chi plot" (chi vs elevation for points in channel network).
 
@@ -537,37 +563,44 @@ class ChiFinder(Component):
             A matplotlib-style string for the style to use for the line, if
             plot_line.
         """
-        from matplotlib.pyplot import plot, xlabel, ylabel, figure, clf, show
-        figure('Chi plot')
+        from matplotlib.pyplot import plot, xlabel, ylabel, figure, clf
+
+        figure("Chi plot")
         clf()
         if channel_heads is not None:
             if plot_line:
                 good_nodes = set()
             if type(channel_heads) is int:
-                channel_heads = [channel_heads, ]
+                channel_heads = [channel_heads]
             for head in channel_heads:
                 ch_nodes = self.nodes_downstream_of_channel_head(head)
-                plot(self.chi_indices[ch_nodes],
-                     self.grid.at_node['topographic__elevation'][ch_nodes],
-                     symbol)
+                plot(
+                    self.chi_indices[ch_nodes],
+                    self.grid.at_node["topographic__elevation"][ch_nodes],
+                    symbol,
+                )
                 if plot_line:
                     good_nodes.update(ch_nodes)
         else:
             ch_nodes = np.logical_not(self.hillslope_mask)
-            plot(self.chi_indices[ch_nodes],
-                 self.grid.at_node['topographic__elevation'][ch_nodes],
-                 symbol)
+            plot(
+                self.chi_indices[ch_nodes],
+                self.grid.at_node["topographic__elevation"][ch_nodes],
+                symbol,
+            )
             good_nodes = ch_nodes
         if plot_line:
-            coeffs = self.best_fit_chi_elevation_gradient_and_intercept(
-                good_nodes)
+            coeffs = self.best_fit_chi_elevation_gradient_and_intercept(good_nodes)
             p = np.poly1d(coeffs)
-            chirange = np.linspace(self.chi_indices[good_nodes].min(),
-                                   self.chi_indices[good_nodes].max(), 100)
+            chirange = np.linspace(
+                self.chi_indices[good_nodes].min(),
+                self.chi_indices[good_nodes].max(),
+                100,
+            )
             plot(chirange, p(chirange), line_symbol)
         if label_axes:
-            ylabel('Elevation (m)')
-            xlabel('Chi')
+            ylabel("Elevation (m)")
+            xlabel("Chi")
 
     @property
     def masked_chi_indices(self):
@@ -583,6 +616,7 @@ class ChiFinder(Component):
         >>> from landlab import imshow_grid_at_node
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowAccumulator, FastscapeEroder
+        >>> from landlab.components import ChiFinder
         >>> mg = RasterModelGrid((5, 5), 100.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):

@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 """
 Source Tracking Algorithm
 +++++++++++++++++++++++++
@@ -6,8 +7,7 @@ Source Tracking Algorithm
     ~landlab.utils.source_tracking_algorithm.convert_arc_flow_directions_to_landlab_node_ids
     ~landlab.utils.source_tracking_algorithm.track_source
     ~landlab.utils.source_tracking_algorithm.find_unique_upstream_hsd_ids_and_fractions
-"""
-"""
+
 Authors: Sai Nudurupati & Erkan Istanbulluoglu
 
 Ref 1: 'The Landlab LandslideProbability Component User Manual' @
@@ -17,14 +17,12 @@ MD - Modeling Domain - Raster grid that is being analyzed/worked upon.
 HSD - Hydrologic Source Domain - Grid that is at least as coarse as MD. For
       more info, refer Ref 1
 """
-
-# %%
-# Import required libraries
-import numpy as np
 import copy
 from collections import Counter
 
-# %%
+import numpy as np
+
+
 def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
     """Convert Arc flow_directions to RasterModelGrid node ids
 
@@ -52,21 +50,23 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
         nodes, a zero is used.
     """
     r_arc_raw = np.log2(flow_dir_arc)
-    r_arc_raw = r_arc_raw.astype('int')
-    neigh_ = grid.neighbors_at_node
+    r_arc_raw = r_arc_raw.astype("int")
+    neigh_ = grid.adjacent_nodes_at_node
     diag_ = grid.diagonals_at_node
     neigh_ = np.fliplr(neigh_)
     diag_ = np.fliplr(diag_)
     a_n = np.hsplit(neigh_, 4)
     a_d = np.hsplit(diag_, 4)
-    neighbors = np.hstack((a_n[-1], a_d[0], a_n[0], a_d[1], a_n[1], a_d[2],
-                           a_n[2], a_d[3]))
+    neighbors = np.hstack(
+        (a_n[-1], a_d[0], a_n[0], a_d[1], a_n[1], a_d[2], a_n[2], a_d[3])
+    )
     # Now neighbors has node ids of neighboring nodes in cw order starting at
     # right, hence the order of neighbors = [r, br, b, bl, l, tl, t, tr]
     receiver_nodes = np.zeros(grid.number_of_nodes, dtype=int)
-    receiver_nodes[grid.core_nodes] = np.choose(r_arc_raw[grid.core_nodes],
-                                   np.transpose(neighbors[grid.core_nodes]))
-    return (receiver_nodes)
+    receiver_nodes[grid.core_nodes] = np.choose(
+        r_arc_raw[grid.core_nodes], np.transpose(neighbors[grid.core_nodes])
+    )
+    return receiver_nodes
 
 
 # %%
@@ -131,18 +131,20 @@ def track_source(grid, hsd_ids, flow_directions=None):
         nodes at each node.
     """
     if flow_directions is None:
-        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
-            msg = ('A route-to-multiple flow director has been '
-                   'run on this grid. The landlab development team has not '
-                   'verified that the source tracking utility is compatible with '
-                   'route-to-multiple methods. Please open a GitHub Issue '
-                   'to start this process.')
+        if grid.at_node["flow__receiver_node"].size != grid.size("node"):
+            msg = (
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that the source tracking utility is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
             raise NotImplementedError(msg)
 
-        r = grid.at_node['flow__receiver_node']
+        r = grid.at_node["flow__receiver_node"]
     else:
         r = flow_directions
-    z = grid.at_node['topographic__elevation']
+    z = grid.at_node["topographic__elevation"]
     core_nodes = grid.core_nodes
     core_elev = z[core_nodes]
     # Sort all nodes in the descending order of elevation
@@ -256,6 +258,6 @@ def find_unique_upstream_hsd_ids_and_fractions(hsd_upstr):
         for k in cnt.keys():
             buf.append(cnt[k])
         C.update({ke: buf})
-        e = [s/float(sum(buf)) for s in buf]
+        e = [s / float(sum(buf)) for s in buf]
         fractions.update({ke: e})
     return (unique_ids, fractions)

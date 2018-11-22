@@ -22,8 +22,12 @@ from .vegetation_dynamics import Vegetation
 from .lake_fill import LakeMapperBarnes
 from .sink_fill import SinkFiller, SinkFillerBarnes
 from .steepness_index import SteepnessFinder
-from .stream_power import StreamPowerEroder, FastscapeEroder
-from .stream_power import StreamPowerSmoothThresholdEroder, SedDepEroder
+from .stream_power import (
+    StreamPowerEroder,
+    FastscapeEroder,
+    StreamPowerSmoothThresholdEroder,
+    SedDepEroder,
+)
 from .uniform_precip import PrecipitationDistribution
 from .spatial_precip import SpatialPrecipitationDistribution
 from .soil_moisture import SoilInfiltrationGreenAmpt
@@ -41,24 +45,55 @@ from .transport_length_diffusion import TransportLengthHillslopeDiffuser
 from .normal_fault import NormalFault
 from .lithology import Lithology, LithoLayers
 
-COMPONENTS = [ChiFinder, LinearDiffuser,
-              Flexure, FlowRouter, DepressionFinderAndRouter,
-              PerronNLDiffuse, OverlandFlowBates, OverlandFlow,
-              KinwaveImplicitOverlandFlow,
-              PotentialEvapotranspiration, PotentialityFlowRouter,
-              Radiation, SinkFiller, SinkFillerBarnes,
-              LakeMapperBarnes,
-              StreamPowerEroder, StreamPowerSmoothThresholdEroder,
-              FastscapeEroder, SedDepEroder,
-              PrecipitationDistribution, SpatialPrecipitationDistribution,
-              SteepnessFinder, DetachmentLtdErosion, gFlex,
-              SoilInfiltrationGreenAmpt, FireGenerator,
-              SoilMoisture, Vegetation, VegCA, DrainageDensity,
-              ExponentialWeatherer, DepthDependentDiffuser,
-              TaylorNonLinearDiffuser, DepthSlopeProductErosion,
-              FlowDirectorD8, FlowDirectorSteepest, FlowDirectorMFD,
-              FlowDirectorDINF, FlowAccumulator, Space, ErosionDeposition,
-              LandslideProbability, DepthDependentTaylorDiffuser,
-              NormalFault, Lithology, LithoLayers]
+COMPONENTS = [
+    ChiFinder,
+    LinearDiffuser,
+    Flexure,
+    FlowRouter,
+    DepressionFinderAndRouter,
+    PerronNLDiffuse,
+    OverlandFlowBates,
+    OverlandFlow,
+    KinwaveImplicitOverlandFlow,
+    KinwaveOverlandFlowModel,
+    PotentialEvapotranspiration,
+    PotentialityFlowRouter,
+    Radiation,
+    SinkFiller,
+    SinkFillerBarnes,
+    LakeMapperBarnes,
+    StreamPowerEroder,
+    StreamPowerSmoothThresholdEroder,
+    FastscapeEroder,
+    SedDepEroder,
+    PrecipitationDistribution,
+    SpatialPrecipitationDistribution,
+    SteepnessFinder,
+    DetachmentLtdErosion,
+    gFlex,
+    SoilInfiltrationGreenAmpt,
+    FireGenerator,
+    SoilMoisture,
+    Vegetation,
+    VegCA,
+    DrainageDensity,
+    ExponentialWeatherer,
+    DepthDependentDiffuser,
+    TaylorNonLinearDiffuser,
+    DepthSlopeProductErosion,
+    FlowDirectorD8,
+    FlowDirectorSteepest,
+    FlowDirectorMFD,
+    FlowDirectorDINF,
+    FlowAccumulator,
+    Space,
+    ErosionDeposition,
+    LandslideProbability,
+    DepthDependentTaylorDiffuser,
+    NormalFault,
+    Lithology,
+    LithoLayers,
+    TransportLengthHillslopeDiffuser,
+]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]

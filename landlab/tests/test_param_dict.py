@@ -2,10 +2,11 @@
 """
 Unit tests for landlab.model_parameter_dictionary
 """
-import pytest
 import os
 import tempfile
+
 import numpy as np
+import pytest
 
 from landlab import ModelParameterDictionary
 from landlab.core.model_parameter_dictionary import MissingKeyError, ParameterValueError
@@ -99,8 +100,8 @@ def test_read_string(pdict_setup):
 
 
 def test_read_bool(pdict_setup):
-    assert pdict_setup.param_dict.read_bool("TRUE_BOOL_VAL") == True
-    assert pdict_setup.param_dict.read_bool("FALSE_BOOL_VAL") == False
+    assert pdict_setup.param_dict.read_bool("TRUE_BOOL_VAL") is True
+    assert pdict_setup.param_dict.read_bool("FALSE_BOOL_VAL") is False
 
     with pytest.raises(MissingKeyError):
         pdict_setup.param_dict.read_bool("MISSING_BOOLEAN")
@@ -126,7 +127,7 @@ def test_auto_type(auto_type_setup):
     assert auto_type_setup["INT_VAL"] == 1
     assert auto_type_setup["DBL_VAL"] == 1.2
     assert auto_type_setup["STR_VAL"] == "landlab"
-    assert auto_type_setup["BOOL_VAL"] == True
+    assert auto_type_setup["BOOL_VAL"] is True
 
 
 def test_int_vector(auto_type_setup):

@@ -11,11 +11,13 @@ Written by Greg Tucker, February 2015
 """
 
 import time
+
 import matplotlib
+from numpy import mean, where, zeros
 from pylab import figure, plot, show
-from numpy import where, zeros, mean
+
 from landlab import RasterModelGrid
-from landlab.components.cellular_automata.celllab_cts import Transition, CAPlotter
+from landlab.components.cellular_automata.celllab_cts import CAPlotter, Transition
 from landlab.components.cellular_automata.oriented_raster_cts import OrientedRasterCTS
 
 

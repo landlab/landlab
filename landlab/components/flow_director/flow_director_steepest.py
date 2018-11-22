@@ -9,11 +9,11 @@ in that it does not consider diagonal links between nodes. For that capability,
 use FlowDirectorD8.
 """
 
-from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
-from landlab.components.flow_director import flow_direction_DN
-from landlab import VoronoiDelaunayGrid
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 import numpy
+
+from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, VoronoiDelaunayGrid
+from landlab.components.flow_director import flow_direction_DN
+from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
 
 class FlowDirectorSteepest(_FlowDirectorToOne):
@@ -201,8 +201,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         # update the surface, if it was provided as a model grid field.
         self._changed_surface()
 
-        # step 1. Calculate link slopes.
-        link_slope = -self._grid.calc_grad_of_active_link(self.surface_values)
+        # step 1. Calculate link slopes at active links only.
+        all_grads = -self._grid.calc_grad_at_link(self.surface_values)
+        link_slope = all_grads[self._grid.active_links]
 
         # Step 2. Find and save base level nodes.
         (baselevel_nodes,) = numpy.where(
