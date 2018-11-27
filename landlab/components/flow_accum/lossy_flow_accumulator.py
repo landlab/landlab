@@ -61,7 +61,9 @@ class LossyFlowAccumulator(FlowAccumulator):
         -  Link array of the D data structure: *flow__data_structure_D*
 
     The FlowDirector component will add additional ModelGrid fields; see the
-    FlowAccumulator component for full details. These are:
+    `FlowAccumulator component
+    <https://landlab.readthedocs.io/en/latest/landlab.components.flow_accum.html>`_`
+    for full details. These are:
 
         -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
             there is no receiver: *'flow__receiver_node'*
