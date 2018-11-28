@@ -15,46 +15,47 @@ These tests test specific aspects of LakeMapperBarnes not picked up in the
 various docstrings.
 """
 
+
 def test_route_to_multiple_error_raised_init():
-     mg = RasterModelGrid((10, 10))
-     z = mg.add_zeros('node', 'topographic__elevation')
-     z += mg.x_of_node + mg.y_of_node
-     fa = FlowAccumulator(mg, flow_director='MFD')
-     fa.run_one_step()
-     with pytest.raises(NotImplementedError):
-         LakeMapperBarnes(mg)
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg, flow_director='MFD')
+    fa.run_one_step()
+    with pytest.raises(NotImplementedError):
+        LakeMapperBarnes(mg)
 
 
 def test_route_to_multiple_error_raised_run():
-     mg = RasterModelGrid((10, 10))
-     z = mg.add_zeros('node', 'topographic__elevation')
-     z += mg.x_of_node + mg.y_of_node
-     lmb = LakeMapperBarnes(mg)
-     fa = FlowAccumulator(mg, flow_director='MFD')
-     fa.run_one_step()
-     with pytest.raises(NotImplementedError):
-         lmb.run_one_step()
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += mg.x_of_node + mg.y_of_node
+    lmb = LakeMapperBarnes(mg)
+    fa = FlowAccumulator(mg, flow_director='MFD')
+    fa.run_one_step()
+    with pytest.raises(NotImplementedError):
+        lmb.run_one_step()
 
 
 def test_bad_init_method1():
     rmg = RasterModelGrid((5, 5), dx=2.)
     rmg.add_zeros('node', 'topographic__elevation', dtype=float)
     with pytest.raises(ValueError):
-        lmb = LakeMapperBarnes(rmg, method='Nope')
+        LakeMapperBarnes(rmg, method='Nope')
 
 
 def test_bad_init_method2():
     rmg = RasterModelGrid((5, 5), dx=2.)
     rmg.add_zeros('node', 'topographic__elevation', dtype=float)
     with pytest.raises(ValueError):
-        lmb = LakeMapperBarnes(rmg, method='d8')
+        LakeMapperBarnes(rmg, method='d8')
 
 
 def test_bad_init_gridmethod():
     hmg = HexModelGrid(30, 29, dx=3.)
     hmg.add_zeros('node', 'topographic__elevation', dtype=float)
     with pytest.raises(ValueError):
-        lmb = LakeMapperBarnes(hmg, method='D8')
+        LakeMapperBarnes(hmg, method='D8')
 
 
 def test_closed_up_grid():
@@ -63,15 +64,15 @@ def test_closed_up_grid():
         mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
     mg.add_zeros('node', 'topographic__elevation', dtype=float)
     with pytest.raises(ValueError):
-        lmb = LakeMapperBarnes(mg)
+        LakeMapperBarnes(mg)
 
 
 def test_neighbor_shaping_no_fldir():
     mg = RasterModelGrid((5, 5), dx=1.)
     mg.add_zeros('node', 'topographic__elevation', dtype=float)
     with pytest.raises(FieldError):
-        lmb = LakeMapperBarnes(mg, method='D8',
-                               redirect_flow_steepest_descent=True)
+        LakeMapperBarnes(mg, method='D8',
+                         redirect_flow_steepest_descent=True)
 
 
 def test_neighbor_shaping_no_creation():
@@ -135,9 +136,9 @@ def test_accum_wo_reroute():
     mg.add_zeros('node', 'flow__receiver_node', dtype=int)
     mg.add_zeros('node', 'flow__link_to_receiver_node', dtype=int)
     with pytest.raises(ValueError):
-        lmb = LakeMapperBarnes(mg, method='Steepest',
-                               redirect_flow_steepest_descent=False,
-                               reaccumulate_flow=True)
+        LakeMapperBarnes(mg, method='Steepest',
+                         redirect_flow_steepest_descent=False,
+                         reaccumulate_flow=True)
 
 
 def test_redirect_no_lakes():
@@ -147,8 +148,8 @@ def test_redirect_no_lakes():
     mg.add_zeros('node', 'flow__receiver_node', dtype=int)
     mg.add_zeros('node', 'flow__link_to_receiver_node', dtype=int)
     with pytest.raises(ValueError):
-        lmb = LakeMapperBarnes(mg, method='D8', track_lakes=False,
-                               redirect_flow_steepest_descent=True)
+        LakeMapperBarnes(mg, method='D8', track_lakes=False,
+                         redirect_flow_steepest_descent=True)
 
 
 def test_route_to_many():
@@ -158,8 +159,8 @@ def test_route_to_many():
     fd.run_one_step()
     assert mg.at_node['flow__receiver_node'].shape == (mg.number_of_nodes, 2)
     with pytest.raises(NotImplementedError):
-        lmb = LakeMapperBarnes(mg, method='D8',
-                               redirect_flow_steepest_descent=True)
+        LakeMapperBarnes(mg, method='D8',
+                         redirect_flow_steepest_descent=True)
 
 
 def test_permitted_overfill():
@@ -169,7 +170,6 @@ def test_permitted_overfill():
     z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
     z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
                                     1.0000000000000004, 1.5]
-    z_init = z.copy()
     lmb = LakeMapperBarnes(mg, method='Steepest')
     lmb._closed = mg.zeros('node', dtype=bool)
     lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
@@ -203,12 +203,6 @@ def test_no_reroute():
     lake_dict = {1: deque([6, ]), 18: deque([17, ])}
     fd.run_one_step()  # fill the director fields
     fa.run_one_step()  # get a drainage_area
-    nodes_in_lakes = np.array([1, 6, 17, 18])
-    nodes_not_in_lakes = np.setdiff1d(mg.nodes.flat, nodes_in_lakes)
-    receivers_init = mg.at_node['flow__receiver_node'].copy()
-    rec_links_init = mg.at_node['flow__link_to_receiver_node'].copy()
-    steepest_init = mg.at_node['topographic__steepest_slope'].copy()
-    drainage_area = mg.at_node['drainage_area'].copy()
     orig_surf = lmb._track_original_surface()
     lmb._redirect_flowdirs(orig_surf, lake_dict)
 

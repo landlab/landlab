@@ -9,12 +9,8 @@ algorithms.
 
 from __future__ import print_function
 
-from warnings import warn
-
-from landlab import FieldError, Component, BAD_INDEX_VALUE
-from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
+from landlab import Component, BAD_INDEX_VALUE, RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
-from landlab.core.messages import warning_message
 from landlab.utils import StablePriorityQueue
 
 from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
@@ -24,7 +20,6 @@ from landlab.components import FlowDirectorSteepest, FlowAccumulator
 # need to update...
 from collections import deque
 from six import iteritems
-import six
 import numpy as np
 import heapq
 import itertools
@@ -339,8 +334,8 @@ class LakeMapperBarnes(Component):
                      self.grid.diagonal_adjacent_nodes_at_node), axis=1)
             else:  # not a raster
                 raise ValueError(
-                    ('D8 is not a valid value for method if grid type is ' +
-                    '{gridtype}!').format(gridtype=type(grid)))
+                    ('D8 is not a valid value for method if grid type is '
+                     + '{gridtype}!').format(gridtype=type(grid)))
         else:
             self._allneighbors = self.grid.adjacent_nodes_at_node
 
@@ -356,8 +351,8 @@ class LakeMapperBarnes(Component):
             self.grid.status_at_node == FIXED_GRADIENT_BOUNDARY))[0]
         if self._edges.size == 0:
             raise ValueError(
-                'No valid outlets found on the grid! You cannot run the ' +
-                'filling algorithms!')
+                'No valid outlets found on the grid! You cannot run the '
+                + 'filling algorithms!')
         # and finally, close these up permanently as well (edges will always
         # be edges...)
         self._closed[self._edges] = True
@@ -365,7 +360,7 @@ class LakeMapperBarnes(Component):
         # grids, the last node will always be a boundary node, even for very
         # odd Voronois. This enables us to treat out -1s in the neighbour
         # arrays as always True. But, just in case...
-        assert self._closed[-1] == True
+        assert self._closed[-1]
 
         # check if we are modifying in place or not. This gets used to check
         # it makes sense to calculate various properties.
@@ -414,8 +409,8 @@ class LakeMapperBarnes(Component):
         if reaccumulate_flow:
             if not redirect_flow_steepest_descent:
                 raise ValueError(
-                    "You must also redirect_flow_steepest_descent if you " +
-                    "want to reaccumulate_flow!")
+                    "You must also redirect_flow_steepest_descent if you "
+                    + "want to reaccumulate_flow!")
             self._reaccumulate = True
             self._fa = FlowAccumulator(self.grid, flow_director=method)
         else:
@@ -584,17 +579,17 @@ class LakeMapperBarnes(Component):
             # if self._gridclosednodes[n]:
             #     heapq.heappush(pitq, n)
             if fill_surface[n] <= nextval:  # former elif
-                if (self._PitTop < fill_surface[n] and
-                        nextval >= fill_surface[n]):
+                if (self._PitTop < fill_surface[n]
+                        and nextval >= fill_surface[n]):
                     if ignore_overfill:
                         self._overfill_flag = True
                     else:
                         raise ValueError(
-                            "Pit is overfilled due to creation of two " +
-                            "outlets as the minimum gradient gets applied. " +
-                            "Suppress this Error with the ignore_overfill " +
-                            "flag at component instantiation."
-                            )
+                            "Pit is overfilled due to creation of two "
+                            + "outlets as the minimum gradient gets applied. "
+                            + "Suppress this Error with the ignore_overfill "
+                            + "flag at component instantiation."
+                        )
                 fill_surface[n] = nextval
                 heapq.heappush(pitq, n)
             else:
@@ -903,18 +898,18 @@ class LakeMapperBarnes(Component):
                 # if self._gridclosednodes[n]:
                 #     heapq.heappush(pitq, n)
                 if fill_surface[n] <= nextval:  # formerly elif
-                    if (self._PitTop < fill_surface[n] and
-                            nextval >= fill_surface[n]):
+                    if (self._PitTop < fill_surface[n]
+                            and nextval >= fill_surface[n]):
                         if ignore_overfill:
                             self._overfill_flag = True
                         else:
                             raise ValueError(
-                                "Pit is overfilled due to creation of two " +
-                                "outlets as the minimum gradient gets " +
-                                "applied. Suppress this Error with the " +
-                                "ignore_overfill flag at component " +
-                                "instantiation."
-                                )
+                                "Pit is overfilled due to creation of two "
+                                + "outlets as the minimum gradient gets "
+                                + "applied. Suppress this Error with the "
+                                + "ignore_overfill flag at component "
+                                + "instantiation."
+                            )
                     fill_surface[n] = nextval
                     heapq.heappush(pitq, n)
                 else:
@@ -1128,8 +1123,8 @@ class LakeMapperBarnes(Component):
                 self._receivers[outlet] = min_neighbor
                 self._receiverlinks[outlet] = min_link
                 self._steepestslopes[outlet] = (
-                    (surface[outlet] - surface[min_neighbor]) /
-                    self._neighbor_lengths[min_link])
+                    (surface[outlet] - surface[min_neighbor])
+                    / self._neighbor_lengths[min_link])
 
             while True:
                 try:
@@ -1189,14 +1184,16 @@ class LakeMapperBarnes(Component):
                             self._fill_surface[neighbors_to_check])
                         if min_neighbor_now < min_elev:
                             min_elev = min_neighbor_now
-                            links_available = link_set[liminal][neighbors_valid]
+                            links_available = link_set[
+                                liminal][neighbors_valid]
                             min_link_of_valid = np.argmin(
                                 self._fill_surface[neighbors_to_check])
-                            min_receiver = neighbors_to_check[min_link_of_valid]
+                            min_receiver = neighbors_to_check[
+                                min_link_of_valid]
                             min_link = links_available[min_link_of_valid]
                             max_grad = ((
-                                self._fill_surface[liminal] - min_elev) /
-                                self._neighbor_lengths[min_link])
+                                self._fill_surface[liminal] - min_elev)
+                                / self._neighbor_lengths[min_link])
                         else:
                             pass
                 assert min_link != -1, neighbors_valid
@@ -1941,8 +1938,8 @@ class LakeMapperBarnes(Component):
         """
         if self._inplace:
             raise ValueError(
-                "surface and fill_surface must be different fields or " +
-                "arrays to enable the property lake_depths!")
+                "surface and fill_surface must be different fields or "
+                + "arrays to enable the property lake_depths!")
         return self._fill_surface - self._surface
 
     @property
@@ -2124,6 +2121,6 @@ class LakeMapperBarnes(Component):
         """
         if self._fill_flat is True:
             raise ValueError(
-                "was_there_overfill is only defined if filling to an " +
-                "inclined surface!")
+                "was_there_overfill is only defined if filling to an "
+                + "inclined surface!")
         return self._overfill_flag
