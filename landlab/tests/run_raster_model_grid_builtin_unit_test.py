@@ -10,5 +10,6 @@ def main():
     mg = ll.RasterModelGrid()
     mg._unit_test()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

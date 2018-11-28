@@ -1,9 +1,10 @@
 env:
   matrix:
-  - TRAVIS_PYTHON_VERSION="2.7" BUILD_DOCS=0 COVERALLS=1
-  - TRAVIS_PYTHON_VERSION="3.5" BUILD_DOCS=0 COVERALLS=0
-  - TRAVIS_PYTHON_VERSION="3.6" BUILD_DOCS=0 COVERALLS=0
+  - TRAVIS_PYTHON_VERSION="2.7" BUILD_DOCS=0 REPORT_TO_COVERALLS=0 DEPLOY=0
+  - TRAVIS_PYTHON_VERSION="3.5" BUILD_DOCS=0 REPORT_TO_COVERALLS=0 DEPLOY=0
+  - TRAVIS_PYTHON_VERSION="3.6" BUILD_DOCS=0 REPORT_TO_COVERALLS=0 DEPLOY=0
   global:
+  - MPLBACKEND=Agg
   - CONDA_PREFIX=$HOME/miniconda
   - MINICONDA_URL_BASE="https://repo.continuum.io/miniconda/Miniconda3-latest"
   - secure: wuv2O1M29pkfAjPbOK1MetIf3teDrG4VTepDOps2YFLMzcoJBlJeTqEneVcHb/q2dz5SefjxQQrbLjgZNOURiS1IT2z24srNDPbp8OAsv9nsqAGZO40eWecCRa+u+P+Wh0pZ8urz/ptTir0qFIQ/yz5hoEPx4ScktHkn23V+/fM=
@@ -11,6 +12,7 @@ env:
 os:
 - linux
 - osx
+osx_image: xcode6.4
 sudo: false
 filter_secrets: false
 before_install:
@@ -20,14 +22,23 @@ before_install:
     brew cleanup -s
     rm -rf $(brew --cache)
   fi
-install:
-- echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION, $TRAVIS_TAG"
+- |
+  if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" && "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_EVENT_TYPE" == "push" ]]; then
+    REPORT_TO_COVERALLS=1
+  fi
+- |
+  if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" && "$TRAVIS_OS_NAME" == "linux" ]]; then
+    BUILD_DOCS=1
+  fi
 - |
   if [[ "$TRAVIS_TAG" == v* ]]; then
-    export BUILD_STR=""
-  else
-    export BUILD_STR="dev"
+    DEPLOY=1
   fi
+- |
+  mkdir -p $HOME/.matplotlib
+  echo "backend: Agg" > $HOME/.matplotlib/matplotlibrc
+install:
+- echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION, $TRAVIS_TAG"
 - |
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     OS="MacOSX-x86_64"
@@ -41,29 +52,34 @@ install:
 - conda config --set always_yes yes --set changeps1 no
 - conda create -n _testing python=$TRAVIS_PYTHON_VERSION
 - source activate _testing
-- conda install -q conda-build=3.0 anaconda-client coverage sphinx
-- conda install -q numpy=1.11
-- pip install coveralls
+- conda install -q conda-build=3.0 anaconda-client coverage coveralls sphinx pytest pytest-cov flake8
 - conda info -a && conda list
 script:
-- conda build -q .conda-recipe --old-build-string
+- conda install --file=requirements.txt
+- python setup.py develop
+- pytest --cov --cov-report=xml:$(pwd)/coverage.xml
+- make lint
 - |
-  if [[ "$BUILD_DOCS" == "1" && "$TRAVIS_OS_NAME" == "linux" ]]; then
-    conda install -q landlab --use-local -c $(dirname $(conda build --output ./.conda-recipe/ --old-build-string))
+  if [[ "$REPORT_TO_COVERALLS" == "1" ]]; then
+    coveralls
+  fi
+- |
+  if [[ "$BUILD_DOCS" == "1" ]]; then
     (cd docs && make html)
   fi
-  # - bash .ci/travis/run_travis_test.sh
+- |
+  if [[ "$DEPLOY" == "1" ]]; then
+    conda build -q .conda-recipe --old-build-string --no-test
+  fi
 virtualenv:
   system_site_packages: false
 after_success:
 - |
-  if [[ "$TRAVIS_TAG" == v* ]]; then
+  if [[ "$DEPLOY" == "1" ]]; then
     LANDLAB_PACKAGE=$(conda build --output ./.conda-recipe --old-build-string)
     anaconda -t $ANACONDA_TOKEN upload --force --user landlab --channel main $LANDLAB_PACKAGE
     bash .ci/travis/deploy_to_pypi.sh
-    # bash .ci/travis/deploy_to_anaconda.sh
   fi
-- if [[ "$COVERALLS" == "1" ]]; then coveralls; fi
 # deploy:
 #   provider: pypi
 #   user: mcflugen

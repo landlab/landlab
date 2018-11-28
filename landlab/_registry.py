@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-"""Registry of landlab components being used.
+r"""Registry of landlab components being used.
 
 The landlab registry keeps track of landlab components that have
 be instantiated by a user. A user can then get a list of all
@@ -54,7 +54,7 @@ Examples
     publisher={Copernicus GmbH}
     }
 <BLANKLINE>
-## Isostatic flexure
+## Flexure
     @article{hutton2008sedflux,
     title={Sedflux 2.0: An advanced process-response model that
         generates three-dimensional stratigraphy},
@@ -73,6 +73,7 @@ import os
 
 import six
 
+from . import _info
 from .core.messages import indent_and_wrap
 
 
@@ -82,14 +83,15 @@ class ComponentRegistry(object):
 
     def __init__(self, objs=None):
         self._registered = []
-        try:
-            [self.add(obj) for obj in objs]
-        except TypeError:
-            self.add(objs)
+        if objs is not None:
+            try:
+                [self.add(obj) for obj in objs]
+            except TypeError:
+                self.add(objs)
 
     def add(self, cls):
         """Add a class to the registry.
-        
+
         Parameters
         ----------
         cls : Component
@@ -101,7 +103,7 @@ class ComponentRegistry(object):
     @property
     def registered(self):
         """All registered classes.
-        
+
         Returns
         -------
         tuple
@@ -109,7 +111,7 @@ class ComponentRegistry(object):
 
         Examples
         --------
-        >>> from landlab.core.registry import ComponentRegistry
+        >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
         >>> class FooBar(object):
         ...    pass
@@ -117,18 +119,17 @@ class ComponentRegistry(object):
         >>> registry.registered
         ('FooBar',)
         """
-        return tuple([ComponentRegistry.get_name(obj)
-                      for obj in self._registered])
+        return tuple([ComponentRegistry.get_name(obj) for obj in self._registered])
 
     @staticmethod
     def format_citation(obj):
         """Format a single citation.
-        
+
         Parameters
         ----------
         obj : Component
             A landlab component class or instance.
-        
+
         Returns
         -------
         str
@@ -138,7 +139,7 @@ class ComponentRegistry(object):
         Examples
         --------
         >>> from __future__ import print_function
-        >>> from landlab.core.registry import ComponentRegistry
+        >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
         >>> class DoNothingComponent(object):
         ...     pass
@@ -166,21 +167,39 @@ class ComponentRegistry(object):
             }
         """
         name = ComponentRegistry.get_name(obj)
-        header = ['## {name}'.format(name=name), ]
+        header = ["## {name}".format(name=name)]
 
         cite_as = ComponentRegistry.get_citations(obj)
 
         body = []
         for citation in cite_as:
-            body.append(indent_and_wrap(citation, indent=' ' * 4))
+            body.append(indent_and_wrap(citation, indent=" " * 4))
 
         return os.linesep.join(header + body)
 
     @staticmethod
     def get_name(obj):
-        """Get the display name for an object."""
-        name = 'Unknown'
-        for attr in ('name', '_name', '__name__'):
+        """Get the display name for an object.
+
+        Examples
+        >>> from landlab._registry import ComponentRegistry
+        >>> class MontyPython(object):
+        ...     name = "Eric Idle"
+        >>> ComponentRegistry.get_name(MontyPython)
+        'Eric Idle'
+        >>> class MontyPython(object):
+        ...     _name = "Graham Chapman"
+        >>> ComponentRegistry.get_name(MontyPython)
+        'Graham Chapman'
+        >>> class MontyPython(object):
+        ...     pass
+        >>> ComponentRegistry.get_name(MontyPython)
+        'MontyPython'
+
+        --------
+        """
+        name = "Unknown"
+        for attr in ("name", "_name", "__name__"):
             try:
                 name = getattr(obj, attr)
             except AttributeError:
@@ -192,8 +211,8 @@ class ComponentRegistry(object):
     @staticmethod
     def get_citations(obj):
         """Get a list of citations from an object."""
-        citations = 'None'
-        for attr in ('cite_as', '_cite_as'):
+        citations = "None"
+        for attr in ("cite_as", "_cite_as"):
             try:
                 citations = getattr(obj, attr)
             except AttributeError:
@@ -206,7 +225,7 @@ class ComponentRegistry(object):
 
     def format_citations(self):
         """Format citations for all registered components.
-        
+
         Returns
         -------
         str
@@ -215,7 +234,7 @@ class ComponentRegistry(object):
         Examples
         --------
         >>> from __future__ import print_function
-        >>> from landlab.core.registry import ComponentRegistry
+        >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
 
         >>> class HolyGrailFinder(object):
@@ -271,17 +290,14 @@ class ComponentRegistry(object):
             publisher={Lulu. com}
             }
         """
-        header = ['# Citations', ]
+        header = ["# Citations"]
         body = []
         for cls in self._registered:
             body.append(self.format_citation(cls))
         return os.linesep.join(header + [(2 * os.linesep).join(body)])
 
     def __repr__(self):
-        return 'ComponentRegistry({0})'.format(repr(self.registered))
-
-
-from . import _info
+        return "ComponentRegistry({0})".format(repr(self.registered))
 
 
 registry = ComponentRegistry(_info)

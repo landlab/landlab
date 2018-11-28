@@ -94,10 +94,9 @@ class CellGrid(object):
 
         if node_at_cell:
             self._node_at_cell = np.array(node_at_cell)
-            self._cell_at_node = np.ma.masked_all(
-                max(node_at_cell) + 1, dtype=int)
+            self._cell_at_node = np.ma.masked_all(max(node_at_cell) + 1, dtype=int)
             self._cell_at_node[self._node_at_cell] = range(len(node_at_cell))
-            #self._cell_id_map = dict(zip(node_at_cell, range(len(node_at_cell))))
+            # self._cell_id_map = dict(zip(node_at_cell, range(len(node_at_cell))))
 
     @property
     def number_of_cells(self):

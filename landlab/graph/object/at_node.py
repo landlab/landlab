@@ -1,24 +1,8 @@
 import warnings
 
 import numpy as np
-from ...utils.jaggedarray import unravel
+
 from ...core.utils import as_id_array
-
-
-# def get_links_at_node(graph):
-#     (links_at_node,
-#      _,
-#      offset_to_node) = calc_links_at_node(graph.nodes_at_link)
-# 
-#     return unravel(links_at_node, offset_to_node)
-
-
-def get_link_dirs_at_node(graph):
-    (_,
-     link_dirs_at_node,
-     offset_to_node) = calc_links_at_node(graph.nodes_at_link)
-
-    return unravel(link_dirs_at_node, offset_to_node)
 
 
 def get_links_at_node(graph, sort=False):
@@ -43,28 +27,27 @@ def get_links_at_node(graph, sort=False):
     # from .cfuncs import _setup_links_at_node
     from .ext.at_node import get_links_at_node
 
-    sorted_by_node = np.argsort(graph.nodes_at_link.flat)
-
     node_count = np.bincount(graph.nodes_at_link.flat)
     number_of_nodes = graph.number_of_nodes
 
     max_node_count = np.max(node_count)
 
-    link_dirs_at_node = np.full((number_of_nodes, max_node_count), 0,
-                                dtype=int)
+    link_dirs_at_node = np.full((number_of_nodes, max_node_count), 0, dtype=int)
     links_at_node = np.full((number_of_nodes, max_node_count), -1, dtype=int)
 
     get_links_at_node(graph.nodes_at_link, links_at_node, link_dirs_at_node)
 
     if sort:
-        sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
-                                    graph.angle_of_link, inplace=True)
+        sort_links_at_node_by_angle(
+            links_at_node, link_dirs_at_node, graph.angle_of_link, inplace=True
+        )
 
     return links_at_node, link_dirs_at_node
 
 
-def sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
-                                angle_of_link, inplace=True):
+def sort_links_at_node_by_angle(
+    links_at_node, link_dirs_at_node, angle_of_link, inplace=True
+):
     """Sort links as spokes about a hub.
 
     Parameters
@@ -131,13 +114,15 @@ def sort_links_at_node_by_angle(links_at_node, link_dirs_at_node,
     """
     from .ext.at_node import reorder_links_at_node
 
-    out = (np.asarray(links_at_node, dtype=int),
-           np.asarray(link_dirs_at_node, dtype=int))
+    out = (
+        np.asarray(links_at_node, dtype=int),
+        np.asarray(link_dirs_at_node, dtype=int),
+    )
 
     if inplace:
         if out[0] is not links_at_node or out[1] is not link_dirs_at_node:
             inplace = False
-            warnings.warn('input must be ndarray of int for in-place sort')
+            warnings.warn("input must be ndarray of int for in-place sort")
 
     if not inplace:
         if out[0] is links_at_node:
