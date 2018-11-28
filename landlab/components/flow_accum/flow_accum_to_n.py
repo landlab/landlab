@@ -542,8 +542,8 @@ def find_drainage_area_and_discharge_to_n(
              2.74  ,   2.845 ,   1.05  ,   1.    ])
     """
     # Number of points
-    np = np.int_(r.shape[0])
-    q = np.int_(r.shape[1])
+    np = numpy.int_(r.shape[0])
+    q = numpy.int_(r.shape[1])
 
     # Initialize the drainage_area and discharge arrays. Drainage area starts
     # out as the area of the cell in question, then (unless the cell has no
