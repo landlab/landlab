@@ -11,6 +11,7 @@ from .flow_director import FlowDirectorSteepest
 from .flow_director import FlowDirectorMFD
 from .flow_director import FlowDirectorDINF
 from .flow_accum import FlowAccumulator
+from .flow_accum import LossyFlowAccumulator
 from .overland_flow import OverlandFlowBates, OverlandFlow
 from .overland_flow import KinwaveImplicitOverlandFlow
 from .overland_flow import KinwaveOverlandFlowModel
@@ -86,6 +87,7 @@ COMPONENTS = [
     FlowDirectorMFD,
     FlowDirectorDINF,
     FlowAccumulator,
+    LossyFlowAccumulator,
     Space,
     ErosionDeposition,
     LandslideProbability,
