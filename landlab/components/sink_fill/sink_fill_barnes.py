@@ -10,22 +10,11 @@ algorithms.
 from __future__ import print_function
 from six import iteritems
 
-import warnings
-
-from landlab import FieldError, Component, BAD_INDEX_VALUE
-from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
+from landlab import BAD_INDEX_VALUE
 from landlab.components import LakeMapperBarnes
 from landlab.utils.return_array import return_array_at_node
-from landlab.core.messages import warning_message
-from landlab.utils import StablePriorityQueue
 
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
-from landlab import CLOSED_BOUNDARY
-from collections import deque
-import six
 import numpy as np
-import heapq
-import itertools
 
 LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
 
@@ -84,8 +73,8 @@ class SinkFillerBarnes(LakeMapperBarnes):
                     }
 
     _var_doc = {'topographic__elevation': 'Surface topographic elevation',
-                'sediment_fill__depth': 'Depth of sediment added at each' +
-                                        'node',
+                'sediment_fill__depth': 'Depth of sediment added at each'
+                                        + 'node',
                 }
 
     def __init__(self, grid, surface='topographic__elevation',
@@ -127,7 +116,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> from landlab.components import SinkFillerBarnes, FlowRouter
+        >>> from landlab.components import SinkFillerBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6), 1.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
@@ -162,7 +151,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
         >>> sfb.was_there_overfill  # everything fine with slope adding
         False
 
-        >>> fr = FlowRouter(mg, method='D4')  # routing will work fine now
+        >>> fr = FlowAccumulator(mg, flow_director='D4')  # routing now works
         >>> fr.run_one_step()
         >>> np.all(mg.at_node['flow__sink_flag'][mg.core_nodes] == 0)
         True
@@ -176,6 +165,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
 
         Test two pits and a flat fill:
 
+        >>> from collections import deque
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
         >>> z[7] = 2.  # is a lake on its own
@@ -221,12 +211,12 @@ class SinkFillerBarnes(LakeMapperBarnes):
 
         (Note that the fill_map does not think that the perimeter nodes are
         sinks, since they haven't changed elevation. In contrast, the
-        FlowRouter *does* think they are, because these nodes are where flow
-        terminates.)
+        FlowAccumulator *does* think they are, because these nodes are where
+        flow terminates.)
         """
         if 'flow__receiver_node' in self._grid.at_node:
-            if (self._grid.at_node['flow__receiver_node'].size !=
-                    self._grid.size('node')):
+            if (self._grid.at_node['flow__receiver_node'].size
+                    != self._grid.size('node')):
                 msg = ('A route-to-multiple flow director has been '
                        'run on this grid. The landlab development team has '
                        'not verified that SinkFillerBarnes is compatible with '

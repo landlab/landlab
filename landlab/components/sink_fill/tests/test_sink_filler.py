@@ -10,7 +10,6 @@ import numpy as np  # for use of np.round
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-import landlab
 from landlab import BAD_INDEX_VALUE as XX, FieldError, RasterModelGrid
 from landlab.components import FlowAccumulator, SinkFiller, SinkFillerBarnes
 
@@ -51,7 +50,7 @@ def test_check_fields(sink_grid1):
     """
     Check to make sure the right fields have been created.
     """
-    sf = SinkFillerBarnes(sink_grid1)
+    SinkFillerBarnes(sink_grid1)
     assert_array_equal(
         np.zeros(sink_grid1.number_of_nodes),
         sink_grid1.at_node["sediment_fill__depth"]
