@@ -26,6 +26,7 @@ from landlab import (  # for type tests
 from landlab.components.flow_accum import flow_accum_bw, flow_accum_to_n
 from landlab.core.messages import warning_message
 from landlab.utils.return_array import return_array_at_node
+from landlab.core.utils import as_id_array
 
 
 class FlowAccumulator(Component):
@@ -975,7 +976,7 @@ class FlowAccumulator(Component):
         # one set of steps is for route to one (D8, Steepest/D4)
 
         # step 2. Get r
-        r = self._grid["node"]["flow__receiver_node"]
+        r = as_id_array(self._grid["node"]["flow__receiver_node"])
 
         if self.flow_director.to_n_receivers == "one":
 
@@ -990,7 +991,7 @@ class FlowAccumulator(Component):
             nd = flow_accum_bw._make_number_of_donors_array(r)
             delta = flow_accum_bw._make_delta_array(nd)
             D = flow_accum_bw._make_array_of_donors(r, delta)
-            s = flow_accum_bw.make_ordered_node_array(r)
+            s = as_id_array(flow_accum_bw.make_ordered_node_array(r))
 
             # put these in grid so that depression finder can use it.
             # store the generated data in the grid
@@ -1006,10 +1007,14 @@ class FlowAccumulator(Component):
             p = self._grid["node"]["flow__receiver_proportions"]
 
             # step 3. Stack, D, delta construction
-            nd = flow_accum_to_n._make_number_of_donors_array_to_n(r, p)
-            delta = flow_accum_to_n._make_delta_array_to_n(nd)
-            D = flow_accum_to_n._make_array_of_donors_to_n(r, p, delta)
-            s = flow_accum_to_n.make_ordered_node_array_to_n(r, p)
+            nd = as_id_array(
+                flow_accum_to_n._make_number_of_donors_array_to_n(r, p)
+            )
+            delta = as_id_array(flow_accum_to_n._make_delta_array_to_n(nd))
+            D = as_id_array(
+                flow_accum_to_n._make_array_of_donors_to_n(r, p, delta)
+            )
+            s = as_id_array(flow_accum_to_n.make_ordered_node_array_to_n(r, p))
 
             # put theese in grid so that depression finder can use it.
             # store the generated data in the grid

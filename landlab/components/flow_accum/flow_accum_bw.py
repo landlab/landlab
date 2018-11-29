@@ -296,7 +296,7 @@ def find_drainage_area_and_discharge(
     array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
     """
     # Number of points
-    np = numpy.int_(len(s))
+    np = len(s)
 
     # Initialize the drainage_area and discharge arrays. Drainage area starts
     # out as the area of the cell in question, then (unless the cell has no
