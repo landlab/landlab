@@ -988,9 +988,9 @@ class FlowAccumulator(Component):
                 self.depression_finder.map_depressions()
 
             # step 3. Stack, D, delta construction
-            nd = flow_accum_bw._make_number_of_donors_array(r)
-            delta = flow_accum_bw._make_delta_array(nd)
-            D = flow_accum_bw._make_array_of_donors(r, delta)
+            nd = as_id_array(flow_accum_bw._make_number_of_donors_array(r))
+            delta = as_id_array(flow_accum_bw._make_delta_array(nd))
+            D = as_id_array(flow_accum_bw._make_array_of_donors(r, delta)
             s = as_id_array(flow_accum_bw.make_ordered_node_array(r))
 
             # put these in grid so that depression finder can use it.
