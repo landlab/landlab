@@ -179,24 +179,6 @@ def as_id_array(array):
         return np.asarray(array, dtype=np.int)
 
 
-if np.dtype(np.intp) == np.int:
-
-    def _as_id_array(array):
-        if array.dtype == np.intp or array.dtype == np.int:
-            return array.view(np.int)
-        else:
-            return array.astype(np.int)
-
-
-else:
-
-    def _as_id_array(array):
-        if array.dtype == np.int:
-            return array.view(np.int)
-        else:
-            return array.astype(np.int)
-
-
 def make_optional_arg_into_id_array(number_of_elements, *args):
     """Transform an optional argument into an array of element ids.
 
