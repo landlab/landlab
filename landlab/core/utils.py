@@ -169,6 +169,13 @@ def as_id_array(array):
     array([0, 1, 2, 3, 4])
     >>> y.dtype == np.int
     True
+
+    >>> x = np.arange(5, dtype=np.intp)
+    >>> y = np.where(x < 3)[0]
+    >>> y.dtype == np.intp
+    True
+    >>> as_id_array(y).dtype == np.int
+    True
     """
     try:
         if array.dtype == np.int:
