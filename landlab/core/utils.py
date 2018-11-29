@@ -179,7 +179,7 @@ def as_id_array(array):
     """
     try:
         if array.dtype == np.int:
-            return array
+            return array.view(np.int)
         else:
             return array.astype(np.int)
     except AttributeError:
