@@ -24,6 +24,7 @@ __all__ = [
     "RadialModelGrid",
     "RasterModelGrid",
     "VoronoiDelaunayGrid",
+    "NetworkModelGrid",
     "BAD_INDEX_VALUE",
     "CORE_NODE",
     "FIXED_VALUE_BOUNDARY",

@@ -19,6 +19,7 @@ import six
 
 from landlab import (  # for type tests
     BAD_INDEX_VALUE,
+    FieldError,
     Component,
     NetworkModelGrid,
     RasterModelGrid,
