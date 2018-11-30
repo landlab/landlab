@@ -145,23 +145,17 @@ class FieldDataset(dict):
     allocate any memory for data arrays until an array is actually
     needed. The setitem method is also overriden so that when arrays
     are added they are stored reshaped in the landlab style. That
-    is, shaped as `(n_elements, values_per_element)`.
+    is shaped as `(n_elements, values_per_element)`.
     """
 
     def __init__(self, *args, **kwds):
         self._name, self._size = args[0], args[1]
-        self._fixed_size = bool(kwds.get('fixed_size', True))
-        ds = kwds.pop('ds', None)
-        self._ds = xr.Dataset() if ds is None else ds
+        self._ds = xr.Dataset()
         self._units = {}
 
     @property
     def size(self):
         return self._size
-
-    @property
-    def fixed_size(self):
-        return self._fixed_size
 
     @property
     def units(self):
@@ -172,8 +166,7 @@ class FieldDataset(dict):
         return self._ds
 
     def keys(self):
-        return [name.split('@')[0] for name in self._ds.variables]
-        # return self._ds.variables
+        return self._ds.variables
 
     def set_value(self, name, value_array, attrs=None):
         attrs = attrs or {}
@@ -181,17 +174,16 @@ class FieldDataset(dict):
 
         value_array = np.asarray(value_array)
 
-        if self.fixed_size and self.size is None:
+        if not self._size:
             self._size = value_array.size
 
-        name = '@'.join([name, self._name])
         if name in self._ds and self._ds[name].values is value_array:
             self._ds[name].values.shape = shape_for_storage(value_array, self.size)
             return
 
         value_array = reshape_for_storage(value_array, self._size)
 
-        if self.size == 1:
+        if self._size == 1:
             if value_array.ndim > 0:
                 dims = (name + "_per_" + self._name,)
             else:
@@ -209,7 +201,6 @@ class FieldDataset(dict):
 
     def __getitem__(self, name):
         if isinstance(name, six.string_types):
-            name = '@'.join([name, self._name])
             try:
                 return self._ds[name].values
             except KeyError:
@@ -221,11 +212,13 @@ class FieldDataset(dict):
         self.set_value(name, value_array)
 
     def __contains__(self, name):
-        name = '@'.join([name, self._name])
         return name in self._ds
 
     def __str__(self):
         return str(self._ds)
+
+    # def __repr__(self):
+    #     return repr(self._ds)
 
     def __len__(self):
         return self._size
@@ -273,12 +266,12 @@ class GraphFields(object):
     fields are in different groups (node and cell), they can have the same
     name.
 
-    >>> fields.add_ones('topographic__elevation', at='node')
+    >>> fields.add_ones('node', 'topographic__elevation')
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
     >>> fields.at_node['topographic__elevation']
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
-    >>> fields.add_ones('topographic__elevation', at='cell')
+    >>> fields.add_ones('cell', 'topographic__elevation')
     array([ 1.,  1.])
     >>> fields.at_cell['topographic__elevation']
     array([ 1.,  1.])
@@ -288,31 +281,6 @@ class GraphFields(object):
 
     >>> list(fields.at_cell.keys())
     ['topographic__elevation']
-
-    If the size of the new field location is ``None``, the field will be
-    unsized. This means that fields added to this location can be of any
-    size.
-
-    >>> fields = GraphFields()
-    >>> fields.new_field_location('grid', None)
-    >>> fields.at_grid['g'] = 9.81
-    >>> fields.at_grid['g']
-    array(9.81)
-    >>> fields.at_grid['w'] = (3., 4.)
-    >>> fields.at_grid['w']
-    array([ 3.,  4.])
-
-    The dimensions of groups can also be specified when the object is
-    instantiated. In this case, group sizes are specified as a dictionary
-    with keys being group names and values group sizes.
-
-    >>> fields = GraphFields({'node': 6, 'grid': None})
-    >>> fields.at_grid['g'] = 9.81
-    >>> fields.at_node['x'] = [0, 1, 2, 3, 4, 5]
-    >>> fields.at_grid['g']
-    array(9.81)
-    >>> fields.at_node['x']
-    array([0, 1, 2, 3, 4, 5])
     """
 
     def __init__(self, *args, **kwds):
@@ -342,8 +310,8 @@ class GraphFields(object):
 
     @default_group.setter
     def default_group(self, loc):
-        if self.has_group(loc) or loc is None:
-            self._default_group = loc
+        if self.has_group(loc):
+            self._defualt_group = loc
         else:
             raise ValueError("{loc} is not a valid group name".format(loc=loc))
 
@@ -401,12 +369,7 @@ class GraphFields(object):
         """
         dataset_name = "at_" + loc
         if loc not in self._groups:
-            try:
-                ds = self.ds
-            except AttributeError:
-                ds = None
-            finally:
-                setattr(self, dataset_name, FieldDataset(loc, size, ds=ds))
+            setattr(self, dataset_name, FieldDataset(loc, size))
             self._groups.add(loc)
         else:
             raise ValueError("{loc} location already exists".format(loc=loc))
@@ -509,13 +472,13 @@ class GraphFields(object):
         >>> fields.new_field_location('node', 4)
         >>> list(fields.keys('node'))
         []
-        >>> _ = fields.add_empty('topographic__elevation', at='node')
+        >>> _ = fields.add_empty('node', 'topographic__elevation')
         >>> list(fields.keys('node'))
         ['topographic__elevation']
 
         LLCATS: FIELDINF
         """
-        return [name.split('@')[0] for name in self[group].keys()]
+        return self[group].keys()
 
     def size(self, group):
         """Size of the arrays stored in a group.
@@ -688,10 +651,6 @@ class GraphFields(object):
             size = len(getattr(self, "at_" + group))
         except AttributeError:
             size = getattr(self, "number_of_" + group)
-
-        size = getattr(self, 'at_{group}'.format(group=group)).size
-        if size is None:
-            raise ValueError('group is not yet sized.')
 
         return np.empty(size, **kwds)
 
