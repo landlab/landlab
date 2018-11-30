@@ -106,18 +106,8 @@ class NetworkModelGrid(Graph, GraphFields):
                 del self.__dict__[attr]
             except KeyError:
                 pass
-        try:
-            self.bc_set_code += 1
-        except AttributeError:
-            self.bc_set_code = 0
-        try:
-            del self.__dict__["__node_active_inlink_matrix"]
-        except KeyError:
-            pass
-        try:
-            del self.__dict__["__node_active_outlink_matrix"]
-        except KeyError:
-            pass
+
+        self.bc_set_code += 1
 
     @property
     @make_return_array_immutable
@@ -158,10 +148,6 @@ class NetworkModelGrid(Graph, GraphFields):
         return np.where(self.status_at_link == ACTIVE_LINK)[0]
 
 
-# use the pattern to add the correct function...
-
-add_module_functions_to_class(NetworkModelGrid, "mappers.py", pattern="map_*")
-add_module_functions_to_class(NetworkModelGrid, "gradients.py", pattern="calc_*")
-add_module_functions_to_class(NetworkModelGrid, "divergence.py", pattern="calc_*")
-
-# Next remove/and/or raise not-implemented errors for all patch/cell related functions.
+# add only the correct functions
+add_module_functions_to_class(NetworkModelGrid, "mappers.py", pattern="map_*", exclude="cell|patch")
+add_module_functions_to_class(NetworkModelGrid, "gradients.py", pattern="calc_grad_at_link")

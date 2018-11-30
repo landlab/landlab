@@ -271,8 +271,8 @@ def get_functions_from_module(mod, pattern=None, exclude=None):
 
     funcs = {}
     for name, func in inspect.getmembers(mod, inspect.isroutine):
-        if pattern is None or re.match(pattern, name):
-            if exclude is None or (re.match(exclude, name) is False):
+        if pattern is None or re.search(pattern, name):
+            if exclude is None or (re.search(exclude, name) is None):
                 funcs[name] = func
     return funcs
 
@@ -291,7 +291,7 @@ def add_functions_to_class(cls, funcs):
         setattr(cls, name, func)
 
 
-def add_module_functions_to_class(cls, module, pattern=None):
+def add_module_functions_to_class(cls, module, pattern=None, exclude=None):
     """Add functions from a module to a class as methods.
 
     Parameters
@@ -302,6 +302,10 @@ def add_module_functions_to_class(cls, module, pattern=None):
         An instance of a module.
     pattern : str, optional
         Only get functions whose name match a regular expression.
+    exclude : str, optional
+        Only get functions whose name exclude the regular expression.
+
+    *Note* if both pattern and exclude are provided both conditions must be met.
     """
     import inspect
     import imp
@@ -314,7 +318,7 @@ def add_module_functions_to_class(cls, module, pattern=None):
 
     mod = imp.load_module(module, *imp.find_module(module, [path]))
 
-    funcs = get_functions_from_module(mod, pattern=pattern)
+    funcs = get_functions_from_module(mod, pattern=pattern, exclude=exclude)
     strip_grid_from_method_docstring(funcs)
     add_functions_to_class(cls, funcs)
 
