@@ -25,7 +25,6 @@ def test_mask_is_stable():
     np.random.seed(50)
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
-    mg.at_node["topographic__elevation"]  # doctest: +NORMALIZE_WHITESPACE
     fr = FlowAccumulator(mg, flow_director="D8")
     fsc = FastscapeEroder(mg, K_sp=.01, m_sp=.5, n_sp=1)
     for x in range(100):
@@ -46,3 +45,161 @@ def test_mask_is_stable():
 
     assert_array_equal(mask0, mask1)
     assert_array_equal(mask0[mg.core_nodes], mask2[mg.core_nodes])
+
+
+def test_float_mask():
+    mg = RasterModelGrid((10, 10), 1.0)
+    mg.add_zeros("node", "topographic__elevation")
+    noise = np.random.rand(mg.size("node"))
+    mg.at_node["topographic__elevation"] += noise
+    fr = FlowAccumulator(mg, flow_director="D8")
+
+    mask = np.zeros(len(mg.at_node["topographic__elevation"]), dtype=float)
+    mask[np.where(mg.at_node["drainage_area"] > 5)] = 1
+    with pytest.raises(ValueError):
+        DrainageDensity(mg, channel__mask=mask)
+
+
+def test_bool_mask():
+    mg = RasterModelGrid((10, 10), 1.0)
+    mg.add_zeros("node", "topographic__elevation")
+    noise = np.random.rand(mg.size("node"))
+    mg.at_node["topographic__elevation"] += noise
+    fr = FlowAccumulator(mg, flow_director="D8")
+
+    mask = np.zeros(len(mg.at_node["topographic__elevation"]), dtype=bool)
+    mask[np.where(mg.at_node["drainage_area"] > 5)] = 1
+    with pytest.raises(ValueError):
+        DrainageDensity(mg, channel__mask=mask)
+
+
+def test_updating_with_array_provided():
+    mg = RasterModelGrid((10, 10), 1.0)
+    mg.add_zeros("node", "topographic__elevation")
+    noise = np.random.rand(mg.size("node"))
+    mg.at_node["topographic__elevation"] += noise
+    fr = FlowAccumulator(mg, flow_director="D8")
+
+    mask = np.zeros(len(mg.at_node["topographic__elevation"]), dtype=np.uint8)
+    mask[np.where(mg.at_node["drainage_area"] > 5)] = 1
+    dd = DrainageDensity(mg, channel__mask=mask)
+    with pytest.raises(NotImplementedError):
+        dd._update_channel_mask()
+
+
+def test_mask_field_exists():
+     mg = RasterModelGrid((10, 10), 1.0)
+     mg.add_zeros("node", "topographic__elevation")
+     mg.add_zeros("node", "channel__mask")
+     noise = np.random.rand(mg.size("node"))
+     mg.at_node["topographic__elevation"] += noise
+     fr = FlowAccumulator(mg, flow_director="D8")
+
+     mask = np.zeros(len(mg.at_node["topographic__elevation"]), dtype=np.uint8)
+     mask[np.where(mg.at_node["drainage_area"] > 5)] = 1
+     with pytest.warns(UserWarning):
+         DrainageDensity(mg, channel__mask=mask)
+
+def test_bad_mask_size():
+    mg = RasterModelGrid((10, 10), 1.0)
+    mg.add_zeros("node", "topographic__elevation")
+    noise = np.random.rand(mg.size("node"))
+    mg.at_node["topographic__elevation"] += noise
+    fr = FlowAccumulator(mg, flow_director="D8")
+
+    mask = np.zeros(20)
+    mask[np.where(mg.at_node["drainage_area"][:20] > 5)] = 1
+
+    with pytest.raises(ValueError):
+        DrainageDensity(mg, channel__mask=mask)
+
+
+def test_providing_array_and_kwargs():
+    mg = RasterModelGrid((10, 10), 1.0)
+    mg.add_zeros("node", "topographic__elevation")
+    noise = np.random.rand(mg.size("node"))
+    mg.at_node["topographic__elevation"] += noise
+    fr = FlowAccumulator(mg, flow_director="D8")
+
+    mask = np.zeros(len(mg.at_node["topographic__elevation"]), dtype=np.uint8)
+    mask[np.where(mg.at_node["drainage_area"] > 5)] = 1
+    with pytest.warns(UserWarning):
+        DrainageDensity(mg, channel__mask=mask, area_coefficient=1)
+    with pytest.warns(UserWarning):
+        DrainageDensity(mg, channel__mask=mask, slope_coefficient=1)
+    with pytest.warns(UserWarning):
+        DrainageDensity(mg, channel__mask=mask, area_exponent=1)
+    with pytest.warns(UserWarning):
+        DrainageDensity(mg, channel__mask=mask, slope_exponent=1)
+    with pytest.warns(UserWarning):
+        DrainageDensity(mg, channel__mask=mask, channelization_threshold=1)
+
+
+def test_missing_channel_threshold():
+    mg = RasterModelGrid((10, 10), 1.0)
+    mg.add_zeros("node", "topographic__elevation")
+    noise = np.random.rand(mg.size("node"))
+    mg.at_node["topographic__elevation"] += noise
+    fr = FlowAccumulator(mg, flow_director="D8")
+
+    with pytest.raises(ValueError):
+        DrainageDensity(mg, area_coefficient=1,
+                            slope_coefficient=1,
+                            area_exponent=1,
+                            slope_exponent=1)
+
+
+def test_missing_slope_exponent():
+    mg = RasterModelGrid((10, 10), 1.0)
+    mg.add_zeros("node", "topographic__elevation")
+    noise = np.random.rand(mg.size("node"))
+    mg.at_node["topographic__elevation"] += noise
+    fr = FlowAccumulator(mg, flow_director="D8")
+
+    with pytest.raises(ValueError):
+        DrainageDensity(mg, area_coefficient=1,
+                            slope_coefficient=1,
+                            area_exponent=1,
+                            channelization_threshold=1)
+
+
+def test_missing_slope_coefficient():
+    mg = RasterModelGrid((10, 10), 1.0)
+    mg.add_zeros("node", "topographic__elevation")
+    noise = np.random.rand(mg.size("node"))
+    mg.at_node["topographic__elevation"] += noise
+    fr = FlowAccumulator(mg, flow_director="D8")
+
+    with pytest.raises(ValueError):
+        DrainageDensity(mg, area_coefficient=1,
+                            area_exponent=1,
+                            slope_exponent=1,
+                            channelization_threshold=1)
+
+
+def test_missing_area_exponent():
+    mg = RasterModelGrid((10, 10), 1.0)
+    mg.add_zeros("node", "topographic__elevation")
+    noise = np.random.rand(mg.size("node"))
+    mg.at_node["topographic__elevation"] += noise
+    fr = FlowAccumulator(mg, flow_director="D8")
+
+    with pytest.raises(ValueError):
+        DrainageDensity(mg, area_coefficient=1,
+                            slope_coefficient=1,
+                            slope_exponent=1,
+                            channelization_threshold=1)
+
+
+def test_missing_area_coefficient():
+    mg = RasterModelGrid((10, 10), 1.0)
+    mg.add_zeros("node", "topographic__elevation")
+    noise = np.random.rand(mg.size("node"))
+    mg.at_node["topographic__elevation"] += noise
+    fr = FlowAccumulator(mg, flow_director="D8")
+
+    with pytest.raises(ValueError):
+        DrainageDensity(mg, slope_coefficient=1,
+                            area_exponent=1,
+                            slope_exponent=1,
+                            channelization_threshold=1)
