@@ -14,6 +14,7 @@ from .decorators import override_array_setitem_and_reset
 from .decorators import return_readonly_id_array
 from .linkstatus import ACTIVE_LINK, set_status_at_link
 
+
 class NetworkModelGrid(Graph, GraphFields):
     """Create a ModelGrid of just nodes and links.
 
