@@ -107,7 +107,7 @@ Miscellaneous raster-grid functions
       :undoc-members:
       :show-inheritance:
 
-Network Grids (`NetworkModeelGrid`)
+Network Grids (`NetworkModelGrid`)
 ===================================
 Inherits from `ModelGrid` and adds:
 
