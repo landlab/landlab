@@ -316,7 +316,7 @@ def test_fields():
     fa = FlowAccumulator(mg)
     fa.run_one_step()
 
-    assert_equal(sorted(list(mg.at_node.keys())), ['drainage_area',
+    assert sorted(list(mg.at_node.keys())) == ['drainage_area',
                                                    'flow__data_structure_delta',
                                                    'flow__link_to_receiver_node',
                                                    'flow__receiver_node',
@@ -325,8 +325,8 @@ def test_fields():
                                                    'surface_water__discharge',
                                                    'topographic__elevation',
                                                    'topographic__steepest_slope',
-                                                   'water__unit_flux_in'])
-    assert_equal(sorted(list(mg.at_grid.keys())), ['flow__data_structure_D'])
+                                                   'water__unit_flux_in']
+    assert sorted(list(mg.at_grid.keys())) == ['flow__data_structure_D']
 
     mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
     _ = mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
@@ -346,7 +346,7 @@ def test_fields():
         "water__unit_flux_in",
     ]
 
-    assert_equal(sorted(list(mg2.at_grid.keys())), ['flow__data_structure_D'])
+    assert sorted(list(mg2.at_grid.keys())) == ['flow__data_structure_D']
 
 
 def test_accumulated_area_closes():
