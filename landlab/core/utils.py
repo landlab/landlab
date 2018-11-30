@@ -246,7 +246,7 @@ def make_optional_arg_into_id_array(number_of_elements, *args):
     return ids
 
 
-def get_functions_from_module(mod, pattern=None):
+def get_functions_from_module(mod, pattern=None, exclude=None):
     """Get all the function in a module.
 
     Parameters
@@ -255,6 +255,10 @@ def get_functions_from_module(mod, pattern=None):
         An instance of a module.
     pattern : str, optional
         Only get functions whose name match a regular expression.
+    exclude : str, optional
+        Only get functions whose name exclude the regular expression.
+
+    *Note* if both pattern and exclude are provided both conditions must be met.
 
     Returns
     -------
@@ -268,7 +272,8 @@ def get_functions_from_module(mod, pattern=None):
     funcs = {}
     for name, func in inspect.getmembers(mod, inspect.isroutine):
         if pattern is None or re.match(pattern, name):
-            funcs[name] = func
+            if exclude is None or (re.match(exclude, name) is False):
+                funcs[name] = func
     return funcs
 
 
