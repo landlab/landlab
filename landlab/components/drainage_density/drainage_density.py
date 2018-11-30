@@ -113,6 +113,33 @@ class DrainageDensity(Component):
     >>> mean_drainage_density = dd.calc_drainage_density()
     >>> np.isclose(mean_drainage_density, 0.3831100571)
     True
+
+    Alternatively you can pass a set of coefficients to identify the channel
+    mask. Next shows the same example as above, but with these coefficients
+    provided.
+
+    >>> mg = RasterModelGrid((10, 10), 1.0)
+    >>> _ = mg.add_zeros('node', 'topographic__elevation')
+    >>> np.random.seed(50)
+    >>> noise = np.random.rand(100)
+    >>> mg.at_node['topographic__elevation'] += noise
+    >>> fr = FlowAccumulator(mg, flow_director='D8')
+    >>> fsc = FastscapeEroder(mg, K_sp=.01, m_sp=.5, n_sp=1)
+    >>> for x in range(100):
+    ...     fr.run_one_step()
+    ...     fsc.run_one_step(dt = 10.0)
+    ...     mg.at_node['topographic__elevation'][mg.core_nodes] += .01
+    >>> channels = np.array(mg.at_node['drainage_area'] > 5, dtype=np.uint8)
+    >>> dd = DrainageDensity(mg,
+    ...                      area_coefficient=1.0,
+    ...                      slope_coefficient=1.0,
+    ...                      area_exponent=1.0,
+    ...                      slope_exponent=0.0,
+    ...                      channelization_threshold=5)
+    >>> mean_drainage_density = dd.calc_drainage_density()
+    >>> np.isclose(mean_drainage_density, 0.3831100571)
+    True
+
     """
 
     _name = "DrainageDensity"
@@ -189,6 +216,13 @@ class DrainageDensity(Component):
         channelization_threshold : threshold value above
             which channels exist
         """
+        # Store grid
+        self._grid = grid
+
+        for name in _REQUIRED_FIELDS:
+            if name not in grid.at_node:
+                raise FieldError("{name}: missing required field".format(name=name))
+
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             msg = (
                 "A route-to-multiple flow director has been "
@@ -297,13 +331,6 @@ class DrainageDensity(Component):
 
             self._update_channel_mask()
 
-        for name in _REQUIRED_FIELDS:
-            if name not in grid.at_node:
-                raise FieldError("{name}: missing required field".format(name=name))
-
-        # Store grid
-        self._grid = grid
-
         # for this component to work with Cython acceleration,
         # the channel_network must be uint8, not bool...
         self._channel_network = grid.at_node["channel__mask"]
@@ -338,13 +365,13 @@ class DrainageDensity(Component):
 
     def _update_channel_mask_values(self):
         channel__mask = (
-            self.area_coefficient
-            * np.power(self._grid.at_node["drainage_area"], self.area_exponent)
-            * self.slope_coefficient
+            self._area_coefficient
+            * np.power(self._grid.at_node["drainage_area"], self._area_exponent)
+            * self._slope_coefficient
             * np.power(
-                self._grid.at_node["topographic__steepest_slope"], self.slope_exponent
+                self._grid.at_node["topographic__steepest_slope"], self._slope_exponent
             )
-        ) > self.channelization_threshold
+        ) > self._channelization_threshold
         self._grid.at_node["channel__mask"] = channel__mask.astype(np.uint8)
 
     def calc_drainage_density(self):

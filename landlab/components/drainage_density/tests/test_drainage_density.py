@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid
+from landlab import RasterModelGrid, FieldError
 from landlab.components import DrainageDensity, FastscapeEroder, FlowAccumulator
 
 
@@ -71,6 +71,17 @@ def test_bool_mask():
     mask[np.where(mg.at_node["drainage_area"] > 5)] = 1
     with pytest.raises(ValueError):
         DrainageDensity(mg, channel__mask=mask)
+
+
+def test_missing_fields():
+    mg = RasterModelGrid((10, 10), 1.0)
+    mg.add_zeros("node", "topographic__elevation")
+    with pytest.raises(FieldError):
+        DrainageDensity(mg, area_coefficient=1,
+                            slope_coefficient=1,
+                            area_exponent=1,
+                            slope_exponent=1,
+                            channelization_threshold=1)
 
 
 def test_updating_with_array_provided():
