@@ -673,8 +673,8 @@ class FlowAccumulator(Component):
             D = BAD_INDEX_VALUE * grid.ones(at='link', dtype=int)
             D_structure = np.array([D], dtype=object)
             self.D_structure = grid.add_field('flow__data_structure_D',
-                                              at='grid',
                                               D_structure,
+                                              at='grid',
                                               dtype=object,
                                               noclobber=False)
 
