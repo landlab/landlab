@@ -102,7 +102,6 @@ def read_shapefile(file):
             raise ValueError(('landlab.io.shapefile currently does not support ',
                               'reading multipart polyline shapefiles.'))
 
-
     ## Create a Network Model Grid
     x_of_node, y_of_node = zip(*node_xy)
     grid = NetworkModelGrid((y_of_node, x_of_node), links)

@@ -137,3 +137,5 @@ class NetworkModelGrid(Graph, GraphFields):
 add_module_functions_to_class(NetworkModelGrid, 'mappers.py', pattern='map_*')
 add_module_functions_to_class(NetworkModelGrid, 'gradients.py', pattern='calc_*')
 add_module_functions_to_class(NetworkModelGrid, 'divergence.py', pattern='calc_*')
+
+# Next remove/and/or raise not-implemented errors for all patch/cell related functions.
