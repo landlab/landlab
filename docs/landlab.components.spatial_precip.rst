@@ -1,4 +1,4 @@
-PrecipitationDistribution: Generate random sequence of spatially-resolved precipitation events
+SpatialPrecipitationDistribution: Generate random sequence of spatially-resolved precipitation events
 ----------------------------------------------------------------------------------------------
 
 .. automodule:: landlab.components.spatial_precip

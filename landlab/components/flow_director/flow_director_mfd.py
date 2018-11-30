@@ -9,11 +9,16 @@ in that it does not consider diagonal links between nodes. For that capability,
 use FlowDirectorD8.
 """
 
-from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
-from landlab.components.flow_director import flow_direction_mfd
-from landlab import VoronoiDelaunayGrid
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY, BAD_INDEX_VALUE
 import numpy
+
+from landlab import (
+    BAD_INDEX_VALUE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+    VoronoiDelaunayGrid,
+)
+from landlab.components.flow_director import flow_direction_mfd
+from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 
 
 class FlowDirectorMFD(_FlowDirectorToMany):
@@ -38,7 +43,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     -  Node array of links carrying flow:  *'flow__link_to_receiver_node'*.
        This array is 2D, and is of dimension (number of nodes x max number of
        receivers).
-    -  Node array of downhill slopes cooresponding to each receiver.:
+    -  Node array of downhill slopes corresponding to each receiver.:
        *'topographic__steepest_slope'* This array is 2D, and is
        of dimension (number of nodes x max number of receivers). If the slope is
        uphill or flat, the value is assigned zero.
@@ -332,9 +337,9 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         self.partition_method = partition_method
         self.diagonals = diagonals
 
-        if self._is_Voroni == False and diagonals == False:
+        if self._is_Voroni is False and diagonals is False:
             self.max_receivers = 4
-        if self._is_Voroni == False and diagonals == True:
+        if self._is_Voroni is False and diagonals is True:
             self.max_receivers = 8
         else:
             self.max_receivers = self._grid.adjacent_nodes_at_node.shape[1]
@@ -424,7 +429,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         # flow direction calculations
 
         # Option for no diagonals (default)
-        if self.diagonals == False:
+        if self.diagonals is False:
             neighbors_at_node = self.grid.adjacent_nodes_at_node
             links_at_node = self.grid.links_at_node
             active_link_dir_at_node = self.grid.active_link_dirs_at_node

@@ -1,18 +1,14 @@
-import numpy as np
 from scipy.spatial import Voronoi
 
-from ..graph import Graph
-from ..dual import DualGraph
-from .voronoi import VoronoiGraph
 from ...utils.jaggedarray import JaggedArray
+from ..dual import DualGraph
+from ..graph import Graph
+from .voronoi import VoronoiGraph
 from .voronoi_helpers import VoronoiConverter
 
 
-def ugrid_from_voronoi_dual(node_y_and_x, min_cell_size=3,
-                            max_node_spacing=None):
-    from .voronoi import ugrid_from_voronoi
-    from ..ugrid import (ugrid_from_unstructured,
-                         update_node_at_cell, update_nodes_at_face)
+def ugrid_from_voronoi_dual(node_y_and_x, min_cell_size=3, max_node_spacing=None):
+    from ..ugrid import ugrid_from_unstructured
 
     voronoi = Voronoi(list(zip(node_y_and_x[1], node_y_and_x[0])))
 
@@ -71,15 +67,15 @@ class DualVoronoiGraph(VoronoiGraph, DualGraph):
         >>> graph.node_at_cell
         array([5, 6])
         """
-        max_node_spacing = kwds.pop('max_node_spacing', None)
-        (dual,
-         node_at_cell,
-         nodes_at_face) = ugrid_from_voronoi_dual(node_y_and_x,
-                                                  min_cell_size=min_cell_size,
-                                                  max_node_spacing=max_node_spacing)
+        max_node_spacing = kwds.pop("max_node_spacing", None)
+        (dual, node_at_cell, nodes_at_face) = ugrid_from_voronoi_dual(
+            node_y_and_x, min_cell_size=min_cell_size, max_node_spacing=max_node_spacing
+        )
 
         self._dual = Graph(dual, sort=False)
-        VoronoiGraph.__init__(self, node_y_and_x,
-                              max_node_spacing=max_node_spacing, sort=False)
-        DualGraph.__init__(self, node_at_cell=node_at_cell,
-                           nodes_at_face=nodes_at_face, sort=True)
+        VoronoiGraph.__init__(
+            self, node_y_and_x, max_node_spacing=max_node_spacing, sort=False
+        )
+        DualGraph.__init__(
+            self, node_at_cell=node_at_cell, nodes_at_face=nodes_at_face, sort=True
+        )

@@ -1,9 +1,7 @@
 #! /usr/bin/env python
-
-import inspect
+from landlab import Arena, Palette
 
 from .component import load_landlab_components
-from landlab import Palette, Arena
 
 
 class Error(Exception):
@@ -77,4 +75,4 @@ class Framework(object):
         return self._palette.provides()
 
     def __repr__(self):
-        return 'Framework(%s)' % ', '.join(self._palette.keys())
+        return "Framework(%s)" % ", ".join(self._palette.keys())

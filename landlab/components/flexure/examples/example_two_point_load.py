@@ -2,9 +2,8 @@
 
 import numpy as np
 
-from landlab.components.flexure import Flexure
 from landlab import RasterModelGrid
-
+from landlab.components.flexure import Flexure
 
 SHAPE = (100, 100)
 SPACING = (10e3, 10e3)

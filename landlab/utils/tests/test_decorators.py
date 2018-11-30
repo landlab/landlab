@@ -1,11 +1,11 @@
-import pytest
 import numpy as np
+import pytest
 
 from landlab import RasterModelGrid
 from landlab.utils.decorators import use_field_name_array_or_value
 
 
-@use_field_name_array_or_value('cell')
+@use_field_name_array_or_value("cell")
 def my_func(grid, vals):
     return grid.area_of_cell * vals
 

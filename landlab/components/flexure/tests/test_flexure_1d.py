@@ -1,18 +1,15 @@
 #! /usr/bin/env python
 """Unit tests for landlab.components.flexure.Flexure1D."""
+import numpy as np
 import pytest
 from numpy.testing import (
+    assert_array_almost_equal,
     assert_array_equal,
     assert_array_less,
-    assert_array_almost_equal,
-    assert_almost_equal,
 )
-
-import numpy as np
 
 from landlab import RasterModelGrid
 from landlab.components.flexure import Flexure1D
-
 
 (_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e3, 10e3), (0., 0.))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
@@ -79,6 +76,18 @@ def test_calc_airy():
     assert_array_equal(flex.dz_at_node, 1.)
 
 
+def test_with_method_flexure():
+    n = 101
+    i_mid = (n - 1) // 2
+    flex = Flexure1D(RasterModelGrid((3, n)), method="flexure")
+    flex.load_at_node[1, i_mid] = 1.
+
+    flex.update()
+
+    assert np.argmax(flex.dz_at_node[1]) == i_mid
+    assert np.all(flex.dz_at_node[:, i_mid::-1] == pytest.approx(flex.dz_at_node[:, i_mid:]))
+
+
 def test_run_one_step():
     """Test the run_one_step method."""
     flex = Flexure1D(RasterModelGrid((3, 5)), method="airy")
@@ -101,7 +110,7 @@ def test_with_one_row():
     assert_array_equal(flex.dz_at_node[2], 0.)
 
 
-def test_with_one_row():
+def test_with_two_row():
     """Test calculating on one row."""
     flex = Flexure1D(RasterModelGrid((3, 5)), method="airy", rows=(0, 2))
     flex.load_at_node[:] = -flex.gamma_mantle
@@ -146,7 +155,7 @@ def test_calc_flexure_with_out_keyword():
     assert np.may_share_memory(dz, buffer)
 
 
-def test_calc_flexure():
+def test_calc_flexure_with_multiple_rows():
     """Test calc_flexure with multiple rows of loads."""
     x = np.arange(100.) * 1e3
     loads = np.ones(500).reshape((5, 100))
@@ -249,3 +258,18 @@ def test_load_is_contiguous():
     """Test that load_at_node is contiguous."""
     flex = Flexure1D(RasterModelGrid((3, 5)))
     assert flex.load_at_node.flags["C_CONTIGUOUS"]
+
+
+def test_subside_loads():
+    flex = Flexure1D(RasterModelGrid((3, 5)), method="airy")
+    dz_airy = flex.subside_loads([0., 0., flex.gamma_mantle, 0., 0])
+    assert dz_airy.shape == flex.grid.shape
+    assert np.all(dz_airy == [0., 0., 1., 0., 0])
+
+    flex = Flexure1D(RasterModelGrid((3, 5)), method="flexure")
+    dz_flexure = flex.subside_loads([0., 0., flex.gamma_mantle, 0., 0])
+
+    assert dz_flexure.shape == flex.grid.shape
+    assert np.argmax(dz_flexure) == 2
+    assert np.all(dz_flexure[:, 2] < dz_airy[:, 2])
+    assert np.all(dz_flexure[:, 2::-1] == pytest.approx(dz_flexure[:, 2:]))

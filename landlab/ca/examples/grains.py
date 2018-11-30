@@ -15,13 +15,15 @@ GT Sep 2014
 """
 from __future__ import print_function
 
-_DEBUG = False
-
 import time
+
+from numpy import logical_and, sqrt, where
+
 from landlab import HexModelGrid
-from numpy import where, logical_and, sqrt
-from landlab.ca.celllab_cts import Transition, CAPlotter
+from landlab.ca.celllab_cts import CAPlotter, Transition
 from landlab.ca.oriented_hex_cts import OrientedHexCTS
+
+_DEBUG = False
 
 
 def setup_transition_list():
@@ -60,15 +62,24 @@ def setup_transition_list():
     """
     xn_list = []
 
-    xn_list.append( Transition((0,1,0), (1,0,0), 10., 'falling') )
-    xn_list.append( Transition((0,1,1), (1,0,1), 1., 'falling') )
-    xn_list.append( Transition((1,0,2), (0,1,2), 1., 'falling') )
+    xn_list.append(Transition((0, 1, 0), (1, 0, 0), 10., "falling"))
+    xn_list.append(Transition((0, 1, 1), (1, 0, 1), 1., "falling"))
+    xn_list.append(Transition((1, 0, 2), (0, 1, 2), 1., "falling"))
 
     if _DEBUG:
         print()
-        print('setup_transition_list(): list has',len(xn_list),'transitions:')
+        print("setup_transition_list(): list has", len(xn_list), "transitions:")
         for t in xn_list:
-            print('  From state',t.from_state,'to state',t.to_state,'at rate',t.rate,'called',t.name)
+            print(
+                "  From state",
+                t.from_state,
+                "to state",
+                t.to_state,
+                "at rate",
+                t.rate,
+                "called",
+                t.name,
+            )
 
     return xn_list
 
@@ -90,21 +101,21 @@ def main():
     next_report = current_real_time + report_interval
 
     # Create a grid
-    hmg = HexModelGrid(nr, nc, 1.0, orientation='vertical', reorient_links=True)
+    hmg = HexModelGrid(nr, nc, 1.0, orientation="vertical", reorient_links=True)
 
     # Close the grid boundaries
     hmg.set_closed_nodes(hmg.open_boundary_nodes)
 
     # Set up the states and pair transitions.
     # Transition data here represent the disease status of a population.
-    ns_dict = { 0 : 'fluid', 1 : 'grain' }
+    ns_dict = {0: "fluid", 1: "grain"}
     xn_list = setup_transition_list()
 
     # Create data and initialize values. We start with the 3 middle columns full
     # of grains, and the others empty.
-    node_state_grid = hmg.add_zeros('node', 'node_state_grid')
-    middle = 0.25*(nc-1)*sqrt(3)
-    is_middle_cols = logical_and(hmg.node_x<middle+1., hmg.node_x>middle-1.)
+    node_state_grid = hmg.add_zeros("node", "node_state_grid")
+    middle = 0.25 * (nc - 1) * sqrt(3)
+    is_middle_cols = logical_and(hmg.node_x < middle + 1., hmg.node_x > middle - 1.)
     node_state_grid[where(is_middle_cols)[0]] = 1
 
     # Create the CA model
@@ -124,17 +135,21 @@ def main():
         # know that the sim is running ok
         current_real_time = time.time()
         if current_real_time >= next_report:
-            print('Current sim time',current_time,'(',100*current_time/run_duration,'%)')
+            print(
+                "Current sim time",
+                current_time,
+                "(",
+                100 * current_time / run_duration,
+                "%)",
+            )
             next_report = current_real_time + report_interval
 
         # Run the model forward in time until the next output step
-        ca.run(current_time+plot_interval, ca.node_state,
-               plot_each_transition=False)
+        ca.run(current_time + plot_interval, ca.node_state, plot_each_transition=False)
         current_time += plot_interval
 
         # Plot the current grid
         ca_plotter.update_plot()
-
 
     # FINALIZE
 
@@ -142,5 +157,5 @@ def main():
     ca_plotter.finalize()
 
 
-if __name__=='__main__':
+if __name__ == "__main__":
     main()
