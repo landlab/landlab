@@ -118,6 +118,7 @@ class NetworkSedimentTransporter(Component):
     # Run Component
 #    @use_file_name_or_kwds
 #   Katy! We had to comment out ^ that line in order to get NST to instantiate. Back end changes needed. 
+
     def __init__(self,
                  grid,
                  parcels,
@@ -161,6 +162,10 @@ class NetworkSedimentTransporter(Component):
         self.flow_depth = flow_depth
         self.bed_porosity = bed_porosity
         self.active_layer_thickness = active_layer_thickness
+        
+        # NOTE: variable active_layer_thickness Wong et al 2007
+        # "a predictor for active layer thickness that increases with both grain size and Shields number, i.e., equations (50), (17), (18), and (23); 
+        
         self.g = g
         self.fluid_density = fluid_density
 
@@ -306,17 +311,20 @@ class NetworkSedimentTransporter(Component):
         R = (Rhoarray-rho)/rho
 
         # parcel attribute arrays to populate below
-        frac_sand_array = np.zeros(np.size(self._parcels['element_id']))
-        vol_act_array = np.zeros(np.size(self._parcels['element_id']))
-        Sarray = np.zeros(np.size(self._parcels['element_id']))
-        Harray = np.zeros(np.size(self._parcels['element_id']))
-        Larray = np.zeros(np.size(self._parcels['element_id']))
-        d_mean_active = np.zeros(np.size(self._parcels['element_id']))
+        frac_sand_array = np.zeros(np.shape(self._parcels['element_id']))
+        vol_act_array = np.zeros(np.shape(self._parcels['element_id']))
+        Sarray = np.zeros(np.shape(self._parcels['element_id']))
+        Harray = np.zeros(np.shape(self._parcels['element_id']))
+        Larray = np.zeros(np.shape(self._parcels['element_id']))
+        d_mean_active = np.zeros(np.shape(self._parcels['element_id']))
         d_mean_active.fill(np.nan)
-        Ttimearray = np.zeros(np.size(self._parcels['element_id']))
-
+        self.Ttimearray = np.zeros(np.shape(self._parcels['element_id']))
+        #^ Ttimearray is the time to move through the entire length of a link
+        
         # Calculate bed statistics for all of the links
         vol_tot =  self._parcels.calc_aggregate_value(np.sum,'volume',at = 'link')
+        
+        print('vol_tot shape',np.shape(vol_tot))
 
         findactive = self._parcels['active_layer']==1 # filter for only parcels in active layer
         vol_act = self._parcels.calc_aggregate_value(np.sum,
@@ -346,7 +354,12 @@ class NetworkSedimentTransporter(Component):
             Sarray[Linkarray == i] = self._grid.at_link['channel_slope'][i]
             Harray[Linkarray == i] = self.flow_depth[i]
             Larray[Linkarray == i] = self._grid.at_link['link_length'][i]
-
+            
+        Sarray = np.squeeze(Sarray)
+        Harray = np.squeeze(Harray)
+        Larray = np.squeeze(Larray)
+        frac_sand_array = np.squeeze(frac_sand_array)
+        
         # Wilcock and crowe claculate transport for all parcels (active and inactive)
         taursg = rho * R * g * d_mean_active * (0.021 + 0.015*np.exp(-20.*frac_sand_array))
         frac_parcel = vol_act_array/Volarray;
@@ -359,10 +372,34 @@ class NetworkSedimentTransporter(Component):
         W = 14 * np.power(( 1 - (0.894/np.sqrt(tautaur_cplx))), 4.5)
         W[tautaur_cplx<1.35] = 0.002 * np.power(tautaur[tautaur_cplx<1.35],7.5)
         W = W.real
+        
+        # TEMPORARY variable testing
+        print('Larray type',type(Larray))
+        print('W type',type(W))
+        
+        print('R  shape ',np.shape(R[Activearray==1]))
+        print('Larray shape',np.shape(Larray[Activearray==1]))
+        print('W shape',np.shape(W[Activearray==1]))
+        print('1-frac_sand shape',np.shape(1-frac_sand_array[Activearray==1]))
+        print('frac_parcel',np.shape(frac_parcel[Activearray==1]))
+        print('tau',np.shape(tau[Activearray==1]))
+        print('Activearray',Activearray)
+        
+        print('slf.Ttime activearray ==1 shape',np.shape(self.Ttimearray[Activearray==1]))
 
-        # assign travel times only where active==1
-        Ttimearray[Activearray==1] = rho**(3/2)*R[Activearray==1]*g*Larray[Activearray==1]*self.active_layer_thickness/W[Activearray==1]/tau[Activearray==1]**(3/2)/(1-frac_sand_array[Activearray==1])/frac_parcel[Activearray==1]
-        Ttimearray[findactivesand==True] = rho**(3/2)*R[findactivesand==True]*g*Larray[findactivesand==True]*self.active_layer_thickness/W[findactivesand==True]/tau[findactivesand==True]**(3/2)/frac_sand_array[findactivesand==True]
+        # assign travel times only for active parcels
+        #self.Ttimearray[Activearray==1] = (rho**(3/2)*
+#                                      R[Activearray==1]*g*
+#                                      Larray[Activearray==1]*
+#                                      self.active_layer_thickness/
+#                                      W[Activearray==1]/
+#                                      tau[Activearray==1]**(3/2)/
+#                                      (1-frac_sand_array[Activearray==1])/
+#                                      frac_parcel[Activearray==1])
+                                      
+        self.Ttimearray = np.ones(np.shape(self._parcels['element_id']))
+        
+        #Ttimearray[findactivesand==True] = rho**(3/2)*R[findactivesand==True]*g*Larray[findactivesand==True]*self.active_layer_thickness/W[findactivesand==True]/tau[findactivesand==True]**(3/2)/frac_sand_array[findactivesand==True]
         # ^ why?? if k = 1 ---> if it's sand...?  ASK JON about the logic here...
 
         # Assign those things to the grid -- might be useful for plotting later...?
@@ -372,7 +409,7 @@ class NetworkSedimentTransporter(Component):
 
 
 # %%
-    def _move_parcel_downstream(self, dt,Ttimearray):    # Jon
+    def _move_parcel_downstream(self, dt):    # Jon
         """Method to update parcel location for each parcel in the active
         layer.
         """
@@ -380,19 +417,20 @@ class NetworkSedimentTransporter(Component):
 # %%
         # we need to make sure we are pointing to the array rather than making copies
         current_link = self._parcels['element_id'] # same as Linkarray, this will be updated below
+        
         location_in_link = self._parcels['location_in_link'] # updated below
-        # Ttimearray -- needs to be brought in here
-        #^ Ttimearray is the time to move through the entire length of a link
+        distance_traveled = np.zeros(np.shape(self._parcels['element_id']))
+
+
 
         # However, a parcel is not always at the US end of a link, so need to determine
         # how much time it takes for that parcel to move out of the current link based on its
         # current location ...
-        time_to_exit_current_link = Ttimearray*(1-location_in_link)
+        time_to_exit_current_link = self.Ttimearray*(1-location_in_link)
         running_travel_time_in_dt = time_to_exit_current_link
 
         for p in range(self._parcels.number_of_items):
             #^ loop through all parcels, this loop could probably be removed in future refinements
-
             # ... and compare to the timestep dt
             # loop through until you find the link the parcel will reside in after dt
             while running_travel_time_in_dt[p] <= dt :
@@ -418,7 +456,10 @@ class NetworkSedimentTransporter(Component):
                 # movement in DS link is at the same velocity as in US link
                 # perhaps modify in future or ensure this type of travel is kept to a minimum by
                 # dt < travel time
-                time_to_exit_current_link[p] = time_to_exit_current_link[p] / self._grid.at_link['link_length']['element_id'[p]] * self._grid.at_link['link_length'][current_link[p]]
+                time_to_exit_current_link[p] = (time_to_exit_current_link[p] / 
+                                         self._grid.at_link['link_length'][self._parcels['element_id'] [p]] *
+                                         self._grid.at_link['link_length'][current_link[p]])
+                                         
                 running_travel_time_in_dt[p] = running_travel_time_in_dt[p] + time_to_exit_current_link[p]
 
                 # TRACK RUNNING TRAVEL DISTANCE HERE SIMILAR TO RUNNING TRAVEL TIME
@@ -431,9 +472,9 @@ class NetworkSedimentTransporter(Component):
 
             # USE RUNNING TRAVEL DISTANCE TO UPDATE D AND VOL DUE TO ABRASION HERE
             
-            distance_traveled = 0 # NEED TO DEFINE
+            distance_traveled[p] = 0 # NEED TO DEFINE
             
-            vol = (self._parcels['volume'][p])*(np.exp(distance_traveled * (-self._parcels['abrasion_rate'][p])))
+            vol = (self._parcels['volume'][p])*(np.exp(distance_traveled[p] * (-self._parcels['abrasion_rate'][p])))
 
             D = 2 * (vol * 3 / (4 * np.pi))**(1/3)
 
@@ -450,6 +491,6 @@ class NetworkSedimentTransporter(Component):
         """stuff"""
         self._update_channel_slopes()
         self._partition_active_and_storage_layers()
-        self._adjust_node_elevation
+        self._adjust_node_elevation()
         self._calc_transport_wilcock_crowe()
-        self._move_parcel_downstream()
+        self._move_parcel_downstream(dt)
