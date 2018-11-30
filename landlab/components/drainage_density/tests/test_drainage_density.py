@@ -53,7 +53,7 @@ def test_float_mask():
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
-
+    fr.run_one_step()
     mask = np.zeros(len(mg.at_node["topographic__elevation"]), dtype=float)
     mask[np.where(mg.at_node["drainage_area"] > 5)] = 1
     with pytest.raises(ValueError):
@@ -66,7 +66,7 @@ def test_bool_mask():
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
-
+    fr.run_one_step()
     mask = np.zeros(len(mg.at_node["topographic__elevation"]), dtype=bool)
     mask[np.where(mg.at_node["drainage_area"] > 5)] = 1
     with pytest.raises(ValueError):
@@ -93,7 +93,7 @@ def test_updating_with_array_provided():
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
-
+    fr.run_one_step()
     mask = np.zeros(len(mg.at_node["topographic__elevation"]), dtype=np.uint8)
     mask[np.where(mg.at_node["drainage_area"] > 5)] = 1
     dd = DrainageDensity(mg, channel__mask=mask)
@@ -108,7 +108,7 @@ def test_mask_field_exists():
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
-
+    fr.run_one_step()
     mask = np.zeros(len(mg.at_node["topographic__elevation"]), dtype=np.uint8)
     mask[np.where(mg.at_node["drainage_area"] > 5)] = 1
     with pytest.warns(UserWarning):
@@ -121,7 +121,7 @@ def test_bad_mask_size():
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
-
+    fr.run_one_step()
     mask = np.zeros(20)
     mask[np.where(mg.at_node["drainage_area"][:20] > 5)] = 1
 
@@ -135,7 +135,7 @@ def test_providing_array_and_kwargs():
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
-
+    fr.run_one_step()
     mask = np.zeros(len(mg.at_node["topographic__elevation"]), dtype=np.uint8)
     mask[np.where(mg.at_node["drainage_area"] > 5)] = 1
     with pytest.warns(UserWarning):
@@ -156,7 +156,7 @@ def test_missing_channel_threshold():
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
-
+    fr.run_one_step()
     with pytest.raises(ValueError):
         DrainageDensity(
             mg,
@@ -173,7 +173,7 @@ def test_missing_slope_exponent():
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
-
+    fr.run_one_step()
     with pytest.raises(ValueError):
         DrainageDensity(
             mg,
@@ -190,7 +190,7 @@ def test_missing_slope_coefficient():
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
-
+    fr.run_one_step()
     with pytest.raises(ValueError):
         DrainageDensity(
             mg,
@@ -207,7 +207,7 @@ def test_missing_area_exponent():
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
-
+    fr.run_one_step()
     with pytest.raises(ValueError):
         DrainageDensity(
             mg,
@@ -224,7 +224,7 @@ def test_missing_area_coefficient():
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
-
+    fr.run_one_step()
     with pytest.raises(ValueError):
         DrainageDensity(
             mg,
