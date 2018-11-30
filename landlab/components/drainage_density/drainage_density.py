@@ -22,46 +22,46 @@ class DrainageDensity(Component):
 
     Landlab component that implements the distance to channel algorithm of
     Tucker et al., 2001.
-    
+
     This component requires EITHER a channel__mask array with 1's
     where channels exist and 0's elsewhere, OR a set of coefficients
     and exponents for a slope-area relationship and a
     channelization threshold to compare against that relationship.
-    
+
     If an array is provided it MUST be of type np.uint8. See the example below
-    for how to make such an array. 
+    for how to make such an array.
 
     The channel__mask array will be assigned to an at-node field with the name
     `channel__mask`. If the channel__mask was originaly created from a passed
-    array, a user can update this array to change the mask. 
-    
-    If the channel__mask is created using an area coefficent, 
-    slope coefficient, area exponent, slope exponent, and channelization 
-    threshold, the location of the mask will be re-update when 
-    calc_drainage_density is called. 
+    array, a user can update this array to change the mask.
 
-    If an area coefficient, :math:`C_A`, a slope coefficent, :math:`C_S`, an 
-    area exponent, :math:`m_r`, a slope exponent, :math:`n_r, and 
-    channelization threshold :math:`T_C` are provided, nodes that meet the 
+    If the channel__mask is created using an area coefficent,
+    slope coefficient, area exponent, slope exponent, and channelization
+    threshold, the location of the mask will be re-update when
+    calc_drainage_density is called.
+
+    If an area coefficient, :math:`C_A`, a slope coefficent, :math:`C_S`, an
+    area exponent, :math:`m_r`, a slope exponent, :math:`n_r, and
+    channelization threshold :math:`T_C` are provided, nodes that meet the
     criteria
-    
+
     .. math::
         C_A A^m_r C_s S^n_r > T_c
 
     where :math:`A` is the drainage density and :math:`S` is the local slope,
-    will be marked as channel nodes. 
+    will be marked as channel nodes.
 
    ``calc_drainage_density`` function returns drainage density for the model
     domain.
 
     ``calc_drainage_density`` calculates the distance from every node to the
     nearest channel node :math:`L` along the flow line of steepest descent
-    (assuming D8 routing). 
-    
-   
+    (assuming D8 routing).
+
+
     This component stores this distance a field, called:
     ``surface_to_channel__minimum_distance``.
-    
+
     The drainage density is then calculated (after Tucker et al., 2001):
 
     .. math::
@@ -349,9 +349,9 @@ class DrainageDensity(Component):
 
     def calc_drainage_density(self):
         """Calculate drainage density. \
-        
-        If the channel mask is defined based on slope and area coefficients, 
-        it will be update based on the current drainage area and slope fields. 
+
+        If the channel mask is defined based on slope and area coefficients,
+        it will be update based on the current drainage area and slope fields.
 
         Returns
         -------

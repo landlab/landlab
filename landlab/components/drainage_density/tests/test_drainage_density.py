@@ -21,7 +21,7 @@ def test_route_to_multiple_error_raised():
 
 def test_mask_is_stable():
     mg = RasterModelGrid((80, 80), 1.0)
-    _ = mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("node", "topographic__elevation")
     np.random.seed(50)
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
@@ -41,7 +41,7 @@ def test_mask_is_stable():
     dd = DrainageDensity(mg, channel__mask=mask)
     mask1 = mask.copy()
 
-    mean_drainage_density = dd.calc_drainage_density()
+    dd.calc_drainage_density()
     mask2 = mask.copy()
 
     assert_array_equal(mask0, mask1)
