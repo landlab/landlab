@@ -83,7 +83,6 @@ class NetworkModelGrid(Graph, GraphFields):
         array([4, 0, 0, 0], dtype=uint8)
         >>> grid.status_at_link
         array([0, 0, 0], dtype=uint8)
-
         """
         return self._node_status
 
@@ -133,6 +132,9 @@ class NetworkModelGrid(Graph, GraphFields):
         array([0, 1, 2])
         """
         return np.where(self.status_at_link == ACTIVE_LINK)[0]
+
+
+# use the pattern to add the correct function...
 
 add_module_functions_to_class(NetworkModelGrid, 'mappers.py', pattern='map_*')
 add_module_functions_to_class(NetworkModelGrid, 'gradients.py', pattern='calc_*')
