@@ -22,6 +22,7 @@ from landlab import (  # for type tests
     Component,
     RasterModelGrid,
     VoronoiDelaunayGrid,
+    NetworkModelGrid
 )
 from landlab.components.flow_accum import flow_accum_bw, flow_accum_to_n
 from landlab.core.messages import warning_message
@@ -967,7 +968,7 @@ class FlowAccumulator(Component):
             # put these in grid so that depression finder can use it.
             # store the generated data in the grid
             self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
-            self._grid["link"]["flow__data_structure_D"][:len(D)] = D
+            self._grid["grid"]["flow__data_structure_D"] = np.array([D], dtype=object)
             self._grid["node"]["flow__upstream_node_order"][:] = s
 
             # step 4. Accumulate (to one or to N depending on direction method)
@@ -988,15 +989,6 @@ class FlowAccumulator(Component):
             self._grid['node']['flow__data_structure_delta'][:] = delta[1:]
             self._grid['grid']['flow__data_structure_D'][0] = np.array([D], dtype=object)
             self._grid['node']['flow__upstream_node_order'][:] = s
-
-            if self._is_raster:
-                tempD = BAD_INDEX_VALUE * np.ones(
-                    (self._grid.number_of_links * 2))
-                tempD[: len(D)] = D
-                self._grid["link"]["flow__data_structure_D"][
-                    :] = tempD.reshape((self._grid.number_of_links, 2))
-            else:
-                self._grid["link"]["flow__data_structure_D"][:len(D)] = D
             self._grid["node"]["flow__upstream_node_order"][:] = s
 
             # step 4. Accumulate (to one or to N depending on direction method)

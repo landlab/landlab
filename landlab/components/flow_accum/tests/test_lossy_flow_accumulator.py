@@ -386,7 +386,7 @@ def test_fields():
         "topographic__steepest_slope",
         "water__unit_flux_in",
     ]
-    assert sorted(list(mg.at_link.keys())) == ["flow__data_structure_D"]
+    assert sorted(list(mg.at_grid.keys())) == ["flow__data_structure_D"]
 
     mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
@@ -407,7 +407,7 @@ def test_fields():
         "water__unit_flux_in",
     ]
 
-    assert sorted(list(mg2.at_link.keys())) == ["flow__data_structure_D"]
+    assert sorted(list(mg2.at_grid.keys())) == ["flow__data_structure_D"]
 
 
 def test_accumulated_area_closes():

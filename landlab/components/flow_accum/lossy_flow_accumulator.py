@@ -58,7 +58,7 @@ class LossyFlowAccumulator(FlowAccumulator):
            IDs: *'flow__upstream_node_order'*
         -  Node array of all but the first element of the delta data structure:
             *flow__data_structure_delta*. The first element is always zero.
-        -  Link array of the D data structure: *flow__data_structure_D*
+        -  At-grid D data structure: *flow__data_structure_D*
 
     The FlowDirector component will add additional ModelGrid fields; see the
     `FlowAccumulator component <https://landlab.readthedocs.io/en/latest/landlab.components.flow_accum.html>`_
@@ -303,7 +303,7 @@ class LossyFlowAccumulator(FlowAccumulator):
         "flow__upstream_node_order": "node",
         "flow__nodes_not_in_stack": "grid",
         "flow__data_structure_delta": "node",
-        "flow__data_structure_D": "link",
+        "flow__data_structure_D": "grid",
     }
     _var_doc = {
         "topographic__elevation": "Land surface topographic elevation",
@@ -321,7 +321,7 @@ class LossyFlowAccumulator(FlowAccumulator):
         "flow__data_structure_delta": "Node array containing the "
         + "elements delta[1:] of the data structure 'delta' used for "
         + "construction of the downstream-to-upstream node array",
-        "flow__data_structure_D": "Link array containing the data structure "
+        "flow__data_structure_D": "Grid array containing the data structure "
         + "D used for construction of the downstream-to-upstream node array",
         "flow__nodes_not_in_stack": "Boolean value indicating if there "
         + "are any nodes that have not yet been added to the stack stored "

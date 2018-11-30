@@ -41,6 +41,7 @@ from .grid import (
     RadialModelGrid,
     RasterModelGrid,
     VoronoiDelaunayGrid,
+    NetworkModelGrid,
     create_and_initialize_grid,
 )
 from .plot import (
