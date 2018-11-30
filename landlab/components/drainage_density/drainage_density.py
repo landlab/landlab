@@ -12,8 +12,9 @@ _REQUIRED_FIELDS = (
     "flow__receiver_node",
     "flow__link_to_receiver_node",
     "topographic__steepest_slope",
-    "flow__upstream_node_order"
+    "flow__upstream_node_order",
 )
+
 
 class DrainageDensity(Component):
 
@@ -21,14 +22,47 @@ class DrainageDensity(Component):
 
     Landlab component that implements the distance to channel algorithm of
     Tucker et al., 2001.
+    
+    This component requires EITHER a channel__mask array with 1's
+    where channels exist and 0's elsewhere, OR a set of coefficients
+    and exponents for a slope-area relationship and a
+    channelization threshold to compare against that relationship.
+    
+    If an array is provided it MUST be of type np.uint8. See the example below
+    for how to make such an array. 
 
-    calc_drainage_density function returns drainage density for the model
+    The channel__mask array will be assigned to an at-node field with the name
+    `channel__mask`. If the channel__mask was originaly created from a passed
+    array, a user can update this array to change the mask. 
+    
+    If the channel__mask is created using an area coefficent, 
+    slope coefficient, area exponent, slope exponent, and channelization 
+    threshold, the location of the mask will be re-update when 
+    calc_drainage_density is called. 
+
+    If an area coefficient, :math:`C_A`, a slope coefficent, :math:`C_S`, an 
+    area exponent, :math:`m_r`, a slope exponent, :math:`n_r, and 
+    channelization threshold :math:`T_C` are provided, nodes that meet the 
+    criteria
+    
+    .. math::
+        C_A A^m_r C_s S^n_r > T_c
+
+    where :math:`A` is the drainage density and :math:`S` is the local slope,
+    will be marked as channel nodes. 
+
+   ``calc_drainage_density`` function returns drainage density for the model
     domain.
 
-    calc_drainage_density calculates the distance from every node to the
+    ``calc_drainage_density`` calculates the distance from every node to the
     nearest channel node :math:`L` along the flow line of steepest descent
-    (assuming D8 routing). The drainage density is then (after Tucker et al.,
-    2001):
+    (assuming D8 routing). 
+    
+   
+    This component stores this distance a field, called:
+    ``surface_to_channel__minimum_distance``.
+    
+    The drainage density is then calculated (after Tucker et al., 2001):
 
     .. math::
 
@@ -36,13 +70,6 @@ class DrainageDensity(Component):
 
     where :math:`\overline{L}` is the mean L for the model domain.
 
-    This component requires EITHER a channel__mask array with 1's
-    where channels exist and 0's elsewhere, OR a set of coefficients
-    and exponents for a slope-area relationship and a
-    channelization threshold to compare against that relationship.
-
-    The channel__mask array will be assigned to an at-node field with the name
-    `channel__mask`. A user can update the
 
     Examples
     --------
@@ -81,7 +108,7 @@ class DrainageDensity(Component):
     ...     fr.run_one_step()
     ...     fsc.run_one_step(dt = 10.0)
     ...     mg.at_node['topographic__elevation'][mg.core_nodes] += .01
-    >>> channels = mg.at_node['drainage_area'] > 5
+    >>> channels = np.array(mg.at_node['drainage_area'] > 5, dtype=np.uint8)
     >>> dd = DrainageDensity(mg, channel__mask=channels)
     >>> mean_drainage_density = dd.calc_drainage_density()
     >>> np.isclose(mean_drainage_density, 0.3831100571)
@@ -217,10 +244,10 @@ class DrainageDensity(Component):
                 warn("Existing channel__mask grid field was overwritten.")
 
             if channel__mask.dtype.type is not np.uint8:
-                raise ValueError()
+                raise ValueError("mask must by np.uint8")
 
-            self._mask_as_array  = True
-            self._update_channel_mask  = self._update_channel_mask_array
+            self._mask_as_array = True
+            self._update_channel_mask = self._update_channel_mask_array
             grid.at_node["channel__mask"] = channel__mask
 
         if channel__mask is None:
@@ -260,12 +287,12 @@ class DrainageDensity(Component):
                     "parameters are needed."
                 )
 
-            self._mask_as_array  = False
-            self._update_channel_mask  = self._update_channel_mask_values
+            self._mask_as_array = False
+            self._update_channel_mask = self._update_channel_mask_values
             self._area_coefficient = area_coefficient
-            self._slope_coefficient  = slope_coefficient
+            self._slope_coefficient = slope_coefficient
             self._area_exponent = area_exponent
-            self._slope_exponent  = slope_exponent
+            self._slope_exponent = slope_exponent
             self._channelization_threshold = channelization_threshold
 
             self._update_channel_mask()
@@ -288,9 +315,8 @@ class DrainageDensity(Component):
         self._stack_links = grid.at_node["flow__link_to_receiver_node"]
 
         # Upstream node order
-        self._upstream_order= grid.at_node["flow__upstream_node_order"]
+        self._upstream_order = grid.at_node["flow__upstream_node_order"]
 
-        
         # Distance to channel
         if "surface_to_channel__minimum_distance" in grid.at_node:
             self.distance_to_channel = grid.at_node[
@@ -302,32 +328,30 @@ class DrainageDensity(Component):
             )
 
     def _update_channel_mask_array(self):
-        """ """
-        raise NotImplementedError()
+        raise NotImplementedError(
+            (
+                "If you provided a channel mask to "
+                "DrainageDensity, update it by updating the "
+                "model grid field channel__mask"
+            )
+        )
 
     def _update_channel_mask_values(self):
-        """ """
-
         channel__mask = (
             self.area_coefficient
-            * np.power(grid.at_node["drainage_area"], self.area_exponent)
+            * np.power(self._grid.at_node["drainage_area"], self.area_exponent)
             * self.slope_coefficient
-            * np.power(grid.at_node["topographic__steepest_slope"], self.slope_exponent)
+            * np.power(
+                self._grid.at_node["topographic__steepest_slope"], self.slope_exponent
+            )
         ) > self.channelization_threshold
-        grid.at_node["channel__mask"] = channel__mask.astype(np.uint8)
+        self._grid.at_node["channel__mask"] = channel__mask.astype(np.uint8)
 
     def calc_drainage_density(self):
-        """Calculate drainage density.
-
-        Returns
-        -------
-        float
-            The drainage density.
-        """
-
-        # ^there is no 'run_one_step' method b/c this is a tool, not a model.
-        """Calculate distance to channel and drainage density, after
-        Tucker et al., 2001.
+        """Calculate drainage density. \
+        
+        If the channel mask is defined based on slope and area coefficients, 
+        it will be update based on the current drainage area and slope fields. 
 
         Returns
         -------
@@ -336,12 +360,16 @@ class DrainageDensity(Component):
         """
         from .cfuncs import _calc_dists_to_channel
 
+        if self._mask_as_array is False:
+            self._update_channel_mask()
+
         _calc_dists_to_channel(
             self._channel_network,
             self._flow_receivers,
+            self._upstream_order,
             self.grid.length_of_d8,
             self._stack_links,
-            self._distance_to_channel,
+            self.distance_to_channel,
             self.grid.number_of_nodes,
         )
         landscape_drainage_density = 1. / (
@@ -352,5 +380,5 @@ class DrainageDensity(Component):
                 ]
             )
         )
-        # self.distance_to_channel))  # this is THE drainage density
+        # this is THE drainage density
         return landscape_drainage_density
