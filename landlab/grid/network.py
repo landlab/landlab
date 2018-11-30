@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 """
-
+A class used to create and manage network models in 2D.
 """
 import numpy as np
 
@@ -18,8 +18,9 @@ from .linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK
 from .linkstatus import set_status_at_link
 from ..core.utils import add_module_functions_to_class
 
+
 class NetworkModelGrid(Graph, GraphFields):
-    """A ModelGrid of just nodes and links.
+    """Create a ModelGrid of just nodes and links.
 
     Parameters
     ----------
@@ -56,7 +57,6 @@ class NetworkModelGrid(Graph, GraphFields):
         self._node_status = np.zeros(self.number_of_nodes, dtype=np.uint8)
         self.bc_set_code = 0
 
-
     @property
     #@override_array_setitem_and_reset('reset_status_at_node') # this is in BASE, not sure if we need it.
     def status_at_node(self):
@@ -64,7 +64,26 @@ class NetworkModelGrid(Graph, GraphFields):
 
         Examples
         --------
-        >>> #TODO
+        >>> from landlab.grid.network import NetworkModelGrid
+        >>> from landlab import CLOSED_BOUNDARY
+
+        >>> y_of_node = (0, 1, 2, 2)
+        >>> x_of_node = (0, 0, -1, 1)
+        >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
+        >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
+        >>> grid.status_at_node
+        array([0, 0, 0, 0], dtype=uint8)
+        >>> grid.status_at_link
+        array([0, 0, 0], dtype=uint8)
+
+        Now we change the status at node 0.
+
+        >>> grid.status_at_node[0] = CLOSED_BOUNDARY
+        >>> grid.status_at_node
+        array([4, 0, 0, 0], dtype=uint8)
+        >>> grid.status_at_link
+        array([0, 0, 0], dtype=uint8)
+
         """
         return self._node_status
 
@@ -82,7 +101,16 @@ class NetworkModelGrid(Graph, GraphFields):
 
         Examples
         --------
-        >>> # TODO
+        >>> from landlab.grid.network import NetworkModelGrid
+        >>> from landlab import FIXED_LINK
+
+        >>> y_of_node = (0, 1, 2, 2)
+        >>> x_of_node = (0, 0, -1, 1)
+        >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
+        >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
+        >>> grid.status_at_link
+        array([0, 0, 0], dtype=uint8)
+
         """
         return set_status_at_link(self.status_at_node[self.nodes_at_link])
 
@@ -94,7 +122,15 @@ class NetworkModelGrid(Graph, GraphFields):
 
         Examples
         --------
-        >>> # TODO
+        >>> from landlab.grid.network import NetworkModelGrid
+        >>> from landlab import FIXED_LINK
+
+        >>> y_of_node = (0, 1, 2, 2)
+        >>> x_of_node = (0, 0, -1, 1)
+        >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
+        >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
+        >>> grid.active_links
+        array([0, 1, 2])
         """
         return np.where(self.status_at_link == ACTIVE_LINK)[0]
 
