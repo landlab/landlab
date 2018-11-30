@@ -20,9 +20,9 @@ import six
 from landlab import (  # for type tests
     BAD_INDEX_VALUE,
     Component,
+    NetworkModelGrid,
     RasterModelGrid,
     VoronoiDelaunayGrid,
-    NetworkModelGrid
 )
 from landlab.components.flow_accum import flow_accum_bw, flow_accum_to_n
 from landlab.core.messages import warning_message
@@ -541,42 +541,36 @@ class FlowAccumulator(Component):
         "flow__nodes_not_in_stack": "-",
     }
 
-    _var_mapping = {'topographic__elevation': 'node',
-                    'flow__receiver_node': 'node',
-                    'water__unit_flux_in': 'node',
-                    'drainage_area': 'node',
-                    'surface_water__discharge': 'node',
-                    'flow__upstream_node_order': 'node',
-                    'flow__nodes_not_in_stack': 'grid',
-                    'flow__data_structure_delta': 'node',
-                    'flow__data_structure_D': 'grid',
-                    }
+    _var_mapping = {
+        "topographic__elevation": "node",
+        "flow__receiver_node": "node",
+        "water__unit_flux_in": "node",
+        "drainage_area": "node",
+        "surface_water__discharge": "node",
+        "flow__upstream_node_order": "node",
+        "flow__nodes_not_in_stack": "grid",
+        "flow__data_structure_delta": "node",
+        "flow__data_structure_D": "grid",
+    }
     _var_doc = {
-        'topographic__elevation': 'Land surface topographic elevation',
-        'flow__receiver_node':
-            'Node array of receivers (node that receives flow from current '
-            'node)',
-        'drainage_area':
-            "Upstream accumulated surface area contributing to the node's "
-            "discharge",
-        'surface_water__discharge': 'Discharge of water through each node',
-        'water__unit_flux_in':
-            'External volume water per area per time input to each node '
-            '(e.g., rainfall rate)',
-        'flow__upstream_node_order':
-            'Node array containing downstream-to-upstream ordered list of '
-            'node IDs',
-        'flow__data_structure_delta':
-            'Node array containing the elements delta[1:] of the data '
-            'structure "delta" used for construction of the downstream-to-'
-            'upstream node array',
-        'flow__data_structure_D':
-            'Array containing the data structure D used for construction'
-            'of the downstream-to-upstream node array. Stored at Grid.',
-        'flow__nodes_not_in_stack':
-            'Boolean value indicating if there are any nodes that have not yet'
-            'been added to the stack stored in flow__upstream_node_order.'
-               }
+        "topographic__elevation": "Land surface topographic elevation",
+        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
+        "node)",
+        "drainage_area": "Upstream accumulated surface area contributing to the node's "
+        "discharge",
+        "surface_water__discharge": "Discharge of water through each node",
+        "water__unit_flux_in": "External volume water per area per time input to each node "
+        "(e.g., rainfall rate)",
+        "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
+        "node IDs",
+        "flow__data_structure_delta": "Node array containing the elements delta[1:] of the data "
+        'structure "delta" used for construction of the downstream-to-'
+        "upstream node array",
+        "flow__data_structure_D": "Array containing the data structure D used for construction"
+        "of the downstream-to-upstream node array. Stored at Grid.",
+        "flow__nodes_not_in_stack": "Boolean value indicating if there are any nodes that have not yet"
+        "been added to the stack stored in flow__upstream_node_order.",
+    }
 
     def __init__(
         self,
@@ -613,11 +607,13 @@ class FlowAccumulator(Component):
 
         if self._is_Network:
             try:
-                node_cell_area = self._grid.at_node['cell_area_at_node']
+                node_cell_area = self._grid.at_node["cell_area_at_node"]
             except FieldError:
-                raise FieldError('In order for the FlowAccumulator to work, the '
-                                 'grid must have an at-node field called '
-                                 'cell_area_at_node.')
+                raise FieldError(
+                    "In order for the FlowAccumulator to work, the "
+                    "grid must have an at-node field called "
+                    "cell_area_at_node."
+                )
         else:
             node_cell_area = self._grid.cell_area_at_node.copy()
             node_cell_area[self._grid.closed_boundary_nodes] = 0.
@@ -672,16 +668,18 @@ class FlowAccumulator(Component):
             self.delta_structure = grid.at_node["flow__data_structure_delta"]
 
         try:
-            D = BAD_INDEX_VALUE * grid.ones(at='link', dtype=int)
+            D = BAD_INDEX_VALUE * grid.ones(at="link", dtype=int)
             D_structure = np.array([D], dtype=object)
-            self.D_structure = grid.add_field('flow__data_structure_D',
-                                              D_structure,
-                                              at='grid',
-                                              dtype=object,
-                                              noclobber=False)
+            self.D_structure = grid.add_field(
+                "flow__data_structure_D",
+                D_structure,
+                at="grid",
+                dtype=object,
+                noclobber=False,
+            )
 
         except FieldError:
-            self.D_structure = grid.at_grid['flow__data_structure_D']
+            self.D_structure = grid.at_grid["flow__data_structure_D"]
 
         self.nodes_not_in_stack = True
 
@@ -986,9 +984,11 @@ class FlowAccumulator(Component):
 
             # put theese in grid so that depression finder can use it.
             # store the generated data in the grid
-            self._grid['node']['flow__data_structure_delta'][:] = delta[1:]
-            self._grid['grid']['flow__data_structure_D'][0] = np.array([D], dtype=object)
-            self._grid['node']['flow__upstream_node_order'][:] = s
+            self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
+            self._grid["grid"]["flow__data_structure_D"][0] = np.array(
+                [D], dtype=object
+            )
+            self._grid["node"]["flow__upstream_node_order"][:] = s
             self._grid["node"]["flow__upstream_node_order"][:] = s
 
             # step 4. Accumulate (to one or to N depending on direction method)
@@ -1002,8 +1002,7 @@ class FlowAccumulator(Component):
         can be overridden in inherited components.
         """
         a, q = flow_accum_bw.find_drainage_area_and_discharge(
-            s, r, self.node_cell_area,
-            self._grid.at_node["water__unit_flux_in"]
+            s, r, self.node_cell_area, self._grid.at_node["water__unit_flux_in"]
         )
         return (a, q)
 
@@ -1013,8 +1012,7 @@ class FlowAccumulator(Component):
         can be overridden in inherited components.
         """
         a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n(
-            s, r, p, self.node_cell_area,
-            self._grid.at_node["water__unit_flux_in"]
+            s, r, p, self.node_cell_area, self._grid.at_node["water__unit_flux_in"]
         )
         return (a, q)
 

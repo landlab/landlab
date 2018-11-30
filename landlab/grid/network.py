@@ -4,19 +4,21 @@ A class used to create and manage network models in 2D.
 """
 import numpy as np
 
-from ..graph import Graph
-from ..field import GraphFields
-
-from ..utils.decorators import cache_result_in_object
-from .decorators import return_readonly_id_array
 from landlab.utils.decorators import make_return_array_immutable
 
-from .nodestatus import (CORE_NODE, FIXED_VALUE_BOUNDARY,
-                         FIXED_GRADIENT_BOUNDARY, LOOPED_BOUNDARY,
-                         CLOSED_BOUNDARY)
-from .linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK
-from .linkstatus import set_status_at_link
 from ..core.utils import add_module_functions_to_class
+from ..field import GraphFields
+from ..graph import Graph
+from ..utils.decorators import cache_result_in_object
+from .decorators import return_readonly_id_array
+from .linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK, set_status_at_link
+from .nodestatus import (
+    CLOSED_BOUNDARY,
+    CORE_NODE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+    LOOPED_BOUNDARY,
+)
 
 
 class NetworkModelGrid(Graph, GraphFields):
@@ -48,17 +50,17 @@ class NetworkModelGrid(Graph, GraphFields):
 
     def __init__(self, yx_of_node, links, **kwds):
         Graph.__init__(self, yx_of_node, links=links)
-        GraphFields.__init__(self,
-                             {'node': self.number_of_nodes,
-                              'link': self.number_of_links,
-                              'grid': 1},
-                             default_group='node')
+        GraphFields.__init__(
+            self,
+            {"node": self.number_of_nodes, "link": self.number_of_links, "grid": 1},
+            default_group="node",
+        )
 
         self._node_status = np.zeros(self.number_of_nodes, dtype=np.uint8)
         self.bc_set_code = 0
 
     @property
-    #@override_array_setitem_and_reset('reset_status_at_node') # this is in BASE, not sure if we need it.
+    # @override_array_setitem_and_reset('reset_status_at_node') # this is in BASE, not sure if we need it.
     def status_at_node(self):
         """Get array of the boundary status for each node.
 
@@ -136,8 +138,8 @@ class NetworkModelGrid(Graph, GraphFields):
 
 # use the pattern to add the correct function...
 
-add_module_functions_to_class(NetworkModelGrid, 'mappers.py', pattern='map_*')
-add_module_functions_to_class(NetworkModelGrid, 'gradients.py', pattern='calc_*')
-add_module_functions_to_class(NetworkModelGrid, 'divergence.py', pattern='calc_*')
+add_module_functions_to_class(NetworkModelGrid, "mappers.py", pattern="map_*")
+add_module_functions_to_class(NetworkModelGrid, "gradients.py", pattern="calc_*")
+add_module_functions_to_class(NetworkModelGrid, "divergence.py", pattern="calc_*")
 
 # Next remove/and/or raise not-implemented errors for all patch/cell related functions.

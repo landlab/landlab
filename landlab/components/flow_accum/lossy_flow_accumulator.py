@@ -366,8 +366,7 @@ class LossyFlowAccumulator(FlowAccumulator):
                 # single value:
                 if not isinstance(loss_function(1.), float):
                     raise TypeError(
-                        "The loss_function should take a float, and return "
-                        "a float."
+                        "The loss_function should take a float, and return " "a float."
                     )
                 # now, for logical consistency in our calls to
                 # find_drainage_area_and_discharge, wrap the func so it has two
@@ -429,9 +428,10 @@ class LossyFlowAccumulator(FlowAccumulator):
             self._lossfunc = lossfunc
 
         # add the new loss discharge field if necessary:
-        if 'surface_water__discharge_loss' not in grid.at_node:
-            self.grid.add_zeros('node', 'surface_water__discharge_loss',
-                                dtype=float, noclobber=False)
+        if "surface_water__discharge_loss" not in grid.at_node:
+            self.grid.add_zeros(
+                "node", "surface_water__discharge_loss", dtype=float, noclobber=False
+            )
 
     def _accumulate_A_Q_to_one(self, s, r):
         """
@@ -455,8 +455,14 @@ class LossyFlowAccumulator(FlowAccumulator):
         """
         link = self._grid.at_node["flow__link_to_receiver_node"]
         a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n_lossy(
-            s, r, link, p, self._lossfunc, self._grid, self.node_cell_area,
-            self._grid.at_node["water__unit_flux_in"]
+            s,
+            r,
+            link,
+            p,
+            self._lossfunc,
+            self._grid,
+            self.node_cell_area,
+            self._grid.at_node["water__unit_flux_in"],
         )
         return a, q
 

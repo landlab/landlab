@@ -85,7 +85,9 @@ def test_with_method_flexure():
     flex.update()
 
     assert np.argmax(flex.dz_at_node[1]) == i_mid
-    assert np.all(flex.dz_at_node[:, i_mid::-1] == pytest.approx(flex.dz_at_node[:, i_mid:]))
+    assert np.all(
+        flex.dz_at_node[:, i_mid::-1] == pytest.approx(flex.dz_at_node[:, i_mid:])
+    )
 
 
 def test_run_one_step():

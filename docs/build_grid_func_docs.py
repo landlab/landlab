@@ -19,10 +19,12 @@ This script is designed to be run as part of the commit process for LL.
 Any changes made directly to the above files will be lost whenever this script
 is run.
 """
-from landlab.core.utils import get_categories_from_grid_methods
-from copy import copy
 import re
+from copy import copy
+
 import numpy as np
+
+from landlab.core.utils import get_categories_from_grid_methods
 
 grid_types = ('ModelGrid', 'RasterModelGrid', 'VoronoiDelaunayGrid',
               'HexModelGrid', 'RadialModelGrid')

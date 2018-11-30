@@ -6,11 +6,12 @@ Created on Fri Mar 30 09:10:56 2018
 @author: barnhark
 """
 import os
-import numpy as np
 
+import numpy as np
 import shapefile as ps
 
 from landlab.grid.network import NetworkModelGrid
+
 
 def read_shapefile(file):
     """Read shapefile and create a NetworkModelGrid.
@@ -29,15 +30,20 @@ def read_shapefile(file):
     """
 
     if os.path.exists(file) == False:
-        raise ValueError(('landlab.io.shapefile was passed a filepath that does '
-                          'not exist.'))
+        raise ValueError(
+            ("landlab.io.shapefile was passed a filepath that does " "not exist.")
+        )
 
     sf = ps.Reader(file)
 
     if sf.shapeType != 3:
-        raise ValueError(('landlab.io.shapefile read requires a polyline '
-                          'type shapefile. The provided shapefile does '
-                          'not meet these requirements.'))
+        raise ValueError(
+            (
+                "landlab.io.shapefile read requires a polyline "
+                "type shapefile. The provided shapefile does "
+                "not meet these requirements."
+            )
+        )
 
     # get record information, the firste element is # ('DeletionFlag', 'C', 1, 0)
     # which we will ignore.
@@ -50,9 +56,9 @@ def read_shapefile(file):
 
     node_xy = []
     links = []
-    fields = {rec[0]:[] for rec in records}
-    fields['x_of_polyline'] = []
-    fields['y_of_polyline'] = []
+    fields = {rec[0]: [] for rec in records}
+    fields["x_of_polyline"] = []
+    fields["y_of_polyline"] = []
 
     record_order = [rec[0] for rec in records]
 
@@ -95,12 +101,16 @@ def read_shapefile(file):
                 field_name = record_order[i]
                 fields[field_name].append(sr.record[i])
 
-            fields['x_of_polyline'].append(x)
-            fields['y_of_polyline'].append(y)
+            fields["x_of_polyline"].append(x)
+            fields["y_of_polyline"].append(y)
 
         else:
-            raise ValueError(('landlab.io.shapefile currently does not support ',
-                              'reading multipart polyline shapefiles.'))
+            raise ValueError(
+                (
+                    "landlab.io.shapefile currently does not support ",
+                    "reading multipart polyline shapefiles.",
+                )
+            )
 
     ## Create a Network Model Grid
     x_of_node, y_of_node = zip(*node_xy)
