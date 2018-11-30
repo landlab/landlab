@@ -77,11 +77,14 @@ def test_missing_fields():
     mg = RasterModelGrid((10, 10), 1.0)
     mg.add_zeros("node", "topographic__elevation")
     with pytest.raises(FieldError):
-        DrainageDensity(mg, area_coefficient=1,
-                            slope_coefficient=1,
-                            area_exponent=1,
-                            slope_exponent=1,
-                            channelization_threshold=1)
+        DrainageDensity(
+            mg,
+            area_coefficient=1,
+            slope_coefficient=1,
+            area_exponent=1,
+            slope_exponent=1,
+            channelization_threshold=1,
+        )
 
 
 def test_updating_with_array_provided():
@@ -99,17 +102,18 @@ def test_updating_with_array_provided():
 
 
 def test_mask_field_exists():
-     mg = RasterModelGrid((10, 10), 1.0)
-     mg.add_zeros("node", "topographic__elevation")
-     mg.add_zeros("node", "channel__mask")
-     noise = np.random.rand(mg.size("node"))
-     mg.at_node["topographic__elevation"] += noise
-     fr = FlowAccumulator(mg, flow_director="D8")
+    mg = RasterModelGrid((10, 10), 1.0)
+    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("node", "channel__mask")
+    noise = np.random.rand(mg.size("node"))
+    mg.at_node["topographic__elevation"] += noise
+    fr = FlowAccumulator(mg, flow_director="D8")
 
-     mask = np.zeros(len(mg.at_node["topographic__elevation"]), dtype=np.uint8)
-     mask[np.where(mg.at_node["drainage_area"] > 5)] = 1
-     with pytest.warns(UserWarning):
-         DrainageDensity(mg, channel__mask=mask)
+    mask = np.zeros(len(mg.at_node["topographic__elevation"]), dtype=np.uint8)
+    mask[np.where(mg.at_node["drainage_area"] > 5)] = 1
+    with pytest.warns(UserWarning):
+        DrainageDensity(mg, channel__mask=mask)
+
 
 def test_bad_mask_size():
     mg = RasterModelGrid((10, 10), 1.0)
@@ -154,10 +158,13 @@ def test_missing_channel_threshold():
     fr = FlowAccumulator(mg, flow_director="D8")
 
     with pytest.raises(ValueError):
-        DrainageDensity(mg, area_coefficient=1,
-                            slope_coefficient=1,
-                            area_exponent=1,
-                            slope_exponent=1)
+        DrainageDensity(
+            mg,
+            area_coefficient=1,
+            slope_coefficient=1,
+            area_exponent=1,
+            slope_exponent=1,
+        )
 
 
 def test_missing_slope_exponent():
@@ -168,10 +175,13 @@ def test_missing_slope_exponent():
     fr = FlowAccumulator(mg, flow_director="D8")
 
     with pytest.raises(ValueError):
-        DrainageDensity(mg, area_coefficient=1,
-                            slope_coefficient=1,
-                            area_exponent=1,
-                            channelization_threshold=1)
+        DrainageDensity(
+            mg,
+            area_coefficient=1,
+            slope_coefficient=1,
+            area_exponent=1,
+            channelization_threshold=1,
+        )
 
 
 def test_missing_slope_coefficient():
@@ -182,10 +192,13 @@ def test_missing_slope_coefficient():
     fr = FlowAccumulator(mg, flow_director="D8")
 
     with pytest.raises(ValueError):
-        DrainageDensity(mg, area_coefficient=1,
-                            area_exponent=1,
-                            slope_exponent=1,
-                            channelization_threshold=1)
+        DrainageDensity(
+            mg,
+            area_coefficient=1,
+            area_exponent=1,
+            slope_exponent=1,
+            channelization_threshold=1,
+        )
 
 
 def test_missing_area_exponent():
@@ -196,10 +209,13 @@ def test_missing_area_exponent():
     fr = FlowAccumulator(mg, flow_director="D8")
 
     with pytest.raises(ValueError):
-        DrainageDensity(mg, area_coefficient=1,
-                            slope_coefficient=1,
-                            slope_exponent=1,
-                            channelization_threshold=1)
+        DrainageDensity(
+            mg,
+            area_coefficient=1,
+            slope_coefficient=1,
+            slope_exponent=1,
+            channelization_threshold=1,
+        )
 
 
 def test_missing_area_coefficient():
@@ -210,7 +226,10 @@ def test_missing_area_coefficient():
     fr = FlowAccumulator(mg, flow_director="D8")
 
     with pytest.raises(ValueError):
-        DrainageDensity(mg, slope_coefficient=1,
-                            area_exponent=1,
-                            slope_exponent=1,
-                            channelization_threshold=1)
+        DrainageDensity(
+            mg,
+            slope_coefficient=1,
+            area_exponent=1,
+            slope_exponent=1,
+            channelization_threshold=1,
+        )
