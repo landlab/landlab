@@ -331,10 +331,13 @@ class NetworkSedimentTransporter(Component):
                                                   'volume',at = 'link',
                                                   filter_array = findactive)
 
-        findactivesand = np.logical_and(Darray<0.002,Activearray ==1)
-        vol_act_sand = self._parcels.calc_aggregate_value(np.sum,
-                                                'volume',at = 'link',
-                                                filter_array = findactivesand)
+        if np.any(findactivesand):
+            vol_act_sand = self._parcels.calc_aggregate_value(
+                np.sum, "volume", at="link", filter_array=findactivesand
+            )
+            vol_act_sand[np.isnan(vol_act_sand) == True] = 0
+        else:
+            vol_act_sand = np.zeros(self._grid.number_of_links)
 
         vol_act_sand[np.isnan(vol_act_sand)==True] = 0
         frac_sand = vol_act_sand/vol_act
