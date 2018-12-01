@@ -60,6 +60,7 @@ install:
   - cmd: conda install -q conda-build=3.0
   - cmd: conda install -q anaconda-client
   - cmd: conda install -q numpy=1.11
+  - cmd: conda install -q -c conda-forge pyshp
   - cmd: pip install twine
   - cmd: conda list
 
