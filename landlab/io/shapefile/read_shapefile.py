@@ -7,7 +7,6 @@ Created on Fri Mar 30 09:10:56 2018
 """
 import os
 
-import numpy as np
 import shapefile as ps
 
 from landlab.grid.network import NetworkModelGrid
@@ -29,7 +28,7 @@ def read_shapefile(file):
     >>> # an example will be here.
     """
 
-    if os.path.exists(file) == False:
+    if os.path.exists(file) is False:
         raise ValueError(
             ("landlab.io.shapefile was passed a filepath that does " "not exist.")
         )
@@ -112,7 +111,7 @@ def read_shapefile(file):
                 )
             )
 
-    ## Create a Network Model Grid
+    # Create a Network Model Grid
     x_of_node, y_of_node = zip(*node_xy)
     grid = NetworkModelGrid((y_of_node, x_of_node), links)
     for field_name in fields:

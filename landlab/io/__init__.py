@@ -15,6 +15,7 @@ from .esri_ascii import (
 __all__ = [
     "read_esri_ascii",
     "read_asc_header",
+    "read_shapefile",
     "write_esri_ascii",
     "MissingRequiredKeyError",
     "KeyTypeError",
