@@ -444,17 +444,17 @@ class NetworkSedimentTransporter(Component):
             np.shape(self.Ttimearray[Activearray == 1]),
         )
 
-        # assign travel times only for active parcels
-        # self.Ttimearray[Activearray==1] = (rho**(3/2)*
-        #                                      R[Activearray==1]*g*
-        #                                      Larray[Activearray==1]*
-        #                                      self.active_layer_thickness/
-        #                                      W[Activearray==1]/
-        #                                      tau[Activearray==1]**(3/2)/
-        #                                      (1-frac_sand_array[Activearray==1])/
-        #                                      frac_parcel[Activearray==1])
+         #assign travel times only for active parcels
+        self.Ttimearray[Activearray==1] = (rho**(3/2)*
+                                              R[Activearray==1]*g*
+                                              Larray[Activearray==1]*
+                                              self.active_layer_thickness/
+                                              W[Activearray==1]/
+                                              tau[Activearray==1]**(3/2)/
+                                              (1-frac_sand_array[Activearray==1])/
+                                              frac_parcel[Activearray==1])
 
-        self.Ttimearray = np.ones(np.shape(self._parcels["element_id"]))
+        #self.Ttimearray = np.ones(np.shape(self._parcels["element_id"]))
 
         # Ttimearray[findactivesand==True] = rho**(3/2)*R[findactivesand==True]*g*Larray[findactivesand==True]*self.active_layer_thickness/W[findactivesand==True]/tau[findactivesand==True]**(3/2)/frac_sand_array[findactivesand==True]
         # ^ why?? if k = 1 ---> if it's sand...?  ASK JON about the logic here...
