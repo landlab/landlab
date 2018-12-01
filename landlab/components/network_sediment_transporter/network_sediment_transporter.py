@@ -142,6 +142,7 @@ class NetworkSedimentTransporter(Component):
         super(NetworkSedimentTransporter, self).__init__(grid, **kwds)
         self._grid = grid
         self._parcels = parcels
+        self._num_parcels = self._parcels["element_id"].size
 
         # assert that the flow director is a component and is of type
         # FlowDirectorSteepest
@@ -352,14 +353,14 @@ class NetworkSedimentTransporter(Component):
         R = (Rhoarray - rho) / rho
 
         # parcel attribute arrays to populate below
-        frac_sand_array = np.zeros(np.shape(self._parcels["element_id"]))
-        vol_act_array = np.zeros(np.shape(self._parcels["element_id"]))
-        Sarray = np.zeros(np.shape(self._parcels["element_id"]))
-        Harray = np.zeros(np.shape(self._parcels["element_id"]))
-        Larray = np.zeros(np.shape(self._parcels["element_id"]))
-        d_mean_active = np.zeros(np.shape(self._parcels["element_id"]))
+        frac_sand_array = np.zeros(self._num_parcels)
+        vol_act_array = np.zeros(self._num_parcels)
+        Sarray = np.zeros(self._num_parcels)
+        Harray = np.zeros(self._num_parcels)
+        Larray = np.zeros(self._num_parcels)
+        d_mean_active = np.zeros(self._num_parcels)
         d_mean_active.fill(np.nan)
-        self.Ttimearray = np.zeros(np.shape(self._parcels["element_id"]))
+        self.Ttimearray = np.zeros(self._num_parcels)
         # ^ Ttimearray is the time to move through the entire length of a link
 
         # Calculate bed statistics for all of the links
