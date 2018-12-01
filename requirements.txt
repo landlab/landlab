@@ -9,4 +9,4 @@ netcdf4
 six
 pyyaml
 statsmodels
-shapefile
+pyshp
