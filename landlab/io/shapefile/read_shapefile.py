@@ -3,8 +3,6 @@
 """
 Functions to read shapefiles and create a NetworkModelGrid.
 """
-import os
-
 import shapefile as ps
 from shapefile import ShapefileException
 
