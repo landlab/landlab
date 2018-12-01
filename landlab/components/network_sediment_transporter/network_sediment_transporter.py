@@ -344,10 +344,10 @@ class NetworkSedimentTransporter(Component):
         Darray = self._parcels["D"]
 
         #        Darray = np.array(parcels.DataFrame.D,copy=False) # this gives a copy, but we can set copy to false..?
-        Activearray = self._parcels["active_layer"]
-        Rhoarray = self._parcels["density"]
-        Volarray = self._parcels["volume"]
-        Linkarray = self._parcels["element_id"]  # link that the parcel is currently in
+        Activearray = self._parcels["active_layer"].values
+        Rhoarray = self._parcels["density"].values
+        Volarray = self._parcels["volume"].values
+        Linkarray = self._parcels["element_id"].values  # link that the parcel is currently in
         rho = self.fluid_density
         g = self.g
         R = (Rhoarray - rho) / rho
