@@ -1,42 +1,95 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Functions to read shapefiles and create a NetworkModelGrid
+Functions to read shapefiles and create a NetworkModelGrid.
 """
 import os
 
 import shapefile as ps
+from shapefile import ShapefileException
 
 from landlab.grid.network import NetworkModelGrid
 
 
-def read_shapefile(file):
+def read_shapefile(file, dbf=None, store_polyline_vertices=True):
     """Read shapefile and create a NetworkModelGrid.
 
+    There are a number of assumptions that are requied about the shapefile.
+        * The shape file must be a polyline shapefile.
+        * All polylines must be their own object (e.g. no multi-part polylines).
+        * Polyline endpoints match perfectly.
 
-
+    You might notice that there is no ``write_shapefile`` function. If this is
+    something you need for your work, please make a GitHub issue to start this
+    process.
 
     Parameters
     ----------
-    file : str
-        File path to a valid shapefile
+    file : str or file-like
+        File path or file-like of a valid shapefile
+    dbf : file-like, optional
+        If file is file-like, the dbf must also be passed.
     store_polyline_vertices: bool, optional
         If True (default), store the vertices of the polylines in
         the at_link fields ``x_of_polyline`` and ``y_of_polyline``.
 
+    Returns
+    -------
+    grid : NetworkModelGrid instance
+        The network model grid will have nodes at the endpoints of the
+        polylines, and links that connect these nodes. Any fields
+        associated with the shapefile will be added as at-link fields.
+
     Examples
     --------
-    >>>
+    First, we make a simple shapefile
+
+    >>> try:
+    ...     from StringIO import StringIO
+    ... except ImportError:
+    ...     from io import BytesIO as StringIO
+
+    >>> import shapefile
+    >>> w = shapefile.Writer()
+    >>> w.shapeType = 3
+    >>> w.field("id", "N")
+    >>> w.line([[[5,0],[5,5]]])
+    >>> w.record(0)
+    >>> w.line([[[5,5],[0,10]]])
+    >>> w.record(1)
+    >>> w.line([[[5,5],[10,10]]])
+    >>> w.record(2)
+    >>> shp = StringIO()
+    >>> shx = StringIO()
+    >>> dbf = StringIO()
+    >>> w.saveShp(shp)
+    >>> w.saveShx(shx)
+    >>> w.saveDbf(dbf)
+
+    Now create a NetworkModelGrid with read_shapefile:
+
+    >>> from landlab.io import read_shapefile
+    >>> grid = read_shapefile(shp, dbf=dbf)
+    >>> grid.nodes
+    array([0, 1, 2, 3])
+    >>> grid.x_of_node
+    array([  5.,   5.,   0.,  10.])
+    >>> grid.y_of_node
+    array([  0.,   5.,  10.,  10.])
+    >>> grid.nodes_at_link
+    array([[0, 1],
+           [1, 2],
+           [1, 3]])
     """
+    try:
+        sf = ps.Reader(file)
+    except ShapefileException:
+        try:
+            sf = ps.Reader(shp=file, dbf=dbf)
+        except ShapefileException:
+            raise ShapefileException("bad file path provided to read_shapefile")
 
-    if os.path.exists(file) is False:
-        raise ValueError(
-            ("landlab.io.shapefile was passed a filepath that does " "not exist.")
-        )
-
-    sf = ps.Reader(file)
-
-    if sf.shapeType != 3:
+    if sf.shapeType is not 3:
         raise ValueError(
             (
                 "landlab.io.shapefile read requires a polyline "
@@ -57,8 +110,10 @@ def read_shapefile(file):
     node_xy = []
     links = []
     fields = {rec[0]: [] for rec in records}
-    fields["x_of_polyline"] = []
-    fields["y_of_polyline"] = []
+
+    if store_polyline_vertices:
+        fields["x_of_polyline"] = []
+        fields["y_of_polyline"] = []
 
     record_order = [rec[0] for rec in records]
 
@@ -101,8 +156,9 @@ def read_shapefile(file):
                 field_name = record_order[i]
                 fields[field_name].append(sr.record[i])
 
-            fields["x_of_polyline"].append(x)
-            fields["y_of_polyline"].append(y)
+            if store_polyline_vertices:
+                fields["x_of_polyline"].append(x)
+                fields["y_of_polyline"].append(y)
 
         else:
             raise ValueError(

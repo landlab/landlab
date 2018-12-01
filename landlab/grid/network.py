@@ -53,7 +53,7 @@ class NetworkModelGrid(Graph, GraphFields):
         self.bc_set_code = 0
 
     @property
-    @override_array_setitem_and_reset('reset_status_at_node')
+    @override_array_setitem_and_reset("reset_status_at_node")
     def status_at_node(self):
         """Get array of the boundary status for each node.
 
@@ -149,5 +149,9 @@ class NetworkModelGrid(Graph, GraphFields):
 
 
 # add only the correct functions
-add_module_functions_to_class(NetworkModelGrid, "mappers.py", pattern="map_*", exclude="cell|patch")
-add_module_functions_to_class(NetworkModelGrid, "gradients.py", pattern="calc_grad_at_link")
+add_module_functions_to_class(
+    NetworkModelGrid, "mappers.py", pattern="map_*", exclude="cell|patch"
+)
+add_module_functions_to_class(
+    NetworkModelGrid, "gradients.py", pattern="calc_grad_at_link"
+)
