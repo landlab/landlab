@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Mar 30 09:10:56 2018
-
-@author: barnhark
+Functions to read shapefiles and create a NetworkModelGrid
 """
 import os
 
@@ -15,17 +13,20 @@ from landlab.grid.network import NetworkModelGrid
 def read_shapefile(file):
     """Read shapefile and create a NetworkModelGrid.
 
-    Text here about assumptions
+
 
 
     Parameters
     ----------
     file : str
         File path to a valid shapefile
+    store_polyline_vertices: bool, optional
+        If True (default), store the vertices of the polylines in
+        the at_link fields ``x_of_polyline`` and ``y_of_polyline``.
 
     Examples
     --------
-    >>> # an example will be here.
+    >>>
     """
 
     if os.path.exists(file) is False:
