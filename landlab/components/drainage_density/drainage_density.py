@@ -66,9 +66,9 @@ class DrainageDensity(Component):
 
     .. math::
 
-        D_d=\frac{1}{2\overline{L}}
+        D_d=\\frac{1}{2\\overline{L}}
 
-    where :math:`\overline{L}` is the mean L for the model domain.
+    where :math:`\\overline{L}` is the mean L for the model domain.
 
 
     Examples
