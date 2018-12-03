@@ -6,14 +6,16 @@ be created.
 Examples
 --------
 
->>> from landlab.graph import Graph
+>>> from landlab.graph import NetworkGraph, Graph
 
 >>> node_x, node_y = [0, 0, 0, 1, 1, 1, 2, 2, 2], [0, 1, 2, 0, 1, 2, 0, 1, 2]
->>> graph = Graph((node_y, node_x))
+>>> graph = NetworkGraph((node_y, node_x))
 >>> graph.x_of_node
 array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
 >>> graph.y_of_node
 array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.])
+>>> graph.ndim
+2
 
 >>> links = ((0, 1), (1, 2),
 ...          (0, 3), (1, 4), (2, 5),
@@ -126,10 +128,14 @@ class thawed(object):
 
 
 class NetworkGraph(object):
-    """Define the connectivity of a graph of nodes and links."""
+    """Define the connectivity of a graph of nodes and links.
+
+    Unlike Graph, NetworkGraph does not have patches.
+    """
 
     def __init__(self, mesh, **kwds):
         """Define a graph of connected nodes.
+
 
         Parameters
         ----------
@@ -139,8 +145,7 @@ class NetworkGraph(object):
         if not isinstance(mesh, xr.Dataset):
             node_y_and_x = mesh
             links = kwds.get("links", None)
-            patches = kwds.get("patches", None)
-            mesh = ugrid_from_unstructured(node_y_and_x, links=links, patches=patches)
+            mesh = ugrid_from_unstructured(node_y_and_x, links=links)
 
         self._ds = mesh
 
@@ -148,7 +153,7 @@ class NetworkGraph(object):
         self.freeze()
 
         if kwds.get("sort", True):
-            Graph.sort(self)
+            NetworkGraph.sort(self)
 
         self._origin = (0., 0.)
 
@@ -163,7 +168,6 @@ class NetworkGraph(object):
         with self.thawed():
             reorient_link_dirs(self)
             sorted_nodes, sorted_links, sorted_patches = reindex_by_xy(self)
-            reorder_links_at_patch(self)
 
         return sorted_nodes, sorted_links, sorted_patches
 
@@ -336,6 +340,19 @@ class NetworkGraph(object):
     @store_result_in_grid()
     @read_only_array
     def perimeter_nodes(self):
+        """Get nodes on the convex hull of a Graph.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab.graph import Graph
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1]
+        >>> graph = Graph((node_y, node_x))
+        >>> np.sort(graph.perimeter_nodes)
+        array([0, 2, 3, 5])
+
+        LLCATS: NINF BC SUBSET
+        """
         return find_perimeter_nodes(self)
 
     @property
@@ -653,7 +670,6 @@ class Graph(NetworkGraph):
         mesh : Dataset
             xarray Dataset that defines the topology in ugrid format.
         """
-        super(Graph, self).__init__(mesh, **kwds)
         if not isinstance(mesh, xr.Dataset):
             node_y_and_x = mesh
             links = kwds.get("links", None)
@@ -670,14 +686,6 @@ class Graph(NetworkGraph):
 
         self._origin = (0., 0.)
 
-    @classmethod
-    def from_dict(cls, meta):
-        return cls(
-            (meta["y_of_node"], meta["x_of_node"]),
-            links=meta.get("nodes_at_link", None),
-            patches=meta.get("links_at_patch", None),
-        )
-
     def sort(self):
         with self.thawed():
             reorient_link_dirs(self)
@@ -690,12 +698,49 @@ class Graph(NetworkGraph):
     @store_result_in_grid()
     @read_only_array
     def xy_of_patch(self):
+        """Get the centroid of each patch.
+
+        Examples
+        --------
+        >>> from landlab.graph import Graph
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
+        >>> links = ((0, 1), (1, 2),
+        ...          (0, 3), (1, 4), (2, 5),
+        ...          (3, 4), (4, 5),
+        ...          (3, 6), (4, 7), (5, 8),
+        ...          (6, 7), (7, 8))
+        >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
+        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
+        >>> graph.xy_of_patch
+        array([[ 0.5,  0.5],
+              [ 1.5,  0.5]])
+
+        LLCATS: PINF
+        """
         return get_centroid_of_patch(self)
 
     @property
     @store_result_in_grid()
     @read_only_array
     def area_of_patch(self):
+        """Get the area of each patch.
+
+        Examples
+        --------
+        >>> from landlab.graph import Graph
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
+        >>> links = ((0, 1), (1, 2),
+        ...          (0, 3), (1, 4), (2, 5),
+        ...          (3, 4), (4, 5),
+        ...          (3, 6), (4, 7), (5, 8),
+        ...          (6, 7), (7, 8))
+        >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
+        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
+        >>> graph.area_of_patch
+        array([ 1.,  1.])
+
+        LLCATS: PINF
+        """
         return get_area_of_patch(self)
 
     @property
