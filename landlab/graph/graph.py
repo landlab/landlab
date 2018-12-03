@@ -658,6 +658,7 @@ class NetworkGraph(object):
 
         return out
 
+
 class Graph(NetworkGraph):
 
     """Define the connectivity of a graph of nodes, links, and patches."""
