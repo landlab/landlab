@@ -41,12 +41,12 @@ class DrainageDensity(Component):
     calc_drainage_density is called.
 
     If an area coefficient, :math:`C_A`, a slope coefficent, :math:`C_S`, an
-    area exponent, :math:`m_r`, a slope exponent, :math:`n_r, and
+    area exponent, :math:`m_r`, a slope exponent, :math:`n_r`, and
     channelization threshold :math:`T_C` are provided, nodes that meet the
     criteria
 
     .. math::
-        C_A A^m_r C_s S^n_r > T_c
+        C_A A^{m_r} C_s S^{n_r} > T_c
 
     where :math:`A` is the drainage density and :math:`S` is the local slope,
     will be marked as channel nodes.
@@ -66,9 +66,9 @@ class DrainageDensity(Component):
 
     .. math::
 
-        D_d=\\frac{1}{2\\overline{L}}
+        D_d = \frac{1}{2\overline{L}}
 
-    where :math:`\\overline{L}` is the mean L for the model domain.
+    where :math:`\overline{L}` is the mean L for the model domain.
 
 
     Examples
