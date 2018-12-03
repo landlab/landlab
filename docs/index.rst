@@ -40,7 +40,7 @@ Methods and properties common to all grids
 ------------------------------------------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    landlab.grid.base
    landlab.grid.mappers
@@ -56,7 +56,7 @@ Landlab's rectilinear grids are implemented by the class ``RasterModelGrid``,
 which inherits from ``ModelGrid`` and adds the following:
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    landlab.grid.raster
 
@@ -67,7 +67,7 @@ Landlab's Voronoi-Delaunay grids are implemented by the class
 ``VoronoiDelaunayGrid``, which inherits from ``ModelGrid`` and adds the following:
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    landlab.grid.voronoi
 
@@ -78,7 +78,7 @@ Landlab's hex/trigonal grids are implemented by the class ``HexModelGrid``,
 which inherits from ``VoronoiDelauneyGrid`` and adds the following:
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    landlab.grid.hex
 
@@ -89,7 +89,7 @@ Landlab's radial grids are implemented by the class ``RadialModelGrid``, which
 inherits from ``VoronoiDelauneyGrid`` and adds the following:
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    landlab.grid.radial
 
@@ -101,7 +101,7 @@ inherits from ``VoronoiDelauneyGrid`` and adds the following:
  which inherits from ``Graph`` and ``GraphFields`` and adds the following:
 
  .. toctree::
-    :maxdepth: 4
+    :maxdepth: 3
 
     landlab.grid.network
 
