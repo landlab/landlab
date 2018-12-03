@@ -15,6 +15,8 @@ from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import deprecated, use_file_name_or_kwds
 
+# TODO: this should probably follow Barnes et al., 2014 for max efficiency
+
 
 class SinkFiller(Component):
     """
