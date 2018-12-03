@@ -614,7 +614,7 @@ def get_categories_from_grid_methods(grid_type):
     Parameters
     ----------
     grid_type : {'ModelGrid', 'RasterModelGrid', 'HexModelGrid',
-                 'RadialModelGrid', 'VoronoiDelaunayGrid'}
+                 'RadialModelGrid', 'VoronoiDelaunayGrid', 'NetworkModelGrid'}
         String of raster to inspect.
 
     Returns
@@ -637,6 +637,7 @@ def get_categories_from_grid_methods(grid_type):
         HexModelGrid,
         RadialModelGrid,
         VoronoiDelaunayGrid,
+        NetworkModelGrid,
     )
     from copy import copy
 
@@ -646,6 +647,7 @@ def get_categories_from_grid_methods(grid_type):
         "HexModelGrid": HexModelGrid,
         "RadialModelGrid": RadialModelGrid,
         "VoronoiDelaunayGrid": VoronoiDelaunayGrid,
+        "NetworkModelGrid": NetworkModelGrid,
     }
     grid_dict = {}
     cat_dict = {}
