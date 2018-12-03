@@ -125,9 +125,8 @@ class thawed(object):
             self._graph.freeze()
 
 
-class Graph(object):
-
-    """Define the connectivity of a graph of nodes, links, and patches."""
+class NetworkGraph(object):
+    """Define the connectivity of a graph of nodes and links."""
 
     def __init__(self, mesh, **kwds):
         """Define a graph of connected nodes.
@@ -447,143 +446,6 @@ class Graph(object):
             return 0
 
     @property
-    def links_at_patch(self):
-        """Get the links that define a patch.
-
-        Examples
-        --------
-        >>> from landlab.graph import Graph
-        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
-        >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
-        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
-        >>> graph.links_at_patch
-        array([[3, 5, 2, 0],
-               [4, 6, 3, 1]])
-
-        LLCATS: LINF
-        """
-        return self.ds["links_at_patch"].values
-
-    @property
-    # @store_result_in_grid()
-    @read_only_array
-    def nodes_at_patch(self):
-        """Get the nodes that define a patch.
-
-        Examples
-        --------
-        >>> from landlab.graph import Graph
-        >>> node_x, node_y = ([0, 1, 2, 0, 1, 2, 0, 1, 2],
-        ...                   [0, 0, 0, 1, 1, 1, 2, 2, 2])
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
-        >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
-        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
-        >>> graph.nodes_at_patch
-        array([[4, 3, 0, 1],
-               [5, 4, 1, 2]])
-
-        LLCATS: NINF
-        """
-        return get_nodes_at_patch(self)
-
-    @property
-    @store_result_in_grid()
-    @read_only_array
-    def patches_at_node(self):
-        """Get the patches that touch each node.
-
-        Examples
-        --------
-        >>> from landlab.graph import Graph
-        >>> node_x, node_y = ([0, 1, 2, 0, 1, 2],
-        ...                   [0, 0, 0, 1, 1, 1])
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5))
-        >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
-        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
-        >>> graph.patches_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 0, -1], [ 0,  1], [ 1, -1],
-               [ 0, -1], [ 0,  1], [ 1, -1]])
-
-        LLCATS: PINF
-        """
-        return reverse_one_to_many(self.nodes_at_patch)
-
-    @property
-    @store_result_in_grid()
-    @read_only_array
-    def patches_at_link(self):
-        """Get the patches on either side of each link.
-
-        Examples
-        --------
-        >>> from landlab.graph import Graph
-        >>> node_x, node_y = ([0, 1, 2, 0, 1, 2],
-        ...                   [0, 0, 0, 1, 1, 1])
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5))
-        >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
-        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
-        >>> graph.patches_at_link # doctest: +NORMALIZE_WHITESPACE
-        array([[ 0, -1], [ 1, -1],
-               [ 0, -1], [ 0,  1], [ 1, -1],
-               [ 0, -1], [ 1, -1]])
-
-        LLCATS: PINF
-        """
-        return reverse_one_to_many(self.links_at_patch, min_counts=2)
-        try:
-            return self.ds["patches_at_link"].values
-        except KeyError:
-            patches_at_link = xr.DataArray(
-                data=reverse_one_to_many(self.links_at_patch, min_counts=2),
-                dims=("link", "Two"),
-                attrs={
-                    "cf_role": "edge_node_connectivity",
-                    "long_name": "patches on either side of a link",
-                    "start_index": 0,
-                },
-            )
-            self.ds.update({"patches_at_link": patches_at_link})
-            return self.ds["patches_at_link"].values
-
-    @property
-    def number_of_patches(self):
-        """Get the number of patches.
-
-        Examples
-        --------
-        >>> from landlab.graph import Graph
-        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
-        >>> links = ((0, 1), (1, 2),
-        ...          (0, 3), (1, 4), (2, 5),
-        ...          (3, 4), (4, 5),
-        ...          (3, 6), (4, 7), (5, 8),
-        ...          (6, 7), (7, 8))
-        >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
-        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
-        >>> graph.number_of_patches == 2
-        True
-
-        LLCATS: PINF
-        """
-        try:
-            return self.ds.dims["patch"]
-        except KeyError:
-            return 0
-
-    @property
     def links_at_node(self):
         """Get links touching a node.
 
@@ -721,18 +583,6 @@ class Graph(object):
     @property
     @store_result_in_grid()
     @read_only_array
-    def xy_of_patch(self):
-        return get_centroid_of_patch(self)
-
-    @property
-    @store_result_in_grid()
-    @read_only_array
-    def area_of_patch(self):
-        return get_area_of_patch(self)
-
-    @property
-    @store_result_in_grid()
-    @read_only_array
     def adjacent_nodes_at_node(self):
         """Get adjacent nodes.
 
@@ -790,3 +640,197 @@ class Graph(object):
         out[node_is_at_tail == -1] = -1
 
         return out
+
+class Graph(NetworkGraph):
+
+    """Define the connectivity of a graph of nodes, links, and patches."""
+
+    def __init__(self, mesh, **kwds):
+        """Define a graph of connected nodes.
+
+        Parameters
+        ----------
+        mesh : Dataset
+            xarray Dataset that defines the topology in ugrid format.
+        """
+        super(Graph, self).__init__(mesh, **kwds)
+        if not isinstance(mesh, xr.Dataset):
+            node_y_and_x = mesh
+            links = kwds.get("links", None)
+            patches = kwds.get("patches", None)
+            mesh = ugrid_from_unstructured(node_y_and_x, links=links, patches=patches)
+
+        self._ds = mesh
+
+        self._frozen = False
+        self.freeze()
+
+        if kwds.get("sort", True):
+            Graph.sort(self)
+
+        self._origin = (0., 0.)
+
+    @classmethod
+    def from_dict(cls, meta):
+        return cls(
+            (meta["y_of_node"], meta["x_of_node"]),
+            links=meta.get("nodes_at_link", None),
+            patches=meta.get("links_at_patch", None),
+        )
+
+    def sort(self):
+        with self.thawed():
+            reorient_link_dirs(self)
+            sorted_nodes, sorted_links, sorted_patches = reindex_by_xy(self)
+            reorder_links_at_patch(self)
+
+        return sorted_nodes, sorted_links, sorted_patches
+
+    @property
+    @store_result_in_grid()
+    @read_only_array
+    def xy_of_patch(self):
+        return get_centroid_of_patch(self)
+
+    @property
+    @store_result_in_grid()
+    @read_only_array
+    def area_of_patch(self):
+        return get_area_of_patch(self)
+
+    @property
+    def number_of_patches(self):
+        """Get the number of patches.
+
+        Examples
+        --------
+        >>> from landlab.graph import Graph
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
+        >>> links = ((0, 1), (1, 2),
+        ...          (0, 3), (1, 4), (2, 5),
+        ...          (3, 4), (4, 5),
+        ...          (3, 6), (4, 7), (5, 8),
+        ...          (6, 7), (7, 8))
+        >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
+        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
+        >>> graph.number_of_patches == 2
+        True
+
+        LLCATS: PINF
+        """
+        try:
+            return self.ds.dims["patch"]
+        except KeyError:
+            return 0
+
+    @property
+    def links_at_patch(self):
+        """Get the links that define a patch.
+
+        Examples
+        --------
+        >>> from landlab.graph import Graph
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
+        >>> links = ((0, 1), (1, 2),
+        ...          (0, 3), (1, 4), (2, 5),
+        ...          (3, 4), (4, 5),
+        ...          (3, 6), (4, 7), (5, 8),
+        ...          (6, 7), (7, 8))
+        >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
+        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
+        >>> graph.links_at_patch
+        array([[3, 5, 2, 0],
+               [4, 6, 3, 1]])
+
+        LLCATS: LINF
+        """
+        return self.ds["links_at_patch"].values
+
+    @property
+    # @store_result_in_grid()
+    @read_only_array
+    def nodes_at_patch(self):
+        """Get the nodes that define a patch.
+
+        Examples
+        --------
+        >>> from landlab.graph import Graph
+        >>> node_x, node_y = ([0, 1, 2, 0, 1, 2, 0, 1, 2],
+        ...                   [0, 0, 0, 1, 1, 1, 2, 2, 2])
+        >>> links = ((0, 1), (1, 2),
+        ...          (0, 3), (1, 4), (2, 5),
+        ...          (3, 4), (4, 5),
+        ...          (3, 6), (4, 7), (5, 8),
+        ...          (6, 7), (7, 8))
+        >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
+        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
+        >>> graph.nodes_at_patch
+        array([[4, 3, 0, 1],
+               [5, 4, 1, 2]])
+
+        LLCATS: NINF
+        """
+        return get_nodes_at_patch(self)
+
+    @property
+    @store_result_in_grid()
+    @read_only_array
+    def patches_at_node(self):
+        """Get the patches that touch each node.
+
+        Examples
+        --------
+        >>> from landlab.graph import Graph
+        >>> node_x, node_y = ([0, 1, 2, 0, 1, 2],
+        ...                   [0, 0, 0, 1, 1, 1])
+        >>> links = ((0, 1), (1, 2),
+        ...          (0, 3), (1, 4), (2, 5),
+        ...          (3, 4), (4, 5))
+        >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
+        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
+        >>> graph.patches_at_node # doctest: +NORMALIZE_WHITESPACE
+        array([[ 0, -1], [ 0,  1], [ 1, -1],
+               [ 0, -1], [ 0,  1], [ 1, -1]])
+
+        LLCATS: PINF
+        """
+        return reverse_one_to_many(self.nodes_at_patch)
+
+    @property
+    @store_result_in_grid()
+    @read_only_array
+    def patches_at_link(self):
+        """Get the patches on either side of each link.
+
+        Examples
+        --------
+        >>> from landlab.graph import Graph
+        >>> node_x, node_y = ([0, 1, 2, 0, 1, 2],
+        ...                   [0, 0, 0, 1, 1, 1])
+        >>> links = ((0, 1), (1, 2),
+        ...          (0, 3), (1, 4), (2, 5),
+        ...          (3, 4), (4, 5))
+        >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
+        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
+        >>> graph.patches_at_link # doctest: +NORMALIZE_WHITESPACE
+        array([[ 0, -1], [ 1, -1],
+               [ 0, -1], [ 0,  1], [ 1, -1],
+               [ 0, -1], [ 1, -1]])
+
+        LLCATS: PINF
+        """
+        return reverse_one_to_many(self.links_at_patch, min_counts=2)
+        try:
+            return self.ds["patches_at_link"].values
+        except KeyError:
+            patches_at_link = xr.DataArray(
+                data=reverse_one_to_many(self.links_at_patch, min_counts=2),
+                dims=("link", "Two"),
+                attrs={
+                    "cf_role": "edge_node_connectivity",
+                    "long_name": "patches on either side of a link",
+                    "start_index": 0,
+                },
+            )
+            self.ds.update({"patches_at_link": patches_at_link})
+            return self.ds["patches_at_link"].values
