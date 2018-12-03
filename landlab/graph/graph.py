@@ -667,6 +667,8 @@ class Graph(object):
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.angle_of_link * 180. / np.pi
         array([  0.,   0.,  90.,  90.,  90.,   0.,   0.])
+
+        LLCATS: LINF
         """
         return get_angle_of_link(self)
 
