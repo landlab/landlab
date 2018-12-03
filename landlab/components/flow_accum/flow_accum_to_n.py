@@ -49,6 +49,7 @@ Created: KRB Oct 2016 (modified from flow_accumu_bw)
 import numpy
 from six.moves import range
 from .cfuncs import _accumulate_to_n
+from landlab.core.utils import as_id_array
 
 
 class _DrainageStack_to_n:
@@ -800,7 +801,9 @@ def flow_accumulation_to_n(
         receiver_nodes.shape == receiver_proportions.shape
     ), "r and p arrays are not the same shape"
 
-    s = make_ordered_node_array_to_n(receiver_nodes, receiver_proportions)
+    s = as_id_array(
+        make_ordered_node_array_to_n(receiver_nodes, receiver_proportions)
+    )
     # Note that this ordering of s DOES INCLUDE closed nodes. It really
     # shouldn't!
     # But as we don't have a copy of the grid accessible here, we'll solve this

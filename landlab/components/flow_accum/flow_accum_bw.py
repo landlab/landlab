@@ -27,6 +27,7 @@ Created: GT Nov 2013
 import numpy
 from six.moves import range
 from .cfuncs import _add_to_stack, _accumulate_bw
+from landlab.core.utils import as_id_array
 
 
 class _DrainageStack:
@@ -482,7 +483,7 @@ def flow_accumulation(
     array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     """
 
-    s = make_ordered_node_array(receiver_nodes)
+    s = as_id_array(make_ordered_node_array(receiver_nodes))
     # Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't!
     # But as we don't have a copy of the grid accessible here, we'll solve this
     # problem as part of route_flow_dn.
