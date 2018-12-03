@@ -79,6 +79,8 @@ class NetworkModelGrid(Graph, GraphFields):
         array([4, 0, 0, 0], dtype=uint8)
         >>> grid.status_at_link
         array([4, 0, 0], dtype=uint8)
+
+        LLCATS: NINF BC
         """
         return self._node_status
 
@@ -124,6 +126,8 @@ class NetworkModelGrid(Graph, GraphFields):
         >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
         >>> grid.status_at_link
         array([0, 0, 0], dtype=uint8)
+
+        LLCATS: LINF BC
         """
         return set_status_at_link(self.status_at_node[self.nodes_at_link])
 
@@ -144,6 +148,8 @@ class NetworkModelGrid(Graph, GraphFields):
         >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
         >>> grid.active_links
         array([0, 1, 2])
+
+        LLCATS: NINF BC SUBSET
         """
         return np.where(self.status_at_link == ACTIVE_LINK)[0]
 
