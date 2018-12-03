@@ -27,10 +27,10 @@ import numpy as np
 from landlab.core.utils import get_categories_from_grid_methods
 
 grid_types = ('ModelGrid', 'RasterModelGrid', 'VoronoiDelaunayGrid',
-              'HexModelGrid', 'RadialModelGrid')
+              'HexModelGrid', 'RadialModelGrid', 'NetworkModelGrid')
 str_sequence = ('Base class', 'Raster', 'Irregular Voronoi-cell', 'Hexagonal',
-                'Radial')
-paths = ('base', 'raster', 'voronoi', 'hex', 'radial')
+                'Radial', 'Network')
+paths = ('base', 'raster', 'voronoi', 'hex', 'radial', 'network')
 
 autosummary = '.. autosummary::\n    :toctree: generated/\n\n'
 
@@ -40,7 +40,8 @@ grid_name_to_class = {'base': 'ModelGrid',
                       'hex': 'HexModelGrid',
                       'radial': 'RadialModelGrid',
                       'raster': 'RasterModelGrid',
-                      'voronoi': 'VoronoiDelaunayGrid'}
+                      'voronoi': 'VoronoiDelaunayGrid',
+                      'network': 'NetworkModelGrid'}
 
 
 def create_dicts_of_cats():
