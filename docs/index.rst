@@ -20,18 +20,21 @@ Grids
 Grid types
 ----------
 
-As of Landlab version 0.2, there are four types of Landlab grid:
+As of Landlab version 1.5.5, there are five types of Landlab grid:
 
 -  :ref:`Raster <Raster>`
 -  :ref:`Voronoi-Delaunay <Voronoi>`
 -  :ref:`Hex <Hex>`
 -  :ref:`Radial <Radial>`
+-  :ref:`Network <Network>`
 
-The base class is `ModelGrid` with subclasses `RasterModelGrid` and
-`VoronoiDelaunayGrid`.
+The base class is ``ModelGrid`` with subclasses ``RasterModelGrid`` and
+``VoronoiDelaunayGrid``.
 
-`VoronoiDelaunayGrid` has two further specialized subclasses: `HexModelGrid`
-and `RadialModelGrid`.
+``VoronoiDelaunayGrid`` has two further specialized subclasses: ``HexModelGrid``
+and ``RadialModelGrid``.
+
+A final class is ``NetworkModelGrid``.
 
 Methods and properties common to all grids
 ------------------------------------------
@@ -49,8 +52,8 @@ Methods and properties common to all grids
 Specialized methods and properties for Rectilinear Grids 'raster grids'
 -----------------------------------------------------------------------
 
-Landlab's rectilinear grids are implemented by the class `RasterModelGrid`,
-which inherits from `ModelGrid` and adds the following:
+Landlab's rectilinear grids are implemented by the class ``RasterModelGrid``,
+which inherits from ``ModelGrid`` and adds the following:
 
 .. toctree::
    :maxdepth: 4
@@ -61,7 +64,7 @@ Specialized methods and properties for Voronoi-Delaunay grids
 -------------------------------------------------------------
 
 Landlab's Voronoi-Delaunay grids are implemented by the class
-`VoronoiDelaunayGrid`, which inherits from `ModelGrid` and adds the following:
+``VoronoiDelaunayGrid``, which inherits from ``ModelGrid`` and adds the following:
 
 .. toctree::
    :maxdepth: 4
@@ -71,8 +74,8 @@ Landlab's Voronoi-Delaunay grids are implemented by the class
 Specialized methods and properties for hex grids
 ------------------------------------------------
 
-Landlab's hex/trigonal grids are implemented by the class `HexModelGrid`,
-which inherits from `VoronoiDelauneyGrid` and adds the following:
+Landlab's hex/trigonal grids are implemented by the class ``HexModelGrid``,
+which inherits from ``VoronoiDelauneyGrid`` and adds the following:
 
 .. toctree::
    :maxdepth: 4
@@ -82,13 +85,25 @@ which inherits from `VoronoiDelauneyGrid` and adds the following:
 Specialized methods and properties for radial grids
 ---------------------------------------------------
 
-Landlab's radial grids are implemented by the class `RadialModelGrid`, which
-inherits from `VoronoiDelauneyGrid` and adds the following:
+Landlab's radial grids are implemented by the class ``RadialModelGrid``, which
+inherits from ``VoronoiDelauneyGrid`` and adds the following:
 
 .. toctree::
    :maxdepth: 4
 
    landlab.grid.radial
+
+
+ Specialized methods and properties for network grids
+ ----------------------------------------------------
+
+ Landlab's network grids are implemented by the class ``NetworkModelGrid``,
+ which inherits from ``Graph`` and ``GraphFields`` and adds the following:
+
+ .. toctree::
+    :maxdepth: 4
+
+    landlab.grid.network
 
 Layers
 ======
