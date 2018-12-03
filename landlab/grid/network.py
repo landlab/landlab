@@ -8,14 +8,13 @@ from landlab.utils.decorators import make_return_array_immutable
 
 from ..core.utils import add_module_functions_to_class
 from ..field import GraphFields
-from ..graph import Graph
+from ..graph import NetworkGraph
 from ..utils.decorators import cache_result_in_object
-from .decorators import override_array_setitem_and_reset
-from .decorators import return_readonly_id_array
+from .decorators import override_array_setitem_and_reset, return_readonly_id_array
 from .linkstatus import ACTIVE_LINK, set_status_at_link
 
 
-class NetworkModelGrid(Graph, GraphFields):
+class NetworkModelGrid(NetworkGraph, GraphFields):
     """Create a ModelGrid of just nodes and links.
 
     Parameters
@@ -43,7 +42,7 @@ class NetworkModelGrid(Graph, GraphFields):
     """
 
     def __init__(self, yx_of_node, links, **kwds):
-        Graph.__init__(self, yx_of_node, links=links)
+        NetworkGraph.__init__(self, yx_of_node, links=links)
         GraphFields.__init__(
             self,
             {"node": self.number_of_nodes, "link": self.number_of_links, "grid": 1},
@@ -51,8 +50,6 @@ class NetworkModelGrid(Graph, GraphFields):
         )
         self._node_status = np.zeros(self.number_of_nodes, dtype=np.uint8)
         self.bc_set_code = 0
-
-        # remove invalid field locations.
 
     @property
     @override_array_setitem_and_reset("reset_status_at_node")
