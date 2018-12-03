@@ -50,6 +50,18 @@ Information about nodes
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.network.NetworkModelGrid.active_links
+    ~landlab.grid.network.NetworkModelGrid.adjacent_nodes_at_node
+    ~landlab.grid.network.NetworkModelGrid.node_at_link_head
+    ~landlab.grid.network.NetworkModelGrid.node_at_link_tail
+    ~landlab.grid.network.NetworkModelGrid.nodes
+    ~landlab.grid.network.NetworkModelGrid.nodes_at_link
+    ~landlab.grid.network.NetworkModelGrid.number_of_nodes
+    ~landlab.grid.network.NetworkModelGrid.perimeter_nodes
+    ~landlab.grid.network.NetworkModelGrid.status_at_node
+    ~landlab.grid.network.NetworkModelGrid.x_of_node
+    ~landlab.grid.network.NetworkModelGrid.xy_of_node
+    ~landlab.grid.network.NetworkModelGrid.y_of_node
 
 Information about links
 +++++++++++++++++++++++
@@ -57,26 +69,13 @@ Information about links
 .. autosummary::
     :toctree: generated/
 
-
-Information about cells
-+++++++++++++++++++++++
-
-(None are available for this grid type)
-
-Information about faces
-+++++++++++++++++++++++
-
-(None are available for this grid type)
-
-Information about patches
-+++++++++++++++++++++++++
-
-(None are available for this grid type)
-
-Information about corners
-+++++++++++++++++++++++++
-
-(None are available for this grid type)
+    ~landlab.grid.network.NetworkModelGrid.angle_of_link
+    ~landlab.grid.network.NetworkModelGrid.length_of_link
+    ~landlab.grid.network.NetworkModelGrid.link_dirs_at_node
+    ~landlab.grid.network.NetworkModelGrid.links_at_node
+    ~landlab.grid.network.NetworkModelGrid.midpoint_of_link
+    ~landlab.grid.network.NetworkModelGrid.number_of_links
+    ~landlab.grid.network.NetworkModelGrid.status_at_link
 
 Data Fields in ModelGrid
 ------------------------
@@ -215,7 +214,13 @@ conditions. Changes made to :meth:`~.ModelGrid.status_at_node` and
 :meth:`~.ModelGrid.status_at_node` will automatically update the conditions
 defined at other grid elements automatically.
 
-(None are available for this grid type)
+.. autosummary::
+    :toctree: generated/
+
+    ~landlab.grid.network.NetworkModelGrid.active_links
+    ~landlab.grid.network.NetworkModelGrid.perimeter_nodes
+    ~landlab.grid.network.NetworkModelGrid.status_at_link
+    ~landlab.grid.network.NetworkModelGrid.status_at_node
 
 Identifying node subsets
 ------------------------
@@ -223,28 +228,9 @@ Identifying node subsets
 These methods are useful in identifying subsets of nodes, e.g., closest node
 to a point; nodes at edges.
 
-(None are available for this grid type)
+.. autosummary::
+    :toctree: generated/
 
-Surface analysis
-----------------
+    ~landlab.grid.network.NetworkModelGrid.active_links
+    ~landlab.grid.network.NetworkModelGrid.perimeter_nodes
 
-These methods permit the kinds of surface analysis that you might expect to
-find in GIS software.
-
-(None are available for this grid type)
-
-Notes
------
-It is important that when creating a new grid class that inherits from
-``ModelGrid``, to call ``ModelGrid.__init__()`` in the new grid's
-``__init__()``. For example, the new class's __init__ should contain the
-following code,
-
-.. code-block:: python
-
-    class NewGrid(ModelGrid):
-        def __init__(self, *args, **kwds):
-            ModelGrid.__init__(self, **kwds)
-            # Code that initializes the NewGrid
-
-Without this, the new grid class will not have the ``at_*`` attributes.
