@@ -21,6 +21,10 @@ def test_read_methow():
     assert "x_of_polyline" in grid.at_link
     assert "y_of_polyline" in grid.at_link
 
+    fields = ["Length_m", "ToLink", "usarea_km2", "uselev_m", "dselev_m", "Slope"]
+    for field in fields:
+        assert field in grid.at_link
+
 
 def test_bad_file():
     file = os.path.join(_TEST_DATA_DIR, "bad_file.shp")
