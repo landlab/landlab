@@ -4,9 +4,9 @@
    rst files will be PERMANENTLY LOST whenever the documentation is updated.
    Make changes directly to the txt files instead.
 
-..  _Raster:
+..  _Network:
 
-General class methods and attributes of the `landlab.grid.raster` module
+General class methods and attributes of the `landlab.grid.network` module
 ------------------------------------------------------------------------
 
 Landlab's network grids are implemented by the class `NetworkModelGrid`,
