@@ -1,5 +1,8 @@
 """Define a graph of nodes-links-patches.
 
+Nodes and links are required. If no patches are provided, no patches will
+be created.
+
 Examples
 --------
 
@@ -139,6 +142,7 @@ class Graph(object):
             links = kwds.get("links", None)
             patches = kwds.get("patches", None)
             mesh = ugrid_from_unstructured(node_y_and_x, links=links, patches=patches)
+
         self._ds = mesh
 
         self._frozen = False
@@ -276,6 +280,8 @@ class Graph(object):
         array([ 0.,  1.,  2.,  0.,  1.,  2.])
         >>> graph.xy_of_node[:, 1]
         array([ 0.,  0.,  0.,  1.,  1.,  1.])
+
+        LLCATS: NINF
         """
         return np.stack((self.x_of_node, self.y_of_node)).T.copy()
 
@@ -290,6 +296,8 @@ class Graph(object):
         >>> graph = Graph((node_y, node_x))
         >>> graph.x_of_node
         array([ 0.,  1.,  2.,  0.,  1.,  2.])
+
+        LLCATS: NINF
         """
         return self.ds["x_of_node"].values
 
@@ -304,6 +312,8 @@ class Graph(object):
         >>> graph = Graph((node_y, node_x))
         >>> graph.y_of_node
         array([ 0.,  0.,  0.,  1.,  1.,  1.])
+
+        LLCATS: NINF
         """
         return self.ds["y_of_node"].values
 
@@ -318,6 +328,8 @@ class Graph(object):
         >>> graph = Graph((node_y, node_x))
         >>> graph.nodes
         array([0, 1, 2, 3, 4, 5])
+
+        LLCATS: NINF
         """
         return self.ds["node"].values
 
@@ -338,6 +350,8 @@ class Graph(object):
         >>> graph = Graph((node_y, node_x))
         >>> graph.number_of_nodes == 6
         True
+
+        LLCATS: NINF
         """
         return self.ds.dims["node"]
 
@@ -361,6 +375,8 @@ class Graph(object):
                [3, 4], [4, 5],
                [3, 6], [4, 7], [5, 8],
                [6, 7], [7, 8]])
+
+        LLCATS: NINF
         """
         return self.ds["nodes_at_link"].values
 
@@ -380,6 +396,8 @@ class Graph(object):
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.node_at_link_tail
         array([0, 1, 0, 1, 2, 3, 4, 3, 4, 5, 6, 7])
+
+        LLCATS: NINF
         """
         return self.nodes_at_link[:, 0]
 
@@ -399,6 +417,8 @@ class Graph(object):
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.node_at_link_head
         array([1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 7, 8])
+
+        LLCATS: NINF
         """
         return self.nodes_at_link[:, 1]
 
@@ -418,6 +438,8 @@ class Graph(object):
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.number_of_links == 12
         True
+
+        LLCATS: LINF
         """
         try:
             return self.ds.dims["link"]
@@ -442,6 +464,8 @@ class Graph(object):
         >>> graph.links_at_patch
         array([[3, 5, 2, 0],
                [4, 6, 3, 1]])
+
+        LLCATS: LINF
         """
         return self.ds["links_at_patch"].values
 
@@ -466,6 +490,8 @@ class Graph(object):
         >>> graph.nodes_at_patch
         array([[4, 3, 0, 1],
                [5, 4, 1, 2]])
+
+        LLCATS: NINF
         """
         return get_nodes_at_patch(self)
 
@@ -488,6 +514,8 @@ class Graph(object):
         >>> graph.patches_at_node # doctest: +NORMALIZE_WHITESPACE
         array([[ 0, -1], [ 0,  1], [ 1, -1],
                [ 0, -1], [ 0,  1], [ 1, -1]])
+
+        LLCATS: PINF
         """
         return reverse_one_to_many(self.nodes_at_patch)
 
@@ -511,6 +539,8 @@ class Graph(object):
         array([[ 0, -1], [ 1, -1],
                [ 0, -1], [ 0,  1], [ 1, -1],
                [ 0, -1], [ 1, -1]])
+
+        LLCATS: PINF
         """
         return reverse_one_to_many(self.links_at_patch, min_counts=2)
         try:
@@ -545,6 +575,8 @@ class Graph(object):
         >>> graph = Graph((node_y, node_x), links=links, patches=patches)
         >>> graph.number_of_patches == 2
         True
+
+        LLCATS: PINF
         """
         try:
             return self.ds.dims["patch"]
@@ -570,6 +602,8 @@ class Graph(object):
         array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [ 4,  1, -1, -1],
                [ 5,  7,  2, -1], [ 6,  8,  5,  3], [ 9,  6,  4, -1],
                [10,  7, -1, -1], [11, 10,  8, -1], [11,  9, -1, -1]])
+
+        LLCATS: LINF
         """
         try:
             return self._links_at_node
@@ -602,6 +636,8 @@ class Graph(object):
         array([[-1, -1,  0,  0], [-1, -1,  1,  0], [-1,  1,  0,  0],
                [-1, -1,  1,  0], [-1, -1,  1,  1], [-1,  1,  1,  0],
                [-1,  1,  0,  0], [-1,  1,  1,  0], [ 1,  1,  0,  0]])
+
+        LLCATS: LINF
         """
         try:
             return self._link_dirs_at_node
@@ -648,6 +684,8 @@ class Graph(object):
         >>> graph = UniformRectilinearGraph((2, 3), spacing=(1, 2))
         >>> graph.length_of_link
         array([ 2.,  2.,  1.,  1.,  1.,  2.,  2.])
+
+        LLCATS: LINF
         """
         return get_length_of_link(self)
 
@@ -667,6 +705,8 @@ class Graph(object):
         array([[ 1. ,  0. ], [ 3. ,  0. ],
                [ 0. ,  0.5], [ 2. ,  0.5], [ 4. ,  0.5],
                [ 1. ,  1. ], [ 3. ,  1. ]])
+
+        LLCATS: LINF
         """
         return get_midpoint_of_link(self)
 
@@ -738,6 +778,8 @@ class Graph(object):
                [ 7,  3, -1, -1, -1],
                [ 8,  6,  4, -1, -1],
                [ 7,  5, -1, -1, -1]])
+
+        LLCATS: NINF
         """
         node_is_at_tail = np.choose(
             self.link_dirs_at_node + 1, np.array((1, -1, 0), dtype=np.int8)
