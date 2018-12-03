@@ -52,6 +52,8 @@ class NetworkModelGrid(Graph, GraphFields):
         self._node_status = np.zeros(self.number_of_nodes, dtype=np.uint8)
         self.bc_set_code = 0
 
+        # remove invalid field locations.
+
     @property
     @override_array_setitem_and_reset("reset_status_at_node")
     def status_at_node(self):
