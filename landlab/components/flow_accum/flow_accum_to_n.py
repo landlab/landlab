@@ -48,6 +48,8 @@ Created: KRB Oct 2016 (modified from flow_accumu_bw)
 """
 import numpy
 from six.moves import range
+from .cfuncs import _accumulate_to_n
+from landlab.core.utils import as_id_array
 
 
 class _DrainageStack_to_n:
@@ -482,9 +484,11 @@ def find_drainage_area_and_discharge_to_n(
     runoff : float or ndarray
         Local runoff rate at each cell (in water depth per time). If it's an
         array, must have same length as s (that is, the number of nodes).
+        runoff *is* permitted to be negative, in which case it performs as a
+        transmission loss.
     boundary_nodes: list, optional
-        Array of boundary nodes to have discharge and drainage area set to zero.
-        Default value is None.
+        Array of boundary nodes to have discharge and drainage area set to
+        zero. Default value is None.
 
     Returns
     -------
@@ -531,10 +535,10 @@ def find_drainage_area_and_discharge_to_n(
     ...               [ 0.95,  0.05]])
     >>> s = np.array([4, 5, 1, 7, 2, 6, 0, 8, 3, 9])
     >>> a, q = find_drainage_area_and_discharge_to_n(s, r, p)
-    >>> a
+    >>> a.round(4)
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
-    >>> q
+    >>> q.round(4)
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
     """
@@ -554,37 +558,31 @@ def find_drainage_area_and_discharge_to_n(
         drainage_area[boundary_nodes] = 0
         discharge[boundary_nodes] = 0
 
-    # Iterate backward through the list, which means we work from upstream to
-    # downstream.
-    for i in range(np - 1, -1, -1):
-        donor = s[i]
-        for v in range(q):
-            recvr = r[donor, v]
-            proportion = p[donor, v]
-            if proportion > 0:
-                if donor != recvr:
-                    drainage_area[recvr] += proportion * drainage_area[donor]
-                    discharge[recvr] += proportion * discharge[donor]
+    # Call the cfunc to work accumulate from upstream to downstream, permitting
+    # transmission losses
+    _accumulate_to_n(np, q, s, r, p, drainage_area, discharge)
+    # nodes at channel heads can still be negative with this method, so...
+    discharge = discharge.clip(0.)
 
-    #        donors = s[i]
-    #        #print donors
-    #        recvrs = r[donors, :].flatten()
-    #
-    #        if (set(donors)-set(recvrs[recvrs!=-1]))==set(donors):
-    #            recvrs = r[donors, :].flatten()
-    #
-    #            unique_recvrs=numpy.unique(recvrs)
-    #
-    #            proportions = p[donors, :].flatten()
-    #
-    #            new_da=proportions*numpy.repeat(drainage_area[donors], q)
-    #            new_di=proportions*numpy.repeat(discharge[donors], q)
-    #
-    #            for u_r in unique_recvrs:
-    #                ur_ind=np.where(recvrs==u_r)
-    #
-    #                drainage_area[u_r] += numpy.sum(new_da[ur_ind])
-    #                discharge[u_r] += numpy.sum(new_di[ur_ind])
+#        donors = s[i]
+#        #print donors
+#        recvrs = r[donors, :].flatten()
+#
+#        if (set(donors)-set(recvrs[recvrs!=-1]))==set(donors):
+#            recvrs = r[donors, :].flatten()
+#
+#            unique_recvrs=numpy.unique(recvrs)
+#
+#            proportions = p[donors, :].flatten()
+#
+#            new_da=proportions*numpy.repeat(drainage_area[donors], q)
+#            new_di=proportions*numpy.repeat(discharge[donors], q)
+#
+#            for u_r in unique_recvrs:
+#                ur_ind=np.where(recvrs==u_r)
+#
+#                drainage_area[u_r] += numpy.sum(new_da[ur_ind])
+#                discharge[u_r] += numpy.sum(new_di[ur_ind])
 
     return drainage_area, discharge
 
@@ -779,10 +777,10 @@ def flow_accumulation_to_n(
     ...               [ 0.8,   0.2 ],
     ...               [ 0.95,  0.05]])
     >>> a, q, s = flow_accumulation_to_n(r, p)
-    >>> a
+    >>> a.round(4)
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
-    >>> q
+    >>> q.round(4)
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
     >>> s[0] == 4
@@ -803,7 +801,9 @@ def flow_accumulation_to_n(
         receiver_nodes.shape == receiver_proportions.shape
     ), "r and p arrays are not the same shape"
 
-    s = make_ordered_node_array_to_n(receiver_nodes, receiver_proportions)
+    s = as_id_array(
+        make_ordered_node_array_to_n(receiver_nodes, receiver_proportions)
+    )
     # Note that this ordering of s DOES INCLUDE closed nodes. It really
     # shouldn't!
     # But as we don't have a copy of the grid accessible here, we'll solve this
