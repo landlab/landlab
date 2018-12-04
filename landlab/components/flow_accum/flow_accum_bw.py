@@ -26,8 +26,8 @@ Created: GT Nov 2013
 """
 import numpy
 from six.moves import range
-
-from .cfuncs import _add_to_stack
+from .cfuncs import _add_to_stack, _accumulate_bw
+from landlab.core.utils import as_id_array
 
 
 class _DrainageStack:
@@ -311,14 +311,11 @@ def find_drainage_area_and_discharge(
         drainage_area[boundary_nodes] = 0
         discharge[boundary_nodes] = 0
 
-    # Iterate backward through the list, which means we work from upstream to
-    # downstream.
-    for i in range(np - 1, -1, -1):
-        donor = s[i]
-        recvr = r[donor]
-        if donor != recvr:
-            drainage_area[recvr] += drainage_area[donor]
-            discharge[recvr] += discharge[donor]
+    # Call the cfunc to work accumulate from upstream to downstream, permitting
+    # transmission losses
+    _accumulate_bw(np, s, r, drainage_area, discharge)
+    # nodes at channel heads can still be negative with this method, so...
+    discharge = discharge.clip(0.)
 
     return drainage_area, discharge
 
@@ -486,7 +483,7 @@ def flow_accumulation(
     array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     """
 
-    s = make_ordered_node_array(receiver_nodes)
+    s = as_id_array(make_ordered_node_array(receiver_nodes))
     # Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't!
     # But as we don't have a copy of the grid accessible here, we'll solve this
     # problem as part of route_flow_dn.
