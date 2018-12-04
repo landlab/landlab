@@ -28,6 +28,7 @@ from landlab import (  # for type tests
 from landlab.components.flow_accum import flow_accum_bw, flow_accum_to_n
 from landlab.core.messages import warning_message
 from landlab.utils.return_array import return_array_at_node
+from landlab.core.utils import as_id_array
 
 
 class FlowAccumulator(Component):
@@ -106,6 +107,9 @@ class FlowAccumulator(Component):
         run time. If both the field and argument are present at the time of
         initialization, runoff_rate will *overwrite* the field. If neither are
         set, defaults to spatially constant unit input.
+        Both a runoff_rate array and the 'water__unit_flux_in' field are
+        permitted to contain negative values, in which case they mimic
+        transmission losses rather than e.g. rain inputs.
     depression_finder : string, class, instance of class, optional
          A string of class name (e.g., 'DepressionFinderAndRouter'), an
          uninstantiated DepressionFinder class, or an instance of a
@@ -211,8 +215,8 @@ class FlowAccumulator(Component):
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fa = FlowAccumulator(mg, 'topographic__elevation',
     ...                        flow_director=FlowDirectorSteepest)
-    >>> runoff_rate = np.arange(mg.number_of_nodes)
-    >>> _ = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
+    >>> runoff_rate = np.arange(mg.number_of_nodes, dtype=float)
+    >>> rnff = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
     ...                  noclobber=False)
     >>> fa.run_one_step()
     >>> mg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
@@ -221,6 +225,35 @@ class FlowAccumulator(Component):
                0.,   900.,  4600.,     0.,
                0.,  1300.,  2700.,     0.,
                0.,     0.,     0.,     0.])
+
+    The flow accumulator will happily work with a negative runoff rate, which
+    could be used to allow, e.g., transmission losses:
+
+    >>> runoff_rate.fill(1.)
+    >>> fa.run_one_step()
+    >>> mg.at_node['surface_water__discharge']
+    array([   0.,  100.,  500.,    0.,
+              0.,  100.,  500.,    0.,
+              0.,  100.,  400.,    0.,
+              0.,  100.,  200.,    0.,
+              0.,    0.,    0.,    0.])
+    >>> runoff_rate[:8] = -0.5
+    >>> fa.run_one_step()
+    >>> mg.at_node['surface_water__discharge']
+    array([   0.,    0.,  350.,    0.,
+              0.,    0.,  350.,    0.,
+              0.,  100.,  400.,    0.,
+              0.,  100.,  200.,    0.,
+              0.,    0.,    0.,    0.])
+
+    The drainage area array is unaffected, as you would expect:
+
+    >>> mg.at_node['drainage_area']
+    array([   0.,  100.,  500.,    0.,
+              0.,  100.,  500.,    0.,
+              0.,  100.,  400.,    0.,
+              0.,  100.,  200.,    0.,
+              0.,    0.,    0.,    0.])
 
     The FlowAccumulator component will work for both raster grids and irregular
     grids. For the example we will use a Hexagonal Model Grid, a special type of
@@ -282,12 +315,12 @@ class FlowAccumulator(Component):
            [22, -1, -1, -1, -1, -1, -1, -1],
            [23, -1, -1, -1, -1, -1, -1, -1],
            [24, -1, -1, -1, -1, -1, -1, -1]])
-    >>> mg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 1.41168825,  2.06497116,  1.3253788 ,  0.40380592,  0.        ,
-            2.06497116,  3.40811691,  2.5753788 ,  1.37867966,  0.        ,
-            1.3253788 ,  2.5753788 ,  2.17157288,  1.29289322,  0.        ,
-            0.40380592,  1.37867966,  1.29289322,  1.        ,  0.        ,
-            0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
+    >>> mg.at_node['drainage_area'].round(4) # doctest: +NORMALIZE_WHITESPACE
+    array([ 1.4117,  2.065 ,  1.3254,  0.4038,  0.    ,
+            2.065 ,  3.4081,  2.5754,  1.3787,  0.    ,
+            1.3254,  2.5754,  2.1716,  1.2929,  0.    ,
+            0.4038,  1.3787,  1.2929,  1.    ,  0.    ,
+            0.    ,  0.    ,  0.    ,  0.    ,  0.    ])
 
     It may seem odd that there are no round numbers in the drainage area field.
     This is because flow is directed to all downhill boundary nodes and
@@ -295,8 +328,8 @@ class FlowAccumulator(Component):
 
     To check that flow is conserved, sum along all boundary nodes.
 
-    >>> sum(mg.at_node['drainage_area'][mg.boundary_nodes])
-    9.0000000000000018
+    >>> round(sum(mg.at_node['drainage_area'][mg.boundary_nodes]), 4)
+    9.0
 
     This should be the same as the number of core nodes --- as boundary nodes
     in landlab do not have area.
@@ -947,7 +980,7 @@ class FlowAccumulator(Component):
         # one set of steps is for route to one (D8, Steepest/D4)
 
         # step 2. Get r
-        r = self._grid["node"]["flow__receiver_node"]
+        r = as_id_array(self._grid["node"]["flow__receiver_node"])
 
         if self.flow_director.to_n_receivers == "one":
 
@@ -959,10 +992,10 @@ class FlowAccumulator(Component):
                 self.depression_finder.map_depressions()
 
             # step 3. Stack, D, delta construction
-            nd = flow_accum_bw._make_number_of_donors_array(r)
-            delta = flow_accum_bw._make_delta_array(nd)
-            D = flow_accum_bw._make_array_of_donors(r, delta)
-            s = flow_accum_bw.make_ordered_node_array(r)
+            nd = as_id_array(flow_accum_bw._make_number_of_donors_array(r))
+            delta = as_id_array(flow_accum_bw._make_delta_array(nd))
+            D = as_id_array(flow_accum_bw._make_array_of_donors(r, delta))
+            s = as_id_array(flow_accum_bw.make_ordered_node_array(r))
 
             # put these in grid so that depression finder can use it.
             # store the generated data in the grid
@@ -978,10 +1011,14 @@ class FlowAccumulator(Component):
             p = self._grid["node"]["flow__receiver_proportions"]
 
             # step 3. Stack, D, delta construction
-            nd = flow_accum_to_n._make_number_of_donors_array_to_n(r, p)
-            delta = flow_accum_to_n._make_delta_array_to_n(nd)
-            D = flow_accum_to_n._make_array_of_donors_to_n(r, p, delta)
-            s = flow_accum_to_n.make_ordered_node_array_to_n(r, p)
+            nd = as_id_array(
+                flow_accum_to_n._make_number_of_donors_array_to_n(r, p)
+            )
+            delta = as_id_array(flow_accum_to_n._make_delta_array_to_n(nd))
+            D = as_id_array(
+                flow_accum_to_n._make_array_of_donors_to_n(r, p, delta)
+            )
+            s = as_id_array(flow_accum_to_n.make_ordered_node_array_to_n(r, p))
 
             # put theese in grid so that depression finder can use it.
             # store the generated data in the grid

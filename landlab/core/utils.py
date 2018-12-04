@@ -169,6 +169,13 @@ def as_id_array(array):
     array([0, 1, 2, 3, 4])
     >>> y.dtype == np.int
     True
+
+    >>> x = np.arange(5, dtype=np.intp)
+    >>> y = np.where(x < 3)[0]
+    >>> y.dtype == np.intp
+    True
+    >>> as_id_array(y).dtype == np.int
+    True
     """
     try:
         if array.dtype == np.int:
@@ -177,24 +184,6 @@ def as_id_array(array):
             return array.astype(np.int)
     except AttributeError:
         return np.asarray(array, dtype=np.int)
-
-
-if np.dtype(np.intp) == np.int:
-
-    def _as_id_array(array):
-        if array.dtype == np.intp or array.dtype == np.int:
-            return array.view(np.int)
-        else:
-            return array.astype(np.int)
-
-
-else:
-
-    def _as_id_array(array):
-        if array.dtype == np.int:
-            return array.view(np.int)
-        else:
-            return array.astype(np.int)
 
 
 def make_optional_arg_into_id_array(number_of_elements, *args):

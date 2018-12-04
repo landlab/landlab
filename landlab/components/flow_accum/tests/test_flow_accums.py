@@ -41,7 +41,7 @@ def test_boundary_to_n():
 
     a, q = find_drainage_area_and_discharge_to_n(s, r, p, boundary_nodes=[0])
     true_a = np.array([0., 1.715, 1.1, 1., 9., 4.9775, 2.74, 2.845, 1.05, 1.])
-    assert_array_equal(a, true_a)
+    assert np.allclose(a, true_a)
 
 
 def test_boundary_bw():
