@@ -10,11 +10,11 @@ grids and does not consider diagonal links for rasters, use
 FlowDirectorSteepest instead.
 """
 
-from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
-from landlab.components.flow_director import flow_direction_DN
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
-from landlab import VoronoiDelaunayGrid
 import numpy
+
+from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, VoronoiDelaunayGrid
+from landlab.components.flow_director import flow_direction_DN
+from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
 
 class FlowDirectorD8(_FlowDirectorToOne):

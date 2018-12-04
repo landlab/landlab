@@ -46,7 +46,9 @@ To get a time to next fire:
 """
 
 from random import weibullvariate
+
 from scipy import special
+
 from landlab import Component
 
 
@@ -71,7 +73,7 @@ class FireGenerator(Component):
         get_scale_parameter() method described later.
     """
 
-    _name = 'FireGenerator'
+    _name = "FireGenerator"
 
     _input_var_names = tuple()
 
@@ -83,8 +85,9 @@ class FireGenerator(Component):
 
     _var_doc = dict()
 
-    def __init__(self, mean_fire_recurrence=0.0, shape_parameter=0.0,
-                 scale_parameter=None):
+    def __init__(
+        self, mean_fire_recurrence=0.0, shape_parameter=0.0, scale_parameter=None
+    ):
         """Generate a random fire event in time.
 
         Parameters
@@ -113,7 +116,6 @@ class FireGenerator(Component):
         else:
             self.scale_parameter = scale_parameter
 
-
     def get_scale_parameter(self):
         """Get the scale parameter.
 
@@ -124,10 +126,9 @@ class FireGenerator(Component):
         sets the scale parameter.
         """
 
-        shape_in_gamma_func = float( 1+ (1 / self.shape_parameter))
+        shape_in_gamma_func = float(1 + (1 / self.shape_parameter))
         gamma_func = special.gamma(shape_in_gamma_func)
-        self.scale_parameter = (self.mean_fire_recurrence / gamma_func)
-
+        self.scale_parameter = self.mean_fire_recurrence / gamma_func
 
     def generate_fire_recurrence(self):
         """Get time to next fire.
@@ -145,6 +146,7 @@ class FireGenerator(Component):
             Updated value for the time to next fire.
 
         """
-        self.time_to_next_fire = round(weibullvariate(self.scale_parameter,
-                                                      self.shape_parameter), 2)
+        self.time_to_next_fire = round(
+            weibullvariate(self.scale_parameter, self.shape_parameter), 2
+        )
         return self.time_to_next_fire

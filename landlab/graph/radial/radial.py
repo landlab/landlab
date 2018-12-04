@@ -11,8 +11,8 @@ def create_xy_of_node(shape, spacing=1., origin=(0., 0.)):
     n_shells, n_points = shape
     n_nodes = number_of_nodes(shape)
 
-    x = np.empty((n_nodes, ), dtype=float)
-    y = np.empty((n_nodes, ), dtype=float)
+    x = np.empty((n_nodes,), dtype=float)
+    y = np.empty((n_nodes,), dtype=float)
 
     x[0] = y[0] = 0.
     offset = 1
@@ -21,8 +21,8 @@ def create_xy_of_node(shape, spacing=1., origin=(0., 0.)):
         d_theta = np.pi * 2 / (shell * shape[1])
         theta = np.arange(shell * shape[1]) * d_theta
 
-        y[offset: offset + len(theta)] = rho * np.sin(theta)
-        x[offset: offset + len(theta)] = rho * np.cos(theta)
+        y[offset : offset + len(theta)] = rho * np.sin(theta)
+        x[offset : offset + len(theta)] = rho * np.cos(theta)
 
         offset += len(theta)
 
@@ -68,10 +68,10 @@ class RadialGraph(VoronoiGraph):
         try:
             spacing = float(spacing)
         except TypeError:
-            raise TypeError('spacing must be a float')
+            raise TypeError("spacing must be a float")
 
-        x_of_node, y_of_node = create_xy_of_node(shape, spacing=spacing,
-                                                 origin=origin)
+        x_of_node, y_of_node = create_xy_of_node(shape, spacing=spacing, origin=origin)
 
         super(RadialGraph, self).__init__(
-            (y_of_node, x_of_node), xy_sort=True, rot_sort=True)
+            (y_of_node, x_of_node), xy_sort=True, rot_sort=True
+        )
