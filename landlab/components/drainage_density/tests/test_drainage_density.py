@@ -20,20 +20,20 @@ def test_route_to_multiple_error_raised():
 
 
 def test_mask_is_stable():
-    mg = RasterModelGrid((80, 80), 1.0)
+    mg = RasterModelGrid((10, 10), 1.0)
     mg.add_zeros("node", "topographic__elevation")
-    np.random.seed(50)
+    np.random.seed(3542)
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
     fsc = FastscapeEroder(mg, K_sp=.01, m_sp=.5, n_sp=1)
-    for x in range(100):
+    for x in range(2):
         fr.run_one_step()
         fsc.run_one_step(dt=10.0)
         mg.at_node["topographic__elevation"][mg.core_nodes] += .01
 
     mask = np.zeros(len(mg.at_node["topographic__elevation"]), dtype=np.uint8)
-    mask[np.where(mg.at_node["drainage_area"] > 5)] = 1
+    mask[np.where(mg.at_node["drainage_area"] > 0)] = 1
 
     mask0 = mask.copy()
 
