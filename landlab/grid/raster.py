@@ -411,8 +411,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         # Spacing
         if "spacing" in kwds:
-            msg = ("The spacing keyword is deprecated, please pass "
-                   "xy_spacing.")
+            msg = "The spacing keyword is deprecated, please pass " "xy_spacing."
             raise DeprecationWarning(msg)
             spacing = kwds.pop("spacing")
 
@@ -422,8 +421,10 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             dx = kwds.pop("dx", None)
 
             if dx is None:
-                msg = ("Passing dx as a keyword argument is Deprecated "
-                       "Pass xy_spacing instead")
+                msg = (
+                    "Passing dx as a keyword argument is Deprecated "
+                    "Pass xy_spacing instead"
+                )
                 raise DeprecationWarning(msg)
                 dx = kwds.pop("spacing", _parse_grid_spacing_from_args(args) or 1.)
 
@@ -435,8 +436,10 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         # Lower left corner
         if "origin" in kwds:
-            msg =  ("The origin keyword has been Deprecated. "
-                    "Please use xy_lower_left instead")
+            msg = (
+                "The origin keyword has been Deprecated. "
+                "Please use xy_lower_left instead"
+            )
             raise DeprecationWarning(msg)
             xy_lower_left = kwds.pop("origin")
         else:
@@ -451,10 +454,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
 
         # Set number of nodes, and initialize if caller has given dimensions
-        self._initialize(num_rows,
-                         num_cols,
-                         dx,
-                         (xy_lower_left[1], xy_lower_left[0]))
+        self._initialize(num_rows, num_cols, dx, (xy_lower_left[1], xy_lower_left[0]))
 
         self.set_closed_boundaries_at_grid_edges(
             *grid_edge_is_closed_from_dict(kwds.pop("bc", {}))
