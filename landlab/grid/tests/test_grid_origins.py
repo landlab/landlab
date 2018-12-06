@@ -29,7 +29,12 @@ def test_move_origin_hex():
         for orientation in orientations:
             for size in sizes:
                 mg = HexModelGrid(
-                    size[0], size[1], dx=2.0, origin=_START_ORIGIN, orientation=orientation, shape=shape
+                    size[0],
+                    size[1],
+                    dx=2.0,
+                    origin=_START_ORIGIN,
+                    orientation=orientation,
+                    shape=shape
                 )
                 assert mg._origin == _START_ORIGIN
                 assert mg.x_of_node[0] == _START_ORIGIN[1]

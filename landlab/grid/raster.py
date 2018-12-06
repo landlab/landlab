@@ -409,50 +409,52 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         if num_rows <= 0 or num_cols <= 0:
             raise ValueError("number of rows and columns must be positive")
 
+        # Spacing
         if "spacing" in kwds:
-            msg =  ""
+            msg = ("The spacing keyword is deprecated, please pass "
+                   "xy_spacing.")
             raise DeprecationWarning(msg)
-            xy_spacing = kwds.pop("spacing")
+            spacing = kwds.pop("spacing")
 
         elif "dx" in kwds:
             msg = ""
-            raise DeprecationWarning
+            raise DeprecationWarning(msg)
             dx = kwds.pop("dx", None)
 
             if dx is None:
-                msg = ""
-                raise DeprecationWarning
+                msg = ("Passing dx as a keyword argument is Deprecated "
+                       "Pass xy_spacing instead")
+                raise DeprecationWarning(msg)
                 dx = kwds.pop("spacing", _parse_grid_spacing_from_args(args) or 1.)
 
             xy_spacing = (dx, dx)
         elif "xy_spacing" in kwds:
             xy_spacing = kwds.pop("xy_spacing")
-
-            Test if Float, Tuple, and lenght of tuple.
-
         else:
             xy_spacing = (1., 1.)
+
+        # Lower left corner
         if "origin" in kwds:
-            msg =  ""
+            msg =  ("The origin keyword has been Deprecated. "
+                    "Please use xy_lower_left instead")
             raise DeprecationWarning(msg)
             xy_lower_left = kwds.pop("origin")
         else:
             xy_lower_left = kwds.pop("xy_lower_left", None) or (0., 0.)
 
-        Test shape of xy_lower_left
+        if len(xy_lower_left) is not 2:
+            msg = "xy_lower_left must be size two"
+            raise ValueError(msg)
 
-        self._origin = xy_lower_left
-
-
-
-
-
-
+        self._xy_lower_left = xy_lower_left
 
         self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
 
         # Set number of nodes, and initialize if caller has given dimensions
-        self._initialize(num_rows, num_cols, dx, self._origin)
+        self._initialize(num_rows,
+                         num_cols,
+                         dx,
+                         (xy_lower_left[1], xy_lower_left[0]))
 
         self.set_closed_boundaries_at_grid_edges(
             *grid_edge_is_closed_from_dict(kwds.pop("bc", {}))
