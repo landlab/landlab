@@ -15,6 +15,7 @@ from .watershed import (
     get_watershed_outlet,
     get_watershed_masks,
 )
+from .stable_priority_queue import StablePriorityQueue
 
 
 __all__ = [
@@ -27,4 +28,5 @@ __all__ = [
     "get_watershed_nodes",
     "get_watershed_outlet",
     "get_watershed_masks",
+    "StablePriorityQueue"
 ]

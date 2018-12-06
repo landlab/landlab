@@ -26,8 +26,8 @@ Created: GT Nov 2013
 """
 import numpy
 from six.moves import range
-
-from .cfuncs import _add_to_stack
+from .cfuncs import _add_to_stack, _accumulate_bw
+from landlab.core.utils import as_id_array
 
 
 class _DrainageStack:
@@ -141,7 +141,7 @@ def _make_delta_array(nd):
 
     >>> import numpy as np
     >>> from landlab.components.flow_accum.flow_accum_bw import(
-    ... _make_delta_array)
+    ...     _make_delta_array)
     >>> nd = np.array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
     >>> delta = _make_delta_array(nd)
     >>> delta
@@ -311,14 +311,151 @@ def find_drainage_area_and_discharge(
         drainage_area[boundary_nodes] = 0
         discharge[boundary_nodes] = 0
 
+    # Call the cfunc to work accumulate from upstream to downstream, permitting
+    # transmission losses
+    _accumulate_bw(np, s, r, drainage_area, discharge)
+    # nodes at channel heads can still be negative with this method, so...
+    discharge = discharge.clip(0.)
+
+    return drainage_area, discharge
+
+
+def find_drainage_area_and_discharge_lossy(
+    s, r, l, loss_function, grid, node_cell_area=1.0, runoff=1.0,
+    boundary_nodes=None
+):
+
+    """
+    Calculate the drainage area and water discharge at each node, permitting
+    discharge to fall (or gain) as it moves downstream according to some
+    function. Note that only transmission creates loss, so water sourced
+    locally within a cell is always retained. The loss on each link is
+    recorded in the 'surface_water__discharge_loss' link field on the grid;
+    ensure this exists before running the function.
+
+    Parameters
+    ----------
+    s : ndarray of int
+        Ordered (downstream to upstream) array of node IDs
+    r : ndarray of int
+        Receiver node IDs for each node
+    l : ndarray of int
+        Link to receiver node IDs for each node
+    loss_function : Python function(Qw, nodeID, linkID, grid)
+        Function dictating how to modify the discharge as it leaves each node.
+        nodeID is the current node; linkID is the downstream link, grid is a
+        ModelGrid. Returns a float.
+    grid : Landlab ModelGrid (or None)
+        A grid to enable spatially variable parameters to be used in the loss
+        function. If no spatially resolved parameters are needed, this can be
+        a dummy variable, e.g., None.
+    node_cell_area : float or ndarray
+        Cell surface areas for each node. If it's an array, must have same
+        length as s (that is, the number of nodes).
+    runoff : float or ndarray
+        Local runoff rate at each cell (in water depth per time). If it's an
+        array, must have same length as s (that is, the number of nodes).
+    boundary_nodes: list, optional
+        Array of boundary nodes to have discharge and drainage area set to zero.
+        Default value is None.
+
+    Returns
+    -------
+    tuple of ndarray
+        drainage area and discharge
+
+    Notes
+    -----
+    -  If node_cell_area not given, the output drainage area is equivalent
+       to the number of nodes/cells draining through each point, including
+       the local node itself.
+    -  Give node_cell_area as a scalar when using a regular raster grid.
+    -  If runoff is not given, the discharge returned will be the same as
+       drainage area (i.e., drainage area times unit runoff rate).
+    -  If using an unstructured Landlab grid, make sure that the input
+       argument for node_cell_area is the cell area at each NODE rather than
+       just at each CELL. This means you need to include entries for the
+       perimeter nodes too. They can be zeros.
+    -  Loss cannot go negative.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components.flow_accum import (
+    ...     find_drainage_area_and_discharge)
+    >>> r = np.array([2, 5, 2, 7, 5, 5, 6, 5, 7, 8])-1
+    >>> s = np.array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
+    >>> l = np.ones(10, dtype=int)  # dummy
+    >>> nodes_wo_outlet = np.array([0, 1, 2, 3, 5, 6, 7, 8, 9])
+
+    >>> def lossfunc(Qw, dummyn, dummyl, dummygrid):
+    ...     return 0.5 * Qw
+    >>> mg = RasterModelGrid((3, 4), 1.)  # some grid big enough to make go
+    >>> _ = mg.add_zeros('node', 'surface_water__discharge_loss', dtype=float)
+    >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc, mg)
+    >>> a
+    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    >>> q
+    array([  1.  ,   2.  ,   1.  ,   1.  ,  3.75,   2.  ,   2.  ,   1.5 ,   1.  ,   1.  ])
+    >>> np.allclose(
+    ...     mg.at_node['surface_water__discharge_loss'][nodes_wo_outlet],
+    ...     0.5*q[nodes_wo_outlet])
+    True
+    >>> np.isclose(mg.at_node['surface_water__discharge_loss'][4], 0.)
+    True
+
+    >>> lossfield = mg.add_ones('node', 'loss_field', dtype=float)
+    >>> lossfield *= 0.5
+    >>> def lossfunc2(Qw, nodeID, dummyl, grid):
+    ...     return grid.at_node['loss_field'][nodeID] * Qw
+    >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc2, mg)
+    >>> a
+    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    >>> q
+    array([  1.  ,   2.  ,   1.  ,   1.  ,  3.75,   2.  ,   2.  ,   1.5 ,   1.  ,   1.  ])
+    >>> np.allclose(
+    ...     mg.at_node['surface_water__discharge_loss'][nodes_wo_outlet],
+    ...     lossfield[nodes_wo_outlet] * q[nodes_wo_outlet])
+    True
+
+    >>> def lossfunc3(Qw, nodeID, dummyl, dummygrid):
+    ...     return Qw - 100.  # a huge loss
+    >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc3, mg)
+    >>> a
+    array([  1.,   3.,   1.,   1.,  10.,   4.,   3.,   2.,   1.,   1.])
+    >>> q
+    array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
+    """
+    # Number of points
+    np = len(s)
+
+    # Initialize the drainage_area and discharge arrays. Drainage area starts
+    # out as the area of the cell in question, then (unless the cell has no
+    # donors) grows from there. Discharge starts out as the cell's local runoff
+    # rate times the cell's surface area.
+    drainage_area = numpy.zeros(np, dtype=int) + node_cell_area
+    discharge = numpy.zeros(np, dtype=int) + node_cell_area * runoff
+    # note no loss occurs at a node until the water actually moves along a link
+
+    # Optionally zero out drainage area and discharge at boundary nodes
+    if boundary_nodes is not None:
+        drainage_area[boundary_nodes] = 0
+        discharge[boundary_nodes] = 0
+
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
     for i in range(np - 1, -1, -1):
         donor = s[i]
         recvr = r[donor]
+        lrec = l[donor]
         if donor != recvr:
             drainage_area[recvr] += drainage_area[donor]
-            discharge[recvr] += discharge[donor]
+            discharge_remaining = numpy.clip(loss_function(
+                discharge[donor], donor, lrec, grid), 0., float('inf'))
+            grid.at_node['surface_water__discharge_loss'][
+                donor] = discharge[donor] - discharge_remaining
+            discharge[recvr] += discharge_remaining
 
     return drainage_area, discharge
 
@@ -346,7 +483,7 @@ def flow_accumulation(
     array([4, 1, 0, 2, 5, 6, 3, 8, 7, 9])
     """
 
-    s = make_ordered_node_array(receiver_nodes)
+    s = as_id_array(make_ordered_node_array(receiver_nodes))
     # Note that this ordering of s DOES INCLUDE closed nodes. It really shouldn't!
     # But as we don't have a copy of the grid accessible here, we'll solve this
     # problem as part of route_flow_dn.
