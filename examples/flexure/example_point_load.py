@@ -22,7 +22,7 @@ def main():
     (n_rows, n_cols) = (100, 100)
     spacing = (10e3, 10e3)
 
-    grid = RasterModelGrid(n_rows, n_cols, spacing[1])
+    grid = RasterModelGrid(n_rows, n_cols, xy_spacing=spacing[1])
 
     flex = Flexure(grid, method="flexure")
 
