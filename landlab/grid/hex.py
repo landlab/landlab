@@ -360,7 +360,10 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return self._area_of_cell
 
     @staticmethod
-    def _hex_points_with_horizontal_hex(num_rows, base_num_cols, dxh, xy_of_lower_left):
+    def _hex_points_with_horizontal_hex(num_rows,
+                                        base_num_cols,
+                                        dxh,
+                                        xy_of_lower_left):
         """Create a set of points on a staggered grid.
 
         Creates and returns a set of (x,y) points in a staggered grid in which
@@ -378,7 +381,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         dxh : float
             Horizontal and diagonal spacing between points
         xy_of_lower_left : tuple
-            (y, x) coordinates of the xy_of_lower_left. Default is (0., 0.)
+            (x, y) coordinates of the xy_of_lower_left. Default is (0., 0.)
         Returns
         -------
         poinst : ndarray
@@ -388,7 +391,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_horizontal_hex(3, 2, 1.0, (0., 0.))
+        >>> points = HexModelGrid._hex_points_with_horizontal_hex(3, 2,
+        ...                                                       1.0,
+        ...                                                       (0., 0.))
         >>> len(points)
         7
         >>> points[1, :]
@@ -413,8 +418,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         i = 0
         for r in range(num_rows):
             for c in range(base_num_cols + extra_cols):
-                pts[i, 0] = c * dxh + xshift + xy_of_lower_left[1]
-                pts[i, 1] = r * dxv + xy_of_lower_left[0]
+                pts[i, 0] = c * dxh + xshift + xy_of_lower_left[0]
+                pts[i, 1] = r * dxv + xy_of_lower_left[1]
                 i += 1
             if r < middle_row:
                 extra_cols += 1
@@ -425,7 +430,10 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return pts
 
     @staticmethod
-    def _hex_points_with_horizontal_rect(num_rows, num_cols, dxh, xy_of_lower_left):
+    def _hex_points_with_horizontal_rect(num_rows,
+                                         num_cols,
+                                         dxh,
+                                         xy_of_lower_left):
         """Create a set of points in a taggered grid.
         Creates and returns a set of (x,y) points in a staggered grid in which
         the points represent the centers of regular hexagonal cells, and the
@@ -442,7 +450,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         dxh : float
             Horizontal and diagonal spacing between points
         xy_of_lower_left : tuple
-            (y, x) coordinates of the xy_of_lower_left. Default is (0., 0.)
+            (x, y) coordinates of the xy_of_lower_left. Default is (0., 0.)
 
         Returns
         -------
@@ -453,7 +461,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_horizontal_rect(3, 3, 1.0, (0., 0.))
+        >>> points = HexModelGrid._hex_points_with_horizontal_rect(3, 3,
+        ...                                                        1.0,
+        ...                                                        (0., 0.))
         >>> len(points)
         9
         >>> points[1, :]
@@ -471,14 +481,17 @@ class HexModelGrid(VoronoiDelaunayGrid):
         for r in range(num_rows):
             for c in range(num_cols):
                 xshift = half_dxh * (r % 2)
-                pts[i, 0] = c * dxh + xshift + xy_of_lower_left[1]
-                pts[i, 1] = r * dxv + xy_of_lower_left[0]
+                pts[i, 0] = c * dxh + xshift + xy_of_lower_left[0]
+                pts[i, 1] = r * dxv + xy_of_lower_left[1]
                 i += 1
 
         return pts
 
     @staticmethod
-    def _hex_points_with_vertical_hex(base_num_rows, num_cols, dxv, xy_of_lower_left):
+    def _hex_points_with_vertical_hex(base_num_rows,
+                                      num_cols,
+                                      dxv,
+                                      xy_of_lower_left):
         """
         Creates and returns a set of (x,y) points in a staggered grid in which
         the points represent the centers of regular hexagonal cells, and the
@@ -495,7 +508,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         dxv : float
             Vertical and diagonal spacing between points
         xy_of_lower_left : tuple
-            (y, x) coordinates of the xy_of_lower_left. Default is (0., 0.)
+            (x, y) coordinates of the xy_of_lower_left. Default is (0., 0.)
 
         Returns
         -------
@@ -506,7 +519,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_vertical_hex(2, 3, 1.0, (0., 0.))
+        >>> points = HexModelGrid._hex_points_with_vertical_hex(2, 3,
+        ...                                                     1.0,
+        ...                                                     (0., 0.))
         >>> len(points)
         7
         >>> points[1, :]
@@ -531,8 +546,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         i = 0
         for c in range(num_cols):
             for r in range(base_num_rows + extra_rows):
-                pts[i, 1] = r * dxv + yshift + xy_of_lower_left[0]
-                pts[i, 0] = c * dxh + xy_of_lower_left[1]
+                pts[i, 1] = r * dxv + yshift + xy_of_lower_left[1]
+                pts[i, 0] = c * dxh + xy_of_lower_left[0]
                 i += 1
             if c < middle_col:
                 extra_rows += 1
@@ -543,7 +558,10 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return pts
 
     @staticmethod
-    def _hex_points_with_vertical_rect(num_rows, num_cols, dxv, xy_of_lower_left):
+    def _hex_points_with_vertical_rect(num_rows,
+                                       num_cols,
+                                       dxv,
+                                       xy_of_lower_left):
         """
         Creates and returns a set of (x,y) points in a staggered grid in which
         the points represent the centers of regular hexagonal cells, and the
@@ -559,7 +577,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         dxv : float
             Vertical and diagonal spacing between points
         xy_of_lower_left : tuple
-            (y, x) coordinates of the xy_of_lower_left. Default is (0., 0.).
+            (x, y) coordinates of the xy_of_lower_left. Default is (0., 0.).
 
         Returns
         -------
@@ -570,7 +588,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_vertical_rect(3, 3, 1.0, (0., 0.))
+        >>> points = HexModelGrid._hex_points_with_vertical_rect(3, 3,
+        ...                                                      1.0,
+        ...                                                      (0., 0.))
         >>> len(points)
         9
         >>> points[1, :]
@@ -588,8 +608,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         for c in range(num_cols):
             for r in range(num_rows):
                 yshift = half_dxv * (c % 2)
-                pts[i, 1] = r * dxv + yshift + xy_of_lower_left[0]
-                pts[i, 0] = c * dxh + xy_of_lower_left[1]
+                pts[i, 1] = r * dxv + yshift + xy_of_lower_left[1]
+                pts[i, 0] = c * dxh + xy_of_lower_left[0]
                 i += 1
 
         return pts
