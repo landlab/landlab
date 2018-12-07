@@ -310,7 +310,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     xy_spacing : tuple or float, optional
         dx and dy spacing. Either provided as a float or a
         (dx, dy) tuple.
-    xy_lower_left: tuple, optional
+    xy_of_lower_left: tuple, optional
         (x, y) coordinates of the lower left corner.
     bc : dict, optional
         Edge boundary conditions.
@@ -380,7 +380,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         xy_spacing : tuple or float, optional
             dx and dy spacing. Either provided as a float or a
             (dx, dy) tuple.
-        xy_lower_left: tuple, optional
+        xy_of_lower_left: tuple, optional
             (x, y) coordinates of the lower left corner.
         bc : dict, optional
             Edge boundary conditions.
@@ -417,6 +417,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                    "please pass " "xy_spacing.")
             warn(msg, DeprecationWarning)
             dx = kwds.pop("dx", None)
+            old_spacing = True
 
         elif "spacing" in kwds:
             msg = (
@@ -424,19 +425,25 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                 "Pass xy_spacing instead."
             )
             warn(msg, DeprecationWarning)
-            dx = kwds.pop("spacing", _parse_grid_spacing_from_args(args) or 1.)
+            dx = kwds.pop("spacing")
+            old_spacing = True
 
         elif "xy_spacing" in kwds:
             dx = kwds.pop("xy_spacing")
+            old_spacing = False
         else:
-            dx = (1., 1.)
+            dx = _parse_grid_spacing_from_args(args) or (1., 1.)
+            old_spacing = True
 
         try:
             if len(dx) != 2:
                 msg = ""
                 raise ValueError(msg)
             else:
-                xy_spacing = dx
+                if old_spacing:
+                    xy_spacing = (dx[1], dx[0])
+                else:
+                    xy_spacing = dx
         except TypeError:
             if isinstance(dx, (int, float)):
                 xy_spacing = (dx, dx)
@@ -445,27 +452,28 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         if "origin" in kwds:
             msg = (
                 "The origin keyword has been Deprecated. "
-                "Please use xy_lower_left instead"
+                "Please use xy_of_lower_left instead"
             )
             warn(msg, DeprecationWarning)
-            xy_lower_left = kwds.pop("origin")
+            xy_of_lower_left = kwds.pop("origin")
         else:
-            xy_lower_left = kwds.pop("xy_lower_left", None) or (0., 0.)
+            xy_of_lower_left = kwds.pop("xy_of_lower_left", None) or (0., 0.)
 
-        if len(xy_lower_left) != 2:
-            msg = "xy_lower_left must be size two"
+        if len(xy_of_lower_left) != 2:
+            msg = "xy_of_lower_left must be size two"
             raise ValueError(msg)
 
-        self._xy_lower_left = xy_lower_left
+        self._xy_of_lower_left = xy_of_lower_left
 
+        # Node Status
         self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
 
         # Set number of nodes, and initialize if caller has given dimensions
         self._initialize(num_rows,
                          num_cols,
                          xy_spacing,
-                         (xy_lower_left[0],
-                          xy_lower_left[1]))
+                         (xy_of_lower_left[0],
+                          xy_of_lower_left[1]))
 
         self.set_closed_boundaries_at_grid_edges(
             *grid_edge_is_closed_from_dict(kwds.pop("bc", {}))
@@ -620,7 +628,20 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         return cls(shape, spacing=spacing, bc=bc)
 
-    def _initialize(self, num_rows, num_cols, spacing, origin):
+    @property
+    def xy_of_lower_left(self):
+        """Return (x, y) of the reference point."""
+        return self._xy_of_lower_left
+
+    @xy_of_lower_left.setter
+    def xy_of_lower_left(self, xy_of_lower_left):
+        """Set a new value for the xy_of_lower_left."""
+        dx = self.x_of_node[0] - xy_of_lower_left[0]
+        dy = self.y_of_node[0] - xy_of_lower_left[1]
+        self._xy_of_node -= (dx, dy)
+        self._xy_of_lower_left = xy_of_lower_left
+
+    def _initialize(self, num_rows, num_cols, xy_spacing, xy_of_lower_left):
         """Set up a raster grid.
 
         Sets up a *num_rows* by *num_cols* grid with cell *spacing*  and
@@ -628,10 +649,10 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         boundaries and all interior cells are active).
 
         Spacing may be provided as a value for square cells or as a tuple
-        (dy, dx) for rectangular cells.
+        (dx, dy) for rectangular cells.
 
-        The lower left corner is set through *origin*, which is a
-        (lower left corner y, lower left corner y) tuple.
+        The lower left corner is set through *xy_of_lower_left*, which is a
+        (lower left corner x, lower left corner y) tuple.
 
         To be consistent with unstructured grids, the raster grid is
         managed not as a 2D array but rather as a set of vectors that
@@ -682,14 +703,14 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         array([ 5,  6,  7,  9, 10, 11, 12, 14, 15, 16, 18, 19, 20, 21, 23, 24,
                25])
         """
-        if isinstance(spacing, float) or isinstance(spacing, int):
-            spacing = (spacing, spacing)
+        if isinstance(xy_spacing, (float, int)):
+            xy_spacing = (xy_spacing, xy_spacing)
 
         # Basic info about raster size and shape
         self._nrows = num_rows
         self._ncols = num_cols
 
-        self._dy, self._dx = float(spacing[1]), float(spacing[0])
+        self._dx, self._dy = float(xy_spacing[0]), float(xy_spacing[1])
         self.cellarea = self._dy * self._dx
 
         self._node_at_cell = sgrid.node_at_cell(self.shape)
@@ -721,7 +742,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         #  0-------1-------2-------3-------4
         #
         (x_of_node, y_of_node) = sgrid.node_coords(
-            (num_rows, num_cols), (self._dy, self._dx), origin
+                                        (num_rows, num_cols),
+                                        (self._dy, self._dx),
+                                        (xy_of_lower_left[1], xy_of_lower_left[0])
         )
 
         self._xy_of_node = np.hstack(
@@ -998,7 +1021,8 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         grid is a raster.
         It is not meant to be called manually.
         """
-        self._forced_cell_areas = np.full(self.shape, self.dx * self.dy, dtype=float)
+        self._forced_cell_areas = np.full(self.shape, self.dx
+                                          * self.dy, dtype=float)
         self._forced_cell_areas[(0, -1), :] = 0.
         self._forced_cell_areas[:, (0, -1)] = 0.
         self._forced_cell_areas.shape = (-1,)

@@ -314,9 +314,14 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
 
-        self.axis_name = kwds.get("axis_name", _default_axis_names(self.ndim))
-        self.axis_units = kwds.get("axis_units", _default_axis_units(self.ndim))
+        self.axis_name = kwds.get("axis_name",
+                                  _default_axis_names(self.ndim))
 
+        self.axis_units = kwds.get("axis_units",
+                                   _default_axis_units(self.ndim))
+
+        self._reference_point_offset = kwds.get("reference_point_offset",
+                                                (0., 0.))
         self._link_length = None
         self._all_node_distances_map = None
         self._all_node_azimuths_map = None
@@ -336,17 +341,14 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         ModelDataFields.set_default_group(self, "node")
 
     @property
-    def origin(self):
-        """Return the (y, x) tuple of the model grid's origin."""
-        return self._origin
+    def reference_point_offset(self):
+        """Return (dx, dy) between (0,0) and the reference point."""
+        return self._reference_point_offset
 
-    @origin.setter
-    def origin(self, new_origin):
-        """Set a new value for the model grid origin."""
-        dy = self._origin[0] - new_origin[0]
-        dx = self._origin[1] - new_origin[1]
-        self._xy_of_node -= (dx, dy)
-        self._origin = new_origin
+    @reference_point_offset.setter
+    def reference_point_offset(self, new_reference_point_offset):
+        """Set a new value for the model grid reference_point_offset."""
+        self._reference_point_offset = new_reference_point_offset
 
     def _create_neighbor_list(self, **kwds):
         """Create list of neighbor node IDs.
@@ -4149,7 +4151,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         self.node_at_link_tail[:] = self.node_at_link_tail[indices]
         self.node_at_link_head[:] = self.node_at_link_head[indices]
 
-    @deprecated(use="no replacement", version=1.5)
+    @deprecated(use="reference_point_offset", version=1.5)
     def move_origin(self, origin):
         """Changes the x and y coordinate values of all nodes.
 
@@ -4159,12 +4161,12 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Note this is most likely useful when importing a DEM that has an
         absolute location, however it can be used generally.
 
-        As with initializing the grid, *origin* is specified as (y, x).
+        As with initializing the grid, *origin* is specified as (x, y).
 
         Parameters
         ----------
         origin : list of two float values, can be negative.
-            [y, x], where x is the new x value for the origin and y is the new
+            [x, y], where x is the new x value for the origin and y is the new
             y value for the origin.
 
         Examples
@@ -4175,7 +4177,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
         >>> rmg.node_y
         array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.])
-        >>> rmg.move_origin((1.5, 5.))
+        >>> rmg.move_origin((5., 1.5))
         >>> rmg.node_x
         array([ 5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.])
         >>> rmg.node_y
@@ -4184,7 +4186,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: GINF MEAS
         """
-        self.origin = origin
+        self._xy_of_node += origin
 
 
 add_module_functions_to_class(ModelGrid, "mappers.py", pattern="map_*")

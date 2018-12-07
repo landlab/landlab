@@ -170,7 +170,6 @@ class VoronoiDelaunayGrid(ModelGrid):
         Creates an unstructured grid around the given (x,y) points.
         """
         x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
-        self._origin = (y.min(), x.min())
 
         if x.size != y.size:
             raise ValueError("x and y arrays must have the same size")
