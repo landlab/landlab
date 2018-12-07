@@ -25,10 +25,10 @@ def test_move_reference_raster():
 def test_move_reference_hex():
     shapes = ["rect", "hex"]
     orientations = ["horizontal", "vertical"]
-    sizes = ((8, 7),
-             (7, 8),
-             (7, 11),
-             (8, 12))
+    sizes = ((10, 9),
+             (9, 10),
+             (9, 9),
+             (10, 10))
     for shape in shapes:
         for orientation in orientations:
             for size in sizes:

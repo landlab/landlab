@@ -1772,12 +1772,15 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> import pytest
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
-        >>> grid.node_spacing
+        >>> with pytest.warns(DeprecationWarning):
+        ...     grid.node_spacing
         1.0
         >>> grid = RasterModelGrid((4, 5), 3.0)
-        >>> grid.node_spacing
+        >>> with pytest.warns(DeprecationWarning):
+        ...     grid.node_spacing
         3.0
 
         LLCATS: DEPR GINF NINF MEAS
@@ -3105,11 +3108,14 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> import pytest
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
-        >>> mg.face_connecting_cell_pair(0, 1)
+        >>> with pytest.warns(DeprecationWarning):
+        ...     mg.face_connecting_cell_pair(0, 1)
         array([4])
-        >>> mg.face_connecting_cell_pair(0, 2).size  # empty array returned
+        >>> with pytest.warns(DeprecationWarning):
+        ...     mg.face_connecting_cell_pair(0, 2).size  # empty array returned
         0
 
         LLCATS: DEPR FINF CINF CONN
@@ -3325,7 +3331,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return s
 
     @deprecated(use="calc_slope_at_node, calc_aspect_at_node", version=1.0)
-    def calculate_slope_aspect_at_nodes_burrough(self, ids=None, vals="Elevation"):
+    def calculate_slope_aspect_at_nodes_burrough(self,
+                                                 ids=None,
+                                                 vals="Elevation"):
         """Calculate topographic slope.
 
         Calculates the local topographic slope (i.e., the down-dip slope, and
@@ -3352,14 +3360,16 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> import pytest
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3, 4), (4, 4))
         >>> z = np.array([0., 0., 0., 0.,
         ...               3., 3., 3., 3,
         ...               6., 6., 6., 6.])
-        >>> (slope,
-        ...  aspect) = grid.calculate_slope_aspect_at_nodes_burrough(vals=z)
+        >>> with pytest.warns(DeprecationWarning):
+        ...     (slope, aspect) = (
+        ...              grid.calculate_slope_aspect_at_nodes_burrough(vals=z))
         >>> np.tan(slope)
         array([ 0.75,  0.75])
         >>> np.degrees(aspect)
