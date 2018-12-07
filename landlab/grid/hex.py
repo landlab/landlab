@@ -524,10 +524,10 @@ class HexModelGrid(VoronoiDelaunayGrid):
         ...                                                     (0., 0.))
         >>> len(points)
         7
-        >>> points[1, :]
-        array([ 0.,  1.])
+        >>> points[2, :]
+        array([ 0.,  0.])
         >>> points[:3, 1]
-        array([ 0. ,  1. , -0.5])
+        array([ 0.5,  1.5,  0. ])
         """
         dxh = dxv * numpy.sqrt(3.) / 2.
         half_dxv = dxv / 2.
@@ -544,16 +544,27 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         yshift = 0
         i = 0
+
         for c in range(num_cols):
             for r in range(base_num_rows + extra_rows):
-                pts[i, 1] = r * dxv + yshift + xy_of_lower_left[1]
-                pts[i, 0] = c * dxh + xy_of_lower_left[0]
+                pts[i, 1] = r * dxv + yshift
+                pts[i, 0] = c * dxh
                 i += 1
             if c < middle_col:
                 extra_rows += 1
             else:
                 extra_rows -= 1
+
+            if c == middle_col:
+                reference_ind = i - r - 1
+
             yshift = -half_dxv * extra_rows
+
+        xshift = xy_of_lower_left[0] - pts[reference_ind, 0]
+        yshift = xy_of_lower_left[1] - pts[reference_ind, 1]
+
+        pts[:, 0] += xshift
+        pts[:, 1] += yshift
 
         return pts
 
