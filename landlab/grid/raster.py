@@ -12,6 +12,8 @@ import numpy as np
 import six
 from six.moves import range
 
+from warnings import warn
+
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.structured_quad import (
     cells as squad_cells,
@@ -410,29 +412,34 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             raise ValueError("number of rows and columns must be positive")
 
         # Spacing
-        if "spacing" in kwds:
-            msg = "The spacing keyword is deprecated, please pass " "xy_spacing."
-            raise DeprecationWarning(msg)
-            spacing = kwds.pop("spacing")
-
-        elif "dx" in kwds:
-            msg = ""
-            raise DeprecationWarning(msg)
+        if "dx" in kwds:
+            msg = ("The dx keyword is depreciated, "
+                   "please pass " "xy_spacing.")
+            warn(msg, DeprecationWarning)
             dx = kwds.pop("dx", None)
 
-            if dx is None:
-                msg = (
-                    "Passing dx as a keyword argument is Deprecated "
-                    "Pass xy_spacing instead"
-                )
-                raise DeprecationWarning(msg)
-                dx = kwds.pop("spacing", _parse_grid_spacing_from_args(args) or 1.)
+        elif "spacing" in kwds:
+            msg = (
+                "Passing spacing as a keyword argument is Deprecated "
+                "Pass xy_spacing instead."
+            )
+            warn(msg, DeprecationWarning)
+            dx = kwds.pop("spacing", _parse_grid_spacing_from_args(args) or 1.)
 
-            xy_spacing = (dx, dx)
         elif "xy_spacing" in kwds:
-            xy_spacing = kwds.pop("xy_spacing")
+            dx = kwds.pop("xy_spacing")
         else:
-            xy_spacing = (1., 1.)
+            dx = (1., 1.)
+
+        try:
+            if len(dx) != 2:
+                msg = ""
+                raise ValueError(msg)
+            else:
+                xy_spacing = dx
+        except TypeError:
+            if isinstance(dx, (int, float)):
+                xy_spacing = (dx, dx)
 
         # Lower left corner
         if "origin" in kwds:
@@ -440,12 +447,12 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                 "The origin keyword has been Deprecated. "
                 "Please use xy_lower_left instead"
             )
-            raise DeprecationWarning(msg)
+            warn(msg, DeprecationWarning)
             xy_lower_left = kwds.pop("origin")
         else:
             xy_lower_left = kwds.pop("xy_lower_left", None) or (0., 0.)
 
-        if len(xy_lower_left) is not 2:
+        if len(xy_lower_left) != 2:
             msg = "xy_lower_left must be size two"
             raise ValueError(msg)
 
@@ -454,7 +461,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
 
         # Set number of nodes, and initialize if caller has given dimensions
-        self._initialize(num_rows, num_cols, dx, (xy_lower_left[1], xy_lower_left[0]))
+        self._initialize(num_rows,
+                         num_cols,
+                         xy_spacing,
+                         (xy_lower_left[0],
+                          xy_lower_left[1]))
 
         self.set_closed_boundaries_at_grid_edges(
             *grid_edge_is_closed_from_dict(kwds.pop("bc", {}))
@@ -467,9 +478,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     def __setstate__(self, state_dict):
         """Set state for of RasterModelGrid from pickled state_dict."""
         if state_dict["type"] != "RasterModelGrid":
-            assert TypeError("Saved model instance not of " "RasterModelGrid type.")
+            assert TypeError(("Saved model instance not of "
+                              "RasterModelGrid type."))
 
         dx = state_dict["dx"]
+        dy = state_dict["dy"]
         shape = state_dict["shape"]
         origin = state_dict["origin"]
         num_rows = shape[0]
@@ -478,7 +491,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
 
         # Set number of nodes, and initialize if caller has given dimensions
-        self._initialize(num_rows, num_cols, dx, origin)
+        self._initialize(num_rows, num_cols, (dx, dy), origin)
 
         super(RasterModelGrid, self).__init__()
 
@@ -676,7 +689,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._nrows = num_rows
         self._ncols = num_cols
 
-        self._dy, self._dx = float(spacing[0]), float(spacing[1])
+        self._dy, self._dx = float(spacing[1]), float(spacing[0])
         self.cellarea = self._dy * self._dx
 
         self._node_at_cell = sgrid.node_at_cell(self.shape)

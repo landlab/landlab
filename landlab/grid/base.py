@@ -4149,7 +4149,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         self.node_at_link_tail[:] = self.node_at_link_tail[indices]
         self.node_at_link_head[:] = self.node_at_link_head[indices]
 
-    @deprecated
+    @deprecated(use="no replacement", version=1.5)
     def move_origin(self, origin):
         """Changes the x and y coordinate values of all nodes.
 
