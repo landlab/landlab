@@ -13,7 +13,7 @@ def dans_grid1():
     Create a 5x5 test grid.
     This is a sheet flow test.
     """
-    mg = RasterModelGrid((5, 5), spacing=(10., 10.))
+    mg = RasterModelGrid((5, 5), xy_spacing=(10., 10.))
 
     this_dir = os.path.abspath(os.path.dirname(__file__))
     infile = os.path.join(this_dir, "test_fr_input.txt")
@@ -93,7 +93,7 @@ def internal_closed():
     Create a 6x5 test grid, but with two internal nodes closed.
     This is a sheet flow test.
     """
-    mg = RasterModelGrid((6, 5), spacing=(10., 10.))
+    mg = RasterModelGrid((6, 5), xy_spacing=(10., 10.))
 
     mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
     mg.status_at_node[7] = CLOSED_BOUNDARY
@@ -167,7 +167,7 @@ def dans_grid2():
     Create a 5x5 test grid.
     This tests more complex routing, with diffs between D4 & D8.
     """
-    mg = RasterModelGrid((5, 5), spacing=(10., 10.))
+    mg = RasterModelGrid((5, 5), xy_spacing=(10., 10.))
 
     this_dir = os.path.abspath(os.path.dirname(__file__))
     infile = os.path.join(this_dir, "test_fr_input.txt")

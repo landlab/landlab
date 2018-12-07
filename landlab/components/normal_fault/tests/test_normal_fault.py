@@ -8,7 +8,7 @@ from landlab.components import NormalFault
 
 def test_dx_equals_zero():
     """Test a vertical fault trace."""
-    grid = RasterModelGrid((6, 6), spacing=10)
+    grid = RasterModelGrid((6, 6), xy_spacing=10)
 
     grid.add_zeros("node", "topographic__elevation")
 
@@ -39,7 +39,7 @@ def test_dx_equals_zero():
 
 def test_anti_aximuth_greq_2pi():
     """Test anti azimuth over 2*pi."""
-    grid = RasterModelGrid((6, 6), spacing=10)
+    grid = RasterModelGrid((6, 6), xy_spacing=10)
 
     grid.add_zeros("node", "topographic__elevation")
 
@@ -136,7 +136,7 @@ def test_non_raster():
 
 def test_dip_geq_90():
     """Test dip angles of >90 degrees."""
-    grid = RasterModelGrid((6, 6), spacing=10)
+    grid = RasterModelGrid((6, 6), xy_spacing=10)
 
     grid.add_zeros("node", "topographic__elevation")
 
@@ -146,7 +146,7 @@ def test_dip_geq_90():
 
 def test_uplifting_multiple_fields():
     """Test uplifting multiple fields with NormalFault."""
-    grid = RasterModelGrid((6, 6), spacing=10)
+    grid = RasterModelGrid((6, 6), xy_spacing=10)
 
     grid.add_zeros("node", "topographic__elevation")
 
@@ -254,7 +254,7 @@ def test_uplifting_multiple_fields():
 
 def test_uplifting_a_not_yet_created_field():
     """Test uplifting a field that does not exist with  NormalFault."""
-    grid = RasterModelGrid((6, 6), spacing=10)
+    grid = RasterModelGrid((6, 6), xy_spacing=10)
 
     grid.add_zeros("node", "topographic__elevation")
 

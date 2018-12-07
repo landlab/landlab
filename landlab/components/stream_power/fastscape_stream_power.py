@@ -67,7 +67,7 @@ class FastscapeEroder(Component):
     >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
     >>> from landlab.components import FlowAccumulator, FastscapeEroder
 
-    >>> grid = RasterModelGrid((5, 5), spacing=10.)
+    >>> grid = RasterModelGrid((5, 5), xy_spacing=10.)
     >>> z = np.array([7.,  7.,  7.,  7.,  7.,
     ...               7.,  5., 3.2,  6.,  7.,
     ...               7.,  2.,  3.,  5.,  7.,
@@ -85,7 +85,7 @@ class FastscapeEroder(Component):
             7.        ,  0.28989795,  0.85403051,  2.42701526,  7.        ,
             7.        ,  0.        ,  7.        ,  7.        ,  7.        ])
 
-    >>> grid = RasterModelGrid((3, 7), spacing=1.)
+    >>> grid = RasterModelGrid((3, 7), xy_spacing=1.)
     >>> z = np.array(grid.node_x ** 2.)
     >>> z = grid.add_field('topographic__elevation', z, at='node')
     >>> grid.status_at_node[grid.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY
@@ -101,7 +101,7 @@ class FastscapeEroder(Component):
     array([  0.        ,   1.        ,   4.        ,   8.52493781,
             13.29039716,  18.44367965,  36.        ])
 
-    >>> grid = RasterModelGrid((3, 7), spacing=1.)
+    >>> grid = RasterModelGrid((3, 7), xy_spacing=1.)
     >>> z = np.array(grid.node_x ** 2.)
     >>> z = grid.add_field('topographic__elevation', z, at='node')
     >>> grid.status_at_node[grid.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY

@@ -123,7 +123,7 @@ class FlowAccumulator(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field('topographic__elevation',
     ...                  mg.node_x + mg.node_y,
@@ -175,7 +175,7 @@ class FlowAccumulator(Component):
 
     Now let's make a more complicated elevation grid for the next examples.
 
-    >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
     ...                                    0., 21., 10., 0.,
     ...                                    0., 31., 20., 0.,
@@ -203,7 +203,7 @@ class FlowAccumulator(Component):
 
     Now let's change the cell area (100.) and the runoff rates:
 
-    >>> mg = RasterModelGrid((5, 4), spacing=(10., 10))
+    >>> mg = RasterModelGrid((5, 4), xy_spacing=(10., 10))
 
     Put the data back into the new grid.
 
@@ -278,7 +278,7 @@ class FlowAccumulator(Component):
     For example, in the case of a raster grid, FlowDirectorMFD can use only
     orthogonal links, or it can use both orthogonal and diagonal links.
 
-    >>> mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    >>> mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     >>> topographic__elevation = mg.node_y+mg.node_x
     >>> _ = mg.add_field('node',
     ...                  'topographic__elevation',

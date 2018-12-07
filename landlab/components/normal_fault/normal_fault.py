@@ -117,7 +117,7 @@ class NormalFault(Component):
 
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import NormalFault
-        >>> grid = RasterModelGrid((6, 6), spacing=10)
+        >>> grid = RasterModelGrid((6, 6), xy_spacing=10)
 
         Add an elevation field.
 
@@ -183,7 +183,7 @@ class NormalFault(Component):
         and we will set include_boundaries to True.
 
         >>> from landlab.components import FastscapeEroder, FlowAccumulator
-        >>> grid = RasterModelGrid((6, 6), spacing=10)
+        >>> grid = RasterModelGrid((6, 6), xy_spacing=10)
         >>> z = grid.add_zeros('node', 'topographic__elevation')
         >>> param_dict = {'faulted_surface': 'topographic__elevation',
         ...               'fault_dip_angle': 90.0,
@@ -224,7 +224,7 @@ class NormalFault(Component):
         For example, if a user wanted to only run NormalFault every tenth
         timestep (or some more seismogenically reasonable set of times).
 
-        >>> grid = RasterModelGrid((6, 6), spacing=10)
+        >>> grid = RasterModelGrid((6, 6), xy_spacing=10)
         >>> z = grid.add_zeros('node', 'topographic__elevation')
         >>> nf = NormalFault(grid, **param_dict)
         >>> fr = FlowAccumulator(grid)

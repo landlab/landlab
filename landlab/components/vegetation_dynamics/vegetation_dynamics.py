@@ -33,7 +33,7 @@ class Vegetation(Component):
 
     Create a grid on which to simulate vegetation dynamics.
 
-    >>> grid = RasterModelGrid((5,4), spacing=(0.2, 0.2))
+    >>> grid = RasterModelGrid((5,4), xy_spacing=(0.2, 0.2))
 
     The grid will need some input data. To check the names of the fields
     that provide the input to this component, use the *input_var_names*

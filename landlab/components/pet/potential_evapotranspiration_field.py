@@ -31,7 +31,7 @@ class PotentialEvapotranspiration(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.pet import PotentialEvapotranspiration
 
-    >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     >>> PET = PotentialEvapotranspiration(grid)
     >>> PET.name
     'Potential Evapotranspiration'

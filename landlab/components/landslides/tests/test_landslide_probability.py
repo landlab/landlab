@@ -112,7 +112,7 @@ def test_calculate_landslide_probability_uniform_method():
     """Testing the main method 'calculate_landslide_probability()' with
     'uniform' method.
     """
-    grid_1 = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
+    grid_1 = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     gridnum = grid_1.number_of_nodes
     np.random.seed(seed=5)
     grid_1.at_node["topographic__slope"] = np.random.rand(gridnum)
@@ -159,7 +159,7 @@ def test_calculate_landslide_probability_lognormal_method():
     """Testing the main method 'calculate_landslide_probability()' with
     'lognormal' method.
     """
-    grid_2 = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
+    grid_2 = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     gridnum = grid_2.number_of_nodes
     np.random.seed(seed=6)
     grid_2.at_node["topographic__slope"] = np.random.rand(gridnum)
@@ -206,7 +206,7 @@ def test_calculate_landslide_probability_lognormal_spatial_method():
     """Testing the main method 'calculate_landslide_probability()' with
     'lognormal_spatial' method.
     """
-    grid_3 = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
+    grid_3 = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     gridnum = grid_3.number_of_nodes
     np.random.seed(seed=7)
     grid_3.at_node["topographic__slope"] = np.random.rand(gridnum)

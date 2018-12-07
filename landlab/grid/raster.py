@@ -626,7 +626,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         spacing = params.get("spacing", (1.,) * len(shape))
         bc = params.get("bc", {})
 
-        return cls(shape, spacing=spacing, bc=bc)
+        return cls(shape, xy_spacing=spacing, bc=bc)
 
     @property
     def xy_of_lower_left(self):
@@ -1109,7 +1109,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.dy
         1.0
-        >>> grid = RasterModelGrid((4, 5), spacing=(2, 4))
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=(4, 2))
         >>> grid.dy
         2.0
 
@@ -1485,7 +1485,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         rows (only one vertical link).
 
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((3, 4), spacing=(2.0, 2.0))
+        >>> mg = RasterModelGrid((3, 4), xy_spacing=(2., 2.))
 
         >>> mg.unit_vector_at_link[:, 0] # doctest: +NORMALIZE_WHITESPACE
         array([ 1.,  1.,  1.,  0.,  0.,  0.,  0.,
@@ -1586,7 +1586,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> grid.extent
         (6.0, 8.0)
 
-        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=(3, 2))
         >>> grid.extent
         (6.0, 12.0)
 
@@ -1622,7 +1622,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> grid.grid_xdimension
         2.0
 
-        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=(3, 2))
         >>> grid.grid_xdimension
         12.0
 
@@ -1653,7 +1653,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> grid.grid_ydimension
         1.5
 
-        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=(3, 2))
         >>> grid.grid_ydimension
         6.0
 
@@ -1871,7 +1871,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5), spacing=(2, 1))
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=(1, 2))
         >>> grid.is_point_on_grid(1, 1)
         True
         >>> grid.is_point_on_grid((1, 1, 1,), (1, 3.1, 6.1))
@@ -1938,7 +1938,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                [ 9, 10],
                [ 5,  6]])
 
-        >>> grid = RasterModelGrid((3, 4), spacing=(2, 1))
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=(1, 2))
         >>> grid.nodes_around_point(.5, 1.5)
         array([0, 4, 5, 1])
         >>> grid = RasterModelGrid((3, 4))
@@ -2065,7 +2065,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
+        >>> grid = RasterModelGrid((3, 3), xy_spacing=(4, 3))
         >>> grid.length_of_link
         array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
 
@@ -2083,7 +2083,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 4), spacing=(2, 3))
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=(3, 2))
         >>> grid._create_length_of_link() # doctest: +NORMALIZE_WHITESPACE
         array([ 3., 3., 3.,
                 2., 2., 2., 2.,
@@ -2091,7 +2091,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                 2., 2., 2., 2.,
                 3., 3., 3.])
 
-        >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
+        >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
         >>> grid._create_length_of_link() # doctest: +NORMALIZE_WHITESPACE
         array([ 2., 2.,
                 1., 1., 1.,
@@ -2383,7 +2383,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5), spacing=(1, 1))
+        >>> rmg = RasterModelGrid((4, 5), xy_spacing=(1, 1))
         >>> rmg.number_of_active_links
         17
 
@@ -2700,7 +2700,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> import numpy as np
-        >>> grid = RasterModelGrid((3, 4), spacing=(3, 4))
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
         >>> z = np.array([3., 3., 3., 3.,
         ...               3., 3., 0., 0.,
         ...               3., 0., 0., 0.])
@@ -2746,7 +2746,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> import numpy as np
-        >>> grid = RasterModelGrid((3, 4), spacing=(3, 4))
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
         >>> z = np.array([3., 3., 3., 3.,
         ...               3., 3., 0., 0.,
         ...               3., 0., 0., 0.])

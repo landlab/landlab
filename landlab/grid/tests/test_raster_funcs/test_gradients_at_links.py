@@ -54,7 +54,7 @@ def test_unit_spacing():
 
 def test_non_unit_spacing():
     """Test on a grid with non-unit spacing."""
-    grid = RasterModelGrid((4, 5), spacing=(5, 2))
+    grid = RasterModelGrid((4, 5), xy_spacing=(2, 5))
     values_at_nodes = np.arange(20.)
     grads = grid.calc_grad_at_link(values_at_nodes)
     assert_array_equal(

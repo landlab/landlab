@@ -218,7 +218,7 @@ def _find_nearest_node_ndarray(rmg, coords, mode="raise"):
     >>> _find_nearest_node_ndarray(grid, (.75, 2.25))
     11
 
-    >>> grid = RasterModelGrid((4, 5), spacing=(3, 4))
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=(3, 4))
     >>> _find_nearest_node_ndarray(grid, (3.1, 4.1))
     6
     """

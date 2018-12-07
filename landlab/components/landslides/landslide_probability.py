@@ -92,7 +92,7 @@ class LandslideProbability(Component):
 
     Create a grid on which to calculate landslide probability.
 
-    >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
 
     Check the number of core nodes.
 

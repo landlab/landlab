@@ -79,7 +79,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     Dinfinity routes flow based on the relative proportion of flow along the
     triangular facets around a central raster node.
 
-    >>> grid = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> grid = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> _ = grid.add_field('topographic__elevation',
     ...                     2.*grid.node_x+grid.node_y,
     ...                     at = 'node')

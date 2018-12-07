@@ -2739,7 +2739,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5), spacing=(3, 4))
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=(3, 4))
         >>> grid.status_at_node[7] = CLOSED_BOUNDARY
         >>> grid.cell_area_at_node
         array([  0.,   0.,   0.,   0.,   0.,
@@ -2890,7 +2890,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=(2, 3))
         >>> grid.area_of_cell # doctest: +NORMALIZE_WHITESPACE
         array([ 6.,  6.,  6.,
                 6.,  6.,  6.])
@@ -3265,7 +3265,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
 
-        >>> grid = RasterModelGrid((3, 4), spacing=(1., 1.))
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=(1., 1.))
         >>> h = np.array([ 2., 2., 8., 0.,
         ...                8., 0., 3., 0.,
         ...                5., 6., 8., 3.])
@@ -3594,7 +3594,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         :math:`(1,1)`.
 
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 4), spacing=(2., 2.))
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=(2., 2.))
         >>> grid.unit_vector_at_node
         array([[ 1.,  1.],
                [ 2.,  1.],
