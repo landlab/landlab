@@ -1216,18 +1216,25 @@ class ClastCollection(DataRecord):
             Clast ID
         """
 
-        clast__node = self['clast__node'][clast]
-        clast__elev = self['clast__elev'][clast, -2]
+        clast__node = self['clast__node'][clast].values
+        clast__elev = self['clast__elev'][clast, -2].values
         topo__elev = self._grid.at_node['topographic__elevation'][clast__node]
 
         _detach = np.zeros(1, dtype=bool)
 
         _clast_depth = topo__elev - clast__elev
 
-        proba_mobile = (1-np.exp(-self.attrs['disturbance_fqcy'] * self.attrs['dt'])) * (
-                np.exp(-_clast_depth / self.attrs['d_star']))
+        proba_mobile = (
+                1-np.exp(-self.attrs['disturbance_fqcy'] * self.attrs['dt'])) \
+                * (np.exp(-_clast_depth / self.attrs['d_star'])) / (
+                1-np.exp(-self.attrs['disturbance_fqcy'] * self.attrs['dt']))
+                # normed
 
-        if proba_mobile >= 0.35:  ### VALUE TO SET #############################
+        random_proba = np.random.uniform(low=0.0, high=1.0, size=1) #(
+#                1-np.exp(-self.attrs['disturbance_fqcy'] * self.attrs['dt'])) \
+#                * (np.exp(-np.random.uniform(low=0.0, high=1.0, size=1) / self.attrs['d_star']))
+
+        if proba_mobile >= random_proba: #np.random.uniform(low=0.0, high=0.5*(1-np.exp(-self.attrs['disturbance_fqcy'] * self.attrs['dt'])), size=1): # 0.35: #
             _detach = True
         else:
             _detach = False
@@ -1349,7 +1356,7 @@ class ClastCollection(DataRecord):
 
                     # Update elevation:
                     # Clast is buried in the active layer with inv exp proba
-                    self['clast__elev'][clast, -1] = self._grid.at_node['topographic__elevation'][self['clast__node'][clast].values] #- np.random.exponential(scale=(self.attrs['d_star']*self.attrs['disturbance_fqcy']/self['clast__radius'][clast].values[-1]), size=1)[0] #(self.attrs['d_star']/100 * (np.random.rand(1)))
+                    self['clast__elev'][clast, -1] = self._grid.at_node['topographic__elevation'][self['clast__node'][clast].values]# - np.random.exponential(scale=self.attrs['d_star'], size=1)[0] #(self.attrs['d_star']/100 * (np.random.rand(1)))
                     print('elevation updated')
                     if hasattr(self, '_uplift') is True:
                         # uplift clast if necessary
