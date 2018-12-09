@@ -37,7 +37,7 @@ def test_move_reference_hex():
                 mg = HexModelGrid(
                     size[0],
                     size[1],
-                    dx=2.0,
+                    xy_spacing=2.0,
                     xy_of_lower_left=_START_REFERENCE,
                     orientation=orientation,
                     shape=shape
@@ -173,3 +173,19 @@ def test_deprecate_origin():
 def test_bad_origin():
     with pytest.raises(ValueError):
         RasterModelGrid(3, 3, xy_of_lower_left=(10, 13, 12))
+
+
+def test_curent_vs_past_origin():
+    with pytest.warns(DeprecationWarning):
+        mg1 = RasterModelGrid(3, 3, origin=(10, 13))
+    mg2 = RasterModelGrid(3, 3, xy_of_lower_left=(10, 13))
+    assert_array_equal(mg1.x_of_node, mg2.x_of_node)
+    assert_array_equal(mg1.y_of_node, mg2.y_of_node)
+
+
+def test_curent_vs_past_spacing():
+    with pytest.warns(DeprecationWarning):
+        mg1 = RasterModelGrid(3, 3, spacing=(5, 4))
+    mg2 = RasterModelGrid(3, 3, xy_spacing=(4, 5))
+    assert_array_equal(mg1.x_of_node, mg2.x_of_node)
+    assert_array_equal(mg1.y_of_node, mg2.y_of_node)

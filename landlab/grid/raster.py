@@ -432,13 +432,17 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             dx = kwds.pop("xy_spacing")
             old_spacing = False
         else:
-            dx = _parse_grid_spacing_from_args(args) or (1., 1.)
-            msg = (
-                "Passing spacing as an argument is Deprecated (v1.6). "
-                "Pass xy_spacing instead."
-            )
-            warn(msg, DeprecationWarning)
-            old_spacing = True
+            dx = _parse_grid_spacing_from_args(args)
+            if dx is not None:
+                msg = (
+                    "Passing spacing as an argument is Deprecated (v1.6). "
+                    "Pass xy_spacing instead."
+                )
+                warn(msg, DeprecationWarning)
+                old_spacing = True
+            else:
+                dx = (1., 1.)
+                old_spacing = False
 
         try:
             if len(dx) != 2:

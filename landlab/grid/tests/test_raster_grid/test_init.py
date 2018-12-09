@@ -6,7 +6,7 @@ from landlab import BAD_INDEX_VALUE as X, RasterModelGrid
 
 
 def test_init_with_kwds_classic():
-    grid = RasterModelGrid(num_rows=4, num_cols=5, dx=1.)
+    grid = RasterModelGrid(num_rows=4, num_cols=5, xy_spacing=1.)
 
     assert grid.number_of_node_rows == 4
     assert grid.number_of_node_columns == 5

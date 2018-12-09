@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
@@ -48,7 +49,8 @@ def test_unit_spacing():
             dtype=float,
         ),
     )
-    diffs = grid.calculate_diff_at_links(values_at_nodes)
+    with pytest.warns(DeprecationWarning):
+        diffs = grid.calculate_diff_at_links(values_at_nodes)
     assert_array_equal(grads, diffs)
 
 
@@ -96,7 +98,8 @@ def test_non_unit_spacing():
             dtype=float,
         ),
     )
-    diffs = grid.calc_diff_at_link(values_at_nodes)
+    with pytest.warns(DeprecationWarning):
+        diffs = grid.calc_diff_at_link(values_at_nodes)
     assert_array_equal(
         diffs,
         np.array(
