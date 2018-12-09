@@ -94,14 +94,13 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         by six other nodes.
 
         >>> from landlab import RadialModelGrid
-        >>> omg = RadialModelGrid(num_shells=1, dr=1., origin_x=0.,
-        ...                       origin_y=0.)
+        >>> omg = RadialModelGrid(num_shells=1, dr=1., xy_of_center=(0., 0.))
         >>> omg.number_of_nodes
         7
         >>> omg.number_of_cells
         1
 
-        A second rings will have 13 nodes.
+        A grid with two rings will have 13 nodes.
 
         >>> omg = RadialModelGrid(2)
         >>> omg.number_of_nodes
@@ -109,14 +108,15 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         """
         # Set number of nodes, and initialize if caller has given dimensions
         if "origin_x" in kwds:
-            xy_of_center = (kwds.get("origin_x"), xy_of_center[1])
-            msg = ""
+            msg = "The origin_x keyword is deprecated. Use xy_of_center."
             warn(msg, DeprecationWarning)
 
         if "origin_y" in kwds:
-            xy_of_center = (xy_of_center[0], kwds.get("origin_y"))
-            msg = ""
+            msg = "The origin_y keyword is deprecated. Use xy_of_center."
             warn(msg, DeprecationWarning)
+
+        xy_of_center = (kwds.get("origin_x", xy_of_center[0]),
+                        kwds.get("origin_y", xy_of_center[1]))
 
         if num_shells > 0:
             self._initialize(num_shells, dr, xy_of_center)
@@ -148,7 +148,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         self._xy_of_center = xy_of_center
 
     def _initialize(self, num_shells, dr, xy_of_center):
-        [pts, npts] = self._create_radial_points(num_shells, dr)
+        [pts, npts] = self._create_radial_points(num_shells, dr, xy_of_center)
         self._n_shells = int(num_shells)
         self._dr = dr
         super(RadialModelGrid, self)._initialize(pts[:, 0], pts[:, 1])
@@ -186,8 +186,9 @@ class RadialModelGrid(VoronoiDelaunayGrid):
                                         r[i] * numpy.cos(theta))
                 pts[startpt: (startpt + int(n_pts_in_shell[i])), 1] = ycoord
             startpt += int(n_pts_in_shell[i])
-        pts[:, 0] += xy_of_center[1]
-        pts[:, 1] += xy_of_center[0]
+
+        pts[:, 0] += xy_of_center[0]
+        pts[:, 1] += xy_of_center[1]
 
         return pts, npts
 
