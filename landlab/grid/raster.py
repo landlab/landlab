@@ -413,15 +413,15 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         # Spacing
         if "dx" in kwds:
-            msg = ("The dx keyword is depreciated, "
-                   "please pass " "xy_spacing.")
+            msg = ("The dx keyword is Deprecated (v1.6), "
+                   "please pass xy_spacing instead.")
             warn(msg, DeprecationWarning)
             dx = kwds.pop("dx", None)
             old_spacing = True
 
         elif "spacing" in kwds:
             msg = (
-                "Passing spacing as a keyword argument is Deprecated "
+                "Passing spacing as a keyword argument is Deprecated. "
                 "Pass xy_spacing instead."
             )
             warn(msg, DeprecationWarning)
@@ -433,11 +433,17 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             old_spacing = False
         else:
             dx = _parse_grid_spacing_from_args(args) or (1., 1.)
+            msg = (
+                "Passing spacing as an argument is Deprecated (v1.6). "
+                "Pass xy_spacing instead."
+            )
+            warn(msg, DeprecationWarning)
             old_spacing = True
 
         try:
             if len(dx) != 2:
-                msg = ""
+                msg = ("Specify grid spacing as a float or tuple of floats "
+                       "using the keyword xy_spacing.")
                 raise ValueError(msg)
             else:
                 if old_spacing:
@@ -447,6 +453,10 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         except TypeError:
             if isinstance(dx, (int, float)):
                 xy_spacing = (dx, dx)
+            else:
+                msg = ("Specify grid spacing as a float or tuple of floats "
+                       "using the keyword xy_spacing.")
+                raise ValueError(msg)
 
         # Lower left corner
         if "origin" in kwds:
