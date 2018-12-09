@@ -1,5 +1,7 @@
 
 import pytest
+import numpy as np
+from numpy.testing import assert_array_equal
 from numpy.random import rand
 from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid
 
@@ -105,7 +107,7 @@ def test_raster_with_args_and_shape():
         RasterModelGrid(3, 3, num_cols=3)
 
 
-def test_raster_with_negativee_shape():
+def test_raster_with_negative_shape():
     with pytest.raises(ValueError):
         RasterModelGrid(-2, 3)
 
@@ -113,31 +115,41 @@ def test_raster_with_negativee_shape():
 def test_raise_deprecation_dx():
     with pytest.warns(DeprecationWarning):
         mg = RasterModelGrid(3, 3, dx=3)
-    assert 1 == 1
+    X, Y = np.meshgrid([0., 3., 6.], [0., 3., 6.])
+    assert_array_equal(mg.x_of_node, X.flatten())
+    assert_array_equal(mg.y_of_node, Y.flatten())
 
 
 def test_raise_deprecation_dxdx():
     with pytest.warns(DeprecationWarning):
         mg = RasterModelGrid(3, 3, dx=(4, 5))
-    assert 1 == 1
+    X, Y = np.meshgrid([0., 5., 10.], [0., 4., 8.])
+    assert_array_equal(mg.x_of_node, X.flatten())
+    assert_array_equal(mg.y_of_node, Y.flatten())
 
 
 def test_raise_deprecation_spacing():
     with pytest.warns(DeprecationWarning):
         mg = RasterModelGrid(3, 3, spacing=(4, 5))
-    assert 1 == 1
+    X, Y = np.meshgrid([0., 5., 10.], [0., 4., 8.])
+    assert_array_equal(mg.x_of_node, X.flatten())
+    assert_array_equal(mg.y_of_node, Y.flatten())
 
 
 def test_raise_deprecation_spacing_as_arg():
     with pytest.warns(DeprecationWarning):
-        mg = RasterModelGrid(3, 3, 5)
-    assert 1 == 1
+        mg = RasterModelGrid(3, 3, 3)
+    X, Y = np.meshgrid([0., 3., 6.], [0., 3., 6.])
+    assert_array_equal(mg.x_of_node, X.flatten())
+    assert_array_equal(mg.y_of_node, Y.flatten())
 
 
 def test_raise_deprecation_spacing2_as_arg():
     with pytest.warns(DeprecationWarning):
         mg = RasterModelGrid(3, 3, (4, 5))
-    assert 1 == 1
+    X, Y = np.meshgrid([0., 5., 10.], [0., 4., 8.])
+    assert_array_equal(mg.x_of_node, X.flatten())
+    assert_array_equal(mg.y_of_node, Y.flatten())
 
 
 def test_bad_shape_xy_spacing():
@@ -153,6 +165,9 @@ def test_bad_type_xy_spacing():
 def test_deprecate_origin():
     with pytest.warns(DeprecationWarning):
         mg = RasterModelGrid(3, 3, origin=(10, 13))
+    X, Y = np.meshgrid([0., 1., 2.], [0., 1., 2.])
+    assert_array_equal(mg.x_of_node, X.flatten() + 10.)
+    assert_array_equal(mg.y_of_node, Y.flatten() + 13.)
 
 
 def test_bad_origin():
