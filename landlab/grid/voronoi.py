@@ -732,29 +732,38 @@ class VoronoiDelaunayGrid(ModelGrid):
         self._nodes_at_patch = as_id_array(self._nodes_at_patch)
         self._patches_at_node = as_id_array(self._patches_at_node)
 
-        create_patches_at_element(
-            self._nodes_at_patch, self.number_of_nodes, self._patches_at_node
-        )
-
+        
+        try:
+            create_patches_at_element(
+                self._nodes_at_patch, self.number_of_nodes, self._patches_at_node
+            )
+        except ValueError:
+            print('Failed to create patches at_node')
+            raise ValueError
         # build the patch-link connectivity:
-        self._links_at_patch = np.empty((self._number_of_patches, 3), dtype=int)
-        create_links_at_patch(
-            self._nodes_at_patch,
-            self._links_at_node,
-            self._number_of_patches,
-            self._links_at_patch,
-        )
-        patch_links_x = self.x_of_link[self._links_at_patch]
-        patch_links_y = self.y_of_link[self._links_at_patch]
-        anticlockwise_argsort_points_multiline(
-            patch_links_x, patch_links_y, out=self._links_at_patch
-        )
-
-        self._patches_at_link = np.empty((self.number_of_links, 2), dtype=int)
-        self._patches_at_link.fill(-1)
-        create_patches_at_element(
-            self._links_at_patch, self.number_of_links, self._patches_at_link
-        )
+        
+        try:
+            self._links_at_patch = np.empty((self._number_of_patches, 3), dtype=int)
+            create_links_at_patch(
+                self._nodes_at_patch,
+                self._links_at_node,
+                self._number_of_patches,
+                self._links_at_patch,
+            )
+            patch_links_x = self.x_of_link[self._links_at_patch]
+            patch_links_y = self.y_of_link[self._links_at_patch]
+            anticlockwise_argsort_points_multiline(
+                patch_links_x, patch_links_y, out=self._links_at_patch
+            )
+    
+            self._patches_at_link = np.empty((self.number_of_links, 2), dtype=int)
+            self._patches_at_link.fill(-1)
+            create_patches_at_element(
+                self._links_at_patch, self.number_of_links, self._patches_at_link
+            )
+        except ValueError:
+            print('Failed to create links at patch')
+            raise ValueError
         # a sort of the links will be performed here once we have corners
 
         self._patches_created = True
