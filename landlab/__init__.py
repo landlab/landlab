@@ -60,7 +60,6 @@ finally:
 
 cite_as = registry.format_citations
 
-
 __all__ = [
     "registry",
     "ModelParameterDictionary",
