@@ -27,15 +27,6 @@ cite_as = registry.format_citations
 
 __all__ = ['registry']
 
-if 'DISPLAY' not in os.environ:
-    try:
-        import matplotlib
-    except ImportError:
-        import warnings
-        warnings.warn('matplotlib not found', ImportWarning)
-    else:
-        matplotlib.use('Agg')
-
 from .core.model_parameter_dictionary import ModelParameterDictionary
 from .core.model_parameter_dictionary import (MissingKeyError,
                                               ParameterValueError)
