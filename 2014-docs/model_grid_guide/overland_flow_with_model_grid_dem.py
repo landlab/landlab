@@ -8,11 +8,13 @@ Last updated GT May 2014
 
 """
 
-from landlab.io import read_esri_ascii
-import time
 import os
-import pylab
+import time
+
 import numpy as np
+import pylab
+
+from landlab.io import read_esri_ascii
 from landlab.plot import imshow_grid
 
 

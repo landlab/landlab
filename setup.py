@@ -1,13 +1,14 @@
 #! /usr/bin/env python
 
-from setuptools import setup, find_packages, Extension
-from setuptools.command.install import install
-from setuptools.command.develop import develop
+import os
 from distutils.extension import Extension
+
 import pkg_resources
+from setuptools import Extension, find_packages, setup
+from setuptools.command.develop import develop
+from setuptools.command.install import install
 
 import versioneer
-
 
 numpy_incl = pkg_resources.resource_filename("numpy", "core/include")
 
@@ -149,7 +150,6 @@ class develop_and_register(develop):
         register_landlab()
 
 
-import os
 
 
 setup(name='landlab',

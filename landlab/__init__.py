@@ -41,6 +41,7 @@ from .grid import (
     RadialModelGrid,
     RasterModelGrid,
     VoronoiDelaunayGrid,
+    NetworkModelGrid,
     create_and_initialize_grid,
 )
 from .plot import (
@@ -80,6 +81,7 @@ __all__ = [
     "RadialModelGrid",
     "RasterModelGrid",
     "VoronoiDelaunayGrid",
+    "NetworkModelGrid",
     "BAD_INDEX_VALUE",
     "CORE_NODE",
     "FIXED_VALUE_BOUNDARY",
