@@ -1,6 +1,6 @@
-from .read import get_wgs84_from_from_opentopography, interpolate_to_utm_grid
+from .read import read_wgs84_from_from_opentopography, read_utm_from_from_opentopography
 
 __all__ = [
-    "get_wgs84_from_from_opentopography",
-    "interpolate_to_utm_grid",
+    "read_wgs84_from_from_opentopography",
+    "read_utm_from_from_opentopography",
 ]
