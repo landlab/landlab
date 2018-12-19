@@ -28,6 +28,7 @@ requirements:
     - six
     - pyyaml
     - statsmodels
+    - gdal
 
 test:
   requires:

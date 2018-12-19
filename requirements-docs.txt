@@ -11,3 +11,4 @@ setuptools>=18.0
 pyyaml
 xarray
 statsmodels
+gdal

@@ -56,7 +56,7 @@ install:
   - cmd: conda info
   - cmd: conda config --set always_yes yes
   - cmd: conda update conda
-  - cmd: conda install -q --force --no-deps psutil ruamel_yaml requests
+  - cmd: conda install -q --force --no-deps psutil ruamel_yaml requests gdal
   - cmd: conda install -q conda-build=3.0
   - cmd: conda install -q anaconda-client
   - cmd: conda install -q numpy=1.11
