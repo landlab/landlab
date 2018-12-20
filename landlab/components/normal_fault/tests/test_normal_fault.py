@@ -72,7 +72,7 @@ def test_anti_aximuth_greq_2pi():
 
 def test_non_raster():
     """Test a hex model grid."""
-    grid = HexModelGrid(7, 3, dx=10)
+    grid = HexModelGrid(7, 3, dx=10, xy_of_lower_left=(-15., 0.))
 
     grid.add_zeros("node", "topographic__elevation")
 

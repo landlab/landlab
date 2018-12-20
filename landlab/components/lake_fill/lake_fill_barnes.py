@@ -1400,7 +1400,7 @@ class LakeMapperBarnes(Component):
         The component is completely happy with irregular grids:
 
         >>> from landlab import HexModelGrid, FieldError
-        >>> hmg = HexModelGrid(5, 4, dx=2.)
+        >>> hmg = HexModelGrid(5, 4, dx=2., xy_of_lower_left=(-2., 0.))
         >>> z_hex = hmg.add_zeros('node', 'topographic__elevation')
         >>> z_hex[:] = hmg.node_x
         >>> z_hex[11] = -3.
