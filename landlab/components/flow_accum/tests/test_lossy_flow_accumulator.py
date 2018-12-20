@@ -144,18 +144,17 @@ def test_check_fields():
     assert_array_equal(z, mg.at_node["topographic__elevation"])
     assert_array_equal(np.zeros(100), mg.at_node["drainage_area"])
     assert_array_equal(np.ones(100), mg.at_node["water__unit_flux_in"])
-    assert_array_equal(np.zeros(100),
-                       mg.at_node["surface_water__discharge_loss"])
+    assert_array_equal(np.zeros(100), mg.at_node["surface_water__discharge_loss"])
 
     LossyFlowAccumulator(mg, runoff_rate=2.)
     assert_array_equal(np.full(100, 2.), mg.at_node["water__unit_flux_in"])
 
     # quick test that the component binds correctly to an existing field:
-    L = mg.at_node['surface_water__discharge_loss']
+    L = mg.at_node["surface_water__discharge_loss"]
     fa = LossyFlowAccumulator(mg)
     fa.run_one_step()  # this line is padding to make flake8 happy
     L[0] = 1.
-    assert mg.at_node['surface_water__discharge_loss'] is L
+    assert mg.at_node["surface_water__discharge_loss"] is L
 
 
 def test_director_adding_methods_are_equivalent_Steepest():
@@ -386,7 +385,7 @@ def test_fields():
         "topographic__steepest_slope",
         "water__unit_flux_in",
     ]
-    assert sorted(list(mg.at_link.keys())) == ["flow__data_structure_D"]
+    assert sorted(list(mg.at_grid.keys())) == ["flow__data_structure_D"]
 
     mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
@@ -407,7 +406,7 @@ def test_fields():
         "water__unit_flux_in",
     ]
 
-    assert sorted(list(mg2.at_link.keys())) == ["flow__data_structure_D"]
+    assert sorted(list(mg2.at_grid.keys())) == ["flow__data_structure_D"]
 
 
 def test_accumulated_area_closes():

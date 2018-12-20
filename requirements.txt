@@ -9,4 +9,5 @@ netcdf4
 six
 pyyaml
 statsmodels
+pyshp
 gdal

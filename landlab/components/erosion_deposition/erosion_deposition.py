@@ -255,8 +255,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             omega, self.sp_crit, out=np.zeros_like(omega), where=self.sp_crit != 0
         )
 
-        self.erosion_term = omega - self.sp_crit * (
-            1.0 - np.exp(-omega_over_sp_crit))
+        self.erosion_term = omega - self.sp_crit * (1.0 - np.exp(-omega_over_sp_crit))
 
     def run_one_step_basic(self, dt=1.0, flooded_nodes=[], **kwds):
         """Calculate change in rock and alluvium thickness for

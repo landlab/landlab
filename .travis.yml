@@ -1,8 +1,8 @@
 env:
   matrix:
   - TRAVIS_PYTHON_VERSION="2.7" BUILD_DOCS=0 REPORT_TO_COVERALLS=0 DEPLOY=0
-  - TRAVIS_PYTHON_VERSION="3.5" BUILD_DOCS=0 REPORT_TO_COVERALLS=0 DEPLOY=0
   - TRAVIS_PYTHON_VERSION="3.6" BUILD_DOCS=0 REPORT_TO_COVERALLS=0 DEPLOY=0
+  - TRAVIS_PYTHON_VERSION="3.7" BUILD_DOCS=0 REPORT_TO_COVERALLS=0 DEPLOY=0
   global:
   - MPLBACKEND=Agg
   - CONDA_PREFIX=$HOME/miniconda
@@ -52,7 +52,8 @@ install:
 - conda config --set always_yes yes --set changeps1 no
 - conda create -n _testing python=$TRAVIS_PYTHON_VERSION
 - source activate _testing
-- conda install -q conda-build=3.0 anaconda-client coverage coveralls sphinx pytest pytest-cov flake8 gdal
+- conda install -q conda-build=3.0 anaconda-client coverage coveralls sphinx pytest pytest-cov flake8
+- conda config --append channels conda-forge
 - conda info -a && conda list
 script:
 - conda install --file=requirements.txt

@@ -11,4 +11,5 @@ setuptools>=18.0
 pyyaml
 xarray
 statsmodels
+pyshp
 gdal

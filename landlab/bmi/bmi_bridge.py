@@ -70,7 +70,7 @@ class TimeStepper(object):
             while self._time < self._stop:
                 yield self._time
                 self._time += self._step
-        raise StopIteration()
+        return
 
     @property
     def time(self):
