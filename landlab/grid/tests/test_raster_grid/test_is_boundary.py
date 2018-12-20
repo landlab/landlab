@@ -1,8 +1,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import FIXED_GRADIENT_BOUNDARY
-from landlab import RasterModelGrid
+from landlab import FIXED_GRADIENT_BOUNDARY, RasterModelGrid
 
 
 def test_id_as_int():
@@ -19,10 +18,32 @@ def test_id_as_array():
     rmg = RasterModelGrid((4, 5))
     assert_array_equal(
         rmg.node_is_boundary(np.arange(20)),
-        np.array([True,  True,  True,  True,  True,
-                  True, False, False, False,  True,
-                  True, False, False, False,  True,
-                  True,  True,  True,  True,  True], dtype=bool))
+        np.array(
+            [
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                False,
+                False,
+                False,
+                True,
+                True,
+                False,
+                False,
+                False,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+            ],
+            dtype=bool,
+        ),
+    )
 
 
 def test_id_as_list():
@@ -35,14 +56,58 @@ def test_boundary_flag():
     rmg.status_at_node[0] = FIXED_GRADIENT_BOUNDARY
     assert_array_equal(
         rmg.node_is_boundary(np.arange(20)),
-        np.array([True,  True,  True,  True,  True,
-                  True, False, False, False,  True,
-                  True, False, False, False,  True,
-                  True,  True,  True,  True,  True], dtype=bool))
+        np.array(
+            [
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                False,
+                False,
+                False,
+                True,
+                True,
+                False,
+                False,
+                False,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+            ],
+            dtype=bool,
+        ),
+    )
 
     assert_array_equal(
         rmg.node_is_boundary(np.arange(20), boundary_flag=FIXED_GRADIENT_BOUNDARY),
-        np.array([True, False, False, False, False,
-                  False, False, False, False, False,
-                  False, False, False, False, False,
-                  False, False, False, False, False], dtype=bool))
+        np.array(
+            [
+                True,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+            ],
+            dtype=bool,
+        ),
+    )

@@ -312,7 +312,7 @@ def flow_directions_mfd(
     )
     steepest_slope = flow_slopes[slope_sort]
 
-    ## identify the steepest link and steepest receiever.
+    # identify the steepest link and steepest receiever.
     steepest_link = receiver_links[slope_sort]
     steepest_receiver = receivers[slope_sort]
     steepest_receiver[drains_to_self] = node_id[drains_to_self]

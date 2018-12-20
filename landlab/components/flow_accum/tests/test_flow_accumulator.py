@@ -5,26 +5,20 @@
 # Created on Thurs Nov 12, 2015
 import os
 
-import pytest
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal, assert_equal
+import pytest
+from numpy.testing import assert_array_equal
 
-import landlab
-from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid, FieldError
+from landlab import HexModelGrid, RasterModelGrid
 from landlab.components import LinearDiffuser
 from landlab.components.flow_accum import FlowAccumulator
-
-from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
-
 from landlab.components.flow_director import (
     FlowDirectorD8,
     FlowDirectorDINF,
     FlowDirectorMFD,
     FlowDirectorSteepest,
 )
-
-from landlab import CLOSED_BOUNDARY
-from landlab import BAD_INDEX_VALUE as XX
+from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -37,12 +31,12 @@ def test_check_fields():
         "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node"
     )
 
-    fa = FlowAccumulator(mg)
+    FlowAccumulator(mg)
     assert_array_equal(z, mg.at_node["topographic__elevation"])
     assert_array_equal(np.zeros(100), mg.at_node["drainage_area"])
     assert_array_equal(np.ones(100), mg.at_node["water__unit_flux_in"])
 
-    fa = FlowAccumulator(mg, runoff_rate=2.)
+    FlowAccumulator(mg, runoff_rate=2.)
     assert_array_equal(np.full(100, 2.), mg.at_node["water__unit_flux_in"])
 
 
@@ -50,160 +44,192 @@ def test_director_adding_methods_are_equivalent_Steepest():
     """Check that different methods to specifying the director are the same."""
 
     mg0 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z0 = mg0.add_field(
+    mg0.add_field(
         "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
     )
     fa0 = FlowAccumulator(mg0, flow_director="D4")
     fa0.run_one_step()
 
     mg1 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z1 = mg1.add_field(
+    mg1.add_field(
         "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
     )
     fa1 = FlowAccumulator(mg1, flow_director="Steepest")
     fa1.run_one_step()
 
     mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z2 = mg2.add_field(
+    mg2.add_field(
         "topographic__elevation", mg2.node_x ** 2 + mg2.node_y ** 2, at="node"
     )
     fa2 = FlowAccumulator(mg2, flow_director=FlowDirectorSteepest)
     fa2.run_one_step()
 
     mg3 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z3 = mg3.add_field(
+    mg3.add_field(
         "topographic__elevation", mg3.node_x ** 2 + mg3.node_y ** 2, at="node"
     )
     fd = FlowDirectorSteepest(mg3)
     fa3 = FlowAccumulator(mg3, flow_director=fd)
     fa3.run_one_step()
 
-    for key in mg0.at_node.keys():
-        assert_array_equal(mg0.at_node[key], mg1.at_node[key])
+    for loc in ["node", "link", "grid"]:
+        for key in mg0[loc].keys():
+            if loc == "grid":
+                assert_array_equal(mg0[loc][key][0], mg1[loc][key][0])
 
-        assert_array_equal(mg1.at_node[key], mg2.at_node[key])
+                assert_array_equal(mg1[loc][key][0], mg2[loc][key][0])
 
-        assert_array_equal(mg2.at_node[key], mg3.at_node[key])
+                assert_array_equal(mg2[loc][key][0], mg3[loc][key][0])
+            else:
+                assert_array_equal(mg0[loc][key], mg1[loc][key])
+
+                assert_array_equal(mg1[loc][key], mg2[loc][key])
+
+                assert_array_equal(mg2[loc][key], mg3[loc][key])
 
 
 def test_director_adding_methods_are_equivalent_D8():
     """Check that different methods to specifying the director are the same."""
 
     mg0 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z0 = mg0.add_field(
+    mg0.add_field(
         "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
     )
     fa0 = FlowAccumulator(mg0, flow_director="D8")
     fa0.run_one_step()
 
     mg1 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z1 = mg1.add_field(
+    mg1.add_field(
         "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
     )
     fa1 = FlowAccumulator(mg1, flow_director="FlowDirectorD8")
     fa1.run_one_step()
 
     mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z2 = mg2.add_field(
+    mg2.add_field(
         "topographic__elevation", mg2.node_x ** 2 + mg2.node_y ** 2, at="node"
     )
     fa2 = FlowAccumulator(mg2, flow_director=FlowDirectorD8)
     fa2.run_one_step()
 
     mg3 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z3 = mg3.add_field(
+    mg3.add_field(
         "topographic__elevation", mg3.node_x ** 2 + mg3.node_y ** 2, at="node"
     )
     fd = FlowDirectorD8(mg3)
     fa3 = FlowAccumulator(mg3, flow_director=fd)
     fa3.run_one_step()
 
-    for key in mg0.at_node.keys():
-        assert_array_equal(mg0.at_node[key], mg1.at_node[key])
+    for loc in ["node", "link", "grid"]:
+        for key in mg0[loc].keys():
+            if loc == "grid":
+                assert_array_equal(mg0[loc][key][0], mg1[loc][key][0])
 
-        assert_array_equal(mg1.at_node[key], mg2.at_node[key])
+                assert_array_equal(mg1[loc][key][0], mg2[loc][key][0])
 
-        assert_array_equal(mg2.at_node[key], mg3.at_node[key])
+                assert_array_equal(mg2[loc][key][0], mg3[loc][key][0])
+            else:
+                assert_array_equal(mg0[loc][key], mg1[loc][key])
+
+                assert_array_equal(mg1[loc][key], mg2[loc][key])
+
+                assert_array_equal(mg2[loc][key], mg3[loc][key])
 
 
 def test_director_adding_methods_are_equivalent_Dinf():
     """Check that different methods to specifying the director are the same."""
 
     mg0 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z0 = mg0.add_field(
+    mg0.add_field(
         "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
     )
     fa0 = FlowAccumulator(mg0, flow_director="DINF")
     fa0.run_one_step()
 
     mg1 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z1 = mg1.add_field(
+    mg1.add_field(
         "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
     )
     fa1 = FlowAccumulator(mg1, flow_director="FlowDirectorDINF")
     fa1.run_one_step()
 
     mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z2 = mg2.add_field(
+    mg2.add_field(
         "topographic__elevation", mg2.node_x ** 2 + mg2.node_y ** 2, at="node"
     )
     fa2 = FlowAccumulator(mg2, flow_director=FlowDirectorDINF)
     fa2.run_one_step()
 
     mg3 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z3 = mg3.add_field(
+    mg3.add_field(
         "topographic__elevation", mg3.node_x ** 2 + mg3.node_y ** 2, at="node"
     )
     fd = FlowDirectorDINF(mg3)
     fa3 = FlowAccumulator(mg3, flow_director=fd)
     fa3.run_one_step()
 
-    for key in mg0.at_node.keys():
-        assert_array_equal(mg0.at_node[key], mg1.at_node[key])
+    for loc in ["node", "link", "grid"]:
+        for key in mg0[loc].keys():
+            if loc == "grid":
+                assert_array_equal(mg0[loc][key][0], mg1[loc][key][0])
 
-        assert_array_equal(mg1.at_node[key], mg2.at_node[key])
+                assert_array_equal(mg1[loc][key][0], mg2[loc][key][0])
 
-        assert_array_equal(mg2.at_node[key], mg3.at_node[key])
+                assert_array_equal(mg2[loc][key][0], mg3[loc][key][0])
+            else:
+                assert_array_equal(mg0[loc][key], mg1[loc][key])
+
+                assert_array_equal(mg1[loc][key], mg2[loc][key])
+
+                assert_array_equal(mg2[loc][key], mg3[loc][key])
 
 
 def test_director_adding_methods_are_equivalent_MFD():
     """Check that different methods to specifying the director are the same."""
 
     mg0 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z0 = mg0.add_field(
+    mg0.add_field(
         "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
     )
     fa0 = FlowAccumulator(mg0, flow_director="MFD")
     fa0.run_one_step()
 
     mg1 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z1 = mg1.add_field(
+    mg1.add_field(
         "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
     )
     fa1 = FlowAccumulator(mg1, flow_director="FlowDirectorMFD")
     fa1.run_one_step()
 
     mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z2 = mg2.add_field(
+    mg2.add_field(
         "topographic__elevation", mg2.node_x ** 2 + mg2.node_y ** 2, at="node"
     )
     fa2 = FlowAccumulator(mg2, flow_director=FlowDirectorMFD)
     fa2.run_one_step()
 
     mg3 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z3 = mg3.add_field(
+    mg3.add_field(
         "topographic__elevation", mg3.node_x ** 2 + mg3.node_y ** 2, at="node"
     )
     fd = FlowDirectorMFD(mg3)
     fa3 = FlowAccumulator(mg3, flow_director=fd)
     fa3.run_one_step()
 
-    for key in mg0.at_node.keys():
-        assert_array_equal(mg0.at_node[key], mg1.at_node[key])
+    for loc in ["node", "link", "grid"]:
+        for key in mg0[loc].keys():
+            if loc == "grid":
+                assert_array_equal(mg0[loc][key][0], mg1[loc][key][0])
 
-        assert_array_equal(mg1.at_node[key], mg2.at_node[key])
+                assert_array_equal(mg1[loc][key][0], mg2[loc][key][0])
 
-        assert_array_equal(mg2.at_node[key], mg3.at_node[key])
+                assert_array_equal(mg2[loc][key][0], mg3[loc][key][0])
+            else:
+                assert_array_equal(mg0[loc][key], mg1[loc][key])
+
+                assert_array_equal(mg1[loc][key], mg2[loc][key])
+
+                assert_array_equal(mg2[loc][key], mg3[loc][key])
 
 
 def test_passing_a_bad_component():
@@ -211,7 +237,7 @@ def test_passing_a_bad_component():
     from landlab.components import ChiFinder
 
     mg = RasterModelGrid((10, 10), spacing=(1, 1))
-    _ = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
     with pytest.raises(ValueError):
@@ -222,12 +248,12 @@ def test_error_for_to_many_with_depression():
     """Check that an error is thrown when to_many methods started DF."""
 
     mg0 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z0 = mg0.add_field(
+    mg0.add_field(
         "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
     )
 
     mg1 = RasterModelGrid((10, 10), spacing=(1, 1))
-    z1 = mg1.add_field(
+    mg1.add_field(
         "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
     )
 
@@ -257,32 +283,26 @@ def test_fields():
     Check that the sizes are also correct.
     """
     mg = RasterModelGrid((10, 10), spacing=(1, 1))
-    _ = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     fa = FlowAccumulator(mg)
     fa.run_one_step()
 
-    assert_equal(
-        sorted(list(mg.at_node.keys())),
-        [
-            "drainage_area",
-            "flow__data_structure_delta",
-            "flow__link_to_receiver_node",
-            "flow__receiver_node",
-            "flow__sink_flag",
-            "flow__upstream_node_order",
-            "surface_water__discharge",
-            "topographic__elevation",
-            "topographic__steepest_slope",
-            "water__unit_flux_in",
-        ],
-    )
-    assert_equal(
-        sorted(list(mg.at_link.keys())),
-        ["flow__data_structure_D", "flow__link_direction"],
-    )
+    assert sorted(list(mg.at_node.keys())) == [
+        "drainage_area",
+        "flow__data_structure_delta",
+        "flow__link_to_receiver_node",
+        "flow__receiver_node",
+        "flow__sink_flag",
+        "flow__upstream_node_order",
+        "surface_water__discharge",
+        "topographic__elevation",
+        "topographic__steepest_slope",
+        "water__unit_flux_in",
+    ]
+    assert sorted(list(mg.at_grid.keys())) == ["flow__data_structure_D"]
 
     mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
-    _ = mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
+    mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
     fa2 = FlowAccumulator(mg2, flow_director="MFD")
     fa2.run_one_step()
     assert sorted(list(mg2.at_node.keys())) == [
@@ -299,7 +319,7 @@ def test_fields():
         "water__unit_flux_in",
     ]
 
-    assert sorted(list(mg2.at_link.keys())) == ["flow__data_structure_D"]
+    assert sorted(list(mg2.at_grid.keys())) == ["flow__data_structure_D"]
 
 
 def test_accumulated_area_closes():
@@ -309,7 +329,7 @@ def test_accumulated_area_closes():
 
     for fd in fds:
         mg = RasterModelGrid((10, 10), spacing=(1, 1))
-        z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+        mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
         fa = FlowAccumulator(mg)
         fa.run_one_step()
 
@@ -330,7 +350,7 @@ def test_accumulated_area_closes():
 def test_specifying_routing_method_wrong():
     """Test specifying incorrect method for routing compatability with DepressionFinderAndRouter."""
     mg = RasterModelGrid((10, 10), spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 
     with pytest.raises(ValueError):
         FlowAccumulator(
@@ -369,7 +389,7 @@ def test_field_name_array_float_case1():
             0.,
         ]
     )
-    _ = mg.add_field("node", "topographic__elevation", topographic__elevation)
+    mg.add_field("node", "topographic__elevation", topographic__elevation)
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
     fa = FlowAccumulator(mg, "topographic__elevation", runoff_rate=10.)
@@ -467,8 +487,8 @@ def test_field_name_array_float_case2():
         5.,
     ]
 
-    _ = mg.add_field("node", "topographic__elevation", topographic__elevation)
-    _ = mg.add_field("node", "runoff_rate", runoff_rate)
+    mg.add_field("node", "topographic__elevation", topographic__elevation)
+    mg.add_field("node", "runoff_rate", runoff_rate)
 
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
@@ -564,7 +584,7 @@ def test_field_name_array_float_case3():
         5.,
     ]
 
-    _ = mg.add_field("node", "topographic__elevation", topographic__elevation)
+    mg.add_field("node", "topographic__elevation", topographic__elevation)
 
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
@@ -636,7 +656,7 @@ def test_field_name_array_float_case4():
             0.,
         ]
     )
-    _ = mg.add_field("node", "topographic__elevation", topographic__elevation)
+    mg.add_field("node", "topographic__elevation", topographic__elevation)
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
     fa = FlowAccumulator(mg, topographic__elevation, runoff_rate=10.)
@@ -734,8 +754,8 @@ def test_field_name_array_float_case5():
         5.,
     ]
 
-    _ = mg.add_field("node", "topographic__elevation", topographic__elevation)
-    _ = mg.add_field("node", "runoff_rate", runoff_rate)
+    mg.add_field("node", "topographic__elevation", topographic__elevation)
+    mg.add_field("node", "runoff_rate", runoff_rate)
 
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
@@ -831,7 +851,7 @@ def test_field_name_array_float_case6():
         5.,
     ]
 
-    _ = mg.add_field("node", "topographic__elevation", topographic__elevation)
+    mg.add_field("node", "topographic__elevation", topographic__elevation)
 
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
@@ -878,7 +898,7 @@ def test_field_name_array_float_case6():
 
 def test_flow_accumulator_properties():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     fa = FlowAccumulator(mg)
     fa.run_one_step()
 
@@ -949,85 +969,83 @@ def test_flow_accumulator_properties():
 
 def test_water_discharge_in_supplied():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    d = mg.add_field("water__discharge_in", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("water__discharge_in", mg.node_x + mg.node_y, at="node")
     with pytest.deprecated_call():
-        fa = FlowAccumulator(mg)
+        FlowAccumulator(mg)
 
 
 def test_bad_director_name():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(ValueError):
-        fa = FlowAccumulator(mg, flow_director="spam")
+        FlowAccumulator(mg, flow_director="spam")
 
 
 def test_bad_director_instance():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     ld = LinearDiffuser(mg, linear_diffusivity=1.)
     with pytest.raises(ValueError):
-        fa = FlowAccumulator(mg, flow_director=ld)
+        FlowAccumulator(mg, flow_director=ld)
 
 
 def test_instantiated_director_with_kwargs():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     fd = FlowDirectorSteepest(mg)
     with pytest.raises(ValueError):
-        fa = FlowAccumulator(mg, flow_director=fd, partition_method="eggs")
+        FlowAccumulator(mg, flow_director=fd, partition_method="eggs")
 
 
 def test_depression_finder_as_bad_string():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(ValueError):
         FlowAccumulator(mg, flow_director="D8", depression_finder="spam")
 
 
 def test_depression_finder_as_string():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    fa = FlowAccumulator(
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    FlowAccumulator(
         mg, flow_director="D8", depression_finder="DepressionFinderAndRouter"
     )
 
 
 def test_depression_finder_as_instance():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     df = DepressionFinderAndRouter(mg)
-    fa = FlowAccumulator(mg, flow_director="D8", depression_finder=df)
+    FlowAccumulator(mg, flow_director="D8", depression_finder=df)
 
 
 def test_depression_finder_bad_instance():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     ld = LinearDiffuser(mg, linear_diffusivity=1.)
     with pytest.raises(ValueError):
-        fa = FlowAccumulator(mg, flow_director="D8", depression_finder=ld)
+        FlowAccumulator(mg, flow_director="D8", depression_finder=ld)
 
 
 def test_instantiated_depression_finder_with_kwargs():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     df = DepressionFinderAndRouter(mg)
     with pytest.raises(ValueError):
-        fa = FlowAccumulator(
-            mg, flow_director="D8", depression_finder=df, routing="eggs"
-        )
+        FlowAccumulator(mg, flow_director="D8", depression_finder=df, routing="eggs")
 
 
 def test_depression_finder_bad_uninstantiated_component():
     mg = RasterModelGrid((5, 5), spacing=(1, 1))
-    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(ValueError):
-        fa = FlowAccumulator(mg, flow_director="D8", depression_finder=LinearDiffuser)
+        FlowAccumulator(mg, flow_director="D8", depression_finder=LinearDiffuser)
 
 
 def test_hex_mfd():
     mg = HexModelGrid(5, 3)
-    z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()
 

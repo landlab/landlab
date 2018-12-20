@@ -15,6 +15,10 @@ from landlab import VoronoiDelaunayGrid
 from landlab import BAD_INDEX_VALUE, FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
 import numpy
 
+from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, VoronoiDelaunayGrid
+from landlab.components.flow_director import flow_direction_DN
+from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
+
 
 class FlowDirectorSteepest(_FlowDirectorToOne):
 

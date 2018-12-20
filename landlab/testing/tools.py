@@ -1,10 +1,9 @@
 import os
 import shutil
 import tempfile
+from distutils.dir_util import mkpath
 
 import numpy as np
-
-from distutils.dir_util import mkpath
 
 
 class cd(object):
@@ -44,6 +43,7 @@ class cd(object):
     >>> os.getcwd() == this_dir
     True
     """
+
     def __init__(self, path_to_dir):
         self._dir = path_to_dir
 
@@ -78,6 +78,7 @@ class cdtemp(object):
     >>> os.path.exists(wdir)
     False
     """
+
     def __init__(self, **kwds):
         self._kwds = kwds
         self._tmp_dir = None

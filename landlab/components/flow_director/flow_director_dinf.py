@@ -7,11 +7,16 @@ Directs flow on raster grids only using the Dinfinity algorithm of
 Tarboton 1997.
 """
 
-from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
-from landlab.components.flow_director import flow_direction_dinf
-from landlab import VoronoiDelaunayGrid
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY, BAD_INDEX_VALUE
 import numpy
+
+from landlab import (
+    BAD_INDEX_VALUE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+    VoronoiDelaunayGrid,
+)
+from landlab.components.flow_director import flow_direction_dinf
+from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 
 
 class FlowDirectorDINF(_FlowDirectorToMany):
