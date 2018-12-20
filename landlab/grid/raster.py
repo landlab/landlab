@@ -4137,7 +4137,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4,4),1.)
+        >>> rmg = RasterModelGrid((4,4))
         >>> node_data = np.array([-9999., -9999., -9999., -9999.,
         ...                      -9999.,    67.,    67., -9999.,
         ...                      -9999.,    67.,     0., -9999.,
@@ -4148,7 +4148,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         array([10])
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=uint8)
-        >>> rmg2 = RasterModelGrid((4,4),1.)
+        >>> rmg2 = RasterModelGrid((4,4))
         >>> node_data2 = np.array([-9999., -9999., -9999., -9999.,
         ...                      -9999.,    67.,    67.,    -2.,
         ...                      -9999.,    67.,     0., -9999.,

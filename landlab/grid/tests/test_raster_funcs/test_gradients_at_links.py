@@ -98,8 +98,7 @@ def test_non_unit_spacing():
             dtype=float,
         ),
     )
-    with pytest.warns(DeprecationWarning):
-        diffs = grid.calc_diff_at_link(values_at_nodes)
+    diffs = grid.calc_diff_at_link(values_at_nodes)
     assert_array_equal(
         diffs,
         np.array(

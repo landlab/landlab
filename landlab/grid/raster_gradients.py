@@ -103,7 +103,7 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid(4, 5, 1.0)
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=1.0)
     >>> u = [0., 1., 2., 3., 0.,
     ...      1., 2., 3., 2., 3.,
     ...      0., 1., 2., 1., 2.,

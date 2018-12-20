@@ -786,7 +786,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), 1.)
+        >>> mg = RasterModelGrid((4, 5))
         >>> mg.boundary_nodes
         array([ 0,  1,  2,  3,  4,  5,  9, 10, 14, 15, 16, 17, 18, 19])
 
@@ -828,7 +828,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-        >>> mg = RasterModelGrid((4, 5), 1.)
+        >>> mg = RasterModelGrid((4, 5), xy_spacing=1.)
         >>> mg.status_at_node[mg.nodes_at_top_edge] = CLOSED_BOUNDARY
         >>> mg.closed_boundary_nodes
         array([15, 16, 17, 18, 19])
@@ -846,7 +846,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid, FIXED_GRADIENT_BOUNDARY
-        >>> mg = RasterModelGrid((4, 5), 1.)
+        >>> mg = RasterModelGrid((4, 5))
         >>> mg.status_at_node[mg.nodes_at_top_edge] = FIXED_GRADIENT_BOUNDARY
         >>> mg.fixed_gradient_boundary_nodes
         array([15, 16, 17, 18, 19])
@@ -1128,7 +1128,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5), 1.)
+        >>> grid = RasterModelGrid((4, 5))
 
         Initially all of the cells are "core".
 
@@ -1203,7 +1203,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
-        >>> mg = RasterModelGrid((4, 5), 1.)
+        >>> mg = RasterModelGrid((4, 5))
         >>> mg.face_at_link[5:7]
         array([0, 1])
         >>> np.all(mg.face_at_link[:5]==BAD_INDEX_VALUE)
@@ -1458,7 +1458,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
         >>> mg.node_x.reshape((4, 5))
         array([[  0.,   3.,   6.,   9.,  12.],
                [  0.,   3.,   6.,   9.,  12.],
@@ -1482,7 +1482,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
         >>> mg.node_y.reshape((4, 5))
         array([[ 0.,  0.,  0.,  0.,  0.],
                [ 2.,  2.,  2.,  2.,  2.],
@@ -1506,7 +1506,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 4), (2., 3.))
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=(3., 2))
         >>> grid.xy_of_node # doctest: +NORMALIZE_WHITESPACE
         array([[ 0., 0.], [ 3., 0.], [ 6., 0.], [ 9., 0.],
                [ 0., 2.], [ 3., 2.], [ 6., 2.], [ 9., 2.],
@@ -1533,7 +1533,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
         >>> mg.x_of_node.reshape((4, 5))
         array([[  0.,   3.,   6.,   9.,  12.],
                [  0.,   3.,   6.,   9.,  12.],
@@ -1557,7 +1557,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
         >>> mg.y_of_node.reshape((4, 5))
         array([[ 0.,  0.,  0.,  0.,  0.],
                [ 2.,  2.,  2.,  2.,  2.],
@@ -1576,7 +1576,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
         >>> mg.x_of_cell.reshape((2, 3))
         array([[  3.,   6.,   9.],
                [  3.,   6.,   9.]])
@@ -1593,7 +1593,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
         >>> mg.y_of_cell.reshape((2, 3))
         array([[ 2.,  2.,  2.],
                [ 4.,  4.,  4.]])
@@ -1611,7 +1611,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
         >>> mg.x_of_link # doctest: +NORMALIZE_WHITESPACE
         array([  1.5,   4.5,   7.5,  10.5,   0. ,   3. ,   6. ,   9. ,  12. ,
                  1.5,   4.5,   7.5,  10.5,   0. ,   3. ,   6. ,   9. ,  12. ,
@@ -1631,7 +1631,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
         >>> mg.y_of_link # doctest: +NORMALIZE_WHITESPACE
         array([ 0.,  0.,  0.,  0.,  1.,  1.,  1.,  1.,  1.,
                 2.,  2.,  2.,  2.,  3.,  3.,  3.,  3.,  3.,
@@ -1651,7 +1651,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
         >>> mg.x_of_face # doctest: +NORMALIZE_WHITESPACE
         array([  3. ,   6. ,   9. ,   1.5,   4.5,   7.5,  10.5,
                  3. ,   6. ,   9. ,   1.5,   4.5,   7.5,  10.5,
@@ -1670,7 +1670,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
         >>> mg.y_of_face # doctest: +NORMALIZE_WHITESPACE
         array([ 1.,  1.,  1.,  2.,  2.,  2.,  2.,  3.,  3.,  3.,
                 4.,  4.,  4.,  4.,  5.,  5.,  5.])
@@ -1732,7 +1732,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), (2., 3.))
+        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
         >>> mg.axis_units
         ('-', '-')
         >>> mg.axis_units = ('km', 'km')
@@ -2691,7 +2691,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
 
-        >>> mg = RasterModelGrid((5, 5), 1.)
+        >>> mg = RasterModelGrid((5, 5), xy_spacing=1.)
         >>> z = mg.x_of_node * np.tan(60. * np.pi / 180.)
         >>> mg.calc_hillshade_at_node(elevs=z, alt=30., az=210.)
         array([ 0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,  0.625,
@@ -4189,7 +4189,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 3), 1.0) # rows, columns, spacing
+        >>> rmg = RasterModelGrid((4, 3)) # rows, columns, spacing
         >>> rmg.node_x
         array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
         >>> rmg.node_y

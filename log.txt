@@ -1,0 +1,605 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.6.6, pytest-4.0.2, py-1.7.0, pluggy-0.8.0
+rootdir: /Users/barnhark/projects/landlab/landlab, inifile: setup.cfg
+plugins: remotedata-0.3.1, openfiles-0.3.1, doctestplus-0.2.0, cov-2.5.1, arraydiff-0.2
+collected 658 items
+
+landlab/grid/base.py ................................................... [  7%]
+....FF................................FFFFFFFFF....                      [ 15%]
+landlab/grid/create.py .                                                 [ 15%]
+landlab/grid/diagonals.py ...........                                    [ 17%]
+landlab/grid/divergence.py ............                                  [ 19%]
+landlab/grid/gradients.py ..........                                     [ 20%]
+landlab/grid/hex.py .................                                    [ 23%]
+landlab/grid/linkstatus.py ...                                           [ 23%]
+landlab/grid/mappers.py ....................                             [ 26%]
+landlab/grid/radial.py ...                                               [ 27%]
+landlab/grid/raster.py ................................................. [ 34%]
+..................                                                       [ 37%]
+landlab/grid/raster_aspect.py .                                          [ 37%]
+landlab/grid/raster_funcs.py ......                                      [ 38%]
+landlab/grid/raster_gradients.py ...............                         [ 40%]
+landlab/grid/raster_mappers.py .............                             [ 42%]
+landlab/grid/raster_set_status.py .                                      [ 42%]
+landlab/grid/voronoi.py ...........                                      [ 44%]
+landlab/grid/structured_quad/cells.py .....                              [ 45%]
+landlab/grid/structured_quad/faces.py ...                                [ 45%]
+landlab/grid/structured_quad/links.py .................................. [ 50%]
+...................                                                      [ 53%]
+landlab/grid/structured_quad/nodes.py ..........                         [ 55%]
+landlab/grid/structured_quad/rectilinear.py ...                          [ 55%]
+landlab/grid/structured_quad/structured.py ..                            [ 56%]
+landlab/grid/structured_quad/tests/test_links.py ...                     [ 56%]
+landlab/grid/structured_quad/tests/test_nodes.py ....                    [ 57%]
+landlab/grid/tests/test_diagonals.py ................................... [ 62%]
+..                                                                       [ 62%]
+landlab/grid/tests/test_grid_reference.py ..................             [ 65%]
+landlab/grid/tests/test_hex_grid/test_link_order.py ..                   [ 65%]
+landlab/grid/tests/test_raster_funcs/test_best_fit_plane.py ....         [ 66%]
+landlab/grid/tests/test_raster_funcs/test_find_nearest_node.py ......    [ 67%]
+landlab/grid/tests/test_raster_funcs/test_gradients_across_cell_corners.py . [ 67%]
+...                                                                      [ 67%]
+landlab/grid/tests/test_raster_funcs/test_gradients_across_cell_faces.py . [ 68%]
+...                                                                      [ 68%]
+landlab/grid/tests/test_raster_funcs/test_gradients_at_active_links.py . [ 68%]
+...                                                                      [ 69%]
+landlab/grid/tests/test_raster_funcs/test_gradients_at_links.py ....     [ 69%]
+landlab/grid/tests/test_raster_funcs/test_is_on_grid.py ....             [ 70%]
+landlab/grid/tests/test_raster_funcs/test_node_id_of_adjacent.py ....... [ 71%]
+.                                                                        [ 71%]
+landlab/grid/tests/test_raster_grid/test_BC_updates.py ......            [ 72%]
+landlab/grid/tests/test_raster_grid/test_axis_methods.py ..........      [ 74%]
+landlab/grid/tests/test_raster_grid/test_cell_areas.py ......            [ 74%]
+landlab/grid/tests/test_raster_grid/test_corners.py ...                  [ 75%]
+landlab/grid/tests/test_raster_grid/test_faces.py ......                 [ 76%]
+landlab/grid/tests/test_raster_grid/test_fields.py .......               [ 77%]
+landlab/grid/tests/test_raster_grid/test_fixed_link_boundary.py ...      [ 77%]
+landlab/grid/tests/test_raster_grid/test_has_boundary_neighbor.py .....  [ 78%]
+landlab/grid/tests/test_raster_grid/test_inactive_nodes.py ..            [ 78%]
+landlab/grid/tests/test_raster_grid/test_init.py ....................... [ 82%]
+............                                                             [ 84%]
+landlab/grid/tests/test_raster_grid/test_is_boundary.py .....            [ 84%]
+landlab/grid/tests/test_raster_grid/test_link_length.py ....             [ 85%]
+landlab/grid/tests/test_raster_grid/test_link_order.py .                 [ 85%]
+landlab/grid/tests/test_raster_grid/test_mappers.py ......               [ 86%]
+landlab/grid/tests/test_raster_grid/test_neighbor_nodes.py ............. [ 88%]
+.                                                                        [ 88%]
+landlab/grid/tests/test_raster_grid/test_nodes_around_point.py ......... [ 90%]
+...                                                                      [ 90%]
+landlab/grid/tests/test_raster_grid/test_patches.py ....                 [ 91%]
+landlab/grid/tests/test_raster_grid/test_save.py ......                  [ 92%]
+landlab/grid/tests/test_raster_grid/test_status_at_node.py ......        [ 93%]
+landlab/grid/unstructured/base.py .............                          [ 94%]
+landlab/grid/unstructured/cells.py ..                                    [ 95%]
+landlab/grid/unstructured/links.py ................                      [ 97%]
+landlab/grid/unstructured/nodes.py ........                              [ 98%]
+landlab/grid/unstructured/tests/test_links.py .......                    [100%]
+
+=================================== FAILURES ===================================
+_________________ [doctest] landlab.grid.base.ModelGrid.node_x _________________
+EXAMPLE LOCATION UNKNOWN, not showing all tests of that example
+??? >>> mg.node_x.reshape((4, 5))
+Differences (unified diff with -expected +actual):
+    @@ -1,4 +1,4 @@
+    -array([[  0.,   3.,   6.,   9.,  12.],
+    -       [  0.,   3.,   6.,   9.,  12.],
+    -       [  0.,   3.,   6.,   9.,  12.],
+    -       [  0.,   3.,   6.,   9.,  12.]])
+    +array([[ 0.,  2.,  4.,  6.,  8.],
+    +       [ 0.,  2.,  4.,  6.,  8.],
+    +       [ 0.,  2.,  4.,  6.,  8.],
+    +       [ 0.,  2.,  4.,  6.,  8.]])
+
+/Users/barnhark/projects/landlab/landlab/landlab/grid/base.py:None: DocTestFailure
+_________________ [doctest] landlab.grid.base.ModelGrid.node_y _________________
+EXAMPLE LOCATION UNKNOWN, not showing all tests of that example
+??? >>> mg.node_y.reshape((4, 5))
+Differences (unified diff with -expected +actual):
+    @@ -1,4 +1,4 @@
+     array([[ 0.,  0.,  0.,  0.,  0.],
+    -       [ 2.,  2.,  2.,  2.,  2.],
+    -       [ 4.,  4.,  4.,  4.,  4.],
+    -       [ 6.,  6.,  6.,  6.,  6.]])
+    +       [ 3.,  3.,  3.,  3.,  3.],
+    +       [ 6.,  6.,  6.,  6.,  6.],
+    +       [ 9.,  9.,  9.,  9.,  9.]])
+
+/Users/barnhark/projects/landlab/landlab/landlab/grid/base.py:None: DocTestFailure
+_______________ [doctest] landlab.grid.base.ModelGrid.x_of_cell ________________
+EXAMPLE LOCATION UNKNOWN, not showing all tests of that example
+??? >>> mg.x_of_cell.reshape((2, 3))
+Expected:
+    array([[  3.,   6.,   9.],
+           [  3.,   6.,   9.]])
+Got:
+    array([[ 2.,  4.,  6.],
+           [ 2.,  4.,  6.]])
+
+/Users/barnhark/projects/landlab/landlab/landlab/grid/base.py:None: DocTestFailure
+_______________ [doctest] landlab.grid.base.ModelGrid.x_of_face ________________
+EXAMPLE LOCATION UNKNOWN, not showing all tests of that example
+??? >>> mg.x_of_face # doctest: +NORMALIZE_WHITESPACE
+Expected:
+    array([  3. ,   6. ,   9. ,   1.5,   4.5,   7.5,  10.5,
+             3. ,   6. ,   9. ,   1.5,   4.5,   7.5,  10.5,
+             3. ,   6. ,   9. ])
+Got:
+    array([ 2.,  4.,  6.,  1.,  3.,  5.,  7.,  2.,  4.,  6.,  1.,  3.,  5.,
+            7.,  2.,  4.,  6.])
+
+/Users/barnhark/projects/landlab/landlab/landlab/grid/base.py:None: DocTestFailure
+_______________ [doctest] landlab.grid.base.ModelGrid.x_of_link ________________
+EXAMPLE LOCATION UNKNOWN, not showing all tests of that example
+??? >>> mg.x_of_link # doctest: +NORMALIZE_WHITESPACE
+Differences (unified diff with -expected +actual):
+    @@ -1,4 +1,3 @@
+    -array([  1.5,   4.5,   7.5,  10.5,   0. ,   3. ,   6. ,   9. ,  12. ,
+    -         1.5,   4.5,   7.5,  10.5,   0. ,   3. ,   6. ,   9. ,  12. ,
+    -         1.5,   4.5,   7.5,  10.5,   0. ,   3. ,   6. ,   9. ,  12. ,
+    -         1.5,   4.5,   7.5,  10.5])
+    +array([ 1.,  3.,  5.,  7.,  0.,  2.,  4.,  6.,  8.,  1.,  3.,  5.,  7.,
+    +        0.,  2.,  4.,  6.,  8.,  1.,  3.,  5.,  7.,  0.,  2.,  4.,  6.,
+    +        8.,  1.,  3.,  5.,  7.])
+
+/Users/barnhark/projects/landlab/landlab/landlab/grid/base.py:None: DocTestFailure
+_______________ [doctest] landlab.grid.base.ModelGrid.x_of_node ________________
+EXAMPLE LOCATION UNKNOWN, not showing all tests of that example
+??? >>> mg.x_of_node.reshape((4, 5))
+Differences (unified diff with -expected +actual):
+    @@ -1,4 +1,4 @@
+    -array([[  0.,   3.,   6.,   9.,  12.],
+    -       [  0.,   3.,   6.,   9.,  12.],
+    -       [  0.,   3.,   6.,   9.,  12.],
+    -       [  0.,   3.,   6.,   9.,  12.]])
+    +array([[ 0.,  2.,  4.,  6.,  8.],
+    +       [ 0.,  2.,  4.,  6.,  8.],
+    +       [ 0.,  2.,  4.,  6.,  8.],
+    +       [ 0.,  2.,  4.,  6.,  8.]])
+
+/Users/barnhark/projects/landlab/landlab/landlab/grid/base.py:None: DocTestFailure
+_______________ [doctest] landlab.grid.base.ModelGrid.xy_of_node _______________
+EXAMPLE LOCATION UNKNOWN, not showing all tests of that example
+??? >>> grid.xy_of_node # doctest: +NORMALIZE_WHITESPACE
+Differences (unified diff with -expected +actual):
+    @@ -1,3 +1,12 @@
+    -array([[ 0., 0.], [ 3., 0.], [ 6., 0.], [ 9., 0.],
+    -       [ 0., 2.], [ 3., 2.], [ 6., 2.], [ 9., 2.],
+    -       [ 0., 4.], [ 3., 4.], [ 6., 4.], [ 9., 4.]])
+    +array([[ 0.,  0.],
+    +       [ 2.,  0.],
+    +       [ 4.,  0.],
+    +       [ 6.,  0.],
+    +       [ 0.,  3.],
+    +       [ 2.,  3.],
+    +       [ 4.,  3.],
+    +       [ 6.,  3.],
+    +       [ 0.,  6.],
+    +       [ 2.,  6.],
+    +       [ 4.,  6.],
+    +       [ 6.,  6.]])
+
+/Users/barnhark/projects/landlab/landlab/landlab/grid/base.py:None: DocTestFailure
+_______________ [doctest] landlab.grid.base.ModelGrid.y_of_cell ________________
+EXAMPLE LOCATION UNKNOWN, not showing all tests of that example
+??? >>> mg.y_of_cell.reshape((2, 3))
+Expected:
+    array([[ 2.,  2.,  2.],
+           [ 4.,  4.,  4.]])
+Got:
+    array([[ 3.,  3.,  3.],
+           [ 6.,  6.,  6.]])
+
+/Users/barnhark/projects/landlab/landlab/landlab/grid/base.py:None: DocTestFailure
+_______________ [doctest] landlab.grid.base.ModelGrid.y_of_face ________________
+EXAMPLE LOCATION UNKNOWN, not showing all tests of that example
+??? >>> mg.y_of_face # doctest: +NORMALIZE_WHITESPACE
+Expected:
+    array([ 1.,  1.,  1.,  2.,  2.,  2.,  2.,  3.,  3.,  3.,
+            4.,  4.,  4.,  4.,  5.,  5.,  5.])
+Got:
+    array([ 1.5,  1.5,  1.5,  3. ,  3. ,  3. ,  3. ,  4.5,  4.5,  4.5,  6. ,
+            6. ,  6. ,  6. ,  7.5,  7.5,  7.5])
+
+/Users/barnhark/projects/landlab/landlab/landlab/grid/base.py:None: DocTestFailure
+_______________ [doctest] landlab.grid.base.ModelGrid.y_of_link ________________
+EXAMPLE LOCATION UNKNOWN, not showing all tests of that example
+??? >>> mg.y_of_link # doctest: +NORMALIZE_WHITESPACE
+Differences (unified diff with -expected +actual):
+    @@ -1,4 +1,3 @@
+    -array([ 0.,  0.,  0.,  0.,  1.,  1.,  1.,  1.,  1.,
+    -        2.,  2.,  2.,  2.,  3.,  3.,  3.,  3.,  3.,
+    -        4.,  4.,  4.,  4.,  5.,  5.,  5.,  5.,  5.,
+    -        6.,  6.,  6.,  6.])
+    +array([ 0. ,  0. ,  0. ,  0. ,  1.5,  1.5,  1.5,  1.5,  1.5,  3. ,  3. ,
+    +        3. ,  3. ,  4.5,  4.5,  4.5,  4.5,  4.5,  6. ,  6. ,  6. ,  6. ,
+    +        7.5,  7.5,  7.5,  7.5,  7.5,  9. ,  9. ,  9. ,  9. ])
+
+/Users/barnhark/projects/landlab/landlab/landlab/grid/base.py:None: DocTestFailure
+_______________ [doctest] landlab.grid.base.ModelGrid.y_of_node ________________
+EXAMPLE LOCATION UNKNOWN, not showing all tests of that example
+??? >>> mg.y_of_node.reshape((4, 5))
+Differences (unified diff with -expected +actual):
+    @@ -1,4 +1,4 @@
+     array([[ 0.,  0.,  0.,  0.,  0.],
+    -       [ 2.,  2.,  2.,  2.,  2.],
+    -       [ 4.,  4.,  4.,  4.,  4.],
+    -       [ 6.,  6.,  6.,  6.,  6.]])
+    +       [ 3.,  3.,  3.,  3.,  3.],
+    +       [ 6.,  6.,  6.,  6.,  6.],
+    +       [ 9.,  9.,  9.,  9.,  9.]])
+
+/Users/barnhark/projects/landlab/landlab/landlab/grid/base.py:None: DocTestFailure
+=============================== warnings summary ===============================
+landlab/grid/base.py::landlab.grid.base.ModelGrid.active_link_connecting_node_pair
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function active_link_connecting_node_pair.
+    category=DeprecationWarning,
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.core_nodes
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.fixed_value_boundary_nodes
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.max_of_link_end_node_values
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function max_of_link_end_node_values.
+    category=DeprecationWarning,
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.move_origin
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function move_origin.
+    category=DeprecationWarning,
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.node_at_core_cell
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.node_at_link_head
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.node_at_link_tail
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.nodes_at_link
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.number_of_active_links
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.number_of_elements
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.number_of_fixed_links
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.open_boundary_nodes
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.reference_point_coordinates
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.set_nodata_nodes_to_inactive
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function set_nodata_nodes_to_inactive.
+    category=DeprecationWarning,
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.status_at_link
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.status_at_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/base.py::landlab.grid.base.ModelGrid.width_of_face
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/create.py::landlab.grid.create.create_and_initialize_grid
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function set_inactive_boundaries.
+    category=DeprecationWarning,
+
+landlab/grid/divergence.py::landlab.grid.divergence._calc_active_face_flux_divergence_at_cell
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/divergence.py::landlab.grid.divergence._calc_active_face_flux_divergence_at_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/divergence.py::landlab.grid.divergence._calc_active_link_flux_divergence_at_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/divergence.py::landlab.grid.divergence._calc_face_flux_divergence_at_cell
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/divergence.py::landlab.grid.divergence._calc_net_active_face_flux_at_cell
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/divergence.py::landlab.grid.divergence._calc_net_active_face_flux_at_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/divergence.py::landlab.grid.divergence._calc_net_active_link_flux_at_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/divergence.py::landlab.grid.divergence._calc_net_face_flux_at_cell
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/divergence.py::landlab.grid.divergence._calc_net_face_flux_at_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/divergence.py::landlab.grid.divergence.calc_flux_div_at_cell
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/divergence.py::landlab.grid.divergence.calc_flux_div_at_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/divergence.py::landlab.grid.divergence.calc_net_flux_at_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/gradients.py::landlab.grid.gradients.calc_aspect_at_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/gradients.py::landlab.grid.gradients.calc_grad_at_link
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/gradients.py::landlab.grid.gradients.calc_grad_of_active_link
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function calc_grad_of_active_link.
+    category=DeprecationWarning,
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function calc_grad_at_active_link.
+    category=DeprecationWarning,
+
+landlab/grid/gradients.py::landlab.grid.gradients.calc_slope_at_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/gradients.py::landlab.grid.gradients.calculate_diff_at_links
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function calculate_diff_at_links.
+    category=DeprecationWarning,
+
+landlab/grid/gradients.py::landlab.grid.gradients.calculate_gradients_at_faces
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function calculate_gradients_at_faces.
+    category=DeprecationWarning,
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function calculate_gradients_at_faces.
+    category=DeprecationWarning,
+
+landlab/grid/mappers.py::landlab.grid.mappers.map_downwind_node_link_mean_to_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/mappers.py:936: RuntimeWarning: invalid value encountered in true_divide
+    np.divide(total_vals, link_count, out=out)
+
+landlab/grid/mappers.py::landlab.grid.mappers.map_upwind_node_link_mean_to_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/mappers.py:864: RuntimeWarning: invalid value encountered in true_divide
+    np.divide(total_vals, link_count, out=out)
+
+landlab/grid/radial.py::landlab.grid.radial.RadialModelGrid
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/radial.py:112: DeprecationWarning: The origin_x keyword is deprecated. Use xy_of_center.
+    warn(msg, DeprecationWarning)
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/radial.py:116: DeprecationWarning: The origin_y keyword is deprecated. Use xy_of_center.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid._initialize
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.calculate_slope_aspect_at_nodes_burrough
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.cell_vector_to_raster
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.dx
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.extent
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.grid_xdimension
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.grid_ydimension
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.node_spacing
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.node_vector_to_raster
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.roll_nodes_ud
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.set_fixed_link_boundaries_at_grid_edges
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.set_inactive_boundaries
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function set_inactive_boundaries.
+    category=DeprecationWarning,
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.set_looped_boundaries
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition_outlet_coords
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition_outlet_id
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/raster_aspect.py::landlab.grid.raster_aspect.calc_slope_aspect_of_nodes_horn
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function calc_slope_aspect_of_nodes_horn.
+    category=DeprecationWarning,
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function calc_slope_aspect_of_nodes_horn.
+    category=DeprecationWarning,
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function calc_slope_aspect_of_nodes_horn.
+    category=DeprecationWarning,
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function calc_slope_aspect_of_nodes_horn.
+    category=DeprecationWarning,
+
+landlab/grid/raster_gradients.py::landlab.grid.raster_gradients.calc_slope_at_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/tests/test_raster_funcs/test_gradients_at_links.py::test_diff_out_array
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function calculate_diff_at_links.
+    category=DeprecationWarning,
+
+landlab/grid/tests/test_raster_grid/test_faces.py::test_horizontally_adjacent_cells
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function face_connecting_cell_pair.
+    category=DeprecationWarning,
+
+landlab/grid/tests/test_raster_grid/test_faces.py::test_vertically_adjacent_cells
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function face_connecting_cell_pair.
+    category=DeprecationWarning,
+
+landlab/grid/tests/test_raster_grid/test_faces.py::test_diagonally_adjacent_cells
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function face_connecting_cell_pair.
+    category=DeprecationWarning,
+
+landlab/grid/tests/test_raster_grid/test_faces.py::test_non_adjacent_cells
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function face_connecting_cell_pair.
+    category=DeprecationWarning,
+
+landlab/grid/tests/test_raster_grid/test_inactive_nodes.py::test_inactive_boundaries
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function set_inactive_boundaries.
+    category=DeprecationWarning,
+
+landlab/grid/tests/test_raster_grid/test_inactive_nodes.py::test_inactive_interiors
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function set_closed_nodes.
+    category=DeprecationWarning,
+
+landlab/grid/tests/test_raster_grid/test_init.py::test_init_with_kwds_classic
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/raster.py:441: DeprecationWarning: Passing spacing as an argument is Deprecated (v1.6). Pass xy_spacing instead.
+    warn(msg, DeprecationWarning)
+
+landlab/grid/tests/test_raster_grid/test_neighbor_nodes.py::test_active_neighbor_list_boundary
+  /Users/barnhark/projects/landlab/landlab/landlab/utils/decorators.py:521: DeprecationWarning: Call to deprecated function set_closed_nodes.
+    category=DeprecationWarning,
+
+landlab/grid/unstructured/links.py::landlab.grid.unstructured.links.in_link_count_per_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:121: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_end, minlength=number_of_nodes))
+
+landlab/grid/unstructured/links.py::landlab.grid.unstructured.links.in_link_ids_at_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:121: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_end, minlength=number_of_nodes))
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:121: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_end, minlength=number_of_nodes))
+
+landlab/grid/unstructured/links.py::landlab.grid.unstructured.links.link_count_per_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:121: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_end, minlength=number_of_nodes))
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:152: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_start, minlength=number_of_nodes))
+
+landlab/grid/unstructured/links.py::landlab.grid.unstructured.links.link_ids_at_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:121: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_end, minlength=number_of_nodes))
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:152: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_start, minlength=number_of_nodes))
+
+landlab/grid/unstructured/links.py::landlab.grid.unstructured.links.out_link_count_per_node
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:152: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_start, minlength=number_of_nodes))
+
+landlab/grid/unstructured/tests/test_links.py::test_link_arg_as_scalars
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:121: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_end, minlength=number_of_nodes))
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:152: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_start, minlength=number_of_nodes))
+
+landlab/grid/unstructured/tests/test_links.py::test_link_arg_as_pairs
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:121: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_end, minlength=number_of_nodes))
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:152: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_start, minlength=number_of_nodes))
+
+landlab/grid/unstructured/tests/test_links.py::test_link_arg_as_tuple_sequence
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:121: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_end, minlength=number_of_nodes))
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:152: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_start, minlength=number_of_nodes))
+
+landlab/grid/unstructured/tests/test_links.py::test_links_3x3_quad
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:121: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_end, minlength=number_of_nodes))
+  /Users/barnhark/projects/landlab/landlab/landlab/grid/unstructured/links.py:152: DeprecationWarning: 0 should be passed as minlength instead of None; this will error in future.
+    return as_id_array(np.bincount(node_at_link_start, minlength=number_of_nodes))
+
+-- Docs: https://docs.pytest.org/en/latest/warnings.html
+========================== slowest 16 test durations ===========================
+1.53s call     landlab/grid/tests/test_grid_reference.py::test_move_reference_hex
+0.08s call     landlab/grid/gradients.py::landlab.grid.gradients.calc_slope_at_node
+0.07s call     landlab/grid/tests/test_grid_reference.py::test_move_reference_radial
+0.05s call     landlab/grid/raster.py::landlab.grid.raster.RasterModelGrid.calculate_slope_aspect_at_nodes_burrough
+0.02s call     landlab/grid/tests/test_raster_grid/test_save.py::test_guess_format
+0.02s call     landlab/grid/hex.py::landlab.grid.hex.HexModelGrid._set_boundary_stat_at_rect_grid_ragged_edges
+0.02s call     landlab/grid/base.py::landlab.grid.base.ModelGrid._assign_boundary_nodes_to_grid_sides
+0.02s call     landlab/grid/voronoi.py::landlab.grid.voronoi.VoronoiDelaunayGrid
+0.01s call     landlab/grid/voronoi.py::landlab.grid.voronoi.VoronoiDelaunayGrid.save
+0.01s call     landlab/grid/raster_gradients.py::landlab.grid.raster_gradients.calc_slope_at_node
+0.01s setup    landlab/grid/tests/test_raster_grid/test_save.py::test_save_esri_ascii
+0.01s call     landlab/grid/hex.py::landlab.grid.hex.HexModelGrid.node_row_and_column
+0.01s call     landlab/grid/gradients.py::landlab.grid.gradients.calc_aspect_at_node
+0.01s call     landlab/grid/radial.py::landlab.grid.radial.RadialModelGrid.__init__
+0.01s call     landlab/grid/hex.py::landlab.grid.hex.HexModelGrid.number_of_node_rows
+0.01s call     landlab/grid/voronoi.py::landlab.grid.voronoi.VoronoiDelaunayGrid.__init__
+============== 11 failed, 647 passed, 99 warnings in 4.72 seconds ==============
