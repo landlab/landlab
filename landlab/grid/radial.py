@@ -50,7 +50,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     by six other nodes.
 
     >>> from landlab import RadialModelGrid
-    >>> omg = RadialModelGrid(num_shells=1, dr=1., origin_x=0., origin_y=0.)
+    >>> omg = RadialModelGrid(num_shells=1, dr=1., xy_of_center=(0., 0.))
     >>> omg.number_of_nodes
     7
     >>> omg.number_of_cells

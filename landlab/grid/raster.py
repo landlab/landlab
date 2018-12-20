@@ -309,9 +309,10 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Shape of the grid in nodes.
     xy_spacing : tuple or float, optional
         dx and dy spacing. Either provided as a float or a
-        (dx, dy) tuple.
+        (dx, dy) tuple. Default is (1., 1.)
     xy_of_lower_left: tuple, optional
-        (x, y) coordinates of the lower left corner.
+        (x, y) coordinates of the lower left corner. Default
+        is (0., 0.)
     bc : dict, optional
         Edge boundary conditions.
 
@@ -322,7 +323,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     nodes to core nodes are *active*.
 
     >>> from landlab import RasterModelGrid
-    >>> rmg = RasterModelGrid((4, 5), 1.0)
+    >>> rmg = RasterModelGrid((4, 5))
     >>> rmg.number_of_node_rows, rmg.number_of_node_columns
     (4, 5)
     >>> rmg.number_of_active_links
@@ -331,7 +332,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     Set the nodes along the top edge of the grid to be *closed* boundaries.
     This means that any links touching these nodes will be *inactive*.
 
-    >>> rmg = RasterModelGrid((4, 5), 1.0, bc={'top': 'closed'})
+    >>> rmg = RasterModelGrid((4, 5), bc={'top': 'closed'})
     >>> rmg.number_of_node_rows, rmg.number_of_node_columns
     (4, 5)
     >>> rmg.number_of_active_links
@@ -689,7 +690,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> numrows = 20          # number of rows in the grid
         >>> numcols = 30          # number of columns in the grid
         >>> dx = 10.0             # grid cell spacing
-        >>> rmg = RasterModelGrid((numrows, numcols), dx)
+        >>> rmg = RasterModelGrid((numrows, numcols), xy_spacing=dx)
         >>> (rmg.number_of_nodes, rmg.number_of_cells, rmg.number_of_links,
         ...  rmg.number_of_active_links)
         (600, 504, 1150, 1054)
@@ -1098,7 +1099,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.dx
         1.0
-        >>> grid = RasterModelGrid((4, 5), 2.0)
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=2.0)
         >>> grid.dx
         2.0
 
@@ -2164,7 +2165,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
 
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5), 1.0) # rows, columns, spacing
+        >>> rmg = RasterModelGrid((4, 5)) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
@@ -2295,7 +2296,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
 
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5), 1.0) # rows, columns, spacing
+        >>> rmg = RasterModelGrid((4, 5)) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
@@ -2555,7 +2556,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5), 1.0) # rows, columns, spacing
+        >>> rmg = RasterModelGrid((4, 5)) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
@@ -2824,7 +2825,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5), 1.0)
+        >>> rmg = RasterModelGrid((4, 5))
         >>> u = rmg.zeros(centering='node')
         >>> u = u + range(0, len(u))
         >>> u # doctest: +NORMALIZE_WHITESPACE
@@ -2861,7 +2862,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5), 1.0)
+        >>> rmg = RasterModelGrid((4, 5))
         >>> u = rmg.zeros(centering='cell')
         >>> u = u + range(0, len(u))
         >>> u
@@ -3377,7 +3378,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> import pytest
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 4), (4, 4))
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 4))
         >>> z = np.array([0., 0., 0., 0.,
         ...               3., 3., 3., 3,
         ...               6., 6., 6., 6.])

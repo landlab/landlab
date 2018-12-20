@@ -670,7 +670,7 @@ def calc_aspect_at_node(
             14.7203682 ,  26.45367519,  45.        ,  51.94498651,
             11.30993247,  21.22191026,  38.05501349,  45.        ])
 
-    >>> mg = RasterModelGrid((4, 4), (2., 3.))
+    >>> mg = RasterModelGrid((4, 4), xy_spacing=(3., 2.))
     >>> z = mg.node_x ** 2 + mg.node_y ** 2
     >>> mg.calc_aspect_at_node(elevs=z)
     array([ 236.30993247,  247.52001262,  259.97326008,  262.40535663,
