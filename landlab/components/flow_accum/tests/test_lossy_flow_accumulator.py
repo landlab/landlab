@@ -67,7 +67,7 @@ def test_loss_func_arguments():
 
 
 def test_run_with_2_fn_args():
-    mg = RasterModelGrid((3, 5), (1, 2))
+    mg = RasterModelGrid((3, 5), xy_spacing=(2, 1))
     mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 
@@ -100,7 +100,7 @@ def test_run_with_2_fn_args():
 
 
 def test_run_with_3_fn_args():
-    mg = RasterModelGrid((3, 5), (1, 2))
+    mg = RasterModelGrid((3, 5), xy_spacing=(2, 1))
     mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 

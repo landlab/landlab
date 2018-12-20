@@ -48,13 +48,13 @@ def test_move_reference_hex():
                         )
 
                         assert mg._xy_of_lower_left == _SR
-                        assert mg.x_of_node[0] == _SR[0]
-                        assert mg.y_of_node[0] == _SR[1]
+                        assert mg.x_of_node.min() == _SR[0]
+                        assert mg.y_of_node.min() == _SR[1]
 
                         mg.xy_of_lower_left = _MOVE_REFERENCE
                         assert mg._xy_of_lower_left == _MOVE_REFERENCE
-                        assert mg.x_of_node[0] == _MOVE_REFERENCE[0]
-                        assert mg.y_of_node[0] == _MOVE_REFERENCE[1]
+                        assert mg.x_of_node.min() == _MOVE_REFERENCE[0]
+                        assert mg.y_of_node.min() == _MOVE_REFERENCE[1]
 
 
 def test_move_reference_radial():

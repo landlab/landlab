@@ -33,9 +33,11 @@ class HexModelGrid(VoronoiDelaunayGrid):
     dx : float, optional
         Node spacing.
     xy_of_lower_left : tuple, optional
-        Default (0., 0.),
-    reference_point_offset : tuple, optional
-        Default (0., 0.)
+        Minimum x-of-node and y-of-node values. Depending on the grid
+        no node may be present at this coordinate. Default is (0., 0.).
+    reference_point_coordinates : tuple, optional
+        Coordinate value in projected space of the reference point,
+        `xy_of_lower_left`. Default is (0., 0.)
     orientation : string, optional
         One of the 3 cardinal directions in the grid, either 'horizontal'
         (default) or 'vertical'
@@ -65,7 +67,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         base_num_cols=0,
         dx=1.0,
         xy_of_lower_left=(0., 0.),
-        reference_point_offset=(0., 0.),
+        reference_point_coordinates=(0., 0.),
         orientation="horizontal",
         shape="hex",
         reorient_links=True,
@@ -86,10 +88,11 @@ class HexModelGrid(VoronoiDelaunayGrid):
         dx : float, optional
             Node spacing.
         xy_of_lower_left : tuple, optional
-            (x, y) coordinates of the xy_of_lower_left. Default is (0., 0.)
-        reference_point_offset : tuple, optional
-            (dx, dy) offset between the reference point `xy_of_lower_left` and
-            TODO.
+            Minimum x-of-node and y-of-node values. Depending on the grid
+            no node may be present at this coordinate. Default is (0., 0.).
+        reference_point_coordinates : tuple, optional
+            Coordinate value in projected space of the reference point,
+            `xy_of_lower_left`. Default is (0., 0.)
         orientation : string, optional
             One of the 3 cardinal directions in the grid, either 'horizontal'
             (default) or 'vertical'
@@ -360,6 +363,14 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return self._area_of_cell
 
     @staticmethod
+    def _shift_to_lower_left(pts, xy_of_lower_left):
+        xshift = xy_of_lower_left[0] - numpy.min(pts[:, 0])
+        yshift = xy_of_lower_left[1] - numpy.min(pts[:, 1])
+        pts[:, 0] += xshift
+        pts[:, 1] += yshift
+        return pts
+
+    @staticmethod
     def _hex_points_with_horizontal_hex(num_rows,
                                         base_num_cols,
                                         dxh,
@@ -397,9 +408,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> len(points)
         7
         >>> points[1, :]
-        array([ 1.,  0.])
+        array([ 1.5,  0. ])
         >>> points[:3, 0]
-        array([ 0. ,  1. , -0.5])
+        array([ 0.5,  1.5,  0. ])
         """
         dxv = dxh * numpy.sqrt(3.) / 2.
         half_dxh = dxh / 2.
@@ -418,8 +429,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         i = 0
         for r in range(num_rows):
             for c in range(base_num_cols + extra_cols):
-                pts[i, 0] = c * dxh + xshift + xy_of_lower_left[0]
-                pts[i, 1] = r * dxv + xy_of_lower_left[1]
+                pts[i, 0] = c * dxh + xshift
+                pts[i, 1] = r * dxv
                 i += 1
             if r < middle_row:
                 extra_cols += 1
@@ -427,7 +438,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 extra_cols -= 1
             xshift = -half_dxh * extra_cols
 
-        return pts
+        #return pts
+        return HexModelGrid._shift_to_lower_left(pts, xy_of_lower_left)
 
     @staticmethod
     def _hex_points_with_horizontal_rect(num_rows,
@@ -481,11 +493,11 @@ class HexModelGrid(VoronoiDelaunayGrid):
         for r in range(num_rows):
             for c in range(num_cols):
                 xshift = half_dxh * (r % 2)
-                pts[i, 0] = c * dxh + xshift + xy_of_lower_left[0]
-                pts[i, 1] = r * dxv + xy_of_lower_left[1]
+                pts[i, 0] = c * dxh + xshift
+                pts[i, 1] = r * dxv
                 i += 1
 
-        return pts
+        return HexModelGrid._shift_to_lower_left(pts, xy_of_lower_left)
 
     @staticmethod
     def _hex_points_with_vertical_hex(base_num_rows,
@@ -525,7 +537,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> len(points)
         7
         >>> points[2, :]
-        array([ 0.,  0.])
+        array([ 0.8660254,  0.       ])
         >>> points[:3, 1]
         array([ 0.5,  1.5,  0. ])
         """
@@ -560,13 +572,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
             yshift = -half_dxv * extra_rows
 
-        xshift = xy_of_lower_left[0] - pts[reference_ind, 0]
-        yshift = xy_of_lower_left[1] - pts[reference_ind, 1]
-
-        pts[:, 0] += xshift
-        pts[:, 1] += yshift
-
-        return pts
+        return HexModelGrid._shift_to_lower_left(pts, xy_of_lower_left)
 
     @staticmethod
     def _hex_points_with_vertical_rect(num_rows,
@@ -619,11 +625,11 @@ class HexModelGrid(VoronoiDelaunayGrid):
         for c in range(num_cols):
             for r in range(num_rows):
                 yshift = half_dxv * (c % 2)
-                pts[i, 1] = r * dxv + yshift + xy_of_lower_left[1]
-                pts[i, 0] = c * dxh + xy_of_lower_left[0]
+                pts[i, 1] = r * dxv + yshift
+                pts[i, 0] = c * dxh
                 i += 1
 
-        return pts
+        return HexModelGrid._shift_to_lower_left(pts, xy_of_lower_left)
 
     @property
     def number_of_node_columns(self):

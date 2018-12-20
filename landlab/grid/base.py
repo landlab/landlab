@@ -348,6 +348,9 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         VoronoiDelaunayGrid the reference point is (0, 0). For RadialModelGrid
         it is the (x, y) of the center point.
 
+        The intention of these coordinates is to provide a method to store
+        the large float values of projected coordinates.
+
         Example
         -------
 
@@ -364,7 +367,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
     @reference_point_coordinates.setter
     def reference_point_coordinates(self, new_reference_point_coordinates):
-        """Set a new value for the model grid reference_point_offset."""
+        """Set a new value for the model grid reference_point_coordinates."""
         self._ref_coord = new_reference_point_coordinates
 
     def _create_neighbor_list(self, **kwds):

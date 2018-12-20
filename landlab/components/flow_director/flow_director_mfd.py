@@ -196,11 +196,11 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     >>> fd = FlowDirectorMFD(mg, 'topographic__elevation',
     ...                      partition_method='square_root_of_slope')
     >>> fd.surface_values # doctest: +NORMALIZE_WHITESPACE
-    array([ 0. ,  1. ,  2. ,
-            0.5,  1.5,  2.5,  3.5,
-            1. ,  2. ,  3. ,  4. ,  5. ,
-            2.5,  3.5,  4.5,  5.5,
-            3. ,  4. ,  5. ])
+    array([ 1. ,  2. ,  3. ,
+            1.5,  2.5,  3.5,  4.5,
+            2. ,  3. ,  4. ,  5. ,  6. ,
+            3.5,  4.5,  5.5,  6.5,
+            4. ,  5. ,  6. ])
     >>> fd.run_one_step()
     >>> mg.at_node['flow__receiver_node']
     array([[ 0, -1, -1, -1, -1, -1],

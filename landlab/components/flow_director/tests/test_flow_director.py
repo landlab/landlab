@@ -59,7 +59,7 @@ def test_fields_already_added():
 def test_grid_type_testing():
     """Test that only the right grids can be implemented."""
     dx = (2. / (3. ** 0.5)) ** 0.5
-    hmg = HexModelGrid(9, 5, dx)
+    hmg = HexModelGrid(3, 3, dx)
     hmg.add_field(
         "topographic__elevation", hmg.node_x + np.round(hmg.node_y), at="node"
     )

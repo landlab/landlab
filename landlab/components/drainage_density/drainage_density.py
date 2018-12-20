@@ -47,7 +47,7 @@ class DrainageDensity(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, FastscapeEroder
-    >>> mg = RasterModelGrid((10, 10), 1.0)
+    >>> mg = RasterModelGrid((10, 10))
     >>> _ = mg.add_zeros('node', 'topographic__elevation')
     >>> np.random.seed(50)
     >>> noise = np.random.rand(100)

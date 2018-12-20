@@ -383,6 +383,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             (dx, dy) tuple.
         xy_of_lower_left: tuple, optional
             (x, y) coordinates of the lower left corner.
+        reference_point_coordinates : tuple, optional
+            Coordinate value in projected space of the reference point,
+            `xy_of_lower_left`. Default is (0., 0.)
         bc : dict, optional
             Edge boundary conditions.
 
