@@ -171,7 +171,17 @@ setup(
         "Topic :: Scientific/Engineering :: Physics",
     ],
     packages=find_packages(),
-    package_data={"": ["tests/*txt", "data/*asc", "data/*nc", "preciptest.in"]},
+    package_data={
+        "": [
+            "tests/*txt",
+            "data/*asc",
+            "data/*nc",
+            "data/*shp",
+            "test/*shx",
+            "data/*dbf",
+            "preciptest.in",
+        ]
+    },
     cmdclass=versioneer.get_cmdclass(
         {"install": install_and_register, "develop": develop_and_register}
     ),
