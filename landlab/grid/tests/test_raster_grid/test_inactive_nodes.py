@@ -24,7 +24,7 @@ def test_inactive_boundaries():
 
 
 def test_inactive_interiors():
-    rmg = RasterModelGrid((4, 5), xy_spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     rmg.set_closed_nodes([6, 12])
     assert_array_equal(
         rmg._active_links_at_node(),

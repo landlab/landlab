@@ -343,7 +343,7 @@ class LinearDiffuser(Component):
         --------
         >>> from landlab import RasterModelGrid
         >>> import numpy as np
-        >>> mg = RasterModelGrid((4, 5), 1.)
+        >>> mg = RasterModelGrid((4, 5))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> z[mg.core_nodes] = 1.
         >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
