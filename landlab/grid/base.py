@@ -320,8 +320,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         self.axis_units = kwds.get("axis_units",
                                    _default_axis_units(self.ndim))
 
-        self._reference_point_offset = kwds.get("reference_point_offset",
-                                                (0., 0.))
+        self._ref_coord = kwds.get("reference_point_coordinates", (0., 0.))
         self._link_length = None
         self._all_node_distances_map = None
         self._all_node_azimuths_map = None
@@ -341,14 +340,32 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         ModelDataFields.set_default_group(self, "node")
 
     @property
-    def reference_point_offset(self):
-        """Return (dx, dy) between (0,0) and the reference point."""
-        return self._reference_point_offset
+    def reference_point_coordinates(self):
+        """Return the coordinates (x, y) of the reference point.
 
-    @reference_point_offset.setter
-    def reference_point_offset(self, new_reference_point_offset):
+        For RasterModelGrid and HexModelGrid the reference point is the
+        minimum of x_of_node and of y_of_node. By default it is (0, 0). For
+        VoronoiDelaunayGrid the reference point is (0, 0). For RadialModelGrid
+        it is the (x, y) of the center point.
+
+        Example
+        -------
+
+        >>> from landlab import RasterModelGrid
+        >>> rmg = RasterModelGrid((4, 5), 1.0,
+        ...       reference_point_coordinates = (12345, 678910))
+        >>> rmg.reference_point_coordinates
+        (12345, 678910)
+        >>> rmg.reference_point_coordinates = (98765, 43210)
+        >>> rmg.reference_point_coordinates
+        (98765, 43210)
+        """
+        return self._ref_coord
+
+    @reference_point_coordinates.setter
+    def reference_point_coordinates(self, new_reference_point_coordinates):
         """Set a new value for the model grid reference_point_offset."""
-        self._reference_point_offset = new_reference_point_offset
+        self._ref_coord = new_reference_point_coordinates
 
     def _create_neighbor_list(self, **kwds):
         """Create list of neighbor node IDs.
@@ -4151,7 +4168,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         self.node_at_link_tail[:] = self.node_at_link_tail[indices]
         self.node_at_link_head[:] = self.node_at_link_head[indices]
 
-    @deprecated(use="reference_point_offset", version=1.5)
+    @deprecated(use="reference_point_coordinates", version=1.6)
     def move_origin(self, origin):
         """Changes the x and y coordinate values of all nodes.
 
