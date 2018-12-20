@@ -17,7 +17,7 @@ from landlab.components import KinwaveImplicitOverlandFlow
 def test_initialization():
     """Test initialization with various parameters.
     """
-    rg = RasterModelGrid((3, 4), 2.0)
+    rg = RasterModelGrid((3, 4), xy_spacing=2.0)
     rg.add_zeros("node", "topographic__elevation")
     kw = KinwaveImplicitOverlandFlow(rg)
 

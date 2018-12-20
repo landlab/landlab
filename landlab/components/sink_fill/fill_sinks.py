@@ -43,7 +43,7 @@ class SinkFiller(Component):
     >>> lake2 = np.array([78, 87, 88])
     >>> guard_nodes = np.array([23, 33, 53, 63, 73, 83])
     >>> lake = np.concatenate((lake1, lake2))
-    >>> mg = RasterModelGrid((10, 10), 1.)
+    >>> mg = RasterModelGrid((10, 10))
     >>> z = np.ones(100, dtype=float)
     >>> z += mg.node_x  # add a slope
     >>> z[guard_nodes] += 0.001  # forces the flow out of a particular node

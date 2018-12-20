@@ -57,7 +57,7 @@ def _fill_one_node_to_flat(fill_surface, all_neighbors,
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> mg = RasterModelGrid((5, 6), 1.)
+    >>> mg = RasterModelGrid((5, 6))
     >>> for edge in ('left', 'top', 'bottom'):
     ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
     >>> z = mg.zeros('node', dtype=float)
@@ -453,7 +453,7 @@ class LakeMapperBarnes(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import LakeMapperBarnes
-        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -512,7 +512,7 @@ class LakeMapperBarnes(Component):
         application of the gradient from fundamentally altering the drainage
         pattern that "should" result.
 
-        >>> mg = RasterModelGrid((3, 7), 1.)
+        >>> mg = RasterModelGrid((3, 7))
         >>> for edge in ('top', 'right', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -631,7 +631,7 @@ class LakeMapperBarnes(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import LakeMapperBarnes
-        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -734,7 +734,7 @@ class LakeMapperBarnes(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
-        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -818,7 +818,7 @@ class LakeMapperBarnes(Component):
 
         Test a failing example:
 
-        >>> mg = RasterModelGrid((3, 7), 1.)
+        >>> mg = RasterModelGrid((3, 7))
         >>> for edge in ('top', 'right', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -928,7 +928,7 @@ class LakeMapperBarnes(Component):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes
-        >>> mg = RasterModelGrid((5, 6), 2.)
+        >>> mg = RasterModelGrid((5, 6), xy_spacing=2.)
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z_new = mg.add_zeros('node', 'topographic__fill', dtype=float)
         >>> lmb = LakeMapperBarnes(mg, method='D8',
@@ -974,7 +974,7 @@ class LakeMapperBarnes(Component):
         >>> from landlab.components import LakeMapperBarnes
         >>> from landlab.components import FlowDirectorSteepest
         >>> from landlab.components import FlowAccumulator
-        >>> mg = RasterModelGrid((5, 6), 2.)
+        >>> mg = RasterModelGrid((5, 6), xy_spacing=2.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -1229,7 +1229,7 @@ class LakeMapperBarnes(Component):
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> from landlab.components import FlowDirectorSteepest
-        >>> mg = RasterModelGrid((5, 6), 2.)
+        >>> mg = RasterModelGrid((5, 6), xy_spacing=2.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -1400,7 +1400,7 @@ class LakeMapperBarnes(Component):
         The component is completely happy with irregular grids:
 
         >>> from landlab import HexModelGrid, FieldError
-        >>> hmg = HexModelGrid(5, 4, dx=2., xy_of_lower_left=(-2., 0.))
+        >>> hmg = HexModelGrid(5, 4, 2., xy_of_lower_left=(-2., 0.))
         >>> z_hex = hmg.add_zeros('node', 'topographic__elevation')
         >>> z_hex[:] = hmg.node_x
         >>> z_hex[11] = -3.
@@ -1446,7 +1446,7 @@ class LakeMapperBarnes(Component):
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> from landlab.components import FlowDirectorSteepest
         >>> from landlab.components import FastscapeEroder
-        >>> mg = RasterModelGrid((6, 8), 1.)
+        >>> mg = RasterModelGrid((6, 8))
         >>> for edge in ('right', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
 
@@ -1645,7 +1645,7 @@ class LakeMapperBarnes(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import LakeMapperBarnes
-        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -1688,7 +1688,7 @@ class LakeMapperBarnes(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import LakeMapperBarnes
-        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -1732,7 +1732,7 @@ class LakeMapperBarnes(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import LakeMapperBarnes
-        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -1782,7 +1782,7 @@ class LakeMapperBarnes(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import LakeMapperBarnes
-        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -1856,7 +1856,7 @@ class LakeMapperBarnes(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import LakeMapperBarnes
-        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -1895,7 +1895,7 @@ class LakeMapperBarnes(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import LakeMapperBarnes
-        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -1954,7 +1954,7 @@ class LakeMapperBarnes(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import LakeMapperBarnes
-        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -2009,7 +2009,7 @@ class LakeMapperBarnes(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import LakeMapperBarnes
-        >>> mg = RasterModelGrid((5, 6), 1.)
+        >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
@@ -2059,7 +2059,7 @@ class LakeMapperBarnes(Component):
 
         Examples
         --------
-        >>> mg = RasterModelGrid((3, 7), 1.)
+        >>> mg = RasterModelGrid((3, 7))
         >>> for edge in ('top', 'right', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)

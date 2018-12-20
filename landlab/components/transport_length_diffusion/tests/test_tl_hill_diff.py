@@ -34,7 +34,7 @@ def test_tl_hill_diff():
 
     # Test cases where S>Sc, S=Sc and S<Sc
     # Set up a 3x16 grid with closed boundaries and initial elevations.
-    mg = RasterModelGrid((3, 12), 1.)
+    mg = RasterModelGrid((3, 12))
     z = np.array(
         [
             0.,

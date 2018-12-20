@@ -39,7 +39,7 @@ class ChiFinder(Component):
     >>> mg.at_node['channel__chi_index'].reshape(mg.shape)[1, :]
     array([ 0.5,  1. ,  2. ,  0. ])
 
-    >>> mg2 = RasterModelGrid((5, 5), 100.)
+    >>> mg2 = RasterModelGrid((5, 5), xy_spacing=100.)
     >>> for nodes in (mg2.nodes_at_right_edge, mg2.nodes_at_bottom_edge,
     ...               mg2.nodes_at_top_edge):
     ...     mg2.status_at_node[nodes] = CLOSED_BOUNDARY
@@ -263,7 +263,7 @@ class ChiFinder(Component):
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowAccumulator
         >>> from landlab.components import ChiFinder
-        >>> mg = RasterModelGrid((5, 4), 1.)
+        >>> mg = RasterModelGrid((5, 4))
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
@@ -317,7 +317,7 @@ class ChiFinder(Component):
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowAccumulator
         >>> from landlab.components import ChiFinder
-        >>> mg = RasterModelGrid((5, 4), 3.)
+        >>> mg = RasterModelGrid((5, 4), xy_spacing=3.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
@@ -341,7 +341,7 @@ class ChiFinder(Component):
 
 
         >>> from landlab.components import FastscapeEroder
-        >>> mg2 = RasterModelGrid((5, 5), 100.)
+        >>> mg2 = RasterModelGrid((5, 5), xy_spacing=100.)
         >>> for nodes in (mg2.nodes_at_right_edge, mg2.nodes_at_bottom_edge,
         ...               mg2.nodes_at_top_edge):
         ...     mg2.status_at_node[nodes] = CLOSED_BOUNDARY
@@ -408,7 +408,7 @@ class ChiFinder(Component):
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowAccumulator
         >>> from landlab.components import ChiFinder
-        >>> mg = RasterModelGrid((5, 4), 2.)
+        >>> mg = RasterModelGrid((5, 4), xy_spacing=2.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
@@ -617,7 +617,7 @@ class ChiFinder(Component):
         >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
         >>> from landlab.components import FlowAccumulator, FastscapeEroder
         >>> from landlab.components import ChiFinder
-        >>> mg = RasterModelGrid((5, 5), 100.)
+        >>> mg = RasterModelGrid((5, 5), xy_spacing=100.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY

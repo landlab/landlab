@@ -149,7 +149,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         >>> nr = 5
         >>> nc = 5
         >>> dx = 10
-        >>> mg = RasterModelGrid((nr, nc), 10.0)
+        >>> mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
         >>> _ = mg.add_zeros('node', 'topographic__elevation')
         >>> mg['node']['topographic__elevation'] += (mg.node_y/10 +
         ...        mg.node_x/10 + np.random.rand(len(mg.node_y)) / 10)

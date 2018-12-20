@@ -51,7 +51,7 @@ class TransportLengthHillslopeDiffuser(Component):
         - Initial topography is plane at base level on the boundaries and
             1m of elevation elsewhere (core)
 
-    >>> mg = RasterModelGrid((5, 5), 1.)
+    >>> mg = RasterModelGrid((5, 5))
     >>> mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
     >>> z = np.array([0., 0., 0., 0., 0.,
     ...               0., 1., 1., 1., 0.,

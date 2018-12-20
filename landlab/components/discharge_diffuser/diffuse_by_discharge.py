@@ -327,7 +327,7 @@ class DischargeDiffuser(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((3, 4), (0.5, 1.))
+        >>> mg = RasterModelGrid((3, 4), xy_spacing=(1., 0.5))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> z[:] = np.array([[1, 2, 3, 4, 2, 3, 4, 5, 3, 4, 5, 6]])
         >>> zpad = np.pad(z.reshape((3, 4)), ((1, 1), (1, 1)), 'edge')

@@ -15,7 +15,7 @@ def test_Ff_bad_vals():
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
-    mg = RasterModelGrid((nr, nc), 10.0)
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
     mg.add_zeros("node", "topographic__elevation")
 
@@ -61,7 +61,7 @@ def test_phi_bad_vals():
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
-    mg = RasterModelGrid((nr, nc), 10.0)
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
     mg.add_zeros("node", "topographic__elevation")
 
@@ -107,7 +107,7 @@ def test_q_as_field():
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
-    mg = RasterModelGrid((nr, nc), 10.0)
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
     mg.add_zeros("node", "topographic__elevation")
     q = mg.add_zeros("node", "user_imposed_discharge")
@@ -163,7 +163,7 @@ def test_q_as_array():
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
-    mg = RasterModelGrid((nr, nc), 10.0)
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
     mg.add_zeros("node", "topographic__elevation")
     q = np.zeros(mg.number_of_nodes)
@@ -219,7 +219,7 @@ def test_sediment__flux_already_created():
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
-    mg = RasterModelGrid((nr, nc), 10.0)
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
     mg.add_zeros("node", "topographic__elevation")
     qs = mg.add_zeros("node", "sediment__flux")

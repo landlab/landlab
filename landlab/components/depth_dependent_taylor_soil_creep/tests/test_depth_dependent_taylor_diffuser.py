@@ -17,7 +17,7 @@ def test_4x7_grid_vs_analytical_solution():
     """Test against known analytical solution."""
 
     # Create a 4-row by 7-column grid with 10 m spacing
-    mg = RasterModelGrid((4, 7), 10.0)
+    mg = RasterModelGrid((4, 7), xy_spacing=10.0)
 
     # Close off top and bottom (N and S) boundaries so it becomes a 1D problem
     mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
