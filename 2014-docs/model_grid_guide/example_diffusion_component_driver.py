@@ -8,11 +8,12 @@ Last updated August 2013 GT
 
 """
 
+import numpy
+import pylab
+
+from landlab import ModelParameterDictionary
 from landlab.components.diffusion import LinearDiffuser
 from landlab.grid import create_and_initialize_grid
-from landlab import ModelParameterDictionary
-import pylab
-import numpy
 
 
 def display_model(grid, elevation):

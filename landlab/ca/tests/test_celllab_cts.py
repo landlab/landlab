@@ -13,7 +13,6 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 from landlab import HexModelGrid, RasterModelGrid
-
 # For dev
 from landlab.ca.celllab_cts import Transition  # X, Event
 from landlab.ca.celllab_cts import _RUN_NEW

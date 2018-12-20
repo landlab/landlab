@@ -3,6 +3,7 @@ from .hex import HexModelGrid
 from .radial import RadialModelGrid
 from .raster import RasterModelGrid
 from .voronoi import VoronoiDelaunayGrid
+from .network import NetworkModelGrid
 
 from .base import (
     BAD_INDEX_VALUE,
@@ -23,6 +24,7 @@ __all__ = [
     "RadialModelGrid",
     "RasterModelGrid",
     "VoronoiDelaunayGrid",
+    "NetworkModelGrid",
     "BAD_INDEX_VALUE",
     "CORE_NODE",
     "FIXED_VALUE_BOUNDARY",

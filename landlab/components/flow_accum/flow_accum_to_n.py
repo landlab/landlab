@@ -588,8 +588,7 @@ def find_drainage_area_and_discharge_to_n(
 
 
 def find_drainage_area_and_discharge_to_n_lossy(
-    s, r, l, p, loss_function, grid, node_cell_area=1.0, runoff=1.0,
-    boundary_nodes=None
+    s, r, l, p, loss_function, grid, node_cell_area=1.0, runoff=1.0, boundary_nodes=None
 ):
 
     """
@@ -728,11 +727,14 @@ def find_drainage_area_and_discharge_to_n_lossy(
                 if donor != recvr:
                     drainage_area[recvr] += proportion * drainage_area[donor]
                     discharge_head = proportion * discharge[donor]
-                    discharge_remaining = numpy.clip(loss_function(
-                        discharge_head, donor, lrec, grid),
-                        0., float('inf'))
-                    grid.at_node['surface_water__discharge_loss'][
-                        donor] += discharge_head - discharge_remaining
+                    discharge_remaining = numpy.clip(
+                        loss_function(discharge_head, donor, lrec, grid),
+                        0.,
+                        float("inf"),
+                    )
+                    grid.at_node["surface_water__discharge_loss"][donor] += (
+                        discharge_head - discharge_remaining
+                    )
                     discharge[recvr] += discharge_remaining
 
     return drainage_area, discharge
