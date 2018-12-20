@@ -8,11 +8,11 @@ automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
 
+from warnings import warn
+
 import numpy as np
 import six
 from six.moves import range
-
-from warnings import warn
 
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.structured_quad import (
@@ -23,30 +23,20 @@ from landlab.grid.structured_quad import (
 from landlab.utils import structured_grid as sgrid
 from landlab.utils.decorators import deprecated, make_return_array_immutable
 
-from .base import ModelGrid
-from .base import (
-    CORE_NODE,
-    FIXED_VALUE_BOUNDARY,
-    FIXED_GRADIENT_BOUNDARY,
-    LOOPED_BOUNDARY,
-    CLOSED_BOUNDARY,
-    FIXED_LINK,
-    BAD_INDEX_VALUE,
-    ACTIVE_LINK,
-    INACTIVE_LINK,
-)
-from landlab.field.scalar_data_fields import FieldError
-from landlab.utils.decorators import make_return_array_immutable, deprecated
 from . import raster_funcs as rfuncs
 from ..core.utils import add_module_functions_to_class, as_id_array
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
 from ..utils.decorators import cache_result_in_object
 from .base import (
+    ACTIVE_LINK,
     BAD_INDEX_VALUE,
     CLOSED_BOUNDARY,
     CORE_NODE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_LINK,
     FIXED_VALUE_BOUNDARY,
+    INACTIVE_LINK,
     LOOPED_BOUNDARY,
     ModelGrid,
 )
@@ -417,8 +407,10 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         # Spacing
         if "dx" in kwds:
-            msg = ("The dx keyword is Deprecated (v1.6), "
-                   "please pass xy_spacing instead.")
+            msg = (
+                "The dx keyword is Deprecated (v1.6), "
+                "please pass xy_spacing instead."
+            )
             warn(msg, DeprecationWarning)
             dx = kwds.pop("dx", None)
             old_spacing = True
@@ -450,8 +442,10 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         try:
             if len(dx) != 2:
-                msg = ("Specify grid spacing as a float or tuple of floats "
-                       "using the keyword xy_spacing.")
+                msg = (
+                    "Specify grid spacing as a float or tuple of floats "
+                    "using the keyword xy_spacing."
+                )
                 raise ValueError(msg)
             else:
                 if old_spacing:
@@ -462,8 +456,10 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             if isinstance(dx, (int, float)):
                 xy_spacing = (dx, dx)
             else:
-                msg = ("Specify grid spacing as a float or tuple of floats "
-                       "using the keyword xy_spacing.")
+                msg = (
+                    "Specify grid spacing as a float or tuple of floats "
+                    "using the keyword xy_spacing."
+                )
                 raise ValueError(msg)
 
         # Lower left corner
@@ -487,11 +483,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
 
         # Set number of nodes, and initialize if caller has given dimensions
-        self._initialize(num_rows,
-                         num_cols,
-                         xy_spacing,
-                         (xy_of_lower_left[0],
-                          xy_of_lower_left[1]))
+        self._initialize(
+            num_rows, num_cols, xy_spacing, (xy_of_lower_left[0], xy_of_lower_left[1])
+        )
 
         self.set_closed_boundaries_at_grid_edges(
             *grid_edge_is_closed_from_dict(kwds.pop("bc", {}))
@@ -504,8 +498,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     def __setstate__(self, state_dict):
         """Set state for of RasterModelGrid from pickled state_dict."""
         if state_dict["type"] != "RasterModelGrid":
-            assert TypeError(("Saved model instance not of "
-                              "RasterModelGrid type."))
+            assert TypeError(("Saved model instance not of " "RasterModelGrid type."))
 
         dx = state_dict["dx"]
         dy = state_dict["dy"]
@@ -760,9 +753,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         #  0-------1-------2-------3-------4
         #
         (x_of_node, y_of_node) = sgrid.node_coords(
-                                        (num_rows, num_cols),
-                                        (self._dy, self._dx),
-                                        (xy_of_lower_left[1], xy_of_lower_left[0])
+            (num_rows, num_cols),
+            (self._dy, self._dx),
+            (xy_of_lower_left[1], xy_of_lower_left[0]),
         )
 
         self._xy_of_node = np.hstack(
@@ -1039,8 +1032,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         grid is a raster.
         It is not meant to be called manually.
         """
-        self._forced_cell_areas = np.full(self.shape, self.dx
-                                          * self.dy, dtype=float)
+        self._forced_cell_areas = np.full(self.shape, self.dx * self.dy, dtype=float)
         self._forced_cell_areas[(0, -1), :] = 0.
         self._forced_cell_areas[:, (0, -1)] = 0.
         self._forced_cell_areas.shape = (-1,)
@@ -3349,9 +3341,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return s
 
     @deprecated(use="calc_slope_at_node, calc_aspect_at_node", version=1.0)
-    def calculate_slope_aspect_at_nodes_burrough(self,
-                                                 ids=None,
-                                                 vals="Elevation"):
+    def calculate_slope_aspect_at_nodes_burrough(self, ids=None, vals="Elevation"):
         """Calculate topographic slope.
 
         Calculates the local topographic slope (i.e., the down-dip slope, and

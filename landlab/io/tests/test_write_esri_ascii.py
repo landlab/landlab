@@ -106,9 +106,7 @@ def test_clobber_keyword(tmpdir):
 
 
 def test_write_then_read(tmpdir):
-    grid = RasterModelGrid((4, 5),
-                           xy_spacing=(2., 2.),
-                           xy_of_lower_left=(15., 10.))
+    grid = RasterModelGrid((4, 5), xy_spacing=(2., 2.), xy_of_lower_left=(15., 10.))
     grid.add_field("node", "air__temperature", np.arange(20.))
 
     with tmpdir.as_cwd():

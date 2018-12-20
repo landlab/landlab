@@ -6,6 +6,7 @@ Collections of components
 import inspect
 
 from .decorators import is_implementation
+
 # from landlab.interfaces import BmiBase
 from .interfaces import BmiBase
 

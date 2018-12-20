@@ -1,19 +1,17 @@
 
-import pytest
 import numpy as np
-from numpy.testing import assert_array_equal
+import pytest
 from numpy.random import rand
-from landlab import RasterModelGrid, HexModelGrid, RadialModelGrid
+from numpy.testing import assert_array_equal
 
+from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
 
 _START_REFERENCE = (10., 20.)
 _MOVE_REFERENCE = (30., 45.)
 
 
 def test_move_reference_raster():
-    mg = RasterModelGrid(9, 5,
-                         xy_spacing=2.0,
-                         xy_of_lower_left=_START_REFERENCE)
+    mg = RasterModelGrid(9, 5, xy_spacing=2.0, xy_of_lower_left=_START_REFERENCE)
     assert mg._xy_of_lower_left == _START_REFERENCE
     assert mg.x_of_node.min() == _START_REFERENCE[0]
     assert mg.y_of_node.min() == _START_REFERENCE[1]
@@ -26,8 +24,8 @@ def test_move_reference_raster():
 
 def test_move_reference_hex():
     _START_REFERENCE_2 = [(0., 0.), (10., 20.)]
-    shapes = ["rect"] # , "hex"] Once we fix the pernicious bug... this will be
-                      # re commented in.
+    shapes = ["rect"]  # , "hex"] Once we fix the pernicious bug... this will be
+    # re commented in.
     orientations = ["horizontal", "vertical"]
 
     numbers = [12, 11, 10, 9]
@@ -44,7 +42,7 @@ def test_move_reference_hex():
                             dx=2.0,
                             xy_of_lower_left=_SR,
                             orientation=orientation,
-                            shape=shape
+                            shape=shape,
                         )
 
                         assert mg._xy_of_lower_left == _SR
@@ -58,51 +56,43 @@ def test_move_reference_hex():
 
 
 def test_move_reference_radial():
-    mg = RadialModelGrid(num_shells=9,
-                         dr=10.,
-                         xy_of_center=_START_REFERENCE)
+    mg = RadialModelGrid(num_shells=9, dr=10., xy_of_center=_START_REFERENCE)
 
     assert mg._xy_of_center == _START_REFERENCE
 
-    pre_move_llc = (mg.x_of_node.min(),
-                    mg.y_of_node.min())
+    pre_move_llc = (mg.x_of_node.min(), mg.y_of_node.min())
 
     mg.xy_of_center = _MOVE_REFERENCE
     assert mg._xy_of_center == _MOVE_REFERENCE
 
-    post_move_llc = (mg.x_of_node.min(),
-                     mg.y_of_node.min())
+    post_move_llc = (mg.x_of_node.min(), mg.y_of_node.min())
 
-    actual_dydx = (post_move_llc[0] - pre_move_llc[0],
-                   post_move_llc[1] - pre_move_llc[1])
-    known_dydx = (_MOVE_REFERENCE[0] - _START_REFERENCE[0],
-                  _MOVE_REFERENCE[1] - _START_REFERENCE[1])
+    actual_dydx = (
+        post_move_llc[0] - pre_move_llc[0],
+        post_move_llc[1] - pre_move_llc[1],
+    )
+    known_dydx = (
+        _MOVE_REFERENCE[0] - _START_REFERENCE[0],
+        _MOVE_REFERENCE[1] - _START_REFERENCE[1],
+    )
 
     assert known_dydx == actual_dydx
 
 
 def test_radial_deprecate_origin_x():
     with pytest.warns(DeprecationWarning):
-        mg = RadialModelGrid(num_shells=1,
-                             dr=1.,
-                             origin_x=10)
+        mg = RadialModelGrid(num_shells=1, dr=1., origin_x=10)
     assert mg._xy_of_center == (10., 0.)
-    pts, npts = mg._create_radial_points(1,
-                                         1,
-                                         xy_of_center=mg._xy_of_center)
+    pts, npts = mg._create_radial_points(1, 1, xy_of_center=mg._xy_of_center)
     assert pts[0, 0] == mg._xy_of_center[0]
     assert pts[0, 1] == mg._xy_of_center[1]
 
 
 def test_radial_deprecate_origin_y():
     with pytest.warns(DeprecationWarning):
-        mg = RadialModelGrid(num_shells=1,
-                             dr=1.,
-                             origin_y=10)
+        mg = RadialModelGrid(num_shells=1, dr=1., origin_y=10)
     assert mg._xy_of_center == (0., 10.)
-    pts, npts = mg._create_radial_points(1,
-                                         1,
-                                         xy_of_center=mg._xy_of_center)
+    pts, npts = mg._create_radial_points(1, 1, xy_of_center=mg._xy_of_center)
     assert pts[0, 0] == mg._xy_of_center[0]
     assert pts[0, 1] == mg._xy_of_center[1]
 
@@ -164,7 +154,7 @@ def test_bad_shape_xy_spacing():
 
 def test_bad_type_xy_spacing():
     with pytest.raises(ValueError):
-        RasterModelGrid(3, 3, xy_spacing='spam and eggs')
+        RasterModelGrid(3, 3, xy_spacing="spam and eggs")
 
 
 def test_deprecate_origin():

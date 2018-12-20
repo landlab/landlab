@@ -8,8 +8,9 @@ automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
 
-import numpy
 from warnings import warn
+
+import numpy
 
 from landlab.utils.decorators import deprecated
 
@@ -121,8 +122,10 @@ class RadialModelGrid(VoronoiDelaunayGrid):
             msg = "The origin_y keyword is deprecated. Use xy_of_center."
             warn(msg, DeprecationWarning)
 
-        xy_of_center = (kwds.get("origin_x", xy_of_center[0]),
-                        kwds.get("origin_y", xy_of_center[1]))
+        xy_of_center = (
+            kwds.get("origin_x", xy_of_center[0]),
+            kwds.get("origin_y", xy_of_center[1]),
+        )
 
         if num_shells > 0:
             self._initialize(num_shells, dr, xy_of_center)
@@ -175,22 +178,25 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         r = shells * dr
         startpt = 1
         for i in numpy.arange(0, num_shells):
-            theta = ((dtheta[i]
-                      * numpy.arange(0, n_pts_in_shell[i]))
-                     + dtheta[i] / (i + 1))
+            theta = (dtheta[i] * numpy.arange(0, n_pts_in_shell[i])) + dtheta[i] / (
+                i + 1
+            )
             ycoord = r[i] * numpy.sin(theta)
             if numpy.isclose(ycoord[-1], 0.):
                 # this modification necessary to force the first ring to
                 # follow our new CCW from E numbering convention (DEJH, Nov15)
                 ycoord[-1] = 0.
-                pts[startpt: (startpt + int(n_pts_in_shell[i])), 0] = (
-                                        numpy.roll(r[i] * numpy.cos(theta), 1))
-                pts[startpt: (startpt + int(n_pts_in_shell[i])), 1] = (
-                                        numpy.roll(ycoord, 1))
+                pts[startpt : (startpt + int(n_pts_in_shell[i])), 0] = numpy.roll(
+                    r[i] * numpy.cos(theta), 1
+                )
+                pts[startpt : (startpt + int(n_pts_in_shell[i])), 1] = numpy.roll(
+                    ycoord, 1
+                )
             else:
-                pts[startpt: (startpt + int(n_pts_in_shell[i])), 0] = (
-                                        r[i] * numpy.cos(theta))
-                pts[startpt: (startpt + int(n_pts_in_shell[i])), 1] = ycoord
+                pts[startpt : (startpt + int(n_pts_in_shell[i])), 0] = r[i] * numpy.cos(
+                    theta
+                )
+                pts[startpt : (startpt + int(n_pts_in_shell[i])), 1] = ycoord
             startpt += int(n_pts_in_shell[i])
 
         pts[:, 0] += xy_of_center[0]
@@ -244,9 +250,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
             return self._nnodes_inshell
         except AttributeError:
             n_pts_in_shell = numpy.round(
-                2.
-                * numpy.pi
-                * (numpy.arange(self.number_of_shells, dtype=float) + 1.)
+                2. * numpy.pi * (numpy.arange(self.number_of_shells, dtype=float) + 1.)
             )
             self._nnodes_inshell = n_pts_in_shell.astype(int)
             return self._nnodes_inshell

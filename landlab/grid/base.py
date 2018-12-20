@@ -314,11 +314,9 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
 
-        self.axis_name = kwds.get("axis_name",
-                                  _default_axis_names(self.ndim))
+        self.axis_name = kwds.get("axis_name", _default_axis_names(self.ndim))
 
-        self.axis_units = kwds.get("axis_units",
-                                   _default_axis_units(self.ndim))
+        self.axis_units = kwds.get("axis_units", _default_axis_units(self.ndim))
 
         self._ref_coord = kwds.get("reference_point_coordinates", (0., 0.))
         self._link_length = None
@@ -2817,9 +2815,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         array([-1, -1, -1,  0,  1,  2,  3, -1,  4,  5,  6, -1,  7,  8,  9, 10,
                -1, -1, -1])
         """
-        self._face_at_link = np.full(self.number_of_links,
-                                     BAD_INDEX_VALUE,
-                                     dtype=int)
+        self._face_at_link = np.full(self.number_of_links, BAD_INDEX_VALUE, dtype=int)
         face_id = 0
         node_at_link_tail = self.node_at_link_tail
         node_at_link_head = self.node_at_link_head

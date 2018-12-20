@@ -120,14 +120,15 @@ class HexModelGrid(VoronoiDelaunayGrid):
         """
         # Set number of nodes, and initialize if caller has given dimensions
         if base_num_rows * base_num_cols > 0:
-            self._initialize(base_num_rows,
-                             base_num_cols,
-                             dx,
-                             xy_of_lower_left,
-                             orientation,
-                             shape,
-                             reorient_links
-                             )
+            self._initialize(
+                base_num_rows,
+                base_num_cols,
+                dx,
+                xy_of_lower_left,
+                orientation,
+                shape,
+                reorient_links,
+            )
         super(HexModelGrid, self).__init__(**kwds)
         # save xy_of_lower_left as attribute. This has to happen after Voronoi
         self._xy_of_lower_left = xy_of_lower_left
@@ -155,15 +156,16 @@ class HexModelGrid(VoronoiDelaunayGrid):
         self._xy_of_node -= (dx, dy)
         self._xy_of_lower_left = xy_of_lower_left
 
-    def _initialize(self,
-                    base_num_rows,
-                    base_num_cols,
-                    dx,
-                    xy_of_lower_left,
-                    orientation,
-                    shape,
-                    reorient_links=True
-                    ):
+    def _initialize(
+        self,
+        base_num_rows,
+        base_num_cols,
+        dx,
+        xy_of_lower_left,
+        orientation,
+        shape,
+        reorient_links=True,
+    ):
         r"""Set up a hexagonal grid.
 
         Sets up a hexagonal grid with cell spacing dx and
@@ -256,38 +258,36 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # Create a set of hexagonally arranged points. These will be our nodes.
         if orientation[0].lower() == "h" and shape[0].lower() == "h":
             pts = HexModelGrid._hex_points_with_horizontal_hex(
-                base_num_rows, base_num_cols, dx, xy_of_lower_left,
+                base_num_rows, base_num_cols, dx, xy_of_lower_left
             )
             self.orientation = "horizontal"
             self._nrows = base_num_rows
         elif orientation[0].lower() == "h" and shape[0].lower() == "r":
             pts = HexModelGrid._hex_points_with_horizontal_rect(
-                base_num_rows, base_num_cols, dx, xy_of_lower_left,
+                base_num_rows, base_num_cols, dx, xy_of_lower_left
             )
             self.orientation = "horizontal"
             self._nrows = base_num_rows
             self._ncols = base_num_cols
             self._shape = (self._nrows, self._ncols)
-            self._nodes = numpy.arange((self._nrows
-                                        * self._ncols), dtype=int).reshape(
+            self._nodes = numpy.arange((self._nrows * self._ncols), dtype=int).reshape(
                 self._shape
             )
         elif orientation[0].lower() == "v" and shape[0].lower() == "h":
             pts = HexModelGrid._hex_points_with_vertical_hex(
-                base_num_rows, base_num_cols, dx, xy_of_lower_left,
+                base_num_rows, base_num_cols, dx, xy_of_lower_left
             )
             self.orientation = "vertical"
             self._ncols = base_num_cols
         else:
             pts = HexModelGrid._hex_points_with_vertical_rect(
-                base_num_rows, base_num_cols, dx, xy_of_lower_left,
+                base_num_rows, base_num_cols, dx, xy_of_lower_left
             )
             self.orientation = "vertical"
             self._nrows = base_num_rows
             self._ncols = base_num_cols
             self._shape = (self._nrows, self._ncols)
-            self._nodes = numpy.arange((self._nrows
-                                        * self._ncols), dtype=int).reshape(
+            self._nodes = numpy.arange((self._nrows * self._ncols), dtype=int).reshape(
                 self._shape
             )
             for col in range(self._ncols):
@@ -371,10 +371,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return pts
 
     @staticmethod
-    def _hex_points_with_horizontal_hex(num_rows,
-                                        base_num_cols,
-                                        dxh,
-                                        xy_of_lower_left):
+    def _hex_points_with_horizontal_hex(num_rows, base_num_cols, dxh, xy_of_lower_left):
         """Create a set of points on a staggered grid.
 
         Creates and returns a set of (x,y) points in a staggered grid in which
@@ -438,14 +435,11 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 extra_cols -= 1
             xshift = -half_dxh * extra_cols
 
-        #return pts
+        # return pts
         return HexModelGrid._shift_to_lower_left(pts, xy_of_lower_left)
 
     @staticmethod
-    def _hex_points_with_horizontal_rect(num_rows,
-                                         num_cols,
-                                         dxh,
-                                         xy_of_lower_left):
+    def _hex_points_with_horizontal_rect(num_rows, num_cols, dxh, xy_of_lower_left):
         """Create a set of points in a taggered grid.
         Creates and returns a set of (x,y) points in a staggered grid in which
         the points represent the centers of regular hexagonal cells, and the
@@ -500,10 +494,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return HexModelGrid._shift_to_lower_left(pts, xy_of_lower_left)
 
     @staticmethod
-    def _hex_points_with_vertical_hex(base_num_rows,
-                                      num_cols,
-                                      dxv,
-                                      xy_of_lower_left):
+    def _hex_points_with_vertical_hex(base_num_rows, num_cols, dxv, xy_of_lower_left):
         """
         Creates and returns a set of (x,y) points in a staggered grid in which
         the points represent the centers of regular hexagonal cells, and the
@@ -575,10 +566,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         return HexModelGrid._shift_to_lower_left(pts, xy_of_lower_left)
 
     @staticmethod
-    def _hex_points_with_vertical_rect(num_rows,
-                                       num_cols,
-                                       dxv,
-                                       xy_of_lower_left):
+    def _hex_points_with_vertical_rect(num_rows, num_cols, dxv, xy_of_lower_left):
         """
         Creates and returns a set of (x,y) points in a staggered grid in which
         the points represent the centers of regular hexagonal cells, and the

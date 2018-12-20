@@ -26,8 +26,10 @@ Created: GT Nov 2013
 """
 import numpy
 from six.moves import range
-from .cfuncs import _add_to_stack, _accumulate_bw
+
 from landlab.core.utils import as_id_array
+
+from .cfuncs import _accumulate_bw, _add_to_stack
 
 
 class _DrainageStack:
