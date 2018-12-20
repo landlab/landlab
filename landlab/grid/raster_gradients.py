@@ -1704,12 +1704,12 @@ def calc_slope_at_node(
     --------
     >>> import numpy as np
     >>> from landlab import RadialModelGrid, RasterModelGrid
-    >>> mg = RasterModelGrid((5, 5), 1.)
+    >>> mg = RasterModelGrid((5, 5))
     >>> z = mg.node_x
     >>> slopes = mg.calc_slope_at_node(elevs=z)
     >>> np.allclose(slopes, np.pi / 4.)
     True
-    >>> mg = RasterModelGrid((4, 5), 2.)
+    >>> mg = RasterModelGrid((4, 5), xy_spacing=2.)
     >>> z = - mg.node_y
     >>> slope_mag, cmp = mg.calc_slope_at_node(elevs=z,
     ...                                        return_components=True)

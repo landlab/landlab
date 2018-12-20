@@ -5,7 +5,7 @@ from landlab import RasterModelGrid
 
 
 def test_inactive_boundaries():
-    rmg = RasterModelGrid(3, 4, 1.)
+    rmg = RasterModelGrid(3, 4)
     assert_array_equal(rmg.active_links, np.array([4, 5, 7, 8, 9, 11, 12]))
 
     rmg.set_inactive_boundaries(True, True, True, True)
