@@ -2,13 +2,12 @@
 from __future__ import print_function
 
 import os
-import sys
-import subprocess
 import re
-from collections import defaultdict, OrderedDict
+import subprocess
+import sys
+from collections import OrderedDict, defaultdict
 
 import jinja2
-
 
 CHANGELOG = """
 # Change Log

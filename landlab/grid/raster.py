@@ -3248,9 +3248,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         neighbors = np.zeros([ids.shape[0], 4], dtype=int)
         diagonals = np.zeros([ids.shape[0], 4], dtype=int)
         # [right, top, left, bottom]
-        neighbors[:, ] = self.active_adjacent_nodes_at_node[ids]
+        neighbors[:] = self.active_adjacent_nodes_at_node[ids]
         # [topright, topleft, bottomleft, bottomright]
-        diagonals[:, ] = self.diagonal_adjacent_nodes_at_node[ids]
+        diagonals[:] = self.diagonal_adjacent_nodes_at_node[ids]
 
         right = vals[neighbors[:, 0]]
         top = vals[neighbors[:, 1]]

@@ -261,9 +261,11 @@ class DataRecord(Dataset):
                 )
             for key in data_vars.keys():
                 # check dict structure and dims:
-                if (
-                    data_vars[key][0]
-                    not in (["time"], ["item_id"], ["time", "item_id"], ["item_id", "time"])
+                if data_vars[key][0] not in (
+                    ["time"],
+                    ["item_id"],
+                    ["time", "item_id"],
+                    ["item_id", "time"],
                 ):
                     raise ValueError(
                         "Data variable dimensions must be " "time and/or item_id"

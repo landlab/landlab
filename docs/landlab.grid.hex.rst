@@ -87,6 +87,7 @@ Information about nodes
     ~landlab.grid.hex.HexModelGrid.node_at_link_head
     ~landlab.grid.hex.HexModelGrid.node_at_link_tail
     ~landlab.grid.hex.HexModelGrid.node_axis_coordinates
+    ~landlab.grid.hex.HexModelGrid.node_has_boundary_neighbor
     ~landlab.grid.hex.HexModelGrid.node_is_boundary
     ~landlab.grid.hex.HexModelGrid.node_x
     ~landlab.grid.hex.HexModelGrid.node_y
@@ -371,6 +372,7 @@ defined at other grid elements automatically.
     ~landlab.grid.hex.HexModelGrid.fixed_links
     ~landlab.grid.hex.HexModelGrid.fixed_value_boundary_nodes
     ~landlab.grid.hex.HexModelGrid.node_at_core_cell
+    ~landlab.grid.hex.HexModelGrid.node_has_boundary_neighbor
     ~landlab.grid.hex.HexModelGrid.node_is_boundary
     ~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge
     ~landlab.grid.hex.HexModelGrid.nodes_at_left_edge
@@ -386,6 +388,8 @@ defined at other grid elements automatically.
     ~landlab.grid.hex.HexModelGrid.open_boundary_nodes
     ~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.hex.HexModelGrid.set_watershed_boundary_condition
+    ~landlab.grid.hex.HexModelGrid.set_watershed_boundary_condition_outlet_id
     ~landlab.grid.hex.HexModelGrid.status_at_link
     ~landlab.grid.hex.HexModelGrid.status_at_node
 
