@@ -85,8 +85,7 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True):
         try:
             sf = ps.Reader(shp=file, dbf=dbf)
         except ShapefileException:
-            raise ShapefileException(("Bad file path provided to "
-                                      "read_shapefile."))
+            raise ShapefileException(("Bad file path provided to read_shapefile."))
 
     if sf.shapeType is not 3:
         raise ValueError(
