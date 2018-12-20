@@ -29,14 +29,10 @@ from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
 from ..utils.decorators import cache_result_in_object
 from .base import (
-    ACTIVE_LINK,
     BAD_INDEX_VALUE,
     CLOSED_BOUNDARY,
     CORE_NODE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_LINK,
     FIXED_VALUE_BOUNDARY,
-    INACTIVE_LINK,
     LOOPED_BOUNDARY,
     ModelGrid,
 )
@@ -525,15 +521,12 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         # If patches existed, create them
         if state_dict["_patches_created"]:
-            temp = self.nodes_at_patch
-            temp2 = self.links_at_patch
-            del temp
-            del temp2
+            self.nodes_at_patch
+            self.links_at_patch
 
         # If forced cell area existed.
         if state_dict["forced_cell_areas_created"]:
-            temp = self._create_cell_areas_array_force_inactive()
-            del temp
+            self._create_cell_areas_array_force_inactive()
 
         # If neighbor list existed, create them
         if state_dict["neighbor_list_created"]:
@@ -2669,7 +2662,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         LLCATS: DEPR NINF BC
         """
         try:
-            fixed_nodes = self.fixed_value_node_properties["boundary_node_IDs"]
+            self.fixed_value_node_properties["boundary_node_IDs"]
         except AttributeError:
             # no fixed value boundaries have been set
             pass
@@ -4239,7 +4232,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         # set outlet boundary condition
         self.status_at_node[outlet_loc] = FIXED_VALUE_BOUNDARY
 
-        if remove_disconnected == True:
+        if remove_disconnected:
             self.set_open_nodes_disconnected_from_watershed_to_closed(
                 node_data=node_data,
                 outlet_id=as_id_array(np.array([outlet_loc])),
@@ -4344,7 +4337,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
             outlet_id = possible_outlets
 
-        elif outlet_id.size != 1 or (isinstance(outlet_id, np.ndarray) == False):
+        elif outlet_id.size != 1 or (isinstance(outlet_id, np.ndarray) is False):
             # check that the value given by outlet_id is an integer
             raise ValueError("outlet_id must be a length 1 numpy array")
         else:

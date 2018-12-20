@@ -1,7 +1,6 @@
 
 import numpy as np
 import pytest
-from numpy.random import rand
 from numpy.testing import assert_array_equal
 
 from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
@@ -35,7 +34,6 @@ def test_move_reference_hex():
             for shape in shapes:
                 for orientation in orientations:
                     for _SR in _START_REFERENCE_2:
-                        size = (r, c)
                         mg = HexModelGrid(
                             r,
                             c,

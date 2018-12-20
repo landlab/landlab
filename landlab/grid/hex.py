@@ -558,9 +558,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
             else:
                 extra_rows -= 1
 
-            if c == middle_col:
-                reference_ind = i - r - 1
-
             yshift = -half_dxv * extra_rows
 
         return HexModelGrid._shift_to_lower_left(pts, xy_of_lower_left)
