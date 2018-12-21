@@ -318,7 +318,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         self.axis_units = kwds.get("axis_units", _default_axis_units(self.ndim))
 
-        self._ref_coord = kwds.get("xy_of_reference", (0., 0.))
+        self._ref_coord = tuple(kwds.get("xy_of_reference", (0., 0.)))
         self._link_length = None
         self._all_node_distances_map = None
         self._all_node_azimuths_map = None
@@ -366,7 +366,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
     @xy_of_reference.setter
     def xy_of_reference(self, new_xy_of_reference):
         """Set a new value for the model grid xy_of_reference."""
-        self._ref_coord = new_xy_of_reference
+        self._ref_coord = (new_xy_of_reference[0], new_xy_of_reference[1])
 
     def _create_neighbor_list(self, **kwds):
         """Create list of neighbor node IDs.
