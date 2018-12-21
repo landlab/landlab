@@ -6,8 +6,26 @@ from pytest import approx
 from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
 
 
+def test_xy_of_reference_default_is_zero():
+    grid = RasterModelGrid((9, 5))
+    assert grid.xy_of_reference == approx((0., 0.))
+
+
+@pytest.mark.parametrize("to_iterable", [np.asarray, list, tuple])
+def test_xy_of_reference_is_tuple(random_xy, to_iterable):
+    grid = RasterModelGrid((9, 5), xy_of_reference=to_iterable(random_xy))
+    assert isinstance(grid.xy_of_reference, tuple)
+    assert grid.xy_of_reference == approx(random_xy)
+
+
+def test_xy_of_reference_setter(random_xy):
+    grid = RasterModelGrid((9, 5))
+    grid.xy_of_reference = random_xy
+    assert grid.xy_of_reference == approx(random_xy)
+
+
 def test_move_reference_raster(random_xy):
-    mg = RasterModelGrid(9, 5, xy_spacing=2.0, xy_of_lower_left=random_xy)
+    mg = RasterModelGrid((9, 5), xy_spacing=2.0, xy_of_lower_left=random_xy)
     assert mg.xy_of_lower_left == approx(random_xy)
     assert mg.x_of_node.min() == approx(random_xy[0])
     assert mg.y_of_node.min() == approx(random_xy[1])
