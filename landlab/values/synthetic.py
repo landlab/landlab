@@ -19,7 +19,7 @@ Examples
 >>> import numpy as np
 >>> from landlab import RasterModelGrid
 >>> from landlab import CORE_NODE
->>> from landlab.values import random_normal, plane
+>>> from landlab.values import random, plane
 >>> mg = RasterModelGrid((11, 11))
 
 """
@@ -48,19 +48,26 @@ def _where_to_add_values(grid, at, where):
     # based on status, set where to true. support value or iterable.
     if where_to_place is None:
         where_to_place = np.ones(grid.size(at), dtype=bool)
-    elif where.size == grid.size(at):
-        where_to_place = where
     else:
         try:
-            for s in status:
-                where_to_place[status_values == s] = True
-        except TypeError:
-            where_to_place[status_values == status] = True
+            where.size == grid.size(at)
+            where_to_place = where
+        except AttributeError:
+            try:
+                for w in where:
+                    where_to_place[status_values == w] = True
+            except TypeError:
+                where_to_place[status_values == where] = True
 
     return where_to_place
 
 
-def random(grid, name, at='node', status=None, **kwargs):
+def random(grid,
+           name,
+           at='node',
+           where=None,
+           distribution="uniform",
+           **kwargs):
     """Add random values to a grid.
 
     Parameters
@@ -72,7 +79,9 @@ def random(grid, name, at='node', status=None, **kwargs):
         Grid location to store values. If not given, values are
         assumed to be on `node`.
     where : optional
-
+    distribution : str, optional
+        Name of the distribution provided by the np.random
+        package.
     kwargs : dict
         Keyword arguments to pass to the ``np.random``.
 
@@ -89,20 +98,20 @@ def random(grid, name, at='node', status=None, **kwargs):
     >>> from landlab.values import random
     >>> np.random.seed(42)
     >>> mg = RasterModelGrid((4, 4))
-    >>> values = random_uniform(mg,
-    ...                         'soil__depth',
-    ...                         'node',
-    ...                         status=CORE_NODE,
-    ...                         distribution='uniform',
-    ...                         high=3.,
-    ...                         low=2.)
+    >>> values = random(mg,
+    ...                 'soil__depth',
+    ...                 'node',
+    ...                 status=CORE_NODE,
+    ...                 distribution='uniform',
+    ...                 high=3.,
+    ...                 low=2.)
     >>> mg.at_node['soil__depth']
     array([ 0.        ,  0.        ,  0.        ,  0.        ,
             0.        ,  2.37454012,  2.95071431,  0.        ,
             0.        ,  2.73199394,  2.59865848,  0.        ,
             0.        ,  0.        ,  0.        ,  0.        ])
     """
-    where = _where_to_add_values(grid, at, status)
+    where = _where_to_add_values(grid, at, where)
     _create_missing_field(grid, name, at)
     values = np.zeros(grid.size(at))
 
@@ -112,59 +121,7 @@ def random(grid, name, at='node', status=None, **kwargs):
     return values
 
 
-def random_normal(grid, name, at, status=None, **kwargs):
-    """Add normally distributed noise to a grid.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-    name : str
-        Name of the field.
-    at : str, optional
-        Grid location to store values. If not given, values are
-        assumed to be on `node`.
-    where : optional
-        where either is specified as
-            - a value or iterable of grid element statuses where the
-              new values are placed. OR
-            - a (number-of-grid-element,) shape boolean array indicating where
-              values are placed.
-        By default, values are added to all elements.
-    kwargs : dict
-        Keyword arguments to pass to ``np.random.normal``.
-
-    Returns
-    -------
-    values : array
-        Array of the values added to the field.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab import RasterModelGrid
-    >>> from landlab.values import random_normal
-    >>> np.random.seed(42)
-    >>> mg = RasterModelGrid((4, 4))
-    >>> values = random_normal(mg,
-    ...                        'soil__depth',
-    ...                        'node',
-    ...                        loc=5.,
-    ...                        scale=1.)
-    >>> mg.at_node['soil__depth']
-    array([ 5.49671415,  4.8617357 ,  5.64768854,  6.52302986,
-            4.76584663,  4.76586304,  6.57921282,  5.76743473,
-            4.53052561,  5.54256004,  4.53658231,  4.53427025,
-            5.24196227,  3.08671976,  3.27508217,  4.43771247])
-    """
-    where = _where_to_add_values(grid, at, status)
-    _create_missing_field(grid, name, at)
-    values = np.zeros(grid.size(at))
-    values[where] += np.random.normal(size=np.sum(where), **kwargs)
-    grid[at][name][:] += values
-    return values
-
-
-def plane(grid, name, at, status=None, point=(0., 0., 0), normal=(0., 0., 1.)):
+def plane(grid, name, at, where=None, point=(0., 0., 0), normal=(0., 0., 1.)):
     """Add a single plane defined by a point and a normal to a grid.
 
     Parameters
@@ -175,7 +132,7 @@ def plane(grid, name, at, status=None, point=(0., 0., 0), normal=(0., 0., 1.)):
     at : str, optional
         Grid location to store values. If not given, values are
         assumed to be on `node`.
-    status : status-at-grid-element or list, optional
+    where : status-at-grid-element or list, optional
         A value or list of the grid element status at which values
         are added. By default, values are added to all elements.
     point : tuple, optional
@@ -210,7 +167,7 @@ def plane(grid, name, at, status=None, point=(0., 0., 0), normal=(0., 0., 1.)):
     """
     x, y = _get_x_and_y(grid, at)
 
-    where = _where_to_add_values(grid, at, status)
+    where = _where_to_add_values(grid, at, where)
     _create_missing_field(grid, name, at)
     values = _plane_function(x, y, point, normal)[where]
     grid[at][name][where] += values[where]
@@ -252,7 +209,7 @@ def _get_x_and_y(grid, at):
     return x, y
 
 
-def constant(grid, name, at, status=None, constant=0.):
+def constant(grid, name, at, where=None, constant=0.):
     """Add a constant to a grid.
 
     Parameters
@@ -291,7 +248,7 @@ def constant(grid, name, at, status=None, constant=0.):
              0.,   0.])
 
     """
-    where = _where_to_add_values(grid, at, status)
+    where = _where_to_add_values(grid, at, where)
     _create_missing_field(grid, name, at)
     values = np.zeros(grid.size(at))
     values[where] += constant
@@ -299,7 +256,7 @@ def constant(grid, name, at, status=None, constant=0.):
     return values
 
 
-def sine(grid, name, at, status):
+def sine(grid, name, at, where):
     """Add a two dimentional sin wave to a grid.
 
     .. math::
