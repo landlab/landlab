@@ -39,7 +39,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     xy_of_center : tuple, optional
         (x, y) coordinate of center point. Default
         is (0., 0.)
-    reference_point_coordinates : tuple, optional
+    xy_of_reference : tuple, optional
         Coordinate value in projected space of the reference point,
         `xy_of_lower_left`. Default is (0., 0.)
 
@@ -86,7 +86,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         xy_of_center : tuple, optional
             (x, y) coordinate of center point. Default
             is (0., 0.)
-        reference_point_coordinates : tuple, optional
+        xy_of_reference : tuple, optional
             Coordinate value in projected space of the reference point,
             `xy_of_lower_left`. Default is (0., 0.)
 

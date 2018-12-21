@@ -35,7 +35,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
     xy_of_lower_left : tuple, optional
         Minimum x-of-node and y-of-node values. Depending on the grid
         no node may be present at this coordinate. Default is (0., 0.).
-    reference_point_coordinates : tuple, optional
+    xy_of_reference : tuple, optional
         Coordinate value in projected space of the reference point,
         `xy_of_lower_left`. Default is (0., 0.)
     orientation : string, optional
@@ -67,7 +67,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         base_num_cols=0,
         dx=1.0,
         xy_of_lower_left=(0., 0.),
-        reference_point_coordinates=(0., 0.),
+        xy_of_reference=(0., 0.),
         orientation="horizontal",
         shape="hex",
         reorient_links=True,
@@ -90,7 +90,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         xy_of_lower_left : tuple, optional
             Minimum x-of-node and y-of-node values. Depending on the grid
             no node may be present at this coordinate. Default is (0., 0.).
-        reference_point_coordinates : tuple, optional
+        xy_of_reference : tuple, optional
             Coordinate value in projected space of the reference point,
             `xy_of_lower_left`. Default is (0., 0.)
         orientation : string, optional

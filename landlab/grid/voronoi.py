@@ -146,7 +146,7 @@ class VoronoiDelaunayGrid(ModelGrid):
             y-coordinate of points
         reorient_links (optional) : bool
             whether to point all links to the upper-right quadrant
-        reference_point_coordinates : tuple, optional
+        xy_of_reference : tuple, optional
             Coordinate value in projected space of (0., 0.)
             Default is (0., 0.)
 
