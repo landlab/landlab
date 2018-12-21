@@ -199,19 +199,33 @@ def plane(grid, name, at, status=None, point=(0., 0., 0), normal=(0., 0., 1.)):
             3.,  4.,  5.,  6.])
 
     """
-    if np.isclose(normal[2], 0):
-        raise ValueError("")
+    x, y = _get_x_and_y(grid, at)
+
     where = _where_to_add_values(grid, at, status)
     _create_missing_field(grid, name, at)
-    grid[at][name][where] += _plane_function(grid, at, point, normal)[where]
-    return plane
+    values = _plane_function(x, y, point, normal)[where]
+    grid[at][name][where] += values[where]
+
+    return values
 
 
-def _plane_function(grid, at, point, normal):
+def _plane_function(x, y, point, normal):
     """calculate the plane function"""
     if np.isclose(normal[2], 0):
         raise ValueError("")
 
+    constant = (point[0] * normal[0] +
+                point[1] * normal[1] +
+                point[2] * normal[2])
+    values = ((constant
+              - (normal[0] * (x - point[0]))
+              - (normal[1] * (y - point[1])))
+              / normal[2])
+
+    return values
+
+
+def _get_x_and_y(grid, at):
     if at is "node":
         x = grid.x_of_node
         y = grid.y_of_node
@@ -226,67 +240,7 @@ def _plane_function(grid, at, point, normal):
         y = grid.y_of_face
     else:
         raise ValueError("")
-
-    constant = (point[0] * normal[0] +
-                point[1] * normal[1] +
-                point[2] * normal[2])
-    values = ((constant
-              - (normal[0] * (x - point[0]))
-              - (normal[1] * (y - point[1])))
-             / normal[2])
-    return values
-
-
-def multipy_planes(grid, name, at,
-                   status=None,
-                   planes=[]):
-    """Add multiple planes multiplied together.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-    name : str
-        Name of the field.
-    at : str, optional
-        Grid location to store values. If not given, values are
-        assumed to be on `node`.
-    status : status-at-grid-element or list, optional
-        A value or list of the grid element status at which values
-        are added. By default, values are added to all elements.
-    planes :
-
-    Returns
-    -------
-    values : array
-        Array of the values added to the field.
-
-    Examples
-    --------
-    >>> from landlab import RasterModelGrid
-    >>> from landlab.values import multipy_planes
-    >>> mg = RasterModelGrid((5, 5))
-    >>> planes = [[(0,  0, 0), (0, -1, 1)],
-    ...           [(0,  4, 0), (0,  1, 1)]]
-    >>> values = multipy_planes(mg,
-    ...                         'soil__depth',
-    ...                         'node',
-    ...                         planes=planes)
-    >>> mg.at_node['soil__depth']
-    array([ 0.,  1.,  2.,  3.,
-            1.,  2.,  3.,  4.,
-            2.,  3.,  4.,  5.,
-            3.,  4.,  5.,  6.])
-
-    """
-    where = _where_to_add_values(grid, at, status)
-    _create_missing_field(grid, name, at)
-
-    field = np.ones(where.shape)
-    for params in planes:
-        field *= _plane_function(grid, at, params[0], params[1])
-
-    grid[at][name][where] += field[where]
-    return field
+    return x, y
 
 
 def constant(grid, name, at, status=None, constant=0.):
@@ -334,3 +288,53 @@ def constant(grid, name, at, status=None, constant=0.):
     values[where] += constant
     grid[at][name][:] += values
     return values
+
+
+def sine(grid, name, at, status):
+    """Add a two dimentional sin wave to a grid.
+
+    .. math::
+        z = a sin ((x-x0)/px) + b sin((y-y0)/py)
+
+
+    Parameters
+    ----------
+    grid : ModelGrid
+    name : str
+        Name of the field.
+    at : str, optional
+        Grid location to store values. If not given, values are
+        assumed to be on `node`.
+    status : status-at-grid-element or list, optional
+        A value or list of the grid element status at which values
+        are added. By default, values are added to all elements.
+    point : tuple, optional
+        (x0, y0)
+    amplitudes :
+        (a, b)
+    periods :
+        (px, py)
+
+    Returns
+    -------
+    values : array
+        Array of the values added to the field.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab import ACTIVE_LINK
+    >>> from landlab.values import constant
+    >>> mg = RasterModelGrid((4, 4))
+    >>> values = constant(mg,
+    ...                  'some_flux',
+    ...                  'link',
+    ...                  status=ACTIVE_LINK,
+    ...                  constant=10)
+    >>> mg.at_link['some_flux']
+    array([  0.,   0.,   0.,   0.,  10.,  10.,   0.,  10.,  10.,  10.,   0.,
+            10.,  10.,   0.,  10.,  10.,  10.,   0.,  10.,  10.,   0.,   0.,
+             0.,   0.])
+
+    """
+    pass
