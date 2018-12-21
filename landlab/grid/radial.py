@@ -126,6 +126,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
             kwds.get("origin_x", xy_of_center[0]),
             kwds.get("origin_y", xy_of_center[1]),
         )
+        xy_of_center = tuple(xy_of_center)
 
         if num_shells > 0:
             self._initialize(num_shells, dr, xy_of_center)
