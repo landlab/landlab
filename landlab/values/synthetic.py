@@ -32,33 +32,36 @@ def _create_missing_field(grid, name, at):
         grid.add_zeros(at, name)
 
 
-def _where_to_add_values(grid, at, status):
+def _where_to_add_values(grid, at, where):
     "Determine where to put values."
-    where = np.zeros(grid.size(at), dtype=bool)
+    where_to_place = np.zeros(grid.size(at), dtype=bool)
+
     if at is "link":
         status_values = grid.status_at_link
     elif at is "node":
         status_values = grid.status_at_node
     else:
-        if status is not None:
+        if where_to_place is not None:
             raise ValueError(("No status information exists for grid elements "
                               "that are not nodes or links."))
 
     # based on status, set where to true. support value or iterable.
-    if status is None:
-        where = np.ones(grid.size(at), dtype=bool)
+    if where_to_place is None:
+        where_to_place = np.ones(grid.size(at), dtype=bool)
+    elif where.size == grid.size(at):
+        where_to_place = where
     else:
         try:
             for s in status:
-                where[status_values == s] = True
+                where_to_place[status_values == s] = True
         except TypeError:
-            where[status_values == status] = True
+            where_to_place[status_values == status] = True
 
-    return where
+    return where_to_place
 
 
-def random_uniform(grid, name, at='node', status=None, **kwargs):
-    """Add uniform noise to a grid.
+def random(grid, name, at='node', status=None, **kwargs):
+    """Add random values to a grid.
 
     Parameters
     ----------
@@ -68,11 +71,10 @@ def random_uniform(grid, name, at='node', status=None, **kwargs):
     at : str, optional
         Grid location to store values. If not given, values are
         assumed to be on `node`.
-    status : status-at-grid-element or list, optional
-        A value or list of the grid element status at which values
-        are added. By default, values are added to all elements.
+    where : optional
+
     kwargs : dict
-        Keyword arguments to pass to ``np.random.uniform``.
+        Keyword arguments to pass to the ``np.random``.
 
     Returns
     -------
@@ -84,13 +86,14 @@ def random_uniform(grid, name, at='node', status=None, **kwargs):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab import CORE_NODE
-    >>> from landlab.values import random_uniform
+    >>> from landlab.values import random
     >>> np.random.seed(42)
     >>> mg = RasterModelGrid((4, 4))
     >>> values = random_uniform(mg,
     ...                         'soil__depth',
     ...                         'node',
     ...                         status=CORE_NODE,
+    ...                         distribution='uniform',
     ...                         high=3.,
     ...                         low=2.)
     >>> mg.at_node['soil__depth']
@@ -102,7 +105,9 @@ def random_uniform(grid, name, at='node', status=None, **kwargs):
     where = _where_to_add_values(grid, at, status)
     _create_missing_field(grid, name, at)
     values = np.zeros(grid.size(at))
-    values[where] += np.random.uniform(size=np.sum(where), **kwargs)
+
+    function = np.random.__dict__[distribution]
+    values[where] += function(size=np.sum(where), **kwargs)
     grid[at][name][:] += values
     return values
 
@@ -118,9 +123,13 @@ def random_normal(grid, name, at, status=None, **kwargs):
     at : str, optional
         Grid location to store values. If not given, values are
         assumed to be on `node`.
-    status : status-at-grid-element or list, optional
-        A value or list of the grid element status at which values
-        are added. By default, values are added to all elements.
+    where : optional
+        where either is specified as
+            - a value or iterable of grid element statuses where the
+              new values are placed. OR
+            - a (number-of-grid-element,) shape boolean array indicating where
+              values are placed.
+        By default, values are added to all elements.
     kwargs : dict
         Keyword arguments to pass to ``np.random.normal``.
 
