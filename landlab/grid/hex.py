@@ -118,6 +118,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> hmg.number_of_nodes
         7
         """
+        xy_of_lower_left = tuple(xy_of_lower_left)
         # Set number of nodes, and initialize if caller has given dimensions
         if base_num_rows * base_num_cols > 0:
             self._initialize(

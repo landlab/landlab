@@ -25,7 +25,16 @@ def test_move_reference_raster(random_xy):
 def test_raster_lower_left_as_iterables(random_xy, to_iterable):
     expected = approx(tuple(random_xy))
 
-    grid = RasterModelGrid(9, 5, xy_of_lower_left=to_iterable(random_xy))
+    grid = RasterModelGrid((9, 5), xy_of_lower_left=to_iterable(random_xy))
+    assert isinstance(grid.xy_of_lower_left, tuple)
+    assert grid.xy_of_lower_left == expected
+
+
+@pytest.mark.parametrize("to_iterable", [np.asarray, list, tuple])
+def test_hex_lower_left_as_iterables(random_xy, to_iterable):
+    expected = approx(tuple(random_xy))
+
+    grid = HexModelGrid(9, 5, xy_of_lower_left=to_iterable(random_xy), orientation="horizontal", shape="rect")
     assert isinstance(grid.xy_of_lower_left, tuple)
     assert grid.xy_of_lower_left == expected
 
