@@ -2,6 +2,7 @@
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
+from pytest import approx
 
 from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
 
@@ -21,36 +22,31 @@ def test_move_reference_raster():
     assert mg.y_of_node.min() == _MOVE_REFERENCE[1]
 
 
-def test_move_reference_hex():
+@pytest.mark.parametrize("orientation", ["horizontal", "vertical"])
+@pytest.mark.parametrize("shape", ["rect"])
+@pytest.mark.parametrize("n_cols", [12, 11, 10, 9])
+@pytest.mark.parametrize("n_rows", [12, 11, 10, 9])
+def test_move_reference_hex(n_rows, n_cols, shape, orientation):
     _START_REFERENCE_2 = [(0., 0.), (10., 20.)]
-    shapes = ["rect"]  # , "hex"] Once we fix the pernicious bug... this will be
-    # re commented in.
-    orientations = ["horizontal", "vertical"]
 
-    numbers = [12, 11, 10, 9]
+    for xy_of_ref in ((0., 0.), (10., 20.)):
+        mg = HexModelGrid(
+            n_rows,
+            n_cols,
+            dx=2.0,
+            xy_of_lower_left=xy_of_ref,
+            orientation=orientation,
+            shape=shape,
+        )
 
-    for r in numbers:
-        for c in numbers:
-            for shape in shapes:
-                for orientation in orientations:
-                    for _SR in _START_REFERENCE_2:
-                        mg = HexModelGrid(
-                            r,
-                            c,
-                            dx=2.0,
-                            xy_of_lower_left=_SR,
-                            orientation=orientation,
-                            shape=shape,
-                        )
+        assert mg.xy_of_lower_left == xy_of_ref
+        assert mg.x_of_node.min() == xy_of_ref[0]
+        assert mg.y_of_node.min() == xy_of_ref[1]
 
-                        assert mg._xy_of_lower_left == _SR
-                        assert mg.x_of_node.min() == _SR[0]
-                        assert mg.y_of_node.min() == _SR[1]
-
-                        mg.xy_of_lower_left = _MOVE_REFERENCE
-                        assert mg._xy_of_lower_left == _MOVE_REFERENCE
-                        assert mg.x_of_node.min() == _MOVE_REFERENCE[0]
-                        assert mg.y_of_node.min() == _MOVE_REFERENCE[1]
+        mg.xy_of_lower_left = (30., 45.)
+        assert mg._xy_of_lower_left == (30., 45.)
+        assert mg.x_of_node.min() == approx(30.)
+        assert mg.y_of_node.min() == approx(45.)
 
 
 def test_move_reference_radial():
