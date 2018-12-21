@@ -170,7 +170,7 @@ class ClastCollection(DataRecord):
         Examples
         --------
         >>> import numpy as np
-!!!        >>> from landlab.item_collection.clast_collection_DR2 import ClastCollection
+!!!        >>> from landlab.clast_tracker.clast_tracker import ClastCollection
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator, LinearDiffuser
 
@@ -555,9 +555,9 @@ class ClastCollection(DataRecord):
                     self['slope__SN'][clast] = slope_SN_with_dev
 
     def _move_to(self, clast):
-        """ Determine the direction and value of slope where the clast will
+        """ Determine the direction and value of the slope where the clast will
         travel, and calculate the travel distance for the clast to exit the
-        current cell.
+        current cell in that direction.
 
         Parameters
         ----------
@@ -693,7 +693,6 @@ class ClastCollection(DataRecord):
                         np.power(
                             _grid.node_y[target_node]-_grid.node_y[_node],2))))
 
-## TO DO : Format to Pep8
                 if target_node_flag == 4: # NE
                     corner = 0
                     h_dist_to_exit = np.sqrt(
