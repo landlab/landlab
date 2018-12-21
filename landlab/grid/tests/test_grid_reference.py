@@ -57,25 +57,24 @@ def test_radial_center_as_iterables(random_xy, to_iterable):
 @pytest.mark.parametrize("shape", ["rect"])
 @pytest.mark.parametrize("n_cols", [12, 11, 10, 9])
 @pytest.mark.parametrize("n_rows", [12, 11, 10, 9])
-def test_move_reference_hex(n_rows, n_cols, shape, orientation):
-    for xy_of_ref in ((0.0, 0.0), (10.0, 20.0)):
-        mg = HexModelGrid(
-            n_rows,
-            n_cols,
-            dx=2.0,
-            xy_of_lower_left=xy_of_ref,
-            orientation=orientation,
-            shape=shape,
-        )
+def test_move_reference_hex(random_xy, n_rows, n_cols, shape, orientation):
+    mg = HexModelGrid(
+        n_rows,
+        n_cols,
+        dx=2.0,
+        xy_of_lower_left=random_xy,
+        orientation=orientation,
+        shape=shape,
+    )
 
-        assert mg.xy_of_lower_left == xy_of_ref
-        assert mg.x_of_node.min() == xy_of_ref[0]
-        assert mg.y_of_node.min() == xy_of_ref[1]
+    assert mg.xy_of_lower_left == random_xy
+    assert mg.x_of_node.min() == random_xy[0]
+    assert mg.y_of_node.min() == random_xy[1]
 
-        mg.xy_of_lower_left = (30.0, 45.0)
-        assert mg._xy_of_lower_left == (30.0, 45.0)
-        assert mg.x_of_node.min() == approx(30.0)
-        assert mg.y_of_node.min() == approx(45.0)
+    mg.xy_of_lower_left = (30.0, 45.0)
+    assert mg._xy_of_lower_left == (30.0, 45.0)
+    assert mg.x_of_node.min() == approx(30.0)
+    assert mg.y_of_node.min() == approx(45.0)
 
 
 def test_move_reference_radial(random_xy):

@@ -25,11 +25,12 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("diagonal_property", DIAGONAL_PROPERTIES)
     elif "random_xy" in metafunc.fixturenames:
         from numpy.random import random_sample
+
         metafunc.parametrize(
             "random_xy",
             (
-                tuple(- 1e3 * random_sample(2)),
+                tuple(-1e3 * random_sample(2)),
                 tuple(1e3 * random_sample(2)),
-                tuple(1e3 * (random_sample(2) - .5)),
-            )
+                tuple(1e3 * (random_sample(2) - 0.5)),
+            ),
         )
