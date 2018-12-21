@@ -36,23 +36,24 @@ def _where_to_add_values(grid, at, where):
     "Determine where to put values."
     where_to_place = np.zeros(grid.size(at), dtype=bool)
 
-    if at is "link":
-        status_values = grid.status_at_link
-    elif at is "node":
-        status_values = grid.status_at_node
-    else:
-        if where_to_place is not None:
-            raise ValueError(("No status information exists for grid elements "
-                              "that are not nodes or links."))
+    try:
+        where.size == grid.size(at)
+        where_to_place = where
+    except AttributeError:
 
-    # based on status, set where to true. support value or iterable.
-    if where_to_place is None:
-        where_to_place = np.ones(grid.size(at), dtype=bool)
-    else:
-        try:
-            where.size == grid.size(at)
-            where_to_place = where
-        except AttributeError:
+        if at is "link":
+            status_values = grid.status_at_link
+        elif at is "node":
+            status_values = grid.status_at_node
+        else:
+            if where is not None:
+                raise ValueError(("No status information exists for grid elements "
+                                  "that are not nodes or links."))
+        # based on status, set where to true. support value or iterable.
+        if where is None:
+            where_to_place = np.ones(grid.size(at), dtype=bool)
+        else:
+
             try:
                 for w in where:
                     where_to_place[status_values == w] = True
@@ -79,6 +80,10 @@ def random(grid,
         Grid location to store values. If not given, values are
         assumed to be on `node`.
     where : optional
+        The keyword ``where`` indicates where synthetic values
+        should be placed. It is either (1) a single value or list
+        of values indicating a grid-element status (e.g. CORE_NODE),
+        or (2) a (number-of-grid-element,) sized boolean array.
     distribution : str, optional
         Name of the distribution provided by the np.random
         package.
@@ -101,7 +106,7 @@ def random(grid,
     >>> values = random(mg,
     ...                 'soil__depth',
     ...                 'node',
-    ...                 status=CORE_NODE,
+    ...                 where=CORE_NODE,
     ...                 distribution='uniform',
     ...                 high=3.,
     ...                 low=2.)
@@ -132,9 +137,11 @@ def plane(grid, name, at, where=None, point=(0., 0., 0), normal=(0., 0., 1.)):
     at : str, optional
         Grid location to store values. If not given, values are
         assumed to be on `node`.
-    where : status-at-grid-element or list, optional
-        A value or list of the grid element status at which values
-        are added. By default, values are added to all elements.
+    where : optional
+        The keyword ``where`` indicates where synthetic values
+        should be placed. It is either (1) a single value or list
+        of values indicating a grid-element status (e.g. CORE_NODE),
+        or (2) a (number-of-grid-element,) sized boolean array.
     point : tuple, optional
         A tuple defining a point the plane goes through in the
         format (x, y, z). Default is (0., 0., 0.)
@@ -220,9 +227,11 @@ def constant(grid, name, at, where=None, constant=0.):
     at : str, optional
         Grid location to store values. If not given, values are
         assumed to be on `node`.
-    status : status-at-grid-element or list, optional
-        A value or list of the grid element status at which values
-        are added. By default, values are added to all elements.
+    where : optional
+        The keyword ``where`` indicates where synthetic values
+        should be placed. It is either (1) a single value or list
+        of values indicating a grid-element status (e.g. CORE_NODE),
+        or (2) a (number-of-grid-element,) sized boolean array.
     constant : float, optional
         Constant value to add to the grid. Default is 0.
 
@@ -240,7 +249,7 @@ def constant(grid, name, at, where=None, constant=0.):
     >>> values = constant(mg,
     ...                  'some_flux',
     ...                  'link',
-    ...                  status=ACTIVE_LINK,
+    ...                  where=ACTIVE_LINK,
     ...                  constant=10)
     >>> mg.at_link['some_flux']
     array([  0.,   0.,   0.,   0.,  10.,  10.,   0.,  10.,  10.,  10.,   0.,
@@ -257,11 +266,10 @@ def constant(grid, name, at, where=None, constant=0.):
 
 
 def sine(grid, name, at, where):
-    """Add a two dimentional sin wave to a grid.
+    """Add a sin wave to a grid.
 
     .. math::
-        z = a sin ((x-x0)/px) + b sin((y-y0)/py)
-
+        z = A * sin ( P (x-x0) ) *** make this permit rotation.
 
     Parameters
     ----------
@@ -271,15 +279,11 @@ def sine(grid, name, at, where):
     at : str, optional
         Grid location to store values. If not given, values are
         assumed to be on `node`.
-    status : status-at-grid-element or list, optional
-        A value or list of the grid element status at which values
-        are added. By default, values are added to all elements.
-    point : tuple, optional
-        (x0, y0)
-    amplitudes :
-        (a, b)
-    periods :
-        (px, py)
+    where : optional
+        The keyword ``where`` indicates where synthetic values
+        should be placed. It is either (1) a single value or list
+        of values indicating a grid-element status (e.g. CORE_NODE),
+        or (2) a (number-of-grid-element,) sized boolean array.
 
     Returns
     -------
@@ -295,7 +299,7 @@ def sine(grid, name, at, where):
     >>> values = constant(mg,
     ...                  'some_flux',
     ...                  'link',
-    ...                  status=ACTIVE_LINK,
+    ...                  where=ACTIVE_LINK,
     ...                  constant=10)
     >>> mg.at_link['some_flux']
     array([  0.,   0.,   0.,   0.,  10.,  10.,   0.,  10.,  10.,  10.,   0.,
