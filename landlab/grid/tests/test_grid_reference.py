@@ -11,15 +11,36 @@ _MOVE_REFERENCE = (30., 45.)
 
 
 def test_move_reference_raster():
-    mg = RasterModelGrid(9, 5, xy_spacing=2.0, xy_of_lower_left=_START_REFERENCE)
-    assert mg._xy_of_lower_left == _START_REFERENCE
-    assert mg.x_of_node.min() == _START_REFERENCE[0]
-    assert mg.y_of_node.min() == _START_REFERENCE[1]
+    xy_of_lower_left = 1000. * (np.random.random_sample(2) - .5)
 
-    mg.xy_of_lower_left = _MOVE_REFERENCE
-    assert mg._xy_of_lower_left == _MOVE_REFERENCE
-    assert mg.x_of_node.min() == _MOVE_REFERENCE[0]
-    assert mg.y_of_node.min() == _MOVE_REFERENCE[1]
+    mg = RasterModelGrid(9, 5, xy_spacing=2.0, xy_of_lower_left=xy_of_lower_left)
+    assert mg.xy_of_lower_left == approx(xy_of_lower_left)
+    assert mg.x_of_node.min() == approx(xy_of_lower_left[0])
+    assert mg.y_of_node.min() == approx(xy_of_lower_left[1])
+
+    xy_of_new_lower_left = 1000. * (np.random.random_sample(2) - .5)
+
+    mg.xy_of_lower_left = xy_of_new_lower_left
+    assert mg.xy_of_lower_left == approx(xy_of_new_lower_left)
+    assert mg.x_of_node.min() == approx(xy_of_new_lower_left[0])
+    assert mg.y_of_node.min() == approx(xy_of_new_lower_left[1])
+
+
+def test_raster_lower_left_as_iterables():
+    xy_of_lower_left = np.random.random_sample(2) - .5
+    expected = approx(tuple(xy_of_lower_left))
+
+    grid = RasterModelGrid(9, 5, xy_of_lower_left=xy_of_lower_left)
+    assert isinstance(grid.xy_of_lower_left, tuple)
+    assert grid.xy_of_lower_left == expected
+
+    grid = RasterModelGrid(9, 5, xy_of_lower_left=tuple(xy_of_lower_left))
+    assert isinstance(grid.xy_of_lower_left, tuple)
+    assert grid.xy_of_lower_left == expected
+
+    grid = RasterModelGrid(9, 5, xy_of_lower_left=list(xy_of_lower_left))
+    assert isinstance(grid.xy_of_lower_left, tuple)
+    assert grid.xy_of_lower_left == expected
 
 
 @pytest.mark.parametrize("orientation", ["horizontal", "vertical"])

@@ -467,7 +467,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             warn(msg, DeprecationWarning)
             xy_of_lower_left = kwds.pop("origin")
         else:
-            xy_of_lower_left = kwds.pop("xy_of_lower_left", None) or (0., 0.)
+            xy_of_lower_left = tuple(kwds.pop("xy_of_lower_left", (0., 0.)))
 
         if len(xy_of_lower_left) != 2:
             msg = "xy_of_lower_left must be size two"
