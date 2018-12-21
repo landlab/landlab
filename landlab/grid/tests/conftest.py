@@ -23,3 +23,13 @@ DIAGONAL_PROPERTIES = (
 def pytest_generate_tests(metafunc):
     if "diagonal_property" in metafunc.fixturenames:
         metafunc.parametrize("diagonal_property", DIAGONAL_PROPERTIES)
+    elif "random_xy" in metafunc.fixturenames:
+        from numpy.random import random_sample
+        metafunc.parametrize(
+            "random_xy",
+            (
+                tuple(- 1e3 * random_sample(2)),
+                tuple(1e3 * random_sample(2)),
+                tuple(1e3 * (random_sample(2) - .5)),
+            )
+        )

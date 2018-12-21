@@ -6,19 +6,14 @@ from pytest import approx
 
 from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
 
-_START_REFERENCE = (10., 20.)
-_MOVE_REFERENCE = (30., 45.)
 
+def test_move_reference_raster(random_xy):
+    mg = RasterModelGrid(9, 5, xy_spacing=2.0, xy_of_lower_left=random_xy)
+    assert mg.xy_of_lower_left == approx(random_xy)
+    assert mg.x_of_node.min() == approx(random_xy[0])
+    assert mg.y_of_node.min() == approx(random_xy[1])
 
-def test_move_reference_raster():
-    xy_of_lower_left = 1000. * (np.random.random_sample(2) - .5)
-
-    mg = RasterModelGrid(9, 5, xy_spacing=2.0, xy_of_lower_left=xy_of_lower_left)
-    assert mg.xy_of_lower_left == approx(xy_of_lower_left)
-    assert mg.x_of_node.min() == approx(xy_of_lower_left[0])
-    assert mg.y_of_node.min() == approx(xy_of_lower_left[1])
-
-    xy_of_new_lower_left = 1000. * (np.random.random_sample(2) - .5)
+    xy_of_new_lower_left = random_xy[0] * 10., random_xy[1] * 10.
 
     mg.xy_of_lower_left = xy_of_new_lower_left
     assert mg.xy_of_lower_left == approx(xy_of_new_lower_left)
@@ -26,19 +21,11 @@ def test_move_reference_raster():
     assert mg.y_of_node.min() == approx(xy_of_new_lower_left[1])
 
 
-def test_raster_lower_left_as_iterables():
-    xy_of_lower_left = np.random.random_sample(2) - .5
-    expected = approx(tuple(xy_of_lower_left))
+@pytest.mark.parametrize("to_iterable", [np.asarray, list, tuple])
+def test_raster_lower_left_as_iterables(random_xy, to_iterable):
+    expected = approx(tuple(random_xy))
 
-    grid = RasterModelGrid(9, 5, xy_of_lower_left=xy_of_lower_left)
-    assert isinstance(grid.xy_of_lower_left, tuple)
-    assert grid.xy_of_lower_left == expected
-
-    grid = RasterModelGrid(9, 5, xy_of_lower_left=tuple(xy_of_lower_left))
-    assert isinstance(grid.xy_of_lower_left, tuple)
-    assert grid.xy_of_lower_left == expected
-
-    grid = RasterModelGrid(9, 5, xy_of_lower_left=list(xy_of_lower_left))
+    grid = RasterModelGrid(9, 5, xy_of_lower_left=to_iterable(random_xy))
     assert isinstance(grid.xy_of_lower_left, tuple)
     assert grid.xy_of_lower_left == expected
 
@@ -48,8 +35,6 @@ def test_raster_lower_left_as_iterables():
 @pytest.mark.parametrize("n_cols", [12, 11, 10, 9])
 @pytest.mark.parametrize("n_rows", [12, 11, 10, 9])
 def test_move_reference_hex(n_rows, n_cols, shape, orientation):
-    _START_REFERENCE_2 = [(0., 0.), (10., 20.)]
-
     for xy_of_ref in ((0., 0.), (10., 20.)):
         mg = HexModelGrid(
             n_rows,
@@ -70,15 +55,16 @@ def test_move_reference_hex(n_rows, n_cols, shape, orientation):
         assert mg.y_of_node.min() == approx(45.)
 
 
-def test_move_reference_radial():
-    mg = RadialModelGrid(num_shells=9, dr=10., xy_of_center=_START_REFERENCE)
+def test_move_reference_radial(random_xy):
+    mg = RadialModelGrid(num_shells=9, dr=10., xy_of_center=random_xy)
 
-    assert mg._xy_of_center == _START_REFERENCE
+    assert mg.xy_of_center == approx(random_xy)
 
     pre_move_llc = (mg.x_of_node.min(), mg.y_of_node.min())
 
-    mg.xy_of_center = _MOVE_REFERENCE
-    assert mg._xy_of_center == _MOVE_REFERENCE
+    new_xy_of_center = (30., 45.)
+    mg.xy_of_center = new_xy_of_center
+    assert mg.xy_of_center == approx(new_xy_of_center)
 
     post_move_llc = (mg.x_of_node.min(), mg.y_of_node.min())
 
@@ -87,8 +73,8 @@ def test_move_reference_radial():
         post_move_llc[1] - pre_move_llc[1],
     )
     known_dydx = (
-        _MOVE_REFERENCE[0] - _START_REFERENCE[0],
-        _MOVE_REFERENCE[1] - _START_REFERENCE[1],
+        new_xy_of_center[0] - random_xy[0],
+        new_xy_of_center[1] - random_xy[1],
     )
 
     assert known_dydx == actual_dydx
