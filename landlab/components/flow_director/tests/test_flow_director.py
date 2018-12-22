@@ -389,7 +389,7 @@ def test_flow_director_steepest_flow__link_dir_field_creation():
     mg = RasterModelGrid((3, 3), spacing=(1, 1))
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    f = mg.add_ones("flow__link_direction", at="link", dtype=int)
+    mg.add_ones("flow__link_direction", at="link", dtype=int)
     fd = FlowDirectorSteepest(mg, z)
     assert_array_equal(
         fd.flow__link_direction, np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])

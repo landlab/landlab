@@ -9,13 +9,8 @@ in that it does not consider diagonal links between nodes. For that capability,
 use FlowDirectorD8.
 """
 
-from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
-from landlab.components.flow_director import flow_direction_DN
-from landlab import VoronoiDelaunayGrid
-from landlab import BAD_INDEX_VALUE, FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
-import numpy
-
-from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, VoronoiDelaunayGrid
+import numpy as np
+from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, BAD_INDEX_VALUE, VoronoiDelaunayGrid
 from landlab.components.flow_director import flow_direction_DN
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
@@ -322,8 +317,8 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         link_slope = all_grads[self._grid.active_links]
 
         # Step 2. Find and save base level nodes.
-        (baselevel_nodes,) = numpy.where(
-            numpy.logical_or(
+        (baselevel_nodes,) = np.where(
+            np.logical_or(
                 self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
                 self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
             )
@@ -344,7 +339,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self._grid["node"]["flow__receiver_node"][:] = receiver
         self._grid["node"]["topographic__steepest_slope"][:] = steepest_slope
         self._grid["node"]["flow__link_to_receiver_node"][:] = recvr_link
-        self._grid["node"]["flow__sink_flag"][:] = numpy.zeros_like(
+        self._grid["node"]["flow__sink_flag"][:] = np.zeros_like(
             receiver, dtype=bool
         )
         self._grid["node"]["flow__sink_flag"][sink] = True
@@ -385,7 +380,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         active_flow_links = self.links_to_receiver[is_active_flow_link]
 
         # for each of those links, the position is the upstream node
-        upstream_node_of_active_flow_link = numpy.where(is_active_flow_link)[0]
+        upstream_node_of_active_flow_link = np.where(is_active_flow_link)[0]
 
         # get the head node
         head_node_at_active_flow_link = self._grid.node_at_link_head[active_flow_links]
