@@ -104,7 +104,6 @@ def _where_to_add_values(grid, at, where):
         if where is None:
             where_to_place = np.ones(grid.size(at), dtype=bool)
         else:
-
             try:
                 for w in where:
                     where_to_place[status_values == w] = True
@@ -321,7 +320,7 @@ def sine(grid, name, at='node', where=None,
          amplitude=1., wavelength=1.0,
          a=1.0, b=1.0,
          point=(0., 0.)):
-    """Add a sin wave to a grid.
+    r"""Add a sin wave to a grid.
 
     Add a sine wave :math:`z` defined as:
 
@@ -347,6 +346,10 @@ def sine(grid, name, at='node', where=None,
         of values indicating a grid-element status (e.g. CORE_NODE),
         or (2) a (number-of-grid-element,) sized boolean array.
     amplitude : p
+    wavelength :
+    a :
+    b :
+    point :
 
     Returns
     -------
@@ -358,11 +361,17 @@ def sine(grid, name, at='node', where=None,
     >>> from landlab import RasterModelGrid
     >>> from landlab import ACTIVE_LINK
     >>> from landlab.values import sine
-    >>> mg = RasterModelGrid((5, 5), 0.5)
+    >>> mg = RasterModelGrid((5, 5))
     >>> values = sine(mg,
     ...               'topographic__elevation',
-    ...     )
-    >>> mg.at_node['topographic__elevation']
+    ...               amplitude=2, wavelength=4,
+    ...               a=1, b=0)
+    >>> np.round(mg.at_node['topographic__elevation'], decimals=2)
+    array([ 0.,  2.,  0., -2., -0.,
+            0.,  2.,  0., -2., -0.,
+            0.,  2.,  0., -2., -0.,
+            0.,  2.,  0., -2., -0.,
+            0.,  2.,  0., -2., -0.])
     """
     x, y = _get_x_and_y(grid, at)
 
@@ -370,6 +379,6 @@ def sine(grid, name, at='node', where=None,
     _create_missing_field(grid, name, at)
     values = np.zeros(grid.size(at))
     v = (a * (x - point[0])) + (b * (y - point[1]))
-    values[where] += amplitude * np.sin( 2. * np.pi * v / wavelength )
+    values[where] += amplitude * np.sin(2. * np.pi * v / wavelength)
     grid[at][name][:] += values
     return values
