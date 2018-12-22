@@ -9,10 +9,12 @@ source:
   path: ..
 
 requirements:
+  host:
+    - python
+
   build:
     - {{ compiler("c") }}
     - setuptools
-    - python
     - cython
     - numpy 1.11.*
 
