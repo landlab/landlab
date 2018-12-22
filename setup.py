@@ -150,39 +150,42 @@ class develop_and_register(develop):
         register_landlab()
 
 
-
-
-setup(name='landlab',
-      version=versioneer.get_version(),
-      author='Eric Hutton',
-      author_email='eric.hutton@colorado.edu',
-      url='https://github.com/landlab',
-      description='Plugin-based component modeling tool.',
-      long_description=open('README.rst').read(),
-      setup_requires=['cython'],
-      classifiers=[
-          'Intended Audience :: Science/Research',
-          'License :: OSI Approved :: MIT License',
-          'Operating System :: OS Independent',
-          'Programming Language :: Cython',
-          'Programming Language :: Python :: 2.7',
-          'Programming Language :: Python :: 3.6',
-          'Programming Language :: Python :: 3.7',
-          'Programming Language :: Python :: Implementation :: CPython',
-          'Topic :: Scientific/Engineering :: Physics'
-      ],
-      packages=find_packages(),
-      package_data={'': ['tests/*txt', 'data/*asc', 'data/*nc',
-                         'preciptest.in']},
-      cmdclass=versioneer.get_cmdclass({
-          'install': install_and_register,
-          'develop': develop_and_register,
-      }),
-      entry_points={
-          'console_scripts': [
-              'landlab=landlab.cmd.landlab:main',
-          ]
-      },
-      include_dirs = [numpy_incl, ],
-      ext_modules = ext_modules,
-     )
+setup(
+    name="landlab",
+    version=versioneer.get_version(),
+    author="Eric Hutton",
+    author_email="eric.hutton@colorado.edu",
+    url="https://github.com/landlab",
+    description="Plugin-based component modeling tool.",
+    long_description=open("README.rst").read(),
+    setup_requires=["cython"],
+    classifiers=[
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Cython",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Topic :: Scientific/Engineering :: Physics",
+    ],
+    packages=find_packages(),
+    package_data={
+        "": [
+            "tests/*txt",
+            "data/*asc",
+            "data/*nc",
+            "data/*shp",
+            "test/*shx",
+            "data/*dbf",
+            "preciptest.in",
+        ]
+    },
+    cmdclass=versioneer.get_cmdclass(
+        {"install": install_and_register, "develop": develop_and_register}
+    ),
+    entry_points={"console_scripts": ["landlab=landlab.cmd.landlab:main"]},
+    include_dirs=[numpy_incl],
+    ext_modules=ext_modules,
+)
