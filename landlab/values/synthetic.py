@@ -20,8 +20,59 @@ Examples
 >>> from landlab import RasterModelGrid
 >>> from landlab import CORE_NODE
 >>> from landlab.values import random, plane
->>> mg = RasterModelGrid((11, 11))
+>>> np.random.seed(42)
 
+Create the grid.
+
+>>> mg = RasterModelGrid((7, 7))
+
+Create a tetrahedron by adding planes selectively using ``where``.
+
+>>> southwest = plane(mg, 'topographic__elevation',
+...                   where=((mg.x_of_node <= 3) & (mg.y_of_node <= 3)),
+...                   point=(0, 0, 0), normal=(-1, -1, 1))
+>>> southeast = plane(mg, 'topographic__elevation',
+...                   where=((mg.x_of_node > 3) & (mg.y_of_node <= 3)),
+...                   point=(6, 0, 0), normal=(1, -1, 1))
+>>> northeast = plane(mg, 'topographic__elevation',
+...                   where=((mg.x_of_node > 3) & (mg.y_of_node > 3)),
+...                   point=(6, 6, 0), normal=(1, 1, 1))
+>>> northwest = plane(mg, 'topographic__elevation',
+...                   where=((mg.x_of_node <= 3) & (mg.y_of_node > 3)),
+...                   point=(0, 6, 0), normal=(-1, 1, 1))
+>>> mg.at_node['topographic__elevation']
+array([ 0.,  1.,  2.,  3.,  2.,  1.,  0.,
+        1.,  2.,  3.,  4.,  3.,  2.,  1.,
+        2.,  3.,  4.,  5.,  4.,  3.,  2.,
+        3.,  4.,  5.,  6.,  5.,  4.,  3.,
+        2.,  3.,  4.,  5.,  4.,  3.,  2.,
+        1.,  2.,  3.,  4., 3.,   2.,  1.,
+        0.,  1.,  2.,  3.,  2.,  1.,  0.])
+
+Next add uniformly distributed noise.
+
+>>> noise = random(mg, 'topographic__elevation',
+...                where=CORE_NODE,
+...                distribution='uniform')
+>>> np.round(mg.at_node['topographic__elevation'], decimals=3)
+array([ 0.   ,  1.   ,  2.   ,  3.   ,  2.   ,  1.   ,  0.   ,
+        1.   ,  2.375,  3.951,  4.732,  3.599,  2.156,  1.   ,
+        2.   ,  3.156,  4.058,  5.866,  4.601,  3.708,  2.   ,
+        3.   ,  4.021,  5.97 ,  6.832,  5.212,  4.182,  3.   ,
+        2.   ,  3.183,  4.304,  5.525,  4.432,  3.291,  2.   ,
+        1.   ,  2.612,  3.139,  4.292,  3.366,  2.456,  1.   ,
+        0.   ,  1.   ,  2.   ,  3.   ,  2.   ,  1.   ,  0.   ])
+
+At present only a small selection of possible synthetic functions exist. If
+your research requires additional functions, consider contributing one back to
+the main landlab repository. If you have questions on how to proceed, please
+create a GitHub issue.
+
+All public functions from this submodule should have a common format. They
+take as the first two arguments a model grid, and the name of the field.
+They all take two keyword arguments: ``at``, which specifies which grid element
+values are placed, and ``where``, which indicates where the values are placed.
+Additional keyword arguments are required as needed by each function.
 """
 import numpy as np
 
@@ -47,8 +98,8 @@ def _where_to_add_values(grid, at, where):
             status_values = grid.status_at_node
         else:
             if where is not None:
-                raise ValueError(("No status information exists for grid elements "
-                                  "that are not nodes or links."))
+                raise ValueError(("No status information exists for grid "
+                                  "elements that are not nodes or links."))
         # based on status, set where to true. support value or iterable.
         if where is None:
             where_to_place = np.ones(grid.size(at), dtype=bool)
@@ -126,7 +177,8 @@ def random(grid,
     return values
 
 
-def plane(grid, name, at, where=None, point=(0., 0., 0), normal=(0., 0., 1.)):
+def plane(grid, name, at='node', where=None,
+          point=(0., 0., 0), normal=(0., 0., 1.)):
     """Add a single plane defined by a point and a normal to a grid.
 
     Parameters
@@ -176,7 +228,7 @@ def plane(grid, name, at, where=None, point=(0., 0., 0), normal=(0., 0., 1.)):
 
     where = _where_to_add_values(grid, at, where)
     _create_missing_field(grid, name, at)
-    values = _plane_function(x, y, point, normal)[where]
+    values = _plane_function(x, y, point, normal)
     grid[at][name][where] += values[where]
 
     return values
@@ -191,8 +243,8 @@ def _plane_function(x, y, point, normal):
                 point[1] * normal[1] +
                 point[2] * normal[2])
     values = ((constant
-              - (normal[0] * (x - point[0]))
-              - (normal[1] * (y - point[1])))
+              - (normal[0] * x)
+              - (normal[1] * y))
               / normal[2])
 
     return values
@@ -216,7 +268,7 @@ def _get_x_and_y(grid, at):
     return x, y
 
 
-def constant(grid, name, at, where=None, constant=0.):
+def constant(grid, name, at='node', where=None, constant=0.):
     """Add a constant to a grid.
 
     Parameters
@@ -265,11 +317,21 @@ def constant(grid, name, at, where=None, constant=0.):
     return values
 
 
-def sine(grid, name, at, where):
+def sine(grid, name, at='node', where=None,
+         amplitude=1., wavelength=1.0,
+         a=1.0, b=1.0,
+         point=(0., 0.)):
     """Add a sin wave to a grid.
 
+    Add a sine wave :math:`z` defined as:
+
     .. math::
-        z = A * sin ( P (x-x0) ) *** make this permit rotation.
+        z = A * sin ( \\frac{2\pi v}{\lambda} )
+        v = a(x-x_0) + b(y-y_0)
+
+    where :math:`A` is the amplitude and :math:`\lambda` is the wavelength.
+    The values :math:`a`, :math:`b`, and the point :math:`(x_0, y_0)` permit
+    the sin wave to be oriented arbitrarily in the x-y plane.
 
     Parameters
     ----------
@@ -284,6 +346,7 @@ def sine(grid, name, at, where):
         should be placed. It is either (1) a single value or list
         of values indicating a grid-element status (e.g. CORE_NODE),
         or (2) a (number-of-grid-element,) sized boolean array.
+    amplitude : p
 
     Returns
     -------
@@ -294,17 +357,19 @@ def sine(grid, name, at, where):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab import ACTIVE_LINK
-    >>> from landlab.values import constant
-    >>> mg = RasterModelGrid((4, 4))
-    >>> values = constant(mg,
-    ...                  'some_flux',
-    ...                  'link',
-    ...                  where=ACTIVE_LINK,
-    ...                  constant=10)
-    >>> mg.at_link['some_flux']
-    array([  0.,   0.,   0.,   0.,  10.,  10.,   0.,  10.,  10.,  10.,   0.,
-            10.,  10.,   0.,  10.,  10.,  10.,   0.,  10.,  10.,   0.,   0.,
-             0.,   0.])
-
+    >>> from landlab.values import sine
+    >>> mg = RasterModelGrid((5, 5), 0.5)
+    >>> values = sine(mg,
+    ...               'topographic__elevation',
+    ...     )
+    >>> mg.at_node['topographic__elevation']
     """
-    pass
+    x, y = _get_x_and_y(grid, at)
+
+    where = _where_to_add_values(grid, at, where)
+    _create_missing_field(grid, name, at)
+    values = np.zeros(grid.size(at))
+    v = (a * (x - point[0])) + (b * (y - point[1]))
+    values[where] += amplitude * np.sin( 2. * np.pi * v / wavelength )
+    grid[at][name][:] += values
+    return values

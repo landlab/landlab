@@ -1,3 +1,3 @@
-from .synthetic import random, plane, constant
+from .synthetic import random, plane, constant, sine
 
-__all__ = ["random", "plane", "constant"]
+__all__ = ["random", "plane", "constant", "sine"]
