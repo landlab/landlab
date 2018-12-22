@@ -10,7 +10,12 @@ use FlowDirectorD8.
 """
 
 import numpy as np
-from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, BAD_INDEX_VALUE, VoronoiDelaunayGrid
+from landlab import (
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+    BAD_INDEX_VALUE,
+    VoronoiDelaunayGrid,
+)
 from landlab.components.flow_director import flow_direction_DN
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
@@ -339,9 +344,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self._grid["node"]["flow__receiver_node"][:] = receiver
         self._grid["node"]["topographic__steepest_slope"][:] = steepest_slope
         self._grid["node"]["flow__link_to_receiver_node"][:] = recvr_link
-        self._grid["node"]["flow__sink_flag"][:] = np.zeros_like(
-            receiver, dtype=bool
-        )
+        self._grid["node"]["flow__sink_flag"][:] = np.zeros_like(receiver, dtype=bool)
         self._grid["node"]["flow__sink_flag"][sink] = True
 
         # determine link directions
