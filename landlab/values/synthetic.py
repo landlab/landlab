@@ -121,6 +121,10 @@ def random(grid,
            **kwargs):
     """Add random values to a grid.
 
+    This function supports all distributions provided in the
+    `numpy.random submodule
+    <https://docs.scipy.org/doc/numpy-1.15.1/reference/routines.random.html#distributions>`_.
+
     Parameters
     ----------
     grid : ModelGrid
@@ -136,9 +140,10 @@ def random(grid,
         or (2) a (number-of-grid-element,) sized boolean array.
     distribution : str, optional
         Name of the distribution provided by the np.random
-        package.
+        submodule.
     kwargs : dict
-        Keyword arguments to pass to the ``np.random``.
+        Keyword arguments to pass to the ``np.random`` distribution
+        function.
 
     Returns
     -------
@@ -169,6 +174,9 @@ def random(grid,
     where = _where_to_add_values(grid, at, where)
     _create_missing_field(grid, name, at)
     values = np.zeros(grid.size(at))
+
+    if distribution not in np.random.__dict__:
+        raise ValueError("")
 
     function = np.random.__dict__[distribution]
     values[where] += function(size=np.sum(where), **kwargs)

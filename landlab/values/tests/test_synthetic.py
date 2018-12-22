@@ -21,3 +21,5 @@ from landlab import RasterModelGrid, CORE_NODE
 
 # x and y of multiple types of grid elements
 # ask for a plane of something without X and y.
+
+# test bad distribution name.
