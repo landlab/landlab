@@ -149,7 +149,24 @@ class _FlowDirectorToOne(_FlowDirector):
     # Number of Node
     @property
     def node_receiving_flow(self):
-        """Return the node id of the node receiving flow."""
+        """Return the node id of the node receiving flow.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowDirectorSteepest
+        >>> mg = RasterModelGrid((3,3))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field('topographic__elevation',
+        ...                  mg.node_x + mg.node_y,
+        ...                  at = 'node')
+        >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
+        >>> fd.run_one_step()
+        >>> fd.node_receiving_flow
+        array([0, 1, 2,
+               3, 1, 5,
+               6, 7, 8])
+        """
         return self._grid["node"]["flow__receiver_node"]
 
 

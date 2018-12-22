@@ -402,7 +402,32 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     @property
     def flow__link_direction_at_node(self):
-        """Return array that mirrors links at node that indicates flow direction."""
+        """Return array that mirrors links at node indicating flow direction.
+
+        1 indicates... -1 indicates and 0 indicates
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowDirectorSteepest
+        >>> mg = RasterModelGrid((3,3))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field('topographic__elevation',
+        ...                  mg.node_x + mg.node_y,
+        ...                  at = 'node')
+        >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
+        >>> fd.run_one_step()
+        >>> fd.flow__link_direction_at_node
+        array([[ 0,  0,  0,  0],
+               [ 0, -1,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0]])
+        """
         flow__link_direction_at_node = self.flow__link_direction[
             self._grid.links_at_node
         ]
@@ -411,8 +436,35 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     @property
     def flow__link_incoming_at_node(self):
-        """Return array that mirrors links at node and indicates if flow is
-        incoming (1) or outgoing (-1)."""
+        """Return array that mirrors links at node and indicates flow direction
+
+        Incoming flow is indicated as (1) and outgoing as (-1). 0 indicates
+        that no flow moves along the link.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowDirectorSteepest
+        >>> mg = RasterModelGrid((3,3))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field('topographic__elevation',
+        ...                  mg.node_x + mg.node_y,
+        ...                  at = 'node')
+        >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
+        >>> fd.run_one_step()
+        >>> fd.flow__link_incoming_at_node
+        array([[ 0,  0,  0,  0],
+               [ 0,  1,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0]])
+
+        """
+
         incoming_at_node = (
             self.flow__link_direction_at_node * self._grid.link_dirs_at_node
         )
@@ -421,12 +473,48 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     # Number of Link (or number of D8)
     @property
     def flow__link_direction(self):
-        """Return the array indicating if flow is going with or against link direction."""
+        """Return the array indicating if flow is going with or against link direction.
+
+        1, -1, 0 indicate.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowDirectorSteepest
+        >>> mg = RasterModelGrid((3,3))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field('topographic__elevation',
+        ...                  mg.node_x + mg.node_y,
+        ...                  at = 'node')
+        >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
+        >>> fd.run_one_step()
+        >>> fd.flow__link_direction
+        array([ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0])
+
+        """
         return self._flow__link_direction
 
     @property
     def upstream_node_at_link(self):
-        """At-link array of the upstream node"""
+        """At-link array of the upstream node.
+
+        BAD_INDEX_VALUE is given
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowDirectorSteepest
+        >>> mg = RasterModelGrid((3,3))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field('topographic__elevation',
+        ...                  mg.node_x + mg.node_y,
+        ...                  at = 'node')
+        >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
+        >>> fd.run_one_step()
+        >>> fd.upstream_node_at_link
+        array([-1, -1, -1,  4, -1, -1, -1, -1, -1, -1, -1, -1])
+
+        """
         out = -1 * self._grid.ones(at="link", dtype=int)
         out[self._flow__link_direction == 1] = self._grid.node_at_link_tail[
             self._flow__link_direction == 1
@@ -438,7 +526,23 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     @property
     def downstream_node_at_link(self):
-        """At-link array of the downstream node"""
+        """At-link array of the downstream node.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowDirectorSteepest
+        >>> mg = RasterModelGrid((3,3))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field('topographic__elevation',
+        ...                  mg.node_x + mg.node_y,
+        ...                  at = 'node')
+        >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
+        >>> fd.run_one_step()
+        >>> fd.downstream_node_at_link
+        array([-1, -1, -1,  1, -1, -1, -1, -1, -1, -1, -1, -1])
+
+        """
         out = -1 * self._grid.ones(at="link", dtype=int)
         out[self._flow__link_direction == 1] = self._grid.node_at_link_head[
             self._flow__link_direction == 1
