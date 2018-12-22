@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from landlab import RasterModelGrid, CORE_NODE, FIX
+from landlab import RasterModelGrid, CORE_NODE
 
 
 # test all grid elements
@@ -18,3 +18,6 @@ from landlab import RasterModelGrid, CORE_NODE, FIX
 #
 
 # vertical plane
+
+# x and y of multiple types of grid elements
+# ask for a plane of something without X and y.
