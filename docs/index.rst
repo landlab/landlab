@@ -105,6 +105,18 @@ inherits from ``VoronoiDelauneyGrid`` and adds the following:
 
     landlab.grid.network
 
+Values
+======
+
+The Landlab values submodule provides capabilities to generate synthetic values for
+model grid fields.
+
+.. toctree::
+   :maxdepth: 2
+
+   landlab.values
+
+
 Layers
 ======
 
