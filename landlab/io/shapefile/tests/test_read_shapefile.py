@@ -1,9 +1,9 @@
 import os
 
 from pytest import approx, raises
+from shapefile import ShapefileException
 
 from landlab.io.shapefile import read_shapefile
-from shapefile import ShapefileException
 
 _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 

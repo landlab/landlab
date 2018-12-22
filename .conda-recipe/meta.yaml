@@ -11,19 +11,17 @@ source:
 requirements:
   build:
     - {{ compiler("c") }}
-    - setuptools
+  host:
     - python
+    - pip
     - cython
     - numpy 1.11.*
-
   run:
     - python
-    - cython
-    - numpy >=1.11,<1.14
+    - {{ pin_compatible('numpy') }}
     - scipy
     - xarray
     - matplotlib
-    - numpydoc
     - netcdf4
     - six
     - pyyaml
@@ -32,10 +30,13 @@ requirements:
 
 test:
   requires:
-    - pytest
+    - pytest <3.7.2
+  imports:
+    - landlab
   commands:
+    - export MPLBACKEND=Agg  # [not win]
     - pytest --pyargs landlab --doctest-modules -o doctest_optionflags="NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL ALLOW_UNICODE"
 
 build:
   number: 0
-  script: python setup.py install --single-version-externally-managed --record record.txt
+  script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed --no-cache-dir -vvv"

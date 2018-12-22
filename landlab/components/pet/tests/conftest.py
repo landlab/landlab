@@ -2,7 +2,7 @@ import pytest
 
 from landlab import RasterModelGrid
 from landlab.components.pet.potential_evapotranspiration_field import (
-    PotentialEvapotranspiration,
+    PotentialEvapotranspiration
 )
 
 

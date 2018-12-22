@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid, FieldError
+from landlab import FieldError, RasterModelGrid
 from landlab.components import DrainageDensity, FastscapeEroder, FlowAccumulator
 
 
