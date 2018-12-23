@@ -62,7 +62,7 @@ def create_and_initialize_grid(input_source):
     ... 2.5
     ... ''')
     >>> from landlab import create_and_initialize_grid
-    >>> with pytest.deprecated_call():
+    >>> with pytest.warns(DeprecationWarning):
     ...    grid = create_and_initialize_grid(test_file)
     >>> grid.number_of_nodes
     20

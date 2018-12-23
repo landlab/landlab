@@ -49,7 +49,7 @@ def test_unit_spacing():
             dtype=float,
         ),
     )
-    with pytest.deprecated_call():
+    with pytest.warns(DeprecationWarning):
         diffs = grid.calculate_diff_at_links(values_at_nodes)
     assert_array_equal(grads, diffs)
 

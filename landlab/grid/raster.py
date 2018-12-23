@@ -1778,11 +1778,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> import pytest
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
-        >>> with pytest.deprecated_call():
+        >>> with pytest.warns(DeprecationWarning):
         ...     grid.node_spacing
         1.0
         >>> grid = RasterModelGrid((4, 5), xy_spacing=3.0)
-        >>> with pytest.deprecated_call():
+        >>> with pytest.warns(DeprecationWarning):
         ...     grid.node_spacing
         3.0
 
@@ -3074,10 +3074,10 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> import pytest
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
-        >>> with pytest.deprecated_call():
+        >>> with pytest.warns(DeprecationWarning):
         ...     mg.face_connecting_cell_pair(0, 1)
         array([4])
-        >>> with pytest.deprecated_call():
+        >>> with pytest.warns(DeprecationWarning):
         ...     mg.face_connecting_cell_pair(0, 2).size  # empty array returned
         0
 
@@ -3328,7 +3328,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> z = np.array([0., 0., 0., 0.,
         ...               3., 3., 3., 3,
         ...               6., 6., 6., 6.])
-        >>> with pytest.deprecated_call():
+        >>> with pytest.warns(DeprecationWarning):
         ...     (slope, aspect) = (
         ...              grid.calculate_slope_aspect_at_nodes_burrough(vals=z))
         >>> np.tan(slope)
