@@ -359,6 +359,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         *Deprecation Warning*: The keywords *spacing* and *origin* have been
         deprecated as of Landlab v1.5.5. They will be removed in v2.0.
+        Additionally, passing spacing as an argument has been deprecated.
 
         Parameters
         ----------
