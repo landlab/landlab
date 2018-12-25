@@ -117,7 +117,7 @@ def test_move_reference_radial(random_xy):
         new_xy_of_center[1] - random_xy[1],
     )
 
-    assert known_dydx == actual_dydx
+    assert known_dydx == approx(actual_dydx)
 
 
 def test_radial_deprecate_origin_x():
@@ -125,8 +125,8 @@ def test_radial_deprecate_origin_x():
         mg = RadialModelGrid(num_shells=1, dr=1.0, origin_x=10)
     assert mg._xy_of_center == (10.0, 0.0)
     pts, npts = mg._create_radial_points(1, 1, xy_of_center=mg._xy_of_center)
-    assert pts[0, 0] == mg._xy_of_center[0]
-    assert pts[0, 1] == mg._xy_of_center[1]
+    assert pts[0, 0] == approx(mg._xy_of_center[0])
+    assert pts[0, 1] == approx(mg._xy_of_center[1])
 
 
 def test_radial_deprecate_origin_y():
@@ -134,8 +134,8 @@ def test_radial_deprecate_origin_y():
         mg = RadialModelGrid(num_shells=1, dr=1.0, origin_y=10)
     assert mg._xy_of_center == (0.0, 10.0)
     pts, npts = mg._create_radial_points(1, 1, xy_of_center=mg._xy_of_center)
-    assert pts[0, 0] == mg._xy_of_center[0]
-    assert pts[0, 1] == mg._xy_of_center[1]
+    assert pts[0, 0] == approx(mg._xy_of_center[0])
+    assert pts[0, 1] == approx(mg._xy_of_center[1])
 
 
 def test_raster_with_args_and_shape():
