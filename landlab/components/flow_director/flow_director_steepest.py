@@ -374,7 +374,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
         # links that are used are in `flow__link_to_receiver_node`.
         # if `flow__link_to_receiver_node` is leading to the link HEAD node,
-        # then -1, otherwise 1 (double check this is not the reverse).
+        # then -1, otherwise 1.
 
         # identify where flow is active on links
         is_active_flow_link = self.links_to_receiver != BAD_INDEX_VALUE
@@ -402,9 +402,25 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     @property
     def flow__link_direction_at_node(self):
-        """Return array that mirrors links at node indicating flow direction.
+        """Return array of flow link direction at node.
 
-        1 indicates... -1 indicates and 0 indicates
+        This property mirrors links_at_node and indicates the relationship
+        between the flow direction (determined based on the elevation of nodes)
+        and the topologic link direction (in which the head and tail nodes are
+        defined based on relative position in x-y space).
+
+        It has the shape (number of nodes, maximum number of links at node).
+
+        Recall that the standard landlab link direction goes from the tail node
+        to the head node.
+
+        A value of zero indicates that the link does not exist or is not
+        active.
+
+        A value of -1 indicates that water flow based on
+        ``flow__link_to_receiver_node`` goes from head node to tail node, while
+        a value of 1 indicates that water flow goes from tail node to head
+        node.
 
         Examples
         --------
@@ -436,10 +452,13 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     @property
     def flow__link_incoming_at_node(self):
-        """Return array that mirrors links at node and indicates flow direction
+        """Return array that mirrors links at node and indicates incoming flow.
 
-        Incoming flow is indicated as (1) and outgoing as (-1). 0 indicates
-        that no flow moves along the link.
+        This array has the shape
+        (number of nodes, maximum number of links at node).
+
+        Incoming flow is indicated as 1 and outgoing as -1. 0 indicates
+        that no flow moves along the link or that the link does not exist.
 
         Examples
         --------
@@ -470,12 +489,27 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         )
         return incoming_at_node
 
-    # Number of Link (or number of D8)
     @property
     def flow__link_direction(self):
-        """Return the array indicating if flow is going with or against link direction.
+        """Return array of flow link direction.
 
-        1, -1, 0 indicate.
+        This property indicates the relationship between the flow direction
+        (determined based on the elevation of nodes) and the topologic link
+        direction (in which the head and tail nodes are defined based on
+        relative position in x-y space).
+
+        It has the shape (number_of_links,).
+
+        Recall that the standard landlab link direction goes from the tail node
+        to the head node.
+
+        A value of zero indicates that the link does not exist or is not
+        active.
+
+        A value of -1 indicates that water flow based on
+        ``flow__link_to_receiver_node`` goes from head node to tail node, while
+        a value of 1 indicates that water flow goes from tail node to head
+        node.
 
         Examples
         --------
@@ -496,9 +530,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     @property
     def upstream_node_at_link(self):
-        """At-link array of the upstream node.
+        """At-link array of the upstream node based on flow direction.
 
-        BAD_INDEX_VALUE is given
+        BAD_INDEX_VALUE is given if no upstream node is defined.
 
         Examples
         --------
@@ -526,7 +560,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     @property
     def downstream_node_at_link(self):
-        """At-link array of the downstream node.
+        """At-link array of the downstream node based on flow direction.
+
+        BAD_INDEX_VALUE is given if no downstream node is defined.
 
         Examples
         --------
