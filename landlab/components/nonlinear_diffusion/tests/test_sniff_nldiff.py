@@ -237,7 +237,7 @@ t_z = np.array(
 
 
 def test_sniff_Perron():
-    mg = RasterModelGrid((nrows, ncols), (dx, dx))
+    mg = RasterModelGrid((nrows, ncols), xy_spacing=(dx, dx))
     mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
     mg.add_zeros("topographic__elevation", at="node")
     diffusion_component = PerronNLDiffuse(mg, INPUTS)

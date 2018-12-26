@@ -46,7 +46,7 @@ def calc_grad_at_link(grid, node_values, out=None):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
@@ -159,7 +159,7 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
@@ -522,13 +522,13 @@ def calc_slope_at_node(
     --------
     >>> import numpy as np
     >>> from landlab import RadialModelGrid, RasterModelGrid
-    >>> mg = RasterModelGrid((4, 5), 1.)
+    >>> mg = RasterModelGrid((4, 5))
     >>> z = mg.node_x
     >>> slopes = mg.calc_slope_at_node(elevs=z)
     >>> np.allclose(slopes, 45. / 180. * np.pi)
     True
 
-    >>> mg = RasterModelGrid((4, 5), 1.)
+    >>> mg = RasterModelGrid((4, 5))
     >>> z = - mg.node_y
     >>> slope_mag, cmp = mg.calc_slope_at_node(elevs=z,
     ...                                        return_components=True)
@@ -670,7 +670,7 @@ def calc_aspect_at_node(
             14.7203682 ,  26.45367519,  45.        ,  51.94498651,
             11.30993247,  21.22191026,  38.05501349,  45.        ])
 
-    >>> mg = RasterModelGrid((4, 4), (2., 3.))
+    >>> mg = RasterModelGrid((4, 4), xy_spacing=(3., 2.))
     >>> z = mg.node_x ** 2 + mg.node_y ** 2
     >>> mg.calc_aspect_at_node(elevs=z)
     array([ 236.30993247,  247.52001262,  259.97326008,  262.40535663,

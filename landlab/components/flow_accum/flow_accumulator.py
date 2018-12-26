@@ -19,16 +19,16 @@ import six
 
 from landlab import (  # for type tests
     BAD_INDEX_VALUE,
-    FieldError,
     Component,
+    FieldError,
     NetworkModelGrid,
     RasterModelGrid,
     VoronoiDelaunayGrid,
 )
 from landlab.components.flow_accum import flow_accum_bw, flow_accum_to_n
 from landlab.core.messages import warning_message
-from landlab.utils.return_array import return_array_at_node
 from landlab.core.utils import as_id_array
+from landlab.utils.return_array import return_array_at_node
 
 
 class FlowAccumulator(Component):
@@ -125,7 +125,7 @@ class FlowAccumulator(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg = RasterModelGrid((3,3))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field('topographic__elevation',
     ...                  mg.node_x + mg.node_y,
@@ -177,7 +177,7 @@ class FlowAccumulator(Component):
 
     Now let's make a more complicated elevation grid for the next examples.
 
-    >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    >>> mg = RasterModelGrid((5, 4))
     >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
     ...                                    0., 21., 10., 0.,
     ...                                    0., 31., 20., 0.,
@@ -205,7 +205,7 @@ class FlowAccumulator(Component):
 
     Now let's change the cell area (100.) and the runoff rates:
 
-    >>> mg = RasterModelGrid((5, 4), spacing=(10., 10))
+    >>> mg = RasterModelGrid((5, 4), xy_spacing=(10., 10))
 
     Put the data back into the new grid.
 
@@ -260,7 +260,7 @@ class FlowAccumulator(Component):
     Voroni Grid that has regularly spaced hexagonal cells.
 
     >>> from landlab import HexModelGrid
-    >>> hmg = HexModelGrid(5,3)
+    >>> hmg = HexModelGrid(5,3, xy_of_lower_left=(-1., 0.))
     >>> _ = hmg.add_field('topographic__elevation',
     ...                   hmg.node_x + np.round(hmg.node_y),
     ...                   at = 'node')
@@ -280,7 +280,7 @@ class FlowAccumulator(Component):
     For example, in the case of a raster grid, FlowDirectorMFD can use only
     orthogonal links, or it can use both orthogonal and diagonal links.
 
-    >>> mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    >>> mg = RasterModelGrid((5, 5))
     >>> topographic__elevation = mg.node_y+mg.node_x
     >>> _ = mg.add_field('node',
     ...                  'topographic__elevation',
@@ -340,7 +340,7 @@ class FlowAccumulator(Component):
     Next, let's set the dx spacing such that each cell has an area of one.
 
     >>> dx=(2./(3.**0.5))**0.5
-    >>> hmg = HexModelGrid(5,3, dx)
+    >>> hmg = HexModelGrid(5,3, dx, xy_of_lower_left=(-1.0745, 0.))
     >>> _ = hmg.add_field('topographic__elevation',
     ...                     hmg.node_x**2 + np.round(hmg.node_y)**2,
     ...                     at = 'node')
@@ -362,7 +362,7 @@ class FlowAccumulator(Component):
 
     Now let's change the cell area (100.) and the runoff rates:
 
-    >>> hmg = HexModelGrid(5,3, dx*10.)
+    >>> hmg = HexModelGrid(5,3, dx*10., xy_of_lower_left=(-10.745, 0.))
 
     Put the data back into the new grid.
 
@@ -381,7 +381,7 @@ class FlowAccumulator(Component):
 
     Next, let's see what happens to a raster grid when there is a depression.
 
-    >>> mg = RasterModelGrid((7, 7), 0.5)
+    >>> mg = RasterModelGrid((7, 7), xy_spacing=0.5)
     >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
     >>> z += 0.01 * mg.node_y
     >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
@@ -482,7 +482,7 @@ class FlowAccumulator(Component):
     and the depression finder with one call. For this example, we will pass the
     class DepressionFinderAndRouter to the parameter `depression_finder`.
 
-    >>> mg = RasterModelGrid((7, 7), 0.5)
+    >>> mg = RasterModelGrid((7, 7), xy_spacing=0.5)
     >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
     >>> z += 0.01 * mg.node_y
     >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
@@ -1011,13 +1011,9 @@ class FlowAccumulator(Component):
             p = self._grid["node"]["flow__receiver_proportions"]
 
             # step 3. Stack, D, delta construction
-            nd = as_id_array(
-                flow_accum_to_n._make_number_of_donors_array_to_n(r, p)
-            )
+            nd = as_id_array(flow_accum_to_n._make_number_of_donors_array_to_n(r, p))
             delta = as_id_array(flow_accum_to_n._make_delta_array_to_n(nd))
-            D = as_id_array(
-                flow_accum_to_n._make_array_of_donors_to_n(r, p, delta)
-            )
+            D = as_id_array(flow_accum_to_n._make_array_of_donors_to_n(r, p, delta))
             s = as_id_array(flow_accum_to_n.make_ordered_node_array_to_n(r, p))
 
             # put theese in grid so that depression finder can use it.

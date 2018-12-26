@@ -57,7 +57,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     >>> import numpy as numpy
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorDINF
-    >>> mg = RasterModelGrid((4,4), spacing=(1, 1))
+    >>> mg = RasterModelGrid((4,4), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field('topographic__elevation',
     ...                  mg.node_x**2 + mg.node_y**2,

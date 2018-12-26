@@ -39,7 +39,7 @@ class _FlowDirectorToMany(_FlowDirector):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_director.flow_director_to_many import(
     ... _FlowDirectorToMany)
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field('topographic__elevation',
     ...                  mg.node_x + mg.node_y,

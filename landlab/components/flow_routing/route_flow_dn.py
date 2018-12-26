@@ -215,7 +215,7 @@ class FlowRouter(FlowAccumulator):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.components.flow_routing import FlowRouter
-        >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+        >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
         >>> elev = np.array([0.,  0.,  0., 0.,
         ...                  0., 21., 10., 0.,
         ...                  0., 31., 20., 0.,
@@ -240,7 +240,7 @@ class FlowRouter(FlowAccumulator):
 
         Now let's change the cell area (100.) and the runoff rates:
 
-        >>> mg = RasterModelGrid((5, 4), spacing=(10., 10))
+        >>> mg = RasterModelGrid((5, 4), xy_spacing=(10., 10))
 
         Put the data back into the new grid.
 
@@ -280,7 +280,7 @@ class FlowRouter(FlowAccumulator):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.components.flow_routing import FlowRouter
-        >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+        >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
         >>> elev = np.array([0.,  0.,  0., 0.,
         ...                  0., 21., 10., 0.,
         ...                  0., 31., 20., 0.,
@@ -307,7 +307,7 @@ class FlowRouter(FlowAccumulator):
         will examine the alternative case of the D4 method that does not
         consider diagonal links bewtween nodes.
 
-        >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+        >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
         >>> elev = np.array([0.,  0.,  0., 0.,
         ...                  0., 21., 10., 0.,
         ...                  0., 31., 20., 0.,
@@ -357,7 +357,7 @@ class FlowRouter(FlowAccumulator):
         Now let's return to the first example and change the cell area (100.)
         and the runoff rates:
 
-        >>> mg = RasterModelGrid((5, 4), spacing=(10., 10))
+        >>> mg = RasterModelGrid((5, 4), xy_spacing=(10., 10))
 
         Put the data back into the new grid.
 

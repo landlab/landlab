@@ -10,7 +10,13 @@ import pytest
 from numpy.testing import assert_array_equal  # , assert_array_almost_equal
 
 from landlab import RasterModelGrid
+from landlab.bmi import wrap_as_bmi
 from landlab.components import LithoLayers, Lithology
+
+
+def test_lithology_as_bmi():
+    """Test Lithology can be wrapped with a BMI."""
+    wrap_as_bmi(Lithology)
 
 
 def test_bad_layer_method():
@@ -299,10 +305,10 @@ def test_rock_block_xarray():
     """Test that the xarray method works as expected."""
     sample_depths = np.arange(0, 10, 1)
 
-    mg = RasterModelGrid((3, 3), 1)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     layer_ids = np.tile([0, 1, 2, 3], 5)
-    layer_elevations = 3. * np.arange(-10, 10)
+    layer_elevations = 3.0 * np.arange(-10, 10)
     layer_elevations[-1] = layer_elevations[-2] + 100
     attrs = {"K_sp": {0: 0.0003, 1: 0.0001, 2: 0.0002, 3: 0.0004}}
 
@@ -312,16 +318,16 @@ def test_rock_block_xarray():
     ds = lith.rock_cube_to_xarray(sample_depths)
     expected_array = np.array(
         [
-            [[3., 2., 2.], [2., 2., 2.], [2., 2., 1.]],
-            [[3., 3., 2.], [3., 2., 2.], [2., 2., 2.]],
-            [[3., 3., 3.], [3., 3., 2.], [3., 2., 2.]],
-            [[0., 3., 3.], [3., 3., 3.], [3., 3., 2.]],
-            [[0., 0., 3.], [0., 3., 3.], [3., 3., 3.]],
-            [[0., 0., 0.], [0., 0., 3.], [0., 3., 3.]],
-            [[1., 0., 0.], [0., 0., 0.], [0., 0., 3.]],
-            [[1., 1., 0.], [1., 0., 0.], [0., 0., 0.]],
-            [[1., 1., 1.], [1., 1., 0.], [1., 0., 0.]],
-            [[2., 1., 1.], [1., 1., 1.], [1., 1., 0.]],
+            [[3.0, 2.0, 2.0], [2.0, 2.0, 2.0], [2.0, 2.0, 1.0]],
+            [[3.0, 3.0, 2.0], [3.0, 2.0, 2.0], [2.0, 2.0, 2.0]],
+            [[3.0, 3.0, 3.0], [3.0, 3.0, 2.0], [3.0, 2.0, 2.0]],
+            [[0.0, 3.0, 3.0], [3.0, 3.0, 3.0], [3.0, 3.0, 2.0]],
+            [[0.0, 0.0, 3.0], [0.0, 3.0, 3.0], [3.0, 3.0, 3.0]],
+            [[0.0, 0.0, 0.0], [0.0, 0.0, 3.0], [0.0, 3.0, 3.0]],
+            [[1.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 3.0]],
+            [[1.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+            [[1.0, 1.0, 1.0], [1.0, 1.0, 0.0], [1.0, 0.0, 0.0]],
+            [[2.0, 1.0, 1.0], [1.0, 1.0, 1.0], [1.0, 1.0, 0.0]],
         ]
     )
 

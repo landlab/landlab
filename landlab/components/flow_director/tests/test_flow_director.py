@@ -26,7 +26,7 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 def test_not_implemented():
     """Test that private run_one_step is not implemented"""
 
-    mg = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node")
 
     fd0 = _FlowDirector(mg, "topographic__elevation")
@@ -44,7 +44,7 @@ def test_not_implemented():
 
 def test_fields_already_added():
 
-    mg = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node")
     r = mg.add_field("flow__receiver_node", mg.nodes, at="node")
     s = mg.add_field("topographic__steepest_slope", mg.nodes, at="node")
@@ -59,7 +59,7 @@ def test_fields_already_added():
 def test_grid_type_testing():
     """Test that only the right grids can be implemented."""
     dx = (2. / (3. ** 0.5)) ** 0.5
-    hmg = HexModelGrid(9, 5, dx)
+    hmg = HexModelGrid(3, 3, dx)
     hmg.add_field(
         "topographic__elevation", hmg.node_x + np.round(hmg.node_y), at="node"
     )
@@ -80,7 +80,7 @@ def test_check_fields():
     so if one is the right size, then they all should be)
     """
 
-    mg0 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg0 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg0.add_field(
         "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
     )
@@ -91,7 +91,7 @@ def test_check_fields():
     ]
     assert np.size(mg0.at_node["topographic__elevation"]) == mg0.number_of_nodes
 
-    mg1 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg1.add_field(
         "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
     )
@@ -102,7 +102,7 @@ def test_check_fields():
     ]
     assert np.size(mg1.at_node["topographic__elevation"]) == mg1.number_of_nodes
 
-    mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field(
         "topographic__elevation", mg2.node_x ** 2 + mg2.node_y ** 2, at="node"
     )
@@ -116,7 +116,7 @@ def test_check_fields():
     ]
     assert np.size(mg2.at_node["topographic__elevation"]) == mg2.number_of_nodes
 
-    mg3 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg3 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg3.add_field(
         "topographic__elevation", mg3.node_x ** 2 + mg3.node_y ** 2, at="node"
     )
@@ -131,7 +131,7 @@ def test_check_fields():
     ]
     assert np.size(mg3.at_node["topographic__elevation"]) == mg3.number_of_nodes
 
-    mg4 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg4 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg4.add_field(
         "topographic__elevation", mg4.node_x ** 2 + mg4.node_y ** 2, at="node"
     )
@@ -146,7 +146,7 @@ def test_check_fields():
     ]
     assert np.size(mg4.at_node["topographic__elevation"]) == mg4.number_of_nodes
 
-    mg5 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg5 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg5.add_field(
         "topographic__elevation", mg5.node_x ** 2 + mg5.node_y ** 2, at="node"
     )
@@ -160,7 +160,7 @@ def test_check_fields():
     ]
     assert np.size(mg5.at_node["topographic__elevation"]) == mg5.number_of_nodes
 
-    mg6 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg6 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg6.add_field(
         "topographic__elevation", mg6.node_x ** 2 + mg6.node_y ** 2, at="node"
     )
@@ -176,7 +176,7 @@ def test_check_fields():
 
 
 def test_properties():
-    mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node")
     fd = FlowDirectorMFD(mg, "topographic__elevation")
     fd.run_one_step()

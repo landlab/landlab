@@ -24,7 +24,7 @@ def test_diffusion():
     time_to_run = inputs.read_float("run_time")
     init_elev = inputs.read_float("init_elev")
 
-    mg = RasterModelGrid((nrows, ncols), (dx, dx))
+    mg = RasterModelGrid((nrows, ncols), xy_spacing=(dx, dx))
     uplift_rate = mg.node_y[mg.core_cells] / 100000.
 
     # create the fields in the grid
@@ -261,7 +261,7 @@ def test_diffusion_no_deposit():
     # would be deposition. However, with the deposit flag as 'False',
     # the elevation of the node with zero downslope gradient will not change.
     # Use closed boundaries all around because this is a simpler scenario.
-    mg = RasterModelGrid((5, 3), (10, 10))
+    mg = RasterModelGrid((5, 3), xy_spacing=(10, 10))
     z = mg.zeros(at="node")
     z[4] = 3.
     z[7] = 3.

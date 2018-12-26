@@ -53,7 +53,7 @@ class StreamPowerEroder(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
     >>> from landlab.components import FlowAccumulator, StreamPowerEroder
-    >>> mg = RasterModelGrid((5, 5), 10.)
+    >>> mg = RasterModelGrid((5, 5), xy_spacing=10.)
     >>> z = np.array([7.,  7.,  7.,  7.,  7.,
     ...               7.,  5., 3.2,  6.,  7.,
     ...               7.,  2.,  3.,  5.,  7.,
@@ -71,7 +71,7 @@ class StreamPowerEroder(Component):
             7.        ,  0.28989795,  0.85403051,  2.42701526,  7.        ,
             7.        ,  0.        ,  7.        ,  7.        ,  7.        ])
 
-    >>> mg2 = RasterModelGrid((3, 7), 1.)
+    >>> mg2 = RasterModelGrid((3, 7))
     >>> z = np.array(mg2.node_x**2.)
     >>> z = mg2.add_field('node', 'topographic__elevation', z)
     >>> mg2.status_at_node[mg2.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY
@@ -87,7 +87,7 @@ class StreamPowerEroder(Component):
     array([  0.        ,   1.        ,   4.        ,   8.52493781,
             13.29039716,  18.44367965,  36.        ])
 
-    >>> mg3 = RasterModelGrid((5, 5), 2.)
+    >>> mg3 = RasterModelGrid((5, 5), xy_spacing=2.)
     >>> z = mg.node_x/100.
     >>> z = mg3.add_field('node', 'topographic__elevation', z)
     >>> mg3.status_at_node[mg3.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY

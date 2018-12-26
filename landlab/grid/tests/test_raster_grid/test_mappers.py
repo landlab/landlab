@@ -103,7 +103,7 @@ class TestLinkEndsToLink:
 
 class TestNodeToLinkMappers:
     def test_to_node(self):
-        rmg = RasterModelGrid((4, 5), spacing=(1., 1.))
+        rmg = RasterModelGrid((4, 5), xy_spacing=(1., 1.))
         rmg.add_empty("node", "values")
 
         node_values = rmg.at_node["values"]
@@ -155,7 +155,7 @@ class TestNodeToLinkMappers:
         assert rtn is out
 
     def test_from_node(self):
-        rmg = RasterModelGrid(4, 5, 1.)
+        rmg = RasterModelGrid((4, 5))
         rmg.add_empty("node", "values")
 
         node_values = rmg.at_node["values"]
@@ -204,7 +204,7 @@ class TestNodeToLinkMappers:
         )
 
     def test_mean_node(self):
-        rmg = RasterModelGrid(4, 5, 1.)
+        rmg = RasterModelGrid((4, 5))
         rmg.add_empty("node", "values")
 
         node_values = rmg.at_node["values"]
@@ -252,7 +252,7 @@ class TestNodeToLinkMappers:
         )
 
     def test_cell(self):
-        rmg = RasterModelGrid(4, 5, 1.)
+        rmg = RasterModelGrid((4, 5))
         rmg.add_empty("node", "values")
 
         node_values = rmg.at_node["values"]
