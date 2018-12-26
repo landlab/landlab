@@ -1133,16 +1133,40 @@ class DepressionFinderAndRouter(Component):
 
             # Get the nodes in the lake
             nodes_in_lake = np.where(self.lake_map == lake_code)[0]
-
             if len(nodes_in_lake) > 0:
 
+                # find the correct outlet for the lake, if necessary
                 if self.lake_map[self.receivers[outlet_node]] == lake_code:
                     nbrs = self.grid.active_adjacent_nodes_at_node[outlet_node]
                     not_lake = nbrs[np.where(self.lake_map[nbrs] != lake_code)[0]]
                     min_index = np.argmin(self._elev[not_lake])
                     new_receiver = not_lake[min_index]
+
+                    # set receiver for new outlet.
                     self.receivers[outlet_node] = new_receiver
 
+                # reset_link for new outlet
+                outlet_receiver = self.receivers[outlet_node]
+                if self._D8:
+                    adjacent_links_and_diags = np.hstack((
+                        self._grid.adjacent_nodes_at_node[outlet_node, :],
+                        self._grid.diagonal_adjacent_nodes_at_node[outlet_node, :]
+                    ))
+                    find_recs = outlet_receiver == adjacent_links_and_diags
+                    new_link = self._grid.d8s_at_node[outlet_node, find_recs]
+                else:
+                    find_recs = (outlet_receiver ==
+                                 self._grid.adjacent_nodes_at_node[outlet_node, :])
+                    new_link = self._grid.links_at_node[outlet_node, find_recs]
+
+                if new_link.size == 0:
+                    new_link = LOCAL_BAD_INDEX_VALUE
+                #print('outlet_receiver', outlet_receiver)
+                #print('outlet_node', outlet_node)
+                #print('new_link', new_link)
+                self.links[outlet_node] = new_link
+
+                # make a check
                 assert (
                     self.lake_map[self.receivers[outlet_node]] != lake_code
                 ), "outlet of lake drains to itself!"
