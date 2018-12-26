@@ -1068,18 +1068,15 @@ class DepressionFinderAndRouter(Component):
                     self.grid.links_at_node[cn],
                     self.receivers,
                 )
-
                 # They will now flow to cn
                 if nbrs.size > 0:
                     self.receivers[nbrs] = cn
                     if "flow__link_to_receiver_node" in self._grid.at_node:
-                        self._grid.at_node["flow__link_to_receiver_node"][nbrs] = lnks
+                        self.links[nbrs] = lnks
                         slopes = (
                             self._elev[nbrs] - self._elev[cn]
                         ) / self._grid.length_of_link[lnks]
-                        self._grid.at_node["topographic__steepest_slope"][
-                            nbrs
-                        ] = np.maximum(slopes, 0.0)
+                        self.grads[nbrs] = np.maximum(slopes, 0.0)
 
                 # Place them on the list of nodes to process next
                 for n in nbrs:
@@ -1105,15 +1102,11 @@ class DepressionFinderAndRouter(Component):
                     if nbrs.size > 0:
                         self.receivers[nbrs] = cn
                         if "flow__link_to_receiver_node" in self._grid.at_node:
-                            self._grid.at_node["flow__link_to_receiver_node"][
-                                nbrs
-                            ] = diags
+                            self.links[nbrs] = diags
                             slopes = (
                                 self._elev[nbrs] - self._elev[cn]
                             ) / self._diag_link_length
-                            self._grid.at_node["topographic__steepest_slope"][
-                                nbrs
-                            ] = np.maximum(slopes, 0.0)
+                            self.grads[nbrs] = np.maximum(slopes, 0.0)
 
                     # Place them on the list of nodes to process next
                     for n in nbrs:
