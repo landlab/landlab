@@ -152,7 +152,7 @@ NODATA_value  -9999
 1. 2. 3. 4. 5. 6. 7. 8. 9. 10. 11. 12.
         """
     )
-    rmg = RasterModelGrid((10, 10), 10.)
+    rmg = RasterModelGrid((10, 10), xy_spacing=10.)
     with pytest.raises(MismatchGridDataSizeError):
         read_esri_ascii(asc_file, grid=rmg)
 

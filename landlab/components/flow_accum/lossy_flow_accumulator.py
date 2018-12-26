@@ -138,7 +138,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     >>> from landlab.components import FlowDirectorSteepest
     >>> from landlab.components import DepressionFinderAndRouter
 
-    >>> mg = RasterModelGrid((3, 5), (1, 2))
+    >>> mg = RasterModelGrid((3, 5), xy_spacing=(2, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
     >>> z = mg.add_field('topographic__elevation',
     ...                  mg.node_x + mg.node_y,
@@ -169,7 +169,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     use a filled, non-raster grid.
 
     >>> dx=(2./(3.**0.5))**0.5  # area to be 100.
-    >>> hmg = HexModelGrid(5,3, dx)
+    >>> hmg = HexModelGrid(5,3, dx, xy_of_lower_left=(-1.0745, 0.))
     >>> z = hmg.add_field('topographic__elevation',
     ...                   hmg.node_x**2 + np.round(hmg.node_y)**2,
     ...                   at = 'node')
@@ -234,7 +234,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     effects:
 
     >>> from landlab.components import FlowDirectorMFD
-    >>> mg = RasterModelGrid((4, 6), (2, 1))
+    >>> mg = RasterModelGrid((4, 6), xy_spacing=(1, 2))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
     >>> z = mg.add_field('node', 'topographic__elevation', 2.*mg.node_x)
     >>> z[9] = 8.

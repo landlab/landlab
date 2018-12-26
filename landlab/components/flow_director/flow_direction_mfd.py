@@ -91,7 +91,7 @@ def flow_directions_mfd(
     >>> import numpy as np
     >>> from landlab.components.flow_director.flow_direction_mfd import(
     ...                                           flow_directions_mfd)
-    >>> grid = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> grid = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> elev = grid.add_field('topographic__elevation', grid.node_x+grid.node_y, at = 'node')
 
     For the first example, we will not pass any diagonal elements to the flow

@@ -31,7 +31,7 @@ class Radiation(Component):
     >>> from landlab.components import Radiation
     >>> import numpy as np
 
-    >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     >>> rad = Radiation(grid)
     >>> rad.name
     'Radiation'

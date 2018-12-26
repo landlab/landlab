@@ -65,7 +65,7 @@ def test_raster_cts():
     """
 
     # Set up a small grid with no events scheduled
-    mg = RasterModelGrid(4, 4, 1.0)
+    mg = RasterModelGrid(4, 4)
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     node_state_grid = mg.add_ones("node", "node_state_map", dtype=int)
     node_state_grid[6] = 0
@@ -150,7 +150,7 @@ def test_raster_cts():
 
 def test_oriented_raster_cts():
     """Tests instantiation of an OrientedRasterCTS() object"""
-    mg = RasterModelGrid(3, 3, 1.0)
+    mg = RasterModelGrid(3, 3)
     nsd = {0: "oui", 1: "non"}
     xnlist = []
     xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "hopping"))

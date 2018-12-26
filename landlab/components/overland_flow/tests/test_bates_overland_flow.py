@@ -57,7 +57,7 @@ def test_grid_shape(bates):
 def test_Bates_analytical():
     from landlab import RasterModelGrid
 
-    grid = RasterModelGrid((32, 240), spacing=25)
+    grid = RasterModelGrid((32, 240), xy_spacing=25)
     grid.add_zeros("node", "surface_water__depth")
     grid.add_zeros("node", "topographic__elevation")
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)

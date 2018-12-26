@@ -51,7 +51,7 @@ def test_flow__distance_regular_grid_d8():
 
     # instantiate a model grid
 
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
 
     # instantiate an elevation array
 
@@ -120,7 +120,7 @@ def test_flow__distance_regular_grid_d4():
 
     # instantiate a model grid
 
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
 
     # instantiate an elevation array
 
@@ -240,7 +240,7 @@ def test_flow__distance_raster_MFD_diagonals_true():
 
     # instantiate a model grid
 
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
 
     # instantiate an elevation array
 
@@ -300,7 +300,7 @@ def test_flow__distance_raster_MFD_diagonals_false():
 
     # instantiate a model grid
 
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
 
     # instantiate an elevation array
 
@@ -352,7 +352,7 @@ def test_flow__distance_raster_MFD_diagonals_false():
 def test_flow__distance_raster_D_infinity():
     """Test of flow__distance utility with a raster grid and D infinity."""
 
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
 
     # instantiate an elevation array
 

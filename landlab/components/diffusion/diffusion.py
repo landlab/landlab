@@ -52,7 +52,7 @@ class LinearDiffuser(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> import numpy as np
-    >>> mg = RasterModelGrid((9, 9), 1.)
+    >>> mg = RasterModelGrid((9, 9))
     >>> z = mg.add_zeros('node', 'topographic__elevation')
     >>> z.reshape((9, 9))[4, 4] = 1.
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
@@ -61,7 +61,7 @@ class LinearDiffuser(Component):
     ...     ld.run_one_step(1.)
     >>> np.isclose(z[mg.core_nodes].sum(), 1.)
     True
-    >>> mg2 = RasterModelGrid((5, 30), 1.)
+    >>> mg2 = RasterModelGrid((5, 30))
     >>> z2 = mg2.add_zeros('node', 'topographic__elevation')
     >>> z2.reshape((5, 30))[2, 8] = 1.
     >>> z2.reshape((5, 30))[2, 22] = 1.
@@ -77,8 +77,8 @@ class LinearDiffuser(Component):
 
     An example using links:
 
-    >>> mg1 = RasterModelGrid((10, 10), 100.)
-    >>> mg2 = RasterModelGrid((10, 10), 100.)
+    >>> mg1 = RasterModelGrid((10, 10), xy_spacing=100.)
+    >>> mg2 = RasterModelGrid((10, 10), xy_spacing=100.)
     >>> z1 = mg1.add_zeros('node', 'topographic__elevation')
     >>> z2 = mg2.add_zeros('node', 'topographic__elevation')
     >>> dt = 1.
@@ -343,7 +343,7 @@ class LinearDiffuser(Component):
         --------
         >>> from landlab import RasterModelGrid
         >>> import numpy as np
-        >>> mg = RasterModelGrid((4, 5), 1.)
+        >>> mg = RasterModelGrid((4, 5))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> z[mg.core_nodes] = 1.
         >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)

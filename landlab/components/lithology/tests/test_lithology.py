@@ -305,7 +305,7 @@ def test_rock_block_xarray():
     """Test that the xarray method works as expected."""
     sample_depths = np.arange(0, 10, 1)
 
-    mg = RasterModelGrid((3, 3), 1)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     layer_ids = np.tile([0, 1, 2, 3], 5)
     layer_elevations = 3.0 * np.arange(-10, 10)

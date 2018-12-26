@@ -115,12 +115,16 @@ class CTSModel(object):
         if cts_type == "raster" or cts_type == "oriented_raster":
             from landlab import RasterModelGrid
 
-            self.grid = RasterModelGrid(shape=(num_rows, num_cols), spacing=1.0)
+            self.grid = RasterModelGrid(shape=(num_rows, num_cols), xy_spacing=1.0)
         else:
             from landlab import HexModelGrid
 
             self.grid = HexModelGrid(
-                num_rows, num_cols, 1.0, orientation=grid_orientation, shape=grid_shape
+                num_rows,
+                num_cols,
+                xy_spacing=1.0,
+                orientation=grid_orientation,
+                shape=grid_shape,
             )
 
         self.grid.add_zeros("node", "node_state", dtype=int)

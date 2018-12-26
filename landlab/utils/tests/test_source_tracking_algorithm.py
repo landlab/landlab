@@ -13,7 +13,7 @@ from landlab.utils import find_unique_upstream_hsd_ids_and_fractions, track_sour
 
 
 def test_route_to_multiple_error_raised():
-    grid = RasterModelGrid((5, 5), spacing=(1., 1.))
+    grid = RasterModelGrid((5, 5), xy_spacing=(1., 1.))
     grid.at_node["topographic__elevation"] = np.array(
         [
             5.,
@@ -59,7 +59,7 @@ def test_route_to_multiple_error_raised():
 def test_track_source():
     """Unit tests for track_source().
     """
-    grid = RasterModelGrid((5, 5), spacing=(1., 1.))
+    grid = RasterModelGrid((5, 5), xy_spacing=(1., 1.))
     grid.at_node["topographic__elevation"] = np.array(
         [
             5.,
@@ -110,7 +110,7 @@ def test_track_source():
 def test_find_unique_upstream_hsd_ids_and_fractions():
     """Unit tests find_unique_upstream_hsd_ids_and_fractions().
     """
-    grid = RasterModelGrid((5, 5), spacing=(1., 1.))
+    grid = RasterModelGrid((5, 5), xy_spacing=(1., 1.))
     grid.at_node["topographic__elevation"] = np.array(
         [
             5.,

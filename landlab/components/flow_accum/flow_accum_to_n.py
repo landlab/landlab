@@ -669,7 +669,7 @@ def find_drainage_area_and_discharge_to_n_lossy(
     We're only going to use the first 4 links, but illustrates the use of the
     grid for link input.
 
-    >>> mg = RasterModelGrid((3, 3), 1.)
+    >>> mg = RasterModelGrid((3, 3))
     >>> _ = mg.add_zeros('node', 'surface_water__discharge_loss', dtype=float)
     >>> lossy = mg.add_ones('link', 'lossy', dtype=float)
     >>> lossy *= 0.5

@@ -85,7 +85,7 @@ with pytest.raises(TypeError):
 # test bad loc and id:
 rmg = RasterModelGrid((3, 3))
 hmg = HexModelGrid(3, 2, 1.0)
-radmg = RadialModelGrid(num_shells=1, dr=1., origin_x=0., origin_y=0.)
+radmg = RadialModelGrid(num_shells=1, dr=1., xy_of_center=(0., 0.))
 vdmg = VoronoiDelaunayGrid(np.random.rand(25), np.random.rand(25))
 my_items_bad_loc = {
     "grid_element": np.array(["node", "bad_loc"]),

@@ -37,7 +37,7 @@ def test_bad_solver_name():
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
-    mg = RasterModelGrid((nr, nc), 10.0)
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
     z = mg.add_zeros("node", "topographic__elevation")
     br = mg.add_zeros("node", "bedrock__elevation")
@@ -86,7 +86,7 @@ def test_soil_field_already_on_grid():
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
-    mg = RasterModelGrid((nr, nc), 10.0)
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
     z = mg.add_zeros("node", "topographic__elevation")
     br = mg.add_zeros("node", "bedrock__elevation")
@@ -143,7 +143,7 @@ def test_br_field_already_on_grid():
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
-    mg = RasterModelGrid((nr, nc), 10.0)
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
     z = mg.add_zeros("node", "topographic__elevation")
     br = mg.add_zeros("node", "bedrock__elevation")
@@ -200,7 +200,7 @@ def test_matches_detachment_solution():
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
-    mg = RasterModelGrid((nr, nc), 10.0)
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
     z = mg.add_zeros("node", "topographic__elevation")
     br = mg.add_zeros("node", "bedrock__elevation")
@@ -282,7 +282,7 @@ def test_matches_transport_solution():
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
-    mg = RasterModelGrid((nr, nc), 10.0)
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
     z = mg.add_zeros("node", "topographic__elevation")
     br = mg.add_zeros("node", "bedrock__elevation")
@@ -396,7 +396,7 @@ def test_matches_bedrock_alluvial_solution():
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
-    mg = RasterModelGrid((nr, nc), 10.0)
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
     z = mg.add_zeros("node", "topographic__elevation")
     br = mg.add_zeros("node", "bedrock__elevation")
