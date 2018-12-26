@@ -1179,24 +1179,6 @@ class DepressionFinderAndRouter(Component):
         self.grid.at_node["surface_water__discharge"][:] = q
         self.grid.at_node["flow__upstream_node_order"][:] = s
 
-        # given the new recievers, determine the new flow links.
-
-        # first, broadcast recievers to the correct shape to compare with
-        # adjacent neighbors at node.
-        broadcast_recievers = np.broadcast_to(np.expand_dims(self.receivers,
-                                                             axis=-1),
-                                              self.grid.adjacent_nodes_at_node.shape)
-
-        # determine which neighbors recieve flow and get the correct link IDs.
-        where = self.grid.adjacent_nodes_at_node == broadcast_recievers
-        active_links_at_node = self.grid.links_at_node[where]
-
-        # reset flow links at node
-        self.links[:] = LOCAL_BAD_INDEX_VALUE
-
-        # put new values in place, where appropriate
-        self.links[np.any(where, axis=1)] = active_links_at_node
-
     def _handle_outlet_node(self, outlet_node, nodes_in_lake):
         """Ensure the outlet node drains to the grid edge.
 
