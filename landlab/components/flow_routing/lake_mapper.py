@@ -944,6 +944,7 @@ class DepressionFinderAndRouter(Component):
             self.receivers = self._grid.at_node["flow__receiver_node"]
             self.sinks = self._grid.at_node["flow__sink_flag"]
             self.grads = self._grid.at_node["topographic__steepest_slope"]
+            self.links = self._grid.at_node["flow__link_to_receiver_node"]
             self._route_flow()
             self._reaccumulate_flow()
 
@@ -1159,7 +1160,7 @@ class DepressionFinderAndRouter(Component):
         self.sinks[self.pit_node_ids] = False
 
     def _reaccumulate_flow(self):
-        """Update drainage area, discharge, and upstream order.
+        """Update drainage area, discharge, upstream order, and flow link.
 
         Invoke the accumulator a second time to update drainage area,
         discharge, and upstream order.
@@ -1177,6 +1178,26 @@ class DepressionFinderAndRouter(Component):
         self.grid.at_node["drainage_area"][:] = self.a
         self.grid.at_node["surface_water__discharge"][:] = q
         self.grid.at_node["flow__upstream_node_order"][:] = s
+
+        # given the new recievers, determine the new flow links.
+        neighbors = self.grid.adjacent_nodes_at_node
+        links_at_node = self.grid.links_at_node
+        recievers = self.receivers
+
+        broadcast_recievers = np.broadcast_to(np.expand_dims(recievers,
+                                                             axis=-1),
+                                              neighbors.shape)
+        where = neighbors == broadcast_recievers
+
+        new_links = LOCAL_BAD_INDEX_VALUE * np.ones(self.grid.size('node'),
+                                                    dtype=np.int)
+
+        active_links_at_node = links_at_node[where]
+        active_nodes = np.any(where, axis=1)
+
+        new_links[active_nodes] = active_links_at_node
+
+        self.grid.at_node["flow__link_to_receiver_node"][:] = new_links
 
     def _handle_outlet_node(self, outlet_node, nodes_in_lake):
         """Ensure the outlet node drains to the grid edge.
