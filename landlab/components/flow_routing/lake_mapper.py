@@ -808,7 +808,7 @@ class DepressionFinderAndRouter(Component):
             # open boundary, then it drains to itself. Otherwise, call
             # assign_outlet_receiver to find the correct receiver (so that it
             # doesn't simply drain back into the lake)
-            elif "flow__receiver_node" in self._grid.at_node.keys() and reroute_flow:
+            elif ("flow__receiver_node" in self._grid.at_node) and reroute_flow:
                 if self._grid.status_at_node[lowest_node_on_perimeter] != CORE_NODE:
                     self._grid.at_node["flow__receiver_node"][
                         lowest_node_on_perimeter
@@ -939,7 +939,7 @@ class DepressionFinderAndRouter(Component):
 
         self._identify_depressions_and_outlets(reroute_flow)
 
-        if reroute_flow and ("flow__receiver_node" in self._grid.at_node.keys()):
+        if reroute_flow and ("flow__receiver_node" in self._grid.at_node):
 
             self.receivers = self._grid.at_node["flow__receiver_node"]
             self.sinks = self._grid.at_node["flow__sink_flag"]
