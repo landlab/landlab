@@ -1015,6 +1015,10 @@ class FlowAccumulator(Component):
             if self.depression_finder_provided is not None:
                 self.depression_finder.map_depressions()
 
+                # if FlowDirectorSteepest is used, update the link directions
+                if self.flow_director._name is 'FlowDirectorSteepest':
+                    self.flow_director._determine_link_directions()
+
             # step 3. Stack, D, delta construction
             nd = as_id_array(flow_accum_bw._make_number_of_donors_array(r))
             delta = as_id_array(flow_accum_bw._make_delta_array(nd))

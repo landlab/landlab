@@ -358,23 +358,10 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         This routine is slightly different between the route-to-one and
         route-to-many methods.
 
-        An additional issue may be if this also needs to be updated by
-        depression finding.
+        It works when DepressionFinderAndRouter is run.
         """
         # start by re-setting all links to zero.
         self._flow__link_direction[:] = 0
-
-        # grid.link_dirs_at_node: 0 = NA, -1 = out of (this node is HEAD)
-        # -1 = into (this node is TAIL)
-
-        # grid.links_at_node = Link ID at node
-
-        # grid.node_at_link_head = node ID at link HEAD
-        # grid.node_at_link_tail = node ID at link tail
-
-        # links that are used are in `flow__link_to_receiver_node`.
-        # if `flow__link_to_receiver_node` is leading to the link HEAD node,
-        # then -1, otherwise 1.
 
         # identify where flow is active on links
         is_active_flow_link = self.links_to_receiver != BAD_INDEX_VALUE
@@ -443,11 +430,104 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0]])
+
+        This method will be updated when the DepressionFinderAndRouter is run.
+
+        First, without DepressionFinderAndRouter:
+
+        >>> from landlab.components import FlowAccumulator
+        >>> mg1 = RasterModelGrid(5,5)
+        >>> z1 = mg1.add_field('node', 'topographic__elevation',
+        ...                    mg1.x_of_node+2 * mg1.y_of_node)
+        >>> z1[12] -= 5
+        >>> mg1.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> fa1 = FlowAccumulator(mg1, flow_director='Steepest')
+        >>> fa1.run_one_step()
+        >>> fa1.flow_director.links_to_receiver
+        array([-1, -1, -1, -1, -1,
+               -1,  5, 15,  7, -1,
+               -1, 19, -1, 20, -1,
+               -1, 23, 24, 25, -1,
+               -1, -1, -1, -1, -1])
+        >>> fa1.flow_director.flow__link_direction_at_node
+        array([[ 0,  0,  0,  0],
+               [ 0, -1,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0, -1,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0, -1],
+               [ 0,  1,  0,  0],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 1, -1,  0,  0],
+               [-1, -1,  1,  1],
+               [ 0, -1, -1,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0]])
+
+        Next with DepressionFinderAndRouter:
+
+        >>> mg2 = RasterModelGrid(5,5)
+        >>> z2 = mg2.add_field('node', 'topographic__elevation',
+        ...                    mg2.x_of_node+2 * mg2.y_of_node)
+        >>> z2[12] -= 5
+        >>> mg2.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> fa2 = FlowAccumulator(mg2,
+        ...                       flow_director='Steepest',
+        ...                       depression_finder='DepressionFinderAndRouter',
+        ...                       routing='D4')
+        >>> fa2.run_one_step()
+        >>> fa2.flow_director.links_to_receiver
+        array([-1, -1, -1, -1, -1,
+               -1,  5,  6,  7, -1,
+               -1, 19, 15, 20, -1,
+               -1, 23, 24, 25, -1,
+               -1, -1, -1, -1, -1])
+        >>> fa2.flow_director.flow__link_direction_at_node
+        array([[ 0,  0,  0,  0],
+               [ 0, -1,  0,  0],
+               [ 0, -1,  0,  0],
+               [ 0, -1,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0, -1],
+               [ 0, -1,  0, -1],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 1, -1,  0,  0],
+               [-1, -1,  1, -1],
+               [ 0, -1, -1,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0]])
+
         """
         flow__link_direction_at_node = self.flow__link_direction[
             self._grid.links_at_node
         ]
-        flow__link_direction_at_node[self._grid.links_at_node == -1] = 0
+        flow_to_bad = self._grid.links_at_node == BAD_INDEX_VALUE
+        flow__link_direction_at_node[flow_to_bad] = 0
+
         return flow__link_direction_at_node
 
     @property
