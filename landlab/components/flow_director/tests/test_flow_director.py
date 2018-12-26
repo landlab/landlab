@@ -386,7 +386,7 @@ def test_link_flow_direction_hex():
 
 
 def test_flow_director_steepest_flow__link_dir_field_creation():
-    mg = RasterModelGrid((3, 3), spacing=(1, 1))
+    mg = RasterModelGrid((3, 3))
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     mg.add_ones("flow__link_direction", at="link", dtype=int)
