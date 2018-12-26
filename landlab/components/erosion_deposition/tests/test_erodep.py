@@ -37,7 +37,7 @@ def test_bad_solver_name():
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
-    mg = RasterModelGrid((nr, nc), 10.0)
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
     mg.add_zeros("node", "topographic__elevation")
 
@@ -85,7 +85,7 @@ def test_steady_state_with_basic_solver_option():
     # set up a 5x5 grid with one open outlet node and low initial elevations.
     nr = 5
     nc = 5
-    mg = RasterModelGrid((nr, nc), 10.0)
+    mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
     z = mg.add_zeros("node", "topographic__elevation")
 

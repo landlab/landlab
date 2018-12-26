@@ -1081,7 +1081,7 @@ class SedDepEroder(Component):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg1 = RasterModelGrid((3,4), 1.)
+        >>> mg1 = RasterModelGrid((3,4))
         >>> thresh_shields = np.arange(1, mg1.number_of_nodes+1, dtype=float)
         >>> thresh_shields /= 100.
         >>> sde1 = SedDepEroder(mg1, threshold_shear_stress=100., Qc='MPM',
@@ -1093,7 +1093,7 @@ class SedDepEroder(Component):
                 0.09993804,  0.08566118,  0.07495353,  0.06662536,  0.05996282,
                 0.05451166,  0.04996902])
 
-        >>> mg2 = RasterModelGrid((3,4), 1.)
+        >>> mg2 = RasterModelGrid((3,4))
         >>> sde2 = SedDepEroder(mg2, threshold_shear_stress=100., Qc='MPM',
         ...                     Dchar=None, set_threshold_from_Dchar=False,
         ...                     set_Dchar_from_threshold=True,

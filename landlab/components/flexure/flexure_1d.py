@@ -10,7 +10,7 @@ Create a grid on which we will run the flexure calculations.
 
 >>> from landlab import RasterModelGrid
 >>> from landlab.components.flexure import Flexure1D
->>> grid = RasterModelGrid((3, 4), spacing=(1.e4, 1.e4))
+>>> grid = RasterModelGrid((3, 4), xy_spacing=(1.e4, 1.e4))
 
 Because `Flexure1D` is a one-dimensional component, it operates
 *independently* on each row of grid nodes. By default, it will
@@ -98,7 +98,7 @@ class Flexure1D(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flexure import Flexure
-    >>> grid = RasterModelGrid((5, 4), spacing=(1.e4, 1.e4))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
 
     >>> flex = Flexure(grid)
     >>> flex.name

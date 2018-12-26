@@ -30,7 +30,7 @@ requirements:
 
 test:
   requires:
-    - pytest <3.7.2
+    - pytest
   imports:
     - landlab
   commands:

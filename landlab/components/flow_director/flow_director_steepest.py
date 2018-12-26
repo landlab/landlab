@@ -53,7 +53,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorSteepest
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field('topographic__elevation',
     ...                  mg.node_x + mg.node_y,
@@ -70,7 +70,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     array([-1, -1, -1, -1,  3, -1, -1, -1, -1])
     >>> mg.at_node['flow__sink_flag']
     array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=int8)
-    >>> mg_2 = RasterModelGrid((5, 4), spacing=(1, 1))
+    >>> mg_2 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
     ...                                    0., 21., 10., 0.,
     ...                                    0., 31., 20., 0.,
@@ -205,11 +205,11 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     ...                  at = 'node')
     >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
     >>> fd.surface_values
-    array([ 0. ,  1. ,  2. ,
-        0.5,  1.5,  2.5,  3.5,
-      1. ,  2. ,  3. ,  4. , 5. ,
-        2.5,  3.5,  4.5,  5.5,
-            3. ,  4. ,  5. ])
+    array([ 1. ,  2. ,  3. ,
+        1.5,  2.5,  3.5,  4.5,
+      2. ,  3. ,  4. ,  5. ,  6. ,
+        3.5,  4.5,  5.5,  6.5,
+            4. ,  5. ,  6. ])
     >>> fd.run_one_step()
     >>> mg.at_node['flow__receiver_node']
     array([ 0,  1,  2,

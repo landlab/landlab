@@ -392,7 +392,7 @@ def find_drainage_area_and_discharge_lossy(
 
     >>> def lossfunc(Qw, dummyn, dummyl, dummygrid):
     ...     return 0.5 * Qw
-    >>> mg = RasterModelGrid((3, 4), 1.)  # some grid big enough to make go
+    >>> mg = RasterModelGrid((3, 4))  # some grid big enough to make go
     >>> _ = mg.add_zeros('node', 'surface_water__discharge_loss', dtype=float)
     >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc, mg)
     >>> a

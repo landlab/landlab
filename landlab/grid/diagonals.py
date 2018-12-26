@@ -364,7 +364,7 @@ class DiagonalsMixIn(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
+        >>> grid = RasterModelGrid((3, 3), xy_spacing=(4, 3))
 
         >>> grid.length_of_link
         array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])

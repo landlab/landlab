@@ -80,7 +80,7 @@ def setup_xy_of_node(
     spacing : float, optional
         Length of links.
     origin : tuple of float, optional
-        Coordinates of lower-left corner of the grid.
+        (y, x) coordinates of lower-left corner of the grid.
 
     Examples
     --------

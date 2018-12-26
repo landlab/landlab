@@ -10,7 +10,13 @@ import numpy as np
 import pytest
 
 from landlab import RasterModelGrid
+from landlab.bmi import wrap_as_bmi
 from landlab.components import LithoLayers
+
+
+def test_litholayers_as_bmi():
+    """Test Litholayers can be wrapped with a BMI."""
+    wrap_as_bmi(LithoLayers)
 
 
 def test_z0s_ids_different_shape():

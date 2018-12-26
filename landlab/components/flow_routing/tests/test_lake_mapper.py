@@ -1152,7 +1152,7 @@ def test_edge_draining():
     is suspected.
     """
     # Create a 7x7 test grid with a well defined hole in it, AT THE EDGE.
-    mg = RasterModelGrid((7, 7), (1., 1.))
+    mg = RasterModelGrid((7, 7))
 
     z = mg.node_x.copy()
     guard_sides = np.concatenate((np.arange(7, 14), np.arange(35, 42)))
@@ -1372,7 +1372,7 @@ def test_three_pits():
     A test to ensure the component correctly handles cases where there are
     multiple pits.
     """
-    mg = RasterModelGrid(10, 10, 1.)
+    mg = RasterModelGrid(10, 10)
     z = mg.add_field("node", "topographic__elevation", mg.node_x.copy())
     # a sloping plane
     # np.random.seed(seed=0)
@@ -1524,7 +1524,7 @@ def test_composite_pits():
     A test to ensure the component correctly handles cases where there are
     multiple pits, inset into each other.
     """
-    mg = RasterModelGrid(10, 10, 1.)
+    mg = RasterModelGrid(10, 10)
     z = mg.add_field("node", "topographic__elevation", mg.node_x.copy())
     # a sloping plane
     # np.random.seed(seed=0)
