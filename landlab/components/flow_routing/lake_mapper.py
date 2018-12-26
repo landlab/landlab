@@ -1180,24 +1180,22 @@ class DepressionFinderAndRouter(Component):
         self.grid.at_node["flow__upstream_node_order"][:] = s
 
         # given the new recievers, determine the new flow links.
-        neighbors = self.grid.adjacent_nodes_at_node
-        links_at_node = self.grid.links_at_node
-        recievers = self.receivers
 
-        broadcast_recievers = np.broadcast_to(np.expand_dims(recievers,
+        # first, broadcast recievers to the correct shape to compare with
+        # adjacent neighbors at node.
+        broadcast_recievers = np.broadcast_to(np.expand_dims(self.receivers,
                                                              axis=-1),
-                                              neighbors.shape)
-        where = neighbors == broadcast_recievers
+                                              self.grid.adjacent_nodes_at_node.shape)
 
-        new_links = LOCAL_BAD_INDEX_VALUE * np.ones(self.grid.size('node'),
-                                                    dtype=np.int)
+        # determine which neighbors recieve flow and get the correct link IDs.
+        where = self.grid.adjacent_nodes_at_node == broadcast_recievers
+        active_links_at_node = self.grid.links_at_node[where]
 
-        active_links_at_node = links_at_node[where]
-        active_nodes = np.any(where, axis=1)
+        # reset flow links at node
+        self.links[:] = LOCAL_BAD_INDEX_VALUE
 
-        new_links[active_nodes] = active_links_at_node
-
-        self.grid.at_node["flow__link_to_receiver_node"][:] = new_links
+        # put new values in place, where appropriate
+        self.links[np.any(where, axis=1)] = active_links_at_node
 
     def _handle_outlet_node(self, outlet_node, nodes_in_lake):
         """Ensure the outlet node drains to the grid edge.
