@@ -2876,9 +2876,11 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
+        >>> import pytest
         >>> import landlab as ll
         >>> rmg = ll.RasterModelGrid((4, 5))
-        >>> rmg.active_link_connecting_node_pair(8, 3)
+        >>> with pytest.deprecated_call():
+        ...     rmg.active_link_connecting_node_pair(8, 3)
         array([2])
 
         LLCATS: DEPR LINF NINF CONN
@@ -3094,6 +3096,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
+        >>> import pytest
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((3, 4))
@@ -3104,7 +3107,8 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         >>> h = np.array([-9999, -9999, -9999, -9999,
         ...               -9999, -9999, 12345.,   0.,
         ...               -9999,    0.,     0.,   0.])
-        >>> mg.set_nodata_nodes_to_inactive(h, -9999)
+        >>> with pytest.deprecated_call():
+        ...     mg.set_nodata_nodes_to_inactive(h, -9999)
         >>> mg.status_at_node
         array([4, 4, 4, 4,
                4, 4, 0, 1,
@@ -3279,6 +3283,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
+        >>> import pytest
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
 
@@ -3287,7 +3292,8 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         ...                8., 0., 3., 0.,
         ...                5., 6., 8., 3.])
 
-        >>> grid.max_of_link_end_node_values(h)
+        >>> with pytest.deprecated_call():
+        ...     grid.max_of_link_end_node_values(h)
         array([ 2.,  8.,  8.,  3.,  3.,  6.,  8.])
 
         Note that this method is *deprecatd*. The alternative is to use

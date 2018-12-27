@@ -2110,6 +2110,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         four-row by five-column grid that initially has all boundaries active
         and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
 
+        >>> import pytest
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4, 5)) # rows, columns, spacing
         >>> rmg.number_of_active_links
@@ -2117,7 +2118,8 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
               dtype=uint8)
-        >>> rmg.set_inactive_boundaries(False, True, True, False)
+        >>> with pytest.deprecated_call():
+        ...     rmg.set_inactive_boundaries(False, True, True, False)
         >>> rmg.number_of_active_links
         12
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE

@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 from numpy.testing import assert_array_equal
 
@@ -6,22 +7,26 @@ from landlab import RasterModelGrid
 
 def test_horizontally_adjacent_cells():
     grid = RasterModelGrid((4, 5))
-    assert_array_equal(grid.face_connecting_cell_pair(0, 1), np.array([4]))
+    with pytest.deprecated_call():
+        assert_array_equal(grid.face_connecting_cell_pair(0, 1), np.array([4]))
 
 
 def test_vertically_adjacent_cells():
     grid = RasterModelGrid((4, 5))
-    assert_array_equal(grid.face_connecting_cell_pair(0, 3), np.array([7]))
+    with pytest.deprecated_call():
+        assert_array_equal(grid.face_connecting_cell_pair(0, 3), np.array([7]))
 
 
 def test_diagonally_adjacent_cells():
     grid = RasterModelGrid((4, 5))
-    assert_array_equal(grid.face_connecting_cell_pair(1, 5), np.array([]))
+    with pytest.deprecated_call():
+        assert_array_equal(grid.face_connecting_cell_pair(1, 5), np.array([]))
 
 
 def test_non_adjacent_cells():
     grid = RasterModelGrid((4, 5))
-    assert_array_equal(grid.face_connecting_cell_pair(0, 2), np.array([]))
+    with pytest.deprecated_call():
+        assert_array_equal(grid.face_connecting_cell_pair(0, 2), np.array([]))
 
 
 def test_id_as_int():
