@@ -383,6 +383,7 @@ def sine(
 
     Examples
     --------
+    >>> from numpy.testing import assert_array_almost_equal
     >>> from landlab import RasterModelGrid
     >>> from landlab import ACTIVE_LINK
     >>> from landlab.values import sine
@@ -391,12 +392,13 @@ def sine(
     ...               'topographic__elevation',
     ...               amplitude=2, wavelength=4,
     ...               a=1, b=0)
-    >>> np.round(mg.at_node['topographic__elevation'], decimals=2)
-    array([ 0.,  2.,  0., -2., -0.,
-            0.,  2.,  0., -2., -0.,
-            0.,  2.,  0., -2., -0.,
-            0.,  2.,  0., -2., -0.,
-            0.,  2.,  0., -2., -0.])
+    >>> new_field = mg.at_node['topographic__elevation'].reshape(mg.shape)
+    >>> truth = np.array([[ 0.,  2.,  0., -2., -0.],
+    ...                   [ 0.,  2.,  0., -2., -0.],
+    ...                   [ 0.,  2.,  0., -2., -0.],
+    ...                   [ 0.,  2.,  0., -2., -0.],
+    ...                   [ 0.,  2.,  0., -2., -0.]])
+    >>> assert_array_almost_equal(new_field, truth)
     """
     x, y = _get_x_and_y(grid, at)
 
