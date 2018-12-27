@@ -736,19 +736,61 @@ class FlowAccumulator(Component):
 
     @property
     def link_order_upstream(self):
-        """Return the upstream order of active links."""
-        if self.flow_director.to_n_receivers == "one":
-            downstream_links = self._grid["node"]["flow__link_to_receiver_node"][
+        """Return the upstream order of active links.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> mg = RasterModelGrid((5, 5))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field('topographic__elevation',
+        ...                  mg.node_x + mg.node_y,
+        ...                  at = 'node')
+        >>> fa = FlowAccumulator(mg, 'topographic__elevation')
+        >>> fa.run_one_step()
+        >>> fa.link_order_upstream
+        array([ 5, 14, 23,  6, 15, 24,  7, 16, 25])
+
+        This also works for route-to-many methods
+
+        >>> mg = RasterModelGrid((5, 5))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field('topographic__elevation',
+        ...                  mg.node_x + mg.node_y,
+        ...                  at = 'node')
+        >>> fa = FlowAccumulator(mg, 'topographic__elevation',
+        ...                      flow_director='MFD')
+        >>> fa.run_one_step()
+        >>> fa.link_order_upstream
+        array([ 5, 14, 10,  6, 11,  7, 23, 19, 15, 20, 16, 28, 24, 29, 25])
+        """
+        downstream_links = self._grid["node"]["flow__link_to_receiver_node"][
                 self.node_order_upstream
             ]
-            return downstream_links[downstream_links != BAD_INDEX_VALUE]
-
-        else:
-            raise NotImplementedError("not implemented for to_many")
+        out = downstream_links.flatten()
+        return out[out != BAD_INDEX_VALUE]
 
     @property
     def headwater_nodes(self):
-        """ """
+        """Return the headwater nodes.
+
+        These are nodes that contribute flow and have no upstream nodes.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> mg = RasterModelGrid((5, 5))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field('topographic__elevation',
+        ...                  mg.node_x + mg.node_y,
+        ...                  at = 'node')
+        >>> fa = FlowAccumulator(mg, 'topographic__elevation')
+        >>> fa.run_one_step()
+        >>> fa.headwater_nodes
+        array([16, 17, 18])
+        """
         delta = np.concatenate(([0], self.delta_structure))
         num_donors = np.diff(
             delta
