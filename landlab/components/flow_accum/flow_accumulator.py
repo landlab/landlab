@@ -550,6 +550,25 @@ class FlowAccumulator(Component):
     ...                      depression_finder=DepressionFinderAndRouter,
     ...                      routing='D4')
 
+    FlowAccumulator was designed to work with all types of grids. However,
+    NetworkModelGrid's have no cell area. Thus, in order for FlowAccumulator to
+    this type of grid, an at-node array called ``cell_area_at_node`` must be
+    present.
+
+    >>> from landlab.grid.network import NetworkModelGrid
+    >>> y_of_node = (0, 1, 2, 2)
+    >>> x_of_node = (0, 0, -1, 1)
+    >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
+    >>> nmg = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
+    >>> area = nmg.add_ones('node', 'cell_area_at_node')
+    >>> z = nmg.add_field('topographic__elevation',
+    ...                  nmg.x_of_node + nmg.y_of_node,
+    ...                  at = 'node')
+    >>> fa = FlowAccumulator(nmg)
+    >>> fa.run_one_step()
+    >>> nmg.at_node['flow__receiver_node']
+    array([0, 0, 2, 1])
+
     """
 
     _name = "FlowAccumulator"
