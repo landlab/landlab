@@ -330,6 +330,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         """
         return np.mean(self.y_of_node[self.nodes_at_link], axis=1)
 
+
 # add only the correct functions
 add_module_functions_to_class(
     NetworkModelGrid, "mappers.py", pattern="map_*", exclude="cell|patch"

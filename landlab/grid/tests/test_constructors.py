@@ -6,7 +6,6 @@ from six import StringIO
 from landlab import (
     CLOSED_BOUNDARY,
     HexModelGrid,
-    ModelGrid,
     NetworkModelGrid,
     RadialModelGrid,
     RasterModelGrid,
@@ -209,14 +208,6 @@ def test_network_from_file():
     )
     with StringIO(file_strn) as file_like:
         mg = NetworkModelGrid.from_file(file_like)
-
-    params = {
-        "yx_of_node": [(0, 1, 2, 2), (0, 0, -1, 1)],
-        "links": ((1, 0), (2, 1), (3, 1)),
-        "axis_name": ("spam", "eggs"),
-        "axis_units": ("smoot", "parsec"),
-        "xy_of_reference": (12345, 678910),
-    }
 
     assert_array_equal(mg.x_of_node, np.array([0., 0., -1., 1.]))
     assert_array_equal(mg.y_of_node, np.array([0., 1., 2., 2.]))
