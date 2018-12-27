@@ -75,6 +75,7 @@ values are placed, and ``where``, which indicates where the values are placed.
 Additional keyword arguments are required as needed by each function.
 """
 import numpy as np
+from landlab import NetworkModelGrid
 
 
 def _create_missing_field(grid, name, at):
@@ -98,8 +99,12 @@ def _where_to_add_values(grid, at, where):
             status_values = grid.status_at_node
         else:
             if where is not None:
-                raise ValueError(("No status information exists for grid "
-                                  "elements that are not nodes or links."))
+                raise ValueError(
+                    (
+                        "No status information exists for grid "
+                        "elements that are not nodes or links."
+                    )
+                )
         # based on status, set where to true. support value or iterable.
         if where is None:
             where_to_place = np.ones(grid.size(at), dtype=bool)
@@ -113,12 +118,7 @@ def _where_to_add_values(grid, at, where):
     return where_to_place
 
 
-def random(grid,
-           name,
-           at='node',
-           where=None,
-           distribution="uniform",
-           **kwargs):
+def random(grid, name, at="node", where=None, distribution="uniform", **kwargs):
     """Add random values to a grid.
 
     This function supports all distributions provided in the
@@ -184,8 +184,7 @@ def random(grid,
     return values
 
 
-def plane(grid, name, at='node', where=None,
-          point=(0., 0., 0), normal=(0., 0., 1.)):
+def plane(grid, name, at="node", where=None, point=(0., 0., 0), normal=(0., 0., 1.)):
     """Add a single plane defined by a point and a normal to a grid.
 
     Parameters
@@ -246,18 +245,23 @@ def _plane_function(x, y, point, normal):
     if np.isclose(normal[2], 0):
         raise ValueError("")
 
-    constant = (point[0] * normal[0] +
-                point[1] * normal[1] +
-                point[2] * normal[2])
-    values = ((constant
-              - (normal[0] * x)
-              - (normal[1] * y))
-              / normal[2])
+    constant = point[0] * normal[0] + point[1] * normal[1] + point[2] * normal[2]
+    values = (constant - (normal[0] * x) - (normal[1] * y)) / normal[2]
 
     return values
 
 
 def _get_x_and_y(grid, at):
+    if isinstance(grid, NetworkModelGrid):
+        if at is not "node":
+            msg = (
+                "Synthetic fields based on x and y values at grid elements "
+                "(e.g. sine, plane) are supported for NetworkModelGrid "
+                "only at node. If you need this at other grid elements, "
+                "open a GitHub issue to learn how to contribute this "
+                "functionality."
+            )
+            raise ValueError(msg)
     if at is "node":
         x = grid.x_of_node
         y = grid.y_of_node
@@ -271,14 +275,16 @@ def _get_x_and_y(grid, at):
         x = grid.x_of_face
         y = grid.y_of_face
     else:
-        msg = ("landlab.values.synthetic: ",
-               "X and Y values are require for the requested synthetic field "
-               "but do not exist for the grid-element provided.")
+        msg = (
+            "landlab.values.synthetic: ",
+            "X and Y values are require for the requested synthetic field "
+            "but do not exist for the grid-element provided.",
+        )
         raise ValueError(msg)
     return x, y
 
 
-def constant(grid, name, at='node', where=None, constant=0.):
+def constant(grid, name, at="node", where=None, constant=0.):
     """Add a constant to a grid.
 
     Parameters
@@ -327,10 +333,17 @@ def constant(grid, name, at='node', where=None, constant=0.):
     return values
 
 
-def sine(grid, name, at='node', where=None,
-         amplitude=1., wavelength=1.0,
-         a=1.0, b=1.0,
-         point=(0., 0.)):
+def sine(
+    grid,
+    name,
+    at="node",
+    where=None,
+    amplitude=1.,
+    wavelength=1.0,
+    a=1.0,
+    b=1.0,
+    point=(0., 0.),
+):
     r"""Add a sin wave to a grid.
 
     Add a sine wave :math:`z` defined as:
