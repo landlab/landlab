@@ -768,7 +768,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         col = 2 * (n_mod_nc % half_nc) + n_mod_nc // half_nc
         return (row, col)
 
-
     def _configure_hexplot(self, data, data_label=None, color_map=None):
         """
         Sets up necessary information for making plots of the hexagonal grid
