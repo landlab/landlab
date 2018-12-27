@@ -80,13 +80,15 @@ def calc_grad_of_active_link(grid, node_values, out=None):
 
     Examples
     --------
+    >>> import pytest
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid((3, 4))
     >>> z = np.array([0., 0., 0., 0.,
     ...               1., 1., 1., 1.,
     ...               3., 3., 3., 3.])
-    >>> grid.calc_grad_of_active_link(z)
+    >>> with pytest.deprecated_call():
+    ...     grid.calc_grad_of_active_link(z)
     array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
 
     This method is *deprecated*. Instead, use ``calc_grad_at_link``.
@@ -237,6 +239,7 @@ def calculate_diff_at_links(grid, node_values, out=None):
 
     Examples
     --------
+    >>> import pytest
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
 
@@ -244,7 +247,8 @@ def calculate_diff_at_links(grid, node_values, out=None):
     >>> z = np.zeros(9)
     >>> z[4] = 1.
 
-    >>> grid.calculate_diff_at_links(z)
+    >>> with pytest.deprecated_call():
+    ...     grid.calculate_diff_at_links(z)
     array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
 
     >>> grid.calc_diff_at_link(z)
