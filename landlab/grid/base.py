@@ -4188,13 +4188,15 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
+        >>> import pytest
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4, 3)) # rows, columns, spacing
         >>> rmg.node_x
         array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
         >>> rmg.node_y
         array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.])
-        >>> rmg.move_origin((5., 1.5))
+        >>> with pytest.deprecated_call():
+        ...     rmg.move_origin((5., 1.5))
         >>> rmg.node_x
         array([ 5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.])
         >>> rmg.node_y
