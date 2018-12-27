@@ -8,6 +8,7 @@ automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
 from warnings import warn
+
 import numpy
 import six
 
@@ -67,7 +68,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         base_num_cols=0,
         dx=1.0,
         xy_of_lower_left=(0., 0.),
-        xy_of_reference=(0., 0.),
         orientation="horizontal",
         shape="hex",
         reorient_links=True,
@@ -130,9 +130,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 shape,
                 reorient_links,
             )
-        super(HexModelGrid, self).__init__(**kwds)
-        # save xy_of_lower_left as attribute. This has to happen after Voronoi
         self._xy_of_lower_left = xy_of_lower_left
+        super(HexModelGrid, self).__init__(**kwds)
 
     @property
     def xy_of_lower_left(self):
@@ -1155,8 +1154,10 @@ def from_dict(param_dict):
 
     Deprecated in version 1.6.X. Will be removed in version 2.0.
     """
-    msg = ("The non-class method version of 'from_dict' for RasterModelGrid "
-           "was Deprecated in version 1.6.X. Will be removed in version 2.0.")
+    msg = (
+        "The non-class method version of 'from_dict' for RasterModelGrid "
+        "was Deprecated in version 1.6.X. Will be removed in version 2.0."
+    )
     warn(msg, DeprecationWarning)
     # Read and create a basic HexModelGrid
     try:

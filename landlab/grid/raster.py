@@ -4569,8 +4569,10 @@ def from_dict(param_dict):
 
     Deprecated in version 1.6.X. Will be removed in version 2.0.
     """
-    msg = ("The non-class method version of 'from_dict' for RasterModelGrid "
-           "was Deprecated in version 1.6.X. Will be removed in version 2.0.")
+    msg = (
+        "The non-class method version of 'from_dict' for RasterModelGrid "
+        "was Deprecated in version 1.6.X. Will be removed in version 2.0."
+    )
     warn(msg, DeprecationWarning)
 
     # Read and create basic raster grid
