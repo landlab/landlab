@@ -1,13 +1,7 @@
-landlab.values package
-======================
+Generation of field values
+==========================
 
-Submodules
-----------
+.. toctree::
+   :maxdepth: 2
 
-landlab.values.synthetic module
--------------------------------
-
-.. automodule:: landlab.values.synthetic
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   landlab.values.synthetic
