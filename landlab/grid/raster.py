@@ -627,7 +627,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: GINF
         """
-        shape = params["shape"]
+        shape = params.pop("shape", None)
         return cls(shape, **params)
 
     @property
