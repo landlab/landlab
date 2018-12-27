@@ -75,6 +75,7 @@ values are placed, and ``where``, which indicates where the values are placed.
 Additional keyword arguments are required as needed by each function.
 """
 import numpy as np
+
 from landlab import NetworkModelGrid
 
 

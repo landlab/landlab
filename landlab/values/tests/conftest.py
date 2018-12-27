@@ -1,5 +1,6 @@
 import pytest
-from landlab import RasterModelGrid, NetworkModelGrid
+
+from landlab import NetworkModelGrid, RasterModelGrid
 
 
 @pytest.fixture

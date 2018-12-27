@@ -1,11 +1,10 @@
 import numpy as np
-from numpy.testing import assert_array_equal
 import pytest
+from numpy.testing import assert_array_equal
 
-from landlab import CORE_NODE, CLOSED_BOUNDARY
-from landlab.values import random, plane, constant
+from landlab import CLOSED_BOUNDARY, CORE_NODE
+from landlab.values import constant, plane, random
 from landlab.values.synthetic import _plane_function
-
 
 _NORMAL = (1, 1, 1)
 _POINT = (0, 0, 0)
