@@ -134,16 +134,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # save xy_of_lower_left as attribute. This has to happen after Voronoi
         self._xy_of_lower_left = xy_of_lower_left
 
-    @classmethod
-    def from_dict(cls, params):
-        """
-        LLCATS: GINF
-        """
-        shape = params["shape"]
-        spacing = params.get("spacing", 1.)
-
-        return cls(shape[0], shape[1], spacing, **params)
-
     @property
     def xy_of_lower_left(self):
         """Return (x, y) of the reference point."""
