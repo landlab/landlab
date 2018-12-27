@@ -1,10 +1,9 @@
-import os
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 
-from landlab import RasterModelGrid, CORE_NODE, CLOSED_BOUNDARY
-from landlab.values import random, plane, constant, sine
+from landlab import CORE_NODE, CLOSED_BOUNDARY
+from landlab.values import random, plane, constant
 from landlab.values.synthetic import _plane_function
 
 
@@ -14,18 +13,12 @@ _POINT = (0, 0, 0)
 
 def test_bad_grid_element_name(four_by_four_raster):
     with pytest.raises(KeyError):
-        constant(four_by_four_raster,
-                 "some_flux",
-                 "not_a_grid_element",
-                 constant=1.0)
+        constant(four_by_four_raster, "some_flux", "not_a_grid_element", constant=1.0)
 
 
 def test_bad_distribution_name(four_by_four_raster):
     with pytest.raises(ValueError):
-        random(four_by_four_raster,
-               "values",
-               "node",
-               distribution="not_a_distribution")
+        random(four_by_four_raster, "values", "node", distribution="not_a_distribution")
 
 
 def test_vertical_plane(four_by_four_raster):
@@ -84,11 +77,9 @@ def test_xy_face_raster(four_by_four_raster):
 
 def test_xy_node_network(simple_network):
     vals = plane(simple_network, "values", "node", normal=_NORMAL)
-    truth = _plane_function(simple_network.x_of_node,
-                            simple_network.y_of_node,
-                            point=_POINT,
-                            normal=_NORMAL
-                            )
+    truth = _plane_function(
+        simple_network.x_of_node, simple_network.y_of_node, point=_POINT, normal=_NORMAL
+    )
     assert_array_equal(vals, truth)
 
 
@@ -103,10 +94,7 @@ def test_where_status_with_patches(four_by_four_raster):
 
 
 def test_multiple_status_node(four_by_four_raster):
-    four_by_four_raster.set_closed_boundaries_at_grid_edges(True,
-                                                            True,
-                                                            False,
-                                                            False)
+    four_by_four_raster.set_closed_boundaries_at_grid_edges(True, True, False, False)
     vals = constant(
         four_by_four_raster,
         "values",
@@ -114,10 +102,9 @@ def test_multiple_status_node(four_by_four_raster):
         where=[CORE_NODE, CLOSED_BOUNDARY],
         constant=10.,
     )
-    true_array = np.array([0.,  0.,  0.,  0.,
-                           0., 10., 10., 10.,
-                           0., 10., 10., 10.,
-                          10., 10., 10., 10.])
+    true_array = np.array(
+        [0., 0., 0., 0., 0., 10., 10., 10., 0., 10., 10., 10., 10., 10., 10., 10.]
+    )
     assert_array_equal(vals, true_array)
 
 
