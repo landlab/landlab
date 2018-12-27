@@ -80,7 +80,7 @@ def test_where_status_with_patches():
 
 def test_multiple_status_node():
     mg = RasterModelGrid((4, 4))
-    mg.se
+
 
 # test all grid elements
 
