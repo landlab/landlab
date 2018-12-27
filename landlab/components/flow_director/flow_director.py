@@ -13,8 +13,8 @@ from __future__ import print_function
 import numpy
 import six
 
-from landlab import Component
 from landlab import RasterModelGrid  # for type tests
+from landlab import Component
 from landlab.utils.return_array import return_array_at_node
 
 
@@ -41,7 +41,7 @@ class _FlowDirector(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_director.flow_director import(
     ... _FlowDirector)
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field('topographic__elevation',
     ...                  mg.node_x + mg.node_y,
@@ -56,7 +56,7 @@ class _FlowDirector(Component):
 
     _FlowDirector also works if you pass it an array instead of a field name.
     >>> import numpy as np
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> z = np.array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> fd = _FlowDirector(mg, z)
     >>> fd.surface_values

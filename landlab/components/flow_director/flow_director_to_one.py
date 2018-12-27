@@ -6,11 +6,10 @@ flow_director_to_one.py provides a private class to help create FlowDirectors.
 Provides the _FlowDirectorToOne component which makes sure all model grid
 fields are set up correctly.
 """
-
-from landlab import FieldError
-from landlab.components.flow_director.flow_director import _FlowDirector
 import numpy
+
 from landlab import BAD_INDEX_VALUE
+from landlab.components.flow_director.flow_director import _FlowDirector
 
 
 class _FlowDirectorToOne(_FlowDirector):
@@ -54,7 +53,7 @@ class _FlowDirectorToOne(_FlowDirector):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_director.flow_director_to_one import(
     ... _FlowDirectorToOne)
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field('topographic__elevation',
     ...                  mg.node_x + mg.node_y,

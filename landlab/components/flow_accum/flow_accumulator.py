@@ -14,17 +14,21 @@ from __future__ import print_function
 
 import warnings
 
-from landlab import FieldError, Component
-from landlab import RasterModelGrid, VoronoiDelaunayGrid  # for type tests
-from landlab.utils.return_array import return_array_at_node
-from landlab.core.messages import warning_message
-
-from landlab.components.flow_accum import flow_accum_bw
-from landlab.components.flow_accum import flow_accum_to_n
-
-from landlab import BAD_INDEX_VALUE
-import six
 import numpy as np
+import six
+
+from landlab import (  # for type tests
+    BAD_INDEX_VALUE,
+    Component,
+    FieldError,
+    NetworkModelGrid,
+    RasterModelGrid,
+    VoronoiDelaunayGrid,
+)
+from landlab.components.flow_accum import flow_accum_bw, flow_accum_to_n
+from landlab.core.messages import warning_message
+from landlab.core.utils import as_id_array
+from landlab.utils.return_array import return_array_at_node
 
 
 class FlowAccumulator(Component):
@@ -52,10 +56,10 @@ class FlowAccumulator(Component):
         -  Node array of drainage areas: *'drainage_area'*
         -  Node array of discharges: *'surface_water__discharge'*
         -  Node array containing downstream-to-upstream ordered list of node
-           IDs: *'flow__upstream_node_order'*
+            IDs: *'flow__upstream_node_order'*
         -  Node array of all but the first element of the delta data structure:
             *flow__data_structure_delta*. The first element is always zero.
-        -  Link array of the D data structure: *flow__data_structure_D*
+        -  At Grid: D data structure: *flow__data_structure_D*
 
     The FlowDirector component will add additional ModelGrid fields.
     DirectToOne methods(Steepest/D4 and D8) and DirectToMany(DINF and MFD) use
@@ -65,21 +69,21 @@ class FlowAccumulator(Component):
     The FlowDirectors store the following as ModelGrid fields:
 
         -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
-           there is no receiver: *'flow__receiver_node'*. This array is 2D for
-           RouteToMany methods and has the shape
-           (n-nodes x max number of receivers).
+            there is no receiver: *'flow__receiver_node'*. This array is 2D for
+            RouteToMany methods and has the shape
+            (n-nodes x max number of receivers).
         -  Node array of flow proportions: *'flow__receiver_proportions'*. This
-           array is 2D, for RouteToMany methods and has the shape
-           (n-nodes x max number of receivers).
+            array is 2D, for RouteToMany methods and has the shape
+            (n-nodes x max number of receivers).
         -  Node array of links carrying flow:  *'flow__link_to_receiver_node'*.
-           This array is 2D for RouteToMany methods and has the shape
-           (n-nodes x max number of receivers).
+            This array is 2D for RouteToMany methods and has the shape
+            (n-nodes x max number of receivers).
         -  Node array of downhill slopes from each receiver:
-           *'topographic__steepest_slope'* This array is 2D for RouteToMany
-           methods and has the shape (n-nodes x max number of receivers).
+            *'topographic__steepest_slope'* This array is 2D for RouteToMany
+            methods and has the shape (n-nodes x max number of receivers).
         -  Boolean node array of all local lows: *'flow__sink_flag'*
 
-    The primary method of this class is :func:`run_one_step`
+    The primary method of this class is :func:`run_one_step`.
 
     `run_one_step` takes the optional argument update_flow_director (default is
     True) that determines if the flow_director is re-run before flow is
@@ -88,7 +92,7 @@ class FlowAccumulator(Component):
     Parameters
     ----------
     grid : ModelGrid
-        A grid of type Voroni.
+        A Landlab grid.
     surface : field name at node or array of length node
         The surface to direct flow across.
     flow_director : string, class, instance of class.
@@ -103,6 +107,9 @@ class FlowAccumulator(Component):
         run time. If both the field and argument are present at the time of
         initialization, runoff_rate will *overwrite* the field. If neither are
         set, defaults to spatially constant unit input.
+        Both a runoff_rate array and the 'water__unit_flux_in' field are
+        permitted to contain negative values, in which case they mimic
+        transmission losses rather than e.g. rain inputs.
     depression_finder : string, class, instance of class, optional
          A string of class name (e.g., 'DepressionFinderAndRouter'), an
          uninstantiated DepressionFinder class, or an instance of a
@@ -118,7 +125,7 @@ class FlowAccumulator(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg = RasterModelGrid((3,3))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field('topographic__elevation',
     ...                  mg.node_x + mg.node_y,
@@ -170,7 +177,7 @@ class FlowAccumulator(Component):
 
     Now let's make a more complicated elevation grid for the next examples.
 
-    >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    >>> mg = RasterModelGrid((5, 4))
     >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
     ...                                    0., 21., 10., 0.,
     ...                                    0., 31., 20., 0.,
@@ -198,7 +205,7 @@ class FlowAccumulator(Component):
 
     Now let's change the cell area (100.) and the runoff rates:
 
-    >>> mg = RasterModelGrid((5, 4), spacing=(10., 10))
+    >>> mg = RasterModelGrid((5, 4), xy_spacing=(10., 10))
 
     Put the data back into the new grid.
 
@@ -208,8 +215,8 @@ class FlowAccumulator(Component):
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fa = FlowAccumulator(mg, 'topographic__elevation',
     ...                        flow_director=FlowDirectorSteepest)
-    >>> runoff_rate = np.arange(mg.number_of_nodes)
-    >>> _ = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
+    >>> runoff_rate = np.arange(mg.number_of_nodes, dtype=float)
+    >>> rnff = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
     ...                  noclobber=False)
     >>> fa.run_one_step()
     >>> mg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
@@ -219,12 +226,41 @@ class FlowAccumulator(Component):
                0.,  1300.,  2700.,     0.,
                0.,     0.,     0.,     0.])
 
+    The flow accumulator will happily work with a negative runoff rate, which
+    could be used to allow, e.g., transmission losses:
+
+    >>> runoff_rate.fill(1.)
+    >>> fa.run_one_step()
+    >>> mg.at_node['surface_water__discharge']
+    array([   0.,  100.,  500.,    0.,
+              0.,  100.,  500.,    0.,
+              0.,  100.,  400.,    0.,
+              0.,  100.,  200.,    0.,
+              0.,    0.,    0.,    0.])
+    >>> runoff_rate[:8] = -0.5
+    >>> fa.run_one_step()
+    >>> mg.at_node['surface_water__discharge']
+    array([   0.,    0.,  350.,    0.,
+              0.,    0.,  350.,    0.,
+              0.,  100.,  400.,    0.,
+              0.,  100.,  200.,    0.,
+              0.,    0.,    0.,    0.])
+
+    The drainage area array is unaffected, as you would expect:
+
+    >>> mg.at_node['drainage_area']
+    array([   0.,  100.,  500.,    0.,
+              0.,  100.,  500.,    0.,
+              0.,  100.,  400.,    0.,
+              0.,  100.,  200.,    0.,
+              0.,    0.,    0.,    0.])
+
     The FlowAccumulator component will work for both raster grids and irregular
     grids. For the example we will use a Hexagonal Model Grid, a special type of
     Voroni Grid that has regularly spaced hexagonal cells.
 
     >>> from landlab import HexModelGrid
-    >>> hmg = HexModelGrid(5,3)
+    >>> hmg = HexModelGrid(5,3, xy_of_lower_left=(-1., 0.))
     >>> _ = hmg.add_field('topographic__elevation',
     ...                   hmg.node_x + np.round(hmg.node_y),
     ...                   at = 'node')
@@ -244,7 +280,7 @@ class FlowAccumulator(Component):
     For example, in the case of a raster grid, FlowDirectorMFD can use only
     orthogonal links, or it can use both orthogonal and diagonal links.
 
-    >>> mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    >>> mg = RasterModelGrid((5, 5))
     >>> topographic__elevation = mg.node_y+mg.node_x
     >>> _ = mg.add_field('node',
     ...                  'topographic__elevation',
@@ -279,12 +315,12 @@ class FlowAccumulator(Component):
            [22, -1, -1, -1, -1, -1, -1, -1],
            [23, -1, -1, -1, -1, -1, -1, -1],
            [24, -1, -1, -1, -1, -1, -1, -1]])
-    >>> mg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
-    array([ 1.41168825,  2.06497116,  1.3253788 ,  0.40380592,  0.        ,
-            2.06497116,  3.40811691,  2.5753788 ,  1.37867966,  0.        ,
-            1.3253788 ,  2.5753788 ,  2.17157288,  1.29289322,  0.        ,
-            0.40380592,  1.37867966,  1.29289322,  1.        ,  0.        ,
-            0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
+    >>> mg.at_node['drainage_area'].round(4) # doctest: +NORMALIZE_WHITESPACE
+    array([ 1.4117,  2.065 ,  1.3254,  0.4038,  0.    ,
+            2.065 ,  3.4081,  2.5754,  1.3787,  0.    ,
+            1.3254,  2.5754,  2.1716,  1.2929,  0.    ,
+            0.4038,  1.3787,  1.2929,  1.    ,  0.    ,
+            0.    ,  0.    ,  0.    ,  0.    ,  0.    ])
 
     It may seem odd that there are no round numbers in the drainage area field.
     This is because flow is directed to all downhill boundary nodes and
@@ -292,8 +328,8 @@ class FlowAccumulator(Component):
 
     To check that flow is conserved, sum along all boundary nodes.
 
-    >>> sum(mg.at_node['drainage_area'][mg.boundary_nodes])
-    9.0000000000000018
+    >>> round(sum(mg.at_node['drainage_area'][mg.boundary_nodes]), 4)
+    9.0
 
     This should be the same as the number of core nodes --- as boundary nodes
     in landlab do not have area.
@@ -304,7 +340,7 @@ class FlowAccumulator(Component):
     Next, let's set the dx spacing such that each cell has an area of one.
 
     >>> dx=(2./(3.**0.5))**0.5
-    >>> hmg = HexModelGrid(5,3, dx)
+    >>> hmg = HexModelGrid(5,3, dx, xy_of_lower_left=(-1.0745, 0.))
     >>> _ = hmg.add_field('topographic__elevation',
     ...                     hmg.node_x**2 + np.round(hmg.node_y)**2,
     ...                     at = 'node')
@@ -326,7 +362,7 @@ class FlowAccumulator(Component):
 
     Now let's change the cell area (100.) and the runoff rates:
 
-    >>> hmg = HexModelGrid(5,3, dx*10.)
+    >>> hmg = HexModelGrid(5,3, dx*10., xy_of_lower_left=(-10.745, 0.))
 
     Put the data back into the new grid.
 
@@ -345,7 +381,7 @@ class FlowAccumulator(Component):
 
     Next, let's see what happens to a raster grid when there is a depression.
 
-    >>> mg = RasterModelGrid((7, 7), 0.5)
+    >>> mg = RasterModelGrid((7, 7), xy_spacing=0.5)
     >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
     >>> z += 0.01 * mg.node_y
     >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
@@ -446,7 +482,7 @@ class FlowAccumulator(Component):
     and the depression finder with one call. For this example, we will pass the
     class DepressionFinderAndRouter to the parameter `depression_finder`.
 
-    >>> mg = RasterModelGrid((7, 7), 0.5)
+    >>> mg = RasterModelGrid((7, 7), xy_spacing=0.5)
     >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
     >>> z += 0.01 * mg.node_y
     >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
@@ -548,7 +584,7 @@ class FlowAccumulator(Component):
         "flow__upstream_node_order": "node",
         "flow__nodes_not_in_stack": "grid",
         "flow__data_structure_delta": "node",
-        "flow__data_structure_D": "link",
+        "flow__data_structure_D": "grid",
     }
     _var_doc = {
         "topographic__elevation": "Land surface topographic elevation",
@@ -564,8 +600,8 @@ class FlowAccumulator(Component):
         "flow__data_structure_delta": "Node array containing the elements delta[1:] of the data "
         'structure "delta" used for construction of the downstream-to-'
         "upstream node array",
-        "flow__data_structure_D": "Link array containing the data structure D used for construction"
-        "of the downstream-to-upstream node array",
+        "flow__data_structure_D": "Array containing the data structure D used for construction"
+        "of the downstream-to-upstream node array. Stored at Grid.",
         "flow__nodes_not_in_stack": "Boolean value indicating if there are any nodes that have not yet"
         "been added to the stack stored in flow__upstream_node_order.",
     }
@@ -593,7 +629,7 @@ class FlowAccumulator(Component):
         # Grid type testing
         self._is_raster = isinstance(self._grid, RasterModelGrid)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
-
+        self._is_Network = isinstance(self._grid, NetworkModelGrid)
         self.kwargs = kwargs
         # STEP 1: Testing of input values, supplied either in function call or
         # as part of the grid.
@@ -603,8 +639,18 @@ class FlowAccumulator(Component):
         self.surface = surface
         self.surface_values = return_array_at_node(grid, surface)
 
-        node_cell_area = self._grid.cell_area_at_node.copy()
-        node_cell_area[self._grid.closed_boundary_nodes] = 0.
+        if self._is_Network:
+            try:
+                node_cell_area = self._grid.at_node["cell_area_at_node"]
+            except FieldError:
+                raise FieldError(
+                    "In order for the FlowAccumulator to work, the "
+                    "grid must have an at-node field called "
+                    "cell_area_at_node."
+                )
+        else:
+            node_cell_area = self._grid.cell_area_at_node.copy()
+            node_cell_area[self._grid.closed_boundary_nodes] = 0.
 
         self.node_cell_area = node_cell_area
 
@@ -655,27 +701,19 @@ class FlowAccumulator(Component):
         else:
             self.delta_structure = grid.at_node["flow__data_structure_delta"]
 
-        if "flow__data_structure_D" not in grid.at_link:
-            if self.flow_director.to_n_receivers == "many" and self._is_raster:
-                # needs to be BAD_INDEX_VALUE
-                self.D_structure = grid.add_field(
-                    "flow__data_structure_D",
-                    BAD_INDEX_VALUE
-                    * np.ones((self._grid.number_of_links, 2), dtype=int),
-                    at="link",
-                    dtype=int,
-                    noclobber=False,
-                )
-            else:
-                # needs to be BAD_INDEX_VALUE
-                self.D_structure = grid.add_field(
-                    "flow__data_structure_D",
-                    BAD_INDEX_VALUE * grid.ones(at="link"),
-                    at="link",
-                    dtype=int,
-                )
-        else:
-            self.D_structure = grid.at_link["flow__data_structure_D"]
+        try:
+            D = BAD_INDEX_VALUE * grid.ones(at="link", dtype=int)
+            D_structure = np.array([D], dtype=object)
+            self.D_structure = grid.add_field(
+                "flow__data_structure_D",
+                D_structure,
+                at="grid",
+                dtype=object,
+                noclobber=False,
+            )
+
+        except FieldError:
+            self.D_structure = grid.at_grid["flow__data_structure_D"]
 
         self.nodes_not_in_stack = True
 
@@ -735,12 +773,6 @@ class FlowAccumulator(Component):
             "FlowDirectorMFD",
             "FlowDirectorDINF",
         ]
-
-        # find keyword args to pass along:
-        try:
-            component_name = flow_director._name
-        except:
-            component_name = None
 
         potential_kwargs = ["partition_method", "diagonals"]
         kw = {}
@@ -936,87 +968,86 @@ class FlowAccumulator(Component):
             4. Depression finding and mapping, which updates drainage area and
             discharge.
         """
+        # set a couple of aliases
+        a = self._grid["node"]["drainage_area"]
+        q = self._grid["node"]["surface_water__discharge"]
+
         # step 1. Find flow directions by specified method
-        if update_flow_director == True:
+        if update_flow_director:
             self.flow_director.run_one_step()
 
         # further steps vary depending on how many recievers are present
         # one set of steps is for route to one (D8, Steepest/D4)
+
+        # step 2. Get r
+        r = as_id_array(self._grid["node"]["flow__receiver_node"])
+
         if self.flow_director.to_n_receivers == "one":
 
-            # step 3. Run depression finder if passed
+            # step 2b. Run depression finder if passed
             # Depression finder reaccumulates flow at the end of its routine.
+            # At the moment, no depression finders work with to-many, so it
+            # lives here
             if self.depression_finder_provided is not None:
-
                 self.depression_finder.map_depressions()
 
-                a = self._grid["node"]["drainage_area"]
-                q = self._grid["node"]["surface_water__discharge"]
+            # step 3. Stack, D, delta construction
+            nd = as_id_array(flow_accum_bw._make_number_of_donors_array(r))
+            delta = as_id_array(flow_accum_bw._make_delta_array(nd))
+            D = as_id_array(flow_accum_bw._make_array_of_donors(r, delta))
+            s = as_id_array(flow_accum_bw.make_ordered_node_array(r))
 
-            else:
-                # step 2. Get r
-                r = self._grid["node"]["flow__receiver_node"]
+            # put these in grid so that depression finder can use it.
+            # store the generated data in the grid
+            self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
+            self._grid["grid"]["flow__data_structure_D"] = np.array([D], dtype=object)
+            self._grid["node"]["flow__upstream_node_order"][:] = s
 
-                # step 2. Stack, D, delta construction
-                nd = flow_accum_bw._make_number_of_donors_array(r)
-                delta = flow_accum_bw._make_delta_array(nd)
-                D = flow_accum_bw._make_array_of_donors(r, delta)
-                s = flow_accum_bw.make_ordered_node_array(r)
-
-                # put theese in grid so that depression finder can use it.
-                # store the generated data in the grid
-                self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
-                self._grid["link"]["flow__data_structure_D"][: len(D)] = D
-                self._grid["node"]["flow__upstream_node_order"][:] = s
-
-                # step 4. Accumulate (to one or to N depending on direction method. )
-                a, q = flow_accum_bw.find_drainage_area_and_discharge(
-                    s, r, self.node_cell_area, self._grid.at_node["water__unit_flux_in"]
-                )
-                self._grid["node"]["drainage_area"][:] = a
-                self._grid["node"]["surface_water__discharge"][:] = q
+            # step 4. Accumulate (to one or to N depending on direction method)
+            a[:], q[:] = self._accumulate_A_Q_to_one(s, r)
 
         else:
-            # step 2. Get r and p
-            r = self._grid["node"]["flow__receiver_node"]
+            # Get p
             p = self._grid["node"]["flow__receiver_proportions"]
 
-            # step 2. Stack, D, delta construction
-            nd = flow_accum_to_n._make_number_of_donors_array_to_n(r, p)
-            delta = flow_accum_to_n._make_delta_array_to_n(nd)
-            D = flow_accum_to_n._make_array_of_donors_to_n(r, p, delta)
-            s = flow_accum_to_n.make_ordered_node_array_to_n(r, p)
+            # step 3. Stack, D, delta construction
+            nd = as_id_array(flow_accum_to_n._make_number_of_donors_array_to_n(r, p))
+            delta = as_id_array(flow_accum_to_n._make_delta_array_to_n(nd))
+            D = as_id_array(flow_accum_to_n._make_array_of_donors_to_n(r, p, delta))
+            s = as_id_array(flow_accum_to_n.make_ordered_node_array_to_n(r, p))
 
             # put theese in grid so that depression finder can use it.
             # store the generated data in the grid
             self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
-
-            if self._is_raster:
-                tempD = BAD_INDEX_VALUE * np.ones((self._grid.number_of_links * 2))
-                tempD[: len(D)] = D
-                self._grid["link"]["flow__data_structure_D"][:] = tempD.reshape(
-                    (self._grid.number_of_links, 2)
-                )
-            else:
-                self._grid["link"]["flow__data_structure_D"][: len(D)] = D
+            self._grid["grid"]["flow__data_structure_D"][0] = np.array(
+                [D], dtype=object
+            )
+            self._grid["node"]["flow__upstream_node_order"][:] = s
             self._grid["node"]["flow__upstream_node_order"][:] = s
 
-            # step 3. Run depression finder if passed
-            # at present this must go at the end.
+            # step 4. Accumulate (to one or to N depending on direction method)
+            a[:], q[:] = self._accumulate_A_Q_to_n(s, r, p)
 
-            # step 4. Accumulate (to one or to N depending on direction method. )
-            a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n(
-                s, r, p, self.node_cell_area, self._grid.at_node["water__unit_flux_in"]
-            )
-            # store drainage area and discharge.
-            self._grid["node"]["drainage_area"][:] = a
-            self._grid["node"]["surface_water__discharge"][:] = q
+        return (a, q)
 
-            # at the moment, this is where the depression finder needs to live.
-            # at the moment, no depression finders work with to-many
-            # if self.depression_finder_provided is not None:
-            #     self.depression_finder.map_depressions()
+    def _accumulate_A_Q_to_one(self, s, r):
+        """
+        Accumulate area and discharge for a route-to-one scheme. Note this
+        can be overridden in inherited components.
+        """
+        a, q = flow_accum_bw.find_drainage_area_and_discharge(
+            s, r, self.node_cell_area, self._grid.at_node["water__unit_flux_in"]
+        )
+        return (a, q)
 
+    def _accumulate_A_Q_to_n(self, s, r, p):
+        """
+        Accumulate area and discharge for a route-to-many scheme. Note this
+        can be overridden in inherited components.
+        """
+        a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n(
+            s, r, p, self.node_cell_area, self._grid.at_node["water__unit_flux_in"]
+        )
         return (a, q)
 
     def run_one_step(self):

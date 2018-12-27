@@ -9,11 +9,16 @@ in that it does not consider diagonal links between nodes. For that capability,
 use FlowDirectorD8.
 """
 
-from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
-from landlab.components.flow_director import flow_direction_mfd
-from landlab import VoronoiDelaunayGrid
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY, BAD_INDEX_VALUE
 import numpy
+
+from landlab import (
+    BAD_INDEX_VALUE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+    VoronoiDelaunayGrid,
+)
+from landlab.components.flow_director import flow_direction_mfd
+from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 
 
 class FlowDirectorMFD(_FlowDirectorToMany):
@@ -55,7 +60,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     >>> import numpy as numpy
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorMFD
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field('topographic__elevation',
     ...                  mg.node_x + mg.node_y,
@@ -191,11 +196,11 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     >>> fd = FlowDirectorMFD(mg, 'topographic__elevation',
     ...                      partition_method='square_root_of_slope')
     >>> fd.surface_values # doctest: +NORMALIZE_WHITESPACE
-    array([ 0. ,  1. ,  2. ,
-            0.5,  1.5,  2.5,  3.5,
-            1. ,  2. ,  3. ,  4. ,  5. ,
-            2.5,  3.5,  4.5,  5.5,
-            3. ,  4. ,  5. ])
+    array([ 1. ,  2. ,  3. ,
+            1.5,  2.5,  3.5,  4.5,
+            2. ,  3. ,  4. ,  5. ,  6. ,
+            3.5,  4.5,  5.5,  6.5,
+            4. ,  5. ,  6. ])
     >>> fd.run_one_step()
     >>> mg.at_node['flow__receiver_node']
     array([[ 0, -1, -1, -1, -1, -1],
@@ -332,9 +337,9 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         self.partition_method = partition_method
         self.diagonals = diagonals
 
-        if self._is_Voroni == False and diagonals == False:
+        if self._is_Voroni is False and diagonals is False:
             self.max_receivers = 4
-        if self._is_Voroni == False and diagonals == True:
+        if self._is_Voroni is False and diagonals is True:
             self.max_receivers = 8
         else:
             self.max_receivers = self._grid.adjacent_nodes_at_node.shape[1]
@@ -424,7 +429,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         # flow direction calculations
 
         # Option for no diagonals (default)
-        if self.diagonals == False:
+        if self.diagonals is False:
             neighbors_at_node = self.grid.adjacent_nodes_at_node
             links_at_node = self.grid.links_at_node
             active_link_dir_at_node = self.grid.active_link_dirs_at_node

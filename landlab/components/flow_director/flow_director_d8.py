@@ -10,11 +10,11 @@ grids and does not consider diagonal links for rasters, use
 FlowDirectorSteepest instead.
 """
 
-from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
-from landlab.components.flow_director import flow_direction_DN
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
-from landlab import VoronoiDelaunayGrid
 import numpy
+
+from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, VoronoiDelaunayGrid
+from landlab.components.flow_director import flow_direction_DN
+from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
 
 class FlowDirectorD8(_FlowDirectorToOne):
@@ -50,7 +50,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorD8
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field('topographic__elevation',
     ...                  mg.node_x + mg.node_y,
@@ -68,7 +68,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
     array([-1, -1, -1, -1, 12, -1, -1, -1, -1])
     >>> mg.at_node['flow__sink_flag']
     array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=int8)
-    >>> mg_2 = RasterModelGrid((5, 4), spacing=(1, 1))
+    >>> mg_2 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
     ...                                    0., 21., 10., 0.,
     ...                                    0., 31., 20., 0.,

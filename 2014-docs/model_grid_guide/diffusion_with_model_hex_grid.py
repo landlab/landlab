@@ -8,9 +8,12 @@ Last updated GT May 2014
 
 """
 
-from landlab import HexModelGrid
-import pylab
 import time
+
+import pylab
+
+from landlab import HexModelGrid
+
 
 def main():
     """
