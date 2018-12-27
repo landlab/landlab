@@ -798,6 +798,7 @@ class FlowAccumulator(Component):
 
         Examples
         --------
+        >>> from numpy.testing import assert_array_equal
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> mg = RasterModelGrid((5, 5))
@@ -807,8 +808,7 @@ class FlowAccumulator(Component):
         ...                  at = 'node')
         >>> fa = FlowAccumulator(mg, 'topographic__elevation')
         >>> fa.run_one_step()
-        >>> fa.headwater_nodes
-        array([16, 17, 18])
+        >>> assert_array_equal(fa.headwater_nodes, np.array([16, 17, 18]))
         """
         delta = np.concatenate(([0], self.delta_structure))
         num_donors = np.diff(delta)
