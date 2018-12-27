@@ -271,7 +271,10 @@ def _get_x_and_y(grid, at):
         x = grid.x_of_face
         y = grid.y_of_face
     else:
-        raise ValueError("")
+        msg = ("landlab.values.synthetic: ",
+               "X and Y values are require for the requested synthetic field "
+               "but do not exist for the grid-element provided.")
+        raise ValueError(msg)
     return x, y
 
 
