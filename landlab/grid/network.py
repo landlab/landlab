@@ -51,6 +51,15 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         self._node_status = np.zeros(self.number_of_nodes, dtype=np.uint8)
         self.bc_set_code = 0
 
+    @classmethod
+    def from_file(cls, file_like):
+        params = load_params(file_like)
+        return cls.from_dict(params)
+
+    @classmethod
+    def from_dict(cls, params):
+        return cls(**params)
+
     @property
     @override_array_setitem_and_reset("reset_status_at_node")
     def status_at_node(self):
