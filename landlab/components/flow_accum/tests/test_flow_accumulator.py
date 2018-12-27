@@ -1073,8 +1073,6 @@ def test_nmg_no_cell_area():
     x_of_node = (0, 0, -1, 1)
     nodes_at_link = ((1, 0), (2, 1), (3, 1))
     nmg = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
-    z = nmg.add_field(
-        "topographic__elevation", nmg.x_of_node + nmg.y_of_node, at="node"
-    )
+    nmg.add_field("topographic__elevation", nmg.x_of_node + nmg.y_of_node, at="node")
     with pytest.raises(FieldError):
-        fa = FlowAccumulator(nmg)
+        FlowAccumulator(nmg)
