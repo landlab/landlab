@@ -10,10 +10,11 @@ use FlowDirectorD8.
 """
 
 import numpy as np
+
 from landlab import (
+    BAD_INDEX_VALUE,
     FIXED_GRADIENT_BOUNDARY,
     FIXED_VALUE_BOUNDARY,
-    BAD_INDEX_VALUE,
     VoronoiDelaunayGrid,
 )
 from landlab.components.flow_director import flow_direction_DN

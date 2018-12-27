@@ -1148,22 +1148,26 @@ class DepressionFinderAndRouter(Component):
                 # reset_link for new outlet
                 outlet_receiver = self.receivers[outlet_node]
                 if self._D8:
-                    adjacent_links_and_diags = np.hstack((
-                        self._grid.adjacent_nodes_at_node[outlet_node, :],
-                        self._grid.diagonal_adjacent_nodes_at_node[outlet_node, :]
-                    ))
+                    adjacent_links_and_diags = np.hstack(
+                        (
+                            self._grid.adjacent_nodes_at_node[outlet_node, :],
+                            self._grid.diagonal_adjacent_nodes_at_node[outlet_node, :],
+                        )
+                    )
                     find_recs = outlet_receiver == adjacent_links_and_diags
                     new_link = self._grid.d8s_at_node[outlet_node, find_recs]
                 else:
-                    find_recs = (outlet_receiver ==
-                                 self._grid.adjacent_nodes_at_node[outlet_node, :])
+                    find_recs = (
+                        outlet_receiver
+                        == self._grid.adjacent_nodes_at_node[outlet_node, :]
+                    )
                     new_link = self._grid.links_at_node[outlet_node, find_recs]
 
                 if new_link.size == 0:
                     new_link = LOCAL_BAD_INDEX_VALUE
-                #print('outlet_receiver', outlet_receiver)
-                #print('outlet_node', outlet_node)
-                #print('new_link', new_link)
+                # print('outlet_receiver', outlet_receiver)
+                # print('outlet_node', outlet_node)
+                # print('new_link', new_link)
                 self.links[outlet_node] = new_link
 
                 # make a check

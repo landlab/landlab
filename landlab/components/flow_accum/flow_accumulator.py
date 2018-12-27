@@ -766,8 +766,8 @@ class FlowAccumulator(Component):
         array([ 5, 14, 10,  6, 11,  7, 23, 19, 15, 20, 16, 28, 24, 29, 25])
         """
         downstream_links = self._grid["node"]["flow__link_to_receiver_node"][
-                self.node_order_upstream
-            ]
+            self.node_order_upstream
+        ]
         out = downstream_links.flatten()
         return out[out != BAD_INDEX_VALUE]
 
@@ -1058,7 +1058,7 @@ class FlowAccumulator(Component):
                 self.depression_finder.map_depressions()
 
                 # if FlowDirectorSteepest is used, update the link directions
-                if self.flow_director._name is 'FlowDirectorSteepest':
+                if self.flow_director._name is "FlowDirectorSteepest":
                     self.flow_director._determine_link_directions()
 
             # step 3. Stack, D, delta construction
