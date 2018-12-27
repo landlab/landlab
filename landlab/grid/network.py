@@ -290,6 +290,45 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         """
         return np.where(self.status_at_link == ACTIVE_LINK)[0]
 
+    @property
+    @cache_result_in_object()
+    @make_return_array_immutable
+    def x_of_link(self):
+        """Get array of the x-coordinates of link midpoints.
+
+        Examples
+        --------
+        >>> from landlab import NetworkModelGrid
+        >>> y_of_node = (0, 1, 2, 2)
+        >>> x_of_node = (0, 0, -1, 1)
+        >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
+        >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
+        >>> grid.x_of_link
+        array([ 0. , -0.5,  0.5])
+
+        LLCATS: LINF MEAS
+        """
+        return np.mean(self.x_of_node[self.nodes_at_link], axis=1)
+
+    @property
+    @cache_result_in_object()
+    @make_return_array_immutable
+    def y_of_link(self):
+        """Get array of the y-coordinates of link midpoints.
+
+        Examples
+        --------
+        >>> from landlab import NetworkModelGrid
+        >>> y_of_node = (0, 1, 2, 2)
+        >>> x_of_node = (0, 0, -1, 1)
+        >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
+        >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
+        >>> grid.y_of_link
+        array([ 0.5,  1.5,  1.5])
+
+        LLCATS: LINF MEAS
+        """
+        return np.mean(self.y_of_node[self.nodes_at_link], axis=1)
 
 # add only the correct functions
 add_module_functions_to_class(
