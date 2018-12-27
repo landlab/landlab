@@ -628,10 +628,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         LLCATS: GINF
         """
         shape = params["shape"]
-        spacing = params.get("spacing", (1.,) * len(shape))
-        bc = params.get("bc", {})
-
-        return cls(shape, xy_spacing=spacing, bc=bc)
+        return cls(shape, **params)
 
     @property
     def xy_of_lower_left(self):
@@ -4567,7 +4564,13 @@ def from_dict(param_dict):
     Required keys of the dictionary are NUM_ROWS, NUM_COLS. Raises a KeyError
     if either of these are missing is given, use it as the
     HexModelGrid *dx* parameter, otherwise default to unit spacing.
+
+    Deprecated in version 1.6.X. Will be removed in version 2.0.
     """
+    msg = ("The non-class method version of 'from_dict' for RasterModelGrid "
+           "was Deprecated in version 1.6.X. Will be removed in version 2.0.")
+    warn(msg, DeprecationWarning)
+
     # Read and create basic raster grid
     try:
         nrows = int(param_dict["NUM_ROWS"])

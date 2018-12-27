@@ -398,18 +398,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         self.neighbor_list_created = True
         return self._active_neighbor_nodes
 
-    @classmethod
-    def from_file(cls, file_like):
-        params = load_params(file_like)
-        return cls.from_dict(params)
-
-    @classmethod
-    def from_dict(cls, params):
-        raise NotImplementedError("from_dict")
-
-    def _initialize(self):
-        raise NotImplementedError("_initialize")
-
     @property
     def ndim(self):
         """Number of spatial dimensions of the grid.

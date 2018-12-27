@@ -7,7 +7,7 @@ Do NOT add new documentation here. Grid documentation is now built in a semi-
 automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
-
+from warnings import warn
 import numpy
 import six
 
@@ -1162,7 +1162,12 @@ def from_dict(param_dict):
     Required keys of the dictionary are NUM_ROWS, NUM_COLS. Raises a KeyError
     if either of these are missing.  If GRID_SPACING is given, use it as the
     HexModelGrid *dx* parameter, otherwise default to unit spacing.
+
+    Deprecated in version 1.6.X. Will be removed in version 2.0.
     """
+    msg = ("The non-class method version of 'from_dict' for RasterModelGrid "
+           "was Deprecated in version 1.6.X. Will be removed in version 2.0.")
+    warn(msg, DeprecationWarning)
     # Read and create a basic HexModelGrid
     try:
         n_rows = int(param_dict["NUM_ROWS"])
