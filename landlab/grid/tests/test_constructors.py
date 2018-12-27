@@ -57,8 +57,8 @@ def test_raster_from_file():
         "    - 'smoot'\n"
         "    - 'parsec'"
     )
-    with StringIO(file_strn) as file_like:
-        mg = RasterModelGrid.from_file(file_like)
+    file_like = StringIO(file_strn)
+    mg = RasterModelGrid.from_file(file_like)
 
     # assert things.
     assert mg.shape == (10, 20)
@@ -206,8 +206,8 @@ def test_network_from_file():
         "    - 'smoot'\n"
         "    - 'parsec'"
     )
-    with StringIO(file_strn) as file_like:
-        mg = NetworkModelGrid.from_file(file_like)
+    file_like = StringIO(file_strn)
+    mg = NetworkModelGrid.from_file(file_like)
 
     assert_array_equal(mg.x_of_node, np.array([0., 0., -1., 1.]))
     assert_array_equal(mg.y_of_node, np.array([0., 1., 2., 2.]))
