@@ -794,7 +794,9 @@ class FlowAccumulator(Component):
         delta = np.concatenate(([0], self.delta_structure))
         num_donors = np.diff(
             delta
-        )  # note closed nodes have a value of 1 here since they flow to themselves
+        )
+        # note closed nodes have a value of 1 here since they flow to
+        # themselves
         source_nodes = np.where(num_donors == 0)[0]
         return source_nodes
 
