@@ -76,7 +76,29 @@ Additional keyword arguments are required as needed by each function.
 """
 import numpy as np
 
-from landlab import NetworkModelGrid
+from landlab.grid.network import NetworkModelGrid
+
+from landlab.grid.linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK
+from landlab.grid.nodestatus import (
+    CLOSED_BOUNDARY,
+    CORE_NODE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+    LOOPED_BOUNDARY)
+
+_LINK_STATUS = {
+    "ACTIVE_LINK": ACTIVE_LINK,
+    "FIXED_LINK": FIXED_LINK,
+    "INACTIVE_LINK": INACTIVE_LINK,
+}
+
+_NODE_STATUS = {
+    "CLOSED_BOUNDARY": CLOSED_BOUNDARY,
+    "CORE_NODE": CORE_NODE,
+    "FIXED_GRADIENT_BOUNDARY": FIXED_GRADIENT_BOUNDARY,
+    "FIXED_VALUE_BOUNDARY": FIXED_VALUE_BOUNDARY,
+    "LOOPED_BOUNDARY": LOOPED_BOUNDARY,
+}
 
 
 def _create_missing_field(grid, name, at):
@@ -93,7 +115,6 @@ def _where_to_add_values(grid, at, where):
         where.size == grid.size(at)
         where_to_place = where
     except AttributeError:
-
         if at is "link":
             status_values = grid.status_at_link
         elif at is "node":
@@ -112,11 +133,28 @@ def _where_to_add_values(grid, at, where):
         else:
             try:
                 for w in where:
+                    w = _convert_where(w, at)
                     where_to_place[status_values == w] = True
-            except TypeError:
+            except (ValueError, TypeError):
+                where = _convert_where(where, at)
                 where_to_place[status_values == where] = True
 
     return where_to_place
+
+
+def _convert_where(where, at):
+    if isinstance(where, str):
+        if at is "node":
+            _STATUS = _NODE_STATUS
+        elif at is "link":
+            _STATUS = _LINK_STATUS
+        if where in _STATUS:
+            return _STATUS[where]
+        else:
+            msg = "No status information exists for the grid element provided."
+            raise ValueError(msg)
+    else:
+        return where
 
 
 def random(grid, name, at="node", where=None, distribution="uniform", **kwargs):
@@ -155,14 +193,13 @@ def random(grid, name, at="node", where=None, distribution="uniform", **kwargs):
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab import CORE_NODE
     >>> from landlab.values import random
     >>> np.random.seed(42)
     >>> mg = RasterModelGrid((4, 4))
     >>> values = random(mg,
     ...                 'soil__depth',
     ...                 'node',
-    ...                 where=CORE_NODE,
+    ...                 where='CORE_NODE',
     ...                 distribution='uniform',
     ...                 high=3.,
     ...                 low=2.)
@@ -312,13 +349,12 @@ def constant(grid, name, at="node", where=None, constant=0.):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab import ACTIVE_LINK
     >>> from landlab.values import constant
     >>> mg = RasterModelGrid((4, 4))
     >>> values = constant(mg,
     ...                  'some_flux',
     ...                  'link',
-    ...                  where=ACTIVE_LINK,
+    ...                  where='ACTIVE_LINK',
     ...                  constant=10)
     >>> mg.at_link['some_flux']
     array([  0.,   0.,   0.,   0.,  10.,  10.,   0.,  10.,  10.,  10.,   0.,
