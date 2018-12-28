@@ -1,18 +1,17 @@
 #! /usr/env/python
 
-"""
-flow_director_to_many.py provides a private class to help create FlowDirectors.
+"""flow_director_to_many.py provides a private class to help create
+FlowDirectors.
 
-Provides the _FlowDirectorToMany component which makes sure all model grid
-fields are set up correctly.
+Provides the _FlowDirectorToMany component which makes sure all model
+grid fields are set up correctly.
 """
 from landlab.components.flow_director.flow_director import _FlowDirector
 
 
 class _FlowDirectorToMany(_FlowDirector):
 
-    """
-    Private class for creating components to calculate flow directions.
+    """Private class for creating components to calculate flow directions.
 
     This class is not meant to be used directly in modeling efforts. It
     inherits from the _FlowDirector class and builds on it to provide the

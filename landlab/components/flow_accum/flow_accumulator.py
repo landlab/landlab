@@ -33,8 +33,7 @@ from landlab.utils.return_array import return_array_at_node
 
 class FlowAccumulator(Component):
 
-    """
-    Component to accumulate flow and calculate drainage area.
+    """Component to accumulate flow and calculate drainage area.
 
     This is accomplished by first finding flow directions by a user-specified
     method and then calculating the drainage area and discharge.
@@ -569,7 +568,6 @@ class FlowAccumulator(Component):
     >>> fa.run_one_step()
     >>> nmg.at_node['flow__receiver_node']
     array([0, 0, 2, 1])
-
     """
 
     _name = "FlowAccumulator"
@@ -637,12 +635,12 @@ class FlowAccumulator(Component):
         depression_finder=None,
         **kwargs
     ):
-        """
-        Initialize the FlowAccumulator component.
+        """Initialize the FlowAccumulator component.
 
-        Saves the grid, tests grid type, tests imput types and compatability
-        for the flow_director and depression_finder keyword arguments, tests
-        the argument of runoff_rate, and initializes new fields.
+        Saves the grid, tests grid type, tests imput types and
+        compatability for the flow_director and depression_finder
+        keyword arguments, tests the argument of runoff_rate, and
+        initializes new fields.
         """
         super(FlowAccumulator, self).__init__(grid)
         # Keep a local reference to the grid
@@ -1041,8 +1039,8 @@ class FlowAccumulator(Component):
             self.depression_finder = None
 
     def accumulate_flow(self, update_flow_director=True):
-        """
-        Function to make FlowAccumulator calculate drainage area and discharge.
+        """Function to make FlowAccumulator calculate drainage area and
+        discharge.
 
         Running run_one_step() results in the following to occur:
             1. Flow directions are updated (unless update_flow_director is set
@@ -1121,9 +1119,9 @@ class FlowAccumulator(Component):
         return (a, q)
 
     def _accumulate_A_Q_to_one(self, s, r):
-        """
-        Accumulate area and discharge for a route-to-one scheme. Note this
-        can be overridden in inherited components.
+        """Accumulate area and discharge for a route-to-one scheme.
+
+        Note this can be overridden in inherited components.
         """
         a, q = flow_accum_bw.find_drainage_area_and_discharge(
             s, r, self.node_cell_area, self._grid.at_node["water__unit_flux_in"]
@@ -1131,9 +1129,9 @@ class FlowAccumulator(Component):
         return (a, q)
 
     def _accumulate_A_Q_to_n(self, s, r, p):
-        """
-        Accumulate area and discharge for a route-to-many scheme. Note this
-        can be overridden in inherited components.
+        """Accumulate area and discharge for a route-to-many scheme.
+
+        Note this can be overridden in inherited components.
         """
         a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n(
             s, r, p, self.node_cell_area, self._grid.at_node["water__unit_flux_in"]
@@ -1141,8 +1139,7 @@ class FlowAccumulator(Component):
         return (a, q)
 
     def run_one_step(self):
-        """
-        Accumulate flow and save to the model grid.
+        """Accumulate flow and save to the model grid.
 
         run_one_step() checks for updated boundary conditions, calculates
         slopes on links, finds baselevel nodes based on the status at node,

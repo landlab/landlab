@@ -275,19 +275,18 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self.updated_boundary_conditions()
 
     def updated_boundary_conditions(self):
-        """
-        Method to update FlowDirectorSteepest when boundary conditions change.
+        """Method to update FlowDirectorSteepest when boundary conditions
+        change.
 
-        Call this if boundary conditions on the grid are updated after the
-        component is instantiated.
+        Call this if boundary conditions on the grid are updated after
+        the component is instantiated.
         """
         self._active_links = self.grid.active_links
         self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
         self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
     def run_one_step(self):
-        """
-        Find flow directions and save to the model grid.
+        """Find flow directions and save to the model grid.
 
         run_one_step() checks for updated boundary conditions, calculates
         slopes on links, finds baselevel nodes based on the status at node,
@@ -299,8 +298,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self.direct_flow()
 
     def direct_flow(self):
-        """
-        Find flow directions, save to the model grid, and return receivers.
+        """Find flow directions, save to the model grid, and return receivers.
 
         direct_flow() checks for updated boundary conditions, calculates
         slopes on links, finds baselevel nodes based on the status at node,
@@ -521,7 +519,6 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0]])
-
         """
         flow__link_direction_at_node = self.flow__link_direction[
             self._grid.links_at_node
@@ -562,7 +559,6 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0]])
-
         """
 
         incoming_at_node = (
@@ -605,7 +601,6 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> fd.run_one_step()
         >>> fd.flow__link_direction
         array([ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0])
-
         """
         return self._flow__link_direction
 
@@ -628,7 +623,6 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> fd.run_one_step()
         >>> fd.upstream_node_at_link
         array([-1, -1, -1,  4, -1, -1, -1, -1, -1, -1, -1, -1])
-
         """
         out = -1 * self._grid.ones(at="link", dtype=int)
         out[self._flow__link_direction == 1] = self._grid.node_at_link_tail[
@@ -658,7 +652,6 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> fd.run_one_step()
         >>> fd.downstream_node_at_link
         array([-1, -1, -1,  1, -1, -1, -1, -1, -1, -1, -1, -1])
-
         """
         out = -1 * self._grid.ones(at="link", dtype=int)
         out[self._flow__link_direction == 1] = self._grid.node_at_link_head[

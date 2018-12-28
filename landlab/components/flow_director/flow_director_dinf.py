@@ -21,8 +21,7 @@ from landlab.components.flow_director.flow_director_to_many import _FlowDirector
 
 class FlowDirectorDINF(_FlowDirectorToMany):
 
-    """
-    Flow direction on a raster grid by the D infinity method.
+    """Flow direction on a raster grid by the D infinity method.
 
     Directs flow by the D infinity method (Tarboton, 1997). Each node is
     assigned two flow directions, toward the two neighboring nodes that are on
@@ -204,7 +203,6 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     >>> proportions.sum(axis=1)
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
             1.,  1.,  1.])
-
     """
 
     _name = "FlowDirectorDINF"
@@ -273,19 +271,17 @@ class FlowDirectorDINF(_FlowDirectorToMany):
         )
 
     def updated_boundary_conditions(self):
-        """
-        Method to update FlowDirectorDINF when boundary conditions change.
+        """Method to update FlowDirectorDINF when boundary conditions change.
 
-        Call this if boundary conditions on the grid are updated after the
-        component is instantiated.
+        Call this if boundary conditions on the grid are updated after
+        the component is instantiated.
         """
         self._active_links = self.grid.active_links
         self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
         self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
     def run_one_step(self):
-        """
-        Find flow directions and save to the model grid.
+        """Find flow directions and save to the model grid.
 
         run_one_step() checks for updated boundary conditions, calculates
         slopes on links, finds basself.surface_valuesel nodes based on the status at node,
@@ -297,8 +293,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
         self.direct_flow()
 
     def direct_flow(self):
-        """
-        Find flow directions, save to the model grid, and return receivers.
+        """Find flow directions, save to the model grid, and return receivers.
 
         direct_flow() checks for updated boundary conditions, calculates
         slopes on links, finds basself.surface_valuesel nodes based on the status at node,

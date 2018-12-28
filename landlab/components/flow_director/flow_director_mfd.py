@@ -384,19 +384,17 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         )
 
     def updated_boundary_conditions(self):
-        """
-        Method to update FlowDirectorMFD when boundary conditions change.
+        """Method to update FlowDirectorMFD when boundary conditions change.
 
-        Call this if boundary conditions on the grid are updated after the
-        component is instantiated.
+        Call this if boundary conditions on the grid are updated after
+        the component is instantiated.
         """
         self._active_links = self.grid.active_links
         self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
         self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
     def run_one_step(self):
-        """
-        Find flow directions and save to the model grid.
+        """Find flow directions and save to the model grid.
 
         run_one_step() checks for updated boundary conditions, calculates
         slopes on links, finds basself.surface_valuesel nodes based on the
@@ -409,8 +407,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         self.direct_flow()
 
     def direct_flow(self):
-        """
-        Find flow directions, save to the model grid, and return receivers.
+        """Find flow directions, save to the model grid, and return receivers.
 
         direct_flow() checks for updated boundary conditions, calculates
         slopes on links, finds basself.surface_valuesel nodes based on the status at node,

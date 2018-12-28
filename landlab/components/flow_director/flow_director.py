@@ -1,11 +1,10 @@
 #! /usr/env/python
 
-"""
-flow_director.py provides a private class to help create FlowDirectors.
+"""flow_director.py provides a private class to help create FlowDirectors.
 
-Provides the _FlowDirector component which does grid type testing, adds the
-surface over which flow will be routed to the component, and sets up part of
-the boundary condition testing.
+Provides the _FlowDirector component which does grid type testing, adds
+the surface over which flow will be routed to the component, and sets up
+part of the boundary condition testing.
 """
 
 from __future__ import print_function
@@ -20,8 +19,7 @@ from landlab.utils.return_array import return_array_at_node
 
 class _FlowDirector(Component):
 
-    """
-    Private class for creating components to calculate flow directions.
+    """Private class for creating components to calculate flow directions.
 
     This class is not meant to be used directly in modeling efforts.
     Instead it has the functionality that all flow direction calculators need
@@ -93,8 +91,8 @@ class _FlowDirector(Component):
     def _changed_surface(self):
         """Check if the surface values have changed.
 
-        If the surface values are stored as a field, it is important to check
-        if they have changed since the component was instantiated.
+        If the surface values are stored as a field, it is important to
+        check if they have changed since the component was instantiated.
         """
         if isinstance(self.surface, six.string_types):
             self.surface_values = return_array_at_node(self._grid, self.surface)

@@ -260,7 +260,6 @@ class FlowRouter(FlowAccumulator):
                    0.,   900.,  3700.,     0.,
                    0.,  1300.,  1400.,     0.,
                    0.,     0.,     0.,     0.])
-
         """
         self._test_for_method_change(**kwds)
         self.accumulate_flow()

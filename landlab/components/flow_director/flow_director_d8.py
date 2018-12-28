@@ -19,8 +19,8 @@ from landlab.components.flow_director.flow_director_to_one import _FlowDirectorT
 
 class FlowDirectorD8(_FlowDirectorToOne):
 
-    """
-    Single-path (steepest direction) flow direction with diagonals on rasters.
+    """Single-path (steepest direction) flow direction with diagonals on
+    rasters.
 
     Single-path (steepest direction) flow direction finding on raster grids
     by the D8 method. This method considers flow on all eight links such that
@@ -121,11 +121,10 @@ class FlowDirectorD8(_FlowDirectorToOne):
         self.updated_boundary_conditions()
 
     def updated_boundary_conditions(self):
-        """
-        Method to update FlowDirectorD8 when boundary conditions change.
+        """Method to update FlowDirectorD8 when boundary conditions change.
 
-        Call this if boundary conditions on the grid are updated after the
-        component is instantiated.
+        Call this if boundary conditions on the grid are updated after
+        the component is instantiated.
         """
         self._active_links = self.grid.active_d8
         nodes_at_d8 = self.grid.nodes_at_d8[self._active_links]
@@ -133,8 +132,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
         self._activelink_head = nodes_at_d8[:, 1]
 
     def run_one_step(self):
-        """
-        Find flow directions and save to the model grid.
+        """Find flow directions and save to the model grid.
 
         run_one_step() checks for updated boundary conditions, calculates
         slopes on links, finds baselevel nodes based on the status at node,
@@ -146,8 +144,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
         self.direct_flow()
 
     def direct_flow(self):
-        """
-        Find flow directions, save to the model grid, and return receivers.
+        """Find flow directions, save to the model grid, and return receivers.
 
         direct_flow() checks for updated boundary conditions, calculates
         slopes on links, finds baselevel nodes based on the status at node,

@@ -299,10 +299,8 @@ class DepressionFinderAndRouter(Component):
         self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)
 
     def updated_boundary_conditions(self):
-        """
-            Call this if boundary conditions on the grid are updated after the
-            component is instantiated.
-        """
+        """Call this if boundary conditions on the grid are updated after the
+        component is instantiated."""
         try:
             dx = self._grid.dx
             dy = self._grid.dy
@@ -835,7 +833,8 @@ class DepressionFinderAndRouter(Component):
         """Find depression and lakes on a topographic surface.
 
         Find and map the depressions/lakes in a topographic surface,
-        given a previously identified list of pits (if any) in the surface.
+        given a previously identified list of pits (if any) in the
+        surface.
         """
         self._pits_flooded = 0
         self._unique_pits = np.zeros_like(self.pit_node_ids, dtype=bool)
@@ -1125,7 +1124,8 @@ class DepressionFinderAndRouter(Component):
     def _route_flow(self):
         """Route flow across lake flats.
 
-        Route flow across lake flats, which have already been identified.
+        Route flow across lake flats, which have already been
+        identified.
         """
 
         # Process each lake.
@@ -1268,49 +1268,45 @@ class DepressionFinderAndRouter(Component):
 
     @property
     def lake_outlets(self):
-        """
-        Returns the *unique* outlets for each lake, in same order as the
-        return from lake_codes.
-        """
+        """Returns the *unique* outlets for each lake, in same order as the
+        return from lake_codes."""
         return np.array(self.depression_outlets)[self._unique_pits]
 
     @property
     def lake_codes(self):
-        """
-        Returns the *unique* code assigned to each unique lake. These are
-        the values used to map the lakes in the property "lake_map".
+        """Returns the *unique* code assigned to each unique lake.
+
+        These are the values used to map the lakes in the property
+        "lake_map".
         """
         return self.pit_node_ids[self._unique_pits]
 
     @property
     def number_of_lakes(self):
-        """
-        Return the number of individual lakes.
-        """
+        """Return the number of individual lakes."""
         return self._unique_pits.sum()
 
     @property
     def lake_map(self):
-        """
-        Return an array of ints, where each node within a lake is labelled
-        with a unique (non-consecutive) code corresponding to each unique
-        lake. The codes used can be obtained with *lake_codes*.
-        Nodes not in a lake are labelled with LOCAL_BAD_INDEX_VALUE.
+        """Return an array of ints, where each node within a lake is labelled
+        with a unique (non-consecutive) code corresponding to each unique lake.
+
+        The codes used can be obtained with *lake_codes*. Nodes not in a
+        lake are labelled with LOCAL_BAD_INDEX_VALUE.
         """
         return self._lake_map
 
     @property
     def lake_at_node(self):
-        """
-        Return a boolean array, True if the node is flooded, False otherwise.
-        """
+        """Return a boolean array, True if the node is flooded, False
+        otherwise."""
         return self._lake_map != LOCAL_BAD_INDEX_VALUE
 
     @property
     def lake_areas(self):
-        """
-        A nlakes-long array of the area of each lake. The order is the same as
-        that returned by *lake_codes*.
+        """A nlakes-long array of the area of each lake.
+
+        The order is the same as that returned by *lake_codes*.
         """
         lake_areas = np.empty(self.number_of_lakes)
         lake_counter = 0
@@ -1322,9 +1318,9 @@ class DepressionFinderAndRouter(Component):
 
     @property
     def lake_volumes(self):
-        """
-        A nlakes-long array of the volume of each lake. The order is the same
-        as that returned by *lake_codes*.
+        """A nlakes-long array of the volume of each lake.
+
+        The order is the same as that returned by *lake_codes*.
         """
         lake_vols = np.empty(self.number_of_lakes)
         lake_counter = 0
