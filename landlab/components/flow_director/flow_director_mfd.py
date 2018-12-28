@@ -63,9 +63,11 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     >>> from landlab.components import FlowDirectorMFD
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + mg.node_y,
-    ...                  at = 'node')
+    >>> _ = mg.add_field(
+    ...     'topographic__elevation',
+    ...     mg.node_x + mg.node_y,
+    ...     at = 'node'
+    ... )
 
     The MFD flow director can be uses for raster and irregular grids. For
     raster grids, use of diagonal links is specified with the keyword
@@ -191,11 +193,16 @@ class FlowDirectorMFD(_FlowDirectorToMany):
 
     >>> from landlab import HexModelGrid
     >>> mg = HexModelGrid(5,3)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + numpy.round(mg.node_y),
-    ...                  at = 'node')
-    >>> fd = FlowDirectorMFD(mg, 'topographic__elevation',
-    ...                      partition_method='square_root_of_slope')
+    >>> _ = mg.add_field(
+    ...     'topographic__elevation',
+    ...     mg.node_x + numpy.round(mg.node_y),
+    ...     at = 'node'
+    ... )
+    >>> fd = FlowDirectorMFD(
+    ...      mg,
+    ...      'topographic__elevation',
+    ...      partition_method='square_root_of_slope'
+    ...      )
     >>> fd.surface_values # doctest: +NORMALIZE_WHITESPACE
     array([ 1. ,  2. ,  3. ,
             1.5,  2.5,  3.5,  4.5,

@@ -60,9 +60,11 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     >>> from landlab.components import FlowDirectorDINF
     >>> mg = RasterModelGrid((4,4), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x**2 + mg.node_y**2,
-    ...                  at = 'node')
+    >>> _ = mg.add_field(
+    ...     'topographic__elevation',
+    ...     mg.node_x**2 + mg.node_y**2,
+    ...     at = 'node'
+    ... )
 
     The DINF flow director can be uses for raster grids only.
 
