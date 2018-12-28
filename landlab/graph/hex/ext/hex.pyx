@@ -9,84 +9,11 @@ ctypedef np.int_t DTYPE_t
 
 
 @cython.boundscheck(False)
-def fill_perimeter_nodes(shape, np.ndarray[DTYPE_t, ndim=1] perimeter_nodes):
-    cdef int n_rows = shape[0]
-    cdef int n_cols = shape[1]
-    cdef int n_nodes = n_rows * n_cols
-    cdef int i
-    cdef int node
-
-    # Right edge
-    i = 0
-    for node in range(n_cols - 1, n_nodes - 1, n_cols):
-        perimeter_nodes[i] = node
-        i += 1
-
-    # Top edge
-    for node in range(n_nodes - 1, n_nodes - n_cols, - 1):
-        perimeter_nodes[i] = node
-        i += 1
-
-    # Left edge
-    for node in range((n_rows - 1) * n_cols, 0, - n_cols):
-        perimeter_nodes[i] = node
-        i += 1
-
-    # Bottom edge
-    for node in range(0, n_cols - 1):
-        perimeter_nodes[i] = node
-        i += 1
-
-
-@cython.boundscheck(False)
-def fill_hex_perimeter_nodes(shape,
-                             np.ndarray[DTYPE_t, ndim=1] perimeter_nodes):
-    cdef int n_rows = shape[0]
-    cdef int n_cols = shape[1]
-    cdef int n_bottom_rows = (n_rows + (n_rows + 1) % 2) // 2 + 1
-    cdef int i, i0
-    cdef int node
-    cdef int row
-    cdef int * nodes_per_row = <int *>malloc(n_rows * sizeof(int))
-
-    try:
-        nodes_per_row[0] = n_cols
-        for row in range(1, n_bottom_rows):
-            nodes_per_row[row] = nodes_per_row[row - 1] + 1
-        for row in range(n_bottom_rows, n_rows):
-            nodes_per_row[row] = nodes_per_row[row - 1] - 1
-
-        # Right edge
-        perimeter_nodes[0] = n_cols - 1
-        row = 1
-        for i in range(1, n_rows):
-            perimeter_nodes[i] = perimeter_nodes[i - 1] + nodes_per_row[row]
-            row += 1
-
-        # Top edge
-        i0 = i + 1
-        for i in range(i0, i0 + nodes_per_row[n_rows - 1] - 1):
-            perimeter_nodes[i] = perimeter_nodes[i - 1] - 1
-
-        # Left edge
-        i0 = i + 1
-        row = n_rows - 2
-        for i in range(i0, i0 + n_rows - 1):
-            perimeter_nodes[i] = perimeter_nodes[i - 1] - nodes_per_row[row]
-            row -= 1
-
-        # Bottom edge
-        i0 = i + 1
-        for i in range(i0, i0 + n_cols - 2):
-            perimeter_nodes[i] = perimeter_nodes[i - 1] + 1
-    finally:
-        free(nodes_per_row)
-
-
-@cython.boundscheck(False)
-def fill_hex_xy_of_node(shape,
-                        np.ndarray[np.double_t, ndim=1] x_of_node,
-                        np.ndarray[np.double_t, ndim=1] y_of_node):
+def fill_hex_xy_of_node(
+    shape,
+    np.ndarray[np.double_t, ndim=1] x_of_node,
+    np.ndarray[np.double_t, ndim=1] y_of_node,
+):
     """Get x and y coordinates for each node."""
     cdef int n_nodes = x_of_node.size
     cdef int n_cols = shape[1]
@@ -119,9 +46,11 @@ def fill_hex_xy_of_node(shape,
 
 
 @cython.boundscheck(False)
-def fill_xy_of_node(shape,
-                    np.ndarray[np.double_t, ndim=1] x_of_node,
-                    np.ndarray[np.double_t, ndim=1] y_of_node):
+def fill_xy_of_node(
+    shape,
+    np.ndarray[np.double_t, ndim=1] x_of_node,
+    np.ndarray[np.double_t, ndim=1] y_of_node,
+):
     """Get x and y coordinates for each node."""
     cdef int n_nodes = x_of_node.size
     cdef int stride = 2 * shape[1]
