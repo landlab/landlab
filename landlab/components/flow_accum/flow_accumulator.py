@@ -766,7 +766,7 @@ class FlowAccumulator(Component):
         ...                  at = 'node')
         >>> fa = FlowAccumulator(mg, 'topographic__elevation')
         >>> fa.run_one_step()
-        >>> fa.link_order_upstream
+        >>> fa.link_order_upstream()
         array([ 5, 14, 23,  6, 15, 24,  7, 16, 25])
 
         This also works for route-to-many methods
@@ -779,7 +779,7 @@ class FlowAccumulator(Component):
         >>> fa = FlowAccumulator(mg, 'topographic__elevation',
         ...                      flow_director='MFD')
         >>> fa.run_one_step()
-        >>> fa.link_order_upstream
+        >>> fa.link_order_upstream()
         array([ 5, 14, 10,  6, 11,  7, 23, 19, 15, 20, 16, 28, 24, 29, 25])
         """
         downstream_links = self._grid["node"]["flow__link_to_receiver_node"][
@@ -805,7 +805,7 @@ class FlowAccumulator(Component):
         ...                  at = 'node')
         >>> fa = FlowAccumulator(mg, 'topographic__elevation')
         >>> fa.run_one_step()
-        >>> assert_array_equal(fa.headwater_nodes, np.array([16, 17, 18]))
+        >>> assert_array_equal(fa.headwater_nodes(), np.array([16, 17, 18]))
         """
         delta = np.concatenate(([0], self.delta_structure))
         num_donors = np.diff(delta)
