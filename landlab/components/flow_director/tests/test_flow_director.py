@@ -381,10 +381,6 @@ def test_change_bc_post_init():
     assert_array_equal(new_true_reciever, fd.receiver)
 
 
-def test_link_flow_direction_hex():
-    pass
-
-
 def test_flow_director_steepest_flow__link_dir_field_creation():
     mg = RasterModelGrid((3, 3))
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
