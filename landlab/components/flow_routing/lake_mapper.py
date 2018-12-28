@@ -1165,9 +1165,6 @@ class DepressionFinderAndRouter(Component):
 
                 if new_link.size == 0:
                     new_link = LOCAL_BAD_INDEX_VALUE
-                # print('outlet_receiver', outlet_receiver)
-                # print('outlet_node', outlet_node)
-                # print('new_link', new_link)
                 self.links[outlet_node] = new_link
 
                 # make a check
