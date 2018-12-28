@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 """Create landlab model grids."""
+import inspect
+
 from warnings import warn
 
 from landlab.core import model_parameter_dictionary as mpd
