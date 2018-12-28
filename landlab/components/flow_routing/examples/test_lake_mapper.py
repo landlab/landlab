@@ -6,7 +6,7 @@ from landlab.components.flow_routing import DepressionFinderAndRouter, FlowAccum
 from landlab.plot.imshow import imshow_node_grid
 
 nx, ny = 50, 50
-mg = RasterModelGrid(nx, ny, 1.)
+mg = RasterModelGrid((nx, ny), 1.)
 
 # make a "crater"
 x_distance_from_center = mg.node_x - mg.node_x.mean()

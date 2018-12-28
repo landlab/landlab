@@ -38,7 +38,7 @@ def create_test_grid():
     hills.
     """
     # Create grid
-    rmg = RasterModelGrid(NUM_GRID_ROWS, NUM_GRID_COLS)
+    rmg = RasterModelGrid((NUM_GRID_ROWS, NUM_GRID_COLS))
 
     # Create topography field
     z = rmg.add_zeros("node", "topographic__elevation")
@@ -1290,7 +1290,7 @@ def test_degenerate_drainage():
     This "hourglass" configuration should be one of the hardest to correctly
     re-route.
     """
-    mg = RasterModelGrid(9, 5)
+    mg = RasterModelGrid((9, 5))
     z_init = mg.node_x.copy() * 0.0001 + 1.
     lake_pits = np.array([7, 11, 12, 13, 17, 27, 31, 32, 33, 37])
     z_init[lake_pits] = -1.
@@ -1372,7 +1372,7 @@ def test_three_pits():
     A test to ensure the component correctly handles cases where there are
     multiple pits.
     """
-    mg = RasterModelGrid(10, 10)
+    mg = RasterModelGrid((10, 10))
     z = mg.add_field("node", "topographic__elevation", mg.node_x.copy())
     # a sloping plane
     # np.random.seed(seed=0)
@@ -1524,7 +1524,7 @@ def test_composite_pits():
     A test to ensure the component correctly handles cases where there are
     multiple pits, inset into each other.
     """
-    mg = RasterModelGrid(10, 10)
+    mg = RasterModelGrid((10, 10))
     z = mg.add_field("node", "topographic__elevation", mg.node_x.copy())
     # a sloping plane
     # np.random.seed(seed=0)

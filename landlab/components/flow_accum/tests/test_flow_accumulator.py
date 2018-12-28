@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from landlab import HexModelGrid, RasterModelGrid
+from landlab import FieldError, HexModelGrid, NetworkModelGrid, RasterModelGrid
 from landlab.components import LinearDiffuser
 from landlab.components.flow_accum import FlowAccumulator
 from landlab.components.flow_director import (
@@ -1057,7 +1057,7 @@ def test_flat_grids_all_directors():
         "FlowDirectorD8",
         "FlowDirectorDINF",
     ]:
-        mg = RasterModelGrid(10, 10)
+        mg = RasterModelGrid((10, 10))
         z = mg.add_zeros("topographic__elevation", at="node")
         fa = FlowAccumulator(mg, flow_director=fd)
         fa.run_one_step()
@@ -1066,3 +1066,13 @@ def test_flat_grids_all_directors():
         true_da[mg.core_nodes] = 1.0
         assert_array_equal(true_da, fa.drainage_area)
         del mg, z, fa
+
+
+def test_nmg_no_cell_area():
+    y_of_node = (0, 1, 2, 2)
+    x_of_node = (0, 0, -1, 1)
+    nodes_at_link = ((1, 0), (2, 1), (3, 1))
+    nmg = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
+    nmg.add_field("topographic__elevation", nmg.x_of_node + nmg.y_of_node, at="node")
+    with pytest.raises(FieldError):
+        FlowAccumulator(nmg)

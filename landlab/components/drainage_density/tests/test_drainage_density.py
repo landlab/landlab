@@ -20,7 +20,7 @@ def test_route_to_multiple_error_raised():
 
 
 def test_mask_is_stable():
-    mg = RasterModelGrid((10, 10), 1.0)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
     np.random.seed(3542)
     noise = np.random.rand(mg.size("node"))
@@ -48,7 +48,7 @@ def test_mask_is_stable():
 
 
 def test_float_mask():
-    mg = RasterModelGrid((10, 10), 1.0)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
@@ -61,7 +61,7 @@ def test_float_mask():
 
 
 def test_bool_mask():
-    mg = RasterModelGrid((10, 10), 1.0)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
@@ -74,7 +74,7 @@ def test_bool_mask():
 
 
 def test_missing_fields():
-    mg = RasterModelGrid((10, 10), 1.0)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
     with pytest.raises(FieldError):
         DrainageDensity(
@@ -88,7 +88,7 @@ def test_missing_fields():
 
 
 def test_updating_with_array_provided():
-    mg = RasterModelGrid((10, 10), 1.0)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
@@ -102,7 +102,7 @@ def test_updating_with_array_provided():
 
 
 def test_mask_field_exists():
-    mg = RasterModelGrid((10, 10), 1.0)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
     mg.add_zeros("node", "channel__mask")
     noise = np.random.rand(mg.size("node"))
@@ -116,7 +116,7 @@ def test_mask_field_exists():
 
 
 def test_bad_mask_size():
-    mg = RasterModelGrid((10, 10), 1.0)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
@@ -130,7 +130,7 @@ def test_bad_mask_size():
 
 
 def test_providing_array_and_kwargs():
-    mg = RasterModelGrid((10, 10), 1.0)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
@@ -151,7 +151,7 @@ def test_providing_array_and_kwargs():
 
 
 def test_missing_channel_threshold():
-    mg = RasterModelGrid((10, 10), 1.0)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
@@ -168,7 +168,7 @@ def test_missing_channel_threshold():
 
 
 def test_missing_slope_exponent():
-    mg = RasterModelGrid((10, 10), 1.0)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
@@ -185,7 +185,7 @@ def test_missing_slope_exponent():
 
 
 def test_missing_slope_coefficient():
-    mg = RasterModelGrid((10, 10), 1.0)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
@@ -202,7 +202,7 @@ def test_missing_slope_coefficient():
 
 
 def test_missing_area_exponent():
-    mg = RasterModelGrid((10, 10), 1.0)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
@@ -219,7 +219,7 @@ def test_missing_area_exponent():
 
 
 def test_missing_area_coefficient():
-    mg = RasterModelGrid((10, 10), 1.0)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
