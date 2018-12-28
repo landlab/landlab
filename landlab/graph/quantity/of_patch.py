@@ -24,7 +24,8 @@ def get_centroid_of_patch(graph, out=None):
         out = np.empty((graph.number_of_patches, 2), dtype=float)
 
     calc_centroid_at_patch(
-        graph.ds["nodes_at_patch"].values,
+        # graph.ds["nodes_at_patch"].values,
+        graph.nodes_at_patch,
         np.ascontiguousarray(graph.x_of_node),
         np.ascontiguousarray(graph.y_of_node),
         out,
