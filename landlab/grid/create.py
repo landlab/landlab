@@ -1,11 +1,32 @@
 #! /usr/bin/env python
 """Create landlab model grids."""
-
+from warnings import warn
 
 from landlab.core import model_parameter_dictionary as mpd
+from landlab.io import read_esri_ascii, read_shapefile
+from landlab.io.netcdf import read_netcdf
+from landlab.values import constant, plane, random, sine
 
-from .hex import from_dict as hex_from_dict
-from .raster import from_dict as raster_from_dict
+from .hex import HexModelGrid, from_dict as hex_from_dict
+from .network import NetworkModelGrid
+from .radial import RadialModelGrid
+from .raster import RasterModelGrid, from_dict as raster_from_dict
+from .voronoi import VoronoiDelaunayGrid
+
+_MODEL_GRIDS = {
+    "RasterModelGrid": RasterModelGrid,
+    "HexModelGrid": HexModelGrid,
+    "VoronoiDelaunayGrid": VoronoiDelaunayGrid,
+    "NetworkModelGrid": NetworkModelGrid,
+    "RadialModelGrid": RadialModelGrid,
+}
+
+_SYNTHETIC_FIELD_CONSTRUCTORS = {
+    "plane": plane,
+    "random": random,
+    "sine": sine,
+    "constant": constant,
+}
 
 
 class Error(Exception):
@@ -67,6 +88,11 @@ def create_and_initialize_grid(input_source):
     >>> grid.number_of_nodes
     20
     """
+    msg = (
+        "create_and_initialize_grid is deprecated and will be removed "
+        "in landlab 2.0. Use create_grid instead."
+    )
+    warn(msg, DeprecationWarning)
     if isinstance(input_source, dict):
         param_dict = input_source
     else:
@@ -84,3 +110,64 @@ def create_and_initialize_grid(input_source):
 
     # Return the created and initialized grid
     return grid_reader(param_dict)
+
+
+def create_grid(dict_like):
+    """
+    """
+    # part 1 create grid
+    grid_dict = dict_like.pop("grid", None)
+    if grid_dict is None:
+        msg = "create_grid: no grid dictionary provided. This is required."
+        raise ValueError(msg)
+
+    grid_type = grid_dict.keys()[0]
+    if grid_type in _MODEL_GRIDS:
+        grid_class = _MODEL_GRIDS[grid_type]
+    else:
+        msg = "create_grid: provided grid type not supported."
+        raise ValueError
+    grid_params = grid_dict.pop(grid_type)
+    if len(grid) is not 0:
+        msg = (
+            "create_grid: two entries to grid dictionary provided. "
+            "This is not supported."
+        )
+        raise ValueError
+    grid = grid_class.from_dict(grid_params)
+
+    # part two, create fields
+    fields_dict = dict_like.pop("fields", {})
+
+    # for each grid element:
+    for at in grid.groups:
+        at_group = "at_" + grid
+        at_dict = fields_dict.pop(at_group, None)
+
+        # for field at grid element
+        for name in at_dict:
+            name_dict = at_dict.pop(name)
+
+            # for each function, add values.
+            for func in name_dict:
+                if func in _SYNTHETIC_FIELD_CONSTRUCTORS:
+                    synth_function = _SYNTHETIC_FIELD_CONSTRUCTORS[func]
+                    synth_function(grid, name, at, **name_dict)
+                elif func is "read_esri_ascii":
+                    read_esri_ascii(grid=grid, **name_dict)
+                elif func is "read_netcdf":
+                    read_netcdf(grid=grid, **name_dict)
+                else:
+                    msg = "Bad function supplied to construct field"
+                    raise ValueError(msg)
+
+    if len(fields_dict) is not 0:
+        msg = "Bad group location supplied to construct fields."
+        raise ValueError(msg)
+
+    # part three, set boundary conditions
+    bc_list = dict_like.pop("boundary_conditions")
+    while len(bc_list) > 0:
+        bc_function = bc_list.pop(0)
+        if bc_function in grid.__dict__:
+            pass
