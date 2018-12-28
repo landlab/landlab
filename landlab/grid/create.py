@@ -220,7 +220,13 @@ def create_grid(dict_like):
             if bc_function in methods:
                 methods[bc_function](**bc_params)
             else:
-                msg = ("")
+                msg = ("create_grid: No function "
+                       "{func} ".format(func=bc_function)
+                       "exists for grid types "
+                       "{grid}. ".format(grid=grid_type)
+                       "If you think this type of grid should have such a "
+                       "function. Please create a GitHub Issue to discuss "
+                       "contributing it to the Landlab codebase.")
                 raise ValueError(msg)
 
     return grid
