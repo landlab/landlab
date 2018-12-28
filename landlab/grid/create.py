@@ -135,10 +135,22 @@ def create_grid(dict_like):
     ...                                       },
     ...                             },
     ...                 },
-    ...      'boundary_conditions': {'': ''}
+    ...      'boundary_conditions': [
+    ...                     {'set_closed_boundaries_at_grid_edges':
+    ...                                 {'right_is_closed': True,
+    ...                                  'top_is_closed': True,
+    ...                                  'left_is_closed': True,
+    ...                                  'bottom_is_closed': True
+    ...                                  }
+    ...                      }]
     ...      }
     >>> mg = create_grid(p)
-
+    >>> mg.number_of_nodes
+    20
+    >>> "spam" in mg.at_node
+    True
+    >>> "eggs" in mg.at_link
+    True
 
     """
     # part 1 create grid
@@ -168,43 +180,40 @@ def create_grid(dict_like):
     fields_dict = dict_like.pop("fields", {})
 
     # for each grid element:
-    for at in grid.groups:
-        at_group = "at_" + at
-        at_dict = fields_dict.pop(at_group, {})
+    for at_group in fields_dict:
+        at = at_group[3:]
+        if at not in grid.groups:
+            msg = ("")
+            raise ValueError(msg)
 
+        at_dict = fields_dict[at_group]
         # for field at grid element
         for name in at_dict:
-            name_dict = at_dict.pop(name)
+            name_dict = at_dict[name]
 
             # for each function, add values.
             for func in name_dict:
+                func_dict = name_dict[func]
                 if func in _SYNTHETIC_FIELD_CONSTRUCTORS:
                     synth_function = _SYNTHETIC_FIELD_CONSTRUCTORS[func]
-                    synth_function(grid, name, at, **name_dict)
+                    synth_function(grid, name, at=at, **func_dict)
                 elif func is "read_esri_ascii":
-                    read_esri_ascii(grid=grid, **name_dict)
+                    read_esri_ascii(grid=grid, **func_dict)
                 elif func is "read_netcdf":
-                    read_netcdf(grid=grid, **name_dict)
+                    read_netcdf(grid=grid, **func_dict)
                 else:
                     msg = "Bad function supplied to construct field"
-                    raise ValueError(msg)
-
-    if len(fields_dict) is not 0:
-        print(fields_dict)
-        msg = "Bad group location supplied to construct fields."
-        raise ValueError(msg)
 
     # part three, set boundary conditions
     bc_list = dict_like.pop("boundary_conditions")
-    while len(bc_list) > 0:
-        bc_function_dict = bc_list.pop(0)
+    for bc_function_dict in bc_list:
 
         if len(bc_function_dict) != 1:
             msg = ""
             raise ValueError(msg)
 
         for bc_function in bc_function_dict:
-            bc_params = bc_function_dict.pop(bc_function)
+            bc_params = bc_function_dict[bc_function]
 
             # these two will work for all types.
             if bc_function is "set_nodata_nodes_to_closed":
