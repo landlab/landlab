@@ -48,7 +48,8 @@ class FlowDirectorMFD(_FlowDirectorToMany):
        of dimension (number of nodes x max number of receivers). If the slope is
        uphill or flat, the value is assigned zero.
     -  Boolean node array of all local lows: *'flow__sink_flag'*
-
+    -  Link array identifing if flow goes with (1) or against (-1) the link
+       direction: *'flow_link_direction'*
     The primary method of this class is :func:`run_one_step`.
 
     Examples
@@ -62,9 +63,11 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     >>> from landlab.components import FlowDirectorMFD
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + mg.node_y,
-    ...                  at = 'node')
+    >>> _ = mg.add_field(
+    ...     'topographic__elevation',
+    ...     mg.node_x + mg.node_y,
+    ...     at = 'node'
+    ... )
 
     The MFD flow director can be uses for raster and irregular grids. For
     raster grids, use of diagonal links is specified with the keyword
@@ -190,11 +193,16 @@ class FlowDirectorMFD(_FlowDirectorToMany):
 
     >>> from landlab import HexModelGrid
     >>> mg = HexModelGrid(5,3)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + numpy.round(mg.node_y),
-    ...                  at = 'node')
-    >>> fd = FlowDirectorMFD(mg, 'topographic__elevation',
-    ...                      partition_method='square_root_of_slope')
+    >>> _ = mg.add_field(
+    ...     'topographic__elevation',
+    ...     mg.node_x + numpy.round(mg.node_y),
+    ...     at = 'node'
+    ... )
+    >>> fd = FlowDirectorMFD(
+    ...      mg,
+    ...      'topographic__elevation',
+    ...      partition_method='square_root_of_slope'
+    ...      )
     >>> fd.surface_values # doctest: +NORMALIZE_WHITESPACE
     array([ 1. ,  2. ,  3. ,
             1.5,  2.5,  3.5,  4.5,
@@ -383,19 +391,17 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         )
 
     def updated_boundary_conditions(self):
-        """
-        Method to update FlowDirectorMFD when boundary conditions change.
+        """Method to update FlowDirectorMFD when boundary conditions change.
 
-        Call this if boundary conditions on the grid are updated after the
-        component is instantiated.
+        Call this if boundary conditions on the grid are updated after
+        the component is instantiated.
         """
         self._active_links = self.grid.active_links
         self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
         self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
     def run_one_step(self):
-        """
-        Find flow directions and save to the model grid.
+        """Find flow directions and save to the model grid.
 
         run_one_step() checks for updated boundary conditions, calculates
         slopes on links, finds basself.surface_valuesel nodes based on the
@@ -408,8 +414,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         self.direct_flow()
 
     def direct_flow(self):
-        """
-        Find flow directions, save to the model grid, and return receivers.
+        """Find flow directions, save to the model grid, and return receivers.
 
         direct_flow() checks for updated boundary conditions, calculates
         slopes on links, finds basself.surface_valuesel nodes based on the status at node,
