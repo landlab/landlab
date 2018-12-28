@@ -3,6 +3,7 @@
 
 import numpy as np
 import six
+
 from .scalar_data_fields import ScalarDataFields
 
 
@@ -464,7 +465,7 @@ class ModelDataFields(object):
         else:
             vals = np.asarray(field)
             if vals.size != self[group].size:
-                msg = ("Array has incorrect size.")
+                msg = "Array has incorrect size."
                 raise ValueError(msg)
         return vals
 
