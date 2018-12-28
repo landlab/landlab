@@ -41,7 +41,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
        *'flow__link_to_receiver_node'*
     -  Boolean node array of all local lows: *'flow__sink_flag'*
     -  Link array identifing if flow goes with (1) or against (-1) the link
-       direction: *'flow__link_direction'*
+       direction: *'flow_link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -90,11 +90,11 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
            12, 14, 10, 15,
            16, 17, 18, 19])
 
-    And the at-link field ``'flow__link_direction'`` indicates if the flow along
+    And the at-link field ``'flow_link_direction'`` indicates if the flow along
     the link is with or against the direction indicated by ``'link_dirs_at_node'``
     (from tail node to head node).
 
-    >>> mg_2.at_link['flow__link_direction']
+    >>> mg_2.at_link['flow_link_direction']
     array([ 0,  0,  0,  0, -1, -1,  0,  0,  0,  0,  0,  0, -1,  0,  0,  1,  0,
         0,  0, -1,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0])
 
@@ -103,12 +103,12 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     and that flow goes with the topologic ordering on links 15 and 22. All other
     links have no flow on them.
 
-    The FlowDirectorSteepest attribute ``flow__link_direction_at_node`` indicates
+    The FlowDirectorSteepest attribute ``flow_link_direction_at_node`` indicates
     the link flow direction (with or against topology directions) for all links
     at node. The ordering of links at node mirrors the grid attribute
     ``links_at_node``.
 
-    >>> fd_2.flow__link_direction_at_node
+    >>> fd_2.flow_link_direction_at_node
     array([[ 0,  0,  0,  0],
            [ 0, -1,  0,  0],
            [ 0, -1,  0,  0],
@@ -261,16 +261,16 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         super(FlowDirectorSteepest, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
 
-        # create a : 'flow__link_direction' field if it does not exist yest
-        if "flow__link_direction" not in self._grid.at_link:
-            self._flow__link_direction = grid.add_field(
-                "flow__link_direction",
+        # create a : 'flow_link_direction' field if it does not exist yest
+        if "flow_link_direction" not in self._grid.at_link:
+            self._flow_link_direction = grid.add_field(
+                "flow_link_direction",
                 grid.zeros(at="link", dtype=int),
                 at="link",
                 dtype=int,
             )
         else:
-            self._flow__link_direction = grid.at_link["flow__link_direction"]
+            self._flow_link_direction = grid.at_link["flow_link_direction"]
 
         self.updated_boundary_conditions()
 
@@ -352,7 +352,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         return receiver
 
     def _determine_link_directions(self):
-        """Determine link directions and set flow__link_direction field.
+        """Determine link directions and set flow_link_direction field.
 
         This routine is slightly different between the route-to-one and
         route-to-many methods.
@@ -360,7 +360,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         It works when DepressionFinderAndRouter is run.
         """
         # start by re-setting all links to zero.
-        self._flow__link_direction[:] = 0
+        self._flow_link_direction[:] = 0
 
         # identify where flow is active on links
         is_active_flow_link = self.links_to_receiver != BAD_INDEX_VALUE
@@ -375,19 +375,19 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         head_node_at_active_flow_link = self._grid.node_at_link_head[active_flow_links]
 
         # if head node is upstream node = -1, else 1
-        self._flow__link_direction[
+        self._flow_link_direction[
             active_flow_links[
                 head_node_at_active_flow_link == upstream_node_of_active_flow_link
             ]
         ] = -1
-        self._flow__link_direction[
+        self._flow_link_direction[
             active_flow_links[
                 head_node_at_active_flow_link != upstream_node_of_active_flow_link
             ]
         ] = 1
 
     @property
-    def flow__link_direction_at_node(self):
+    def flow_link_direction_at_node(self):
         """Return array of flow link direction at node.
 
         This property mirrors links_at_node and indicates the relationship
@@ -419,7 +419,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         ...                  at = 'node')
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
-        >>> fd.flow__link_direction_at_node
+        >>> fd.flow_link_direction_at_node
         array([[ 0,  0,  0,  0],
                [ 0, -1,  0,  0],
                [ 0,  0,  0,  0],
@@ -448,7 +448,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                -1, 19, -1, 20, -1,
                -1, 23, 24, 25, -1,
                -1, -1, -1, -1, -1])
-        >>> fa1.flow_director.flow__link_direction_at_node
+        >>> fa1.flow_director.flow_link_direction_at_node
         array([[ 0,  0,  0,  0],
                [ 0, -1,  0,  0],
                [ 0,  0,  0,  0],
@@ -493,7 +493,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                -1, 19, 15, 20, -1,
                -1, 23, 24, 25, -1,
                -1, -1, -1, -1, -1])
-        >>> fa2.flow_director.flow__link_direction_at_node
+        >>> fa2.flow_director.flow_link_direction_at_node
         array([[ 0,  0,  0,  0],
                [ 0, -1,  0,  0],
                [ 0, -1,  0,  0],
@@ -520,13 +520,13 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0]])
         """
-        flow__link_direction_at_node = self.flow__link_direction[
+        flow_link_direction_at_node = self.flow_link_direction[
             self._grid.links_at_node
         ]
         flow_to_bad = self._grid.links_at_node == BAD_INDEX_VALUE
-        flow__link_direction_at_node[flow_to_bad] = 0
+        flow_link_direction_at_node[flow_to_bad] = 0
 
-        return flow__link_direction_at_node
+        return flow_link_direction_at_node
 
     @property
     def flow__link_incoming_at_node(self):
@@ -562,12 +562,12 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         """
 
         incoming_at_node = (
-            self.flow__link_direction_at_node * self._grid.link_dirs_at_node
+            self.flow_link_direction_at_node * self._grid.link_dirs_at_node
         )
         return incoming_at_node
 
     @property
-    def flow__link_direction(self):
+    def flow_link_direction(self):
         """Return array of flow link direction.
 
         This property indicates the relationship between the flow direction
@@ -599,10 +599,10 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         ...                  at = 'node')
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
-        >>> fd.flow__link_direction
+        >>> fd.flow_link_direction
         array([ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0])
         """
-        return self._flow__link_direction
+        return self._flow_link_direction
 
     @property
     def upstream_node_at_link(self):
@@ -625,11 +625,11 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         array([-1, -1, -1,  4, -1, -1, -1, -1, -1, -1, -1, -1])
         """
         out = -1 * self._grid.ones(at="link", dtype=int)
-        out[self._flow__link_direction == 1] = self._grid.node_at_link_tail[
-            self._flow__link_direction == 1
+        out[self._flow_link_direction == 1] = self._grid.node_at_link_tail[
+            self._flow_link_direction == 1
         ]
-        out[self._flow__link_direction == -1] = self._grid.node_at_link_head[
-            self._flow__link_direction == -1
+        out[self._flow_link_direction == -1] = self._grid.node_at_link_head[
+            self._flow_link_direction == -1
         ]
         return out
 
@@ -654,11 +654,11 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         array([-1, -1, -1,  1, -1, -1, -1, -1, -1, -1, -1, -1])
         """
         out = -1 * self._grid.ones(at="link", dtype=int)
-        out[self._flow__link_direction == 1] = self._grid.node_at_link_head[
-            self._flow__link_direction == 1
+        out[self._flow_link_direction == 1] = self._grid.node_at_link_head[
+            self._flow_link_direction == 1
         ]
-        out[self._flow__link_direction == -1] = self._grid.node_at_link_tail[
-            self._flow__link_direction == -1
+        out[self._flow_link_direction == -1] = self._grid.node_at_link_tail[
+            self._flow_link_direction == -1
         ]
         return out
 

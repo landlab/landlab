@@ -49,7 +49,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
        uphill or flat, the value is assigned zero.
     -  Boolean node array of all local lows: *'flow__sink_flag'*
     -  Link array identifing if flow goes with (1) or against (-1) the link
-       direction: *'flow__link_direction'*
+       direction: *'flow_link_direction'*
     The primary method of this class is :func:`run_one_step`.
 
     Examples
