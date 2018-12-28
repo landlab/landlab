@@ -137,11 +137,11 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     flow going against the topologic direction.
 
     In many use cases, one might want to know which links are bringing flow into
-    or out of the node. The flow director attribute ``flow__link_incoming_at_node``
+    or out of the node. The flow director attribute ``flow_link_incoming_at_node``
     provides this information. Here -1 means that flow is outgoing from the node
     and 1 means it is incoming.
 
-    >>> fd_2.flow__link_incoming_at_node
+    >>> fd_2.flow_link_incoming_at_node
     array([[ 0,  0,  0,  0],
            [ 0,  1,  0,  0],
            [ 0,  1,  0,  0],
@@ -166,7 +166,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     So if one wanted to identify the source nodes at node, you would do the
     following:
 
-    >>> np.where(fd_2.flow__link_incoming_at_node == 1, mg_2.adjacent_nodes_at_node, -1)
+    >>> np.where(fd_2.flow_link_incoming_at_node == 1, mg_2.adjacent_nodes_at_node, -1)
     array([[-1, -1, -1, -1],
            [-1,  5, -1, -1],
            [-1,  6, -1, -1],
@@ -529,7 +529,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         return flow_link_direction_at_node
 
     @property
-    def flow__link_incoming_at_node(self):
+    def flow_link_incoming_at_node(self):
         """Return array that mirrors links at node and indicates incoming flow.
 
         This array has the shape
@@ -549,7 +549,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         ...                  at = 'node')
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
-        >>> fd.flow__link_incoming_at_node
+        >>> fd.flow_link_incoming_at_node
         array([[ 0,  0,  0,  0],
                [ 0,  1,  0,  0],
                [ 0,  0,  0,  0],
