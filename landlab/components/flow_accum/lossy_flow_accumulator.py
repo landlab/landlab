@@ -21,9 +21,8 @@ if sys.version_info[0] >= 3:
 
 class LossyFlowAccumulator(FlowAccumulator):
 
-    """
-    Component to calculate drainage area and accumulate flow, while permitting
-    dynamic loss or gain of flow downstream.
+    """Component to calculate drainage area and accumulate flow, while
+    permitting dynamic loss or gain of flow downstream.
 
     This component is closely related to the FlowAccumulator, in that
     this is accomplished by first finding flow directions by a user-specified
@@ -338,12 +337,12 @@ class LossyFlowAccumulator(FlowAccumulator):
         loss_function=None,
         **kwargs
     ):
-        """
-        Initialize the FlowAccumulator component.
+        """Initialize the FlowAccumulator component.
 
-        Saves the grid, tests grid type, tests imput types and compatability
-        for the flow_director and depression_finder keyword arguments, tests
-        the argument of runoff_rate, and initializes new fields.
+        Saves the grid, tests grid type, tests imput types and
+        compatability for the flow_director and depression_finder
+        keyword arguments, tests the argument of runoff_rate, and
+        initializes new fields.
         """
         super(LossyFlowAccumulator, self).__init__(
             grid,
@@ -434,9 +433,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             )
 
     def _accumulate_A_Q_to_one(self, s, r):
-        """
-        Accumulate area and discharge for a route-to-one scheme.
-        """
+        """Accumulate area and discharge for a route-to-one scheme."""
         link = self._grid.at_node["flow__link_to_receiver_node"]
         a, q = flow_accum_bw.find_drainage_area_and_discharge_lossy(
             s,
@@ -450,9 +447,7 @@ class LossyFlowAccumulator(FlowAccumulator):
         return a, q
 
     def _accumulate_A_Q_to_n(self, s, r, p):
-        """
-        Accumulate area and discharge for a route-to-one scheme.
-        """
+        """Accumulate area and discharge for a route-to-one scheme."""
         link = self._grid.at_node["flow__link_to_receiver_node"]
         a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n_lossy(
             s,

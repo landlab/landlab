@@ -5,7 +5,7 @@ import xarray as xr
 from .grouped import GroupError
 from .scalar_data_fields import FieldError
 
-FIELD_LOCATIONS = ("node", "link", "patch", "corner", "face", "cell")
+FIELD_LOCATIONS = ("node", "link", "patch", "corner", "face", "cell", "grid")
 
 
 def reshape_for_storage(array, field_size=None):
