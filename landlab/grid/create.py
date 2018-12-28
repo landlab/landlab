@@ -216,55 +216,11 @@ def create_grid(dict_like):
 
         for bc_function in bc_function_dict:
             bc_params = bc_function_dict[bc_function]
-
-            # these two will work for all types.
-            if bc_function is "set_nodata_nodes_to_closed":
-                grid.set_nodata_nodes_to_closed(**bc_params)
-            elif bc_function is "set_nodata_nodes_to_fixed_gradient":
-                grid.set_nodata_nodes_to_fixed_gradient(**bc_params)
-
-            # this set only works for raster
-            elif (
-                bc_function is "set_closed_boundaries_at_grid_edges"
-                and grid_type is "RasterModelGrid"
-            ):
-                grid.set_closed_boundaries_at_grid_edges(**bc_params)
-            elif (
-                bc_function is "set_fixed_link_boundaries_at_grid_edges"
-                and grid_type is "RasterModelGrid"
-            ):
-                grid.set_fixed_link_boundaries_at_grid_edges(**bc_params)
-            elif (
-                bc_function is "set_fixed_value_boundaries_at_grid_edges"
-                and grid_type is "RasterModelGrid"
-            ):
-                grid.set_fixed_value_boundaries_at_grid_edges(**bc_params)
-            elif (
-                bc_function is "set_watershed_boundary_condition_outlet_coords"
-                and grid_type is "RasterModelGrid"
-            ):
-                grid.set_watershed_boundary_condition_outlet_coords(**bc_params)
-            elif (
-                bc_function is "set_open_nodes_disconnected_from_watershed_to_closed"
-                and grid_type is "RasterModelGrid"
-            ):
-                grid.set_open_nodes_disconnected_from_watershed_to_closed(**bc_params)
-            elif (
-                bc_function is "set_status_at_node_on_edges"
-                and grid_type is "RasterModelGrid"
-            ):
-                grid.set_status_at_node_on_edges(**bc_params)
-
-            # these work for hex and raster only.
-            elif (
-                bc_function is "set_open_nodes_disconnected_from_watershed_to_closed"
-                and grid_type in ("RasterModelGrid", "HexModelGrid")
-            ):
-                grid.set_watershed_boundary_condition(**bc_params)
-            elif (
-                bc_function is "set_open_nodes_disconnected_from_watershed_to_closed"
-                and grid_type in ("RasterModelGrid", "HexModelGrid")
-            ):
-                grid.set_watershed_boundary_condition(**bc_params)
+            methods = dict(inspect.getmembers(grid, inspect.ismethod))
+            if bc_function in methods:
+                methods[bc_function](**bc_params)
+            else:
+                msg = ("")
+                raise ValueError(msg)
 
     return grid
