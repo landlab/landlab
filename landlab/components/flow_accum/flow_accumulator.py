@@ -258,8 +258,8 @@ class FlowAccumulator(Component):
               0.,    0.,    0.,    0.])
 
     The FlowAccumulator component will work for both raster grids and irregular
-    grids. For the example we will use a Hexagonal Model Grid, a special type of
-    Voroni Grid that has regularly spaced hexagonal cells.
+    grids. For the example we will use a Hexagonal Model Grid, a special type
+    of Voroni Grid that has regularly spaced hexagonal cells.
 
     >>> from landlab import HexModelGrid
     >>> hmg = HexModelGrid(5,3, xy_of_lower_left=(-1., 0.))
@@ -561,9 +561,10 @@ class FlowAccumulator(Component):
     >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
     >>> nmg = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
     >>> area = nmg.add_ones('node', 'cell_area_at_node')
-    >>> z = nmg.add_field('topographic__elevation',
-    ...                  nmg.x_of_node + nmg.y_of_node,
-    ...                  at = 'node')
+    >>> z = nmg.add_field(
+    ...     'topographic__elevation',
+    ...     nmg.x_of_node + nmg.y_of_node,
+    ...     at = 'node')
     >>> fa = FlowAccumulator(nmg)
     >>> fa.run_one_step()
     >>> nmg.at_node['flow__receiver_node']
