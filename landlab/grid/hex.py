@@ -980,8 +980,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
         ----------
         outlet_id : integer
             id of the outlet node
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
 
@@ -1053,8 +1054,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Parameters
         ----------
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
         return_outlet_id : boolean, optional
