@@ -108,7 +108,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     at node. The ordering of links at node mirrors the grid attribute
     ``links_at_node``.
 
-    >>> fd_2.flow_link_direction_at_node
+    >>> fd_2.flow_link_direction_at_node()
     array([[ 0,  0,  0,  0],
            [ 0, -1,  0,  0],
            [ 0, -1,  0,  0],
@@ -141,7 +141,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     provides this information. Here -1 means that flow is outgoing from the node
     and 1 means it is incoming.
 
-    >>> fd_2.flow_link_incoming_at_node
+    >>> fd_2.flow_link_incoming_at_node()
     array([[ 0,  0,  0,  0],
            [ 0,  1,  0,  0],
            [ 0,  1,  0,  0],
@@ -166,7 +166,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     So if one wanted to identify the source nodes at node, you would do the
     following:
 
-    >>> np.where(fd_2.flow_link_incoming_at_node == 1, mg_2.adjacent_nodes_at_node, -1)
+    >>> np.where(fd_2.flow_link_incoming_at_node() == 1, mg_2.adjacent_nodes_at_node, -1)
     array([[-1, -1, -1, -1],
            [-1,  5, -1, -1],
            [-1,  6, -1, -1],
@@ -386,7 +386,6 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             ]
         ] = 1
 
-    @property
     def flow_link_direction_at_node(self):
         """Return array of flow link direction at node.
 
@@ -419,7 +418,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         ...                  at = 'node')
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
-        >>> fd.flow_link_direction_at_node
+        >>> fd.flow_link_direction_at_node()
         array([[ 0,  0,  0,  0],
                [ 0, -1,  0,  0],
                [ 0,  0,  0,  0],
@@ -448,7 +447,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                -1, 19, -1, 20, -1,
                -1, 23, 24, 25, -1,
                -1, -1, -1, -1, -1])
-        >>> fa1.flow_director.flow_link_direction_at_node
+        >>> fa1.flow_director.flow_link_direction_at_node()
         array([[ 0,  0,  0,  0],
                [ 0, -1,  0,  0],
                [ 0,  0,  0,  0],
@@ -493,7 +492,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                -1, 19, 15, 20, -1,
                -1, 23, 24, 25, -1,
                -1, -1, -1, -1, -1])
-        >>> fa2.flow_director.flow_link_direction_at_node
+        >>> fa2.flow_director.flow_link_direction_at_node()
         array([[ 0,  0,  0,  0],
                [ 0, -1,  0,  0],
                [ 0, -1,  0,  0],
@@ -528,7 +527,6 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
         return flow_link_direction_at_node
 
-    @property
     def flow_link_incoming_at_node(self):
         """Return array that mirrors links at node and indicates incoming flow.
 
@@ -549,7 +547,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         ...                  at = 'node')
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
-        >>> fd.flow_link_incoming_at_node
+        >>> fd.flow_link_incoming_at_node()
         array([[ 0,  0,  0,  0],
                [ 0,  1,  0,  0],
                [ 0,  0,  0,  0],
@@ -562,7 +560,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         """
 
         incoming_at_node = (
-            self.flow_link_direction_at_node * self._grid.link_dirs_at_node
+            self.flow_link_direction_at_node() * self._grid.link_dirs_at_node
         )
         return incoming_at_node
 
@@ -604,7 +602,6 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         """
         return self._flow_link_direction
 
-    @property
     def upstream_node_at_link(self):
         """At-link array of the upstream node based on flow direction.
 
@@ -621,7 +618,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         ...                  at = 'node')
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
-        >>> fd.upstream_node_at_link
+        >>> fd.upstream_node_at_link()
         array([-1, -1, -1,  4, -1, -1, -1, -1, -1, -1, -1, -1])
         """
         out = -1 * self._grid.ones(at="link", dtype=int)
@@ -633,7 +630,6 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         ]
         return out
 
-    @property
     def downstream_node_at_link(self):
         """At-link array of the downstream node based on flow direction.
 
@@ -650,7 +646,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         ...                  at = 'node')
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
-        >>> fd.downstream_node_at_link
+        >>> fd.downstream_node_at_link()
         array([-1, -1, -1,  1, -1, -1, -1, -1, -1, -1, -1, -1])
         """
         out = -1 * self._grid.ones(at="link", dtype=int)
