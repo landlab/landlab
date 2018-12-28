@@ -115,9 +115,9 @@ def _where_to_add_values(grid, at, where):
         where.size == grid.size(at)
         where_to_place = where
     except AttributeError:
-        if at is "link":
+        if at == "link":
             status_values = grid.status_at_link
-        elif at is "node":
+        elif at == "node":
             status_values = grid.status_at_node
         else:
             if where is not None:
@@ -144,9 +144,9 @@ def _where_to_add_values(grid, at, where):
 
 def _convert_where(where, at):
     if isinstance(where, str):
-        if at is "node":
+        if at == "node":
             _STATUS = _NODE_STATUS
-        elif at is "link":
+        elif at == "link":
             _STATUS = _LINK_STATUS
         if where in _STATUS:
             return _STATUS[where]
@@ -300,23 +300,23 @@ def _get_x_and_y(grid, at):
                 "functionality."
             )
             raise ValueError(msg)
-    if at is "node":
+    if at == "node":
         x = grid.x_of_node
         y = grid.y_of_node
-    elif at is "link":
+    elif at == "link":
         x = grid.x_of_link
         y = grid.y_of_link
-    elif at is "cell":
+    elif at == "cell":
         x = grid.x_of_cell
         y = grid.y_of_cell
-    elif at is "face":
+    elif at == "face":
         x = grid.x_of_face
         y = grid.y_of_face
     else:
         msg = (
             "landlab.values.synthetic: ",
             "X and Y values are require for the requested synthetic field "
-            "but do not exist for the grid-element provided.",
+            "but do not exist for the grid-element provided: " + at,
         )
         raise ValueError(msg)
     return x, y
