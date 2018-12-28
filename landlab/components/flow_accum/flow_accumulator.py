@@ -752,7 +752,6 @@ class FlowAccumulator(Component):
         """Return the upstream node order (drainage stack)."""
         return self._grid["node"]["flow__upstream_node_order"]
 
-    @property
     def link_order_upstream(self):
         """Return the upstream order of active links.
 
@@ -789,7 +788,6 @@ class FlowAccumulator(Component):
         out = downstream_links.flatten()
         return out[out != BAD_INDEX_VALUE]
 
-    @property
     def headwater_nodes(self):
         """Return the headwater nodes.
 
