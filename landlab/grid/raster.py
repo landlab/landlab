@@ -4049,8 +4049,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         Parameters
         ----------
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
         return_outlet_id : boolean, optional
@@ -4104,6 +4105,22 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> rmg2.set_watershed_boundary_condition(node_data2, -9999.)
         >>> rmg2.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 1, 4, 0, 0, 4, 4, 4, 4, 4], dtype=uint8)
+
+        The node data can also be provided as a model grid field.
+
+        >>> rmg = RasterModelGrid((4,4))
+        >>> node_data = np.array([-9999., -9999., -9999., -9999.,
+        ...                      -9999.,    67.,    67., -9999.,
+        ...                      -9999.,    67.,     0., -9999.,
+        ...                      -9999., -9999., -9999., -9999.])
+        >>> _ = rmg.add_field('node', 'topographic__elevation', node_data)
+        >>> out_id = rmg.set_watershed_boundary_condition('topographic__elevation',
+        ...                                               -9999.,
+        ...                                               True)
+        >>> out_id
+        array([10])
+        >>> rmg.status_at_node
+        array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=uint8)
 
         LLCATS: BC
         """
@@ -4229,18 +4246,16 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         Parameters
         ----------
-        node_data : ndarray
-            Data values.
-
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         outlet_id : one element numpy array, optional.
             The node ID of the outlet that all open nodes must be connected to.
             If a node ID is provided, it does not need have the status
             FIXED_VALUE_BOUNDARY. However, it must not have the status of
             CLOSED_BOUNDARY.
-
         nodata_value : float, optional, default is -9999.
             Value that indicates an invalid value.
-
         adjacency_method : string, optional. Default is 'D8'.
             Sets the connection method.
 
@@ -4403,8 +4418,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         ----------
         outlet_coords : list - two integer values
             row, column of outlet, NOT THE ABSOLUTE X AND Y LOCATIONS
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
 
@@ -4470,8 +4486,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         ----------
         outlet_id : integer
             id of the outlet node
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
 
