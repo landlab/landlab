@@ -50,22 +50,6 @@ def number_of_nodes(shape, node_layout="rect"):
         return (2 * n_cols + 1) * (n_rows // 2) + n_cols * (n_rows % 2)
 
 
-def setup_perimeter_nodes(shape, orientation="horizontal", node_layout="rect"):
-    from .ext.hex import fill_perimeter_nodes, fill_hex_perimeter_nodes
-
-    n_perimeter_nodes = 2 * shape[0] + 2 * (shape[1] - 2)
-    if node_layout in ("hex", "rect1"):
-        n_perimeter_nodes += (shape[0] + 1) % 2
-    perimeter_nodes = np.empty(n_perimeter_nodes, dtype=int)
-
-    if node_layout == "hex":
-        fill_hex_perimeter_nodes(shape, perimeter_nodes)
-    else:
-        fill_perimeter_nodes(shape, perimeter_nodes)
-
-    return perimeter_nodes
-
-
 def setup_xy_of_node(
     shape, spacing=1., origin=(0., 0.), orientation="horizontal", node_layout="rect"
 ):
@@ -218,7 +202,6 @@ class HexGraph(VoronoiGraph):
             (y_of_node, x_of_node),
             xy_sort=True,
             rot_sort=True,
-            max_node_spacing=max_node_spacing,
         )
 
     @property
@@ -234,6 +217,6 @@ class HexGraph(VoronoiGraph):
         return self._node_layout
 
     @property
-    # @store_result_in_grid()
+    @store_result_in_grid()
     def perimeter_nodes(self):
-        return setup_perimeter_nodes(self.shape, self.orientation, self.node_layout)
+        return perimeter_nodes(self.shape, orientation=self.orientation, node_layout=self.node_layout)
