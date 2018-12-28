@@ -3,7 +3,7 @@
 from warnings import warn
 
 from landlab.core import model_parameter_dictionary as mpd
-from landlab.io import read_esri_ascii, read_shapefile
+from landlab.io import read_esri_ascii
 from landlab.io.netcdf import read_netcdf
 from landlab.values import constant, plane, random, sine
 
