@@ -1013,10 +1013,15 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # make ring of no data nodes
         self.status_at_node[self.boundary_nodes] = CLOSED_BOUNDARY
+
         # set no data nodes to inactive boundaries
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
+
         # set the boundary condition (fixed value) at the outlet_node
         self.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
 
@@ -1080,6 +1085,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # make ring of no data nodes
         self.status_at_node[self.boundary_nodes] = CLOSED_BOUNDARY
 

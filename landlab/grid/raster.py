@@ -4107,6 +4107,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # For this to be a watershed, need to make sure that there is a ring
         # of closed boundary nodes around the outside of the watershed,
         # barring the outlet location.  So enforce that all perimeter nodes
@@ -4259,9 +4262,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> mg2.set_watershed_boundary_condition(z2)
         >>> mg2.status_at_node.reshape(mg2.shape)
         array([[4, 4, 4, 4, 4, 4],
-              [4, 0, 0, 4, 0, 4],
-              [4, 0, 1, 4, 4, 4],
-              [4, 4, 4, 4, 4, 4]], dtype=uint8)
+               [4, 0, 0, 4, 0, 4],
+               [4, 0, 1, 4, 4, 4],
+               [4, 4, 4, 4, 4, 4]], dtype=uint8)
         >>> mg2.set_open_nodes_disconnected_from_watershed_to_closed(z2)
         >>> np.allclose(mg1.status_at_node, mg2.status_at_node)
         True
@@ -4280,6 +4283,8 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
 
         if outlet_id is None:
             # verify that there is one and only one node with the status
@@ -4429,6 +4434,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # make ring of no data nodes
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
@@ -4493,10 +4501,15 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # make ring of no data nodes
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)
+
         # set no data nodes to inactive boundaries
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
+
         # set the boundary condition (fixed value) at the outlet_node
         self.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
 
