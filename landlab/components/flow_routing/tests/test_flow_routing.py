@@ -21,7 +21,7 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_deprecation_raised():
-    mg = RasterModelGrid(10, 10)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
     with pytest.deprecated_call():
         FlowRouter(mg)

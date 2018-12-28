@@ -881,7 +881,7 @@ class DepressionFinderAndRouter(Component):
         >>> from landlab.components.flow_routing import (
         ...     DepressionFinderAndRouter)
 
-        >>> rg = RasterModelGrid(5, 5)
+        >>> rg = RasterModelGrid((5, 5))
         >>> z = rg.add_zeros('node', 'topographic__elevation')
         >>> z[:] = np.array([100., 100.,  95., 100., 100.,
         ...                  100., 101.,  92.,   1., 100.,

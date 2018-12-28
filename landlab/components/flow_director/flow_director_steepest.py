@@ -434,7 +434,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         First, without DepressionFinderAndRouter:
 
         >>> from landlab.components import FlowAccumulator
-        >>> mg1 = RasterModelGrid(5,5)
+        >>> mg1 = RasterModelGrid((5, 5))
         >>> z1 = mg1.add_field('node', 'topographic__elevation',
         ...                    mg1.x_of_node+2 * mg1.y_of_node)
         >>> z1[12] -= 5
@@ -476,7 +476,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
         Next with DepressionFinderAndRouter:
 
-        >>> mg2 = RasterModelGrid(5,5)
+        >>> mg2 = RasterModelGrid((5, 5))
         >>> z2 = mg2.add_field('node', 'topographic__elevation',
         ...                    mg2.x_of_node+2 * mg2.y_of_node)
         >>> z2[12] -= 5

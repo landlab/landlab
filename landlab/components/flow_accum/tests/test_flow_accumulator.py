@@ -1057,7 +1057,7 @@ def test_flat_grids_all_directors():
         "FlowDirectorD8",
         "FlowDirectorDINF",
     ]:
-        mg = RasterModelGrid(10, 10)
+        mg = RasterModelGrid((10, 10))
         z = mg.add_zeros("topographic__elevation", at="node")
         fa = FlowAccumulator(mg, flow_director=fd)
         fa.run_one_step()
