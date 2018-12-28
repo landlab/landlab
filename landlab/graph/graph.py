@@ -454,13 +454,42 @@ class NetworkGraph(object):
         >>> graph = Graph((node_y, node_x), links=links)
         >>> graph.number_of_links == 12
         True
-
-        LLCATS: LINF
         """
         try:
             return self.ds.dims["link"]
         except KeyError:
             return 0
+
+    @property
+    def links_at_patch(self):
+        """Get the links that define a patch.
+
+        Examples
+        --------
+        >>> from landlab.graph import Graph
+        >>> node_x, node_y = [0, 1, 2, 0, 1, 2, 0, 1, 2], [0, 0, 0, 1, 1, 1, 2, 2, 2]
+        >>> links = ((0, 1), (1, 2),
+        ...          (0, 3), (1, 4), (2, 5),
+        ...          (3, 4), (4, 5),
+        ...          (3, 6), (4, 7), (5, 8),
+        ...          (6, 7), (7, 8))
+        >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
+        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
+        >>> graph.links_at_patch
+        array([[3, 5, 2, 0],
+               [4, 6, 3, 1]])
+        """
+        return self.ds["links_at_patch"].values
+        from .sort.sort import sort_spokes_at_hub
+        links_at_patch = self.ds["links_at_patch"].values
+        sort_spokes_at_hub(
+            links_at_patch,
+            self.xy_of_patch,
+            self.xy_of_link,
+            inplace=True,
+        )
+        return links_at_patch
+        # return self.ds['links_at_patch'].values
 
     @property
     def links_at_node(self):
@@ -596,6 +625,18 @@ class NetworkGraph(object):
     @read_only_array
     def xy_of_link(self):
         return get_midpoint_of_link(self)
+
+    @property
+    # @store_result_in_grid()
+    # @read_only_array
+    def xy_of_patch(self):
+        return get_centroid_of_patch(self)
+
+    @property
+    @store_result_in_grid()
+    @read_only_array
+    def area_of_patch(self):
+        return get_area_of_patch(self)
 
     @property
     @store_result_in_grid()
