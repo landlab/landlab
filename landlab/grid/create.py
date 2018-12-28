@@ -113,7 +113,33 @@ def create_and_initialize_grid(input_source):
 
 
 def create_grid(dict_like):
-    """
+    """Create grid, initialize fields, and set boundary conditions.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> np.random.seed(42)
+    >>> from landlab import create_grid
+    >>> p = {'grid': {'RasterModelGrid': {'shape': (4,5),
+    ...                                   'xy_spacing': (3, 4)}
+    ...               },
+    ...      'fields': {'at_node': {'spam': {'plane': {'point': (1, 1, 1),
+    ...                                                'normal': (-2, -1, 1)},
+    ...                                      'random': {'distribution': 'uniform',
+    ...                                                 'low': 1,
+    ...                                                 'high': 4}
+    ...                                      },
+    ...                             },
+    ...                 'at_link': {'eggs' : {'constant': {'where': 'ACTIVE_LINK',
+    ...                                                    'constant': 12},
+    ...                                       },
+    ...                             },
+    ...                 },
+    ...      'boundary_conditions': {'': ''}
+    ...      }
+    >>> mg = create_grid(p)
+
+
     """
     # part 1 create grid
     grid_dict = dict_like.pop("grid", None)
@@ -121,19 +147,21 @@ def create_grid(dict_like):
         msg = "create_grid: no grid dictionary provided. This is required."
         raise ValueError(msg)
 
-    grid_type = grid_dict.keys()[0]
-    if grid_type in _MODEL_GRIDS:
-        grid_class = _MODEL_GRIDS[grid_type]
-    else:
-        msg = "create_grid: provided grid type not supported."
-        raise ValueError
-    grid_params = grid_dict.pop(grid_type)
-    if len(grid) is not 0:
+    for grid_type in grid_dict:
+        if grid_type in _MODEL_GRIDS:
+            grid_class = _MODEL_GRIDS[grid_type]
+        else:
+            msg = "create_grid: provided grid type not supported."
+            raise ValueError
+
+    if len(grid_dict) != 1:
         msg = (
             "create_grid: two entries to grid dictionary provided. "
             "This is not supported."
         )
         raise ValueError
+
+    grid_params = grid_dict.pop(grid_type)
     grid = grid_class.from_dict(grid_params)
 
     # part two, create fields
@@ -141,8 +169,8 @@ def create_grid(dict_like):
 
     # for each grid element:
     for at in grid.groups:
-        at_group = "at_" + grid
-        at_dict = fields_dict.pop(at_group, None)
+        at_group = "at_" + at
+        at_dict = fields_dict.pop(at_group, {})
 
         # for field at grid element
         for name in at_dict:
@@ -162,12 +190,70 @@ def create_grid(dict_like):
                     raise ValueError(msg)
 
     if len(fields_dict) is not 0:
+        print(fields_dict)
         msg = "Bad group location supplied to construct fields."
         raise ValueError(msg)
 
     # part three, set boundary conditions
     bc_list = dict_like.pop("boundary_conditions")
     while len(bc_list) > 0:
-        bc_function = bc_list.pop(0)
-        if bc_function in grid.__dict__:
-            pass
+        bc_function_dict = bc_list.pop(0)
+
+        if len(bc_function_dict) != 1:
+            msg = ""
+            raise ValueError(msg)
+
+        for bc_function in bc_function_dict:
+            bc_params = bc_function_dict.pop(bc_function)
+
+            # these two will work for all types.
+            if bc_function is "set_nodata_nodes_to_closed":
+                grid.set_nodata_nodes_to_closed(**bc_params)
+            elif bc_function is "set_nodata_nodes_to_fixed_gradient":
+                grid.set_nodata_nodes_to_fixed_gradient(**bc_params)
+
+            # this set only works for raster
+            elif (
+                bc_function is "set_closed_boundaries_at_grid_edges"
+                and grid_type is "RasterModelGrid"
+            ):
+                grid.set_closed_boundaries_at_grid_edges(**bc_params)
+            elif (
+                bc_function is "set_fixed_link_boundaries_at_grid_edges"
+                and grid_type is "RasterModelGrid"
+            ):
+                grid.set_fixed_link_boundaries_at_grid_edges(**bc_params)
+            elif (
+                bc_function is "set_fixed_value_boundaries_at_grid_edges"
+                and grid_type is "RasterModelGrid"
+            ):
+                grid.set_fixed_value_boundaries_at_grid_edges(**bc_params)
+            elif (
+                bc_function is "set_watershed_boundary_condition_outlet_coords"
+                and grid_type is "RasterModelGrid"
+            ):
+                grid.set_watershed_boundary_condition_outlet_coords(**bc_params)
+            elif (
+                bc_function is "set_open_nodes_disconnected_from_watershed_to_closed"
+                and grid_type is "RasterModelGrid"
+            ):
+                grid.set_open_nodes_disconnected_from_watershed_to_closed(**bc_params)
+            elif (
+                bc_function is "set_status_at_node_on_edges"
+                and grid_type is "RasterModelGrid"
+            ):
+                grid.set_status_at_node_on_edges(**bc_params)
+
+            # these work for hex and raster only.
+            elif (
+                bc_function is "set_open_nodes_disconnected_from_watershed_to_closed"
+                and grid_type in ("RasterModelGrid", "HexModelGrid")
+            ):
+                grid.set_watershed_boundary_condition(**bc_params)
+            elif (
+                bc_function is "set_open_nodes_disconnected_from_watershed_to_closed"
+                and grid_type in ("RasterModelGrid", "HexModelGrid")
+            ):
+                grid.set_watershed_boundary_condition(**bc_params)
+
+    return grid
