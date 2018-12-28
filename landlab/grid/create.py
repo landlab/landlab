@@ -30,6 +30,11 @@ _SYNTHETIC_FIELD_CONSTRUCTORS = {
     "constant": constant,
 }
 
+_READ_FROM_FILE = {
+    "read_netcdf": read_netcdf,
+    "read_esri_ascii": read_esri_ascii,
+}
+
 
 class Error(Exception):
 
@@ -199,10 +204,9 @@ def create_grid(dict_like):
                 if func in _SYNTHETIC_FIELD_CONSTRUCTORS:
                     synth_function = _SYNTHETIC_FIELD_CONSTRUCTORS[func]
                     synth_function(grid, name, at=at, **func_dict)
-                elif func is "read_esri_ascii":
-                    read_esri_ascii(grid=grid, **func_dict)
-                elif func is "read_netcdf":
-                    read_netcdf(grid=grid, **func_dict)
+                elif func in _READ_FROM_FILE:
+                    from_file_func = _READ_FROM_FILE[func]
+                    from_file_func(grid=grid, **func_dict)
                 else:
                     msg = "Bad function supplied to construct field"
 
@@ -220,12 +224,12 @@ def create_grid(dict_like):
             if bc_function in methods:
                 methods[bc_function](**bc_params)
             else:
-                msg = ("create_grid: No function "
-                       "{func} ".format(func=bc_function)
-                       "exists for grid types "
-                       "{grid}. ".format(grid=grid_type)
-                       "If you think this type of grid should have such a "
-                       "function. Please create a GitHub Issue to discuss "
+                msg = ("create_grid: No function ",
+                       "{func} ".format(func=bc_function),
+                       "exists for grid types ",
+                       "{grid}. ".format(grid=grid_type),
+                       "If you think this type of grid should have such a ",
+                       "function. Please create a GitHub Issue to discuss ",
                        "contributing it to the Landlab codebase.")
                 raise ValueError(msg)
 
