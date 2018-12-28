@@ -296,7 +296,7 @@ def dans_grid3():
     """
     Create a 7x7 test grid with a well defined hole in it.
     """
-    mg = RasterModelGrid(7, 7)
+    mg = RasterModelGrid((7, 7))
 
     z = np.array(
         [
@@ -451,8 +451,8 @@ def d4_grid():
 
     1   2   3   4   5   6   7
     """
-    mg1 = RasterModelGrid(7, 7)
-    mg2 = RasterModelGrid(7, 7)
+    mg1 = RasterModelGrid((7, 7))
+    mg2 = RasterModelGrid((7, 7))
     z = mg1.node_x.copy() + 1.
     lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
     z[lake_nodes] = 0.

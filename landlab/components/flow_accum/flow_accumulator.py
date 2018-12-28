@@ -33,8 +33,7 @@ from landlab.utils.return_array import return_array_at_node
 
 class FlowAccumulator(Component):
 
-    """
-    Component to accumulate flow and calculate drainage area.
+    """Component to accumulate flow and calculate drainage area.
 
     This is accomplished by first finding flow directions by a user-specified
     method and then calculating the drainage area and discharge.
@@ -82,6 +81,8 @@ class FlowAccumulator(Component):
             *'topographic__steepest_slope'* This array is 2D for RouteToMany
             methods and has the shape (n-nodes x max number of receivers).
         -  Boolean node array of all local lows: *'flow__sink_flag'*
+        -  Link array identifing if flow goes with (1) or against (-1) the link
+           direction: *'flow_link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -144,20 +145,29 @@ class FlowAccumulator(Component):
     following four methods are all equivalent. First, we can pass the entire
     name of a flow director as a string to the argument `flow_director`:
 
-    >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-    ...                      flow_director='FlowDirectorSteepest')
+    >>> fa = FlowAccumulator(
+    ...      mg,
+    ...      'topographic__elevation',
+    ...      flow_director='FlowDirectorSteepest'
+    ... )
 
     Second, we can pass just the method name as a string to the argument
     `flow_director`:
 
-    >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-    ...                      flow_director='Steepest')
+    >>> fa = FlowAccumulator(
+    ...      mg,
+    ...      'topographic__elevation',
+    ...      flow_director='Steepest'
+    ... )
 
     Third, we can import a FlowDirector component from Landlab and pass it to
     `flow_director`:
     >>> from landlab.components import FlowDirectorSteepest
-    >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-    ...                      flow_director=FlowDirectorSteepest)
+    >>> fa = FlowAccumulator(
+    ...      mg,
+    ...      'topographic__elevation',
+    ...      flow_director=FlowDirectorSteepest
+    ... )
 
     Finally, we can instantiate a FlowDirector component and pass this
     instantiated version to `flow_director`. You might want to do this if you
@@ -165,8 +175,11 @@ class FlowAccumulator(Component):
     time loop and then want to use the same flow director within the loop.
 
     >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
-    >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-    ...                      flow_director=FlowDirectorSteepest)
+    >>> fa = FlowAccumulator(
+    ...      mg,
+    ...      'topographic__elevation',
+    ...      flow_director=FlowDirectorSteepest
+    ... )
 
     Now let's look at what FlowAccumulator does. Even before we run
     FlowAccumulator it has the property `surface_values` that stores the values
@@ -183,12 +196,17 @@ class FlowAccumulator(Component):
     ...                                    0., 31., 20., 0.,
     ...                                    0., 32., 30., 0.,
     ...                                    0.,  0.,  0., 0.])
-    >>> _ = mg.add_field('node',
-    ...                    'topographic__elevation',
-    ...                    topographic__elevation)
+    >>> _ = mg.add_field(
+    ...     'node',
+    ...     'topographic__elevation',
+    ...     topographic__elevation
+    ... )
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-    ...                        flow_director=FlowDirectorSteepest)
+    >>> fa = FlowAccumulator(
+    ...      mg,
+    ...      'topographic__elevation',
+    ...      flow_director=FlowDirectorSteepest
+    ...      )
     >>> fa.run_one_step()
     >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
     array([ 0,  1,  2,  3,
@@ -209,15 +227,24 @@ class FlowAccumulator(Component):
 
     Put the data back into the new grid.
 
-    >>> _ = mg.add_field('node',
-    ...                    'topographic__elevation',
-    ...                    topographic__elevation)
+    >>> _ = mg.add_field(
+    ...     'node',
+    ...     'topographic__elevation',
+    ...     topographic__elevation
+    ... )
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-    ...                        flow_director=FlowDirectorSteepest)
+    >>> fa = FlowAccumulator(
+    ...      mg,
+    ...      'topographic__elevation',
+    ...      flow_director=FlowDirectorSteepest
+    ...      )
     >>> runoff_rate = np.arange(mg.number_of_nodes, dtype=float)
-    >>> rnff = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
-    ...                  noclobber=False)
+    >>> rnff = mg.add_field(
+    ...        'node',
+    ...        'water__unit_flux_in',
+    ...        runoff_rate,
+    ...        noclobber=False
+    ... )
     >>> fa.run_one_step()
     >>> mg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
     array([    0.,   500.,  5200.,     0.,
@@ -256,16 +283,21 @@ class FlowAccumulator(Component):
               0.,    0.,    0.,    0.])
 
     The FlowAccumulator component will work for both raster grids and irregular
-    grids. For the example we will use a Hexagonal Model Grid, a special type of
-    Voroni Grid that has regularly spaced hexagonal cells.
+    grids. For the example we will use a Hexagonal Model Grid, a special type
+    of Voroni Grid that has regularly spaced hexagonal cells.
 
     >>> from landlab import HexModelGrid
     >>> hmg = HexModelGrid(5,3, xy_of_lower_left=(-1., 0.))
-    >>> _ = hmg.add_field('topographic__elevation',
-    ...                   hmg.node_x + np.round(hmg.node_y),
-    ...                   at = 'node')
-    >>> fa = FlowAccumulator(hmg, 'topographic__elevation',
-    ...                      flow_director=FlowDirectorSteepest)
+    >>> _ = hmg.add_field(
+    ...     'topographic__elevation',
+    ...     hmg.node_x + np.round(hmg.node_y),
+    ...     at = 'node'
+    ...     )
+    >>> fa = FlowAccumulator(
+    ...      hmg,
+    ...      'topographic__elevation',
+    ...      flow_director=FlowDirectorSteepest
+    ... )
     >>> fa.surface_values
     array([ 0. ,  1. ,  2. ,
             0.5,  1.5,  2.5,  3.5,
@@ -282,12 +314,17 @@ class FlowAccumulator(Component):
 
     >>> mg = RasterModelGrid((5, 5))
     >>> topographic__elevation = mg.node_y+mg.node_x
-    >>> _ = mg.add_field('node',
-    ...                  'topographic__elevation',
-    ...                   topographic__elevation)
-    >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-    ...                      flow_director='MFD',
-    ...                      diagonals = True)
+    >>> _ = mg.add_field(
+    ...     'node',
+    ...     'topographic__elevation',
+    ...     topographic__elevation
+    ... )
+    >>> fa = FlowAccumulator(
+    ...      mg,
+    ...      'topographic__elevation',
+    ...      flow_director='MFD',
+    ...      diagonals = True
+    ... )
     >>> fa.run_one_step()
     >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
     array([[ 0, -1, -1, -1, -1, -1, -1, -1],
@@ -341,11 +378,16 @@ class FlowAccumulator(Component):
 
     >>> dx=(2./(3.**0.5))**0.5
     >>> hmg = HexModelGrid(5,3, dx, xy_of_lower_left=(-1.0745, 0.))
-    >>> _ = hmg.add_field('topographic__elevation',
-    ...                     hmg.node_x**2 + np.round(hmg.node_y)**2,
-    ...                     at = 'node')
-    >>> fa = FlowAccumulator(hmg, 'topographic__elevation',
-    ...                        flow_director=FlowDirectorSteepest)
+    >>> _ = hmg.add_field(
+    ...     'topographic__elevation',
+    ...     hmg.node_x**2 + np.round(hmg.node_y)**2,
+    ...     at = 'node'
+    ... )
+    >>> fa = FlowAccumulator(
+    ...      hmg,
+    ...      'topographic__elevation',
+    ...      flow_director=FlowDirectorSteepest
+    ... )
     >>> fa.run_one_step()
     >>> hmg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
     array([ 0,  1,  2,
@@ -366,11 +408,16 @@ class FlowAccumulator(Component):
 
     Put the data back into the new grid.
 
-    >>> _ = hmg.add_field('topographic__elevation',
-    ...                     hmg.node_x**2 + np.round(hmg.node_y)**2,
-    ...                     at = 'node')
-    >>> fa = FlowAccumulator(hmg, 'topographic__elevation',
-    ...                        flow_director=FlowDirectorSteepest)
+    >>> _ = hmg.add_field(
+    ...     'topographic__elevation',
+    ...     hmg.node_x**2 + np.round(hmg.node_y)**2,
+    ...     at = 'node'
+    ... )
+    >>> fa = FlowAccumulator(
+    ...      hmg,
+    ...      'topographic__elevation',
+    ...      flow_director=FlowDirectorSteepest
+    ...      )
     >>> fa.run_one_step()
     >>> hmg.at_node['surface_water__discharge']
     array([ 500.,    0.,    0.,
@@ -397,8 +444,11 @@ class FlowAccumulator(Component):
            [ 0.02  ,  0.52  ,  0.102 ,  0.152 ,  0.202 ,  2.52  ,  3.02  ],
            [ 0.025 ,  0.525 ,  1.025 ,  1.525 ,  2.025 ,  2.525 ,  3.025 ],
            [ 0.03  ,  0.53  ,  1.03  ,  1.53  ,  2.03  ,  2.53  ,  3.03  ]])
-    >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-    ...                        flow_director=FlowDirectorSteepest)
+    >>> fa = FlowAccumulator(
+    ...      mg,
+    ...      'topographic__elevation',
+    ...      flow_director=FlowDirectorSteepest
+    ...      )
     >>> fa.run_one_step()  # the flow "gets stuck" in the hole
     >>> mg.at_node['flow__receiver_node'].reshape(mg.shape)
     array([[ 0,  1,  2,  3,  4,  5,  6],
@@ -486,9 +536,12 @@ class FlowAccumulator(Component):
     >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
     >>> z += 0.01 * mg.node_y
     >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
-    >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-    ...                        flow_director='FlowDirectorD8',
-    ...                        depression_finder=DepressionFinderAndRouter)
+    >>> fa = FlowAccumulator(
+    ...      mg,
+    ...      'topographic__elevation',
+    ...      flow_director='FlowDirectorD8',
+    ...      depression_finder=DepressionFinderAndRouter
+    ... )
     >>> fa.run_one_step()
 
     This has the same effect of first calling the accumulator and then calling
@@ -543,11 +596,33 @@ class FlowAccumulator(Component):
     through FlowAccumulator, we can pass this keyword argument to the
     DepressionFinderAndRouter component.
 
-    >>> fa = FlowAccumulator(mg, 'topographic__elevation',
-    ...                      flow_director=FlowDirectorSteepest,
-    ...                      depression_finder=DepressionFinderAndRouter,
-    ...                      routing='D4')
+    >>> fa = FlowAccumulator(
+    ...      mg,
+    ...      'topographic__elevation',
+    ...      flow_director=FlowDirectorSteepest,
+    ...      depression_finder=DepressionFinderAndRouter,
+    ...      routing='D4'
+    ... )
 
+    FlowAccumulator was designed to work with all types of grids. However,
+    NetworkModelGrid's have no cell area. Thus, in order for FlowAccumulator to
+    this type of grid, an at-node array called ``cell_area_at_node`` must be
+    present.
+
+    >>> from landlab.grid.network import NetworkModelGrid
+    >>> y_of_node = (0, 1, 2, 2)
+    >>> x_of_node = (0, 0, -1, 1)
+    >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
+    >>> nmg = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
+    >>> area = nmg.add_ones('node', 'cell_area_at_node')
+    >>> z = nmg.add_field(
+    ...     'topographic__elevation',
+    ...     nmg.x_of_node + nmg.y_of_node,
+    ...     at = 'node')
+    >>> fa = FlowAccumulator(nmg)
+    >>> fa.run_one_step()
+    >>> nmg.at_node['flow__receiver_node']
+    array([0, 0, 2, 1])
     """
 
     _name = "FlowAccumulator"
@@ -615,12 +690,12 @@ class FlowAccumulator(Component):
         depression_finder=None,
         **kwargs
     ):
-        """
-        Initialize the FlowAccumulator component.
+        """Initialize the FlowAccumulator component.
 
-        Saves the grid, tests grid type, tests imput types and compatability
-        for the flow_director and depression_finder keyword arguments, tests
-        the argument of runoff_rate, and initializes new fields.
+        Saves the grid, tests grid type, tests imput types and
+        compatability for the flow_director and depression_finder
+        keyword arguments, tests the argument of runoff_rate, and
+        initializes new fields.
         """
         super(FlowAccumulator, self).__init__(grid)
         # Keep a local reference to the grid
@@ -731,6 +806,75 @@ class FlowAccumulator(Component):
     def node_order_upstream(self):
         """Return the upstream node order (drainage stack)."""
         return self._grid["node"]["flow__upstream_node_order"]
+
+    def link_order_upstream(self):
+        """Return the upstream order of active links.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> mg = RasterModelGrid((5, 5))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field(
+        ...     'topographic__elevation',
+        ...     mg.node_x + mg.node_y,
+        ...     at = 'node'
+        ...     )
+        >>> fa = FlowAccumulator(mg, 'topographic__elevation')
+        >>> fa.run_one_step()
+        >>> fa.link_order_upstream()
+        array([ 5, 14, 23,  6, 15, 24,  7, 16, 25])
+
+        This also works for route-to-many methods
+
+        >>> mg = RasterModelGrid((5, 5))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field(
+        ...     'topographic__elevation',
+        ...     mg.node_x + mg.node_y,
+        ...     at = 'node'
+        ... )
+        >>> fa = FlowAccumulator(mg,
+        ...      'topographic__elevation',
+        ...      flow_director='MFD')
+        >>> fa.run_one_step()
+        >>> fa.link_order_upstream()
+        array([ 5, 14, 10,  6, 11,  7, 23, 19, 15, 20, 16, 28, 24, 29, 25])
+        """
+        downstream_links = self._grid["node"]["flow__link_to_receiver_node"][
+            self.node_order_upstream
+        ]
+        out = downstream_links.flatten()
+        return out[out != BAD_INDEX_VALUE]
+
+    def headwater_nodes(self):
+        """Return the headwater nodes.
+
+        These are nodes that contribute flow and have no upstream nodes.
+
+        Examples
+        --------
+        >>> from numpy.testing import assert_array_equal
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator
+        >>> mg = RasterModelGrid((5, 5))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field(
+        ...     'topographic__elevation',
+        ...     mg.node_x + mg.node_y,
+        ...     at = 'node'
+        ... )
+        >>> fa = FlowAccumulator(mg, 'topographic__elevation')
+        >>> fa.run_one_step()
+        >>> assert_array_equal(fa.headwater_nodes(), np.array([16, 17, 18]))
+        """
+        delta = np.concatenate(([0], self.delta_structure))
+        num_donors = np.diff(delta)
+        # note closed nodes have a value of 1 here since they flow to
+        # themselves
+        source_nodes = np.where(num_donors == 0)[0]
+        return source_nodes
 
     def _test_water_inputs(self, grid, runoff_rate):
         """Test inputs for runoff_rate and water__unit_flux_in."""
@@ -955,8 +1099,8 @@ class FlowAccumulator(Component):
             self.depression_finder = None
 
     def accumulate_flow(self, update_flow_director=True):
-        """
-        Function to make FlowAccumulator calculate drainage area and discharge.
+        """Function to make FlowAccumulator calculate drainage area and
+        discharge.
 
         Running run_one_step() results in the following to occur:
             1. Flow directions are updated (unless update_flow_director is set
@@ -990,6 +1134,10 @@ class FlowAccumulator(Component):
             # lives here
             if self.depression_finder_provided is not None:
                 self.depression_finder.map_depressions()
+
+                # if FlowDirectorSteepest is used, update the link directions
+                if self.flow_director._name is "FlowDirectorSteepest":
+                    self.flow_director._determine_link_directions()
 
             # step 3. Stack, D, delta construction
             nd = as_id_array(flow_accum_bw._make_number_of_donors_array(r))
@@ -1031,9 +1179,9 @@ class FlowAccumulator(Component):
         return (a, q)
 
     def _accumulate_A_Q_to_one(self, s, r):
-        """
-        Accumulate area and discharge for a route-to-one scheme. Note this
-        can be overridden in inherited components.
+        """Accumulate area and discharge for a route-to-one scheme.
+
+        Note this can be overridden in inherited components.
         """
         a, q = flow_accum_bw.find_drainage_area_and_discharge(
             s, r, self.node_cell_area, self._grid.at_node["water__unit_flux_in"]
@@ -1041,9 +1189,9 @@ class FlowAccumulator(Component):
         return (a, q)
 
     def _accumulate_A_Q_to_n(self, s, r, p):
-        """
-        Accumulate area and discharge for a route-to-many scheme. Note this
-        can be overridden in inherited components.
+        """Accumulate area and discharge for a route-to-many scheme.
+
+        Note this can be overridden in inherited components.
         """
         a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n(
             s, r, p, self.node_cell_area, self._grid.at_node["water__unit_flux_in"]
@@ -1051,8 +1199,7 @@ class FlowAccumulator(Component):
         return (a, q)
 
     def run_one_step(self):
-        """
-        Accumulate flow and save to the model grid.
+        """Accumulate flow and save to the model grid.
 
         run_one_step() checks for updated boundary conditions, calculates
         slopes on links, finds baselevel nodes based on the status at node,
