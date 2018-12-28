@@ -96,7 +96,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     >>> mg_2.at_link['flow_link_direction']
     array([ 0,  0,  0,  0, -1, -1,  0,  0,  0,  0,  0,  0, -1,  0,  0,  1,  0,
-        0,  0, -1,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0])
+        0,  0, -1,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0], dtype=int8)
 
     This indicates that flow on links 4, 5, 12, and 19 goes against the
     topologic ordering -- that is that flow goes from head node to tail node --
@@ -128,7 +128,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
            [ 0,  0,  0,  0],
            [ 0,  0,  0,  0],
            [ 0,  0,  0,  0],
-           [ 0,  0,  0,  0]])
+           [ 0,  0,  0,  0]], dtype=int8)
 
     For example, this indicates that node 10 has flow going along three links
     that are attached to it. The link to the East has no flow, the link to the
@@ -161,7 +161,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
            [ 0,  0,  0,  0],
            [ 0,  0,  0,  0],
            [ 0,  0,  0,  0],
-           [ 0,  0,  0,  0]])
+           [ 0,  0,  0,  0]], dtype=int8)
 
     So if one wanted to identify the source nodes at node, you would do the
     following:
@@ -265,7 +265,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         if "flow_link_direction" not in self._grid.at_link:
             self._flow_link_direction = grid.add_field(
                 "flow_link_direction",
-                grid.zeros(at="link", dtype=int),
+                grid.zeros(at="link", dtype=np.int8),
                 at="link",
                 dtype=int,
             )
@@ -428,7 +428,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0],
-               [ 0,  0,  0,  0]])
+               [ 0,  0,  0,  0]], dtype=int8)
 
         This method will be updated when the DepressionFinderAndRouter is run.
 
@@ -473,7 +473,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0],
-               [ 0,  0,  0,  0]])
+               [ 0,  0,  0,  0]], dtype=int8)
 
         Next with DepressionFinderAndRouter:
 
@@ -518,7 +518,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0],
-               [ 0,  0,  0,  0]])
+               [ 0,  0,  0,  0]], dtype=int8)
         """
         flow_link_direction_at_node = self.flow_link_direction[
             self._grid.links_at_node
@@ -558,7 +558,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0],
-               [ 0,  0,  0,  0]])
+               [ 0,  0,  0,  0]], dtype=int8)
         """
 
         incoming_at_node = (
@@ -600,7 +600,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
         >>> fd.flow_link_direction
-        array([ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0])
+        array([ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0], dtype=int8)
         """
         return self._flow_link_direction
 
