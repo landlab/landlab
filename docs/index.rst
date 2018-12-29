@@ -285,7 +285,6 @@ The Component base class
 
   landlab.core.model_component
 
-
 Input/Output (IO)
 =================
 
