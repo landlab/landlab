@@ -1,9 +1,9 @@
 
 
-
 import numpy as np
 
 from landlab.item_collection import ItemCollection
+
 
 class Parcel(ItemCollection):
 
@@ -24,13 +24,8 @@ class Parcel(ItemCollection):
     """
     Documentation and tests of MyCollection here
     """
-    def __init__(self,
-                 grid,
-                 param_1=[],
-                 param_2=[],
-                 param_3=[],
-                 param_4=[],
-                 ):
+
+    def __init__(self, grid, param_1=[], param_2=[], param_3=[], param_4=[]):
         """
         Documentation on init here
         """
@@ -45,12 +40,14 @@ class Parcel(ItemCollection):
         self._nb_of_items = len(param_1)
 
         # Create the data dictionary:
-        my_data = {'data_name_1' : param_1,
-                   'data_name_2' : param_2,
-                   'data_name_3' : param_3,
-                   'data_name_5' : param_5,
-                   'data_name_6' : np.zeros(self._nb_of_items),
-                   'data_name_7' : np.full(self._nb_of_items, np.NaN)}
+        my_data = {
+            "data_name_1": param_1,
+            "data_name_2": param_2,
+            "data_name_3": param_3,
+            "data_name_5": param_5,
+            "data_name_6": np.zeros(self._nb_of_items),
+            "data_name_7": np.full(self._nb_of_items, np.NaN),
+        }
 
         # In this example, the positions (element ID) of the items at the
         # time of initialization are stored in the array param_4:
@@ -67,11 +64,13 @@ class Parcel(ItemCollection):
         #         (clast_x[:], clast_y[:]))
 
         # Build ItemCollection containing your data:
-        ItemCollection.__init__(self,
-                                self._grid,
-                                data=my_data,
-                                grid_element='node',
-                                element_id=my_element_id)
+        ItemCollection.__init__(
+            self,
+            self._grid,
+            data=my_data,
+            grid_element="node",
+            element_id=my_element_id,
+        )
 
         # In this example, all elements live on nodes.
         # If not all your elements live on nodes, you can pass an array (or a
@@ -81,14 +80,14 @@ class Parcel(ItemCollection):
         #                                               grid_element=param_8,
         #                                                ...)
 
-
         # Using python 3:
-#        super().__init__(
-#                self,
-#                self._grid,
-#                data=my_data,
-#                grid_element='node',
-#                element_id=my_element_id)
+
+    #        super().__init__(
+    #                self,
+    #                self._grid,
+    #                data=my_data,
+    #                grid_element='node',
+    #                element_id=my_element_id)
 
     def method_1(self, other_input):
         """

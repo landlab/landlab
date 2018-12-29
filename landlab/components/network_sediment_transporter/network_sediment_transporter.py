@@ -176,7 +176,7 @@ class NetworkSedimentTransporter(Component):
         if transport_method in _SUPPORTED_TRANSPORT_METHODS:
             self.transport_method = transport_method
         else:
-            msg = ("")
+            msg = ""
             raise ValueError(msg)
         # self.transport_method makes it a class variable, that can be accessed within any method within this class
         if self.transport_method == "WilcockCrowe":
