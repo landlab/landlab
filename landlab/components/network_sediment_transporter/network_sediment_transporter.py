@@ -19,7 +19,7 @@ import numpy as np
 from landlab import BAD_INDEX_VALUE, Component
 from landlab.utils.decorators import use_file_name_or_kwds
 
-# %% Instantiate Object
+_SUPPORTED_TRANSPORT_METHODS = ["WilcockCrowe"]
 
 
 class NetworkSedimentTransporter(Component):
@@ -173,9 +173,12 @@ class NetworkSedimentTransporter(Component):
         self.g = g
         self.fluid_density = fluid_density
 
-        self.transport_method = (
-            transport_method
-        )  # self.transport_method makes it a class variable, that can be accessed within any method within this class
+        if transport_method in _SUPPORTED_TRANSPORT_METHODS:
+            self.transport_method = transport_method
+        else:
+            msg = ("")
+            raise ValueError(msg)
+        # self.transport_method makes it a class variable, that can be accessed within any method within this class
         if self.transport_method == "WilcockCrowe":
             self.update_transport_time = self._calc_transport_wilcock_crowe
 
@@ -191,7 +194,7 @@ class NetworkSedimentTransporter(Component):
             self._channel_slope = self._grid.at_link["channel_slope"]
 
     def _update_channel_slopes(self):
-        """text Can be simple-- this is what this does. 'private' functions can 
+        """text Can be simple-- this is what this does. 'private' functions can
         have very simple examples, explanations. Essentially note to yourself"""
         # Katy think this can be vectorized
         for l in range(self._grid.number_of_links):
