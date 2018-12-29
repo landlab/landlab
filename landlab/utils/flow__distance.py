@@ -2,7 +2,7 @@
 """Functions to calculate flow distance."""
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE, RasterModelGrid, FieldError
+from landlab import BAD_INDEX_VALUE, FieldError, RasterModelGrid
 
 
 def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
@@ -34,7 +34,7 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils.flow__distance import calculate_flow__distance
-    >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     >>> elev = np.array([0.,  0.,  0., 0.,
     ...                  0., 21., 10., 0.,
     ...                  0., 31., 20., 0.,
@@ -61,7 +61,7 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils.flow__distance import calculate_flow__distance
-    >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     >>> elev = np.array([0.,  0.,  0., 0.,
     ...                  0., 21., 10., 0.,
     ...                  0., 31., 20., 0.,
@@ -110,36 +110,37 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
             0.,  0.,  0.])
     """
     # check that flow__receiver nodes exists
-    if 'flow__receiver_node' not in grid.at_node:
-        raise FieldError("A 'flow__receiver_node' field is required at the "
-                         "nodes of the input grid.")
-    if 'flow__upstream_node_order' not in grid.at_node:
-        raise FieldError("A 'flow__upstream_node_order' field is required at the "
-                         "nodes of the input grid.")
+    if "flow__receiver_node" not in grid.at_node:
+        raise FieldError(
+            "A 'flow__receiver_node' field is required at the "
+            "nodes of the input grid."
+        )
+    if "flow__upstream_node_order" not in grid.at_node:
+        raise FieldError(
+            "A 'flow__upstream_node_order' field is required at the "
+            "nodes of the input grid."
+        )
 
     # get the reciever nodes, depending on if this is to-one, or to-multiple,
     # we'll need to get a different at-node field.
-    if 'flow__receiver_nodes' in grid.at_node:
+    if grid.at_node["flow__receiver_node"].size != grid.size("node"):
         to_one = False
-        flow__receiver_node = grid.at_node['flow__receiver_nodes']
     else:
         to_one = True
-        flow__receiver_node = grid.at_node['flow__receiver_node']
+    flow__receiver_node = grid.at_node["flow__receiver_node"]
 
     # get the upstream node order
-    flow__upstream_node_order = grid.at_node['flow__upstream_node_order']
+    flow__upstream_node_order = grid.at_node["flow__upstream_node_order"]
 
     # get downstream flow link lengths, result depends on type of grid.
     if isinstance(grid, RasterModelGrid):
-        if to_one:
-            flow_link_lengths = grid.length_of_d8[grid.at_node['flow__link_to_receiver_node']]
-        else:
-            flow_link_lengths = grid.length_of_d8[grid.at_node['flow__links_to_receiver_nodes']]
+        flow_link_lengths = grid.length_of_d8[
+            grid.at_node["flow__link_to_receiver_node"]
+        ]
     else:
-        if to_one:
-            flow_link_lengths = grid.length_of_link[grid.at_node['flow__link_to_receiver_node']]
-        else:
-            flow_link_lengths = grid.length_of_link[grid.at_node['flow__links_to_receiver_nodes']]
+        flow_link_lengths = grid.length_of_link[
+            grid.at_node["flow__link_to_receiver_node"]
+        ]
 
     # create an array that representes the outlet lengths.
     flow__distance = np.zeros(grid.nodes.size)
@@ -187,27 +188,35 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
                 # in the event of a tie, we will choose the shorter link length.
 
                 # get the flow distances of the downstream nodes
-                potential_downstream_stream_lengths = flow__distance[flow__receiver_node[node]][useable_recievers]
+                potential_downstream_stream_lengths = flow__distance[
+                    flow__receiver_node[node]
+                ][useable_recievers]
 
                 # get the stream segment lengths from this node to its downstream
                 # neighbor
-                potential_stream_increment_lengths = flow_link_lengths[node][useable_recievers]
+                potential_stream_increment_lengths = flow_link_lengths[node][
+                    useable_recievers
+                ]
 
                 # get the lowest downstream stream length.
                 downstream_stream_length = np.min(potential_downstream_stream_lengths)
 
                 # determine which of the stream increments flowed to this
                 # downstream neighbor.
-                which_link = np.where(potential_downstream_stream_lengths == downstream_stream_length)[0]
+                which_link = np.where(
+                    potential_downstream_stream_lengths == downstream_stream_length
+                )[0]
 
                 # and choose the smallest of these links.
-                stream_increment_length = np.min(potential_stream_increment_lengths[which_link])
+                stream_increment_length = np.min(
+                    potential_stream_increment_lengths[which_link]
+                )
 
             # set the total stream length of this node
             flow__distance[node] = downstream_stream_length + stream_increment_length
 
     # store on the grid
     if add_to_grid:
-        grid.add_field('node', 'flow__distance', flow__distance, noclobber=noclobber)
+        grid.add_field("node", "flow__distance", flow__distance, noclobber=noclobber)
 
     return flow__distance

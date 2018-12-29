@@ -29,8 +29,8 @@ Created: September 2013 by Greg Tucker
 Last significant modification: cleanup and unit tests Oct 2015 GT
 """
 
-from numpy import tan, pi, size, zeros
 import numpy as np
+from numpy import pi, size, tan, zeros
 
 
 def calculate_fracture_starting_position(shape, seed):
@@ -84,11 +84,11 @@ def calculate_fracture_orientation(coords, seed):
     y, x = coords
 
     np.random.seed(seed)
-    ang = (pi/2)*np.random.rand()
+    ang = (pi / 2) * np.random.rand()
     if y == 0:
-        ang += pi/4
+        ang += pi / 4
     else:
-        ang -= pi/4
+        ang -= pi / 4
 
     return ang
 
@@ -112,12 +112,12 @@ def calculate_fracture_step_sizes(start_yx, ang):
         other will always be <1.
     """
     starty, startx = start_yx
-    if startx==0:  # frac starts on left side
+    if startx == 0:  # frac starts on left side
         dx = 1
         dy = tan(ang)
     else:  # frac starts on bottom side
         dy = 1
-        dx = -tan(ang-pi/2)
+        dx = -tan(ang - pi / 2)
 
     return (dy, dx)
 
@@ -146,16 +146,19 @@ def trace_fracture_through_grid(m, start_yx, spacing):
 
     x = x0
     y = y0
-    
-    while round(x) < size(m, 1) and round(y) < size(m, 0) \
-            and round(x) >= 0 and round(y) >= 0:
+
+    while (
+        round(x) < size(m, 1)
+        and round(y) < size(m, 0)
+        and round(x) >= 0
+        and round(y) >= 0
+    ):
         m[int(y + 0.5)][int(x + 0.5)] = 1
         x += dx
         y += dy
 
 
-def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None,
-                   seed=0):
+def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None, seed=0):
     """Create a grid that contains a network of random fractures.
 
     Creates and returns a grid containing a network of random fractures, which
@@ -189,14 +192,14 @@ def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None,
     if model_grid is not None:
         numrows = model_grid.number_of_node_rows
         numcols = model_grid.number_of_node_columns
-    m = zeros((numrows,numcols), dtype=int)
+    m = zeros((numrows, numcols), dtype=int)
 
     # Add fractures to grid
     nfracs = (numrows + numcols) // frac_spacing
     for i in range(nfracs):
 
-        (y, x) = calculate_fracture_starting_position((numrows, numcols), seed+i)
-        ang = calculate_fracture_orientation((y, x), seed+i)
+        (y, x) = calculate_fracture_starting_position((numrows, numcols), seed + i)
+        ang = calculate_fracture_orientation((y, x), seed + i)
         (dy, dx) = calculate_fracture_step_sizes((y, x), ang)
 
         trace_fracture_through_grid(m, (y, x), (dy, dx))
@@ -204,6 +207,6 @@ def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None,
     # If we have a model_grid, flatten the frac grid so it's equivalent to
     # a node array.
     if model_grid is not None:
-        m.shape = (m.shape[0]*m.shape[1])
+        m.shape = m.shape[0] * m.shape[1]
 
     return m

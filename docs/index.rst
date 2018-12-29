@@ -20,24 +20,27 @@ Grids
 Grid types
 ----------
 
-As of Landlab version 0.2, there are four types of Landlab grid:
+As of Landlab version 1.5.5, there are five types of Landlab grid:
 
 -  :ref:`Raster <Raster>`
 -  :ref:`Voronoi-Delaunay <Voronoi>`
 -  :ref:`Hex <Hex>`
 -  :ref:`Radial <Radial>`
+-  :ref:`Network <Network>`
 
-The base class is `ModelGrid` with subclasses `RasterModelGrid` and
-`VoronoiDelaunayGrid`.
+The base class is ``ModelGrid`` with subclasses ``RasterModelGrid`` and
+``VoronoiDelaunayGrid``.
 
-`VoronoiDelaunayGrid` has two further specialized subclasses: `HexModelGrid`
-and `RadialModelGrid`.
+``VoronoiDelaunayGrid`` has two further specialized subclasses: ``HexModelGrid``
+and ``RadialModelGrid``.
+
+A final class is ``NetworkModelGrid``.
 
 Methods and properties common to all grids
 ------------------------------------------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    landlab.grid.base
    landlab.grid.mappers
@@ -49,11 +52,11 @@ Methods and properties common to all grids
 Specialized methods and properties for Rectilinear Grids 'raster grids'
 -----------------------------------------------------------------------
 
-Landlab's rectilinear grids are implemented by the class `RasterModelGrid`,
-which inherits from `ModelGrid` and adds the following:
+Landlab's rectilinear grids are implemented by the class ``RasterModelGrid``,
+which inherits from ``ModelGrid`` and adds the following:
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    landlab.grid.raster
 
@@ -61,44 +64,63 @@ Specialized methods and properties for Voronoi-Delaunay grids
 -------------------------------------------------------------
 
 Landlab's Voronoi-Delaunay grids are implemented by the class
-`VoronoiDelaunayGrid`, which inherits from `ModelGrid` and adds the following:
+``VoronoiDelaunayGrid``, which inherits from ``ModelGrid`` and adds the following:
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    landlab.grid.voronoi
 
 Specialized methods and properties for hex grids
 ------------------------------------------------
 
-Landlab's hex/trigonal grids are implemented by the class `HexModelGrid`,
-which inherits from `VoronoiDelauneyGrid` and adds the following:
+Landlab's hex/trigonal grids are implemented by the class ``HexModelGrid``,
+which inherits from ``VoronoiDelauneyGrid`` and adds the following:
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    landlab.grid.hex
 
 Specialized methods and properties for radial grids
 ---------------------------------------------------
 
-Landlab's radial grids are implemented by the class `RadialModelGrid`, which
-inherits from `VoronoiDelauneyGrid` and adds the following:
+Landlab's radial grids are implemented by the class ``RadialModelGrid``, which
+inherits from ``VoronoiDelauneyGrid`` and adds the following:
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    landlab.grid.radial
+
+
+ Specialized methods and properties for network grids
+ ----------------------------------------------------
+
+ Landlab's network grids are implemented by the class ``NetworkModelGrid``,
+ which inherits from ``Graph`` and ``GraphFields`` and adds the following:
+
+ .. toctree::
+    :maxdepth: 3
+
+    landlab.grid.network
 
 Layers
 ======
 
-Landlab has the ability to add Layers to the grid.
+Landlab has the ability to add layers to the grid. Two types of layers are
+currently supported. First is EventLayers in which each event is preserved as
+an entry into the datastructure, even if no deposition occurs. If you are
+interested in chronostratigraphy, this is probably what you are interested in.
+Second is MaterialLayers, in which each layer must contain some material.
+If an entire layer is eroded in MaterialLayers, the layer is removed.
+MaterialLayers will likely use less memory than EventLayers.
 
   .. toctree::
      :maxdepth: 4
 
-     landlab.layers
+     landlab.layers.eventlayers
+     landlab.layers.materiallayers
 
 Components
 ==========
@@ -184,6 +206,7 @@ Precipitation
   :maxdepth: 4
 
   landlab.components.uniform_precip
+  landlab.components.spatial_precip
 
 Weathering
 ----------
@@ -201,6 +224,7 @@ Terrain Analysis
 
   landlab.components.steepness_index
   landlab.components.chi_index
+  landlab.components.drainage_density
 
 Tectonics
 ---------
@@ -227,6 +251,31 @@ Initial conditions: random field generators
   :maxdepth: 4
 
   landlab.components.fracture_grid
+
+
+Lithology
+---------
+Two objects based on the EventLayers object exist to make it easier to deal
+with spatially variable lithology and associated properties. The Lithology
+components contain information about spatially variable lithology and connect
+with the Landlab model grid so that when rock is eroded or advected upward by
+rock uplift the values of rock propeties at the topographic surface are updated.
+
+First is the Lithology component which is a generic object for variable
+lithology.
+
+  .. toctree::
+     :maxdepth: 4
+
+     landlab.components.lithology
+
+Second is LithoLayers which makes it easy to make layered rock.
+
+   .. toctree::
+      :maxdepth: 4
+
+      landlab.components.litholayers
+
 
 The Component base class
 ------------------------
