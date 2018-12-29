@@ -21,7 +21,7 @@ def find_extensions(path="."):
             os.path.join(root, fname) for fname in files if fname.endswith(".pyx")
         ]
     return [
-        Extension(re.sub("/", ".", ext[: -len(".pyx")]), [ext])
+        Extension(re.sub(re.escape(os.path.sep), ".", ext[: -len(".pyx")]), [ext])
         for ext in extensions
     ]
 
