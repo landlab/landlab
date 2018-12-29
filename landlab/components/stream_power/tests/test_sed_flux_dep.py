@@ -30,7 +30,7 @@ def test_sed_dep():
     nt = int(runtime // dt)
     uplift_per_step = uplift_rate * dt
 
-    mg = RasterModelGrid((nrows, ncols), (dx, dx))
+    mg = RasterModelGrid((nrows, ncols), xy_spacing=(dx, dx))
 
     mg.add_zeros("topographic__elevation", at="node")
     z = np.loadtxt(os.path.join(_THIS_DIR, "seddepinit.txt"))
@@ -60,7 +60,7 @@ def test_sed_dep_new():
     a 20-fold uplift acceleration for a further 30000 y. It tests the outcome
     of the next 1000 y of erosion.
     """
-    mg = RasterModelGrid((25, 50), 200.)
+    mg = RasterModelGrid((25, 50), xy_spacing=200.)
     for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge, mg.nodes_at_right_edge):
         mg.status_at_node[edge] = CLOSED_BOUNDARY
 

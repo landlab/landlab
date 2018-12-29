@@ -1,7 +1,6 @@
 #!/usr/env/python
 
-"""
-Short description.
+"""Short description.
 
 flow_accum_to_n.py: Implementation a route-to-multiple drainage stack alorithm.
 
@@ -48,14 +47,15 @@ Created: KRB Oct 2016 (modified from flow_accumu_bw)
 """
 import numpy
 from six.moves import range
-from .cfuncs import _accumulate_to_n
+
 from landlab.core.utils import as_id_array
+
+from .cfuncs import _accumulate_to_n
 
 
 class _DrainageStack_to_n:
 
-    """
-    Implementation of the DrainageStack_to_n class.
+    """Implementation of the DrainageStack_to_n class.
 
     The _DrainageStack_to_n() class implements a set based approach to
     constructing a stack with similar properties to the stack constructed by
@@ -68,11 +68,10 @@ class _DrainageStack_to_n:
 
     def __init__(self, delta, D, num_receivers):
 
-        """
-        Creates the stack array s and stores references to delta and D.
+        """Creates the stack array s and stores references to delta and D.
 
-        Initialization of the _DrainageStack_to_n() class including storing
-        delta and D.
+        Initialization of the _DrainageStack_to_n() class including
+        storing delta and D.
         """
 
         self.num_receivers = num_receivers
@@ -81,8 +80,7 @@ class _DrainageStack_to_n:
         self.D = D
 
     def construct__stack(self, l):
-        """
-        Function to construct the drainage stack.
+        """Function to construct the drainage stack.
 
         Function to add all nodes upstream of a set of base level nodes given
         by list l in an order
@@ -328,8 +326,7 @@ def _make_delta_array_to_n(nd):
 
 def _make_array_of_donors_to_n(r, p, delta):
 
-    """
-    Creates and returns an array containing the IDs of donors for each node.
+    """Creates and returns an array containing the IDs of donors for each node.
 
     Essentially, the array is a series of lists (not in the Python list object
     sense) of IDs for each node. See Braun & Willett (2012) for details.
@@ -564,25 +561,25 @@ def find_drainage_area_and_discharge_to_n(
     # nodes at channel heads can still be negative with this method, so...
     discharge = discharge.clip(0.)
 
-#        donors = s[i]
-#        #print donors
-#        recvrs = r[donors, :].flatten()
-#
-#        if (set(donors)-set(recvrs[recvrs!=-1]))==set(donors):
-#            recvrs = r[donors, :].flatten()
-#
-#            unique_recvrs=numpy.unique(recvrs)
-#
-#            proportions = p[donors, :].flatten()
-#
-#            new_da=proportions*numpy.repeat(drainage_area[donors], q)
-#            new_di=proportions*numpy.repeat(discharge[donors], q)
-#
-#            for u_r in unique_recvrs:
-#                ur_ind=np.where(recvrs==u_r)
-#
-#                drainage_area[u_r] += numpy.sum(new_da[ur_ind])
-#                discharge[u_r] += numpy.sum(new_di[ur_ind])
+    #        donors = s[i]
+    #        #print donors
+    #        recvrs = r[donors, :].flatten()
+    #
+    #        if (set(donors)-set(recvrs[recvrs!=-1]))==set(donors):
+    #            recvrs = r[donors, :].flatten()
+    #
+    #            unique_recvrs=numpy.unique(recvrs)
+    #
+    #            proportions = p[donors, :].flatten()
+    #
+    #            new_da=proportions*numpy.repeat(drainage_area[donors], q)
+    #            new_di=proportions*numpy.repeat(discharge[donors], q)
+    #
+    #            for u_r in unique_recvrs:
+    #                ur_ind=np.where(recvrs==u_r)
+    #
+    #                drainage_area[u_r] += numpy.sum(new_da[ur_ind])
+    #                discharge[u_r] += numpy.sum(new_di[ur_ind])
 
     return drainage_area, discharge
 
@@ -591,13 +588,12 @@ def find_drainage_area_and_discharge_to_n_lossy(
     s, r, l, p, loss_function, grid, node_cell_area=1.0, runoff=1.0, boundary_nodes=None
 ):
 
-    """
-    Calculate the drainage area and water discharge at each node, permitting
+    """Calculate the drainage area and water discharge at each node, permitting
     discharge to fall (or gain) as it moves downstream according to some
     function. Note that only transmission creates loss, so water sourced
-    locally within a cell is always retained. The loss on each link is
-    recorded in the 'surface_water__discharge_loss' link field on the grid;
-    ensure this exists before running the function.
+    locally within a cell is always retained. The loss on each link is recorded
+    in the 'surface_water__discharge_loss' link field on the grid; ensure this
+    exists before running the function.
 
     Parameters
     ----------
@@ -667,7 +663,7 @@ def find_drainage_area_and_discharge_to_n_lossy(
     We're only going to use the first 4 links, but illustrates the use of the
     grid for link input.
 
-    >>> mg = RasterModelGrid((3, 3), 1.)
+    >>> mg = RasterModelGrid((3, 3))
     >>> _ = mg.add_zeros('node', 'surface_water__discharge_loss', dtype=float)
     >>> lossy = mg.add_ones('link', 'lossy', dtype=float)
     >>> lossy *= 0.5
@@ -803,9 +799,7 @@ def flow_accumulation_to_n(
         receiver_nodes.shape == receiver_proportions.shape
     ), "r and p arrays are not the same shape"
 
-    s = as_id_array(
-        make_ordered_node_array_to_n(receiver_nodes, receiver_proportions)
-    )
+    s = as_id_array(make_ordered_node_array_to_n(receiver_nodes, receiver_proportions))
     # Note that this ordering of s DOES INCLUDE closed nodes. It really
     # shouldn't!
     # But as we don't have a copy of the grid accessible here, we'll solve this

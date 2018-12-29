@@ -40,7 +40,7 @@ class VegCA(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import VegCA
-    >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     >>> VegCA.name
     'Cellular Automata Plant Competition'
     >>> sorted(VegCA.output_var_names)

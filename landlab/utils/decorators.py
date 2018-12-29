@@ -247,7 +247,7 @@ class use_field_name_or_array(object):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=(1, 2))
 
     >>> def my_func(grid, vals):
     ...     return grid.area_of_cell * vals
@@ -333,7 +333,7 @@ class use_field_name_array_or_value(object):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=(1, 2))
 
     >>> def my_func(grid, vals):
     ...     return grid.area_of_cell * vals

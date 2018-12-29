@@ -17,7 +17,7 @@ from landlab.components import KinwaveImplicitOverlandFlow
 def test_initialization():
     """Test initialization with various parameters.
     """
-    rg = RasterModelGrid((3, 4), 2.0)
+    rg = RasterModelGrid((3, 4), xy_spacing=2.0)
     rg.add_zeros("node", "topographic__elevation")
     kw = KinwaveImplicitOverlandFlow(rg)
 
@@ -37,7 +37,7 @@ def test_first_iteration():
     """Test stuff that happens only on first iteration"""
 
     # Create a basic ramp
-    rg = RasterModelGrid((10, 10), spacing=(2, 2))
+    rg = RasterModelGrid((10, 10), xy_spacing=(2, 2))
     rg.add_field("topographic__elevation", 0.1 * rg.node_y, at="node")
 
     # Create component and run it
@@ -56,7 +56,7 @@ def test_steady_basic_ramp():
     """Run to steady state with basic ramp"""
 
     # Create a basic ramp
-    rg = RasterModelGrid((10, 10), spacing=(2, 2))
+    rg = RasterModelGrid((10, 10), xy_spacing=(2, 2))
     rg.add_field("topographic__elevation", 0.1 * rg.node_y, at="node")
 
     # Create component and run it
@@ -114,7 +114,7 @@ def test_curved_surface():
     """Test flow across a curved surface."""
 
     # Create a grid
-    rg = RasterModelGrid((10, 10), spacing=(2, 2))
+    rg = RasterModelGrid((10, 10), xy_spacing=(2, 2))
     rg.add_field(
         "topographic__elevation", 3. * rg.node_x ** 2 + rg.node_y ** 2, at="node"
     )

@@ -88,7 +88,7 @@ class gFlex(Component):
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import gFlex
-    >>> mg = RasterModelGrid((10, 10), 25000.)
+    >>> mg = RasterModelGrid((10, 10), xy_spacing=25000.)
     >>> z = mg.add_zeros('topographic__elevation', at='node', dtype=float)
     >>> stress = mg.add_zeros('surface_load__stress', at='node', dtype=float)
     >>> stress.view().reshape(mg.shape)[3:7, 3:7] += 1.e6

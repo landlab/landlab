@@ -426,10 +426,10 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
             nodata_value = header["nodata_value"]
         if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
             raise DataSizeError(shape[0] * shape[1], data.size)
-    spacing = (header["cellsize"], header["cellsize"])
-    origin = (
-        header["yllcorner"] - halo * header["cellsize"],
+    xy_spacing = (header["cellsize"], header["cellsize"])
+    xy_of_lower_left = (
         header["xllcorner"] - halo * header["cellsize"],
+        header["yllcorner"] - halo * header["cellsize"],
     )
 
     data = np.flipud(data)
@@ -450,7 +450,9 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
             )
 
     if grid is None:
-        grid = RasterModelGrid(shape, spacing=spacing, origin=origin)
+        grid = RasterModelGrid(
+            shape, xy_spacing=xy_spacing, xy_of_lower_left=xy_of_lower_left
+        )
     if name:
         grid.add_field("node", name, data)
 
@@ -507,7 +509,7 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     >>> from landlab import RasterModelGrid
     >>> from landlab.io.esri_ascii import write_esri_ascii
 
-    >>> grid = RasterModelGrid((4, 5), spacing=(2., 2.))
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=(2., 2.))
     >>> _ = grid.add_field('node', 'air__temperature', np.arange(20.))
     >>> with cdtemp() as _:
     ...     files = write_esri_ascii('test.asc', grid)

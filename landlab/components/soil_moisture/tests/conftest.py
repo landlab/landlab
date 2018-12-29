@@ -7,14 +7,14 @@ from landlab.components.soil_moisture.soil_moisture_dynamics import SoilMoisture
 
 @pytest.fixture
 def sm():
-    grid = RasterModelGrid((20, 20), spacing=10e0)
+    grid = RasterModelGrid((20, 20), xy_spacing=10e0)
     grid.add_zeros("vegetation__plant_functional_type", at="cell", dtype=int)
     return SoilMoisture(grid)
 
 
 @pytest.fixture
 def si():
-    grid = RasterModelGrid((10, 10), spacing=25)
+    grid = RasterModelGrid((10, 10), xy_spacing=25)
     grid.add_ones("soil_water_infiltration__depth", at="node", dtype=float)
     grid.add_ones("surface_water__depth", at="node")
     hydraulic_conductivity = 2.5 * (10 ** -5)

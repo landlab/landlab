@@ -43,7 +43,7 @@ three_over_seven = 3. / 7.
 elapsed_time = 1.0
 
 # Now we create our grid using the parameters set above.
-rmg = RasterModelGrid(numrows, numcols, dx)
+rmg = RasterModelGrid((numrows, numcols), xy_spacing=dx)
 
 # Set our boundaries to closed to prevent water from flowing out of the  plane
 rmg.set_closed_boundaries_at_grid_edges(True, True, True, True)

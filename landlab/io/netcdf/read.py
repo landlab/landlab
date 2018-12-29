@@ -320,7 +320,7 @@ def read_netcdf(nc_file, just_grid=False):
 
     shape = node_coords[0].shape
 
-    grid = RasterModelGrid(shape, spacing=spacing)
+    grid = RasterModelGrid(shape, xy_spacing=spacing)
 
     if not just_grid:
         fields, grid_mapping_dict = _read_netcdf_structured_data(root)
