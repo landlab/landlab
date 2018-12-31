@@ -361,7 +361,7 @@ def pair_isin(
 ):
     cdef long n
     cdef long pair
-    cdef long n_pairs = out.shape[0]
+    cdef long n_pairs = pairs.shape[0]
     cdef long n_values = src_pairs.shape[0]
     cdef long *data = <long *>malloc(n_values * sizeof(long))
     cdef SparseMatrixInt mat
@@ -470,17 +470,19 @@ cdef SparseMatrixInt sparse_matrix_alloc_with_tuple(
 ):
     cdef long n_rows
     cdef long n_cols
+    cdef long max_row = 0
+    cdef long max_col = 0
     cdef long i
     cdef SparseMatrixInt mat
     cdef long *offset
 
-    n_rows = 0
-    n_cols = 0
     for i in range(0, n_values * 2, 2):
-        if rows_and_cols[i] > n_rows:
-            n_rows = rows_and_cols[i]
-        if rows_and_cols[i + 1] > n_cols:
-            n_cols = rows_and_cols[i + 1]
+        if rows_and_cols[i] > max_row:
+            max_row = rows_and_cols[i]
+        if rows_and_cols[i + 1] > max_col:
+            max_col = rows_and_cols[i + 1]
+    n_rows = max_row + 1
+    n_cols = max_col + 1
 
     offset = <long *>malloc((n_rows + 1) * sizeof(long))
 
