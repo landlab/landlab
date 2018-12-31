@@ -437,31 +437,6 @@ cdef struct SparseMatrixInt:
     long no_val
 
 
-cdef SparseMatrixInt sparse_matrix_alloc_with_data(
-    long n_rows,
-    long n_cols,
-    long *rows,
-    long *cols,
-    long *values,
-    long n_values,
-    long no_val,
-):
-    cdef SparseMatrixInt mat
-    cdef long *offset = <long *>malloc((n_rows + 1) * sizeof(long))
-
-    _offset_to_sorted_blocks(rows, n_values, 1, offset, n_rows)
-
-    mat.values = values
-    mat.offset_to_row = offset
-    mat.col = cols
-    mat.col_start = 0
-    mat.col_stride = 1
-    mat.n_rows = n_rows
-    mat.n_cols = n_cols
-    mat.no_val = no_val
-
-    return mat
-
 cdef SparseMatrixInt sparse_matrix_alloc_with_tuple(
     long *rows_and_cols,
     long *values,
