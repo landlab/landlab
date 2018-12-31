@@ -12,7 +12,6 @@ Examples
 >>> voronoi = Voronoi(points)
 """
 import re
-
 from itertools import combinations
 
 import numpy as np
@@ -21,6 +20,7 @@ from scipy.spatial import Delaunay, Voronoi
 
 from ...utils import jaggedarray
 from ..sort.sort import reverse_one_to_one
+from ..sort.intpair import pair_isin
 
 
 class VoronoiDelaunay(object):
@@ -104,12 +104,44 @@ class VoronoiDelaunay(object):
         )
 
     @property
+    def number_of_nodes(self):
+        return self._mesh.dims["node"]
+
+    @property
+    def number_of_links(self):
+        return self._mesh.dims["link"]
+
+    @property
+    def number_of_patches(self):
+        return self._mesh.dims["patch"]
+
+    @property
+    def number_of_corners(self):
+        return self._mesh.dims["corner"]
+
+    @property
+    def number_of_faces(self):
+        return self._mesh.dims["face"]
+
+    @property
+    def number_of_cells(self):
+        return self._mesh.dims["cell"]
+
+    @property
     def x_of_node(self):
         return self._mesh["x_of_node"].values
 
     @property
     def y_of_node(self):
         return self._mesh["y_of_node"].values
+
+    @property
+    def x_of_corner(self):
+        return self._mesh["x_of_corner"].values
+
+    @property
+    def y_of_corner(self):
+        return self._mesh["y_of_corner"].values
 
     @property
     def nodes_at_patch(self):
@@ -144,6 +176,8 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
     def __init__(self, xy_of_node, perimeter_links=None):
         super(VoronoiDelaunayToGraph, self).__init__(xy_of_node)
 
+        if perimeter_links is not None:
+            perimeter_links = np.asarray(perimeter_links, dtype=int)
         self._perimeter_links = perimeter_links
 
         mesh = self._mesh
@@ -177,16 +211,13 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
 
     @staticmethod
     def _links_at_patch(nodes_at_link, nodes_at_patch):
-        from ..sort.ext.remap_element import map_rolling_pairs_to_values
+        from ..sort.intpair import map_rolling_pairs_to_values
 
         links_at_patch_ = np.empty_like(nodes_at_patch, dtype=int)
 
         link_at_nodes = np.lexsort((nodes_at_link[:, 1], nodes_at_link[:, 0]))
         map_rolling_pairs_to_values(
-            nodes_at_link[link_at_nodes],
-            link_at_nodes,
-            nodes_at_patch,
-            links_at_patch_
+            (nodes_at_link[link_at_nodes], link_at_nodes), nodes_at_patch, links_at_patch_
         )
 
         return links_at_patch_
@@ -202,27 +233,37 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
         #         link_at_nodes.get(pair, -1) for pair in zip(patch_nodes, np.roll(patch_nodes, 1))
         #     ]
         tail_nodes_at_patch = np.roll(nodes_at_patch, 1, axis=1)
-        for patch, (heads, tails) in enumerate(zip(nodes_at_patch, tail_nodes_at_patch)):
+        for patch, (heads, tails) in enumerate(
+            zip(nodes_at_patch, tail_nodes_at_patch)
+        ):
             links_at_patch_[patch] = [
                 link_at_nodes.get(pair, -1) for pair in zip(heads, tails)
             ]
 
         return links_at_patch_
 
-
     def is_perimeter_face(self):
         return np.any(self.corners_at_face == -1, axis=1)
 
     def is_perimeter_cell(self):
-        from .ext.voronoi import id_array_is_valid
+        from .ext.voronoi import id_array_is_valid, id_array_contains
 
-        is_perimeter_cell = np.empty(len(self.n_corners_at_cell), dtype=np.uint8)
-        id_array_is_valid(
+        is_perimeter_cell = np.empty(len(self.n_corners_at_cell), dtype=bool)
+        id_array_contains(
             self.corners_at_cell,
             self.n_corners_at_cell,
-            is_perimeter_cell,
+            -1,
+            is_perimeter_cell.view(dtype=np.uint8),
         )
-        is_perimeter_cell &= self.n_corners_at_cell >= 3
+        is_perimeter_cell |= self.n_corners_at_cell < 3
+
+        # is_perimeter_cell = np.empty(len(self.n_corners_at_cell), dtype=bool)
+        # id_array_is_valid(
+        #     self.corners_at_cell,
+        #     self.n_corners_at_cell,
+        #     is_perimeter_cell.view(dtype=np.uint8),
+        # )
+        # is_perimeter_cell &= self.n_corners_at_cell >= 3
 
         return is_perimeter_cell
 
@@ -254,19 +295,18 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
             pair_isin(
                 self._perimeter_links,
                 self.nodes_at_link,
-                is_perimeter_link,
+                is_perimeter_link.view(dtype=np.uint8),
             )
         else:
             is_perimeter_link = self.is_perimeter_face()
         return is_perimeter_link
 
     def unbound_corners(self):
-        faces_to_drop = np.where(self.is_perimeter_link() != self.is_perimeter_face())[
-            0
-        ]
+        faces_to_drop = np.where(self.is_perimeter_face() & ~self.is_perimeter_link())
 
         unbound_corners = self.corners_at_face[faces_to_drop].reshape((-1,))
-        return unbound_corners[unbound_corners >= 0]
+
+        return np.unique(unbound_corners[unbound_corners >= 0])
 
     def is_bound_corner(self):
         corners = np.full(self._mesh.dims["corner"], True)
@@ -275,6 +315,9 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
         return corners
 
     def drop_corners(self, corners):
+        if len(corners) == 0:
+            return
+
         # Remove the corners
         corners_to_drop = np.asarray(corners, dtype=int)
         self.drop_element(corners_to_drop, at="corner")
@@ -319,11 +362,14 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
                 },
                 dims=(at,),
             )
-            self._mesh = self._mesh.drop(["x_of_{at}".format(at=at), "y_of_{at}".format(at=at)])
+            self._mesh = self._mesh.drop(
+                ["x_of_{at}".format(at=at), "y_of_{at}".format(at=at)]
+            )
 
         for name, var in self._mesh.variables.items():
             if suffix.search(name):
                 at_[name] = xr.DataArray(var.values[is_a_keeper], dims=var.dims)
+
         self._mesh = self._mesh.drop(list(at_))
         self._mesh.update(at_)
 
