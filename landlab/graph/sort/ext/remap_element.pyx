@@ -495,11 +495,11 @@ cdef long sparse_matrix_get(SparseMatrixInt mat, long row, long col):
 
     if row < 0:
         return mat.no_val
-    elif row > mat.n_rows:
+    elif row >= mat.n_rows:
         return mat.no_val
     elif col < 0:
         return mat.no_val
-    elif col > mat.n_cols:
+    elif col >= mat.n_cols:
         return mat.no_val
 
     start = mat.offset_to_row[row]
