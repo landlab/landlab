@@ -55,11 +55,10 @@ def perimeter_nodes(shape, orientation="horizontal", node_layout="rect", out=Non
     if node_layout not in ("hex", "rect"):
         raise ValueError( "node_layout not understood. Must be one of 'hex' or 'rect'")
 
-    n_perimeter_nodes = number_of_perimeter_nodes(
-        shape, orientation=orientation, node_layout=node_layout
-    )
-
     if out is None:
+        n_perimeter_nodes = number_of_perimeter_nodes(
+            shape, orientation=orientation, node_layout=node_layout
+        )
         perimeter_nodes = np.empty(n_perimeter_nodes, dtype=int)
     else:
         perimeter_nodes = out
@@ -76,3 +75,18 @@ def perimeter_nodes(shape, orientation="horizontal", node_layout="rect", out=Non
             fill_perimeter_nodes_rect_vertical(shape, perimeter_nodes)
 
     return perimeter_nodes
+
+
+def perimeter_links(shape, orientation="horizontal", node_layout="rect", out=None):
+    if out is None:
+        n_perimeter_nodes = number_of_perimeter_nodes(
+            shape, orientation=orientation, node_layout=node_layout
+        )
+        out = np.empty((n_perimeter_nodes, 2), dtype=int)
+
+    nodes = perimeter_nodes(shape, orientation=orientation, node_layout=node_layout)
+
+    out[:, 0] = nodes
+    out[:, 1] = nodes.take(range(1, len(out) + 1), mode="wrap")
+
+    return out
