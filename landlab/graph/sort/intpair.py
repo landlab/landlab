@@ -87,16 +87,15 @@ def map_pairs_to_values(mapping, pairs, out=None, sorter=None, sorted=False):
         values = values[sorter]
 
     _map_pairs_to_values(
-        np.ascontiguousarray(keys),
-        np.ascontiguousarray(values),
-        pairs,
-        out,
+        np.ascontiguousarray(keys), np.ascontiguousarray(values), pairs, out
     )
 
     return out
 
 
-def map_rolling_pairs_to_values(mapping, pairs, out=None, sorter=None, sorted=False):
+def map_rolling_pairs_to_values(
+    mapping, pairs, out=None, sorter=None, sorted=False, size_of_row=None
+):
     """Return the values for integer pairs given as a 2D matrix of rolling pairs.
 
     Parameters
@@ -136,6 +135,12 @@ def map_rolling_pairs_to_values(mapping, pairs, out=None, sorter=None, sorted=Fa
     if out is None:
         out = np.empty_like(pairs, dtype=int)
 
+    if size_of_row is None:
+        size_of_row = np.full(len(pairs), pairs.shape[1], dtype=int)
+    else:
+        size_of_row = np.asarray(size_of_row)
+        out[:] = -1
+
     if not sorted and sorter is None:
         sorter = np.argsort(keys[:, 0])
     if sorter is not None:
@@ -145,7 +150,8 @@ def map_rolling_pairs_to_values(mapping, pairs, out=None, sorter=None, sorted=Fa
     _map_rolling_pairs_to_values(
         np.ascontiguousarray(keys),
         np.ascontiguousarray(values),
-        pairs,
+        np.ascontiguousarray(pairs),
+        np.ascontiguousarray(size_of_row),
         out,
     )
 
