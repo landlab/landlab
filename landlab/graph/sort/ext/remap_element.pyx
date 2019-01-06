@@ -176,15 +176,8 @@ cdef _argsort_links(long * links, int n_links, long * nodes, long * ordered):
 
         i = 0
         for link in range(n_links):
-            print index[i]
-            # if nodes[index[i]] != nodes[index[i + 1]]:
-            #     raise ValueError('open patch')
-
             ordered[i / 2] = index[i] / 2
             i += 2
-
-            # if nodes[index[i]] == nodes[index[i - 1]]:
-            #     raise ValueError('triple-point')
     finally:
         free(index)
 
@@ -229,12 +222,12 @@ cdef reverse_order(long * array, long size):
         array[i] = array[(size - 1) - i]
         array[(size - 1) - i] = temp
 
-        # array[i], array[size - 1] = array[size - 1], array[i]
-
 
 @cython.boundscheck(False)
-def reverse_element_order(np.ndarray[long, ndim=2] links_at_patch,
-                          np.ndarray[long, ndim=1] patches):
+def reverse_element_order(
+    np.ndarray[long, ndim=2] links_at_patch,
+    np.ndarray[long, ndim=1] patches
+):
     cdef long n_patches = patches.shape[0]
     cdef long max_links = links_at_patch.shape[1]
     cdef long patch
@@ -243,11 +236,6 @@ def reverse_element_order(np.ndarray[long, ndim=2] links_at_patch,
 
     for i in range(n_patches):
         patch = patches[i]
-        # for n in range(1, max_links):
-        #     if links_at_patch[patch, n] == -1:
-        #         break
-        # reverse_order(&links_at_patch[patch, 1], n - 1)
-
         n = 1
         while n < max_links:
             if links_at_patch[patch, n] == -1:
@@ -255,10 +243,13 @@ def reverse_element_order(np.ndarray[long, ndim=2] links_at_patch,
             n += 1
         reverse_order(&links_at_patch[patch, 1], n - 1)
 
+
 @cython.boundscheck(False)
-def get_angle_of_link(np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
-                      np.ndarray[np.float_t, ndim=2] xy_of_node,
-                      np.ndarray[np.float_t, ndim=1] angle_of_link):
+def get_angle_of_link(
+    np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
+    np.ndarray[np.float_t, ndim=2] xy_of_node,
+    np.ndarray[np.float_t, ndim=1] angle_of_link
+):
     cdef int link
     cdef float link_tail_x
     cdef float link_tail_y
@@ -272,13 +263,16 @@ def get_angle_of_link(np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
         link_head_x = xy_of_node[nodes_at_link[link][1]][0]
         link_head_y = xy_of_node[nodes_at_link[link][1]][1]
 
-        angle_of_link[link] = atan2(link_head_y - link_tail_y,
-                                    link_head_x - link_head_y)
+        angle_of_link[link] = atan2(
+            link_head_y - link_tail_y, link_head_x - link_head_y
+        )
 
 
 @cython.boundscheck(False)
-def reorient_links(np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
-                   np.ndarray[DTYPE_t, ndim=1] xy_of_node):
+def reorient_links(
+    np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
+    np.ndarray[DTYPE_t, ndim=1] xy_of_node
+):
     """Reorient links to point up and to the right.
 
     Parameters
@@ -306,9 +300,16 @@ def reorient_links(np.ndarray[DTYPE_t, ndim=2] nodes_at_link,
             nodes_at_link[link, 1] = temp
 
 
-cdef _count_sorted_blocks(long *array, long len, long stride, long *count, long n_values):
-    cdef int i
-    cdef int value
+cdef _count_sorted_blocks(
+    long *array,
+    long len,
+    long stride,
+    long *count,
+    long n_values,
+):
+    cdef long i
+    cdef long value
+    cdef long max_i = len * stride
 
     i = 0
     for value in range(n_values):
@@ -316,18 +317,30 @@ cdef _count_sorted_blocks(long *array, long len, long stride, long *count, long 
         while value == array[i]:
             count[value] += 1
             i += stride
+            if i >= max_i:
+                break
 
 
-cdef _offset_to_sorted_blocks(long *array, long len, long stride, long *offset, long n_values):
+cdef _offset_to_sorted_blocks(
+    long *array,
+    long len,
+    long stride,
+    long *offset,
+    long n_values,
+):
     cdef long i
     cdef long value
     cdef long block
     cdef long last_count, this_count
 
-    _count_sorted_blocks(array, len, stride, offset, n_values)
+    for i in range(0, len * stride, stride):
+        if array[i] >= 0:
+            break
+
+    _count_sorted_blocks(array + i, len - i // stride, stride, offset, n_values)
 
     last_count = offset[0]
-    offset[0] = 0
+    offset[0] = i // stride
     for block in range(1, n_values):
         this_count = offset[block]
         offset[block] = offset[block - 1] + last_count
@@ -371,7 +384,9 @@ def pair_isin(
     try:
         mat = sparse_matrix_alloc_with_tuple(&src_pairs[0, 0], data, n_values, 0)
         for pair in range(n_pairs):
-            out[pair] = sparse_matrix_get_or_transpose(mat, pairs[pair, 0], pairs[pair, 1])
+            out[pair] = sparse_matrix_get_or_transpose(
+                mat, pairs[pair, 0], pairs[pair, 1]
+            )
     finally:
         free(data)
 
@@ -402,6 +417,7 @@ def map_rolling_pairs_to_values(
     np.ndarray[long, ndim=2, mode="c"] src_pairs not None,
     np.ndarray[long, ndim=1, mode="c"] data not None,
     np.ndarray[long, ndim=2, mode="c"] pairs not None,
+    np.ndarray[long, ndim=1, mode="c"] size_of_row not None,
     np.ndarray[long, ndim=2, mode="c"] out not None,
 ):
     cdef long n_values = data.shape[0]
@@ -412,22 +428,24 @@ def map_rolling_pairs_to_values(
     mat = sparse_matrix_alloc_with_tuple(&src_pairs[0, 0], &data[0], n_values, -1)
 
     for pair in range(n_pairs):
-        _map_rolling_pairs(mat, &pairs[pair, 0], &out[pair, 0], pairs.shape[1])
+        _map_rolling_pairs(mat, &pairs[pair, 0], &out[pair, 0], size_of_row[pair])
 
 
 cdef _map_rolling_pairs(SparseMatrixInt mat, long *pairs, long *out, long size):
     cdef long n
     cdef long val
 
-    for n in range(size - 1):
-        out[n] = sparse_matrix_get_or_transpose(mat, pairs[n], pairs[n + 1])
+    if size > 0:
+        for n in range(size - 1):
+            out[n] = sparse_matrix_get_or_transpose(mat, pairs[n], pairs[n + 1])
 
-    n = size - 1
-    out[n] = sparse_matrix_get_or_transpose(mat, pairs[n], pairs[0])
+        n = size - 1
+        out[n] = sparse_matrix_get_or_transpose(mat, pairs[n], pairs[0])
 
 
 cdef struct SparseMatrixInt:
     long *values
+    long n_values
     long *offset_to_row
     long *col
     long col_start
@@ -464,6 +482,7 @@ cdef SparseMatrixInt sparse_matrix_alloc_with_tuple(
     _offset_to_sorted_blocks(rows_and_cols, n_values, 2, offset, n_rows + 1)
 
     mat.values = values
+    mat.n_values = n_values
     mat.offset_to_row = offset
     mat.col = rows_and_cols
     mat.col_start = 1
@@ -507,7 +526,12 @@ cdef long sparse_matrix_get(SparseMatrixInt mat, long row, long col):
 
     i = mat.col_start + start * mat.col_stride
     for n in range(start, stop):
+        # if i >= mat.n_values * 2:
+        #     print("error")
+
         if mat.col[i] == col:
+            # if n >= mat.n_values:
+            #     print("ERROR")
             return mat.values[n]
         i += mat.col_stride
 
