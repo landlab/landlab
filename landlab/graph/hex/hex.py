@@ -1,9 +1,16 @@
 import numpy as np
 
 from ..voronoi.voronoi import VoronoiGraph
+from .ext.hex import (
+    fill_xy_of_node_hex_horizontal,
+    fill_xy_of_node_hex_vertical,
+    fill_xy_of_node_rect_horizontal,
+    fill_xy_of_node_rect_vertical,
+)
+from .perimeternodes import perimeter_links, perimeter_nodes
 
 
-def number_of_nodes(shape, node_layout="rect"):
+def number_of_nodes(shape, node_layout="rect", orientation="horizontal"):
     """Get the number of nodes in a hex graph.
 
     Parameters
@@ -37,6 +44,10 @@ def number_of_nodes(shape, node_layout="rect"):
     >>> number_of_nodes((4, 2), node_layout='rect1')
     10
     """
+    if orientation == "vertical":
+        return number_of_nodes(
+            shape[::-1], node_layout=node_layout, orientation="horizontal"
+        )
     if node_layout not in ("rect", "hex", "rect1"):
         raise ValueError("node_layout not understood")
 
@@ -51,7 +62,11 @@ def number_of_nodes(shape, node_layout="rect"):
 
 
 def setup_xy_of_node(
-    shape, spacing=1., origin=(0., 0.), orientation="horizontal", node_layout="rect"
+    shape,
+    spacing=1.0,
+    xy_of_lower_left=(0.0, 0.0),
+    orientation="horizontal",
+    node_layout="rect",
 ):
     """Create arrays of coordinates of a node on a hex grid.
 
@@ -63,8 +78,8 @@ def setup_xy_of_node(
         number of nodes in the first column.
     spacing : float, optional
         Length of links.
-    origin : tuple of float, optional
-        (y, x) coordinates of lower-left corner of the grid.
+    xy_of_lower_left : tuple of float, optional
+        (x, y) coordinates of lower-left corner of the grid.
 
     Examples
     --------
@@ -82,39 +97,38 @@ def setup_xy_of_node(
     >>> y / (np.sqrt(3) / 2.)
     array([ 0.,  0.,  1.,  1.])
 
-    >>> x, y = setup_xy_of_node((2, 2), spacing=2, origin=(1, 2))
+    >>> x, y = setup_xy_of_node((2, 2), spacing=2, xy_of_lower_left=(2, 1))
     >>> x
     array([ 2.,  4.,  3.,  5.])
     >>> (y - 1) / (np.sqrt(3) / 2.)
     array([ 0.,  0.,  2.,  2.])
     """
-    from .ext.hex import get_xy_of_node, fill_xy_of_node, fill_hex_xy_of_node
+    fill_xy_of_node = {
+        "rect": {
+            "horizontal": fill_xy_of_node_rect_horizontal,
+            "vertical": fill_xy_of_node_rect_vertical,
+        },
+        "hex": {
+            "horizontal": fill_xy_of_node_hex_horizontal,
+            "vertical": fill_xy_of_node_hex_vertical,
+        },
+    }
 
-    if orientation == "vertical":
-        return setup_xy_of_node(
-            (shape[1], shape[0]),
-            spacing=spacing,
-            origin=(origin[1], origin[0]),
-            node_layout=node_layout,
-            orientation="horizontal",
-        )[::-1]
-
-    n_nodes = number_of_nodes(shape, node_layout=node_layout)
+    n_nodes = number_of_nodes(shape, orientation=orientation, node_layout=node_layout)
 
     x_of_node = np.empty((n_nodes,), dtype=float)
     y_of_node = np.empty((n_nodes,), dtype=float)
 
-    if node_layout == "rect":
-        fill_xy_of_node(shape, x_of_node, y_of_node)
-    elif node_layout == "hex":
-        fill_hex_xy_of_node(shape, x_of_node, y_of_node)
-    elif node_layout == "rect1":
-        get_xy_of_node(shape, x_of_node, y_of_node)
+    fill_xy_of_node[node_layout][orientation](shape, x_of_node, y_of_node)
 
-    x_of_node *= spacing
-    x_of_node += origin[1]
-    y_of_node *= spacing * np.sin(np.pi / 3.)
-    y_of_node += origin[0]
+    if orientation == "horizontal":
+        x_of_node *= spacing
+        y_of_node *= spacing * np.sin(np.pi / 3.0)
+    else:
+        x_of_node *= spacing * np.sin(np.pi / 3.0)
+        y_of_node *= spacing
+    x_of_node += xy_of_lower_left[0]
+    y_of_node += xy_of_lower_left[1]
 
     return (x_of_node, y_of_node)
 
@@ -141,8 +155,8 @@ class HexGraph(VoronoiGraph):
     def __init__(
         self,
         shape,
-        spacing=1.,
-        origin=(0., 0.),
+        spacing=1.0,
+        origin=(0.0, 0.0),
         orientation="horizontal",
         node_layout="rect",
     ):
@@ -185,23 +199,21 @@ class HexGraph(VoronoiGraph):
         x_of_node, y_of_node = setup_xy_of_node(
             shape,
             spacing=spacing,
-            origin=origin,
+            xy_of_lower_left=origin,
             orientation=orientation,
             node_layout=node_layout,
         )
-        if node_layout == "hex":
-            max_node_spacing = shape[1] + shape[0] / 2 + 2
-            max_node_spacing = None
-        elif node_layout == "rect":
-            max_node_spacing = shape[1] + 1
-        elif node_layout == "rect1":
-            max_node_spacing = shape[1] + 1
+        _perimeter_links = perimeter_links(
+            self.shape, orientation=self.orientation, node_layout=self.node_layout
+        )
+        self._perimeter_nodes = _perimeter_links[:, 0].copy()
 
         VoronoiGraph.__init__(
             self,
             (y_of_node, x_of_node),
             xy_sort=True,
             rot_sort=True,
+            perimeter_links=_perimeter_links,
         )
 
     @property
@@ -217,6 +229,5 @@ class HexGraph(VoronoiGraph):
         return self._node_layout
 
     @property
-    @store_result_in_grid()
     def perimeter_nodes(self):
-        return perimeter_nodes(self.shape, orientation=self.orientation, node_layout=self.node_layout)
+        return self._perimeter_nodes
