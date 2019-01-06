@@ -2,7 +2,11 @@
 import numpy as np
 import pytest
 
-from landlab.graph.hex.perimeternodes import number_of_perimeter_nodes, perimeter_nodes
+from landlab.graph.hex.perimeternodes import (
+    number_of_perimeter_nodes,
+    perimeter_nodes,
+    perimeter_links,
+)
 from landlab.graph.hex.hex import number_of_nodes
 
 
@@ -107,3 +111,134 @@ def test_calc_perimeter_nodes(orientation, node_layout, n_rows):
         shape = (shape[1], shape[0])
     nodes = perimeter_nodes(shape, orientation=orientation, node_layout=node_layout)
     assert tuple(nodes) == EXPECTED_PERIMETER_NODES[node_layout][orientation][n_rows]
+
+
+@pytest.mark.parametrize("n_rows", (3, 4))
+@pytest.mark.parametrize("orientation", ("horizontal", "vertical"))
+@pytest.mark.parametrize("node_layout", ("rect", "hex"))
+def test_calc_perimeter_links(orientation, node_layout, n_rows):
+    expected = {
+        "rect": {
+            "horizontal": {
+                3: (
+                    (3, 7),
+                    (7, 11),
+                    (11, 10),
+                    (10, 9),
+                    (9, 8),
+                    (8, 4),
+                    (4, 0),
+                    (0, 1),
+                    (1, 2),
+                    (2, 3),
+                ),
+                4: (
+                    (3, 7),
+                    (7, 11),
+                    (11, 15),
+                    (15, 14),
+                    (14, 13),
+                    (13, 12),
+                    (12, 8),
+                    (8, 4),
+                    (4, 0),
+                    (0, 1),
+                    (1, 2),
+                    (2, 3),
+                ),
+            },
+            "vertical": {
+                3: (
+                    (1, 4),
+                    (4, 7),
+                    (7, 10),
+                    (10, 11),
+                    (11, 9),
+                    (9, 6),
+                    (6, 3),
+                    (3, 0),
+                    (0, 2),
+                    (2, 1),
+                ),
+                4: (
+                    (3, 7),
+                    (7, 11),
+                    (11, 15),
+                    (15, 13),
+                    (13, 14),
+                    (14, 12),
+                    (12, 8),
+                    (8, 4),
+                    (4, 0),
+                    (0, 2),
+                    (2, 1),
+                    (1, 3),
+                ),
+            },
+        },
+        "hex": {
+            "horizontal": {
+                3: (
+                    (3, 8),
+                    (8, 12),
+                    (12, 11),
+                    (11, 10),
+                    (10, 9),
+                    (9, 4),
+                    (4, 0),
+                    (0, 1),
+                    (1, 2),
+                    (2, 3),
+                ),
+                4: (
+                    (3, 8),
+                    (8, 14),
+                    (14, 19),
+                    (19, 18),
+                    (18, 17),
+                    (17, 16),
+                    (16, 15),
+                    (15, 9),
+                    (9, 4),
+                    (4, 0),
+                    (0, 1),
+                    (1, 2),
+                    (2, 3),
+                ),
+            },
+            "vertical": {
+                3: (
+                    (2, 5),
+                    (5, 8),
+                    (8, 11),
+                    (11, 12),
+                    (12, 10),
+                    (10, 7),
+                    (7, 4),
+                    (4, 1),
+                    (1, 0),
+                    (0, 2),
+                ),
+                4: (
+                    (2, 6),
+                    (6, 10),
+                    (10, 14),
+                    (14, 18),
+                    (18, 19),
+                    (19, 17),
+                    (17, 15),
+                    (15, 11),
+                    (11, 7),
+                    (7, 3),
+                    (3, 1),
+                    (1, 0),
+                    (0, 2),
+                ),
+            },
+        },
+    }
+    shape = (n_rows, 4)
+    if orientation == "vertical":
+        shape = (shape[1], shape[0])
+    links = perimeter_links(shape, orientation=orientation, node_layout=node_layout)
+    assert np.all(links == expected[node_layout][orientation][n_rows])
