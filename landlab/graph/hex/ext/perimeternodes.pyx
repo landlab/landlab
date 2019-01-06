@@ -109,9 +109,11 @@ def fill_perimeter_nodes_hex_horizontal(
     cdef int i, i0
     cdef int node
     cdef int row
-    cdef int * nodes_per_row = <int *>malloc(n_rows * sizeof(int))
+    cdef int * nodes_per_row
 
     try:
+        nodes_per_row = <int *>malloc(n_rows * sizeof(int))
+
         nodes_per_row[0] = n_cols
         for row in range(1, longest_row + 1):
             nodes_per_row[row] = nodes_per_row[row - 1] + 1
