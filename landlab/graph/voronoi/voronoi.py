@@ -1,6 +1,6 @@
 import numpy as np
 import xarray as xr
-from scipy.spatial import Delaunay
+from scipy.spatial import Delaunay, Voronoi
 
 from ...core.utils import as_id_array
 from ..graph import Graph
@@ -10,13 +10,25 @@ from ..ugrid import (
     update_node_coords,
     update_nodes_at_link,
 )
+from .voronoi_helpers import VoronoiConverter
+from .voronoi_to_graph import VoronoiDelaunayToGraph
 
 
-def remove_bad_patches(max_node_spacing, nodes_at_patch, neighbors_at_patch):
+def remove_bad_patches(
+    max_node_spacing,
+    nodes_at_patch,
+    neighbors_at_patch,
+    boundary_nodes=None,
+):
     from .ext.delaunay import remove_tris
 
-    max_node_dist = np.ptp(nodes_at_patch, axis=1)
-    bad_patches = as_id_array(np.where(max_node_dist > max_node_spacing)[0])
+    bad_patches = []
+    if boundary_nodes is not None and len(boundary_nodes) > 0:
+        boundary_nodes = set(boundary_nodes)
+        for patch, nodes in enumerate(nodes_at_patch):
+            if set(nodes).issubset(boundary_nodes):
+                bad_patches.append(patch)
+    bad_patches = as_id_array(bad_patches)
 
     if len(bad_patches) > 0:
         remove_tris(nodes_at_patch, neighbors_at_patch, bad_patches)
@@ -26,7 +38,7 @@ def remove_bad_patches(max_node_spacing, nodes_at_patch, neighbors_at_patch):
     return nodes_at_patch, neighbors_at_patch
 
 
-def setup_links_and_patches(node_y_and_x, max_node_spacing=None):
+def setup_links_and_patches(node_y_and_x, max_node_spacing=None, boundary_nodes=None):
     from .ext.delaunay import _setup_links_at_patch
 
     delaunay = Delaunay(list(zip(node_y_and_x[1], node_y_and_x[0])))
@@ -34,9 +46,9 @@ def setup_links_and_patches(node_y_and_x, max_node_spacing=None):
     nodes_at_patch = np.asarray(delaunay.simplices, dtype=int)
     neighbors_at_patch = np.asarray(delaunay.neighbors, dtype=int)
 
-    if max_node_spacing is not None:
+    if boundary_nodes is not None:
         nodes_at_patch, neighbors_at_patch = remove_bad_patches(
-            max_node_spacing, nodes_at_patch, neighbors_at_patch
+            max_node_spacing, nodes_at_patch, neighbors_at_patch, boundary_nodes=boundary_nodes
         )
 
     n_patches = len(nodes_at_patch)
@@ -53,11 +65,11 @@ def setup_links_and_patches(node_y_and_x, max_node_spacing=None):
     return nodes_at_link, links_at_patch
 
 
-def ugrid_from_voronoi(node_y_and_x, max_node_spacing=None):
+def ugrid_from_voronoi(node_y_and_x, max_node_spacing=None, boundary_nodes=None):
     ugrid = xr.Dataset({"mesh": xr.DataArray(data=1, attrs=MESH_ATTRS)})
 
     nodes_at_link, links_at_patch = setup_links_and_patches(
-        node_y_and_x, max_node_spacing=max_node_spacing
+        node_y_and_x, max_node_spacing=max_node_spacing, boundary_nodes=boundary_nodes,
     )
 
     update_node_coords(ugrid, node_y_and_x)
@@ -108,6 +120,9 @@ class VoronoiGraph(Graph):
         >>> graph.nodes_at_patch # doctest: +NORMALIZE_WHITESPACE
         array([[3, 0, 1], [4, 1, 2], [4, 3, 1], [5, 4, 2]])
         """
-        max_node_spacing = kwds.pop("max_node_spacing", None)
-        mesh = ugrid_from_voronoi(node_y_and_x, max_node_spacing=max_node_spacing)
-        Graph.__init__(self, mesh, **kwds)
+        mesh = VoronoiDelaunayToGraph(
+            np.vstack((node_y_and_x[1], node_y_and_x[0])).T,
+            perimeter_links=kwds.get("perimeter_links", None),
+        )
+
+        Graph.__init__(self, mesh._mesh, **kwds)
