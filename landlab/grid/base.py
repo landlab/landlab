@@ -320,9 +320,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
     def from_dict(cls, params):
         return cls(**params)
 
-    def _initialize(self):
-        raise NotImplementedError("_initialize")
-
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
 
