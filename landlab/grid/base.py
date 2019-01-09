@@ -313,11 +313,51 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
     @classmethod
     def from_file(cls, file_like):
+        """Create grid from file_like.
+
+        Parameters
+        ----------
+        params : dictionary
+            Dictionary of required parameters to create a model grid.
+
+        Examples
+        --------
+        >>> from six import StringIO
+        >>> from landlab import RasterModelGrid
+        >>> filelike = StringIO('''
+        ... shape:
+        ...     - 3
+        ...     - 4
+        ... xy_spacing: 2
+        ... ''')
+        >>> grid = RasterModelGrid.from_file(filelike)
+        >>> grid.x_of_node
+        array([ 0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.])
+        >>> grid.y_of_node
+        array([ 0.,  0.,  0.,  0.,  2.,  2.,  2.,  2.,  4.,  4.,  4.,  4.])
+        """
         params = load_params(file_like)
         return cls.from_dict(params)
 
     @classmethod
     def from_dict(cls, params):
+        """Create grid from dictionary.
+
+        Parameters
+        ----------
+        params : dictionary
+            Dictionary of required parameters to create a model grid.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> params = {"shape": (3,4), "xy_spacing": 2}
+        >>> grid = RasterModelGrid.from_dict(params)
+        >>> grid.x_of_node
+        array([ 0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.])
+        >>> grid.y_of_node
+        array([ 0.,  0.,  0.,  0.,  2.,  2.,  2.,  2.,  4.,  4.,  4.,  4.])
+        """
         return cls(**params)
 
     def __init__(self, **kwds):
