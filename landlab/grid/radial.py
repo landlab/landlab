@@ -133,17 +133,6 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         super(RadialModelGrid, self).__init__(**kwds)
         self._xy_of_center = xy_of_center
 
-    @classmethod
-    def from_dict(cls, params):
-        """
-        LLCATS: GINF
-        """
-        num_shells = params["num_shells"]
-        dr = params.get("dr", 1.)
-        xy_of_center = params.get("xy_of_center", (0., 0.))
-
-        return cls(num_shells=num_shells, dr=dr, xy_of_center=xy_of_center)
-
     @property
     def xy_of_center(self):
         """Return (x, y) of the reference point."""
