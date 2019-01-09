@@ -313,12 +313,15 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
     @classmethod
     def from_file(cls, file_like):
-        """Create grid from file_like.
+        """Create grid from a file-like object.
+
+        File to load either as a file-like object, path to an existing file, or
+        the contents of a file as a string.
 
         Parameters
         ----------
-        params : dictionary
-            Dictionary of required parameters to create a model grid.
+        file_like :
+            File-like object, filepath, or string.
 
         Examples
         --------
