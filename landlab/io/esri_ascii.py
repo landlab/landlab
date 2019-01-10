@@ -434,25 +434,8 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
 
     data = np.flipud(data)
 
-    # REMEMBER, shape contains the size with halo in place
-    # header contains the shape of the original data
-    # Add halo below
     if halo > 0:
-        helper_row = np.ones(shape[1]) * nodata_value
-        # for the first halo row(s), add num cols worth of nodata vals to data
-        for i in range(0, halo):
-            data = np.insert(data, 0, helper_row)
-        # then for header['nrows'] add halo number nodata vals, header['ncols']
-        # of data, then halo number of nodata vals
-        helper_row_ends = np.ones(halo) * nodata_value
-        for i in range(halo, header["nrows"] + halo):
-            # this adds at the beginning of the row
-            data = np.insert(data, i * shape[1], helper_row_ends)
-            # this adds at the end of the row
-            data = np.insert(data, (i + 1) * shape[1] - halo, helper_row_ends)
-        # for the last halo row(s), add num cols worth of nodata vals to data
-        for i in range(header["nrows"] + halo, shape[0]):
-            data = np.insert(data, data.size, helper_row)
+        data, shape = add_halo(data, halo, shape, nodata_value)
 
     if not reshape:
         data = data.flatten()
@@ -474,6 +457,30 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         grid.add_field("node", name, data)
 
     return (grid, data)
+
+
+def add_halo(data, halo, old_shape, nodata_value):
+    # REMEMBER, shape contains the size with halo in place
+    # header contains the shape of the original data
+    # Add halo below
+    shape = (old_shape[0] + 2 * halo, old_shape[1] + 2 * halo)
+
+    helper_row = np.ones(shape[1]) * nodata_value
+    # for the first halo row(s), add num cols worth of nodata vals to data
+    for i in range(0, halo):
+        data = np.insert(data, 0, helper_row)
+    # then for header['nrows'] add halo number nodata vals, header['ncols']
+    # of data, then halo number of nodata vals
+    helper_row_ends = np.ones(halo) * nodata_value
+    for i in range(halo, old_shape[0] + halo):
+        # this adds at the beginning of the row
+        data = np.insert(data, i * shape[1], helper_row_ends)
+        # this adds at the end of the row
+        data = np.insert(data, (i + 1) * shape[1] - halo, helper_row_ends)
+    # for the last halo row(s), add num cols worth of nodata vals to data
+    for i in range(old_shape[0] + halo, shape[0]):
+        data = np.insert(data, data.size, helper_row)
+    return data, shape
 
 
 def write_esri_ascii(path, fields, names=None, clobber=False):
