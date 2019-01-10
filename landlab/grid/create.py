@@ -211,7 +211,7 @@ def create_grid(dict_like):
                     msg = "Bad function supplied to construct field"
 
     # part three, set boundary conditions
-    bc_list = dict_like.pop("boundary_conditions")
+    bc_list = dict_like.pop("boundary_conditions", [])
     for bc_function_dict in bc_list:
 
         if len(bc_function_dict) != 1:
