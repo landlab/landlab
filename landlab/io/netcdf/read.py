@@ -26,6 +26,7 @@ from landlab.io.netcdf._constants import (
     _COORDINATE_NAMES,
 )
 from landlab.io.netcdf.errors import NotRasterGridError
+from landlab.utils import add_halo
 
 
 def _length_of_axis_dimension(root, axis_name):
@@ -239,7 +240,7 @@ def _get_raster_spacing(coords):
     return spacing[0]
 
 
-def read_netcdf(nc_file, just_grid=False):
+def read_netcdf(nc_file, grid=None, just_grid=False, halo=0):
     """Create a :class:`~.RasterModelGrid` from a netcdf file.
 
     Create a new :class:`~.RasterModelGrid` from the netcdf file, *nc_file*.
@@ -251,8 +252,12 @@ def read_netcdf(nc_file, just_grid=False):
     ----------
     nc_file : str
         Name of a netcdf file.
+    grid : *grid* , optional
+        Adds data to an existing *grid* instead of creating a new one.
     just_grid : boolean, optional
         Create a new grid but don't add value data.
+    halo : integer, optional
+        Adds outer border of depth halo to the *grid*.
 
     Returns
     -------
@@ -316,15 +321,31 @@ def read_netcdf(nc_file, just_grid=False):
 
     assert len(node_coords) == 2
 
-    spacing = _get_raster_spacing(node_coords)
-
+    xy_spacing = _get_raster_spacing(node_coords)
     shape = node_coords[0].shape
 
-    grid = RasterModelGrid(shape, xy_spacing=spacing)
+    xy_of_lower_left = (node_coords[0].min(), node_coords[1].min())
+
+    if grid is not None:
+        if (grid.number_of_node_rows != shape[0]+2*halo) or (
+            grid.number_of_node_columns != shape[1] + 2 * halo
+        ):
+            raise MismatchGridDataSizeError(
+                shape[0]+2*halo * shape[1] + 2 * halo,
+                grid.number_of_node_rows * grid.number_of_node_columns,
+            )
+
+    if grid is None:
+        grid = RasterModelGrid(
+            shape, xy_spacing=xy_spacing, xy_of_lower_left=xy_of_lower_left
+        )
 
     if not just_grid:
         fields, grid_mapping_dict = _read_netcdf_structured_data(root)
         for (name, values) in fields.items():
+
+            if halo > 0:
+                values, new_shape = add_halo(value, halo, shape, -9999.)
             grid.add_field("node", name, values)
 
     # save grid mapping
