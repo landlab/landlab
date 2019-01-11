@@ -26,7 +26,7 @@ from landlab.io.netcdf._constants import (
     _COORDINATE_NAMES,
 )
 from landlab.io.netcdf.errors import NotRasterGridError
-from landlab.io.read_esri_ascii import MismatchGridDataSizeError
+from landlab.io.esri_ascii import MismatchGridDataSizeError
 from landlab.utils import add_halo
 
 
