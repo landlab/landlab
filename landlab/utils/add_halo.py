@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def add_halo(data, halo, shape, nodata_value):
     """Add a halo of no data value to data.
 
