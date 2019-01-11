@@ -26,6 +26,7 @@ from landlab.io.netcdf._constants import (
     _COORDINATE_NAMES,
 )
 from landlab.io.netcdf.errors import NotRasterGridError
+from landlab.io.read_esri_ascii import MismatchGridDataSizeError
 from landlab.utils import add_halo
 
 
@@ -351,11 +352,11 @@ def read_netcdf(nc_file, grid=None, just_grid=False, halo=0, nodata_value=-9999.
     xy_of_lower_left = (node_coords[0].min(), node_coords[1].min())
 
     if grid is not None:
-        if (grid.number_of_node_rows != shape[0]+2*halo) or (
+        if (grid.number_of_node_rows != shape[0] + 2 * halo) or (
             grid.number_of_node_columns != shape[1] + 2 * halo
         ):
             raise MismatchGridDataSizeError(
-                shape[0]+2*halo * shape[1] + 2 * halo,
+                shape[0] + 2 * halo * shape[1] + 2 * halo,
                 grid.number_of_node_rows * grid.number_of_node_columns,
             )
 

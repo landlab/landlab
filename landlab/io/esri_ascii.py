@@ -437,7 +437,9 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     data = np.flipud(data)
 
     if halo > 0:
-        data, shape = add_halo(data, halo, (header["nrows"], header["ncols"]), nodata_value)
+        data, shape = add_halo(
+            data, halo, (header["nrows"], header["ncols"]), nodata_value
+        )
 
     if not reshape:
         data = data.flatten()
