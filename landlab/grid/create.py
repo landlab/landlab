@@ -5,6 +5,7 @@ import inspect
 from warnings import warn
 
 from landlab.core import model_parameter_dictionary as mpd
+from landlab.core import load_params
 from landlab.io import read_esri_ascii
 from landlab.io.netcdf import read_netcdf
 from landlab.values import constant, plane, random, sine
@@ -158,8 +159,23 @@ def create_grid(dict_like):
     True
     >>> "eggs" in mg.at_link
     True
-
+    >>> mg.x_of_node
+    array([  0.,   3.,   6.,   9.,  12.,
+             0.,   3.,   6.,   9.,  12.,
+             0.,   3.,   6.,   9.,  12.,
+             0.,   3.,   6.,   9.,  12.])
+    >>> mg.status_at_node
+    array([4, 4, 4, 4, 4,
+           4, 0, 0, 0, 4,
+           4, 0, 0, 0, 4,
+           4, 4, 4, 4, 4], dtype=uint8)
     """
+    # part 0, parse input
+    if isinstance(file_like, dict):
+        dict_like = file_like
+    else:
+        dict_like = load_params(file_like)
+
     # part 1 create grid
     grid_dict = dict_like.pop("grid", None)
     if grid_dict is None:
