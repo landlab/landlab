@@ -119,18 +119,17 @@ def create_grid(file_like):
     **create_grid** expects a dictionary with three keys "grid", "fields", and
     "boundary_conditions".
 
-    Dictionary Section "grid"
-    ^^^^^^^^^^^^^^^^^^^^^^^^^
+    **Dictionary Section "grid"**
 
     The value associated with the "grid" key should itself be a dictionary
     containing the name of a Landlab model grid type as its only key. The
     following grid types are valid:
 
-        -  :py:class:`Raster <landlab.grid.raster.RasterModelGrid>`
-        -  :py:class:`Voronoi-Delaunay < landlab.grid.voronoi.VoronoiDelaunayGrid>`
-        -  :py:class:`Hex <landlab.grid.hex.HexModelGrid>`
-        -  :py:class:`Radial <landlab.grid.radial.RadialModelGrid>`
-        -  :py:class:`Network <landlab.grid.network.NetworkModelGrid>`
+        -  :py:class:`~landlab.grid.raster.RasterModelGrid`
+        -  :py:class:`~landlab.grid.voronoi.VoronoiDelaunayGrid`
+        -  :py:class:`~landlab.grid.hex.HexModelGrid`
+        -  :py:class:`~landlab.grid.radial.RadialModelGrid`
+        -  :py:class:`~landlab.grid.network.NetworkModelGrid`
 
     The value associated with the grid name key is a list containing the
     arguments. If any keyword arguments are passed, they should be passed as
@@ -149,8 +148,7 @@ def create_grid(file_like):
     constructor of the specified model grid. Refer to the documentation for
     each grid to determine its requirements.
 
-    Dictionary Section "fields"
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    **Dictionary Section "fields"**
 
     Fields can be created by reading from files or by creating synthetic
     values.
@@ -165,17 +163,16 @@ def create_grid(file_like):
     The value associated with each "at_xxx" value is itself a dictionary
     indicating the name of the field an how it should be created. A field can
     either be created by reading from a file or creating synthetic values. The
-    :py:func:`~landlab.io.netcdf.read.read_netcdf`
-    and
-    :py:func:`~landlab.io.esri_ascii.read_esri_ascii``
-    functions, and the
+    :py:func:`~landlab.io.netcdf.read.read_netcdf` and
+    :py:func:`~landlab.io.esri_ascii.read_esri_ascii` functions, and the
     :py:mod:`synthetic fields <landlab.values.synthetic>`
     package are currently supported methods to create fields. These may be
     chained together (as is shown in the Example section below). If these
     functions do not meet your needs, we welcome contributions that extend the
     capabilities of this function.
 
-    The following example would uses the `plane` function from the synthetic
+    The following example would uses the
+    :py:func:`~landlab.values.synthetic.plane` function from the synthetic
     values package to create an at_node value for the field
     topographic__elevation.
 
@@ -188,8 +185,7 @@ def create_grid(file_like):
                 - point: [1, 1, 1]
                   normal: [-2, -1, 1]
 
-    Dictionary Section "boundary_conditions"
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    **Dictionary Section "boundary_conditions"**
 
     The final portion of the input dictionary calls bound functions of the
     model grid to set boundary conditions. Any valid bound function can be
