@@ -18,7 +18,7 @@ Grids
 =====
 
 An extensive index to the Landlab grid and its methods is found on
-:py:mod:`landlab.grid <the following page>`. Below is a short hyperlinked
+:py:mod:`the following page <landlab.grid>`. Below is a short hyperlinked
 summary.
 
 Grid types

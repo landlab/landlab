@@ -119,17 +119,18 @@ def create_grid(file_like):
     **create_grid** expects a dictionary with three keys "grid", "fields", and
     "boundary_conditions".
 
-    **grid**
+    Dictionary Section "grid"
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
 
     The value associated with the "grid" key should itself be a dictionary
     containing the name of a Landlab model grid type as its only key. The
     following grid types are valid:
 
-        -  :py:class:`Raster <landlab.grid.raster>`
-        -  :py:class:`Voronoi-Delaunay <landlab.grid.voroni>`
-        -  :py:class:`Hex <landlab.grid.hex>`
-        -  :py:class:`Radial <landlab.grid.radial>`
-        -  :py:class:`Network <landlab.grid.network>`
+        -  :py:class:`Raster <landlab.grid.raster.RasterModelGrid>`
+        -  :py:class:`Voronoi-Delaunay < landlab.grid.voronoi.VoronoiDelaunayGrid>`
+        -  :py:class:`Hex <landlab.grid.hex.HexModelGrid>`
+        -  :py:class:`Radial <landlab.grid.radial.RadialModelGrid>`
+        -  :py:class:`Network <landlab.grid.network.NetworkModelGrid>`
 
     The value associated with the grid name key is a list containing the
     arguments. If any keyword arguments are passed, they should be passed as
@@ -148,7 +149,8 @@ def create_grid(file_like):
     constructor of the specified model grid. Refer to the documentation for
     each grid to determine its requirements.
 
-    **fields**
+    Dictionary Section "fields"
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     Fields can be created by reading from files or by creating synthetic
     values.
@@ -163,9 +165,9 @@ def create_grid(file_like):
     The value associated with each "at_xxx" value is itself a dictionary
     indicating the name of the field an how it should be created. A field can
     either be created by reading from a file or creating synthetic values. The
-    :py:func:`read_netcdf <landlab.io.netcdf>`
+    :py:func:`~landlab.io.netcdf.read.read_netcdf`
     and
-    :py:func:`read_esri_ascii <landlab.io.esri_ascii>``
+    :py:func:`~landlab.io.esri_ascii.read_esri_ascii``
     functions, and the
     :py:mod:`synthetic fields <landlab.values.synthetic>`
     package are currently supported methods to create fields. These may be
@@ -186,12 +188,13 @@ def create_grid(file_like):
                 - point: [1, 1, 1]
                   normal: [-2, -1, 1]
 
-    **boundary_conditions**
+    Dictionary Section "boundary_conditions"
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     The final portion of the input dictionary calls bound functions of the
     model grid to set boundary conditions. Any valid bound function can be
     called. The specified functions are provided in a list, and called in
-    order.
+    order. If required, multiple functions may be called.
 
     Each entry to the list is a dictionary with a single key, the name of the
     bound function. The value associated with that key is a list of arguments
@@ -282,7 +285,8 @@ def create_grid(file_like):
             raise ValueError
 
     if len(grid_dict) != 1:
-        msg = "create_grid: two entries to grid dictionary provided. This is not supported."
+        msg = ("create_grid: two entries to grid dictionary provided. "
+               "This is not supported.")
         raise ValueError
 
     args, kwargs = _parse_args_kwargs(grid_dict.pop(grid_type))
@@ -331,7 +335,8 @@ def create_grid(file_like):
     bc_list = dict_like.pop("boundary_conditions", [])
     for bc_function_dict in bc_list:
         if len(bc_function_dict) != 1:
-            msg = "create_grid: two entries to a boundary condition function dictionary were provided. This is not supported."
+            msg = ("create_grid: two entries to a boundary condition function "
+                   "dictionary were provided. This is not supported.")
             raise ValueError(msg)
         for bc_function in bc_function_dict:
             args, kwargs = _parse_args_kwargs(bc_function_dict[bc_function])
