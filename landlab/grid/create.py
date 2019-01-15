@@ -196,7 +196,17 @@ def create_grid(file_like):
 
     boundary_conditions
     ~~~~~~~~~~~~~~~~~~~
-    The final portion of the
+    The final portion of the input dictionary calls bound functions of the
+    model grid to set boundary conditions. Any valid bound function can be
+    called. The specified functions are provided in a list, and called in
+    order.
+
+    Each entry to the list is a dictionary with a single key, the name of the
+    bound function. The value associated with that key is a list of arguments
+    and keyword arguments, similar in structure to those described above.
+
+    For example, the following sets closed boundaries at all sides of the grid.
+
     .. code-block:: yaml
 
         boundary_conditions:
