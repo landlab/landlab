@@ -116,19 +116,11 @@ def create_and_initialize_grid(input_source):
 def create_grid(file_like):
     """Create grid, initialize fields, and set boundary conditions.
 
-    Parameters
-    ----------
-    file_like : file_like or str
-        Dictionary, contents of a dictionary as a string, a file-like object,
-        or the path to a file containing a YAML dictionary.
-
-    Explaination of input file
-    --------------------------
-    *create_grid* expects a dictionary with three keys "grid", "fields", and
+    **create_grid** expects a dictionary with three keys "grid", "fields", and
     "boundary_conditions".
 
-    grid
-    ~~~~
+    **grid**
+
     The value associated with the "grid" key should itself be a dictionary
     containing the name of a Landlab model grid type as its only key. The
     following grid types are valid:
@@ -156,8 +148,8 @@ def create_grid(file_like):
     constructor of the specified model grid. Refer to the documentation for
     each grid to determine its requirements.
 
-    fields
-    ~~~~~~
+    **fields**
+
     Fields can be created by reading from files or by creating synthetic
     values.
 
@@ -194,8 +186,8 @@ def create_grid(file_like):
                 - point: [1, 1, 1]
                   normal: [-2, -1, 1]
 
-    boundary_conditions
-    ~~~~~~~~~~~~~~~~~~~
+    **boundary_conditions**
+
     The final portion of the input dictionary calls bound functions of the
     model grid to set boundary conditions. Any valid bound function can be
     called. The specified functions are provided in a list, and called in
@@ -215,6 +207,12 @@ def create_grid(file_like):
             - True
             - True
             - True
+
+    Parameters
+    ----------
+    file_like : file_like or str
+        Dictionary, contents of a dictionary as a string, a file-like object,
+        or the path to a file containing a YAML dictionary.
 
     Examples
     --------
