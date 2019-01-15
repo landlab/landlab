@@ -322,7 +322,7 @@ def create_grid(file_like):
                 elif func == "read_esri_ascii":
                     read_esri_ascii(*args, grid=grid, name=name, **kwargs)
                 elif func == "read_netcdf":
-                    read_netcdf(*args, grid=grid, **kwargs)
+                    read_netcdf(*args, grid=grid, name=name, **kwargs)
                 else:
                     msg = (
                         "create_grid: Bad function ",

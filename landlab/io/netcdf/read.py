@@ -245,7 +245,7 @@ def _get_raster_spacing(coords):
     return spacing[0]
 
 
-def read_netcdf(nc_file, grid=None, just_grid=False, halo=0, nodata_value=-9999.):
+def read_netcdf(nc_file, grid=None, name=None, just_grid=False, halo=0, nodata_value=-9999.):
     """Create a :class:`~.RasterModelGrid` from a netcdf file.
 
     Create a new :class:`~.RasterModelGrid` from the netcdf file, *nc_file*.
@@ -264,6 +264,9 @@ def read_netcdf(nc_file, grid=None, just_grid=False, halo=0, nodata_value=-9999.
         Name of a netcdf file.
     grid : *grid* , optional
         Adds data to an existing *grid* instead of creating a new one.
+    name : str, optional
+        Add only fields with NetCDF variable name to the grid. Default is to
+        add all NetCDF varibles to the grid.
     just_grid : boolean, optional
         Create a new grid but don't add value data.
     halo : integer, optional
@@ -311,6 +314,8 @@ def read_netcdf(nc_file, grid=None, just_grid=False, halo=0, nodata_value=-9999.
     (1.0, 1.0)
 
     A more complicated example might add data with a halo to an existing grid.
+    Note that the lower left corner must be specified correctly for the data
+    and the grid to align correctly.
 
     >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid((6, 5), xy_of_lower_left=(-1., -1.))
@@ -379,11 +384,23 @@ def read_netcdf(nc_file, grid=None, just_grid=False, halo=0, nodata_value=-9999.
 
     if not just_grid:
         fields, grid_mapping_dict = _read_netcdf_structured_data(root)
-        for (name, values) in fields.items():
+        for (field_name, values) in fields.items():
 
+            # add halo if necessary
             if halo > 0:
                 values, new_shape = add_halo(values, halo, shape, nodata_value)
-            grid.add_field("node", name, values)
+
+            # add only the requested fields.
+            if (name is None) or (field_name == name):
+                add_field = True
+            else:
+                add_field = False
+
+            if add_field:
+                grid.add_field("node", field_name, values)
+
+        if (name is not None) and (name not in grid.at_node):
+            raise ValueError("Specified field {name} was not in provided NetCDF.".format(name=name))
 
     # save grid mapping
     if grid_mapping_dict is not None:
