@@ -1,11 +1,9 @@
 #! /usr/bin/env python
 """Create landlab model grids."""
 import inspect
-
 from warnings import warn
 
-from landlab.core import model_parameter_dictionary as mpd
-from landlab.core import load_params
+from landlab.core import load_params, model_parameter_dictionary as mpd
 from landlab.io import read_esri_ascii
 from landlab.io.netcdf import read_netcdf
 from landlab.values import constant, plane, random, sine
@@ -29,11 +27,6 @@ _SYNTHETIC_FIELD_CONSTRUCTORS = {
     "random": random,
     "sine": sine,
     "constant": constant,
-}
-
-_READ_FROM_FILE = {
-    "read_netcdf": read_netcdf,
-    "read_esri_ascii": read_esri_ascii,
 }
 
 
@@ -129,60 +122,113 @@ def create_grid(file_like):
         Dictionary, contents of a dictionary as a string, a file-like object,
         or the path to a file containing a YAML dictionary.
 
+    Explaination of input file
+    --------------------------
     *create_grid* expects a dictionary with three keys "grid", "fields", and
     "boundary_conditions".
 
-    **grid**
+    grid
+    ~~~~
     The value associated with the "grid" key should itself be a dictionary
     containing the name of a Landlab model grid type as its only key. The
     following grid types are valid:
 
-        - RasterModelGrid
-        - HexModelGrid
-        - RadialModelGrid
-        - NetworkModelGrid
-        - VoronoiDelaunayGrid
+        -  :py:class:`Raster <landlab.grid.raster>`
+        -  :py:class:`Voronoi-Delaunay <landlab.grid.voroni>`
+        -  :py:class:`Hex <landlab.grid.hex>`
+        -  :py:class:`Radial <landlab.grid.radial>`
+        -  :py:class:`Network <landlab.grid.network>`
 
-    The value associated with the grid name key is a dictionary of keyword
-    arguments that will be passed to the ``__init__`` constructor of the
-    specified model grid.
+    The value associated with the grid name key is a list containing the
+    arguments. If any keyword arguments are passed, they should be passed as
+    the last element of the list. For example the following code block is a
+    yaml file indicating a RasterModelGrid with shape (4, 5) and xy-spacing of
+    (3, 4).
 
-    **fields**
+    .. code-block:: yaml
 
+        grid:
+          RasterModelGrid:
+            - [4, 5]
+            - xy_spacing: [3, 4]
 
-    **boundary_conditions**
+    These arguments and keyword arguments will be passed to the ``__init__``
+    constructor of the specified model grid. Refer to the documentation for
+    each grid to determine its requirements.
 
+    fields
+    ~~~~~~
+    Fields can be created by reading from files or by creating synthetic
+    values.
 
-    function_name: [arg1, arg2, {kwarg1: kwarg1, kwarg2: kwarg2}]
+    The value associated with the "fields" key is a nested set of dictionaries
+    indicating where the fields are created, what the field names are, and how
+    to create the fields. At the highest hierachical level, the value
+    associated with the "fields" key must be a dictionary with keys indicating
+    at which grid elements fields should be created (e.g. to create fields at
+    node, use "at_node").
 
+    The value associated with each "at_xxx" value is itself a dictionary
+    indicating the name of the field an how it should be created. A field can
+    either be created by reading from a file or creating synthetic values. The
+    :py:func:`read_netcdf <landlab.io.netcdf>`
+    and
+    :py:func:`read_esri_ascii <landlab.io.esri_ascii>``
+    functions, and the
+    :py:mod:`synthetic fields <landlab.values.synthetic>`
+    package are currently supported methods to create fields. These may be
+    chained together (as is shown in the Example section below). If these
+    functions do not meet your needs, we welcome contributions that extend the
+    capabilities of this function.
+
+    The following example would uses the `plane` function from the synthetic
+    values package to create an at_node value for the field
+    topographic__elevation.
+
+    .. code-block:: yaml
+
+        fields:
+          at_node:
+            topographic__elevation:
+              plane:
+                - point: [1, 1, 1]
+                  normal: [-2, -1, 1]
+
+    boundary_conditions
+    ~~~~~~~~~~~~~~~~~~~
+    The final portion of the
+    .. code-block:: yaml
+
+        boundary_conditions:
+          - set_closed_boundaries_at_grid_edges:
+            - True
+            - True
+            - True
+            - True
 
     Examples
     --------
     >>> import numpy as np
     >>> np.random.seed(42)
     >>> from landlab import create_grid
-    >>> p = {'grid': {'RasterModelGrid': {'shape': (4,5),
-    ...                                   'xy_spacing': (3, 4)}
+    >>> p = {'grid': {'RasterModelGrid': [(4,5),
+    ...                                   {'xy_spacing': (3, 4)}]
     ...               },
-    ...      'fields': {'at_node': {'spam': {'plane': {'point': (1, 1, 1),
-    ...                                                'normal': (-2, -1, 1)},
-    ...                                      'random': {'distribution': 'uniform',
+    ...      'fields': {'at_node': {'spam': {'plane': [{'point': (1, 1, 1),
+    ...                                                'normal': (-2, -1, 1)}],
+    ...                                      'random': [{'distribution': 'uniform',
     ...                                                 'low': 1,
-    ...                                                 'high': 4}
+    ...                                                 'high': 4}]
     ...                                      },
     ...                             },
-    ...                 'at_link': {'eggs' : {'constant': {'where': 'ACTIVE_LINK',
-    ...                                                    'constant': 12},
+    ...                 'at_link': {'eggs': {'constant': [{'where': 'ACTIVE_LINK',
+    ...                                                    'constant': 12}],
     ...                                       },
     ...                             },
     ...                 },
     ...      'boundary_conditions': [
     ...                     {'set_closed_boundaries_at_grid_edges':
-    ...                                 {'right_is_closed': True,
-    ...                                  'top_is_closed': True,
-    ...                                  'left_is_closed': True,
-    ...                                  'bottom_is_closed': True
-    ...                                  }
+    ...                                         [True, True, True, True]
     ...                      }]
     ...      }
     >>> mg = create_grid(p)
@@ -202,6 +248,11 @@ def create_grid(file_like):
            4, 0, 0, 0, 4,
            4, 0, 0, 0, 4,
            4, 4, 4, 4, 4], dtype=uint8)
+    >>> np.round(mg.at_node['spam'].reshape(mg.shape), decimals=2)
+    array([[  0.12,   7.85,  13.2 ,  18.8 ,  23.47],
+           [  3.47,   9.17,  17.6 ,  22.8 ,  29.12],
+           [  7.06,  15.91,  21.5 ,  25.64,  31.55],
+           [ 11.55,  17.91,  24.57,  30.3 ,  35.87]])
     """
     # part 0, parse input
     if isinstance(file_like, dict):
@@ -223,14 +274,11 @@ def create_grid(file_like):
             raise ValueError
 
     if len(grid_dict) != 1:
-        msg = (
-            "create_grid: two entries to grid dictionary provided. "
-            "This is not supported."
-        )
+        msg = "create_grid: two entries to grid dictionary provided. This is not supported."
         raise ValueError
 
-    grid_params = grid_dict.pop(grid_type)
-    grid = grid_class.from_dict(grid_params)
+    args, kwargs = _parse_args_kwargs(grid_dict.pop(grid_type))
+    grid = grid_class(*args, **kwargs)
 
     # part two, create fields
     fields_dict = dict_like.pop("fields", {})
@@ -239,7 +287,12 @@ def create_grid(file_like):
     for at_group in fields_dict:
         at = at_group[3:]
         if at not in grid.groups:
-            msg = ("")
+            msg = (
+                "create_grid: No field location ",
+                "{at} ".format(at=at),
+                "exists for grid types",
+                "{grid}. ".format(grid=grid_type),
+            )
             raise ValueError(msg)
 
         at_dict = fields_dict[at_group]
@@ -249,37 +302,54 @@ def create_grid(file_like):
 
             # for each function, add values.
             for func in name_dict:
-                func_dict = name_dict[func]
+                args, kwargs = _parse_args_kwargs(name_dict[func])
                 if func in _SYNTHETIC_FIELD_CONSTRUCTORS:
+                    # if any args, raise an error, there shouldn't be any.
                     synth_function = _SYNTHETIC_FIELD_CONSTRUCTORS[func]
-                    synth_function(grid, name, at=at, **func_dict)
-                elif func in _READ_FROM_FILE:
-                    from_file_func = _READ_FROM_FILE[func]
-                    from_file_func(grid=grid, **func_dict)
+                    synth_function(grid, name, at=at, **kwargs)
+                elif func == "read_esri_ascii":
+                    read_esri_ascii(*args, grid=grid, name=name, **kwargs)
+                elif func == "read_netcdf": ######
+                    read_netcdf(*args, grid=grid, **kwargs)
                 else:
-                    msg = "Bad function supplied to construct field"
+                    msg = (
+                        "create_grid: Bad function ",
+                        "{func} ".format(func=func),
+                        "for creating a field.",
+                    )
+                    raise ValueError(msg)
 
     # part three, set boundary conditions
     bc_list = dict_like.pop("boundary_conditions", [])
     for bc_function_dict in bc_list:
 
-        if len(bc_function_dict) != 1:
-            msg = ""
-            raise ValueError(msg)
+        if len(bc_function_dict) != 1:  #####
+            msg = "create_grid: two entries to a boundary condition function dictionary were provided. This is not supported."
+            raise ValueError(msg)  #####
 
         for bc_function in bc_function_dict:
-            bc_params = bc_function_dict[bc_function]
+            args, kwargs = _parse_args_kwargs(bc_function_dict[bc_function])
             methods = dict(inspect.getmembers(grid, inspect.ismethod))
             if bc_function in methods:
-                methods[bc_function](**bc_params)
-            else:
-                msg = ("create_grid: No function ",
-                       "{func} ".format(func=bc_function),
-                       "exists for grid types ",
-                       "{grid}. ".format(grid=grid_type),
-                       "If you think this type of grid should have such a ",
-                       "function. Please create a GitHub Issue to discuss ",
-                       "contributing it to the Landlab codebase.")
+                methods[bc_function](*args, **kwargs)
+            else:  #####
+                msg = (
+                    "create_grid: No function ",
+                    "{func} ".format(func=bc_function),
+                    "exists for grid types ",
+                    "{grid}. ".format(grid=grid_type),
+                    "If you think this type of grid should have such a ",
+                    "function. Please create a GitHub Issue to discuss ",
+                    "contributing it to the Landlab codebase.",
+                )
                 raise ValueError(msg)
 
     return grid
+
+
+def _parse_args_kwargs(list_of_args_kwargs):
+    if isinstance(list_of_args_kwargs[-1], dict):
+        kwargs = list_of_args_kwargs.pop()
+    else:
+        kwargs = {}
+    return list_of_args_kwargs, kwargs
