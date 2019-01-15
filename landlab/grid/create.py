@@ -309,7 +309,7 @@ def create_grid(file_like):
                     synth_function(grid, name, at=at, **kwargs)
                 elif func == "read_esri_ascii":
                     read_esri_ascii(*args, grid=grid, name=name, **kwargs)
-                elif func == "read_netcdf": ######
+                elif func == "read_netcdf":
                     read_netcdf(*args, grid=grid, **kwargs)
                 else:
                     msg = (
@@ -322,17 +322,15 @@ def create_grid(file_like):
     # part three, set boundary conditions
     bc_list = dict_like.pop("boundary_conditions", [])
     for bc_function_dict in bc_list:
-
-        if len(bc_function_dict) != 1:  #####
+        if len(bc_function_dict) != 1:
             msg = "create_grid: two entries to a boundary condition function dictionary were provided. This is not supported."
-            raise ValueError(msg)  #####
-
+            raise ValueError(msg)
         for bc_function in bc_function_dict:
             args, kwargs = _parse_args_kwargs(bc_function_dict[bc_function])
             methods = dict(inspect.getmembers(grid, inspect.ismethod))
             if bc_function in methods:
                 methods[bc_function](*args, **kwargs)
-            else:  #####
+            else:
                 msg = (
                     "create_grid: No function ",
                     "{func} ".format(func=bc_function),

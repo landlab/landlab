@@ -100,22 +100,61 @@ def test_simple_create():
 def test_esri_ascii_create():
     filename = os.path.join(_TEST_DATA_DIR, "4_x_3_no_nodata_value.asc")
     dict_like = {
-        "grid": {"RasterModelGrid": [(4, 3)]},
+        "grid": {
+            "RasterModelGrid": [(4, 3), {"xy_spacing": 10, "xy_of_lower_left": (1, 2)}]
+        },
         "fields": {
             "at_node": {"topographic__elevation": {"read_esri_ascii": [filename]}}
         },
     }
     mg = create_grid(dict_like)
 
-    x_of_node = np.array([2])
-    y_of_node = np.array([2])
-
+    x_of_node = np.array([1., 11., 21., 1., 11., 21., 1., 11., 21., 1., 11., 21.])
+    y_of_node = np.array([2., 2., 2., 12., 12., 12., 22., 22., 22., 32., 32., 32.])
+    status_at_node = np.array([1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1], dtype=np.uint8)
     topographic__elevation = np.array(
         [9., 10., 11., 6., 7., 8., 3., 4., 5., 0., 1., 2.]
     )
 
+    assert_array_equal(mg.x_of_node, x_of_node)
+    assert_array_equal(mg.y_of_node, y_of_node)
+    assert_array_equal(status_at_node, mg.status_at_node)
     assert_array_equal(topographic__elevation, mg.at_node["topographic__elevation"])
 
 
 def test_read_netcdf_create():
-    pass
+    filename = os.path.join(_TEST_DATA_DIR, "test-netcdf4.nc")
+    dict_like = {
+        "grid": {"RasterModelGrid": [(4, 3)]},
+        "fields": {"at_node": {"surface__elevation": {"read_netcdf": [filename]}}},
+    }
+    mg = create_grid(dict_like)
+    x_of_node = np.array([0., 1., 2., 0., 1., 2., 0., 1., 2., 0., 1., 2.])
+    y_of_node = np.array([0., 0., 0., 1., 1., 1., 2., 2., 2., 3., 3., 3.])
+    status_at_node = np.array([1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1], dtype=np.uint8)
+    surface__elevation = np.array([0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11.])
+
+    assert_array_equal(mg.x_of_node, x_of_node)
+    assert_array_equal(mg.y_of_node, y_of_node)
+    assert_array_equal(status_at_node, mg.status_at_node)
+    assert_array_equal(surface__elevation, mg.at_node["surface__elevation"])
+
+
+def test_two_boundary_condition_dicts():
+    dict_like = {
+        "grid": {"RasterModelGrid": [(4, 3)]},
+        "boundary_conditions": [
+            {
+                "set_closed_boundaries_at_grid_edges": [True, True, True, True],
+                "not_a_function": [True, False],
+            }
+        ],
+    }
+    with pytest.raises(ValueError):
+        create_grid(dict_like)
+
+
+def test_bad_boundary_condition_functions():
+    filename = os.path.join(_TEST_DATA_DIR, "bad_boundary.yaml")
+    with pytest.raises(ValueError):
+        create_grid(filename)

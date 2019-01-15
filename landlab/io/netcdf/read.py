@@ -20,13 +20,17 @@ except ImportError:
 import numpy as np
 from scipy.io import netcdf as nc
 
+from landlab.io import (
+    MismatchGridDataSizeError,
+    MismatchGridXYLowerLeft,
+    MismatchGridXYSpacing,
+)
 from landlab.io.netcdf._constants import (
     _AXIS_COORDINATE_NAMES,
     _AXIS_DIMENSION_NAMES,
     _COORDINATE_NAMES,
 )
 from landlab.io.netcdf.errors import NotRasterGridError
-from landlab.io.esri_ascii import MismatchGridDataSizeError
 from landlab.utils import add_halo
 
 
@@ -309,7 +313,7 @@ def read_netcdf(nc_file, grid=None, just_grid=False, halo=0, nodata_value=-9999.
     A more complicated example might add data with a halo to an existing grid.
 
     >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid((6, 5))
+    >>> grid = RasterModelGrid((6, 5), xy_of_lower_left=(-1., -1.))
     >>> grid = read_netcdf(
     ...     NETCDF4_EXAMPLE_FILE,
     ...     grid=grid,
@@ -346,10 +350,13 @@ def read_netcdf(nc_file, grid=None, just_grid=False, halo=0, nodata_value=-9999.
 
     assert len(node_coords) == 2
 
-    xy_spacing = _get_raster_spacing(node_coords)
+    dx = _get_raster_spacing(node_coords)
+    xy_spacing = (dx, dx)
     shape = node_coords[0].shape
-
-    xy_of_lower_left = (node_coords[0].min(), node_coords[1].min())
+    xy_of_lower_left = (
+        node_coords[0].min() - halo * dx,
+        node_coords[1].min() - halo * dx,
+    )
 
     if grid is not None:
         if (grid.number_of_node_rows != shape[0] + 2 * halo) or (
@@ -359,6 +366,11 @@ def read_netcdf(nc_file, grid=None, just_grid=False, halo=0, nodata_value=-9999.
                 shape[0] + 2 * halo * shape[1] + 2 * halo,
                 grid.number_of_node_rows * grid.number_of_node_columns,
             )
+        if (grid.dx, grid.dy) != xy_spacing:
+            raise MismatchGridXYSpacing((grid.dx, grid.dy), xy_spacing)
+
+        if grid.xy_of_lower_left != xy_of_lower_left:
+            raise MismatchGridXYLowerLeft(grid.xy_of_lower_left, xy_of_lower_left)
 
     if grid is None:
         grid = RasterModelGrid(
