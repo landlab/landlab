@@ -74,31 +74,38 @@ They all take two keyword arguments: ``at``, which specifies which grid element
 values are placed, and ``where``, which indicates where the values are placed.
 Additional keyword arguments are required as needed by each function.
 """
-import numpy as np
+from collections import defaultdict
 
-from landlab.grid.network import NetworkModelGrid
+import numpy as np
+import six
 
 from landlab.grid.linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK
+from landlab.grid.network import NetworkModelGrid
 from landlab.grid.nodestatus import (
     CLOSED_BOUNDARY,
     CORE_NODE,
     FIXED_GRADIENT_BOUNDARY,
     FIXED_VALUE_BOUNDARY,
-    LOOPED_BOUNDARY)
+    LOOPED_BOUNDARY,
+)
 
-_LINK_STATUS = {
-    "ACTIVE_LINK": ACTIVE_LINK,
-    "FIXED_LINK": FIXED_LINK,
-    "INACTIVE_LINK": INACTIVE_LINK,
-}
-
-_NODE_STATUS = {
-    "CLOSED_BOUNDARY": CLOSED_BOUNDARY,
-    "CORE_NODE": CORE_NODE,
-    "FIXED_GRADIENT_BOUNDARY": FIXED_GRADIENT_BOUNDARY,
-    "FIXED_VALUE_BOUNDARY": FIXED_VALUE_BOUNDARY,
-    "LOOPED_BOUNDARY": LOOPED_BOUNDARY,
-}
+_STATUS = defaultdict(
+    dict,
+    {
+        "link": {
+            "ACTIVE_LINK": ACTIVE_LINK,
+            "FIXED_LINK": FIXED_LINK,
+            "INACTIVE_LINK": INACTIVE_LINK,
+        },
+        "node": {
+            "CLOSED_BOUNDARY": CLOSED_BOUNDARY,
+            "CORE_NODE": CORE_NODE,
+            "FIXED_GRADIENT_BOUNDARY": FIXED_GRADIENT_BOUNDARY,
+            "FIXED_VALUE_BOUNDARY": FIXED_VALUE_BOUNDARY,
+            "LOOPED_BOUNDARY": LOOPED_BOUNDARY,
+        },
+    },
+)
 
 
 def _create_missing_field(grid, name, at):
@@ -108,51 +115,53 @@ def _create_missing_field(grid, name, at):
 
 
 def _where_to_add_values(grid, at, where):
-    "Determine where to put values."
-    where_to_place = np.zeros(grid.size(at), dtype=bool)
+    """Determine where to put values.
 
-    try:
-        where.size == grid.size(at)
-        where_to_place = where
-    except AttributeError:
-        if at == "link":
-            status_values = grid.status_at_link
-        elif at == "node":
-            status_values = grid.status_at_node
-        else:
-            if where is not None:
-                raise ValueError(
-                    (
-                        "No status information exists for grid "
-                        "elements that are not nodes or links."
-                    )
-                )
-        # based on status, set where to true. support value or iterable.
-        if where is None:
-            where_to_place = np.ones(grid.size(at), dtype=bool)
-        else:
-            try:
-                for w in where:
-                    w = _convert_where(w, at)
-                    where_to_place[status_values == w] = True
-            except (ValueError, TypeError):
-                where = _convert_where(where, at)
-                where_to_place[status_values == where] = True
+    Parameters
+    ----------
+    grid : ModelGrid-like
+        A landlab ModelGrid.
+    at : str
+        Name of location where values are defined.
+    where : array-like or str or int or None
+        Ids where values are to be placed. If *None*, values will
+        be placed on all elements. If *str*, *int* or list of *str* or *int*,
+        *where* is interpreted as a boundary condition.
 
-    return where_to_place
+    Returns
+    -------
+    ndarray
+        IDs that indicate where values are to be placed.
+    """
+    if isinstance(where, (six.string_types, int)):
+        where = [where]
+
+    if isinstance(where, (list, tuple)):
+        where = [_convert_where(_w, at) for _w in where]
+
+    if where is None:
+        where = np.full(grid.size(at), True, dtype=bool)
+    elif isinstance(where, (tuple, list)):
+        where = np.isin(getattr(grid, "status_at_{0}".format(at)), where)
+    else:
+        where = np.asarray(where, dtype=bool)
+        if where.size != grid.size(at):
+            raise ValueError(
+                "array size mismatch ({0} != {1})".format(where.size, grid.size(at))
+            )
+
+    return where
 
 
 def _convert_where(where, at):
+    if at not in _STATUS:
+        raise AttributeError("boundary conditions are not defined at {0}".format(at))
+
     if isinstance(where, str):
-        if at == "node":
-            _STATUS = _NODE_STATUS
-        elif at == "link":
-            _STATUS = _LINK_STATUS
-        if where in _STATUS:
-            return _STATUS[where]
-        else:
-            msg = "No status information exists for the grid element provided."
-            raise ValueError(msg)
+        try:
+            return _STATUS[at][where]
+        except KeyError:
+            raise ValueError("'{0}' status does not exists for {1}.".format(where, at))
     else:
         return where
 
@@ -222,7 +231,9 @@ def random(grid, name, at="node", where=None, distribution="uniform", **kwargs):
     return values
 
 
-def plane(grid, name, at="node", where=None, point=(0., 0., 0), normal=(0., 0., 1.)):
+def plane(
+    grid, name, at="node", where=None, point=(0.0, 0.0, 0), normal=(0.0, 0.0, 1.0)
+):
     """Add a single plane defined by a point and a normal to a grid.
 
     Parameters
@@ -322,7 +333,7 @@ def _get_x_and_y(grid, at):
     return x, y
 
 
-def constant(grid, name, at="node", where=None, constant=0.):
+def constant(grid, name, at="node", where=None, constant=0.0):
     """Add a constant to a grid.
 
     Parameters
@@ -375,11 +386,11 @@ def sine(
     name,
     at="node",
     where=None,
-    amplitude=1.,
+    amplitude=1.0,
     wavelength=1.0,
     a=1.0,
     b=1.0,
-    point=(0., 0.),
+    point=(0.0, 0.0),
 ):
     r"""Add a sin wave to a grid.
 
@@ -442,6 +453,6 @@ def sine(
     _create_missing_field(grid, name, at)
     values = np.zeros(grid.size(at))
     v = (a * (x - point[0])) + (b * (y - point[1]))
-    values[where] += amplitude * np.sin(2. * np.pi * v / wavelength)
+    values[where] += amplitude * np.sin(2.0 * np.pi * v / wavelength)
     grid[at][name][:] += values
     return values
