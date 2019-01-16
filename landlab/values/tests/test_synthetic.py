@@ -3,8 +3,10 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from landlab import CLOSED_BOUNDARY, CORE_NODE
+from landlab.field import GroupError
 from landlab.values import constant, plane, random
-from landlab.values.synthetic import _plane_function
+from landlab.values.synthetic import _plane_function, _where_to_add_values
+
 
 _NORMAL = (1, 1, 1)
 _POINT = (0, 0, 0)
@@ -88,7 +90,7 @@ def test_xy_face_network(simple_network):
 
 
 def test_where_status_with_patches(four_by_four_raster):
-    with pytest.raises(ValueError):
+    with pytest.raises(AttributeError):
         constant(four_by_four_raster, "values", "patch", where=CORE_NODE)
 
 
@@ -105,6 +107,61 @@ def test_multiple_status_node(four_by_four_raster):
         [0., 0., 0., 0., 0., 10., 10., 10., 0., 10., 10., 10., 10., 10., 10., 10.]
     )
     assert_array_equal(vals, true_array)
+
+
+def test_where_to_add_values_where_is_none(four_by_four_raster, at):
+    where = _where_to_add_values(four_by_four_raster, at, None)
+    assert np.all(where == np.full(four_by_four_raster.size(at), True))
+
+
+def test_where_to_add_values_where_is_everywhere(four_by_four_raster, at):
+    where = np.full(four_by_four_raster.size(at), True)
+    assert np.all(_where_to_add_values(four_by_four_raster, at, where) == where)
+
+
+def test_where_to_add_values_where_is_nowhere(four_by_four_raster, at):
+    where = np.full(four_by_four_raster.size(at), False)
+    assert np.all(_where_to_add_values(four_by_four_raster, at, where) == where)
+
+
+def test_where_to_add_values_where_is_somewhere(four_by_four_raster, at):
+    where = np.random.randint(0, 2, size=four_by_four_raster.size(at), dtype=bool)
+    assert np.all(_where_to_add_values(four_by_four_raster, at, where) == where)
+
+
+def test_where_to_add_values_node_bc(four_by_four_raster, at, node_bc):
+    if at == "node":
+        where = _where_to_add_values(four_by_four_raster, at, node_bc)
+        assert len(where) == four_by_four_raster.number_of_nodes
+    elif at == "link":
+        with pytest.raises(ValueError):
+            _where_to_add_values(four_by_four_raster, at, node_bc)
+    else:
+        with pytest.raises(AttributeError):
+            _where_to_add_values(four_by_four_raster, at, node_bc)
+
+
+def test_where_to_add_values_link_bc(four_by_four_raster, at, link_bc):
+    if at == "link":
+        where = _where_to_add_values(four_by_four_raster, at, link_bc)
+        assert len(where) == four_by_four_raster.number_of_links
+    elif at == "node":
+        with pytest.raises(ValueError):
+            _where_to_add_values(four_by_four_raster, at, link_bc)
+    else:
+        with pytest.raises(AttributeError):
+            _where_to_add_values(four_by_four_raster, at, link_bc)
+
+
+def test_where_to_add_values_wrong_size(four_by_four_raster, at):
+    where = np.full(four_by_four_raster.size(at) - 1, False)
+    with pytest.raises(ValueError):
+        _where_to_add_values(four_by_four_raster, at, where)
+
+
+def test_where_to_add_values_with_bad_at(four_by_four_raster):
+    with pytest.raises(GroupError):
+        _where_to_add_values(four_by_four_raster, "not-a-place", None)
 
 
 # test all grid elements
