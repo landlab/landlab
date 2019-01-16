@@ -94,16 +94,28 @@ inherits from ``VoronoiDelauneyGrid`` and adds the following:
    landlab.grid.radial
 
 
- Specialized methods and properties for network grids
- ----------------------------------------------------
+Specialized methods and properties for network grids
+----------------------------------------------------
 
- Landlab's network grids are implemented by the class ``NetworkModelGrid``,
- which inherits from ``Graph`` and ``GraphFields`` and adds the following:
+Landlab's network grids are implemented by the class ``NetworkModelGrid``,
+which inherits from ``Graph`` and ``GraphFields`` and adds the following:
 
- .. toctree::
-    :maxdepth: 3
+.. toctree::
+   :maxdepth: 3
 
-    landlab.grid.network
+   landlab.grid.network
+
+Values
+======
+
+The Landlab values submodule provides capabilities to generate synthetic values for
+model grid fields.
+
+.. toctree::
+   :maxdepth: 2
+
+   landlab.values
+
 
 Layers
 ======
