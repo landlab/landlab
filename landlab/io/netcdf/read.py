@@ -20,13 +20,13 @@ except ImportError:
 import numpy as np
 from scipy.io import netcdf as nc
 
+from landlab.io.esri_ascii import MismatchGridDataSizeError
 from landlab.io.netcdf._constants import (
     _AXIS_COORDINATE_NAMES,
     _AXIS_DIMENSION_NAMES,
     _COORDINATE_NAMES,
 )
 from landlab.io.netcdf.errors import NotRasterGridError
-from landlab.io.esri_ascii import MismatchGridDataSizeError
 from landlab.utils import add_halo
 
 
@@ -241,7 +241,7 @@ def _get_raster_spacing(coords):
     return spacing[0]
 
 
-def read_netcdf(nc_file, grid=None, just_grid=False, halo=0, nodata_value=-9999.):
+def read_netcdf(nc_file, grid=None, just_grid=False, halo=0, nodata_value=-9999.0):
     """Create a :class:`~.RasterModelGrid` from a netcdf file.
 
     Create a new :class:`~.RasterModelGrid` from the netcdf file, *nc_file*.
@@ -370,7 +370,9 @@ def read_netcdf(nc_file, grid=None, just_grid=False, halo=0, nodata_value=-9999.
         for (name, values) in fields.items():
 
             if halo > 0:
-                values, new_shape = add_halo(values, halo, shape, nodata_value)
+                values = add_halo(
+                    values.reshape(shape), halo=halo, halo_value=nodata_value
+                ).reshape((-1,))
             grid.add_field("node", name, values)
 
     # save grid mapping
