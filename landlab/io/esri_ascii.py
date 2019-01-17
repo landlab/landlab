@@ -460,7 +460,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         if "nodata_value" in header.keys():
             nodata_value = header["nodata_value"]
         else:
-            header["nodata_value"] = -9999.
+            header["nodata_value"] = -9999.0
             nodata_value = header["nodata_value"]
         if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
             raise DataSizeError(shape[0] * shape[1], data.size)
@@ -473,9 +473,11 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     data = np.flipud(data)
 
     if halo > 0:
-        data, shape = add_halo(
-            data, halo, (header["nrows"], header["ncols"]), nodata_value
-        )
+        data = add_halo(
+            data.reshape(header["nrows"], header["ncols"]),
+            halo=halo,
+            halo_value=nodata_value,
+        ).reshape((-1,))
 
     if not reshape:
         data = data.flatten()
