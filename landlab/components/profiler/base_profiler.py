@@ -3,18 +3,19 @@
 """
 """
 
+import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
 from six.moves import range
 
-from matplotlib.collections import LineCollection
-import matplotlib.pyplot as plt
-
+from landlab import Component
 from landlab.plot import imshow_grid
 from landlab.utils.return_array import return_array_at_node
-from landlab import Component
+
 
 class _NetworkProfiler(Component):
     """
     """
+
     def __init__(self, grid, stopping_field):
         super(_NetworkProfiler, self).__init__(grid)
         self._grid = grid
@@ -22,33 +23,35 @@ class _NetworkProfiler(Component):
         if stopping_field in grid.at_node:
             self._stopping_field = grid.at_node[stopping_field]
         else:
-            msg = 'a field to stop based on is a required field to run a _NetworkProfiler.'
+            msg = "a field to stop based on is a required field to run a _NetworkProfiler."
             raise ValueError(msg)
 
-        if 'drainage_area' in grid.at_node:
-            self._drainage_area = grid.at_node['drainage_area']
+        if "drainage_area" in grid.at_node:
+            self._drainage_area = grid.at_node["drainage_area"]
         else:
-            msg = 'drainage_area is a required field to run a _NetworkProfiler.'
+            msg = "drainage_area is a required field to run a _NetworkProfiler."
             raise ValueError(msg)
 
-        if 'flow__receiver_node' in grid.at_node:
-            self._flow_receiver = grid.at_node['flow__receiver_node']
+        if "flow__receiver_node" in grid.at_node:
+            self._flow_receiver = grid.at_node["flow__receiver_node"]
         else:
-            msg = 'flow__receiver_node is a required field to run a _NetworkProfiler.'
+            msg = "flow__receiver_node is a required field to run a _NetworkProfiler."
             raise ValueError(msg)
 
-        if 'flow__link_to_receiver_node' in grid.at_node:
-            self._link_to_flow_receiver = grid.at_node['flow__link_to_receiver_node']
+        if "flow__link_to_receiver_node" in grid.at_node:
+            self._link_to_flow_receiver = grid.at_node["flow__link_to_receiver_node"]
         else:
-            msg = 'flow__link_to_receiver_node is a required field to run a _NetworkProfiler.'
+            msg = "flow__link_to_receiver_node is a required field to run a _NetworkProfiler."
             raise ValueError(msg)
 
-    def plot_profiles(self,
-                      field='topographic__elevation',
-                      colors=None,
-                      xlabel='Distance Upstream',
-                      ylabel='Plotted Quantity',
-                      title='Channel Long Profile'):
+    def plot_profiles(
+        self,
+        field="topographic__elevation",
+        colors=None,
+        xlabel="Distance Upstream",
+        ylabel="Plotted Quantity",
+        title="Channel Long Profile",
+    ):
         """
         Plot distance-upstream vs at at-node or size (nnodes,) quantity.
 
@@ -84,8 +87,10 @@ class _NetworkProfiler(Component):
 
         # We need to set the plot limits.
         fig, ax = plt.subplots()
-        ax.set_xlim(min(min(min(self._distances_upstream))),
-                    max(max(max(self._distances_upstream))))
+        ax.set_xlim(
+            min(min(min(self._distances_upstream))),
+            max(max(max(self._distances_upstream))),
+        )
         ax.set_ylim(quantity.min(), quantity.max())
 
         line_segments = LineCollection(segments, colors=colors)
@@ -94,10 +99,9 @@ class _NetworkProfiler(Component):
         ax.set_ylabel(ylabel)
         ax.set_title(title)
 
-    def plot_profiles_in_map_view(self,
-                                  field='topographic__elevation',
-                                  colors=None,
-                                  **kwargs):
+    def plot_profiles_in_map_view(
+        self, field="topographic__elevation", colors=None, **kwargs
+    ):
         """
         Plot profile locations in map view.
 
@@ -125,7 +129,14 @@ class _NetworkProfiler(Component):
 
                 # identify the nodes and distances upstream for this channel segment
                 the_nodes = network_nodes[j]
-                segments.append(list(zip(self._grid.x_of_node[the_nodes], self._grid.y_of_node[the_nodes])))
+                segments.append(
+                    list(
+                        zip(
+                            self._grid.x_of_node[the_nodes],
+                            self._grid.y_of_node[the_nodes],
+                        )
+                    )
+                )
 
         line_segments = LineCollection(segments, colors=colors)
         ax.add_collection(line_segments)

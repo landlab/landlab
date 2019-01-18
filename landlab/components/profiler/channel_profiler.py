@@ -2,8 +2,8 @@
 #! /usr/env/python
 """channel_profiler.py component to create channel profiles."""
 
-from six.moves import range
 import numpy as np
+from six.moves import range
 
 from landlab import RasterModelGrid
 from landlab.components.profiler.base_profiler import _NetworkProfiler
@@ -145,12 +145,16 @@ class ChannelProfiler(_NetworkProfiler):
     of number_of_watersheds. If this is not the case, then an error will occur.
 
     """
-    def __init__(self, grid,
-                       stopping_field='drainage_area',
-                       number_of_watersheds=1,
-                       main_channel_only=True,
-                       starting_nodes=None,
-                       threshold=None):
+
+    def __init__(
+        self,
+        grid,
+        stopping_field="drainage_area",
+        number_of_watersheds=1,
+        main_channel_only=True,
+        starting_nodes=None,
+        threshold=None,
+    ):
         """Parameters
         ----------
         grid : Landlab Model Grid instance, required
@@ -189,13 +193,18 @@ class ChannelProfiler(_NetworkProfiler):
                 msg = "Length of starting_nodes must equal the number_of_watersheds!"
                 raise ValueError(msg)
         else:
-            starting_nodes = grid.boundary_nodes[np.argsort(
-                self._drainage_area[grid.boundary_nodes])[-number_of_watersheds:]]
+            starting_nodes = grid.boundary_nodes[
+                np.argsort(self._drainage_area[grid.boundary_nodes])[
+                    -number_of_watersheds:
+                ]
+            ]
 
         starting_da = self._stopping_field[starting_nodes]
         if np.any(starting_da < self.threshold):
-            msg =('The number of watersheds requested by the ChannelProfiler is '
-                  'greater than the number in the domain.')
+            msg = (
+                "The number of watersheds requested by the ChannelProfiler is "
+                "greater than the number in the domain."
+            )
             raise ValueError(msg)
 
         self._starting_nodes = starting_nodes
@@ -225,8 +234,6 @@ class ChannelProfiler(_NetworkProfiler):
 
     def run_one_step(self):
         """Calculate the channel profile datastructure and distances upstream.
-
-
         """
         # calculate the profile IDs datastructure
         self._create_profile_structure()
@@ -269,8 +276,7 @@ class ChannelProfiler(_NetworkProfiler):
             supplying_nodes = np.where(self._flow_receiver == j)[0]
 
             # remove supplying nodes that are the outlet node
-            supplying_nodes = supplying_nodes[
-                np.where(supplying_nodes != i)]
+            supplying_nodes = supplying_nodes[np.where(supplying_nodes != i)]
 
             # if only adding the biggest channel, continue upstream choosing the
             # largest node until no more nodes remain.
@@ -305,7 +311,9 @@ class ChannelProfiler(_NetworkProfiler):
                     # otherwise provide the multiple upstream nodes to be processed
                     # into a new channel.
                     else:
-                        nodes_to_process = supplying_nodes[upstream_das>self.threshold]
+                        nodes_to_process = supplying_nodes[
+                            upstream_das > self.threshold
+                        ]
                         channel_upstream = False
 
         return (channel_segment, nodes_to_process)
@@ -336,7 +344,9 @@ class ChannelProfiler(_NetworkProfiler):
                 queue = [i]
                 while len(queue) > 0:
                     node_to_process = queue.pop(0)
-                    (channel_segment, nodes_to_process) = self._get_channel_segment(node_to_process)
+                    (channel_segment, nodes_to_process) = self._get_channel_segment(
+                        node_to_process
+                    )
                     channel_network.append(np.array(channel_segment))
                     queue.extend(nodes_to_process)
                 self._profile_structure.append(channel_network)
@@ -369,11 +379,13 @@ class ChannelProfiler(_NetworkProfiler):
                 for j in range(len(segment) - 1):
                     if isinstance(self._grid, RasterModelGrid):
                         total_distance += self._grid.length_of_d8[
-                            self._link_to_flow_receiver[segment[j + 1]]]
+                            self._link_to_flow_receiver[segment[j + 1]]
+                        ]
                         profile_values.append(total_distance)
                     else:
                         total_distance += self._grid.length_of_link[
-                            self._link_to_flow_receiver[segment[j + 1]]]
+                            self._link_to_flow_receiver[segment[j + 1]]
+                        ]
                         profile_values.append(total_distance)
                 network_values.append(np.array(profile_values))
                 end_distances[segment[-1]] = total_distance
