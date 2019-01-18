@@ -22,11 +22,7 @@ Landlab utilities
 """
 from __future__ import print_function
 
-import os
-import re
-
 import numpy as np
-
 
 SIZEOF_INT = np.dtype(np.int).itemsize
 
@@ -107,7 +103,7 @@ def extend_array(x, fill=0):
     >>> rtn.ext
     array([  0,   1,   2,   3, 999])
     """
-    if hasattr(x, 'ext'):
+    if hasattr(x, "ext"):
         x.ext[-1] = fill
         return x
 
@@ -173,6 +169,13 @@ def as_id_array(array):
     array([0, 1, 2, 3, 4])
     >>> y.dtype == np.int
     True
+
+    >>> x = np.arange(5, dtype=np.intp)
+    >>> y = np.where(x < 3)[0]
+    >>> y.dtype == np.intp
+    True
+    >>> as_id_array(y).dtype == np.int
+    True
     """
     try:
         if array.dtype == np.int:
@@ -181,20 +184,6 @@ def as_id_array(array):
             return array.astype(np.int)
     except AttributeError:
         return np.asarray(array, dtype=np.int)
-
-
-if np.dtype(np.intp) == np.int:
-    def _as_id_array(array):
-        if array.dtype == np.intp or array.dtype == np.int:
-            return array.view(np.int)
-        else:
-            return array.astype(np.int)
-else:
-    def _as_id_array(array):
-        if array.dtype == np.int:
-            return array.view(np.int)
-        else:
-            return array.astype(np.int)
 
 
 def make_optional_arg_into_id_array(number_of_elements, *args):
@@ -239,14 +228,14 @@ def make_optional_arg_into_id_array(number_of_elements, *args):
     if len(args) == 0:
         ids = np.arange(number_of_elements, dtype=np.int)
     elif len(args) == 1:
-        ids = as_id_array(np.asarray(args[0])).reshape((-1, ))
+        ids = as_id_array(np.asarray(args[0])).reshape((-1,))
     else:
-        raise ValueError('Number of arguments must be 0 or 1.')
+        raise ValueError("Number of arguments must be 0 or 1.")
 
     return ids
 
 
-def get_functions_from_module(mod, pattern=None):
+def get_functions_from_module(mod, pattern=None, exclude=None):
     """Get all the function in a module.
 
     Parameters
@@ -255,6 +244,10 @@ def get_functions_from_module(mod, pattern=None):
         An instance of a module.
     pattern : str, optional
         Only get functions whose name match a regular expression.
+    exclude : str, optional
+        Only get functions whose name exclude the regular expression.
+
+    *Note* if both pattern and exclude are provided both conditions must be met.
 
     Returns
     -------
@@ -267,8 +260,9 @@ def get_functions_from_module(mod, pattern=None):
 
     funcs = {}
     for name, func in inspect.getmembers(mod, inspect.isroutine):
-        if pattern is None or re.match(pattern, name):
-            funcs[name] = func
+        if pattern is None or re.search(pattern, name):
+            if exclude is None or (re.search(exclude, name) is None):
+                funcs[name] = func
     return funcs
 
 
@@ -286,7 +280,7 @@ def add_functions_to_class(cls, funcs):
         setattr(cls, name, func)
 
 
-def add_module_functions_to_class(cls, module, pattern=None):
+def add_module_functions_to_class(cls, module, pattern=None, exclude=None):
     """Add functions from a module to a class as methods.
 
     Parameters
@@ -297,11 +291,15 @@ def add_module_functions_to_class(cls, module, pattern=None):
         An instance of a module.
     pattern : str, optional
         Only get functions whose name match a regular expression.
+    exclude : str, optional
+        Only get functions whose name exclude the regular expression.
+
+    *Note* if both pattern and exclude are provided both conditions must be met.
     """
     import inspect
     import imp
     import os
-    
+
     caller = inspect.stack()[1]
     path = os.path.join(os.path.dirname(caller[1]), os.path.dirname(module))
 
@@ -309,7 +307,7 @@ def add_module_functions_to_class(cls, module, pattern=None):
 
     mod = imp.load_module(module, *imp.find_module(module, [path]))
 
-    funcs = get_functions_from_module(mod, pattern=pattern)
+    funcs = get_functions_from_module(mod, pattern=pattern, exclude=exclude)
     strip_grid_from_method_docstring(funcs)
     add_functions_to_class(cls, funcs)
 
@@ -366,27 +364,30 @@ def strip_grid_from_method_docstring(funcs):
     <BLANKLINE>
     """
     import re
+
     for name, func in funcs.items():
         # strip the entry under "Parameters":
-        func.__doc__ = re.sub('grid *:.*?\n.*?\n *', '', func.__doc__)
+        func.__doc__ = re.sub("grid *:.*?\n.*?\n *", "", func.__doc__)
         # # cosmetic magic to get a two-line signature to line up right:
-        match_2_lines = re.search(func.__name__+'\(grid,[^\)]*?\n.*?\)',
-                                  func.__doc__)
+        match_2_lines = re.search(
+            func.__name__ + r"\(grid,[^\)]*?\n.*?\)", func.__doc__
+        )
         try:
             lines_were = match_2_lines.group()
         except AttributeError:  # no successful match
             pass
         else:
-            end_chars = re.search('    .*?\)', lines_were).group()[4:]
-            lines_are_now = re.sub('    .*?\)', '         '+end_chars,
-                                   lines_were)
-            func.__doc__ = (func.__doc__[:match_2_lines.start()] +
-                            lines_are_now +
-                            func.__doc__[match_2_lines.end():])
+            end_chars = re.search(r"    .*?\)", lines_were).group()[4:]
+            lines_are_now = re.sub(r"    .*?\)", "         " + end_chars, lines_were)
+            func.__doc__ = (
+                func.__doc__[: match_2_lines.start()]
+                + lines_are_now
+                + func.__doc__[match_2_lines.end() :]
+            )
         # Move "grid" in signature from an arg to the class position
-        func.__doc__ = re.sub(func.__name__+'\(grid, ',
-                              'grid.'+func.__name__+'(',
-                              func.__doc__)
+        func.__doc__ = re.sub(
+            func.__name__ + r"\(grid, ", "grid." + func.__name__ + "(", func.__doc__
+        )
 
 
 def argsort_points_by_x_then_y(points):
@@ -402,7 +403,7 @@ def argsort_points_by_x_then_y(points):
     -------
     ndarray of int, shape `(n_points, )`
         Indices of sorted points.
-    
+
     Examples
     --------
     >>> import numpy as np
@@ -436,8 +437,8 @@ def argsort_points_by_x_then_y(points):
             return as_id_array([0])
     else:
         points = [np.asarray(coord) for coord in points]
-        a = points[0].argsort(kind='mergesort')
-        b = points[1][a].argsort(kind='mergesort')
+        a = points[0].argsort(kind="mergesort")
+        b = points[1][a].argsort(kind="mergesort")
         return as_id_array(a[b])
 
 
@@ -482,9 +483,9 @@ def sort_points_by_x_then_y(pts):
 
 def anticlockwise_argsort_points(pts, midpt=None):
     """Argort points into anticlockwise order around a supplied center.
-        
+
         Sorts CCW from east. Assumes a convex hull.
-        
+
         Parameters
         ----------
         pts : Nx2 NumPy array of float
@@ -497,7 +498,7 @@ def anticlockwise_argsort_points(pts, midpt=None):
         -------
         pts : N NumPy array of int
             sorted (x,y) points
-        
+
         Examples
         --------
         >>> import numpy as np
@@ -513,7 +514,7 @@ def anticlockwise_argsort_points(pts, midpt=None):
         midpt = pts.mean(axis=0)
     assert len(midpt) == 2
     theta = np.arctan2(pts[:, 1] - midpt[1], pts[:, 0] - midpt[0])
-    theta = theta % (2.*np.pi)
+    theta = theta % (2. * np.pi)
     sortorder = np.argsort(theta)
     return sortorder
 
@@ -557,9 +558,10 @@ def anticlockwise_argsort_points_multiline(pts_x, pts_y, out=None):
     midpt = np.empty((nrows, 2), dtype=float)
     midpt[:, 0] = pts_x.mean(axis=1)
     midpt[:, 1] = pts_y.mean(axis=1)
-    theta = np.arctan2(pts_y - midpt[:, 1].reshape((nrows, 1)),
-                       pts_x - midpt[:, 0].reshape((nrows, 1)))
-    theta = theta % (2.*np.pi)
+    theta = np.arctan2(
+        pts_y - midpt[:, 1].reshape((nrows, 1)), pts_x - midpt[:, 0].reshape((nrows, 1))
+    )
+    theta = theta % (2. * np.pi)
     sortorder = np.argsort(theta)
     if out is not None:
         out[:] = out[np.ogrid[:nrows].reshape((nrows, 1)), sortorder]
@@ -601,7 +603,7 @@ def get_categories_from_grid_methods(grid_type):
     Parameters
     ----------
     grid_type : {'ModelGrid', 'RasterModelGrid', 'HexModelGrid',
-                 'RadialModelGrid', 'VoronoiDelaunayGrid'}
+                 'RadialModelGrid', 'VoronoiDelaunayGrid', 'NetworkModelGrid'}
         String of raster to inspect.
 
     Returns
@@ -618,34 +620,43 @@ def get_categories_from_grid_methods(grid_type):
     """
     import inspect
     import re
-    from landlab import ModelGrid, RasterModelGrid, HexModelGrid, \
-        RadialModelGrid, VoronoiDelaunayGrid
+    from landlab import (
+        ModelGrid,
+        RasterModelGrid,
+        HexModelGrid,
+        RadialModelGrid,
+        VoronoiDelaunayGrid,
+        NetworkModelGrid,
+    )
     from copy import copy
 
-    grid_str_to_grid = {'ModelGrid': ModelGrid,
-                        'RasterModelGrid': RasterModelGrid,
-                        'HexModelGrid': HexModelGrid,
-                        'RadialModelGrid': RadialModelGrid,
-                        'VoronoiDelaunayGrid': VoronoiDelaunayGrid}
+    grid_str_to_grid = {
+        "ModelGrid": ModelGrid,
+        "RasterModelGrid": RasterModelGrid,
+        "HexModelGrid": HexModelGrid,
+        "RadialModelGrid": RadialModelGrid,
+        "VoronoiDelaunayGrid": VoronoiDelaunayGrid,
+        "NetworkModelGrid": NetworkModelGrid,
+    }
     grid_dict = {}
     cat_dict = {}
-    FAILS = {'MISSING': []}
+    FAILS = {"MISSING": []}
     grid = grid_str_to_grid[grid_type]
     funcs = {}
     for name, func in inspect.getmembers(grid):
         funcs[name] = func
     for method_name in funcs.keys():
-        if method_name[0] == '_':
+        if method_name[0] == "_":
             continue
         else:
             method_doc = funcs[method_name].__doc__
             try:
-                cat_str = re.search('LLCATS:.+', method_doc)
+                cat_str = re.search("LLCATS:.+", method_doc)
             except TypeError:
                 pass
             else:
                 if cat_str is None:
-                    FAILS['MISSING'].append(method_name)
+                    FAILS["MISSING"].append(method_name)
                     continue
                 cats = cat_str.group().split()[1:]
                 grid_dict[method_name] = copy(cats)
@@ -653,11 +664,12 @@ def get_categories_from_grid_methods(grid_type):
                     try:
                         cat_dict[cat].append(method_name)
                     except KeyError:
-                        cat_dict[cat] = [method_name, ]
+                        cat_dict[cat] = [method_name]
 
     return cat_dict, grid_dict, FAILS
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

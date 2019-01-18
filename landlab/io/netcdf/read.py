@@ -14,16 +14,20 @@ try:
     import netCDF4 as nc4
 except ImportError:
     import warnings
-    warnings.warn('Unable to import netCDF4.', ImportWarning)
 
-from scipy.io import netcdf as nc
+    warnings.warn("Unable to import netCDF4.", ImportWarning)
 
 import numpy as np
+from scipy.io import netcdf as nc
 
+from landlab.io.esri_ascii import MismatchGridDataSizeError
+from landlab.io.netcdf._constants import (
+    _AXIS_COORDINATE_NAMES,
+    _AXIS_DIMENSION_NAMES,
+    _COORDINATE_NAMES,
+)
 from landlab.io.netcdf.errors import NotRasterGridError
-from landlab.io.netcdf._constants import (_AXIS_DIMENSION_NAMES,
-                                          _AXIS_COORDINATE_NAMES,
-                                          _COORDINATE_NAMES)
+from landlab.utils import add_halo
 
 
 def _length_of_axis_dimension(root, axis_name):
@@ -129,12 +133,12 @@ def _read_netcdf_structured_grid(root):
     """
     shape = _read_netcdf_grid_shape(root)
     coordinates = _read_netcdf_coordinate_values(root)
-    units = _read_netcdf_coordinate_units(root)
 
     for coordinate in coordinates:
         coordinate.shape = shape
 
     return coordinates
+
 
 def _read_netcdf_raster_structured_grid(root):
     """Get node coordinates for a structured grid written as a raster.
@@ -152,12 +156,11 @@ def _read_netcdf_raster_structured_grid(root):
     """
     shape = _read_netcdf_grid_shape(root)
     coordinates = _read_netcdf_coordinate_values(root)
-    units = _read_netcdf_coordinate_units(root)
 
     if len(coordinates) != 2:
-        assert ValueError('Rasters must have only two spatial coordinate dimensions')
+        assert ValueError("Rasters must have only two spatial coordinate dimensions")
     else:
-        coordinates = np.meshgrid(coordinates[0], coordinates[1], indexing='ij')
+        coordinates = np.meshgrid(coordinates[0], coordinates[1], indexing="ij")
 
     for coordinate in coordinates:
         coordinate.shape = shape
@@ -185,27 +188,27 @@ def _read_netcdf_structured_data(root):
     for (name, var) in root.variables.items():
         # identify if a grid mapping variable exist and do not pass it as a field
         if name not in _COORDINATE_NAMES:
-            if hasattr(var, 'grid_mapping'):
-                grid_mapping = getattr(var, 'grid_mapping')
+            if hasattr(var, "grid_mapping"):
+                grid_mapping = getattr(var, "grid_mapping")
                 if type(grid_mapping) is bytes:
-                    grid_mapping = grid_mapping.decode("utf-8") 
+                    grid_mapping = grid_mapping.decode("utf-8")
                 grid_mapping_exists = True
-          
+
     dont_use = list(_COORDINATE_NAMES)
     if grid_mapping_exists:
         dont_use.append(grid_mapping)
-    for (name, var) in root.variables.items():            
+    for (name, var) in root.variables.items():
         if name not in dont_use:
             fields[name] = var[:].copy()
-            fields[name].shape = (fields[name].size, )    
-        
+            fields[name].shape = (fields[name].size,)
+
     if grid_mapping_exists:
-        grid_mapping_variable = root.variables[grid_mapping]            
-        grid_mapping_dict = {'name': grid_mapping}
+        grid_mapping_variable = root.variables[grid_mapping]
+        grid_mapping_dict = {"name": grid_mapping}
         try:
             for att in grid_mapping_variable.ncattrs():
                 grid_mapping_dict[att] = getattr(grid_mapping_variable, att)
-        except AttributeError: # if scipy is doing the reading
+        except AttributeError:  # if scipy is doing the reading
             for att in var._attributes:
                 grid_mapping_dict[att] = getattr(grid_mapping_variable, att)
     return fields, grid_mapping_dict
@@ -237,7 +240,8 @@ def _get_raster_spacing(coords):
 
     return spacing[0]
 
-def read_netcdf(nc_file, just_grid=False):
+
+def read_netcdf(nc_file, grid=None, just_grid=False, halo=0, nodata_value=-9999.0):
     """Create a :class:`~.RasterModelGrid` from a netcdf file.
 
     Create a new :class:`~.RasterModelGrid` from the netcdf file, *nc_file*.
@@ -245,12 +249,23 @@ def read_netcdf(nc_file, just_grid=False):
     To create a new grid without any associated data from the netcdf file,
     set the *just_grid* keyword to ``True``.
 
+    A halo can be added with the keywork *halo*.
+
+    If you want the fields to be added to an existing grid, it can be passed
+    to the keyword argument *grid*.
+
     Parameters
     ----------
     nc_file : str
         Name of a netcdf file.
+    grid : *grid* , optional
+        Adds data to an existing *grid* instead of creating a new one.
     just_grid : boolean, optional
         Create a new grid but don't add value data.
+    halo : integer, optional
+        Adds outer border of depth halo to the *grid*.
+    nodata_value : float, optional
+        Value that indicates an invalid value. Default is -9999.
 
     Returns
     -------
@@ -290,44 +305,80 @@ def read_netcdf(nc_file, just_grid=False):
     True
     >>> grid.dy, grid.dx
     (1.0, 1.0)
+
+    A more complicated example might add data with a halo to an existing grid.
+
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid((6, 5))
+    >>> grid = read_netcdf(
+    ...     NETCDF4_EXAMPLE_FILE,
+    ...     grid=grid,
+    ...     halo=1,
+    ...     nodata_value=-1)
+    >>> grid.at_node['surface__elevation'].reshape(grid.shape)
+    array([[ -1.,  -1.,  -1.,  -1.,  -1.],
+           [ -1.,   0.,   1.,   2.,  -1.],
+           [ -1.,   3.,   4.,   5.,  -1.],
+           [ -1.,   6.,   7.,   8.,  -1.],
+           [ -1.,   9.,  10.,  11.,  -1.],
+           [ -1.,  -1.,  -1.,  -1.,  -1.]])
     """
     from landlab import RasterModelGrid
 
     try:
-        root = nc.netcdf_file(nc_file, 'r', version=2)
+        root = nc.netcdf_file(nc_file, "r", version=2)
     except TypeError:
-        root = nc4.Dataset(nc_file, 'r', format='NETCDF4')
+        root = nc4.Dataset(nc_file, "r", format="NETCDF4")
 
     try:
         node_coords = _read_netcdf_structured_grid(root)
     except ValueError:
-        if ((len(root.variables['x'].dimensions) == 1) and
-            (len(root.variables['y'].dimensions) == 1)):
+        if (len(root.variables["x"].dimensions) == 1) and (
+            len(root.variables["y"].dimensions) == 1
+        ):
 
             node_coords = _read_netcdf_raster_structured_grid(root)
         else:
-            assert ValueError('x and y dimensions must both either be 2D '
-                              '(nj, ni) or 1D (ni,) and (nj).')
+            assert ValueError(
+                "x and y dimensions must both either be 2D "
+                "(nj, ni) or 1D (ni,) and (nj)."
+            )
 
     assert len(node_coords) == 2
 
-
-    spacing = _get_raster_spacing(node_coords)
-
+    xy_spacing = _get_raster_spacing(node_coords)
     shape = node_coords[0].shape
 
-    grid = RasterModelGrid(shape, spacing=spacing)
+    xy_of_lower_left = (node_coords[0].min(), node_coords[1].min())
 
+    if grid is not None:
+        if (grid.number_of_node_rows != shape[0] + 2 * halo) or (
+            grid.number_of_node_columns != shape[1] + 2 * halo
+        ):
+            raise MismatchGridDataSizeError(
+                shape[0] + 2 * halo * shape[1] + 2 * halo,
+                grid.number_of_node_rows * grid.number_of_node_columns,
+            )
+
+    if grid is None:
+        grid = RasterModelGrid(
+            shape, xy_spacing=xy_spacing, xy_of_lower_left=xy_of_lower_left
+        )
 
     if not just_grid:
         fields, grid_mapping_dict = _read_netcdf_structured_data(root)
         for (name, values) in fields.items():
-            grid.add_field('node', name, values)
-            
+
+            if halo > 0:
+                values = add_halo(
+                    values.reshape(shape), halo=halo, halo_value=nodata_value
+                ).reshape((-1,))
+            grid.add_field("node", name, values)
+
     # save grid mapping
     if grid_mapping_dict is not None:
         grid.grid_mapping = grid_mapping_dict
-        
+
     root.close()
 
     return grid

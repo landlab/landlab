@@ -17,24 +17,71 @@ def test_last_index():
 
 def test_id_as_list():
     rmg = RasterModelGrid((4, 5))
-    assert_array_equal(rmg.node_has_boundary_neighbor([-1, 0]),
-                       np.array([True, True]))
+    assert_array_equal(rmg.node_has_boundary_neighbor([-1, 0]), np.array([True, True]))
 
 
 def test_id_as_array():
     rmg = RasterModelGrid((4, 5))
-    assert_array_equal(rmg.node_has_boundary_neighbor(np.arange(20)),
-                       np.array([True, True, True, True, True,
-                                 True, True, True, True, True,
-                                 True, True, True, True, True,
-                                 True, True, True, True, True]))
+    assert_array_equal(
+        rmg.node_has_boundary_neighbor(np.arange(20)),
+        np.array(
+            [
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+            ]
+        ),
+    )
 
 
 def test_id_as_array_with_one_interior():
     rmg = RasterModelGrid(5, 5)
-    assert_array_equal(rmg.node_has_boundary_neighbor(np.arange(25)),
-                       np.array([True, True,  True, True, True,
-                                 True, True,  True, True, True,
-                                 True, True, False, True, True,
-                                 True, True,  True, True, True,
-                                 True, True,  True, True, True]))
+    assert_array_equal(
+        rmg.node_has_boundary_neighbor(np.arange(25)),
+        np.array(
+            [
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                False,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
+            ]
+        ),
+    )

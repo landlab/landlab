@@ -7,11 +7,11 @@ TaylorNonLinearDiffuser Component
 @author: G Tucker
 """
 
-#Cubic hillslope flux component
+# Cubic hillslope flux component
 
-from landlab import Component
 import numpy as np
-from landlab import INACTIVE_LINK
+
+from landlab import INACTIVE_LINK, Component
 
 
 class TaylorNonLinearDiffuser(Component):
@@ -129,41 +129,33 @@ class TaylorNonLinearDiffuser(Component):
     False
     """
 
-    _name = 'TaylorNonLinearDiffuser'
+    _name = "TaylorNonLinearDiffuser"
 
-    _input_var_names = set((
-        'topographic__elevation',
-    ))
+    _input_var_names = set(("topographic__elevation",))
 
-    _output_var_names = set((
-        'soil__flux',
-        'topographic__slope',
-        'topographic__elevation',
-    ))
+    _output_var_names = set(
+        ("soil__flux", "topographic__slope", "topographic__elevation")
+    )
 
     _var_units = {
-        'topographic__elevation' : 'm',
-        'topographic__slope' : 'm/m',
-        'soil__flux' : 'm^2/yr',
+        "topographic__elevation": "m",
+        "topographic__slope": "m/m",
+        "soil__flux": "m^2/yr",
     }
 
     _var_mapping = {
-        'topographic__elevation' : 'node',
-        'topographic__slope' : 'link',
-        'soil__flux' : 'link',
+        "topographic__elevation": "node",
+        "topographic__slope": "link",
+        "soil__flux": "link",
     }
 
     _var_doc = {
-        'topographic__elevation':
-                'elevation of the ground surface',
-        'topographic__slope':
-                'gradient of the ground surface',
-        'soil__flux':
-                'flux of soil in direction of link',
+        "topographic__elevation": "elevation of the ground surface",
+        "topographic__slope": "gradient of the ground surface",
+        "soil__flux": "flux of soil in direction of link",
     }
 
-    def __init__(self, grid, linear_diffusivity=1., slope_crit=1.,
-                 nterms=2):
+    def __init__(self, grid, linear_diffusivity=1., slope_crit=1., nterms=2):
         """Initialize the TaylorNonLinearDiffuser.
         Parameters
         ----------
@@ -189,24 +181,24 @@ class TaylorNonLinearDiffuser(Component):
         # Create fields:
 
         # elevation
-        if 'topographic__elevation' in self.grid.at_node:
-            self.elev = self.grid.at_node['topographic__elevation']
+        if "topographic__elevation" in self.grid.at_node:
+            self.elev = self.grid.at_node["topographic__elevation"]
         else:
-            self.elev = self.grid.add_zeros('node', 'topographic__elevation')
+            self.elev = self.grid.add_zeros("node", "topographic__elevation")
 
         # slope gradient
-        if 'topographic__slope' in self.grid.at_link:
-            self.slope = self.grid.at_link['topographic__slope']
+        if "topographic__slope" in self.grid.at_link:
+            self.slope = self.grid.at_link["topographic__slope"]
         else:
-            self.slope = self.grid.add_zeros('link', 'topographic__slope')
+            self.slope = self.grid.add_zeros("link", "topographic__slope")
 
         # soil flux
-        if 'soil__flux' in self.grid.at_link:
-            self.flux = self.grid.at_link['soil__flux']
+        if "soil__flux" in self.grid.at_link:
+            self.flux = self.grid.at_link["soil__flux"]
         else:
-            self.flux = self.grid.add_zeros('link', 'soil__flux')
+            self.flux = self.grid.add_zeros("link", "soil__flux")
 
-    def soilflux(self, dt, dynamic_dt=False, if_unstable='pass', courant_factor=0.2):
+    def soilflux(self, dt, dynamic_dt=False, if_unstable="pass", courant_factor=0.2):
         """Calculate soil flux for a time period 'dt'.
 
         Parameters
@@ -235,33 +227,37 @@ class TaylorNonLinearDiffuser(Component):
 
             # Test for time stepping courant condition
             courant_slope_term = 0.0
-            courant_s_over_scrit = self.slope.max()/self.slope_crit
-            for i in range(0, 2*self.nterms, 2):
-                courant_slope_term += courant_s_over_scrit**i
+            courant_s_over_scrit = self.slope.max() / self.slope_crit
+            for i in range(0, 2 * self.nterms, 2):
+                courant_slope_term += courant_s_over_scrit ** i
                 if np.any(np.isinf(courant_slope_term)):
-                    message = ('Soil flux term is infinite in Courant condition '
-                               'calculation. This is likely due to '
-                               'using too many terms in the Taylor expansion.')
+                    message = (
+                        "Soil flux term is infinite in Courant condition "
+                        "calculation. This is likely due to "
+                        "using too many terms in the Taylor expansion."
+                    )
                     raise RuntimeError(message)
             # Calculate De Max
             De_max = self.K * (courant_slope_term)
             # Calculate longest stable timestep
-            self.dt_max = courant_factor * (self.grid.dx**2) / De_max
+            self.dt_max = courant_factor * (self.grid.dx ** 2) / De_max
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
-            if (self.dt_max < dt) and (dynamic_dt == False) and (if_unstable != 'pass'):
-                message = ('Topographic slopes are high enough such that the '
-                           'Courant condition is exceeded AND you have not '
-                           'selected dynamic timestepping with dynamic_dt=True. '
-                           'This may lead to infinite and/or nan values for '
-                           'slope, elevation, and soil depth. Consider using a '
-                           'smaller time step or dynamic timestepping. The '
-                           'Courant condition recommends a timestep of '
-                           ''+str(self.dt_max)+' or smaller.')
-                if if_unstable == 'raise':
+            if (self.dt_max < dt) and (not dynamic_dt) and (if_unstable != "pass"):
+                message = (
+                    "Topographic slopes are high enough such that the "
+                    "Courant condition is exceeded AND you have not "
+                    "selected dynamic timestepping with dynamic_dt=True. "
+                    "This may lead to infinite and/or nan values for "
+                    "slope, elevation, and soil depth. Consider using a "
+                    "smaller time step or dynamic timestepping. The "
+                    "Courant condition recommends a timestep of "
+                    "" + str(self.dt_max) + " or smaller."
+                )
+                if if_unstable == "raise":
                     raise RuntimeError(message)
-                if if_unstable == 'warn':
+                if if_unstable == "warn":
                     print(message)
 
             # if dynamic dt is selected, use it, otherwise, use the entire time
@@ -274,22 +270,23 @@ class TaylorNonLinearDiffuser(Component):
 
             # Calculate flux
             slope_term = 0.0
-            s_over_scrit = self.slope/self.slope_crit
-            for i in range(0, 2*self.nterms, 2):
-                slope_term += s_over_scrit**i
+            s_over_scrit = self.slope / self.slope_crit
+            for i in range(0, 2 * self.nterms, 2):
+                slope_term += s_over_scrit ** i
                 if np.any(np.isinf(slope_term)):
-                    message = ('Soil flux term is infinite. This is likely due to '
-                               'using too many terms in the Taylor expansion.')
+                    message = (
+                        "Soil flux term is infinite. This is likely due to "
+                        "using too many terms in the Taylor expansion."
+                    )
                     raise RuntimeError(message)
 
-            self.flux[:] = -((self.K * self.slope)*(slope_term))
+            self.flux[:] = -((self.K * self.slope) * (slope_term))
 
             # Calculate flux divergence
             dqdx = self.grid.calc_flux_div_at_node(self.flux)
 
             # Update topography
-            self.elev[self.grid.core_nodes] -= (dqdx[self.grid.core_nodes]
-                                                * self.sub_dt)
+            self.elev[self.grid.core_nodes] -= dqdx[self.grid.core_nodes] * self.sub_dt
 
     def run_one_step(self, dt, **kwds):
         """

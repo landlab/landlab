@@ -6,20 +6,14 @@ Created on Sun Sep 27 09:52:50, 2015
 
 @author: gtucker, amended dejh
 """
+import numpy as np  # for use of np.round
 import pytest
+from numpy import pi, sin
+from numpy.testing import assert_array_equal
 from pytest import approx
 
-import landlab
-from landlab import RasterModelGrid
-from landlab.components import (FlowAccumulator,
-                                DepressionFinderAndRouter,
-                                FlowAccumulator)
-
-from numpy import sin, pi
-import numpy as np  # for use of np.round
-from numpy.testing import assert_array_equal
-from landlab import BAD_INDEX_VALUE as XX
-
+from landlab import BAD_INDEX_VALUE as XX, RasterModelGrid
+from landlab.components import DepressionFinderAndRouter, FlowAccumulator
 
 NUM_GRID_ROWS = 8
 NUM_GRID_COLS = 8
@@ -29,9 +23,9 @@ PERIOD_Y = 4.
 
 def test_route_to_multiple_error_raised():
     mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros('node', 'topographic__elevation')
+    z = mg.add_zeros("node", "topographic__elevation")
     z += mg.x_of_node + mg.y_of_node
-    fa = FlowAccumulator(mg, flow_director='MFD')
+    fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()
 
     with pytest.raises(NotImplementedError):
@@ -44,7 +38,7 @@ def create_test_grid():
     hills.
     """
     # Create grid
-    rmg = RasterModelGrid(NUM_GRID_ROWS, NUM_GRID_COLS)
+    rmg = RasterModelGrid((NUM_GRID_ROWS, NUM_GRID_COLS))
 
     # Create topography field
     z = rmg.add_zeros("node", "topographic__elevation")
@@ -68,7 +62,7 @@ def check_fields1(grid):
         grid.at_node["depression__depth"]
         grid.at_node["depression__outlet_node"]
         grid.at_node["is_pit"]
-    except:
+    except KeyError:
         print("Test failure in check_fields")
         raise
 
@@ -511,7 +505,7 @@ def check_fields2(grid):
         grid.at_node["depression__depth"]
         grid.at_node["depression__outlet_node"]
         grid.at_node["is_pit"]
-    except:
+    except KeyError:
         print("Test failure in check_fields")
         raise
 
@@ -1158,7 +1152,7 @@ def test_edge_draining():
     is suspected.
     """
     # Create a 7x7 test grid with a well defined hole in it, AT THE EDGE.
-    mg = RasterModelGrid((7, 7), (1., 1.))
+    mg = RasterModelGrid((7, 7))
 
     z = mg.node_x.copy()
     guard_sides = np.concatenate((np.arange(7, 14), np.arange(35, 42)))
@@ -1282,7 +1276,7 @@ def test_edge_draining():
 
     mg.add_field("node", "topographic__elevation", z, units="-")
 
-    fr = FlowAccumulator(mg, flow_director='D8')
+    fr = FlowAccumulator(mg, flow_director="D8")
     lf = DepressionFinderAndRouter(mg)
 
     fr.run_one_step()
@@ -1296,16 +1290,16 @@ def test_degenerate_drainage():
     This "hourglass" configuration should be one of the hardest to correctly
     re-route.
     """
-    mg = RasterModelGrid(9, 5)
+    mg = RasterModelGrid((9, 5))
     z_init = mg.node_x.copy() * 0.0001 + 1.
     lake_pits = np.array([7, 11, 12, 13, 17, 27, 31, 32, 33, 37])
     z_init[lake_pits] = -1.
     z_init[22] = 0.  # the common spill pt for both lakes
     z_init[21] = 0.1  # an adverse bump in the spillway
     z_init[20] = -0.2  # the spillway
-    z = mg.add_field("node", "topographic__elevation", z_init)
+    mg.add_field("node", "topographic__elevation", z_init)
 
-    fr = FlowAccumulator(mg, flow_director='D8')
+    fr = FlowAccumulator(mg, flow_director="D8")
     lf = DepressionFinderAndRouter(mg)
     fr.run_one_step()
     lf.map_depressions()
@@ -1370,8 +1364,6 @@ def test_degenerate_drainage():
         ]
     )
 
-    thelake = np.concatenate((lake_pits, [22])).sort()
-
     assert mg.at_node["drainage_area"] == approx(correct_A)
 
 
@@ -1380,7 +1372,7 @@ def test_three_pits():
     A test to ensure the component correctly handles cases where there are
     multiple pits.
     """
-    mg = RasterModelGrid(10, 10, 1.)
+    mg = RasterModelGrid((10, 10))
     z = mg.add_field("node", "topographic__elevation", mg.node_x.copy())
     # a sloping plane
     # np.random.seed(seed=0)
@@ -1390,7 +1382,7 @@ def test_three_pits():
     z[43] = 1.
     z[37] = 4.
     z[74:76] = 1.
-    fr = FlowAccumulator(mg, flow_director='D8')
+    fr = FlowAccumulator(mg, flow_director="D8")
     lf = DepressionFinderAndRouter(mg)
     fr.run_one_step()
     lf.map_depressions()
@@ -1532,7 +1524,7 @@ def test_composite_pits():
     A test to ensure the component correctly handles cases where there are
     multiple pits, inset into each other.
     """
-    mg = RasterModelGrid(10, 10, 1.)
+    mg = RasterModelGrid((10, 10))
     z = mg.add_field("node", "topographic__elevation", mg.node_x.copy())
     # a sloping plane
     # np.random.seed(seed=0)
@@ -1547,7 +1539,7 @@ def test_composite_pits():
     # make an outlet
     z[71] = 0.9
 
-    fr = FlowAccumulator(mg, flow_director='D8')
+    fr = FlowAccumulator(mg, flow_director="D8")
     lf = DepressionFinderAndRouter(mg)
     fr.run_one_step()
     lf.map_depressions()
