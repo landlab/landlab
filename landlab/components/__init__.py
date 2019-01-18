@@ -46,6 +46,7 @@ from .profiler import ChannelProfiler, RidgeProfiler
 
 COMPONENTS = [
     ChiFinder,
+    ChannelProfiler,
     LinearDiffuser,
     Flexure,
     FlowRouter,
@@ -84,6 +85,7 @@ COMPONENTS = [
     FlowDirectorDINF,
     FlowAccumulator,
     LossyFlowAccumulator,
+    RidgeProfiler
     Space,
     ErosionDeposition,
     LandslideProbability,
