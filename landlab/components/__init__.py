@@ -42,7 +42,7 @@ from .landslides import LandslideProbability
 from .transport_length_diffusion import TransportLengthHillslopeDiffuser
 from .normal_fault import NormalFault
 from .lithology import Lithology, LithoLayers
-from .profiler import ChannelProfiler, RidgeProfiler
+from .profiler import ChannelProfiler
 
 COMPONENTS = [
     ChiFinder,
@@ -85,7 +85,6 @@ COMPONENTS = [
     FlowDirectorDINF,
     FlowAccumulator,
     LossyFlowAccumulator,
-    RidgeProfiler,
     Space,
     ErosionDeposition,
     LandslideProbability,
