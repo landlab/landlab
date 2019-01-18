@@ -85,7 +85,7 @@ COMPONENTS = [
     FlowDirectorDINF,
     FlowAccumulator,
     LossyFlowAccumulator,
-    RidgeProfiler
+    RidgeProfiler,
     Space,
     ErosionDeposition,
     LandslideProbability,
