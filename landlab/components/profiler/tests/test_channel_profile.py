@@ -1,5 +1,5 @@
 # coding: utf8
-#! /usr/env/python
+# ! /usr/env/python
 """
 Created on Tue Feb 27 16:25:11 2018
 
@@ -73,7 +73,7 @@ def test_asking_for_too_many_watersheds():
         mg.at_node["topographic__elevation"][0] -= 0.001
 
     with pytest.raises(ValueError):
-        profiler = ChannelProfiler(mg, number_of_watersheds=3)
+        ChannelProfiler(mg, number_of_watersheds=3)
 
 
 def test_no_threshold():
@@ -100,30 +100,30 @@ def test_no_threshold():
 
 def test_no_drainage_area():
     mg = RasterModelGrid(10, 10)
-    z = mg.add_zeros("topographic__elevation", at="node")
-    # da = mg.add_zeros('drainage_area', at='node')
-    flrn = mg.add_zeros("flow__link_to_receiver_node", at="node")
-    frn = mg.add_zeros("flow__receiver_node", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros('drainage_area', at='node')
+    mg.add_zeros("flow__link_to_receiver_node", at="node")
+    mg.add_zeros("flow__receiver_node", at="node")
     with pytest.raises(ValueError):
         ChannelProfiler(mg)
 
 
 def test_no_flow__link_to_receiver_node():
     mg = RasterModelGrid(10, 10)
-    z = mg.add_zeros("topographic__elevation", at="node")
-    da = mg.add_zeros("drainage_area", at="node")
-    # flrn = mg.add_zeros('flow__link_to_receiver_node', at='node')
-    frn = mg.add_zeros("flow__receiver_node", at="node")
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("drainage_area", at="node")
+    mg.add_zeros('flow__link_to_receiver_node', at='node')
+    mg.add_zeros("flow__receiver_node", at="node")
     with pytest.raises(ValueError):
         ChannelProfiler(mg)
 
 
 def test_no_flow__receiver_node():
     mg = RasterModelGrid(10, 10)
-    z = mg.add_zeros("topographic__elevation", at="node")
-    da = mg.add_zeros("drainage_area", at="node")
-    flrn = mg.add_zeros("flow__link_to_receiver_node", at="node")
-    # frn = mg.add_zeros('flow__receiver_node', at='node')
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("drainage_area", at="node")
+    mg.add_zeros("flow__link_to_receiver_node", at="node")
+    mg.add_zeros('flow__receiver_node', at='node')
     with pytest.raises(ValueError):
         ChannelProfiler(mg)
 

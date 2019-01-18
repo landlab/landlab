@@ -1,5 +1,5 @@
 # coding: utf8
-#! /usr/env/python
+# ! /usr/env/python
 """channel_profiler.py component to create channel profiles."""
 
 import numpy as np
