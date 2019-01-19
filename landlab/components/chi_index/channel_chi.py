@@ -141,7 +141,7 @@ class ChiFinder(Component):
         grid,
         reference_concavity=0.5,
         min_drainage_area=1.e6,
-        reference_area=1.,
+        reference_area=None,
         use_true_dx=False,
         **kwds
     ):
@@ -178,23 +178,25 @@ class ChiFinder(Component):
         if isinstance(self._grid, RasterModelGrid):
             self._link_lengths = self.grid.length_of_d8
         else:
-            self._link_lengths = self.grid.length_of_link
+            self._link_lengths = self.grid.length_of_link # not tested
 
         self._reftheta = reference_concavity
         self.min_drainage = min_drainage_area
-        if reference_area is None:
-            try:
-                self._A0 = float(self.grid.cell_area_at_node)
-            except TypeError:  # was an array
-                self._A0 = self.grid.cell_area_at_node[self.grid.core_nodes].mean()
-        else:
-            assert reference_area > 0.
-            self._A0 = reference_area
+
+        self._set_up_reference_area(reference_area)
+
         self.use_true_dx = use_true_dx
         self.chi = self._grid.add_zeros("node", "channel__chi_index")
         self._mask = self.grid.ones("node", dtype=bool)
         # this one needs modifying if smooth_elev
         self._elev = self.grid.at_node["topographic__elevation"]
+
+    def _set_up_reference_area(self, reference_area):
+        """Set up and validate reference_area"""
+        reference_area = reference_area or float(self.grid.cell_area_at_node[self.grid.core_nodes].mean())
+        if reference_area <= 0.0:
+            raise ValueError("ChiFinder: reference_area must be positive.") # not tested
+        self._A0 = reference_area
 
     def calculate_chi(self, **kwds):
         """
@@ -213,13 +215,9 @@ class ChiFinder(Component):
         # test for new kwds:
         reftheta = kwds.get("reference_concavity", self._reftheta)
         min_drainage = kwds.get("min_drainage_area", self.min_drainage)
-        A0 = kwds.get("reference_area", self._A0)
-        if A0 is None:
-            try:
-                A0 = float(self.grid.cell_area_at_node)
-            except TypeError:
-                A0 = self.grid.cell_area_at_node[self.grid.core_nodes].mean()
-        assert A0 > 0.
+        reference_area = kwds.get("reference_area", self._A0)
+        self._set_up_reference_area(reference_area)
+
         use_true_dx = kwds.get("use_true_dx", self.use_true_dx)
 
         upstr_order = self.grid.at_node["flow__upstream_node_order"]
@@ -229,14 +227,14 @@ class ChiFinder(Component):
         ]
         valid_upstr_areas = self.grid.at_node["drainage_area"][valid_upstr_order]
         if not use_true_dx:
-            chi_integrand = (A0 / valid_upstr_areas) ** reftheta
+            chi_integrand = (self._A0 / valid_upstr_areas) ** reftheta
             mean_dx = self.mean_channel_node_spacing(valid_upstr_order)
             self.integrate_chi_avg_dx(
                 valid_upstr_order, chi_integrand, self.chi, mean_dx
             )
         else:
             chi_integrand = self.grid.zeros("node")
-            chi_integrand[valid_upstr_order] = (A0 / valid_upstr_areas) ** reftheta
+            chi_integrand[valid_upstr_order] = (self._A0 / valid_upstr_areas) ** reftheta
             self.integrate_chi_each_dx(valid_upstr_order, chi_integrand, self.chi)
         # stamp over the closed nodes, as it's possible they can receive infs
         # if min_drainage_area < grid.cell_area_at_node
