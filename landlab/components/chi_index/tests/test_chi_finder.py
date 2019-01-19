@@ -1,6 +1,6 @@
 import pytest
 
-from landlab import RasterModelGrid, HexModelGrid
+from landlab import HexModelGrid, RasterModelGrid
 from landlab.components import ChiFinder, FlowAccumulator
 
 

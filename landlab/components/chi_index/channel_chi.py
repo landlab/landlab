@@ -184,7 +184,7 @@ class ChiFinder(Component):
         if isinstance(self._grid, RasterModelGrid):
             self._link_lengths = self.grid.length_of_d8
         else:
-            self._link_lengths = self.grid.length_of_link # not tested
+            self._link_lengths = self.grid.length_of_link  # not tested
 
         self._reftheta = reference_concavity
         self.min_drainage = min_drainage_area
@@ -199,9 +199,13 @@ class ChiFinder(Component):
 
     def _set_up_reference_area(self, reference_area):
         """Set up and validate reference_area"""
-        reference_area = reference_area or float(self.grid.cell_area_at_node[self.grid.core_nodes].mean())
+        reference_area = reference_area or float(
+            self.grid.cell_area_at_node[self.grid.core_nodes].mean()
+        )
         if reference_area <= 0.0:
-            raise ValueError("ChiFinder: reference_area must be positive.") # not tested
+            raise ValueError(
+                "ChiFinder: reference_area must be positive."
+            )  # not tested
         self._A0 = reference_area
 
     def calculate_chi(self, **kwds):
@@ -240,7 +244,9 @@ class ChiFinder(Component):
             )
         else:
             chi_integrand = self.grid.zeros("node")
-            chi_integrand[valid_upstr_order] = (self._A0 / valid_upstr_areas) ** reftheta
+            chi_integrand[valid_upstr_order] = (
+                self._A0 / valid_upstr_areas
+            ) ** reftheta
             self.integrate_chi_each_dx(valid_upstr_order, chi_integrand, self.chi)
         # stamp over the closed nodes, as it's possible they can receive infs
         # if min_drainage_area < grid.cell_area_at_node
