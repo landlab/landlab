@@ -53,7 +53,11 @@ class ChiFinder(Component):
     ...     mg2.core_nodes] += np.random.rand(mg2.number_of_core_nodes)
     >>> fr2 = FlowAccumulator(mg2, flow_director='D8')
     >>> sp2 = FastscapeEroder(mg2, K_sp=0.01)
-    >>> cf2 = ChiFinder(mg2, min_drainage_area=0., reference_concavity=0.5)
+    >>> cf2 = ChiFinder(
+    ...     mg2,
+    ...     min_drainage_area=0.,
+    ...     reference_concavity=0.5,
+    ...     reference_area=1.0)
     >>> for i in range(10):
     ...     mg2.at_node['topographic__elevation'][mg2.core_nodes] += 10.
     ...     fr2.run_one_step()
@@ -495,7 +499,7 @@ class ChiFinder(Component):
         if ch_nodes is None:
             good_vals = np.logical_not(self.hillslope_mask)
         else:
-            good_vals = np.array(ch_nodes)
+            good_vals = np.array(ch_nodes)  # not tested
         chi_vals = self.chi_indices[good_vals]
         elev_vals = self.grid.at_node["topographic__elevation"][good_vals]
         coeffs = np.polyfit(chi_vals, elev_vals, 1)
