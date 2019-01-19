@@ -8,7 +8,7 @@ from __future__ import print_function
 
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY, Component
+from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY, Component, RasterModelGrid
 
 try:
     from itertools import izip
@@ -174,6 +174,12 @@ class ChiFinder(Component):
             )
             raise NotImplementedError(msg)
         self._grid = grid
+
+        if isinstance(self._grid, RasterModelGrid):
+            self._link_lengths = self.grid.length_of_d8
+        else:
+            self._link_lengths = self.grid.length_of_link
+
         self._reftheta = reference_concavity
         self.min_drainage = min_drainage_area
         if reference_area is None:
@@ -373,7 +379,7 @@ class ChiFinder(Component):
         """
         receivers = self.grid.at_node["flow__receiver_node"]
         links = self.grid.at_node["flow__link_to_receiver_node"]
-        link_lengths = self.grid.length_of_d8
+
         # because chi_array is all zeros, BC cases where node is receiver
         # resolve themselves
         half_integrand = 0.5 * chi_integrand_at_nodes
@@ -381,7 +387,7 @@ class ChiFinder(Component):
             dstr_node = receivers[node]
             dstr_link = links[node]
             if dstr_link != BAD_INDEX_VALUE:
-                dstr_length = link_lengths[dstr_link]
+                dstr_length = self._link_lengths[dstr_link]
                 half_head_val = half_integrand[node]
                 half_tail_val = half_integrand[dstr_node]
                 mean_val = half_head_val + half_tail_val
@@ -424,7 +430,8 @@ class ChiFinder(Component):
         """
         ch_links = self.grid.at_node["flow__link_to_receiver_node"][ch_nodes]
         ch_links_valid = ch_links[ch_links != BAD_INDEX_VALUE]
-        valid_link_lengths = self.grid.length_of_d8[ch_links_valid]
+
+        valid_link_lengths = self._link_lengths[ch_links_valid]
         return valid_link_lengths.mean()
 
     @property
