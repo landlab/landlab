@@ -116,7 +116,7 @@ def create_and_initialize_grid(input_source):
 def create_grid(file_like):
     """Create grid, initialize fields, and set boundary conditions.
 
-    **create_grid** expects a dictionary with three keys "grid", "fields", and
+    **create_grid** expects a dictionary with three keys: "grid", "fields", and
     "boundary_conditions".
 
     **Dictionary Section "grid"**
@@ -174,7 +174,10 @@ def create_grid(file_like):
     The following example would uses the
     :py:func:`~landlab.values.synthetic.plane` function from the synthetic
     values package to create an at_node value for the field
-    topographic__elevation.
+    topographic__elevation. The plane function adds values to a Landlab model
+    grid field that lie on a plane specified by a point and a normal vector. In
+    the below example the plane goes through the point (1.0, 1.0, 1.0) and has
+    a normal of (-2.0, -1.0, 1.0).
 
     .. code-block:: yaml
 
