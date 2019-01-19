@@ -33,7 +33,9 @@ class ChiFinder(Component):
     ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
     >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
     >>> fr = FlowAccumulator(mg, flow_director='D8')
-    >>> cf = ChiFinder(mg, min_drainage_area=1., reference_concavity=1.)
+    >>> cf = ChiFinder(mg,
+    ...     min_drainage_area=1.,
+    ...     reference_concavity=1.)
     >>> fr.run_one_step()
     >>> cf.calculate_chi()
     >>> mg.at_node['channel__chi_index'].reshape(mg.shape)[1, :]
@@ -478,7 +480,10 @@ class ChiFinder(Component):
         ...                  mg.node_x.copy())
         >>> z[4:8] = np.array([0.5, 1., 2., 0.])
         >>> fr = FlowAccumulator(mg, flow_director='D8')
-        >>> cf = ChiFinder(mg, min_drainage_area=1., reference_concavity=1.)
+        >>> cf = ChiFinder(
+        ...     mg,
+        ...     min_drainage_area=1.,
+        ...     reference_concavity=1.)
         >>> fr.run_one_step()
         >>> cf.calculate_chi()
         >>> mg.at_node['channel__chi_index'].reshape(mg.shape)[1, :]
