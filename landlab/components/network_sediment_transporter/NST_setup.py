@@ -9,12 +9,13 @@ Created on Sun May 20 15:54:03 2018
 """
 import numpy as np
 
-from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
+#from landlab.components import NetworkSedimentTransporter
+from landlab.components import FlowDirectorSteepest
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 from landlab.plot import graph
 
-# from network_sediment_transporter import NetworkSedimentTransporter
+from network_sediment_transporter import NetworkSedimentTransporter
 
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
 
@@ -189,9 +190,7 @@ for t in range(timesteps):
     #   will assign flow depth for each reach (for this timestep)
 
     # Run our component
-<<<<<<< HEAD
    nst.run_one_step(dt)
    print ('t = ', t)
-=======
-    nst.run_one_step(dt)
->>>>>>> ca701044f87a3acebb09ec24f7e2ab5343d2b6bb
+
+

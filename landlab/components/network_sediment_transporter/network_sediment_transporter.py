@@ -195,25 +195,12 @@ class NetworkSedimentTransporter(Component):
         self.fluid_density = fluid_density
         
         # TEST for valid transport method entry
-        _PERMITTED_TRANSPORT_METHODS = ["WilcockCrowe"]
-        
-        if transport_method in _PERMITTED_TRANSPORT_METHODS:
-            self.transport_method = transport_method
+        _SUPPORTED_TRANSPORT_METHODS = ["WilcockCrowe"]      
 
-<<<<<<< HEAD
-        else:
-            msg = ("NetworkSedimentTransporter: Provided value was bad for transport_method")
-            raise ValueError(msg)
-            
-#        if self.transport_method == ["WilcockCrowe"]            
-#            self.update_transport_time = self._calc_transport_wilcock_crowe
-#            #other options would go here
-        
-=======
         if transport_method in _SUPPORTED_TRANSPORT_METHODS:
             self.transport_method = transport_method
         else:
-            msg = ""
+            msg = "Transport Method not supported"
             raise ValueError(msg)
         # self.transport_method makes it a class variable, that can be accessed within any method within this class
         if self.transport_method == "WilcockCrowe":
@@ -221,8 +208,9 @@ class NetworkSedimentTransporter(Component):
 
         # save reference to discharge and width fields stored at-link on the
         # grid
->>>>>>> ca701044f87a3acebb09ec24f7e2ab5343d2b6bb
+
         self._width = self._grid.at_link[channel_width]
+        
         if "channel_width" not in self._grid.at_link:
             msg = ("NetworkSedimentTransporter: channel_width must be assigned"
                    "to the grid links")
@@ -251,8 +239,8 @@ class NetworkSedimentTransporter(Component):
         # Katy think this can be vectorized
         for l in range(self._grid.number_of_links):
 
-            upstream_node_id = self.fd.upstream_node_at_link[l]
-            downstream_node_id = self.fd.downstream_node_at_link[l]
+            upstream_node_id = self.fd.upstream_node_at_link()[l]
+            downstream_node_id = self.fd.downstream_node_at_link()[l]
 
             chan_slope = (
                 self._grid.at_node["topographic__elevation"][upstream_node_id]
@@ -335,14 +323,16 @@ class NetworkSedimentTransporter(Component):
         """Adjusts slope for each link based on parcel motions from last
         timestep and additions from this timestep.
         """
+        
+        
         number_of_contributors = np.sum(
-            self.fd.flow__link_incoming_at_node == 1, axis=1
+            self.fd.flow_link_incoming_at_node() == 1, axis=1
         )
         downstream_link_id = self.fd.link_to_flow_receiving_node[
-            self.fd.downstream_node_at_link
+            self.fd.downstream_node_at_link()
         ]
         upstream_contributing_links_at_node = np.where(
-            self.fd.flow__link_incoming_at_node == 1, self._grid.links_at_node, -1
+            self.fd.flow_link_incoming_at_node() == 1, self._grid.links_at_node, -1
         )
 
         # Update the node elevations depending on the quantity of stored sediment
@@ -553,7 +543,7 @@ class NetworkSedimentTransporter(Component):
                 # determine downstream link
                 current_link_of_parcel = self._parcels["element_id"][p]
                 downstream_link_id = self.fd.link_to_flow_receiving_node[
-                    self.fd.downstream_node_at_link[current_link_of_parcel]
+                    self.fd.downstream_node_at_link()[current_link_of_parcel]
                 ]
 
                 if downstream_link_id == -1:  # parcel has exited the network
