@@ -19,16 +19,18 @@ This script is designed to be run as part of the commit process for LL.
 Any changes made directly to the above files will be lost whenever this script
 is run.
 """
-from landlab.core.utils import get_categories_from_grid_methods
-from copy import copy
 import re
+from copy import copy
+
 import numpy as np
 
+from landlab.core.utils import get_categories_from_grid_methods
+
 grid_types = ('ModelGrid', 'RasterModelGrid', 'VoronoiDelaunayGrid',
-              'HexModelGrid', 'RadialModelGrid')
+              'HexModelGrid', 'RadialModelGrid', 'NetworkModelGrid')
 str_sequence = ('Base class', 'Raster', 'Irregular Voronoi-cell', 'Hexagonal',
-                'Radial')
-paths = ('base', 'raster', 'voronoi', 'hex', 'radial')
+                'Radial', 'Network')
+paths = ('base', 'raster', 'voronoi', 'hex', 'radial', 'network')
 
 autosummary = '.. autosummary::\n    :toctree: generated/\n\n'
 
@@ -38,7 +40,8 @@ grid_name_to_class = {'base': 'ModelGrid',
                       'hex': 'HexModelGrid',
                       'radial': 'RadialModelGrid',
                       'raster': 'RasterModelGrid',
-                      'voronoi': 'VoronoiDelaunayGrid'}
+                      'voronoi': 'VoronoiDelaunayGrid',
+                      'network': 'NetworkModelGrid'}
 
 
 def create_dicts_of_cats():
@@ -71,7 +74,7 @@ def create_dicts_of_cats():
  fails_allgrid) = create_dicts_of_cats()
 
 for grid_to_modify in grid_name_to_class.keys():
-    f = open('./text_for_' + grid_to_modify + '.py.txt', "rb")
+    f = open('./text_for_' + grid_to_modify + '.py.txt', "rt")
     text = f.read()
     f.close()
     for LLCAT in LLCATS:
@@ -99,6 +102,6 @@ for grid_to_modify in grid_name_to_class.keys():
 
         text = text.replace('LLCATKEY: ' + LLCAT, text_to_add)
 
-    f = open('./landlab.grid.' + grid_to_modify + '.rst', "wb")
+    f = open('./landlab.grid.' + grid_to_modify + '.rst', "wt")
     f.write(text)
     f.close()

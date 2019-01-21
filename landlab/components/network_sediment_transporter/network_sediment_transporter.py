@@ -22,7 +22,7 @@ from landlab.grid.network import NetworkModelGrid
 from landlab.data_record import DataRecord
 
 
-# %% Instantiate Object
+_SUPPORTED_TRANSPORT_METHODS = ["WilcockCrowe"]
 
 
 class NetworkSedimentTransporter(Component):
@@ -200,6 +200,7 @@ class NetworkSedimentTransporter(Component):
         if transport_method in _PERMITTED_TRANSPORT_METHODS:
             self.transport_method = transport_method
 
+<<<<<<< HEAD
         else:
             msg = ("NetworkSedimentTransporter: Provided value was bad for transport_method")
             raise ValueError(msg)
@@ -208,6 +209,19 @@ class NetworkSedimentTransporter(Component):
 #            self.update_transport_time = self._calc_transport_wilcock_crowe
 #            #other options would go here
         
+=======
+        if transport_method in _SUPPORTED_TRANSPORT_METHODS:
+            self.transport_method = transport_method
+        else:
+            msg = ""
+            raise ValueError(msg)
+        # self.transport_method makes it a class variable, that can be accessed within any method within this class
+        if self.transport_method == "WilcockCrowe":
+            self.update_transport_time = self._calc_transport_wilcock_crowe
+
+        # save reference to discharge and width fields stored at-link on the
+        # grid
+>>>>>>> ca701044f87a3acebb09ec24f7e2ab5343d2b6bb
         self._width = self._grid.at_link[channel_width]
         if "channel_width" not in self._grid.at_link:
             msg = ("NetworkSedimentTransporter: channel_width must be assigned"
@@ -232,7 +246,7 @@ class NetworkSedimentTransporter(Component):
             self._channel_slope = self._grid.at_link["channel_slope"]
 
     def _update_channel_slopes(self):
-        """text Can be simple-- this is what this does. 'private' functions can 
+        """text Can be simple-- this is what this does. 'private' functions can
         have very simple examples, explanations. Essentially note to yourself"""
         # Katy think this can be vectorized
         for l in range(self._grid.number_of_links):

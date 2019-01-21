@@ -9,30 +9,33 @@ Sinks are tested as part of the lake_mapper.
 # Created on Thurs Nov 12, 2015
 import os
 
+import numpy as np
+import pytest
+from numpy.testing import assert_array_equal
 from six.moves import range
 
-from pytest import approx
-import numpy as np
-from numpy.testing import assert_array_equal
-
-import landlab
-from landlab import RasterModelGrid, RadialModelGrid, FieldError
+from landlab import CLOSED_BOUNDARY, RadialModelGrid, RasterModelGrid
 from landlab.components.flow_routing import FlowRouter
-from landlab import CLOSED_BOUNDARY
-from landlab import BAD_INDEX_VALUE as XX
-
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
+def test_deprecation_raised():
+    mg = RasterModelGrid((10, 10))
+    mg.add_zeros("node", "topographic__elevation")
+    with pytest.deprecated_call():
+        FlowRouter(mg)
+
+
 def test_check_fields(dans_grid1):
     """Check to make sure the right fields have been created."""
-    fr = FlowRouter(dans_grid1.mg)
+    with pytest.deprecated_call():
+        FlowRouter(dans_grid1.mg)
     assert_array_equal(dans_grid1.z, dans_grid1.mg.at_node["topographic__elevation"])
     assert_array_equal(np.zeros(25), dans_grid1.mg.at_node["drainage_area"])
     assert_array_equal(np.ones(25), dans_grid1.mg.at_node["water__unit_flux_in"])
-
-    fr = FlowRouter(dans_grid1.mg, dans_grid1.infile)
+    with pytest.deprecated_call():
+        FlowRouter(dans_grid1.mg, dans_grid1.infile)
     assert_array_equal(np.full(25, 2.), dans_grid1.mg.at_node["water__unit_flux_in"])
 
 
@@ -41,16 +44,19 @@ def test_check_field_input(dans_grid1):
     dans_grid1.mg.add_field(
         "node", "water__unit_flux_in", np.full(25, 3.), units="m**3/s"
     )
-    fr = FlowRouter(dans_grid1.mg)
+    with pytest.deprecated_call():
+        FlowRouter(dans_grid1.mg)
     assert_array_equal(np.full(25, 3.), dans_grid1.mg.at_node["water__unit_flux_in"])
-    fr = FlowRouter(dans_grid1.mg, dans_grid1.infile)
+    with pytest.deprecated_call():
+        FlowRouter(dans_grid1.mg, dans_grid1.infile)
     assert_array_equal(np.full(25, 2.), dans_grid1.mg.at_node["water__unit_flux_in"])
 
 
 def test_accumulate_D8(dans_grid1):
     """Test accumulation works for D8 in a simple scenario."""
-    fr = FlowRouter(dans_grid1.mg)
-    fr.route_flow()
+    with pytest.deprecated_call():
+        fr = FlowRouter(dans_grid1.mg)
+    fr.run_one_step()
     assert_array_equal(dans_grid1.A_target, dans_grid1.mg.at_node["drainage_area"])
     assert_array_equal(
         dans_grid1.frcvr_target, dans_grid1.mg.at_node["flow__receiver_node"]
@@ -75,8 +81,9 @@ def test_variable_Qin(dans_grid1):
     Qin_local = np.zeros(25, dtype=float)
     Qin_local[13] = 2.
     dans_grid1.mg.add_field("node", "water__unit_flux_in", Qin_local, units="m**3/s")
-    fr = FlowRouter(dans_grid1.mg)
-    fr.route_flow()
+    with pytest.deprecated_call():
+        fr = FlowRouter(dans_grid1.mg)
+    fr.run_one_step()
     Qout_local = np.zeros_like(Qin_local)
     Qout_local[10:14] = 200.
     assert_array_equal(Qout_local, dans_grid1.mg.at_node["surface_water__discharge"])
@@ -86,8 +93,9 @@ def test_variable_Qin(dans_grid1):
 
 def test_irreg_topo(dans_grid2):
     """Test D8 routing on a toy irregular topo."""
-    fr = FlowRouter(dans_grid2.mg)
-    fr.route_flow()
+    with pytest.deprecated_call():
+        fr = FlowRouter(dans_grid2.mg)
+    fr.run_one_step()
     assert_array_equal(dans_grid2.A_target_D8, dans_grid2.mg.at_node["drainage_area"])
     assert_array_equal(
         dans_grid2.frcvr_target_D8, dans_grid2.mg.at_node["flow__receiver_node"]
@@ -99,7 +107,7 @@ def test_irreg_topo(dans_grid2):
         dans_grid2.links2rcvr_target_D8,
         dans_grid2.mg.at_node["flow__link_to_receiver_node"],
     )
-    assert dans_grid2.steepest_target_D8 == approx(
+    assert dans_grid2.steepest_target_D8 == pytest.approx(
         dans_grid2.mg.at_node["topographic__steepest_slope"]
     )
 
@@ -109,8 +117,10 @@ def test_irreg_topo_old(dans_grid2):
     Test D4 routing on a toy irregular topo, old style, where 'method' is
     passed to the run method, not the init.
     """
-    fr = FlowRouter(dans_grid2.mg)
-    fr.route_flow(method="D4")
+    with pytest.deprecated_call():
+        fr = FlowRouter(dans_grid2.mg)
+    with pytest.deprecated_call():
+        fr.route_flow(method="D4")
     assert_array_equal(dans_grid2.A_target_D4, dans_grid2.mg.at_node["drainage_area"])
     assert_array_equal(
         dans_grid2.frcvr_target_D4, dans_grid2.mg.at_node["flow__receiver_node"]
@@ -122,15 +132,16 @@ def test_irreg_topo_old(dans_grid2):
         dans_grid2.links2rcvr_target_D4,
         dans_grid2.mg.at_node["flow__link_to_receiver_node"],
     )
-    assert dans_grid2.steepest_target_D4 == approx(
+    assert dans_grid2.steepest_target_D4 == pytest.approx(
         dans_grid2.mg.at_node["topographic__steepest_slope"]
     )
 
 
 def test_irreg_topo_new(dans_grid2):
     """Test D4 routing on a toy irregular topo. 'method' passed to init."""
-    fr = FlowRouter(dans_grid2.mg, method="D4")
-    fr.route_flow()
+    with pytest.deprecated_call():
+        fr = FlowRouter(dans_grid2.mg, method="D4")
+    fr.run_one_step()
     assert_array_equal(dans_grid2.A_target_D4, dans_grid2.mg.at_node["drainage_area"])
     assert_array_equal(
         dans_grid2.frcvr_target_D4, dans_grid2.mg.at_node["flow__receiver_node"]
@@ -142,16 +153,17 @@ def test_irreg_topo_new(dans_grid2):
         dans_grid2.links2rcvr_target_D4,
         dans_grid2.mg.at_node["flow__link_to_receiver_node"],
     )
-    assert dans_grid2.steepest_target_D4 == approx(
+    assert dans_grid2.steepest_target_D4 == pytest.approx(
         dans_grid2.mg.at_node["topographic__steepest_slope"]
     )
 
 
 def test_internal_closed(internal_closed):
     """Test closed nodes in the core of the grid."""
-    fr = FlowRouter(internal_closed.mg)
-    fr.route_flow()
-    assert internal_closed.A_target == approx(
+    with pytest.deprecated_call():
+        fr = FlowRouter(internal_closed.mg)
+    fr.run_one_step()
+    assert internal_closed.A_target == pytest.approx(
         internal_closed.mg.at_node["drainage_area"]
     )
     assert_array_equal(
@@ -161,10 +173,10 @@ def test_internal_closed(internal_closed):
         internal_closed.links2rcvr_target,
         internal_closed.mg.at_node["flow__link_to_receiver_node"],
     )
-    assert internal_closed.A_target == approx(
+    assert internal_closed.A_target == pytest.approx(
         internal_closed.mg.at_node["surface_water__discharge"]
     )
-    assert internal_closed.steepest_target == approx(
+    assert internal_closed.steepest_target == pytest.approx(
         internal_closed.mg.at_node["topographic__steepest_slope"]
     )
 
@@ -183,7 +195,8 @@ def test_voronoi():
     # z[:7] = np.array(inner_elevs)
     z[vmg.core_nodes] = np.array(inner_elevs)
     vmg.add_field("node", "topographic__elevation", z, units="-")
-    fr = FlowRouter(vmg)
+    with pytest.deprecated_call():
+        fr = FlowRouter(vmg)
 
     #    nodes_contributing = [np.array([0, 3, 4, 5]),
     #                          np.array([0, 1, 2, 3, 4, 5, 6]),
@@ -210,10 +223,9 @@ def test_voronoi():
     for i in range(7):
         A_target_core[i] = vmg.area_of_cell[cells_contributing[i]].sum()
     A_target_outlet = vmg.area_of_cell.sum()
-
-    fr.route_flow()
-    assert vmg.at_node["drainage_area"][vmg.core_nodes] == approx(A_target_core)
-    assert vmg.at_node["drainage_area"][12] == approx(A_target_outlet)
+    fr.run_one_step()
+    assert vmg.at_node["drainage_area"][vmg.core_nodes] == pytest.approx(A_target_core)
+    assert vmg.at_node["drainage_area"][12] == pytest.approx(A_target_outlet)
 
 
 def test_voronoi_closedinternal():
@@ -227,7 +239,8 @@ def test_voronoi_closedinternal():
     inner_elevs = (8., 7., 1., 6., 4., 5.)
     z[vmg.core_nodes] = np.array(inner_elevs)
     vmg.add_field("node", "topographic__elevation", z, units="-")
-    fr = FlowRouter(vmg)
+    with pytest.deprecated_call():
+        fr = FlowRouter(vmg)
 
     cells_contributing = [
         np.array([0]),
@@ -242,7 +255,9 @@ def test_voronoi_closedinternal():
     for i in range(6):
         A_target_internal[i] = vmg.area_of_cell[cells_contributing[i]].sum()
     A_target_outlet = vmg.area_of_cell[vmg.cell_at_node[vmg.core_nodes]].sum()
-    fr.route_flow()
+    fr.run_one_step()
 
-    assert vmg.at_node["drainage_area"][vmg.core_nodes] == approx(A_target_internal)
-    assert vmg.at_node["drainage_area"][12] == approx(A_target_outlet)
+    assert vmg.at_node["drainage_area"][vmg.core_nodes] == pytest.approx(
+        A_target_internal
+    )
+    assert vmg.at_node["drainage_area"][12] == pytest.approx(A_target_outlet)

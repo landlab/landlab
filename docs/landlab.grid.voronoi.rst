@@ -58,8 +58,10 @@ Information about nodes
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_adjacent_nodes_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_link_dirs_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_neighbors_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.adjacent_nodes_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.all_node_azimuths_map
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.all_node_distances_map
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.boundary_nodes
@@ -85,6 +87,7 @@ Information about nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_x
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_y
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links_at_node
@@ -100,6 +103,7 @@ Information about nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_sum_ycomponent_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.upwind_links_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.xy_of_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_node
 
 Information about links
@@ -124,6 +128,7 @@ Information about links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_head
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_tail
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links
@@ -134,8 +139,8 @@ Information about links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_active_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_xcomponent_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_ycomponent_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.upwind_links_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_link
@@ -359,6 +364,7 @@ defined at other grid elements automatically.
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_adjacent_nodes_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_faces
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_neighbors_at_node

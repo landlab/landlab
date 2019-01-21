@@ -31,5 +31,5 @@ def test_with_dups():
     assert list(inds) == [0, 1, 2]
 
     (vals, inds) = counts[1]
-    assert list(vals) == [20, ]
-    assert list(inds) == [3, ]
+    assert list(vals) == [20]
+    assert list(inds) == [3]

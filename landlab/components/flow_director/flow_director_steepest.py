@@ -9,12 +9,16 @@ in that it does not consider diagonal links between nodes. For that capability,
 use FlowDirectorD8.
 """
 
-from landlab.components.flow_director.flow_director_to_one import(
-_FlowDirectorToOne)
+import numpy as np
+
+from landlab import (
+    BAD_INDEX_VALUE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+    VoronoiDelaunayGrid,
+)
 from landlab.components.flow_director import flow_direction_DN
-from landlab import VoronoiDelaunayGrid
-from landlab import BAD_INDEX_VALUE, FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
-import numpy
+from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
 
 class FlowDirectorSteepest(_FlowDirectorToOne):
@@ -37,7 +41,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
        *'flow__link_to_receiver_node'*
     -  Boolean node array of all local lows: *'flow__sink_flag'*
     -  Link array identifing if flow goes with (1) or against (-1) the link
-       direction: *'flow__link_direction'*
+       direction: *'flow_link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -50,11 +54,13 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorSteepest
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + mg.node_y,
-    ...                  at = 'node')
+    >>> _ = mg.add_field(
+    ...     'topographic__elevation',
+    ...     mg.node_x + mg.node_y,
+    ...     at = 'node'
+    ... )
     >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
@@ -67,15 +73,17 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     array([-1, -1, -1, -1,  3, -1, -1, -1, -1])
     >>> mg.at_node['flow__sink_flag']
     array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=int8)
-    >>> mg_2 = RasterModelGrid((5, 4), spacing=(1, 1))
+    >>> mg_2 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
     ...                                    0., 21., 10., 0.,
     ...                                    0., 31., 20., 0.,
     ...                                    0., 32., 30., 0.,
     ...                                    0.,  0.,  0., 0.])
-    >>> _ = mg_2.add_field('node',
-    ...                    'topographic__elevation',
-    ...                    topographic__elevation)
+    >>> _ = mg_2.add_field(
+    ...     'node',
+    ...     'topographic__elevation',
+    ...     topographic__elevation
+    ... )
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fd_2 = FlowDirectorSteepest(mg_2)
     >>> fd_2.run_one_step()
@@ -86,25 +94,25 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
            12, 14, 10, 15,
            16, 17, 18, 19])
 
-    And the at-link field ``'flow__link_direction'`` indicates if the flow along
+    And the at-link field ``'flow_link_direction'`` indicates if the flow along
     the link is with or against the direction indicated by ``'link_dirs_at_node'``
     (from tail node to head node).
 
-    >>> mg_2.at_link['flow__link_direction']
+    >>> mg_2.at_link['flow_link_direction']
     array([ 0,  0,  0,  0, -1, -1,  0,  0,  0,  0,  0,  0, -1,  0,  0,  1,  0,
-        0,  0, -1,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0])
+        0,  0, -1,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0], dtype=int8)
 
     This indicates that flow on links 4, 5, 12, and 19 goes against the
     topologic ordering -- that is that flow goes from head node to tail node --
     and that flow goes with the topologic ordering on links 15 and 22. All other
     links have no flow on them.
 
-    The FlowDirectorSteepest attribute ``flow__link_direction_at_node`` indicates
+    The FlowDirectorSteepest attribute ``flow_link_direction_at_node`` indicates
     the link flow direction (with or against topology directions) for all links
     at node. The ordering of links at node mirrors the grid attribute
     ``links_at_node``.
 
-    >>> fd_2.flow__link_direction_at_node
+    >>> fd_2.flow_link_direction_at_node()
     array([[ 0,  0,  0,  0],
            [ 0, -1,  0,  0],
            [ 0, -1,  0,  0],
@@ -124,7 +132,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
            [ 0,  0,  0,  0],
            [ 0,  0,  0,  0],
            [ 0,  0,  0,  0],
-           [ 0,  0,  0,  0]])
+           [ 0,  0,  0,  0]], dtype=int8)
 
     For example, this indicates that node 10 has flow going along three links
     that are attached to it. The link to the East has no flow, the link to the
@@ -133,11 +141,11 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     flow going against the topologic direction.
 
     In many use cases, one might want to know which links are bringing flow into
-    or out of the node. The flow director attribute ``flow__link_incoming_at_node``
+    or out of the node. The flow director attribute ``flow_link_incoming_at_node``
     provides this information. Here -1 means that flow is outgoing from the node
     and 1 means it is incoming.
 
-    >>> fd_2.flow__link_incoming_at_node
+    >>> fd_2.flow_link_incoming_at_node()
     array([[ 0,  0,  0,  0],
            [ 0,  1,  0,  0],
            [ 0,  1,  0,  0],
@@ -157,12 +165,12 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
            [ 0,  0,  0,  0],
            [ 0,  0,  0,  0],
            [ 0,  0,  0,  0],
-           [ 0,  0,  0,  0]])
+           [ 0,  0,  0,  0]], dtype=int8)
 
     So if one wanted to identify the source nodes at node, you would do the
     following:
 
-    >>> np.where(fd_2.flow__link_incoming_at_node == 1, mg_2.adjacent_nodes_at_node, -1)
+    >>> np.where(fd_2.flow_link_incoming_at_node() == 1, mg_2.adjacent_nodes_at_node, -1)
     array([[-1, -1, -1, -1],
            [-1,  5, -1, -1],
            [-1,  6, -1, -1],
@@ -197,16 +205,18 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     >>> from landlab import HexModelGrid
     >>> mg = HexModelGrid(5,3)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + np.round(mg.node_y),
-    ...                  at = 'node')
+    >>> _ = mg.add_field(
+    ...     'topographic__elevation',
+    ...     mg.node_x + np.round(mg.node_y),
+    ...     at = 'node'
+    ... )
     >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
     >>> fd.surface_values
-    array([ 0. ,  1. ,  2. ,
-        0.5,  1.5,  2.5,  3.5,
-      1. ,  2. ,  3. ,  4. , 5. ,
-        2.5,  3.5,  4.5,  5.5,
-            3. ,  4. ,  5. ])
+    array([ 1. ,  2. ,  3. ,
+        1.5,  2.5,  3.5,  4.5,
+      2. ,  3. ,  4. ,  5. ,  6. ,
+        3.5,  4.5,  5.5,  6.5,
+            4. ,  5. ,  6. ])
     >>> fd.run_one_step()
     >>> mg.at_node['flow__receiver_node']
     array([ 0,  1,  2,
@@ -241,9 +251,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
           16, 17, 18])
     """
 
-    _name = 'FlowDirectorSteepest'
+    _name = "FlowDirectorSteepest"
 
-    def __init__(self, grid, surface='topographic__elevation'):
+    def __init__(self, grid, surface="topographic__elevation"):
         """
         Parameters
         ----------
@@ -253,34 +263,36 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             The surface to direct flow across, default is field at node:
             topographic__elevation,.
         """
-        self.method = 'D4'
+        self.method = "D4"
         super(FlowDirectorSteepest, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
 
-        # create a : 'flow__link_direction' field if it does not exist yest
-        if 'flow__link_direction' not in self._grid.at_link:
-            self._flow__link_direction = grid.add_field('flow__link_direction',
-                                                        grid.zeros(at='link', dtype=int),
-                                                        at='link', dtype=int)
+        # create a : 'flow_link_direction' field if it does not exist yest
+        if "flow_link_direction" not in self._grid.at_link:
+            self._flow_link_direction = grid.add_field(
+                "flow_link_direction",
+                grid.zeros(at="link", dtype=np.int8),
+                at="link",
+                dtype=int,
+            )
         else:
-            self._flow__link_direction = grid.at_link['flow__link_direction']
+            self._flow_link_direction = grid.at_link["flow_link_direction"]
 
         self.updated_boundary_conditions()
 
     def updated_boundary_conditions(self):
-        """
-        Method to update FlowDirectorSteepest when boundary conditions change.
+        """Method to update FlowDirectorSteepest when boundary conditions
+        change.
 
-        Call this if boundary conditions on the grid are updated after the
-        component is instantiated.
+        Call this if boundary conditions on the grid are updated after
+        the component is instantiated.
         """
         self._active_links = self.grid.active_links
         self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
         self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
     def run_one_step(self):
-        """
-        Find flow directions and save to the model grid.
+        """Find flow directions and save to the model grid.
 
         run_one_step() checks for updated boundary conditions, calculates
         slopes on links, finds baselevel nodes based on the status at node,
@@ -292,8 +304,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self.direct_flow()
 
     def direct_flow(self):
-        """
-        Find flow directions, save to the model grid, and return receivers.
+        """Find flow directions, save to the model grid, and return receivers.
 
         direct_flow() checks for updated boundary conditions, calculates
         slopes on links, finds baselevel nodes based on the status at node,
@@ -306,40 +317,40 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         is stored in the grid at:
         grid['node']['flow__receiver_node']
         """
-        # step 0. Check and update BCs
-        if self._bc_set_code != self.grid.bc_set_code:
-            self.updated_boundary_conditions()
-            self._bc_set_code = self.grid.bc_set_code
+        self._check_updated_bc()
 
         # update the surface, if it was provided as a model grid field.
         self._changed_surface()
 
-        # step 1. Calculate link slopes.
-        link_slope = - self._grid.calc_grad_of_active_link(
-                self.surface_values)
+        # step 1. Calculate link slopes at active links only.
+        all_grads = -self._grid.calc_grad_at_link(self.surface_values)
+        link_slope = all_grads[self._grid.active_links]
 
         # Step 2. Find and save base level nodes.
-        (baselevel_nodes, ) = numpy.where(
-            numpy.logical_or(self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                             self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY))
+        (baselevel_nodes,) = np.where(
+            np.logical_or(
+                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
+                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+            )
+        )
 
         # Calculate flow directions
-        receiver, steepest_slope, sink, recvr_link = \
-        flow_direction_DN.flow_directions(self.surface_values,
-                                          self._active_links,
-                                          self._activelink_tail,
-                                          self._activelink_head,
-                                          link_slope,
-                                          grid=self._grid,
-                                          baselevel_nodes=baselevel_nodes)
+        receiver, steepest_slope, sink, recvr_link = flow_direction_DN.flow_directions(
+            self.surface_values,
+            self._active_links,
+            self._activelink_tail,
+            self._activelink_head,
+            link_slope,
+            grid=self._grid,
+            baselevel_nodes=baselevel_nodes,
+        )
 
         # Save the four ouputs of this component.
-        self._grid['node']['flow__receiver_node'][:] = receiver
-        self._grid['node']['topographic__steepest_slope'][:] = steepest_slope
-        self._grid['node']['flow__link_to_receiver_node'][:] = recvr_link
-        self._grid['node']['flow__sink_flag'][:] = numpy.zeros_like(receiver,
-                                                                    dtype=bool)
-        self._grid['node']['flow__sink_flag'][sink] = True
+        self._grid["node"]["flow__receiver_node"][:] = receiver
+        self._grid["node"]["topographic__steepest_slope"][:] = steepest_slope
+        self._grid["node"]["flow__link_to_receiver_node"][:] = recvr_link
+        self._grid["node"]["flow__sink_flag"][:] = np.zeros_like(receiver, dtype=bool)
+        self._grid["node"]["flow__sink_flag"][sink] = True
 
         # determine link directions
         self._determine_link_directions()
@@ -347,28 +358,15 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         return receiver
 
     def _determine_link_directions(self):
-        """Determine link directions and set flow__link_direction field.
+        """Determine link directions and set flow_link_direction field.
 
         This routine is slightly different between the route-to-one and
         route-to-many methods.
 
-        An additional issue may be if this also needs to be updated by
-        depression finding.
+        It works when DepressionFinderAndRouter is run.
         """
         # start by re-setting all links to zero.
-        self._flow__link_direction[:] = 0
-
-        # grid.link_dirs_at_node: 0 = NA, -1 = out of (this node is HEAD)
-        # -1 = into (this node is TAIL)
-
-        # grid.links_at_node = Link ID at node
-
-        # grid.node_at_link_head = node ID at link HEAD
-        # grid.node_at_link_tail = node ID at link tail
-
-        # links that are used are in `flow__link_to_receiver_node`.
-        # if `flow__link_to_receiver_node` is leading to the link HEAD node,
-        # then -1, otherwise 1 (double check this is not the reverse).
+        self._flow_link_direction[:] = 0
 
         # identify where flow is active on links
         is_active_flow_link = self.links_to_receiver != BAD_INDEX_VALUE
@@ -377,54 +375,313 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         active_flow_links = self.links_to_receiver[is_active_flow_link]
 
         # for each of those links, the position is the upstream node
-        upstream_node_of_active_flow_link = numpy.where(is_active_flow_link)[0]
+        upstream_node_of_active_flow_link = np.where(is_active_flow_link)[0]
 
         # get the head node
         head_node_at_active_flow_link = self._grid.node_at_link_head[active_flow_links]
 
         # if head node is upstream node = -1, else 1
-        self._flow__link_direction[active_flow_links[head_node_at_active_flow_link == upstream_node_of_active_flow_link]] = -1
-        self._flow__link_direction[active_flow_links[head_node_at_active_flow_link != upstream_node_of_active_flow_link]] = 1
+        self._flow_link_direction[
+            active_flow_links[
+                head_node_at_active_flow_link == upstream_node_of_active_flow_link
+            ]
+        ] = -1
+        self._flow_link_direction[
+            active_flow_links[
+                head_node_at_active_flow_link != upstream_node_of_active_flow_link
+            ]
+        ] = 1
 
-    @property
-    def flow__link_direction_at_node(self):
-        """Return array that mirrors links at node that indicates flow direction."""
-        flow__link_direction_at_node = self.flow__link_direction[self._grid.links_at_node]
-        flow__link_direction_at_node[self._grid.links_at_node == -1] = 0
-        return flow__link_direction_at_node
+    def flow_link_direction_at_node(self):
+        """Return array of flow link direction at node.
 
+        This property mirrors links_at_node and indicates the relationship
+        between the flow direction (determined based on the elevation of nodes)
+        and the topologic link direction (in which the head and tail nodes are
+        defined based on relative position in x-y space).
 
-    @property
-    def flow__link_incoming_at_node(self):
-        """Return array that mirrors links at node and indicates if flow is
-        incoming (1) or outgoing (-1)."""
-        incoming_at_node = (self.flow__link_direction_at_node *
-                            self._grid.link_dirs_at_node)
+        It has the shape (number of nodes, maximum number of links at node).
+
+        Recall that the standard landlab link direction goes from the tail node
+        to the head node.
+
+        A value of zero indicates that the link does not exist or is not
+        active.
+
+        A value of -1 indicates that water flow based on
+        ``flow__link_to_receiver_node`` goes from head node to tail node, while
+        a value of 1 indicates that water flow goes from tail node to head
+        node.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowDirectorSteepest
+        >>> mg = RasterModelGrid((3,3))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field(
+        ...     'topographic__elevation',
+        ...     mg.node_x + mg.node_y,
+        ...     at = 'node'
+        ... )
+        >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
+        >>> fd.run_one_step()
+        >>> fd.flow_link_direction_at_node()
+        array([[ 0,  0,  0,  0],
+               [ 0, -1,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0]], dtype=int8)
+
+        This method will be updated when the DepressionFinderAndRouter is run.
+
+        First, without DepressionFinderAndRouter:
+
+        >>> from landlab.components import FlowAccumulator
+        >>> mg1 = RasterModelGrid((5, 5))
+        >>> z1 = mg1.add_field(
+        ...      'node',
+        ...      'topographic__elevation',
+        ...      mg1.x_of_node+2 * mg1.y_of_node
+        ... )
+        >>> z1[12] -= 5
+        >>> mg1.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> fa1 = FlowAccumulator(mg1, flow_director='Steepest')
+        >>> fa1.run_one_step()
+        >>> fa1.flow_director.links_to_receiver
+        array([-1, -1, -1, -1, -1,
+               -1,  5, 15,  7, -1,
+               -1, 19, -1, 20, -1,
+               -1, 23, 24, 25, -1,
+               -1, -1, -1, -1, -1])
+        >>> fa1.flow_director.flow_link_direction_at_node()
+        array([[ 0,  0,  0,  0],
+               [ 0, -1,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0, -1,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0, -1],
+               [ 0,  1,  0,  0],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 1, -1,  0,  0],
+               [-1, -1,  1,  1],
+               [ 0, -1, -1,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0]], dtype=int8)
+
+        Next with DepressionFinderAndRouter:
+
+        >>> mg2 = RasterModelGrid((5, 5))
+        >>> z2 = mg2.add_field(
+        ...      'node',
+        ...      'topographic__elevation',
+        ...      mg2.x_of_node+2 * mg2.y_of_node
+        ... )
+        >>> z2[12] -= 5
+        >>> mg2.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> fa2 = FlowAccumulator(
+        ...       mg2,
+        ...       flow_director='Steepest',
+        ...       depression_finder='DepressionFinderAndRouter',
+        ...       routing='D4'
+        ... )
+        >>> fa2.run_one_step()
+        >>> fa2.flow_director.links_to_receiver
+        array([-1, -1, -1, -1, -1,
+               -1,  5,  6,  7, -1,
+               -1, 19, 15, 20, -1,
+               -1, 23, 24, 25, -1,
+               -1, -1, -1, -1, -1])
+        >>> fa2.flow_director.flow_link_direction_at_node()
+        array([[ 0,  0,  0,  0],
+               [ 0, -1,  0,  0],
+               [ 0, -1,  0,  0],
+               [ 0, -1,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0, -1],
+               [ 0, -1,  0, -1],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 1, -1,  0,  0],
+               [-1, -1,  1, -1],
+               [ 0, -1, -1,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0]], dtype=int8)
+        """
+        flow_link_direction_at_node = self.flow_link_direction[self._grid.links_at_node]
+        flow_to_bad = self._grid.links_at_node == BAD_INDEX_VALUE
+        flow_link_direction_at_node[flow_to_bad] = 0
+
+        return flow_link_direction_at_node
+
+    def flow_link_incoming_at_node(self):
+        """Return array that mirrors links at node and indicates incoming flow.
+
+        This array has the shape
+        (number of nodes, maximum number of links at node).
+
+        Incoming flow is indicated as 1 and outgoing as -1. 0 indicates
+        that no flow moves along the link or that the link does not exist.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowDirectorSteepest
+        >>> mg = RasterModelGrid((3,3))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field(
+        ...     'topographic__elevation',
+        ...     mg.node_x + mg.node_y,
+        ...     at = 'node'
+        ... )
+        >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
+        >>> fd.run_one_step()
+        >>> fd.flow_link_incoming_at_node()
+        array([[ 0,  0,  0,  0],
+               [ 0,  1,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0, -1],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0],
+               [ 0,  0,  0,  0]], dtype=int8)
+        """
+
+        incoming_at_node = (
+            self.flow_link_direction_at_node() * self._grid.link_dirs_at_node
+        )
         return incoming_at_node
 
-    # Number of Link (or number of D8)
     @property
-    def flow__link_direction(self):
-        """Return the array indicating if flow is going with or against link direction."""
-        return self._flow__link_direction
+    def flow_link_direction(self):
+        """Return array of flow link direction.
 
-    @property
+        This property indicates the relationship between the flow direction
+        (determined based on the elevation of nodes) and the topologic link
+        direction (in which the head and tail nodes are defined based on
+        relative position in x-y space).
+
+        It has the shape (number_of_links,).
+
+        Recall that the standard landlab link direction goes from the tail node
+        to the head node.
+
+        A value of zero indicates that the link does not exist or is not
+        active.
+
+        A value of -1 indicates that water flow based on
+        ``flow__link_to_receiver_node`` goes from head node to tail node, while
+        a value of 1 indicates that water flow goes from tail node to head
+        node.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowDirectorSteepest
+        >>> mg = RasterModelGrid((3,3))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field(
+        ...     'topographic__elevation',
+        ...     mg.node_x + mg.node_y,
+        ...     at = 'node'
+        ... )
+        >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
+        >>> fd.run_one_step()
+        >>> fd.flow_link_direction
+        array([ 0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0], dtype=int8)
+        """
+        return self._flow_link_direction
+
     def upstream_node_at_link(self):
-        """At-link array of the upstream node"""
-        out = -1 * self._grid.ones(at='link', dtype=int)
-        out[self._flow__link_direction == 1] = self._grid.node_at_link_tail[self._flow__link_direction == 1]
-        out[self._flow__link_direction == -1] = self._grid.node_at_link_head[self._flow__link_direction == -1]
+        """At-link array of the upstream node based on flow direction.
+
+        BAD_INDEX_VALUE is given if no upstream node is defined.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowDirectorSteepest
+        >>> mg = RasterModelGrid((3,3))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field(
+        ...     'topographic__elevation',
+        ...     mg.node_x + mg.node_y,
+        ...     at = 'node'
+        ... )
+        >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
+        >>> fd.run_one_step()
+        >>> fd.upstream_node_at_link()
+        array([-1, -1, -1,  4, -1, -1, -1, -1, -1, -1, -1, -1])
+        """
+        out = -1 * self._grid.ones(at="link", dtype=int)
+        out[self._flow_link_direction == 1] = self._grid.node_at_link_tail[
+            self._flow_link_direction == 1
+        ]
+        out[self._flow_link_direction == -1] = self._grid.node_at_link_head[
+            self._flow_link_direction == -1
+        ]
         return out
 
-    @property
     def downstream_node_at_link(self):
-        """At-link array of the downstream node"""
-        out = -1 * self._grid.ones(at='link', dtype=int)
-        out[self._flow__link_direction == 1] = self._grid.node_at_link_head[self._flow__link_direction == 1]
-        out[self._flow__link_direction == -1] = self._grid.node_at_link_tail[self._flow__link_direction == -1]
+        """At-link array of the downstream node based on flow direction.
+
+        BAD_INDEX_VALUE is given if no downstream node is defined.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowDirectorSteepest
+        >>> mg = RasterModelGrid((3,3))
+        >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+        >>> _ = mg.add_field(
+        ...     'topographic__elevation',
+        ...     mg.node_x + mg.node_y,
+        ...     at = 'node'
+        ... )
+        >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
+        >>> fd.run_one_step()
+        >>> fd.downstream_node_at_link()
+        array([-1, -1, -1,  1, -1, -1, -1, -1, -1, -1, -1, -1])
+        """
+        out = -1 * self._grid.ones(at="link", dtype=int)
+        out[self._flow_link_direction == 1] = self._grid.node_at_link_head[
+            self._flow_link_direction == 1
+        ]
+        out[self._flow_link_direction == -1] = self._grid.node_at_link_tail[
+            self._flow_link_direction == -1
+        ]
         return out
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":  # pragma: no cover
     import doctest
+
     doctest.testmod()
