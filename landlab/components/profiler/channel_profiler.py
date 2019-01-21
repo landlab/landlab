@@ -281,12 +281,18 @@ class ChannelProfiler(_NetworkProfiler):
             # if only adding the biggest channel, continue upstream choosing the
             # largest node until no more nodes remain.
             if self._main_channel_only:
-                max_drainage = np.argmax(self._stopping_field[supplying_nodes])
-                if self._stopping_field[supplying_nodes[max_drainage]] < self.threshold:
+                try:
+                    max_drainage = np.argmax(self._stopping_field[supplying_nodes])
+                
+                    if self._stopping_field[supplying_nodes[max_drainage]] < self.threshold:
+                        nodes_to_process = []
+                        channel_upstream = False
+                    else:
+                        j = supplying_nodes[max_drainage]
+                        
+                except ValueError:
                     nodes_to_process = []
                     channel_upstream = False
-                else:
-                    j = supplying_nodes[max_drainage]
 
             # if considering multiple channel segments, continue upstream until
             # there are two or more donors with sufficient discharge, then break,
