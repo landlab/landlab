@@ -171,3 +171,4 @@ for t in range(timesteps):
     
     # Run our component
    nst.run_one_step(dt)
+   print ('t = ', t)

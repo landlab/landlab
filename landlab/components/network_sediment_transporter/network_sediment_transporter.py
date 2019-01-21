@@ -18,6 +18,9 @@ import numpy as np
 # %% Import Libraries
 from landlab import BAD_INDEX_VALUE, Component
 from landlab.utils.decorators import use_file_name_or_kwds
+from landlab.grid.network import NetworkModelGrid
+from landlab.data_record import DataRecord
+
 
 # %% Instantiate Object
 
@@ -140,8 +143,20 @@ class NetworkSedimentTransporter(Component):
         and more here...
         """
         super(NetworkSedimentTransporter, self).__init__(grid, **kwds)
+        
         self._grid = grid
+        
+        if  not isinstance(grid, NetworkModelGrid):
+            msg = ("NetowrkSedimentTransporter: grid must be NetworkModelGrid")
+            raise (ValueError, msg)
+        
         self._parcels = parcels
+        
+        if not isinstance(parcels, DataRecord):
+            msg = ("NetworkSedimentTransporter: parcels must be an instance"
+                   "of DataRecord")
+            raise (ValueError, msg)
+            
         self._num_parcels = self._parcels["element_id"].size
 
         # assert that the flow director is a component and is of type
@@ -165,23 +180,49 @@ class NetworkSedimentTransporter(Component):
         self.fd = flow_director
         self.flow_depth = flow_depth
         self.bed_porosity = bed_porosity
+        
+        if not 0<= self.bed_porosity <1:
+            msg = ("NetworkSedimentTransporter: bed_porosity must be"
+                   "between 0 and 1")
+            raise (ValueError,msg)
+            
         self.active_layer_thickness = active_layer_thickness
 
         # NOTE: variable active_layer_thickness Wong et al 2007
         # "a predictor for active layer thickness that increases with both grain size and Shields number, i.e., equations (50), (17), (18), and (23);
-
+    
         self.g = g
         self.fluid_density = fluid_density
+        
+        # TEST for valid transport method entry
+        _PERMITTED_TRANSPORT_METHODS = ["WilcockCrowe"]
+        
+        if transport_method in _PERMITTED_TRANSPORT_METHODS:
+            self.transport_method = transport_method
 
-        self.transport_method = (
-            transport_method
-        )  # self.transport_method makes it a class variable, that can be accessed within any method within this class
-        if self.transport_method == "WilcockCrowe":
-            self.update_transport_time = self._calc_transport_wilcock_crowe
-
-        # save reference to discharge and width fields stored at-link on the
-        # grid
+        else:
+            msg = ("NetworkSedimentTransporter: Provided value was bad for transport_method")
+            raise ValueError(msg)
+            
+#        if self.transport_method == ["WilcockCrowe"]            
+#            self.update_transport_time = self._calc_transport_wilcock_crowe
+#            #other options would go here
+        
         self._width = self._grid.at_link[channel_width]
+        if "channel_width" not in self._grid.at_link:
+            msg = ("NetworkSedimentTransporter: channel_width must be assigned"
+                   "to the grid links")
+            raise ValueError(msg)
+
+        if "link_length" not in self._grid.at_link:
+            msg = ("NetworkSedimentTransporter: link_length must be assigned"
+                   "to the grid links")
+            raise ValueError(msg)
+            
+        if "drainage_area" not in self._grid.at_link:
+            msg = ("NetworkSedimentTransporter: channel_width must be assigned"
+                   "to the grid links")
+            raise ValueError(msg)
 
         # create field for channel slope if it doesnt exist yet.
         if "channel_slope" not in self._grid.at_link:
