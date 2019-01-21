@@ -56,8 +56,7 @@ class ChiFinder(Component):
     >>> cf2 = ChiFinder(
     ...     mg2,
     ...     min_drainage_area=0.,
-    ...     reference_concavity=0.5,
-    ...     reference_area=1.0)
+    ...     reference_concavity=0.5)
     >>> for i in range(10):
     ...     mg2.at_node['topographic__elevation'][mg2.core_nodes] += 10.
     ...     fr2.run_one_step()
@@ -147,7 +146,7 @@ class ChiFinder(Component):
         grid,
         reference_concavity=0.5,
         min_drainage_area=1.e6,
-        reference_area=None,
+        reference_area=1.0,
         use_true_dx=False,
         **kwds
     ):
@@ -199,9 +198,6 @@ class ChiFinder(Component):
 
     def _set_up_reference_area(self, reference_area):
         """Set up and validate reference_area"""
-        reference_area = reference_area or float(
-            self.grid.cell_area_at_node[self.grid.core_nodes].mean()
-        )
         if reference_area <= 0.0:
             raise ValueError(
                 "ChiFinder: reference_area must be positive."
