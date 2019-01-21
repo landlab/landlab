@@ -5,7 +5,7 @@
 import numpy as np
 from six.moves import range
 
-from landlab import RasterModelGrid
+from landlab import RasterModelGrid, HexModelGrid
 from landlab.components.profiler.base_profiler import _NetworkProfiler
 
 
@@ -193,12 +193,26 @@ class ChannelProfiler(_NetworkProfiler):
                 msg = "Length of starting_nodes must equal the number_of_watersheds!"
                 raise ValueError(msg)
         else:
-            starting_nodes = grid.boundary_nodes[
-                np.argsort(self._drainage_area[grid.boundary_nodes])[
-                    -number_of_watersheds:
+            if isinstance(grid, (RasterModelGrid, HexModelGrid)):
+                starting_nodes = grid.boundary_nodes[
+                    np.argsort(self._drainage_area[grid.boundary_nodes])[
+                        -number_of_watersheds:
+                    ]
                 ]
-            ]
-
+            else:
+                core_not_boundary = np.array(grid.node_has_boundary_neighbor(grid.nodes))
+                boundaries = np.zeros(grid.size("node"), dtype=bool)
+                boundaries[core_not_boundary==False] = True
+                boundaries[grid.boundary_nodes] = True
+                
+                bnodes = np.where(boundaries)[0]
+                
+                starting_nodes = bnodes[
+                    np.argsort(self._drainage_area[bnodes])[
+                        -number_of_watersheds:
+                    ]
+                ]
+                        
         starting_da = self._stopping_field[starting_nodes]
         if np.any(starting_da < self.threshold):
             msg = (
