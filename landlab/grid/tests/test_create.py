@@ -8,6 +8,25 @@ from landlab import create_grid
 
 _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
+SIMPLE_PARAMS_STR = """
+grid:
+  RasterModelGrid:
+    - [4, 5]
+    - xy_spacing: [3, 4]
+fields:
+  at_node:
+    topographic__elevation:
+      plane:
+        - point: [1, 1, 1]
+          normal: [-2, -1, 1]
+boundary_conditions:
+  - set_closed_boundaries_at_grid_edges:
+    - True
+    - True
+    - True
+    - True
+"""
+
 
 def test_no_grid_value():
     dict_like = {"foo": "bar"}
@@ -47,8 +66,13 @@ def test_bad_field_function():
         create_grid(dict_like)
 
 
-def test_simple_create():
-    filename = os.path.join(_TEST_DATA_DIR, "simple_create.yaml")
+def test_simple_create(tmpdir):
+    """Load parameters from YAML-formatted file."""
+
+    with open("params.yaml", "w") as fp:
+        fp.write(SIMPLE_PARAMS_STR)
+
+    filename = os.path.join("./params.yaml")
     mg = create_grid(filename)
 
     assert mg.number_of_nodes == 20
