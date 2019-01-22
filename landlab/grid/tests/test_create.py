@@ -68,12 +68,11 @@ def test_bad_field_function():
 
 def test_simple_create(tmpdir):
     """Load parameters from YAML-formatted file."""
+    with tmpdir.as_cwd():
+        with open("params.yaml", "w") as fp:
+            fp.write(SIMPLE_PARAMS_STR)
 
-    with open("params.yaml", "w") as fp:
-        fp.write(SIMPLE_PARAMS_STR)
-
-    filename = os.path.join("./params.yaml")
-    mg = create_grid(filename)
+        mg = create_grid("./params.yaml")
 
     assert mg.number_of_nodes == 20
     assert "topographic__elevation" in mg.at_node
