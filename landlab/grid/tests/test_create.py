@@ -39,7 +39,9 @@ def test_bad_field_location():
 def test_bad_field_function():
     dict_like = {
         "grid": {"RasterModelGrid": [(4, 5)]},
-        "fields": {"at_node": {"new_field_name": {"not_a_function": ["bar", "spam"]}}},
+        "fields": {"at_node": {"new_field_name": {"not_a_function": ["bar",
+                                                                     "spam"]
+                                                  }}},
     }
     with pytest.raises(ValueError):
         create_grid(dict_like)
