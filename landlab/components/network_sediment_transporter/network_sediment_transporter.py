@@ -469,27 +469,11 @@ class NetworkSedimentTransporter(Component):
         taur = taursg * (Darray / d_mean_active) ** b
         tautaur = tau / taur
         tautaur_cplx = tautaur.astype(np.complex128)
-        # ^ work around needed b/c np fails with non-integer powers of negative numbers
-        W = 14 * np.power((1 - (0.894 / np.sqrt(tautaur_cplx))), 4.5)
-        W[tautaur_cplx < 1.35] = 0.002 * np.power(tautaur[tautaur_cplx < 1.35], 7.5)
+        # ^ work around needed b/c np fails with non-integer powers of negative numbers      
+        W = 0.002 * np.power(tautaur_cplx.real, 7.5)
+        W[tautaur >= 1.35] = 14 * np.power((1 - (0.894 / np.sqrt(tautaur_cplx.real[tautaur >=1.35]))), 4.5)
         W = W.real
-
-        # TEMPORARY variable testing
-        print("Larray type", type(Larray))
-        print("W type", type(W))
-
-        print("R  shape ", np.shape(R[Activearray == 1]))
-        print("Larray shape", np.shape(Larray[Activearray == 1]))
-        print("W shape", np.shape(W[Activearray == 1]))
-        print("1-frac_sand shape", np.shape(1 - frac_sand_array[Activearray == 1]))
-        print("frac_parcel", np.shape(frac_parcel[Activearray == 1]))
-        print("tau", np.shape(tau[Activearray == 1]))
-        print("Activearray", Activearray)
-
-        print(
-            "slf.Ttime activearray ==1 shape",
-            np.shape(self.Ttimearray[Activearray == 1]),
-        )
+    
 
         # assign travel times only for active parcels
         self.Ttimearray[Activearray == 1] = (

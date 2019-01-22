@@ -33,7 +33,6 @@ grid.at_node["topographic__elevation"] = [0., 1., 3., 2., 3., 4., 4.1, 5.]
 
 area = grid.add_ones("cell_area_at_node", at="node")
 
-
 # %% Set geometry for each link
 
 # Ultimately, map between flow accumulator and shapefile reader info...
@@ -192,5 +191,3 @@ for t in range(timesteps):
     # Run our component
    nst.run_one_step(dt)
    print ('t = ', t)
-
-
