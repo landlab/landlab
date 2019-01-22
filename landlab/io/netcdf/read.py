@@ -253,7 +253,7 @@ def read_netcdf(nc_file, grid=None, name=None, just_grid=False, halo=0, nodata_v
     To create a new grid without any associated data from the netcdf file,
     set the *just_grid* keyword to ``True``.
 
-    A halo can be added with the keywork *halo*.
+    A halo can be added with the keyword *halo*.
 
     If you want the fields to be added to an existing grid, it can be passed
     to the keyword argument *grid*.
@@ -297,7 +297,7 @@ def read_netcdf(nc_file, grid=None, name=None, just_grid=False, halo=0, nodata_v
     True
     >>> grid.dy, grid.dx
     (1.0, 1.0)
-    >>> [str(k) for k in grid.at_node.keys()]
+    >>> list(grid.at_node.keys())
     ['surface__elevation']
     >>> grid.at_node['surface__elevation']
     array([  0.,   1.,   2.,   3.,   4.,   5.,   6.,   7.,   8.,   9.,  10.,
@@ -391,7 +391,6 @@ def read_netcdf(nc_file, grid=None, name=None, just_grid=False, halo=0, nodata_v
                 values = add_halo(
                     values.reshape(shape), halo=halo, halo_value=nodata_value
                 ).reshape((-1,))
-            grid.add_field("node", name, values)
 
             # add only the requested fields.
             if (name is None) or (field_name == name):
@@ -400,7 +399,7 @@ def read_netcdf(nc_file, grid=None, name=None, just_grid=False, halo=0, nodata_v
                 add_field = False
 
             if add_field:
-                grid.add_field("node", field_name, values)
+                grid.add_field(field_name, values, at="node", noclobber=False)
 
         if (name is not None) and (name not in grid.at_node):
             raise ValueError("Specified field {name} was not in provided NetCDF.".format(name=name))
