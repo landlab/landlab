@@ -10,6 +10,8 @@ from .esri_ascii import (
     DataSizeError,
     BadHeaderLineError,
     MismatchGridDataSizeError,
+    MismatchGridXYSpacing,
+    MismatchGridXYLowerLeft,
 )
 
 __all__ = [
@@ -23,4 +25,6 @@ __all__ = [
     "BadHeaderLineError",
     "KeyValueError",
     "MismatchGridDataSizeError",
+    "MismatchGridXYSpacing",
+    "MismatchGridXYLowerLeft",
 ]
