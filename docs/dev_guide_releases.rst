@@ -75,23 +75,40 @@ The Release Checklist
    .. code-block:: bash
 
       $ git checkout release
-2. Make sure all the version strings match and use
+
+2. Merge ``master`` into release.
+
+.. code-block:: bash
+
+   $ git merge master
+
+3. Make sure all the version strings match and use
    `Semantic Versioning <http://semver.org/>`_.
 
    *  ``landlab/__init__.py``
    *  ``.conda-recipe/meta.yaml``
-3. Commit your changes.
-4. Create a tag for this release that matches the string in ``__init__.py``
+
+4. Commit your changes.
+
+5. Create a tag for this release that matches the string in ``__init__.py``
    but that starts with the letter ``v``.
 
    .. code-block:: bash
 
       $ git tag v0.1.1
-5. Push your tag to the remote.
+
+6. Push your tag to the remote.
 
    .. code-block:: bash
 
       $ git push --tags
+
+7. Checkout ``master`` and merge ``release`` into it.
+
+.. code-block:: bash
+
+   $ git checkout master
+   $ git merge release
 
 Helpful links
 =============
