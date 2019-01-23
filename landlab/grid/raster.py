@@ -4048,8 +4048,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         Parameters
         ----------
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
         return_outlet_id : boolean, optional
@@ -4104,8 +4105,27 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> rmg2.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 1, 4, 0, 0, 4, 4, 4, 4, 4], dtype=uint8)
 
+        The node data can also be provided as a model grid field.
+
+        >>> rmg = RasterModelGrid((4,4))
+        >>> node_data = np.array([-9999., -9999., -9999., -9999.,
+        ...                      -9999.,    67.,    67., -9999.,
+        ...                      -9999.,    67.,     0., -9999.,
+        ...                      -9999., -9999., -9999., -9999.])
+        >>> _ = rmg.add_field('node', 'topographic__elevation', node_data)
+        >>> out_id = rmg.set_watershed_boundary_condition('topographic__elevation',
+        ...                                               -9999.,
+        ...                                               True)
+        >>> out_id
+        array([10])
+        >>> rmg.status_at_node
+        array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=uint8)
+
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # For this to be a watershed, need to make sure that there is a ring
         # of closed boundary nodes around the outside of the watershed,
         # barring the outlet location.  So enforce that all perimeter nodes
@@ -4225,18 +4245,16 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         Parameters
         ----------
-        node_data : ndarray
-            Data values.
-
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         outlet_id : one element numpy array, optional.
             The node ID of the outlet that all open nodes must be connected to.
             If a node ID is provided, it does not need have the status
             FIXED_VALUE_BOUNDARY. However, it must not have the status of
             CLOSED_BOUNDARY.
-
         nodata_value : float, optional, default is -9999.
             Value that indicates an invalid value.
-
         adjacency_method : string, optional. Default is 'D8'.
             Sets the connection method.
 
@@ -4258,9 +4276,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> mg2.set_watershed_boundary_condition(z2)
         >>> mg2.status_at_node.reshape(mg2.shape)
         array([[4, 4, 4, 4, 4, 4],
-              [4, 0, 0, 4, 0, 4],
-              [4, 0, 1, 4, 4, 4],
-              [4, 4, 4, 4, 4, 4]], dtype=uint8)
+               [4, 0, 0, 4, 0, 4],
+               [4, 0, 1, 4, 4, 4],
+               [4, 4, 4, 4, 4, 4]], dtype=uint8)
         >>> mg2.set_open_nodes_disconnected_from_watershed_to_closed(z2)
         >>> np.allclose(mg1.status_at_node, mg2.status_at_node)
         True
@@ -4279,6 +4297,8 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
 
         if outlet_id is None:
             # verify that there is one and only one node with the status
@@ -4397,8 +4417,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         ----------
         outlet_coords : list - two integer values
             row, column of outlet, NOT THE ABSOLUTE X AND Y LOCATIONS
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
 
@@ -4428,6 +4449,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # make ring of no data nodes
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
@@ -4461,8 +4485,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         ----------
         outlet_id : integer
             id of the outlet node
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
 
@@ -4492,10 +4517,15 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # make ring of no data nodes
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)
+
         # set no data nodes to inactive boundaries
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
+
         # set the boundary condition (fixed value) at the outlet_node
         self.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
 

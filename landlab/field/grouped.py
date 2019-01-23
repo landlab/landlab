@@ -1,6 +1,9 @@
 #! /usr/bin/env python
 """Store collections of data fields."""
 
+import numpy as np
+import six
+
 from .scalar_data_fields import ScalarDataFields
 
 
@@ -379,6 +382,92 @@ class ModelDataFields(object):
         LLCATS: FIELDIO
         """
         return self[group][field]
+
+    def return_array_or_field_values(self, group, field):
+        """Return field given a field name, or array of with the correct shape.
+
+        Given a *group* and a *field*, return a reference to the associated
+        data array. *field* is either a string that is a field in the group
+        or an array of the correct size.
+
+        This function is meant to serve like the ``use_field_name_or_array``
+        decorator for bound functions.
+
+        Parameters
+        ----------
+        group: str
+            Name of the group.
+        field: str or array
+            Name of the field withing *group*.
+
+        Returns
+        -------
+        array
+            The values of the field.
+
+        Raises
+        ------
+        GroupError
+            If *group* does not exits
+        FieldError
+            If *field* does not exits
+
+        Examples
+        --------
+        Create a group of fields called *node*.
+
+        >>> import numpy as np
+        >>> from landlab.field import ModelDataFields
+        >>> fields = ModelDataFields()
+        >>> fields.new_field_location('node', 4)
+
+        Add a field, initialized to ones, called *topographic__elevation*
+        to the *node* group. The *field_values* method returns a reference
+        to the field's data.
+
+        >>> _ = fields.add_ones('node', 'topographic__elevation')
+        >>> fields.field_values('node', 'topographic__elevation')
+        array([ 1.,  1.,  1.,  1.])
+
+        Alternatively, if the second argument is an array, its size is
+        checked and returned if correct.
+
+        >>> vals = np.array([4., 5., 7., 3.])
+        >>> fields.return_array_or_field_values('node', vals)
+        array([ 4.,  5.,  7.,  3.])
+
+        Raise FieldError if *field* does not exist in *group*.
+
+        >>> fields.return_array_or_field_values('node', 'surface__temperature')
+        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        FieldError: surface__temperature
+
+        If *group* does not exists, Raise GroupError.
+
+        >>> fields.return_array_or_field_values('cell', 'topographic__elevation')
+        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        GroupError: cell
+
+        And if the array of values provided is incorrect, raise a ValueError.
+
+        >>> vals = np.array([3., 2., 1.])
+        >>> fields.return_array_or_field_values('node', vals)
+        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        ValueError: Array has incorrect size.
+
+        LLCATS: FIELDIO
+        """
+        if isinstance(field, six.string_types):
+            vals = self.field_values(group, field)
+        else:
+            vals = np.asarray(field)
+            if vals.size != self[group].size:
+                msg = "Array has incorrect size."
+                raise ValueError(msg)
+        return vals
 
     def field_units(self, group, field):
         """Get units for a field.
