@@ -4289,27 +4289,19 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         >>> hmg.node_has_boundary_neighbor(12)
         False
         >>> hmg.node_has_boundary_neighbor([12, 0])
-        [False, True]
+        array([False,  True], dtype=bool)
 
         LLCATS: NINF CONN BC
         """
-        ans = []
-        for i in np.atleast_1d(np.asarray(ids)):
-            neighbors = self.adjacent_nodes_at_node[i]
-            real_neighbors = neighbors[neighbors != BAD_INDEX_VALUE]
-            if real_neighbors.size == 0:
-                ans.append(True)
-            else:
-                neighbor_status = self.status_at_node[real_neighbors].astype(bool)
-                if np.any(neighbor_status != CORE_NODE):
-                    ans.append(True)
-                else:
-                    ans.append(False)
+        status_of_neighbor = self._node_status[self.adjacent_nodes_at_node]
+        neighbor_not_core = status_of_neighbor != CORE_NODE
+        bad_neighbor = self.adjacent_nodes_at_node == BAD_INDEX_VALUE
+        neighbor_not_core[bad_neighbor] = False
+        node_has_boundary_neighbor = np.any(neighbor_not_core, axis=1)
 
-        if len(ans) == 1:
-            return ans[0]
-        else:
-            return ans
+        ans = node_has_boundary_neighbor[ids]
+
+        return ans
 
 
 add_module_functions_to_class(ModelGrid, "mappers.py", pattern="map_*")
