@@ -82,11 +82,10 @@ The Release Checklist
 
    $ git merge master
 
-3. Make sure all the version strings match and use
-   `Semantic Versioning <http://semver.org/>`_.
-
-   *  ``landlab/__init__.py``
-   *  ``.conda-recipe/meta.yaml``
+3. Decide what new version number is appropriate based on
+   `Semantic Versioning <http://semver.org/>`_. Previously
+   updating the version number was done by hand, but now
+   this is done automatically.
 
 4. Commit your changes.
 
