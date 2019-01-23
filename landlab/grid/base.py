@@ -4258,7 +4258,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         Parameters
         ----------
-        mg : HexModelGrid
+        mg : ModelGrid
             Source grid
         node_id : int
             ID of node to test.
