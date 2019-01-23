@@ -4311,6 +4311,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         else:
             return ans
 
+
 add_module_functions_to_class(ModelGrid, "mappers.py", pattern="map_*")
 # add_module_functions_to_class(ModelGrid, 'gradients.py',
 #                               pattern='calculate_*')
