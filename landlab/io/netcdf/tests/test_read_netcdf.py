@@ -34,8 +34,10 @@ grid_mapping_keys = [
 @pytest.mark.skipif(not WITH_NETCDF4, reason="netCDF4 package not installed")
 def test_read_netcdf4_bad_field_name():
     with pytest.raises(ValueError):
-        read_netcdf(os.path.join(_TEST_DATA_DIR, "test-netcdf4.nc"),
-                    name="not_surface__elevation")
+        read_netcdf(
+            os.path.join(_TEST_DATA_DIR, "test-netcdf4.nc"),
+            name="not_surface__elevation",
+        )
 
 
 def test_read_netcdf3_64bit():

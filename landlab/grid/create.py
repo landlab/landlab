@@ -284,8 +284,10 @@ def create_grid(file_like):
             raise ValueError
 
     if len(grid_dict) != 1:
-        msg = ("create_grid: two entries to grid dictionary provided. "
-               "This is not supported.")
+        msg = (
+            "create_grid: two entries to grid dictionary provided. "
+            "This is not supported."
+        )
         raise ValueError
 
     args, kwargs = _parse_args_kwargs(grid_dict.pop(grid_type))
@@ -334,8 +336,10 @@ def create_grid(file_like):
     bc_list = dict_like.pop("boundary_conditions", [])
     for bc_function_dict in bc_list:
         if len(bc_function_dict) != 1:
-            msg = ("create_grid: two entries to a boundary condition function "
-                   "dictionary were provided. This is not supported.")
+            msg = (
+                "create_grid: two entries to a boundary condition function "
+                "dictionary were provided. This is not supported."
+            )
             raise ValueError(msg)
         for bc_function in bc_function_dict:
             args, kwargs = _parse_args_kwargs(bc_function_dict[bc_function])

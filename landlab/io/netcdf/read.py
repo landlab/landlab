@@ -245,7 +245,9 @@ def _get_raster_spacing(coords):
     return spacing[0]
 
 
-def read_netcdf(nc_file, grid=None, name=None, just_grid=False, halo=0, nodata_value=-9999.0):
+def read_netcdf(
+    nc_file, grid=None, name=None, just_grid=False, halo=0, nodata_value=-9999.0
+):
     """Create a :class:`~.RasterModelGrid` from a netcdf file.
 
     Create a new :class:`~.RasterModelGrid` from the netcdf file, *nc_file*.
@@ -402,7 +404,9 @@ def read_netcdf(nc_file, grid=None, name=None, just_grid=False, halo=0, nodata_v
                 grid.add_field(field_name, values, at="node", noclobber=False)
 
         if (name is not None) and (name not in grid.at_node):
-            raise ValueError("Specified field {name} was not in provided NetCDF.".format(name=name))
+            raise ValueError(
+                "Specified field {name} was not in provided NetCDF.".format(name=name)
+            )
 
     # save grid mapping
     if grid_mapping_dict is not None:
