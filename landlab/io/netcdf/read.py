@@ -10,13 +10,8 @@ Read netcdf
     ~landlab.io.netcdf.read.read_netcdf
 """
 
-try:
-    import netCDF4 as nc4
-except ImportError:
-    import warnings
 
-    warnings.warn("Unable to import netCDF4.", ImportWarning)
-
+import netCDF4 as nc4
 import numpy as np
 from scipy.io import netcdf as nc
 

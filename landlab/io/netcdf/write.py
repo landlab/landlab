@@ -12,8 +12,8 @@ Write netcdf
 
 
 import os
-import warnings
 
+import netCDF4 as nc4
 import numpy as np
 import six
 from scipy.io import netcdf as nc
@@ -23,11 +23,6 @@ from landlab.io.netcdf._constants import (
     _AXIS_DIMENSION_NAMES,
     _NP_TO_NC_TYPE,
 )
-
-try:
-    import netCDF4 as nc4
-except ImportError:
-    warnings.warn("Unable to import netCDF4.", ImportWarning)
 
 # try:
 #     import pycrs

@@ -1,14 +1,7 @@
 #! /usr/bin/env python
 """Read data from a GEBCO NetCDF file into a RasterModelGrid."""
 
-
-try:
-    import netCDF4 as nc4
-except ImportError:
-    import warnings
-
-    warnings.warn("Unable to import netCDF4.", ImportWarning)
-
+import netCDF4 as nc4
 from scipy.io import netcdf as nc
 
 from landlab import RasterModelGrid
