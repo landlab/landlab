@@ -7,6 +7,7 @@ Do NOT add new documentation here. Grid documentation is now built in a semi-
 automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
+from warnings import warn
 
 import numpy
 import six
@@ -67,7 +68,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         base_num_cols=0,
         dx=1.0,
         xy_of_lower_left=(0., 0.),
-        xy_of_reference=(0., 0.),
         orientation="horizontal",
         shape="hex",
         reorient_links=True,
@@ -130,19 +130,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
                 shape,
                 reorient_links,
             )
-        super(HexModelGrid, self).__init__(**kwds)
-        # save xy_of_lower_left as attribute. This has to happen after Voronoi
         self._xy_of_lower_left = xy_of_lower_left
-
-    @classmethod
-    def from_dict(cls, params):
-        """
-        LLCATS: GINF
-        """
-        shape = params["shape"]
-        spacing = params.get("spacing", 1.)
-
-        return cls(shape[0], shape[1], spacing)
+        super(HexModelGrid, self).__init__(**kwds)
 
     @property
     def xy_of_lower_left(self):
@@ -980,8 +969,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
         ----------
         outlet_id : integer
             id of the outlet node
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
 
@@ -1013,10 +1003,15 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # make ring of no data nodes
         self.status_at_node[self.boundary_nodes] = CLOSED_BOUNDARY
+
         # set no data nodes to inactive boundaries
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
+
         # set the boundary condition (fixed value) at the outlet_node
         self.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
 
@@ -1048,8 +1043,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Parameters
         ----------
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
         return_outlet_id : boolean, optional
@@ -1080,6 +1076,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # make ring of no data nodes
         self.status_at_node[self.boundary_nodes] = CLOSED_BOUNDARY
 
@@ -1162,7 +1161,14 @@ def from_dict(param_dict):
     Required keys of the dictionary are NUM_ROWS, NUM_COLS. Raises a KeyError
     if either of these are missing.  If GRID_SPACING is given, use it as the
     HexModelGrid *dx* parameter, otherwise default to unit spacing.
+
+    Deprecated in version 1.6.X. Will be removed in version 2.0.
     """
+    msg = (
+        "The non-class method version of 'from_dict' for RasterModelGrid "
+        "was Deprecated in version 1.6.X. Will be removed in version 2.0."
+    )
+    warn(msg, DeprecationWarning)
     # Read and create a basic HexModelGrid
     try:
         n_rows = int(param_dict["NUM_ROWS"])

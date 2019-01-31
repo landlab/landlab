@@ -16,6 +16,8 @@ from landlab.io import (
     KeyTypeError,
     KeyValueError,
     MismatchGridDataSizeError,
+    MismatchGridXYLowerLeft,
+    MismatchGridXYSpacing,
     MissingRequiredKeyError,
     read_asc_header,
     read_esri_ascii,
@@ -154,6 +156,40 @@ NODATA_value  -9999
     )
     rmg = RasterModelGrid((10, 10), xy_spacing=10.)
     with pytest.raises(MismatchGridDataSizeError):
+        read_esri_ascii(asc_file, grid=rmg)
+
+
+def test_grid_dx_mismatch():
+    asc_file = StringIO(
+        """
+nrows         4
+ncols         3
+xllcorner     1.
+yllcorner     2.
+cellsize      10.
+NODATA_value  -9999
+1. 2. 3. 4. 5. 6. 7. 8. 9. 10. 11. 12.
+        """
+    )
+    rmg = RasterModelGrid((4, 3), xy_spacing=15.)
+    with pytest.raises(MismatchGridXYSpacing):
+        read_esri_ascii(asc_file, grid=rmg)
+
+
+def test_grid_lower_left_mismatch():
+    asc_file = StringIO(
+        """
+nrows         4
+ncols         3
+xllcorner     1.
+yllcorner     2.
+cellsize      10.
+NODATA_value  -9999
+1. 2. 3. 4. 5. 6. 7. 8. 9. 10. 11. 12.
+        """
+    )
+    rmg = RasterModelGrid((4, 3), xy_spacing=10., xy_of_lower_left=(10, 15))
+    with pytest.raises(MismatchGridXYLowerLeft):
         read_esri_ascii(asc_file, grid=rmg)
 
 

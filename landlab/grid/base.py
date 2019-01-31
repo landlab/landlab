@@ -311,6 +311,58 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
     at_face = {}  # : Values defined at faces
     at_cell = {}  # : Values defined at cells
 
+    @classmethod
+    def from_file(cls, file_like):
+        """Create grid from a file-like object.
+
+        File to load either as a file-like object, path to an existing file, or
+        the contents of a file as a string.
+
+        Parameters
+        ----------
+        file_like :
+            File-like object, filepath, or string.
+
+        Examples
+        --------
+        >>> from six import StringIO
+        >>> from landlab import RasterModelGrid
+        >>> filelike = StringIO('''
+        ... shape:
+        ...     - 3
+        ...     - 4
+        ... xy_spacing: 2
+        ... ''')
+        >>> grid = RasterModelGrid.from_file(filelike)
+        >>> grid.x_of_node
+        array([ 0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.])
+        >>> grid.y_of_node
+        array([ 0.,  0.,  0.,  0.,  2.,  2.,  2.,  2.,  4.,  4.,  4.,  4.])
+        """
+        params = load_params(file_like)
+        return cls.from_dict(params)
+
+    @classmethod
+    def from_dict(cls, params):
+        """Create grid from dictionary.
+
+        Parameters
+        ----------
+        params : dictionary
+            Dictionary of required parameters to create a model grid.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> params = {"shape": (3,4), "xy_spacing": 2}
+        >>> grid = RasterModelGrid.from_dict(params)
+        >>> grid.x_of_node
+        array([ 0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.,  0.,  2.,  4.,  6.])
+        >>> grid.y_of_node
+        array([ 0.,  0.,  0.,  0.,  2.,  2.,  2.,  2.,  4.,  4.,  4.,  4.])
+        """
+        return cls(**params)
+
     def __init__(self, **kwds):
         super(ModelGrid, self).__init__()
 
@@ -385,18 +437,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         ] = BAD_INDEX_VALUE
         self.neighbor_list_created = True
         return self._active_neighbor_nodes
-
-    @classmethod
-    def from_file(cls, file_like):
-        params = load_params(file_like)
-        return cls.from_dict(params)
-
-    @classmethod
-    def from_dict(cls, params):
-        raise NotImplementedError("from_dict")
-
-    def _initialize(self):
-        raise NotImplementedError("_initialize")
 
     @property
     def ndim(self):
@@ -2876,9 +2916,11 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
+        >>> import pytest
         >>> import landlab as ll
         >>> rmg = ll.RasterModelGrid((4, 5))
-        >>> rmg.active_link_connecting_node_pair(8, 3)
+        >>> with pytest.deprecated_call():
+        ...     rmg.active_link_connecting_node_pair(8, 3)
         array([2])
 
         LLCATS: DEPR LINF NINF CONN
@@ -3094,6 +3136,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
+        >>> import pytest
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((3, 4))
@@ -3104,7 +3147,8 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         >>> h = np.array([-9999, -9999, -9999, -9999,
         ...               -9999, -9999, 12345.,   0.,
         ...               -9999,    0.,     0.,   0.])
-        >>> mg.set_nodata_nodes_to_inactive(h, -9999)
+        >>> with pytest.deprecated_call():
+        ...     mg.set_nodata_nodes_to_inactive(h, -9999)
         >>> mg.status_at_node
         array([4, 4, 4, 4,
                4, 4, 0, 1,
@@ -3279,6 +3323,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
+        >>> import pytest
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
 
@@ -3287,7 +3332,8 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         ...                8., 0., 3., 0.,
         ...                5., 6., 8., 3.])
 
-        >>> grid.max_of_link_end_node_values(h)
+        >>> with pytest.deprecated_call():
+        ...     grid.max_of_link_end_node_values(h)
         array([ 2.,  8.,  8.,  3.,  3.,  6.,  8.])
 
         Note that this method is *deprecatd*. The alternative is to use
@@ -4188,13 +4234,15 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
+        >>> import pytest
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4, 3)) # rows, columns, spacing
         >>> rmg.node_x
         array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
         >>> rmg.node_y
         array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.])
-        >>> rmg.move_origin((5., 1.5))
+        >>> with pytest.deprecated_call():
+        ...     rmg.move_origin((5., 1.5))
         >>> rmg.node_x
         array([ 5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.])
         >>> rmg.node_y

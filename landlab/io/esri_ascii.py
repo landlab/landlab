@@ -18,6 +18,8 @@ import re
 import numpy as np
 import six
 
+from landlab.utils import add_halo
+
 _VALID_HEADER_KEYS = [
     "ncols",
     "nrows",
@@ -117,6 +119,36 @@ class MismatchGridDataSizeError(Error):
 
     def __str__(self):
         return "(data size) %s != %s (grid size)" % (
+            self._actual,
+            self._expected,
+        )  # this line not yet tested
+
+
+class MismatchGridXYSpacing(Error):
+
+    """Raise this error if the file cell size does not match the grid dx."""
+
+    def __init__(self, dx, expected_dx):
+        self._actual = dx
+        self._expected = expected_dx
+
+    def __str__(self):
+        return "(data dx) %s != %s (grid dx)" % (
+            self._actual,
+            self._expected,
+        )  # this line not yet tested
+
+
+class MismatchGridXYLowerLeft(Error):
+
+    """Raise this error if the file lower left does not match the grid."""
+
+    def __init__(self, llc, expected_llc):
+        self._actual = llc
+        self._expected = expected_llc
+
+    def __str__(self):
+        return "(data lower-left) %s != %s (grid lower-left)" % (
             self._actual,
             self._expected,
         )  # this line not yet tested
@@ -364,8 +396,14 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     DataSizeError
         Data are not the same size as indicated by the header file.
     MismatchGridDataSizeError
-        If a grid is passed, the size of the grid does not agree with the
+        If a grid is passed, and the size of the grid does not agree with the
         size of the data.
+    MismatchGridXYSpacing
+        If a grid is passed, and the cellsize listed in the heading does not
+        match the grid dx and dy.
+    MismatchGridXYLowerLeft
+        If a grid is passed and the xllcorner and yllcorner do not match that
+        of the grid.
 
     Examples
     --------
@@ -422,7 +460,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         if "nodata_value" in header.keys():
             nodata_value = header["nodata_value"]
         else:
-            header["nodata_value"] = -9999.
+            header["nodata_value"] = -9999.0
             nodata_value = header["nodata_value"]
         if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
             raise DataSizeError(shape[0] * shape[1], data.size)
@@ -435,7 +473,11 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     data = np.flipud(data)
 
     if halo > 0:
-        data, shape = add_halo(data, halo, shape, nodata_value)
+        data = add_halo(
+            data.reshape(header["nrows"], header["ncols"]),
+            halo=halo,
+            halo_value=nodata_value,
+        ).reshape((-1,))
 
     if not reshape:
         data = data.flatten()
@@ -448,6 +490,11 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
                 shape[0] * shape[1],
                 grid.number_of_node_rows * grid.number_of_node_columns,
             )
+        if (grid.dx, grid.dy) != xy_spacing:
+            raise MismatchGridXYSpacing((grid.dx, grid.dy), xy_spacing)
+
+        if grid.xy_of_lower_left != xy_of_lower_left:
+            raise MismatchGridXYLowerLeft(grid.xy_of_lower_left, xy_of_lower_left)
 
     if grid is None:
         grid = RasterModelGrid(
