@@ -16,7 +16,7 @@ from .base import (
     FIXED_LINK,
     INACTIVE_LINK,
 )
-from .create import create_and_initialize_grid
+from .create import create_and_initialize_grid, create_grid
 
 __all__ = [
     "ModelGrid",
@@ -35,4 +35,5 @@ __all__ = [
     "FIXED_LINK",
     "INACTIVE_LINK",
     "create_and_initialize_grid",
+    "create_grid",
 ]

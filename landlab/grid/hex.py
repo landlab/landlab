@@ -911,8 +911,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
         ----------
         outlet_id : integer
             id of the outlet node
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
 
@@ -944,10 +945,15 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # make ring of no data nodes
         self.status_at_node[self.boundary_nodes] = CLOSED_BOUNDARY
+
         # set no data nodes to inactive boundaries
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
+
         # set the boundary condition (fixed value) at the outlet_node
         self.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
 
@@ -979,8 +985,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Parameters
         ----------
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
         return_outlet_id : boolean, optional
@@ -1011,6 +1018,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # make ring of no data nodes
         self.status_at_node[self.boundary_nodes] = CLOSED_BOUNDARY
 
