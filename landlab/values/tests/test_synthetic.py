@@ -7,7 +7,6 @@ from landlab.field import GroupError
 from landlab.values import constant, plane, random
 from landlab.values.synthetic import _plane_function, _where_to_add_values
 
-
 _NORMAL = (1, 1, 1)
 _POINT = (0, 0, 0)
 
