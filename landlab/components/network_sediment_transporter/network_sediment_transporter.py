@@ -193,6 +193,7 @@ class NetworkSedimentTransporter(Component):
     
         self.g = g
         self.fluid_density = fluid_density
+        self.time_idx = 0
         
         # TEST for valid transport method entry
         _SUPPORTED_TRANSPORT_METHODS = ["WilcockCrowe"]      
@@ -232,7 +233,38 @@ class NetworkSedimentTransporter(Component):
             self._update_channel_slopes()  # this would be a function that updates the channel slopes (if you use this more than once, make it a function)
         else:
             self._channel_slope = self._grid.at_link["channel_slope"]
+            
+            
 
+    def _create_new_parcel_time(self,dt):
+        """ If we are going to track parcels through time in DataRecord, we 
+        need to add a new time column to the parcels dataframe. This method simply
+        copies over the attributes of the parcels from the former timestep.
+        Attributes will be updated over the course of this step. 
+        """
+!!!        self._parcels.add_record(time = t) 
+        # ^ what's the best way to handle time? 
+        
+        self._parcels.ffill_grid_element_and_id()
+        
+        self._parcels['time_arrival_in_link'].values[:,self._time_idx] = self._parcels[
+                'time_arrival_in_link'].values[:,self._time_idx-1]
+        
+        self._parcels['active_layer'].values[:,self._time_idx] = self._parcels[
+                'active_layer'].values[:,self._time_idx-1]
+        # ^ probably not needed, could leave as NaNs and populate below. 
+            
+        self._parcels['location_in_link'].values[:,self._time_idx] = self._parcels[
+                'location_in_link'].values[:,self._time_idx-1]
+        
+        self._parcels['D'].values[:,self._time_idx] = self._parcels[
+                'D'].values[:,self._time_idx-1]
+        
+        self._parcels['volume'].values[:,self._time_idx] = self._parcels[
+                'volume'].values[:,self._time_idx-1]        
+        
+        
+    
     def _update_channel_slopes(self):
         """text Can be simple-- this is what this does. 'private' functions can
         have very simple examples, explanations. Essentially note to yourself"""
@@ -271,14 +303,14 @@ class NetworkSedimentTransporter(Component):
 
                 # First In Last Out.
                 # parcel_id_thislink = np.where(self._parcels.DataFrame.element_id.values == i)[0]
-                parcel_id_thislink = np.where(self._parcels["element_id"] == i)[0]
+                parcel_id_thislink = np.where(self._parcels["element_id"][:,self._time_idx] == i)[0]
                 print("parcel_id_thislink", "\n", parcel_id_thislink, "\n")
 
                 # time_arrival_sort = np.flip(np.argsort(self._parcels.DataFrame.time_arrival_in_link.values[parcel_id_thislink]),0)
                 # time_arrival_sort = np.flip(np.argsort(self._parcels['time_arrival_in_link'][parcel_id_thislink]),0)
                 time_arrival_sort = np.flip(
                     np.argsort(
-                        self._parcels.get_data(
+                        self._parcels.get_data(time = self._time_idx,
                             item_id=parcel_id_thislink,
                             data_variable="time_arrival_in_link",
                         ),
@@ -288,24 +320,24 @@ class NetworkSedimentTransporter(Component):
 
                 parcel_id_time_sorted = parcel_id_thislink[time_arrival_sort]
 
-                cumvol = np.cumsum(self._parcels["volume"][parcel_id_time_sorted])
+                cumvol = np.cumsum(self._parcels["volume"][parcel_id_time_sorted,self._time_idx])
 
                 idxinactive = np.where(cumvol > capacity[i])
                 make_inactive = parcel_id_time_sorted[idxinactive]
 
-                self._parcels.set_data(
+                self._parcels.set_data(time = self._time_idx,
                     item_id=parcel_id_thislink,
                     data_variable="active_layer",
                     new_value=1,
                 )
 
-                self._parcels.set_data(
+                self._parcels.set_data(time = self._time_idx,
                     item_id=make_inactive, data_variable="active_layer", new_value=0
                 )
 
         # Update Node Elevations
         findactive = (
-            self._parcels["active_layer"] == 1
+            self._parcels["active_layer"][:,self._time_idx] == 1
         )  # filter for only parcels in active layer
         vol_act = self._parcels.calc_aggregate_value(
             np.sum, "volume", at="link", filter_array=findactive
@@ -319,11 +351,10 @@ class NetworkSedimentTransporter(Component):
         # Makes sense, thanks!
 
     # %%
-    def _adjust_node_elevation(self):  # Allison is working on this as of July 23, 2018
+    def _adjust_node_elevation(self):  
         """Adjusts slope for each link based on parcel motions from last
         timestep and additions from this timestep.
         """
-        
         
         number_of_contributors = np.sum(
             self.fd.flow_link_incoming_at_node() == 1, axis=1
@@ -386,15 +417,15 @@ class NetworkSedimentTransporter(Component):
         # parcel attribute arrays from ItemCollector
 
         # another way of doing this --> check to see if this is copying. we don't want to be copying
-        Darray = self._parcels["D"]
+        Darray = self._parcels["D"][:,self._time_idx]
 
         #        Darray = np.array(parcels.DataFrame.D,copy=False) # this gives a copy, but we can set copy to false..?
-        Activearray = self._parcels["active_layer"].values
-        Rhoarray = self._parcels["density"].values
-        Volarray = self._parcels["volume"].values
+        Activearray = self._parcels["active_layer"][:,self._time_idx].values
+        Rhoarray = self._parcels["density"][:,self._time_idx].values
+        Volarray = self._parcels["volume"][:,self._time_idx].values
         Linkarray = self._parcels[
             "element_id"
-        ].values  # link that the parcel is currently in
+        ][:,self._time_idx].values  # link that the parcel is currently in
         rho = self.fluid_density
         g = self.g
         R = (Rhoarray - rho) / rho
@@ -416,7 +447,7 @@ class NetworkSedimentTransporter(Component):
         print("vol_tot shape", np.shape(vol_tot))
 
         findactive = (
-            self._parcels["active_layer"] == 1
+            self._parcels["active_layer"][:,self._time_idx] == 1
         )  # filter for only parcels in active layer
         vol_act = self._parcels.calc_aggregate_value(
             np.sum, "volume", at="link", filter_array=findactive
@@ -508,10 +539,12 @@ class NetworkSedimentTransporter(Component):
         # we need to make sure we are pointing to the array rather than making copies
         current_link = self._parcels[
             "element_id"
-        ]  # same as Linkarray, this will be updated below
+        ][:,self._time_idx]  # same as Linkarray, this will be updated below
 
-        location_in_link = self._parcels["location_in_link"]  # updated below
-        distance_traveled = np.zeros(np.shape(self._parcels["element_id"]))
+        location_in_link = self._parcels["location_in_link"][:,self._time_idx]  # updated below
+        distance_traveled = np.zeros(np.shape(
+                                    self._parcels["element_id"][:,self._time_idx])
+        )
 
         # However, a parcel is not always at the US end of a link, so need to determine
         # how much time it takes for that parcel to move out of the current link based on its
@@ -525,7 +558,7 @@ class NetworkSedimentTransporter(Component):
             # loop through until you find the link the parcel will reside in after dt
             while running_travel_time_in_dt[p] <= dt:
                 # determine downstream link
-                current_link_of_parcel = self._parcels["element_id"][p]
+                current_link_of_parcel = self._parcels["element_id"][p,self._time_idx]
                 downstream_link_id = self.fd.link_to_flow_receiving_node[
                     self.fd.downstream_node_at_link()[current_link_of_parcel]
                 ]
@@ -548,7 +581,7 @@ class NetworkSedimentTransporter(Component):
                 # dt < travel time
                 time_to_exit_current_link[p] = (
                     time_to_exit_current_link[p]
-                    / self._grid.at_link["link_length"][self._parcels["element_id"][p]]
+                    / self._grid.at_link["link_length"][self._parcels["element_id"][p,self._time_idx]]
                     * self._grid.at_link["link_length"][current_link[p]]
                 )
 
@@ -573,25 +606,27 @@ class NetworkSedimentTransporter(Component):
             distance_traveled[p] = 0  # NEED TO DEFINE
 
             vol = (self._parcels["volume"][p]) * (
-                np.exp(distance_traveled[p] * (-self._parcels["abrasion_rate"][p]))
+                np.exp(distance_traveled[p] * (-self._parcels["abrasion_rate"][p,self._time_idx]))
             )
 
             D = 2 * (vol * 3 / (4 * np.pi)) ** (1 / 3)
 
             # update parcel attributes
-            self._parcels["location_in_link"][p] = location_in_link[p]
-            self._parcels["element_id"][p] = current_link[p]
-            self._parcels["active_layer"][
-                p
-            ] = 1  # reset to 1 (active) to be recomputed/determined at next timestep
-            self._parcels["volume"][p] = vol
-            self._parcels["D"][p] = D
+            self._parcels["location_in_link"][p,self._time_idx] = location_in_link[p]
+            self._parcels["element_id"][p,self._time_idx] = current_link[p]
+            self._parcels["active_layer"][p,self._time_idx] = 1  
+            # ^ reset to 1 (active) to be recomputed/determined at next timestep
+            self._parcels["volume"][p,self._time_idx] = vol
+            self._parcels["D"][p,self._time_idx] = D
 
     # %%
     def run_one_step(self, dt):
         """stuff"""
+        self._create_new_parcel_time()
         self._update_channel_slopes()
         self._partition_active_and_storage_layers()
         self._adjust_node_elevation()
         self._calc_transport_wilcock_crowe()
         self._move_parcel_downstream(dt)
+        
+        self.time_idx +=1
