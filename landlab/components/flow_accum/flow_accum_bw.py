@@ -177,6 +177,7 @@ def _make_array_of_donors(r, delta):
 
     return D
 
+
 def make_ordered_node_array(receiver_nodes):
 
     """Create an array of node IDs that is arranged in order from.
