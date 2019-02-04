@@ -62,6 +62,7 @@ cpdef _accumulate_to_n(DTYPE_INT_t np, DTYPE_INT_t q,
                         accum = 0.
                     discharge[recvr] = accum
 
+
 @cython.boundscheck(False)
 cpdef _accumulate_bw(DTYPE_INT_t np,
                      np.ndarray[DTYPE_INT_t, ndim=1] s,
@@ -85,3 +86,16 @@ cpdef _accumulate_bw(DTYPE_INT_t np,
             if accum < 0.:
                 accum = 0.
             discharge[recvr] = accum
+
+
+cpdef _make_donors(DTYPE_INT_t np,
+                   np.ndarray[DTYPE_INT_t, ndim=1] w,
+                   np.ndarray[DTYPE_INT_t, ndim=1] D,
+                   np.ndarray[DTYPE_INT_t, ndim=1] delta,
+                   np.ndarray[DTYPE_INT_t, ndim=1] r):
+    """Determines number of donors"""
+    cdef int ri, i
+    for i in range(np):
+        ri = r[i]
+        D[delta[ri] + w[ri]] = i
+        w[ri] += 1
