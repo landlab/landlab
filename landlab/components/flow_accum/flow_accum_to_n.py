@@ -256,15 +256,6 @@ def _make_number_of_donors_array_to_n(r, p):
     >>> nd
     array([0, 2, 2, 0, 4, 4, 2, 3, 1, 0])
     """
-
-    # Vectorized, DEJH, 5/20/14
-    #    np = len(r)
-    #    nd = numpy.zeros(np, dtype=int)
-    #    for i in range(np):
-    #        nd[r[i]] += 1
-
-    # modified by KRB 10/31/2016 to support route to multiple.
-
     nd = numpy.zeros(r.shape[0], dtype=int)
 
     # filter r based on p and flatten
@@ -306,15 +297,6 @@ def _make_delta_array_to_n(nd):
     >>> sum(nd) == max(delta)
     True
     """
-    # np = len(nd)
-    # delta = numpy.zeros(np+1, dtype=int)
-    # delta[np] = np   # not np+1 as in B&W because here we number from 0
-    # for i in range(np-1, -1, -1):
-    #     delta[i] = delta[i+1] - nd[i]
-    # return delta
-
-    # DEJH efficient delooping (only a small gain)
-
     nt = sum(nd)
     np = len(nd)
     delta = numpy.zeros(np + 1, dtype=int)
@@ -542,26 +524,6 @@ def find_drainage_area_and_discharge_to_n(
     _accumulate_to_n(np, q, s, r, p, drainage_area, discharge)
     # nodes at channel heads can still be negative with this method, so...
     discharge = discharge.clip(0.)
-
-    #        donors = s[i]
-    #        #print donors
-    #        recvrs = r[donors, :].flatten()
-    #
-    #        if (set(donors)-set(recvrs[recvrs!=-1]))==set(donors):
-    #            recvrs = r[donors, :].flatten()
-    #
-    #            unique_recvrs=numpy.unique(recvrs)
-    #
-    #            proportions = p[donors, :].flatten()
-    #
-    #            new_da=proportions*numpy.repeat(drainage_area[donors], q)
-    #            new_di=proportions*numpy.repeat(discharge[donors], q)
-    #
-    #            for u_r in unique_recvrs:
-    #                ur_ind=np.where(recvrs==u_r)
-    #
-    #                drainage_area[u_r] += numpy.sum(new_da[ur_ind])
-    #                discharge[u_r] += numpy.sum(new_di[ur_ind])
 
     return drainage_area, discharge
 
