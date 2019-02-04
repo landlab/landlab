@@ -100,3 +100,23 @@ cpdef _make_donors(DTYPE_INT_t np,
         ri = r[i]
         D[delta[ri] + w[ri]] = i
         w[ri] += 1
+
+
+@cython.boundscheck(False)
+cpdef _make_donors_to_n(DTYPE_INT_t np,
+                  DTYPE_INT_t q,
+                  np.ndarray[DTYPE_INT_t, ndim=1] w,
+                  np.ndarray[DTYPE_INT_t, ndim=1] D,
+                  np.ndarray[DTYPE_INT_t, ndim=1] delta,
+                  np.ndarray[DTYPE_INT_t, ndim=2] r,
+                  np.ndarray[DTYPE_FLOAT_t, ndim=2] p,
+                  ):
+    """Determines number of donors for route to n"""
+    cdef int ri, i, v, ind
+    for v in range(q):
+        for i in range(np):
+            ri = r[i, v]
+            if p[i, v] > 0:
+                ind = delta[ri] + w[ri]
+                D[ind] = i
+                w[ri] += 1
