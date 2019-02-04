@@ -88,6 +88,7 @@ cpdef _accumulate_bw(DTYPE_INT_t np,
             discharge[recvr] = accum
 
 
+@cython.boundscheck(False)
 cpdef _make_donors(DTYPE_INT_t np,
                    np.ndarray[DTYPE_INT_t, ndim=1] w,
                    np.ndarray[DTYPE_INT_t, ndim=1] D,
