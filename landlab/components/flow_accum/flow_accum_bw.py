@@ -102,12 +102,6 @@ def _make_number_of_donors_array(r):
     >>> nd
     array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
     """
-    # Vectorized, DEJH, 5/20/14
-    #    np = len(r)
-    #    nd = numpy.zeros(np, dtype=int)
-    #    for i in range(np):
-    #        nd[r[i]] += 1
-
     nd = numpy.zeros(r.size, dtype=int)
     max_index = numpy.max(r)
     nd[: (max_index + 1)] = numpy.bincount(r)
@@ -146,14 +140,6 @@ def _make_delta_array(nd):
     >>> delta
     array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
     """
-    # np = len(nd)
-    # delta = numpy.zeros(np+1, dtype=int)
-    # delta[np] = np   # not np+1 as in B&W because here we number from 0
-    # for i in range(np-1, -1, -1):
-    #    delta[i] = delta[i+1] - nd[i]
-    # return delta
-
-    # DEJH efficient delooping (only a small gain)
     np = len(nd)
     delta = numpy.zeros(np + 1, dtype=int)
     delta.fill(np)
@@ -171,8 +157,6 @@ def _make_array_of_donors(r, delta):
     The example below is from Braun & Willett (2012), and produces D_i in their
     Table 1 (except that here the ID numbers are one less, because we number
     indices from zero).
-
-    Vectorized - inefficiently! - DEJH, 5/20/14
 
     Examples
     --------
