@@ -21,9 +21,7 @@ from landlab.utils.decorators import use_file_name_or_kwds
 from landlab.grid.network import NetworkModelGrid
 from landlab.data_record import DataRecord
 
-
 _SUPPORTED_TRANSPORT_METHODS = ["WilcockCrowe"]
-
 
 class NetworkSedimentTransporter(Component):
     """Network bedload morphodynamic component.
@@ -298,7 +296,7 @@ class NetworkSedimentTransporter(Component):
 ## find now needs to be a boolean array in which the column of current time 
 ## has 'trues'...
 
-        vol_tot = self._parcels.calc_aggregate_value(np.sum, "volume", 
+!!!        vol_tot = self._parcels.calc_aggregate_value(np.sum, "volume", 
                                                      at="link")
 
         capacity = 2 * np.ones(
@@ -450,7 +448,7 @@ class NetworkSedimentTransporter(Component):
         # ^ Ttimearray is the time to move through the entire length of a link
 
         # Calculate bed statistics for all of the links
-        vol_tot = self._parcels.calc_aggregate_value(np.sum, "volume", at="link")
+!!!        vol_tot = self._parcels.calc_aggregate_value(np.sum, "volume", at="link")
 
         findactive = (
             self._parcels["active_layer"][:,self._time_idx] == 1
