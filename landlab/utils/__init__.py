@@ -30,5 +30,5 @@ __all__ = [
     "get_watershed_nodes",
     "get_watershed_outlet",
     "get_watershed_masks",
-    "StablePriorityQueue"
+    "StablePriorityQueue",
 ]

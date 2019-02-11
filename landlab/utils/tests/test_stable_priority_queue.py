@@ -1,27 +1,27 @@
 #! /usr/bin/env python
 
 import numpy as np
+import pytest
 
 from landlab.utils import StablePriorityQueue
-import pytest
 
 
 def test_add_subtract_examine():
     q = StablePriorityQueue()
-    q.add_task('b', priority=2)
-    q.add_task('a', priority=1)
+    q.add_task("b", priority=2)
+    q.add_task("a", priority=1)
     q.add_task(0, priority=0)
-    q.add_task('c', priority=2)
+    q.add_task("c", priority=2)
     q.remove_task(0)
-    assert q.pop_task() == 'a'
+    assert q.pop_task() == "a"
 
-    assert q.peek_at_task() == 'b'
+    assert q.peek_at_task() == "b"
 
-    assert np.all(q.tasks_currently_in_queue() == np.array(['b', 'c']))
+    assert np.all(q.tasks_currently_in_queue() == np.array(["b", "c"]))
 
-    assert q.pop_task() == 'b'
+    assert q.pop_task() == "b"
 
-    assert np.all(q.tasks_ever_in_queue() == np.array(['b', 'a', '0', 'c']))
+    assert np.all(q.tasks_ever_in_queue() == np.array(["b", "a", "0", "c"]))
 
 
 def test_type_return_1():
@@ -52,7 +52,7 @@ def test_empty_peek():
 def test_inf_load_error():
     q = StablePriorityQueue()
     with pytest.raises(ValueError):
-        q.add_task(float('inf'))
+        q.add_task(float("inf"))
 
 
 def test_overwrite():

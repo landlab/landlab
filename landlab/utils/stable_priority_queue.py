@@ -1,12 +1,13 @@
 #!/usr/env/python
 
-import itertools
 import heapq
-import numpy as np
+import itertools
 from collections import deque
 
+import numpy as np
 
-class StablePriorityQueue():
+
+class StablePriorityQueue:
     """
     Implements a stable priority queue, that tracks insertion order; i.e., this
     is used to break ties.
@@ -55,19 +56,19 @@ class StablePriorityQueue():
     ...     print('No tasks left')
     No tasks left
     """
+
     def __init__(self):
-        self._pq = []                          # list of entries as a heap
-        self._entry_finder = {}                # mapping of tasks to entries
-        self._REMOVED = float('inf')        # placeholder for a removed task
-        self._counter = itertools.count()      # unique sequence count
+        self._pq = []  # list of entries as a heap
+        self._entry_finder = {}  # mapping of tasks to entries
+        self._REMOVED = float("inf")  # placeholder for a removed task
+        self._counter = itertools.count()  # unique sequence count
         self._tasks_ever_in_queue = deque([])
         # last one tracks all nodes that have ever been added
 
     def add_task(self, task, priority=0):
         "Add a new task or update the priority of an existing task."
         if task == self._REMOVED:
-            raise ValueError(
-                'StablePriorityQueue cannot accept tasks equal to INF!')
+            raise ValueError("StablePriorityQueue cannot accept tasks equal to INF!")
         if task in self._entry_finder:
             self.remove_task(task)
         count = next(self._counter)
@@ -88,7 +89,7 @@ class StablePriorityQueue():
             if task is not self._REMOVED:
                 del self._entry_finder[task]
                 return task
-        raise KeyError('pop from an empty priority queue')
+        raise KeyError("pop from an empty priority queue")
 
     def peek_at_task(self):
         """
@@ -99,12 +100,13 @@ class StablePriorityQueue():
             priority, count, task = self._pq[0]
             if task is not self._REMOVED:
                 return task
-        raise KeyError('peeked at an empty priority queue')
+        raise KeyError("peeked at an empty priority queue")
 
     def tasks_currently_in_queue(self):
         "Return array of nodes currently in the queue."
-        mynodes = [task for (priority, count, task) in self._pq
-                   if task is not self._REMOVED]
+        mynodes = [
+            task for (priority, count, task) in self._pq if task is not self._REMOVED
+        ]
         return np.array(mynodes)
 
     def tasks_ever_in_queue(self):

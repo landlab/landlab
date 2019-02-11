@@ -8,13 +8,13 @@ algorithms.
 """
 
 from __future__ import print_function
+
+import numpy as np
 from six import iteritems
 
 from landlab import BAD_INDEX_VALUE
 from landlab.components import LakeMapperBarnes
 from landlab.utils.return_array import return_array_at_node
-
-import numpy as np
 
 LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
 
@@ -55,58 +55,65 @@ class SinkFillerBarnes(LakeMapperBarnes):
         was_there_overfill property can still be used to see if this has
         occurred.
     """
-    _name = 'SinkFillerBarnes'
 
-    _input_var_names = ('topographic__elevation',
-                        )
+    _name = "SinkFillerBarnes"
 
-    _output_var_names = ('topographic__elevation',
-                         'sediment_fill__depth',
-                         )
+    _input_var_names = ("topographic__elevation",)
 
-    _var_units = {'topographic__elevation': 'm',
-                  'sediment_fill__depth': 'm',
-                  }
+    _output_var_names = ("topographic__elevation", "sediment_fill__depth")
 
-    _var_mapping = {'topographic__elevation': 'node',
-                    'sediment_fill__depth': 'node',
-                    }
+    _var_units = {"topographic__elevation": "m", "sediment_fill__depth": "m"}
 
-    _var_doc = {'topographic__elevation': 'Surface topographic elevation',
-                'sediment_fill__depth': 'Depth of sediment added at each'
-                                        + 'node',
-                }
+    _var_mapping = {"topographic__elevation": "node", "sediment_fill__depth": "node"}
 
-    def __init__(self, grid, surface='topographic__elevation',
-                 method='D8', fill_flat=False,
-                 ignore_overfill=False):
+    _var_doc = {
+        "topographic__elevation": "Surface topographic elevation",
+        "sediment_fill__depth": "Depth of sediment added at each" + "node",
+    }
+
+    def __init__(
+        self,
+        grid,
+        surface="topographic__elevation",
+        method="D8",
+        fill_flat=False,
+        ignore_overfill=False,
+    ):
         """
         Initialise the component.
         """
-        if 'flow__receiver_node' in grid.at_node:
-            if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
-                msg = ('A route-to-multiple flow director has been '
-                       'run on this grid. The landlab development team has not '
-                       'verified that SinkFillerBarnes is compatible with '
-                       'route-to-multiple methods. Please open a GitHub Issue '
-                       'to start this process.')
+        if "flow__receiver_node" in grid.at_node:
+            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
+                msg = (
+                    "A route-to-multiple flow director has been "
+                    "run on this grid. The landlab development team has not "
+                    "verified that SinkFillerBarnes is compatible with "
+                    "route-to-multiple methods. Please open a GitHub Issue "
+                    "to start this process."
+                )
                 raise NotImplementedError(msg)
 
         # Most of the functionality of this component is directly inherited
         # from SinkFillerBarnes, so
         super(SinkFillerBarnes, self).__init__(
-            grid, surface=surface, method=method, fill_flat=fill_flat,
-            fill_surface=surface, redirect_flow_steepest_descent=False,
-            reaccumulate_flow=False, ignore_overfill=ignore_overfill,
-            track_lakes=True)
+            grid,
+            surface=surface,
+            method=method,
+            fill_flat=fill_flat,
+            fill_surface=surface,
+            redirect_flow_steepest_descent=False,
+            reaccumulate_flow=False,
+            ignore_overfill=ignore_overfill,
+            track_lakes=True,
+        )
         # note we will always track the fills, since we're only doing this
         # once... Likewise, no need for flow routing; this is not going to
         # get used dynamically.
         self._supplied_surface = return_array_at_node(grid, surface).copy()
         # create the only new output field:
-        self._sed_fill_depth = self.grid.add_zeros('node',
-                                                   'sediment_fill__depth',
-                                                   noclobber=False)
+        self._sed_fill_depth = self.grid.add_zeros(
+            "node", "sediment_fill__depth", noclobber=False
+        )
 
     def run_one_step(self):
         """
@@ -214,14 +221,17 @@ class SinkFillerBarnes(LakeMapperBarnes):
         FlowAccumulator *does* think they are, because these nodes are where
         flow terminates.)
         """
-        if 'flow__receiver_node' in self._grid.at_node:
-            if (self._grid.at_node['flow__receiver_node'].size
-                    != self._grid.size('node')):
-                msg = ('A route-to-multiple flow director has been '
-                       'run on this grid. The landlab development team has '
-                       'not verified that SinkFillerBarnes is compatible with '
-                       'route-to-multiple methods. Please open a GitHub Issue '
-                       'to start this process.')
+        if "flow__receiver_node" in self._grid.at_node:
+            if self._grid.at_node["flow__receiver_node"].size != self._grid.size(
+                "node"
+            ):
+                msg = (
+                    "A route-to-multiple flow director has been "
+                    "run on this grid. The landlab development team has "
+                    "not verified that SinkFillerBarnes is compatible with "
+                    "route-to-multiple methods. Please open a GitHub Issue "
+                    "to start this process."
+                )
                 raise NotImplementedError(msg)
         super(SinkFillerBarnes, self).run_one_step()
         self._sed_fill_depth[:] = self._surface - self._supplied_surface

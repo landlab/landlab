@@ -9,20 +9,28 @@ algorithms.
 
 from __future__ import print_function
 
-from landlab import Component, BAD_INDEX_VALUE, RasterModelGrid
-from landlab.utils.return_array import return_array_at_node
-from landlab.utils import StablePriorityQueue
+import heapq
+import itertools
 
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
-from landlab import CLOSED_BOUNDARY, CORE_NODE
-from landlab.components import FlowDirectorSteepest, FlowAccumulator
 # ^ this simply in case Katy updates to add more fields, that we would also
 # need to update...
 from collections import deque
-from six import iteritems
+
 import numpy as np
-import heapq
-import itertools
+from six import iteritems
+
+from landlab import (
+    BAD_INDEX_VALUE,
+    CLOSED_BOUNDARY,
+    CORE_NODE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+    Component,
+    RasterModelGrid,
+)
+from landlab.components import FlowAccumulator, FlowDirectorSteepest
+from landlab.utils import StablePriorityQueue
+from landlab.utils.return_array import return_array_at_node
 
 LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
 LARGE_ELEV = 9999999999.
@@ -30,8 +38,7 @@ LARGE_ELEV = 9999999999.
 # TODO: Needs to have rerouting functionality...
 
 
-def _fill_one_node_to_flat(fill_surface, all_neighbors,
-                           pitq, openq, closedq, dummy):
+def _fill_one_node_to_flat(fill_surface, all_neighbors, pitq, openq, closedq, dummy):
     """
     Implements the Barnes et al. algorithm for a simple fill. Assumes the
     _open and _closed lists have already been updated per Barnes algos 2&3,
@@ -100,8 +107,7 @@ def _fill_one_node_to_flat(fill_surface, all_neighbors,
         c = openq.pop_task()
         # this will raise a KeyError once it's exhausted both queues
     cneighbors = all_neighbors[c]
-    openneighbors = cneighbors[
-        np.logical_not(closedq[cneighbors])]  # for efficiency
+    openneighbors = cneighbors[np.logical_not(closedq[cneighbors])]  # for efficiency
     closedq[openneighbors] = True
     for n in openneighbors:
         if fill_surface[n] <= fill_surface[c]:
@@ -199,7 +205,7 @@ class LakeMapperBarnes(Component):
         and be done with it.
     """
 
-    _name = 'LakeMapperBarnes'
+    _name = "LakeMapperBarnes"
 
     _cite_as = """@article{BARNES2014117,
         title = "Priority-flood: An optimal depression-filling and watershed-labeling algorithm for digital elevation models",
@@ -215,98 +221,100 @@ class LakeMapperBarnes(Component):
         }"""
 
     _input_var_names = (
-        'topographic__elevation',
-        'drainage_area',
-        'surface_water__discharge',
-        'flow__link_to_receiver_node',
-        'flow__upstream_node_order',
-        'flow__data_structure_delta',
-        'flow__data_structure_D',
-        'flow__receiver_node',
-        'flow__sink_flag',
+        "topographic__elevation",
+        "drainage_area",
+        "surface_water__discharge",
+        "flow__link_to_receiver_node",
+        "flow__upstream_node_order",
+        "flow__data_structure_delta",
+        "flow__data_structure_D",
+        "flow__receiver_node",
+        "flow__sink_flag",
     )
 
     _output_var_names = (
-        'topographic__elevation',
-        'drainage_area',
-        'surface_water__discharge',
-        'flow__link_to_receiver_node',
-        'flow__upstream_node_order',
-        'flow__data_structure_delta',
-        'flow__data_structure_D',
-        'flow__receiver_node',
-        'flow__sink_flag',
+        "topographic__elevation",
+        "drainage_area",
+        "surface_water__discharge",
+        "flow__link_to_receiver_node",
+        "flow__upstream_node_order",
+        "flow__data_structure_delta",
+        "flow__data_structure_D",
+        "flow__receiver_node",
+        "flow__sink_flag",
     )
 
     _var_units = {
-        'topographic__elevation': 'm',
-        'drainage_area': 'm**2',
-        'surface_water__discharge': 'm**3/s',
-        'flow__link_to_receiver_node': '-',
-        'flow__upstream_node_order': '-',
-        'flow__data_structure_delta': '-',
-        'flow__data_structure_D': '-',
-        'flow__receiver_node': '-',
-        'flow__sink_flag': '-',
+        "topographic__elevation": "m",
+        "drainage_area": "m**2",
+        "surface_water__discharge": "m**3/s",
+        "flow__link_to_receiver_node": "-",
+        "flow__upstream_node_order": "-",
+        "flow__data_structure_delta": "-",
+        "flow__data_structure_D": "-",
+        "flow__receiver_node": "-",
+        "flow__sink_flag": "-",
     }
 
     _var_mapping = {
-        'topographic__elevation': 'node',
-        'drainage_area': 'node',
-        'surface_water__discharge': 'node',
-        'flow__link_to_receiver_node': 'node',
-        'flow__upstream_node_order': 'node',
-        'flow__data_structure_delta': 'node',
-        'flow__data_structure_D': 'link',
-        'flow__receiver_node': 'node',
-        'flow__sink_flag': 'node',
+        "topographic__elevation": "node",
+        "drainage_area": "node",
+        "surface_water__discharge": "node",
+        "flow__link_to_receiver_node": "node",
+        "flow__upstream_node_order": "node",
+        "flow__data_structure_delta": "node",
+        "flow__data_structure_D": "link",
+        "flow__receiver_node": "node",
+        "flow__sink_flag": "node",
     }
 
     _var_doc = {
-        'topographic__elevation': 'Land surface topographic elevation',
-        'drainage_area':
-            "Upstream accumulated surface area contributing to the node's "
-            "discharge",
-        'surface_water__discharge': 'Discharge of water through each node',
-        'flow__link_to_receiver_node':
-            'ID of link downstream of each node, which carries the discharge',
-        'flow__upstream_node_order':
-            'Node array containing downstream-to-upstream ordered list of '
-            'node IDs',
-        'flow__data_structure_delta':
-            'Node array containing the elements delta[1:] of the data '
-            'structure "delta" used for construction of the downstream-to-'
-            'upstream node array',
-        'flow__data_structure_D':
-            'Link array containing the data structure D used for construction'
-            'of the downstream-to-upstream node array',
-        'flow__receiver_node':
-            'Node array of receivers (node that receives flow from current '
-            'node)',
-        'flow__sink_flag': 'Boolean array, True at local lows',
+        "topographic__elevation": "Land surface topographic elevation",
+        "drainage_area": "Upstream accumulated surface area contributing to the node's "
+        "discharge",
+        "surface_water__discharge": "Discharge of water through each node",
+        "flow__link_to_receiver_node": "ID of link downstream of each node, which carries the discharge",
+        "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
+        "node IDs",
+        "flow__data_structure_delta": "Node array containing the elements delta[1:] of the data "
+        'structure "delta" used for construction of the downstream-to-'
+        "upstream node array",
+        "flow__data_structure_D": "Link array containing the data structure D used for construction"
+        "of the downstream-to-upstream node array",
+        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
+        "node)",
+        "flow__sink_flag": "Boolean array, True at local lows",
     }
 
-    def __init__(self, grid, surface='topographic__elevation',
-                 method='Steepest', fill_flat=True,
-                 fill_surface='topographic__elevation',
-                 redirect_flow_steepest_descent=False,
-                 reaccumulate_flow=False,
-                 ignore_overfill=False, track_lakes=True):
+    def __init__(
+        self,
+        grid,
+        surface="topographic__elevation",
+        method="Steepest",
+        fill_flat=True,
+        fill_surface="topographic__elevation",
+        redirect_flow_steepest_descent=False,
+        reaccumulate_flow=False,
+        ignore_overfill=False,
+        track_lakes=True,
+    ):
         """
         Initialize the component.
         """
-        if 'flow__receiver_node' in grid.at_node:
-            if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
-                msg = ('A route-to-multiple flow director has been '
-                       'run on this grid. The landlab development team has not '
-                       'verified that LakeMapperBarnes is compatible with '
-                       'route-to-multiple methods. Please open a GitHub Issue '
-                       'to start this process.')
+        if "flow__receiver_node" in grid.at_node:
+            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
+                msg = (
+                    "A route-to-multiple flow director has been "
+                    "run on this grid. The landlab development team has not "
+                    "verified that LakeMapperBarnes is compatible with "
+                    "route-to-multiple methods. Please open a GitHub Issue "
+                    "to start this process."
+                )
                 raise NotImplementedError(msg)
         self._grid = grid
         self._open = StablePriorityQueue()
         self._pit = []
-        self._closed = self.grid.zeros('node', dtype=bool)
+        self._closed = self.grid.zeros("node", dtype=bool)
         self._gridclosednodes = self.grid.status_at_node == CLOSED_BOUNDARY
         # close up the CLOSED_BOUNDARY permanently:
         self._closed[self._gridclosednodes] = True
@@ -323,19 +331,26 @@ class LakeMapperBarnes(Component):
         self._track_lakes = track_lakes
 
         # get the neighbour call set up:
-        if method not in {'Steepest', 'D8'}:
+        if method not in {"Steepest", "D8"}:
             raise ValueError(
-                "{method}: method must be 'Steepest' or 'D8'".format(
-                    method=method))
-        if method is 'D8':
+                "{method}: method must be 'Steepest' or 'D8'".format(method=method)
+            )
+        if method is "D8":
             if isinstance(grid, RasterModelGrid):
                 self._allneighbors = np.concatenate(
-                    (self.grid.adjacent_nodes_at_node,
-                     self.grid.diagonal_adjacent_nodes_at_node), axis=1)
+                    (
+                        self.grid.adjacent_nodes_at_node,
+                        self.grid.diagonal_adjacent_nodes_at_node,
+                    ),
+                    axis=1,
+                )
             else:  # not a raster
                 raise ValueError(
-                    ('D8 is not a valid value for method if grid type is '
-                     + '{gridtype}!').format(gridtype=type(grid)))
+                    (
+                        "D8 is not a valid value for method if grid type is "
+                        + "{gridtype}!"
+                    ).format(gridtype=type(grid))
+                )
         else:
             self._allneighbors = self.grid.adjacent_nodes_at_node
 
@@ -346,13 +361,17 @@ class LakeMapperBarnes(Component):
         # least, there's more land in that direction that will be handled
         # otherwise.) Note we add a test that there is at least some kind
         # of outlet!!
-        self._edges = np.where(np.logical_or(
-            self.grid.status_at_node == FIXED_VALUE_BOUNDARY,
-            self.grid.status_at_node == FIXED_GRADIENT_BOUNDARY))[0]
+        self._edges = np.where(
+            np.logical_or(
+                self.grid.status_at_node == FIXED_VALUE_BOUNDARY,
+                self.grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+            )
+        )[0]
         if self._edges.size == 0:
             raise ValueError(
-                'No valid outlets found on the grid! You cannot run the '
-                + 'filling algorithms!')
+                "No valid outlets found on the grid! You cannot run the "
+                + "filling algorithms!"
+            )
         # and finally, close these up permanently as well (edges will always
         # be edges...)
         self._closed[self._edges] = True
@@ -385,32 +404,32 @@ class LakeMapperBarnes(Component):
             # This will cause a bunch of our tests to break, so users will
             # never see this.
             assert len(FlowDirectorSteepest.output_var_names) == 4
-            self._receivers = self.grid.at_node['flow__receiver_node']
-            self._receiverlinks = self.grid.at_node[
-                'flow__link_to_receiver_node']
-            self._steepestslopes = self.grid.at_node[
-                'topographic__steepest_slope']
+            self._receivers = self.grid.at_node["flow__receiver_node"]
+            self._receiverlinks = self.grid.at_node["flow__link_to_receiver_node"]
+            self._steepestslopes = self.grid.at_node["topographic__steepest_slope"]
             # if raster, do the neighbors & diagonals separate when rerouting
             # so we'll need to pull these separately:
-            if method == 'D8':  # Raster test unnecessary given tests above
+            if method == "D8":  # Raster test unnecessary given tests above
                 self._neighbor_arrays = (
                     self.grid.adjacent_nodes_at_node,
-                    self.grid.diagonal_adjacent_nodes_at_node)
+                    self.grid.diagonal_adjacent_nodes_at_node,
+                )
                 self._link_arrays = (
                     self.grid.links_at_node,
-                    self.grid.d8s_at_node[:, 4:])
+                    self.grid.d8s_at_node[:, 4:],
+                )
                 self._neighbor_lengths = self.grid.length_of_d8
             else:
-                self._neighbor_arrays = (
-                    self.grid.adjacent_nodes_at_node, )
-                self._link_arrays = (self.grid.links_at_node, )
+                self._neighbor_arrays = (self.grid.adjacent_nodes_at_node,)
+                self._link_arrays = (self.grid.links_at_node,)
                 self._neighbor_lengths = self.grid.length_of_link
 
         if reaccumulate_flow:
             if not redirect_flow_steepest_descent:
                 raise ValueError(
                     "You must also redirect_flow_steepest_descent if you "
-                    + "want to reaccumulate_flow!")
+                    + "want to reaccumulate_flow!"
+                )
             self._reaccumulate = True
             self._fa = FlowAccumulator(self.grid, flow_director=method)
         else:
@@ -422,8 +441,9 @@ class LakeMapperBarnes(Component):
         else:
             self._fill_one_node = self._fill_one_node_to_slant
 
-    def _fill_one_node_to_slant(self, fill_surface, all_neighbors,
-                                pitq, openq, closedq, ignore_overfill):
+    def _fill_one_node_to_slant(
+        self, fill_surface, all_neighbors, pitq, openq, closedq, ignore_overfill
+    ):
         """
         Implements the Barnes et al. algorithm to obtain a naturally draining
         surface, updating a single node. Assumes the _open and _closed lists
@@ -572,15 +592,13 @@ class LakeMapperBarnes(Component):
                 continue
             else:
                 closedq[n] = True
-            nextval = np.nextafter(
-                fill_surface[c], LARGE_ELEV)
+            nextval = np.nextafter(fill_surface[c], LARGE_ELEV)
             # DEJH believes that in the LL use cases this is impossible,
             # but retained as comments since present in Barnes algorithm
             # if self._gridclosednodes[n]:
             #     heapq.heappush(pitq, n)
             if fill_surface[n] <= nextval:  # former elif
-                if (self._PitTop < fill_surface[n]
-                        and nextval >= fill_surface[n]):
+                if self._PitTop < fill_surface[n] and nextval >= fill_surface[n]:
                     if ignore_overfill:
                         self._overfill_flag = True
                     else:
@@ -595,8 +613,9 @@ class LakeMapperBarnes(Component):
             else:
                 openq.add_task(n, priority=fill_surface[n])
 
-    def _fill_to_flat_with_tracking(self, fill_surface, all_neighbors,
-                                    pitq, openq, closedq):
+    def _fill_to_flat_with_tracking(
+        self, fill_surface, all_neighbors, pitq, openq, closedq
+    ):
         """
         Implements the Barnes et al. algorithm for a simple fill over the
         grid. Assumes the _open and _closed lists have already been updated
@@ -670,11 +689,12 @@ class LakeMapperBarnes(Component):
                 try:
                     lakemappings[outlet_ID].append(c)  # add this node to lake
                 except KeyError:  # this is the first node of a new lake
-                    lakemappings[outlet_ID] = deque([c, ])
+                    lakemappings[outlet_ID] = deque([c])
 
             cneighbors = all_neighbors[c]
             openneighbors = cneighbors[
-                np.logical_not(closedq[cneighbors])]  # for efficiency
+                np.logical_not(closedq[cneighbors])
+            ]  # for efficiency
             closedq[openneighbors] = True
             for n in openneighbors:
                 if fill_surface[n] <= fill_surface[c]:
@@ -685,10 +705,16 @@ class LakeMapperBarnes(Component):
             # print(np.sort(openq.tasks_currently_in_queue()), pitq)
         return lakemappings
 
-    def _fill_to_slant_with_optional_tracking(self, fill_surface,
-                                              all_neighbors, pitq, openq,
-                                              closedq, ignore_overfill,
-                                              track_lakes):
+    def _fill_to_slant_with_optional_tracking(
+        self,
+        fill_surface,
+        all_neighbors,
+        pitq,
+        openq,
+        closedq,
+        ignore_overfill,
+        track_lakes,
+    ):
         """
         Implements the Barnes et al. algorithm to obtain a naturally draining
         surface over the grid. Assumes the _open and _closed lists have
@@ -877,7 +903,7 @@ class LakeMapperBarnes(Component):
                         # ^add this node to lake
                     except KeyError:
                         # ^this is the first node of a new lake
-                        lakemappings[outlet_ID] = deque([c, ])
+                        lakemappings[outlet_ID] = deque([c])
             else:
                 try:
                     c = openq.pop_task()
@@ -892,14 +918,12 @@ class LakeMapperBarnes(Component):
                     continue
                 else:
                     closedq[n] = True
-                nextval = np.nextafter(
-                    fill_surface[c], LARGE_ELEV)
+                nextval = np.nextafter(fill_surface[c], LARGE_ELEV)
                 # as in non-tracker, DEJH believes this is redundant in LL
                 # if self._gridclosednodes[n]:
                 #     heapq.heappush(pitq, n)
                 if fill_surface[n] <= nextval:  # formerly elif
-                    if (self._PitTop < fill_surface[n]
-                            and nextval >= fill_surface[n]):
+                    if self._PitTop < fill_surface[n] and nextval >= fill_surface[n]:
                         if ignore_overfill:
                             self._overfill_flag = True
                         else:
@@ -1073,7 +1097,7 @@ class LakeMapperBarnes(Component):
         True
         """
         openq = self._open
-        closedq = self.grid.ones('node', dtype=int)
+        closedq = self.grid.ones("node", dtype=int)
         # Using a slightly different approach. We recognise three types: lake
         # (0), lake margin (1), and closed (2). This lets us work the
         # perimeter too. Open each lake as needed.
@@ -1098,33 +1122,34 @@ class LakeMapperBarnes(Component):
             else:
                 out_elev = LARGE_ELEV
                 for neighbor_set, link_set in zip(
-                        self._neighbor_arrays, self._link_arrays):
-                    not_lake_neighbors = np.not_equal(
-                        closedq[neighbor_set[outlet]], 0)
+                    self._neighbor_arrays, self._link_arrays
+                ):
+                    not_lake_neighbors = np.not_equal(closedq[neighbor_set[outlet]], 0)
                     minusones = np.equal(neighbor_set[outlet], -1)
                     not_lake_neighbors[minusones] = False
                     closednodes = np.equal(
-                        self.grid.status_at_node[neighbor_set[outlet]],
-                        CLOSED_BOUNDARY)  # closed BCs can't count
+                        self.grid.status_at_node[neighbor_set[outlet]], CLOSED_BOUNDARY
+                    )  # closed BCs can't count
                     not_lake_neighbors[closednodes] = False
                     try:
                         min_val = np.amin(
-                            surface[neighbor_set[outlet][not_lake_neighbors]])
+                            surface[neighbor_set[outlet][not_lake_neighbors]]
+                        )
                     except ValueError:
                         continue
                     if min_val < out_elev:
                         viable_nodes = neighbor_set[outlet][not_lake_neighbors]
-                        min_neighbor_byTrue = np.argmin(
-                            surface[viable_nodes])
+                        min_neighbor_byTrue = np.argmin(surface[viable_nodes])
                         min_neighbor = viable_nodes[min_neighbor_byTrue]
                         min_link = link_set[outlet][not_lake_neighbors][
-                            min_neighbor_byTrue]
+                            min_neighbor_byTrue
+                        ]
                         out_elev = min_val
                 self._receivers[outlet] = min_neighbor
                 self._receiverlinks[outlet] = min_link
                 self._steepestslopes[outlet] = (
-                    (surface[outlet] - surface[min_neighbor])
-                    / self._neighbor_lengths[min_link])
+                    surface[outlet] - surface[min_neighbor]
+                ) / self._neighbor_lengths[min_link]
 
             while True:
                 try:
@@ -1135,7 +1160,8 @@ class LakeMapperBarnes(Component):
                     closedq[c] = 2  # close it
                     # if raster, do the neighbors & diagonals separate...
                     for neighbor_set, link_set in zip(
-                            self._neighbor_arrays, self._link_arrays):
+                        self._neighbor_arrays, self._link_arrays
+                    ):
                         for (n, l) in zip(neighbor_set[c, :], link_set[c, :]):
                             if closedq[n] == 2:  # fully closed
                                 continue
@@ -1169,31 +1195,32 @@ class LakeMapperBarnes(Component):
                 min_elev = LARGE_ELEV
                 min_link = -1
                 for neighbor_set, link_set in zip(
-                        self._neighbor_arrays, self._link_arrays):
+                    self._neighbor_arrays, self._link_arrays
+                ):
                     neighbors = neighbor_set[liminal]
                     neighbors_valid = np.not_equal(neighbors, -1)
                     closednodes = np.equal(
-                        self.grid.status_at_node[neighbors],
-                        CLOSED_BOUNDARY)  # closed BCs can't count
+                        self.grid.status_at_node[neighbors], CLOSED_BOUNDARY
+                    )  # closed BCs can't count
                     neighbors_valid[closednodes] = False
                     neighbors_to_check = neighbors[neighbors_valid]
                     if len(neighbors_to_check) == 0:
                         continue
                     else:
                         min_neighbor_now = np.amin(
-                            self._fill_surface[neighbors_to_check])
+                            self._fill_surface[neighbors_to_check]
+                        )
                         if min_neighbor_now < min_elev:
                             min_elev = min_neighbor_now
-                            links_available = link_set[
-                                liminal][neighbors_valid]
+                            links_available = link_set[liminal][neighbors_valid]
                             min_link_of_valid = np.argmin(
-                                self._fill_surface[neighbors_to_check])
-                            min_receiver = neighbors_to_check[
-                                min_link_of_valid]
+                                self._fill_surface[neighbors_to_check]
+                            )
+                            min_receiver = neighbors_to_check[min_link_of_valid]
                             min_link = links_available[min_link_of_valid]
-                            max_grad = ((
-                                self._fill_surface[liminal] - min_elev)
-                                / self._neighbor_lengths[min_link])
+                            max_grad = (
+                                self._fill_surface[liminal] - min_elev
+                            ) / self._neighbor_lengths[min_link]
                         else:
                             pass
                 assert min_link != -1, neighbors_valid
@@ -1203,7 +1230,7 @@ class LakeMapperBarnes(Component):
                 self._steepestslopes[liminal] = max_grad
 
             # by the time we get here, we've removed all the pits! So...
-            self.grid.at_node['flow__sink_flag'][lakenodes] = 0
+            self.grid.at_node["flow__sink_flag"][lakenodes] = 0
             # reclose the lake:
             closedq[outlet] = 1
             closedq[lakenodes] = 1
@@ -1577,13 +1604,17 @@ class LakeMapperBarnes(Component):
         ensures the information about the lake and the water surface
         topography are all updated cleanly and correctly.
         """
-        if 'flow__receiver_node' in self._grid.at_node:
-            if (self._grid.at_node['flow__receiver_node'].size != self._grid.size('node')):
-                msg = ('A route-to-multiple flow director has been '
-                       'run on this grid. The landlab development team has not '
-                       'verified that LakeMapperBarnes is compatible with '
-                       'route-to-multiple methods. Please open a GitHub Issue '
-                       'to start this process.')
+        if "flow__receiver_node" in self._grid.at_node:
+            if self._grid.at_node["flow__receiver_node"].size != self._grid.size(
+                "node"
+            ):
+                msg = (
+                    "A route-to-multiple flow director has been "
+                    "run on this grid. The landlab development team has not "
+                    "verified that LakeMapperBarnes is compatible with "
+                    "route-to-multiple methods. Please open a GitHub Issue "
+                    "to start this process."
+                )
                 raise NotImplementedError(msg)
         # do the prep:
         # increment the run counter
@@ -1604,15 +1635,22 @@ class LakeMapperBarnes(Component):
             closedq[self._edges] = True
             if self._fill_flat:
                 self._lakemappings = self._fill_to_flat_with_tracking(
-                    self._fill_surface, self._allneighbors, self._pit,
-                    self._open, closedq)
+                    self._fill_surface,
+                    self._allneighbors,
+                    self._pit,
+                    self._open,
+                    closedq,
+                )
             else:
-                self._lakemappings = (
-                    self._fill_to_slant_with_optional_tracking(
-                        self._fill_surface, self._allneighbors, self._pit,
-                        self._open, closedq,
-                        ignore_overfill=self._ignore_overfill,
-                        track_lakes=True))
+                self._lakemappings = self._fill_to_slant_with_optional_tracking(
+                    self._fill_surface,
+                    self._allneighbors,
+                    self._pit,
+                    self._open,
+                    closedq,
+                    ignore_overfill=self._ignore_overfill,
+                    track_lakes=True,
+                )
             if not self._dontredirect:
                 self._redirect_flowdirs(orig_topo, self._lakemappings)
                 if self._reaccumulate:
@@ -1622,14 +1660,18 @@ class LakeMapperBarnes(Component):
             # note we've already checked _dontredirect is True in setup,
             # so we don't need to worry about these cases.
             for edgenode in self._edges:
-                self._open.add_task(edgenode,
-                                    priority=self._surface[edgenode])
+                self._open.add_task(edgenode, priority=self._surface[edgenode])
             closedq[self._edges] = True
             while True:
                 try:
                     self._fill_one_node(
-                        self._fill_surface, self._allneighbors, self._pit,
-                        self._open, closedq, self._ignore_overfill)
+                        self._fill_surface,
+                        self._allneighbors,
+                        self._pit,
+                        self._open,
+                        closedq,
+                        self._ignore_overfill,
+                    )
                 except KeyError:  # run out of nodes to fill...
                     break
 
@@ -1674,8 +1716,7 @@ class LakeMapperBarnes(Component):
         True
         """
         if not self._track_lakes:
-            raise ValueError(
-                "Enable tracking to access information about lakes")
+            raise ValueError("Enable tracking to access information about lakes")
         return self._lakemappings
 
     @property
@@ -1717,8 +1758,7 @@ class LakeMapperBarnes(Component):
         True
         """
         if not self._track_lakes:
-            raise ValueError(
-                "Enable tracking to access information about lakes")
+            raise ValueError("Enable tracking to access information about lakes")
         return list(self._lakemappings.keys())
 
     @property
@@ -1765,8 +1805,7 @@ class LakeMapperBarnes(Component):
         2
         """
         if not self._track_lakes:
-            raise ValueError(
-                "Enable tracking to access information about lakes")
+            raise ValueError("Enable tracking to access information about lakes")
         return len(self._lakemappings)
 
     @property
@@ -1836,8 +1875,9 @@ class LakeMapperBarnes(Component):
         """
         if self._runcount > self._lastcountforlakemap:
             # things have changed since last call to lake_map
-            self._lake_map = np.full(self.grid.number_of_nodes,
-                                     LOCAL_BAD_INDEX_VALUE, dtype=int)
+            self._lake_map = np.full(
+                self.grid.number_of_nodes, LOCAL_BAD_INDEX_VALUE, dtype=int
+            )
             for (outlet, lakenodes) in self.lake_dict.items():
                 self._lake_map[lakenodes] = outlet
         else:
@@ -1939,7 +1979,8 @@ class LakeMapperBarnes(Component):
         if self._inplace:
             raise ValueError(
                 "surface and fill_surface must be different fields or "
-                + "arrays to enable the property lake_depths!")
+                + "arrays to enable the property lake_depths!"
+            )
         return self._fill_surface - self._surface
 
     @property
@@ -2122,5 +2163,6 @@ class LakeMapperBarnes(Component):
         if self._fill_flat is True:
             raise ValueError(
                 "was_there_overfill is only defined if filling to an "
-                + "inclined surface!")
+                + "inclined surface!"
+            )
         return self._overfill_flag
