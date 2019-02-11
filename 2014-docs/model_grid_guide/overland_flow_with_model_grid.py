@@ -8,9 +8,13 @@ Last updated GT May 2014
 
 """
 
-from landlab import RasterModelGrid
-import pylab, time
+import time
+
 import numpy as np
+import pylab
+
+from landlab import RasterModelGrid
+
 
 def main():
     """

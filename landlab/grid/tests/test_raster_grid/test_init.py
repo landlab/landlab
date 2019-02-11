@@ -6,14 +6,16 @@ from landlab import BAD_INDEX_VALUE as X, RasterModelGrid
 
 
 def test_init_with_kwds_classic():
-    grid = RasterModelGrid(num_rows=4, num_cols=5, dx=1.)
+
+    grid = RasterModelGrid(num_rows=4, num_cols=5, xy_spacing=1.)
 
     assert grid.number_of_node_rows == 4
     assert grid.number_of_node_columns == 5
     assert grid.dy == 1
     assert grid.dx == 1
 
-    grid = RasterModelGrid(3, 7, 2)
+    with pytest.deprecated_call():
+        grid = RasterModelGrid(3, 7, 2)
 
     assert grid.number_of_node_rows == 3
     assert grid.number_of_node_columns == 7
@@ -22,7 +24,7 @@ def test_init_with_kwds_classic():
 
 
 def test_init_new_style():
-    grid = RasterModelGrid((4, 5), spacing=2)
+    grid = RasterModelGrid((4, 5), xy_spacing=2)
 
     assert grid.number_of_node_rows == 4
     assert grid.number_of_node_columns == 5
@@ -44,7 +46,7 @@ def test_spacing_is_float():
     assert grid.dx == 1.
     assert isinstance(grid.dx, float)
 
-    grid = RasterModelGrid((4, 5), spacing=2)
+    grid = RasterModelGrid((4, 5), xy_spacing=2)
     assert grid.dy == 2.
     assert isinstance(grid.dy, float)
     assert grid.dx == 2.
@@ -53,20 +55,20 @@ def test_spacing_is_float():
 
 def test_grid_dimensions():
     """Test extent of grid with unit spacing."""
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert rmg.extent[0] == rmg.number_of_node_rows - 1
     assert rmg.extent[1] == rmg.number_of_node_columns - 1
 
 
 def test_grid_dimensions_non_unit_spacing():
     """Test extent of grid with non-unit spacing."""
-    rmg = RasterModelGrid((4, 5), spacing=2.)
+    rmg = RasterModelGrid((4, 5), xy_spacing=2.)
     assert rmg.extent[0] == 6.
     assert rmg.extent[1] == 8.
 
 
 def test_nodes_around_point():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     surrounding_ids = rmg.nodes_around_point(2.1, 1.1)
     assert_array_equal(surrounding_ids, np.array([7, 12, 13, 8]))
 
@@ -75,14 +77,14 @@ def test_nodes_around_point():
 
 
 def test_neighbor_list_with_scalar_arg():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(rmg.active_adjacent_nodes_at_node[6], np.array([7, 11, 5, 1]))
     assert_array_equal(rmg.active_adjacent_nodes_at_node[-1], np.array([X, X, X, X]))
     assert_array_equal(rmg.active_adjacent_nodes_at_node[-2], np.array([X, X, X, 13]))
 
 
 def test_neighbor_list_with_array_arg():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(
         rmg.active_adjacent_nodes_at_node[[6, -1]],
         np.array([[7, 11, 5, 1], [X, X, X, X]]),
@@ -90,7 +92,7 @@ def test_neighbor_list_with_array_arg():
 
 
 def test_neighbor_list_with_no_args():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     expected = np.array(
         [
             [X, X, X, X],
@@ -120,7 +122,7 @@ def test_neighbor_list_with_no_args():
 
 
 def test_node_x():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(
         rmg.node_x,
         np.array(
@@ -151,7 +153,7 @@ def test_node_x():
 
 
 def test_node_y():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(
         rmg.node_y,
         np.array(
@@ -182,19 +184,19 @@ def test_node_y():
 
 
 def test_node_x_is_immutable():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     with pytest.raises(ValueError):
         rmg.node_x[0] = 0
 
 
 def test_node_y_is_immutable():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     with pytest.raises(ValueError):
         rmg.node_y[0] = 0
 
 
 def test_node_axis_coordinates():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert rmg.node_axis_coordinates(axis=0).base is rmg.node_y.base
     assert rmg.node_axis_coordinates(axis=1).base is rmg.node_x.base
     assert rmg.node_axis_coordinates(axis=-1).base is rmg.node_x.base
@@ -202,7 +204,7 @@ def test_node_axis_coordinates():
 
 
 def test_diagonal_list():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(rmg.diagonal_adjacent_nodes_at_node[6], np.array([12, 10, 0, 2]))
     assert_array_equal(rmg.diagonal_adjacent_nodes_at_node[-1], np.array([X, X, 13, X]))
     assert_array_equal(
@@ -239,12 +241,12 @@ def test_diagonal_list():
 
 
 def test_diagonal_list_boundary():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(rmg.diagonal_adjacent_nodes_at_node[0], np.array([6, X, X, X]))
 
 
 def test_node_is_core():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     for cell_id in [0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 16, 17, 18, 19]:
         assert not rmg.node_is_core(cell_id)
     for cell_id in [6, 7, 8, 11, 12, 13]:
@@ -252,12 +254,12 @@ def test_node_is_core():
 
 
 def test_get_interior_cells():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(rmg.node_at_core_cell, np.array([6, 7, 8, 11, 12, 13]))
 
 
 def test_active_links():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert rmg.number_of_active_links == 17
     assert_array_equal(
         rmg.active_links,
@@ -266,38 +268,38 @@ def test_active_links():
 
 
 # def test_active_link_fromnode():
-#    rmg = RasterModelGrid((4, 5), spacing=1.)
+#    rmg = RasterModelGrid((4, 5))
 #    assert_array_equal(rmg._activelink_fromnode,
 #                       np.array([1, 2, 3, 6, 7, 8, 11, 12, 13,
 #                                 5, 6, 7, 8, 10, 11, 12, 13]))
 #
 #
 # def test_active_link_tonode():
-#    rmg = RasterModelGrid((4, 5), spacing=1.)
+#    rmg = RasterModelGrid((4, 5))
 #    assert_array_equal(rmg._activelink_tonode,
 #                       np.array([6, 7, 8, 11, 12, 13, 16, 17, 18,
 #                                 6, 7, 8, 9, 11, 12, 13, 14]))
 
 
 def test__active_links_at_node_scalar_interior():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(rmg._active_links_at_node([6]), np.array([[5, 9, 14, 10]]).T)
 
 
 def test__active_links_at_node_scalar_boundary():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(rmg._active_links_at_node([1]), np.array([[-1, -1, 5, -1]]).T)
 
 
 def test_active_node_with_array_arg():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(
         rmg._active_links_at_node([6, 7]), np.array([[5, 9, 14, 10], [6, 10, 15, 11]]).T
     )
 
 
 def test__active_links_at_node_with_no_args():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(
         rmg._active_links_at_node(),
         np.array(
@@ -397,7 +399,7 @@ def test__active_links_at_node_with_no_args():
 
 def test_nodes_at_link():
     """Test nodes_at_link shares data with tail and head."""
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(rmg.nodes_at_link[:, 0], rmg.node_at_link_tail)
     assert_array_equal(rmg.nodes_at_link[:, 1], rmg.node_at_link_head)
 
@@ -406,7 +408,7 @@ def test_nodes_at_link():
 
 
 def test_node_at_link_tail():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(
         rmg.node_at_link_tail,
         np.array(
@@ -448,7 +450,7 @@ def test_node_at_link_tail():
 
 
 def test_node_at_link_head():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(
         rmg.node_at_link_head,
         np.array(
@@ -490,24 +492,24 @@ def test_node_at_link_head():
 
 
 def test_links_at_node_with_scalar_interior():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(rmg.links_at_node[6], np.array([10, 14, 9, 5]))
 
 
 def test_links_at_node_with_scalar_boundary():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(rmg.links_at_node[1], np.array([1, 5, 0, -1]))
 
 
 def test_links_at_node_with_array_arg():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(
         rmg.links_at_node[6:8], np.array([[10, 14, 9, 5], [11, 15, 10, 6]])
     )
 
 
 def test_links_at_node_with_no_args():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(
         rmg.links_at_node,
         np.array(
@@ -538,7 +540,7 @@ def test_links_at_node_with_no_args():
 
 
 def test_face_at_link():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(
         rmg.face_at_link,
         np.array(
@@ -580,24 +582,24 @@ def test_face_at_link():
 
 
 def test_grid_coords_to_node_id_with_scalar():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert rmg.grid_coords_to_node_id(3, 4) == 19
 
 
 def test_grid_coords_to_node_id_with_array():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(rmg.grid_coords_to_node_id((3, 2), (4, 1)), np.array([19, 11]))
 
 
 def test_grid_coords_to_node_id_outside_of_grid():
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     with pytest.raises(ValueError):
         rmg.grid_coords_to_node_id(5, 0)
 
 
 def test_diagonal_adjacent_nodes_at_node():
     """Test diagonally adjacent nodes."""
-    rmg = RasterModelGrid((4, 5), spacing=1.)
+    rmg = RasterModelGrid((4, 5))
     assert_array_equal(
         rmg.diagonal_adjacent_nodes_at_node,
         np.array(

@@ -1,4 +1,4 @@
-from .graph import Graph
+from .graph import Graph, NetworkGraph
 from .dual import DualGraph
 from .structured_quad import (
     StructuredQuadGraph,
@@ -15,6 +15,7 @@ from .radial import RadialGraph, DualRadialGraph
 
 __all__ = [
     "Graph",
+    "NetworkGraph",
     "DualGraph",
     "StructuredQuadGraph",
     "RectilinearGraph",

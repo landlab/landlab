@@ -6,10 +6,11 @@ import numpy as np
 import xarray as xr
 from scipy.interpolate import interp1d
 
+from landlab import Component
 from landlab.layers import EventLayers, MaterialLayers
 
 
-class Lithology(object):
+class Lithology(Component):
 
     """Create a Lithology object.
 

@@ -60,7 +60,7 @@ def neighbor_node_at_cell(grid, inds, *args):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.raster_funcs import neighbor_node_at_cell
-    >>> grid = RasterModelGrid(4, 5, 1.0)
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=1.0)
     >>> neighbor_node_at_cell(grid, 0, 0)
     array([1])
 
@@ -218,7 +218,7 @@ def _find_nearest_node_ndarray(rmg, coords, mode="raise"):
     >>> _find_nearest_node_ndarray(grid, (.75, 2.25))
     11
 
-    >>> grid = RasterModelGrid((4, 5), spacing=(3, 4))
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=(3, 4))
     >>> _find_nearest_node_ndarray(grid, (3.1, 4.1))
     6
     """

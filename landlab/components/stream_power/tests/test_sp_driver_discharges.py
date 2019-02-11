@@ -19,7 +19,7 @@ def test_sp_discharges_old():
     dx = inputs.read_float("dx")
     dt = inputs.read_float("dt")
 
-    mg = RasterModelGrid(nrows, ncols, dx)
+    mg = RasterModelGrid(nrows, ncols, xy_spacing=dx)
     mg.add_zeros("topographic__elevation", at="node")
     z = np.array(
         [
@@ -103,7 +103,7 @@ def test_sp_discharges_new():
     dx = inputs.read_float("dx")
     dt = inputs.read_float("dt")
 
-    mg = RasterModelGrid(nrows, ncols, dx)
+    mg = RasterModelGrid(nrows, ncols, xy_spacing=dx)
     mg.add_zeros("topographic__elevation", at="node")
     z = np.array(
         [

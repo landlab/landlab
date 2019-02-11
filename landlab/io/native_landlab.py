@@ -45,7 +45,7 @@ def save_grid(grid, path, clobber=False):
     >>> from landlab import RasterModelGrid
     >>> from landlab.io.native_landlab import save_grid
     >>> import os
-    >>> grid_out = RasterModelGrid(4,5,2.)
+    >>> grid_out = RasterModelGrid(4,5, xy_spacing=2.)
     >>> save_grid(grid_out, 'testsavedgrid.grid', clobber=True)
     >>> os.remove('testsavedgrid.grid') #to remove traces of this test
     """

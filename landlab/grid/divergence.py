@@ -29,7 +29,7 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     --------
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
     >>> from landlab.grid.divergence import calc_flux_div_at_node
-    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
@@ -101,7 +101,7 @@ def calc_flux_div_at_cell(grid, unit_flux, out=None):
     --------
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
     >>> from landlab.grid.divergence import calc_flux_div_at_cell
-    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> import numpy as np
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
@@ -178,7 +178,7 @@ def calc_net_flux_at_node(grid, unit_flux_at_links, out=None):
     Examples
     --------
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
@@ -256,7 +256,7 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     Examples
     --------
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
@@ -325,7 +325,7 @@ def _calc_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     Examples
     --------
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
@@ -375,7 +375,7 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     Examples
     --------
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
@@ -445,7 +445,7 @@ def _calc_active_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     Examples
     --------
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
@@ -495,7 +495,7 @@ def _calc_net_active_link_flux_at_node(grid, unit_flux_at_links, out=None):
     Examples
     --------
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
@@ -569,7 +569,7 @@ def _calc_active_link_flux_divergence_at_node(grid, unit_flux_at_links, out=None
     Examples
     --------
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
@@ -625,7 +625,7 @@ def _calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     Examples
     --------
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
@@ -695,7 +695,7 @@ def _calc_net_active_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     Examples
     --------
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0
@@ -764,7 +764,7 @@ def _calc_active_face_flux_divergence_at_node(grid, unit_flux_at_faces, out=None
     Examples
     --------
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
-    >>> rg = RasterModelGrid(3, 4, 10.0)
+    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 50.0
     >>> z[6] = 36.0

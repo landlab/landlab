@@ -41,7 +41,9 @@ from .grid import (
     RadialModelGrid,
     RasterModelGrid,
     VoronoiDelaunayGrid,
+    NetworkModelGrid,
     create_and_initialize_grid,
+    create_grid,
 )
 from .plot import (
     analyze_channel_network_and_plot,
@@ -80,6 +82,7 @@ __all__ = [
     "RadialModelGrid",
     "RasterModelGrid",
     "VoronoiDelaunayGrid",
+    "NetworkModelGrid",
     "BAD_INDEX_VALUE",
     "CORE_NODE",
     "FIXED_VALUE_BOUNDARY",
@@ -90,6 +93,7 @@ __all__ = [
     "FIXED_LINK",
     "INACTIVE_LINK",
     "create_and_initialize_grid",
+    "create_grid",
     "imshow_grid",
     "imshow_node_grid",
     "imshow_cell_grid",

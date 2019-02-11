@@ -17,8 +17,10 @@ from .watershed import (
 )
 from .stable_priority_queue import StablePriorityQueue
 
+from .add_halo import add_halo
 
 __all__ = [
+    "add_halo",
     "count_repeated_values",
     "track_source",
     "convert_arc_flow_directions_to_landlab_node_ids",

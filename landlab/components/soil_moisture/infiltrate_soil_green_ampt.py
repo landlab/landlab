@@ -24,7 +24,7 @@ class SoilInfiltrationGreenAmpt(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import SoilInfiltrationGreenAmpt
-    >>> mg = RasterModelGrid((4,3), spacing=10.)
+    >>> mg = RasterModelGrid((4,3), xy_spacing=10.)
     >>> hydraulic_conductivity = mg.ones('node')*1.e-6
     >>> hydraulic_conductivity.reshape((4,3))[0:2,:] *= 10000.
     >>> h = mg.add_ones('node', 'surface_water__depth')

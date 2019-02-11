@@ -26,27 +26,27 @@ Created: GT Nov 2013
 """
 import numpy
 from six.moves import range
-from .cfuncs import _add_to_stack, _accumulate_bw
+
 from landlab.core.utils import as_id_array
+
+from .cfuncs import _accumulate_bw, _add_to_stack
 
 
 class _DrainageStack:
 
-    """
-    Implements Braun & Willett's add_to_stack function.
+    """Implements Braun & Willett's add_to_stack function.
 
     The _DrainageStack() class implements Braun & Willett's add_to_stack
-    function (as a method) and also keeps track of the counter (j) and the
-    stack (s). It is used by the make_ordered_node_array() function.
+    function (as a method) and also keeps track of the counter (j) and
+    the stack (s). It is used by the make_ordered_node_array() function.
     """
 
     def __init__(self, delta, D):
 
-        """
-        Initializes the _Drainage_Stack class.
+        """Initializes the _Drainage_Stack class.
 
-        Initializes the index counter j to zero, creates the stack array s,
-        and stores references to delta and D.
+        Initializes the index counter j to zero, creates the stack array
+        s, and stores references to delta and D.
         """
         self.j = 0
         self.s = numpy.zeros(len(D), dtype=int)
@@ -55,8 +55,7 @@ class _DrainageStack:
 
     def add_to_stack(self, l):
 
-        """
-        Adds node l to the stack and increments the current index (j).
+        """Adds node l to the stack and increments the current index (j).
 
         Examples
         --------
@@ -164,8 +163,7 @@ def _make_delta_array(nd):
 
 def _make_array_of_donors(r, delta):
 
-    """
-    Creates and returns an array containing the IDs of donors for each node.
+    """Creates and returns an array containing the IDs of donors for each node.
 
     Essentially, the array is a series of lists (not in the Python list object
     sense) of IDs for each node. See Braun & Willett (2012) for details.
@@ -321,17 +319,15 @@ def find_drainage_area_and_discharge(
 
 
 def find_drainage_area_and_discharge_lossy(
-    s, r, l, loss_function, grid, node_cell_area=1.0, runoff=1.0,
-    boundary_nodes=None
+    s, r, l, loss_function, grid, node_cell_area=1.0, runoff=1.0, boundary_nodes=None
 ):
 
-    """
-    Calculate the drainage area and water discharge at each node, permitting
+    """Calculate the drainage area and water discharge at each node, permitting
     discharge to fall (or gain) as it moves downstream according to some
     function. Note that only transmission creates loss, so water sourced
-    locally within a cell is always retained. The loss on each link is
-    recorded in the 'surface_water__discharge_loss' link field on the grid;
-    ensure this exists before running the function.
+    locally within a cell is always retained. The loss on each link is recorded
+    in the 'surface_water__discharge_loss' link field on the grid; ensure this
+    exists before running the function.
 
     Parameters
     ----------
@@ -391,7 +387,7 @@ def find_drainage_area_and_discharge_lossy(
 
     >>> def lossfunc(Qw, dummyn, dummyl, dummygrid):
     ...     return 0.5 * Qw
-    >>> mg = RasterModelGrid((3, 4), 1.)  # some grid big enough to make go
+    >>> mg = RasterModelGrid((3, 4))  # some grid big enough to make go
     >>> _ = mg.add_zeros('node', 'surface_water__discharge_loss', dtype=float)
     >>> a, q = find_drainage_area_and_discharge_lossy(s, r, l, lossfunc, mg)
     >>> a
@@ -451,10 +447,12 @@ def find_drainage_area_and_discharge_lossy(
         lrec = l[donor]
         if donor != recvr:
             drainage_area[recvr] += drainage_area[donor]
-            discharge_remaining = numpy.clip(loss_function(
-                discharge[donor], donor, lrec, grid), 0., float('inf'))
-            grid.at_node['surface_water__discharge_loss'][
-                donor] = discharge[donor] - discharge_remaining
+            discharge_remaining = numpy.clip(
+                loss_function(discharge[donor], donor, lrec, grid), 0., float("inf")
+            )
+            grid.at_node["surface_water__discharge_loss"][donor] = (
+                discharge[donor] - discharge_remaining
+            )
             discharge[recvr] += discharge_remaining
 
     return drainage_area, discharge

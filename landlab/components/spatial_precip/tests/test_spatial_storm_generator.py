@@ -69,7 +69,7 @@ def test_MS_params():
     #        np.argmin(vdg.calc_distances_of_nodes_to_point((E, N))))
     # z[mg.status_at_node == 0] = vdg_z[np.array(closest_core_node_in_vdg)]
 
-    mg = RasterModelGrid((12, 26), (1042.3713, 1102.0973))
+    mg = RasterModelGrid((12, 26), xy_spacing=(1102.0973, 1042.3713))
     mg.status_at_node = np.loadtxt(os.path.join(_THIS_DIR, "BCs_Singer.txt"))
     mg.add_field(
         "node",

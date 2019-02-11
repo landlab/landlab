@@ -81,7 +81,7 @@ class Space(_GeneralizedErosionDeposition):
     *  Initial topography is plane tilted up to the upper right with
        noise
 
-    >>> mg = RasterModelGrid((5, 5), spacing=10.0)
+    >>> mg = RasterModelGrid((5, 5), xy_spacing=10.0)
     >>> _ = mg.add_zeros('topographic__elevation', at='node')
     >>> mg.at_node['topographic__elevation'] += (mg.node_y / 10. +
     ...     mg.node_x / 10. + np.random.rand(len(mg.node_y)) / 10.)

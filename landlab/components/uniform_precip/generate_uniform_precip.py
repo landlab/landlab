@@ -48,7 +48,7 @@ class PrecipitationDistribution(Component):
     in the grid scalar field 'rainfall__flux':
 
     >>> from landlab import RasterModelGrid
-    >>> mg = RasterModelGrid((4, 5), (1., 1.))
+    >>> mg = RasterModelGrid((4, 5))
     >>> precip = PrecipitationDistribution(mg, mean_storm_duration=1.5,
     ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
     ...     total_t=46.)
@@ -481,7 +481,7 @@ class PrecipitationDistribution(Component):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), (1., 1.))
+        >>> mg = RasterModelGrid((4, 5))
         >>> precip = PrecipitationDistribution(mg, mean_storm_duration=1.5,
         ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
         ...     total_t=46.)

@@ -21,9 +21,8 @@ if sys.version_info[0] >= 3:
 
 class LossyFlowAccumulator(FlowAccumulator):
 
-    """
-    Component to calculate drainage area and accumulate flow, while permitting
-    dynamic loss or gain of flow downstream.
+    """Component to calculate drainage area and accumulate flow, while
+    permitting dynamic loss or gain of flow downstream.
 
     This component is closely related to the FlowAccumulator, in that
     this is accomplished by first finding flow directions by a user-specified
@@ -58,7 +57,7 @@ class LossyFlowAccumulator(FlowAccumulator):
            IDs: *'flow__upstream_node_order'*
         -  Node array of all but the first element of the delta data structure:
             *flow__data_structure_delta*. The first element is always zero.
-        -  Link array of the D data structure: *flow__data_structure_D*
+        -  At-grid D data structure: *flow__data_structure_D*
 
     The FlowDirector component will add additional ModelGrid fields; see the
     `FlowAccumulator component <https://landlab.readthedocs.io/en/latest/landlab.components.flow_accum.html>`_
@@ -138,7 +137,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     >>> from landlab.components import FlowDirectorSteepest
     >>> from landlab.components import DepressionFinderAndRouter
 
-    >>> mg = RasterModelGrid((3, 5), (1, 2))
+    >>> mg = RasterModelGrid((3, 5), xy_spacing=(2, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
     >>> z = mg.add_field('topographic__elevation',
     ...                  mg.node_x + mg.node_y,
@@ -169,7 +168,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     use a filled, non-raster grid.
 
     >>> dx=(2./(3.**0.5))**0.5  # area to be 100.
-    >>> hmg = HexModelGrid(5,3, dx)
+    >>> hmg = HexModelGrid(5,3, dx, xy_of_lower_left=(-1.0745, 0.))
     >>> z = hmg.add_field('topographic__elevation',
     ...                   hmg.node_x**2 + np.round(hmg.node_y)**2,
     ...                   at = 'node')
@@ -234,7 +233,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     effects:
 
     >>> from landlab.components import FlowDirectorMFD
-    >>> mg = RasterModelGrid((4, 6), (2, 1))
+    >>> mg = RasterModelGrid((4, 6), xy_spacing=(1, 2))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
     >>> z = mg.add_field('node', 'topographic__elevation', 2.*mg.node_x)
     >>> z[9] = 8.
@@ -303,7 +302,7 @@ class LossyFlowAccumulator(FlowAccumulator):
         "flow__upstream_node_order": "node",
         "flow__nodes_not_in_stack": "grid",
         "flow__data_structure_delta": "node",
-        "flow__data_structure_D": "link",
+        "flow__data_structure_D": "grid",
     }
     _var_doc = {
         "topographic__elevation": "Land surface topographic elevation",
@@ -321,7 +320,7 @@ class LossyFlowAccumulator(FlowAccumulator):
         "flow__data_structure_delta": "Node array containing the "
         + "elements delta[1:] of the data structure 'delta' used for "
         + "construction of the downstream-to-upstream node array",
-        "flow__data_structure_D": "Link array containing the data structure "
+        "flow__data_structure_D": "Grid array containing the data structure "
         + "D used for construction of the downstream-to-upstream node array",
         "flow__nodes_not_in_stack": "Boolean value indicating if there "
         + "are any nodes that have not yet been added to the stack stored "
@@ -338,12 +337,12 @@ class LossyFlowAccumulator(FlowAccumulator):
         loss_function=None,
         **kwargs
     ):
-        """
-        Initialize the FlowAccumulator component.
+        """Initialize the FlowAccumulator component.
 
-        Saves the grid, tests grid type, tests imput types and compatability
-        for the flow_director and depression_finder keyword arguments, tests
-        the argument of runoff_rate, and initializes new fields.
+        Saves the grid, tests grid type, tests imput types and
+        compatability for the flow_director and depression_finder
+        keyword arguments, tests the argument of runoff_rate, and
+        initializes new fields.
         """
         super(LossyFlowAccumulator, self).__init__(
             grid,
@@ -366,8 +365,7 @@ class LossyFlowAccumulator(FlowAccumulator):
                 # single value:
                 if not isinstance(loss_function(1.), float):
                     raise TypeError(
-                        "The loss_function should take a float, and return "
-                        "a float."
+                        "The loss_function should take a float, and return " "a float."
                     )
                 # now, for logical consistency in our calls to
                 # find_drainage_area_and_discharge, wrap the func so it has two
@@ -429,14 +427,13 @@ class LossyFlowAccumulator(FlowAccumulator):
             self._lossfunc = lossfunc
 
         # add the new loss discharge field if necessary:
-        if 'surface_water__discharge_loss' not in grid.at_node:
-            self.grid.add_zeros('node', 'surface_water__discharge_loss',
-                                dtype=float, noclobber=False)
+        if "surface_water__discharge_loss" not in grid.at_node:
+            self.grid.add_zeros(
+                "node", "surface_water__discharge_loss", dtype=float, noclobber=False
+            )
 
     def _accumulate_A_Q_to_one(self, s, r):
-        """
-        Accumulate area and discharge for a route-to-one scheme.
-        """
+        """Accumulate area and discharge for a route-to-one scheme."""
         link = self._grid.at_node["flow__link_to_receiver_node"]
         a, q = flow_accum_bw.find_drainage_area_and_discharge_lossy(
             s,
@@ -450,13 +447,17 @@ class LossyFlowAccumulator(FlowAccumulator):
         return a, q
 
     def _accumulate_A_Q_to_n(self, s, r, p):
-        """
-        Accumulate area and discharge for a route-to-one scheme.
-        """
+        """Accumulate area and discharge for a route-to-one scheme."""
         link = self._grid.at_node["flow__link_to_receiver_node"]
         a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n_lossy(
-            s, r, link, p, self._lossfunc, self._grid, self.node_cell_area,
-            self._grid.at_node["water__unit_flux_in"]
+            s,
+            r,
+            link,
+            p,
+            self._lossfunc,
+            self._grid,
+            self.node_cell_area,
+            self._grid.at_node["water__unit_flux_in"],
         )
         return a, q
 

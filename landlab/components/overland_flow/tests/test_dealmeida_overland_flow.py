@@ -47,7 +47,7 @@ def test_grid_shape(deAlm):
 
 
 def test_deAlm_analytical():
-    grid = RasterModelGrid((32, 240), spacing=25)
+    grid = RasterModelGrid((32, 240), xy_spacing=25)
     grid.add_zeros("node", "surface_water__depth")
     grid.add_zeros("node", "topographic__elevation")
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
@@ -80,7 +80,7 @@ def test_deAlm_analytical():
 
 
 def test_deAlm_analytical_imposed_dt_short():
-    grid = RasterModelGrid((32, 240), spacing=25)
+    grid = RasterModelGrid((32, 240), xy_spacing=25)
     grid.add_zeros("node", "surface_water__depth")
     grid.add_zeros("node", "topographic__elevation")
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
@@ -113,7 +113,7 @@ def test_deAlm_analytical_imposed_dt_short():
 
 
 def test_deAlm_analytical_imposed_dt_long():
-    grid = RasterModelGrid((32, 240), spacing=25)
+    grid = RasterModelGrid((32, 240), xy_spacing=25)
     grid.add_zeros("node", "surface_water__depth")
     grid.add_zeros("node", "topographic__elevation")
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)

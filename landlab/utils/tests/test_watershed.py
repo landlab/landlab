@@ -13,7 +13,7 @@ from landlab.utils import (
 
 
 def test_get_watershed_nodes():
-    grid = RasterModelGrid((7, 7), 1)
+    grid = RasterModelGrid((7, 7))
 
     z = np.array(
         [
@@ -86,7 +86,7 @@ def test_get_watershed_nodes():
 
 
 def test_get_watershed_masks_with_area_threshold():
-    rmg = RasterModelGrid((7, 7), 200)
+    rmg = RasterModelGrid((7, 7), xy_spacing=200)
 
     z = np.array(
         [
@@ -165,7 +165,7 @@ def test_get_watershed_masks_with_area_threshold():
 
 
 def test_get_watershed_outlet():
-    grid = RasterModelGrid((7, 7), 1)
+    grid = RasterModelGrid((7, 7))
 
     z = np.array(
         [

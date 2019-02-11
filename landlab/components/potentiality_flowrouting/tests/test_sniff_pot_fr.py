@@ -122,7 +122,7 @@ def test_sheetflow():
         ]
     )
 
-    mg = RasterModelGrid((NROWS, NCOLS), (DX, DX))
+    mg = RasterModelGrid((NROWS, NCOLS), xy_spacing=(DX, DX))
     z = (3000. - mg.node_x) * 0.5
     mg.at_node["topographic__elevation"] = z
 
@@ -452,7 +452,7 @@ def test_in_network():
         ]
     )
 
-    mg = RasterModelGrid((NROWS, NCOLS), (DX, DX))
+    mg = RasterModelGrid((NROWS, NCOLS), xy_spacing=(DX, DX))
 
     mg.add_field("node", "topographic__elevation", z)
 

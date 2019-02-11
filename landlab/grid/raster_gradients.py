@@ -59,7 +59,7 @@ def calc_grad_at_link(grid, node_values, out=None):
     >>> out
     array([ 0.,  0.,  1.,  3.,  1.,  2., -2.,  1., -1.,  1.,  0.,  0.])
 
-    >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
+    >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
     >>> grid.calc_grad_at_link(node_values)
     array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
     >>> _ = grid.add_field('node', 'elevation', node_values)
@@ -103,7 +103,7 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid(4, 5, 1.0)
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=1.0)
     >>> u = [0., 1., 2., 3., 0.,
     ...      1., 2., 3., 2., 3.,
     ...      0., 1., 2., 1., 2.,
@@ -130,7 +130,7 @@ def calc_grad_at_active_link(grid, node_values, out=None):
     >>> rtn is grad
     True
 
-    >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
+    >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
     >>> node_values = [0., 0., 0.,
     ...                1., 3., 1.,
     ...                2., 2., 2.]
@@ -139,7 +139,7 @@ def calc_grad_at_active_link(grid, node_values, out=None):
 
     This function is *deprecated*. Instead, use ``calc_grad_at_link``.
 
-    >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
+    >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
     >>> node_values = [0., 0., 0.,
     ...                1., 3., 1.,
     ...                2., 2., 2.]
@@ -214,7 +214,7 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
      False,
            fill_value = 1e+20)
 
-    >>> grid = RasterModelGrid((3, 4), spacing=(2, 1))
+    >>> grid = RasterModelGrid((3, 4), xy_spacing=(1, 2))
     >>> grid.calc_grad_across_cell_faces(x) # doctest: +NORMALIZE_WHITESPACE
     masked_array(data =
      [[ 1.   1.5  0.   0. ]
@@ -293,7 +293,7 @@ def calc_grad_across_cell_corners(grid, node_values, *args, **kwds):
     array([[ 3.,  3.,  1.,  0.],
            [ 2.,  2., -1.,  0.]])
 
-    >>> grid = RasterModelGrid((3, 4), spacing=(3, 4))
+    >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
     >>> grid.calc_grad_across_cell_corners(x)
     array([[ 0.6,  0.6,  0.2,  0. ],
            [ 0.4,  0.4, -0.2,  0. ]])
@@ -381,7 +381,7 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
      [ True  True  True  True]],
            fill_value = 1e+20)
 
-    >>> grid = RasterModelGrid((3, 3), spacing=(2, 4))
+    >>> grid = RasterModelGrid((3, 3), xy_spacing=(4, 2))
     >>> grid.calc_grad_along_node_links(x) # doctest: +NORMALIZE_WHITESPACE
     masked_array(data =
      [[-- -- -- --]
@@ -1704,12 +1704,12 @@ def calc_slope_at_node(
     --------
     >>> import numpy as np
     >>> from landlab import RadialModelGrid, RasterModelGrid
-    >>> mg = RasterModelGrid((5, 5), 1.)
+    >>> mg = RasterModelGrid((5, 5))
     >>> z = mg.node_x
     >>> slopes = mg.calc_slope_at_node(elevs=z)
     >>> np.allclose(slopes, np.pi / 4.)
     True
-    >>> mg = RasterModelGrid((4, 5), 2.)
+    >>> mg = RasterModelGrid((4, 5), xy_spacing=2.)
     >>> z = - mg.node_y
     >>> slope_mag, cmp = mg.calc_slope_at_node(elevs=z,
     ...                                        return_components=True)
