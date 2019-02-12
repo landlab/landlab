@@ -1431,11 +1431,25 @@ class LakeMapperBarnes(Component):
         >>> z_hex = hmg.add_zeros('node', 'topographic__elevation')
         >>> z_hex[:] = hmg.node_x
         >>> z_hex[11] = -3.
-        >>> z_hex[12] = -1.  # middle nodes become a pit
+        >>> z_hex[12] = -1.
         >>> z_hex_init = z_hex.copy()
-        >>> lmb = LakeMapperBarnes(hmg, method='Steepest', fill_flat=True, track_lakes=False)
+        >>> z_hex
+        array([   2.,   4.,   6.,   8.,
+               1.,   3.,   5.,   7.,   9.,
+            0.,   2.,   -3.,  -1.,   8.,  10.,
+               1.,   3.,   5.,   7.,   9.,
+                  2.,   4.,  6.,   8.])
+
+        As you can see, nodes 11 and 12 are now a pit. If they were to fill
+        they would fill to the level of 2, the lowest downstream value.
+
+        >>> lmb = LakeMapperBarnes(
+        ...     hmg,
+        ...     method='Steepest',
+        ...     fill_flat=True,
+        ...     track_lakes=False)
         >>> lmb.run_one_step()
-        >>> np.allclose(z_hex[10:13], 0.)
+        >>> np.allclose(z_hex[10:13], 2.)
         True
         >>> z_hex[:] = z_hex_init
         >>> try:
@@ -1454,16 +1468,16 @@ class LakeMapperBarnes(Component):
         ...                        track_lakes=True)
         >>> fd.run_one_step()
         >>> lmb.run_one_step()
-        >>> np.allclose(z_hex[10:13], 0.)
+        >>> np.allclose(z_hex[10:13], 2.)
         True
         >>> z_hex[11] > z_hex[10]
         True
         >>> z_hex[12] > z_hex[11]
         True
-        >>> np.allclose(lmb.lake_depths[10:14], np.array([ 0.,  3.,  1.,  0.]))
+        >>> np.allclose(lmb.lake_depths[10:14], np.array([ 0.,  5.,  3.,  0.]))
         True
         >>> np.round(lmb.lake_volumes, 4)
-        array([ 13.8564])
+        array([ 27.7128])
 
         Together, all this means that we can now run a topographic growth
         model that permits flooding as it runs:
