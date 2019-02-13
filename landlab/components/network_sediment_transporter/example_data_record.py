@@ -16,6 +16,38 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import plot, subplot, xlabel, ylabel, title, legend, figure
 
 
+# %%
+grid_3 = RasterModelGrid((5, 5), (2, 2))
+initial_boulder_sizes_3 = np.array([[10], [4], [8], [3], [5]])
+
+boulders_3 = {'grid_element' : 'node',
+            'element_id' : np.array([[6], [11], [12], [17], [12]])}
+
+dr_3 = DataRecord(grid_3,
+                  time=[0.],
+                  items=boulders_3,
+                  data_vars={'boulder_size' : (['item_id', 'time'], initial_boulder_sizes_3)}, 
+                  attrs={'boulder_size' : 'm'})
+
+for t in range(5):
+
+    dr_3.add_record(time=np.array([t]))
+
+    dr_3.ffill_grid_element_and_id() 
+
+f = dr_3['time']== [0.0]
+
+f.to_dataframe()
+np.shape(f)
+
+s = dr_3.calc_aggregate_value(func=np.sum,
+                              data_variable='boulder_size', 
+                              at='node', 
+                              filter_array=f)
+
+
+
+# %%
 
 grid_3 = RasterModelGrid((5, 5), (2, 2))
 

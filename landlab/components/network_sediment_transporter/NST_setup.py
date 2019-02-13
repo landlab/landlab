@@ -41,7 +41,7 @@ area = grid.add_ones("cell_area_at_node", at="node")
 
 grid.at_link["drainage_area"] = [100e+6, 10e+6, 70e+6, 20e+6, 70e+6, 30e+6, 40e+6]  # m2
 grid.at_link["channel_slope"] = [0.01, 0.02, 0.01, 0.02, 0.02, 0.03, 0.03]
-grid.at_link["link_length"] = [100, 100, 100, 100, 100, 100, 100]  # m
+grid.at_link["link_length"] = [10000, 10000, 10000, 10000, 10000, 10000, 10000]  # m
 
 grid.at_link["channel_width"] = 15 * np.ones(
     np.size(grid.at_link["drainage_area"])
@@ -191,7 +191,7 @@ nst = NetworkSedimentTransporter(
 # %% Run the component(s)
 
 for t in range(0,(timesteps*dt),dt):
-
+   print ('timestep ', [t], 'started')
     # move any sediment additions from forcing Item collector to bed item collector
 
     # sq.run_one_step
