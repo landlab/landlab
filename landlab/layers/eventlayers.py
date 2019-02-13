@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 import os
-import sys
 
 import numpy as np
 
@@ -96,9 +95,9 @@ def _deposit_or_erode(layers, n_layers, dz):
 
     layers = layers.reshape((layers.shape[0], -1))
     try:
-        dz = dz.reshape((layers.shape[1], ))
+        dz = dz.reshape((layers.shape[1],))
     except (AttributeError, ValueError):
-        dz = np.broadcast_to(dz, (layers.shape[1], ))
+        dz = np.broadcast_to(dz, (layers.shape[1],))
     finally:
         dz = np.asfarray(dz)
 
@@ -201,8 +200,7 @@ def resize_array(array, newsize, exact=False):
     else:
         new_allocated = (newsize >> 3) + 6 + newsize
 
-    larger_array = np.empty((new_allocated, ) + array.shape[1:],
-                            dtype=array.dtype)
+    larger_array = np.empty((new_allocated,) + array.shape[1:], dtype=array.dtype)
     larger_array[:allocated] = array
 
     return larger_array
@@ -255,8 +253,9 @@ def _allocate_layers_for(array, number_of_layers, number_of_stacks):
     else:
         values_per_stack = array.shape[1:]
 
-    return np.empty((number_of_layers, number_of_stacks) + values_per_stack,
-                    dtype=array.dtype)
+    return np.empty(
+        (number_of_layers, number_of_stacks) + values_per_stack, dtype=array.dtype
+    )
 
 
 class EventLayersMixIn(object):
@@ -364,11 +363,11 @@ class EventLayers(object):
         self._attrs = dict()
 
         dims = (self.number_of_layers, self.number_of_stacks)
-        self._attrs['_dz'] = np.empty(dims , dtype=float)
+        self._attrs["_dz"] = np.empty(dims, dtype=float)
         self._resize(allocated, exact=True)
 
     def __getitem__(self, name):
-        return self._attrs[name][:self.number_of_layers]
+        return self._attrs[name][: self.number_of_layers]
 
     def __setitem__(self, name, values):
         dims = (self.allocated, self.number_of_stacks)
@@ -377,7 +376,7 @@ class EventLayers(object):
             values = np.expand_dims(values, 1)
         values = np.broadcast_to(values, (self.number_of_layers, self.number_of_stacks))
         self._attrs[name] = _allocate_layers_for(values.flatten()[0], *dims)
-        self._attrs[name][:self.number_of_layers] = values
+        self._attrs[name][: self.number_of_layers] = values
 
     def __str__(self):
         lines = [
@@ -388,11 +387,13 @@ class EventLayers(object):
         return os.linesep.join(lines).format(
             number_of_layers=self.number_of_layers,
             number_of_stacks=self.number_of_stacks,
-            attrs=', '.join(self.tracking) or 'null')
+            attrs=", ".join(self.tracking) or "null",
+        )
 
     def __repr__(self):
-        return self.__class__.__name__+'({number_of_stacks})'.format(
-            number_of_stacks=self.number_of_stacks)
+        return self.__class__.__name__ + "({number_of_stacks})".format(
+            number_of_stacks=self.number_of_stacks
+        )
 
     @property
     def tracking(self):
@@ -408,7 +409,7 @@ class EventLayers(object):
         >>> layers.tracking
         ['age']
         """
-        return [name for name in self._attrs if not name.startswith('_')]
+        return [name for name in self._attrs if not name.startswith("_")]
 
     def _setup_layers(self, **kwds):
         dims = (self.allocated, self.number_of_stacks)
@@ -503,7 +504,7 @@ class EventLayers(object):
         array([[ 15.,  14.,  15.],
                [  1.,   0.,   2.]])
         """
-        return self._attrs['_dz'][:self.number_of_layers]
+        return self._attrs["_dz"][: self.number_of_layers]
 
     @property
     def number_of_layers(self):
@@ -570,7 +571,7 @@ class EventLayers(object):
         >>> layers.allocated == 24
         True
         """
-        return self._attrs['_dz'].shape[0]
+        return self._attrs["_dz"].shape[0]
 
     def add(self, dz, **kwds):
         """Add a layer to the stacks.
@@ -653,14 +654,18 @@ class EventLayers(object):
 
         self._add_empty_layer()
 
-        _deposit_or_erode(self._attrs['_dz'], self.number_of_layers, dz)
-        _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
+        _deposit_or_erode(self._attrs["_dz"], self.number_of_layers, dz)
+        _get_surface_index(
+            self._attrs["_dz"], self.number_of_layers, self._surface_index
+        )
 
         for name in kwds:
             try:
                 self[name][-1] = kwds[name]
             except KeyError:
-                msg = 'MaterialLayers: {0} is not being tracked. Error in adding.'.format(name)
+                msg = "MaterialLayers: {0} is not being tracked. Error in adding.".format(
+                    name
+                )
                 raise ValueError(msg)
 
     @property
@@ -676,12 +681,11 @@ class EventLayers(object):
             self._resize(self.allocated + 1)
 
         self._number_of_layers += 1
-        self._attrs['_dz'][self.number_of_layers - 1, :] = 0.
+        self._attrs["_dz"][self.number_of_layers - 1, :] = 0.
         for name in self._attrs:
             self._attrs[name][self.number_of_layers - 1] = 0.
 
     def _resize(self, newsize, exact=False):
         """Allocate more memory for the layers."""
         for name in self._attrs:
-            self._attrs[name] = resize_array(self._attrs[name], newsize,
-                                             exact=exact)
+            self._attrs[name] = resize_array(self._attrs[name], newsize, exact=exact)

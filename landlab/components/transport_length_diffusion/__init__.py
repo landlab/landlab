@@ -1,5 +1,4 @@
 from .transport_length_hillslope_diffusion import TransportLengthHillslopeDiffuser
-from .transport_length_hillslope_diffusion2 import TransportLengthHillslopeDiffuser2
 
+__all__ = ["TransportLengthHillslopeDiffuser"]
 
-__all__ = ['TransportLengthHillslopeDiffuser', 'TransportLengthHillslopeDiffuser2']

@@ -1,12 +1,12 @@
 from __future__ import print_function
 
-import os
-import sys
-
 import numpy as np
 
-from landlab.layers.eventlayers import (EventLayers, _deposit_or_erode,
-                                        _get_surface_index)
+from landlab.layers.eventlayers import (
+    EventLayers,
+    _deposit_or_erode,
+    _get_surface_index,
+)
 
 
 class MaterialLayersMixIn(object):
@@ -277,15 +277,16 @@ class MaterialLayers(EventLayers):
         if not compatible:
             self._add_empty_layer()
 
-        _deposit_or_erode(self._attrs['_dz'], self.number_of_layers, dz)
-        _get_surface_index(self._attrs['_dz'], self.number_of_layers, self._surface_index)
+        _deposit_or_erode(self._attrs["_dz"], self.number_of_layers, dz)
+        _get_surface_index(
+            self._attrs["_dz"], self.number_of_layers, self._surface_index
+        )
 
         self._remove_empty_layers()
 
         if not compatible:
             for name in kwds:
                 self[name][-1] = kwds[name]
-
 
     def _remove_empty_layers(self):
         number_of_filled_layers = self.surface_index.max() + 1
@@ -311,7 +312,9 @@ class MaterialLayers(EventLayers):
                 try:
                     is_compatible = self[name][self.surface_index] == kwds[name]
                 except KeyError:
-                    msg = 'MaterialLayers: {0} is not being tracked. Error in adding.'.format(name)
+                    msg = "MaterialLayers: {0} is not being tracked. Error in adding.".format(
+                        name
+                    )
                     raise ValueError(msg)
 
                 if not np.all(is_compatible[where_deposition]):

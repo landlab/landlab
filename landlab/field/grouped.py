@@ -1,6 +1,9 @@
 #! /usr/bin/env python
 """Store collections of data fields."""
 
+import numpy as np
+import six
+
 from .scalar_data_fields import ScalarDataFields
 
 
@@ -32,10 +35,12 @@ class GroupSizeError(Error, KeyError):
         self._new_size = new_size
 
     def __str__(self):
-        return ("number of {group} elements has changed. "
-                "(was = {was}, now={now})".format(group=self._group,
-                                                  was=self._old_size,
-                                                  now=self._new_size))
+        return (
+            "number of {group} elements has changed. "
+            "(was = {was}, now={now})".format(
+                group=self._group, was=self._old_size, now=self._new_size
+            )
+        )
 
 
 class ModelDataFields(object):
@@ -314,10 +319,10 @@ class ModelDataFields(object):
         LLCATS: FIELDCR
         """
         if self.has_group(group):
-            raise ValueError('ModelDataFields already contains %s' % group)
+            raise ValueError("ModelDataFields already contains %s" % group)
         else:
             self._groups[group] = ScalarDataFields(size)
-            setattr(self, 'at_' + group, self[group])
+            setattr(self, "at_" + group, self[group])
 
     def field_values(self, group, field):
         """Get values of a field.
@@ -377,6 +382,92 @@ class ModelDataFields(object):
         LLCATS: FIELDIO
         """
         return self[group][field]
+
+    def return_array_or_field_values(self, group, field):
+        """Return field given a field name, or array of with the correct shape.
+
+        Given a *group* and a *field*, return a reference to the associated
+        data array. *field* is either a string that is a field in the group
+        or an array of the correct size.
+
+        This function is meant to serve like the ``use_field_name_or_array``
+        decorator for bound functions.
+
+        Parameters
+        ----------
+        group: str
+            Name of the group.
+        field: str or array
+            Name of the field withing *group*.
+
+        Returns
+        -------
+        array
+            The values of the field.
+
+        Raises
+        ------
+        GroupError
+            If *group* does not exits
+        FieldError
+            If *field* does not exits
+
+        Examples
+        --------
+        Create a group of fields called *node*.
+
+        >>> import numpy as np
+        >>> from landlab.field import ModelDataFields
+        >>> fields = ModelDataFields()
+        >>> fields.new_field_location('node', 4)
+
+        Add a field, initialized to ones, called *topographic__elevation*
+        to the *node* group. The *field_values* method returns a reference
+        to the field's data.
+
+        >>> _ = fields.add_ones('node', 'topographic__elevation')
+        >>> fields.field_values('node', 'topographic__elevation')
+        array([ 1.,  1.,  1.,  1.])
+
+        Alternatively, if the second argument is an array, its size is
+        checked and returned if correct.
+
+        >>> vals = np.array([4., 5., 7., 3.])
+        >>> fields.return_array_or_field_values('node', vals)
+        array([ 4.,  5.,  7.,  3.])
+
+        Raise FieldError if *field* does not exist in *group*.
+
+        >>> fields.return_array_or_field_values('node', 'surface__temperature')
+        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        FieldError: surface__temperature
+
+        If *group* does not exists, Raise GroupError.
+
+        >>> fields.return_array_or_field_values('cell', 'topographic__elevation')
+        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        GroupError: cell
+
+        And if the array of values provided is incorrect, raise a ValueError.
+
+        >>> vals = np.array([3., 2., 1.])
+        >>> fields.return_array_or_field_values('node', vals)
+        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        ValueError: Array has incorrect size.
+
+        LLCATS: FIELDIO
+        """
+        if isinstance(field, six.string_types):
+            vals = self.field_values(group, field)
+        else:
+            vals = np.asarray(field)
+            if vals.size != self[group].size:
+                msg = "Array has incorrect size."
+                raise ValueError(msg)
+        return vals
 
     def field_units(self, group, field):
         """Get units for a field.
@@ -441,11 +532,13 @@ class ModelDataFields(object):
 
         LLCATS: FIELDCR
         """
-        if group=='grid':
-            raise ValueError("empty is not supported for at='grid', if you "
-                             "want to create a field at the grid, use\n"
-                             "grid.at_grid['value_name']=value\n"
-                             "instead.")
+        if group == "grid":
+            raise ValueError(
+                "empty is not supported for at='grid', if you "
+                "want to create a field at the grid, use\n"
+                "grid.at_grid['value_name']=value\n"
+                "instead."
+            )
         return self[group].empty(**kwds)
 
     def ones(self, group, **kwds):
@@ -484,12 +577,14 @@ class ModelDataFields(object):
 
         LLCATS: FIELDCR
         """
-        if group=='grid':
-            raise ValueError("ones is not supported for at='grid', if you "
-                             "want to create a field at the grid, use\n"
-                             "grid.at_grid['value_name']=value\n"
-                             "instead.\nAlternatively, if you want ones "
-                             "of the shape stored at_grid, use np.array(1).")
+        if group == "grid":
+            raise ValueError(
+                "ones is not supported for at='grid', if you "
+                "want to create a field at the grid, use\n"
+                "grid.at_grid['value_name']=value\n"
+                "instead.\nAlternatively, if you want ones "
+                "of the shape stored at_grid, use np.array(1)."
+            )
         return self[group].ones(**kwds)
 
     def zeros(self, group, **kwds):
@@ -503,8 +598,8 @@ class ModelDataFields(object):
         Return a new array of the data field size, filled with zeros. Keyword
         arguments are the same as that for the equivalent numpy function.
 
-        This method is not valid for the group *grid*.        
-        
+        This method is not valid for the group *grid*.
+
         See Also
         --------
         numpy.zeros : See for a description of optional keywords.
@@ -528,13 +623,15 @@ class ModelDataFields(object):
 
         LLCATS: FIELDCR
         """
-        if group=='grid':
-            raise ValueError("zeros is not supported for at='grid', if you "
-                             "want to create a field at the grid, use\n"
-                             "grid.at_grid['value_name']=value\n"
-                             "instead.\nAlternatively, if you want zeros"
-                             "of the shape stored at_grid, use np.array(0).")
-                             
+        if group == "grid":
+            raise ValueError(
+                "zeros is not supported for at='grid', if you "
+                "want to create a field at the grid, use\n"
+                "grid.at_grid['value_name']=value\n"
+                "instead.\nAlternatively, if you want zeros"
+                "of the shape stored at_grid, use np.array(0)."
+            )
+
         return self[group].zeros(**kwds)
 
     def add_empty(self, *args, **kwds):
@@ -546,9 +643,9 @@ class ModelDataFields(object):
         entries, and add it to the field as *name*. The *units* keyword gives
         the units of the new fields as a string. Remaining keyword arguments
         are the same as that for the equivalent numpy function.
-        
+
         This method is not valid for the group *grid*.
-        
+
         Parameters
         ----------
         group : str
@@ -578,20 +675,21 @@ class ModelDataFields(object):
         if len(args) == 2:
             group, name = args
         elif len(args) == 1:
-            group, name = kwds.pop('at'), args[0]
+            group, name = kwds.pop("at"), args[0]
         else:
-            raise ValueError('number of arguments must be 1 or 2')
-            
-        if group=='grid':
-            raise ValueError("add_empty is not supported for at_grid values "
-                             "use\ngrid.at_grid['value_name']=value\n"
-                             "instead")        
-                             
+            raise ValueError("number of arguments must be 1 or 2")
+
+        if group == "grid":
+            raise ValueError(
+                "add_empty is not supported for at_grid values "
+                "use\ngrid.at_grid['value_name']=value\n"
+                "instead"
+            )
+
         numpy_kwds = kwds.copy()
-        numpy_kwds.pop('units', 0.)
-        numpy_kwds.pop('noclobber', 0.)
-        return self.add_field(group, name, self.empty(group, **numpy_kwds),
-                              **kwds)
+        numpy_kwds.pop("units", 0.)
+        numpy_kwds.pop("noclobber", 0.)
+        return self.add_field(group, name, self.empty(group, **numpy_kwds), **kwds)
 
     def add_ones(self, *args, **kwds):
         """add_ones(group, name, units='-', noclobber=True)
@@ -602,7 +700,7 @@ class ModelDataFields(object):
         add it to the field as *name*. The *units* keyword gives the units of
         the new fields as a string. Remaining keyword arguments are the same
         as that for the equivalent numpy function.
-        
+
         This method is not valid for the group *grid*.
 
         Parameters
@@ -650,20 +748,21 @@ class ModelDataFields(object):
         if len(args) == 2:
             group, name = args
         elif len(args) == 1:
-            group, name = kwds.pop('at'), args[0]
+            group, name = kwds.pop("at"), args[0]
         else:
-            raise ValueError('number of arguments must be 1 or 2')
+            raise ValueError("number of arguments must be 1 or 2")
 
-        if group=='grid':
-            raise ValueError("add_ones is not supported for at_grid values"
-                             " use\ngrid.at_grid['value_name']=value\n"
-                             "instead")                
-        
+        if group == "grid":
+            raise ValueError(
+                "add_ones is not supported for at_grid values"
+                " use\ngrid.at_grid['value_name']=value\n"
+                "instead"
+            )
+
         numpy_kwds = kwds.copy()
-        numpy_kwds.pop('units', 0.)
-        numpy_kwds.pop('noclobber', 0.)
-        return self.add_field(group, name, self.ones(group, **numpy_kwds),
-                              **kwds)
+        numpy_kwds.pop("units", 0.)
+        numpy_kwds.pop("noclobber", 0.)
+        return self.add_field(group, name, self.ones(group, **numpy_kwds), **kwds)
 
     def add_zeros(self, *args, **kwds):
         """add_zeros(group, name, units='-', noclobber=True)
@@ -704,20 +803,21 @@ class ModelDataFields(object):
         if len(args) == 2:
             group, name = args
         elif len(args) == 1:
-            group, name = kwds.pop('at'), args[0]
+            group, name = kwds.pop("at"), args[0]
         else:
-            raise ValueError('number of arguments must be 1 or 2')
-        
-        if group=='grid':
-            raise ValueError("add_zeros is not supported for at_grid values "
-                             "use\ngrid.at_grid['value_name']=value\n"
-                             "instead")                
-        
+            raise ValueError("number of arguments must be 1 or 2")
+
+        if group == "grid":
+            raise ValueError(
+                "add_zeros is not supported for at_grid values "
+                "use\ngrid.at_grid['value_name']=value\n"
+                "instead"
+            )
+
         numpy_kwds = kwds.copy()
-        numpy_kwds.pop('units', 0.)
-        numpy_kwds.pop('noclobber', 0.)
-        return self.add_field(group, name, self.zeros(group, **numpy_kwds),
-                              **kwds)
+        numpy_kwds.pop("units", 0.)
+        numpy_kwds.pop("noclobber", 0.)
+        return self.add_field(group, name, self.zeros(group, **numpy_kwds), **kwds)
 
     def add_field(self, *args, **kwds):
         """add_field(group, name, value_array, units='-', copy=False, noclobber=True)
@@ -727,9 +827,9 @@ class ModelDataFields(object):
         Add an array of data values to a collection of fields and associate it
         with the key, *name*. Use the *copy* keyword to, optionally, add a
         copy of the provided array.
-        
+
         In the case of adding to the collection *grid*, the added field is a
-        numpy scalar rather than a numpy array. 
+        numpy scalar rather than a numpy array.
 
         Parameters
         ----------
@@ -795,14 +895,17 @@ class ModelDataFields(object):
         if len(args) == 3:
             group, name, value_array = args
         elif len(args) == 2:
-            group, name, value_array = (kwds.pop('at', self._default_group),
-                                        args[0], args[1])
+            group, name, value_array = (
+                kwds.pop("at", self._default_group),
+                args[0],
+                args[1],
+            )
         else:
-            raise ValueError('number of arguments must be 2 or 3')
+            raise ValueError("number of arguments must be 2 or 3")
 
         if not group:
-            raise ValueError('missing group name')
-        
+            raise ValueError("missing group name")
+
         return self[group].add_field(name, value_array, **kwds)
 
     def set_units(self, group, name, units):

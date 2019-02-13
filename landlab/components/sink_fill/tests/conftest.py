@@ -1,15 +1,13 @@
-import pytest
 import numpy as np
+import pytest
 
 from landlab import RasterModelGrid
-from landlab import BAD_INDEX_VALUE as XX
-from landlab.components.sink_fill import SinkFiller
 
 
 @pytest.fixture
 def sink_grid1():
     """Create a 7x7 test grid with a well defined hole in it."""
-    sink_grid = RasterModelGrid((7, 7), spacing=1.)
+    sink_grid = RasterModelGrid((7, 7), xy_spacing=1.)
 
     z = np.array(
         [
@@ -38,7 +36,7 @@ def sink_grid2():
     Create a 10x10 test grid with a well defined hole in it, from a flat
     surface.
     """
-    sink_grid = RasterModelGrid((10, 10), spacing=1.)
+    sink_grid = RasterModelGrid((10, 10), xy_spacing=1.)
 
     lake = np.array([44, 45, 46, 54, 55, 56, 64, 65, 66])
 
@@ -57,7 +55,7 @@ def sink_grid3():
     Create a 10x10 test grid with two well defined holes in it, into an
     inclined surface.
     """
-    sink_grid = RasterModelGrid((10, 10), spacing=1.)
+    sink_grid = RasterModelGrid((10, 10), xy_spacing=1.)
 
     lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56])
     lake2 = np.array([77, 78, 87, 88])
@@ -84,7 +82,7 @@ def sink_grid4():
     inclined surface. This time, one of the holes is a stupid shape, which
     will require the component to arrange flow back "uphill".
     """
-    sink_grid = RasterModelGrid((10, 10), spacing=1.)
+    sink_grid = RasterModelGrid((10, 10), xy_spacing=1.)
 
     lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
     lake2 = np.array([78, 87, 88])
@@ -133,7 +131,7 @@ def sink_grid5():
     1.      2.      3.      4.001   5.      6.      7.      0.      0.     10.
     1.      2.      3.      4.      5.      6.      7.      8.      9.     10.
     """
-    sink_grid = RasterModelGrid((10, 10), spacing=1.)
+    sink_grid = RasterModelGrid((10, 10), xy_spacing=1.)
 
     lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
     lake2 = np.array([78, 87, 88])

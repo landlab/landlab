@@ -7,17 +7,21 @@ Directs flow on raster grids only using the Dinfinity algorithm of
 Tarboton 1997.
 """
 
-from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
-from landlab.components.flow_director import flow_direction_dinf
-from landlab import VoronoiDelaunayGrid
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY, BAD_INDEX_VALUE
 import numpy
+
+from landlab import (
+    BAD_INDEX_VALUE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+    VoronoiDelaunayGrid,
+)
+from landlab.components.flow_director import flow_direction_dinf
+from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 
 
 class FlowDirectorDINF(_FlowDirectorToMany):
 
-    """
-    Flow direction on a raster grid by the D infinity method.
+    """Flow direction on a raster grid by the D infinity method.
 
     Directs flow by the D infinity method (Tarboton, 1997). Each node is
     assigned two flow directions, toward the two neighboring nodes that are on
@@ -40,6 +44,8 @@ class FlowDirectorDINF(_FlowDirectorToMany):
        of dimension (number of nodes x max number of receivers). If the slope is
        uphill or flat, the value is assigned zero.
     -  Boolean node array of all local lows: *'flow__sink_flag'*
+    -  Link array identifing if flow goes with (1) or against (-1) the link
+       direction: *'flow_link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -52,11 +58,13 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     >>> import numpy as numpy
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorDINF
-    >>> mg = RasterModelGrid((4,4), spacing=(1, 1))
+    >>> mg = RasterModelGrid((4,4), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x**2 + mg.node_y**2,
-    ...                  at = 'node')
+    >>> _ = mg.add_field(
+    ...     'topographic__elevation',
+    ...     mg.node_x**2 + mg.node_y**2,
+    ...     at = 'node'
+    ... )
 
     The DINF flow director can be uses for raster grids only.
 
@@ -77,18 +85,18 @@ class FlowDirectorDINF(_FlowDirectorToMany):
            [ 1, -1],
            [ 2, -1],
            [ 3, -1],
-           [ 0,  1],
-           [ 1,  0],
+           [ 4, -1],
+           [ 0,  -1],
            [ 5,  1],
-           [ 6,  2],
+           [ 7, -1],
            [ 8, -1],
            [ 5, -1],
-           [ 6,  5],
-           [10,  6],
+           [ 5, -1],
+           [11, -1],
            [12, -1],
-           [ 9, -1],
-           [10,  9],
-           [-1, 10]])
+           [13, -1],
+           [14, -1],
+           [15, -1]])
 
     It also stores the proportions of flow going to each receiver, the link on
     which the flow moves in at node arrays, and the slope of each link.
@@ -99,56 +107,56 @@ class FlowDirectorDINF(_FlowDirectorToMany):
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
-           [ 0.        ,  1.        ],
+           [ 1.        ,  0.        ],
            [ 0.59033447,  0.40966553],
-           [ 0.74866817,  0.25133183],
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
-           [ 0.        ,  1.        ],
-           [ 0.31191652,  0.68808348],
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
-           [ 0.31191652,  0.68808348],
-           [ 0.        ,  1.        ]])
+           [ 1.        ,  0.        ],
+           [ 1.        ,  0.        ],
+           [ 1.        ,  0.        ],
+           [ 1.        ,  0.        ],
+           [ 1.        ,  0.        ]])
     >>> mg.at_node['flow__link_to_receiver_node']
     array([[-1, -1],
            [-1, -1],
            [-1, -1],
            [-1, -1],
            [ 3, 25],
-           [ 4, 24],
+           [24,  4],
            [ 8, 26],
            [ 9, 28],
-           [-1, -1],
-           [11, 30],
-           [12, 32],
+           [14, 31],
+           [11, 33],
+           [32, 12],
            [16, 34],
-           [-1, -1],
-           [18, 36],
+           [21, 37],
+           [18, 39],
            [19, 38],
            [20, 40]])
     >>> mg.at_node['topographic__steepest_slope'] # doctest: +NORMALIZE_WHITESPACE
-    array([[-1.        ,  0.        ],
-           [ 1.        , -0.        ],
-           [ 3.        ,  1.41421356],
-           [ 5.        ,  2.82842712],
-           [ 1.        ,  0.        ],
-           [ 1.        ,  1.41421356],
-           [ 3.        ,  2.82842712],
-           [ 5.        ,  4.24264069],
-           [ 3.        ,  1.41421356],
-           [ 3.        ,  2.82842712],
-           [ 3.        ,  4.24264069],
-           [ 5.        ,  5.65685425],
-           [ 5.        ,  2.82842712],
-           [ 5.        ,  4.24264069],
-           [ 5.        ,  5.65685425],
-           [ 5.        ,  7.07106781]])
+    array([[ -1.00000000e+00,  -1.41421356e+00],
+           [  1.00000000e+00,  -7.12763635e+02],
+           [  3.00000000e+00,   1.41421356e+00],
+           [  5.00000000e+00,   2.82842712e+00],
+           [  1.00900000e+03,   7.12763635e+02],
+           [  1.41421356e+00,   1.00000000e+00],
+           [  3.00000000e+00,   2.82842712e+00],
+           [  1.00400000e+03,   7.10642315e+02],
+           [  1.00400000e+03,   7.12056529e+02],
+           [  3.00000000e+00,   0.00000000e+00],
+           [  4.24264069e+00,   3.00000000e+00],
+           [  1.00100000e+03,   7.09935208e+02],
+           [ -0.00000000e+00,   7.09935208e+02],
+           [  1.00400000e+03,   7.07813888e+02],
+           [  1.00100000e+03,   7.09935208e+02],
+           [  0.00000000e+00,   7.07813888e+02]])
 
     Finally, FlowDirectorDINF identifies sinks, or local lows.
 
     >>> mg.at_node['flow__sink_flag']
-    array([1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], dtype=int8)
+    array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
 
     The flow directors also have the ability to return the flow receiver nodes
     through a function called direct_flow()
@@ -161,35 +169,35 @@ class FlowDirectorDINF(_FlowDirectorToMany):
            [ 1, -1],
            [ 2, -1],
            [ 3, -1],
-           [ 0,  1],
-           [ 1,  0],
+           [ 4, -1],
+           [ 0, -1],
            [ 5,  1],
-           [ 6,  2],
+           [ 7, -1],
            [ 8, -1],
            [ 5, -1],
-           [ 6,  5],
-           [10,  6],
+           [ 5, -1],
+           [11, -1],
            [12, -1],
-           [ 9, -1],
-           [10,  9],
-           [-1, 10]])
+           [13, -1],
+           [14, -1],
+           [15, -1]])
     >>> proportions # doctest: +NORMALIZE_WHITESPACE
     array([[ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
-           [ 0.        ,  1.        ],
+           [ 1.        ,  0.        ],
            [ 0.59033447,  0.40966553],
-           [ 0.74866817,  0.25133183],
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
-           [ 0.        ,  1.        ],
-           [ 0.31191652,  0.68808348],
            [ 1.        ,  0.        ],
            [ 1.        ,  0.        ],
-           [ 0.31191652,  0.68808348],
-           [ 0.        ,  1.        ]])
+           [ 1.        ,  0.        ],
+           [ 1.        ,  0.        ],
+           [ 1.        ,  0.        ],
+           [ 1.        ,  0.        ],
+           [ 1.        ,  0.        ]])
 
     For each donor node (represented by each row) the proportions should sum to
     one.
@@ -197,7 +205,6 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     >>> proportions.sum(axis=1)
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
             1.,  1.,  1.])
-
     """
 
     _name = "FlowDirectorDINF"
@@ -266,19 +273,17 @@ class FlowDirectorDINF(_FlowDirectorToMany):
         )
 
     def updated_boundary_conditions(self):
-        """
-        Method to update FlowDirectorDINF when boundary conditions change.
+        """Method to update FlowDirectorDINF when boundary conditions change.
 
-        Call this if boundary conditions on the grid are updated after the
-        component is instantiated.
+        Call this if boundary conditions on the grid are updated after
+        the component is instantiated.
         """
         self._active_links = self.grid.active_links
         self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
         self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
     def run_one_step(self):
-        """
-        Find flow directions and save to the model grid.
+        """Find flow directions and save to the model grid.
 
         run_one_step() checks for updated boundary conditions, calculates
         slopes on links, finds basself.surface_valuesel nodes based on the status at node,
@@ -290,8 +295,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
         self.direct_flow()
 
     def direct_flow(self):
-        """
-        Find flow directions, save to the model grid, and return receivers.
+        """Find flow directions, save to the model grid, and return receivers.
 
         direct_flow() checks for updated boundary conditions, calculates
         slopes on links, finds basself.surface_valuesel nodes based on the status at node,

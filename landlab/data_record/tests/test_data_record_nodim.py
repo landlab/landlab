@@ -7,11 +7,10 @@ Last updated 10/18/2018
 
 """
 
-import pytest
-import numpy as np
 from landlab import RasterModelGrid
 
-grid = RasterModelGrid((3,3))
+grid = RasterModelGrid((3, 3))
+
 
 def test_dr_nodim_name(dr_nodim):
-    assert dr_nodim._name == 'DataRecord'
+    assert dr_nodim._name == "DataRecord"

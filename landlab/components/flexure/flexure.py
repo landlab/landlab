@@ -11,7 +11,7 @@ Create a grid on which we will run the flexure calculations.
 
 >>> from landlab import RasterModelGrid
 >>> from landlab.components.flexure import Flexure
->>> grid = RasterModelGrid((5, 4), spacing=(1.e4, 1.e4))
+>>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
 
 Check the fields that are used as input to the flexure component.
 
@@ -59,8 +59,9 @@ array([ 0., 0., 0., 0.,
 import numpy as np
 
 from landlab import Component
-from .funcs import get_flexure_parameter
+
 from ...utils.decorators import use_file_name_or_kwds
+from .funcs import get_flexure_parameter
 
 
 class Flexure(Component):
@@ -74,7 +75,7 @@ class Flexure(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flexure import Flexure
-    >>> grid = RasterModelGrid((5, 4), spacing=(1.e4, 1.e4))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
 
     >>> flex = Flexure(grid)
     >>> flex.name
@@ -116,7 +117,7 @@ class Flexure(Component):
 
     _name = "Flexure"
 
-    _cite_as = """@article{hutton2008sedflux,
+    _cite_as = r"""@article{hutton2008sedflux,
         title={Sedflux 2.0: An advanced process-response model that generates three-dimensional stratigraphy},
         author={Hutton, Eric WH and Syvitski, James PM},
         journal={Computers \& Geosciences},
@@ -247,11 +248,11 @@ class Flexure(Component):
         )
 
     @staticmethod
-    def _create_kei_func_grid(shape, spacing, alpha):
+    def _create_kei_func_grid(shape, xy_spacing, alpha):
         from scipy.special import kei
 
         dx, dy = np.meshgrid(
-            np.arange(shape[1]) * spacing[1], np.arange(shape[0]) * spacing[0]
+            np.arange(shape[1]) * xy_spacing[1], np.arange(shape[0]) * xy_spacing[0]
         )
 
         return kei(np.sqrt(dx ** 2 + dy ** 2) / alpha)
@@ -271,19 +272,19 @@ class Flexure(Component):
 
         deflection.fill(0.)
 
-        if self._method == "airy":
+        if self.method == "airy":
             deflection[:] = new_load / self.gamma_mantle
         else:
-            self.subside_loads(new_load, deflection=deflection, n_procs=n_procs)
+            self.subside_loads(new_load, out=deflection, n_procs=n_procs)
 
-    def subside_loads(self, loads, deflection=None, n_procs=1):
+    def subside_loads(self, loads, out=None, n_procs=1):
         """Subside surface due to multiple loads.
 
         Parameters
         ----------
         loads : ndarray of float
             Loads applied to each grid node.
-        deflection : ndarray of float, optional
+        out : ndarray of float, optional
             Buffer to place resulting deflection values.
         n_procs : int, optional
             Number of processors to use for calculations.
@@ -293,21 +294,20 @@ class Flexure(Component):
         ndarray of float
             Deflections caused by the loading.
         """
-        if deflection is None:
-            deflection = np.empty(self.shape, dtype=np.float)
+        if out is None:
+            out = np.zeros(self.grid.shape, dtype=np.float)
+        dz = out.reshape(self.grid.shape)
+        load = loads.reshape(self.grid.shape)
 
         from .cfuncs import subside_grid_in_parallel
 
-        w = deflection.reshape(self._grid.shape)
-        load = loads.reshape(self._grid.shape)
-
         subside_grid_in_parallel(
-            w,
-            load * self._grid.dx * self._grid.dy,
+            dz,
+            load * self.grid.dx * self.grid.dy,
             self._r,
             self.alpha,
             self.gamma_mantle,
             n_procs,
         )
 
-        return deflection
+        return out
