@@ -527,7 +527,10 @@ class ClastCollection(DataRecord):
                 # norm of steepest slope = norm of resultant of SN and WE:
                 ss_norm = np.sqrt(np.power(sn_norm, 2) + np.power(we_norm, 2))
                 # steepest slope dip:
-                ss_dip = np.arccos(ss_horiz_norm / ss_norm)
+                if ss_norm == 0.:
+                    ss_dip = 0.
+                else:
+                    ss_dip = np.arccos(ss_horiz_norm / ss_norm)
 
                 # Add randomness for lateral spreading (if option on):
                 if self.attrs['lateral_spreading'] == 'on':
@@ -790,7 +793,10 @@ class ClastCollection(DataRecord):
             # norm of steepest slope vector projected on horizontal plane:
             ss_horiz_norm = np.sqrt(
                     np.power(we_slope, 2) + np.power(sn_slope, 2))
-            ss_dip = np.arctan((sn_slope**2+we_slope**2)/ss_horiz_norm)
+            if ss_horiz_norm == 0.:
+                ss_dip = 0.
+            else:
+                ss_dip = np.arctan((sn_slope**2+we_slope**2)/ss_horiz_norm)
             #print('ssdip= %s' %ss_dip)
 
             if we_slope == 0:

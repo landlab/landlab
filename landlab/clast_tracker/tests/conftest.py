@@ -6,6 +6,18 @@ from landlab.clast_tracker import ClastCollection
 S=0.3
 
 @pytest.fixture
+def grid_flat():
+    grid_flat = RasterModelGrid((5,5))
+    grid_flat.add_field('node',
+                        'topographic__elevation',
+                        np.ones(grid_flat.number_of_nodes));
+    grid_flat.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
+                                                  left_is_closed=True,
+                                                  right_is_closed=True,
+                                                  top_is_closed=True)
+    return grid_flat
+
+@pytest.fixture
 def grid_east():
     grid_east = RasterModelGrid((5,5))
     grid_east.add_field('node',
@@ -56,12 +68,16 @@ def grid_south():
 
 
 #from landlab import imshow_grid
-#%matplotlib auto 
+#%matplotlib auto
 #imshow_grid(grid_east, 'topographic__elevation')
 
-
-
-
+@pytest.fixture
+def cc_flat(grid_flat):
+    return ClastCollection(grid_flat,
+                           clast_x=np.ones(1)*2,
+                           clast_y=np.ones(1)*2,
+                           clast_elev=np.ones(1)*6,
+                           clast_radius=np.ones(1)*0.5)
 
 @pytest.fixture
 def cc_east(grid_east):
@@ -92,6 +108,14 @@ def cc_south(grid_south):
     return ClastCollection(grid_south,
                            clast_x=np.ones(1)*2,
                            clast_y=np.ones(1)*2,
+                           clast_elev=np.ones(1)*6,
+                           clast_radius=np.ones(1)*0.5)
+
+@pytest.fixture
+def cc_south_close2bndry(grid_south):
+    return ClastCollection(grid_south,
+                           clast_x=np.ones(1)*1,
+                           clast_y=np.ones(1)*1,
                            clast_elev=np.ones(1)*6,
                            clast_radius=np.ones(1)*0.5)
 
