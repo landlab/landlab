@@ -4,6 +4,7 @@
 import numpy as np
 from six import string_types
 from xarray import Dataset
+import xarray as xr
 
 
 class DataRecord(Dataset):
@@ -536,7 +537,7 @@ class DataRecord(Dataset):
         # create dataset of new record
         ds_to_add = Dataset(data_vars=_new_data_vars, coords=coords_to_add)
         # merge new record and original dataset
-        self.merge(ds_to_add, inplace="True", compat="no_conflicts")
+        self = self.merge(ds_to_add, compat="no_conflicts")
 
     def add_item(self, time=None, new_item=None, new_item_spec=None):
         """Add new item(s) to the current DataRecord.
@@ -658,8 +659,8 @@ class DataRecord(Dataset):
                 )
             else:
                 coords_to_add = {
-                    "time": np.array(time),
                     "item_id": np.array(new_item_ids),
+                    "time": np.array(time)
                 }
                 # check that grid_element and element_id exist
                 # on the grid and have valid format
@@ -699,9 +700,13 @@ class DataRecord(Dataset):
 
         # Dataset of new record:
         ds_to_add = Dataset(data_vars=data_vars_dict, coords=coords_to_add)
+        print(ds_to_add)
 
         # Merge new record and original dataset:
-        self.merge(ds_to_add, inplace="True", compat="no_conflicts")
+        #self.combine_first(ds_to_add)
+        xr.auto_combine([self, ds_to_add])
+        #new = self.update(ds_to_add)#♥, compat="no_conflicts")
+        return self
 
     def get_data(self, time=None, item_id=None, data_variable=None):
         """Get the value of a variable at a model time and/or for an item.
