@@ -145,7 +145,7 @@ class NetworkSedimentTransporter(Component):
         self._grid = grid
         
         if  not isinstance(grid, NetworkModelGrid):
-            msg = ("NetowrkSedimentTransporter: grid must be NetworkModelGrid")
+            msg = ("NetworkSedimentTransporter: grid must be NetworkModelGrid")
             raise (ValueError, msg)
         
         self._parcels = parcels
@@ -275,6 +275,7 @@ class NetworkSedimentTransporter(Component):
         """text Can be simple-- this is what this does. 'private' functions can
         have very simple examples, explanations. Essentially note to yourself"""
         # Katy think this can be vectorized
+        # Jon agrees, but is not sure yet how to do that
         for l in range(self._grid.number_of_links):
 
             upstream_node_id = self.fd.upstream_node_at_link()[l]
@@ -336,7 +337,12 @@ class NetworkSedimentTransporter(Component):
 
                 idxinactive = np.where(cumvol > capacity[i])
                 make_inactive = parcel_id_time_sorted[idxinactive]
-
+                # idxbedabrade = np.where(cumvol < 2*capacity[i] and cumvol > capacity[i])
+                #^ syntax is wrong, but this is where we can identify the surface of the bed
+                # for abrasion, I think we would abrade the particles in the active layer in active transport
+                # and abrade the particles sitting on the bed. This line would identify those particles on
+                # the bed that also need to abrade due to impacts from the sediment moving above.
+                
                 self._parcels.set_data(time = t,
                     item_id=parcel_id_thislink,
                     data_variable="active_layer",
@@ -380,7 +386,8 @@ class NetworkSedimentTransporter(Component):
 
         # Update the node elevations depending on the quantity of stored sediment
         for l in range(self._grid.number_of_nodes):
-
+            #^ comment from Jon -- I usually don't like using l as an index because it looks too close to 1.
+            
             if number_of_contributors[l] > 0:  # we don't update head node elevations
 
                 upstream_links = upstream_contributing_links_at_node[l]
@@ -562,7 +569,9 @@ class NetworkSedimentTransporter(Component):
         distance_traveled = np.zeros(np.shape(
                                     self._parcels["element_id"][:,self._time_idx])
         )
-
+        if self._time_idx == 1:
+            print("t",self._time_idx)
+        
         # However, a parcel is not always at the US end of a link, so need to determine
         # how much time it takes for that parcel to move out of the current link based on its
         # current location ...
@@ -587,9 +596,19 @@ class NetworkSedimentTransporter(Component):
                     # I think we should then remove this parcel from the parcel item collector
                     # if so, we manipulate the exiting parcel here, but may want to note something about its exit
                     # such as output volume and output time into a separate outlet array
+                    # Jon -- Agree a separate outlet accumulator array would be good.
+                    # Similarly, if someone wanted to know the history of parcels passing through
+                    # a particular link, we could create an accumulator array at that link and
+                    # copy but not remove values at that location.
 
                     # ADD CODE FOR THIS HERE, right now these parcel will just cycle through not actually leaving the system
-
+                    
+                    # This is why the code is breaking! These parcels need to be removed.
+                    
+                    # self.Accumulator_Outlet.item_id = self._parcels.item_id[p]
+                    #^ need something like this but I don't know how to initialize or concatentate
+                    # Then we need to remove the parcels from the self._parcel structure.
+                    
                     break  # break out of while loop
 
                 current_link[p] = downstream_link_id
@@ -631,7 +650,8 @@ class NetworkSedimentTransporter(Component):
             )
 
             D = 2 * (vol * 3 / (4 * np.pi)) ** (1 / 3)
-
+            #^ Jon comment -- what is this? and why doesn't D depend on D?
+            
             # update parcel attributes
             self._parcels["location_in_link"][p,self._time_idx] = location_in_link[p]
             self._parcels["element_id"][p,self._time_idx] = current_link[p]

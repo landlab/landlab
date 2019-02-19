@@ -68,7 +68,7 @@ bed_porosity = 0.3  # porosity of the bed material
 # parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
 
 
-timesteps = 10
+timesteps = 2
 
 element_id = np.array(
     [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 1], dtype=int
