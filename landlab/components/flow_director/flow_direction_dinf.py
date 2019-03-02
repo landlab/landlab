@@ -10,19 +10,18 @@ algorithm of Tarboton 1997.
 KRB Feb 2017
 """
 
+import numpy as np
+
+from landlab import VoronoiDelaunayGrid  # for type tests
+from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 from landlab.core.utils import as_id_array
 from landlab.utils.return_array import return_array_at_node
-from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 
 UNDEFINED_INDEX = BAD_INDEX_VALUE
-from landlab import VoronoiDelaunayGrid  # for type tests
-
-import numpy as np
 
 
 def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=None):
-    """
-    Find Dinfinity flow directions and proportions on a raster grid.
+    """Find Dinfinity flow directions and proportions on a raster grid.
 
     Finds and returns flow directions and proportions for a given elevation
     grid by the D infinity method (Tarboton, 1997). Each node is assigned two
@@ -79,7 +78,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     Dinfinity routes flow based on the relative proportion of flow along the
     triangular facets around a central raster node.
 
-    >>> grid = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> grid = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> _ = grid.add_field('topographic__elevation',
     ...                     2.*grid.node_x+grid.node_y,
     ...                     at = 'node')
@@ -156,11 +155,11 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # find where there are closed nodes.
     closed_nodes = grid.status_at_node == CLOSED_BOUNDARY
 
-    closed_elevation = np.max(elevs[closed_nodes == False]) + 1000
+    closed_elevation = np.max(elevs[~closed_nodes]) + 1000
 
     elevs[closed_nodes] = closed_elevation
 
-    ### Step 1, some basic set-up, gathering information about the grid.
+    # Step 1, some basic set-up, gathering information about the grid.
 
     # Calculate the number of nodes.
     num_nodes = len(elevs)
@@ -175,7 +174,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # create an array of the triangle numbers
     tri_numbers = np.arange(num_facets)
 
-    ### Step 3, create some triangle datastructures because landlab (smartly)
+    # Step 3, create some triangle datastructures because landlab (smartly)
     # makes it hard to deal with diagonals.
 
     # create list of triangle neighbors at node. Use orientation associated
@@ -254,7 +253,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
         link_slope[triangle_links_at_node] * triangle_link_dirs_at_node
     )
 
-    #### Step 3: make arrays necessary for the specific tarboton algorithm.
+    # Step 3: make arrays necessary for the specific tarboton algorithm.
     # create a arrays
     ac = np.array([0., 1., 1., 2., 2., 3., 3., 4.])
     af = np.array([1., -1., 1., -1., 1., -1., 1., -1.])
@@ -273,14 +272,14 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
 
     thresh = np.arctan(d2 / d1)
 
-    ##### Step 4, Initialize receiver and proportion arrays
+    # Step 4, Initialize receiver and proportion arrays
     receivers = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
     receiver_closed = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
     proportions = np.zeros((num_nodes, num_receivers), dtype=float)
     receiver_links = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
     slopes_to_receivers = np.zeros((num_nodes, num_receivers), dtype=float)
 
-    #### Step  5  begin the algorithm in earnest
+    # Step  5  begin the algorithm in earnest
 
     # construct e0, e1, e2 for all triangles at all nodes.
     # will be (nnodes, nfacets=8 for raster or nfacets = max number of patches
@@ -374,7 +373,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # where proportions == 0, set reciever  to -1
     receivers[proportions == 0] = -1
 
-    ### END OF THE Tarboton algorithm, start of work to make this code mesh
+    # END OF THE Tarboton algorithm, start of work to make this code mesh
     # with other landlab flow directing algorithms.
 
     # identify what drains to itself, and set proportion and id values based on
@@ -397,7 +396,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     drains_to_self[all_flow_to_closed] = True
 
     drains_to_one_closed = receiver_closed.sum(axis=1) == 1
-    fix_flow = drains_to_one_closed * (all_flow_to_closed == False)
+    fix_flow = drains_to_one_closed * (~all_flow_to_closed)
     first_column_has_closed = np.array(receiver_closed[:, 0] * fix_flow, dtype=bool)
     second_column_has_closed = np.array(receiver_closed[:, 1] * fix_flow, dtype=bool)
 
@@ -436,7 +435,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     steepest_slope = slopes_to_receivers[slope_sort]
     steepest_slope[drains_to_self] = 0.
 
-    ## identify the steepest link and steepest receiever.
+    # identify the steepest link and steepest receiever.
     steepest_link = receiver_links[slope_sort]
     steepest_link[drains_to_self] = UNDEFINED_INDEX
 

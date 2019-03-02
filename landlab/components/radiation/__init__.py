@@ -2,4 +2,4 @@
 from .radiation import Radiation
 
 
-__all__ = ['Radiation', ]
+__all__ = ["Radiation"]

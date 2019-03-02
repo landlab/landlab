@@ -1,20 +1,19 @@
 #!/usr/bin/env python
-import pytest
 import numpy as np
-
+import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator
 from landlab.utils import (
+    get_watershed_mask,
+    get_watershed_masks_with_area_threshold,
     get_watershed_nodes,
     get_watershed_outlet,
-    get_watershed_masks_with_area_threshold,
-    get_watershed_mask,
 )
 
 
 def test_get_watershed_nodes():
-    grid = RasterModelGrid((7, 7), 1)
+    grid = RasterModelGrid((7, 7))
 
     z = np.array(
         [
@@ -87,7 +86,7 @@ def test_get_watershed_nodes():
 
 
 def test_get_watershed_masks_with_area_threshold():
-    rmg = RasterModelGrid((7, 7), 200)
+    rmg = RasterModelGrid((7, 7), xy_spacing=200)
 
     z = np.array(
         [
@@ -166,7 +165,7 @@ def test_get_watershed_masks_with_area_threshold():
 
 
 def test_get_watershed_outlet():
-    grid = RasterModelGrid((7, 7), 1)
+    grid = RasterModelGrid((7, 7))
 
     z = np.array(
         [

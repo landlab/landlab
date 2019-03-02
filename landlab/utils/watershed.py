@@ -1,8 +1,9 @@
 #! /usr/bin/env python
 """Functions to work with watersheds of model grids."""
 
-from landlab import FieldError
 import numpy as np
+
+from landlab import FieldError
 
 
 def get_watershed_mask(grid, outlet_id):
@@ -31,7 +32,7 @@ def get_watershed_mask(grid, outlet_id):
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils import get_watershed_mask
 
-    >>> rmg = RasterModelGrid((7, 7), 1)
+    >>> rmg = RasterModelGrid((7, 7))
     >>> z = np.array([
     ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
     ...     -9999.,    26.,     0.,    30.,    32.,    34., -9999.,
@@ -123,7 +124,7 @@ def get_watershed_nodes(grid, outlet_id):
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils import get_watershed_nodes
 
-    >>> rmg = RasterModelGrid((7, 7), 1)
+    >>> rmg = RasterModelGrid((7, 7))
     >>> z = np.array([
     ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
     ...     -9999.,    26.,     0.,    30.,    32.,    34., -9999.,
@@ -181,7 +182,7 @@ def get_watershed_masks(grid):
     >>> from landlab.utils import get_watershed_masks
 
     Create a grid with a node spacing of 200 meter.
-    >>> rmg = RasterModelGrid((7, 7), 200)
+    >>> rmg = RasterModelGrid((7, 7), xy_spacing=200)
     >>> z = np.array([
     ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
     ...     -9999.,    26.,     0.,    26.,    30.,    34., -9999.,
@@ -249,7 +250,7 @@ def get_watershed_masks_with_area_threshold(grid, critical_area):
 
     Create a grid with a node spacing of 200 meter.
 
-    >>> rmg = RasterModelGrid((7, 7), 200)
+    >>> rmg = RasterModelGrid((7, 7), xy_spacing=200)
     >>> z = np.array([
     ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
     ...     -9999.,    26.,     0.,    26.,    30.,    34., -9999.,
@@ -316,7 +317,7 @@ def get_watershed_outlet(grid, source_node_id):
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils import get_watershed_outlet
 
-    >>> rmg = RasterModelGrid((7, 7), 1)
+    >>> rmg = RasterModelGrid((7, 7))
     >>> z = np.array([
     ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
     ...     -9999.,    26.,     0.,    30.,    32.,    34., -9999.,

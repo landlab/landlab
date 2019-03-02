@@ -9,13 +9,16 @@ GT Oct 2014
 
 _DEBUG = False
 
-import time
 import random
+import time
+
 import numpy
-from landlab import HexModelGrid
-from landlab.ca.celllab_cts import Transition, CAPlotter
-from landlab.ca.oriented_hex_cts import OrientedHexCTS
 from pylab import savefig
+
+from landlab import HexModelGrid
+from landlab.ca.celllab_cts import CAPlotter, Transition
+from landlab.ca.oriented_hex_cts import OrientedHexCTS
+
 
 def setup_transition_list(g=0.0, f=0.0, d=0.0, w=0.0):
     """

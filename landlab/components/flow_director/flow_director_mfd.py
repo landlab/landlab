@@ -9,11 +9,16 @@ in that it does not consider diagonal links between nodes. For that capability,
 use FlowDirectorD8.
 """
 
-from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
-from landlab.components.flow_director import flow_direction_mfd
-from landlab import VoronoiDelaunayGrid
-from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY, BAD_INDEX_VALUE
 import numpy
+
+from landlab import (
+    BAD_INDEX_VALUE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+    VoronoiDelaunayGrid,
+)
+from landlab.components.flow_director import flow_direction_mfd
+from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 
 
 class FlowDirectorMFD(_FlowDirectorToMany):
@@ -43,7 +48,8 @@ class FlowDirectorMFD(_FlowDirectorToMany):
        of dimension (number of nodes x max number of receivers). If the slope is
        uphill or flat, the value is assigned zero.
     -  Boolean node array of all local lows: *'flow__sink_flag'*
-
+    -  Link array identifing if flow goes with (1) or against (-1) the link
+       direction: *'flow_link_direction'*
     The primary method of this class is :func:`run_one_step`.
 
     Examples
@@ -55,11 +61,13 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     >>> import numpy as numpy
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorMFD
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + mg.node_y,
-    ...                  at = 'node')
+    >>> _ = mg.add_field(
+    ...     'topographic__elevation',
+    ...     mg.node_x + mg.node_y,
+    ...     at = 'node'
+    ... )
 
     The MFD flow director can be uses for raster and irregular grids. For
     raster grids, use of diagonal links is specified with the keyword
@@ -185,17 +193,22 @@ class FlowDirectorMFD(_FlowDirectorToMany):
 
     >>> from landlab import HexModelGrid
     >>> mg = HexModelGrid(5,3)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + numpy.round(mg.node_y),
-    ...                  at = 'node')
-    >>> fd = FlowDirectorMFD(mg, 'topographic__elevation',
-    ...                      partition_method='square_root_of_slope')
+    >>> _ = mg.add_field(
+    ...     'topographic__elevation',
+    ...     mg.node_x + numpy.round(mg.node_y),
+    ...     at = 'node'
+    ... )
+    >>> fd = FlowDirectorMFD(
+    ...      mg,
+    ...      'topographic__elevation',
+    ...      partition_method='square_root_of_slope'
+    ...      )
     >>> fd.surface_values # doctest: +NORMALIZE_WHITESPACE
-    array([ 0. ,  1. ,  2. ,
-            0.5,  1.5,  2.5,  3.5,
-            1. ,  2. ,  3. ,  4. ,  5. ,
-            2.5,  3.5,  4.5,  5.5,
-            3. ,  4. ,  5. ])
+    array([ 1. ,  2. ,  3. ,
+            1.5,  2.5,  3.5,  4.5,
+            2. ,  3. ,  4. ,  5. ,  6. ,
+            3.5,  4.5,  5.5,  6.5,
+            4. ,  5. ,  6. ])
     >>> fd.run_one_step()
     >>> mg.at_node['flow__receiver_node']
     array([[ 0, -1, -1, -1, -1, -1],
@@ -332,9 +345,9 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         self.partition_method = partition_method
         self.diagonals = diagonals
 
-        if self._is_Voroni == False and diagonals == False:
+        if self._is_Voroni is False and diagonals is False:
             self.max_receivers = 4
-        if self._is_Voroni == False and diagonals == True:
+        if self._is_Voroni is False and diagonals is True:
             self.max_receivers = 8
         else:
             self.max_receivers = self._grid.adjacent_nodes_at_node.shape[1]
@@ -378,19 +391,17 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         )
 
     def updated_boundary_conditions(self):
-        """
-        Method to update FlowDirectorMFD when boundary conditions change.
+        """Method to update FlowDirectorMFD when boundary conditions change.
 
-        Call this if boundary conditions on the grid are updated after the
-        component is instantiated.
+        Call this if boundary conditions on the grid are updated after
+        the component is instantiated.
         """
         self._active_links = self.grid.active_links
         self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
         self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
 
     def run_one_step(self):
-        """
-        Find flow directions and save to the model grid.
+        """Find flow directions and save to the model grid.
 
         run_one_step() checks for updated boundary conditions, calculates
         slopes on links, finds basself.surface_valuesel nodes based on the
@@ -403,8 +414,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         self.direct_flow()
 
     def direct_flow(self):
-        """
-        Find flow directions, save to the model grid, and return receivers.
+        """Find flow directions, save to the model grid, and return receivers.
 
         direct_flow() checks for updated boundary conditions, calculates
         slopes on links, finds basself.surface_valuesel nodes based on the status at node,
@@ -424,7 +434,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         # flow direction calculations
 
         # Option for no diagonals (default)
-        if self.diagonals == False:
+        if self.diagonals is False:
             neighbors_at_node = self.grid.adjacent_nodes_at_node
             links_at_node = self.grid.links_at_node
             active_link_dir_at_node = self.grid.active_link_dirs_at_node

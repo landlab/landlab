@@ -1,11 +1,10 @@
 import os
 
-import pytest
 import numpy as np
+import pytest
 
-from landlab import RasterModelGrid, CLOSED_BOUNDARY
-from landlab import BAD_INDEX_VALUE as XX
-from landlab.components import FlowAccumulator, DepressionFinderAndRouter
+from landlab import BAD_INDEX_VALUE as XX, CLOSED_BOUNDARY, RasterModelGrid
+from landlab.components import DepressionFinderAndRouter, FlowAccumulator
 
 
 @pytest.fixture
@@ -14,14 +13,12 @@ def dans_grid1():
     Create a 5x5 test grid.
     This is a sheet flow test.
     """
-    mg = RasterModelGrid((5, 5), spacing=(10., 10.))
+    mg = RasterModelGrid((5, 5), xy_spacing=(10., 10.))
 
     this_dir = os.path.abspath(os.path.dirname(__file__))
     infile = os.path.join(this_dir, "test_fr_input.txt")
 
     z = mg.node_x.copy()
-
-    Q_in = np.full(25, 2.)
 
     A_target = (
         np.array(
@@ -96,7 +93,7 @@ def internal_closed():
     Create a 6x5 test grid, but with two internal nodes closed.
     This is a sheet flow test.
     """
-    mg = RasterModelGrid((6, 5), spacing=(10., 10.))
+    mg = RasterModelGrid((6, 5), xy_spacing=(10., 10.))
 
     mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
     mg.status_at_node[7] = CLOSED_BOUNDARY
@@ -170,7 +167,7 @@ def dans_grid2():
     Create a 5x5 test grid.
     This tests more complex routing, with diffs between D4 & D8.
     """
-    mg = RasterModelGrid((5, 5), spacing=(10., 10.))
+    mg = RasterModelGrid((5, 5), xy_spacing=(10., 10.))
 
     this_dir = os.path.abspath(os.path.dirname(__file__))
     infile = os.path.join(this_dir, "test_fr_input.txt")
@@ -299,7 +296,7 @@ def dans_grid3():
     """
     Create a 7x7 test grid with a well defined hole in it.
     """
-    mg = RasterModelGrid(7, 7, 1.)
+    mg = RasterModelGrid((7, 7))
 
     z = np.array(
         [
@@ -411,7 +408,7 @@ def dans_grid3():
 
     mg.add_field("node", "topographic__elevation", z, units="-")
 
-    fr = FlowAccumulator(mg, flow_director='D8')
+    fr = FlowAccumulator(mg, flow_director="D8")
     lf = DepressionFinderAndRouter(mg)
 
     class DansGrid(object):
@@ -454,16 +451,16 @@ def d4_grid():
 
     1   2   3   4   5   6   7
     """
-    mg1 = RasterModelGrid(7, 7, 1.)
-    mg2 = RasterModelGrid(7, 7, 1.)
+    mg1 = RasterModelGrid((7, 7))
+    mg2 = RasterModelGrid((7, 7))
     z = mg1.node_x.copy() + 1.
     lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
     z[lake_nodes] = 0.
     mg1.add_field("node", "topographic__elevation", z, units="-")
     mg2.add_field("node", "topographic__elevation", z, units="-")
 
-    frD8 = FlowAccumulator(mg1, flow_director='D8')
-    frD4 = FlowAccumulator(mg2, flow_director='D4')
+    frD8 = FlowAccumulator(mg1, flow_director="D8")
+    frD4 = FlowAccumulator(mg2, flow_director="D4")
     lfD8 = DepressionFinderAndRouter(mg1, routing="D8")
     lfD4 = DepressionFinderAndRouter(mg2, routing="D4")
 

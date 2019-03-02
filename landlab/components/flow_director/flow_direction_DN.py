@@ -15,7 +15,6 @@ from landlab.core.utils import as_id_array
 
 from .cfuncs import adjust_flow_receivers
 
-
 UNDEFINED_INDEX = BAD_INDEX_VALUE
 
 
