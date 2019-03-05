@@ -15,7 +15,7 @@ import six
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 
 from ..core.utils import as_id_array
-from .base import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
+from .base import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY, CORE_NODE
 
 
 class HexModelGrid(VoronoiDelaunayGrid):
@@ -320,6 +320,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> hg = HexModelGrid(4, 4, shape='rect', orientation='vert')
         >>> hg.status_at_node
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
+        >>> hg.boundary_nodes
+        array([ 0,  1,  2,  3,  4,  7,  8, 11, 12, 13, 14, 15])
         >>> hg = HexModelGrid(3, 4, shape='rect')
         >>> hg.status_at_node
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
@@ -334,6 +336,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
             self.status_at_node[left_row] = self.status_at_node[0]
             right_row = numpy.where(self.x_of_node >= (self._ncols - 1) * dx)[0]
             self.status_at_node[right_row] = self.status_at_node[0]
+        self._boundary_nodes = numpy.where(self.status_at_node != CORE_NODE)[0]
 
     def _create_cell_areas_array(self):
         r"""Create an array of surface areas of hexagonal cells.
