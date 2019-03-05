@@ -1,80 +1,75 @@
-import numpy as np
-from numpy.testing import assert_array_equal
-from nose.tools import with_setup, raises
-try:
-    from nose.tools import assert_tuple_equal
-except ImportError:
-    from landlab.testing.tools import assert_tuple_equal
-
+import pytest
 
 from landlab import RasterModelGrid
 
 
-def setup_default_grid():
-    globals().update({
-        'rmg': RasterModelGrid(4, 5)
-    })
-
-
-def setup_lon_lat_grid():
-    globals().update({
-        'rmg': RasterModelGrid(4, 5,
-                               axis_name=['longitude', 'latitude'],
-                               axis_units=['degrees_east', 'degrees_north'])
-    })
-
-
-@with_setup(setup_default_grid)
 def test_default_names():
-    assert_tuple_equal(rmg.axis_name, ('y', 'x'))
+    rmg = RasterModelGrid((4, 5))
+    assert rmg.axis_name == ("y", "x")
 
 
-@with_setup(setup_lon_lat_grid)
 def test_name_keyword():
-    assert_tuple_equal(rmg.axis_name, ('longitude', 'latitude'))
+    rmg = RasterModelGrid(
+        (4, 5),
+        axis_name=["longitude", "latitude"],
+        axis_units=["degrees_east", "degrees_north"],
+    )
+    assert rmg.axis_name == ("longitude", "latitude")
 
 
-@with_setup(setup_lon_lat_grid)
 def test_name_setter():
-    rmg.axis_name = ('yyy', 'xxx')
-    assert_tuple_equal(rmg.axis_name, ('yyy', 'xxx'))
+    rmg = RasterModelGrid(
+        (4, 5),
+        axis_name=["longitude", "latitude"],
+        axis_units=["degrees_east", "degrees_north"],
+    )
+    rmg.axis_name = ("yyy", "xxx")
+    assert rmg.axis_name == ("yyy", "xxx")
 
 
-@raises(ValueError)
-@with_setup(setup_default_grid)
 def test_name_setter_too_few_names():
-    rmg.axis_name = ('z', )
+    rmg = RasterModelGrid((4, 5))
+    with pytest.raises(ValueError):
+        rmg.axis_name = ("z",)
 
 
-@raises(ValueError)
-@with_setup(setup_default_grid)
 def test_name_setter_too_many_names():
-    rmg.axis_name = ('z', 'y', 'x')
+    rmg = RasterModelGrid((4, 5))
+    with pytest.raises(ValueError):
+        rmg.axis_name = ("z", "y", "x")
 
 
-@with_setup(setup_default_grid)
 def test_default_units():
-    assert_tuple_equal(rmg.axis_units, ('-', '-'))
+    rmg = RasterModelGrid((4, 5))
+    assert rmg.axis_units == ("-", "-")
 
 
-@with_setup(setup_lon_lat_grid)
-def test_name_keyword():
-    assert_tuple_equal(rmg.axis_units, ('degrees_east', 'degrees_north'))
+def test_axis_units_keyword():
+    rmg = RasterModelGrid(
+        (4, 5),
+        axis_name=["longitude", "latitude"],
+        axis_units=["degrees_east", "degrees_north"],
+    )
+    assert rmg.axis_units == ("degrees_east", "degrees_north")
 
 
-@with_setup(setup_lon_lat_grid)
-def test_name_setter():
-    rmg.axis_units = ('mm', 'cm')
-    assert_tuple_equal(rmg.axis_units, ('mm', 'cm'))
+def test_axis_units_setter():
+    rmg = RasterModelGrid(
+        (4, 5),
+        axis_name=["longitude", "latitude"],
+        axis_units=["degrees_east", "degrees_north"],
+    )
+    rmg.axis_units = ("mm", "cm")
+    assert rmg.axis_units == ("mm", "cm")
 
 
-@raises(ValueError)
-@with_setup(setup_default_grid)
 def test_name_setter_too_few_units():
-    rmg.axis_units = ('m', )
+    rmg = RasterModelGrid((4, 5))
+    with pytest.raises(ValueError):
+        rmg.axis_units = ("m",)
 
 
-@raises(ValueError)
-@with_setup(setup_default_grid)
 def test_name_setter_too_many_units():
-    rmg.axis_units = ('m', 'cm', 'mm')
+    rmg = RasterModelGrid((4, 5))
+    with pytest.raises(ValueError):
+        rmg.axis_units = ("m", "cm", "mm")

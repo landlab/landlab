@@ -7,20 +7,20 @@ Created on Thu Jul  9 08:20:06 2015
 @author: gtucker
 """
 
-from nose.tools import assert_equal
-from numpy.testing import assert_array_equal
-from landlab import RasterModelGrid, HexModelGrid
-from landlab.ca.celllab_cts import Transition, Event
-from landlab.ca.raster_cts import RasterCTS
-from landlab.ca.oriented_raster_cts import OrientedRasterCTS
-from landlab.ca.hex_cts import HexCTS
-from landlab.ca.oriented_hex_cts import OrientedHexCTS
-from heapq import heappush
-from heapq import heappop
+from heapq import heappop, heappush
+
 import numpy as np
+from numpy.testing import assert_array_equal
+
+from landlab import HexModelGrid, RasterModelGrid
 
 # For dev
+from landlab.ca.celllab_cts import Transition  # X, Event
 from landlab.ca.celllab_cts import _RUN_NEW
+from landlab.ca.hex_cts import HexCTS
+from landlab.ca.oriented_hex_cts import OrientedHexCTS
+from landlab.ca.oriented_raster_cts import OrientedRasterCTS
+from landlab.ca.raster_cts import RasterCTS
 
 
 def callback_function(ca, node1, node2, time_now):
@@ -29,6 +29,8 @@ def callback_function(ca, node1, node2, time_now):
     called automatically by CellLabCTSModel's do_event() method.
     """
     pass
+
+
 #    elapsed_time = time_now - ca.last_update_time[node1]
 #    if ca.node_state[node1]==1:
 #        ca.prop_data[ca.propid[node1]]+=100*elapsed_time
@@ -38,17 +40,22 @@ def callback_function(ca, node1, node2, time_now):
 #
 
 
-
 def test_transition():
     """Test instantiation of Transition() object."""
-    t = Transition((0, 0, 0), (1, 1, 0), 1.0, name='test',
-                   swap_properties=False, prop_update_fn=None)
-    assert_equal(t.from_state, (0,0,0))
-    assert_equal(t.to_state, (1,1,0))
-    assert_equal(t.rate, 1.0)
-    assert_equal(t.name, 'test')
-    assert_equal(t.swap_properties, False)
-    assert_equal(t.prop_update_fn, None)
+    t = Transition(
+        (0, 0, 0),
+        (1, 1, 0),
+        1.0,
+        name="test",
+        swap_properties=False,
+        prop_update_fn=None,
+    )
+    assert t.from_state == (0, 0, 0)
+    assert t.to_state == (1, 1, 0)
+    assert t.rate == 1.0
+    assert t.name == "test"
+    assert t.swap_properties is False
+    assert t.prop_update_fn is None
 
 
 def test_raster_cts():
@@ -58,50 +65,52 @@ def test_raster_cts():
     """
 
     # Set up a small grid with no events scheduled
-    mg = RasterModelGrid(4, 4, 1.0)
+    mg = RasterModelGrid(4, 4)
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    node_state_grid = mg.add_ones('node', 'node_state_map', dtype=int)
+    node_state_grid = mg.add_ones("node", "node_state_map", dtype=int)
     node_state_grid[6] = 0
-    ns_dict = { 0 : 'black', 1 : 'white' }
+    ns_dict = {0: "black", 1: "white"}
     xn_list = []
-    xn_list.append( Transition((1,0,0), (0,1,0), 0.1, '', True, callback_function))
-    pd = mg.add_zeros('node', 'property_data', dtype=int)
+    xn_list.append(Transition((1, 0, 0), (0, 1, 0), 0.1, "", True, callback_function))
+    pd = mg.add_zeros("node", "property_data", dtype=int)
     pd[5] = 50
-    ca = RasterCTS(mg, ns_dict, xn_list, node_state_grid, prop_data=pd,
-                   prop_reset_value=0)
+    ca = RasterCTS(
+        mg, ns_dict, xn_list, node_state_grid, prop_data=pd, prop_reset_value=0
+    )
 
     # Test the data structures
-    assert (ca.num_link_states==4), 'wrong number of link states'
-    assert (ca.prop_data[5]==50), 'error in property data'
-    assert (ca.num_node_states==2), 'error in num_node_states'
-    assert (ca.link_orientation[-1]==0), 'error in link orientation array'
-    assert (ca.link_state_dict[(1, 0, 0)]==2), 'error in link state dict'
-    assert (ca.n_xn[2]==1), 'error in n_xn'
-    assert (ca.node_pair[1]==(0, 1, 0)), 'error in cell_pair list'
+    assert ca.num_link_states == 4, "wrong number of link states"
+    assert ca.prop_data[5] == 50, "error in property data"
+    assert ca.num_node_states == 2, "error in num_node_states"
+    assert ca.link_orientation[-1] == 0, "error in link orientation array"
+    assert ca.link_state_dict[(1, 0, 0)] == 2, "error in link state dict"
+    assert ca.n_xn[2] == 1, "error in n_xn"
+    assert ca.node_pair[1] == (0, 1, 0), "error in cell_pair list"
 
     if _RUN_NEW:
-        assert (len(ca.priority_queue._queue)==1), 'event queue has wrong size'
-        assert (ca.next_trn_id.size==24), 'wrong size next_trn_id'
-        assert (ca.trn_id.shape==(4, 1)), 'wrong size for xn_to'
-        assert (ca.trn_id[2][0]==0), 'wrong value in xn_to'
-        assert (ca.trn_to[0] == 1), 'wrong trn_to state'
-        assert (ca.trn_rate[0] == 0.1), 'wrong trn rate'
-        assert (ca.trn_propswap[0] == 1), 'wrong trn propswap'
-        assert (ca.trn_prop_update_fn == callback_function), 'wrong prop upd'
+        assert len(ca.priority_queue._queue) == 1, "event queue has wrong size"
+        assert ca.next_trn_id.size == 24, "wrong size next_trn_id"
+        assert ca.trn_id.shape == (4, 1), "wrong size for xn_to"
+        assert ca.trn_id[2][0] == 0, "wrong value in xn_to"
+        assert ca.trn_to[0] == 1, "wrong trn_to state"
+        assert ca.trn_rate[0] == 0.1, "wrong trn rate"
+        assert ca.trn_propswap[0] == 1, "wrong trn propswap"
+        assert ca.trn_prop_update_fn == callback_function, "wrong prop upd"
     else:
-        assert (len(ca.event_queue)==1), 'event queue has wrong size'
-        assert (ca.xn_to.size==4), 'wrong size for xn_to'
-        assert (ca.xn_to.shape==(4, 1)), 'wrong size for xn_to'
-        assert (ca.xn_to[2][0]==1), 'wrong value in xn_to'
-        assert (ca.xn_rate[2][0]==0.1), 'error in transition rate array'
+        assert len(ca.event_queue) == 1, "event queue has wrong size"
+        assert ca.xn_to.size == 4, "wrong size for xn_to"
+        assert ca.xn_to.shape == (4, 1), "wrong size for xn_to"
+        assert ca.xn_to[2][0] == 1, "wrong value in xn_to"
+        assert ca.xn_rate[2][0] == 0.1, "error in transition rate array"
 
     # Manipulate the data in the event queue for testing:
 
     if _RUN_NEW:
         # pop the scheduled event off the queue
-        (event_time, index, event_link) = ca.priority_queue.pop()        
-        assert (ca.priority_queue._queue==[]), \
-                                'event queue should now be empty but is not'
+        (event_time, index, event_link) = ca.priority_queue.pop()
+        assert (
+            ca.priority_queue._queue == []
+        ), "event queue should now be empty but is not"
 
         # engineer an event
         ca.priority_queue.push(8, 1.0)
@@ -111,8 +120,8 @@ def test_raster_cts():
     else:
         # pop the scheduled event off the queue
         ev = heappop(ca.event_queue)
-        assert (ca.event_queue==[]), 'event queue should now be empty but is not'
-    
+        assert ca.event_queue == [], "event queue should now be empty but is not"
+
         # engineer an event
         ev.time = 1.0
         ev.link = 8
@@ -120,7 +129,7 @@ def test_raster_cts():
         ev.propswap = True
         ev.prop_update_fn = callback_function
         ca.next_update[8] = 1.0
-    
+
         # push it onto the event queue
         heappush(ca.event_queue, ev)
 
@@ -133,60 +142,60 @@ def test_raster_cts():
     # Did the property ID and data arrays get updated? Note that the "propswap"
     # should switch propids between nodes 5 and 6, and the callback function
     # should increase the value of prop_data in the "swap" node from 50 to 150.
-    assert (ca.current_time==1.0), 'current time incorrect'
-    assert (ca.node_state[5]==0), 'error in node state 5'
-    assert (ca.node_state[6]==1), 'error in node state 6'
-    #assert (ca.prop_data[ca.propid[6]]==150), 'error in prop swap'
+    assert ca.current_time == 1.0, "current time incorrect"
+    assert ca.node_state[5] == 0, "error in node state 5"
+    assert ca.node_state[6] == 1, "error in node state 6"
+    # assert (ca.prop_data[ca.propid[6]]==150), 'error in prop swap'
 
 
 def test_oriented_raster_cts():
     """Tests instantiation of an OrientedRasterCTS() object"""
-    mg = RasterModelGrid(3, 3, 1.0)
-    nsd = {0 : 'oui', 1 : 'non'}
+    mg = RasterModelGrid(3, 3)
+    nsd = {0: "oui", 1: "non"}
     xnlist = []
-    xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'hopping'))
-    nsg = mg.add_zeros('node', 'node_state_grid')
+    xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "hopping"))
+    nsg = mg.add_zeros("node", "node_state_grid")
     orcts = OrientedRasterCTS(mg, nsd, xnlist, nsg)
 
-    assert_equal(orcts.num_link_states, 8)
-    #assert_array_equal(orcts.link_orientation, [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
+    assert orcts.num_link_states == 8
+    # assert_array_equal(orcts.link_orientation, [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
     assert_array_equal(orcts.link_orientation, [0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0])
 
 
 def test_hex_cts():
     """Tests instantiation of a HexCTS() object"""
-    mg = HexModelGrid(3, 2, 1.0, orientation='vertical', reorient_links=True)
-    nsd = {0 : 'zero', 1 : 'one'}
+    mg = HexModelGrid(3, 2, 1.0, orientation="vertical", reorient_links=True)
+    nsd = {0: "zero", 1: "one"}
     xnlist = []
-    xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'transitioning'))
-    nsg = mg.add_zeros('node', 'node_state_grid')
+    xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "transitioning"))
+    nsg = mg.add_zeros("node", "node_state_grid")
     hcts = HexCTS(mg, nsd, xnlist, nsg)
 
-    assert_equal(hcts.num_link_states, 4)
+    assert hcts.num_link_states == 4
     assert_array_equal(hcts.link_orientation, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
 
 def test_oriented_hex_cts():
     """Tests instantiation of an OrientedHexCTS() object"""
-    mg = HexModelGrid(3, 2, 1.0, orientation='vertical', reorient_links=True)
-    nsd = {0 : 'zero', 1 : 'one'}
+    mg = HexModelGrid(3, 2, 1.0, orientation="vertical", reorient_links=True)
+    nsd = {0: "zero", 1: "one"}
     xnlist = []
-    xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'transitioning'))
-    nsg = mg.add_zeros('node', 'node_state_grid')
+    xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "transitioning"))
+    nsg = mg.add_zeros("node", "node_state_grid")
     ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
-    
-    assert_equal(ohcts.num_link_states, 12)
-    #assert_array_equal(ohcts.link_orientation, [2, 1, 0, 0, 0, 2, 1, 0, 2, 1, 0])
+
+    assert ohcts.num_link_states == 12
+    # assert_array_equal(ohcts.link_orientation, [2, 1, 0, 0, 0, 2, 1, 0, 2, 1, 0])
     assert_array_equal(ohcts.link_orientation, [2, 0, 1, 0, 2, 0, 1, 0, 2, 0, 1])
-    
-    
+
+
 def test_priority_queue():
     """Test import and use of priority queue."""
     from ..cfuncs import PriorityQueue
-    
+
     # Create a priority queue
     pq = PriorityQueue()
-    
+
     # push a bunch of events
     pq.push(2, 2.2)
     pq.push(5, 5.5)
@@ -197,34 +206,35 @@ def test_priority_queue():
 
     # pop a bunch of events
     (priority, index, item) = pq.pop()
-    assert (priority == 0.11), 'incorrect priority in PQ test'
-    assert (index == 2), 'incorrect index in PQ test'
-    assert (item == 0), 'incorrect item in PQ test'
+    assert priority == 0.11, "incorrect priority in PQ test"
+    assert index == 2, "incorrect index in PQ test"
+    assert item == 0, "incorrect item in PQ test"
 
     (priority, index, item) = pq.pop()
-    assert (priority == 1.1), 'incorrect priority in PQ test'
-    assert (index == 4), 'incorrect index in PQ test'
-    assert (item == 1), 'incorrect item in PQ test'
+    assert priority == 1.1, "incorrect priority in PQ test"
+    assert index == 4, "incorrect index in PQ test"
+    assert item == 1, "incorrect item in PQ test"
 
     (priority, index, item) = pq.pop()
-    assert (priority == 2.2), 'incorrect priority in PQ test'
-    assert (index == 0), 'incorrect index in PQ test'
-    assert (item == 2), 'incorrect item in PQ test'
+    assert priority == 2.2, "incorrect priority in PQ test"
+    assert index == 0, "incorrect index in PQ test"
+    assert item == 2, "incorrect item in PQ test"
 
     (priority, index, item) = pq.pop()
-    assert (priority == 3.3), 'incorrect priority in PQ test'
-    assert (index == 5), 'incorrect index in PQ test'
-    assert (item == 3), 'incorrect item in PQ test'
+    assert priority == 3.3, "incorrect priority in PQ test"
+    assert index == 5, "incorrect index in PQ test"
+    assert item == 3, "incorrect item in PQ test"
 
     (priority, index, item) = pq.pop()
-    assert (priority == 4.4), 'incorrect priority in PQ test'
-    assert (index == 3), 'incorrect index in PQ test'
-    assert (item == 4), 'incorrect item in PQ test'
+    assert priority == 4.4, "incorrect priority in PQ test"
+    assert index == 3, "incorrect index in PQ test"
+    assert item == 4, "incorrect item in PQ test"
 
     (priority, index, item) = pq.pop()
-    assert (priority == 5.5), 'incorrect priority in PQ test'
-    assert (index == 1), 'incorrect index in PQ test'
-    assert (item == 5), 'incorrect item in PQ test'
+    assert priority == 5.5, "incorrect priority in PQ test"
+    assert index == 1, "incorrect index in PQ test"
+    assert item == 5, "incorrect item in PQ test"
+
 
 def test_run_oriented_raster():
     """Test running with a small grid, 2 states, 4 transition types."""
@@ -232,7 +242,7 @@ def test_run_oriented_raster():
     # Create an OrientedRaster with a 3x5 raster grid. Test model has 2 node
     # states and 4 transition types.
     grid = RasterModelGrid((3, 5))
-    nsd = {0 : 'zero', 1 : 'one'}
+    nsd = {0: "zero", 1: "one"}
     trn_list = []
     trn_list.append(Transition((0, 1, 0), (1, 0, 0), 1.0))
     trn_list.append(Transition((1, 0, 0), (0, 1, 0), 2.0))
@@ -243,33 +253,27 @@ def test_run_oriented_raster():
 
     # Run to 1st transition, at ~0.12
     cts.run(0.15)
-    assert_array_equal(cts.node_state,
-                       [0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0])
+    assert_array_equal(cts.node_state, [0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0])
 
     # Run to 2nd transition, at ~0.19
     cts.run(0.2)
-    assert_array_equal(cts.node_state,
-                       [0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0])
+    assert_array_equal(cts.node_state, [0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0])
 
     # Run to 3rd transition, at ~0.265
     cts.run(0.27)
-    assert_array_equal(cts.node_state,
-                       [0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0])
+    assert_array_equal(cts.node_state, [0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0])
 
     # Run to 4th transition, at ~0.276 (transition is ignored)
     cts.run(0.28)
-    assert_array_equal(cts.node_state,
-                       [0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0])
+    assert_array_equal(cts.node_state, [0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0])
 
     # Run to 5th transition, at ~0.461 (ignored)
     cts.run(0.5)
-    assert_array_equal(cts.node_state,
-                       [0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0])
+    assert_array_equal(cts.node_state, [0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0])
 
     # Run to 6th transition, at ~0.648
     cts.run(0.65)
-    assert_array_equal(cts.node_state,
-                       [0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0])
+    assert_array_equal(cts.node_state, [0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0])
 
 
 def test_grain_hill_model():
@@ -277,39 +281,65 @@ def test_grain_hill_model():
     from .grain_hill import GrainHill
 
     params = {
-        'number_of_node_rows' : 10,
-        'number_of_node_columns' : 10,
-        'report_interval' : 5.0,
-        'run_duration' : 10.0,
-        'output_interval' : 1.0e5,
-        'settling_rate' : 220000000.0,
-        'disturbance_rate' : 0.01,
-        'uplift_interval' : 4000.0,
-        'friction_coef' : 1.0,
-        'plot_interval' : 1.0,
-        'show_plots' : False,
-        }
-    grid_size = (int(params['number_of_node_rows']), 
-                 int(params['number_of_node_columns']))
+        "number_of_node_rows": 10,
+        "number_of_node_columns": 10,
+        "report_interval": 5.0,
+        "run_duration": 10.0,
+        "output_interval": 1.0e5,
+        "settling_rate": 220000000.0,
+        "disturbance_rate": 0.01,
+        "uplift_interval": 4000.0,
+        "friction_coef": 1.0,
+        "plot_interval": 1.0,
+        "show_plots": False,
+    }
+    grid_size = (
+        int(params["number_of_node_rows"]),
+        int(params["number_of_node_columns"]),
+    )
     grain_hill_model = GrainHill(grid_size, **params)
     grain_hill_model.run()
 
     # Now test
-    assert_array_equal(grain_hill_model.grid.at_node['node_state'][:18],
-                       [8, 7, 7, 7, 7, 7, 7, 7, 7, 8, 0, 7, 7, 7, 7, 0, 7, 7])
+    assert_array_equal(
+        grain_hill_model.grid.at_node["node_state"][:18],
+        [8, 7, 7, 7, 7, 7, 7, 7, 7, 8, 0, 7, 7, 7, 7, 0, 7, 7],
+    )
 
     # Try with an uplift step
-    params['uplift_interval'] = 5.0
-    params['run_duration'] = 15.0
+    params["uplift_interval"] = 5.0
+    params["run_duration"] = 15.0
     grain_hill_model = GrainHill(grid_size, **params)
     grain_hill_model.run()
 
     # Test
-    assert_array_equal(grain_hill_model.grid.at_node['node_state'][20:38],
-                       [0, 7, 7, 7, 7, 0, 7, 7, 7, 0, 0, 0, 7, 7, 0, 0, 0, 7])
+    assert_array_equal(
+        grain_hill_model.grid.at_node["node_state"][20:38],
+        [0, 7, 7, 7, 7, 0, 7, 7, 7, 0, 0, 0, 7, 7, 0, 0, 0, 7],
+    )
 
 
-if __name__ == '__main__':
+def test_setup_transition_data():
+    """Test the CellLabCTSModel setup_transition_data method."""
+    grid = RasterModelGrid((3, 4))
+    nsd = {0: "zero", 1: "one"}
+    trn_list = []
+    trn_list.append(Transition((0, 1, 0), (1, 0, 0), 1.0))
+    trn_list.append(Transition((1, 0, 0), (0, 1, 0), 2.0))
+    trn_list.append(Transition((0, 1, 1), (1, 0, 1), 3.0))
+    trn_list.append(Transition((0, 1, 1), (1, 1, 1), 4.0))
+    ins = np.arange(12) % 2
+    cts = OrientedRasterCTS(grid, nsd, trn_list, ins)
+
+    assert_array_equal(cts.n_trn, [0, 1, 1, 0, 0, 2, 0, 0])
+    assert_array_equal(
+        cts.trn_id, [[0, 0], [0, 0], [1, 0], [0, 0], [0, 0], [2, 3], [0, 0], [0, 0]]
+    )
+    assert_array_equal(cts.trn_to, [2, 1, 6, 7])
+    assert_array_equal(cts.trn_rate, [1., 2., 3., 4.])
+
+
+if __name__ == "__main__":
     test_transition()
     test_raster_cts()
     test_oriented_raster_cts()

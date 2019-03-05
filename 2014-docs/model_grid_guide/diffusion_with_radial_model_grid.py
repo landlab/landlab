@@ -8,8 +8,10 @@ Last updated GT May 2014
 
 """
 
-from landlab import RadialModelGrid
 import pylab
+
+from landlab import RadialModelGrid
+
 
 def main():
     """

@@ -62,8 +62,10 @@ Information about nodes
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.hex.HexModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.hex.HexModelGrid.active_link_dirs_at_node
     ~landlab.grid.hex.HexModelGrid.active_neighbors_at_node
+    ~landlab.grid.hex.HexModelGrid.adjacent_nodes_at_node
     ~landlab.grid.hex.HexModelGrid.all_node_azimuths_map
     ~landlab.grid.hex.HexModelGrid.all_node_distances_map
     ~landlab.grid.hex.HexModelGrid.boundary_nodes
@@ -85,12 +87,14 @@ Information about nodes
     ~landlab.grid.hex.HexModelGrid.node_at_link_head
     ~landlab.grid.hex.HexModelGrid.node_at_link_tail
     ~landlab.grid.hex.HexModelGrid.node_axis_coordinates
+    ~landlab.grid.hex.HexModelGrid.node_has_boundary_neighbor
     ~landlab.grid.hex.HexModelGrid.node_is_boundary
     ~landlab.grid.hex.HexModelGrid.node_x
     ~landlab.grid.hex.HexModelGrid.node_y
     ~landlab.grid.hex.HexModelGrid.nodes
     ~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge
     ~landlab.grid.hex.HexModelGrid.nodes_at_left_edge
+    ~landlab.grid.hex.HexModelGrid.nodes_at_link
     ~landlab.grid.hex.HexModelGrid.nodes_at_patch
     ~landlab.grid.hex.HexModelGrid.nodes_at_right_edge
     ~landlab.grid.hex.HexModelGrid.nodes_at_top_edge
@@ -110,6 +114,7 @@ Information about nodes
     ~landlab.grid.hex.HexModelGrid.unit_vector_sum_ycomponent_at_node
     ~landlab.grid.hex.HexModelGrid.upwind_links_at_node
     ~landlab.grid.hex.HexModelGrid.x_of_node
+    ~landlab.grid.hex.HexModelGrid.xy_of_node
     ~landlab.grid.hex.HexModelGrid.y_of_node
 
 Information about links
@@ -134,6 +139,7 @@ Information about links
     ~landlab.grid.hex.HexModelGrid.links_at_patch
     ~landlab.grid.hex.HexModelGrid.node_at_link_head
     ~landlab.grid.hex.HexModelGrid.node_at_link_tail
+    ~landlab.grid.hex.HexModelGrid.nodes_at_link
     ~landlab.grid.hex.HexModelGrid.number_of_active_links
     ~landlab.grid.hex.HexModelGrid.number_of_fixed_links
     ~landlab.grid.hex.HexModelGrid.number_of_links
@@ -144,8 +150,8 @@ Information about links
     ~landlab.grid.hex.HexModelGrid.resolve_values_on_active_links
     ~landlab.grid.hex.HexModelGrid.resolve_values_on_links
     ~landlab.grid.hex.HexModelGrid.status_at_link
-    ~landlab.grid.hex.HexModelGrid.unit_vector_xcomponent_at_link
-    ~landlab.grid.hex.HexModelGrid.unit_vector_ycomponent_at_link
+    ~landlab.grid.hex.HexModelGrid.unit_vector_at_link
+    ~landlab.grid.hex.HexModelGrid.unit_vector_at_node
     ~landlab.grid.hex.HexModelGrid.upwind_links_at_node
     ~landlab.grid.hex.HexModelGrid.x_of_link
     ~landlab.grid.hex.HexModelGrid.y_of_link
@@ -354,6 +360,7 @@ defined at other grid elements automatically.
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.hex.HexModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.hex.HexModelGrid.active_faces
     ~landlab.grid.hex.HexModelGrid.active_links
     ~landlab.grid.hex.HexModelGrid.active_neighbors_at_node
@@ -365,6 +372,7 @@ defined at other grid elements automatically.
     ~landlab.grid.hex.HexModelGrid.fixed_links
     ~landlab.grid.hex.HexModelGrid.fixed_value_boundary_nodes
     ~landlab.grid.hex.HexModelGrid.node_at_core_cell
+    ~landlab.grid.hex.HexModelGrid.node_has_boundary_neighbor
     ~landlab.grid.hex.HexModelGrid.node_is_boundary
     ~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge
     ~landlab.grid.hex.HexModelGrid.nodes_at_left_edge
@@ -380,6 +388,8 @@ defined at other grid elements automatically.
     ~landlab.grid.hex.HexModelGrid.open_boundary_nodes
     ~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.hex.HexModelGrid.set_watershed_boundary_condition
+    ~landlab.grid.hex.HexModelGrid.set_watershed_boundary_condition_outlet_id
     ~landlab.grid.hex.HexModelGrid.status_at_link
     ~landlab.grid.hex.HexModelGrid.status_at_node
 

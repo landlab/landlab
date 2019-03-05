@@ -5,6 +5,7 @@ The Basic Modeling Interface.
 
 class Error(Exception):
     """Base class for BMI exceptions"""
+
     pass
 
 
@@ -12,6 +13,7 @@ class FatalError(Exception):
     """
     Raise this exception if an unrecoverable error was found
     """
+
     pass
 
 
@@ -43,6 +45,7 @@ class TimeBoundsError(Error):
     """
     Raise this exception if a component updates beyond its time horizon
     """
+
     pass
 
 
@@ -53,6 +56,7 @@ class BmiGridType(int):
     :code: Grid type code as an int
     :name: Name of the grid type as a string
     """
+
     def __new__(cls, code, name):
         obj = super(BmiGridType, cls).__new__(cls, code)
         obj.name = name
@@ -62,15 +66,15 @@ class BmiGridType(int):
         return self.name
 
     def __repr__(self):
-        return 'BmiGridType(%d, %s)' % (self, self.name)
+        return "BmiGridType(%d, %s)" % (self, self.name)
 
 
-GRID_TYPE_UNKNOWN = BmiGridType(-1, 'Unknown')
-GRID_TYPE_NONE = BmiGridType(0, 'No grid')
-GRID_TYPE_UNIFORM = BmiGridType(1, 'Uniform rectilinear')
-GRID_TYPE_RECTILINEAR = BmiGridType(2, 'Rectilinear')
-GRID_TYPE_STRUCTURED = BmiGridType(3, 'Structured')
-GRID_TYPE_UNSTRUCTURED = BmiGridType(4, 'Unstructured')
+GRID_TYPE_UNKNOWN = BmiGridType(-1, "Unknown")
+GRID_TYPE_NONE = BmiGridType(0, "No grid")
+GRID_TYPE_UNIFORM = BmiGridType(1, "Uniform rectilinear")
+GRID_TYPE_RECTILINEAR = BmiGridType(2, "Rectilinear")
+GRID_TYPE_STRUCTURED = BmiGridType(3, "Structured")
+GRID_TYPE_UNSTRUCTURED = BmiGridType(4, "Unstructured")
 
 
 class BmiBase(object):

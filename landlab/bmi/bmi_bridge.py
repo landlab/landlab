@@ -20,8 +20,6 @@ import yaml
 from ..core.model_component import Component
 from ..grid import RasterModelGrid
 
-__all__ = ['TimeStepper', 'wrap_as_bmi']
-
 
 class TimeStepper(object):
 
@@ -72,7 +70,7 @@ class TimeStepper(object):
             while self._time < self._stop:
                 yield self._time
                 self._time += self._step
-        raise StopIteration()
+        return
 
     @property
     def time(self):
@@ -168,14 +166,17 @@ def wrap_as_bmi(cls):
     False
     """
     if not issubclass(cls, Component):
-        raise TypeError('class must inherit from Component')
+        raise TypeError("class must inherit from Component")
 
     class BmiWrapper(object):
         __doc__ = """
         Basic Modeling Interface for the {name} component.
-        """.format(name=cls.__name__).strip()
+        """.format(
+            name=cls.__name__
+        ).strip()
 
         _cls = cls
+
         def __init__(self):
             self._base = None
             self._clock = None
@@ -211,7 +212,7 @@ def wrap_as_bmi(cls):
 
         def get_time_units(self):
             """Time units used by the component."""
-            raise NotImplementedError('get_time_units not implemented')
+            raise NotImplementedError("get_time_units not implemented")
 
         def initialize(self, fname):
             """Initialize the component from a file.
@@ -242,29 +243,28 @@ def wrap_as_bmi(cls):
                 YAML-formatted input file for the component.
             """
             if os.path.isfile(fname):
-                with open(fname, 'r') as fp:
+                with open(fname, "r") as fp:
                     params = yaml.load(fp)
             else:
                 params = yaml.load(fname)
 
-            grid_params = params.pop('grid')
-            gtype = grid_params.pop('type')
-            if gtype == 'raster':
+            grid_params = params.pop("grid")
+            gtype = grid_params.pop("type")
+            if gtype == "raster":
                 cls = RasterModelGrid
             else:
-                raise ValueError(
-                    'unrecognized grid type {gtype}'.format(gtype=gtype))
+                raise ValueError("unrecognized grid type {gtype}".format(gtype=gtype))
 
             grid = cls.from_dict(grid_params)
 
-            clock_params = params.pop('clock')
+            clock_params = params.pop("clock")
             self._clock = TimeStepper(**clock_params)
 
             self._base = self._cls(grid, **params)
 
         def update(self):
             """Update the component one time step."""
-            if hasattr(self._base, 'update'):
+            if hasattr(self._base, "update"):
                 self._base.update()
             self._clock.advance()
 
@@ -292,7 +292,7 @@ def wrap_as_bmi(cls):
 
         def get_var_itemsize(self, name):
             """Get the size of elements of a variable."""
-            return np.dtype('float').itemsize
+            return np.dtype("float").itemsize
 
         def get_var_nbytes(self, name):
             """Get the total number of bytes used by a variable."""
@@ -300,7 +300,7 @@ def wrap_as_bmi(cls):
 
         def get_var_type(self, name):
             """Get the data type for a variable."""
-            return str(np.dtype('float'))
+            return str(np.dtype("float"))
 
         def get_var_units(self, name):
             """Get the unit used by a variable."""
@@ -322,7 +322,7 @@ def wrap_as_bmi(cls):
                 else:
                     self._base.grid.at_node[name] = vals
             else:
-                raise KeyError('{name} is not an input item'.format(name=name))
+                raise KeyError("{name} is not an input item".format(name=name))
 
         def get_grid_origin(self, gid):
             """Get the origin for a structured grid."""
@@ -334,8 +334,10 @@ def wrap_as_bmi(cls):
 
         def get_grid_shape(self, gid):
             """Get the shape of a structured grid."""
-            return (self._base.grid.number_of_node_rows,
-                    self._base.grid.number_of_node_columns)
+            return (
+                self._base.grid.number_of_node_rows,
+                self._base.grid.number_of_node_columns,
+            )
 
         def get_grid_spacing(self, gid):
             """Get the row and column spacing of a structured grid."""
@@ -343,8 +345,7 @@ def wrap_as_bmi(cls):
 
         def get_grid_type(self, gid):
             """Get the type of grid."""
-            return 'uniform_rectilinear'
-
+            return "uniform_rectilinear"
 
     BmiWrapper.__name__ = cls.__name__
     return BmiWrapper

@@ -1,23 +1,27 @@
 # -*- coding: utf-8 -*-
 #this driver runs 0.001->0.01 perturbation of NMG2 for both simple SP & simple transport limited response
 
-from landlab.components.flow_routing.route_flow_dn import FlowRouter
-from landlab.components.stream_power.stream_power import StreamPowerEroder
-from landlab.components.transport_limited_fluvial.tl_fluvial_monodirectional import TransportLimitedEroder
-from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
-from landlab import ModelParameterDictionary
-from landlab.plot import imshow
-from landlab.plot.video_out import VideoPlotter
-from landlab.plot import channel_profile as prf
-from landlab.plot.imshow import imshow_node_grid
-from pylab import colorbar, show, plot, loglog, figure, savefig, close, ylim, xlim, gca
+from copy import copy, deepcopy
+from time import time
 
-from landlab import RasterModelGrid
 import numpy as np
 import pylab
-from copy import copy, deepcopy
+from pylab import close, colorbar, figure, gca, loglog, plot, savefig, show, xlim, ylim
 
-from time import time
+from landlab import (
+    CLOSED_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+    ModelParameterDictionary,
+    RasterModelGrid,
+)
+from landlab.components import (
+    FlowAccumulator,
+    StreamPowerEroder,
+    TransportLimitedEroder,
+)
+from landlab.plot import channel_profile as prf, imshow
+from landlab.plot.imshow import imshow_node_grid
+from landlab.plot.video_out import VideoPlotter
 
 show_figs_in_run = True #disable to run straight through
 DL_or_TL = 'DL'
@@ -48,7 +52,7 @@ dt = inputs.read_float('dt')
 #check we have a plaubible grid
 mg = RasterModelGrid(nrows,ncols,dx)
 assert mg.number_of_nodes == nrows*ncols
-assert mg.node_spacing == dx
+assert mg.dx == dx
 
 # Display a message
 print 'Running ...'
@@ -67,7 +71,7 @@ z += np.random.rand(len(z))/100000.
 mg.status_at_node[mg.nodes_at_left_edge] = CLOSED_BOUNDARY
 mg.status_at_node[mg.nodes_at_right_edge] = CLOSED_BOUNDARY
 
-fr = FlowRouter(mg)
+fr = FlowAccumulator(mg, flow_director='D8')
 if DL_or_TL == 'TL':
     tle = TransportLimitedEroder(mg, input_file)
 else:
@@ -102,7 +106,7 @@ if show_figs_in_run:
 mg_init = deepcopy(mg)
 
 #REinstantiate the components:
-fr = FlowRouter(mg)
+fr = FlowAccumulator(mg, flow_director='D8')
 tle = TransportLimitedEroder(mg, input_file)
 uplift_rate *= 10. #accelerate tenfold
 runtime = 200000.
