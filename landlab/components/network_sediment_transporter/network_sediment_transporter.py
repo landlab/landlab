@@ -7,6 +7,20 @@ maybe it should be called "czuba_network_sediment_transporter"
 
 info about the component here
 
+
+Fixes that need to happen: 
+
+    -- Need to find better way to define filterarrays in time and item_id
+	current option is very clunky. The one Nathan Lyons suggested doesn't work. 
+
+    -- What to do with parcels when they get to the last link? --> I didn't get to this. 
+    
+    -- tau/taur changes very subtly through time. It shouldn't. Track down this mystery. 
+
+    -- Need to calculate distance a parcel travels in a timestep for abrasion
+
+    -- The abrasion exponent is applied to diameter, but doesn't impact parcel volume. Need to fix. 
+
 .. codeauthor:: Jon Allison Katy
 
 Created on Tu May 8, 2018
@@ -300,8 +314,6 @@ class NetworkSedimentTransporter(Component):
         # %%
         find_now = self._parcels['time']== t
 
-        print('find_now', find_now)
-
         vol_tot = self._parcels.calc_aggregate_value(np.sum, "volume", 
                                                      at="link",
                                                      filter_array = find_now)
@@ -353,20 +365,14 @@ class NetworkSedimentTransporter(Component):
                     item_id=make_inactive, data_variable="active_layer", new_value=0
                 )
 
-        # Update Node Elevations
-        findactive = (
-            self._parcels["active_layer"][:,self._time_idx] == 1
-        )  # filter for only parcels in active layer
+        # Update Node Elevations 
+        findactive = (self._parcels["active_layer"] == 1) 
+        findactive[:,0:-1]= False
+        
         vol_act = self._parcels.calc_aggregate_value(
             np.sum, "volume", at="link", filter_array=findactive
         )
         self.vol_stor = (vol_tot - vol_act) / (1 - self.bed_porosity)
-        # ^ Jon-- what's the rationale behind only calculating new node elevations
-        # using the storage volume (rather than the full sediment volume)?
-        # Jon response -- because during transport, that is the sediment defining the immobile
-        # substrate that is setting the slope. Parcels that are actively transporting should not
-        # affect the slope because they are moving.
-        # Makes sense, thanks!
 
     # %%
     def _adjust_node_elevation(self):  
@@ -469,15 +475,18 @@ class NetworkSedimentTransporter(Component):
                                                         filter_array = find_now
         )
 
-        findactive = (
-            self._parcels["active_layer"][:,self._time_idx] == 1
-        )  # filter for only parcels in active layer
-        
+        # ORIGINAL, i suspect a glitch
+        findactive = (self._parcels["active_layer"] == 1) 
+        findactive[:,0:-1]= False
+
         vol_act = self._parcels.calc_aggregate_value(
             np.sum, "volume", at="link", filter_array=findactive
         )
-
-        findactivesand = np.logical_and(Darray < 0.002, Activearray == 1)
+        
+        findactivesand = np.full(np.shape(findactive),False) 
+        #^ create boolean array of Falses the same shape as parcels
+        findactivesand[:,-1] = np.logical_and(Darray < 0.002, 
+                                        Activearray == 1)
 
         if np.any(findactivesand):
             vol_act_sand = self._parcels.calc_aggregate_value(
@@ -494,11 +503,12 @@ class NetworkSedimentTransporter(Component):
         for i in range(self._grid.number_of_links):
 
             active_here = np.where(np.logical_and(Linkarray == i, Activearray == 1))[0]
-
             d_act_i = Darray[active_here]
             vol_act_i = Volarray[active_here]
-            d_mean_active[Linkarray == i] = np.sum(d_act_i * vol_act_i) / (vol_act[i])
-
+            vol_act_tot_i = np.sum(vol_act_i)
+            # ^ this behaves as expected. filterarray to create vol_tot above does not. 
+            d_mean_active[Linkarray == i] = np.sum(d_act_i * vol_act_i) / (vol_act_tot_i)
+            
             frac_sand_array[Linkarray == i] = frac_sand[i]
             vol_act_array[Linkarray == i] = vol_act[i]
             Sarray[Linkarray == i] = self._grid.at_link["channel_slope"][i]    
@@ -518,11 +528,17 @@ class NetworkSedimentTransporter(Component):
             * d_mean_active
             * (0.021 + 0.015 * np.exp(-20. * frac_sand_array))
         )
+
+#        print("d_mean_active = ", d_mean_active)        
+#        print("taursg = ", taursg)
+        
         frac_parcel = vol_act_array / Volarray
         b = 0.67 / (1 + np.exp(1.5 - Darray / d_mean_active))
         tau = rho * g * Harray * Sarray
         taur = taursg * (Darray / d_mean_active) ** b
+        
         tautaur = tau / taur
+        print("tau / taur = ", tautaur)
         tautaur_cplx = tautaur.astype(np.complex128)
         # ^ work around needed b/c np fails with non-integer powers of negative numbers      
         W = 0.002 * np.power(tautaur_cplx.real, 7.5)
@@ -585,14 +601,15 @@ class NetworkSedimentTransporter(Component):
             while running_travel_time_in_dt[p] <= dt:
                 # determine downstream link
                 current_link_of_parcel = self._parcels["element_id"][p,self._time_idx].values
-                print("current_link_of_parcels",current_link_of_parcel)
+
                 
                 downstream_link_id = self.fd.link_to_flow_receiving_node[
                     self.fd.downstream_node_at_link()[current_link_of_parcel]
                 ]
                 
-                print("downstream_link_id",downstream_link_id)
                 if downstream_link_id == -1:  # parcel has exited the network
+                    #downstream_link_id = 'NaN'
+                    
                     # I think we should then remove this parcel from the parcel item collector
                     # if so, we manipulate the exiting parcel here, but may want to note something about its exit
                     # such as output volume and output time into a separate outlet array
@@ -630,7 +647,6 @@ class NetworkSedimentTransporter(Component):
 
                 # TRACK RUNNING TRAVEL DISTANCE HERE SIMILAR TO RUNNING TRAVEL TIME
             
-            print("current_link = ", current_link)
             time_in_link_before_dt = time_to_exit_current_link[p] - (
                 running_travel_time_in_dt[p] - dt
             )
@@ -644,20 +660,20 @@ class NetworkSedimentTransporter(Component):
             # USE RUNNING TRAVEL DISTANCE TO UPDATE D AND VOL DUE TO ABRASION HERE
 
             distance_traveled[p] = 0  # NEED TO DEFINE
-
-            vol = (self._parcels["volume"][p,self._time_idx]) * (
+            
+            #DANGER DANGER... abration_rate is now a diameter loss abration exponent
+            D = (self._parcels["D"][p,self._time_idx]) * (
                 np.exp(distance_traveled[p] * (-self._parcels["abrasion_rate"][p]))
             )
-
-            D = 2 * (vol * 3 / (4 * np.pi)) ** (1 / 3)
-            #^ Jon comment -- what is this? and why doesn't D depend on D?
+            #vol =  # DANGER DANGER... need to make total parcel volume as a function of change in grain size
+            
             
             # update parcel attributes
             self._parcels["location_in_link"][p,self._time_idx] = location_in_link[p]
             self._parcels["element_id"][p,self._time_idx] = current_link[p]
             self._parcels["active_layer"][p,self._time_idx] = 1  
             # ^ reset to 1 (active) to be recomputed/determined at next timestep
-            self._parcels["volume"][p,self._time_idx] = vol
+            # DANGER DANGER self._parcels["volume"][p,self._time_idx] = vol
             self._parcels["D"][p,self._time_idx] = D
 
     # %%

@@ -8,6 +8,7 @@ Created on Sun May 20 15:54:03 2018
 @authors: Jon Czuba, Allison Pfeiffer, Katy Barnhart
 """
 import numpy as np
+import matplotlib.pyplot as plt
 
 #from landlab.components import NetworkSedimentTransporter
 from landlab.components import FlowDirectorSteepest
@@ -20,15 +21,16 @@ from network_sediment_transporter import NetworkSedimentTransporter
 
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
 
-y_of_node = (0, 1, 2, 2, 3, 4, 4, 1.25)
-x_of_node = (0, 0, 1, -0.5, -1, 0.5, -1.5, -1)
+y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
+x_of_node = (0, 0, 100, -50, -100, 50, -150, -100)
 
 nodes_at_link = ((1, 0), (2, 1), (1, 7), (3, 1), (3, 4), (4, 5), (4, 6))
 
 grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
+plt.figure(0)
 graph.plot_graph(grid, at="node,link")
 
-grid.at_node["topographic__elevation"] = [0., 1., 3., 2., 3., 4., 4.1, 5.]
+grid.at_node["topographic__elevation"] = [0., .1, .3, .2, .3, .4, .41, .5]
 # ^ in order for the FlowDirector and FlowAccumulator to work properly with the network model grid
 # I had to change the last two elements from 4. and 2. to 4.1 and 5. in order to avoid slopes <=0
 
@@ -68,7 +70,7 @@ bed_porosity = 0.3  # porosity of the bed material
 # parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
 
 
-timesteps = 2
+timesteps = 10
 
 element_id = np.array(
     [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 1], dtype=int
@@ -134,14 +136,14 @@ parcels = DataRecord(grid,
 
 # %% Flow parameters (this will happen in the sq.run_one_step and sc.run_one_step)
 
+# Made up hydraulic geometry
 
-
-Qgage = 200.  # for Methow, this is ~4*mean flow
+Qgage = 2000.  # 
 dt = 60 * 60 * 24
 # (seconds) daily timestep
 Bgage = 30.906 * Qgage ** 0.1215
 # (m)
-Hgage = 0.2703 * Qgage ** 0.3447
+Hgage = 1.703 * Qgage ** 0.3447
 # (m)
 Agage = 4.5895e+9
 # (m2)
@@ -203,3 +205,20 @@ for t in range(0,(timesteps*dt),dt):
     # Run our component
    nst.run_one_step(dt, [t])
    print ('timestep ', [t], 'completed!')
+
+# %% A few plot outputs, just to get started. 
+   
+plt.figure(1)
+plt.plot(parcels.time_coordinates, parcels['location_in_link'].values[6,:],'.')
+plt.plot(parcels.time_coordinates, parcels['location_in_link'].values[5,:],'.')
+plt.title("Tracking link location for a single parcel")
+plt.xlabel('time')
+plt.ylabel('location in link')
+
+
+plt.figure(2)
+plt.plot(parcels.time_coordinates, np.sum(parcels['volume'].values, axis = 0),'.')
+plt.title("Silly example: total volume, all parcels through time")
+plt.xlabel('time')
+plt.ylabel('total volume of parcels')
+
