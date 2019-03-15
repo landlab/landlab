@@ -126,9 +126,6 @@ from __future__ import print_function
 import numpy as np
 import pylab as plt
 
-# X from _heapq import heappush
-# X from _heapq import heappop
-# X from _heapq import heapify
 import landlab
 
 # X _USE_CYTHON = False
@@ -323,6 +320,35 @@ class CAPlotter(object):
         Reference to a CA model
     cmap : Matplotlib colormap, optional
         Colormap to be used in plotting
+        
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid, HexModelGrid
+    >>> from landlab.ca.celllab_cts import Transition
+    >>> from landlab.ca.raster_cts import RasterCTS
+    >>> import numpy as np
+    >>> grid = RasterModelGrid((3, 5))
+    >>> nsd = {0 : 'zero', 1 : 'one'}
+    >>> trn_list = []
+    >>> trn_list.append(Transition((0, 1, 0), (1, 1, 0), 1.0))
+    >>> ins = np.arange(15) % 2
+    >>> ca = RasterCTS(grid, nsd, trn_list, ins)
+    >>> cap = CAPlotter(ca)
+    >>> cap.gridtype
+    'rast'
+    >>> cap._cmap.name
+    'jet'
+    
+    >>> from landlab.ca.hex_cts import HexCTS
+    >>> import matplotlib
+    >>> grid = HexModelGrid(3, 3)
+    >>> ins = np.zeros(grid.number_of_nodes, dtype=int)
+    >>> ca = HexCTS(grid, nsd, trn_list, ins)
+    >>> cap = CAPlotter(ca, cmap=matplotlib.cm.pink)
+    >>> cap.gridtype
+    'hex'
+    >>> cap._cmap.name
+    'pink'
     """
 
     def __init__(self, ca, cmap=None, **kwds):
