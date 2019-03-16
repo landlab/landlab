@@ -15,7 +15,7 @@ from numpy.testing import assert_array_equal
 from landlab import HexModelGrid, RasterModelGrid
 
 # For dev
-from landlab.ca.celllab_cts import Transition  # X, Event
+from landlab.ca.celllab_cts import Transition, CellLabCTSModel
 from landlab.ca.celllab_cts import _RUN_NEW
 from landlab.ca.hex_cts import HexCTS
 from landlab.ca.oriented_hex_cts import OrientedHexCTS
@@ -337,6 +337,19 @@ def test_setup_transition_data():
     )
     assert_array_equal(cts.trn_to, [2, 1, 6, 7])
     assert_array_equal(cts.trn_rate, [1., 2., 3., 4.])
+
+
+def test_transitions_as_ids():
+    """Test passing from-state and to-state IDs instead of tuples """
+    
+    mg = HexModelGrid(3, 2, 1.0, orientation="vertical", reorient_links=True)
+    nsd = {0: "zero", 1: "one"}
+    xnlist = []
+    xnlist.append(Transition(2, 3, 1.0, "transitioning"))
+    nsg = mg.add_zeros("node", "node_state_grid")
+    cts = HexCTS(mg, nsd, xnlist, nsg)
+    assert cts.num_link_states == 4, 'wrong number of transitions'
+
 
 
 if __name__ == "__main__":
