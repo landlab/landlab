@@ -128,20 +128,12 @@ import pylab as plt
 
 import landlab
 
-# X _USE_CYTHON = False
-
 _CYTEST = True
-
-_RUN_NEW = True
 
 _TESTING = True
 
 if _TESTING:
     from .cfuncs import PriorityQueue
-
-# Xif _USE_CYTHON:
-#    from .cfuncs import (update_link_states_and_transitions,
-#                         run_cts, run_cts_lean, PriorityQueue)
 
 # TODO:
 #   - REMOVE TEST CLAUSE (MAKE IT NORMAL BEHAVIOR)
@@ -572,22 +564,7 @@ class CellLabCTSModel(object):
         self.setup_transition_data(transition_list_as_ID)
 
         # Put the various transitions on the event queue
-        if _CYTEST:
-            push_transitions_to_event_queue_new(
-                len(self.grid.active_links),
-                self.grid.active_links,
-                self.n_trn,
-                self.link_state,
-                self.trn_id,
-                self.trn_rate,
-                self.next_update,
-                self.next_trn_id,
-                self.priority_queue,
-            )
-        elif _RUN_NEW:
-            self.push_transitions_to_event_queue_new()
-        else:
-            self.push_transitions_to_event_queue()
+        self.push_transitions_to_event_queue_new()
 
         # In order to keep track of cell "properties", we create an array of
         # indices that refer to locations in the caller's code where properties
@@ -1808,8 +1785,6 @@ class CellLabCTSModel(object):
         #               self.num_node_states,
         #               self.num_node_states_sq,
         #               self.bnd_lnk)
-
-        #         if _RUN_NEW:
 
         self.current_time = run_cts_new(
             run_to,

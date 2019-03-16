@@ -7,16 +7,13 @@ Created on Thu Jul  9 08:20:06 2015
 @author: gtucker
 """
 
-from heapq import heappop, heappush
-
 import numpy as np
 from numpy.testing import assert_array_equal
 
 from landlab import HexModelGrid, RasterModelGrid
 
 # For dev
-from landlab.ca.celllab_cts import Transition, CellLabCTSModel
-from landlab.ca.celllab_cts import _RUN_NEW
+from landlab.ca.celllab_cts import Transition
 from landlab.ca.hex_cts import HexCTS
 from landlab.ca.oriented_hex_cts import OrientedHexCTS
 from landlab.ca.oriented_raster_cts import OrientedRasterCTS
@@ -87,51 +84,27 @@ def test_raster_cts():
     assert ca.n_xn[2] == 1, "error in n_xn"
     assert ca.node_pair[1] == (0, 1, 0), "error in cell_pair list"
 
-    if _RUN_NEW:
-        assert len(ca.priority_queue._queue) == 1, "event queue has wrong size"
-        assert ca.next_trn_id.size == 24, "wrong size next_trn_id"
-        assert ca.trn_id.shape == (4, 1), "wrong size for xn_to"
-        assert ca.trn_id[2][0] == 0, "wrong value in xn_to"
-        assert ca.trn_to[0] == 1, "wrong trn_to state"
-        assert ca.trn_rate[0] == 0.1, "wrong trn rate"
-        assert ca.trn_propswap[0] == 1, "wrong trn propswap"
-        assert ca.trn_prop_update_fn == callback_function, "wrong prop upd"
-    else:
-        assert len(ca.event_queue) == 1, "event queue has wrong size"
-        assert ca.xn_to.size == 4, "wrong size for xn_to"
-        assert ca.xn_to.shape == (4, 1), "wrong size for xn_to"
-        assert ca.xn_to[2][0] == 1, "wrong value in xn_to"
-        assert ca.xn_rate[2][0] == 0.1, "error in transition rate array"
+    assert len(ca.priority_queue._queue) == 1, "event queue has wrong size"
+    assert ca.next_trn_id.size == 24, "wrong size next_trn_id"
+    assert ca.trn_id.shape == (4, 1), "wrong size for xn_to"
+    assert ca.trn_id[2][0] == 0, "wrong value in xn_to"
+    assert ca.trn_to[0] == 1, "wrong trn_to state"
+    assert ca.trn_rate[0] == 0.1, "wrong trn rate"
+    assert ca.trn_propswap[0] == 1, "wrong trn propswap"
+    assert ca.trn_prop_update_fn == callback_function, "wrong prop upd"
 
     # Manipulate the data in the event queue for testing:
 
-    if _RUN_NEW:
-        # pop the scheduled event off the queue
-        (event_time, index, event_link) = ca.priority_queue.pop()
-        assert (
-            ca.priority_queue._queue == []
-        ), "event queue should now be empty but is not"
+    # pop the scheduled event off the queue
+    (event_time, index, event_link) = ca.priority_queue.pop()
+    assert (
+        ca.priority_queue._queue == []
+    ), "event queue should now be empty but is not"
 
-        # engineer an event
-        ca.priority_queue.push(8, 1.0)
-        ca.next_update[8] = 1.0
-        ca.next_trn_id[8] = 0
-
-    else:
-        # pop the scheduled event off the queue
-        ev = heappop(ca.event_queue)
-        assert ca.event_queue == [], "event queue should now be empty but is not"
-
-        # engineer an event
-        ev.time = 1.0
-        ev.link = 8
-        ev.xn_to = 1
-        ev.propswap = True
-        ev.prop_update_fn = callback_function
-        ca.next_update[8] = 1.0
-
-        # push it onto the event queue
-        heappush(ca.event_queue, ev)
+    # engineer an event
+    ca.priority_queue.push(8, 1.0)
+    ca.next_update[8] = 1.0
+    ca.next_trn_id[8] = 0
 
     # run the CA
     ca.run(2.0)
