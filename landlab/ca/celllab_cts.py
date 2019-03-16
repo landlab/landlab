@@ -462,15 +462,8 @@ class CellLabCTSModel(object):
         seed : int, optional
             Seed for random number generation.
         """
-        # Are we calling this from a subclass __init__? If so, then the
-        # variable self.number_of_orientations should already be defined.
-        try:
-            self.number_of_orientations == 1
-        except AttributeError:
-            # if self.number_of_orientations not already defined
-            self.number_of_orientations = 1
 
-        # Keep a copy of the model grid; remember how many active links in it
+        # Keep a copy of the model grid
         self.grid = model_grid
 
         # Initialize random number generation
@@ -545,8 +538,6 @@ class CellLabCTSModel(object):
             last_type = this_type
 
         # Create priority queue for events and next_update array for links
-        # X self.event_queue = []
-        # X heapify(self.event_queue)
         self.next_update = self.grid.add_zeros("link", "next_update_time")
         self.priority_queue = PriorityQueue()
         self.next_trn_id = -np.ones(self.grid.number_of_links, dtype=np.int)
