@@ -130,18 +130,10 @@ import landlab
 
 _USE_CYTHON_FNS = True
 
-
-# TODO:
-#   - REMOVE TEST CLAUSE (MAKE IT NORMAL BEHAVIOR)
-#   - REMOVE OBSOLUTE, UNUSED METHODS
-#   - RENAME "_new" METHODS (REMOVE THE "_new")
-#   - UPDATE CALLING SYNTAX IN CELLLAB_CTS AND FRIENDS
 if _USE_CYTHON_FNS:
     from landlab.ca.cfuncs import (
         PriorityQueue,
-        update_node_states,
         push_transitions_to_event_queue,
-        do_transition_new,
         run_cts_new,
         get_next_event_new,
     )
@@ -563,7 +555,6 @@ class CellLabCTSModel(object):
                     self.node_pair.append((tail_state, head_state, orientation))
                     k += 1
 
-
     def setup_array_of_orientation_codes(self):
         """Create array of active link orientation codes.
 
@@ -806,41 +797,6 @@ class CellLabCTSModel(object):
 
                 else:
                     self.next_update[i] = _NEVER
-
-    # @profile
-    def update_node_states(self, tail_node, head_node, new_link_state):
-        """Update the states of the two nodes in the given link.
-
-        Parameters
-        ----------
-        tail_node : int
-            ID of the tail node of the link (cell pair) in question
-        head_node : int
-            ID of the head node of the link (cell pair) in question
-        new_link_state : int
-            Link state code for the new cell pair
-
-        Returns
-        -------
-        (bool, bool)
-            Flags indicating whether the tail node and head node, respectively,
-            have changed state
-        """
-        # Remember the previous state of each node so we can detect whether the
-        # state has changed
-        old_tail_node_state = self.node_state[tail_node]
-        old_head_node_state = self.node_state[head_node]
-
-        # Change to the new states
-        if self.grid.status_at_node[tail_node] == _CORE:
-            self.node_state[tail_node] = self.node_pair[new_link_state][0]
-        if self.grid.status_at_node[head_node] == _CORE:
-            self.node_state[head_node] = self.node_pair[new_link_state][1]
-
-        return (
-            self.node_state[tail_node] != old_tail_node_state,
-            self.node_state[head_node] != old_head_node_state,
-        )
 
 
     def update_link_state_new(self, link, new_link_state, current_time):
