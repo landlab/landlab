@@ -128,7 +128,7 @@ import pylab as plt
 
 import landlab
 
-_CYTEST = True
+_USE_CYTHON_FNS = True
 
 _TESTING = True
 
@@ -140,7 +140,7 @@ if _TESTING:
 #   - REMOVE OBSOLUTE, UNUSED METHODS
 #   - RENAME "_new" METHODS (REMOVE THE "_new")
 #   - UPDATE CALLING SYNTAX IN CELLLAB_CTS AND FRIENDS
-if _CYTEST:
+if _USE_CYTHON_FNS:
     from landlab.ca.cfuncs import (
         update_node_states,
         push_transitions_to_event_queue_new,
@@ -564,7 +564,7 @@ class CellLabCTSModel(object):
         self.setup_transition_data(transition_list_as_ID)
 
         # Put the various transitions on the event queue
-        self.push_transitions_to_event_queue_new()
+        self.push_transitions_to_event_queue()
 
         # In order to keep track of cell "properties", we create an array of
         # indices that refer to locations in the caller's code where properties
@@ -812,7 +812,7 @@ class CellLabCTSModel(object):
                     change the link state to be correct
                     schedule an event
         """
-        if _CYTEST:
+        if _USE_CYTHON_FNS:
             update_link_states_and_transitions_new(
                 self.grid.active_links,
                 self.node_state,
@@ -868,7 +868,7 @@ class CellLabCTSModel(object):
                     change the link state to be correct
                     schedule an event
         """
-        if _CYTEST:
+        if _USE_CYTHON_FNS:
             update_link_states_and_transitions_new(
                 self.grid.active_links,
                 self.node_state,
@@ -1086,7 +1086,7 @@ class CellLabCTSModel(object):
     #                print('    next_time:', e.time, 'link:',
     #                      e.link, 'xn_to:', e.xn_to)
 
-    def push_transitions_to_event_queue_new(self):
+    def push_transitions_to_event_queue(self):
         """
         Initializes the event queue by creating transition events for each
         cell pair that has one or more potential transitions and pushing these
@@ -1123,25 +1123,32 @@ class CellLabCTSModel(object):
         >>> cts.next_trn_id[cts.grid.active_links]
         array([-1,  2, -1,  1,  0,  1,  0,  2, -1,  3])
         """
-        if False and _DEBUG:
-            print(
-                (
-                    "push_transitions_to_event_queue_new():",
-                    self.num_link_states,
-                    self.n_xn,
-                )
-            )
+        if _USE_CYTHON_FNS:
+            push_transitions_to_event_queue_new(
+                        self.grid.number_of_active_links,
+                        self.grid.active_links,
+                        self.n_trn,
+                        self.link_state,
+                        self.trn_id,
+                        self.trn_rate,
+                        self.next_update,
+                        self.next_trn_id,
+                        self.priority_queue
+                    )
+        else:
+            for i in self.grid.active_links:
+    
+                if self.n_trn[self.link_state[i]] > 0:
+                    (ev_time, trn_id) = self.get_next_event_new(
+                                                            i, 
+                                                            self.link_state[i],
+                                                            0.0)
+                    self.priority_queue.push(i, ev_time)
+                    self.next_update[i] = ev_time
+                    self.next_trn_id[i] = trn_id
 
-        for i in self.grid.active_links:
-
-            if self.n_xn[self.link_state[i]] > 0:
-                (ev_time, trn_id) = self.get_next_event_new(i, self.link_state[i], 0.0)
-                self.priority_queue.push(i, ev_time)
-                self.next_update[i] = ev_time
-                self.next_trn_id[i] = trn_id
-
-            else:
-                self.next_update[i] = _NEVER
+                else:
+                    self.next_update[i] = _NEVER
 
     # @profile
     def update_node_states(self, tail_node, head_node, new_link_state):
@@ -1250,7 +1257,7 @@ class CellLabCTSModel(object):
 
         self.link_state[link] = new_link_state
         if self.n_trn[new_link_state] > 0:
-            if _CYTEST:
+            if _USE_CYTHON_FNS:
                 (event_time, trn_id) = get_next_event_new(
                     link,
                     new_link_state,
@@ -1545,7 +1552,7 @@ class CellLabCTSModel(object):
             head_node = self.grid.node_at_link_head[event_link]
             trn_id = self.next_trn_id[event_link]
             trn_to = self.trn_to[trn_id]
-            if _CYTEST:
+            if _USE_CYTHON_FNS:
                 old_tail_node_state = self.node_state[tail_node]
                 old_head_node_state = self.node_state[head_node]
                 update_node_states(
@@ -1871,7 +1878,7 @@ class CellLabCTSModel(object):
                         self.trn_to[self.next_trn_id[ev_link]],
                     )
 
-                if _CYTEST:
+                if _USE_CYTHON_FNS:
                     do_transition_new(
                         ev_link,
                         ev_time,
