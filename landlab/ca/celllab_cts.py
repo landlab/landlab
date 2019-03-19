@@ -143,7 +143,7 @@ if _TESTING:
 if _USE_CYTHON_FNS:
     from landlab.ca.cfuncs import (
         update_node_states,
-        push_transitions_to_event_queue_new,
+        push_transitions_to_event_queue,
         do_transition_new,
         update_link_states_and_transitions_new,
         run_cts_new,
@@ -1043,48 +1043,6 @@ class CellLabCTSModel(object):
 
         return (next_time + current_time, trn_id)
 
-    # X    def push_transitions_to_event_queue(self):
-    #        """
-    #        Initializes the event queue by creating transition events for each
-    #        cell pair that has one or more potential transitions and pushing these
-    #        onto the queue. Also records scheduled transition times in the
-    #        self.next_update array.
-    #
-    #        Examples
-    #        --------
-    #        >>> from landlab import RasterModelGrid
-    #        >>> from landlab.ca.celllab_cts import Transition
-    #        >>> from landlab.ca.oriented_raster_cts import OrientedRasterCTS
-    #        >>> import numpy as np
-    #        >>> grid = RasterModelGrid((3, 5))
-    #        >>> nsd = {0 : 'zero', 1 : 'one'}
-    #        >>> trn_list = []
-    #        >>> trn_list.append(Transition((0, 1, 0), (1, 0, 0), 1.0))
-    #        >>> trn_list.append(Transition((1, 0, 0), (0, 1, 0), 2.0))
-    #        >>> trn_list.append(Transition((0, 1, 1), (1, 0, 1), 3.0))
-    #        >>> trn_list.append(Transition((0, 1, 1), (1, 1, 1), 4.0))
-    #        >>> ins = np.arange(15) % 2
-    #        >>> cts = OrientedRasterCTS(grid, nsd, trn_list, ins)
-    #        """
-    #        if False and _DEBUG:
-    #            print(('push_transitions_to_event_queue():',
-    #                   self.num_link_states, self.n_xn))
-    #
-    #        for i in self.grid.active_links:
-    #
-    #            if self.n_xn[self.link_state[i]] > 0:
-    #                event = self.get_next_event(i, self.link_state[i], 0.0)
-    #                heappush(self.event_queue, event)
-    #                self.next_update[i] = event.time
-    #
-    #            else:
-    #                self.next_update[i] = _NEVER
-    #
-    #        if False and _DEBUG:
-    #            print('  push_transitions_to_event_queue(): events in queue are now:')
-    #            for e in self.event_queue:
-    #                print('    next_time:', e.time, 'link:',
-    #                      e.link, 'xn_to:', e.xn_to)
 
     def push_transitions_to_event_queue(self):
         """
@@ -1124,7 +1082,7 @@ class CellLabCTSModel(object):
         array([-1,  2, -1,  1,  0,  1,  0,  2, -1,  3])
         """
         if _USE_CYTHON_FNS:
-            push_transitions_to_event_queue_new(
+            push_transitions_to_event_queue(
                         self.grid.number_of_active_links,
                         self.grid.active_links,
                         self.n_trn,
@@ -1705,7 +1663,7 @@ class CellLabCTSModel(object):
         """
         self.set_node_state_grid(new_node_state_array)
         self.assign_link_states_from_node_types()
-        self.push_transitions_to_event_queue_new()
+        self.push_transitions_to_event_queue()
 
     # @profile
     def run(
