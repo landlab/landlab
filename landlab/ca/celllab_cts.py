@@ -640,12 +640,6 @@ class CellLabCTSModel(object):
                     self.node_pair.append((tail_state, head_state, orientation))
                     k += 1
 
-        if False and _DEBUG:
-            print()
-            print("create_link_state_dict_and_pair_list(): dict is:")
-            print((self.link_state_dict))
-            print("  and the pair list is:")
-            print((self.node_pair))
 
     def setup_array_of_orientation_codes(self):
         """Create array of active link orientation codes.
@@ -690,10 +684,6 @@ class CellLabCTSModel(object):
             )
             self.link_state[i] = self.link_state_dict[node_pair]
 
-        if False and _DEBUG:
-            print()
-            print("assign_link_states_from_node_types(): the link state array is:")
-            print((self.link_state))
 
     def setup_transition_data(self, xn_list):
         """Create transition data arrays."""
@@ -755,12 +745,6 @@ class CellLabCTSModel(object):
                 self._use_propswap_or_callback = True
             self.n_xn[from_state] += 1
 
-        if False and _DEBUG:
-            print()
-            print("setup_transition_data():")
-            print(("  n_xn", self.n_xn))
-            print(("  to:", self.xn_to))
-            print(("  rate:", self.xn_rate))
 
     def current_link_state(self, link_id):
         """Get the current state of a link.
@@ -1622,7 +1606,7 @@ class CellLabCTSModel(object):
                         self, tail_node, head_node, event_time
                     )
 
-            if False and _DEBUG:
+            if _DEBUG:
                 n = self.grid.number_of_nodes
                 for r in range(self.grid.number_of_node_rows):
                     for c in range(self.grid.number_of_node_columns):
