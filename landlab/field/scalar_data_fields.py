@@ -161,10 +161,13 @@ class ScalarDataFields(dict):
 
     @size.setter
     def size(self, size):
-        if self._size is None:
+        try:
+            if self._size is None:
+                self._size = size
+            else:
+                raise ValueError("size has already been set")
+        except:
             self._size = size
-        else:
-            raise ValueError("size has already been set")
 
     def empty(self, **kwds):
         """Uninitialized array whose size is that of the field.
@@ -476,13 +479,22 @@ class ScalarDataFields(dict):
 
         LLCATS: FIELDCR
         """
-        self._units[name] = units
+        try:
+            self._units[name] = units
+        except:
+            self._units = {}
+            self._units[name] = units
 
     def __setitem__(self, name, value_array):
         """Store a data field by name."""
         value_array = np.asarray(value_array)
+    
+        print('Name = ' + name)
 
-        if self.size is None:
+        try:
+            if self.size is None:
+                self.size = value_array.size
+        except:
             self.size = value_array.size
 
         if need_to_reshape_array(value_array, self.size):
