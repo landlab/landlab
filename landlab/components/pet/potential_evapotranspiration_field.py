@@ -260,8 +260,7 @@ class PotentialEvapotranspiration(Component):
 
     def update(self, current_time=None, const_potential_evapotranspiration=12.,
                Tmin=None, Tmax=None, Tavg=None, obs_radiation=None,
-               relative_humidity=None, wind_speed=None,
-               precipitation=None, **kwds):
+               relative_humidity=None, wind_speed=None, **kwds):
         """Update fields with current conditions.
 
         Parameters
@@ -285,8 +284,6 @@ class PotentialEvapotranspiration(Component):
             Observed relative humidity (%)
         wind_speed: float, required for method(s): PenmanMonteith
             Observed wind speed (m/s)
-        precipitation: float, required for method(s): PenmanMonteith
-            Observed daily precipitation (mm/day)
         """
         if self._method in ['PriestleyTaylor', 'MeasuredRadiationPT',
                             'PenmanMonteith']:
@@ -319,8 +316,8 @@ class PotentialEvapotranspiration(Component):
                      np.cos((2 * np.pi) * (self._J - self._LT - self._ND / 2) /
                             self._ND)), 0.0))
         elif self._method == 'PenmanMonteith':
-            self._PET_value = self._PenmanMonteith(Tavg, precipitation,
-                                                   obs_radiation, wind_speed,
+            self._PET_value = self._PenmanMonteith(Tavg, obs_radiation,
+                                                   wind_speed,
                                                    relative_humidity)
             if math.isnan(self._PET_value):
                 self._PET_value = 0.
@@ -420,7 +417,7 @@ class PotentialEvapotranspiration(Component):
         return self._ETp
 
 
-    def _PenmanMonteith(self, Tavg, precip_daily, radiation_sw,
+    def _PenmanMonteith(self, Tavg, radiation_sw,
                         wind_speed, relative_humidity):
         zm = self._zm
         zh = self._zh
