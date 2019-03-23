@@ -129,10 +129,10 @@ import pylab as plt
 import landlab
 
 from landlab.ca.cfuncs import (
-        PriorityQueue,
-        push_transitions_to_event_queue,
-        run_cts_new,
-        get_next_event_new,
+    PriorityQueue,
+    push_transitions_to_event_queue,
+    run_cts_new,
+    get_next_event_new
 )
 
 _NEVER = 1e50
@@ -692,16 +692,16 @@ class CellLabCTSModel(object):
         array([-1,  2, -1,  1,  0,  1,  0,  2, -1,  3])
         """
         push_transitions_to_event_queue(
-                        self.grid.number_of_active_links,
-                        self.grid.active_links,
-                        self.n_trn,
-                        self.link_state,
-                        self.trn_id,
-                        self.trn_rate,
-                        self.next_update,
-                        self.next_trn_id,
-                        self.priority_queue
-                    )
+            self.grid.number_of_active_links,
+            self.grid.active_links,
+            self.n_trn,
+            self.link_state,
+            self.trn_id,
+            self.trn_rate,
+            self.next_update,
+            self.next_trn_id,
+            self.priority_queue
+        )
 
     def update_link_state_new(self, link, new_link_state, current_time):
         """
@@ -732,13 +732,13 @@ class CellLabCTSModel(object):
         self.link_state[link] = new_link_state
         if self.n_trn[new_link_state] > 0:
             (event_time, trn_id) = get_next_event_new(
-                    link,
-                    new_link_state,
-                    current_time,
-                    self.n_trn,
-                    self.trn_id,
-                    self.trn_rate,
-                )
+                link,
+                new_link_state,
+                current_time,
+                self.n_trn,
+                self.trn_id,
+                self.trn_rate,
+            )
             self.priority_queue.push(link, event_time)
             self.next_update[link] = event_time
             self.next_trn_id[link] = trn_id
@@ -759,7 +759,7 @@ class CellLabCTSModel(object):
         *new_node_state_array* is the updated list of node states, which must
         still all be compatible with the state list originally supplied to
         this component.
-        
+
         Examples
         --------
         >>> from landlab import RasterModelGrid
