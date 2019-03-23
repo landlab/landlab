@@ -772,18 +772,18 @@ class CellLabCTSModel(object):
         >>> trn_list.append(Transition((0, 1, 0), (1, 1, 0), 1.0))
         >>> ins = np.zeros(15, dtype=np.int)
         >>> ca = RasterCTS(grid, nsd, trn_list, ins)
-        >>> ca.node_state[6:9]
-        array([0, 0, 0])
-        >>> ca.link_state[9:13]
-        array([0, 0, 0, 0])
+        >>> list(ca.node_state[6:9])
+        [0, 0, 0]
+        >>> list(ca.link_state[9:13])
+        [0, 0, 0, 0]
         >>> len(ca.priority_queue._queue)  # there are no transitions
         0
         >>> nns = np.arange(15) % 2        # make a new node-state grid...
         >>> ca.update_component_data(nns)  # ...and assign it
-        >>> ca.node_state[6:9]
-        array([0, 1, 0])
-        >>> ca.link_state[9:13]
-        array([2, 1, 2, 1])
+        >>> list(ca.node_state[6:9])
+        [0, 1, 0]
+        >>> list(ca.link_state[9:13])
+        [2, 1, 2, 1]
         >>> len(ca.priority_queue._queue)  # now there are 5 transitions
         5
         """
