@@ -128,15 +128,12 @@ import pylab as plt
 
 import landlab
 
-_USE_CYTHON_FNS = True
-
-if _USE_CYTHON_FNS:
-    from landlab.ca.cfuncs import (
+from landlab.ca.cfuncs import (
         PriorityQueue,
         push_transitions_to_event_queue,
         run_cts_new,
         get_next_event_new,
-    )
+)
 
 _NEVER = 1e50
 
@@ -598,7 +595,6 @@ class CellLabCTSModel(object):
             )
             self.link_state[i] = self.link_state_dict[node_pair]
 
-
     def setup_transition_data(self, xn_list):
         """Create transition data arrays."""
 
@@ -659,81 +655,6 @@ class CellLabCTSModel(object):
                 self._use_propswap_or_callback = True
             self.n_xn[from_state] += 1
 
-
-    def get_next_event_new(self, link, current_state, current_time):
-        """Get the next event for a link.
-
-        Returns the next event for link with ID "link", which is in state
-        "current state".
-
-        Parameters
-        ----------
-        link : int
-            ID of the link
-        current_state : int
-            Current state code for the link
-        current_time : float
-            Current time in simulation (i.e., time of event just processed)
-
-        Returns
-        -------
-        Event object
-            The returned Event object contains the time, link ID, and type of
-            the next transition event at this link.
-
-        Notes
-        -----
-        If there is only one potential transition out of the current state, a
-        time for the transition is selected at random from an exponential
-        distribution with rate parameter appropriate for this transition.
-
-        If there are more than one potential transitions, a transition time is
-        chosen for each, and the smallest of these applied.
-
-        Assumes that there is at least one potential transition from the
-        current state.
-        """
-        assert (
-            self.n_xn[current_state] > 0
-        ), "must have at least one potential transition"
-
-        # Find next event time for each potential transition: new version
-        if self.n_trn[current_state] == 1:
-            trn_id = self.trn_id[current_state, 0]
-            next_time = np.random.exponential(1.0 / self.trn_rate[trn_id])
-            if _DEBUG:
-                print("rand (" + str(self.trn_rate[trn_id]) + ": " + str(next_time))
-        else:
-            next_time = _NEVER
-            trn_id = -1
-            for i in range(self.n_trn[current_state]):
-                this_next = np.random.exponential(
-                    1.0 / self.trn_rate[self.trn_id[current_state][i]]
-                )
-                if _DEBUG:
-                    print(
-                        "rand2 ("
-                        + str(self.trn_rate[self.trn_id[current_state][i]])
-                        + ": "
-                        + str(this_next)
-                    )
-                if this_next < next_time:
-                    if _DEBUG:
-                        print(" using it")
-                    next_time = this_next
-                    trn_id = self.trn_id[current_state, i]
-
-        if _DEBUG:
-            print("get_next_event_new():")
-            print(("  current state:", current_state))
-            print(("  node pair:", self.node_pair[current_state]))
-            print(("  next_time:", next_time))
-            print(("  link:", link))
-            print(("  trn_id:", trn_id))
-
-        return (next_time + current_time, trn_id)
-
-
     def push_transitions_to_event_queue(self):
         """
         Initializes the event queue by creating transition events for each
@@ -771,8 +692,7 @@ class CellLabCTSModel(object):
         >>> cts.next_trn_id[cts.grid.active_links]
         array([-1,  2, -1,  1,  0,  1,  0,  2, -1,  3])
         """
-        if _USE_CYTHON_FNS:
-            push_transitions_to_event_queue(
+        push_transitions_to_event_queue(
                         self.grid.number_of_active_links,
                         self.grid.active_links,
                         self.n_trn,
@@ -783,21 +703,6 @@ class CellLabCTSModel(object):
                         self.next_trn_id,
                         self.priority_queue
                     )
-        else:
-            for i in self.grid.active_links:
-    
-                if self.n_trn[self.link_state[i]] > 0:
-                    (ev_time, trn_id) = self.get_next_event_new(
-                                                            i, 
-                                                            self.link_state[i],
-                                                            0.0)
-                    self.priority_queue.push(i, ev_time)
-                    self.next_update[i] = ev_time
-                    self.next_trn_id[i] = trn_id
-
-                else:
-                    self.next_update[i] = _NEVER
-
 
     def update_link_state_new(self, link, new_link_state, current_time):
         """
@@ -814,15 +719,6 @@ class CellLabCTSModel(object):
         current_time : float
             Current time in simulation
         """
-        if _DEBUG:
-            print(
-                "update_link_state_new() link "
-                + str(link)
-                + " to state "
-                + str(new_link_state)
-                + " at time "
-                + str(current_time)
-            )
 
         # If the link connects to a boundary, we might have a different state
         # than the one we planned
@@ -836,8 +732,7 @@ class CellLabCTSModel(object):
 
         self.link_state[link] = new_link_state
         if self.n_trn[new_link_state] > 0:
-            if _USE_CYTHON_FNS:
-                (event_time, trn_id) = get_next_event_new(
+            (event_time, trn_id) = get_next_event_new(
                     link,
                     new_link_state,
                     current_time,
@@ -845,26 +740,12 @@ class CellLabCTSModel(object):
                     self.trn_id,
                     self.trn_rate,
                 )
-            else:
-                (event_time, trn_id) = self.get_next_event_new(
-                    link, new_link_state, current_time
-                )
             self.priority_queue.push(link, event_time)
-            if _DEBUG:
-                print(
-                    "Pushed event at "
-                    + str(link)
-                    + " for time "
-                    + str(event_time)
-                    + " id "
-                    + str(trn_id)
-                )
             self.next_update[link] = event_time
             self.next_trn_id[link] = trn_id
         else:
             self.next_update[link] = _NEVER
             self.next_trn_id[link] = -1
-
 
     def update_component_data(self, new_node_state_array):
         """Update all component data.
@@ -950,7 +831,6 @@ class CellLabCTSModel(object):
             plot_each_transition,
             plotter,
         )
-
 
     def transition_info_as_string(self, event):
         """Returns info about a particular event as a string, for debug."""
