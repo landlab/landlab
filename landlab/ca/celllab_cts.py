@@ -759,6 +759,33 @@ class CellLabCTSModel(object):
         *new_node_state_array* is the updated list of node states, which must
         still all be compatible with the state list originally supplied to
         this component.
+        
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.ca.celllab_cts import Transition
+        >>> from landlab.ca.raster_cts import RasterCTS
+        >>> import numpy as np
+        >>> grid = RasterModelGrid((3, 5))
+        >>> nsd = {0 : 'zero', 1 : 'one'}
+        >>> trn_list = []
+        >>> trn_list.append(Transition((0, 1, 0), (1, 1, 0), 1.0))
+        >>> ins = np.zeros(15, dtype=np.int)
+        >>> ca = RasterCTS(grid, nsd, trn_list, ins)
+        >>> ca.node_state[6:9]
+        array([0, 0, 0])
+        >>> ca.link_state[9:13]
+        array([0, 0, 0, 0])
+        >>> len(ca.priority_queue._queue)  # there are no transitions
+        0
+        >>> nns = np.arange(15) % 2        # make a new node-state grid...
+        >>> ca.update_component_data(nns)  # ...and assign it
+        >>> ca.node_state[6:9]
+        array([0, 1, 0])
+        >>> ca.link_state[9:13]
+        array([2, 1, 2, 1])
+        >>> len(ca.priority_queue._queue)  # now there are 5 transitions
+        5
         """
         self.set_node_state_grid(new_node_state_array)
         self.assign_link_states_from_node_types()
