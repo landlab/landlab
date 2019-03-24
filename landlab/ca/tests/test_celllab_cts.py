@@ -334,6 +334,9 @@ def test_handle_grid_mismatch():
     assert_raises(TypeError, RasterCTS, mg, nsd, xnlist, nsg)
     assert_raises(TypeError, OrientedRasterCTS, mg, nsd, xnlist, nsg)
 
+    mg = RasterModelGrid((3, 3))
+    assert_raises(TypeError, HexCTS, mg, nsd, xnlist, nsg)
+
 
 def transition_info_as_string(self, event):
     """Returns info about a particular event as a string, for debug."""
