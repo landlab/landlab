@@ -69,7 +69,7 @@ by the tuples of (tail-node state, head-node state, orientation) as follows::
 
 Main data structures
 --------------------
-node_state : 1d array (x number of nodes in grid)
+node_state : 1d array of int (x number of nodes in grid)
     Node-based grid of node-state codes. This is the grid of cell (sic) states.
 
 link_state_dict : dictionary
@@ -83,39 +83,35 @@ node_pair : list (x number of possible link states)
     you to look up the node states and orientation corresponding to a
     particular link-state ID.
 
-priority_queue : heap containing event records
+priority_queue : PriorityQueue object containing event records
     Queue containing all future transition events, sorted by time of occurrence
     (from soonest to latest).
 
-next_update : 1d array (x number of active links)
+next_update : 1d array (x number of links)
     Time (in the future) at which the link will undergo its next transition.
     You might notice that the update time for every scheduled transition is
-    also stored in each Event object in the event queue. Why store it twice?
+    also stored with each event in the event queue. Why store it twice?
     Because a scheduled event might be invalidated after the event has been
     scheduled (because another transition has changed one of a link's two
     nodes, for example). The way to tell whether a scheduled event is still
     valid is to compare its time with the corresponding transition time in the
     *next_update* array. If they are different, the event is discarded.
 
-link_orientation : 1d array of ints (x number of active links)
+link_orientation : 1d array of int8 (x number of links)
     Orientation code for each link.
 
-link_state : 1d array of ints (x number of active links)
+link_state : 1d array of int (x number of links)
     State code for each link.
 
-n_trn : 1d array of ints (x number of possible link states)
+n_trn : 1d array of int (x number of possible link states)
     Number of transitions ("trn" stands for "transition") from a given link
     state.
 
-xn_to : 2d array of ints (# possible link states x max. # transitions)
-    Stores the link-state code(s) to which a particular link state can
-    transition. "max. # transitions" means the maximum number of transitions
-    from a single state. For example, if each link state is associated with one
-    and only one transition, then the maximum is 1, but if there is at least
-    one link state that can have either of two different transitions, then the
-    maximum would be two.
+trn_to : 1d array of ints (x # transitions)
+    Stores the link-state code(s) to which a particular transition ID can
+    transition.
 
-xn_rate : 2d array of floats (# possible link states x max. # transitions)
+trn_rate : 1d array of floats (# transitions)
     Rate associated with each link-state transition.
 
 
