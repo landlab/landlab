@@ -103,8 +103,8 @@ link_orientation : 1d array of ints (x number of active links)
 link_state : 1d array of ints (x number of active links)
     State code for each link.
 
-n_xn : 1d array of ints (x number of possible link states)
-    Number of transitions ("xn" stands for "transition") from a given link
+n_trn : 1d array of ints (x number of possible link states)
+    Number of transitions ("trn" stands for "transition") from a given link
     state.
 
 xn_to : 2d array of ints (# possible link states x max. # transitions)
@@ -488,13 +488,6 @@ class CellLabCTSModel(object):
             self.prop_data = prop_data
             self.prop_reset_value = prop_reset_value
 
-        # Determine and remember whether we will handle property swaps and/or
-        # callbacks in this model.
-        if np.amax(self.xn_propswap) > 0:
-            self._use_propswap_or_callback = True
-        else:
-            self._use_propswap_or_callback = False
-
     def set_node_state_grid(self, node_states):
         """Set the grid of node-state codes to node_states.
 
@@ -599,9 +592,9 @@ class CellLabCTSModel(object):
 
         # First, create an array that stores the number of possible transitions
         # out of each state.
-        self.n_xn = np.zeros(self.num_link_states, dtype=int)
+        n_xn = np.zeros(self.num_link_states, dtype=int)
         for xn in xn_list:
-            self.n_xn[xn.from_state] += 1
+            n_xn[xn.from_state] += 1
         self.n_trn = np.zeros(self.num_link_states, dtype=np.int)
 
         # Now, create arrays to hold the "to state" and transition rate for each
@@ -610,22 +603,13 @@ class CellLabCTSModel(object):
         # state (for example if state 3 could transition either to state 1 or
         # state 4, and the other states only had one or zero possible
         # transitions, then the maximum would be 2).
-        max_transitions = np.max(self.n_xn)
+        max_transitions = np.max(n_xn)
         self.trn_id = np.zeros((self.num_link_states, max_transitions), dtype=np.int)
         num_transitions = len(xn_list)
         self.trn_to = np.zeros(num_transitions, dtype=np.int)
         self.trn_rate = np.zeros(num_transitions)
         self.trn_propswap = np.zeros(num_transitions, dtype=np.int8)
         self.trn_prop_update_fn = np.zeros(num_transitions, dtype=object)
-        # OLD
-        self.xn_to = np.zeros((self.num_link_states, max_transitions), dtype=int)
-        self.xn_rate = np.zeros((self.num_link_states, max_transitions))
-        self.xn_propswap = np.zeros(
-            (self.num_link_states, max_transitions), dtype=np.int8
-        )
-        self.xn_prop_update_fn = np.zeros(
-            (self.num_link_states, max_transitions), dtype=object
-        )
 
         for trn in range(num_transitions):
             self.trn_to[trn] = xn_list[trn].to_state
