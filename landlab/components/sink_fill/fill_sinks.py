@@ -128,11 +128,11 @@ class SinkFiller(Component):
                 raise NotImplementedError(msg)
 
         self._grid = grid
-        if routing is not "D8":
-            assert routing is "D4"
+        if routing != "D8":
+            assert routing == "D4"
         self._routing = routing
         if (type(self._grid) is landlab.grid.raster.RasterModelGrid) and (
-            routing is "D8"
+            routing == "D8"
         ):
             self._D8 = True
             self.num_nbrs = 8
