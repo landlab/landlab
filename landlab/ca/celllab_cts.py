@@ -638,22 +638,6 @@ class CellLabCTSModel(object):
             self.trn_id[from_state, self.n_trn[from_state]] = trn
             self.n_trn[from_state] += 1
 
-        # OLD
-        # Populate the "to" and "rate" arrays
-        # reset this and then re-do (inefficient but should work)
-        self.n_xn[:] = 0
-        for xn in xn_list:
-            from_state = xn.from_state
-            self.xn_to[from_state][self.n_xn[from_state]] = xn.to_state
-            self.xn_rate[from_state][self.n_xn[from_state]] = xn.rate
-            self.xn_propswap[from_state][self.n_xn[from_state]] = xn.swap_properties
-            if xn.prop_update_fn is not None:
-                self.xn_prop_update_fn[from_state][
-                    self.n_xn[from_state]
-                ] = xn.prop_update_fn
-                self._use_propswap_or_callback = True
-            self.n_xn[from_state] += 1
-
     def push_transitions_to_event_queue(self):
         """
         Initializes the event queue by creating transition events for each
