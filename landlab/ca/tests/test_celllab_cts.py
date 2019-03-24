@@ -8,7 +8,7 @@ Created on Thu Jul  9 08:20:06 2015
 """
 
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_raises
 
 from landlab import HexModelGrid, RasterModelGrid
 
@@ -322,6 +322,16 @@ def test_transitions_as_ids():
     nsg = mg.add_zeros("node", "node_state_grid")
     cts = HexCTS(mg, nsd, xnlist, nsg)
     assert cts.num_link_states == 4, 'wrong number of transitions'
+
+
+def test_handle_grid_mismatch():
+    """Test error handling when user passes wrong grid type."""
+    mg = HexModelGrid(3, 2, 1.0, orientation="vertical", reorient_links=True)
+    nsd = {0: "zero", 1: "one"}
+    xnlist = []
+    xnlist.append(Transition(2, 3, 1.0, "transitioning"))
+    nsg = mg.add_zeros("node", "node_state_grid")
+    assert_raises(TypeError, OrientedRasterCTS, mg, nsd, xnlist, nsg)
 
 
 def transition_info_as_string(self, event):
