@@ -331,6 +331,7 @@ def test_handle_grid_mismatch():
     xnlist = []
     xnlist.append(Transition(2, 3, 1.0, "transitioning"))
     nsg = mg.add_zeros("node", "node_state_grid")
+    assert_raises(TypeError, RasterCTS, mg, nsd, xnlist, nsg)
     assert_raises(TypeError, OrientedRasterCTS, mg, nsd, xnlist, nsg)
 
 
