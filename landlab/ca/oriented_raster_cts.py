@@ -18,8 +18,6 @@ import numpy as np
 from ..grid import RasterModelGrid
 from .celllab_cts import CellLabCTSModel
 
-_DEBUG = False
-
 
 class OrientedRasterCTS(CellLabCTSModel):
 
@@ -90,9 +88,6 @@ class OrientedRasterCTS(CellLabCTSModel):
             Must be same type as *prop_data*.
         """
 
-        if _DEBUG:
-            print("OrientedRasterCTS.__init__ here")
-
         # Make sure caller has sent the right grid type
         if not isinstance(model_grid, RasterModelGrid):
             raise TypeError("model_grid must be a Landlab RasterModelGrid")
@@ -111,12 +106,6 @@ class OrientedRasterCTS(CellLabCTSModel):
             prop_data,
             prop_reset_value,
         )
-
-        if _DEBUG:
-            print("ORCTS:")
-            print(self.n_xn)
-            print(self.xn_to)
-            print(self.xn_rate)
 
     def setup_array_of_orientation_codes(self):
         """
@@ -143,12 +132,3 @@ class OrientedRasterCTS(CellLabCTSModel):
             - self.grid.node_y[self.grid.node_at_link_tail]
         )
         self.link_orientation = dy.astype(np.int8)
-
-        if _DEBUG:
-            print(self.link_orientation)
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

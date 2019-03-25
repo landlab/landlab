@@ -443,15 +443,15 @@ cpdef get_next_event_new(DTYPE_INT_t link, DTYPE_INT_t current_state,
     return (next_time + current_time, this_trn_id)
 
 
-cpdef push_transitions_to_event_queue_new(int number_of_active_links,
-                                          np.ndarray[DTYPE_INT_t, ndim=1] active_links,
-                                          np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
-                                          np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-                                          np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
-                                          np.ndarray[DTYPE_t, ndim=1] trn_rate,
-                                          np.ndarray[DTYPE_t, ndim=1] next_update,
-                                          np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,
-                                          PriorityQueue priority_queue):
+cpdef push_transitions_to_event_queue(int number_of_active_links,
+                                      np.ndarray[DTYPE_INT_t, ndim=1] active_links,
+                                      np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
+                                      np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                                      np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
+                                      np.ndarray[DTYPE_t, ndim=1] trn_rate,
+                                      np.ndarray[DTYPE_t, ndim=1] next_update,
+                                      np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,
+                                      PriorityQueue priority_queue):
     """
     Initializes the event queue by creating transition events for each
     cell pair that has one or more potential transitions and pushing these

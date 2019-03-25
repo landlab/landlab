@@ -335,7 +335,7 @@ class LakeMapperBarnes(Component):
             raise ValueError(
                 "{method}: method must be 'Steepest' or 'D8'".format(method=method)
             )
-        if method is "D8":
+        if method == "D8":
             if isinstance(grid, RasterModelGrid):
                 self._allneighbors = np.concatenate(
                     (
