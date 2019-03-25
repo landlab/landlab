@@ -69,7 +69,7 @@ by the tuples of (tail-node state, head-node state, orientation) as follows::
 
 Main data structures
 --------------------
-node_state : 1d array (x number of nodes in grid)
+node_state : 1d array of int (x number of nodes in grid)
     Node-based grid of node-state codes. This is the grid of cell (sic) states.
 
 link_state_dict : dictionary
@@ -83,39 +83,35 @@ node_pair : list (x number of possible link states)
     you to look up the node states and orientation corresponding to a
     particular link-state ID.
 
-priority_queue : heap containing event records
+priority_queue : PriorityQueue object containing event records
     Queue containing all future transition events, sorted by time of occurrence
     (from soonest to latest).
 
-next_update : 1d array (x number of active links)
+next_update : 1d array (x number of links)
     Time (in the future) at which the link will undergo its next transition.
     You might notice that the update time for every scheduled transition is
-    also stored in each Event object in the event queue. Why store it twice?
+    also stored with each event in the event queue. Why store it twice?
     Because a scheduled event might be invalidated after the event has been
     scheduled (because another transition has changed one of a link's two
     nodes, for example). The way to tell whether a scheduled event is still
     valid is to compare its time with the corresponding transition time in the
     *next_update* array. If they are different, the event is discarded.
 
-link_orientation : 1d array of ints (x number of active links)
+link_orientation : 1d array of int8 (x number of links)
     Orientation code for each link.
 
-link_state : 1d array of ints (x number of active links)
+link_state : 1d array of int (x number of links)
     State code for each link.
 
-n_xn : 1d array of ints (x number of possible link states)
-    Number of transitions ("xn" stands for "transition") from a given link
+n_trn : 1d array of int (x number of possible link states)
+    Number of transitions ("trn" stands for "transition") from a given link
     state.
 
-xn_to : 2d array of ints (# possible link states x max. # transitions)
-    Stores the link-state code(s) to which a particular link state can
-    transition. "max. # transitions" means the maximum number of transitions
-    from a single state. For example, if each link state is associated with one
-    and only one transition, then the maximum is 1, but if there is at least
-    one link state that can have either of two different transitions, then the
-    maximum would be two.
+trn_to : 1d array of ints (x # transitions)
+    Stores the link-state code(s) to which a particular transition ID can
+    transition.
 
-xn_rate : 2d array of floats (# possible link states x max. # transitions)
+trn_rate : 1d array of floats (# transitions)
     Rate associated with each link-state transition.
 
 
@@ -128,15 +124,12 @@ import pylab as plt
 
 import landlab
 
-_USE_CYTHON_FNS = True
-
-if _USE_CYTHON_FNS:
-    from landlab.ca.cfuncs import (
-        PriorityQueue,
-        push_transitions_to_event_queue,
-        run_cts_new,
-        get_next_event_new,
-    )
+from landlab.ca.cfuncs import (
+    PriorityQueue,
+    push_transitions_to_event_queue,
+    run_cts_new,
+    get_next_event_new
+)
 
 _NEVER = 1e50
 
@@ -213,7 +206,6 @@ class Transition(object):
         self.prop_update_fn = prop_update_fn
 
 
-
 class CAPlotter(object):
 
     """Handle display of a CellLab-CTS grid.
@@ -227,7 +219,7 @@ class CAPlotter(object):
         Reference to a CA model
     cmap : Matplotlib colormap, optional
         Colormap to be used in plotting
-        
+
     Examples
     --------
     >>> from landlab import RasterModelGrid, HexModelGrid
@@ -245,7 +237,7 @@ class CAPlotter(object):
     'rast'
     >>> cap._cmap.name
     'jet'
-    
+
     >>> from landlab.ca.hex_cts import HexCTS
     >>> import matplotlib
     >>> grid = HexModelGrid(3, 3)
@@ -492,13 +484,6 @@ class CellLabCTSModel(object):
             self.prop_data = prop_data
             self.prop_reset_value = prop_reset_value
 
-        # Determine and remember whether we will handle property swaps and/or
-        # callbacks in this model.
-        if np.amax(self.xn_propswap) > 0:
-            self._use_propswap_or_callback = True
-        else:
-            self._use_propswap_or_callback = False
-
     def set_node_state_grid(self, node_states):
         """Set the grid of node-state codes to node_states.
 
@@ -598,15 +583,14 @@ class CellLabCTSModel(object):
             )
             self.link_state[i] = self.link_state_dict[node_pair]
 
-
     def setup_transition_data(self, xn_list):
         """Create transition data arrays."""
 
         # First, create an array that stores the number of possible transitions
         # out of each state.
-        self.n_xn = np.zeros(self.num_link_states, dtype=int)
+        n_xn = np.zeros(self.num_link_states, dtype=int)
         for xn in xn_list:
-            self.n_xn[xn.from_state] += 1
+            n_xn[xn.from_state] += 1
         self.n_trn = np.zeros(self.num_link_states, dtype=np.int)
 
         # Now, create arrays to hold the "to state" and transition rate for each
@@ -615,22 +599,13 @@ class CellLabCTSModel(object):
         # state (for example if state 3 could transition either to state 1 or
         # state 4, and the other states only had one or zero possible
         # transitions, then the maximum would be 2).
-        max_transitions = np.max(self.n_xn)
+        max_transitions = np.max(n_xn)
         self.trn_id = np.zeros((self.num_link_states, max_transitions), dtype=np.int)
         num_transitions = len(xn_list)
         self.trn_to = np.zeros(num_transitions, dtype=np.int)
         self.trn_rate = np.zeros(num_transitions)
         self.trn_propswap = np.zeros(num_transitions, dtype=np.int8)
         self.trn_prop_update_fn = np.zeros(num_transitions, dtype=object)
-        # OLD
-        self.xn_to = np.zeros((self.num_link_states, max_transitions), dtype=int)
-        self.xn_rate = np.zeros((self.num_link_states, max_transitions))
-        self.xn_propswap = np.zeros(
-            (self.num_link_states, max_transitions), dtype=np.int8
-        )
-        self.xn_prop_update_fn = np.zeros(
-            (self.num_link_states, max_transitions), dtype=object
-        )
 
         for trn in range(num_transitions):
             self.trn_to[trn] = xn_list[trn].to_state
@@ -642,97 +617,6 @@ class CellLabCTSModel(object):
             from_state = xn_list[trn].from_state
             self.trn_id[from_state, self.n_trn[from_state]] = trn
             self.n_trn[from_state] += 1
-
-        # OLD
-        # Populate the "to" and "rate" arrays
-        # reset this and then re-do (inefficient but should work)
-        self.n_xn[:] = 0
-        for xn in xn_list:
-            from_state = xn.from_state
-            self.xn_to[from_state][self.n_xn[from_state]] = xn.to_state
-            self.xn_rate[from_state][self.n_xn[from_state]] = xn.rate
-            self.xn_propswap[from_state][self.n_xn[from_state]] = xn.swap_properties
-            if xn.prop_update_fn is not None:
-                self.xn_prop_update_fn[from_state][
-                    self.n_xn[from_state]
-                ] = xn.prop_update_fn
-                self._use_propswap_or_callback = True
-            self.n_xn[from_state] += 1
-
-
-    def get_next_event_new(self, link, current_state, current_time):
-        """Get the next event for a link.
-
-        Returns the next event for link with ID "link", which is in state
-        "current state".
-
-        Parameters
-        ----------
-        link : int
-            ID of the link
-        current_state : int
-            Current state code for the link
-        current_time : float
-            Current time in simulation (i.e., time of event just processed)
-
-        Returns
-        -------
-        Event object
-            The returned Event object contains the time, link ID, and type of
-            the next transition event at this link.
-
-        Notes
-        -----
-        If there is only one potential transition out of the current state, a
-        time for the transition is selected at random from an exponential
-        distribution with rate parameter appropriate for this transition.
-
-        If there are more than one potential transitions, a transition time is
-        chosen for each, and the smallest of these applied.
-
-        Assumes that there is at least one potential transition from the
-        current state.
-        """
-        assert (
-            self.n_xn[current_state] > 0
-        ), "must have at least one potential transition"
-
-        # Find next event time for each potential transition: new version
-        if self.n_trn[current_state] == 1:
-            trn_id = self.trn_id[current_state, 0]
-            next_time = np.random.exponential(1.0 / self.trn_rate[trn_id])
-            if _DEBUG:
-                print("rand (" + str(self.trn_rate[trn_id]) + ": " + str(next_time))
-        else:
-            next_time = _NEVER
-            trn_id = -1
-            for i in range(self.n_trn[current_state]):
-                this_next = np.random.exponential(
-                    1.0 / self.trn_rate[self.trn_id[current_state][i]]
-                )
-                if _DEBUG:
-                    print(
-                        "rand2 ("
-                        + str(self.trn_rate[self.trn_id[current_state][i]])
-                        + ": "
-                        + str(this_next)
-                    )
-                if this_next < next_time:
-                    if _DEBUG:
-                        print(" using it")
-                    next_time = this_next
-                    trn_id = self.trn_id[current_state, i]
-
-        if _DEBUG:
-            print("get_next_event_new():")
-            print(("  current state:", current_state))
-            print(("  node pair:", self.node_pair[current_state]))
-            print(("  next_time:", next_time))
-            print(("  link:", link))
-            print(("  trn_id:", trn_id))
-
-        return (next_time + current_time, trn_id)
-
 
     def push_transitions_to_event_queue(self):
         """
@@ -771,33 +655,17 @@ class CellLabCTSModel(object):
         >>> cts.next_trn_id[cts.grid.active_links]
         array([-1,  2, -1,  1,  0,  1,  0,  2, -1,  3])
         """
-        if _USE_CYTHON_FNS:
-            push_transitions_to_event_queue(
-                        self.grid.number_of_active_links,
-                        self.grid.active_links,
-                        self.n_trn,
-                        self.link_state,
-                        self.trn_id,
-                        self.trn_rate,
-                        self.next_update,
-                        self.next_trn_id,
-                        self.priority_queue
-                    )
-        else:
-            for i in self.grid.active_links:
-    
-                if self.n_trn[self.link_state[i]] > 0:
-                    (ev_time, trn_id) = self.get_next_event_new(
-                                                            i, 
-                                                            self.link_state[i],
-                                                            0.0)
-                    self.priority_queue.push(i, ev_time)
-                    self.next_update[i] = ev_time
-                    self.next_trn_id[i] = trn_id
-
-                else:
-                    self.next_update[i] = _NEVER
-
+        push_transitions_to_event_queue(
+            self.grid.number_of_active_links,
+            self.grid.active_links,
+            self.n_trn,
+            self.link_state,
+            self.trn_id,
+            self.trn_rate,
+            self.next_update,
+            self.next_trn_id,
+            self.priority_queue
+        )
 
     def update_link_state_new(self, link, new_link_state, current_time):
         """
@@ -814,15 +682,6 @@ class CellLabCTSModel(object):
         current_time : float
             Current time in simulation
         """
-        if _DEBUG:
-            print(
-                "update_link_state_new() link "
-                + str(link)
-                + " to state "
-                + str(new_link_state)
-                + " at time "
-                + str(current_time)
-            )
 
         # If the link connects to a boundary, we might have a different state
         # than the one we planned
@@ -836,35 +695,20 @@ class CellLabCTSModel(object):
 
         self.link_state[link] = new_link_state
         if self.n_trn[new_link_state] > 0:
-            if _USE_CYTHON_FNS:
-                (event_time, trn_id) = get_next_event_new(
-                    link,
-                    new_link_state,
-                    current_time,
-                    self.n_trn,
-                    self.trn_id,
-                    self.trn_rate,
-                )
-            else:
-                (event_time, trn_id) = self.get_next_event_new(
-                    link, new_link_state, current_time
-                )
+            (event_time, trn_id) = get_next_event_new(
+                link,
+                new_link_state,
+                current_time,
+                self.n_trn,
+                self.trn_id,
+                self.trn_rate,
+            )
             self.priority_queue.push(link, event_time)
-            if _DEBUG:
-                print(
-                    "Pushed event at "
-                    + str(link)
-                    + " for time "
-                    + str(event_time)
-                    + " id "
-                    + str(trn_id)
-                )
             self.next_update[link] = event_time
             self.next_trn_id[link] = trn_id
         else:
             self.next_update[link] = _NEVER
             self.next_trn_id[link] = -1
-
 
     def update_component_data(self, new_node_state_array):
         """Update all component data.
@@ -879,6 +723,33 @@ class CellLabCTSModel(object):
         *new_node_state_array* is the updated list of node states, which must
         still all be compatible with the state list originally supplied to
         this component.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.ca.celllab_cts import Transition
+        >>> from landlab.ca.raster_cts import RasterCTS
+        >>> import numpy as np
+        >>> grid = RasterModelGrid((3, 5))
+        >>> nsd = {0 : 'zero', 1 : 'one'}
+        >>> trn_list = []
+        >>> trn_list.append(Transition((0, 1, 0), (1, 1, 0), 1.0))
+        >>> ins = np.zeros(15, dtype=np.int)
+        >>> ca = RasterCTS(grid, nsd, trn_list, ins)
+        >>> list(ca.node_state[6:9])
+        [0, 0, 0]
+        >>> list(ca.link_state[9:13])
+        [0, 0, 0, 0]
+        >>> len(ca.priority_queue._queue)  # there are no transitions
+        0
+        >>> nns = np.arange(15) % 2        # make a new node-state grid...
+        >>> ca.update_component_data(nns)  # ...and assign it
+        >>> list(ca.node_state[6:9])
+        [0, 1, 0]
+        >>> list(ca.link_state[9:13])
+        [2, 1, 2, 1]
+        >>> len(ca.priority_queue._queue)  # now there are 5 transitions
+        5
         """
         self.set_node_state_grid(new_node_state_array)
         self.assign_link_states_from_node_types()
@@ -950,47 +821,3 @@ class CellLabCTSModel(object):
             plot_each_transition,
             plotter,
         )
-
-
-    def transition_info_as_string(self, event):
-        """Returns info about a particular event as a string, for debug."""
-        link = event[2]
-        tail = self.grid.node_at_link_tail[link]
-        head = self.grid.node_at_link_head[link]
-        new_link_state = self.trn_to[self.next_trn_id[link]]
-        new_tail_state = (new_link_state / self.num_node_states) % self.num_node_states
-        new_head_state = new_link_state % self.num_node_states
-        info_str = (
-            str(event[0])
-            + " "  # sched time
-            + str(self.next_update[link])
-            + " "  # sched time
-            + str(link)
-            + " "  # link ID
-            + str(tail)
-            + "=>"  # tail ID
-            + str(head)
-            + " "  # head ID
-            + str(self.link_orientation[link])
-            + " "  # orientation
-            + str(self.node_state[tail])
-            + "=>"  # tail state
-            + str(self.node_state[head])
-            + " "  # head state
-            + str(self.link_state[link])
-            + " "  # link state
-            + str(self.next_trn_id[link])
-            + " "  # trn ID
-            + str(new_link_state)
-            + " "  # new link state
-            + str(new_tail_state)
-            + "=>"  # new tail state
-            + str(new_head_state)  # new head state
-        )
-        return info_str
-
-    def print_scheduled_transitions(self):
-        """Display list of transitions in PQ, and related data, for debug."""
-        print("tme tml lnk tln hdn orn tst hst tid nls nts nhs")
-        for trn_event in self.priority_queue._queue:
-            print(self.transition_info_as_string(trn_event))

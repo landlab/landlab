@@ -8,7 +8,7 @@ Created on Thu Jul  9 08:20:06 2015
 """
 
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_raises
 
 from landlab import HexModelGrid, RasterModelGrid
 
@@ -81,13 +81,13 @@ def test_raster_cts():
     assert ca.num_node_states == 2, "error in num_node_states"
     assert ca.link_orientation[-1] == 0, "error in link orientation array"
     assert ca.link_state_dict[(1, 0, 0)] == 2, "error in link state dict"
-    assert ca.n_xn[2] == 1, "error in n_xn"
+    assert ca.n_trn[2] == 1, "error in n_trn"
     assert ca.node_pair[1] == (0, 1, 0), "error in cell_pair list"
 
     assert len(ca.priority_queue._queue) == 1, "event queue has wrong size"
     assert ca.next_trn_id.size == 24, "wrong size next_trn_id"
-    assert ca.trn_id.shape == (4, 1), "wrong size for xn_to"
-    assert ca.trn_id[2][0] == 0, "wrong value in xn_to"
+    assert ca.trn_id.shape == (4, 1), "wrong size for trn_to"
+    assert ca.trn_id[2][0] == 0, "wrong value in trn_to"
     assert ca.trn_to[0] == 1, "wrong trn_to state"
     assert ca.trn_rate[0] == 0.1, "wrong trn rate"
     assert ca.trn_propswap[0] == 1, "wrong trn propswap"
@@ -314,7 +314,7 @@ def test_setup_transition_data():
 
 def test_transitions_as_ids():
     """Test passing from-state and to-state IDs instead of tuples """
-    
+
     mg = HexModelGrid(3, 2, 1.0, orientation="vertical", reorient_links=True)
     nsd = {0: "zero", 1: "one"}
     xnlist = []
@@ -323,6 +323,65 @@ def test_transitions_as_ids():
     cts = HexCTS(mg, nsd, xnlist, nsg)
     assert cts.num_link_states == 4, 'wrong number of transitions'
 
+
+def test_handle_grid_mismatch():
+    """Test error handling when user passes wrong grid type."""
+    mg = HexModelGrid(3, 2, 1.0, orientation="vertical", reorient_links=True)
+    nsd = {0: "zero", 1: "one"}
+    xnlist = []
+    xnlist.append(Transition(2, 3, 1.0, "transitioning"))
+    nsg = mg.add_zeros("node", "node_state_grid")
+    assert_raises(TypeError, RasterCTS, mg, nsd, xnlist, nsg)
+    assert_raises(TypeError, OrientedRasterCTS, mg, nsd, xnlist, nsg)
+
+    mg = RasterModelGrid((3, 3))
+    assert_raises(TypeError, HexCTS, mg, nsd, xnlist, nsg)
+    assert_raises(TypeError, OrientedHexCTS, mg, nsd, xnlist, nsg)
+
+
+def transition_info_as_string(self, event):
+    """Returns info about a particular event as a string, for debug."""
+    link = event[2]
+    tail = self.grid.node_at_link_tail[link]
+    head = self.grid.node_at_link_head[link]
+    new_link_state = self.trn_to[self.next_trn_id[link]]
+    new_tail_state = (new_link_state / self.num_node_states) % self.num_node_states
+    new_head_state = new_link_state % self.num_node_states
+    info_str = (
+        str(event[0])
+        + " "  # sched time
+        + str(self.next_update[link])
+        + " "  # sched time
+        + str(link)
+        + " "  # link ID
+        + str(tail)
+        + "=>"  # tail ID
+        + str(head)
+        + " "  # head ID
+        + str(self.link_orientation[link])
+        + " "  # orientation
+        + str(self.node_state[tail])
+        + "=>"  # tail state
+        + str(self.node_state[head])
+        + " "  # head state
+        + str(self.link_state[link])
+        + " "  # link state
+        + str(self.next_trn_id[link])
+        + " "  # trn ID
+        + str(new_link_state)
+        + " "  # new link state
+        + str(new_tail_state)
+        + "=>"  # new tail state
+        + str(new_head_state)  # new head state
+    )
+    return info_str
+
+
+def print_scheduled_transitions(self):
+    """Display list of transitions in PQ, and related data, for debug."""
+    print("tme tml lnk tln hdn orn tst hst tid nls nts nhs")
+    for trn_event in self.priority_queue._queue:
+        print(self.transition_info_as_string(trn_event))
 
 
 if __name__ == "__main__":
