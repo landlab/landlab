@@ -166,7 +166,7 @@ class ScalarDataFields(dict):
                 self._size = size
             else:
                 raise ValueError("size has already been set")
-        except:
+        except NameError:
             self._size = size
 
     def empty(self, **kwds):
@@ -481,20 +481,18 @@ class ScalarDataFields(dict):
         """
         try:
             self._units[name] = units
-        except:
+        except NameError:
             self._units = {}
             self._units[name] = units
 
     def __setitem__(self, name, value_array):
         """Store a data field by name."""
         value_array = np.asarray(value_array)
-    
-        print('Name = ' + name)
 
         try:
             if self.size is None:
                 self.size = value_array.size
-        except:
+        except NameError:
             self.size = value_array.size
 
         if need_to_reshape_array(value_array, self.size):
