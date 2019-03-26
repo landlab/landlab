@@ -157,6 +157,10 @@ class ScalarDataFields(dict):
         int
             The number of elements in the field.
         """
+        try:
+            self._size
+        except AttributeError:
+            self._size = None
         return self._size
 
     @size.setter
@@ -481,7 +485,7 @@ class ScalarDataFields(dict):
         """
         try:
             self._units[name] = units
-        except NameError:
+        except AttributeError:
             self._units = {}
             self._units[name] = units
 
@@ -489,10 +493,7 @@ class ScalarDataFields(dict):
         """Store a data field by name."""
         value_array = np.asarray(value_array)
 
-        try:
-            if self.size is None:
-                self.size = value_array.size
-        except NameError:
+        if self.size is None:
             self.size = value_array.size
 
         if need_to_reshape_array(value_array, self.size):
