@@ -165,13 +165,10 @@ class ScalarDataFields(dict):
 
     @size.setter
     def size(self, size):
-        try:
-            if self._size is None:
-                self._size = size
-            else:
-                raise ValueError("size has already been set")
-        except NameError:
+        if self._size is None:
             self._size = size
+        else:
+            raise ValueError("size has already been set")
 
     def empty(self, **kwds):
         """Uninitialized array whose size is that of the field.
