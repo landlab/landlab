@@ -36,8 +36,8 @@ class PotentialEvapotranspiration(Component):
     elevated CO 2 in climate projections. Nature Climate Change, 9(1), 44.
 
     Zhou, X., Istanbulluoglu, E., & Vivoni, E. R. (2013). Modeling the
-    ecohydrological role of aspect‐controlled radiation on
-    tree‐grass‐shrub coexistence in a semiarid climate.
+    ecohydrological role of aspect controlled radiation on
+    tree grass shrub coexistence in a semiarid climate.
     Water Resources Research, 49(5), 2872-2895.
 
     .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
