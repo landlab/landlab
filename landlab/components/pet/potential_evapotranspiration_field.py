@@ -22,8 +22,23 @@ class PotentialEvapotranspiration(Component):
     distribution of incoming radiation) using chosen method such as constant
     or Priestley Taylor. Ref: Xiaochi et. al. 2013 for 'Cosine' method and
     ASCE-EWRI Task Committee Report Jan 2005 for 'PriestleyTaylor' method.
+
     Note: Calling 'PriestleyTaylor' method would generate/overwrite shortwave &
     longwave radiation fields.
+
+    Allen, R. G., Walter, I. A., Elliot, R., Howell, T., Itenfisu,
+    D., Jensen, M., & Snyder, R. (2005). The ASCE standardized
+    reference evapotranspiration equation. ASCE-EWRI task committee
+    final report.
+
+    Yang, Y., Roderick, M. L., Zhang, S., McVicar, T. R., & Donohue,
+    R. J. (2019). Hydrologic implications of vegetation response to
+    elevated CO 2 in climate projections. Nature Climate Change, 9(1), 44.
+
+    Zhou, X., Istanbulluoglu, E., & Vivoni, E. R. (2013). Modeling the
+    ecohydrological role of aspect‐controlled radiation on
+    tree‐grass‐shrub coexistence in a semiarid climate.
+    Water Resources Research, 49(5), 2872-2895.
 
     .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 
@@ -260,7 +275,8 @@ class PotentialEvapotranspiration(Component):
 
     def update(self, current_time=None, const_potential_evapotranspiration=12.,
                Tmin=None, Tmax=None, Tavg=None, obs_radiation=None,
-               relative_humidity=None, wind_speed=None, **kwds):
+               relative_humidity=None, wind_speed=None,
+               co2_concentration=300., **kwds):
         """Update fields with current conditions.
 
         Parameters
@@ -284,6 +300,8 @@ class PotentialEvapotranspiration(Component):
             Observed relative humidity (%)
         wind_speed: float, required for method(s): PenmanMonteith
             Observed wind speed (m/s)
+        co2_concentration: float (default=300.),
+            CO2 concentration (ppm)
         """
         if self._method in ['PriestleyTaylor', 'MeasuredRadiationPT',
                             'PenmanMonteith']:
@@ -318,7 +336,8 @@ class PotentialEvapotranspiration(Component):
         elif self._method == 'PenmanMonteith':
             self._PET_value = self._PenmanMonteith(Tavg, obs_radiation,
                                                    wind_speed,
-                                                   relative_humidity)
+                                                   relative_humidity,
+                                                   co2_concentration)
             if math.isnan(self._PET_value):
                 self._PET_value = 0.
             if self._PET_value < 0.:
@@ -418,7 +437,8 @@ class PotentialEvapotranspiration(Component):
 
 
     def _PenmanMonteith(self, Tavg, radiation_sw,
-                        wind_speed, relative_humidity):
+                        wind_speed, relative_humidity,
+                        co2_concentration):
         zm = self._zm
         zh = self._zh
         zd = (0.7 * self._zveg)  # (m) zero-plane displacement height
@@ -454,8 +474,10 @@ class PotentialEvapotranspiration(Component):
         self._penman_numerator = ((self._delta * self._net_radiation) +
                                   (self._rho_a * self._ca *
                                    (self._es - self._ea)/self._ra))
+        self._rs = (self._rl/(0.5*self._LAI) +
+                    0.05 * (co2_concentration - 300.))  # Yang et al. 2019
         self._penman_denominator = (self._pwhv * (self._delta + self._y *
-                                                  (1 + (self._rl/(self._LAI/2.))/
+                                                  (1 + (self._rs)/
                                                    self._ra)))
         self._ETp = (self._penman_numerator/self._penman_denominator)
                                   
