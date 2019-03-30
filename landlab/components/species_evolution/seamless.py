@@ -14,8 +14,7 @@ import pandas as pd
 
 from landlab import Component
 from landlab.core.messages import warning_message
-
-from data_record import DataRecord
+from landlab.data_record import DataRecord
 
 
 class SpeciesEvolver(Component):
@@ -125,7 +124,7 @@ class SpeciesEvolver(Component):
                                   ' to the ``run_one_step`` time.'))
         else:
             if time not in self.dataRecord.time_coordinates:
-                self.dataRecord.add_record(model__time=[time])
+                self.dataRecord.add_record(time=[time])
 
             if not type(zones_at_time) == list:
                 zones_at_time = [zones_at_time]
@@ -168,7 +167,7 @@ class SpeciesEvolver(Component):
             if 'species_evolver_records_add_on' in output.keys():
                 add_on = output['species_evolver_records_add_on']
                 for key, value in add_on.items():
-                    self.dataRecord.add_record(model__time=[time],
+                    self.dataRecord.add_record(time=[time],
                                                new_record={key: (['time'],
                                                                  [value])})
 
@@ -279,7 +278,7 @@ class SpeciesEvolver(Component):
         self._update_zones_DataFrame(time, species_zones)
 
         if time not in self.dataRecord.time_coordinates:
-            self.dataRecord.add_record(model__time=[time])
+            self.dataRecord.add_record(time=[time])
 
     def _get_unused_clade_name(self):
         alphabet = list(ascii_uppercase)

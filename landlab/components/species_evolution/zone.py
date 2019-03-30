@@ -5,8 +5,7 @@ from random import random
 import numpy as np
 from pandas import DataFrame
 
-#from landlab.utils.watershed import get_watershed_masks_with_area_threshold
-from .watershed import get_watershed_masks_with_area_threshold
+from landlab.utils import get_watershed_masks_with_area_threshold
 
 class Zone(object):
     """The nodes and attributes of the entities that species populate.
@@ -96,8 +95,8 @@ class Zone(object):
                                    'path_type'])
 
         # Stack the masks for prior (p) and new (n) zones.
-        ps = np.vstack((p.mask[prior_time] for p in prior_zones))
-        ns = np.vstack((n.mask[time] for n in new_zones))
+        ps = np.vstack(list(p.mask[prior_time] for p in prior_zones))
+        ns = np.vstack(list(n.mask[time] for n in new_zones))
 
         # Keep track of new zones replaced by prior zones. Zone in the
         # dictionary key will be replaced by their values after the prior
