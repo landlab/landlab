@@ -1,5 +1,6 @@
 from .chi_index import ChiFinder
 from .diffusion import LinearDiffuser
+from .lateral_erosion import LateralEroder
 from .fire_generator import FireGenerator
 from .detachment_ltd_erosion import DetachmentLtdErosion
 from .detachment_ltd_erosion import DepthSlopeProductErosion
@@ -49,6 +50,7 @@ from .lithology import Lithology, LithoLayers
 COMPONENTS = [
     ChiFinder,
     LinearDiffuser,
+	LateralEroder,
     Flexure,
     FlowRouter,
     DepressionFinderAndRouter,
