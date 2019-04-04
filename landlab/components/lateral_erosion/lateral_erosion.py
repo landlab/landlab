@@ -7,7 +7,15 @@ ALangston
 
 """
 
-#import landlab
+
+#below was C/P from diffuser and this caused the import to work for the first time!!!!
+from landlab import (
+    FIXED_GRADIENT_BOUNDARY,
+    INACTIVE_LINK,
+    Component,
+    FieldError,
+    RasterModelGrid,
+)
 from landlab import ModelParameterDictionary
 #from landlab.components.flow_routing.flow_routing_D8 import RouteFlowD8
 from landlab.components.flow_routing import FlowRouter
@@ -16,15 +24,15 @@ from landlab.components.lateral_erosion.node_finder2 import Node_Finder2
 #from landlab.components.flow_accum.flow_accumulation2 import AccumFlow
 from landlab.utils import structured_grid
 import numpy as np
-np.set_printoptions(threshold=np.nan)
+#np.set_printoptions(threshold=np.nan)
 from random import uniform
 import matplotlib.pyplot as plt
 
-class LateralEroder(component):
+class LateralEroder(Component):
 
-    def __init__(self, input_stream, grid, current_time=0.):
-
-        self.grid = grid
+    def __init__(self, grid, input_stream, current_time=0.):
+        #**come back to this: why did I put the underscore in from of grid? because diffusion said so.
+        self._grid = grid
         #create and initial grid if one doesn't already exist
         #if self.grid==None:
         #    self.grid = create_and_initialize_grid(input_stream)
@@ -137,14 +145,14 @@ class LateralEroder(component):
         flowdirs=grid.at_node['flow__receiver_node']
         drain_area=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff. 
         if (0):
-#            print 'nodeIDs', grid.core_nodes
+            print('nodeIDs', grid.core_nodes)
 #            print 'flowupstream order', s
-            print 'q', q.reshape(nr,nc)
-            print 'runoffms', runoffms
-            print 'q_ms', (drain_area*runoffms).reshape(nr,nc)
+#            print( 'q', q.reshape(nr,nc))
+#            print ('runoffms', runoffms))
+#            print ('q_ms', (drain_area*runoffms).reshape(nr,nc))
 #            print 'drainareafr', drain_area_fr.reshape(nr,nc)
-            print 'drain_area', drain_area.reshape(nr,nc)
-            print delta
+#            print 'drain_area', drain_area.reshape(nr,nc)
+#            print delta
 #        max_slopes2=grid.calc_grad_at_active_link(z)
 #        max_slopes=grid.calc_slope_at_node()
 #        print 'lengthflowdirs', len(flowdirs)
@@ -226,17 +234,17 @@ class LateralEroder(component):
 #                wd=0.4*qms**0.35
                 wd=0.4*(drain_area[i]*runoffms)**0.35
                 if(0):
-                    print 'i', i
-                    print 'drain area[i]', drain_area[i]
-                    print 'dr_area*runoffms', drain_area[i]*runoffms
-                    print 'wd', wd
+                    print('i', i)
+#                    print 'drain area[i]', drain_area[i]
+#                    print 'dr_area*runoffms', drain_area[i]*runoffms
+#                    print 'wd', wd
                 
                 #if node i flows downstream, continue. That is, if node i is the 
                 #first cell at the top of the drainage network, don't go into this
                 # loop because in this case, node i won't have a "donor" node found
                 # in NodeFinder and needed to calculate the angle difference
                 if Klr!= 0.0:
-#                    print 'warning, in latero loop'
+                    print('warning, in latero loop')
 #                    print ' '
 #                    print 'petlat before', petlat
 #                    print 'i', i
@@ -267,10 +275,10 @@ class LateralEroder(component):
                             # laterally eroding this lat_node                       
                                 vol_lat_dt[lat_node]+=abs(petlat)*dx*wd                           
                         if (0):
-                            print "i ", i
-                            print 'lat_node', lat_node
-                            print 'petlat after', petlat
-                            print ' '
+                            print("i ", i)
+#                            print 'lat_node', lat_node
+#                            print 'petlat after', petlat
+#                            print ' '
                 # the following is always done, even if lat_node is 0 or lat_node 
                 # lower than primary node. however, petlat is 0 in these cases
                     
@@ -283,22 +291,21 @@ class LateralEroder(component):
 
                 if (0):
                     #if drain_area[i] > 500: i==inlet_node:
-                    print 'node id', i
-                    print "flowdirs[i]", flowdirs[i]
-                    print "drain_area[i]", drain_area[i]
-                    print "slope[i]", max_slopes[i]
-                    print "qsin", qsin[i]
-                    print "qsin downstream", qsin[flowdirs[i]]
-                    print "dzver", dzver[i]
-                    print 'petlat after', petlat
-                    print 'wd', wd
-                    print 'q[i]', q[i]
-#                    print 'qms', qms
-                    print " "
+                    print('node id', i)
+#                    print "flowdirs[i]", flowdirs[i]
+#                    print "drain_area[i]", drain_area[i]
+#                    print "slope[i]", max_slopes[i]
+#                    print "qsin", qsin[i]
+#                    print "qsin downstream", qsin[flowdirs[i]]
+#                    print "dzver", dzver[i]
+#                    print 'petlat after', petlat
+#                    print 'wd', wd
+#                    print 'q[i]', q[i]
+#                    print " "
                     
             if(0):
-            	print "dzlat", dzlat
-                print "dzdt", dzdt
+                print("dzlat", dzlat)
+#                print "dzdt", dzdt
                 
             dzdt=dzver            
             #Do a time-step check
@@ -314,7 +321,7 @@ class LateralEroder(component):
             dtn=dt*50 #starting minimum timestep for this round
             for i in dwnst_nodes:
                 if(0):
-                    print "node", i
+                    print("node", i)
                 #are points converging? ie, downstream eroding slower than upstream
                 dzdtdif = dzdt[flowdirs[i]]-dzdt[i]
                 #if points converging, find time to zero slope
@@ -343,12 +350,12 @@ class LateralEroder(component):
             # the entire model run. So vol_lat is itself plus vol_lat_dt (for current loop)
             # times stable timestep size
             if(0):
-                print "vol_lat before", vol_lat
-                print "dt", dt
+                print("vol_lat before", vol_lat)
+#                print "dt", dt
             vol_lat += vol_lat_dt*dt
             if (0): 
-                print "vol_lat_dt", vol_lat_dt
-                print "vol_lat after", vol_lat
+                print("vol_lat_dt", vol_lat_dt)
+#                print "vol_lat after", vol_lat
                 
             
             #this loop determines if enough lateral erosion has happened to change the height of the neighbor node.
@@ -371,19 +378,19 @@ class LateralEroder(component):
                             if vol_lat[lat_node]>=voldiff:
                                 dzlat[lat_node]=z[flowdirs[i]]-z[lat_node]-0.001
                                 if(0):
-                                    print "chunk of lateral erosion occured"                        
-                                    print "node", lat_node
-                                    print "dzlat[lat_node]", dzlat[lat_node]
-                                    print "vol_lat[latnode]", vol_lat[lat_node]
-                                    print "vol_lat_dt", vol_lat_dt[lat_node]
-                                    print "z[lat]", z[lat_node]
-                                    print "z[i]", z[i]
-                                    print "z[flowdirs[i]]", z[flowdirs[i]]
-                                    print "volume diff", voldiff
-                                    print 'wd', wd
-                                    print "drain_area[i]", drain_area[i]
-                                    print 'wd', wd
-                                    print 'q[i]', q[i]
+                                    print("chunk of lateral erosion occured")
+#                                    print "node", lat_node
+#                                    print "dzlat[lat_node]", dzlat[lat_node]
+#                                    print "vol_lat[latnode]", vol_lat[lat_node]
+#                                    print "vol_lat_dt", vol_lat_dt[lat_node]
+#                                    print "z[lat]", z[lat_node]
+#                                    print "z[i]", z[i]
+#                                    print "z[flowdirs[i]]", z[flowdirs[i]]
+#                                    print "volume diff", voldiff
+#                                    print 'wd', wd
+#                                    print "drain_area[i]", drain_area[i]
+#                                    print 'wd', wd
+#                                    print 'q[i]', q[i]
 #                                    print 'qms', qms
 #                                    print delta
                                 #after the lateral node is eroded, reset its volume eroded to zero
@@ -393,9 +400,9 @@ class LateralEroder(component):
             #dzlat, which is already a length for the chosen time step
             dz=dzdt*dt+dzlat        
             if(0):
-                print 'dzlat[inlet_node]', dzlat[inlet_node]
-                print 'dzdt[inlet_node]', dzdt[inlet_node]
-                print 'dz[inlet_node]', dz[inlet_node]
+                print('dzlat[inlet_node]', dzlat[inlet_node])
+#                print 'dzdt[inlet_node]', dzdt[inlet_node]
+#                print 'dz[inlet_node]', dz[inlet_node]
             
             #change height of landscape
             z=dz+z
@@ -458,6 +465,5 @@ class LateralEroder(component):
 #        print 'dzdt= ', dzdt[interior_nodes]
 #        print 'area', drain_area[interior_nodes]
 #        print 'flowdirs', flowdirs[interior_nodes]
-	        
-    	
+
         return z, qt, qsin, dzdt, dzlat, flowdirs, drain_area, dwnst_nodes, max_slopes, dt       
