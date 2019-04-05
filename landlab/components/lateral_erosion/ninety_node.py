@@ -18,14 +18,14 @@ def NinetyNode(donor, i, receiver, link_list, neighbors, diag_neigh):
     debug=0
     print_debug=0
     if (debug):
-        print 'donor', donor
-        print 'i', i
-        print 'receiver', receiver
+        print('donor', donor)
+        print ('i', i)
+        print ('receiver', receiver)
 
     #if flow is 90 degrees
     if(donor in diag_neigh and receiver in diag_neigh):
         if (debug):
-            print "flow is 90 degrees on diagonals from ", donor, " to ", receiver
+            print ("flow is 90 degrees on diagonals from ", donor, " to ", receiver)
         radcurv_angle=1.37
         #if flow is NE-SE or NW-SW, erode south node
         if (donor==diag_neigh[0] and receiver==diag_neigh[3] or 
@@ -46,7 +46,7 @@ def NinetyNode(donor, i, receiver, link_list, neighbors, diag_neigh):
          #print "lat_node", lat_node
     elif(donor not in diag_neigh and receiver not in diag_neigh):
         if (debug):
-            print "flow is 90 degrees (not on diagonal) from ", donor, " to ", receiver
+            print( "flow is 90 degrees (not on diagonal) from ", donor, " to ", receiver)
         radcurv_angle=1.37
         
         #if flow is from east, erode west node
@@ -62,5 +62,5 @@ def NinetyNode(donor, i, receiver, link_list, neighbors, diag_neigh):
         elif (donor==neighbors[3]):
             lat_node=neighbors[1]
     if(debug):
-        print 'lat_node', lat_node
+        print ('lat_node', lat_node)
     return lat_node, radcurv_angle

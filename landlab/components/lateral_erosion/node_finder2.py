@@ -14,13 +14,13 @@ vertical erosion: Evert=(1-Elat)*E
 import numpy as np
 from landlab.components.lateral_erosion.angle_finder import angle_finder
 from landlab.components.lateral_erosion.straight_node_finder import StraightNode
-#from landlab.components.lateral_erosion.fortyfive_node import FortyfiveNode
-#from landlab.components.lateral_erosion.ninety_node import NinetyNode
+from landlab.components.lateral_erosion.fortyfive_node import FortyfiveNode
+from landlab.components.lateral_erosion.ninety_node import NinetyNode
 
 
 def Node_Finder2(grid, i, flowdirs, drain_area):
-    debug=0
-    print_debug=0
+    debug=1
+    print_debug=1
 
 
     #receiver node of flow is flowdirs[i]
@@ -60,24 +60,19 @@ def Node_Finder2(grid, i, flowdirs, drain_area):
         print ("donor", donor)
         print ("i", i)
         print ("receiver", receiver)
-
-
     #now we have chosen donor cell, next figure out if inflow/outflow lines are
     #straight, 45, or 90 degree angle. and figure out which node to erode
-#*****************OLDSTUFF
-#    conn_link1=grid.get_active_link_connecting_node_pair(donor,i)     old stuff from 2014
-#    conn_link2=grid.get_active_link_connecting_node_pair(i, flowdirs[i])
-    #link_list order is [N, W, S, E]    old stuff 2014
-###########****************
-#NEWSTUFF
 
     link_list=grid.links_at_node[i]
-    neighbors=grid.active_neighbors_at_node[i]    #this gives list of active neighbors for specified node
-    diag_neigh=grid._diagonal_neighbors_at_node[i]
+    #this gives list of active neighbors for specified node
+    # the order of this list is: [E,N,W,S]
+    neighbors=grid.active_neighbors_at_node[i]    
+    #this gives list of all diagonal neighbors for specified node
+    # the order of this list is: [NE,NW,SW,SE]
+    diag_neigh=grid.diagonal_adjacent_nodes_at_node[i]
     linkdirs=grid.active_link_dirs_at_node[i]
 #    print 'linkdirs', linkdirs
-#    neighbors=grid.get_neighbor_list(i)    #old way from 2014
-#    diag_neigh=grid.get_diagonal_list(i)
+
     angle_diff=angle_finder(grid, donor, i, receiver)
 
     if(debug):
@@ -101,7 +96,9 @@ def Node_Finder2(grid, i, flowdirs, drain_area):
         [lat_node, radcurv_angle]=FortyfiveNode(donor, i, receiver, link_list, neighbors, diag_neigh)
     if angle_diff==90.0:
         [lat_node, radcurv_angle]=NinetyNode(donor, i, receiver, link_list, neighbors, diag_neigh)
-
+    if(debug):
+        print("lat_node", lat_node)
+        print("end of node finder")
     if lat_node > 2e9:
         #print "old latnode", lat_node
         lat_node=0
@@ -117,7 +114,7 @@ def Node_Finder2(grid, i, flowdirs, drain_area):
     #
     #lat_node=0
     #radcurv_angle=0.0
-
+#    print(delta)
     #below added 9/18/2014
     dx=grid.dx
     radcurv_angle=radcurv_angle/dx    #May24, 2017: this is actually INVERSE radius of curvature. It works out in the main lateral ero
