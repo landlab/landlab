@@ -19,8 +19,8 @@ from landlab.components.lateral_erosion.ninety_node import NinetyNode
 
 
 def Node_Finder2(grid, i, flowdirs, drain_area):
-    debug=1
-    print_debug=1
+    debug=0
+    print_debug=0
 
 
     #receiver node of flow is flowdirs[i]
