@@ -118,4 +118,4 @@ def Node_Finder2(grid, i, flowdirs, drain_area):
     #below added 9/18/2014
     dx=grid.dx
     radcurv_angle=radcurv_angle/dx    #May24, 2017: this is actually INVERSE radius of curvature. It works out in the main lateral ero
-    return lat_node, radcurv_angle
+    return int(lat_node), radcurv_angle
