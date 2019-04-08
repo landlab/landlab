@@ -29,7 +29,9 @@ def Node_Finder2(grid, i, flowdirs, drain_area):
     #find indicies of where flowdirs=i to find donor nodes.
     #will donor nodes always equal the index of flowdir list?
     inflow=np.where(flowdirs==i)
+
     #if there are more than 1 donors, find the one with largest drainage area
+
     if len(inflow[0])>1:
         drin=drain_area[inflow]
         drmax=max(drin)
@@ -51,7 +53,12 @@ def Node_Finder2(grid, i, flowdirs, drain_area):
             donor=maxinfl
             if(debug):
                 print ("donor with larger drainage area", donor)
-        #else donor is the only inflow
+        #if inflow is empty, no donor
+    elif len(inflow[0])==0:
+        if(debug):
+            print("no donor")
+        donor=i
+    #else donor is the only inflow
     else:
         donor=inflow[0]
 
@@ -85,6 +92,12 @@ def Node_Finder2(grid, i, flowdirs, drain_area):
         print (" ")
 
     if donor == flowdirs[i]:
+        #this is a sink. no lateral ero
+        if(debug):
+            print ("this is a sink")
+        radcurv_angle=0.
+        lat_node=0
+    if donor == i:
         #this is a sink. no lateral ero
         if(debug):
             print ("this is a sink")
