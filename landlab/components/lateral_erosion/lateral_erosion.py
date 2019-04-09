@@ -19,6 +19,7 @@ from landlab import (
 from landlab import ModelParameterDictionary
 from landlab.components.flow_director import FlowDirectorD8
 from landlab.components.flow_accum import FlowAccumulator
+#from landlab.components import DepressionFinderAndRouter
 #from landlab.components import(FlowDirectorD8, 
 #                               FlowDirectorDINF, 
 #                               FlowDirectorMFD, 
@@ -158,7 +159,7 @@ class LateralEroder(Component):
                      surface='topographic__elevation',
                      flow_director='FlowDirectorD8',
                      runoff_rate=None,
-                     depression_finder=None)
+                     depression_finder='DepressionFinderAndRouter', routing='D8')
         (da, q) = fa.accumulate_flow()
 
         #flow__upstream_node_order is node array contianing downstream to upstream order list of node ids
@@ -446,7 +447,7 @@ class LateralEroder(Component):
                                      surface='topographic__elevation',
                                      flow_director='FlowDirectorD8',
                                      runoff_rate=None,
-                                     depression_finder=None)
+                                     depression_finder=DepressionFinderAndRouter, routing='D8')
                 (da, q) = fa.accumulate_flow()
                 s=grid.at_node['flow__upstream_node_order']
                 drain_area_fr=grid.at_node['drainage_area']
@@ -469,7 +470,7 @@ class LateralEroder(Component):
                                      surface='topographic__elevation',
                          flow_director='FlowDirectorD8',
                          runoff_rate=None,
-                         depression_finder=None)
+                         depression_finder=DepressionFinderAndRouter, routing='D8')
                 (da, q) = fa.accumulate_flow()
                 s=grid.at_node['flow__upstream_node_order']
                 drain_area_fr=grid.at_node['drainage_area']
