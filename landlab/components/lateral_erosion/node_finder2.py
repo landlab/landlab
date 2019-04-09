@@ -106,7 +106,7 @@ def Node_Finder2(grid, i, flowdirs, drain_area):
     if angle_diff==0.0:
         [lat_node, radcurv_angle]=StraightNode(donor, i, receiver, neighbors, diag_neigh)
     if (angle_diff==45.0 or angle_diff==135.0):
-        [lat_node, radcurv_angle]=FortyfiveNode(donor, i, receiver, link_list, neighbors, diag_neigh)
+        [lat_node, radcurv_angle]=FortyfiveNode(donor, i, receiver, neighbors, diag_neigh)
     if angle_diff==90.0:
         [lat_node, radcurv_angle]=NinetyNode(donor, i, receiver, link_list, neighbors, diag_neigh)
     if(debug):

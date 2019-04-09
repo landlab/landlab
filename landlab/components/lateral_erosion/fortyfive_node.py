@@ -14,12 +14,15 @@ import numpy as np
 
 
 
-def FortyfiveNode(donor, i, receiver, link_list, neighbors, diag_neigh):
+def FortyfiveNode(donor, i, receiver,  neighbors, diag_neigh):
     debug=0
     print_debug=0
     if (debug):
         print( "flow from ", donor, " to ", receiver, " is 45 degrees")
     radcurv_angle=0.67
+        # april 9. getting weird flow patterns in a 4x4 grid. flow from 10->9->6.
+    # resultign in no lateral node assigned. for a hack for now, start with lateral node=0, 
+    lat_node=0
     if(print_debug):
         print( "node is crossing diagonal")
     #OLD WAY: diagonal list goes [SE, SW, NW, NE]. Node list are ordered as [E,S,W,N]
@@ -66,4 +69,5 @@ def FortyfiveNode(donor, i, receiver, link_list, neighbors, diag_neigh):
         if(print_debug):
             print( "lat_node", lat_node)
 
+    
     return lat_node, radcurv_angle
