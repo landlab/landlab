@@ -52,22 +52,22 @@ class LateralEroder(Component):
         self.dt = dt
         self.initialize(grid, input_stream)
     # Create fields needed for this component if not already existing
-#    if 'vol_lat' in grid.at_node:
-#        self.vol_lat = grid.at_node['vol_lat']
-#    else:
-#        self.vol_lat = grid.add_zeros('node', 'vol_lat')
-    
+        if 'vol_lat' in grid.at_node:
+            self.vol_lat = grid.at_node['vol_lat']
+        else:
+            self.vol_lat = grid.add_zeros('node', 'vol_lat')
+#        print("vol_lat", vol_lat)
         self.laterotype=laterotype
         #you can specify the type of lateral erosion model you want to use. But if you don't
         # the default is the undercutting-slump model
         if laterotype is None:
             laterotype='UC'
         if laterotype=='UC':
-            UC=1
-            TB=0
+            self.UC=1
+            self.TB=0
         if laterotype=='TB':
-            TB=1
-            UC=0
+            self.TB=1
+            self.UC=0
     def initialize(self, grid, input_stream):
 
         # Create a ModelParameterDictionary for the inputs
@@ -81,62 +81,34 @@ class LateralEroder(Component):
         self.Kv = inputs.get('KV_COEFFICIENT', ptype=float)
         self.Klr = inputs.get('KL_RATIO', ptype=float)
         self.rainrate = inputs.get('rain_rate', ptype=float)
-        self.inlet_node = inputs.get('INLET_NODE', ptype=float)
-        self.inlet_area = inputs.get('INLET_AREA', ptype=float)
-        self.qsinlet = inputs.get('QSINLET', ptype=float)
         self.frac = 0.3 #for time step calculations
 
         # Set up state variables
 
         #initialize qsin for each interior node, all zero initially.
         self.qsin = grid.zeros(centering='node')    # qsin (M^3/Y)
-#        self.qt = grid.zeros(centering='node')    # transport capacity
         self.dzdt = grid.zeros(centering='node')    # elevation change rate (M/Y)
 
-    def run_one_step(self, grid,  vol_lat,  dt, qsinlet=None, inlet_area=None, Klr=None):
+    def run_one_step(self, grid, dt, Klr=None):
 
 #        if rainrate==None:
 #            rainrate = self.rainrate
 
-        inlet_node=self.inlet_node
-        #inlet_area=self.inlet_area
-        if qsinlet==None:
-            qsinlet=self.qsinlet
-        if inlet_area==None:
-            inlet_area=self.inlet_area
         if Klr==None:    #Added10/9 to allow changing rainrate (indirectly this way.)
             Klr=self.Klr
 
-        laterotype=self.laterotype
-                # the default is the undercutting-slump model
-        if laterotype is None:
-            laterotype='UC'
-        if laterotype=='UC':
-            UC=1
-            TB=0
-        if laterotype=='TB':
-            TB=1
-            UC=0
-#        print("UC", UC)
-#        print("TB", TB)
+        #have to define it this way from teh self.uc defined in initialize.
+        #anything defined in initialize, you have to redefine here.
+        UC=self.UC
+        TB=self.TB
         Kv=self.Kv
-        #Klr=self.Klr
         frac = self.frac
         qsin=self.qsin
         dzdt=self.dzdt
         alph=self.alph
         dt=self.dt
-        
-#        #you can specify the type of lateral erosion model you want to use. But if you don't
-#        # the default is the undercutting-slump model
-#        if laterotype is None:
-#            laterotype='UC'
-#        if laterotype=='UC':
-#            UC=1
-#            TB=0
-#        if laterotype=='TB':
-#            TB=1
-#            UC=0
+        vol_lat=self.grid.at_node['vol_lat']
+
         #**********ADDED FOR WATER DEPTH CHANGE***************
         #now KL/KV ratio is a parameter set from infile again.
         #still need to calculate runoff for Q and water depth calculation
@@ -156,7 +128,6 @@ class LateralEroder(Component):
         nr=grid.number_of_node_rows
         nc=grid.number_of_node_columns
         interior_nodes = grid.core_nodes
-        boundary_nodes=structured_grid.boundary_nodes((nr,nc))
         #clear qsin for next loop
         qsin = grid.zeros(centering='node')
         lat_nodes=np.zeros(grid.number_of_nodes, dtype=int)
@@ -173,16 +144,11 @@ class LateralEroder(Component):
 #        _=grid.add_field('node', 'water__unit_flux_in', runoffinlet,
 #                     noclobber=False)
 
-
-
-
         #flow__upstream_node_order is node array contianing downstream to upstream order list of node ids
         s=grid.at_node['flow__upstream_node_order']
         da=grid.at_node['drainage_area']    #renamed this drainage area set by flow router
         max_slopes=grid.at_node['topographic__steepest_slope']
         flowdirs=grid.at_node['flow__receiver_node']
-        #see below for clue of how to get inlet set again. probably have to look at old codes
-#        drain_area=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
         if(0):
             print("LL da", da.reshape(nr,nc))
 #            print("LL q", q.reshape(nr,nc))
@@ -193,13 +159,6 @@ class LateralEroder(Component):
             print ('runoffms', runoffms)
             print('flowdirs', flowdirs)
 
-#            print(delta)
-#        max_slopes2=grid.calc_grad_at_active_link(z)
-#        max_slopes=grid.calc_slope_at_node()
-#        print 'lengthflowdirs', len(flowdirs)
-        #temporary hack for drainage area
-#        drain_area[inlet_node]=inlet_area
-
         #order interior nodes
         #find interior nodes in downstream ordered vector s
 
@@ -208,16 +167,12 @@ class LateralEroder(Component):
 
         dwnst_nodes=l
         #reverse list so we go from upstream to down stream
-        #4/20/2017: this works
-#        print "dwnst_nodes before reversal", dwnst_nodes
         dwnst_nodes=dwnst_nodes[::-1]
 #        print("dwnst_nodes after reversal", dwnst_nodes)
 #        print(delta)
         #local time
         time=0
         globdt=dt
-
-
 
 #        print("time", time)
 #        print("dt", dt)
@@ -235,11 +190,6 @@ class LateralEroder(Component):
             #here calculate dzdt for each node, with initial time step
             #print "dwnst_nodes", dwnst_nodes
             for i in dwnst_nodes:
-                if i==inlet_node:
-                    qsin[i]=qsinlet
-                    #print "qsin[inlet]", qsin[i]
-                    #print "inlet area", drain_area[i]
-
                 #calc deposition and erosion
                 #dzver is vertical erosion/deposition only
 #                print ('i ', i)
@@ -252,8 +202,6 @@ class LateralEroder(Component):
 #                print( 'dep', dep)
 #                print('ero', ero)
                 dzver[i] =  dep + ero
-
-
                 #calculate transport capacity
 #                qt[i]=Kv*da[i]**(3./2.)*max_slopes[i]/alph
 
@@ -268,7 +216,8 @@ class LateralEroder(Component):
                     print('da*runoffms', da[i]*runoffms)
                     print('wd', wd)
 
-
+                #*****april 10. I used to have this flag so that I could run the code iwthout vertical incision
+                # I took it away so that we are always running vertical incision.
 #                if Klr!= 0.0:
 #                    print('warning, in latero loop')
 #                    print ' '
@@ -289,16 +238,14 @@ class LateralEroder(Component):
                     #Node_finder picks the lateral node to erode based on angle
                     # between segments between three nodes
                     [lat_node, inv_rad_curv]=Node_Finder2(grid, i, flowdirs, da)
-#                        print("lateroline 263")
-#                    print ("lat_node", lat_node)
-                        
                     #node_finder returns the lateral node ID and the radius of curvature
                     lat_nodes[i]=lat_node
 
                     #if the lateral node is not 0 continue. lateral node may be
                     # 0 if a boundary node was chosen as a lateral node. then
                     # radius of curavature is also 0 so there is no lateral erosion
-                    if lat_node!=0:
+                    #**** 4/19: I think now boundary nodes are designated iwth a -1 flag!!!!!
+                    if lat_node>0:
                         #if the elevation of the lateral node is higher than primary node,
                         # calculate a new potential lateral erosion (L/T), which is negative
                         if z[lat_node] > z[i]:
@@ -365,23 +312,23 @@ class LateralEroder(Component):
                     dtflat = (z[i]-z[flowdirs[i]])/dzdtdif	#time to flat between points
                     #if time to flat is smaller than dt, take the lower value
                     #april9, 2019: *** HACK WITH ABS(DTN) COME BACK to this. was getting negative dtn values
-                    if abs(dtflat) < dtn:
-                        dtn = abs(dtflat)
+                    if dtflat < dtn:
+                        dtn = dtflat
 #                        print("dtflat", dtflat)
                     #if dzdtdif*dtflat will make upstream lower than downstream, find time to flat
-                    if dzdtdif*dtn > abs((z[i]-z[flowdirs[i]])):
-                        dtn=abs((z[i]-z[flowdirs[i]])/dzdtdif)
+                    if dzdtdif*dtn > (z[i]-z[flowdirs[i]]):
+                        dtn=(z[i]-z[flowdirs[i]])/dzdtdif
 #                        print("timetoflat", dtn)
 
 
-            #print "out of ts loop"
-#            print("dtn",dtn)
-#            print("dt",dt)
+            print ("out of ts loop")
+            print("dtn",dtn)
+            print("dt",dt)
             dtn*=frac
             #new minimum timestep for this round of nodes
             dt=min(dtn, dt)
             #should now have a stable timestep.
-#            print("stable time step=", dt)
+            print("stable time step=", dt)
 #            print delta
 
             #******Needed a stable timestep size to calculate volume eroded from lateral node for
@@ -391,12 +338,12 @@ class LateralEroder(Component):
             # the entire model run. So vol_lat is itself plus vol_lat_dt (for current loop)
             # times stable timestep size
             if(0):
-                print("vol_lat before", vol_lat)
+                print("vol_lat before", vol_lat.reshape(nr,nc))
 #                print "dt", dt
             vol_lat += vol_lat_dt*dt
             if (0):
-                print("vol_lat_dt", vol_lat_dt)
-#                print "vol_lat after", vol_lat
+                print("vol_lat_dt", vol_lat_dt.reshape(nr,nc))
+                print("vol_lat after", vol_lat.reshape(nr,nc))
 
 
             #this loop determines if enough lateral erosion has happened to change the height of the neighbor node.
@@ -427,7 +374,8 @@ class LateralEroder(Component):
                         if vol_lat[lat_node]>=voldiff:
                             dzlat[lat_node]=z[flowdirs[i]]-z[lat_node]-0.001
                             if(1):
-                                print("chunk of lateral erosion occured")
+                                print("chunk of lateral erosion occured", lat_node)
+#                                print("vol_latbefore", vol_lat.reshape(nr,nc))
 #                                    print "node", lat_node
 #                                    print "dzlat[lat_node]", dzlat[lat_node]
 #                                    print "vol_lat[latnode]", vol_lat[lat_node]
@@ -444,14 +392,11 @@ class LateralEroder(Component):
 #                                    print delta
                             #after the lateral node is eroded, reset its volume eroded to zero
                             vol_lat[lat_node]=0.0
-
+                            if(0):
+                                print("vol_latafter", vol_lat.reshape(nr,nc))
             #multiply dzver(changed to dzdt above) by timestep size and combine with lateral erosion
             #dzlat, which is already a length for the chosen time step
             dz=dzdt*dt+dzlat
-            if(0):
-                print('dzlat[inlet_node]', dzlat[inlet_node])
-#                print 'dzdt[inlet_node]', dzdt[inlet_node]
-#                print 'dz[inlet_node]', dz[inlet_node]
 
             #change height of landscape
             z=dz+z
@@ -493,7 +438,7 @@ class LateralEroder(Component):
 ##                drain_area[inlet_node]=inlet_area
             else:
                 dt = globdt - time
-#                print("small time steps. dt=",dt )
+                print("small time steps. dt=",dt )
 #                print(delt)
                 #recalculate flow directions
                 fa = FlowAccumulator(grid, 
@@ -525,5 +470,5 @@ class LateralEroder(Component):
                 vol_lat_dt=np.zeros(grid.number_of_nodes)
                 dzver=np.zeros(grid.number_of_nodes)
 
-        return grid, dzlat, qsin, dzdt
+        return grid, vol_lat, dzlat, qsin, dzdt
 #        return z, qt, qsin, dzdt, dzlat, flowdirs, da, dwnst_nodes, max_slopes, dt
