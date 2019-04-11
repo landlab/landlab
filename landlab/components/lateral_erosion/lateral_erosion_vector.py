@@ -183,7 +183,9 @@ class LateralEroder(Component):
             max_slopes=max_slopes.clip(0)
             #here calculate dzdt for each node, with initial time step
             #print "dwnst_nodes", dwnst_nodes
-
+            erovec = -Kv[dwnst_nodes] * da[dwnst_nodes]**(0.5)*max_slopes[dwnst_nodes]
+            print("vector erosion")
+            print(erovec.reshape(nr,nc))
             for i in dwnst_nodes:
                 #calc deposition and erosion
                 #dzver is vertical erosion/deposition only
@@ -192,7 +194,8 @@ class LateralEroder(Component):
 #                print ('area', da[i])
 #                print('kv', Kv)
 
-                dep = alph*qsin[i]/da[i]
+#                dep = alph*qsin[i]/da[i]
+                dep=0.
                 ero = -Kv[i] * da[i]**(0.5)*max_slopes[i]
 #                print( 'dep', dep)
 #                print('ero', ero)
@@ -264,6 +267,8 @@ class LateralEroder(Component):
                 qsin[flowdirs[i]]+=qsin[i]-(dzver[i]*dx**2)-(petlat*dx*wd)   #qsin to next node
 
             dzdt=dzver
+            print("original erosion")
+            print(dzver.reshape(nr,nc))
             #Do a time-step check
             #If the downstream node is eroding at a slower rate than the
             #upstream node, there is a possibility of flow direction reversal,
