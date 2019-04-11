@@ -136,14 +136,6 @@ class LateralEroder(Component):
         dzvec=np.zeros(grid.number_of_nodes)
         vol_lat_dt=np.zeros(grid.number_of_nodes)
 
-        # 4/24/2017 add inlet to change drainage area with spatially variable runoff rate
-        #runoff is an array with values of the area of each node (dx**2)
-        #****4/5/2019: getting rid of inlet node for now.
-#        runoffinlet=np.ones(grid.number_of_nodes)*dx**2
-        #Change the runoff at the inlet node to node area + inlet node
-#        runoffinlet[inlet_node]=+inlet_area
-#        _=grid.add_field('node', 'water__unit_flux_in', runoffinlet,
-#                     noclobber=False)
 
         #flow__upstream_node_order is node array contianing downstream to upstream order list of node ids
         s=grid.at_node['flow__upstream_node_order']
@@ -292,11 +284,11 @@ class LateralEroder(Component):
                     dtflat = (z[i]-z[flowdirs[i]])/dzdtdif	#time to flat between points
                     #if time to flat is smaller than dt, take the lower value
                     #april9, 2019: *** HACK WITH ABS(DTN) COME BACK to this. was getting negative dtn values
-                    if dtflat < dtn:
+                    if abs(dtflat) < dtn:
                         dtn = dtflat
 #                        print("dtflat", dtflat)
                     #if dzdtdif*dtflat will make upstream lower than downstream, find time to flat
-                    if dzdtdif*dtn > (z[i]-z[flowdirs[i]]):
+                    if dzdtdif*dtn > abs((z[i]-z[flowdirs[i]])):
                         dtn=(z[i]-z[flowdirs[i]])/dzdtdif
 #                        print("timetoflat", dtn)
 #            print ("out of ts loop")
@@ -323,38 +315,75 @@ class LateralEroder(Component):
                 print("vol_lat_dt", vol_lat_dt.reshape(nr,nc))
                 print("vol_lat after", vol_lat.reshape(nr,nc))
 
-
+            debug=0
             #this loop determines if enough lateral erosion has happened to change the height of the neighbor node.
-
-            for i in dwnst_nodes:
-                lat_node=lat_nodes[i]
-                wd=0.4*(da[i]*runoffms)**0.35
-                if lat_node>0:    #greater than zero now bc inactive neighbors are value -1
-#                        print("latero, line 372")
-#                    print("[lat_node]", lat_node)
-#                        print("z[lat_node]", z[lat_node])
-                    if z[lat_node] > z[i]:
-                        #vol_diff is the volume that must be eroded from lat_node so that its
-                        # elevation is the same as node downstream of primary node
-                        # UC model: this would represent undercutting (the water height at node i), slumping, and instant removal.
-                        if UC==1:
-#                                print("UC model")
-                            voldiff=(z[i]+wd-z[flowdirs[i]])*dx**2
-                        # TB model: entire lat node must be eroded before lateral erosion occurs
-                        if TB==1:
-#                                print("TB model")
-                            voldiff=(z[lat_node]-z[flowdirs[i]])*dx**2
-                        #if the total volume eroded from lat_node is greater than the volume
-                        # needed to be removed to make node equal elevation,
-                        # then instantaneously remove this height from lat node. already has timestep in it
-                        if vol_lat[lat_node]>=voldiff:
-                            dzlat[lat_node]=z[flowdirs[i]]-z[lat_node]-0.001
-                            if(1):
-                                print("chunk of lateral erosion occured", lat_node)
-                            #after the lateral node is eroded, reset its volume eroded to zero
-                            vol_lat[lat_node]=0.0
-                            if(0):
-                                print("vol_latafter", vol_lat.reshape(nr,nc))
+            wdnode=np.zeros(grid.number_of_nodes)
+            wdnode[dwnst_nodes]=0.4*(da[dwnst_nodes]*runoffms)**0.35
+            if(debug):
+                print("lat_nodes", lat_nodes.reshape(nr,nc))
+                print("nodesids", grid.nodes.reshape(nr,nc))
+                print("elevs", z.reshape(nr,nc))
+#            print(delt)
+            
+            vol_diff_vec=np.zeros(grid.number_of_nodes)
+            if UC==1:
+                # this will get me vol diffs for every node. then I have to cull them
+                vol_diff_vec=(z[:]+wdnode[:]-z[flowdirs])*dx**2
+            if TB==1:
+                # this will get me vol diffs for every node. then I have to cull them
+                vol_diff_vec=(z[lat_nodes]-z[flowdirs])*dx**2
+            if(debug):
+                print("voldiff before", vol_diff_vec.reshape(nr,nc))
+#            print("where latnode=0", np.where(lat_nodes<=0)[0])
+#            print("voldiff where", vol_diff_vec[np.where(lat_nodes<=0)[0]])
+            #*****where latnodes are 0 or -1, voldiff=0
+            vol_diff_vec[np.where(lat_nodes<=0)[0]]=0.0
+            if(debug):
+                print("voldiff after lat", vol_diff_vec.reshape(nr,nc))
+            #****where lateral nodes are lower in elevation than primary, no lateral erosion
+            vol_diff_vec[np.where(z[lat_nodes]<z[:])]=0.0
+            if(debug):
+                print("voldiff after z diff", vol_diff_vec.reshape(nr,nc))
+            #this part figuring out if enough lateralerosion has occurrred for elevations to be changed
+            nodeslat=np.where(vol_lat[lat_nodes]>vol_diff_vec[:])[0]
+            if(debug):
+                print("nodeslat", nodeslat)
+                print("vol_lat", vol_lat.reshape(nr,nc))
+            dzlat[nodeslat]=z[flowdirs[nodeslat]]-z[nodeslat]-0.001
+            if(len(nodeslat<=1)):
+                print("chunk of lateral erosion occured", nodeslat)            
+            #after the lateral node is eroded, reset its volume eroded to zero
+            vol_lat[nodeslat]=0.0
+#            print(delt)
+#            for i in dwnst_nodes:
+#                lat_node=lat_nodes[i]
+#                wd=0.4*(da[i]*runoffms)**0.35
+#                if lat_node>0:    #greater than zero now bc inactive neighbors are value -1
+##                        print("latero, line 372")
+##                    print("[lat_node]", lat_node)
+##                        print("z[lat_node]", z[lat_node])
+#                    if z[lat_node] > z[i]:
+#                        #vol_diff is the volume that must be eroded from lat_node so that its
+#                        # elevation is the same as node downstream of primary node
+#                        # UC model: this would represent undercutting (the water height at node i), slumping, and instant removal.
+#                        if UC==1:
+##                                print("UC model")
+#                            voldiff=(z[i]+wd-z[flowdirs[i]])*dx**2
+#                        # TB model: entire lat node must be eroded before lateral erosion occurs
+#                        if TB==1:
+##                                print("TB model")
+#                            voldiff=(z[lat_node]-z[flowdirs[i]])*dx**2
+#                        #if the total volume eroded from lat_node is greater than the volume
+#                        # needed to be removed to make node equal elevation,
+#                        # then instantaneously remove this height from lat node. already has timestep in it
+#                        if vol_lat[lat_node]>=voldiff:
+#                            dzlat[lat_node]=z[flowdirs[i]]-z[lat_node]-0.001
+#                            if(1):
+#                                print("chunk of lateral erosion occured", lat_node)
+#                            #after the lateral node is eroded, reset its volume eroded to zero
+#                            vol_lat[lat_node]=0.0
+#                            if(0):
+#                                print("vol_latafter", vol_lat.reshape(nr,nc))
             #multiply dzver(changed to dzdt above) by timestep size and combine with lateral erosion
             #dzlat, which is already a length for the chosen time step
             dz=dzdt*dt+dzlat
