@@ -133,6 +133,7 @@ class LateralEroder(Component):
         lat_nodes=np.zeros(grid.number_of_nodes, dtype=int)
         dzlat=np.zeros(grid.number_of_nodes)
         dzver=np.zeros(grid.number_of_nodes)
+        dzvec=np.zeros(grid.number_of_nodes)
         vol_lat_dt=np.zeros(grid.number_of_nodes)
 
         # 4/24/2017 add inlet to change drainage area with spatially variable runoff rate
@@ -182,8 +183,11 @@ class LateralEroder(Component):
             #Set those to zero, because incision rate should be zero there.
             max_slopes=max_slopes.clip(0)
             #here calculate dzdt for each node, with initial time step
-            #print "dwnst_nodes", dwnst_nodes
-
+#            print("dwnst_nodes", dwnst_nodes)
+            #vectorized dz works. I'm thinking on how to vectorize the node finder, but not working today
+            dzvec[dwnst_nodes] = -Kv[dwnst_nodes] * da[dwnst_nodes]**(0.5)*max_slopes[dwnst_nodes]
+#            print("vector erosion")
+#            print(dzvec)
             for i in dwnst_nodes:
                 #calc deposition and erosion
                 #dzver is vertical erosion/deposition only
@@ -192,7 +196,8 @@ class LateralEroder(Component):
 #                print ('area', da[i])
 #                print('kv', Kv)
 
-                dep = alph*qsin[i]/da[i]
+#                dep = alph*qsin[i]/da[i]
+                dep=0.
                 ero = -Kv[i] * da[i]**(0.5)*max_slopes[i]
 #                print( 'dep', dep)
 #                print('ero', ero)
@@ -226,7 +231,7 @@ class LateralEroder(Component):
                 # in NodeFinder and needed to calculate the angle difference
                 if i in flowdirs:
 
-                    if(1):
+                    if(0):
                         print("i", i)
                         print("flowdirs", flowdirs)
                     #Node_finder picks the lateral node to erode based on angle
@@ -264,6 +269,8 @@ class LateralEroder(Component):
                 qsin[flowdirs[i]]+=qsin[i]-(dzver[i]*dx**2)-(petlat*dx*wd)   #qsin to next node
 
             dzdt=dzver
+#            print("original erosion")
+#            print(dzver)
             #Do a time-step check
             #If the downstream node is eroding at a slower rate than the
             #upstream node, there is a possibility of flow direction reversal,
