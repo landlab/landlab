@@ -27,6 +27,7 @@ requirements:
     - pyyaml
     - statsmodels
     - pyshp
+    - gdal
 
 test:
   requires:

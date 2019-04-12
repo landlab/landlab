@@ -10,3 +10,4 @@ six
 pyyaml
 statsmodels
 pyshp
+gdal

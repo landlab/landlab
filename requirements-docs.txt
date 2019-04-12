@@ -12,3 +12,4 @@ pyyaml
 xarray
 statsmodels
 pyshp
+gdal
