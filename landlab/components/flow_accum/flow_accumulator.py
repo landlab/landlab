@@ -1136,7 +1136,7 @@ class FlowAccumulator(Component):
                 self.depression_finder.map_depressions()
 
                 # if FlowDirectorSteepest is used, update the link directions
-                if self.flow_director._name is "FlowDirectorSteepest":
+                if self.flow_director._name == "FlowDirectorSteepest":
                     self.flow_director._determine_link_directions()
 
             # step 3. Stack, D, delta construction
