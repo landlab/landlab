@@ -20,31 +20,33 @@ from matplotlib.pyplot import plot, subplot, xlabel, ylabel, title, legend, figu
 grid_3 = RasterModelGrid((5, 5), (2, 2))
 initial_boulder_sizes_3 = np.array([[10], [4], [8], [3], [5]])
 
-boulders_3 = {'grid_element' : 'node',
-            'element_id' : np.array([[6], [11], [12], [17], [12]])}
+boulders_3 = {
+    "grid_element": "node",
+    "element_id": np.array([[6], [11], [12], [17], [12]]),
+}
 
-dr_3 = DataRecord(grid_3,
-                  time=[0.],
-                  items=boulders_3,
-                  data_vars={'boulder_size' : (['item_id', 'time'], initial_boulder_sizes_3)}, 
-                  attrs={'boulder_size' : 'm'})
+dr_3 = DataRecord(
+    grid_3,
+    time=[0.0],
+    items=boulders_3,
+    data_vars={"boulder_size": (["item_id", "time"], initial_boulder_sizes_3)},
+    attrs={"boulder_size": "m"},
+)
 
 for t in range(5):
 
     dr_3.add_record(time=np.array([t]))
 
-    dr_3.ffill_grid_element_and_id() 
+    dr_3.ffill_grid_element_and_id()
 
-f = dr_3['time']== [0.0]
+f = dr_3["time"] == [0.0]
 
 f.to_dataframe()
 np.shape(f)
 
-s = dr_3.calc_aggregate_value(func=np.sum,
-                              data_variable='boulder_size', 
-                              at='node', 
-                              filter_array=f)
-
+s = dr_3.calc_aggregate_value(
+    func=np.sum, data_variable="boulder_size", at="node", filter_array=f
+)
 
 
 # %%
@@ -52,17 +54,25 @@ s = dr_3.calc_aggregate_value(func=np.sum,
 grid_3 = RasterModelGrid((5, 5), (2, 2))
 
 initial_boulder_sizes_3 = np.array([[10], [4], [8], [3], [5]])
-boulder_lithologies = np.array(['sandstone', 'granite', 'sandstone', 'sandstone', 'limestone']) #same as above, already run
+boulder_lithologies = np.array(
+    ["sandstone", "granite", "sandstone", "sandstone", "limestone"]
+)  # same as above, already run
 
-boulders_3 = {'grid_element' : 'node',
-            'element_id' : np.array([[6], [11], [12], [17], [12]])}
+boulders_3 = {
+    "grid_element": "node",
+    "element_id": np.array([[6], [11], [12], [17], [12]]),
+}
 
-dr_3 = DataRecord(grid_3,
-                  time=[0.],
-                  items=boulders_3,
-                  data_vars={'boulder_size' : (['item_id', 'time'], initial_boulder_sizes_3),
-                             'boulder_litho': (['item_id'], boulder_lithologies)}, 
-                  attrs={'boulder_size' : 'm'})
+dr_3 = DataRecord(
+    grid_3,
+    time=[0.0],
+    items=boulders_3,
+    data_vars={
+        "boulder_size": (["item_id", "time"], initial_boulder_sizes_3),
+        "boulder_litho": (["item_id"], boulder_lithologies),
+    },
+    attrs={"boulder_size": "m"},
+)
 
 
 dt = 100
@@ -76,7 +86,7 @@ for t in range(dt, total_time, dt):
     dr_3.add_record(time=np.array([t]))
 
     # this propagates grid_element and element_id values forward in time (instead of the 'nan' default filling):
-    dr_3.ffill_grid_element_and_id() 
+    dr_3.ffill_grid_element_and_id()
 
 #    for i in range(0, dr_3.number_of_items):
 #        # value of block erodibility:
@@ -97,34 +107,31 @@ for t in range(dt, total_time, dt):
 grid = RasterModelGrid((5, 5), (2, 2))
 initial_thing_size = np.array([[10], [4], [8], [3], [5]])
 
-thing = {'grid_element' : 'node',
-            'element_id' : np.array([[6], [11], [12], [17], [12]])}
+thing = {"grid_element": "node", "element_id": np.array([[6], [11], [12], [17], [12]])}
 
-dr_3 = DataRecord(grid_3,
-                  time=[0.],
-                  items=thing,
-                  data_vars={'thing_size' : (['item_id', 'time'], initial_thing_size)}, 
-                  attrs={'thing_size' : 'm'})
+dr_3 = DataRecord(
+    grid_3,
+    time=[0.0],
+    items=thing,
+    data_vars={"thing_size": (["item_id", "time"], initial_thing_size)},
+    attrs={"thing_size": "m"},
+)
 
 for t in range(5):
     dr_3.add_record(time=np.array([t]))
-    dr_3.ffill_grid_element_and_id() 
+    dr_3.ffill_grid_element_and_id()
 
 # OPTION 1 - yields ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
-f = dr_3['time']== [0.0] and dr_3['item_id']<= 4
+f = dr_3["time"] == [0.0] and dr_3["item_id"] <= 4
 
 # OPTION 2 - works
-f = dr_3['thing_size']<= 4
-f[:,0:-1]= False # workaround to only look at current timestep
-        
-        
+f = dr_3["thing_size"] <= 4
+f[:, 0:-1] = False  # workaround to only look at current timestep
+
 
 f.to_dataframe()
-print('Shape of f = ', np.shape(f))
+print("Shape of f = ", np.shape(f))
 
-s = dr_3.calc_aggregate_value(func=np.sum,
-                              data_variable='thing_size', 
-                              at='node', 
-                              filter_array=f)
-
-
+s = dr_3.calc_aggregate_value(
+    func=np.sum, data_variable="thing_size", at="node", filter_array=f
+)

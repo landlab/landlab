@@ -1,5 +1,3 @@
-
-
 import numpy as np
 
 from landlab.data_record import DataRecord

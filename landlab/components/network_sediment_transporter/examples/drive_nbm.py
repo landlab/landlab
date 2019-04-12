@@ -32,7 +32,7 @@ mg.set_looped_boundaries(True, True)
 # create the fields in the grid
 mg.add_zeros("topographic__elevation", at="node")
 z = mg.zeros(at="node") + init_elev
-mg["node"]["topographic__elevation"] = z + numpy.random.rand(len(z)) / 1000.
+mg["node"]["topographic__elevation"] = z + numpy.random.rand(len(z)) / 1000.0
 
 # Now add a step to diffuse out:
 # mg.at_node['topographic__elevation'][mg.active_nodes[:(mg.active_nodes.shape[0]//2.)]]
@@ -54,7 +54,7 @@ start_time = time.time()
 diffusion_component = PerronNLDiffuse(mg, "./drive_perron_params.txt")
 
 # perform the loop:
-elapsed_time = 0.  # total time in simulation
+elapsed_time = 0.0  # total time in simulation
 while elapsed_time < time_to_run:
     print(elapsed_time)
     if elapsed_time + dt < time_to_run:
