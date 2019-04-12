@@ -328,7 +328,7 @@ class NetworkSedimentTransporter(Component):
 
                 time_arrival_sort = np.flip(
                     np.argsort(
-                        self._parcels.get_data(time=t,
+                        self._parcels.get_data(time=self._time,
                             item_id=parcel_id_thislink,
                             data_variable="time_arrival_in_link",
                         ),
@@ -694,7 +694,7 @@ class NetworkSedimentTransporter(Component):
     def run_one_step(self, dt):
         """stuff"""
 
-        self._create_new_parcel_time(dt)
+        self._create_new_parcel_time()
         self._partition_active_and_storage_layers()
         self._adjust_node_elevation()
         self._update_channel_slopes() # I moved this down and commented out the second call to 'update channel slopes...'

@@ -12,6 +12,7 @@ from .flow_director import FlowDirectorMFD
 from .flow_director import FlowDirectorDINF
 from .flow_accum import FlowAccumulator
 from .flow_accum import LossyFlowAccumulator
+from .network_sediment_transporter import NetworkSedimentTransporter
 from .overland_flow import OverlandFlowBates, OverlandFlow
 from .overland_flow import KinwaveImplicitOverlandFlow
 from .overland_flow import KinwaveOverlandFlowModel
@@ -96,6 +97,7 @@ COMPONENTS = [
     Lithology,
     LithoLayers,
     TransportLengthHillslopeDiffuser,
+    NetworkSedimentTransporter
 ]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
