@@ -176,6 +176,8 @@ class NetworkSedimentTransporter(Component):
 
         self._num_parcels = self._parcels["element_id"].size
 
+        self.parcel_attributes = ['time_arrival_in_link', "active_layer", "location_in_link", "D", "volume"]
+
         # assert that the flow director is a component and is of type
         # FlowDirectorSteepest
 
@@ -273,21 +275,8 @@ class NetworkSedimentTransporter(Component):
 
             self._parcels.ffill_grid_element_and_id()
 
-            self._parcels['time_arrival_in_link'].values[:, self._time_idx] = self._parcels[
-                    'time_arrival_in_link'].values[:, self._time_idx-1]
-
-            self._parcels['active_layer'].values[:, self._time_idx] = self._parcels[
-                    'active_layer'].values[:, self._time_idx-1]
-            # ^ probably not needed, could leave as NaNs and populate below.
-
-            self._parcels['location_in_link'].values[:, self._time_idx] = self._parcels[
-                    'location_in_link'].values[:, self._time_idx-1]
-
-            self._parcels['D'].values[:, self._time_idx] = self._parcels[
-                    'D'].values[:, self._time_idx-1]
-
-            self._parcels['volume'].values[:, self._time_idx] = self._parcels[
-                    'volume'].values[:, self._time_idx-1]
+            for at in self.parcel_attributes:
+                self._parcels[at].values[:, self._time_idx] = self._parcels[at].values[:, self._time_idx-1]
 
     def _update_channel_slopes(self):
         """text Can be simple-- this is what this does. 'private' functions can
