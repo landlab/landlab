@@ -42,6 +42,8 @@ from landlab.data_record import DataRecord
 
 _SUPPORTED_TRANSPORT_METHODS = ["WilcockCrowe"]
 
+_OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
+
 class NetworkSedimentTransporter(Component):
     """Network bedload morphodynamic component.
 
@@ -609,13 +611,12 @@ class NetworkSedimentTransporter(Component):
                 # determine downstream link
                 current_link_of_parcel = self._parcels["element_id"][p,self._time_idx].values
 
-
                 downstream_link_id = self.fd.link_to_flow_receiving_node[
                     self.fd.downstream_node_at_link()[current_link_of_parcel]
                 ]
 
                 if downstream_link_id == -1:  # parcel has exited the network
-                    downstream_link_id = []
+                    downstream_link_id = _OUT_OF_NETWORK # Katy has added this potential approach. I also added it to an issue. 
 
                     # I think we should then remove this parcel from the parcel item collector
                     # if so, we manipulate the exiting parcel here, but may want to note something about its exit
