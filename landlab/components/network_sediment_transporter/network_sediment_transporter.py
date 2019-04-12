@@ -681,8 +681,8 @@ class NetworkSedimentTransporter(Component):
             # calculate the x and y value of each parcel at this time (based on squiggly shape file)
             # could also create a function that calculates the x and y value for all parcels at all time
             # that is just called once at the end of running the model.
-            self._parcels["x"] = value
-            self._parcels["y"] = value
+            # self._parcels["x"] = x_value
+            # self._parcels["y"] = y)value
 
             self._parcels["element_id"][p,self._time_idx] = current_link[p]
             self._parcels["active_layer"][p,self._time_idx] = 1
