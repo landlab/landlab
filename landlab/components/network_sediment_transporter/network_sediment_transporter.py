@@ -265,7 +265,7 @@ class NetworkSedimentTransporter(Component):
 
         if self._time_idx != 0:
 
-            self._parcels.add_record(time=self._time)
+            self._parcels.add_record(time=[self._time])
             # ^ what's the best way to handle time?
 #            self._parcels['grid_element'].values[:,self._time_idx] = self._parcels[
 #                    'grid_element'].values[:,self._time_idx-1]
@@ -328,7 +328,7 @@ class NetworkSedimentTransporter(Component):
 
                 time_arrival_sort = np.flip(
                     np.argsort(
-                        self._parcels.get_data(time=self._time,
+                        self._parcels.get_data(time=[self._time],
                             item_id=parcel_id_thislink,
                             data_variable="time_arrival_in_link",
                         ),
@@ -348,13 +348,13 @@ class NetworkSedimentTransporter(Component):
                 # and abrade the particles sitting on the bed. This line would identify those particles on
                 # the bed that also need to abrade due to impacts from the sediment moving above.
 
-                self._parcels.set_data(time = self_time,
+                self._parcels.set_data(time =[self._time],
                     item_id=parcel_id_thislink,
                     data_variable="active_layer",
                     new_value=1
                 )
 
-                self._parcels.set_data(time = self._time,
+                self._parcels.set_data(time =[self._time],
                     item_id=make_inactive, data_variable="active_layer", new_value=0
                 )
 
