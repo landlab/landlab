@@ -260,7 +260,7 @@ class NetworkSedimentTransporter(Component):
 
         if self._time_idx != 0:
 
-            self._parcels.add_record(time = t)
+            self._parcels.add_record(time=self._time)
             # ^ what's the best way to handle time?
 #            self._parcels['grid_element'].values[:,self._time_idx] = self._parcels[
 #                    'grid_element'].values[:,self._time_idx-1]
@@ -270,23 +270,21 @@ class NetworkSedimentTransporter(Component):
 
             self._parcels.ffill_grid_element_and_id()
 
-            self._parcels['time_arrival_in_link'].values[:,self._time_idx] = self._parcels[
-                    'time_arrival_in_link'].values[:,self._time_idx-1]
+            self._parcels['time_arrival_in_link'].values[:, self._time_idx] = self._parcels[
+                    'time_arrival_in_link'].values[:, self._time_idx-1]
 
-            self._parcels['active_layer'].values[:,self._time_idx] = self._parcels[
-                    'active_layer'].values[:,self._time_idx-1]
+            self._parcels['active_layer'].values[:, self._time_idx] = self._parcels[
+                    'active_layer'].values[:, self._time_idx-1]
             # ^ probably not needed, could leave as NaNs and populate below.
 
-            self._parcels['location_in_link'].values[:,self._time_idx] = self._parcels[
-                    'location_in_link'].values[:,self._time_idx-1]
+            self._parcels['location_in_link'].values[:, self._time_idx] = self._parcels[
+                    'location_in_link'].values[:, self._time_idx-1]
 
-            self._parcels['D'].values[:,self._time_idx] = self._parcels[
-                    'D'].values[:,self._time_idx-1]
+            self._parcels['D'].values[:, self._time_idx] = self._parcels[
+                    'D'].values[:, self._time_idx-1]
 
-            self._parcels['volume'].values[:,self._time_idx] = self._parcels[
-                    'volume'].values[:,self._time_idx-1]
-
-
+            self._parcels['volume'].values[:, self._time_idx] = self._parcels[
+                    'volume'].values[:, self._time_idx-1]
 
     def _update_channel_slopes(self):
         """text Can be simple-- this is what this does. 'private' functions can
@@ -310,18 +308,16 @@ class NetworkSedimentTransporter(Component):
 
         print('channel slopes = ', self._channel_slope)
 
-    def _partition_active_and_storage_layers(
-        self,t, **kwds
-    ):  # Allison is working on this
+    def _partition_active_and_storage_layers(self, **kwds):  # Allison is working on this
         """For each parcel in the network, determines whether it is in the
         active or storage layer during this timestep, then updates node elevations
         """
         # %%
-        find_now = self._parcels['time']== t
+        find_now = self._parcels['time']== self._time
 
         vol_tot = self._parcels.calc_aggregate_value(np.sum, "volume",
                                                      at="link",
-                                                     filter_array = find_now)
+                                                     filter_array=find_now)
 
         capacity = 2 * np.ones(
             np.size(self._parcels["element_id"])
@@ -340,7 +336,7 @@ class NetworkSedimentTransporter(Component):
 
                 time_arrival_sort = np.flip(
                     np.argsort(
-                        self._parcels.get_data(time = t,
+                        self._parcels.get_data(time=t,
                             item_id=parcel_id_thislink,
                             data_variable="time_arrival_in_link",
                         ),
@@ -350,23 +346,23 @@ class NetworkSedimentTransporter(Component):
 
                 parcel_id_time_sorted = parcel_id_thislink[time_arrival_sort]
 
-                cumvol = np.cumsum(self._parcels["volume"][parcel_id_time_sorted,self._time_idx])
+                cumvol = np.cumsum(self._parcels["volume"][parcel_id_time_sorted, self._time_idx])
 
                 idxinactive = np.where(cumvol > capacity[i])
                 make_inactive = parcel_id_time_sorted[idxinactive]
                 # idxbedabrade = np.where(cumvol < 2*capacity[i] and cumvol > capacity[i])
-                #^ syntax is wrong, but this is where we can identify the surface of the bed
+                # ^ syntax is wrong, but this is where we can identify the surface of the bed
                 # for abrasion, I think we would abrade the particles in the active layer in active transport
                 # and abrade the particles sitting on the bed. This line would identify those particles on
                 # the bed that also need to abrade due to impacts from the sediment moving above.
 
-                self._parcels.set_data(time = t,
+                self._parcels.set_data(time = self_time,
                     item_id=parcel_id_thislink,
                     data_variable="active_layer",
                     new_value=1
                 )
 
-                self._parcels.set_data(time = t,
+                self._parcels.set_data(time = self._time,
                     item_id=make_inactive, data_variable="active_layer", new_value=0
                 )
 
@@ -378,7 +374,6 @@ class NetworkSedimentTransporter(Component):
             np.sum, "volume", at="link", filter_array=findactive
         )
         self.vol_stor = (vol_tot - vol_act) / (1 - self.bed_porosity)
-
 
     # %%
     def _adjust_node_elevation(self):
@@ -454,7 +449,7 @@ class NetworkSedimentTransporter(Component):
 
 
     # %%
-    def _calc_transport_wilcock_crowe(self,t):  # Allison
+    def _calc_transport_wilcock_crowe(self):  # Allison
         """Method to determine the transport time for each parcel in the active
         layer using a sediment transport equation.
 
@@ -488,12 +483,12 @@ class NetworkSedimentTransporter(Component):
         # ^ Ttimearray is the time to move through the entire length of a link
 
         # Calculate bed statistics for all of the links
-        find_now = self._parcels['time']== t
+        find_now = self._parcels['time'] == self._time
 
         vol_tot = self._parcels.calc_aggregate_value(np.sum,
                                                         "volume",
                                                         at="link",
-                                                        filter_array = find_now
+                                                        filter_array=find_now
         )
 
         findactive = (self._parcels["active_layer"] == 1)
@@ -704,13 +699,15 @@ class NetworkSedimentTransporter(Component):
             self._parcels["D"][p,self._time_idx] = D
 
     # %%
-    def run_one_step(self, dt, t):
+    def run_one_step(self, dt):
         """stuff"""
-        self._create_new_parcel_time(dt, t)
-        self._partition_active_and_storage_layers(t)
+
+        self._create_new_parcel_time(dt)
+        self._partition_active_and_storage_layers()
         self._adjust_node_elevation()
         self._update_channel_slopes() # I moved this down and commented out the second call to 'update channel slopes...'
-        self._calc_transport_wilcock_crowe(t)
+        self._calc_transport_wilcock_crowe()
         self._move_parcel_downstream(dt)
 
+        self._time += dt # DANGER DANGER. AP: should this happen here or before the prior six function calls?
         self._time_idx +=1
