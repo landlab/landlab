@@ -8,22 +8,22 @@ maybe it should be called "czuba_network_sediment_transporter"
 info about the component here
 
 
-Fixes that need to happen: 
+Fixes that need to happen:
 
     -- Need to find better way to define filterarrays in time and item_id
-	current option is very clunky. The one Nathan Lyons suggested doesn't work. 
+	current option is very clunky. The one Nathan Lyons suggested doesn't work.
 
-    -- What to do with parcels when they get to the last link? --> I didn't get to this. 
-    
+    -- What to do with parcels when they get to the last link? --> I didn't get to this.
+
     (x) tau/taur changes very subtly through time. It shouldn't. Track down this mystery.
-            - storage volume stays the same. 
+            - storage volume stays the same.
             - channel slopes (!) change in time, even though parcels don't move to the next link
         --> Proposed solution at Ln 443. Check with Jon. Need to add 'bedrock__elevation' node attribute...
 
     -- Need to calculate distance a parcel travels in a timestep for abrasion
 
-    !-- The abrasion exponent is applied to diameter, but doesn't impact parcel volume. Need to fix. 
-    
+    !-- The abrasion exponent is applied to diameter, but doesn't impact parcel volume. Need to fix.
+
     -- Fix inelegant time indexing
 
 .. codeauthor:: Jon Allison Katy
@@ -160,20 +160,20 @@ class NetworkSedimentTransporter(Component):
         and more here...
         """
         super(NetworkSedimentTransporter, self).__init__(grid, **kwds)
-        
+
         self._grid = grid
-        
+
         if  not isinstance(grid, NetworkModelGrid):
             msg = ("NetworkSedimentTransporter: grid must be NetworkModelGrid")
             raise (ValueError, msg)
-        
+
         self._parcels = parcels
-        
+
         if not isinstance(parcels, DataRecord):
             msg = ("NetworkSedimentTransporter: parcels must be an instance"
                    "of DataRecord")
             raise (ValueError, msg)
-            
+
         self._num_parcels = self._parcels["element_id"].size
 
         # assert that the flow director is a component and is of type
@@ -197,23 +197,24 @@ class NetworkSedimentTransporter(Component):
         self.fd = flow_director
         self.flow_depth = flow_depth
         self.bed_porosity = bed_porosity
-        
+
         if not 0<= self.bed_porosity <1:
             msg = ("NetworkSedimentTransporter: bed_porosity must be"
                    "between 0 and 1")
             raise (ValueError,msg)
-            
+
         self.active_layer_thickness = active_layer_thickness
 
         # NOTE: variable active_layer_thickness Wong et al 2007
         # "a predictor for active layer thickness that increases with both grain size and Shields number, i.e., equations (50), (17), (18), and (23);
-    
+
         self.g = g
         self.fluid_density = fluid_density
         self._time_idx = 0
-        
+        self._time = 0
+
         # TEST for valid transport method entry
-        _SUPPORTED_TRANSPORT_METHODS = ["WilcockCrowe"]      
+        _SUPPORTED_TRANSPORT_METHODS = ["WilcockCrowe"]
 
         if transport_method in _SUPPORTED_TRANSPORT_METHODS:
             self.transport_method = transport_method
@@ -228,7 +229,7 @@ class NetworkSedimentTransporter(Component):
         # grid
 
         self._width = self._grid.at_link[channel_width]
-        
+
         if "channel_width" not in self._grid.at_link:
             msg = ("NetworkSedimentTransporter: channel_width must be assigned"
                    "to the grid links")
@@ -238,7 +239,7 @@ class NetworkSedimentTransporter(Component):
             msg = ("NetworkSedimentTransporter: link_length must be assigned"
                    "to the grid links")
             raise ValueError(msg)
-            
+
         if "drainage_area" not in self._grid.at_link:
             msg = ("NetworkSedimentTransporter: channel_width must be assigned"
                    "to the grid links")
@@ -250,46 +251,46 @@ class NetworkSedimentTransporter(Component):
             self._update_channel_slopes()  # this would be a function that updates the channel slopes (if you use this more than once, make it a function)
         else:
             self._channel_slope = self._grid.at_link["channel_slope"]
-            
-            
+
+
 
     def _create_new_parcel_time(self,dt,t):
-        """ If we are going to track parcels through time in DataRecord, we 
+        """ If we are going to track parcels through time in DataRecord, we
         need to add a new time column to the parcels dataframe. This method simply
         copies over the attributes of the parcels from the former timestep.
-        Attributes will be updated over the course of this step. 
+        Attributes will be updated over the course of this step.
         """
-        
+
         if self._time_idx != 0:
-            
-            self._parcels.add_record(time = t) 
-            # ^ what's the best way to handle time? 
+
+            self._parcels.add_record(time = t)
+            # ^ what's the best way to handle time?
 #            self._parcels['grid_element'].values[:,self._time_idx] = self._parcels[
 #                    'grid_element'].values[:,self._time_idx-1]
-#    
+#
 #            self._parcels['element_id'].values[:,self._time_idx] = self._parcels[
 #                    'element_id'].values[:,self._time_idx-1]
-            
+
             self._parcels.ffill_grid_element_and_id()
-            
+
             self._parcels['time_arrival_in_link'].values[:,self._time_idx] = self._parcels[
                     'time_arrival_in_link'].values[:,self._time_idx-1]
-            
+
             self._parcels['active_layer'].values[:,self._time_idx] = self._parcels[
                     'active_layer'].values[:,self._time_idx-1]
-            # ^ probably not needed, could leave as NaNs and populate below. 
-                
+            # ^ probably not needed, could leave as NaNs and populate below.
+
             self._parcels['location_in_link'].values[:,self._time_idx] = self._parcels[
                     'location_in_link'].values[:,self._time_idx-1]
-            
+
             self._parcels['D'].values[:,self._time_idx] = self._parcels[
                     'D'].values[:,self._time_idx-1]
-            
+
             self._parcels['volume'].values[:,self._time_idx] = self._parcels[
-                    'volume'].values[:,self._time_idx-1]        
-        
-        
-    
+                    'volume'].values[:,self._time_idx-1]
+
+
+
     def _update_channel_slopes(self):
         """text Can be simple-- this is what this does. 'private' functions can
         have very simple examples, explanations. Essentially note to yourself"""
@@ -309,7 +310,7 @@ class NetworkSedimentTransporter(Component):
                 chan_slope = 1e-4
 
             self._channel_slope[l] = chan_slope
-        
+
         print('channel slopes = ', self._channel_slope)
 
     def _partition_active_and_storage_layers(
@@ -321,7 +322,7 @@ class NetworkSedimentTransporter(Component):
         # %%
         find_now = self._parcels['time']== t
 
-        vol_tot = self._parcels.calc_aggregate_value(np.sum, "volume", 
+        vol_tot = self._parcels.calc_aggregate_value(np.sum, "volume",
                                                      at="link",
                                                      filter_array = find_now)
 
@@ -339,7 +340,7 @@ class NetworkSedimentTransporter(Component):
 
                 # time_arrival_sort = np.flip(np.argsort(self._parcels.DataFrame.time_arrival_in_link.values[parcel_id_thislink]),0)
                 # time_arrival_sort = np.flip(np.argsort(self._parcels['time_arrival_in_link'][parcel_id_thislink]),0)
-                
+
                 time_arrival_sort = np.flip(
                     np.argsort(
                         self._parcels.get_data(time = t,
@@ -361,7 +362,7 @@ class NetworkSedimentTransporter(Component):
                 # for abrasion, I think we would abrade the particles in the active layer in active transport
                 # and abrade the particles sitting on the bed. This line would identify those particles on
                 # the bed that also need to abrade due to impacts from the sediment moving above.
-                
+
                 self._parcels.set_data(time = t,
                     item_id=parcel_id_thislink,
                     data_variable="active_layer",
@@ -372,22 +373,22 @@ class NetworkSedimentTransporter(Component):
                     item_id=make_inactive, data_variable="active_layer", new_value=0
                 )
 
-        # Update Node Elevations 
-        findactive = (self._parcels["active_layer"] == 1) 
+        # Update Node Elevations
+        findactive = (self._parcels["active_layer"] == 1)
         findactive[:,0:-1]= False
-        
+
         vol_act = self._parcels.calc_aggregate_value(
             np.sum, "volume", at="link", filter_array=findactive
         )
         self.vol_stor = (vol_tot - vol_act) / (1 - self.bed_porosity)
-        
+
 
     # %%
-    def _adjust_node_elevation(self):  
+    def _adjust_node_elevation(self):
         """Adjusts slope for each link based on parcel motions from last
         timestep and additions from this timestep.
         """
-        
+
         number_of_contributors = np.sum(
             self.fd.flow_link_incoming_at_node() == 1, axis=1
         )
@@ -401,7 +402,7 @@ class NetworkSedimentTransporter(Component):
         # Update the node elevations depending on the quantity of stored sediment
         for l in range(self._grid.number_of_nodes):
             #^ comment from Jon -- I usually don't like using l as an index because it looks too close to 1.
-            
+
             if number_of_contributors[l] > 0:  # we don't update head node elevations
 
                 upstream_links = upstream_contributing_links_at_node[l]
@@ -426,8 +427,8 @@ class NetworkSedimentTransporter(Component):
                     length_of_downstream_link = 0
 
                 # IMPROVE: deal with the downstream most link...
-                # DANGER DANGER I think something is wrong here. Anytime there is volume in storage, the elevation changes, even if the storage volume hasn't changed. 
-                
+                # DANGER DANGER I think something is wrong here. Anytime there is volume in storage, the elevation changes, even if the storage volume hasn't changed.
+
 #                elev_change = (
 #                    2
 #                    * self.vol_stor[downstream_link_id][l]
@@ -438,11 +439,11 @@ class NetworkSedimentTransporter(Component):
 #                )
 #
 #                self._grid.at_node["topographic__elevation"][l] += elev_change
-#                
-#                
-                # IDEA: Each node has a 'bedrock elevation' that is set at the start, then we can add the bed thickness to that. 
-                # perhaps ^ that is what you were modeling originally, but that's not how I had translated it originally.             
-                
+#
+#
+                # IDEA: Each node has a 'bedrock elevation' that is set at the start, then we can add the bed thickness to that.
+                # perhaps ^ that is what you were modeling originally, but that's not how I had translated it originally.
+
                 alluvium__depth = (
                     2
                     * self.vol_stor[downstream_link_id][l]
@@ -451,10 +452,10 @@ class NetworkSedimentTransporter(Component):
                         + width_of_downstream_link * length_of_downstream_link
                     )
                 )
-                
+
                 self._grid.at_node["topographic__elevation"][l] = self._grid.at_node["bedrock__elevation"][l] + alluvium__depth
-                
-        
+
+
     # %%
     def _calc_transport_wilcock_crowe(self,t):  # Allison
         """Method to determine the transport time for each parcel in the active
@@ -491,23 +492,23 @@ class NetworkSedimentTransporter(Component):
 
         # Calculate bed statistics for all of the links
         find_now = self._parcels['time']== t
-        
+
         vol_tot = self._parcels.calc_aggregate_value(np.sum,
                                                         "volume",
                                                         at="link",
                                                         filter_array = find_now
         )
 
-        findactive = (self._parcels["active_layer"] == 1) 
+        findactive = (self._parcels["active_layer"] == 1)
         findactive[:,0:-1]= False # workaround to only look at current timestep
 
         vol_act = self._parcels.calc_aggregate_value(
             np.sum, "volume", at="link", filter_array=findactive
         )
-        
-        findactivesand = np.full(np.shape(findactive),False) 
+
+        findactivesand = np.full(np.shape(findactive),False)
         #^ create boolean array of Falses the same shape as parcels
-        findactivesand[:,-1] = np.logical_and(Darray < 0.002, 
+        findactivesand[:,-1] = np.logical_and(Darray < 0.002,
                                         Activearray == 1)
 
         if np.any(findactivesand):
@@ -520,7 +521,7 @@ class NetworkSedimentTransporter(Component):
 
         frac_sand = vol_act_sand / vol_act
         frac_sand[np.isnan(frac_sand) == True] = 0
-        
+
         # Calc attributes for each link, map to parcel arrays
         for i in range(self._grid.number_of_links):
 
@@ -528,12 +529,12 @@ class NetworkSedimentTransporter(Component):
             d_act_i = Darray[active_here]
             vol_act_i = Volarray[active_here]
             vol_act_tot_i = np.sum(vol_act_i)
-            # ^ this behaves as expected. filterarray to create vol_tot above does not. 
+            # ^ this behaves as expected. filterarray to create vol_tot above does not.
             d_mean_active[Linkarray == i] = np.sum(d_act_i * vol_act_i) / (vol_act_tot_i)
-            
+
             frac_sand_array[Linkarray == i] = frac_sand[i]
             vol_act_array[Linkarray == i] = vol_act[i]
-            Sarray[Linkarray == i] = self._grid.at_link["channel_slope"][i]    
+            Sarray[Linkarray == i] = self._grid.at_link["channel_slope"][i]
             Harray[Linkarray == i] = self.flow_depth[self._time_idx,i]
             Larray[Linkarray == i] = self._grid.at_link["link_length"][i]
 
@@ -551,22 +552,22 @@ class NetworkSedimentTransporter(Component):
             * (0.021 + 0.015 * np.exp(-20. * frac_sand_array))
         )
 
-#        print("d_mean_active = ", d_mean_active)        
+#        print("d_mean_active = ", d_mean_active)
 #        print("taursg = ", taursg)
-        
+
         frac_parcel = vol_act_array / Volarray
         b = 0.67 / (1 + np.exp(1.5 - Darray / d_mean_active))
         tau = rho * g * Harray * Sarray
         taur = taursg * (Darray / d_mean_active) ** b
-        
+
         tautaur = tau / taur
         print("tau / taur = ", tautaur)
         tautaur_cplx = tautaur.astype(np.complex128)
-        # ^ work around needed b/c np fails with non-integer powers of negative numbers      
+        # ^ work around needed b/c np fails with non-integer powers of negative numbers
         W = 0.002 * np.power(tautaur_cplx.real, 7.5)
         W[tautaur >= 1.35] = 14 * np.power((1 - (0.894 / np.sqrt(tautaur_cplx.real[tautaur >=1.35]))), 4.5)
         W = W.real
-    
+
 
         # assign travel times only for active parcels
         self.Ttimearray[Activearray == 1] = (
@@ -609,7 +610,7 @@ class NetworkSedimentTransporter(Component):
         )
         if self._time_idx == 1:
             print("t",self._time_idx)
-        
+
         # However, a parcel is not always at the US end of a link, so need to determine
         # how much time it takes for that parcel to move out of the current link based on its
         # current location ...
@@ -624,14 +625,14 @@ class NetworkSedimentTransporter(Component):
                 # determine downstream link
                 current_link_of_parcel = self._parcels["element_id"][p,self._time_idx].values
 
-                
+
                 downstream_link_id = self.fd.link_to_flow_receiving_node[
                     self.fd.downstream_node_at_link()[current_link_of_parcel]
                 ]
-                
+
                 if downstream_link_id == -1:  # parcel has exited the network
                     downstream_link_id = []
-                    
+
                     # I think we should then remove this parcel from the parcel item collector
                     # if so, we manipulate the exiting parcel here, but may want to note something about its exit
                     # such as output volume and output time into a separate outlet array
@@ -641,13 +642,13 @@ class NetworkSedimentTransporter(Component):
                     # copy but not remove values at that location.
 
                     # ADD CODE FOR THIS HERE, right now these parcel will just cycle through not actually leaving the system
-                    
+
                     # This is why the code is breaking! These parcels need to be removed.
-                    
+
                     # self.Accumulator_Outlet.item_id = self._parcels.item_id[p]
                     #^ need something like this but I don't know how to initialize or concatentate
                     # Then we need to remove the parcels from the self._parcel structure.
-                    
+
                     break  # break out of while loop
 
                 current_link[p] = downstream_link_id
@@ -668,7 +669,7 @@ class NetworkSedimentTransporter(Component):
                 )
 
                 # TRACK RUNNING TRAVEL DISTANCE HERE SIMILAR TO RUNNING TRAVEL TIME
-            
+
             time_in_link_before_dt = time_to_exit_current_link[p] - (
                 running_travel_time_in_dt[p] - dt
             )
@@ -682,18 +683,25 @@ class NetworkSedimentTransporter(Component):
             # USE RUNNING TRAVEL DISTANCE TO UPDATE D AND VOL DUE TO ABRASION HERE
 
             distance_traveled[p] = 0  # NEED TO DEFINE
-            
+
             #DANGER DANGER... abration_rate is now a diameter loss abration exponent
             D = (self._parcels["D"][p,self._time_idx]) * (
                 np.exp(distance_traveled[p] * (-self._parcels["abrasion_rate"][p]))
             )
             #vol =  # DANGER DANGER... need to make total parcel volume as a function of change in grain size
-            
-            
+
+
             # update parcel attributes
             self._parcels["location_in_link"][p,self._time_idx] = location_in_link[p]
+
+            # calculate the x and y value of each parcel at this time (based on squiggly shape file)
+            # could also create a function that calculates the x and y value for all parcels at all time
+            # that is just called once at the end of running the model.
+            self._parcels["x"] = value
+            self._parcels["y"] = value
+
             self._parcels["element_id"][p,self._time_idx] = current_link[p]
-            self._parcels["active_layer"][p,self._time_idx] = 1  
+            self._parcels["active_layer"][p,self._time_idx] = 1
             # ^ reset to 1 (active) to be recomputed/determined at next timestep
             # DANGER DANGER self._parcels["volume"][p,self._time_idx] = vol
             self._parcels["D"][p,self._time_idx] = D
@@ -707,5 +715,5 @@ class NetworkSedimentTransporter(Component):
         self._update_channel_slopes() # I moved this down and commented out the second call to 'update channel slopes...'
         self._calc_transport_wilcock_crowe(t)
         self._move_parcel_downstream(dt)
-        
+
         self._time_idx +=1

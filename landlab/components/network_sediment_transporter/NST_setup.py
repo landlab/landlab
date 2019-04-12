@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 This code outlines very a very basic use case for the NetworkSedimentTransporter
-component. 
+component.
 
 Created on Sun May 20 15:54:03 2018
 
@@ -61,9 +61,9 @@ bed_porosity = 0.3  # porosity of the bed material
 # %% initialize bed sediment (will become its own component)
 
 # NOTE: inputs to DataRecord need to have the same shape as the time/item inputs
-# So, if a parcel attribute is being tracked in time, it needs to have 
+# So, if a parcel attribute is being tracked in time, it needs to have
 # np.shape = (n,1), and if it isn't tracked in time, it needs to have
-# np.shape = (n,). 
+# np.shape = (n,).
 
 # Ultimately,
 # parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
@@ -116,7 +116,7 @@ variables = {
     "abrasion_rate": (["item_id"], abrasion_rate),
     "density": (["item_id"], density),
     "lithology": (["item_id"], lithology),
-    
+
     "time_arrival_in_link": (["item_id","time"], time_arrival_in_link),
     "active_layer": (["item_id","time"], active_layer),
     "location_in_link": (["item_id","time"], location_in_link),
@@ -124,8 +124,8 @@ variables = {
     "volume": (["item_id","time"], volume)
     }
 
-parcels = DataRecord(grid, 
-                     items=items, 
+parcels = DataRecord(grid,
+                     items=items,
                      time = time,
                      data_vars=variables
 )
@@ -137,7 +137,7 @@ parcels = DataRecord(grid,
 
 # Made up hydraulic geometry
 
-Qgage = 2000.  # 
+Qgage = 2000.  #
 dt = 60 * 60 * 24
 # (seconds) daily timestep
 Bgage = 30.906 * Qgage ** 0.1215
@@ -147,15 +147,15 @@ Hgage = 1.703 * Qgage ** 0.3447
 Agage = 4.5895e+9
 # (m2)
 
-channel_width = ((np.tile(Bgage, (grid.number_of_links)) 
-                / (Agage ** 0.5)) 
-                * np.tile(grid.at_link["drainage_area"], 
+channel_width = ((np.tile(Bgage, (grid.number_of_links))
+                / (Agage ** 0.5))
+                * np.tile(grid.at_link["drainage_area"],
                           (timesteps,1)) ** 0.5
                 )
 
-flow_depth = ((np.tile(Hgage, (grid.number_of_links)) 
-            / (Agage ** 0.4)) 
-            * np.tile(grid.at_link["drainage_area"], 
+flow_depth = ((np.tile(Hgage, (grid.number_of_links))
+            / (Agage ** 0.4))
+            * np.tile(grid.at_link["drainage_area"],
                       (timesteps,1)) ** 0.4
             )
 
@@ -205,8 +205,8 @@ for t in range(0,(timesteps*dt),dt):
    nst.run_one_step(dt, [t])
    print ('timestep ', [t], 'completed!')
 
-# %% A few plot outputs, just to get started. 
-   
+# %% A few plot outputs, just to get started.
+
 plt.figure(1)
 plt.plot(parcels.time_coordinates, parcels['location_in_link'].values[6,:],'.')
 plt.plot(parcels.time_coordinates, parcels['location_in_link'].values[5,:],'.')
@@ -220,4 +220,3 @@ plt.plot(parcels.time_coordinates, np.sum(parcels['volume'].values, axis = 0),'.
 plt.title("Silly example: total volume, all parcels through time")
 plt.xlabel('time')
 plt.ylabel('total volume of parcels')
-
