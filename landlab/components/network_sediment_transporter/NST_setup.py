@@ -16,7 +16,7 @@ from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 from landlab.plot import graph
 
-from network_sediment_transporter import NetworkSedimentTransporter
+from landlab.components import NetworkSedimentTransporter
 # ^ that worked yesterday. WTF
 
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
@@ -202,8 +202,8 @@ for t in range(0,(timesteps*dt),dt):
     #   will assign flow depth for each reach (for this timestep)
 
     # Run our component
-   nst.run_one_step(dt, [t])
-   print ('timestep ', [t], 'completed!')
+   nst.run_one_step(dt)
+   print ('timestep ', t, 'completed!')
 
 # %% A few plot outputs, just to get started.
 
