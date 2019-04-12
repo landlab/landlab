@@ -15,11 +15,16 @@ Fixes that need to happen:
 
     -- What to do with parcels when they get to the last link? --> I didn't get to this. 
     
-    -- tau/taur changes very subtly through time. It shouldn't. Track down this mystery. 
+    (x) tau/taur changes very subtly through time. It shouldn't. Track down this mystery.
+            - storage volume stays the same. 
+            - channel slopes (!) change in time, even though parcels don't move to the next link
+        --> Proposed solution at Ln 443. Check with Jon. Need to add 'bedrock__elevation' node attribute...
 
     -- Need to calculate distance a parcel travels in a timestep for abrasion
 
-    -- The abrasion exponent is applied to diameter, but doesn't impact parcel volume. Need to fix. 
+    !-- The abrasion exponent is applied to diameter, but doesn't impact parcel volume. Need to fix. 
+    
+    -- Fix inelegant time indexing
 
 .. codeauthor:: Jon Allison Katy
 
@@ -304,6 +309,8 @@ class NetworkSedimentTransporter(Component):
                 chan_slope = 1e-4
 
             self._channel_slope[l] = chan_slope
+        
+        print('channel slopes = ', self._channel_slope)
 
     def _partition_active_and_storage_layers(
         self,t, **kwds
@@ -339,7 +346,7 @@ class NetworkSedimentTransporter(Component):
                             item_id=parcel_id_thislink,
                             data_variable="time_arrival_in_link",
                         ),
-                        0,
+                        0
                     )
                 )
 
@@ -358,7 +365,7 @@ class NetworkSedimentTransporter(Component):
                 self._parcels.set_data(time = t,
                     item_id=parcel_id_thislink,
                     data_variable="active_layer",
-                    new_value=1,
+                    new_value=1
                 )
 
                 self._parcels.set_data(time = t,
@@ -373,6 +380,7 @@ class NetworkSedimentTransporter(Component):
             np.sum, "volume", at="link", filter_array=findactive
         )
         self.vol_stor = (vol_tot - vol_act) / (1 - self.bed_porosity)
+        
 
     # %%
     def _adjust_node_elevation(self):  
@@ -418,7 +426,24 @@ class NetworkSedimentTransporter(Component):
                     length_of_downstream_link = 0
 
                 # IMPROVE: deal with the downstream most link...
-                elev_change = (
+                # DANGER DANGER I think something is wrong here. Anytime there is volume in storage, the elevation changes, even if the storage volume hasn't changed. 
+                
+#                elev_change = (
+#                    2
+#                    * self.vol_stor[downstream_link_id][l]
+#                    / (
+#                        np.sum(width_of_upstream_links * length_of_upstream_links)
+#                        + width_of_downstream_link * length_of_downstream_link
+#                    )
+#                )
+#
+#                self._grid.at_node["topographic__elevation"][l] += elev_change
+#                
+#                
+                # IDEA: Each node has a 'bedrock elevation' that is set at the start, then we can add the bed thickness to that. 
+                # perhaps ^ that is what you were modeling originally, but that's not how I had translated it originally.             
+                
+                alluvium__depth = (
                     2
                     * self.vol_stor[downstream_link_id][l]
                     / (
@@ -426,12 +451,10 @@ class NetworkSedimentTransporter(Component):
                         + width_of_downstream_link * length_of_downstream_link
                     )
                 )
-
-                self._grid.at_node["topographic__elevation"][l] += elev_change
-
-        # Update channel slope
-        self._update_channel_slopes()
-
+                
+                self._grid.at_node["topographic__elevation"][l] = self._grid.at_node["bedrock__elevation"][l] + alluvium__depth
+                
+        
     # %%
     def _calc_transport_wilcock_crowe(self,t):  # Allison
         """Method to determine the transport time for each parcel in the active
@@ -475,9 +498,8 @@ class NetworkSedimentTransporter(Component):
                                                         filter_array = find_now
         )
 
-        # ORIGINAL, i suspect a glitch
         findactive = (self._parcels["active_layer"] == 1) 
-        findactive[:,0:-1]= False
+        findactive[:,0:-1]= False # workaround to only look at current timestep
 
         vol_act = self._parcels.calc_aggregate_value(
             np.sum, "volume", at="link", filter_array=findactive
@@ -608,7 +630,7 @@ class NetworkSedimentTransporter(Component):
                 ]
                 
                 if downstream_link_id == -1:  # parcel has exited the network
-                    #downstream_link_id = 'NaN'
+                    downstream_link_id = []
                     
                     # I think we should then remove this parcel from the parcel item collector
                     # if so, we manipulate the exiting parcel here, but may want to note something about its exit
@@ -680,9 +702,9 @@ class NetworkSedimentTransporter(Component):
     def run_one_step(self, dt, t):
         """stuff"""
         self._create_new_parcel_time(dt, t)
-        self._update_channel_slopes()
         self._partition_active_and_storage_layers(t)
         self._adjust_node_elevation()
+        self._update_channel_slopes() # I moved this down and commented out the second call to 'update channel slopes...'
         self._calc_transport_wilcock_crowe(t)
         self._move_parcel_downstream(dt)
         

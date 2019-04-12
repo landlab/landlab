@@ -92,3 +92,39 @@ for t in range(dt, total_time, dt):
 #        dr_3['boulder_size'].values[i, time_index] = dr_3['boulder_size'].values[i, time_index-1] - k_b * dr_3['boulder_size'].values[i, time_index-1] * dt
 #
 #    time_index += 1
+
+# %%
+grid = RasterModelGrid((5, 5), (2, 2))
+initial_thing_size = np.array([[10], [4], [8], [3], [5]])
+
+thing = {'grid_element' : 'node',
+            'element_id' : np.array([[6], [11], [12], [17], [12]])}
+
+dr_3 = DataRecord(grid_3,
+                  time=[0.],
+                  items=thing,
+                  data_vars={'thing_size' : (['item_id', 'time'], initial_thing_size)}, 
+                  attrs={'thing_size' : 'm'})
+
+for t in range(5):
+    dr_3.add_record(time=np.array([t]))
+    dr_3.ffill_grid_element_and_id() 
+
+# OPTION 1 - yields ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+f = dr_3['time']== [0.0] and dr_3['item_id']<= 4
+
+# OPTION 2 - works
+f = dr_3['thing_size']<= 4
+f[:,0:-1]= False # workaround to only look at current timestep
+        
+        
+
+f.to_dataframe()
+print('Shape of f = ', np.shape(f))
+
+s = dr_3.calc_aggregate_value(func=np.sum,
+                              data_variable='thing_size', 
+                              at='node', 
+                              filter_array=f)
+
+

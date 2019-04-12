@@ -31,8 +31,7 @@ plt.figure(0)
 graph.plot_graph(grid, at="node,link")
 
 grid.at_node["topographic__elevation"] = [0., .1, .3, .2, .3, .4, .41, .5]
-# ^ in order for the FlowDirector and FlowAccumulator to work properly with the network model grid
-# I had to change the last two elements from 4. and 2. to 4.1 and 5. in order to avoid slopes <=0
+grid.at_node["bedrock__elevation"] = [0., .1, .3, .2, .3, .4, .41, .5]
 
 area = grid.add_ones("cell_area_at_node", at="node")
 
