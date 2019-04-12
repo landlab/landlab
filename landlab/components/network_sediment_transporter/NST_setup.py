@@ -77,7 +77,7 @@ element_id = np.array(
 )  # current link for each parcel
 
 element_id = np.expand_dims(element_id, axis=1)
-
+#%%
 starting_link = np.squeeze(element_id)  # starting link for each parcel
 
 np.random.seed(0)
@@ -200,8 +200,8 @@ for t in range(0, (timesteps * dt), dt):
 # %% A few plot outputs, just to get started.
 
 plt.figure(1)
-plt.plot(parcels.time_coordinates, parcels["location_in_link"].values[6, :], ".")
-plt.plot(parcels.time_coordinates, parcels["location_in_link"].values[5, :], ".")
+plt.plot(parcels.time_coordinates, parcels.location_in_link.values[6, :], ".")
+plt.plot(parcels.time_coordinates, parcels.location_in_link.values[5, :], ".")
 plt.title("Tracking link location for a single parcel")
 plt.xlabel("time")
 plt.ylabel("location in link")
