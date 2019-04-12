@@ -213,9 +213,6 @@ class NetworkSedimentTransporter(Component):
         self._time_idx = 0
         self._time = 0
 
-        # TEST for valid transport method entry
-        _SUPPORTED_TRANSPORT_METHODS = ["WilcockCrowe"]
-
         if transport_method in _SUPPORTED_TRANSPORT_METHODS:
             self.transport_method = transport_method
         else:
