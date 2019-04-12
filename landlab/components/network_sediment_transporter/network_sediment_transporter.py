@@ -11,20 +11,25 @@ info about the component here
 Fixes that need to happen: 
 
     -- Need to find better way to define filterarrays in time and item_id
-	current option is very clunky. The one Nathan Lyons suggested doesn't work. 
+	current option is very clunky. The one Nathan Lyons suggested doesn't work.
+        --> Katy will look at this
 
-    -- What to do with parcels when they get to the last link? --> I didn't get to this. 
+    -- What to do with parcels when they get to the last link?  
+        --> Katy will look at this
     
-    (x) tau/taur changes very subtly through time. It shouldn't. Track down this mystery.
-            - storage volume stays the same. 
-            - channel slopes (!) change in time, even though parcels don't move to the next link
-        --> Proposed solution at Ln 443. Check with Jon. Need to add 'bedrock__elevation' node attribute...
-
     -- Need to calculate distance a parcel travels in a timestep for abrasion
+        --> Jon will look at this
 
-    !-- The abrasion exponent is applied to diameter, but doesn't impact parcel volume. Need to fix. 
+    -- The abrasion exponent is applied to diameter, but doesn't impact parcel volume. Need to fix. 
+        --> Allison will look at this. Only abrade gravel (not sand).
     
     -- Fix inelegant time indexing
+    
+    
+
+What are the things we want to future-proof for?
+    -- Abrasion in place, due to transport of parcels passing over
+    -- Floodplain sediment exchange
 
 .. codeauthor:: Jon Allison Katy
 
@@ -607,6 +612,7 @@ class NetworkSedimentTransporter(Component):
         distance_traveled = np.zeros(np.shape(
                                     self._parcels["element_id"][:,self._time_idx])
         )
+            
         if self._time_idx == 1:
             print("t",self._time_idx)
         
