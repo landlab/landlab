@@ -24,6 +24,9 @@ Fixes that need to happen:
     !-- The abrasion exponent is applied to diameter, but doesn't impact parcel volume. Need to fix.
 
     -- Fix inelegant time indexing
+    
+    -- Looks to me that as part of run-one-step the element_id variable in parces is being changed from 
+       An int to a float. I haven't tracked down why... but I think it should stay as an int. 
 
 .. codeauthor:: Jon Allison Katy
 
