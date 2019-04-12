@@ -256,7 +256,7 @@ class NetworkSedimentTransporter(Component):
         """Return current time."""
         return self._time
 
-    def _create_new_parcel_time(self, dt):
+    def _create_new_parcel_time(self):
         """ If we are going to track parcels through time in DataRecord, we
         need to add a new time column to the parcels dataframe. This method simply
         copies over the attributes of the parcels from the former timestep.
