@@ -306,7 +306,6 @@ class NetworkSedimentTransporter(Component):
         """For each parcel in the network, determines whether it is in the
         active or storage layer during this timestep, then updates node elevations
         """
-        # %%
         find_now = self._parcels['time']== self._time
 
         vol_tot = self._parcels.calc_aggregate_value(np.sum, "volume",
@@ -441,8 +440,6 @@ class NetworkSedimentTransporter(Component):
 
                 self._grid.at_node["topographic__elevation"][l] = self._grid.at_node["bedrock__elevation"][l] + alluvium__depth
 
-
-    # %%
     def _calc_transport_wilcock_crowe(self):  # Allison
         """Method to determine the transport time for each parcel in the active
         layer using a sediment transport equation.
@@ -554,7 +551,6 @@ class NetworkSedimentTransporter(Component):
         W[tautaur >= 1.35] = 14 * np.power((1 - (0.894 / np.sqrt(tautaur_cplx.real[tautaur >=1.35]))), 4.5)
         W = W.real
 
-
         # assign travel times only for active parcels
         self.Ttimearray[Activearray == 1] = (
             (rho ** (3 / 2))
@@ -578,13 +574,10 @@ class NetworkSedimentTransporter(Component):
         self._grid.at_link["sediment__active__volume"] = vol_act
         self._grid.at_link["sediment__active__sand_fraction"] = frac_sand
 
-    # %%
     def _move_parcel_downstream(self, dt):  # Jon
         """Method to update parcel location for each parcel in the active
         layer.
         """
-
-        # %%
         # we need to make sure we are pointing to the array rather than making copies
         current_link = self._parcels[
             "element_id"
