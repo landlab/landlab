@@ -508,9 +508,8 @@ class NetworkSedimentTransporter(Component):
         Rhoarray = self._parcels.density.values
         Volarray = self._parcels.volume[:, self._time_idx].values
         Linkarray = self._parcels.element_id[:, self._time_idx].values  # link that the parcel is currently in
-        rho = self.fluid_density
-        g = self.g
-        R = (Rhoarray - rho) / rho
+        
+        R = (Rhoarray - self.fluid_density) / self.fluid_density
 
         # parcel attribute arrays to populate below
         frac_sand_array = np.zeros(self._num_parcels)
@@ -571,9 +570,9 @@ class NetworkSedimentTransporter(Component):
 
         # Wilcock and crowe claculate transport for all parcels (active and inactive)
         taursg = (
-            rho
+            self.fluid_density
             * R
-            * g
+            * self.g
             * d_mean_active
             * (0.021 + 0.015 * np.exp(-20.0 * frac_sand_array))
         )
@@ -583,7 +582,7 @@ class NetworkSedimentTransporter(Component):
 
         frac_parcel = vol_act_array / Volarray
         b = 0.67 / (1 + np.exp(1.5 - Darray / d_mean_active))
-        tau = rho * g * Harray * Sarray
+        tau = self.fluid_density * self.g * Harray * Sarray
         taur = taursg * (Darray / d_mean_active) ** b
 
         tautaur = tau / taur
@@ -598,8 +597,8 @@ class NetworkSedimentTransporter(Component):
 
         # assign travel times only for active parcels
         self.Ttimearray[Activearray == 1] = (
-            (rho ** (3 / 2))
-            * g
+            (self.fluid_density ** (3 / 2))
+            * self.g
             * R[Activearray == 1]
             * Larray[Activearray == 1]
             * self.active_layer_thickness
