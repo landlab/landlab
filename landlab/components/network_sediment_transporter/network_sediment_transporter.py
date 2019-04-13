@@ -10,7 +10,17 @@ info about the component here
 Fixes that need to happen:
 
     -- Need to find better way to define filterarrays in time and item_id
-	current option is very clunky. The one Nathan Lyons suggested doesn't work.
+	current option is very clunky. The one Nathan Lyons suggested doesn't work.\
+    
+        KRB note: I've made some updates on this. Its not perfect, but better. 
+        I think I understand why this is difficult. 
+        1) Sometimes we just want the present timesteps data records, but the
+            datarecord has everything in it. 
+        2) If you index the data record, it doesn't actually return a new TRUE data
+            record that includes attributes like self._grid... 
+        3) Indexing is best supported for the COORDINATES (time and record ID)... we want
+            typically, to first index on time, and then based on variables (e.g. where
+            in the network, what size fraction). THis is hard to do without (2) being functional.
 
     -- What to do with parcels when they get to the last link? --> I didn't get to this.
 
