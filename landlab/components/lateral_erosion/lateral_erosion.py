@@ -80,17 +80,24 @@ class LateralEroder(Component):
         #initialize qsin for each interior node, all zero initially.
 #        self.qsin = grid.zeros(centering='node')    # qsin (M^3/Y)
         self.dzdt = grid.zeros(centering='node')    # elevation change rate (M/Y)
-        if isinstance(Kv, string_types):
-            if Kv == "array":
-                self.Kv = None
-            else:
-                self.Kv = self._grid.at_node[Kv]
-        elif isinstance(Kv, (float, int)):
-            self.Kv = float(Kv*np.ones(self.grid.number_of_nodes))
+
+
+#below, adding flag calling for Kv to be specified. as of April 15, this only works for
+        #arrays and floats, NOT field names.
+        if self.Kv is None:
+            raise ValueError(
+                "K_sp must be set as a float, node array, or "
+                + "field name. It was None."
+            )
+# handling Kv for floats (inwhich case it populates an array N_nodes long) or 
+# for arrays of Kv. Checks that length of Kv array is good.
+        if isinstance(Kv, (float, int)):
+            self.Kv = np.ones(self.grid.number_of_nodes)*float(Kv)
         else:
             self.Kv = np.asarray(Kv, dtype=float)
             if len(self.Kv) != self.grid.number_of_nodes:
                 raise TypeError("Supplied value of Kv is not n_nodes long")
+
     def run_one_step(self, grid, dt=None, Klr=None):
 
         if Klr==None:    #Added10/9 to allow changing rainrate (indirectly this way.)
