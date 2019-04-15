@@ -17,6 +17,10 @@ A guide to Landlab's classes and code.
 Grids
 =====
 
+An extensive index to the Landlab grid and its methods is found on
+:py:mod:`the following page <landlab.grid>`. Below is a short hyperlinked
+summary.
+
 Grid types
 ----------
 
@@ -173,6 +177,7 @@ Flow routing
    landlab.components.flow_director
    landlab.components.flow_accum
    landlab.components.flow_routing
+   landlab.components.lake_fill
    landlab.components.sink_fill
 
 Shallow water hydrodynamics

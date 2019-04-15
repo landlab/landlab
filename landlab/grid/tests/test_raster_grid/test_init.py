@@ -14,7 +14,7 @@ def test_init_with_kwds_classic():
     assert grid.dy == 1
     assert grid.dx == 1
 
-    with pytest.warns(DeprecationWarning):
+    with pytest.deprecated_call():
         grid = RasterModelGrid(3, 7, 2)
 
     assert grid.number_of_node_rows == 3
