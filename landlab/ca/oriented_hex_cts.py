@@ -152,11 +152,3 @@ class OrientedHexCTS(CellLabCTSModel):
                 self.link_orientation[i] = 2
             elif dx > 0. and dy > 0.:
                 self.link_orientation[i] = 1
-            else:
-                assert False, "Non-handled link orientation case"
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

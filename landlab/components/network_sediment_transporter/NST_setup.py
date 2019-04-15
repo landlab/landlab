@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 This code outlines very a very basic use case for the NetworkSedimentTransporter
-component. 
+component.
 
 Created on Sun May 20 15:54:03 2018
 
@@ -10,13 +10,14 @@ Created on Sun May 20 15:54:03 2018
 import numpy as np
 import matplotlib.pyplot as plt
 
-#from landlab.components import NetworkSedimentTransporter
+# from landlab.components import NetworkSedimentTransporter
 from landlab.components import FlowDirectorSteepest
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 from landlab.plot import graph
 
-from network_sediment_transporter import NetworkSedimentTransporter
+from landlab.components import NetworkSedimentTransporter
+
 # ^ that worked yesterday. WTF
 
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
@@ -30,8 +31,8 @@ grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 plt.figure(0)
 graph.plot_graph(grid, at="node,link")
 
-grid.at_node["topographic__elevation"] = [0., .1, .3, .2, .3, .4, .41, .5]
-grid.at_node["bedrock__elevation"] = [0., .1, .3, .2, .3, .4, .41, .5]
+grid.at_node["topographic__elevation"] = [0.0, 0.1, 0.3, 0.2, 0.3, 0.4, 0.41, 0.5]
+grid.at_node["bedrock__elevation"] = [0.0, 0.1, 0.3, 0.2, 0.3, 0.4, 0.41, 0.5]
 
 area = grid.add_ones("cell_area_at_node", at="node")
 
@@ -40,7 +41,7 @@ area = grid.add_ones("cell_area_at_node", at="node")
 # Ultimately, map between flow accumulator and shapefile reader info...
 # map_upstream_node_to_link
 
-grid.at_link["drainage_area"] = [100e+6, 10e+6, 70e+6, 20e+6, 70e+6, 30e+6, 40e+6]  # m2
+grid.at_link["drainage_area"] = [100e6, 10e6, 70e6, 20e6, 70e6, 30e6, 40e6]  # m2
 grid.at_link["channel_slope"] = [0.01, 0.02, 0.01, 0.02, 0.02, 0.03, 0.03]
 grid.at_link["link_length"] = [10000, 10000, 10000, 10000, 10000, 10000, 10000]  # m
 
@@ -61,9 +62,9 @@ bed_porosity = 0.3  # porosity of the bed material
 # %% initialize bed sediment (will become its own component)
 
 # NOTE: inputs to DataRecord need to have the same shape as the time/item inputs
-# So, if a parcel attribute is being tracked in time, it needs to have 
+# So, if a parcel attribute is being tracked in time, it needs to have
 # np.shape = (n,1), and if it isn't tracked in time, it needs to have
-# np.shape = (n,). 
+# np.shape = (n,).
 
 # Ultimately,
 # parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
@@ -75,14 +76,14 @@ element_id = np.array(
     [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 1], dtype=int
 )  # current link for each parcel
 
-element_id = np.expand_dims(element_id,axis = 1)
-
+element_id = np.expand_dims(element_id, axis=1)
+#%%
 starting_link = np.squeeze(element_id)  # starting link for each parcel
 
 np.random.seed(0)
 
 time_arrival_in_link = np.random.rand(
-    np.size(element_id),1
+    np.size(element_id), 1
 )  # time of arrival in each link -- larger numbers are younger
 volume = np.ones(np.shape(element_id))  # (m3) the volume of each parcel
 D = 0.05 * np.ones(np.shape(element_id))  # (m) the diameter of grains in each parcel
@@ -107,7 +108,7 @@ D[5] = 0.0001  # make one of them sand
 
 volume[2] = 0.3
 
-time = [0.] #probably not the sensible way to do this...
+time = [0.0]  # probably not the sensible way to do this...
 
 items = {"grid_element": "link", "element_id": element_id}
 
@@ -116,19 +117,14 @@ variables = {
     "abrasion_rate": (["item_id"], abrasion_rate),
     "density": (["item_id"], density),
     "lithology": (["item_id"], lithology),
-    
-    "time_arrival_in_link": (["item_id","time"], time_arrival_in_link),
-    "active_layer": (["item_id","time"], active_layer),
-    "location_in_link": (["item_id","time"], location_in_link),
-    "D": (["item_id","time"], D),
-    "volume": (["item_id","time"], volume)
-    }
+    "time_arrival_in_link": (["item_id", "time"], time_arrival_in_link),
+    "active_layer": (["item_id", "time"], active_layer),
+    "location_in_link": (["item_id", "time"], location_in_link),
+    "D": (["item_id", "time"], D),
+    "volume": (["item_id", "time"], volume),
+}
 
-parcels = DataRecord(grid, 
-                     items=items, 
-                     time = time,
-                     data_vars=variables
-)
+parcels = DataRecord(grid, items=items, time=time, data_vars=variables)
 
 
 # Add parcels in at a given time --> attribute in the item collection
@@ -137,27 +133,23 @@ parcels = DataRecord(grid,
 
 # Made up hydraulic geometry
 
-Qgage = 2000.  # 
+Qgage = 2000.0  #
 dt = 60 * 60 * 24
 # (seconds) daily timestep
 Bgage = 30.906 * Qgage ** 0.1215
 # (m)
 Hgage = 1.703 * Qgage ** 0.3447
 # (m)
-Agage = 4.5895e+9
+Agage = 4.5895e9
 # (m2)
 
-channel_width = ((np.tile(Bgage, (grid.number_of_links)) 
-                / (Agage ** 0.5)) 
-                * np.tile(grid.at_link["drainage_area"], 
-                          (timesteps,1)) ** 0.5
-                )
+channel_width = (np.tile(Bgage, (grid.number_of_links)) / (Agage ** 0.5)) * np.tile(
+    grid.at_link["drainage_area"], (timesteps, 1)
+) ** 0.5
 
-flow_depth = ((np.tile(Hgage, (grid.number_of_links)) 
-            / (Agage ** 0.4)) 
-            * np.tile(grid.at_link["drainage_area"], 
-                      (timesteps,1)) ** 0.4
-            )
+flow_depth = (np.tile(Hgage, (grid.number_of_links)) / (Agage ** 0.4)) * np.tile(
+    grid.at_link["drainage_area"], (timesteps, 1)
+) ** 0.4
 
 
 Btmax = np.amax(channel_width, axis=0)  # CURRENTLY UNUSED
@@ -191,8 +183,8 @@ nst = NetworkSedimentTransporter(
 
 # %% Run the component(s)
 
-for t in range(0,(timesteps*dt),dt):
-   print ('timestep ', [t], 'started')
+for t in range(0, (timesteps * dt), dt):
+    print("timestep ", [t], "started")
     # move any sediment additions from forcing Item collector to bed item collector
 
     # sq.run_one_step
@@ -202,22 +194,21 @@ for t in range(0,(timesteps*dt),dt):
     #   will assign flow depth for each reach (for this timestep)
 
     # Run our component
-   nst.run_one_step(dt, [t])
-   print ('timestep ', [t], 'completed!')
+    nst.run_one_step(dt)
+    print("timestep ", t, "completed!")
 
-# %% A few plot outputs, just to get started. 
-   
+# %% A few plot outputs, just to get started.
+
 plt.figure(1)
-plt.plot(parcels.time_coordinates, parcels['location_in_link'].values[6,:],'.')
-plt.plot(parcels.time_coordinates, parcels['location_in_link'].values[5,:],'.')
+plt.plot(parcels.time_coordinates, parcels.location_in_link.values[6, :], ".")
+plt.plot(parcels.time_coordinates, parcels.location_in_link.values[5, :], ".")
 plt.title("Tracking link location for a single parcel")
-plt.xlabel('time')
-plt.ylabel('location in link')
+plt.xlabel("time")
+plt.ylabel("location in link")
 
 
 plt.figure(2)
-plt.plot(parcels.time_coordinates, np.sum(parcels['volume'].values, axis = 0),'.')
+plt.plot(parcels.time_coordinates, np.sum(parcels["volume"].values, axis=0), ".")
 plt.title("Silly example: total volume, all parcels through time")
-plt.xlabel('time')
-plt.ylabel('total volume of parcels')
-
+plt.xlabel("time")
+plt.ylabel("total volume of parcels")

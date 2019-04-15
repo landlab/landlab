@@ -1,11 +1,9 @@
-
-
 import numpy as np
 
-from landlab.item_collection import ItemCollection
+from landlab.data_record import DataRecord
 
 
-class Parcel(ItemCollection):
+class Parcel(DataRecord):
 
     # Your collection will inherit from ItemCollection so:
     #
@@ -64,7 +62,7 @@ class Parcel(ItemCollection):
         #         (clast_x[:], clast_y[:]))
 
         # Build ItemCollection containing your data:
-        ItemCollection.__init__(
+        DataRecord.__init__(
             self,
             self._grid,
             data=my_data,

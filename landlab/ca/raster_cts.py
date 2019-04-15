@@ -100,9 +100,3 @@ class RasterCTS(CellLabCTSModel):
             prop_data,
             prop_reset_value,
         )
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()
