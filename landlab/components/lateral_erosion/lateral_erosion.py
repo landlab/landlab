@@ -184,7 +184,7 @@ class LateralEroder(Component):
             #here calculate dzdt for each node, with initial time step
 #            print("dwnst_nodes", dwnst_nodes)
             #vectorized dz works. I'm thinking on how to vectorize the node finder, but not working today
-            dzvec[dwnst_nodes] = -Kv[dwnst_nodes] * da[dwnst_nodes]**(0.5)*max_slopes[dwnst_nodes]
+#            dzvec[dwnst_nodes] = -Kv[dwnst_nodes] * da[dwnst_nodes]**(0.5)*max_slopes[dwnst_nodes]
 #            print("vector erosion")
 #            print(dzvec)
             for i in dwnst_nodes:
@@ -281,29 +281,51 @@ class LateralEroder(Component):
             #dtn is an arbitrarily large number to begin with, but will be adapted as we step through
             #the nodes
             dtn=dt*50 #starting minimum timestep for this round
+            tsdb=0
+            if tsdb:
+                print("start ts loop")
             for i in dwnst_nodes:
-                if(0):
+                if(tsdb):
                     print("node", i)
+                    print("dzdt[i]", dzdt[i])
+                    print("dzdt[flowdirs[i]]", dzdt[flowdirs[i]])
                 #are points converging? ie, downstream eroding slower than upstream
                 dzdtdif = dzdt[flowdirs[i]]-dzdt[i]
+                if(tsdb):
+                    print("dzdtdif", dzdtdif)
                 #if points converging, find time to zero slope
-                if dzdtdif > 0. and max_slopes[i] > 1e-7:
+                if dzdtdif > 0. and max_slopes[i] > 1e-5:
                     dtflat = (z[i]-z[flowdirs[i]])/dzdtdif	#time to flat between points
+                    if(tsdb):
+                        print("z[i]", z[i])
+                        print("z[flowdirs[i]", z[flowdirs[i]])
+                        print("dtflat", dtflat)
                     #if time to flat is smaller than dt, take the lower value
                     #april9, 2019: *** HACK WITH ABS(DTN) COME BACK to this. was getting negative dtn values
-                    if abs(dtflat) < dtn:
+                    #april 15, 2019: actually had negative dtflat values because of tiny slopes. hacked to 
+                    # have abs(dtflat)
+                    if dtflat < dtn:
                         dtn = dtflat
-#                        print("dtflat", dtflat)
+                        if(tsdb):
+                            print("dtflat<dtn", dtn)
                     #if dzdtdif*dtflat will make upstream lower than downstream, find time to flat
-                    if dzdtdif*dtn > abs((z[i]-z[flowdirs[i]])):
+                    if dzdtdif*dtn > (z[i]-z[flowdirs[i]]):
+                        if(tsdb):
+                            print("dzdtdif*dtn", dzdtdif*dtn)
+                            print("dzdtdif*dtflat", dzdtdif*dtflat)
+                            print("(z[i]-z[flowdirs[i]])", (z[i]-z[flowdirs[i]]))
                         dtn=(z[i]-z[flowdirs[i]])/dzdtdif
-#                        print("timetoflat", dtn)
-#            print ("out of ts loop")
-#            print("dtn",dtn)
-#            print("dt",dt)
+                        if(tsdb):
+                            print("t2flat", dtn)
+            if(tsdb):
+                print ("out of ts loop")
+                print("dtn",dtn)
+                print("dtn*frac", dtn*frac)
+                print("dt",dt)
             dtn*=frac
             #new minimum timestep for this round of nodes
             dt=min(dtn, dt)
+            assert dt>0., "timesteps less than 0."
             #should now have a stable timestep.
 #            print("stable time step=", dt)
 #            print delta
@@ -331,37 +353,7 @@ class LateralEroder(Component):
                 print("nodesids", grid.nodes.reshape(nr,nc))
                 print("elevs", z.reshape(nr,nc))
 #            print(delt)
-            
-#            vol_diff_vec=np.zeros(grid.number_of_nodes)
-#            if UC==1:
-#                # this will get me vol diffs for every node. then I have to cull them
-#                vol_diff_vec=(z[:]+wdnode[:]-z[flowdirs])*dx**2
-#            if TB==1:
-#                # this will get me vol diffs for every node. then I have to cull them
-#                vol_diff_vec=(z[lat_nodes]-z[flowdirs])*dx**2
-#            if(debug):
-#                print("voldiff before", vol_diff_vec.reshape(nr,nc))
-##            print("where latnode=0", np.where(lat_nodes<=0)[0])
-##            print("voldiff where", vol_diff_vec[np.where(lat_nodes<=0)[0]])
-#            #*****where latnodes are 0 or -1, voldiff=0
-#            vol_diff_vec[np.where(lat_nodes<=0)[0]]=0.0
-#            if(debug):
-#                print("voldiff after lat", vol_diff_vec.reshape(nr,nc))
-#            #****where lateral nodes are lower in elevation than primary, no lateral erosion
-#            vol_diff_vec[np.where(z[lat_nodes]<z[:])]=0.0
-#            if(debug):
-#                print("voldiff after z diff", vol_diff_vec.reshape(nr,nc))
-#            #this part figuring out if enough lateralerosion has occurrred for elevations to be changed
-#            nodeslat=np.where(vol_lat[lat_nodes]>vol_diff_vec[:])[0]
-#            if(debug):
-#                print("nodeslat", nodeslat)
-#                print("vol_lat", vol_lat.reshape(nr,nc))
-#            dzlat[nodeslat]=z[flowdirs[nodeslat]]-z[nodeslat]-0.001
-#            if(len(nodeslat<=1)):
-#                print("chunk of lateral erosion occured", nodeslat)            
-#            #after the lateral node is eroded, reset its volume eroded to zero
-#            vol_lat[nodeslat]=0.0
-#            print(delt)
+
             for i in dwnst_nodes:
                 lat_node=lat_nodes[i]
                 wd=0.4*(da[i]*runoffms)**0.35
@@ -415,6 +407,7 @@ class LateralEroder(Component):
             else:
                 dt = globdt - time
                 print("small time steps. dt=",dt )
+                
 #                print(delt)
                 #recalculate flow directions
                 fa = FlowAccumulator(grid, 
