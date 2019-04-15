@@ -349,7 +349,7 @@ class SedDepEroder(Component):
         m_t=1.5,
         n_t=1.,
         # params for model numeric behavior:
-        pseudoimplicit_repeats=5,
+        pseudoimplicit_repeats=5,  # 50?
         **kwds
     ):
         """Constructor for the class.
