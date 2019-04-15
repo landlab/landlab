@@ -6,33 +6,51 @@ Created on Tues Oct 20, 2015
 
 @author: dejh
 """
-import pytest
-
-from numpy import sin, pi
 import numpy as np  # for use of np.round
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-import landlab
-from landlab import BAD_INDEX_VALUE as XX
-from landlab import RasterModelGrid, FieldError
-from landlab.components import FlowAccumulator, SinkFiller
+from landlab import BAD_INDEX_VALUE as XX, FieldError, RasterModelGrid
+from landlab.components import FlowAccumulator, SinkFiller, SinkFillerBarnes
+
+
+def test_route_to_multiple_error_raised_init():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros("node", "topographic__elevation")
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg, flow_director="MFD")
+    fa.run_one_step()
+    with pytest.raises(NotImplementedError):
+        SinkFillerBarnes(mg)
+
+
+def test_route_to_multiple_error_raised_run():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros("node", "topographic__elevation")
+    z += mg.x_of_node + mg.y_of_node
+    sfb = SinkFillerBarnes(mg)
+    fa = FlowAccumulator(mg, flow_director="MFD")
+    fa.run_one_step()
+    with pytest.raises(NotImplementedError):
+        sfb.run_one_step()
 
 
 def test_route_to_multiple_error_raised():
     mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros('node', 'topographic__elevation')
+    z = mg.add_zeros("node", "topographic__elevation")
     z += mg.x_of_node + mg.y_of_node
-    fa = FlowAccumulator(mg, flow_director='MFD')
+    fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()
 
     with pytest.raises(NotImplementedError):
         SinkFiller(mg)
 
 
-def check_fields(sink_grid1):
+def test_check_fields(sink_grid1):
     """
     Check to make sure the right fields have been created.
     """
+    SinkFillerBarnes(sink_grid1)
     assert_array_equal(
         np.zeros(sink_grid1.number_of_nodes), sink_grid1.at_node["sediment_fill__depth"]
     )
@@ -151,8 +169,7 @@ def test_filler_inclined2(sink_grid3):
     """
     Tests an inclined fill into an inclined surface, with two holes.
     """
-    z_init = sink_grid3.at_node["topographic__elevation"].copy()
-    fr = FlowAccumulator(sink_grid3, flow_director='D8')
+    fr = FlowAccumulator(sink_grid3, flow_director="D8")
     hf = SinkFiller(sink_grid3, apply_slope=True)
 
     hf.fill_pits()
@@ -182,7 +199,7 @@ def test_filler_inclined2(sink_grid3):
 
 def test_stupid_shaped_hole(sink_grid4):
     """Tests inclined fill into a surface with a deliberately awkward shape."""
-    fr = FlowAccumulator(sink_grid4, flow_director='D8')
+    fr = FlowAccumulator(sink_grid4, flow_director="D8")
     hf = SinkFiller(sink_grid4, apply_slope=True)
     hf.fill_pits()
     hole1 = np.array(
@@ -217,12 +234,9 @@ def test_D4_routing(sink_grid5):
     Tests inclined fill into a surface with a deliberately awkward shape.
     This is testing D4 routing.
     """
-    fr = FlowAccumulator(sink_grid5, flow_director='D4')
+    fr = FlowAccumulator(sink_grid5, flow_director="D4")
     hf = SinkFiller(sink_grid5, routing="D4", apply_slope=True)
     hf.fill_pits()
-    #    hole1 = np.array([4.00016667, 4.00025, 4.00033333, 4.00008333, 4.00041667,
-    #                      4.0005, 4.00066667, 4.00058333, 4.00075,
-    #                      4.334])
     hole1 = np.array(
         [
             4.00016667,

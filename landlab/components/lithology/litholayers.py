@@ -3,6 +3,7 @@
 """Create a LithoLayers component with different properties."""
 
 import numpy as np
+
 from landlab.components.lithology.lithology import Lithology
 
 
@@ -38,35 +39,31 @@ class LithoLayers(Lithology):
     are rock type IDs. The rock type IDs can be any type that is valid as a
     python dictionary key.
 
-    The following attributes and methods are the same as in the Lithology.
-
-    Attributes
-    ----------
-    z_top
-    z_bottom
-    thickness
-    dz
-    tracked_properties
-    properties
-
-    Methods
-    -------
-    add_rock_type
-    add_rock_property
-    update_rock_properties
-    add_layer
-    run_one_step
-
     """
-    _name = 'LithoLayers'
 
-    _cite_as = """ """
+    _name = "LithoLayers"
 
+    _cite_as = """@article{barnhart2018lithology,
+                    title = "Lithology: A Landlab submodule for spatially variable rock properties",
+                    journal = "Journal of Open Source Software",
+                    volume = "",
+                    pages = "",
+                    year = "2018",
+                    doi = "10.21105/joss.00979",
+                    author = "Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini and Gregory E. Tucker",
+                    }"""
 
-
-    def __init__(self, grid, z0s, ids, attrs, x0=0, y0=0,
-                 function=lambda x, y: 0*x + 0*y,
-                 layer_type='EventLayers'):
+    def __init__(
+        self,
+        grid,
+        z0s,
+        ids,
+        attrs,
+        x0=0,
+        y0=0,
+        function=lambda x, y: 0 * x + 0 * y,
+        layer_type="EventLayers",
+    ):
         """Create a new instance of a LithoLayers.
 
         Parameters
@@ -75,7 +72,7 @@ class LithoLayers(Lithology):
         z0s : ndarray of shape `(n_layers, )`
             Values of layer depth from surface at horizontal location (x0, y0).
         ids : ndarray of shape `(n_layers, )`
-            Values of rock type IDs cooresponding to each layer specified in
+            Values of rock type IDs corresponding to each layer specified in
             **z0s**.
         attrs : dict
             Rock type property dictionary. See class docstring for example of
@@ -147,15 +144,15 @@ class LithoLayers(Lithology):
 
         function_args = function.__code__.co_varnames
         if len(function_args) != 2:
-            msg = 'LithoLayers: function must take exactly two arguments, x and y.'
+            msg = "LithoLayers: function must take exactly two arguments, x and y."
             raise ValueError(msg)
 
         if np.asarray(z0s).size != np.asarray(ids).size:
-            msg = 'LithoLayers: Size of layer depths and layer IDs must be the same'
+            msg = "LithoLayers: Size of layer depths and layer IDs must be the same"
             raise ValueError(msg)
 
         if np.any(np.diff(z0s) < 0):
-            msg = 'LithoLayers: Bad layer depth order passed.'
+            msg = "LithoLayers: Bad layer depth order passed."
             raise ValueError(msg)
 
         z_surf = function(self._grid.x_of_node - x0, self._grid.y_of_node - y0)
@@ -179,7 +176,7 @@ class LithoLayers(Lithology):
         for i in range(num_layers):
 
             layer_depth = z_surf + z0s[i]
-            layer_depth[layer_depth<0] = 0
+            layer_depth[layer_depth < 0] = 0
 
             layer_thickness = layer_depth.copy() - last_layer_elev.copy()
 
@@ -188,4 +185,6 @@ class LithoLayers(Lithology):
             layer_thicknesses.append(layer_thickness)
             layer_ids.append(ids[i] * np.ones(z_surf.size))
 
-        super(LithoLayers, self).__init__(grid, layer_thicknesses, layer_ids, attrs, layer_type=layer_type)
+        super(LithoLayers, self).__init__(
+            grid, layer_thicknesses, layer_ids, attrs, layer_type=layer_type
+        )

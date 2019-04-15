@@ -6,17 +6,15 @@ a few more times, to ensure repeatability.
 """
 import os
 
-from six.moves import range
-
 import numpy as np
 import os
 from numpy.testing import assert_array_almost_equal, assert_equal
+from six.moves import range
 
-from landlab import RasterModelGrid, CLOSED_BOUNDARY
+from landlab import RasterModelGrid, CLOSED_BOUNDARY, ModelParameterDictionary
 from landlab.components import FlowAccumulator
 from landlab.components import SedDepEroder
 from landlab.components import FastscapeEroder
-from landlab import ModelParameterDictionary
 
 
 def test_sed_dep_new_almostpara():
@@ -24,7 +22,7 @@ def test_sed_dep_new_almostpara():
     This tests only the power_law version of the SDE, using the
     almost_parabolic form of f(Qs).
     """
-    mg = RasterModelGrid((10, 5), 200.)
+    mg = RasterModelGrid((10, 5), xy_spacing=200.)
     for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
                  mg.nodes_at_right_edge):
         mg.status_at_node[edge] = CLOSED_BOUNDARY
@@ -75,12 +73,36 @@ def test_sed_dep_new_almostpara():
     assert_equal(len(sde._error_at_abort), 0)  # good convergence at all nodes
 
 
+def test_sed_dep():
+    """
+    This may be now invalid, and has got accidentally reintroduced during
+    conflict resolution.
+    """
+    input_file = os.path.join(_THIS_DIR, "sed_dep_params.txt")
+    inputs = ModelParameterDictionary(input_file, auto_type=True)
+    nrows = inputs.read_int("nrows")
+    ncols = inputs.read_int("ncols")
+    dx = inputs.read_float("dx")
+    uplift_rate = inputs.read_float("uplift_rate")
+
+    runtime = inputs.read_float("total_time")
+    dt = inputs.read_float("dt")
+
+    initz = z.copy()
+
+    mg = RasterModelGrid((nrows, ncols), xy_spacing=(dx, dx))
+
+    mg.add_zeros("topographic__elevation", at="node")
+    z = np.loadtxt(os.path.join(_THIS_DIR, "seddepinit.txt"))
+    mg["node"]["topographic__elevation"] = z
+
+
 def test_sed_dep_new_genhumped():
     """
     This tests only the power_law version of the SDE, using the
     generalized_humped form of f(Qs).
     """
-    mg = RasterModelGrid((10, 5), 200.)
+    mg = RasterModelGrid((10, 5), xy_spacing=200.)
     for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
                  mg.nodes_at_right_edge):
         mg.status_at_node[edge] = CLOSED_BOUNDARY
@@ -124,17 +146,21 @@ def test_sed_dep_new_lindecl():
     This tests only the power_law version of the SDE, using the
     linear_decline form of f(Qs).
     """
-    mg = RasterModelGrid((10, 5), 200.)
-    for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
-                 mg.nodes_at_right_edge):
+    mg = RasterModelGrid((10, 5), xy_spacing=200.)
+    for edge in (
+        mg.nodes_at_left_edge, mg.nodes_at_top_edge, mg.nodes_at_right_edge
+    ):
         mg.status_at_node[edge] = CLOSED_BOUNDARY
 
-    z = mg.add_zeros('node', 'topographic__elevation')
+    z = mg.add_zeros("node", "topographic__elevation")
 
     fr = FlowAccumulator(mg, flow_director='D8')
-    sde = SedDepEroder(mg, K_sp=1.e-4,
-                       sed_dependency_type='linear_decline',
-                       Qc='power_law', K_t=1.e-4)
+    sde = SedDepEroder(
+        mg,
+        K_sp=1.e-4,
+        sed_dependency_type='linear_decline',
+        Qc='power_law',
+        K_t=1.e-4)
 
     z[:] = mg.node_y/10000.
     z.reshape((10, 5))[:, 2] *= 2.
@@ -168,17 +194,22 @@ def test_sed_dep_new_const():
     This tests only the power_law version of the SDE, using the
     constant (None) form of f(Qs).
     """
-    mg = RasterModelGrid((10, 5), 200.)
-    for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
-                 mg.nodes_at_right_edge):
+    mg = RasterModelGrid((10, 5), xy_spacing=200.)
+    for edge in (
+        mg.nodes_at_left_edge, mg.nodes_at_top_edge, mg.nodes_at_right_edge
+    ):
         mg.status_at_node[edge] = CLOSED_BOUNDARY
 
     z = mg.add_zeros('node', 'topographic__elevation')
 
     fr = FlowAccumulator(mg, flow_director='D8')
-    sde = SedDepEroder(mg, K_sp=1.e-4,
-                       sed_dependency_type='None',
-                       Qc='power_law', K_t=1.e-4)
+    sde = SedDepEroder(
+        mg,
+        K_sp=1.e-4,
+        sed_dependency_type='None',
+        Qc='power_law',
+        K_t=1.e-4
+    )
 
     z[:] = mg.node_y/10000.
     z.reshape((10, 5))[:, 2] *= 2.
@@ -211,9 +242,10 @@ def test_sed_dep_w_hillslopes():
     """
     This tests only the power_law version of the SDE, with a hillslope input.
     """
-    mg = RasterModelGrid((10, 5), 200.)
-    for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
-                 mg.nodes_at_right_edge):
+    mg = RasterModelGrid((10, 5), xy_spacing=200.)
+    for edge in (
+        mg.nodes_at_left_edge, mg.nodes_at_top_edge, mg.nodes_at_right_edge
+    ):
         mg.status_at_node[edge] = CLOSED_BOUNDARY
 
     z = mg.add_zeros('node', 'topographic__elevation')
@@ -221,8 +253,13 @@ def test_sed_dep_w_hillslopes():
     th[mg.core_nodes] += 0.001
 
     fr = FlowAccumulator(mg, flow_director='D8')
-    sde = SedDepEroder(mg, K_sp=1.e-4, sed_dependency_type='almost_parabolic',
-                       Qc='power_law', K_t=1.e-4)
+    sde = SedDepEroder(
+        mg,
+        K_sp=1.e-4,
+        sed_dependency_type='almost_parabolic',
+        Qc='power_law',
+        K_t=1.e-4
+    )
 
     z[:] = mg.node_y/10000.
     z.reshape((10, 5))[:, 2] *= 2.

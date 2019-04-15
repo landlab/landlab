@@ -1,11 +1,10 @@
 from __future__ import print_function
 
-import os
-import sys
-import subprocess
-import traceback
 import glob
-
+import os
+import subprocess
+import sys
+import traceback
 
 print('Using python: {prefix}'.format(prefix=sys.prefix))
 

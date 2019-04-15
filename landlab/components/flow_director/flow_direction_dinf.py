@@ -10,19 +10,18 @@ algorithm of Tarboton 1997.
 KRB Feb 2017
 """
 
+import numpy as np
+
+from landlab import VoronoiDelaunayGrid  # for type tests
+from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 from landlab.core.utils import as_id_array
 from landlab.utils.return_array import return_array_at_node
-from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 
 UNDEFINED_INDEX = BAD_INDEX_VALUE
-from landlab import VoronoiDelaunayGrid  # for type tests
-
-import numpy as np
 
 
 def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=None):
-    """
-    Find Dinfinity flow directions and proportions on a raster grid.
+    """Find Dinfinity flow directions and proportions on a raster grid.
 
     Finds and returns flow directions and proportions for a given elevation
     grid by the D infinity method (Tarboton, 1997). Each node is assigned two
@@ -79,7 +78,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     Dinfinity routes flow based on the relative proportion of flow along the
     triangular facets around a central raster node.
 
-    >>> grid = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> grid = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> _ = grid.add_field('topographic__elevation',
     ...                     2.*grid.node_x+grid.node_y,
     ...                     at = 'node')
@@ -88,12 +87,12 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     ... sink, receiver_links, steepest_link) = flow_directions_dinf(grid)
     >>> receivers
     array([[ 0, -1],
-           [ 0,  3],
-           [ 1,  4],
-           [ 0,  1],
+           [ 0, -1],
+           [ 1, -1],
+           [ 0, -1],
            [ 3,  0],
            [ 4,  1],
-           [ 3,  4],
+           [ 3, -1],
            [ 6,  3],
            [ 7,  4]])
     >>> proportions
@@ -116,16 +115,16 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     ... sink, receiver_links, steepest_link) = flow_directions_dinf(grid, z)
     >>> receivers
     array([[ 0, -1],
-           [ 0,  3],
-           [ 1,  4],
-           [ 0,  1],
+           [ 0, -1],
+           [ 1, -1],
+           [ 0, -1],
            [ 3,  0],
            [ 4,  1],
-           [ 3,  4],
+           [ 3, -1],
            [ 6,  3],
            [ 7,  4]])
     >>> slopes
-    array([[-2.        , -0.        ],
+    array([[-1.        , -2.12132034],
            [ 2.        ,  0.70710678],
            [ 2.        ,  0.70710678],
            [ 1.        , -0.70710678],
@@ -153,7 +152,14 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # get elevs
     elevs = return_array_at_node(grid, elevs)
 
-    ### Step 1, some basic set-up, gathering information about the grid.
+    # find where there are closed nodes.
+    closed_nodes = grid.status_at_node == CLOSED_BOUNDARY
+
+    closed_elevation = np.max(elevs[~closed_nodes]) + 1000
+
+    elevs[closed_nodes] = closed_elevation
+
+    # Step 1, some basic set-up, gathering information about the grid.
 
     # Calculate the number of nodes.
     num_nodes = len(elevs)
@@ -165,13 +171,10 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # Create a node array
     node_id = np.arange(num_nodes)
 
-    # find where there are closed nodes.
-    closed_nodes = grid.status_at_node == CLOSED_BOUNDARY
-
     # create an array of the triangle numbers
     tri_numbers = np.arange(num_facets)
 
-    ### Step 3, create some triangle datastructures because landlab (smartly)
+    # Step 3, create some triangle datastructures because landlab (smartly)
     # makes it hard to deal with diagonals.
 
     # create list of triangle neighbors at node. Use orientation associated
@@ -232,21 +235,6 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     )
     triangle_link_dirs_at_node = triangle_link_dirs_at_node.swapaxes(0, 1)
 
-    #    # active link directions.
-    #    ald_at_node = grid.active_link_dirs_at_node
-    #    adld_at_node = grid.active_diagonal_dirs_at_node
-    #
-    #    triangle_active_link_dirs_at_node = np.stack([np.vstack((ald_at_node[:,0], adld_at_node[:,0])),
-    #                                                  np.vstack((ald_at_node[:,1], adld_at_node[:,0])),
-    #                                                  np.vstack((ald_at_node[:,1], adld_at_node[:,1])),
-    #                                                  np.vstack((ald_at_node[:,2], adld_at_node[:,1])),
-    #                                                  np.vstack((ald_at_node[:,2], adld_at_node[:,2])),
-    #                                                  np.vstack((ald_at_node[:,3], adld_at_node[:,2])),
-    #                                                  np.vstack((ald_at_node[:,3], adld_at_node[:,3])),
-    #                                                  np.vstack((ald_at_node[:,0], adld_at_node[:,3]))],
-    #                                                 axis=-1)
-    #    triangle_active_link_dirs_at_node = triangle_active_link_dirs_at_node.swapaxes(0,1)
-    #
     # need to create a list of diagonal links since it doesn't exist.
     diag_links = np.sort(np.unique(grid.d8s_at_node[:, 4:]))
     diag_links = diag_links[diag_links > 0]
@@ -265,12 +253,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
         link_slope[triangle_links_at_node] * triangle_link_dirs_at_node
     )
 
-    # identify where nodes are closed.
-    closed_triangle_neighbors = closed_nodes[triangle_neighbors_at_node]
-    # construct some arrays that deal with the distances between points on the
-    # grid.
-
-    #### Step 3: make arrays necessary for the specific tarboton algorithm.
+    # Step 3: make arrays necessary for the specific tarboton algorithm.
     # create a arrays
     ac = np.array([0., 1., 1., 2., 2., 3., 3., 4.])
     af = np.array([1., -1., 1., -1., 1., -1., 1., -1.])
@@ -289,14 +272,14 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
 
     thresh = np.arctan(d2 / d1)
 
-    ##### Step 4, Initialize receiver and proportion arrays
+    # Step 4, Initialize receiver and proportion arrays
     receivers = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
     receiver_closed = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
     proportions = np.zeros((num_nodes, num_receivers), dtype=float)
     receiver_links = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
     slopes_to_receivers = np.zeros((num_nodes, num_receivers), dtype=float)
 
-    #### Step  5  begin the algorithm in earnest
+    # Step  5  begin the algorithm in earnest
 
     # construct e0, e1, e2 for all triangles at all nodes.
     # will be (nnodes, nfacets=8 for raster or nfacets = max number of patches
@@ -310,9 +293,12 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # e2 is the point on the diagonal edges
     e2 = elevs[triangle_neighbors_at_node[:, 1, :]]
 
-    # mask out where nodes do not exits (e.g. triangle_neighbors_at_node == -1)
-    e2[triangle_neighbors_at_node[:, 1, :] == -1] = np.nan
+    # modification of original algorithm to address Landlab boundary conditions.
+    # first,
+    # for e1 and e2, mask out where nodes do not exits (e.g.
+    # triangle_neighbors_at_node == -1)
     e1[triangle_neighbors_at_node[:, 0, :] == -1] = np.nan
+    e2[triangle_neighbors_at_node[:, 1, :] == -1] = np.nan
 
     # loop through and calculate s1 and s2
     # this will only loop nfacets times.
@@ -334,7 +320,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     radj[too_small] = 0
     s[too_small] = s1[too_small]
 
-    # to consider two big, we need to look by trangle.
+    # to consider two big, we need to look by triangle.
     for i in range(num_facets):
         too_big = r[:, i] > thresh[i]
         radj[too_big, i] = thresh[i]
@@ -345,10 +331,14 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     for i in range(num_facets):
         rg[:, i] = (af[i] * radj[:, i]) + (ac[i] * np.pi / 2.)
 
-    # set slopes that are nan to zero
-    s[np.isnan(s)] = 0
+    # set slopes that are nan to below zero
+    # if there is a flat slope, it should be chosen over the closed or non-existant
+    # triangles that are represented by the nan values.
+    s[np.isnan(s)] = -999.0
 
-    # sort slopes based on
+    # sort slopes
+    # we've set slopes going to closed or non-existant triangles to -999.0, so
+    # we shouldn't ever choose these.
     steepest_sort = np.argsort(s)
 
     # determine the steepest triangle
@@ -358,6 +348,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     steepest_rg = np.empty_like(node_id, dtype=float)
     steepest_s = np.empty_like(node_id, dtype=float)
 
+    closed_triangle_neighbors = closed_nodes[triangle_neighbors_at_node]
     for n in node_id:
         steepest_rg[n] = rg[n, steepest_sort[n, -1]]
         receiver_closed[n] = closed_triangle_neighbors[n, :, steepest_sort[n, -1]]
@@ -370,7 +361,6 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
 
     # construct the baseline for proportions
     rg_baseline = np.array([0., 1., 1., 2., 2., 3., 3., 4]) * np.pi / 2.
-    # rg_baseline = np.array([0., 0.5, 1., 1.5, 2., 2.5, 3., 3.5])*np.pi/4.
 
     # calculate alpha1 and alpha 2
     alpha2 = (steepest_rg - rg_baseline[steepest_triangle]) * af[steepest_triangle]
@@ -380,7 +370,10 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     proportions[:, 0] = (alpha1) / (alpha1 + alpha2)
     proportions[:, 1] = (alpha2) / (alpha1 + alpha2)
 
-    ### END OF THE Tarboton algorithm, start of work to make this code mesh
+    # where proportions == 0, set reciever  to -1
+    receivers[proportions == 0] = -1
+
+    # END OF THE Tarboton algorithm, start of work to make this code mesh
     # with other landlab flow directing algorithms.
 
     # identify what drains to itself, and set proportion and id values based on
@@ -389,7 +382,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # if proportions is nan, drain to self
     drains_to_self = np.isnan(proportions[:, 0])
 
-    # if all slopes are leading out, drain to self
+    # if all slopes are leading out or flat, drain to self
     drains_to_self[steepest_s <= 0] = True
 
     # if both receiver nodes are closed, drain to self
@@ -403,7 +396,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     drains_to_self[all_flow_to_closed] = True
 
     drains_to_one_closed = receiver_closed.sum(axis=1) == 1
-    fix_flow = drains_to_one_closed * (all_flow_to_closed == False)
+    fix_flow = drains_to_one_closed * (~all_flow_to_closed)
     first_column_has_closed = np.array(receiver_closed[:, 0] * fix_flow, dtype=bool)
     second_column_has_closed = np.array(receiver_closed[:, 1] * fix_flow, dtype=bool)
 
@@ -425,6 +418,12 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     proportions[drains_to_self, 0] = 1.
     proportions[drains_to_self, 1] = 0.
 
+    # set properties of closed
+    receivers[closed_nodes, 0] = node_id[closed_nodes]
+    receivers[closed_nodes, 1] = -1
+    proportions[closed_nodes, 0] = 1.
+    proportions[closed_nodes, 1] = 0.
+
     # mask the receiver_links by where flow doesn't occur to return
     receiver_links[drains_to_self, :] = UNDEFINED_INDEX
 
@@ -436,7 +435,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     steepest_slope = slopes_to_receivers[slope_sort]
     steepest_slope[drains_to_self] = 0.
 
-    ## identify the steepest link and steepest receiever.
+    # identify the steepest link and steepest receiever.
     steepest_link = receiver_links[slope_sort]
     steepest_link[drains_to_self] = UNDEFINED_INDEX
 
@@ -452,6 +451,25 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
         receiver_links[baselevel_nodes, :] = UNDEFINED_INDEX
         steepest_slope[baselevel_nodes] = 0.
 
+    # ensure that if there is a -1, it is in the second column.
+    order_reversed = receivers[:, 0] == -1
+
+    receivers_out = receivers.copy()
+    receivers_out[order_reversed, 1] = receivers[order_reversed, 0]
+    receivers_out[order_reversed, 0] = receivers[order_reversed, 1]
+
+    proportions_out = proportions.copy()
+    proportions_out[order_reversed, 1] = proportions[order_reversed, 0]
+    proportions_out[order_reversed, 0] = proportions[order_reversed, 1]
+
+    slopes_to_receivers_out = slopes_to_receivers.copy()
+    slopes_to_receivers_out[order_reversed, 1] = slopes_to_receivers[order_reversed, 0]
+    slopes_to_receivers_out[order_reversed, 0] = slopes_to_receivers[order_reversed, 1]
+
+    receiver_links_out = receiver_links.copy()
+    receiver_links_out[order_reversed, 1] = receiver_links[order_reversed, 0]
+    receiver_links_out[order_reversed, 0] = receiver_links[order_reversed, 1]
+
     # The sink nodes are those that are their own receivers (this will normally
     # include boundary nodes as well as interior ones; "pits" would be sink
     # nodes that are also interior nodes).
@@ -459,13 +477,13 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     sink = as_id_array(sink)
 
     return (
-        receivers,
-        proportions,
-        slopes_to_receivers,
+        receivers_out,
+        proportions_out,
+        slopes_to_receivers_out,
         steepest_slope,
         steepest_receiver,
         sink,
-        receiver_links,
+        receiver_links_out,
         steepest_link,
     )
 

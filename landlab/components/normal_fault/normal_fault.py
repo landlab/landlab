@@ -7,10 +7,11 @@ component does not make any attempt to advect topography laterally.
 """
 
 import numpy as np
+
 from landlab import Component, FieldError
 
+TWO_PI = 2.0 * np.pi
 
-TWO_PI = 2.0*np.pi
 
 class NormalFault(Component):
     """NormalFault implements relative rock motion due to a normal fault.
@@ -33,10 +34,10 @@ class NormalFault(Component):
     NormalFault*. Improving this is on the developers todo list but is of low
     priority.
 
-    2) **run_one_earthquake**: A single uplift event of size dz can be specified
-    by this method. If NormalFault is used in this way, any specifications
-    provided in the ``fault_throw_rate_through_time`` keyword argument will be
-    ignored.
+    2) **run_one_earthquake**: A single uplift event of size dz can be
+    specified by this method. If NormalFault is used in this way, any
+    specifications provided in the ``fault_throw_rate_through_time`` keyword
+    argument will be ignored.
 
     Note that the NormalFault component does not prevent a user from combining
     the **run_one_step** and **run_one_earthquake** methods. It is encumbent
@@ -45,42 +46,30 @@ class NormalFault(Component):
 
     """
 
-    _name = 'NormalFault'
+    _name = "NormalFault"
 
-    #_cite_as = """ """
+    # _cite_as = """ """
 
-    _input_var_names = (
-        'topographic__elevation',
-    )
+    _input_var_names = ("topographic__elevation",)
 
-    _output_var_names = (
-        'topographic__elevation',
-    )
+    _output_var_names = ("topographic__elevation",)
 
-    _var_units = {
-        'topographic__elevation': 'm',
-    }
+    _var_units = {"topographic__elevation": "m"}
 
-    _var_mapping = {
-        'topographic__elevation': 'node',
-    }
+    _var_mapping = {"topographic__elevation": "node"}
 
-    _var_doc = {
-        'topographic__elevation': 'elevation of the ground surface'
-    }
+    _var_doc = {"topographic__elevation": "elevation of the ground surface"}
 
-    def __init__(self,
-                 grid,
-                 faulted_surface = 'topographic__elevation',
-                 fault_throw_rate_through_time = {'time': [0],
-                                                  'rate': [0.001]},
-                 fault_dip_angle = 90.0,
-                 fault_trace = {'x1': 0,
-                                'y1': 0,
-                                'x2': 1,
-                                'y2': 1},
-                include_boundaries = False,
-                **kwargs):
+    def __init__(
+        self,
+        grid,
+        faulted_surface="topographic__elevation",
+        fault_throw_rate_through_time={"time": [0], "rate": [0.001]},
+        fault_dip_angle=90.0,
+        fault_trace={"x1": 0, "y1": 0, "x2": 1, "y2": 1},
+        include_boundaries=False,
+        **kwargs
+    ):
         """
         Instantiation of a NormalFault.
 
@@ -111,7 +100,10 @@ class NormalFault(Component):
         fault_trace : dictionary, optional
             Dictionary that specifies the coordinates of two locations on the
             fault trace. Expected format is
-            ``fault_trace = {'x1': float, 'y1': float, 'x2': float, 'y2': float}``
+            ``fault_trace = {'x1': float,
+                             'y1': float,
+                             'x2': float,
+                             'y2': float}``
             where the vector from ``(x1, y1)`` to ``(x2, y2)`` defines the
             strike of the fault trace. The orientation of the fault dip relative
             to the strike follows the right hand rule.
@@ -128,7 +120,7 @@ class NormalFault(Component):
 
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import NormalFault
-        >>> grid = RasterModelGrid((6, 6), spacing=10)
+        >>> grid = RasterModelGrid((6, 6), xy_spacing=10)
 
         Add an elevation field.
 
@@ -194,7 +186,7 @@ class NormalFault(Component):
         and we will set include_boundaries to True.
 
         >>> from landlab.components import FastscapeEroder, FlowAccumulator
-        >>> grid = RasterModelGrid((6, 6), spacing=10)
+        >>> grid = RasterModelGrid((6, 6), xy_spacing=10)
         >>> z = grid.add_zeros('node', 'topographic__elevation')
         >>> param_dict = {'faulted_surface': 'topographic__elevation',
         ...               'fault_dip_angle': 90.0,
@@ -235,7 +227,7 @@ class NormalFault(Component):
         For example, if a user wanted to only run NormalFault every tenth
         timestep (or some more seismogenically reasonable set of times).
 
-        >>> grid = RasterModelGrid((6, 6), spacing=10)
+        >>> grid = RasterModelGrid((6, 6), xy_spacing=10)
         >>> z = grid.add_zeros('node', 'topographic__elevation')
         >>> nf = NormalFault(grid, **param_dict)
         >>> fr = FlowAccumulator(grid)
@@ -281,12 +273,13 @@ class NormalFault(Component):
             self.surfaces[faulted_surface] = grid.at_node[faulted_surface]
 
         if fault_dip_angle > 90.0:
-            raise ValueError('NormaFault fault_dip_angle must be less than 90 '
-                             'degrees.')
+            raise ValueError(
+                "NormaFault fault_dip_angle must be less than 90 " "degrees."
+            )
 
         # get the fault throw parameter values from the parameter dictionary
-        self.throw_time = np.array(fault_throw_rate_through_time['time'])
-        self.throw_rate = np.array(fault_throw_rate_through_time['rate'])
+        self.throw_time = np.array(fault_throw_rate_through_time["time"])
+        self.throw_rate = np.array(fault_throw_rate_through_time["rate"])
         self.fault_dip = np.deg2rad(fault_dip_angle)
         self.uplift = self.throw_rate * np.sin(self.fault_dip)
 
@@ -299,44 +292,54 @@ class NormalFault(Component):
         # get the fault trace dictionary and use to to calculate where the
         # faulted nodes are located.
         self.fault_trace = fault_trace
-        dx = self.fault_trace['x2'] - self.fault_trace['x1']
-        dy = self.fault_trace['y2'] - self.fault_trace['y1']
+        dx = self.fault_trace["x2"] - self.fault_trace["x1"]
+        dy = self.fault_trace["y2"] - self.fault_trace["y1"]
         self.fault_azimuth = np.mod(np.arctan2(dy, dx), TWO_PI)
         self.fault_anti_azimuth = self.fault_azimuth + np.pi
         # deal with the edge case in which dx == 0
         if dx == 0:
             self.dy_over_dx = 0.0
             self.fault_trace_y_intercept = 0.0
-            self.fault_trace_x_intercept = self.fault_trace['x2']
+            self.fault_trace_x_intercept = self.fault_trace["x2"]
         else:
-            self.dy_over_dx = dy/dx
-            self.fault_trace_y_intercept = self.fault_trace['y1'] - (self.dy_over_dx * self.fault_trace['x1'])
+            self.dy_over_dx = dy / dx
+            self.fault_trace_y_intercept = self.fault_trace["y1"] - (
+                self.dy_over_dx * self.fault_trace["x1"]
+            )
             self.fault_trace_x_intercept = 0.0
 
         # set the considered nodes based on whether the boundaries will be
         # included in the faulted terrain.
         if self.include_boundaries:
-            potential_nodes = np.arange(self._grid.size('node'))
+            potential_nodes = np.arange(self._grid.size("node"))
         else:
             potential_nodes = self._grid.core_nodes
 
         # select those nodes that are on the correct side of the fault
-        dx_pn = (self._grid.x_of_node[potential_nodes] - self.fault_trace_x_intercept)
-        dy_pn = (self._grid.y_of_node[potential_nodes] - self.fault_trace_y_intercept)
+        dx_pn = self._grid.x_of_node[potential_nodes] - self.fault_trace_x_intercept
+        dy_pn = self._grid.y_of_node[potential_nodes] - self.fault_trace_y_intercept
         potential_angles = np.mod(np.arctan2(dy_pn, dx_pn), TWO_PI)
         if self.fault_anti_azimuth <= TWO_PI:
-            faulted_node_ids = potential_nodes[((potential_angles>self.fault_azimuth) &
-                                                  (potential_angles <= (self.fault_anti_azimuth)))]
+            faulted_node_ids = potential_nodes[
+                (
+                    (potential_angles > self.fault_azimuth)
+                    & (potential_angles <= (self.fault_anti_azimuth))
+                )
+            ]
         else:
-            faulted_node_ids = potential_nodes[((potential_angles>self.fault_azimuth) |
-                                                  (potential_angles <= np.mod(self.fault_anti_azimuth, TWO_PI)))]
+            faulted_node_ids = potential_nodes[
+                (
+                    (potential_angles > self.fault_azimuth)
+                    | (potential_angles <= np.mod(self.fault_anti_azimuth, TWO_PI))
+                )
+            ]
 
         # save a n-node array of boolean identifing faulted nodes.
-        self.faulted_nodes = np.zeros(self._grid.size('node'), dtype=bool)
+        self.faulted_nodes = np.zeros(self._grid.size("node"), dtype=bool)
         self.faulted_nodes[faulted_node_ids] = True
 
     def _check_surfaces(self):
-        if len(self._not_yet_instantiated)>0:
+        if len(self._not_yet_instantiated) > 0:
             still_not_instantiated = []
             for surf in self._not_yet_instantiated:
                 if surf in self._grid.at_node:
@@ -372,13 +375,13 @@ class NormalFault(Component):
             faulted_boundaries = self.faulted_nodes.copy()
             faulted_boundaries[self._grid.core_nodes] = False
 
-            core_nodes = np.zeros(self._grid.size('node'), dtype=bool)
+            core_nodes = np.zeros(self._grid.size("node"), dtype=bool)
             core_nodes[self._grid.core_nodes] = True
 
             neighbor_is_core = core_nodes[self._grid.adjacent_nodes_at_node]
             neighbor_is_faulted = self.faulted_nodes[self._grid.adjacent_nodes_at_node]
 
-            neighbor_for_averaging = neighbor_is_faulted&neighbor_is_core
+            neighbor_for_averaging = neighbor_is_faulted & neighbor_is_core
 
             # Identify nodes that have at least one adjacent node that is both
             # faulted and not a boundary node.
@@ -391,23 +394,37 @@ class NormalFault(Component):
             if any(averaged):
                 averaged_nodes = np.where(faulted_boundaries)[0][np.where(averaged)[0]]
                 for surf_name in self.surfaces:
-                    elevations_to_average =  surfs_before_uplift[surf_name][self._grid.adjacent_nodes_at_node]
-                    elevations_to_average[self._grid.adjacent_nodes_at_node == -1] = np.nan
-                    elevations_to_average[neighbor_for_averaging == False] = np.nan
-                    self.surfaces[surf_name][averaged_nodes] = np.nanmean(elevations_to_average[averaged_nodes], axis=1)
+                    elevations_to_average = surfs_before_uplift[surf_name][
+                        self._grid.adjacent_nodes_at_node
+                    ]
+                    elevations_to_average[
+                        self._grid.adjacent_nodes_at_node == -1
+                    ] = np.nan
+                    elevations_to_average[~neighbor_for_averaging] = np.nan
+                    self.surfaces[surf_name][averaged_nodes] = np.nanmean(
+                        elevations_to_average[averaged_nodes], axis=1
+                    )
 
             # identify any boundary nodes that are not being averaged. This will
             # happen at the corners on RasterModelGrids. Average over adjacent
             # nodes that are faulted. These nodes will be boundary nodes.
             # here we use the current topography as we will have just updated the
             # adjacent nodes in the prior block.
-            if any(averaged == False):
-                un_averaged_nodes = np.where(faulted_boundaries)[0][np.where(averaged == False)[0]]
+            if any(~averaged):
+                un_averaged_nodes = np.where(faulted_boundaries)[0][
+                    np.where(~averaged)[0]
+                ]
                 for surf_name in self.surfaces:
-                    elevations_to_average =  self.surfaces[surf_name][self._grid.adjacent_nodes_at_node]
-                    elevations_to_average[self._grid.adjacent_nodes_at_node == -1] = np.nan
-                    elevations_to_average[neighbor_is_faulted == False] = np.nan
-                    self.surfaces[surf_name][un_averaged_nodes] = np.nanmean(elevations_to_average[un_averaged_nodes], axis=1)
+                    elevations_to_average = self.surfaces[surf_name][
+                        self._grid.adjacent_nodes_at_node
+                    ]
+                    elevations_to_average[
+                        self._grid.adjacent_nodes_at_node == -1
+                    ] = np.nan
+                    elevations_to_average[~neighbor_is_faulted] = np.nan
+                    self.surfaces[surf_name][un_averaged_nodes] = np.nanmean(
+                        elevations_to_average[un_averaged_nodes], axis=1
+                    )
 
     def run_one_step(self, dt, current_time=None):
         """Run_one_step method for NormalFault.
@@ -427,7 +444,9 @@ class NormalFault(Component):
             self.current_time = current_time
 
         # calculate the current uplift rate
-        current_uplift_rate = np.interp(self.current_time, self.throw_time, self.throw_rate)
+        current_uplift_rate = np.interp(
+            self.current_time, self.throw_time, self.throw_rate
+        )
 
         # run one earthquake of size current_uplift_rate * dt
         self.run_one_earthquake(current_uplift_rate * dt)

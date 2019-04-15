@@ -6,10 +6,11 @@ Created on Thu Jul 27 14:23:25 2017
 @author: gtucker
 """
 
-from landlab import RasterModelGrid
-from landlab.components import ErosionDeposition, FlowAccumulator
 import numpy as np
 from numpy.testing import assert_equal
+
+from landlab import RasterModelGrid
+from landlab.components import ErosionDeposition, FlowAccumulator
 
 
 def test_erodep_slope_area_small_vs():
@@ -17,11 +18,11 @@ def test_erodep_slope_area_small_vs():
 
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     rg = RasterModelGrid((5, 5))
-    z = rg.add_zeros('node', 'topographic__elevation')
+    z = rg.add_zeros("node", "topographic__elevation")
     z[:] = 0.01 * rg.x_of_node
 
     # Create a D8 flow handler
-    fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
+    fa = FlowAccumulator(rg, flow_director="FlowDirectorD8")
 
     # Parameter values for test 1
     K = 0.001
@@ -30,8 +31,9 @@ def test_erodep_slope_area_small_vs():
     dt = 10.0
 
     # Create the ErosionDeposition component...
-    ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
-                           solver='adaptive')
+    ed = ErosionDeposition(
+        rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0, solver="adaptive"
+    )
 
     # ... and run it to steady state.
     for i in range(1000):
@@ -40,11 +42,11 @@ def test_erodep_slope_area_small_vs():
         z[rg.core_nodes] += U * dt
 
     # Test the results
-    s = rg.at_node['topographic__steepest_slope']
+    s = rg.at_node["topographic__steepest_slope"]
     sa_factor = (1.0 + vs) * U / K
     a11 = 2.0
     a12 = 1.0
-    s = rg.at_node['topographic__steepest_slope']
+    s = rg.at_node["topographic__steepest_slope"]
     s11 = sa_factor * (a11 ** -0.5)
     s12 = sa_factor * (a12 ** -0.5)
     assert_equal(np.round(s[11], 3), np.round(s11, 3))
@@ -56,11 +58,11 @@ def test_erodep_slope_area_big_vs():
 
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     rg = RasterModelGrid((5, 5))
-    z = rg.add_zeros('node', 'topographic__elevation')
+    z = rg.add_zeros("node", "topographic__elevation")
     z[:] = 0.01 * rg.x_of_node
 
     # Create a D8 flow handler
-    fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
+    fa = FlowAccumulator(rg, flow_director="FlowDirectorD8")
 
     # Next test: big Vs
     K = 1.0
@@ -69,8 +71,9 @@ def test_erodep_slope_area_big_vs():
     dt = 10.0
 
     # Create the ErosionDeposition component...
-    ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
-                           solver='adaptive')
+    ed = ErosionDeposition(
+        rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0, solver="adaptive"
+    )
 
     # ... and run it to steady state.
     for i in range(1000):
@@ -79,7 +82,7 @@ def test_erodep_slope_area_big_vs():
         z[rg.core_nodes] += U * dt
 
     # Test the results
-    s = rg.at_node['topographic__steepest_slope']
+    s = rg.at_node["topographic__steepest_slope"]
     sa_factor = (1.0 + vs) * U / K
     a11 = 2.0
     a12 = 1.0
@@ -94,11 +97,11 @@ def test_erodep_slope_area_with_vs_unity():
 
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     rg = RasterModelGrid((5, 5))
-    z = rg.add_zeros('node', 'topographic__elevation')
+    z = rg.add_zeros("node", "topographic__elevation")
     z[:] = 0.01 * rg.x_of_node
 
     # Create a D8 flow handler
-    fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
+    fa = FlowAccumulator(rg, flow_director="FlowDirectorD8")
 
     # test: Vs = 1
     K = 0.002
@@ -107,8 +110,9 @@ def test_erodep_slope_area_with_vs_unity():
     dt = 10.0
 
     # Create the ErosionDeposition component...
-    ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
-                           solver='adaptive')
+    ed = ErosionDeposition(
+        rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0, solver="adaptive"
+    )
 
     # ... and run it to steady state.
     for i in range(1000):
@@ -117,7 +121,7 @@ def test_erodep_slope_area_with_vs_unity():
         z[rg.core_nodes] += U * dt
 
     # Test the results
-    s = rg.at_node['topographic__steepest_slope']
+    s = rg.at_node["topographic__steepest_slope"]
     sa_factor = (1.0 + vs) * U / K
     a11 = 2.0
     a12 = 1.0
@@ -133,11 +137,11 @@ def test_erodep_slope_area_shear_stress_scaling():
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     rg = RasterModelGrid((5, 5))
     rg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    z = rg.add_zeros('node', 'topographic__elevation')
+    z = rg.add_zeros("node", "topographic__elevation")
     z[:] = 0.01 * rg.x_of_node
 
     # Create a D8 flow handler
-    fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
+    fa = FlowAccumulator(rg, flow_director="FlowDirectorD8")
 
     # test: Vs = 1
     K = 0.002
@@ -147,8 +151,9 @@ def test_erodep_slope_area_shear_stress_scaling():
     m_sp = 0.33
     n_sp = 0.67
     # Create the ErosionDeposition component...
-    ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=m_sp, n_sp=n_sp,
-                           solver='adaptive')
+    ed = ErosionDeposition(
+        rg, K=K, phi=0.0, v_s=vs, m_sp=m_sp, n_sp=n_sp, solver="adaptive"
+    )
 
     # ... and run it to steady state.
     for i in range(1500):
@@ -157,10 +162,10 @@ def test_erodep_slope_area_shear_stress_scaling():
         z[rg.core_nodes] += U * dt
 
     # Test the results
-    s = rg.at_node['topographic__steepest_slope']
+    s = rg.at_node["topographic__steepest_slope"]
     sa_factor = ((1.0 + vs) * U / K) ** (1.0 / n_sp)
-    a6 = rg.at_node['drainage_area'][6]
-    a8 = rg.at_node['drainage_area'][8]
+    a6 = rg.at_node["drainage_area"][6]
+    a8 = rg.at_node["drainage_area"][8]
     s6 = sa_factor * (a6 ** -(m_sp / n_sp))
     s8 = sa_factor * (a8 ** -(m_sp / n_sp))
     assert_equal(np.round(s[6], 2), np.round(s6, 2))
@@ -172,11 +177,11 @@ def test_erodep_slope_area_with_threshold():
 
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     rg = RasterModelGrid((5, 5))
-    z = rg.add_zeros('node', 'topographic__elevation')
+    z = rg.add_zeros("node", "topographic__elevation")
     z[:] = 0.01 * rg.x_of_node
 
     # Create a D8 flow handler
-    fa = FlowAccumulator(rg, flow_director='FlowDirectorD8')
+    fa = FlowAccumulator(rg, flow_director="FlowDirectorD8")
 
     # test: Vs = 1
     K = 0.002
@@ -186,9 +191,9 @@ def test_erodep_slope_area_with_threshold():
     wc = 0.0001
 
     # Create the ErosionDeposition component...
-    ed = ErosionDeposition(rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0,
-                           sp_crit=wc,
-                           solver='adaptive')
+    ed = ErosionDeposition(
+        rg, K=K, phi=0.0, v_s=vs, m_sp=0.5, n_sp=1.0, sp_crit=wc, solver="adaptive"
+    )
 
     # ... and run it to steady state.
     for i in range(1000):
@@ -197,7 +202,7 @@ def test_erodep_slope_area_with_threshold():
         z[rg.core_nodes] += U * dt
 
     # Test the results
-    s = rg.at_node['topographic__steepest_slope']
+    s = rg.at_node["topographic__steepest_slope"]
     sa_factor = ((1.0 + vs) * U + wc) / K  # approximate sol'n
     a11 = 2.0
     a12 = 1.0
@@ -207,5 +212,5 @@ def test_erodep_slope_area_with_threshold():
     assert_equal(np.round(s[12], 2), np.round(s12, 2))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_erodep_slope_area_shear_stress_scaling()

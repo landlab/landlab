@@ -14,26 +14,33 @@ ESRI ASCII functions
 
 import os
 import re
-import six
 
 import numpy as np
+import six
+
+from landlab.utils import add_halo
 
 _VALID_HEADER_KEYS = [
-    'ncols', 'nrows', 'xllcorner', 'xllcenter', 'yllcorner',
-    'yllcenter', 'cellsize', 'nodata_value',
+    "ncols",
+    "nrows",
+    "xllcorner",
+    "xllcenter",
+    "yllcorner",
+    "yllcenter",
+    "cellsize",
+    "nodata_value",
 ]
-_HEADER_KEY_REGEX_PATTERN = re.compile(r'\s*(?P<key>[a-zA-z]\w+)')
-_HEADER_REGEX_PATTERN = re.compile(
-    r'\s*(?P<key>[a-zA-Z]\w+)\s+(?P<value>[\w.+-]+)')
+_HEADER_KEY_REGEX_PATTERN = re.compile(r"\s*(?P<key>[a-zA-z]\w+)")
+_HEADER_REGEX_PATTERN = re.compile(r"\s*(?P<key>[a-zA-Z]\w+)\s+(?P<value>[\w.+-]+)")
 _HEADER_VALUE_TESTS = {
-    'nrows': (int, lambda x: x > 0),
-    'ncols': (int, lambda x: x > 0),
-    'cellsize': (float, lambda x: x > 0),
-    'xllcorner': (float, lambda x: True),
-    'xllcenter': (float, lambda x: True),
-    'yllcorner': (float, lambda x: True),
-    'yllcenter': (float, lambda x: True),
-    'nodata_value': (float, lambda x: True),
+    "nrows": (int, lambda x: x > 0),
+    "ncols": (int, lambda x: x > 0),
+    "cellsize": (float, lambda x: x > 0),
+    "xllcorner": (float, lambda x: True),
+    "xllcenter": (float, lambda x: True),
+    "yllcorner": (float, lambda x: True),
+    "yllcenter": (float, lambda x: True),
+    "nodata_value": (float, lambda x: True),
 }
 
 
@@ -52,7 +59,7 @@ class BadHeaderLineError(Error):
         self._line = line
 
     def __str__(self):
-        return self._line
+        return self._line  # this line not yet tested
 
 
 class MissingRequiredKeyError(Error):
@@ -75,7 +82,7 @@ class KeyTypeError(Error):
         self._type = str(expected_type)
 
     def __str__(self):
-        return 'Unable to convert %s to %s' % (self._key, self._type)
+        return "Unable to convert %s to %s" % (self._key, self._type)
 
 
 class KeyValueError(Error):
@@ -87,7 +94,7 @@ class KeyValueError(Error):
         self._msg = message
 
     def __str__(self):
-        return '%s: %s' % (self._key, self._msg)
+        return "%s: %s" % (self._key, self._msg)  # this line not yet tested
 
 
 class DataSizeError(Error):
@@ -99,22 +106,54 @@ class DataSizeError(Error):
         self._expected = expected_size
 
     def __str__(self):
-        return '%s != %s' % (self._actual, self._expected)
+        return "%s != %s" % (self._actual, self._expected)  # this line not yet tested
 
 
 class MismatchGridDataSizeError(Error):
-    
+
     """Raise this error if the data size does not match the grid size."""
-    
+
     def __init__(self, size, expected_size):
         self._actual = size
         self._expected = expected_size
 
     def __str__(self):
-        return '(data size) %s != %s (grid size)' \
-           % (self._actual, self._expected)
+        return "(data size) %s != %s (grid size)" % (
+            self._actual,
+            self._expected,
+        )  # this line not yet tested
 
-    
+
+class MismatchGridXYSpacing(Error):
+
+    """Raise this error if the file cell size does not match the grid dx."""
+
+    def __init__(self, dx, expected_dx):
+        self._actual = dx
+        self._expected = expected_dx
+
+    def __str__(self):
+        return "(data dx) %s != %s (grid dx)" % (
+            self._actual,
+            self._expected,
+        )  # this line not yet tested
+
+
+class MismatchGridXYLowerLeft(Error):
+
+    """Raise this error if the file lower left does not match the grid."""
+
+    def __init__(self, llc, expected_llc):
+        self._actual = llc
+        self._expected = expected_llc
+
+    def __str__(self):
+        return "(data lower-left) %s != %s (grid lower-left)" % (
+            self._actual,
+            self._expected,
+        )  # this line not yet tested
+
+
 def _parse_header_key_value(line):
     """Parse a header line into a key-value pair.
 
@@ -142,7 +181,7 @@ def _parse_header_key_value(line):
     if match is None:
         raise BadHeaderLineError(line)
 
-    (key, value) = (match.group('key').lower(), match.group('value'))
+    (key, value) = (match.group("key").lower(), match.group("value"))
 
     if key in _VALID_HEADER_KEYS:
         return (key, value)
@@ -193,14 +232,14 @@ def _header_is_valid(header):
         The header has the key but its values is of the wrong type.
     """
     header_keys = set(header)
-    required_keys = set(['ncols', 'nrows', 'cellsize'])
+    required_keys = set(["ncols", "nrows", "cellsize"])
 
     if not required_keys.issubset(header_keys):
-        raise MissingRequiredKeyError(', '.join(required_keys - header_keys))
+        raise MissingRequiredKeyError(", ".join(required_keys - header_keys))
 
-    for keys in [('xllcenter', 'xllcorner'), ('yllcenter', 'yllcorner')]:
+    for keys in [("xllcenter", "xllcorner"), ("yllcenter", "yllcorner")]:
         if len(set(keys) & header_keys) != 1:
-            raise MissingRequiredKeyError('|'.join(keys))
+            raise MissingRequiredKeyError("|".join(keys))
 
     for (key, requires) in _HEADER_VALUE_TESTS.items():
         to_type, is_valid = requires
@@ -214,7 +253,7 @@ def _header_is_valid(header):
             raise KeyTypeError(key, to_type)
 
         if not is_valid(header[key]):
-            raise KeyValueError(key, 'Bad value')
+            raise KeyValueError(key, "Bad value")
 
     return True
 
@@ -345,21 +384,27 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     grid : *grid* , optional
         Adds data to an existing *grid* instead of creating a new one.
     halo : integer, optional
-        Adds outer border of depth halo to the *grid*. 
+        Adds outer border of depth halo to the *grid*.
 
     Returns
     -------
     (grid, data) : tuple
         A newly-created RasterModel grid and the associated node data.
-        
+
     Raises
     ------
     DataSizeError
         Data are not the same size as indicated by the header file.
     MismatchGridDataSizeError
-        If a grid is passed, the size of the grid does not agree with the
+        If a grid is passed, and the size of the grid does not agree with the
         size of the data.
-        
+    MismatchGridXYSpacing
+        If a grid is passed, and the cellsize listed in the heading does not
+        match the grid dx and dy.
+    MismatchGridXYLowerLeft
+        If a grid is passed and the xllcorner and yllcorner do not match that
+        of the grid.
+
     Examples
     --------
     Assume that fop is the name of a file that contains text below
@@ -383,77 +428,80 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     >>> (grid, data) = read_esri_ascii('fop', halo=1) # doctest: +SKIP
     >>> #now the data has a nodata_value ring of -9999 around it. So array is
     >>> # [-9999, -9999, -9999, -9999, -9999, -9999,
-    >>> #  -9999, 9., 10., 11., -9999, 
-    >>> #  -9999, 6., 7., 8., -9999, 
+    >>> #  -9999, 9., 10., 11., -9999,
+    >>> #  -9999, 6., 7., 8., -9999,
     >>> #  -9999, 3., 4., 5., -9999,
     >>> #  -9999, 0., 1., 2. -9999,
     >>> #  -9999, -9999, -9999, -9999, -9999, -9999]
     """
     from ..grid import RasterModelGrid
 
+    # if the asc_file is provided as a string, open it and pass the pointer to
+    # _read_asc_header, and _read_asc_data
     if isinstance(asc_file, six.string_types):
-        file_name = asc_file
-        with open(file_name, 'r') as asc_file:
-            header = read_asc_header(asc_file)
-            data = _read_asc_data(asc_file)
+        with open(asc_file, "r") as f:
+            header = read_asc_header(f)
+            data = _read_asc_data(f)
+
+    # otherwise, pass asc_file directly.
     else:
         header = read_asc_header(asc_file)
         data = _read_asc_data(asc_file)
-    
-    #There is no reason for halo to be negative.
-    #Assume that if a negative value is given it should be 0.
+
+    # There is no reason for halo to be negative.
+    # Assume that if a negative value is given it should be 0.
     if halo <= 0:
-        shape = (header['nrows'], header['ncols'])
+        shape = (header["nrows"], header["ncols"])
         if data.size != shape[0] * shape[1]:
             raise DataSizeError(shape[0] * shape[1], data.size)
     else:
-        shape = (header['nrows'] + 2 * halo, header['ncols'] + 2 * halo)
-        #check to see if a nodata_value was given.  If not, assign -9999.
-        if 'nodata_value' in header.keys():
-            nodata_value = header['nodata_value']
+        shape = (header["nrows"] + 2 * halo, header["ncols"] + 2 * halo)
+        # check to see if a nodata_value was given.  If not, assign -9999.
+        if "nodata_value" in header.keys():
+            nodata_value = header["nodata_value"]
         else:
-            header['nodata_value'] = -9999.
-            nodata_value = header['nodata_value']
+            header["nodata_value"] = -9999.0
+            nodata_value = header["nodata_value"]
         if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
             raise DataSizeError(shape[0] * shape[1], data.size)
-    spacing = (header['cellsize'], header['cellsize'])
-    #origin = (header['xllcorner'], header['yllcorner'])   
-    
+    xy_spacing = (header["cellsize"], header["cellsize"])
+    xy_of_lower_left = (
+        header["xllcorner"] - halo * header["cellsize"],
+        header["yllcorner"] - halo * header["cellsize"],
+    )
+
     data = np.flipud(data)
 
-    #REMEMBER, shape contains the size with halo in place
-    #header contains the shape of the original data
-    #Add halo below
     if halo > 0:
-        helper_row = np.ones(shape[1]) * nodata_value
-        #for the first halo row(s), add num cols worth of nodata vals to data
-        for i in range(0, halo):
-            data = np.insert(data,0,helper_row)
-        #then for header['nrows'] add halo number nodata vals, header['ncols'] 
-        #of data, then halo number of nodata vals
-        helper_row_ends = np.ones(halo) * nodata_value
-        for i in range(halo, header['nrows']+halo):
-            #this adds at the beginning of the row
-            data = np.insert(data,i * shape[1],helper_row_ends)
-            #this adds at the end of the row
-            data = np.insert(data,(i + 1) * shape[1] - halo,helper_row_ends)
-        #for the last halo row(s), add num cols worth of nodata vals to data
-        for i in range(header['nrows']+halo,shape[0]):
-            data = np.insert(data,data.size,helper_row)
-        
+        data = add_halo(
+            data.reshape(header["nrows"], header["ncols"]),
+            halo=halo,
+            halo_value=nodata_value,
+        ).reshape((-1,))
+
     if not reshape:
         data = data.flatten()
-        
+
     if grid is not None:
-        if (grid.number_of_node_rows != shape[0]) or \
-        (grid.number_of_node_columns != shape[1]):
-            raise MismatchGridDataSizeError(shape[0] * shape[1], \
-            grid.number_of_node_rows * grid.number_of_node_columns )
+        if (grid.number_of_node_rows != shape[0]) or (
+            grid.number_of_node_columns != shape[1]
+        ):
+            raise MismatchGridDataSizeError(
+                shape[0] * shape[1],
+                grid.number_of_node_rows * grid.number_of_node_columns,
+            )
+        if (grid.dx, grid.dy) != xy_spacing:
+            raise MismatchGridXYSpacing((grid.dx, grid.dy), xy_spacing)
+
+        if grid.xy_of_lower_left != xy_of_lower_left:
+            raise MismatchGridXYLowerLeft(grid.xy_of_lower_left, xy_of_lower_left)
 
     if grid is None:
-        grid = RasterModelGrid(shape, spacing=spacing)
+        grid = RasterModelGrid(
+            shape, xy_spacing=xy_spacing, xy_of_lower_left=xy_of_lower_left
+        )
     if name:
-        grid.add_field('node', name, data)
+        grid.add_field("node", name, data)
 
     return (grid, data)
 
@@ -484,7 +532,7 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     >>> from landlab import RasterModelGrid
     >>> from landlab.io.esri_ascii import write_esri_ascii
 
-    >>> grid = RasterModelGrid((4, 5), spacing=(2., 2.))
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=(2., 2.))
     >>> _ = grid.add_field('node', 'air__temperature', np.arange(20.))
     >>> with cdtemp() as _:
     ...     files = write_esri_ascii('test.asc', grid)
@@ -499,7 +547,7 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     ['test_air__temperature.asc', 'test_land_surface__elevation.asc']
     """
     if os.path.exists(path) and not clobber:
-        raise ValueError('file exists')
+        raise ValueError("file exists")
 
     if isinstance(names, six.string_types):
         names = [names]
@@ -510,27 +558,27 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
         paths = [path]
     elif len(names) > 1:
         (base, ext) = os.path.splitext(path)
-        paths = [base + '_' + name + ext for name in names]
+        paths = [base + "_" + name + ext for name in names]
     else:
-        raise ValueError('no node fields to write')
+        raise ValueError("no node fields to write")
 
     bad_names = set(names) - set(fields.at_node.keys())
     if len(bad_names) > 0:
-        raise ValueError('unknown field name(s): %s' % ','.join(bad_names))
+        raise ValueError("unknown field name(s): %s" % ",".join(bad_names))
 
     header = {
-        'ncols': fields.number_of_node_columns,
-        'nrows': fields.number_of_node_rows,
-        'xllcorner': fields.node_x[0],
-        'yllcorner': fields.node_y[0],
-        'cellsize': fields.dx,
+        "ncols": fields.number_of_node_columns,
+        "nrows": fields.number_of_node_rows,
+        "xllcorner": fields.node_x[0],
+        "yllcorner": fields.node_y[0],
+        "cellsize": fields.dx,
     }
 
     for path, name in zip(paths, names):
-        header_lines = ['%s %s' % (key, str(val))
-                        for key, val in list(header.items())]
-        data = fields.at_node[name].reshape(header['nrows'], header['ncols'])
-        np.savetxt(path, np.flipud(data), header=os.linesep.join(header_lines),
-                   comments='')
+        header_lines = ["%s %s" % (key, str(val)) for key, val in list(header.items())]
+        data = fields.at_node[name].reshape(header["nrows"], header["ncols"])
+        np.savetxt(
+            path, np.flipud(data), header=os.linesep.join(header_lines), comments=""
+        )
 
     return paths

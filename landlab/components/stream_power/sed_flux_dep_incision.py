@@ -3,14 +3,11 @@ from __future__ import print_function
 
 import warnings
 
+import numpy as np
 from six.moves import range
 
-import numpy as np
-from time import sleep
-from landlab import ModelParameterDictionary, CLOSED_BOUNDARY, Component
-
+from landlab import Component, FieldError
 from landlab.core.model_parameter_dictionary import MissingKeyError
-from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import make_return_array_immutable
 
@@ -27,6 +24,14 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
 # NB: ALSO, there are odd outcomes when m_sp != m_t-1. Analysis shows that the
 # steady state form should converge on the TL st st form, but it does not -
 # abnormally flat profiles seem to result.
+
+
+
+
+# Note: DOES SHEAR STRESS GET UPDATED?????
+# Think about NotImplementedErrors for other things
+
+
 
 
 class SedDepEroder(Component):
@@ -84,82 +89,6 @@ class SedDepEroder(Component):
     *flooded_nodes* be passed to the run method. A flooded depression
     acts as a perfect sediment trap, and will be filled sequentially
     from the inflow points towards the outflow points.
-
-    Construction::
-
-        SedDepEroder(grid, K_sp=1.e-6, g=9.81, rock_density=2700,
-                     sediment_density=2700, fluid_density=1000,
-                     runoff_rate=1.,
-                     sed_dependency_type='generalized_humped',
-                     kappa_hump=13.683, nu_hump=1.13, phi_hump=4.24,
-                     c_hump=0.00181, Qc='power_law', m_sp=0.5, n_sp=1.,
-                     K_t=1.e-4, m_t=1.5, n_t=1., b_t=1., S_crit=0.,
-                     pseudoimplicit_repeats=50)
-
-    Parameters
-    ----------
-    grid : a ModelGrid
-        A grid.
-    K_sp : float (time unit must be *years*)
-        K in the stream power equation; the prefactor on the erosion
-        equation (units vary with other parameters).
-    g : float (m/s**2)
-        Acceleration due to gravity.
-    rock_density : float (Kg m**-3)
-        Bulk intact rock density.
-    sediment_density : float (Kg m**-3)
-        Typical density of loose sediment on the bed.
-    fluid_density : float (Kg m**-3)
-        Density of the fluid.
-    runoff_rate : float, array or field name (m/s)
-        The rate of excess overland flow production at each node (i.e.,
-        rainfall rate less infiltration).
-    pseudoimplicit_repeats : int
-        Maximum number of loops to perform with the pseudoimplicit iterator,
-        seeking a stable solution. Convergence is typically rapid. The
-        component counts the total number of times it "maxed out" the
-        loop to seek a stable solution (error in sed flux fn <1%) with the
-        internal variable "_pseudoimplicit_aborts".
-    sed_dependency_type : {'generalized_humped', 'None', 'linear_decline',
-                           'almost_parabolic'}
-        The shape of the sediment flux function. For definitions, see
-        Hobley et al., 2011. 'None' gives a constant value of 1.
-        NB: 'parabolic' is currently not supported, due to numerical
-        stability issues at channel heads.
-    Qc : {'power_law', }
-        At present, only `power_law` is supported.
-
-    If ``sed_dependency_type == 'generalized_humped'``...
-
-    kappa_hump : float
-        Shape parameter for sediment flux function. Primarily controls
-        function amplitude (i.e., scales the function to a maximum of 1).
-        Default follows Leh valley values from Hobley et al., 2011.
-    nu_hump : float
-        Shape parameter for sediment flux function. Primarily controls
-        rate of rise of the "tools" limb. Default follows Leh valley
-        values from Hobley et al., 2011.
-    phi_hump : float
-        Shape parameter for sediment flux function. Primarily controls
-        rate of fall of the "cover" limb. Default follows Leh valley
-        values from Hobley et al., 2011.
-    c_hump : float
-        Shape parameter for sediment flux function. Primarily controls
-        degree of function asymmetry. Default follows Leh valley values
-        from Hobley et al., 2011.
-
-    If ``Qc == 'power_law'``...
-
-    m_sp : float
-        Power on drainage area in the erosion equation.
-    n_sp : float
-        Power on slope in the erosion equation.
-    K_t : float (time unit must be in *years*)
-        Prefactor in the transport capacity equation.
-    m_t : float
-        Power on drainage area in the transport capacity equation.
-    n_t : float
-        Power on slope in the transport capacity equation.
 
     Examples
     --------
@@ -277,134 +206,233 @@ class SedDepEroder(Component):
     A visual comparison of these solutions will confirm this closeness.
     """
 
-    _name = 'SedDepEroder'
+    _name = "SedDepEroder"
 
     _input_var_names = (
-        'topographic__elevation',
-        'drainage_area',
-        'flow__receiver_node',
-        'flow__upstream_node_order',
-        'topographic__steepest_slope',
-        'flow__link_to_receiver_node',
-        'flow__sink_flag',
-        'channel_sediment__depth'
+        "topographic__elevation",
+        "drainage_area",
+        "flow__receiver_node",
+        "flow__upstream_node_order",
+        "topographic__steepest_slope",
+        "flow__link_to_receiver_node",
+        "flow__sink_flag",
+        "channel_sediment__depth",
     )
 
     _output_var_names = (
-        'topographic__elevation',
-        'channel_sediment__depth',
-        'channel__bed_shear_stress',
-        'channel_sediment__volumetric_transport_capacity',
-        'channel_sediment__volumetric_discharge',
-        'channel_sediment__relative_flux',
-        'channel__discharge',
+        "topographic__elevation",
+        "channel__bed_shear_stress",
+        "channel_sediment__volumetric_transport_capacity",
+        "channel_sediment__volumetric_discharge",
+        "channel_sediment__relative_flux",
+        "channel__discharge",
     )
 
-    _var_units = {'topographic__elevation': 'm',
-                  'drainage_area': 'm**2',
-                  'flow__receiver_node': '-',
-                  'topographic__steepest_slope': '-',
-                  'flow__upstream_node_order': '-',
-                  'flow__link_to_receiver_node': '-',
-                  'flow__sink_flag': '-',
-                  'channel_sediment__depth': 'm',
-                  'channel__bed_shear_stress': 'Pa',
-                  'channel_sediment__volumetric_transport_capacity': 'm**3/s',
-                  'channel_sediment__volumetric_discharge': 'm**3/s',
-                  'channel_sediment__relative_flux': '-',
-                  'channel__discharge': 'm**3/s',
-                  }
+    _optional_var_names = ("channel__width", "channel__depth")
 
-    _var_mapping = {'topographic__elevation': 'node',
-                    'drainage_area': 'node',
-                    'flow__receiver_node': 'node',
-                    'topographic__steepest_slope': 'node',
-                    'flow__upstream_node_order': 'node',
-                    'flow__link_to_receiver_node': 'node',
-                    'flow__sink_flag': 'node',
-                    'channel_sediment__depth': 'node',
-                    'channel__bed_shear_stress': 'node',
-                    'channel_sediment__volumetric_transport_capacity': 'node',
-                    'channel_sediment__volumetric_discharge': 'node',
-                    'channel_sediment__relative_flux': 'node',
-                    'channel__discharge': 'node',
-                    }
-
-    _var_type = {'topographic__elevation': float,
-                 'drainage_area': float,
-                 'flow__receiver_node': int,
-                 'topographic__steepest_slope': float,
-                 'flow__upstream_node_order': int,
-                 'flow__link_to_receiver_node': int,
-                 'flow__sink_flag': bool,                            # CHECK
-                 'channel_sediment__depth': float,
-                 'channel__bed_shear_stress': float,
-                 'channel_sediment__volumetric_transport_capacity': float,
-                 'channel_sediment__volumetric_discharge': float,
-                 'channel_sediment__relative_flux': float,
-                 'channel__discharge': float,
-                 }
-
-    _var_doc = {
-        'topographic__elevation': 'Land surface topographic elevation',
-        'drainage_area':
-            ("Upstream accumulated surface area contributing to the node's " +
-             "discharge"),
-        'flow__receiver_node':
-            ('Node array of receivers (node that receives flow from current ' +
-             'node)'),
-        'topographic__steepest_slope':
-            'Node array of steepest *downhill* slopes',
-        'flow__upstream_node_order':
-            ('Node array containing downstream-to-upstream ordered list of ' +
-             'node IDs'),
-        'flow__link_to_receiver_node':
-            'ID of link downstream of each node, which carries the discharge',
-        'flow__sink_flag': 'Boolean array, True at local lows',
-        'channel_sediment__depth':
-            ('Loose fluvial sediment at each node. Can be' +
-             ' freely entrained by the flow, and must be to permit erosion. ' +
-             'Note that the sediment is assumed to be distributed across the' +
-             ' whole cell area.'),
-        'channel__bed_shear_stress':
-            ('Shear exerted on the bed of the channel, assuming all ' +
-             'discharge travels along a single, self-formed channel'),
-        'channel_sediment__volumetric_transport_capacity':
-            ('Volumetric transport capacity of a channel carrying all runoff' +
-             ' through the node, assuming the Meyer-Peter Muller transport ' +
-             'equation'),
-        'channel_sediment__volumetric_discharge':
-            ('Total volumetric fluvial sediment discharge brought into the ' +
-             'node from upstream'),
-        'channel_sediment__relative_flux':
-            ('The channel_sediment__volumetric_discharge divided by the ' +
-             'channel_sediment__volumetric_transport_capacity'),
-        'channel__discharge':
-            ('Volumetric water flux of the a single channel carrying all ' +
-             'runoff through the node'),
+    _var_units = {
+        "topographic__elevation": "m",
+        "drainage_area": "m**2",
+        "flow__receiver_node": "-",
+        "topographic__steepest_slope": "-",
+        "flow__upstream_node_order": "-",
+        "flow__link_to_receiver_node": "-",
+        "flow__sink_flag": "-",
+        "channel_sediment__depth": "m",
+        "channel__bed_shear_stress": "Pa",
+        "channel_sediment__volumetric_transport_capacity": "m**3/s",
+        "channel_sediment__volumetric_discharge": "m**3/s",
+        "channel_sediment__relative_flux": "-",
+        "channel__discharge": "m**3/s",
     }
 
-    def __init__(self, grid, K_sp=1.e-6, g=9.81,
-                 rock_density=2700, sediment_density=2700, fluid_density=1000,
-                 runoff_rate=1.,
-                 sed_dependency_type='generalized_humped', kappa_hump=13.683,
-                 nu_hump=1.13, phi_hump=4.24, c_hump=0.00181,
-                 Qc='power_law', m_sp=0.5, n_sp=1., K_t=1.e-4, m_t=1.5, n_t=1.,
-                 # params for model numeric behavior:
-                 pseudoimplicit_repeats=50, **kwds):
-        """Constructor for the class."""
-        if (grid.at_node['flow__receiver_node'].size != grid.size('node')):
-            msg = ('A route-to-multiple flow director has been '
-                   'run on this grid. The landlab development team has not '
-                   'verified that SedDepEroder is compatible with '
-                   'route-to-multiple methods. Please open a GitHub Issue '
-                   'to start this process.')
-            raise NotImplementedError(msg)
+    _var_mapping = {
+        "topographic__elevation": "node",
+        "drainage_area": "node",
+        "flow__receiver_node": "node",
+        "topographic__steepest_slope": "node",
+        "flow__upstream_node_order": "node",
+        "flow__link_to_receiver_node": "node",
+        "flow__sink_flag": "node",
+        "channel_sediment__depth": "node",
+        "channel__bed_shear_stress": "node",
+        "channel_sediment__volumetric_transport_capacity": "node",
+        "channel_sediment__volumetric_discharge": "node",
+        "channel_sediment__relative_flux": "node",
+        "channel__discharge": "node",
+    }
 
+    _var_type = {
+        "topographic__elevation": float,
+        "drainage_area": float,
+        "flow__receiver_node": int,
+        "topographic__steepest_slope": float,
+        "flow__upstream_node_order": int,
+        "flow__link_to_receiver_node": int,
+        "flow__sink_flag": bool,
+        "channel_sediment__depth": float,
+        "channel__bed_shear_stress": float,
+        "channel_sediment__volumetric_transport_capacity": float,
+        "channel_sediment__volumetric_discharge": float,
+        "channel_sediment__relative_flux": float,
+        "channel__discharge": float,
+    }
+
+    _var_doc = {
+        "topographic__elevation": "Land surface topographic elevation",
+        "drainage_area": (
+            "Upstream accumulated surface area contributing to the node's " +
+            "discharge"
+        ),
+        "flow__receiver_node": (
+            "Node array of receivers (node that receives flow from current " +
+            "node)"
+        ),
+        "topographic__steepest_slope": (
+            "Node array of steepest *downhill* slopes"
+        ),
+        "flow__upstream_node_order": (
+            "Node array containing downstream-to-upstream ordered list of " +
+            "node IDs"
+        ),
+        "flow__link_to_receiver_node": ("ID of link downstream of each " +
+            "node, which carries the discharge"
+        ),
+        "flow__sink_flag": "Boolean array, True at local lows",
+        "channel_sediment__depth": (
+            "Loose fluvial sediment at each node. Can be " +
+            "freely entrained by the flow, and must be to permit erosion. " +
+            "Note that the sediment is assumed to be distributed across the" +
+            " whole cell area."
+        ),
+        "channel__bed_shear_stress": (
+            "Shear exerted on the bed of the channel, assuming all "
+            + "discharge travels along a single, self-formed channel"
+        ),
+        "channel_sediment__volumetric_transport_capacity": (
+            "Volumetric transport capacity of a channel carrying all runoff"
+            + " through the node, assuming the Meyer-Peter Muller transport "
+            + "equation"
+        ),
+        "channel_sediment__volumetric_discharge": (
+            "Total volumetric fluvial sediment flux brought into the node "
+            + "from upstream"
+        ),
+        "channel_sediment__relative_flux": (
+            "The channel_sediment__volumetric_discharge divided by the " +
+            "channel_sediment__volumetric_transport_capacity"
+        ),
+        "channel__discharge": (
+            "Volumetric water flux of the a single channel carrying all "
+            + "runoff through the node"
+        ),
+    }
+
+    def __init__(
+        self,
+        grid,
+        K_sp=1.e-6,
+        g=9.81,
+        rock_density=2700.,
+        sediment_density=2700.,
+        fluid_density=1000.,
+        runoff_rate=1.,
+        sed_dependency_type="generalized_humped",
+        kappa_hump=13.683,
+        nu_hump=1.13,
+        phi_hump=4.24,
+        c_hump=0.00181,
+        Qc="power_law",
+        m_sp=0.5,
+        n_sp=1.,
+        K_t=1.e-4,
+        m_t=1.5,
+        n_t=1.,
+        # params for model numeric behavior:
+        pseudoimplicit_repeats=5,
+        **kwds
+    ):
+        """Constructor for the class.
+
+        Parameters
+        ----------
+        grid : a ModelGrid
+            A grid.
+        K_sp : float (time unit must be *years*)
+            K in the stream power equation; the prefactor on the erosion
+            equation (units vary with other parameters).
+        g : float (m/s**2)
+            Acceleration due to gravity.
+        rock_density : float (Kg m**-3)
+            Bulk intact rock density.
+        sediment_density : float (Kg m**-3)
+            Typical density of loose sediment on the bed.
+        fluid_density : float (Kg m**-3)
+            Density of the fluid.
+        runoff_rate : float, array or field name (m/s)
+            The rate of excess overland flow production at each node (i.e.,
+            rainfall rate less infiltration).
+        pseudoimplicit_repeats : int
+            Maximum number of loops to perform with the pseudoimplicit
+            iterator, seeking a stable solution. Convergence is typically
+            rapid. The component counts the total number of times it "maxed
+            out" the loop to seek a stable solution (error in sed flux fn <1%)
+            with the internal variable "_pseudoimplicit_aborts".
+        sed_dependency_type : {'generalized_humped', 'None', 'linear_decline',
+                               'almost_parabolic'}
+            The shape of the sediment flux function. For definitions, see
+            Hobley et al., 2011. 'None' gives a constant value of 1.
+            NB: 'parabolic' is currently not supported, due to numerical
+            stability issues at channel heads.
+        Qc : {'power_law', }
+            At present, only `power_law` is supported.
+
+        If ``sed_dependency_type == 'generalized_humped'``...
+
+        kappa_hump : float
+            Shape parameter for sediment flux function. Primarily controls
+            function amplitude (i.e., scales the function to a maximum of 1).
+            Default follows Leh valley values from Hobley et al., 2011.
+        nu_hump : float
+            Shape parameter for sediment flux function. Primarily controls
+            rate of rise of the "tools" limb. Default follows Leh valley
+            values from Hobley et al., 2011.
+        phi_hump : float
+            Shape parameter for sediment flux function. Primarily controls
+            rate of fall of the "cover" limb. Default follows Leh valley
+            values from Hobley et al., 2011.
+        c_hump : float
+            Shape parameter for sediment flux function. Primarily controls
+            degree of function asymmetry. Default follows Leh valley values
+            from Hobley et al., 2011.
+
+        If ``Qc == 'power_law'``...
+
+        m_sp : float
+            Power on drainage area in the erosion equation.
+        n_sp : float
+            Power on slope in the erosion equation.
+        K_t : float (time unit must be in *years*)
+            Prefactor in the transport capacity equation.
+        m_t : float
+            Power on drainage area in the transport capacity equation.
+        n_t : float
+            Power on slope in the transport capacity equation.
+        """
+        if "flow__receiver_node" in grid.at_node:
+            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
+                msg = (
+                    "A route-to-multiple flow director has been "
+                    "run on this grid. The landlab development team has not "
+                    "verified that SedDepEroder is compatible with "
+                    "route-to-multiple methods. Please open a GitHub Issue "
+                    "to start this process."
+                )
+                raise NotImplementedError(msg)
         self._grid = grid
         self.pseudoimplicit_repeats = pseudoimplicit_repeats
 
-        self._K_unit_time = K_sp/31557600.
+        self._K_unit_time = K_sp / 31557600.
         # ^...because we work with dt in seconds
         # set gravity
         self.g = g
@@ -412,12 +440,17 @@ class SedDepEroder(Component):
         self.sed_density = sediment_density
         self.fluid_density = fluid_density
         self.relative_weight = (
-            (self.sed_density-self.fluid_density)/self.fluid_density*self.g)
+            (self.sed_density - self.fluid_density) / self.fluid_density * self.g
+        )
         # ^to accelerate MPM calcs
-        self.rho_g = self.fluid_density*self.g
+        self.rho_g = self.fluid_density * self.g
         self.type = sed_dependency_type
-        assert self.type in ('generalized_humped', 'None', 'linear_decline',
-                             'almost_parabolic')
+        assert self.type in (
+            'generalized_humped',
+            'None',
+            'linear_decline',
+            'almost_parabolic',
+        )
         # now conditional inputs
         if self.type == 'generalized_humped':
             self.kappa = kappa_hump
@@ -435,7 +468,7 @@ class SedDepEroder(Component):
         self.set_sed_flux_fn_gen()
 
         self.Qc = Qc
-        assert self.Qc in ('MPM', 'power_law', 'Voller_generalized')
+        assert self.Qc in ('MPM', 'power_law')
         if type(runoff_rate) in (float, int):
             self.runoff_rate = float(runoff_rate)
         elif type(runoff_rate) is str:
@@ -449,7 +482,7 @@ class SedDepEroder(Component):
         elif self.Qc == 'power_law':
             self._m = m_sp
             self._n = n_sp
-            self._Kt = K_t/31557600.  # in sec
+            self._Kt = K_t / 31557600.  # in sec
             self._mt = m_t
             self._nt = n_t
         elif self.Qc == 'Voller_generalized':
@@ -519,6 +552,18 @@ class SedDepEroder(Component):
             provided but flow has still been routed across depressions, erosion
             and deposition may still occur beneath the apparent water level.
         """
+        if (
+            self._grid.at_node["flow__receiver_node"].size !=
+            self._grid.size("node")
+        ):
+            msg = (
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that SedDepEroder is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
+            raise NotImplementedError(msg)
         grid = self.grid
         node_z = grid.at_node['topographic__elevation']
         node_A = grid.at_node['drainage_area']
@@ -543,13 +588,13 @@ class SedDepEroder(Component):
         steepest_link = 'flow__link_to_receiver_node'
         link_length = np.empty(grid.number_of_nodes, dtype=float)
         link_length.fill(np.nan)
-        draining_nodes = np.not_equal(grid.at_node[steepest_link],
-                                      BAD_INDEX_VALUE)
-        core_draining_nodes = np.intersect1d(np.where(draining_nodes)[0],
-                                             grid.core_nodes,
-                                             assume_unique=True)
+        draining_nodes = np.not_equal(grid.at_node[steepest_link], BAD_INDEX_VALUE)
+        core_draining_nodes = np.intersect1d(
+            np.where(draining_nodes)[0], grid.core_nodes, assume_unique=True
+        )
         link_length[core_draining_nodes] = grid.length_of_d8[
-            grid.at_node[steepest_link][core_draining_nodes]]
+            grid.at_node[steepest_link][core_draining_nodes]
+        ]
 
         # calc fluxes from hillslopes into each node:
         # we're going to budget the sediment coming IN as part of the fluvial
@@ -569,8 +614,8 @@ class SedDepEroder(Component):
         # mobilised" off the bed; at the end of the step it can resettle.
 
         if self.Qc == 'power_law':
-            transport_capacity_prefactor_withA = self._Kt * node_A**self._mt
-            erosion_prefactor_withA = self._K_unit_time * node_A**self._m
+            transport_capacity_prefactor_withA = self._Kt * node_A ** self._mt
+            erosion_prefactor_withA = self._K_unit_time * node_A ** self._m
             # ^doesn't include S**n*f(Qc/Qc)
             downward_slopes = node_S.clip(0.)
             # for the stability condition:
@@ -612,10 +657,12 @@ class SedDepEroder(Component):
                 slopes_tothen[is_flooded] = 0.
                 slopes_tothent = downward_slopes**self._nt
                 slopes_tothent[is_flooded] = 0.
-                transport_capacities = (transport_capacity_prefactor_withA *
-                                        slopes_tothent)
+                transport_capacities = (
+                    transport_capacity_prefactor_withA * slopes_tothent
+                )
                 erosion_prefactor_withS = (
-                    erosion_prefactor_withA * slopes_tothen)  # no time, no fqs
+                    erosion_prefactor_withA * slopes_tothen
+                )  # no time, no fqs
 
                 river_volume_flux_into_node = np.zeros(grid.number_of_nodes,
                                                        dtype=float)
@@ -678,10 +725,12 @@ class SedDepEroder(Component):
                 # modify elevs; both sed & rock:
                 # note dzbydt applies only to the ROCK surface
                 elev_less_sed[grid.core_nodes] += (
-                    dzbydt[grid.core_nodes] * this_tstep)
+                    dzbydt[grid.core_nodes] * this_tstep
+                )
                 node_z[grid.core_nodes] = (
                     elev_less_sed[grid.core_nodes] +
-                    self._hillslope_sediment[grid.core_nodes])
+                    self._hillslope_sediment[grid.core_nodes]
+                )
 
                 if break_flag:
                     break
@@ -694,7 +743,8 @@ class SedDepEroder(Component):
                 node_S = np.zeros_like(node_S)
                 # print link_length[core_draining_nodes]
                 node_S[core_draining_nodes] = (node_z-node_z[flow_receiver])[
-                    core_draining_nodes]/link_length[core_draining_nodes]
+                    core_draining_nodes
+                ]/link_length[core_draining_nodes]
                 downward_slopes = node_S.clip(0.)
         else:
             raise TypeError  # should never trigger
@@ -709,7 +759,7 @@ class SedDepEroder(Component):
         grid.at_node['channel_sediment__relative_flux'][:] = rel_sed_flux
         # elevs set automatically to the name used in the function call.
 
-        return grid, grid.at_node['topographic__elevation']
+        return grid, grid.at_node["topographic__elevation"]
 
     def run_one_step(self, dt, flooded_nodes=None, **kwds):
         """Run the component across one timestep increment, dt.

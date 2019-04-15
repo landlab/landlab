@@ -11,8 +11,11 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os, landlab
+import os
+import sys
 from datetime import date
+
+import landlab
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -78,7 +81,7 @@ exclude_patterns = ['_build']
 #default_role = None
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
-#add_function_parentheses = True
+add_function_parentheses = False
 
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).

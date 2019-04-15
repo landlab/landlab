@@ -3,8 +3,7 @@
 
 import numpy as np
 
-
-_UNKNOWN_UNITS = '?'
+_UNKNOWN_UNITS = "?"
 
 
 class Error(Exception):
@@ -45,7 +44,7 @@ def need_to_reshape_array(array, field_size):
         True is the array should be resized.
     """
     if field_size > 1:
-        stored_shape = (field_size, )
+        stored_shape = (field_size,)
     else:
         stored_shape = array.squeeze().shape
 
@@ -158,6 +157,10 @@ class ScalarDataFields(dict):
         int
             The number of elements in the field.
         """
+        try:
+            self._size
+        except AttributeError:
+            self._size = None
         return self._size
 
     @size.setter
@@ -165,7 +168,7 @@ class ScalarDataFields(dict):
         if self._size is None:
             self._size = size
         else:
-            raise ValueError('size has already been set')
+            raise ValueError("size has already been set")
 
     def empty(self, **kwds):
         """Uninitialized array whose size is that of the field.
@@ -287,8 +290,9 @@ class ScalarDataFields(dict):
 
         LLCATS: FIELDCR
         """
-        return self.add_field(name, self.empty(**kwds), units=units,
-                              noclobber=noclobber)
+        return self.add_field(
+            name, self.empty(**kwds), units=units, noclobber=noclobber
+        )
 
     def add_ones(self, name, units=_UNKNOWN_UNITS, noclobber=True, **kwds):
         """Create and add an array of values, initialized to 1, to the field.
@@ -335,8 +339,7 @@ class ScalarDataFields(dict):
 
         LLCATS: FIELDCR
         """
-        return self.add_field(name, self.ones(**kwds), units=units,
-                              noclobber=noclobber)
+        return self.add_field(name, self.ones(**kwds), units=units, noclobber=noclobber)
 
     def add_zeros(self, name, units=_UNKNOWN_UNITS, noclobber=True, **kwds):
         """Create and add an array of values, initialized to 0, to the field.
@@ -370,11 +373,19 @@ class ScalarDataFields(dict):
 
         LLCATS: FIELDCR
         """
-        return self.add_field(name, self.zeros(**kwds), units=units,
-                              noclobber=noclobber)
+        return self.add_field(
+            name, self.zeros(**kwds), units=units, noclobber=noclobber
+        )
 
-    def add_field(self, name, value_array, units=_UNKNOWN_UNITS, copy=False,
-                  noclobber=True, **kwds):
+    def add_field(
+        self,
+        name,
+        value_array,
+        units=_UNKNOWN_UNITS,
+        copy=False,
+        noclobber=True,
+        **kwds
+    ):
         """Add an array of values to the field.
 
         Add an array of data values to a collection of fields and associate it
@@ -440,7 +451,7 @@ class ScalarDataFields(dict):
         LLCATS: FIELDCR
         """
         if noclobber and name in self:
-            raise FieldError('{name}: already exists'. format(name=name))
+            raise FieldError("{name}: already exists".format(name=name))
 
         value_array = np.asarray(value_array)
 
@@ -469,7 +480,11 @@ class ScalarDataFields(dict):
 
         LLCATS: FIELDCR
         """
-        self._units[name] = units
+        try:
+            self._units[name] = units
+        except AttributeError:
+            self._units = {}
+            self._units[name] = units
 
     def __setitem__(self, name, value_array):
         """Store a data field by name."""
@@ -492,4 +507,3 @@ class ScalarDataFields(dict):
             return super(ScalarDataFields, self).__getitem__(name)
         except KeyError:
             raise FieldError(name)
-

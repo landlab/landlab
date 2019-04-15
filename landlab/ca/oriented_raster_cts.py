@@ -15,11 +15,8 @@ from __future__ import print_function
 
 import numpy as np
 
-from .celllab_cts import CellLabCTSModel
 from ..grid import RasterModelGrid
-
-
-_DEBUG = False
+from .celllab_cts import CellLabCTSModel
 
 
 class OrientedRasterCTS(CellLabCTSModel):
@@ -52,7 +49,7 @@ class OrientedRasterCTS(CellLabCTSModel):
     >>> from landlab.ca.celllab_cts import Transition
     >>> from landlab.ca.oriented_raster_cts import OrientedRasterCTS
 
-    >>> mg = RasterModelGrid(3, 4, 1.0)
+    >>> mg = RasterModelGrid(3, 4)
     >>> nsd = {0 : 'yes', 1 : 'no'}
     >>> xnlist = []
     >>> xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'frogging'))
@@ -60,8 +57,15 @@ class OrientedRasterCTS(CellLabCTSModel):
     >>> orcts = OrientedRasterCTS(mg, nsd, xnlist, nsg)
     """
 
-    def __init__(self, model_grid, node_state_dict, transition_list,
-                 initial_node_states, prop_data=None, prop_reset_value=None):
+    def __init__(
+        self,
+        model_grid,
+        node_state_dict,
+        transition_list,
+        initial_node_states,
+        prop_data=None,
+        prop_reset_value=None,
+    ):
         """
         RasterCTS constructor: sets number of orientations to 2 and calls
         base-class constructor.
@@ -84,12 +88,9 @@ class OrientedRasterCTS(CellLabCTSModel):
             Must be same type as *prop_data*.
         """
 
-        if _DEBUG:
-            print('OrientedRasterCTS.__init__ here')
-
         # Make sure caller has sent the right grid type
         if not isinstance(model_grid, RasterModelGrid):
-            raise TypeError('model_grid must be a Landlab RasterModelGrid')
+            raise TypeError("model_grid must be a Landlab RasterModelGrid")
 
         # Define the number of distinct cell-pair orientations: here just 1,
         # because RasterLCA represents a non-oriented CA model.
@@ -97,16 +98,14 @@ class OrientedRasterCTS(CellLabCTSModel):
 
         # Call the LandlabCellularAutomaton constructor to do the rest of
         # the initialization
-        super(OrientedRasterCTS, self).__init__(model_grid, node_state_dict,
-                                                transition_list,
-                                                initial_node_states, prop_data,
-                                                prop_reset_value)
-
-        if _DEBUG:
-            print('ORCTS:')
-            print(self.n_xn)
-            print(self.xn_to)
-            print(self.xn_rate)
+        super(OrientedRasterCTS, self).__init__(
+            model_grid,
+            node_state_dict,
+            transition_list,
+            initial_node_states,
+            prop_data,
+            prop_reset_value,
+        )
 
     def setup_array_of_orientation_codes(self):
         """
@@ -123,20 +122,13 @@ class OrientedRasterCTS(CellLabCTSModel):
         This overrides the method of the same name in landlab_ca.py.
         """
         # Create array for the orientation of each active link
-        self.link_orientation = np.zeros(self.grid.number_of_links,
-                                         dtype=np.int8)
+        self.link_orientation = np.zeros(self.grid.number_of_links, dtype=np.int8)
 
         # Set its value according to the different in y coordinate between each
         # link's TO and FROM nodes (the numpy "astype" method turns the
         # resulting array into integer format)
-        dy = (self.grid.node_y[self.grid.node_at_link_head] -
-              self.grid.node_y[self.grid.node_at_link_tail])
+        dy = (
+            self.grid.node_y[self.grid.node_at_link_head]
+            - self.grid.node_y[self.grid.node_at_link_tail]
+        )
         self.link_orientation = dy.astype(np.int8)
-
-        if _DEBUG:
-            print(self.link_orientation)
-
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
