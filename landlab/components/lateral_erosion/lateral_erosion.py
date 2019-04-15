@@ -140,7 +140,6 @@ class LateralEroder(Component):
         lat_nodes=np.zeros(grid.number_of_nodes, dtype=int)
         dzlat=np.zeros(grid.number_of_nodes)
         dzver=np.zeros(grid.number_of_nodes)
-        dzvec=np.zeros(grid.number_of_nodes)
         vol_lat_dt=np.zeros(grid.number_of_nodes)
 
 
@@ -287,6 +286,7 @@ class LateralEroder(Component):
             for i in dwnst_nodes:
                 if(tsdb):
                     print("node", i)
+                    print("flowdirs[i]", flowdirs[i])
                     print("dzdt[i]", dzdt[i])
                     print("dzdt[flowdirs[i]]", dzdt[flowdirs[i]])
                 #are points converging? ie, downstream eroding slower than upstream
@@ -294,11 +294,12 @@ class LateralEroder(Component):
                 if(tsdb):
                     print("dzdtdif", dzdtdif)
                 #if points converging, find time to zero slope
-                if dzdtdif > 0. and max_slopes[i] > 1e-5:
+                if dzdtdif > 1.e-5 and max_slopes[i] > 1e-5:
                     dtflat = (z[i]-z[flowdirs[i]])/dzdtdif	#time to flat between points
                     if(tsdb):
                         print("z[i]", z[i])
                         print("z[flowdirs[i]", z[flowdirs[i]])
+                        print("max_slopes", max_slopes[i])
                         print("dtflat", dtflat)
                     #if time to flat is smaller than dt, take the lower value
                     #april9, 2019: *** HACK WITH ABS(DTN) COME BACK to this. was getting negative dtn values
@@ -306,15 +307,17 @@ class LateralEroder(Component):
                     # have abs(dtflat)
                     if dtflat < dtn:
                         dtn = dtflat
+                        assert dtn>0, "dtn <0 at dtflat"
                         if(tsdb):
                             print("dtflat<dtn", dtn)
                     #if dzdtdif*dtflat will make upstream lower than downstream, find time to flat
-                    if dzdtdif*dtn > (z[i]-z[flowdirs[i]]):
+                    if dzdtdif*dtflat > (z[i]-z[flowdirs[i]]):
                         if(tsdb):
                             print("dzdtdif*dtn", dzdtdif*dtn)
                             print("dzdtdif*dtflat", dzdtdif*dtflat)
                             print("(z[i]-z[flowdirs[i]])", (z[i]-z[flowdirs[i]]))
                         dtn=(z[i]-z[flowdirs[i]])/dzdtdif
+                        assert dtn>0, "dtn <0 at dtflat"
                         if(tsdb):
                             print("t2flat", dtn)
             if(tsdb):
@@ -416,6 +419,7 @@ class LateralEroder(Component):
                                      runoff_rate=None,
                                      depression_finder=None, routing='D8')
                 (da, q) = fa.accumulate_flow()
+                da=grid.at_node['drainage_area']    #renamed this drainage area set by flow router
                 s=grid.at_node['flow__upstream_node_order']
                 max_slopes=grid.at_node['topographic__steepest_slope']
                 q=grid.at_node['surface_water__discharge']
