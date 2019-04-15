@@ -195,8 +195,8 @@ class LateralEroder(Component):
 #                print ('area', da[i])
 #                print('kv', Kv)
 
-#                dep = alph*qsin[i]/da[i]
-                dep=0.
+                dep = alph*qsin[i]/da[i]
+#                dep=0.
                 ero = -Kv[i] * da[i]**(0.5)*max_slopes[i]
 #                print( 'dep', dep)
 #                print('ero', ero)
@@ -332,65 +332,65 @@ class LateralEroder(Component):
                 print("elevs", z.reshape(nr,nc))
 #            print(delt)
             
-            vol_diff_vec=np.zeros(grid.number_of_nodes)
-            if UC==1:
-                # this will get me vol diffs for every node. then I have to cull them
-                vol_diff_vec=(z[:]+wdnode[:]-z[flowdirs])*dx**2
-            if TB==1:
-                # this will get me vol diffs for every node. then I have to cull them
-                vol_diff_vec=(z[lat_nodes]-z[flowdirs])*dx**2
-            if(debug):
-                print("voldiff before", vol_diff_vec.reshape(nr,nc))
-#            print("where latnode=0", np.where(lat_nodes<=0)[0])
-#            print("voldiff where", vol_diff_vec[np.where(lat_nodes<=0)[0]])
-            #*****where latnodes are 0 or -1, voldiff=0
-            vol_diff_vec[np.where(lat_nodes<=0)[0]]=0.0
-            if(debug):
-                print("voldiff after lat", vol_diff_vec.reshape(nr,nc))
-            #****where lateral nodes are lower in elevation than primary, no lateral erosion
-            vol_diff_vec[np.where(z[lat_nodes]<z[:])]=0.0
-            if(debug):
-                print("voldiff after z diff", vol_diff_vec.reshape(nr,nc))
-            #this part figuring out if enough lateralerosion has occurrred for elevations to be changed
-            nodeslat=np.where(vol_lat[lat_nodes]>vol_diff_vec[:])[0]
-            if(debug):
-                print("nodeslat", nodeslat)
-                print("vol_lat", vol_lat.reshape(nr,nc))
-            dzlat[nodeslat]=z[flowdirs[nodeslat]]-z[nodeslat]-0.001
-            if(len(nodeslat<=1)):
-                print("chunk of lateral erosion occured", nodeslat)            
-            #after the lateral node is eroded, reset its volume eroded to zero
-            vol_lat[nodeslat]=0.0
+#            vol_diff_vec=np.zeros(grid.number_of_nodes)
+#            if UC==1:
+#                # this will get me vol diffs for every node. then I have to cull them
+#                vol_diff_vec=(z[:]+wdnode[:]-z[flowdirs])*dx**2
+#            if TB==1:
+#                # this will get me vol diffs for every node. then I have to cull them
+#                vol_diff_vec=(z[lat_nodes]-z[flowdirs])*dx**2
+#            if(debug):
+#                print("voldiff before", vol_diff_vec.reshape(nr,nc))
+##            print("where latnode=0", np.where(lat_nodes<=0)[0])
+##            print("voldiff where", vol_diff_vec[np.where(lat_nodes<=0)[0]])
+#            #*****where latnodes are 0 or -1, voldiff=0
+#            vol_diff_vec[np.where(lat_nodes<=0)[0]]=0.0
+#            if(debug):
+#                print("voldiff after lat", vol_diff_vec.reshape(nr,nc))
+#            #****where lateral nodes are lower in elevation than primary, no lateral erosion
+#            vol_diff_vec[np.where(z[lat_nodes]<z[:])]=0.0
+#            if(debug):
+#                print("voldiff after z diff", vol_diff_vec.reshape(nr,nc))
+#            #this part figuring out if enough lateralerosion has occurrred for elevations to be changed
+#            nodeslat=np.where(vol_lat[lat_nodes]>vol_diff_vec[:])[0]
+#            if(debug):
+#                print("nodeslat", nodeslat)
+#                print("vol_lat", vol_lat.reshape(nr,nc))
+#            dzlat[nodeslat]=z[flowdirs[nodeslat]]-z[nodeslat]-0.001
+#            if(len(nodeslat<=1)):
+#                print("chunk of lateral erosion occured", nodeslat)            
+#            #after the lateral node is eroded, reset its volume eroded to zero
+#            vol_lat[nodeslat]=0.0
 #            print(delt)
-#            for i in dwnst_nodes:
-#                lat_node=lat_nodes[i]
-#                wd=0.4*(da[i]*runoffms)**0.35
-#                if lat_node>0:    #greater than zero now bc inactive neighbors are value -1
-##                        print("latero, line 372")
-##                    print("[lat_node]", lat_node)
-##                        print("z[lat_node]", z[lat_node])
-#                    if z[lat_node] > z[i]:
-#                        #vol_diff is the volume that must be eroded from lat_node so that its
-#                        # elevation is the same as node downstream of primary node
-#                        # UC model: this would represent undercutting (the water height at node i), slumping, and instant removal.
-#                        if UC==1:
-##                                print("UC model")
-#                            voldiff=(z[i]+wd-z[flowdirs[i]])*dx**2
-#                        # TB model: entire lat node must be eroded before lateral erosion occurs
-#                        if TB==1:
-##                                print("TB model")
-#                            voldiff=(z[lat_node]-z[flowdirs[i]])*dx**2
-#                        #if the total volume eroded from lat_node is greater than the volume
-#                        # needed to be removed to make node equal elevation,
-#                        # then instantaneously remove this height from lat node. already has timestep in it
-#                        if vol_lat[lat_node]>=voldiff:
-#                            dzlat[lat_node]=z[flowdirs[i]]-z[lat_node]-0.001
-#                            if(1):
-#                                print("chunk of lateral erosion occured", lat_node)
-#                            #after the lateral node is eroded, reset its volume eroded to zero
-#                            vol_lat[lat_node]=0.0
-#                            if(0):
-#                                print("vol_latafter", vol_lat.reshape(nr,nc))
+            for i in dwnst_nodes:
+                lat_node=lat_nodes[i]
+                wd=0.4*(da[i]*runoffms)**0.35
+                if lat_node>0:    #greater than zero now bc inactive neighbors are value -1
+#                        print("latero, line 372")
+#                    print("[lat_node]", lat_node)
+#                        print("z[lat_node]", z[lat_node])
+                    if z[lat_node] > z[i]:
+                        #vol_diff is the volume that must be eroded from lat_node so that its
+                        # elevation is the same as node downstream of primary node
+                        # UC model: this would represent undercutting (the water height at node i), slumping, and instant removal.
+                        if UC==1:
+#                                print("UC model")
+                            voldiff=(z[i]+wd-z[flowdirs[i]])*dx**2
+                        # TB model: entire lat node must be eroded before lateral erosion occurs
+                        if TB==1:
+#                                print("TB model")
+                            voldiff=(z[lat_node]-z[flowdirs[i]])*dx**2
+                        #if the total volume eroded from lat_node is greater than the volume
+                        # needed to be removed to make node equal elevation,
+                        # then instantaneously remove this height from lat node. already has timestep in it
+                        if vol_lat[lat_node]>=voldiff:
+                            dzlat[lat_node]=z[flowdirs[i]]-z[lat_node]-0.001
+                            if(1):
+                                print("chunk of lateral erosion occured", lat_node)
+                            #after the lateral node is eroded, reset its volume eroded to zero
+                            vol_lat[lat_node]=0.0
+                            if(0):
+                                print("vol_latafter", vol_lat.reshape(nr,nc))
             #multiply dzver(changed to dzdt above) by timestep size and combine with lateral erosion
             #dzlat, which is already a length for the chosen time step
             dz=dzdt*dt+dzlat
