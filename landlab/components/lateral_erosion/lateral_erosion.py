@@ -47,7 +47,7 @@ class LateralEroder(Component):
 #***from how to make a component: every component must start with init
 # first parameter is grid and **kwds is last parameter (allows to pass dictionary)
 # in between, need individual parameters.
-    def __init__(self, grid, vol_lat, latero_mech="UC", alph=0.8, Kv=None, Kl_ratio=1.0): #input_stream,
+    def __init__(self, grid, vol_lat, latero_mech="UC", alph=0.8, Kv=None, Kl_ratio=1.0, inlet_node=None): #input_stream,
         #**4/4/2019: come back to this: why did I put the underscore in from of grid? because diffusion said so.
         self._grid = grid
 #        self.initialize(grid, input_stream)
@@ -76,6 +76,9 @@ class LateralEroder(Component):
         self.Kv=Kv    #can be overwritten with spatially variable (enventually)
         self.Klr=float(Kl_ratio)    #default ratio of Kv/Kl is 1. Can be overwritten
         self.frac = 0.3 #for time step calculations
+##optional inputs
+        if inlet_node is not None:
+            self.inlet_node = inlet_node
 
         #initialize qsin for each interior node, all zero initially.
 #        self.qsin = grid.zeros(centering='node')    # qsin (M^3/Y)
@@ -113,6 +116,9 @@ class LateralEroder(Component):
         qsin=self.qsin
         dzdt=self.dzdt
         alph=self.alph
+        print("alpha=", alph)
+        print("KLr=", Klr)
+        print(delt)
         self.dt=dt
         vol_lat=self.grid.at_node['vol_lat']
 
