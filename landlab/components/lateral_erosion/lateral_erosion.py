@@ -98,8 +98,6 @@ class LateralEroder(Component):
 #        self.qsin = grid.zeros(centering='node')    # qsin (M^3/Y)
         self.dzdt = grid.zeros(centering='node')    # elevation change rate (M/Y)
 
-
-#        print(delt)
 #below, adding flag calling for Kv to be specified. as of April 15, this only works for
         #arrays and floats, NOT field names.
         if self.Kv is None:
@@ -116,7 +114,7 @@ class LateralEroder(Component):
             if len(self.Kv) != self.grid.number_of_nodes:
                 raise TypeError("Supplied value of Kv is not n_nodes long")
 
-    def run_one_step(self, grid, dt=None, Klr=None):
+    def run_one_step(self, grid, dt=None, Klr=None, inlet_area_ts=None, qsinlet_ts=None):
 
         if Klr==None:    #Added10/9 to allow changing rainrate (indirectly this way.)
             Klr=self.Klr
@@ -164,11 +162,31 @@ class LateralEroder(Component):
         if inlet_on:
             #define inlet_node
             inlet_node=self.inlet_node
-            qsinlet=self.qsinlet
+            if qsinlet_ts==None:
+                qsinlet=self.qsinlet
+                qsin[inlet_node]=qsinlet
+                print("qsinlet normal")
+            if qsinlet_ts is not None:
+                qsinlet=qsinlet_ts
+                qsin[inlet_node]=qsinlet
+#                print("qsinlet ts")
+            if inlet_area_ts==None:    
+#                q=grid.at_node['surface_water__discharge']
+#                da=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
+                print("inletarea normal")
+            if inlet_area_ts is not None:
+                inlet_area=inlet_area_ts
+                runoffinlet=np.ones(grid.number_of_nodes)*grid.dx**2
+                #Change the runoff at the inlet node to node area + inlet node
+                runoffinlet[inlet_node]=+inlet_area
+                _=grid.add_field('node', 'water__unit_flux_in', runoffinlet,
+                             noclobber=False)
+                print("inletarea ts")
             q=grid.at_node['surface_water__discharge']
             da=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
+            print("da", da.reshape(nr,nc))
             #also change qsinlet
-            qsin[inlet_node]=qsinlet
+#            qsin[inlet_node]=qsinlet
 #            print("inlet on")
         else:
             da=grid.at_node['drainage_area']    #renamed this drainage area set by flow router
