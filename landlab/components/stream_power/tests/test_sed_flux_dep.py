@@ -16,8 +16,122 @@ from landlab.components import FlowAccumulator
 from landlab.components import SedDepEroder
 from landlab.components import FastscapeEroder
 
+from landlab.components.stream_power.cfuncs import (
+    sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
+    sed_flux_fn_gen_almostparabolic, sed_flux_fn_gen_const
+)
 
-def test_sed_dep_new_almostpara():
+
+def test_flux_fn_const():
+    """
+    Tests that the const function always returns 1.
+    """
+    fnval = sed_flux_fn_gen_const(0., np.nan, np.nan, np.nan, np.nan, np.nan)
+    assert np.isclose(fnval, 1.)
+    fnval = sed_flux_fn_gen_const(1., np.nan, np.nan, np.nan, np.nan, np.nan)
+    assert np.isclose(fnval, 1.)
+
+
+def test_flux_fn_lindecl():
+    """
+    Tests that the linear decline function returns correct values.
+    """
+    fnval = sed_flux_fn_gen_lindecl(0., np.nan, np.nan, np.nan, np.nan, np.nan)
+    assert np.isclose(fnval, 1.)
+    fnval = sed_flux_fn_gen_lindecl(1., np.nan, np.nan, np.nan, np.nan, np.nan)
+    assert np.isclose(fnval, 0.)
+    fnval = sed_flux_fn_gen_lindecl(
+        0.5, np.nan, np.nan, np.nan, np.nan, np.nan
+    )
+    assert np.isclose(fnval, 0.5)
+
+
+def test_flux_fn_almostpara():
+    """
+    Tests that the almost parabolic function returns correct values.
+    """
+    fnval = sed_flux_fn_gen_almostparabolic(
+        0., np.nan, np.nan, np.nan, np.nan, np.nan)
+    assert np.isclose(fnval, 0.1)
+    fnval = sed_flux_fn_gen_almostparabolic(
+        0.5, np.nan, np.nan, np.nan, np.nan, np.nan)
+    assert np.isclose(fnval, 1.)
+    fnval = sed_flux_fn_gen_almostparabolic(
+        1., np.nan, np.nan, np.nan, np.nan, np.nan)
+    assert np.isclose(fnval, 0.)
+
+
+def test_flux_fn_genhump():
+    """
+    Tests that the almost parabolic function returns correct values.
+    """
+    fnval = sed_flux_fn_gen_genhump(
+        0., 13.683, 1.13, 0.00181, 4.24, 1.0000278041373)
+    # remember, phi & c are the weird way round
+    assert np.isclose(fnval, 0.024766918603659326)
+    fnval = sed_flux_fn_gen_genhump(
+        1., 13.683, 1.13, 0.00181, 4.24, 1.0000278041373)
+    assert np.isclose(fnval, 0.1975013921257844)
+    max_val = 0.
+    peak_at = np.nan
+    for i in np.arange(0., 1.001, 0.001):
+        sff = sed_flux_fn_gen_genhump(
+            i, 13.683, 1.13, 0.00181, 4.24, 1.0000278041373)
+        if sff > max_val:
+            max_val = max((sff, max_val))
+            peak_at = i
+    assert np.isclose(max_val, 1.)
+    assert np.isclose(peak_at, 0.264)
+
+
+def test_set_sed_flux_fn_gen():
+    """
+    This tests the setter for the sff.
+    """
+    mg = RasterModelGrid((5, 5))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    pop_me = set([name for name in SedDepEroder.output_var_names])
+    pop_me.discard('topographic__elevation')
+
+    fr = FlowAccumulator(mg, flow_director='D8')
+    sde = SedDepEroder(mg, K_sp=1.e-4, sed_dependency_type='None',
+                       Qc='power_law', K_t=1.e-4)
+    sde._sed_flux_fn_gen is sed_flux_fn_gen_const
+    for pop in pop_me:
+        null = mg.at_node.pop(pop)
+    sde = SedDepEroder(mg, K_sp=1.e-4, sed_dependency_type='linear_decline',
+                       Qc='power_law', K_t=1.e-4)
+    sde._sed_flux_fn_gen is sed_flux_fn_gen_lindecl
+    for pop in pop_me:
+        null = mg.at_node.pop(pop)
+    sde = SedDepEroder(mg, K_sp=1.e-4, sed_dependency_type='almost_parabolic',
+                       Qc='power_law', K_t=1.e-4)
+    sde._sed_flux_fn_gen is sed_flux_fn_gen_almostparabolic
+    for pop in pop_me:
+        null = mg.at_node.pop(pop)
+    sde = SedDepEroder(
+        mg, K_sp=1.e-4, sed_dependency_type='generalized_humped',
+        Qc='power_law', phi_hump=4., K_t=1.e-4
+    )
+    sde._sed_flux_fn_gen is sed_flux_fn_gen_genhump
+    # ...& add a test that the auto-normalization is working OK...
+    max_val_comp = 0.
+    peak_at_comp = np.nan
+    for i in np.arange(0., 1.001, 0.001):
+        sff = sed_flux_fn_gen_genhump(
+            i, 13.683, 1.13, 0.00181, 4., 1./1.0674809986373335)
+        compval = sde._sed_flux_fn_gen(
+            i, sde.kappa, sde.nu, sde.c, sde.phi, sde.norm
+        )
+        assert np.isclose(sff, compval)
+        if sff > max_val_comp:
+            max_val_comp = max((sff, max_val_comp))
+            peak_at = i
+    assert np.isclose(max_val_comp, 1.)
+    assert np.isclose(peak_at, 0.28)
+
+
+def test_sed_dep_new_almostpara_fullrun():
     """
     This tests only the power_law version of the SDE, using the
     almost_parabolic form of f(Qs).

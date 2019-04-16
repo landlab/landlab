@@ -517,24 +517,25 @@ class SedDepEroder(Component):
 
     def set_sed_flux_fn_gen(self):
         """
-        Sets the property self.sed_flux_fn_gen that controls which sed flux
+        Sets the property self._sed_flux_fn_gen that controls which sed flux
         function to use elsewhere in the component.
         """
         if self.type == 'generalized_humped':
             # work out the normalization param:
             max_val = 0.
-            for i in np.arange(0., 1., 0.001):
+            for i in np.arange(0., 1.001, 0.001):
+                # ...1.001 as fn is defined at 1.
                 sff = sed_flux_fn_gen_genhump(
                     i, self.kappa, self.nu, self.c, self.phi, 1.)
                 max_val = max((sff, max_val))
             self.norm = 1./max_val
-            self.sed_flux_fn_gen = sed_flux_fn_gen_genhump
+            self._sed_flux_fn_gen = sed_flux_fn_gen_genhump
         elif self.type == 'None':
-            self.sed_flux_fn_gen = sed_flux_fn_gen_const
+            self._sed_flux_fn_gen = sed_flux_fn_gen_const
         elif self.type == 'linear_decline':
-            self.sed_flux_fn_gen = sed_flux_fn_gen_lindecl
+            self._sed_flux_fn_gen = sed_flux_fn_gen_lindecl
         elif self.type == 'almost_parabolic':
-            self.sed_flux_fn_gen = sed_flux_fn_gen_almostparabolic
+            self._sed_flux_fn_gen = sed_flux_fn_gen_almostparabolic
 
     def erode(self, dt, flooded_nodes=None, **kwds):
         """Erode and deposit on the channel bed for a duration of *dt*.
@@ -684,7 +685,7 @@ class SedDepEroder(Component):
                                        rel_sed_flux, self._is_it_TL,
                                        self._voldroprate, flow_receiver,
                                        self.pseudoimplicit_repeats,
-                                       dzbydt, self.sed_flux_fn_gen,
+                                       dzbydt, self._sed_flux_fn_gen,
                                        self.kappa, self.nu, self.c,
                                        self.phi, self.norm)
 
@@ -795,7 +796,7 @@ class SedDepEroder(Component):
         xvals = np.linspace(0., 1., 101)
         yvals = []
         for xval in xvals:
-            yval = self.sed_flux_fn_gen(
+            yval = self._sed_flux_fn_gen(
                 xval, self.kappa, self.nu, self.c, self.phi, self.norm)
             yvals.append(yval)
         yvals = np.array(yvals)
