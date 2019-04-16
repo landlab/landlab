@@ -73,30 +73,6 @@ def test_sed_dep_new_almostpara():
     assert_equal(len(sde._error_at_abort), 0)  # good convergence at all nodes
 
 
-def test_sed_dep():
-    """
-    This may be now invalid, and has got accidentally reintroduced during
-    conflict resolution.
-    """
-    input_file = os.path.join(_THIS_DIR, "sed_dep_params.txt")
-    inputs = ModelParameterDictionary(input_file, auto_type=True)
-    nrows = inputs.read_int("nrows")
-    ncols = inputs.read_int("ncols")
-    dx = inputs.read_float("dx")
-    uplift_rate = inputs.read_float("uplift_rate")
-
-    runtime = inputs.read_float("total_time")
-    dt = inputs.read_float("dt")
-
-    initz = z.copy()
-
-    mg = RasterModelGrid((nrows, ncols), xy_spacing=(dx, dx))
-
-    mg.add_zeros("topographic__elevation", at="node")
-    z = np.loadtxt(os.path.join(_THIS_DIR, "seddepinit.txt"))
-    mg["node"]["topographic__elevation"] = z
-
-
 def test_sed_dep_new_genhumped():
     """
     This tests only the power_law version of the SDE, using the

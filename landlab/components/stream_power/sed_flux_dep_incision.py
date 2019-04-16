@@ -349,7 +349,7 @@ class SedDepEroder(Component):
         m_t=1.5,
         n_t=1.,
         # params for model numeric behavior:
-        pseudoimplicit_repeats=5,  # 50?
+        pseudoimplicit_repeats=50,
         **kwds
     ):
         """Constructor for the class.
@@ -440,7 +440,8 @@ class SedDepEroder(Component):
         self.sed_density = sediment_density
         self.fluid_density = fluid_density
         self.relative_weight = (
-            (self.sed_density - self.fluid_density) / self.fluid_density * self.g
+            (self.sed_density - self.fluid_density) /
+            self.fluid_density * self.g
         )
         # ^to accelerate MPM calcs
         self.rho_g = self.fluid_density * self.g
@@ -588,7 +589,9 @@ class SedDepEroder(Component):
         steepest_link = 'flow__link_to_receiver_node'
         link_length = np.empty(grid.number_of_nodes, dtype=float)
         link_length.fill(np.nan)
-        draining_nodes = np.not_equal(grid.at_node[steepest_link], BAD_INDEX_VALUE)
+        draining_nodes = np.not_equal(
+            grid.at_node[steepest_link], BAD_INDEX_VALUE
+        )
         core_draining_nodes = np.intersect1d(
             np.where(draining_nodes)[0], grid.core_nodes, assume_unique=True
         )
