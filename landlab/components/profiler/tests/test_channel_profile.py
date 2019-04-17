@@ -98,10 +98,9 @@ def test_no_threshold():
     assert profiler.threshold == 2.0
 
 
-def test_no_drainage_area():
+def test_no_stopping_field():
     mg = RasterModelGrid(10, 10)
     mg.add_zeros("topographic__elevation", at="node")
-    mg.add_zeros("drainage_area", at="node")
     mg.add_zeros("flow__link_to_receiver_node", at="node")
     mg.add_zeros("flow__receiver_node", at="node")
     with pytest.raises(ValueError):
@@ -112,7 +111,6 @@ def test_no_flow__link_to_receiver_node():
     mg = RasterModelGrid(10, 10)
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("drainage_area", at="node")
-    mg.add_zeros("flow__link_to_receiver_node", at="node")
     mg.add_zeros("flow__receiver_node", at="node")
     with pytest.raises(ValueError):
         ChannelProfiler(mg)
@@ -123,7 +121,6 @@ def test_no_flow__receiver_node():
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("drainage_area", at="node")
     mg.add_zeros("flow__link_to_receiver_node", at="node")
-    mg.add_zeros("flow__receiver_node", at="node")
     with pytest.raises(ValueError):
         ChannelProfiler(mg)
 

@@ -108,10 +108,10 @@ class ChannelProfiler(_NetworkProfiler):
     ...     LinearDiffuser)
     >>> mg = HexModelGrid(40, 20)
     >>> z = mg.add_zeros('topographic__elevation', at='node')
-    >>> z += 200 +
-    ...      mg.x_of_node +
-    ...      mg.y_of_node +
-    ...      np.random.randn(mg.size('node'))
+    >>> z += (200
+    ...       + mg.x_of_node
+    ...       + mg.y_of_node
+    ...       + np.random.randn(mg.size('node')))
     >>> fa = FlowAccumulator(mg, depression_finder=DepressionFinderAndRouter)
     >>> sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
     >>> ld = LinearDiffuser(mg, linear_diffusivity=0.0001)
@@ -205,11 +205,11 @@ class ChannelProfiler(_NetworkProfiler):
         else:
             if isinstance(grid, (RasterModelGrid, HexModelGrid)):
                 starting_nodes = grid.boundary_nodes[
-                    np.argsort(self._drainage_area[grid.boundary_nodes])[
+                    np.argsort(self._stopping_field[grid.boundary_nodes])[
                         -number_of_watersheds:
                     ]
                 ]
-            else:
+            else: #  todo  tests
                 core_not_boundary = np.array(
                     grid.node_has_boundary_neighbor(grid.nodes)
                 )
@@ -220,7 +220,7 @@ class ChannelProfiler(_NetworkProfiler):
                 bnodes = np.where(boundaries)[0]
 
                 starting_nodes = bnodes[
-                    np.argsort(self._drainage_area[bnodes])[-number_of_watersheds:]
+                    np.argsort(self._stopping_field[bnodes])[-number_of_watersheds:]
                 ]
 
         starting_da = self._stopping_field[starting_nodes]
@@ -318,7 +318,7 @@ class ChannelProfiler(_NetworkProfiler):
                     else:
                         j = supplying_nodes[max_drainage]
 
-                except ValueError:
+                except ValueError: #  todo  tests
                     nodes_to_process = []
                     channel_upstream = False
 
