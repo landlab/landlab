@@ -22,6 +22,8 @@ from six import string_types
 from landlab import ModelParameterDictionary
 from landlab.components.flow_director import FlowDirectorD8
 from landlab.components.flow_accum import FlowAccumulator
+from landlab.components.flow_routing import DepressionFinderAndRouter
+#from landlab import Component
 #from landlab.components import DepressionFinderAndRouter
 #from landlab.components import(FlowDirectorD8, 
 #                               FlowDirectorDINF, 
@@ -355,7 +357,7 @@ class LateralEroder(Component):
                     # have abs(dtflat)
                     if dtflat < dtn:
                         dtn = dtflat
-                        assert dtn>0, "dtn <0 at dtflat"
+#                        assert dtn>0, "dtn <0 at dtflat"
                         if(tsdb):
                             print("dtflat<dtn", dtn)
                     #if dzdtdif*dtflat will make upstream lower than downstream, find time to flat
@@ -365,7 +367,7 @@ class LateralEroder(Component):
                             print("dzdtdif*dtflat", dzdtdif*dtflat)
                             print("(z[i]-z[flowdirs[i]])", (z[i]-z[flowdirs[i]]))
                         dtn=(z[i]-z[flowdirs[i]])/dzdtdif
-                        assert dtn>0, "dtn <0 at dtflat"
+#                        assert dtn>0, "dtn <0 at dtflat"
                         if(tsdb):
                             print("t2flat", dtn)
             if(tsdb):
@@ -375,7 +377,7 @@ class LateralEroder(Component):
                 print("dt",dt)
             dtn*=frac
             #new minimum timestep for this round of nodes
-            dt=min(dtn, dt)
+            dt=min(abs(dtn), dt)
             assert dt>0., "timesteps less than 0."
             #should now have a stable timestep.
 #            print("stable time step=", dt)
@@ -466,7 +468,7 @@ class LateralEroder(Component):
                                      surface='topographic__elevation',
                                      flow_director='FlowDirectorD8',
                                      runoff_rate=None,
-                                     depression_finder=None, routing='D8')
+                                     depression_finder="DepressionFinderAndRouter", router="D8")
                 (da, q) = fa.accumulate_flow()
 #                print("da", da.reshape(nr,nc))
 #                print("q2", q.reshape(nr,nc))
