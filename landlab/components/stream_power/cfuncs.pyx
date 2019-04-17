@@ -677,6 +677,9 @@ cpdef DTYPE_FLOAT_t sed_flux_fn_gen_genhump(DTYPE_FLOAT_t rel_sed_flux_in,
     Returns f(qs,qc) assuming a generalized humped function per
     Hobley et al., 2011.
 
+    Note that this function permits values outside those that are physically
+    meaningful for the relative sediment flux, i.e., qs/qc < 0. or > 1.
+
     Parameters
     ----------
     rel_sed_flux_in : float
@@ -706,6 +709,9 @@ cpdef DTYPE_FLOAT_t sed_flux_fn_gen_lindecl(DTYPE_FLOAT_t rel_sed_flux_in,
     Returns f(qs,qc) assuming a linear decline model (see e.g. Gasparini
     et al., 2006).
     kappa, nu, c, phi, & norm are all dummy variables here.
+
+    Note that this function permits values outside those that are physically
+    meaningful for the relative sediment flux, i.e., qs/qc < 0. or > 1.
     
     Parameters
     ----------
@@ -734,6 +740,9 @@ cpdef DTYPE_FLOAT_t sed_flux_fn_gen_almostparabolic(
     Gasparini et al., 2006).
     kappa, nu, c, phi, & norm are all dummy variables here.
 
+    Note that this function permits values outside those that are physically
+    meaningful for the relative sediment flux, i.e., qs/qc < 0. or > 1.
+
     Parameters
     ----------
     rel_sed_flux_in : float
@@ -760,6 +769,9 @@ cpdef DTYPE_FLOAT_t sed_flux_fn_gen_const(DTYPE_FLOAT_t rel_sed_flux_in,
     """
     Returns 1, and thus no sed flux effects.
     kappa, nu, c, phi, & norm are all dummy variables here.
+
+    Note that this function permits values outside those that are physically
+    meaningful for the relative sediment flux, i.e., qs/qc < 0. or > 1.
 
     Parameters
     ----------
@@ -848,6 +860,7 @@ cdef void get_sed_flux_function_pseudoimplicit(
     cdef unsigned int i
     cdef double rel_sed_flux_in
     cdef double rel_sed_flux
+    cdef double sed_flux_fn
     cdef double last_sed_flux_fn
     cdef double sed_vol_added_bydt
     cdef double prop_added
@@ -866,21 +879,149 @@ cdef void get_sed_flux_function_pseudoimplicit(
         poss_new = prop_added + rel_sed_flux
         if poss_new > 1.:
             poss_new = 1.
+        # ^^^this violates the expected behaviour for the generalized fn, which permits rsf>1
         rel_sed_flux = 0.5 * (rel_sed_flux_in + poss_new)
 
         if rel_sed_flux < 0.:
             rel_sed_flux = 0.
         error_in_sed_flux_fn = abs(sed_flux_fn-last_sed_flux_fn)
-        if error_in_sed_flux_fn < 0.01:
+        if error_in_sed_flux_fn/last_sed_flux_fn < 0.01:
             break
         last_sed_flux_fn = sed_flux_fn
     # note that the method will silently terminate even if we still have
     # bad convergence. Note this is very rare.
 
-    out_array[0] = prefactor_for_dz_bydt*sed_flux_fn
-    out_array[1] = rel_sed_flux*trans_cap_vol_out_bydt
+    # DEJH note 4/2019: calculating the sed capacity from the rel flux leads
+    # to non-trivial sediment mass balance issues
+    out_array[0] = prefactor_for_dz_bydt*sed_flux_fn  # dzbydt
+    out_array[1] = rel_sed_flux*trans_cap_vol_out_bydt  # sed_passed
     out_array[2] = rel_sed_flux
     out_array[3] = error_in_sed_flux_fn
+
+
+cpdef void get_sed_flux_function_pseudoimplicit_bysedout(
+        DTYPE_FLOAT_t sed_in_bydt,
+        DTYPE_FLOAT_t trans_cap_vol_out_bydt,
+        DTYPE_FLOAT_t prefactor_for_volume_bydt,
+        DTYPE_FLOAT_t prefactor_for_dz_bydt,
+        sed_flux_fn_gen,
+        DTYPE_FLOAT_t kappa, DTYPE_FLOAT_t nu, DTYPE_FLOAT_t c,
+        DTYPE_FLOAT_t phi, DTYPE_FLOAT_t norm,
+        DTYPE_INT_t pseudoimplicit_repeats,
+        np.ndarray[DTYPE_FLOAT_t, ndim=1] out_array):
+    """
+    This function uses a pseudoimplicit method to calculate the sediment
+    flux function for a node, and also returns dz/dt and the rate of
+    sediment output from the node. This version stabilises the sediment
+    out of the node, rather than the sed flux function itself.
+
+    Note that this method now operates in PER TIME units; this was not
+    formerly the case.
+
+    Parameters
+    ----------
+    sed_in_bydt : float
+        Total rate of incoming sediment, sum(Q_s_in)/dt
+    trans_cap_vol_out_bydt : float
+        Volumetric transport capacity as a rate (i.e., m**3/s) on outgoing
+        link
+    prefactor_for_volume_bydt : float
+        Equal to K*A**m*S**n * cell_area
+    prefactor_for_dz_bydt : float
+        Equal to K*A**m*S**n (both prefactors are passed for computational
+        efficiency)
+    sed_flux_fn_gen : function
+        Function to calculate the sed flux function. Takes inputs
+        rel_sed_flux_in, kappa, nu, c, phi, norm, where last 5 are dummy
+        unless type is generalized_humped.
+    kappa, nu, c, phi, norm : float
+        Params for the sed flux function. Values if generalized_humped,
+        zero otherwise.
+    pseudoimplicit_repeats : int
+        Maximum number of loops to perform with the pseudoimplicit
+        iterator, seeking a stable solution. Convergence is typically
+        rapid.
+        out_array : array of floats
+            Array to be filled, containing:
+            dzbydt: Rate of change of substrate elevation,
+            vol_pass_rate: Q_s/dt on the outgoing link,
+            rel_sed_flux: f(Q_s/Q_c),
+            error_in_sed_flux_fn: Measure of how well converged rel_sed_flux is
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import SedDepEroder
+    >>> mg = RasterModelGrid((25, 25), 10.)
+    >>> out_array = np.empty(4, dtype=float)
+    >>> sde = SedDepEroder(mg, sed_dependency_type='almost_parabolic')
+    >>> get_sed_flux_function_pseudoimplicit(1.e3, 1.e6, 1.e4, 10.,
+    ...                                      sde.sed_flux_fn_gen,
+    ...                                      0., 0., 0., 0., 0.,
+    ...                                      50, out_array)
+    >>> out_array[0]  # dzbydt
+    1.0393380000000001
+    >>> out_array[1]  # vol_pass_rate
+    1776.1689999999999
+    >>> out_array[2]  # rel_sed_flux
+    0.001776169
+    >>> out_array[3]  # error_in_sed_flux_fn
+    0.0013337999999999961
+    """
+    cdef unsigned int i
+    cdef double rel_sed_flux_in
+    cdef double last_rel_sed_flux
+    cdef double rel_sed_flux
+    cdef double sed_flux_fn
+    cdef double sed_vol_added_bydt
+    cdef double new_sed_vol_added_bydt
+    cdef double prop_added
+    cdef double error_in_sed_vol_added
+    
+    if trans_cap_vol_out_bydt < 1.e-10:
+        out_array[0] = 0.
+        out_array[1] = trans_cap_vol_out_bydt
+        out_array[2] = 1.  # arbitrary; probably more stable in later use
+        out_array[3] = trans_cap_vol_out_bydt
+    else:
+        rel_sed_flux_in = sed_in_bydt/trans_cap_vol_out_bydt
+        if rel_sed_flux_in > 1.:
+            rel_sed_flux_in = 1.
+        last_sed_flux = rel_sed_flux_in
+        sed_flux_fn = sed_flux_fn_gen(
+            rel_sed_flux_in, kappa, nu, c, phi, norm)
+        sed_vol_added_bydt = prefactor_for_volume_bydt*sed_flux_fn
+
+        for i in range(pseudoimplicit_repeats):
+            prop_added = sed_vol_added_bydt/trans_cap_vol_out_bydt
+            rel_sed_flux = prop_added + last_rel_sed_flux
+            if rel_sed_flux < 0.:
+                rel_sed_flux = 0.
+            if rel_sed_flux > 1.:
+                rel_sed_flux = 1.
+            rel_sed_flux = 0.5 * (rel_sed_flux_in + rel_sed_flux)
+
+            sed_flux_fn = sed_flux_fn_gen(
+                rel_sed_flux, kappa, nu, c, phi, norm)
+            new_sed_vol_added_bydt = prefactor_for_volume_bydt*sed_flux_fn
+            error_in_sed_vol_added = abs(
+                new_sed_vol_added_bydt - sed_vol_added_bydt
+            )  # absolute, as ratios crash at low erosion rates
+            if error_in_sed_vol_added < 1.e-3:
+                break
+            last_rel_sed_flux = rel_sed_flux
+            sed_vol_added_bydt = new_sed_vol_added_bydt
+            
+        # note that the method will silently terminate even if we still have
+        # bad convergence. Note this is very rare.
+
+        out_array[0] = prefactor_for_dz_bydt * sed_flux_fn  # dzbydt
+        out_array[1] = sed_in_bydt + new_sed_vol_added_bydt  # sed passed
+        if out_array[1] > trans_cap_vol_out_bydt:
+            out_array[1] = trans_cap_vol_out_bydt
+        out_array[2] = rel_sed_flux
+        out_array[3] = error_in_sed_vol_added
 
 
 cpdef void iterate_sde_downstream(
