@@ -296,7 +296,7 @@ class StreamPowerEroder(Component):
                 assert use_Q.size == self._grid.number_of_nodes
                 self._Q = use_Q
         self._type = sp_type
-        if sp_type is "set_mn":
+        if sp_type == "set_mn":
             assert (float(m_sp) >= 0.) and (
                 float(n_sp) >= 0.
             ), "m and n must be positive"

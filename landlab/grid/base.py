@@ -4253,6 +4253,56 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         """
         self._xy_of_node += origin
 
+    def node_has_boundary_neighbor(self, ids):
+        """Check if ModelGrid nodes have neighbors that are boundary nodes.
+
+        Parameters
+        ----------
+        mg : ModelGrid
+            Source grid
+        node_id : int
+            ID of node to test.
+
+        Returns
+        -------
+        boolean
+            ``True`` if node has a neighbor with a boundary ID,
+            ``False`` otherwise.
+
+
+        Checks to see if one of the eight neighbor nodes of node(s) with
+        *id* has a boundary node.  Returns True if a node has a boundary node,
+        False if all neighbors are interior.
+
+                0,  1,  2,  3,
+              4,  5,  6,  7,  8,
+            9, 10,  11, 12, 13, 14,
+              15, 16, 17, 18, 19,
+                20, 21, 22, 23
+
+        Examples
+        --------
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid(5, 4)
+        >>> hmg.node_has_boundary_neighbor(6)
+        True
+        >>> hmg.node_has_boundary_neighbor(12)
+        False
+        >>> hmg.node_has_boundary_neighbor([12, 0])
+        array([False,  True], dtype=bool)
+
+        LLCATS: NINF CONN BC
+        """
+        status_of_neighbor = self._node_status[self.adjacent_nodes_at_node]
+        neighbor_not_core = status_of_neighbor != CORE_NODE
+        bad_neighbor = self.adjacent_nodes_at_node == BAD_INDEX_VALUE
+        neighbor_not_core[bad_neighbor] = False
+        node_has_boundary_neighbor = np.any(neighbor_not_core, axis=1)
+
+        ans = node_has_boundary_neighbor[ids]
+
+        return ans
+
 
 add_module_functions_to_class(ModelGrid, "mappers.py", pattern="map_*")
 # add_module_functions_to_class(ModelGrid, 'gradients.py',

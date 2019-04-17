@@ -11,7 +11,28 @@ import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from landlab import BAD_INDEX_VALUE as XX, FieldError, RasterModelGrid
-from landlab.components import FlowAccumulator, SinkFiller
+from landlab.components import FlowAccumulator, SinkFiller, SinkFillerBarnes
+
+
+def test_route_to_multiple_error_raised_init():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros("node", "topographic__elevation")
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg, flow_director="MFD")
+    fa.run_one_step()
+    with pytest.raises(NotImplementedError):
+        SinkFillerBarnes(mg)
+
+
+def test_route_to_multiple_error_raised_run():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros("node", "topographic__elevation")
+    z += mg.x_of_node + mg.y_of_node
+    sfb = SinkFillerBarnes(mg)
+    fa = FlowAccumulator(mg, flow_director="MFD")
+    fa.run_one_step()
+    with pytest.raises(NotImplementedError):
+        sfb.run_one_step()
 
 
 def test_route_to_multiple_error_raised():
@@ -25,10 +46,11 @@ def test_route_to_multiple_error_raised():
         SinkFiller(mg)
 
 
-def check_fields(sink_grid1):
+def test_check_fields(sink_grid1):
     """
     Check to make sure the right fields have been created.
     """
+    SinkFillerBarnes(sink_grid1)
     assert_array_equal(
         np.zeros(sink_grid1.number_of_nodes), sink_grid1.at_node["sediment_fill__depth"]
     )
@@ -215,9 +237,6 @@ def test_D4_routing(sink_grid5):
     fr = FlowAccumulator(sink_grid5, flow_director="D4")
     hf = SinkFiller(sink_grid5, routing="D4", apply_slope=True)
     hf.fill_pits()
-    #    hole1 = np.array([4.00016667, 4.00025, 4.00033333, 4.00008333, 4.00041667,
-    #                      4.0005, 4.00066667, 4.00058333, 4.00075,
-    #                      4.334])
     hole1 = np.array(
         [
             4.00016667,
