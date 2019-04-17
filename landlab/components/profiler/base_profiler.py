@@ -13,7 +13,9 @@ from landlab.utils.return_array import return_array_at_node
 
 
 class _NetworkProfiler(Component):
-    """
+    """Base class to handle profilers.
+
+    Primarily exists to handle plotting.
     """
 
     def __init__(self, grid, stopping_field):
@@ -127,7 +129,8 @@ class _NetworkProfiler(Component):
             # for each stream segment in the network
             for j in range(len(network_nodes)):
 
-                # identify the nodes and distances upstream for this channel segment
+                # identify the nodes and distances upstream for this channel
+                # segment
                 the_nodes = network_nodes[j]
                 segments.append(
                     list(

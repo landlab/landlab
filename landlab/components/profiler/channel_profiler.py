@@ -13,8 +13,8 @@ class ChannelProfiler(_NetworkProfiler):
     """Extract and plot the long profiles within a drainage network.
 
     The ChannelProfiler can work on grids that have used route-to-one or
-    route-to-multiple flow directing. This component expects that the following
-    at-node grid fields will be present:
+    route-to-multiple flow directing. This component expects that all of the
+    following at-node grid fields will be present:
 
         'drainage_area'
         'flow__receiver_node'
@@ -23,18 +23,21 @@ class ChannelProfiler(_NetworkProfiler):
     These are typically created by using the FlowAccumulator component.
 
     Four parameters control the behavior of this component. By default, the
-    component will extract the single largest channel in the drainage network up
-    to a drainage area below a threshold of two times the cell area.
+    component will extract the single largest channel in the drainage network
+    up to a drainage area below a threshold of two times the cell area.
 
-    Providing a value for the paramter ``threshold`` changes this value. Setting
-    ``main_channel_only`` to ``False`` will plot all of the channels in each
-    watershed that have drainage area below the threshold. The number of
+    Providing a value for the parameter ``threshold`` changes this value.
+    Setting ``main_channel_only`` to ``False`` will plot all of the channels in
+    each watershed that have drainage area below the threshold. The number of
     watersheds can be changed from one based on the parameter
     ``number_of_watersheds``. By default the ChannelProfiler will identify the
     largest watersheds and use them. If instead you want to extract the channel
-    network draining to specific nodes, you can provide values for the parameter
-    ``starting_nodes``. The length of ``starting_nodes`` must be consistent with
-    the value of ``number_of_watersheds``.
+    network draining to specific nodes, you can provide values for the
+    parameter ``starting_nodes``. The length of ``starting_nodes`` must be
+    consistent with the value of ``number_of_watersheds``.  The node IDs of the
+    ``starting_nodes`` do not need to be on the domain boundaries or the
+    outlets of watersheds. They do need to have drainage area above the
+    indicated threshold.
 
     The ``run_one_step`` method extracts the channel network and stores it in
     the ``profile_structure`` and ``distances_upstream`` bound properties. To
@@ -81,9 +84,9 @@ class ChannelProfiler(_NetworkProfiler):
     >>> profiler = ChannelProfiler(mg)
     >>> profiler.run_one_step()
 
-    This creates the profile structure and distances upstream structure. Since we
-    used the default values this will make only one profile, the biggest channel
-    in the biggest stream network in the catchemnt.
+    This creates the profile structure and distances upstream structure. Since
+    we used the default values this will make only one profile, the biggest
+    channel in the biggest stream network in the catchemnt.
 
     profile_structure will be a length 1 array and will contain one array that
     is the length in number of nodes of the single longest channel
@@ -100,10 +103,15 @@ class ChannelProfiler(_NetworkProfiler):
     For the next example, lets use a hexagonal grid.
 
     >>> from landlab import HexModelGrid
-    >>> from landlab.components import DepressionFinderAndRouter, LinearDiffuser
+    >>> from landlab.components import (
+    ...     DepressionFinderAndRouter,
+    ...     LinearDiffuser)
     >>> mg = HexModelGrid(40, 20)
     >>> z = mg.add_zeros('topographic__elevation', at='node')
-    >>> z += 200 + mg.x_of_node + mg.y_of_node + np.random.randn(mg.size('node'))
+    >>> z += 200 +
+    ...      mg.x_of_node +
+    ...      mg.y_of_node +
+    ...      np.random.randn(mg.size('node'))
     >>> fa = FlowAccumulator(mg, depression_finder=DepressionFinderAndRouter)
     >>> sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
     >>> ld = LinearDiffuser(mg, linear_diffusivity=0.0001)
@@ -159,24 +167,26 @@ class ChannelProfiler(_NetworkProfiler):
         ----------
         grid : Landlab Model Grid instance, required
         stopping_field : field name as string
-            Field name to
+            Field name to indicate a basis for stopping the channel profile.
+            Default is "drainage_area".
         number_of_watersheds : int, optional
             Total number of watersheds to plot. Default value is 1. If value is
             greater than 1 and starting_nodes is not specified, then the
             number_of_watersheds largest watersheds based on the drainage area
             at the model grid boundary.
         main_channel_only : Boolean, optional
-            Flag to determine if only the main channel should be plotted, or if all
-            stream segments with drainage area less than threshold should be
-            plotted. Default value is True.
+            Flag to determine if only the main channel should be plotted, or if
+            all stream segments with drainage area less than threshold should
+            be plotted. Default value is True.
         starting_nodes : length number_of_watersheds itterable, optional
-            Length number_of_watersheds itterable containing the node IDs of nodes
-            to start the channel profiles from. If not provided, the default is the
-            number_of_watersheds node IDs on the model grid boundary with the largest
-            terminal drainage area
+            Length number_of_watersheds itterable containing the node IDs of
+            nodes to start the channel profiles from. If not provided, the
+            default is the number_of_watersheds node IDs on the model grid
+            boundary with the largest terminal drainage area.
         threshold : float, optional
-            Value to use for the minimum drainage area associated with a plotted
-            channel segment. Default values is 2.0 x minimum grid cell area.
+            Value to use for the minimum drainage area associated with a
+            plotted channel segment. Default values is 2.0 x minimum grid cell
+            area.
         """
         super(ChannelProfiler, self).__init__(grid, stopping_field)
 
@@ -190,7 +200,8 @@ class ChannelProfiler(_NetworkProfiler):
         # verify that the number of starting nodes is the specified number of channels
         if starting_nodes is not None:
             if len(starting_nodes) is not number_of_watersheds:
-                msg = "Length of starting_nodes must equal the number_of_watersheds!"
+                msg = ("Length of starting_nodes must equal the"
+                       "number_of_watersheds!")
                 raise ValueError(msg)
         else:
             if isinstance(grid, (RasterModelGrid, HexModelGrid)):
@@ -204,20 +215,21 @@ class ChannelProfiler(_NetworkProfiler):
                 boundaries = np.zeros(grid.size("node"), dtype=bool)
                 boundaries[core_not_boundary==False] = True
                 boundaries[grid.boundary_nodes] = True
-                
+
                 bnodes = np.where(boundaries)[0]
-                
+
                 starting_nodes = bnodes[
                     np.argsort(self._drainage_area[bnodes])[
                         -number_of_watersheds:
                     ]
                 ]
-                        
+
         starting_da = self._stopping_field[starting_nodes]
         if np.any(starting_da < self.threshold):
             msg = (
                 "The number of watersheds requested by the ChannelProfiler is "
-                "greater than the number in the domain."
+                "greater than the number in the domain with sufficent drainage"
+                "area."
             )
             raise ValueError(msg)
 
@@ -227,11 +239,11 @@ class ChannelProfiler(_NetworkProfiler):
     def profile_structure(self):
         """
         profile_structure, the channel segment datastructure.
-                profile structure is a list of length number_of_watersheds. Each
-                element of profile_structure is itself a list of length number of
-                stream segments that drain to each of the starting nodes. Each
-                stream segment list contains the node ids of a stream segment from
-                downstream to upstream.
+                profile structure is a list of length number_of_watersheds.
+                Each element of profile_structure is itself a list of length
+                number of stream segments that drain to each of the starting
+                nodes. Each stream segment list contains the node ids of a
+                stream segment from downstream to upstream.
         """
         return self._profile_structure
 
@@ -297,13 +309,13 @@ class ChannelProfiler(_NetworkProfiler):
             if self._main_channel_only:
                 try:
                     max_drainage = np.argmax(self._stopping_field[supplying_nodes])
-                
+
                     if self._stopping_field[supplying_nodes[max_drainage]] < self.threshold:
                         nodes_to_process = []
                         channel_upstream = False
                     else:
                         j = supplying_nodes[max_drainage]
-                        
+
                 except ValueError:
                     nodes_to_process = []
                     channel_upstream = False
@@ -372,9 +384,7 @@ class ChannelProfiler(_NetworkProfiler):
                 self._profile_structure.append(channel_network)
 
     def _calculate_distances_upstream(self):
-        """
-        Get distances upstream for the profile_IDs datastructure.
-        """
+        """Get distances upstream for the profile_IDs datastructure."""
         end_distances = {}
 
         # set the starting values for the beginnings of each netwrok.
