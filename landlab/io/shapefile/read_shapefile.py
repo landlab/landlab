@@ -14,7 +14,8 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True):
 
     There are a number of assumptions that are requied about the shapefile.
         * The shape file must be a polyline shapefile.
-        * All polylines must be their own object (e.g. no multi-part polylines).
+        * All polylines must be their own object (e.g. no multi-part
+          polylines).
         * Polyline endpoints match perfectly.
 
     You might notice that there is no ``write_shapefile`` function. If this is
@@ -42,27 +43,23 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True):
     --------
     First, we make a simple shapefile
 
-    >>> try:
-    ...     from StringIO import StringIO
-    ... except ImportError:
-    ...     from io import BytesIO as StringIO
-
+    >>> from six import BytesIO
     >>> import shapefile
-    >>> w = shapefile.Writer()
+    >>> shp = BytesIO()
+    >>> shx = BytesIO()
+    >>> dbf = BytesIO()
+
+    >>> w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
+
     >>> w.shapeType = 3
-    >>> w.field("id", "N")
+    >>> w.field("spam", "N")
     >>> w.line([[[5,0],[5,5]]])
-    >>> w.record(0)
+    >>> w.record(100)
     >>> w.line([[[5,5],[0,10]]])
-    >>> w.record(1)
+    >>> w.record(239)
     >>> w.line([[[5,5],[10,10]]])
-    >>> w.record(2)
-    >>> shp = StringIO()
-    >>> shx = StringIO()
-    >>> dbf = StringIO()
-    >>> w.saveShp(shp)
-    >>> w.saveShx(shx)
-    >>> w.saveDbf(dbf)
+    >>> w.record(37)
+    >>> w.close()
 
     Now create a NetworkModelGrid with read_shapefile:
 
@@ -78,6 +75,9 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True):
     array([[0, 1],
            [1, 2],
            [1, 3]])
+    >>> assert "spam" in grid.at_link
+    >>> grid.at_link["spam"]
+    array([100, 239, 37])
     """
     try:
         sf = ps.Reader(file)
@@ -85,9 +85,9 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True):
         try:
             sf = ps.Reader(shp=file, dbf=dbf)
         except ShapefileException:
-            raise ShapefileException("bad file path provided to read_shapefile")
+            raise ShapefileException(("Bad file path provided to read_shapefile."))
 
-    if sf.shapeType is not 3:
+    if sf.shapeType != 3:
         raise ValueError(
             (
                 "landlab.io.shapefile read requires a polyline "
@@ -96,12 +96,13 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True):
             )
         )
 
-    # get record information, the firste element is # ('DeletionFlag', 'C', 1, 0)
+    # get record information, the first element is ('DeletionFlag', 'C', 1, 0)
     # which we will ignore.
     records = sf.fields[1:]
 
     # initialize data structures for node (x,y) tuples,
-    # link (head_node_id, tail_node_id) tuples, and a dictionary of at-link fields.
+    # link (head_node_id, tail_node_id) tuples, and a dictionary of at-link
+    # fields.
     # besides the at-link fields on the shapefile, we'll also store an array of
     # x and y of the full polyline segment'.
 

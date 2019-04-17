@@ -4,7 +4,7 @@ import pickle
 
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid
+from landlab import RasterModelGrid, HexModelGrid
 from landlab.components import FlowAccumulator
 from landlab.io.native_landlab import load_grid, save_grid
 
@@ -66,7 +66,7 @@ def compare_dictionaries(dict_1, dict_2, dict_1_name, dict_2_name, path=""):
 
 def test_pickle():
     # Make a simple-ish grid
-    mg1 = RasterModelGrid(10, 10, 2.)
+    mg1 = RasterModelGrid(10, 10, xy_spacing=2.)
     z = mg1.add_zeros("node", "topographic__elevation")
     z += mg1.node_x.copy()
     fa = FlowAccumulator(mg1, flow_director="D8")
@@ -111,7 +111,7 @@ def test_pickle():
 
 def test_save():
     # Make a simple-ish grid
-    mg1 = RasterModelGrid(10, 10, 2.)
+    mg1 = RasterModelGrid(10, 10, xy_spacing=2.)
     z = mg1.add_zeros("node", "topographic__elevation")
     z += mg1.node_x.copy()
     fa = FlowAccumulator(mg1, flow_director="D8")
@@ -144,3 +144,15 @@ def test_save():
     #     raise
     # finally:
     #     os.remove('testsavedgrid.grid')
+
+
+def test_save_and_load_hex():
+    """Test saving and loading of a HexModelGrid."""
+    mg1 = HexModelGrid(3, 3, 1.0)
+    mg1.add_zeros("node", "topographic__elevation")
+    save_grid(mg1, "testsavedgrid.grid")
+    mg2 = load_grid("testsavedgrid.grid")
+    assert mg1.x_of_node[0] == mg2.x_of_node[0]
+    assert_array_equal(mg1.status_at_node, mg2.status_at_node)
+    for name in mg1.at_node:
+        assert_array_equal(mg1.at_node[name], mg2.at_node[name])

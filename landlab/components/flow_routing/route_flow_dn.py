@@ -212,10 +212,11 @@ class FlowRouter(FlowAccumulator):
 
         Examples
         --------
+        >>> import pytest
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.components.flow_routing import FlowRouter
-        >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+        >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
         >>> elev = np.array([0.,  0.,  0., 0.,
         ...                  0., 21., 10., 0.,
         ...                  0., 31., 20., 0.,
@@ -223,7 +224,8 @@ class FlowRouter(FlowAccumulator):
         ...                  0.,  0.,  0., 0.])
         >>> _ = mg.add_field('node','topographic__elevation', elev)
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-        >>> fr = FlowRouter(mg)
+        >>> with pytest.deprecated_call():
+        ...    fr = FlowRouter(mg)
         >>> mg = fr.route_flow()
         >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
         array([  0,  1,  2,  3,
@@ -240,13 +242,14 @@ class FlowRouter(FlowAccumulator):
 
         Now let's change the cell area (100.) and the runoff rates:
 
-        >>> mg = RasterModelGrid((5, 4), spacing=(10., 10))
+        >>> mg = RasterModelGrid((5, 4), xy_spacing=(10., 10))
 
         Put the data back into the new grid.
 
         >>> _ = mg.add_field('node','topographic__elevation', elev)
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-        >>> fr = FlowRouter(mg)
+        >>> with pytest.deprecated_call():
+        ...     fr = FlowRouter(mg)
         >>> runoff_rate = np.arange(mg.number_of_nodes)
         >>> _ = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
         ...                  noclobber=False)
@@ -257,7 +260,6 @@ class FlowRouter(FlowAccumulator):
                    0.,   900.,  3700.,     0.,
                    0.,  1300.,  1400.,     0.,
                    0.,     0.,     0.,     0.])
-
         """
         self._test_for_method_change(**kwds)
         self.accumulate_flow()
@@ -277,10 +279,11 @@ class FlowRouter(FlowAccumulator):
 
         Examples
         --------
+        >>> import pytest
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.components.flow_routing import FlowRouter
-        >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+        >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
         >>> elev = np.array([0.,  0.,  0., 0.,
         ...                  0., 21., 10., 0.,
         ...                  0., 31., 20., 0.,
@@ -288,7 +291,8 @@ class FlowRouter(FlowAccumulator):
         ...                  0.,  0.,  0., 0.])
         >>> _ = mg.add_field('node','topographic__elevation', elev)
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-        >>> fr = FlowRouter(mg)
+        >>> with pytest.deprecated_call():
+        ...    fr = FlowRouter(mg)
         >>> fr.run_one_step()
         >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
         array([  0,  1,  2,  3,
@@ -307,7 +311,7 @@ class FlowRouter(FlowAccumulator):
         will examine the alternative case of the D4 method that does not
         consider diagonal links bewtween nodes.
 
-        >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+        >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
         >>> elev = np.array([0.,  0.,  0., 0.,
         ...                  0., 21., 10., 0.,
         ...                  0., 31., 20., 0.,
@@ -315,7 +319,8 @@ class FlowRouter(FlowAccumulator):
         ...                  0.,  0.,  0., 0.])
         >>> _ = mg.add_field('node','topographic__elevation', elev)
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-        >>> fr = FlowRouter(mg, method = 'D4')
+        >>> with pytest.deprecated_call():
+        ...     fr = FlowRouter(mg, method = 'D4')
         >>> fr.run_one_step()
         >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
         array([ 0,  1,  2,  3,
@@ -339,7 +344,8 @@ class FlowRouter(FlowAccumulator):
         >>> dx=(2./(3.**0.5))**0.5
         >>> mg = HexModelGrid(5,3, dx)
         >>> _ = mg.add_field('topographic__elevation', mg.node_x + np.round(mg.node_y), at = 'node')
-        >>> fr = FlowRouter(mg)
+        >>> with pytest.deprecated_call():
+        ...    fr = FlowRouter(mg)
         >>> fr.run_one_step()
         >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
         array([ 0,  1,  2,
@@ -357,13 +363,14 @@ class FlowRouter(FlowAccumulator):
         Now let's return to the first example and change the cell area (100.)
         and the runoff rates:
 
-        >>> mg = RasterModelGrid((5, 4), spacing=(10., 10))
+        >>> mg = RasterModelGrid((5, 4), xy_spacing=(10., 10))
 
         Put the data back into the new grid.
 
         >>> _ = mg.add_field('node','topographic__elevation', elev)
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-        >>> fr = FlowRouter(mg)
+        >>> with pytest.deprecated_call():
+        ...    fr = FlowRouter(mg)
         >>> runoff_rate = np.arange(mg.number_of_nodes)
         >>> _ = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
         ...                  noclobber=False)

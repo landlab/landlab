@@ -192,6 +192,9 @@ class OverlandFlow(Component):
             Weighting factor from de Almeida et al., 2012.
         rainfall_intensity : float, optional
             Rainfall intensity.
+        steep_slopes : bool, optional
+            Modify the algorithm to handle steeper slopes at the expense of
+            speed. If model runs become unstable, consider setting to True.
         """
         super(OverlandFlow, self).__init__(grid, **kwds)
 

@@ -157,6 +157,10 @@ class ScalarDataFields(dict):
         int
             The number of elements in the field.
         """
+        try:
+            self._size
+        except AttributeError:
+            self._size = None
         return self._size
 
     @size.setter
@@ -476,7 +480,11 @@ class ScalarDataFields(dict):
 
         LLCATS: FIELDCR
         """
-        self._units[name] = units
+        try:
+            self._units[name] = units
+        except AttributeError:
+            self._units = {}
+            self._units[name] = units
 
     def __setitem__(self, name, value_array):
         """Store a data field by name."""

@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
@@ -48,13 +49,14 @@ def test_unit_spacing():
             dtype=float,
         ),
     )
-    diffs = grid.calculate_diff_at_links(values_at_nodes)
+    with pytest.deprecated_call():
+        diffs = grid.calculate_diff_at_links(values_at_nodes)
     assert_array_equal(grads, diffs)
 
 
 def test_non_unit_spacing():
     """Test on a grid with non-unit spacing."""
-    grid = RasterModelGrid((4, 5), spacing=(5, 2))
+    grid = RasterModelGrid((4, 5), xy_spacing=(2, 5))
     values_at_nodes = np.arange(20.)
     grads = grid.calc_grad_at_link(values_at_nodes)
     assert_array_equal(
@@ -191,7 +193,8 @@ def test_diff_out_array():
     grid = RasterModelGrid((4, 5))
     values_at_nodes = np.arange(20.)
     diff = np.empty(31)
-    rtn_diff = grid.calculate_diff_at_links(values_at_nodes, out=diff)
+    with pytest.deprecated_call():
+        rtn_diff = grid.calculate_diff_at_links(values_at_nodes, out=diff)
     assert_array_equal(
         diff,
         np.array(

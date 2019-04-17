@@ -35,7 +35,7 @@ class SoilMoisture(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.soil_moisture import SoilMoisture
-    >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     >>> SoilMoisture.name
     'Soil Moisture'
     >>> sorted(SoilMoisture.output_var_names) # doctest: +NORMALIZE_WHITESPACE

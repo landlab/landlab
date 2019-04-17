@@ -26,8 +26,7 @@ def flow_directions_mfd(
     partition_method="slope",
 ):
 
-    """
-    Find multiple-flow-direction flow directions on a grid.
+    """Find multiple-flow-direction flow directions on a grid.
 
     Finds and returns flow directions and proportions for a given elevation
     grid. Each node is assigned multiple flow directions, toward all of the N
@@ -91,7 +90,7 @@ def flow_directions_mfd(
     >>> import numpy as np
     >>> from landlab.components.flow_director.flow_direction_mfd import(
     ...                                           flow_directions_mfd)
-    >>> grid = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> grid = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> elev = grid.add_field('topographic__elevation', grid.node_x+grid.node_y, at = 'node')
 
     For the first example, we will not pass any diagonal elements to the flow

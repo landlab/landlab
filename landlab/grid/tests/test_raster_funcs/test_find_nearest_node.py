@@ -44,14 +44,14 @@ def test_with_ndarray():
 
 def test_non_unit_spacing():
     """Test with a grid of non-unit spacing."""
-    rmg = RasterModelGrid((4, 5), spacing=(2., 2.))
+    rmg = RasterModelGrid((4, 5), xy_spacing=(2., 2.))
     id = rfuncs.find_nearest_node(rmg, (.9, .2))
     assert id == 0
 
 
 def test_beyond_grid():
     """Raise an error if points are outside the bounds of the grid."""
-    rmg = RasterModelGrid((4, 5), spacing=(2., 2.))
+    rmg = RasterModelGrid((4, 5), xy_spacing=(2., 2.))
 
     assert rfuncs.find_nearest_node(rmg, (-.999, .2)) == 0
     with pytest.raises(ValueError):

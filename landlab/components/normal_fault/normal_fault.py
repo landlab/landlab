@@ -34,10 +34,10 @@ class NormalFault(Component):
     NormalFault*. Improving this is on the developers todo list but is of low
     priority.
 
-    2) **run_one_earthquake**: A single uplift event of size dz can be specified
-    by this method. If NormalFault is used in this way, any specifications
-    provided in the ``fault_throw_rate_through_time`` keyword argument will be
-    ignored.
+    2) **run_one_earthquake**: A single uplift event of size dz can be
+    specified by this method. If NormalFault is used in this way, any
+    specifications provided in the ``fault_throw_rate_through_time`` keyword
+    argument will be ignored.
 
     Note that the NormalFault component does not prevent a user from combining
     the **run_one_step** and **run_one_earthquake** methods. It is encumbent
@@ -100,7 +100,10 @@ class NormalFault(Component):
         fault_trace : dictionary, optional
             Dictionary that specifies the coordinates of two locations on the
             fault trace. Expected format is
-            ``fault_trace = {'x1': float, 'y1': float, 'x2': float, 'y2': float}``
+            ``fault_trace = {'x1': float,
+                             'y1': float,
+                             'x2': float,
+                             'y2': float}``
             where the vector from ``(x1, y1)`` to ``(x2, y2)`` defines the
             strike of the fault trace. The orientation of the fault dip relative
             to the strike follows the right hand rule.
@@ -117,7 +120,7 @@ class NormalFault(Component):
 
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import NormalFault
-        >>> grid = RasterModelGrid((6, 6), spacing=10)
+        >>> grid = RasterModelGrid((6, 6), xy_spacing=10)
 
         Add an elevation field.
 
@@ -183,7 +186,7 @@ class NormalFault(Component):
         and we will set include_boundaries to True.
 
         >>> from landlab.components import FastscapeEroder, FlowAccumulator
-        >>> grid = RasterModelGrid((6, 6), spacing=10)
+        >>> grid = RasterModelGrid((6, 6), xy_spacing=10)
         >>> z = grid.add_zeros('node', 'topographic__elevation')
         >>> param_dict = {'faulted_surface': 'topographic__elevation',
         ...               'fault_dip_angle': 90.0,
@@ -224,7 +227,7 @@ class NormalFault(Component):
         For example, if a user wanted to only run NormalFault every tenth
         timestep (or some more seismogenically reasonable set of times).
 
-        >>> grid = RasterModelGrid((6, 6), spacing=10)
+        >>> grid = RasterModelGrid((6, 6), xy_spacing=10)
         >>> z = grid.add_zeros('node', 'topographic__elevation')
         >>> nf = NormalFault(grid, **param_dict)
         >>> fr = FlowAccumulator(grid)

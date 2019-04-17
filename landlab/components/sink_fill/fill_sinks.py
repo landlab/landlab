@@ -15,6 +15,8 @@ from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import deprecated, use_file_name_or_kwds
 
+# TODO: this should probably follow Barnes et al., 2014 for max efficiency
+
 
 class SinkFiller(Component):
     """
@@ -41,7 +43,7 @@ class SinkFiller(Component):
     >>> lake2 = np.array([78, 87, 88])
     >>> guard_nodes = np.array([23, 33, 53, 63, 73, 83])
     >>> lake = np.concatenate((lake1, lake2))
-    >>> mg = RasterModelGrid((10, 10), 1.)
+    >>> mg = RasterModelGrid((10, 10))
     >>> z = np.ones(100, dtype=float)
     >>> z += mg.node_x  # add a slope
     >>> z[guard_nodes] += 0.001  # forces the flow out of a particular node
@@ -126,11 +128,11 @@ class SinkFiller(Component):
                 raise NotImplementedError(msg)
 
         self._grid = grid
-        if routing is not "D8":
-            assert routing is "D4"
+        if routing != "D8":
+            assert routing == "D4"
         self._routing = routing
         if (type(self._grid) is landlab.grid.raster.RasterModelGrid) and (
-            routing is "D8"
+            routing == "D8"
         ):
             self._D8 = True
             self.num_nbrs = 8

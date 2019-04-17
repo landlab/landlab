@@ -21,8 +21,7 @@ UNDEFINED_INDEX = BAD_INDEX_VALUE
 
 
 def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=None):
-    """
-    Find Dinfinity flow directions and proportions on a raster grid.
+    """Find Dinfinity flow directions and proportions on a raster grid.
 
     Finds and returns flow directions and proportions for a given elevation
     grid by the D infinity method (Tarboton, 1997). Each node is assigned two
@@ -79,7 +78,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     Dinfinity routes flow based on the relative proportion of flow along the
     triangular facets around a central raster node.
 
-    >>> grid = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> grid = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> _ = grid.add_field('topographic__elevation',
     ...                     2.*grid.node_x+grid.node_y,
     ...                     at = 'node')
