@@ -145,9 +145,12 @@ class ChannelProfiler(_NetworkProfiler):
     We can also specify exactly which node is the outlet for the channel.
 
     >>> profiler = ChannelProfiler(mg,
-    ...                            threshold = 100,
+    ...                            threshold = 300,
     ...                            starting_nodes = [0],
     ...                            number_of_watersheds=1)
+    >>> profiler.run_one_step()
+    >>> profiler.profile_structure
+    [[array([ 0, 21, 22, 23, 24])]]
 
     It is important that the length of starting nodes is the same as the value
     of number_of_watersheds. If this is not the case, then an error will occur.
@@ -292,21 +295,16 @@ class ChannelProfiler(_NetworkProfiler):
             # if only adding the biggest channel, continue upstream choosing the
             # largest node until no more nodes remain.
             if self._main_channel_only:
-                try:
-                    max_drainage = np.argmax(self._stopping_field[supplying_nodes])
+                max_drainage = np.argmax(self._stopping_field[supplying_nodes])
 
-                    if (
-                        self._stopping_field[supplying_nodes[max_drainage]]
-                        < self.threshold
-                    ):
-                        nodes_to_process = []
-                        channel_upstream = False
-                    else:
-                        j = supplying_nodes[max_drainage]
-
-                except ValueError: #  todo  tests
+                if (
+                    self._stopping_field[supplying_nodes[max_drainage]]
+                    < self.threshold
+                ):
                     nodes_to_process = []
                     channel_upstream = False
+                else:
+                    j = supplying_nodes[max_drainage]
 
             # if considering multiple channel segments, continue upstream until
             # there are two or more donors with sufficient discharge, then break,
