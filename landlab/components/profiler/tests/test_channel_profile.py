@@ -37,7 +37,7 @@ def test_assertion_error():
     fa = FlowAccumulator(
         mg, flow_director="D8", depression_finder=DepressionFinderAndRouter
     )
-    sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
+    sp = FastscapeEroder(mg, K_sp=0.0001, m_sp=0.5, n_sp=1)
     ld = LinearDiffuser(mg, linear_diffusivity=0.0001)
 
     dt = 100
@@ -64,7 +64,7 @@ def test_asking_for_too_many_watersheds():
     )
     mg.set_watershed_boundary_condition_outlet_id(0, z, -9999)
     fa = FlowAccumulator(mg, flow_director="D8")
-    sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
+    sp = FastscapeEroder(mg, K_sp=0.0001, m_sp=0.5, n_sp=1)
 
     dt = 100
     for i in range(200):
@@ -101,7 +101,7 @@ def test_no_threshold():
 def test_no_drainage_area():
     mg = RasterModelGrid(10, 10)
     mg.add_zeros("topographic__elevation", at="node")
-    mg.add_zeros('drainage_area', at='node')
+    mg.add_zeros("drainage_area", at="node")
     mg.add_zeros("flow__link_to_receiver_node", at="node")
     mg.add_zeros("flow__receiver_node", at="node")
     with pytest.raises(ValueError):
@@ -112,7 +112,7 @@ def test_no_flow__link_to_receiver_node():
     mg = RasterModelGrid(10, 10)
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("drainage_area", at="node")
-    mg.add_zeros('flow__link_to_receiver_node', at='node')
+    mg.add_zeros("flow__link_to_receiver_node", at="node")
     mg.add_zeros("flow__receiver_node", at="node")
     with pytest.raises(ValueError):
         ChannelProfiler(mg)
@@ -123,7 +123,7 @@ def test_no_flow__receiver_node():
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("drainage_area", at="node")
     mg.add_zeros("flow__link_to_receiver_node", at="node")
-    mg.add_zeros('flow__receiver_node', at='node')
+    mg.add_zeros("flow__receiver_node", at="node")
     with pytest.raises(ValueError):
         ChannelProfiler(mg)
 
@@ -140,7 +140,7 @@ def test_plotting():
     )
     mg.set_watershed_boundary_condition_outlet_id(0, z, -9999)
     fa = FlowAccumulator(mg, flow_director="D8")
-    sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
+    sp = FastscapeEroder(mg, K_sp=0.0001, m_sp=0.5, n_sp=1)
 
     dt = 100
     for i in range(200):
