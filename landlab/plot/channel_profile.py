@@ -15,7 +15,10 @@ using the number_of_channels parameter in the channel_nodes function (default
 is 1). This may lead to strange outputs if the drainage structure of the output
 changes mid-run (e.g., channel piracy). This may be modified in the future.
 """
+
+
 import numpy
+import warnings
 
 # DEJH, March 2014.
 from six.moves import range
@@ -23,9 +26,11 @@ from six.moves import range
 try:
     import matplotlib.pyplot as plt
 except ImportError:
-    import warnings
-
     warnings.warn("matplotlib not found", ImportWarning)
+
+_MSG = ("The channel_profile submodule is deprecated (as of v1.9). It will be "
+        "removed in landlab 2.0.  Please transition your code to use the new "
+        "ChannelProfiler component.")
 
 
 def channel_nodes(
@@ -36,6 +41,7 @@ def channel_nodes(
     number_of_channels=1,
     threshold=None,
 ):
+    warnings.warn(_MSG, DeprecationWarning)
     if grid.at_node["flow__receiver_node"].size != grid.size("node"):
         msg = (
             "A route-to-multiple flow director has been "
@@ -72,6 +78,7 @@ def channel_nodes(
 
 
 def get_distances_upstream(grid, len_node_arrays, profile_IDs, links_to_flow_receiver):
+    warnings.warn(_MSG, DeprecationWarning)
     distances_upstream = []
     for i in range(len(profile_IDs)):
         data_store = []
@@ -87,6 +94,7 @@ def get_distances_upstream(grid, len_node_arrays, profile_IDs, links_to_flow_rec
 
 
 def plot_profiles(distances_upstream, profile_IDs, elevations):
+    warnings.warn(_MSG, DeprecationWarning)
     for i in range(len(profile_IDs)):
         the_nodes = profile_IDs[i]
         plt.plot(distances_upstream[i], elevations[the_nodes])
@@ -126,6 +134,8 @@ def analyze_channel_network_and_plot(
         Both lists are number_of_channels long.
         -
     """
+    warnings.warn(_MSG, DeprecationWarning)
+
     internal_list = [
         0,
         0,

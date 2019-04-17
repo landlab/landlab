@@ -25,3 +25,14 @@ def test_route_to_multiple_error_raised():
             number_of_channels=1,
             threshold=1.0,
         )
+
+
+def test_deprecation_warning():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros("node", "topographic__elevation")
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg)
+    fa.run_one_step()
+
+    with pytest.deprecated_call():
+        analyze_channel_network_and_plot(mg)
