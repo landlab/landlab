@@ -211,7 +211,8 @@ def test_sff_convergence():
             0., humpk, humpnu, humpc, humpphi, humpnorm,
         )
         assert np.isclose(out_array[0], known_fqs*1., atol=0.001)  # dzbydt
-        assert np.isclose(out_array[1], known_fqs*10., atol=0.001)  # vol_pass_rate
+        assert np.isclose(out_array[1], known_fqs*10., atol=0.001)
+        # ^vol_pass_rate
         assert np.isclose(out_array[2], 0., atol=0.001)  # rel_sed_flux
         assert np.less(out_array[3], 0.001)  # error_in_sed_flux_fn
 
@@ -226,7 +227,8 @@ def test_sff_convergence():
             0., humpk, humpnu, humpc, humpphi, humpnorm,
         )
         assert np.isclose(out_array[0], known_fqs*2., atol=0.001)  # dzbydt
-        assert np.isclose(out_array[1], known_fqs*200.+1., atol=0.001)  # vol_pass_rate
+        assert np.isclose(out_array[1], known_fqs*200.+1., atol=0.001)
+        # ^vol_pass_rate
         assert np.isclose(out_array[2], 0., atol=0.001)  # rel_sed_flux
         assert np.less(out_array[3], 0.001)  # error_in_sed_flux_fn
 
@@ -238,28 +240,35 @@ def test_sff_convergence():
                                                       humpc, humpphi,
                                                       humpnorm,
                                                       50, out_array)
-        assert np.isclose(out_array[2], 0.75, atol=0.001)  # mean of 1./2. (in) and 1 (out)
+        assert np.isclose(out_array[2], 0.75, atol=0.001)
+        # ^mean of 1./2. (in) and 1 (out)
         known_fqs = solver(
             0.75, humpk, humpnu, humpc, humpphi, humpnorm,
         )
         assert np.isclose(out_array[1], 2., atol=0.001)  # output saturates
         assert np.isclose(out_array[0], (2. - 1.)/2., atol=0.001)
+        # ^note this is now controlled by export limit, not fqs directly
         assert np.less(out_array[3], 0.001)  # error_in_sed_flux_fn
 
     # Now a few specific tests for each form
 
+    # this case represents a direct implicit hit on qs/qc = fqsqc = 0.5 for
+    # the linear decline model!
     mg = RasterModelGrid((5, 5))
     out_array = np.empty(4, dtype=float)
     sde = SedDepEroder(mg, sed_dependency_type='linear_decline')
-    get_sed_flux_function_pseudoimplicit_bysedout(1., 2., 2., 1.,
+    get_sed_flux_function_pseudoimplicit_bysedout(1., 2., 2., 2.,
                                                   sde._sed_flux_fn_gen,
                                                   humpk, humpnu,
                                                   humpc, humpphi,
                                                   humpnorm,
                                                   50, out_array)
-    assert out_array[0]
-
-
+    assert np.isclose(out_array[0], 0.5)
+    assert np.isclose(out_array[1], 2.)
+    assert np.isclose(out_array[2], 0.5)
+    # ^1./2. = 0.5, which gives fqsqc = 0.5, supplies 1 unit sediment (A=2),
+    # and so this immediately matches the initial conditions
+    assert np.isclose(out_array[3], 0.)  # BOOM
 
 
 
