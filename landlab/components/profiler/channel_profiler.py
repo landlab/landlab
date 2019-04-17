@@ -5,7 +5,7 @@
 import numpy as np
 from six.moves import range
 
-from landlab import HexModelGrid, RasterModelGrid
+from landlab import RasterModelGrid
 from landlab.components.profiler.base_profiler import _NetworkProfiler
 
 
@@ -307,8 +307,8 @@ class ChannelProfiler(_NetworkProfiler):
                     j = supplying_nodes[max_drainage]
 
             # if considering multiple channel segments, continue upstream until
-            # there are two or more donors with sufficient discharge, then break,
-            # returning those nodes as starting points.
+            # there are two or more donors with sufficient discharge, then
+            # break, returning those nodes as starting points.
             else:
 
                 # get all upstream drainage areas
@@ -321,13 +321,13 @@ class ChannelProfiler(_NetworkProfiler):
 
                 # otherwise
                 else:
-                    # if only one upstream node exceeds the threshold, proceed up
-                    # the channel.
+                    # if only one upstream node exceeds the threshold, proceed
+                    # up the channel.
                     if np.sum(upstream_das > self.threshold) == 1:
                         max_drainage = np.argmax(self._stopping_field[supplying_nodes])
                         j = supplying_nodes[max_drainage]
-                    # otherwise provide the multiple upstream nodes to be processed
-                    # into a new channel.
+                    # otherwise provide the multiple upstream nodes to be
+                    # processed into a new channel.
                     else:
                         nodes_to_process = supplying_nodes[
                             upstream_das > self.threshold
@@ -342,10 +342,10 @@ class ChannelProfiler(_NetworkProfiler):
 
         The bound attribute self._profile structure is the channel segment
         datastructure. profile structure is a list of length
-        number_of_watersheds. Each element of profile_structure is itself a list
-        of length number of stream segments that drain to each of the starting
-        nodes. Each stream segment list contains the node ids of a stream
-        segment from downstream to upstream.
+        number_of_watersheds. Each element of profile_structure is itself a
+        list of length number of stream segments that drain to each of the
+        starting nodes. Each stream segment list contains the node ids of a
+        stream segment from downstream to upstream.
         """
         self._profile_structure = []
 
