@@ -15,7 +15,7 @@ import six
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 
 from ..core.utils import as_id_array
-from .base import BAD_INDEX_VALUE, CLOSED_BOUNDARY, CORE_NODE, FIXED_VALUE_BOUNDARY
+from .base import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY, CORE_NODE
 
 
 class HexModelGrid(VoronoiDelaunayGrid):
@@ -320,6 +320,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
         >>> hg = HexModelGrid(4, 4, shape='rect', orientation='vert')
         >>> hg.status_at_node
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
+        >>> hg.boundary_nodes
+        array([ 0,  1,  2,  3,  4,  7,  8, 11, 12, 13, 14, 15])
         >>> hg = HexModelGrid(3, 4, shape='rect')
         >>> hg.status_at_node
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
@@ -334,6 +336,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
             self.status_at_node[left_row] = self.status_at_node[0]
             right_row = numpy.where(self.x_of_node >= (self._ncols - 1) * dx)[0]
             self.status_at_node[right_row] = self.status_at_node[0]
+        self._boundary_nodes = numpy.where(self.status_at_node != CORE_NODE)[0]
 
     def _create_cell_areas_array(self):
         r"""Create an array of surface areas of hexagonal cells.
@@ -888,64 +891,6 @@ class HexModelGrid(VoronoiDelaunayGrid):
         plt.ylim([amin(self.node_y) - self._dx, amax(self.node_y) + self._dx])
 
         return ax
-
-    def node_has_boundary_neighbor(self, ids):
-        """Check if HexModelGrid nodes have neighbors that are boundary nodes.
-
-        Parameters
-        ----------
-        mg : HexModelGrid
-            Source grid
-        node_id : int
-            ID of node to test.
-
-        Returns
-        -------
-        boolean
-            ``True`` if node has a neighbor with a boundary ID,
-            ``False`` otherwise.
-
-
-        Checks to see if one of the eight neighbor nodes of node(s) with
-        *id* has a boundary node.  Returns True if a node has a boundary node,
-        False if all neighbors are interior.
-
-                0,  1,  2,  3,
-              4,  5,  6,  7,  8,
-            9, 10,  11, 12, 13, 14,
-              15, 16, 17, 18, 19,
-                20, 21, 22, 23
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> hmg = HexModelGrid(5, 4)
-        >>> hmg.node_has_boundary_neighbor(6)
-        True
-        >>> hmg.node_has_boundary_neighbor(12)
-        False
-        >>> hmg.node_has_boundary_neighbor([12, 0])
-        [False, True]
-
-        LLCATS: NINF CONN BC
-        """
-        ans = []
-        for i in numpy.atleast_1d(numpy.asarray(ids)):
-            neighbors = self.adjacent_nodes_at_node[i]
-            real_neighbors = neighbors[neighbors != BAD_INDEX_VALUE]
-            if real_neighbors.size == 0:
-                ans.append(True)
-            else:
-                neighbor_status = self.status_at_node[real_neighbors].astype(bool)
-                if numpy.any(neighbor_status != CORE_NODE):
-                    ans.append(True)
-                else:
-                    ans.append(False)
-
-        if len(ans) == 1:
-            return ans[0]
-        else:
-            return ans
 
     def set_watershed_boundary_condition_outlet_id(
         self, outlet_id, node_data, nodata_value=-9999.

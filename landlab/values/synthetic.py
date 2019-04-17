@@ -302,7 +302,7 @@ def _plane_function(x, y, point, normal):
 
 def _get_x_and_y(grid, at):
     if isinstance(grid, NetworkModelGrid):
-        if at is not "node":
+        if at != "node":
             msg = (
                 "Synthetic fields based on x and y values at grid elements "
                 "(e.g. sine, plane) are supported for NetworkModelGrid "
