@@ -854,26 +854,26 @@ cpdef void get_sed_flux_function_pseudoimplicit_bysedout(
         out_array[2] = 1.  # arbitrary; probably more stable in later use
         out_array[3] = trans_cap_vol_out_bydt
     else:
-        rel_sed_flux_in = sed_in_bydt/trans_cap_vol_out_bydt
+        rel_sed_flux_in = sed_in_bydt / trans_cap_vol_out_bydt
         if rel_sed_flux_in > 1.:
             rel_sed_flux_in = 1.
         last_sed_flux = rel_sed_flux_in
         sed_flux_fn = sed_flux_fn_gen(
             rel_sed_flux_in, kappa, nu, c, phi, norm)
-        sed_vol_added_bydt = prefactor_for_volume_bydt*sed_flux_fn
+        sed_vol_added_bydt = 0.  # prefactor_for_volume_bydt * sed_flux_fn
 
         for i in range(pseudoimplicit_repeats):
-            prop_added = sed_vol_added_bydt/trans_cap_vol_out_bydt
+            prop_added = sed_vol_added_bydt / trans_cap_vol_out_bydt
             rel_sed_flux = prop_added + last_rel_sed_flux
             if rel_sed_flux < 0.:
                 rel_sed_flux = 0.
             if rel_sed_flux > 1.:
                 rel_sed_flux = 1.
-            rel_sed_flux = 0.5 * (rel_sed_flux_in + rel_sed_flux)
+            rel_sed_flux = 0.5 * (rel_sed_flux + rel_sed_flux_in)
 
             sed_flux_fn = sed_flux_fn_gen(
                 rel_sed_flux, kappa, nu, c, phi, norm)
-            new_sed_vol_added_bydt = prefactor_for_volume_bydt*sed_flux_fn
+            new_sed_vol_added_bydt = prefactor_for_volume_bydt * sed_flux_fn
             if new_sed_vol_added_bydt > excess_trans_capacity:
                 new_sed_vol_added_bydt = excess_trans_capacity
             error_in_sed_vol_added = abs(
@@ -889,7 +889,9 @@ cpdef void get_sed_flux_function_pseudoimplicit_bysedout(
 
         out_array[0] = new_sed_vol_added_bydt / cell_area
         out_array[1] = sed_in_bydt + new_sed_vol_added_bydt  # sed passed
-        out_array[2] = rel_sed_flux
+        out_array[2] = (
+            0.5 * (out_array[1] + sed_in_bydt) / trans_cap_vol_out_bydt
+        )
         out_array[3] = error_in_sed_vol_added
 
 

@@ -250,27 +250,36 @@ def test_sff_convergence():
         # ^note this is now controlled by export limit, not fqs directly
         assert np.less(out_array[3], 0.001)  # error_in_sed_flux_fn
 
+        # test where erosion can't happen as there's no erosion capacity
+        get_sed_flux_function_pseudoimplicit_bysedout(1000., 2000., 0., 1000.,
+                                                      sde._sed_flux_fn_gen,
+                                                      humpk, humpnu,
+                                                      humpc, humpphi,
+                                                      humpnorm,
+                                                      50, out_array)
+        assert np.isclose(out_array[0], 0.)
+        assert np.isclose(out_array[1], 1000.)
+        assert np.isclose(out_array[2], 0.5)
+        assert np.less(out_array[3], 0.001)
+
     # Now a few specific tests for each form
 
-    # this case represents a direct implicit hit on qs/qc = fqsqc = 0.5 for
-    # the linear decline model!
+    # generic case, larger numbers
     mg = RasterModelGrid((5, 5))
     out_array = np.empty(4, dtype=float)
     sde = SedDepEroder(mg, sed_dependency_type='linear_decline')
-    get_sed_flux_function_pseudoimplicit_bysedout(1., 2., 2., 2.,
+    get_sed_flux_function_pseudoimplicit_bysedout(2500., 5000., 2500., 100000./3.,
                                                   sde._sed_flux_fn_gen,
                                                   humpk, humpnu,
                                                   humpc, humpphi,
                                                   humpnorm,
                                                   50, out_array)
-    assert np.isclose(out_array[0], 0.5)
-    assert np.isclose(out_array[1], 2.)
-    assert np.isclose(out_array[2], 0.5)
+    assert np.isclose(out_array[0], 0.025, atol=0.001)
+    assert np.isclose(out_array[1], 3333.333, atol=1e-3)
+    assert np.isclose(out_array[2], (1./2. + 2./3.)/2., atol=1.e-3)
     # ^1./2. = 0.5, which gives fqsqc = 0.5, supplies 1 unit sediment (A=2),
     # and so this immediately matches the initial conditions
-    assert np.isclose(out_array[3], 0.)  # BOOM
-
-
+    assert np.less(out_array[3], 0.001)  # error_in_sed_flux_fn
 
 
 
