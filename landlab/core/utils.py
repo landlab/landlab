@@ -27,6 +27,41 @@ import numpy as np
 SIZEOF_INT = np.dtype(np.int).itemsize
 
 
+def degrees_to_radians(degrees):
+    """Convert compass-style degrees to radians.
+
+    Convert angles in degrees measured clockwise starting from north to
+    angles measured counter-clockwise from the positive x-axis in radians
+
+    Parameters
+    ----------
+    degrees : float or ndarray
+        Converted angles in degrees.
+
+    Returns
+    -------
+    rads : float or ndarray
+        Angles in radians.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.core.utils import degrees_to_radians
+
+    >>> degrees_to_radians(90.0)
+    0.0
+    >>> degrees_to_radians(0.0) == np.pi / 2.
+    True
+    >>> degrees_to_radians(-180.0) == 3. * np.pi / 2.
+    True
+    >>> np.testing.assert_array_almost_equal([ np.pi, np.pi],
+    ...                                       degrees_to_radians([ -90.,  270.]))
+    """
+    rads = np.pi * np.array(degrees) / 180.
+
+    return (5. * np.pi / 2. - rads) % (2. * np.pi)
+
+
 def radians_to_degrees(rads):
     """Convert radians to compass-style degrees.
 
