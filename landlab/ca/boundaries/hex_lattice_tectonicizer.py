@@ -162,7 +162,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     >>> pid = np.arange(25, dtype=int)
     >>> pdata = np.arange(25)
     >>> ns = np.arange(25, dtype=int)
-    >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical', 
+    >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical',
     ...                     node_layout='rect')
     >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
     >>> lnf.first_fw_col
@@ -177,7 +177,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     >>> pid = np.arange(16, dtype=int)
     >>> ns = np.arange(16, dtype=int)
     >>> pdata = np.arange(16)
-    >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical', 
+    >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical',
     ...                     node_layout='rect')
     >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
     >>> lnf.num_fw_rows
