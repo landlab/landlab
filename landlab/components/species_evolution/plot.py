@@ -61,7 +61,7 @@ def plot_number_of_species(record, species_DataFrame, axes=None,
 
     sdf = species_DataFrame
 
-    for time in record.times:
+    for time in record.time:
         appeared_before_time = sdf.time_appeared <= time
         present_at_time = sdf.latest_time >= time
         extant_at_time = np.all([appeared_before_time, present_at_time], 0)
@@ -70,14 +70,14 @@ def plot_number_of_species(record, species_DataFrame, axes=None,
 
         count.append(len(species_time))
 
-    times = np.multiply(record.times, x_multiplier)
+    times = np.multiply(record.time, x_multiplier)
 
     max_time = times.max()
     min_count = min(count)
     max_count = max(count)
 
     if max_time_to_plot:
-        i = np.array(record.times) <= max_time_to_plot
+        i = np.array(record.time) <= max_time_to_plot
         times = times[i]
         count = np.array(count)[i]
 
