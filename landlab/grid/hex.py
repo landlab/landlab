@@ -42,9 +42,11 @@ class HexModelGrid(VoronoiDelaunayGrid):
     orientation : string, optional
         One of the 3 cardinal directions in the grid, either 'horizontal'
         (default) or 'vertical'
-    shape : string, optional
+    node_layout : string, optional
         Controls the shape of the bounding hull, i.e., are the nodes arranged
         in a hexagon, or a rectangle? Either 'hex' (default) or 'rect'.
+    shape : tuple of 2 int
+        Alternative way to specify (base_num_rows, base_num_cols)
 
     Returns
     -------
@@ -57,7 +59,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
     have 2 nodes, and the second nodes.
 
     >>> from landlab import HexModelGrid
-    >>> hmg = HexModelGrid(3, 2, 1.0)
+    >>> hmg = HexModelGrid(shape=(3, 2), dx=1.0)
     >>> hmg.number_of_nodes
     7
     """
@@ -250,8 +252,9 @@ class HexModelGrid(VoronoiDelaunayGrid):
         # (note: in LL2.0, shape should refer ONLY to rows and columns)
         if type(shape) is str:  # "old" (LL < 2.0) usage
             node_layout = shape
-            warn(message="Use node_layout to specify 'rect' or 'hex' layout",
-                 category=DeprecationWarning)
+            message = ("Use node_layout to specify 'rect' or 'hex' layout "
+                       + "(usage will be enforced in Landlab 2.0+).")
+            warn(message=message, category=DeprecationWarning)
         elif type(shape) is tuple:
             (base_num_rows, base_num_cols) = shape
 
