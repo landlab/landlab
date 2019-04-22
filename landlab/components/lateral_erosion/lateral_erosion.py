@@ -43,12 +43,30 @@ class LateralEroder(Component):
     Landlab component that finds a neighbor node to laterally erode and calculates lateral erosion.
 
     Construction:
-        LateralEroder(grid, ***** Unknown so far.....)
+        LateralEroder(grid, latero_mech="UC", alph=0.8, Kv=None, Kl_ratio=1.0, inlet_node=None, inlet_area=None, qsinlet=None)
+        
+    Parameteters
+    ------------
+    grid : ModelGrid
+        A Landlab grid object
+    latero_mech : string, optional (defaults to UC)
+        Lateral erosion algorithm, choices are "UC" for undercutting-slump model and "TB" for total block erosion
+    alph : float, optional (defaults to 0.8)
+        Parameter describing potential for deposition, dimensionless
+    Kv : float, node array, or field name
+        Bedrock erodibility in vertical direction, 1/years
+    Kl_ratio : float, optional (defaults to 1.0)
+        Ratio of lateral to vertical bedrock erodibility, dimensionless
+    inlet_node : integer, optional
+        Node location of inlet (source of water and sediment)
+    inlet_area : float, optional
+        Drainage area at inlet node, m^2
+    
     """
 #***from how to make a component: every component must start with init
 # first parameter is grid and **kwds is last parameter (allows to pass dictionary)
 # in between, need individual parameters.
-    def __init__(self, grid, latero_mech="UC", alph=0.8, Kv=None, Kl_ratio=1.0, inlet_node=None, inlet_area=None, qsinlet=None): #input_stream,
+    def __init__(self, grid, latero_mech="UC", alph=0.8, Kv=None, Kl_ratio=1.0, inlet_node=None, inlet_area=None, qsinlet=0.): #input_stream,
         #**4/4/2019: come back to this: why did I put the underscore in from of grid? because diffusion said so.
         self._grid = grid
 #        self.initialize(grid, input_stream)
@@ -82,19 +100,41 @@ class LateralEroder(Component):
 ##optional inputs
         if inlet_node is not None:
             self.inlet_node = inlet_node
-        if qsinlet is not None:
-            self.qsinlet = qsinlet
-        if inlet_area is not None:
+            self.inlet_on=True
+                #below, adding flag calling for Kv to be specified. as of April 15, this only works for
+            #arrays and floats, NOT field names.
+            if self.inlet_on and inlet_area is None:
+                raise ValueError(
+                    "Inlet area must be provided if inlet node is active. "
+                    + "No inlet area was found."
+                )
+            #note on April 22, 2019: I need to do below in init function because have to route water 
+        # correctly from the beginning if there is an inlet.
             self.inlet_area = inlet_area
             # 4/24/2017 add inlet to change drainage area with spatially variable runoff rate
             #runoff is an array with values of the area of each node (dx**2)
-            runoffinlet=np.ones(grid.number_of_nodes)*grid.dx**2
+            runoffinlet=np.zeros(grid.number_of_nodes)*grid.dx**2
             #Change the runoff at the inlet node to node area + inlet node
+            print("inletnode", inlet_node)
             runoffinlet[inlet_node]=+inlet_area
             _=grid.add_field('node', 'water__unit_flux_in', runoffinlet,
                              noclobber=False)
+            print("waterflux", reshape(grid['node'][ 'water__unit_flux_in'],(grid.number_of_node_rows,grid.number_of_node_columns)))
+            self.qsinlet = qsinlet
+            print("qsinlet", qsinlet)
+
+#        if inlet_area is not None:
+#            self.inlet_area = inlet_area
+#            # 4/24/2017 add inlet to change drainage area with spatially variable runoff rate
+#            #runoff is an array with values of the area of each node (dx**2)
+#            runoffinlet=np.zeros(grid.number_of_nodes)*grid.dx**2
+#            #Change the runoff at the inlet node to node area + inlet node
+#            print("inletnode", inlet_node)
+#            runoffinlet[inlet_node]=+inlet_area
+#            _=grid.add_field('node', 'water__unit_flux_in', runoffinlet,
+#                             noclobber=False)
 #            print("waterflux", reshape(grid['node'][ 'water__unit_flux_in'],(grid.number_of_node_rows,grid.number_of_node_columns)))
-            self.inlet_on=True
+
         #initialize qsin for each interior node, all zero initially.
 #        self.qsin = grid.zeros(centering='node')    # qsin (M^3/Y)
         self.dzdt = grid.zeros(centering='node')    # elevation change rate (M/Y)
@@ -152,7 +192,6 @@ class LateralEroder(Component):
         dx=grid.dx
         nr=grid.number_of_node_rows
         nc=grid.number_of_node_columns
-        interior_nodes = grid.core_nodes
         #clear qsin for next loop
         qsin = grid.zeros(centering='node')
         lat_nodes=np.zeros(grid.number_of_nodes, dtype=int)
@@ -163,10 +202,13 @@ class LateralEroder(Component):
         if inlet_on:
             #define inlet_node
             inlet_node=self.inlet_node
+            print("inlet_node", inlet_node)
             if qsinlet_ts==None:
                 qsinlet=self.qsinlet
                 qsin[inlet_node]=qsinlet
-                print("qsinlet normal")
+                print("qsinlet normal", qsinlet)
+                print("qsinlet", reshape(qsin,(grid.number_of_node_rows,grid.number_of_node_columns)))
+                print(elta)
             if qsinlet_ts is not None:
                 qsinlet=qsinlet_ts
                 qsin[inlet_node]=qsinlet
