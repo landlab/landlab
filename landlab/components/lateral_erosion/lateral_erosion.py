@@ -7,7 +7,6 @@ ALangston
 
 """
 
-
 #below was C/P from diffuser and this caused the import to work for the first time!!!!
 from landlab import (
     FIXED_GRADIENT_BOUNDARY,
@@ -39,9 +38,9 @@ import matplotlib.pyplot as plt
 
 class LateralEroder(Component):
     """
-    Laterally erode node through fluvial erosion.
+    Laterally erode neighbor node through fluvial erosion.
 
-    Landlab component that finds the node to laterally erode and calculates lateral erosion.
+    Landlab component that finds a neighbor node to laterally erode and calculates lateral erosion.
 
     Construction:
         LateralEroder(grid, ***** Unknown so far.....)
@@ -49,15 +48,15 @@ class LateralEroder(Component):
 #***from how to make a component: every component must start with init
 # first parameter is grid and **kwds is last parameter (allows to pass dictionary)
 # in between, need individual parameters.
-    def __init__(self, grid, vol_lat, latero_mech="UC", alph=0.8, Kv=None, Kl_ratio=1.0, inlet_node=None, inlet_area=None, qsinlet=None): #input_stream,
+    def __init__(self, grid, latero_mech="UC", alph=0.8, Kv=None, Kl_ratio=1.0, inlet_node=None, inlet_area=None, qsinlet=None): #input_stream,
         #**4/4/2019: come back to this: why did I put the underscore in from of grid? because diffusion said so.
         self._grid = grid
 #        self.initialize(grid, input_stream)
     # Create fields needed for this component if not already existing
-        if 'vol_lat' in grid.at_node:
-            self.vol_lat = grid.at_node['vol_lat']
+        if 'volume__lateral_erosion' in grid.at_node:
+            self.vol_lat = grid.at_node['volume__lateral_erosion']
         else:
-            self.vol_lat = grid.add_zeros('node', 'vol_lat')
+            self.vol_lat = grid.add_zeros('node', 'volume__lateral_erosion')
         if 'qsin' in grid.at_node:
             self.qsin = grid.at_node['qsin']
         else:
@@ -133,7 +132,7 @@ class LateralEroder(Component):
         alph=self.alph
 
         self.dt=dt
-        vol_lat=self.grid.at_node['vol_lat']
+        vol_lat=self.grid.at_node['volume__lateral_erosion']
 
         #**********ADDED FOR WATER DEPTH CHANGE***************
         #now KL/KV ratio is a parameter set from infile again.
@@ -503,5 +502,5 @@ class LateralEroder(Component):
                 vol_lat_dt=np.zeros(grid.number_of_nodes)
                 dzver=np.zeros(grid.number_of_nodes)
 
-        return grid, vol_lat, dzlat, qsin, dzdt
+        return grid, dzlat, qsin, dzdt
 #        return z, qt, qsin, dzdt, dzlat, flowdirs, da, dwnst_nodes, max_slopes, dt
