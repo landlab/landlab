@@ -60,7 +60,7 @@ class LateralEroder(Component):
     inlet_node : integer, optional
         Node location of inlet (source of water and sediment)
     inlet_area : float, optional
-        Drainage area at inlet node, m^2
+        Drainage area at inlet node, must be specified if inlet node is on, m^2
     
     """
 #***from how to make a component: every component must start with init
@@ -213,6 +213,10 @@ class LateralEroder(Component):
                 qsinlet=qsinlet_ts
                 qsin[inlet_node]=qsinlet
 #                print("qsinlet ts")
+                
+                
+            #******START HERE NEXT TIME***#
+            #why do I use both water unit flux in and surface water discharge?
             if inlet_area_ts==None:    
 #                q=grid.at_node['surface_water__discharge']
 #                da=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
