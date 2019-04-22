@@ -15,6 +15,7 @@ jobs:
   - stage: lint
     os: linux
     script:
+    - pip install flake8
     - make lint
   - stage: docs
     os: linux
