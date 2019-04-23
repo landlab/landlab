@@ -1,16 +1,13 @@
 
-"""
-21 May 2017
-Authors: Sai Nudurupati & Erkan Istanbulluoglu
-
-This is to replicate create_fires function from
-Sujith Ravi's model as implemented in resource_redistribution_funcs.py.
-In this fire creation method, we will also consider trees. Also, we
-introduce fire suscessibility thresholds for shrubs and trees.
-
-0: Bare; 1: Grass; 2: Shrub; 3: Burnt Grass; 4: Burnt Shrub; 5: Trees
-6: Burnt Trees; 7: Shrub Seed; 8: Tree Seed
-"""
+##############################################################################
+## 21 May 2017
+## Authors: Sai Nudurupati & Erkan Istanbulluoglu
+## 
+## This is to replicate create_fires function from
+## Sujith Ravi's model as implemented in resource_redistribution_funcs.py.
+## In this fire creation method, we will also consider trees. Also, we
+## introduce fire suscessibility thresholds for shrubs and trees.
+##############################################################################
 
 #%% Import Packages
 import numpy as np
@@ -52,6 +49,10 @@ class SpatialDisturbance(Component):
 
     What does this component output? Are there multiple
     processes? What are the key methods?
+
+    Default Vegetation Type classification: 0: Bare; 1: Grass;
+    2: Shrub; 3: Burnt Grass; 4: Burnt Shrub; 5: Trees;
+    6: Burnt Trees; 7: Shrub Seed; 8: Tree Seed
 
     Construction::
         SpatialDisturbance()
@@ -157,7 +158,9 @@ class SpatialDisturbance(Component):
 
     def initiate_fires(self, V=None, n_fires=2, fire_area_mean=0.0625,
                      fire_area_dev=0.01, sh_susc=1., tr_susc=1.,
-                     gr_susc=1., sh_seed_susc=1., tr_seed_susc=1.):
+                     gr_susc=1., sh_seed_susc=1., tr_seed_susc=1.,
+                     gr_vuln=1., sh_vuln=0., sh_seed_vuln=0.,
+                     tr_vuln=0., tr_seed_vuln=0.):
         """
         - Add description to this method. If this is the main method or
         one of the main methods, i.e. if this method performs a
@@ -208,7 +211,11 @@ class SpatialDisturbance(Component):
         burnt_locs = []  # Total burnt locations for all fires
         for i in range(0, n_fires):
             ignition_cell = np.random.choice(self._grid.number_of_cells, 1)
-            if V[ignition_cell] == GRASS:
+            if self._is_cell_ignitable(V, ignition_cell,
+                                       gr_vuln=gr_vuln, sh_vuln=sh_vuln,
+                                       sh_seed_vuln=sh_seed_vuln,
+                                       tr_vuln=tr_vuln,
+                                       tr_seed_vuln=tr_seed_vuln):
                 (fire_locs, V) = self._spread_fire(
                                       V, ignition_cell,
                                       fire_area_mean=fire_area_mean,
@@ -225,8 +232,7 @@ class SpatialDisturbance(Component):
         return (V, burnt_locs, ignition_cells)
 
     def _spread_fire(self, V, ignition_cell, fire_area_mean=0.0625,
-                     fire_area_dev=0.01,
-                     susc=None):
+                     fire_area_dev=0.01, susc=None):
         """
         - An underscore in the front signals the user to stay away
         from using this method (is intended for internal use).
@@ -330,3 +336,16 @@ class SpatialDisturbance(Component):
         susc[V==SHRUBSEED] = sh_seed_susc
         susc[V==TREESEED] = tr_seed_susc
         return susc
+
+    def _is_cell_ignitable(self, V, ignition_cell, gr_vuln=1.,
+                           sh_vuln=0., sh_seed_vuln=0.,
+                           tr_vuln=0., tr_seed_vuln=0.):
+        vulnerability = np.choose(V[ignition_cell],
+                                  [0., gr_vuln, sh_vuln, 0., 0.,
+                                   tr_vuln, 0., sh_seed_vuln, tr_seed_vuln]) 
+        rand_val = np.random.rand()
+        if rand_val < vulnerability:
+            return True
+        else:
+            return False
+
