@@ -15,6 +15,8 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
                      sed_flux_fn_gen_almostparabolic, sed_flux_fn_gen_const,
                      iterate_sde_downstream)
 
+WAVE_STABILITY_PREFACTOR = 0.2
+
 # NB: The inline documentation of this component freely (& incorrectly!)
 # interchanges "flux" and "discharge". Almost always, "discharge" is intended
 # in place of "flux", including in variable names.
@@ -621,7 +623,7 @@ class SedDepEroder(Component):
             transport_capacity_prefactor_withA = self._Kt * node_A ** self._mt
             erosion_prefactor_withA = self._K_unit_time * node_A ** self._m
             # ^doesn't include S**n*f(Qc/Qc)
-            downward_slopes = node_S.clip(0.)
+            downward_slopes = node_S.clip(np.spacing(0.))
             # for the stability condition:
             if np.isclose(self._n, 1.):
                 wave_stab_cond_denominator = erosion_prefactor_withA
@@ -631,18 +633,22 @@ class SedDepEroder(Component):
                 # this is a bit cheeky; we're basically assuming the slope
                 # won't change much as the tstep evolves
                 # justifiable as the -1 suppresses the sensitivity to S
+                # small n will be problematic: the machine precision calc
+                # ensures it won't crash, but it's not going to be right
                 # for now, we're going to be conservative and just exclude the
                 # role of the value of the sed flux fn in modifying the calc;
                 # i.e., we assume f(Qs,Qc) = 1 in the stability calc.
 
-            max_tstep_wave = 0.2 * np.nanmin(link_length /
-                                             wave_stab_cond_denominator)
-            # ^adding additional scaling per CHILD, tho CHILD uses 0.2
-            if np.isclose(self._n, 0.):
-                # janky special condition to enable code to still run for the
-                # limiting case of n_sp == 0 -> this throws the stability cond
-                # entirely onto the diffusive aspect, so be very careful!!
-                max_tstep_wave = 100000000000.
+            max_tstep_wave = WAVE_STABILITY_PREFACTOR * np.nanmin(
+                link_length / wave_stab_cond_denominator
+            )
+            # ^adding additional scaling per CHILD; CHILD uses 0.2
+            # This should now be redundant, as we're using machine precision
+            # if np.isclose(self._n, 0.):
+            #     # janky special condition to enable code to still run for the
+            #     # limiting case of n_sp == 0 -> this throws the stability cond
+            #     # entirely onto the diffusive aspect, so be very careful!!
+            #     max_tstep_wave = 100000000000.
             self.wave_denom = wave_stab_cond_denominator
             self.link_length = link_length
             self.max_tstep_wave = max_tstep_wave
