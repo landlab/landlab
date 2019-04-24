@@ -10,6 +10,7 @@ import numpy as np
 import os
 from numpy.testing import assert_array_almost_equal, assert_equal
 from six.moves import range
+from matplotlib.pyplot import gca, clf
 
 from landlab import RasterModelGrid, CLOSED_BOUNDARY, ModelParameterDictionary
 from landlab.components import FlowAccumulator
@@ -368,8 +369,35 @@ def test_iteration_dstr():
     assert np.allclose(vol_drop_rate, 0.)
 
 
-    
+def test_sde_instantiation():
+    """
+    Tests various aspects of initiation of the SedDepEroder.
+    """
+    pass
 
+
+def test_plotting():
+    x_pts = np.arange(0., 1.01, 0.01)
+    for fname, funct in zip(
+        ['generalized_humped', 'None', 'linear_decline', 'almost_parabolic'],
+        [sed_flux_fn_gen_genhump, sed_flux_fn_gen_const,
+         sed_flux_fn_gen_lindecl, sed_flux_fn_gen_almostparabolic]
+    ):
+        y_pts = np.empty_like(x_pts)
+        for i in range(101):
+            y_pts[i] = funct(
+                x_pts[i], 13.683, 1.13, 0.00181, 4.24, 1.0000278041373
+            )
+        print(y_pts)
+        mg = RasterModelGrid((5, 5))
+        z = mg.add_zeros('node', 'topographic__elevation')
+        fa = FlowAccumulator(mg)
+        sde = SedDepEroder(mg, sed_dependency_type=fname)
+        sde.show_sed_flux_function()
+        x_plot, y_plot = gca().lines[0].get_xydata().T
+        assert np.allclose(x_plot, x_pts)
+        assert np.allclose(y_plot, y_pts)
+        clf()
 
 
 
