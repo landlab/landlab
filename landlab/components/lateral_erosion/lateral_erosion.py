@@ -229,6 +229,13 @@ class LateralEroder(Component):
                 _=grid.add_field('node', 'water__unit_flux_in', runoffinlet,
                              noclobber=False)
                 print("inletarea ts")
+                #if inlet area has changed with time (so we have a new inlet area here)
+                fa = FlowAccumulator(grid, 
+                                     surface='topographic__elevation',
+                                     flow_director='FlowDirectorD8',
+                                     runoff_rate=None,
+                                     depression_finder="DepressionFinderAndRouter", router="D8")
+                (da, q) = fa.accumulate_flow()
             q=grid.at_node['surface_water__discharge']
             da=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
             print("da", da.reshape(nr,nc))
