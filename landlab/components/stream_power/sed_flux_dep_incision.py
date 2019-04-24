@@ -683,7 +683,6 @@ class SedDepEroder(Component):
                     self.grid.number_of_nodes, dtype=np.int8)
 
                 iterate_sde_downstream(s_in, cell_areas,
-                                       self._hillslope_sediment,
                                        self._hillslope_sediment_flux_wzeros,
                                        river_volume_flux_into_node,
                                        transport_capacities,

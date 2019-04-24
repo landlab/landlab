@@ -898,7 +898,6 @@ cpdef void get_sed_flux_function_pseudoimplicit_bysedout(
 cpdef void iterate_sde_downstream(
                 np.ndarray[DTYPE_INT_t, ndim=1] s_in,
                 np.ndarray[DTYPE_FLOAT_t, ndim=1] cell_areas,
-                np.ndarray[DTYPE_FLOAT_t, ndim=1] hillslope_sediment,
                 np.ndarray[DTYPE_FLOAT_t, ndim=1] hillslope_sediment_flux,
                 np.ndarray[DTYPE_FLOAT_t, ndim=1] river_volume_flux_into_node,
                 np.ndarray[DTYPE_FLOAT_t, ndim=1] transport_capacities,
@@ -925,8 +924,6 @@ cpdef void iterate_sde_downstream(
         The upstream node order
     cell_areas : array
         The areas of all cells in the grid
-    hillslope_sediment : array
-        Depth of sediment in the channel at each node.
     hillslope_sediment_flux : array
         The existing volume of sediment on the channel bed at a node,
         expressed as volume per unit time of the timestep. This turns
