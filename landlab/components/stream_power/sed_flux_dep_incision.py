@@ -370,7 +370,9 @@ class SedDepEroder(Component):
         sediment_density : float (Kg m**-3)
             Typical density of loose sediment on the bed.
         fluid_density : float (Kg m**-3)
-            Density of the fluid.
+            Density of the fluid. Currently redundant, but will become
+            necessary in a future version using e.g. MPM for the transport
+            law.
         runoff_rate : float, array or field name (m/s)
             The rate of excess overland flow production at each node (i.e.,
             rainfall rate less infiltration).
@@ -432,21 +434,24 @@ class SedDepEroder(Component):
                 )
                 raise NotImplementedError(msg)
         self._grid = grid
-        self.pseudoimplicit_repeats = pseudoimplicit_repeats
+        self._pseudoimplicit_repeats = pseudoimplicit_repeats
 
         self._K_unit_time = K_sp / 31557600.
         # ^...because we work with dt in seconds
         # set gravity
-        self.g = g
-        self.rock_density = rock_density
-        self.sed_density = sediment_density
-        self.fluid_density = fluid_density
-        self.relative_weight = (
-            (self.sed_density - self.fluid_density) /
-            self.fluid_density * self.g
-        )
+        self._g = g
+        self._rock_density = rock_density
+        self._sed_density = sediment_density
+        # self._fluid_density = fluid_density
+        # at present this is redundant, but this is retained in comments
+        # pending future code enhancement.
+        # self._relative_weight = (
+        #     (self._sed_density - self._fluid_density) /
+        #     self._fluid_density * self.g
+        # )
+        # self.rho_g = self._fluid_density * self.g
         # ^to accelerate MPM calcs
-        self.rho_g = self.fluid_density * self.g
+        self._porosity = self._sed_density / self._rock_density
         self.type = sed_dependency_type
         assert self.type in (
             'generalized_humped',
@@ -684,12 +689,13 @@ class SedDepEroder(Component):
 
                 iterate_sde_downstream(s_in, cell_areas,
                                        self._hillslope_sediment_flux_wzeros,
+                                       self._porosity,
                                        river_volume_flux_into_node,
                                        transport_capacities,
                                        erosion_prefactor_withS,
                                        rel_sed_flux, self._is_it_TL,
                                        self._voldroprate, flow_receiver,
-                                       self.pseudoimplicit_repeats,
+                                       self._pseudoimplicit_repeats,
                                        dzbydt, self._sed_flux_fn_gen,
                                        self.kappa, self.nu, self.c,
                                        self.phi, self.norm)

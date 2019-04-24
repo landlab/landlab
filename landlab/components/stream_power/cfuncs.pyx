@@ -815,7 +815,7 @@ cpdef void get_sed_flux_function_pseudoimplicit_bysedout(
         Volumetric transport capacity as a rate (i.e., m**3/s) on outgoing
         link
     prefactor_for_volume_bydt : float
-        Equal to K*A**m*S**n * cell_area.
+        Equal to K*A**m*S**n * cell_area / sed_porosity.
     cell_area : float
         The area of the cell.
     sed_flux_fn_gen : function
@@ -829,12 +829,13 @@ cpdef void get_sed_flux_function_pseudoimplicit_bysedout(
         Maximum number of loops to perform with the pseudoimplicit
         iterator, seeking a stable solution. Convergence is typically
         rapid.
-        out_array : array of floats
-            Array to be filled, containing:
-            dzbydt: Rate of change of substrate elevation,
-            vol_pass_rate: Q_s/dt on the outgoing link,
-            rel_sed_flux: f(Q_s/Q_c),
-            error_in_sed_flux_fn: Measure of how well converged rel_sed_flux is
+    out_array : array of floats
+        Array to be filled, containing:
+        dzbydt: Rate of change of substrate elevation, assuming density of
+        sediment not rock;
+        vol_pass_rate: Q_s/dt on the outgoing link;
+        rel_sed_flux: f(Q_s/Q_c);
+        error_in_sed_flux_fn: Measure of how well converged rel_sed_flux is
     """
     cdef unsigned int i
     cdef double rel_sed_flux_in
@@ -899,6 +900,7 @@ cpdef void iterate_sde_downstream(
                 np.ndarray[DTYPE_INT_t, ndim=1] s_in,
                 np.ndarray[DTYPE_FLOAT_t, ndim=1] cell_areas,
                 np.ndarray[DTYPE_FLOAT_t, ndim=1] hillslope_sediment_flux,
+                DTYPE_FLOAT_t sed_porosity,
                 np.ndarray[DTYPE_FLOAT_t, ndim=1] river_volume_flux_into_node,
                 np.ndarray[DTYPE_FLOAT_t, ndim=1] transport_capacities,
                 np.ndarray[DTYPE_FLOAT_t, ndim=1] erosion_prefactor_withS,
@@ -933,6 +935,9 @@ cpdef void iterate_sde_downstream(
         from upstream, such that at the end of the step the same depth of
         sediment would be present at the node if no other transport
         occurred (input).
+    sed_porosity : float
+        One over the "bulking factor" as rock is turned into sediment,
+        broadly equivalent to the sediment porosity.
     river_volume_flux_into_node : array
         Total ""true" river flux coming into node from upstream. In principle
         can be used as an updating input, but in practice best passed as zeros and used an a pure output.
@@ -988,7 +993,9 @@ cpdef void iterate_sde_downstream(
 
         if sed_flux_into_this_node_bydt < node_capacity:
             # ^note incision is forbidden at capacity
-            vol_prefactor_bydt = erosion_prefactor_withS[i]*cell_area
+            vol_prefactor_bydt = (
+                erosion_prefactor_withS[i] * cell_area / sed_porosity
+            )
             get_sed_flux_function_pseudoimplicit_bysedout(
                     sed_flux_into_this_node_bydt,
                     node_capacity,
@@ -996,7 +1003,7 @@ cpdef void iterate_sde_downstream(
                     sed_flux_fn_gen,
                     kappa, nu, c, phi, norm,
                     pseudoimplicit_repeats, out_array)
-            dzbydt[i] = -out_array[0]
+            dzbydt[i] = -out_array[0] * sed_porosity
             # ^minus returns us to the correct sign convention
             vol_pass_rate = out_array[1]
             rel_sed_flux[i] = out_array[2]

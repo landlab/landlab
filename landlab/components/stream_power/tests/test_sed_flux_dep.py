@@ -283,7 +283,7 @@ def test_sff_convergence():
     assert np.less(out_array[3], 0.001)  # error_in_sed_flux_fn
 
 
-def test_iteration_dstr_1():
+def test_iteration_dstr():
     """
     This tests the iterate_sde_downstream func.
     We can now test on an arbitrary structure, as we don't need grids!
@@ -298,6 +298,7 @@ def test_iteration_dstr_1():
     funct = sed_flux_fn_gen_const
     cell_areas = np.array([1., 0.1, 0.5, 1., 1., 1.])
     hillsl_sed = np.array([0., 0., 0., 0., 0., 0.])
+    porosity = 1.
     # 0 and 1 drain to 2 then 3 then 4 then 5
     upstr_order = np.array([5, 4, 3, 2, 0, 1])
     flow_receiver = np.array([2, 2, 3, 4, 5, 5])
@@ -313,6 +314,7 @@ def test_iteration_dstr_1():
         upstr_order,
         cell_areas,
         hillsl_sed,
+        porosity,
         river_volume_flux_into_node,
         trans_caps,
         erosion_prefac_w_S,
@@ -335,13 +337,16 @@ def test_iteration_dstr_1():
     assert np.allclose(vol_drop_rate, np.array([0., 0., 0., 0., 0.1, 0.3]))
     
     # now a very similar test where the capacities are really high
-    # i.e., a true SP run
+    # i.e., a true SP run.
+    # ...also tests porosity is working OK.
     trans_caps.fill(1.e20)
     river_volume_flux_into_node.fill(0.)
+    porosity = 2./3.
     iterate_sde_downstream(
         upstr_order,
         cell_areas,
         hillsl_sed,
+        porosity,
         river_volume_flux_into_node,
         trans_caps,
         erosion_prefac_w_S,
@@ -357,10 +362,13 @@ def test_iteration_dstr_1():
     assert np.allclose(dzbydt, np.array([-1., -2., -1., -1., -1., -1.]))
     assert np.all(np.equal(is_it_TL, np.int8(0)))
     assert np.allclose(river_volume_flux_into_node,
-                       np.array([0., 0., 1.2, 1.7, 2.7, 3.7]))
+                       1.5 * np.array([0., 0., 1.2, 1.7, 2.7, 3.7]))
+    # note the 1.5 is the effect of the sed porosity
     assert np.allclose(rel_sed_flux, 0., atol=1.e-10)
     assert np.allclose(vol_drop_rate, 0.)
 
+
+    
 
 
 
