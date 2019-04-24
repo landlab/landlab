@@ -921,44 +921,45 @@ cpdef void iterate_sde_downstream(
     Parameters
     ----------
     s_in : array
-        The upstream node order
+        The upstream node order (input).
     cell_areas : array
-        The areas of all cells in the grid
+        The areas of all cells in the grid (input).
     hillslope_sediment_flux : array
         The existing volume of sediment on the channel bed at a node,
         expressed as volume per unit time of the timestep. This turns
         the accumulated sediment on the bed into a virtual sediment supply
         from upstream, such that at the end of the step the same depth of
         sediment would be present at the node if no other transport
-        occurred.
+        occurred (input).
     river_volume_flux_into_node : array
-        Total ""true" river flux coming into node from upstream.
+        Total ""true" river flux coming into node from upstream (updates).
     transport_capacities : array
-        The bedload transport capacity at each node, expressed as a flux.
+        The bedload transport capacity at each node, expressed as a flux
+        (input).
     erosion_prefactor_withS : array
-        Equal to K * A**m * S**n at nodes
+        Equal to K * A**m * S**n at nodes (input).
     rel_sed_flux : array
-        The sediment flux as a function of the transport capacity.
+        The sediment flux as a function of the transport capacity (output).
     is_it_TL : boolean array
         Describes whether the sediment transported at the node is at
-        capacity or not.
+        capacity or not (output).
     vol_drop_rate : array
-        Flux of sediment ending up on the bed during transport.
+        Flux of sediment ending up on the bed during transport (output).
     flow_receiver : array
-        The downstream node ID.
+        The downstream node ID (input).
     pseudoimplicit_repeats : int
         Maximum number of loops to perform with the pseudoimplicit
         iterator, seeking a stable solution. Convergence is typically
-        rapid.
+        rapid (input).
     dzbydt : array
-        The rate of change of *bedrock* surface elevation.
+        The rate of change of *bedrock* surface elevation (output).
     sed_flux_fn_gen : function
         Function to calculate the sed flux function. Takes inputs
         rel_sed_flux_in, kappa, nu, c, phi, norm, where last 5 are dummy
-        unless type is generalized_humped.
+        unless type is generalized_humped (input).
     kappa, nu, c, phi, norm : float
         Params for the sed flux function. Values if generalized_humped,
-        zero otherwise.
+        zero otherwise (input).
     """
     cdef np.ndarray[DTYPE_FLOAT_t, ndim=1] out_array = np.empty(4, dtype=float)
     cdef unsigned int i
@@ -978,8 +979,8 @@ cpdef void iterate_sde_downstream(
         node_capacity = transport_capacities[i]
         # ^we work in volume discharge, not volume per se here
 
-        if sed_flux_into_this_node_bydt < node_capacity:
-            # ^note incision is forbidden at capacity
+        if sed_flux_into_this_node_bydt <= node_capacity:
+            # ^note incision is not forbidden at capacity per se
             vol_prefactor_bydt = erosion_prefactor_withS[i]*cell_area
             get_sed_flux_function_pseudoimplicit_bysedout(
                     sed_flux_into_this_node_bydt,
