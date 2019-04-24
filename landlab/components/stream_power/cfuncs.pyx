@@ -916,7 +916,9 @@ cpdef void iterate_sde_downstream(
                 DTYPE_FLOAT_t norm):
     """
     Iterates down a drainage network, redistributing sediment and solving
-    the sediment flux dependent incision equations.
+    the sediment flux dependent incision equations. Note that this method
+    does not respect the declared BCs on the grid (it can't see the grid!),
+    so it will happily e.g. erode a fixed elevation node if one is provided.
 
     Parameters
     ----------
@@ -932,7 +934,8 @@ cpdef void iterate_sde_downstream(
         sediment would be present at the node if no other transport
         occurred (input).
     river_volume_flux_into_node : array
-        Total ""true" river flux coming into node from upstream (updates).
+        Total ""true" river flux coming into node from upstream. In principle
+        can be used as an updating input, but in practice best passed as zeros and used an a pure output.
     transport_capacities : array
         The bedload transport capacity at each node, expressed as a flux
         (input).
@@ -942,7 +945,7 @@ cpdef void iterate_sde_downstream(
         The sediment flux as a function of the transport capacity (output).
     is_it_TL : boolean array
         Describes whether the sediment transported at the node is at
-        capacity or not (output).
+        capacity or not (output). MUST BE PROVIDED AS TYPE np.int8!
     vol_drop_rate : array
         Flux of sediment ending up on the bed during transport (output).
     flow_receiver : array
@@ -952,7 +955,8 @@ cpdef void iterate_sde_downstream(
         iterator, seeking a stable solution. Convergence is typically
         rapid (input).
     dzbydt : array
-        The rate of change of *bedrock* surface elevation (output).
+        The rate of change of *bedrock* surface elevation (output). Lowering
+        is negative.
     sed_flux_fn_gen : function
         Function to calculate the sed flux function. Takes inputs
         rel_sed_flux_in, kappa, nu, c, phi, norm, where last 5 are dummy
@@ -971,6 +975,9 @@ cpdef void iterate_sde_downstream(
     cdef double vol_pass_rate
     cdef double depth_sed_in
     
+    # blank stuff as needed
+    is_it_TL[:] = 0
+    vol_drop_rate[:] = 0.
     for i in s_in[::-1]:  # work downstream
         cell_area = cell_areas[i]
         sed_flux_into_this_node_bydt = (
@@ -979,8 +986,8 @@ cpdef void iterate_sde_downstream(
         node_capacity = transport_capacities[i]
         # ^we work in volume discharge, not volume per se here
 
-        if sed_flux_into_this_node_bydt <= node_capacity:
-            # ^note incision is not forbidden at capacity per se
+        if sed_flux_into_this_node_bydt < node_capacity:
+            # ^note incision is forbidden at capacity
             vol_prefactor_bydt = erosion_prefactor_withS[i]*cell_area
             get_sed_flux_function_pseudoimplicit_bysedout(
                     sed_flux_into_this_node_bydt,
@@ -993,7 +1000,6 @@ cpdef void iterate_sde_downstream(
             # ^minus returns us to the correct sign convention
             vol_pass_rate = out_array[1]
             rel_sed_flux[i] = out_array[2]
-            # error_in_sed_flux = out_array[3]
         else:
             is_it_TL[i] = 1
             rel_sed_flux[i] = 1.
@@ -1001,5 +1007,5 @@ cpdef void iterate_sde_downstream(
             vol_pass_rate = node_capacity
             vol_drop_rate[i] = sed_flux_into_this_node_bydt - vol_pass_rate
         
-        assert vol_drop_rate[i] >= 0.
-        river_volume_flux_into_node[flow_receiver[i]] += vol_pass_rate
+        if flow_receiver[i] != i:  # don't add to yourself
+            river_volume_flux_into_node[flow_receiver[i]] += vol_pass_rate

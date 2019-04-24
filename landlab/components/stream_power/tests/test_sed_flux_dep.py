@@ -19,7 +19,8 @@ from landlab.components import FastscapeEroder
 from landlab.components.stream_power.cfuncs import (
     sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
     sed_flux_fn_gen_almostparabolic, sed_flux_fn_gen_const,
-    get_sed_flux_function_pseudoimplicit_bysedout
+    get_sed_flux_function_pseudoimplicit_bysedout,
+    iterate_sde_downstream
 )
 
 
@@ -282,8 +283,83 @@ def test_sff_convergence():
     assert np.less(out_array[3], 0.001)  # error_in_sed_flux_fn
 
 
-
-
+def test_iteration_dstr_1():
+    """
+    This tests the iterate_sde_downstream func.
+    We can now test on an arbitrary structure, as we don't need grids!
+    This test adopts the simplest func form, but still exercises all the
+    crucial parts of the code.
+    Recall that the eroder cannot produce sediment that it cannot transport.
+    This has significant consequences for the operation of this model re SPL.
+    True SPL equivalence for the func=1 case thus only occurs under high
+    transport capacity.
+    """
+    pseudoimplicit_repeats = 50
+    funct = sed_flux_fn_gen_const
+    cell_areas = np.array([1., 0.1, 0.5, 1., 1., 1.])
+    hillsl_sed = np.array([0., 0., 0., 0., 0., 0.])
+    # 0 and 1 drain to 2 then 3 then 4 then 5
+    upstr_order = np.array([5, 4, 3, 2, 0, 1])
+    flow_receiver = np.array([2, 2, 3, 4, 5, 5])
+    trans_caps = np.array([0., 1., 1., 1., 0.9, 0.6])
+    erosion_prefac_w_S = np.array([1., 2., 1., 1., 1., 1.])
+    # output arrays:
+    river_volume_flux_into_node = np.zeros(6, dtype=float)
+    rel_sed_flux = np.zeros(6, dtype=float)
+    is_it_TL = np.zeros(6, dtype=np.int8)
+    vol_drop_rate = np.zeros(6, dtype=float)
+    dzbydt = np.zeros(6, dtype=float)
+    iterate_sde_downstream(
+        upstr_order,
+        cell_areas,
+        hillsl_sed,
+        river_volume_flux_into_node,
+        trans_caps,
+        erosion_prefac_w_S,
+        rel_sed_flux,
+        is_it_TL,
+        vol_drop_rate,
+        flow_receiver,
+        pseudoimplicit_repeats,
+        dzbydt,
+        funct,
+        0., 0., 0., 0., 0.
+    )
+    assert np.allclose(dzbydt, np.array([0., -2., -1., -0.3, 0., 0.]))
+    assert np.all(np.equal(
+        is_it_TL, np.array([1, 0, 0, 0, 1, 1], dtype=np.int8))
+    )
+    assert np.allclose(river_volume_flux_into_node,
+                       np.array([0., 0., 0.2, 0.7, 1., 0.9]))
+    assert np.allclose(rel_sed_flux, np.array([1., 0.1, 0.45, 0.85, 1., 1.]))
+    assert np.allclose(vol_drop_rate, np.array([0., 0., 0., 0., 0.1, 0.3]))
+    
+    # now a very similar test where the capacities are really high
+    # i.e., a true SP run
+    trans_caps.fill(1.e20)
+    river_volume_flux_into_node.fill(0.)
+    iterate_sde_downstream(
+        upstr_order,
+        cell_areas,
+        hillsl_sed,
+        river_volume_flux_into_node,
+        trans_caps,
+        erosion_prefac_w_S,
+        rel_sed_flux,
+        is_it_TL,
+        vol_drop_rate,
+        flow_receiver,
+        pseudoimplicit_repeats,
+        dzbydt,
+        funct,
+        0., 0., 0., 0., 0.
+    )
+    assert np.allclose(dzbydt, np.array([-1., -2., -1., -1., -1., -1.]))
+    assert np.all(np.equal(is_it_TL, np.int8(0)))
+    assert np.allclose(river_volume_flux_into_node,
+                       np.array([0., 0., 1.2, 1.7, 2.7, 3.7]))
+    assert np.allclose(rel_sed_flux, 0., atol=1.e-10)
+    assert np.allclose(vol_drop_rate, 0.)
 
 
 
