@@ -827,3 +827,54 @@ class SedDepEroder(Component):
         """Return a map of where erosion is purely transport-limited.
         """
         return self._is_it_TL.view(dtype=np.bool)
+
+
+class power_law_eroder():
+    """
+    This helper class provides a simple interface for the simplest possible
+    SPL-style eroder, i.e., E = f(qs, qc) * K_sp * A ** m_sp * S ** n_sp.
+    A is assumed constant through time.
+
+    It is designed to avoid unnecessary recalculation of parameters.
+
+    Its interface is designed to mirror the other helpers available here.
+    """
+    def __init__(self, K_sp, m_sp, n_sp, drainage_areas, **kwds):
+        """Constructor for the class.
+
+        Parameters
+        ----------
+        K_sp : float (time unit must be *years*)
+            K in the stream power equation; the prefactor on the erosion
+            equation (units vary with other parameters).
+        m_sp : float
+            Power on drainage area in the erosion equation.
+        n_sp : float
+            Power on slope in the erosion equation.
+        drainage_areas : nnodes-long array
+            nnodes-long array of drainage areas.
+        """
+        self._K_sp = K_sp
+        self._A = drainage_areas
+        self._m_sp = m_sp
+        self._n_sp = n_sp
+
+    def update_prefactors_without_slope_terms():
+        """Calculates and stores K * A ** m_sp.
+        """
+        self._KAtothem = self._K_sp * self._A ** self._m_sp
+
+    def calc_erosion_rates(slopes_at_nodes, flooded_nodes, **kwds):
+        """Calculate the erosion rate, from existing_prefactor * S ** n_t.
+
+        Parameters
+        ----------
+        slopes_at_nodes : nnodes-long array of floats
+            nnodes-long array of S at nodes.
+        flooded_nodes : nnodes-long array of bool
+        """
+        if 
+        if np.isclose(self._n_sp, 1.):
+            return self._KAtothem * slopes_at_nodes
+        else:
+            return self._KAtothem * slopes_at_nodes ** self._n_sp
