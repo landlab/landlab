@@ -583,7 +583,11 @@ def test_basic_functionality():
                 mg.at_node['drainage_area'] > 1.
             ], 0.
         ))  # ...because if A==1, there's no sed discharge coming in
-        
+        assert np.allclose(
+            mg.at_node['channel_sediment__depth'][mg.core_nodes], 0.
+        )
+
+
     # & we can do the same thing with the aparabolic:
     mg = RasterModelGrid((4, 7))
     closed_nodes = np.array(
