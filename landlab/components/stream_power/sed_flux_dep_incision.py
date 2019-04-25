@@ -34,8 +34,6 @@ WAVE_STABILITY_PREFACTOR = 0.2
 # Think about NotImplementedErrors for other things
 
 
-
-
 class SedDepEroder(Component):
     """
     This module implements sediment flux dependent channel incision
@@ -230,8 +228,6 @@ class SedDepEroder(Component):
         "channel__discharge",
     )
 
-    _optional_var_names = ("channel__width", "channel__depth")
-
     _var_units = {
         "topographic__elevation": "m",
         "drainage_area": "m**2",
@@ -297,15 +293,16 @@ class SedDepEroder(Component):
             "Node array containing downstream-to-upstream ordered list of " +
             "node IDs"
         ),
-        "flow__link_to_receiver_node": ("ID of link downstream of each " +
-            "node, which carries the discharge"
+        "flow__link_to_receiver_node": (
+            "ID of link downstream of each node, which carries the discharge"
         ),
         "flow__sink_flag": "Boolean array, True at local lows",
         "channel_sediment__depth": (
             "Loose fluvial sediment at each node. Can be " +
             "freely entrained by the flow, and must be to permit erosion. " +
             "Note that the sediment is assumed to be distributed across the" +
-            " whole cell area."
+            " whole cell area. Component will create this field if it is " +
+            "not supplied."
         ),
         "channel__bed_shear_stress": (
             "Shear exerted on the bed of the channel, assuming all "
@@ -334,11 +331,11 @@ class SedDepEroder(Component):
         self,
         grid,
         K_sp=1.e-6,
-        g=9.81,
+        # g=9.81,
         rock_density=2700.,
         sediment_density=2700.,
         fluid_density=1000.,
-        runoff_rate=1.,
+        # runoff_rate=1.,
         sed_dependency_type="generalized_humped",
         kappa_hump=13.683,
         nu_hump=1.13,
@@ -363,8 +360,8 @@ class SedDepEroder(Component):
         K_sp : float (time unit must be *years*)
             K in the stream power equation; the prefactor on the erosion
             equation (units vary with other parameters).
-        g : float (m/s**2)
-            Acceleration due to gravity.
+        # g : float (m/s**2)
+        #     Acceleration due to gravity.
         rock_density : float (Kg m**-3)
             Bulk intact rock density.
         sediment_density : float (Kg m**-3)
@@ -373,15 +370,13 @@ class SedDepEroder(Component):
             Density of the fluid. Currently redundant, but will become
             necessary in a future version using e.g. MPM for the transport
             law.
-        runoff_rate : float, array or field name (m/s)
-            The rate of excess overland flow production at each node (i.e.,
-            rainfall rate less infiltration).
+        # runoff_rate : float, array or field name (m/s)
+        #     The rate of excess overland flow production at each node (i.e.,
+        #     rainfall rate less infiltration).
         pseudoimplicit_repeats : int
             Maximum number of loops to perform with the pseudoimplicit
             iterator, seeking a stable solution. Convergence is typically
-            rapid. The component counts the total number of times it "maxed
-            out" the loop to seek a stable solution (error in sed flux fn <1%)
-            with the internal variable "_pseudoimplicit_aborts".
+            rapid (a few iterations).
         sed_dependency_type : {'generalized_humped', 'None', 'linear_decline',
                                'almost_parabolic'}
             The shape of the sediment flux function. For definitions, see
@@ -438,8 +433,8 @@ class SedDepEroder(Component):
 
         self._K_unit_time = K_sp / 31557600.
         # ^...because we work with dt in seconds
-        # set gravity
-        self._g = g
+        # # set gravity
+        # self._g = g
         self._rock_density = rock_density
         self._sed_density = sediment_density
         # self._fluid_density = fluid_density
@@ -453,12 +448,13 @@ class SedDepEroder(Component):
         # ^to accelerate MPM calcs
         self._porosity = self._sed_density / self._rock_density
         self.type = sed_dependency_type
-        assert self.type in (
+        if self.type not in (
             'generalized_humped',
             'None',
             'linear_decline',
             'almost_parabolic',
-        )
+        ):
+            raise NameError("Supplied sed_dependency_type not recognised!")
         # now conditional inputs
         if self.type == 'generalized_humped':
             self.kappa = kappa_hump
@@ -476,13 +472,13 @@ class SedDepEroder(Component):
         self.set_sed_flux_fn_gen()
 
         self.Qc = Qc
-        if type(runoff_rate) in (float, int):
-            self.runoff_rate = float(runoff_rate)
-        elif type(runoff_rate) is str:
-            self.runoff_rate = self.grid.at_node[runoff_rate]
-        else:
-            self.runoff_rate = np.array(runoff_rate)
-            assert runoff_rate.size == self.grid.number_of_nodes
+        # if type(runoff_rate) in (float, int):
+        #     self.runoff_rate = float(runoff_rate)
+        # elif type(runoff_rate) is str:
+        #     self.runoff_rate = self.grid.at_node[runoff_rate]
+        # else:
+        #     self.runoff_rate = np.array(runoff_rate)
+        #     assert runoff_rate.size == self.grid.number_of_nodes
 
         if self.Qc == 'MPM':
             raise NameError('MPM is no longer a permitted value for Qc!')
@@ -520,12 +516,31 @@ class SedDepEroder(Component):
         self.cell_areas = np.empty(grid.number_of_nodes)
         self.cell_areas.fill(np.mean(grid.area_of_cell))
         self.cell_areas[grid.node_at_cell] = grid.area_of_cell
-        self._pseudoimplicit_aborts = 0
-        self._total_DL_calls = 0
-        self._error_at_abort = []
 
         # set up the necessary fields:
         self.initialize_output_fields()
+
+        # test the field inputs are there
+        if "topographic__elevation" not in self.grid.at_node.keys():
+            raise FieldError(
+                "In order for the SedDepEroder to work, you must " +
+                "supply a topographic__elevation field."
+            )
+        for infield in (
+            "drainage_area",
+            "flow__receiver_node",
+            "flow__upstream_node_order",
+            "topographic__steepest_slope",
+            "flow__link_to_receiver_node",
+            "flow__sink_flag"
+        ):
+            if infield not in self.grid.at_node.keys():
+                raise FieldError(
+                    "In order for the SedDepEroder to work, you must " +
+                    "supply the field " + infield + ". You probably need to " +
+                    "instantiate a FlowAccumulator component *prior* to " +
+                    "instantiating the SedDepEroder."
+                )
 
     def set_sed_flux_fn_gen(self):
         """

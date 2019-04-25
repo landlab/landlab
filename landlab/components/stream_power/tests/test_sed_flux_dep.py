@@ -13,7 +13,8 @@ from six.moves import range
 from matplotlib.pyplot import gca, clf
 import pytest
 
-from landlab import RasterModelGrid, CLOSED_BOUNDARY, ModelParameterDictionary
+from landlab import RasterModelGrid, VoronoiDelaunayGrid
+from landlab import CLOSED_BOUNDARY, ModelParameterDictionary, FieldError
 from landlab.components import FlowAccumulator
 from landlab.components import SedDepEroder
 from landlab.components import FastscapeEroder
@@ -172,6 +173,8 @@ def test_sff_convergence():
     funcs = (sed_flux_fn_gen_lindecl, )
     for (sff_style, solver) in zip(models, funcs):
         mg = RasterModelGrid((5, 5))
+        z = mg.add_zeros('node', 'topographic__elevation')
+        fa = FlowAccumulator(mg)
         out_array = np.empty(4, dtype=float)
         sde = SedDepEroder(mg, sed_dependency_type=sff_style)
         # special case
@@ -269,6 +272,8 @@ def test_sff_convergence():
 
     # generic case, larger numbers
     mg = RasterModelGrid((5, 5))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg)
     out_array = np.empty(4, dtype=float)
     sde = SedDepEroder(mg, sed_dependency_type='linear_decline')
     get_sed_flux_function_pseudoimplicit_bysedout(2500., 5000., 2500., 100000./3.,
@@ -413,6 +418,112 @@ def test_instantiation_trp_laws():
     z = mg.add_zeros('node', 'topographic__elevation')
     fa = FlowAccumulator(mg)
     sde = SedDepEroder(mg, Qc='power_law')
+
+
+def test_instantiation_sed_flux_forms():
+    # Create a fail by supplying a bad term
+    mg = RasterModelGrid((5, 5))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg)
+    with pytest.raises(NameError):
+        sde = SedDepEroder(mg, sed_dependency_type='bad_term')
+
+    for sde_term, sde_fn in zip(
+        ('None', 'linear_decline', 'almost_parabolic'),
+        (
+            sed_flux_fn_gen_const,
+            sed_flux_fn_gen_lindecl,
+            sed_flux_fn_gen_almostparabolic
+        )
+    ):
+        mg = RasterModelGrid((5, 5))
+        z = mg.add_zeros('node', 'topographic__elevation')
+        fa = FlowAccumulator(mg)
+        sde = SedDepEroder(mg, sed_dependency_type=sde_term)
+        assert sde._sed_flux_fn_gen is sde_fn
+        assert sde.kappa == 0.
+        assert sde.nu == 0.
+        assert sde.phi == 0.
+        assert sde.c == 0.
+        assert sde.norm == 0.
+
+    mg = RasterModelGrid((5, 5))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg)
+    sde = SedDepEroder(mg, sed_dependency_type='generalized_humped')
+    assert sde._sed_flux_fn_gen is sed_flux_fn_gen_genhump
+    assert sde.kappa > 0.
+    assert sde.nu > 0.
+    assert sde.phi > 0.
+    assert sde.c > 0.
+    assert sde.norm > 0.
+
+
+def test_correct_field_input_responses():
+    mg = RasterModelGrid((5, 5))
+    with pytest.raises(FieldError) as excinfo:
+        msg = (
+            "In order for the SedDepEroder to work, you must supply a " +
+            "topographic__elevation field."
+        )
+        sde = SedDepEroder(mg)
+        assert msg in str(excinfo.value)
+
+    for bad_in_field in (
+        "drainage_area",
+        "flow__receiver_node",
+        "flow__upstream_node_order",
+        "topographic__steepest_slope",
+        "flow__link_to_receiver_node",
+        "flow__sink_flag"
+    ):
+        mg = RasterModelGrid((5, 5))
+        z = mg.add_zeros('node', 'topographic__elevation')
+        with pytest.raises(FieldError):
+            sde = SedDepEroder(mg)
+
+    # better check the raised error looks right for one of these...
+    mg = RasterModelGrid((5, 5))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg)
+    catchit = mg.at_node.pop('flow__receiver_node')
+    with pytest.raises(FieldError) as excinfo:
+        msg = (
+            "In order for the SedDepEroder to work, you must " +
+            "supply the field flow__receiver_node. You probably need to " +
+            "instantiate a FlowAccumulator component *prior* to " +
+            "instantiating the SedDepEroder."
+        )
+        sde = SedDepEroder(mg)
+        assert msg in str(excinfo.value)
+
+    # test the channel_sediment__depth field is created and/or bound correctly
+    # create the field whole cloth
+    mg = RasterModelGrid((5, 5))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg)
+    sde = SedDepEroder(mg)
+    assert np.allclose(mg.at_node['channel_sediment__depth'], 0.)
+    # check bindings
+    mg.at_node['channel_sediment__depth'] += 1.
+    assert np.allclose(sde._hillslope_sediment, 1.)
+    # check binding for an existing field
+    mg = RasterModelGrid((5, 5))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += np.random.rand(25) * 1.e-6
+    fa = FlowAccumulator(mg)
+    d = mg.add_ones('node', 'channel_sediment__depth')
+    sde = SedDepEroder(mg)
+    assert sde._hillslope_sediment is d
+    # check binding is retained through a run cycle
+    sde.run_one_step(1.e-6)
+    assert sde._hillslope_sediment is d
+
+
+
+
+
+
 
 ############################## Need a test for supplied Voronoi grid
 
