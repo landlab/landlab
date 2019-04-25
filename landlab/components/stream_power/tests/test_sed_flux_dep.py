@@ -11,6 +11,7 @@ import os
 from numpy.testing import assert_array_almost_equal, assert_equal
 from six.moves import range
 from matplotlib.pyplot import gca, clf
+import pytest
 
 from landlab import RasterModelGrid, CLOSED_BOUNDARY, ModelParameterDictionary
 from landlab.components import FlowAccumulator
@@ -398,6 +399,26 @@ def test_plotting():
         assert np.allclose(x_plot, x_pts)
         assert np.allclose(y_plot, y_pts)
         clf()
+
+
+def test_instantiation_trp_laws():
+    for bad_Qc in ['MPM', 'Voller_generalized', 'bad_name']:
+        mg = RasterModelGrid((5, 5))
+        z = mg.add_zeros('node', 'topographic__elevation')
+        fa = FlowAccumulator(mg)
+        with pytest.raises(NameError):
+            sde = SedDepEroder(mg, Qc=bad_Qc)
+
+    mg = RasterModelGrid((5, 5))
+    z = mg.add_zeros('node', 'topographic__elevation')
+    fa = FlowAccumulator(mg)
+    sde = SedDepEroder(mg, Qc='power_law')
+
+############################## Need a test for supplied Voronoi grid
+
+
+
+
 
 
 

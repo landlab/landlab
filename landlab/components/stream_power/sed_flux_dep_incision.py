@@ -476,7 +476,6 @@ class SedDepEroder(Component):
         self.set_sed_flux_fn_gen()
 
         self.Qc = Qc
-        assert self.Qc in ('MPM', 'power_law')
         if type(runoff_rate) in (float, int):
             self.runoff_rate = float(runoff_rate)
         elif type(runoff_rate) is str:
@@ -486,7 +485,7 @@ class SedDepEroder(Component):
             assert runoff_rate.size == self.grid.number_of_nodes
 
         if self.Qc == 'MPM':
-            raise TypeError('MPM is no longer a permitted value for Qc!')
+            raise NameError('MPM is no longer a permitted value for Qc!')
         elif self.Qc == 'power_law':
             self._m = m_sp
             self._n = n_sp
@@ -495,13 +494,19 @@ class SedDepEroder(Component):
             self._nt = n_t
         elif self.Qc == 'Voller_generalized':
             raise NameError('Voller_generalized not yet supported!')
-            self._m = m_sp
-            self._n = n_sp
-            self._Kt = K_t/31557600.  # in sec
-            self._mt = m_t
-            self._nt = n_t
-            self._bt = b_t
-            self._Scrit = S_crit
+            # self._m = m_sp
+            # self._n = n_sp
+            # self._Kt = K_t/31557600.  # in sec
+            # self._mt = m_t
+            # self._nt = n_t
+            # self._bt = b_t
+            # self._Scrit = S_crit
+        else:
+            msg = (
+                "Supplied transport law form, Qc, not recognised. Use " +
+                "Qc='power_law'."
+            )
+            raise NameError(msg)
 
         self._hillslope_sediment_flux_wzeros = self.grid.zeros('node',
                                                                dtype=float)
