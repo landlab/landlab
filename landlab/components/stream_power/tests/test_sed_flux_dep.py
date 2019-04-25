@@ -421,6 +421,11 @@ def test_instantiation_trp_laws():
 
 
 def test_instantiation_sed_flux_forms():
+    """
+    Tests the correct behaviour for the sed_dependency_type term on
+    instantiation. This also implicitly but adequately tests the
+    set_sed_flux_fn_gen method.
+    """
     # Create a fail by supplying a bad term
     mg = RasterModelGrid((5, 5))
     z = mg.add_zeros('node', 'topographic__elevation')
@@ -516,6 +521,7 @@ def test_correct_field_input_responses():
     sde = SedDepEroder(mg)
     assert sde._hillslope_sediment is d
     # check binding is retained through a run cycle
+    fa.run_one_step()
     sde.run_one_step(1.e-6)
     assert sde._hillslope_sediment is d
 
