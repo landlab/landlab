@@ -375,13 +375,6 @@ def test_iteration_dstr():
     assert np.allclose(vol_drop_rate, 0.)
 
 
-def test_sde_instantiation():
-    """
-    Tests various aspects of initiation of the SedDepEroder.
-    """
-    pass
-
-
 def test_plotting():
     x_pts = np.arange(0., 1.01, 0.01)
     for fname, funct in zip(
@@ -524,6 +517,132 @@ def test_correct_field_input_responses():
     fa.run_one_step()
     sde.run_one_step(1.e-6)
     assert sde._hillslope_sediment is d
+
+
+def test_basic_functionality():
+    """
+    This test runs a single short timestep to match a predictable model
+    outcome.
+    """
+    # Very large capacity; only a small change magnitude
+    for sff_type in ['None', 'linear_decline']:
+        mg = RasterModelGrid((4, 7))
+        closed_nodes = np.array(
+            [True,  True,  True,  True,  True,  True,  True,
+             True, False, False, False, False, False, False,
+             True,  True, False,  True,  True,  True,  True,
+             True,  True,  True,  True,  True,  True,  True], dtype=bool
+        )
+        mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
+        I = np.spacing(4.)
+        z_init = np.array(
+            [  0.,    0.,    0.,    0.,    0.,    0.,    0.,
+               0.,    5.,    4.,    3.,    2.,    1.,    0.,
+               0.,    0.,  4.+I,    0.,    0.,    0.,    0.,
+               0.,    0.,    0.,    0.,    0.,    0.,    0.]
+        )
+        z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
+        fa = FlowAccumulator(mg)
+        sde = SedDepEroder(
+            mg, K_sp=1.e-6, K_t=1.e10, m_sp=1., sed_dependency_type=sff_type
+        )
+        fa.run_one_step()
+        sde.run_one_step(1.)
+        small_linear_incision = np.array(
+            [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,
+              0.,  1.,  3.,  4.,  5.,  6.,  0.,
+              0.,  0.,  0.,  0.,  0.,  0.,  0.,
+              0.,  0.,  0.,  0.,  0.,  0.,  0.]
+        )
+        # makes no difference between linear decline & const
+        assert np.allclose(
+            (z_init - z) * 1.e6, small_linear_incision, atol=1.e-10
+        )
+        assert np.allclose(
+            mg.at_node['channel_sediment__relative_flux'][
+                np.array([8, 9, 10, 11, 12])
+            ], 0., atol=1.e-10
+        )
+        # a couple of special cases:
+        # the basically flat node gets 1 by definition
+        assert np.isclose(
+            mg.at_node['channel_sediment__relative_flux'][16], 1.
+        )
+        # the fixed elev gets 1 (as do the closed nodes)
+        assert np.isclose(
+            mg.at_node['channel_sediment__relative_flux'][13], 1.
+        )
+        # now, values aren't important, but we have values in the right places
+        assert np.all(np.greater(
+            mg.at_node['channel_sediment__volumetric_transport_capacity'][
+                mg.core_nodes
+            ], 0.
+        ))
+        assert np.all(np.greater(
+            mg.at_node['channel_sediment__volumetric_discharge'][
+                mg.core_nodes
+            ], 0.
+        ))
+        
+    # & we can do the same thing with the aparabolic:
+    mg = RasterModelGrid((4, 7))
+    closed_nodes = np.array(
+        [True,  True,  True,  True,  True,  True,  True,
+         True, False, False, False, False, False, False,
+         True,  True, False,  True,  True,  True,  True,
+         True,  True,  True,  True,  True,  True,  True], dtype=bool
+    )
+    mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
+    I = np.spacing(4.)
+    z_init = np.array(
+        [  0.,    0.,    0.,    0.,    0.,    0.,    0.,
+           0.,    5.,    4.,    3.,    2.,    1.,    0.,
+           0.,    0.,  4.+I,    0.,    0.,    0.,    0.,
+           0.,    0.,    0.,    0.,    0.,    0.,    0.]
+    )
+    z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
+    fa = FlowAccumulator(mg)
+    sde = SedDepEroder(
+        mg, K_sp=1.e-5, K_t=1.e10, m_sp=1.,
+        sed_dependency_type='almost_parabolic'
+    )  # note 1.e-5 not 1.e-6 now
+    fa.run_one_step()
+    sde.run_one_step(1.)
+    small_linear_incision = np.array(
+        [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,
+          0.,  1.,  3.,  4.,  5.,  6.,  0.,
+          0.,  0.,  0.,  0.,  0.,  0.,  0.,
+          0.,  0.,  0.,  0.,  0.,  0.,  0.]
+    )
+    assert np.allclose(
+        (z_init - z) * 1.e6, small_linear_incision, atol=1.e-10
+    )
+
+    # similar end member test - flood the terrain w sed & use lin decl
+    mg = RasterModelGrid((4, 7))
+    closed_nodes = np.array(
+        [True,  True,  True,  True,  True,  True,  True,
+         True, False, False, False, False, False, False,
+         True,  True, False,  True,  True,  True,  True,
+         True,  True,  True,  True,  True,  True,  True], dtype=bool
+    )
+    mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
+    I = np.spacing(4.)
+    z_init = np.array(
+        [  0.,    0.,    0.,    0.,    0.,    0.,    0.,
+           0.,    5.,    4.,    3.,    2.,    1.,    0.,
+           0.,    0.,  4.+I,    0.,    0.,    0.,    0.,
+           0.,    0.,    0.,    0.,    0.,    0.,    0.]
+    )
+    z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
+    fa = FlowAccumulator(mg)
+    sde = SedDepEroder(
+        mg, K_sp=1., K_t=1.e-20, sed_dependency_type='linear_decline'
+    )  # note 1.e-5 not 1.e-6 now
+    fa.run_one_step()
+    sde.run_one_step(1.)
+    assert np.allclose(z_init - z, 0., atol=1.e-10)
+
 
 
 
