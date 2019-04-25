@@ -580,9 +580,9 @@ def test_basic_functionality():
         ))
         assert np.all(np.greater(
             mg.at_node['channel_sediment__volumetric_discharge'][
-                mg.core_nodes
+                mg.at_node['drainage_area'] > 1.
             ], 0.
-        ))
+        ))  # ...because if A==1, there's no sed discharge coming in
         
     # & we can do the same thing with the aparabolic:
     mg = RasterModelGrid((4, 7))
