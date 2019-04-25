@@ -221,11 +221,10 @@ class SedDepEroder(Component):
 
     _output_var_names = (
         "topographic__elevation",
-        "channel__bed_shear_stress",
+        "channel_sediment__depth",
         "channel_sediment__volumetric_transport_capacity",
         "channel_sediment__volumetric_discharge",
         "channel_sediment__relative_flux",
-        "channel__discharge",
     )
 
     _var_units = {
@@ -237,11 +236,9 @@ class SedDepEroder(Component):
         "flow__link_to_receiver_node": "-",
         "flow__sink_flag": "-",
         "channel_sediment__depth": "m",
-        "channel__bed_shear_stress": "Pa",
         "channel_sediment__volumetric_transport_capacity": "m**3/s",
         "channel_sediment__volumetric_discharge": "m**3/s",
         "channel_sediment__relative_flux": "-",
-        "channel__discharge": "m**3/s",
     }
 
     _var_mapping = {
@@ -253,11 +250,9 @@ class SedDepEroder(Component):
         "flow__link_to_receiver_node": "node",
         "flow__sink_flag": "node",
         "channel_sediment__depth": "node",
-        "channel__bed_shear_stress": "node",
         "channel_sediment__volumetric_transport_capacity": "node",
         "channel_sediment__volumetric_discharge": "node",
         "channel_sediment__relative_flux": "node",
-        "channel__discharge": "node",
     }
 
     _var_type = {
@@ -269,11 +264,9 @@ class SedDepEroder(Component):
         "flow__link_to_receiver_node": int,
         "flow__sink_flag": bool,
         "channel_sediment__depth": float,
-        "channel__bed_shear_stress": float,
         "channel_sediment__volumetric_transport_capacity": float,
         "channel_sediment__volumetric_discharge": float,
         "channel_sediment__relative_flux": float,
-        "channel__discharge": float,
     }
 
     _var_doc = {
@@ -304,10 +297,6 @@ class SedDepEroder(Component):
             " whole cell area. Component will create this field if it is " +
             "not supplied."
         ),
-        "channel__bed_shear_stress": (
-            "Shear exerted on the bed of the channel, assuming all "
-            + "discharge travels along a single, self-formed channel"
-        ),
         "channel_sediment__volumetric_transport_capacity": (
             "Volumetric transport capacity of a channel carrying all runoff"
             + " through the node, assuming the Meyer-Peter Muller transport "
@@ -320,10 +309,6 @@ class SedDepEroder(Component):
         "channel_sediment__relative_flux": (
             "The channel_sediment__volumetric_discharge divided by the " +
             "channel_sediment__volumetric_transport_capacity"
-        ),
-        "channel__discharge": (
-            "Volumetric water flux of the a single channel carrying all "
-            + "runoff through the node"
         ),
     }
 
