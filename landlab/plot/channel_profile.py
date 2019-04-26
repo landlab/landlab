@@ -17,8 +17,9 @@ changes mid-run (e.g., channel piracy). This may be modified in the future.
 """
 
 
-import numpy
 import warnings
+
+import numpy
 
 # DEJH, March 2014.
 from six.moves import range
@@ -28,9 +29,11 @@ try:
 except ImportError:
     warnings.warn("matplotlib not found", ImportWarning)
 
-_MSG = ("The channel_profile submodule is deprecated (as of v1.9). It will be "
-        "removed in landlab 2.0.  Please transition your code to use the new "
-        "ChannelProfiler component.")
+_MSG = (
+    "The channel_profile submodule is deprecated (as of v1.9). It will be "
+    "removed in landlab 2.0.  Please transition your code to use the new "
+    "ChannelProfiler component."
+)
 
 
 def channel_nodes(
