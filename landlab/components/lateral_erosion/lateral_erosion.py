@@ -100,15 +100,15 @@ class LateralEroder(Component):
 
         self.dzdt = grid.zeros(centering='node')    # elevation change rate (M/Y)
 ##optional inputs
-        if inlet_on:
+        self.inlet_on=inlet_on
+        if inlet_on==True:
             if inlet_node is None:
                 raise ValueError("inlet_on is true, but no inlet_node is provided.")
-            if inlet_node is not None:
+            else:
                 self.inlet_node = inlet_node
-                self.inlet_on=True
                     #below, adding flag calling for Kv to be specified. as of April 15, this only works for
                 #arrays and floats, NOT field names.
-                if self.inlet_on and inlet_area is None:
+                if inlet_area is None:
                     raise ValueError(
                         "Inlet area must be provided if inlet node is active. "
                         + "No inlet area was found."
@@ -116,18 +116,16 @@ class LateralEroder(Component):
                 #note on April 22, 2019: I need to do below in init function because have to route water 
             # correctly from the beginning if there is an inlet.
                 self.inlet_area = inlet_area
-                # 4/24/2017 add inlet to change drainage area with spatially variable runoff rate
                 #runoff is an array with values of the area of each node (dx**2)
-                runoffinlet=np.zeros(grid.number_of_nodes)*grid.dx**2
+                runoffinlet=np.ones(grid.number_of_nodes)*grid.dx**2
                 #Change the runoff at the inlet node to node area + inlet node
-                print("inletnode", inlet_node)
                 runoffinlet[inlet_node]=+inlet_area
                 _=grid.add_field('node', 'water__unit_flux_in', runoffinlet,
                                  noclobber=False)
-                print("waterflux", reshape(grid['node'][ 'water__unit_flux_in'],(grid.number_of_node_rows,grid.number_of_node_columns)))
+#                print("waterflux", reshape(grid['node'][ 'water__unit_flux_in'],(grid.number_of_node_rows,grid.number_of_node_columns)))
+                #set qsinlet at inlet node. This doesn't have to be provided, defaults to 0.
                 self.qsinlet = qsinlet
                 self.qsin[self.inlet_node]=self.qsinlet
-                print("qsinlet", qsinlet)
 
 
 #below, adding flag calling for Kv to be specified. as of April 15, this only works for
@@ -189,29 +187,24 @@ class LateralEroder(Component):
         dzlat=np.zeros(grid.number_of_nodes)
         dzver=np.zeros(grid.number_of_nodes)
         vol_lat_dt=np.zeros(grid.number_of_nodes)
-
-        if inlet_on:
+#        self.inlet_area_ts=inlet_area_ts
+#        self.qsinlet_ts=qsinlet_ts
+        
+        if inlet_on==True:
             #define inlet_node
             inlet_node=self.inlet_node
-            print("inlet_node", inlet_node)
-            if qsinlet_ts==None:
-                qsinlet=self.qsinlet
-                qsin[inlet_node]=qsinlet
-                print("qsinlet normal", qsinlet)
-                print("qsinlet", reshape(qsin,(grid.number_of_node_rows,grid.number_of_node_columns)))
-                print(elta)
+#            print("inlet_node", inlet_node)
             if qsinlet_ts is not None:
                 qsinlet=qsinlet_ts
                 qsin[inlet_node]=qsinlet
-#                print("qsinlet ts")
-                
-                
-            #******START HERE NEXT TIME***#
-            #why do I use both water unit flux in and surface water discharge?
-            if inlet_area_ts==None:    
-#                q=grid.at_node['surface_water__discharge']
-#                da=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
-                print("inletarea normal")
+                print("qsinlet ts")
+            else:    #qsinlet_ts==None:
+                qsinlet=self.qsinlet
+                qsin[inlet_node]=qsinlet
+#                print("qsinlet normal", qsinlet)
+#                print("qsinlet", reshape(qsin,(grid.number_of_node_rows,grid.number_of_node_columns)))
+
+
             if inlet_area_ts is not None:
                 inlet_area=inlet_area_ts
                 runoffinlet=np.ones(grid.number_of_nodes)*grid.dx**2
@@ -227,12 +220,16 @@ class LateralEroder(Component):
                                      runoff_rate=None,
                                      depression_finder="DepressionFinderAndRouter", router="D8")
                 (da, q) = fa.accumulate_flow()
-            q=grid.at_node['surface_water__discharge']
-            da=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
-            print("da", da.reshape(nr,nc))
-            #also change qsinlet
-#            qsin[inlet_node]=qsinlet
-#            print("inlet on")
+                q=grid.at_node['surface_water__discharge']
+                da=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
+                print("inletarea TS")
+            else:
+                q=grid.at_node['surface_water__discharge']
+                da=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
+#                print("inletarea normal")
+#            print("da", da.reshape(nr,nc))
+#            print(delta)
+        #if inlet flag is not on, proceed as normal.
         else:
             da=grid.at_node['drainage_area']    #renamed this drainage area set by flow router
 #        print("da", da.reshape(nr,nc))
