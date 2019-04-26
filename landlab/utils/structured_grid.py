@@ -2066,7 +2066,7 @@ def nodes_around_points_on_unit_grid(shape, coords, mode="raise"):
     )
 
 
-def nodes_around_points(shape, coords, spacing=(1., 1.), origin=(0., 0.)):
+def nodes_around_points(shape, coords, spacing=(1.0, 1.0), origin=(0.0, 0.0)):
     """Array of nodes around x, y points on a grid of non-unit spacing.
 
     Returns the nodes around a point on a structured grid with row and column
@@ -2097,7 +2097,7 @@ def nodes_around_points(shape, coords, spacing=(1., 1.), origin=(0., 0.)):
     )
 
 
-def nodes_around_point(shape, coords, spacing=(1., 1.)):
+def nodes_around_point(shape, coords, spacing=(1.0, 1.0)):
     """Array of nodes around a single point on a grid of non-unit spacing."""
     node_id = int(coords[0] // spacing[0] * shape[1] + coords[1] // spacing[1])
     if node_id + shape[1] + 1 >= shape[0] * shape[1] or node_id < 0:

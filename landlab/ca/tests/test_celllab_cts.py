@@ -97,9 +97,7 @@ def test_raster_cts():
 
     # pop the scheduled event off the queue
     (event_time, index, event_link) = ca.priority_queue.pop()
-    assert (
-        ca.priority_queue._queue == []
-    ), "event queue should now be empty but is not"
+    assert ca.priority_queue._queue == [], "event queue should now be empty but is not"
 
     # engineer an event
     ca.priority_queue.push(8, 1.0)
@@ -309,7 +307,7 @@ def test_setup_transition_data():
         cts.trn_id, [[0, 0], [0, 0], [1, 0], [0, 0], [0, 0], [2, 3], [0, 0], [0, 0]]
     )
     assert_array_equal(cts.trn_to, [2, 1, 6, 7])
-    assert_array_equal(cts.trn_rate, [1., 2., 3., 4.])
+    assert_array_equal(cts.trn_rate, [1.0, 2.0, 3.0, 4.0])
 
 
 def test_transitions_as_ids():
@@ -321,7 +319,7 @@ def test_transitions_as_ids():
     xnlist.append(Transition(2, 3, 1.0, "transitioning"))
     nsg = mg.add_zeros("node", "node_state_grid")
     cts = HexCTS(mg, nsd, xnlist, nsg)
-    assert cts.num_link_states == 4, 'wrong number of transitions'
+    assert cts.num_link_states == 4, "wrong number of transitions"
 
 
 def test_handle_grid_mismatch():

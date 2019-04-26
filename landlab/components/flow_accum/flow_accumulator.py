@@ -725,7 +725,7 @@ class FlowAccumulator(Component):
                 )
         else:
             node_cell_area = self._grid.cell_area_at_node.copy()
-            node_cell_area[self._grid.closed_boundary_nodes] = 0.
+            node_cell_area[self._grid.closed_boundary_nodes] = 0.0
 
         self.node_cell_area = node_cell_area
 

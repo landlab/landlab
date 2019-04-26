@@ -146,9 +146,9 @@ class OrientedHexCTS(CellLabCTSModel):
                 self.grid.node_x[self.grid.node_at_link_head[i]]
                 - self.grid.node_x[self.grid.node_at_link_tail[i]]
             )
-            if dx <= 0.:
+            if dx <= 0.0:
                 self.link_orientation[i] = 0
-            elif dy <= 0.:
+            elif dy <= 0.0:
                 self.link_orientation[i] = 2
-            elif dx > 0. and dy > 0.:
+            elif dx > 0.0 and dy > 0.0:
                 self.link_orientation[i] = 1

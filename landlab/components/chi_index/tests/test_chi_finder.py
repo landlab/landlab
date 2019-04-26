@@ -12,7 +12,7 @@ def test_route_to_multiple_error_raised():
     fa.run_one_step()
 
     with pytest.raises(NotImplementedError):
-        ChiFinder(mg, min_drainage_area=1., reference_concavity=1.)
+        ChiFinder(mg, min_drainage_area=1.0, reference_concavity=1.0)
 
 
 def test_bad_reference_area():
@@ -23,7 +23,7 @@ def test_bad_reference_area():
     fa.run_one_step()
 
     with pytest.raises(ValueError):
-        ChiFinder(mg, min_drainage_area=1., reference_area=-1)
+        ChiFinder(mg, min_drainage_area=1.0, reference_area=-1)
 
 
 def test_functions_with_Hex():
@@ -33,5 +33,5 @@ def test_functions_with_Hex():
     fa = FlowAccumulator(mg)
     fa.run_one_step()
 
-    ch = ChiFinder(mg, min_drainage_area=1., reference_concavity=1.)
+    ch = ChiFinder(mg, min_drainage_area=1.0, reference_concavity=1.0)
     ch.calculate_chi()

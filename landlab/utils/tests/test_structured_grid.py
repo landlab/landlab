@@ -10,41 +10,43 @@ from landlab.grid.base import BAD_INDEX_VALUE
 def test_node_x_2d():
     (x, _) = sgrid.node_coords((3, 2))
 
-    assert_array_equal(x, np.array([0., 1., 0., 1., 0., 1.]))
+    assert_array_equal(x, np.array([0.0, 1.0, 0.0, 1.0, 0.0, 1.0]))
 
 
 def test_node_x_2d_with_spacing():
-    (x, _) = sgrid.node_coords((3, 2), (2., 10.))
+    (x, _) = sgrid.node_coords((3, 2), (2.0, 10.0))
 
-    assert_array_equal(x, np.array([0., 10., 0., 10., 0., 10.]))
+    assert_array_equal(x, np.array([0.0, 10.0, 0.0, 10.0, 0.0, 10.0]))
 
 
 def test_node_x_2d_with_origin():
-    (x, _) = sgrid.node_coords((3, 2), (2., 10.), (-1., 1.))
+    (x, _) = sgrid.node_coords((3, 2), (2.0, 10.0), (-1.0, 1.0))
 
-    assert_array_equal(x, np.array([1., 11., 1., 11., 1., 11.]))
+    assert_array_equal(x, np.array([1.0, 11.0, 1.0, 11.0, 1.0, 11.0]))
 
 
 def test_node_y_2d():
     (_, y) = sgrid.node_coords((3, 2))
 
-    assert_array_equal(y, np.array([0., 0., 1., 1., 2., 2.]))
+    assert_array_equal(y, np.array([0.0, 0.0, 1.0, 1.0, 2.0, 2.0]))
 
 
 def test_node_y_2d_with_spacing():
-    (_, y) = sgrid.node_coords((3, 2), (2., 10.))
+    (_, y) = sgrid.node_coords((3, 2), (2.0, 10.0))
 
-    assert_array_equal(y, np.array([0., 0., 2., 2., 4., 4.]))
+    assert_array_equal(y, np.array([0.0, 0.0, 2.0, 2.0, 4.0, 4.0]))
 
 
 def test_node_y_2d_with_origin():
-    (_, y) = sgrid.node_coords((3, 2), (2., 10.), (-1., 1.))
+    (_, y) = sgrid.node_coords((3, 2), (2.0, 10.0), (-1.0, 1.0))
 
-    assert_array_equal(y, np.array([-1., -1., 1., 1., 3., 3.]))
+    assert_array_equal(y, np.array([-1.0, -1.0, 1.0, 1.0, 3.0, 3.0]))
 
 
 def test_round_off_error():
-    (x, y) = sgrid.node_coords((135, 127), (5.4563957090392, 5.4563957090392), (0., 0.))
+    (x, y) = sgrid.node_coords(
+        (135, 127), (5.4563957090392, 5.4563957090392), (0.0, 0.0)
+    )
 
     assert x.shape == (135 * 127,)
     assert y.shape == (135 * 127,)
@@ -726,7 +728,7 @@ def test_with_active_links():
 
 # class TestReshapeArray(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_reshape_array_default():
-    x = np.arange(12.)
+    x = np.arange(12.0)
     y = sgrid.reshape_array((3, 4), x)
 
     assert y.shape == (3, 4)
@@ -736,7 +738,7 @@ def test_reshape_array_default():
 
 
 def test_copy():
-    x = np.arange(12.)
+    x = np.arange(12.0)
     y = sgrid.reshape_array((3, 4), x, copy=True)
 
     assert y.shape == (3, 4)
@@ -744,32 +746,38 @@ def test_copy():
     assert y.flags["C_CONTIGUOUS"]
     assert y.base is None
 
-    y[0][0] = 0.
-    assert_array_equal(x, np.array([0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11.]))
+    y[0][0] = 0.0
+    assert_array_equal(
+        x, np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0])
+    )
 
 
 def test_flip():
-    x = np.arange(12.)
+    x = np.arange(12.0)
     y = sgrid.reshape_array((3, 4), x, flip_vertically=True)
 
     assert y.shape == (3, 4)
     assert_array_equal(
-        y, np.array([[8., 9., 10., 11.], [4., 5., 6., 7.], [0., 1., 2., 3.]])
+        y,
+        np.array([[8.0, 9.0, 10.0, 11.0], [4.0, 5.0, 6.0, 7.0], [0.0, 1.0, 2.0, 3.0]]),
     )
     assert not y.flags["C_CONTIGUOUS"]
     assert y.base is not None
 
-    y[0][0] = 0.
-    assert_array_equal(x, np.array([0., 1., 2., 3., 4., 5., 6., 7., 0., 9., 10., 11.]))
+    y[0][0] = 0.0
+    assert_array_equal(
+        x, np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 0.0, 9.0, 10.0, 11.0])
+    )
 
 
 def test_flip_copy():
-    x = np.arange(12.)
+    x = np.arange(12.0)
     y = sgrid.reshape_array((3, 4), x, flip_vertically=True, copy=True)
 
     assert y.shape == (3, 4)
     assert_array_equal(
-        y, np.array([[8., 9., 10., 11.], [4., 5., 6., 7.], [0., 1., 2., 3.]])
+        y,
+        np.array([[8.0, 9.0, 10.0, 11.0], [4.0, 5.0, 6.0, 7.0], [0.0, 1.0, 2.0, 3.0]]),
     )
     assert y.flags["C_CONTIGUOUS"]
     assert y.base is not x

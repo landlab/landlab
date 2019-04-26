@@ -7,14 +7,14 @@ def number_of_nodes(shape):
     return np.sum(np.arange(1, shape[0] + 1)) * shape[1] + 1
 
 
-def create_xy_of_node(shape, spacing=1., origin=(0., 0.)):
+def create_xy_of_node(shape, spacing=1.0, origin=(0.0, 0.0)):
     n_shells, n_points = shape
     n_nodes = number_of_nodes(shape)
 
     x = np.empty((n_nodes,), dtype=float)
     y = np.empty((n_nodes,), dtype=float)
 
-    x[0] = y[0] = 0.
+    x[0] = y[0] = 0.0
     offset = 1
     for shell in range(1, n_shells + 1):
         rho = spacing * shell
@@ -52,7 +52,7 @@ class RadialGraph(VoronoiGraph):
     array([ 0., -1.,  0.,  1.,  0.])
     """
 
-    def __init__(self, shape, spacing=1., origin=(0., 0.)):
+    def __init__(self, shape, spacing=1.0, origin=(0.0, 0.0)):
         """Create a structured grid of triangles arranged radially.
 
         Parameters
