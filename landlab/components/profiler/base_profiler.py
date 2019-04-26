@@ -76,7 +76,7 @@ def _recursive_max(jagged):
     >>> _recursive_max([100])
     100
     """
-    return max(_recursive_max(j) if hasattr(j,  "__iter__") else j for j in jagged)
+    return max(_recursive_max(j) if hasattr(j, "__iter__") else j for j in jagged)
 
 
 def _recursive_min(jagged):
@@ -93,7 +93,7 @@ def _recursive_min(jagged):
     >>> _recursive_min([100])
     100
     """
-    return min(_recursive_min(j) if hasattr(j,  "__iter__") else j for j in jagged)
+    return min(_recursive_min(j) if hasattr(j, "__iter__") else j for j in jagged)
 
 
 class _BaseProfiler(Component):
@@ -140,7 +140,7 @@ class _BaseProfiler(Component):
 
         # create segments the way that line collection likes them.
         segments = []
-        qmin  = []
+        qmin = []
         qmax = []
         for idx, nodes in enumerate(node_ids):
             segments.append(list(zip(x_dist[idx], quantity[nodes])))

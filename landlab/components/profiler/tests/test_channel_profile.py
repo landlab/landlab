@@ -146,7 +146,9 @@ def test_plotting():
         sp.run_one_step(dt=dt)
         mg.at_node["topographic__elevation"][0] -= 0.001
 
-    profiler = ChannelProfiler(mg, number_of_watersheds=1, main_channel_only=False, threshold=50)
+    profiler = ChannelProfiler(
+        mg, number_of_watersheds=1, main_channel_only=False, threshold=50
+    )
     profiler.run_one_step()
 
     profiler.plot_profiles()
@@ -154,33 +156,117 @@ def test_plotting():
 
     # hard to test plotting... but in April 2019 KRB visually verified that the
     # plots were correct and has hard coded in what the profile structure was.
-    correct_structure = np.array([np.array([ 0, 61]),
-                                  np.array([61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71]),
-                                  np.array([ 61, 121, 181, 241, 301, 361, 421, 481, 541, 601, 661, 721, 781]),
-                                  np.array([71, 72, 73, 74, 75]),
-                                  np.array([ 71, 131, 191, 251, 311, 371, 431, 491, 551]),
-                                  np.array([ 781,  841,  901,  961, 1021]),
-                                  np.array([781, 842, 843, 844, 845, 846, 847]),
-                                  np.array([75, 76, 77, 78, 79]),
-                                  np.array([  75,  135,  195,  255,  315,  375,  435,  495,  555,  615,  675, 735,  795,  855,  915,  975, 1035]),
-                                  np.array([1021, 1081, 1141, 1201, 1261, 1321]),
-                                  np.array([1021, 1082, 1083, 1084, 1085, 1086, 1087, 1088]),
-                                  np.array([79, 80, 81, 82, 83]),
-                                  np.array([  79,  139,  199,  259,  319,  379,  439,  499,  559,  619,  679, 739,  799,  859,  919,  979, 1039, 1099]),
-                                  np.array([1321, 1322, 1323, 1324]),
-                                  np.array([1321, 1381, 1441, 1501, 1561, 1621, 1681, 1741, 1801]),
-                                  np.array([83, 84, 85, 86]),
-                                  np.array([ 83, 143, 203, 263, 323, 383, 443, 503, 563, 623, 683, 743, 803, 863, 923, 983]),
-                                  np.array([86, 87, 88, 89, 90]),
-                                  np.array([  86,  147,  207,  267,  327,  387,  447,  507,  567,  627,  687, 747,  807,  867,  927,  987, 1047]),
-                                  np.array([90, 91, 92, 93, 94, 95]),
-                                  np.array([ 90, 151, 211, 271, 331, 391, 451, 511, 571, 631, 691, 751]),
-                                  np.array([95, 96, 97, 98]),
-                                  np.array([ 95, 155, 215, 275, 335, 395, 455, 515, 575, 635]),
-                                  np.array([ 98,  99, 100, 101, 102, 103]),
-                                  np.array([ 98, 159, 219, 279, 339, 399, 459]),
-                                  np.array([103, 104, 105, 106, 107, 108, 109]),
-                                  np.array([103, 163])])
+    correct_structure = np.array(
+        [
+            np.array([0, 61]),
+            np.array([61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71]),
+            np.array([61, 121, 181, 241, 301, 361, 421, 481, 541, 601, 661, 721, 781]),
+            np.array([71, 72, 73, 74, 75]),
+            np.array([71, 131, 191, 251, 311, 371, 431, 491, 551]),
+            np.array([781, 841, 901, 961, 1021]),
+            np.array([781, 842, 843, 844, 845, 846, 847]),
+            np.array([75, 76, 77, 78, 79]),
+            np.array(
+                [
+                    75,
+                    135,
+                    195,
+                    255,
+                    315,
+                    375,
+                    435,
+                    495,
+                    555,
+                    615,
+                    675,
+                    735,
+                    795,
+                    855,
+                    915,
+                    975,
+                    1035,
+                ]
+            ),
+            np.array([1021, 1081, 1141, 1201, 1261, 1321]),
+            np.array([1021, 1082, 1083, 1084, 1085, 1086, 1087, 1088]),
+            np.array([79, 80, 81, 82, 83]),
+            np.array(
+                [
+                    79,
+                    139,
+                    199,
+                    259,
+                    319,
+                    379,
+                    439,
+                    499,
+                    559,
+                    619,
+                    679,
+                    739,
+                    799,
+                    859,
+                    919,
+                    979,
+                    1039,
+                    1099,
+                ]
+            ),
+            np.array([1321, 1322, 1323, 1324]),
+            np.array([1321, 1381, 1441, 1501, 1561, 1621, 1681, 1741, 1801]),
+            np.array([83, 84, 85, 86]),
+            np.array(
+                [
+                    83,
+                    143,
+                    203,
+                    263,
+                    323,
+                    383,
+                    443,
+                    503,
+                    563,
+                    623,
+                    683,
+                    743,
+                    803,
+                    863,
+                    923,
+                    983,
+                ]
+            ),
+            np.array([86, 87, 88, 89, 90]),
+            np.array(
+                [
+                    86,
+                    147,
+                    207,
+                    267,
+                    327,
+                    387,
+                    447,
+                    507,
+                    567,
+                    627,
+                    687,
+                    747,
+                    807,
+                    867,
+                    927,
+                    987,
+                    1047,
+                ]
+            ),
+            np.array([90, 91, 92, 93, 94, 95]),
+            np.array([90, 151, 211, 271, 331, 391, 451, 511, 571, 631, 691, 751]),
+            np.array([95, 96, 97, 98]),
+            np.array([95, 155, 215, 275, 335, 395, 455, 515, 575, 635]),
+            np.array([98, 99, 100, 101, 102, 103]),
+            np.array([98, 159, 219, 279, 339, 399, 459]),
+            np.array([103, 104, 105, 106, 107, 108, 109]),
+            np.array([103, 163]),
+        ]
+    )
     flattened = _flatten_structure(profiler._profile_structure)
     for idx in range(len(correct_structure)):
-            np.testing.assert_array_equal(flattened[idx],  correct_structure[idx])
+        np.testing.assert_array_equal(flattened[idx], correct_structure[idx])
