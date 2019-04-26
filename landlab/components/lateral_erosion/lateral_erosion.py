@@ -222,12 +222,12 @@ class LateralEroder(Component):
                 (da, q) = fa.accumulate_flow()
                 q=grid.at_node['surface_water__discharge']
                 da=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
-                print("inletarea TS")
             else:
                 q=grid.at_node['surface_water__discharge']
                 da=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
 #                print("inletarea normal")
-#            print("da", da.reshape(nr,nc))
+            print("da", da.reshape(nr,nc))
+            print("qsinlet", reshape(qsin,(grid.number_of_node_rows,grid.number_of_node_columns)))
 #            print(delta)
         #if inlet flag is not on, proceed as normal.
         else:
