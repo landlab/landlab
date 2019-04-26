@@ -28,10 +28,122 @@ WAVE_STABILITY_PREFACTOR = 0.2
 # abnormally flat profiles seem to result.
 
 
+class power_law_eroder():
+    """
+    This helper class provides a simple interface for the simplest possible
+    SPL-style eroder, i.e., E = f(qs, qc) * K_sp * A ** m_sp * S ** n_sp.
+
+    It is designed to avoid unnecessary recalculation of parameters.
+
+    Its interface is designed to mirror the other helpers available here.
+    """
+    def __init__(self, K_sp, m_sp, n_sp, drainage_areas, **kwds):
+        """Constructor for the class.
+
+        Parameters
+        ----------
+        K_sp : float (time unit must be *seconds*)
+            K in the stream power equation; the prefactor on the erosion
+            equation (units vary with other parameters).
+        m_sp : float
+            Power on drainage area in the erosion equation.
+        n_sp : float
+            Power on slope in the erosion equation.
+        drainage_areas : nnodes-long array
+            nnodes-long array of drainage areas.
+        """
+        self._K_sp = K_sp
+        self._A = drainage_areas
+        self._m_sp = m_sp
+        self._n_sp = n_sp
+
+    def update_prefactors_without_slope_terms(self):
+        """Calculates and stores K * A ** m_sp.
+        """
+        self._KAtothem = self._K_sp * self._A ** self._m_sp
+
+    def calc_erosion_rates(self, slopes_at_nodes, flooded_nodes, **kwds):
+        """
+        Calculate the erosion rate, from existing_prefactor * S ** n_t.
+        Ensure _KAtothem has already been calculated this tstep before
+        calling.
+
+        Parameters
+        ----------
+        slopes_at_nodes : nnodes-long array of floats
+            nnodes-long array of S at nodes. S should have been zeroed at
+            flooded nodes before supply (for efficiency).
+        flooded_nodes : int array or nnodes-long bool array of flooded nodes.
+            Always supplied, but only used if n is close to 0.
+        """
+        if np.isclose(self._n_sp, 1.):
+            erosion = self._KAtothem * slopes_at_nodes
+        else:
+            erosion = self._KAtothem * slopes_at_nodes ** self._n_sp
+            if np.isclose(self._n_sp, 0.):
+                erosion[is_flooded] = 0.
+        return erosion
+
+    @property
+    def erosion_prefactor_withA(self):
+        return self._KAtothem
 
 
-# Note: DOES SHEAR STRESS GET UPDATED?????
-# Think about NotImplementedErrors for other things
+class power_law_transporter():
+    """
+    This helper class provides a simple interface for the simplest possible
+    SPL-style sediment transporter, i.e., Qc =  K_t * A ** m_t * S ** n_t.
+
+    It is designed to avoid unnecessary recalculation of parameters.
+
+    Its interface is designed to mirror the other helpers available here.
+    """
+    def __init__(self, K_t, m_t, n_t, drainage_areas, **kwds):
+        """Constructor for the class.
+
+        Parameters
+        ----------
+        K_t : float (time unit must be *seconds*)
+            K_t in the transport equation; the prefactor (units vary with
+            other parameters).
+        m_t : float
+            Power on drainage area in the transport equation.
+        n_t : float
+            Power on slope in the transport equation.
+        drainage_areas : nnodes-long array
+            nnodes-long array of drainage areas.
+        """
+        self._K_t = K_t
+        self._A = drainage_areas
+        self._m_t = m_t
+        self._n_t = n_t
+
+    def update_prefactors_without_slope_terms(self):
+        """Calculates and stores K_t * A ** m_t.
+        """
+        self._KAtothem = self._K_t * self._A ** self._m_t
+
+    def calc_erosion_rates(self, slopes_at_nodes, flooded_nodes, **kwds):
+        """
+        Calculate the erosion rate, from existing_prefactor * S ** n_t.
+        Ensure _KAtothem has already been calculated this tstep before
+        calling.
+
+        Parameters
+        ----------
+        slopes_at_nodes : nnodes-long array of floats
+            nnodes-long array of S at nodes. S should have been zeroed at
+            flooded nodes before supply (for efficiency).
+        flooded_nodes : int array or nnodes-long bool array of flooded nodes.
+            Always supplied, but only used if n_t is close to 0.
+        """
+        if np.isclose(self._n_t, 1.):
+            trp = self._KAtothem * slopes_at_nodes
+        else:
+            trp = self._KAtothem * slopes_at_nodes ** self._n_t
+            if np.isclose(self._n_t, 0.):
+                trp[isflooded] = 0.
+        return trp
 
 
 class SedDepEroder(Component):
@@ -326,9 +438,10 @@ class SedDepEroder(Component):
         nu_hump=1.13,
         phi_hump=4.24,
         c_hump=0.00181,
-        Qc="power_law",
+        erosion_law='power_law',
         m_sp=0.5,
         n_sp=1.,
+        Qc="power_law",
         K_t=1.e-4,
         m_t=1.5,
         n_t=1.,
@@ -416,8 +529,6 @@ class SedDepEroder(Component):
         self._grid = grid
         self._pseudoimplicit_repeats = pseudoimplicit_repeats
 
-        self._K_unit_time = K_sp / 31557600.
-        # ^...because we work with dt in seconds
         # # set gravity
         # self._g = g
         self._rock_density = rock_density
@@ -456,7 +567,31 @@ class SedDepEroder(Component):
         # set the sed flux fn for later on:
         self.set_sed_flux_fn_gen()
 
-        self.Qc = Qc
+        # set up the necessary fields:
+        self.initialize_output_fields()
+
+        # test the field inputs are there
+        if "topographic__elevation" not in self.grid.at_node.keys():
+            raise FieldError(
+                "In order for the SedDepEroder to work, you must " +
+                "supply a topographic__elevation field."
+            )
+        for infield in (
+            "drainage_area",
+            "flow__receiver_node",
+            "flow__upstream_node_order",
+            "topographic__steepest_slope",
+            "flow__link_to_receiver_node",
+            "flow__sink_flag"
+        ):
+            if infield not in self.grid.at_node.keys():
+                raise FieldError(
+                    "In order for the SedDepEroder to work, you must " +
+                    "supply the field " + infield + ". You probably need to " +
+                    "instantiate a FlowAccumulator component *prior* to " +
+                    "instantiating the SedDepEroder."
+                )
+
         # if type(runoff_rate) in (float, int):
         #     self.runoff_rate = float(runoff_rate)
         # elif type(runoff_rate) is str:
@@ -464,16 +599,24 @@ class SedDepEroder(Component):
         # else:
         #     self.runoff_rate = np.array(runoff_rate)
         #     assert runoff_rate.size == self.grid.number_of_nodes
-
-        if self.Qc == 'MPM':
-            raise NameError('MPM is no longer a permitted value for Qc!')
-        elif self.Qc == 'power_law':
-            self._m = m_sp
+        if erosion_law not in ['power_law', ]:
+            raise NameError("erosion_law must currently be set to 'power_law'")
+        if erosion_law == 'power_law':
+            self._erosion_func = power_law_eroder(
+                K_sp / 31557600., m_sp, n_sp,
+                self.grid.at_node['drainage_area']
+            )
             self._n = n_sp
-            self._Kt = K_t / 31557600.  # in sec
-            self._mt = m_t
+
+            # ^...because we work with dt in seconds
+        if Qc == 'MPM':
+            raise NameError('MPM is no longer a permitted value for Qc!')
+        elif Qc == 'power_law':  # note this works in discharge/s.
+            self._sed_transport_func = power_law_transporter(
+                K_t / 31557600., m_t, n_t, self.grid.at_node['drainage_area']
+            )
             self._nt = n_t
-        elif self.Qc == 'Voller_generalized':
+        elif Qc == 'Voller_generalized':
             raise NameError('Voller_generalized not yet supported!')
             # self._m = m_sp
             # self._n = n_sp
@@ -501,31 +644,6 @@ class SedDepEroder(Component):
         self.cell_areas = np.empty(grid.number_of_nodes)
         self.cell_areas.fill(np.mean(grid.area_of_cell))
         self.cell_areas[grid.node_at_cell] = grid.area_of_cell
-
-        # set up the necessary fields:
-        self.initialize_output_fields()
-
-        # test the field inputs are there
-        if "topographic__elevation" not in self.grid.at_node.keys():
-            raise FieldError(
-                "In order for the SedDepEroder to work, you must " +
-                "supply a topographic__elevation field."
-            )
-        for infield in (
-            "drainage_area",
-            "flow__receiver_node",
-            "flow__upstream_node_order",
-            "topographic__steepest_slope",
-            "flow__link_to_receiver_node",
-            "flow__sink_flag"
-        ):
-            if infield not in self.grid.at_node.keys():
-                raise FieldError(
-                    "In order for the SedDepEroder to work, you must " +
-                    "supply the field " + infield + ". You probably need to " +
-                    "instantiate a FlowAccumulator component *prior* to " +
-                    "instantiating the SedDepEroder."
-                )
 
     def set_sed_flux_fn_gen(self):
         """
@@ -629,12 +747,15 @@ class SedDepEroder(Component):
         # ^ this will get refilled below. For now, the sed has been "fully
         # mobilised" off the bed; at the end of the step it can resettle.
 
-        if self.Qc == 'power_law':
-            transport_capacity_prefactor_withA = self._Kt * node_A ** self._mt
-            erosion_prefactor_withA = self._K_unit_time * node_A ** self._m
+        if True:
+            self._sed_transport_func.update_prefactors_without_slope_terms()
+            self._erosion_func.update_prefactors_without_slope_terms()
             # ^doesn't include S**n*f(Qc/Qc)
             downward_slopes = node_S.clip(np.spacing(0.))
             # for the stability condition:
+            erosion_prefactor_withA = (
+                self._erosion_func.erosion_prefactor_withA
+            )
             if np.isclose(self._n, 1.):
                 wave_stab_cond_denominator = erosion_prefactor_withA
             else:
@@ -673,15 +794,18 @@ class SedDepEroder(Component):
                 flood_node = None  # int if timestep is limited by flooding
                 conv_factor = 0.3
                 flood_tstep = dt_secs
-                slopes_tothen = downward_slopes**self._n
-                slopes_tothen[is_flooded] = 0.
-                slopes_tothent = downward_slopes**self._nt
-                slopes_tothent[is_flooded] = 0.
+                downward_slopes[is_flooded] = 0.
+
                 transport_capacities = (
-                    transport_capacity_prefactor_withA * slopes_tothent
+                    self._sed_transport_func.calc_erosion_rates(
+                        downward_slopes, is_flooded
+                    )
                 )
+
                 erosion_prefactor_withS = (
-                    erosion_prefactor_withA * slopes_tothen
+                    self._erosion_func.calc_erosion_rates(
+                        downward_slopes, is_flooded
+                    )
                 )  # no time, no fqs
 
                 river_volume_flux_into_node = np.zeros(grid.number_of_nodes,
@@ -827,54 +951,3 @@ class SedDepEroder(Component):
         """Return a map of where erosion is purely transport-limited.
         """
         return self._is_it_TL.view(dtype=np.bool)
-
-
-class power_law_eroder():
-    """
-    This helper class provides a simple interface for the simplest possible
-    SPL-style eroder, i.e., E = f(qs, qc) * K_sp * A ** m_sp * S ** n_sp.
-    A is assumed constant through time.
-
-    It is designed to avoid unnecessary recalculation of parameters.
-
-    Its interface is designed to mirror the other helpers available here.
-    """
-    def __init__(self, K_sp, m_sp, n_sp, drainage_areas, **kwds):
-        """Constructor for the class.
-
-        Parameters
-        ----------
-        K_sp : float (time unit must be *years*)
-            K in the stream power equation; the prefactor on the erosion
-            equation (units vary with other parameters).
-        m_sp : float
-            Power on drainage area in the erosion equation.
-        n_sp : float
-            Power on slope in the erosion equation.
-        drainage_areas : nnodes-long array
-            nnodes-long array of drainage areas.
-        """
-        self._K_sp = K_sp
-        self._A = drainage_areas
-        self._m_sp = m_sp
-        self._n_sp = n_sp
-
-    def update_prefactors_without_slope_terms():
-        """Calculates and stores K * A ** m_sp.
-        """
-        self._KAtothem = self._K_sp * self._A ** self._m_sp
-
-    def calc_erosion_rates(slopes_at_nodes, flooded_nodes, **kwds):
-        """Calculate the erosion rate, from existing_prefactor * S ** n_t.
-
-        Parameters
-        ----------
-        slopes_at_nodes : nnodes-long array of floats
-            nnodes-long array of S at nodes.
-        flooded_nodes : nnodes-long array of bool
-        """
-        if 
-        if np.isclose(self._n_sp, 1.):
-            return self._KAtothem * slopes_at_nodes
-        else:
-            return self._KAtothem * slopes_at_nodes ** self._n_sp
