@@ -8,7 +8,6 @@ from itertools import chain
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection
-from six.moves import range
 
 from landlab import Component
 from landlab.plot import imshow_grid
@@ -146,7 +145,6 @@ class _BaseProfiler(Component):
         segments = []
 
         # flatten datastructure
-        x_dist = _flatten_structure(self._distance_along_profile)
         node_ids = _flatten_structure(self._profile_structure)
         colors = _flatten_color(colors)
 
