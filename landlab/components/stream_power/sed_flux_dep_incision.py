@@ -866,7 +866,7 @@ class SedDepEroder(Component):
                     this_tstep -= t_elapsed_internal - dt_secs
 
                 # back-calc the sed budget in the nodes, as appropriate:
-                self._hillslope_sediment[self.grid.core_nodes] = (
+                self._hillslope_sediment[self.grid.core_nodes] += (
                     self._voldroprate[self.grid.core_nodes] /
                     self.grid.cell_area_at_node[self.grid.core_nodes] *
                     this_tstep)
