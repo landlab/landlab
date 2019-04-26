@@ -696,42 +696,47 @@ def test_basic_functionality():
     assert np.allclose(z_init - z, 0., atol=1.e-10)
 
 
-# def test_supplied_sediment():
-#     """
-#     This replicates a simple test, but instead of flooding the system with
-#     eroded sediment, it does it with an external supply.
+def test_supplied_sediment():
+    """
+    This replicates a simple test, but instead of flooding the system with
+    eroded sediment, it does it with an external supply.
+
+    Problems here - erosion is occurring at closed nodes, and we aren't
+    saturating.
+    """
+    mg = RasterModelGrid((4, 7), xy_spacing=100.)
+    closed_nodes = np.array(
+        [True,  True,  True,  True,  True,  True,  True,
+         True, False, False, False, False, False, False,
+         True,  True, False,  True,  True,  True,  True,
+         True,  True,  True,  True,  True,  True,  True], dtype=bool
+    )
+    mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
+    X = np.spacing(4.)
+    z_init = np.array(
+        [0.,    0.,    0.,    0.,    0.,    0.,    0.,
+         0.,    5.,    4.,    3.,    2.,    1.,    0.,
+         0.,    0.,  4.+X,    0.,    0.,    0.,    0.,
+         0.,    0.,    0.,    0.,    0.,    0.,    0.]
+    )
+    z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
+    h = mg.add_ones('node', 'channel_sediment__depth')
+    h *= 10.
+    fa = FlowAccumulator(mg)
+    sde = SedDepEroder(
+        mg, K_sp=1.e-4, K_t=1.e-3, sed_dependency_type='linear_decline'
+    )
+    fa.run_one_step()
+    sde.run_one_step(10.)
+    assert np.allclose(z_init - z, 0., atol=1.e-10)
+    assert np.all(h[mg.core_nodes] > 9.9)  # most of the sed stays put
+    assert np.allclose(
+        mg.at_node['channel_sediment__relative_flux'][mg.core_nodes], 1.
+    )
+
 # 
-#     Problems here - erosion is occurring at closed nodes, and we aren't
-#     saturating.
-#     """
-#     mg = RasterModelGrid((4, 7), xy_spacing=100.)
-#     closed_nodes = np.array(
-#         [True,  True,  True,  True,  True,  True,  True,
-#          True, False, False, False, False, False, False,
-#          True,  True, False,  True,  True,  True,  True,
-#          True,  True,  True,  True,  True,  True,  True], dtype=bool
-#     )
-#     mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
-#     X = np.spacing(4.)
-#     z_init = np.array(
-#         [0.,    0.,    0.,    0.,    0.,    0.,    0.,
-#          0.,    5.,    4.,    3.,    2.,    1.,    0.,
-#          0.,    0.,  4.+X,    0.,    0.,    0.,    0.,
-#          0.,    0.,    0.,    0.,    0.,    0.,    0.]
-#     )
-#     z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
-#     h = mg.add_ones('node', 'channel_sediment__depth')
-#     fa = FlowAccumulator(mg)
-#     sde = SedDepEroder(
-#         mg, K_sp=1.e-4, K_t=1.e-4, sed_dependency_type='linear_decline'
-#     )
-#     fa.run_one_step()
-#     sde.run_one_step(1.)
-#     assert np.allclose(z_init - z, 0., atol=1.e-10)
-
-
-def test_large_steps_for_timestepping():
-    pass
+# def test_large_steps_for_timestepping():
+#     pass
 
 
 
