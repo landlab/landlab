@@ -738,7 +738,8 @@ def test_supplied_sediment():
     assert np.allclose(
         mg.at_node['channel_sediment__relative_flux'][mg.core_nodes], 1.
     )
-
+    # don't fully understand why the amt of sed in the top node falls so
+    # little. Think more.
 
 # def test_large_steps_for_timestepping():
 #     pass
