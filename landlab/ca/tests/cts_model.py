@@ -22,7 +22,7 @@ class CTSModel(object):
         grid_size=(5, 5),
         report_interval=5.0,
         grid_orientation="vertical",
-        grid_shape="rect",
+        node_layout="rect",
         show_plots=False,
         cts_type="oriented_hex",
         run_duration=1.0,
@@ -35,7 +35,7 @@ class CTSModel(object):
             grid_size,
             report_interval,
             grid_orientation,
-            grid_shape,
+            node_layout,
             show_plots,
             cts_type,
             run_duration,
@@ -49,7 +49,7 @@ class CTSModel(object):
         grid_size=(5, 5),
         report_interval=5.0,
         grid_orientation="vertical",
-        grid_shape="rect",
+        node_layout="rect",
         show_plots=False,
         cts_type="oriented_hex",
         run_duration=1.0,
@@ -72,7 +72,7 @@ class CTSModel(object):
 
         # Create a grid
         self.create_grid_and_node_state_field(
-            grid_size[0], grid_size[1], grid_orientation, grid_shape, cts_type
+            grid_size[0], grid_size[1], grid_orientation, node_layout, cts_type
         )
 
         # Create the node-state dictionary
@@ -108,7 +108,7 @@ class CTSModel(object):
             self.initialize_plotting(**kwds)
 
     def create_grid_and_node_state_field(
-        self, num_rows, num_cols, grid_orientation, grid_shape, cts_type
+        self, num_rows, num_cols, grid_orientation, node_layout, cts_type
     ):
         """Create the grid and the field containing node states."""
 
@@ -124,7 +124,7 @@ class CTSModel(object):
                 num_cols,
                 xy_spacing=1.0,
                 orientation=grid_orientation,
-                shape=grid_shape,
+                node_layout=node_layout,
             )
 
         self.grid.add_zeros("node", "node_state", dtype=int)
