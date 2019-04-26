@@ -8,7 +8,7 @@ import pytest
 from landlab import RasterModelGrid
 from landlab.components import Flexure
 
-(_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e3, 10e3), (0., 0.))
+(_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e3, 10e3), (0.0, 0.0))
 
 
 def test_method_names():
@@ -94,7 +94,7 @@ def test_field_getters(flex):
 def test_field_initialized_to_zero(flex):
     for name in flex.grid["node"]:
         field = flex.grid["node"][name]
-        assert np.all(field == 0.)
+        assert np.all(field == 0.0)
 
 
 def test_update():
@@ -113,7 +113,7 @@ def test_update():
     dz = flex.grid.at_node["lithosphere_surface__elevation_increment"].reshape((n, n))
 
     assert np.argmax(dz) == i_mid
-    assert dz[n_mid, n_mid] > 0.
+    assert dz[n_mid, n_mid] > 0.0
     assert np.all(dz[:, n_mid::-1] == dz[:, n_mid:])
     assert np.all(dz[n_mid::-1, :] == dz[n_mid:, :])
 

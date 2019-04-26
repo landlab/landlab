@@ -154,49 +154,49 @@ class SoilMoisture(Component):
     def __init__(
         self,
         grid,
-        runon=0.,
+        runon=0.0,
         f_bare=0.7,
         soil_ew=0.1,
-        intercept_cap_grass=1.,
+        intercept_cap_grass=1.0,
         zr_grass=0.3,
-        I_B_grass=20.,
-        I_V_grass=24.,
+        I_B_grass=20.0,
+        I_V_grass=24.0,
         pc_grass=0.43,
         fc_grass=0.56,
         sc_grass=0.33,
         wp_grass=0.13,
         hgw_grass=0.1,
         beta_grass=13.8,
-        LAI_max_grass=2.,
+        LAI_max_grass=2.0,
         LAIR_max_grass=2.88,
         intercept_cap_shrub=1.5,
         zr_shrub=0.5,
-        I_B_shrub=20.,
-        I_V_shrub=40.,
+        I_B_shrub=20.0,
+        I_V_shrub=40.0,
         pc_shrub=0.43,
         fc_shrub=0.56,
         sc_shrub=0.24,
         wp_shrub=0.13,
         hgw_shrub=0.1,
         beta_shrub=13.8,
-        LAI_max_shrub=2.,
-        LAIR_max_shrub=2.,
-        intercept_cap_tree=2.,
+        LAI_max_shrub=2.0,
+        LAIR_max_shrub=2.0,
+        intercept_cap_tree=2.0,
         zr_tree=1.3,
-        I_B_tree=20.,
-        I_V_tree=40.,
+        I_B_tree=20.0,
+        I_V_tree=40.0,
         pc_tree=0.43,
         fc_tree=0.56,
         sc_tree=0.22,
         wp_tree=0.15,
         hgw_tree=0.1,
         beta_tree=13.8,
-        LAI_max_tree=4.,
-        LAIR_max_tree=4.,
-        intercept_cap_bare=1.,
+        LAI_max_tree=4.0,
+        LAIR_max_tree=4.0,
+        intercept_cap_bare=1.0,
         zr_bare=0.15,
-        I_B_bare=20.,
-        I_V_bare=20.,
+        I_B_bare=20.0,
+        I_V_bare=20.0,
         pc_bare=0.43,
         fc_bare=0.56,
         sc_bare=0.33,
@@ -320,49 +320,49 @@ class SoilMoisture(Component):
 
     def initialize(
         self,
-        runon=0.,
+        runon=0.0,
         f_bare=0.7,
         soil_ew=0.1,
-        intercept_cap_grass=1.,
+        intercept_cap_grass=1.0,
         zr_grass=0.3,
-        I_B_grass=20.,
-        I_V_grass=24.,
+        I_B_grass=20.0,
+        I_V_grass=24.0,
         pc_grass=0.43,
         fc_grass=0.56,
         sc_grass=0.33,
         wp_grass=0.13,
         hgw_grass=0.1,
         beta_grass=13.8,
-        LAI_max_grass=2.,
+        LAI_max_grass=2.0,
         LAIR_max_grass=2.88,
         intercept_cap_shrub=1.5,
         zr_shrub=0.5,
-        I_B_shrub=20.,
-        I_V_shrub=40.,
+        I_B_shrub=20.0,
+        I_V_shrub=40.0,
         pc_shrub=0.43,
         fc_shrub=0.56,
         sc_shrub=0.24,
         wp_shrub=0.13,
         hgw_shrub=0.1,
         beta_shrub=13.8,
-        LAI_max_shrub=2.,
-        LAIR_max_shrub=2.,
-        intercept_cap_tree=2.,
+        LAI_max_shrub=2.0,
+        LAIR_max_shrub=2.0,
+        intercept_cap_tree=2.0,
         zr_tree=1.3,
-        I_B_tree=20.,
-        I_V_tree=40.,
+        I_B_tree=20.0,
+        I_V_tree=40.0,
         pc_tree=0.43,
         fc_tree=0.56,
         sc_tree=0.22,
         wp_tree=0.15,
         hgw_tree=0.1,
         beta_tree=13.8,
-        LAI_max_tree=4.,
-        LAIR_max_tree=4.,
-        intercept_cap_bare=1.,
+        LAI_max_tree=4.0,
+        LAIR_max_tree=4.0,
+        intercept_cap_bare=1.0,
         zr_bare=0.15,
-        I_B_bare=20.,
-        I_V_bare=20.,
+        I_B_bare=20.0,
+        I_V_bare=20.0,
         pc_bare=0.43,
         fc_bare=0.56,
         sc_bare=0.33,
@@ -495,7 +495,7 @@ class SoilMoisture(Component):
             ],
         )
 
-    def update(self, current_time, Tb=24., Tr=0., **kwds):
+    def update(self, current_time, Tb=24.0, Tr=0.0, **kwds):
         """
         Update fields with current loading conditions.
 
@@ -526,7 +526,7 @@ class SoilMoisture(Component):
         #     self._fr = np.zeros(self.grid.number_of_cells)
         # else:
         #     self._fr = (self._vegcover[0]*LAIl/LAIt)
-        self._fr[self._fr > 1.] = 1.
+        self._fr[self._fr > 1.0] = 1.0
         self._Sini = np.zeros(self._SO.shape)
         self._ETmax = np.zeros(self._SO.shape)
 
@@ -554,31 +554,31 @@ class SoilMoisture(Component):
             # Infiltration capacity
             Int_cap = min(self._vegcover[cell] * self._interception_cap[cell], P)
             # Interception capacity
-            Peff = max(P - Int_cap, 0.)  # Effective precipitation depth
-            mu = (Inf_cap / 1000.0) / (pc * ZR * (np.exp(beta * (1. - fc)) - 1.))
+            Peff = max(P - Int_cap, 0.0)  # Effective precipitation depth
+            mu = (Inf_cap / 1000.0) / (pc * ZR * (np.exp(beta * (1.0 - fc)) - 1.0))
             Ep = max(
                 (
                     self._PET[cell] * self._fr[cell]
-                    + fbare * self._PET[cell] * (1. - self._fr[cell])
+                    + fbare * self._PET[cell] * (1.0 - self._fr[cell])
                 )
                 - Int_cap,
                 0.0001,
             )  # mm/d
             self._ETmax[cell] = Ep
-            nu = ((Ep / 24.) / 1000.) / (pc * ZR)  # Loss function parameter
-            nuw = ((self._soil_Ew / 24.) / 1000.) / (pc * ZR)
+            nu = ((Ep / 24.0) / 1000.0) / (pc * ZR)  # Loss function parameter
+            nuw = ((self._soil_Ew / 24.0) / 1000.0) / (pc * ZR)
             # Loss function parameter
-            sini = self._SO[cell] + ((Peff + self._runon) / (pc * ZR * 1000.))
+            sini = self._SO[cell] + ((Peff + self._runon) / (pc * ZR * 1000.0))
 
-            if sini > 1.:
-                self._runoff[cell] = (sini - 1.) * pc * ZR * 1000.
+            if sini > 1.0:
+                self._runoff[cell] = (sini - 1.0) * pc * ZR * 1000.0
                 # print 'Runoff =', self._runoff
-                sini = 1.
+                sini = 1.0
             else:
-                self._runoff[cell] = 0.
+                self._runoff[cell] = 0.0
 
             if sini >= fc:
-                tfc = (1. / (beta * (mu - nu))) * (
+                tfc = (1.0 / (beta * (mu - nu))) * (
                     beta * (fc - sini)
                     + np.log((nu - mu + mu * np.exp(beta * (sini - fc))) / nu)
                 )
@@ -588,7 +588,7 @@ class SoilMoisture(Component):
                 if Tb < tfc:
                     s = abs(
                         sini
-                        - (1. / beta)
+                        - (1.0 / beta)
                         * np.log(
                             (
                                 (nu - mu + mu * np.exp(beta * (sini - fc)))
@@ -599,15 +599,17 @@ class SoilMoisture(Component):
                         )
                     )
 
-                    self._D[cell] = ((pc * ZR * 1000.) * (sini - s)) - (Tb * (Ep / 24.))
-                    self._ETA[cell] = Tb * (Ep / 24.)
+                    self._D[cell] = ((pc * ZR * 1000.0) * (sini - s)) - (
+                        Tb * (Ep / 24.0)
+                    )
+                    self._ETA[cell] = Tb * (Ep / 24.0)
 
                 elif Tb >= tfc and Tb < tsc:
                     s = fc - (nu * (Tb - tfc))
-                    self._D[cell] = ((pc * ZR * 1000.) * (sini - fc)) - (
-                        (tfc) * (Ep / 24.)
+                    self._D[cell] = ((pc * ZR * 1000.0) * (sini - fc)) - (
+                        (tfc) * (Ep / 24.0)
                     )
-                    self._ETA[cell] = Tb * (Ep / 24.)
+                    self._ETA[cell] = Tb * (Ep / 24.0)
 
                 elif Tb >= tsc and Tb < twp:
                     s = wp + (sc - wp) * (
@@ -615,25 +617,29 @@ class SoilMoisture(Component):
                         * np.exp((-1) * ((nu - nuw) / (sc - wp)) * (Tb - tsc))
                         - (nuw / (nu - nuw))
                     )
-                    self._D[cell] = ((pc * ZR * 1000.) * (sini - fc)) - (tfc * Ep / 24.)
-                    self._ETA[cell] = (1000. * ZR * pc * (sini - s)) - self._D[cell]
+                    self._D[cell] = ((pc * ZR * 1000.0) * (sini - fc)) - (
+                        tfc * Ep / 24.0
+                    )
+                    self._ETA[cell] = (1000.0 * ZR * pc * (sini - s)) - self._D[cell]
 
                 else:
                     s = hgw + (wp - hgw) * np.exp(
-                        (-1) * (nuw / (wp - hgw)) * max(Tb - twp, 0.)
+                        (-1) * (nuw / (wp - hgw)) * max(Tb - twp, 0.0)
                     )
-                    self._D[cell] = ((pc * ZR * 1000.) * (sini - fc)) - (tfc * Ep / 24.)
-                    self._ETA[cell] = (1000. * ZR * pc * (sini - s)) - self._D[cell]
+                    self._D[cell] = ((pc * ZR * 1000.0) * (sini - fc)) - (
+                        tfc * Ep / 24.0
+                    )
+                    self._ETA[cell] = (1000.0 * ZR * pc * (sini - s)) - self._D[cell]
 
             elif sini < fc and sini >= sc:
-                tfc = 0.
+                tfc = 0.0
                 tsc = (sini - sc) / nu
                 twp = ((sc - wp) / (nu - nuw)) * np.log(nu / nuw) + tsc
 
                 if Tb < tsc:
                     s = sini - nu * Tb
-                    self._D[cell] = 0.
-                    self._ETA[cell] = 1000. * ZR * pc * (sini - s)
+                    self._D[cell] = 0.0
+                    self._ETA[cell] = 1000.0 * ZR * pc * (sini - s)
 
                 elif Tb >= tsc and Tb < twp:
                     s = wp + (sc - wp) * (
@@ -642,14 +648,14 @@ class SoilMoisture(Component):
                         - (nuw / (nu - nuw))
                     )
                     self._D[cell] = 0
-                    self._ETA[cell] = 1000. * ZR * pc * (sini - s)
+                    self._ETA[cell] = 1000.0 * ZR * pc * (sini - s)
 
                 else:
                     s = hgw + (wp - hgw) * np.exp(
                         (-1) * (nuw / (wp - hgw)) * (Tb - twp)
                     )
-                    self._D[cell] = 0.
-                    self._ETA[cell] = 1000. * ZR * pc * (sini - s)
+                    self._D[cell] = 0.0
+                    self._ETA[cell] = 1000.0 * ZR * pc * (sini - s)
 
             elif sini < sc and sini >= wp:
                 tfc = 0
@@ -664,31 +670,31 @@ class SoilMoisture(Component):
                         * (nuw + ((nu - nuw) / (sc - wp)) * (sini - wp))
                         - nuw
                     )
-                    self._D[cell] = 0.
-                    self._ETA[cell] = 1000. * ZR * pc * (sini - s)
+                    self._D[cell] = 0.0
+                    self._ETA[cell] = 1000.0 * ZR * pc * (sini - s)
 
                 else:
                     s = hgw + (wp - hgw) * np.exp(
                         (-1) * (nuw / (wp - hgw)) * (Tb - twp)
                     )
-                    self._D[cell] = 0.
-                    self._ETA[cell] = 1000. * ZR * pc * (sini - s)
+                    self._D[cell] = 0.0
+                    self._ETA[cell] = 1000.0 * ZR * pc * (sini - s)
 
             else:
-                tfc = 0.
-                tsc = 0.
-                twp = 0.
+                tfc = 0.0
+                tsc = 0.0
+                twp = 0.0
 
                 s = hgw + (sini - hgw) * np.exp((-1) * (nuw / (wp - hgw)) * Tb)
-                self._D[cell] = 0.
-                self._ETA[cell] = 1000. * ZR * pc * (sini - s)
+                self._D[cell] = 0.0
+                self._ETA[cell] = 1000.0 * ZR * pc * (sini - s)
 
             self._water_stress[cell] = min(
-                ((max(((sc - (s + sini) / 2.) / (sc - wp)), 0.)) ** 4.), 1.0
+                ((max(((sc - (s + sini) / 2.0) / (sc - wp)), 0.0)) ** 4.0), 1.0
             )
             self._S[cell] = s
             self._SO[cell] = s
             self._Sini[cell] = sini
 
-        current_time += (Tb + Tr) / (24. * 365.25)
+        current_time += (Tb + Tr) / (24.0 * 365.25)
         return current_time

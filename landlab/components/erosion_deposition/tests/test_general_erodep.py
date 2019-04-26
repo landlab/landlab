@@ -29,7 +29,7 @@ def test_Ff_bad_vals():
         top_is_closed=True,
     )
     mg.set_watershed_boundary_condition_outlet_id(
-        0, mg["node"]["topographic__elevation"], -9999.
+        0, mg["node"]["topographic__elevation"], -9999.0
     )
 
     # Create a D8 flow handler
@@ -75,7 +75,7 @@ def test_phi_bad_vals():
         top_is_closed=True,
     )
     mg.set_watershed_boundary_condition_outlet_id(
-        0, mg["node"]["topographic__elevation"], -9999.
+        0, mg["node"]["topographic__elevation"], -9999.0
     )
 
     # Create a D8 flow handler
@@ -123,7 +123,7 @@ def test_q_as_field():
         top_is_closed=True,
     )
     mg.set_watershed_boundary_condition_outlet_id(
-        0, mg["node"]["topographic__elevation"], -9999.
+        0, mg["node"]["topographic__elevation"], -9999.0
     )
 
     # Create a D8 flow handler
@@ -179,7 +179,7 @@ def test_q_as_array():
         top_is_closed=True,
     )
     mg.set_watershed_boundary_condition_outlet_id(
-        0, mg["node"]["topographic__elevation"], -9999.
+        0, mg["node"]["topographic__elevation"], -9999.0
     )
 
     # Create a D8 flow handler
@@ -235,7 +235,7 @@ def test_sediment__flux_already_created():
         top_is_closed=True,
     )
     mg.set_watershed_boundary_condition_outlet_id(
-        0, mg["node"]["topographic__elevation"], -9999.
+        0, mg["node"]["topographic__elevation"], -9999.0
     )
 
     # Create a D8 flow handler

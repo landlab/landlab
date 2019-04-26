@@ -169,9 +169,9 @@ class FastscapeEroder(Component):
         grid,
         K_sp=None,
         m_sp=0.5,
-        n_sp=1.,
-        threshold_sp=0.,
-        rainfall_intensity=1.,
+        n_sp=1.0,
+        threshold_sp=0.0,
+        rainfall_intensity=1.0,
         discharge_name="drainage_area",
         **kwds
     ):
@@ -402,11 +402,11 @@ class FastscapeEroder(Component):
 
         # Handle flooded nodes, if any (no erosion there)
         if flooded_nodes is not None:
-            alpha[flooded_nodes] = 0.
+            alpha[flooded_nodes] = 0.0
         else:
             reversed_flow = z < z[flow_receivers]
             # this check necessary if flow has been routed across depressions
-            alpha[reversed_flow] = 0.
+            alpha[reversed_flow] = 0.0
 
         threshsdt = self.thresholds * dt
 

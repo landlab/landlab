@@ -5,6 +5,7 @@ Created on Sat Nov 14 10:36:03 2015
 @author: gtucker
 """
 import warnings
+
 from landlab import HexModelGrid
 
 
@@ -14,7 +15,7 @@ def test_shape_dep_warning():
         # Cause all warnings to always be triggered.
         warnings.simplefilter("always")
         # Trigger the deprecation warning.
-        HexModelGrid(3, 2, shape='rect')
+        HexModelGrid(3, 2, shape="rect")
         # Verify some things
         assert len(w) == 1
         assert issubclass(w[-1].category, DeprecationWarning)
