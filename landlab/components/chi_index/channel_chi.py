@@ -145,7 +145,7 @@ class ChiFinder(Component):
         self,
         grid,
         reference_concavity=0.5,
-        min_drainage_area=1.e6,
+        min_drainage_area=1.0e6,
         reference_area=1.0,
         use_true_dx=False,
         **kwds
@@ -217,7 +217,7 @@ class ChiFinder(Component):
         are also identified in the mask retrieved with :func:`hillslope_mask`.
         """
         self._mask.fill(True)
-        self.chi.fill(0.)
+        self.chi.fill(0.0)
         # test for new kwds:
         reftheta = kwds.get("reference_concavity", self._reftheta)
         min_drainage = kwds.get("min_drainage_area", self.min_drainage)
@@ -246,7 +246,7 @@ class ChiFinder(Component):
             self.integrate_chi_each_dx(valid_upstr_order, chi_integrand, self.chi)
         # stamp over the closed nodes, as it's possible they can receive infs
         # if min_drainage_area < grid.cell_area_at_node
-        self.chi[self.grid.status_at_node == CLOSED_BOUNDARY] = 0.
+        self.chi[self.grid.status_at_node == CLOSED_BOUNDARY] = 0.0
         self._mask[valid_upstr_order] = False
 
     def integrate_chi_avg_dx(

@@ -61,7 +61,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
 
         self.axis_units = kwds.get("axis_units", _default_axis_units(self.ndim))
 
-        self._ref_coord = tuple(kwds.get("xy_of_reference", (0., 0.)))
+        self._ref_coord = tuple(kwds.get("xy_of_reference", (0.0, 0.0)))
 
     @classmethod
     def from_file(cls, file_like):

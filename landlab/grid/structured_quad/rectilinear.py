@@ -100,7 +100,7 @@ class UniformRectilinearGrid(RectilinearGrid):
     array([  1.,   4.,   7.,  10.,  13.])
     """
 
-    def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):
+    def __init__(self, shape, spacing=(1.0, 1.0), origin=(0.0, 0.0)):
         """
         Parameters
         ----------
@@ -186,7 +186,7 @@ class RasterGrid(UniformRectilinearGrid):
     array([ 1.,  3.,  5.,  7.,  9.])
     """
 
-    def __init__(self, shape, spacing=1., origin=0.):
+    def __init__(self, shape, spacing=1.0, origin=0.0):
         """
         Parameters
         ----------

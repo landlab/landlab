@@ -122,7 +122,7 @@ class PotentialityFlowRouter(Component):
         ),
     }
 
-    _min_slope_thresh = 1.e-24
+    _min_slope_thresh = 1.0e-24
     # if your flow isn't connecting up, this probably needs to be reduced
 
     @use_file_name_or_kwds
@@ -131,7 +131,7 @@ class PotentialityFlowRouter(Component):
         grid,
         method="D8",
         flow_equation="default",
-        Chezys_C=30.,
+        Chezys_C=30.0,
         Mannings_n=0.03,
         **kwds
     ):
@@ -191,9 +191,9 @@ class PotentialityFlowRouter(Component):
                 pass
 
         if self._raster:
-            self.equiv_circ_diam = 2. * np.sqrt(grid.dx * grid.dy / np.pi)
+            self.equiv_circ_diam = 2.0 * np.sqrt(grid.dx * grid.dy / np.pi)
         else:
-            for_cell_areas = 2. * np.sqrt(grid.area_of_cell / np.pi)
+            for_cell_areas = 2.0 * np.sqrt(grid.area_of_cell / np.pi)
             mean_A = for_cell_areas.mean()
             self.equiv_circ_diam = for_cell_areas[grid.cell_at_node]
             self.equiv_circ_diam[grid.cell_at_node == -1] = mean_A
@@ -214,7 +214,7 @@ class PotentialityFlowRouter(Component):
         qwater_in = grid.at_node["water__unit_flux_in"].copy()
         qwater_in[grid.node_at_cell] *= grid.area_of_cell
         prev_K = self._K.copy()
-        mismatch = 10000.
+        mismatch = 10000.0
         # do the ortho nodes first, in isolation
         g = grid.calc_grad_at_link(z)
         if self.equation != "default":
@@ -228,12 +228,12 @@ class PotentialityFlowRouter(Component):
 
         # now outgoing link grad sum
         outgoing_sum = (
-            np.sum((link_grad_at_node_w_dir).clip(0.), axis=1) + self._min_slope_thresh
+            np.sum((link_grad_at_node_w_dir).clip(0.0), axis=1) + self._min_slope_thresh
         )
-        pos_incoming_link_grads = (-link_grad_at_node_w_dir).clip(0.)
+        pos_incoming_link_grads = (-link_grad_at_node_w_dir).clip(0.0)
 
         if not self.route_on_diagonals or not self._raster:
-            while mismatch > 1.e-6:
+            while mismatch > 1.0e-6:
                 K_link_ends = self._K[grid.adjacent_nodes_at_node]
                 incoming_K_sum = (pos_incoming_link_grads * K_link_ends).sum(
                     axis=1
@@ -244,7 +244,7 @@ class PotentialityFlowRouter(Component):
 
             upwind_K = grid.map_value_at_max_node_to_link(z, self._K)
             self._discharges_at_link[:] = upwind_K * g
-            self._discharges_at_link[grid.status_at_link == INACTIVE_LINK] = 0.
+            self._discharges_at_link[grid.status_at_link == INACTIVE_LINK] = 0.0
         else:
             # grad on diags:
             gwd = np.empty(grid.number_of_d8, dtype=float)
@@ -257,9 +257,9 @@ class PotentialityFlowRouter(Component):
                 gwd[grid.d8s_at_node[:, 4:]] * self.grid.active_diagonal_dirs_at_node
             )
 
-            outgoing_sum += np.sum(diag_grad_at_node_w_dir.clip(0.), axis=1)
-            pos_incoming_diag_grads = (-diag_grad_at_node_w_dir).clip(0.)
-            while mismatch > 1.e-6:
+            outgoing_sum += np.sum(diag_grad_at_node_w_dir.clip(0.0), axis=1)
+            pos_incoming_diag_grads = (-diag_grad_at_node_w_dir).clip(0.0)
+            while mismatch > 1.0e-6:
                 K_link_ends = self._K[grid.adjacent_nodes_at_node]
                 K_diag_ends = self._K[grid.diagonal_adjacent_nodes_at_node]
                 incoming_K_sum = (
@@ -281,7 +281,7 @@ class PotentialityFlowRouter(Component):
             )
             self._discharges_at_link[: grid.number_of_links] = upwind_K * g
             self._discharges_at_link[grid.number_of_links :] = upwind_diag_K * gd
-            self._discharges_at_link[grid.status_at_d8 == FIXED_LINK] = 0.
+            self._discharges_at_link[grid.status_at_d8 == FIXED_LINK] = 0.0
 
         np.multiply(self._K, outgoing_sum, out=self._Qw)
         # there is no sensible way to save discharges at links, if we route
@@ -293,7 +293,7 @@ class PotentialityFlowRouter(Component):
             # Chezy: Q = C*Area*sqrt(depth*slope)
             grid.at_node["surface_water__depth"][:] = (
                 grid.at_node["flow__potential"] / self.chezy_C / self.equiv_circ_diam
-            ) ** (2. / 3.)
+            ) ** (2.0 / 3.0)
         elif self.equation == "Manning":
             # Manning: Q = w/n*depth**(5/3)
             grid.at_node["surface_water__depth"][:] = (

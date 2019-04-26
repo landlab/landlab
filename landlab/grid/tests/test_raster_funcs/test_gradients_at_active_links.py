@@ -11,7 +11,7 @@ def setup_grids():
     _GRIDS.update(
         {
             "unit": RasterModelGrid(4, 5),
-            "non_unit": RasterModelGrid((4, 5), xy_spacing=2.),
+            "non_unit": RasterModelGrid((4, 5), xy_spacing=2.0),
             "non_square": RasterModelGrid((4, 5), xy_spacing=(5, 2)),
         }
     )

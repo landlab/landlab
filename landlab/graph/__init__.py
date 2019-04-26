@@ -1,17 +1,16 @@
-from .graph import Graph, NetworkGraph
 from .dual import DualGraph
+from .graph import Graph, NetworkGraph
+from .hex import DualHexGraph, HexGraph
+from .radial import DualRadialGraph, RadialGraph
 from .structured_quad import (
-    StructuredQuadGraph,
-    RectilinearGraph,
-    UniformRectilinearGraph,
-    DualUniformRectilinearGraph,
     DualRectilinearGraph,
     DualStructuredQuadGraph,
+    DualUniformRectilinearGraph,
+    RectilinearGraph,
+    StructuredQuadGraph,
+    UniformRectilinearGraph,
 )
-from .voronoi import VoronoiGraph, DualVoronoiGraph
-from .hex import HexGraph, DualHexGraph
-from .radial import RadialGraph, DualRadialGraph
-
+from .voronoi import DualVoronoiGraph, VoronoiGraph
 
 __all__ = [
     "Graph",
