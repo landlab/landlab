@@ -62,6 +62,40 @@ def _flatten_color(l):
         return list(chain(*map(_flatten_color, l)))
 
 
+def _recursive_max(jagged):
+    """
+    Examples
+    --------
+    from landlab.components.profiler.base_profiler import _recursive_max
+    >>> struct = [[1, 2, 3, 4],
+    ...           [[2, 3, 4, 5],
+    ...            [3, 4, 5, 6]],
+    ...           [4, 5, 6, 7]]
+    >>> _recursive_max(struct)
+    7
+    >>> _recursive_max([100])
+    100
+    """
+    return max(_recursive_max(j) if hasattr(j,  "__iter__") else j for j in jagged)
+
+
+def _recursive_min(jagged):
+    """
+    Examples
+    --------
+    from landlab.components.profiler.base_profiler import _recursive_min
+    >>> struct = [[1, 2, 3, 4],
+    ...           [[2, 3, 4, 5],
+    ...            [3, 4, 5, 6]],
+    ...           [4, 5, 6, 7]]
+    >>> _recursive_min(struct)
+    1
+    >>> _recursive_min([100])
+    100
+    """
+    return min(_recursive_min(j) if hasattr(j,  "__iter__") else j for j in jagged)
+
+
 class _BaseProfiler(Component):
     """Base class to handle profilers.
 
@@ -106,16 +140,17 @@ class _BaseProfiler(Component):
 
         # create segments the way that line collection likes them.
         segments = []
+        qmin  = []
+        qmax = []
         for idx, nodes in enumerate(node_ids):
             segments.append(list(zip(x_dist[idx], quantity[nodes])))
+            qmin.append(min(quantity[nodes]))
+            qmax.append(max(quantity[nodes]))
 
         # We need to set the plot limits.
         fig, ax = plt.subplots()
-        ax.set_xlim(
-            min(min(min(self._distance_along_profile))),
-            max(max(max(self._distance_along_profile))),
-        )
-        ax.set_ylim(quantity.min(), quantity.max())
+        ax.set_xlim(_recursive_min(x_dist), _recursive_max(x_dist))
+        ax.set_ylim(min(qmin), max(qmax))
 
         line_segments = LineCollection(segments, colors=colors)
         ax.add_collection(line_segments)
