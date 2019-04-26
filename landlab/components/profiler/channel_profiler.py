@@ -157,6 +157,37 @@ class ChannelProfiler(_BaseProfiler):
 
     """
 
+    _name = "ChannelProfiler"
+
+    _input_var_names = (
+        "topographic__elevation",
+        "drainage_area",
+        "flow__receiver_node",
+        "flow__link_to_receiver_node",
+    )
+
+    _output_var_names = ()
+
+    _var_units = {
+        "topographic__elevation": "m",
+        "flow__receiver_node": "-",
+        "drainage_area": "m**2",
+        "flow__link_to_receiver_node": "-",
+    }
+
+    _var_mapping = {
+        "topographic__elevation": "node",
+        "flow__receiver_node": "node",
+        "drainage_area": "node",
+        "flow__link_to_receiver_node": "node",
+    }
+    _var_doc = {
+        "topographic__elevation": "Land surface topographic elevation",
+        "flow__receiver_node": "Node array of receivers (node that receives flow from current node)",
+        "drainage_area": "Upstream accumulated surface area contributing to the node's discharge",
+        "flow__link_to_receiver_node": "Node array containing ID of link that leads from each node to its receiver, or BAD_INDEX_VALUE if no link",
+    }
+
     def __init__(
         self,
         grid,

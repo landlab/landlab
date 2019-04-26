@@ -102,6 +102,18 @@ class _BaseProfiler(Component):
     Primarily exists to handle plotting.
     """
 
+    _name = "_BaseProfiler"
+
+    _input_var_names = ()
+
+    _output_var_names = ()
+
+    _var_units = {}
+
+    _var_mapping = {}
+
+    _var_doc = {}
+
     def __init__(self, grid, stopping_field):
         super(_BaseProfiler, self).__init__(grid)
 
