@@ -724,12 +724,16 @@ def test_supplied_sediment():
     h *= 10.
     fa = FlowAccumulator(mg)
     sde = SedDepEroder(
-        mg, K_sp=1.e-4, K_t=1.e-3, sed_dependency_type='linear_decline'
+        mg, K_sp=1.e-4, K_t=1., m_sp=0., n_sp=1., m_t=0., n_t=1., sed_dependency_type='linear_decline'
     )
     fa.run_one_step()
     sde.run_one_step(10.)
     assert np.allclose(z_init - z, 0., atol=1.e-10)
-    assert np.all(h[mg.core_nodes] > 9.9)  # most of the sed stays put
+    assert np.all(h[mg.core_nodes] > 9.9)  # most of the sed stays put, and
+    assert np.allclose(h[np.logical_and(
+            mg.at_node['drainage_area'] > 10000.,
+            mg.status_at_node == 0
+        )], 10.)  # all nodes not at the head are in st st, so keep all sed
     assert np.allclose(
         mg.at_node['channel_sediment__relative_flux'][mg.core_nodes], 1.
     )

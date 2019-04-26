@@ -16,6 +16,7 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
                      iterate_sde_downstream)
 
 WAVE_STABILITY_PREFACTOR = 0.2
+CONV_FACTOR = 0.3  # controls the convergence of node elevs in the loop
 
 # NB: The inline documentation of this component freely (& incorrectly!)
 # interchanges "flux" and "discharge". Almost always, "discharge" is intended
@@ -795,7 +796,6 @@ class SedDepEroder(Component):
             self._loopcounter = 0
             while 1:
                 flood_node = None  # int if timestep is limited by flooding
-                conv_factor = 0.3
                 flood_tstep = dt_secs
                 downward_slopes[is_flooded] = 0.
 
@@ -845,7 +845,7 @@ class SedDepEroder(Component):
                         ratediff[botharepositive])
                 except ValueError:  # no node pair converges
                     t_to_converge = dt_secs
-                t_to_converge *= conv_factor
+                t_to_converge *= CONV_FACTOR
                 # ^arbitrary safety factor; CHILD uses 0.3
                 # check this is a more restrictive condition than Courant:
                 t_to_converge = min((t_to_converge, max_tstep_wave))
@@ -870,7 +870,6 @@ class SedDepEroder(Component):
                     self._voldroprate[self.grid.core_nodes] /
                     self.grid.cell_area_at_node[self.grid.core_nodes] *
                     this_tstep)
-                # modify elevs; both sed & rock:
                 # note dzbydt applies only to the ROCK surface (...which
                 # is the topographic__elevation!)
                 node_z[grid.core_nodes] += (
@@ -884,7 +883,7 @@ class SedDepEroder(Component):
                 # do we need to reroute the flow/recalc the slopes here?
                 # -> NO, slope is such a minor component of Diff we'll be OK
                 # BUT could be important not for the stability, but for the
-                # actual calc. So YES.
+                # actual calc. So YES to the slopes.
                 node_S = np.zeros_like(node_S)
                 # print link_length[core_draining_nodes]
                 node_S[core_draining_nodes] = (node_z-node_z[flow_receiver])[
