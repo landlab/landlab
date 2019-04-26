@@ -276,12 +276,11 @@ def test_sff_convergence():
     fa = FlowAccumulator(mg)
     out_array = np.empty(4, dtype=float)
     sde = SedDepEroder(mg, sed_dependency_type='linear_decline')
-    get_sed_flux_function_pseudoimplicit_bysedout(2500., 5000., 2500., 100000./3.,
-                                                  sde._sed_flux_fn_gen,
-                                                  humpk, humpnu,
-                                                  humpc, humpphi,
-                                                  humpnorm,
-                                                  50, out_array)
+    get_sed_flux_function_pseudoimplicit_bysedout(
+        2500., 5000., 2500., 100000./3.,
+        sde._sed_flux_fn_gen,
+        humpk, humpnu, humpc, humpphi, humpnorm, 50, out_array
+    )
     assert np.isclose(out_array[0], 0.025, atol=0.001)
     assert np.isclose(out_array[1], 3333.333, atol=1e-3)
     assert np.isclose(out_array[2], (1./2. + 2./3.)/2., atol=1.e-3)
@@ -342,7 +341,7 @@ def test_iteration_dstr():
                        np.array([0., 0., 0.2, 0.7, 1., 0.9]))
     assert np.allclose(rel_sed_flux, np.array([1., 0.1, 0.45, 0.85, 1., 1.]))
     assert np.allclose(vol_drop_rate, np.array([0., 0., 0., 0., 0.1, 0.3]))
-    
+
     # now a very similar test where the capacities are really high
     # i.e., a true SP run.
     # ...also tests porosity is working OK.
@@ -373,6 +372,56 @@ def test_iteration_dstr():
     # note the 1.5 is the effect of the sed porosity
     assert np.allclose(rel_sed_flux, 0., atol=1.e-10)
     assert np.allclose(vol_drop_rate, 0.)
+
+
+def test_iteration_with_sed_in_channel():
+    """
+    This tests the iterate_sde_downstream func.
+    It uses a lot of sediment in the channel to swamp the channels and halt
+    incision.
+    """
+    pseudoimplicit_repeats = 50
+    funct = sed_flux_fn_gen_const
+    cell_areas = np.array([1., 0.1, 0.5, 1., 1., 1.])
+    hillsl_sed = np.array([10., 10., 10., 10., 10., 10.])
+    porosity = 1.
+    # 0 and 1 drain to 2 then 3 then 4 then 5
+    upstr_order = np.array([5, 4, 3, 2, 0, 1])
+    flow_receiver = np.array([2, 2, 3, 4, 5, 5])
+    trans_caps = np.array([0., 1., 1., 1., 0.9, 0.6])
+    erosion_prefac_w_S = np.array([1., 2., 1., 1., 1., 1.])
+    # output arrays:
+    river_volume_flux_into_node = np.zeros(6, dtype=float)
+    rel_sed_flux = np.zeros(6, dtype=float)
+    is_it_TL = np.zeros(6, dtype=np.int8)
+    vol_drop_rate = np.zeros(6, dtype=float)
+    dzbydt = np.zeros(6, dtype=float)
+    iterate_sde_downstream(
+        upstr_order,
+        cell_areas,
+        hillsl_sed,
+        porosity,
+        river_volume_flux_into_node,
+        trans_caps,
+        erosion_prefac_w_S,
+        rel_sed_flux,
+        is_it_TL,
+        vol_drop_rate,
+        flow_receiver,
+        pseudoimplicit_repeats,
+        dzbydt,
+        funct,
+        0., 0., 0., 0., 0.
+    )
+    assert np.allclose(dzbydt, 0.)
+    assert np.all(is_it_TL == 1)
+    assert np.allclose(rel_sed_flux, 1.)
+    assert np.allclose(river_volume_flux_into_node, np.array(
+        [0., 0., 1., 1., 1., 0.9]
+    ))
+    assert np.allclose(vol_drop_rate, np.array(
+        [10., 9., 10., 10., 10.1, 10.3]
+    ))
 
 
 def test_plotting():
@@ -534,12 +583,12 @@ def test_basic_functionality():
              True,  True,  True,  True,  True,  True,  True], dtype=bool
         )
         mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
-        I = np.spacing(4.)
+        X = np.spacing(4.)
         z_init = np.array(
-            [  0.,    0.,    0.,    0.,    0.,    0.,    0.,
-               0.,    5.,    4.,    3.,    2.,    1.,    0.,
-               0.,    0.,  4.+I,    0.,    0.,    0.,    0.,
-               0.,    0.,    0.,    0.,    0.,    0.,    0.]
+            [0.,    0.,    0.,    0.,    0.,    0.,    0.,
+             0.,    5.,    4.,    3.,    2.,    1.,    0.,
+             0.,    0.,  4.+X,    0.,    0.,    0.,    0.,
+             0.,    0.,    0.,    0.,    0.,    0.,    0.]
         )
         z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
         fa = FlowAccumulator(mg)
@@ -549,10 +598,10 @@ def test_basic_functionality():
         fa.run_one_step()
         sde.run_one_step(1.)
         small_linear_incision = np.array(
-            [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,
-              0.,  1.,  3.,  4.,  5.,  6.,  0.,
-              0.,  0.,  0.,  0.,  0.,  0.,  0.,
-              0.,  0.,  0.,  0.,  0.,  0.,  0.]
+            [0.,  0.,  0.,  0.,  0.,  0.,  0.,
+             0.,  1.,  3.,  4.,  5.,  6.,  0.,
+             0.,  0.,  0.,  0.,  0.,  0.,  0.,
+             0.,  0.,  0.,  0.,  0.,  0.,  0.]
         )
         # makes no difference between linear decline & const
         assert np.allclose(
@@ -587,7 +636,6 @@ def test_basic_functionality():
             mg.at_node['channel_sediment__depth'][mg.core_nodes], 0.
         )
 
-
     # & we can do the same thing with the aparabolic:
     mg = RasterModelGrid((4, 7))
     closed_nodes = np.array(
@@ -597,12 +645,12 @@ def test_basic_functionality():
          True,  True,  True,  True,  True,  True,  True], dtype=bool
     )
     mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
-    I = np.spacing(4.)
+    X = np.spacing(4.)
     z_init = np.array(
-        [  0.,    0.,    0.,    0.,    0.,    0.,    0.,
-           0.,    5.,    4.,    3.,    2.,    1.,    0.,
-           0.,    0.,  4.+I,    0.,    0.,    0.,    0.,
-           0.,    0.,    0.,    0.,    0.,    0.,    0.]
+        [0.,    0.,    0.,    0.,    0.,    0.,    0.,
+         0.,    5.,    4.,    3.,    2.,    1.,    0.,
+         0.,    0.,  4.+X,    0.,    0.,    0.,    0.,
+         0.,    0.,    0.,    0.,    0.,    0.,    0.]
     )
     z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
     fa = FlowAccumulator(mg)
@@ -613,10 +661,10 @@ def test_basic_functionality():
     fa.run_one_step()
     sde.run_one_step(1.)
     small_linear_incision = np.array(
-        [ 0.,  0.,  0.,  0.,  0.,  0.,  0.,
-          0.,  1.,  3.,  4.,  5.,  6.,  0.,
-          0.,  0.,  0.,  0.,  0.,  0.,  0.,
-          0.,  0.,  0.,  0.,  0.,  0.,  0.]
+        [0.,  0.,  0.,  0.,  0.,  0.,  0.,
+         0.,  1.,  3.,  4.,  5.,  6.,  0.,
+         0.,  0.,  0.,  0.,  0.,  0.,  0.,
+         0.,  0.,  0.,  0.,  0.,  0.,  0.]
     )
     assert np.allclose(
         (z_init - z) * 1.e6, small_linear_incision, atol=1.e-10
@@ -631,12 +679,12 @@ def test_basic_functionality():
          True,  True,  True,  True,  True,  True,  True], dtype=bool
     )
     mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
-    I = np.spacing(4.)
+    X = np.spacing(4.)
     z_init = np.array(
-        [  0.,    0.,    0.,    0.,    0.,    0.,    0.,
-           0.,    5.,    4.,    3.,    2.,    1.,    0.,
-           0.,    0.,  4.+I,    0.,    0.,    0.,    0.,
-           0.,    0.,    0.,    0.,    0.,    0.,    0.]
+        [0.,    0.,    0.,    0.,    0.,    0.,    0.,
+         0.,    5.,    4.,    3.,    2.,    1.,    0.,
+         0.,    0.,  4.+X,    0.,    0.,    0.,    0.,
+         0.,    0.,    0.,    0.,    0.,    0.,    0.]
     )
     z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
     fa = FlowAccumulator(mg)
@@ -648,8 +696,42 @@ def test_basic_functionality():
     assert np.allclose(z_init - z, 0., atol=1.e-10)
 
 
+# def test_supplied_sediment():
+#     """
+#     This replicates a simple test, but instead of flooding the system with
+#     eroded sediment, it does it with an external supply.
+# 
+#     Problems here - erosion is occurring at closed nodes, and we aren't
+#     saturating.
+#     """
+#     mg = RasterModelGrid((4, 7), xy_spacing=100.)
+#     closed_nodes = np.array(
+#         [True,  True,  True,  True,  True,  True,  True,
+#          True, False, False, False, False, False, False,
+#          True,  True, False,  True,  True,  True,  True,
+#          True,  True,  True,  True,  True,  True,  True], dtype=bool
+#     )
+#     mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
+#     X = np.spacing(4.)
+#     z_init = np.array(
+#         [0.,    0.,    0.,    0.,    0.,    0.,    0.,
+#          0.,    5.,    4.,    3.,    2.,    1.,    0.,
+#          0.,    0.,  4.+X,    0.,    0.,    0.,    0.,
+#          0.,    0.,    0.,    0.,    0.,    0.,    0.]
+#     )
+#     z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
+#     h = mg.add_ones('node', 'channel_sediment__depth')
+#     fa = FlowAccumulator(mg)
+#     sde = SedDepEroder(
+#         mg, K_sp=1.e-4, K_t=1.e-4, sed_dependency_type='linear_decline'
+#     )
+#     fa.run_one_step()
+#     sde.run_one_step(1.)
+#     assert np.allclose(z_init - z, 0., atol=1.e-10)
 
 
+def test_large_steps_for_timestepping():
+    pass
 
 
 
