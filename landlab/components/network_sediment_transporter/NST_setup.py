@@ -18,8 +18,6 @@ from landlab.plot import graph
 
 from landlab.components import NetworkSedimentTransporter
 
-# ^ that worked yesterday. WTF
-
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
 
 y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
@@ -92,7 +90,7 @@ lithology = ["quartzite"] * np.size(
 )  # a lithology descriptor for each parcel
 abrasion_rate = np.zeros(
     np.size(element_id)
-)  # 0 = no abrasion; abrasion rates are positive mass loss coefficients
+)  # 0 = no abrasion; abrasion rates are positive mass loss coefficients (mass loss / METER)
 active_layer = np.ones(
     np.shape(element_id)
 )  # 1 = active/surface layer; 0 = subsurface layer
