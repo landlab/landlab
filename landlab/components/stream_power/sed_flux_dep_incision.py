@@ -702,7 +702,10 @@ class SedDepEroder(Component):
         flow_receiver = grid.at_node['flow__receiver_node']
         s_in = grid.at_node['flow__upstream_node_order']
         node_S = grid.at_node['topographic__steepest_slope']
-        elev_less_sed = node_z - self._hillslope_sediment
+        true_topo = node_z + self._hillslope_sediment
+        # ^the component regards the topographic__elevation *as* the bedrock
+        # surface. This is done for reasons of stability. This param is the
+        # "true" surface.
 
         dt_secs = dt * 31557600.
 
@@ -863,17 +866,15 @@ class SedDepEroder(Component):
                     this_tstep -= t_elapsed_internal - dt_secs
 
                 # back-calc the sed budget in the nodes, as appropriate:
-                self._hillslope_sediment[self.grid.node_at_cell] = (
-                    self._voldroprate[self.grid.node_at_cell] /
-                    self.grid.area_of_cell * this_tstep)
+                self._hillslope_sediment[self.grid.core_nodes] = (
+                    self._voldroprate[self.grid.core_nodes] /
+                    self.grid.cell_area_at_node[self.grid.core_nodes] *
+                    this_tstep)
                 # modify elevs; both sed & rock:
-                # note dzbydt applies only to the ROCK surface
-                elev_less_sed[grid.core_nodes] += (
+                # note dzbydt applies only to the ROCK surface (...which
+                # is the topographic__elevation!)
+                node_z[grid.core_nodes] += (
                     dzbydt[grid.core_nodes] * this_tstep
-                )
-                node_z[grid.core_nodes] = (
-                    elev_less_sed[grid.core_nodes] +
-                    self._hillslope_sediment[grid.core_nodes]
                 )
 
                 if break_flag:
