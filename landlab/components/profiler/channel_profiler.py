@@ -6,10 +6,10 @@ import numpy as np
 from six.moves import range
 
 from landlab import RasterModelGrid
-from landlab.components.profiler.base_profiler import _NetworkProfiler
+from landlab.components.profiler.base_profiler import _BaseProfiler
 
 
-class ChannelProfiler(_NetworkProfiler):
+class ChannelProfiler(_BaseProfiler):
     """Extract and plot the long profiles within a drainage network.
 
     The ChannelProfiler can work on grids that have used route-to-one or
@@ -193,7 +193,29 @@ class ChannelProfiler(_NetworkProfiler):
         """
         super(ChannelProfiler, self).__init__(grid, stopping_field)
 
-        self._distances_upstream = []
+        self._grid = grid
+
+        if stopping_field in grid.at_node:
+            self._stopping_field = grid.at_node[stopping_field]
+        else:
+            msg = (
+                "a field to stop based on is a required field to run a ChannelProfiler."
+            )
+            raise ValueError(msg)
+
+        if "flow__receiver_node" in grid.at_node:
+            self._flow_receiver = grid.at_node["flow__receiver_node"]
+        else:
+            msg = "flow__receiver_node is a required field to run a ChannelProfiler."
+            raise ValueError(msg)
+
+        if "flow__link_to_receiver_node" in grid.at_node:
+            self._link_to_flow_receiver = grid.at_node["flow__link_to_receiver_node"]
+        else:
+            msg = "flow__link_to_receiver_node is a required field to run a ChannelProfiler."
+            raise ValueError(msg)
+
+        self._distance_along_profile = []
         self._main_channel_only = main_channel_only
 
         if threshold is None:
@@ -244,7 +266,7 @@ class ChannelProfiler(_NetworkProfiler):
 
                 Both lists are number_of_watersheds long.
         """
-        return self._distances_upstream
+        return self._distance_along_profile
 
     def run_one_step(self):
         """Calculate the channel profile datastructure and distances upstream.
@@ -297,10 +319,7 @@ class ChannelProfiler(_NetworkProfiler):
             if self._main_channel_only:
                 max_drainage = np.argmax(self._stopping_field[supplying_nodes])
 
-                if (
-                    self._stopping_field[supplying_nodes[max_drainage]]
-                    < self.threshold
-                ):
+                if self._stopping_field[supplying_nodes[max_drainage]] < self.threshold:
                     nodes_to_process = []
                     channel_upstream = False
                 else:
@@ -405,4 +424,4 @@ class ChannelProfiler(_NetworkProfiler):
                         profile_values.append(total_distance)
                 network_values.append(np.array(profile_values))
                 end_distances[segment[-1]] = total_distance
-            self._distances_upstream.append(network_values)
+            self._distance_along_profile.append(network_values)
