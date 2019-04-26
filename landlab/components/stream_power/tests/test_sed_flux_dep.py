@@ -724,7 +724,8 @@ def test_supplied_sediment():
     h *= 10.
     fa = FlowAccumulator(mg)
     sde = SedDepEroder(
-        mg, K_sp=1.e-4, K_t=1., m_sp=0., n_sp=1., m_t=0., n_t=1., sed_dependency_type='linear_decline'
+        mg, K_sp=1.e-4, K_t=1., m_sp=0., n_sp=1., m_t=0., n_t=1.,
+        sed_dependency_type='linear_decline'
     )
     fa.run_one_step()
     sde.run_one_step(10.)
@@ -738,7 +739,7 @@ def test_supplied_sediment():
         mg.at_node['channel_sediment__relative_flux'][mg.core_nodes], 1.
     )
 
-# 
+
 # def test_large_steps_for_timestepping():
 #     pass
 
