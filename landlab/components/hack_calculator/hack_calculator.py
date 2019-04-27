@@ -7,6 +7,7 @@ import collections
 from itertools import chain
 
 import numpy as np
+import pandas as pd
 from scipy.optimize import curve_fit
 
 from landlab import Component
@@ -116,27 +117,23 @@ class HackCalculator(Component):
     ...     fs.run_one_step(1000)
     ...     z[mg.core_nodes] += 0.01 * 1000
     >>> hc = HackCalculator(mg)
-    >>> struct = hc.calculate_hack_coefficients()
+    >>> df = hc.calculate_hack_coefficients()
     >>> largest_outlet = mg.boundary_nodes[
     ...     np.argsort(mg.at_node['drainage_area'][mg.boundary_nodes])[-1:]][0]
     >>> largest_outlet
     4978
-    >>> struct[largest_outlet]["A_max"]
+    >>> df.loc[largest_outlet, "A_max"]
     2830000.0
-    >>> np.testing.assert_almost_equal(struct[largest_outlet]["C"], 0.32742, decimal=4)
-    >>> np.testing.assert_almost_equal(struct[largest_outlet]["h"], 0.61849, decimal=4)
+    >>> df
+              A_max         C         h
+    4978  2830000.0  0.327422  0.618493
     >>> hc = HackCalculator(mg, number_of_watersheds=3, main_channel_only=False)
-    >>> struct = hc.calculate_hack_coefficients()
-    >>> struct
-    OrderedDict([(39, {'A_max': 2170000.0,
-                       'C': 0.23102443230088521,
-                       'h': 0.64388645022463153}),
-                 (4929, {'A_max': 2350000.0,
-                         'C': 0.16200093663042728,
-                         'h': 0.66097209310822003}),
-                 (4978, {'A_max': 2830000.0,
-                         'C': 0.50944655173089382,
-                         'h': 0.58851304479736888})])
+    >>> df = hc.calculate_hack_coefficients()
+    >>> df
+              A_max         C         h
+    39    2170000.0  0.231024  0.643886
+    4929  2350000.0  0.162001  0.660972
+    4978  2830000.0  0.509447  0.588513
     """
 
     _name = "HackCalculator"
@@ -199,7 +196,7 @@ class HackCalculator(Component):
             Use only the longest channel to calculate the Hack coefficients (if
             True, or use all the pixels in each watershed with drainage area
             above the threshold value).
-        starting_nodes : length number_of_watersheds itterable, optional
+        starting_nodes : length number_of_watersheds iterable, optional
             Length number_of_watersheds itterable containing the node IDs of
             nodes to start the channel profiles from. If not provided, the
             default is the number_of_watersheds node IDs on the model grid
@@ -224,12 +221,13 @@ class HackCalculator(Component):
 
         Returns
         -------
-        hack_structure : dict
-            Dictionary keys are the node IDs of watersheds where Hack
-            coefficients were estimated. Values are a dictionary of form:
-            {"A_max": A_max, "C": C, "h": h} where A_max is the drainage area
-            of the watershed outlet, C is the estimate of the Hack coefficient
-            and h is the estimate of the Hack outlet (for that watershed).
+        hack_structure : pandas DataFrame
+            Index are the node IDs of watershed outlets where the Hack
+            coefficients were estimated. They coorespond to the
+            number_of_watersheds largest drainages on the model grid boundaries
+            or the nodes indicated with starting_nodes. Column values are
+            "A_max" for the drainage area of the watershed outlet, "C" for the
+            coefficient, and "h" for the exponent.
 
         """
         out = collections.OrderedDict()
@@ -249,4 +247,8 @@ class HackCalculator(Component):
             )
             out[outlet_node] = {"A_max": A_max, "C": C, "h": h}
 
-        return out
+            df = pd.DataFrame.from_dict(
+                out, orient="index", columns=["A_max", "C", "h"]
+            )
+
+        return df
