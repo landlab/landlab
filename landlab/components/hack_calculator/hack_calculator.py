@@ -3,8 +3,8 @@
 
 @author: krb
 """
-from itertools import chain
 import collections
+from itertools import chain
 
 import numpy as np
 from scipy.optimize import curve_fit
@@ -12,6 +12,7 @@ from scipy.optimize import curve_fit
 from landlab import Component
 from landlab.components.profiler.channel_profiler import ChannelProfiler
 from landlab.utils.distance_to_divide import calculate_distance_to_divide
+
 
 def _hacks_law(A, C, h):
     """Given A, C, and h calculate L.
@@ -243,7 +244,9 @@ class HackCalculator(Component):
 
             nodes = _flatten(watershed)
 
-            C, h = _estimate_hack_coeff(self._grid.at_node["drainage_area"][nodes], dist[nodes])
+            C, h = _estimate_hack_coeff(
+                self._grid.at_node["drainage_area"][nodes], dist[nodes]
+            )
             out[outlet_node] = {"A_max": A_max, "C": C, "h": h}
 
         return out

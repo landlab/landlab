@@ -1,10 +1,7 @@
-import math
-
 import numpy as np
 import pytest
-from numpy.testing import assert_almost_equal, assert_array_equal
 
-from landlab import FieldError, HexModelGrid, RasterModelGrid
+from landlab import FieldError, RasterModelGrid
 from landlab.components import FlowAccumulator, FlowDirectorSteepest
 from landlab.utils.distance_to_divide import calculate_distance_to_divide
 

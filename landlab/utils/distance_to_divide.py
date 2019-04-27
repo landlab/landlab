@@ -4,7 +4,6 @@ import numpy as np
 
 from landlab import (
     BAD_INDEX_VALUE,
-    CLOSED_BOUNDARY,
     CORE_NODE,
     FIXED_GRADIENT_BOUNDARY,
     FIXED_VALUE_BOUNDARY,
@@ -179,7 +178,7 @@ def calculate_distance_to_divide(
     # create an array that representes the outlet lengths.
     distance_to_divide = np.zeros(grid.nodes.size)
 
-    if longest_path == False:
+    if not longest_path:
         distance_to_divide[grid.core_nodes] = 2 * grid.size("node")
 
     # iterate through the flow__upstream_node_order backwards.
