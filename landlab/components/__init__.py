@@ -16,6 +16,7 @@ from .flow_director import (
 )
 from .flow_routing import DepressionFinderAndRouter, FlowRouter
 from .gflex import gFlex
+from .hack_calculator import HackCalculator
 from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
 from .lithology import LithoLayers, Lithology
@@ -100,6 +101,7 @@ COMPONENTS = [
     Lithology,
     LithoLayers,
     TransportLengthHillslopeDiffuser,
+    HackCalculator,
 ]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
