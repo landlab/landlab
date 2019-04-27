@@ -124,16 +124,17 @@ class HackCalculator(Component):
     4978
     >>> df.loc[largest_outlet, "A_max"]
     2830000.0
-    >>> df
-              A_max         C         h
-    4978  2830000.0  0.327422  0.618493
+    >>> df.round(2)  # doctest: +NORMALIZE_WHITESPACE
+              A_max     C     h
+    4978  2830000.0  0.33  0.62
+
     >>> hc = HackCalculator(mg, number_of_watersheds=3, main_channel_only=False)
     >>> df = hc.calculate_hack_coefficients()
-    >>> df
-              A_max         C         h
-    39    2170000.0  0.231024  0.643886
-    4929  2350000.0  0.162001  0.660972
-    4978  2830000.0  0.509447  0.588513
+    >>> df.round(2)  # doctest: +NORMALIZE_WHITESPACE
+              A_max     C     h
+    39    2170000.0  0.23  0.64
+    4929  2350000.0  0.16  0.66
+    4978  2830000.0  0.51  0.59
     """
 
     _name = "HackCalculator"
