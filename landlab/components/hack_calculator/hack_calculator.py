@@ -100,6 +100,8 @@ class HackCalculator(Component):
 
     Examples
     --------
+    >>> import pandas as pd
+    >>> pd.set_option('display.max_columns', None)
     >>> import numpy as np
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
     >>> from landlab.components import (
