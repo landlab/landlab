@@ -149,8 +149,9 @@ class ChannelProfiler(_BaseProfiler):
     ...                            starting_nodes = [0],
     ...                            number_of_watersheds=1)
     >>> profiler.run_one_step()
-    >>> profiler.profile_structure
-    [[array([ 0, 21, 22, 23, 24])]]
+    >>> np.testing.assert_array_equal(
+    ...     profiler.profile_structure[0][0],
+    ...     np.array([ 0, 21, 22, 23, 24], dtype=np.int64))
 
     It is important that the length of starting nodes is the same as the value
     of number_of_watersheds. If this is not the case, then an error will occur.
