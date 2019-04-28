@@ -22,13 +22,16 @@ def _hacks_law(A, C, h):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from landlab.components.hack_calculator.hack_calculator import _hacks_law
     >>> _hacks_law(1, 1, 1)
     1
-    >>> _hacks_law([1, 2], 1, 1)
-    array([1, 2])
-    >>> _hacks_law([1, 2], 3, 2)
-    array([ 3, 12])
+    >>> np.testing.assert_array_equal(
+    ...     _hacks_law([1, 2], 1, 1),
+    ...     np.array([1, 2]))
+    >>> np.testing.assert_array_equal(
+    ...     _hacks_law([1, 2], 3, 2),
+    ...     np.array([ 3, 12]))
     """
     assert isinstance(C, (np.number, int, float))
     assert isinstance(h, (np.number, int, float))
@@ -73,8 +76,9 @@ def _flatten(l):
     ...            [9, 10, 11, 12]],
     ...           [13, 14, 15, 16]]
     >>> out = _flatten(struct)
-    >>> out
-    [1, 2, 3, 4, 5, 6, 7, 9, 9, 10, 11, 12, 13, 14, 15, 16]
+    >>> np.testing.assert_array_equal(
+    ...     out,
+    ...     np.array([1, 2, 3, 4, 5, 6, 7, 9, 9, 10, 11, 12, 13, 14, 15, 16]))
     >>> assert _flatten(None) is None
     """
     if l is None:
