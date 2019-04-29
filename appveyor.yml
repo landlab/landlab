@@ -8,31 +8,16 @@ environment:
     WITH_COMPILER: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
 
   matrix:
-    - TARGET_ARCH: x86
-      CONDA_NPY: 111
-      CONDA_PY: 27
-      CONDA_INSTALL_LOCN: C:\\Miniconda
-
     - TARGET_ARCH: x64
       CONDA_NPY: 111
       CONDA_PY: 27
       CONDA_INSTALL_LOCN: C:\\Miniconda-x64
       DISTUTILS_USE_SDK: 1
 
-    - TARGET_ARCH: x86
-      CONDA_NPY: 111
-      CONDA_INSTALL_LOCN: C:\\Miniconda37
-      CONDA_PY: 37
-
     - TARGET_ARCH: x64
       CONDA_NPY: 111
       CONDA_INSTALL_LOCN: C:\\Miniconda37-x64
       CONDA_PY: 37
-
-    - TARGET_ARCH: x86
-      CONDA_NPY: 111
-      CONDA_INSTALL_LOCN: C:\\Miniconda36
-      CONDA_PY: 36
 
     - TARGET_ARCH: x64
       CONDA_NPY: 111
