@@ -280,7 +280,7 @@ class ChannelProfiler(_BaseProfiler):
 
         starting_da = self._stopping_field[starting_nodes]
         starting_nodes = np.asarray(starting_nodes)
-        if np.any(starting_da < self.threshold) or starting_nodes.size==0:
+        if np.any(starting_da < self.threshold) or starting_nodes.size == 0:
             msg = (
                 "The number of watersheds requested by the ChannelProfiler is "
                 "greater than the number in the domain with sufficent drainage"
