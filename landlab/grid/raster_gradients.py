@@ -307,7 +307,7 @@ def calc_grad_across_cell_corners(grid, node_values, *args, **kwds):
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
     out = np.subtract(values_at_diagonals, values_at_nodes, **kwds)
-    np.divide(out, np.sqrt(grid.dy ** 2. + grid.dx ** 2.), out=out)
+    np.divide(out, np.sqrt(grid.dy ** 2.0 + grid.dx ** 2.0), out=out)
 
     return out
 
@@ -1276,29 +1276,29 @@ def _calc_subtriangle_aspect_at_node(
         )
 
     elif unit == "radians":
-        angle_from_north_cw_ENE = (5. * np.pi / 2. - angle_from_x_ccw_ENE) % (
-            2. * np.pi
+        angle_from_north_cw_ENE = (5.0 * np.pi / 2.0 - angle_from_x_ccw_ENE) % (
+            2.0 * np.pi
         )
-        angle_from_north_cw_NNE = (5. * np.pi / 2. - angle_from_x_ccw_NNE) % (
-            2. * np.pi
+        angle_from_north_cw_NNE = (5.0 * np.pi / 2.0 - angle_from_x_ccw_NNE) % (
+            2.0 * np.pi
         )
-        angle_from_north_cw_NNW = (5. * np.pi / 2. - angle_from_x_ccw_NNW) % (
-            2. * np.pi
+        angle_from_north_cw_NNW = (5.0 * np.pi / 2.0 - angle_from_x_ccw_NNW) % (
+            2.0 * np.pi
         )
-        angle_from_north_cw_WNW = (5. * np.pi / 2. - angle_from_x_ccw_WNW) % (
-            2. * np.pi
+        angle_from_north_cw_WNW = (5.0 * np.pi / 2.0 - angle_from_x_ccw_WNW) % (
+            2.0 * np.pi
         )
-        angle_from_north_cw_WSW = (5. * np.pi / 2. - angle_from_x_ccw_WSW) % (
-            2. * np.pi
+        angle_from_north_cw_WSW = (5.0 * np.pi / 2.0 - angle_from_x_ccw_WSW) % (
+            2.0 * np.pi
         )
-        angle_from_north_cw_SSW = (5. * np.pi / 2. - angle_from_x_ccw_SSW) % (
-            2. * np.pi
+        angle_from_north_cw_SSW = (5.0 * np.pi / 2.0 - angle_from_x_ccw_SSW) % (
+            2.0 * np.pi
         )
-        angle_from_north_cw_SSE = (5. * np.pi / 2. - angle_from_x_ccw_SSE) % (
-            2. * np.pi
+        angle_from_north_cw_SSE = (5.0 * np.pi / 2.0 - angle_from_x_ccw_SSE) % (
+            2.0 * np.pi
         )
-        angle_from_north_cw_ESE = (5. * np.pi / 2. - angle_from_x_ccw_ESE) % (
-            2. * np.pi
+        angle_from_north_cw_ESE = (5.0 * np.pi / 2.0 - angle_from_x_ccw_ESE) % (
+            2.0 * np.pi
         )
 
         return (
@@ -1512,7 +1512,7 @@ def calc_slope_at_patch(
     if ignore_closed_nodes:
         badnodes = grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY
         tot_bad = badnodes.sum(axis=1)
-        tot_tris = 4. - 3. * (tot_bad > 0)  # 4 where all good, 1 where not
+        tot_tris = 4.0 - 3.0 * (tot_bad > 0)  # 4 where all good, 1 where not
         # now shut down the bad tris. Remember, one bad node => 3 bad tris.
         # anywhere where badnodes > 1 will have zero from summing, so div by 1
         # assert np.all(np.logical_or(np.isclose(tot_tris, 4.),
@@ -1528,10 +1528,10 @@ def calc_slope_at_patch(
         # note initial offset so we are centered around TR on first slice
         for i in range(4):
             for j in range(3):
-                (corners_rot[j])[badnodes[:, i]] = 0.
+                (corners_rot[j])[badnodes[:, i]] = 0.0
             corners_rot.rotate(-1)
     else:
-        tot_tris = 4.
+        tot_tris = 4.0
     mean_slope_at_patch = (
         slopes_at_patch_TR
         + slopes_at_patch_TL
@@ -1633,7 +1633,7 @@ def calc_grad_at_patch(
         # note initial offset so we are centered around TR on first slice
         for i in range(4):
             for j in range(3):
-                (corners_rot[j])[badnodes[:, i], :] = 0.
+                (corners_rot[j])[badnodes[:, i], :] = 0.0
             corners_rot.rotate(-1)
 
     n_sum_x = n_TR[:, 0] + n_TL[:, 0] + n_BL[:, 0] + n_BR[:, 0]
@@ -1790,7 +1790,7 @@ def calc_slope_at_node(
         z = np.empty(grid.number_of_nodes + 1, dtype=float)
         mean_grad_x = grid.empty(at="node", dtype=float)
         mean_grad_y = grid.empty(at="node", dtype=float)
-        z[-1] = 0.
+        z[-1] = 0.0
         try:
             z[:-1] = grid.at_node[elevs]
         except TypeError:
@@ -1816,8 +1816,8 @@ def calc_slope_at_node(
         patch_slopes_y[:, 1] = z[diags[:, 1]] - z[orthos[:, 2]] + diff_N
         patch_slopes_y[:, 2] = z[orthos[:, 2]] - z[diags[:, 2]] + diff_S
         patch_slopes_y[:, 3] = z[orthos[:, 0]] - z[diags[:, 3]] + diff_S
-        patch_slopes_x /= 2. * grid.dx
-        patch_slopes_y /= 2. * grid.dy
+        patch_slopes_x /= 2.0 * grid.dx
+        patch_slopes_y /= 2.0 * grid.dy
         patch_slopes_x.mask = closed_patch_mask
         patch_slopes_y.mask = closed_patch_mask
         mean_grad_x = patch_slopes_x.mean(axis=1).data

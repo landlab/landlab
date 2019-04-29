@@ -36,20 +36,20 @@ def test_check_fields(dans_grid1):
     assert_array_equal(np.ones(25), dans_grid1.mg.at_node["water__unit_flux_in"])
     with pytest.deprecated_call():
         FlowRouter(dans_grid1.mg, dans_grid1.infile)
-    assert_array_equal(np.full(25, 2.), dans_grid1.mg.at_node["water__unit_flux_in"])
+    assert_array_equal(np.full(25, 2.0), dans_grid1.mg.at_node["water__unit_flux_in"])
 
 
 def test_check_field_input(dans_grid1):
     """Check we can successfully pass water__discharge_in."""
     dans_grid1.mg.add_field(
-        "node", "water__unit_flux_in", np.full(25, 3.), units="m**3/s"
+        "node", "water__unit_flux_in", np.full(25, 3.0), units="m**3/s"
     )
     with pytest.deprecated_call():
         FlowRouter(dans_grid1.mg)
-    assert_array_equal(np.full(25, 3.), dans_grid1.mg.at_node["water__unit_flux_in"])
+    assert_array_equal(np.full(25, 3.0), dans_grid1.mg.at_node["water__unit_flux_in"])
     with pytest.deprecated_call():
         FlowRouter(dans_grid1.mg, dans_grid1.infile)
-    assert_array_equal(np.full(25, 2.), dans_grid1.mg.at_node["water__unit_flux_in"])
+    assert_array_equal(np.full(25, 2.0), dans_grid1.mg.at_node["water__unit_flux_in"])
 
 
 def test_accumulate_D8(dans_grid1):
@@ -79,13 +79,13 @@ def test_accumulate_D8(dans_grid1):
 def test_variable_Qin(dans_grid1):
     """Test variable Qin field."""
     Qin_local = np.zeros(25, dtype=float)
-    Qin_local[13] = 2.
+    Qin_local[13] = 2.0
     dans_grid1.mg.add_field("node", "water__unit_flux_in", Qin_local, units="m**3/s")
     with pytest.deprecated_call():
         fr = FlowRouter(dans_grid1.mg)
     fr.run_one_step()
     Qout_local = np.zeros_like(Qin_local)
-    Qout_local[10:14] = 200.
+    Qout_local[10:14] = 200.0
     assert_array_equal(Qout_local, dans_grid1.mg.at_node["surface_water__discharge"])
     assert_array_equal(dans_grid1.A_target, dans_grid1.mg.at_node["drainage_area"])
     # note that A DOES NOT CHANGE when messing with Q_in
@@ -183,15 +183,15 @@ def test_internal_closed(internal_closed):
 
 def test_voronoi():
     """Test routing on a (radial) voronoi."""
-    vmg = RadialModelGrid(2, dr=2.)
-    z = np.full(20, 10., dtype=float)
+    vmg = RadialModelGrid(2, dr=2.0)
+    z = np.full(20, 10.0, dtype=float)
     # vmg.status_at_node[8:] = CLOSED_BOUNDARY
     all_bounds_but_one = np.array((0, 1, 2, 3, 4, 7, 11, 15, 16, 17, 18, 19))
     vmg.status_at_node[all_bounds_but_one] = CLOSED_BOUNDARY
     # z[7] = 0.  # outlet
-    z[12] = 0.  # outlet
+    z[12] = 0.0  # outlet
     # inner_elevs = (3., 1., 4., 5., 6., 7., 8.)
-    inner_elevs = (8., 7., 3., 1., 6., 4., 5.)
+    inner_elevs = (8.0, 7.0, 3.0, 1.0, 6.0, 4.0, 5.0)
     # z[:7] = np.array(inner_elevs)
     z[vmg.core_nodes] = np.array(inner_elevs)
     vmg.add_field("node", "topographic__elevation", z, units="-")
@@ -230,13 +230,13 @@ def test_voronoi():
 
 def test_voronoi_closedinternal():
     """Test routing on a (radial) voronoi, but with a closed interior node."""
-    vmg = RadialModelGrid(2, dr=2.)
-    z = np.full(20, 10., dtype=float)
+    vmg = RadialModelGrid(2, dr=2.0)
+    z = np.full(20, 10.0, dtype=float)
     all_bounds_but_one = np.array((0, 1, 2, 3, 4, 7, 11, 15, 16, 17, 18, 19))
     vmg.status_at_node[all_bounds_but_one] = CLOSED_BOUNDARY
     vmg.status_at_node[8] = CLOSED_BOUNDARY  # new internal closed
-    z[12] = 0.  # outlet
-    inner_elevs = (8., 7., 1., 6., 4., 5.)
+    z[12] = 0.0  # outlet
+    inner_elevs = (8.0, 7.0, 1.0, 6.0, 4.0, 5.0)
     z[vmg.core_nodes] = np.array(inner_elevs)
     vmg.add_field("node", "topographic__elevation", z, units="-")
     with pytest.deprecated_call():

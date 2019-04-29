@@ -566,10 +566,10 @@ def point_to_point_distance(point0, point1, out=None):
     point0 = np.reshape(point0, (2, -1))
     point1 = np.reshape(point1, (2, -1))
     if out is None:
-        sum_of_squares = np.sum((point1 - point0) ** 2., axis=0)
+        sum_of_squares = np.sum((point1 - point0) ** 2.0, axis=0)
         return np.sqrt(sum_of_squares)
     else:
-        sum_of_squares = np.sum((point1 - point0) ** 2., axis=0, out=out)
+        sum_of_squares = np.sum((point1 - point0) ** 2.0, axis=0, out=out)
         return np.sqrt(sum_of_squares, out=out)
 
 
@@ -627,10 +627,10 @@ def point_to_point_azimuth(point0, point1, out=None):
     """
     azimuth_in_rads = point_to_point_angle(point0, point1, out=out)
     if out is None:
-        return (np.pi * .5 - azimuth_in_rads) * 180. / np.pi
+        return (np.pi * 0.5 - azimuth_in_rads) * 180.0 / np.pi
     else:
-        np.subtract(np.pi * .5, azimuth_in_rads, out=out)
-        return np.multiply(out, 180. / np.pi, out=out)
+        np.subtract(np.pi * 0.5, azimuth_in_rads, out=out)
+        return np.multiply(out, 180.0 / np.pi, out=out)
 
 
 def point_to_point_vector(point0, point1, out=None):

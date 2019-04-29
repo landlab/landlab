@@ -8,7 +8,7 @@ from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
 
 def test_xy_of_reference_default_is_zero():
     grid = RasterModelGrid((9, 5))
-    assert grid.xy_of_reference == approx((0., 0.))
+    assert grid.xy_of_reference == approx((0.0, 0.0))
 
 
 @pytest.mark.parametrize("to_iterable", [np.asarray, list, tuple])
@@ -56,7 +56,7 @@ def test_hex_lower_left_as_iterables(random_xy, to_iterable):
         5,
         xy_of_lower_left=to_iterable(random_xy),
         orientation="horizontal",
-        shape="rect",
+        node_layout="rect",
     )
     assert isinstance(grid.xy_of_lower_left, tuple)
     assert grid.xy_of_lower_left == expected
@@ -72,17 +72,17 @@ def test_radial_center_as_iterables(random_xy, to_iterable):
 
 
 @pytest.mark.parametrize("orientation", ["horizontal", "vertical"])
-@pytest.mark.parametrize("shape", ["rect"])
+@pytest.mark.parametrize("node_layout", ["rect"])
 @pytest.mark.parametrize("n_cols", [12, 11, 10, 9])
 @pytest.mark.parametrize("n_rows", [12, 11, 10, 9])
-def test_move_reference_hex(random_xy, n_rows, n_cols, shape, orientation):
+def test_move_reference_hex(random_xy, n_rows, n_cols, node_layout, orientation):
     mg = HexModelGrid(
         n_rows,
         n_cols,
         dx=2.0,
         xy_of_lower_left=random_xy,
         orientation=orientation,
-        shape=shape,
+        node_layout=node_layout,
     )
 
     assert mg.xy_of_lower_left == random_xy

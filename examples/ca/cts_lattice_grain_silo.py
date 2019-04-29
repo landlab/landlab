@@ -426,7 +426,7 @@ def main():
 
     # Create a grid
     hmg = HexModelGrid(
-        nr, nc, 1.0, orientation="vertical", shape="rect", reorient_links=True
+        nr, nc, 1.0, orientation="vertical", node_layout="rect", reorient_links=True
     )
 
     # Set up the states and pair transitions.

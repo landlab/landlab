@@ -191,7 +191,7 @@ class DepthDependentDiffuser(Component):
 
         # Calculate gradients
         slope = self.grid.calc_grad_at_link(self.elev)
-        slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
+        slope[self.grid.status_at_link == INACTIVE_LINK] = 0.0
 
         # Calculate flux
         self.flux[:] = (

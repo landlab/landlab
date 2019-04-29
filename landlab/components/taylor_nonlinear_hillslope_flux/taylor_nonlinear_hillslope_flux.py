@@ -155,7 +155,7 @@ class TaylorNonLinearDiffuser(Component):
         "soil__flux": "flux of soil in direction of link",
     }
 
-    def __init__(self, grid, linear_diffusivity=1., slope_crit=1., nterms=2):
+    def __init__(self, grid, linear_diffusivity=1.0, slope_crit=1.0, nterms=2):
         """Initialize the TaylorNonLinearDiffuser.
         Parameters
         ----------
@@ -223,7 +223,7 @@ class TaylorNonLinearDiffuser(Component):
 
             # Calculate gradients
             self.slope[:] = self.grid.calc_grad_at_link(self.elev)
-            self.slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
+            self.slope[self.grid.status_at_link == INACTIVE_LINK] = 0.0
 
             # Test for time stepping courant condition
             courant_slope_term = 0.0

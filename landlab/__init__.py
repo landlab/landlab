@@ -38,10 +38,10 @@ from .grid import (
     LOOPED_BOUNDARY,
     HexModelGrid,
     ModelGrid,
+    NetworkModelGrid,
     RadialModelGrid,
     RasterModelGrid,
     VoronoiDelaunayGrid,
-    NetworkModelGrid,
     create_and_initialize_grid,
     create_grid,
 )

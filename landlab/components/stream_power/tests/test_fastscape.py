@@ -33,11 +33,11 @@ def test_fastscape():
     mg.add_zeros("topographic__elevation", at="node")
     z = mg.zeros(at="node") + init_elev
     numpy.random.seed(0)
-    mg["node"]["topographic__elevation"] = z + numpy.random.rand(len(z)) / 1000.
+    mg["node"]["topographic__elevation"] = z + numpy.random.rand(len(z)) / 1000.0
 
     fr = FlowAccumulator(mg, flow_director="D8")
     fsp = Fsc(mg, input_str, method="D8")
-    elapsed_time = 0.
+    elapsed_time = 0.0
     while elapsed_time < time_to_run:
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
@@ -121,11 +121,11 @@ def test_fastscape_new():
     mg.add_zeros("topographic__elevation", at="node")
     z = mg.zeros(at="node") + init_elev
     numpy.random.seed(0)
-    mg["node"]["topographic__elevation"] = z + numpy.random.rand(len(z)) / 1000.
+    mg["node"]["topographic__elevation"] = z + numpy.random.rand(len(z)) / 1000.0
 
     fr = FlowAccumulator(mg, flow_director="D8")
     fsp = Fsc(mg, **inputs)  # here's the diff from the above
-    elapsed_time = 0.
+    elapsed_time = 0.0
     while elapsed_time < time_to_run:
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time

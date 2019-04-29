@@ -16,12 +16,12 @@ from landlab.core.utils import argsort_points_by_x_then_y
 from landlab.field import ModelDataFields, ModelDataFieldsMixIn
 from landlab.utils.decorators import deprecated, make_return_array_immutable
 
-from . import grid_funcs as gfuncs
 from ..core import load_params
 from ..core.utils import add_module_functions_to_class
 from ..layers.eventlayers import EventLayersMixIn
 from ..layers.materiallayers import MaterialLayersMixIn
 from ..utils.decorators import cache_result_in_object
+from . import grid_funcs as gfuncs
 from .decorators import override_array_setitem_and_reset, return_readonly_id_array
 from .linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK, set_status_at_link
 from .nodestatus import (
@@ -250,11 +250,11 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     """
     assert (b1x != 0 and b2y != 0) or (b2x != 0 and b1y != 0), "Improper unit vectors"
 
-    if b1x != 0. and b2y != 0.:
-        ax = (L1 / b1x - L2 * (b1y / (b1x * b2y))) / (1. - (b1y * b2x) / (b1x * b2y))
+    if b1x != 0.0 and b2y != 0.0:
+        ax = (L1 / b1x - L2 * (b1y / (b1x * b2y))) / (1.0 - (b1y * b2x) / (b1x * b2y))
         ay = L2 / b2y - ax * (b2x / b2y)
-    elif b2x != 0. and b1y != 0.:
-        ax = (L2 / b2x - L1 * (b2y / (b2x * b1y))) / (1. - (b2y * b1x) / (b2x * b1y))
+    elif b2x != 0.0 and b1y != 0.0:
+        ax = (L2 / b2x - L1 * (b2y / (b2x * b1y))) / (1.0 - (b2y * b1x) / (b2x * b1y))
         ay = L1 / b1y - ax * (b1x / b1y)
 
     return ax, ay
@@ -370,7 +370,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         self.axis_units = kwds.get("axis_units", _default_axis_units(self.ndim))
 
-        self._ref_coord = tuple(kwds.get("xy_of_reference", (0., 0.)))
+        self._ref_coord = tuple(kwds.get("xy_of_reference", (0.0, 0.0)))
         self._link_length = None
         self._all_node_distances_map = None
         self._all_node_azimuths_map = None
@@ -2067,7 +2067,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         ang[linkhead_at_node] = self.angle_of_link_about_head[
             self.links_at_node[linkhead_at_node]
         ]
-        ang[self.link_dirs_at_node == 0] = 100.
+        ang[self.link_dirs_at_node == 0] = 100.0
         argsorted = np.argsort(ang, axis=1)
         indices = np.indices(ang.shape)[0] * ang.shape[1] + argsorted
         self._links_at_node.flat = self._links_at_node.flat[indices.flatten()]
@@ -2160,7 +2160,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
             vals = values
         values_at_links = vals[self.links_at_node] * self.link_dirs_at_node
         # this procedure makes incoming links NEGATIVE
-        np.less(values_at_links, 0., out=out)
+        np.less(values_at_links, 0.0, out=out)
 
         return out
 
@@ -2229,7 +2229,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
             vals = values
         values_at_links = vals[self.links_at_node] * self.link_dirs_at_node
         # this procedure makes incoming links NEGATIVE
-        np.greater(values_at_links, 0., out=out)
+        np.greater(values_at_links, 0.0, out=out)
 
         return out
 
@@ -2289,7 +2289,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
             vals = values
         values_at_links = vals[self.links_at_node] * self.link_dirs_at_node
         # this procedure makes incoming links NEGATIVE
-        unordered_IDs = np.where(values_at_links < 0., self.links_at_node, bad_index)
+        unordered_IDs = np.where(values_at_links < 0.0, self.links_at_node, bad_index)
         bad_IDs = unordered_IDs == bad_index
         nnodes = self.number_of_nodes
         flat_sorter = np.argsort(bad_IDs, axis=1) + self.links_at_node.shape[
@@ -2361,7 +2361,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
             vals = values
         values_at_links = vals[self.links_at_node] * self.link_dirs_at_node
         # this procedure makes incoming links NEGATIVE
-        unordered_IDs = np.where(values_at_links > 0., self.links_at_node, bad_index)
+        unordered_IDs = np.where(values_at_links > 0.0, self.links_at_node, bad_index)
         bad_IDs = unordered_IDs == bad_index
         nnodes = self.number_of_nodes
         flat_sorter = np.argsort(bad_IDs, axis=1) + self.links_at_node.shape[
@@ -2680,8 +2680,8 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
     def calc_hillshade_at_node(
         self,
-        alt=45.,
-        az=315.,
+        alt=45.0,
+        az=315.0,
         slp=None,
         asp=None,
         unit="degrees",
@@ -2751,7 +2751,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
                     np.radians(asp),
                 )
             elif unit == "radians":
-                if alt > np.pi / 2. or az > 2. * np.pi:
+                if alt > np.pi / 2.0 or az > 2.0 * np.pi:
                     six.print_(
                         "Assuming your solar properties are in degrees, "
                         "but your slopes and aspects are in radians..."
@@ -2780,7 +2780,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
             az - asp
         )
 
-        return shaded.clip(0.)
+        return shaded.clip(0.0)
 
     @property
     @make_return_array_immutable
@@ -2990,7 +2990,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         LLCATS: LINF MEAS
         """
         return np.sqrt(
-            np.power(np.diff(self.xy_of_node[self.nodes_at_link], axis=1), 2.).sum(
+            np.power(np.diff(self.xy_of_node[self.nodes_at_link], axis=1), 2.0).sum(
                 axis=2
             )
         ).flatten()
@@ -3046,7 +3046,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         LLCATS: DEPR NINF LINF CONN
         """
         if v is None:
-            v = np.array((0.,))
+            v = np.array((0.0,))
 
         fv = np.zeros(len(self.active_links))
         fromnode = self.nodes_at_link[self.active_links, 0]
@@ -4073,8 +4073,8 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
                 )
 
                 less_than_zero = np.empty(self.number_of_nodes, dtype=bool)
-                np.less(out_azimuth, 0., out=less_than_zero[:len_subset])
-                out_azimuth[less_than_zero[:len_subset]] += 2. * np.pi
+                np.less(out_azimuth, 0.0, out=less_than_zero[:len_subset])
+                out_azimuth[less_than_zero[:len_subset]] += 2.0 * np.pi
 
             return out_distance, out_azimuth
         else:
@@ -4190,7 +4190,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
                 (node_coords[i, 0], node_coords[i, 1]), get_az="angles"
             )
 
-        assert np.all(self._all_node_distances_map >= 0.)
+        assert np.all(self._all_node_distances_map >= 0.0)
 
         return self._all_node_distances_map, self._all_node_azimuths_map
 
