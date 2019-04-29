@@ -145,11 +145,10 @@ def wrap_as_bmi(cls):
     ('lithosphere_surface__elevation_increment',)
     >>> flexure.get_var_grid('lithosphere_surface__elevation_increment')
     0
-    >>> flexure.get_grid_shape(0)
-    (20, 40)
-    >>> dz = flexure.get_value('lithosphere_surface__elevation_increment')
-    >>> dz.shape == (800, )
-    True
+    >>> flexure.get_grid_shape(0, np.empty(flexure.get_grid_rank(0), dtype=int))
+    array([20, 40])
+    >>> dz = np.empty(flexure.get_grid_size(0))
+    >>> _ = flexure.get_value('lithosphere_surface__elevation_increment', dz)
 
     >>> np.all(dz == 0.)
     True
@@ -164,7 +163,7 @@ def wrap_as_bmi(cls):
     >>> flexure.update()
     >>> flexure.get_current_time()
     2.0
-    >>> dz = flexure.get_value('lithosphere_surface__elevation_increment')
+    >>> _ = flexure.get_value('lithosphere_surface__elevation_increment', dz)
     >>> np.all(dz == 0.)
     False
     """
