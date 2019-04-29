@@ -194,6 +194,7 @@ class ChannelProfiler(_BaseProfiler):
         grid,
         stopping_field="drainage_area",
         number_of_watersheds=1,
+        outlet_threshold=1e6,
         main_channel_only=True,
         starting_nodes=None,
         threshold=None,
@@ -208,7 +209,11 @@ class ChannelProfiler(_BaseProfiler):
             Total number of watersheds to plot. Default value is 1. If value is
             greater than 1 and starting_nodes is not specified, then the
             number_of_watersheds largest watersheds based on the drainage area
-            at the model grid boundary.
+            at the model grid boundary. If given as None, then all grid cells
+            on the domain boundary with a stopping field (typically drainage
+            area) greater than the outlet_threshold in area are used.
+        outlet_threshold : float, optional
+            Threshold for defining an outlet. Default is 1e6.
         main_channel_only : Boolean, optional
             Flag to determine if only the main channel should be plotted, or if
             all stream segments with drainage area less than threshold should
@@ -256,18 +261,26 @@ class ChannelProfiler(_BaseProfiler):
 
         # verify that the number of starting nodes is the specified number of channels
         if starting_nodes is not None:
-            if len(starting_nodes) is not number_of_watersheds:
+            if (number_of_watersheds is not None) and (
+                len(starting_nodes) is not number_of_watersheds
+            ):
                 msg = "Length of starting_nodes must equal the" "number_of_watersheds!"
                 raise ValueError(msg)
         else:
-            starting_nodes = grid.boundary_nodes[
-                np.argsort(self._stopping_field[grid.boundary_nodes])[
-                    -number_of_watersheds:
-                ]
+            large_outlet_ids = grid.boundary_nodes[
+                np.argsort(self._stopping_field[grid.boundary_nodes])
             ]
+            if number_of_watersheds is None:
+                big_enough_watersheds = (
+                    self._stopping_field[large_outlet_ids] > outlet_threshold
+                )
+                starting_nodes = large_outlet_ids[big_enough_watersheds]
+            else:
+                starting_nodes = large_outlet_ids[-number_of_watersheds:]
 
         starting_da = self._stopping_field[starting_nodes]
-        if np.any(starting_da < self.threshold):
+        starting_nodes = np.asarray(starting_nodes)
+        if np.any(starting_da < self.threshold) or starting_nodes.size==0:
             msg = (
                 "The number of watersheds requested by the ChannelProfiler is "
                 "greater than the number in the domain with sufficent drainage"
