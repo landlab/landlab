@@ -377,3 +377,29 @@ def test_re_calculating_profile_structure_and_distance():
     assert len(profiler._distance_along_profile) == 1  # result: 1
     profiler.run_one_step()
     assert len(profiler._distance_along_profile) == 1  # result: 2
+
+    # make the most complicated profile structure
+    profiler = ChannelProfiler(mg, main_channel_only=False, number_of_watersheds=2)
+    profiler.run_one_step()
+    p1 = profiler._profile_structure.copy()
+    d1 = profiler._distance_along_profile.copy()
+
+    profiler.run_one_step()
+    p2 = profiler._profile_structure.copy()
+    d2 = profiler._distance_along_profile.copy()
+
+    # assert that these are copies, not pointers to same thing
+    assert p1 is not p2
+    assert d1 is not d2
+
+    # test that structures are the same.
+    for idx_watershed in range(len(p1)):
+        p1_w = p1[idx_watershed]
+        p2_w = p2[idx_watershed]
+
+        d1_w = d1[idx_watershed]
+        d2_w = d2[idx_watershed]
+
+        for idx_segment in range(len(p1_w)):
+            np.testing.assert_array_equal(p1_w[idx_segment], p2_w[idx_segment])
+            np.testing.assert_array_equal(d1_w[idx_segment], d2_w[idx_segment])
