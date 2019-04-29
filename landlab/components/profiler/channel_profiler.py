@@ -252,7 +252,6 @@ class ChannelProfiler(_BaseProfiler):
             msg = "flow__link_to_receiver_node is a required field to run a ChannelProfiler."
             raise ValueError(msg)
 
-        self._distance_along_profile = []
         self._main_channel_only = main_channel_only
 
         if threshold is None:
@@ -435,6 +434,7 @@ class ChannelProfiler(_BaseProfiler):
 
     def _calculate_distances_upstream(self):
         """Get distances upstream for the profile_IDs datastructure."""
+        self._distance_along_profile = []
         end_distances = {}
 
         # set the starting values for the beginnings of each netwrok.

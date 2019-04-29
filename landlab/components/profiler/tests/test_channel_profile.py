@@ -126,7 +126,8 @@ def test_no_flow__receiver_node():
         ChannelProfiler(mg)
 
 
-def test_plotting():
+@pytest.fixture()
+def profile_example_grid():
     mg = RasterModelGrid(40, 60)
     z = mg.add_zeros("topographic__elevation", at="node")
     z += 200 + mg.x_of_node + mg.y_of_node
@@ -145,7 +146,11 @@ def test_plotting():
         fa.run_one_step()
         sp.run_one_step(dt=dt)
         mg.at_node["topographic__elevation"][0] -= 0.001
+    return mg
 
+
+def test_plotting_and_structure(profile_example_grid):
+    mg = profile_example_grid
     profiler = ChannelProfiler(
         mg, number_of_watersheds=1, main_channel_only=False, threshold=50
     )
@@ -271,6 +276,9 @@ def test_plotting():
     for idx in range(len(correct_structure)):
         np.testing.assert_array_equal(flattened[idx], correct_structure[idx])
 
+
+def test_different_kwargs(profile_example_grid):
+    mg = profile_example_grid
     # with the same grid, test some other profiler options.
     profiler2 = ChannelProfiler(
         mg,
@@ -339,3 +347,63 @@ def test_plotting():
         ]
     )
     np.testing.assert_array_equal(profiler2._profile_structure[0][0], correct_structure)
+
+
+def test_re_calculating_profile_structure_and_distance():
+    mg = RasterModelGrid((20, 20), 100)
+    z = mg.add_zeros("node", "topographic__elevation")
+    z += np.random.rand(z.size)
+    mg.set_closed_boundaries_at_grid_edges(
+        bottom_is_closed=False,
+        left_is_closed=True,
+        right_is_closed=True,
+        top_is_closed=True,
+    )
+
+    fa = FlowAccumulator(mg, flow_director="D8")
+    sp = FastscapeEroder(mg, K_sp=0.0001, m_sp=0.5, n_sp=1)
+
+    dt = 1000
+    uplift_per_step = 0.001 * dt
+    core_mask = mg.node_is_core()
+
+    for i in range(10):
+        z[core_mask] += uplift_per_step
+        fa.run_one_step()
+        sp.run_one_step(dt=dt)
+
+    profiler = ChannelProfiler(mg)
+    profiler.run_one_step()
+    assert len(profiler._distance_along_profile) == 1  # result: 1
+    profiler.run_one_step()
+    # here nathan originally found result: 2, a bug!
+    assert len(profiler._distance_along_profile) == 1
+
+    # make the most complicated profile structure
+    profiler = ChannelProfiler(
+        mg,
+        main_channel_only=False,
+        number_of_watersheds=2)
+    profiler.run_one_step()
+    p1 = list(profiler._profile_structure)
+    d1 = list(profiler._distance_along_profile)
+
+    profiler.run_one_step()
+    p2 = list(profiler._profile_structure)
+    d2 = list(profiler._distance_along_profile)
+
+    # assert that these are copies, not pointers to same thing
+    assert p1 is not p2
+    assert d1 is not d2
+
+    # test that structures are the same.
+    for idx_watershed in range(len(p1)):
+        p1_w = p1[idx_watershed]
+        p2_w = p2[idx_watershed]
+
+        d1_w = d1[idx_watershed]
+        d2_w = d2[idx_watershed]
+
+        for idx_segment in range(len(p1_w)):
+            np.testing.assert_array_equal(p1_w[idx_segment], p2_w[idx_segment])
+            np.testing.assert_array_equal(d1_w[idx_segment], d2_w[idx_segment])
