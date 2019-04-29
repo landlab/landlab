@@ -823,16 +823,42 @@ def test_flooding():
     fa.run_one_step()
     pit.map_depressions()
     sde.run_one_step(100., flooded_nodes=pit.lake_at_node)
-    assert np.allclose(z[mg.core_nodes], np.array([2.00997276, 1.999,  1.998, 1.99502899, 0.95723706]))
-    assert np.allclose(mg.at_node['channel_sediment__volumetric_transport_capacity'][mg.core_nodes], np.array([3.47796809e-10, 0., 0., 2.62050580e-07, 3.40770733e-07]))
-    assert np.allclose(mg.at_node['channel_sediment__depth'][mg.core_nodes], np.array([0., 2.72372391e-05, 0., 0., 0.]))
+    assert np.allclose(z[mg.core_nodes], np.array(
+        [2.00997276, 1.999,  1.998, 1.99502899, 0.95723706]
+    ))
+    assert np.allclose(
+        mg.at_node['channel_sediment__volumetric_transport_capacity'][
+            mg.core_nodes
+        ],
+        np.array([3.47796809e-10, 0., 0., 2.62050580e-07, 3.40770733e-07])
+    )
+    assert np.allclose(
+        mg.at_node['channel_sediment__depth'][mg.core_nodes],
+        np.array([0., 2.72372391e-05, 0., 0., 0.])
+    )
 
     fa.run_one_step()
     pit.map_depressions()
     sde.run_one_step(100., flooded_nodes=pit.lake_at_node)
-    assert np.allclose(z[mg.core_nodes], np.array([2.00994559, 1.999, 1.99781863, 1.92443714, 0.92132846]))
-    assert np.allclose(mg.at_node['channel_sediment__volumetric_transport_capacity'][mg.core_nodes], np.array([3.46935625e-10, 9.97358068e-11, 1.18582125e-08, 2.52251863e-07, 3.29771153e-07]))
-    assert np.allclose(mg.at_node['channel_sediment__depth'][mg.core_nodes], np.array([0., 2.57859919e-05, 0., 0., 0.]))
+    assert np.allclose(z[mg.core_nodes], np.array(
+        [2.00994559, 1.999, 1.99781863, 1.92443714, 0.92132846])
+    )
+    assert np.allclose(
+        mg.at_node['channel_sediment__volumetric_transport_capacity'][
+            mg.core_nodes
+        ],
+        np.array([
+            3.46935625e-10,
+            9.97358068e-11,
+            1.18582125e-08,
+            2.52251863e-07,
+            3.29771153e-07
+        ])
+    )
+    assert np.allclose(
+        mg.at_node['channel_sediment__depth'][mg.core_nodes],
+        np.array([0., 2.57859919e-05, 0., 0., 0.])
+    )
 
 # def test_large_steps_for_timestepping():
 #     pass
