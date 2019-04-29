@@ -54,6 +54,7 @@ install:
 - source activate _testing
 - conda install -q conda-build=3.0 anaconda-client coverage coveralls sphinx pytest pytest-cov flake8
 - conda config --append channels conda-forge
+- pip install bmipy
 - conda info -a && conda list
 script:
 - conda install --file=requirements.txt
