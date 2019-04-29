@@ -376,10 +376,13 @@ def test_re_calculating_profile_structure_and_distance():
     profiler.run_one_step()
     assert len(profiler._distance_along_profile) == 1  # result: 1
     profiler.run_one_step()
-    assert len(profiler._distance_along_profile) == 1  # result: 2
+    assert len(profiler._distance_along_profile) == 1  # here nathan originally found result: 2, a bug!
 
     # make the most complicated profile structure
-    profiler = ChannelProfiler(mg, main_channel_only=False, number_of_watersheds=2)
+    profiler = ChannelProfiler(
+        mg,
+        main_channel_only=False,
+        number_of_watersheds=2)
     profiler.run_one_step()
     p1 = profiler._profile_structure.copy()
     d1 = profiler._distance_along_profile.copy()
