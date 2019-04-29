@@ -350,7 +350,7 @@ def test_different_kwargs(profile_example_grid):
 
 
 def test_re_calculating_profile_structure_and_distance():
-    mg = RasterModelGrid((100, 100), 100)
+    mg = RasterModelGrid((20, 20), 100)
     z = mg.add_zeros('node', 'topographic__elevation')
     z += np.random.rand(z.size)
     mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=False,
@@ -365,7 +365,7 @@ def test_re_calculating_profile_structure_and_distance():
     uplift_per_step = 0.001 * dt
     core_mask = mg.node_is_core()
 
-    for i in range(500):
+    for i in range(10):
         z[core_mask] += uplift_per_step
         fa.run_one_step()
         sp.run_one_step(dt=dt)
