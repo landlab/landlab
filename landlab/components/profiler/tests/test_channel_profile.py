@@ -126,7 +126,8 @@ def test_no_flow__receiver_node():
         ChannelProfiler(mg)
 
 
-def test_plotting():
+@pytest.fixture()
+def profile_example_grid():
     mg = RasterModelGrid(40, 60)
     z = mg.add_zeros("topographic__elevation", at="node")
     z += 200 + mg.x_of_node + mg.y_of_node
@@ -145,7 +146,10 @@ def test_plotting():
         fa.run_one_step()
         sp.run_one_step(dt=dt)
         mg.at_node["topographic__elevation"][0] -= 0.001
+    return mg
 
+def test_plotting_and_structure(profile_example_grid):
+    mg = profile_example_grid
     profiler = ChannelProfiler(
         mg, number_of_watersheds=1, main_channel_only=False, threshold=50
     )
@@ -271,6 +275,9 @@ def test_plotting():
     for idx in range(len(correct_structure)):
         np.testing.assert_array_equal(flattened[idx], correct_structure[idx])
 
+
+def test_different_kwargs(profile_example_grid):
+    mg = profile_example_grid
     # with the same grid, test some other profiler options.
     profiler2 = ChannelProfiler(
         mg,
