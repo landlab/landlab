@@ -18,6 +18,7 @@ from landlab import CLOSED_BOUNDARY, ModelParameterDictionary, FieldError
 from landlab.components import FlowAccumulator
 from landlab.components import SedDepEroder
 from landlab.components import FastscapeEroder
+from landlab.components import DepressionFinderAndRouter
 
 from landlab.components.stream_power.cfuncs import (
     sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
@@ -784,6 +785,54 @@ def test_diagonal_route():
             mg.core_nodes
         ] * 31557600., np.array([0.01, 0.01, 0.]))  # 8, 12, 16
 
+
+# def test_arbitrary_grid():
+#     """
+#     This does not run stably, though unclear what's up as profiles look OK
+#     """
+#     mg = RasterModelGrid((30, 30), xy_spacing=500.)
+#     for edge in ['top', 'left', 'bottom']:
+#         mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+#     z = mg.add_zeros('node', 'topographic__elevation')
+#     np.random.seed(50)
+#     z += np.random.rand(mg.number_of_nodes) / 1000.
+#     z_init = z.copy()
+#     fa = FlowAccumulator(mg, flow_director="D8")
+#     pit = DepressionFinderAndRouter(mg, routing="D8")
+#     sde = SedDepEroder(mg, K_sp=1.e-4)
+#     dt = 1000.
+#     U = 0.001
+#     for i in range(1000):
+#         z[mg.core_nodes] += U * dt
+#         fa.run_one_step()
+#         pit.map_depressions()
+#         sde.run_one_step(dt, flooded_nodes=pit.lake_at_node)
+#         print(i)
+
+
+def test_flooding():
+    mg = RasterModelGrid((3, 7), xy_spacing=100.)
+    for edge in ['top', 'left', 'bottom']:
+        mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z[mg.core_nodes] = np.array([2.01, 1.999, 1.998, 2., 1.])
+    fa = FlowAccumulator(mg, flow_director="D8")
+    pit = DepressionFinderAndRouter(mg, routing="D8")
+    sde = SedDepEroder(mg, K_sp=1.e-3, K_t=1.e-4)
+
+    fa.run_one_step()
+    pit.map_depressions()
+    sde.run_one_step(100., flooded_nodes=pit.lake_at_node)
+    assert np.allclose(z[mg.core_nodes], np.array([2.00997276, 1.999,  1.998, 1.99502899, 0.95723706]))
+    assert np.allclose(mg.at_node['channel_sediment__volumetric_transport_capacity'][mg.core_nodes], np.array([3.47796809e-10, 0., 0., 2.62050580e-07, 3.40770733e-07]))
+    assert np.allclose(mg.at_node['channel_sediment__depth'][mg.core_nodes], np.array([0., 2.72372391e-05, 0., 0., 0.]))
+
+    fa.run_one_step()
+    pit.map_depressions()
+    sde.run_one_step(100., flooded_nodes=pit.lake_at_node)
+    assert np.allclose(z[mg.core_nodes], np.array([2.00994559, 1.999, 1.99781863, 1.92443714, 0.92132846]))
+    assert np.allclose(mg.at_node['channel_sediment__volumetric_transport_capacity'][mg.core_nodes], np.array([3.46935625e-10, 9.97358068e-11, 1.18582125e-08, 2.52251863e-07, 3.29771153e-07]))
+    assert np.allclose(mg.at_node['channel_sediment__depth'][mg.core_nodes], np.array([0., 2.57859919e-05, 0., 0., 0.]))
 
 # def test_large_steps_for_timestepping():
 #     pass
