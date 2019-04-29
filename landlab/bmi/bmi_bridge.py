@@ -216,7 +216,7 @@ def wrap_as_bmi(cls):
             """Time units used by the component."""
             raise NotImplementedError("get_time_units not implemented")
 
-        def initialize(self, config_file: str) -> None:
+        def initialize(self, config_file):
             """Initialize the component from a file.
 
             BMI-wrapped Landlab components use input files in YAML format.
@@ -313,12 +313,12 @@ def wrap_as_bmi(cls):
             """Get a reference to a variable's data."""
             return self._base.grid.at_node[name]
 
-        def get_value(self, name: str, dest: np.ndarray) -> np.ndarray:
+        def get_value(self, name, dest):
             """Get a copy of a variable's data."""
             dest[:] = self._base.grid.at_node[name]
             return dest
 
-        def set_value(self, name: str, values: np.ndarray) -> None:
+        def set_value(self, name, values):
             """Set the values of a variable."""
             if name in self.get_input_var_names():
                 if name in self._base.grid.at_node:
@@ -328,16 +328,16 @@ def wrap_as_bmi(cls):
             else:
                 raise KeyError("{name} is not an input item".format(name=name))
 
-        def get_grid_origin(self, grid: int, origin: np.ndarray) -> np.ndarray:
+        def get_grid_origin(self, grid, origin):
             """Get the origin for a structured grid."""
             origin[:] = (self._base.grid.node_y[0], self._base.grid.node_x[0])
             return origin
 
-        def get_grid_rank(self, grid: int) -> int:
+        def get_grid_rank(self, grid):
             """Get the number of dimensions of a grid."""
             return 2
 
-        def get_grid_shape(self, grid: int, shape: np.ndarray) -> np.ndarray:
+        def get_grid_shape(self, grid, shape):
             """Get the shape of a structured grid."""
             shape[:] = (
                 self._base.grid.number_of_node_rows,
@@ -345,12 +345,12 @@ def wrap_as_bmi(cls):
             )
             return shape
 
-        def get_grid_spacing(self, grid: int, spacing: np.ndarray) -> np.ndarray:
+        def get_grid_spacing(self, grid, spacing):
             """Get the row and column spacing of a structured grid."""
             spacing[:] = (self._base.grid.dy, self._base.grid.dx)
             return spacing
 
-        def get_grid_type(self, grid: int) -> str:
+        def get_grid_type(self, grid):
             """Get the type of grid."""
             return "uniform_rectilinear"
 
@@ -360,46 +360,40 @@ def wrap_as_bmi(cls):
         def get_grid_edge_nodes(self, grid, edge_nodes):
             return self._base.grid.nodes_at_link.reshape((-1,))
 
-        def get_grid_face_count(self, grid: int) -> int:
+        def get_grid_face_count(self, grid):
             return self._base.grid.number_of_patches
 
-        def get_grid_face_nodes(self, grid: int, face_nodes: np.ndarray) -> np.ndarray:
+        def get_grid_face_nodes(self, grid, face_nodes):
             return self._base.grid.nodes_at_patch
 
-        def get_grid_node_count(self, grid: int) -> int:
+        def get_grid_node_count(self, grid):
             return self._base.grid.number_of_nodes
 
-        def get_grid_nodes_per_face(
-            self, grid: int, nodes_per_face: np.ndarray
-        ) -> np.ndarray:
+        def get_grid_nodes_per_face(self, grid, nodes_per_face):
             raise NotImplementedError("get_grid_nodes_per_face")
 
-        def get_grid_size(self, grid: int) -> int:
+        def get_grid_size(self, grid):
             return self._base.grid.number_of_nodes
 
-        def get_grid_x(self, grid: int, x: np.ndarray) -> np.ndarray:
+        def get_grid_x(self, grid, x):
             return self._base.grid.x_of_node
 
-        def get_grid_y(self, grid: int, y: np.ndarray) -> np.ndarray:
+        def get_grid_y(self, grid, y):
             return self._base.grid.y_of_node
 
-        def get_grid_z(self, grid: int, z: np.ndarray) -> np.ndarray:
+        def get_grid_z(self, grid, z):
             raise NotImplementedError("get_grid_z")
 
-        def get_value_at_indices(
-            self, name: str, dest: np.ndarray, inds: np.ndarray
-        ) -> np.ndarray:
+        def get_value_at_indices(self, name, dest, inds):
             raise NotImplementedError("get_value_at_indices")
 
-        def get_value_ptr(self, name: str) -> np.ndarray:
+        def get_value_ptr(self, name):
             raise NotImplementedError("get_value_ptr")
 
-        def get_var_location(self, name: str) -> str:
+        def get_var_location(self, name):
             return self._base._var_mapping[name]
 
-        def set_value_at_indices(
-            self, name: str, inds: np.ndarray, src: np.ndarray
-        ) -> None:
+        def set_value_at_indices(self, name, inds, src):
             raise NotImplementedError("set_value_at_indices")
 
     BmiWrapper.__name__ = cls.__name__
