@@ -270,3 +270,19 @@ def test_plotting():
     flattened = _flatten_structure(profiler._profile_structure)
     for idx in range(len(correct_structure)):
         np.testing.assert_array_equal(flattened[idx], correct_structure[idx])
+
+    # with the same grid, test some other profiler options.
+    profiler2 = ChannelProfiler(
+        mg, number_of_watersheds=None, main_channel_only=True, outlet_threshold=3, threshold=50
+    )
+    profiler2.run_one_step()
+
+    profiler2.plot_profiles()
+    profiler2.plot_profiles_in_map_view()
+
+    correct_structure = np.array([  0,  61,  62,  63,  64,  65,  66,  67,  68,  69,  70,  71,  72,
+          73,  74,  75,  76,  77,  78,  79,  80,  81,  82,  83,  84,  85,
+          86,  87,  88,  89,  90,  91,  92,  93,  94,  95,  96,  97,  98,
+          99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109])
+    np.testing.assert_array_equal(profiler2._profile_structure[0][0],
+                                  correct_structure)
