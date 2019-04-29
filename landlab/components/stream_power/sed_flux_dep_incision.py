@@ -957,6 +957,11 @@ class SedDepEroder(Component):
         Calculate the sediment discharge from each node, based on
         the already calculated total discharge into the node, and
         the already calculated relative sediment flux.
+        
+        Returns
+        -------
+        Qout : nnode-long array of floats
+            The sediment discharge (in m3/s !) leaving the node.
         """
         rsf = self.grid.at_node['channel_sediment__relative_flux']
         Qc_out = self.grid.at_node[
