@@ -401,8 +401,8 @@ class ChannelProfiler(_BaseProfiler):
         self._profile_structure = []
 
         if self._main_channel_only:
-            channel_network = []
             for i in self._starting_nodes:
+                channel_network = []
                 (channel_segment, nodes_to_process) = self._get_channel_segment(i)
                 channel_network.append(np.array(channel_segment))
                 self._profile_structure.append(channel_network)
