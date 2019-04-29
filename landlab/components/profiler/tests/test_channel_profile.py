@@ -372,6 +372,6 @@ def test_re_calculating_profile_structure_and_distance():
 
     profiler = ChannelProfiler(mg)
     profiler.run_one_step()
-    len(profiler._distance_along_profile) == 1  # result: 1
+    assert len(profiler._distance_along_profile) == 1  # result: 1
     profiler.run_one_step()
-    len(profiler._distance_along_profile) == 2  # result: 2
+    assert len(profiler._distance_along_profile) == 1  # result: 2
