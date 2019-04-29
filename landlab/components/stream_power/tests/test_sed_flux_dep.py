@@ -730,16 +730,20 @@ def test_supplied_sediment():
     fa.run_one_step()
     sde.run_one_step(10.)
     assert np.allclose(z_init - z, 0., atol=1.e-10)
-    assert np.all(h[mg.core_nodes] > 9.9)  # most of the sed stays put, and
     assert np.allclose(h[np.logical_and(
             mg.at_node['drainage_area'] > 10000.,
             mg.status_at_node == 0
-        )], 10.)  # all nodes not at the head are in st st, so keep all sed
+        )], 10.)
+    # ^all nodes not at the head are in st st, so keep all sed, and
+    assert np.isclose(
+        sde.calc_sed_discharge_from_node()[8] * 31557600.,
+        1. * 10000.**0. * 0.01**1.
+    )
+    assert np.isclose(h[8], 10. - 0.01 / mg.area_of_cell[8])
     assert np.allclose(
         mg.at_node['channel_sediment__relative_flux'][mg.core_nodes], 1.
     )
-    # don't fully understand why the amt of sed in the top node falls so
-    # little. Think more.
+
 
 # def test_large_steps_for_timestepping():
 #     pass
