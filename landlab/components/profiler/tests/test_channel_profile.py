@@ -385,12 +385,12 @@ def test_re_calculating_profile_structure_and_distance():
         main_channel_only=False,
         number_of_watersheds=2)
     profiler.run_one_step()
-    p1 = profiler._profile_structure.copy()
-    d1 = profiler._distance_along_profile.copy()
+    p1 = list(profiler._profile_structure)
+    d1 = list(profiler._distance_along_profile)
 
     profiler.run_one_step()
-    p2 = profiler._profile_structure.copy()
-    d2 = profiler._distance_along_profile.copy()
+    p2 = list(profiler._profile_structure)
+    d2 = list(profiler._distance_along_profile)
 
     # assert that these are copies, not pointers to same thing
     assert p1 is not p2
