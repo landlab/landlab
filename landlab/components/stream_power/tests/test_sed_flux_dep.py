@@ -745,6 +745,46 @@ def test_supplied_sediment():
     )
 
 
+def test_diagonal_route():
+    """
+    Tests that things make sense on the diagonal.
+    """
+    mg = RasterModelGrid((5, 5), xy_spacing=(300, 400))
+    closed_nodes = np.array(
+        [True,  True,  True,  True, False,
+         True,  True,  True, False,  True,
+         True,  True, False,  True,  True,
+         True, False,  True,  True,  True,
+         True,  True,  True,  True,  True], dtype=bool
+    )
+    mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
+    z_init = np.array(
+        [0.,  0.,  0.,  0.,  0.,
+         0.,  0.,  0.,  5.,  0.,
+         0.,  0., 10.,  0.,  0.,
+         0., 15.,  0.,  0.,  0.,
+         0.,  0.,  0.,  0.,  0.], dtype=float
+    )
+    z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
+    h = mg.add_ones('node', 'channel_sediment__depth')
+    h *= 10.
+    fa = FlowAccumulator(mg, flow_director="D8")
+    sde = SedDepEroder(
+        mg, K_sp=1.e-4, K_t=1., m_sp=0., n_sp=1., m_t=0., n_t=1.,
+        sed_dependency_type='linear_decline'
+    )
+    fa.run_one_step()
+    sde.run_one_step(10.)
+    assert np.allclose(
+        mg.at_node['channel_sediment__volumetric_transport_capacity'][
+            mg.core_nodes
+        ], 0.01/31557600.)
+    assert np.allclose(
+        mg.at_node['channel_sediment__volumetric_discharge'][
+            mg.core_nodes
+        ] * 31557600., np.array([0.01, 0.01, 0.]))  # 8, 12, 16
+
+
 # def test_large_steps_for_timestepping():
 #     pass
 
