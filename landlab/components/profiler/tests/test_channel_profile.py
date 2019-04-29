@@ -148,6 +148,7 @@ def profile_example_grid():
         mg.at_node["topographic__elevation"][0] -= 0.001
     return mg
 
+
 def test_plotting_and_structure(profile_example_grid):
     mg = profile_example_grid
     profiler = ChannelProfiler(
@@ -346,3 +347,31 @@ def test_different_kwargs(profile_example_grid):
         ]
     )
     np.testing.assert_array_equal(profiler2._profile_structure[0][0], correct_structure)
+
+
+def test_re_calculating_profile_structure_and_distance():
+    mg = RasterModelGrid((100, 100), 100)
+    z = mg.add_zeros('node', 'topographic__elevation')
+    z += np.random.rand(z.size)
+    mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=False,
+                                           left_is_closed=True,
+                                           right_is_closed=True,
+                                           top_is_closed=True)
+
+    fa = FlowAccumulator(mg, flow_director='D8')
+    sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
+
+    dt = 1000
+    uplift_per_step = 0.001 * dt
+    core_mask = mg.node_is_core()
+
+    for i in range(500):
+        z[core_mask] += uplift_per_step
+        fa.run_one_step()
+        sp.run_one_step(dt=dt)
+
+    profiler = ChannelProfiler(mg)
+    profiler.run_one_step()
+    len(profiler._distance_along_profile) == 1  # result: 1
+    profiler.run_one_step()
+    len(profiler._distance_along_profile) == 2  # result: 2
