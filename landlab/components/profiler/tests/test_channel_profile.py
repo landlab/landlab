@@ -351,15 +351,17 @@ def test_different_kwargs(profile_example_grid):
 
 def test_re_calculating_profile_structure_and_distance():
     mg = RasterModelGrid((20, 20), 100)
-    z = mg.add_zeros('node', 'topographic__elevation')
+    z = mg.add_zeros("node", "topographic__elevation")
     z += np.random.rand(z.size)
-    mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=False,
-                                           left_is_closed=True,
-                                           right_is_closed=True,
-                                           top_is_closed=True)
+    mg.set_closed_boundaries_at_grid_edges(
+        bottom_is_closed=False,
+        left_is_closed=True,
+        right_is_closed=True,
+        top_is_closed=True,
+    )
 
-    fa = FlowAccumulator(mg, flow_director='D8')
-    sp = FastscapeEroder(mg, K_sp=.0001, m_sp=.5, n_sp=1)
+    fa = FlowAccumulator(mg, flow_director="D8")
+    sp = FastscapeEroder(mg, K_sp=0.0001, m_sp=0.5, n_sp=1)
 
     dt = 1000
     uplift_per_step = 0.001 * dt
