@@ -42,7 +42,7 @@ install:
   - cmd: conda update conda
   - cmd: conda install -q --force --no-deps psutil ruamel_yaml requests
   - cmd: conda install -q numpy=1.11 netcdf4
-  - cmd: pip install twine
+  - cmd: pip install twine pytest pytest-cov
   - cmd: conda info
   - cmd: conda list
 
