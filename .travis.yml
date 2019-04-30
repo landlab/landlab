@@ -62,6 +62,6 @@ install:
 - pip install numpy
 - pip install -e .
 script:
-- pip install pytest pytest-cov
+- pip install pytest pytest-cov coveralls
 - pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml -vvv
 after_success: coveralls
