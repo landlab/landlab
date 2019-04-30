@@ -242,20 +242,37 @@ class HackCalculator(Component):
 
         dist = calculate_distance_to_divide(self._grid, longest_path=True)
 
+        internal_df = []
         # for watershed in watersheds (in profile structure)
         for watershed in self._profiler._profile_structure:
             outlet_node = watershed[0][0]
             A_max = self._grid.at_node["drainage_area"][outlet_node]
 
-            nodes = _flatten(watershed)
+            nodes = np.unique(_flatten(watershed))
 
-            C, h = _estimate_hack_coeff(
-                self._grid.at_node["drainage_area"][nodes], dist[nodes]
-            )
+            A = self._grid.at_node["drainage_area"][nodes]
+            L = dist[nodes]
+            C, h = _estimate_hack_coeff(A, L)
+
             out[outlet_node] = {"A_max": A_max, "C": C, "h": h}
 
-            df = pd.DataFrame.from_dict(
-                out, orient="index", columns=["A_max", "C", "h"]
-            )
+            internal_df.append(pd.DataFrame.from_dict({
+                    "basin_id": outlet_node*np.ones(A.shape),
+                    "A": A,
+                    "L_obs": L,
+                    "L_est": C * A**h}))
+
+        df = pd.DataFrame.from_dict(
+            out, orient="index", columns=["A_max", "C", "h"]
+        )
+
+        hdf = pd.concat(internal_df, ignore_index=True)
+        amax_df = hdf.drop(["L_obs", "L_est"],
+                           axis=1).groupby("basin_id").max().sort_values(by="A")
+        s = pd.Series(hdf["basin_id"], dtype="category", index=hdf.index)
+        s = s.cat.set_categories(amax_df.index.values, ordered=True)
+        hdf["basin_id"] = s
+
+        self._df = hdf
 
         return df
