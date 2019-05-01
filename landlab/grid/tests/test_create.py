@@ -77,26 +77,26 @@ def test_simple_create(tmpdir):
 
     x_of_node = np.array(
         [
-            0.,
-            3.,
-            6.,
-            9.,
-            12.,
-            0.,
-            3.,
-            6.,
-            9.,
-            12.,
-            0.,
-            3.,
-            6.,
-            9.,
-            12.,
-            0.,
-            3.,
-            6.,
-            9.,
-            12.,
+            0.0,
+            3.0,
+            6.0,
+            9.0,
+            12.0,
+            0.0,
+            3.0,
+            6.0,
+            9.0,
+            12.0,
+            0.0,
+            3.0,
+            6.0,
+            9.0,
+            12.0,
+            0.0,
+            3.0,
+            6.0,
+            9.0,
+            12.0,
         ]
     )
 
@@ -105,10 +105,10 @@ def test_simple_create(tmpdir):
     )
     topographic__elevation = np.array(
         [
-            [-2., 4., 10., 16., 22.],
-            [2., 8., 14., 20., 26.],
-            [6., 12., 18., 24., 30.],
-            [10., 16., 22., 28., 34.],
+            [-2.0, 4.0, 10.0, 16.0, 22.0],
+            [2.0, 8.0, 14.0, 20.0, 26.0],
+            [6.0, 12.0, 18.0, 24.0, 30.0],
+            [10.0, 16.0, 22.0, 28.0, 34.0],
         ]
     )
 
@@ -132,11 +132,15 @@ def test_esri_ascii_create():
     }
     mg = create_grid(dict_like)
 
-    x_of_node = np.array([1., 11., 21., 1., 11., 21., 1., 11., 21., 1., 11., 21.])
-    y_of_node = np.array([2., 2., 2., 12., 12., 12., 22., 22., 22., 32., 32., 32.])
+    x_of_node = np.array(
+        [1.0, 11.0, 21.0, 1.0, 11.0, 21.0, 1.0, 11.0, 21.0, 1.0, 11.0, 21.0]
+    )
+    y_of_node = np.array(
+        [2.0, 2.0, 2.0, 12.0, 12.0, 12.0, 22.0, 22.0, 22.0, 32.0, 32.0, 32.0]
+    )
     status_at_node = np.array([1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1], dtype=np.uint8)
     topographic__elevation = np.array(
-        [9., 10., 11., 6., 7., 8., 3., 4., 5., 0., 1., 2.]
+        [9.0, 10.0, 11.0, 6.0, 7.0, 8.0, 3.0, 4.0, 5.0, 0.0, 1.0, 2.0]
     )
 
     assert_array_equal(mg.x_of_node, x_of_node)
@@ -152,10 +156,12 @@ def test_read_netcdf_create():
         "fields": {"at_node": {"surface__elevation": {"read_netcdf": [filename]}}},
     }
     mg = create_grid(dict_like)
-    x_of_node = np.array([0., 1., 2., 0., 1., 2., 0., 1., 2., 0., 1., 2.])
-    y_of_node = np.array([0., 0., 0., 1., 1., 1., 2., 2., 2., 3., 3., 3.])
+    x_of_node = np.array([0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0])
+    y_of_node = np.array([0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0])
     status_at_node = np.array([1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1], dtype=np.uint8)
-    surface__elevation = np.array([0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11.])
+    surface__elevation = np.array(
+        [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0]
+    )
 
     assert_array_equal(mg.x_of_node, x_of_node)
     assert_array_equal(mg.y_of_node, y_of_node)

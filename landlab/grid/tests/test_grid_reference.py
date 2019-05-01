@@ -8,7 +8,7 @@ from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
 
 def test_xy_of_reference_default_is_zero():
     grid = RasterModelGrid((9, 5))
-    assert grid.xy_of_reference == approx((0., 0.))
+    assert grid.xy_of_reference == approx((0.0, 0.0))
 
 
 @pytest.mark.parametrize("to_iterable", [np.asarray, list, tuple])

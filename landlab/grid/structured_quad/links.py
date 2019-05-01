@@ -1,9 +1,9 @@
 import numpy as np
 
-from . import nodes
 from ...core.utils import as_id_array
 from ..base import CORE_NODE, FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY
 from ..unstructured.links import LinkGrid
+from . import nodes
 
 
 def neighbors_at_link(shape, links):

@@ -123,12 +123,11 @@ import numpy as np
 import pylab as plt
 
 import landlab
-
 from landlab.ca.cfuncs import (
     PriorityQueue,
+    get_next_event_new,
     push_transitions_to_event_queue,
     run_cts_new,
-    get_next_event_new
 )
 
 _NEVER = 1e50
@@ -664,7 +663,7 @@ class CellLabCTSModel(object):
             self.trn_rate,
             self.next_update,
             self.next_trn_id,
-            self.priority_queue
+            self.priority_queue,
         )
 
     def update_link_state_new(self, link, new_link_state, current_time):

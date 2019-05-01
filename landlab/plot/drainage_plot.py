@@ -56,12 +56,12 @@ def drainage_plot(
         if proportions is None:
             proportions = np.ones_like(receivers, dtype=float)
 
-        is_bad[proportions[:, j] == 0.] = True
+        is_bad[proportions[:, j] == 0.0] = True
 
         xdist[is_bad] = np.nan
         ydist[is_bad] = np.nan
 
-        prop = proportions[:, j] * 256.
+        prop = proportions[:, j] * 256.0
         lu = np.floor(prop)
         colors = propColor(lu.astype(int))
 

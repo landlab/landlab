@@ -17,7 +17,7 @@ def test_raise_kwargs_error():
     z = mg.add_zeros("node", "topographic__elevation")
     BRz = mg.add_zeros("node", "bedrock__elevation")
     z += mg.node_x.copy()
-    BRz += mg.node_x / 2.
+    BRz += mg.node_x / 2.0
     soilTh[:] = z - BRz
     ExponentialWeatherer(mg)
     with pytest.raises(TypeError):
@@ -26,4 +26,4 @@ def test_raise_kwargs_error():
     DDdiff = DepthDependentDiffuser(mg)
 
     with pytest.raises(TypeError):
-        DDdiff.soilflux(2., bad_var=1)
+        DDdiff.soilflux(2.0, bad_var=1)

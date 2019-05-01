@@ -26,7 +26,7 @@ class Sample1(object):
     step_method = "explicit"
     grid_type = "none"
 
-    _vars = {"deposition__rate": [1.]}
+    _vars = {"deposition__rate": [1.0]}
 
     def initialize(self, name):
         pass
@@ -47,16 +47,16 @@ class Sample1(object):
         return 0
 
     def get_start_time(self):
-        return 0.
+        return 0.0
 
     def get_current_time(self):
-        return 0.
+        return 0.0
 
     def get_end_time(self):
-        return 100.
+        return 100.0
 
     def get_time_step(self):
-        return 1.
+        return 1.0
 
     def get_var_type(self, name):
         return "float64"
@@ -89,7 +89,7 @@ class Sample2(object):
     step_method = "explicit"
     grid_type = "none"
 
-    _vars = {"air__temperature": [1.], "surface__elevation": [1.]}
+    _vars = {"air__temperature": [1.0], "surface__elevation": [1.0]}
 
     def initialize(self, name):
         pass
@@ -110,16 +110,16 @@ class Sample2(object):
         return 0
 
     def get_start_time(self):
-        return 0.
+        return 0.0
 
     def get_current_time(self):
-        return 0.
+        return 0.0
 
     def get_end_time(self):
-        return 100.
+        return 100.0
 
     def get_time_step(self):
-        return 1.
+        return 1.0
 
     def get_var_type(self, name):
         return "float64"

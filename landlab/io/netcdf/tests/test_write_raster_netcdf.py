@@ -17,7 +17,7 @@ def test_append_with_time(tmpdir):
     with tmpdir.as_cwd():
         write_raster_netcdf("test.nc", field, append=False, format="NETCDF4", time=0)
         field.at_node["topographic__elevation"] *= 2
-        write_raster_netcdf("test.nc", field, append=True, format="NETCDF4", time=1.)
+        write_raster_netcdf("test.nc", field, append=True, format="NETCDF4", time=1.0)
 
         root = nc.Dataset("test.nc", "r", format="NETCDF4")
 
@@ -35,7 +35,7 @@ def test_append_with_time(tmpdir):
             assert len(root.dimensions["nt"]) == 2
 
         assert "t" in root.variables
-        assert_array_equal(root.variables["t"][:], [0., 1.])
+        assert_array_equal(root.variables["t"][:], [0.0, 1.0])
 
         root.close()
 
@@ -68,7 +68,7 @@ def test_with_time(tmpdir):
     field.add_field("node", "topographic__elevation", np.ones(12, dtype=np.int64))
 
     with tmpdir.as_cwd():
-        write_raster_netcdf("test.nc", field, append=False, format="NETCDF4", time=0.)
+        write_raster_netcdf("test.nc", field, append=False, format="NETCDF4", time=0.0)
 
         root = nc.Dataset("test.nc", "r", format="NETCDF4")
 
@@ -82,18 +82,18 @@ def test_with_time(tmpdir):
             assert len(root.dimensions["nt"]) == 1
 
         assert "t" in root.variables
-        assert_array_equal(root.variables["t"][:], [0.])
+        assert_array_equal(root.variables["t"][:], [0.0])
 
         root.close()
 
 
 def test_with_time_netcdf3(tmpdir):
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", 2. * np.arange(12.))
-    field.add_field("node", "uplift_rate", 2. * np.arange(12.))
+    field.add_field("node", "topographic__elevation", 2.0 * np.arange(12.0))
+    field.add_field("node", "uplift_rate", 2.0 * np.arange(12.0))
 
     with tmpdir.as_cwd():
-        write_raster_netcdf("test.nc", field, format="NETCDF3_64BIT", time=10.)
+        write_raster_netcdf("test.nc", field, format="NETCDF3_64BIT", time=10.0)
 
         root = nc.Dataset("test.nc", "r", format="NETCDF3_64BIT")
 
@@ -101,13 +101,20 @@ def test_with_time_netcdf3(tmpdir):
             assert name in root.variables
             assert_array_equal(
                 root.variables[name][:],
-                [[[0., 2., 4.], [6., 8., 10.], [12., 14., 16.], [18., 20., 22.]]],
+                [
+                    [
+                        [0.0, 2.0, 4.0],
+                        [6.0, 8.0, 10.0],
+                        [12.0, 14.0, 16.0],
+                        [18.0, 20.0, 22.0],
+                    ]
+                ],
             )
             assert "nt" in root.dimensions
             assert len(root.dimensions["nt"]) == 1
 
         assert "t" in root.variables
-        assert_array_equal(root.variables["t"][:], [10.])
+        assert_array_equal(root.variables["t"][:], [10.0])
 
         root.close()
 
@@ -122,7 +129,7 @@ def test_append_with_time_netcdf3(tmpdir):
         )
         field.at_node["topographic__elevation"] *= 2
         write_raster_netcdf(
-            "test.nc", field, append=True, format="NETCDF3_64BIT", time=1.
+            "test.nc", field, append=True, format="NETCDF3_64BIT", time=1.0
         )
 
         root = nc.Dataset("test.nc", "r", format="NETCDF3_64BIT")
@@ -140,7 +147,7 @@ def test_append_with_time_netcdf3(tmpdir):
             assert len(root.dimensions["nt"]) == 2
 
         assert "t" in root.variables
-        assert_array_equal(root.variables["t"][:], [0., 1.])
+        assert_array_equal(root.variables["t"][:], [0.0, 1.0])
 
         root.close()
 
@@ -171,8 +178,8 @@ def test_append_without_time_netcdf3(tmpdir):
 
 def test_without_time_netcdf3(tmpdir):
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", 2. * np.arange(12.))
-    field.add_field("node", "uplift_rate", 2. * np.arange(12.))
+    field.add_field("node", "topographic__elevation", 2.0 * np.arange(12.0))
+    field.add_field("node", "uplift_rate", 2.0 * np.arange(12.0))
 
     with tmpdir.as_cwd():
         write_raster_netcdf("test.nc", field, format="NETCDF3_64BIT")
@@ -183,7 +190,14 @@ def test_without_time_netcdf3(tmpdir):
             assert name in root.variables
             assert_array_equal(
                 root.variables[name][:],
-                [[[0., 2., 4.], [6., 8., 10.], [12., 14., 16.], [18., 20., 22.]]],
+                [
+                    [
+                        [0.0, 2.0, 4.0],
+                        [6.0, 8.0, 10.0],
+                        [12.0, 14.0, 16.0],
+                        [18.0, 20.0, 22.0],
+                    ]
+                ],
             )
             assert "nt" in root.dimensions
             assert len(root.dimensions["nt"]) == 1
@@ -195,8 +209,8 @@ def test_without_time_netcdf3(tmpdir):
 
 def test_names_keyword(tmpdir):
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", np.arange(12.))
-    field.add_field("node", "uplift_rate", 2. * np.arange(12.))
+    field.add_field("node", "topographic__elevation", np.arange(12.0))
+    field.add_field("node", "uplift_rate", 2.0 * np.arange(12.0))
 
     with tmpdir.as_cwd():
         write_raster_netcdf(
@@ -210,7 +224,14 @@ def test_names_keyword(tmpdir):
 
         assert_array_equal(
             root.variables["uplift_rate"][:],
-            [[[0., 2., 4.], [6., 8., 10.], [12., 14., 16.], [18., 20., 22.]]],
+            [
+                [
+                    [0.0, 2.0, 4.0],
+                    [6.0, 8.0, 10.0],
+                    [12.0, 14.0, 16.0],
+                    [18.0, 20.0, 22.0],
+                ]
+            ],
         )
         assert "nt" in root.dimensions
         assert len(root.dimensions["nt"]) == 1
