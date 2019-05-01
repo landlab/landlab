@@ -1,0 +1,19 @@
+name: landlab_dev
+channels:
+  - conda-forge
+dependencies:
+- python
+- black
+- flake8
+- isort
+- matplotlib
+- netcdf4
+- pandas
+- pyshp
+- pytest
+- pytest-cov
+- pyyaml
+- scipy
+- six
+- statsmodels
+- xarray
