@@ -789,6 +789,18 @@ class CellLabCTSModel(object):
         """
         if node_state_grid is not None:
             self.set_node_state_grid(node_state_grid)
+            
+        if _DEBUG:
+            print('link_state_dict:')
+            print(self.link_state_dict)
+            print('node_pair:')
+            print(self.node_pair)
+            print('n_trn:')
+            print(self.n_trn)
+            print('trn_to:')
+            print(self.trn_to)
+            print('trn_rate:')
+            print(self.trn_rate)
 
         self.current_time = run_cts_new(
             run_to,
