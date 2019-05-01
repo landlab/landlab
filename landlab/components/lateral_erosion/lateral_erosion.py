@@ -162,7 +162,7 @@ class LateralEroder(Component):
 
         self.dt=dt
         vol_lat=self.grid.at_node['volume__lateral_erosion']
-        print("max, min vol lat", max(vol_lat), min(vol_lat[grid.core_nodes]))
+#        print("max, min vol lat", max(vol_lat), min(vol_lat[grid.core_nodes]))
 
         #**********ADDED FOR WATER DEPTH CHANGE***************
         #now KL/KV ratio is a parameter set from infile again.
@@ -200,7 +200,7 @@ class LateralEroder(Component):
             if qsinlet_ts is not None:
                 qsinlet=qsinlet_ts
                 qsin[inlet_node]=qsinlet
-                print("qsinlet ts")
+#                print("qsinlet ts")
             #if nothing is passed with qsinlet_ts, qsinlet remains the same from initialized parameters
             else:    #qsinlet_ts==None:
                 qsinlet=self.qsinlet
@@ -216,13 +216,13 @@ class LateralEroder(Component):
                 runoffinlet[inlet_node]=+inlet_area
                 _=grid.add_field('node', 'water__unit_flux_in', runoffinlet,
                              noclobber=False)
-                print("inletarea ts")
+#                print("inletarea ts")
                 #if inlet area has changed with time (so we have a new inlet area here)
                 fa = FlowAccumulator(grid, 
                                      surface='topographic__elevation',
                                      flow_director='FlowDirectorD8',
                                      runoff_rate=None,
-                                     depression_finder="DepressionFinderAndRouter", router="D8")
+                                     depression_finder=None)#"DepressionFinderAndRouter", router="D8")
                 (da, q) = fa.accumulate_flow()
                 q=grid.at_node['surface_water__discharge']
                 da=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
@@ -232,6 +232,8 @@ class LateralEroder(Component):
 #                print("inletarea normal")
 #            print("da", da.reshape(nr,nc))
 #            print("qsinlet", reshape(qsin,(grid.number_of_node_rows,grid.number_of_node_columns)))
+#            print("inlet area", da[inlet_node])
+#            print("inlet qs", qsin[inlet_node])
 #            print(delta)
         #if inlet flag is not on, proceed as normal.
         else:
@@ -512,7 +514,7 @@ class LateralEroder(Component):
                                      surface='topographic__elevation',
                                      flow_director='FlowDirectorD8',
                                      runoff_rate=None,
-                                     depression_finder="DepressionFinderAndRouter", router="D8")
+                                     depression_finder=None)#"DepressionFinderAndRouter", router="D8")
                 (da, q) = fa.accumulate_flow()
 #                print("da", da.reshape(nr,nc))
 #                print("q2", q.reshape(nr,nc))
