@@ -38,23 +38,19 @@ install:
   - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
   - cmd: conda update --yes --quiet conda
   - cmd: set PYTHONUNBUFFERED=1
-  - cmd: conda info
   - cmd: conda config --set always_yes yes
   - cmd: conda update conda
   - cmd: conda install -q --force --no-deps psutil ruamel_yaml requests
-  - cmd: conda install -q conda-build
-  - cmd: conda install -q anaconda-client
-  - cmd: conda install -q numpy=1.11
-  - cmd: conda config --append channels conda-forge
-  - cmd: pip install twine
+  - cmd: conda install -q numpy netcdf4
+  - cmd: pip install twine pytest pytest-cov
+  - cmd: conda info
   - cmd: conda list
 
 build: false
 
 test_script:
-  - "%WITH_COMPILER% conda build -q .conda-recipe --old-build-string"
-  # - cmd: conda install -q landlab --use-local
-  # - cmd: python scripts/test-installed-landlab.py
+  - "%WITH_COMPILER% pip install -e ."
+  - pytest -vvv
 
 after_test:
   - cmd: python setup.py bdist_wheel
@@ -64,7 +60,6 @@ artifacts:
   - path: 'dist\*'
 
 deploy_script:
-  - cmd: python .ci/appveyor/anaconda_upload.py
   - cmd: python .ci/appveyor/pypi_upload.py
 
 notifications:
