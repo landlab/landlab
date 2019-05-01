@@ -162,6 +162,7 @@ class LateralEroder(Component):
 
         self.dt=dt
         vol_lat=self.grid.at_node['volume__lateral_erosion']
+        print("max, min vol lat", max(vol_lat), min(vol_lat[grid.core_nodes]))
 
         #**********ADDED FOR WATER DEPTH CHANGE***************
         #now KL/KV ratio is a parameter set from infile again.
@@ -194,10 +195,13 @@ class LateralEroder(Component):
             #define inlet_node
             inlet_node=self.inlet_node
 #            print("inlet_node", inlet_node)
+            #if a value is passed with qsinlet_ts, qsinlet has changed with this timestep,
+            # so reset qsinlet to qsinlet_ts
             if qsinlet_ts is not None:
                 qsinlet=qsinlet_ts
                 qsin[inlet_node]=qsinlet
                 print("qsinlet ts")
+            #if nothing is passed with qsinlet_ts, qsinlet remains the same from initialized parameters
             else:    #qsinlet_ts==None:
                 qsinlet=self.qsinlet
                 qsin[inlet_node]=qsinlet
@@ -226,8 +230,8 @@ class LateralEroder(Component):
                 q=grid.at_node['surface_water__discharge']
                 da=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
 #                print("inletarea normal")
-            print("da", da.reshape(nr,nc))
-            print("qsinlet", reshape(qsin,(grid.number_of_node_rows,grid.number_of_node_columns)))
+#            print("da", da.reshape(nr,nc))
+#            print("qsinlet", reshape(qsin,(grid.number_of_node_rows,grid.number_of_node_columns)))
 #            print(delta)
         #if inlet flag is not on, proceed as normal.
         else:
@@ -513,17 +517,18 @@ class LateralEroder(Component):
 #                print("da", da.reshape(nr,nc))
 #                print("q2", q.reshape(nr,nc))
                 if inlet_on:
-#                    q=grid.at_node['surface_water__discharge']
+#                   #if inlet on, reset drainage area and qsin to reflect inlet conditions 
                     da=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
                     qsin[inlet_node]=qsinlet
 #                    print("inlet on")
-#                    print("da2", da.reshape(nr,nc))
+#                    print("inletda", da[inlet_node])
 #                    print("q2", q.reshape(nr,nc))
 #                    print(delt)
                 else:
+                    #otherwise, drainage area is just drainage area. *** could remove the
+                    #below line to speed up model. It's not really necessary. 
                     da=grid.at_node['drainage_area']    #renamed this drainage area set by flow router
 #                    print("da", da.reshape(nr,nc))
-                da=grid.at_node['drainage_area']    #renamed this drainage area set by flow router
                 s=grid.at_node['flow__upstream_node_order']
                 max_slopes=grid.at_node['topographic__steepest_slope']
                 q=grid.at_node['surface_water__discharge']
@@ -533,10 +538,7 @@ class LateralEroder(Component):
                 l=s[np.where((grid.status_at_node[s] == 0))[0]]
                 dwnst_nodes=l
                 dwnst_nodes=dwnst_nodes[::-1]
-                #what did I do here with this slopes, grad at active links?
-#                max_slopes=grid.calc_grad_at_active_link(z)
-                #temporary hack for drainage area
-#                drain_area[inlet_node]=inlet_area
+
 #               clear other things too.....
                 lat_nodes=np.zeros(grid.number_of_nodes, dtype=int)
                 dzlat=np.zeros(grid.number_of_nodes)
