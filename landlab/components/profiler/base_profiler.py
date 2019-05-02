@@ -121,9 +121,9 @@ class _BaseProfiler(Component):
         self,
         field="topographic__elevation",
         colors=None,
-        xlabel="Distance Upstream",
+        xlabel="Distance Along Profile",
         ylabel="Plotted Quantity",
-        title="Channel Long Profile",
+        title="Extracted Profiles",
     ):
         """
         Plot distance-upstream vs at at-node or size (nnodes,) quantity.
@@ -137,11 +137,11 @@ class _BaseProfiler(Component):
             Sequence of RGB tuples to use with each stream segment. Assumed
             to have the same structure as the profile datastructure.
         xlabel : str, optional
-            X-axis label, default is "Distance Upstream".
+            X-axis label, default is "Distance Along Profile".
         ylabel : str, optional
             Y-axis label, default value is "Plotted Quantity".
         title : str, optional
-            Plot title, default value is "Channel Long Profile".
+            Plot title, default value is "Extracted Profiles".
         """
         quantity = return_array_at_node(self._grid, field)
 
