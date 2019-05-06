@@ -55,6 +55,10 @@ class Species(object):
 
         output = {'child_species': [], 'surviving_parent_species': []}
 
+        speciation_count = 0
+        extinction_count = 0
+        pseudoextinction_count = 0
+
         for es in extant_species:
             # Get paths that include the zone origin of this species.
             species_zones = es.zones[prior_time]
@@ -67,9 +71,20 @@ class Species(object):
 
                 if species_persists:
                     output['surviving_parent_species'].append(es)
+                elif len(child_species) > 0:
+                    pseudoextinction_count += 1
+                else:
+                    extinction_count += 1
 
                 if len(child_species) > 0:
                     output['child_species'].extend(child_species)
+                    speciation_count += len(child_species)
+
+        # Create DataRecord add-on.
+        output['species_evolver_records_add_on'] = {
+                'speciation_count': speciation_count,
+                'extinction_count': extinction_count,
+                'pseudoextinction_count': pseudoextinction_count}
 
         return output
 

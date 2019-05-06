@@ -111,8 +111,8 @@ class Zone(object):
         # in order to add it to be_records_supplement after all zones are
         # processed.
         number_of_captures = 0
-        cum_area_captured = 0
-        cell_area = grid.dx * grid.dy
+        area_captured = [0]
+        cell_area = grid.cellarea
 
         all_destinations = []
 
@@ -204,14 +204,14 @@ class Zone(object):
                 replacements[dominant_n] = dominant_p
 
             # Update the capture statistics.
-            if path_type in [cls.ONE_TO_MANY, cls.MANY_TO_MANY]:
+            if path_type in [cls.MANY_TO_ONE]:
                 number_of_captures += len(n_overlaps_p)
 
                 for n_i in n_overlaps_p:
                     captured_nodes = np.all([p.mask[prior_time],
                                              n_i.mask[time]], 0)
-                    number_of_captured_nodes = len(np.where(captured_nodes))
-                    cum_area_captured += number_of_captured_nodes * cell_area
+                    number_of_captured_nodes = len(np.where(captured_nodes)[0])
+                    area_captured.append(number_of_captured_nodes * cell_area)
 
             paths.loc[len(paths)] = {'time': time, 'origin': p,
                       'destinations': destinations,
@@ -235,7 +235,8 @@ class Zone(object):
 
         # Construct output.
         add_on = {'number_of_captures': number_of_captures,
-                  'sum_of_area_captured': cum_area_captured}
+                  'area_captured_max': max(area_captured),
+                  'area_captured_sum': sum(area_captured)}
 
         output = {'paths': paths, 'species_evolver_records_add_on': add_on}
 

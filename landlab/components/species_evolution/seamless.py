@@ -202,6 +202,13 @@ class SpeciesEvolver(Component):
                 clade = cs.parent_species.clade
                 cs._identifier = self._get_unused_species_id(clade)
 
+            if 'species_evolver_records_add_on' in output.keys():
+                add_on = output['species_evolver_records_add_on']
+                for key, value in add_on.items():
+                    self.dataRecord.add_record(time=[time],
+                                               new_record={key: (['time'],
+                                                                 [value])})
+
         return surviving_species
 
     # Update DataFrame methods
