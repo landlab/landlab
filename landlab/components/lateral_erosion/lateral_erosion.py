@@ -183,7 +183,11 @@ class LateralEroder(Component):
         nr=grid.number_of_node_rows
         nc=grid.number_of_node_columns
         #clear qsin for next loop
-        qsin = grid.zeros(centering='node')
+#        qsin = grid.at_node['qsin']
+#        qsin = grid.zeros(centering='node')
+        grid.at_node['qsin']=grid.zeros(centering='node')
+        qsin = grid.at_node['qsin']
+#        print("qsin", qsin)
         lat_nodes=np.zeros(grid.number_of_nodes, dtype=int)
         dzlat=np.zeros(grid.number_of_nodes)
         dzver=np.zeros(grid.number_of_nodes)
@@ -437,12 +441,11 @@ class LateralEroder(Component):
             # times stable timestep size
             if(0):
                 print("vol_lat before", vol_lat.reshape(nr,nc))
-#                print "dt", dt
+                print( "dt", dt)
             vol_lat += vol_lat_dt*dt
             if (0):
-                print("vol_lat_dt", vol_lat_dt.reshape(nr,nc))
+#                print("vol_lat_dt", vol_lat_dt.reshape(nr,nc))
                 print("vol_lat after", vol_lat.reshape(nr,nc))
-
             debug=0
             #this loop determines if enough lateral erosion has happened to change the height of the neighbor node.
             wdnode=np.zeros(grid.number_of_nodes)
@@ -451,6 +454,7 @@ class LateralEroder(Component):
                 print("lat_nodes", lat_nodes.reshape(nr,nc))
                 print("nodesids", grid.nodes.reshape(nr,nc))
                 print("elevs", z.reshape(nr,nc))
+                print('maxvollat', max(vol_lat))
 #            print(delt)
 
             for i in dwnst_nodes:
@@ -485,7 +489,6 @@ class LateralEroder(Component):
             #multiply dzver(changed to dzdt above) by timestep size and combine with lateral erosion
             #dzlat, which is already a length for the chosen time step
             dz=dzdt*dt+dzlat
-
             #change height of landscape
             z=dz+z
             grid['node'][ 'topographic__elevation'] =  z
