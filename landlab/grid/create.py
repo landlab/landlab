@@ -3,11 +3,11 @@
 import inspect
 from warnings import warn
 
-from landlab.core import load_params, model_parameter_dictionary as mpd
-from landlab.io import read_esri_ascii
-from landlab.io.netcdf import read_netcdf
-from landlab.values import constant, plane, random, sine
-
+from ..core import load_params, model_parameter_dictionary as mpd
+from ..framework.decorators import camel_case
+from ..io import read_esri_ascii
+from ..io.netcdf import read_netcdf
+from ..values import constant, plane, random, sine
 from .hex import HexModelGrid, from_dict as hex_from_dict
 from .network import NetworkModelGrid
 from .radial import RadialModelGrid
@@ -113,7 +113,147 @@ def create_and_initialize_grid(input_source):
     return grid_reader(param_dict)
 
 
-def create_grid(file_like):
+def grid_from_dict(grid_type, params):
+    """Create a grid from a dictionary of parameters."""
+    try:
+        cls = _MODEL_GRIDS[grid_type]
+    except KeyError:
+        raise ValueError("unknown grid type ({0})".format(grid_type))
+    args, kwargs = _parse_args_kwargs(params)
+    return cls(*args, **kwargs)
+
+
+def grids_from_file(file_like, section=None):
+    """Create grids from a file."""
+    params = load_params(file_like)
+
+    if section:
+        try:
+            grids = params[section]
+        except KeyError:
+            raise ValueError("missing required section ({0})".format(section))
+    else:
+        grids = params
+
+    new_grids = []
+    for grid_type, grid_desc in as_list_of_tuples(grids):
+        new_grids.append(grid_from_dict(camel_case(grid_type, sep="_"), grid_desc))
+
+    return new_grids
+
+
+def add_fields_from_dict(grid, fields):
+    """Add fields to a grid from a dictionary."""
+    fields = dict(fields)
+
+    unknown_locations = set(fields) - set(grid.VALID_LOCATIONS)
+    if unknown_locations:
+        raise ValueError(
+            "unknown field locations ({0})".format(", ".join(unknown_locations))
+        )
+
+    for location, fields_at_location in fields.items():
+        for name, function in fields_at_location.items():
+            add_field_from_function(grid, name, function, at=location)
+
+    return grid
+
+
+def add_field_from_function(grid, name, functions, at="node"):
+    """Add a field to a grid as functions.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A landlab grid to add fields to.
+    name : str
+        Name of the new field.
+    functions : *(func_name, func_args)* or iterable of *(func_name, func_args)*
+        The functions to apply to the field. Functions are applied in the order
+        the appear in the list.
+    at : str
+        The grid element to which the field will be added.
+
+    Returns
+    -------
+    ModelGrid
+        The grid with the new field.
+    """
+    valid_functions = set(_SYNTHETIC_FIELD_CONSTRUCTORS) | set(
+        ["read_esri_ascii", "read_netcdf"]
+    )
+
+    for func_name, func_args in as_list_of_tuples(functions):
+        if func_name not in valid_functions:
+            raise ValueError("function not understood ({0})".format(func_name))
+
+        args, kwargs = _parse_args_kwargs(func_args)
+
+        if func_name in _SYNTHETIC_FIELD_CONSTRUCTORS:
+            # if any args, raise an error, there shouldn't be any.
+            synth_function = _SYNTHETIC_FIELD_CONSTRUCTORS[func_name]
+            synth_function(grid, name, at=at, **kwargs)
+        elif func_name == "read_esri_ascii":
+            read_esri_ascii(*args, grid=grid, name=name, **kwargs)
+        elif func_name == "read_netcdf":
+            read_netcdf(*args, grid=grid, name=name, **kwargs)
+
+    return grid
+
+
+def add_boundary_conditions(grid, boundary_conditions=()):
+    for bc_name, bc_args in as_list_of_tuples(boundary_conditions):
+        args, kwargs = _parse_args_kwargs(bc_args)
+        try:
+            func = getattr(grid, bc_name)
+        except AttributeError:
+            raise ValueError(
+                "create_grid: No function {func} exists for grid types {grid}."
+                "If you think this type of grid should have such a "
+                "function. Please create a GitHub Issue to discuss "
+                "contributing it to the Landlab codebase.".format(
+                    func=bc_name, grid=grid.__class__.__name__
+                )
+            )
+        else:
+            func(*args, **kwargs)
+
+
+def as_list_of_tuples(items):
+    """Convert a collection of key/values to a list of tuples.
+
+    Examples
+    --------
+    >>> from collections import OrderedDict
+    >>> from landlab.grid.create import as_list_of_tuples
+    >>> as_list_of_tuples({"eric": "idle"})
+    [('eric', 'idle')]
+    >>> as_list_of_tuples([("john", "cleese"), {"eric": "idle"}])
+    [('john', 'cleese'), ('eric', 'idle')]
+    >>> as_list_of_tuples(
+    ...     [("john", "cleese"), OrderedDict([("eric", "idle"), ("terry", "gilliam")])]
+    ... )
+    [('john', 'cleese'), ('eric', 'idle'), ('terry', 'gilliam')]
+    """
+    try:
+        items = list(items.items())
+    except AttributeError:
+        items = list(items)
+
+    if len(items) == 2 and isinstance(items[0], str):
+        items = [items]
+
+    tuples = []
+    for item in items:
+        try:
+            tuples.extend(list(item.items()))
+        except AttributeError:
+            tuples.append(tuple(item))
+
+    return tuples
+
+
+def create_grid(file_like, section=None):
     """Create grid, initialize fields, and set boundary conditions.
 
     **create_grid** expects a dictionary with three keys: "grid", "fields", and
@@ -219,29 +359,37 @@ def create_grid(file_like):
     Examples
     --------
     >>> import numpy as np
-    >>> np.random.seed(42)
     >>> from landlab import create_grid
-    >>> p = {'grid': {'RasterModelGrid': [(4,5),
-    ...                                   {'xy_spacing': (3, 4)}]
-    ...               },
-    ...      'fields': {'at_node': {'spam': {'plane': [{'point': (1, 1, 1),
-    ...                                                'normal': (-2, -1, 1)}],
-    ...                                      'random': [{'distribution': 'uniform',
-    ...                                                 'low': 1,
-    ...                                                 'high': 4}]
-    ...                                      },
-    ...                             },
-    ...                 'at_link': {'eggs': {'constant': [{'where': 'ACTIVE_LINK',
-    ...                                                    'constant': 12}],
-    ...                                       },
-    ...                             },
-    ...                 },
-    ...      'boundary_conditions': [
-    ...                     {'set_closed_boundaries_at_grid_edges':
-    ...                                         [True, True, True, True]
-    ...                      }]
-    ...      }
-    >>> mg = create_grid(p)
+    >>> np.random.seed(42)
+    >>> p = {
+    ...     "grid": {
+    ...         "RasterModelGrid": [
+    ...             (4, 5),
+    ...             {"xy_spacing": (3, 4)},
+    ...             {
+    ...                 "fields": {
+    ...                     "node": {
+    ...                         "spam": {
+    ...                             "plane": [{"point": (1, 1, 1), "normal": (-2, -1, 1)}],
+    ...                             "random": [
+    ...                                 {"distribution": "uniform", "low": 1, "high": 4}
+    ...                             ],
+    ...                         }
+    ...                     },
+    ...                     "link": {
+    ...                         "eggs": {"constant": [{"where": "ACTIVE_LINK", "value": 12}]}
+    ...                     },
+    ...                 }
+    ...             },
+    ...             {
+    ...                 "boundary_conditions": [
+    ...                     {"set_closed_boundaries_at_grid_edges": [True, True, True, True]}
+    ...                 ]
+    ...             },
+    ...         ]
+    ...     }
+    ... }
+    >>> mg = create_grid(p, section="grid")
     >>> mg.number_of_nodes
     20
     >>> "spam" in mg.at_node
@@ -264,106 +412,75 @@ def create_grid(file_like):
            [  7.06,  15.91,  21.5 ,  25.64,  31.55],
            [ 11.55,  17.91,  24.57,  30.3 ,  35.87]])
     """
-    # part 0, parse input
     if isinstance(file_like, dict):
-        dict_like = file_like
+        params = file_like
     else:
-        dict_like = load_params(file_like)
+        params = load_params(file_like)
 
-    # part 1 create grid
-    grid_dict = dict_like.pop("grid", None)
-    if grid_dict is None:
-        msg = "create_grid: no grid dictionary provided. This is required."
-        raise ValueError(msg)
+    if section:
+        grids = params[section]
+    else:
+        grids = params
 
-    for grid_type in grid_dict:
-        if grid_type in _MODEL_GRIDS:
-            grid_class = _MODEL_GRIDS[grid_type]
-        else:
-            msg = "create_grid: provided grid type not supported."
-            raise ValueError
+    new_grids = []
+    for grid_type, grid_desc in as_list_of_tuples(grids):
+        grid_desc = norm_grid_description(grid_desc)
 
-    if len(grid_dict) != 1:
-        msg = (
-            "create_grid: two entries to grid dictionary provided. "
-            "This is not supported."
-        )
-        raise ValueError
+        fields = grid_desc.pop("fields", {})
+        boundary_conditions = grid_desc.pop("boundary_conditions", {})
 
-    args, kwargs = _parse_args_kwargs(grid_dict.pop(grid_type))
-    grid = grid_class(*args, **kwargs)
+        grid = grid_from_dict(camel_case(grid_type, sep="_"), grid_desc)
+        add_fields_from_dict(grid, fields)
+        add_boundary_conditions(grid, boundary_conditions)
 
-    # part two, create fields
-    fields_dict = dict_like.pop("fields", {})
+        new_grids.append(grid)
 
-    # for each grid element:
-    for at_group in fields_dict:
-        at = at_group[3:]
-        if at not in grid.groups:
-            msg = (
-                "create_grid: No field location ",
-                "{at} ".format(at=at),
-                "exists for grid types",
-                "{grid}. ".format(grid=grid_type),
-            )
-            raise ValueError(msg)
+    if len(new_grids) == 1:
+        return new_grids[0]
+    else:
+        return new_grids
 
-        at_dict = fields_dict[at_group]
-        # for field at grid element
-        for name in at_dict:
-            name_dict = at_dict[name]
 
-            # for each function, add values.
-            for func in name_dict:
-                args, kwargs = _parse_args_kwargs(name_dict[func])
-                if func in _SYNTHETIC_FIELD_CONSTRUCTORS:
-                    # if any args, raise an error, there shouldn't be any.
-                    synth_function = _SYNTHETIC_FIELD_CONSTRUCTORS[func]
-                    synth_function(grid, name, at=at, **kwargs)
-                elif func == "read_esri_ascii":
-                    read_esri_ascii(*args, grid=grid, name=name, **kwargs)
-                elif func == "read_netcdf":
-                    read_netcdf(*args, grid=grid, name=name, **kwargs)
-                else:
-                    msg = (
-                        "create_grid: Bad function ",
-                        "{func} ".format(func=func),
-                        "for creating a field.",
-                    )
-                    raise ValueError(msg)
+def norm_grid_description(grid_desc):
+    """Normalize a grid description into a canonical form.
 
-    # part three, set boundary conditions
-    bc_list = dict_like.pop("boundary_conditions", [])
-    for bc_function_dict in bc_list:
-        if len(bc_function_dict) != 1:
-            msg = (
-                "create_grid: two entries to a boundary condition function "
-                "dictionary were provided. This is not supported."
-            )
-            raise ValueError(msg)
-        for bc_function in bc_function_dict:
-            args, kwargs = _parse_args_kwargs(bc_function_dict[bc_function])
-            methods = dict(inspect.getmembers(grid, inspect.ismethod))
-            if bc_function in methods:
-                methods[bc_function](*args, **kwargs)
+    Examples
+    --------
+    >>> from landlab.grid.create import norm_grid_description
+
+    >>> grid_desc = [
+    ...     (3, 4), {"xy_spacing": 4.0, "xy_of_lower_left": (1.0, 2.0)}
+    ... ]
+    >>> norm_grid_description(grid_desc)
+    {'xy_spacing': 4.0, 'xy_of_lower_left': (1.0, 2.0), 'args': [(3, 4)]}
+    """
+    if not isinstance(grid_desc, dict):
+        args, kwds = [], {}
+        for arg in grid_desc:
+            if isinstance(arg, dict) and {"fields", "boundary_conditions"} & arg.keys():
+                kwds.update(arg)
             else:
-                msg = (
-                    "create_grid: No function ",
-                    "{func} ".format(func=bc_function),
-                    "exists for grid types ",
-                    "{grid}. ".format(grid=grid_type),
-                    "If you think this type of grid should have such a ",
-                    "function. Please create a GitHub Issue to discuss ",
-                    "contributing it to the Landlab codebase.",
-                )
-                raise ValueError(msg)
-
-    return grid
+                args.append(arg)
+        if isinstance(args[-1], dict):
+            kwds.update(args.pop())
+        kwds.update({"args": args})
+        return kwds
+    return grid_desc
 
 
 def _parse_args_kwargs(list_of_args_kwargs):
-    if isinstance(list_of_args_kwargs[-1], dict):
-        kwargs = list_of_args_kwargs.pop()
+    if isinstance(list_of_args_kwargs, dict):
+        args, kwargs = list_of_args_kwargs.pop("args", ()), list_of_args_kwargs
+        if not isinstance(args, (tuple, list)):
+            args = (args,)
     else:
-        kwargs = {}
-    return list_of_args_kwargs, kwargs
+        args, kwargs = [], {}
+        for arg in list(list_of_args_kwargs):
+            if isinstance(arg, dict) and {"fields", "boundary_conditions"} & arg.keys():
+                kwargs.update(arg)
+            else:
+                args.append(arg)
+        if isinstance(args[-1], dict):
+            kwargs.update(args.pop())
+
+    return tuple(args), kwargs
