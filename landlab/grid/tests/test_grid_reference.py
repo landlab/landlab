@@ -139,13 +139,13 @@ def test_radial_deprecate_origin_y():
 
 
 def test_raster_with_args_and_shape():
-    with pytest.raises(ValueError):
+    with pytest.deprecated_call():
         RasterModelGrid(3, 3, num_cols=3)
-
 
 def test_raster_with_negative_shape():
     with pytest.raises(ValueError):
-        RasterModelGrid(-2, 3)
+        with pytest.deprecated_call():
+            RasterModelGrid(-2, 3)
 
 
 def test_raise_deprecation_dx():
@@ -190,12 +190,14 @@ def test_raise_deprecation_spacing2_as_arg():
 
 def test_bad_shape_xy_spacing():
     with pytest.raises(ValueError):
-        RasterModelGrid(3, 3, xy_spacing=(4, 5, 5))
+        with pytest.deprecated_call():
+            RasterModelGrid(3, 3, xy_spacing=(4, 5, 5))
 
 
 def test_bad_type_xy_spacing():
     with pytest.raises(ValueError):
-        RasterModelGrid(3, 3, xy_spacing="spam and eggs")
+        with pytest.deprecated_call():
+            RasterModelGrid(3, 3, xy_spacing="spam and eggs")
 
 
 def test_deprecate_origin():
@@ -208,13 +210,15 @@ def test_deprecate_origin():
 
 def test_bad_origin():
     with pytest.raises(ValueError):
-        RasterModelGrid(3, 3, xy_of_lower_left=(10, 13, 12))
+        with pytest.deprecated_call():
+            RasterModelGrid(3, 3, xy_of_lower_left=(10, 13, 12))
 
 
 def test_curent_vs_past_origin():
     with pytest.deprecated_call():
         mg1 = RasterModelGrid(3, 3, origin=(10, 13))
-    mg2 = RasterModelGrid(3, 3, xy_of_lower_left=(10, 13))
+    with pytest.deprecated_call():
+        mg2 = RasterModelGrid(3, 3, xy_of_lower_left=(10, 13))
     assert_array_equal(mg1.x_of_node, mg2.x_of_node)
     assert_array_equal(mg1.y_of_node, mg2.y_of_node)
 
@@ -222,6 +226,7 @@ def test_curent_vs_past_origin():
 def test_curent_vs_past_spacing():
     with pytest.deprecated_call():
         mg1 = RasterModelGrid(3, 3, spacing=(5, 4))
-    mg2 = RasterModelGrid(3, 3, xy_spacing=(4, 5))
+    with pytest.deprecated_call():
+        mg2 = RasterModelGrid(3, 3, xy_spacing=(4, 5))
     assert_array_equal(mg1.x_of_node, mg2.x_of_node)
     assert_array_equal(mg1.y_of_node, mg2.y_of_node)
