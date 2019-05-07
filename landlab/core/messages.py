@@ -260,6 +260,58 @@ def format_message(msg, header=None, footer=None, linesep=os.linesep):
     return (os.linesep * 2).join(paragraphs)
 
 
+def deprecation_message(msg=None, **kwds):
+    """Create a deprecation message, landlab-style.
+
+    Parameters
+    ----------
+    msg : str, optional
+        Warning message.
+
+    Returns
+    -------
+    str
+        The formatted warning message.
+
+    Examples
+    --------
+    >>> from __future__ import print_function
+    >>> from landlab.core.messages import deprecation_message
+    >>> print(deprecation_message("Dictumst vestibulum rhoncus est pellentesque."))
+    DEPRECATION WARNING
+    ===================
+    <BLANKLINE>
+    Dictumst vestibulum rhoncus est pellentesque.
+
+    >>> print(
+    ...     deprecation_message(
+    ...         "Dictumst vestibulum rhoncus est pellentesque.",
+    ...         use="Lorem ipsum dolor sit amet",
+    ...     )
+    ... )
+    DEPRECATION WARNING
+    ===================
+    <BLANKLINE>
+    Dictumst vestibulum rhoncus est pellentesque.
+    <BLANKLINE>
+    Example
+    -------
+    Lorem ipsum dolor sit amet
+    """
+    use = kwds.pop("use", None)
+    if use:
+        footer = os.linesep.join(["Example", "-------", use])
+    else:
+        footer = None
+    header = "Deprecation warning".upper()
+    return format_message(
+        msg,
+        header=os.linesep.join([header, "=" * len(header)]),
+        footer=footer,
+        **kwds,
+    )
+
+
 def warning_message(msg=None, **kwds):
     """Create a warning message, landlab-style.
 
@@ -283,7 +335,8 @@ def warning_message(msg=None, **kwds):
     <BLANKLINE>
     Dictumst vestibulum rhoncus est pellentesque.
     """
-    return format_message(msg, header=os.linesep.join(["WARNING", "======="]), **kwds)
+    header = "Warning".upper()
+    return format_message(msg, header=os.linesep.join([header, "=" * len(header)]), **kwds)
 
 
 def error_message(msg=None, **kwds):
@@ -309,7 +362,8 @@ def error_message(msg=None, **kwds):
     <BLANKLINE>
     Dictumst vestibulum rhoncus est pellentesque.
     """
-    return format_message(msg, header=os.linesep.join(["ERROR", "====="]), **kwds)
+    header = "Error".upper()
+    return format_message(msg, header=os.linesep.join([header, "=" * len(header)]), **kwds)
 
 
 def assert_or_print(cond, msg=None, onerror="raise", file=sys.stdout):
