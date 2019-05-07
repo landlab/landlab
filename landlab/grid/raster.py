@@ -44,6 +44,7 @@ from .warnings import (
     DeprecatedSpacingArgument,
     DeprecatedSpacingKeyword,
     DeprecatedOriginKeyword,
+    DeprecatedDxKeyword,
 )
 
 
@@ -369,7 +370,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             if len(args) >= 2:
                 deprecation_warning = DeprecatedRowsColsArguments
         else:
-            deprecation_warning = DeprecatedRowsColsKeyword
+            deprecation_warning = DeprecatedRowsColsKeywords
             if args:
                 raise ValueError(
                     "number of args must be 0 when using keywords for grid shape"
@@ -378,19 +379,26 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         new_kwds = kwds.copy()
         new = ((shape,), new_kwds)
 
+        xy_spacing = None
         if "dx" in kwds:
             deprecation_warning = DeprecatedDxKeyword
-            new_kwds.setdefault("xy_spacing", kwds.pop("dx"))
+            xy_spacing = new_kwds.pop("dx")
         if "spacing" in kwds:
             deprecation_warning = DeprecatedSpacingKeyword
-            new_kwds.setdefault("xy_spacing", kwds.pop("spacing"))
+            xy_spacing = new_kwds.pop("spacing")
         if _parse_grid_spacing_from_args(args) is not None:
             deprecation_warning = DeprecatedSpacingArgument
-            new_kwds.setdefault("xy_spacing", _parse_grid_spacing_from_args(args))
+            xy_spacing = _parse_grid_spacing_from_args(args)
+
+        if "xy_spacing" not in kwds and xy_spacing is not None:
+            try:
+                new_kwds.setdefault("xy_spacing", xy_spacing[::-1])
+            except TypeError:
+                new_kwds.setdefault("xy_spacing", xy_spacing)
 
         if "origin" in kwds:
             deprecation_warning = DeprecatedOriginKeyword
-            new_kwds.setdefault("xy_of_lower_left", kwds.pop("origin"))
+            new_kwds.setdefault("xy_of_lower_left", new_kwds.pop("origin"))
 
         if deprecation_warning:
             warn(deprecation_warning("RasterModelGrid", old=old, new=new))
