@@ -22,9 +22,11 @@ def camel_case(text, sep=None):
     >>> camel_case("terry_gilliam", sep="_")
     'TerryGilliam'
     >>> camel_case("MONTY Python")
-    'MontyPython'
+    'MONTYPython'
+    >>> camel_case("GrahamChapman")
+    'GrahamChapman'
     """
-    return "".join(text.title().split(sep))
+    return "".join([word[0].upper() + word[1:] for word in text.split(sep)])
 
 
 def snake_case(text):
