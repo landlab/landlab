@@ -146,9 +146,9 @@ def _verify_structure_and_color(profile_structure, colors):
         if len(profile_structure) != len(colors):
             msg = (
                 "Number of colors is different than the number of "
-                "top level elements in the profile structure (watersheds) "
-                "if using the ChannelProfiler. The number must either be "
-                "the same, or one color."
+                "top level elements in the profile structure (watersheds "
+                "if using the ChannelProfiler). The number must either be "
+                "the same, or you must provide only one color."
             )
             raise ValueError(msg)
 
@@ -161,7 +161,8 @@ def _verify_structure_and_color(profile_structure, colors):
             if len(c) != len(p):
                 msg = (
                     "Number of colors is different than the number of "
-                    "segments in the profile structure."
+                    "segments in the profile structure (channel segments per "
+                    "watershed if using the ChannelProfiler)."
                 )
                 raise ValueError(msg)
             new_struct.extend(p)
@@ -288,20 +289,20 @@ class _BaseProfiler(Component):
             a) None - The matplotlib defaults will be used.
             b) One RGBA tuple. Then all segments of the profiles will be that
                color.
-            c) One RGBA tuple per highest level of the profile structure.
+            c) One RGBA tuple per highest level of the profile data structure.
                Then all segments within that level (e.g. watershed for the
-               ChannelProfiler) will be the same level.
-            d) One RGBA tuple per segment in the profile structure. The
-               structure of the color keyword argument must mirror that of the
-               profile structure.
+               ChannelProfiler) will be the same color.
+            d) One RGBA tuple per segment in the profile data structure. The
+               structure of the color keyword argument data structure must
+               mirror that of the profile data structure.
 
         Parameters
         ----------
         field : field name or nnode array
             Array of  the at-node-field to plot against distance upstream.
             Default value is the at-node field 'topographic__elevation'.
-        colors : sequence of RGB tuples, optional
-            Sequence of RGB tuples to use with each stream segment. See above.
+        colors : sequence of RGBA tuples, optional
+            Sequence of RGBA tuples to use with each stream segment. See above.
         xlabel : str, optional
             X-axis label, default is "Distance Along Profile".
         ylabel : str, optional
