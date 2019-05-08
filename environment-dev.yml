@@ -4,7 +4,6 @@ channels:
 dependencies:
 - python
 - black
-- bmipy
 - flake8
 - isort
 - matplotlib
@@ -18,3 +17,5 @@ dependencies:
 - six
 - statsmodels
 - xarray
+- pip:
+    - bmipy<1

@@ -76,7 +76,7 @@ setup(
     long_description=open("README.rst").read(),
     setup_requires=["cython", "numpy"],
     install_requires=[
-        "bmipy",
+        "bmipy<1",
         "matplotlib",
         "netcdf4",
         "pyyaml",
