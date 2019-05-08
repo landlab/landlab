@@ -5,7 +5,6 @@
 import numpy as np
 from six.moves import range
 
-from landlab import RasterModelGrid
 from landlab.components.profiler.base_profiler import _BaseProfiler
 
 

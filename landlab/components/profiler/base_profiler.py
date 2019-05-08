@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection
 
-from landlab import Component
+from landlab import Component, RasterModelGrid
 from landlab.plot import imshow_grid
 from landlab.utils.return_array import return_array_at_node
 
