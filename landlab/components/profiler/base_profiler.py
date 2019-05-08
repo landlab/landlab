@@ -117,6 +117,14 @@ class _BaseProfiler(Component):
     def __init__(self, grid, stopping_field):
         super(_BaseProfiler, self).__init__(grid)
 
+    def run_one_step(self):
+        """Calculate the profile datastructure and distances along it."""
+        # calculate the profile IDs datastructure
+        self._create_profile_structure()
+
+        # calculate the distance along profile datastructure
+        self._calculate_distances()
+
     def _calculate_distances(self):
         """Get distances along the profile_IDs datastructure."""
         self._distance_along_profile = []

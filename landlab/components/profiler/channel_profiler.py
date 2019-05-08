@@ -312,15 +312,6 @@ class ChannelProfiler(_BaseProfiler):
         """
         return self._distance_along_profile
 
-    def run_one_step(self):
-        """Calculate the channel profile datastructure and distances upstream.
-        """
-        # calculate the profile IDs datastructure
-        self._create_profile_structure()
-
-        # calculate the distance along profile datastructure
-        self._calculate_distances()
-
     def _get_channel_segment(self, i):
         """Get channel segment and return additional nodes to process.
 
