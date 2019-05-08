@@ -342,6 +342,18 @@ class _BaseProfiler(Component):
         """
         Plot profile locations in map view.
 
+        The colors keyword argument can handle the following options.
+
+            a) None - The matplotlib defaults will be used.
+            b) One RGBA tuple. Then all segments of the profiles will be that
+               color.
+            c) One RGBA tuple per highest level of the profile data structure.
+               Then all segments within that level (e.g. watershed for the
+               ChannelProfiler) will be the same color.
+            d) One RGBA tuple per segment in the profile data structure. The
+               structure of the color keyword argument data structure must
+               mirror that of the profile data structure.
+
         Parameters
         ----------
         field : field name or nnode array
