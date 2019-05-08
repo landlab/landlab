@@ -380,10 +380,7 @@ def test_re_calculating_profile_structure_and_distance():
     assert len(profiler._distance_along_profile) == 1
 
     # make the most complicated profile structure
-    profiler = ChannelProfiler(
-        mg,
-        main_channel_only=False,
-        number_of_watersheds=2)
+    profiler = ChannelProfiler(mg, main_channel_only=False, number_of_watersheds=2)
     profiler.run_one_step()
     p1 = list(profiler._profile_structure)
     d1 = list(profiler._distance_along_profile)

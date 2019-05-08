@@ -3,7 +3,6 @@
 """channel_profiler.py component to create channel profiles."""
 
 import numpy as np
-from six.moves import range
 
 from landlab.components.profiler.base_profiler import _BaseProfiler
 
