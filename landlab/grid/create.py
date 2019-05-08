@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 """Create landlab model grids."""
+from __future__ import absolute_import
+
 import inspect
 from warnings import warn
 
@@ -451,13 +453,15 @@ def norm_grid_description(grid_desc):
     >>> grid_desc = [
     ...     (3, 4), {"xy_spacing": 4.0, "xy_of_lower_left": (1.0, 2.0)}
     ... ]
-    >>> norm_grid_description(grid_desc)
-    {'xy_spacing': 4.0, 'xy_of_lower_left': (1.0, 2.0), 'args': [(3, 4)]}
+    >>> normed_items = list(norm_grid_description(grid_desc).items())
+    >>> normed_items.sort()
+    >>> normed_items
+    [('args', [(3, 4)]), ('xy_of_lower_left', (1.0, 2.0)), ('xy_spacing', 4.0)]
     """
     if not isinstance(grid_desc, dict):
         args, kwds = [], {}
         for arg in grid_desc:
-            if isinstance(arg, dict) and {"fields", "boundary_conditions"} & arg.keys():
+            if isinstance(arg, dict) and {"fields", "boundary_conditions"} & set(arg.keys()):
                 kwds.update(arg)
             else:
                 args.append(arg)
@@ -476,7 +480,7 @@ def _parse_args_kwargs(list_of_args_kwargs):
     else:
         args, kwargs = [], {}
         for arg in list(list_of_args_kwargs):
-            if isinstance(arg, dict) and {"fields", "boundary_conditions"} & arg.keys():
+            if isinstance(arg, dict) and {"fields", "boundary_conditions"} & set(arg.keys()):
                 kwargs.update(arg)
             else:
                 args.append(arg)
