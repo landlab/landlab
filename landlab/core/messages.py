@@ -308,7 +308,7 @@ def deprecation_message(msg=None, **kwds):
         msg,
         header=os.linesep.join([header, "=" * len(header)]),
         footer=footer,
-        **kwds,
+        **kwds
     )
 
 
