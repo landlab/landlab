@@ -404,3 +404,16 @@ def test_re_calculating_profile_structure_and_distance():
         for idx_segment in range(len(p1_w)):
             np.testing.assert_array_equal(p1_w[idx_segment], p2_w[idx_segment])
             np.testing.assert_array_equal(d1_w[idx_segment], d2_w[idx_segment])
+
+    color_options = [
+        None,
+        [(1, 1, 0, 1)],
+        (1, 1, 0, 1),
+        [(1, 0, 0, 1), (1, 1, 0, 1), (0, 1, 1, 1)],
+    ]
+
+    profiler = ChannelProfiler(mg, main_channel_only=False, number_of_watersheds=3)
+    profiler.run_one_step()
+    for colors in color_options:
+        profiler.plot_profiles_in_map_view(colors=colors)
+        profiler.plot_profiles(colors=colors)

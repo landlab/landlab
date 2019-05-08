@@ -28,6 +28,16 @@ def _flatten_structure(l):
     >>> out
     [[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6], [4, 5, 6, 7]]
     >>> assert _flatten_structure(None) is None
+    >>> c = [[(1, 2, 3), (1, 2, 3)],
+    ...           [[(1, 2, 3), (1, 2, 3), (1, 2, 3), (1, 2, 3)],
+    ...            [(1, 2, 3), (1, 2, 3), (1, 2, 3)]],
+    ...           [(1, 2, 3), (1, 2, 3), (1, 2, 3), (1, 2, 3)]]
+    >>> out = _flatten_structure(c)
+    >>> out
+    [(1, 2, 3), (1, 2, 3),
+     (1, 2, 3), (1, 2, 3), (1, 2, 3), (1, 2, 3),
+     (1, 2, 3), (1, 2, 3), (1, 2, 3),
+     (1, 2, 3), (1, 2, 3), (1, 2, 3), (1, 2, 3)]
     """
     if l is None:
         return None
@@ -37,29 +47,127 @@ def _flatten_structure(l):
         return list(chain(*map(_flatten_structure, l)))
 
 
-def _flatten_color(l):
+def _verify_structure_and_color(profile_structure, colors):
     """
+    Color structure must either be
+        a) None - then matplotlib default color cycle will be used
+        b) One RGBA tuple. Then all segments will be that color.
+        c) One RGBA tuple per highest level of the profile structure.
+            Then all segments within that level (e.g. watershed for the
+            ChannelProfiler) will be the same level.
+
     Examples
     --------
-    >>> from landlab.components.profiler.base_profiler import _flatten_color
-    >>> c = [[(1, 2, 3), (1, 2, 3)],
-    ...           [[(1, 2, 3), (1, 2, 3), (1, 2, 3), (1, 2, 3)],
-    ...            [(1, 2, 3), (1, 2, 3), (1, 2, 3)]],
-    ...           [(1, 2, 3), (1, 2, 3), (1, 2, 3), (1, 2, 3)]]
-    >>> out = _flatten_color(c)
-    >>> out
-    [[(1, 2, 3), (1, 2, 3)],
-     [(1, 2, 3), (1, 2, 3), (1, 2, 3), (1, 2, 3)],
-     [(1, 2, 3), (1, 2, 3), (1, 2, 3)],
-     [(1, 2, 3), (1, 2, 3), (1, 2, 3), (1, 2, 3)]]
-    >>> assert _flatten_color(None) is None
+    >>> from landlab.components.profiler.base_profiler import (
+    ...     _verify_structure_and_color)
+
+    If both are None
+
+    >>> ps, c = _verify_structure_and_color(None, None)
+    >>> assert ps is None
+    >>> assert c is None
+
+    If color is a list of one tuple.
+
+    >>> ps, c = _verify_structure_and_color(None, [(0, 1, 0, 1)])
+    >>> assert ps is None
+    >>> c
+    [(0, 1, 0, 1)]
+
+    If color is a tuple.
+
+    >>> ps, c = _verify_structure_and_color(None, (0, 1, 0, 1))
+    >>> assert ps is None
+    >>> c
+    (0, 1, 0, 1)
+
+    If structure and color are perfectly parallel data structures.
+    >>> struct = [[1, 2, 3, 4],
+    ...           [[2, 3, 4, 5],
+    ...            [3, 4, 5, 6]],
+    ...           [4, 5, 6, 7]]
+    >>> color = [(1, 1, 1, 1),
+    ...           [(1, 1, 1, 0),
+    ...            (1, 1, 0, 1)],
+    ...           (0, 1, 0, 1)]
+    >>> ps, c = _verify_structure_and_color(struct, color)
+    >>> ps
+    [[1, 2, 3, 4], [2, 3, 4, 5], [3, 4, 5, 6], [4, 5, 6, 7]]
+    >>> c
+    [(1, 1, 1, 1), (1, 1, 1, 0), (1, 1, 0, 1), (0, 1, 0, 1)]
+
+    If color is parallel with the top level of hierarchy.
+
+    >>> color = [(1, 1, 1, 1),
+    ...          (1, 1, 1, 0),
+    ...          (1, 1, 0, 1)]
+    >>> ps, c = _verify_structure_and_color(struct, color)
+    >>> c
+    [(1, 1, 1, 1), (1, 1, 1, 0), (1, 1, 1, 0), (1, 1, 0, 1)]
+
+    Some bad cases
+
+    >>> import pytest
+
+    If top level of color  has too few elements.
+
+    >>> color = [(1, 1, 1, 1),
+    ...          (1, 1, 1, 0)]
+    >>> with pytest.raises(ValueError):
+    ...     _verify_structure_and_color(struct, color)
+
+    If a lower level of color has more than one, but fewer than correct
+    elements.
+
+    >>> struct = [[1, 2, 3, 4],
+    ...           [[2, 3, 4, 5],
+    ...            [3, 4, 5, 6],
+    ...            [6, 7, 8, 9]],
+    ...           [4, 5, 6, 7]]
+    >>> color = [(1, 1, 1, 1),
+    ...           [(1, 1, 1, 0),
+    ...            (1, 1, 0, 1)],
+    ...           (0, 1, 0, 1)]
+    >>> with pytest.raises(ValueError):
+    ...     _verify_structure_and_color(struct, color)
+
     """
-    if l is None:
-        return None
-    if isinstance(l[0], tuple):
-        return [l]
+    if (
+        (colors is None)
+        or (len(colors) == 1 and isinstance(colors[0], tuple))
+        or (isinstance(colors, tuple))
+    ):
+        return (_flatten_structure(profile_structure), colors)
+
     else:
-        return list(chain(*map(_flatten_color, l)))
+        new_colors = []
+        new_struct = []
+
+        if len(profile_structure) != len(colors):
+            msg = (
+                "Number of colors is different than the number of "
+                "top level elements in the profile structure (watersheds) "
+                "if using the ChannelProfiler. The number must either be "
+                "the same, or one color."
+            )
+            raise ValueError(msg)
+
+        for i in range(len(profile_structure)):
+            p = _flatten_structure(profile_structure[i])
+            c = _flatten_structure(colors[i])
+
+            if len(c) == 1:
+                c = c * len(p)
+            if len(c) != len(p):
+                msg = (
+                    "Number of colors is different than the number of "
+                    "segments in the profile structure."
+                )
+                raise ValueError(msg)
+            new_struct.extend(p)
+            new_colors.extend(c)
+
+        return (new_struct, new_colors)
 
 
 def _recursive_max(jagged):
@@ -175,14 +283,25 @@ class _BaseProfiler(Component):
         """
         Plot distance-upstream vs at at-node or size (nnodes,) quantity.
 
+        The colors keyword argument can handle the following options.
+
+            a) None - The matplotlib defaults will be used.
+            b) One RGBA tuple. Then all segments of the profiles will be that
+               color.
+            c) One RGBA tuple per highest level of the profile structure.
+               Then all segments within that level (e.g. watershed for the
+               ChannelProfiler) will be the same level.
+            d) One RGBA tuple per segment in the profile structure. The
+               structure of the color keyword argument must mirror that of the
+               profile structure.
+
         Parameters
         ----------
         field : field name or nnode array
             Array of  the at-node-field to plot against distance upstream.
             Default value is the at-node field 'topographic__elevation'.
         colors : sequence of RGB tuples, optional
-            Sequence of RGB tuples to use with each stream segment. Assumed
-            to have the same structure as the profile datastructure.
+            Sequence of RGB tuples to use with each stream segment. See above.
         xlabel : str, optional
             X-axis label, default is "Distance Along Profile".
         ylabel : str, optional
@@ -194,8 +313,7 @@ class _BaseProfiler(Component):
 
         # flatten datastructure
         x_dist = _flatten_structure(self._distance_along_profile)
-        node_ids = _flatten_structure(self._profile_structure)
-        colors = _flatten_color(colors)
+        node_ids, colors = _verify_structure_and_color(self._profile_structure, colors)
 
         # create segments the way that line collection likes them.
         segments = []
@@ -228,7 +346,8 @@ class _BaseProfiler(Component):
         field : field name or nnode array
             Array of  the at-node-field to plot as the 2D map values.
             Default value is the at-node field 'topographic__elevation'.
-        colors : f..
+        colors : sequence of RGB tuples, optional
+            Sequence of RGB tuples to use with each stream segment. See above.
         **kwargs : keyword arguments, arguments
             Additional parameters to pass to imshow_grid
         """
@@ -239,8 +358,7 @@ class _BaseProfiler(Component):
         segments = []
 
         # flatten datastructure
-        node_ids = _flatten_structure(self._profile_structure)
-        colors = _flatten_color(colors)
+        node_ids, colors = _verify_structure_and_color(self._profile_structure, colors)
 
         # create segments the way that line collection likes them.
         segments = []
