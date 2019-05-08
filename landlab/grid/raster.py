@@ -3449,12 +3449,14 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> import os
-        >>> from tempfile import TemporaryDirectory
+        >>> from tempfile import mkdtemp
 
         >>> grid = RasterModelGrid((4, 5))
-        >>> with TemporaryDirectory() as tdir:
-        ...     grid.save(os.path.join(tdir, "mysave.nc"))
-        ...     assert os.path.isfile(os.path.join(tdir, "mysave.nc"))
+        >>> fname = os.path.join(mkdtemp(), "mysave.nc")
+        >>> grid.save(fname)
+        >>> os.path.isfile(fname)
+        True
+        >>> os.remove(fname)
 
         LLCATS: GINF
         """
