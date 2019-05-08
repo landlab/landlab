@@ -142,6 +142,7 @@ def test_raster_with_args_and_shape():
     with pytest.deprecated_call():
         RasterModelGrid(3, 3, num_cols=3)
 
+
 def test_raster_with_negative_shape():
     with pytest.raises(ValueError):
         with pytest.deprecated_call():

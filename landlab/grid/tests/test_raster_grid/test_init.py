@@ -34,7 +34,7 @@ def test_parse_parameters_deprecated_spacing(params):
 
 def test_parse_parameters_deprecated_xy_of_lower_left():
     with pytest.deprecated_call():
-        args, kwds = RasterModelGrid._parse_parameters([(3, 4),], {"origin": (1.0, 2.0)})
+        args, kwds = RasterModelGrid._parse_parameters([(3, 4)], {"origin": (1.0, 2.0)})
     assert args == ((3, 4),)
     assert kwds == {"xy_of_lower_left": (1.0, 2.0)}
 
@@ -48,7 +48,7 @@ def test_parse_parameters_deprecated_xy_of_lower_left():
     ]
 )
 def test_parse_parameters_new_style(kwds):
-    args, new_kwds = RasterModelGrid._parse_parameters([(3, 4),], kwds)
+    args, new_kwds = RasterModelGrid._parse_parameters([(3, 4)], kwds)
     assert args == ((3, 4),)
     assert new_kwds == kwds
 

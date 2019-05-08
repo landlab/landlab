@@ -2,7 +2,6 @@
 """Create landlab model grids."""
 from __future__ import absolute_import
 
-import inspect
 from warnings import warn
 
 from ..core import load_params, model_parameter_dictionary as mpd

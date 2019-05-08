@@ -49,7 +49,6 @@ from .warnings import (
 )
 
 
-
 @deprecated(use="grid.node_has_boundary_neighbor", version="0.2")
 def _node_has_boundary_neighbor(mg, id, method="d8"):
     """Test if a RasterModelGrid node is next to a boundary.

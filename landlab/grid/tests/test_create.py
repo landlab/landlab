@@ -1,4 +1,3 @@
-import os
 from collections import OrderedDict
 
 import numpy as np
@@ -6,7 +5,7 @@ import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 from six.moves import StringIO
 
-from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid, create_grid
+from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
 from landlab.grid.create import (
     _parse_args_kwargs,
     add_boundary_conditions,
@@ -158,7 +157,6 @@ def test_simple_create(tmpdir):
 
 
 def test_esri_ascii_create(datadir):
-    # filename = os.path.join(_TEST_DATA_DIR, "4_x_3_no_nodata_value.asc")
     filename = str(datadir / "4_x_3_no_nodata_value.asc")
     dict_like = {
         "grid": {
@@ -196,7 +194,6 @@ def test_esri_ascii_create(datadir):
 
 
 def test_read_netcdf_create(datadir):
-    # filename = os.path.join(_TEST_DATA_DIR, "test-netcdf4.nc")
     filename = str(datadir / "test-netcdf4.nc")
     dict_like = {
         "grid": {
@@ -239,7 +236,6 @@ def test_two_boundary_condition_dicts():
 
 
 def test_bad_boundary_condition_functions(datadir):
-    # filename = os.path.join(_TEST_DATA_DIR, "bad_boundary.yaml")
     filename = str(datadir / "bad_boundary.yaml")
     with pytest.raises(ValueError):
         create_grid(filename, section="grid")
