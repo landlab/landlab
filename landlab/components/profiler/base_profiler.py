@@ -2,7 +2,6 @@
 # ! /usr/env/python
 """Base class for profile constructors."""
 from abc import ABC, abstractmethod
-
 from itertools import chain
 
 import matplotlib.pyplot as plt
@@ -232,7 +231,7 @@ class _BaseProfiler(Component, ABC):
 
         This abstract method must be defined by inheriting classes.
         """
-        ... # pragma: no cover
+        ...  # pragma: no cover
 
     def run_one_step(self):
         """Calculate the profile datastructure and distances along it."""
