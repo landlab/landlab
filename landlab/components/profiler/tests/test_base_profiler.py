@@ -11,6 +11,7 @@ def EmptyBaseProfiler():
 
         def _calculate_distances(self):
             pass
+
     return EmptyBaseProfiler
 
 
