@@ -1,7 +1,7 @@
 # coding: utf8
 # ! /usr/env/python
-"""
-"""
+"""Base class for profile constructors."""
+from abc import ABC, abstractmethod
 
 from itertools import chain
 
@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection
 
-from landlab import Component, RasterModelGrid
+from landlab import Component
 from landlab.plot import imshow_grid
 from landlab.utils.return_array import return_array_at_node
 
@@ -205,7 +205,7 @@ def _recursive_min(jagged):
     return min(_recursive_min(j) if hasattr(j, "__iter__") else j for j in jagged)
 
 
-class _BaseProfiler(Component):
+class _BaseProfiler(Component, ABC):
     """Base class to handle profilers.
 
     Primarily exists to handle plotting.
@@ -226,6 +226,14 @@ class _BaseProfiler(Component):
     def __init__(self, grid, stopping_field):
         super(_BaseProfiler, self).__init__(grid)
 
+    @abstractmethod
+    def _calculate_distances(self):
+        """Calculate distance along the self._profile_structure.
+
+        This abstract method must be defined by inheriting classes.
+        """
+        ... # pragma: no cover
+
     def run_one_step(self):
         """Calculate the profile datastructure and distances along it."""
         # calculate the profile IDs datastructure
@@ -233,45 +241,6 @@ class _BaseProfiler(Component):
 
         # calculate the distance along profile datastructure
         self._calculate_distances()
-
-    def _calculate_distances(self):
-        """Get distances along the profile_IDs datastructure."""
-        self._distance_along_profile = []
-        end_distances = {}
-
-        # set the starting values for the beginnings of each netwrok.
-        for network in self._profile_structure:
-            starting_node = network[0][0]
-            end_distances[starting_node] = 0
-
-        # for each network
-        for network in self._profile_structure:
-
-            network_values = []
-            # for each segment in the network.
-            for segment in network:
-                starting_node = segment[0]
-
-                total_distance = end_distances[starting_node]
-
-                profile_values = []
-                profile_values.append(total_distance)
-
-                # itterate up the profile
-                for j in range(len(segment) - 1):
-                    if isinstance(self._grid, RasterModelGrid):
-                        total_distance += self._grid.length_of_d8[
-                            self._link_to_flow_receiver[segment[j + 1]]
-                        ]
-                        profile_values.append(total_distance)
-                    else:
-                        total_distance += self._grid.length_of_link[
-                            self._link_to_flow_receiver[segment[j + 1]]
-                        ]
-                        profile_values.append(total_distance)
-                network_values.append(np.array(profile_values))
-                end_distances[segment[-1]] = total_distance
-            self._distance_along_profile.append(network_values)
 
     def plot_profiles(
         self,
@@ -299,7 +268,7 @@ class _BaseProfiler(Component):
         Parameters
         ----------
         field : field name or nnode array
-            Array of  the at-node-field to plot against distance upstream.
+            Array of the at-node-field to plot against distance upstream.
             Default value is the at-node field 'topographic__elevation'.
         colors : sequence of RGBA tuples, optional
             Sequence of RGBA tuples to use with each stream segment. See above.
@@ -326,7 +295,7 @@ class _BaseProfiler(Component):
             qmax.append(max(quantity[nodes]))
 
         # We need to set the plot limits.
-        fig, ax = plt.subplots()
+        ax = plt.gca()
         ax.set_xlim(_recursive_min(x_dist), _recursive_max(x_dist))
         ax.set_ylim(min(qmin), max(qmax))
 
@@ -357,7 +326,7 @@ class _BaseProfiler(Component):
         Parameters
         ----------
         field : field name or nnode array
-            Array of  the at-node-field to plot as the 2D map values.
+            Array of the at-node-field to plot as the 2D map values.
             Default value is the at-node field 'topographic__elevation'.
         colors : sequence of RGB tuples, optional
             Sequence of RGB tuples to use with each stream segment. See above.

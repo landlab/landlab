@@ -4,6 +4,7 @@
 
 import numpy as np
 
+from landlab import RasterModelGrid
 from landlab.components.profiler.base_profiler import _BaseProfiler
 
 
@@ -84,10 +85,10 @@ class ChannelProfiler(_BaseProfiler):
 
     This creates the profile structure and distances upstream structure. Since
     we used the default values this will make only one profile, the biggest
-    channel in the biggest stream network in the catchemnt.
+    channel in the biggest stream network in the catchment.
 
     profile_structure will be a length 1 array and will contain one array that
-    is the length in number of nodes of the single longest channel
+    is the length in number of nodes of the single longest channel.
 
     >>> len(profiler.profile_structure) == 1
     True
@@ -135,7 +136,7 @@ class ChannelProfiler(_BaseProfiler):
     >>> profiler.run_one_step()
 
     This will create three channel networks. The attributes profile_structure
-    and distances_upstream will both be length 3
+    and distances_upstream will both be length 3.
 
     >>> len(profiler.profile_structure) == len(profiler.distances_upstream) == 3
     True
@@ -206,10 +207,10 @@ class ChannelProfiler(_BaseProfiler):
         number_of_watersheds : int, optional
             Total number of watersheds to plot. Default value is 1. If value is
             greater than 1 and starting_nodes is not specified, then the
-            number_of_watersheds largest watersheds based on the drainage area
-            at the model grid boundary. If given as None, then all grid cells
-            on the domain boundary with a stopping field (typically drainage
-            area) greater than the outlet_threshold in area are used.
+            number_of_watersheds largest watersheds is based on the drainage
+            area at the model grid boundary. If given as None, then all grid
+            cells on the domain boundary with a stopping field (typically
+            drainage area) greater than the outlet_threshold in area are used.
         outlet_threshold : float, optional
             Threshold for defining an outlet. Default is 1e6.
         main_channel_only : Boolean, optional
@@ -281,7 +282,7 @@ class ChannelProfiler(_BaseProfiler):
             msg = (
                 "The number of watersheds requested by the ChannelProfiler is "
                 "greater than the number in the domain with sufficent drainage"
-                "area."
+                " area."
             )
             raise ValueError(msg)
 
@@ -420,3 +421,42 @@ class ChannelProfiler(_BaseProfiler):
                     channel_network.append(np.array(channel_segment))
                     queue.extend(nodes_to_process)
                 self._profile_structure.append(channel_network)
+
+    def _calculate_distances(self):
+        """Get distances along the profile_IDs datastructure."""
+        self._distance_along_profile = []
+        end_distances = {}
+
+        # set the starting values for the beginnings of each netwrok.
+        for network in self._profile_structure:
+            starting_node = network[0][0]
+            end_distances[starting_node] = 0
+
+        # for each network
+        for network in self._profile_structure:
+
+            network_values = []
+            # for each segment in the network.
+            for segment in network:
+                starting_node = segment[0]
+
+                total_distance = end_distances[starting_node]
+
+                profile_values = []
+                profile_values.append(total_distance)
+
+                # itterate up the profile
+                for j in range(len(segment) - 1):
+                    if isinstance(self._grid, RasterModelGrid):
+                        total_distance += self._grid.length_of_d8[
+                            self._link_to_flow_receiver[segment[j + 1]]
+                        ]
+                        profile_values.append(total_distance)
+                    else:
+                        total_distance += self._grid.length_of_link[
+                            self._link_to_flow_receiver[segment[j + 1]]
+                        ]
+                        profile_values.append(total_distance)
+                network_values.append(np.array(profile_values))
+                end_distances[segment[-1]] = total_distance
+            self._distance_along_profile.append(network_values)
