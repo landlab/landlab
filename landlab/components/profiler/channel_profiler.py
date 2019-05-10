@@ -85,10 +85,10 @@ class ChannelProfiler(_BaseProfiler):
 
     This creates the profile structure and distances upstream structure. Since
     we used the default values this will make only one profile, the biggest
-    channel in the biggest stream network in the catchemnt.
+    channel in the biggest stream network in the catchment.
 
     profile_structure will be a length 1 array and will contain one array that
-    is the length in number of nodes of the single longest channel
+    is the length in number of nodes of the single longest channel.
 
     >>> len(profiler.profile_structure) == 1
     True
@@ -136,7 +136,7 @@ class ChannelProfiler(_BaseProfiler):
     >>> profiler.run_one_step()
 
     This will create three channel networks. The attributes profile_structure
-    and distances_upstream will both be length 3
+    and distances_upstream will both be length 3.
 
     >>> len(profiler.profile_structure) == len(profiler.distances_upstream) == 3
     True
@@ -207,10 +207,10 @@ class ChannelProfiler(_BaseProfiler):
         number_of_watersheds : int, optional
             Total number of watersheds to plot. Default value is 1. If value is
             greater than 1 and starting_nodes is not specified, then the
-            number_of_watersheds largest watersheds based on the drainage area
-            at the model grid boundary. If given as None, then all grid cells
-            on the domain boundary with a stopping field (typically drainage
-            area) greater than the outlet_threshold in area are used.
+            number_of_watersheds largest watersheds is based on the drainage
+            area at the model grid boundary. If given as None, then all grid
+            cells on the domain boundary with a stopping field (typically
+            drainage area) greater than the outlet_threshold in area are used.
         outlet_threshold : float, optional
             Threshold for defining an outlet. Default is 1e6.
         main_channel_only : Boolean, optional
@@ -282,7 +282,7 @@ class ChannelProfiler(_BaseProfiler):
             msg = (
                 "The number of watersheds requested by the ChannelProfiler is "
                 "greater than the number in the domain with sufficent drainage"
-                "area."
+                " area."
             )
             raise ValueError(msg)
 
