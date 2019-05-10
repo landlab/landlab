@@ -138,9 +138,9 @@ class HackCalculator(Component):
     >>> df = hc.calculate_hack_coefficients()
     >>> df.round(2)  # doctest: +NORMALIZE_WHITESPACE
               A_max     C     h
-    39    2170000.0  0.23  0.64
-    4929  2350000.0  0.16  0.66
-    4978  2830000.0  0.51  0.59
+    39    2170000.0  0.24  0.64
+    4929  2350000.0  0.25  0.63
+    4978  2830000.0  0.46  0.60
     """
 
     _name = "HackCalculator"
@@ -256,19 +256,26 @@ class HackCalculator(Component):
 
             out[outlet_node] = {"A_max": A_max, "C": C, "h": h}
 
-            internal_df.append(pd.DataFrame.from_dict({
-                    "basin_id": outlet_node*np.ones(A.shape),
-                    "A": A,
-                    "L_obs": L,
-                    "L_est": C * A**h}))
+            internal_df.append(
+                pd.DataFrame.from_dict(
+                    {
+                        "basin_id": outlet_node * np.ones(A.shape),
+                        "A": A,
+                        "L_obs": L,
+                        "L_est": C * A ** h,
+                    }
+                )
+            )
 
-        df = pd.DataFrame.from_dict(
-            out, orient="index", columns=["A_max", "C", "h"]
-        )
+        df = pd.DataFrame.from_dict(out, orient="index", columns=["A_max", "C", "h"])
 
         hdf = pd.concat(internal_df, ignore_index=True)
-        amax_df = hdf.drop(["L_obs", "L_est"],
-                           axis=1).groupby("basin_id").max().sort_values(by="A")
+        amax_df = (
+            hdf.drop(["L_obs", "L_est"], axis=1)
+            .groupby("basin_id")
+            .max()
+            .sort_values(by="A")
+        )
         s = pd.Series(hdf["basin_id"], dtype="category", index=hdf.index)
         s = s.cat.set_categories(amax_df.index.values, ordered=True)
         hdf["basin_id"] = s
