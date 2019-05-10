@@ -287,7 +287,7 @@ class _BaseProfiler(Component):
             qmax.append(max(quantity[nodes]))
 
         # We need to set the plot limits.
-        fig, ax = plt.subplots()
+        ax = plt.gca()
         ax.set_xlim(_recursive_min(x_dist), _recursive_max(x_dist))
         ax.set_ylim(min(qmin), max(qmax))
 
