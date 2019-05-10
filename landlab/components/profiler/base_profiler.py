@@ -299,7 +299,7 @@ class _BaseProfiler(Component):
         Parameters
         ----------
         field : field name or nnode array
-            Array of  the at-node-field to plot against distance upstream.
+            Array of the at-node-field to plot against distance upstream.
             Default value is the at-node field 'topographic__elevation'.
         colors : sequence of RGBA tuples, optional
             Sequence of RGBA tuples to use with each stream segment. See above.
@@ -357,7 +357,7 @@ class _BaseProfiler(Component):
         Parameters
         ----------
         field : field name or nnode array
-            Array of  the at-node-field to plot as the 2D map values.
+            Array of the at-node-field to plot as the 2D map values.
             Default value is the at-node field 'topographic__elevation'.
         colors : sequence of RGB tuples, optional
             Sequence of RGB tuples to use with each stream segment. See above.
