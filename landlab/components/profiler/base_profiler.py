@@ -1,7 +1,7 @@
 # coding: utf8
 # ! /usr/env/python
-"""
-"""
+"""Base class for profile constructors."""
+from abc import ABC, abstractmethod
 
 from itertools import chain
 
@@ -205,7 +205,7 @@ def _recursive_min(jagged):
     return min(_recursive_min(j) if hasattr(j, "__iter__") else j for j in jagged)
 
 
-class _BaseProfiler(Component):
+class _BaseProfiler(Component, ABC):
     """Base class to handle profilers.
 
     Primarily exists to handle plotting.
@@ -225,6 +225,14 @@ class _BaseProfiler(Component):
 
     def __init__(self, grid, stopping_field):
         super(_BaseProfiler, self).__init__(grid)
+
+    @abstractmethod
+    def _calculate_distances(self):
+        """Calculate distance along the self._profile_structure.
+
+        This abstract method must be defined by inheriting classes.
+        """
+        ... # pragma: no cover
 
     def run_one_step(self):
         """Calculate the profile datastructure and distances along it."""
