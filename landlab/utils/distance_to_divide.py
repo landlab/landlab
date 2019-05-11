@@ -4,9 +4,6 @@ import numpy as np
 
 from landlab import (
     BAD_INDEX_VALUE,
-    CORE_NODE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
     FieldError,
     RasterModelGrid,
 )
@@ -67,7 +64,7 @@ def calculate_distance_to_divide(
     ...     add_to_grid=True,
     ...     noclobber=False)
     >>> mg.at_node['distance_to_divide']
-    array([ 0.,  2.,  2.,  0.,
+    array([ 0.,  3.,  3.,  0.,
             0.,  2.,  2.,  0.,
             0.,  1.,  1.,  0.,
             0.,  0.,  0.,  0.,
@@ -99,7 +96,7 @@ def calculate_distance_to_divide(
     ...     add_to_grid=True,
     ...     noclobber=False)
     >>> mg.at_node['distance_to_divide']
-    array([ 0.,  2.,  2.,  0.,
+    array([ 0.,  3.,  3.,  0.,
             0.,  2.,  2.,  0.,
             0.,  1.,  1.,  0.,
             0.,  0.,  0.,  0.,
@@ -127,7 +124,7 @@ def calculate_distance_to_divide(
     ...     add_to_grid=True,
     ...     noclobber=False)
     >>> hmg.at_node['distance_to_divide']
-    array([ 2.,  0.,  0.,
+    array([ 3.,  0.,  0.,
          0.,  2.,  1.,  0.,
        0.,  1.,  1.,  0.,  0.,
          0.,   0.,  0.,  0.,
@@ -175,16 +172,18 @@ def calculate_distance_to_divide(
             grid.at_node["flow__link_to_receiver_node"]
         ]
 
-    # create an array that representes the outlet lengths.
+    # create an array that representes the distance to the divide.
     distance_to_divide = np.zeros(grid.nodes.size)
 
     if not longest_path:
-        distance_to_divide[grid.core_nodes] = 2 * grid.size("node")
+        distance_to_divide[:] = 2 * grid.size("node") * np.max(flow_link_lengths)
 
     # iterate through the flow__upstream_node_order backwards.
     for node in reversed(flow__upstream_node_order):
 
         # if drainage are is equal to node cell area, set distance to zeros
+        # this should handle the drainage divide cells as boundary cells have
+        # their area set to zero.
         if drainage_area[node] == grid.cell_area_at_node[node]:
             distance_to_divide[node] = 0
 
@@ -192,6 +191,7 @@ def calculate_distance_to_divide(
         reciever = flow__receiver_node[node]
 
         if to_one:
+            # if not processing an outlet node.
             if reciever != node:
 
                 if longest_path:
@@ -206,15 +206,9 @@ def calculate_distance_to_divide(
                     )
 
                 if cond:
-                    if grid.status_at_node[reciever] == CORE_NODE:
-                        distance_to_divide[reciever] = (
-                            distance_to_divide[node] + flow_link_lengths[node]
-                        )
-                if grid.status_at_node[reciever] in (
-                    FIXED_VALUE_BOUNDARY,
-                    FIXED_GRADIENT_BOUNDARY,
-                ):
-                    distance_to_divide[reciever] = distance_to_divide[node]
+                    distance_to_divide[reciever] = (
+                        distance_to_divide[node] + flow_link_lengths[node]
+                    )
 
         else:
             # non-existant links are coded with -1
@@ -223,6 +217,8 @@ def calculate_distance_to_divide(
             for idx in range(len(useable_recievers)):
                 r = reciever[useable_recievers][idx]
                 fll = flow_link_lengths[node][useable_recievers][idx]
+
+                # if not processing an outlet node.
                 if r != node:
 
                     if longest_path:
@@ -231,14 +227,7 @@ def calculate_distance_to_divide(
                         cond = distance_to_divide[r] > distance_to_divide[node] + fll
 
                     if cond:
-                        if grid.status_at_node[r] == CORE_NODE:
-                            distance_to_divide[r] = distance_to_divide[node] + fll
-
-                    if grid.status_at_node[r] in (
-                        FIXED_VALUE_BOUNDARY,
-                        FIXED_GRADIENT_BOUNDARY,
-                    ):
-                        distance_to_divide[r] = distance_to_divide[node]
+                        distance_to_divide[r] = distance_to_divide[node] + fll
 
     # store on the grid
     if add_to_grid:
