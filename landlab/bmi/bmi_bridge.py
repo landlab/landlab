@@ -14,13 +14,15 @@ exposes a Basic Modelling Interface.
 """
 import os
 
-from bmipy import Bmi
 import numpy as np
 import yaml
+from bmipy import Bmi
 
-from ..framework.decorators import snake_case
+from ..core import load_params
 from ..core.model_component import Component
+from ..framework.decorators import snake_case
 from ..grid import RasterModelGrid
+from ..grid.create import grids_from_file
 
 
 class TimeStepper(object):
@@ -245,21 +247,16 @@ def wrap_as_bmi(cls):
             config_file : str or file_like
                 YAML-formatted input file for the component.
             """
-            if os.path.isfile(config_file):
-                with open(config_file, "r") as fp:
-                    params = yaml.safe_load(fp)
+            grid = grids_from_file(config_file, section="grid")
+            if not grid:
+                raise ValueError("no grid in config file ({0})".format(config_file))
+            elif len(grid) > 1:
+                raise ValueError("multiple grids in config file ({0})".format(config_file))
             else:
-                params = yaml.load(config_file)
+                grid = grid[0]
 
-            grid_params = params.pop("grid")
-            gtype = grid_params.pop("type")
-            if gtype == "raster":
-                cls = RasterModelGrid
-            else:
-                raise ValueError("unrecognized grid type {gtype}".format(gtype=gtype))
-
-            grid = cls.from_dict(grid_params)
-
+            params = load_params(config_file)
+            params.pop("grid")
             clock_params = params.pop("clock")
             self._clock = TimeStepper(**clock_params)
 
