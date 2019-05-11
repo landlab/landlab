@@ -2,11 +2,7 @@
 """Functions to calculate flow distance from divide."""
 import numpy as np
 
-from landlab import (
-    BAD_INDEX_VALUE,
-    FieldError,
-    RasterModelGrid,
-)
+from landlab import BAD_INDEX_VALUE, FieldError, RasterModelGrid
 
 
 def calculate_distance_to_divide(
