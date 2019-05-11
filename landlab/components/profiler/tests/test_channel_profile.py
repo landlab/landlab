@@ -350,7 +350,7 @@ def test_different_kwargs(profile_example_grid):
 
 
 def test_re_calculating_profile_structure_and_distance():
-    mg = RasterModelGrid((20, 20), 100)
+    mg = RasterModelGrid((20, 20), xy_spacing=100)
     z = mg.add_zeros("node", "topographic__elevation")
     z += np.random.rand(z.size)
     mg.set_closed_boundaries_at_grid_edges(
@@ -417,3 +417,41 @@ def test_re_calculating_profile_structure_and_distance():
     for colors in color_options:
         profiler.plot_profiles_in_map_view(colors=colors)
         profiler.plot_profiles(colors=colors)
+
+
+@pytest.mark.parametrize("main", [True, False])
+@pytest.mark.parametrize("nshed", [True, False])
+def test_getting_all_the_way_to_the_divide(main, nshed):
+    np.random.seed(42)
+    mg = RasterModelGrid((10, 12))
+    z = mg.add_zeros("node", "topographic__elevation")
+    z += np.random.rand(z.size)
+
+    fa = FlowAccumulator(mg, flow_director="D8")
+    sp = FastscapeEroder(mg, K_sp=0.0001, m_sp=0.5, n_sp=1)
+
+    dt = 1000
+    uplift_per_step = 0.001 * dt
+    core_mask = mg.node_is_core()
+
+    for i in range(100):
+        z[core_mask] += uplift_per_step
+        fa.run_one_step()
+        sp.run_one_step(dt=dt)
+
+    profiler = ChannelProfiler(
+        mg,
+        number_of_watersheds=nshed,
+        outlet_threshold=0,
+        main_channel_only=main,
+        threshold=0,
+    )
+    profiler.run_one_step()
+
+    # assert that with threshold set to zero, we get all the way to the top of the divide.
+    for watershed_nodes in profiler._profile_structure:
+        nodes = np.concatenate(_flatten_structure(watershed_nodes)).ravel()
+        da = mg.at_node["drainage_area"][nodes]
+
+        # if "profile" is just bits of the edge, then da is 0.
+        assert (mg.area_of_cell.min() in da) or (0.0 in da)

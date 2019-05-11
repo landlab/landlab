@@ -350,7 +350,7 @@ class ChannelProfiler(_BaseProfiler):
 
             # if only adding the biggest channel, continue upstream choosing the
             # largest node until no more nodes remain.
-            if self._main_channel_only:
+            if (self._main_channel_only) and (len(supplying_nodes) > 0):
                 max_drainage = np.argmax(self._stopping_field[supplying_nodes])
 
                 if self._stopping_field[supplying_nodes[max_drainage]] < self.threshold:
