@@ -12,16 +12,12 @@ The `wrap_as_bmi` function wraps a landlab component class so that it
 exposes a Basic Modelling Interface.
 
 """
-import os
-
 import numpy as np
-import yaml
 from bmipy import Bmi
 
 from ..core import load_params
 from ..core.model_component import Component
 from ..framework.decorators import snake_case
-from ..grid import RasterModelGrid
 from ..grid.create import grids_from_file
 
 
@@ -251,7 +247,9 @@ def wrap_as_bmi(cls):
             if not grid:
                 raise ValueError("no grid in config file ({0})".format(config_file))
             elif len(grid) > 1:
-                raise ValueError("multiple grids in config file ({0})".format(config_file))
+                raise ValueError(
+                    "multiple grids in config file ({0})".format(config_file)
+                )
             else:
                 grid = grid[0]
 
