@@ -187,12 +187,12 @@ class ResourceRedistribution(Component):
         R = self.grid.at_cell['soil__resources']
         Elig_R = np.where(R > self._R_low_threshold)[0]
         # Deal with shrubs first
-        burnt_shrubs = Elig_R[V[Elig_R] == 4]
+        burnt_shrubs = Elig_R[V[Elig_R] == BURNTSHRUB]
         eroded_soil_shrub = (np.int(burnt_shrubs.shape[0]) * 4 * self._e)
         R[burnt_shrubs] -= (4 * self._e)
         # Deal with erosion of other cells
-        burnt_grass = Elig_R[V[Elig_R]==3]
-        bare_cells = Elig_R[V[Elig_R]==0]
+        burnt_grass = Elig_R[V[Elig_R]==BURNTGRASS]
+        bare_cells = Elig_R[V[Elig_R]==BARE]
         R[burnt_grass] -= (0.2 * self._e)
         R[bare_cells] -= self._e
         eroded_soil = (np.int(burnt_grass.shape[0]) * 0.2 * self._e +
@@ -204,7 +204,7 @@ class ResourceRedistribution(Component):
         V = self.grid.at_cell['vegetation__plant_functional_type']
         R = self.grid.at_cell['soil__resources']
         exclusive = np.arange(0, self.grid.number_of_cells)
-        burnt_shrubs = np.where(V == 4)[0]
+        burnt_shrubs = np.where(V == BURNTSHRUB)[0]
         if int(burnt_shrubs.shape[0]) > 0:
             burnt_shrubs_neigh = np.unique(
                     self.grid.looped_neighbors_at_cell[burnt_shrubs])
@@ -216,9 +216,9 @@ class ResourceRedistribution(Component):
                 exclusive[np.in1d(exclusive, burnt_shrubs_neigh, invert=True)])
         else:
             burnt_shrubs_neigh = []
-        shrub_exclusive = exclusive[np.where(V[exclusive] == 2)[0]]
-        grass_exclusive = exclusive[np.where(V[exclusive] == 1)[0]]
-        bare_exclusive = exclusive[np.where(V[exclusive] == 0)[0]]
+        shrub_exclusive = exclusive[np.where(V[exclusive] == SHRUB)[0]]
+        grass_exclusive = exclusive[np.where(V[exclusive] == GRASS)[0]]
+        bare_exclusive = exclusive[np.where(V[exclusive] == BARE)[0]]
         ## Calculating how much each bare cell will get from eroded_soil 'Eb'
         ## Shrubs will receive thrice Es = 3*Eb && Eg = 2*Eb
         weighted_parts = (1 * int(bare_exclusive.shape[0]) +
@@ -264,20 +264,20 @@ class ResourceRedistribution(Component):
     def establish(self):
         V = self.grid.at_cell['vegetation__plant_functional_type']
         R = self.grid.at_cell['soil__resources']
-        burnt_shrubs = np.where(V == 4)[0]
-        burnt_grass = np.where(V == 3)[0]
+        burnt_shrubs = np.where(V == BURNTSHRUB)[0]
+        burnt_grass = np.where(V == BURNTGRASS)[0]
         ## Regrowth in burnt area
         shrubs_r_regrwth = burnt_shrubs[np.where(R[burnt_shrubs] >  self._Rth_sh)[0]]
         grass_r_regrwth = burnt_grass[np.where(R[burnt_grass] >  self._Rth_gr)[0]]
         P_check_1 = np.random.random(shrubs_r_regrwth.shape)
         est_1 = shrubs_r_regrwth[np.where(P_check_1 <  self._P_sh_regrwth)[0]]
-        V[est_1] = 2
+        V[est_1] = SHRUB
         P_check_2 = np.random.random(grass_r_regrwth.shape)
         est_2 = grass_r_regrwth[np.where(P_check_2 <  self._P_gr_regrwth)[0]]
-        V[est_2] = 1
+        V[est_2] = GRASS
         ## Regrowth in grazed area
         # shrub encroachment due to neighbors
-        bare_cells = np.where(V == 0)[0]
+        bare_cells = np.where(V == BARE)[0]
         shrub_grz_regrwth = bare_cells[np.where(R[bare_cells] >  self._Rth_sh)[0]]
         neigh_sh_grz_regrwth = (
             self.grid.looped_neighbors_at_cell[shrub_grz_regrwth])
@@ -285,19 +285,19 @@ class ResourceRedistribution(Component):
         ns_Pgrz = (ns_sh *  self._Pen)      # ns * P2
         P_check_3 = np.random.random(ns_Pgrz.shape)
         est_3 = shrub_grz_regrwth[np.where(P_check_3 < ns_Pgrz)[0]]
-        V[est_3] = 2    # Establish shrubs
+        V[est_3] = SHRUB    # Establish shrubs
         # shrub encroachment due to grazing
-        bare_cells_ = np.where(V == 0)[0]
+        bare_cells_ = np.where(V == BARE)[0]
         shrub_grz_regrwth_ = bare_cells_[np.where(R[bare_cells_] >  self._Rth_sh)[0]]
         P_check_4 = np.random.random(shrub_grz_regrwth_.shape)
         est_4 = shrub_grz_regrwth_[np.where(P_check_4 <  self._Pgrz)[0]]
-        V[est_4] = 2    # Establish grass
+        V[est_4] = SHRUB    # Establish grass
         # grass growth where shrubs haven't encroached - grass seed dispersal
-        bare_cells_2 = np.where(V == 0)[0]
+        bare_cells_2 = np.where(V == BARE)[0]
         grass_grz_regrwth = bare_cells_2[np.where(R[bare_cells_2] >  self._Rth_gr)[0]]
         P_check_5 = np.random.random(grass_grz_regrwth.shape)
         est_5 = grass_grz_regrwth[np.where(P_check_5 <  self._P_gr)[0]]
-        V[est_5] = 1    # Establish grass
+        V[est_5] = GRASS    # Establish grass
         return (est_1, est_2, est_3, est_4, est_5)
 
     def _np_ndarray_count(self, neigh_sh_grz_regrwth):
@@ -313,7 +313,7 @@ class ResourceRedistribution(Component):
         V = self.grid.at_cell['vegetation__plant_functional_type']
         # Age mortality for Vegetation other than shrub = 0.
         # Shrub seedling
-        shrubs_ = np.where(V == 2)[0]
+        shrubs_ = np.where(V == SHRUB)[0]
         shrub_seedlings = (
                     shrubs_[np.where(V_age[shrubs_] < self._sh_seedling_max_age)[0]])
         Pmor_age[shrub_seedlings] = self._sh_seedling_mor_dis
@@ -333,15 +333,15 @@ class ResourceRedistribution(Component):
     def mortality(self, V_age):
         V = self.grid.at_cell['vegetation__plant_functional_type']
         # Killing burnt vegetation    
-        burnt_shrubs = np.where(V == 4)[0]
+        burnt_shrubs = np.where(V == BURNTSHRUB)[0]
         P_check_1 = np.random.random(burnt_shrubs.shape)
         kill_1 = burnt_shrubs[np.where(P_check_1 < self._P_sh_fire_mor)[0]]
-        V[kill_1] = 0
+        V[kill_1] = BARE
         V_age[kill_1] = 0
-        burnt_grass = np.where(V == 3)[0]
+        burnt_grass = np.where(V == BURNTGRASS)[0]
         P_check_2 = np.random.random(burnt_grass.shape)
         kill_2 = burnt_grass[np.where(P_check_2 < self._P_gr_fire_mor)[0]]
-        V[kill_2] = 0
+        V[kill_2] = BARE
         V_age[kill_2] = 0
         
         # Mortality due to Water Stress and age
@@ -349,28 +349,29 @@ class ResourceRedistribution(Component):
               # Creating a field for Prob_mortality for Water Stress & Age
         Pmor_age = np.zeros(V.shape)
               # Creating a field for Prob_mortality due to age alone 
-        Pmor_age_ws[V == 1] += (0.6 * self._gr_mor_ws_thresh +
-                                2 * 0.4 * self._gr_mor_ws_thresh *
-                                np.random.random_sample())
+        Pmor_age_ws[V == GRASS] += (0.6 * self._gr_mor_ws_thresh +
+                                    2 * 0.4 * self._gr_mor_ws_thresh *
+                                    np.random.random_sample())
               # Grass' water stess probability
-        Pmor_age_ws[V == 2] += (0.6 * self._sh_mor_ws_thresh +
-                                2 * 0.4 * self._sh_mor_ws_thresh *
-                                np.random.random_sample())
+        Pmor_age_ws[V == SHRUB] += (0.6 * self._sh_mor_ws_thresh +
+                                    2 * 0.4 * self._sh_mor_ws_thresh *
+                                    np.random.random_sample())
               # Shrubs' water stress probability
         Pmor_age = self._compute_Prob_mortality_age(V_age, Pmor_age)
         Pmor_age_ws += Pmor_age
         P_check_3 = np.random.random(V.shape)
         kill_3 = np.where(P_check_3 < Pmor_age_ws)[0]
-        V[kill_3] = 0
+        V[kill_3] = BARE
         V_age[kill_3] = 0
         return (V_age, Pmor_age, Pmor_age_ws)
 
     def initialize_Veg_age(self, V_age):
         V = self.grid.at_cell['vegetation__plant_functional_type']
-        V_age[V == 2] = np.random.randint(0, self._sh_max_age, V_age[V == 2].shape)
+        V_age[V == SHRUB] = np.random.randint(0, self._sh_max_age,
+                                              V_age[V == SHRUB].shape)
         return (V_age)
         
     def update_Veg_age(self, V_age):
         V = self.grid.at_cell['vegetation__plant_functional_type']
-        V_age[V != 0] += 1
+        V_age[V != BARE] += 1
         return (V_age)
