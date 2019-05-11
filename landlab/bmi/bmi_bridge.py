@@ -138,9 +138,9 @@ def wrap_as_bmi(cls):
     ...     stop: 10.
     ...     step: 2.
     ... grid:
-    ...     type: raster
-    ...     shape: [20, 40]
-    ...     spacing: [1000., 2000.]
+    ...     raster_model_grid:
+    ...     - [20, 40]
+    ...     - xy_spacing: [2000., 1000.]
     ... \"\"\"
     >>> flexure.initialize(config)
     >>> flexure.get_output_var_names()
