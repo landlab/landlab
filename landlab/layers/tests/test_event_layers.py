@@ -61,7 +61,9 @@ def test__str__():
     layers.add(1.0, age=3.0)
     vals = str(layers)
     assert vals.splitlines() == [
-        "number_of_layers: 1", "number_of_stacks: 5", "tracking: age"
+        "number_of_layers: 1",
+        "number_of_stacks: 5",
+        "tracking: age",
     ]
 
 

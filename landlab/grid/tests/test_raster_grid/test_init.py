@@ -5,12 +5,7 @@ from numpy.testing import assert_array_equal
 from landlab import BAD_INDEX_VALUE as X, RasterModelGrid
 
 
-@pytest.mark.parametrize(
-    "params", [
-        [(3, 4), {}],
-        [(), {"num_rows": 3, "num_cols": 4}],
-    ]
-)
+@pytest.mark.parametrize("params", [[(3, 4), {}], [(), {"num_rows": 3, "num_cols": 4}]])
 def test_parse_parameters_deprecated_shape(params):
     with pytest.deprecated_call():
         args, kwds = RasterModelGrid._parse_parameters(*params)
@@ -19,11 +14,8 @@ def test_parse_parameters_deprecated_shape(params):
 
 
 @pytest.mark.parametrize(
-    "params", [
-        [((3, 4),), {"dx": 20.0}],
-        [((3, 4),), {"spacing": 20.0}],
-        [(3, 4, 20.0), {}],
-    ]
+    "params",
+    [[((3, 4),), {"dx": 20.0}], [((3, 4),), {"spacing": 20.0}], [(3, 4, 20.0), {}]],
 )
 def test_parse_parameters_deprecated_spacing(params):
     with pytest.deprecated_call():
@@ -40,12 +32,13 @@ def test_parse_parameters_deprecated_xy_of_lower_left():
 
 
 @pytest.mark.parametrize(
-    "kwds", [
+    "kwds",
+    [
         dict(xy_of_lower_left=(3.0, 4.0)),
         dict(xy_spacing=(30.0, 40.0)),
         dict(xy_spacing=(30.0, 40.0), xy_of_lower_left=(3.0, 4.0)),
         dict(xy_spacing=(30.0, 40.0), xy_of_lower_left=(3.0, 4.0), another_kwd=True),
-    ]
+    ],
 )
 def test_parse_parameters_new_style(kwds):
     args, new_kwds = RasterModelGrid._parse_parameters([(3, 4)], kwds)
