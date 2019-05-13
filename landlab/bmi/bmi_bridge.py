@@ -13,6 +13,7 @@ exposes a Basic Modelling Interface.
 
 """
 import numpy as np
+
 from bmipy import Bmi
 
 from ..core import load_params
@@ -134,7 +135,7 @@ def wrap_as_bmi(cls):
     ...     stop: 10.
     ...     step: 2.
     ... grid:
-    ...     raster_model_grid:
+    ...     RasterModelGrid:
     ...     - [20, 40]
     ...     - xy_spacing: [2000., 1000.]
     ... \"\"\"
