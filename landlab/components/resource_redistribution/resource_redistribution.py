@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 06 Jul 2018
@@ -261,7 +260,7 @@ class ResourceRedistribution(Component):
         return (resource_adjusted, eligible_locs_to_adj_neigh,
                 Elig_locs, sed_to_borrow)
 
-    def establish(self):
+    def establish(self, V_age):
         V = self.grid.at_cell['vegetation__plant_functional_type']
         R = self.grid.at_cell['soil__resources']
         burnt_shrubs = np.where(V == BURNTSHRUB)[0]
@@ -272,9 +271,11 @@ class ResourceRedistribution(Component):
         P_check_1 = np.random.random(shrubs_r_regrwth.shape)
         est_1 = shrubs_r_regrwth[np.where(P_check_1 <  self._P_sh_regrwth)[0]]
         V[est_1] = SHRUB
+        V_age[est_1] = 0
         P_check_2 = np.random.random(grass_r_regrwth.shape)
         est_2 = grass_r_regrwth[np.where(P_check_2 <  self._P_gr_regrwth)[0]]
         V[est_2] = GRASS
+        V_age[est_2] = 0
         ## Regrowth in grazed area
         # shrub encroachment due to neighbors
         bare_cells = np.where(V == BARE)[0]
@@ -286,19 +287,22 @@ class ResourceRedistribution(Component):
         P_check_3 = np.random.random(ns_Pgrz.shape)
         est_3 = shrub_grz_regrwth[np.where(P_check_3 < ns_Pgrz)[0]]
         V[est_3] = SHRUB    # Establish shrubs
+        V_age[est_3] = 0
         # shrub encroachment due to grazing
         bare_cells_ = np.where(V == BARE)[0]
         shrub_grz_regrwth_ = bare_cells_[np.where(R[bare_cells_] >  self._Rth_sh)[0]]
         P_check_4 = np.random.random(shrub_grz_regrwth_.shape)
         est_4 = shrub_grz_regrwth_[np.where(P_check_4 <  self._Pgrz)[0]]
         V[est_4] = SHRUB    # Establish grass
+        V_age[est_4] = 0
         # grass growth where shrubs haven't encroached - grass seed dispersal
         bare_cells_2 = np.where(V == BARE)[0]
         grass_grz_regrwth = bare_cells_2[np.where(R[bare_cells_2] >  self._Rth_gr)[0]]
         P_check_5 = np.random.random(grass_grz_regrwth.shape)
         est_5 = grass_grz_regrwth[np.where(P_check_5 <  self._P_gr)[0]]
         V[est_5] = GRASS    # Establish grass
-        return (est_1, est_2, est_3, est_4, est_5)
+        V_age[est_5] = 0
+        return (V_age, est_1, est_2, est_3, est_4, est_5)
 
     def _np_ndarray_count(self, neigh_sh_grz_regrwth):
         V = self.grid.at_cell['vegetation__plant_functional_type']
