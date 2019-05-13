@@ -123,17 +123,17 @@ def grid_from_dict(grid_type, params):
     return cls(*args, **kwargs)
 
 
-def grids_from_file(file_like, section=None): # TODO: entire function not tested.
+def grids_from_file(file_like, section=None):
     """Create grids from a file."""
     params = load_params(file_like)
 
     if section:
         try:
             grids = params[section]
-        except KeyError:
-            raise ValueError("missing required section ({0})".format(section))
-    else:
-        grids = params
+        except KeyError:  # TODO: not tested.
+            raise ValueError("missing required section ({0})".format(section))  # TODO: not tested.
+    else:  # TODO: not tested.
+        grids = params  # TODO: not tested.
 
     new_grids = []
     for grid_type, grid_desc in as_list_of_tuples(grids):
