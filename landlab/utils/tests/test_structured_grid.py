@@ -4,7 +4,6 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 import landlab.utils.structured_grid as sgrid
-from landlab.grid.base import BAD_INDEX_VALUE
 
 
 def test_node_x_2d():
@@ -215,6 +214,8 @@ def test_node_status_no_interiors():
     status = sgrid.status_at_node((2, 3))
     assert status.dtype == np.int8
     assert_array_equal(status, np.array([1, 1, 1, 1, 1, 1]))
+
+
 """
 *--27-->*--28-->*--29-->*--30-->*
 ^       ^       ^       ^       ^

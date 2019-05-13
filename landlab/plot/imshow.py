@@ -23,7 +23,6 @@ from landlab.grid import CLOSED_BOUNDARY
 from landlab.grid.raster import RasterModelGrid
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 from landlab.plot.event_handler import query_grid_on_button_press
-from landlab.utils.decorators import deprecated
 
 try:
     import matplotlib.pyplot as plt

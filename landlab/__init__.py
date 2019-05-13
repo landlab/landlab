@@ -45,11 +45,7 @@ from .grid import (
     create_and_initialize_grid,
     create_grid,
 )
-from .plot import (
-    analyze_channel_network_and_plot,
-    imshow_grid,
-    imshow_grid_at_node,
-)
+from .plot import analyze_channel_network_and_plot, imshow_grid, imshow_grid_at_node
 
 try:
     set_printoptions(legacy="1.13")

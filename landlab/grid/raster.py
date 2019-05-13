@@ -2050,7 +2050,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         return self._link_length
 
-
     def set_closed_boundaries_at_grid_edges(
         self, right_is_closed, top_is_closed, left_is_closed, bottom_is_closed
     ):
@@ -2598,7 +2597,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         return diagonal_link_slopes
 
-
     def node_vector_to_raster(self, u, flip_vertically=False):
         """Unravel an array of node values.
 
@@ -2819,7 +2817,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             return bool(ans)
         else:
             return ans
-
 
     @deprecated(use="node_is_core", version=1.0)
     def is_core(self, *args):
