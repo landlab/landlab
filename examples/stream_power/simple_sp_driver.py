@@ -15,7 +15,7 @@ import pylab
 from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components import FastscapeEroder, FlowAccumulator, StreamPowerEroder
 from landlab.plot import channel_profile as prf
-from landlab.plot.imshow import imshow_node_grid
+from landlab.plot.imshow import imshow_grid
 
 inputs = ModelParameterDictionary("./drive_sp_params.txt")
 nrows = inputs.read_int("nrows")
@@ -89,7 +89,7 @@ pylab.close()
 
 # Plot topography
 pylab.figure(1)
-im = imshow_node_grid(mg, "topographic__elevation")  # display a colored image
+im = imshow_grid(mg, "topographic__elevation")  # display a colored image
 print(elev_r)
 
 pylab.figure(2)
@@ -100,7 +100,7 @@ pylab.title("Vertical cross section")
 
 # Plot topography
 # pylab.figure(1)
-# im = imshow_node_grid(mg, 'topographic_elevation')  # display a colored image
+# im = imshow_grid(mg, 'topographic_elevation')  # display a colored image
 # print elev_r
 
 pylab.show()

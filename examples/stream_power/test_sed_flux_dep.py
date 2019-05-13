@@ -106,7 +106,7 @@ time_off = time()
 # Finalize and plot
 
 elev = mg["node"]["topographic__elevation"]
-# imshow.imshow_node_grid(mg, elev)
+# imshow.imshow_grid(mg, elev)
 
 print("Done.")
 print("Time: ", time_off - time_on)

@@ -47,10 +47,8 @@ from .grid import (
 )
 from .plot import (
     analyze_channel_network_and_plot,
-    imshow_cell_grid,
     imshow_grid,
     imshow_grid_at_node,
-    imshow_node_grid,
 )
 
 try:
@@ -95,8 +93,6 @@ __all__ = [
     "create_and_initialize_grid",
     "create_grid",
     "imshow_grid",
-    "imshow_node_grid",
-    "imshow_cell_grid",
     "imshow_grid_at_node",
     "analyze_channel_network_and_plot",
 ]
