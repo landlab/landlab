@@ -42,10 +42,10 @@ class BadGridTypeError(Error):
     """Raise this error for a bad grid type."""
 
     def __init__(self, grid_type):
-        self._type = str(grid_type)
+        self._type = str(grid_type)  # TODO: not tested.
 
     def __str__(self):
-        return self._type
+        return self._type   # TODO: not tested.
 
 
 _GRID_READERS = {"raster": raster_from_dict, "hex": hex_from_dict}
@@ -95,7 +95,7 @@ def create_and_initialize_grid(input_source):
     )
     warn(msg, DeprecationWarning)
     if isinstance(input_source, dict):
-        param_dict = input_source
+        param_dict = input_source  # TODO: not tested.
     else:
         param_dict = mpd.ModelParameterDictionary(from_file=input_source)
 
@@ -106,8 +106,8 @@ def create_and_initialize_grid(input_source):
     # Read parameters appropriate to that type, create it, and initialize it
     try:
         grid_reader = _GRID_READERS[grid_type]
-    except KeyError:
-        raise BadGridTypeError(grid_type)
+    except KeyError:  # TODO: not tested.
+        raise BadGridTypeError(grid_type)  # TODO: not tested.
 
     # Return the created and initialized grid
     return grid_reader(param_dict)
@@ -123,7 +123,7 @@ def grid_from_dict(grid_type, params):
     return cls(*args, **kwargs)
 
 
-def grids_from_file(file_like, section=None):
+def grids_from_file(file_like, section=None): # TODO: entire function not tested.
     """Create grids from a file."""
     params = load_params(file_like)
 
@@ -483,7 +483,7 @@ def _parse_args_kwargs(list_of_args_kwargs):
             if isinstance(arg, dict) and {"fields", "boundary_conditions"} & set(
                 arg.keys()
             ):
-                kwargs.update(arg)
+                kwargs.update(arg)  # TODO: not tested.
             else:
                 args.append(arg)
         if isinstance(args[-1], dict):
