@@ -2080,10 +2080,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         boundary in one variable but a different boundary condition for
         another, then use another method.
 
-        This method is a replacement for the now-deprecated method
-        set_inactive_boundaries(). Unlike that method, this one ONLY sets nodes
-        to CLOSED_BOUNDARY; it does not set any nodes to FIXED_VALUE_BOUNDARY.
-
         Parameters
         ----------
         right_is_closed : boolean
@@ -4452,7 +4448,7 @@ def from_dict(param_dict):
     right_boundary_type = param_dict.get("RIGHT_BOUNDARY", "open")
     top_boundary_type = param_dict.get("TOP_BOUNDARY", "open")
     bottom_boundary_type = param_dict.get("BOTTOM_BOUNDARY", "open")
-    grid.set_inactive_boundaries(
+    grid.set_closed_boundaries_at_grid_edges(
         _is_closed_boundary(right_boundary_type),
         _is_closed_boundary(top_boundary_type),
         _is_closed_boundary(left_boundary_type),

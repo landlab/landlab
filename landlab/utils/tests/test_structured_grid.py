@@ -161,59 +161,6 @@ def test_outlinks():
     )
 
 
-# class TestNodeActiveCell(unittest.TestCase, NumpyArrayTestingMixIn):
-def test_node_active_cell_one_active_cell():
-    active_cells = sgrid.active_cell_index_at_nodes((3, 3))
-
-    assert_array_equal(
-        active_cells,
-        np.array(
-            [
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                0,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-            ]
-        ),
-    )
-
-
-def test_no_active_cells():
-    active_cells = sgrid.active_cell_index_at_nodes((3, 2))
-
-    assert_array_equal(
-        active_cells,
-        np.array(
-            [
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-            ]
-        ),
-    )
-
-
-# class TestActiveCells(unittest.TestCase, NumpyArrayTestingMixIn):
-def test_active_cells_one_active_cell():
-    active_cells = sgrid.active_cell_index((3, 3))
-
-    assert_array_equal(active_cells, np.array([0]))
-
-
-def test_active_cells_no_active_cells():
-    active_cells = sgrid.active_cell_index((3, 2))
-
-    assert_array_equal(active_cells, np.array([]))
-
-
 # class TestCellCount(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_cell_count_one_cell():
     n_cells = sgrid.cell_count((3, 3))
