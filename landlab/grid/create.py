@@ -137,7 +137,7 @@ def grids_from_file(file_like, section=None): # TODO: entire function not tested
 
     new_grids = []
     for grid_type, grid_desc in as_list_of_tuples(grids):
-        new_grids.append(grid_type, grid_desc)
+        new_grids.append(grid_from_dict(grid_type, grid_desc))
 
     return new_grids
 
