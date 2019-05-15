@@ -12,13 +12,14 @@ The `wrap_as_bmi` function wraps a landlab component class so that it
 exposes a Basic Modelling Interface.
 
 """
-import os
-
 import numpy as np
-import yaml
 
+from bmipy import Bmi
+
+from ..core import load_params
 from ..core.model_component import Component
-from ..grid import RasterModelGrid
+from ..framework.decorators import snake_case
+from ..grid.create import grids_from_file
 
 
 class TimeStepper(object):
@@ -126,27 +127,27 @@ def wrap_as_bmi(cls):
     >>> flexure = BmiFlexure()
 
     >>> config = \"\"\"
-    ... eet: 10.e+3
-    ... method: flexure
+    ... flexure:
+    ...     eet: 10.e+3
+    ...     method: flexure
     ... clock:
     ...     start: 0.
     ...     stop: 10.
     ...     step: 2.
     ... grid:
-    ...     type: raster
-    ...     shape: [20, 40]
-    ...     spacing: [1000., 2000.]
+    ...     RasterModelGrid:
+    ...     - [20, 40]
+    ...     - xy_spacing: [2000., 1000.]
     ... \"\"\"
     >>> flexure.initialize(config)
     >>> flexure.get_output_var_names()
     ('lithosphere_surface__elevation_increment',)
     >>> flexure.get_var_grid('lithosphere_surface__elevation_increment')
     0
-    >>> flexure.get_grid_shape(0)
-    (20, 40)
-    >>> dz = flexure.get_value('lithosphere_surface__elevation_increment')
-    >>> dz.shape == (800, )
-    True
+    >>> flexure.get_grid_shape(0, np.empty(flexure.get_grid_rank(0), dtype=int))
+    array([20, 40])
+    >>> dz = np.empty(flexure.get_grid_size(0))
+    >>> _ = flexure.get_value('lithosphere_surface__elevation_increment', dz)
 
     >>> np.all(dz == 0.)
     True
@@ -161,14 +162,14 @@ def wrap_as_bmi(cls):
     >>> flexure.update()
     >>> flexure.get_current_time()
     2.0
-    >>> dz = flexure.get_value('lithosphere_surface__elevation_increment')
+    >>> _ = flexure.get_value('lithosphere_surface__elevation_increment', dz)
     >>> np.all(dz == 0.)
     False
     """
     if not issubclass(cls, Component):
         raise TypeError("class must inherit from Component")
 
-    class BmiWrapper(object):
+    class BmiWrapper(Bmi):
         __doc__ = """
         Basic Modeling Interface for the {name} component.
         """.format(
@@ -213,8 +214,9 @@ def wrap_as_bmi(cls):
         def get_time_units(self):
             """Time units used by the component."""
             raise NotImplementedError("get_time_units not implemented")
+            # Should be implemented.
 
-        def initialize(self, fname):
+        def initialize(self, config_file):
             """Initialize the component from a file.
 
             BMI-wrapped Landlab components use input files in YAML format.
@@ -222,7 +224,8 @@ def wrap_as_bmi(cls):
             followed by grid and then time information. An example input
             file looks like::
 
-                eet: 15.e+3
+                flexure:
+                    eet: 15.e+3
                 clock:
                     start: 0
                     stop: 100.
@@ -239,28 +242,25 @@ def wrap_as_bmi(cls):
 
             Parameters
             ----------
-            fname : str or file_like
+            config_file : str or file_like
                 YAML-formatted input file for the component.
             """
-            if os.path.isfile(fname):
-                with open(fname, "r") as fp:
-                    params = yaml.load(fp)
+            grid = grids_from_file(config_file, section="grid")
+            if not grid:
+                raise ValueError("no grid in config file ({0})".format(config_file))
+            elif len(grid) > 1:
+                raise ValueError(
+                    "multiple grids in config file ({0})".format(config_file)
+                )
             else:
-                params = yaml.load(fname)
+                grid = grid[0]
 
-            grid_params = params.pop("grid")
-            gtype = grid_params.pop("type")
-            if gtype == "raster":
-                cls = RasterModelGrid
-            else:
-                raise ValueError("unrecognized grid type {gtype}".format(gtype=gtype))
-
-            grid = cls.from_dict(grid_params)
-
+            params = load_params(config_file)
+            params.pop("grid")
             clock_params = params.pop("clock")
             self._clock = TimeStepper(**clock_params)
 
-            self._base = self._cls(grid, **params)
+            self._base = self._cls(grid, **params.pop(snake_case(cls.__name__), {}))
 
         def update(self):
             """Update the component one time step."""
@@ -310,42 +310,93 @@ def wrap_as_bmi(cls):
             """Get a reference to a variable's data."""
             return self._base.grid.at_node[name]
 
-        def get_value(self, name):
+        def get_value(self, name, dest):
             """Get a copy of a variable's data."""
-            return self._base.grid.at_node[name].copy()
+            dest[:] = self._base.grid.at_node[name]
+            return dest
 
-        def set_value(self, name, vals):
+        def set_value(self, name, values):
             """Set the values of a variable."""
             if name in self.get_input_var_names():
                 if name in self._base.grid.at_node:
-                    self._base.grid.at_node[name][:] = vals.flat
+                    self._base.grid.at_node[name][:] = values.flat
                 else:
-                    self._base.grid.at_node[name] = vals
+                    self._base.grid.at_node[name] = values
             else:
                 raise KeyError("{name} is not an input item".format(name=name))
 
-        def get_grid_origin(self, gid):
+        def get_grid_origin(self, grid, origin):
             """Get the origin for a structured grid."""
-            return (self._base.grid.node_y[0], self._base.grid.node_x[0])
+            origin[:] = (self._base.grid.node_y[0], self._base.grid.node_x[0])
+            return origin
 
-        def get_grid_rank(self, gid):
+        def get_grid_rank(self, grid):
             """Get the number of dimensions of a grid."""
             return 2
 
-        def get_grid_shape(self, gid):
+        def get_grid_shape(self, grid, shape):
             """Get the shape of a structured grid."""
-            return (
+            shape[:] = (
                 self._base.grid.number_of_node_rows,
                 self._base.grid.number_of_node_columns,
             )
+            return shape
 
-        def get_grid_spacing(self, gid):
+        def get_grid_spacing(self, grid, spacing):
             """Get the row and column spacing of a structured grid."""
-            return (self._base.grid.dy, self._base.grid.dx)
+            spacing[:] = (self._base.grid.dy, self._base.grid.dx)
+            return spacing
 
-        def get_grid_type(self, gid):
+        def get_grid_type(self, grid):
             """Get the type of grid."""
             return "uniform_rectilinear"
+
+        def get_grid_edge_count(self, grid):
+            return self._base.grid.number_of_links
+
+        def get_grid_edge_nodes(self, grid, edge_nodes):
+            return self._base.grid.nodes_at_link.reshape((-1,))
+
+        def get_grid_face_count(self, grid):
+            return self._base.grid.number_of_patches
+
+        def get_grid_face_nodes(self, grid, face_nodes):
+            return self._base.grid.nodes_at_patch
+
+        def get_grid_node_count(self, grid):
+            return self._base.grid.number_of_nodes
+
+        def get_grid_nodes_per_face(self, grid, nodes_per_face):
+            raise NotImplementedError("get_grid_nodes_per_face")
+            # Should be implemented. Not commonly used, so not implemented yet.
+
+        def get_grid_size(self, grid):
+            return self._base.grid.number_of_nodes
+
+        def get_grid_x(self, grid, x):
+            return self._base.grid.x_of_node
+
+        def get_grid_y(self, grid, y):
+            return self._base.grid.y_of_node
+
+        def get_grid_z(self, grid, z):
+            raise NotImplementedError("get_grid_z")
+            # Only should be implemented for presently non-existant 3D grids.
+
+        def get_value_at_indices(self, name, dest, inds):
+            raise NotImplementedError("get_value_at_indices")
+            # Should be implemented.
+
+        def get_value_ptr(self, name):
+            raise NotImplementedError("get_value_ptr")
+            # Should be implemented.
+
+        def get_var_location(self, name):
+            return self._base._var_mapping[name]
+
+        def set_value_at_indices(self, name, inds, src):
+            raise NotImplementedError("set_value_at_indices")
+            # Should be implemented.
 
     BmiWrapper.__name__ = cls.__name__
     return BmiWrapper

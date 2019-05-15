@@ -13,7 +13,7 @@ _POINT = (0, 0, 0)
 
 def test_bad_grid_element_name(four_by_four_raster):
     with pytest.raises(KeyError):
-        constant(four_by_four_raster, "some_flux", "not_a_grid_element", constant=1.0)
+        constant(four_by_four_raster, "some_flux", "not_a_grid_element", value=1.0)
 
 
 def test_bad_distribution_name(four_by_four_raster):
@@ -100,7 +100,7 @@ def test_multiple_status_node(four_by_four_raster):
         "values",
         "node",
         where=[CORE_NODE, CLOSED_BOUNDARY],
-        constant=10.0,
+        value=10.0,
     )
     true_array = np.array(
         [
