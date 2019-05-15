@@ -305,10 +305,7 @@ def deprecation_message(msg=None, **kwds):
         footer = None
     header = "Deprecation warning".upper()
     return format_message(
-        msg,
-        header=os.linesep.join([header, "=" * len(header)]),
-        footer=footer,
-        **kwds
+        msg, header=os.linesep.join([header, "=" * len(header)]), footer=footer, **kwds
     )
 
 
@@ -336,7 +333,9 @@ def warning_message(msg=None, **kwds):
     Dictumst vestibulum rhoncus est pellentesque.
     """
     header = "Warning".upper()
-    return format_message(msg, header=os.linesep.join([header, "=" * len(header)]), **kwds)
+    return format_message(
+        msg, header=os.linesep.join([header, "=" * len(header)]), **kwds
+    )
 
 
 def error_message(msg=None, **kwds):
@@ -363,7 +362,9 @@ def error_message(msg=None, **kwds):
     Dictumst vestibulum rhoncus est pellentesque.
     """
     header = "Error".upper()
-    return format_message(msg, header=os.linesep.join([header, "=" * len(header)]), **kwds)
+    return format_message(
+        msg, header=os.linesep.join([header, "=" * len(header)]), **kwds
+    )
 
 
 def assert_or_print(cond, msg=None, onerror="raise", file=sys.stdout):

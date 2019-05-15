@@ -197,7 +197,7 @@ def test_read_netcdf_create(datadir):
     filename = str(datadir / "test-netcdf4.nc")
     dict_like = {
         "grid": {
-            "raster_model_grid": [
+            "RasterModelGrid": [
                 (4, 3),
                 {
                     "fields": {
@@ -330,7 +330,7 @@ def test_grid_from_dict_radial(xy_of_center):
 )
 def test_as_list_of_tuples(to_list):
     expected = [
-        ("raster_model_grid", "raster_data"),
+        ("RasterModelGrid", "raster_data"),
         ("hex_model_grid", "hex_data"),
         ("radial_model_grid", "radial_data"),
     ]
@@ -346,12 +346,12 @@ def test_as_list_of_tuples_just_one():
 
 def test_as_list_of_tuples_mixed_types():
     expected = [
-        ("raster_model_grid", "raster_data"),
+        ("RasterModelGrid", "raster_data"),
         ("hex_model_grid", "hex_data"),
         ("radial_model_grid", "radial_data"),
     ]
     grid_list = [
-        ("raster_model_grid", "raster_data"),
+        ("RasterModelGrid", "raster_data"),
         OrderedDict(
             [("hex_model_grid", "hex_data"), ("radial_model_grid", "radial_data")]
         ),
@@ -362,7 +362,7 @@ def test_as_list_of_tuples_mixed_types():
 def test_create_grid():
     contents = StringIO(
         """
-raster_model_grid:
+RasterModelGrid:
   args: [3, 4]
   xy_spacing: 2.0
   xy_of_lower_left: [1.0, 2.0]
@@ -383,15 +383,15 @@ def test_create_grid_multiple():
     contents = StringIO(
         """
 grids:
-    - raster_model_grid:
+    - RasterModelGrid:
       - [3, 4]
       - xy_spacing: 2.0
         xy_of_lower_left: [1.0, 2.0]
-    - raster_model_grid:
+    - RasterModelGrid:
         args: [3, 4]
         xy_spacing: 2.0
         xy_of_lower_left: [1.0, 2.0]
-    - - raster_model_grid
+    - - RasterModelGrid
       - args: [3, 4]
         xy_spacing: 2.0
         xy_of_lower_left: [1.0, 2.0]

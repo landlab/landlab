@@ -40,12 +40,12 @@ from .base import (
 from .decorators import return_id_array, return_readonly_id_array
 from .diagonals import DiagonalsMixIn
 from .warnings import (
+    DeprecatedDxKeyword,
+    DeprecatedOriginKeyword,
     DeprecatedRowsColsArguments,
     DeprecatedRowsColsKeywords,
     DeprecatedSpacingArgument,
     DeprecatedSpacingKeyword,
-    DeprecatedOriginKeyword,
-    DeprecatedDxKeyword,
 )
 
 

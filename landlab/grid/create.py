@@ -5,7 +5,6 @@ from __future__ import absolute_import
 from warnings import warn
 
 from ..core import load_params, model_parameter_dictionary as mpd
-from ..framework.decorators import camel_case
 from ..io import read_esri_ascii
 from ..io.netcdf import read_netcdf
 from ..values import constant, plane, random, sine
@@ -43,10 +42,10 @@ class BadGridTypeError(Error):
     """Raise this error for a bad grid type."""
 
     def __init__(self, grid_type):
-        self._type = str(grid_type)
+        self._type = str(grid_type)  # TODO: not tested.
 
     def __str__(self):
-        return self._type
+        return self._type   # TODO: not tested.
 
 
 _GRID_READERS = {"raster": raster_from_dict, "hex": hex_from_dict}
@@ -96,7 +95,7 @@ def create_and_initialize_grid(input_source):
     )
     warn(msg, DeprecationWarning)
     if isinstance(input_source, dict):
-        param_dict = input_source
+        param_dict = input_source  # TODO: not tested.
     else:
         param_dict = mpd.ModelParameterDictionary(from_file=input_source)
 
@@ -107,8 +106,8 @@ def create_and_initialize_grid(input_source):
     # Read parameters appropriate to that type, create it, and initialize it
     try:
         grid_reader = _GRID_READERS[grid_type]
-    except KeyError:
-        raise BadGridTypeError(grid_type)
+    except KeyError:  # TODO: not tested.
+        raise BadGridTypeError(grid_type)  # TODO: not tested.
 
     # Return the created and initialized grid
     return grid_reader(param_dict)
@@ -131,14 +130,14 @@ def grids_from_file(file_like, section=None):
     if section:
         try:
             grids = params[section]
-        except KeyError:
-            raise ValueError("missing required section ({0})".format(section))
-    else:
-        grids = params
+        except KeyError:  # TODO: not tested.
+            raise ValueError("missing required section ({0})".format(section))  # TODO: not tested.
+    else:  # TODO: not tested.
+        grids = params  # TODO: not tested.
 
     new_grids = []
     for grid_type, grid_desc in as_list_of_tuples(grids):
-        new_grids.append(grid_from_dict(camel_case(grid_type, sep="_"), grid_desc))
+        new_grids.append(grid_from_dict(grid_type, grid_desc))
 
     return new_grids
 
@@ -441,7 +440,7 @@ def create_grid(file_like, section=None):
         fields = grid_desc.pop("fields", {})
         boundary_conditions = grid_desc.pop("boundary_conditions", {})
 
-        grid = grid_from_dict(camel_case(grid_type, sep="_"), grid_desc)
+        grid = grid_from_dict(grid_type, grid_desc)
         add_fields_from_dict(grid, fields)
         add_boundary_conditions(grid, boundary_conditions)
 
@@ -471,7 +470,9 @@ def norm_grid_description(grid_desc):
     if not isinstance(grid_desc, dict):
         args, kwds = [], {}
         for arg in grid_desc:
-            if isinstance(arg, dict) and {"fields", "boundary_conditions"} & set(arg.keys()):
+            if isinstance(arg, dict) and {"fields", "boundary_conditions"} & set(
+                arg.keys()
+            ):
                 kwds.update(arg)
             else:
                 args.append(arg)
@@ -490,8 +491,10 @@ def _parse_args_kwargs(list_of_args_kwargs):
     else:
         args, kwargs = [], {}
         for arg in list(list_of_args_kwargs):
-            if isinstance(arg, dict) and {"fields", "boundary_conditions"} & set(arg.keys()):
-                kwargs.update(arg)
+            if isinstance(arg, dict) and {"fields", "boundary_conditions"} & set(
+                arg.keys()
+            ):
+                kwargs.update(arg)  # TODO: not tested.
             else:
                 args.append(arg)
         if isinstance(args[-1], dict):

@@ -13,6 +13,7 @@ exposes a Basic Modelling Interface.
 
 """
 import numpy as np
+
 from bmipy import Bmi
 
 from ..core import load_params
@@ -134,7 +135,7 @@ def wrap_as_bmi(cls):
     ...     stop: 10.
     ...     step: 2.
     ... grid:
-    ...     raster_model_grid:
+    ...     RasterModelGrid:
     ...     - [20, 40]
     ...     - xy_spacing: [2000., 1000.]
     ... \"\"\"
@@ -213,6 +214,7 @@ def wrap_as_bmi(cls):
         def get_time_units(self):
             """Time units used by the component."""
             raise NotImplementedError("get_time_units not implemented")
+            # Should be implemented.
 
         def initialize(self, config_file):
             """Initialize the component from a file.
@@ -366,6 +368,7 @@ def wrap_as_bmi(cls):
 
         def get_grid_nodes_per_face(self, grid, nodes_per_face):
             raise NotImplementedError("get_grid_nodes_per_face")
+            # Should be implemented. Not commonly used, so not implemented yet.
 
         def get_grid_size(self, grid):
             return self._base.grid.number_of_nodes
@@ -378,18 +381,22 @@ def wrap_as_bmi(cls):
 
         def get_grid_z(self, grid, z):
             raise NotImplementedError("get_grid_z")
+            # Only should be implemented for presently non-existant 3D grids.
 
         def get_value_at_indices(self, name, dest, inds):
             raise NotImplementedError("get_value_at_indices")
+            # Should be implemented.
 
         def get_value_ptr(self, name):
             raise NotImplementedError("get_value_ptr")
+            # Should be implemented.
 
         def get_var_location(self, name):
             return self._base._var_mapping[name]
 
         def set_value_at_indices(self, name, inds, src):
             raise NotImplementedError("set_value_at_indices")
+            # Should be implemented.
 
     BmiWrapper.__name__ = cls.__name__
     return BmiWrapper

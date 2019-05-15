@@ -40,8 +40,8 @@ def snake_case(text):
     >>> snake_case("MONTYPython")
     'monty_python'
     """
-    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', text)
-    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+    s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", text)
+    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
 
 
 class Error(Exception):
