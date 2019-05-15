@@ -19,7 +19,7 @@ from bmipy import Bmi
 from ..core import load_params
 from ..core.model_component import Component
 from ..framework.decorators import snake_case
-from ..grid.create import grids_from_file
+from ..grid.create import create_grid
 
 
 class TimeStepper(object):
@@ -245,15 +245,14 @@ def wrap_as_bmi(cls):
             config_file : str or file_like
                 YAML-formatted input file for the component.
             """
-            grid = grids_from_file(config_file, section="grid")
+            grid = create_grid(config_file, section="grid")
+
             if not grid:
                 raise ValueError("no grid in config file ({0})".format(config_file))
-            elif len(grid) > 1:
+            elif isinstance(grid, list):
                 raise ValueError(
                     "multiple grids in config file ({0})".format(config_file)
                 )
-            else:
-                grid = grid[0]
 
             params = load_params(config_file)
             params.pop("grid")
