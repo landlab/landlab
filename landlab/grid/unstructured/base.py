@@ -1,7 +1,5 @@
 import numpy as np
 
-from landlab.utils.decorators import deprecated
-
 from .cells import CellGrid
 from .links import LinkGrid, _split_link_ends, find_active_links
 from .nodes import NodeGrid
@@ -328,10 +326,6 @@ class BaseGrid(object):
 
     def active_links(self):
         return self._active_link_grid.link_id
-
-    @deprecated(use="length_of_link", version=1.0)
-    def link_length(self, link=None):
-        return self.length_of_link(link=link)
 
     def length_of_link(self, link=None):
         """Length of grid links.

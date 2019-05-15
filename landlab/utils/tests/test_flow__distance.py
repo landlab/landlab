@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal, assert_array_equal
 
-from landlab import FieldError, HexModelGrid, RasterModelGrid
+from landlab import FieldError, HexModelGrid, RasterModelGrid, CLOSED_BOUNDARY
 from landlab.components import FlowAccumulator, FlowDirectorSteepest
 from landlab.utils.flow__distance import calculate_flow__distance
 
@@ -219,7 +219,7 @@ def test_flow__distance_irregular_grid_d4():
 
     # setting boundary conditions
 
-    hmg.set_closed_nodes(hmg.boundary_nodes)
+    hmg.status_at_node[hmg.boundary_nodes] = CLOSED_BOUNDARY
 
     # calculating flow directions with FlowAccumulator component: D4 algorithm
 

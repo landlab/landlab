@@ -261,9 +261,6 @@ def main():
     # Create a grid
     hmg = HexModelGrid(nr, nc, 1.0, orientation="vertical", reorient_links=True)
 
-    # Close the grid boundaries
-    # hmg.set_closed_nodes(hmg.open_boundary_nodes)
-
     # Set up the states and pair transitions.
     # Transition data here represent particles moving on a lattice: one state
     # per direction (for 6 directions), plus an empty state, a stationary

@@ -13,8 +13,6 @@ from warnings import warn
 
 import numpy
 
-from landlab.utils.decorators import deprecated
-
 from .voronoi import VoronoiDelaunayGrid
 
 
@@ -208,15 +206,6 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         LLCATS: GINF
         """
         return self._n_shells
-
-    @property
-    @deprecated(use="spacing_of_shells", version=1.0)
-    def shell_spacing(self):
-        """Fixed distance between shells.
-
-        LLCATS: DEPR GINF MEAS
-        """
-        return self._dr
 
     @property
     def spacing_of_shells(self):

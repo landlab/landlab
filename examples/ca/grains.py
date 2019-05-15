@@ -19,7 +19,7 @@ import time
 
 from numpy import logical_and, sqrt, where
 
-from landlab import HexModelGrid
+from landlab import HexModelGrid, CLOSED_BOUNDARY
 from landlab.ca.celllab_cts import CAPlotter, Transition
 from landlab.ca.oriented_hex_cts import OrientedHexCTS
 
@@ -104,7 +104,7 @@ def main():
     hmg = HexModelGrid(nr, nc, 1.0, orientation="vertical", reorient_links=True)
 
     # Close the grid boundaries
-    hmg.set_closed_nodes(hmg.open_boundary_nodes)
+    hmg.status_at_node[hmg.open_boundary_nodes] = CLOSED_BOUNDARY
 
     # Set up the states and pair transitions.
     # Transition data here represent the disease status of a population.

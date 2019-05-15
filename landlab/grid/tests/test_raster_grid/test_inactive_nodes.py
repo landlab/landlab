@@ -1,12 +1,12 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid
+from landlab import RasterModelGrid, CLOSED_BOUNDARY
 
 
 def test_inactive_interiors():
     rmg = RasterModelGrid((4, 5))
-    rmg.set_closed_nodes([6, 12])
+    rmg.status_at_node[[6, 12]] = CLOSED_BOUNDARY
     assert_array_equal(
         rmg._active_links_at_node(),
         np.array(

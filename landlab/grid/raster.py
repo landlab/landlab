@@ -22,7 +22,7 @@ from landlab.grid.structured_quad import (
     links as squad_links,
 )
 from landlab.utils import structured_grid as sgrid
-from landlab.utils.decorators import deprecated, make_return_array_immutable
+from landlab.utils.decorators import make_return_array_immutable
 
 from ..core.utils import add_module_functions_to_class, as_id_array
 from ..io import write_esri_ascii
@@ -1104,60 +1104,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         """
         return self._dy
 
-    @deprecated(use="vals[links_at_node]*active_link_dirs_at_node", version=1.0)
-    def _active_links_at_node(self, *args):
-        """_active_links_at_node([node_ids])
-        Active links of a node.
-
-        Parameters
-        ----------
-        node_ids : int or list of ints
-                   ID(s) of node(s) for which to find connected active links
-
-        Returns
-        -------
-        (4, N) ndarray
-            The ids of active links attached to grid nodes with
-            *node_ids*. If *node_ids* is not given, return links for all of the
-            nodes in the grid. Link ids are listed in clockwise order starting
-            with the south link. Diagonal links are never returned.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((3, 4))
-        >>> rmg.links_at_node[5]
-        array([ 8, 11,  7,  4])
-        >>> rmg._active_links_at_node((5, 6))
-        array([[ 4,  5],
-               [ 7,  8],
-               [11, 12],
-               [ 8,  9]])
-        >>> rmg._active_links_at_node()
-        array([[-1, -1, -1, -1, -1,  4,  5, -1, -1, 11, 12, -1],
-               [-1, -1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1],
-               [-1,  4,  5, -1, -1, 11, 12, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1,  7,  8,  9, -1, -1, -1, -1, -1]])
-
-        array([[-1, -1, -1, -1, -1,  0,  1, -1, -1,  2,  3, -1],
-               [-1, -1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1],
-               [-1,  0,  1, -1, -1,  2,  3, -1, -1, -1, -1, -1],
-               [-1, -1, -1, -1,  4,  5,  6, -1, -1, -1, -1, -1]])
-
-        LLCATS: DEPR LINF NINF
-        """
-        active_links_at_node = self.links_at_node.copy()
-        active_links_at_node[self.active_link_dirs_at_node == 0] = -1
-        active_links_at_node = active_links_at_node[:, (3, 2, 1, 0)]
-
-        if len(args) == 0:
-            return active_links_at_node.T
-        elif len(args) == 1:
-            node_ids = np.broadcast_arrays(args[0])[0]
-            return active_links_at_node[node_ids, :].T
-        else:
-            raise ValueError("only zero or one arguments accepted")
-
     @property
     @make_return_array_immutable
     def horizontal_links(self):
@@ -1753,14 +1699,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return (self._nrows - 1) * (self._ncols - 1)
 
     @property
-    @deprecated(use="nodes_at_corners_of_grid", version=1.0)
-    def corner_nodes(self):
-        """
-        LLCATS: DEPR GINF NINF SUBSET
-        """
-        return self.nodes_at_corners_of_grid
-
-    @property
     def nodes_at_corners_of_grid(self):
         """Get array of the nodes in grid corners.
 
@@ -1781,14 +1719,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         LLCATS: GINF NINF SUBSET
         """
         return sgrid.corners((self._nrows, self._ncols))
-
-    @property
-    @deprecated(use="cells_at_corners_of_grid", version=1.0)
-    def corner_cells(self):
-        """
-        LLCATS: DEPR GINF CINF SUBSET
-        """
-        return self.cells_at_corners_of_grid
 
     @property
     def cells_at_corners_of_grid(self):
@@ -2460,48 +2390,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                 "result in bad BC handling! Bailing out..."
             )
 
-    @deprecated(use="_update_links_nodes_cells_to_new_BCs", version=1.0)
-    def update_boundary_nodes(self):
-        """Update the boundary nodes.
-
-        This method updates all the boundary nodes in the grid field on which
-        they are set (i.e., it updates the field
-        rmg.at_node[rmg.fixed_gradient_node_properties['fixed_gradient_of']]).
-        It currently works only with fixed value (type 1) and fixed gradient
-        (type 2) conditions. Looping must be handled internally to a component,
-        and is not dealt with here.
-
-        LLCATS: DEPR NINF BC
-        """
-        try:
-            self.fixed_value_node_properties["boundary_node_IDs"]
-        except AttributeError:
-            # no fixed value boundaries have been set
-            pass
-        else:
-            assert self.fixed_value_node_properties["internal_flag"], (
-                "Values were not supplied to the method that set the "
-                "boundary conditions! You cant update automatically!"
-            )
-            values_val = self.at_node[
-                self.fixed_value_node_properties["fixed_value_of"]
-            ]
-            values_val[
-                self.fixed_value_node_properties["boundary_node_IDs"]
-            ] = self.fixed_value_node_properties["values"]
-
-        try:
-            values_grad = self.at_node[
-                self.fixed_gradient_node_properties["fixed_gradient_of"]
-            ]
-            values_grad[self.fixed_gradient_node_properties["boundary_node_IDs"]] = (
-                values_grad[self.fixed_gradient_node_properties["anchor_node_IDs"]]
-                + self.fixed_gradient_node_properties["values_to_add"]
-            )
-        except AttributeError:
-            # no fixed grad boundaries have been set
-            pass
-
     # DEJH believes this needs deprecating, but it's pretty hard wired into
     # the flow router. So I've restored it for now.
     def _calculate_gradients_at_d8_active_links(self, node_values):
@@ -2766,13 +2654,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self.neighbor_list_created = True
         return neighbor_nodes
 
-    @deprecated(use="node_has_boundary_neighbor", version=1.0)
-    def has_boundary_neighbor(self, ids, method="d8"):
-        """
-        LLCATS: DEPR NINF CONN BC
-        """
-        return self.node_has_boundary_neighbor(ids, method=method)
-
     def node_has_boundary_neighbor(self, ids, method="d8"):
         """Check if nodes have neighbors that are boundary nodes.
 
@@ -2805,13 +2686,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         else:
             return ans
 
-    @deprecated(use="node_is_core", version=1.0)
-    def is_core(self, *args):
-        """
-        LLCATS: DEPR NINF BC
-        """
-        return self.node_is_core(*args)
-
     def node_is_core(self, *args):
         """node_is_core([ids])
         Check if a node is a core node.
@@ -2833,70 +2707,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             return np.equal(self._node_status, CORE_NODE)
         else:
             return np.equal(self._node_status[node_ids], CORE_NODE)
-
-    @deprecated(use="nodes_are_all_core", version=1.0)
-    def are_all_interior(self, IDs):
-        """Check if nodes are interior.
-
-        Returns a single boolean truth value, True if all nodes with *IDs* are
-        interior nodes, False if not.
-
-        LLCATS: DEPR NINF BC
-        """
-        return np.all(np.equal(self._node_status[IDs], CORE_NODE))
-
-    @deprecated(use="nodes_are_all_core", version=1.0)
-    def are_all_core(self, ids):
-        """
-        LLCATS: DEPR NINF BC
-        """
-        return self.nodes_are_all_core(ids)
-
-    def nodes_are_all_core(self, ids):
-        """Check if nodes are all core.
-
-        Returns a single boolean truth value, True if all nodes with *IDs* are
-        core nodes, False if not.
-
-        Parameters
-        ----------
-        ids : array-like
-            Grid nodes.
-
-        Returns
-        -------
-        boolean
-            ``True`` if all the given nodes are *core* nodes.
-
-        LLCATS: NINF BC
-        """
-        return np.all(np.equal(self._node_status[ids], CORE_NODE))
-
-    @deprecated(use="no replacement", version=1.0)
-    def face_connecting_cell_pair(self, cell_a, cell_b):
-        """Get the face that connects two cells.
-
-        Returns an array of face indices that *cell_a* and *cell_b* share.
-        If the cells do not share any faces, returns an empty array.
-
-        Examples
-        --------
-        >>> import pytest
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5))
-        >>> with pytest.deprecated_call():
-        ...     mg.face_connecting_cell_pair(0, 1)
-        array([4])
-        >>> with pytest.deprecated_call():
-        ...     mg.face_connecting_cell_pair(0, 2).size  # empty array returned
-        0
-
-        LLCATS: DEPR FINF CINF CONN
-        """
-        cell_faces = self.faces_at_cell[[cell_a, cell_b]]
-        return as_id_array(
-            np.intersect1d(cell_faces[0], cell_faces[1], assume_unique=True)
-        )
 
     @return_id_array
     def grid_coords_to_node_id(self, row, col, **kwds):
@@ -2986,289 +2796,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             "unit normal for a square patch. Use "
             "`_calc_unit_normals_to_patch_subtriangles` instead."
         )
-
-    @deprecated(use="calc_aspect_at_node", version=1.0)
-    def calculate_aspect_at_nodes_bestFitPlane(self, id, val):
-        """Aspect at nodes.
-
-        .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
-
-        Calculates the aspect at each node based on the elevation of
-        the node and its neighbors using a best fit plane calculated
-        using single value decomposition.
-
-        Parameters
-        ----------
-        id : array-like
-            ID of nodes at which to calculate the aspect.
-        val : ndarray
-            Elevation at all nodes
-
-        Returns
-        -------
-        ndarray
-            Aspect at the nodes given by id
-
-        LLCATS: DEPR NINF SURF
-        """
-        # additional note, KRB has written three codes in raster.py
-        # one to calculate slope, one to calculate aspect, and one
-        # to calculate both
-
-        # get the list of neighboring nodes for the nodes given by id
-        n = self.active_adjacent_nodes_at_node[id]
-        a = []
-
-        # for each node in id make a list with the node id and the ids of
-        # its neighbors.
-
-        # determine the values for the x, y, and z coordinates of each node,
-        # pass these to rfuncs.calculate_slope_aspect_bfp to calculate the
-        # slope and aspect.
-
-        indBool = n != BAD_INDEX_VALUE
-
-        for i in range(len(id)):
-            # make a list of the neighbor nodes and
-            # check that none of the nodes are bad
-
-            ns = list(n[0][indBool[0]])
-            ns.append(id[i])
-
-            x = self.node_x[ns]
-            y = self.node_y[ns]
-            z = val[ns]
-            slope, aspect = rfuncs.calculate_slope_aspect_bfp(x, y, z)
-            a.append(aspect)
-            del ns
-        # return aspect alone
-        return a
-
-    @deprecated(use="calc_slope_at_node", version=1.0)
-    def calculate_slope_at_nodes_bestFitPlane(self, id, val):
-        """Slope of best-fit plane at nodes.
-
-        .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
-
-        Calculates the slope at each node based on the elevation of
-        the node and its neighbors using a best fit plane calculated
-        using single value decomposition.
-
-        Parameters
-        ----------
-        id : array-like
-            ID of nodes at which to calculate the aspect
-        val : ndarray
-            Elevation at all nodes
-
-        Returns
-        -------
-        ndarray
-            Slope at the nodes given by id
-
-        LLCATS: DEPR NINF GRAD SURF
-        """
-        #
-        # additional note, KRB has written three codes in raster.py
-        # one to calculate slope, one to calculate aspect, and one
-        # to calculate both
-
-        # get the list of neighboring nodes for the nodes given by id
-        n = self.active_adjacent_nodes_at_node[id]
-        s = []
-
-        # for each node in id make a list with the node id and the ids of
-        # its neighbors.
-
-        # determine the values for the x, y, and z coordinates of each node,
-        # pass these to rfuncs.calculate_slope_aspect_bfp to calculate the
-        # slope and aspect.
-
-        indBool = n != BAD_INDEX_VALUE
-
-        for i in range(len(id)):
-            # make a list of the neighbor nodes and
-            # check that none of the nodes are bad
-
-            ns = list(n[0][indBool[0]])
-            ns.append(id[i])
-
-            x = self.node_x[ns]
-            y = self.node_y[ns]
-            z = val[ns]
-
-            slope, _ = rfuncs.calculate_slope_aspect_bfp(x, y, z)
-            s.append(slope)
-            del ns
-        # return slope alone
-        return s
-
-    @deprecated(use="calc_slope_at_node, calc_aspect_at_node", version=1.0)
-    def calculate_slope_aspect_at_nodes_burrough(self, ids=None, vals="Elevation"):
-        """Calculate topographic slope.
-
-        Calculates the local topographic slope (i.e., the down-dip slope, and
-        presented as positive), and the aspect (dip direction in degrees
-        clockwise from north), at the given nodes, *ids*. All *ids* must be of
-        core nodes.
-        This method uses Burrough's 1998 Pg. 190 method similar to the methods
-        used by ArcMap to calculate slope and aspect.
-
-        If *ids* is not provided, the slope will be returned for nodes at all
-        cells.
-
-        *vals* is either the name of an existing grid field from which to draw
-        topographic data, or an array of values to use. If an array of values
-        is passed, it must be nnodes long.
-        If *vals* is not provided, this method will default to trying to use
-        the field 'Elevation'.
-
-        Returns
-        -------
-        (slope, aspect) : tuple of float
-            *slope*, a len(ids) array of slopes at each node provided.
-            *aspect*, a len(ids) array of aspects at each node provided.
-
-        Examples
-        --------
-        >>> import pytest
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 4))
-        >>> z = np.array([0., 0., 0., 0.,
-        ...               3., 3., 3., 3,
-        ...               6., 6., 6., 6.])
-        >>> with pytest.deprecated_call():
-        ...     (slope, aspect) = (
-        ...              grid.calculate_slope_aspect_at_nodes_burrough(vals=z))
-        >>> np.tan(slope)
-        array([ 0.75,  0.75])
-        >>> np.degrees(aspect)
-        array([ 180.,  180.])
-
-        This method is *deprecated*. Use ``calc_slope_at_node`` and
-        ``calc_aspect_at_node`` instead. Notice that ``calc_slope_at_node``
-        and ``calc_aspect_at_node`` return values for all nodes, not just
-        core nodes. In addition, ``calc_aspect_at_node`` returns compass-style
-        angles in degrees.
-
-        >>> np.tan(grid.calc_slope_at_node(elevs=z)[grid.core_nodes])
-        array([ 0.75,  0.75])
-        >>> grid.calc_aspect_at_node(elevs=z)[grid.core_nodes]
-        array([ 180.,  180.])
-
-        LLCATS: DEPR NINF SURF GRAD
-        """
-        if ids is None:
-            ids = self.node_at_cell
-        if not isinstance(ids, np.ndarray):
-            ids = np.array([ids])
-        if isinstance(vals, str):
-            vals = self.at_node[vals]
-        else:
-            if len(vals) != self.number_of_nodes:
-                raise IndexError("*vals* was not of a compatible length!")
-
-        neighbors = np.zeros([ids.shape[0], 4], dtype=int)
-        diagonals = np.zeros([ids.shape[0], 4], dtype=int)
-        # [right, top, left, bottom]
-        neighbors[:] = self.active_adjacent_nodes_at_node[ids]
-        # [topright, topleft, bottomleft, bottomright]
-        diagonals[:] = self.diagonal_adjacent_nodes_at_node[ids]
-
-        right = vals[neighbors[:, 0]]
-        top = vals[neighbors[:, 1]]
-        left = vals[neighbors[:, 2]]
-        bottom = vals[neighbors[:, 3]]
-        top_right = vals[diagonals[:, 0]]
-        top_left = vals[diagonals[:, 1]]
-        bottom_left = vals[diagonals[:, 2]]
-        bottom_right = vals[diagonals[:, 3]]
-
-        dz_dx = (
-            (top_right + 2 * right + bottom_right) - (top_left + 2 * left + bottom_left)
-        ) / (8.0 * self._dx)
-        dz_dy = (
-            (bottom_left + 2 * bottom + bottom_right) - (top_left + 2 * top + top_right)
-        ) / (8.0 * self._dy)
-
-        slope = np.zeros([ids.shape[0]], dtype=float)
-        aspect = np.zeros([ids.shape[0]], dtype=float)
-        slope = np.arctan(np.sqrt(dz_dx ** 2 + dz_dy ** 2))
-        aspect = np.arctan2(dz_dy, -dz_dx)
-        aspect = np.pi * 0.5 - aspect
-        aspect[aspect < 0.0] = aspect[aspect < 0.0] + 2.0 * np.pi
-        aspect[slope == 0.0] = -1.0
-
-        return slope, aspect
-
-    @deprecated(use="calc_slope_at_node, calc_aspect_at_node", version=1.0)
-    def calculate_slope_aspect_at_nodes_best_fit_plane(self, nodes, val):
-        r"""Calculate slope aspect.
-
-        Slope aspect of best-fit plane at nodes.
-
-        .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
-
-        .. note::
-
-            THIS CODE HAS ISSUES (SN 25-Sept-14): This code didn't perform
-            well on a NS facing elevation profile. Please check
-            slope_aspect_routines_comparison.py under landlab\examples before
-            using this.  Suggested alternative:
-            calculate_slope_aspect_at_nodes_burrough
-
-        Calculates both the slope and aspect at each node based on the
-        elevation of the node and its neighbors using a best fit plane
-        calculated using single value decomposition.
-
-        Parameters
-        ----------
-        nodes : array-like
-            ID of nodes at which to calculate the aspect
-        val : ndarray
-            Elevation at all nodes
-
-        Returns
-        -------
-        (slope, aspect) : tuple of floats
-            Tuple containing (*slope*, *aspect*)
-
-        LLCATS: DEPR NINF GRAD SURF
-        """
-        # additional note, KRB has written three codes in raster.py
-        # one to calculate slope, one to calculate aspect, and one
-        # to calculate both
-
-        # get the list of neighboring nodes for the nodes given by id
-        node_neighbors = self.active_adjacent_nodes_at_node[nodes]
-        aspects = []
-        slopes = []
-
-        # for each node in id make a list with the node id and the ids of
-        # its neighbors.
-
-        # determine the values for the x, y, and z coordinates of each node,
-        # pass these to rfuncs.calculate_slope_aspect_bfp to calculate the
-        # slope and aspect.
-
-        indBool = node_neighbors != BAD_INDEX_VALUE
-
-        for id_ in range(len(nodes)):
-            # make a list of the neighbor nodes and
-            # check that none of the nodes are bad
-            neighbors = list(node_neighbors[0, indBool[0]])
-            neighbors.append(nodes[id_])
-
-            node_x = self.node_x[neighbors]
-            node_y = self.node_y[neighbors]
-            node_z = val[neighbors]
-            slope, aspect = rfuncs.calculate_slope_aspect_bfp(node_x, node_y, node_z)
-            aspects.append(aspect)
-            slopes.append(slope)
-
-            del neighbors
-        return slopes, aspects
 
     def save(self, path, names=None, format=None, at=None):
         """Save a grid and fields.

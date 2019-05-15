@@ -19,7 +19,7 @@ import numpy as np
 
 from landlab.core.utils import radians_to_degrees
 from landlab.grid.base import CLOSED_BOUNDARY
-from landlab.utils.decorators import deprecated, use_field_name_or_array
+from landlab.utils.decorators import use_field_name_or_array
 
 
 @use_field_name_or_array("node")
@@ -74,121 +74,6 @@ def calc_grad_at_link(grid, node_values, out=None):
     )
 
 
-@deprecated(use="calc_grad_at_link", version="1.0beta")
-def calc_grad_of_active_link(grid, node_values, out=None):
-    """Calculate gradients at active links.
-
-    Examples
-    --------
-    >>> import pytest
-    >>> import numpy as np
-    >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid((3, 4))
-    >>> z = np.array([0., 0., 0., 0.,
-    ...               1., 1., 1., 1.,
-    ...               3., 3., 3., 3.])
-    >>> with pytest.deprecated_call():
-    ...     grid.calc_grad_of_active_link(z)
-    array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
-
-    This method is *deprecated*. Instead, use ``calc_grad_at_link``.
-
-    >>> vals = grid.calc_grad_at_link(z)
-    >>> vals[grid.active_links]
-    array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
-
-    LLCATS: DEPR
-    """
-    return calc_grad_at_active_link(grid, node_values, out)
-
-
-@deprecated(use="calc_grad_at_link", version="1.0beta")
-@use_field_name_or_array("node")
-def calc_grad_at_active_link(grid, node_values, out=None):
-    """Calculate gradients of node values over active links.
-
-    Calculates the gradient in *quantity* node values at each active link in
-    the grid.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A ModelGrid.
-    node_values : ndarray or field name
-        Values at grid nodes.
-    out : ndarray, optional
-        Buffer to hold the result.
-
-    Returns
-    -------
-    ndarray
-        Gradients across active links.
-
-    LLCATS: DEPR LINF GRAD
-    """
-    if out is None:
-        out = np.empty(len(grid.active_links), dtype=float)
-    return np.divide(
-        np.diff(node_values[grid.nodes_at_link[grid.active_links]], axis=1).flatten(),
-        grid.length_of_link[grid.active_links],
-        out=out,
-    )
-
-
-@deprecated(use="calc_grad_at_link", version="1.0beta")
-@use_field_name_or_array("node")
-def calculate_gradients_at_faces(grid, node_values, out=None):
-    """Calculate gradients of node values over faces.
-
-    Calculate and return gradient in *node_values* at each face in the grid.
-    Gradients are calculated from the nodes at either end of the link that
-    crosses each face.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A ModelGrid.
-    node_values : ndarray or field name
-        Values at grid nodes.
-    out : ndarray, optional
-        Buffer to hold the result.
-
-    Returns
-    -------
-    ndarray (x number of faces)
-        Gradients across faces.
-
-    Examples
-    --------
-    >>> from landlab import RasterModelGrid
-    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
-    >>> z[5] = 50.0
-    >>> z[6] = 36.0
-    >>> calculate_gradients_at_faces(rg, z)  # there are 7 faces
-    array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
-
-    >>> from landlab import HexModelGrid
-    >>> hg = HexModelGrid(3, 3, 10.0)
-    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
-    >>> z[4] = 50.0
-    >>> z[5] = 36.0
-    >>> calculate_gradients_at_faces(hg, z)  # there are 11 faces
-    array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
-
-    LLCATS: DEPR GRAD
-    """
-    if out is None:
-        out = grid.empty(at="face")
-    laf = grid.link_at_face
-    return np.divide(
-        node_values[grid.node_at_link_head[laf]]
-        - node_values[grid.node_at_link_tail[laf]],
-        grid.length_of_link[laf],
-        out=out,
-    )
-
-
 @use_field_name_or_array("node")
 def calc_diff_at_link(grid, node_values, out=None):
     """Calculate differences of node values over links.
@@ -230,64 +115,6 @@ def calc_diff_at_link(grid, node_values, out=None):
         node_values[grid.node_at_link_tail],
         out=out,
     )
-
-
-@deprecated(use="calc_diff_at_link", version="1.0beta")
-@use_field_name_or_array("node")
-def calculate_diff_at_links(grid, node_values, out=None):
-    """Calculate differences of node values over links.
-
-    Examples
-    --------
-    >>> import pytest
-    >>> import numpy as np
-    >>> from landlab import RasterModelGrid
-
-    >>> grid = RasterModelGrid((3, 3))
-    >>> z = np.zeros(9)
-    >>> z[4] = 1.
-
-    >>> with pytest.deprecated_call():
-    ...     grid.calculate_diff_at_links(z)
-    array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
-
-    >>> grid.calc_diff_at_link(z)
-    array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
-
-    LLCATS: DEPR LINF GRAD
-    """
-    return calc_diff_at_link(grid, node_values, out)
-
-
-@deprecated(use="calc_diff_at_link", version="1.0beta")
-@use_field_name_or_array("node")
-def calculate_diff_at_active_links(grid, node_values, out=None):
-    """Calculate differences of node values over active links.
-
-    Calculates the difference in quantity *node_values* at each active link
-    in the grid.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A ModelGrid.
-    node_values : ndarray or field name
-        Values at grid nodes.
-    out : ndarray, optional
-        Buffer to hold the result.
-
-    Returns
-    -------
-    ndarray
-        Differences across active links.
-
-    LLCATS: DEPR LINF GRAD
-    """
-    if out is None:
-        out = np.empty(len(grid.active_links), dtype=float)
-    node_values = np.asarray(node_values)
-    node_values = node_values[grid.nodes_at_link[grid.active_links]]
-    return np.subtract(node_values[:, 1], node_values[:, 0], out=out)
 
 
 def calc_unit_normal_at_patch(grid, elevs="topographic__elevation"):
