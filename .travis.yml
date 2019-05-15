@@ -58,10 +58,11 @@ before_install:
 - conda config --set always_yes yes --set changeps1 no
 - conda create -n test_env python=$CONDA_ENV
 - source activate test_env
+- conda info -a && conda list
 install:
 - pip install numpy
 - pip install -e .
 script:
-- pip install pytest pytest-cov coveralls
+- pip install pytest pytest-cov pytest-datadir coveralls
 - pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml -vvv
 after_success: coveralls

@@ -300,6 +300,8 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
     BC_LINK_IS_FIXED = FIXED_LINK
     BC_LINK_IS_INACTIVE = INACTIVE_LINK
 
+    VALID_LOCATIONS = ("node", "link", "patch", "corner", "face", "cell")
+
     # Debugging flags (if True, activates some output statements)
     _DEBUG_VERBOSE = False
     _DEBUG_TRACK_METHODS = False

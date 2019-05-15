@@ -11,8 +11,11 @@ dependencies:
 - pyshp
 - pytest
 - pytest-cov
+- pytest-datadir
 - pyyaml
 - scipy
 - six
 - statsmodels
 - xarray
+- pip:
+    - bmipy<1
