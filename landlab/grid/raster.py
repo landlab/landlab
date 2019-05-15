@@ -7,6 +7,7 @@ Do NOT add new documentation here. Grid documentation is now built in a semi-
 automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
+from __future__ import absolute_import
 
 from warnings import warn
 
@@ -38,6 +39,14 @@ from .base import (
 )
 from .decorators import return_id_array, return_readonly_id_array
 from .diagonals import DiagonalsMixIn
+from .warnings import (
+    DeprecatedDxKeyword,
+    DeprecatedOriginKeyword,
+    DeprecatedRowsColsArguments,
+    DeprecatedRowsColsKeywords,
+    DeprecatedSpacingArgument,
+    DeprecatedSpacingKeyword,
+)
 
 
 @deprecated(use="grid.node_has_boundary_neighbor", version="0.2")
@@ -349,6 +358,53 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     or set it up such that one can create a zero-node grid.
     """
 
+    @staticmethod
+    def _parse_parameters(args, kwds):
+        """Parse __init__ parameters into new-style parameters."""
+        old = (args, kwds)
+        deprecation_warning = None
+        try:
+            shape = kwds.pop("num_rows"), kwds.pop("num_cols")
+        except KeyError:
+            shape = _parse_grid_shape_from_args(args)
+            if len(args) >= 2:
+                deprecation_warning = DeprecatedRowsColsArguments
+        else:
+            deprecation_warning = DeprecatedRowsColsKeywords
+            if args:
+                raise ValueError(
+                    "number of args must be 0 when using keywords for grid shape"
+                )
+
+        new_kwds = kwds.copy()
+        new = ((shape,), new_kwds)
+
+        xy_spacing = None
+        if "dx" in kwds:
+            deprecation_warning = DeprecatedDxKeyword
+            xy_spacing = new_kwds.pop("dx")
+        if "spacing" in kwds:
+            deprecation_warning = DeprecatedSpacingKeyword
+            xy_spacing = new_kwds.pop("spacing")
+        if _parse_grid_spacing_from_args(args) is not None:
+            deprecation_warning = DeprecatedSpacingArgument
+            xy_spacing = _parse_grid_spacing_from_args(args)
+
+        if "xy_spacing" not in kwds and xy_spacing is not None:
+            try:
+                new_kwds.setdefault("xy_spacing", xy_spacing[::-1])
+            except TypeError:
+                new_kwds.setdefault("xy_spacing", xy_spacing)
+
+        if "origin" in kwds:
+            deprecation_warning = DeprecatedOriginKeyword
+            new_kwds.setdefault("xy_of_lower_left", new_kwds.pop("origin"))
+
+        if deprecation_warning:
+            warn(deprecation_warning("RasterModelGrid", old=old, new=new))
+
+        return new
+
     def __init__(self, *args, **kwds):
         """Create a 2D grid with equal spacing.
 
@@ -388,100 +444,26 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         defined. Either we force users to give arguments on instantiation,
         or set it up such that one can create a zero-node grid.
         """
+        args, kwds = self._parse_parameters(args, kwds)
 
-        num_rows = kwds.pop("num_rows", None)
-        num_cols = kwds.pop("num_cols", None)
+        shape = args[0]
+        xy_spacing = np.broadcast_to(kwds.get("xy_spacing", 1.0), 2)
+        xy_of_lower_left = kwds.get("xy_of_lower_left", (0.0, 0.0))
 
-        if num_rows is None and num_cols is None:
-            num_rows, num_cols = _parse_grid_shape_from_args(args)
-        elif len(args) > 0:
-            raise ValueError(
-                "number of args must be 0 when using keywords for grid shape"
-            )
-
-        if num_rows <= 0 or num_cols <= 0:
+        if shape[0] <= 0 or shape[1] <= 0:
             raise ValueError("number of rows and columns must be positive")
 
-        # Spacing
-        if "dx" in kwds:
-            msg = (
-                "The dx keyword is Deprecated (v1.6), "
-                "please pass xy_spacing instead."
-            )
-            warn(msg, DeprecationWarning)
-            dx = kwds.pop("dx", None)
-            old_spacing = True
-
-        elif "spacing" in kwds:
-            msg = (
-                "Passing spacing as a keyword argument is Deprecated. "
-                "Pass xy_spacing instead."
-            )
-            warn(msg, DeprecationWarning)
-            dx = kwds.pop("spacing")
-            old_spacing = True
-
-        elif "xy_spacing" in kwds:
-            dx = kwds.pop("xy_spacing")
-            old_spacing = False
-        else:
-            dx = _parse_grid_spacing_from_args(args)
-            if dx is not None:
-                msg = (
-                    "Passing spacing as an argument is Deprecated (v1.6). "
-                    "Pass xy_spacing instead."
-                )
-                warn(msg, DeprecationWarning)
-                old_spacing = True
-            else:
-                dx = (1.0, 1.0)
-                old_spacing = False
-
-        try:
-            if len(dx) != 2:
-                msg = (
-                    "Specify grid spacing as a float or tuple of floats "
-                    "using the keyword xy_spacing."
-                )
-                raise ValueError(msg)
-            else:
-                if old_spacing:
-                    xy_spacing = (dx[1], dx[0])
-                else:
-                    xy_spacing = dx
-        except TypeError:
-            if isinstance(dx, (int, float)):
-                xy_spacing = (dx, dx)
-            else:
-                msg = (
-                    "Specify grid spacing as a float or tuple of floats "
-                    "using the keyword xy_spacing."
-                )
-                raise ValueError(msg)
-
-        # Lower left corner
-        if "origin" in kwds:
-            msg = (
-                "The origin keyword has been Deprecated. "
-                "Please use xy_of_lower_left instead"
-            )
-            warn(msg, DeprecationWarning)
-            xy_of_lower_left = kwds.pop("origin")
-        else:
-            xy_of_lower_left = tuple(kwds.pop("xy_of_lower_left", (0.0, 0.0)))
-
         if len(xy_of_lower_left) != 2:
-            msg = "xy_of_lower_left must be size two"
-            raise ValueError(msg)
+            raise ValueError("xy_of_lower_left must be size two")
 
-        self._xy_of_lower_left = xy_of_lower_left
+        self._xy_of_lower_left = tuple(xy_of_lower_left)
 
         # Node Status
-        self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
+        self._node_status = np.empty(shape[0] * shape[1], dtype=np.uint8)
 
         # Set number of nodes, and initialize if caller has given dimensions
         self._initialize(
-            num_rows, num_cols, xy_spacing, (xy_of_lower_left[0], xy_of_lower_left[1])
+            shape[0], shape[1], xy_spacing, (xy_of_lower_left[0], xy_of_lower_left[1])
         )
 
         self.set_closed_boundaries_at_grid_edges(
@@ -491,6 +473,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         super(RasterModelGrid, self).__init__(**kwds)
 
         self.looped_node_properties = {}
+
+    def __repr__(self):
+        return "RasterModelGrid({0}, xy_spacing={1}, xy_of_lower_left={2})".format(
+            repr(self.shape), repr((self.dx, self.dy)), repr(self.xy_of_lower_left)
+        )
 
     def __setstate__(self, state_dict):
         """Set state for of RasterModelGrid from pickled state_dict."""
@@ -3461,9 +3448,14 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> import os
-        >>> rmg = RasterModelGrid((4, 5))
-        >>> rmg.save('./mysave.nc')
-        >>> os.remove('mysave.nc') #to remove traces of this test
+        >>> from tempfile import mkdtemp
+
+        >>> grid = RasterModelGrid((4, 5))
+        >>> fname = os.path.join(mkdtemp(), "mysave.nc")
+        >>> grid.save(fname)
+        >>> os.path.isfile(fname)
+        True
+        >>> os.remove(fname)
 
         LLCATS: GINF
         """

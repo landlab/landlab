@@ -333,7 +333,7 @@ def _get_x_and_y(grid, at):
     return x, y
 
 
-def constant(grid, name, at="node", where=None, constant=0.0):
+def constant(grid, name, at="node", where=None, value=0.0):
     """Add a constant to a grid.
 
     Parameters
@@ -349,7 +349,7 @@ def constant(grid, name, at="node", where=None, constant=0.0):
         should be placed. It is either (1) a single value or list
         of values indicating a grid-element status (e.g. CORE_NODE),
         or (2) a (number-of-grid-element,) sized boolean array.
-    constant : float, optional
+    value : float, optional
         Constant value to add to the grid. Default is 0.
 
     Returns
@@ -366,7 +366,7 @@ def constant(grid, name, at="node", where=None, constant=0.0):
     ...                  'some_flux',
     ...                  'link',
     ...                  where='ACTIVE_LINK',
-    ...                  constant=10)
+    ...                  value=10)
     >>> mg.at_link['some_flux']
     array([  0.,   0.,   0.,   0.,  10.,  10.,   0.,  10.,  10.,  10.,   0.,
             10.,  10.,   0.,  10.,  10.,  10.,   0.,  10.,  10.,   0.,   0.,
@@ -376,7 +376,7 @@ def constant(grid, name, at="node", where=None, constant=0.0):
     where = _where_to_add_values(grid, at, where)
     _create_missing_field(grid, name, at)
     values = np.zeros(grid.size(at))
-    values[where] += constant
+    values[where] += value
     grid[at][name][:] += values
     return values
 
