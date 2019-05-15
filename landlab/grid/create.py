@@ -296,13 +296,14 @@ def create_grid(file_like, section=None):
 
     The value associated with the "fields" key is a nested set of dictionaries
     indicating where the fields are created, what the field names are, and how
-    to create the fields. At the highest hierachical level, the value
+    to create the fields. As part of a grid's description, the value
     associated with the "fields" key must be a dictionary with keys indicating
     at which grid elements fields should be created (e.g. to create fields at
-    node, use "at_node").
+    node, use "node").
 
-    The value associated with each "at_xxx" value is itself a dictionary
-    indicating the name of the field an how it should be created. A field can
+    The value associated with each "xxx" (i.e. "node", "link", "patch", etc.)
+    value is itself a dictionary
+    indicating the name of the field and how it should be created. A field can
     either be created by reading from a file or creating synthetic values. The
     :py:func:`~landlab.io.netcdf.read.read_netcdf` and
     :py:func:`~landlab.io.esri_ascii.read_esri_ascii` functions, and the
@@ -312,22 +313,26 @@ def create_grid(file_like, section=None):
     functions do not meet your needs, we welcome contributions that extend the
     capabilities of this function.
 
-    The following example would uses the
+    The following example would use the
     :py:func:`~landlab.values.synthetic.plane` function from the synthetic
-    values package to create an at_node value for the field
-    topographic__elevation. The plane function adds values to a Landlab model
+    values package to create a *node* value for the field
+    *topographic__elevation*. The plane function adds values to a Landlab model
     grid field that lie on a plane specified by a point and a normal vector. In
     the below example the plane goes through the point (1.0, 1.0, 1.0) and has
     a normal of (-2.0, -1.0, 1.0).
 
     .. code-block:: yaml
 
-        fields:
-          at_node:
-            topographic__elevation:
-              plane:
-                - point: [1, 1, 1]
-                  normal: [-2, -1, 1]
+        grid:
+          RasterModelGrid:
+            - [4, 5]
+            - xy_spacing: [3, 4]
+            - fields:
+                node:
+                  topographic__elevation:
+                    plane:
+                      - point: [1, 1, 1]
+                        normal: [-2, -1, 1]
 
     **Dictionary Section "boundary_conditions"**
 
@@ -339,17 +344,23 @@ def create_grid(file_like, section=None):
     Each entry to the list is a dictionary with a single key, the name of the
     bound function. The value associated with that key is a list of arguments
     and keyword arguments, similar in structure to those described above.
+    As with the "fields" section, the "boundary_conditions" section must be
+    described under its associated grid description.
 
     For example, the following sets closed boundaries at all sides of the grid.
 
     .. code-block:: yaml
 
-        boundary_conditions:
-          - set_closed_boundaries_at_grid_edges:
-            - True
-            - True
-            - True
-            - True
+        grid:
+          RasterModelGrid:
+            - [4, 5]
+            - xy_spacing: [3, 4]
+            - boundary_conditions:
+              - set_closed_boundaries_at_grid_edges:
+                - True
+                - True
+                - True
+                - True
 
     Parameters
     ----------
