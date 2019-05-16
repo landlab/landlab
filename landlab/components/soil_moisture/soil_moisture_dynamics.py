@@ -495,7 +495,7 @@ class SoilMoisture(Component):
             ],
         )
 
-    def update(self, current_time, Tb=24.0, Tr=0.0, **kwds):
+    def update(self, current_time=0.0, Tb=24.0, Tr=0.0, **kwds):
         """
         Update fields with current loading conditions.
 
