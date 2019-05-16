@@ -234,8 +234,6 @@ def wrap_as_bmi(cls):
         def get_time_units(self):
             """Time units used by the component."""
             return "s"
-            # raise NotImplementedError("get_time_units not implemented")
-            # Should be implemented.
 
         def initialize(self, config_file):
             """Initialize the component from a file.
@@ -320,13 +318,11 @@ def wrap_as_bmi(cls):
             """Get the total number of bytes used by a variable."""
             at = self._base._var_mapping[name]
             return self._base.grid[at][name].nbytes
-            # return self.get_var_itemsize(name) * self._base.grid.number_of_nodes
 
         def get_var_type(self, name):
             """Get the data type for a variable."""
             at = self._base._var_mapping[name]
             return str(self._base.grid[at][name].dtype)
-            # return str(np.dtype("float"))
 
         def get_var_units(self, name):
             """Get the unit used by a variable."""
@@ -348,10 +344,6 @@ def wrap_as_bmi(cls):
             if name in self.get_input_var_names():
                 at = self._base._var_mapping[name]
                 self._base.grid[at][name][:] = values.flat
-                # if name in self._base.grid.at_node:
-                #     self._base.grid.at_node[name][:] = values.flat
-                # else:
-                #     self._base.grid.at_node[name] = values
             else:
                 raise KeyError("{name} is not an input item".format(name=name))
 
