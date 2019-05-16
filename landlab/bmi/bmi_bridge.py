@@ -20,6 +20,26 @@ from ..core import load_params
 from ..core.model_component import Component
 from ..framework.decorators import snake_case
 from ..grid.create import create_grid
+from ..grid import RasterModelGrid, HexModelGrid
+
+
+BMI_LOCATION = {
+    "node": "node",
+    "link": "edge",
+    "patch": "face",
+    "corner": "node",
+    "face": "edge",
+    "cell": "face",
+}
+
+BMI_GRID = {
+    "node": 0,
+    "link": 0,
+    "patch": 0,
+    "corner": 1,
+    "face": 1,
+    "cell": 1,
+}
 
 
 class TimeStepper(object):
@@ -213,7 +233,8 @@ def wrap_as_bmi(cls):
 
         def get_time_units(self):
             """Time units used by the component."""
-            raise NotImplementedError("get_time_units not implemented")
+            return "s"
+            # raise NotImplementedError("get_time_units not implemented")
             # Should be implemented.
 
         def initialize(self, config_file):
@@ -287,19 +308,25 @@ def wrap_as_bmi(cls):
 
         def get_var_grid(self, name):
             """Get the grid id for a variable."""
-            return 0
+            at = self._base._var_mapping[name]
+            return BMI_GRID[at]
 
         def get_var_itemsize(self, name):
             """Get the size of elements of a variable."""
-            return np.dtype("float").itemsize
+            at = self._base._var_mapping[name]
+            return self._base.grid[at][name].itemsize
 
         def get_var_nbytes(self, name):
             """Get the total number of bytes used by a variable."""
-            return self.get_itemsize(name) * self._base.grid.number_of_nodes
+            at = self._base._var_mapping[name]
+            return self._base.grid[at][name].nbytes
+            # return self.get_var_itemsize(name) * self._base.grid.number_of_nodes
 
         def get_var_type(self, name):
             """Get the data type for a variable."""
-            return str(np.dtype("float"))
+            at = self._base._var_mapping[name]
+            return str(self._base.grid[at][name].dtype)
+            # return str(np.dtype("float"))
 
         def get_var_units(self, name):
             """Get the unit used by a variable."""
@@ -307,26 +334,33 @@ def wrap_as_bmi(cls):
 
         def get_value_ref(self, name):
             """Get a reference to a variable's data."""
-            return self._base.grid.at_node[name]
+            at = self._base._var_mapping[name]
+            return self._base.grid[at][name]
 
         def get_value(self, name, dest):
             """Get a copy of a variable's data."""
-            dest[:] = self._base.grid.at_node[name]
+            at = self._base._var_mapping[name]
+            dest[:] = self._base.grid[at][name]
             return dest
 
         def set_value(self, name, values):
             """Set the values of a variable."""
             if name in self.get_input_var_names():
-                if name in self._base.grid.at_node:
-                    self._base.grid.at_node[name][:] = values.flat
-                else:
-                    self._base.grid.at_node[name] = values
+                at = self._base._var_mapping[name]
+                self._base.grid[at][name][:] = values.flat
+                # if name in self._base.grid.at_node:
+                #     self._base.grid.at_node[name][:] = values.flat
+                # else:
+                #     self._base.grid.at_node[name] = values
             else:
                 raise KeyError("{name} is not an input item".format(name=name))
 
         def get_grid_origin(self, grid, origin):
             """Get the origin for a structured grid."""
-            origin[:] = (self._base.grid.node_y[0], self._base.grid.node_x[0])
+            if grid == 0:
+                origin[:] = (self._base.grid.node_y[0], self._base.grid.node_x[0])
+            elif grid == 1:
+                origin[:] = (self._base.grid.corner_y[0], self._base.grid.corner_x[0])
             return origin
 
         def get_grid_rank(self, grid):
@@ -335,10 +369,16 @@ def wrap_as_bmi(cls):
 
         def get_grid_shape(self, grid, shape):
             """Get the shape of a structured grid."""
-            shape[:] = (
-                self._base.grid.number_of_node_rows,
-                self._base.grid.number_of_node_columns,
-            )
+            if grid == 0:
+                shape[:] = (
+                    self._base.grid.number_of_node_rows,
+                    self._base.grid.number_of_node_columns,
+                )
+            elif grid == 1:
+                shape[:] = (
+                    self._base.grid.number_of_node_rows - 1,
+                    self._base.grid.number_of_node_columns - 1,
+                )
             return shape
 
         def get_grid_spacing(self, grid, spacing):
@@ -348,54 +388,85 @@ def wrap_as_bmi(cls):
 
         def get_grid_type(self, grid):
             """Get the type of grid."""
-            return "uniform_rectilinear"
+            if isinstance(self._base.grid, RasterModelGrid):
+                return "uniform_rectilinear"
+            else:
+                return "unstructured"
 
         def get_grid_edge_count(self, grid):
-            return self._base.grid.number_of_links
+            if grid == 0:
+                return self._base.grid.number_of_links
+            elif grid == 1:
+                return self._base.grid.number_of_faces
 
         def get_grid_edge_nodes(self, grid, edge_nodes):
-            return self._base.grid.nodes_at_link.reshape((-1,))
+            if grid == 0:
+                return self._base.grid.nodes_at_link.reshape((-1,))
+            elif grid == 1:
+                return self._base.grid.corners_at_face.reshape((-1,))
 
         def get_grid_face_count(self, grid):
-            return self._base.grid.number_of_patches
+            if grid == 0:
+                return self._base.grid.number_of_patches
+            elif grid == 1:
+                return self._base.grid.number_of_cells
 
         def get_grid_face_nodes(self, grid, face_nodes):
-            return self._base.grid.nodes_at_patch
+            if grid == 0:
+                return self._base.grid.nodes_at_patch
+            elif grid == 1:
+                return self._base.grid.corners_at_cell
 
         def get_grid_node_count(self, grid):
-            return self._base.grid.number_of_nodes
+            if grid == 0:
+                return self._base.grid.number_of_nodes
+            elif grid == 1:
+                return self._base.grid.number_of_corners
 
         def get_grid_nodes_per_face(self, grid, nodes_per_face):
-            raise NotImplementedError("get_grid_nodes_per_face")
-            # Should be implemented. Not commonly used, so not implemented yet.
+            if grid == 0:
+                return np.full(self._base.grid.number_of_nodes, 3, dtype=int)
+            elif grid == 1:
+                if isinstance(self._base.grid, HexModelGrid):
+                    return np.full(self._base.grid.number_of_faces, 6, dtype=int)
 
         def get_grid_size(self, grid):
-            return self._base.grid.number_of_nodes
+            if grid == 0:
+                return self._base.grid.number_of_nodes
+            elif grid == 1:
+                return self._base.grid.number_of_corners
 
         def get_grid_x(self, grid, x):
-            return self._base.grid.x_of_node
+            if grid == 0:
+                return self._base.grid.x_of_node
+            elif grid == 1:
+                return self._base.grid.x_of_corner
 
         def get_grid_y(self, grid, y):
-            return self._base.grid.y_of_node
+            if grid == 0:
+                return self._base.grid.y_of_node
+            elif grid == 1:
+                return self._base.grid.y_of_corner
 
         def get_grid_z(self, grid, z):
             raise NotImplementedError("get_grid_z")
             # Only should be implemented for presently non-existant 3D grids.
 
         def get_value_at_indices(self, name, dest, inds):
-            raise NotImplementedError("get_value_at_indices")
-            # Should be implemented.
+            at = self._base._var_mapping[name]
+            dest[:] = self._base.grid[at][name][inds]
+            return dest
 
         def get_value_ptr(self, name):
-            raise NotImplementedError("get_value_ptr")
-            # Should be implemented.
+            at = self._base._var_mapping[name]
+            return self._base.grid[at][name]
 
         def get_var_location(self, name):
-            return self._base._var_mapping[name]
+            return BMI_LOCATION[self._base._var_mapping[name]]
 
         def set_value_at_indices(self, name, inds, src):
-            raise NotImplementedError("set_value_at_indices")
-            # Should be implemented.
+            at = self._base._var_mapping[name]
+            self._base.grid[at][name][inds] = src
 
     BmiWrapper.__name__ = cls.__name__
     return BmiWrapper
