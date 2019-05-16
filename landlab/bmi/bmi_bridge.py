@@ -128,6 +128,36 @@ class TimeStepper(object):
 def wrap_as_bmi(cls):
     """Wrap a landlab class so it exposes a BMI.
 
+    Give a landlab component a Basic Model Interface (BMI). Since landlab
+    components have an interface that is already in the style of BMI,
+    this function adds just a light wrapping to landlab components. There
+    are a number of differences that may causes some confustion to
+    landlab users.
+
+    1.  landlab and BMI refer to grid elements by different names. The mapping
+        from landlab to BMI nomenclature is the following:
+        *  *node*: *node*
+        *  *link*: *edge*
+        *  *patch*: *face*
+        *  *corner*: *node*
+        *  *face*: *edge*
+        *  *cell*: *face*
+        It is important to note that BMI has only three grid elements
+        (*node*, *edge*, and *face*) while landlab has 6.
+    2.  Because BMI doesn't have a concept of a dual grid, it only
+        defines the above mentioned grid elements. In BMI, these two
+        grids are considered as separate grids. Thus, a BMI-wrapped
+        landlab component will always have two grid with grid identifiers
+        0, and 1. Grid 0 will contain *nodes*, *links*, and *patches*
+        while grid 1 will contain *corners*, *faces*, and *cells*.
+    3.  In BMI, the *initialize* method requires an input file that is
+        used to create and setup the model for time-stepping. landlab
+        components generally do not have anything like this; instead
+        this task is usually done programmatically. Thus, the 
+        input file that is used by the BMI *initialize* method is
+        a standard landlab input file as used by the landlab *create_grid*
+        function.
+
     Parameters
     ----------
     cls : class
