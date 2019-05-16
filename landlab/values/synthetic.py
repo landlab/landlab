@@ -333,7 +333,7 @@ def _get_x_and_y(grid, at):
     return x, y
 
 
-def constant(grid, name, at="node", where=None, value=0.0):
+def constant(grid, name, at="node", where=None, value=0.0, dtype=None):
     """Add a constant to a grid.
 
     Parameters
@@ -351,6 +351,9 @@ def constant(grid, name, at="node", where=None, value=0.0):
         or (2) a (number-of-grid-element,) sized boolean array.
     value : float, optional
         Constant value to add to the grid. Default is 0.
+    dtype : str, optional
+        The type of the newly created field. If not provided, the
+        type will be determined based on the type of *value*.
 
     Returns
     -------
@@ -373,11 +376,13 @@ def constant(grid, name, at="node", where=None, value=0.0):
              0.,   0.])
 
     """
+    dtype = dtype or type(value)
     where = _where_to_add_values(grid, at, where)
-    _create_missing_field(grid, name, at)
-    values = np.zeros(grid.size(at))
+    try:
+        values = grid[at][name]
+    except KeyError:
+        values = grid.add_zeros(name, at=at, dtype=dtype)
     values[where] += value
-    grid[at][name][:] += values
     return values
 
 
