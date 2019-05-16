@@ -365,11 +365,9 @@ def constant(grid, name, at="node", where=None, value=0.0, dtype=None):
     >>> from landlab import RasterModelGrid
     >>> from landlab.values import constant
     >>> mg = RasterModelGrid((4, 4))
-    >>> values = constant(mg,
-    ...                  'some_flux',
-    ...                  'link',
-    ...                  where='ACTIVE_LINK',
-    ...                  value=10)
+    >>> values = constant(
+    ...     mg, 'some_flux', 'link', where='ACTIVE_LINK', value=10.0
+    ... )
     >>> mg.at_link['some_flux']
     array([  0.,   0.,   0.,   0.,  10.,  10.,   0.,  10.,  10.,  10.,   0.,
             10.,  10.,   0.,  10.,  10.,  10.,   0.,  10.,  10.,   0.,   0.,
