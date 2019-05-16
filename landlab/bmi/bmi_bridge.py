@@ -135,31 +135,31 @@ def wrap_as_bmi(cls):
     landlab users.
 
     1.  Because BMI doesn't have a concept of a dual grid, it only
-        defines *nodes* (points), *edges* (vectors), and *faces* 
-        (areas). The dual-graph of landlab is considered as two 
-        separate grids by BMI. 
-        
+        defines *nodes* (points), *edges* (vectors), and *faces*
+        (areas). The dual-graph of landlab is considered as two
+        separate grids by BMI.
+
     2. It is important to note that BMI has only three grid elements
-       (*node*, *edge*, and *face*) while landlab has 6. The names 
-       used by landlab and BMI are also different. 
-        
-       Thus, a BMI-wrapped landlab component will always have two 
-       grids with grid identifiers 0, and 1. Grid 0 will contain 
-       the landlab *nodes*, *links*, and *patches* while grid 1 will 
-       contain *corners*, *faces*, and *cells*.landlab and BMI 
-       refer to grid elements by different names. The mapping from 
+       (*node*, *edge*, and *face*) while landlab has 6. The names
+       used by landlab and BMI are also different.
+
+       Thus, a BMI-wrapped landlab component will always have two
+       grids with grid identifiers 0, and 1. Grid 0 will contain
+       the landlab *nodes*, *links*, and *patches* while grid 1 will
+       contain *corners*, *faces*, and *cells*.landlab and BMI
+       refer to grid elements by different names. The mapping from
        landlab to BMI nomenclature is the following:
-        
+
         Grid 0:
         *  *node*: *node*
         *  *link*: *edge*
         *  *patch*: *face*
-        
-        Grid 1: 
+
+        Grid 1:
         *  *corner*: *node*
         *  *face*: *edge*
         *  *cell*: *face*
-         
+
     3.  In BMI, the *initialize* method requires an input file that is
         used to create and setup the model for time-stepping. landlab
         components generally do not have anything like this; instead
