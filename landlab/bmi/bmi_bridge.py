@@ -153,7 +153,7 @@ def wrap_as_bmi(cls):
     3.  In BMI, the *initialize* method requires an input file that is
         used to create and setup the model for time-stepping. landlab
         components generally do not have anything like this; instead
-        this task is usually done programmatically. Thus, the 
+        this task is usually done programmatically. Thus, the
         input file that is used by the BMI *initialize* method is
         a standard landlab input file as used by the landlab *create_grid*
         function.
