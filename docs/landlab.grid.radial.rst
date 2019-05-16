@@ -45,7 +45,6 @@ Information about the grid as a whole
 
     ~landlab.grid.radial.RadialModelGrid.axis_name
     ~landlab.grid.radial.RadialModelGrid.axis_units
-    ~landlab.grid.radial.RadialModelGrid.from_dict
     ~landlab.grid.radial.RadialModelGrid.move_origin
     ~landlab.grid.radial.RadialModelGrid.ndim
     ~landlab.grid.radial.RadialModelGrid.node_axis_coordinates
@@ -87,6 +86,7 @@ Information about nodes
     ~landlab.grid.radial.RadialModelGrid.node_at_link_head
     ~landlab.grid.radial.RadialModelGrid.node_at_link_tail
     ~landlab.grid.radial.RadialModelGrid.node_axis_coordinates
+    ~landlab.grid.radial.RadialModelGrid.node_has_boundary_neighbor
     ~landlab.grid.radial.RadialModelGrid.node_is_boundary
     ~landlab.grid.radial.RadialModelGrid.node_x
     ~landlab.grid.radial.RadialModelGrid.node_y
@@ -142,7 +142,6 @@ Information about links
     ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link
     ~landlab.grid.radial.RadialModelGrid.patches_at_link
     ~landlab.grid.radial.RadialModelGrid.patches_present_at_link
-    ~landlab.grid.radial.RadialModelGrid.resolve_values_on_active_links
     ~landlab.grid.radial.RadialModelGrid.resolve_values_on_links
     ~landlab.grid.radial.RadialModelGrid.status_at_link
     ~landlab.grid.radial.RadialModelGrid.unit_vector_at_link
@@ -381,6 +380,7 @@ defined at other grid elements automatically.
     ~landlab.grid.radial.RadialModelGrid.fixed_links
     ~landlab.grid.radial.RadialModelGrid.fixed_value_boundary_nodes
     ~landlab.grid.radial.RadialModelGrid.node_at_core_cell
+    ~landlab.grid.radial.RadialModelGrid.node_has_boundary_neighbor
     ~landlab.grid.radial.RadialModelGrid.node_is_boundary
     ~landlab.grid.radial.RadialModelGrid.number_of_active_faces
     ~landlab.grid.radial.RadialModelGrid.number_of_active_links

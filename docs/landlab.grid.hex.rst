@@ -45,7 +45,6 @@ Information about the grid as a whole
 
     ~landlab.grid.hex.HexModelGrid.axis_name
     ~landlab.grid.hex.HexModelGrid.axis_units
-    ~landlab.grid.hex.HexModelGrid.from_dict
     ~landlab.grid.hex.HexModelGrid.hexplot
     ~landlab.grid.hex.HexModelGrid.move_origin
     ~landlab.grid.hex.HexModelGrid.ndim
@@ -147,7 +146,6 @@ Information about links
     ~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_link
     ~landlab.grid.hex.HexModelGrid.patches_at_link
     ~landlab.grid.hex.HexModelGrid.patches_present_at_link
-    ~landlab.grid.hex.HexModelGrid.resolve_values_on_active_links
     ~landlab.grid.hex.HexModelGrid.resolve_values_on_links
     ~landlab.grid.hex.HexModelGrid.status_at_link
     ~landlab.grid.hex.HexModelGrid.unit_vector_at_link

@@ -42,6 +42,8 @@ Information about the grid as a whole
 .. autosummary::
     :toctree: generated/
 
+    ~landlab.grid.network.NetworkModelGrid.axis_name
+    ~landlab.grid.network.NetworkModelGrid.axis_units
     ~landlab.grid.network.NetworkModelGrid.size
 
 Information about nodes
@@ -76,6 +78,8 @@ Information about links
     ~landlab.grid.network.NetworkModelGrid.midpoint_of_link
     ~landlab.grid.network.NetworkModelGrid.number_of_links
     ~landlab.grid.network.NetworkModelGrid.status_at_link
+    ~landlab.grid.network.NetworkModelGrid.x_of_link
+    ~landlab.grid.network.NetworkModelGrid.y_of_link
 
 Data Fields in ModelGrid
 ------------------------

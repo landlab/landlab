@@ -82,6 +82,7 @@ Information about nodes
     ~landlab.grid.base.ModelGrid.node_at_link_head
     ~landlab.grid.base.ModelGrid.node_at_link_tail
     ~landlab.grid.base.ModelGrid.node_axis_coordinates
+    ~landlab.grid.base.ModelGrid.node_has_boundary_neighbor
     ~landlab.grid.base.ModelGrid.node_is_boundary
     ~landlab.grid.base.ModelGrid.node_x
     ~landlab.grid.base.ModelGrid.node_y
@@ -131,7 +132,6 @@ Information about links
     ~landlab.grid.base.ModelGrid.number_of_links_at_node
     ~landlab.grid.base.ModelGrid.number_of_patches_present_at_link
     ~landlab.grid.base.ModelGrid.patches_present_at_link
-    ~landlab.grid.base.ModelGrid.resolve_values_on_active_links
     ~landlab.grid.base.ModelGrid.resolve_values_on_links
     ~landlab.grid.base.ModelGrid.status_at_link
     ~landlab.grid.base.ModelGrid.unit_vector_at_link
@@ -369,6 +369,7 @@ defined at other grid elements automatically.
     ~landlab.grid.base.ModelGrid.fixed_links
     ~landlab.grid.base.ModelGrid.fixed_value_boundary_nodes
     ~landlab.grid.base.ModelGrid.node_at_core_cell
+    ~landlab.grid.base.ModelGrid.node_has_boundary_neighbor
     ~landlab.grid.base.ModelGrid.node_is_boundary
     ~landlab.grid.base.ModelGrid.number_of_active_faces
     ~landlab.grid.base.ModelGrid.number_of_active_links

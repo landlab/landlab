@@ -10,7 +10,6 @@ Gradient calculation functions
     ~landlab.grid.gradients.calc_grad_at_active_link
     ~landlab.grid.gradients.calc_grad_at_link
     ~landlab.grid.gradients.calculate_gradients_at_faces
-    ~landlab.grid.gradients.calculate_diff_at_links
     ~landlab.grid.gradients.calculate_diff_at_active_links
 
 """
