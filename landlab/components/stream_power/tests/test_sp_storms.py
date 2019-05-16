@@ -28,7 +28,7 @@ def test_storms():
 
     storm_run_time = inputs.read_float("storm_run_time")
     delta_t = inputs.read_float("delta_t")
-    mg = RasterModelGrid(nrows, ncols, xy_spacing=dx)
+    mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
 
     mg.add_zeros("topographic__elevation", at="node")
     z = mg.zeros(at="node")
