@@ -4584,7 +4584,7 @@ def from_dict(param_dict):
     except ValueError:
         raise
     else:
-        grid = RasterModelGrid(nrows, ncols, xy_spacing=spacing)
+        grid = RasterModelGrid((nrows, ncols), xy_spacing=spacing)
 
     # Set boundaries
     left_boundary_type = param_dict.get("LEFT_BOUNDARY", "open")

@@ -11,7 +11,7 @@ except ImportError:
 
 
 def test_append_with_time(tmpdir):
-    field = RasterModelGrid(4, 3)
+    field = RasterModelGrid((4, 3))
     field.add_field("node", "topographic__elevation", np.ones(12, dtype=np.int64))
 
     with tmpdir.as_cwd():
@@ -41,7 +41,7 @@ def test_append_with_time(tmpdir):
 
 
 def test_without_time(tmpdir):
-    field = RasterModelGrid(4, 3)
+    field = RasterModelGrid((4, 3))
     field.add_field("node", "topographic__elevation", np.ones(12, dtype=np.int64))
 
     with tmpdir.as_cwd():
@@ -64,7 +64,7 @@ def test_without_time(tmpdir):
 
 
 def test_with_time(tmpdir):
-    field = RasterModelGrid(4, 3)
+    field = RasterModelGrid((4, 3))
     field.add_field("node", "topographic__elevation", np.ones(12, dtype=np.int64))
 
     with tmpdir.as_cwd():

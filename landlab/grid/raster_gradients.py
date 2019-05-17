@@ -199,7 +199,7 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
     Create a grid with two cells.
 
     >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid(3, 4)
+    >>> grid = RasterModelGrid((3, 4))
     >>> x = np.array([0., 0., 0., 0.,
     ...               0., 0., 1., 1.,
     ...               3., 3., 3., 3.])
@@ -281,7 +281,7 @@ def calc_grad_across_cell_corners(grid, node_values, *args, **kwds):
     Create a grid with two cells.
 
     >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid(3, 4)
+    >>> grid = RasterModelGrid((3, 4))
     >>> x = np.array([1., 0., 0., 1.,
     ...               0., 0., 1., 1.,
     ...               3., 3., 3., 3.])
@@ -351,7 +351,7 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
     Create a grid with nine nodes.
 
     >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid(3, 3)
+    >>> grid = RasterModelGrid((3, 3))
     >>> x = np.array([0., 0., 0.,
     ...               0., 1., 2.,
     ...               2., 2., 2.])

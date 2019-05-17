@@ -105,8 +105,8 @@ def test_simple_create(tmpdir):
     with tmpdir.as_cwd():
         with open("params.yaml", "w") as fp:
             fp.write(SIMPLE_PARAMS_STR)
-
-        mg = create_grid("./params.yaml", section="grid")
+        with pytest.deprecated_call():
+            mg = create_grid("./params.yaml", section="grid")
 
     assert mg.number_of_nodes == 20
     assert "topographic__elevation" in mg.at_node
@@ -374,7 +374,8 @@ RasterModelGrid:
 """
     )
     expected = RasterModelGrid((3, 4), xy_spacing=2.0, xy_of_lower_left=(1, 2))
-    actual = create_grid(contents)
+    with pytest.deprecated_call():
+        actual = create_grid(contents)
     assert_array_almost_equal(expected.x_of_node, actual.x_of_node)
     assert_array_almost_equal(expected.y_of_node, actual.y_of_node)
 
@@ -398,7 +399,8 @@ grids:
 """
     )
     expected = RasterModelGrid((3, 4), xy_spacing=2.0, xy_of_lower_left=(1, 2))
-    grids = create_grid(contents, section="grids")
+    with pytest.deprecated_call():
+        grids = create_grid(contents, section="grids")
     assert len(grids) == 3
     for actual in grids:
         assert_array_almost_equal(expected.x_of_node, actual.x_of_node)
