@@ -77,10 +77,11 @@ class TimeStepper(object):
     [1.0, 3.0, 5.0, 7.0, 9.0, 11.0]
     """
 
-    def __init__(self, start=0.0, stop=None, step=1.0):
+    def __init__(self, start=0.0, stop=None, step=1.0, units="s"):
         self._start = start
         self._stop = stop
         self._step = step
+        self._units = units
 
         self._time = start
 
@@ -119,6 +120,11 @@ class TimeStepper(object):
     def step(self, new_val):
         """Change the time step."""
         self._step = new_val
+
+    @property
+    def units(self):
+        """Time units."""
+        return self._units
 
     def advance(self):
         """Advance the time stepper by one time step."""
@@ -285,7 +291,7 @@ def wrap_as_bmi(cls):
 
         def get_time_units(self):
             """Time units used by the component."""
-            return "s"
+            return self._clock.units
 
         def initialize(self, config_file):
             """Initialize the component from a file.
