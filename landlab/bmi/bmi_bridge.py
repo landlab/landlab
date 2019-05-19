@@ -12,6 +12,8 @@ The `wrap_as_bmi` function wraps a landlab component class so that it
 exposes a Basic Modelling Interface.
 
 """
+import inspect
+
 import numpy as np
 
 from bmipy import Bmi
@@ -243,6 +245,16 @@ def wrap_as_bmi(cls):
             self._clock = None
             super(BmiWrapper, self).__init__()
 
+            self._cls._input_var_names = tuple(
+                set(self._cls._input_var_names) | {"boundary_condition_flag"}
+            )
+            self._cls._output_var_names = tuple(
+                set(self._cls._output_var_names) | {"boundary_condition_flag"}
+            )
+            self._cls._var_mapping["boundary_condition_flag"] = "node"
+            self._cls._var_units["boundary_condition_flag"] = ""
+            self._cls._var_doc["boundary_condition_flag"] = "boundary condition flag of grid nodes"
+
         def get_component_name(self):
             """Name of the component."""
             return self._cls.name
@@ -319,11 +331,20 @@ def wrap_as_bmi(cls):
             self._clock = TimeStepper(**clock_params)
 
             self._base = self._cls(grid, **params.pop(snake_case(cls.__name__), {}))
+            self._base.grid.at_node["boundary_condition_flag"] = self._base.grid.status_at_node
 
         def update(self):
             """Update the component one time step."""
             if hasattr(self._base, "update"):
                 self._base.update()
+            elif hasattr(self._base, "run_one_step"):
+                nargs = len(inspect.signature(self._base.run_one_step).parameters)
+
+                if nargs == 0:
+                    self._base.run_one_step()
+                else:
+                    self._base.run_one_step(self._clock.step)
+
             self._clock.advance()
 
         def update_frac(self, frac):
@@ -382,8 +403,11 @@ def wrap_as_bmi(cls):
         def set_value(self, name, values):
             """Set the values of a variable."""
             if name in self.get_input_var_names():
-                at = self._base._var_mapping[name]
-                self._base.grid[at][name][:] = values.flat
+                if name == "boundary_condition_flag":
+                    self._base.grid.status_at_node = values
+                else:
+                    at = self._base._var_mapping[name]
+                    self._base.grid[at][name][:] = values.flat
             else:
                 raise KeyError("{name} is not an input item".format(name=name))
 
