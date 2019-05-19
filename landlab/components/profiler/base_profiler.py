@@ -222,12 +222,12 @@ class _BaseProfiler(Component, ABC):
 
     _var_doc = {}
 
-    def __init__(self, grid, stopping_field):
+    def __init__(self, grid):
         super(_BaseProfiler, self).__init__(grid)
 
     @abstractmethod
     def _calculate_distances(self):
-        """Calculate distance along the self._profile_structure.
+        """Calculate distance along the self._net_struct.
 
         This abstract method must be defined by inheriting classes.
         """
@@ -282,7 +282,7 @@ class _BaseProfiler(Component, ABC):
 
         # flatten datastructure
         x_dist = _flatten_structure(self._distance_along_profile)
-        node_ids, colors = _verify_structure_and_color(self._profile_structure, colors)
+        node_ids, colors = _verify_structure_and_color(self._net_struct, colors)
 
         # create segments the way that line collection likes them.
         segments = []
@@ -339,7 +339,7 @@ class _BaseProfiler(Component, ABC):
         segments = []
 
         # flatten datastructure
-        node_ids, colors = _verify_structure_and_color(self._profile_structure, colors)
+        node_ids, colors = _verify_structure_and_color(self._net_struct, colors)
 
         # create segments the way that line collection likes them.
         segments = []

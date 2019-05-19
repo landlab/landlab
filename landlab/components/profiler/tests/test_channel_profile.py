@@ -50,7 +50,7 @@ def test_assertion_error():
         mg.at_node["topographic__elevation"][0] -= 0.001  # Uplift
 
     with pytest.raises(ValueError):
-        ChannelProfiler(mg, starting_nodes=[0], number_of_watersheds=2)
+        ChannelProfiler(mg, outlet_nodes=[0], number_of_watersheds=2)
 
 
 def test_asking_for_too_many_watersheds():
@@ -77,7 +77,7 @@ def test_asking_for_too_many_watersheds():
         ChannelProfiler(mg, number_of_watersheds=3)
 
 
-def test_no_threshold():
+def test_no_minimum_channel_threshold():
     mg = RasterModelGrid(10, 10)
     z = mg.add_zeros("topographic__elevation", at="node")
     z += 200 + mg.x_of_node + mg.y_of_node + np.random.randn(mg.size("node"))
@@ -96,10 +96,10 @@ def test_no_threshold():
 
     profiler = ChannelProfiler(mg)
 
-    assert profiler.threshold == 2.0
+    assert profiler.minimum_channel_threshold == 2.0
 
 
-def test_no_stopping_field():
+def test_no_channel_definition_field():
     mg = RasterModelGrid(10, 10)
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("flow__link_to_receiver_node", at="node")
@@ -152,7 +152,7 @@ def profile_example_grid():
 def test_plotting_and_structure(profile_example_grid):
     mg = profile_example_grid
     profiler = ChannelProfiler(
-        mg, number_of_watersheds=1, main_channel_only=False, threshold=50
+        mg, number_of_watersheds=1, main_channel_only=False, minimum_channel_threshold=50
     )
     profiler.run_one_step()
 
@@ -284,8 +284,8 @@ def test_different_kwargs(profile_example_grid):
         mg,
         number_of_watersheds=None,
         main_channel_only=True,
-        outlet_threshold=3,
-        threshold=50,
+        minimum_outlet_threshold=3,
+        minimum_channel_minimum_channel_threshold=50,
     )
     profiler2.run_one_step()
 
@@ -442,13 +442,13 @@ def test_getting_all_the_way_to_the_divide(main, nshed):
     profiler = ChannelProfiler(
         mg,
         number_of_watersheds=nshed,
-        outlet_threshold=0,
+        minimum_outlet_threshold=0,
         main_channel_only=main,
-        threshold=0,
+        minimum_channel_threshold=0,
     )
     profiler.run_one_step()
 
-    # assert that with threshold set to zero, we get all the way to the top of the divide.
+    # assert that with minimum_channel_threshold set to zero, we get all the way to the top of the divide.
     for watershed_nodes in profiler._profile_structure:
         nodes = np.concatenate(_flatten_structure(watershed_nodes)).ravel()
         da = mg.at_node["drainage_area"][nodes]
