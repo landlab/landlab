@@ -152,7 +152,10 @@ def profile_example_grid():
 def test_plotting_and_structure(profile_example_grid):
     mg = profile_example_grid
     profiler = ChannelProfiler(
-        mg, number_of_watersheds=1, main_channel_only=False, minimum_channel_threshold=50
+        mg,
+        number_of_watersheds=1,
+        main_channel_only=False,
+        minimum_channel_threshold=50,
     )
     profiler.run_one_step()
 

@@ -2,6 +2,7 @@
 # ! /usr/env/python
 """channel_profiler.py component to create channel profiles."""
 from collections import OrderedDict
+
 import numpy as np
 
 from landlab import RasterModelGrid
@@ -304,24 +305,53 @@ class ChannelProfiler(_BaseProfiler):
     ...     minimum_channel_threshold=0,
     ...     main_channel_only=False)
     >>> profiler.run_one_step()
-    >>> profiler.network_structure
-        OrderedDict([
-        (40,
-            OrderedDict([
-                ((40, 41), {'ids': array([40, 41]),
-                            'distances': array([ 0.,  1.])}),
-                ((41, 54), {'ids': array([41, 42, 43, 44, 54]),
-                            'distances': array([ 1.,  2.,  3.,  4.,  5.])}),
-                ((41, 62), {'ids': array([41, 51, 61, 62]),
-                'distances': array([ 1.,  2.,  3.,  4.])})])),
-        (8,
-            OrderedDict([
-                ((8, 26), {'ids': array([ 8, 18, 17, 16, 26]),
-                           'distances': array([ 0.,  1.,  2.,  3.,  4.])}),
-                ((26, 23), {'ids': array([26, 25, 24, 23]),
-                            'distances': array([ 4.,  5.,  6.,  7.])}),
-                ((26, 66), {'ids': array([26, 36, 46, 56, 66]),
-                            'distances': array([ 4.,  5.,  6.,  7.,  8.])})]))])
+
+    Todo
+
+    >>> profiler.network_structure.keys()
+    odict_keys([40, 8])
+
+    Todo
+
+    >>> profiler.network_structure[40].keys()
+    odict_keys([(40, 41), (41, 54), (41, 62)])
+
+    Todo
+
+    >>> profiler.network_structure[40][(40, 41)]["ids"]
+    array([40, 41])
+    >>> profiler.network_structure[40][(40, 41)]["distances"]
+    array([ 0.,  1.])
+    >>> profiler.network_structure[40][(41, 54)]["ids"]
+    array([41, 42, 43, 44, 54])
+    >>> profiler.network_structure[40][(41, 54)]["distances"]
+    array([ 1.,  2.,  3.,  4.,  5.])
+    >>> profiler.network_structure[40][(41, 62)]["ids"]
+    array([41, 51, 61, 62])
+    >>> profiler.network_structure[40][(41, 62)]["distances"]
+    array([ 1.,  2.,  3.,  4.])
+
+    Todo
+
+    >>> profiler.network_structure[8].keys()
+    odict_keys([(8, 26), (26, 23), (26, 66)])
+
+    Todo
+
+    >>> profiler.network_structure[8][(8, 26)]["ids"]
+    array([ 8, 18, 17, 16, 26])
+    >>> profiler.network_structure[8][(8, 26)]["distances"]
+    array([ 0.,  1.,  2.,  3.,  4.])
+
+    >>> profiler.network_structure[8][(26, 23)]["ids"]
+    array([26, 25, 24, 23])
+    >>> profiler.network_structure[8][(26, 23)]["distances"]
+    array([ 4.,  5.,  6.,  7.])
+
+    >>> profiler.network_structure[8][(26, 66)]["ids"]
+    array([26, 36, 46, 56, 66])
+    >>> profiler.network_structure[8][(26, 66)]["distances"]
+    array([ 4.,  5.,  6.,  7.,  8.])
 
     The ChannelProfiler is designed to be flexible, and by careful combination
     of its instantiation variables can be used to extract many useful forms of
@@ -330,21 +360,16 @@ class ChannelProfiler(_BaseProfiler):
 
     To illustrate, lets start by creating a landscape model.
 
+    >>> from landlab.components import FastscapeEroder
     >>> mg = RasterModelGrid((40, 60), xy_spacing=100)
     >>> z = mg.add_zeros('topographic__elevation', at='node')
-    >>> z += 200 + mg.x_of_node + mg.y_of_node
-    >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
-    ...                                        left_is_closed=True,
-    ...                                        right_is_closed=True,
-    ...                                        top_is_closed=True)
-    >>> mg.set_watershed_boundary_condition_outlet_id(0, z, -9999)
-    >>> fa = FlowAccumulator(mg, flow_director='D8')
-    >>> sp = FastscapeEroder(mg, K_sp=.0001, m_sp=0.5, n_sp=1)
+    >>> fa = FlowAccumulator(mg)
+    >>> sp = FastscapeEroder(mg, K_sp=.0001)
     >>> dt = 100
     >>> for i in range(200):
     ...     fa.run_one_step()
     ...     sp.run_one_step(dt=dt)
-    ...     mg.at_node['topographic__elevation'][0] -= 0.001
+    ...     z[mg.core_nodes] += 0.001 * dt
 
     Some options:
 
@@ -366,49 +391,48 @@ class ChannelProfiler(_BaseProfiler):
 
     Extract the largest channel draining to each of the four largest outlet
     nodes on the model grid boundary traced back to nodes with
-    ``channel_definition_field`` values of 1e4.
+    ``channel_definition_field`` values of 500.
 
     >>> profiler = ChannelProfiler(
     ...     mg,
     ...     number_of_watersheds=4,
-    ...     minimum_channel_threshold=1e4)
+    ...     minimum_channel_threshold=500)
 
     Extract a the single biggest channel draining to the model grid boundary
     based on the field ``surface_water__discharge`` traced back to discharge
-    values of 1e6.
+    values of 500.
 
     >>> profiler = ChannelProfiler(mg,
     ...     channel_definition_field='surface_water__discharge',
-    ...     minimum_channel_threshold=1e6)
+    ...     minimum_channel_threshold=500)
 
     Extract the single largest channel within *all* watersheds with an outlet
-    with ``channel_definition_field`` greater than 1e6. Trace the channels
+    with ``channel_definition_field`` greater than 1e3. Trace the channels
     up to the point in each watershed in which the channels have values in the
-    ``channel_definition_field`` of 1e4.
+    ``channel_definition_field`` of 500.
 
     >>> profiler = ChannelProfiler(
     ...     mg,
     ...     number_of_watersheds=None,
-    ...     minimum_outlet_threshold=1e6,
-    ...     minimum_channel_threshold=1e4)
+    ...     minimum_outlet_threshold=1e3,
+    ...     minimum_channel_threshold=500)
 
     Extract two trunk channels beginning at the given nodes, traced up to a
-    a minimum ``channel_definition_field`` value of of 1e4. Note that
+    a minimum ``channel_definition_field`` value of of 500. Note that
     ``number_of_watersheds`` must match the size of ``outlet_nodes``.
 
     >>> profiler = ChannelProfiler(
     ...     mg,
     ...     outlet_nodes=[24, 45],
     ...     number_of_watersheds=2,
-    ...     minimum_channel_threshold=1e4)
+    ...     minimum_channel_threshold=500)
 
     Extract every possible channel (not just the largest one), leading from the
     two highest model grid boundary nodes traced back to a
-    ``channel_definition_field`` threshold of 1e3.
+    ``channel_definition_field`` threshold of 500.
     >>> profiler = ChannelProfiler(mg,
     ...     main_channel_only=False,
-    ...     minimum_channel_threshold=1e3)
-
+    ...     minimum_channel_threshold=500)
     """
 
     _name = "ChannelProfiler"
@@ -450,8 +474,8 @@ class ChannelProfiler(_BaseProfiler):
         minimum_outlet_threshold=0,
         main_channel_only=True,
         outlet_nodes=None,
-        minimum_channel_threshold=None,
-        cmap="viridis"
+        minimum_channel_threshold=0,
+        cmap="viridis",
     ):
         """
         Parameters
@@ -493,9 +517,7 @@ class ChannelProfiler(_BaseProfiler):
         if channel_definition_field in grid.at_node:
             self._channel_definition_field = grid.at_node[channel_definition_field]
         else:
-            msg = (
-                "Required field {name} not present. This field is required by the ChannelProfiler to define the start and stop of channel networks."
-            )
+            msg = "Required field {name} not present. This field is required by the ChannelProfiler to define the start and stop of channel networks."
             raise ValueError(msg)
 
         if "flow__receiver_node" in grid.at_node:
@@ -511,9 +533,6 @@ class ChannelProfiler(_BaseProfiler):
             raise ValueError(msg)
 
         self._main_channel_only = main_channel_only
-
-        if minimum_channel_threshold is None:
-            minimum_channel_threshold = 2.0 * np.amin(grid.area_of_cell)
         self.minimum_channel_threshold = minimum_channel_threshold
 
         # verify that the number of starting nodes is the specified number of channels
@@ -529,7 +548,8 @@ class ChannelProfiler(_BaseProfiler):
             ]
             if number_of_watersheds is None:
                 big_enough_watersheds = (
-                    self._channel_definition_field[large_outlet_ids] > minimum_outlet_threshold
+                    self._channel_definition_field[large_outlet_ids]
+                    > minimum_outlet_threshold
                 )
                 outlet_nodes = large_outlet_ids[big_enough_watersheds]
             else:
@@ -537,11 +557,14 @@ class ChannelProfiler(_BaseProfiler):
 
         starting_da = self._channel_definition_field[outlet_nodes]
         outlet_nodes = np.asarray(outlet_nodes)
-        if np.any(starting_da < self.minimum_channel_threshold) or outlet_nodes.size == 0:
+        if (
+            np.any(starting_da < self.minimum_channel_threshold)
+            or outlet_nodes.size == 0
+        ):
             msg = (
                 "The number of watersheds requested by the ChannelProfiler is "
-                "greater than the number in the domain with sufficent drainage"
-                " area."
+                "greater than the number in the domain with channel_definition_field"
+                " area. {vals}".format(vals=starting_da)
             )
             raise ValueError(msg)
 
@@ -602,9 +625,14 @@ class ChannelProfiler(_BaseProfiler):
             # if only adding the biggest channel, continue upstream choosing the
             # largest node until no more nodes remain.
             if (self._main_channel_only) and (len(supplying_nodes) > 0):
-                max_drainage = np.argmax(self._channel_definition_field[supplying_nodes])
+                max_drainage = np.argmax(
+                    self._channel_definition_field[supplying_nodes]
+                )
 
-                if self._channel_definition_field[supplying_nodes[max_drainage]] < self.minimum_channel_threshold:
+                if (
+                    self._channel_definition_field[supplying_nodes[max_drainage]]
+                    < self.minimum_channel_threshold
+                ):
                     nodes_to_process = []
                     channel_upstream = False
                 else:
@@ -628,7 +656,9 @@ class ChannelProfiler(_BaseProfiler):
                     # if only one upstream node exceeds the threshold, proceed
                     # up the channel.
                     if np.sum(upstream_das > self.minimum_channel_threshold) == 1:
-                        max_drainage = np.argmax(self._channel_definition_field[supplying_nodes])
+                        max_drainage = np.argmax(
+                            self._channel_definition_field[supplying_nodes]
+                        )
                         j = supplying_nodes[max_drainage]
                     # otherwise provide the multiple upstream nodes to be
                     # processed into a new channel.
@@ -657,7 +687,9 @@ class ChannelProfiler(_BaseProfiler):
             for i in self._outlet_nodes:
                 (channel_segment, nodes_to_process) = self._get_channel_segment(i)
                 segment_tuple = (channel_segment[0], channel_segment[-1])
-                self._net_struct[i] = {segment_tuple: {"ids": np.array(channel_segment)}}
+                self._net_struct[i] = {
+                    segment_tuple: {"ids": np.array(channel_segment)}
+                }
 
         else:
             for i in self._outlet_nodes:
