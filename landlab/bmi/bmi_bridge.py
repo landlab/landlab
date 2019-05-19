@@ -256,15 +256,9 @@ def wrap_as_bmi(cls):
             self._input_var_names = tuple(
                 set(self._cls._input_var_names) | {"boundary_condition_flag"}
             )
-            # self._cls._input_var_names = tuple(
-            #     set(self._cls._input_var_names) | {"boundary_condition_flag"}
-            # )
             self._output_var_names = tuple(
                 set(self._cls._output_var_names) | {"boundary_condition_flag"}
             )
-            # self._cls._output_var_names = tuple(
-            #     set(self._cls._output_var_names) | {"boundary_condition_flag"}
-            # )
             self._var_mapping = self._cls._var_mapping.copy()
             self._var_units = self._cls._var_units.copy()
             self._var_doc = self._cls._var_doc.copy()
@@ -272,9 +266,6 @@ def wrap_as_bmi(cls):
             self._var_mapping["boundary_condition_flag"] = "node"
             self._var_units["boundary_condition_flag"] = ""
             self._var_doc["boundary_condition_flag"] = "boundary condition flag of grid nodes"
-            # self._cls._var_mapping["boundary_condition_flag"] = "node"
-            # self._cls._var_units["boundary_condition_flag"] = ""
-            # self._cls._var_doc["boundary_condition_flag"] = "boundary condition flag of grid nodes"
 
         def get_component_name(self):
             """Name of the component."""
@@ -408,7 +399,7 @@ def wrap_as_bmi(cls):
 
         def get_var_units(self, name):
             """Get the unit used by a variable."""
-            return self._cls.var_units(name)
+            return self._var_units[name]
 
         def get_value_ref(self, name):
             """Get a reference to a variable's data."""
