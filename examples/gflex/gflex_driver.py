@@ -23,7 +23,7 @@ dt = inputs.read_float("dt")
 time_to_run = inputs.read_float("run_time")
 init_elev = inputs.read_float("init_elev")
 
-mg = RasterModelGrid(nrows, ncols, xy_spacing=dx)
+mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
 
 # create the fields in the grid
 mg.add_zeros("topographic__elevation", at="node")

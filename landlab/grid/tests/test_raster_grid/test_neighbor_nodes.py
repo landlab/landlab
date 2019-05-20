@@ -7,7 +7,7 @@ from landlab.grid.base import BAD_INDEX_VALUE as X
 
 
 def test_all_active_neighbors():
-    rmg = RasterModelGrid(5, 4)
+    rmg = RasterModelGrid((5, 4))
     expected = np.array(
         [
             [X, X, X, X],
@@ -65,7 +65,7 @@ def test_all_neighbors():
 
 
 def test_active_neighbor_list_with_scalar_arg():
-    rmg = RasterModelGrid(5, 4)
+    rmg = RasterModelGrid((5, 4))
 
     assert_array_equal(rmg.active_adjacent_nodes_at_node[6], np.array([7, 10, 5, 2]))
     assert_array_equal(rmg.active_adjacent_nodes_at_node[-1], np.array([X, X, X, X]))
@@ -81,7 +81,7 @@ def test_neighbor_list_with_scalar_arg():
 
 
 def test_active_neighbor_list_with_array_arg():
-    rmg = RasterModelGrid(5, 4)
+    rmg = RasterModelGrid((5, 4))
     assert_array_equal(
         rmg.active_adjacent_nodes_at_node[[6, -1]],
         np.array([[7, 10, 5, 2], [X, X, X, X]]),
@@ -89,7 +89,7 @@ def test_active_neighbor_list_with_array_arg():
 
 
 def test_neighbor_list_with_array_arg():
-    rmg = RasterModelGrid(5, 4)
+    rmg = RasterModelGrid((5, 4))
     assert_array_equal(
         rmg.adjacent_nodes_at_node[(6, -1), :],
         np.array([[7, 10, 5, 2], [X, X, 18, 15]]),
@@ -97,19 +97,19 @@ def test_neighbor_list_with_array_arg():
 
 
 def test_neighbor_list_is_read_only():
-    rmg = RasterModelGrid(5, 4)
+    rmg = RasterModelGrid((5, 4))
     with pytest.raises(ValueError):
         rmg.adjacent_nodes_at_node[0] = [1, 2, 3, 4]
 
 
 def test_neighbors_is_contiguous():
-    rmg = RasterModelGrid(5, 4)
+    rmg = RasterModelGrid((5, 4))
     assert rmg.adjacent_nodes_at_node.flags["C_CONTIGUOUS"]
 
 
 def test_active_neighbor_list_boundary():
     """All of the neighbor IDs for a boundary cell are -1."""
-    rmg = RasterModelGrid(5, 4)
+    rmg = RasterModelGrid((5, 4))
     import landlab.utils.structured_grid as sgrid
 
     rmg.status_at_node[[0, 1, 2, 3, 4, 7, 8, 11, 12, 15, 16, 17, 18, 19]] = CLOSED_BOUNDARY
@@ -160,7 +160,7 @@ def test_diagonal_list_with_scalar_arg():
 
 
 def test_diagonal_list_with_array_arg():
-    rmg = RasterModelGrid(5, 4)
+    rmg = RasterModelGrid((5, 4))
     assert_array_equal(
         rmg.diagonal_adjacent_nodes_at_node[(6, -1), :],
         np.array([[11, 9, 1, 3], [X, X, 14, X]]),
@@ -168,11 +168,11 @@ def test_diagonal_list_with_array_arg():
 
 
 def test_diagonal_list_is_read_only():
-    rmg = RasterModelGrid(5, 4)
+    rmg = RasterModelGrid((5, 4))
     with pytest.raises(ValueError):
         rmg.diagonal_adjacent_nodes_at_node[0] = [1, 2, 3, 4]
 
 
 def test_diagonals_is_contiguous():
-    rmg = RasterModelGrid(5, 4)
+    rmg = RasterModelGrid((5, 4))
     assert rmg.diagonal_adjacent_nodes_at_node.flags["C_CONTIGUOUS"]

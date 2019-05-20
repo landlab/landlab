@@ -608,7 +608,7 @@ def write_netcdf(
     Create a uniform rectilinear grid with four rows and 3 columns, and add
     some data fields to it.
 
-    >>> rmg = RasterModelGrid(4, 3)
+    >>> rmg = RasterModelGrid((4, 3))
     >>> _ = rmg.add_field('node', 'topographic__elevation', np.arange(12.))
     >>> _ = rmg.add_field('node', 'uplift_rate', 2. * np.arange(12.))
 
@@ -734,7 +734,7 @@ def write_raster_netcdf(
     Create a uniform rectilinear grid with four rows and 3 columns, and add
     some data fields to it.
 
-    >>> rmg = RasterModelGrid(4, 3)
+    >>> rmg = RasterModelGrid((4, 3))
     >>> _ = rmg.add_field('node', 'topographic__elevation', np.arange(12.))
     >>> _ = rmg.add_field('node', 'uplift_rate', 2. * np.arange(12.))
 
