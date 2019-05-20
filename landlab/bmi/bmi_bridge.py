@@ -12,6 +12,8 @@ The `wrap_as_bmi` function wraps a landlab component class so that it
 exposes a Basic Modelling Interface.
 
 """
+import inspect
+
 import numpy as np
 
 from bmipy import Bmi
@@ -19,7 +21,29 @@ from bmipy import Bmi
 from ..core import load_params
 from ..core.model_component import Component
 from ..framework.decorators import snake_case
-from ..grid.create import grids_from_file
+from ..grid.create import create_grid
+from ..grid import RasterModelGrid, HexModelGrid
+
+
+BMI_LOCATION = {
+    "node": "node",
+    "link": "edge",
+    "patch": "face",
+    "corner": "node",
+    "face": "edge",
+    "cell": "face",
+    "grid": "none",
+}
+
+BMI_GRID = {
+    "node": 0,
+    "link": 0,
+    "patch": 0,
+    "corner": 1,
+    "face": 1,
+    "cell": 1,
+    "grid": 2,
+}
 
 
 class TimeStepper(object):
@@ -55,10 +79,11 @@ class TimeStepper(object):
     [1.0, 3.0, 5.0, 7.0, 9.0, 11.0]
     """
 
-    def __init__(self, start=0.0, stop=None, step=1.0):
+    def __init__(self, start=0.0, stop=None, step=1.0, units="s"):
         self._start = start
         self._stop = stop
         self._step = step
+        self._units = units
 
         self._time = start
 
@@ -98,6 +123,11 @@ class TimeStepper(object):
         """Change the time step."""
         self._step = new_val
 
+    @property
+    def units(self):
+        """Time units."""
+        return self._units
+
     def advance(self):
         """Advance the time stepper by one time step."""
         self._time += self.step
@@ -107,6 +137,46 @@ class TimeStepper(object):
 
 def wrap_as_bmi(cls):
     """Wrap a landlab class so it exposes a BMI.
+
+    Give a landlab component a Basic Model Interface (BMI). Since landlab
+    components have an interface that is already in the style of BMI,
+    this function adds just a light wrapping to landlab components. There
+    are a number of differences that may cause some confusion to
+    landlab users.
+
+    1.  Because BMI doesn't have a concept of a dual grid, it only
+        defines *nodes* (points), *edges* (vectors), and *faces*
+        (areas). The dual-graph of landlab is considered as two
+        separate grids by BMI.
+
+    2. It is important to note that BMI has only three grid elements
+       (*node*, *edge*, and *face*) while landlab has 6. The names
+       used by landlab and BMI are also different.
+
+       Thus, a BMI-wrapped landlab component will always have two
+       grids with grid identifiers 0, and 1. Grid 0 will contain
+       the landlab *nodes*, *links*, and *patches* while grid 1 will
+       contain *corners*, *faces*, and *cells*.landlab and BMI
+       refer to grid elements by different names. The mapping from
+       landlab to BMI nomenclature is the following:
+
+        Grid 0:
+        *  *node*: *node*
+        *  *link*: *edge*
+        *  *patch*: *face*
+
+        Grid 1:
+        *  *corner*: *node*
+        *  *face*: *edge*
+        *  *cell*: *face*
+
+    3.  In BMI, the *initialize* method requires an input file that is
+        used to create and setup the model for time-stepping. landlab
+        components generally do not have anything like this; instead
+        this task is usually done programmatically. Thus, the
+        input file that is used by the BMI *initialize* method is
+        a standard landlab input file as used by the landlab *create_grid*
+        function.
 
     Parameters
     ----------
@@ -140,8 +210,8 @@ def wrap_as_bmi(cls):
     ...     - xy_spacing: [2000., 1000.]
     ... \"\"\"
     >>> flexure.initialize(config)
-    >>> flexure.get_output_var_names()
-    ('lithosphere_surface__elevation_increment',)
+    >>> sorted(flexure.get_output_var_names())
+    ['boundary_condition_flag', 'lithosphere_surface__elevation_increment']
     >>> flexure.get_var_grid('lithosphere_surface__elevation_increment')
     0
     >>> flexure.get_grid_shape(0, np.empty(flexure.get_grid_rank(0), dtype=int))
@@ -154,8 +224,8 @@ def wrap_as_bmi(cls):
     >>> flexure.get_current_time()
     0.0
 
-    >>> flexure.get_input_var_names()
-    ('lithosphere__overlying_pressure_increment',)
+    >>> sorted(flexure.get_input_var_names())
+    ['boundary_condition_flag', 'lithosphere__overlying_pressure_increment']
     >>> load = np.zeros((20, 40), dtype=float)
     >>> load[0, 0] = 1.
     >>> flexure.set_value('lithosphere__overlying_pressure_increment', load)
@@ -183,17 +253,31 @@ def wrap_as_bmi(cls):
             self._clock = None
             super(BmiWrapper, self).__init__()
 
+            self._input_var_names = tuple(
+                set(self._cls._input_var_names) | {"boundary_condition_flag"}
+            )
+            self._output_var_names = tuple(
+                set(self._cls._output_var_names) | {"boundary_condition_flag"}
+            )
+            self._var_mapping = self._cls._var_mapping.copy()
+            self._var_units = self._cls._var_units.copy()
+            self._var_doc = self._cls._var_doc.copy()
+
+            self._var_mapping["boundary_condition_flag"] = "node"
+            self._var_units["boundary_condition_flag"] = ""
+            self._var_doc["boundary_condition_flag"] = "boundary condition flag of grid nodes"
+
         def get_component_name(self):
             """Name of the component."""
             return self._cls.name
 
         def get_input_var_names(self):
             """Names of the input exchange items."""
-            return self._cls.input_var_names
+            return self._input_var_names
 
         def get_output_var_names(self):
             """Names of the output exchange items."""
-            return self._cls.output_var_names
+            return self._output_var_names
 
         def get_current_time(self):
             """Current component time."""
@@ -213,8 +297,7 @@ def wrap_as_bmi(cls):
 
         def get_time_units(self):
             """Time units used by the component."""
-            raise NotImplementedError("get_time_units not implemented")
-            # Should be implemented.
+            return self._clock.units
 
         def initialize(self, config_file):
             """Initialize the component from a file.
@@ -245,15 +328,14 @@ def wrap_as_bmi(cls):
             config_file : str or file_like
                 YAML-formatted input file for the component.
             """
-            grid = grids_from_file(config_file, section="grid")
+            grid = create_grid(config_file, section="grid")
+
             if not grid:
                 raise ValueError("no grid in config file ({0})".format(config_file))
-            elif len(grid) > 1:
+            elif isinstance(grid, list):
                 raise ValueError(
                     "multiple grids in config file ({0})".format(config_file)
                 )
-            else:
-                grid = grid[0]
 
             params = load_params(config_file)
             params.pop("grid")
@@ -261,11 +343,20 @@ def wrap_as_bmi(cls):
             self._clock = TimeStepper(**clock_params)
 
             self._base = self._cls(grid, **params.pop(snake_case(cls.__name__), {}))
+            self._base.grid.at_node["boundary_condition_flag"] = self._base.grid.status_at_node
 
         def update(self):
             """Update the component one time step."""
             if hasattr(self._base, "update"):
                 self._base.update()
+            elif hasattr(self._base, "run_one_step"):
+                nargs = len(inspect.signature(self._base.run_one_step).parameters)
+
+                if nargs == 0:
+                    self._base.run_one_step()
+                else:
+                    self._base.run_one_step(self._clock.step)
+
             self._clock.advance()
 
         def update_frac(self, frac):
@@ -288,58 +379,77 @@ def wrap_as_bmi(cls):
 
         def get_var_grid(self, name):
             """Get the grid id for a variable."""
-            return 0
+            at = self._var_mapping[name]
+            return BMI_GRID[at]
 
         def get_var_itemsize(self, name):
             """Get the size of elements of a variable."""
-            return np.dtype("float").itemsize
+            at = self._var_mapping[name]
+            return self._base.grid[at][name].itemsize
 
         def get_var_nbytes(self, name):
             """Get the total number of bytes used by a variable."""
-            return self.get_itemsize(name) * self._base.grid.number_of_nodes
+            at = self._var_mapping[name]
+            return self._base.grid[at][name].nbytes
 
         def get_var_type(self, name):
             """Get the data type for a variable."""
-            return str(np.dtype("float"))
+            at = self._var_mapping[name]
+            return str(self._base.grid[at][name].dtype)
 
         def get_var_units(self, name):
             """Get the unit used by a variable."""
-            return self._cls.var_units(name)
+            return self._var_units[name]
 
         def get_value_ref(self, name):
             """Get a reference to a variable's data."""
-            return self._base.grid.at_node[name]
+            at = self._var_mapping[name]
+            return self._base.grid[at][name]
 
         def get_value(self, name, dest):
             """Get a copy of a variable's data."""
-            dest[:] = self._base.grid.at_node[name]
+            at = self._var_mapping[name]
+            dest[:] = self._base.grid[at][name]
             return dest
 
         def set_value(self, name, values):
             """Set the values of a variable."""
             if name in self.get_input_var_names():
-                if name in self._base.grid.at_node:
-                    self._base.grid.at_node[name][:] = values.flat
+                if name == "boundary_condition_flag":
+                    self._base.grid.status_at_node = values
                 else:
-                    self._base.grid.at_node[name] = values
+                    at = self._var_mapping[name]
+                    self._base.grid[at][name][:] = values.flat
             else:
                 raise KeyError("{name} is not an input item".format(name=name))
 
         def get_grid_origin(self, grid, origin):
             """Get the origin for a structured grid."""
-            origin[:] = (self._base.grid.node_y[0], self._base.grid.node_x[0])
+            if grid == 0:
+                origin[:] = (self._base.grid.node_y[0], self._base.grid.node_x[0])
+            elif grid == 1:
+                origin[:] = (self._base.grid.corner_y[0], self._base.grid.corner_x[0])
             return origin
 
         def get_grid_rank(self, grid):
             """Get the number of dimensions of a grid."""
-            return 2
+            if grid in (0, 1):
+                return 2
+            else:
+                return 0
 
         def get_grid_shape(self, grid, shape):
             """Get the shape of a structured grid."""
-            shape[:] = (
-                self._base.grid.number_of_node_rows,
-                self._base.grid.number_of_node_columns,
-            )
+            if grid == 0:
+                shape[:] = (
+                    self._base.grid.number_of_node_rows,
+                    self._base.grid.number_of_node_columns,
+                )
+            elif grid == 1:
+                shape[:] = (
+                    self._base.grid.number_of_node_rows - 1,
+                    self._base.grid.number_of_node_columns - 1,
+                )
             return shape
 
         def get_grid_spacing(self, grid, spacing):
@@ -349,54 +459,87 @@ def wrap_as_bmi(cls):
 
         def get_grid_type(self, grid):
             """Get the type of grid."""
-            return "uniform_rectilinear"
+            if grid == 2:
+                return "scalar"
+            elif isinstance(self._base.grid, RasterModelGrid):
+                return "uniform_rectilinear"
+            else:
+                return "unstructured"
 
         def get_grid_edge_count(self, grid):
-            return self._base.grid.number_of_links
+            if grid == 0:
+                return self._base.grid.number_of_links
+            elif grid == 1:
+                return self._base.grid.number_of_faces
 
         def get_grid_edge_nodes(self, grid, edge_nodes):
-            return self._base.grid.nodes_at_link.reshape((-1,))
+            if grid == 0:
+                return self._base.grid.nodes_at_link.reshape((-1,))
+            elif grid == 1:
+                return self._base.grid.corners_at_face.reshape((-1,))
 
         def get_grid_face_count(self, grid):
-            return self._base.grid.number_of_patches
+            if grid == 0:
+                return self._base.grid.number_of_patches
+            elif grid == 1:
+                return self._base.grid.number_of_cells
 
         def get_grid_face_nodes(self, grid, face_nodes):
-            return self._base.grid.nodes_at_patch
+            if grid == 0:
+                return self._base.grid.nodes_at_patch
+            elif grid == 1:
+                return self._base.grid.corners_at_cell
 
         def get_grid_node_count(self, grid):
-            return self._base.grid.number_of_nodes
+            if grid == 0:
+                return self._base.grid.number_of_nodes
+            elif grid == 1:
+                return self._base.grid.number_of_corners
 
         def get_grid_nodes_per_face(self, grid, nodes_per_face):
-            raise NotImplementedError("get_grid_nodes_per_face")
-            # Should be implemented. Not commonly used, so not implemented yet.
+            if grid == 0:
+                return np.full(self._base.grid.number_of_nodes, 3, dtype=int)
+            elif grid == 1:
+                if isinstance(self._base.grid, HexModelGrid):
+                    return np.full(self._base.grid.number_of_faces, 6, dtype=int)
 
         def get_grid_size(self, grid):
-            return self._base.grid.number_of_nodes
+            if grid == 0:
+                return self._base.grid.number_of_nodes
+            elif grid == 1:
+                return self._base.grid.number_of_corners
 
         def get_grid_x(self, grid, x):
-            return self._base.grid.x_of_node
+            if grid == 0:
+                return self._base.grid.x_of_node
+            elif grid == 1:
+                return self._base.grid.x_of_corner
 
         def get_grid_y(self, grid, y):
-            return self._base.grid.y_of_node
+            if grid == 0:
+                return self._base.grid.y_of_node
+            elif grid == 1:
+                return self._base.grid.y_of_corner
 
         def get_grid_z(self, grid, z):
             raise NotImplementedError("get_grid_z")
             # Only should be implemented for presently non-existant 3D grids.
 
         def get_value_at_indices(self, name, dest, inds):
-            raise NotImplementedError("get_value_at_indices")
-            # Should be implemented.
+            at = self._var_mapping[name]
+            dest[:] = self._base.grid[at][name][inds]
+            return dest
 
         def get_value_ptr(self, name):
-            raise NotImplementedError("get_value_ptr")
-            # Should be implemented.
+            at = self._var_mapping[name]
+            return self._base.grid[at][name]
 
         def get_var_location(self, name):
-            return self._base._var_mapping[name]
+            return BMI_LOCATION[self._var_mapping[name]]
 
         def set_value_at_indices(self, name, inds, src):
-            raise NotImplementedError("set_value_at_indices")
-            # Should be implemented.
+            at = self._var_mapping[name]
+            self._base.grid[at][name][inds] = src
 
     BmiWrapper.__name__ = cls.__name__
     return BmiWrapper

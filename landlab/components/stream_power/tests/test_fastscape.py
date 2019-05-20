@@ -27,7 +27,7 @@ def test_fastscape():
     uplift = inputs.read_float("uplift_rate")
     init_elev = inputs.read_float("init_elev")
 
-    mg = RasterModelGrid(nrows, ncols, xy_spacing=dx)
+    mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
     mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
 
     mg.add_zeros("topographic__elevation", at="node")
@@ -115,7 +115,7 @@ def test_fastscape_new():
     uplift = inputs.read_float("uplift_rate")
     init_elev = inputs.read_float("init_elev")
 
-    mg = RasterModelGrid(nrows, ncols, xy_spacing=dx)
+    mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
     mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
 
     mg.add_zeros("topographic__elevation", at="node")

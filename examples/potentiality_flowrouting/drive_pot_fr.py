@@ -21,7 +21,7 @@ ncols = 100
 dx = 1000.
 
 close("all")
-mg = RasterModelGrid(nrows, ncols, dx)
+mg = RasterModelGrid((nrows, ncols), dx)
 z = (3000. - mg.node_x) * 0.5
 # z = -mg.node_x-mg.node_y
 # z = np.sqrt(mg.node_x**2 + mg.node_y**2)
@@ -63,7 +63,7 @@ print(
 
 # now a run with a grid...
 
-# mg = RasterModelGrid(nrows, ncols, dx)
+# mg = RasterModelGrid((nrows, ncols), dx)
 # # make a topo to test on:
 # mg.at_node['topographic__elevation'] = np.zeros(mg.number_of_nodes)
 # fr = FlowRouter(mg)
@@ -97,7 +97,7 @@ time_to_run = inputs.read_float("run_time")
 uplift = inputs.read_float("uplift_rate")
 init_elev = inputs.read_float("init_elev")
 
-mg = RasterModelGrid(nrows, ncols, dx)
+mg = RasterModelGrid((nrows, ncols), dx)
 
 # create the fields in the grid
 mg.add_zeros("topographic__elevation", at="node")

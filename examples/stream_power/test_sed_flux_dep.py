@@ -31,7 +31,7 @@ uplift_per_step = uplift_rate * dt
 print("uplift per step: ", uplift_per_step)
 
 # instantiate the grid object
-mg = RasterModelGrid(nrows, ncols, xy_spacing=dx)
+mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
 
 # create the elevation field in the grid:
 # create the field

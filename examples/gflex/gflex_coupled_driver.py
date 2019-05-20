@@ -27,7 +27,7 @@ init_elev = inputs.read_float("init_elev")
 uplift_perstep = inputs.read_float("uplift_rate") * dt
 rock_stress_param = inputs.read_float("rock_density") * 9.81
 
-mg = RasterModelGrid(nrows, ncols, xy_spacing=dx)
+mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
 
 # create the fields in the grid
 mg.add_zeros("topographic__elevation", at="node")

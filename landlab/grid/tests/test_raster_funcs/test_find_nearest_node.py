@@ -9,7 +9,7 @@ from landlab.testing.tools import assert_array_is_int
 
 def test_with_scalars():
     """Test scalar args."""
-    rmg = RasterModelGrid(4, 5)
+    rmg = RasterModelGrid((4, 5))
     id = rfuncs.find_nearest_node(rmg, (0.2, 0.6))
     assert id == 5
     assert id.ndim == 0
@@ -18,7 +18,7 @@ def test_with_scalars():
 
 def test_with_iterable():
     """Test iterable args."""
-    rmg = RasterModelGrid(4, 5)
+    rmg = RasterModelGrid((4, 5))
     id = rfuncs.find_nearest_node(rmg, ([0.2], [0.6]))
     assert_array_equal(id, np.array([5], dtype=int))
     assert_array_is_int(id)
@@ -26,7 +26,7 @@ def test_with_iterable():
 
 def test_with_ndarray_with_length_0():
     """Test with 0d numpy arrays as args."""
-    rmg = RasterModelGrid(4, 5)
+    rmg = RasterModelGrid((4, 5))
     id = rfuncs.find_nearest_node(rmg, (np.array(0.2), np.array(0.6)))
     assert_array_equal(id, np.array(5, dtype=int))
     assert id.ndim == 0
@@ -35,7 +35,7 @@ def test_with_ndarray_with_length_0():
 
 def test_with_ndarray():
     """Test with 1d numpy arrays as args."""
-    rmg = RasterModelGrid(4, 5)
+    rmg = RasterModelGrid((4, 5))
     coords = (np.array([0.1, 0.2]), np.array([3.4, 2.6]))
     id = rfuncs.find_nearest_node(rmg, coords)
     assert_array_equal(id, np.array([15, 15], dtype=int))

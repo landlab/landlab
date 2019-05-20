@@ -7,7 +7,7 @@ from landlab import RasterModelGrid
 
 class TestLinkEndsToLink:
     def test_max(self):
-        rmg = RasterModelGrid(4, 5)
+        rmg = RasterModelGrid((4, 5))
         rmg.add_empty("node", "values")
         node_values = rmg.at_node["values"]
         node_values[:] = np.arange(rmg.number_of_nodes)
@@ -54,7 +54,7 @@ class TestLinkEndsToLink:
         )
 
     def test_min(self):
-        rmg = RasterModelGrid(4, 5)
+        rmg = RasterModelGrid((4, 5))
         rmg.add_empty("node", "values")
         node_values = rmg.at_node["values"]
         node_values[:] = np.arange(rmg.number_of_nodes)
