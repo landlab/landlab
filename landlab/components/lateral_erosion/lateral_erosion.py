@@ -80,7 +80,7 @@ class LateralEroder(Component):
         "dzdt",
         "dzlat",
         "vollat",
-        "qsin"
+        "qs_in"
     )
     _var_units = {
         "topographic__elevation": "m",
@@ -91,7 +91,7 @@ class LateralEroder(Component):
         "dzdt": "m/y",
         "dzlat": "m/y",
         "vollat": "m3",
-        "qsin": "m3/y"
+        "qs_in": "m3/y"
     }
 #***from how to make a component: every component must start with init
 # first parameter is grid and **kwds is last parameter (allows to pass dictionary)
@@ -105,11 +105,11 @@ class LateralEroder(Component):
             self.vol_lat = grid.at_node['volume__lateral_erosion']
         else:
             self.vol_lat = grid.add_zeros('node', 'volume__lateral_erosion')
-        #initialize qsin for each interior node, all zero initially.
-        if 'qsin' in grid.at_node:
-            self.qsin = grid.at_node['qsin']
+        #initialize qs_in for each interior node, all zero initially.
+        if 'qs_in' in grid.at_node:
+            self.qs_in = grid.at_node['qs_in']
         else:
-            self.qsin = grid.add_zeros('node', 'qsin')
+            self.qs_in = grid.add_zeros('node', 'qs_in')
 
         #you can specify the type of lateral erosion model you want to use. But if you don't
         # the default is the undercutting-slump model
@@ -155,14 +155,14 @@ class LateralEroder(Component):
 #                print("waterflux", reshape(grid['node'][ 'water__unit_flux_in'],(grid.number_of_node_rows,grid.number_of_node_columns)))
                 #set qsinlet at inlet node. This doesn't have to be provided, defaults to 0.
                 self.qsinlet = qsinlet
-                self.qsin[self.inlet_node]=self.qsinlet
+                self.qs_in[self.inlet_node]=self.qsinlet
 
 
 #below, adding flag calling for Kv to be specified. as of April 15, this only works for
         #arrays and floats, NOT field names.
         if self.Kv is None:
             raise ValueError(
-                "K_sp must be set as a float, node array, or "
+                "Kv must be set as a float, node array, or "
                 + "field name. It was None."
             )
 # handling Kv for floats (inwhich case it populates an array N_nodes long) or 
@@ -174,7 +174,7 @@ class LateralEroder(Component):
             if len(self.Kv) != self.grid.number_of_nodes:
                 raise TypeError("Supplied value of Kv is not n_nodes long")
 
-    def run_one_step(self, grid, dt=None, Klr=None, inlet_area_ts=None, qsinlet_ts=None):
+    def run_one_step(self, grid, dt=None, Klr=None, inlet_area_ts=None, qsinlet_ts=None, **kwds):
 
         if Klr==None:    #Added10/9 to allow changing rainrate (indirectly this way.)
             Klr=self.Klr
@@ -186,7 +186,7 @@ class LateralEroder(Component):
         inlet_on=self.inlet_on    #this is a true/false flag
         Kv=self.Kv
         frac = self.frac
-        qsin=self.qsin
+        qs_in=self.qs_in
         dzdt=self.dzdt
         alph=self.alph
 
@@ -210,8 +210,8 @@ class LateralEroder(Component):
         nr=grid.number_of_node_rows
         nc=grid.number_of_node_columns
         #clear qsin for next loop
-        qsin = grid.add_zeros('node', 'qsin', noclobber=False)
-#        print("qsin", qsin)
+        qs_in = grid.add_zeros('node', 'qs_in', noclobber=False)
+#        print("qsin", qs_in)
         lat_nodes=np.zeros(grid.number_of_nodes, dtype=int)
         dzlat=np.zeros(grid.number_of_nodes)
         dzver=np.zeros(grid.number_of_nodes)
@@ -227,12 +227,12 @@ class LateralEroder(Component):
             # so reset qsinlet to qsinlet_ts
             if qsinlet_ts is not None:
                 qsinlet=qsinlet_ts
-                qsin[inlet_node]=qsinlet
+                qs_in[inlet_node]=qsinlet
 #                print("qsinlet ts")
             #if nothing is passed with qsinlet_ts, qsinlet remains the same from initialized parameters
             else:    #qsinlet_ts==None:
                 qsinlet=self.qsinlet
-                qsin[inlet_node]=qsinlet
+                qs_in[inlet_node]=qsinlet
 #                print("qsinlet normal", qsinlet)
 #                print("qsinlet", reshape(qsin,(grid.number_of_node_rows,grid.number_of_node_columns)))
 
@@ -317,7 +317,7 @@ class LateralEroder(Component):
 #                print ('area', da[i])
 #                print('kv', Kv)
 
-                dep = alph*qsin[i]/da[i]
+                dep = alph*qs_in[i]/da[i]
 #                dep=0.
                 ero = -Kv[i] * da[i]**(0.5)*max_slopes[i]
 #                print( 'dep', dep)
@@ -385,13 +385,8 @@ class LateralEroder(Component):
 
                 #send sediment downstream. sediment eroded from vertical incision
                 # and lateral erosion is sent downstream
-                #***** CHECK ON THIS! what about time step? what units are qsin?
-                # april 10. this has to be here so that deposition can happen. dep takes qsin
-                qsin[flowdirs[i]]+=qsin[i]-(dzver[i]*dx**2)-(petlat*dx*wd)   #qsin to next node
-#            print("qsinafter", qsin.reshape(nr,nc))
+                qs_in[flowdirs[i]]+=qs_in[i]-(dzver[i]*dx**2)-(petlat*dx*wd)   #qsin to next node
             dzdt[:]=dzver
-#            print("original erosion")
-#            print(dzver)
             #Do a time-step check
             #If the downstream node is eroding at a slower rate than the
             #upstream node, there is a possibility of flow direction reversal,
@@ -538,7 +533,7 @@ class LateralEroder(Component):
                 print("small time steps. dt=",dt )
                 
                 #clear qsin for next loop
-                qsin = grid.zeros(centering='node')
+                qs_in = grid.zeros(centering='node')
                 #recalculate flow directions
                 fa = FlowAccumulator(grid, 
                                      surface='topographic__elevation',
@@ -551,7 +546,7 @@ class LateralEroder(Component):
                 if inlet_on:
 #                   #if inlet on, reset drainage area and qsin to reflect inlet conditions 
                     da=q/dx**2    #this is the drainage area that I need for code below with an inlet set by spatially varible runoff.
-                    qsin[inlet_node]=qsinlet
+                    qs_in[inlet_node]=qsinlet
 #                    print("inlet on")
 #                    print("inletda", da[inlet_node])
 #                    print("q2", q.reshape(nr,nc))
@@ -577,5 +572,5 @@ class LateralEroder(Component):
                 vol_lat_dt=np.zeros(grid.number_of_nodes)
                 dzver=np.zeros(grid.number_of_nodes)
 
-        return grid, dzlat, qsin, dzdt
+        return grid, dzlat, dzdt
 #        return z, qt, qsin, dzdt, dzlat, flowdirs, da, dwnst_nodes, max_slopes, dt
