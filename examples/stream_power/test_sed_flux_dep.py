@@ -42,7 +42,7 @@ z += initial_slope * np.amax(mg.node_y) - initial_slope * mg.node_y
 mg["node"]["topographic__elevation"] = z + np.random.rand(len(z)) / 100000.
 
 # set up grid's boundary conditions (bottom, left, top, right is inactive)
-mg.set_inactive_boundaries(True, False, True, False)
+mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
 mg.set_fixed_value_boundaries_at_grid_edges(
     False, True, False, True, value_of="topographic__elevation"
 )
@@ -106,7 +106,7 @@ time_off = time()
 # Finalize and plot
 
 elev = mg["node"]["topographic__elevation"]
-# imshow.imshow_node_grid(mg, elev)
+# imshow.imshow_grid(mg, elev)
 
 print("Done.")
 print("Time: ", time_off - time_on)

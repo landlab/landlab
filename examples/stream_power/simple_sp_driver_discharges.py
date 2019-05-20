@@ -14,7 +14,7 @@ from six.moves import range
 from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components import FlowAccumulator, StreamPowerEroder
 from landlab.components.stream_power import FastscapeEroder as Fsc
-from landlab.plot.imshow import imshow_node_grid
+from landlab.plot.imshow import imshow_grid
 
 inputs = ModelParameterDictionary("./drive_sp_params_discharge.txt")
 nrows = 5
@@ -96,7 +96,7 @@ pylab.close()
 
 # Plot topography
 pylab.figure(1)
-im = imshow_node_grid(mg, "topographic__elevation")  # display a colored image
+im = imshow_grid(mg, "topographic__elevation")  # display a colored image
 
 pylab.figure(2)
 im = pylab.plot(dx * np.arange(nrows), elev_r[:, int(ncols // 2)])

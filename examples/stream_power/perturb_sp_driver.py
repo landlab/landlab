@@ -148,7 +148,7 @@ pylab.close()
 # Plot topography
 pylab.figure("topo")
 # im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
-im = llplot.imshow_node_grid(mg, elev)
+im = llplot.imshow_grid(mg, elev)
 # print elev_r
 # pylab.colorbar(im)
 # pylab.title('Topography')
