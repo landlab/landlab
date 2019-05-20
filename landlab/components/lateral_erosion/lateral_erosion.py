@@ -7,7 +7,6 @@ ALangston
 
 """
 
-#below was C/P from diffuser and this caused the import to work for the first time!!!!
 from landlab import (
     FIXED_GRADIENT_BOUNDARY,
     INACTIVE_LINK,
@@ -60,16 +59,47 @@ class LateralEroder(Component):
     inlet_node : integer, optional
         Node location of inlet (source of water and sediment)
     inlet_area : float, optional
-        Drainage area at inlet node, must be specified if inlet node is on, m^2
+        Drainage area at inlet node, must be specified if inlet node is "on", m^2
+    qsinlet : float, optional
+        Sediment flux supplied at inlet, optional. m3/year
     
     """
+    
+    _name = 'LateralEroder'
+    
+    _input_var_names = (
+        "topographic__elevation",
+        "drainage_area",
+        "flow__receiver_node",
+        "flow__upstream_node_order",
+        "topographic__steepest_slope"
+    )
+    
+    _output_var_names = (
+        "topographic__elevation",
+        "dzdt",
+        "dzlat",
+        "vollat",
+        "qsin"
+    )
+    _var_units = {
+        "topographic__elevation": "m",
+        "drainage_area": "m2",
+        "flow__receiver_node": "-",
+        "flow__upstream_node_order": "-",
+        "topographic__steepest_slope": "-",
+        "dzdt": "m/y",
+        "dzlat": "m/y",
+        "vollat": "m3",
+        "qsin": "m3/y"
+    }
 #***from how to make a component: every component must start with init
 # first parameter is grid and **kwds is last parameter (allows to pass dictionary)
+    #***question: why does this work with no **kwds?
 # in between, need individual parameters.
     def __init__(self, grid, latero_mech="UC", alph=0.8, Kv=None, Kl_ratio=1.0, inlet_on=False, inlet_node=None, inlet_area=None, qsinlet=0.): #input_stream,
         #**4/4/2019: come back to this: why did I put the underscore in from of grid? because diffusion said so.
         self._grid = grid
-#        self.initialize(grid, input_stream)
     # Create fields needed for this component if not already existing
         if 'volume__lateral_erosion' in grid.at_node:
             self.vol_lat = grid.at_node['volume__lateral_erosion']
@@ -98,7 +128,7 @@ class LateralEroder(Component):
         self.Klr=float(Kl_ratio)    #default ratio of Kv/Kl is 1. Can be overwritten
         self.frac = 0.3 #for time step calculations
 
-        self.dzdt = grid.zeros(centering='node')    # elevation change rate (M/Y)
+        self.dzdt = grid.add_zeros('node', "dzdt")    # elevation change rate (M/Y)
 ##optional inputs
         self.inlet_on=inlet_on
         if inlet_on==True:
@@ -162,7 +192,6 @@ class LateralEroder(Component):
 
         self.dt=dt
         vol_lat=self.grid.at_node['volume__lateral_erosion']
-#        print("max, min vol lat", max(vol_lat), min(vol_lat[grid.core_nodes]))
 
         #**********ADDED FOR WATER DEPTH CHANGE***************
         #now KL/KV ratio is a parameter set from infile again.
@@ -173,20 +202,15 @@ class LateralEroder(Component):
         #discharge and water depth correctly. renamed runoffms to prevent
         #confusion with other uses of runoff
         runoffms=(Klr*F/kw)**2
-
         #Kl is calculated from ratio of lateral to vertical K parameters
         Kl=Kv*Klr
-        
         z=grid.at_node['topographic__elevation']
 #        print("z",z)
         dx=grid.dx
         nr=grid.number_of_node_rows
         nc=grid.number_of_node_columns
         #clear qsin for next loop
-#        qsin = grid.at_node['qsin']
-#        qsin = grid.zeros(centering='node')
-        grid.at_node['qsin']=grid.zeros(centering='node')
-        qsin = grid.at_node['qsin']
+        qsin = grid.add_zeros('node', 'qsin', noclobber=False)
 #        print("qsin", qsin)
         lat_nodes=np.zeros(grid.number_of_nodes, dtype=int)
         dzlat=np.zeros(grid.number_of_nodes)
@@ -211,7 +235,6 @@ class LateralEroder(Component):
                 qsin[inlet_node]=qsinlet
 #                print("qsinlet normal", qsinlet)
 #                print("qsinlet", reshape(qsin,(grid.number_of_node_rows,grid.number_of_node_columns)))
-
 
             if inlet_area_ts is not None:
                 inlet_area=inlet_area_ts
@@ -279,7 +302,7 @@ class LateralEroder(Component):
             #Calculate incision rate, should be in m/yr, should be negative
             #First make sure that there are no negative (uphill slopes)
             #Set those to zero, because incision rate should be zero there.
-            max_slopes=max_slopes.clip(0)
+            max_slopes[:]=max_slopes.clip(0)
             #here calculate dzdt for each node, with initial time step
 #            print("dwnst_nodes", dwnst_nodes)
             #vectorized dz works. I'm thinking on how to vectorize the node finder, but not working today
@@ -366,7 +389,7 @@ class LateralEroder(Component):
                 # april 10. this has to be here so that deposition can happen. dep takes qsin
                 qsin[flowdirs[i]]+=qsin[i]-(dzver[i]*dx**2)-(petlat*dx*wd)   #qsin to next node
 #            print("qsinafter", qsin.reshape(nr,nc))
-            dzdt=dzver
+            dzdt[:]=dzver
 #            print("original erosion")
 #            print(dzver)
             #Do a time-step check
@@ -443,9 +466,13 @@ class LateralEroder(Component):
                 print("vol_lat before", vol_lat.reshape(nr,nc))
                 print( "dt", dt)
             vol_lat += vol_lat_dt*dt
+            ####********question for CSDMS: from tutorial, I think this should have 
+            # a vol_lat[:] in order to update the field name 'volume__lateral erosion'
+            # but this works just fine as is.
             if (0):
 #                print("vol_lat_dt", vol_lat_dt.reshape(nr,nc))
                 print("vol_lat after", vol_lat.reshape(nr,nc))
+                print("vollatgrid", grid.at_node['volume__lateral_erosion'])
             debug=0
             #this loop determines if enough lateral erosion has happened to change the height of the neighbor node.
             wdnode=np.zeros(grid.number_of_nodes)
@@ -479,7 +506,7 @@ class LateralEroder(Component):
                         # needed to be removed to make node equal elevation,
                         # then instantaneously remove this height from lat node. already has timestep in it
                         if vol_lat[lat_node]>=voldiff:
-                            dzlat[lat_node]=z[flowdirs[i]]-z[lat_node]-0.001
+                            dzlat[lat_node]=z[flowdirs[i]]-z[lat_node]#-0.001
                             if(0):
                                 print("chunk of lateral erosion occured", lat_node)
                             #after the lateral node is eroded, reset its volume eroded to zero
