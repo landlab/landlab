@@ -350,9 +350,12 @@ def wrap_as_bmi(cls):
             if hasattr(self._base, "update"):
                 self._base.update()
             elif hasattr(self._base, "run_one_step"):
-                nargs = len(inspect.signature(self._base.run_one_step).parameters)
+                args = []
+                for name, arg in inspect.signature(self._base.run_one_step).parameters.items():
+                    if arg.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+                        args.append(name)
 
-                if nargs == 0:
+                if len(args) == 0 or "dt" not in args:
                     self._base.run_one_step()
                 else:
                     self._base.run_one_step(self._clock.step)
@@ -428,7 +431,10 @@ def wrap_as_bmi(cls):
             if grid == 0:
                 origin[:] = (self._base.grid.node_y[0], self._base.grid.node_x[0])
             elif grid == 1:
-                origin[:] = (self._base.grid.corner_y[0], self._base.grid.corner_x[0])
+                origin[:] = (
+                    self._base.grid.node_y[0] + self._base.grid.dy * .5,
+                    self._base.grid.node_x[0] + self._base.grid.dx * .5,
+                )
             return origin
 
         def get_grid_rank(self, grid):
