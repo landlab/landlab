@@ -189,6 +189,7 @@ class LateralEroder(Component):
         z=grid.at_node['topographic__elevation']
         #clear qsin for next loop
         qs_in = grid.add_zeros('node', 'qs_in', noclobber=False)
+        qs = grid.add_zeros('node', 'qs', noclobber=False)
         lat_nodes=np.zeros(grid.number_of_nodes, dtype=int)
         dzlat=np.zeros(grid.number_of_nodes)
         dzver=np.zeros(grid.number_of_nodes)
@@ -284,6 +285,7 @@ class LateralEroder(Component):
             #send sediment downstream. sediment eroded from vertical incision
             # and lateral erosion is sent downstream
             qs_in[flowdirs[i]]+=qs_in[i]-(dzver[i]*grid.dx**2)-(petlat*grid.dx*wd)   #qsin to next node
+        qs[:] = qs_in-(dzver*grid.dx**2)
         dzdt[:]=dzver*dt
         vol_lat[:]= vol_lat_dt*dt
         #this loop determines if enough lateral erosion has happened to change the height of the neighbor node.
