@@ -7,6 +7,7 @@ Do NOT add new documentation here. Grid documentation is now built in a semi-
 automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
+from __future__ import absolute_import
 
 from warnings import warn
 
@@ -38,9 +39,16 @@ from .base import (
 )
 from .decorators import return_id_array, return_readonly_id_array
 from .diagonals import DiagonalsMixIn
+from .warnings import (
+    DeprecatedDxKeyword,
+    DeprecatedOriginKeyword,
+    DeprecatedRowsColsArguments,
+    DeprecatedRowsColsKeywords,
+    DeprecatedSpacingArgument,
+    DeprecatedSpacingKeyword,
+)
 
 
-@deprecated(use="grid.node_has_boundary_neighbor", version="0.2")
 def _node_has_boundary_neighbor(mg, id, method="d8"):
     """Test if a RasterModelGrid node is next to a boundary.
 
@@ -349,6 +357,53 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     or set it up such that one can create a zero-node grid.
     """
 
+    @staticmethod
+    def _parse_parameters(args, kwds):
+        """Parse __init__ parameters into new-style parameters."""
+        old = (args, kwds)
+        deprecation_warning = None
+        try:
+            shape = kwds.pop("num_rows"), kwds.pop("num_cols")
+        except KeyError:
+            shape = _parse_grid_shape_from_args(args)
+            if len(args) >= 2:
+                deprecation_warning = DeprecatedRowsColsArguments
+        else:
+            deprecation_warning = DeprecatedRowsColsKeywords
+            if args:
+                raise ValueError(
+                    "number of args must be 0 when using keywords for grid shape"
+                )
+
+        new_kwds = kwds.copy()
+        new = ((shape,), new_kwds)
+
+        xy_spacing = None
+        if "dx" in kwds:
+            deprecation_warning = DeprecatedDxKeyword
+            xy_spacing = new_kwds.pop("dx")
+        if "spacing" in kwds:
+            deprecation_warning = DeprecatedSpacingKeyword
+            xy_spacing = new_kwds.pop("spacing")
+        if _parse_grid_spacing_from_args(args) is not None:
+            deprecation_warning = DeprecatedSpacingArgument
+            xy_spacing = _parse_grid_spacing_from_args(args)
+
+        if "xy_spacing" not in kwds and xy_spacing is not None:
+            try:
+                new_kwds.setdefault("xy_spacing", xy_spacing[::-1])
+            except TypeError:
+                new_kwds.setdefault("xy_spacing", xy_spacing)
+
+        if "origin" in kwds:
+            deprecation_warning = DeprecatedOriginKeyword
+            new_kwds.setdefault("xy_of_lower_left", new_kwds.pop("origin"))
+
+        if deprecation_warning:
+            warn(deprecation_warning("RasterModelGrid", old=old, new=new))
+
+        return new
+
     def __init__(self, *args, **kwds):
         """Create a 2D grid with equal spacing.
 
@@ -388,100 +443,26 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         defined. Either we force users to give arguments on instantiation,
         or set it up such that one can create a zero-node grid.
         """
+        args, kwds = self._parse_parameters(args, kwds)
 
-        num_rows = kwds.pop("num_rows", None)
-        num_cols = kwds.pop("num_cols", None)
+        shape = args[0]
+        xy_spacing = np.broadcast_to(kwds.get("xy_spacing", 1.0), 2)
+        xy_of_lower_left = kwds.get("xy_of_lower_left", (0.0, 0.0))
 
-        if num_rows is None and num_cols is None:
-            num_rows, num_cols = _parse_grid_shape_from_args(args)
-        elif len(args) > 0:
-            raise ValueError(
-                "number of args must be 0 when using keywords for grid shape"
-            )
-
-        if num_rows <= 0 or num_cols <= 0:
+        if shape[0] <= 0 or shape[1] <= 0:
             raise ValueError("number of rows and columns must be positive")
 
-        # Spacing
-        if "dx" in kwds:
-            msg = (
-                "The dx keyword is Deprecated (v1.6), "
-                "please pass xy_spacing instead."
-            )
-            warn(msg, DeprecationWarning)
-            dx = kwds.pop("dx", None)
-            old_spacing = True
-
-        elif "spacing" in kwds:
-            msg = (
-                "Passing spacing as a keyword argument is Deprecated. "
-                "Pass xy_spacing instead."
-            )
-            warn(msg, DeprecationWarning)
-            dx = kwds.pop("spacing")
-            old_spacing = True
-
-        elif "xy_spacing" in kwds:
-            dx = kwds.pop("xy_spacing")
-            old_spacing = False
-        else:
-            dx = _parse_grid_spacing_from_args(args)
-            if dx is not None:
-                msg = (
-                    "Passing spacing as an argument is Deprecated (v1.6). "
-                    "Pass xy_spacing instead."
-                )
-                warn(msg, DeprecationWarning)
-                old_spacing = True
-            else:
-                dx = (1.0, 1.0)
-                old_spacing = False
-
-        try:
-            if len(dx) != 2:
-                msg = (
-                    "Specify grid spacing as a float or tuple of floats "
-                    "using the keyword xy_spacing."
-                )
-                raise ValueError(msg)
-            else:
-                if old_spacing:
-                    xy_spacing = (dx[1], dx[0])
-                else:
-                    xy_spacing = dx
-        except TypeError:
-            if isinstance(dx, (int, float)):
-                xy_spacing = (dx, dx)
-            else:
-                msg = (
-                    "Specify grid spacing as a float or tuple of floats "
-                    "using the keyword xy_spacing."
-                )
-                raise ValueError(msg)
-
-        # Lower left corner
-        if "origin" in kwds:
-            msg = (
-                "The origin keyword has been Deprecated. "
-                "Please use xy_of_lower_left instead"
-            )
-            warn(msg, DeprecationWarning)
-            xy_of_lower_left = kwds.pop("origin")
-        else:
-            xy_of_lower_left = tuple(kwds.pop("xy_of_lower_left", (0.0, 0.0)))
-
         if len(xy_of_lower_left) != 2:
-            msg = "xy_of_lower_left must be size two"
-            raise ValueError(msg)
+            raise ValueError("xy_of_lower_left must be size two")
 
-        self._xy_of_lower_left = xy_of_lower_left
+        self._xy_of_lower_left = tuple(xy_of_lower_left)
 
         # Node Status
-        self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
+        self._node_status = np.empty(shape[0] * shape[1], dtype=np.uint8)
 
         # Set number of nodes, and initialize if caller has given dimensions
         self._initialize(
-            num_rows, num_cols, xy_spacing, (xy_of_lower_left[0], xy_of_lower_left[1])
+            shape[0], shape[1], xy_spacing, (xy_of_lower_left[0], xy_of_lower_left[1])
         )
 
         self.set_closed_boundaries_at_grid_edges(
@@ -491,6 +472,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         super(RasterModelGrid, self).__init__(**kwds)
 
         self.looped_node_properties = {}
+
+    def __repr__(self):
+        return "RasterModelGrid({0}, xy_spacing={1}, xy_of_lower_left={2})".format(
+            repr(self.shape), repr((self.dx, self.dy)), repr(self.xy_of_lower_left)
+        )
 
     def __setstate__(self, state_dict):
         """Set state for of RasterModelGrid from pickled state_dict."""
@@ -2051,112 +2037,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         return self._link_length
 
-    @deprecated(use="set_closed_boundaries_at_grid_edges", version="0.5")
-    def set_inactive_boundaries(
-        self, right_is_inactive, top_is_inactive, left_is_inactive, bottom_is_inactive
-    ):
-        """Set boundary nodes to be inactive.
-
-        Handles boundary conditions by setting each of the four sides of the
-        rectangular grid to either 'inactive' or 'active (fixed value)' status.
-        Arguments are booleans indicating whether the bottom, right, top, and
-        left are inactive (True) or not (False).
-
-        For an inactive boundary:
-
-        *  the nodes are flagged CLOSED_BOUNDARY (normally status type 4)
-        *  the links between them and the adjacent interior nodes are
-           inactive (so they appear on link-based lists, but not
-           active_link-based lists)
-
-        This means that if you call the calc_grad_at_active_link
-        method, the inactive boundaries will be ignored: there can be no
-        gradients or fluxes calculated, because the links that connect to that
-        edge of the grid are not included in the calculation. So, setting a
-        grid edge to CLOSED_BOUNDARY is a convenient way to impose a no-flux
-        boundary condition. Note, however, that this applies to the grid as a
-        whole, rather than a particular variable that you might use in your
-        application. In other words, if you want a no-flux boundary in one
-        variable but a different boundary condition for another, then use
-        another method.
-
-        Examples
-        --------
-        The following example sets the top and left boundaries as inactive in a
-        four-row by five-column grid that initially has all boundaries active
-        and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
-
-        >>> import pytest
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5)) # rows, columns, spacing
-        >>> rmg.number_of_active_links
-        17
-        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
-              dtype=uint8)
-        >>> with pytest.deprecated_call():
-        ...     rmg.set_inactive_boundaries(False, True, True, False)
-        >>> rmg.number_of_active_links
-        12
-        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1, 1, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 4, 4, 4, 4, 4],
-              dtype=uint8)
-
-        Notes
-        -----
-        The four corners are treated as follows:
-
-        - bottom left = BOTTOM
-        - bottom right = BOTTOM
-        - top right = TOP
-        - top left = TOP
-
-        This scheme is necessary for internal consistency with looped
-        boundaries.
-
-        LLCATS: DEPR BC SUBSET
-        """
-        if self._DEBUG_TRACK_METHODS:
-            six.print_("ModelGrid.set_inactive_boundaries")
-
-        bottom_edge = range(0, self.number_of_node_columns)
-        right_edge = range(
-            2 * self.number_of_node_columns - 1,
-            self.number_of_nodes - 1,
-            self.number_of_node_columns,
-        )
-        top_edge = range(
-            (self.number_of_node_rows - 1) * self.number_of_node_columns,
-            self.number_of_nodes,
-        )
-        left_edge = range(
-            self.number_of_node_columns,
-            self.number_of_nodes - self.number_of_node_columns,
-            self.number_of_node_columns,
-        )
-
-        if bottom_is_inactive:
-            self._node_status[bottom_edge] = CLOSED_BOUNDARY
-        else:
-            self._node_status[bottom_edge] = FIXED_VALUE_BOUNDARY
-
-        if right_is_inactive:
-            self._node_status[right_edge] = CLOSED_BOUNDARY
-        else:
-            self._node_status[right_edge] = FIXED_VALUE_BOUNDARY
-
-        if top_is_inactive:
-            self._node_status[top_edge] = CLOSED_BOUNDARY
-        else:
-            self._node_status[top_edge] = FIXED_VALUE_BOUNDARY
-
-        if left_is_inactive:
-            self._node_status[left_edge] = CLOSED_BOUNDARY
-        else:
-            self._node_status[left_edge] = FIXED_VALUE_BOUNDARY
-
-        self.reset_status_at_node()
-
     def set_closed_boundaries_at_grid_edges(
         self, right_is_closed, top_is_closed, left_is_closed, bottom_is_closed
     ):
@@ -2185,10 +2065,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         might use in your application. In other words, if you want a no-flux
         boundary in one variable but a different boundary condition for
         another, then use another method.
-
-        This method is a replacement for the now-deprecated method
-        set_inactive_boundaries(). Unlike that method, this one ONLY sets nodes
-        to CLOSED_BOUNDARY; it does not set any nodes to FIXED_VALUE_BOUNDARY.
 
         Parameters
         ----------
@@ -2708,25 +2584,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         return diagonal_link_slopes
 
-    @deprecated(use="set_closed_boundaries_at_grid_edges", version="0.1")
-    def update_noflux_boundaries(self, u, bc=None):
-        """Deprecated.
-
-        Sets the value of u at all noflux boundary cells equal to the
-        value of their interior neighbors, as recorded in the
-        "boundary_nbrs" array.
-
-        LLCATS: DEPR BC
-        """
-
-        if bc is None:
-            bc = self.default_bc
-
-        inds = bc.boundary_code[id] == bc.LOOPED_BOUNDARY
-        u[self.boundary_cells[inds]] = u[bc.tracks_cell[inds]]
-
-        return u
-
     def node_vector_to_raster(self, u, flip_vertically=False):
         """Unravel an array of node values.
 
@@ -2947,30 +2804,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             return bool(ans)
         else:
             return ans
-
-    @deprecated(use="node_is_core", version="0.5")
-    def is_interior(self, *args):
-        """is_interior([ids])
-        Check of a node is an interior node.
-
-        Returns an boolean array of truth values for each node ID provided;
-        True if the node is an interior node, False otherwise.
-        If no IDs are provided, method returns a boolean array for every node.
-
-        (Interior status is typically indicated by a value of 0 in
-        node_status.)
-
-        LLCATS: DEPR NINF BC
-        """
-        # NG changed this.
-        # Modified DEJH May 2014 to accept simulaneous tests of multiple nodes;
-        # should still be back-conmpatible.
-        try:
-            node_ids = args[0]
-        except IndexError:  # return all nodes
-            return np.equal(self._node_status, CORE_NODE)
-        else:
-            return np.equal(self._node_status[node_ids], CORE_NODE)
 
     @deprecated(use="node_is_core", version=1.0)
     def is_core(self, *args):
@@ -3461,9 +3294,14 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> import os
-        >>> rmg = RasterModelGrid((4, 5))
-        >>> rmg.save('./mysave.nc')
-        >>> os.remove('mysave.nc') #to remove traces of this test
+        >>> from tempfile import mkdtemp
+
+        >>> grid = RasterModelGrid((4, 5))
+        >>> fname = os.path.join(mkdtemp(), "mysave.nc")
+        >>> grid.save(fname)
+        >>> os.path.isfile(fname)
+        True
+        >>> os.remove(fname)
 
         LLCATS: GINF
         """
@@ -4592,14 +4430,14 @@ def from_dict(param_dict):
     except ValueError:
         raise
     else:
-        grid = RasterModelGrid(nrows, ncols, xy_spacing=spacing)
+        grid = RasterModelGrid((nrows, ncols), xy_spacing=spacing)
 
     # Set boundaries
     left_boundary_type = param_dict.get("LEFT_BOUNDARY", "open")
     right_boundary_type = param_dict.get("RIGHT_BOUNDARY", "open")
     top_boundary_type = param_dict.get("TOP_BOUNDARY", "open")
     bottom_boundary_type = param_dict.get("BOTTOM_BOUNDARY", "open")
-    grid.set_inactive_boundaries(
+    grid.set_closed_boundaries_at_grid_edges(
         _is_closed_boundary(right_boundary_type),
         _is_closed_boundary(top_boundary_type),
         _is_closed_boundary(left_boundary_type),

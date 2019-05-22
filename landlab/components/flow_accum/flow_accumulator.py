@@ -633,7 +633,7 @@ class FlowAccumulator(Component):
         "drainage_area",
         "surface_water__discharge",
         "flow__upstream_node_order",
-        "flow__nodes_not_in_stack",
+        # "flow__nodes_not_in_stack",
         "flow__data_structure_delta",
         "flow__data_structure_D",
     )
@@ -647,7 +647,7 @@ class FlowAccumulator(Component):
         "flow__upstream_node_order": "-",
         "flow__data_structure_delta": "-",
         "flow__data_structure_D": "-",
-        "flow__nodes_not_in_stack": "-",
+        # "flow__nodes_not_in_stack": "-",
     }
 
     _var_mapping = {
@@ -657,7 +657,7 @@ class FlowAccumulator(Component):
         "drainage_area": "node",
         "surface_water__discharge": "node",
         "flow__upstream_node_order": "node",
-        "flow__nodes_not_in_stack": "grid",
+        # "flow__nodes_not_in_stack": "grid",
         "flow__data_structure_delta": "node",
         "flow__data_structure_D": "grid",
     }
@@ -677,8 +677,8 @@ class FlowAccumulator(Component):
         "upstream node array",
         "flow__data_structure_D": "Array containing the data structure D used for construction"
         "of the downstream-to-upstream node array. Stored at Grid.",
-        "flow__nodes_not_in_stack": "Boolean value indicating if there are any nodes that have not yet"
-        "been added to the stack stored in flow__upstream_node_order.",
+        # "flow__nodes_not_in_stack": "Boolean value indicating if there are any nodes that have not yet"
+        # "been added to the stack stored in flow__upstream_node_order.",
     }
 
     def __init__(

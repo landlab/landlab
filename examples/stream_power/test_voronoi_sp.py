@@ -4,7 +4,7 @@ from six.moves import range
 
 from landlab import VoronoiDelaunayGrid
 from landlab.components import FlowAccumulator, StreamPowerEroder
-from landlab.plot.imshow import imshow_node_grid
+from landlab.plot.imshow import imshow_grid
 
 nnodes = 10000
 
@@ -23,6 +23,6 @@ for i in range(100):
     fr.run_one_step()
     spe.erode(mg, 1.)
 
-imshow_node_grid(mg, "topographic__elevation")
+imshow_grid(mg, "topographic__elevation")
 
 show()

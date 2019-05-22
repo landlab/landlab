@@ -1,0 +1,13 @@
+grid:
+  RasterModelGrid:
+    - [4, 5]
+    - xy_spacing: [3, 4]
+    - fields:
+        node:
+          topographic__elevation:
+            plane:
+              - point: [1, 1, 1]
+                normal: [-2, -1, 1]
+    - boundary_conditions:
+      - this_is_not_a_method:
+        - [True, True, True, True]

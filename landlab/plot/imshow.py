@@ -23,7 +23,6 @@ from landlab.grid import CLOSED_BOUNDARY
 from landlab.grid.raster import RasterModelGrid
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 from landlab.plot.event_handler import query_grid_on_button_press
-from landlab.utils.decorators import deprecated
 
 try:
     import matplotlib.pyplot as plt
@@ -146,11 +145,6 @@ def imshow_grid_at_node(grid, values, **kwds):
     )
 
 
-@deprecated(use="imshow_grid_at_node", version="0.5")
-def imshow_node_grid(grid, values, **kwds):
-    imshow_grid_at_node(grid, values, **kwds)
-
-
 def imshow_grid_at_cell(grid, values, **kwds):
     """imshow_grid_at_cell(grid, values, plot_name=None, var_name=None,
                            var_units=None, grid_units=None,
@@ -254,11 +248,6 @@ def imshow_grid_at_cell(grid, values, **kwds):
         plt.title(values)
 
     return myimage
-
-
-@deprecated(use="imshow_grid_at_cell", version="0.5")
-def imshow_cell_grid(grid, values, **kwds):
-    imshow_grid_at_cell(grid, values, **kwds)
 
 
 def _imshow_grid_values(
