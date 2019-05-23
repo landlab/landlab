@@ -145,7 +145,7 @@ class DepthSlopeProductErosion(Component):
         self,
         grid,
         k_e,
-        fluid_density=1000.,
+        fluid_density=1000.0,
         g=9.81,
         a_exp=1.0,
         tau_crit=0.0,

@@ -6,7 +6,7 @@ import landlab
 
 
 def test_imshow_grid():
-    rmg = landlab.RasterModelGrid(4, 5)
+    rmg = landlab.RasterModelGrid((4, 5))
 
     pp = PdfPages("test.pdf")
 

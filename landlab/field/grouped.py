@@ -687,8 +687,8 @@ class ModelDataFields(object):
             )
 
         numpy_kwds = kwds.copy()
-        numpy_kwds.pop("units", 0.)
-        numpy_kwds.pop("noclobber", 0.)
+        numpy_kwds.pop("units", 0.0)
+        numpy_kwds.pop("noclobber", 0.0)
         return self.add_field(group, name, self.empty(group, **numpy_kwds), **kwds)
 
     def add_ones(self, *args, **kwds):
@@ -760,8 +760,8 @@ class ModelDataFields(object):
             )
 
         numpy_kwds = kwds.copy()
-        numpy_kwds.pop("units", 0.)
-        numpy_kwds.pop("noclobber", 0.)
+        numpy_kwds.pop("units", 0.0)
+        numpy_kwds.pop("noclobber", 0.0)
         return self.add_field(group, name, self.ones(group, **numpy_kwds), **kwds)
 
     def add_zeros(self, *args, **kwds):
@@ -815,8 +815,8 @@ class ModelDataFields(object):
             )
 
         numpy_kwds = kwds.copy()
-        numpy_kwds.pop("units", 0.)
-        numpy_kwds.pop("noclobber", 0.)
+        numpy_kwds.pop("units", 0.0)
+        numpy_kwds.pop("noclobber", 0.0)
         return self.add_field(group, name, self.zeros(group, **numpy_kwds), **kwds)
 
     def add_field(self, *args, **kwds):

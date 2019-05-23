@@ -10,8 +10,8 @@ def setup_grids():
     """Set up test grids with unit and non-unit spacing."""
     _GRIDS.update(
         {
-            "unit": RasterModelGrid(4, 5),
-            "non_unit": RasterModelGrid((4, 5), xy_spacing=2.),
+            "unit": RasterModelGrid((4, 5)),
+            "non_unit": RasterModelGrid((4, 5), xy_spacing=2.0),
             "non_square": RasterModelGrid((4, 5), xy_spacing=(5, 2)),
         }
     )
@@ -145,7 +145,7 @@ def test_out_array():
 
 def test_diff_out_array():
     """Test returned array is the same as that passed as out keyword."""
-    rmg = RasterModelGrid(4, 5)
+    rmg = RasterModelGrid((4, 5))
     values = np.arange(20)
     diff = np.empty(rmg.number_of_links)
     rtn_diff = rmg.calc_diff_at_link(values, out=diff)

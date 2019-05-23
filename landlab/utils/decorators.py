@@ -439,36 +439,6 @@ def make_return_array_immutable(func):
     return _wrapped
 
 
-# def deprecated(use, version):
-#     """Mark a function as deprecated.
-#
-#     Parameters
-#     ----------
-#     use : str
-#         Name of replacement function to use.
-#     version : str
-#         Version number when function was marked as deprecated.
-#
-#     Returns
-#     -------
-#     func
-#         A wrapped function that issues a deprecation warning.
-#     """
-#     def real_decorator(func):
-#
-#         def _wrapped(*args, **kwargs):
-#             """Warn that the function is deprecated before calling it."""
-#             warnings.warn(
-#                 "Call to deprecated function {name}.".format(
-#                     name=func.__name__), category=DeprecationWarning)
-#             return func(*args, **kwargs)
-#         _wrapped.__dict__.update(func.__dict__)
-#
-#         return _wrapped
-#
-#     return real_decorator
-
-
 def deprecated(use, version):
     """Mark a function as deprecated.
 

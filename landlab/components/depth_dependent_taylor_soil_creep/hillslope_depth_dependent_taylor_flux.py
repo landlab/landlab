@@ -332,7 +332,7 @@ class DepthDependentTaylorDiffuser(Component):
 
             # Calculate gradients
             self.slope = self.grid.calc_grad_at_link(self.elev)
-            self.slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
+            self.slope[self.grid.status_at_link == INACTIVE_LINK] = 0.0
 
             # Test for time stepping courant condition
             # Test for time stepping courant condition

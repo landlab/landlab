@@ -1,5 +1,3 @@
-
-
 # -*- coding: utf-8 -*-
 """
 hex_lattice_tectonicizer.py.

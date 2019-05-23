@@ -8,7 +8,7 @@ from numpy.testing import assert_array_almost_equal
 from landlab import RasterModelGrid
 from landlab.components import LandslideProbability
 
-(_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e0, 10e0), (0., 0.))
+(_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e0, 10e0), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
@@ -136,22 +136,22 @@ def test_calculate_landslide_probability_uniform_method():
         np.random.randint(26, 37, gridnum)
     )
     grid_1.at_node["soil__thickness"] = np.sort(np.random.randint(1, 10, gridnum))
-    grid_1.at_node["soil__density"] = 2000. * np.ones(gridnum)
+    grid_1.at_node["soil__density"] = 2000.0 * np.ones(gridnum)
 
     ls_prob_uniform = LandslideProbability(
         grid_1,
         number_of_iterations=10,
         groundwater__recharge_distribution="uniform",
-        groundwater__recharge_min_value=20.,
-        groundwater__recharge_max_value=120.,
+        groundwater__recharge_min_value=20.0,
+        groundwater__recharge_max_value=120.0,
         seed=5,
     )
     ls_prob_uniform.calculate_landslide_probability()
     np.testing.assert_almost_equal(
-        grid_1.at_node["landslide__probability_of_failure"][5], 1.
+        grid_1.at_node["landslide__probability_of_failure"][5], 1.0
     )
     np.testing.assert_almost_equal(
-        grid_1.at_node["landslide__probability_of_failure"][9], 0.
+        grid_1.at_node["landslide__probability_of_failure"][9], 0.0
     )
 
 
@@ -183,13 +183,13 @@ def test_calculate_landslide_probability_lognormal_method():
         np.random.randint(26, 37, gridnum)
     )
     grid_2.at_node["soil__thickness"] = np.sort(np.random.randint(1, 10, gridnum))
-    grid_2.at_node["soil__density"] = 2000. * np.ones(gridnum)
+    grid_2.at_node["soil__density"] = 2000.0 * np.ones(gridnum)
 
     ls_prob_lognormal = LandslideProbability(
         grid_2,
         number_of_iterations=10,
         groundwater__recharge_distribution="lognormal",
-        groundwater__recharge_mean=5.,
+        groundwater__recharge_mean=5.0,
         groundwater__recharge_standard_deviation=0.25,
         seed=6,
     )
@@ -230,7 +230,7 @@ def test_calculate_landslide_probability_lognormal_spatial_method():
         np.random.randint(26, 37, gridnum)
     )
     grid_3.at_node["soil__thickness"] = np.sort(np.random.randint(1, 10, gridnum))
-    grid_3.at_node["soil__density"] = 2000. * np.ones(gridnum)
+    grid_3.at_node["soil__density"] = 2000.0 * np.ones(gridnum)
 
     ls_prob_lognormal_spatial = LandslideProbability(
         grid_3,

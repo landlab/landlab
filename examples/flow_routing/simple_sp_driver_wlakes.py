@@ -15,7 +15,7 @@ import pylab
 from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components.flow_routing import DepressionFinderAndRouter, FlowAccumulator
 from landlab.components.stream_power import FastscapeEroder, StreamPowerEroder
-from landlab.plot.imshow import imshow_node_grid
+from landlab.plot.imshow import imshow_grid
 
 inputs = ModelParameterDictionary("./drive_sp_params.txt")
 nrows = inputs.read_int("nrows")
@@ -84,7 +84,7 @@ pylab.close()
 
 # Plot topography
 pylab.figure(1)
-im = imshow_node_grid(mg, "topographic__elevation")  # display a colored image
+im = imshow_grid(mg, "topographic__elevation")  # display a colored image
 print(elev_r)
 
 pylab.figure(2)

@@ -363,7 +363,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             if num_params == 1:
                 # check the func takes a single value and turns it into a new
                 # single value:
-                if not isinstance(loss_function(1.), float):
+                if not isinstance(loss_function(1.0), float):
                     raise TypeError(
                         "The loss_function should take a float, and return " "a float."
                     )
@@ -379,7 +379,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             elif num_params == 2:
                 # check the func takes a single value and turns it into a new
                 # single value:
-                if not isinstance(loss_function(1., 0), float):
+                if not isinstance(loss_function(1.0, 0), float):
                     raise TypeError(
                         "The loss_function should take (float, int), and "
                         "return a float."
@@ -396,7 +396,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             elif num_params == 3:
                 # check the func takes (float, int) and turns it into a new
                 # single value:
-                if not isinstance(loss_function(1., 0, 0), float):
+                if not isinstance(loss_function(1.0, 0, 0), float):
                     raise TypeError(
                         "The loss_function should take (float, int, int), "
                         "and return a float."

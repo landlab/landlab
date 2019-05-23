@@ -5,9 +5,51 @@ from numpy.testing import assert_array_equal
 from landlab import BAD_INDEX_VALUE as X, RasterModelGrid
 
 
+@pytest.mark.parametrize("params", [[(3, 4), {}], [(), {"num_rows": 3, "num_cols": 4}]])
+def test_parse_parameters_deprecated_shape(params):
+    with pytest.deprecated_call():
+        args, kwds = RasterModelGrid._parse_parameters(*params)
+    assert args == ((3, 4),)
+    assert kwds == {}
+
+
+@pytest.mark.parametrize(
+    "params",
+    [[((3, 4),), {"dx": 20.0}], [((3, 4),), {"spacing": 20.0}], [(3, 4, 20.0), {}]],
+)
+def test_parse_parameters_deprecated_spacing(params):
+    with pytest.deprecated_call():
+        args, kwds = RasterModelGrid._parse_parameters(*params)
+    assert args == ((3, 4),)
+    assert kwds == {"xy_spacing": 20.0}
+
+
+def test_parse_parameters_deprecated_xy_of_lower_left():
+    with pytest.deprecated_call():
+        args, kwds = RasterModelGrid._parse_parameters([(3, 4)], {"origin": (1.0, 2.0)})
+    assert args == ((3, 4),)
+    assert kwds == {"xy_of_lower_left": (1.0, 2.0)}
+
+
+@pytest.mark.parametrize(
+    "kwds",
+    [
+        dict(xy_of_lower_left=(3.0, 4.0)),
+        dict(xy_spacing=(30.0, 40.0)),
+        dict(xy_spacing=(30.0, 40.0), xy_of_lower_left=(3.0, 4.0)),
+        dict(xy_spacing=(30.0, 40.0), xy_of_lower_left=(3.0, 4.0), another_kwd=True),
+    ],
+)
+def test_parse_parameters_new_style(kwds):
+    args, new_kwds = RasterModelGrid._parse_parameters([(3, 4)], kwds)
+    assert args == ((3, 4),)
+    assert new_kwds == kwds
+
+
 def test_init_with_kwds_classic():
 
-    grid = RasterModelGrid(num_rows=4, num_cols=5, xy_spacing=1.)
+    with pytest.deprecated_call():
+        grid = RasterModelGrid(num_rows=4, num_cols=5, xy_spacing=1.0)
 
     assert grid.number_of_node_rows == 4
     assert grid.number_of_node_columns == 5
@@ -19,8 +61,8 @@ def test_init_with_kwds_classic():
 
     assert grid.number_of_node_rows == 3
     assert grid.number_of_node_columns == 7
-    assert grid.dy == 2.
-    assert grid.dx == 2.
+    assert grid.dy == 2.0
+    assert grid.dx == 2.0
 
 
 def test_init_new_style():
@@ -28,28 +70,28 @@ def test_init_new_style():
 
     assert grid.number_of_node_rows == 4
     assert grid.number_of_node_columns == 5
-    assert grid.dy == 2.
-    assert grid.dx == 2.
+    assert grid.dy == 2.0
+    assert grid.dx == 2.0
 
     grid = RasterModelGrid((4, 5))
 
     assert grid.number_of_node_rows == 4
     assert grid.number_of_node_columns == 5
-    assert grid.dy == 1.
-    assert grid.dx == 1.
+    assert grid.dy == 1.0
+    assert grid.dx == 1.0
 
 
 def test_spacing_is_float():
     grid = RasterModelGrid((4, 5))
-    assert grid.dy == 1.
+    assert grid.dy == 1.0
     assert isinstance(grid.dy, float)
-    assert grid.dx == 1.
+    assert grid.dx == 1.0
     assert isinstance(grid.dx, float)
 
     grid = RasterModelGrid((4, 5), xy_spacing=2)
-    assert grid.dy == 2.
+    assert grid.dy == 2.0
     assert isinstance(grid.dy, float)
-    assert grid.dx == 2.
+    assert grid.dx == 2.0
     assert isinstance(grid.dx, float)
 
 
@@ -62,9 +104,9 @@ def test_grid_dimensions():
 
 def test_grid_dimensions_non_unit_spacing():
     """Test extent of grid with non-unit spacing."""
-    rmg = RasterModelGrid((4, 5), xy_spacing=2.)
-    assert rmg.extent[0] == 6.
-    assert rmg.extent[1] == 8.
+    rmg = RasterModelGrid((4, 5), xy_spacing=2.0)
+    assert rmg.extent[0] == 6.0
+    assert rmg.extent[1] == 8.0
 
 
 def test_nodes_around_point():
@@ -72,7 +114,7 @@ def test_nodes_around_point():
     surrounding_ids = rmg.nodes_around_point(2.1, 1.1)
     assert_array_equal(surrounding_ids, np.array([7, 12, 13, 8]))
 
-    surrounding_ids = rmg.nodes_around_point(2.1, .9)
+    surrounding_ids = rmg.nodes_around_point(2.1, 0.9)
     assert_array_equal(surrounding_ids, np.array([2, 7, 8, 3]))
 
 
@@ -127,26 +169,26 @@ def test_node_x():
         rmg.node_x,
         np.array(
             [
-                0.,
-                1.,
-                2.,
-                3.,
-                4.,
-                0.,
-                1.,
-                2.,
-                3.,
-                4.,
-                0.,
-                1.,
-                2.,
-                3.,
-                4.,
-                0.,
-                1.,
-                2.,
-                3.,
-                4.,
+                0.0,
+                1.0,
+                2.0,
+                3.0,
+                4.0,
+                0.0,
+                1.0,
+                2.0,
+                3.0,
+                4.0,
+                0.0,
+                1.0,
+                2.0,
+                3.0,
+                4.0,
+                0.0,
+                1.0,
+                2.0,
+                3.0,
+                4.0,
             ]
         ),
     )
@@ -158,26 +200,26 @@ def test_node_y():
         rmg.node_y,
         np.array(
             [
-                0.,
-                0.,
-                0.,
-                0.,
-                0.,
-                1.,
-                1.,
-                1.,
-                1.,
-                1.,
-                2.,
-                2.,
-                2.,
-                2.,
-                2.,
-                3.,
-                3.,
-                3.,
-                3.,
-                3.,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                2.0,
+                2.0,
+                2.0,
+                2.0,
+                2.0,
+                3.0,
+                3.0,
+                3.0,
+                3.0,
+                3.0,
             ]
         ),
     )

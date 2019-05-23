@@ -67,7 +67,7 @@ def setup_perimeter_nodes(shape, orientation="horizontal", node_layout="rect"):
 
 
 def setup_xy_of_node(
-    shape, spacing=1., origin=(0., 0.), orientation="horizontal", node_layout="rect"
+    shape, spacing=1.0, origin=(0.0, 0.0), orientation="horizontal", node_layout="rect"
 ):
     """Create arrays of coordinates of a node on a hex grid.
 
@@ -129,7 +129,7 @@ def setup_xy_of_node(
 
     x_of_node *= spacing
     x_of_node += origin[1]
-    y_of_node *= spacing * np.sin(np.pi / 3.)
+    y_of_node *= spacing * np.sin(np.pi / 3.0)
     y_of_node += origin[0]
 
     return (x_of_node, y_of_node)
@@ -157,8 +157,8 @@ class HexGraph(VoronoiGraph):
     def __init__(
         self,
         shape,
-        spacing=1.,
-        origin=(0., 0.),
+        spacing=1.0,
+        origin=(0.0, 0.0),
         orientation="horizontal",
         node_layout="rect",
     ):

@@ -28,7 +28,7 @@ def test_no_upstream_array():
 
     # instantiate a model grid, do not run flow accumulation on it
 
-    mg = RasterModelGrid(30, 70)
+    mg = RasterModelGrid((30, 70))
 
     # Add a field called topographic__elevation to mg
 
@@ -195,25 +195,25 @@ def test_flow__distance_irregular_grid_d4():
 
     flow__distance_expected = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
             dx,
-            0.,
-            0.,
+            0.0,
+            0.0,
             dx,
             dx,
-            2. * dx,
-            0.,
-            0.,
-            2. * dx,
-            2. * dx,
-            0.,
-            0.,
-            0.,
-            0.,
+            2.0 * dx,
+            0.0,
+            0.0,
+            2.0 * dx,
+            2.0 * dx,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -368,8 +368,8 @@ def test_flow__distance_raster_D_infinity():
         [
             [0, 0, 0, 0],
             [0, 0, 1, 0],
-            [0, 1, 0 + math.sqrt(2.), 0],
-            [0, 2, 1 + math.sqrt(2.), 0],
+            [0, 1, 0 + math.sqrt(2.0), 0],
+            [0, 2, 1 + math.sqrt(2.0), 0],
             [0, 0, 0, 0],
         ],
         dtype="float64",
