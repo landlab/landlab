@@ -1,3 +1,4 @@
+from .component_maker import ComponentMaker
 from .chi_index import ChiFinder
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
@@ -49,6 +50,7 @@ from .vegetation_dynamics import Vegetation
 from .weathering import ExponentialWeatherer
 
 COMPONENTS = [
+    ComponentMaker,
     ChiFinder,
     LinearDiffuser,
     Flexure,
