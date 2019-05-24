@@ -1,8 +1,7 @@
 import numpy as np
 
 from ..dual import DualGraph
-from .structured_quad import (StructuredQuadGraph, RectilinearGraph,
-                              UniformRectilinearGraph, )
+from .structured_quad import StructuredQuadGraph
 
 
 class DualStructuredQuadGraphExtras(object):
@@ -35,8 +34,9 @@ class DualStructuredQuadGraphExtras(object):
         return self.dual.vertical_links
 
 
-class DualStructuredQuadGraph(DualStructuredQuadGraphExtras,
-                              StructuredQuadGraph, DualGraph):
+class DualStructuredQuadGraph(
+    DualStructuredQuadGraphExtras, StructuredQuadGraph, DualGraph
+):
 
     """Dual graph of a structured grid of quadrilaterals.
 
@@ -68,8 +68,7 @@ class DualStructuredQuadGraph(DualStructuredQuadGraphExtras,
 
         self._dual = StructuredQuadGraph((dual_y, dual_x), shape=dual_shape)
         StructuredQuadGraph.__init__(self, node_y_and_x, shape=shape)
-        DualGraph.__init__(self, node_at_cell=node_at_cell,
-                           nodes_at_face=nodes_at_face)
+        DualGraph.__init__(self, node_at_cell=node_at_cell, nodes_at_face=nodes_at_face)
 
 
 class DualRectilinearGraph(DualStructuredQuadGraph):
@@ -95,7 +94,7 @@ class DualRectilinearGraph(DualStructuredQuadGraph):
 
     def __init__(self, node_y_and_x):
         shape = (len(node_y_and_x[0]), len(node_y_and_x[1]))
-        node_y_and_x = np.meshgrid(*node_y_and_x, indexing='ij')
+        node_y_and_x = np.meshgrid(*node_y_and_x, indexing="ij")
 
         super(DualRectilinearGraph, self).__init__(node_y_and_x, shape)
 
@@ -123,12 +122,14 @@ class DualUniformRectilinearGraph(DualRectilinearGraph):
            [5, 6, 4, 3]])
     """
 
-    def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):
+    def __init__(self, shape, spacing=(1.0, 1.0), origin=(0.0, 0.0)):
         spacing = np.broadcast_to(spacing, 2)
         origin = np.broadcast_to(origin, 2)
 
-        node_y_and_x = (np.arange(shape[0]) * spacing[0] + origin[0],
-                       np.arange(shape[1]) * spacing[1] + origin[1])
+        node_y_and_x = (
+            np.arange(shape[0]) * spacing[0] + origin[0],
+            np.arange(shape[1]) * spacing[1] + origin[1],
+        )
 
         super(DualUniformRectilinearGraph, self).__init__(node_y_and_x)
 
@@ -174,28 +175,40 @@ def get_nodes_at_face(shape):
 
 
 def get_corners(node_y_and_x, shape):
-    y_of_node, x_of_node = (np.asarray(node_y_and_x[0], dtype=float),
-                            np.asarray(node_y_and_x[1], dtype=float))
+    y_of_node, x_of_node = (
+        np.asarray(node_y_and_x[0], dtype=float),
+        np.asarray(node_y_and_x[1], dtype=float),
+    )
     y_of_node.shape = x_of_node.shape = shape
-    
-    x_of_corner = (x_of_node[:-1, :-1] + x_of_node[:-1, 1:] +
-                   x_of_node[1:, :-1] + x_of_node[1:, 1:]) * .25
-    y_of_corner = (y_of_node[:-1, :-1] + y_of_node[:-1, 1:] +
-                   y_of_node[1:, :-1] + y_of_node[1:, 1:]) * .25
+
+    x_of_corner = (
+        x_of_node[:-1, :-1]
+        + x_of_node[:-1, 1:]
+        + x_of_node[1:, :-1]
+        + x_of_node[1:, 1:]
+    ) * 0.25
+    y_of_corner = (
+        y_of_node[:-1, :-1]
+        + y_of_node[:-1, 1:]
+        + y_of_node[1:, :-1]
+        + y_of_node[1:, 1:]
+    ) * 0.25
 
     return y_of_corner, x_of_corner
 
 
 def reshape_nodes(y_and_x, shape=None):
-    y_of_node, x_of_node = (np.asarray(y_and_x[0], dtype=float),
-                            np.asarray(y_and_x[1], dtype=float))
+    y_of_node, x_of_node = (
+        np.asarray(y_and_x[0], dtype=float),
+        np.asarray(y_and_x[1], dtype=float),
+    )
 
     if y_of_node.size != x_of_node.size:
-        raise ValueError('size mismatch for size of x and y')
+        raise ValueError("size mismatch for size of x and y")
 
     if shape is None:
         if y_of_node.shape != x_of_node.shape:
-            raise ValueError('shape mismatch for size of x and y')
+            raise ValueError("shape mismatch for size of x and y")
     else:
         y_of_node.shape = shape
         x_of_node.shape = shape

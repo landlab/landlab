@@ -10,8 +10,8 @@ raster. Hex grids are often used in CA models because of their symmetry.
 Created GT Sep 2014
 """
 
-from .celllab_cts import CellLabCTSModel
 from ..grid import HexModelGrid
+from .celllab_cts import CellLabCTSModel
 
 
 class HexCTS(CellLabCTSModel):
@@ -52,8 +52,15 @@ class HexCTS(CellLabCTSModel):
     >>> hcts = HexCTS(mg, nsd, xnlist, nsg)
     """
 
-    def __init__(self, model_grid, node_state_dict, transition_list,
-                 initial_node_states, prop_data=None, prop_reset_value=None):
+    def __init__(
+        self,
+        model_grid,
+        node_state_dict,
+        transition_list,
+        initial_node_states,
+        prop_data=None,
+        prop_reset_value=None,
+    ):
         """
         HexCTS constructor: sets number of orientations to 1 and calls
         base-class constructor.
@@ -78,7 +85,7 @@ class HexCTS(CellLabCTSModel):
 
         # Make sure caller has sent the right grid type
         if not isinstance(model_grid, HexModelGrid):
-            raise TypeError('model_grid must be a Landlab HexModelGrid')
+            raise TypeError("model_grid must be a Landlab HexModelGrid")
 
         # Define the number of distinct cell-pair orientations: here just 1,
         # because HexCTS represents a non-oriented CA model.
@@ -86,11 +93,11 @@ class HexCTS(CellLabCTSModel):
 
         # Call the LandlabCellularAutomaton.__init__() method to do the rest of
         # the initialization
-        super(HexCTS, self).__init__(model_grid, node_state_dict,
-                                     transition_list, initial_node_states,
-                                     prop_data, prop_reset_value)
-
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
+        super(HexCTS, self).__init__(
+            model_grid,
+            node_state_dict,
+            transition_list,
+            initial_node_states,
+            prop_data,
+            prop_reset_value,
+        )

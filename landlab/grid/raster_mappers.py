@@ -70,7 +70,7 @@ def map_sum_of_inlinks_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(centering="node")
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]
@@ -123,7 +123,7 @@ def map_mean_of_inlinks_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(centering="node")
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]
@@ -178,7 +178,7 @@ def map_max_of_inlinks_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(centering="node")
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]
@@ -232,7 +232,7 @@ def map_min_of_inlinks_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(centering="node")
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]
@@ -286,7 +286,7 @@ def map_sum_of_outlinks_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(centering="node")
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]
@@ -340,7 +340,7 @@ def map_mean_of_outlinks_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(centering="node")
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]
@@ -394,7 +394,7 @@ def map_max_of_outlinks_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(centering="node")
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]
@@ -447,7 +447,7 @@ def map_min_of_outlinks_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(centering="node")
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]
@@ -502,7 +502,7 @@ def map_mean_of_links_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(centering="node")
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]
@@ -518,8 +518,12 @@ def map_mean_of_links_to_node(grid, var_name, out=None):
     number_of_links = links.number_of_links_per_node(grid.shape)
     number_of_links = number_of_links.reshape(number_of_links.size)
     number_of_links.astype(float, copy=False)
-    out[:] = (values_at_links[north] + values_at_links[east] +
-              values_at_links[south] + values_at_links[west]) / number_of_links
+    out[:] = (
+        values_at_links[north]
+        + values_at_links[east]
+        + values_at_links[south]
+        + values_at_links[west]
+    ) / number_of_links
 
     return out
 
@@ -565,7 +569,7 @@ def map_mean_of_horizontal_links_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(centering="node")
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]
@@ -574,7 +578,7 @@ def map_mean_of_horizontal_links_to_node(grid, var_name, out=None):
     hoz_links = grid.links_at_node[:, [0, 2]]
     hoz_link_dirs = np.fabs(grid.link_dirs_at_node[:, [0, 2]])
     # ^retain "true" directions of links
-    valid_links = values_at_links[hoz_links]*hoz_link_dirs  # invalids = 0
+    valid_links = values_at_links[hoz_links] * hoz_link_dirs  # invalids = 0
     num_valid_links = hoz_link_dirs.sum(axis=1)
     np.divide(valid_links.sum(axis=1), num_valid_links, out=out)
     return out
@@ -622,9 +626,9 @@ def map_mean_of_horizontal_active_links_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.zeros(centering='node', dtype=float)
+        out = grid.zeros(centering="node", dtype=float)
     else:
-        out.fill(0.)
+        out.fill(0.0)
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]
@@ -633,11 +637,10 @@ def map_mean_of_horizontal_active_links_to_node(grid, var_name, out=None):
     hoz_links = grid.links_at_node[:, [0, 2]]
     hoz_link_dirs = np.fabs(grid.active_link_dirs_at_node[:, [0, 2]])
     # ^retain "true" directions of links; no inactives now
-    valid_links = values_at_links[hoz_links]*hoz_link_dirs  # invalids = 0
+    valid_links = values_at_links[hoz_links] * hoz_link_dirs  # invalids = 0
     num_valid_links = hoz_link_dirs.sum(axis=1)
     good_nodes = num_valid_links != 0
-    out[good_nodes] = (valid_links.sum(axis=1)[good_nodes] /
-                       num_valid_links[good_nodes])
+    out[good_nodes] = valid_links.sum(axis=1)[good_nodes] / num_valid_links[good_nodes]
     return out
 
 
@@ -682,7 +685,7 @@ def map_mean_of_vertical_links_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.empty(centering='node')
+        out = grid.empty(centering="node")
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]
@@ -691,7 +694,7 @@ def map_mean_of_vertical_links_to_node(grid, var_name, out=None):
     vert_links = grid.links_at_node[:, [1, 3]]
     vert_link_dirs = np.fabs(grid.link_dirs_at_node[:, [1, 3]])
     # ^retain "true" directions of links
-    valid_links = values_at_links[vert_links]*vert_link_dirs  # invalids = 0
+    valid_links = values_at_links[vert_links] * vert_link_dirs  # invalids = 0
     num_valid_links = vert_link_dirs.sum(axis=1)
     np.divide(valid_links.sum(axis=1), num_valid_links, out=out)
     return out
@@ -739,9 +742,9 @@ def map_mean_of_vertical_active_links_to_node(grid, var_name, out=None):
     LLCATS: NINF LINF MAP
     """
     if out is None:
-        out = grid.zeros(centering='node', dtype=float)
+        out = grid.zeros(centering="node", dtype=float)
     else:
-        out.fill(0.)
+        out.fill(0.0)
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]
@@ -750,9 +753,8 @@ def map_mean_of_vertical_active_links_to_node(grid, var_name, out=None):
     vert_links = grid.links_at_node[:, [1, 3]]
     vert_link_dirs = np.fabs(grid.active_link_dirs_at_node[:, [1, 3]])
     # ^retain "true" directions of links; no inactives now
-    valid_links = values_at_links[vert_links]*vert_link_dirs  # invalids = 0
+    valid_links = values_at_links[vert_links] * vert_link_dirs  # invalids = 0
     num_valid_links = vert_link_dirs.sum(axis=1)
     good_nodes = num_valid_links != 0
-    out[good_nodes] = (valid_links.sum(axis=1)[good_nodes] /
-                       num_valid_links[good_nodes])
+    out[good_nodes] = valid_links.sum(axis=1)[good_nodes] / num_valid_links[good_nodes]
     return out

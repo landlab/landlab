@@ -5,9 +5,10 @@ Created on Fri Apr  8 08:32:48 2016
 @author: RCGlade
 """
 
-from landlab import Component
 import numpy as np
-from landlab import INACTIVE_LINK
+
+from landlab import INACTIVE_LINK, Component
+
 
 class DepthDependentDiffuser(Component):
 
@@ -79,56 +80,50 @@ class DepthDependentDiffuser(Component):
     True
     """
 
-    _name = 'DepthDependentDiffuser'
+    _name = "DepthDependentDiffuser"
 
     _input_var_names = (
-        'topographic__elevation',
-        'soil__depth',
-        'soil_production__rate',
+        "topographic__elevation",
+        "soil__depth",
+        "soil_production__rate",
     )
 
     _output_var_names = (
-        'soil__flux',
-        'topographic__slope',
-        'topographic__elevation',
-        'bedrock__elevation',
-        'soil__depth',
+        "soil__flux",
+        "topographic__slope",
+        "topographic__elevation",
+        "bedrock__elevation",
+        "soil__depth",
     )
 
     _var_units = {
-        'topographic__elevation' : 'm',
-        'topographic__slope' : 'm/m',
-        'soil__depth' : 'm',
-        'soil__flux' : 'm^2/yr',
-        'soil_production__rate' : 'm/yr',
-        'bedrock__elevation' : 'm',
+        "topographic__elevation": "m",
+        "topographic__slope": "m/m",
+        "soil__depth": "m",
+        "soil__flux": "m^2/yr",
+        "soil_production__rate": "m/yr",
+        "bedrock__elevation": "m",
     }
 
     _var_mapping = {
-        'topographic__elevation' : 'node',
-        'topographic__slope' : 'link',
-        'soil__depth' : 'node',
-        'soil__flux' : 'link',
-        'soil_production__rate' : 'node',
-        'bedrock__elevation' :'node',
+        "topographic__elevation": "node",
+        "topographic__slope": "link",
+        "soil__depth": "node",
+        "soil__flux": "link",
+        "soil_production__rate": "node",
+        "bedrock__elevation": "node",
     }
 
     _var_doc = {
-        'topographic__elevation':
-                'elevation of the ground surface',
-        'topographic__slope':
-                'gradient of the ground surface',
-        'soil__depth':
-                'depth of soil/weather bedrock',
-        'soil__flux':
-                'flux of soil in direction of link',
-        'soil_production__rate':
-                'rate of soil production at nodes',
-        'bedrock__elevation':
-                'elevation of the bedrock surface',
+        "topographic__elevation": "elevation of the ground surface",
+        "topographic__slope": "gradient of the ground surface",
+        "soil__depth": "depth of soil/weather bedrock",
+        "soil__flux": "flux of soil in direction of link",
+        "soil_production__rate": "rate of soil production at nodes",
+        "bedrock__elevation": "elevation of the bedrock surface",
     }
-    def __init__(self,grid, linear_diffusivity=1.0,
-                 soil_transport_decay_depth=1.0):
+
+    def __init__(self, grid, linear_diffusivity=1.0, soil_transport_decay_depth=1.0):
         """Initialize the DepthDependentDiffuser."""
 
         # Store grid and parameters
@@ -138,41 +133,40 @@ class DepthDependentDiffuser(Component):
 
         # create fields
         # elevation
-        if 'topographic__elevation' in self.grid.at_node:
-            self.elev = self.grid.at_node['topographic__elevation']
+        if "topographic__elevation" in self.grid.at_node:
+            self.elev = self.grid.at_node["topographic__elevation"]
         else:
-            self.elev = self.grid.add_zeros('node', 'topographic__elevation')
+            self.elev = self.grid.add_zeros("node", "topographic__elevation")
 
         # slope
-        if 'topographic__slope' in self.grid.at_link:
-            self.slope = self.grid.at_link['topographic__slope']
+        if "topographic__slope" in self.grid.at_link:
+            self.slope = self.grid.at_link["topographic__slope"]
         else:
-            self.slope = self.grid.add_zeros('link', 'topographic__slope')
+            self.slope = self.grid.add_zeros("link", "topographic__slope")
 
         # soil depth
-        if 'soil__depth' in self.grid.at_node:
-            self.depth = self.grid.at_node['soil__depth']
+        if "soil__depth" in self.grid.at_node:
+            self.depth = self.grid.at_node["soil__depth"]
         else:
-            self.depth = self.grid.add_zeros('node', 'soil__depth')
+            self.depth = self.grid.add_zeros("node", "soil__depth")
 
         # soil flux
-        if 'soil__flux' in self.grid.at_link:
-            self.flux = self.grid.at_link['soil__flux']
+        if "soil__flux" in self.grid.at_link:
+            self.flux = self.grid.at_link["soil__flux"]
         else:
-            self.flux=self.grid.add_zeros('link', 'soil__flux')
+            self.flux = self.grid.add_zeros("link", "soil__flux")
 
         # weathering rate
-        if 'soil_production__rate' in self.grid.at_node:
-            self.soil_prod_rate = self.grid.at_node['soil_production__rate']
+        if "soil_production__rate" in self.grid.at_node:
+            self.soil_prod_rate = self.grid.at_node["soil_production__rate"]
         else:
-            self.soil_prod_rate = self.grid.add_zeros('node',
-                                                      'soil_production__rate')
+            self.soil_prod_rate = self.grid.add_zeros("node", "soil_production__rate")
 
         # bedrock elevation
-        if 'bedrock__elevation' in self.grid.at_node:
-            self.bedrock = self.grid.at_node['bedrock__elevation']
+        if "bedrock__elevation" in self.grid.at_node:
+            self.bedrock = self.grid.at_node["bedrock__elevation"]
         else:
-            self.bedrock = self.grid.add_zeros('node', 'bedrock__elevation')
+            self.bedrock = self.grid.add_zeros("node", "bedrock__elevation")
 
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.
@@ -184,44 +178,47 @@ class DepthDependentDiffuser(Component):
             The imposed timestep.
         """
 
-        #update soil thickness
-        self.grid.at_node['soil__depth'][:] = (
-            self.grid.at_node['topographic__elevation']
-            - self.grid.at_node['bedrock__elevation'])
+        # update soil thickness
+        self.grid.at_node["soil__depth"][:] = (
+            self.grid.at_node["topographic__elevation"]
+            - self.grid.at_node["bedrock__elevation"]
+        )
 
-        #Calculate soil depth at links.
+        # Calculate soil depth at links.
         H_link = self.grid.map_value_at_max_node_to_link(
-            'topographic__elevation','soil__depth')
+            "topographic__elevation", "soil__depth"
+        )
 
-        #Calculate gradients
+        # Calculate gradients
         slope = self.grid.calc_grad_at_link(self.elev)
-        slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
+        slope[self.grid.status_at_link == INACTIVE_LINK] = 0.0
 
-        #Calculate flux
-        self.flux[:] = (-self.K
-                        * slope
-                        * (1.0 - np.exp(-H_link
-                                        / self.soil_transport_decay_depth)))
+        # Calculate flux
+        self.flux[:] = (
+            -self.K * slope * (1.0 - np.exp(-H_link / self.soil_transport_decay_depth))
+        )
 
-        #Calculate flux divergence
+        # Calculate flux divergence
         dqdx = self.grid.calc_flux_div_at_node(self.flux)
 
-        #Calculate change in soil depth
+        # Calculate change in soil depth
         dhdt = self.soil_prod_rate - dqdx
 
-        #Calculate soil depth at nodes
+        # Calculate soil depth at nodes
         self.depth[self.grid.core_nodes] += dhdt[self.grid.core_nodes] * dt
 
-        #prevent negative soil thickness
+        # prevent negative soil thickness
         self.depth[self.depth < 0.0] = 0.0
 
-        #Calculate bedrock elevation
+        # Calculate bedrock elevation
         self.bedrock[self.grid.core_nodes] -= (
-            self.soil_prod_rate[self.grid.core_nodes] * dt)
+            self.soil_prod_rate[self.grid.core_nodes] * dt
+        )
 
-        #Update topography
-        self.elev[self.grid.core_nodes] = (self.depth[self.grid.core_nodes]
-                                         + self.bedrock[self.grid.core_nodes])
+        # Update topography
+        self.elev[self.grid.core_nodes] = (
+            self.depth[self.grid.core_nodes] + self.bedrock[self.grid.core_nodes]
+        )
 
     def run_one_step(self, dt):
         """

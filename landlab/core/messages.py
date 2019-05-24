@@ -92,14 +92,14 @@ AssertionError
 from __future__ import print_function
 
 import os
+import re
 import sys
 import textwrap
-import re
 
 import six
 
 
-def indent_and_wrap(content, indent=''):
+def indent_and_wrap(content, indent=""):
     """Indent and wrap some text
 
     Lines are first dedented to remove common leading whitespace,
@@ -140,12 +140,11 @@ def indent_and_wrap(content, indent=''):
     publisher={Pearson Education}
     }
     """
-    wrapper = textwrap.TextWrapper(initial_indent=indent,
-                                   subsequent_indent=2 * indent)
-    lines = content.split(os.linesep)
+    wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=2 * indent)
+    lines = content.splitlines()
     first_line, the_rest = [lines[0].strip()], lines[1:]
     if the_rest:
-        the_rest = textwrap.dedent(os.linesep.join(the_rest)).split(os.linesep)
+        the_rest = textwrap.dedent(os.linesep.join(the_rest)).splitlines()
     if first_line[0]:
         lines = first_line + the_rest
     else:
@@ -166,7 +165,7 @@ def split_paragraphs(msg, linesep=os.linesep):
         Text to split into paragraphs.
     linesep : str, optional
         Line separator used in the message string.
-    
+
     Returns
     -------
     list of str
@@ -191,7 +190,7 @@ def split_paragraphs(msg, linesep=os.linesep):
     >>> len(split_paragraphs(text, linesep='\\n'))
     1
     """
-    pattern = linesep + '\s*' + linesep
+    pattern = linesep + r"\s*" + linesep
     parsep = linesep * 2
     return re.sub(pattern, parsep, msg.strip()).split(parsep)
 
@@ -254,10 +253,60 @@ def format_message(msg, header=None, footer=None, linesep=os.linesep):
     if msg is not None:
         for paragraph in split_paragraphs(msg.strip(), linesep=linesep):
             paragraphs.append(
-                os.linesep.join(textwrap.wrap(textwrap.dedent(paragraph))))
+                os.linesep.join(textwrap.wrap(textwrap.dedent(paragraph)))
+            )
     paragraphs += footer
 
     return (os.linesep * 2).join(paragraphs)
+
+
+def deprecation_message(msg=None, **kwds):
+    """Create a deprecation message, landlab-style.
+
+    Parameters
+    ----------
+    msg : str, optional
+        Warning message.
+
+    Returns
+    -------
+    str
+        The formatted warning message.
+
+    Examples
+    --------
+    >>> from __future__ import print_function
+    >>> from landlab.core.messages import deprecation_message
+    >>> print(deprecation_message("Dictumst vestibulum rhoncus est pellentesque."))
+    DEPRECATION WARNING
+    ===================
+    <BLANKLINE>
+    Dictumst vestibulum rhoncus est pellentesque.
+
+    >>> print(
+    ...     deprecation_message(
+    ...         "Dictumst vestibulum rhoncus est pellentesque.",
+    ...         use="Lorem ipsum dolor sit amet",
+    ...     )
+    ... )
+    DEPRECATION WARNING
+    ===================
+    <BLANKLINE>
+    Dictumst vestibulum rhoncus est pellentesque.
+    <BLANKLINE>
+    Example
+    -------
+    Lorem ipsum dolor sit amet
+    """
+    use = kwds.pop("use", None)
+    if use:
+        footer = os.linesep.join(["Example", "-------", use])
+    else:
+        footer = None
+    header = "Deprecation warning".upper()
+    return format_message(
+        msg, header=os.linesep.join([header, "=" * len(header)]), footer=footer, **kwds
+    )
 
 
 def warning_message(msg=None, **kwds):
@@ -283,9 +332,10 @@ def warning_message(msg=None, **kwds):
     <BLANKLINE>
     Dictumst vestibulum rhoncus est pellentesque.
     """
-    return format_message(msg,
-                          header=os.linesep.join(['WARNING', '=======']),
-                          **kwds)
+    header = "Warning".upper()
+    return format_message(
+        msg, header=os.linesep.join([header, "=" * len(header)]), **kwds
+    )
 
 
 def error_message(msg=None, **kwds):
@@ -311,12 +361,13 @@ def error_message(msg=None, **kwds):
     <BLANKLINE>
     Dictumst vestibulum rhoncus est pellentesque.
     """
-    return format_message(msg,
-                          header=os.linesep.join(['ERROR', '=====']),
-                          **kwds)
+    header = "Error".upper()
+    return format_message(
+        msg, header=os.linesep.join([header, "=" * len(header)]), **kwds
+    )
 
 
-def assert_or_print(cond, msg=None, onerror='raise', file=sys.stdout):
+def assert_or_print(cond, msg=None, onerror="raise", file=sys.stdout):
     """Make an assertion printing a message if it fails.
 
     Specify an action to take if an assertion fails, depending on
@@ -354,14 +405,14 @@ def assert_or_print(cond, msg=None, onerror='raise', file=sys.stdout):
     ...
     AssertionError
     """
-    if onerror not in ('pass', 'warn', 'raise'):
+    if onerror not in ("pass", "warn", "raise"):
         raise ValueError("onerror must be one of 'pass', 'warn', or 'raise'")
 
     try:
-        assert(cond)
+        assert cond
     except AssertionError:
-        if onerror == 'warn':
-            print(warning_message(msg), file=file, end='')
-        elif onerror == 'raise':
-            print(error_message(msg), file=file, end='')
+        if onerror == "warn":
+            print(warning_message(msg), file=file, end="")
+        elif onerror == "raise":
+            print(error_message(msg), file=file, end="")
             raise

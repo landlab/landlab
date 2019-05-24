@@ -2,111 +2,121 @@
 import os
 
 import numpy as np
+import pytest
 from numpy.testing import assert_array_almost_equal
-from nose.tools import assert_true, assert_equal, assert_raises
-try:
-    from nose.tools import assert_list_equal
-except ImportError:
-    from landlab.testing.tools import assert_list_equal
 
-from landlab.testing.tools import cdtemp
-from landlab.io import write_esri_ascii, read_esri_ascii
 from landlab import RasterModelGrid
+from landlab.io import read_esri_ascii, write_esri_ascii
+
+_TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 
-def test_grid_with_no_fields():
-    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
-    with cdtemp() as _:
-        assert_raises(ValueError, write_esri_ascii, 'test.asc', grid)
+def test_grid_with_no_fields(tmpdir):
+    grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
+    with tmpdir.as_cwd():
+        with pytest.raises(ValueError):
+            write_esri_ascii("test.asc", grid)
 
 
-def test_grid_with_one_field():
-    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
-    grid.add_field('node', 'air__temperature', np.arange(20.))
-    with cdtemp() as _:
-        files = write_esri_ascii('test.asc', grid)
-        assert_list_equal(files, ['test.asc'])
+def test_grid_with_one_field(tmpdir):
+    grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
+    grid.add_field("node", "air__temperature", np.arange(20.0))
+    with tmpdir.as_cwd():
+        files = write_esri_ascii("test.asc", grid)
+        assert files == ["test.asc"]
         for fname in files:
-            assert_true(os.path.isfile(fname))
+            assert os.path.isfile(fname)
 
 
-def test_grid_with_two_fields():
-    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
-    grid.add_field('node', 'air__temperature', np.arange(20.))
-    grid.add_field('node', 'land_surface__elevation', np.arange(20.))
-    with cdtemp() as _:
-        files = write_esri_ascii('test.asc', grid)
+def test_grid_with_two_fields(tmpdir):
+    grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
+    grid.add_field("node", "air__temperature", np.arange(20.0))
+    grid.add_field("node", "land_surface__elevation", np.arange(20.0))
+    with tmpdir.as_cwd():
+        files = write_esri_ascii("test.asc", grid)
         files.sort()
-        assert_list_equal(files, ['test_air__temperature.asc',
-                                  'test_land_surface__elevation.asc'])
+        assert files == [
+            "test_air__temperature.asc",
+            "test_land_surface__elevation.asc",
+        ]
         for fname in files:
-            assert_true(os.path.isfile(fname))
+            assert os.path.isfile(fname)
 
 
-def test_names_keyword_as_str_or_list():
-    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
-    grid.add_field('node', 'air__temperature', np.arange(20.))
-    grid.add_field('node', 'land_surface__elevation', np.arange(20.))
+def test_names_keyword_as_str(tmpdir):
+    grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
+    grid.add_field("air__temperature", np.arange(20.0), at="node")
+    grid.add_field("land_surface__elevation", np.arange(20.0), at="node")
 
-    with cdtemp() as _:
-        files = write_esri_ascii('test.asc', grid, names='air__temperature')
-        assert_list_equal(files, ['test.asc'])
-        assert_true(os.path.isfile('test.asc'))
-
-    with cdtemp() as _:
-        files = write_esri_ascii('test.asc', grid, names=['air__temperature'])
-        assert_list_equal(files, ['test.asc'])
-        assert_true(os.path.isfile('test.asc'))
+    with tmpdir.as_cwd():
+        files = write_esri_ascii("test.asc", grid, names="air__temperature")
+        assert files == ["test.asc"]
+        assert os.path.isfile("test.asc")
 
 
-def test_names_keyword_multiple_names():
-    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
-    grid.add_field('node', 'air__temperature', np.arange(20.))
-    grid.add_field('node', 'land_surface__elevation', np.arange(20.))
+def test_names_keyword_as_list(tmpdir):
+    grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
+    grid.add_field("air__temperature", np.arange(20.0), at="node")
+    grid.add_field("land_surface__elevation", np.arange(20.0), at="node")
 
-    with cdtemp() as _:
-        files = write_esri_ascii('test.asc', grid,
-                                 names=['air__temperature',
-                                        'land_surface__elevation'])
+    with tmpdir.as_cwd():
+        files = write_esri_ascii("test.asc", grid, names=["air__temperature"])
+        assert files == ["test.asc"]
+        assert os.path.isfile("test.asc")
+
+
+def test_names_keyword_multiple_names(tmpdir):
+    grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
+    grid.add_field("node", "air__temperature", np.arange(20.0))
+    grid.add_field("node", "land_surface__elevation", np.arange(20.0))
+
+    with tmpdir.as_cwd():
+        files = write_esri_ascii(
+            "test.asc", grid, names=["air__temperature", "land_surface__elevation"]
+        )
         files.sort()
-        assert_list_equal(files, ['test_air__temperature.asc',
-                                  'test_land_surface__elevation.asc'])
+        assert files == [
+            "test_air__temperature.asc",
+            "test_land_surface__elevation.asc",
+        ]
         for fname in files:
-            assert_true(os.path.isfile(fname))
+            assert os.path.isfile(fname)
 
 
-def test_names_keyword_with_bad_name():
-    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
-    grid.add_field('node', 'air__temperature', np.arange(20.))
+def test_names_keyword_with_bad_name(tmpdir):
+    grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
+    grid.add_field("node", "air__temperature", np.arange(20.0))
 
-    with cdtemp() as _:
-        assert_raises(ValueError, write_esri_ascii, 'test.asc', grid,
-                      names='not_a_name')
-
-
-def test_clobber_keyword():
-    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
-    grid.add_field('node', 'air__temperature', np.arange(20.))
-
-    with cdtemp() as _:
-        write_esri_ascii('test.asc', grid)
-        assert_raises(ValueError, write_esri_ascii, 'test.asc', grid)
-        assert_raises(ValueError, write_esri_ascii, 'test.asc', grid,
-                      clobber=False)
-        write_esri_ascii('test.asc', grid, clobber=True)
+    with tmpdir.as_cwd():
+        with pytest.raises(ValueError):
+            write_esri_ascii("test.asc", grid, names="not_a_name")
 
 
-def test_write_then_read():
-    grid = RasterModelGrid((4, 5), spacing=(2., 2.))
-    grid.add_field('node', 'air__temperature', np.arange(20.))
+def test_clobber_keyword(tmpdir):
+    grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0))
+    grid.add_field("node", "air__temperature", np.arange(20.0))
 
-    with cdtemp() as _:
-        write_esri_ascii('test.asc', grid)
-        new_grid, field = read_esri_ascii('test.asc')
+    with tmpdir.as_cwd():
+        write_esri_ascii("test.asc", grid)
+        with pytest.raises(ValueError):
+            write_esri_ascii("test.asc", grid)
+        with pytest.raises(ValueError):
+            write_esri_ascii("test.asc", grid, clobber=False)
+        write_esri_ascii("test.asc", grid, clobber=True)
 
-    assert_equal(grid.number_of_node_columns, new_grid.number_of_node_columns)
-    assert_equal(grid.number_of_node_rows, new_grid.number_of_node_rows)
-    assert_equal(grid.dx, new_grid.dx)
+
+def test_write_then_read(tmpdir):
+    grid = RasterModelGrid((4, 5), xy_spacing=(2.0, 2.0), xy_of_lower_left=(15.0, 10.0))
+    grid.add_field("node", "air__temperature", np.arange(20.0))
+
+    with tmpdir.as_cwd():
+        write_esri_ascii("test.asc", grid)
+        new_grid, field = read_esri_ascii("test.asc")
+
+    assert grid.number_of_node_columns == new_grid.number_of_node_columns
+    assert grid.number_of_node_rows == new_grid.number_of_node_rows
+    assert grid.dx == new_grid.dx
+    assert (grid.x_of_node.min(), grid.y_of_node.min()) == (15.0, 10.0)
     assert_array_almost_equal(grid.node_x, new_grid.node_x)
     assert_array_almost_equal(grid.node_y, new_grid.node_y)
-    assert_array_almost_equal(field, grid.at_node['air__temperature'])
+    assert_array_almost_equal(field, grid.at_node["air__temperature"])

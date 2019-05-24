@@ -1,7 +1,6 @@
 #!/usr/env/python
 
-"""
-Short description.
+"""Short description.
 
 flow_accum_to_n.py: Implementation a route-to-multiple drainage stack alorithm.
 
@@ -49,10 +48,14 @@ Created: KRB Oct 2016 (modified from flow_accumu_bw)
 import numpy
 from six.moves import range
 
-class _DrainageStack_to_n():
+from landlab.core.utils import as_id_array
 
-    """
-    Implementation of the DrainageStack_to_n class.
+from .cfuncs import _accumulate_to_n, _make_donors_to_n
+
+
+class _DrainageStack_to_n:
+
+    """Implementation of the DrainageStack_to_n class.
 
     The _DrainageStack_to_n() class implements a set based approach to
     constructing a stack with similar properties to the stack constructed by
@@ -63,25 +66,21 @@ class _DrainageStack_to_n():
     It is used by the make_ordered_node_array_to_n() function.
     """
 
-
     def __init__(self, delta, D, num_receivers):
 
-        """
-        Creates the stack array s and stores references to delta and D.
+        """Creates the stack array s and stores references to delta and D.
 
-        Initialization of the _DrainageStack_to_n() class including storing
-        delta and D.
+        Initialization of the _DrainageStack_to_n() class including
+        storing delta and D.
         """
-        
+
         self.num_receivers = num_receivers
         self.s = list()
         self.delta = delta
         self.D = D
 
-
     def construct__stack(self, l):
-        """
-        Function to construct the drainage stack.
+        """Function to construct the drainage stack.
 
         Function to add all nodes upstream of a set of base level nodes given
         by list l in an order
@@ -135,74 +134,78 @@ class _DrainageStack_to_n():
         # create base nodes set
         try:
             base = set(l)
-        except:
+        except TypeError:
             base = set([l])
-        
+
         # instantiate the time keeping variable i, and a variable to keep track
         # of the visit time. Using visit time allows us to itterate through
-        # the entire graph and make sure that only put a node in the stack 
-        # the last time it is visited. 
-        
+        # the entire graph and make sure that only put a node in the stack
+        # the last time it is visited.
+
         i = 0
-        visit_time = -1*numpy.ones((self.delta.size-1))
-        num_visits = numpy.zeros((self.delta.size-1))
-        
-        # deal with the first node, which goes to it 
+        visit_time = -1 * numpy.ones((self.delta.size - 1))
+        num_visits = numpy.zeros((self.delta.size - 1))
+
+        # deal with the first node, which goes to it
         visit_time[list(base)] = i
-        num_visits[list(base)] += 1 
-        
+        num_visits[list(base)] += 1
+
         i = 1
         visited = set([])
         for node_i in base:
-                # select the nodes to visit
-                visit = set(self.D[self.delta[node_i]:self.delta[node_i+1]])
-                visit = visit-base
-                
-                # record the visit time.
-                visit_time[list(visit)] = i
-                          
-                # record that they have been visited. 
-                num_visits[list(visit)] += 1
-                
-                visited.update(list(visit))
-        
+            # select the nodes to visit
+            visit = set(self.D[self.delta[node_i] : self.delta[node_i + 1]])
+            visit = visit - base
+
+            # record the visit time.
+            visit_time[list(visit)] = i
+
+            # record that they have been visited.
+            num_visits[list(visit)] += 1
+
+            visited.update(list(visit))
+
         visited = numpy.array(list(visited))
-        visited_enough = num_visits[visited]==self.num_receivers[visited]
-        completed = set(visited[visited_enough])
-        
-        # recurse through the remainder. Only look above completed nodes, 
-        # this prevents repeat link walking. 
-        while len(completed)>0:
+        if visited.size > 0:
+            visited_enough = num_visits[visited] == self.num_receivers[visited]
+            completed = set(visited[visited_enough])
+        else:
+            completed = {}
+        # recurse through the remainder. Only look above completed nodes,
+        # this prevents repeat link walking.
+        while len(completed) > 0:
             # increase counter
             i += 1
-            
+
             visited = set([])
             new_completes = set([])
-            
+
             for node_i in completed:
-                    
-                    # select the nodes to visit
-                    visit = self.D[self.delta[node_i]:self.delta[node_i+1]]
-                    # record the visit time.
-                    visit_time[visit] = i
-                              
-                    # record that they have been visited. 
-                    num_visits[visit] += 1
-                              
-                    # add nodes that have been visited enough times to complete
-                    # to the upstream stack. We can ignore the rest, they will
-                    # be re-visited. This should reduce the number of times each
-                    # link is walked to the number of active links. 
-                    visited_enough = num_visits[numpy.array(visit)]==self.num_receivers[numpy.array(visit)]
-                    
-                    visited.update(visit)
-                    new_completes.update(visit[visited_enough])
+
+                # select the nodes to visit
+                visit = self.D[self.delta[node_i] : self.delta[node_i + 1]]
+                # record the visit time.
+                visit_time[visit] = i
+
+                # record that they have been visited.
+                num_visits[visit] += 1
+
+                # add nodes that have been visited enough times to complete
+                # to the upstream stack. We can ignore the rest, they will
+                # be re-visited. This should reduce the number of times each
+                # link is walked to the number of active links.
+                visited_enough = (
+                    num_visits[numpy.array(visit)]
+                    == self.num_receivers[numpy.array(visit)]
+                )
+
+                visited.update(visit)
+                new_completes.update(visit[visited_enough])
             completed = new_completes
-            
-        
-        
-        # the stack is the argsort of visit time. 
+
+        # the stack is the argsort of visit time.
         self.s = numpy.argsort(visit_time)
+
 
 def _make_number_of_donors_array_to_n(r, p):
 
@@ -253,22 +256,14 @@ def _make_number_of_donors_array_to_n(r, p):
     >>> nd
     array([0, 2, 2, 0, 4, 4, 2, 3, 1, 0])
     """
-
-    # Vectorized, DEJH, 5/20/14
-#    np = len(r)
-#    nd = numpy.zeros(np, dtype=int)
-#    for i in range(np):
-#        nd[r[i]] += 1
-
-    # modified by KRB 10/31/2016 to support route to multiple.
-
     nd = numpy.zeros(r.shape[0], dtype=int)
-    max_index = numpy.amax(r)
 
     # filter r based on p and flatten
     r_filter_flat = r.flatten()[p.flatten() > 0]
 
-    nd[:(max_index + 1)] = numpy.bincount(r_filter_flat)
+    max_index = numpy.amax(r_filter_flat)
+
+    nd[: (max_index + 1)] = numpy.bincount(r_filter_flat)
     return nd
 
 
@@ -302,18 +297,9 @@ def _make_delta_array_to_n(nd):
     >>> sum(nd) == max(delta)
     True
     """
-    # np = len(nd)
-    # delta = numpy.zeros(np+1, dtype=int)
-    # delta[np] = np   # not np+1 as in B&W because here we number from 0
-    # for i in range(np-1, -1, -1):
-    #     delta[i] = delta[i+1] - nd[i]
-    # return delta
-
-    # DEJH efficient delooping (only a small gain)
-
     nt = sum(nd)
     np = len(nd)
-    delta = numpy.zeros(np+1, dtype=int)
+    delta = numpy.zeros(np + 1, dtype=int)
     delta.fill(nt)
     delta[-2::-1] -= numpy.cumsum(nd[::-1])
 
@@ -322,8 +308,7 @@ def _make_delta_array_to_n(nd):
 
 def _make_array_of_donors_to_n(r, p, delta):
 
-    """
-    Creates and returns an array containing the IDs of donors for each node.
+    """Creates and returns an array containing the IDs of donors for each node.
 
     Essentially, the array is a series of lists (not in the Python list object
     sense) of IDs for each node. See Braun & Willett (2012) for details.
@@ -370,32 +355,13 @@ def _make_array_of_donors_to_n(r, p, delta):
 
     w = numpy.zeros(np, dtype=int)
     D = numpy.zeros(nt, dtype=int)
-    for v in range(q):
-        for i in range(np):
-            ri = r[i, v]
-            if p[i, v] > 0:
-                ind = delta[ri]+w[ri]
-                D[ind] = i
-                w[ri] += 1
+
+    _make_donors_to_n(np, q, w, D, delta, r, p)
 
     return D
 
-    # DEJH notes that for reasons he's not clear on, this looped version is
-    # actually much slower!
-    # D = numpy.zeros(np, dtype=int)
-    # wri_fin = numpy.bincount(r)
-    # wri_fin_nz = wri_fin.nonzero()[0]
-    # wri_fin_nz_T = wri_fin_nz.reshape((wri_fin_nz.size,1))
-    # logical = numpy.tile(r,(wri_fin_nz.size,1))==wri_fin_nz_T
-    # cum_logical = numpy.cumsum(logical, axis=1)
-    # wri = numpy.sum(numpy.where(logical, cum_logical-1,0) ,axis=0)
-    # D_index = delta[r] + wri
-    # D[D_index] = numpy.arange(r.size)
-    # return D
 
-
-def make_ordered_node_array_to_n(receiver_nodes,
-                                 receiver_proportion):
+def make_ordered_node_array_to_n(receiver_nodes, receiver_proportion):
 
     """Create an array of node IDs.
 
@@ -445,13 +411,13 @@ def make_ordered_node_array_to_n(receiver_nodes,
     0
     """
     node_id = numpy.arange(receiver_nodes.shape[0])
-    baselevel_nodes = numpy.where(node_id==receiver_nodes[:,0])[0]
+    baselevel_nodes = numpy.where(node_id == receiver_nodes[:, 0])[0]
     nd = _make_number_of_donors_array_to_n(receiver_nodes, receiver_proportion)
     delta = _make_delta_array_to_n(nd)
     D = _make_array_of_donors_to_n(receiver_nodes, receiver_proportion, delta)
-    
-    num_receivers = numpy.sum(receiver_nodes>=0, axis=1)
-    
+
+    num_receivers = numpy.sum(receiver_nodes >= 0, axis=1)
+
     dstack = _DrainageStack_to_n(delta, D, num_receivers)
     construct_it = dstack.construct__stack
 
@@ -459,9 +425,9 @@ def make_ordered_node_array_to_n(receiver_nodes,
     return dstack.s
 
 
-
-def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
-                                          runoff=1.0, boundary_nodes=None):
+def find_drainage_area_and_discharge_to_n(
+    s, r, p, node_cell_area=1.0, runoff=1.0, boundary_nodes=None
+):
 
     """Calculate the drainage area and water discharge at each node.
 
@@ -479,6 +445,11 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
     runoff : float or ndarray
         Local runoff rate at each cell (in water depth per time). If it's an
         array, must have same length as s (that is, the number of nodes).
+        runoff *is* permitted to be negative, in which case it performs as a
+        transmission loss.
+    boundary_nodes: list, optional
+        Array of boundary nodes to have discharge and drainage area set to
+        zero. Default value is None.
 
     Returns
     -------
@@ -525,10 +496,10 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
     ...               [ 0.95,  0.05]])
     >>> s = np.array([4, 5, 1, 7, 2, 6, 0, 8, 3, 9])
     >>> a, q = find_drainage_area_and_discharge_to_n(s, r, p)
-    >>> a
+    >>> a.round(4)
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
-    >>> q
+    >>> q.round(4)
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
     """
@@ -541,7 +512,143 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
     # donors) grows from there. Discharge starts out as the cell's local runoff
     # rate times the cell's surface area.
     drainage_area = numpy.zeros(np) + node_cell_area
-    discharge = numpy.zeros(np) + node_cell_area*runoff
+    discharge = numpy.zeros(np) + node_cell_area * runoff
+
+    # Optionally zero out drainage area and discharge at boundary nodes
+    if boundary_nodes is not None:
+        drainage_area[boundary_nodes] = 0
+        discharge[boundary_nodes] = 0
+
+    # Call the cfunc to work accumulate from upstream to downstream, permitting
+    # transmission losses
+    _accumulate_to_n(np, q, s, r, p, drainage_area, discharge)
+    # nodes at channel heads can still be negative with this method, so...
+    discharge = discharge.clip(0.0)
+
+    return drainage_area, discharge
+
+
+def find_drainage_area_and_discharge_to_n_lossy(
+    s, r, l, p, loss_function, grid, node_cell_area=1.0, runoff=1.0, boundary_nodes=None
+):
+
+    """Calculate the drainage area and water discharge at each node, permitting
+    discharge to fall (or gain) as it moves downstream according to some
+    function. Note that only transmission creates loss, so water sourced
+    locally within a cell is always retained. The loss on each link is recorded
+    in the 'surface_water__discharge_loss' link field on the grid; ensure this
+    exists before running the function.
+
+    Parameters
+    ----------
+    s : ndarray of int
+        Ordered (downstream to upstream) array of node IDs
+    r : ndarray size (np, q) where r[i, :] gives all receivers of node i. Each
+        node receives flow fom up to q donors.
+    l : ndarray size (np, q) where l[i, :] gives all links to receivers of
+        node i.
+    p : ndarray size (np, q) where p[i, v] give the proportion of flow going
+        from node i to the receiver listed in r[i, v].
+    loss_function : Python function(Qw, nodeID, linkID)
+        Function dictating how to modify the discharge as it leaves each node.
+        nodeID is the current node; linkID is the downstream link. Returns a
+        float.
+    grid : Landlab ModelGrid (or None)
+        A grid to enable spatially variable parameters to be used in the loss
+        function. If no spatially resolved parameters are needed, this can be
+        a dummy variable, e.g., None.
+    node_cell_area : float or ndarray
+        Cell surface areas for each node. If it's an array, must have same
+        length as s (that is, the number of nodes).
+    runoff : float or ndarray
+        Local runoff rate at each cell (in water depth per time). If it's an
+        array, must have same length as s (that is, the number of nodes).
+    boundary_nodes: list, optional
+        Array of boundary nodes to have discharge and drainage area set to
+        zero. Default value is None.
+
+    Returns
+    -------
+    tuple of ndarray
+        drainage area and discharge
+
+    Notes
+    -----
+    -  If node_cell_area not given, the output drainage area is equivalent
+       to the number of nodes/cells draining through each point, including
+       the local node itself.
+    -  Give node_cell_area as a scalar when using a regular raster grid.
+    -  If runoff is not given, the discharge returned will be the same as
+       drainage area (i.e., drainage area times unit runoff rate).
+    -  If using an unstructured Landlab grid, make sure that the input
+       argument for node_cell_area is the cell area at each NODE rather than
+       just at each CELL. This means you need to include entries for the
+       perimeter nodes too. They can be zeros.
+    -  Loss cannot go negative.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components.flow_accum.flow_accum_to_n import(
+    ...     find_drainage_area_and_discharge_to_n_lossy)
+    >>> r = np.array([[ 1,  2],
+    ...               [ 3, -1],
+    ...               [ 3,  1],
+    ...               [ 3, -1]])
+    >>> p = np.array([[ 0.5,  0.5],
+    ...               [ 1. ,  0. ],
+    ...               [ 0.2,  0.8],
+    ...               [ 1. ,  0. ]])
+    >>> s = np.array([ 3, 1, 2, 0])
+    >>> l = np.ones_like(r, dtype=int)  # dummy
+
+    Make here a grid that contains (too many!) links holding values for loss.
+    We're only going to use the first 4 links, but illustrates the use of the
+    grid for link input.
+
+    >>> mg = RasterModelGrid((3, 3))
+    >>> _ = mg.add_zeros('node', 'surface_water__discharge_loss', dtype=float)
+    >>> lossy = mg.add_ones('link', 'lossy', dtype=float)
+    >>> lossy *= 0.5
+    >>> def lossfunc(Qw, dummyn, linkID, grid):
+    ...     return grid.at_link['lossy'][linkID] * Qw
+
+    >>> a, q = find_drainage_area_and_discharge_to_n_lossy(
+    ...     s, r, l, p, lossfunc, mg)
+    >>> a
+    array([ 1. ,  2.7,  1.5,  4. ])
+    >>> q
+    array([ 1.  ,  1.75,  1.25,  2.  ])
+    >>> np.allclose(mg.at_node['surface_water__discharge_loss'][:3], 0.5*q[:3])
+    True
+
+    Note by definition no loss is occuring at the outlet node, as there are no
+    nodes downstream.
+
+    Final example of total transmission loss:
+
+    >>> def lossfunc(Qw, dummyn, dummyl, dummygrid):
+    ...     return Qw - 100.  # huge loss
+    >>> a, q = find_drainage_area_and_discharge_to_n_lossy(
+    ...     s, r, l, p, lossfunc, mg)
+    >>> a
+    array([ 1. ,  2.7,  1.5,  4. ])
+    >>> q
+    array([ 1.,  1.,  1.,  1.])
+    """
+    # Number of points
+    np = r.shape[0]
+    q = r.shape[1]
+
+    # Initialize the drainage_area and discharge arrays. Drainage area starts
+    # out as the area of the cell in question, then (unless the cell has no
+    # donors) grows from there. Discharge starts out as the cell's local runoff
+    # rate times the cell's surface area.
+    drainage_area = numpy.zeros(np) + node_cell_area
+    discharge = numpy.zeros(np) + node_cell_area * runoff
+
+    # grab the field to ouput loss to
 
     # Optionally zero out drainage area and discharge at boundary nodes
     if boundary_nodes is not None:
@@ -550,44 +657,36 @@ def find_drainage_area_and_discharge_to_n(s, r, p, node_cell_area=1.0,
 
     # Iterate backward through the list, which means we work from upstream to
     # downstream.
-    for i in range(np-1, -1, -1):
+    for i in range(np - 1, -1, -1):
         donor = s[i]
         for v in range(q):
             recvr = r[donor, v]
+            lrec = l[donor, v]
             proportion = p[donor, v]
             if proportion > 0:
                 if donor != recvr:
-                    drainage_area[recvr] += proportion*drainage_area[donor]
-                    discharge[recvr] += proportion*discharge[donor]
-
-#        donors = s[i]
-#        #print donors
-#        recvrs = r[donors, :].flatten()
-#
-#        if (set(donors)-set(recvrs[recvrs!=-1]))==set(donors):
-#            recvrs = r[donors, :].flatten()
-#
-#            unique_recvrs=numpy.unique(recvrs)
-#
-#            proportions = p[donors, :].flatten()
-#
-#            new_da=proportions*numpy.repeat(drainage_area[donors], q)
-#            new_di=proportions*numpy.repeat(discharge[donors], q)
-#
-#            for u_r in unique_recvrs:
-#                ur_ind=np.where(recvrs==u_r)
-#
-#                drainage_area[u_r] += numpy.sum(new_da[ur_ind])
-#                discharge[u_r] += numpy.sum(new_di[ur_ind])
+                    drainage_area[recvr] += proportion * drainage_area[donor]
+                    discharge_head = proportion * discharge[donor]
+                    discharge_remaining = numpy.clip(
+                        loss_function(discharge_head, donor, lrec, grid),
+                        0.0,
+                        float("inf"),
+                    )
+                    grid.at_node["surface_water__discharge_loss"][donor] += (
+                        discharge_head - discharge_remaining
+                    )
+                    discharge[recvr] += discharge_remaining
 
     return drainage_area, discharge
 
 
-def flow_accumulation_to_n(receiver_nodes,
-                           receiver_proportions,
-                           node_cell_area=1.0,
-                           runoff_rate=1.0,
-                           boundary_nodes=None):
+def flow_accumulation_to_n(
+    receiver_nodes,
+    receiver_proportions,
+    node_cell_area=1.0,
+    runoff_rate=1.0,
+    boundary_nodes=None,
+):
 
     """Calculate drainage area and (steady) discharge.
 
@@ -620,10 +719,10 @@ def flow_accumulation_to_n(receiver_nodes,
     ...               [ 0.8,   0.2 ],
     ...               [ 0.95,  0.05]])
     >>> a, q, s = flow_accumulation_to_n(r, p)
-    >>> a
+    >>> a.round(4)
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
-    >>> q
+    >>> q.round(4)
     array([  1.    ,   2.575 ,   1.5   ,   1.    ,  10.    ,   5.2465,
              2.74  ,   2.845 ,   1.05  ,   1.    ])
     >>> s[0] == 4
@@ -640,22 +739,29 @@ def flow_accumulation_to_n(receiver_nodes,
     0
     """
 
-    assert receiver_nodes.shape == receiver_proportions.shape, \
-        'r and p arrays are not the same shape'
+    assert (
+        receiver_nodes.shape == receiver_proportions.shape
+    ), "r and p arrays are not the same shape"
 
-    s = make_ordered_node_array_to_n(receiver_nodes, receiver_proportions)
+    s = as_id_array(make_ordered_node_array_to_n(receiver_nodes, receiver_proportions))
     # Note that this ordering of s DOES INCLUDE closed nodes. It really
     # shouldn't!
     # But as we don't have a copy of the grid accessible here, we'll solve this
     # problem as part of route_flow_dn.
 
     a, q = find_drainage_area_and_discharge_to_n(
-        s, receiver_nodes, receiver_proportions, node_cell_area, runoff_rate,
-        boundary_nodes)
+        s,
+        receiver_nodes,
+        receiver_proportions,
+        node_cell_area,
+        runoff_rate,
+        boundary_nodes,
+    )
 
     return a, q, s
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":  # pragma: no cover
     import doctest
+
     doctest.testmod()

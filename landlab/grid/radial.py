@@ -7,12 +7,15 @@ Do NOT add new documentation here. Grid documentation is now built in a semi-
 automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
+from __future__ import absolute_import
+
+from warnings import warn
 
 import numpy
-from six.moves import range
+
+from landlab.utils.decorators import deprecated
 
 from .voronoi import VoronoiDelaunayGrid
-from landlab.utils.decorators import deprecated
 
 
 class RadialModelGrid(VoronoiDelaunayGrid):
@@ -34,10 +37,12 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         Number of rings in the grid.
     dr : float, optional
         Radial interval for rings.
-    origin_x : float, optional
-        x-coordinate of origin node.
-    origin_y : float, optional
-        y-coordinate of origin node.
+    xy_of_center : tuple, optional
+        (x, y) coordinate of center point. Default
+        is (0., 0.)
+    xy_of_reference : tuple, optional
+        Coordinate value in projected space of the reference point,
+        `xy_of_lower_left`. Default is (0., 0.)
 
     Returns
     -------
@@ -50,7 +55,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     by six other nodes.
 
     >>> from landlab import RadialModelGrid
-    >>> omg = RadialModelGrid(num_shells=1, dr=1., origin_x=0., origin_y=0.)
+    >>> omg = RadialModelGrid(num_shells=1, dr=1., xy_of_center=(0., 0.))
     >>> omg.number_of_nodes
     7
     >>> omg.number_of_cells
@@ -63,8 +68,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     20
     """
 
-    def __init__(self, num_shells=0, dr=1.0, origin_x=0.0, origin_y=0.0,
-                 **kwds):
+    def __init__(self, num_shells=0, dr=1.0, xy_of_center=(0.0, 0.0), **kwds):
         """Create a circular grid.
 
         Create a circular grid in which grid nodes are placed at regular
@@ -80,10 +84,12 @@ class RadialModelGrid(VoronoiDelaunayGrid):
             Number of rings in the grid.
         dr : float, optional
             Radial interval for rings.
-        origin_x : float, optional
-            x-coordinate of origin node.
-        origin_y : float, optional
-            y-coordinate of origin node.
+        xy_of_center : tuple, optional
+            (x, y) coordinate of center point. Default
+            is (0., 0.)
+        xy_of_reference : tuple, optional
+            Coordinate value in projected space of the reference point,
+            `xy_of_lower_left`. Default is (0., 0.)
 
         Returns
         -------
@@ -96,46 +102,58 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         by six other nodes.
 
         >>> from landlab import RadialModelGrid
-        >>> omg = RadialModelGrid(num_shells=1, dr=1., origin_x=0.,
-        ...                       origin_y=0.)
+        >>> omg = RadialModelGrid(num_shells=1, dr=1., xy_of_center=(0., 0.))
         >>> omg.number_of_nodes
         7
         >>> omg.number_of_cells
         1
 
-        A second rings will have 13 nodes.
+        A grid with two rings will have 13 nodes.
 
         >>> omg = RadialModelGrid(2)
         >>> omg.number_of_nodes
         20
         """
         # Set number of nodes, and initialize if caller has given dimensions
-        self._origin_x = origin_x
-        self._origin_y = origin_y
+        if "origin_x" in kwds:
+            msg = "The origin_x keyword is deprecated. Use xy_of_center."
+            warn(msg, DeprecationWarning)
+
+        if "origin_y" in kwds:
+            msg = "The origin_y keyword is deprecated. Use xy_of_center."
+            warn(msg, DeprecationWarning)
+
+        xy_of_center = (
+            kwds.get("origin_x", xy_of_center[0]),
+            kwds.get("origin_y", xy_of_center[1]),
+        )
+        xy_of_center = tuple(xy_of_center)
+
         if num_shells > 0:
-            self._initialize(num_shells, dr, origin_x, origin_y)
+            self._initialize(num_shells, dr, xy_of_center)
         super(RadialModelGrid, self).__init__(**kwds)
+        self._xy_of_center = xy_of_center
 
-    @classmethod
-    def from_dict(cls, params):
-        """
-        LLCATS: GINF
-        """
-        num_shells = params['num_shells']
-        dr = params.get('dr', 1.)
-        origin = params.get('origin', (0., 0.))
+    @property
+    def xy_of_center(self):
+        """Return (x, y) of the reference point."""
+        return self._xy_of_center
 
-        return cls(num_shells=num_shells, dr=dr, origin_x=origin[0],
-                   origin_y=origin[1])
+    @xy_of_center.setter
+    def xy_of_center(self, xy_of_center):
+        """Set a new value for the xy_of_lower_left."""
+        dx = self._xy_of_center[0] - xy_of_center[0]
+        dy = self._xy_of_center[1] - xy_of_center[1]
+        self._xy_of_node -= (dx, dy)
+        self._xy_of_center = xy_of_center
 
-    def _initialize(self, num_shells, dr, origin_x=0.0, origin_y=0.0):
-        [pts, npts] = self._create_radial_points(num_shells, dr)
+    def _initialize(self, num_shells, dr, xy_of_center):
+        [pts, npts] = self._create_radial_points(num_shells, dr, xy_of_center)
         self._n_shells = int(num_shells)
         self._dr = dr
         super(RadialModelGrid, self)._initialize(pts[:, 0], pts[:, 1])
 
-    def _create_radial_points(self, num_shells, dr, origin_x=0.0,
-                              origin_y=0.0):
+    def _create_radial_points(self, num_shells, dr, xy_of_center=(0.0, 0.0)):
         """Create a set of points on concentric circles.
 
         Creates and returns a set of (x,y) points placed in a series of
@@ -151,25 +169,29 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         r = shells * dr
         startpt = 1
         for i in numpy.arange(0, num_shells):
-            theta = (dtheta[i] * numpy.arange(0, n_pts_in_shell[i]) +
-                     dtheta[i] / (i + 1))
+            theta = (dtheta[i] * numpy.arange(0, n_pts_in_shell[i])) + dtheta[i] / (
+                i + 1
+            )
             ycoord = r[i] * numpy.sin(theta)
-            if numpy.isclose(ycoord[-1], 0.):
+            if numpy.isclose(ycoord[-1], 0.0):
                 # this modification necessary to force the first ring to
                 # follow our new CCW from E numbering convention (DEJH, Nov15)
-                ycoord[-1] = 0.
-                pts[startpt:(startpt + int(n_pts_in_shell[i])),
-                    0] = numpy.roll(r[i] * numpy.cos(theta), 1)
-                pts[startpt:(startpt + int(n_pts_in_shell[i])),
-                    1] = numpy.roll(ycoord, 1)
+                ycoord[-1] = 0.0
+                pts[startpt : (startpt + int(n_pts_in_shell[i])), 0] = numpy.roll(
+                    r[i] * numpy.cos(theta), 1
+                )
+                pts[startpt : (startpt + int(n_pts_in_shell[i])), 1] = numpy.roll(
+                    ycoord, 1
+                )
             else:
-                pts[startpt:(startpt + int(n_pts_in_shell[i])),
-                    0] = r[i] * numpy.cos(theta)
-                pts[startpt:(startpt + int(n_pts_in_shell[i])),
-                    1] = ycoord
+                pts[startpt : (startpt + int(n_pts_in_shell[i])), 0] = r[i] * numpy.cos(
+                    theta
+                )
+                pts[startpt : (startpt + int(n_pts_in_shell[i])), 1] = ycoord
             startpt += int(n_pts_in_shell[i])
-        pts[:, 0] += origin_x
-        pts[:, 1] += origin_y
+
+        pts[:, 0] += xy_of_center[0]
+        pts[:, 1] += xy_of_center[1]
 
         return pts, npts
 
@@ -188,7 +210,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         return self._n_shells
 
     @property
-    @deprecated(use='spacing_of_shells', version=1.0)
+    @deprecated(use="spacing_of_shells", version=1.0)
     def shell_spacing(self):
         """Fixed distance between shells.
 
@@ -218,8 +240,11 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         try:
             return self._nnodes_inshell
         except AttributeError:
-            n_pts_in_shell = numpy.round(2. * numpy.pi * (
-                numpy.arange(self.number_of_shells, dtype=float) + 1.))
+            n_pts_in_shell = numpy.round(
+                2.0
+                * numpy.pi
+                * (numpy.arange(self.number_of_shells, dtype=float) + 1.0)
+            )
             self._nnodes_inshell = n_pts_in_shell.astype(int)
             return self._nnodes_inshell
 
@@ -242,8 +267,8 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         try:
             return self._node_radii
         except AttributeError:
-            self._node_radii = numpy.sqrt(numpy.square(self.node_x -
-                                                       self._origin_x) +
-                                          numpy.square(self.node_y -
-                                                       self._origin_y))
+            self._node_radii = numpy.sqrt(
+                numpy.square(self.node_x - self._xy_of_center[0])
+                + numpy.square(self.node_y - self._xy_of_center[1])
+            )
             return self._node_radii

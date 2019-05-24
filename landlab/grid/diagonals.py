@@ -1,15 +1,9 @@
 #! /usr/bin/env python
 import numpy as np
 
-
-from .nodestatus import (CLOSED_BOUNDARY, CORE_NODE, FIXED_GRADIENT_BOUNDARY,
-                         FIXED_VALUE_BOUNDARY)
-from .linkstatus import ACTIVE_LINK, INACTIVE_LINK, FIXED_LINK
-from .linkstatus import (is_fixed_link, is_inactive_link, is_active_link,
-                         set_status_at_link)
-from ..utils.decorators import (cache_result_in_object,
-                                make_return_array_immutable)
+from ..utils.decorators import cache_result_in_object, make_return_array_immutable
 from .decorators import return_readonly_id_array
+from .linkstatus import ACTIVE_LINK, set_status_at_link
 
 
 def create_nodes_at_diagonal(shape, out=None):
@@ -95,57 +89,6 @@ def create_diagonals_at_node(shape, out=None):
     diagonals = np.full(shape + 1, -1, dtype=int)
 
     diagonals[1:-1, 1:-1] = np.arange(0, n_diagonals, 2).reshape(shape - 1)
-    out[:, 0] = diagonals[1:, 1:].flat
-    out[:, 2] = diagonals[:-1, :-1].flat
-
-    diagonals[1:-1, 1:-1] = np.arange(1, n_diagonals, 2).reshape(shape - 1)
-    out[:, 1] = diagonals[1:, :-1].flat
-    out[:, 3] = diagonals[:-1, 1:].flat
-
-    return out
-
-
-def create_diagonal_dirs_at_node(shape, out=None):
-    """Create array of diagonals directions at node.
-
-    Parameters
-    ----------
-    shape : tuple of *(n_rows, n_cols)*
-        Shape as number of node rows and node columns.
-    out : ndarray of shape *(n_nodes, 4)*, optional
-        Output buffer to place diagonal ids at each node.
-
-    Returns
-    -------
-    out : ndarray of shape *(n_nodes, 4)*
-        Diagonals at node with -1 for missing diagonals.
-
-    Examples
-    --------
-    >>> from landlab.grid.diagonals import create_diagonals_at_node
-    >>> create_diagonals_at_node((3, 4))
-    array([[ 0, -1, -1, -1],
-           [ 2,  1, -1, -1],
-           [ 4,  3, -1, -1],
-           [-1,  5, -1, -1],
-           [ 6, -1, -1,  1],
-           [ 8,  7,  0,  3],
-           [10,  9,  2,  5],
-           [-1, 11,  4, -1],
-           [-1, -1, -1,  7],
-           [-1, -1,  6,  9],
-           [-1, -1,  8, 11],
-           [-1, -1, 10, -1]])
-    """
-    shape = np.asarray(shape)
-    n_diagonals = np.prod(shape - 1) * 2
-    n_nodes = np.prod(shape)
-    if out is None:
-        out = np.full((n_nodes, 4), -1, dtype=int8)
-
-    dirs = np.zeros(shape + 1, dtype=int8)
-
-    dirs[1:-1, 1:-1] = np.arange(0, n_diagonals, 2).reshape(shape - 1)
     out[:, 0] = diagonals[1:, 1:].flat
     out[:, 2] = diagonals[:-1, :-1].flat
 
@@ -266,8 +209,9 @@ class DiagonalsMixIn(object):
 
         LLCATS: NINF CONN
         """
-        node_is_at_tail = np.choose(self.diagonal_dirs_at_node + 1,
-                                    np.array((1, -1, 0), dtype=np.int8))
+        node_is_at_tail = np.choose(
+            self.diagonal_dirs_at_node + 1, np.array((1, -1, 0), dtype=np.int8)
+        )
         out = self.nodes_at_diagonal[self.diagonals_at_node, node_is_at_tail]
         out[node_is_at_tail == -1] = -1
 
@@ -277,8 +221,12 @@ class DiagonalsMixIn(object):
     @cache_result_in_object()
     @make_return_array_immutable
     def d8_adjacent_nodes_at_node(self):
-        return np.vstack((super(DiagonalsMixIn, self).adjacent_nodes_at_node,
-                          self.diagonal_adjacent_nodes_at_node))
+        return np.vstack(
+            (
+                super(DiagonalsMixIn, self).adjacent_nodes_at_node,
+                self.diagonal_adjacent_nodes_at_node,
+            )
+        )
 
     @property
     @cache_result_in_object()
@@ -321,8 +269,7 @@ class DiagonalsMixIn(object):
         >>> grid.number_of_d8
         29
         """
-        return (super(DiagonalsMixIn, self).number_of_links +
-                self.number_of_diagonals)
+        return super(DiagonalsMixIn, self).number_of_links + self.number_of_diagonals
 
     @property
     @cache_result_in_object()
@@ -374,16 +321,15 @@ class DiagonalsMixIn(object):
         """
         diagonals_at_node = self.diagonals_at_node.copy()
         diagonals_at_node[diagonals_at_node >= 0] += self.number_of_links
-        return np.hstack((super(DiagonalsMixIn, self).links_at_node,
-                          diagonals_at_node))
-                          # self.diagonals_at_node + self.number_of_links))
+        return np.hstack((super(DiagonalsMixIn, self).links_at_node, diagonals_at_node))
 
     @property
     @cache_result_in_object()
     @make_return_array_immutable
     def d8_dirs_at_node(self):
-        return np.hstack((super(DiagonalsMixIn, self).link_dirs_at_node,
-                          self.diagonal_dirs_at_node))
+        return np.hstack(
+            (super(DiagonalsMixIn, self).link_dirs_at_node, self.diagonal_dirs_at_node)
+        )
 
     @property
     # @cache_result_in_object()
@@ -396,8 +342,10 @@ class DiagonalsMixIn(object):
     @make_return_array_immutable
     def length_of_diagonal(self):
         return np.sqrt(
-            np.power(np.diff(self.xy_of_node[self.nodes_at_diagonal], axis=1),
-                     2.).sum(axis=2)).flatten()
+            np.power(np.diff(self.xy_of_node[self.nodes_at_diagonal], axis=1), 2.0).sum(
+                axis=2
+            )
+        ).flatten()
 
     @property
     @cache_result_in_object()
@@ -416,7 +364,7 @@ class DiagonalsMixIn(object):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
+        >>> grid = RasterModelGrid((3, 3), xy_spacing=(4, 3))
 
         >>> grid.length_of_link
         array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
@@ -429,14 +377,21 @@ class DiagonalsMixIn(object):
 
         LLCATS: LINF MEAS
         """
-        return np.hstack((super(DiagonalsMixIn, self).length_of_link,
-                          self.length_of_diagonal))
+        return np.hstack(
+            (super(DiagonalsMixIn, self).length_of_link, self.length_of_diagonal)
+        )
 
     def reset_status_at_node(self):
         super(DiagonalsMixIn, self).reset_status_at_node()
-        attrs = ['_status_at_diagonal', '_diagonal_status_at_node',
-                 '_active_diagonals', '_active_diagonal_dirs_at_node',
-                 '_status_at_d8', '_active_d8', '_active_d8_dirs_at_node']
+        attrs = [
+            "_status_at_diagonal",
+            "_diagonal_status_at_node",
+            "_active_diagonals",
+            "_active_diagonal_dirs_at_node",
+            "_status_at_d8",
+            "_active_d8",
+            "_active_d8_dirs_at_node",
+        ]
 
         for attr in attrs:
             try:
@@ -502,15 +457,17 @@ class DiagonalsMixIn(object):
     @cache_result_in_object()
     @make_return_array_immutable
     def active_diagonal_dirs_at_node(self):
-        return np.choose(self.diagonal_status_at_node == ACTIVE_LINK,
-                         (0, self.diagonal_dirs_at_node))
+        return np.choose(
+            self.diagonal_status_at_node == ACTIVE_LINK, (0, self.diagonal_dirs_at_node)
+        )
 
     @property
     @cache_result_in_object()
     @make_return_array_immutable
     def status_at_d8(self):
-        return np.hstack((super(DiagonalsMixIn, self).status_at_link,
-                          self.status_at_diagonal))
+        return np.hstack(
+            (super(DiagonalsMixIn, self).status_at_link, self.status_at_diagonal)
+        )
 
     @property
     @cache_result_in_object()
@@ -522,5 +479,6 @@ class DiagonalsMixIn(object):
     @cache_result_in_object()
     @make_return_array_immutable
     def active_d8_dirs_at_node(self):
-        return np.choose(self.d8_status_at_node == ACTIVE_LINK,
-                         (0, self.d8_dirs_at_node))
+        return np.choose(
+            self.d8_status_at_node == ACTIVE_LINK, (0, self.d8_dirs_at_node)
+        )

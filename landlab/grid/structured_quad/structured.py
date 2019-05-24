@@ -20,17 +20,13 @@ array([ 0,  4, 15, 19])
 """
 import numpy as np
 
-from ..base import FIXED_VALUE_BOUNDARY
-from ..unstructured.status import StatusGrid
-from ..unstructured.base import BaseGrid
-from .links import (StructuredQuadLinkGrid, node_id_at_link_start,
-                    node_id_at_link_end)
-from .cells import StructuredQuadCellGrid
-from . import cells as quad_cells
-from . import links as quad_links
-from . import faces as quad_faces
-from . import nodes
 from landlab.utils.decorators import deprecated
+
+from ..base import FIXED_VALUE_BOUNDARY
+from ..unstructured.base import BaseGrid
+from . import cells as quad_cells, faces as quad_faces, links as quad_links, nodes
+from .cells import StructuredQuadCellGrid
+from .links import StructuredQuadLinkGrid
 
 
 class StructuredQuadGrid(BaseGrid):
@@ -43,8 +39,16 @@ class StructuredQuadGrid(BaseGrid):
         Shape of the grid of nodes.
     """
 
-    def __init__(self, node_coord, shape=None, axis_name=None, axis_units=None,
-                 links=True, cells=True, node_status=None):
+    def __init__(
+        self,
+        node_coord,
+        shape=None,
+        axis_name=None,
+        axis_units=None,
+        links=True,
+        cells=True,
+        node_status=None,
+    ):
         """
         Parameters
         ----------
@@ -54,17 +58,18 @@ class StructuredQuadGrid(BaseGrid):
             Shape of the grid of nodes.
         """
         if len(node_coord) != 2:
-            raise ValueError('only 2d grids are supported')
+            raise ValueError("only 2d grids are supported")
 
         self._shape = shape or node_coord[0].shape
 
         if node_status is not None:
             if node_status.size != nodes.number_of_nodes(self.shape):
-                raise ValueError('incorrect size for node_status array')
+                raise ValueError("incorrect size for node_status array")
 
         if node_status is None:
             self._status = nodes.status_with_perimeter_as_boundary(
-                self.shape, node_status=FIXED_VALUE_BOUNDARY)
+                self.shape, node_status=FIXED_VALUE_BOUNDARY
+            )
         else:
             self._status = node_status
 
@@ -75,11 +80,13 @@ class StructuredQuadGrid(BaseGrid):
         if cells:
             cell_grid = StructuredQuadCellGrid(self.shape)
 
-        #super(StructuredQuadGrid, self).__init__(node_status=node_status)
-        BaseGrid.__init__(self, (node_coord[0].flatten(),
-                                 node_coord[1].flatten()),
-                          links=link_grid,
-                          cells=cell_grid)
+        # super(StructuredQuadGrid, self).__init__(node_status=node_status)
+        BaseGrid.__init__(
+            self,
+            (node_coord[0].flatten(), node_coord[1].flatten()),
+            links=link_grid,
+            cells=cell_grid,
+        )
 
         self._num_nodes = nodes.number_of_nodes(self.shape)
         self._num_cells = quad_cells.number_of_cells(self.shape)
@@ -89,10 +96,7 @@ class StructuredQuadGrid(BaseGrid):
         self._num_core_nodes = nodes.number_of_core_nodes(self.shape)
         self._num_core_cells = self._num_cells
 
-        self._node_x, self._node_y = (
-            np.ravel(node_coord[0]),
-            np.ravel(node_coord[1]),
-        )
+        self._node_x, self._node_y = (np.ravel(node_coord[0]), np.ravel(node_coord[1]))
 
         self._node_id_at_cells = quad_cells.node_id_at_cells(self.shape)
         self._cell_id_at_nodes = quad_cells.cell_ids(self.shape)
@@ -102,12 +106,10 @@ class StructuredQuadGrid(BaseGrid):
         self._in_link_id_at_nodes = quad_links.node_in_link_ids(self.shape)
         self._out_link_id_at_nodes = quad_links.node_out_link_ids(self.shape)
 
-        self._node_id_at_link_start = quad_links.node_id_at_link_start(
-            self.shape)
+        self._node_id_at_link_start = quad_links.node_id_at_link_start(self.shape)
         self._node_id_at_link_end = quad_links.node_id_at_link_end(self.shape)
 
-        self._active_link_ids = quad_links.active_link_ids(
-            self.shape, self._status)
+        self._active_link_ids = quad_links.active_link_ids(self.shape, self._status)
 
     @property
     def shape(self):
@@ -115,7 +117,7 @@ class StructuredQuadGrid(BaseGrid):
         """
         return self._shape
 
-    #@property
+    # @property
     # def number_of_core_nodes(self):
     #    """Number of core nodes.
     #    """
@@ -138,7 +140,7 @@ class StructuredQuadGrid(BaseGrid):
         return self.shape[0]
 
     @property
-    @deprecated(use='nodes_at_corners_of_grid', version=1.0)
+    @deprecated(use="nodes_at_corners_of_grid", version=1.0)
     def corner_nodes(self):
         return self.nodes_at_corners_of_grid
 

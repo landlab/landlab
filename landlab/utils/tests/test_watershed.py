@@ -1,32 +1,81 @@
 #!/usr/bin/env python
+import numpy as np
+import pytest
 
 from landlab import RasterModelGrid
-from landlab.components import FlowRouter
-from landlab.utils import (get_watershed_nodes, get_watershed_outlet,
-                           get_watershed_masks_with_area_threshold)
-import numpy as np
+from landlab.components import FlowAccumulator
+from landlab.utils import (
+    get_watershed_mask,
+    get_watershed_masks_with_area_threshold,
+    get_watershed_nodes,
+    get_watershed_outlet,
+)
 
 
 def test_get_watershed_nodes():
-    grid = RasterModelGrid((7, 7), 1)
+    grid = RasterModelGrid((7, 7))
 
-    z = np.array([
-        -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
-        -9999.,    26.,     0.,    30.,    32.,    34., -9999.,
-        -9999.,    28.,     1.,    25.,    28.,    32., -9999.,
-        -9999.,    30.,     3.,     3.,    11.,    34., -9999.,
-        -9999.,    32.,    11.,    25.,    18.,    38., -9999.,
-        -9999.,    34.,    32.,    34.,    36.,    40., -9999.,
-        -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
+    z = np.array(
+        [
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            26.0,
+            0.0,
+            30.0,
+            32.0,
+            34.0,
+            -9999.0,
+            -9999.0,
+            28.0,
+            1.0,
+            25.0,
+            28.0,
+            32.0,
+            -9999.0,
+            -9999.0,
+            30.0,
+            3.0,
+            3.0,
+            11.0,
+            34.0,
+            -9999.0,
+            -9999.0,
+            32.0,
+            11.0,
+            25.0,
+            18.0,
+            38.0,
+            -9999.0,
+            -9999.0,
+            34.0,
+            32.0,
+            34.0,
+            36.0,
+            40.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+        ]
+    )
 
-    grid.at_node['topographic__elevation'] = z
+    grid.at_node["topographic__elevation"] = z
 
     outlet_id = 2
 
-    grid.set_watershed_boundary_condition_outlet_id(outlet_id, z,
-                                                    nodata_value=-9999.)
+    grid.set_watershed_boundary_condition_outlet_id(outlet_id, z, nodata_value=-9999.0)
 
-    fr = FlowRouter(grid)
+    fr = FlowAccumulator(grid, flow_director="D8")
     fr.run_one_step()
 
     ws_nodes = get_watershed_nodes(grid, outlet_id)
@@ -37,23 +86,68 @@ def test_get_watershed_nodes():
 
 
 def test_get_watershed_masks_with_area_threshold():
-    rmg = RasterModelGrid((7, 7), 200)
+    rmg = RasterModelGrid((7, 7), xy_spacing=200)
 
-    z = np.array([
-            -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
-            -9999.,    26.,     0.,    26.,    30.,    34., -9999.,
-            -9999.,    28.,     1.,    28.,     5.,    32., -9999.,
-            -9999.,    30.,     3.,    30.,    10.,    34., -9999.,
-            -9999.,    32.,    11.,    32.,    15.,    38., -9999.,
-            -9999.,    34.,    32.,    34.,    36.,    40., -9999.,
-            -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
+    z = np.array(
+        [
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            26.0,
+            0.0,
+            26.0,
+            30.0,
+            34.0,
+            -9999.0,
+            -9999.0,
+            28.0,
+            1.0,
+            28.0,
+            5.0,
+            32.0,
+            -9999.0,
+            -9999.0,
+            30.0,
+            3.0,
+            30.0,
+            10.0,
+            34.0,
+            -9999.0,
+            -9999.0,
+            32.0,
+            11.0,
+            32.0,
+            15.0,
+            38.0,
+            -9999.0,
+            -9999.0,
+            34.0,
+            32.0,
+            34.0,
+            36.0,
+            40.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+        ]
+    )
 
-    rmg.at_node['topographic__elevation'] = z
+    rmg.at_node["topographic__elevation"] = z
 
     rmg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
     # Route flow.
-    fr = FlowRouter(rmg)
+    fr = FlowAccumulator(rmg, flow_director="D8")
     fr.run_one_step()
 
     # Get the masks of watersheds greater than or equal to 80,000
@@ -63,7 +157,7 @@ def test_get_watershed_masks_with_area_threshold():
 
     # Assert that mask null nodes have a drainage area below critical area.
     null_nodes = np.where(mask == -1)[0]
-    A = rmg.at_node['drainage_area'][null_nodes]
+    A = rmg.at_node["drainage_area"][null_nodes]
     below_critical_area_nodes = A < critical_area
     trues = np.ones(len(A), dtype=bool)
 
@@ -71,25 +165,71 @@ def test_get_watershed_masks_with_area_threshold():
 
 
 def test_get_watershed_outlet():
-    grid = RasterModelGrid((7, 7), 1)
+    grid = RasterModelGrid((7, 7))
 
-    z = np.array([
-        -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
-        -9999.,    26.,     0.,    30.,    32.,    34., -9999.,
-        -9999.,    28.,     1.,    25.,    28.,    32., -9999.,
-        -9999.,    30.,     3.,     3.,    11.,    34., -9999.,
-        -9999.,    32.,    11.,    25.,    18.,    38., -9999.,
-        -9999.,    34.,    32.,    34.,    36.,    40., -9999.,
-        -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
+    z = np.array(
+        [
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            26.0,
+            0.0,
+            30.0,
+            32.0,
+            34.0,
+            -9999.0,
+            -9999.0,
+            28.0,
+            1.0,
+            25.0,
+            28.0,
+            32.0,
+            -9999.0,
+            -9999.0,
+            30.0,
+            3.0,
+            3.0,
+            11.0,
+            34.0,
+            -9999.0,
+            -9999.0,
+            32.0,
+            11.0,
+            25.0,
+            18.0,
+            38.0,
+            -9999.0,
+            -9999.0,
+            34.0,
+            32.0,
+            34.0,
+            36.0,
+            40.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+            -9999.0,
+        ]
+    )
 
-    grid.at_node['topographic__elevation'] = z
+    grid.at_node["topographic__elevation"] = z
 
     imposed_outlet = 2
 
-    grid.set_watershed_boundary_condition_outlet_id(imposed_outlet, z,
-                                                    nodata_value=-9999.)
+    grid.set_watershed_boundary_condition_outlet_id(
+        imposed_outlet, z, nodata_value=-9999.0
+    )
 
-    fr = FlowRouter(grid)
+    fr = FlowAccumulator(grid, flow_director="D8")
     fr.run_one_step()
 
     test_node = 32
@@ -99,8 +239,30 @@ def test_get_watershed_outlet():
 
     # Create a pit.
     pit_node = 38
-    grid.at_node['topographic__elevation'][pit_node] -= 32
+    grid.at_node["topographic__elevation"][pit_node] -= 32
     fr.run_one_step()
 
     pit_outlet = get_watershed_outlet(grid, test_node)
     np.testing.assert_equal(pit_outlet, pit_node)
+
+
+def test_route_to_multiple_error_raised_watershed_outlet():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros("node", "topographic__elevation")
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg, flow_director="MFD")
+    fa.run_one_step()
+
+    with pytest.raises(NotImplementedError):
+        get_watershed_outlet(mg, 10)
+
+
+def test_route_to_multiple_error_raised_watershed_mask():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros("node", "topographic__elevation")
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg, flow_director="MFD")
+    fa.run_one_step()
+
+    with pytest.raises(NotImplementedError):
+        get_watershed_mask(mg, 10)

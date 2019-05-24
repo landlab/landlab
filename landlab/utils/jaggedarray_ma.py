@@ -115,10 +115,9 @@ class JaggedArray(object):
             A new masked array.
         """
         values_per_row = [len(row) for row in rows]
-        mat = np.ma.masked_all((len(rows), max(values_per_row)),
-                               dtype=dtype or int)
+        mat = np.ma.masked_all((len(rows), max(values_per_row)), dtype=dtype or int)
         for (row_number, row) in enumerate(rows):
-            mat[row_number, :len(row)] = row
+            mat[row_number, : len(row)] = row
 
         return mat
 
@@ -139,12 +138,13 @@ class JaggedArray(object):
             A new masked array.
         """
         array = np.array(array)
-        mat = np.ma.masked_all((len(values_per_row), max(values_per_row)),
-                               dtype=array.dtype)
+        mat = np.ma.masked_all(
+            (len(values_per_row), max(values_per_row)), dtype=array.dtype
+        )
         offset = 0
         for row_number in range(mat.shape[0]):
             n_valid = values_per_row[row_number]
-            mat[row_number, :n_valid] = array[offset:offset + n_valid]
+            mat[row_number, :n_valid] = array[offset : offset + n_valid]
             offset += n_valid
 
         return mat
@@ -191,7 +191,7 @@ class JaggedArray(object):
         array : array_like
             The new values of the array.
         """
-        self._values[~ self._values.mask] = array
+        self._values[~self._values.mask] = array
 
     @property
     def size(self):
