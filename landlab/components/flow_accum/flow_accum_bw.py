@@ -29,7 +29,7 @@ from six.moves import range
 
 from landlab.core.utils import as_id_array
 
-from .cfuncs import _accumulate_bw, _add_to_stack
+from .cfuncs import _accumulate_bw, _add_to_stack, _make_donors
 
 
 class _DrainageStack:
@@ -102,12 +102,6 @@ def _make_number_of_donors_array(r):
     >>> nd
     array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
     """
-    # Vectorized, DEJH, 5/20/14
-    #    np = len(r)
-    #    nd = numpy.zeros(np, dtype=int)
-    #    for i in range(np):
-    #        nd[r[i]] += 1
-
     nd = numpy.zeros(r.size, dtype=int)
     max_index = numpy.max(r)
     nd[: (max_index + 1)] = numpy.bincount(r)
@@ -146,14 +140,6 @@ def _make_delta_array(nd):
     >>> delta
     array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
     """
-    # np = len(nd)
-    # delta = numpy.zeros(np+1, dtype=int)
-    # delta[np] = np   # not np+1 as in B&W because here we number from 0
-    # for i in range(np-1, -1, -1):
-    #    delta[i] = delta[i+1] - nd[i]
-    # return delta
-
-    # DEJH efficient delooping (only a small gain)
     np = len(nd)
     delta = numpy.zeros(np + 1, dtype=int)
     delta.fill(np)
@@ -172,8 +158,6 @@ def _make_array_of_donors(r, delta):
     Table 1 (except that here the ID numbers are one less, because we number
     indices from zero).
 
-    Vectorized - inefficiently! - DEJH, 5/20/14
-
     Examples
     --------
     >>> import numpy as np
@@ -189,25 +173,9 @@ def _make_array_of_donors(r, delta):
     w = numpy.zeros(np, dtype=int)
     D = numpy.zeros(np, dtype=int)
 
-    for i in range(np):
-        ri = r[i]
-        D[delta[ri] + w[ri]] = i
-        w[ri] += 1
+    _make_donors(np, w, D, delta, r)
 
     return D
-
-    # DEJH notes that for reasons he's not clear on, this looped version is
-    # actually much slower!
-    # D = numpy.zeros(np, dtype=int)
-    # wri_fin = numpy.bincount(r)
-    # wri_fin_nz = wri_fin.nonzero()[0]
-    # wri_fin_nz_T = wri_fin_nz.reshape((wri_fin_nz.size,1))
-    # logical = numpy.tile(r,(wri_fin_nz.size,1))==wri_fin_nz_T
-    # cum_logical = numpy.cumsum(logical, axis=1)
-    # wri = numpy.sum(numpy.where(logical, cum_logical-1,0) ,axis=0)
-    # D_index = delta[r] + wri
-    # D[D_index] = numpy.arange(r.size)
-    # return D
 
 
 def make_ordered_node_array(receiver_nodes):
@@ -313,7 +281,7 @@ def find_drainage_area_and_discharge(
     # transmission losses
     _accumulate_bw(np, s, r, drainage_area, discharge)
     # nodes at channel heads can still be negative with this method, so...
-    discharge = discharge.clip(0.)
+    discharge = discharge.clip(0.0)
 
     return drainage_area, discharge
 
@@ -448,7 +416,7 @@ def find_drainage_area_and_discharge_lossy(
         if donor != recvr:
             drainage_area[recvr] += drainage_area[donor]
             discharge_remaining = numpy.clip(
-                loss_function(discharge[donor], donor, lrec, grid), 0., float("inf")
+                loss_function(discharge[donor], donor, lrec, grid), 0.0, float("inf")
             )
             grid.at_node["surface_water__discharge_loss"][donor] = (
                 discharge[donor] - discharge_remaining

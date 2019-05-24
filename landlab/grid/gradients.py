@@ -403,7 +403,7 @@ def calc_slope_at_patch(
     if ignore_closed_nodes:
         badnodes = grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY
         bad_patches = badnodes.sum(axis=1) > 0
-        slopes_at_patch[bad_patches] = 0.
+        slopes_at_patch[bad_patches] = 0.0
 
     return slopes_at_patch
 
@@ -710,7 +710,7 @@ def calc_aspect_at_node(
     if unit == "degrees":
         return radians_to_degrees(angle_from_x_ccw)
     elif unit == "radians":
-        angle_from_north_cw = (5. * np.pi / 2. - angle_from_x_ccw) % (2. * np.pi)
+        angle_from_north_cw = (5.0 * np.pi / 2.0 - angle_from_x_ccw) % (2.0 * np.pi)
         return angle_from_north_cw
     else:
         raise TypeError("unit must be 'degrees' or 'radians'")

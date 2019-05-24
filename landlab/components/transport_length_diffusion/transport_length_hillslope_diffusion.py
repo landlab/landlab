@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Apr 11 10:13:38 2017
-
 @author: margauxmouchene
 """
 
@@ -16,18 +15,14 @@ class TransportLengthHillslopeDiffuser(Component):
     """
     Hillslope diffusion component in the style of Carretier et al. (2016,
         ESurf), and Davy and Lague (2009)
-
     dz/dt = - E + D (+ Uplift)
     D = qs / L
     E = k * S
     L = dx / (1 - (S / Sc)^2)
-
     Works on regular raster-type grid (RasterModelGrid, dx=dy).
     To be coupled with FlowDirectorSteepest for the calculation of steepest
      slope at each timestep.
-
     Component written by Margaux Mouchene, 2017
-
     Parameters
     ----------
     grid : ModelGrid
@@ -36,20 +31,17 @@ class TransportLengthHillslopeDiffuser(Component):
         Erodibility coefficient [L/T]
     slope_crit: float (default=1.)
         Critical slope [L/L]
-
     Examples
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorSteepest
     >>> from landlab.components import TransportLengthHillslopeDiffuser
-
     Define grid and initial topography:
         - 3x5 grid
         - east and west boundaries are open, north and south are closed
         - Initial topography is plane at base level on the boundaries and
             1m of elevation elsewhere (core)
-
     >>> mg = RasterModelGrid((5, 5), 1.)
     >>> mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
     >>> z = np.array([0., 0., 0., 0., 0.,
@@ -58,22 +50,16 @@ class TransportLengthHillslopeDiffuser(Component):
     ...               0., 1., 1., 1., 0.,
     ...               0., 0., 0., 0., 0.])
     >>> _ = mg.add_field('node', 'topographic__elevation', z)
-
     Instantiate Flow director (steepest slope type) and TL hillslope diffuser
-
     >>> fdir = FlowDirectorSteepest(mg)
     >>> tl_diff = TransportLengthHillslopeDiffuser(mg, \
                                                    erodibility=0.001,\
                                                    slope_crit=0.6)
-
     Run the components for ten short timepsteps
-
     >>> for t in range(10):
     ...     fdir.run_one_step()
     ...     tl_diff.run_one_step(1.)
-
     Check final topography
-
     >>> np.allclose(
     ...     mg.at_node['topographic__elevation'],
     ...     np.array([ 0.,  0.        ,  0.        ,  0.        ,  0.,
@@ -152,7 +138,6 @@ class TransportLengthHillslopeDiffuser(Component):
     def __init__(self, grid, erodibility, slope_crit=1.):
 
         """Initialize Diffuser.
-
         Parameters
         ----------
         grid : ModelGrid
@@ -223,7 +208,6 @@ class TransportLengthHillslopeDiffuser(Component):
 
     def tldiffusion(self, dt):
         """Calculate hillslope diffusion for a time period 'dt'.
-
         Parameters:
         grid : ModelGrid
             Landlab ModelGrid object
@@ -286,7 +270,6 @@ class TransportLengthHillslopeDiffuser(Component):
         """
         Advance transport length-model hillslope diffusion component
         by one time step of size dt and tests for timestep stability.
-
         Parameters
         ----------
         dt: float (time)
@@ -304,4 +287,4 @@ class TransportLengthHillslopeDiffuser(Component):
                 "The component is unstable" " for such a large timestep " "on this grid"
             )
         else:
-            pass
+pass

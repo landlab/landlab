@@ -23,7 +23,6 @@ from landlab.grid import CLOSED_BOUNDARY
 from landlab.grid.raster import RasterModelGrid
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 from landlab.plot.event_handler import query_grid_on_button_press
-from landlab.utils.decorators import deprecated
 
 try:
     import matplotlib.pyplot as plt
@@ -146,11 +145,6 @@ def imshow_grid_at_node(grid, values, **kwds):
     )
 
 
-@deprecated(use="imshow_grid_at_node", version="0.5")
-def imshow_node_grid(grid, values, **kwds):
-    imshow_grid_at_node(grid, values, **kwds)
-
-
 def imshow_grid_at_cell(grid, values, **kwds):
     """imshow_grid_at_cell(grid, values, plot_name=None, var_name=None,
                            var_units=None, grid_units=None,
@@ -256,11 +250,6 @@ def imshow_grid_at_cell(grid, values, **kwds):
     return myimage
 
 
-@deprecated(use="imshow_grid_at_cell", version="0.5")
-def imshow_cell_grid(grid, values, **kwds):
-    imshow_grid_at_cell(grid, values, **kwds)
-
-
 def _imshow_grid_values(
     grid,
     values,
@@ -276,7 +265,7 @@ def _imshow_grid_values(
     vmin=None,
     vmax=None,
     norm=None,
-    shrink=1.,
+    shrink=1.0,
     color_for_closed="black",
     color_for_background=None,
     show_elements=False,
@@ -289,14 +278,14 @@ def _imshow_grid_values(
     if color_for_closed is not None:
         cmap.set_bad(color=color_for_closed)
     else:
-        cmap.set_bad(alpha=0.)
+        cmap.set_bad(alpha=0.0)
 
     if isinstance(grid, RasterModelGrid):
         if values.ndim != 2:
             raise ValueError("values must have ndim == 2")
 
-        y = np.arange(values.shape[0] + 1) * grid.dy - grid.dy * .5
-        x = np.arange(values.shape[1] + 1) * grid.dx - grid.dx * .5
+        y = np.arange(values.shape[0] + 1) * grid.dy - grid.dy * 0.5
+        x = np.arange(values.shape[1] + 1) * grid.dx - grid.dx * 0.5
 
         kwds = dict(cmap=cmap)
         (kwds["vmin"], kwds["vmax"]) = (values.min(), values.max())
@@ -327,7 +316,7 @@ def _imshow_grid_values(
                 )
         myimage = plt.pcolormesh(x, y, values, **kwds)
         myimage.set_rasterized(True)
-        plt.gca().set_aspect(1.)
+        plt.gca().set_aspect(1.0)
         plt.autoscale(tight=True)
 
         if allow_colorbar:
@@ -387,7 +376,7 @@ def _imshow_grid_values(
                 polygon = [grid.vor.vertices[i] for i in region]
                 plt.fill(*zip(*polygon), color=colortouse)
 
-        plt.gca().set_aspect(1.)
+        plt.gca().set_aspect(1.0)
         # plt.autoscale(tight=True)
         # Tempting though it is to move the boundary outboard of the outermost
         # nodes (e.g., to the outermost corners), this is a bad idea, as the

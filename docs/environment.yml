@@ -1,0 +1,14 @@
+name: landlab_docs
+channels:
+  - conda-forge
+dependencies:
+- python==3.6
+- numpy
+- pandoc
+- pip
+- sphinx>=1.5.1
+- sphinx_rtd_theme
+- tornado
+- entrypoints
+- pip:
+    - sphinxcontrib_github_alt

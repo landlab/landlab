@@ -11,7 +11,28 @@ import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from landlab import BAD_INDEX_VALUE as XX, FieldError, RasterModelGrid
-from landlab.components import FlowAccumulator, SinkFiller
+from landlab.components import FlowAccumulator, SinkFiller, SinkFillerBarnes
+
+
+def test_route_to_multiple_error_raised_init():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros("node", "topographic__elevation")
+    z += mg.x_of_node + mg.y_of_node
+    fa = FlowAccumulator(mg, flow_director="MFD")
+    fa.run_one_step()
+    with pytest.raises(NotImplementedError):
+        SinkFillerBarnes(mg)
+
+
+def test_route_to_multiple_error_raised_run():
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros("node", "topographic__elevation")
+    z += mg.x_of_node + mg.y_of_node
+    sfb = SinkFillerBarnes(mg)
+    fa = FlowAccumulator(mg, flow_director="MFD")
+    fa.run_one_step()
+    with pytest.raises(NotImplementedError):
+        sfb.run_one_step()
 
 
 def test_route_to_multiple_error_raised():
@@ -25,10 +46,11 @@ def test_route_to_multiple_error_raised():
         SinkFiller(mg)
 
 
-def check_fields(sink_grid1):
+def test_check_fields(sink_grid1):
     """
     Check to make sure the right fields have been created.
     """
+    SinkFillerBarnes(sink_grid1)
     assert_array_equal(
         np.zeros(sink_grid1.number_of_nodes), sink_grid1.at_node["sediment_fill__depth"]
     )
@@ -64,15 +86,15 @@ def test_drainage_directions_change(sink_grid1):
 
     lake = np.array([22, 23])
     old_elevs = np.ones(49, dtype=float)
-    old_elevs[lake] = 0.
+    old_elevs[lake] = 0.0
     new_elevs = old_elevs.copy()
-    new_elevs[40] = 2.
+    new_elevs[40] = 2.0
     cond = hf.drainage_directions_change(lake, old_elevs, new_elevs)
     assert not cond
     new_elevs[23] = 0.5
     cond = hf.drainage_directions_change(lake, old_elevs, new_elevs)
     assert not cond
-    new_elevs[23] = 1.
+    new_elevs[23] = 1.0
     cond = hf.drainage_directions_change(lake, old_elevs, new_elevs)
     assert not cond
     new_elevs[23] = 1.2
@@ -87,7 +109,7 @@ def test_add_slopes(sink_grid1):
     new_z = z.copy()
     outlet_elev = z[sink_grid1.outlet]
     hf._elev[sink_grid1.lake] = outlet_elev
-    rt2 = np.sqrt(2.)
+    rt2 = np.sqrt(2.0)
     slope_to_add = 0.1
     lake_map = np.empty_like(z)
     lake_map.fill(XX)
@@ -106,7 +128,7 @@ def test_add_slopes(sink_grid1):
         slope_to_add, sink_grid1.outlet, sink_grid1.lake_code
     )
     assert_array_equal(
-        slope_to_add * (np.arange(2.) + 1.) + outlet_elev, elevs_out[straight_north]
+        slope_to_add * (np.arange(2.0) + 1.0) + outlet_elev, elevs_out[straight_north]
     )
     assert slope_to_add * rt2 + outlet_elev == pytest.approx(elevs_out[off_angle])
     assert_array_equal(new_z, elevs_out)
@@ -135,11 +157,11 @@ def test_filler_inclined(sink_grid3):
     hf.fill_pits()
     assert_array_equal(
         sink_grid3.at_node["topographic__elevation"][sink_grid3.lake1],
-        np.ones(9, dtype=float) * 4.,
+        np.ones(9, dtype=float) * 4.0,
     )
     assert_array_equal(
         sink_grid3.at_node["topographic__elevation"][sink_grid3.lake2],
-        np.ones(4, dtype=float) * 7.,
+        np.ones(4, dtype=float) * 7.0,
     )
 
 
@@ -215,9 +237,6 @@ def test_D4_routing(sink_grid5):
     fr = FlowAccumulator(sink_grid5, flow_director="D4")
     hf = SinkFiller(sink_grid5, routing="D4", apply_slope=True)
     hf.fill_pits()
-    #    hole1 = np.array([4.00016667, 4.00025, 4.00033333, 4.00008333, 4.00041667,
-    #                      4.0005, 4.00066667, 4.00058333, 4.00075,
-    #                      4.334])
     hole1 = np.array(
         [
             4.00016667,
@@ -252,9 +271,9 @@ def test_D4_filling(sink_grid5):
     """
     hf = SinkFiller(sink_grid5, routing="D4")
     hf.fill_pits()
-    hole1 = 4. * np.ones_like(sink_grid5.lake1, dtype=float)
+    hole1 = 4.0 * np.ones_like(sink_grid5.lake1, dtype=float)
     hole1[-1] += 0.001
-    hole2 = 7. * np.ones_like(sink_grid5.lake2, dtype=float)
+    hole2 = 7.0 * np.ones_like(sink_grid5.lake2, dtype=float)
 
     assert_array_almost_equal(
         sink_grid5.at_node["topographic__elevation"][sink_grid5.lake1], hole1

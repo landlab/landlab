@@ -87,7 +87,7 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True):
         except ShapefileException:
             raise ShapefileException(("Bad file path provided to read_shapefile."))
 
-    if sf.shapeType is not 3:
+    if sf.shapeType != 3:
         raise ValueError(
             (
                 "landlab.io.shapefile read requires a polyline "

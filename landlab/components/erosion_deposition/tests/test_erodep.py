@@ -51,7 +51,7 @@ def test_bad_solver_name():
         top_is_closed=True,
     )
     mg.set_watershed_boundary_condition_outlet_id(
-        0, mg["node"]["topographic__elevation"], -9999.
+        0, mg["node"]["topographic__elevation"], -9999.0
     )
 
     # Create a D8 flow handler
@@ -99,7 +99,7 @@ def test_steady_state_with_basic_solver_option():
         top_is_closed=True,
     )
     mg.set_watershed_boundary_condition_outlet_id(
-        0, mg["node"]["topographic__elevation"], -9999.
+        0, mg["node"]["topographic__elevation"], -9999.0
     )
 
     # Instantiate DepressionFinderAndRouter
@@ -145,7 +145,7 @@ def test_steady_state_with_basic_solver_option():
     analytical_slope = np.power(
         ((U * v_s) / (K * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp)))
         + (U / (K * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))),
-        1. / n_sp,
+        1.0 / n_sp,
     )
 
     # test for match with analytical slope-area relationship
