@@ -56,6 +56,7 @@ True
 
 
 import numpy as np
+
 from landlab import Component
 
 
@@ -79,33 +80,21 @@ class ComponentMaker(Component):
     do_a_thing
     """
 
-    _name = 'ComponentMaker'
+    _name = "ComponentMaker"
 
     _cite_as = """Insert a BibTeX formatted reference here"""
 
-    _input_var_names = (
-        'topographic__elevation',
-    )
+    _input_var_names = ("topographic__elevation",)
 
-    _output_var_names = (
-        'component_maker__field',
-    )
+    _output_var_names = ("component_maker__field",)
 
-    _var_units = {
-        'topographic__elevation': 'm',
-        'component_maker__field': '-',
-    }
+    _var_units = {"topographic__elevation": "m", "component_maker__field": "-"}
 
-    _var_mapping = {
-        'topographic__elevation': 'node',
-        'component_maker__field': 'node',
-    }
+    _var_mapping = {"topographic__elevation": "node", "component_maker__field": "node"}
 
     _var_doc = {
-        'topographic__elevation':
-            'Land surface topographic elevation',
-        'component_maker__field':
-            'A description of the fields made by the component',
+        "topographic__elevation": "Land surface topographic elevation",
+        "component_maker__field": "A description of the fields made by the component",
     }
 
     def __init__(self, grid, spam, eggs=True, **kwds):
@@ -137,13 +126,17 @@ class ComponentMaker(Component):
         # been provided correctly. Then you should verify this in the unit test
         # file.
         if isinstance(spam, bool) is False:
-            msg = ('Keyword argument to ComponentMaker spam is not of type '
-                    'boolean. This is not permitted.')
+            msg = (
+                "Keyword argument to ComponentMaker spam is not of type "
+                "boolean. This is not permitted."
+            )
             raise ValueError(msg)
 
         if isinstance(eggs, float) is False:
-            msg = ('Keyword argument to ComponentMaker eggs is not of type '
-                   'float. This is not permitted.')
+            msg = (
+                "Keyword argument to ComponentMaker eggs is not of type "
+                "float. This is not permitted."
+            )
             raise ValueError(msg)
 
         self._spam = spam
@@ -151,10 +144,10 @@ class ComponentMaker(Component):
 
         # You might need to make a new model grid field, its worth checking if
         # exists first though.
-        if 'component_maker__field' in self._grid.at_node:
-            self.cmf = self._grid.at_node['component_maker__field']
+        if "component_maker__field" in self._grid.at_node:
+            self.cmf = self._grid.at_node["component_maker__field"]
         else:
-            self.cmf = self._grid.add_zeros('node', 'component_maker__field')
+            self.cmf = self._grid.add_zeros("node", "component_maker__field")
 
         # As you develop your component, the best thing to do is to look at
         # the source code of other components and to make an issue if you need
@@ -180,7 +173,7 @@ class ComponentMaker(Component):
         If you have Parameter, Examples, or values that this function Returns,
         you can make sections in the docstring for that.
         """
-        self.cmf[:] = self._eggs * np.random.rand(self._grid.size('node'))
+        self.cmf[:] = self._eggs * np.random.rand(self._grid.size("node"))
 
     def _private_function(self):
         """Sometimes you need a private function.

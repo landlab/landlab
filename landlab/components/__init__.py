@@ -1,5 +1,5 @@
-from .component_maker import ComponentMaker
 from .chi_index import ChiFinder
+from .component_maker import ComponentMaker
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
 from .detachment_ltd_erosion import DepthSlopeProductErosion, DetachmentLtdErosion

@@ -2,16 +2,16 @@
 """
 Unit tests for ComponentMaker
 """
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+import pytest
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from nose.tools import (with_setup, assert_true, assert_false, assert_raises,
-                        assert_almost_equal, assert_equal)
+from landlab import HexModelGrid, RasterModelGrid
+from landlab.components import ComponentMaker
+
 # nose.tools and numpy.testing are both good resources for functions that help
 # with unit tests. This is not all of the functions that are avaliable, but a
 # good smattering of functions to start with. Read their docs!
 
-from landlab import RasterModelGrid, HexModelGrid
-from landlab.components import ComponentMaker
 
 # it is important that each function that is tested starts with the word test
 # it is important that this file has a name that starts with the word test
@@ -21,6 +21,7 @@ from landlab.components import ComponentMaker
 # Ideally all options (e.g. if/elif/else blocks) are tested by your unit tests
 # and docstring tests.
 
+
 def test_simple():
     """This is a statment about what the test does. It should be short and informative."""
     pass
@@ -28,14 +29,16 @@ def test_simple():
 
 def test_spam_type():
     """Test that passing a bad variable type to spam raises a ValueError"""
-    mg = RasterModelGrid(3,3)
-    assert_raises(ValueError, ComponentMaker, mg, spam=1.0, eggs=1.0)
+    mg = RasterModelGrid(3, 3)
+    with pytest.raises(ValueError):
+        ComponentMaker(mg, spam=1.0, eggs=1.0)
 
 
 def test_eggs_type():
     """Test that passing a bad variable type to eggs raises a ValueError"""
-    mg = RasterModelGrid(3,3)
-    assert_raises(ValueError, ComponentMaker, mg, spam=True, eggs=False)
+    mg = RasterModelGrid(3, 3)
+    with pytest.raises(ValueError):
+        ComponentMaker(mg, spam=True, eggs=False)
 
 
 def test_that_component_works_with_non_raster_grids():
