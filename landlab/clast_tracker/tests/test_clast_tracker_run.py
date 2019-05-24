@@ -39,18 +39,20 @@ def test_run_one_step_flat(cc_flat, grid_flat):
                           d_star=1.)
 
     assert cc_flat.slope__WE.values[0] == 0.
+    assert np.isnan(cc_flat.slope__WE.values[1])
     assert cc_flat.slope__SN.values[0] == 0.
-    assert np.isnan(cc_flat.slope__steepest_azimuth.values[0])
-    assert cc_flat.slope__steepest_dip.values[0] == 0.
-    assert cc_flat.target_node_flag.values[0] == -1
-    assert cc_flat.target_node.values[0] == 12
+    assert np.isnan(cc_flat.slope__SN.values[1])
+    assert np.all(np.isnan(cc_flat.slope__steepest_azimuth.values[0]))
+    assert np.allclose(cc_flat.slope__steepest_dip.values, [0., 0.])
+    assert np.allclose(cc_flat.target_node_flag.values, [-1, -1])
+    assert np.allclose(cc_flat.target_node.values, [12, 13])
     assert cc_flat.clast__x.values[0,1] == cc_flat.clast__x.values[0,0]
     assert cc_flat.clast__y.values[0,1] == cc_flat.clast__y.values[0,0]
     assert cc_flat.clast__elev.values[0,1] == cc_flat.clast__elev.values[0,0]
-    assert cc_flat.total_travelled_dist.values[0] == 0.
+    assert cc_flat.clast__elev.values[1,1] == cc_flat.clast__elev.values[1,0]
+    assert np.allclose(cc_flat.total_travelled_dist.values, [0., 0.])
 
-
-def test_run_one_step(cc_south, grid_south):
+def test_run_one_step_south(cc_south, grid_south):
     fa = FlowAccumulator(grid_south,
                          'topographic__elevation',
                          flow_director='FlowDirectorSteepest')
@@ -59,7 +61,6 @@ def test_run_one_step(cc_south, grid_south):
 #    ld = LinearDiffuser(grid_south,
 #                        linear_diffusivity=kappa)
 
-    # South
     fa.run_one_step()
     cc_south.run_one_step(dt=10.,
                           Si=1.2,
@@ -81,6 +82,31 @@ def test_run_one_step(cc_south, grid_south):
     assert (cc_south.total_travelled_dist.values[0] ==
             cc_south.hop_length.values[0,1])
 
+def test_run_one_step_east(cc_east, grid_east):
+    fa = FlowAccumulator(grid_east,
+                         'topographic__elevation',
+                         flow_director='FlowDirectorSteepest')
+    kappa = 0.001
+
+    fa.run_one_step()
+    cc_east.run_one_step(dt=10.,
+                          Si=1.2,
+                          kappa=kappa,
+                          uplift=None,
+                          hillslope_river__threshold=1e4,
+                          lateral_spreading='off',
+                          disturbance_fqcy=1.,
+                          d_star=1.)
+
+    assert np.allclose(cc_east.slope__steepest_azimuth.values, [0.0, 0.0])
+    assert np.allclose(cc_east.slope__steepest_dip.values, [0.2914567944, 0.2914567944])
+    assert np.allclose(cc_east.total_travelled_dist.values,
+                       cc_east.hop_length.values[:,1])
+    assert np.all(cc_east.hop_length.values[:,1] > 0)
+    assert cc_east.close2boundary.values[1] == 1.0
+
+
+
 def test_run_one_step_close2bndry(cc_south_close2bndry, grid_south):
     fa = FlowAccumulator(grid_south,
                          'topographic__elevation',
@@ -95,3 +121,21 @@ def test_run_one_step_close2bndry(cc_south_close2bndry, grid_south):
                                       lateral_spreading='off',
                                       disturbance_fqcy=1.,
                                       d_star=1.)
+    assert cc_south_close2bndry.target_node.values[0] == 1
+
+
+def test_run_one_with_dev(cc_south, grid_south):
+    fa = FlowAccumulator(grid_south,
+                         'topographic__elevation',
+                         flow_director='FlowDirectorSteepest')
+    kappa = 0.001
+    fa.run_one_step()
+    cc_south.run_one_step(dt=10.,
+                                      Si=1.2,
+                                      kappa=kappa,
+                                      uplift=None,
+                                      hillslope_river__threshold=1e4,
+                                      lateral_spreading='on',
+                                      disturbance_fqcy=1.,
+                                      d_star=1.)
+    assert cc_south.change_x.values[0] != 0

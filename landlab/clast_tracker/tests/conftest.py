@@ -74,42 +74,42 @@ def grid_south():
 @pytest.fixture
 def cc_flat(grid_flat):
     return ClastCollection(grid_flat,
-                           clast_x=np.ones(1)*2,
-                           clast_y=np.ones(1)*2,
-                           clast_elev=np.ones(1)*6,
-                           clast_radius=np.ones(1)*0.5)
+                           clast_x=np.ones(2)*[2,3],
+                           clast_y=np.ones(2)*2,
+                           clast_elev=np.ones(2)*6,
+                           clast_radius=np.ones(2)*0.5)
 
 @pytest.fixture
 def cc_east(grid_east):
     return ClastCollection(grid_east,
-                           clast_x=np.ones(1)*2,
-                           clast_y=np.ones(1)*2,
-                           clast_elev=np.ones(1)*6,
-                           clast_radius=np.ones(1)*0.5)
+                           clast_x=np.ones(2)*[2,3],
+                           clast_y=np.ones(2)*2,
+                           clast_elev=np.ones(2)*6,
+                           clast_radius=np.ones(2)*0.5)
 
 @pytest.fixture
 def cc_north(grid_north):
     return ClastCollection(grid_north,
-                           clast_x=np.ones(1)*2,
-                           clast_y=np.ones(1)*2,
-                           clast_elev=np.ones(1)*6,
-                           clast_radius=np.ones(1)*0.5)
+                           clast_x=np.ones(2)*[2,3],
+                           clast_y=np.ones(2)*2,
+                           clast_elev=np.ones(2)*6,
+                           clast_radius=np.ones(2)*0.5)
 
 @pytest.fixture
 def cc_west(grid_west):
     return ClastCollection(grid_west,
-                           clast_x=np.ones(1)*2,
-                           clast_y=np.ones(1)*2,
-                           clast_elev=np.ones(1)*6,
-                           clast_radius=np.ones(1)*0.5)
+                           clast_x=np.ones(2)*[2,3],
+                           clast_y=np.ones(2)*2,
+                           clast_elev=np.ones(2)*6,
+                           clast_radius=np.ones(2)*0.5)
 
 @pytest.fixture
 def cc_south(grid_south):
     return ClastCollection(grid_south,
-                           clast_x=np.ones(1)*2,
-                           clast_y=np.ones(1)*2,
-                           clast_elev=np.ones(1)*6,
-                           clast_radius=np.ones(1)*0.5)
+                           clast_x=np.ones(2)*[2,3],
+                           clast_y=np.ones(2)*2,
+                           clast_elev=np.ones(2)*6,
+                           clast_radius=np.ones(2)*0.5)
 
 @pytest.fixture
 def cc_south_close2bndry(grid_south):

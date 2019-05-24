@@ -43,7 +43,6 @@ class ClastCollection(DataRecord):
          change_y = change in the y coordinate of the clast due to travel step
          hop_length = distance travelled in the current time step
          total_travelled_dist = total distance that the clast has travelled
-# to complete
 
     Clast movements are defined by a four-step process: detachment,
     travel direction, travel distance and deposition.
@@ -108,7 +107,6 @@ class ClastCollection(DataRecord):
     Methods
     -------
     run_one_step
-    clast_detach_proba
     clast_solver_Exponential
     phantom
 
@@ -478,7 +476,7 @@ class ClastCollection(DataRecord):
                            ClastCollection._cell_is_hillslope(self, clast) == \
                                False:
                 #print('close to boundary and/or river')
-                self['close2boundary'][clast].values = True
+                self.close2boundary.values[clast] = True # PAS UTILISEs
                 if _grid.at_node['flow__receiver_node'][_node] != _node:
                     # if FlowDirector designates a receiver node other than
                     # the node itself, clast is moving toward receiver node:
@@ -537,7 +535,7 @@ class ClastCollection(DataRecord):
                     # maximum angle of deviation from steepest slope direction:
                     max_deviation = (
                             np.pi * np.exp(
-                            ss_dip/(-np.sqrt(
+                                ss_dip/(-np.sqrt(
                                     self['lambda_0'][clast].values.item())))\
                                     * np.cos(ss_dip))
                     #print('max_dev=%s' %max_deviation)
@@ -613,7 +611,7 @@ class ClastCollection(DataRecord):
 
             if target_node_flag == -1:
                 # node is sink, clast does not move
-                we_slope = np.NaN
+                we_slope = np.NaN # METTRE 0 DANS LE CAS OU C'EST PLAT ? VOIR TEST CC_FLAT
                 sn_slope =np.NaN
                 ss_azimuth = np.NaN
                 ss_dip = 0.
@@ -1227,7 +1225,7 @@ class ClastCollection(DataRecord):
 
         return _phantom
 
-    def clast_detach_proba(self, clast):
+    def _clast_detach_proba(self, clast):
         """ Test if clast is detached (mobile): clast is detached if ...
 # TO COMPLETE
 
@@ -1360,7 +1358,7 @@ class ClastCollection(DataRecord):
                 #print('not phantom')
                 # Clast is in grid core
                 # Test if clast is detached:
-                if ClastCollection.clast_detach_proba(self, clast) == True:
+                if ClastCollection._clast_detach_proba(self, clast) == True:
                     #print('detached')
                     # Clast is detached -> update neighborhood info:
                     ClastCollection._neighborhood(self, clast)

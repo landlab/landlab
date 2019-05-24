@@ -19,7 +19,11 @@ def test_cc_name(cc_south):
     assert cc_south._name == 'ClastCollection'
 
 def test_cc_dim(cc_south):
-    assert cc_south.dims == ({'item_id': 1, 'time': 1})
+    assert len(cc_south.dims) == 2
+    assert cc_south.dims['item_id'] == 2
+    assert cc_south.dims['time'] == 1
+    assert np.allclose(cc_south.time.values, [0.])
+    assert np.allclose(cc_south.item_id.values, [0, 1])
 
 def test_cc_inherited_from_DR(cc_south):
     assert cc_south.earliest_time == 0.
