@@ -786,28 +786,81 @@ def test_diagonal_route():
         ] * 31557600., np.array([0.01, 0.01, 0.]))  # 8, 12, 16
 
 
-# def test_arbitrary_grid():
-#     """
-#     This does not run stably, though unclear what's up as profiles look OK
-#     """
-#     mg = RasterModelGrid((30, 30), xy_spacing=500.)
-#     for edge in ['top', 'left', 'bottom']:
-#         mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
-#     z = mg.add_zeros('node', 'topographic__elevation')
-#     np.random.seed(50)
-#     z += np.random.rand(mg.number_of_nodes) / 1000.
-#     z_init = z.copy()
-#     fa = FlowAccumulator(mg, flow_director="D8")
-#     pit = DepressionFinderAndRouter(mg, routing="D8")
-#     sde = SedDepEroder(mg, K_sp=1.e-4)
-#     dt = 1000.
-#     U = 0.001
-#     for i in range(1000):
-#         z[mg.core_nodes] += U * dt
-#         fa.run_one_step()
-#         pit.map_depressions()
-#         sde.run_one_step(dt, flooded_nodes=pit.lake_at_node)
-#         print(i)
+# add a regression test :
+def test_arbitrary_grid():
+    """
+    This does not run stably, though unclear what's up as profiles look OK
+    """
+    from landlab.components import LinearDiffuser
+    mg = RasterModelGrid((30, 30), xy_spacing=500.)
+    for edge in ['top', 'left', 'bottom']:
+        mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+    z = mg.add_zeros('node', 'topographic__elevation')
+    np.random.seed(50)
+    z += np.random.rand(mg.number_of_nodes) / 1000.
+    z_init = z.copy()
+    dfn = LinearDiffuser(mg, linear_diffusivity=1.e-2)
+    fa = FlowAccumulator(mg, flow_director="D8")
+    sde = SedDepEroder(mg, K_sp=1.e-4)
+    th = mg.at_node['channel_sediment__depth']
+    dt = 1000.
+    U = 0.001
+    for i in range(150):
+        z[mg.core_nodes] += U * dt
+        # z_init[:] = z
+        # dfn.run_one_step(dt)
+        # dz = z - z_init  # -ve when lowering
+        # th += dz
+        # np.clip(th, a_max=None, a_min=0., out=th)
+        # z -= th
+        th[mg.core_nodes] += 0.1 * U * dt  # a st st soil prod of 0.2*U
+        fa.run_one_step()
+        sde.run_one_step(dt)
+        # z += th
+        print(i)
+        if i%10 == 9:
+            figure(i)
+            imshow_grid_at_node(mg, z)
+    # --> Issue here is that top row, in particular top right, is high
+    # relative to rest of grid. Something is screwy here.
+
+
+# add a regression test :
+def test_arbitrary_grid_with_flood():
+    """
+    This does not run stably, though unclear what's up as profiles look OK
+    """
+    from landlab.components import LinearDiffuser
+    mg = RasterModelGrid((30, 30), xy_spacing=500.)
+    for edge in ['top', 'left', 'bottom']:
+        mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+    z = mg.add_zeros('node', 'topographic__elevation')
+    np.random.seed(50)
+    z += np.random.rand(mg.number_of_nodes) / 1000.
+    z_init = z.copy()
+    dfn = LinearDiffuser(mg, linear_diffusivity=1.e-2)
+    fa = FlowAccumulator(mg, flow_director="D8")
+    pit = DepressionFinderAndRouter(mg, routing="D8")
+    sde = SedDepEroder(mg, K_sp=1.e-4)
+    th = mg.at_node['channel_sediment__depth']
+    dt = 1000.
+    U = 0.001
+    for i in range(1000):
+        z[mg.core_nodes] += U * dt
+        # z_init[:] = z
+        # dfn.run_one_step(dt)
+        # dz = z - z_init  # -ve when lowering
+        # th += dz
+        # np.clip(th, a_max=None, a_min=0., out=th)
+        # z -= th
+        th[mg.core_nodes] += 0.1 * U * dt  # a st st soil prod of 0.2*U
+        fa.run_one_step()
+        pit.map_depressions()
+        sde.run_one_step(dt, flooded_nodes=pit.lake_at_node)
+        # z += th
+        print(i)
+    # --> Issue here is that top row, in particular top right, is high
+    # relative to rest of grid. Something is screwy here.
 
 
 def test_flooding():
