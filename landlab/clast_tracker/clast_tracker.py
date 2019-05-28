@@ -795,7 +795,7 @@ class ClastCollection(DataRecord):
                 ss_dip = 0.
             else:
                 ss_dip = np.arctan((sn_slope**2+we_slope**2)/ss_horiz_norm)
-            #print('ssdip= %s' %ss_dip)
+            print('ssdip= %s' %ss_dip)
 
             if we_slope == 0:
                 if sn_slope == 0:
