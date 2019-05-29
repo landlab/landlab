@@ -801,6 +801,7 @@ def test_arbitrary_grid():
     z_init = z.copy()
     dfn = LinearDiffuser(mg, linear_diffusivity=1.e-2)
     fa = FlowAccumulator(mg, flow_director="D8")
+    pit = DepressionFinderAndRouter(mg, routing="D8")
     sde = SedDepEroder(mg, K_sp=1.e-4, sed_dependency_type='almost_parabolic')
     sp = FastscapeEroder(mg, K_sp=1.e-4)
     th = mg.at_node['channel_sediment__depth']
@@ -811,7 +812,7 @@ def test_arbitrary_grid():
         z[mg.core_nodes] += 0.001 * U * dt
         fa.run_one_step()
         sp.run_one_step(dt)
-    for i in range(400):
+    for i in range(600):
         z[mg.core_nodes] += U * dt
         # z_init[:] = z
         # dfn.run_one_step(dt)
@@ -819,19 +820,25 @@ def test_arbitrary_grid():
         # th += dz
         # np.clip(th, a_max=None, a_min=0., out=th)
         # z -= th
-        th[mg.core_nodes] += 0.1 * U * dt  # a st st soil prod of 0.2*U
+        # th[mg.core_nodes] += 0.1 * U * dt  # a st st soil prod of 0.2*U
         fa.run_one_step()
-        sde.run_one_step(dt)
+        pit.map_depressions()
+        sde.run_one_step(dt, flooded_nodes=pit.lake_at_node)
         # z += th
         print(i)
-        if i%50 == 49:
+        if i%25 == 24:
             figure(i)
             imshow_grid_at_node(mg, z)
+            figure(i+600)
+            imshow_grid_at_node(mg, 'channel_sediment__depth')
     # --> Issue here is that top row, in particular top right, is high
     # relative to rest of grid. Something is screwy here.
     # Problem goes away if sed_dependency_type='linear_decline'
-    # In addition, wavespeed is grid scale independent!!!
     # Check convergence rules where the dstr node is flooded
+    # All this is emerging from the piling up of large amounts of sediment
+    # (10s m) in certain cells, which either diverts the flow (if BR surface
+    # is altered) or destabilises the SFF (topo is altered) in the next
+    # iteration
 
 
 # add a regression test :

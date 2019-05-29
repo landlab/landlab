@@ -703,10 +703,7 @@ class SedDepEroder(Component):
         flow_receiver = grid.at_node['flow__receiver_node']
         s_in = grid.at_node['flow__upstream_node_order']
         node_S = grid.at_node['topographic__steepest_slope']
-        true_topo = node_z + self._hillslope_sediment
-        # ^the component regards the topographic__elevation *as* the bedrock
-        # surface. This is done for reasons of stability. This param is the
-        # "true" surface.
+        br_z = node_z - self._hillslope_sediment
 
         dt_secs = dt * 31557600.
 
@@ -866,9 +863,15 @@ class SedDepEroder(Component):
                 this_tstep)
             # note dzbydt applies only to the ROCK surface (...which
             # is the topographic__elevation!)
-            node_z[grid.core_nodes] += (
-                dzbydt[grid.core_nodes] * this_tstep
-            )
+            # br_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
+            # node_z[grid.core_nodes] = (
+            #     br_z[grid.core_nodes] +
+            #     self._hillslope_sediment[grid.core_nodes]
+            # )
+            # could alternately be fudged as:
+            node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
+            # ...this is equally dodgy - channels don't switch, but topo
+            # is crazy
 
             if break_flag:
                 break
