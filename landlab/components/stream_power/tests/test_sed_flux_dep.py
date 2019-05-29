@@ -789,10 +789,10 @@ def test_diagonal_route():
 # add a regression test :
 def test_arbitrary_grid():
     """
-    This does not run stably, though unclear what's up as profiles look OK
+    This runs stably but wrongly, though unclear what's up as profiles look OK
     """
     from landlab.components import LinearDiffuser
-    mg = RasterModelGrid((30, 30), xy_spacing=500.)
+    mg = RasterModelGrid((50, 50), xy_spacing=100.)
     for edge in ['top', 'left', 'bottom']:
         mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
     z = mg.add_zeros('node', 'topographic__elevation')
@@ -801,11 +801,17 @@ def test_arbitrary_grid():
     z_init = z.copy()
     dfn = LinearDiffuser(mg, linear_diffusivity=1.e-2)
     fa = FlowAccumulator(mg, flow_director="D8")
-    sde = SedDepEroder(mg, K_sp=1.e-4)
+    sde = SedDepEroder(mg, K_sp=1.e-4, sed_dependency_type='almost_parabolic')
+    sp = FastscapeEroder(mg, K_sp=1.e-4)
     th = mg.at_node['channel_sediment__depth']
     dt = 1000.
     U = 0.001
-    for i in range(150):
+    # burn in a good network
+    for i in range(500):
+        z[mg.core_nodes] += 0.001 * U * dt
+        fa.run_one_step()
+        sp.run_one_step(dt)
+    for i in range(400):
         z[mg.core_nodes] += U * dt
         # z_init[:] = z
         # dfn.run_one_step(dt)
@@ -818,11 +824,14 @@ def test_arbitrary_grid():
         sde.run_one_step(dt)
         # z += th
         print(i)
-        if i%10 == 9:
+        if i%50 == 49:
             figure(i)
             imshow_grid_at_node(mg, z)
     # --> Issue here is that top row, in particular top right, is high
     # relative to rest of grid. Something is screwy here.
+    # Problem goes away if sed_dependency_type='linear_decline'
+    # In addition, wavespeed is grid scale independent!!!
+    # Check convergence rules where the dstr node is flooded
 
 
 # add a regression test :
@@ -938,26 +947,26 @@ def test_flooding():
 #     for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
 #                  mg.nodes_at_right_edge):
 #         mg.status_at_node[edge] = CLOSED_BOUNDARY
-# 
+#
 #     z = mg.add_zeros('node', 'topographic__elevation')
-# 
+#
 #     fr = FlowAccumulator(mg, flow_director='D8')
 #     sde = SedDepEroder(mg, K_sp=1.e-4, sed_dependency_type='almost_parabolic',
 #                        Qc='power_law', K_t=1.e-4)
-# 
+#
 #     z[:] = mg.node_y/10000.
 #     z.reshape((10, 5))[:, 2] *= 2.
 #     z.reshape((10, 5))[:, 3] *= 2.1
-# 
+#
 #     initz = z.copy()
-# 
+#
 #     dt = 100.
 #     up = 0.05
-# 
+#
 #     for i in range(1):
 #         fr.run_one_step()
 #         sde.run_one_step(dt)
-# 
+#
 #     assert_array_almost_equal(mg.at_node['channel_sediment__depth'],
 #                               np.array([0.,  0.,  0.,  0.,  0.,
 #                                         0.,  0.,  0.,  0.,  0.,
@@ -969,7 +978,7 @@ def test_flooding():
 #                                         0.,  0.,  0.,  0.,  0.,
 #                                         0.,  0.00023431,  0.,  0.,  0.,
 #                                         0.,  0.,  0.,  0.,  0.]))
-# 
+#
 #     assert_array_almost_equal(z - initz, np.array(
 #         [0.,  0.,  0.,  0.,  0.,
 #          0., -0.00076662, -0.0004,     -0.00118507,  0.,
@@ -981,10 +990,10 @@ def test_flooding():
 #          0., -0.00015763, -0.0014,     -0.00057541,  0.,
 #          0.,  0.00023431, -0.0016,     -0.00042,     0.,
 #          0.,  0.,  0.,  0.,  0.]))
-# 
+#
 #     assert_equal(len(sde._error_at_abort), 0)  # good convergence at all nodes
-# 
-# 
+#
+#
 # def test_sed_dep_new_genhumped_fullrun():
 #     """
 #     This tests only the power_law version of the SDE, using the
@@ -994,27 +1003,27 @@ def test_flooding():
 #     for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
 #                  mg.nodes_at_right_edge):
 #         mg.status_at_node[edge] = CLOSED_BOUNDARY
-# 
+#
 #     z = mg.add_zeros('node', 'topographic__elevation')
-# 
+#
 #     fr = FlowAccumulator(mg, flow_director='D8')
 #     sde = SedDepEroder(mg, K_sp=1.e-4,
 #                        sed_dependency_type='generalized_humped',
 #                        Qc='power_law', K_t=1.e-4)
-# 
+#
 #     z[:] = mg.node_y/10000.
 #     z.reshape((10, 5))[:, 2] *= 2.
 #     z.reshape((10, 5))[:, 3] *= 2.1
-# 
+#
 #     initz = z.copy()
-# 
+#
 #     dt = 100.
 #     up = 0.05
-# 
+#
 #     for i in range(1):
 #         fr.run_one_step()
 #         sde.run_one_step(dt)
-# 
+#
 #     ans = np.array([0.,  0.,  0.,  0.,  0.,
 #                     0.02,  0.01940896,  0.03969863,  0.04112046,  0.02,
 #                     0.04,  0.03948890,  0.07968035,  0.08318039,  0.04,
@@ -1025,10 +1034,10 @@ def test_flooding():
 #                     0.14,  0.13987971,  0.27894520,  0.29357949,  0.14,
 #                     0.16,  0.16023431,  0.31879451,  0.33568356,  0.16,
 #                     0.18,  0.18,  0.36,  0.378,  0.18])
-# 
+#
 #     assert_array_almost_equal(z, ans)
-# 
-# 
+#
+#
 # def test_sed_dep_new_lindecl_fullrun():
 #     """
 #     This tests only the power_law version of the SDE, using the
@@ -1039,9 +1048,9 @@ def test_flooding():
 #         mg.nodes_at_left_edge, mg.nodes_at_top_edge, mg.nodes_at_right_edge
 #     ):
 #         mg.status_at_node[edge] = CLOSED_BOUNDARY
-# 
+#
 #     z = mg.add_zeros("node", "topographic__elevation")
-# 
+#
 #     fr = FlowAccumulator(mg, flow_director='D8')
 #     sde = SedDepEroder(
 #         mg,
@@ -1049,20 +1058,20 @@ def test_flooding():
 #         sed_dependency_type='linear_decline',
 #         Qc='power_law',
 #         K_t=1.e-4)
-# 
+#
 #     z[:] = mg.node_y/10000.
 #     z.reshape((10, 5))[:, 2] *= 2.
 #     z.reshape((10, 5))[:, 3] *= 2.1
-# 
+#
 #     initz = z.copy()
-# 
+#
 #     dt = 100.
 #     up = 0.05
-# 
+#
 #     for i in range(1):
 #         fr.run_one_step()
 #         sde.run_one_step(dt)
-# 
+#
 #     ans = np.array([0.,  0.,  0.,  0.,  0.,
 #                     0.02,  0.01955879,  0.03980000,  0.04128996,  0.02,
 #                     0.04,  0.03961955,  0.07978787,  0.08333878,  0.04,
@@ -1073,10 +1082,10 @@ def test_flooding():
 #                     0.14,  0.13993079,  0.27930000,  0.29367338,  0.14,
 #                     0.16,  0.16023431,  0.31920000,  0.33579000,  0.16,
 #                     0.18,  0.18,  0.36,  0.378,  0.18])
-# 
+#
 #     assert_array_almost_equal(z, ans)
-# 
-# 
+#
+#
 # def test_sed_dep_new_const_fullrun():
 #     """
 #     This tests only the power_law version of the SDE, using the
@@ -1087,9 +1096,9 @@ def test_flooding():
 #         mg.nodes_at_left_edge, mg.nodes_at_top_edge, mg.nodes_at_right_edge
 #     ):
 #         mg.status_at_node[edge] = CLOSED_BOUNDARY
-# 
+#
 #     z = mg.add_zeros('node', 'topographic__elevation')
-# 
+#
 #     fr = FlowAccumulator(mg, flow_director='D8')
 #     sde = SedDepEroder(
 #         mg,
@@ -1098,20 +1107,20 @@ def test_flooding():
 #         Qc='power_law',
 #         K_t=1.e-4
 #     )
-# 
+#
 #     z[:] = mg.node_y/10000.
 #     z.reshape((10, 5))[:, 2] *= 2.
 #     z.reshape((10, 5))[:, 3] *= 2.1
-# 
+#
 #     initz = z.copy()
-# 
+#
 #     dt = 100.
 #     up = 0.05
-# 
+#
 #     for i in range(1):
 #         fr.run_one_step()
 #         sde.run_one_step(dt)
-# 
+#
 #     ans = np.array([0.,  0.,  0.,  0.,  0.,
 #                     0.02,  0.01922540,  0.03960000,  0.04081206,  0.02,
 #                     0.04,  0.03927889,  0.07957574,  0.08288878,  0.04,
@@ -1122,10 +1131,10 @@ def test_flooding():
 #                     0.14,  0.13960000,  0.27860000,  0.29340603,  0.14,
 #                     0.16,  0.16023431,  0.31840000,  0.33558000,  0.16,
 #                     0.18,  0.18,  0.36,  0.378,  0.18])
-# 
+#
 #     assert_array_almost_equal(z, ans)
-# 
-# 
+#
+#
 # def test_sed_dep_w_hillslopes():
 #     """
 #     This tests only the power_law version of the SDE, with a hillslope input.
@@ -1135,11 +1144,11 @@ def test_flooding():
 #         mg.nodes_at_left_edge, mg.nodes_at_top_edge, mg.nodes_at_right_edge
 #     ):
 #         mg.status_at_node[edge] = CLOSED_BOUNDARY
-# 
+#
 #     z = mg.add_zeros('node', 'topographic__elevation')
 #     th = mg.add_zeros('node', 'channel_sediment__depth')
 #     th[mg.core_nodes] += 0.001
-# 
+#
 #     fr = FlowAccumulator(mg, flow_director='D8')
 #     sde = SedDepEroder(
 #         mg,
@@ -1148,24 +1157,24 @@ def test_flooding():
 #         Qc='power_law',
 #         K_t=1.e-4
 #     )
-# 
+#
 #     z[:] = mg.node_y/10000.
 #     z.reshape((10, 5))[:, 2] *= 2.
 #     z.reshape((10, 5))[:, 3] *= 2.1
-# 
+#
 #     initz = z.copy()
-# 
+#
 #     dt = 100.
 #     up = 0.05
-# 
+#
 #     for i in range(1):
 #         print(i)
 #         fr.run_one_step()
 #         sde.run_one_step(dt)
-# 
+#
 #     # test binding of field occurs correctly:
 #     assert th is mg.at_node['channel_sediment__depth']
-# 
+#
 #     assert_array_almost_equal(
 #         mg.at_node['channel_sediment__depth'],
 #         np.array([0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
@@ -1185,7 +1194,7 @@ def test_flooding():
 #                   0.00000000e+00,   5.80000000e-04,   0.00000000e+00,
 #                   0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
 #                   0.00000000e+00,   0.00000000e+00]))
-# 
+#
 #     assert_array_almost_equal(z, np.array(
 #         [0.,  0.,  0.,  0.,  0.,
 #          0.02,  0.01877957,  0.0396,      0.04055596,  0.02,
@@ -1197,6 +1206,6 @@ def test_flooding():
 #          0.14,  0.14016569,  0.27831429,  0.29323206,  0.14,
 #          0.16,  0.16073431,  0.318025,    0.335580,    0.16,
 #          0.18,  0.18,  0.36,  0.378,  0.18]))
-# 
+#
 #     # good convergence at all nodes
 #     assert_equal(len(sde._error_at_abort), 0)

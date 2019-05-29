@@ -751,147 +751,140 @@ class SedDepEroder(Component):
         # ^ this will get refilled below. For now, the sed has been "fully
         # mobilised" off the bed; at the end of the step it can resettle.
 
-        if True:
-            self._sed_transport_func.update_prefactors_without_slope_terms()
-            self._erosion_func.update_prefactors_without_slope_terms()
-            # ^doesn't include S**n*f(Qc/Qc)
-            downward_slopes = node_S.clip(np.spacing(0.))
-            # for the stability condition:
-            erosion_prefactor_withA = (
-                self._erosion_func.erosion_prefactor_withA
-            )
-            if np.isclose(self._n, 1.):
-                wave_stab_cond_denominator = erosion_prefactor_withA
-            else:
-                wave_stab_cond_denominator = (
-                    erosion_prefactor_withA * downward_slopes**(self._n - 1.))
-                # this is a bit cheeky; we're basically assuming the slope
-                # won't change much as the tstep evolves
-                # justifiable as the -1 suppresses the sensitivity to S
-                # small n will be problematic: the machine precision calc
-                # ensures it won't crash, but it's not going to be right
-                # for now, we're going to be conservative and just exclude the
-                # role of the value of the sed flux fn in modifying the calc;
-                # i.e., we assume f(Qs,Qc) = 1 in the stability calc.
-
-            max_tstep_wave = WAVE_STABILITY_PREFACTOR * np.nanmin(
-                link_length / wave_stab_cond_denominator
-            )
-            # ^adding additional scaling per CHILD; CHILD uses 0.2
-            # This should now be redundant, as we're using machine precision
-            # if np.isclose(self._n, 0.):
-            #     # janky special condition to enable code to still run for the
-            #     # limiting case of n_sp == 0 -> this throws the stability cond
-            #     # entirely onto the diffusive aspect, so be very careful!!
-            #     max_tstep_wave = 100000000000.
-            self.wave_denom = wave_stab_cond_denominator
-            self.link_length = link_length
-            self.max_tstep_wave = max_tstep_wave
-
-            t_elapsed_internal = 0.
-            break_flag = False
-            rel_sed_flux = np.empty_like(node_A)
-
-            dzbydt = np.zeros(grid.number_of_nodes, dtype=float)
-            self._loopcounter = 0
-            while 1:
-                flood_node = None  # int if timestep is limited by flooding
-                flood_tstep = dt_secs
-                downward_slopes[is_flooded] = 0.
-
-                transport_capacities = (
-                    self._sed_transport_func.calc_erosion_rates(
-                        downward_slopes, is_flooded
-                    )
-                )
-
-                erosion_prefactor_withS = (
-                    self._erosion_func.calc_erosion_rates(
-                        downward_slopes, is_flooded
-                    )
-                )  # no time, no fqs
-
-                river_volume_flux_into_node = np.zeros(grid.number_of_nodes,
-                                                       dtype=float)
-                dzbydt.fill(0.)
-                cell_areas = self.cell_areas
-
-                self._is_it_TL = np.zeros(
-                    self.grid.number_of_nodes, dtype=np.int8)
-
-                iterate_sde_downstream(s_in, cell_areas,
-                                       self._hillslope_sediment_flux_wzeros,
-                                       self._porosity,
-                                       river_volume_flux_into_node,
-                                       transport_capacities,
-                                       erosion_prefactor_withS,
-                                       rel_sed_flux, self._is_it_TL,
-                                       self._voldroprate, flow_receiver,
-                                       self._pseudoimplicit_repeats,
-                                       dzbydt, self._sed_flux_fn_gen,
-                                       self.kappa, self.nu, self.c,
-                                       self.phi, self.norm)
-
-                # now perform a CHILD-like convergence-based stability test:
-                ratediff = dzbydt[flow_receiver] - dzbydt
-                # if this is +ve, the nodes are converging
-                downstr_vert_diff = node_z - node_z[flow_receiver]
-                # ^+ve when dstr is lower
-                botharepositive = np.logical_and(ratediff > 0.,
-                                                 downstr_vert_diff > 0.)
-                try:
-                    t_to_converge = np.amin(
-                        downstr_vert_diff[botharepositive] /
-                        ratediff[botharepositive])
-                except ValueError:  # no node pair converges
-                    t_to_converge = dt_secs
-                t_to_converge *= CONV_FACTOR
-                # ^arbitrary safety factor; CHILD uses 0.3
-                # check this is a more restrictive condition than Courant:
-                t_to_converge = min((t_to_converge, max_tstep_wave))
-                if t_to_converge < 3600. and flood_node is not None:
-                    t_to_converge = 3600.  # forbid tsteps < 1hr; a bit hacky
-                # without this, it's possible for the component to get stuck in
-                # a loop, presumably when the gradient is "supposed" to level
-                # out. We make exception got nodes that need to be filled in
-                # "just so"
-                # the new handling of flooded nodes as of 25/10/16 should make
-                # this redundant, but retained to help ensure stability
-                this_tstep = min((t_to_converge, dt_secs))
-                t_elapsed_internal += this_tstep
-                if t_elapsed_internal >= dt_secs:
-                    break_flag = True
-                    t_to_converge = dt_secs - t_elapsed_internal + this_tstep
-                    self.t_to_converge = t_to_converge
-                    this_tstep -= t_elapsed_internal - dt_secs
-
-                # back-calc the sed budget in the nodes, as appropriate:
-                self._hillslope_sediment[self.grid.core_nodes] += (
-                    self._voldroprate[self.grid.core_nodes] /
-                    self.grid.cell_area_at_node[self.grid.core_nodes] *
-                    this_tstep)
-                # note dzbydt applies only to the ROCK surface (...which
-                # is the topographic__elevation!)
-                node_z[grid.core_nodes] += (
-                    dzbydt[grid.core_nodes] * this_tstep
-                )
-
-                if break_flag:
-                    break
-                else:
-                    self._loopcounter += 1
-                # do we need to reroute the flow/recalc the slopes here?
-                # -> NO, slope is such a minor component of Diff we'll be OK
-                # BUT could be important not for the stability, but for the
-                # actual calc. So YES to the slopes.
-                node_S = np.zeros_like(node_S)
-                # print link_length[core_draining_nodes]
-                node_S[core_draining_nodes] = (node_z-node_z[flow_receiver])[
-                    core_draining_nodes
-                ]/link_length[core_draining_nodes]
-                downward_slopes = node_S.clip(0.)
+        self._sed_transport_func.update_prefactors_without_slope_terms()
+        self._erosion_func.update_prefactors_without_slope_terms()
+        # ^doesn't include S**n*f(Qc/Qc)
+        downward_slopes = node_S.clip(np.spacing(0.))
+        # for the stability condition:
+        erosion_prefactor_withA = (
+            self._erosion_func.erosion_prefactor_withA
+        )
+        if np.isclose(self._n, 1.):
+            wave_stab_cond_denominator = erosion_prefactor_withA
         else:
-            raise TypeError  # should never trigger
+            wave_stab_cond_denominator = (
+                erosion_prefactor_withA * downward_slopes**(self._n - 1.))
+            # this is a bit cheeky; we're basically assuming the slope
+            # won't change much as the tstep evolves
+            # justifiable as the -1 suppresses the sensitivity to S
+            # small n will be problematic: the machine precision calc
+            # ensures it won't crash, but it's not going to be right
+            # for now, we're going to be conservative and just exclude the
+            # role of the value of the sed flux fn in modifying the calc;
+            # i.e., we assume f(Qs,Qc) = 1 in the stability calc.
+
+        max_tstep_wave = WAVE_STABILITY_PREFACTOR * np.nanmin(
+            link_length / wave_stab_cond_denominator
+        )
+        # ^adding additional scaling per CHILD; CHILD uses 0.2
+
+        self.wave_denom = wave_stab_cond_denominator
+        self.link_length = link_length
+        self.max_tstep_wave = max_tstep_wave
+
+        t_elapsed_internal = 0.
+        break_flag = False
+        rel_sed_flux = np.empty_like(node_A)
+
+        dzbydt = np.zeros(grid.number_of_nodes, dtype=float)
+        self._loopcounter = 0
+        while 1:
+            flood_node = None  # int if timestep is limited by flooding
+            flood_tstep = dt_secs
+            downward_slopes[is_flooded] = 0.
+
+            transport_capacities = (
+                self._sed_transport_func.calc_erosion_rates(
+                    downward_slopes, is_flooded
+                )
+            )
+
+            erosion_prefactor_withS = (
+                self._erosion_func.calc_erosion_rates(
+                    downward_slopes, is_flooded
+                )
+            )  # no time, no fqs
+
+            river_volume_flux_into_node = np.zeros(grid.number_of_nodes,
+                                                   dtype=float)
+            dzbydt.fill(0.)
+            cell_areas = self.cell_areas
+
+            self._is_it_TL = np.zeros(
+                self.grid.number_of_nodes, dtype=np.int8)
+
+            iterate_sde_downstream(s_in, cell_areas,
+                                   self._hillslope_sediment_flux_wzeros,
+                                   self._porosity,
+                                   river_volume_flux_into_node,
+                                   transport_capacities,
+                                   erosion_prefactor_withS,
+                                   rel_sed_flux, self._is_it_TL,
+                                   self._voldroprate, flow_receiver,
+                                   self._pseudoimplicit_repeats,
+                                   dzbydt, self._sed_flux_fn_gen,
+                                   self.kappa, self.nu, self.c,
+                                   self.phi, self.norm)
+
+            # now perform a CHILD-like convergence-based stability test:
+            ratediff = dzbydt[flow_receiver] - dzbydt
+            # if this is +ve, the nodes are converging
+            downstr_vert_diff = node_z - node_z[flow_receiver]
+            # ^+ve when dstr is lower
+            botharepositive = np.logical_and(ratediff > 0.,
+                                             downstr_vert_diff > 0.)
+            try:
+                t_to_converge = np.amin(
+                    downstr_vert_diff[botharepositive] /
+                    ratediff[botharepositive])
+            except ValueError:  # no node pair converges
+                t_to_converge = dt_secs
+            t_to_converge *= CONV_FACTOR
+            # ^arbitrary safety factor; CHILD uses 0.3
+            # check this is a more restrictive condition than Courant:
+            t_to_converge = min((t_to_converge, max_tstep_wave))
+            if t_to_converge < 3600. and flood_node is not None:
+                t_to_converge = 3600.  # forbid tsteps < 1hr; a bit hacky
+            # without this, it's possible for the component to get stuck in
+            # a loop, presumably when the gradient is "supposed" to level
+            # out. We make exception got nodes that need to be filled in
+            # "just so"
+            # the new handling of flooded nodes as of 25/10/16 should make
+            # this redundant, but retained to help ensure stability
+            this_tstep = min((t_to_converge, dt_secs))
+            t_elapsed_internal += this_tstep
+            if t_elapsed_internal >= dt_secs:
+                break_flag = True
+                t_to_converge = dt_secs - t_elapsed_internal + this_tstep
+                self.t_to_converge = t_to_converge
+                this_tstep -= t_elapsed_internal - dt_secs
+
+            # back-calc the sed budget in the nodes, as appropriate:
+            self._hillslope_sediment[self.grid.core_nodes] += (
+                self._voldroprate[self.grid.core_nodes] /
+                self.grid.cell_area_at_node[self.grid.core_nodes] *
+                this_tstep)
+            # note dzbydt applies only to the ROCK surface (...which
+            # is the topographic__elevation!)
+            node_z[grid.core_nodes] += (
+                dzbydt[grid.core_nodes] * this_tstep
+            )
+
+            if break_flag:
+                break
+            else:
+                self._loopcounter += 1
+            # do we need to reroute the flow/recalc the slopes here?
+            # -> NO, slope is such a minor component of Diff we'll be OK
+            # BUT could be important not for the stability, but for the
+            # actual calc. So YES to the slopes.
+            node_S = np.zeros_like(node_S)
+            # print link_length[core_draining_nodes]
+            node_S[core_draining_nodes] = (
+                (node_z - node_z[flow_receiver])[core_draining_nodes] /
+                link_length[core_draining_nodes]
+            )
+            downward_slopes = node_S.clip(0.)
 
         grid.at_node['channel_sediment__volumetric_transport_capacity'][
             :] = transport_capacities
@@ -957,7 +950,7 @@ class SedDepEroder(Component):
         Calculate the sediment discharge from each node, based on
         the already calculated total discharge into the node, and
         the already calculated relative sediment flux.
-        
+
         Returns
         -------
         Qout : nnode-long array of floats
