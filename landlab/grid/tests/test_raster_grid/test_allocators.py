@@ -13,7 +13,7 @@ def generate_zeros_tests():
         for type in TYPES:
 
             def _test():
-                rmg = RasterModelGrid(4, 5)
+                rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
                 assert_array_equal(
                     rmg.zeros(centering=element),
@@ -29,7 +29,7 @@ def generate_add_zeros_tests():
         for type in TYPES:
 
             def _test():
-                rmg = RasterModelGrid(4, 5)
+                rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
                 rtn_values = rmg.add_zeros(element, "name")
                 assert rtn_values is rmg.field_values(element, "name")
@@ -46,7 +46,7 @@ def generate_ones_tests():
         for type in TYPES:
 
             def _test():
-                rmg = RasterModelGrid(4, 5)
+                rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
                 assert_array_equal(
                     rmg.ones(centering=element),
@@ -62,7 +62,7 @@ def generate_add_ones_tests():
         for type in TYPES:
 
             def _test():
-                rmg = RasterModelGrid(4, 5)
+                rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
                 rtn_values = rmg.add_ones(element, "name")
                 assert rtn_values is rmg.field_values(element, "name")
@@ -79,7 +79,7 @@ def generate_empty_tests():
         for type in TYPES:
 
             def _test():
-                rmg = RasterModelGrid(4, 5)
+                rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
                 assert rmg.empty(centering=element).size == number_of_elements
 
@@ -92,7 +92,7 @@ def generate_add_empty_tests():
         for type in TYPES:
 
             def _test():
-                rmg = RasterModelGrid(4, 5)
+                rmg = RasterModelGrid((4, 5))
                 number_of_elements = rmg.number_of_elements(element)
                 rtn_values = rmg.add_empty(element, "name")
                 assert rtn_values is rmg.field_values(element, "name")

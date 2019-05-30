@@ -8,7 +8,7 @@ from landlab.components import FlowAccumulator, StreamPowerSmoothThresholdEroder
 
 def test_bad_nsp():
 
-    mg = RasterModelGrid(4, 4)
+    mg = RasterModelGrid((4, 4))
     mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
     with pytest.raises(ValueError):
         Spst(mg, K_sp=1.0, n_sp=1.01)
@@ -22,7 +22,7 @@ def test_no_thresh():
     threshold = 0.0
     dt = 1000
 
-    mg = RasterModelGrid(30, 3, xy_spacing=100.0)
+    mg = RasterModelGrid((30, 3), xy_spacing=100.0)
     mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
     z = mg.zeros(at="node")
     mg["node"]["topographic__elevation"] = z + np.random.rand(len(z)) / 1000.0
@@ -50,7 +50,7 @@ def test_with_thresh():
     threshold = 1.0
     dt = 1000
 
-    mg = RasterModelGrid(30, 3, xy_spacing=100.0)
+    mg = RasterModelGrid((30, 3), xy_spacing=100.0)
     mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
     z = mg.zeros(at="node")
     mg["node"]["topographic__elevation"] = z + np.random.rand(len(z)) / 1000.0

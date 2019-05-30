@@ -96,7 +96,7 @@ class LithoLayers(Lithology):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import LithoLayers
-        >>> mg = RasterModelGrid(3, 3)
+        >>> mg = RasterModelGrid((3, 3))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
 
         Create a LithoLayers with flatlying layers that altrnate between

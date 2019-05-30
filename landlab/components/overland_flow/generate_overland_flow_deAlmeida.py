@@ -146,14 +146,14 @@ class OverlandFlow(Component):
 
     _var_mapping = {
         "surface_water__depth": "node",
-        "topographic__elevtation": "node",
+        "topographic__elevation": "node",
         "surface_water__discharge": "link",
         "water_surface__gradient": "link",
     }
 
     _var_doc = {
         "surface_water__depth": "The depth of water at each node.",
-        "topographic__elevtation": "The land surface elevation.",
+        "topographic__elevation": "The land surface elevation.",
         "surface_water__discharge": "The discharge of water on active links.",
         "water_surface__gradient": "Downstream gradient of the water surface.",
     }
