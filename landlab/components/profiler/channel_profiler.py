@@ -377,11 +377,13 @@ class ChannelProfiler(_BaseProfiler):
     To illustrate, lets start by creating a landscape model.
 
     >>> from landlab.components import FastscapeEroder
-    >>> mg = RasterModelGrid((40, 60), xy_spacing=100)
+    >>> mg = RasterModelGrid((100, 120), xy_spacing=2)
+    >>> np.random.seed(42)
     >>> z = mg.add_zeros('topographic__elevation', at='node')
+    >>> z[mg.core_nodes] += np.random.randn(mg.core_nodes.size)
     >>> fa = FlowAccumulator(mg)
-    >>> sp = FastscapeEroder(mg, K_sp=.0001)
-    >>> dt = 100
+    >>> sp = FastscapeEroder(mg, K_sp=0.0001)
+    >>> dt = 1000
     >>> for i in range(200):
     ...     fa.run_one_step()
     ...     sp.run_one_step(dt=dt)
@@ -400,10 +402,10 @@ class ChannelProfiler(_BaseProfiler):
 
     >>> profiler = ChannelProfiler(mg, number_of_watersheds=4)
 
-    Extract the single largest channel draining to node 84. Note that the
+    Extract the single largest channel draining to node 2933. Note that the
     keyword argument ``outlet_nodes`` must be an iterable.
 
-    >>> profiler = ChannelProfiler(mg, outlet_nodes=[84])
+    >>> profiler = ChannelProfiler(mg, outlet_nodes=[2933])
 
     Extract the largest channel draining to each of the four largest outlet
     nodes on the model grid boundary traced back to nodes with
@@ -439,16 +441,17 @@ class ChannelProfiler(_BaseProfiler):
 
     >>> profiler = ChannelProfiler(
     ...     mg,
-    ...     outlet_nodes=[24, 45],
+    ...     outlet_nodes=[6661,  6250],
     ...     number_of_watersheds=2,
     ...     minimum_channel_threshold=500)
 
     Extract every possible channel (not just the largest one), leading from the
-    two highest model grid boundary nodes traced back to a
-    ``channel_definition_field`` threshold of 500.
+    four highest model grid boundary nodes traced back to a
+    ``channel_definition_field`` threshold of 20.
     >>> profiler = ChannelProfiler(mg,
+    ...     number_of_watersheds=4,
     ...     main_channel_only=False,
-    ...     minimum_channel_threshold=500)
+    ...     minimum_channel_threshold=20)
     """
 
     _name = "ChannelProfiler"
