@@ -16,7 +16,7 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
                      iterate_sde_downstream)
 
 WAVE_STABILITY_PREFACTOR = 0.2
-CONV_FACTOR = 0.3  # controls the convergence of node elevs in the loop
+CONV_FACTOR = 0.95  # controls the convergence of node elevs in the loop
 
 # NB: The inline documentation of this component freely (& incorrectly!)
 # interchanges "flux" and "discharge". Almost always, "discharge" is intended
@@ -770,28 +770,10 @@ class SedDepEroder(Component):
         erosion_prefactor_withA = (
             self._erosion_func.erosion_prefactor_withA
         )
-        if np.isclose(self._n, 1.):
-            wave_stab_cond_denominator = erosion_prefactor_withA
-        else:
-            wave_stab_cond_denominator = (
-                erosion_prefactor_withA * downward_slopes**(self._n - 1.))
-            # this is a bit cheeky; we're basically assuming the slope
-            # won't change much as the tstep evolves
-            # justifiable as the -1 suppresses the sensitivity to S
-            # small n will be problematic: the machine precision calc
-            # ensures it won't crash, but it's not going to be right
-            # for now, we're going to be conservative and just exclude the
-            # role of the value of the sed flux fn in modifying the calc;
-            # i.e., we assume f(Qs,Qc) = 1 in the stability calc.
 
-        max_tstep_wave = WAVE_STABILITY_PREFACTOR * np.nanmin(
-            link_length / wave_stab_cond_denominator
-        )
         # ^adding additional scaling per CHILD; CHILD uses 0.2
 
-        self.wave_denom = wave_stab_cond_denominator
         self.link_length = link_length
-        self.max_tstep_wave = max_tstep_wave
 
         t_elapsed_internal = 0.
         break_flag = False
@@ -847,8 +829,6 @@ class SedDepEroder(Component):
                 ratediff = dzbydt[flow_receiver] - dzbydt
             # if this is +ve, the nodes are converging
             downstr_vert_diff = node_z - node_z[flow_receiver]
-            # ^This should probably be replaced with an explicitly "flooded"
-            # condition - though with care to permit true filling
             botharepositive = np.logical_and(ratediff > 0.,
                                              downstr_vert_diff > 0.)
             try:
@@ -859,8 +839,6 @@ class SedDepEroder(Component):
                 t_to_converge = dt_secs
             t_to_converge *= CONV_FACTOR
             # ^arbitrary safety factor; CHILD uses 0.3
-            # check this is a more restrictive condition than Courant:
-            t_to_converge = min((t_to_converge, max_tstep_wave))
             if t_to_converge < 3600. and flood_node is not None:
                 t_to_converge = 3600.  # forbid tsteps < 1hr; a bit hacky
             # without this, it's possible for the component to get stuck in
