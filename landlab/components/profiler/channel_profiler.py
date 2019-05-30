@@ -789,3 +789,4 @@ class ChannelProfiler(_BaseProfiler):
                 ids = self._net_struct[outlet_id][segment_tuple]["ids"]
                 d = distance_upstream[ids]
                 self._net_struct[outlet_id][segment_tuple]["distances"] = d - offset
+                # TODO verify that that the offset is correct...
