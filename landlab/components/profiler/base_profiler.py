@@ -204,11 +204,13 @@ def _recursive_min(jagged):
     return min(_recursive_min(j) if hasattr(j, "__iter__") else j for j in jagged)
 
 
-class _BaseProfiler(Component, metaclass=ABCMeta):
+class _BaseProfiler(Component):
     """Base class to handle profilers.
 
     Primarily exists to handle plotting.
     """
+
+    __metaclass__ = ABCMeta
 
     _name = "_BaseProfiler"
 
