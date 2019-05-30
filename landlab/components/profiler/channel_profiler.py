@@ -22,6 +22,7 @@ class ChannelProfiler(_BaseProfiler):
     component. However, this component does not require that the
     FlowAccumulator was used. Instead it expects that the following at-node
     grid fields will be present:
+    ::
 
         'flow__receiver_node'
         'flow__link_to_receiver_node'
@@ -88,7 +89,7 @@ class ChannelProfiler(_BaseProfiler):
 
     Default behavior of this component is to extract only the largest channel
     in the single largest watershed. This would extract the following channel
-    segment.
+    segment (indicated by the *s).
     ::
 
         X X X X X X X X X X
@@ -149,7 +150,7 @@ class ChannelProfiler(_BaseProfiler):
 
     In the main channel only example, the datastructure will look as follows:
 
-    . code-block:: python
+    .. code-block:: python
 
         {3: {
             (3, 48) : {
@@ -173,7 +174,7 @@ class ChannelProfiler(_BaseProfiler):
 
     The data structure associated with this set of three segments is
 
-        . code-block:: python
+        .. code-block:: python
 
             {3: {
                 (3, 23) : {
@@ -226,7 +227,7 @@ class ChannelProfiler(_BaseProfiler):
     ``main_channel_only=False`` will be as follows. Note that each watershed
     has been assigned a different color tuple value.
 
-    . code-block:: python
+    .. code-block:: python
 
         {8: {
             (8, 26) : {
