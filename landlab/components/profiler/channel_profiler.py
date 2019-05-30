@@ -564,10 +564,9 @@ class ChannelProfiler(_BaseProfiler):
             ]
 
             if number_of_watersheds is None:
-                big_enough_watersheds = (
-                    self._channel_definition_field[large_outlet_ids]
-                    > minimum_outlet_threshold
-                )
+                big_enough_watersheds = self._channel_definition_field[
+                    large_outlet_ids
+                ] > max(minimum_outlet_threshold, minimum_channel_threshold)
                 outlet_nodes = large_outlet_ids[big_enough_watersheds]
             else:
                 outlet_nodes = large_outlet_ids[-number_of_watersheds:]
