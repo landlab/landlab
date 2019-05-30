@@ -20,7 +20,6 @@ def EmptyBaseProfiler():
         def network_ids(self):
             return 2
 
-
     return EmptyBaseProfiler
 
 

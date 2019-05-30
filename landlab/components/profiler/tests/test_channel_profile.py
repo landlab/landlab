@@ -76,6 +76,9 @@ def test_asking_for_too_many_watersheds():
     with pytest.raises(ValueError):
         ChannelProfiler(mg, number_of_watersheds=3)
 
+    with pytest.raises(ValueError):
+        ChannelProfiler(mg, number_of_watersheds=None, minimum_outlet_threshold=200)
+
 
 def test_no_minimum_channel_threshold():
     mg = RasterModelGrid(10, 10)
@@ -275,7 +278,7 @@ def test_plotting_and_structure(profile_example_grid):
             np.array([103, 163]),
         ]
     )
-    flattened = _flatten_structure(profiler._net_ids)
+    flattened = _flatten_structure(profiler.network_ids)
     for idx in range(len(correct_structure)):
         np.testing.assert_array_equal(flattened[idx], correct_structure[idx])
 
@@ -349,10 +352,10 @@ def test_different_kwargs(profile_example_grid):
             109,
         ]
     )
-    np.testing.assert_array_equal(profiler2._net_ids[0][0], correct_structure)
+    np.testing.assert_array_equal(profiler2.network_ids[0][0], correct_structure)
 
 
-def test_re_calculating_net_ids_and_distance():
+def test_re_calculatingnetwork_ids_and_distance():
     mg = RasterModelGrid((20, 20), xy_spacing=100)
     z = mg.add_zeros("node", "topographic__elevation")
     z += np.random.rand(z.size)
@@ -377,20 +380,20 @@ def test_re_calculating_net_ids_and_distance():
 
     profiler = ChannelProfiler(mg)
     profiler.run_one_step()
-    assert len(profiler._distance_along_profile) == 1  # result: 1
+    assert len(profiler.distance_along_profile) == 1  # result: 1
     profiler.run_one_step()
     # here nathan originally found result: 2, a bug!
-    assert len(profiler._distance_along_profile) == 1
+    assert len(profiler.distance_along_profile) == 1
 
     # make the most complicated profile structure
     profiler = ChannelProfiler(mg, main_channel_only=False, number_of_watersheds=2)
     profiler.run_one_step()
-    p1 = list(profiler._net_ids)
-    d1 = list(profiler._distance_along_profile)
+    p1 = list(profiler.network_ids)
+    d1 = list(profiler.distance_along_profile)
 
     profiler.run_one_step()
-    p2 = list(profiler._net_ids)
-    d2 = list(profiler._distance_along_profile)
+    p2 = list(profiler.network_ids)
+    d2 = list(profiler.distance_along_profile)
 
     # assert that these are copies, not pointers to same thing
     assert p1 is not p2
@@ -423,7 +426,7 @@ def test_re_calculating_net_ids_and_distance():
 
 
 @pytest.mark.parametrize("main", [True, False])
-@pytest.mark.parametrize("nshed", [True, False])
+@pytest.mark.parametrize("nshed", [1, 2])
 def test_getting_all_the_way_to_the_divide(main, nshed):
     np.random.seed(42)
     mg = RasterModelGrid((10, 12))
@@ -452,7 +455,7 @@ def test_getting_all_the_way_to_the_divide(main, nshed):
     profiler.run_one_step()
 
     # assert that with minimum_channel_threshold set to zero, we get all the way to the top of the divide.
-    for watershed_nodes in profiler._net_ids:
+    for watershed_nodes in profiler.network_ids:
         nodes = np.concatenate(_flatten_structure(watershed_nodes)).ravel()
         da = mg.at_node["drainage_area"][nodes]
 

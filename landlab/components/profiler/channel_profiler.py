@@ -3,13 +3,11 @@
 """channel_profiler.py component to create channel profiles."""
 from collections import OrderedDict
 
-import numpy as np
-
 import matplotlib as mpl
-from matplotlib import cm
 import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import cm
 
-from landlab import RasterModelGrid
 from landlab.components.profiler.base_profiler import _BaseProfiler
 from landlab.utils.flow__distance import calculate_flow__distance
 
@@ -553,11 +551,6 @@ class ChannelProfiler(_BaseProfiler):
         self._main_channel_only = main_channel_only
         self.minimum_channel_threshold = minimum_channel_threshold
 
-        # assert that the channel definition and outlet definition values are
-        # consistent
-        if minimum_channel_threshold > minimum_outlet_threshold:
-            raise ValueError()
-
         # verify that the number of starting nodes is the specified number of channels
         if outlet_nodes is not None:
             if (number_of_watersheds is not None) and (
@@ -582,10 +575,15 @@ class ChannelProfiler(_BaseProfiler):
         starting_da = self._channel_definition_field[outlet_nodes]
         outlet_nodes = np.asarray(outlet_nodes)
 
-        if (
-            np.any(starting_da <= minimum_outlet_threshold)
-            or outlet_nodes.size == 0
-        ):
+        bad_wshed = False
+        if outlet_nodes.size == 0:
+            bad_wshed = True  # not tested
+        if np.any(starting_da <= minimum_outlet_threshold):
+            bad_wshed = True
+        if np.any(starting_da <= minimum_channel_threshold):
+            bad_wshed = True
+
+        if bad_wshed:
             msg = (
                 "The number of watersheds requested by the ChannelProfiler is "
                 "greater than the number in the domain with channel_definition_field"
@@ -753,15 +751,21 @@ class ChannelProfiler(_BaseProfiler):
         self._create_flat_structures()
 
     def _create_flat_structures(self):
-            """ """
-            self._net_ids = []
-            self._distance_along_profile = []
-            self._colors = []
-            for outlet_id in self._net_struct:
-                seg_tuples = self._net_struct[outlet_id].keys()
-                self._net_ids.append([self._net_struct[outlet_id][seg]["ids"] for seg in seg_tuples])
-                self._distance_along_profile.append([self._net_struct[outlet_id][seg]["distances"] for seg in seg_tuples])
-                self._colors.append([self._net_struct[outlet_id][seg]["color"] for seg in seg_tuples])
+        """ """
+        self._net_ids = []
+        self._distance_along_profile = []
+        self._colors = []
+        for outlet_id in self._net_struct:
+            seg_tuples = self._net_struct[outlet_id].keys()
+            self._net_ids.append(
+                [self._net_struct[outlet_id][seg]["ids"] for seg in seg_tuples]
+            )
+            self._distance_along_profile.append(
+                [self._net_struct[outlet_id][seg]["distances"] for seg in seg_tuples]
+            )
+            self._colors.append(
+                [self._net_struct[outlet_id][seg]["color"] for seg in seg_tuples]
+            )
 
     def _assign_colors(self):
         """Assign colors"""
