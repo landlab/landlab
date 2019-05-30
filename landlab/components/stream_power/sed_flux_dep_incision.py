@@ -38,7 +38,8 @@ class power_law_eroder():
 
     Its interface is designed to mirror the other helpers available here.
     """
-    def __init__(self, K_sp, m_sp, n_sp, drainage_areas, **kwds):
+    def __init__(self, K_sp, m_sp, n_sp, drainage_areas,
+                 stability_condition='tight', **kwds):
         """Constructor for the class.
 
         Parameters
@@ -434,6 +435,7 @@ class SedDepEroder(Component):
         sediment_density=2700.,
         fluid_density=1000.,
         # runoff_rate=1.,
+        stability_condition='tight',
         sed_dependency_type="generalized_humped",
         kappa_hump=13.683,
         nu_hump=1.13,
@@ -484,6 +486,11 @@ class SedDepEroder(Component):
             stability issues at channel heads.
         Qc : {'power_law', }
             At present, only `power_law` is supported.
+        stability_condition : {'tight', 'loose'}
+            If 'tight', uses a robust condition that ensures true continuity of
+            the topographic surface at all times. If 'loose', elides the
+            bedrock surface and the topographic surface to produce a solution.
+            In this case, do not trust the "depth to bedrock" at all.
 
         If ``sed_dependency_type == 'generalized_humped'``...
 
@@ -648,6 +655,10 @@ class SedDepEroder(Component):
         self.cell_areas.fill(np.mean(grid.area_of_cell))
         self.cell_areas[grid.node_at_cell] = grid.area_of_cell
 
+        if stability_condition not in ['tight', 'loose']:
+            raise NameError("stability_condition must be 'tight' or 'loose'!")
+        self._stab_cond = stability_condition
+
     def set_sed_flux_fn_gen(self):
         """
         Sets the property self._sed_flux_fn_gen that controls which sed flux
@@ -705,7 +716,8 @@ class SedDepEroder(Component):
         flow_receiver = grid.at_node['flow__receiver_node']
         s_in = grid.at_node['flow__upstream_node_order']
         node_S = grid.at_node['topographic__steepest_slope']
-        br_z = node_z - self._hillslope_sediment
+        if self._stab_cond == 'tight':
+            br_z = node_z - self._hillslope_sediment
 
         dt_secs = dt * 31557600.
 
@@ -826,10 +838,13 @@ class SedDepEroder(Component):
 
             sed_dep_rate = self._voldroprate / self.cell_areas
             # now perform a CHILD-like convergence-based stability test:
-            ratediff = (
-                dzbydt[flow_receiver] - dzbydt +
-                sed_dep_rate[flow_receiver] - sed_dep_rate
-            )
+            if self._stab_cond == 'tight':
+                ratediff = (
+                    dzbydt[flow_receiver] - dzbydt +
+                    sed_dep_rate[flow_receiver] - sed_dep_rate
+                )
+            else:
+                ratediff = dzbydt[flow_receiver] - dzbydt
             # if this is +ve, the nodes are converging
             downstr_vert_diff = node_z - node_z[flow_receiver]
             # ^This should probably be replaced with an explicitly "flooded"
@@ -866,17 +881,15 @@ class SedDepEroder(Component):
             self._hillslope_sediment[self.grid.core_nodes] += (
                 sed_dep_rate[self.grid.core_nodes] * this_tstep
             )
-            # note dzbydt applies only to the ROCK surface (...which
-            # is the topographic__elevation!)
-            br_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
-            node_z[grid.core_nodes] = (
-                br_z[grid.core_nodes] +
-                self._hillslope_sediment[grid.core_nodes]
-            )
-            # could alternately be fudged as:
-            # node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
-            # ...this is equally dodgy - channels don't switch, but topo
-            # is crazy
+            # now how we handle this is dependent on the stab cond:
+            if self._stab_cond == 'tight':
+                br_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
+                node_z[grid.core_nodes] = (
+                    br_z[grid.core_nodes] +
+                    self._hillslope_sediment[grid.core_nodes]
+                )
+            else:
+                node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
 
             if break_flag:
                 break
@@ -887,7 +900,6 @@ class SedDepEroder(Component):
             # BUT could be important not for the stability, but for the
             # actual calc. So YES to the slopes.
             node_S = np.zeros_like(node_S)
-            # print link_length[core_draining_nodes]
             node_S[core_draining_nodes] = (
                 (node_z - node_z[flow_receiver])[core_draining_nodes] /
                 link_length[core_draining_nodes]
