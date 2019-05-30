@@ -233,19 +233,19 @@ class _BaseProfiler(Component, ABC):
 
     @abstractmethod
     def _create_profile_structure():
-        """ """
+        """ TODO"""
         ...  # pragma: no cover
 
     @property
     @abstractmethod
     def distance_along_profile(self):
-        """ """
+        """TODO """
         ...  # pragma: no cover
 
     @property
     @abstractmethod
     def network_ids(self):
-        """ """
+        """ TODO """
         ...  # pragma: no cover
 
     def plot_profiles(

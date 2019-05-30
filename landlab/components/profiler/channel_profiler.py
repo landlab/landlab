@@ -308,17 +308,17 @@ class ChannelProfiler(_BaseProfiler):
     ...     main_channel_only=False)
     >>> profiler.run_one_step()
 
-    Todo
+    TODO
 
     >>> profiler.network_structure.keys()
     odict_keys([40, 8])
 
-    Todo
+    TODO
 
     >>> profiler.network_structure[40].keys()
     odict_keys([(40, 41), (41, 54), (41, 62)])
 
-    Todo
+    TODO
 
     >>> profiler.network_structure[40][(40, 41)]["ids"]
     array([40, 41])
@@ -341,12 +341,12 @@ class ChannelProfiler(_BaseProfiler):
     >>> np.round(profiler.network_structure[40][(41, 62)]["color"], decimals=2)
     array([ 0.27,  0.  ,  0.33,  1.  ])
 
-    Todo
+    TODO
 
     >>> profiler.network_structure[8].keys()
     odict_keys([(8, 26), (26, 23), (26, 66)])
 
-    Todo
+    TODO
 
     >>> profiler.network_structure[8][(8, 26)]["ids"]
     array([ 8, 18, 17, 16, 26])
