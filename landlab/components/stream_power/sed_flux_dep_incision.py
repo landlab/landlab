@@ -642,6 +642,8 @@ class SedDepEroder(Component):
             self._hillslope_sediment = self.grid.add_zeros(
                 'node', 'channel_sediment__depth')
 
+        # Now build a mock node-length cell area structure so that we can
+        # easily perform division by all nodes without INFs
         self.cell_areas = np.empty(grid.number_of_nodes)
         self.cell_areas.fill(np.mean(grid.area_of_cell))
         self.cell_areas[grid.node_at_cell] = grid.area_of_cell
@@ -805,12 +807,11 @@ class SedDepEroder(Component):
             river_volume_flux_into_node = np.zeros(grid.number_of_nodes,
                                                    dtype=float)
             dzbydt.fill(0.)
-            cell_areas = self.cell_areas
 
             self._is_it_TL = np.zeros(
                 self.grid.number_of_nodes, dtype=np.int8)
 
-            iterate_sde_downstream(s_in, cell_areas,
+            iterate_sde_downstream(s_in, self.cell_areas,
                                    self._hillslope_sediment_flux_wzeros,
                                    self._porosity,
                                    river_volume_flux_into_node,
@@ -823,11 +824,16 @@ class SedDepEroder(Component):
                                    self.kappa, self.nu, self.c,
                                    self.phi, self.norm)
 
+            sed_dep_rate = self._voldroprate / self.cell_areas
             # now perform a CHILD-like convergence-based stability test:
-            ratediff = dzbydt[flow_receiver] - dzbydt
+            ratediff = (
+                dzbydt[flow_receiver] - dzbydt +
+                sed_dep_rate[flow_receiver] - sed_dep_rate
+            )
             # if this is +ve, the nodes are converging
             downstr_vert_diff = node_z - node_z[flow_receiver]
-            # ^+ve when dstr is lower
+            # ^This should probably be replaced with an explicitly "flooded"
+            # condition - though with care to permit true filling
             botharepositive = np.logical_and(ratediff > 0.,
                                              downstr_vert_diff > 0.)
             try:
@@ -858,18 +864,17 @@ class SedDepEroder(Component):
 
             # back-calc the sed budget in the nodes, as appropriate:
             self._hillslope_sediment[self.grid.core_nodes] += (
-                self._voldroprate[self.grid.core_nodes] /
-                self.grid.cell_area_at_node[self.grid.core_nodes] *
-                this_tstep)
+                sed_dep_rate[self.grid.core_nodes] * this_tstep
+            )
             # note dzbydt applies only to the ROCK surface (...which
             # is the topographic__elevation!)
-            # br_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
-            # node_z[grid.core_nodes] = (
-            #     br_z[grid.core_nodes] +
-            #     self._hillslope_sediment[grid.core_nodes]
-            # )
+            br_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
+            node_z[grid.core_nodes] = (
+                br_z[grid.core_nodes] +
+                self._hillslope_sediment[grid.core_nodes]
+            )
             # could alternately be fudged as:
-            node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
+            # node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
             # ...this is equally dodgy - channels don't switch, but topo
             # is crazy
 

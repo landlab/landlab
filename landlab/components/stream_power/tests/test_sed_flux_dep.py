@@ -802,7 +802,7 @@ def test_arbitrary_grid():
     dfn = LinearDiffuser(mg, linear_diffusivity=1.e-2)
     fa = FlowAccumulator(mg, flow_director="D8")
     pit = DepressionFinderAndRouter(mg, routing="D8")
-    sde = SedDepEroder(mg, K_sp=1.e-4, sed_dependency_type='almost_parabolic')
+    sde = SedDepEroder(mg, K_sp=1.e-4, K_=1.e-4, sed_dependency_type='almost_parabolic')
     sp = FastscapeEroder(mg, K_sp=1.e-4)
     th = mg.at_node['channel_sediment__depth']
     dt = 1000.
