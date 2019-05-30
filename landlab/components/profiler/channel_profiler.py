@@ -504,7 +504,7 @@ class ChannelProfiler(_BaseProfiler):
             channel network. Default is "drainage_area".
         minimum_outlet_threshold : float, optional
             Minimum value of the *channel_definition_field* to define a
-            watershed outlet. Default is 0.0.
+            watershed outlet. Default is 0.
         minimum_channel_threshold : float, optional
             Value to use for the minimum drainage area associated with a
             plotted channel segment. Default values 0.
@@ -553,6 +553,11 @@ class ChannelProfiler(_BaseProfiler):
         self._main_channel_only = main_channel_only
         self.minimum_channel_threshold = minimum_channel_threshold
 
+        # assert that the channel definition and outlet definition values are
+        # consistent
+        if minimum_channel_threshold > minimum_outlet_threshold:
+            raise ValueError()
+
         # verify that the number of starting nodes is the specified number of channels
         if outlet_nodes is not None:
             if (number_of_watersheds is not None) and (
@@ -564,6 +569,7 @@ class ChannelProfiler(_BaseProfiler):
             large_outlet_ids = grid.boundary_nodes[
                 np.argsort(self._channel_definition_field[grid.boundary_nodes])
             ]
+
             if number_of_watersheds is None:
                 big_enough_watersheds = (
                     self._channel_definition_field[large_outlet_ids]
@@ -575,8 +581,9 @@ class ChannelProfiler(_BaseProfiler):
 
         starting_da = self._channel_definition_field[outlet_nodes]
         outlet_nodes = np.asarray(outlet_nodes)
+
         if (
-            np.any(starting_da < self.minimum_channel_threshold)
+            np.any(starting_da <= minimum_outlet_threshold)
             or outlet_nodes.size == 0
         ):
             msg = (
