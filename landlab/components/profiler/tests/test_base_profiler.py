@@ -9,8 +9,17 @@ def EmptyBaseProfiler():
         def __init__(self):
             pass
 
-        def _calculate_distances(self):
+        def _create_profile_structure(self):
             pass
+
+        @property
+        def distance_along_profile(self):
+            return 1
+
+        @property
+        def network_ids(self):
+            return 2
+
 
     return EmptyBaseProfiler
 
@@ -26,4 +35,6 @@ def test_bad_base():
 def test_base_implemented(EmptyBaseProfiler):
     empty_base = EmptyBaseProfiler()
     assert isinstance(empty_base, _BaseProfiler)
-    empty_base._calculate_distances()
+    empty_base._create_profile_structure()
+    assert empty_base.distance_along_profile == 1
+    assert empty_base.network_ids == 2

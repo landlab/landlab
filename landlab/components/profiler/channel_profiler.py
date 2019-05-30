@@ -611,6 +611,16 @@ class ChannelProfiler(_BaseProfiler):
         """
         return self._net_struct
 
+    @property
+    def distance_along_profile(self):
+        """ """
+        return self._distance_along_profile
+
+    @property
+    def network_ids(self):
+        """ """
+        return self._net_ids
+
     def _get_channel_segment(self, i):
         """Get channel segment and return additional nodes to process.
 

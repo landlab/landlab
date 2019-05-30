@@ -1,6 +1,7 @@
 # coding: utf8
 # ! /usr/env/python
 """Base class for profile constructors."""
+from abc import ABC, abstractmethod
 from itertools import chain
 
 import matplotlib.pyplot as plt
@@ -203,7 +204,7 @@ def _recursive_min(jagged):
     return min(_recursive_min(j) if hasattr(j, "__iter__") else j for j in jagged)
 
 
-class _BaseProfiler(Component):
+class _BaseProfiler(Component, ABC):
     """Base class to handle profilers.
 
     Primarily exists to handle plotting.
@@ -227,8 +228,25 @@ class _BaseProfiler(Component):
 
     def run_one_step(self):
         """Calculate the profile datastructure and distances along it."""
-        # calculate the profile IDs datastructure
+        # calculate the profile IDs datastructure.
         self._create_profile_structure()
+
+    @abstractmethod
+    def _create_profile_structure():
+        """ """
+        ...  # pragma: no cover
+
+    @property
+    @abstractmethod
+    def distance_along_profile(self):
+        """ """
+        ...  # pragma: no cover
+
+    @property
+    @abstractmethod
+    def network_ids(self):
+        """ """
+        ...  # pragma: no cover
 
     def plot_profiles(
         self,
@@ -276,7 +294,7 @@ class _BaseProfiler(Component):
 
         # flatten datastructure
         x_dist = _flatten_structure(self._distance_along_profile)
-        node_ids, colors = _verify_structure_and_color(self._net_ids, colors)
+        node_ids, colors = _verify_structure_and_color(self.network_ids, colors)
 
         # create segments the way that line collection likes them.
         segments = []
@@ -335,7 +353,7 @@ class _BaseProfiler(Component):
         colors = self._colors or colors
 
         # flatten datastructure
-        node_ids, colors = _verify_structure_and_color(self._net_ids, colors)
+        node_ids, colors = _verify_structure_and_color(self.network_ids, colors)
 
         # create segments the way that line collection likes them.
         segments = []
