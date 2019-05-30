@@ -5,6 +5,10 @@ from collections import OrderedDict
 
 import numpy as np
 
+import matplotlib as mpl
+from matplotlib import cm
+import matplotlib.pyplot as plt
+
 from landlab import RasterModelGrid
 from landlab.components.profiler.base_profiler import _BaseProfiler
 from landlab.utils.flow__distance import calculate_flow__distance
@@ -273,7 +277,7 @@ class ChannelProfiler(_BaseProfiler):
 
     Create the second example grid we showed above. Note that in order to do
     this we need to enter the elevations starting from the lower left so the
-    elevation order may seem upside-down.
+    elevation order may seem upside-down    .
 
     >>> z = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  1,  0,
     ...                0,  0,  0,  0,  0,  0,  4,  3,  2,  0,
@@ -322,14 +326,22 @@ class ChannelProfiler(_BaseProfiler):
     array([40, 41])
     >>> profiler.network_structure[40][(40, 41)]["distances"]
     array([ 0.,  1.])
+    >>> np.round(profiler.network_structure[40][(40, 41)]["color"], decimals=2)
+    array([ 0.27,  0.  ,  0.33,  1.  ])
+
     >>> profiler.network_structure[40][(41, 54)]["ids"]
     array([41, 42, 43, 44, 54])
     >>> profiler.network_structure[40][(41, 54)]["distances"]
     array([ 1.,  2.,  3.,  4.,  5.])
+    >>> np.round(profiler.network_structure[40][(41, 54)]["color"], decimals=2)
+    array([ 0.27,  0.  ,  0.33,  1.  ])
+
     >>> profiler.network_structure[40][(41, 62)]["ids"]
     array([41, 51, 61, 62])
     >>> profiler.network_structure[40][(41, 62)]["distances"]
     array([ 1.,  2.,  3.,  4.])
+    >>> np.round(profiler.network_structure[40][(41, 62)]["color"], decimals=2)
+    array([ 0.27,  0.  ,  0.33,  1.  ])
 
     Todo
 
@@ -342,16 +354,22 @@ class ChannelProfiler(_BaseProfiler):
     array([ 8, 18, 17, 16, 26])
     >>> profiler.network_structure[8][(8, 26)]["distances"]
     array([ 0.,  1.,  2.,  3.,  4.])
+    >>> np.round(profiler.network_structure[8][(8, 26)]["color"], decimals=2)
+    array([ 0.13,  0.57,  0.55,  1.  ])
 
     >>> profiler.network_structure[8][(26, 23)]["ids"]
     array([26, 25, 24, 23])
     >>> profiler.network_structure[8][(26, 23)]["distances"]
     array([ 4.,  5.,  6.,  7.])
+    >>> np.round(profiler.network_structure[8][(26, 23)]["color"], decimals=2)
+    array([ 0.13,  0.57,  0.55,  1.  ])
 
     >>> profiler.network_structure[8][(26, 66)]["ids"]
     array([26, 36, 46, 56, 66])
     >>> profiler.network_structure[8][(26, 66)]["distances"]
     array([ 4.,  5.,  6.,  7.,  8.])
+    >>> np.round(profiler.network_structure[8][(26, 66)]["color"], decimals=2)
+    array([ 0.13,  0.57,  0.55,  1.  ])
 
     The ChannelProfiler is designed to be flexible, and by careful combination
     of its instantiation variables can be used to extract many useful forms of
@@ -507,13 +525,13 @@ class ChannelProfiler(_BaseProfiler):
             default is the number_of_watersheds node IDs on the model grid
             boundary with the largest terminal drainage area.
         cmap : str
-            Todo.
+            A valid matplotlib cmap string. Default is "viridis".
 
         """
         super(ChannelProfiler, self).__init__(grid)
 
         self._grid = grid
-
+        self._cmap = plt.get_cmap(cmap)
         if channel_definition_field in grid.at_node:
             self._channel_definition_field = grid.at_node[channel_definition_field]
         else:
@@ -573,15 +591,23 @@ class ChannelProfiler(_BaseProfiler):
     @property
     def network_structure(self):
         """
-        Datastructure defining the channel network.
+        OrderedDict defining the channel network.
 
+        The node IDs and distances upstream of the channel network are stored
+        in ``network_structure``. It is a dictionary with keys of the outlet
+        node ID.
 
-        profile_structure, the channel segment datastructure.
-                profile structure is a list of length number_of_watersheds.
-                Each element of profile_structure is itself a list of length
-                number of stream segments that drain to each of the starting
-                nodes. Each stream segment list contains the node ids of a
-                stream segment from downstream to upstream.
+        For each watershed outlet, the value in the ``network_structure`` is
+        itself a dictionary with keys that are a segment ID tuple of the
+        ``(dowstream, upstream)`` nodes IDs of each channel segment.
+
+        The value associated with the segment ID tuple
+        ``(dowstream, upstream)`` is itself a dictionary. It has three
+        key-value pairs. First, ``"ids"`` contains a list of the segment node
+        IDs ordered from downstream to upstream. It includes the endpoints.
+        Second, ``"distances"`` contains a list of distances upstream that
+        mirrors the list in ``"ids"``. Finally, ``"color"`` is an RGBA tuple
+        indicating the color for the segment.
         """
         return self._net_struct
 
@@ -707,10 +733,29 @@ class ChannelProfiler(_BaseProfiler):
 
         self._calculate_distances()
         self._assign_colors()
+        self._create_flat_structures()
+
+    def _create_flat_structures(self):
+            """ """
+            self._net_ids = []
+            self._distance_along_profile = []
+            self._colors = []
+            for outlet_id in self._net_struct:
+                seg_tuples = self._net_struct[outlet_id].keys()
+                self._net_ids.append([self._net_struct[outlet_id][seg]["ids"] for seg in seg_tuples])
+                self._distance_along_profile.append([self._net_struct[outlet_id][seg]["distances"] for seg in seg_tuples])
+                self._colors.append([self._net_struct[outlet_id][seg]["color"] for seg in seg_tuples])
 
     def _assign_colors(self):
-        """ """
-        pass
+        """Assign colors"""
+        num_watersheds = len(self._net_struct)
+        norm = mpl.colors.Normalize(vmin=0, vmax=num_watersheds)
+        mappable = cm.ScalarMappable(norm=norm, cmap=self._cmap)
+        colors = [mappable.to_rgba(val) for val in range(num_watersheds)]
+
+        for idx, outlet_id in enumerate(self._net_struct):
+            for segment_tuple in self._net_struct[outlet_id]:
+                self._net_struct[outlet_id][segment_tuple]["color"] = colors[idx]
 
     def _calculate_distances(self):
         """Get distances along the network datastructure"""

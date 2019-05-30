@@ -96,7 +96,7 @@ def test_no_minimum_channel_threshold():
 
     profiler = ChannelProfiler(mg)
 
-    assert profiler.minimum_channel_threshold == 2.0
+    assert profiler.minimum_channel_threshold == 0.0
 
 
 def test_no_channel_definition_field():
@@ -275,7 +275,7 @@ def test_plotting_and_structure(profile_example_grid):
             np.array([103, 163]),
         ]
     )
-    flattened = _flatten_structure(profiler._profile_structure)
+    flattened = _flatten_structure(profiler._net_ids)
     for idx in range(len(correct_structure)):
         np.testing.assert_array_equal(flattened[idx], correct_structure[idx])
 
@@ -288,7 +288,7 @@ def test_different_kwargs(profile_example_grid):
         number_of_watersheds=None,
         main_channel_only=True,
         minimum_outlet_threshold=3,
-        minimum_channel_minimum_channel_threshold=50,
+        minimum_channel_threshold=50,
     )
     profiler2.run_one_step()
 
@@ -349,10 +349,10 @@ def test_different_kwargs(profile_example_grid):
             109,
         ]
     )
-    np.testing.assert_array_equal(profiler2._profile_structure[0][0], correct_structure)
+    np.testing.assert_array_equal(profiler2._net_ids[0][0], correct_structure)
 
 
-def test_re_calculating_profile_structure_and_distance():
+def test_re_calculating_net_ids_and_distance():
     mg = RasterModelGrid((20, 20), xy_spacing=100)
     z = mg.add_zeros("node", "topographic__elevation")
     z += np.random.rand(z.size)
@@ -385,11 +385,11 @@ def test_re_calculating_profile_structure_and_distance():
     # make the most complicated profile structure
     profiler = ChannelProfiler(mg, main_channel_only=False, number_of_watersheds=2)
     profiler.run_one_step()
-    p1 = list(profiler._profile_structure)
+    p1 = list(profiler._net_ids)
     d1 = list(profiler._distance_along_profile)
 
     profiler.run_one_step()
-    p2 = list(profiler._profile_structure)
+    p2 = list(profiler._net_ids)
     d2 = list(profiler._distance_along_profile)
 
     # assert that these are copies, not pointers to same thing
@@ -452,7 +452,7 @@ def test_getting_all_the_way_to_the_divide(main, nshed):
     profiler.run_one_step()
 
     # assert that with minimum_channel_threshold set to zero, we get all the way to the top of the divide.
-    for watershed_nodes in profiler._profile_structure:
+    for watershed_nodes in profiler._net_ids:
         nodes = np.concatenate(_flatten_structure(watershed_nodes)).ravel()
         da = mg.at_node["drainage_area"][nodes]
 

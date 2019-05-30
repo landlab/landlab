@@ -1,7 +1,6 @@
 # coding: utf8
 # ! /usr/env/python
 """Base class for profile constructors."""
-from abc import ABC, abstractmethod
 from itertools import chain
 
 import matplotlib.pyplot as plt
@@ -204,7 +203,7 @@ def _recursive_min(jagged):
     return min(_recursive_min(j) if hasattr(j, "__iter__") else j for j in jagged)
 
 
-class _BaseProfiler(Component, ABC):
+class _BaseProfiler(Component):
     """Base class to handle profilers.
 
     Primarily exists to handle plotting.
@@ -224,22 +223,12 @@ class _BaseProfiler(Component, ABC):
 
     def __init__(self, grid):
         super(_BaseProfiler, self).__init__(grid)
-
-    @abstractmethod
-    def _calculate_distances(self):
-        """Calculate distance along the self._net_struct.
-
-        This abstract method must be defined by inheriting classes.
-        """
-        ...  # pragma: no cover
+        self._colors = None
 
     def run_one_step(self):
         """Calculate the profile datastructure and distances along it."""
         # calculate the profile IDs datastructure
         self._create_profile_structure()
-
-        # calculate the distance along profile datastructure
-        self._calculate_distances()
 
     def plot_profiles(
         self,
@@ -254,7 +243,8 @@ class _BaseProfiler(Component, ABC):
 
         The colors keyword argument can handle the following options.
 
-            a) None - The matplotlib defaults will be used.
+            a) None - The matplotlib defaults or the colors specified
+               internally by the profiler class will be used.
             b) One RGBA tuple. Then all segments of the profiles will be that
                color.
             c) One RGBA tuple per highest level of the profile data structure.
@@ -263,6 +253,9 @@ class _BaseProfiler(Component, ABC):
             d) One RGBA tuple per segment in the profile data structure. The
                structure of the color keyword argument data structure must
                mirror that of the profile data structure.
+
+        Alternatively, some profilers (e.g., ChannelProfiler) create and store
+        colors as part of their internal routines and init.
 
         Parameters
         ----------
@@ -279,10 +272,11 @@ class _BaseProfiler(Component, ABC):
             Plot title, default value is "Extracted Profiles".
         """
         quantity = return_array_at_node(self._grid, field)
+        colors = self._colors or colors
 
         # flatten datastructure
         x_dist = _flatten_structure(self._distance_along_profile)
-        node_ids, colors = _verify_structure_and_color(self._net_struct, colors)
+        node_ids, colors = _verify_structure_and_color(self._net_ids, colors)
 
         # create segments the way that line collection likes them.
         segments = []
@@ -338,8 +332,10 @@ class _BaseProfiler(Component, ABC):
 
         segments = []
 
+        colors = self._colors or colors
+
         # flatten datastructure
-        node_ids, colors = _verify_structure_and_color(self._net_struct, colors)
+        node_ids, colors = _verify_structure_and_color(self._net_ids, colors)
 
         # create segments the way that line collection likes them.
         segments = []
