@@ -152,6 +152,13 @@ def profile_example_grid():
     return mg
 
 
+def test_start_away_from_boundary(profile_example_grid):
+    mg = profile_example_grid
+    profiler = ChannelProfiler(mg, outlet_nodes=[64], cmap="viridis_r")
+    profiler.run_one_step()
+    assert profiler.distance_along_profile[0][0][0] == 0.0
+
+
 def test_plotting_and_structure(profile_example_grid):
     mg = profile_example_grid
     profiler = ChannelProfiler(
