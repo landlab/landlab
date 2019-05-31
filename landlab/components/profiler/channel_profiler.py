@@ -757,7 +757,7 @@ class ChannelProfiler(_BaseProfiler):
                 self._net_struct[i] = channel_network
 
         self._calculate_distances()
-        self._assign_colors()
+        self.assign_colors()
         self._create_flat_structures()
 
     def _create_flat_structures(self):
@@ -777,16 +777,18 @@ class ChannelProfiler(_BaseProfiler):
                 [self._net_struct[outlet_id][seg]["color"] for seg in seg_tuples]
             )
 
-    def _assign_colors(self):
-        """Assign colors"""
-        num_watersheds = len(self._net_struct)
-        norm = mpl.colors.Normalize(vmin=0, vmax=num_watersheds)
-        mappable = cm.ScalarMappable(norm=norm, cmap=self._cmap)
-        colors = [mappable.to_rgba(val) for val in range(num_watersheds)]
+    def assign_colors(self, color_mapping=None):
+        """Assign colors. TODO"""
 
-        for idx, outlet_id in enumerate(self._net_struct):
+        if color_mapping is None:
+            num_watersheds = len(self._net_struct)
+            norm = mpl.colors.Normalize(vmin=0, vmax=num_watersheds)
+            mappable = cm.ScalarMappable(norm=norm, cmap=self._cmap)
+            color_mapping = {outlet_id: mappable.to_rgba(idx) for idx, outlet_id in enumerate(self._net_struct)}
+
+        for outlet_id in self._net_struct:
             for segment_tuple in self._net_struct[outlet_id]:
-                self._net_struct[outlet_id][segment_tuple]["color"] = colors[idx]
+                self._net_struct[outlet_id][segment_tuple]["color"] = color_mapping[outlet_id]
 
     def _calculate_distances(self):
         """Get distances along the network datastructure"""
