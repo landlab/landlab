@@ -21,6 +21,8 @@ from functools import wraps
 import numpy as np
 import six
 
+from landlab import FieldError
+
 from ..core.model_parameter_loader import load_params
 
 try:
@@ -394,7 +396,10 @@ class use_field_name_array_or_value(object):
         def _wrapped(grid, vals, *args, **kwds):
             """Convert the second argument to an array."""
             if isinstance(vals, six.string_types):
-                vals = grid[self._at][vals]
+                if vals in grid[self._at]:
+                    vals = grid[self._at][vals]
+                else:
+                    raise FieldError(vals)
             else:
                 expected_size = grid.size(self._at)
                 vals = np.asarray(vals).flatten()
