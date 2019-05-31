@@ -433,7 +433,7 @@ def test_re_calculatingnetwork_ids_and_distance():
 
 
 @pytest.mark.parametrize("main", [True, False])
-@pytest.mark.parametrize("nshed", [1, 2])
+@pytest.mark.parametrize("nshed", [1, None, 3])
 def test_getting_all_the_way_to_the_divide(main, nshed):
     np.random.seed(42)
     mg = RasterModelGrid((10, 12))
