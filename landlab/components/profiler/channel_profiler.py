@@ -657,8 +657,9 @@ class ChannelProfiler(_BaseProfiler):
         channel_upstream = True
 
         # add the reciever of j to the channel segment if it is not j.
+        # but only do this when j is not the watershed outlet.
         recieving_node = self._flow_receiver[j]
-        if recieving_node != j:
+        if (recieving_node != j) and (j not in self._outlet_nodes):
             channel_segment.append(recieving_node)
 
         while channel_upstream:
@@ -792,8 +793,8 @@ class ChannelProfiler(_BaseProfiler):
         distance_upstream = calculate_flow__distance(self._grid)
         for outlet_id in self._net_struct:
             offset = distance_upstream[outlet_id]
+
             for segment_tuple in self._net_struct[outlet_id]:
                 ids = self._net_struct[outlet_id][segment_tuple]["ids"]
                 d = distance_upstream[ids]
                 self._net_struct[outlet_id][segment_tuple]["distances"] = d - offset
-                # TODO verify that that the offset is correct...
