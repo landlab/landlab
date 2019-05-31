@@ -309,17 +309,20 @@ class ChannelProfiler(_BaseProfiler):
     ...     main_channel_only=False)
     >>> profiler.run_one_step()
 
-    TODO
+    The keys of the property ``network_structure`` are the IDs  of the two
+    outlet nodes.
 
     >>> profiler.network_structure.keys()
     odict_keys([40, 8])
 
-    TODO
+    Within the network structure, the value at key 40, is a dictionary of the
+    three segments, each specified by a ``(dowstream, upstream)`` tuple:
 
     >>> profiler.network_structure[40].keys()
     odict_keys([(40, 41), (41, 54), (41, 62)])
 
-    TODO
+    The value of the segment between nodes 40 and 41 has the following
+    components:
 
     >>> profiler.network_structure[40][(40, 41)]["ids"]
     array([40, 41])
@@ -328,12 +331,16 @@ class ChannelProfiler(_BaseProfiler):
     >>> np.round(profiler.network_structure[40][(40, 41)]["color"], decimals=2)
     array([ 0.27,  0.  ,  0.33,  1.  ])
 
+    A parallel structure exists for the segment between nodes 41 and 54:
+
     >>> profiler.network_structure[40][(41, 54)]["ids"]
     array([41, 42, 43, 44, 54])
     >>> profiler.network_structure[40][(41, 54)]["distances"]
     array([ 1.,  2.,  3.,  4.,  5.])
     >>> np.round(profiler.network_structure[40][(41, 54)]["color"], decimals=2)
     array([ 0.27,  0.  ,  0.33,  1.  ])
+
+    And the segment between nodes 41  and 62.
 
     >>> profiler.network_structure[40][(41, 62)]["ids"]
     array([41, 51, 61, 62])
@@ -342,12 +349,11 @@ class ChannelProfiler(_BaseProfiler):
     >>> np.round(profiler.network_structure[40][(41, 62)]["color"], decimals=2)
     array([ 0.27,  0.  ,  0.33,  1.  ])
 
-    TODO
+    The rest of the ``profile_structure`` encodes information about the second
+    watershed, which drains to node 8.
 
     >>> profiler.network_structure[8].keys()
     odict_keys([(8, 26), (26, 23), (26, 66)])
-
-    TODO
 
     >>> profiler.network_structure[8][(8, 26)]["ids"]
     array([ 8, 18, 17, 16, 26])
