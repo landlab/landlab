@@ -93,11 +93,6 @@ class OrientedHexCTS(CellLabCTSModel):
         if not isinstance(model_grid, HexModelGrid):
             raise TypeError("model_grid must be a Landlab HexModelGrid")
 
-        # Somehow test to make sure the grid links have been re-oriented to
-        # point up/right (-45 to +135 degrees clockwise relative to vertical).
-        # Such orientation is ensured when the argument reorient_grid=True is
-        # passed to the hex grid constructor.
-
         # Define the number of distinct cell-pair orientations: here 3,
         # representing
         self.number_of_orientations = 3
