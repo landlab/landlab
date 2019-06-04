@@ -117,7 +117,7 @@ def test_raster_cts():
     assert ca.node_state[5] == 0, "error in node state 5"
     assert ca.node_state[6] == 1, "error in node state 6"
     # assert (ca.prop_data[ca.propid[6]]==150), 'error in prop swap'
-    
+
     # Test that passing a random seed other than 0 changes the event queue.
     # Do this by creating a RasterCTS identical to the previous one but with
     # a different random seed.
