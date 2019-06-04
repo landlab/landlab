@@ -45,7 +45,7 @@ class BadGridTypeError(Error):
         self._type = str(grid_type)  # TODO: not tested.
 
     def __str__(self):
-        return self._type   # TODO: not tested.
+        return self._type  # TODO: not tested.
 
 
 _GRID_READERS = {"raster": raster_from_dict, "hex": hex_from_dict}
@@ -131,7 +131,9 @@ def grids_from_file(file_like, section=None):
         try:
             grids = params[section]
         except KeyError:  # TODO: not tested.
-            raise ValueError("missing required section ({0})".format(section))  # TODO: not tested.
+            raise ValueError(
+                "missing required section ({0})".format(section)
+            )  # TODO: not tested.
     else:  # TODO: not tested.
         grids = params  # TODO: not tested.
 
