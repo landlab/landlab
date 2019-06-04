@@ -18,6 +18,7 @@ from .watershed import (
     get_watershed_nodes,
     get_watershed_outlet,
 )
+from .return_array import return_array_at_node, return_array_at_link
 
 __all__ = [
     "add_halo",
