@@ -48,7 +48,7 @@ class TaylorNonLinearDiffuser(Component):
     >>> import numpy as np
     >>> import decimal
     >>> from landlab import RasterModelGrid
-    >>> from landlab.plot.imshow import imshow_node_grid
+    >>> from landlab.plot.imshow import imshow_grid
     >>> mg = RasterModelGrid((3, 3))
     >>> z = mg.add_zeros('node', 'topographic__elevation')
     >>> initial_slope=1.0

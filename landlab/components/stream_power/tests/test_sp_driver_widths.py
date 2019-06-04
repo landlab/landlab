@@ -19,7 +19,7 @@ def test_sp_widths():
     dx = inputs.read_float("dx")
     dt = inputs.read_float("dt")
 
-    mg = RasterModelGrid(nrows, ncols, xy_spacing=dx)
+    mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
     widths = np.ones(mg.number_of_nodes, dtype=float)
     mg.add_zeros("topographic__elevation", at="node")
     z = np.array(

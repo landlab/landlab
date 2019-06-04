@@ -60,7 +60,11 @@ def test__str__():
     layers = EventLayers(5)
     layers.add(1.0, age=3.0)
     vals = str(layers)
-    assert vals == "number_of_layers: 1\nnumber_of_stacks: 5\ntracking: age"
+    assert vals.splitlines() == [
+        "number_of_layers: 1",
+        "number_of_stacks: 5",
+        "tracking: age",
+    ]
 
 
 def test__repr__():

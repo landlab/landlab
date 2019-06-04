@@ -28,7 +28,7 @@ def test_no_upstream_array():
 
     # instantiate a model grid, do not run flow accumulation on it
 
-    mg = RasterModelGrid(30, 70)
+    mg = RasterModelGrid((30, 70))
 
     # Add a field called topographic__elevation to mg
 
