@@ -24,8 +24,6 @@ class DepthDependentDiffuser(Component):
         Landlab ModelGrid object
     linear_diffusivity: float
         Hillslope diffusivity, m**2/yr
-        Equivalent to the soil creep efficiency
-        times the soil transport decay depth.
     soil_transport_decay_depth: float
         characteristic transport soil depth, m
 
@@ -195,7 +193,7 @@ class DepthDependentDiffuser(Component):
 
         # Calculate flux
         self.flux[:] = (
-            -self.K * slope * (1.0 - np.exp(-H_link / self.soil_transport_decay_depth))
+            -self.K * slope * self.soil_transport_decay_depth * (1.0 - np.exp(-H_link / self.soil_transport_decay_depth))
         )
 
         # Calculate flux divergence
