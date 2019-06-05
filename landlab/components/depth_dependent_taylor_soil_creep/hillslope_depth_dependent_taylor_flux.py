@@ -397,7 +397,7 @@ class DepthDependentTaylorDiffuser(Component):
                 raise RuntimeError(message)
 
         self.flux[:] = -(
-            (self.K * self.slope)
+            (self.K * self.slope * self.soil_transport_decay_depth)
             * (slope_term)
             * (1.0 - np.exp(-self.H_link / self.soil_transport_decay_depth))
         )
