@@ -23,7 +23,9 @@ class DepthDependentTaylorDiffuser(Component):
     Ganti et al., 2012 with a depth dependent component inspired Johnstone and
     Hilley (2014). The flux is given as:
 
-        qs = DS ( 1 + (S/Sc)**2 + (S/Sc)**4 + .. + (S/Sc)**2(n-1) ) * (1.0 - exp( H / Hstar )
+    .. math::
+
+        qs = DSHstar ( 1 + (S/Sc)^2 + (S/Sc)^4 + .. + (S/Sc)^2(n-1) ) * (1.0 - exp( H / Hstar )
 
     where D is is the diffusivity, S is the slope, Sc is the critical slope, n
     is the number of terms, H is the soil depth on links, and Hstar is the soil
@@ -178,6 +180,28 @@ class DepthDependentTaylorDiffuser(Component):
     >>> expweath.calc_soil_prod_rate()
     >>> DDdiff.soilflux(10, if_unstable='warn', dynamic_dt=True)
     >>> np.any(np.isnan(z))
+    False
+
+    Now, we'll test that changing the transport decay depth behaves as expected. 
+
+    >>> mg = RasterModelGrid((3, 5))
+    >>> soilTh = mg.add_zeros('node', 'soil__depth')
+    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
+    >>> z += mg.node_x.copy()**0.5
+    >>> BRz = z.copy() - 1.0
+    >>> soilTh[:] = z - BRz
+    >>> DDdiff = DepthDependentTaylorDiffuser(mg, soil_transport_decay_depth = 0.1)
+    >>> DDdiff.soilflux(1)
+    >>> soil_decay_depth_point1 = mg.at_node['topographic__elevation'][mg.core_nodes]
+    >>> z[:] = 0
+    >>> z += mg.node_x.copy()**0.5
+    >>> BRz = z.copy() - 1.0
+    >>> soilTh[:] = z - BRz
+    >>> DDdiff = DepthDependentTaylorDiffuser(mg, soil_transport_decay_depth = 1.0)
+    >>> DDdiff.soilflux(1)
+    >>> soil_decay_depth_1 = mg.at_node['topographic__elevation'][mg.core_nodes]
+    >>> np.greater(soil_decay_depth_1[1], soil_decay_depth_point1[1])
     False
     """
 
