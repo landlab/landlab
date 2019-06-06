@@ -9,7 +9,7 @@ DEJH, 09/15/14
 
 import numpy as np
 import pylab
-from six.moves import range
+
 
 from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components import FlowAccumulator, StreamPowerEroder

@@ -10,7 +10,6 @@ automated fashion. To modify the text seen on the web, edit the files
 
 import numpy as np
 import six
-from six.moves import range
 
 from landlab.core.utils import argsort_points_by_x_then_y
 from landlab.field import ModelDataFields, ModelDataFieldsMixIn

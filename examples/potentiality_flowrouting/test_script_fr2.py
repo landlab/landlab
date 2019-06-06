@@ -15,7 +15,7 @@ Created on Fri Feb 20 13:45:52 2015
 import numpy as np
 from matplotlib.ticker import MaxNLocator
 from pylab import clabel, contour, figure, imshow, quiver
-from six.moves import range
+
 
 sqrt = np.sqrt
 

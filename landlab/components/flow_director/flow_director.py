@@ -8,7 +8,6 @@ part of the boundary condition testing.
 """
 
 
-
 import numpy
 import six
 

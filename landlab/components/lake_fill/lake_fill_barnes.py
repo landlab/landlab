@@ -8,7 +8,6 @@ algorithms.
 """
 
 
-
 import heapq
 import itertools
 

@@ -12,7 +12,6 @@ for a grid in which a node has N neighbors (N might happen to be 8, or not).
 # Modified to save data to grid directly, DEJH March 2014
 
 
-
 #
 # import landlab
 import warnings

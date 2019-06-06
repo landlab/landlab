@@ -8,9 +8,7 @@ Last updated March 2016 DEJH with LL v1.0 component style
 """
 
 
-
 import numpy as np
-from six.moves import range
 
 from landlab import (
     FIXED_GRADIENT_BOUNDARY,

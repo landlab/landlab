@@ -11,7 +11,6 @@ Created on Fri Feb 20 09:32:27 2015
 import inspect
 
 import numpy as np
-from six.moves import range
 
 from landlab import Component, FieldError, RasterModelGrid
 

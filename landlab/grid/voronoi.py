@@ -9,7 +9,6 @@ automated fashion. To modify the text seen on the web, edit the files
 """
 import numpy as np
 from scipy.spatial import Voronoi
-from six.moves import range
 
 from landlab.core.utils import (
     argsort_points_by_x_then_y,

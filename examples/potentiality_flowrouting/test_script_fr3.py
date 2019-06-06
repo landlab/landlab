@@ -13,7 +13,7 @@ Created on Fri Feb 20 13:45:52 2015
 import numpy as np
 from matplotlib.ticker import MaxNLocator
 from pylab import clabel, contour, figure, quiver
-from six.moves import range
+
 
 from landlab import RasterModelGrid
 from landlab.plot import imshow_grid_at_node

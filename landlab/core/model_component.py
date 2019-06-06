@@ -30,7 +30,6 @@ Base component class methods
 """
 
 
-
 import inspect
 import os
 import textwrap

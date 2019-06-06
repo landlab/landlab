@@ -13,7 +13,6 @@ from warnings import warn
 
 import numpy as np
 import six
-from six.moves import range
 
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.structured_quad import (

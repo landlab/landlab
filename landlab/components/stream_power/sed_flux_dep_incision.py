@@ -1,9 +1,6 @@
-
-
 import warnings
 
 import numpy as np
-from six.moves import range
 
 from landlab import Component
 from landlab.core.model_parameter_dictionary import MissingKeyError

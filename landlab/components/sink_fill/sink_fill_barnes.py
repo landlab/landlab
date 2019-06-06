@@ -8,7 +8,6 @@ algorithms.
 """
 
 
-
 import numpy as np
 from six import iteritems
 

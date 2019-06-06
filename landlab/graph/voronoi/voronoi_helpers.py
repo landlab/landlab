@@ -26,7 +26,6 @@ corner :
     Same as a point.
 """
 import numpy as np
-from six.moves import range
 
 from ...core.utils import as_id_array
 from ..sort.sort import remap

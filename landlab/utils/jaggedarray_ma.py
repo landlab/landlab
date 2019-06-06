@@ -40,7 +40,6 @@ array([ 0.,  0.,  1.,  2.,  2.,  3.,  4.,  4.,  5.])
 array([ 6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 """
 import numpy as np
-from six.moves import range
 
 
 class JaggedArray(object):
