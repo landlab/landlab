@@ -26,7 +26,6 @@ likely to resolve themselves in a future release of matplotlib.
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
-import six
 
 from landlab.plot import imshow
 

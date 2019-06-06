@@ -60,7 +60,6 @@ array([[4, 3, 0, 1],
 import json
 
 import numpy as np
-import six
 import xarray as xr
 
 from ..core.utils import as_id_array

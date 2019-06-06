@@ -77,7 +77,6 @@ command line (e.g., read_float_cmdline( 'PI' ) )
 import warnings
 
 import numpy as np
-import six
 
 _VALID_TRUE_VALUES = set(["TRUE", "1", 1])
 _VALID_FALSE_VALUES = set(["FALSE", "0", 0])

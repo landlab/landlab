@@ -13,7 +13,6 @@ Tucker, Hobley, McCoy.
 import sys
 
 import numpy as np
-import six
 from pylab import figure, plot, show
 
 from landlab.plot import imshow as gridshow

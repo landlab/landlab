@@ -12,7 +12,6 @@ from __future__ import absolute_import
 from warnings import warn
 
 import numpy as np
-import six
 
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.structured_quad import (

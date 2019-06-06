@@ -7,8 +7,6 @@ import inspect
 import re
 import types
 
-import six
-
 
 def camel_case(text, sep=None):
     """Convert to camel case.

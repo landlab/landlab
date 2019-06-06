@@ -106,7 +106,6 @@ def subside_point_load(load, loc, coords, params=None, out=None):
 
     Calculate deflections due to a load applied at position (5000., 2500.).
 
-    >>> import six
     >>> x = np.arange(0, 10000, 1000.)
     >>> y = np.arange(0, 5000, 1000.)
     >>> (x, y) = np.meshgrid(x, y)

@@ -77,7 +77,6 @@ Additional keyword arguments are required as needed by each function.
 from collections import defaultdict
 
 import numpy as np
-import six
 
 from landlab.grid.linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK
 from landlab.grid.network import NetworkModelGrid

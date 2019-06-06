@@ -1,5 +1,4 @@
 import numpy as np
-import six
 import xarray as xr
 
 from .grouped import GroupError

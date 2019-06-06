@@ -15,7 +15,6 @@ import os
 import warnings
 
 import numpy as np
-import six
 from scipy.io import netcdf as nc
 
 from landlab.io.netcdf._constants import (

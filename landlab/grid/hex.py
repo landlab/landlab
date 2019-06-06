@@ -12,7 +12,6 @@ from __future__ import absolute_import
 from warnings import warn
 
 import numpy
-import six
 
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 

@@ -1,7 +1,6 @@
 import os
 import re
 
-import six
 import yaml
 
 from .model_parameter_dictionary import ModelParameterDictionary

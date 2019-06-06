@@ -14,7 +14,6 @@ together.
 import warnings
 
 import numpy as np
-import six
 
 from landlab import (  # for type tests
     BAD_INDEX_VALUE,

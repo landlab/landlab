@@ -92,8 +92,6 @@ import re
 import sys
 import textwrap
 
-import six
-
 
 def indent_and_wrap(content, indent=""):
     """Indent and wrap some text

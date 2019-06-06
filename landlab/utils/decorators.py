@@ -19,7 +19,6 @@ import warnings
 from functools import wraps
 
 import numpy as np
-import six
 
 from landlab import FieldError
 

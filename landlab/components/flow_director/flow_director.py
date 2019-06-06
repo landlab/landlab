@@ -9,7 +9,6 @@ part of the boundary condition testing.
 
 
 import numpy
-import six
 
 from landlab import RasterModelGrid  # for type tests
 from landlab import Component

@@ -1,7 +1,5 @@
 from functools import wraps
 
-import six
-
 
 def track_this_method(func):
     @wraps(func)

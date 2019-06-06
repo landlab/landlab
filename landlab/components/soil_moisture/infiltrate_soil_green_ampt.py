@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import numpy as np
-import six
 
 from landlab import Component
 

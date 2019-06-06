@@ -2,7 +2,6 @@
 """Store collections of data fields."""
 
 import numpy as np
-import six
 
 from .scalar_data_fields import ScalarDataFields
 

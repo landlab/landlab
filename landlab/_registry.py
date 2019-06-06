@@ -70,8 +70,6 @@ from __future__ import absolute_import
 
 import os
 
-import six
-
 from . import _info
 from .core.messages import indent_and_wrap
 

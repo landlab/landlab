@@ -16,7 +16,6 @@ import os
 import re
 
 import numpy as np
-import six
 
 from landlab.utils import add_halo
 
