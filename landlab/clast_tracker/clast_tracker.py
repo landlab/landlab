@@ -686,8 +686,8 @@ class ClastCollection(DataRecord):
                 #print('clasty %s' %_clast_y)
 
             else: # Diagonals
-                we_slope = np.NaN
-                sn_slope = np.NaN
+#                we_slope = np.NaN
+#                sn_slope = np.NaN
 
                 _target_node_z = _grid.at_node['topographic__elevation'][
                         self['target_node'][clast]]
@@ -717,6 +717,8 @@ class ClastCollection(DataRecord):
                             _clast_x +  1e-10, \
                             self.y_of_corners_at_node[_node, corner] - \
                             _clast_y + 1e-10]
+                    we_slope = ss_dip / 2
+                    sn_slope = ss_dip / 2
 
                 elif target_node_flag == 5: # NW
                     corner = 1
@@ -737,6 +739,8 @@ class ClastCollection(DataRecord):
                               1e-10, \
                               self.y_of_corners_at_node[_node, corner] - \
                               _clast_y +  1e-10]
+                    we_slope = - ss_dip / 2
+                    sn_slope = ss_dip / 2
 
                 elif target_node_flag == 6: # SW
                     corner = 2
@@ -758,6 +762,8 @@ class ClastCollection(DataRecord):
                               -(_clast_y - \
                                 self.y_of_corners_at_node[_node, corner]) - \
                                 1e-10]
+                    we_slope = - ss_dip / 2
+                    sn_slope = - ss_dip / 2
 
                 elif target_node_flag == 7: # SE
                     corner = 3
@@ -778,6 +784,8 @@ class ClastCollection(DataRecord):
                              -(_clast_y - \
                                self.y_of_corners_at_node[_node, corner]) - \
                                1e-10]
+                    we_slope = ss_dip / 2
+                    sn_slope = - ss_dip / 2
 
             self['slope__WE'][clast] = we_slope
             self['slope__SN'][clast] = sn_slope
@@ -795,7 +803,7 @@ class ClastCollection(DataRecord):
                 ss_dip = 0.
             else:
                 ss_dip = np.arctan((sn_slope**2+we_slope**2)/ss_horiz_norm)
-            print('ssdip= %s' %ss_dip)
+            #print('ssdip= %s' %ss_dip)
 
             if we_slope == 0:
                 if sn_slope == 0:
@@ -1108,7 +1116,7 @@ class ClastCollection(DataRecord):
                             + np.power(self['change_y'][clast],2)))\
                             / np.cos(self['slope__steepest_dip'][clast])
                             # or hop_lenght = dist_to_exit? should be same
-                            #print('hop length: %s' %self['hop_length'][clast, -1])
+                            # print('hop length: %s' %self['hop_length'].values[clast, -1])
                             self['clast__node'][clast] = \
                                self._grid.find_nearest_node(
                                                   (self['clast__x'][clast,-1],\
@@ -1147,7 +1155,7 @@ class ClastCollection(DataRecord):
                     else:
                         # clast is phantom, does not move
                         #print('clast has gone out of grid')
-                        self['hop_length'][clast, -1] = 0.
+                        self['hop_length'][clast, -1] += 0.
                         break
 
     def _move_in_cell(self, clast):
@@ -1168,10 +1176,7 @@ class ClastCollection(DataRecord):
 
             h_dist_to_trav = self['distance__to_travel'][clast] * np.cos(ss_dip)
 
-            if np.isnan(ss_azimuth):
-                # clast is in sink
-                [change_x, change_y] = [0., 0.]
-            elif ss_azimuth <= np.radians(90):
+            if ss_azimuth <= np.radians(90):
                 [change_x, change_y] = [
                         h_dist_to_trav * np.cos(ss_azimuth), \
                         h_dist_to_trav * np.sin(ss_azimuth)]
@@ -1317,16 +1322,17 @@ class ClastCollection(DataRecord):
         self.attrs['lateral_spreading'] = lateral_spreading
         self.attrs['disturbance_fqcy'] = disturbance_fqcy
         self.attrs['d_star'] = d_star
+        self.attrs['uplift'] = uplift
 
         # Uplift: #### TO MODIF (put in attrs?) AND TEST #########
         if uplift is not None:
             if type(uplift) is str:
-                self._uplift = self._grid.at_node[uplift]
+                self.attrs['uplift'] = self._grid.at_node[uplift]
             elif type(uplift) in (float, int):
-                self._uplift = np.ones(self._grid.number_of_nodes) * (
+                self.attrs['uplift'] = np.ones(self._grid.number_of_nodes) * (
                         float(uplift))
             elif len(uplift) == self._grid.number_of_nodes:
-                self._uplift = np.array(uplift)
+                self.attrs['uplift'] = np.array(uplift)
             else:
                 raise TypeError('Supplied type of uplift is not recognized')
 
@@ -1372,21 +1378,24 @@ class ClastCollection(DataRecord):
 
                     ClastCollection._move(self, clast)
                     #print('moved')
-
                     # Update elevation:
                     # Clast is buried in the active layer with inv exp proba
                     self['clast__elev'][clast, -1] = self._grid.at_node['topographic__elevation'][self['clast__node'][clast].values]# - np.random.exponential(scale=self.attrs['d_star'], size=1)[0] #(self.attrs['d_star']/100 * (np.random.rand(1)))
                     #print('elevation updated')
-                    if hasattr(self, '_uplift') is True:
-                        # uplift clast if necessary
-                            self['clast__elev'][clast, -1] += \
-                            self._uplift[self['clast__node'][clast]] * \
-                            self.attrs['dt']
-                            #print('elevation updated with uplift')
-
                     # Update total travelled distance:
                     self['total_travelled_dist'][clast] += \
                         self['hop_length'][clast, -1]
+                    #print ('tottravdist:')
+                    #print(self['total_travelled_dist'][clast])
+
+                    if self.uplift is not None:
+                        # uplift clast if necessary
+                            self['clast__elev'][clast, -1] += \
+                            self.uplift[self['clast__node'][clast]] * \
+                            self.attrs['dt']
+                            #print('elevation updated with uplift')
+
+
                     # To implement: clast_abarasion
                     #if self.clast_abrasion = True:
                     # self['clast__radius'][clast][-1]=self.clast_abrasion(clast)
@@ -1397,11 +1406,12 @@ class ClastCollection(DataRecord):
                     self['clast__x'] = self['clast__x'].ffill('time')
                     self['clast__y'] = self['clast__y'].ffill('time')
                     self['clast__elev'] = self['clast__elev'].ffill('time')
-                    if hasattr(self, '_uplift') is True:
+                    if self.uplift is not None:
                         # uplift clast if necessary
-                            self['clast__elev'][clast, -1] += \
-                            self._uplift[self['clast__node'][clast]] * \
-                            self.attrs['dt']
+                        self['clast__elev'][clast, -1] += (
+                                    self.uplift[
+                                            self['clast__node'][clast]] * \
+                                            self.attrs['dt'])
                             #print('elevation updated with uplift')
 
             else:

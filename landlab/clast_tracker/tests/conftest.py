@@ -291,11 +291,6 @@ def cc_se(grid_se):
                            clast_elev=np.ones(3)*6,
                            clast_radius=np.ones(3)*0.5)
 
-
-
-
-
-
 @pytest.fixture
 def cc_ene(grid_ene):
     return ClastCollection(grid_ene,
