@@ -29,7 +29,7 @@ Base component class methods
     ~landlab.core.model_component.Component.imshow
 """
 
-from __future__ import print_function
+
 
 import inspect
 import os

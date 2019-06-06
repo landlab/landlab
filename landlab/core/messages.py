@@ -11,10 +11,6 @@ This module also provides convenience functions for print
 particular types of messages. Warning and error messages,
 for instance.
 
-Examples
---------
->>> from __future__ import print_function
-
 Oftentimes when writing code we may need to print a lengthy
 message for the user. This may result in code that looks like
 the following.
@@ -89,7 +85,7 @@ Traceback (most recent call last):
 ...
 AssertionError
 """
-from __future__ import print_function
+
 
 import os
 import re
@@ -122,7 +118,6 @@ def indent_and_wrap(content, indent=""):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.core.messages import indent_and_wrap
     >>> content = '''@book{knuth1998art,
     ...     title={The art of computer programming: sorting and searching},
@@ -219,7 +214,6 @@ def format_message(msg, header=None, footer=None, linesep=os.linesep):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.core.messages import format_message
     >>> text = '''
     ... Lorem ipsum dolor sit amet, consectetur
@@ -275,7 +269,6 @@ def deprecation_message(msg=None, **kwds):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.core.messages import deprecation_message
     >>> print(deprecation_message("Dictumst vestibulum rhoncus est pellentesque."))
     DEPRECATION WARNING
@@ -324,7 +317,6 @@ def warning_message(msg=None, **kwds):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.core.messages import warning_message
     >>> print(warning_message('Dictumst vestibulum rhoncus est pellentesque.'))
     WARNING
@@ -353,7 +345,6 @@ def error_message(msg=None, **kwds):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.core.messages import error_message
     >>> print(error_message('Dictumst vestibulum rhoncus est pellentesque.'))
     ERROR

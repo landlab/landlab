@@ -11,7 +11,6 @@ by exposure to light at a rate that depends on distance below the upper surface.
 Written by Greg Tucker, July 2015
 """
 
-from __future__ import print_function  # for both python 2 and 3 compability
 
 import time
 

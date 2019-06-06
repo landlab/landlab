@@ -8,7 +8,7 @@ only intended for model post-analysis or DEM analysis. Do not loop this class!!
 This is part of the NSF funded project investigating fault scarp degradation,
 Tucker, Hobley, McCoy.
 """
-from __future__ import print_function
+
 
 import sys
 

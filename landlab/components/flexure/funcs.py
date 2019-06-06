@@ -18,7 +18,6 @@ def get_flexure_parameter(h, E, n_dim, gamma_mantle=33000.0):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.components.flexure import get_flexure_parameter
 
     >>> eet = 65000.

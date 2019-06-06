@@ -601,7 +601,6 @@ class ModelParameterDictionary(dict):
 
         Examples
         --------
-        >>> from __future__ import print_function
         >>> from six import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(

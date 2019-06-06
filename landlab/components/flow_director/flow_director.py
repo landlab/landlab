@@ -7,7 +7,7 @@ the surface over which flow will be routed to the component, and sets up
 part of the boundary condition testing.
 """
 
-from __future__ import print_function
+
 
 import numpy
 import six

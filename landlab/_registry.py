@@ -8,7 +8,6 @@ all of the components they have used.
 
 Examples
 --------
->>> from __future__ import print_function
 >>> from landlab import registry
 
 >>> registry.registered
@@ -138,7 +137,6 @@ class ComponentRegistry(object):
 
         Examples
         --------
-        >>> from __future__ import print_function
         >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
         >>> class DoNothingComponent(object):
@@ -233,7 +231,6 @@ class ComponentRegistry(object):
 
         Examples
         --------
-        >>> from __future__ import print_function
         >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
 

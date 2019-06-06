@@ -9,7 +9,7 @@ The purpose of the example is to demonstrate the use of an OrientedRasterLCA.
 
 GT, September 2014
 """
-from __future__ import print_function
+
 
 import time
 

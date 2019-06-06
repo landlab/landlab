@@ -11,7 +11,7 @@ stochastic, pair-based CA.
 
 Created GT Sep 2014
 """
-from __future__ import print_function
+
 
 import numpy as np
 

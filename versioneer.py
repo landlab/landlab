@@ -278,7 +278,7 @@ https://img.shields.io/travis/warner/python-versioneer/master.svg
 
 """
 
-from __future__ import print_function
+
 
 import errno
 import json

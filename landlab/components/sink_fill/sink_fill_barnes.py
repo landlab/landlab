@@ -7,7 +7,7 @@ Fill sinks in a landscape to the brim, following the Barnes et al. (2014)
 algorithms.
 """
 
-from __future__ import print_function
+
 
 import numpy as np
 from six import iteritems

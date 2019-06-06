@@ -4,7 +4,7 @@
 # This module attempts to "component-ify" GT's Fastscape stream
 # power erosion.
 # Created DEJH, March 2014.
-from __future__ import print_function
+
 
 import numpy as np
 from six import string_types

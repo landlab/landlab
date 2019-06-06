@@ -130,7 +130,6 @@ def add_signature_to_doc(func):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.utils.decorators import add_signature_to_doc
 
     >>> def foo(arg1, kwd=None):

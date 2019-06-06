@@ -7,7 +7,7 @@ Created July 2013 GT
 Last updated March 2016 DEJH with LL v1.0 component style
 """
 
-from __future__ import print_function
+
 
 import numpy as np
 from six.moves import range

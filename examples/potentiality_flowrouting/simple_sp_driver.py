@@ -5,7 +5,7 @@ A simple driver implementing Braun-Willett flow routing and then a
 (non-fastscape) stream power component.
 DEJH, 09/15/14
 """
-from __future__ import print_function
+
 
 import time
 
