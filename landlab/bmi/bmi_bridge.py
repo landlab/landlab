@@ -21,9 +21,8 @@ from bmipy import Bmi
 from ..core import load_params
 from ..core.model_component import Component
 from ..framework.decorators import snake_case
+from ..grid import HexModelGrid, RasterModelGrid
 from ..grid.create import create_grid
-from ..grid import RasterModelGrid, HexModelGrid
-
 
 BMI_LOCATION = {
     "node": "node",
@@ -265,7 +264,9 @@ def wrap_as_bmi(cls):
 
             self._var_mapping["boundary_condition_flag"] = "node"
             self._var_units["boundary_condition_flag"] = ""
-            self._var_doc["boundary_condition_flag"] = "boundary condition flag of grid nodes"
+            self._var_doc[
+                "boundary_condition_flag"
+            ] = "boundary condition flag of grid nodes"
 
         def get_component_name(self):
             """Name of the component."""
@@ -343,7 +344,9 @@ def wrap_as_bmi(cls):
             self._clock = TimeStepper(**clock_params)
 
             self._base = self._cls(grid, **params.pop(snake_case(cls.__name__), {}))
-            self._base.grid.at_node["boundary_condition_flag"] = self._base.grid.status_at_node
+            self._base.grid.at_node[
+                "boundary_condition_flag"
+            ] = self._base.grid.status_at_node
 
         def update(self):
             """Update the component one time step."""
@@ -351,7 +354,9 @@ def wrap_as_bmi(cls):
                 self._base.update()
             elif hasattr(self._base, "run_one_step"):
                 args = []
-                for name, arg in inspect.signature(self._base.run_one_step).parameters.items():
+                for name, arg in inspect.signature(
+                    self._base.run_one_step
+                ).parameters.items():
                     if arg.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
                         args.append(name)
 
@@ -432,8 +437,8 @@ def wrap_as_bmi(cls):
                 origin[:] = (self._base.grid.node_y[0], self._base.grid.node_x[0])
             elif grid == 1:
                 origin[:] = (
-                    self._base.grid.node_y[0] + self._base.grid.dy * .5,
-                    self._base.grid.node_x[0] + self._base.grid.dx * .5,
+                    self._base.grid.node_y[0] + self._base.grid.dy * 0.5,
+                    self._base.grid.node_x[0] + self._base.grid.dx * 0.5,
                 )
             return origin
 
