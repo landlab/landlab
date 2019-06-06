@@ -82,7 +82,6 @@ setup(
         "pyyaml",
         "pyshp",
         "scipy<1.3",
-        "six",
         "statsmodels",
         "xarray",
     ],
