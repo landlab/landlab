@@ -459,7 +459,7 @@ class ModelDataFields(object):
 
         LLCATS: FIELDIO
         """
-        if isinstance(field, six.string_types):
+        if isinstance(field, str):
             vals = self.field_values(group, field)
         else:
             vals = np.asarray(field)

@@ -215,7 +215,7 @@ class ComponentRegistry(object):
                 pass
             else:
                 break
-        if isinstance(citations, six.string_types):
+        if isinstance(citations, str):
             citations = [citations]
         return citations
 

@@ -329,7 +329,7 @@ class ModelParameterDictionary(dict):
         param_file : str or file_like
             Name of parameter file (or file_like)
         """
-        if isinstance(param_file, six.string_types):
+        if isinstance(param_file, str):
             try:
                 with open(param_file, "r") as opened_file:
                     self._read_from_file_like(opened_file)

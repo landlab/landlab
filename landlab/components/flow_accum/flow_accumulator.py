@@ -923,7 +923,7 @@ class FlowAccumulator(Component):
                 kw[p_k] = self.kwargs.pop(p_k)
 
         # flow director is provided as a string.
-        if isinstance(flow_director, six.string_types):
+        if isinstance(flow_director, str):
             if flow_director[:12] == "FlowDirector":
                 flow_director = flow_director[12:]
 
@@ -1033,7 +1033,7 @@ class FlowAccumulator(Component):
                 raise ValueError(warning_message(message))
 
             # depression finder is provided as a string.
-            if isinstance(self.depression_finder_provided, six.string_types):
+            if isinstance(self.depression_finder_provided, str):
 
                 from landlab.components import DepressionFinderAndRouter
 

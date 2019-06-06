@@ -233,11 +233,11 @@ def format_message(msg, header=None, footer=None, linesep=os.linesep):
     Dictumst vestibulum rhoncus est pellentesque. Sed viverra tellus in
     hac habitasse platea dictumst vestibulum rhoncus.
     """
-    if isinstance(header, six.string_types):
+    if isinstance(header, str):
         header = [header]
     header = header or []
 
-    if isinstance(footer, six.string_types):
+    if isinstance(footer, str):
         footer = [footer]
     footer = footer or []
 

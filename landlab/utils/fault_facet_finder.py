@@ -17,10 +17,9 @@ from pylab import figure, plot, show
 
 from landlab.plot import imshow as gridshow
 
-if six.PY3:
 
-    def cmp(a, b):
-        return (a > b) - (a < b)
+def cmp(a, b):
+    return (a > b) - (a < b)
 
 
 class find_facets(object):

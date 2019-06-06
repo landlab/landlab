@@ -7,7 +7,7 @@
 
 
 import numpy as np
-from six import string_types
+
 
 from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX, Component, RasterModelGrid
 from landlab.utils.decorators import use_file_name_or_kwds

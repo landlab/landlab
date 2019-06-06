@@ -132,7 +132,7 @@ def _where_to_add_values(grid, at, where):
     ndarray
         IDs that indicate where values are to be placed.
     """
-    if isinstance(where, (six.string_types, int)):
+    if isinstance(where, (str, int)):
         where = [where]
 
     if isinstance(where, (list, tuple)):

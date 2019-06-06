@@ -25,7 +25,7 @@ def drainage_plot(
     title="Drainage Plot",
 ):
 
-    if isinstance(surface, six.string_types):
+    if isinstance(surface, str):
         colorbar_label = surface
     else:
         colorbar_label = "topographic_elevation"
