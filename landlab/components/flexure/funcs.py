@@ -115,16 +115,16 @@ def subside_point_load(load, loc, coords, params=None, out=None):
     >>> dz = subside_point_load(load, (5000., 2500.), (x, y), params=params)
     >>> print('%.5g' % round(dz.sum(), 9))
     2.6267e-05
-    >>> six.print_(round(dz.min(), 9))
+    >>> print(round(dz.min(), 9))
     5.24e-07
-    >>> six.print_(round(dz.max(), 9))
+    >>> print(round(dz.max(), 9))
     5.26e-07
 
     >>> dz = subside_point_load((1e9, 1e9), ((5000., 5000.), (2500., 2500.)),
     ...                         (x, y), params=params)
-    >>> six.print_(round(dz.min(), 9) / 2.)
+    >>> print(round(dz.min(), 9) / 2.)
     5.235e-07
-    >>> six.print_(round(dz.max(), 9) / 2.)
+    >>> print(round(dz.max(), 9) / 2.)
     5.265e-07
     """
     params = params or dict(eet=6500.0, youngs=7.0e10)

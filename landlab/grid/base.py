@@ -2753,7 +2753,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
                 )
             elif unit == "radians":
                 if alt > np.pi / 2.0 or az > 2.0 * np.pi:
-                    six.print_(
+                    print(
                         "Assuming your solar properties are in degrees, "
                         "but your slopes and aspects are in radians..."
                     )

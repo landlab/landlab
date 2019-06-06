@@ -240,7 +240,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         'horizontal' grids, and only self._ncols for 'vertical' grids.
         """
         if self._DEBUG_TRACK_METHODS:
-            six.print_(
+            print(
                 "HexModelGrid._initialize("
                 + str(base_num_rows)
                 + ", "
