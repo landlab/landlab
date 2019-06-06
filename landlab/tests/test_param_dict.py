@@ -42,7 +42,7 @@ def test_read_file_name(pdict_setup):
 
 
 def test_read_file_like_twice(pdict_setup):
-    from six import StringIO
+    from io import StringIO
 
     param_file = StringIO(pdict_setup.param_dict_file)
     param_dict_1 = ModelParameterDictionary()

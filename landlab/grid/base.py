@@ -325,7 +325,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> from landlab import RasterModelGrid
         >>> filelike = StringIO('''
         ... shape:

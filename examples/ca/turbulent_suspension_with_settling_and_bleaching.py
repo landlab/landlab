@@ -28,7 +28,7 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
     """
     Examples
     ---------
-    >>> from six import StringIO
+    >>> from io import StringIO
     >>> p = StringIO('''
     ... model_grid_row__count: number of rows in grid
     ... 4
@@ -63,7 +63,7 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> p = StringIO('''
         ... model_grid_row__count: number of rows in grid
         ... 4
@@ -271,7 +271,7 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> p = StringIO('''
         ... model_grid_row__count: number of rows in grid
         ... 10
@@ -304,7 +304,7 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> p = StringIO('''
         ... model_grid_row__count: number of rows in grid
         ... 10
@@ -360,7 +360,7 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> p = StringIO('''
         ... model_grid_row__count: number of rows in grid
         ... 10

@@ -289,7 +289,7 @@ def read_asc_header(asc_file):
 
     Examples
     --------
-    >>> from six import StringIO
+    >>> from io import StringIO
     >>> from landlab.io.esri_ascii import read_asc_header
     >>> contents = StringIO('''
     ...     nrows 100

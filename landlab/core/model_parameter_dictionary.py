@@ -11,7 +11,7 @@ particular parameters by key name.
 
 The format of the input file looks like::
 
-    >>> from six import StringIO
+    >>> from io import StringIO
     >>> param_file = StringIO('''
     ... PI: the text "PI" is an example of a KEY
     ... 3.1416
@@ -239,7 +239,7 @@ class ModelParameterDictionary(dict):
     --------
     Create a file-like object that contains a model parameter dictionary.
 
-    >>> from six import StringIO
+    >>> from io import StringIO
     >>> test_file = StringIO('''
     ... INT_VAL:
     ... 1
@@ -459,7 +459,7 @@ class ModelParameterDictionary(dict):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -498,7 +498,7 @@ class ModelParameterDictionary(dict):
                 >>> bool('')
                 False
 
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
         ... MY_BOOL:
@@ -563,7 +563,7 @@ class ModelParameterDictionary(dict):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -600,7 +600,7 @@ class ModelParameterDictionary(dict):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -641,7 +641,7 @@ class ModelParameterDictionary(dict):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -681,7 +681,7 @@ class ModelParameterDictionary(dict):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
