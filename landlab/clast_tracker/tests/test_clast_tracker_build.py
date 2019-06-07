@@ -7,7 +7,6 @@ Last updated 02/11/2019
 
 """
 
-import pytest
 import numpy as np
 
 
@@ -15,8 +14,10 @@ def test_grid_shape(cc_south):
     assert cc_south._grid.number_of_node_rows == 5
     assert cc_south._grid.number_of_node_columns == 5
 
+
 def test_cc_name(cc_south):
     assert cc_south._name == 'ClastCollection'
+
 
 def test_cc_dim(cc_south):
     assert len(cc_south.dims) == 2
@@ -25,8 +26,10 @@ def test_cc_dim(cc_south):
     assert np.allclose(cc_south.time.values, [0.])
     assert np.allclose(cc_south.item_id.values, [0, 1])
 
+
 def test_cc_inherited_from_DR(cc_south):
     assert cc_south.earliest_time == 0.
+
 
 def test_var_names(cc_south):
     assert cc_south.variable_names == ['grid_element',
@@ -53,14 +56,17 @@ def test_var_names(cc_south):
                                        'total_travelled_dist',
                                        'close2boundary']
 
+
 def test_var_val(cc_south):
-    assert (cc_south.clast__elev.values == ([[ 0.6]])).all()
+    assert (cc_south.clast__elev.values == ([[0.6]])).all()
     assert max(cc_south.total_travelled_dist.values) == 0.
     assert np.isnan(max(cc_south.slope__SN.values))
+
 
 def test_var_dim(cc_south):
     assert cc_south.clast__x.dims == ('item_id', 'time')
     assert cc_south.slope__SN.dims == ('item_id',)
+
 
 def test_phantom(cc_south):
     assert np.logical_not(cc_south.phantom(0))
