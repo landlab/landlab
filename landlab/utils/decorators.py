@@ -308,7 +308,7 @@ class use_field_name_or_array(object):
                 if vals in grid[self._at]:
                     vals = grid[self._at][vals]
                 else:
-                    raise FieldError(vals)                    
+                    raise FieldError(vals)
             else:
                 vals = np.asarray(vals).flatten()
 
