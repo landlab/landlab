@@ -10,35 +10,92 @@ Created on Thu Apr  4 11:57:07 2019
 
 @author: abby
 
-First try of a lateral erosion test after many years.....
-
-Modification of K1A2spin30_lat.py
+Doc tests and unit tests for lateral erosion.
 """
 
 from IPython import get_ipython
 ipython = get_ipython()
 ipython.magic("reset -f")
 
-import os
 import numpy as np
-from pylab import *
-from landlab.plot.imshow import imshow_grid
-from landlab.components import FlowAccumulator
-
 from landlab import RasterModelGrid, CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
 from matplotlib.pyplot import figure, show, plot, xlabel, ylabel, title
 
 from numpy import testing
-
 from random import uniform
-from landlab.components import LateralEroder
 from landlab import load_params
 
 from landlab.utils import structured_grid
 
 import time
 
+from landlab.plot.imshow import imshow_grid
+from matplotlib.pyplot import figure, show, plot, xlabel, ylabel, title
+from landlab.components import FlowAccumulator, LateralEroder
+#%% test that sets up a simple, pre-defined drainage network and compares
+# the lateral node that is eroded, the volume of lateral eorsion, and the elevation
+# of the landscape after one timestep
+nr = 5
+nc = 5
+nnodes = nr*nc
+dx=1
+#instantiate grid
+mg = RasterModelGrid(nr, nc, dx)
 
+#rg.set_closed_boundaries_at_grid_edges(True, True, True, False)    #bottom is open
+for edge in (mg.nodes_at_top_edge, mg.nodes_at_bottom_edge, mg.nodes_at_left_edge, mg.nodes_at_right_edge):
+    mg.status_at_node[edge] = CLOSED_BOUNDARY
+for edge in (mg.nodes_at_bottom_edge):
+    mg.status_at_node[edge] = FIXED_VALUE_BOUNDARY
+
+z = mg.add_zeros('node', 'topographic__elevation')
+loading_vector = np.linspace(1,4,num=nr)
+ramp = np.repeat(loading_vector, nc)
+#the tweaks to elevation below make lateral node at node 7
+z += ramp
+z[11]-=0.9
+z[12]-=0.4
+z[8]-=0.001
+#print("zbefore", mg.at_node['topographic__elevation'].reshape(5,5))
+fa = FlowAccumulator(mg,
+                     surface='topographic__elevation',
+                     flow_director='FlowDirectorD8',
+                     runoff_rate=None,
+                     depression_finder=None)#"DepressionFinderAndRouter", router="D8")
+latero = LateralEroder(mg,latero_mech="UC", Kv=0.1, Kl_ratio=1.5)
+fa.accumulate_flow()
+    #erode the landscape with lateral erosion
+(mg, dzlat,)=latero.run_one_step(mg,dt=1.,)
+
+#print("zafter", mg.at_node['topographic__elevation'].reshape(5,5))
+qsname=mg['node'][ 'qs_in']
+#print("qsin", qsname.reshape(5,5))
+vlname=mg['node'][ 'volume__lateral_erosion']
+#print("vollatout", vlname)
+#print('vollat[7]', vlname[7])
+pred_vollat=0.00045158164
+pred_zafter=np.array([1., 1., 1., 1., 1., 1.75, 1.675, 1.675, 1.6731154, 1.75, 2.5,  1.66418779,  2.06181623,  2.4249,  2.5, 3.25,  3.085,  3.13332738,  3.16868272,  3.25, 4., 4., 4., 4., 4.])
+#ztf=np.allclose(mg.at_node['topographic__elevation'], pred_zafter)
+#tf=np.allclose(vlname[7], pred_vollat)
+
+testing.assert_array_almost_equal(
+    mg.at_node['topographic__elevation'],
+    pred_zafter,
+    decimal=8,
+    err_msg="LatEro basic erosion test failed",
+    verbose=True,
+)
+testing.assert_array_almost_equal(
+    vlname[7],
+    pred_vollat,
+    decimal=8,
+    err_msg="LatEro volume lateral erosion failed",
+    verbose=True,
+)
+#from landlab.plot.drainage_plot import drainage_plot
+#figure()
+#drainage_plot(mg)
+#print(delta)
 #%% 
 """
 test to see if sediment flux of model matches SS analytical solution
@@ -253,7 +310,6 @@ for i in range(1000):
 da=mg.at_node['surface_water__discharge']/dx**2
 num_sedflux = mg.at_node["qs"]
 analytical_sedflux = U * da 
-
 
 # test for match with analytical sediment flux. note that the values are off a little 
 #because of the lateral erosion
