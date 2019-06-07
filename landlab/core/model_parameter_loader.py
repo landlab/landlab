@@ -1,5 +1,6 @@
 import os
 import re
+from io import StringIO
 
 import yaml
 
@@ -95,7 +96,7 @@ def load_params(file_like):
     try:
         params = yaml.load(contents, Loader=_loader)
     except yaml.YAMLError:
-        file_like = six.StringIO(contents)
+        file_like = StringIO(contents)
         params = ModelParameterDictionary(from_file=file_like, auto_type=True)
 
     if not isinstance(params, dict):

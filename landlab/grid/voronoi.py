@@ -764,7 +764,7 @@ class VoronoiDelaunayGrid(ModelGrid):
     def save(self, path, clobber=False):
         """Save a grid and fields.
 
-        This method uses cPickle to save a Voronoi grid as a cPickle file.
+        This method uses pickle to save a Voronoi grid as a pickle file.
         At the time of coding, this is the only convenient output format
         for Voronoi grids, but support for netCDF is likely coming.
 
@@ -803,7 +803,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         LLCATS: GINF
         """
         import os
-        from six.moves import cPickle
+        import pickle
 
         if os.path.exists(path) and not clobber:
             raise ValueError("file exists")
@@ -814,7 +814,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         path = base + ext
 
         with open(path, "wb") as fp:
-            cPickle.dump(self, fp)
+            pickle.dump(self, fp)
 
 
 if __name__ == "__main__":

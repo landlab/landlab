@@ -43,7 +43,7 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True):
     --------
     First, we make a simple shapefile
 
-    >>> from six import BytesIO
+    >>> from io import BytesIO
     >>> import shapefile
     >>> shp = BytesIO()
     >>> shx = BytesIO()

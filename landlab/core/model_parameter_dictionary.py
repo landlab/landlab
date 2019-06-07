@@ -724,7 +724,7 @@ class ModelParameterDictionary(dict):
         ParameterValueError
             If the value is not an int.
         """
-        my_value = six.moves.input(key + ": ")
+        my_value = input(key + ": ")
         self[key] = my_value
         if not isinstance(my_value, int):
             raise ParameterValueError(key, my_value, "int")
@@ -751,7 +751,7 @@ class ModelParameterDictionary(dict):
         ParameterValueError
             If the value is not an float.
         """
-        my_value = six.moves.input(key + ": ")
+        my_value = input(key + ": ")
         self[key] = my_value
         try:
             my_float = float(my_value)
@@ -776,7 +776,7 @@ class ModelParameterDictionary(dict):
         str
             The parameter value.
         """
-        my_str = six.moves.input(key + ": ")
+        my_str = input(key + ": ")
         self[key] = my_str
         return my_str
 
@@ -797,7 +797,7 @@ class ModelParameterDictionary(dict):
         bool
             The parameter value.
         """
-        my_value = six.moves.input(key + ": ")
+        my_value = input(key + ": ")
         if my_value.upper() in _VALID_TRUE_VALUES:
             return True
         elif my_value.upper() in _VALID_FALSE_VALUES:
