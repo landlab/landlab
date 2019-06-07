@@ -16,7 +16,6 @@ import itertools
 from collections import deque
 
 import numpy as np
-from six import iteritems
 
 from landlab import (
     BAD_INDEX_VALUE,
@@ -2042,7 +2041,7 @@ class LakeMapperBarnes(Component):
         True
         """
         lakeareas = np.empty(self.number_of_lakes, dtype=float)
-        for (i, (outlet, lakenodes)) in enumerate(iteritems(self.lake_dict)):
+        for (i, (outlet, lakenodes)) in enumerate(self.lake_dict.items()):
             lakeareas[i] = self.grid.cell_area_at_node[lakenodes].sum()
         return lakeareas
 
@@ -2100,7 +2099,7 @@ class LakeMapperBarnes(Component):
         """
         lake_vols = np.empty(self.number_of_lakes, dtype=float)
         col_vols = self.grid.cell_area_at_node * self.lake_depths
-        for (i, (outlet, lakenodes)) in enumerate(iteritems(self.lake_dict)):
+        for (i, (outlet, lakenodes)) in enumerate(self.lake_dict.items()):
             lake_vols[i] = col_vols[lakenodes].sum()
         return lake_vols
 
