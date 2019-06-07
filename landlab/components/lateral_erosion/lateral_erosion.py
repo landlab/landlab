@@ -273,7 +273,7 @@ class LateralEroder(Component):
             qs_in[flowdirs[i]]+=qs_in[i]-(dzver[i]*grid.dx**2)-(petlat*grid.dx*wd)   #qsin to next node
         qs[:] = qs_in-(dzver*grid.dx**2)
         dzdt[:]=dzver*dt
-        vol_lat[:]= vol_lat_dt*dt
+        vol_lat[:]+= vol_lat_dt*dt
         #this loop determines if enough lateral erosion has happened to change the height of the neighbor node.
         for i in dwnst_nodes:
             lat_node=lat_nodes[i]
