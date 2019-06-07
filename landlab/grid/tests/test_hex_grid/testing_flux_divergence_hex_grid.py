@@ -38,7 +38,6 @@ FIRST THING PROBABLY IS TO FIX LINK_AT_FACE FOR RASTER, THEN IMPLEMENT FOR HEX.
 """
 import numpy as np
 from numpy.testing import assert_array_equal
-from six.moves import range
 
 from landlab import HexModelGrid
 

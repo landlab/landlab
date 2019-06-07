@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import numpy as np
-import six
 
 from landlab import Component
 
@@ -276,7 +275,7 @@ class SoilInfiltrationGreenAmpt(Component):
 
     @hydraulic_conductivity.setter
     def hydraulic_conductivity(self, new_value):
-        if isinstance(new_value, six.string_types):
+        if isinstance(new_value, str):
             new_value = self.grid.at_node[new_value]
         if np.any(new_value < 0.0):
             raise ValueError("hydraulic conductivity must be positive")

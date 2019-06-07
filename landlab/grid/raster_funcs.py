@@ -1,5 +1,4 @@
 import numpy as np
-from six.moves import range
 
 from ..core.utils import make_optional_arg_into_id_array
 

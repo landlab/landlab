@@ -1,9 +1,9 @@
 from collections import OrderedDict
+from io import StringIO
 
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
-from six.moves import StringIO
 
 from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid
 from landlab.grid.create import (

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
+
 
 from copy import deepcopy
 from time import time
 
 import numpy as np
 import pylab
-from six.moves import range
+
 
 from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components import FlowAccumulator, SedDepEroder

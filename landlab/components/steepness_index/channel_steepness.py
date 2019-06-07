@@ -4,10 +4,9 @@ Created on Mon Oct 19.
 
 @author: dejh
 """
-from __future__ import print_function
+
 
 import numpy as np
-from six.moves import range  # this is Python 3's generator, not P2's list
 
 from landlab import Component
 

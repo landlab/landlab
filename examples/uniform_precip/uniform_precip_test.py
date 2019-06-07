@@ -13,7 +13,7 @@ a stochastic manner, each run of this driver will differ from the last run.
 Written by Jordan Marie Adams, 2013.
 
 """
-from __future__ import print_function
+
 
 from matplotlib import pyplot as plt
 

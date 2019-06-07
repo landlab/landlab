@@ -6,7 +6,7 @@ Created on Fri Feb 20 11:17:52 2015
 
 @author: danhobley
 """
-from __future__ import print_function
+
 
 import numpy as np
 import pylab

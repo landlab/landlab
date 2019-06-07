@@ -26,7 +26,6 @@ likely to resolve themselves in a future release of matplotlib.
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
-import six
 
 from landlab.plot import imshow
 
@@ -157,7 +156,7 @@ class VideoPlotter(object):
         # we're between start & stop
         if self.step_control_tuple[0] <= elapsed_t < self.step_control_tuple[1]:
             if not self.step_control_tuple[2]:  # no step provided
-                six.print_("Adding frame to video at elapsed time %f" % elapsed_t)
+                print("Adding frame to video at elapsed time %f" % elapsed_t)
                 self.data_list.append(data_in.copy())
             else:
                 excess_fraction = normalized_elapsed_t % self.step_control_tuple[2]
@@ -166,7 +165,7 @@ class VideoPlotter(object):
                 if excess_fraction < self.last_remainder or np.allclose(
                     excess_fraction, self.step_control_tuple[2]
                 ):
-                    six.print_("Adding frame to video at elapsed time %f" % elapsed_t)
+                    print("Adding frame to video at elapsed time %f" % elapsed_t)
                     self.data_list.append(data_in.copy())
                 self.last_remainder = excess_fraction
         self.last_t = elapsed_t
@@ -193,7 +192,7 @@ class VideoPlotter(object):
         override_min_max : tuple of float
             Minimum and maximum for the scale on the plot as (*min*, *max*).
         """
-        six.print_("Assembling video output, may take a while...")
+        print("Assembling video output, may take a while...")
         plt.figure(self.randomized_name)
         # find the limits for the plot:
         if not override_min_max:

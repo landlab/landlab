@@ -14,7 +14,6 @@ Written by Jordan Adams, 2013, updated May 2016
 import random
 
 import numpy as np
-from six import next
 
 from landlab import Component, ModelGrid
 
@@ -207,7 +206,7 @@ class PrecipitationDistribution(Component):
         Note though that alternatively we could also do this, avoiding the
         method entirely...
 
-        >>> from six import next
+
         >>> # ^^this lets you "manually" get the next item from the iterator
         >>> precip = PrecipitationDistribution(mean_storm_duration=1.5,
         ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
@@ -510,7 +509,7 @@ class PrecipitationDistribution(Component):
 
         An alternative way to use the generator might be:
 
-        >>> from six import next
+
         >>> # ^^this lets you "manually" get the next item from the iterator
         >>> _ = mg.at_grid.pop('rainfall__flux')  # remove the existing field
         >>> precip = PrecipitationDistribution(mg, mean_storm_duration=1.5,

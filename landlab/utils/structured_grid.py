@@ -5,7 +5,6 @@
 import itertools
 
 import numpy as np
-from six.moves import range
 
 from ..core.utils import as_id_array
 from ..grid.base import (

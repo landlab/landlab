@@ -4,7 +4,7 @@
 .. codeauthor:: gtucker, DEJH (Flow routing)
 """
 # Routing by DEJH, Oct 15.
-from __future__ import print_function
+
 
 import numpy as np
 
