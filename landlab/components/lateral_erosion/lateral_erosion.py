@@ -8,30 +8,17 @@ ALangston
 """
 
 from landlab import (
-    FIXED_GRADIENT_BOUNDARY,
-    INACTIVE_LINK,
     Component,
     FieldError,
     RasterModelGrid,
 )
 
-from pylab import *
-from six import string_types
-from landlab import ModelParameterDictionary
 from landlab.components.flow_director import FlowDirectorD8
 from landlab.components.flow_accum import FlowAccumulator
 from landlab.components.flow_routing import DepressionFinderAndRouter
-#from landlab import Component
-#from landlab.components import DepressionFinderAndRouter
-# from landlab.components import(FlowDirectorD8,
-#                               FlowDirectorDINF,
-#                               FlowDirectorMFD,
-#                               FlowDirectorSteepest)
-#from landlab.components import FlowAccumulator
+
 from landlab.components.lateral_erosion.node_finder2 import Node_Finder2
-from landlab.utils import structured_grid
 import numpy as np
-from random import uniform
 
 
 class LateralEroder(Component):
@@ -128,7 +115,7 @@ class LateralEroder(Component):
         self.dzdt = grid.add_zeros('node', "dzdt")    # elevation change rate (M/Y)
 # optional inputs
         self.inlet_on = inlet_on
-        if inlet_on == True:
+        if inlet_on is True:
             if inlet_node is None:
                 raise ValueError("inlet_on is true, but no inlet_node is provided.")
             else:
@@ -194,7 +181,7 @@ class LateralEroder(Component):
         dzlat = np.zeros(grid.number_of_nodes)
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
-        if inlet_on == True:
+        if inlet_on is True:
             inlet_node = self.inlet_node
             # if a value is passed with qsinlet_ts, qsinlet has changed with this timestep,
             # so reset qsinlet to qsinlet_ts
@@ -348,7 +335,7 @@ class LateralEroder(Component):
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
 
-        if inlet_on == True:
+        if inlet_on is True:
             # define inlet_node
             inlet_node = self.inlet_node
             # if a value is passed with qsinlet_ts, qsinlet has changed with this timestep,

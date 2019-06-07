@@ -1,0 +1,10 @@
+lateral_erosion.py:10:1: F401 'landlab.FieldError' imported but unused
+lateral_erosion.py:10:1: F401 'landlab.RasterModelGrid' imported but unused
+lateral_erosion.py:16:1: F401 'landlab.components.flow_director.FlowDirectorD8' imported but unused
+lateral_erosion.py:18:1: F401 'landlab.components.flow_routing.DepressionFinderAndRouter' imported but unused
+lateral_erosion.py:118:21: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+lateral_erosion.py:184:21: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+lateral_erosion.py:230:9: E741 ambiguous variable name 'l'
+lateral_erosion.py:338:21: E712 comparison to True should be 'if cond is True:' or 'if cond:'
+lateral_erosion.py:382:9: E741 ambiguous variable name 'l'
+lateral_erosion.py:529:17: E741 ambiguous variable name 'l'
