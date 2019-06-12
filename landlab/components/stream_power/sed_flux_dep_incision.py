@@ -16,7 +16,7 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
                      iterate_sde_downstream)
 
 WAVE_STABILITY_PREFACTOR = 0.2
-CONV_FACTOR = 0.95  # controls the convergence of node elevs in the loop
+CONV_FACTOR = 0.3  # controls the convergence of node elevs in the loop
 
 # NB: The inline documentation of this component freely (& incorrectly!)
 # interchanges "flux" and "discharge". Almost always, "discharge" is intended
@@ -819,24 +819,59 @@ class SedDepEroder(Component):
                                    self.phi, self.norm)
 
             sed_dep_rate = self._voldroprate / self.cell_areas
+
+# There's a fundamental issue here somewhere regarding the sediment depth. It's
+# way too big!! (comparable to the relief). If this because Ksp ~ Kt??
+
             # now perform a CHILD-like convergence-based stability test:
             if self._stab_cond == 'tight':
-                ratediff = (
+                t_to_converge = dt_secs  # we'll overwrite if needed, below
+                ratediff1 = dzbydt[flow_receiver] - dzbydt
+                ratediff2 = (
                     dzbydt[flow_receiver] - dzbydt +
                     sed_dep_rate[flow_receiver] - sed_dep_rate
                 )
+                # ratediff2 = (
+                #     sed_dep_rate[flow_receiver] - sed_dep_rate
+                # )
+                # Idea here is that for a tight condition, BOTH the true
+                # surface and the bedrock surface must behave themselves.
+                # If stability is tight, then ratediff1 describes the br
+                # interface, not the surface...
+                downstr_vert_diff1 = node_z - node_z[flow_receiver]
+                downstr_vert_diff2 = (
+                    br_z -
+                    br_z[flow_receiver]
+                )
+                botharepositive1 = np.logical_and(ratediff1 > 0.,
+                                                  downstr_vert_diff1 > 0.)
+                botharepositive2 = np.logical_and(ratediff2 > 0.,
+                                                  downstr_vert_diff2 > 0.)
+                try:
+                    t_to_converge = np.amin(
+                        downstr_vert_diff1[botharepositive1] /
+                        ratediff1[botharepositive1])
+                except ValueError:  # no node pair converges
+                    pass  # leave t_to_converge alone
+                try:
+                    t_to_converge2 = np.amin(
+                        downstr_vert_diff2[botharepositive2] /
+                        ratediff2[botharepositive2])
+                    t_to_converge = np.amin([t_to_converge, t_to_converge2])
+                except ValueError:  # no node pair converges
+                    pass  # leave t_to_converge alone
             else:
                 ratediff = dzbydt[flow_receiver] - dzbydt
-            # if this is +ve, the nodes are converging
-            downstr_vert_diff = node_z - node_z[flow_receiver]
-            botharepositive = np.logical_and(ratediff > 0.,
-                                             downstr_vert_diff > 0.)
-            try:
-                t_to_converge = np.amin(
-                    downstr_vert_diff[botharepositive] /
-                    ratediff[botharepositive])
-            except ValueError:  # no node pair converges
-                t_to_converge = dt_secs
+                # if this is +ve, the nodes are converging
+                downstr_vert_diff = node_z - node_z[flow_receiver]
+                botharepositive = np.logical_and(ratediff > 0.,
+                                                 downstr_vert_diff > 0.)
+                try:
+                    t_to_converge = np.amin(
+                        downstr_vert_diff[botharepositive] /
+                        ratediff[botharepositive])
+                except ValueError:  # no node pair converges
+                    t_to_converge = dt_secs
             t_to_converge *= CONV_FACTOR
             # ^arbitrary safety factor; CHILD uses 0.3
             if t_to_converge < 3600. and flood_node is not None:
