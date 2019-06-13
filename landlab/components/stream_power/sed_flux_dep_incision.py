@@ -860,6 +860,9 @@ class SedDepEroder(Component):
                     t_to_converge = np.amin([t_to_converge, t_to_converge2])
                 except ValueError:  # no node pair converges
                     pass  # leave t_to_converge alone
+                # also a third condition: the two surfaces must not strongly
+                # diverge *from each other* (oscillation possible in sed layer)
+                th = node_z - br_z
             else:
                 ratediff = dzbydt[flow_receiver] - dzbydt
                 # if this is +ve, the nodes are converging
