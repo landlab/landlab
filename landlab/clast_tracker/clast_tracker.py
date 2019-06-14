@@ -3,6 +3,7 @@
 
 
 import numpy as np
+
 from landlab.data_record import DataRecord
 
 
@@ -111,31 +112,21 @@ class ClastCollection(DataRecord):
 
     """
 
-    _name = 'ClastCollection'
+    _name = "ClastCollection"
 
     _cite_as = """"""
 
-    _input_var_names = (
-    )
+    _input_var_names = ()
 
-    _output_var_names = (
-    )
+    _output_var_names = ()
 
-    _var_units = {
-    }
+    _var_units = {}
 
-    _var_mapping = {
-    }
+    _var_mapping = {}
 
-    _var_doc = {
-    }
+    _var_doc = {}
 
-    def __init__(self,
-                 grid,
-                 clast_x=[],
-                 clast_y=[],
-                 clast_elev=[],
-                 clast_radius=[]):
+    def __init__(self, grid, clast_x=[], clast_y=[], clast_elev=[], clast_radius=[]):
         """ Creates a new instance of ClastCollection.
 
         Parameters
@@ -303,96 +294,86 @@ class ClastCollection(DataRecord):
 
         for i in range(self._grid.number_of_nodes):
             self.x_of_corners_at_node[i, :] = [
-                    self._grid.node_x[i]+self._grid.dx/2,
-                    self._grid.node_x[i]-self._grid.dx/2,
-                    self._grid.node_x[i]-self._grid.dx/2,
-                    self._grid.node_x[i]+self._grid.dx/2]
+                self._grid.node_x[i] + self._grid.dx / 2,
+                self._grid.node_x[i] - self._grid.dx / 2,
+                self._grid.node_x[i] - self._grid.dx / 2,
+                self._grid.node_x[i] + self._grid.dx / 2,
+            ]
             self.y_of_corners_at_node[i, :] = [
-                    self._grid.node_y[i]+self._grid.dy/2,
-                    self._grid.node_y[i]+self._grid.dy/2,
-                    self._grid.node_y[i]-self._grid.dy/2,
-                    self._grid.node_y[i]-self._grid.dy/2]
+                self._grid.node_y[i] + self._grid.dy / 2,
+                self._grid.node_y[i] + self._grid.dy / 2,
+                self._grid.node_y[i] - self._grid.dy / 2,
+                self._grid.node_y[i] - self._grid.dy / 2,
+            ]
 
         # Determine reference (closest) node for each clast:
         _clast__node = []
-        _clast__node[:] = self._grid.find_nearest_node(
-                                                    (clast_x[:], clast_y[:]))
+        _clast__node[:] = self._grid.find_nearest_node((clast_x[:], clast_y[:]))
         # Clast collection size:
         self._nb_of_clast = len(_clast__node)
         # Determine current cell for each clast:
         _clast__cell = []
         _clast__cell[:] = self._grid.cell_at_node[_clast__node]
         # format element_id:
-        _element_id = np.array((_clast__cell), dtype=int).reshape((
-                                                       self._nb_of_clast, 1))
+        _element_id = np.array((_clast__cell), dtype=int).reshape(
+            (self._nb_of_clast, 1)
+        )
 
         # Check clast elevation (if above surface, snap to node elevation):
         _clast__elev = clast_elev
         for clast in range(self._nb_of_clast):
-            if _clast__elev[clast] > self._grid.at_node[
-                            'topographic__elevation'][_clast__node[clast]]:
-                _clast__elev[clast] = self._grid.at_node[
-                        'topographic__elevation'][_clast__node[clast]]
+            if (
+                _clast__elev[clast]
+                > self._grid.at_node["topographic__elevation"][_clast__node[clast]]
+            ):
+                _clast__elev[clast] = self._grid.at_node["topographic__elevation"][
+                    _clast__node[clast]
+                ]
 
         # Store the input information in a dictionary and create the other
         # fields for clasts motion:
-        clast_data = {'clast__x': (
-                ['item_id', 'time'], clast_x.reshape((self._nb_of_clast, 1))),
-                      'clast__y': (
-                ['item_id', 'time'], clast_y.reshape((self._nb_of_clast, 1))),
-                      'clast__elev': (
-                ['item_id', 'time'], clast_elev.reshape(
-                                                    (self._nb_of_clast, 1))),
-                      'clast__node': (
-                              ['item_id'], np.array(_clast__node)),
-                      'clast__initial_radius': (
-                              ['item_id'], clast_radius),
-                      'clast__radius': (
-                ['item_id', 'time'], clast_radius.reshape(
-                                                    (self._nb_of_clast, 1))),
-                      'lambda_0': (
-                              ['item_id'], np.full(self._nb_of_clast, np.NaN)),
-                      'lambda_mean': (
-                              ['item_id'], np.full(self._nb_of_clast, np.NaN)),
-                      'slope__WE': (
-                              ['item_id'], np.full(self._nb_of_clast, np.NaN)),
-                      'slope__SN': (
-                              ['item_id'], np.full(self._nb_of_clast, np.NaN)),
-                      'slope__steepest_azimuth': (
-                              ['item_id'], np.full(self._nb_of_clast, np.NaN)),
-                      'slope__steepest_dip': (
-                              ['item_id'], np.full(self._nb_of_clast, np.NaN)),
-                      'distance__to_exit': (
-                              ['item_id'], np.full(self._nb_of_clast, np.NaN)),
-                      'target_node': (
-                              ['item_id'], -np.ones(
-                                      self._nb_of_clast, dtype=int)),
-                      'target_node_flag': (
-                              ['item_id'], -np.ones(
-                                      self._nb_of_clast, dtype=int)),
-                      'distance__to_travel': (
-                              ['item_id'], np.full(self._nb_of_clast, np.NaN)),
-                      'change_x': (
-                              ['item_id'], np.zeros(self._nb_of_clast)),
-                      'change_y': (
-                              ['item_id'], np.zeros(self._nb_of_clast)),
-                      'hop_length': (
-                              ['item_id', 'time'], np.zeros(
-                                      (self._nb_of_clast, 1))),
-                      'total_travelled_dist': (
-                              ['item_id'], np.zeros(self._nb_of_clast)),
-                      'close2boundary': (
-                              ['item_id'], np.full(self._nb_of_clast, np.NaN))}
+        clast_data = {
+            "clast__x": (["item_id", "time"], clast_x.reshape((self._nb_of_clast, 1))),
+            "clast__y": (["item_id", "time"], clast_y.reshape((self._nb_of_clast, 1))),
+            "clast__elev": (
+                ["item_id", "time"],
+                clast_elev.reshape((self._nb_of_clast, 1)),
+            ),
+            "clast__node": (["item_id"], np.array(_clast__node)),
+            "clast__initial_radius": (["item_id"], clast_radius),
+            "clast__radius": (
+                ["item_id", "time"],
+                clast_radius.reshape((self._nb_of_clast, 1)),
+            ),
+            "lambda_0": (["item_id"], np.full(self._nb_of_clast, np.NaN)),
+            "lambda_mean": (["item_id"], np.full(self._nb_of_clast, np.NaN)),
+            "slope__WE": (["item_id"], np.full(self._nb_of_clast, np.NaN)),
+            "slope__SN": (["item_id"], np.full(self._nb_of_clast, np.NaN)),
+            "slope__steepest_azimuth": (
+                ["item_id"],
+                np.full(self._nb_of_clast, np.NaN),
+            ),
+            "slope__steepest_dip": (["item_id"], np.full(self._nb_of_clast, np.NaN)),
+            "distance__to_exit": (["item_id"], np.full(self._nb_of_clast, np.NaN)),
+            "target_node": (["item_id"], -np.ones(self._nb_of_clast, dtype=int)),
+            "target_node_flag": (["item_id"], -np.ones(self._nb_of_clast, dtype=int)),
+            "distance__to_travel": (["item_id"], np.full(self._nb_of_clast, np.NaN)),
+            "change_x": (["item_id"], np.zeros(self._nb_of_clast)),
+            "change_y": (["item_id"], np.zeros(self._nb_of_clast)),
+            "hop_length": (["item_id", "time"], np.zeros((self._nb_of_clast, 1))),
+            "total_travelled_dist": (["item_id"], np.zeros(self._nb_of_clast)),
+            "close2boundary": (["item_id"], np.full(self._nb_of_clast, np.NaN)),
+        }
 
         # Build ItemCollection containing clast data:
         super(ClastCollection, self).__init__(
-                                self._grid,
-                                time=[0.],
-                                items={'grid_element': 'cell',
-                                       'element_id': _element_id},
-                                data_vars=clast_data,
-                                attrs=None,
-                                compat='broadcast_equals')
+            self._grid,
+            time=[0.0],
+            items={"grid_element": "cell", "element_id": _element_id},
+            data_vars=clast_data,
+            attrs=None,
+            compat="broadcast_equals",
+        )
 
     def _neighborhood(self, clast):
         """ Determine the neighboring nodes of each clast, the node towards
@@ -417,82 +398,83 @@ class ClastCollection(DataRecord):
         """
 
         # Calculate lambda_0 :
-        self['lambda_0'][clast] = self.attrs['kappa'] / (
-                2 * self['clast__radius'][clast, -1] * (
-                        self.attrs['disturbance_fqcy']))
+        self["lambda_0"][clast] = self.attrs["kappa"] / (
+            2 * self["clast__radius"][clast, -1] * (self.attrs["disturbance_fqcy"])
+        )
 
         # If clast is phantom, slope is 0:
         if (ClastCollection.phantom(self, clast) is True) or (
-                self['clast__radius'][clast, -1] == 0):
-            self['slope__WE'][clast] = 0
-            self['slope__SN'][clast] = 0
+            self["clast__radius"][clast, -1] == 0
+        ):
+            self["slope__WE"][clast] = 0
+            self["slope__SN"][clast] = 0
 
         else:
             # Determine reference (closest) node for each clast:
             _grid = self._grid
-            _node = self['clast__node'][clast] = \
-                _grid.find_nearest_node((self['clast__x'][clast, -1],
-                                         self['clast__y'][clast, -1]))
+            _node = self["clast__node"][clast] = _grid.find_nearest_node(
+                (self["clast__x"][clast, -1], self["clast__y"][clast, -1])
+            )
 
             # Adjacent row and col nodes:
-            _row_col_adjacent_nodes_at_node = (
-                    _grid.neighbors_at_node[_node])
+            _row_col_adjacent_nodes_at_node = _grid.neighbors_at_node[_node]
             east_node = _row_col_adjacent_nodes_at_node[0]
             north_node = _row_col_adjacent_nodes_at_node[1]
             west_node = _row_col_adjacent_nodes_at_node[2]
             south_node = _row_col_adjacent_nodes_at_node[3]
             # Diagonal nodes:
-            _diagonal_adjacent_nodes_at_node = (
-                    _grid.diagonal_adjacent_nodes_at_node[_node])
+            _diagonal_adjacent_nodes_at_node = _grid.diagonal_adjacent_nodes_at_node[
+                _node
+            ]
             # Full neighborhood: E, N, W, S, NE, NW, SW, SE
-            _neighbor_nodes = np.concatenate((
-                    _row_col_adjacent_nodes_at_node,
-                    _diagonal_adjacent_nodes_at_node), axis=0)
+            _neighbor_nodes = np.concatenate(
+                (_row_col_adjacent_nodes_at_node, _diagonal_adjacent_nodes_at_node),
+                axis=0,
+            )
 
             # Case where one of the neighbor is boundary:
-            if any(i in _row_col_adjacent_nodes_at_node for
-                   i in _grid.boundary_nodes) is True or (
-                           ClastCollection._cell_is_hillslope(self, clast)
-                           is False):
+            if any(
+                i in _row_col_adjacent_nodes_at_node for i in _grid.boundary_nodes
+            ) is True or (ClastCollection._cell_is_hillslope(self, clast) is False):
                 self.close2boundary.values[clast] = True
-                if _grid.at_node['flow__receiver_node'][_node] != _node:
+                if _grid.at_node["flow__receiver_node"][_node] != _node:
                     # if FlowDirector designates a receiver node other than
                     # the node itself, clast is moving toward receiver node:
-                    self['target_node'][clast] = (
-                            _grid.at_node['flow__receiver_node'][_node])
-                    self['target_node_flag'][clast] = np.where(
-                            _neighbor_nodes == _grid.at_node[
-                                    'flow__receiver_node'][_node])[0][0]
+                    self["target_node"][clast] = _grid.at_node["flow__receiver_node"][
+                        _node
+                    ]
+                    self["target_node_flag"][clast] = np.where(
+                        _neighbor_nodes == _grid.at_node["flow__receiver_node"][_node]
+                    )[0][0]
                     # slopes will be calculated by _move_to depending on the
                     # target node, they are set as NaN for now:
-                    self['slope__WE'][clast] = np.NaN
-                    self['slope__SN'][clast] = np.NaN
+                    self["slope__WE"][clast] = np.NaN
+                    self["slope__SN"][clast] = np.NaN
                 else:
                     # flow receiver = node itself
-                    self['target_node'][clast] = _node
-                    self['target_node_flag'][clast] = -1
-                    self['slope__WE'][clast] = np.NaN
-                    self['slope__SN'][clast] = np.NaN
+                    self["target_node"][clast] = _node
+                    self["target_node_flag"][clast] = -1
+                    self["slope__WE"][clast] = np.NaN
+                    self["slope__SN"][clast] = np.NaN
 
             else:
                 # not close to boundary
-                self['close2boundary'][clast].values = False
+                self["close2boundary"][clast].values = False
                 # target_node and target_node_flag determined by _move_to
                 # Calculation of slopes: W to E and S to N, units=m/m
-                self['slope__WE'][clast] = ((
-                        _grid.at_node['topographic__elevation'][west_node] - (
-                                _grid.at_node['topographic__elevation']
-                                [east_node])) / (2 * _grid.dx))
-                self['slope__SN'][clast] = (
-                        _grid.at_node['topographic__elevation'][south_node] -
-                        _grid.at_node['topographic__elevation']
-                        [north_node]) / (2 * _grid.dy)
+                self["slope__WE"][clast] = (
+                    _grid.at_node["topographic__elevation"][west_node]
+                    - (_grid.at_node["topographic__elevation"][east_node])
+                ) / (2 * _grid.dx)
+                self["slope__SN"][clast] = (
+                    _grid.at_node["topographic__elevation"][south_node]
+                    - _grid.at_node["topographic__elevation"][north_node]
+                ) / (2 * _grid.dy)
 
                 # norm of steepest slope vector projected on horizontal plane:
-                we_slope = self['slope__WE'][clast].values.item()
-                sn_slope = self['slope__SN'][clast].values.item()
-                ss_horiz_norm = (
-                        np.sqrt(np.power(we_slope, 2) + np.power(sn_slope, 2)))
+                we_slope = self["slope__WE"][clast].values.item()
+                sn_slope = self["slope__SN"][clast].values.item()
+                ss_horiz_norm = np.sqrt(np.power(we_slope, 2) + np.power(sn_slope, 2))
 
                 # norms of vectors SN and WE:
                 sn_norm = abs(sn_slope) / np.cos(np.arctan(abs(sn_slope)))
@@ -501,37 +483,33 @@ class ClastCollection(DataRecord):
                 # norm of steepest slope = norm of resultant of SN and WE:
                 ss_norm = np.sqrt(np.power(sn_norm, 2) + np.power(we_norm, 2))
                 # steepest slope dip:
-                if ss_norm == 0.:
-                    ss_dip = 0.
+                if ss_norm == 0.0:
+                    ss_dip = 0.0
                 else:
                     ss_dip = np.arccos(ss_horiz_norm / ss_norm)
 
                 # Add randomness for lateral spreading (if option on):
-                if self.attrs['lateral_spreading'] == 'on':
+                if self.attrs["lateral_spreading"] == "on":
                     # maximum angle of deviation from steepest slope direction:
                     max_deviation = (
-                            np.pi * np.exp(
-                                ss_dip / (-np.sqrt(
-                                        self['lambda_0'][clast].values))) * (
-                                        np.cos(ss_dip)))
+                        np.pi
+                        * np.exp(ss_dip / (-np.sqrt(self["lambda_0"][clast].values)))
+                        * (np.cos(ss_dip))
+                    )
 
                     # draw random angle of deviation in uniform distrib:
-                    draw_dev = np.random.uniform(low=-max_deviation,
-                                                 high=max_deviation,
-                                                 size=1)
+                    draw_dev = np.random.uniform(
+                        low=-max_deviation, high=max_deviation, size=1
+                    )
 
-                    slope_WE_with_dev = (
-                            self['slope__WE'][clast].values.item() *
-                            np.cos(draw_dev[0]) -
-                            self['slope__SN'][clast].values.item() *
-                            np.sin(draw_dev[0]))
-                    slope_SN_with_dev = (
-                            self['slope__WE'][clast].values.item() *
-                            np.sin(draw_dev[0]) +
-                            self['slope__SN'][clast].values.item() *
-                            np.cos(draw_dev[0]))
-                    self['slope__WE'][clast] = slope_WE_with_dev
-                    self['slope__SN'][clast] = slope_SN_with_dev
+                    slope_WE_with_dev = self["slope__WE"][clast].values.item() * np.cos(
+                        draw_dev[0]
+                    ) - self["slope__SN"][clast].values.item() * np.sin(draw_dev[0])
+                    slope_SN_with_dev = self["slope__WE"][clast].values.item() * np.sin(
+                        draw_dev[0]
+                    ) + self["slope__SN"][clast].values.item() * np.cos(draw_dev[0])
+                    self["slope__WE"][clast] = slope_WE_with_dev
+                    self["slope__SN"][clast] = slope_SN_with_dev
 
     def _move_to(self, clast):
         """ Determine the direction and value of the slope where the clast will
@@ -546,146 +524,162 @@ class ClastCollection(DataRecord):
 
         # Saving references:
         _grid = self._grid
-        _node = self['clast__node'][clast]
+        _node = self["clast__node"][clast]
         _node_x = _grid.node_x[_node]
         _node_y = _grid.node_y[_node]
-        _node_z = _grid.at_node['topographic__elevation'][_node]
-        _clast_x = self['clast__x'][clast, -1].values.item()
-        _clast_y = self['clast__y'][clast, -1].values.item()
-        we_slope = self['slope__WE'][clast].values.item()
-        sn_slope = self['slope__SN'][clast].values.item()
+        _node_z = _grid.at_node["topographic__elevation"][_node]
+        _clast_x = self["clast__x"][clast, -1].values.item()
+        _clast_y = self["clast__y"][clast, -1].values.item()
+        we_slope = self["slope__WE"][clast].values.item()
+        sn_slope = self["slope__SN"][clast].values.item()
 
         # Adjacent row and col nodes:
         _row_col_adjacent_nodes_at_node = _grid.neighbors_at_node[_node]
         # Adjacent diagonal nodes:
-        _diagonal_adjacent_nodes_at_node = (
-                _grid.diagonal_adjacent_nodes_at_node[_node])
+        _diagonal_adjacent_nodes_at_node = _grid.diagonal_adjacent_nodes_at_node[_node]
 
         # If clast is phantom, it will not move, set everything to 0:
         if self.phantom(clast) is True:
-            target_node = self['clast__node'][clast]
+            target_node = self["clast__node"][clast]
             ss_azimuth = np.NaN
-            ss_dip = 0.
+            ss_dip = 0.0
             dist_to_exit = np.NaN
-            [change_x, change_y] = [0., 0.]
+            [change_x, change_y] = [0.0, 0.0]
 
         # Clast is not phantom:
         # Cases where one of the neighbor is boundary node or clast is on a
         # river cell: use the topographic__steepest_slope and
         # flow__receiver_node provided by flow director:
-        elif (np.isnan(self['slope__WE'][clast]) == True and
-              np.isnan(self['slope__SN'][clast]) == True) or \
-              self._cell_is_hillslope(clast) == False:
-            target_node = self['target_node'][clast] = (
-                    _grid.at_node['flow__receiver_node'][_node])
-            target_node_flag = self['target_node_flag'][clast]
+        elif (
+            np.isnan(self["slope__WE"][clast]) == True
+            and np.isnan(self["slope__SN"][clast]) == True
+        ) or self._cell_is_hillslope(clast) == False:
+            target_node = self["target_node"][clast] = _grid.at_node[
+                "flow__receiver_node"
+            ][_node]
+            target_node_flag = self["target_node_flag"][clast]
 
             if target_node_flag == -1:
                 # node is sink, clast does not move
                 we_slope = np.NaN
                 sn_slope = np.NaN
                 ss_azimuth = np.NaN
-                ss_dip = 0.
+                ss_dip = 0.0
                 dist_to_exit = np.inf
-                [change_x, change_y] = [0., 0.]
+                [change_x, change_y] = [0.0, 0.0]
                 target_node = _node
 
             elif target_node_flag == 0:
                 # East
                 we_slope = (
-                        _node_z -
-                        self._grid.at_node['topographic__elevation'][
-                                        self['target_node'][clast]]) / (
-                                                                    _grid.dx)
-                sn_slope = 0.
-                ss_azimuth = 0.
+                    _node_z
+                    - self._grid.at_node["topographic__elevation"][
+                        self["target_node"][clast]
+                    ]
+                ) / (_grid.dx)
+                sn_slope = 0.0
+                ss_azimuth = 0.0
 
-                ss_horiz_norm = np.sqrt(we_slope**2 + sn_slope**2)
-                ss_dip = np.arctan((sn_slope**2+we_slope**2)/ss_horiz_norm)
-                dx_to_exit = abs((_node_x + (self._grid.dx/2)) - _clast_x)
-                dy_to_exit = 0.
-                h_dist_to_exit = np.sqrt(dx_to_exit**2 + dy_to_exit**2)
+                ss_horiz_norm = np.sqrt(we_slope ** 2 + sn_slope ** 2)
+                ss_dip = np.arctan((sn_slope ** 2 + we_slope ** 2) / ss_horiz_norm)
+                dx_to_exit = abs((_node_x + (self._grid.dx / 2)) - _clast_x)
+                dy_to_exit = 0.0
+                h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                 dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
-                [change_x, change_y] = [dx_to_exit + 1e-10, 0.]
+                [change_x, change_y] = [dx_to_exit + 1e-10, 0.0]
 
             elif target_node_flag == 1:
                 # North
-                we_slope = 0.
-                sn_slope = (_node_z - (
-                        self._grid.at_node['topographic__elevation'][
-                                self['target_node'][clast]])) / (
-                                _grid.dy)
+                we_slope = 0.0
+                sn_slope = (
+                    _node_z
+                    - (
+                        self._grid.at_node["topographic__elevation"][
+                            self["target_node"][clast]
+                        ]
+                    )
+                ) / (_grid.dy)
                 ss_azimuth = np.radians(90)
 
-                ss_horiz_norm = np.sqrt(we_slope**2 + sn_slope**2)
-                ss_dip = np.arctan((sn_slope**2+we_slope**2)/ss_horiz_norm)
-                dx_to_exit = 0.
-                dy_to_exit = abs((_node_y + (self._grid.dy/2)) - _clast_y)
-                h_dist_to_exit = np.sqrt(dx_to_exit**2 + dy_to_exit**2)
+                ss_horiz_norm = np.sqrt(we_slope ** 2 + sn_slope ** 2)
+                ss_dip = np.arctan((sn_slope ** 2 + we_slope ** 2) / ss_horiz_norm)
+                dx_to_exit = 0.0
+                dy_to_exit = abs((_node_y + (self._grid.dy / 2)) - _clast_y)
+                h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                 dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
-                [change_x, change_y] = [0., dy_to_exit + 1e-10]
+                [change_x, change_y] = [0.0, dy_to_exit + 1e-10]
 
             elif target_node_flag == 2:
                 # West
-                we_slope = (self._grid.at_node['topographic__elevation'][
-                        self['target_node'][clast]] - _node_z) / _grid.dx
-                sn_slope = 0.
+                we_slope = (
+                    self._grid.at_node["topographic__elevation"][
+                        self["target_node"][clast]
+                    ]
+                    - _node_z
+                ) / _grid.dx
+                sn_slope = 0.0
                 ss_azimuth = np.radians(180)
 
-                ss_horiz_norm = np.sqrt(we_slope**2 + sn_slope**2)
-                ss_dip = np.arctan((sn_slope**2+we_slope**2)/ss_horiz_norm)
-                dx_to_exit = abs(_clast_x - (_node_x - (self._grid.dx/2)))
-                dy_to_exit = 0.
-                h_dist_to_exit = np.sqrt(dx_to_exit**2 + dy_to_exit**2)
+                ss_horiz_norm = np.sqrt(we_slope ** 2 + sn_slope ** 2)
+                ss_dip = np.arctan((sn_slope ** 2 + we_slope ** 2) / ss_horiz_norm)
+                dx_to_exit = abs(_clast_x - (_node_x - (self._grid.dx / 2)))
+                dy_to_exit = 0.0
+                h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                 dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
-                [change_x, change_y] = [- dx_to_exit - 1e-10, 0.]
+                [change_x, change_y] = [-dx_to_exit - 1e-10, 0.0]
 
             elif target_node_flag == 3:
                 # South
-                we_slope = 0.
-                sn_slope = (self._grid.at_node['topographic__elevation'][
-                        self['target_node'][clast]] - _node_z) / (
-                    _grid.dy)
+                we_slope = 0.0
+                sn_slope = (
+                    self._grid.at_node["topographic__elevation"][
+                        self["target_node"][clast]
+                    ]
+                    - _node_z
+                ) / (_grid.dy)
                 ss_azimuth = np.radians(270)
 
-                ss_horiz_norm = np.sqrt(we_slope**2 + sn_slope**2)
-                ss_dip = np.arctan((sn_slope**2+we_slope**2)/ss_horiz_norm)
-                dx_to_exit = 0.
-                dy_to_exit = abs(_clast_y - (_node_y - (self._grid.dy/2)))
-                h_dist_to_exit = np.sqrt(dx_to_exit**2 + dy_to_exit**2)
+                ss_horiz_norm = np.sqrt(we_slope ** 2 + sn_slope ** 2)
+                ss_dip = np.arctan((sn_slope ** 2 + we_slope ** 2) / ss_horiz_norm)
+                dx_to_exit = 0.0
+                dy_to_exit = abs(_clast_y - (_node_y - (self._grid.dy / 2)))
+                h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                 dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
-                [change_x, change_y] = [0., - dy_to_exit - 1e-10]
+                [change_x, change_y] = [0.0, -dy_to_exit - 1e-10]
 
             else:
                 # Diagonals
-                _target_node_z = _grid.at_node['topographic__elevation'][
-                        self['target_node'][clast]]
+                _target_node_z = _grid.at_node["topographic__elevation"][
+                    self["target_node"][clast]
+                ]
                 ss_dip = np.arctan(
-                        (_node_z - _target_node_z) /
-                        (np.sqrt(np.power(_grid.node_x[target_node] -
-                                          _grid.node_x[_node], 2) +
-                                 np.power(_grid.node_y[target_node] -
-                                          _grid.node_y[_node], 2))))
+                    (_node_z - _target_node_z)
+                    / (
+                        np.sqrt(
+                            np.power(_grid.node_x[target_node] - _grid.node_x[_node], 2)
+                            + np.power(
+                                _grid.node_y[target_node] - _grid.node_y[_node], 2
+                            )
+                        )
+                    )
+                )
 
                 if target_node_flag == 4:
                     # NE
                     corner = 0
                     h_dist_to_exit = np.sqrt(
-                            (self.y_of_corners_at_node[_node, corner] -
-                             _clast_y)**2 +
-                            (self.x_of_corners_at_node[_node, corner] -
-                             _clast_x)**2)
+                        (self.y_of_corners_at_node[_node, corner] - _clast_y) ** 2
+                        + (self.x_of_corners_at_node[_node, corner] - _clast_x) ** 2
+                    )
                     dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                     ss_azimuth = np.arctan(
-                            (self.y_of_corners_at_node[_node, corner] -
-                             _clast_y) / (
-                                     self.x_of_corners_at_node[_node, corner] -
-                                     _clast_x))
+                        (self.y_of_corners_at_node[_node, corner] - _clast_y)
+                        / (self.x_of_corners_at_node[_node, corner] - _clast_x)
+                    )
                     [change_x, change_y] = [
-                            self.x_of_corners_at_node[_node, corner] -
-                            _clast_x + 1e-10,
-                            self.y_of_corners_at_node[_node, corner] -
-                            _clast_y + 1e-10]
+                        self.x_of_corners_at_node[_node, corner] - _clast_x + 1e-10,
+                        self.y_of_corners_at_node[_node, corner] - _clast_y + 1e-10,
+                    ]
                     we_slope = ss_dip / 2
                     sn_slope = ss_dip / 2
 
@@ -693,84 +687,74 @@ class ClastCollection(DataRecord):
                     # NW
                     corner = 1
                     h_dist_to_exit = np.sqrt(
-                            (self.y_of_corners_at_node[_node, corner] -
-                             _clast_y)**2 + (
-                                     self.x_of_corners_at_node[_node, corner] -
-                                     _clast_x)**2)
+                        (self.y_of_corners_at_node[_node, corner] - _clast_y) ** 2
+                        + (self.x_of_corners_at_node[_node, corner] - _clast_x) ** 2
+                    )
                     dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                     ss_azimuth = np.radians(90) + np.arctan(
-                            (_clast_x -
-                             self.x_of_corners_at_node[_node, corner]) / (
-                                     self.y_of_corners_at_node[_node, corner] -
-                                     _clast_y))
+                        (_clast_x - self.x_of_corners_at_node[_node, corner])
+                        / (self.y_of_corners_at_node[_node, corner] - _clast_y)
+                    )
                     [change_x, change_y] = [
-                              -_clast_x +
-                              self.x_of_corners_at_node[_node, corner] - 1e-10,
-                              self.y_of_corners_at_node[_node, corner] -
-                              _clast_y + 1e-10]
-                    we_slope = - ss_dip / 2
+                        -_clast_x + self.x_of_corners_at_node[_node, corner] - 1e-10,
+                        self.y_of_corners_at_node[_node, corner] - _clast_y + 1e-10,
+                    ]
+                    we_slope = -ss_dip / 2
                     sn_slope = ss_dip / 2
 
                 elif target_node_flag == 6:
                     # SW
                     corner = 2
                     h_dist_to_exit = np.sqrt(
-                            (self.y_of_corners_at_node[_node, corner] -
-                             _clast_y)**2 + (
-                                     self.x_of_corners_at_node[_node, corner] -
-                                     _clast_x)**2)
+                        (self.y_of_corners_at_node[_node, corner] - _clast_y) ** 2
+                        + (self.x_of_corners_at_node[_node, corner] - _clast_x) ** 2
+                    )
                     dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                     ss_azimuth = np.radians(180) + np.arctan(
-                            (_clast_y -
-                             self.y_of_corners_at_node[_node, corner]) / (
-                                     _clast_x -
-                                     self.x_of_corners_at_node[_node, corner]))
+                        (_clast_y - self.y_of_corners_at_node[_node, corner])
+                        / (_clast_x - self.x_of_corners_at_node[_node, corner])
+                    )
                     [change_x, change_y] = [
-                            -_clast_x +
-                            self.x_of_corners_at_node[_node, corner] - 1e-10,
-                            -_clast_y +
-                            self.y_of_corners_at_node[_node, corner] - 1e-10]
-                    we_slope = - ss_dip / 2
-                    sn_slope = - ss_dip / 2
+                        -_clast_x + self.x_of_corners_at_node[_node, corner] - 1e-10,
+                        -_clast_y + self.y_of_corners_at_node[_node, corner] - 1e-10,
+                    ]
+                    we_slope = -ss_dip / 2
+                    sn_slope = -ss_dip / 2
 
                 elif target_node_flag == 7:
                     # SE
                     corner = 3
                     h_dist_to_exit = np.sqrt(
-                            (self.y_of_corners_at_node[_node, corner] -
-                             _clast_y)**2 + (
-                                     self.x_of_corners_at_node[_node, corner] -
-                                     _clast_x)**2)
+                        (self.y_of_corners_at_node[_node, corner] - _clast_y) ** 2
+                        + (self.x_of_corners_at_node[_node, corner] - _clast_x) ** 2
+                    )
                     dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                     ss_azimuth = np.radians(270) + np.arctan(
-                            (self.x_of_corners_at_node[_node, corner] -
-                             _clast_x) / (
-                                     _clast_y -
-                                     self.y_of_corners_at_node[_node, corner]))
+                        (self.x_of_corners_at_node[_node, corner] - _clast_x)
+                        / (_clast_y - self.y_of_corners_at_node[_node, corner])
+                    )
                     [change_x, change_y] = [
-                            self.x_of_corners_at_node[_node, corner] -
-                            _clast_x + 1e-10,
-                            -_clast_y +
-                            self.y_of_corners_at_node[_node, corner] - 1e-10]
+                        self.x_of_corners_at_node[_node, corner] - _clast_x + 1e-10,
+                        -_clast_y + self.y_of_corners_at_node[_node, corner] - 1e-10,
+                    ]
                     we_slope = ss_dip / 2
-                    sn_slope = - ss_dip / 2
+                    sn_slope = -ss_dip / 2
 
-            self['slope__WE'][clast] = we_slope
-            self['slope__SN'][clast] = sn_slope
-            self['slope__steepest_azimuth'][clast] = ss_azimuth
-            self['slope__steepest_dip'][clast] = ss_dip
-            self['distance__to_exit'][clast] = dist_to_exit
-            self['target_node'][clast] = target_node
+            self["slope__WE"][clast] = we_slope
+            self["slope__SN"][clast] = sn_slope
+            self["slope__steepest_azimuth"][clast] = ss_azimuth
+            self["slope__steepest_dip"][clast] = ss_dip
+            self["distance__to_exit"][clast] = dist_to_exit
+            self["target_node"][clast] = target_node
 
         else:
             # clast is not next to boundary
             # norm of steepest slope vector projected on horizontal plane:
-            ss_horiz_norm = np.sqrt(
-                    np.power(we_slope, 2) + np.power(sn_slope, 2))
-            if ss_horiz_norm == 0.:
-                ss_dip = 0.
+            ss_horiz_norm = np.sqrt(np.power(we_slope, 2) + np.power(sn_slope, 2))
+            if ss_horiz_norm == 0.0:
+                ss_dip = 0.0
             else:
-                ss_dip = np.arctan((sn_slope**2+we_slope**2)/ss_horiz_norm)
+                ss_dip = np.arctan((sn_slope ** 2 + we_slope ** 2) / ss_horiz_norm)
 
             if we_slope == 0:
                 if sn_slope == 0:
@@ -785,17 +769,19 @@ class ClastCollection(DataRecord):
                     # SN slope is not 0, ss direction is S or N
 
                     if sn_slope < 0:
-                         # South
+                        # South
                         ss_azimuth = np.radians(270)
                         dist_to_exit = (1 / np.cos(ss_dip)) * (
-                                _clast_y - (_node_y - (self._grid.dy/2)))
+                            _clast_y - (_node_y - (self._grid.dy / 2))
+                        )
                         target_node = _row_col_adjacent_nodes_at_node[3]
                         [change_x, change_y] = [0.0, -dist_to_exit - 1e-10]
                     else:
                         # North
                         ss_azimuth = np.radians(90)
                         dist_to_exit = (1 / np.cos(ss_dip)) * (
-                                (_node_y + (self._grid.dy/2)) - _clast_y)
+                            (_node_y + (self._grid.dy / 2)) - _clast_y
+                        )
                         target_node = _row_col_adjacent_nodes_at_node[1]
                         [change_x, change_y] = [0.0, dist_to_exit + 1e-10]
 
@@ -806,14 +792,16 @@ class ClastCollection(DataRecord):
                         # West
                         ss_azimuth = np.radians(180)
                         dist_to_exit = (1 / np.cos(ss_dip)) * (
-                                _clast_x - (_node_x - (self._grid.dx/2)))
+                            _clast_x - (_node_x - (self._grid.dx / 2))
+                        )
                         target_node = _row_col_adjacent_nodes_at_node[2]
                         [change_x, change_y] = [-dist_to_exit - 1e-10, 0.0]
                     else:
                         # East
                         ss_azimuth = 0
                         dist_to_exit = (1 / np.cos(ss_dip)) * (
-                                (_node_x + (self._grid.dx/2)) - _clast_x)
+                            (_node_x + (self._grid.dx / 2)) - _clast_x
+                        )
                         target_node = _row_col_adjacent_nodes_at_node[0]
                         [change_x, change_y] = [dist_to_exit + 1e-10, 0.0]
 
@@ -823,264 +811,273 @@ class ClastCollection(DataRecord):
                         # Quarter = NE
                         ss_azimuth = np.arctan(np.abs(sn_slope / we_slope))
                         corner = 0
-                        clast_to_corner_azimuth = np.arctan(np.abs(
-                                _clast_y -
-                                self.y_of_corners_at_node[_node, corner]) /
-                            np.abs(_clast_x -
-                                   self.x_of_corners_at_node[_node, corner]))
+                        clast_to_corner_azimuth = np.arctan(
+                            np.abs(_clast_y - self.y_of_corners_at_node[_node, corner])
+                            / np.abs(
+                                _clast_x - self.x_of_corners_at_node[_node, corner]
+                            )
+                        )
                         if ss_azimuth < clast_to_corner_azimuth:
                             # Eigth = NE-row
                             dx_to_exit = np.abs(
-                                    self.x_of_corners_at_node[_node, corner] -
-                                    _clast_x)
-                            dy_to_exit = dx_to_exit * np.tan(
-                                    np.cos(ss_azimuth))
-                            h_dist_to_exit = np.sqrt(
-                                    dx_to_exit**2 + dy_to_exit**2)
+                                self.x_of_corners_at_node[_node, corner] - _clast_x
+                            )
+                            dy_to_exit = dx_to_exit * np.tan(np.cos(ss_azimuth))
+                            h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                             dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                             [change_x, change_y] = [
-                                    dx_to_exit + 1e-10,
-                                    dy_to_exit + 1e-10]
+                                dx_to_exit + 1e-10,
+                                dy_to_exit + 1e-10,
+                            ]
                             target_node = _row_col_adjacent_nodes_at_node[0]
 
                         elif ss_azimuth > clast_to_corner_azimuth:
                             # Eigth = NE-col
                             dy_to_exit = np.abs(
-                                    self.y_of_corners_at_node[_node, corner] -
-                                    _clast_y)
+                                self.y_of_corners_at_node[_node, corner] - _clast_y
+                            )
                             dx_to_exit = dy_to_exit * np.tan(
-                                    np.cos(np.radians(90) - ss_azimuth))
-                            h_dist_to_exit = np.sqrt(
-                                    dx_to_exit**2 + dy_to_exit**2)
+                                np.cos(np.radians(90) - ss_azimuth)
+                            )
+                            h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                             dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                             [change_x, change_y] = [
-                                    dx_to_exit + 1e-10,
-                                    dy_to_exit + 1e-10]
+                                dx_to_exit + 1e-10,
+                                dy_to_exit + 1e-10,
+                            ]
                             target_node = _row_col_adjacent_nodes_at_node[1]
 
                         elif ss_azimuth == clast_to_corner_azimuth:
                             # exit direction is diagonal through NE-corner
                             dy_to_exit = np.abs(
-                                    self.y_of_corners_at_node[_node, corner] -
-                                    _clast_y)
+                                self.y_of_corners_at_node[_node, corner] - _clast_y
+                            )
                             dx_to_exit = np.abs(
-                                    self.x_of_corners_at_node[_node, corner] -
-                                    _clast_x)
-                            h_dist_to_exit = np.sqrt(
-                                    dx_to_exit**2 + dy_to_exit**2)
+                                self.x_of_corners_at_node[_node, corner] - _clast_x
+                            )
+                            h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                             dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                             [change_x, change_y] = [
-                                    dx_to_exit + 1e-10,
-                                    dy_to_exit + 1e-10]
+                                dx_to_exit + 1e-10,
+                                dy_to_exit + 1e-10,
+                            ]
                             target_node = _diagonal_adjacent_nodes_at_node[0]
 
                     elif sn_slope > 0 and we_slope < 0:
                         # Quarter = NW
                         ss_azimuth = np.radians(90) + np.arctan(
-                                np.abs(we_slope / sn_slope))
+                            np.abs(we_slope / sn_slope)
+                        )
                         corner = 1
                         clast_to_corner_azimuth = np.radians(180) - np.arctan(
-                                np.abs(_clast_y -
-                                       self.y_of_corners_at_node[
-                                               _node, corner]) /
-                                np.abs(_clast_x -
-                                       self.x_of_corners_at_node[
-                                               _node, corner]))
+                            np.abs(_clast_y - self.y_of_corners_at_node[_node, corner])
+                            / np.abs(
+                                _clast_x - self.x_of_corners_at_node[_node, corner]
+                            )
+                        )
                         if ss_azimuth < clast_to_corner_azimuth:
                             # Eigth = NW-col
                             dy_to_exit = np.abs(
-                                    self.y_of_corners_at_node[_node, corner] -
-                                    _clast_y)
+                                self.y_of_corners_at_node[_node, corner] - _clast_y
+                            )
                             dx_to_exit = dy_to_exit * np.tan(
-                                    np.cos(ss_azimuth - np.radians(90)))
-                            h_dist_to_exit = np.sqrt(
-                                    dx_to_exit**2 + dy_to_exit**2)
+                                np.cos(ss_azimuth - np.radians(90))
+                            )
+                            h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                             dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                             [change_x, change_y] = [
-                                    - dx_to_exit - 1e-10,
-                                    dy_to_exit + 1e-10]
+                                -dx_to_exit - 1e-10,
+                                dy_to_exit + 1e-10,
+                            ]
                             target_node = _row_col_adjacent_nodes_at_node[1]
                         elif ss_azimuth > clast_to_corner_azimuth:
                             # Eigth = NW-row
                             dx_to_exit = np.abs(
-                                    self.x_of_corners_at_node[_node, corner] -
-                                    _clast_x)
+                                self.x_of_corners_at_node[_node, corner] - _clast_x
+                            )
                             dy_to_exit = dx_to_exit * np.tan(
-                                    np.cos(np.radians(180) - ss_azimuth))
-                            h_dist_to_exit = np.sqrt(
-                                    dx_to_exit**2 + dy_to_exit**2)
+                                np.cos(np.radians(180) - ss_azimuth)
+                            )
+                            h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                             dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                             [change_x, change_y] = [
-                                    - dx_to_exit - 1e-10,
-                                    dy_to_exit + 1e-10]
+                                -dx_to_exit - 1e-10,
+                                dy_to_exit + 1e-10,
+                            ]
                             target_node = _row_col_adjacent_nodes_at_node[2]
                         elif ss_azimuth == clast_to_corner_azimuth:
                             # exit direction is diagonal through NW-corner
                             dx_to_exit = np.abs(
-                                    self.x_of_corners_at_node[_node, corner] -
-                                    _clast_x)
+                                self.x_of_corners_at_node[_node, corner] - _clast_x
+                            )
                             dy_to_exit = np.abs(
-                                    self.y_of_corners_at_node[_node, corner] -
-                                    _clast_y)
-                            h_dist_to_exit = np.sqrt(
-                                    dx_to_exit**2 + dy_to_exit**2)
+                                self.y_of_corners_at_node[_node, corner] - _clast_y
+                            )
+                            h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                             dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                             [change_x, change_y] = [
-                                    - dx_to_exit - 1e-10,
-                                    dy_to_exit + 1e-10]
+                                -dx_to_exit - 1e-10,
+                                dy_to_exit + 1e-10,
+                            ]
                             target_node = _diagonal_adjacent_nodes_at_node[1]
 
                     elif sn_slope < 0 and we_slope < 0:
                         # Quarter = SW
                         ss_azimuth = np.radians(180) + np.arctan(
-                                np.abs(sn_slope / we_slope))
+                            np.abs(sn_slope / we_slope)
+                        )
                         corner = 2
                         clast_to_corner_azimuth = np.radians(180) + np.arctan(
-                                np.abs(_clast_y -
-                                       self.y_of_corners_at_node[
-                                               _node, corner]) /
-                                np.abs(_clast_x -
-                                       self.x_of_corners_at_node[
-                                               _node, corner]))
+                            np.abs(_clast_y - self.y_of_corners_at_node[_node, corner])
+                            / np.abs(
+                                _clast_x - self.x_of_corners_at_node[_node, corner]
+                            )
+                        )
                         if ss_azimuth < clast_to_corner_azimuth:
                             # Eigth = SW-row
                             dx_to_exit = np.abs(
-                                    self.x_of_corners_at_node[_node, corner] -
-                                    _clast_x)
+                                self.x_of_corners_at_node[_node, corner] - _clast_x
+                            )
                             dy_to_exit = dx_to_exit * np.tan(
-                                    np.cos(ss_azimuth - np.radians(180)))
-                            h_dist_to_exit = np.sqrt(
-                                    dx_to_exit**2 + dy_to_exit**2)
+                                np.cos(ss_azimuth - np.radians(180))
+                            )
+                            h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                             dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                             [change_x, change_y] = [
-                                    - dx_to_exit - 1e-10,
-                                    - dy_to_exit - 1e-10]
+                                -dx_to_exit - 1e-10,
+                                -dy_to_exit - 1e-10,
+                            ]
                             target_node = _row_col_adjacent_nodes_at_node[2]
                         elif ss_azimuth > clast_to_corner_azimuth:
                             # Eigth = SW-col
                             dy_to_exit = np.abs(
-                                    self.y_of_corners_at_node[_node, corner] -
-                                    _clast_y)
+                                self.y_of_corners_at_node[_node, corner] - _clast_y
+                            )
                             dx_to_exit = dy_to_exit * np.tan(
-                                    np.cos(np.radians(270) - ss_azimuth))
-                            h_dist_to_exit = np.sqrt(
-                                    dx_to_exit**2 + dy_to_exit**2)
+                                np.cos(np.radians(270) - ss_azimuth)
+                            )
+                            h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                             dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                             [change_x, change_y] = [
-                                    - dx_to_exit - 1e-10,
-                                    - dy_to_exit - 1e-10]
+                                -dx_to_exit - 1e-10,
+                                -dy_to_exit - 1e-10,
+                            ]
                             target_node = _row_col_adjacent_nodes_at_node[3]
 
                         elif ss_azimuth == clast_to_corner_azimuth:
                             # exit direction is diagonal through SW-corner
                             dx_to_exit = np.abs(
-                                    self.x_of_corners_at_node[_node, corner] -
-                                    _clast_x)
+                                self.x_of_corners_at_node[_node, corner] - _clast_x
+                            )
                             dy_to_exit = np.abs(
-                                    self.y_of_corners_at_node[_node, corner] -
-                                    _clast_y)
-                            h_dist_to_exit = np.sqrt(
-                                    dx_to_exit**2 + dy_to_exit**2)
+                                self.y_of_corners_at_node[_node, corner] - _clast_y
+                            )
+                            h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                             dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                             [change_x, change_y] = [
-                                    - dx_to_exit + 1e-10,
-                                    - dy_to_exit - 1e-10]
+                                -dx_to_exit + 1e-10,
+                                -dy_to_exit - 1e-10,
+                            ]
                             target_node = _diagonal_adjacent_nodes_at_node[2]
 
                     elif sn_slope < 0 and we_slope > 0:
                         # Quarter = SE
                         ss_azimuth = np.radians(270) + np.arctan(
-                                np.abs(we_slope / sn_slope))
+                            np.abs(we_slope / sn_slope)
+                        )
                         corner = 3
                         clast_to_corner_azimuth = np.radians(360) - np.arctan(
-                                np.abs(_clast_y - self.y_of_corners_at_node[
-                                        _node, corner]) /
-                                np.abs(_clast_x - self.x_of_corners_at_node[
-                                        _node, corner]))
+                            np.abs(_clast_y - self.y_of_corners_at_node[_node, corner])
+                            / np.abs(
+                                _clast_x - self.x_of_corners_at_node[_node, corner]
+                            )
+                        )
                         if ss_azimuth < clast_to_corner_azimuth:
                             # Eigth = SE-col
                             dy_to_exit = np.abs(
-                                    self.y_of_corners_at_node[_node, corner] -
-                                    _clast_y)
+                                self.y_of_corners_at_node[_node, corner] - _clast_y
+                            )
                             dx_to_exit = dy_to_exit * np.tan(
-                                    np.cos(ss_azimuth - np.radians(270)))
-                            h_dist_to_exit = np.sqrt(
-                                    dx_to_exit**2 + dy_to_exit**2)
+                                np.cos(ss_azimuth - np.radians(270))
+                            )
+                            h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                             dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                             [change_x, change_y] = [
-                                    dx_to_exit + 1e-10,
-                                    - dy_to_exit - 1e-10]
+                                dx_to_exit + 1e-10,
+                                -dy_to_exit - 1e-10,
+                            ]
                             target_node = _row_col_adjacent_nodes_at_node[3]
                         elif ss_azimuth > clast_to_corner_azimuth:
                             # Eigth = SE-row
                             dx_to_exit = np.abs(
-                                    self.x_of_corners_at_node[_node, corner] -
-                                    _clast_x)
+                                self.x_of_corners_at_node[_node, corner] - _clast_x
+                            )
                             dy_to_exit = dx_to_exit * np.tan(
-                                    np.cos(np.radians(360) - ss_azimuth))
-                            h_dist_to_exit = np.sqrt(
-                                    dx_to_exit**2 + dy_to_exit**2)
+                                np.cos(np.radians(360) - ss_azimuth)
+                            )
+                            h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                             dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                             [change_x, change_y] = [
-                                    dx_to_exit + 1e-10,
-                                    - dy_to_exit - 1e-10]
+                                dx_to_exit + 1e-10,
+                                -dy_to_exit - 1e-10,
+                            ]
                             target_node = _row_col_adjacent_nodes_at_node[0]
                         elif ss_azimuth == clast_to_corner_azimuth:
                             # exit direction is diagonal through SE-corner
                             dx_to_exit = np.abs(
-                                    self.x_of_corners_at_node[_node, corner] -
-                                    _clast_x)
+                                self.x_of_corners_at_node[_node, corner] - _clast_x
+                            )
                             dy_to_exit = np.abs(
-                                    self.y_of_corners_at_node[_node, corner] -
-                                    _clast_y)
-                            h_dist_to_exit = np.sqrt(
-                                    dx_to_exit**2 + dy_to_exit**2)
+                                self.y_of_corners_at_node[_node, corner] - _clast_y
+                            )
+                            h_dist_to_exit = np.sqrt(dx_to_exit ** 2 + dy_to_exit ** 2)
                             dist_to_exit = h_dist_to_exit / np.cos(ss_dip)
                             [change_x, change_y] = [
-                                    dx_to_exit + 1e-10,
-                                    - dy_to_exit - 1e-10]
+                                dx_to_exit + 1e-10,
+                                -dy_to_exit - 1e-10,
+                            ]
                             target_node = _diagonal_adjacent_nodes_at_node[3]
 
         # Save values to dataframe:
-        self['slope__steepest_azimuth'][clast] = ss_azimuth
-        self['slope__steepest_dip'][clast] = ss_dip
-        self['distance__to_exit'][clast] = dist_to_exit
-        self['target_node'][clast] = target_node
-        self['change_x'][clast] = change_x
-        self['change_y'][clast] = change_y
+        self["slope__steepest_azimuth"][clast] = ss_azimuth
+        self["slope__steepest_dip"][clast] = ss_dip
+        self["distance__to_exit"][clast] = dist_to_exit
+        self["target_node"][clast] = target_node
+        self["change_x"][clast] = change_x
+        self["change_y"][clast] = change_y
 
         # Calculate lambda_0 and lambda_mean :
-        self['lambda_0'][clast] = self.attrs['kappa'] / (
-                2 * self['clast__radius'][clast, -1] *
-                self.attrs['disturbance_fqcy'])
+        self["lambda_0"][clast] = self.attrs["kappa"] / (
+            2 * self["clast__radius"][clast, -1] * self.attrs["disturbance_fqcy"]
+        )
 
         # If river, lambda0 multiplied:
         if self._cell_is_hillslope(clast) is True:
             # Cell is hillslope:
-            if np.tan(self['slope__steepest_dip'][clast]) >= self.attrs['Si']:
-                lambda_0 = self['lambda_0'][clast]
+            if np.tan(self["slope__steepest_dip"][clast]) >= self.attrs["Si"]:
+                lambda_0 = self["lambda_0"][clast]
                 lambda_mean = np.power(10, 10)
             else:
-                lambda_0 = self['lambda_0'][clast]
-                lambda_mean = lambda_0 * (
-                        self.attrs['Si'] + np.tan(
-                                self['slope__steepest_dip'][clast])) / (
-                                self.attrs['Si'] - np.tan(
-                                    self['slope__steepest_dip'][clast]))
-        else:   # Cell is river:
-            if np.tan(self['slope__steepest_dip'][clast] >= self.attrs['Si']):
-                lambda_0 = self['lambda_0'][clast]
+                lambda_0 = self["lambda_0"][clast]
+                lambda_mean = (
+                    lambda_0
+                    * (self.attrs["Si"] + np.tan(self["slope__steepest_dip"][clast]))
+                    / (self.attrs["Si"] - np.tan(self["slope__steepest_dip"][clast]))
+                )
+        else:  # Cell is river:
+            if np.tan(self["slope__steepest_dip"][clast] >= self.attrs["Si"]):
+                lambda_0 = self["lambda_0"][clast]
                 lambda_mean = np.power(10, 10)
             else:
-                lambda_0 = 10 * self['lambda_0'][clast]
-                lambda_mean = lambda_0 * (
-                        self.attrs['Si'] + np.tan(
-                                self['slope__steepest_dip'][clast])) / (
-                                self.attrs['Si'] - np.tan(
-                                    self['slope__steepest_dip'][clast]))
+                lambda_0 = 10 * self["lambda_0"][clast]
+                lambda_mean = (
+                    lambda_0
+                    * (self.attrs["Si"] + np.tan(self["slope__steepest_dip"][clast]))
+                    / (self.attrs["Si"] - np.tan(self["slope__steepest_dip"][clast]))
+                )
 
-        self['lambda_mean'][clast] = lambda_mean
-        self['lambda_0'][clast] = lambda_0
+        self["lambda_mean"][clast] = lambda_mean
+        self["lambda_0"][clast] = lambda_0
 
     def _move(self, clast):
         """ Move the clast along the path of steepest slope (or other
@@ -1106,55 +1103,57 @@ class ClastCollection(DataRecord):
             Clast ID
         """
         # cases where slope is null or sink:
-        if np.isinf(self['distance__to_exit'][clast]):
+        if np.isinf(self["distance__to_exit"][clast]):
             # clast does not move:
             pass
         else:
             # Draw a random sample in the probability distribution
             # of travel distances:
-            self['distance__to_travel'][clast] = np.random.exponential(
-                    scale=self['lambda_mean'][clast].values,
-                    size=1)[0]
+            self["distance__to_travel"][clast] = np.random.exponential(
+                scale=self["lambda_mean"][clast].values, size=1
+            )[0]
 
-            while self['distance__to_travel'][clast].values > 0.:
+            while self["distance__to_travel"][clast].values > 0.0:
                 if self.phantom(clast) is False:
 
-                    if self['distance__to_travel'][clast] >= (
-                            self['distance__to_exit'][clast]):
+                    if self["distance__to_travel"][clast] >= (
+                        self["distance__to_exit"][clast]
+                    ):
                         # clast leaves cell,
                         # move of dist_to_exit along steepest slope:
-                        self['clast__x'][clast, -1] += self['change_x'][clast]
-                        self['clast__y'][clast, -1] += self['change_y'][clast]
-                        self['hop_length'][clast, -1] += (
-                                np.sqrt(np.power(
-                                        self['change_x'].values[clast], 2) + (
-                                                np.power(self['change_y'][
-                                                        clast], 2)))) / (
-                                np.cos(self['slope__steepest_dip'][clast]))
-                        self['clast__node'][clast] = (
-                                self._grid.find_nearest_node(
-                                        (self['clast__x'][clast, -1],
-                                         self['clast__y'][clast, -1])))
+                        self["clast__x"][clast, -1] += self["change_x"][clast]
+                        self["clast__y"][clast, -1] += self["change_y"][clast]
+                        self["hop_length"][clast, -1] += (
+                            np.sqrt(
+                                np.power(self["change_x"].values[clast], 2)
+                                + (np.power(self["change_y"][clast], 2))
+                            )
+                        ) / (np.cos(self["slope__steepest_dip"][clast]))
+                        self["clast__node"][clast] = self._grid.find_nearest_node(
+                            (self["clast__x"][clast, -1], self["clast__y"][clast, -1])
+                        )
 
-                        self['element_id'][clast, -1] = (
-                                self._grid.cell_at_node[
-                                        self['clast__node'][clast]])
+                        self["element_id"][clast, -1] = self._grid.cell_at_node[
+                            self["clast__node"][clast]
+                        ]
 
                         # update distance to travel left after first hop:
-                        self['distance__to_travel'][clast] -= (
-                                self['distance__to_exit'][clast])
+                        self["distance__to_travel"][clast] -= self["distance__to_exit"][
+                            clast
+                        ]
                         # keep memory of lambda_mean:
-                        _lambda_mean_old = self['lambda_mean'][clast]
+                        _lambda_mean_old = self["lambda_mean"][clast]
 
                         # update new neighborhood and travel info:
                         ClastCollection._neighborhood(self, clast)
                         ClastCollection._move_to(self, clast)
 
                         # Scale distance_to_travel to new lambda mean:
-                        self['distance__to_travel'][clast] = (
-                                self['lambda_mean'][clast] * (
-                                        self['distance__to_travel'][clast]) / (
-                                                _lambda_mean_old))
+                        self["distance__to_travel"][clast] = (
+                            self["lambda_mean"][clast]
+                            * (self["distance__to_travel"][clast])
+                            / (_lambda_mean_old)
+                        )
 
                     else:
                         # distance_to_travel < distance__to_exit
@@ -1164,7 +1163,7 @@ class ClastCollection(DataRecord):
 
                 else:
                     # clast is phantom, does not move
-                    self['hop_length'][clast, -1] += 0.
+                    self["hop_length"][clast, -1] += 0.0
                     break
 
     def _move_in_cell(self, clast):
@@ -1180,36 +1179,40 @@ class ClastCollection(DataRecord):
             Clast ID
         """
         # clast stays in cell, move of distance rand_length along slope
-        ss_azimuth = self['slope__steepest_azimuth'][clast]
-        ss_dip = self['slope__steepest_dip'][clast]
+        ss_azimuth = self["slope__steepest_azimuth"][clast]
+        ss_dip = self["slope__steepest_dip"][clast]
 
-        h_dist_to_trav = self['distance__to_travel'][clast] * np.cos(ss_dip)
+        h_dist_to_trav = self["distance__to_travel"][clast] * np.cos(ss_dip)
 
         if ss_azimuth <= np.radians(90):
             [change_x, change_y] = [
-                    h_dist_to_trav * np.cos(ss_azimuth),
-                    h_dist_to_trav * np.sin(ss_azimuth)]
+                h_dist_to_trav * np.cos(ss_azimuth),
+                h_dist_to_trav * np.sin(ss_azimuth),
+            ]
         elif ss_azimuth <= np.radians(180):
             [change_x, change_y] = [
-                    -h_dist_to_trav * np.cos(np.radians(180)-ss_azimuth),
-                    h_dist_to_trav * np.sin(np.radians(180)-ss_azimuth)]
+                -h_dist_to_trav * np.cos(np.radians(180) - ss_azimuth),
+                h_dist_to_trav * np.sin(np.radians(180) - ss_azimuth),
+            ]
         elif ss_azimuth <= np.radians(270):
             [change_x, change_y] = [
-                    -h_dist_to_trav * np.sin(np.radians(270)-ss_azimuth),
-                    -h_dist_to_trav * np.cos(np.radians(270)-ss_azimuth)]
+                -h_dist_to_trav * np.sin(np.radians(270) - ss_azimuth),
+                -h_dist_to_trav * np.cos(np.radians(270) - ss_azimuth),
+            ]
         else:
             # ss_azimuth <= np.radians(360)
             [change_x, change_y] = [
-                    h_dist_to_trav * np.cos(np.radians(360)-ss_azimuth),
-                    -h_dist_to_trav * np.sin(np.radians(360)-ss_azimuth)]
+                h_dist_to_trav * np.cos(np.radians(360) - ss_azimuth),
+                -h_dist_to_trav * np.sin(np.radians(360) - ss_azimuth),
+            ]
 
-        self['change_x'][clast] = change_x
-        self['change_y'][clast] = change_y
+        self["change_x"][clast] = change_x
+        self["change_y"][clast] = change_y
         # Update clast coordinates:
-        self['clast__x'][clast, -1] += change_x
-        self['clast__y'][clast, -1] += change_y
+        self["clast__x"][clast, -1] += change_x
+        self["clast__y"][clast, -1] += change_y
         # Update hop length:
-        self['hop_length'][clast, -1] += self['distance__to_travel'][clast]
+        self["hop_length"][clast, -1] += self["distance__to_travel"][clast]
 
     def phantom(self, clast):
         """Check if the clast has exited the grid.
@@ -1225,14 +1228,14 @@ class ClastCollection(DataRecord):
             Clast ID.
         """
 
-        clast_node = self['clast__node'][clast].values
-        clast_radius = self['clast__radius'][clast, -1]
+        clast_node = self["clast__node"][clast].values
+        clast_radius = self["clast__radius"][clast, -1]
         boundary_nodes = self._grid.boundary_nodes
         _phantom = np.zeros(1, dtype=bool)
 
         if clast_node in boundary_nodes:
             _phantom = True
-        elif clast_radius == 0.:
+        elif clast_radius == 0.0:
             _phantom = True
         else:
             _phantom = False
@@ -1249,21 +1252,19 @@ class ClastCollection(DataRecord):
             Clast ID
         """
 
-        clast__node = self['clast__node'][clast].values
-        clast__elev = self['clast__elev'][clast, -2].values
-        topo__elev = self._grid.at_node['topographic__elevation'][clast__node]
+        clast__node = self["clast__node"][clast].values
+        clast__elev = self["clast__elev"][clast, -2].values
+        topo__elev = self._grid.at_node["topographic__elevation"][clast__node]
 
         _detach = np.zeros(1, dtype=bool)
 
         _clast_depth = topo__elev - clast__elev
 
         proba_mobile = (
-                1 - np.exp(
-                        -self.attrs['disturbance_fqcy'] *
-                        self.attrs['dt'])) * (
-                        np.exp(-_clast_depth / self.attrs['d_star'])) / (
-                                 1 - np.exp(-self.attrs['disturbance_fqcy'] *
-                                            self.attrs['dt']))
+            (1 - np.exp(-self.attrs["disturbance_fqcy"] * self.attrs["dt"]))
+            * (np.exp(-_clast_depth / self.attrs["d_star"]))
+            / (1 - np.exp(-self.attrs["disturbance_fqcy"] * self.attrs["dt"]))
+        )
 
         random_proba = np.random.uniform(low=0.0, high=1.0, size=1)
 
@@ -1289,83 +1290,89 @@ class ClastCollection(DataRecord):
             Clast ID
         """
 
-        _node = self['clast__node'][clast]
+        _node = self["clast__node"][clast]
         _grid = self._grid
 
         # If next to boundary, set A/S to 1:
-        if np.isnan(self['slope__steepest_azimuth'][clast]) == True:
+        if np.isnan(self["slope__steepest_azimuth"][clast]) == True:
             # clast next to boundary
             area_over_slope = 1
         else:
             area_over_slope = (
-                    _grid.at_node['drainage_area'][_node] /
-                    _grid.at_node['topographic__steepest_slope'][_node])
+                _grid.at_node["drainage_area"][_node]
+                / _grid.at_node["topographic__steepest_slope"][_node]
+            )
 
-        if area_over_slope < self.attrs['threshold']:
+        if area_over_slope < self.attrs["threshold"]:
             _cell_is_hillslope = True
         else:
             _cell_is_hillslope = False
 
         return _cell_is_hillslope
 
-    def clast_solver_Exponential(self,
-                                 dt=1.,
-                                 Si=1.2,
-                                 kappa=0.0001,
-                                 uplift=None,
-                                 hillslope_river__threshold=1e4,
-                                 lateral_spreading='off',
-                                 disturbance_fqcy=1.,
-                                 d_star=1.):
+    def clast_solver_Exponential(
+        self,
+        dt=1.0,
+        Si=1.2,
+        kappa=0.0001,
+        uplift=None,
+        hillslope_river__threshold=1e4,
+        lateral_spreading="off",
+        disturbance_fqcy=1.0,
+        d_star=1.0,
+    ):
         """See :func:`run_one_step`
 
         """
 
         # Store values that will be used:
-        self.attrs['kappa'] = kappa
+        self.attrs["kappa"] = kappa
         # if using SPACE, kappa=K_sed. TO DO: can be a field or array
-        self.attrs['dt'] = dt
+        self.attrs["dt"] = dt
 
         # slope above which particle motion continues indefinetly (not equal
         # to critical slope of diffusion, see Furbish and Haff, 2010):
-        self.attrs['Si'] = Si
-        self.attrs['threshold'] = hillslope_river__threshold
-        self.attrs['lateral_spreading'] = lateral_spreading
-        self.attrs['disturbance_fqcy'] = disturbance_fqcy
-        self.attrs['d_star'] = d_star
-        self.attrs['uplift'] = uplift
+        self.attrs["Si"] = Si
+        self.attrs["threshold"] = hillslope_river__threshold
+        self.attrs["lateral_spreading"] = lateral_spreading
+        self.attrs["disturbance_fqcy"] = disturbance_fqcy
+        self.attrs["d_star"] = d_star
+        self.attrs["uplift"] = uplift
 
         if uplift is not None:
             if type(uplift) is str:
-                self.attrs['uplift'] = self._grid.at_node[uplift]
+                self.attrs["uplift"] = self._grid.at_node[uplift]
             elif type(uplift) in (float, int):
-                self.attrs['uplift'] = np.ones(self._grid.number_of_nodes) * (
-                        float(uplift))
+                self.attrs["uplift"] = np.ones(self._grid.number_of_nodes) * (
+                    float(uplift)
+                )
             elif len(uplift) == self._grid.number_of_nodes:
-                self.attrs['uplift'] = np.array(uplift)
+                self.attrs["uplift"] = np.array(uplift)
             else:
-                raise TypeError('Supplied type of uplift is not recognized')
+                raise TypeError("Supplied type of uplift is not recognized")
 
         # Create new time coordinate for clast__x,y,z rad and hop_length (just
         # one needed, the others are filled with NaN automatically):
-        self.add_record(time=[self.latest_time+self.attrs['dt']],
-                        item_id=[0],
-                        new_record={'clast__x': (
-                                ['item_id', 'time'],
-                                np.full(1, np.NaN).reshape(1, 1))})
+        self.add_record(
+            time=[self.latest_time + self.attrs["dt"]],
+            item_id=[0],
+            new_record={
+                "clast__x": (["item_id", "time"], np.full(1, np.NaN).reshape(1, 1))
+            },
+        )
         # forward fill some of the values:
-        self['clast__radius'] = self['clast__radius'].ffill('time')
-        self['clast__x'] = self['clast__x'].ffill('time')
-        self['clast__y'] = self['clast__y'].ffill('time')
+        self["clast__radius"] = self["clast__radius"].ffill("time")
+        self["clast__x"] = self["clast__x"].ffill("time")
+        self["clast__y"] = self["clast__y"].ffill("time")
         # forward fill grid_element and element_id:
         self.ffill_grid_element_and_id()
 
         # Treat clasts one after the other:
         for clast in range(self._nb_of_clast):
             # Calculate lambda_0 (for display purposes mostly):
-            self['lambda_0'][clast] = self.attrs['kappa'] / (
-                    2 * self['clast__radius'][clast, -1] * (
-                            self.attrs['disturbance_fqcy']))
+            self["lambda_0"][clast] = self.attrs["kappa"] / (
+                2 * self["clast__radius"][clast, -1] * (self.attrs["disturbance_fqcy"])
+            )
 
             # Test if clast in grid core (=not phantom)
             if self.phantom(clast) is False:
@@ -1376,55 +1383,56 @@ class ClastCollection(DataRecord):
                     self._neighborhood(clast)
                     self._move_to(clast)
 
-                    self['hop_length'][clast, -1] = 0.
-                    self['distance__to_travel'][clast] = 0.
+                    self["hop_length"][clast, -1] = 0.0
+                    self["distance__to_travel"][clast] = 0.0
 
                     self._move(clast)
                     # Update elevation:
                     # Clast is put to surface:
-                    self['clast__elev'][clast, -1] = (
-                            self._grid.at_node['topographic__elevation'][
-                                    self['clast__node'][clast].values])
+                    self["clast__elev"][clast, -1] = self._grid.at_node[
+                        "topographic__elevation"
+                    ][self["clast__node"][clast].values]
                     # buried in the active layer with inv exp proba:
                     # - np.random.exponential(scale=self.attrs['d_star'],
                     # size=1)[0] #(self.attrs['d_star']/100 *
                     # (np.random.rand(1)))
                     # Update total travelled distance:
-                    self['total_travelled_dist'][clast] += (
-                            self['hop_length'][clast, -1])
+                    self["total_travelled_dist"][clast] += self["hop_length"][clast, -1]
 
                     if self.uplift is not None:
                         # uplift clast if necessary
-                        self['clast__elev'][clast, -1] += (
-                                self.uplift[self['clast__node'][clast]] *
-                                self.attrs['dt'])
+                        self["clast__elev"][clast, -1] += (
+                            self.uplift[self["clast__node"][clast]] * self.attrs["dt"]
+                        )
 
                 else:
                     # clast not detached, do not move:
-                    self['hop_length'][:, -1] = 0
-                    self['clast__x'] = self['clast__x'].ffill('time')
-                    self['clast__y'] = self['clast__y'].ffill('time')
-                    self['clast__elev'] = self['clast__elev'].ffill('time')
+                    self["hop_length"][:, -1] = 0
+                    self["clast__x"] = self["clast__x"].ffill("time")
+                    self["clast__y"] = self["clast__y"].ffill("time")
+                    self["clast__elev"] = self["clast__elev"].ffill("time")
                     if self.uplift is not None:
                         # uplift clast if necessary
-                        self['clast__elev'][clast, -1] += (
-                                self.uplift[self['clast__node'][clast]] *
-                                self.attrs['dt'])
+                        self["clast__elev"][clast, -1] += (
+                            self.uplift[self["clast__node"][clast]] * self.attrs["dt"]
+                        )
 
             else:
                 # clast is phantom, go to next clast
-                self['hop_length'][clast, -1] = 0.
+                self["hop_length"][clast, -1] = 0.0
                 pass
 
-    def run_one_step(self,
-                     dt=1.,
-                     Si=1.2,
-                     kappa=0.0001,
-                     uplift=None,
-                     hillslope_river__threshold=1e4,
-                     lateral_spreading='off',
-                     disturbance_fqcy=1.,
-                     d_star=1.):
+    def run_one_step(
+        self,
+        dt=1.0,
+        Si=1.2,
+        kappa=0.0001,
+        uplift=None,
+        hillslope_river__threshold=1e4,
+        lateral_spreading="off",
+        disturbance_fqcy=1.0,
+        d_star=1.0,
+    ):
 
         """ Run the clast-tracker for one timestep dt: evaluate the type of
         cell each clast is currently in, whether each clast is detached,
@@ -1456,11 +1464,13 @@ class ClastCollection(DataRecord):
             deviation if 'off'. Default is 'off'.
 
         """
-        self.clast_solver_Exponential(dt,
-                                      Si,
-                                      kappa,
-                                      uplift,
-                                      hillslope_river__threshold,
-                                      lateral_spreading,
-                                      disturbance_fqcy,
-                                      d_star)
+        self.clast_solver_Exponential(
+            dt,
+            Si,
+            kappa,
+            uplift,
+            hillslope_river__threshold,
+            lateral_spreading,
+            disturbance_fqcy,
+            d_star,
+        )
