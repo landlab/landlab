@@ -826,8 +826,8 @@ class SedDepEroder(Component):
             # now perform a CHILD-like convergence-based stability test:
             if self._stab_cond == 'tight':
                 t_to_converge = dt_secs  # we'll overwrite if needed, below
-                ratediff1 = dzbydt[flow_receiver] - dzbydt
-                ratediff2 = (
+                ratediffz = dzbydt[flow_receiver] - dzbydt
+                ratediffbr = (
                     dzbydt[flow_receiver] - dzbydt +
                     sed_dep_rate[flow_receiver] - sed_dep_rate
                 )
@@ -838,31 +838,47 @@ class SedDepEroder(Component):
                 # surface and the bedrock surface must behave themselves.
                 # If stability is tight, then ratediff1 describes the br
                 # interface, not the surface...
-                downstr_vert_diff1 = node_z - node_z[flow_receiver]
-                downstr_vert_diff2 = (
+                downstr_vert_diffz = node_z - node_z[flow_receiver]
+                downstr_vert_diffbr = (
                     br_z -
                     br_z[flow_receiver]
                 )
-                botharepositive1 = np.logical_and(ratediff1 > 0.,
-                                                  downstr_vert_diff1 > 0.)
-                botharepositive2 = np.logical_and(ratediff2 > 0.,
-                                                  downstr_vert_diff2 > 0.)
+                botharepositivez = np.logical_and(ratediffz > 0.,
+                                                  downstr_vert_diffz > 0.)
+                botharepositivebr = np.logical_and(ratediffbr > 0.,
+                                                   downstr_vert_diffbr > 0.)
                 try:
                     t_to_converge = np.amin(
-                        downstr_vert_diff1[botharepositive1] /
-                        ratediff1[botharepositive1])
+                        downstr_vert_diffz[botharepositivez] /
+                        ratediffz[botharepositivez])
                 except ValueError:  # no node pair converges
                     pass  # leave t_to_converge alone
                 try:
-                    t_to_converge2 = np.amin(
-                        downstr_vert_diff2[botharepositive2] /
-                        ratediff2[botharepositive2])
-                    t_to_converge = np.amin([t_to_converge, t_to_converge2])
+                    t_to_convergebr = np.amin(
+                        downstr_vert_diffbr[botharepositivebr] /
+                        ratediffbr[botharepositivebr])
+                    t_to_converge = np.amin([t_to_converge, t_to_convergebr])
                 except ValueError:  # no node pair converges
                     pass  # leave t_to_converge alone
-                # also a third condition: the two surfaces must not strongly
-                # diverge *from each other* (oscillation possible in sed layer)
-                th = node_z - br_z
+                # the below block does NOT resolve the arising oscillations
+                # in sediment thickness
+                # Is this because it looks only at change at a single node,
+                # not at the next node?
+
+                # # also a third condition: the two surfaces must not strongly
+                # # diverge *from each other* (oscillation possible in sed layer)
+                # th_new = node_z - br_z
+                # # th must not diverge by >CONV_FACTOR from old value
+                # # this will be very slow when thicknesses are v low...
+                # # so add an arbitrary 1 cm min threshold.
+                # max_change = th_new * CONV_FACTOR
+                # max_change = np.maximum(max_change, 0.01)
+                # t_to_convergeth = np.amin(np.fabs(max_change / ratediffz))
+                # # now, ratediffz is -ve if diverging, so negative sign on this
+                # # note th_new cannot ever be negative, unlike scenarios above
+                # # but equally, we shouldn't let the thickness crash too fast
+                # # either, so we have the fabs.
+                # t_to_converge = np.amin([t_to_converge, t_to_convergeth])
             else:
                 ratediff = dzbydt[flow_receiver] - dzbydt
                 # if this is +ve, the nodes are converging
