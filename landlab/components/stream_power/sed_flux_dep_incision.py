@@ -827,13 +827,8 @@ class SedDepEroder(Component):
             if self._stab_cond == 'tight':
                 t_to_converge = dt_secs  # we'll overwrite if needed, below
                 ratediffz = dzbydt[flow_receiver] - dzbydt
-                ratediffbr = (
-                    dzbydt[flow_receiver] - dzbydt +
-                    sed_dep_rate[flow_receiver] - sed_dep_rate
-                )
-                # ratediff2 = (
-                #     sed_dep_rate[flow_receiver] - sed_dep_rate
-                # )
+                ratediffth = sed_dep_rate[flow_receiver] - sed_dep_rate
+                ratediffbr = ratediffz + ratediffth
                 # Idea here is that for a tight condition, BOTH the true
                 # surface and the bedrock surface must behave themselves.
                 # If stability is tight, then ratediff1 describes the br
@@ -873,12 +868,22 @@ class SedDepEroder(Component):
                 # # so add an arbitrary 1 cm min threshold.
                 # max_change = th_new * CONV_FACTOR
                 # max_change = np.maximum(max_change, 0.01)
-                # t_to_convergeth = np.amin(np.fabs(max_change / ratediffz))
+                # t_to_convergeth = np.amin(np.fabs(max_change / ratediffth))
                 # # now, ratediffz is -ve if diverging, so negative sign on this
                 # # note th_new cannot ever be negative, unlike scenarios above
                 # # but equally, we shouldn't let the thickness crash too fast
                 # # either, so we have the fabs.
                 # t_to_converge = np.amin([t_to_converge, t_to_convergeth])
+
+                # # and alternative approach to a very similar thing might be:
+                # th_new = node_z - br_z
+                # # no need for a vert_diff term here, as it shouldn't matter
+                # # which we take. Such a term could be +ve or -ve w/o
+                # # limitation on the calc.
+                # t_to_convergeth = np.amin(th_new[flow_receiver] / np.fabs(ratediffth))
+                # t_to_converge = np.amin([t_to_converge, t_to_convergeth])
+                # # ...
+                # # this fails since the diff can easily be 0
             else:
                 ratediff = dzbydt[flow_receiver] - dzbydt
                 # if this is +ve, the nodes are converging
