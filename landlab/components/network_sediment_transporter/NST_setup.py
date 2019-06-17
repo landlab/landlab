@@ -131,7 +131,7 @@ parcels = DataRecord(grid, items=items, time=time, data_vars=variables)
 
 # Made up hydraulic geometry
 
-Qgage = 2000.0  #
+Qgage = 50000.0  #
 dt = 60 * 60 * 24
 # (seconds) daily timestep
 Bgage = 30.906 * Qgage ** 0.1215
