@@ -205,7 +205,7 @@ class LateralEroder(Component):
                                      surface='topographic__elevation',
                                      flow_director='FlowDirectorD8',
                                      runoff_rate=None,
-                                     depression_finder=None)  # "DepressionFinderAndRouter", router="D8")
+                                     depression_finder="DepressionFinderAndRouter", router="D8")
                 (da, q) = fa.accumulate_flow()
                 q = grid.at_node['surface_water__discharge']
                 # this is the drainage area that I need for code below with an inlet set
@@ -216,6 +216,7 @@ class LateralEroder(Component):
                 # this is the drainage area that I need for code below with an inlet set
                 # by spatially varible runoff.
                 da = q / grid.dx**2
+#                print ("da", da[inlet_node])
         # if inlet flag is not on, proceed as normal.
         else:
             # renamed this drainage area set by flow router
@@ -361,7 +362,7 @@ class LateralEroder(Component):
                                      surface='topographic__elevation',
                                      flow_director='FlowDirectorD8',
                                      runoff_rate=None,
-                                     depression_finder=None)  # "DepressionFinderAndRouter", router="D8")
+                                     depression_finder="DepressionFinderAndRouter", router="D8")
                 (da, q) = fa.accumulate_flow()
                 q = grid.at_node['surface_water__discharge']
                 # this is the drainage area that I need for code below with an inlet set
@@ -509,7 +510,7 @@ class LateralEroder(Component):
                                      surface='topographic__elevation',
                                      flow_director='FlowDirectorD8',
                                      runoff_rate=None,
-                                     depression_finder=None)  # "DepressionFinderAndRouter", router="D8")
+                                     depression_finder="DepressionFinderAndRouter", router="D8")
                 (da, q) = fa.accumulate_flow()
                 if inlet_on:
                     #                   #if inlet on, reset drainage area and qsin to reflect inlet conditions
