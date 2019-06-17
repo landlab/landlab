@@ -63,7 +63,7 @@ def test_4x3_read_file_name():
     assert isinstance(field, np.ndarray)
     assert (grid.x_of_node.min(), grid.y_of_node.min()) == (1.0, 2.0)
     assert_array_equal(
-        field, np.array([9., 10., 11., 6., 7., 8., 3., 4., 5., 0., 1., 2.])
+        field, np.array([9.0, 10.0, 11.0, 6.0, 7.0, 8.0, 3.0, 4.0, 5.0, 0.0, 1.0, 2.0])
     )
 
 
@@ -74,7 +74,7 @@ def test_4x3_read_file_like():
     assert isinstance(grid, RasterModelGrid)
 
     assert_array_equal(
-        field, np.array([9., 10., 11., 6., 7., 8., 3., 4., 5., 0., 1., 2.])
+        field, np.array([9.0, 10.0, 11.0, 6.0, 7.0, 8.0, 3.0, 4.0, 5.0, 0.0, 1.0, 2.0])
     )
 
 
@@ -154,7 +154,7 @@ NODATA_value  -9999
 1. 2. 3. 4. 5. 6. 7. 8. 9. 10. 11. 12.
         """
     )
-    rmg = RasterModelGrid((10, 10), xy_spacing=10.)
+    rmg = RasterModelGrid((10, 10), xy_spacing=10.0)
     with pytest.raises(MismatchGridDataSizeError):
         read_esri_ascii(asc_file, grid=rmg)
 
@@ -171,7 +171,7 @@ NODATA_value  -9999
 1. 2. 3. 4. 5. 6. 7. 8. 9. 10. 11. 12.
         """
     )
-    rmg = RasterModelGrid((4, 3), xy_spacing=15.)
+    rmg = RasterModelGrid((4, 3), xy_spacing=15.0)
     with pytest.raises(MismatchGridXYSpacing):
         read_esri_ascii(asc_file, grid=rmg)
 
@@ -188,7 +188,7 @@ NODATA_value  -9999
 1. 2. 3. 4. 5. 6. 7. 8. 9. 10. 11. 12.
         """
     )
-    rmg = RasterModelGrid((4, 3), xy_spacing=10., xy_of_lower_left=(10, 15))
+    rmg = RasterModelGrid((4, 3), xy_spacing=10.0, xy_of_lower_left=(10, 15))
     with pytest.raises(MismatchGridXYLowerLeft):
         read_esri_ascii(asc_file, grid=rmg)
 
@@ -280,7 +280,7 @@ NODATA_value  -9999
         """
     )
     header = read_asc_header(asc_file)
-    assert header["xllcenter"] == 1.
+    assert header["xllcenter"] == 1.0
     with pytest.raises(KeyError):
         header["xllcorner"]
 
@@ -295,7 +295,7 @@ NODATA_value  -9999
         """
     )
     header = read_asc_header(asc_file)
-    assert header["xllcorner"] == 1.
+    assert header["xllcorner"] == 1.0
     with pytest.raises(KeyError):
         header["xllcenter"]
 
@@ -355,7 +355,7 @@ def test_name_keyword():
 
     assert isinstance(field, np.ndarray)
     assert_array_equal(
-        field, np.array([9., 10., 11., 6., 7., 8., 3., 4., 5., 0., 1., 2.])
+        field, np.array([9.0, 10.0, 11.0, 6.0, 7.0, 8.0, 3.0, 4.0, 5.0, 0.0, 1.0, 2.0])
     )
     assert_array_almost_equal(grid.at_node["air__temperature"], field)
     assert grid.at_node["air__temperature"] is field
@@ -371,36 +371,36 @@ def test_halo_keyword():
         field,
         np.array(
             [
-                -9999.,
-                -9999.,
-                -9999.,
-                -9999.,
-                -9999.,
-                -9999.,
-                9.,
-                10.,
-                11.,
-                -9999.,
-                -9999.,
-                6.,
-                7.,
-                8.,
-                -9999.,
-                -9999.,
-                3.,
-                4.,
-                5.,
-                -9999.,
-                -9999.,
-                0.,
-                1.,
-                2.,
-                -9999.,
-                -9999.,
-                -9999.,
-                -9999.,
-                -9999.,
-                -9999.,
+                -9999.0,
+                -9999.0,
+                -9999.0,
+                -9999.0,
+                -9999.0,
+                -9999.0,
+                9.0,
+                10.0,
+                11.0,
+                -9999.0,
+                -9999.0,
+                6.0,
+                7.0,
+                8.0,
+                -9999.0,
+                -9999.0,
+                3.0,
+                4.0,
+                5.0,
+                -9999.0,
+                -9999.0,
+                0.0,
+                1.0,
+                2.0,
+                -9999.0,
+                -9999.0,
+                -9999.0,
+                -9999.0,
+                -9999.0,
+                -9999.0,
             ]
         ),
     )
@@ -418,36 +418,36 @@ def test_halo_keyword_no_nodata_value():
         field,
         np.array(
             [
-                -9999.,
-                -9999.,
-                -9999.,
-                -9999.,
-                -9999.,
-                -9999.,
-                9.,
-                10.,
-                11.,
-                -9999.,
-                -9999.,
-                6.,
-                7.,
-                8.,
-                -9999.,
-                -9999.,
-                3.,
-                4.,
-                5.,
-                -9999.,
-                -9999.,
-                0.,
-                1.,
-                2.,
-                -9999.,
-                -9999.,
-                -9999.,
-                -9999.,
-                -9999.,
-                -9999.,
+                -9999.0,
+                -9999.0,
+                -9999.0,
+                -9999.0,
+                -9999.0,
+                -9999.0,
+                9.0,
+                10.0,
+                11.0,
+                -9999.0,
+                -9999.0,
+                6.0,
+                7.0,
+                8.0,
+                -9999.0,
+                -9999.0,
+                3.0,
+                4.0,
+                5.0,
+                -9999.0,
+                -9999.0,
+                0.0,
+                1.0,
+                2.0,
+                -9999.0,
+                -9999.0,
+                -9999.0,
+                -9999.0,
+                -9999.0,
+                -9999.0,
             ]
         ),
     )

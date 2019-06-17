@@ -142,7 +142,7 @@ class PrecipitationDistribution(Component):
 
         self.delta_t = delta_t
 
-        if self.delta_t == 0.:
+        if self.delta_t == 0.0:
             self.delta_t = None
 
         # Mean_intensity is not set by the MPD, but can be drawn from
@@ -162,7 +162,7 @@ class PrecipitationDistribution(Component):
         self.storm_duration = self.get_precipitation_event_duration()
         self.interstorm_duration = self.get_interstorm_event_duration()
         self.storm_depth = self.get_storm_depth()
-        self._elapsed_time = 0.
+        self._elapsed_time = 0.0
 
         # Test if we got a grid. If we did, then assign it to _grid, and we
         # are able to use the at_grid field. If not, that's cool too.
@@ -172,7 +172,7 @@ class PrecipitationDistribution(Component):
 
         # build LL fields, if a grid is supplied:
         if grid is not None:
-            self.grid.add_field("grid", "rainfall__flux", 0.)
+            self.grid.add_field("grid", "rainfall__flux", 0.0)
             self._gridupdate = True
         else:
             self._gridupdate = False
@@ -404,10 +404,10 @@ class PrecipitationDistribution(Component):
                 "You specified you wanted storm subdivision, but did not "
                 + "provide a delta_t to allow this!"
             )
-        self._elapsed_time = 0.
+        self._elapsed_time = 0.0
         while self._elapsed_time < self.run_time:
             storm_duration = self.get_precipitation_event_duration()
-            step_time = 0.
+            step_time = 0.0
             self.get_storm_depth()
             self._intensity = self.get_storm_intensity()  # this is a rate
             # ^ this updates the grid field, if needed
@@ -425,17 +425,17 @@ class PrecipitationDistribution(Component):
                 interstorm_duration = self.get_interstorm_event_duration()
                 if self._elapsed_time + interstorm_duration > self.run_time:
                     interstorm_duration = self.run_time - self._elapsed_time
-                self._intensity = 0.
+                self._intensity = 0.0
                 if self._gridupdate:
-                    self.grid.at_grid["rainfall__flux"] = 0.
+                    self.grid.at_grid["rainfall__flux"] = 0.0
                 if subdivide_interstorms:
-                    step_time = 0.
+                    step_time = 0.0
                     while interstorm_duration - step_time > delta_t:
-                        yield (delta_t, 0.)
+                        yield (delta_t, 0.0)
                         step_time += delta_t
-                    yield (interstorm_duration - step_time, 0.)
+                    yield (interstorm_duration - step_time, 0.0)
                 else:
-                    yield (interstorm_duration, 0.)
+                    yield (interstorm_duration, 0.0)
                 self._elapsed_time += interstorm_duration
 
     def yield_storms(self):
@@ -561,7 +561,7 @@ class PrecipitationDistribution(Component):
                 (interstorm_dur, _) = next(othergen)
             except StopIteration:
                 tobreak = True
-                interstorm_dur = 0.
+                interstorm_dur = 0.0
             # reset the rainfall__flux field, that got overstamped in the
             # interstorm iter:
             self.grid.at_grid["rainfall__flux"] = storm_int

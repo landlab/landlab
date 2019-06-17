@@ -628,7 +628,7 @@ def map_mean_of_horizontal_active_links_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.zeros(centering="node", dtype=float)
     else:
-        out.fill(0.)
+        out.fill(0.0)
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]
@@ -744,7 +744,7 @@ def map_mean_of_vertical_active_links_to_node(grid, var_name, out=None):
     if out is None:
         out = grid.zeros(centering="node", dtype=float)
     else:
-        out.fill(0.)
+        out.fill(0.0)
 
     if type(var_name) is str:
         values_at_links = grid.at_link[var_name]

@@ -23,8 +23,8 @@ from landlab.graph.voronoi.voronoi_helpers import VoronoiConverter
 #     get_links_at_patch, get_corner_at_patch)
 
 
-NODE_X = (0., 1., 2., 3., .1, 1.1, 2.1, 3.1, .2, 1.2, 2.2, 3.2)
-NODE_Y = (0., 0., 0., 0., 1., 1., 1., 1., 2., 2., 2., 2.)
+NODE_X = (0.0, 1.0, 2.0, 3.0, 0.1, 1.1, 2.1, 3.1, 0.2, 1.2, 2.2, 3.2)
+NODE_Y = (0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0)
 POINTS = list(zip(NODE_X, NODE_Y))
 
 

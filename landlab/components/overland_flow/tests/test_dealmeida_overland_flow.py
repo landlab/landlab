@@ -10,7 +10,7 @@ from landlab import RasterModelGrid
 from landlab.components.overland_flow import OverlandFlow
 from landlab.grid.structured_quad.links import left_edge_horizontal_ids
 
-(_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0., 0.))
+(_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
@@ -55,22 +55,22 @@ def test_deAlm_analytical():
     deAlm = OverlandFlow(grid, mannings_n=0.01, h_init=0.001)
     time = 0.0
 
-    while time < 500.:
+    while time < 500.0:
         grid.at_link["surface_water__discharge"][left_inactive_ids] = grid.at_link[
             "surface_water__discharge"
         ][left_inactive_ids + 1]
         dt = deAlm.calc_time_step()
         deAlm.overland_flow(dt)
-        h_boundary = ((7. / 3.) * (0.01 ** 2) * (0.4 ** 3) * time) ** (3. / 7.)
+        h_boundary = ((7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 3) * time) ** (3.0 / 7.0)
         grid.at_node["surface_water__depth"][grid.nodes[1:-1, 1]] = h_boundary
         time += dt
 
     x = np.arange(0, ((grid.shape[1]) * grid.dx), grid.dx)
-    h_analytical = -(7. / 3.) * (0.01 ** 2) * (0.4 ** 2) * (x - (0.4 * 500))
+    h_analytical = -(7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 2) * (x - (0.4 * 500))
 
     h_analytical[np.where(h_analytical > 0)] = h_analytical[
         np.where(h_analytical > 0)
-    ] ** (3. / 7.)
+    ] ** (3.0 / 7.0)
     h_analytical[np.where(h_analytical < 0)] = 0.0
 
     hdeAlm = deAlm.h.reshape(grid.shape)
@@ -88,22 +88,22 @@ def test_deAlm_analytical_imposed_dt_short():
     deAlm = OverlandFlow(grid, mannings_n=0.01, h_init=0.001)
     time = 0.0
 
-    while time < 500.:
+    while time < 500.0:
         grid.at_link["surface_water__discharge"][left_inactive_ids] = grid.at_link[
             "surface_water__discharge"
         ][left_inactive_ids + 1]
-        dt = 10.
+        dt = 10.0
         deAlm.overland_flow(dt)
-        h_boundary = ((7. / 3.) * (0.01 ** 2) * (0.4 ** 3) * time) ** (3. / 7.)
+        h_boundary = ((7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 3) * time) ** (3.0 / 7.0)
         grid.at_node["surface_water__depth"][grid.nodes[1:-1, 1]] = h_boundary
         time += dt
 
     x = np.arange(0, ((grid.shape[1]) * grid.dx), grid.dx)
-    h_analytical = -(7. / 3.) * (0.01 ** 2) * (0.4 ** 2) * (x - (0.4 * 500))
+    h_analytical = -(7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 2) * (x - (0.4 * 500))
 
     h_analytical[np.where(h_analytical > 0)] = h_analytical[
         np.where(h_analytical > 0)
-    ] ** (3. / 7.)
+    ] ** (3.0 / 7.0)
     h_analytical[np.where(h_analytical < 0)] = 0.0
 
     hdeAlm = deAlm.h.reshape(grid.shape)
@@ -121,22 +121,22 @@ def test_deAlm_analytical_imposed_dt_long():
     deAlm = OverlandFlow(grid, mannings_n=0.01, h_init=0.001)
     time = 0.0
 
-    while time < 500.:
+    while time < 500.0:
         grid.at_link["surface_water__discharge"][left_inactive_ids] = grid.at_link[
             "surface_water__discharge"
         ][left_inactive_ids + 1]
-        dt = 100.
+        dt = 100.0
         deAlm.run_one_step(dt)
-        h_boundary = ((7. / 3.) * (0.01 ** 2) * (0.4 ** 3) * time) ** (3. / 7.)
+        h_boundary = ((7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 3) * time) ** (3.0 / 7.0)
         grid.at_node["surface_water__depth"][grid.nodes[1:-1, 1]] = h_boundary
         time += dt
 
     x = np.arange(0, ((grid.shape[1]) * grid.dx), grid.dx)
-    h_analytical = -(7. / 3.) * (0.01 ** 2) * (0.4 ** 2) * (x - (0.4 * 500))
+    h_analytical = -(7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 2) * (x - (0.4 * 500))
 
     h_analytical[np.where(h_analytical > 0)] = h_analytical[
         np.where(h_analytical > 0)
-    ] ** (3. / 7.)
+    ] ** (3.0 / 7.0)
     h_analytical[np.where(h_analytical < 0)] = 0.0
 
     hdeAlm = deAlm.h.reshape(grid.shape)

@@ -27,8 +27,8 @@ class DualHexGraph(DualVoronoiGraph):
     def __init__(
         self,
         shape,
-        spacing=1.,
-        origin=(0., 0.),
+        spacing=1.0,
+        origin=(0.0, 0.0),
         orientation="horizontal",
         node_layout="rect",
     ):
