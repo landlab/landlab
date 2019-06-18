@@ -315,7 +315,7 @@ class DataRecord(object):
             data_vars=data_vars_dict, coords=coords, attrs=attrs, compat=compat
         )
 
-    def _check_grid_element_and_id(self, grid_element, element_id, flag=None):
+    def _check_grid_element_and_id(self, grid_element, element_id):
         """Check the location and size of grid_element and element_id."""
         if isinstance(grid_element, string_types):
             # all items are on same type of grid_element
@@ -509,8 +509,8 @@ class DataRecord(object):
                             )
                         # check that grid_element and element_id exist
                         # on the grid and have valid format:
-                        new_grid_element = self._check_grid_element_and_id(
-                            new_grid_element, new_element_id, flag=1
+                        new_grid_element, new_element_id = self._check_grid_element_and_id(
+                            new_grid_element, new_element_id
                         )
 
                         # check that element IDs do not exceed number
@@ -932,7 +932,7 @@ class DataRecord(object):
                 assoc_element_id = new_value
                 assoc_grid_element = self.get_data(time, item_id, "grid_element")[0]
             self._check_grid_element_and_id(
-                assoc_grid_element, assoc_element_id, flag=1
+                assoc_grid_element, assoc_element_id
             )
             if assoc_element_id >= self._grid[assoc_grid_element].size:
                 raise ValueError(
