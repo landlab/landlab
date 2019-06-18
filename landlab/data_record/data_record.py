@@ -47,6 +47,7 @@ class DataRecord(object):
     def __init__(
         self,
         grid,
+        dummy_elements=None,
         time=None,
         items=None,
         data_vars=None,
@@ -57,6 +58,12 @@ class DataRecord(object):
         Parameters
         ----------
         grid : ModelGrid
+        dummy_elements : dict
+             Dictionary indicating valid values for dummy grid elements. For
+             example, if you need an "exit" off of a grid with  100 links, you could indicate
+                dummy_elements = {"link": [9999]}
+             to set a link id of 9999 as a dummy link. Multiple dummy elements
+             are possible.
         time : list or 1-D array of float or int (optional)
             The initial time(s) to add to the record. A time dimension is not
             created if the value is 'None' (default).
@@ -182,6 +189,15 @@ class DataRecord(object):
         # depending on the grid type, permitted locations for items vary
         self.permitted_locations = self._grid.groups
 
+        # save dummy elements reference
+        # check dummies and refomat into {"node": [0, 1, 2]}
+        self._dummy_elements = dummy_elements or {}
+        for at in self.permitted_locations:
+            for item in self._dummy_elements.get(at, []):
+                if (item < self._grid[at].size) and (item >= 0):
+                    msg = "Dummy id {at} {item} invalid".format(item=item, at=at)
+                    raise ValueError(msg)
+
         # set initial time coordinates, if any
         if isinstance(time, (list, np.ndarray)):
             self._times = np.array(time)
@@ -303,9 +319,7 @@ class DataRecord(object):
         """Check the location and size of grid_element and element_id."""
         if isinstance(grid_element, string_types):
             # all items are on same type of grid_element
-            if grid_element in self.permitted_locations:
-                pass
-            else:
+            if grid_element not in self.permitted_locations:
                 raise ValueError(
                     "Location provided: " + grid_element + " is "
                     "not a permitted location for this grid type"
@@ -354,18 +368,19 @@ class DataRecord(object):
             selected_elements = element_id[selected_elements_ind]
 
             if selected_elements.size > 0:
-                if max(selected_elements) >= max_size:
-                    raise ValueError(
-                        "An item residing at " + at + " has an "
-                        "element_id larger than the number of " + at + " on the grid"
-                    )
                 less_than_zero = selected_elements < 0
-                if any(less_than_zero):
-                    raise ValueError(
-                        "An item residing at " + at + " has "
-                        "an element id below zero. This is not "
-                        "permitted"
-                    )
+                bigger_than_max = max(selected_elements) >= max_size
+
+                where_not_ids = (selected_elements >= max_size) + (
+                    selected_elements < 0
+                )
+                potential_dummies = selected_elements[where_not_ids]
+
+                for pd in potential_dummies:
+                    if pd not in self._dummy_elements.get(at, []):
+                        msg = "Dummy value {pd} {at} invalid".format(pd=pd, at=at)
+                        raise ValueError(msg)
+
         dtype = element_id.dtype
         if dtype != int:
             raise ValueError(
