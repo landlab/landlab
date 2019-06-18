@@ -331,6 +331,7 @@ class LateralEroder(Component):
         z = grid.at_node['topographic__elevation']
         # clear qsin for next loop
         qs_in = grid.add_zeros('node', 'qs_in', noclobber=False)
+        qs = grid.add_zeros('node', 'qs', noclobber=False)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
         dzlat = np.zeros(grid.number_of_nodes)
         dzver = np.zeros(grid.number_of_nodes)
@@ -426,6 +427,7 @@ class LateralEroder(Component):
                 qs_in[flowdirs[i]] += qs_in[i] - \
                     (dzver[i] * grid.dx**2) - \
                     (petlat * grid.dx * wd)  # qsin to next node
+            qs[:] += qs_in - (dzver * grid.dx**2)    #summing qs for this entire timestep
             dzdt[:] = dzver
             # Do a time-step check
             # If the downstream node is eroding at a slower rate than the
