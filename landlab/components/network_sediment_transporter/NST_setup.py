@@ -68,10 +68,10 @@ bed_porosity = 0.3  # porosity of the bed material
 # parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
 
 
-timesteps = 10
+timesteps = 30
 
 element_id = np.array(
-    [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 1], dtype=int
+    [1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6], dtype=int
 )  # current link for each parcel
 
 element_id = np.expand_dims(element_id, axis=1)
@@ -131,7 +131,7 @@ parcels = DataRecord(grid, items=items, time=time, data_vars=variables)
 
 # Made up hydraulic geometry
 
-Qgage = 50000.0  #
+Qgage = 80000.0  #
 dt = 60 * 60 * 24
 # (seconds) daily timestep
 Bgage = 30.906 * Qgage ** 0.1215
@@ -161,7 +161,6 @@ Btmax = np.amax(channel_width, axis=0)  # CURRENTLY UNUSED
 
 # sc = SyntheticChannelGeomMaker(hydraulic_geometry_scaling_rules,discharge)
 #
-
 
 fd = FlowDirectorSteepest(grid, "topographic__elevation")
 fd.run_one_step()
@@ -193,17 +192,16 @@ for t in range(0, (timesteps * dt), dt):
 
     # Run our component
     nst.run_one_step(dt)
-    print("timestep ", t, "completed!")
+
 
 # %% A few plot outputs, just to get started.
 
 plt.figure(1)
-plt.plot(parcels.time_coordinates, parcels.location_in_link.values[6, :], ".")
-plt.plot(parcels.time_coordinates, parcels.location_in_link.values[5, :], ".")
+plt.plot(parcels.time_coordinates, parcels.location_in_link.values[8, :], ".")
+plt.plot(parcels.time_coordinates, parcels.location_in_link.values[14, :], ".")
 plt.title("Tracking link location for a single parcel")
 plt.xlabel("time")
 plt.ylabel("location in link")
-
 
 plt.figure(2)
 plt.plot(parcels.time_coordinates, np.sum(parcels["volume"].values, axis=0), ".")
