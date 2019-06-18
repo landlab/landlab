@@ -240,7 +240,7 @@ class DataRecord(object):
 
             # check that grid_element and element_id exist on the grid and
             # have valid format:
-            _grid_elements = self._check_grid_element_and_id(
+            _grid_elements, _element_ids = self._check_grid_element_and_id(
                 _grid_elements, _element_ids
             )
 
@@ -356,7 +356,7 @@ class DataRecord(object):
                         " for this grid type"
                     )
 
-        return grid_element
+        return grid_element, element_id
 
     def _check_element_id_values(self, grid_element, element_id):
         """Check that element_id values are valid."""
@@ -697,7 +697,7 @@ class DataRecord(object):
                 }
                 # check that grid_element and element_id exist
                 # on the grid and have valid format
-                _grid_elements = self._check_grid_element_and_id(
+                _grid_elements, _element_ids = self._check_grid_element_and_id(
                     _grid_elements, _element_ids
                 )
 
