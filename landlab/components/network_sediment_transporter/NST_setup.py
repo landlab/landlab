@@ -11,12 +11,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # from landlab.components import NetworkSedimentTransporter
+from landlab import BAD_INDEX_VALUE
 from landlab.components import FlowDirectorSteepest
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 from landlab.plot import graph
 
 from landlab.components import NetworkSedimentTransporter
+_OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
 
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
 
@@ -67,10 +69,10 @@ bed_porosity = 0.3  # porosity of the bed material
 # Ultimately,
 # parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
 
-timesteps = 10
+timesteps = 30
 
 element_id = np.array(
-    [1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 2, 3, 4, 4, 4, 3, 4, 5], dtype=int
+    [0,0,1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 2, 3, 4, 4, 4, 3, 4, 5], dtype=int
 )  # current link for each parcel
 
 element_id = np.expand_dims(element_id, axis=1)
@@ -119,7 +121,7 @@ variables = {
     "volume": (["item_id", "time"], volume),
 }
 
-parcels = DataRecord(grid, items=items, time=time, data_vars=variables)
+parcels = DataRecord(grid, items=items, time=time, data_vars=variables, dummy_elements={"link": [_OUT_OF_NETWORK]})
 
 
 # Add parcels in at a given time --> attribute in the item collection
@@ -192,15 +194,17 @@ for t in range(0, (timesteps * dt), dt):
 
 # %% A few plot outputs, just to get started.
 
+from landlab.plot.network_sediment_transporter import * # Note-- this is an example. it loads plotting scripts that don't exist yet. 
+
 plt.figure(1)
-plt.plot(parcels.time_coordinates, parcels.location_in_link.values[5, :], ".")
-plt.plot(parcels.time_coordinates, parcels.location_in_link.values[14, :], ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.location_in_link.values[0, :], ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.location_in_link.values[14, :], ".")
 plt.title("Tracking link location for a single parcel")
 plt.xlabel("time")
 plt.ylabel("location in link")
 
 plt.figure(2)
-plt.plot(parcels.time_coordinates, np.sum(parcels["volume"].values, axis=0), ".")
+plt.plot(parcels.time_coordinates, np.sum(parcels.dataset["volume"].values, axis=0), ".")
 plt.title("Silly example: total volume, all parcels through time")
 plt.xlabel("time")
 plt.ylabel("total volume of parcels")

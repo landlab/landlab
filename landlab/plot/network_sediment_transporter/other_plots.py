@@ -17,9 +17,3 @@ def plot_network_parcels(grid, parcels, time, color="attribute_name", shape="att
     # the correct color, size, etc.
     #
     # have multiple options to save or return plot instance.
-
-
-def other_plots():
-    pass
-    # something that works nicely with bokeh or holloviews and has a time
-    # sliderbar.
