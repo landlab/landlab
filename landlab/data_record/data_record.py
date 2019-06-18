@@ -318,68 +318,64 @@ class DataRecord(object):
     def _check_grid_element_and_id(self, grid_element, element_id):
         """Check the location and size of grid_element and element_id."""
         if isinstance(grid_element, string_types):
-            # all items are on same type of grid_element
-            if grid_element not in self.permitted_locations:
-                raise ValueError(
-                    "Location provided: " + grid_element + " is "
-                    "not a permitted location for this grid type"
-                )
-
+            
             # create list of grid_element for all items
             ge_name = grid_element
-            try:
+            if hasattr(self, "_number_of_times"):
                 # if time
                 grid_element = np.array(
                     np.empty(
                         (self._number_of_items, self._number_of_times), dtype=object
                     )
                 )
-            except (AttributeError, RuntimeError):
+                
+                if element_id.shape != grid_element.shape:
+                    element_id = np.broadcast_to(element_id, grid_element.shape)
+                    
+            else:
                 # no time
                 grid_element = np.array(
                     np.empty((self._number_of_items,), dtype=object)
                 )
             grid_element.fill(ge_name)
 
-        else:
-            # each item on different grid element
-            for loc in grid_element:
-                if isinstance(loc, np.ndarray):
-                    # depending on dims
-                    loc = loc[0]
-                if loc in self.permitted_locations:
-                    pass
-                else:
-                    raise ValueError(
-                        "One or more of the grid elements"
-                        " provided is/are not permitted location"
-                        " for this grid type"
-                    )
+        # verify all grid elements are valid.
+        for loc in grid_element.flatten():
+            if loc not in self.permitted_locations:
+                raise ValueError(
+                    "One or more of the grid elements"
+                    " provided is/are not permitted location"
+                    " for this grid type"
+                )
 
         return grid_element, element_id
 
     def _check_element_id_values(self, grid_element, element_id):
         """Check that element_id values are valid."""
+        # cast to array.
+        
         for at in self.permitted_locations:
+            
             max_size = self._grid[at].size
-            selected_elements_ind = [
-                i for i in range(len(grid_element)) if grid_element[i] == at
-            ]
-            selected_elements = element_id[selected_elements_ind]
+            
+            # this needs to work with 2d arrays (rows, col = np.where (so grid element always needs to be at least 2d.))
+            ind = np.nonzero(grid_element == at)
+            #print(grid_element)
+            ##print(ind)
+            #print(element_id)
+            selected_elements = element_id[ind]
 
             if selected_elements.size > 0:
-                less_than_zero = selected_elements < 0
-                bigger_than_max = max(selected_elements) >= max_size
-
-                where_not_ids = (selected_elements >= max_size) + (
-                    selected_elements < 0
-                )
-                potential_dummies = selected_elements[where_not_ids]
-
-                for pd in potential_dummies:
-                    if pd not in self._dummy_elements.get(at, []):
-                        msg = "Dummy value {pd} {at} invalid".format(pd=pd, at=at)
-                        raise ValueError(msg)
+                
+                dummy_values  = self._dummy_elements.get(at, [])
+                index_values = np.arange(0, max_size)
+                valid_values = np.concatenate((dummy_values, index_values))
+                
+                valid_elements = np.isin(selected_elements, valid_values)
+                
+                if not np.all(valid_elements):
+                    msg = "Invalid element_ids provided."
+                    raise ValueError(msg)
 
         dtype = element_id.dtype
         if dtype != int:
@@ -653,20 +649,19 @@ class DataRecord(object):
                 'you must provide a "time" for the new item(s)'
             )
 
-        try:
-            # check that new_item is a dict
-            new_item.keys()
-        except AttributeError:
+        if not isinstance(new_item, dict):
             raise TypeError(
                 "You must provide an new_item dictionary "
                 "(see documentation for required format)"
             )
+            
         try:
             # check that dict contains correct entries
             _grid_elements, _element_ids = (
                 new_item["grid_element"],
                 new_item["element_id"],
             )
+            
         except KeyError:
             raise KeyError(
                 "You must provide a new_item dictionary "
