@@ -57,7 +57,7 @@ active_layer_thickness = 0.5
 
 bed_porosity = 0.3  # porosity of the bed material
 
-# %% initialize bed sediment (will become its own component)
+# %% initialize bed sediment (may become its own component)
 
 # NOTE: inputs to DataRecord need to have the same shape as the time/item inputs
 # So, if a parcel attribute is being tracked in time, it needs to have
@@ -67,15 +67,14 @@ bed_porosity = 0.3  # porosity of the bed material
 # Ultimately,
 # parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
 
-
-timesteps = 30
+timesteps = 10
 
 element_id = np.array(
-    [1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6], dtype=int
+    [1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 2, 3, 4, 4, 4, 3, 4, 5], dtype=int
 )  # current link for each parcel
 
 element_id = np.expand_dims(element_id, axis=1)
-#%%
+
 starting_link = np.squeeze(element_id)  # starting link for each parcel
 
 np.random.seed(0)
@@ -88,12 +87,10 @@ D = 0.05 * np.ones(np.shape(element_id))  # (m) the diameter of grains in each p
 lithology = ["quartzite"] * np.size(
     element_id
 )  # a lithology descriptor for each parcel
-abrasion_rate = np.zeros(
+abrasion_rate = 0.0001* np.ones(
     np.size(element_id)
 )  # 0 = no abrasion; abrasion rates are positive mass loss coefficients (mass loss / METER)
-active_layer = np.ones(
-    np.shape(element_id)
-)  # 1 = active/surface layer; 0 = subsurface layer
+active_layer = np.ones(np.shape(element_id))  # 1 = active/surface layer; 0 = subsurface layer
 
 density = 2650 * np.ones(np.size(element_id))  # (kg/m3)
 
@@ -131,9 +128,9 @@ parcels = DataRecord(grid, items=items, time=time, data_vars=variables)
 
 # Made up hydraulic geometry
 
-Qgage = 80000.0  #
-dt = 60 * 60 * 24
-# (seconds) daily timestep
+Qgage = 80000.0  # (m3/s)
+dt = 60 * 60 * 24 # (seconds) daily timestep
+
 Bgage = 30.906 * Qgage ** 0.1215
 # (m)
 Hgage = 1.703 * Qgage ** 0.3447
@@ -193,11 +190,10 @@ for t in range(0, (timesteps * dt), dt):
     # Run our component
     nst.run_one_step(dt)
 
-
 # %% A few plot outputs, just to get started.
 
 plt.figure(1)
-plt.plot(parcels.time_coordinates, parcels.location_in_link.values[8, :], ".")
+plt.plot(parcels.time_coordinates, parcels.location_in_link.values[5, :], ".")
 plt.plot(parcels.time_coordinates, parcels.location_in_link.values[14, :], ".")
 plt.title("Tracking link location for a single parcel")
 plt.xlabel("time")
