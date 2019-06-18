@@ -71,6 +71,65 @@ def test_lateral_erosion_and_node():
         verbose=True,
     )
 
+def test_matches_detlim_solution():
+    """
+    Test that model matches the detachment-limited analytical solution
+    for slope/area relationship at steady state: S=(U/K_br)^(1/n)*A^(-m/n).
+    """
+    #%%
+    U = 0.005 
+    dt = 1    
+    nr = 5
+    nc = 5
+    dx=10
+    Kbr = 0.001
+    #instantiate grid
+    mg = RasterModelGrid(nr, nc, dx)
+    for edge in (mg.nodes_at_top_edge, mg.nodes_at_bottom_edge, mg.nodes_at_left_edge, mg.nodes_at_right_edge):
+        mg.status_at_node[edge] = CLOSED_BOUNDARY
+    for edge in (mg.nodes_at_bottom_edge):
+        mg.status_at_node[edge] = FIXED_VALUE_BOUNDARY
+    
+    z = mg.add_zeros('node', 'topographic__elevation')
+    ir2 = np.random.uniform(low=0.0, high=0.5, size=(z.size))
+    loading_vector = np.linspace(1,4,num=nr)
+    ramp = np.repeat(loading_vector, nc)
+    ramp += ir2
+    z[:] += ramp
+    n_sp=1.0
+    m_sp=0.5
+
+    fa = FlowAccumulator(mg,
+                         surface='topographic__elevation',
+                         flow_director='FlowDirectorD8',
+                         runoff_rate=None,
+                         depression_finder=None)#"DepressionFinderAndRouter", router="D8")
+    
+    #***NOTE, YOU MUST USE ADAPTIVE TIME STEPPER FOR variable K, or you may get strange 
+    # topography
+    latero = LateralEroder(mg,latero_mech="TB", Kv=Kbr, solver="basic", alph=0.01, Kl_ratio=0.01)
+    
+    for i in range(2000):
+        fa.run_one_step()    #flow accumulator
+        #erode the landscape with lateral erosion
+        (mg, dzlat)=latero.run_one_step(mg,dt,)
+        mg.at_node['topographic__elevation'][mg.core_nodes] += U*dt 
+    
+       
+    num_slope = mg.at_node["topographic__steepest_slope"][mg.core_nodes]
+    analytical_slope = np.power(U / Kbr, 1.0 / n_sp) * np.power(
+        mg.at_node["drainage_area"][mg.core_nodes], -m_sp / n_sp
+    )
+    print('numslope', num_slope)
+    print('anaslope', analytical_slope)
+    testing.assert_array_almost_equal(
+        num_slope,
+        analytical_slope,
+        decimal=4,
+        err_msg="lateral erosion variable bedrock test failed",
+        verbose=True,
+    )
+    #%%
 def test_ss_sed_flux():
     """
     test that sediment flux of model matches steady state analytical solution, Qs = U * A
