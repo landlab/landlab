@@ -1017,13 +1017,14 @@ class DataRecord(object):
         >>> from landlab.data_record import DataRecord
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((3,3))
-        >>> element_id = [0, 0, 0, 0, 1, 2, 3, 4, 5]
-        >>> volumes = [4, 5, 1, 2, 3, 4, 5, 6, 7]
-        >>> ages = [10, 11, 12, 13, 14, 15, 16, 8, 10]
+        >>> element_id = [0, 0, 0, 0, 1, 2, 3, 4, 5, 9999]
+        >>> volumes = [4, 5, 1, 2, 3, 4, 5, 6, 7, 1234]
+        >>> ages = [10, 11, 12, 13, 14, 15, 16, 8, 10, 3456]
         >>> grid_element = 'node'
         >>> data = {'ages': ages,
         ...         'volumes': volumes}
         >>> dr = DataRecord(grid,
+        ...                 dummy_elements={"node": [9999]},
         ...                 items={'grid_element' : 'node',
         ...                           'element_id' : np.array(element_id)},
         ...                 data_vars={'ages' : (['item_id'], np.array(ages)),
