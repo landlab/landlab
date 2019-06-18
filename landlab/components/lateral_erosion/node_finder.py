@@ -1,13 +1,30 @@
 """
-finds lateral neighbor node for straight, 45 degree, and 90 degree channel segments
+    Finds lateral neighbor node of the primary node for straight, 45 degree, and 90 degree channel segments.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A Landlab grid object
+    i : int
+        node ID of primary node
+    flowdirs : array
+        Flow direction array
+    drain_area : array
+        drainage area array
+
+    Returns
+    -------
+    lat_node : int
+        node ID of lateral node
+    radcurv_angle : float
+        inverse radius of curvature of channel at lateral node
+
 """
 
 import numpy as np
 import math
 
 # %%
-
-
 def angle_finder(grid, dn, cn, rn):
     xcoord = grid.node_axis_coordinates(axis=0)
     ycoord = grid.node_axis_coordinates(axis=1)
@@ -19,15 +36,11 @@ def angle_finder(grid, dn, cn, rn):
     angle_diff = abs(angle2 - angle1)
     return angle_diff
 # %%
-
-
 def FortyfiveNode(donor, i, receiver, neighbors, diag_neigh):
     radcurv_angle = 0.67
-    # april 9. getting weird flow patterns in a 4x4 grid. flow from 10->9->6.
-    # resultign in no lateral node assigned. for a hack for now, start with
-    # lateral node=0,
+
     lat_node = 0
-    # LL 2017: diagonal list goes [NE, NW, SW, SE]. Node list are ordered as [E,N,W,S]
+    # In Landlab 2019: diagonal list goes [NE, NW, SW, SE]. Node list are ordered as [E,N,W,S]
     # if water flows SE-N OR if flow NE-S or E-NW or E-SW, erode west node
     if (donor == diag_neigh[0] and receiver == neighbors[3] or
         donor == diag_neigh[3] and receiver == neighbors[1]
@@ -54,8 +67,6 @@ def FortyfiveNode(donor, i, receiver, neighbors, diag_neigh):
         lat_node = neighbors[3]
     return lat_node, radcurv_angle
 # %% Ninety Node
-
-
 def NinetyNode(donor, i, receiver, link_list, neighbors, diag_neigh):
     # if flow is 90 degrees
     if(donor in diag_neigh and receiver in diag_neigh):
@@ -94,8 +105,6 @@ def NinetyNode(donor, i, receiver, link_list, neighbors, diag_neigh):
     return lat_node, radcurv_angle
 
 # %% Straight Node finder
-
-
 def StraightNode(donor, i, receiver, neighbors, diag_neigh):
     #####FLOW LINK IS STRAIGHT, NORTH TO SOUTH######
     if ((donor == neighbors[1] or donor == neighbors[3])):
@@ -148,11 +157,7 @@ def StraightNode(donor, i, receiver, neighbors, diag_neigh):
             lat_node = poss_diag_nodes[1]
     return lat_node, radcurv_angle
 # %% Node finder
-
-
-def Node_Finder2(grid, i, flowdirs, drain_area):
-    debug = 0
-    print_debug = 0
+def Node_Finder(grid, i, flowdirs, drain_area):
     # receiver node of flow is flowdirs[i]
     receiver = flowdirs[i]
 
@@ -166,32 +171,19 @@ def Node_Finder2(grid, i, flowdirs, drain_area):
         drin = drain_area[inflow]
         drmax = max(drin)
         maxinfl = inflow[0][np.where(drin == drmax)]
-        if(debug):
-            print("old inflow", inflow[0])
         # if donor nodes have same drainage area, choose one randomly
         if len(maxinfl) > 1:
             ran_num = np.random.randint(0, len(maxinfl))
             maxinfln = maxinfl[ran_num]
             donor = [maxinfln]
-            if(debug):
-                print("random donor", donor)
         else:
             donor = maxinfl
-            if(debug):
-                print("donor with larger drainage area", donor)
         # if inflow is empty, no donor
     elif len(inflow[0]) == 0:
-        if(debug):
-            print("no donor")
         donor = i
     # else donor is the only inflow
     else:
         donor = inflow[0]
-
-    if(print_debug):
-        print("donor", donor)
-        print("i", i)
-        print("receiver", receiver)
     # now we have chosen donor cell, next figure out if inflow/outflow lines are
     # straight, 45, or 90 degree angle. and figure out which node to erode
     link_list = grid.links_at_node[i]
@@ -201,26 +193,14 @@ def Node_Finder2(grid, i, flowdirs, drain_area):
     # this gives list of all diagonal neighbors for specified node
     # the order of this list is: [NE,NW,SW,SE]
     diag_neigh = grid.diagonal_adjacent_nodes_at_node[i]
-    linkdirs = grid.active_link_dirs_at_node[i]
     angle_diff = angle_finder(grid, donor, i, receiver)
-
-    if(debug):
-        print("link_list", link_list)
-        print("neighbors", neighbors)
-        print("diagneighbors", diag_neigh)
-        print("angle_diff", angle_diff)
-        print(" ")
 
     if donor == flowdirs[i]:
         # this is a sink. no lateral ero
-        if(debug):
-            print("this is a sink")
         radcurv_angle = 0.
         lat_node = 0
     if donor == i:
         # this is a sink. no lateral ero
-        if(debug):
-            print("this is a sink")
         radcurv_angle = 0.
         lat_node = 0
     if angle_diff == 0.0:
@@ -232,16 +212,12 @@ def Node_Finder2(grid, i, flowdirs, drain_area):
     if angle_diff == 90.0:
         [lat_node, radcurv_angle] = NinetyNode(
             donor, i, receiver, link_list, neighbors, diag_neigh)
-    if(debug):
-        print("lat_node", lat_node)
-        print("end of node finder")
     if lat_node > 2e9:
         # print "old latnode", lat_node
         lat_node = 0
         radcurv_angle = 0.0
 
     dx = grid.dx
-    # May24, 2017: this is actually INVERSE radius of curvature. It works out
-    # in the main lateral ero
+    # INVERSE radius of curvature.
     radcurv_angle = radcurv_angle / dx
     return int(lat_node), radcurv_angle

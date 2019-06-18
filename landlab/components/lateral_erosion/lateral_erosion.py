@@ -17,7 +17,7 @@ from landlab.components.flow_director import FlowDirectorD8
 from landlab.components.flow_accum import FlowAccumulator
 from landlab.components.flow_routing import DepressionFinderAndRouter
 
-from landlab.components.lateral_erosion.node_finder2 import Node_Finder2
+from landlab.components.lateral_erosion.node_finder import Node_Finder
 import numpy as np
 
 
@@ -249,7 +249,7 @@ class LateralEroder(Component):
             if i in flowdirs:
                 # Node_finder picks the lateral node to erode based on angle
                 # between segments between three nodes
-                [lat_node, inv_rad_curv] = Node_Finder2(grid, i, flowdirs, da)
+                [lat_node, inv_rad_curv] = Node_Finder(grid, i, flowdirs, da)
                 # node_finder returns the lateral node ID and the radius of curvature
                 lat_nodes[i] = lat_node
                 # if the lateral node is not 0 or -1 continue. lateral node may be
@@ -402,7 +402,7 @@ class LateralEroder(Component):
                 if i in flowdirs:
                     # Node_finder picks the lateral node to erode based on angle
                     # between segments between three nodes
-                    [lat_node, inv_rad_curv] = Node_Finder2(grid, i, flowdirs, da)
+                    [lat_node, inv_rad_curv] = Node_Finder(grid, i, flowdirs, da)
                     # node_finder returns the lateral node ID and the radius of
                     # curvature
                     lat_nodes[i] = lat_node
