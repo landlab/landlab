@@ -1063,32 +1063,22 @@ class DataRecord(object):
 
         """
 
-        #    (From ItemCollection:)
-        #        To add to Example, when I can make it work:
-        #        You can even pass functions that require additional positional
-        #        arguments or keyword arguments. For example, in order to get the 25th
-        #        percentile, we we do the following.
-        #
-        #        >>> s = ic.calc_aggregate_value(np.percentile, 'ages', q=25)
-        #        >>> print(s)
-        #        [ 10.75  14.    15.    16.     8.    10.      nan    nan    nan]
-
         filter_at = self.dataset["grid_element"] == at
 
+        valid = np.arange(self._grid[at].size)
+
+        filter_valid_element = np.isin(self.dataset["element_id"], valid)
+
         if filter_array is None:
-            my_filter = filter_at
+            my_filter = filter_at & filter_valid_element
         else:
-            my_filter = filter_at & filter_array
+            my_filter = filter_at & filter_array & filter_valid_element
 
         # Filter DataRecord with my_filter and groupby element_id:
         filtered = self.dataset.where(my_filter).groupby("element_id")
 
         vals = filtered.apply(func, *args, **kwargs)  # .reduce
-        #        vals = xr.apply_ufunc(func,
-        #                            filtered,
-        #                            #input_core_dims=[['item_id']],
-        #                            **kwargs)
-
+ 
         # create a nan array that we will fill with the results of the sum
         # this should be the size of the number of elements, even if there are
         # no items living at some grid elements.
