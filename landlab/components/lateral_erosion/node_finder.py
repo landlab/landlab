@@ -43,28 +43,28 @@ def FortyfiveNode(donor, i, receiver, neighbors, diag_neigh):
     lat_node = 0
     # In Landlab 2019: diagonal list goes [NE, NW, SW, SE]. Node list are ordered as [E,N,W,S]
     # if water flows SE-N OR if flow NE-S or E-NW or E-SW, erode west node
-    if (donor == diag_neigh[0] and receiver == neighbors[3] or
-        donor == diag_neigh[3] and receiver == neighbors[1]
-        or donor == neighbors[0] and receiver == diag_neigh[2] or
-            donor == neighbors[0] and receiver == diag_neigh[1]):
+    if (donor == diag_neigh[0] and receiver == neighbors[3]
+        or donor == diag_neigh[3] and receiver == neighbors[1]
+        or donor == neighbors[0] and receiver == diag_neigh[2]
+            or donor == neighbors[0] and receiver == diag_neigh[1]):
         lat_node = neighbors[2]
     # if flow is from SW-N or NW-S or W-NE or W-SE, erode east node
-    elif (donor == diag_neigh[1] and receiver == neighbors[3] or
-          donor == diag_neigh[2] and receiver == neighbors[1] or
-          donor == neighbors[2] and receiver == diag_neigh[3] or
-          donor == neighbors[2] and receiver == diag_neigh[0]):
+    elif (donor == diag_neigh[1] and receiver == neighbors[3]
+          or donor == diag_neigh[2] and receiver == neighbors[1]
+          or donor == neighbors[2] and receiver == diag_neigh[3]
+          or donor == neighbors[2] and receiver == diag_neigh[0]):
         lat_node = neighbors[0]
     # if flow is from SE-W or SW-E or S-NE or S-NW, erode north node
-    elif (donor == diag_neigh[3] and receiver == neighbors[2] or
-          donor == diag_neigh[2] and receiver == neighbors[0] or
-          donor == neighbors[3] and receiver == diag_neigh[0] or
-          donor == neighbors[3] and receiver == diag_neigh[1]):
+    elif (donor == diag_neigh[3] and receiver == neighbors[2]
+          or donor == diag_neigh[2] and receiver == neighbors[0]
+          or donor == neighbors[3] and receiver == diag_neigh[0]
+          or donor == neighbors[3] and receiver == diag_neigh[1]):
         lat_node = neighbors[1]
     # if flow is from NE-W OR NW-E or N-SE or N-SW, erode south node
-    elif (donor == diag_neigh[0] and receiver == neighbors[2] or
-          donor == diag_neigh[1] and receiver == neighbors[0] or
-          donor == neighbors[1] and receiver == diag_neigh[3] or
-          donor == neighbors[1] and receiver == diag_neigh[2]):
+    elif (donor == diag_neigh[0] and receiver == neighbors[2]
+          or donor == diag_neigh[1] and receiver == neighbors[0]
+          or donor == neighbors[1] and receiver == diag_neigh[3]
+          or donor == neighbors[1] and receiver == diag_neigh[2]):
         lat_node = neighbors[3]
     return lat_node, radcurv_angle
 
@@ -74,20 +74,20 @@ def NinetyNode(donor, i, receiver, link_list, neighbors, diag_neigh):
     if(donor in diag_neigh and receiver in diag_neigh):
         radcurv_angle = 1.37
         # if flow is NE-SE or NW-SW, erode south node
-        if (donor == diag_neigh[0] and receiver == diag_neigh[3] or
-                donor == diag_neigh[1] and receiver == diag_neigh[2]):
+        if (donor == diag_neigh[0] and receiver == diag_neigh[3]
+                or donor == diag_neigh[1] and receiver == diag_neigh[2]):
             lat_node = neighbors[3]
         # if flow is SW-NW or SE-NE, erode north node
-        elif (donor == diag_neigh[2] and receiver == diag_neigh[1] or
-              donor == diag_neigh[3] and receiver == diag_neigh[0]):
+        elif (donor == diag_neigh[2] and receiver == diag_neigh[1]
+              or donor == diag_neigh[3] and receiver == diag_neigh[0]):
             lat_node = neighbors[1]
         # if flow is SW-SE or NW-NE, erode east node
-        elif (donor == diag_neigh[2] and receiver == diag_neigh[3] or
-              donor == diag_neigh[1] and receiver == diag_neigh[0]):
+        elif (donor == diag_neigh[2] and receiver == diag_neigh[3]
+              or donor == diag_neigh[1] and receiver == diag_neigh[0]):
             lat_node = neighbors[0]
         # if flow is SE-SW or NE-NW, erode west node
-        elif (donor == diag_neigh[3] and receiver == diag_neigh[2] or
-              donor == diag_neigh[0] and receiver == diag_neigh[1]):
+        elif (donor == diag_neigh[3] and receiver == diag_neigh[2]
+              or donor == diag_neigh[0] and receiver == diag_neigh[1]):
             lat_node = neighbors[2]
     elif(donor not in diag_neigh and receiver not in diag_neigh):
         radcurv_angle = 1.37
