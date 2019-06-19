@@ -1,0 +1,15 @@
+node_finder.py:46:61: W504 line break after binary operator
+node_finder.py:48:64: W504 line break after binary operator
+node_finder.py:52:63: W504 line break after binary operator
+node_finder.py:53:63: W504 line break after binary operator
+node_finder.py:54:63: W504 line break after binary operator
+node_finder.py:58:63: W504 line break after binary operator
+node_finder.py:59:63: W504 line break after binary operator
+node_finder.py:60:63: W504 line break after binary operator
+node_finder.py:64:63: W504 line break after binary operator
+node_finder.py:65:63: W504 line break after binary operator
+node_finder.py:66:63: W504 line break after binary operator
+node_finder.py:77:66: W504 line break after binary operator
+node_finder.py:81:68: W504 line break after binary operator
+node_finder.py:85:68: W504 line break after binary operator
+node_finder.py:89:68: W504 line break after binary operator

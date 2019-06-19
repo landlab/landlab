@@ -24,7 +24,7 @@
 import numpy as np
 import math
 
-# %%
+
 def angle_finder(grid, dn, cn, rn):
     xcoord = grid.node_axis_coordinates(axis=0)
     ycoord = grid.node_axis_coordinates(axis=1)
@@ -35,7 +35,8 @@ def angle_finder(grid, dn, cn, rn):
     angle_diff = angle2 - angle1
     angle_diff = abs(angle2 - angle1)
     return angle_diff
-# %%
+
+
 def FortyfiveNode(donor, i, receiver, neighbors, diag_neigh):
     radcurv_angle = 0.67
 
@@ -66,7 +67,8 @@ def FortyfiveNode(donor, i, receiver, neighbors, diag_neigh):
           donor == neighbors[1] and receiver == diag_neigh[2]):
         lat_node = neighbors[3]
     return lat_node, radcurv_angle
-# %% Ninety Node
+
+
 def NinetyNode(donor, i, receiver, link_list, neighbors, diag_neigh):
     # if flow is 90 degrees
     if(donor in diag_neigh and receiver in diag_neigh):
@@ -83,11 +85,10 @@ def NinetyNode(donor, i, receiver, link_list, neighbors, diag_neigh):
         elif (donor == diag_neigh[2] and receiver == diag_neigh[3] or
               donor == diag_neigh[1] and receiver == diag_neigh[0]):
             lat_node = neighbors[0]
-         # if flow is SE-SW or NE-NW, erode west node
+        # if flow is SE-SW or NE-NW, erode west node
         elif (donor == diag_neigh[3] and receiver == diag_neigh[2] or
               donor == diag_neigh[0] and receiver == diag_neigh[1]):
             lat_node = neighbors[2]
-         # print "lat_node", lat_node
     elif(donor not in diag_neigh and receiver not in diag_neigh):
         radcurv_angle = 1.37
         # if flow is from east, erode west node
@@ -104,13 +105,13 @@ def NinetyNode(donor, i, receiver, link_list, neighbors, diag_neigh):
             lat_node = neighbors[1]
     return lat_node, radcurv_angle
 
-# %% Straight Node finder
+
 def StraightNode(donor, i, receiver, neighbors, diag_neigh):
-    #####FLOW LINK IS STRAIGHT, NORTH TO SOUTH######
+    # ***FLOW LINK IS STRAIGHT, NORTH TO SOUTH***#
     if ((donor == neighbors[1] or donor == neighbors[3])):
-        #	print "flow is stright, N-S from ", donor, " to ", flowdirs[i]
+        # print "flow is stright, N-S from ", donor, " to ", flowdirs[i]
         radcurv_angle = 0.23
-       # neighbors are ordered E,N,W, S
+        # neighbors are ordered E,N,W, S
         # if the west cell is boundary (neighbors=-1), erode from east node
         if neighbors[2] == -1:
             lat_node = neighbors[0]
@@ -123,7 +124,7 @@ def StraightNode(donor, i, receiver, neighbors, diag_neigh):
                 lat_node = neighbors[0]
             if ran_num == 1:
                 lat_node = neighbors[2]
-    #####FLOW LINK IS STRAIGHT, EAST-WEST#####
+    # ***FLOW LINK IS STRAIGHT, EAST-WEST**#
     elif (donor == neighbors[0] or donor == neighbors[2]):
         radcurv_angle = 0.23
     #  Node list are ordered as [E,N,W,S]
@@ -156,7 +157,8 @@ def StraightNode(donor, i, receiver, neighbors, diag_neigh):
         if ran_num == 1:
             lat_node = poss_diag_nodes[1]
     return lat_node, radcurv_angle
-# %% Node finder
+
+
 def Node_Finder(grid, i, flowdirs, drain_area):
     # receiver node of flow is flowdirs[i]
     receiver = flowdirs[i]

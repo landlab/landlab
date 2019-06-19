@@ -16,7 +16,7 @@ import numpy as np
 from landlab import RasterModelGrid, CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
 from numpy import testing
 from landlab.components import FlowAccumulator, LateralEroder
-#%%
+
 def test_lateral_erosion_and_node():
     """
     test that sets up a simple, pre-defined drainage network and compares
@@ -76,9 +76,9 @@ def test_matches_detlim_solution():
     Test that model matches the detachment-limited analytical solution
     for slope/area relationship at steady state: S=(U/K_br)^(1/n)*A^(-m/n).
     """
-    #%%
+
     U = 0.005 
-    dt = 1    
+    dt = 10    
     nr = 5
     nc = 5
     dx=10
@@ -105,9 +105,9 @@ def test_matches_detlim_solution():
                          runoff_rate=None,
                          depression_finder=None)#"DepressionFinderAndRouter", router="D8")
     
-    #***NOTE, YOU MUST USE ADAPTIVE TIME STEPPER FOR variable K, or you may get strange 
-    # topography
-    latero = LateralEroder(mg,latero_mech="TB", Kv=Kbr, solver="basic", alph=0.01, Kl_ratio=0.01)
+    # set alph = 0.0 to make run detachment limited and set Kl_ratio = 1.0 for 
+    # equal vertical and lateral bedrock erosion coefficients
+    latero = LateralEroder(mg,latero_mech="TB", Kv=Kbr, solver="basic", alph=0.0, Kl_ratio=1.0)
     
     for i in range(2000):
         fa.run_one_step()    #flow accumulator
@@ -120,19 +120,19 @@ def test_matches_detlim_solution():
     analytical_slope = np.power(U / Kbr, 1.0 / n_sp) * np.power(
         mg.at_node["drainage_area"][mg.core_nodes], -m_sp / n_sp
     )
-    print('numslope', num_slope)
-    print('anaslope', analytical_slope)
+
     testing.assert_array_almost_equal(
         num_slope,
         analytical_slope,
         decimal=4,
-        err_msg="lateral erosion variable bedrock test failed",
+        err_msg="Lateral erosion detachment-limited steady state test failed",
         verbose=True,
     )
-    #%%
+
 def test_ss_sed_flux():
     """
-    test that sediment flux of model matches steady state analytical solution, Qs = U * A
+    test that sediment flux of lateral erosion model matches steady state 
+    analytical solution, Qs = U * A
     """
     U = 0.0005 #m/yr
     dt = 100 #years
@@ -157,9 +157,9 @@ def test_ss_sed_flux():
                          flow_director='FlowDirectorD8',
                          runoff_rate=None,
                          depression_finder=None)
-    latero = LateralEroder(mg,latero_mech="UC", Kv=0.0001, Kl_ratio=1.5, solver="basic")
+    latero = LateralEroder(mg,latero_mech="UC", alph=1.5, Kv=0.001, Kl_ratio=1.0, solver="basic")
     
-    for i in range(1000):
+    for i in range(2000):
         fa.run_one_step()    #flow accumulator
         (mg, dzlat)=latero.run_one_step(mg,dt,)
         mg.at_node['topographic__elevation'][mg.core_nodes] += U*dt    #uplift the landscape
@@ -167,22 +167,21 @@ def test_ss_sed_flux():
     # compare numerical and analytical sediment flux solutions
     num_sedflux = mg.at_node["qs"][mg.core_nodes]
     analytical_sedflux = U * mg.at_node["drainage_area"][mg.core_nodes] 
-    
-    # test for match with anakytical sediment flux. note tha they are off a little 
-    #because of the lateral erosion
+  
+    # test for match with analytical sediment flux. 
     testing.assert_array_almost_equal(
         num_sedflux,
         analytical_sedflux,
-        decimal=2,
+        decimal=4,
         err_msg="LatEro transport-limited sediment flux test failed",
         verbose=True,
     )
 
 def test_variable_bedrock_K():
     """
-    variable bedrock erodibility
-        Test that model matches the detachment-limited analytical solution
-        for slope/area relationship at steady state: S=(U/K_br)^(1/n)*A^(-m/n).
+    Test that model matches the detachment-limited analytical solution
+    for slope/area relationship at steady state: S=(U/K_br)^(1/n)*A^(-m/n).
+    With variable bedrock erodibility.
         
     """
     U = 0.005 #m/yr
@@ -246,7 +245,6 @@ def test_latero_steady_inlet():
     """
     U = 0.005 #m/yr
     dt = 10 #years
-    
     nr = 5
     nc = 5
     dx=10
@@ -332,13 +330,8 @@ def test_latero_timevary_inlet():
         fa.run_one_step()    #flow accumulator
         (mg, dzlat)=latero.run_one_step(mg,dt,inlet_area_ts=inareats, qsinlet_ts=sedints)
         mg.at_node['topographic__elevation'][mg.core_nodes] += U*dt    #uplift the landscape
-        if i == 500:
-            from landlab.plot.drainage_plot import drainage_plot
-            figure()
-            drainage_plot(mg)
     
     da=mg.at_node['surface_water__discharge']/mg.dx**2
-    #da[17]+=1000
     num_sedflux = mg.at_node["qs"]
     analytical_sedflux = U * da
     
@@ -351,7 +344,6 @@ def test_latero_timevary_inlet():
         err_msg="LatEro time varying inlet drainage area test failed",
         verbose=True,
     )
-    
     
     # test for match with analytical sediment flux. note that the values are off a little 
     #because of the lateral erosion

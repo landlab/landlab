@@ -228,8 +228,8 @@ class LateralEroder(Component):
         flowdirs = grid.at_node['flow__receiver_node']
 
         # make a list l, where node status is interior (signified by label 0) in s
-        l = s[np.where((grid.status_at_node[s] == 0))[0]]
-        dwnst_nodes = l.copy()
+        interior_s = s[np.where((grid.status_at_node[s] == 0))[0]]
+        dwnst_nodes = interior_s.copy()
         # reverse list so we go from upstream to down stream
         dwnst_nodes = dwnst_nodes[::-1]
         max_slopes[:] = max_slopes.clip(0)
@@ -381,8 +381,8 @@ class LateralEroder(Component):
         s = grid.at_node['flow__upstream_node_order']
         max_slopes = grid.at_node['topographic__steepest_slope']
         flowdirs = grid.at_node['flow__receiver_node']
-        l = s[np.where((grid.status_at_node[s] == 0))[0]]
-        dwnst_nodes = l
+        interior_s = s[np.where((grid.status_at_node[s] == 0))[0]]
+        dwnst_nodes = interior_s.copy()
         # reverse list so we go from upstream to down stream
         dwnst_nodes = dwnst_nodes[::-1]
         # local time
@@ -427,7 +427,7 @@ class LateralEroder(Component):
                 qs_in[flowdirs[i]] += qs_in[i] - \
                     (dzver[i] * grid.dx**2) - \
                     (petlat * grid.dx * wd)  # qsin to next node
-            qs[:] += qs_in - (dzver * grid.dx**2)    #summing qs for this entire timestep
+            qs[:] += qs_in - (dzver * grid.dx**2)    # summing qs for this entire timestep
             dzdt[:] = dzver
             # Do a time-step check
             # If the downstream node is eroding at a slower rate than the
@@ -529,8 +529,8 @@ class LateralEroder(Component):
                 max_slopes = grid.at_node['topographic__steepest_slope']
                 q = grid.at_node['surface_water__discharge']
                 flowdirs = grid.at_node['flow__receiver_node']
-                l = s[np.where((grid.status_at_node[s] == 0))[0]]
-                dwnst_nodes = l
+                interior_s = s[np.where((grid.status_at_node[s] == 0))[0]]
+                dwnst_nodes = interior_s.copy()
                 dwnst_nodes = dwnst_nodes[::-1]
 
                 lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
