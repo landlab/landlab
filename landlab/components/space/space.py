@@ -362,7 +362,7 @@ class Space(_GeneralizedErosionDeposition):
         # positive slopes, not flooded
         pos_not_flood = (self.q > 0) & (blowup) & (self.slope > 0) & (~flooded)
         self.soil__depth[pos_not_flood] = self.H_star * np.log(
-            (self.sed_erosion_term[pos_not_flood] / self.H_star) * dt
+            ((self.sed_erosion_term[pos_not_flood] / (1 - self.phi)) / self.H_star) * dt
             + np.exp(self.soil__depth[pos_not_flood] / self.H_star)
         )
         # positive slopes, flooded
@@ -383,7 +383,7 @@ class Space(_GeneralizedErosionDeposition):
                 1
                 / (
                     (self.depo_rate[pos_not_flood] / (1 - self.phi))
-                    / (self.sed_erosion_term[pos_not_flood])
+                    / (self.sed_erosion_term[pos_not_flood] / (1 - self.phi))
                     - 1
                 )
             )
@@ -391,7 +391,7 @@ class Space(_GeneralizedErosionDeposition):
                 np.exp(
                     (
                         self.depo_rate[pos_not_flood] / (1 - self.phi)
-                        - (self.sed_erosion_term[pos_not_flood])
+                        - (self.sed_erosion_term[pos_not_flood] / (1 - self.phi))
                     )
                     * (dt / self.H_star)
                 )
@@ -400,7 +400,7 @@ class Space(_GeneralizedErosionDeposition):
                         (
                             self.depo_rate[pos_not_flood]
                             / (1 - self.phi)
-                            / (self.sed_erosion_term[pos_not_flood])
+                            / (self.sed_erosion_term[pos_not_flood] / (1 - self.phi))
                         )
                         - 1
                     )
@@ -556,7 +556,7 @@ class Space(_GeneralizedErosionDeposition):
 
             # Next we consider time to exhaust regolith
             time_to_zero_alluv[:] = remaining_time
-            dHdt = self.porosity_factor * (self.depo_rate) - self.Es
+            dHdt = self.porosity_factor * (self.depo_rate - self.Es)
             decreasing_H = np.where(dHdt < 0.0)[0]
             time_to_zero_alluv[decreasing_H] = -(
                 TIME_STEP_FACTOR * H[decreasing_H] / dHdt[decreasing_H]
