@@ -297,7 +297,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         # topo elev is old elev + deposition - erosion
         cores = self.grid.core_nodes
         self.topographic__elevation[cores] += (
-            (self.depo_rate[cores] / (1 - self.phi)) - self.erosion_term[cores]
+            (self.depo_rate[cores] - self.erosion_term[cores]) / (1 - self.phi)
         ) * dt
 
     def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[], **kwds):
@@ -362,9 +362,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             )
 
             # Rate of change of elevation at core nodes:
-            dzdt[cores] = (self.depo_rate[cores] / (1 - self.phi)) - self.erosion_term[
-                cores
-            ]
+            dzdt[cores] = (self.depo_rate[cores] - self.erosion_term[cores]) / (1 - self.phi)
 
             # Difference in elevation between each upstream-downstream pair
             zdif = z - z[r]
