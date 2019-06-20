@@ -287,7 +287,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             self.erosion_term,
             self.v_s,
             self.F_f,
-            self.phi,
         )
 
         self.depo_rate[:] = 0.0
@@ -354,7 +353,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                 self.erosion_term,
                 self.v_s,
                 self.F_f,
-                self.phi,
             )
 
             # Use Qs to calculate deposition rate at each node.
