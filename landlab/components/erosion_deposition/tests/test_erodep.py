@@ -143,7 +143,7 @@ def test_steady_state_with_basic_solver_option():
     # compare numerical and analytical slope solutions
     num_slope = mg.at_node["topographic__steepest_slope"][mg.core_nodes]
     analytical_slope = np.power(
-        ((U * v_s) / (K * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp)))
+        ((U * v_s * (1 - phi)) / (K * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp)))
         + (U / (K * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))),
         1.0 / n_sp,
     )

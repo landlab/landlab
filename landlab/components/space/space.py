@@ -134,9 +134,10 @@ class Space(_GeneralizedErosionDeposition):
     Now we test to see if soil depth and topography are right:
 
     >>> np.around(mg.at_node['soil__depth'], decimals=3) # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.495,  0.493,
-            0.492,  0.5  ,  0.5  ,  0.493,  0.493,  0.491,  0.5  ,  0.5  ,
-            0.492,  0.491,  0.486,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ])
+    array([ 0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.495,  0.492,
+            0.491,  0.5  ,  0.5  ,  0.492,  0.492,  0.49 ,  0.5  ,  0.5  ,
+            0.491,  0.49 ,  0.484,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,
+            0.5  ])
 
     >>> np.around(mg.at_node['topographic__elevation'], decimals=3) # doctest: +NORMALIZE_WHITESPACE
     array([ 0.423,  1.536,  2.573,  3.511,  4.561,  1.582,  0.424,  0.429,
