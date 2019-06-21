@@ -568,7 +568,7 @@ class Space(_GeneralizedErosionDeposition):
             dt_max2 = np.amin(time_to_zero_alluv)
 
             # Take the smaller of the limits
-            dt_max = np.minimum(self.dt_min, dt_max1, dt_max2)
+            dt_max = np.maximum(self.dt_min, dt_max1, dt_max2)
 
             # Now a vector operation: apply dzdt and dhdt to all nodes
             br[cores] -= self.Er[cores] * dt_max
