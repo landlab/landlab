@@ -395,9 +395,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
             # From this, find the maximum stable time step. If it is smaller
             # than our tolerance, report and quit.
-            dt_max = np.amin(self.time_to_flat)
-            if dt_max < self.dt_min:
-                dt_max = self.dt_min
+            dt_max = np.min(np.amin(self.time_to_flat), self.dt_min)
 
             # Finally, apply dzdt to all nodes for a (sub)step of duration
             # dt_max
