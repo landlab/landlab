@@ -50,7 +50,8 @@ def test_Ff_too_high_vals():
             sp_crit=0.0,
             solver="basic",
         )
-        
+
+
 def test_Ff_too_low_vals():
     """
     Test that instantiating ErosionDeposition with a F_f value < 0 throws a
@@ -95,6 +96,7 @@ def test_Ff_too_low_vals():
             sp_crit=0.0,
             solver="basic",
         )
+
 
 def test_phi_too_high_vals():
     """
@@ -141,6 +143,7 @@ def test_phi_too_high_vals():
             solver="basic",
         )
 
+
 def test_phi_too_low_vals():
     """
     Test that instantiating ErosionDeposition with a phi value < 0 throws a
@@ -185,6 +188,7 @@ def test_phi_too_low_vals():
             sp_crit=0.0,
             solver="basic",
         )
+
 
 def test_q_as_field():
     """
