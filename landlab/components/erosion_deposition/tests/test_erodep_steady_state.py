@@ -227,7 +227,7 @@ def test_erodep_slope_area_with_large_dt():
     K = 0.002
     vs = 1.0
     U = 0.001
-    dt = 1000.0
+    dt = 100.0
 
     # Create the ErosionDeposition component...
     ed = ErosionDeposition(
@@ -235,7 +235,7 @@ def test_erodep_slope_area_with_large_dt():
     )
 
     # ... and run it to steady state.
-    for i in range(1000):
+    for i in range(int(10000/dt)):
         fa.run_one_step()
         ed.run_one_step(dt=dt)
         z[rg.core_nodes] += U * dt
