@@ -211,6 +211,7 @@ def test_erodep_slope_area_with_threshold():
     assert_equal(np.round(s[11], 2), np.round(s11, 2))
     assert_equal(np.round(s[12], 2), np.round(s12, 2))
 
+
 def test_erodep_slope_area_with_large_dt():
     """Test steady state run with a large dt to force timestep subdividing"""
 
