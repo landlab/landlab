@@ -323,7 +323,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             # For the first iteration, we assume this has already been done
             # outside the component (e.g., by flow router), but we need to do
             # it ourselves on subsequent iterations.
-            if first_iteration == False:
+            if not first_iteration:
                 # update the link slopes
                 self._update_flow_link_slopes()
                 # update where nodes are flooded. This shouuldn't happen bc
