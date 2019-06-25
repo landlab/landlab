@@ -45,7 +45,7 @@ class LateralEroder(Component):
     solver : string
         Solver options:
             (1) 'basic' (default): explicit forward-time extrapolation.
-                Simple but will become unstable if time step is too large or 
+                Simple but will become unstable if time step is too large or
                 if bedrock erodibility is vry high.
             (2) 'adaptive': subdivides global time step as needed to
                 prevent slopes from reversing.
@@ -55,91 +55,106 @@ class LateralEroder(Component):
         Drainage area at inlet node, must be specified if inlet node is "on", m^2
     qsinlet : float, optional
         Sediment flux supplied at inlet, optional. m3/year
-        
+
     Examples
     --------
-    Define grid and initial topography:
-    
-        *  5x4 grid with baselevel in the lower left corner
-        *  All other boundary nodes closed
-        *  Initial topography is plane tilted up to the upper right with
-           noise
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
+    >>> from landlab.components import FlowAccumulator, LateralEroder
+
+    Define grid and initial topography
+
+    * 5x4 grid with baselevel in the lower left corner
+    * All other boundary nodes closed
+    * Initial topography is plane tilted up to the upper right with noise
+
     >>> nr = 5
     >>> nc = 4
     >>> dx=10
-    >>> mg = RasterModelGrid(nr, nc, dx)
+    >>> mg = RasterModelGrid((nr, nc), xy_spacing = dx)
     >>> mg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY, top=CLOSED_BOUNDARY, \
                                   left=CLOSED_BOUNDARY, bottom=CLOSED_BOUNDARY)
     >>> mg.status_at_node[1] = FIXED_VALUE_BOUNDARY
     >>> mg.add_zeros('node', 'topographic__elevation')
-    >>> mg.at_node['topographic__elevation'] += (mg.node_y / 10. + mg.node_x / 10. + np.random.rand(len(mg.node_y)) / 10.)
+    array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+        0.,  0.,  0.,  0.,  0.,  0.,  0.])
+    >>> rand_noise=np.array([ 0.00436992,  0.03225985,  0.03107455,  0.00461312,  0.03771756,
+    ...    0.02491226,  0.09613959,  0.07792969,  0.08707156,  0.03080568,
+    ...    0.01242658,  0.08827382,  0.04475065,  0.07391732,  0.08221057,
+    ...    0.02909259,  0.03499337,  0.09423741,  0.01883171,  0.09967794])
+    >>> mg.at_node['topographic__elevation'] += (mg.node_y / 10. + mg.node_x / 10. + rand_noise)
     >>> U=0.001
     >>> dt=100
-    
+
     Instantiate flow accumulation and lateral eroder and run each for one step
-    
+
     >>> fa = FlowAccumulator(mg,
-                         surface='topographic__elevation',
-                         flow_director='FlowDirectorD8',
-                         runoff_rate=None,
-                         depression_finder=None)
+    ...                     surface='topographic__elevation',
+    ...                     flow_director='FlowDirectorD8',
+    ...                     runoff_rate=None,
+    ...                     depression_finder=None)
     >>> latero = LateralEroder(mg,latero_mech="UC", Kv=0.001, Kl_ratio=1.5)
-    >>> latero = LateralEroder(mg,latero_mech="UC", Kv=0.001, Kl_ratio=1.5)
-    >>> fa.accumulate_flow()
-    
+
+    Run one step of flow accumulation and lateral erosion to get the dzlat array
+    needed for the next part of the test.
+
+    >>> fa.run_one_step()
+    >>> (mg, dzlat,)=latero.run_one_step(mg,dt,)
+
     Evolve the landscape until the first occurence of lateral erosion. Save arrays
-    volume of lateral erosion and topographic elevation before and after the first 
+    volume of lateral erosion and topographic elevation before and after the first
     occurence of lateral erosion
-    
+
     >>> while min(dzlat)==0.:
-        ...     oldlatvol=mg['node'][ 'volume__lateral_erosion'].copy()
-        ...     oldelev=mg['node']['topographic__elevation'].copy()
-        ...     fa.accumulate_flow()
-        ...     (mg, dzlat,)=latero.run_one_step(mg,dt,)
-        ...     newlatvol=mg['node'][ 'volume__lateral_erosion']
-        ...     newelev=mg['node']['topographic__elevation']
-        ...     mg.at_node['topographic__elevation'][mg.core_nodes] += U*dt
-    
+    ...         oldlatvol=mg['node'][ 'volume__lateral_erosion'].copy()
+    ...         oldelev=mg['node']['topographic__elevation'].copy()
+    ...         fa.run_one_step()
+    ...         (mg, dzlat,)=latero.run_one_step(mg,dt,)
+    ...         newlatvol=mg['node'][ 'volume__lateral_erosion']
+    ...         newelev=mg['node']['topographic__elevation']
+    ...         mg.at_node['topographic__elevation'][mg.core_nodes] += U*dt
+
     Before lateral erosion occurs, volume__lateral_erosion has values at nodes 6 and 10.
-    
-    >>> oldlatvol
-    array([  0.        ,   0.        ,   0.        ,   0.        ,
-             0.        ,   0.        ,  79.36103571,   0.        ,
-             0.        ,   0.        ,  24.26175586,   0.        ,
-             0.        ,   0.        ,   0.        ,   0.        ,
-             0.        ,   0.        ,   0.        ,   0.        ])
-    
-        
-    After lateral erosion occurs at node 6, volume__lateral_erosion is reset to 0    
-    
-    >>> newlatvol
-    array([  0.        ,   0.        ,   0.        ,   0.        ,
-             0.        ,   0.        ,   0.        ,   0.        ,
-             0.        ,   0.        ,  24.30799776,   0.        ,
-             0.        ,   0.        ,   0.        ,   0.        ,
-             0.        ,   0.        ,   0.        ,   0.        ])
-        
-        
-    After lateral erosion at node 6, elevation at node 6 is reduced by the -1.4 
-    (the height stored in dzlat).
-    
-    >>> oldelev
-    array([ 0.0484405 ,  1.02248984,  2.09068544,  3.08362873,  1.01245762,
-            1.7560825 ,  2.4367034 ,  4.02723762,  2.09843111,  2.64132978,
-            3.17027636,  5.03019575,  3.06960026,  3.6413348 ,  4.05554261,
-            6.04476396,  4.03579813,  5.00389492,  6.08140848,  7.09229416])
-        
-    >>> newelev
-    array([ 0.0484405 ,  1.02248984,  2.09068544,  3.08362873,  1.01245762,
-            1.75604539,  1.02248984,  4.02723762,  2.09843111,  2.64133391,
-            3.17027775,  5.03019575,  3.06960026,  3.6413343 ,  4.05554266,
-            6.04476396,  4.03579813,  5.00389492,  6.08140848,  7.09229416])
-        
-    >>> dzlat
-    array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-            0.        , -1.41421356,  0.        ,  0.        ,  0.        ,
-            0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-            0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
+
+    np.around(oldlatvol, decimals=0) # doctest: +NORMALIZE_WHITESPACE
+    array([[  0.,   0.,   0.,   0.],
+           [  0.,   0.,  79.,   0.],
+           [  0.,   0.,  24.,   0.],
+           [  0.,   0.,   0.,   0.],
+           [  0.,   0.,   0.,   0.]])
+
+
+    After lateral erosion occurs at node 6, volume__lateral_erosion is reset to 0
+
+    np.around(newlatvol, decimals=0) # doctest: +NORMALIZE_WHITESPACE
+    array([[  0.,   0.,   0.,   0.],
+           [  0.,   0.,   0.,   0.],
+           [  0.,   0.,  24.,   0.],
+           [  0.,   0.,   0.,   0.],
+           [  0.,   0.,   0.,   0.]])
+
+
+    After lateral erosion at node 6, elevation at node 6 is reduced by -1.41
+    (the height stored in dzlat[6]).
+
+    >>> np.around(oldelev, decimals=2) # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.  ,  1.03,  2.03,  3.  ,
+           1.04,  1.77,  2.45,  4.08,
+           2.09,  2.65,  3.18,  5.09,
+           3.04,  3.65,  4.07,  6.03,
+           4.03,  5.09,  6.02,  7.1 ])
+
+    >>> np.around(newelev, decimals=2) # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.  ,  1.03,  2.03,  3.  ,
+           1.04,  1.77,  1.03,  4.08,
+           2.09,  2.65,  3.18,  5.09,
+           3.04,  3.65,  4.07,  6.03,
+           4.03,  5.09,  6.02,  7.1 ])
+
+    >>> np.around(dzlat, decimals=2) # doctest: +NORMALIZE_WHITESPACE
+    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.41,  0.  ,  0.  ,
+            0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,
+            0.  ,  0.  ])
     """
 
     _name = 'LateralEroder'
@@ -517,7 +532,8 @@ class LateralEroder(Component):
                 qs_in[flowdirs[i]] += qs_in[i] - \
                     (dzver[i] * grid.dx**2) - \
                     (petlat * grid.dx * wd)  # qsin to next node
-            qs[:] += qs_in - (dzver * grid.dx**2)    # summing qs for this entire timestep
+            # summing qs for this entire timestep
+            qs[:] += qs_in - (dzver * grid.dx**2)
             dzdt[:] = dzver
             # Do a time-step check
             # If the downstream node is eroding at a slower rate than the
