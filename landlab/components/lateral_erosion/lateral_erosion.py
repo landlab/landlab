@@ -61,6 +61,7 @@ class LateralEroder(Component):
     >>> import numpy as np
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
     >>> from landlab.components import FlowAccumulator, LateralEroder
+    >>> np.random.seed(2010)
 
     Define grid and initial topography
 
@@ -116,22 +117,22 @@ class LateralEroder(Component):
 
     Before lateral erosion occurs, volume__lateral_erosion has values at nodes 6 and 10.
 
-    np.around(oldlatvol, decimals=0) # doctest: +NORMALIZE_WHITESPACE
-    array([[  0.,   0.,   0.,   0.],
-           [  0.,   0.,  79.,   0.],
-           [  0.,   0.,  24.,   0.],
-           [  0.,   0.,   0.,   0.],
-           [  0.,   0.,   0.,   0.]])
+    >>> np.around(oldlatvol, decimals=0) # doctest: +NORMALIZE_WHITESPACE
+    array([  0.,   0.,   0.,   0.,
+             0.,   0.,  79.,   0.,
+             0.,   0.,  24.,   0.,
+             0.,   0.,   0.,   0.,
+             0.,   0.,   0.,   0.])
 
 
     After lateral erosion occurs at node 6, volume__lateral_erosion is reset to 0
 
-    np.around(newlatvol, decimals=0) # doctest: +NORMALIZE_WHITESPACE
-    array([[  0.,   0.,   0.,   0.],
-           [  0.,   0.,   0.,   0.],
-           [  0.,   0.,  24.,   0.],
-           [  0.,   0.,   0.,   0.],
-           [  0.,   0.,   0.,   0.]])
+    >>> np.around(newlatvol, decimals=0) # doctest: +NORMALIZE_WHITESPACE
+    array([  0.,   0.,   0.,   0.,
+             0.,   0.,   0.,   0.,
+             0.,   0.,  24.,   0.,
+             0.,   0.,   0.,   0.,
+             0.,   0.,   0.,   0.])
 
 
     After lateral erosion at node 6, elevation at node 6 is reduced by -1.41
