@@ -1,26 +1,3 @@
-"""
-    Finds lateral neighbor node of the primary node for straight, 45 degree, and 90 degree channel segments.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A Landlab grid object
-    i : int
-        node ID of primary node
-    flowdirs : array
-        Flow direction array
-    drain_area : array
-        drainage area array
-
-    Returns
-    -------
-    lat_node : int
-        node ID of lateral node
-    radcurv_angle : float
-        inverse radius of curvature of channel at lateral node
-
-"""
-
 import math
 
 import numpy as np
@@ -38,7 +15,7 @@ def angle_finder(grid, dn, cn, rn):
     return angle_diff
 
 
-def FortyfiveNode(donor, i, receiver, neighbors, diag_neigh):
+def forty_five_node(donor, i, receiver, neighbors, diag_neigh):
     radcurv_angle = 0.67
 
     lat_node = 0
@@ -94,7 +71,7 @@ def FortyfiveNode(donor, i, receiver, neighbors, diag_neigh):
     return lat_node, radcurv_angle
 
 
-def NinetyNode(donor, i, receiver, link_list, neighbors, diag_neigh):
+def ninety_node(donor, i, receiver, link_list, neighbors, diag_neigh):
     # if flow is 90 degrees
     if donor in diag_neigh and receiver in diag_neigh:
         radcurv_angle = 1.37
@@ -147,7 +124,7 @@ def NinetyNode(donor, i, receiver, link_list, neighbors, diag_neigh):
     return lat_node, radcurv_angle
 
 
-def StraightNode(donor, i, receiver, neighbors, diag_neigh):
+def straight_node(donor, i, receiver, neighbors, diag_neigh):
     # ***FLOW LINK IS STRAIGHT, NORTH TO SOUTH***#
     if donor == neighbors[1] or donor == neighbors[3]:
         # print "flow is stright, N-S from ", donor, " to ", flowdirs[i]
@@ -200,7 +177,28 @@ def StraightNode(donor, i, receiver, neighbors, diag_neigh):
     return lat_node, radcurv_angle
 
 
-def Node_Finder(grid, i, flowdirs, drain_area):
+def node_finder(grid, i, flowdirs, drain_area):
+    """Find lateral neighbor node of the primary node for straight, 45 degree,
+    and 90 degree channel segments.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A Landlab grid object
+    i : int
+        node ID of primary node
+    flowdirs : array
+        Flow direction array
+    drain_area : array
+        drainage area array
+
+    Returns
+    -------
+    lat_node : int
+        node ID of lateral node
+    radcurv_angle : float
+        inverse radius of curvature of channel at lateral node
+    """
     # receiver node of flow is flowdirs[i]
     receiver = flowdirs[i]
 
@@ -247,15 +245,15 @@ def Node_Finder(grid, i, flowdirs, drain_area):
         radcurv_angle = 0.0
         lat_node = 0
     if angle_diff == 0.0:
-        [lat_node, radcurv_angle] = StraightNode(
+        [lat_node, radcurv_angle] = straight_node(
             donor, i, receiver, neighbors, diag_neigh
         )
     if angle_diff == 45.0 or angle_diff == 135.0:
-        [lat_node, radcurv_angle] = FortyfiveNode(
+        [lat_node, radcurv_angle] = forty_five_node(
             donor, i, receiver, neighbors, diag_neigh
         )
     if angle_diff == 90.0:
-        [lat_node, radcurv_angle] = NinetyNode(
+        [lat_node, radcurv_angle] = ninety_node(
             donor, i, receiver, link_list, neighbors, diag_neigh
         )
     if lat_node > 2e9:
