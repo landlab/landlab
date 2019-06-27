@@ -1,4 +1,3 @@
-#! /usr/env/python
 # -*- coding: utf-8 -*-
 """
 April 4, 2019 Starting to rehab lateral erosion
@@ -11,24 +10,23 @@ import numpy as np
 
 from landlab import Component
 from landlab.components.flow_accum import FlowAccumulator
-from landlab.components.lateral_erosion.node_finder import Node_Finder
+from .node_finder import node_finder
 
 
 class LateralEroder(Component):
     """
     Laterally erode neighbor node through fluvial erosion.
 
-    Landlab component that finds a neighbor node to laterally erode and calculates lateral erosion.
-
-    Construction:
-        LateralEroder(grid, latero_mech="UC", alph=0.8, Kv=None, Kl_ratio=1.0, solver="basic", inlet_on=False, inlet_node=None, inlet_area=None, qsinlet=None)
+    Landlab component that finds a neighbor node to laterally erode and
+    calculates lateral erosion.
 
     Parameteters
     ------------
     grid : ModelGrid
         A Landlab grid object
     latero_mech : string, optional (defaults to UC)
-        Lateral erosion algorithm, choices are "UC" for undercutting-slump model and "TB" for total block erosion
+        Lateral erosion algorithm, choices are "UC" for undercutting-slump
+        model and "TB" for total block erosion
     alph : float, optional (defaults to 0.8)
         Parameter describing potential for deposition, dimensionless
     Kv : float, node array, or field name
@@ -52,7 +50,7 @@ class LateralEroder(Component):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
+    >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, LateralEroder
     >>> np.random.seed(2010)
 
@@ -62,55 +60,68 @@ class LateralEroder(Component):
     * All other boundary nodes closed
     * Initial topography is plane tilted up to the upper right with noise
 
-    >>> nr = 5
-    >>> nc = 4
-    >>> dx=10
-    >>> mg = RasterModelGrid((nr, nc), xy_spacing = dx)
-    >>> mg.set_status_at_node_on_edges(right=CLOSED_BOUNDARY, top=CLOSED_BOUNDARY, \
-                                  left=CLOSED_BOUNDARY, bottom=CLOSED_BOUNDARY)
-    >>> mg.status_at_node[1] = FIXED_VALUE_BOUNDARY
-    >>> mg.add_zeros('node', 'topographic__elevation')
-    array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-        0.,  0.,  0.,  0.,  0.,  0.,  0.])
-    >>> rand_noise=np.array([ 0.00436992,  0.03225985,  0.03107455,  0.00461312,  0.03771756,
-    ...    0.02491226,  0.09613959,  0.07792969,  0.08707156,  0.03080568,
-    ...    0.01242658,  0.08827382,  0.04475065,  0.07391732,  0.08221057,
-    ...    0.02909259,  0.03499337,  0.09423741,  0.01883171,  0.09967794])
-    >>> mg.at_node['topographic__elevation'] += (mg.node_y / 10. + mg.node_x / 10. + rand_noise)
-    >>> U=0.001
-    >>> dt=100
+    >>> mg = RasterModelGrid((5, 4), xy_spacing=10.0)
+    >>> mg.set_status_at_node_on_edges(
+    ...     right=mg.BC_NODE_IS_CLOSED,
+    ...     top=mg.BC_NODE_IS_CLOSED,
+    ...     left=mg.BC_NODE_IS_CLOSED,
+    ...     bottom=mg.BC_NODE_IS_CLOSED,
+    ... )
+    >>> mg.status_at_node[1] = mg.BC_NODE_IS_FIXED_VALUE
+    >>> mg.add_zeros("topographic__elevation", at="node")
+    array([ 0.,  0.,  0.,  0.,
+            0.,  0.,  0.,  0.,
+            0.,  0.,  0.,  0.,
+            0.,  0.,  0.,  0.,
+            0.,  0.,  0.,  0.])
+    >>> rand_noise=np.array(
+    ...     [
+    ...         0.00436992,  0.03225985,  0.03107455,  0.00461312,
+    ...         0.03771756,  0.02491226,  0.09613959,  0.07792969,
+    ...         0.08707156,  0.03080568,  0.01242658,  0.08827382,
+    ...         0.04475065,  0.07391732,  0.08221057,  0.02909259,
+    ...         0.03499337,  0.09423741,  0.01883171,  0.09967794,
+    ...     ]
+    ... )
+    >>> mg.at_node["topographic__elevation"] += (
+    ...     mg.node_y / 10. + mg.node_x / 10. + rand_noise
+    ... )
+    >>> U = 0.001
+    >>> dt = 100
 
     Instantiate flow accumulation and lateral eroder and run each for one step
 
-    >>> fa = FlowAccumulator(mg,
-    ...                     surface='topographic__elevation',
-    ...                     flow_director='FlowDirectorD8',
-    ...                     runoff_rate=None,
-    ...                     depression_finder=None)
+    >>> fa = FlowAccumulator(
+    ...     mg,
+    ...     surface="topographic__elevation",
+    ...     flow_director='FlowDirectorD8',
+    ...     runoff_rate=None,
+    ...     depression_finder=None,
+    ... )
     >>> latero = LateralEroder(mg,latero_mech="UC", Kv=0.001, Kl_ratio=1.5)
 
     Run one step of flow accumulation and lateral erosion to get the dzlat array
     needed for the next part of the test.
 
     >>> fa.run_one_step()
-    >>> (mg, dzlat,)=latero.run_one_step(mg,dt,)
+    >>> mg, dzlat = latero.run_one_step(mg, dt)
 
     Evolve the landscape until the first occurence of lateral erosion. Save arrays
     volume of lateral erosion and topographic elevation before and after the first
     occurence of lateral erosion
 
-    >>> while min(dzlat)==0.:
-    ...         oldlatvol=mg['node'][ 'volume__lateral_erosion'].copy()
-    ...         oldelev=mg['node']['topographic__elevation'].copy()
-    ...         fa.run_one_step()
-    ...         (mg, dzlat,)=latero.run_one_step(mg,dt,)
-    ...         newlatvol=mg['node'][ 'volume__lateral_erosion']
-    ...         newelev=mg['node']['topographic__elevation']
-    ...         mg.at_node['topographic__elevation'][mg.core_nodes] += U*dt
+    >>> while min(dzlat) == 0.0:
+    ...     oldlatvol = mg.at_node["volume__lateral_erosion"].copy()
+    ...     oldelev = mg.at_node['topographic__elevation'].copy()
+    ...     fa.run_one_step()
+    ...     mg, dzlat = latero.run_one_step(mg, dt)
+    ...     newlatvol = mg.at_node["volume__lateral_erosion"]
+    ...     newelev = mg.at_node["topographic__elevation"]
+    ...     mg.at_node["topographic__elevation"][mg.core_nodes] += U * dt
 
     Before lateral erosion occurs, volume__lateral_erosion has values at nodes 6 and 10.
 
-    >>> np.around(oldlatvol, decimals=0) # doctest: +NORMALIZE_WHITESPACE
+    >>> np.around(oldlatvol, decimals=0)
     array([  0.,   0.,   0.,   0.,
              0.,   0.,  79.,   0.,
              0.,   0.,  24.,   0.,
@@ -118,9 +129,9 @@ class LateralEroder(Component):
              0.,   0.,   0.,   0.])
 
 
-    After lateral erosion occurs at node 6, volume__lateral_erosion is reset to 0
+    After lateral erosion occurs at node 6, *volume__lateral_erosion* is reset to 0
 
-    >>> np.around(newlatvol, decimals=0) # doctest: +NORMALIZE_WHITESPACE
+    >>> np.around(newlatvol, decimals=0)
     array([  0.,   0.,   0.,   0.,
              0.,   0.,   0.,   0.,
              0.,   0.,  24.,   0.,
@@ -131,21 +142,21 @@ class LateralEroder(Component):
     After lateral erosion at node 6, elevation at node 6 is reduced by -1.41
     (the height stored in dzlat[6]).
 
-    >>> np.around(oldelev, decimals=2) # doctest: +NORMALIZE_WHITESPACE
+    >>> np.around(oldelev, decimals=2)
     array([ 0.  ,  1.03,  2.03,  3.  ,
            1.04,  1.77,  2.45,  4.08,
            2.09,  2.65,  3.18,  5.09,
            3.04,  3.65,  4.07,  6.03,
            4.03,  5.09,  6.02,  7.1 ])
 
-    >>> np.around(newelev, decimals=2) # doctest: +NORMALIZE_WHITESPACE
+    >>> np.around(newelev, decimals=2)
     array([ 0.  ,  1.03,  2.03,  3.  ,
            1.04,  1.77,  1.03,  4.08,
            2.09,  2.65,  3.18,  5.09,
            3.04,  3.65,  4.07,  6.03,
            4.03,  5.09,  6.02,  7.1 ])
 
-    >>> np.around(dzlat, decimals=2) # doctest: +NORMALIZE_WHITESPACE
+    >>> np.around(dzlat, decimals=2)
     array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.41,  0.  ,  0.  ,
             0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,
             0.  ,  0.  ])
@@ -359,9 +370,9 @@ class LateralEroder(Component):
             # if node i is the first cell at the top of the drainage network, don't go
             # into this loop because in this case, node i won't have a "donor" node
             if i in flowdirs:
-                # Node_finder picks the lateral node to erode based on angle
+                # node_finder picks the lateral node to erode based on angle
                 # between segments between three nodes
-                [lat_node, inv_rad_curv] = Node_Finder(grid, i, flowdirs, da)
+                [lat_node, inv_rad_curv] = node_finder(grid, i, flowdirs, da)
                 # node_finder returns the lateral node ID and the radius of curvature
                 lat_nodes[i] = lat_node
                 # if the lateral node is not 0 or -1 continue. lateral node may be
@@ -519,9 +530,9 @@ class LateralEroder(Component):
                 wd = 0.4 * (da[i] * runoffms) ** 0.35
 
                 if i in flowdirs:
-                    # Node_finder picks the lateral node to erode based on angle
+                    # node_finder picks the lateral node to erode based on angle
                     # between segments between three nodes
-                    [lat_node, inv_rad_curv] = Node_Finder(grid, i, flowdirs, da)
+                    [lat_node, inv_rad_curv] = node_finder(grid, i, flowdirs, da)
                     # node_finder returns the lateral node ID and the radius of
                     # curvature
                     lat_nodes[i] = lat_node
