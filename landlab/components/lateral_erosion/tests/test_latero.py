@@ -8,10 +8,11 @@ Created on Wed May 22 13:50:43 2019
 Doc tests and unit tests for lateral erosion.
 """
 
-from landlab.components import FlowAccumulator, LateralEroder
-from numpy import testing
-from landlab import RasterModelGrid, CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
 import numpy as np
+from numpy import testing
+
+from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY, RasterModelGrid
+from landlab.components import FlowAccumulator, LateralEroder
 
 
 def test_lateral_erosion_and_node():
@@ -23,13 +24,18 @@ def test_lateral_erosion_and_node():
     nr = 5
     nc = 5
     dx = 1
-    mg = RasterModelGrid((nr, nc), xy_spacing = dx)
-    for edge in (mg.nodes_at_top_edge, mg.nodes_at_bottom_edge, mg.nodes_at_left_edge, mg.nodes_at_right_edge):
+    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
+    for edge in (
+        mg.nodes_at_top_edge,
+        mg.nodes_at_bottom_edge,
+        mg.nodes_at_left_edge,
+        mg.nodes_at_right_edge,
+    ):
         mg.status_at_node[edge] = CLOSED_BOUNDARY
-    for edge in (mg.nodes_at_bottom_edge):
+    for edge in mg.nodes_at_bottom_edge:
         mg.status_at_node[edge] = FIXED_VALUE_BOUNDARY
 
-    z = mg.add_zeros('node', 'topographic__elevation')
+    z = mg.add_zeros("node", "topographic__elevation")
     loading_vector = np.linspace(1, 4, num=nr)
     ramp = np.repeat(loading_vector, nc)
     # the tweaks to elevation below make lateral node at node 7
@@ -37,24 +43,53 @@ def test_lateral_erosion_and_node():
     z[11] -= 0.9
     z[12] -= 0.4
     z[8] -= 0.001
-    fa = FlowAccumulator(mg,
-                         surface='topographic__elevation',
-                         flow_director='FlowDirectorD8',
-                         runoff_rate=None,
-                         depression_finder=None)
+    fa = FlowAccumulator(
+        mg,
+        surface="topographic__elevation",
+        flow_director="FlowDirectorD8",
+        runoff_rate=None,
+        depression_finder=None,
+    )
     latero = LateralEroder(mg, latero_mech="UC", Kv=0.1, Kl_ratio=1.5)
     fa.accumulate_flow()
-    (mg, dzlat,) = latero.run_one_step(mg, dt=1.,)
+    (mg, dzlat) = latero.run_one_step(mg, dt=1.0)
 
-    vlname = mg['node']['volume__lateral_erosion']
+    vlname = mg["node"]["volume__lateral_erosion"]
     # predicted volume of lateral eorsion
     pred_vollat = 0.00045158164
     # predicted elevation after 1 time step
-    pred_zafter = np.array([1., 1., 1., 1., 1., 1.75, 1.675, 1.675, 1.6731154, 1.75, 2.5, 1.66418779,
-                            2.06181623, 2.4249, 2.5, 3.25, 3.085, 3.13332738, 3.16868272, 3.25, 4., 4., 4., 4., 4.])
+    pred_zafter = np.array(
+        [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.75,
+            1.675,
+            1.675,
+            1.6731154,
+            1.75,
+            2.5,
+            1.66418779,
+            2.06181623,
+            2.4249,
+            2.5,
+            3.25,
+            3.085,
+            3.13332738,
+            3.16868272,
+            3.25,
+            4.0,
+            4.0,
+            4.0,
+            4.0,
+            4.0,
+        ]
+    )
 
     testing.assert_array_almost_equal(
-        mg.at_node['topographic__elevation'],
+        mg.at_node["topographic__elevation"],
         pred_zafter,
         decimal=8,
         err_msg="LatEro basic erosion test failed",
@@ -82,13 +117,18 @@ def test_matches_detlim_solution():
     dx = 10
     Kbr = 0.001
     # instantiate grid
-    mg = RasterModelGrid((nr, nc), xy_spacing = dx)
-    for edge in (mg.nodes_at_top_edge, mg.nodes_at_bottom_edge, mg.nodes_at_left_edge, mg.nodes_at_right_edge):
+    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
+    for edge in (
+        mg.nodes_at_top_edge,
+        mg.nodes_at_bottom_edge,
+        mg.nodes_at_left_edge,
+        mg.nodes_at_right_edge,
+    ):
         mg.status_at_node[edge] = CLOSED_BOUNDARY
-    for edge in (mg.nodes_at_bottom_edge):
+    for edge in mg.nodes_at_bottom_edge:
         mg.status_at_node[edge] = FIXED_VALUE_BOUNDARY
 
-    z = mg.add_zeros('node', 'topographic__elevation')
+    z = mg.add_zeros("node", "topographic__elevation")
     ir2 = np.random.uniform(low=0.0, high=0.5, size=(z.size))
     loading_vector = np.linspace(1, 4, num=nr)
     ramp = np.repeat(loading_vector, nc)
@@ -97,22 +137,25 @@ def test_matches_detlim_solution():
     n_sp = 1.0
     m_sp = 0.5
 
-    fa = FlowAccumulator(mg,
-                         surface='topographic__elevation',
-                         flow_director='FlowDirectorD8',
-                         runoff_rate=None,
-                         depression_finder=None)  # "DepressionFinderAndRouter", router="D8")
+    fa = FlowAccumulator(
+        mg,
+        surface="topographic__elevation",
+        flow_director="FlowDirectorD8",
+        runoff_rate=None,
+        depression_finder=None,
+    )  # "DepressionFinderAndRouter", router="D8")
 
     # set alph = 0.0 to make run detachment limited and set Kl_ratio = 1.0 for
     # equal vertical and lateral bedrock erosion coefficients
-    latero = LateralEroder(mg, latero_mech="TB", Kv=Kbr,
-                           solver="basic", alph=0.0, Kl_ratio=1.0)
+    latero = LateralEroder(
+        mg, latero_mech="TB", Kv=Kbr, solver="basic", alph=0.0, Kl_ratio=1.0
+    )
 
     for i in range(2000):
         fa.run_one_step()  # flow accumulator
         # erode the landscape with lateral erosion
-        (mg, dzlat) = latero.run_one_step(mg, dt,)
-        mg.at_node['topographic__elevation'][mg.core_nodes] += U * dt
+        (mg, dzlat) = latero.run_one_step(mg, dt)
+        mg.at_node["topographic__elevation"][mg.core_nodes] += U * dt
 
     num_slope = mg.at_node["topographic__steepest_slope"][mg.core_nodes]
     analytical_slope = np.power(U / Kbr, 1.0 / n_sp) * np.power(
@@ -138,32 +181,41 @@ def test_ss_sed_flux():
     nr = 5
     nc = 5
     dx = 10
-    mg = RasterModelGrid((nr, nc), xy_spacing = dx)
+    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
 
-    for edge in (mg.nodes_at_top_edge, mg.nodes_at_bottom_edge, mg.nodes_at_left_edge, mg.nodes_at_right_edge):
+    for edge in (
+        mg.nodes_at_top_edge,
+        mg.nodes_at_bottom_edge,
+        mg.nodes_at_left_edge,
+        mg.nodes_at_right_edge,
+    ):
         mg.status_at_node[edge] = CLOSED_BOUNDARY
-    for edge in (mg.nodes_at_bottom_edge):
+    for edge in mg.nodes_at_bottom_edge:
         mg.status_at_node[edge] = FIXED_VALUE_BOUNDARY
 
-    z = mg.add_zeros('node', 'topographic__elevation')
+    z = mg.add_zeros("node", "topographic__elevation")
     ir2 = np.random.uniform(low=0.0, high=0.5, size=(z.size))
     loading_vector = np.linspace(1, 2.5, num=nr)
     ramp = np.repeat(loading_vector, nc)
     ramp += ir2
     z[:] += ramp
-    fa = FlowAccumulator(mg,
-                         surface='topographic__elevation',
-                         flow_director='FlowDirectorD8',
-                         runoff_rate=None,
-                         depression_finder=None)
-    latero = LateralEroder(mg, latero_mech="UC", alph=1.5,
-                           Kv=0.001, Kl_ratio=1.0, solver="basic")
+    fa = FlowAccumulator(
+        mg,
+        surface="topographic__elevation",
+        flow_director="FlowDirectorD8",
+        runoff_rate=None,
+        depression_finder=None,
+    )
+    latero = LateralEroder(
+        mg, latero_mech="UC", alph=1.5, Kv=0.001, Kl_ratio=1.0, solver="basic"
+    )
 
     for i in range(2000):
         fa.run_one_step()  # flow accumulator
-        (mg, dzlat) = latero.run_one_step(mg, dt,)
-        mg.at_node['topographic__elevation'][mg.core_nodes] += U * \
-            dt  # uplift the landscape
+        (mg, dzlat) = latero.run_one_step(mg, dt)
+        mg.at_node["topographic__elevation"][mg.core_nodes] += (
+            U * dt
+        )  # uplift the landscape
 
     # compare numerical and analytical sediment flux solutions
     num_sedflux = mg.at_node["qs"][mg.core_nodes]
@@ -194,13 +246,18 @@ def test_variable_bedrock_K():
     nnodes = nr * nc
     dx = 10
     # instantiate grid
-    mg = RasterModelGrid((nr, nc), xy_spacing = dx)
-    for edge in (mg.nodes_at_top_edge, mg.nodes_at_bottom_edge, mg.nodes_at_left_edge, mg.nodes_at_right_edge):
+    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
+    for edge in (
+        mg.nodes_at_top_edge,
+        mg.nodes_at_bottom_edge,
+        mg.nodes_at_left_edge,
+        mg.nodes_at_right_edge,
+    ):
         mg.status_at_node[edge] = CLOSED_BOUNDARY
-    for edge in (mg.nodes_at_bottom_edge):
+    for edge in mg.nodes_at_bottom_edge:
         mg.status_at_node[edge] = FIXED_VALUE_BOUNDARY
 
-    z = mg.add_zeros('node', 'topographic__elevation')
+    z = mg.add_zeros("node", "topographic__elevation")
     loading_vector = np.linspace(1, 4, num=nr)
     ramp = np.repeat(loading_vector, nc)
     ramp += np.random.random_sample(nnodes) * 0.8
@@ -210,22 +267,25 @@ def test_variable_bedrock_K():
     # below, array of different bedrock erodibilities
     Kvar = 0.006 * np.ones(nr * nc)
     Kvar[0:9] = 0.06
-    fa = FlowAccumulator(mg,
-                         surface='topographic__elevation',
-                         flow_director='FlowDirectorD8',
-                         runoff_rate=None,
-                         depression_finder=None)  # "DepressionFinderAndRouter", router="D8")
+    fa = FlowAccumulator(
+        mg,
+        surface="topographic__elevation",
+        flow_director="FlowDirectorD8",
+        runoff_rate=None,
+        depression_finder=None,
+    )  # "DepressionFinderAndRouter", router="D8")
 
     # ***NOTE, YOU MUST USE ADAPTIVE TIME STEPPER FOR variable K, or you may get strange
     # topography
-    latero = LateralEroder(mg, latero_mech="UC", Kv=Kvar,
-                           solver="adaptive", alph=0.0, Kl_ratio=0.0)
+    latero = LateralEroder(
+        mg, latero_mech="UC", Kv=Kvar, solver="adaptive", alph=0.0, Kl_ratio=0.0
+    )
 
     for i in range(2000):
         fa.run_one_step()  # flow accumulator
         # erode the landscape with lateral erosion
-        (mg, dzlat) = latero.run_one_step(mg, dt,)
-        mg.at_node['topographic__elevation'][mg.core_nodes] += U * dt
+        (mg, dzlat) = latero.run_one_step(mg, dt)
+        mg.at_node["topographic__elevation"][mg.core_nodes] += U * dt
 
     num_slope = mg.at_node["topographic__steepest_slope"][mg.core_nodes]
     analytical_slope = np.power(U / Kvar[mg.core_nodes], 1.0 / n_sp) * np.power(
@@ -252,34 +312,50 @@ def test_latero_steady_inlet():
     nc = 5
     dx = 10
     # instantiate grid
-    mg = RasterModelGrid((nr, nc), xy_spacing = dx)
-    for edge in (mg.nodes_at_top_edge, mg.nodes_at_bottom_edge, mg.nodes_at_left_edge, mg.nodes_at_right_edge):
+    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
+    for edge in (
+        mg.nodes_at_top_edge,
+        mg.nodes_at_bottom_edge,
+        mg.nodes_at_left_edge,
+        mg.nodes_at_right_edge,
+    ):
         mg.status_at_node[edge] = CLOSED_BOUNDARY
-    for edge in (mg.nodes_at_bottom_edge):
+    for edge in mg.nodes_at_bottom_edge:
         mg.status_at_node[edge] = FIXED_VALUE_BOUNDARY
 
-    z = mg.add_zeros('node', 'topographic__elevation')
+    z = mg.add_zeros("node", "topographic__elevation")
     loading_vector = np.linspace(1, 2.5, num=nr)
     ramp = np.repeat(loading_vector, nc)
     ramp += np.random.random_sample(mg.number_of_nodes) * 0.8
     z += ramp
 
     # set inlet node = true, provide inlet node id, inlet drainage area, and inlet qs.
-    latero = LateralEroder(mg, latero_mech="UC", Kv=0.001, Kl_ratio=1.0, inlet_on=True,
-                           inlet_node=17, inlet_area=500, qsinlet=2.5)
-    fa = FlowAccumulator(mg,
-                         surface='topographic__elevation',
-                         flow_director='FlowDirectorD8',
-                         runoff_rate=None,
-                         depression_finder=None)
+    latero = LateralEroder(
+        mg,
+        latero_mech="UC",
+        Kv=0.001,
+        Kl_ratio=1.0,
+        inlet_on=True,
+        inlet_node=17,
+        inlet_area=500,
+        qsinlet=2.5,
+    )
+    fa = FlowAccumulator(
+        mg,
+        surface="topographic__elevation",
+        flow_director="FlowDirectorD8",
+        runoff_rate=None,
+        depression_finder=None,
+    )
     for i in range(2000):
         fa.run_one_step()  # flow accumulator
         # erode the landscape with lateral erosion
-        (mg, dzlat) = latero.run_one_step(mg, dt,)
-        mg.at_node['topographic__elevation'][mg.core_nodes] += U * \
-            dt  # uplift the landscape
+        (mg, dzlat) = latero.run_one_step(mg, dt)
+        mg.at_node["topographic__elevation"][mg.core_nodes] += (
+            U * dt
+        )  # uplift the landscape
 
-    da = mg.at_node['surface_water__discharge'] / dx**2
+    da = mg.at_node["surface_water__discharge"] / dx ** 2
     num_sedflux = mg.at_node["qs"]
     analytical_sedflux = U * da
 
@@ -306,25 +382,42 @@ def test_latero_timevary_inlet():
     nr = 5
     nc = 5
     dx = 10
-    mg = RasterModelGrid((nr, nc), xy_spacing = dx)
-    for edge in (mg.nodes_at_top_edge, mg.nodes_at_bottom_edge, mg.nodes_at_left_edge, mg.nodes_at_right_edge):
+    mg = RasterModelGrid((nr, nc), xy_spacing=dx)
+    for edge in (
+        mg.nodes_at_top_edge,
+        mg.nodes_at_bottom_edge,
+        mg.nodes_at_left_edge,
+        mg.nodes_at_right_edge,
+    ):
         mg.status_at_node[edge] = CLOSED_BOUNDARY
-    for edge in (mg.nodes_at_bottom_edge):
+    for edge in mg.nodes_at_bottom_edge:
         mg.status_at_node[edge] = FIXED_VALUE_BOUNDARY
-    z = mg.add_zeros('node', 'topographic__elevation')
+    z = mg.add_zeros("node", "topographic__elevation")
     loading_vector = np.linspace(1, 2.5, num=nr)
     ramp = np.repeat(loading_vector, nc)
     ramp += np.random.random_sample(mg.number_of_nodes) * 0.8
     z += ramp
 
-    latero = LateralEroder(mg, latero_mech="UC", alph=0.01, Kv=0.01, Kl_ratio=0.1, solver="adaptive", inlet_on=True,
-                           inlet_node=17, inlet_area=500, qsinlet=2.5)
+    latero = LateralEroder(
+        mg,
+        latero_mech="UC",
+        alph=0.01,
+        Kv=0.01,
+        Kl_ratio=0.1,
+        solver="adaptive",
+        inlet_on=True,
+        inlet_node=17,
+        inlet_area=500,
+        qsinlet=2.5,
+    )
 
-    fa = FlowAccumulator(mg,
-                         surface='topographic__elevation',
-                         flow_director='FlowDirectorD8',
-                         runoff_rate=None,
-                         depression_finder=None)
+    fa = FlowAccumulator(
+        mg,
+        surface="topographic__elevation",
+        flow_director="FlowDirectorD8",
+        runoff_rate=None,
+        depression_finder=None,
+    )
     inareats = None
     sedints = None
     for i in range(1000):
@@ -334,11 +427,13 @@ def test_latero_timevary_inlet():
             sedints = 5
         fa.run_one_step()  # flow accumulator
         (mg, dzlat) = latero.run_one_step(
-            mg, dt, inlet_area_ts=inareats, qsinlet_ts=sedints)
-        mg.at_node['topographic__elevation'][mg.core_nodes] += U * \
-            dt  # uplift the landscape
+            mg, dt, inlet_area_ts=inareats, qsinlet_ts=sedints
+        )
+        mg.at_node["topographic__elevation"][mg.core_nodes] += (
+            U * dt
+        )  # uplift the landscape
 
-    da = mg.at_node['surface_water__discharge'] / mg.dx**2
+    da = mg.at_node["surface_water__discharge"] / mg.dx ** 2
     num_sedflux = mg.at_node["qs"]
     analytical_sedflux = U * da
 
@@ -346,7 +441,7 @@ def test_latero_timevary_inlet():
     # area at inlet node (node 17)
     testing.assert_array_almost_equal(
         da[17],
-        mg.at_node['drainage_area'][17] + 1000.,
+        mg.at_node["drainage_area"][17] + 1000.0,
         decimal=4,
         err_msg="LatEro time varying inlet drainage area test failed",
         verbose=True,
