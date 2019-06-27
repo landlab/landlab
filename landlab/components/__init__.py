@@ -52,7 +52,7 @@ from .weathering import ExponentialWeatherer
 COMPONENTS = [
     ChiFinder,
     LinearDiffuser,
-	LateralEroder,
+    LateralEroder,
     Flexure,
     FlowRouter,
     DepressionFinderAndRouter,
