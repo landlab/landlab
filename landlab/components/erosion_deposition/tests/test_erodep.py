@@ -268,8 +268,5 @@ def test_phi_affects_transience():
 
     # Test the results: higher phi should be lower slope
     s1 = mg1.at_node["topographic__steepest_slope"][mg1.core_nodes]
-    print(s1)
     s2 = mg2.at_node["topographic__steepest_slope"][mg2.core_nodes]
-    print(s1)
     testing.assert_array_less(s2, s1)
-    
