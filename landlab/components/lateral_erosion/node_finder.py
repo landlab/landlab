@@ -191,7 +191,7 @@ def Node_Finder(grid, i, flowdirs, drain_area):
     link_list = grid.links_at_node[i]
     # this gives list of active neighbors for specified node
     # the order of this list is: [E,N,W,S]
-    neighbors = grid.active_neighbors_at_node[i]
+    neighbors = grid.active_adjacent_nodes_at_node[i]
     # this gives list of all diagonal neighbors for specified node
     # the order of this list is: [NE,NW,SW,SE]
     diag_neigh = grid.diagonal_adjacent_nodes_at_node[i]
