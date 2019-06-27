@@ -9,10 +9,8 @@ ALangston
 
 import numpy as np
 
-from landlab import Component, FieldError, RasterModelGrid
+from landlab import Component
 from landlab.components.flow_accum import FlowAccumulator
-from landlab.components.flow_director import FlowDirectorD8
-from landlab.components.flow_routing import DepressionFinderAndRouter
 from landlab.components.lateral_erosion.node_finder import Node_Finder
 
 

@@ -372,8 +372,8 @@ def test_latero_steady_inlet():
 
 def test_latero_timevary_inlet():
     """
-    Test that time varying drainage area and sediment to inlet function in the 
-    lateral erosion component works. Comparison to steady state solution and 
+    Test that time varying drainage area and sediment to inlet function in the
+    lateral erosion component works. Comparison to steady state solution and
     proscribed change in drainage area at inlet node.
 
     """
