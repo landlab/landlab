@@ -94,11 +94,11 @@ class LateralEroder(Component):
     >>> fa = FlowAccumulator(
     ...     mg,
     ...     surface="topographic__elevation",
-    ...     flow_director='FlowDirectorD8',
+    ...     flow_director="FlowDirectorD8",
     ...     runoff_rate=None,
     ...     depression_finder=None,
     ... )
-    >>> latero = LateralEroder(mg,latero_mech="UC", Kv=0.001, Kl_ratio=1.5)
+    >>> latero = LateralEroder(mg, latero_mech="UC", Kv=0.001, Kl_ratio=1.5)
 
     Run one step of flow accumulation and lateral erosion to get the dzlat array
     needed for the next part of the test.
@@ -112,14 +112,15 @@ class LateralEroder(Component):
 
     >>> while min(dzlat) == 0.0:
     ...     oldlatvol = mg.at_node["volume__lateral_erosion"].copy()
-    ...     oldelev = mg.at_node['topographic__elevation'].copy()
+    ...     oldelev = mg.at_node["topographic__elevation"].copy()
     ...     fa.run_one_step()
     ...     mg, dzlat = latero.run_one_step(mg, dt)
     ...     newlatvol = mg.at_node["volume__lateral_erosion"]
     ...     newelev = mg.at_node["topographic__elevation"]
     ...     mg.at_node["topographic__elevation"][mg.core_nodes] += U * dt
 
-    Before lateral erosion occurs, volume__lateral_erosion has values at nodes 6 and 10.
+    Before lateral erosion occurs, *volume__lateral_erosion* has values at
+    nodes 6 and 10.
 
     >>> np.around(oldlatvol, decimals=0)
     array([  0.,   0.,   0.,   0.,
@@ -144,22 +145,24 @@ class LateralEroder(Component):
 
     >>> np.around(oldelev, decimals=2)
     array([ 0.  ,  1.03,  2.03,  3.  ,
-           1.04,  1.77,  2.45,  4.08,
-           2.09,  2.65,  3.18,  5.09,
-           3.04,  3.65,  4.07,  6.03,
-           4.03,  5.09,  6.02,  7.1 ])
+            1.04,  1.77,  2.45,  4.08,
+            2.09,  2.65,  3.18,  5.09,
+            3.04,  3.65,  4.07,  6.03,
+            4.03,  5.09,  6.02,  7.1 ])
 
     >>> np.around(newelev, decimals=2)
     array([ 0.  ,  1.03,  2.03,  3.  ,
-           1.04,  1.77,  1.03,  4.08,
-           2.09,  2.65,  3.18,  5.09,
-           3.04,  3.65,  4.07,  6.03,
-           4.03,  5.09,  6.02,  7.1 ])
+            1.04,  1.77,  1.03,  4.08,
+            2.09,  2.65,  3.18,  5.09,
+            3.04,  3.65,  4.07,  6.03,
+            4.03,  5.09,  6.02,  7.1 ])
 
     >>> np.around(dzlat, decimals=2)
-    array([ 0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  , -1.41,  0.  ,  0.  ,
-            0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,  0.  ,
-            0.  ,  0.  ])
+    array([ 0.  ,  0.  ,  0.  ,  0.  ,
+            0.  ,  0.  , -1.41,  0.  ,
+            0.  ,  0.  ,  0.  ,  0.  ,
+            0.  ,  0.  ,  0.  ,  0.  ,
+            0.  ,  0.  ,  0.  ,  0. ])
     """
 
     _name = "LateralEroder"
@@ -197,21 +200,42 @@ class LateralEroder(Component):
         inlet_node=None,
         inlet_area=None,
         qsinlet=0.0,
-    ):  # input_stream,
+    ):
+        if solver not in ("basic", "adaptive"):
+            raise ValueError(
+                "value for solver not understood ({val} not one of {valid})".format(
+                    val=solver, valid=", ".join(("basic", "adaptive")))
+            )
+
+        if latero_mech not in ("UC", "TB"):
+            raise ValueError(
+                "value for latero_mech not understood ({val} not one of {valid})".format(
+                    val=latero_mech, valid=", ".join(("UC", "TB")))
+            )
+
+        if inlet_on and (inlet_node is None or inlet_area is None):
+            raise ValueError(
+                "inlet_on is True, but no inlet_node or inlet_area is provided."
+            )
+
+        if Kv is None:
+            raise ValueError(
+                "Kv must be set as a float, node array, or field name. It was None."
+            )
+
         self._grid = grid
         # Create fields needed for this component if not already existing
         if "volume__lateral_erosion" in grid.at_node:
             self.vol_lat = grid.at_node["volume__lateral_erosion"]
         else:
-            self.vol_lat = grid.add_zeros("node", "volume__lateral_erosion")
+            self.vol_lat = grid.add_zeros("volume__lateral_erosion", at="node")
         if "qs_in" in grid.at_node:
             self.qs_in = grid.at_node["qs_in"]
         else:
-            self.qs_in = grid.add_zeros("node", "qs_in")
+            self.qs_in = grid.add_zeros("qs_in", at="node")
 
-        # you can specify the type of lateral erosion model you want to use. But if you don't
-        # the default is the undercutting-slump model
-        assert latero_mech in ("UC", "TB")
+        # you can specify the type of lateral erosion model you want to use.
+        # But if you don't the default is the undercutting-slump model
         if latero_mech == "TB":
             self._TB = True
             self._UC = False
@@ -220,54 +244,39 @@ class LateralEroder(Component):
             self._TB = False
         # option use adaptive time stepping. Default is fixed dt supplied by user
         if solver == "basic":
-            self.run_one_step = self.run_one_step_basic
+            self._run_one_step = self.run_one_step_basic
         elif solver == "adaptive":
-            self.run_one_step = self.run_one_step_adaptive
+            self._run_one_step = self.run_one_step_adaptive
             self.frac = 0.3  # for time step calculations
         self.alph = alph
         self.Kv = Kv  # can be overwritten with spatially variable
         self.inlet_on = False  # will be overwritten below if inlet area is provided
         self.Klr = float(Kl_ratio)  # default ratio of Kv/Kl is 1. Can be overwritten
 
-        self.dzdt = grid.add_zeros("node", "dzdt")  # elevation change rate (M/Y)
+        self.dzdt = grid.add_zeros("dzdt", at="node")  # elevation change rate (M/Y)
         # optional inputs
         self.inlet_on = inlet_on
-        if inlet_on is True:
-            if inlet_node is None:
-                raise ValueError("inlet_on is true, but no inlet_node is provided.")
-            else:
-                self.inlet_node = inlet_node
-                if inlet_area is None:
-                    raise ValueError(
-                        "Inlet area must be provided if inlet node is active. "
-                        + "No inlet area was found."
-                    )
-                self.inlet_area = inlet_area
-                # runoff is an array with values of the area of each node (dx**2)
-                runoffinlet = np.ones(grid.number_of_nodes) * grid.dx ** 2
-                # Change the runoff at the inlet node to node area + inlet node
-                runoffinlet[inlet_node] += inlet_area
-                _ = grid.add_field(
-                    "node", "water__unit_flux_in", runoffinlet, noclobber=False
-                )
-                # set qsinlet at inlet node. This doesn't have to be provided, defaults
-                # to 0.
-                self.qsinlet = qsinlet
-                self.qs_in[self.inlet_node] = self.qsinlet
-        # below, adding flag calling for Kv to be specified.
-        if self.Kv is None:
-            raise ValueError(
-                "Kv must be set as a float, node array, or "
-                + "field name. It was None."
+        if inlet_on:
+            self.inlet_node = inlet_node
+            self.inlet_area = inlet_area
+            # runoff is an array with values of the area of each node (dx**2)
+            runoffinlet = np.full(grid.number_of_nodes, grid.dx ** 2, dtype=float)
+            # Change the runoff at the inlet node to node area + inlet node
+            runoffinlet[inlet_node] += inlet_area
+            grid.add_field(
+                "water__unit_flux_in", runoffinlet, at="node", noclobber=False
             )
+            # set qsinlet at inlet node. This doesn't have to be provided, defaults
+            # to 0.
+            self.qsinlet = qsinlet
+            self.qs_in[self.inlet_node] = self.qsinlet
+
         # handling Kv for floats (inwhich case it populates an array N_nodes long) or
         # for arrays of Kv. Checks that length of Kv array is good.
-        if isinstance(Kv, (float, int)):
-            self.Kv = np.ones(self.grid.number_of_nodes) * float(Kv)
-        else:
-            self.Kv = np.asarray(Kv, dtype=float)
-            if len(self.Kv) != self.grid.number_of_nodes:
-                raise TypeError("Supplied value of Kv is not n_nodes long")
+        self.Kv = np.ones(self.grid.number_of_nodes, dtype=float) * Kv
+
+    def run_one_step(self, *args, **kwds):
+        return self._run_one_step(*args, **kwds)
 
     def run_one_step_basic(
         self, grid, dt=None, Klr=None, inlet_area_ts=None, qsinlet_ts=None, **kwds
@@ -429,10 +438,9 @@ class LateralEroder(Component):
         dz = dzdt + dzlat
         # change height of landscape
         z[:] = dz + z
-        grid["node"]["topographic__elevation"][grid.core_nodes] = z[grid.core_nodes]
+        grid.at_node["topographic__elevation"][grid.core_nodes] = z[grid.core_nodes]
         return grid, dzlat
 
-    # %%
     def run_one_step_adaptive(
         self, grid, dt=None, Klr=None, inlet_area_ts=None, qsinlet_ts=None, **kwds
     ):
