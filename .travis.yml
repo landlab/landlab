@@ -28,11 +28,12 @@ jobs:
   - stage: deploy
     if: tag =~ v.*$
     script: skip
-    os: linux
+    # os: linux
     deploy:
       on:
         all_branches: true
       provider: pypi
+      distributions: "sdist bdist bdist_wheel"
       user: landlab
       password:
         secure: mu6PQeSsPAzHfiPDn9P9yDnnekeAQdXXGjPFhReKbd/fvpiNjop678RUIIXIC9uw6K5bfX27NquR+pl5B0XR0bNoiHK7dEAmtb4JP6Z56XTWq6znfDThXRH9QPCELyMArpUh3wZPd6EUiIyFJV2IwSt/60yf48/H/VbttdsduF4=
