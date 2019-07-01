@@ -28,9 +28,7 @@ jobs:
   - stage: deploy
     if: tag =~ v.*$
     script: skip
-    os:
-    - linux
-    - osx
+    os: linux
     deploy:
       on:
         all_branches: true
@@ -39,6 +37,12 @@ jobs:
       user: landlab
       password:
         secure: mu6PQeSsPAzHfiPDn9P9yDnnekeAQdXXGjPFhReKbd/fvpiNjop678RUIIXIC9uw6K5bfX27NquR+pl5B0XR0bNoiHK7dEAmtb4JP6Z56XTWq6znfDThXRH9QPCELyMArpUh3wZPd6EUiIyFJV2IwSt/60yf48/H/VbttdsduF4=
+  - env: CONDA_ENV=3.6
+  - env: CONDA_ENV=2.7
+  - os: osx
+    env: CONDA_ENV=3.7
+  - env: CONDA_ENV=3.6
+  - env: CONDA_ENV=2.7
 before_install:
 - |
   if [[ $TRAVIS_OS_NAME == "osx" ]]; then
