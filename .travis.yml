@@ -25,7 +25,7 @@ jobs:
     - pip install -e .
     script:
     - make -C docs clean html
-  - stage: deploy
+  - stage: &deploy
     if: tag =~ v.*$
     script: skip
     os: linux
@@ -37,13 +37,18 @@ jobs:
       user: landlab
       password:
         secure: mu6PQeSsPAzHfiPDn9P9yDnnekeAQdXXGjPFhReKbd/fvpiNjop678RUIIXIC9uw6K5bfX27NquR+pl5B0XR0bNoiHK7dEAmtb4JP6Z56XTWq6znfDThXRH9QPCELyMArpUh3wZPd6EUiIyFJV2IwSt/60yf48/H/VbttdsduF4=
-  - env: CONDA_ENV=3.6
-  - env: CONDA_ENV=2.7
-  - os: osx
-    env: CONDA_ENV=3.7
-  - os: osx
+  - <<: *deploy
     env: CONDA_ENV=3.6
-  - os: osx
+  - <<: *deploy
+    env: CONDA_ENV=2.7
+  - <<: *deploy
+    os: osx
+    env: CONDA_ENV=3.7
+  - <<: *deploy
+    os: osx
+    env: CONDA_ENV=3.6
+  - <<: *deploy
+    os: osx
     env: CONDA_ENV=2.7
 before_install:
 - |
