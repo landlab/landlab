@@ -41,8 +41,10 @@ jobs:
   - env: CONDA_ENV=2.7
   - os: osx
     env: CONDA_ENV=3.7
-  - env: CONDA_ENV=3.6
-  - env: CONDA_ENV=2.7
+  - os: osx
+    env: CONDA_ENV=3.6
+  - os: osx
+    env: CONDA_ENV=2.7
 before_install:
 - |
   if [[ $TRAVIS_OS_NAME == "osx" ]]; then
