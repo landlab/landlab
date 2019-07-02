@@ -9,6 +9,7 @@ env:
   # - CONDA_ENV=2.7
   global:
   - MPLBACKEND=Agg
+  - secure: exvIFiQjIunvyGXJB27wUskWoXOL/qgu1tLjpgSopZz34WRK7kszqD0fPBLpX7wWgvBuUPYt9tXjdj80gXsouhW/R44AxauRpeAvrcodOwKpFIKM5DOyLmBs+YHQvS1UDJ/n8Lr+n6Q0H36l3pwZC269UKQkpwDwUuGkobeMqXQ=
 sudo: false
 jobs:
   include:
