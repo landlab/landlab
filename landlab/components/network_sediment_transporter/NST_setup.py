@@ -31,8 +31,8 @@ grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 plt.figure(0)
 graph.plot_graph(grid, at="node,link")
 
-grid.at_node["topographic__elevation"] = [0.0, 0.1, 0.3, 0.2, 0.3, 0.4, 0.41, 0.5]
-grid.at_node["bedrock__elevation"] = [0.0, 0.1, 0.3, 0.2, 0.3, 0.4, 0.41, 0.5]
+grid.at_node["topographic__elevation"] = [0.0, 0.1, 0.3, 0.2, 0.35, 0.45, 0.5, 0.6]
+grid.at_node["bedrock__elevation"] = [0.0, 0.1, 0.3, 0.2, 0.35, 0.45, 0.5, 0.6]
 
 area = grid.add_ones("cell_area_at_node", at="node")
 
@@ -72,7 +72,7 @@ bed_porosity = 0.3  # porosity of the bed material
 timesteps = 30
 
 element_id = np.array(
-    [0,0,1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 2, 3, 4, 4, 4, 3, 4, 5], dtype=int
+    [0,0,1, 1, 1, 5, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 2, 3, 4, 4, 4, 3, 4, 5], dtype=int
 )  # current link for each parcel
 
 element_id = np.expand_dims(element_id, axis=1)
@@ -145,12 +145,11 @@ channel_width = (np.tile(Bgage, (grid.number_of_links)) / (Agage ** 0.5)) * np.t
 ) ** 0.5
 
 flow_depth = (np.tile(Hgage, (grid.number_of_links)) / (Agage ** 0.4)) * np.tile(
-    grid.at_link["drainage_area"], (timesteps, 1)
+    grid.at_link["drainage_area"], (timesteps+1, 1)
 ) ** 0.4
 
 
 Btmax = np.amax(channel_width, axis=0)  # CURRENTLY UNUSED
-
 
 # %% Instantiate component(s)
 # dis = ExteralDischargeSetter(grid, filename, model='dhsvm')
@@ -199,6 +198,9 @@ from landlab.plot.network_sediment_transporter import * # Note-- this is an exam
 plt.figure(1)
 plt.plot(parcels.time_coordinates, parcels.dataset.location_in_link.values[0, :], ".")
 plt.plot(parcels.time_coordinates, parcels.dataset.location_in_link.values[14, :], ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.location_in_link.values[16, :], ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.location_in_link.values[17, :], ".")
+
 plt.title("Tracking link location for a single parcel")
 plt.xlabel("time")
 plt.ylabel("location in link")
