@@ -362,7 +362,9 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             )
 
             # Rate of change of elevation at core nodes:
-            dzdt[cores] = (self.depo_rate[cores] - self.erosion_term[cores]) / (1 - self.phi)
+            dzdt[cores] = (self.depo_rate[cores] - self.erosion_term[cores]) / (
+                1 - self.phi
+            )
 
             # Difference in elevation between each upstream-downstream pair
             zdif = z - z[r]

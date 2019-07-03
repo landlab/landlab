@@ -355,7 +355,10 @@ def test_matches_transport_solution():
             (U * v_s * (1 - phi))
             / (K_sed * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))
         )
-        + ((U * (1 - phi)) / (K_sed * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))),
+        + (
+            (U * (1 - phi))
+            / (K_sed * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))
+        ),
         1.0 / n_sp,
     )
 
