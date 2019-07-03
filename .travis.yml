@@ -32,7 +32,7 @@ jobs:
     os: linux
     script:
     - pip install twine wheel
-    - pip wheel -w dist .
+    - python setup.py bdist_wheel --universal
     - twine upload -u landlab -p$PYPI_PASS dist/*landlab*
   - <<: *deploy
     env: CONDA_ENV=3.6
