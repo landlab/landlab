@@ -7,17 +7,17 @@ Created on Sun May 20 15:54:03 2018
 
 @authors: Jon Czuba, Allison Pfeiffer, Katy Barnhart
 """
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 # from landlab.components import NetworkSedimentTransporter
 from landlab import BAD_INDEX_VALUE
-from landlab.components import FlowDirectorSteepest
+from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 from landlab.plot import graph
+from landlab.plot.network_sediment_transporter import *  # Note-- this is an example. it loads plotting scripts that don't exist yet.
 
-from landlab.components import NetworkSedimentTransporter
 _OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
 
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
@@ -72,7 +72,8 @@ bed_porosity = 0.3  # porosity of the bed material
 timesteps = 30
 
 element_id = np.array(
-    [0,0,1, 1, 1, 5, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 2, 3, 4, 4, 4, 3, 4, 5], dtype=int
+    [0, 0, 1, 1, 1, 5, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 2, 3, 4, 4, 4, 3, 4, 5],
+    dtype=int,
 )  # current link for each parcel
 
 element_id = np.expand_dims(element_id, axis=1)
@@ -89,10 +90,12 @@ D = 0.05 * np.ones(np.shape(element_id))  # (m) the diameter of grains in each p
 lithology = ["quartzite"] * np.size(
     element_id
 )  # a lithology descriptor for each parcel
-abrasion_rate = 0.0001* np.ones(
+abrasion_rate = 0.0001 * np.ones(
     np.size(element_id)
 )  # 0 = no abrasion; abrasion rates are positive mass loss coefficients (mass loss / METER)
-active_layer = np.ones(np.shape(element_id))  # 1 = active/surface layer; 0 = subsurface layer
+active_layer = np.ones(
+    np.shape(element_id)
+)  # 1 = active/surface layer; 0 = subsurface layer
 
 density = 2650 * np.ones(np.size(element_id))  # (kg/m3)
 
@@ -121,7 +124,13 @@ variables = {
     "volume": (["item_id", "time"], volume),
 }
 
-parcels = DataRecord(grid, items=items, time=time, data_vars=variables, dummy_elements={"link": [_OUT_OF_NETWORK]})
+parcels = DataRecord(
+    grid,
+    items=items,
+    time=time,
+    data_vars=variables,
+    dummy_elements={"link": [_OUT_OF_NETWORK]},
+)
 
 
 # Add parcels in at a given time --> attribute in the item collection
@@ -131,7 +140,7 @@ parcels = DataRecord(grid, items=items, time=time, data_vars=variables, dummy_el
 # Made up hydraulic geometry
 
 Qgage = 80000.0  # (m3/s)
-dt = 60 * 60 * 24 # (seconds) daily timestep
+dt = 60 * 60 * 24  # (seconds) daily timestep
 
 Bgage = 30.906 * Qgage ** 0.1215
 # (m)
@@ -145,7 +154,7 @@ channel_width = (np.tile(Bgage, (grid.number_of_links)) / (Agage ** 0.5)) * np.t
 ) ** 0.5
 
 flow_depth = (np.tile(Hgage, (grid.number_of_links)) / (Agage ** 0.4)) * np.tile(
-    grid.at_link["drainage_area"], (timesteps+1, 1)
+    grid.at_link["drainage_area"], (timesteps + 1, 1)
 ) ** 0.4
 
 
@@ -193,7 +202,6 @@ for t in range(0, (timesteps * dt), dt):
 
 # %% A few plot outputs, just to get started.
 
-from landlab.plot.network_sediment_transporter import * # Note-- this is an example. it loads plotting scripts that don't exist yet. 
 
 plt.figure(1)
 plt.plot(parcels.time_coordinates, parcels.dataset.location_in_link.values[0, :], ".")
@@ -206,7 +214,9 @@ plt.xlabel("time")
 plt.ylabel("location in link")
 
 plt.figure(2)
-plt.plot(parcels.time_coordinates, np.sum(parcels.dataset["volume"].values, axis=0), ".")
+plt.plot(
+    parcels.time_coordinates, np.sum(parcels.dataset["volume"].values, axis=0), "."
+)
 plt.title("Silly example: total volume, all parcels through time")
 plt.xlabel("time")
 plt.ylabel("total volume of parcels")

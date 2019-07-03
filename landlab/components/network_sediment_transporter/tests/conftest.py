@@ -1,0 +1,132 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pytest
+
+# from landlab.components import NetworkSedimentTransporter
+from landlab import BAD_INDEX_VALUE
+from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
+from landlab.data_record import DataRecord
+from landlab.grid.network import NetworkModelGrid
+from landlab.plot import graph
+
+_OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
+
+
+@pytest.fixture()
+def example_nmg():
+    y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
+    x_of_node = (0, 0, 100, -50, -100, 50, -150, -100)
+    nodes_at_link = ((1, 0), (2, 1), (1, 7), (3, 1), (3, 4), (4, 5), (4, 6))
+
+    grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
+
+    # add variables to grid
+    grid.at_node["topographic__elevation"] = [0.0, 0.1, 0.3, 0.2, 0.35, 0.45, 0.5, 0.6]
+    grid.at_node["bedrock__elevation"] = [0.0, 0.1, 0.3, 0.2, 0.35, 0.45, 0.5, 0.6]
+    area = grid.add_ones("cell_area_at_node", at="node")
+    grid.at_link["drainage_area"] = [100e6, 10e6, 70e6, 20e6, 70e6, 30e6, 40e6]  # m2
+    grid.at_link["channel_slope"] = [0.01, 0.02, 0.01, 0.02, 0.02, 0.03, 0.03]
+    grid.at_link["link_length"] = [10000, 10000, 10000, 10000, 10000, 10000, 10000]  # m
+
+    grid.at_link["channel_width"] = 15 * np.ones(np.size(grid.at_link["drainage_area"]))
+    grid.at_link["channel_width"][3] = 10
+    return grid
+
+
+@pytest.fixture()
+def example_parcels(example_nmg):
+    element_id = np.array(
+        [0, 0, 1, 1, 1, 5, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 2, 3, 4, 4, 4, 3, 4, 5],
+        dtype=int,
+    )  # current link for each parcel
+
+    element_id = np.expand_dims(element_id, axis=1)
+    starting_link = np.squeeze(element_id)  # starting link for each parcel
+
+    np.random.seed(0)
+
+    time_arrival_in_link = np.random.rand(
+        np.size(element_id), 1
+    )  # time of arrival in each link -- larger numbers are younger
+    volume = np.ones(np.shape(element_id))  # (m3) the volume of each parcel
+    D = 0.05 * np.ones(
+        np.shape(element_id)
+    )  # (m) the diameter of grains in each parcel
+    lithology = ["quartzite"] * np.size(
+        element_id
+    )  # a lithology descriptor for each parcel
+    abrasion_rate = 0.0001 * np.ones(
+        np.size(element_id)
+    )  # 0 = no abrasion; abrasion rates are positive mass loss coefficients (mass loss / METER)
+    active_layer = np.ones(
+        np.shape(element_id)
+    )  # 1 = active/surface layer; 0 = subsurface layer
+
+    density = 2650 * np.ones(np.size(element_id))  # (kg/m3)
+
+    location_in_link = np.zeros(
+        np.shape(element_id)
+    )  # [0 1], 0 is upstream end of link, 1 is downstream end
+
+    D[0] = 0.075
+    D[5] = 0.0001  # make one of them sand
+
+    volume[2] = 0.3
+
+    time = [0.0]  # probably not the sensible way to do this...
+
+    items = {"grid_element": "link", "element_id": element_id}
+
+    variables = {
+        "starting_link": (["item_id"], starting_link),
+        "abrasion_rate": (["item_id"], abrasion_rate),
+        "density": (["item_id"], density),
+        "lithology": (["item_id"], lithology),
+        "time_arrival_in_link": (["item_id", "time"], time_arrival_in_link),
+        "active_layer": (["item_id", "time"], active_layer),
+        "location_in_link": (["item_id", "time"], location_in_link),
+        "D": (["item_id", "time"], D),
+        "volume": (["item_id", "time"], volume),
+    }
+
+    parcels = DataRecord(
+        example_nmg,
+        items=items,
+        time=time,
+        data_vars=variables,
+        dummy_elements={"link": [_OUT_OF_NETWORK]},
+    )
+    return parcels
+
+
+@pytest.fixture()
+def example_flow_director(example_nmg):
+
+    fd = FlowDirectorSteepest(example_nmg)
+    fd.run_one_step()
+    return fd
+
+
+@pytest.fixture()
+def example_flow_depth(example_nmg):
+    timesteps = 30
+
+    Qgage = 80000.0  # (m3/s)
+    dt = 60 * 60 * 24  # (seconds) daily timestep
+
+    Bgage = 30.906 * Qgage ** 0.1215
+    # (m)
+    Hgage = 1.703 * Qgage ** 0.3447
+    # (m)
+    Agage = 4.5895e9
+    # (m2)
+
+    channel_width = (
+        np.tile(Bgage, (example_nmg.number_of_links)) / (Agage ** 0.5)
+    ) * np.tile(example_nmg.at_link["drainage_area"], (timesteps, 1)) ** 0.5
+
+    flow_depth = (
+        np.tile(Hgage, (example_nmg.number_of_links)) / (Agage ** 0.4)
+    ) * np.tile(example_nmg.at_link["drainage_area"], (timesteps + 1, 1)) ** 0.4
+
+    return flow_depth
