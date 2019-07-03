@@ -182,7 +182,7 @@ class DepthDependentTaylorDiffuser(Component):
     >>> np.any(np.isnan(z))
     False
 
-    Now, we'll test that changing the transport decay depth behaves as expected. 
+    Now, we'll test that changing the transport decay depth behaves as expected.
 
     >>> mg = RasterModelGrid((3, 5))
     >>> soilTh = mg.add_zeros('node', 'soil__depth')

@@ -77,7 +77,7 @@ class DepthDependentDiffuser(Component):
     >>> np.allclose(mg.at_node['soil__depth'], z - BRz)
     True
 
-    Now, we'll test that changing the transport decay depth behaves as expected. 
+    Now, we'll test that changing the transport decay depth behaves as expected.
 
     >>> mg = RasterModelGrid((3, 5))
     >>> soilTh = mg.add_zeros('node', 'soil__depth')
@@ -217,7 +217,10 @@ class DepthDependentDiffuser(Component):
 
         # Calculate flux
         self.flux[:] = (
-            -self.K * slope * self.soil_transport_decay_depth * (1.0 - np.exp(-H_link / self.soil_transport_decay_depth))
+            -self.K
+            * slope
+            * self.soil_transport_decay_depth
+            * (1.0 - np.exp(-H_link / self.soil_transport_decay_depth))
         )
 
         # Calculate flux divergence
