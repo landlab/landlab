@@ -21,15 +21,15 @@ class DepthDependentTaylorDiffuser(Component):
     Hillslope sediment flux uses a Taylor Series expansion of the Andrews-
     Bucknam formulation of nonlinear hillslope flux derived following following
     Ganti et al., 2012 with a depth dependent component inspired Johnstone and
-    Hilley (2014). The flux is given as:
+    Hilley (2014). The flux :math:`q_s` is given as:
 
     .. math::
 
-        qs = DSHstar ( 1 + (S/Sc)^2 + (S/Sc)^4 + .. + (S/Sc)^2(n-1) ) * (1.0 - exp( H / Hstar )
+        q_s = DSH^* ( 1 + (S/S_c)^2 + (S/Sc_)^4 + .. + (S/S_c)^2(n-1) ) (1.0 - exp( H / H^*)
 
-    where D is is the diffusivity, S is the slope, Sc is the critical slope, n
-    is the number of terms, H is the soil depth on links, and Hstar is the soil
-    transport decay depth.
+    where :math:`D` is is the diffusivity, :math:`S` is the slope, :math:`S_c`
+    is the critical slope, :math:`n` is the number of terms, :math:`H` is the
+    soil depth on links, and :math:`H^*` is the soil transport decay depth.
 
     The default behavior uses two terms to produce a slope dependence as
     described by Equation 6 of Ganti et al., (2012).

@@ -16,6 +16,17 @@ class DepthDependentDiffuser(Component):
     This component implements a depth and slope dependent linear diffusion rule
     in the style of Johnstone and Hilley (2014).
 
+    Hillslope sediment flux uses depth dependent component inspired by
+    Johnstone and Hilley (2014). The flux :math:`q_s` is given as:
+
+    .. math::
+
+        q_s = D S H^* (1.0 - exp( H / H^*)
+
+    where :math:`D` is is the diffusivity, :math:`S` is the slope, :math:`H` is
+    the soil depth on links, and :math:`H^*` is the soil transport decay depth.
+
+
     This component will ignore soil thickness located at non-core nodes.
 
     Parameters
