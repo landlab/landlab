@@ -16,7 +16,7 @@ set -e -x
 /opt/python/cp37-cp37m/bin/pip wheel /io/ -w /io/wheelhouse
 
 # Bundle external shared libraries into the wheels
-for whl in wheelhouse/*.whl; do
+for whl in /io/wheelhouse/*.whl; do
     auditwheel repair "$whl" --plat $PLAT -w /io/wheelhouse/
 done
 
