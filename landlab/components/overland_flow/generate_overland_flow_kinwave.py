@@ -96,6 +96,8 @@ class KinwaveOverlandFlowModel(Component):
             Manning roughness coefficient, s/m^1/3
         """
 
+        super(KinwaveOverlandFlowModel, self).__init__(grid)
+
         # Store grid and parameters and do unit conversion
         self._grid = grid
         self.precip = precip_rate / 3600000.0  # convert to m/s

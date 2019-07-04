@@ -295,6 +295,8 @@ class SpatialPrecipitationDistribution(Component):
             to apply.
 
         """
+        super(SpatialPrecipitationDistribution, self).__init__(grid)
+
         self._grid = grid
         gaugecount = (grid.status_at_node != CLOSED_BOUNDARY).sum()
         self._gauge_dist_km = np.zeros(gaugecount, dtype="float")

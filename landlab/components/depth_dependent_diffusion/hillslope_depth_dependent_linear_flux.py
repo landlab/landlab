@@ -125,7 +125,7 @@ class DepthDependentDiffuser(Component):
 
     def __init__(self, grid, linear_diffusivity=1.0, soil_transport_decay_depth=1.0):
         """Initialize the DepthDependentDiffuser."""
-
+        super(DepthDependentDiffuser, self).__init__(grid)
         # Store grid and parameters
         self._grid = grid
         self.K = linear_diffusivity

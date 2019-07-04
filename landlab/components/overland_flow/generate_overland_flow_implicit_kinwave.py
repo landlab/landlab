@@ -197,7 +197,7 @@ class KinwaveImplicitOverlandFlow(Component):
         depth_exp=1.5,
         weight=1.0,
     ):
-        """Initialize the KinwaveOverlandFlowModel.
+        """Initialize the KinwaveImplicitOverlandFlow.
 
         Parameters
         ----------
@@ -217,6 +217,7 @@ class KinwaveImplicitOverlandFlow(Component):
             implicit; 0 = explicit)
         """
 
+        super(KinwaveImplicitOverlandFlow, self).__init__(grid)
         # Store grid and parameters and do unit conversion
         self._grid = grid
         self.runoff_rate = runoff_rate / 3600000.0  # convert to m/s

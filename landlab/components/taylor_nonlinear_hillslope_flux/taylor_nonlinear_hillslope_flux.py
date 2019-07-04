@@ -172,6 +172,8 @@ class TaylorNonLinearDiffuser(Component):
             Two terms (Default) gives the behavior
             described in Ganti et al. (2012).
         """
+        super(TaylorNonLinearDiffuser, self).__init__(grid)
+
         # Store grid and parameters
         self._grid = grid
         self.K = linear_diffusivity

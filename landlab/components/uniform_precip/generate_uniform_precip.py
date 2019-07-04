@@ -106,9 +106,7 @@ class PrecipitationDistribution(Component):
         mean_storm_depth=0.0,
         total_t=0.0,
         delta_t=None,
-        random_seed=0,
-        **kwds
-    ):
+        random_seed=0):
         """Create the storm generator.
 
         Parameters
@@ -130,6 +128,7 @@ class PrecipitationDistribution(Component):
         random_seed : int or float, optional
             Seed value for random-number generator.
         """
+        super(PrecipitationDistribution, self).__init__(grid)
 
         self.mean_storm_duration = mean_storm_duration
 

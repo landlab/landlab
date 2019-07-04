@@ -119,7 +119,9 @@ class PotentialityFlowRouter(Component):
                *  ``Mannings_n`` (if ``Manning``) : float
                *  ``Chezys_C`` (if ``Chezy``) : float
         """
-        if RasterModelGrid in inspect.getmro(grid.__class__):
+        super(PotentialityFlowRouter, self).__init__(grid)
+
+        if isinstance(grid, RasterModelGrid):
             assert grid.number_of_node_rows >= 3
             assert grid.number_of_node_columns >= 3
             self._raster = True

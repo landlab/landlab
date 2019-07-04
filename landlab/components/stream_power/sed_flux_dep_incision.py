@@ -337,6 +337,8 @@ class SedDepEroder(Component):
             If True, the threshold_Shields will be set according to
             0.15 * S ** 0.25, per Lamb et al., 2008 & Hobley et al., 2011.
         """
+        super(SedDepEroder, self).__init__(grid)
+
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
                 msg = (

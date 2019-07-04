@@ -176,7 +176,7 @@ class LakeMapperBarnes(Component):
         and slopes without rerunning these components on your new surface.
         Ensure the necessary fields already exist, and have already been
         calculated by a FlowDirector! This also means you need to instantiate
-        your FlowDirector **before** you instantiate the LakeFillerBarnes.
+        your FlowDirector **before** you instantiate the LakeMapperBarnes.
         Note that the new topographic__steepest_slope will always be set to
         zero, even if fill_flat=False (i.e., there is actually a miniscule
         gradient on the new topography, which gets ignored).
@@ -299,6 +299,7 @@ class LakeMapperBarnes(Component):
         """
         Initialize the component.
         """
+        super(LakeMapperBarnes, self).__init__(grid)
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
                 msg = (

@@ -252,6 +252,7 @@ class DepthDependentTaylorDiffuser(Component):
             Two terms (default) gives the behavior
             described in Ganti et al. (2012).
         """
+        super(DepthDependentTaylorDiffuser, self).__init__(grid)
         # Store grid and parameters
         self._grid = grid
         self.K = linear_diffusivity

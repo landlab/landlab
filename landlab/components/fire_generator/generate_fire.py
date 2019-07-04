@@ -22,11 +22,12 @@ Written by Jordan M. Adams, 2013. Updated April 2016.
 Examples
 --------
 >>> from landlab.components.fire_generator import FireGenerator
+>>> from landlab import RasterModelGrid
 
 Create an instance of the FireGenerator component
 
-
->>> fg = FireGenerator(mean_fire_recurrence = 15.0, shape_parameter = 4.5)
+>>> mg = RasterModelGrid((10, 10))
+>>> fg = FireGenerator(mg, mean_fire_recurrence = 15.0, shape_parameter = 4.5)
 
 This creates an instance of the component that has a mean_fire_recurrence, or
 average interval between fires of 15 years. We gave it a shape parameter of
@@ -86,12 +87,13 @@ class FireGenerator(Component):
     _var_doc = dict()
 
     def __init__(
-        self, mean_fire_recurrence=0.0, shape_parameter=0.0, scale_parameter=None
+        self, grid, mean_fire_recurrence=0.0, shape_parameter=0.0, scale_parameter=None
     ):
         """Generate a random fire event in time.
 
         Parameters
         ----------
+        grid: landlab model grid
         mean_fire_recurrence : float
             Average time between fires for a given location
         shape_parameter : float
@@ -105,7 +107,7 @@ class FireGenerator(Component):
             it can be found using mean fire recurrence value and the
             get_scale_parameter().
         """
-
+        super(FireGenerator, self).__init__(grid)
         self.mean_fire_recurrence = mean_fire_recurrence
 
         self.shape_parameter = shape_parameter

@@ -160,7 +160,10 @@ class gFlex(Component):
         g=9.81,
     ):
         """Constructor for Wickert's gFlex in Landlab."""
-        assert RasterModelGrid in inspect.getmro(grid.__class__)
+        super(gFlex, self).__init__(grid)
+
+        assert isinstance(grid, RasterModelGrid)
+
         if NO_GFLEX:
             raise ImportError(
                 "gFlex not installed! For installation instructions see "

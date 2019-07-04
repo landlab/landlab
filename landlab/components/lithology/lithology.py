@@ -152,6 +152,8 @@ class Lithology(Component):
                [ 2. ,  3. ,  4. ,  2. ,  3. ,  4. ,  2. ,  3. ,  4. ],
                [ 1. ,  1.5,  2. ,  1. ,  1.5,  2. ,  1. ,  1.5,  2. ]])
         """
+        super(Lithology, self).__init__(grid)
+        
         # save reference to the grid and the last time steps's elevation.
         self._grid = grid
 

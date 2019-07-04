@@ -159,6 +159,8 @@ class PotentialEvapotranspiration(Component):
             Calibrated difference between max & min daily TmaxF (mm/d).
         """
 
+        super(PotentialEvapotranspiration, self).__init__(grid)
+
         self._method = method
         # For Priestley Taylor
         self._alpha = priestley_taylor_const

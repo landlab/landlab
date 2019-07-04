@@ -139,6 +139,8 @@ class SoilInfiltrationGreenAmpt(Component):
             calculated by the component from the pore size distribution and
             bubbling pressure, following Brooks and Corey.
         """
+        super(SoilInfiltrationGreenAmpt, self).__init__(grid)
+
 
         self._grid = grid
         self.min_water = surface_water_minimum_depth

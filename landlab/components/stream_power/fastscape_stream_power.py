@@ -196,6 +196,8 @@ class FastscapeEroder(Component):
             different field, such as 'surface_water__discharge', give its name in
             this argument.
         """
+        super(FastscapeEroder, self).__init__(grid)
+
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
                 msg = (

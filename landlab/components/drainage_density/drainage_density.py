@@ -215,7 +215,7 @@ class DrainageDensity(Component):
         channelization_threshold : threshold value above
             which channels exist
         """
-        # Store grid
+        super(DrainageDensity, self).__init__(grid)
         self._grid = grid
 
         for name in _REQUIRED_FIELDS:
