@@ -75,10 +75,10 @@ def test_raise_stability_error():
     BRz = z.copy() - 1.0
     soilTh[:] = z - BRz
     expweath = ExponentialWeatherer(mg)
-    DDdiff = DepthDependentTaylorDiffuser(mg)
+    DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable="raise")
     expweath.calc_soil_prod_rate()
     with pytest.raises(RuntimeError):
-        DDdiff.soilflux(10, if_unstable="raise")
+        DDdiff.soilflux(10)
 
 
 def test_raise_kwargs_error():

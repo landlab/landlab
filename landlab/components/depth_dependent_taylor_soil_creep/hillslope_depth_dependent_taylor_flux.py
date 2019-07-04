@@ -124,7 +124,8 @@ class DepthDependentTaylorDiffuser(Component):
     (if_unstable = 'warn') and a boolean flag that turns on dynamic timestepping
     (dynamic_dt = False).
 
-    >>> DDdiff.soilflux(2., if_unstable='warn')
+    >>> DDdiff = DepthDependentTaylorDiffuser(mg,  if_unstable='warn')
+    >>> DDdiff.soilflux(2.)
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
@@ -148,15 +149,15 @@ class DepthDependentTaylorDiffuser(Component):
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
     >>> expweath = ExponentialWeatherer(mg)
-    >>> DDdiff = DepthDependentTaylorDiffuser(mg)
-    >>> expweath.calc_soil_prod_rate()
 
     Lets try to move the soil with a large timestep. Without dynamic time
     steps, this gives a warning that we've exceeded the dynamic timestep size
     and should use a smaller timestep. We could either use the smaller timestep,
     or specify that we want to use a dynamic timestep.
 
-    >>> DDdiff.soilflux(10, if_unstable='warn', dynamic_dt=False)
+    >>> DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable='warn', dynamic_dt=False)
+    >>> expweath.calc_soil_prod_rate()
+    >>> DDdiff.soilflux(10)
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
@@ -174,9 +175,9 @@ class DepthDependentTaylorDiffuser(Component):
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
     >>> expweath = ExponentialWeatherer(mg)
-    >>> DDdiff = DepthDependentTaylorDiffuser(mg)
+    >>> DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable='warn', dynamic_dt=True)
     >>> expweath.calc_soil_prod_rate()
-    >>> DDdiff.soilflux(10, if_unstable='warn', dynamic_dt=True)
+    >>> DDdiff.soilflux(10)
     >>> np.any(np.isnan(z))
     False
     """
@@ -231,6 +232,9 @@ class DepthDependentTaylorDiffuser(Component):
         slope_crit=1.0,
         soil_transport_decay_depth=1.0,
         nterms=2,
+        dynamic_dt=False,
+        if_unstable="pass",
+        courant_factor=0.2
     ):
         """Initialize the DepthDependentTaylorDiffuser.
 
@@ -251,6 +255,11 @@ class DepthDependentTaylorDiffuser(Component):
             number of terms in the Taylor expansion.
             Two terms (default) gives the behavior
             described in Ganti et al. (2012).
+        dynamic_dt :
+            False,
+        if_unstable:
+        "pass",
+        courant_factor=0.2
         """
         super(DepthDependentTaylorDiffuser, self).__init__(grid)
         # Store grid and parameters
@@ -259,6 +268,10 @@ class DepthDependentTaylorDiffuser(Component):
         self.soil_transport_decay_depth = soil_transport_decay_depth
         self.slope_crit = slope_crit
         self.nterms = nterms
+
+        self.dynamic_dt = dynamic_dt
+        self.if_unstable = if_unstable
+        self.courant_factor = courant_factor
 
         # create fields
         # elevation
@@ -297,7 +310,7 @@ class DepthDependentTaylorDiffuser(Component):
         else:
             self.bedrock = self.grid.add_zeros("node", "bedrock__elevation")
 
-    def soilflux(self, dt, dynamic_dt=False, if_unstable="pass", courant_factor=0.2):
+    def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.
 
         Parameters
@@ -351,11 +364,11 @@ class DepthDependentTaylorDiffuser(Component):
             # Calculate De Max
             De_max = self.K * (courant_slope_term)
             # Calculate longest stable timestep
-            self.dt_max = courant_factor * (self.grid.dx ** 2) / De_max
+            self.dt_max = self.courant_factor * (self.grid.dx ** 2) / De_max
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
-            if (self.dt_max < dt) and (not dynamic_dt) and (if_unstable != "pass"):
+            if (self.dt_max < dt) and (not self.dynamic_dt) and (self.if_unstable != "pass"):
                 message = (
                     "Topographic slopes are high enough such that the "
                     "Courant condition is exceeded AND you have not "
@@ -366,13 +379,13 @@ class DepthDependentTaylorDiffuser(Component):
                     "Courant condition recommends a timestep of "
                     "" + str(self.dt_max) + " or smaller."
                 )
-                if if_unstable == "raise":
+                if self.if_unstable == "raise":
                     raise RuntimeError(message)
-                if if_unstable == "warn":
+                if self.if_unstable == "warn":
                     print(message)
 
             # if dynamic dt is selected, use it, otherwise, use the entire time
-            if dynamic_dt:
+            if self.dynamic_dt:
                 self.sub_dt = np.min([dt, self.dt_max])
                 time_left -= self.sub_dt
             else:
@@ -425,7 +438,7 @@ class DepthDependentTaylorDiffuser(Component):
             self.depth[self.grid.core_nodes] + self.bedrock[self.grid.core_nodes]
         )
 
-    def run_one_step(self, dt, **kwds):
+    def run_one_step(self, dt):
         """
 
         Parameters
@@ -433,4 +446,4 @@ class DepthDependentTaylorDiffuser(Component):
         dt: float (time)
             The imposed timestep.
         """
-        self.soilflux(dt, **kwds)
+        self.soilflux(dt)
