@@ -84,8 +84,8 @@ before_install:
   else
     curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh > $HOME/miniconda.sh
   fi
-- bash $HOME/miniconda.sh -b -p $HOME/anaconda
-- export PATH="$HOME/anaconda/bin:$PATH"
+- bash $HOME/miniconda.sh -b -p $(pwd)/anaconda
+- export PATH="$(pwd)/anaconda/bin:$PATH"
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
 - conda create -n test_env python=$CONDA_ENV
