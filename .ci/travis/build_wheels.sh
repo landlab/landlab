@@ -10,9 +10,12 @@ set -e -x
 # done
 
 /opt/python/cp36-cp36m/bin/pip install numpy
-/opt/python/cp36-cp36m/bin/pip wheel /io/ -w wheelhouse
+/opt/python/cp36-cp36m/bin/pip wheel /io/ -w /io/wheelhouse
+
 /opt/python/cp37-cp37m/bin/pip install numpy
-/opt/python/cp37-cp37m/bin/pip wheel /io/ -w wheelhouse
+/opt/python/cp37-cp37m/bin/pip wheel /io/ -w /io/wheelhouse
+
+ls /io/wheelhouse
 
 # Bundle external shared libraries into the wheels
 # for whl in wheelhouse/*.whl; do
