@@ -50,7 +50,7 @@ jobs:
     - docker
     env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
          PLAT=manylinux1_x86_64
-    before_install: skip
+         CONDA_ENV=3.7
     install:
     - docker pull $DOCKER_IMAGE
     script:
