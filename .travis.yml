@@ -56,6 +56,7 @@ jobs:
     script:
     - docker run --rm -e PLAT=$PLAT -v `pwd`:/io $DOCKER_IMAGE /io/.ci/travis/build_wheels.sh
     - ls wheelhouse/
+    - pip install twine
     - twine upload -u landlab -p$PYPI_PASS wheelhouse/*landlab*
 
 before_install:
