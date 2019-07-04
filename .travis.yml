@@ -46,10 +46,10 @@ jobs:
   - <<: *deploy
     sudo: required
     os: linux
-    env: CONDA_ENV=3.7
     services:
     - docker
-    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
+    env: CONDA_ENV=3.7
+         DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
          PLAT=manylinux1_x86_64
     install:
     - docker pull $DOCKER_IMAGE
@@ -60,9 +60,13 @@ jobs:
   - <<: *deploy
     os: linux
     env: CONDA_ENV=2.7
+         DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
+         PLAT=manylinux1_x86_64
   - <<: *deploy
     os: linux
     env: CONDA_ENV=3.6
+         DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
+         PLAT=manylinux1_x86_64
 
 before_install:
 - |
