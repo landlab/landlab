@@ -6,7 +6,7 @@ set -e -x
 
 for PYBIN in /opt/python/*/bin/; do
   ${PYBIN}/pip install numpy
-  ${PYBIN}/pip install wheel /io/ -w wheelhouse
+  ${PYBIN}/pip wheel /io/ -w wheelhouse
 done
 
 # Bundle external shared libraries into the wheels
