@@ -15,15 +15,15 @@ set -e -x
 /opt/python/cp37-cp37m/bin/pip install numpy
 /opt/python/cp37-cp37m/bin/pip wheel /io/ -w /io/wheelhouse
 
-ls /io/wheelhouse
-
 # Bundle external shared libraries into the wheels
-# for whl in wheelhouse/*.whl; do
-#     auditwheel repair "$whl" --plat $PLAT -w /io/wheelhouse/
-# done
+for whl in wheelhouse/*.whl; do
+    auditwheel repair "$whl" --plat $PLAT -w /io/wheelhouse/
+done
 
 # Install packages and test
 # for PYBIN in /opt/python/*/bin/; do
 #     "${PYBIN}/pip" install python-manylinux-demo --no-index -f /io/wheelhouse
 #     (cd "$HOME"; "${PYBIN}/nosetests" pymanylinuxdemo)
 # done
+
+ls /io/wheelhouse
