@@ -48,8 +48,7 @@ jobs:
     os: linux
     services:
     - docker
-    env: CONDA_ENV=3.7
-         DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
+    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
          PLAT=manylinux1_x86_64
     before_install: skip
     install:
@@ -57,17 +56,7 @@ jobs:
     script:
     - docker run --rm -e PLAT=$PLAT -v `pwd`:/io $DOCKER_IMAGE /io/.ci/travis/build_wheels.sh
     - ls wheelhouse/
-    - twine upload -u landlab -p$PYPI_PASS dist/*landlab*
-  - <<: *deploy
-    os: linux
-    env: CONDA_ENV=2.7
-         DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
-         PLAT=manylinux1_x86_64
-  - <<: *deploy
-    os: linux
-    env: CONDA_ENV=3.6
-         DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
-         PLAT=manylinux1_x86_64
+    - twine upload -u landlab -p$PYPI_PASS wheelhouse/*landlab*
 
 before_install:
 - |

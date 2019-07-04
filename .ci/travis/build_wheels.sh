@@ -4,17 +4,10 @@ set -e -x
 # Install a system package required by our library
 # yum install -y atlas-devel
 
-curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh > ./miniconda.sh
-bash ./miniconda.sh -b -p $(pwd)/anaconda
-export PATH="$(pwd)/anaconda/bin:$PATH"
-hash -r
-conda config --set always_yes yes --set changeps1 no
-conda create -n test_env python
-source activate test_env
-conda info -a && conda list
-
-pip install numpy
-pip install wheel /io/ -w wheelhouse
+for PYBIN in /opt/python/*/bin/; do
+  ${PYBIN}/pip install numpy
+  ${PYBIN}/pip install wheel /io/ -w wheelhouse
+done
 
 # Bundle external shared libraries into the wheels
 # for whl in wheelhouse/*.whl; do
