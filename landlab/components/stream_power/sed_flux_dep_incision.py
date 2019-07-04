@@ -222,7 +222,8 @@ class SedDepEroder(Component):
         slope_sensitive_threshold=False,
         # params for model numeric behavior:
         pseudoimplicit_repeats=5,
-        return_stream_properties=False):
+        return_stream_properties=False,
+    ):
         """Constructor for the class.
 
         Parameters

@@ -195,7 +195,7 @@ class Vegetation(Component):
         ksg_bare=0.012,
         kdd_bare=0.013,
         kws_bare=0.02,
-        method="Grid"
+        method="Grid",
     ):
         """
         Parameters
@@ -272,7 +272,8 @@ class Vegetation(Component):
             cd_bare=cd_bare,
             ksg_bare=ksg_bare,
             kdd_bare=kdd_bare,
-            kws_bare=kws_bare        )
+            kws_bare=kws_bare,
+        )
 
         for name in self._input_var_names:
             if name not in self.grid.at_cell:
@@ -322,7 +323,8 @@ class Vegetation(Component):
         cd_bare=0.009,
         ksg_bare=0.012,
         kdd_bare=0.013,
-        kws_bare=0.02    ):
+        kws_bare=0.02,
+    ):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
         """

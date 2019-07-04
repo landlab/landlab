@@ -163,7 +163,8 @@ class StreamPowerEroder(Component):
         b_sp=None,
         c_sp=None,
         use_W=None,
-        use_Q=None):
+        use_Q=None,
+    ):
         """Initialize the StreamPowerEroder
 
         Parameters
@@ -260,7 +261,7 @@ class StreamPowerEroder(Component):
             # manually set.
         else:
             self.set_threshold = False
-        
+
         if type(use_W) is bool:  # again for back-compatibility
             self.use_W = use_W
             self._W = None

@@ -149,7 +149,8 @@ class DepthSlopeProductErosion(Component):
         g=9.81,
         a_exp=1.0,
         tau_crit=0.0,
-        uplift_rate=0.0):
+        uplift_rate=0.0,
+    ):
         """Calculate detachment limited erosion rate on nodes using the shear
         stress equation, solved using the depth slope product.
 

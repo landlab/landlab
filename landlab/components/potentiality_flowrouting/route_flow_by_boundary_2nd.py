@@ -101,7 +101,7 @@ class PotentialityFlowRouter(Component):
         Chezys_C=None,
         Mannings_n=0.03,
         return_components=False,
-        suppress_closed_node_friction=True
+        suppress_closed_node_friction=True,
     ):
         """Initialize flow router.
 

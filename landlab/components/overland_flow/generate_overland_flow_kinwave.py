@@ -78,7 +78,8 @@ class KinwaveOverlandFlowModel(Component):
         precip_rate=1.0,
         precip_duration=1.0,
         infilt_rate=0.0,
-        roughness=0.01):
+        roughness=0.01,
+    ):
         """Initialize the KinwaveOverlandFlowModel.
 
         Parameters

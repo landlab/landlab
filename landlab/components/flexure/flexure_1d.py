@@ -170,7 +170,8 @@ class Flexure1D(Component):
         rho_mantle=3300.0,
         rho_water=1030.0,
         gravity=9.80665,
-        rows=None):
+        rows=None,
+    ):
         """Initialize the flexure component.
 
         Parameters

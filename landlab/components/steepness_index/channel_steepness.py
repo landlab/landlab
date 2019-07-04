@@ -121,7 +121,8 @@ class SteepnessFinder(Component):
         reference_concavity=0.5,
         min_drainage_area=1.0e6,
         elev_step=0.0,
-        discretization_length=0.0):
+        discretization_length=0.0,
+    ):
         """
         Parameters
         ----------
@@ -159,7 +160,9 @@ class SteepnessFinder(Component):
         assert elev_step >= 0.0, "elev_step must be >= 0!"
         self._elev_step = elev_step
         self._discretization = discretization_length
-        self.ksn = self._grid.add_zeros("node", "channel__steepness_index", noclobber=False)
+        self.ksn = self._grid.add_zeros(
+            "node", "channel__steepness_index", noclobber=False
+        )
         self._mask = self.grid.ones("node", dtype=bool)
         # this one needs modifying if smooth_elev
         self._elev = self.grid.at_node["topographic__elevation"]
@@ -183,7 +186,7 @@ class SteepnessFinder(Component):
         reftheta = self._reftheta
         min_drainage = self.min_drainage
         elev_step = self._elev_step
-        discretization_length =  self._discretization
+        discretization_length = self._discretization
 
         upstr_order = self.grid.at_node["flow__upstream_node_order"]
         # get an array of only nodes with A above threshold:

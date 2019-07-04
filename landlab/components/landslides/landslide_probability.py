@@ -293,7 +293,8 @@ class LandslideProbability(Component):
         groundwater__recharge_mean=None,
         groundwater__recharge_standard_deviation=None,
         groundwater__recharge_HSD_inputs=[],
-        seed=0):
+        seed=0,
+    ):
         """
         Parameters
         ----------

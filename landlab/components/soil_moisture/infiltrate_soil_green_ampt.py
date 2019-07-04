@@ -93,7 +93,7 @@ class SoilInfiltrationGreenAmpt(Component):
         surface_water_minimum_depth=1.0e-8,
         soil_pore_size_distribution_index=None,
         soil_bubbling_pressure=None,
-        wetting_front_capillary_pressure_head=None
+        wetting_front_capillary_pressure_head=None,
     ):
         """Kinematic wave approximation overland flow component.
 

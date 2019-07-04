@@ -149,15 +149,16 @@ class gFlex(Component):
         rho_mantle=3300.0,
         rho_fill=0.0,
         elastic_thickness=35000.0,
-        Method = "FD",
-        Solver = "direct",
-        PlateSolutionType = "vWC1994",
+        Method="FD",
+        Solver="direct",
+        PlateSolutionType="vWC1994",
         quiet=True,
         BC_W="0Displacement0Slope",
         BC_E="0Displacement0Slope",
         BC_N="0Displacement0Slope",
         BC_S="0Displacement0Slope",
-        g=9.81):
+        g=9.81,
+    ):
         """Constructor for Wickert's gFlex in Landlab."""
         assert RasterModelGrid in inspect.getmro(grid.__class__)
         if NO_GFLEX:
@@ -188,7 +189,6 @@ class gFlex(Component):
         flex.PlateSolutionType = PlateSolutionType
         flex.Solver = Solver
         flex.Quiet = quiet
-
 
         flex.E = float(Youngs_modulus)
         flex.nu = float(Poissons_ratio)

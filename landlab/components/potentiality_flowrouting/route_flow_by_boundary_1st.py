@@ -132,12 +132,7 @@ class PotentialityFlowRouter(Component):
     # if your flow isn't connecting up, this probably needs to be reduced
 
     def __init__(
-        self,
-        grid,
-        method="D8",
-        flow_equation="default",
-        Chezys_C=30.0,
-        Mannings_n=0.03
+        self, grid, method="D8", flow_equation="default", Chezys_C=30.0, Mannings_n=0.03
     ):
         """
         Parameters

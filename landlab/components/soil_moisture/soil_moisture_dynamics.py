@@ -202,7 +202,7 @@ class SoilMoisture(Component):
         beta_bare=13.8,
         LAI_max_bare=0.01,
         LAIR_max_bare=0.01,
-        method="Grid"
+        method="Grid",
     ):
         """
         Parameters
@@ -300,7 +300,7 @@ class SoilMoisture(Component):
             hgw_bare=hgw_bare,
             beta_bare=beta_bare,
             LAI_max_bare=LAI_max_bare,
-            LAIR_max_bare=LAIR_max_bare
+            LAIR_max_bare=LAIR_max_bare,
         )
 
         for name in self._input_var_names:
@@ -367,7 +367,7 @@ class SoilMoisture(Component):
         hgw_bare=0.1,
         beta_bare=13.8,
         LAI_max_bare=0.01,
-        LAIR_max_bare=0.01
+        LAIR_max_bare=0.01,
     ):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5

@@ -97,7 +97,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         F_f=0.0,
         discharge_field="surface_water__discharge",
         solver="basic",
-        dt_min=DEFAULT_MINIMUM_TIME_STEP):
+        dt_min=DEFAULT_MINIMUM_TIME_STEP,
+    ):
         """Initialize the ErosionDeposition model.
 
         Parameters

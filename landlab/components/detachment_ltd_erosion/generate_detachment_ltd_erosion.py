@@ -133,7 +133,8 @@ class DetachmentLtdErosion(Component):
         m_sp=0.5,
         n_sp=1.0,
         uplift_rate=0.0,
-        entrainment_threshold=0.0):
+        entrainment_threshold=0.0,
+    ):
         """Calculate detachment limited erosion rate on nodes.
 
         Landlab component that generalizes the detachment limited erosion

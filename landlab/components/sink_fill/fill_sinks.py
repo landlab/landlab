@@ -94,9 +94,7 @@ class SinkFiller(Component):
         "sediment_fill__depth": "Depth of sediment added at each" + "node",
     }
 
-    def __init__(
-        self, grid, routing="D8", apply_slope=False, fill_slope=1.0e-5
-    ):
+    def __init__(self, grid, routing="D8", apply_slope=False, fill_slope=1.0e-5):
         """
         Parameters
         ----------

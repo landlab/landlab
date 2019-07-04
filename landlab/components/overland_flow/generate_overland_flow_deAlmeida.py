@@ -167,7 +167,8 @@ class OverlandFlow(Component):
         g=9.81,
         theta=0.8,
         rainfall_intensity=0.0,
-        steep_slopes=False):
+        steep_slopes=False,
+    ):
         """Create an overland flow component.
 
         Parameters

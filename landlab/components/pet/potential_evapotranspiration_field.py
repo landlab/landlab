@@ -122,7 +122,7 @@ class PotentialEvapotranspiration(Component):
         lt=0.0,
         nd=365.0,
         MeanTmaxF=12.0,
-        delta_d=5.0
+        delta_d=5.0,
     ):
         """
         Parameters
@@ -195,7 +195,7 @@ class PotentialEvapotranspiration(Component):
         Tmin=0.0,
         Tmax=1.0,
         Tavg=0.5,
-        obs_radiation=350.0
+        obs_radiation=350.0,
     ):
         """Update fields with current conditions.
 

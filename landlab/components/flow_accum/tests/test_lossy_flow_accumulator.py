@@ -11,6 +11,7 @@ from numpy.testing import assert_array_equal
 
 from landlab import HexModelGrid, RasterModelGrid
 from landlab.components import LinearDiffuser
+from landlab.components.depression_finder.lake_mapper import DepressionFinderAndRouter
 from landlab.components.flow_accum import LossyFlowAccumulator
 from landlab.components.flow_director import (
     FlowDirectorD8,
@@ -18,7 +19,6 @@ from landlab.components.flow_director import (
     FlowDirectorMFD,
     FlowDirectorSteepest,
 )
-from landlab.components.depression_finder.lake_mapper import DepressionFinderAndRouter
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 

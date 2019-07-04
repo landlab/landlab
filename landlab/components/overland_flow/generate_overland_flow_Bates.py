@@ -100,7 +100,8 @@ class OverlandFlowBates(Component):
         alpha=0.7,
         mannings_n=0.03,
         g=9.81,
-        rainfall_intensity=0.0):
+        rainfall_intensity=0.0,
+    ):
 
         super(OverlandFlowBates, self).__init__(grid)
 

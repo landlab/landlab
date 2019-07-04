@@ -125,9 +125,7 @@ def test_sp_discharges_new():
     mg["node"]["topographic__elevation"] = z
 
     fr = FlowAccumulator(mg, flow_director="D8")
-    sp = StreamPowerEroder(
-        mg, K_sp=0.5, m_sp=0.5, n_sp=1.0, threshold_sp=0.0
-    )
+    sp = StreamPowerEroder(mg, K_sp=0.5, m_sp=0.5, n_sp=1.0, threshold_sp=0.0)
 
     # perform the loop (once!)
     for i in range(1):

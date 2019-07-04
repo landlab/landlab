@@ -108,7 +108,7 @@ class Radiation(Component):
         albedo=0.2,
         solar_constant=1366.67,
         clearsky_turbidity=2.0,
-        opt_airmass=0.0
+        opt_airmass=0.0,
     ):
         """
         Parameters

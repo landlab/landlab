@@ -183,7 +183,7 @@ class VegCA(Component):
         self._tpmax_tr_s = tpmaxTreeSeedling  # Maximum age - tree seedling
 
         self._method = method
-        
+
         assert_method_is_valid(self._method)
 
         super(VegCA, self).__init__(grid)

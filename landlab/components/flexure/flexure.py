@@ -154,7 +154,7 @@ class Flexure(Component):
         youngs=7e10,
         method="airy",
         rho_mantle=3300.0,
-        gravity=9.80665
+        gravity=9.80665,
     ):
         """Initialize the flexure component.
 

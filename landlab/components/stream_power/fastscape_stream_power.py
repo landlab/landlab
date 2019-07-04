@@ -411,9 +411,7 @@ class FastscapeEroder(Component):
 
         return self._grid
 
-    def run_one_step(
-        self, dt, flooded_nodes=None, rainfall_intensity_if_used=None
-    ):
+    def run_one_step(self, dt, flooded_nodes=None, rainfall_intensity_if_used=None):
         """Erode for a single time step.
 
         This method implements the stream power erosion across one time
