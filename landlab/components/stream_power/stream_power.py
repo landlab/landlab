@@ -6,7 +6,6 @@ import numpy as np
 from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX, Component
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
-from landlab.utils.decorators import use_file_name_or_kwds
 
 from .cfuncs import (
     brent_method_erode_fixed_threshold,
@@ -152,7 +151,6 @@ class StreamPowerEroder(Component):
         "topographic__steepest_slope": "Node array of steepest *downhill* slopes",
     }
 
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -165,9 +163,7 @@ class StreamPowerEroder(Component):
         b_sp=None,
         c_sp=None,
         use_W=None,
-        use_Q=None,
-        **kwds
-    ):
+        use_Q=None):
         """Initialize the StreamPowerEroder
 
         Parameters
@@ -264,11 +260,7 @@ class StreamPowerEroder(Component):
             # manually set.
         else:
             self.set_threshold = False
-        try:
-            self.tstep = kwds["dt"]
-        except KeyError:
-            self.tstep = None
-            # retained for back compatibility; undocumented functionality
+        
         if type(use_W) is bool:  # again for back-compatibility
             self.use_W = use_W
             self._W = None
@@ -406,7 +398,7 @@ class StreamPowerEroder(Component):
             controls how the component maps these link values onto the arrays.
             We assume there is always a 1:1 mapping (pass the values already
             projected onto the nodes using slopes_at_nodes if not). Other
-            components, e.g., flow_routing.route_flow_dn, may provide the
+            components, e.g., the FlowAccumulator, may provide the
             necessary outputs to make the mapping easier: e.g., just pass
             'flow__link_to_receiver_node' from that module (the default name).
             If the component cannot find an existing mapping through this
@@ -637,7 +629,7 @@ class StreamPowerEroder(Component):
 
         return grid, z, self.stream_power_erosion
 
-    def run_one_step(self, dt, flooded_nodes=None, **kwds):
+    def run_one_step(self, dt, flooded_nodes=None):
         """
         A simple, explicit implementation of a stream power algorithm.
 

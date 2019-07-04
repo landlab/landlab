@@ -195,9 +195,7 @@ class DrainageDensity(Component):
         slope_coefficient=None,
         area_exponent=None,
         slope_exponent=None,
-        channelization_threshold=None,
-        **kwds
-    ):
+        channelization_threshold=None    ):
         """Initialize the DrainageDensity component.
 
         Parameters

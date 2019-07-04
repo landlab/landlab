@@ -19,10 +19,6 @@ from numpy.testing import assert_array_almost_equal
 from landlab import RasterModelGrid
 from landlab.components.nonlinear_diffusion import PerronNLDiffuse
 
-_THIS_DIR = os.path.abspath(os.path.dirname(__file__))
-
-INPUTS = os.path.join(_THIS_DIR, "drive_perron_params.txt")
-
 nrows = 10
 ncols = 20
 dx = 1.0
@@ -234,21 +230,21 @@ t_z = np.array(
         0.0,
     ]
 )
+dt = 0.1
 
 
 def test_sniff_Perron():
     mg = RasterModelGrid((nrows, ncols), xy_spacing=(dx, dx))
     mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
     mg.add_zeros("topographic__elevation", at="node")
-    diffusion_component = PerronNLDiffuse(mg, INPUTS)
+    diffusion_component = PerronNLDiffuse(mg, nonlinear_diffusivity=100.0, S_crit=0.56)
 
     elapsed_time = 0.0
     while elapsed_time < time_to_run:
-        diffusion_component.input_timestep(dt)
         mg.at_node["topographic__elevation"][mg.core_nodes] += uplift * dt
         mg.at_node["topographic__elevation"][mg.nodes_at_left_edge] += uplift * dt
         mg.at_node["topographic__elevation"][mg.nodes_at_bottom_edge] += uplift * dt
-        mg = diffusion_component.diffuse(mg, elapsed_time)
+        diffusion_component.run_one_step(dt)
         elapsed_time += dt
 
     assert_array_almost_equal(mg.at_node["topographic__elevation"], t_z)

@@ -83,8 +83,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         n_sp=1.0,
         threshold_sp=1.0,
         rainfall_intensity=1.0,
-        use_Q=None,
-        **kwargs
+        use_Q=None
     ):
         """Initialize StreamPowerSmoothThresholdEroder."""
         if "flow__receiver_node" in grid.at_node:
@@ -110,8 +109,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
             m_sp=m_sp,
             n_sp=n_sp,
             threshold_sp=threshold_sp,
-            rainfall_intensity=rainfall_intensity,
-            **kwargs
+            rainfall_intensity=rainfall_intensity
         )
 
         # Handle "use_Q" option (ideally should be done by base class, but
@@ -131,7 +129,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         self.gamma = grid.empty(at="node")
         self.delta = grid.empty(at="node")
 
-    def run_one_step(self, dt, flooded_nodes=None, runoff_rate=None, **kwds):
+    def run_one_step(self, dt, flooded_nodes=None, runoff_rate=None):
         """Run one forward iteration of duration dt.
 
         Parameters

@@ -9,11 +9,11 @@ Created on Mon Oct 19.
 import numpy as np
 
 import landlab
-from landlab import Component, FieldError, ModelParameterDictionary
+from landlab import Component, FieldError
 from landlab.components import DepressionFinderAndRouter, FlowAccumulator
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.grid.base import BAD_INDEX_VALUE
-from landlab.utils.decorators import deprecated, use_file_name_or_kwds
+from landlab.utils.decorators import deprecated
 
 # TODO: this should probably follow Barnes et al., 2014 for max efficiency
 
@@ -94,9 +94,8 @@ class SinkFiller(Component):
         "sediment_fill__depth": "Depth of sediment added at each" + "node",
     }
 
-    @use_file_name_or_kwds
     def __init__(
-        self, grid, routing="D8", apply_slope=False, fill_slope=1.0e-5, **kwds
+        self, grid, routing="D8", apply_slope=False, fill_slope=1.0e-5
     ):
         """
         Parameters
@@ -144,56 +143,10 @@ class SinkFiller(Component):
                 self.num_nbrs = 4
         self._fill_slope = fill_slope
         self._apply_slope = apply_slope
-        self.initialize()
 
-    def initialize(self, input_stream=None):
-        """
-        The BMI-style initialize method takes an optional input_stream
-        parameter, which may be either a ModelParameterDictionary object or
-        an input stream from which a ModelParameterDictionary can read values.
-        """
-        # Create a ModelParameterDictionary for the inputs
-        if input_stream is None:
-            inputs = None
-        elif type(input_stream) == ModelParameterDictionary:
-            inputs = input_stream
-        else:
-            inputs = ModelParameterDictionary(input_stream)
+        self._elev = self._grid.at_node["topographic__elevation"]
+        self.topo_field_name = "topographic__elevation"
 
-        # Make sure the grid includes elevation data. This means either:
-        #  1. The grid has a node field called 'topographic__elevation', or
-        #  2. The input file has an item called 'ELEVATION_FIELD_NAME' *and*
-        #     a field by this name exists in the grid.
-        try:
-            self._elev = self._grid.at_node["topographic__elevation"]
-        except FieldError:
-            try:
-                self.topo_field_name = inputs.read_string("ELEVATION_" + "FIELD_NAME")
-            except AttributeError:
-                print("Error: Because your grid does not have a node field")
-                print('called "topographic__elevation", you need to pass the')
-                print("name of a text input file or ModelParameterDictionary,")
-                print("and this file or dictionary needs to include the name")
-                print("of another field in your grid that contains your")
-                print("elevation data.")
-                raise AttributeError
-            except MissingKeyError:
-                print("Error: Because your grid does not have a node field")
-                print('called "topographic__elevation", your input file (or')
-                print("ModelParameterDictionary) must include an entry with")
-                print('the key "ELEVATION_FIELD_NAME", which gives the name')
-                print("of a field in your grid that contains your elevation")
-                print("data.")
-                raise MissingKeyError("ELEVATION_FIELD_NAME")
-            try:
-                self._elev = self._grid.at_node[self.topo_field_name]
-            except AttributeError:
-                print(
-                    "Your grid does not seem to have a node field called",
-                    self.topo_field_name,
-                )
-        else:
-            self.topo_field_name = "topographic__elevation"
         # create the only new output field:
         self.sed_fill_depth = self._grid.add_zeros(
             "node", "sediment_fill__depth", noclobber=False
@@ -202,22 +155,17 @@ class SinkFiller(Component):
         self._lf = DepressionFinderAndRouter(self._grid, routing=self._routing)
         self._fr = FlowAccumulator(self._grid, flow_director=self._routing)
 
-    def fill_pits(self, **kwds):
+    def fill_pits(self):
         """
         This is a synonym for the main method :func:`run_one_step`.
         """
-        self.run_one_step(**kwds)
+        self.run_one_step()
 
-    def run_one_step(self, **kwds):
+    def run_one_step(self):
         """
         This is the main method. Call it to fill depressions in a starting
         topography.
         """
-        # added for back-compatibility with old formats
-        try:
-            self._apply_slope = kwds["apply_slope"]
-        except KeyError:
-            pass
         self.original_elev = self._elev.copy()
         # We need this, as we'll have to do ALL this again if we manage
         # to jack the elevs too high in one of the "subsidiary" lakes.

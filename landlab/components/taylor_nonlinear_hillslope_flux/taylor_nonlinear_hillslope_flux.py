@@ -288,7 +288,7 @@ class TaylorNonLinearDiffuser(Component):
             # Update topography
             self.elev[self.grid.core_nodes] -= dqdx[self.grid.core_nodes] * self.sub_dt
 
-    def run_one_step(self, dt, **kwds):
+    def run_one_step(self, dt):
         """
         Advance cubic soil flux component by one time step of size dt.
 
@@ -297,4 +297,4 @@ class TaylorNonLinearDiffuser(Component):
         dt: float (time)
             The imposed timestep.
         """
-        self.soilflux(dt, **kwds)
+        self.soilflux(dt)

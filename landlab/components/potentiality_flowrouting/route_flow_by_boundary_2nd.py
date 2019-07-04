@@ -23,7 +23,6 @@ from landlab import (
     FieldError,
     RasterModelGrid,
 )
-from landlab.utils.decorators import use_file_name_or_kwds
 
 
 class PotentialityFlowRouter(Component):
@@ -94,7 +93,6 @@ class PotentialityFlowRouter(Component):
         1.0e-24
     )  # if your flow isn't connecting up, this probably needs to be reduced
 
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -103,8 +101,7 @@ class PotentialityFlowRouter(Component):
         Chezys_C=None,
         Mannings_n=0.03,
         return_components=False,
-        suppress_closed_node_friction=True,
-        **kwds
+        suppress_closed_node_friction=True
     ):
         """Initialize flow router.
 
@@ -187,7 +184,7 @@ class PotentialityFlowRouter(Component):
         else:
             self._discharges_at_link = self.grid.empty("link")
 
-    def route_flow(self, **kwds):
+    def route_flow(self,):
         """
         """
         grid = self.grid
@@ -293,8 +290,8 @@ class PotentialityFlowRouter(Component):
         else:
             pass
 
-    def run_one_step(self, **kwds):
-        self.route_flow(**kwds)
+    def run_one_step(self):
+        self.route_flow()
 
     @property
     def discharges_at_links(self):

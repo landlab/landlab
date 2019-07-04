@@ -2,8 +2,6 @@ import numpy as np
 
 from landlab import Component
 
-from ...utils.decorators import use_file_name_or_kwds
-
 _VALID_METHODS = set(["Grid", "Multi"])
 
 
@@ -150,7 +148,6 @@ class SoilMoisture(Component):
              saturation analysis.",
     }
 
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -205,7 +202,7 @@ class SoilMoisture(Component):
         beta_bare=13.8,
         LAI_max_bare=0.01,
         LAIR_max_bare=0.01,
-        **kwds
+        method="Grid"
     ):
         """
         Parameters
@@ -244,8 +241,9 @@ class SoilMoisture(Component):
             Maximum leaf area index (m^2/m^2).
         LAIR_max: float, optional
             Reference leaf area index (m^2/m^2).
+        method: str
         """
-        self._method = kwds.pop("method", "Grid")
+        self._method = method
 
         assert_method_is_valid(self._method)
 
@@ -302,8 +300,7 @@ class SoilMoisture(Component):
             hgw_bare=hgw_bare,
             beta_bare=beta_bare,
             LAI_max_bare=LAI_max_bare,
-            LAIR_max_bare=LAIR_max_bare,
-            **kwds
+            LAIR_max_bare=LAIR_max_bare
         )
 
         for name in self._input_var_names:
@@ -370,8 +367,7 @@ class SoilMoisture(Component):
         hgw_bare=0.1,
         beta_bare=13.8,
         LAI_max_bare=0.01,
-        LAIR_max_bare=0.01,
-        **kwds
+        LAIR_max_bare=0.01
     ):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5

@@ -196,7 +196,6 @@ class KinwaveImplicitOverlandFlow(Component):
         changing_topo=False,
         depth_exp=1.5,
         weight=1.0,
-        **kwds
     ):
         """Initialize the KinwaveOverlandFlowModel.
 
@@ -276,7 +275,7 @@ class KinwaveImplicitOverlandFlow(Component):
         # Flag to let us know whether this is our first iteration
         self.first_iteration = True
 
-    def run_one_step(self, dt, current_time=0.0, runoff_rate=None, **kwds):
+    def run_one_step(self, dt, current_time=0.0, runoff_rate=None):
         """Calculate water flow for a time period `dt`.
         """
         # Handle runoff rate

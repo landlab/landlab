@@ -133,9 +133,7 @@ class DetachmentLtdErosion(Component):
         m_sp=0.5,
         n_sp=1.0,
         uplift_rate=0.0,
-        entrainment_threshold=0.0,
-        **kwds
-    ):
+        entrainment_threshold=0.0):
         """Calculate detachment limited erosion rate on nodes.
 
         Landlab component that generalizes the detachment limited erosion
@@ -162,7 +160,7 @@ class DetachmentLtdErosion(Component):
         entrainment_threshold : float, optional
             threshold for sediment movement
         """
-        super(DetachmentLtdErosion, self).__init__(grid, **kwds)
+        super(DetachmentLtdErosion, self).__init__(grid)
 
         self.K = K_sp
         self.m = m_sp

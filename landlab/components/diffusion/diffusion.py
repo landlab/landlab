@@ -17,7 +17,6 @@ from landlab import (
     FieldError,
     RasterModelGrid,
 )
-from landlab.utils.decorators import use_file_name_or_kwds
 
 _ALPHA = 0.15  # time-step stability factor
 # ^0.25 not restrictive enough at meter scales w S~1 (possible cases)
@@ -133,10 +132,7 @@ class LinearDiffuser(Component):
         "hillslope_sediment__unit_volume_flux": "Volume flux per unit width along links",
     }
 
-    @use_file_name_or_kwds
-    def __init__(
-        self, grid, linear_diffusivity=None, method="simple", deposit=True, **kwds
-    ):
+    def __init__(self, grid, linear_diffusivity=None, method="simple", deposit=True):
         """
         Parameters
         ----------
@@ -222,21 +218,8 @@ class LinearDiffuser(Component):
 
         self._deposit = deposit
 
-        # for component back compatibility (undocumented):
-        # note component can NO LONGER do internal uplift, at all.
-        # ###
-        self.timestep_in = kwds.pop("dt", None)
-        if "values_to_diffuse" in kwds.keys():
-            self.values_to_diffuse = kwds.pop("values_to_diffuse")
-            for mytups in (self._input_var_names, self._output_var_names):
-                myset = set(mytups)
-                myset.remove("topographic__elevation")
-                myset.add(self.values_to_diffuse)
-                mytups = tuple(myset)
-            for mydicts in (self._var_units, self._var_mapping, self._var_doc):
-                mydicts[self.values_to_diffuse] = mydicts.pop("topographic__elevation")
-        else:
-            self.values_to_diffuse = "topographic__elevation"
+        self.values_to_diffuse = "topographic__elevation"
+
         # Raise an error if somehow someone is using this weird functionality
         if self._grid is None:
             raise ValueError("You must now provide an existing grid!")
@@ -407,14 +390,10 @@ class LinearDiffuser(Component):
                 self._hoz_link_neighbors == -1,
             )
 
-    def diffuse(self, dt, **kwds):
+    def diffuse(self, dt):
         """
         See :func:`run_one_step`.
         """
-        if "internal_uplift" in kwds.keys():
-            raise KeyError(
-                "LinearDiffuser can no longer work with internal " + "uplift"
-            )
         mg = self.grid
         z = self.grid.at_node[self.values_to_diffuse]
 
@@ -585,7 +564,7 @@ class LinearDiffuser(Component):
 
         return self.grid
 
-    def run_one_step(self, dt, **kwds):
+    def run_one_step(self, dt):
         """Run the diffuser for one timestep, dt.
 
         If the imposed timestep dt is longer than the Courant-Friedrichs-Lewy
@@ -597,7 +576,7 @@ class LinearDiffuser(Component):
         dt : float (time)
             The imposed timestep.
         """
-        self.diffuse(dt, **kwds)
+        self.diffuse(dt)
 
     @property
     def time_step(self):

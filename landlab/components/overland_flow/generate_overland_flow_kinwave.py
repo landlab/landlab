@@ -78,9 +78,7 @@ class KinwaveOverlandFlowModel(Component):
         precip_rate=1.0,
         precip_duration=1.0,
         infilt_rate=0.0,
-        roughness=0.01,
-        **kwds
-    ):
+        roughness=0.01):
         """Initialize the KinwaveOverlandFlowModel.
 
         Parameters
@@ -138,7 +136,7 @@ class KinwaveOverlandFlowModel(Component):
         self.sqrt_slope = np.sqrt(self.slope)
         self.sign_slope = np.sign(self.slope)
 
-    def run_one_step(self, dt, current_time=0.0, **kwds):
+    def run_one_step(self, dt, current_time=0.0):
         """Calculate water flow for a time period `dt`.
 
         Default units for dt are *seconds*.

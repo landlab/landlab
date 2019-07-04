@@ -100,11 +100,9 @@ class OverlandFlowBates(Component):
         alpha=0.7,
         mannings_n=0.03,
         g=9.81,
-        rainfall_intensity=0.0,
-        **kwds
-    ):
+        rainfall_intensity=0.0):
 
-        super(OverlandFlowBates, self).__init__(grid, **kwds)
+        super(OverlandFlowBates, self).__init__(grid)
 
         # First we copy our grid
         self._grid = grid
@@ -155,7 +153,7 @@ class OverlandFlowBates(Component):
 
         return self.dt
 
-    def overland_flow(self, dt=None, **kwds):
+    def overland_flow(self, dt=None):
         """
         For one time step, this generates 'overland flow' across a given grid
         by calculating discharge at each node.

@@ -2,8 +2,6 @@ import numpy as np
 
 from landlab import Component
 
-from ...utils.decorators import use_file_name_or_kwds
-
 _VALID_METHODS = set(["Grid"])
 
 
@@ -101,7 +99,6 @@ class Radiation(Component):
         "radiation__net_shortwave_flux": "net incident shortwave radiation over the time step",
     }
 
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -111,8 +108,7 @@ class Radiation(Component):
         albedo=0.2,
         solar_constant=1366.67,
         clearsky_turbidity=2.0,
-        opt_airmass=0.0,
-        **kwds
+        opt_airmass=0.0
     ):
         """
         Parameters
@@ -145,7 +141,7 @@ class Radiation(Component):
 
         _assert_method_is_valid(self._method)
 
-        super(Radiation, self).__init__(grid, **kwds)
+        super(Radiation, self).__init__(grid)
 
         for name in self._input_var_names:
             if name not in self.grid.at_node:
@@ -172,7 +168,7 @@ class Radiation(Component):
         self._cell_values["Slope"] = self._slope
         self._cell_values["Aspect"] = self._aspect
 
-    def update(self, current_time, hour=12.0, **kwds):
+    def update(self, current_time, hour=12.0):
         """Update fields with current loading conditions.
 
         Parameters

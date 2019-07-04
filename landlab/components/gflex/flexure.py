@@ -149,13 +149,15 @@ class gFlex(Component):
         rho_mantle=3300.0,
         rho_fill=0.0,
         elastic_thickness=35000.0,
+        Method = "FD",
+        Solver = "direct",
+        PlateSolutionType = "vWC1994",
+        quiet=True,
         BC_W="0Displacement0Slope",
         BC_E="0Displacement0Slope",
         BC_N="0Displacement0Slope",
         BC_S="0Displacement0Slope",
-        g=9.81,
-        **kwds
-    ):
+        g=9.81):
         """Constructor for Wickert's gFlex in Landlab."""
         assert RasterModelGrid in inspect.getmro(grid.__class__)
         if NO_GFLEX:
@@ -182,24 +184,11 @@ class gFlex(Component):
         # we assume these properties are fixed in this relatively
         # straightforward implementation, but they can still be set if you
         # want:
-        try:
-            flex.Method = kwds["Method"]
-        except KeyError:
-            flex.Method = "FD"
-        try:
-            flex.PlateSolutionType = kwds["PlateSolutionType"]
-        except KeyError:
-            flex.PlateSolutionType = "vWC1994"
-        try:
-            flex.Solver = kwds["Solver"]
-        except KeyError:
-            flex.Solver = "direct"
-        try:
-            quiet = kwds["Quiet"]
-        except KeyError:
-            flex.Quiet = True
-        else:
-            flex.Quiet = bool(quiet)
+        flex.Method = Method
+        flex.PlateSolutionType = PlateSolutionType
+        flex.Solver = Solver
+        flex.Quiet = quiet
+
 
         flex.E = float(Youngs_modulus)
         flex.nu = float(Poissons_ratio)
@@ -249,14 +238,12 @@ class gFlex(Component):
             noclobber=False,
         )
 
-    def flex_lithosphere(self, **kwds):
+    def flex_lithosphere(self):
         """
         Executes (& finalizes, from the perspective of gFlex) the core method
         of gFlex. Note that flexure of the lithosphere proceeds to steady state
         in a single timestep.
         """
-        # note kwds is redundant at the moment, but could be used subsequently
-        # for dynamic control over params
         self.flex.qs = (
             self.grid.at_node["surface_load__stress"].view().reshape(self.grid.shape)
         )
@@ -281,7 +268,7 @@ class gFlex(Component):
             self.grid.at_node["topographic__elevation"] += topo_diff
             self.pre_flex += topo_diff
 
-    def run_one_step(self, **kwds):
+    def run_one_step(self):
         """
         Flex the lithosphere to find its steady state form.
 
@@ -291,4 +278,4 @@ class gFlex(Component):
         ----------
         None
         """
-        self.flex_lithosphere(**kwds)
+        self.flex_lithosphere()

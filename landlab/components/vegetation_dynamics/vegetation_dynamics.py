@@ -2,8 +2,6 @@ import numpy as np
 
 from landlab import Component
 
-from ...utils.decorators import use_file_name_or_kwds
-
 _VALID_METHODS = set(["Grid"])
 
 
@@ -160,7 +158,6 @@ class Vegetation(Component):
              bare=3, shrub_seedling=4, tree_seedling=5",
     }
 
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -198,7 +195,7 @@ class Vegetation(Component):
         ksg_bare=0.012,
         kdd_bare=0.013,
         kws_bare=0.02,
-        **kwds
+        method="Grid"
     ):
         """
         Parameters
@@ -233,8 +230,9 @@ class Vegetation(Component):
             Decay coefficient of aboveground dead biomass (d-1).
         kws: float, optional
             Maximum drought induced foliage loss rate (d-1).
+        method: str
         """
-        self._method = kwds.pop("method", "Grid")
+        self._method = method
 
         assert_method_is_valid(self._method)
 
@@ -274,9 +272,7 @@ class Vegetation(Component):
             cd_bare=cd_bare,
             ksg_bare=ksg_bare,
             kdd_bare=kdd_bare,
-            kws_bare=kws_bare,
-            **kwds
-        )
+            kws_bare=kws_bare        )
 
         for name in self._input_var_names:
             if name not in self.grid.at_cell:
@@ -326,9 +322,7 @@ class Vegetation(Component):
         cd_bare=0.009,
         ksg_bare=0.012,
         kdd_bare=0.013,
-        kws_bare=0.02,
-        **kwds
-    ):
+        kws_bare=0.02    ):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
         """
@@ -416,7 +410,7 @@ class Vegetation(Component):
         self._Blive_ini = self._Blive_init * np.ones(self.grid.number_of_cells)
         self._Bdead_ini = self._Bdead_init * np.ones(self.grid.number_of_cells)
 
-    def update(self, PETthreshold_switch=0, Tb=24.0, Tr=0.01, **kwds):
+    def update(self, PETthreshold_switch=0, Tb=24.0, Tr=0.01):
         """
         Update fields with current loading conditions.
 

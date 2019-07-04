@@ -149,9 +149,7 @@ class DepthSlopeProductErosion(Component):
         g=9.81,
         a_exp=1.0,
         tau_crit=0.0,
-        uplift_rate=0.0,
-        **kwds
-    ):
+        uplift_rate=0.0):
         """Calculate detachment limited erosion rate on nodes using the shear
         stress equation, solved using the depth slope product.
 
@@ -179,7 +177,7 @@ class DepthSlopeProductErosion(Component):
         uplift_rate : float, optional
             uplift rate applied to the topographic surface, m/s
         """
-        super(DepthSlopeProductErosion, self).__init__(grid, **kwds)
+        super(DepthSlopeProductErosion, self).__init__(grid)
 
         self.a = a_exp
         self.g = g

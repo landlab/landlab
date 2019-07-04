@@ -70,9 +70,7 @@ class ExponentialWeatherer(Component):
         self,
         grid,
         soil_production__maximum_rate=1.0,
-        soil_production__decay_depth=1.0,
-        **kwds
-    ):
+        soil_production__decay_depth=1.0):
 
         # Store grid and parameters
         self._grid = grid
@@ -92,7 +90,7 @@ class ExponentialWeatherer(Component):
         else:
             self.soil_prod_rate = grid.add_zeros("node", "soil_production__rate")
 
-    def calc_soil_prod_rate(self, **kwds):
+    def calc_soil_prod_rate(self):
         """Calculate soil production rate.
         """
 
@@ -104,7 +102,7 @@ class ExponentialWeatherer(Component):
         # weather
         # self.weather[self._active_nodes] = (self.wnot*np.exp(-self.depth[self._active_nodes]/self.wstar))
 
-    def run_one_step(self, dt=None, **kwds):
+    def run_one_step(self):
         """
 
         Parameters
@@ -112,4 +110,4 @@ class ExponentialWeatherer(Component):
         dt: float
             Used only for compatibility with standard run_one_step.
         """
-        self.calc_soil_prod_rate(**kwds)
+        self.calc_soil_prod_rate()

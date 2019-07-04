@@ -33,7 +33,6 @@ from scipy import interpolate
 from statsmodels.distributions.empirical_distribution import ECDF
 
 from landlab import Component
-from landlab.utils.decorators import use_file_name_or_kwds
 
 
 class LandslideProbability(Component):
@@ -282,20 +281,19 @@ class LandslideProbability(Component):
     }
 
     # Run Component
-    @use_file_name_or_kwds
+
     def __init__(
         self,
         grid,
         number_of_iterations=250,
+        g=None,
         groundwater__recharge_distribution="uniform",
         groundwater__recharge_min_value=20.0,
         groundwater__recharge_max_value=120.0,
         groundwater__recharge_mean=None,
         groundwater__recharge_standard_deviation=None,
         groundwater__recharge_HSD_inputs=[],
-        seed=0,
-        **kwds
-    ):
+        seed=0):
         """
         Parameters
         ----------
@@ -340,7 +338,7 @@ class LandslideProbability(Component):
 
         # Store grid and parameters and do unit conversions
         self.n = int(number_of_iterations)
-        self._g = kwds.get("g", scipy.constants.g)
+        self._g = g or scipy.constants.g
         self.groundwater__recharge_distribution = groundwater__recharge_distribution
         # Following code will deal with the input distribution and associated
         # parameters
@@ -525,7 +523,7 @@ class LandslideProbability(Component):
         # probability: No. unstable values/total No. of values (n)
         self._landslide__probability_of_failure = np.float32(count) / self.n
 
-    def calculate_landslide_probability(self, **kwds):
+    def calculate_landslide_probability(self):
         """Main method of Landslide Probability class.
 
         Method creates arrays for output variables then loops through all

@@ -2,8 +2,6 @@ import numpy as np
 
 from landlab import Component
 
-from ...utils.decorators import use_file_name_or_kwds
-
 _VALID_METHODS = set(["Grid"])
 GRASS = 0
 SHRUB = 1
@@ -98,7 +96,6 @@ class VegCA(Component):
         "plant__age": "Age of plant",
     }
 
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -120,7 +117,7 @@ class VegCA(Component):
         ThetaTreeSeedling=0.64,
         PmbTreeSeedling=0.03,
         tpmaxTreeSeedling=18,
-        **kwds
+        method="Grid",
     ):
         """
         Parameters
@@ -163,8 +160,9 @@ class VegCA(Component):
             Background mortality probability of tree seedling.
         tpmaxTreeSeedling: float, optional
             Maximum age of tree seedling (years).
+        method: str, optional
+
         """
-        self._method = kwds.pop("method", "Grid")
         self._Pemaxg = Pemaxg  # Pe-max-grass - max probability
         self._Pemaxsh = Pemaxsh  # Pe-max-shrub
         self._Pemaxtr = Pemaxtr  # Pe-max-tree
@@ -184,6 +182,8 @@ class VegCA(Component):
         self._tpmax_sh_s = tpmaxShrubSeedling  # Maximum age - shrub seedling
         self._tpmax_tr_s = tpmaxTreeSeedling  # Maximum age - tree seedling
 
+        self._method = method
+        
         assert_method_is_valid(self._method)
 
         super(VegCA, self).__init__(grid)

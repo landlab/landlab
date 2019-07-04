@@ -222,9 +222,7 @@ class SedDepEroder(Component):
         slope_sensitive_threshold=False,
         # params for model numeric behavior:
         pseudoimplicit_repeats=5,
-        return_stream_properties=False,
-        **kwds
-    ):
+        return_stream_properties=False):
         """Constructor for the class.
 
         Parameters
@@ -646,7 +644,7 @@ class SedDepEroder(Component):
         sed_flux_out = rel_sed_flux * trans_cap_vol_out
         return dz, sed_flux_out, rel_sed_flux, error_in_sed_flux_fn
 
-    def erode(self, dt, flooded_depths=None, **kwds):
+    def erode(self, dt, flooded_depths=None):
         """Erode and deposit on the channel bed for a duration of *dt*.
 
         Erosion occurs according to the sediment dependent rules specified
@@ -1044,7 +1042,7 @@ class SedDepEroder(Component):
 
         return grid, grid.at_node["topographic__elevation"]
 
-    def run_one_step(self, dt, flooded_depths=None, **kwds):
+    def run_one_step(self, dt, flooded_depths=None):
         """Run the component across one timestep increment, dt.
 
         Erosion occurs according to the sediment dependent rules specified
@@ -1061,7 +1059,7 @@ class SedDepEroder(Component):
             with sediment (...but does NOT update any other related lake
             fields).
         """
-        self.erode(dt=dt, flooded_depths=flooded_depths, **kwds)
+        self.erode(dt=dt, flooded_depths=flooded_depths)
 
     @property
     @make_return_array_immutable

@@ -4,21 +4,15 @@ import os
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from landlab import ModelParameterDictionary, RasterModelGrid
+from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator, StreamPowerEroder
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_sp_discharges_old():
-    input_str = os.path.join(_THIS_DIR, "test_sp_params_discharge.txt")
-    inputs = ModelParameterDictionary(input_str)
-    nrows = 5
-    ncols = 5
-    dx = inputs.read_float("dx")
-    dt = inputs.read_float("dt")
-
-    mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
+    dt = 1.0
+    mg = RasterModelGrid((5, 5))
     mg.add_zeros("topographic__elevation", at="node")
     z = np.array(
         [
@@ -53,7 +47,7 @@ def test_sp_discharges_old():
 
     fr = FlowAccumulator(mg, flow_director="D8")
     my_Q = mg.at_node["surface_water__discharge"]
-    sp = StreamPowerEroder(mg, input_str, use_Q=my_Q)
+    sp = StreamPowerEroder(mg, K_sp=0.5, m_sp=0.5, n_sp=1.0, use_Q=my_Q)
 
     # perform the loop (once!)
     for i in range(1):
@@ -95,14 +89,9 @@ def test_sp_discharges_old():
 
 
 def test_sp_discharges_new():
-    input_str = os.path.join(_THIS_DIR, "test_sp_params_discharge_new.txt")
-    inputs = ModelParameterDictionary(input_str, auto_type=True)
-    nrows = 5
-    ncols = 5
-    dx = inputs.read_float("dx")
-    dt = inputs.read_float("dt")
+    dt = 1.0
 
-    mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
+    mg = RasterModelGrid((5, 5))
     mg.add_zeros("topographic__elevation", at="node")
     z = np.array(
         [
@@ -136,7 +125,9 @@ def test_sp_discharges_new():
     mg["node"]["topographic__elevation"] = z
 
     fr = FlowAccumulator(mg, flow_director="D8")
-    sp = StreamPowerEroder(mg, **inputs)
+    sp = StreamPowerEroder(
+        mg, K_sp=0.5, m_sp=0.5, n_sp=1.0, threshold_sp=0.0
+    )
 
     # perform the loop (once!)
     for i in range(1):

@@ -64,7 +64,6 @@ import numpy as np
 
 from landlab import Component
 
-from ...utils.decorators import use_file_name_or_kwds
 from .ext import subside_load_1d
 
 
@@ -162,7 +161,6 @@ class Flexure1D(Component):
 
     POISSON = 0.25
 
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -172,9 +170,7 @@ class Flexure1D(Component):
         rho_mantle=3300.0,
         rho_water=1030.0,
         gravity=9.80665,
-        rows=None,
-        **kwds
-    ):
+        rows=None):
         """Initialize the flexure component.
 
         Parameters
@@ -209,7 +205,7 @@ class Flexure1D(Component):
         self.gravity = gravity
         self.eet = eet
 
-        super(Flexure1D, self).__init__(grid, **kwds)
+        super(Flexure1D, self).__init__(grid)
 
         for name in self._input_var_names + self._output_var_names:
             if name not in self.grid.at_node:

@@ -16,7 +16,6 @@ import inspect
 import numpy as np
 
 from landlab import FIXED_LINK, INACTIVE_LINK, Component, FieldError, RasterModelGrid
-from landlab.utils.decorators import use_file_name_or_kwds
 
 
 class PotentialityFlowRouter(Component):
@@ -125,15 +124,13 @@ class PotentialityFlowRouter(Component):
     _min_slope_thresh = 1.0e-24
     # if your flow isn't connecting up, this probably needs to be reduced
 
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
         method="D8",
         flow_equation="default",
         Chezys_C=30.0,
-        Mannings_n=0.03,
-        **kwds
+        Mannings_n=0.03
     ):
         """
         Parameters
@@ -204,7 +201,7 @@ class PotentialityFlowRouter(Component):
         else:
             self._discharges_at_link = self.grid.empty("link")
 
-    def route_flow(self, **kwds):
+    def route_flow(self):
         """
         """
         grid = self.grid
@@ -302,12 +299,12 @@ class PotentialityFlowRouter(Component):
         else:
             pass
 
-    def run_one_step(self, **kwds):
+    def run_one_step(self):
         """Route surface-water flow over a landscape.
 
         Both convergent and divergent flow can occur.
         """
-        self.route_flow(**kwds)
+        self.route_flow()
 
     @property
     def discharges_at_links(self):

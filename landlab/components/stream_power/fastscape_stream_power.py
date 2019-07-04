@@ -9,7 +9,6 @@
 import numpy as np
 
 from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX, Component, RasterModelGrid
-from landlab.utils.decorators import use_file_name_or_kwds
 
 from .cfuncs import (
     brent_method_erode_fixed_threshold,
@@ -162,7 +161,6 @@ class FastscapeEroder(Component):
         "node)",
     }
 
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -172,7 +170,6 @@ class FastscapeEroder(Component):
         threshold_sp=0.0,
         rainfall_intensity=1.0,
         discharge_name="drainage_area",
-        **kwds
     ):
         """
         Initialize the Fastscape stream power component. Note: a timestep,
@@ -273,13 +270,6 @@ class FastscapeEroder(Component):
             self._r_i = np.array(rainfall_intensity)
         else:
             raise TypeError("Supplied type of rainfall_intensity was " "not recognised")
-
-        # We now forbid changing of the field name
-        if "value_field" in kwds.keys():
-            raise ValueError(
-                "This component can no longer support variable"
-                'field names. Use "topographic__elevation".'
-            )
 
         # Handle option for area vs discharge
         self.discharge_name = discharge_name
@@ -422,7 +412,7 @@ class FastscapeEroder(Component):
         return self._grid
 
     def run_one_step(
-        self, dt, flooded_nodes=None, rainfall_intensity_if_used=None, **kwds
+        self, dt, flooded_nodes=None, rainfall_intensity_if_used=None
     ):
         """Erode for a single time step.
 

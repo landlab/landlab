@@ -48,12 +48,14 @@ class SteepnessFinder(Component):
            False,  True,  True,  True,  True,  True,  True,  True,  True,
             True,  True,  True], dtype=bool)
 
-    >>> sf.calculate_steepnesses(discretization_length=350.)
+    >>> sf = SteepnessFinder(mg, min_drainage_area=10000., discretization_length=350.)
+    >>> sf.calculate_steepnesses()
     >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
     array([ 0.        ,  3.08232295,  3.08232295,  3.08232295,  1.        ,
             1.        ,  1.        ,  1.        ,  0.        ,  0.        ])
 
-    >>> sf.calculate_steepnesses(elev_step=1.5)
+    >>> sf = SteepnessFinder(mg, min_drainage_area=10000., elev_step=1.5)
+    >>> sf.calculate_steepnesses()
     >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
     array([ 0.        ,  1.22673541,  1.2593727 ,  1.27781936,  1.25659369,
             1.12393156,  0.97335328,  0.79473963,  0.56196578,  0.        ])
@@ -119,9 +121,7 @@ class SteepnessFinder(Component):
         reference_concavity=0.5,
         min_drainage_area=1.0e6,
         elev_step=0.0,
-        discretization_length=0.0,
-        **kwds
-    ):
+        discretization_length=0.0):
         """
         Parameters
         ----------
@@ -159,12 +159,12 @@ class SteepnessFinder(Component):
         assert elev_step >= 0.0, "elev_step must be >= 0!"
         self._elev_step = elev_step
         self._discretization = discretization_length
-        self.ksn = self._grid.add_zeros("node", "channel__steepness_index")
+        self.ksn = self._grid.add_zeros("node", "channel__steepness_index", noclobber=False)
         self._mask = self.grid.ones("node", dtype=bool)
         # this one needs modifying if smooth_elev
         self._elev = self.grid.at_node["topographic__elevation"]
 
-    def calculate_steepnesses(self, **kwds):
+    def calculate_steepnesses(self):
         """
         This is the main method. Call it to calculate local steepness indices
         at all points with drainage areas greater than *min_drainage_area*.
@@ -179,11 +179,11 @@ class SteepnessFinder(Component):
         """
         self._mask.fill(True)
         self.ksn.fill(0.0)
-        # test for new kwds:
-        reftheta = kwds.get("reference_concavity", self._reftheta)
-        min_drainage = kwds.get("min_drainage_area", self.min_drainage)
-        elev_step = kwds.get("elev_step", self._elev_step)
-        discretization_length = kwds.get("discretization_length", self._discretization)
+
+        reftheta = self._reftheta
+        min_drainage = self.min_drainage
+        elev_step = self._elev_step
+        discretization_length =  self._discretization
 
         upstr_order = self.grid.at_node["flow__upstream_node_order"]
         # get an array of only nodes with A above threshold:

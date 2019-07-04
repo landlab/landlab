@@ -4,8 +4,6 @@ import numpy as np
 
 from landlab import Component
 
-from ...utils.decorators import use_file_name_or_kwds
-
 
 class SoilInfiltrationGreenAmpt(Component):
 
@@ -82,7 +80,6 @@ class SoilInfiltrationGreenAmpt(Component):
         "clay": (0.165, 0.3730),
     }
 
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -96,8 +93,7 @@ class SoilInfiltrationGreenAmpt(Component):
         surface_water_minimum_depth=1.0e-8,
         soil_pore_size_distribution_index=None,
         soil_bubbling_pressure=None,
-        wetting_front_capillary_pressure_head=None,
-        **kwds
+        wetting_front_capillary_pressure_head=None
     ):
         """Kinematic wave approximation overland flow component.
 

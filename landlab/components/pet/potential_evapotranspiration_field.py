@@ -2,8 +2,6 @@ import numpy as np
 
 from landlab import Component
 
-from ...utils.decorators import use_file_name_or_kwds
-
 _VALID_METHODS = set(["Constant", "PriestleyTaylor", "MeasuredRadiationPT", "Cosine"])
 
 
@@ -108,7 +106,6 @@ class PotentialEvapotranspiration(Component):
         "radiation__net_flux": "net total radiation over the time step",
     }
 
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -125,8 +122,7 @@ class PotentialEvapotranspiration(Component):
         lt=0.0,
         nd=365.0,
         MeanTmaxF=12.0,
-        delta_d=5.0,
-        **kwds
+        delta_d=5.0
     ):
         """
         Parameters
@@ -180,7 +176,7 @@ class PotentialEvapotranspiration(Component):
         self._DeltaD = delta_d
         _assert_method_is_valid(self._method)
 
-        super(PotentialEvapotranspiration, self).__init__(grid, **kwds)
+        super(PotentialEvapotranspiration, self).__init__(grid)
 
         for name in self._input_var_names:
             if name not in self.grid.at_cell:
@@ -199,8 +195,7 @@ class PotentialEvapotranspiration(Component):
         Tmin=0.0,
         Tmax=1.0,
         Tavg=0.5,
-        obs_radiation=350.0,
-        **kwds
+        obs_radiation=350.0
     ):
         """Update fields with current conditions.
 

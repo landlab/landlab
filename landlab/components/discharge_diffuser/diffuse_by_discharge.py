@@ -116,7 +116,7 @@ class DischargeDiffuser(Component):
     _min_slope_thresh = 1.0e-24
     # if your flow isn't connecting up, this probably needs to be reduced
 
-    def __init__(self, grid, slope, flat_thresh=1.0e-4, **kwds):
+    def __init__(self, grid, slope, flat_thresh=1.0e-4):
         """
         Parameters
         ----------
@@ -187,7 +187,7 @@ class DischargeDiffuser(Component):
         self._Qsed_n = np.empty((ni, nj), dtype=float)
         self._Qsed_s = np.empty((ni, nj), dtype=float)
 
-    def run_one_step(self, dt, **kwds):
+    def run_one_step(self, dt):
         """
         """
         grid = self.grid
@@ -403,7 +403,7 @@ class DischargeDiffuser(Component):
         dir_sed_flux[thisslice] = dir_water_flux[thisslice] * slope_diff[thisslice]
         dir_sed_flux[deadedge] = 0.0
 
-    def diffuse_sediment(self, Qw_in, Qsed_in, **kwds):
+    def diffuse_sediment(self, Qw_in, Qsed_in):
         """
         """
         pass

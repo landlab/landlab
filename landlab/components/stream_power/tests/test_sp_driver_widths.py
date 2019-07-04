@@ -4,7 +4,7 @@ import os
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from landlab import ModelParameterDictionary, RasterModelGrid
+from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator, StreamPowerEroder
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -12,13 +12,11 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 def test_sp_widths():
     input_str = os.path.join(_THIS_DIR, "test_sp_params_widths.txt")
-    inputs = ModelParameterDictionary(input_str, auto_type=True)
     nrows = 5
     ncols = 5
-    dx = inputs.read_float("dx")
-    dt = inputs.read_float("dt")
+    dt = 1
 
-    mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
+    mg = RasterModelGrid((nrows, ncols))
     widths = np.ones(mg.number_of_nodes, dtype=float)
     mg.add_zeros("topographic__elevation", at="node")
     z = np.array(
@@ -53,7 +51,9 @@ def test_sp_widths():
     mg["node"]["topographic__elevation"] = z
 
     fr = FlowAccumulator(mg, flow_director="D8")
-    sp = StreamPowerEroder(mg, use_W=widths, **inputs)
+    sp = StreamPowerEroder(
+        mg, use_W=widths, K_sp=0.5, m_sp=1.0, n_sp=1.0, threshold_sp=0.0
+    )
 
     # perform the loop (once!)
     for i in range(1):

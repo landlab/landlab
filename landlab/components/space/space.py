@@ -215,7 +215,6 @@ class Space(_GeneralizedErosionDeposition):
         discharge_field="surface_water__discharge",
         solver="basic",
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
-        **kwds
     ):
         """Initialize the Space model.
 
@@ -313,7 +312,7 @@ class Space(_GeneralizedErosionDeposition):
         )
         self.Er = self.br_erosion_term * np.exp(-self.soil__depth / self.H_star)
 
-    def run_one_step_basic(self, dt=1.0, flooded_nodes=None, **kwds):
+    def run_one_step_basic(self, dt=1.0, flooded_nodes=None):
         """Calculate change in rock and alluvium thickness for
         a time period 'dt'.
 
@@ -439,7 +438,7 @@ class Space(_GeneralizedErosionDeposition):
             self.bedrock__elevation[cores] + self.soil__depth[cores]
         )
 
-    def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[], **kwds):
+    def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[]):
         """Run step with CHILD-like solver that adjusts time steps to prevent
         slope flattening.
 

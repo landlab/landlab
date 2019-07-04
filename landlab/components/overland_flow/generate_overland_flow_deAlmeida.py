@@ -90,7 +90,6 @@ import numpy as np
 
 from landlab import Component, FieldError
 from landlab.grid.structured_quad import links
-from landlab.utils.decorators import use_file_name_or_kwds
 
 _SEVEN_OVER_THREE = 7.0 / 3.0
 
@@ -158,7 +157,6 @@ class OverlandFlow(Component):
         "water_surface__gradient": "Downstream gradient of the water surface.",
     }
 
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -169,9 +167,7 @@ class OverlandFlow(Component):
         g=9.81,
         theta=0.8,
         rainfall_intensity=0.0,
-        steep_slopes=False,
-        **kwds
-    ):
+        steep_slopes=False):
         """Create an overland flow component.
 
         Parameters
@@ -196,7 +192,7 @@ class OverlandFlow(Component):
             Modify the algorithm to handle steeper slopes at the expense of
             speed. If model runs become unstable, consider setting to True.
         """
-        super(OverlandFlow, self).__init__(grid, **kwds)
+        super(OverlandFlow, self).__init__(grid)
 
         # First we copy our grid
         self._grid = grid

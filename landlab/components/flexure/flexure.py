@@ -60,7 +60,6 @@ import numpy as np
 
 from landlab import Component
 
-from ...utils.decorators import use_file_name_or_kwds
 from .funcs import get_flexure_parameter
 
 
@@ -148,7 +147,6 @@ class Flexure(Component):
         "surface) in one timestep",
     }
 
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -156,8 +154,7 @@ class Flexure(Component):
         youngs=7e10,
         method="airy",
         rho_mantle=3300.0,
-        gravity=9.80665,
-        **kwds
+        gravity=9.80665
     ):
         """Initialize the flexure component.
 
@@ -187,7 +184,7 @@ class Flexure(Component):
         self._gravity = gravity
         self.eet = eet
 
-        super(Flexure, self).__init__(grid, **kwds)
+        super(Flexure, self).__init__(grid)
 
         for name in self._input_var_names:
             if name not in self.grid.at_node:

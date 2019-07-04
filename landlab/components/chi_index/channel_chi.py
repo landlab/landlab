@@ -71,15 +71,20 @@ class ChiFinder(Component):
            [ 0.44582651,  0.89165302,  1.66384718,  2.75589464,  0.        ],
            [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ]])
 
-    >>> cf2.calculate_chi(min_drainage_area=20000., use_true_dx=True,
-    ...                   reference_area=mg2.at_node['drainage_area'].max())
-    >>> cf2.chi_indices.reshape(mg2.shape)  # doctest: +NORMALIZE_WHITESPACE
+    >>> cf3 = ChiFinder(
+    ...     mg2,
+    ...     min_drainage_area=20000.,
+    ...     use_true_dx=True,
+    ...     reference_concavity=0.5,
+    ...     reference_area=mg2.at_node['drainage_area'].max())
+    >>> cf3.calculate_chi()
+    >>> cf3.chi_indices.reshape(mg2.shape)  # doctest: +NORMALIZE_WHITESPACE
     array([[   0. ,   0.        ,   0.        ,   0. ,   0. ],
            [   0. , 173.20508076,   0.        ,   0. ,   0. ],
            [   0. ,   0.        , 270.71067812,   0. ,   0. ],
            [   0. , 100.        , 236.60254038,   0. ,   0. ],
            [   0. ,   0.        ,   0.        ,   0. ,   0. ]])
-    >>> cf2.hillslope_mask.reshape(mg2.shape)
+    >>> cf3.hillslope_mask.reshape(mg2.shape)
     array([[ True,  True,  True,  True,  True],
            [False, False,  True,  True,  True],
            [ True,  True, False,  True,  True],
@@ -148,7 +153,6 @@ class ChiFinder(Component):
         min_drainage_area=1.0e6,
         reference_area=1.0,
         use_true_dx=False,
-        **kwds
     ):
         """
         Parameters
@@ -191,7 +195,7 @@ class ChiFinder(Component):
         self._set_up_reference_area(reference_area)
 
         self.use_true_dx = use_true_dx
-        self.chi = self._grid.add_zeros("node", "channel__chi_index")
+        self.chi = self._grid.add_zeros("node", "channel__chi_index", noclobber=False)
         self._mask = self.grid.ones("node", dtype=bool)
         # this one needs modifying if smooth_elev
         self._elev = self.grid.at_node["topographic__elevation"]
@@ -204,27 +208,23 @@ class ChiFinder(Component):
             )  # not tested
         self._A0 = reference_area
 
-    def calculate_chi(self, **kwds):
+    def calculate_chi(self):
         """
         This is the main method. Call it to calculate local chi indices
         at all points with drainage areas greater than *min_drainage_area*.
-
-        This "run" method can optionally take the same parameter set as
-        provided at instantiation. If they are provided, they will override
-        the existing values from instantiation.
 
         Chi of any node without a defined value is reported as 0. These nodes
         are also identified in the mask retrieved with :func:`hillslope_mask`.
         """
         self._mask.fill(True)
         self.chi.fill(0.0)
-        # test for new kwds:
-        reftheta = kwds.get("reference_concavity", self._reftheta)
-        min_drainage = kwds.get("min_drainage_area", self.min_drainage)
-        reference_area = kwds.get("reference_area", self._A0)
+
+        reftheta = self._reftheta
+        min_drainage = self.min_drainage
+        reference_area = self._A0
         self._set_up_reference_area(reference_area)
 
-        use_true_dx = kwds.get("use_true_dx", self.use_true_dx)
+        use_true_dx = self.use_true_dx
 
         upstr_order = self.grid.at_node["flow__upstream_node_order"]
         # get an array of only nodes with A above threshold:

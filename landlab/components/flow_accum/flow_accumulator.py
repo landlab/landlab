@@ -895,18 +895,6 @@ class FlowAccumulator(Component):
                 runoff_rate = return_array_at_node(grid, runoff_rate)
                 grid.at_node["water__unit_flux_in"] = runoff_rate
 
-        # perform a test (for politeness!) that the old name for the water_in
-        # field is not present:
-        if "water__discharge_in" in grid.at_node:
-            warnings.warn(
-                "This component formerly took 'water__discharge"
-                + "_in' as an input field. However, this field is "
-                + "now named 'water__unit_flux_in'. You are still "
-                + "using a field with the old name. Please update "
-                + "your code if you intended to use that field.",
-                DeprecationWarning,
-            )
-
     def _add_director(self, flow_director):
         """Test and add the flow director component."""
         PERMITTED_DIRECTORS = [

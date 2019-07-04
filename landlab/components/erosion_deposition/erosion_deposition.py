@@ -97,9 +97,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         F_f=0.0,
         discharge_field="surface_water__discharge",
         solver="basic",
-        dt_min=DEFAULT_MINIMUM_TIME_STEP,
-        **kwds
-    ):
+        dt_min=DEFAULT_MINIMUM_TIME_STEP):
         """Initialize the ErosionDeposition model.
 
         Parameters
@@ -257,7 +255,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         self.erosion_term = omega - self.sp_crit * (1.0 - np.exp(-omega_over_sp_crit))
 
-    def run_one_step_basic(self, dt=1.0, flooded_nodes=[], **kwds):
+    def run_one_step_basic(self, dt=1.0, flooded_nodes=[]):
         """Calculate change in rock and alluvium thickness for
            a time period 'dt'.
 
@@ -301,7 +299,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             (self.depo_rate[cores] / (1 - self.phi)) - self.erosion_term[cores]
         ) * dt
 
-    def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[], **kwds):
+    def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[]):
         """CHILD-like solver that adjusts time steps to prevent slope
         flattening."""
 
