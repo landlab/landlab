@@ -2,7 +2,7 @@ import numpy as np
 from matplotlib.pyplot import figure
 
 from landlab import RasterModelGrid
-from landlab.components.flow_routing import DepressionFinderAndRouter, FlowAccumulator
+from landlab.components import DepressionFinderAndRouter, FlowAccumulator
 from landlab.plot.imshow import imshow_grid
 
 nx, ny = 50, 50

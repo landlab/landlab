@@ -13,8 +13,7 @@ import numpy
 import pylab
 
 from landlab import ModelParameterDictionary, RasterModelGrid
-from landlab.components.flow_routing import DepressionFinderAndRouter, FlowAccumulator
-from landlab.components.stream_power import FastscapeEroder, StreamPowerEroder
+from landlab.components import DepressionFinderAndRouter, FlowAccumulator, FastscapeEroder, StreamPowerEroder
 from landlab.plot.imshow import imshow_grid
 
 inputs = ModelParameterDictionary("./drive_sp_params.txt")

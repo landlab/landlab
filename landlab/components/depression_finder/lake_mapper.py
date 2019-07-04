@@ -15,7 +15,6 @@ from landlab import (
     FIXED_VALUE_BOUNDARY,
     Component,
     FieldError,
-    ModelParameterDictionary,
     RasterModelGrid,
 )
 from landlab.components.flow_accum import flow_accum_bw
@@ -209,66 +208,8 @@ class DepressionFinderAndRouter(Component):
                 )
                 raise NotImplementedError(msg)
 
-        self._initialize()
-
-    def _initialize(self, input_stream=None):
-        """Initialize the component from an input file.
-
-        The BMI-style initialize method takes an optional input_stream
-        parameter, which may be either a ModelParameterDictionary object or
-        an input stream from which a ModelParameterDictionary can read values.
-
-        Parameters
-        ----------
-        input_stream : str, file_like, or ModelParameterDictionary, optional
-            ModelParameterDictionary that holds the input parameters.
-        """
-        # Create a ModelParameterDictionary for the inputs
-        if input_stream is None:
-            inputs = None
-        elif isinstance(input_stream, ModelParameterDictionary):
-            inputs = input_stream
-        else:
-            inputs = ModelParameterDictionary(input_stream)
-
-        # Make sure the grid includes elevation data. This means either:
-        #  1. The grid has a node field called 'topographic__elevation', or
-        #  2. The input file has an item called 'ELEVATION_FIELD_NAME' *and*
-        #     a field by this name exists in the grid.
-        try:
-            self._elev = self._grid.at_node["topographic__elevation"]
-        except FieldError:
-            try:
-                topo_field_name = inputs.read_string("ELEVATION_FIELD_NAME")
-            except AttributeError:
-                error_message(
-                    """Because your grid does not have a node field
-                    called "topographic__elevation", you need to pass the
-                    name of a text input file or ModelParameterDictionary,
-                    and this file or dictionary needs to include the name
-                    of another field in your grid that contains your
-                    elevation data."""
-                )
-                raise
-            except MissingKeyError:
-                error_message(
-                    """Because your grid does not have a node field
-                    called "topographic__elevation", your input file (or
-                    ModelParameterDictionary) must include an entry with
-                    the key "ELEVATION_FIELD_NAME", which gives the name
-                    of a field in your grid that contains your elevation
-                    data."""
-                )
-                raise
-            try:
-                self._elev = self._grid.at_node[topo_field_name]
-            except AttributeError:
-                warning_message(
-                    """Your grid does not seem to have a node field
-                    called {0}""".format(
-                        topo_field_name
-                    )
-                )
+        # Make sure the grid includes elevation data.
+        self._elev = self._grid.at_node["topographic__elevation"]
 
         # Create output variables.
         #
@@ -878,7 +819,7 @@ class DepressionFinderAndRouter(Component):
 
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> from landlab.components.flow_routing import (
+        >>> from landlab.components import (
         ...     DepressionFinderAndRouter)
 
         >>> rg = RasterModelGrid((5, 5))

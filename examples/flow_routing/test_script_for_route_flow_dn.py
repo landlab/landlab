@@ -25,7 +25,7 @@ outlet_node = grid.grid_coords_to_node_id(outlet_row, outlet_column)
 
 # Route flow
 flow_router = FlowAccumulator(grid, flow_director="D8")
-flow_router.route_flow()
+flow_router.run_one_step()
 
 # Get a 2D array version of the elevations
 ar = grid.node_vector_to_raster(grid["node"]["drainage_area"])

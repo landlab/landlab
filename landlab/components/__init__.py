@@ -1,4 +1,5 @@
 from .chi_index import ChiFinder
+from .depression_finder import DepressionFinderAndRouter
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
 from .detachment_ltd_erosion import DepthSlopeProductErosion, DetachmentLtdErosion
@@ -14,7 +15,6 @@ from .flow_director import (
     FlowDirectorMFD,
     FlowDirectorSteepest,
 )
-from .flow_routing import DepressionFinderAndRouter, FlowRouter
 from .gflex import gFlex
 from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
@@ -52,7 +52,6 @@ COMPONENTS = [
     ChiFinder,
     LinearDiffuser,
     Flexure,
-    FlowRouter,
     DepressionFinderAndRouter,
     PerronNLDiffuse,
     OverlandFlowBates,
