@@ -31,8 +31,8 @@ grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 plt.figure(0)
 graph.plot_graph(grid, at="node,link")
 
-grid.at_node["topographic__elevation"] = [0.0, 0.1, 0.3, 0.2, 0.35, 0.45, 0.5, 0.6]
-grid.at_node["bedrock__elevation"] = [0.0, 0.1, 0.3, 0.2, 0.35, 0.45, 0.5, 0.6]
+grid.at_node["topographic__elevation"] = [0.0, 0.1, 0.3, 0.3, 0.45, 0.45, 0.7, 0.8]
+grid.at_node["bedrock__elevation"] = [0.0, 0.1, 0.3, 0.3, 0.45, 0.45, 0.7, 0.8]
 
 area = grid.add_ones("cell_area_at_node", at="node")
 
@@ -69,7 +69,7 @@ bed_porosity = 0.3  # porosity of the bed material
 # Ultimately,
 # parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
 
-timesteps = 30
+timesteps = 3
 
 element_id = np.array(
     [0, 0, 1, 1, 1, 5, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 2, 3, 4, 4, 4, 3, 4, 5],
@@ -188,7 +188,8 @@ nst = NetworkSedimentTransporter(
 # %% Run the component(s)
 
 for t in range(0, (timesteps * dt), dt):
-    print("timestep ", [t], "started")
+    #print("timestep ", [t], "started")
+    print("Model time: ", t/(60*60*24), "days passed")
     # move any sediment additions from forcing Item collector to bed item collector
 
     # sq.run_one_step
@@ -213,7 +214,19 @@ plt.title("Tracking link location for a single parcel")
 plt.xlabel("time")
 plt.ylabel("location in link")
 
+
 plt.figure(2)
+plt.plot(parcels.time_coordinates, parcels.dataset.element_id.values[0, :], ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.element_id.values[14, :], ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.element_id.values[16, :], ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.element_id.values[17, :], ".")
+
+plt.title("Tracking link location for a single parcel")
+plt.xlabel("time")
+plt.ylabel("link")
+
+
+plt.figure(3)
 plt.plot(
     parcels.time_coordinates, np.sum(parcels.dataset["volume"].values, axis=0), "."
 )

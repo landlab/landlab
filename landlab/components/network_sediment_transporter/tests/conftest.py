@@ -29,14 +29,12 @@ def example_nmg():
     grid.at_link["link_length"] = [10000, 10000, 10000, 10000, 10000, 10000, 10000]  # m
 
     grid.at_link["channel_width"] = 15 * np.ones(np.size(grid.at_link["drainage_area"]))
-    grid.at_link["channel_width"][3] = 10
     return grid
-
 
 @pytest.fixture()
 def example_parcels(example_nmg):
     element_id = np.array(
-        [0, 0, 1, 1, 1, 5, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 2, 3, 4, 4, 4, 3, 4, 5],
+        [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 6],
         dtype=int,
     )  # current link for each parcel
 
@@ -81,7 +79,6 @@ def example_parcels(example_nmg):
         "starting_link": (["item_id"], starting_link),
         "abrasion_rate": (["item_id"], abrasion_rate),
         "density": (["item_id"], density),
-        "lithology": (["item_id"], lithology),
         "time_arrival_in_link": (["item_id", "time"], time_arrival_in_link),
         "active_layer": (["item_id", "time"], active_layer),
         "location_in_link": (["item_id", "time"], location_in_link),
@@ -114,16 +111,10 @@ def example_flow_depth(example_nmg):
     Qgage = 80000.0  # (m3/s)
     dt = 60 * 60 * 24  # (seconds) daily timestep
 
-    Bgage = 30.906 * Qgage ** 0.1215
-    # (m)
     Hgage = 1.703 * Qgage ** 0.3447
     # (m)
     Agage = 4.5895e9
     # (m2)
-
-    channel_width = (
-        np.tile(Bgage, (example_nmg.number_of_links)) / (Agage ** 0.5)
-    ) * np.tile(example_nmg.at_link["drainage_area"], (timesteps, 1)) ** 0.5
 
     flow_depth = (
         np.tile(Hgage, (example_nmg.number_of_links)) / (Agage ** 0.4)

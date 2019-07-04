@@ -2,12 +2,14 @@
 
 """Landlab component that simulates xxxxxx
 
-maybe it should be called "czuba_network_sediment_transporter"
-
 info about the component here
 
 Fixes that need to happen:
 
+    -- Fix capacity calculation ~line 404. Still a placeholder. 
+    
+    -- Channel width-- why is this anything other than a link attribute??
+    
     -- Need to find better way to define filterarrays in time and item_id
 	current option is very clunky. The one Nathan Lyons suggested doesn't work.\
 
@@ -48,14 +50,7 @@ Fixes that need to happen:
        An int to a float. I haven't tracked down why... but I think it should stay as an int.
        ^ JC: This was happening for me for current_link[p] in move_parcel_downstream
            ... I fixed for now with int() but would be good to figure this out.
-
-    DONE -- JC: There is something wrong with the last parcel, something is blowing up somewhere for it
-            It is not moving and I think it should...
-            I think it is not being aggregated properly, it's element_id is out of order compared to the rest
-            So maybe somewhere it is not being found in the indexing? Need to check
-            ^ AP: Turns out, these later parcels were just in storage. We're all good.
-
-
+    
 .. codeauthor:: Jon Allison Katy
 
 Created on Tu May 8, 2018
@@ -156,11 +151,6 @@ class NetworkSedimentTransporter(Component):
 
     """
 
-    # AP note: this is where the documentation ends and the component starts...
-    # QUESTIONS:
-    #   what about the variables that aren't on the grid? (e.g. active_layer_thickness, bed_material_porosity,etc?)
-    #   what about the variables attached to the DataRecord, rather than the grid?
-
     # component name
     _name = "NetworkSedimentTransporter"
     __version__ = "1.0"
@@ -216,9 +206,9 @@ class NetworkSedimentTransporter(Component):
         flow_director,
         flow_depth,
         active_layer_thickness,
-        bed_porosity,
+        bed_porosity=0.3,
         g=9.81,
-        fluid_density=1000,
+        fluid_density=1000.,
         channel_width="channel_width",
         transport_method="WilcockCrowe",
         **kwds
@@ -226,11 +216,32 @@ class NetworkSedimentTransporter(Component):
         """
         Parameters
         ----------
-        grid: RasterModelGrid
-            A raster grid.
-        discharge : field name, optional
-            Field name of discharge [units] at link.
-        and more here...
+        grid: NetworkModelGrid
+            A landlab network model grid in which links are stream channel 
+            segments. 
+        parcels: DataRecord
+            A landlab DataRecord describing the characteristics and location of 
+            sediment "parcels". 
+        flow_director: FlowDirectorSteepest
+            A landlab flow director. Currently, must be FlowDirectorSteepest. 
+        flow_depth: float, numpy array of shape (timesteps,links)
+            Flow depth of water in channel at each link at each timestep. (m)
+        active_layer_thickness: float
+            Depth of the sediment layer subject to fluvial transport (m)
+            DANGER DANGER-- this is unused right now. check capacity calculation.
+        bed_porosity: float, optional
+            Proportion of void space between grains in the river channel bed. 
+            Default value is 0.3.
+        g: float, optional
+            Acceleration due to gravity. Default value is 9.81 (m/s^2)
+        fluid_density: float, optional
+            Density of the fluid (generally, water) in which sediment is 
+            moving. Default value is 1000 (kg/m^3)
+        channel_width: float, optional 
+            DANGER DANGER-- Why don't we have this attached to the grid?
+        transport_method: string
+            Sediment transport equation option. Default (and currently only) 
+            option is "WilcockCrowe". 
         """
         super(NetworkSedimentTransporter, self).__init__(grid, **kwds)
 
@@ -273,7 +284,7 @@ class NetworkSedimentTransporter(Component):
         self.fd = flow_director
         self.flow_depth = flow_depth
         self.bed_porosity = bed_porosity
-
+        
         if not 0 <= self.bed_porosity < 1:
             msg = "NetworkSedimentTransporter: bed_porosity must be" "between 0 and 1"
             raise ValueError(msg)
@@ -297,15 +308,26 @@ class NetworkSedimentTransporter(Component):
         if self.transport_method == "WilcockCrowe":
             self.update_transport_time = self._calc_transport_wilcock_crowe
 
-        # save reference to discharge and width fields stored at-link on the
-        # grid
-
         self._width = self._grid.at_link[channel_width]
 
         if "channel_width" not in self._grid.at_link:
             msg = (
                 "NetworkSedimentTransporter: channel_width must be assigned"
                 "to the grid links"
+            )
+            raise ValueError(msg)
+
+        if "topographic__elevation" not in self._grid.at_node:
+            msg = (
+                "NetworkSedimentTransporter: topographic__elevation must be "
+                "assigned to the grid nodes"
+            )
+            raise ValueError(msg)
+
+        if "bedrock__elevation" not in self._grid.at_node:
+            msg = (
+                "NetworkSedimentTransporter: topographic__elevation must be "
+                "assigned to the grid nodes"
             )
             raise ValueError(msg)
 
@@ -329,7 +351,56 @@ class NetworkSedimentTransporter(Component):
             self._update_channel_slopes()
         else:
             self._channel_slope = self._grid.at_link["channel_slope"]
+        
+        if "time_arrival_in_link" not in self._parcels.dataset:
+            msg = ("NetworkSedimentTransporter: time_arrival_in_link must be" 
+                   "assigned to the parcels"
+                   )
+            raise ValueError(msg)
+            
+        if "starting_link" not in self._parcels.dataset:
+            msg = ("NetworkSedimentTransporter: starting_link must be" 
+                   "assigned to the parcels"
+                   )
+            raise ValueError(msg)
+        
+        if "abrasion_rate" not in self._parcels.dataset:
+            msg = ("NetworkSedimentTransporter: abrasion_rate must be" 
+                   "assigned to the parcels"
+                   )
+            raise ValueError(msg)
+            
+        if "density" not in self._parcels.dataset:
+            msg = ("NetworkSedimentTransporter: density must be" 
+                   "assigned to the parcels"
+                   )
+            raise ValueError(msg)
+            
+        if "active_layer" not in self._parcels.dataset:
+            msg = ("NetworkSedimentTransporter: active_layer must be" 
+                   "assigned to the parcels"
+                   )
+            raise ValueError(msg)
+        
+        if "location_in_link" not in self._parcels.dataset:
+            msg = ("NetworkSedimentTransporter: location_in_link must be" 
+                   "assigned to the parcels"
+                   )
+            raise ValueError(msg)
 
+        if "D" not in self._parcels.dataset:
+            msg = ("NetworkSedimentTransporter: D (grain size) must be" 
+                   "assigned to the parcels"
+                   )
+            raise ValueError(msg)
+            
+        if "volume" not in self._parcels.dataset:
+            msg = ("NetworkSedimentTransporter: volume must be" 
+                   "assigned to the parcels"
+                   )
+            raise ValueError(msg)
+            
+            
     @property
     def time(self):
         """Return current time."""
