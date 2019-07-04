@@ -4,7 +4,7 @@ set -e -x
 # Install a system package required by our library
 # yum install -y atlas-devel
 
-for PYBIN in /opt/python/*/bin/; do
+for PYBIN in /opt/python/*3*/bin/; do
   ${PYBIN}/pip install numpy
   ${PYBIN}/pip wheel /io/ -w wheelhouse
 done
