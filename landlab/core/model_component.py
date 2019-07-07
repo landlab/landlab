@@ -363,8 +363,3 @@ class Component(object):
         """Return the coordinates of nodes on grid attached to the component.
         """
         return (self.grid.node_x, self.grid.node_y)
-
-    def imshow(self, name, **kwds):
-        """Plot data on the grid attached to the component.
-        """
-        self._grid.imshow(name, **kwds)
