@@ -148,7 +148,7 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
     ...                           flow_director=FlowDirectorSteepest,
-    ...                           routing='D4', loss_function=mylossfunction)
+    ...                           loss_function=mylossfunction)
     >>> fa.run_one_step()
 
     >>> mg.at_node['drainage_area'].reshape(mg.shape)

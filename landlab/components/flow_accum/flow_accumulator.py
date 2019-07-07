@@ -790,6 +790,10 @@ class FlowAccumulator(Component):
 
         self.nodes_not_in_stack = True
 
+        if len(self.kwargs)>0:
+            kwdstr = " ".join(list(self.kwargs.keys()))
+            raise ValueError("Extra kwargs passed to FlowAccumulator:{kwds}".format(kwds= kwdstr ))
+
     @property
     def node_drainage_area(self):
         """Return the drainage area."""

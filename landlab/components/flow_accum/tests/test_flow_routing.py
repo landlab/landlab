@@ -93,7 +93,7 @@ def test_irreg_topo(dans_grid2):
 
 def test_irreg_topo_new(dans_grid2):
     """Test D4 routing on a toy irregular topo. 'method' passed to init."""
-    fr = FlowAccumulator(dans_grid2.mg, method="D4")
+    fr = FlowAccumulator(dans_grid2.mg, flow_director="D4")
     fr.run_one_step()
     assert_array_equal(dans_grid2.A_target_D4, dans_grid2.mg.at_node["drainage_area"])
     assert_array_equal(

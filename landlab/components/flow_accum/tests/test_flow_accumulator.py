@@ -321,31 +321,18 @@ def test_fields():
 
     assert sorted(list(mg2.at_grid.keys())) == ["flow__data_structure_D"]
 
-
-def test_accumulated_area_closes():
+@pytest.mark.parametrize("fd", ["Steepest", "D8", "MFD", "DINF"])
+def test_accumulated_area_closes(fd):
     """Check that accumulated area is area of core nodes."""
+    mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    fa = FlowAccumulator(mg)
+    fa.run_one_step()
 
-    fds = ["Steepest", "D8", "MFD", "DINF"]
-
-    for fd in fds:
-        mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-        mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-        fa = FlowAccumulator(mg)
-        fa.run_one_step()
-
-        drainage_area = mg.at_node["drainage_area"]
-        drained_area = np.sum(drainage_area[mg.boundary_nodes])
-        core_area = np.sum(mg.cell_area_at_node[mg.core_nodes])
-        assert drained_area == core_area
-
-
-# def test_passing_unnecessary_kwarg():
-#     """Test that passing a bad kwarg raises a ValueError."""
-#     mg = RasterModelGrid((10,10), xy_spacing=(1, 1))
-#     z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
-#     with pytest.raises(ValueError):
-#         FlowAccumulator(mg, bad_kwarg='woo')
-
+    drainage_area = mg.at_node["drainage_area"]
+    drained_area = np.sum(drainage_area[mg.boundary_nodes])
+    core_area = np.sum(mg.cell_area_at_node[mg.core_nodes])
+    assert drained_area == core_area
 
 def test_specifying_routing_method_wrong():
     """Test specifying incorrect method for routing compatability with DepressionFinderAndRouter."""
@@ -1168,22 +1155,21 @@ def test_hex_mfd():
     fa.run_one_step()
 
 
-def test_flat_grids_all_directors():
-    for fd in [
-        "FlowDirectorMFD",
-        "FlowDirectorSteepest",
-        "FlowDirectorD8",
-        "FlowDirectorDINF",
-    ]:
-        mg = RasterModelGrid((10, 10))
-        z = mg.add_zeros("topographic__elevation", at="node")
-        fa = FlowAccumulator(mg, flow_director=fd)
-        fa.run_one_step()
+@pytest.mark.parametrize("fd", [
+    "FlowDirectorMFD",
+    "FlowDirectorSteepest",
+    "FlowDirectorD8",
+    "FlowDirectorDINF",
+])
+def test_flat_grids_all_directors(fd):
+    mg = RasterModelGrid((10, 10))
+    z = mg.add_zeros("topographic__elevation", at="node")
+    fa = FlowAccumulator(mg, flow_director=fd)
+    fa.run_one_step()
 
-        true_da = np.zeros(mg.size("node"))
-        true_da[mg.core_nodes] = 1.0
-        assert_array_equal(true_da, fa.drainage_area)
-        del mg, z, fa
+    true_da = np.zeros(mg.size("node"))
+    true_da[mg.core_nodes] = 1.0
+    assert_array_equal(true_da, fa.drainage_area)
 
 
 def test_nmg_no_cell_area():
@@ -1194,3 +1180,10 @@ def test_nmg_no_cell_area():
     nmg.add_field("topographic__elevation", nmg.x_of_node + nmg.y_of_node, at="node")
     with pytest.raises(FieldError):
         FlowAccumulator(nmg)
+
+def test_extra_kwargs():
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    fd = FlowDirectorSteepest(mg)
+    with pytest.raises(ValueError):
+        FlowAccumulator(mg, spam="eggs")

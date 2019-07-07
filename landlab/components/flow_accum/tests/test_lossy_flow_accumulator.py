@@ -78,7 +78,6 @@ def test_run_with_2_fn_args():
         mg,
         "topographic__elevation",
         flow_director=FlowDirectorSteepest,
-        routing="D4",
         loss_function=mylossfunction,
     )
     fa.run_one_step()
@@ -117,7 +116,6 @@ def test_run_with_3_fn_args():
         mg,
         "topographic__elevation",
         flow_director=FlowDirectorSteepest,
-        routing="D4",
         loss_function=mylossfunction,
     )
     fa.run_one_step()
@@ -420,31 +418,18 @@ def test_fields():
 
     assert sorted(list(mg2.at_grid.keys())) == ["flow__data_structure_D"]
 
-
-def test_accumulated_area_closes():
+@pytest.mark.parametrize("fd", ["Steepest", "D8", "MFD", "DINF"])
+def test_accumulated_area_closes(fd):
     """Check that accumulated area is area of core nodes."""
+    mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    fa = LossyFlowAccumulator(mg)
+    fa.run_one_step()
 
-    fds = ["Steepest", "D8", "MFD", "DINF"]
-
-    for fd in fds:
-        mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-        mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-        fa = LossyFlowAccumulator(mg)
-        fa.run_one_step()
-
-        drainage_area = mg.at_node["drainage_area"]
-        drained_area = np.sum(drainage_area[mg.boundary_nodes])
-        core_area = np.sum(mg.cell_area_at_node[mg.core_nodes])
-        assert drained_area == core_area
-
-
-# def test_passing_unnecessary_kwarg():
-#     """Test that passing a bad kwarg raises a ValueError."""
-#     mg = RasterModelGrid((10,10), xy_spacing=(1, 1))
-#     z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
-#     with pytest.raises(ValueError):
-#         LossyFlowAccumulator(mg, bad_kwarg='woo')
-
+    drainage_area = mg.at_node["drainage_area"]
+    drained_area = np.sum(drainage_area[mg.boundary_nodes])
+    core_area = np.sum(mg.cell_area_at_node[mg.core_nodes])
+    assert drained_area == core_area
 
 def test_specifying_routing_method_wrong():
     """Test specifying incorrect method for routing compatability with DepressionFinderAndRouter."""
