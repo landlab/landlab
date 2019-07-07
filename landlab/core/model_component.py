@@ -92,20 +92,8 @@ class Component(object):
         registry.add(cls)
         return object.__new__(cls)
 
-    def __init__(self, grid, map_vars=None, **kwds):
-        map_vars = map_vars or {}
+    def __init__(self, grid):
         self._grid = grid
-
-        for (location, vars) in map_vars.items():
-            for (dest, src) in vars.items():
-                grid.add_field(location, dest, grid.field_values(location, src))
-
-        for key in kwds:
-            component_name = inspect.getmro(self.__class__)[0].__name__
-            warnings.warn(
-                "Ingnoring unrecognized input parameter, '{param}', for "
-                "{name} component".format(name=component_name, param=key)
-            )
 
     @classmethod
     def from_path(cls, grid, path):
