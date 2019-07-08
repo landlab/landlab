@@ -17,7 +17,6 @@ from landlab.components import (
     FlowAccumulator,
     LinearDiffuser,
 )
-from landlab.components.profiler.base_profiler import _flatten_structure
 
 matplotlib.use("agg")
 
@@ -156,7 +155,7 @@ def test_start_away_from_boundary(profile_example_grid):
     mg = profile_example_grid
     profiler = ChannelProfiler(mg, outlet_nodes=[64], cmap="viridis_r")
     profiler.run_one_step()
-    assert profiler.distance_along_profile[0][0][0] == 0.0
+    assert profiler.distance_along_profile[0][0] == 0.0
 
 
 def test_plotting_and_structure(profile_example_grid):
@@ -285,9 +284,8 @@ def test_plotting_and_structure(profile_example_grid):
             np.array([103, 163]),
         ]
     )
-    flattened = _flatten_structure(profiler.network_ids)
     for idx in range(len(correct_structure)):
-        np.testing.assert_array_equal(flattened[idx], correct_structure[idx])
+        np.testing.assert_array_equal(profiler.network_ids[idx], correct_structure[idx])
 
 
 def test_different_kwargs(profile_example_grid):
@@ -359,7 +357,7 @@ def test_different_kwargs(profile_example_grid):
             109,
         ]
     )
-    np.testing.assert_array_equal(profiler2.network_ids[0][0], correct_structure)
+    np.testing.assert_array_equal(profiler2.network_ids[0], correct_structure)
 
 
 def test_re_calculatingnetwork_ids_and_distance():
@@ -418,19 +416,6 @@ def test_re_calculatingnetwork_ids_and_distance():
             np.testing.assert_array_equal(p1_w[idx_segment], p2_w[idx_segment])
             np.testing.assert_array_equal(d1_w[idx_segment], d2_w[idx_segment])
 
-    color_options = [
-        None,
-        [(1, 1, 0, 1)],
-        (1, 1, 0, 1),
-        [(1, 0, 0, 1), (1, 1, 0, 1), (0, 1, 1, 1)],
-    ]
-
-    profiler = ChannelProfiler(mg, main_channel_only=False, number_of_watersheds=3)
-    profiler.run_one_step()
-    for colors in color_options:
-        profiler.plot_profiles_in_map_view(colors=colors)
-        profiler.plot_profiles(colors=colors)
-
 
 @pytest.mark.parametrize("main", [True, False])
 @pytest.mark.parametrize("nshed", [1, None, 3])
@@ -462,8 +447,12 @@ def test_getting_all_the_way_to_the_divide(main, nshed):
     profiler.run_one_step()
 
     # assert that with minimum_channel_threshold set to zero, we get all the way to the top of the divide.
-    for watershed_nodes in profiler.network_ids:
-        nodes = np.concatenate(_flatten_structure(watershed_nodes)).ravel()
+    for outlet_id in profiler._net_struct:
+        seg_tuples = profiler._net_struct[outlet_id].keys()
+
+        wshd_ids = [profiler._net_struct[outlet_id][seg]["ids"] for seg in seg_tuples]
+
+        nodes = np.concatenate(wshd_ids).ravel()
         da = mg.at_node["drainage_area"][nodes]
 
         # if "profile" is just bits of the edge, then da is 0.
