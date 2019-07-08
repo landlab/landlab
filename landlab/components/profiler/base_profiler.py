@@ -234,25 +234,43 @@ class _BaseProfiler(Component, ABC):
 
     @abstractmethod
     def _create_profile_structure():
-        """ TODO"""
+        """Private class for creating profile structure.
+
+        Expectation is that this will be overridden to create the following
+        three private attributes:
+
+        self._net_ids
+        self._distance_along_profile
+
+        are each lists of numpy arrays, one array per segment.
+
+        self._colors
+
+        is a list of RGBA tuples.
+
+        The order of segments is expected to be consistent between each of the
+        three datastructures.
+        """
         ...  # pragma: no cover
 
     @property
-    @abstractmethod
     def distance_along_profile(self):
-        """TODO """
-        ...  # pragma: no cover
+        """List of distances along profile for each segment."""
+        return self._distance_along_profile
 
     @property
-    @abstractmethod
     def network_ids(self):
-        """ TODO """
-        ...  # pragma: no cover
+        """List of node ids for each segment."""
+        return self._net_ids
+
+    @property
+    def colors(self):
+        """List of colors for each segment."""
+        return self._colors
 
     def plot_profiles(
         self,
         field="topographic__elevation",
-        colors=None,
         xlabel="Distance Along Profile",
         ylabel="Plotted Quantity",
         title="Extracted Profiles",
@@ -260,29 +278,11 @@ class _BaseProfiler(Component, ABC):
         """
         Plot distance-upstream vs at at-node or size (nnodes,) quantity.
 
-        The colors keyword argument can handle the following options.
-
-            a) None - The matplotlib defaults or the colors specified
-               internally by the profiler class will be used.
-            b) One RGBA tuple. Then all segments of the profiles will be that
-               color.
-            c) One RGBA tuple per highest level of the profile data structure.
-               Then all segments within that level (e.g. watershed for the
-               ChannelProfiler) will be the same color.
-            d) One RGBA tuple per segment in the profile data structure. The
-               structure of the color keyword argument data structure must
-               mirror that of the profile data structure.
-
-        Alternatively, some profilers (e.g., ChannelProfiler) create and store
-        colors as part of their internal routines and init.
-
         Parameters
         ----------
         field : field name or nnode array
             Array of the at-node-field to plot against distance upstream.
             Default value is the at-node field 'topographic__elevation'.
-        colors : sequence of RGBA tuples, optional
-            Sequence of RGBA tuples to use with each stream segment. See above.
         xlabel : str, optional
             X-axis label, default is "Distance Along Profile".
         ylabel : str, optional
@@ -291,77 +291,52 @@ class _BaseProfiler(Component, ABC):
             Plot title, default value is "Extracted Profiles".
         """
         quantity = return_array_at_node(self._grid, field)
-        colors = self._colors or colors
-
-        # flatten datastructure
-        x_dist = _flatten_structure(self._distance_along_profile)
-        node_ids, colors = _verify_structure_and_color(self.network_ids, colors)
 
         # create segments the way that line collection likes them.
         segments = []
         qmin = []
         qmax = []
-        for idx, nodes in enumerate(node_ids):
-            segments.append(list(zip(x_dist[idx], quantity[nodes])))
+        for idx, nodes in enumerate(self._net_ids):
+            segments.append(
+                list(zip(self._distance_along_profile[idx], quantity[nodes]))
+            )
             qmin.append(min(quantity[nodes]))
             qmax.append(max(quantity[nodes]))
 
         # We need to set the plot limits.
         ax = plt.gca()
-        ax.set_xlim(_recursive_min(x_dist), _recursive_max(x_dist))
+        ax.set_xlim(
+            _recursive_min(self._distance_along_profile),
+            _recursive_max(self._distance_along_profile),
+        )
         ax.set_ylim(min(qmin), max(qmax))
 
-        line_segments = LineCollection(segments, colors=colors)
+        line_segments = LineCollection(segments, colors=self._colors)
         ax.add_collection(line_segments)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         ax.set_title(title)
 
-    def plot_profiles_in_map_view(
-        self, field="topographic__elevation", colors=None, **kwargs
-    ):
+    def plot_profiles_in_map_view(self, field="topographic__elevation", **kwargs):
         """
         Plot profile locations in map view.
-
-        The colors keyword argument can handle the following options.
-
-            a) None - The matplotlib defaults will be used.
-            b) One RGBA tuple. Then all segments of the profiles will be that
-               color.
-            c) One RGBA tuple per highest level of the profile data structure.
-               Then all segments within that level (e.g. watershed for the
-               ChannelProfiler) will be the same color.
-            d) One RGBA tuple per segment in the profile data structure. The
-               structure of the color keyword argument data structure must
-               mirror that of the profile data structure.
 
         Parameters
         ----------
         field : field name or nnode array
             Array of the at-node-field to plot as the 2D map values.
             Default value is the at-node field 'topographic__elevation'.
-        colors : sequence of RGB tuples, optional
-            Sequence of RGB tuples to use with each stream segment. See above.
-        **kwargs : keyword arguments, arguments
-            Additional parameters to pass to imshow_grid
         """
         # make imshow_grid background
         imshow_grid(self._grid, field, **kwargs)
         ax = plt.gca()
 
-        segments = []
-
-        colors = self._colors or colors
-
-        # flatten datastructure
-        node_ids, colors = _verify_structure_and_color(self.network_ids, colors)
-
         # create segments the way that line collection likes them.
         segments = []
-        for idx, nodes in enumerate(node_ids):
+        for idx, nodes in enumerate(self._net_ids):
             segments.append(
                 list(zip(self._grid.x_of_node[nodes], self._grid.y_of_node[nodes]))
             )
 
-        line_segments = LineCollection(segments, colors=colors)
+        line_segments = LineCollection(segments, colors=self._colors)
         ax.add_collection(line_segments)
