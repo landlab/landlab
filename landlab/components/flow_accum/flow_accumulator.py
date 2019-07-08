@@ -742,11 +742,31 @@ class FlowAccumulator(Component):
         #   - D array
         #   - delta array
         #   - missing nodes in stack.
-        if "drainage_area" not in grid.at_node:
-            self.drainage_area = grid.add_zeros("drainage_area", at="node", dtype=float)
-        else:
-            self.drainage_area = grid.at_node["drainage_area"]
 
+#
+
+
+        self.drainage_area = grid.at_node.get(
+            "drainage_area",
+            grid.add_field(
+                "drainage_area",
+                at="node",
+                dtype=float,
+                value=self._vars["drainage_area"]))
+
+        #
+        # for field in self._vars():
+        #
+        #     self.setattr(
+        #         field,
+        #         grid.at_node.get(
+        #             field,
+        #             grid.add_field(
+        #                 field,
+        #                 at="node",
+        #                 dtype=float,
+        #                 value=self._vars["drainage_area"]["default"]))
+        #
         if "surface_water__discharge" not in grid.at_node:
             self.discharges = grid.add_zeros(
                 "surface_water__discharge", at="node", dtype=float
