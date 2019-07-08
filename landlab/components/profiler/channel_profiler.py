@@ -225,7 +225,8 @@ class ChannelProfiler(_BaseProfiler):
 
     The data structure for ``number_of_watersheds=2`` and
     ``main_channel_only=False`` will be as follows. Note that each watershed
-    has been assigned a different color tuple value.
+    has been assigned a different color tuple value. Here the default viridis
+    cmap is used.
 
     .. code-block:: python
 
@@ -233,34 +234,34 @@ class ChannelProfiler(_BaseProfiler):
             (8, 26) : {
                 "ids": [8, 18, 17, 16, 26],
                 "distances": [0, 1, 2, 3, 4]
-                "color": (1, 0, 1, 1),
+                "color": [ 0.13,  0.57,  0.55,  1.  ],
                 },
             (26, 23) : {
                 "ids": [26, 25, 24, 23],
                 "distances": [4, 5, 6, 7],
-                "color": (1, 0, 1, 1),
+                "color": [ 0.13,  0.57,  0.55,  1.  ],
                 },
             (26, 66) : {
                 "ids": [26, 36, 46, 56, 66],
                 "distances": [4, 5, 6, 7, 8]
-                "color": (1, 0, 1, 1),
+                "color": [ 0.13,  0.57,  0.55,  1.  ],
                 },
             },
          40: {
             (40, 41) : {
                 "ids": [40, 41],
                 "distances": [0, 1]
-                "color": (1, 0, 0, 1),
+                "color": [ 0.27,  0.  ,  0.33,  1.  ],
                 },
             (41, 54) : {
                 "ids": [41, 42, 43, 44, 54],
                 "distances": [2, 3, 4, 5, 6],
-                "color": (1, 0, 0, 1),
+                "color": [ 0.27,  0.  ,  0.33,  1.  ],
                 },
             (41, 62) : {
                 "ids": [41, 51, 61, 62],
                 "distances": [1, 2, 3, 4]
-                "color": (1, 0, 0, 1),
+                "color": [ 0.27,  0.  ,  0.33,  1.  ],
                 },
             }
         }
