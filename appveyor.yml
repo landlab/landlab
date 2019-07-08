@@ -12,12 +12,12 @@ environment:
     - TARGET_ARCH: x64
       CONDA_NPY: 111
       CONDA_INSTALL_LOCN: C:\\Miniconda37-x64
-      CONDA_PY: 37
+      CONDA_PY: 3.7
 
     - TARGET_ARCH: x64
       CONDA_NPY: 111
       CONDA_INSTALL_LOCN: C:\\Miniconda36-x64
-      CONDA_PY: 36
+      CONDA_PY: 3.6
 
 platform:
   - x64
@@ -34,9 +34,6 @@ install:
   - cmd: conda update --yes --quiet conda
   - cmd: set PYTHONUNBUFFERED=1
   - cmd: conda config --set always_yes yes
-  - cmd: conda update conda
-  - cmd: conda install -q --force --no-deps psutil ruamel_yaml requests
-  - cmd: conda install -q numpy netcdf4
   - cmd: pip install twine pytest pytest-cov pytest-datadir
   - cmd: conda info
   - cmd: conda list
@@ -44,6 +41,7 @@ install:
 build: false
 
 test_script:
+  - "%WITH_COMPILER% pip install numpy"
   - "%WITH_COMPILER% pip install -e ."
   - pytest -vvv
 
