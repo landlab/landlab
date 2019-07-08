@@ -626,16 +626,6 @@ class ChannelProfiler(_BaseProfiler):
         """
         return self._net_struct
 
-    @property
-    def distance_along_profile(self):
-        """ """
-        return self._distance_along_profile
-
-    @property
-    def network_ids(self):
-        """ """
-        return self._net_ids
-
     def _get_channel_segment(self, i):
         """Get channel segment and return additional nodes to process.
 
@@ -762,34 +752,46 @@ class ChannelProfiler(_BaseProfiler):
         self._create_flat_structures()
 
     def _create_flat_structures(self):
-        """ """
+        """Create expected flattened structures for ids, distances, and colors.
+        """
         self._net_ids = []
         self._distance_along_profile = []
         self._colors = []
         for outlet_id in self._net_struct:
             seg_tuples = self._net_struct[outlet_id].keys()
-            self._net_ids.append(
+            self._net_ids.extend(
                 [self._net_struct[outlet_id][seg]["ids"] for seg in seg_tuples]
             )
-            self._distance_along_profile.append(
+            self._distance_along_profile.extend(
                 [self._net_struct[outlet_id][seg]["distances"] for seg in seg_tuples]
             )
-            self._colors.append(
+            self._colors.extend(
                 [self._net_struct[outlet_id][seg]["color"] for seg in seg_tuples]
             )
 
     def assign_colors(self, color_mapping=None):
-        """Assign colors. TODO"""
+        """Assign a unique color for each watershed.
+
+        Parameters
+        ----------
+        color_mapping : str
+            Color map name.
+        """
 
         if color_mapping is None:
             num_watersheds = len(self._net_struct)
             norm = mpl.colors.Normalize(vmin=0, vmax=num_watersheds)
             mappable = cm.ScalarMappable(norm=norm, cmap=self._cmap)
-            color_mapping = {outlet_id: mappable.to_rgba(idx) for idx, outlet_id in enumerate(self._net_struct)}
+            color_mapping = {
+                outlet_id: mappable.to_rgba(idx)
+                for idx, outlet_id in enumerate(self._net_struct)
+            }
 
         for outlet_id in self._net_struct:
             for segment_tuple in self._net_struct[outlet_id]:
-                self._net_struct[outlet_id][segment_tuple]["color"] = color_mapping[outlet_id]
+                self._net_struct[outlet_id][segment_tuple]["color"] = color_mapping[
+                    outlet_id
+                ]
 
     def _calculate_distances(self):
         """Get distances along the network datastructure"""
