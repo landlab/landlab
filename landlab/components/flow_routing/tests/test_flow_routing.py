@@ -12,7 +12,6 @@ import os
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
-from six.moves import range
 
 from landlab import CLOSED_BOUNDARY, RadialModelGrid, RasterModelGrid
 from landlab.components.flow_routing import FlowRouter

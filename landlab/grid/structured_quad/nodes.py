@@ -1,7 +1,6 @@
 import itertools
 
 import numpy as np
-from six.moves import range
 
 from ..base import CLOSED_BOUNDARY, CORE_NODE
 

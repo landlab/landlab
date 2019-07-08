@@ -8,7 +8,7 @@ state, then perturbs the uplift rate to produce a propagating
 wave, then stores the propagation as a gif.
 DEJH, 09/15/14
 """
-from __future__ import print_function
+
 
 import copy
 

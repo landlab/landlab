@@ -11,7 +11,7 @@ particular parameters by key name.
 
 The format of the input file looks like::
 
-    >>> from six import StringIO
+    >>> from io import StringIO
     >>> param_file = StringIO('''
     ... PI: the text "PI" is an example of a KEY
     ... 3.1416
@@ -77,7 +77,6 @@ command line (e.g., read_float_cmdline( 'PI' ) )
 import warnings
 
 import numpy as np
-import six
 
 _VALID_TRUE_VALUES = set(["TRUE", "1", 1])
 _VALID_FALSE_VALUES = set(["FALSE", "0", 0])
@@ -240,7 +239,7 @@ class ModelParameterDictionary(dict):
     --------
     Create a file-like object that contains a model parameter dictionary.
 
-    >>> from six import StringIO
+    >>> from io import StringIO
     >>> test_file = StringIO('''
     ... INT_VAL:
     ... 1
@@ -330,7 +329,7 @@ class ModelParameterDictionary(dict):
         param_file : str or file_like
             Name of parameter file (or file_like)
         """
-        if isinstance(param_file, six.string_types):
+        if isinstance(param_file, str):
             try:
                 with open(param_file, "r") as opened_file:
                     self._read_from_file_like(opened_file)
@@ -460,7 +459,7 @@ class ModelParameterDictionary(dict):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -499,7 +498,7 @@ class ModelParameterDictionary(dict):
                 >>> bool('')
                 False
 
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
         ... MY_BOOL:
@@ -564,7 +563,7 @@ class ModelParameterDictionary(dict):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -601,8 +600,7 @@ class ModelParameterDictionary(dict):
 
         Examples
         --------
-        >>> from __future__ import print_function
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -643,7 +641,7 @@ class ModelParameterDictionary(dict):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -683,7 +681,7 @@ class ModelParameterDictionary(dict):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> from landlab import ModelParameterDictionary
         >>> params = ModelParameterDictionary(StringIO(
         ... '''
@@ -726,7 +724,7 @@ class ModelParameterDictionary(dict):
         ParameterValueError
             If the value is not an int.
         """
-        my_value = six.moves.input(key + ": ")
+        my_value = input(key + ": ")
         self[key] = my_value
         if not isinstance(my_value, int):
             raise ParameterValueError(key, my_value, "int")
@@ -753,7 +751,7 @@ class ModelParameterDictionary(dict):
         ParameterValueError
             If the value is not an float.
         """
-        my_value = six.moves.input(key + ": ")
+        my_value = input(key + ": ")
         self[key] = my_value
         try:
             my_float = float(my_value)
@@ -778,7 +776,7 @@ class ModelParameterDictionary(dict):
         str
             The parameter value.
         """
-        my_str = six.moves.input(key + ": ")
+        my_str = input(key + ": ")
         self[key] = my_str
         return my_str
 
@@ -799,7 +797,7 @@ class ModelParameterDictionary(dict):
         bool
             The parameter value.
         """
-        my_value = six.moves.input(key + ": ")
+        my_value = input(key + ": ")
         if my_value.upper() in _VALID_TRUE_VALUES:
             return True
         elif my_value.upper() in _VALID_FALSE_VALUES:

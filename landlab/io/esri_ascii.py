@@ -16,7 +16,6 @@ import os
 import re
 
 import numpy as np
-import six
 
 from landlab.utils import add_halo
 
@@ -290,7 +289,7 @@ def read_asc_header(asc_file):
 
     Examples
     --------
-    >>> from six import StringIO
+    >>> from io import StringIO
     >>> from landlab.io.esri_ascii import read_asc_header
     >>> contents = StringIO('''
     ...     nrows 100
@@ -438,7 +437,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
 
     # if the asc_file is provided as a string, open it and pass the pointer to
     # _read_asc_header, and _read_asc_data
-    if isinstance(asc_file, six.string_types):
+    if isinstance(asc_file, str):
         with open(asc_file, "r") as f:
             header = read_asc_header(f)
             data = _read_asc_data(f)
@@ -549,7 +548,7 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     if os.path.exists(path) and not clobber:
         raise ValueError("file exists")
 
-    if isinstance(names, six.string_types):
+    if isinstance(names, str):
         names = [names]
 
     names = names or fields.at_node.keys()

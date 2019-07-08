@@ -5,7 +5,7 @@ automaton model.
 
 GT Sep 2014
 """
-from __future__ import print_function
+
 
 import random
 import time
