@@ -7,10 +7,8 @@ the surface over which flow will be routed to the component, and sets up
 part of the boundary condition testing.
 """
 
-from __future__ import print_function
 
 import numpy
-import six
 
 from landlab import RasterModelGrid  # for type tests
 from landlab import Component
@@ -96,7 +94,7 @@ class _FlowDirector(Component):
         If the surface values are stored as a field, it is important to
         check if they have changed since the component was instantiated.
         """
-        if isinstance(self.surface, six.string_types):
+        if isinstance(self.surface, str):
             self.surface_values = return_array_at_node(self._grid, self.surface)
 
     def _check_updated_bc(self):

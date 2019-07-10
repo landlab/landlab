@@ -71,7 +71,7 @@ def create_and_initialize_grid(input_source):
 
     Examples
     --------
-    >>> from six import StringIO
+    >>> from io import StringIO
     >>> import pytest
     >>> test_file = StringIO('''
     ... GRID_TYPE:

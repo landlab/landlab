@@ -11,7 +11,6 @@ by exposure to light at a rate that depends on distance below the upper surface.
 Written by Greg Tucker, July 2015
 """
 
-from __future__ import print_function  # for both python 2 and 3 compability
 
 import time
 
@@ -29,7 +28,7 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
     """
     Examples
     ---------
-    >>> from six import StringIO
+    >>> from io import StringIO
     >>> p = StringIO('''
     ... model_grid_row__count: number of rows in grid
     ... 4
@@ -64,7 +63,7 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> p = StringIO('''
         ... model_grid_row__count: number of rows in grid
         ... 4
@@ -272,7 +271,7 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> p = StringIO('''
         ... model_grid_row__count: number of rows in grid
         ... 10
@@ -305,7 +304,7 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> p = StringIO('''
         ... model_grid_row__count: number of rows in grid
         ... 10
@@ -361,7 +360,7 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> p = StringIO('''
         ... model_grid_row__count: number of rows in grid
         ... 10

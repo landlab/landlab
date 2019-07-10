@@ -7,7 +7,7 @@ from time import time
 import numpy as np
 import pylab
 from pylab import close, gca, loglog, plot, savefig, show, xlim, ylim
-from six.moves import range
+
 
 from landlab import CLOSED_BOUNDARY, ModelParameterDictionary, RasterModelGrid
 from landlab.components import (

@@ -4,7 +4,6 @@ import sys
 import xml.dom.minidom
 
 import numpy as np
-from six.moves import range
 
 from landlab.io.vtk.encoders import encode
 from landlab.io.vtk.vtktypes import NUMPY_TO_VTK_TYPE, SYS_TO_VTK_ENDIAN

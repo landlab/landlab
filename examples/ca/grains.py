@@ -13,7 +13,7 @@ simply to demonstrate the capability of an oriented hex grid.
 
 GT Sep 2014
 """
-from __future__ import print_function
+
 
 import time
 

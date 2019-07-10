@@ -20,7 +20,7 @@ Landlab utilities
     ~landlab.core.utils.anticlockwise_argsort_points
     ~landlab.core.utils.get_categories_from_grid_methods
 """
-from __future__ import print_function
+
 
 import numpy as np
 

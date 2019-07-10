@@ -4,7 +4,7 @@ Created March 2016.
 
 @author: dejh
 """
-from __future__ import print_function
+
 
 import numpy as np
 

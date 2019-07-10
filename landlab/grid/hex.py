@@ -12,7 +12,6 @@ from __future__ import absolute_import
 from warnings import warn
 
 import numpy
-import six
 
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 
@@ -240,7 +239,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
         'horizontal' grids, and only self._ncols for 'vertical' grids.
         """
         if self._DEBUG_TRACK_METHODS:
-            six.print_(
+            print(
                 "HexModelGrid._initialize("
                 + str(base_num_rows)
                 + ", "

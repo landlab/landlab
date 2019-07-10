@@ -6,14 +6,14 @@ Created on Fri Feb 20 13:45:52 2015
 
 @author: danhobley
 """
-from __future__ import print_function
+
 
 # from landlab import RasterModelGrid
 # from landlab.plot.imshow import imshow_grid
 import numpy as np
 from matplotlib.ticker import MaxNLocator
 from pylab import clabel, contour, figure, imshow
-from six.moves import range
+
 
 sqrt = np.sqrt
 

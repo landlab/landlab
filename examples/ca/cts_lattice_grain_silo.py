@@ -6,7 +6,7 @@ Continuous-time stochastic CA lattice grain model configured as a silo.
 
 GT Oct 2014
 """
-from __future__ import print_function
+
 
 import random
 import time

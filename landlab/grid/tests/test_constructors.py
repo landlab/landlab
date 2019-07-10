@@ -1,7 +1,8 @@
+from io import StringIO
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
-from six import StringIO
 
 from landlab import (
     CLOSED_BOUNDARY,

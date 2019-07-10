@@ -19,7 +19,6 @@ import warnings
 from functools import wraps
 
 import numpy as np
-import six
 
 from landlab import FieldError
 
@@ -130,7 +129,6 @@ def add_signature_to_doc(func):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.utils.decorators import add_signature_to_doc
 
     >>> def foo(arg1, kwd=None):
@@ -304,7 +302,7 @@ class use_field_name_or_array(object):
         @wraps(func)
         def _wrapped(grid, vals, *args, **kwds):
             """Convert the second argument to an array."""
-            if isinstance(vals, six.string_types):
+            if isinstance(vals, str):
                 vals = grid[self._at][vals]
             else:
                 vals = np.asarray(vals).flatten()
@@ -395,7 +393,7 @@ class use_field_name_array_or_value(object):
         @wraps(func)
         def _wrapped(grid, vals, *args, **kwds):
             """Convert the second argument to an array."""
-            if isinstance(vals, six.string_types):
+            if isinstance(vals, str):
                 if vals in grid[self._at]:
                     vals = grid[self._at][vals]
                 else:

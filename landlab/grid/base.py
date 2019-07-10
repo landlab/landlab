@@ -9,8 +9,6 @@ automated fashion. To modify the text seen on the web, edit the files
 """
 
 import numpy as np
-import six
-from six.moves import range
 
 from landlab.core.utils import argsort_points_by_x_then_y
 from landlab.field import ModelDataFields, ModelDataFieldsMixIn
@@ -327,7 +325,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from six import StringIO
+        >>> from io import StringIO
         >>> from landlab import RasterModelGrid
         >>> filelike = StringIO('''
         ... shape:
@@ -2754,7 +2752,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
                 )
             elif unit == "radians":
                 if alt > np.pi / 2.0 or az > 2.0 * np.pi:
-                    six.print_(
+                    print(
                         "Assuming your solar properties are in degrees, "
                         "but your slopes and aspects are in radians..."
                     )

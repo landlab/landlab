@@ -46,7 +46,6 @@ If you simply want the ordered list by itself, use::
 Created: KRB Oct 2016 (modified from flow_accumu_bw)
 """
 import numpy
-from six.moves import range
 
 from landlab.core.utils import as_id_array
 
