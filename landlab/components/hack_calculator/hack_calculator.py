@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-
-@author: krb
-"""
+"""Calculate Hack coefficients."""
 import collections
 from itertools import chain
 
@@ -102,6 +99,9 @@ class HackCalculator(Component):
     :math:`A` is the drainage area, and :math:`C`and :math:`h` are
     coefficients.
 
+    The HackCalculator uses a ChannelProfiler to determine the nodes on which
+    to calculate the parameter fit.
+
     Examples
     --------
     >>> import pandas as pd
@@ -123,24 +123,38 @@ class HackCalculator(Component):
     ...     fs.run_one_step(1000)
     ...     z[mg.core_nodes] += 0.01 * 1000
     >>> hc = HackCalculator(mg)
-    >>> df = hc.calculate_hack_coefficients()
+    >>> hc.calculate_hack_coefficients()
     >>> largest_outlet = mg.boundary_nodes[
     ...     np.argsort(mg.at_node['drainage_area'][mg.boundary_nodes])[-1:]][0]
     >>> largest_outlet
     4978
-    >>> df.loc[largest_outlet, "A_max"]
+    >>> hc.hack_coefficient_dataframe.loc[largest_outlet, "A_max"]
     2830000.0
-    >>> df.round(2)  # doctest: +NORMALIZE_WHITESPACE
-              A_max     C     h
-    4978  2830000.0  0.32  0.62
+    >>> hc.hack_coefficient_dataframe.round(2)  # doctest: +NORMALIZE_WHITESPACE
+                         A_max     C     h
+    basin_outlet_id
+    4978             2830000.0  0.31  0.62
 
-    >>> hc = HackCalculator(mg, number_of_watersheds=3, main_channel_only=False)
-    >>> df = hc.calculate_hack_coefficients()
-    >>> df.round(2)  # doctest: +NORMALIZE_WHITESPACE
-              A_max     C     h
-    39    2170000.0  0.24  0.64
-    4929  2350000.0  0.25  0.63
-    4978  2830000.0  0.45  0.60
+    >>> hc = HackCalculator(
+    ...     mg,
+    ...     number_of_watersheds=3,
+    ...     main_channel_only=False,
+    ...     save_full_df=True)
+    >>> hc.calculate_hack_coefficients()
+    >>> hc.hack_coefficient_dataframe.round(2)  # doctest: +NORMALIZE_WHITESPACE
+                         A_max     C     h
+    basin_outlet_id
+    39               2170000.0  0.13  0.69
+    4929             2350000.0  0.13  0.68
+    4978             2830000.0  0.23  0.64
+    >>> hc.full_hack_dataframe.head().round(2) # doctest: +NORMALIZE_WHITESPACE
+            basin_outlet_id          A   L_obs    L_est
+    node_id
+    39                 39.0  2170000.0  3200.0  2903.43
+    139                39.0  2170000.0  3100.0  2903.43
+    238                39.0    10000.0     0.0    71.61
+    239                39.0  2160000.0  3000.0  2894.22
+    240                39.0    10000.0     0.0    71.61
     """
 
     _name = "HackCalculator"
@@ -184,57 +198,81 @@ class HackCalculator(Component):
     def __init__(
         self,
         grid,
-        number_of_watersheds=1,
-        main_channel_only=True,
-        outlet_nodes=None,
-        threshold=None,
+        save_full_df=False,
         **kwds
     ):
         """
         Parameters
         ----------
         grid : Landlab Model Grid instance, required
-        number_of_watersheds : int, optional
-            Total number of watersheds to calculate the Hack coefficients for.
-            Default value is 1. If value is greater than 1 and outlet_nodes
-            is not specified, then the number_of_watersheds largest watersheds
-            based on the drainage area at the model grid boundary.
-        main_channel_only : Boolean, optional
-            Use only the longest channel to calculate the Hack coefficients (if
-            True, or use all the pixels in each watershed with drainage area
-            above the threshold value).
-        outlet_nodes : length number_of_watersheds iterable, optional
-            Length number_of_watersheds itterable containing the node IDs of
-            nodes to start the channel profiles from. If not provided, the
-            default is the number_of_watersheds node IDs on the model grid
-            boundary with the largest terminal drainage area.
-        threshold : float, optional
-            Value to use for the minimum drainage area associated with a
-            plotted channel segment. Default values is 2.0 x minimum grid cell
-            area.
+        save_full_df: bool
+            TODO
+        **kwds :
+            Values to pass to the ChannelProfiler.
         """
         super(HackCalculator, self).__init__(grid)
         self._grid = grid
-        self._profiler = ChannelProfiler(
-            grid,
-            number_of_watersheds=number_of_watersheds,
-            main_channel_only=main_channel_only,
-            outlet_nodes=outlet_nodes,
-            threshold=threshold,
-        )
+        self._profiler = ChannelProfiler(grid, **kwds)
+        self._save_full_df = save_full_df
+
+    @property
+    def hack_coefficient_dataframe(self):
+        """Hack coefficient dataframe.
+
+        This dataframe is created and stored on the component.
+
+        It is a pandas dataframe with one row for each basin for which Hack
+        coefficients are calculated. Thus, there are as many rows as the
+        number of watersheds identified by the ChannelProfiler.
+
+        The dataframe has the following index and columns.
+
+            * Index
+                * **basin_outlet_id**: The node ID of the watershed outlet
+                  where each set of Hack coefficients was estimated.
+
+            * Columns
+                * **A_max**: The drainage area of the watershed outlet.
+                * **C**: The Hack coefficient as defined in the equations above.
+                * **h**: The Hack exponent as defined in the equations above.
+        """
+        if hasattr(self, "_df"):
+            return self._df
+        else:
+            msg = ''
+            raise RuntimeError(msg)
+
+    @property
+    def full_hack_dataframe(self):
+        """Full Hack calculation dataframe.
+
+        This dataframe is optionally created and stored on the component when
+        the keyword argument ``full_hack_dataframe=True`` is passed to the
+        component init.
+
+        It is pandas dataframe with a row for every model grid cell used to
+        estimate the Hack coefficients. It has the following index and columns.
+
+            * Index
+                * *node_id**: The node ID of the model grid cell.
+
+            * Columns
+                * **basin_outlet_id**: The node IDs of watershed outlet
+                * **A**: The drainage are of the model grid cell.
+                * **L_obs**: The observed distance to the divide.
+                * **L_est**: The predicted distance to divide based on the
+                  Hack coefficient fit.
+        """
+        if not self._save_full_df:
+            msg = ""
+            raise NotImplementedError(msg)
+        else:
+            return self._full_df
 
     def calculate_hack_coefficients(self):
         """Calculate Hack coefficients for desired watersheds.
 
-        Returns
-        -------
-        hack_structure : pandas DataFrame
-            Index are the node IDs of watershed outlets where the Hack
-            coefficients were estimated. They coorespond to the
-            number_of_watersheds largest drainages on the model grid boundaries
-            or the nodes indicated with outlet_nodes. Column values are
-            "A_max" for the drainage area of the watershed outlet, "C" for the
-            coefficient, and "h" for the exponent.
+
 
         """
         out = collections.OrderedDict()
@@ -242,10 +280,15 @@ class HackCalculator(Component):
 
         dist = calculate_distance_to_divide(self._grid, longest_path=True)
 
-        internal_df = []
+        if self._save_full_df:
+            internal_df = []
+
         # for watershed in watersheds (in profile structure)
-        for watershed in self._profiler._profile_structure:
-            outlet_node = watershed[0][0]
+        for outlet_node in self._profiler._net_struct:
+            seg_tuples = self._profiler._net_struct[outlet_node].keys()
+
+            watershed = [self._profiler._net_struct[outlet_node][seg]["ids"] for seg in seg_tuples]
+
             A_max = self._grid.at_node["drainage_area"][outlet_node]
 
             nodes = np.unique(_flatten(watershed))
@@ -256,30 +299,22 @@ class HackCalculator(Component):
 
             out[outlet_node] = {"A_max": A_max, "C": C, "h": h}
 
-            internal_df.append(
-                pd.DataFrame.from_dict(
-                    {
-                        "basin_id": outlet_node * np.ones(A.shape),
-                        "A": A,
-                        "L_obs": L,
-                        "L_est": C * A ** h,
-                    }
+            if self._save_full_df:
+                internal_df.append(
+                    pd.DataFrame.from_dict(
+                        {
+                            "basin_outlet_id": outlet_node * np.ones(A.shape),
+                            "A": A,
+                            "L_obs": L,
+                            "L_est": C * A ** h,
+                            "node_id": nodes
+                        }
+                    )
                 )
-            )
 
-        df = pd.DataFrame.from_dict(out, orient="index", columns=["A_max", "C", "h"])
+        self._df = pd.DataFrame.from_dict(out, orient="index", columns=["A_max", "C", "h"])
+        self._df.index.name = "basin_outlet_id"
 
-        hdf = pd.concat(internal_df, ignore_index=True)
-        amax_df = (
-            hdf.drop(["L_obs", "L_est"], axis=1)
-            .groupby("basin_id")
-            .max()
-            .sort_values(by="A")
-        )
-        s = pd.Series(hdf["basin_id"], dtype="category", index=hdf.index)
-        s = s.cat.set_categories(amax_df.index.values, ordered=True)
-        hdf["basin_id"] = s
-
-        self._df = hdf
-
-        return df
+        if self._save_full_df:
+            hdf = pd.concat(internal_df, ignore_index=True).set_index("node_id").sort_index()
+            self._full_df = hdf
