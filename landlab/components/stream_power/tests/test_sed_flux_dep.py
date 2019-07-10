@@ -8,7 +8,6 @@ import os
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
-from six.moves import range
 
 from landlab import CLOSED_BOUNDARY, ModelParameterDictionary, RasterModelGrid
 from landlab.components import FlowAccumulator, SedDepEroder

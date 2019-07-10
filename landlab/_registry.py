@@ -8,7 +8,6 @@ all of the components they have used.
 
 Examples
 --------
->>> from __future__ import print_function
 >>> from landlab import registry
 
 >>> registry.registered
@@ -70,8 +69,6 @@ Examples
 from __future__ import absolute_import
 
 import os
-
-import six
 
 from . import _info
 from .core.messages import indent_and_wrap
@@ -138,7 +135,6 @@ class ComponentRegistry(object):
 
         Examples
         --------
-        >>> from __future__ import print_function
         >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
         >>> class DoNothingComponent(object):
@@ -219,7 +215,7 @@ class ComponentRegistry(object):
                 pass
             else:
                 break
-        if isinstance(citations, six.string_types):
+        if isinstance(citations, str):
             citations = [citations]
         return citations
 
@@ -233,7 +229,6 @@ class ComponentRegistry(object):
 
         Examples
         --------
-        >>> from __future__ import print_function
         >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
 

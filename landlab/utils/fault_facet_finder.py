@@ -8,20 +8,18 @@ only intended for model post-analysis or DEM analysis. Do not loop this class!!
 This is part of the NSF funded project investigating fault scarp degradation,
 Tucker, Hobley, McCoy.
 """
-from __future__ import print_function
+
 
 import sys
 
 import numpy as np
-import six
 from pylab import figure, plot, show
 
 from landlab.plot import imshow as gridshow
 
-if six.PY3:
 
-    def cmp(a, b):
-        return (a > b) - (a < b)
+def cmp(a, b):
+    return (a > b) - (a < b)
 
 
 class find_facets(object):
@@ -453,7 +451,7 @@ class find_facets(object):
         rsqd_list = []
         big_slope_small_curv = []
         elev_at_bssc = []
-        for i in six.range(len(self.profile_x_facet_pts)):
+        for i in range(len(self.profile_x_facet_pts)):
             x = self.profile_x_facet_pts[i]
             z = self.profile_z_facet_pts[i]
             (grad, offset) = np.polyfit(x, z, 1)

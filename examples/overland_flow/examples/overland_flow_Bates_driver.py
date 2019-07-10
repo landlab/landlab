@@ -12,7 +12,7 @@ overland_flow_with_model_grid_Bates_analyticalSolution.py
 .. codeauthor:: Jordan Adams <jadams15@tulane.edu>
 """
 
-from __future__ import print_function
+
 
 from time import time
 

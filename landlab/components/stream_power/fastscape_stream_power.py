@@ -4,10 +4,9 @@
 # This module attempts to "component-ify" GT's Fastscape stream
 # power erosion.
 # Created DEJH, March 2014.
-from __future__ import print_function
+
 
 import numpy as np
-from six import string_types
 
 from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX, Component, RasterModelGrid
 from landlab.utils.decorators import use_file_name_or_kwds
@@ -219,7 +218,7 @@ class FastscapeEroder(Component):
         if isinstance(threshold_sp, (float, int)):
             self.thresholds = float(threshold_sp)
         else:
-            if isinstance(threshold_sp, string_types):
+            if isinstance(threshold_sp, str):
                 self.thresholds = self.grid.at_node[threshold_sp]
             else:
                 self.thresholds = threshold_sp
@@ -237,7 +236,7 @@ class FastscapeEroder(Component):
 
         # now handle the inputs that could be float, array or field name:
         # some support here for old-style inputs
-        if isinstance(K_sp, string_types):
+        if isinstance(K_sp, str):
             if K_sp == "array":
                 self.K = None
             else:
@@ -249,7 +248,7 @@ class FastscapeEroder(Component):
             if len(self.K) != self.grid.number_of_nodes:
                 raise TypeError("Supplied value of K_sp is not n_nodes long")
 
-        if isinstance(rainfall_intensity, string_types):
+        if isinstance(rainfall_intensity, str):
             raise ValueError(
                 "This component can no longer handle "
                 + "spatially variable runoff directly. Use "

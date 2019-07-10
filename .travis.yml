@@ -6,7 +6,6 @@ env:
   matrix:
   - CONDA_ENV=3.7
   - CONDA_ENV=3.6
-  - CONDA_ENV=2.7
   global:
   - MPLBACKEND=Agg
 sudo: false

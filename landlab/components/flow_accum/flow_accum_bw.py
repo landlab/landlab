@@ -25,7 +25,6 @@ If you simply want the ordered list by itself, use::
 Created: GT Nov 2013
 """
 import numpy
-from six.moves import range
 
 from landlab.core.utils import as_id_array
 

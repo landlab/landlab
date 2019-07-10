@@ -22,7 +22,7 @@ import warnings
 import numpy
 
 # DEJH, March 2014.
-from six.moves import range
+
 
 try:
     import matplotlib.pyplot as plt

@@ -2,7 +2,6 @@
 """Store collections of data fields."""
 
 import numpy as np
-import six
 
 from .scalar_data_fields import ScalarDataFields
 
@@ -460,7 +459,7 @@ class ModelDataFields(object):
 
         LLCATS: FIELDIO
         """
-        if isinstance(field, six.string_types):
+        if isinstance(field, str):
             vals = self.field_values(group, field)
         else:
             vals = np.asarray(field)

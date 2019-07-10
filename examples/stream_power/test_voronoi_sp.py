@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib.pyplot import show
-from six.moves import range
+
 
 from landlab import VoronoiDelaunayGrid
 from landlab.components import FlowAccumulator, StreamPowerEroder

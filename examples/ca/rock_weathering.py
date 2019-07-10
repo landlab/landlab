@@ -8,7 +8,7 @@ a network of fractures.
 
 Created (and translated from earlier code by) by Greg Tucker, Jul 2015
 """
-from __future__ import print_function
+
 
 import time
 

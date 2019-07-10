@@ -18,7 +18,6 @@ def get_flexure_parameter(h, E, n_dim, gamma_mantle=33000.0):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.components.flexure import get_flexure_parameter
 
     >>> eet = 65000.
@@ -107,7 +106,6 @@ def subside_point_load(load, loc, coords, params=None, out=None):
 
     Calculate deflections due to a load applied at position (5000., 2500.).
 
-    >>> import six
     >>> x = np.arange(0, 10000, 1000.)
     >>> y = np.arange(0, 5000, 1000.)
     >>> (x, y) = np.meshgrid(x, y)
@@ -116,16 +114,16 @@ def subside_point_load(load, loc, coords, params=None, out=None):
     >>> dz = subside_point_load(load, (5000., 2500.), (x, y), params=params)
     >>> print('%.5g' % round(dz.sum(), 9))
     2.6267e-05
-    >>> six.print_(round(dz.min(), 9))
+    >>> print(round(dz.min(), 9))
     5.24e-07
-    >>> six.print_(round(dz.max(), 9))
+    >>> print(round(dz.max(), 9))
     5.26e-07
 
     >>> dz = subside_point_load((1e9, 1e9), ((5000., 5000.), (2500., 2500.)),
     ...                         (x, y), params=params)
-    >>> six.print_(round(dz.min(), 9) / 2.)
+    >>> print(round(dz.min(), 9) / 2.)
     5.235e-07
-    >>> six.print_(round(dz.max(), 9) / 2.)
+    >>> print(round(dz.max(), 9) / 2.)
     5.265e-07
     """
     params = params or dict(eet=6500.0, youngs=7.0e10)

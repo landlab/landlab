@@ -4,9 +4,6 @@
 import matplotlib.pylab as plt
 import numpy as np
 
-# KRB, FEB 2017.
-import six
-
 from landlab import (
     CLOSED_BOUNDARY,
     CORE_NODE,
@@ -14,6 +11,8 @@ from landlab import (
     FIXED_VALUE_BOUNDARY,
 )
 from landlab.plot.imshow import imshow_grid
+
+# KRB, FEB 2017.
 
 
 def drainage_plot(
@@ -26,7 +25,7 @@ def drainage_plot(
     title="Drainage Plot",
 ):
 
-    if isinstance(surface, six.string_types):
+    if isinstance(surface, str):
         colorbar_label = surface
     else:
         colorbar_label = "topographic_elevation"
