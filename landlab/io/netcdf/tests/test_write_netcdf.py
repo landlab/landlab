@@ -21,7 +21,7 @@ _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
 def test_netcdf_write_int64_field_netcdf4(tmpdir):
     """Test write_netcdf with a grid that has an int64 field."""
-    field = RasterModelGrid(4, 3)
+    field = RasterModelGrid((4, 3))
     field.add_field("node", "topographic__elevation", np.arange(12, dtype=np.int64))
 
     with tmpdir.as_cwd():
@@ -39,7 +39,7 @@ def test_netcdf_write_int64_field_netcdf4(tmpdir):
 
 def test_netcdf_write_uint8_field_netcdf4(tmpdir):
     """Test write_netcdf with a grid that has an uint8 field."""
-    field = RasterModelGrid(4, 3)
+    field = RasterModelGrid((4, 3))
     field.add_field("node", "topographic__elevation", np.arange(12, dtype=np.uint8))
 
     with tmpdir.as_cwd():
@@ -59,9 +59,9 @@ def test_netcdf_write_as_netcdf3_64bit(tmpdir):
     """Test write_netcdf with output format 64-bit netcdf3."""
     from scipy.io import netcdf
 
-    field = RasterModelGrid(4, 3)
-    field.add_field("node", "topographic__elevation", np.arange(12.))
-    field.add_field("node", "uplift_rate", 2. * np.arange(12.))
+    field = RasterModelGrid((4, 3))
+    field.add_field("node", "topographic__elevation", np.arange(12.0))
+    field.add_field("node", "uplift_rate", 2.0 * np.arange(12.0))
 
     with tmpdir.as_cwd():
         write_netcdf("test.nc", field, format="NETCDF3_64BIT")
@@ -79,9 +79,9 @@ def test_netcdf_write_as_netcdf3_classic(tmpdir):
     """Test write_netcdf with output format classic netcdf3."""
     from scipy.io import netcdf
 
-    field = RasterModelGrid(4, 3)
-    field.add_field("node", "topographic__elevation", np.arange(12.))
-    field.add_field("node", "uplift_rate", 2. * np.arange(12.))
+    field = RasterModelGrid((4, 3))
+    field.add_field("node", "topographic__elevation", np.arange(12.0))
+    field.add_field("node", "uplift_rate", 2.0 * np.arange(12.0))
 
     with tmpdir.as_cwd():
         write_netcdf("test.nc", field, format="NETCDF3_CLASSIC")
@@ -97,8 +97,8 @@ def test_netcdf_write_as_netcdf3_classic(tmpdir):
 
 def test_netcdf_write(tmpdir):
     """Test generic write_netcdf."""
-    field = RasterModelGrid(4, 3)
-    field.add_field("node", "topographic__elevation", np.arange(12.))
+    field = RasterModelGrid((4, 3))
+    field.add_field("node", "topographic__elevation", np.arange(12.0))
 
     with tmpdir.as_cwd():
         write_netcdf("test.nc", field, format="NETCDF4")
@@ -114,11 +114,11 @@ def test_netcdf_write(tmpdir):
 
         assert_array_equal(
             root.variables["x"][:].flatten(),
-            np.array([0., 1., 2., 0., 1., 2., 0., 1., 2., 0., 1., 2.]),
+            np.array([0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0, 0.0, 1.0, 2.0]),
         )
         assert_array_equal(
             root.variables["y"][:].flatten(),
-            np.array([0., 0., 0., 1., 1., 1., 2., 2., 2., 3., 3., 3.]),
+            np.array([0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0]),
         )
         assert_array_equal(
             root.variables["topographic__elevation"][:].flatten(),
@@ -130,9 +130,9 @@ def test_netcdf_write(tmpdir):
 
 def test_netcdf_write_as_netcdf4_classic(tmpdir):
     """Test write_netcdf to netcdf4 classic format."""
-    field = RasterModelGrid(4, 3)
-    field.add_field("node", "topographic__elevation", np.arange(12.))
-    field.add_field("node", "uplift_rate", np.arange(12.))
+    field = RasterModelGrid((4, 3))
+    field.add_field("node", "topographic__elevation", np.arange(12.0))
+    field.add_field("node", "uplift_rate", np.arange(12.0))
 
     with tmpdir.as_cwd():
         write_netcdf("test.nc", field, format="NETCDF4_CLASSIC")
@@ -147,9 +147,9 @@ def test_netcdf_write_as_netcdf4_classic(tmpdir):
 
 def test_netcdf_write_names_keyword_as_list(tmpdir):
     """Test write_netcdf using a list for the *names* keyword."""
-    field = RasterModelGrid(4, 3)
-    field.add_field("node", "topographic__elevation", np.arange(12.))
-    field.add_field("node", "uplift_rate", np.arange(12.))
+    field = RasterModelGrid((4, 3))
+    field.add_field("node", "topographic__elevation", np.arange(12.0))
+    field.add_field("node", "uplift_rate", np.arange(12.0))
 
     with tmpdir.as_cwd():
         write_netcdf(
@@ -169,9 +169,9 @@ def test_netcdf_write_names_keyword_as_list(tmpdir):
 
 def test_netcdf_write_names_keyword_as_str(tmpdir):
     """Test write_netcdf using a ``str`` for the *names* keyword."""
-    field = RasterModelGrid(4, 3)
-    field.add_field("node", "topographic__elevation", np.arange(12.))
-    field.add_field("node", "uplift_rate", np.arange(12.))
+    field = RasterModelGrid((4, 3))
+    field.add_field("node", "topographic__elevation", np.arange(12.0))
+    field.add_field("node", "uplift_rate", np.arange(12.0))
 
     with tmpdir.as_cwd():
         write_netcdf("test.nc", field, names="uplift_rate", format="NETCDF4")
@@ -188,9 +188,9 @@ def test_netcdf_write_names_keyword_as_str(tmpdir):
 
 def test_netcdf_write_names_keyword_as_none(tmpdir):
     """Test write_netcdf using ``None`` for the *names* keyword."""
-    field = RasterModelGrid(4, 3)
-    field.add_field("node", "topographic__elevation", np.arange(12.))
-    field.add_field("node", "uplift_rate", np.arange(12.))
+    field = RasterModelGrid((4, 3))
+    field.add_field("node", "topographic__elevation", np.arange(12.0))
+    field.add_field("node", "uplift_rate", np.arange(12.0))
 
     with tmpdir.as_cwd():
         write_netcdf("test.nc", field, names=None, format="NETCDF4")
@@ -205,23 +205,23 @@ def test_netcdf_write_names_keyword_as_none(tmpdir):
 
 def test_2d_unit_spacing():
     """Test write_netcdf with a 2D grid with unit spacing."""
-    (x, y) = np.meshgrid(np.arange(5.), np.arange(4.))
+    (x, y) = np.meshgrid(np.arange(5.0), np.arange(4.0))
 
     spacing = _get_raster_spacing((y, x))
-    assert spacing == 1.
+    assert spacing == 1.0
 
 
 def test_2d_non_unit_spacing():
     """Test _get_raster_spacing with a 2D grid with non-unit spacing."""
-    (x, y) = np.meshgrid(np.arange(5.) * 2, np.arange(4.) * 2)
+    (x, y) = np.meshgrid(np.arange(5.0) * 2, np.arange(4.0) * 2)
 
     spacing = _get_raster_spacing((y, x))
-    assert spacing == 2.
+    assert spacing == 2.0
 
 
 def test_2d_uneven_spacing_axis_0():
     """Test _get_raster_spacing with a 2D grid with uneven spacing in y."""
-    (x, y) = np.meshgrid(np.logspace(0., 2., num=5), np.arange(4.))
+    (x, y) = np.meshgrid(np.logspace(0.0, 2.0, num=5), np.arange(4.0))
 
     with pytest.raises(NotRasterGridError):
         _get_raster_spacing((y, x))
@@ -229,7 +229,7 @@ def test_2d_uneven_spacing_axis_0():
 
 def test_2d_uneven_spacing_axis_1():
     """Test _get_raster_spacing with a 2D grid with uneven spacing in x."""
-    (x, y) = np.meshgrid(np.arange(4.), np.logspace(0., 2., num=5))
+    (x, y) = np.meshgrid(np.arange(4.0), np.logspace(0.0, 2.0, num=5))
 
     with pytest.raises(NotRasterGridError):
         _get_raster_spacing((y, x))
@@ -237,28 +237,28 @@ def test_2d_uneven_spacing_axis_1():
 
 def test_2d_switched_coords():
     """Test _get_raster_spacing with a 2D grid when the spacing is switched."""
-    (x, y) = np.meshgrid(np.arange(5.), np.arange(4.))
+    (x, y) = np.meshgrid(np.arange(5.0), np.arange(4.0))
 
     spacing = _get_raster_spacing((x, y))
-    assert spacing == 0.
+    assert spacing == 0.0
 
 
 def test_1d_unit_spacing():
     """Test _get_raster_spacing with a 1D grid with unit spacing."""
-    spacing = _get_raster_spacing((np.arange(5.),))
-    assert spacing == 1.
+    spacing = _get_raster_spacing((np.arange(5.0),))
+    assert spacing == 1.0
 
 
 def test_1d_non_unit_spacing():
     """Test _get_raster_spacing with a 1D grid with non-unit spacing."""
-    spacing = _get_raster_spacing((np.arange(5.) * 2,))
-    assert spacing == 2.
+    spacing = _get_raster_spacing((np.arange(5.0) * 2,))
+    assert spacing == 2.0
 
 
 def test_1d_uneven_spacing():
     """Test _get_raster_spacing with a 1D grid with uneven spacing in y."""
     with pytest.raises(NotRasterGridError):
-        _get_raster_spacing((np.logspace(0., 2., num=5),))
+        _get_raster_spacing((np.logspace(0.0, 2.0, num=5),))
 
 
 def test_netcdf_write_at_cells(tmpdir):

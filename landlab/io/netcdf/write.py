@@ -137,7 +137,7 @@ def _get_axes_names(shape):
     return names[::-1]
 
 
-def _get_cell_bounds(shape, spacing=(1., 1.), origin=(0., 0.)):
+def _get_cell_bounds(shape, spacing=(1.0, 1.0), origin=(0.0, 0.0)):
     """Get bounds arrays for square cells.
 
     Parameters
@@ -299,7 +299,9 @@ def _add_cell_spatial_variables(root, grid, **kwds):
     spatial_variable_shape = _get_dimension_names(cell_grid_shape)
 
     bounds = _get_cell_bounds(
-        cell_grid_shape, spacing=(grid.dy, grid.dx), origin=(grid.dy * .5, grid.dx * .5)
+        cell_grid_shape,
+        spacing=(grid.dy, grid.dx),
+        origin=(grid.dy * 0.5, grid.dx * 0.5),
     )
 
     shape = spatial_variable_shape + ["nv"]
@@ -601,7 +603,7 @@ def write_netcdf(
     Create a uniform rectilinear grid with four rows and 3 columns, and add
     some data fields to it.
 
-    >>> rmg = RasterModelGrid(4, 3)
+    >>> rmg = RasterModelGrid((4, 3))
     >>> _ = rmg.add_field('node', 'topographic__elevation', np.arange(12.))
     >>> _ = rmg.add_field('node', 'uplift_rate', 2. * np.arange(12.))
 
@@ -727,7 +729,7 @@ def write_raster_netcdf(
     Create a uniform rectilinear grid with four rows and 3 columns, and add
     some data fields to it.
 
-    >>> rmg = RasterModelGrid(4, 3)
+    >>> rmg = RasterModelGrid((4, 3))
     >>> _ = rmg.add_field('node', 'topographic__elevation', np.arange(12.))
     >>> _ = rmg.add_field('node', 'uplift_rate', 2. * np.arange(12.))
 

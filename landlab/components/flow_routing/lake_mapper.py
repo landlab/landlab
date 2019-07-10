@@ -179,11 +179,11 @@ class DepressionFinderAndRouter(Component):
         self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
 
-        if routing is not "D8":
-            assert routing is "D4"
+        if routing != "D8":
+            assert routing == "D4"
         self._routing = routing
 
-        if isinstance(grid, RasterModelGrid) and (routing is "D8"):
+        if isinstance(grid, RasterModelGrid) and (routing == "D8"):
             self._D8 = True
             self.num_nbrs = 8
             self._diag_link_length = np.sqrt(grid._dx ** 2 + grid._dy ** 2)
@@ -322,7 +322,7 @@ class DepressionFinderAndRouter(Component):
             self._link_lengths[3] = dy
             self._link_lengths[4:].fill(np.sqrt(dx * dx + dy * dy))
         elif (type(self.grid) is landlab.grid.raster.RasterModelGrid) and (
-            self._routing is "D4"
+            self._routing == "D4"
         ):
             self._link_lengths = np.empty(4, dtype=float)
             self._link_lengths[0] = dx
@@ -902,7 +902,7 @@ class DepressionFinderAndRouter(Component):
             self._bc_set_code = self.grid.bc_set_code
         self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)
         self.depression_outlet_map.fill(LOCAL_BAD_INDEX_VALUE)
-        self.depression_depth.fill(0.)
+        self.depression_depth.fill(0.0)
         self.depression_outlets = []  # reset these
         # Locate nodes with pits
         if type(pits) == str:
@@ -1186,7 +1186,7 @@ class DepressionFinderAndRouter(Component):
         # Calculate drainage area, discharge, and downstr->upstr order
         Q_in = self._grid.at_node["water__unit_flux_in"]
         areas = self._grid.cell_area_at_node.copy()
-        areas[self._grid.closed_boundary_nodes] = 0.
+        areas[self._grid.closed_boundary_nodes] = 0.0
 
         self.a, q, s = flow_accum_bw.flow_accumulation(
             self.receivers, node_cell_area=areas, runoff_rate=Q_in

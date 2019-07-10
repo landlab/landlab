@@ -25,13 +25,13 @@ def test_diffusion():
     init_elev = inputs.read_float("init_elev")
 
     mg = RasterModelGrid((nrows, ncols), xy_spacing=(dx, dx))
-    uplift_rate = mg.node_y[mg.core_cells] / 100000.
+    uplift_rate = mg.node_y[mg.core_cells] / 100000.0
 
     # create the fields in the grid
     mg.add_zeros("topographic__elevation", at="node")
     z = mg.zeros(at="node") + init_elev
     np.random.seed(0)
-    mg["node"]["topographic__elevation"] = z + np.random.rand(len(z)) / 1000.
+    mg["node"]["topographic__elevation"] = z + np.random.rand(len(z)) / 1000.0
 
     mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
 
@@ -39,7 +39,7 @@ def test_diffusion():
     dfn = LinearDiffuser(mg, **inputs)
 
     # perform the loop:
-    elapsed_time = 0.  # total time in simulation
+    elapsed_time = 0.0  # total time in simulation
     while elapsed_time < time_to_run:
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
@@ -263,9 +263,9 @@ def test_diffusion_no_deposit():
     # Use closed boundaries all around because this is a simpler scenario.
     mg = RasterModelGrid((5, 3), xy_spacing=(10, 10))
     z = mg.zeros(at="node")
-    z[4] = 3.
-    z[7] = 3.
-    z[10] = 4.
+    z[4] = 3.0
+    z[7] = 3.0
+    z[10] = 4.0
     mg["node"]["topographic__elevation"] = z
 
     # The gradient at node 7 should be zero, so the elevation here would
@@ -276,7 +276,7 @@ def test_diffusion_no_deposit():
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
     # instantiate:
-    dfn = LinearDiffuser(mg, linear_diffusivity=1., method="simple", deposit=False)
+    dfn = LinearDiffuser(mg, linear_diffusivity=1.0, method="simple", deposit=False)
 
     dfn.run_one_step(100)
 

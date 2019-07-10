@@ -1,10 +1,8 @@
 import os
 
-from .read import read_netcdf
-from .write import write_netcdf
-from .write import write_raster_netcdf
-
 from .errors import NotRasterGridError
+from .read import read_netcdf
+from .write import write_netcdf, write_raster_netcdf
 
 
 NETCDF4_EXAMPLE_FILE = os.path.join(

@@ -4,47 +4,48 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 import landlab.utils.structured_grid as sgrid
-from landlab.grid.base import BAD_INDEX_VALUE
 
 
 def test_node_x_2d():
     (x, _) = sgrid.node_coords((3, 2))
 
-    assert_array_equal(x, np.array([0., 1., 0., 1., 0., 1.]))
+    assert_array_equal(x, np.array([0.0, 1.0, 0.0, 1.0, 0.0, 1.0]))
 
 
 def test_node_x_2d_with_spacing():
-    (x, _) = sgrid.node_coords((3, 2), (2., 10.))
+    (x, _) = sgrid.node_coords((3, 2), (2.0, 10.0))
 
-    assert_array_equal(x, np.array([0., 10., 0., 10., 0., 10.]))
+    assert_array_equal(x, np.array([0.0, 10.0, 0.0, 10.0, 0.0, 10.0]))
 
 
 def test_node_x_2d_with_origin():
-    (x, _) = sgrid.node_coords((3, 2), (2., 10.), (-1., 1.))
+    (x, _) = sgrid.node_coords((3, 2), (2.0, 10.0), (-1.0, 1.0))
 
-    assert_array_equal(x, np.array([1., 11., 1., 11., 1., 11.]))
+    assert_array_equal(x, np.array([1.0, 11.0, 1.0, 11.0, 1.0, 11.0]))
 
 
 def test_node_y_2d():
     (_, y) = sgrid.node_coords((3, 2))
 
-    assert_array_equal(y, np.array([0., 0., 1., 1., 2., 2.]))
+    assert_array_equal(y, np.array([0.0, 0.0, 1.0, 1.0, 2.0, 2.0]))
 
 
 def test_node_y_2d_with_spacing():
-    (_, y) = sgrid.node_coords((3, 2), (2., 10.))
+    (_, y) = sgrid.node_coords((3, 2), (2.0, 10.0))
 
-    assert_array_equal(y, np.array([0., 0., 2., 2., 4., 4.]))
+    assert_array_equal(y, np.array([0.0, 0.0, 2.0, 2.0, 4.0, 4.0]))
 
 
 def test_node_y_2d_with_origin():
-    (_, y) = sgrid.node_coords((3, 2), (2., 10.), (-1., 1.))
+    (_, y) = sgrid.node_coords((3, 2), (2.0, 10.0), (-1.0, 1.0))
 
-    assert_array_equal(y, np.array([-1., -1., 1., 1., 3., 3.]))
+    assert_array_equal(y, np.array([-1.0, -1.0, 1.0, 1.0, 3.0, 3.0]))
 
 
 def test_round_off_error():
-    (x, y) = sgrid.node_coords((135, 127), (5.4563957090392, 5.4563957090392), (0., 0.))
+    (x, y) = sgrid.node_coords(
+        (135, 127), (5.4563957090392, 5.4563957090392), (0.0, 0.0)
+    )
 
     assert x.shape == (135 * 127,)
     assert y.shape == (135 * 127,)
@@ -68,7 +69,6 @@ def test_shape_4_by_5():
     assert_array_equal(cell_nodes, np.array([6, 7, 8, 11, 12, 13]))
 
 
-# class TestGetNodeLinks(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_2d_3_by_2_from_links():
     (from_indices, _) = sgrid.node_index_at_link_ends((3, 2))
 
@@ -159,60 +159,6 @@ def test_outlinks():
     )
 
 
-# class TestNodeActiveCell(unittest.TestCase, NumpyArrayTestingMixIn):
-def test_node_active_cell_one_active_cell():
-    active_cells = sgrid.active_cell_index_at_nodes((3, 3))
-
-    assert_array_equal(
-        active_cells,
-        np.array(
-            [
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                0,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-            ]
-        ),
-    )
-
-
-def test_no_active_cells():
-    active_cells = sgrid.active_cell_index_at_nodes((3, 2))
-
-    assert_array_equal(
-        active_cells,
-        np.array(
-            [
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-                BAD_INDEX_VALUE,
-            ]
-        ),
-    )
-
-
-# class TestActiveCells(unittest.TestCase, NumpyArrayTestingMixIn):
-def test_active_cells_one_active_cell():
-    active_cells = sgrid.active_cell_index((3, 3))
-
-    assert_array_equal(active_cells, np.array([0]))
-
-
-def test_active_cells_no_active_cells():
-    active_cells = sgrid.active_cell_index((3, 2))
-
-    assert_array_equal(active_cells, np.array([]))
-
-
-# class TestCellCount(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_cell_count_one_cell():
     n_cells = sgrid.cell_count((3, 3))
     assert n_cells == 1
@@ -223,7 +169,6 @@ def test_no_cells():
     assert n_cells == 0
 
 
-# class TestInteriorCellCount(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_interior_cell_count_one_cell():
     n_cells = sgrid.interior_cell_count((3, 3))
     assert n_cells == 1
@@ -234,7 +179,6 @@ def test_interior_cell_count_no_cells():
     assert n_cells == 0
 
 
-# class TestActiveCellCount(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_active_cell_count_one_cell():
     n_cells = sgrid.active_cell_count((3, 3))
     assert n_cells == 1
@@ -245,7 +189,6 @@ def test_active_cell_count_no_cells():
     assert n_cells == 0
 
 
-# class TestInteriorNodes(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_interior_nodes_4_by_5():
     interiors = sgrid.interior_nodes((4, 5))
     assert_array_equal(interiors, np.array([6, 7, 8, 11, 12, 13]))
@@ -256,7 +199,6 @@ def test_no_interiors():
     assert_array_equal(interiors, np.array([]))
 
 
-# class TestNodeStatus(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_node_status_4_by_5():
     status = sgrid.status_at_node((4, 5))
     assert status.dtype == np.int8
@@ -274,7 +216,6 @@ def test_node_status_no_interiors():
     assert_array_equal(status, np.array([1, 1, 1, 1, 1, 1]))
 
 
-# class TestActiveLinks(unittest.TestCase, NumpyArrayTestingMixIn):
 """
 *--27-->*--28-->*--29-->*--30-->*
 ^       ^       ^       ^       ^
@@ -606,7 +547,6 @@ def test_active_inlinks_4x5():
     )
 
 
-# class TestFaces(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_face_count():
     assert 17 == sgrid.face_count((4, 5))
     assert 4 == sgrid.face_count((3, 3))
@@ -631,7 +571,6 @@ def test_active_faces():
     )
 
 
-# class TestLinkFaces(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_link_faces_4_by_5():
     link_faces = sgrid.face_at_link((4, 5))
 
@@ -724,9 +663,8 @@ def test_with_active_links():
     )
 
 
-# class TestReshapeArray(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_reshape_array_default():
-    x = np.arange(12.)
+    x = np.arange(12.0)
     y = sgrid.reshape_array((3, 4), x)
 
     assert y.shape == (3, 4)
@@ -736,7 +674,7 @@ def test_reshape_array_default():
 
 
 def test_copy():
-    x = np.arange(12.)
+    x = np.arange(12.0)
     y = sgrid.reshape_array((3, 4), x, copy=True)
 
     assert y.shape == (3, 4)
@@ -744,38 +682,43 @@ def test_copy():
     assert y.flags["C_CONTIGUOUS"]
     assert y.base is None
 
-    y[0][0] = 0.
-    assert_array_equal(x, np.array([0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11.]))
+    y[0][0] = 0.0
+    assert_array_equal(
+        x, np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0])
+    )
 
 
 def test_flip():
-    x = np.arange(12.)
+    x = np.arange(12.0)
     y = sgrid.reshape_array((3, 4), x, flip_vertically=True)
 
     assert y.shape == (3, 4)
     assert_array_equal(
-        y, np.array([[8., 9., 10., 11.], [4., 5., 6., 7.], [0., 1., 2., 3.]])
+        y,
+        np.array([[8.0, 9.0, 10.0, 11.0], [4.0, 5.0, 6.0, 7.0], [0.0, 1.0, 2.0, 3.0]]),
     )
     assert not y.flags["C_CONTIGUOUS"]
     assert y.base is not None
 
-    y[0][0] = 0.
-    assert_array_equal(x, np.array([0., 1., 2., 3., 4., 5., 6., 7., 0., 9., 10., 11.]))
+    y[0][0] = 0.0
+    assert_array_equal(
+        x, np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 0.0, 9.0, 10.0, 11.0])
+    )
 
 
 def test_flip_copy():
-    x = np.arange(12.)
+    x = np.arange(12.0)
     y = sgrid.reshape_array((3, 4), x, flip_vertically=True, copy=True)
 
     assert y.shape == (3, 4)
     assert_array_equal(
-        y, np.array([[8., 9., 10., 11.], [4., 5., 6., 7.], [0., 1., 2., 3.]])
+        y,
+        np.array([[8.0, 9.0, 10.0, 11.0], [4.0, 5.0, 6.0, 7.0], [0.0, 1.0, 2.0, 3.0]]),
     )
     assert y.flags["C_CONTIGUOUS"]
     assert y.base is not x
 
 
-# class TestDiagonalArray(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_diagonal_array_default():
     diags = sgrid.diagonal_node_array((2, 3), out_of_bounds=-1)
     assert_array_equal(
@@ -841,7 +784,6 @@ def test_boundary_node_mask():
     )
 
 
-# class TestNeighborArray(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_neighbor_array_default():
     neighbors = sgrid.neighbor_node_array((2, 3))
 
@@ -882,7 +824,6 @@ def test_set_out_of_bounds():
     )
 
 
-# class TestInlinkMatrix(unittest.TestCase, NumpyArrayTestingMixIn):
 def test_no_inactive():
     inlinks = sgrid.setup_active_inlink_matrix((4, 5), return_count=False)
     assert_array_equal(
