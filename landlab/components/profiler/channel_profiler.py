@@ -9,6 +9,7 @@ import numpy as np
 from matplotlib import cm
 
 from landlab.components.profiler.base_profiler import _BaseProfiler
+from landlab.core.utils import as_id_array
 from landlab.utils.flow__distance import calculate_flow__distance
 
 
@@ -730,7 +731,7 @@ class ChannelProfiler(_BaseProfiler):
                 (channel_segment, nodes_to_process) = self._get_channel_segment(i)
                 segment_tuple = (channel_segment[0], channel_segment[-1])
                 self._net_struct[i] = {
-                    segment_tuple: {"ids": np.array(channel_segment)}
+                    segment_tuple: {"ids": as_id_array(channel_segment)}
                 }
 
         else:
@@ -743,7 +744,9 @@ class ChannelProfiler(_BaseProfiler):
                         node_to_process
                     )
                     segment_tuple = (channel_segment[0], channel_segment[-1])
-                    channel_network[segment_tuple] = {"ids": np.array(channel_segment)}
+                    channel_network[segment_tuple] = {
+                        "ids": as_id_array(channel_segment)
+                    }
                     queue.extend(nodes_to_process)
                 self._net_struct[i] = channel_network
 
@@ -757,6 +760,7 @@ class ChannelProfiler(_BaseProfiler):
         self._net_ids = []
         self._distance_along_profile = []
         self._colors = []
+
         for outlet_id in self._net_struct:
             seg_tuples = self._net_struct[outlet_id].keys()
             self._net_ids.extend(
