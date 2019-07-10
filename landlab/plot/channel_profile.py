@@ -58,13 +58,13 @@ def channel_nodes(
         threshold = 2.0 * numpy.amin(grid.area_of_cell)
     boundary_nodes = grid.boundary_nodes
     # top_two_pc = len(boundary_nodes)//50
-    # starting_nodes = boundary_nodes[numpy.argsort(drainage_area[boundary_nodes])[-top_two_pc:]]
-    starting_nodes = boundary_nodes[
+    # outlet_nodes = boundary_nodes[numpy.argsort(drainage_area[boundary_nodes])[-top_two_pc:]]
+    outlet_nodes = boundary_nodes[
         numpy.argsort(drainage_area[boundary_nodes])[-number_of_channels:]
     ]
 
     profile_IDs = []
-    for i in starting_nodes:
+    for i in outlet_nodes:
         j = i
         data_store = []
         while 1:
@@ -110,7 +110,7 @@ def analyze_channel_network_and_plot(
     flow_receiver="flow__receiver_node",
     links_to_flow_receiver="flow__link_to_receiver_node",
     number_of_channels=1,
-    starting_nodes=None,
+    outlet_nodes=None,
     threshold=None,
 ):
     """analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
@@ -118,14 +118,14 @@ def analyze_channel_network_and_plot(
                                      flow_receiver='flow__receiver_node',
                                      links_to_flow_receiver='flow__link_to_receiver_node',
                                      number_of_channels=1,
-                                     starting_nodes=None,
+                                     outlet_nodes=None,
                                      threshold=None)
 
     This function wraps the other three present here, and allows a single-line
     call to plot long profiles.
     As typical elsewhere, the inputs can be field names or arrays.
 
-    Note the key new parameter starting_nodes. This (optionally) can be a
+    Note the key new parameter outlet_nodes. This (optionally) can be a
     Python list of node IDs marking the start of each profile. If it is not
     provided, the profiles with the largest terminal drainage area will be used
     instead.
@@ -156,7 +156,7 @@ def analyze_channel_network_and_plot(
             ), "Inputs must be field names or nnode-long numpy arrays!"
             internal_list[i] = j
 
-    if starting_nodes is None:
+    if outlet_nodes is None:
         profile_IDs = channel_nodes(
             grid,
             None,
@@ -167,12 +167,12 @@ def analyze_channel_network_and_plot(
         )
     else:
         assert (
-            len(starting_nodes) == number_of_channels
-        ), "Length of starting_nodes must equal the number_of_channels!"
+            len(outlet_nodes) == number_of_channels
+        ), "Length of outlet_nodes must equal the number_of_channels!"
         if threshold is None:
             threshold = 2.0 * numpy.amin(grid.area_of_cell)
         profile_IDs = []
-        for i in starting_nodes:
+        for i in outlet_nodes:
             j = i
             data_store = []
             while 1:

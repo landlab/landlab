@@ -186,7 +186,7 @@ class HackCalculator(Component):
         grid,
         number_of_watersheds=1,
         main_channel_only=True,
-        starting_nodes=None,
+        outlet_nodes=None,
         threshold=None,
         **kwds
     ):
@@ -196,14 +196,14 @@ class HackCalculator(Component):
         grid : Landlab Model Grid instance, required
         number_of_watersheds : int, optional
             Total number of watersheds to calculate the Hack coefficients for.
-            Default value is 1. If value is greater than 1 and starting_nodes
+            Default value is 1. If value is greater than 1 and outlet_nodes
             is not specified, then the number_of_watersheds largest watersheds
             based on the drainage area at the model grid boundary.
         main_channel_only : Boolean, optional
             Use only the longest channel to calculate the Hack coefficients (if
             True, or use all the pixels in each watershed with drainage area
             above the threshold value).
-        starting_nodes : length number_of_watersheds iterable, optional
+        outlet_nodes : length number_of_watersheds iterable, optional
             Length number_of_watersheds itterable containing the node IDs of
             nodes to start the channel profiles from. If not provided, the
             default is the number_of_watersheds node IDs on the model grid
@@ -219,7 +219,7 @@ class HackCalculator(Component):
             grid,
             number_of_watersheds=number_of_watersheds,
             main_channel_only=main_channel_only,
-            starting_nodes=starting_nodes,
+            outlet_nodes=outlet_nodes,
             threshold=threshold,
         )
 
@@ -232,7 +232,7 @@ class HackCalculator(Component):
             Index are the node IDs of watershed outlets where the Hack
             coefficients were estimated. They coorespond to the
             number_of_watersheds largest drainages on the model grid boundaries
-            or the nodes indicated with starting_nodes. Column values are
+            or the nodes indicated with outlet_nodes. Column values are
             "A_max" for the drainage area of the watershed outlet, "C" for the
             coefficient, and "h" for the exponent.
 
