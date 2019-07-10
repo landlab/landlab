@@ -117,6 +117,7 @@ class TransportLengthHillslopeDiffuser(Component):
 
     _var_mapping = {
         "topographic__elevation": "node",
+        "flow__receiver_node": "node",
         "topographic__steepest_slope": "node",
         "sediment__deposition_rate": "node",
         "sediment__transfer_rate": "node",

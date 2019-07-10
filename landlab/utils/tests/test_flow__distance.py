@@ -28,7 +28,7 @@ def test_no_upstream_array():
 
     # instantiate a model grid, do not run flow accumulation on it
 
-    mg = RasterModelGrid(30, 70)
+    mg = RasterModelGrid((30, 70))
 
     # Add a field called topographic__elevation to mg
 
@@ -102,13 +102,6 @@ def test_flow__distance_regular_grid_d8():
         flow__distance, mg.number_of_node_rows * mg.number_of_node_columns
     )
 
-    # modifying the flow distance map because boundary and outlet nodes should
-    # not have flow__distance value different from 0
-
-    flow__distance[mg.boundary_nodes] = 0
-    outlet_id = 6
-    flow__distance[outlet_id] = 0
-
     # test that the flow distance utility works as expected
 
     assert_array_equal(flow__distance_expected, flow__distance)
@@ -164,13 +157,6 @@ def test_flow__distance_regular_grid_d4():
     flow__distance = np.reshape(
         flow__distance, mg.number_of_node_rows * mg.number_of_node_columns
     )
-
-    # modifying the flow distance map because boundary and outlet nodes
-    # should not have flow__distance value different from 0
-
-    flow__distance[mg.boundary_nodes] = 0
-    outlet_id = 6
-    flow__distance[outlet_id] = 0
 
     # test that the flow__distance utility works as expected
 

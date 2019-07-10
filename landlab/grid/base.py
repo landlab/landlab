@@ -300,6 +300,8 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
     BC_LINK_IS_FIXED = FIXED_LINK
     BC_LINK_IS_INACTIVE = INACTIVE_LINK
 
+    VALID_LOCATIONS = ("node", "link", "patch", "corner", "face", "cell")
+
     # Debugging flags (if True, activates some output statements)
     _DEBUG_VERBOSE = False
     _DEBUG_TRACK_METHODS = False
@@ -3119,44 +3121,6 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
             del self.__dict__["__node_active_outlink_matrix"]
         except KeyError:
             pass
-
-    @deprecated(use="set_nodata_nodes_to_closed", version="0.2")
-    def set_nodata_nodes_to_inactive(self, node_data, nodata_value):
-        """Make no-data nodes inactive.
-
-        Set the status to CLOSED_BOUNDARY for all nodes whose value
-        of node_data is equal to the nodata_value.
-
-        Parameters
-        ----------
-        node_data : ndarray
-            Data values.
-        nodata_value : float
-            Value that indicates an invalid value.
-
-        Examples
-        --------
-        >>> import pytest
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((3, 4))
-        >>> mg.status_at_node
-        array([1, 1, 1, 1,
-               1, 0, 0, 1,
-               1, 1, 1, 1], dtype=uint8)
-        >>> h = np.array([-9999, -9999, -9999, -9999,
-        ...               -9999, -9999, 12345.,   0.,
-        ...               -9999,    0.,     0.,   0.])
-        >>> with pytest.deprecated_call():
-        ...     mg.set_nodata_nodes_to_inactive(h, -9999)
-        >>> mg.status_at_node
-        array([4, 4, 4, 4,
-               4, 4, 0, 1,
-               4, 1, 1, 1], dtype=uint8)
-
-        LLCATS: DEPR NINF BC
-        """
-        self.set_nodata_nodes_to_closed(node_data, nodata_value)
 
     def set_nodata_nodes_to_closed(self, node_data, nodata_value):
         """Make no-data nodes closed boundaries.

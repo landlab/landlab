@@ -17,7 +17,6 @@ from landlab.components import (
     FlowAccumulator,
     LinearDiffuser,
 )
-from landlab.components.profiler.base_profiler import _flatten_structure
 
 matplotlib.use("agg")
 
@@ -50,7 +49,7 @@ def test_assertion_error():
         mg.at_node["topographic__elevation"][0] -= 0.001  # Uplift
 
     with pytest.raises(ValueError):
-        ChannelProfiler(mg, starting_nodes=[0], number_of_watersheds=2)
+        ChannelProfiler(mg, outlet_nodes=[0], number_of_watersheds=2)
 
 
 def test_asking_for_too_many_watersheds():
@@ -76,8 +75,11 @@ def test_asking_for_too_many_watersheds():
     with pytest.raises(ValueError):
         ChannelProfiler(mg, number_of_watersheds=3)
 
+    with pytest.raises(ValueError):
+        ChannelProfiler(mg, number_of_watersheds=None, minimum_outlet_threshold=200)
 
-def test_no_threshold():
+
+def test_no_minimum_channel_threshold():
     mg = RasterModelGrid(10, 10)
     z = mg.add_zeros("topographic__elevation", at="node")
     z += 200 + mg.x_of_node + mg.y_of_node + np.random.randn(mg.size("node"))
@@ -96,10 +98,10 @@ def test_no_threshold():
 
     profiler = ChannelProfiler(mg)
 
-    assert profiler.threshold == 2.0
+    assert profiler.minimum_channel_threshold == 0.0
 
 
-def test_no_stopping_field():
+def test_no_channel_definition_field():
     mg = RasterModelGrid(10, 10)
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("flow__link_to_receiver_node", at="node")
@@ -149,10 +151,20 @@ def profile_example_grid():
     return mg
 
 
+def test_start_away_from_boundary(profile_example_grid):
+    mg = profile_example_grid
+    profiler = ChannelProfiler(mg, outlet_nodes=[64], cmap="viridis_r")
+    profiler.run_one_step()
+    assert profiler.distance_along_profile[0][0] == 0.0
+
+
 def test_plotting_and_structure(profile_example_grid):
     mg = profile_example_grid
     profiler = ChannelProfiler(
-        mg, number_of_watersheds=1, main_channel_only=False, threshold=50
+        mg,
+        number_of_watersheds=1,
+        main_channel_only=False,
+        minimum_channel_threshold=50,
     )
     profiler.run_one_step()
 
@@ -272,9 +284,8 @@ def test_plotting_and_structure(profile_example_grid):
             np.array([103, 163]),
         ]
     )
-    flattened = _flatten_structure(profiler._profile_structure)
     for idx in range(len(correct_structure)):
-        np.testing.assert_array_equal(flattened[idx], correct_structure[idx])
+        np.testing.assert_array_equal(profiler.network_ids[idx], correct_structure[idx])
 
 
 def test_different_kwargs(profile_example_grid):
@@ -284,8 +295,8 @@ def test_different_kwargs(profile_example_grid):
         mg,
         number_of_watersheds=None,
         main_channel_only=True,
-        outlet_threshold=3,
-        threshold=50,
+        minimum_outlet_threshold=3,
+        minimum_channel_threshold=50,
     )
     profiler2.run_one_step()
 
@@ -346,10 +357,10 @@ def test_different_kwargs(profile_example_grid):
             109,
         ]
     )
-    np.testing.assert_array_equal(profiler2._profile_structure[0][0], correct_structure)
+    np.testing.assert_array_equal(profiler2.network_ids[0], correct_structure)
 
 
-def test_re_calculating_profile_structure_and_distance():
+def test_re_calculatingnetwork_ids_and_distance():
     mg = RasterModelGrid((20, 20), xy_spacing=100)
     z = mg.add_zeros("node", "topographic__elevation")
     z += np.random.rand(z.size)
@@ -374,20 +385,20 @@ def test_re_calculating_profile_structure_and_distance():
 
     profiler = ChannelProfiler(mg)
     profiler.run_one_step()
-    assert len(profiler._distance_along_profile) == 1  # result: 1
+    assert len(profiler.distance_along_profile) == 1  # result: 1
     profiler.run_one_step()
     # here nathan originally found result: 2, a bug!
-    assert len(profiler._distance_along_profile) == 1
+    assert len(profiler.distance_along_profile) == 1
 
     # make the most complicated profile structure
     profiler = ChannelProfiler(mg, main_channel_only=False, number_of_watersheds=2)
     profiler.run_one_step()
-    p1 = list(profiler._profile_structure)
-    d1 = list(profiler._distance_along_profile)
+    p1 = list(profiler.network_ids)
+    d1 = list(profiler.distance_along_profile)
 
     profiler.run_one_step()
-    p2 = list(profiler._profile_structure)
-    d2 = list(profiler._distance_along_profile)
+    p2 = list(profiler.network_ids)
+    d2 = list(profiler.distance_along_profile)
 
     # assert that these are copies, not pointers to same thing
     assert p1 is not p2
@@ -405,22 +416,9 @@ def test_re_calculating_profile_structure_and_distance():
             np.testing.assert_array_equal(p1_w[idx_segment], p2_w[idx_segment])
             np.testing.assert_array_equal(d1_w[idx_segment], d2_w[idx_segment])
 
-    color_options = [
-        None,
-        [(1, 1, 0, 1)],
-        (1, 1, 0, 1),
-        [(1, 0, 0, 1), (1, 1, 0, 1), (0, 1, 1, 1)],
-    ]
-
-    profiler = ChannelProfiler(mg, main_channel_only=False, number_of_watersheds=3)
-    profiler.run_one_step()
-    for colors in color_options:
-        profiler.plot_profiles_in_map_view(colors=colors)
-        profiler.plot_profiles(colors=colors)
-
 
 @pytest.mark.parametrize("main", [True, False])
-@pytest.mark.parametrize("nshed", [True, False])
+@pytest.mark.parametrize("nshed", [1, None, 3])
 def test_getting_all_the_way_to_the_divide(main, nshed):
     np.random.seed(42)
     mg = RasterModelGrid((10, 12))
@@ -442,15 +440,19 @@ def test_getting_all_the_way_to_the_divide(main, nshed):
     profiler = ChannelProfiler(
         mg,
         number_of_watersheds=nshed,
-        outlet_threshold=0,
+        minimum_outlet_threshold=0,
         main_channel_only=main,
-        threshold=0,
+        minimum_channel_threshold=0,
     )
     profiler.run_one_step()
 
-    # assert that with threshold set to zero, we get all the way to the top of the divide.
-    for watershed_nodes in profiler._profile_structure:
-        nodes = np.concatenate(_flatten_structure(watershed_nodes)).ravel()
+    # assert that with minimum_channel_threshold set to zero, we get all the way to the top of the divide.
+    for outlet_id in profiler._net_struct:
+        seg_tuples = profiler._net_struct[outlet_id].keys()
+
+        wshd_ids = [profiler._net_struct[outlet_id][seg]["ids"] for seg in seg_tuples]
+
+        nodes = np.concatenate(wshd_ids).ravel()
         da = mg.at_node["drainage_area"][nodes]
 
         # if "profile" is just bits of the edge, then da is 0.

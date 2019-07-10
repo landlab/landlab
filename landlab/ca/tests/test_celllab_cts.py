@@ -62,7 +62,7 @@ def test_raster_cts():
     """
 
     # Set up a small grid with no events scheduled
-    mg = RasterModelGrid(4, 4)
+    mg = RasterModelGrid((4, 4))
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     node_state_grid = mg.add_ones("node", "node_state_map", dtype=int)
     node_state_grid[6] = 0
@@ -118,10 +118,27 @@ def test_raster_cts():
     assert ca.node_state[6] == 1, "error in node state 6"
     # assert (ca.prop_data[ca.propid[6]]==150), 'error in prop swap'
 
+    # Test that passing a random seed other than 0 changes the event queue.
+    # Do this by creating a RasterCTS identical to the previous one but with
+    # a different random seed.
+    mg = RasterModelGrid(4, 4)
+    mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
+    nsg = mg.add_ones("node", "node_state_map", dtype=int)
+    nsg[6] = 0
+    pd = mg.add_zeros("node", "property_data", dtype=int)
+    pd[5] = 50
+    ca = RasterCTS(
+        mg, ns_dict, xn_list, nsg, prop_data=pd,
+        prop_reset_value=0, seed=1
+    )
+    prior_first_event_time = event_time
+    (event_time, index, event_link) = ca.priority_queue.pop()
+    assert event_time != prior_first_event_time, "event times should differ"
+
 
 def test_oriented_raster_cts():
     """Tests instantiation of an OrientedRasterCTS() object"""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     nsd = {0: "oui", 1: "non"}
     xnlist = []
     xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "hopping"))

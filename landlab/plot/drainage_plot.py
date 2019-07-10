@@ -13,7 +13,7 @@ from landlab import (
     FIXED_GRADIENT_BOUNDARY,
     FIXED_VALUE_BOUNDARY,
 )
-from landlab.plot.imshow import imshow_node_grid
+from landlab.plot.imshow import imshow_grid
 
 
 def drainage_plot(
@@ -30,7 +30,7 @@ def drainage_plot(
         colorbar_label = surface
     else:
         colorbar_label = "topographic_elevation"
-    imshow_node_grid(mg, surface, cmap=surf_cmap, colorbar_label=colorbar_label)
+    imshow_grid(mg, surface, cmap=surf_cmap, colorbar_label=colorbar_label)
 
     if receivers is None:
         receivers = mg.at_node["flow__receiver_node"]

@@ -3,3 +3,4 @@ flake8
 isort
 pytest
 pytest-cov
+pytest-datadir
