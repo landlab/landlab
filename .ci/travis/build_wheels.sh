@@ -2,8 +2,6 @@
 set -e -x
 
 PYBIN=" \
-  /opt/python/cp27-cp27m/bin \
-  /opt/python/cp27-cp27mu/bin \
   /opt/python/cp36-cp36m/bin \
   /opt/python/cp37-cp37m/bin \
 "
