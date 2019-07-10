@@ -73,7 +73,7 @@ class _BaseProfiler(Component, ABC):
         self._create_profile_structure()
 
     @abstractmethod
-    def _create_profile_structure():
+    def _create_profile_structure(self):
         """Private class for creating profile structure.
 
         Expectation is that this will be overridden to create the following
@@ -86,7 +86,7 @@ class _BaseProfiler(Component, ABC):
 
         self._colors
 
-        is a list of RGBA tuples.
+        is a list of RGBA tuples, one tuple per segment.
 
         The order of segments is expected to be consistent between each of the
         three datastructures.
