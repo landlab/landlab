@@ -675,8 +675,6 @@ class FlowAccumulator(Component):
         "upstream node array",
         "flow__data_structure_D": "Array containing the data structure D used for construction"
         "of the downstream-to-upstream node array. Stored at Grid.",
-        # "flow__nodes_not_in_stack": "Boolean value indicating if there are any nodes that have not yet"
-        # "been added to the stack stored in flow__upstream_node_order.",
     }
 
     def __init__(
@@ -745,29 +743,14 @@ class FlowAccumulator(Component):
 
         #
 
-        self.drainage_area = grid.at_node.get(
-            "drainage_area",
-            grid.add_field(
-                "drainage_area",
-                at="node",
-                dtype=float,
-                value=self._vars["drainage_area"],
-            ),
-        )
+        if "drainage_area" not in grid.at_node:
+            self.drainage_area = grid.add_zeros(
+                "drainage_area", at="node", dtype=float
+            )
+        else:
+            self.drainage_area = grid.at_node["drainage_area"]
 
-        #
-        # for field in self._vars():
-        #
-        #     self.setattr(
-        #         field,
-        #         grid.at_node.get(
-        #             field,
-        #             grid.add_field(
-        #                 field,
-        #                 at="node",
-        #                 dtype=float,
-        #                 value=self._vars["drainage_area"]["default"]))
-        #
+
         if "surface_water__discharge" not in grid.at_node:
             self.discharges = grid.add_zeros(
                 "surface_water__discharge", at="node", dtype=float
