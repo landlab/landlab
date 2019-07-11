@@ -155,7 +155,6 @@ class TransportLengthHillslopeDiffuser(Component):
         slope_crit: float (default=1.)
             Critical slope [L/L]
         """
-
         super(TransportLengthHillslopeDiffuser, self).__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):

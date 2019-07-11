@@ -231,7 +231,9 @@ class SinkFillerBarnes(LakeMapperBarnes):
                     "to start this process."
                 )
                 raise NotImplementedError(msg)
+
         super(SinkFillerBarnes, self).run_one_step()
+
         self._sed_fill_depth[:] = self._surface - self._supplied_surface
 
     @property

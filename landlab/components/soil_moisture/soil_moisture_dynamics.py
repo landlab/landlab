@@ -243,11 +243,11 @@ class SoilMoisture(Component):
             Reference leaf area index (m^2/m^2).
         method: str
         """
+        super(SoilMoisture, self).__init__(grid)
+
         self._method = method
 
         assert_method_is_valid(self._method)
-
-        super(SoilMoisture, self).__init__(grid)
 
         self.initialize(
             runon=runon,

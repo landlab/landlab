@@ -130,6 +130,7 @@ class Radiation(Component):
         opt_airmass: float, optional
             Optical air mass.
         """
+        super(Radiation, self).__init__(grid)
 
         self._method = method
         self._N = cloudiness
@@ -140,8 +141,6 @@ class Radiation(Component):
         self._m = opt_airmass
 
         _assert_method_is_valid(self._method)
-
-        super(Radiation, self).__init__(grid)
 
         for name in self._input_var_names:
             if name not in self.grid.at_node:

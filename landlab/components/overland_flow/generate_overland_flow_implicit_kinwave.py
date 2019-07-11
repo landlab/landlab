@@ -216,7 +216,6 @@ class KinwaveImplicitOverlandFlow(Component):
             Weighting on depth at new time step versus old time step (1 = all
             implicit; 0 = explicit)
         """
-
         super(KinwaveImplicitOverlandFlow, self).__init__(grid)
         # Store grid and parameters and do unit conversion
         self._grid = grid

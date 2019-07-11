@@ -251,7 +251,6 @@ class NormalFault(Component):
         which is what we'd expect.
 
         """
-        # call the class Normal Fault inherits from
         super(NormalFault, self).__init__(grid)
 
         # save a reference to the grid

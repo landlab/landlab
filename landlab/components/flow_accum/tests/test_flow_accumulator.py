@@ -321,6 +321,7 @@ def test_fields():
 
     assert sorted(list(mg2.at_grid.keys())) == ["flow__data_structure_D"]
 
+
 @pytest.mark.parametrize("fd", ["Steepest", "D8", "MFD", "DINF"])
 def test_accumulated_area_closes(fd):
     """Check that accumulated area is area of core nodes."""
@@ -333,6 +334,7 @@ def test_accumulated_area_closes(fd):
     drained_area = np.sum(drainage_area[mg.boundary_nodes])
     core_area = np.sum(mg.cell_area_at_node[mg.core_nodes])
     assert drained_area == core_area
+
 
 def test_specifying_routing_method_wrong():
     """Test specifying incorrect method for routing compatability with DepressionFinderAndRouter."""
@@ -1155,12 +1157,10 @@ def test_hex_mfd():
     fa.run_one_step()
 
 
-@pytest.mark.parametrize("fd", [
-    "FlowDirectorMFD",
-    "FlowDirectorSteepest",
-    "FlowDirectorD8",
-    "FlowDirectorDINF",
-])
+@pytest.mark.parametrize(
+    "fd",
+    ["FlowDirectorMFD", "FlowDirectorSteepest", "FlowDirectorD8", "FlowDirectorDINF"],
+)
 def test_flat_grids_all_directors(fd):
     mg = RasterModelGrid((10, 10))
     z = mg.add_zeros("topographic__elevation", at="node")
@@ -1180,6 +1180,7 @@ def test_nmg_no_cell_area():
     nmg.add_field("topographic__elevation", nmg.x_of_node + nmg.y_of_node, at="node")
     with pytest.raises(FieldError):
         FlowAccumulator(nmg)
+
 
 def test_extra_kwargs():
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))

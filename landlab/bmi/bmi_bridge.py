@@ -15,7 +15,6 @@ exposes a Basic Modelling Interface.
 import inspect
 
 import numpy as np
-
 from bmipy import Bmi
 
 from ..core import load_params

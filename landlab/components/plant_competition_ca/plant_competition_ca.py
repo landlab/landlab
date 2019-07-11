@@ -163,6 +163,8 @@ class VegCA(Component):
         method: str, optional
 
         """
+        super(VegCA, self).__init__(grid)
+
         self._Pemaxg = Pemaxg  # Pe-max-grass - max probability
         self._Pemaxsh = Pemaxsh  # Pe-max-shrub
         self._Pemaxtr = Pemaxtr  # Pe-max-tree
@@ -185,8 +187,6 @@ class VegCA(Component):
         self._method = method
 
         assert_method_is_valid(self._method)
-
-        super(VegCA, self).__init__(grid)
 
         if "vegetation__plant_functional_type" not in self.grid.at_cell:
             grid["cell"]["vegetation__plant_functional_type"] = np.random.randint(

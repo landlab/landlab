@@ -197,6 +197,8 @@ class Flexure1D(Component):
         if method not in ("airy", "flexure"):
             raise ValueError("{method}: method not understood".format(method=method))
 
+        super(Flexure1D, self).__init__(grid)
+
         self._grid = grid
 
         self._method = method
@@ -205,8 +207,6 @@ class Flexure1D(Component):
         self.rho_water = rho_water
         self.gravity = gravity
         self.eet = eet
-
-        super(Flexure1D, self).__init__(grid)
 
         for name in self._input_var_names + self._output_var_names:
             if name not in self.grid.at_node:

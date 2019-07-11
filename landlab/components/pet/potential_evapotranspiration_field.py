@@ -158,7 +158,6 @@ class PotentialEvapotranspiration(Component):
         delta_d: float, optional
             Calibrated difference between max & min daily TmaxF (mm/d).
         """
-
         super(PotentialEvapotranspiration, self).__init__(grid)
 
         self._method = method
@@ -177,8 +176,6 @@ class PotentialEvapotranspiration(Component):
         self._TmaxF_mean = MeanTmaxF
         self._DeltaD = delta_d
         _assert_method_is_valid(self._method)
-
-        super(PotentialEvapotranspiration, self).__init__(grid)
 
         for name in self._input_var_names:
             if name not in self.grid.at_cell:

@@ -743,8 +743,7 @@ class FlowAccumulator(Component):
         #   - delta array
         #   - missing nodes in stack.
 
-#
-
+        #
 
         self.drainage_area = grid.at_node.get(
             "drainage_area",
@@ -752,7 +751,9 @@ class FlowAccumulator(Component):
                 "drainage_area",
                 at="node",
                 dtype=float,
-                value=self._vars["drainage_area"]))
+                value=self._vars["drainage_area"],
+            ),
+        )
 
         #
         # for field in self._vars():
@@ -810,9 +811,11 @@ class FlowAccumulator(Component):
 
         self.nodes_not_in_stack = True
 
-        if len(self.kwargs)>0:
+        if len(self.kwargs) > 0:
             kwdstr = " ".join(list(self.kwargs.keys()))
-            raise ValueError("Extra kwargs passed to FlowAccumulator:{kwds}".format(kwds= kwdstr ))
+            raise ValueError(
+                "Extra kwargs passed to FlowAccumulator:{kwds}".format(kwds=kwdstr)
+            )
 
     @property
     def node_drainage_area(self):

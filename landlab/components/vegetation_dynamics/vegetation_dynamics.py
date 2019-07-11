@@ -232,11 +232,10 @@ class Vegetation(Component):
             Maximum drought induced foliage loss rate (d-1).
         method: str
         """
-        self._method = method
-
-        assert_method_is_valid(self._method)
-
         super(Vegetation, self).__init__(grid)
+
+        self._method = method
+        assert_method_is_valid(self._method)
 
         self.initialize(
             Blive_init=Blive_init,

@@ -141,7 +141,6 @@ class SoilInfiltrationGreenAmpt(Component):
         """
         super(SoilInfiltrationGreenAmpt, self).__init__(grid)
 
-
         self._grid = grid
         self.min_water = surface_water_minimum_depth
         self.hydraulic_conductivity = hydraulic_conductivity

@@ -106,7 +106,8 @@ class PrecipitationDistribution(Component):
         mean_storm_depth=0.0,
         total_t=0.0,
         delta_t=None,
-        random_seed=0):
+        random_seed=0,
+    ):
         """Create the storm generator.
 
         Parameters

@@ -234,7 +234,7 @@ class DepthDependentTaylorDiffuser(Component):
         nterms=2,
         dynamic_dt=False,
         if_unstable="pass",
-        courant_factor=0.2
+        courant_factor=0.2,
     ):
         """Initialize the DepthDependentTaylorDiffuser.
 
@@ -368,7 +368,11 @@ class DepthDependentTaylorDiffuser(Component):
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
-            if (self.dt_max < dt) and (not self.dynamic_dt) and (self.if_unstable != "pass"):
+            if (
+                (self.dt_max < dt)
+                and (not self.dynamic_dt)
+                and (self.if_unstable != "pass")
+            ):
                 message = (
                     "Topographic slopes are high enough such that the "
                     "Courant condition is exceeded AND you have not "

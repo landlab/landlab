@@ -102,7 +102,6 @@ class OverlandFlowBates(Component):
         g=9.81,
         rainfall_intensity=0.0,
     ):
-
         super(OverlandFlowBates, self).__init__(grid)
 
         # First we copy our grid
