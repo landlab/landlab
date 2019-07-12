@@ -15,7 +15,6 @@ import os
 import warnings
 
 import numpy as np
-import six
 from scipy.io import netcdf as nc
 
 from landlab.io.netcdf._constants import (
@@ -416,7 +415,7 @@ def _add_raster_spatial_variables(root, grid, **kwds):
 
 
 def _add_variables_at_points(root, fields, names=None):
-    if isinstance(names, six.string_types):
+    if isinstance(names, str):
         names = [names]
     names = names or fields["node"].keys()
 
@@ -460,7 +459,7 @@ def _add_variables_at_points(root, fields, names=None):
 
 
 def _add_variables_at_cells(root, fields, names=None):
-    if isinstance(names, six.string_types):
+    if isinstance(names, str):
         names = [names]
     names = names or fields["cell"].keys()
 
@@ -645,7 +644,7 @@ def write_netcdf(
     if at not in (None, "cell", "node"):
         raise ValueError("value location not understood")
 
-    if isinstance(names, six.string_types):
+    if isinstance(names, str):
         names = (names,)
 
     at = at or _guess_at_location(fields, names) or "node"
@@ -778,7 +777,7 @@ def write_raster_netcdf(
     if at not in (None, "cell", "node"):
         raise ValueError("value location not understood")
 
-    if isinstance(names, six.string_types):
+    if isinstance(names, str):
         names = (names,)
 
     at = "node"

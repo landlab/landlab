@@ -19,7 +19,7 @@ Written by Jordan M. Adams, April 2016.
 
 
 """
-from __future__ import print_function
+
 
 import os
 import time

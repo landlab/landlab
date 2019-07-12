@@ -60,7 +60,6 @@ array([[4, 3, 0, 1],
 import json
 
 import numpy as np
-import six
 import xarray as xr
 
 from ..core.utils import as_id_array
@@ -249,7 +248,7 @@ class NetworkGraph(object):
 
     @classmethod
     def load(cls, source):
-        if isinstance(source, six.string_types):
+        if isinstance(source, str):
             return cls.from_netcdf(source)
         elif isinstance(source, (dict, xr.Dataset)):
             return cls.from_dict(source)

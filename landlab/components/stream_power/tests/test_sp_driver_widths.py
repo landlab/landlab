@@ -3,7 +3,6 @@ import os
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
-from six.moves import range
 
 from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components import FlowAccumulator, StreamPowerEroder

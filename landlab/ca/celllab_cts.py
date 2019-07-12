@@ -117,7 +117,7 @@ trn_rate : 1d array of floats (# transitions)
 
 Created GT Sep 2014, starting from link_cap.py.
 """
-from __future__ import print_function
+
 
 import numpy as np
 import pylab as plt

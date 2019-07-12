@@ -1,5 +1,4 @@
 import numpy as np
-from six.moves import range
 
 from ...utils.jaggedarray import JaggedArray
 

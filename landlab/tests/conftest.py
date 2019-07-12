@@ -1,5 +1,6 @@
+from io import StringIO
+
 import pytest
-from six import StringIO
 
 from landlab import ModelParameterDictionary
 

@@ -7,10 +7,8 @@ Fill sinks in a landscape to the brim, following the Barnes et al. (2014)
 algorithms.
 """
 
-from __future__ import print_function
 
 import numpy as np
-from six import iteritems
 
 from landlab import BAD_INDEX_VALUE
 from landlab.components import LakeMapperBarnes
@@ -298,6 +296,6 @@ class SinkFillerBarnes(LakeMapperBarnes):
         """
         fill_vols = np.empty(self.number_of_fills, dtype=float)
         col_vols = self.grid.cell_area_at_node * self.fill_depths
-        for (i, (outlet, fillnodes)) in enumerate(iteritems(self.fill_dict)):
+        for (i, (outlet, fillnodes)) in enumerate(self.fill_dict.items()):
             fill_vols[i] = col_vols[fillnodes].sum()
         return fill_vols

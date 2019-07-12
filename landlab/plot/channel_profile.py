@@ -18,7 +18,7 @@ changes mid-run (e.g., channel piracy). This may be modified in the future.
 import numpy
 
 # DEJH, March 2014.
-from six.moves import range
+
 
 try:
     import matplotlib.pyplot as plt

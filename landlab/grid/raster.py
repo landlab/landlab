@@ -12,8 +12,6 @@ from __future__ import absolute_import
 from warnings import warn
 
 import numpy as np
-import six
-from six.moves import range
 
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.structured_quad import (
@@ -2112,7 +2110,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         LLCATS: BC SUBSET
         """
         if self._DEBUG_TRACK_METHODS:
-            six.print_("ModelGrid.set_closed_boundaries_at_grid_edges")
+            print("ModelGrid.set_closed_boundaries_at_grid_edges")
 
         bottom_edge = range(0, self.number_of_node_columns)
         right_edge = range(
@@ -2238,7 +2236,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         LLCATS: BC SUBSET
         """
         if self._DEBUG_TRACK_METHODS:
-            six.print_("ModelGrid.set_closed_boundaries_at_grid_edges")
+            print("ModelGrid.set_closed_boundaries_at_grid_edges")
 
         bottom_edge = range(0, self.number_of_node_columns)
         right_edge = range(
@@ -2305,7 +2303,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                 self.fixed_value_node_properties["internal_flag"] = True
 
         if not self.has_field("node", value_of):
-            six.print_(
+            print(
                 """
                 *************************************************
                 WARNING: set_fixed_value_boundaries_at_grid_edges

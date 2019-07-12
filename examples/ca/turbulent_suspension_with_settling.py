@@ -9,7 +9,7 @@ turbulent fluid.
 
 Written by Greg Tucker, February 2015
 """
-from __future__ import print_function
+
 
 import time
 

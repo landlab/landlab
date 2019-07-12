@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.stats import fisk, genextreme
-from six.moves import range
 
 from landlab import CLOSED_BOUNDARY, Component, RasterModelGrid
 

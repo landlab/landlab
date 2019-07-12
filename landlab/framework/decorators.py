@@ -7,8 +7,6 @@ import inspect
 import re
 import types
 
-import six
-
 
 def camel_case(text, sep=None):
     """Convert to camel case.
@@ -82,19 +80,19 @@ def is_implementation(cls, interface):
                 cls_args = inspect.getargspec(getattr(cls, name))
                 interface_args = inspect.getargspec(value)
             except AttributeError:
-                six.print_("Missing attribute %s" % name)
+                print("Missing attribute %s" % name)
                 return False
             try:
                 assert len(cls_args.args) == len(interface_args.args)
             except AssertionError:
-                six.print_("Mismatch in number of args for %s" % name)
+                print("Mismatch in number of args for %s" % name)
                 return False
         else:
             try:
                 assert isinstance(getattr(cls, name), type(getattr(interface, name)))
                 # assert(type(getattr(cls, name)) == type(getattr(interface, name)))
             except (AttributeError, AssertionError):
-                six.print_("Missing member or type mismatch for %s" % name)
+                print("Missing member or type mismatch for %s" % name)
                 return False
     return True
 

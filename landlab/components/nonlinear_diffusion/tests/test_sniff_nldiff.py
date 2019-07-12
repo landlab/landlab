@@ -9,7 +9,7 @@ boundary conditions correctly. Nevertheless, this test stands for the moment
 to prevent grid changes damaging core component functionality.
 ***
 """
-from __future__ import print_function
+
 
 import os
 

@@ -5,7 +5,7 @@ Tests "external update" capability in landlab_ca.py.
 
 GT Nov 2014
 """
-from __future__ import print_function
+
 
 import time
 
