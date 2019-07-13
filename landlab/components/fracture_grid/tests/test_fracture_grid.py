@@ -11,18 +11,20 @@ Created on Sun Oct 18 09:47:59 2015
 
 from numpy.testing import assert_array_equal
 
-from landlab.components.fracture_grid import make_frac_grid
+from landlab import RasterModelGrid
+from landlab.components.fracture_grid import FractureGridGenerator
 
 
 def test_frac_grid():
-    frac_spacing = 3
     nrows = 9
     ncols = 9
 
-    fg = make_frac_grid(frac_spacing, nrows, ncols, seed=1)
+    grid = RasterModelGrid((nrows, ncols))
+    fg = FractureGridGenerator(grid, frac_spacing=3, seed=1)
+    fg.run_one_step()
 
     assert_array_equal(
-        fg,
+        grid.at_node['fracture_at_node'].reshape((9, 9)),
         [
             [1, 0, 0, 0, 0, 0, 1, 1, 0],
             [0, 0, 0, 0, 1, 1, 0, 0, 0],
