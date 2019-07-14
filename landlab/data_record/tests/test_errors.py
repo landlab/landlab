@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 
@@ -23,8 +22,8 @@ grid = RasterModelGrid((3, 3))
 with pytest.raises(ValueError):
     DataRecord(
         grid,
-        time=[0.],
-        data_vars={"mean_elev": (["time"], [100.]), "test": (["bad_dim"], [12])},
+        time=[0.0],
+        data_vars={"mean_elev": (["time"], [100.0]), "test": (["bad_dim"], [12])},
     )
 # should return ValueError('Data variable dimensions must be time and/or'
 #                              'item_id')
@@ -35,7 +34,7 @@ with pytest.raises(TypeError):
 
 # test bad datavars format:
 with pytest.raises(TypeError):
-    DataRecord(grid, time=[0.], data_vars=["not a dict"])
+    DataRecord(grid, time=[0.0], data_vars=["not a dict"])
 # should return TypeError(('Data variables (data_vars) passed to'
 #                                 ' DataRecord must be a dictionary (see '
 #                                 'documentation for valid structure)'))
@@ -44,7 +43,7 @@ with pytest.raises(TypeError):
 with pytest.raises(TypeError):
     DataRecord(
         grid,
-        time=[0.],
+        time=[0.0],
         items=["not a dict"],
         data_vars={"mean_elevation": (["time"], np.array([100]))},
         attrs={"time_units": "y"},
@@ -56,7 +55,7 @@ with pytest.raises(TypeError):
     """Test bad items keys"""
     DataRecord(
         grid,
-        time=[0.],
+        time=[0.0],
         items={
             "grid_element": np.array([["node"], ["link"]]),
             "bad_key": np.array([[1], [3]]),
@@ -70,7 +69,7 @@ with pytest.raises(TypeError):
     """Test bad attrs"""
     DataRecord(
         grid,
-        time=[0.],
+        time=[0.0],
         items={
             "grid_element": np.array([["node"], ["link"]]),
             "element_id": np.array([[1], [3]]),
@@ -85,7 +84,7 @@ with pytest.raises(TypeError):
 # test bad loc and id:
 rmg = RasterModelGrid((3, 3))
 hmg = HexModelGrid(3, 2, 1.0)
-radmg = RadialModelGrid(num_shells=1, dr=1., xy_of_center=(0., 0.))
+radmg = RadialModelGrid(num_shells=1, dr=1.0, xy_of_center=(0.0, 0.0))
 vdmg = VoronoiDelaunayGrid(np.random.rand(25), np.random.rand(25))
 my_items_bad_loc = {
     "grid_element": np.array(["node", "bad_loc"]),
@@ -106,7 +105,7 @@ my_items_bad_id2 = {
 }
 my_items_bad_id3 = {
     "grid_element": np.array(["node", "link"]),
-    "element_id": np.array([1, 2.]),
+    "element_id": np.array([1, 2.0]),
 }
 my_items_bad_id4 = {
     "grid_element": np.array(["node", "link"]),
@@ -161,38 +160,38 @@ def test_dr_time_bad_add_record(dr_time):
     #  should return TypeError: You have passed a time that is not permitted,
     #  must be list or array
     with pytest.raises(KeyError):
-        dr_time.add_record(time=[300.], item_id=[0], new_record=None)
+        dr_time.add_record(time=[300.0], item_id=[0], new_record=None)
 
 
 #  should return KeyError: 'This Datarecord does not hold items'
 def test_dr_time_bad_get_data_(dr_time):
     with pytest.raises(KeyError):
-        dr_time.get_data(time=[0.], data_variable="bad_variable")
+        dr_time.get_data(time=[0.0], data_variable="bad_variable")
     # should return KeyError: "the variable 'bad_variable' is not in the Datarecord"
     with pytest.raises(KeyError):
-        dr_time.get_data(time=[0.], item_id=[0], data_variable="mean_elevation")
+        dr_time.get_data(time=[0.0], item_id=[0], data_variable="mean_elevation")
     # should return KeyError: 'This Datarecord does not hold items'
     with pytest.raises(TypeError):
-        dr_time.get_data(time=0., data_variable="mean_elevation")
+        dr_time.get_data(time=0.0, data_variable="mean_elevation")
 
 
 # TypeError('time must be a list or a 1-D array')
 def test_dr_time_bad_set_data_(dr_time):
     with pytest.raises(KeyError):
-        dr_time.set_data(time=[0.], data_variable="bad_variable", new_value=105.)
+        dr_time.set_data(time=[0.0], data_variable="bad_variable", new_value=105.0)
     # should return KeyError: "the variable 'bad_variable' is not in the Datarecord"
     with pytest.raises(IndexError):
-        dr_time.set_data(time=[10.], data_variable="mean_elevation", new_value=105.)
+        dr_time.set_data(time=[10.0], data_variable="mean_elevation", new_value=105.0)
     # shoulde return IndexError: 'The time you passed is not currently in the
     # Datarecord, you must the value you pass or first create the new time
     # coordinate using the add_record method.'
     with pytest.raises(KeyError):
         dr_time.set_data(
-            time=[0.], item_id=[0.], data_variable="mean_elevation", new_value=105.
+            time=[0.0], item_id=[0.0], data_variable="mean_elevation", new_value=105.0
         )
     # should return KeyError: 'This datarecord does not hold items'
     with pytest.raises(TypeError):
-        dr_time.set_data(time=0., data_variable="mean_elevation", new_value=105.)
+        dr_time.set_data(time=0.0, data_variable="mean_elevation", new_value=105.0)
 
 
 # TypeError('time must be a list or a 1-d array')
@@ -206,7 +205,9 @@ def test_dr_time_bad_properties(dr_time):
 # ITEM ONLY
 def test_dr_item_bad_add_record(dr_item):
     with pytest.raises(KeyError):
-        dr_item.add_record(time=[0.], item_id=[0], new_record={"new_var": ["new_data"]})
+        dr_item.add_record(
+            time=[0.0], item_id=[0], new_record={"new_var": ["new_data"]}
+        )
     # should return KeyError: 'This Datarecord does not record time'
     with pytest.raises(ValueError):
         dr_item.add_record(item_id=[10], new_record={"new_var": ["new_data"]})
@@ -228,19 +229,19 @@ def test_dr_item_bad_add_record(dr_item):
 def test_dr_item_bad_add_item(dr_item):
     with pytest.raises(KeyError):
         dr_item.add_item(
-            time=[0.],
+            time=[0.0],
             new_item={
                 "grid_element": np.array(["node", "link"]),
                 "element_id": np.array([1, 5]),
             },
-            new_item_spec={"size": (["item_id"], np.array([.2, .3]))},
+            new_item_spec={"size": (["item_id"], np.array([0.2, 0.3]))},
         )
 
 
 # should return KeyError: This Datarecord does not record time
 def test_dr_item_bad_get_data(dr_item):
     with pytest.raises(KeyError):
-        dr_item.get_data(time=[0.], item_id=[0], data_variable="element_id")
+        dr_item.get_data(time=[0.0], item_id=[0], data_variable="element_id")
     # should return KeyError: 'This Datarecord does not record time.'
     with pytest.raises(TypeError):
         dr_item.get_data(item_id=0, data_variable="element_id")
@@ -253,21 +254,21 @@ def test_dr_item_bad_get_data(dr_item):
 def test_dr_item_bad_set_data(dr_item):
     with pytest.raises(KeyError):
         dr_item.set_data(
-            time=[0.], item_id=[1], data_variable="element_id", new_value=2
+            time=[0.0], item_id=[1], data_variable="element_id", new_value=2
         )
     # should return KeyError: 'This Datarecord does not record time.'
     with pytest.raises(KeyError):
-        dr_item.get_data(time=[0.], item_id=[0], data_variable="bad_variable")
+        dr_item.get_data(time=[0.0], item_id=[0], data_variable="bad_variable")
     # should return KeyError: "the variable 'bad_variable' is not in the Datarecord"
     with pytest.raises(IndexError):
         dr_item.set_data(item_id=[3], data_variable="element_id", new_value=2)
     # should return IndexError: The item_id you passed does not exist in this
     # Datarecord
     with pytest.raises(TypeError):
-        dr_item.set_data(item_id=3., data_variable="element_id", new_value=2)
+        dr_item.set_data(item_id=3.0, data_variable="element_id", new_value=2)
     # should return TypeError: item_id must be a list or a 1-D array
     with pytest.raises(ValueError):
-        dr_item.set_data(item_id=[1], data_variable="element_id", new_value=2.)
+        dr_item.set_data(item_id=[1], data_variable="element_id", new_value=2.0)
     # ValueError('You have passed a non-integer element_id to DataRecord,
     # this is not permitted')
     with pytest.raises(ValueError):
@@ -292,7 +293,7 @@ def test_dr_item_bad_properties(dr_item):
 def test_dr_2dim_bad_add_record(dr_2dim):
     with pytest.raises(TypeError):
         dr_2dim.add_record(
-            time=10.,
+            time=10.0,
             item_id=[1],
             new_item_loc={
                 "grid_element": np.array([["cell"]]),
@@ -303,7 +304,7 @@ def test_dr_2dim_bad_add_record(dr_2dim):
     # must be list or array.
     with pytest.raises(ValueError):
         dr_2dim.add_record(
-            time=[10.],
+            time=[10.0],
             item_id=[10],
             new_item_loc={
                 "grid_element": np.array([["cell"]]),
@@ -314,13 +315,15 @@ def test_dr_2dim_bad_add_record(dr_2dim):
     # value(s) you pass as item_id or create a new item using the method add_item.
     with pytest.raises(KeyError):
         dr_2dim.add_record(
-            time=[10.], item_id=[0], new_item_loc={"grid_element": np.array([["cell"]])}
+            time=[10.0],
+            item_id=[0],
+            new_item_loc={"grid_element": np.array([["cell"]])},
         )
     # should return KeyError: 'You must provide a new_item_loc dictionnary with
     # both grid_element and element_id'
     with pytest.raises(TypeError):
         dr_2dim.add_record(
-            time=[10.],
+            time=[10.0],
             item_id=1,
             new_item_loc={
                 "grid_element": np.array([["cell"]]),
@@ -345,7 +348,7 @@ def test_dr_2dim_bad_add_item(dr_2dim):
     # new item(s)
     with pytest.raises(TypeError):
         dr_2dim.add_item(
-            time=[10.],
+            time=[10.0],
             new_item=("not a dict"),
             new_item_spec={"size": (["item_id"], [10, 5])},
         )
@@ -353,7 +356,7 @@ def test_dr_2dim_bad_add_item(dr_2dim):
     # dictionary (see documentation for required format)
     with pytest.raises(KeyError):
         dr_2dim.add_item(
-            time=[10.],
+            time=[10.0],
             new_item={"grid_element": np.array([["node"], ["cell"]])},
             new_item_spec={"size": (["item_id"], [10, 5])},
         )
@@ -361,7 +364,7 @@ def test_dr_2dim_bad_add_item(dr_2dim):
     # documentation for required format)
     with pytest.raises(TypeError):
         dr_2dim.add_item(
-            time=10.,
+            time=10.0,
             new_item={
                 "grid_element": np.array([["node"], ["cell"]]),
                 "element_id": np.array([[2], [0]]),
@@ -374,16 +377,16 @@ def test_dr_2dim_bad_add_item(dr_2dim):
 # must be list or array.
 def test_dr_2dim_bad_get_data(dr_2dim):
     with pytest.raises(KeyError):
-        dr_2dim.get_data(time=[0.], item_id=1, data_variable="bad_variable")
+        dr_2dim.get_data(time=[0.0], item_id=1, data_variable="bad_variable")
     with pytest.raises(KeyError):
         dr_2dim.get_data(data_variable="bad_variable")
     # should return KeyError: "the variable 'bad_variable' is not in the Datarecord"
     with pytest.raises(IndexError):
-        dr_2dim.get_data(time=[0.], item_id=[10], data_variable="grid_element")
+        dr_2dim.get_data(time=[0.0], item_id=[10], data_variable="grid_element")
     # should return IndexError: The item_id you passed does not exist in this
     # Datarecord
     with pytest.raises(TypeError):
-        dr_2dim.get_data(time=[0.], item_id=0, data_variable="element_id")
+        dr_2dim.get_data(time=[0.0], item_id=0, data_variable="element_id")
 
 
 # TypeError('item_id must be a list or a 1-D array')
@@ -392,23 +395,23 @@ def test_dr_2dim_bad_get_data(dr_2dim):
 def test_dr_2dim_bad_set_data(dr_2dim):
     with pytest.raises(KeyError):
         dr_2dim.set_data(
-            time=[0.], item_id=[1], data_variable="bad_variable", new_value="node"
+            time=[0.0], item_id=[1], data_variable="bad_variable", new_value="node"
         )
     with pytest.raises(ValueError):
         dr_2dim.set_data(
-            time=[0.], item_id=[1], data_variable="grid_element", new_value="cell"
+            time=[0.0], item_id=[1], data_variable="grid_element", new_value="cell"
         )
     with pytest.raises(IndexError):
         dr_2dim.set_data(
-            time=[0.], item_id=[1.], data_variable="grid_element", new_value="node"
+            time=[0.0], item_id=[1.0], data_variable="grid_element", new_value="node"
         )
     with pytest.raises(IndexError):
         dr_2dim.set_data(
-            time=[130.], item_id=[1], data_variable="grid_element", new_value="node"
+            time=[130.0], item_id=[1], data_variable="grid_element", new_value="node"
         )
     with pytest.raises(TypeError):
         dr_2dim.set_data(
-            time=[0.], item_id=1, data_variable="mean_elevation", new_value=105.
+            time=[0.0], item_id=1, data_variable="mean_elevation", new_value=105.0
         )
 
 
@@ -416,7 +419,7 @@ def test_dr_2dim_bad_set_data(dr_2dim):
 
 # NO DIM
 def test_dr_nodim_bad_get_data(dr_nodim):
-    dr_nodim.add_record(new_record={"mean_elev": (100.)})
+    dr_nodim.add_record(new_record={"mean_elev": (100.0)})
     with pytest.raises(KeyError):
         dr_nodim.get_data(item_id=[0], data_variable="mean_elev")
 

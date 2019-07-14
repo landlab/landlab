@@ -1,20 +1,65 @@
-env:
-  matrix:
-  - TRAVIS_PYTHON_VERSION="2.7" BUILD_DOCS=0 REPORT_TO_COVERALLS=0 DEPLOY=0
-  - TRAVIS_PYTHON_VERSION="3.6" BUILD_DOCS=0 REPORT_TO_COVERALLS=0 DEPLOY=0
-  - TRAVIS_PYTHON_VERSION="3.7" BUILD_DOCS=0 REPORT_TO_COVERALLS=0 DEPLOY=0
-  global:
-  - MPLBACKEND=Agg
-  - CONDA_PREFIX=$HOME/miniconda
-  - MINICONDA_URL_BASE="https://repo.continuum.io/miniconda/Miniconda3-latest"
-  - secure: wuv2O1M29pkfAjPbOK1MetIf3teDrG4VTepDOps2YFLMzcoJBlJeTqEneVcHb/q2dz5SefjxQQrbLjgZNOURiS1IT2z24srNDPbp8OAsv9nsqAGZO40eWecCRa+u+P+Wh0pZ8urz/ptTir0qFIQ/yz5hoEPx4ScktHkn23V+/fM=
-  - secure: v5tsP1Ji+Nrf+u6yEzDzSnADkFn8mAiMaHRyHG+4kFSaU1q5TthBoc6pdCHLG+fafkN5EGZD8B/sJlg1GgvKpsvs8MA+lxpKtLfABPf/bv3NntfvtoMEjJUqYxooYha8JDP9ODJh54zwbxPmtMRfevkOUYELQ9aFd8bWjsuOG9c=
+language: generic
 os:
 - linux
 - osx
-osx_image: xcode6.4
+env:
+  matrix:
+  - CONDA_ENV=3.7
+  - CONDA_ENV=3.6
+  - CONDA_ENV=2.7
+  global:
+  - MPLBACKEND=Agg
+  - secure: exvIFiQjIunvyGXJB27wUskWoXOL/qgu1tLjpgSopZz34WRK7kszqD0fPBLpX7wWgvBuUPYt9tXjdj80gXsouhW/R44AxauRpeAvrcodOwKpFIKM5DOyLmBs+YHQvS1UDJ/n8Lr+n6Q0H36l3pwZC269UKQkpwDwUuGkobeMqXQ=
 sudo: false
-filter_secrets: false
+jobs:
+  include:
+  - stage: lint
+    os: linux
+    script:
+    - pip install flake8
+    - make lint
+
+  - stage: docs
+    os: linux
+    install:
+    - conda env create --file docs/environment.yml
+    - conda activate landlab_docs
+    - pip install -e .
+    script:
+    - make -C docs clean html
+
+  - &deploy
+    stage: deploy
+    if: tag =~ v.*$
+    os: osx
+    env: CONDA_ENV=3.7
+    script:
+    - pip install twine wheel
+    - python setup.py bdist_wheel
+    - twine upload -u landlab -p$PYPI_PASS dist/*landlab*
+  - <<: *deploy
+    os: osx
+    env: CONDA_ENV=3.6
+  - <<: *deploy
+    os: osx
+    env: CONDA_ENV=2.7
+
+  - <<: *deploy
+    sudo: required
+    os: linux
+    services:
+    - docker
+    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
+         PLAT=manylinux1_x86_64
+         CONDA_ENV=3.7
+    install:
+    - docker pull $DOCKER_IMAGE
+    script:
+    - docker run --rm -e PLAT=$PLAT -v `pwd`:/io $DOCKER_IMAGE /io/.ci/travis/build_wheels.sh
+    - ls wheelhouse/
+    - pip install twine
+    - twine upload -u landlab -p$PYPI_PASS wheelhouse/*landlab*manylinux*
+
 before_install:
 - |
   if [[ $TRAVIS_OS_NAME == "osx" ]]; then
@@ -23,74 +68,25 @@ before_install:
     rm -rf $(brew --cache)
   fi
 - |
-  if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" && "$TRAVIS_OS_NAME" == "linux" && "$TRAVIS_EVENT_TYPE" == "push" ]]; then
-    REPORT_TO_COVERALLS=1
-  fi
-- |
-  if [[ "$TRAVIS_PYTHON_VERSION" == "3.6" && "$TRAVIS_OS_NAME" == "linux" ]]; then
-    BUILD_DOCS=1
-  fi
-- |
-  if [[ "$TRAVIS_TAG" == v* ]]; then
-    DEPLOY=1
-  fi
-- |
   mkdir -p $HOME/.matplotlib
   echo "backend: Agg" > $HOME/.matplotlib/matplotlibrc
-install:
-- echo "Build on $TRAVIS_OS_NAME for Python $TRAVIS_PYTHON_VERSION, $TRAVIS_TAG"
 - |
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    OS="MacOSX-x86_64"
+    curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh > $HOME/miniconda.sh
   else
-    OS="Linux-x86_64"
+    curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh > $HOME/miniconda.sh
   fi
-- curl $MINICONDA_URL_BASE-$OS.sh > $HOME/minconda.sh
-- bash $HOME/minconda.sh -b -p $CONDA_PREFIX
-- export PATH="$CONDA_PREFIX/bin:$PATH"
+- bash $HOME/miniconda.sh -b -p $(pwd)/anaconda
+- export PATH="$(pwd)/anaconda/bin:$PATH"
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
-- conda create -n _testing python=$TRAVIS_PYTHON_VERSION
-- source activate _testing
-- conda install -q conda-build=3.0 anaconda-client coverage coveralls sphinx pytest pytest-cov flake8
-- conda config --append channels conda-forge
+- conda create -n test_env python=$CONDA_ENV
+- source activate test_env
 - conda info -a && conda list
+install:
+- pip install numpy
+- pip install -e .
 script:
-- conda install --file=requirements.txt
-- python setup.py develop
-- pytest --cov --cov-report=xml:$(pwd)/coverage.xml
-- make lint
-- |
-  if [[ "$REPORT_TO_COVERALLS" == "1" ]]; then
-    coveralls
-  fi
-- |
-  if [[ "$BUILD_DOCS" == "1" ]]; then
-    (cd docs && make html)
-  fi
-- |
-  if [[ "$DEPLOY" == "1" ]]; then
-    conda build -q .conda-recipe --old-build-string --no-test
-  fi
-virtualenv:
-  system_site_packages: false
-after_success:
-- |
-  if [[ "$DEPLOY" == "1" ]]; then
-    LANDLAB_PACKAGE=$(conda build --output ./.conda-recipe --old-build-string)
-    anaconda -t $ANACONDA_TOKEN upload --force --user landlab --channel main $LANDLAB_PACKAGE
-    bash .ci/travis/deploy_to_pypi.sh
-  fi
-# deploy:
-#   provider: pypi
-#   user: mcflugen
-#   password:
-#     secure: V15DceMv4DUmjgxToaxrP3KaQxsLbfrTkB1s6D8YNQZvYJiVvNlBpC1nF8yWbOt3IWJQSGjaQEnObd2ZhHe2Kq/H+QsEFyBKlYF7SNp35FyS5zLuf2qhnNhmzhqkspwBpiGe88c1PQPFzfqdIUQXp7ZAv6L8YRvNy2sbzvgxh6I=
-#   on:
-#     tags: true
-#     branch: release
-#     repo: landlab/landlab
-#   distributions: sdist bdist_wheel
-notifications:
-  slack:
-    secure: gRKbqjPgp0ZcFtecHOwjLAFbzzBr2zyFrxk7OAS/cea/9U8bLQNA0jZs3ZHtAgR53gdnFlx/GI10d/KD9XMKU55gQkO4FSvfYMK7Xzs2tfnEa5flTqQKRfjB1oJ2fmb81yshUe+xKsXBoedP7SPYv2mutMOY8srKwUcuE0yGmAw=
+- pip install pytest pytest-cov pytest-datadir coveralls
+- pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml -vvv
+after_success: coveralls

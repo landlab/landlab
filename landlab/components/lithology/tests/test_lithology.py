@@ -21,7 +21,7 @@ def test_lithology_as_bmi():
 
 def test_bad_layer_method():
     """Test passing a bad name for the layer method."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1]
     ids = [1, 2, 1, 2]
@@ -32,7 +32,7 @@ def test_bad_layer_method():
 
 def test_no_topographic__elevation():
     """Test init with no topo__elevation."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     thicknesses = [1, 2, 4, 1]
     ids = [1, 2, 1, 2]
     attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
@@ -43,7 +43,7 @@ def test_no_topographic__elevation():
 def test_thickness_ids_wrong_shape():
     """Test wrong size thickness and id shapes."""
     # first with thicknesses and IDs both as ndim = 1 arrays
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2]
@@ -53,7 +53,7 @@ def test_thickness_ids_wrong_shape():
 
     # next as both as ndim = 2 arrays
     ones = np.ones(mg.number_of_nodes)
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1 * ones, 2 * ones, 4 * ones, 1 * ones, 5 * ones]
     ids = [1 * ones, 2 * ones, 1 * ones, 2 * ones]
@@ -63,7 +63,7 @@ def test_thickness_ids_wrong_shape():
 
     # now with thickness as ndim 2 and id as ndim 1
     ones = np.ones(mg.number_of_nodes)
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     thicknesses = [1 * ones, 2 * ones, 4 * ones, 1 * ones, 5 * ones]
     ids = [1, 2, 1, 2]
     attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
@@ -75,7 +75,7 @@ def test_thickness_ndim3():
     """Test too many ndim for thickness."""
     # next as both as ndim = 3 arrays
     attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     ones = np.ones((mg.number_of_nodes, 2))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1 * ones, 2 * ones, 4 * ones, 1 * ones, 5 * ones]
@@ -88,7 +88,7 @@ def test_id_ndim3():
     """Test too many ndim for ids."""
     # next as both as ndim = 3 arrays
     attrs = {"K_sp": {1: 0.001, 2: 0.0001}}
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     ones = np.ones(mg.number_of_nodes)
 
     extra_ones = np.ones((mg.number_of_nodes, 2))
@@ -101,7 +101,7 @@ def test_id_ndim3():
 
 def test_thickness_nodes_wrong_shape():
     """Test wrong size thickness and id shapes."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     ones = np.ones(mg.number_of_nodes + 1)
     thicknesses = [1 * ones, 2 * ones, 4 * ones, 1 * ones, 5 * ones]
@@ -113,7 +113,7 @@ def test_thickness_nodes_wrong_shape():
 
 def test_atts_lack_ids():
     """Test Lithology missing ID."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
@@ -124,7 +124,7 @@ def test_atts_lack_ids():
 
 def test_erode_to_zero_thickness():
     """Test that eroding Lithology to zero thickness raises an error."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
@@ -136,7 +136,7 @@ def test_erode_to_zero_thickness():
 
 def test_deposit_with_no_rock_id():
     """Test that adding a deposit to Lithology with no id raises an error."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
@@ -148,7 +148,7 @@ def test_deposit_with_no_rock_id():
 
 def test_deposit_with_bad_rock_id():
     """Test that adding a deposit to Lithology with no id raises an error."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
@@ -165,7 +165,7 @@ def test_deposit_with_bad_rock_id():
 
 def test_adding_existing_attribute():
     """Test adding an existing attribute."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
@@ -180,7 +180,7 @@ def test_adding_existing_attribute():
 
 def test_adding_new_attribute_missing_rock_id():
     """Test adding an new attribute missing an existing rock id."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
@@ -195,7 +195,7 @@ def test_adding_new_attribute_missing_rock_id():
 
 def test_adding_new_attribute_extra_rock_id():
     """Test adding an new attribute with an extra rock id."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
@@ -210,7 +210,7 @@ def test_adding_new_attribute_extra_rock_id():
 
 def test_adding_new_id_existing_rock_type():
     """Test adding an rock type that already exists."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
@@ -225,7 +225,7 @@ def test_adding_new_id_existing_rock_type():
 
 def test_adding_new_id_extra_attribute():
     """Test adding an new rock type with an extra attribute."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
@@ -240,7 +240,7 @@ def test_adding_new_id_extra_attribute():
 
 def test_adding_new_id_missing_attribute():
     """Test adding an new rock type with an extra attribute."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
@@ -253,7 +253,7 @@ def test_adding_new_id_missing_attribute():
 
 def test_updating_attribute_that_doesnt_exist():
     """Test updating an attribute that doesn't exist."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
@@ -265,7 +265,7 @@ def test_updating_attribute_that_doesnt_exist():
 
 def test_updating_rock_type_that_doesnt_exist():
     """Test adding an new rock type with an extra attribute."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
@@ -277,7 +277,7 @@ def test_updating_rock_type_that_doesnt_exist():
 
 def test_run_one_step_deposit_no_id_raises_error():
     """Test that giving the run one step method a deposit with no id raises an error."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     z = mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]
@@ -290,7 +290,7 @@ def test_run_one_step_deposit_no_id_raises_error():
 
 def test_run_one_step_erodes_all_raises_error():
     """Test that eroding all material with the run one step method raises an error."""
-    mg = RasterModelGrid(3, 3)
+    mg = RasterModelGrid((3, 3))
     z = mg.add_zeros("node", "topographic__elevation")
     thicknesses = [1, 2, 4, 1, 5]
     ids = [1, 2, 1, 2, 1]

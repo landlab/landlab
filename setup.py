@@ -74,7 +74,18 @@ setup(
     url="https://github.com/landlab",
     description="Plugin-based component modeling tool.",
     long_description=open("README.rst").read(),
-    setup_requires=["cython"],
+    setup_requires=["cython", "numpy"],
+    install_requires=[
+        "bmipy<1",
+        "matplotlib",
+        "netcdf4",
+        "pyyaml",
+        "pyshp",
+        "scipy<1.3",
+        "six",
+        "statsmodels",
+        "xarray",
+    ],
     classifiers=[
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",
@@ -96,6 +107,8 @@ setup(
             "test/*shx",
             "data/*dbf",
             "preciptest.in",
+            "test_*/*nc",
+            "test_*/*asc",
         ]
     },
     cmdclass=versioneer.get_cmdclass(

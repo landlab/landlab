@@ -28,11 +28,11 @@ def test_storms():
 
     storm_run_time = inputs.read_float("storm_run_time")
     delta_t = inputs.read_float("delta_t")
-    mg = RasterModelGrid(nrows, ncols, xy_spacing=dx)
+    mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
 
     mg.add_zeros("topographic__elevation", at="node")
     z = mg.zeros(at="node")
-    mg["node"]["topographic__elevation"] = z + np.random.rand(len(z)) / 1000.
+    mg["node"]["topographic__elevation"] = z + np.random.rand(len(z)) / 1000.0
     mg.add_zeros("water__unit_flux_in", at="node")
 
     precip = PrecipitationDistribution(
@@ -49,7 +49,7 @@ def test_storms():
         interval_duration,
         rainfall_rate,
     ) in precip.yield_storm_interstorm_duration_intensity():
-        if rainfall_rate != 0.:
+        if rainfall_rate != 0.0:
             mg.at_node["water__unit_flux_in"].fill(rainfall_rate)
             fr.run_one_step()
             sp.run_one_step(dt)

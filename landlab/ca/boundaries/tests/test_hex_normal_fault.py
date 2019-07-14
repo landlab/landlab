@@ -22,7 +22,7 @@ def test_links_to_update():
     """Test that update list includes lower 2 rows and fault-crossing links"""
 
     # Create a 6x6 test grid
-    hg = HexModelGrid(6, 6, shape="rect", orientation="vert")
+    hg = HexModelGrid(6, 6, node_layout="rect", orientation="vert")
 
     lnf = LatticeNormalFault(grid=hg, fault_x_intercept=-0.1)
 
@@ -77,7 +77,7 @@ def test_links_to_update():
 def test_shift_link_and_transition_data_upward():
     """Test the LatticeUplifter method that uplifts link data and tr'ns."""
 
-    mg = HexModelGrid(4, 3, 1.0, orientation="vertical", shape="rect")
+    mg = HexModelGrid(4, 3, 1.0, orientation="vertical", node_layout="rect")
     nsd = {0: "yes", 1: "no"}
     xnlist = []
     xnlist.append(Transition((0, 0, 0), (1, 1, 0), 1.0, "frogging"))

@@ -70,7 +70,7 @@ class SpeciesEvolver(Component):
 
     _var_doc = {}
 
-    def __init__(self, grid, **kwds):
+    def __init__(self, grid):
         """Instantiate SpeciesEvolver.
 
         Parameters
@@ -86,7 +86,7 @@ class SpeciesEvolver(Component):
         >>>
 
         """
-        Component.__init__(self, grid, **kwds)
+        Component.__init__(self, grid)
 
         # Set DataFrames.
         self.dataRecord = DataRecord(grid, time=[0])
@@ -103,7 +103,7 @@ class SpeciesEvolver(Component):
 
     # Update methods
 
-    def run_one_step(self, time, zones_at_time, **kwds):
+    def run_one_step(self, time, zones_at_time):
         """Run macroevolution processes for a single timestep.
 
         Data describing the connectivity of zones over time is stored in the
@@ -129,8 +129,8 @@ class SpeciesEvolver(Component):
             if not type(zones_at_time) == list:
                 zones_at_time = [zones_at_time]
 
-            paths = self._get_zone_paths(time, zones_at_time, **kwds)
-            survivors = self._get_surviving_species(time, paths, **kwds)
+            paths = self._get_zone_paths(time, zones_at_time)
+            survivors = self._get_surviving_species(time, paths)
 
             # Flatten and get unique zone path destinations.
             destinations = paths.destinations.tolist()
@@ -141,7 +141,7 @@ class SpeciesEvolver(Component):
             self._update_zones_DataFrame(time, updated_zones)
             self.zone_paths = self.zone_paths.append(paths, ignore_index=True)
 
-    def _get_zone_paths(self, time, new_zones, **kwds):
+    def _get_zone_paths(self, time, new_zones):
         times = np.array(self.dataRecord.time_coordinates)
         input_time_greater_than_model_time = np.array(times) < time
         prior_time = times[input_time_greater_than_model_time].max()
@@ -159,7 +159,7 @@ class SpeciesEvolver(Component):
             new_with_type = list(filter(lambda z: isinstance(z, zt),
                                         new_zones))
             output = zt._get_paths(priors_with_type, new_with_type, prior_time,
-                                   time, self._grid, **kwds)
+                                   time, self._grid)
 
             # Parse path output.
             paths = paths.append(output['paths'], ignore_index=True)
@@ -173,7 +173,7 @@ class SpeciesEvolver(Component):
 
         return paths
 
-    def _get_surviving_species(self, time, zone_paths, **kwds):
+    def _get_surviving_species(self, time, zone_paths):
         # Process only the species extant at the prior time.
         times = np.array(self.dataRecord.time_coordinates)
         input_time_greater_than_model_time = times < time
@@ -192,7 +192,7 @@ class SpeciesEvolver(Component):
             s_with_type = list(filter(lambda s: isinstance(s, st),
                                       extant_species))
 
-            output = st.evolve_type(prior_time, time, s_with_type, zone_paths)
+            output = st.evolve_type(s_with_type, zone_paths)
 
             surviving_species.extend(output['surviving_parent_species'])
             surviving_species.extend(output['child_species'])
@@ -281,7 +281,7 @@ class SpeciesEvolver(Component):
 
         self._update_species_DataFrame(time, [species])
 
-        species_zones = species.zones[time]
+        species_zones = species.zones
         self._update_zones_DataFrame(time, species_zones)
 
         if time not in self.dataRecord.time_coordinates:
@@ -484,7 +484,7 @@ class SpeciesEvolver(Component):
             z_species_count = 0
 
             for s in species_time:
-                zones_species = s.zones[time]
+                zones_species = s.zones
                 if z in zones_species:
                     z_species_count += 1
 

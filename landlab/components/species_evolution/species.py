@@ -18,16 +18,13 @@ class Species(object):
 
     subtype = 'base'
 
-    def __init__(self, initial_time, initial_zones, parent_species=None):
+    def __init__(self, initial_zones, parent_species=None):
         """Initialize a species.
 
         Parameters
         ----------
-        initial_time : float
-            Initial time of the species.
         initial_zones : SpeciesEvolver Zone or Zone list
-            A list of SpeciesEvolver Zone objects of the species at the initial
-            time.
+            A list of SpeciesEvolver Zone objects of the species.
         parent_species : SpeciesEvolver Species
             The parent species object. The default value, 'None' indicates no
             parent species.
@@ -41,17 +38,17 @@ class Species(object):
             z = initial_zones
         else:
             z = [initial_zones]
-        self.zones = {initial_time: z}
+        self.zones = z
 
     def __str__(self):
         return '<{} at {}>'.format(self.__class__.__name__, hex(id(self)))
 
     @classmethod
-    def evolve_type(cls, prior_time, time, extant_species, zone_paths):
+    def evolve_type(cls, extant_species, zone_paths):
         origins = zone_paths.origin.tolist()
 
-        # Get the species that persist in `time` given the outcome of the
-        # macroevolution processes of the species.
+        # Get the species that persist given the outcome of the macroevolution
+        # processes of the species.
 
         output = {'child_species': [], 'surviving_parent_species': []}
 
@@ -61,13 +58,13 @@ class Species(object):
 
         for es in extant_species:
             # Get paths that include the zone origin of this species.
-            species_zones = es.zones[prior_time]
+            species_zones = es.zones
             indices = np.where(np.isin(origins, species_zones))[0]
 
             if len(indices) > 0:
                 es_paths = zone_paths.loc[indices]
 
-                species_persists, child_species = es.evolve(time, es_paths)
+                species_persists, child_species = es.evolve(es_paths)
 
                 if species_persists:
                     output['surviving_parent_species'].append(es)
@@ -88,7 +85,7 @@ class Species(object):
 
         return output
 
-    def evolve(self, time, zone_paths, **kwargs):
+    def evolve(self, zone_paths):
         """Run species evolutionary processes.
 
         Extinction is not explicitly implemented in this method. The base class
@@ -97,8 +94,6 @@ class Species(object):
 
         Parameters
         ----------
-        time : float
-
         zone_paths : Pandas DataFrame
 
         Returns
@@ -106,8 +101,8 @@ class Species(object):
         output : dictionary
             Required keys:
                 'species_persists' : boolean
-                    `True` indicates that this species persists in `time`.
-                    `False` indicates that this species is extinct by `time`.
+                    `True` indicates that this species persists.
+                    `False` indicates that this species is becomes extinct.
                 'child_species' : SpeciesEvolver Species list
                     The child species produced by the current species after the
                     macroevolution processes run. An empty array indicates no
@@ -126,7 +121,7 @@ class Species(object):
         for v in zone_paths.itertuples():
             if v.path_type in [Zone.ONE_TO_ONE, Zone.MANY_TO_ONE]:
                 # The species in this zone disperses to/remains in the zone.
-                self.zones[time] = v.destinations
+                self.zones = v.destinations
                 species_persists = True
 
             elif v.path_type in [Zone.ONE_TO_MANY, Zone.MANY_TO_MANY]:
@@ -137,7 +132,7 @@ class Species(object):
                 species_persists = False
 
                 for d in v.destinations:
-                    child_species_d = Species(time, d, parent_species=self)
+                    child_species_d = Species(d, parent_species=self)
                     child_species.append(child_species_d)
 
             elif v.path_type == Zone.ONE_TO_NONE:
