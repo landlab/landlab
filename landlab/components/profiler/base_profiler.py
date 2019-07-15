@@ -95,17 +95,95 @@ class _BaseProfiler(Component, ABC):
 
     @property
     def distance_along_profile(self):
-        """List of distances along profile for each segment."""
+        """List of distances along profile for each segment.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import (
+        ...     FastscapeEroder,
+        ...     FlowAccumulator,
+        ...     ChannelProfiler
+        ...     )
+        >>> mg = RasterModelGrid((10, 10), xy_spacing=10)
+        >>> np.random.seed(42)
+        >>> z = mg.add_zeros('topographic__elevation', at='node')
+        >>> z[mg.core_nodes] += np.random.randn(mg.core_nodes.size)
+        >>> fa = FlowAccumulator(mg)
+        >>> sp = FastscapeEroder(mg, K_sp=0.0001)
+        >>> dt = 1000
+        >>> for i in range(200):
+        ...     fa.run_one_step()
+        ...     sp.run_one_step(dt=dt)
+        ...     z[mg.core_nodes] += 0.001 * dt
+        >>> profiler = ChannelProfiler(mg)
+        >>> profiler.run_one_step()
+        >>> profiler.distance_along_profile
+        [array([  0.,  10.,  20.,  30.,  40.,  50.])]
+        """
         return self._distance_along_profile
 
     @property
     def network_ids(self):
-        """List of node ids for each segment."""
+        """List of node ids for each segment.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import (
+        ...     FastscapeEroder,
+        ...     FlowAccumulator,
+        ...     ChannelProfiler
+        ...     )
+        >>> mg = RasterModelGrid((10, 10), xy_spacing=10)
+        >>> np.random.seed(42)
+        >>> z = mg.add_zeros('topographic__elevation', at='node')
+        >>> z[mg.core_nodes] += np.random.randn(mg.core_nodes.size)
+        >>> fa = FlowAccumulator(mg)
+        >>> sp = FastscapeEroder(mg, K_sp=0.0001)
+        >>> dt = 1000
+        >>> for i in range(200):
+        ...     fa.run_one_step()
+        ...     sp.run_one_step(dt=dt)
+        ...     z[mg.core_nodes] += 0.001 * dt
+        >>> profiler = ChannelProfiler(mg)
+        >>> profiler.run_one_step()
+        >>> profiler.network_ids
+        [array([59, 58, 57, 56, 46, 45])]
+        """
         return self._net_ids
 
     @property
     def colors(self):
-        """List of colors for each segment."""
+        """List of colors for each segment.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import (
+        ...     FastscapeEroder,
+        ...     FlowAccumulator,
+        ...     ChannelProfiler
+        ...     )
+        >>> mg = RasterModelGrid((10, 10), xy_spacing=10)
+        >>> np.random.seed(42)
+        >>> z = mg.add_zeros('topographic__elevation', at='node')
+        >>> z[mg.core_nodes] += np.random.randn(mg.core_nodes.size)
+        >>> fa = FlowAccumulator(mg)
+        >>> sp = FastscapeEroder(mg, K_sp=0.0001)
+        >>> dt = 1000
+        >>> for i in range(200):
+        ...     fa.run_one_step()
+        ...     sp.run_one_step(dt=dt)
+        ...     z[mg.core_nodes] += 0.001 * dt
+        >>> profiler = ChannelProfiler(mg)
+        >>> profiler.run_one_step()
+        >>> np.round(profiler.colors, decimals=2)
+        array([[ 0.27,  0.  ,  0.33,  1.  ]])
+        """
         return self._colors
 
     def plot_profiles(
