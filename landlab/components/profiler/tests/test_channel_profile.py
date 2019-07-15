@@ -376,7 +376,7 @@ def test_different_kwargs(profile_example_grid):
     np.testing.assert_array_equal(profiler2.network_ids[0], correct_structure)
 
 
-def test_re_calculatingnetwork_ids_and_distance():
+def test_re_calculating_network_ids_and_distance():
     mg = RasterModelGrid((20, 20), xy_spacing=100)
     z = mg.add_zeros("node", "topographic__elevation")
     z += np.random.rand(z.size)
