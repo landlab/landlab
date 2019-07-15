@@ -235,7 +235,9 @@ class _BaseProfiler(Component, ABC):
         ax.set_ylabel(ylabel)
         ax.set_title(title)
 
-    def plot_profiles_in_map_view(self, field="topographic__elevation", endpoints_only=False, **kwds):
+    def plot_profiles_in_map_view(
+        self, field="topographic__elevation", endpoints_only=False, **kwds
+    ):
         """
         Plot profile locations in map view.
 
@@ -260,7 +262,12 @@ class _BaseProfiler(Component, ABC):
             if endpoints_only:
                 select_nodes = [nodes[0], nodes[-1]]
                 segments.append(
-                    list(zip(self._grid.x_of_node[select_nodes], self._grid.y_of_node[select_nodes]))
+                    list(
+                        zip(
+                            self._grid.x_of_node[select_nodes],
+                            self._grid.y_of_node[select_nodes],
+                        )
+                    )
                 )
 
             else:
