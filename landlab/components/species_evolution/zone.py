@@ -5,7 +5,6 @@ from random import random
 import numpy as np
 from pandas import DataFrame
 
-from landlab.utils import get_watershed_masks_with_area_threshold
 
 class Zone(object):
     """The nodes and attributes of the entities that species populate.
@@ -114,6 +113,10 @@ class Zone(object):
         all_destinations = []
 
         for p in prior_zones:
+            # Retain a copy of the prior zone mask to compare with the new zone
+            # mask after the zone masks are updated.
+            p_mask_copy = p.mask.copy()
+
             # Get the new zones that overlap the prior zone.
             p_in_ns = np.all([p.mask == ns, ns], 0)
             n_indices = np.argwhere(p_in_ns)
@@ -200,8 +203,7 @@ class Zone(object):
                 number_of_captures += len(n_overlaps_p)
 
                 for n_i in n_overlaps_p:
-                    captured_nodes = np.all([p.mask[prior_time],
-                                             n_i.mask[time]], 0)
+                    captured_nodes = np.all([~p_mask_copy, n_i.mask], 0)
                     number_of_captured_nodes = len(np.where(captured_nodes)[0])
                     area_captured.append(number_of_captured_nodes * cell_area)
 
@@ -214,7 +216,7 @@ class Zone(object):
         # Handle new zones that did not overlap prior zones.
         for n in new_overlap_not_found:
             path_type = cls._determine_path_type(p_overlaps_n_count,
-                                                       n_overlaps_p_count)
+                                                 n_overlaps_p_count)
             paths.loc[len(paths)] = {'time': time, 'origin': np.nan,
                       'destinations': [n], 'path_type': path_type}
 
@@ -269,34 +271,27 @@ class Zone(object):
         return zones[np.argmax(n_zone_overlap_nodes)]
 
     @staticmethod
-    def get_stream_zones_with_area_threshold(time, grid, threshold):
-        """Get zones using a drainage area threshold for streams.
+    def get_zones(grid, field_name='zone_id'):
+        """Get zones using a grid field.
 
         Parameters
         ----------
         grid : ModelGrid
             A Landlab ModelGrid.
-        threshold: float or integer
-
-
+        field_name: string
+            The name of the grid field.
         """
-        # Get watershed outlets.
+        # Get the unique field values.
 
-        grid.at_node['watershed'] = get_watershed_masks_with_area_threshold(
-                grid, threshold)
-        outlets_with_nulls = np.unique(grid.at_node['watershed'])
-        outlets = np.delete(outlets_with_nulls,
-                            np.where(outlets_with_nulls == -1))
+        values = np.unique(grid.at_node[field_name])
+        values = values[~np.isnan(values)]
 
-        # Create a zone at stream nodes in each watershed.
+        # Create a zone for each field value.
 
-        zones = [None] * len(outlets)
+        zones = [None] * len(values)
 
-        stream_mask = grid.at_node['drainage_area'] >= threshold
-
-        for i, outlet in enumerate(outlets):
-            watershed_mask = grid.at_node['watershed'] == outlet
-            zone_mask = np.all([watershed_mask, stream_mask], 0)
-            zones[i] = Zone(time, zone_mask)
+        for i, value in enumerate(values):
+            mask = grid.at_node[field_name] == value
+            zones[i] = Zone(mask)
 
         return zones

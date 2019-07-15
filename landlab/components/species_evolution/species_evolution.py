@@ -15,6 +15,7 @@ import pandas as pd
 from landlab import Component
 from landlab.core.messages import warning_message
 from landlab.data_record import DataRecord
+from .zone import Zone
 
 
 class SpeciesEvolver(Component):
@@ -88,7 +89,7 @@ class SpeciesEvolver(Component):
         """
         Component.__init__(self, grid)
 
-        # Set DataFrames.
+        # Create DataFrames.
         self.dataRecord = DataRecord(grid, time=[0])
         self.species = pd.DataFrame(columns=['clade', 'species',
                                              'time_appeared', 'latest_time',
@@ -103,7 +104,7 @@ class SpeciesEvolver(Component):
 
     # Update methods
 
-    def run_one_step(self, time, zones_at_time):
+    def run_one_step(self, dt):
         """Run macroevolution processes for a single timestep.
 
         Data describing the connectivity of zones over time is stored in the
@@ -111,42 +112,43 @@ class SpeciesEvolver(Component):
 
         Parameters
         ----------
-        time : float
-            The time in the simulation.
-        zones_at_time : Zone list
-            A list of the SpeciesEvolver Zone objects at time.
+        dt : float
+            The model time step.
         """
+        # Update time.
+
+        time = max(self.dataRecord.time_coordinates) + dt
+
+        if time not in self.dataRecord.time_coordinates:
+            self.dataRecord.add_record(time=[time])
+
+        # Process zones and species.
+
         if len(self.species) == 0:
             print(warning_message('No species exist. Introduce species to '
                                   'SpeciesEvolver.'))
-        elif len(self.dataRecord.time) == 0:
-            print(warning_message('Species must be introduced at a time prior'
-                                  ' to the ``run_one_step`` time.'))
-        else:
-            if time not in self.dataRecord.time_coordinates:
-                self.dataRecord.add_record(time=[time])
+            return
 
-            if not type(zones_at_time) == list:
-                zones_at_time = [zones_at_time]
+        zones_at_time = Zone.get_zones(self._grid)
 
-            paths = self._get_zone_paths(time, zones_at_time)
-            survivors = self._get_surviving_species(time, paths)
+        paths = self._get_zone_paths(time, zones_at_time)
+        survivors = self._get_surviving_species(time, paths)
 
-            # Flatten and get unique zone path destinations.
-            destinations = paths.destinations.tolist()
-            updated_zones = list(set(sum(destinations, [])))
+        # Flatten and get unique zone path destinations.
 
-            # Update DataFrames.
-            self._update_species_DataFrame(time, survivors)
-            self._update_zones_DataFrame(time, updated_zones)
-            self.zone_paths = self.zone_paths.append(paths, ignore_index=True)
+        destinations = paths.destinations.tolist()
+        updated_zones = list(set(sum(destinations, [])))
+
+        # Update DataFrames.
+
+        self._update_species_DataFrame(time, survivors)
+        self._update_zones_DataFrame(time, updated_zones)
+        self.zone_paths = self.zone_paths.append(paths, ignore_index=True)
 
     def _get_zone_paths(self, time, new_zones):
-        times = np.array(self.dataRecord.time_coordinates)
-        input_time_greater_than_model_time = np.array(times) < time
-        prior_time = times[input_time_greater_than_model_time].max()
-
+        prior_time = self.dataRecord.prior_time
         prior_zones = self.zones_at_time(prior_time, return_objects=True)
+
         zone_types = set([type(p) for p in new_zones])
 
         paths = pd.DataFrame(columns=['time', 'origin', 'destinations',
@@ -175,10 +177,7 @@ class SpeciesEvolver(Component):
 
     def _get_surviving_species(self, time, zone_paths):
         # Process only the species extant at the prior time.
-        times = np.array(self.dataRecord.time_coordinates)
-        input_time_greater_than_model_time = times < time
-        prior_time = times[input_time_greater_than_model_time].max()
-
+        prior_time = self.dataRecord.prior_time
         extant_species = self.species_at_time(prior_time, return_objects=True)
 
         # Get the species that persist in `time` given the outcome of the
@@ -265,13 +264,13 @@ class SpeciesEvolver(Component):
 
     # Species methods
 
-    def introduce_species(self, time, species):
+    def introduce_species(self, species):
         """Add a species to SpeciesEvolver.
+
+        The species is introduced at the latest time in the dataRecord.
 
         Parameters
         ----------
-        time : float
-            The model time to introduce a species.
         species : SpeciesEvolver Species
             The species to introduce.
         """
@@ -279,13 +278,12 @@ class SpeciesEvolver(Component):
         sid = self._get_unused_species_id(cn)
         species._identifier = sid
 
+        time = max(self.dataRecord.time_coordinates)
+
         self._update_species_DataFrame(time, [species])
 
         species_zones = species.zones
         self._update_zones_DataFrame(time, species_zones)
-
-        if time not in self.dataRecord.time_coordinates:
-            self.dataRecord.add_record(time=[time])
 
     def _get_unused_clade_name(self):
         alphabet = list(ascii_uppercase)
