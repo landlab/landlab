@@ -157,7 +157,7 @@ class _BaseProfiler(Component, ABC):
         ax.set_ylabel(ylabel)
         ax.set_title(title)
 
-    def plot_profiles_in_map_view(self, field="topographic__elevation", **kwargs):
+    def plot_profiles_in_map_view(self, field="topographic__elevation", endpoints_only=False, **kwds):
         """
         Plot profile locations in map view.
 
@@ -166,17 +166,29 @@ class _BaseProfiler(Component, ABC):
         field : field name or nnode array
             Array of the at-node-field to plot as the 2D map values.
             Default value is the at-node field 'topographic__elevation'.
+        endpoints_only : boolean
+            Boolean indicating whether to plot every node along the profile, or
+            a straight line beteween the endpoints.
+        **kwds : dictionary
+            Keyword arguments to pass to imshow_grid.
         """
         # make imshow_grid background
-        imshow_grid(self._grid, field, **kwargs)
+        imshow_grid(self._grid, field, **kwds)
         ax = plt.gca()
 
         # create segments the way that line collection likes them.
         segments = []
         for idx, nodes in enumerate(self._net_ids):
-            segments.append(
-                list(zip(self._grid.x_of_node[nodes], self._grid.y_of_node[nodes]))
-            )
+            if endpoints_only:
+                select_nodes = [nodes[0], nodes[-1]]
+                segments.append(
+                    list(zip(self._grid.x_of_node[select_nodes], self._grid.y_of_node[select_nodes]))
+                )
+
+            else:
+                segments.append(
+                    list(zip(self._grid.x_of_node[nodes], self._grid.y_of_node[nodes]))
+                )
 
         line_segments = LineCollection(segments, colors=self._colors)
         ax.add_collection(line_segments)
