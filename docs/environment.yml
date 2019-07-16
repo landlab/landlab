@@ -4,7 +4,6 @@ channels:
 dependencies:
 - python==3.6
 - numpy
-- pandas
 - pandoc
 - pip
 - sphinx>=1.5.1
