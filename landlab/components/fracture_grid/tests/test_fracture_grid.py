@@ -24,7 +24,7 @@ def test_frac_grid():
     fg.run_one_step()
 
     assert_array_equal(
-        grid.at_node["fracture_at_node"].reshape((9, 9)),
+        grid.at_node['fracture_at_node'].reshape((9, 9)),
         [
             [1, 0, 0, 0, 0, 0, 1, 1, 0],
             [0, 0, 0, 0, 1, 1, 0, 0, 0],
