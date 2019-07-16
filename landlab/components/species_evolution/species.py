@@ -15,9 +15,6 @@ class Species(object):
     letters. The second element is the species number that is assigned
     sequentially for each clade. The clade id is passed to child species.
     """
-
-    subtype = 'base'
-
     def __init__(self, initial_zones, parent_species=None):
         """Initialize a species.
 
@@ -41,8 +38,7 @@ class Species(object):
         self.zones = z
 
     def __str__(self):
-        return '<{} {}.{}>'.format(self.__class__.__name__, self.identifier[0],
-                 self.identifier[1])
+        return '<{}>'.format(self.__class__.__name__)
 
     @classmethod
     def evolve_type(cls, extant_species, zone_paths):

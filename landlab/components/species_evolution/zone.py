@@ -12,8 +12,7 @@ class Zone(object):
     A portion of the model domain. It is the model entity that recognizes the
     model grid changes relevant to a species.
     """
-
-    subtype = 'base'
+    _required_params = ['zone_field_name']
 
     # Define path types.
     NONE_TO_ONE = 'none-to-one'
@@ -39,6 +38,22 @@ class Zone(object):
 
     def __str__(self):
         return '<{}>'.format(self.__class__.__name__)
+
+    @property
+    def required_object_parameters(self):
+        """The required keys in the `object_params` dictionary."""
+        return self._required_params
+
+    @classmethod
+    def _check_params(cls, object_params):
+        missing_params = list(set(cls._required_params) -
+                              set(object_params.keys()))
+
+        if len(missing_params) > 0:
+            msg = '{} is missing the following parameters: {}'
+            class_name = cls.__name__
+
+            raise ValueError(msg.format(class_name, ', '.join(missing_params)))
 
     @classmethod
     def _get_paths(cls, prior_zones, new_zones, prior_time, time, grid):
@@ -267,8 +282,8 @@ class Zone(object):
 
         return zones[np.argmax(n_zone_overlap_nodes)]
 
-    @staticmethod
-    def get_zones(grid, field_name='zone_id'):
+    @classmethod
+    def get_zones(cls, grid, object_params):
         """Get zones using a grid field.
 
         Parameters
@@ -278,6 +293,10 @@ class Zone(object):
         field_name: string
             The name of the grid field.
         """
+        cls._check_params(object_params)
+
+        field_name = object_params['zone_field_name']
+
         # Get the unique field values.
 
         values = np.unique(grid.at_node[field_name])
