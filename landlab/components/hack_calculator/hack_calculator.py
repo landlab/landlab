@@ -195,18 +195,13 @@ class HackCalculator(Component):
         "flow__upstream_node_order": "node order such that nodes must appear in the list after all nodes downstream of them",
     }
 
-    def __init__(
-        self,
-        grid,
-        save_full_df=False,
-        **kwds
-    ):
+    def __init__(self, grid, save_full_df=False, **kwds):
         """
         Parameters
         ----------
         grid : Landlab Model Grid instance, required
         save_full_df: bool
-            TODO
+            Flag indicating whether to create the ``full_hack_dataframe``.
         **kwds :
             Values to pass to the ChannelProfiler.
         """
@@ -239,7 +234,10 @@ class HackCalculator(Component):
         if hasattr(self, "_df"):
             return self._df
         else:
-            msg = ''
+            msg = (
+                "The hack_coefficient_dataframe does not yet exist. "
+                "Try running calculate_hack_coefficients"
+            )
             raise RuntimeError(msg)
 
     @property
@@ -264,10 +262,21 @@ class HackCalculator(Component):
                   Hack coefficient fit.
         """
         if not self._save_full_df:
-            msg = ""
+            msg = (
+                "This instance of a HackCalculator was not set up to save"
+                " the full_hack_dataframe. Try recreating it with "
+                "save_full_df=True."
+            )
             raise NotImplementedError(msg)
         else:
-            return self._full_df
+            if hasattr(self, "_full_df"):
+                return self._full_df
+            else:
+                msg = (
+                    "The full_hack_dataframe does not yet exist. "
+                    "Try running calculate_hack_coefficients"
+                )
+                raise RuntimeError(msg)
 
     def calculate_hack_coefficients(self):
         """Calculate Hack coefficients for desired watersheds.
@@ -287,7 +296,10 @@ class HackCalculator(Component):
         for outlet_node in self._profiler._net_struct:
             seg_tuples = self._profiler._net_struct[outlet_node].keys()
 
-            watershed = [self._profiler._net_struct[outlet_node][seg]["ids"] for seg in seg_tuples]
+            watershed = [
+                self._profiler._net_struct[outlet_node][seg]["ids"]
+                for seg in seg_tuples
+            ]
 
             A_max = self._grid.at_node["drainage_area"][outlet_node]
 
@@ -307,14 +319,20 @@ class HackCalculator(Component):
                             "A": A,
                             "L_obs": L,
                             "L_est": C * A ** h,
-                            "node_id": nodes
+                            "node_id": nodes,
                         }
                     )
                 )
 
-        self._df = pd.DataFrame.from_dict(out, orient="index", columns=["A_max", "C", "h"])
+        self._df = pd.DataFrame.from_dict(
+            out, orient="index", columns=["A_max", "C", "h"]
+        )
         self._df.index.name = "basin_outlet_id"
 
         if self._save_full_df:
-            hdf = pd.concat(internal_df, ignore_index=True).set_index("node_id").sort_index()
+            hdf = (
+                pd.concat(internal_df, ignore_index=True)
+                .set_index("node_id")
+                .sort_index()
+            )
             self._full_df = hdf
