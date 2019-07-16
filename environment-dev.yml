@@ -2,20 +2,9 @@ name: landlab_dev
 channels:
   - conda-forge
 dependencies:
-- python
 - black
 - flake8
 - isort
-- matplotlib
-- netcdf4
-- pandas
-- pyshp
 - pytest
 - pytest-cov
 - pytest-datadir
-- pyyaml
-- scipy
-- statsmodels
-- xarray
-- pip:
-    - bmipy<1
