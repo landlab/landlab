@@ -457,6 +457,7 @@ class ChannelProfiler(_BaseProfiler):
     Extract every possible channel (not just the largest one), leading from the
     four highest model grid boundary nodes traced back to a
     ``channel_definition_field`` threshold of 20.
+
     >>> profiler = ChannelProfiler(mg,
     ...     number_of_watersheds=4,
     ...     main_channel_only=False,

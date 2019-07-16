@@ -107,6 +107,8 @@ setup(
             "test/*shx",
             "data/*dbf",
             "preciptest.in",
+            "test_*/*nc",
+            "test_*/*asc",
         ]
     },
     cmdclass=versioneer.get_cmdclass(

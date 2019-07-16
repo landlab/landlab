@@ -288,6 +288,22 @@ def test_plotting_and_structure(profile_example_grid):
         np.testing.assert_array_equal(profiler.network_ids[idx], correct_structure[idx])
 
 
+def test_end_nodes_only(profile_example_grid):
+    mg = profile_example_grid
+    # with the same grid, test some other profiler options.
+    profiler2 = ChannelProfiler(
+        mg,
+        number_of_watersheds=None,
+        main_channel_only=True,
+        minimum_outlet_threshold=3,
+        minimum_channel_threshold=50,
+    )
+    profiler2.run_one_step()
+
+    profiler2.plot_profiles()
+    profiler2.plot_profiles_in_map_view(endpoints_only=True)
+
+
 def test_different_kwargs(profile_example_grid):
     mg = profile_example_grid
     # with the same grid, test some other profiler options.
@@ -360,7 +376,7 @@ def test_different_kwargs(profile_example_grid):
     np.testing.assert_array_equal(profiler2.network_ids[0], correct_structure)
 
 
-def test_re_calculatingnetwork_ids_and_distance():
+def test_re_calculating_network_ids_and_distance():
     mg = RasterModelGrid((20, 20), xy_spacing=100)
     z = mg.add_zeros("node", "topographic__elevation")
     z += np.random.rand(z.size)
