@@ -31,7 +31,6 @@ from .overland_flow import (
 from .pet import PotentialEvapotranspiration
 from .plant_competition_ca import VegCA
 from .potentiality_flowrouting import PotentialityFlowRouter
-from .profiler import ChannelProfiler
 from .radiation import Radiation
 from .sink_fill import SinkFiller, SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt, SoilMoisture
@@ -52,7 +51,6 @@ from .weathering import ExponentialWeatherer
 
 COMPONENTS = [
     ChiFinder,
-    ChannelProfiler,
     LinearDiffuser,
     Flexure,
     FlowRouter,
