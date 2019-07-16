@@ -71,13 +71,14 @@ class SpeciesEvolver(Component):
 
     _var_doc = {}
 
-    def __init__(self, grid):
+    def __init__(self, grid, initial_time=0):
         """Instantiate SpeciesEvolver.
 
         Parameters
         ----------
         grid : ModelGrid
             A Landlab ModelGrid.
+        initial_time :
 
         Examples
         --------
@@ -90,7 +91,8 @@ class SpeciesEvolver(Component):
         Component.__init__(self, grid)
 
         # Create DataFrames.
-        self.dataRecord = DataRecord(grid, time=[0])
+
+        self.dataRecord = DataRecord(grid, time=[initial_time])
         self.species = pd.DataFrame(columns=['clade', 'species',
                                              'time_appeared', 'latest_time',
                                              'subtype', 'object'])
@@ -100,7 +102,13 @@ class SpeciesEvolver(Component):
                                                 'destinations', 'path_type'])
 
         # Track the clade names (keys) and the max species number (values).
+
         self._species_ids = {}
+
+        # Set initial zones.
+
+        zones_at_time = Zone.get_zones(self._grid)
+        self._update_zones_DataFrame(initial_time, zones_at_time)
 
     # Update methods
 
@@ -117,10 +125,8 @@ class SpeciesEvolver(Component):
         """
         # Update time.
 
-        time = max(self.dataRecord.time_coordinates) + dt
-
-        if time not in self.dataRecord.time_coordinates:
-            self.dataRecord.add_record(time=[time])
+        time = self.dataRecord.latest_time + dt
+        self.dataRecord.add_record(time=[time])
 
         # Process zones and species.
 
@@ -160,6 +166,7 @@ class SpeciesEvolver(Component):
 
             new_with_type = list(filter(lambda z: isinstance(z, zt),
                                         new_zones))
+
             output = zt._get_paths(priors_with_type, new_with_type, prior_time,
                                    time, self._grid)
 
@@ -273,17 +280,31 @@ class SpeciesEvolver(Component):
         ----------
         species : SpeciesEvolver Species
             The species to introduce.
-        """
-        cn = self._get_unused_clade_name()
-        sid = self._get_unused_species_id(cn)
-        species._identifier = sid
 
-        time = max(self.dataRecord.time_coordinates)
+        Examples
+        --------
+        """
+        if species in self.species.object.values:
+            msg = 'The species object, {} was already introduced.'
+            raise Exception(msg.format(species))
+
+        # Set species identifier.
+
+        if species.identifier == None:
+            if species.parent_species == None:
+                cn = self._get_unused_clade_name()
+            else:
+                cn = species.parent_species.clade
+
+            sid = self._get_unused_species_id(cn)
+            species._identifier = sid
+
+        # Update dataframes.
+
+        time = self.dataRecord.latest_time
 
         self._update_species_DataFrame(time, [species])
-
-        species_zones = species.zones
-        self._update_zones_DataFrame(time, species_zones)
+#        self._update_zones_DataFrame(time, species.zones)
 
     def _get_unused_clade_name(self):
         alphabet = list(ascii_uppercase)
@@ -349,6 +370,11 @@ class SpeciesEvolver(Component):
         -------
         zones : SpeciesEvolver Zone list
             The zones that exist at the inputted time.
+
+        Examples
+        --------
+
+
         """
         return self._objects_at_time(time, self.zones, return_objects)
 
@@ -366,12 +392,12 @@ class SpeciesEvolver(Component):
 
     def species_with_identifier(self, identifier_element,
                                 return_objects=False):
-        """Get species with an identifier element.
+        """Get species using identifiers.
 
         A singular species is returned when *identifier_element* is a tuple
-        with elements that match a species in the *species* DataFrame. The
-        first element is the clade name and the second element is the species
-        number.
+        with elements that match species in the *species* DataFrame. The
+        first element of the tuple is the clade name and the second element is
+        the species number.
 
         The species of a clade are returned when *identifier_element* is
         a string that matches a clade name in the *species* DataFrame.
@@ -383,8 +409,11 @@ class SpeciesEvolver(Component):
         By default, the species with *identifier_element* will be returned in a
         DataFrame. Alternatively, a list of Species objects can be returned by
         setting *return_objects* to ``True``. A singular species is returned
-        when *identifier_element* is a tuple. Otherwise, multiple species are
-        returned.
+        when *identifier_element* is a tuple. Otherwise, the species object(s)
+        are returned in a list.
+
+        `None` is returned if no species have an identifier that matches
+        *identifier_element*.
 
         Parameters
         ----------
@@ -399,6 +428,64 @@ class SpeciesEvolver(Component):
         DataFrame, SpeciesEvolver Species, or SpeciesEvolver Species list
             The species with identifiers that matched *identifier_element*. The
             type of the return object is set by *return_objects*.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import SpeciesEvolver
+        >>> from landlab.components.species_evolution import Species, Zone
+        >>> import numpy as np
+        >>> mg = RasterModelGrid((3, 5))
+        >>> zone_id = np.array([np.nan, np.nan, np.nan, np.nan, np.nan,
+        ...                     np.nan,      1,      2,      3, np.nan,
+        ...                     np.nan, np.nan, np.nan, np.nan, np.nan])
+        >>> zone_field = mg.add_field('node', 'zone_id', zone_id)
+        >>> zones = Zone.get_zones(mg)
+        >>> se = SpeciesEvolver(mg)
+
+        Instantiate and introduce species.
+
+        >>> species1 = Species(zones[0])
+        >>> species2 = Species(zones[1])
+        >>> species3 = Species(zones[2], parent_species=species2)
+        >>> se.introduce_species(species1)
+        >>> se.introduce_species(species2)
+        >>> se.introduce_species(species3)
+
+        Get all the species introduced in a dataframe.
+
+        >>> se.species
+          clade species time_appeared latest_time subtype         object
+        0     A       0             0           0    base  <Species A.0>
+        1     B       0             0           0    base  <Species B.0>
+        2     B       1             0           0    base  <Species B.1>
+
+        Get the species, B.0.
+
+        >>> se.species_with_identifier(('B', 0))
+          clade species time_appeared latest_time subtype         object
+        1     B       0             0           0    base  <Species B.0>
+
+        Get all of the species in clade, B.
+
+        >>> se.species_with_identifier('B')
+          clade species time_appeared latest_time subtype         object
+        1     B       0             0           0    base  <Species B.0>
+        2     B       1             0           0    base  <Species B.1>
+
+        Get all of the species with the same number, 0, despite the clade.
+
+        >>> se.species_with_identifier(0)
+          clade species time_appeared latest_time subtype         object
+        0     A       0             0           0    base  <Species A.0>
+        1     B       0             0           0    base  <Species B.0>
+
+        Get the species, B.0 as an object rather than dataframe.
+
+        >>> species_obj = se.species_with_identifier(('B', 0),
+                                                     return_objects=True)
+        >>> species_obj.identifier
+        ('B', 0)
         """
         sdf = self.species
 
@@ -441,52 +528,3 @@ class SpeciesEvolver(Component):
                 return s_out_list
         else:
             return s_out
-
-    def get_area_species_data(self, time=None):
-        """Get the area and number of species of each zone.
-
-        """
-        if time == None:
-            latest_time = self.dataRecord.latest_time
-            df = self._area_species_data_at_time(latest_time)
-        elif time in self.dataRecord.time_coordinates:
-            df = self._area_species_data_at_time(time)
-        elif time == 'all':
-            df_list = []
-            for i, t in enumerate(self.dataRecord.time_coordinates):
-                df_t = self._area_species_data_at_time(t)
-                df_t['time'] = t
-                df_list.append(df_t)
-            df = pd.concat(df_list, ignore_index=True)
-        else:
-            raise ValueError('The record does not include time, {}.'.format(time))
-
-        return df
-
-    def _area_species_data_at_time(self, time):
-        species_time = self.species_at_time(time, return_objects=True)
-        zones_time = self.zones_at_time(time, return_objects=True)
-
-        n = len(zones_time)
-        area = pd.Series(data=np.empty(n), name='area')
-        species = pd.Series(data=np.empty(n), name='species', dtype=np.int)
-
-        for i, z in enumerate(zones_time):
-            mask = z.mask[time]
-            if len(np.where(mask)[0]) == 0:
-                z_area = 0
-            else:
-                area_max = self._grid.at_node['drainage_area'][mask].max()
-                z_area = area_max
-
-            z_species_count = 0
-
-            for s in species_time:
-                zones_species = s.zones
-                if z in zones_species:
-                    z_species_count += 1
-
-            area[i] = z_area
-            species[i] = z_species_count
-
-        return pd.concat([area, species], axis=1)

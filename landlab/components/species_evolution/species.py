@@ -41,7 +41,8 @@ class Species(object):
         self.zones = z
 
     def __str__(self):
-        return '<{} at {}>'.format(self.__class__.__name__, hex(id(self)))
+        return '<{} {}.{}>'.format(self.__class__.__name__, self.identifier[0],
+                 self.identifier[1])
 
     @classmethod
     def evolve_type(cls, extant_species, zone_paths):

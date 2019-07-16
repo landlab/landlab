@@ -38,10 +38,7 @@ class Zone(object):
         self.plot_color = (random(), random(), random(), 1)
 
     def __str__(self):
-        return '<{} at {}>'.format(self.__class__.__name__, hex(id(self)))
-
-    def __repr__(self):
-        return '<{} at {}>'.format(self.__class__.__name__, hex(id(self)))
+        return '<{}>'.format(self.__class__.__name__)
 
     @classmethod
     def _get_paths(cls, prior_zones, new_zones, prior_time, time, grid):
