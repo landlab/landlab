@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Calculate Hack coefficients."""
+"""Calculate Hack parameters."""
 import collections
 from itertools import chain
 
@@ -37,7 +37,7 @@ def _hacks_law(A, C, h):
 
 
 def _estimate_hack_coeff(A, L):
-    """Estimate Hack coefficients.
+    """Estimate Hack parameters.
 
     Given A and L, estimate C and h Where
 
@@ -88,7 +88,7 @@ def _flatten(l):
 
 class HackCalculator(Component):
     """
-    This component calculates Hack's law coefficients for drainage basins.
+    This component calculates Hack's law parameters for drainage basins.
 
     Hacks law is given as
 
@@ -97,7 +97,7 @@ class HackCalculator(Component):
 
     Where :math:`L` is the distance to the drainage divide along the channel,
     :math:`A` is the drainage area, and :math:`C`and :math:`h` are
-    coefficients.
+    parameters.
 
     The HackCalculator uses a ChannelProfiler to determine the nodes on which
     to calculate the parameter fit.
@@ -123,7 +123,7 @@ class HackCalculator(Component):
     ...     fs.run_one_step(1000)
     ...     z[mg.core_nodes] += 0.01 * 1000
     >>> hc = HackCalculator(mg)
-    >>> hc.calculate_hack_coefficients()
+    >>> hc.calculate_hack_parameters()
     >>> largest_outlet = mg.boundary_nodes[
     ...     np.argsort(mg.at_node['drainage_area'][mg.boundary_nodes])[-1:]][0]
     >>> largest_outlet
@@ -140,7 +140,7 @@ class HackCalculator(Component):
     ...     number_of_watersheds=3,
     ...     main_channel_only=False,
     ...     save_full_df=True)
-    >>> hc.calculate_hack_coefficients()
+    >>> hc.calculate_hack_parameters()
     >>> hc.hack_coefficient_dataframe.round(2)  # doctest: +NORMALIZE_WHITESPACE
                          A_max     C     h
     basin_outlet_id
@@ -217,14 +217,14 @@ class HackCalculator(Component):
         This dataframe is created and stored on the component.
 
         It is a pandas dataframe with one row for each basin for which Hack
-        coefficients are calculated. Thus, there are as many rows as the
+        parameters are calculated. Thus, there are as many rows as the
         number of watersheds identified by the ChannelProfiler.
 
         The dataframe has the following index and columns.
 
             * Index
                 * **basin_outlet_id**: The node ID of the watershed outlet
-                  where each set of Hack coefficients was estimated.
+                  where each set of Hack parameters was estimated.
 
             * Columns
                 * **A_max**: The drainage area of the watershed outlet.
@@ -236,7 +236,7 @@ class HackCalculator(Component):
         else:
             msg = (
                 "The hack_coefficient_dataframe does not yet exist. "
-                "Try running calculate_hack_coefficients"
+                "Try running calculate_hack_parameters"
             )
             raise RuntimeError(msg)
 
@@ -249,7 +249,7 @@ class HackCalculator(Component):
         component init.
 
         It is pandas dataframe with a row for every model grid cell used to
-        estimate the Hack coefficients. It has the following index and columns.
+        estimate the Hack parameters. It has the following index and columns.
 
             * Index
                 * *node_id**: The node ID of the model grid cell.
@@ -274,16 +274,12 @@ class HackCalculator(Component):
             else:
                 msg = (
                     "The full_hack_dataframe does not yet exist. "
-                    "Try running calculate_hack_coefficients"
+                    "Try running calculate_hack_parameters"
                 )
                 raise RuntimeError(msg)
 
-    def calculate_hack_coefficients(self):
-        """Calculate Hack coefficients for desired watersheds.
-
-
-
-        """
+    def calculate_hack_parameters(self):
+        """Calculate Hack parameters for desired watersheds."""
         out = collections.OrderedDict()
         self._profiler.run_one_step()
 
