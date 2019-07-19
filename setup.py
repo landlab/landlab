@@ -83,6 +83,8 @@ setup(
         "pyshp",
         "scipy<1.3",
         "statsmodels",
+        "pyshp",
+        "pandas",
         "xarray",
     ],
     classifiers=[
