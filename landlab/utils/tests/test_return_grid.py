@@ -1,9 +1,8 @@
+import numpy as np
 import pytest
 
-import numpy as np
 from landlab import FieldError, RasterModelGrid
-from landlab.utils.return_array import (return_array_at_node,
-                                        return_array_at_link)
+from landlab.utils.return_array import return_array_at_link, return_array_at_node
 
 
 def test_no_field():
@@ -12,6 +11,7 @@ def test_no_field():
         return_array_at_node(mg, "spam")
     with pytest.raises(FieldError):
         return_array_at_link(mg, "spam")
+
 
 def test_return_array():
     mg = RasterModelGrid((10, 10))
