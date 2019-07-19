@@ -83,6 +83,8 @@ setup(
         "pyshp",
         "scipy<1.3",
         "statsmodels",
+        "pyshp",
+        "pandas",
         "xarray",
     ],
     classifiers=[
@@ -105,6 +107,8 @@ setup(
             "test/*shx",
             "data/*dbf",
             "preciptest.in",
+            "test_*/*nc",
+            "test_*/*asc",
         ]
     },
     cmdclass=versioneer.get_cmdclass(

@@ -21,13 +21,15 @@ class DepthDependentTaylorDiffuser(Component):
     Hillslope sediment flux uses a Taylor Series expansion of the Andrews-
     Bucknam formulation of nonlinear hillslope flux derived following following
     Ganti et al., 2012 with a depth dependent component inspired Johnstone and
-    Hilley (2014). The flux is given as:
+    Hilley (2014). The flux :math:`q_s` is given as:
 
-        qs = DS ( 1 + (S/Sc)**2 + (S/Sc)**4 + .. + (S/Sc)**2(n-1) ) * (1.0 - exp( H / Hstar )
+    .. math::
 
-    where D is is the diffusivity, S is the slope, Sc is the critical slope, n
-    is the number of terms, H is the soil depth on links, and Hstar is the soil
-    transport decay depth.
+        q_s = DSH^* ( 1 + (S/S_c)^2 + (S/Sc_)^4 + .. + (S/S_c)^2(n-1) ) (1.0 - exp( H / H^*)
+
+    where :math:`D` is is the diffusivity, :math:`S` is the slope, :math:`S_c`
+    is the critical slope, :math:`n` is the number of terms, :math:`H` is the
+    soil depth on links, and :math:`H^*` is the soil transport decay depth.
 
     The default behavior uses two terms to produce a slope dependence as
     described by Equation 6 of Ganti et al., (2012).
@@ -179,6 +181,28 @@ class DepthDependentTaylorDiffuser(Component):
     >>> expweath.calc_soil_prod_rate()
     >>> DDdiff.soilflux(10)
     >>> np.any(np.isnan(z))
+    False
+
+    Now, we'll test that changing the transport decay depth behaves as expected.
+
+    >>> mg = RasterModelGrid((3, 5))
+    >>> soilTh = mg.add_zeros('node', 'soil__depth')
+    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
+    >>> z += mg.node_x.copy()**0.5
+    >>> BRz = z.copy() - 1.0
+    >>> soilTh[:] = z - BRz
+    >>> DDdiff = DepthDependentTaylorDiffuser(mg, soil_transport_decay_depth = 0.1)
+    >>> DDdiff.soilflux(1)
+    >>> soil_decay_depth_point1 = mg.at_node['topographic__elevation'][mg.core_nodes]
+    >>> z[:] = 0
+    >>> z += mg.node_x.copy()**0.5
+    >>> BRz = z.copy() - 1.0
+    >>> soilTh[:] = z - BRz
+    >>> DDdiff = DepthDependentTaylorDiffuser(mg, soil_transport_decay_depth = 1.0)
+    >>> DDdiff.soilflux(1)
+    >>> soil_decay_depth_1 = mg.at_node['topographic__elevation'][mg.core_nodes]
+    >>> np.greater(soil_decay_depth_1[1], soil_decay_depth_point1[1])
     False
     """
 
@@ -415,7 +439,7 @@ class DepthDependentTaylorDiffuser(Component):
                 raise RuntimeError(message)
 
         self.flux[:] = -(
-            (self.K * self.slope)
+            (self.K * self.slope * self.soil_transport_decay_depth)
             * (slope_term)
             * (1.0 - np.exp(-self.H_link / self.soil_transport_decay_depth))
         )

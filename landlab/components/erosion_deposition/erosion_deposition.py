@@ -88,11 +88,11 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
     def __init__(
         self,
         grid,
-        K=None,
-        phi=None,
-        v_s=None,
-        m_sp=None,
-        n_sp=None,
+        K=0.002,
+        phi=0.3,
+        v_s=1.0,
+        m_sp=0.5,
+        n_sp=1.0,
         sp_crit=0.0,
         F_f=0.0,
         discharge_field="surface_water__discharge",
@@ -286,7 +286,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             self.erosion_term,
             self.v_s,
             self.F_f,
-            self.phi,
         )
 
         self.depo_rate[:] = 0.0
@@ -297,7 +296,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         # topo elev is old elev + deposition - erosion
         cores = self.grid.core_nodes
         self.topographic__elevation[cores] += (
-            (self.depo_rate[cores] / (1 - self.phi)) - self.erosion_term[cores]
+            (self.depo_rate[cores] - self.erosion_term[cores]) / (1 - self.phi)
         ) * dt
 
     def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[]):
@@ -353,7 +352,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                 self.erosion_term,
                 self.v_s,
                 self.F_f,
-                self.phi,
             )
 
             # Use Qs to calculate deposition rate at each node.
@@ -363,9 +361,9 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             )
 
             # Rate of change of elevation at core nodes:
-            dzdt[cores] = (self.depo_rate[cores] / (1 - self.phi)) - self.erosion_term[
-                cores
-            ]
+            dzdt[cores] = (self.depo_rate[cores] - self.erosion_term[cores]) / (
+                1 - self.phi
+            )
 
             # Difference in elevation between each upstream-downstream pair
             zdif = z - z[r]
@@ -398,9 +396,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
             # From this, find the maximum stable time step. If it is smaller
             # than our tolerance, report and quit.
-            dt_max = np.amin(self.time_to_flat)
-            if dt_max < self.dt_min:
-                dt_max = self.dt_min
+            dt_max = max(np.amin(self.time_to_flat), self.dt_min)
 
             # Finally, apply dzdt to all nodes for a (sub)step of duration
             # dt_max
