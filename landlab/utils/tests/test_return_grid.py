@@ -16,6 +16,11 @@ def test_no_field():
 def test_return_array():
     mg = RasterModelGrid((10, 10))
     node_vals = np.arange(mg.number_of_nodes)
-    return_array_at_node(mg, node_vals)
+    out = return_array_at_node(mg, node_vals)
+
+    np.testing.assert_array_equal(np.arange(mg.number_of_nodes), out)
+
     link_vals = np.arange(mg.number_of_links)
-    return_array_at_link(mg, link_vals)
+    out = return_array_at_link(mg, link_vals)
+
+    np.testing.assert_array_equal(np.arange(mg.number_of_links), out)
