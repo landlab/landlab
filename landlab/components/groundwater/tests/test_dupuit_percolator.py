@@ -42,7 +42,7 @@ def test_simple_water_table():
     for i in range(12):
         gdp.run_one_step(5.0e4)
 
-    assert_equal(np.round(gdp.thickness[4], 5), 0.00141)
+    assert_equal(np.round(gdp._thickness[4], 5), 0.00141)
 
     # Re-instantiate to test the case when the necessary fields already exist
     gdp = GroundwaterDupuitPercolator(rg)

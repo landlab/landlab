@@ -21,17 +21,6 @@ class GroundwaterDupuitPercolator(Component):
     The GroundwaterDupuitPercolator uses the Dupuit approximation that the
     hydraulic gradient is equal to the slope of the water table.
 
-    Parameters
-    ----------
-    grid: ModelGrid
-            Landlab ModelGrid object
-    hydraulic_conductivity: float, field name, or array of float
-            saturated hydraulic conductivity, m/s
-            Default = 0.01 m/s
-    recharge_rate: float, field name, or array of float
-            Rate of recharge, m/s
-            Default = 1.0e-8 m/s
-
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -103,62 +92,62 @@ class GroundwaterDupuitPercolator(Component):
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        hydraulic_conductivity: float, field name, or array of float
-                saturated hydraulic conductivity, m/s
-                Default = 0.01 m/s
-        recharge_rate: float, field name, or array of float
-                Rate of recharge, m/s
-                Default = 1.0e-8 m/s
+        hydraulic_conductivity: float, field name (link), or array of float
+            saturated hydraulic conductivity, m/s
+            Default = 0.01 m/s
+        recharge_rate: float, field name (node), or array of float
+            Rate of recharge, m/s
+            Default = 1.0e-8 m/s
         """
         # Store grid
         self._grid = grid
 
         # Shorthand
-        self.cores = grid.core_nodes
-        self.inactive_links = np.where(grid.status_at_link != ACTIVE_LINK)[0]
+        self._cores = grid.core_nodes
+        self._inactive_links = np.where(grid.status_at_link != ACTIVE_LINK)[0]
 
         # Convert parameters to fields if needed, and store a reference
-        self.K = return_array_at_link(grid, hydraulic_conductivity)
-        self.recharge = return_array_at_node(grid, recharge_rate)
+        self._K = return_array_at_link(grid, hydraulic_conductivity)
+        self._recharge = return_array_at_node(grid, recharge_rate)
 
         # Create fields:
 
-        if "topographic__elevation" in self.grid.at_node:
-            self.elev = self.grid.at_node["topographic__elevation"]
+        if "topographic__elevation" in self._grid.at_node:
+            self._elev = self._grid.at_node["topographic__elevation"]
         else:
-            self.elev = self.grid.add_ones("node", "topographic__elevation")
+            self._elev = self._grid.add_ones("node", "topographic__elevation")
 
-        if "aquifer_base__elevation" in self.grid.at_node:
-            self.base = self.grid.at_node["aquifer_base__elevation"]
+        if "aquifer_base__elevation" in self._grid.at_node:
+            self._base = self._grid.at_node["aquifer_base__elevation"]
         else:
-            self.base = self.grid.add_zeros("node", "aquifer_base__elevation")
+            self._base = self._grid.add_zeros("node", "aquifer_base__elevation")
 
-        if "water_table__elevation" in self.grid.at_node:
-            self.wtable = self.grid.at_node["water_table__elevation"]
+        if "water_table__elevation" in self._grid.at_node:
+            self._wtable = self._grid.at_node["water_table__elevation"]
         else:
-            self.wtable = self.grid.add_zeros("node", "water_table__elevation")
+            self._wtable = self._grid.add_zeros("node", "water_table__elevation")
 
-        if "aquifer__thickness" in self.grid.at_node:
-            self.thickness = self.grid.at_node["aquifer__thickness"]
+        if "aquifer__thickness" in self._grid.at_node:
+            self._thickness = self._grid.at_node["aquifer__thickness"]
         else:
-            self.thickness = self.grid.add_zeros("node", "aquifer__thickness")
-            self.thickness[:] = self.wtable - self.base
+            self._thickness = self._grid.add_zeros("node", "aquifer__thickness")
+            self._thickness[:] = self._wtable - self._base
 
-        if "hydraulic__gradient" in self.grid.at_link:
-            self.hydr_grad = self.grid.at_link["hydraulic__gradient"]
+        if "hydraulic__gradient" in self._grid.at_link:
+            self._hydr_grad = self._grid.at_link["hydraulic__gradient"]
         else:
-            self.hydr_grad = self.grid.add_zeros("link", "hydraulic__gradient")
+            self._hydr_grad = self._grid.add_zeros("link", "hydraulic__gradient")
 
-        if "groundwater__specific_discharge" in self.grid.at_link:
-            self.q = self.grid.at_link["groundwater__specific_discharge"]
+        if "groundwater__specific_discharge" in self._grid.at_link:
+            self._q = self._grid.at_link["groundwater__specific_discharge"]
         else:
-            self.q = self.grid.add_zeros("link",
-                                         "groundwater__specific_discharge")
+            self._q = self._grid.add_zeros("link",
+                                           "groundwater__specific_discharge")
 
-        if "groundwater__velocity" in self.grid.at_link:
-            self.vel = self.grid.at_link["groundwater__velocity"]
+        if "groundwater__velocity" in self._grid.at_link:
+            self._vel = self._grid.at_link["groundwater__velocity"]
         else:
-            self.vel = self.grid.add_zeros("link", "groundwater__velocity")
+            self._vel = self._grid.add_zeros("link", "groundwater__velocity")
 
     def run_one_step(self, dt, **kwds):
         """
@@ -171,27 +160,27 @@ class GroundwaterDupuitPercolator(Component):
         """
 
         # Calculate hydraulic gradient
-        self.hydr_grad[:] = self._grid.calc_grad_at_link(self.wtable)
-        self.hydr_grad[self.inactive_links] = 0.0
+        self._hydr_grad[:] = self._grid.calc_grad_at_link(self._wtable)
+        self._hydr_grad[self._inactive_links] = 0.0
 
         # Calculate groundwater velocity
-        self.vel[:] = -self.K * self.hydr_grad
-        self.vel[self._grid.status_at_link != 0] = 0.0
+        self._vel[:] = -self._K * self._hydr_grad
+        self._vel[self._grid.status_at_link != 0] = 0.0
 
         # Aquifer thickness at links
         hlink = map_mean_of_link_nodes_to_link(self._grid,
                                                'aquifer__thickness')
 
         # Calculate specific discharge
-        self.q[:] = hlink * self.vel
+        self._q[:] = hlink * self._vel
 
         # Mass balance
-        dqdx = self._grid.calc_flux_div_at_node(self.q)
-        dhdt = self.recharge - dqdx
+        dqdx = self._grid.calc_flux_div_at_node(self._q)
+        dhdt = self._recharge - dqdx
 
         # Update
-        self.thickness[self._grid.core_nodes] += dhdt[self.cores] * dt
+        self._thickness[self._grid.core_nodes] += dhdt[self._cores] * dt
 
         # Recalculate water surface height
-        self.wtable[self._grid.core_nodes] = (self.base[self.cores]
-                                              + self.thickness[self.cores])
+        self._wtable[self._grid.core_nodes] = (self._base[self._cores]
+                                               + self._thickness[self._cores])
