@@ -76,7 +76,8 @@ class ChiFinder(Component):
     ...     min_drainage_area=20000.,
     ...     use_true_dx=True,
     ...     reference_concavity=0.5,
-    ...     reference_area=mg2.at_node['drainage_area'].max())
+    ...     reference_area=mg2.at_node['drainage_area'].max(),
+    ...     noclobber=False)
     >>> cf3.calculate_chi()
     >>> cf3.chi_indices.reshape(mg2.shape)  # doctest: +NORMALIZE_WHITESPACE
     array([[   0. ,   0.        ,   0.        ,   0. ,   0. ],
