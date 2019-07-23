@@ -153,6 +153,7 @@ class ChiFinder(Component):
         min_drainage_area=1.0e6,
         reference_area=1.0,
         use_true_dx=False,
+        noclobber=True,
     ):
         """
         Parameters
@@ -172,6 +173,9 @@ class ChiFinder(Component):
             spacing along the channel (which can lead to a quantization effect,
             and is not preferred by Taylor & Royden). If False, the mean value of
             node spacing along the all channels is assumed everywhere.
+        noclobber : bool (default True)
+            Raise an exception if adding an already existing field.
+
         """
         super(ChiFinder, self).__init__(grid)
 
@@ -197,7 +201,7 @@ class ChiFinder(Component):
         self._set_up_reference_area(reference_area)
 
         self.use_true_dx = use_true_dx
-        self.chi = self._grid.add_zeros("node", "channel__chi_index", noclobber=False)
+        self.chi = self._grid.add_zeros("node", "channel__chi_index", noclobber=noclobber)
         self._mask = self.grid.ones("node", dtype=bool)
         # this one needs modifying if smooth_elev
         self._elev = self.grid.at_node["topographic__elevation"]
