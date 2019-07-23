@@ -6,7 +6,7 @@ Created on Tue Jun  4 16:26:31 2019
 @author: gtucker
 """
 
-from dupuit_percolator import GroundwaterDupuitPercolator
+from landlab.components import GroundwaterDupuitPercolator
 from landlab import RasterModelGrid
 from numpy.testing import assert_equal
 import numpy as np
