@@ -45,14 +45,14 @@ def test_line_to_grid_coords():
                             [0, 4],
                             [0, 5]])
     xy = line_to_grid_coords(0, -1, -5, 0)  # WNW
-    assert_array_equal(xy, [[ 0, -1],
+    assert_array_equal(xy, [[0, -1],
                             [-1, -1],
                             [-2, -1],
                             [-3, 0],
                             [-4, 0],
                             [-5, 0]])
     xy = line_to_grid_coords(0, -1, -6, -1)  # W
-    assert_array_equal(xy, [[ 0, -1],
+    assert_array_equal(xy, [[0, -1],
                             [-1, -1],
                             [-2, -1],
                             [-3, -1],
@@ -102,4 +102,3 @@ def test_line_to_grid_coords():
                             [5, -2],
                             [6, -3],
                             [7, -3]])
-

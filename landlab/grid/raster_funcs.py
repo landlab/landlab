@@ -4,6 +4,14 @@ from six.moves import range
 from ..core.utils import make_optional_arg_into_id_array
 
 
+def _swap(a, b):
+    return (b, a)
+
+
+def _iround(x):
+    return int(x + 0.5)
+
+
 def neighbor_active_link_at_cell(grid, inds, *args):
     """neighbor_active_link_at_cell(grid, link_ids [, cell_ids])
 
@@ -335,13 +343,6 @@ def is_coord_on_grid(rmg, coords, axes=(0, 1)):
 
     return is_in_bounds
 
-def _swap(a, b):
-    return (b, a)
-
-
-def _iround(x):
-    return int(x + 0.5)
-
 
 def line_to_grid_coords(x0, y0, x1, y1):
     """Return integer grid coords forming line segment (x0, y0)->(x1, y1).
@@ -384,7 +385,7 @@ def line_to_grid_coords(x0, y0, x1, y1):
     half-grid (i.e., with azimuth between 135o and 315o) have their endpoints
     flipped first.
     """
-    
+
     dx = x1 - x0
     dy = y1 - y0
 
@@ -401,15 +402,15 @@ def line_to_grid_coords(x0, y0, x1, y1):
     if dx > dy:  # more horizontal than vertical
         npts = _iround(x1 - x0) + 1
         xy = np.zeros((npts, 2), dtype=int)
-        xy[:,0] = np.arange(npts)
-        xy[:,1] = np.round(y0 + (dy / dx) * xy[:,0])
-        xy[:,0] += round(x0)
+        xy[:, 0] = np.arange(npts)
+        xy[:, 1] = np.round(y0 + (dy / dx) * xy[:, 0])
+        xy[:, 0] += round(x0)
     else:
         npts = _iround(y1 - y0) + 1
         xy = np.zeros((npts, 2), dtype=int)
-        xy[:,1] = np.arange(npts)
-        xy[:,0] = np.round(x0 + (dx / dy) * xy[:,1])
-        xy[:,1] += round(y0)
+        xy[:, 1] = np.arange(npts)
+        xy[:, 0] = np.round(x0 + (dx / dy) * xy[:, 1])
+        xy[:, 1] += round(y0)
 
     # If endpoints were flipped, here we "un-flip" again
     if flip_array:
