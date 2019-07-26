@@ -334,3 +334,85 @@ def is_coord_on_grid(rmg, coords, axes=(0, 1)):
         is_in_bounds &= _value_is_within_axis_bounds(rmg, coords[1 - axis], axis)
 
     return is_in_bounds
+
+def _swap(a, b):
+    return (b, a)
+
+
+def _iround(x):
+    return int(x + 0.5)
+
+
+def line_to_grid_coords(x0, y0, x1, y1):
+    """Return integer grid coords forming line segment (x0, y0)->(x1, y1).
+
+    Parameters
+    ----------
+    x0, y0 : float or int
+        x and y coordinates of "starting" endpoint, in grid (column, row) units
+    x1, y1 : float or int
+        x and y coordinates of "ending" endpoint, in grid (column, row) units
+
+    Returns
+    -------
+    N x 2 numpy array of int
+        x (column 0) and y (column 1) coordinates of nodes in the line
+
+    Examples
+    --------
+    >>> line_to_grid_coords(0, 0, 4, 1)
+    array([[0, 0],
+           [1, 0],
+           [2, 0],
+           [3, 1],
+           [4, 1]])
+
+    Notes
+    -----
+    Inputs must be grid coordinates rather than actual (x, y) values (unless
+    the grid has unit spacing, in which case they are the same). To convert
+    from real (x, y) to (x_grid, y_grid) use x_grid = x / Dx, where Dx is
+    horizontal grid spacing (and similarly for y).
+        To convert the returned grid coordinates to node IDs, use the
+    RasterModelGrid method grid_coords_to_node_id().
+        This function uses an incremental algorithm for line scan-conversion
+    (see, e.g., Foley et al., 1990, chapter 3). For a line with a slope
+    0 > m > 1, start with the x coordinates for a set of grid columns that span
+    the line. The corresponding y of the first one is just y0. The y for the
+    next one is y0 + m, for the next y0 + 2m, etc. If m > 1, you use y instead
+    of x. In the below, any line segments that "point" toward the lower-left
+    half-grid (i.e., with azimuth between 135o and 315o) have their endpoints
+    flipped first.
+    """
+    
+    dx = x1 - x0
+    dy = y1 - y0
+
+    # Flip endpoints if needed to have segment point to up/right
+    if (dx + dy) < 0:
+        (x0, x1) = _swap(x0, x1)
+        (y0, y1) = _swap(y0, y1)
+        dx = -dx
+        dy = -dy
+        flip_array = True
+    else:
+        flip_array = False
+
+    if dx > dy:  # more horizontal than vertical
+        npts = _iround(x1 - x0) + 1
+        xy = np.zeros((npts, 2), dtype=int)
+        xy[:,0] = np.arange(npts)
+        xy[:,1] = np.round(y0 + (dy / dx) * xy[:,0])
+        xy[:,0] += round(x0)
+    else:
+        npts = _iround(y1 - y0) + 1
+        xy = np.zeros((npts, 2), dtype=int)
+        xy[:,1] = np.arange(npts)
+        xy[:,0] = np.round(x0 + (dx / dy) * xy[:,1])
+        xy[:,1] += round(y0)
+
+    # If endpoints were flipped, here we "un-flip" again
+    if flip_array:
+        xy = np.flipud(xy)
+
+    return xy
