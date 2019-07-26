@@ -868,7 +868,10 @@ cpdef void get_sed_flux_function_pseudoimplicit_bysedout(
         sed_vol_added_bydt = 0.  # prefactor_for_volume_bydt * sed_flux_fn
 
         for i in range(pseudoimplicit_repeats):
-            prop_added = sed_vol_added_bydt / trans_cap_vol_out_bydt
+            try:
+                prop_added = sed_vol_added_bydt / trans_cap_vol_out_bydt
+            except ZeroDivisionError:  # possible if no trans cap out
+                prop_added = 1.
             rel_sed_flux = prop_added + last_rel_sed_flux
             if rel_sed_flux < 0.:
                 rel_sed_flux = 0.
@@ -894,9 +897,12 @@ cpdef void get_sed_flux_function_pseudoimplicit_bysedout(
 
         out_array[0] = new_sed_vol_added_bydt / cell_area
         out_array[1] = sed_in_bydt + new_sed_vol_added_bydt  # sed passed
-        out_array[2] = (
-            0.5 * (out_array[1] + sed_in_bydt) / trans_cap_vol_out_bydt
-        )
+        try:
+            out_array[2] = (
+                0.5 * (out_array[1] + sed_in_bydt) / trans_cap_vol_out_bydt
+            )
+        except ZeroDivisionError:
+            out_array[2] = 1.
         out_array[3] = error_in_sed_vol_added
 
 
