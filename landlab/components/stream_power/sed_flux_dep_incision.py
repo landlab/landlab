@@ -16,7 +16,8 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
                      iterate_sde_downstream)
 
 WAVE_STABILITY_PREFACTOR = 0.2
-CONV_FACTOR = 0.1  # controls the convergence of node elevs in the loop
+CONV_FACTOR_LOOSE = 0.1  # controls the convergence of node elevs in the loop
+CONV_FACTOR_TIGHT = 0.3
 
 # NB: The inline documentation of this component freely (& incorrectly!)
 # interchanges "flux" and "discharge". Almost always, "discharge" is intended
@@ -868,6 +869,7 @@ class SedDepEroder(Component):
                     t_to_converge = np.amin([t_to_converge, t_to_convergebr])
                 except ValueError:  # no node pair converges
                     pass  # leave t_to_converge alone
+                t_to_converge *= CONV_FACTOR_TIGHT
                 # the below block does NOT resolve the arising oscillations
                 # in sediment thickness
                 # Is this because it looks only at change at a single node,
@@ -912,7 +914,7 @@ class SedDepEroder(Component):
                         ratediff[botharepositive])
                 except ValueError:  # no node pair converges
                     t_to_converge = dt_secs
-            t_to_converge *= CONV_FACTOR
+                t_to_converge *= CONV_FACTOR_LOOSE
             # ^arbitrary safety factor; CHILD uses 0.3
             if t_to_converge < 3600. and flood_node is not None:
                 t_to_converge = 3600.  # forbid tsteps < 1hr; a bit hacky
