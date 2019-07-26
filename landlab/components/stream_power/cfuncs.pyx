@@ -18,7 +18,7 @@ cdef extern from "math.h":
     double fabs(double x) nogil
     double pow(double x, double y) nogil
 
-    
+
 @cython.boundscheck(False)
 def erode_avoiding_pits(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
                         np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
@@ -553,15 +553,15 @@ def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
                                       np.ndarray[DTYPE_FLOAT_t, ndim=1] delta):
     """Erode node elevations using Newtons Method for smoothed Stream Power. "
 
-    This method takes three parameters, alpha, gamma, and delta. 
+    This method takes three parameters, alpha, gamma, and delta.
 
     alpha = K A^m dt / L
-    
-    delta = K A^m / (L * wc)
-    
-    gamma = omega_c * dt 
 
-    This method will use the new_elev and new_elev_prime equations. 
+    delta = K A^m / (L * wc)
+
+    gamma = omega_c * dt
+
+    This method will use the new_elev and new_elev_prime equations.
 
     Parameters
     ----------
@@ -570,11 +570,11 @@ def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
     dst_nodes : array_like
         Node ids of nodes receiving flow.
     alpha : array_like
-        Erosion equation parameter. 
+        Erosion equation parameter.
     gamma : array_like
-        Erosion equation parameter. 
+        Erosion equation parameter.
     delta : array_like
-        Erosion equation parameter. 
+        Erosion equation parameter.
     z : array_like
         Node elevations.
     """
@@ -689,7 +689,7 @@ cpdef DTYPE_FLOAT_t sed_flux_fn_gen_genhump(DTYPE_FLOAT_t rel_sed_flux_in,
         flux curve.
     norm : float
         Parameter to normalize the curve such that its maximum is 1.
-    
+
     Returns
     -------
     fqs : float
@@ -712,14 +712,14 @@ cpdef DTYPE_FLOAT_t sed_flux_fn_gen_lindecl(DTYPE_FLOAT_t rel_sed_flux_in,
 
     Note that this function permits values outside those that are physically
     meaningful for the relative sediment flux, i.e., qs/qc < 0. or > 1.
-    
+
     Parameters
     ----------
     rel_sed_flux_in : float
         The relative sediment flux; carried flux divided by capacity.
     kappa, nu, c, phi, norm : float
         Unused placeholder parameters.
-    
+
     Returns
     -------
     fqs : float
@@ -749,7 +749,7 @@ cpdef DTYPE_FLOAT_t sed_flux_fn_gen_almostparabolic(
         The relative sediment flux; carried flux divided by capacity.
     kappa, nu, c, phi, norm : float
         Unused placeholder parameters.
-    
+
     Returns
     -------
     fqs : float
@@ -779,7 +779,7 @@ cpdef DTYPE_FLOAT_t sed_flux_fn_gen_const(DTYPE_FLOAT_t rel_sed_flux_in,
         The relative sediment flux; carried flux divided by capacity.
     kappa, nu, c, phi, norm : float
         Unused placeholder parameters.
-    
+
     Returns
     -------
     fqs : float
@@ -855,9 +855,13 @@ cpdef void get_sed_flux_function_pseudoimplicit_bysedout(
         out_array[2] = 1.  # arbitrary; probably more stable in later use
         out_array[3] = trans_cap_vol_out_bydt
     else:
-        rel_sed_flux_in = sed_in_bydt / trans_cap_vol_out_bydt
-        if rel_sed_flux_in > 1.:
+        try:
+            rel_sed_flux_in = sed_in_bydt / trans_cap_vol_out_bydt
+        except ZeroDivisionError:  # possible if no trans cap out
             rel_sed_flux_in = 1.
+        else:
+            if rel_sed_flux_in > 1.:
+                rel_sed_flux_in = 1.
         last_sed_flux = rel_sed_flux_in
         sed_flux_fn = sed_flux_fn_gen(
             rel_sed_flux_in, kappa, nu, c, phi, norm)
@@ -884,7 +888,7 @@ cpdef void get_sed_flux_function_pseudoimplicit_bysedout(
                 break
             last_rel_sed_flux = rel_sed_flux
             sed_vol_added_bydt = new_sed_vol_added_bydt
-            
+
         # note that the method will silently terminate even if we still have
         # bad convergence. Note this is very rare.
 
@@ -979,7 +983,7 @@ cpdef void iterate_sde_downstream(
     cdef double vol_prefactor_bydt
     cdef double vol_pass_rate
     cdef double depth_sed_in
-    
+
     # blank stuff as needed
     is_it_TL[:] = 0
     vol_drop_rate[:] = 0.
@@ -1013,6 +1017,6 @@ cpdef void iterate_sde_downstream(
             dzbydt[i] = 0.
             vol_pass_rate = node_capacity
             vol_drop_rate[i] = sed_flux_into_this_node_bydt - vol_pass_rate
-        
+
         if flow_receiver[i] != i:  # don't add to yourself
             river_volume_flux_into_node[flow_receiver[i]] += vol_pass_rate
