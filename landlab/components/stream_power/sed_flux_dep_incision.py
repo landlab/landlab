@@ -16,7 +16,7 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
                      iterate_sde_downstream)
 
 WAVE_STABILITY_PREFACTOR = 0.2
-CONV_FACTOR = 0.3  # controls the convergence of node elevs in the loop
+CONV_FACTOR = 0.1  # controls the convergence of node elevs in the loop
 
 # NB: The inline documentation of this component freely (& incorrectly!)
 # interchanges "flux" and "discharge". Almost always, "discharge" is intended
@@ -203,6 +203,19 @@ class SedDepEroder(Component):
     *flooded_nodes* be passed to the run method. A flooded depression
     acts as a perfect sediment trap, and will be filled sequentially
     from the inflow points towards the outflow points.
+
+    It is possible to set the stability condition on this component to either
+    'loose' (default) or 'tight'. The difference is that with loose stability
+    the component only enforces stability on the *topographic surface*, whereas
+    with a tight condition it enforces stability on *both the topograhic and
+    bedrock surfaces together*. Because of the pseudoimplicit calculation of
+    the sediment flux, the former is in fact a reasonable approximation of the
+    latter in terms of the calculated sediment fluxes and topographies.
+    However, vitally, *if the stability condition is 'loose', the calculated
+    sediment thicknesses are completely untrustworthy*. Do not use them!
+    However, in many cases, the loose condition is recommended, since the
+    tight condition is so restrictive as to cause the component to almost
+    grind to a halt.
 
     Examples
     --------
@@ -859,6 +872,9 @@ class SedDepEroder(Component):
                 # in sediment thickness
                 # Is this because it looks only at change at a single node,
                 # not at the next node?
+                # No, these "oscillations" are not. They nucleate then wax and
+                # wane over several timesteps, so are not classic numerical
+                # instabilities. More like emergent dynamics.
 
                 # # also a third condition: the two surfaces must not strongly
                 # # diverge *from each other* (oscillation possible in sed layer)
