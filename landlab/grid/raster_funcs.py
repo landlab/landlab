@@ -9,7 +9,7 @@ def _swap(a, b):
 
 
 def _iround(x):
-    return int(x + 0.5)
+    return int(round(x))
 
 
 def neighbor_active_link_at_cell(grid, inds, *args):
@@ -404,13 +404,13 @@ def line_to_grid_coords(x0, y0, x1, y1):
         xy = np.zeros((npts, 2), dtype=int)
         xy[:, 0] = np.arange(npts)
         xy[:, 1] = np.round(y0 + (dy / dx) * xy[:, 0])
-        xy[:, 0] += round(x0)
+        xy[:, 0] += _iround(x0)
     else:
         npts = _iround(y1 - y0) + 1
         xy = np.zeros((npts, 2), dtype=int)
         xy[:, 1] = np.arange(npts)
         xy[:, 0] = np.round(x0 + (dx / dy) * xy[:, 1])
-        xy[:, 1] += round(y0)
+        xy[:, 1] += _iround(y0)
 
     # If endpoints were flipped, here we "un-flip" again
     if flip_array:
