@@ -155,7 +155,7 @@ class NetworkGraph(object):
         if kwds.get("sort", True):
             NetworkGraph.sort(self)
 
-        self._origin = (0., 0.)
+        self._origin = (0.0, 0.0)
 
     @property
     def frozen(self):
@@ -685,7 +685,7 @@ class Graph(NetworkGraph):
         if kwds.get("sort", True):
             Graph.sort(self)
 
-        self._origin = (0., 0.)
+        self._origin = (0.0, 0.0)
 
     def sort(self):
         with self.thawed():

@@ -3,7 +3,7 @@ from matplotlib.pyplot import figure
 
 from landlab import RasterModelGrid
 from landlab.components.flow_routing import DepressionFinderAndRouter, FlowAccumulator
-from landlab.plot.imshow import imshow_node_grid
+from landlab.plot.imshow import imshow_grid
 
 nx, ny = 50, 50
 mg = RasterModelGrid((nx, ny), 1.)
@@ -33,12 +33,12 @@ lf = DepressionFinderAndRouter(mg)
 fr.run_one_step()
 
 figure("old drainage area")
-imshow_node_grid(mg, "drainage_area")
+imshow_grid(mg, "drainage_area")
 
 lf.map_depressions(pits=mg.at_node["flow__sink_flag"])
 
 figure("depression depth")
-imshow_node_grid(mg, "depression__depth")
+imshow_grid(mg, "depression__depth")
 
 figure("new drainage area")
-imshow_node_grid(mg, "drainage_area")
+imshow_grid(mg, "drainage_area")

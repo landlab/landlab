@@ -252,12 +252,10 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         """Calculate erosion rates"""
         omega = self.K * self.Q_to_the_m * np.power(self.slope, self.n_sp)
         omega_over_sp_crit = np.divide(
-            omega, self.sp_crit, out=np.zeros_like(omega),
-            where=self.sp_crit != 0
+            omega, self.sp_crit, out=np.zeros_like(omega), where=self.sp_crit != 0
         )
 
-        self.erosion_term = omega - self.sp_crit * (
-            1.0 - np.exp(-omega_over_sp_crit))
+        self.erosion_term = omega - self.sp_crit * (1.0 - np.exp(-omega_over_sp_crit))
 
     def run_one_step_basic(self, dt=1.0, flooded_nodes=[], **kwds):
         """Calculate change in rock and alluvium thickness for
@@ -333,9 +331,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                 # of the dynamic timestepper, but just incase, we update here.
                 new_flooded_nodes = np.where(self.slope < 0)[0]
                 flooded_nodes = np.asarray(
-                    np.unique(
-                        np.concatenate((flooded_nodes, new_flooded_nodes))
-                    ), dtype=np.int64,
+                    np.unique(np.concatenate((flooded_nodes, new_flooded_nodes))),
+                    dtype=np.int64,
                 )
             else:
                 first_iteration = False
@@ -367,9 +364,9 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             )
 
             # Rate of change of elevation at core nodes:
-            dzdt[cores] = (
-                self.depo_rate[cores] / (1 - self.phi)
-            ) - self.erosion_term[cores]
+            dzdt[cores] = (self.depo_rate[cores] / (1 - self.phi)) - self.erosion_term[
+                cores
+            ]
 
             # Difference in elevation between each upstream-downstream pair
             zdif = z - z[r]

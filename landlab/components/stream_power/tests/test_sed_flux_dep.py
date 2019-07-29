@@ -5,9 +5,7 @@ made to ensure the solution is stable. Takes a topo already output and runs it
 a few more times, to ensure repeatability.
 """
 import os
-
 import numpy as np
-import os
 from numpy.testing import assert_array_almost_equal, assert_equal
 from six.moves import range
 from matplotlib.pyplot import gca, clf

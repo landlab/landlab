@@ -858,11 +858,11 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
     values_at_links = var_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
     vals_in_positive = -values_at_links
-    vals_above_zero = vals_in_positive > 0.
+    vals_above_zero = vals_in_positive > 0.0
     total_vals = np.sum(vals_in_positive * vals_above_zero, axis=1)
     link_count = np.sum(vals_above_zero, axis=1)
     np.divide(total_vals, link_count, out=out)
-    out[np.isnan(out)] = 0.
+    out[np.isnan(out)] = 0.0
 
     return out
 
@@ -930,11 +930,11 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
     values_at_links = var_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
     vals_in_positive = values_at_links
-    vals_above_zero = vals_in_positive > 0.
+    vals_above_zero = vals_in_positive > 0.0
     total_vals = np.sum(vals_in_positive * vals_above_zero, axis=1)
     link_count = np.sum(vals_above_zero, axis=1)
     np.divide(total_vals, link_count, out=out)
-    out[np.isnan(out)] = 0.
+    out[np.isnan(out)] = 0.0
 
     return out
 
@@ -1010,9 +1010,9 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name, value_name, ou
     values_at_nodes = control_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
     which_link = np.argmax(-values_at_nodes, axis=1)
-    invalid_links = values_at_nodes >= 0.
+    invalid_links = values_at_nodes >= 0.0
     link_vals_without_invalids = value_name[grid.links_at_node]
-    link_vals_without_invalids[invalid_links] = 0.
+    link_vals_without_invalids[invalid_links] = 0.0
     out[:] = link_vals_without_invalids[np.arange(grid.number_of_nodes), which_link]
 
     return out
@@ -1091,9 +1091,9 @@ def map_value_at_downwind_node_link_max_to_node(
     values_at_nodes = control_name[grid.links_at_node] * grid.link_dirs_at_node
     # this procedure makes incoming links NEGATIVE
     which_link = np.argmax(values_at_nodes, axis=1)
-    invalid_links = values_at_nodes <= 0.
+    invalid_links = values_at_nodes <= 0.0
     link_vals_without_invalids = value_name[grid.links_at_node]
-    link_vals_without_invalids[invalid_links] = 0.
+    link_vals_without_invalids[invalid_links] = 0.0
     out[:] = link_vals_without_invalids[np.arange(grid.number_of_nodes), which_link]
 
     return out
