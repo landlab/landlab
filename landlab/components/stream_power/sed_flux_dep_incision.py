@@ -573,6 +573,25 @@ class SedDepEroder(Component):
             'almost_parabolic',
         ):
             raise NameError("Supplied sed_dependency_type not recognised!")
+        # now conditional inputs
+        if self.type == 'generalized_humped':
+            self.kappa = kappa_hump
+            self.nu = nu_hump
+            self.phi = phi_hump
+            self.c = c_hump
+            self.norm = None
+        else:
+            self.kappa = 0.
+            self.nu = 0.
+            self.phi = 0.
+            self.c = 0.
+            self.norm = 0.
+        # set the sed flux fn for later on:
+        self.set_sed_flux_fn_gen()
+
+        # set up the necessary fields:
+        self.initialize_output_fields()
+
         # test the field inputs are there
         if "topographic__elevation" not in self.grid.at_node.keys():
             raise FieldError(
