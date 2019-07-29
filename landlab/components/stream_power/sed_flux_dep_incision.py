@@ -575,7 +575,7 @@ class SedDepEroder(Component):
         ):
             raise NameError("Supplied sed_dependency_type not recognised!")
         # now conditional inputs
-        if self.type == 'generalized_humped':
+        if self.type == "generalized_humped":
             self.kappa = kappa_hump
             self.nu = nu_hump
             self.phi = phi_hump
