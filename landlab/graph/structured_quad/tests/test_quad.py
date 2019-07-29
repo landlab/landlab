@@ -35,8 +35,8 @@ def test_length_of_link():
 
 def test_area_of_patch():
     """Test areas of patches."""
-    y = [0, 1, 3, 0, 1, 3, 0, 1, 3]
-    x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
+    y = [0, 0, 0, 1, 1, 1, 3, 3, 3]
+    x = [3, 4, 6, 3, 4, 6, 3, 4, 6]
     graph = StructuredQuadGraph((y, x), shape=(3, 3))
     assert_array_almost_equal(graph.area_of_patch, [1.0, 2.0, 2.0, 4.0])
 

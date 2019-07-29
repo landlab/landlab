@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..voronoi.voronoi import VoronoiGraph
+from ..voronoi.voronoi import DelaunayGraph
 
 
 def number_of_nodes(shape):
@@ -35,7 +35,7 @@ def create_xy_of_node(shape, spacing=1.0, origin=(0.0, 0.0)):
     return (x, y)
 
 
-class RadialGraph(VoronoiGraph):
+class RadialGraph(DelaunayGraph):
 
     """Graph of a series of points on concentric circles.
 
@@ -52,7 +52,7 @@ class RadialGraph(VoronoiGraph):
     array([ 0., -1.,  0.,  1.,  0.])
     """
 
-    def __init__(self, shape, spacing=1.0, origin=(0.0, 0.0)):
+    def __init__(self, shape, spacing=1.0, origin=(0.0, 0.0), sort=True):
         """Create a structured grid of triangles arranged radially.
 
         Parameters
@@ -72,6 +72,7 @@ class RadialGraph(VoronoiGraph):
 
         x_of_node, y_of_node = create_xy_of_node(shape, spacing=spacing, origin=origin)
 
-        super(RadialGraph, self).__init__(
-            (y_of_node, x_of_node), xy_sort=True, rot_sort=True
-        )
+        DelaunayGraph.__init__(self, (y_of_node, x_of_node))
+
+        if sort:
+            self.sort()

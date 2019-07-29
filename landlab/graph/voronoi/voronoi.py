@@ -67,16 +67,15 @@ def ugrid_from_voronoi(node_y_and_x, max_node_spacing=None):
     return ugrid
 
 
-class VoronoiGraph(Graph):
+class DelaunayGraph(Graph):
 
     """Graph of a voronoi grid.
 
     Examples
     --------
-    >>> from landlab.graph import VoronoiGraph
+    >>> from landlab.graph import DelaunayGraph
     """
-
-    def __init__(self, node_y_and_x, **kwds):
+    def __init__(self, node_y_and_x, max_node_spacing=None, sort=False):
         """Create a voronoi grid.
 
         Parameters
@@ -86,12 +85,12 @@ class VoronoiGraph(Graph):
 
         Examples
         --------
-        >>> from landlab.graph import VoronoiGraph
+        >>> from landlab.graph import DelaunayGraph
         >>> node_x = [0, 1, 2,
         ...           1, 2, 3]
         >>> node_y = [0, 0, 0,
         ...           2, 2, 2]
-        >>> graph = VoronoiGraph((node_y, node_x))
+        >>> graph = DelaunayGraph((node_y, node_x), sort=True)
         >>> graph.x_of_node
         array([ 0.,  1.,  2.,  1.,  2.,  3.])
         >>> graph.y_of_node
@@ -108,6 +107,36 @@ class VoronoiGraph(Graph):
         >>> graph.nodes_at_patch # doctest: +NORMALIZE_WHITESPACE
         array([[3, 0, 1], [4, 1, 2], [4, 3, 1], [5, 4, 2]])
         """
-        max_node_spacing = kwds.pop("max_node_spacing", None)
-        mesh = ugrid_from_voronoi(node_y_and_x, max_node_spacing=max_node_spacing)
-        Graph.__init__(self, mesh, **kwds)
+        nodes_at_link, links_at_patch = DelaunayGraph.get_links_and_patches(
+            node_y_and_x, max_node_spacing=max_node_spacing
+        )
+        Graph.__init__(
+            self, node_y_and_x, links=nodes_at_link, patches=links_at_patch, sort=sort
+        )
+
+    @staticmethod
+    def get_links_and_patches(node_y_and_x, max_node_spacing=None):
+        from .ext.delaunay import _setup_links_at_patch
+
+        delaunay = Delaunay(list(zip(node_y_and_x[1], node_y_and_x[0])))
+
+        nodes_at_patch = np.asarray(delaunay.simplices, dtype=int)
+        neighbors_at_patch = np.asarray(delaunay.neighbors, dtype=int)
+
+        if max_node_spacing is not None:
+            nodes_at_patch, neighbors_at_patch = remove_bad_patches(
+                max_node_spacing, nodes_at_patch, neighbors_at_patch
+            )
+
+        n_patches = len(nodes_at_patch)
+        n_shared_links = np.count_nonzero(neighbors_at_patch > -1)
+        n_links = 3 * n_patches - n_shared_links // 2
+
+        links_at_patch = np.empty((n_patches, 3), dtype=int)
+        nodes_at_link = np.empty((n_links, 2), dtype=int)
+
+        _setup_links_at_patch(
+            nodes_at_patch, neighbors_at_patch, nodes_at_link, links_at_patch
+        )
+
+        return nodes_at_link, links_at_patch

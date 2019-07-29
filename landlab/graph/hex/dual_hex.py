@@ -1,29 +1,9 @@
-from ..voronoi import DualVoronoiGraph
-from .hex import setup_xy_of_node
+from ..dual import DualGraph
+from ..voronoi.dual_voronoi import create_dual_graph
+from .hex import TriGraph
 
 
-class DualHexGraph(DualVoronoiGraph):
-
-    """Graph of a structured grid of triangles.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab.graph import HexGraph
-
-    >>> graph = DualHexGraph((3, 2), node_layout='hex')
-    >>> graph.number_of_nodes
-    7
-    >>> graph.number_of_corners
-    6
-
-    >>> np.round(graph.y_of_node * 2. / np.sqrt(3))
-    ...     # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.,  0.,  1.,  1.,  1.,  2.,  2.])
-    >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([ 0. ,  1. , -0.5,  0.5,  1.5,  0. ,  1. ])
-    """
-
+class DualHexGraph(DualGraph, TriGraph):
     def __init__(
         self,
         shape,
@@ -51,17 +31,14 @@ class DualHexGraph(DualVoronoiGraph):
             the layout to approximate a rectangle and *hex* for
             a hexagon.
         """
-        try:
-            spacing = float(spacing)
-        except TypeError:
-            raise TypeError("spacing must be a float")
-
-        x_of_node, y_of_node = setup_xy_of_node(
+        TriGraph.__init__(
+            self,
             shape,
             spacing=spacing,
             origin=origin,
             orientation=orientation,
             node_layout=node_layout,
+            sort=False,
         )
 
         if node_layout == "hex":
@@ -69,11 +46,12 @@ class DualHexGraph(DualVoronoiGraph):
         else:
             max_node_spacing = shape[1] + 1
 
-        DualVoronoiGraph.__init__(
-            self,
-            (y_of_node, x_of_node),
-            xy_sort=True,
-            rot_sort=True,
+        dual_graph, node_at_cell, nodes_at_face = create_dual_graph(
+            (self.y_of_node, self.x_of_node),
             min_cell_size=6,
             max_node_spacing=max_node_spacing,
         )
+
+        self.merge(dual_graph, node_at_cell=node_at_cell, nodes_at_face=nodes_at_face)
+
+        self.sort()

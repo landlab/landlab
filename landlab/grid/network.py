@@ -47,7 +47,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
     """
 
     def __init__(self, yx_of_node, links, **kwds):
-        NetworkGraph.__init__(self, yx_of_node, links=links)
+        NetworkGraph.__init__(self, yx_of_node, links=links, sort=True)
         GraphFields.__init__(
             self,
             {"node": self.number_of_nodes, "link": self.number_of_links, "grid": 1},

@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..voronoi.voronoi import VoronoiGraph
+from ..voronoi.voronoi import DelaunayGraph
 
 
 def number_of_nodes(shape, node_layout="rect"):
@@ -135,16 +135,16 @@ def setup_xy_of_node(
     return (x_of_node, y_of_node)
 
 
-class HexGraph(VoronoiGraph):
+class TriGraph(DelaunayGraph):
 
     """Graph of a structured grid of triangles.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.graph import HexGraph
+    >>> from landlab.graph import TriGraph
 
-    >>> graph = HexGraph((3, 2))
+    >>> graph = TriGraph((3, 2))
     >>> graph.number_of_nodes == 6
     True
     >>> np.round(graph.y_of_node * 2. / np.sqrt(3))
@@ -161,6 +161,7 @@ class HexGraph(VoronoiGraph):
         origin=(0.0, 0.0),
         orientation="horizontal",
         node_layout="rect",
+        sort=True,
     ):
         """Create a structured grid of triangles.
 
@@ -205,6 +206,7 @@ class HexGraph(VoronoiGraph):
             orientation=orientation,
             node_layout=node_layout,
         )
+
         if node_layout == "hex":
             max_node_spacing = shape[1] + shape[0] / 2 + 2
             max_node_spacing = None
@@ -213,13 +215,12 @@ class HexGraph(VoronoiGraph):
         elif node_layout == "rect1":
             max_node_spacing = shape[1] + 1
 
-        VoronoiGraph.__init__(
-            self,
-            (y_of_node, x_of_node),
-            xy_sort=True,
-            rot_sort=True,
-            max_node_spacing=max_node_spacing,
+        DelaunayGraph.__init__(
+            self, (y_of_node, x_of_node), max_node_spacing=max_node_spacing
         )
+
+        if sort:
+            self.sort()
 
     @property
     def shape(self):
