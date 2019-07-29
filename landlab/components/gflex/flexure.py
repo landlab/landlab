@@ -21,8 +21,6 @@ Created on Thu Feb 19 18:47:11 2015
 """
 
 
-import inspect
-
 import numpy as np
 
 from landlab import Component, FieldError, RasterModelGrid

@@ -18,8 +18,7 @@ from landlab import (
     RasterModelGrid,
 )
 from landlab.components.flow_accum import flow_accum_bw
-from landlab.core.messages import error_message, warning_message
-from landlab.core.model_parameter_dictionary import MissingKeyError
+from landlab.core.messages import warning_message
 from landlab.core.utils import as_id_array
 from landlab.grid.base import BAD_INDEX_VALUE as LOCAL_BAD_INDEX_VALUE
 

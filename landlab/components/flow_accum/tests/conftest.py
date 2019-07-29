@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 
 from landlab import BAD_INDEX_VALUE as XX, CLOSED_BOUNDARY, RasterModelGrid
-from landlab.components import DepressionFinderAndRouter, FlowAccumulator
 
 
 @pytest.fixture

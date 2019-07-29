@@ -21,8 +21,6 @@ import numpy as np
 
 from landlab import FieldError
 
-from ..core.model_parameter_loader import load_params
-
 try:
     from inspect import getfullargspec
 except ImportError:

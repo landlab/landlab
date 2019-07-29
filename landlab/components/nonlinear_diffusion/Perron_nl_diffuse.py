@@ -2,7 +2,7 @@ import numpy as np
 import scipy.sparse as sparse
 import scipy.sparse.linalg as linalg
 
-from landlab import Component, MissingKeyError
+from landlab import Component
 
 # Things to add: 1. Explicit stability check.
 # 2. Implicit handling of scenarios where kappa*dt exceeds critical step -

@@ -11,8 +11,6 @@ Created on Fri Feb 20 09:32:27 2015
 # ##in the diagonal case, even closed edges can produce "drag". Is this right?
 # Could suppress by mirroring the diagonals
 
-import inspect
-
 import numpy as np
 
 from landlab import FIXED_LINK, INACTIVE_LINK, Component, FieldError, RasterModelGrid

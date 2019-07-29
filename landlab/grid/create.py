@@ -2,9 +2,7 @@
 """Create landlab model grids."""
 from __future__ import absolute_import
 
-from warnings import warn
-
-from ..core import load_params, model_parameter_dictionary as mpd
+from ..core import load_params
 from ..io import read_esri_ascii
 from ..io.netcdf import read_netcdf
 from ..values import constant, plane, random, sine

@@ -11,7 +11,6 @@ import numpy as np
 import landlab
 from landlab import Component, FieldError
 from landlab.components import DepressionFinderAndRouter, FlowAccumulator
-from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import deprecated
 

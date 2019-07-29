@@ -11,7 +11,6 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_sp_widths():
-    input_str = os.path.join(_THIS_DIR, "test_sp_params_widths.txt")
     nrows = 5
     ncols = 5
     dt = 1

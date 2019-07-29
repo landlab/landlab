@@ -8,8 +8,6 @@ Created on Fri Feb 20 09:32:27 2015
 @author: danhobley (SiccarPoint), after volle001@umn.edu
 """
 
-import inspect
-
 import numpy as np
 
 from landlab import Component, FieldError, RasterModelGrid

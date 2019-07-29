@@ -11,8 +11,6 @@ together.
 """
 
 
-import warnings
-
 import numpy as np
 
 from landlab import (  # for type tests

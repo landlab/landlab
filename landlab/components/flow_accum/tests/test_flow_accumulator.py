@@ -1163,7 +1163,7 @@ def test_hex_mfd():
 )
 def test_flat_grids_all_directors(fd):
     mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("topographic__elevation", at="node")
+    _ = mg.add_zeros("topographic__elevation", at="node")
     fa = FlowAccumulator(mg, flow_director=fd)
     fa.run_one_step()
 
@@ -1185,6 +1185,6 @@ def test_nmg_no_cell_area():
 def test_extra_kwargs():
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    fd = FlowDirectorSteepest(mg)
+    _ = FlowDirectorSteepest(mg)
     with pytest.raises(ValueError):
         FlowAccumulator(mg, spam="eggs")

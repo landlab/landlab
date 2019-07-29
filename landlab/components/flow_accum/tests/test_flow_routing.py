@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from landlab import CLOSED_BOUNDARY, RadialModelGrid, RasterModelGrid
+from landlab import CLOSED_BOUNDARY, RadialModelGrid
 from landlab.components import FlowAccumulator
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
