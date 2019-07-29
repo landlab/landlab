@@ -744,12 +744,9 @@ class FlowAccumulator(Component):
         #
 
         if "drainage_area" not in grid.at_node:
-            self.drainage_area = grid.add_zeros(
-                "drainage_area", at="node", dtype=float
-            )
+            self.drainage_area = grid.add_zeros("drainage_area", at="node", dtype=float)
         else:
             self.drainage_area = grid.at_node["drainage_area"]
-
 
         if "surface_water__discharge" not in grid.at_node:
             self.discharges = grid.add_zeros(
