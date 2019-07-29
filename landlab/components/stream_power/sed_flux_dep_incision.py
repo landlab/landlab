@@ -262,7 +262,8 @@ class SedDepEroder(Component):
 
     >>> incising_nodes = mg.core_nodes[
     ...     np.logical_not(sde.is_it_TL)[mg.core_nodes]]
-    >>> np.all((initz - z)[incising_nodes] > 0.0007)
+    >>> np.all(np.logical_or((initz - z)[incising_nodes] > 0.0007,
+    ...                      np.isclose((initz - z)[incising_nodes], 0.0007)))
     True
 
     The component will dump all sediment in transit if it encounters flooded

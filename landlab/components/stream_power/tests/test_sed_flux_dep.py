@@ -689,7 +689,7 @@ def test_basic_functionality():
     fa = FlowAccumulator(mg)
     sde = SedDepEroder(
         mg, K_sp=1., K_t=1.e-20, sed_dependency_type='linear_decline'
-    )  # note 1.e-5 not 1.e-6 now
+    )
     fa.run_one_step()
     sde.run_one_step(1.)
     assert np.allclose(z_init - z, 0., atol=1.e-10)
@@ -723,12 +723,11 @@ def test_supplied_sediment():
     h *= 10.
     fa = FlowAccumulator(mg)
     sde = SedDepEroder(
-        mg, K_sp=1.e-4, K_t=1., m_sp=0., n_sp=1., m_t=0., n_t=1.,
+        mg, K_sp=1.e10, K_t=1., m_sp=0., n_sp=1., m_t=0., n_t=1.,
         sed_dependency_type='linear_decline'
     )
     fa.run_one_step()
     sde.run_one_step(10.)
-    assert np.allclose(z_init - z, 0., atol=1.e-10)
     assert np.allclose(h[np.logical_and(
             mg.at_node['drainage_area'] > 10000.,
             mg.status_at_node == 0
@@ -891,40 +890,40 @@ def test_flooding():
     pit.map_depressions()
     sde.run_one_step(100., flooded_nodes=pit.lake_at_node)
     assert np.allclose(z[mg.core_nodes], np.array(
-        [2.00997276, 1.999,  1.998, 1.99502899, 0.95723706]
-    ))
+        [2.00997276, 1.99902724, 1.998, 1.99504662, 0.95735666]
+    ))  # sed enters 1st node, and is dropped there
     assert np.allclose(
         mg.at_node['channel_sediment__volumetric_transport_capacity'][
             mg.core_nodes
         ],
-        np.array([3.47796809e-10, 0., 0., 2.62050580e-07, 3.40770733e-07])
+        np.array([3.48568966e-10, 0., 0., 2.53504703e-07, 3.54283592e-07])
     )
     assert np.allclose(
         mg.at_node['channel_sediment__depth'][mg.core_nodes],
-        np.array([0., 2.72372391e-05, 0., 0., 0.])
+        np.array([0., 2.72436105e-05, 0., 0., 0.])
     )
 
     fa.run_one_step()
     pit.map_depressions()
     sde.run_one_step(100., flooded_nodes=pit.lake_at_node)
     assert np.allclose(z[mg.core_nodes], np.array(
-        [2.00994559, 1.999, 1.99781863, 1.92443714, 0.92132846])
+        [2.00994565, 1.9990253, 1.99787559, 1.98887236, 0.90435114])
     )
     assert np.allclose(
         mg.at_node['channel_sediment__volumetric_transport_capacity'][
             mg.core_nodes
         ],
         np.array([
-            3.46935625e-10,
-            9.97358068e-11,
-            1.18582125e-08,
-            2.52251863e-07,
-            3.29771153e-07
-        ])
+            3.46842370e-10,
+            9.20692224e-11,
+            4.86292746e-10,
+            2.63059284e-07,
+            3.39175756e-07,
+        ])  # throughflow now established
     )
     assert np.allclose(
         mg.at_node['channel_sediment__depth'][mg.core_nodes],
-        np.array([0., 2.57859919e-05, 0., 0., 0.])
+        np.array([0., 2.52974360e-05, 0., 0., 0.])
     )
 
 # def test_large_steps_for_timestepping():
