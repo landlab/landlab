@@ -1,20 +1,53 @@
-"""Zone SpeciesEvolver object.
+#!/usr/bin/env python
+"""Base Zone object of SpeciesEvolver.
 """
 from random import random
 
 import numpy as np
-from pandas import DataFrame
+from scipy.ndimage.measurements import label
 
 
 class Zone(object):
-    """The nodes and attributes of the entities that species populate.
+
+    def __init__(self, zone_manager, mask):
+        """Zone object of SpeciesEvolver.
+
+        The nodes and attributes of the entities that species populate.
+
+        This class is not intended to be managed directly. Use a zone manager.
+
+        Parameters
+        ----------
+        mask : boolean ndarray
+            The mask of the zone. True elements of this array correspond to the
+            grid nodes of the zone.
+        """
+        self._manager = zone_manager
+
+        self.path = {}
+
+        self.mask = mask
+
+        self.plot_color = (random(), random(), random(), 1)
+
+    def _get_largest_intersection(self, zones):
+        new_zone_overlap_nodes = []
+        for z in zones:
+            n = len(np.where(np.all([z.mask, self.mask], 0))[0])
+            new_zone_overlap_nodes.append(n)
+
+        return zones[np.argmax(new_zone_overlap_nodes)]
+
+
+class ZoneManager(object):
+    """Creates and updates SpeciesEvolver zones using grid fields.
 
     A portion of the model domain. It is the model entity that recognizes the
     model grid changes relevant to a species.
     """
-    _required_params = ['zone_field_name']
 
     # Define path types.
+
     NONE_TO_ONE = 'none-to-one'
     NONE_TO_MANY = 'none-to-many'
     ONE_TO_NONE = 'one-to-none'
@@ -24,39 +57,54 @@ class Zone(object):
     MANY_TO_ONE = 'many-to-one'
     MANY_TO_MANY = 'many-to-many'
 
-    def __init__(self, mask):
-        """
+    def __init__(self, grid, zone_field_name, cluster_structure='d8'):
+        """Instantiate ZoneManager.
+
         Parameters
         ----------
-        mask : boolean ndarray
-            The mask of the zone. True elements of this array correspond to the
-            grid nodes of the zone.
+        grid : ModelGrid
+            A Landlab ModelGrid.
+        zone_field_name : string
+            The name of the grid field that masks the total zone extent.
+        cluster_structure : string, optional
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components.species_evolution import ZoneManager
+        >>> mg = RasterModelGrid((3, 3))
+        >>> field = mg.add_zeros('node', 'zone_mask')
+        >>> field[4] = 1
+        >>> field
+        array([[ 0.,  0.,  0.],
+               [ 0.,  1.,  0.],
+               [ 0.,  0.,  0.]])
+
+        ZoneManager is instantiated with a model grid and an existing grid
+        field.
+
+        >>> zm = ZoneManager(mg, 'zone_mask')
+        >>> mg.at_node[zm.field_name].reshape(mg.shape)
+        array([[ 0.,  0.,  0.],
+               [ 0.,  1.,  0.],
+               [ 0.,  0.,  0.]])
         """
-        self.mask = mask
+        self._grid = grid
 
-        self.plot_color = (random(), random(), random(), 1)
+        if zone_field_name in grid.at_node.keys():
+            self._field_name = zone_field_name
+        else:
+            msg = 'The grid field, {} does not exist.'
+            raise Exception(msg.format(zone_field_name))
 
-    def __str__(self):
-        return '<{}>'.format(self.__class__.__name__)
+        self._cluster_structure = cluster_structure
 
     @property
-    def required_object_parameters(self):
-        """The required keys in the `object_params` dictionary."""
-        return self._required_params
+    def field_name(self):
+        """The name of the grid field that masks the total zone extent."""
+        return self._field_name
 
-    @classmethod
-    def _check_params(cls, object_params):
-        missing_params = list(set(cls._required_params) -
-                              set(object_params.keys()))
-
-        if len(missing_params) > 0:
-            msg = '{} is missing the following parameters: {}'
-            class_name = cls.__name__
-
-            raise ValueError(msg.format(class_name, ', '.join(missing_params)))
-
-    @classmethod
-    def _get_paths(cls, prior_zones, new_zones, prior_time, time, grid):
+    def _update_paths(self, prior_zones, new_zones, time):
         """Get the data of connectivity paths across two timesteps.
 
         Paths represent the temporal connectivity of zones. The returned
@@ -83,8 +131,6 @@ class Zone(object):
             The zones of the prior timestep.
         new_patches : Zone list
             The zones of the current timestep.
-        prior_time :
-
         time : float
             The current simulation time.
         grid : ModelGrid
@@ -99,9 +145,6 @@ class Zone(object):
             The items of this dictionary will become items in the
             SpeciesEvolver records for this time.
         """
-        paths = DataFrame(columns=['time', 'origin', 'destinations',
-                                   'path_type'])
-
         # Stack the masks for prior (p) and new (n) zones.
         ps = np.vstack(list(p.mask for p in prior_zones))
         ns = np.vstack(list(n.mask for n in new_zones))
@@ -120,7 +163,7 @@ class Zone(object):
         # processed.
         number_of_captures = 0
         area_captured = [0]
-        cell_area = grid.cellarea
+        cell_area = self._grid.cellarea
 
         all_destinations = []
 
@@ -154,15 +197,15 @@ class Zone(object):
             delete = np.where(new_overlap_not_found == n_overlaps_p)
             new_overlap_not_found = np.delete(new_overlap_not_found, delete)
 
-            path_type = cls._determine_path_type(p_overlaps_n_count,
+            path_type = self._determine_path_type(p_overlaps_n_count,
                                                  n_overlaps_p_count)
 
             # Determine path attributes depending upon the path type.
 
-            if path_type == cls.ONE_TO_NONE:
+            if path_type == self.ONE_TO_NONE:
                 destinations = []
 
-            elif path_type == cls.ONE_TO_ONE:
+            elif path_type == self.ONE_TO_ONE:
                 # The prior zone is set as the new zone
                 # because only the one new and the one prior overlap.
                 p.mask = n.mask
@@ -170,7 +213,7 @@ class Zone(object):
 
                 replacements[n] = p
 
-            elif path_type == cls.ONE_TO_MANY:
+            elif path_type == self.ONE_TO_MANY:
                 # Set the destinations to the new zones that overlap p.
                 # Although, replace the dominant n with p.
                 dominant_n = p._get_largest_intersection(n_overlaps_p)
@@ -180,7 +223,7 @@ class Zone(object):
 
                 replacements[dominant_n] = p
 
-            elif path_type == cls.MANY_TO_ONE:
+            elif path_type == self.MANY_TO_ONE:
                 # Set the destination to the prior zone that intersects n the
                 # most.
                 dominant_p = n._get_largest_intersection(p_overlaps_n)
@@ -189,7 +232,7 @@ class Zone(object):
 
                 replacements[n] = dominant_p
 
-            elif path_type == cls.MANY_TO_MANY:
+            elif path_type == self.MANY_TO_MANY:
                 # Get the new zone that intersects p the most.
                 dominant_n = p._get_largest_intersection(n_overlaps_p)
                 dominant_n_nodes = dominant_n.mask
@@ -211,7 +254,7 @@ class Zone(object):
                 replacements[dominant_n] = dominant_p
 
             # Update the capture statistics.
-            if path_type in [cls.MANY_TO_ONE]:
+            if path_type in [self.MANY_TO_ONE]:
                 number_of_captures += len(n_overlaps_p)
 
                 for n_i in n_overlaps_p:
@@ -219,95 +262,84 @@ class Zone(object):
                     number_of_captured_nodes = len(np.where(captured_nodes)[0])
                     area_captured.append(number_of_captured_nodes * cell_area)
 
-            paths.loc[len(paths)] = {'time': time, 'origin': p,
-                      'destinations': destinations,
-                      'path_type': path_type}
+            # Update path.
+
+            p.path[time] = (path_type, destinations)
 
             all_destinations.extend(destinations)
 
         # Handle new zones that did not overlap prior zones.
         for n in new_overlap_not_found:
-            path_type = cls._determine_path_type(p_overlaps_n_count,
+            path_type = self._determine_path_type(p_overlaps_n_count,
                                                  n_overlaps_p_count)
-            paths.loc[len(paths)] = {'time': time, 'origin': np.nan,
-                      'destinations': [n], 'path_type': path_type}
+
+            # Update path.
+
+            n.path[time] = (path_type, [n])
 
         # Update zones that were replaced using the dominant zones above.
         for zone in replacements.keys():
-            for index, row in paths.iterrows():
-                if zone in row.destinations:
-                    i = np.where(zone == np.array(row.destinations))[0][0]
-                    paths.loc[index, 'destinations'][i] = replacements[zone]
+            if zone in all_destinations:
+                i = np.where(zone == np.array(all_destinations))[0][0]
+                all_destinations[i] = replacements[zone]
 
         # Construct output.
         add_on = {'number_of_captures': number_of_captures,
                   'area_captured_max': max(area_captured),
                   'area_captured_sum': sum(area_captured)}
 
-        output = {'paths': paths, 'species_evolver_records_add_on': add_on}
+        return all_destinations, add_on
 
-        return output
-
-    @classmethod
-    def _determine_path_type(cls, prior_zone_count, new_zone_count):
+    def _determine_path_type(self, prior_zone_count, new_zone_count):
         # Set path type.
 
         if prior_zone_count == 0:
             if new_zone_count == 1:
-                return cls.NONE_TO_ONE
+                return self.NONE_TO_ONE
             elif new_zone_count > 1:
-                return cls.NONE_TO_MANY
+                return self.NONE_TO_MANY
 
         elif prior_zone_count == 1:
             if new_zone_count == 0:
-                return cls.ONE_TO_NONE
+                return self.ONE_TO_NONE
             elif new_zone_count == 1:
-                return cls.ONE_TO_ONE
+                return self.ONE_TO_ONE
             elif new_zone_count > 1:
-                return cls.ONE_TO_MANY
+                return self.ONE_TO_MANY
 
         elif prior_zone_count > 1:
             if new_zone_count == 0:
-                return cls.MANY_TO_NONE
+                return self.MANY_TO_NONE
             elif new_zone_count == 1:
-                return cls.MANY_TO_ONE
+                return self.MANY_TO_ONE
             elif new_zone_count > 1:
-                return cls.MANY_TO_MANY
+                return self.MANY_TO_MANY
 
-    def _get_largest_intersection(self, zones):
-        n_zone_overlap_nodes = []
-        for z in zones:
-            n = len(np.where(np.all([z.mask, self.mask], 0))[0])
-            n_zone_overlap_nodes.append(n)
-
-        return zones[np.argmax(n_zone_overlap_nodes)]
-
-    @classmethod
-    def get_zones(cls, grid, object_params):
+    def _create_zones(self):
         """Get zones using a grid field.
-
-        Parameters
-        ----------
-        grid : ModelGrid
-            A Landlab ModelGrid.
-        field_name: string
-            The name of the grid field.
         """
-        cls._check_params(object_params)
+        zone_mask = self._grid.at_node[self._field_name]
 
-        field_name = object_params['zone_field_name']
+        # Find zone clusters.
+
+        if self._cluster_structure == 'd4':
+            s = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]
+        elif self._cluster_structure == 'd8':
+            s = 3 * [[1, 1, 1]]
+        cluster_array, cluster_count = label(zone_mask.reshape(self._grid.shape),
+                                             structure=s)
 
         # Get the unique field values.
 
-        values = np.unique(grid.at_node[field_name])
+        values = np.unique(zone_mask)
         values = values[~np.isnan(values)]
 
         # Create a zone for each field value.
 
-        zones = [None] * len(values)
+        zones = [None] * cluster_count
 
-        for i, value in enumerate(values):
-            mask = grid.at_node[field_name] == value
-            zones[i] = Zone(mask)
+        for i in range(cluster_count):
+            mask = cluster_array == i + 1
+            zones[i] = Zone(self, mask.flatten())
 
         return zones

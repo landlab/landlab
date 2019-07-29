@@ -1,8 +1,9 @@
-"""Species SpeciesEvolver object.
+#!/usr/bin/env python
+"""Base Species object of SpeciesEvolver .
 """
 import numpy as np
 
-from landlab.components.species_evolution import Zone
+from landlab.components.species_evolution import ZoneManager as zm
 
 
 class Species(object):
@@ -37,52 +38,7 @@ class Species(object):
             z = [initial_zones]
         self.zones = z
 
-    def __str__(self):
-        return '<{}>'.format(self.__class__.__name__)
-
-    @classmethod
-    def evolve_type(cls, extant_species, zone_paths):
-        origins = zone_paths.origin.tolist()
-
-        # Get the species that persist given the outcome of the macroevolution
-        # processes of the species.
-
-        output = {'child_species': [], 'surviving_parent_species': []}
-
-        speciation_count = 0
-        extinction_count = 0
-        pseudoextinction_count = 0
-
-        for es in extant_species:
-            # Get paths that include the zone origin of this species.
-            species_zones = es.zones
-            indices = np.where(np.isin(origins, species_zones))[0]
-
-            if len(indices) > 0:
-                es_paths = zone_paths.loc[indices]
-
-                species_persists, child_species = es.evolve(es_paths)
-
-                if species_persists:
-                    output['surviving_parent_species'].append(es)
-                elif len(child_species) > 0:
-                    pseudoextinction_count += 1
-                else:
-                    extinction_count += 1
-
-                if len(child_species) > 0:
-                    output['child_species'].extend(child_species)
-                    speciation_count += len(child_species)
-
-        # Create DataRecord add-on.
-        output['species_evolver_records_add_on'] = {
-                'speciation_count': speciation_count,
-                'extinction_count': extinction_count,
-                'pseudoextinction_count': pseudoextinction_count}
-
-        return output
-
-    def evolve(self, zone_paths):
+    def _evolve(self, time):
         """Run species evolutionary processes.
 
         Extinction is not explicitly implemented in this method. The base class
@@ -91,7 +47,7 @@ class Species(object):
 
         Parameters
         ----------
-        zone_paths : Pandas DataFrame
+        time : float or int
 
         Returns
         -------
@@ -115,24 +71,27 @@ class Species(object):
         # Disperse and speciate. Extinction effectively occurs when the species
         # does not disperse to or remain in any zones.
 
-        for v in zone_paths.itertuples():
-            if v.path_type in [Zone.ONE_TO_ONE, Zone.MANY_TO_ONE]:
+        for z in self.zones:
+            path_type = z.path[time][0]
+            destinations = z.path[time][1]
+
+            if path_type in [zm.ONE_TO_ONE, zm.MANY_TO_ONE]:
                 # The species in this zone disperses to/remains in the zone.
-                self.zones = v.destinations
+                self.zones = destinations
                 species_persists = True
 
-            elif v.path_type in [Zone.ONE_TO_MANY, Zone.MANY_TO_MANY]:
+            elif path_type in [zm.ONE_TO_MANY, zm.MANY_TO_MANY]:
                 # The zone and the species within it was fragmented. A new
                 # child species is added to every destination zone. The species
                 # self does not continue. It is assumed to have evolved into
                 # one of the child species.
                 species_persists = False
 
-                for d in v.destinations:
+                for d in destinations:
                     child_species_d = Species(d, parent_species=self)
                     child_species.append(child_species_d)
 
-            elif v.path_type == Zone.ONE_TO_NONE:
+            elif path_type == zm.ONE_TO_NONE:
                 species_persists = False
 
         # Create a unique array of child species.
