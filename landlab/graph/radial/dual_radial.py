@@ -19,7 +19,7 @@ class DualRadialGraph(DualGraph, RadialGraph):
     array([-0.5,  0.5, -0.5,  0.5])
     """
 
-    def __init__(self, shape, spacing=1.0, origin=(0.0, 0.0)):
+    def __init__(self, shape, spacing=1.0, origin=(0.0, 0.0), sort=False):
         """Create a structured grid of triangles arranged radially.
 
         Parameters
@@ -49,4 +49,5 @@ class DualRadialGraph(DualGraph, RadialGraph):
 
         self.merge(dual_graph, node_at_cell=node_at_cell, nodes_at_face=nodes_at_face)
 
-        self.sort()
+        if sort:
+            self.sort()
