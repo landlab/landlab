@@ -494,7 +494,7 @@ class NetworkGraph:
         ...          (3, 6), (4, 7), (5, 8),
         ...          (6, 7), (7, 8))
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
-        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
+        >>> graph = Graph((node_y, node_x), links=links, patches=patches, sort=True)
         >>> graph.links_at_patch
         array([[3, 5, 2, 0],
                [4, 6, 3, 1]])
