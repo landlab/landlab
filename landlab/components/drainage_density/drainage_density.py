@@ -118,7 +118,7 @@ class DrainageDensity(Component):
     mask. Next shows the same example as above, but with these coefficients
     provided.
 
-    >>> mg = RasterModelGrid((10, 10), 1.0)
+    >>> mg = RasterModelGrid((10, 10))
     >>> _ = mg.add_zeros('node', 'topographic__elevation')
     >>> np.random.seed(50)
     >>> noise = np.random.rand(100)
@@ -399,7 +399,7 @@ class DrainageDensity(Component):
             self.distance_to_channel,
             self.grid.number_of_nodes,
         )
-        landscape_drainage_density = 1. / (
+        landscape_drainage_density = 1.0 / (
             2.0
             * np.mean(
                 self.grid.at_node["surface_to_channel__minimum_distance"][

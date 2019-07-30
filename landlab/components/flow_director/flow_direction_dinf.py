@@ -21,8 +21,7 @@ UNDEFINED_INDEX = BAD_INDEX_VALUE
 
 
 def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=None):
-    """
-    Find Dinfinity flow directions and proportions on a raster grid.
+    """Find Dinfinity flow directions and proportions on a raster grid.
 
     Finds and returns flow directions and proportions for a given elevation
     grid by the D infinity method (Tarboton, 1997). Each node is assigned two
@@ -256,8 +255,8 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
 
     # Step 3: make arrays necessary for the specific tarboton algorithm.
     # create a arrays
-    ac = np.array([0., 1., 1., 2., 2., 3., 3., 4.])
-    af = np.array([1., -1., 1., -1., 1., -1., 1., -1.])
+    ac = np.array([0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0])
+    af = np.array([1.0, -1.0, 1.0, -1.0, 1.0, -1.0, 1.0, -1.0])
 
     # construct d1 and d2, we know these because we know where the orthogonal
     # links are
@@ -330,7 +329,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     # calculate the geospatial version of r based on radj
     rg = np.empty_like(r)
     for i in range(num_facets):
-        rg[:, i] = (af[i] * radj[:, i]) + (ac[i] * np.pi / 2.)
+        rg[:, i] = (af[i] * radj[:, i]) + (ac[i] * np.pi / 2.0)
 
     # set slopes that are nan to below zero
     # if there is a flat slope, it should be chosen over the closed or non-existant
@@ -361,7 +360,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
         ]
 
     # construct the baseline for proportions
-    rg_baseline = np.array([0., 1., 1., 2., 2., 3., 3., 4]) * np.pi / 2.
+    rg_baseline = np.array([0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4]) * np.pi / 2.0
 
     # calculate alpha1 and alpha 2
     alpha2 = (steepest_rg - rg_baseline[steepest_triangle]) * af[steepest_triangle]
@@ -406,24 +405,24 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     receivers[second_column_has_closed, 1] = -1
 
     # change the proportions
-    proportions[first_column_has_closed, 0] = 0.
-    proportions[first_column_has_closed, 1] = 1.
+    proportions[first_column_has_closed, 0] = 0.0
+    proportions[first_column_has_closed, 1] = 1.0
 
-    proportions[second_column_has_closed, 0] = 1.
-    proportions[second_column_has_closed, 1] = 0.
+    proportions[second_column_has_closed, 0] = 1.0
+    proportions[second_column_has_closed, 1] = 0.0
 
     # set properties of drains to self.
     receivers[drains_to_self, 0] = node_id[drains_to_self]
     receivers[drains_to_self, 1] = -1
 
-    proportions[drains_to_self, 0] = 1.
-    proportions[drains_to_self, 1] = 0.
+    proportions[drains_to_self, 0] = 1.0
+    proportions[drains_to_self, 1] = 0.0
 
     # set properties of closed
     receivers[closed_nodes, 0] = node_id[closed_nodes]
     receivers[closed_nodes, 1] = -1
-    proportions[closed_nodes, 0] = 1.
-    proportions[closed_nodes, 1] = 0.
+    proportions[closed_nodes, 0] = 1.0
+    proportions[closed_nodes, 1] = 0.0
 
     # mask the receiver_links by where flow doesn't occur to return
     receiver_links[drains_to_self, :] = UNDEFINED_INDEX
@@ -434,7 +433,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
         num_receivers - 1
     )
     steepest_slope = slopes_to_receivers[slope_sort]
-    steepest_slope[drains_to_self] = 0.
+    steepest_slope[drains_to_self] = 0.0
 
     # identify the steepest link and steepest receiever.
     steepest_link = receiver_links[slope_sort]
@@ -450,7 +449,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
         proportions[baselevel_nodes, 0] = 1
         proportions[baselevel_nodes, 1:] = 0
         receiver_links[baselevel_nodes, :] = UNDEFINED_INDEX
-        steepest_slope[baselevel_nodes] = 0.
+        steepest_slope[baselevel_nodes] = 0.0
 
     # ensure that if there is a -1, it is in the second column.
     order_reversed = receivers[:, 0] == -1

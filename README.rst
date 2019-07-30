@@ -10,7 +10,7 @@
 .. image:: https://coveralls.io/repos/landlab/landlab/badge.png
     :target: https://coveralls.io/r/landlab/landlab
 
-.. image:: https://ci.appveyor.com/api/projects/status/5u8nk9c4tnacmp6m/branch/master?svg=true
+.. image:: https://ci.appveyor.com/api/projects/status/6u0bj0pggxrmf7s1/branch/master?svg=true
     :target: https://ci.appveyor.com/project/mcflugen/landlab/branch/master
 
 .. image:: https://landscape.io/github/landlab/landlab/master/landscape.svg

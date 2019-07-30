@@ -9,7 +9,7 @@ boundary conditions correctly. Nevertheless, this test stands for the moment
 to prevent grid changes damaging core component functionality.
 ***
 """
-from __future__ import print_function
+
 
 import os
 
@@ -25,7 +25,7 @@ INPUTS = os.path.join(_THIS_DIR, "drive_perron_params.txt")
 
 nrows = 10
 ncols = 20
-dx = 1.
+dx = 1.0
 dt = 0.1
 time_to_run = 0.3
 uplift = 0.01
@@ -71,7 +71,7 @@ t_z = np.array(
         0.00027899,
         0.00022238,
         0.00013644,
-        0.,
+        0.0,
         0.00121048,
         0.00022585,
         0.00036385,
@@ -91,7 +91,7 @@ t_z = np.array(
         0.00045082,
         0.00035338,
         0.00021051,
-        0.,
+        0.0,
         0.00125268,
         0.00027286,
         0.00044594,
@@ -111,7 +111,7 @@ t_z = np.array(
         0.00055738,
         0.0004325,
         0.00025361,
-        0.,
+        0.0,
         0.00127173,
         0.00029436,
         0.00048404,
@@ -131,7 +131,7 @@ t_z = np.array(
         0.00060741,
         0.00046916,
         0.00027327,
-        0.,
+        0.0,
         0.00127086,
         0.00029335,
         0.00048223,
@@ -151,7 +151,7 @@ t_z = np.array(
         0.00060501,
         0.00046742,
         0.00027235,
-        0.,
+        0.0,
         0.00124992,
         0.00026971,
         0.00044033,
@@ -171,7 +171,7 @@ t_z = np.array(
         0.00054997,
         0.00042711,
         0.00025074,
-        0.,
+        0.0,
         0.00120541,
         0.00022016,
         0.00035387,
@@ -191,7 +191,7 @@ t_z = np.array(
         0.00043782,
         0.00034377,
         0.0002053,
-        0.,
+        0.0,
         0.00112861,
         0.00013651,
         0.000213,
@@ -211,27 +211,27 @@ t_z = np.array(
         0.00025933,
         0.00020743,
         0.00012801,
-        0.,
+        0.0,
         0.003,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
-        0.,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
     ]
 )
 
@@ -242,7 +242,7 @@ def test_sniff_Perron():
     mg.add_zeros("topographic__elevation", at="node")
     diffusion_component = PerronNLDiffuse(mg, INPUTS)
 
-    elapsed_time = 0.
+    elapsed_time = 0.0
     while elapsed_time < time_to_run:
         diffusion_component.input_timestep(dt)
         mg.at_node["topographic__elevation"][mg.core_nodes] += uplift * dt

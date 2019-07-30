@@ -9,7 +9,7 @@ Examples
 >>> from landlab.graph import NetworkGraph, Graph
 
 >>> node_x, node_y = [0, 0, 0, 1, 1, 1, 2, 2, 2], [0, 1, 2, 0, 1, 2, 0, 1, 2]
->>> graph = NetworkGraph((node_y, node_x))
+>>> graph = NetworkGraph((node_y, node_x), sort=True)
 >>> graph.x_of_node
 array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
 >>> graph.y_of_node
@@ -22,7 +22,7 @@ array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.])
 ...          (3, 4), (4, 5),
 ...          (3, 6), (4, 7), (5, 8),
 ...          (6, 7), (7, 8))
->>> graph = Graph((node_y, node_x), links=links)
+>>> graph = Graph((node_y, node_x), links=links, sort=True)
 >>> graph.nodes_at_link # doctest: +NORMALIZE_WHITESPACE
 array([[0, 1], [1, 2],
        [0, 3], [1, 4], [2, 5],
@@ -45,7 +45,7 @@ array([[-1, -1,  0,  0], [-1, -1,  1,  0], [-1,  1,  0,  0],
        [-1,  1,  0,  0], [-1,  1,  1,  0], [ 1,  1,  0,  0]])
 
 >>> patches = ((5, 3, 0, 2), (6, 4, 1, 3), (10, 8, 5, 7), (11, 9, 6, 8))
->>> graph = Graph((node_y, node_x), links=links, patches=patches)
+>>> graph = Graph((node_y, node_x), links=links, patches=patches, sort=True)
 >>> graph.links_at_patch
 array([[ 3,  5,  2,  0],
        [ 4,  6,  3,  1],
@@ -60,7 +60,6 @@ array([[4, 3, 0, 1],
 import json
 
 import numpy as np
-import six
 import xarray as xr
 
 from ..core.utils import as_id_array
@@ -127,13 +126,39 @@ class thawed(object):
             self._graph.freeze()
 
 
-class NetworkGraph(object):
+def update_node_at_cell(ugrid, node_at_cell):
+    node_at_cell = xr.DataArray(
+        data=as_id_array(node_at_cell),
+        dims=("cell",),
+        attrs={
+            "cf_role": "cell_node_connectivity",
+            "long_name": "nodes centered at cells",
+            "start_index": 0,
+        },
+    )
+    ugrid.update({"node_at_cell": node_at_cell})
+
+
+def update_nodes_at_face(ugrid, nodes_at_face):
+    nodes_at_face = xr.DataArray(
+        data=as_id_array(nodes_at_face),
+        dims=("face", "Two"),
+        attrs={
+            "cf_role": "face_node_connectivity",
+            "long_name": "nodes on either side of a face",
+            "start_index": 0,
+        },
+    )
+    ugrid.update({"nodes_at_face": nodes_at_face})
+
+
+class NetworkGraph:
     """Define the connectivity of a graph of nodes and links.
 
     Unlike Graph, NetworkGraph does not have patches.
     """
 
-    def __init__(self, mesh, **kwds):
+    def __init__(self, node_y_and_x, links=None, sort=False):
         """Define a graph of connected nodes.
 
 
@@ -142,20 +167,15 @@ class NetworkGraph(object):
         mesh : Dataset
             xarray Dataset that defines the topology in ugrid format.
         """
-        if not isinstance(mesh, xr.Dataset):
-            node_y_and_x = mesh
-            links = kwds.get("links", None)
-            mesh = ugrid_from_unstructured(node_y_and_x, links=links)
-
-        self._ds = mesh
+        self._ds = ugrid_from_unstructured(node_y_and_x, links=links)
 
         self._frozen = False
         self.freeze()
 
-        if kwds.get("sort", True):
+        if sort:
             NetworkGraph.sort(self)
 
-        self._origin = (0., 0.)
+        self._origin = (0.0, 0.0)
 
     @property
     def frozen(self):
@@ -249,7 +269,7 @@ class NetworkGraph(object):
 
     @classmethod
     def load(cls, source):
-        if isinstance(source, six.string_types):
+        if isinstance(source, str):
             return cls.from_netcdf(source)
         elif isinstance(source, (dict, xr.Dataset)):
             return cls.from_dict(source)
@@ -656,7 +676,7 @@ class NetworkGraph(object):
         ...          (3, 4), (4, 5),
         ...          (3, 6), (4, 7), (5, 8),
         ...          (6, 7), (7, 8))
-        >>> graph = Graph((node_y, node_x), links=links)
+        >>> graph = Graph((node_y, node_x), links=links, sort=True)
         >>> graph.adjacent_nodes_at_node
         array([[ 1,  3, -1, -1],
                [ 2,  4,  0, -1],
@@ -677,7 +697,7 @@ class NetworkGraph(object):
         ...          (3, 6), (4, 7), (5, 8),
         ...          (6, 7), (7, 8),
         ...          (0, 4))
-        >>> graph = Graph((node_y, node_x), links=links)
+        >>> graph = Graph((node_y, node_x), links=links, sort=True)
         >>> graph.adjacent_nodes_at_node
         array([[ 1,  4,  3, -1, -1],
                [ 2,  4,  0, -1, -1],
@@ -704,29 +724,24 @@ class Graph(NetworkGraph):
 
     """Define the connectivity of a graph of nodes, links, and patches."""
 
-    def __init__(self, mesh, **kwds):
-        """Define a graph of connected nodes.
-
-        Parameters
-        ----------
-        mesh : Dataset
-            xarray Dataset that defines the topology in ugrid format.
-        """
-        if not isinstance(mesh, xr.Dataset):
-            node_y_and_x = mesh
-            links = kwds.get("links", None)
-            patches = kwds.get("patches", None)
-            mesh = ugrid_from_unstructured(node_y_and_x, links=links, patches=patches)
-
-        self._ds = mesh
+    def __init__(self, node_y_and_x, links=None, patches=None, sort=False):
+        self._ds = ugrid_from_unstructured(node_y_and_x, links=links, patches=patches)
 
         self._frozen = False
         self.freeze()
 
-        if kwds.get("sort", True):
+        if sort:
             Graph.sort(self)
 
-        self._origin = (0., 0.)
+        self._origin = (0.0, 0.0)
+
+    def merge(self, dual, node_at_cell=None, nodes_at_face=None):
+        self._dual = dual
+
+        if node_at_cell is not None:
+            update_node_at_cell(self.ds, node_at_cell)
+        if nodes_at_face is not None:
+            update_nodes_at_face(self.ds, nodes_at_face)
 
     def sort(self):
         with self.thawed():
@@ -824,7 +839,7 @@ class Graph(NetworkGraph):
         ...          (3, 6), (4, 7), (5, 8),
         ...          (6, 7), (7, 8))
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
-        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
+        >>> graph = Graph((node_y, node_x), links=links, patches=patches, sort=True)
         >>> graph.links_at_patch
         array([[3, 5, 2, 0],
                [4, 6, 3, 1]])
@@ -850,7 +865,7 @@ class Graph(NetworkGraph):
         ...          (3, 6), (4, 7), (5, 8),
         ...          (6, 7), (7, 8))
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
-        >>> graph = Graph((node_y, node_x), links=links, patches=patches)
+        >>> graph = Graph((node_y, node_x), links=links, patches=patches, sort=True)
         >>> graph.nodes_at_patch
         array([[4, 3, 0, 1],
                [5, 4, 1, 2]])

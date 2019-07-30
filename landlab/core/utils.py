@@ -20,11 +20,46 @@ Landlab utilities
     ~landlab.core.utils.anticlockwise_argsort_points
     ~landlab.core.utils.get_categories_from_grid_methods
 """
-from __future__ import print_function
+
 
 import numpy as np
 
 SIZEOF_INT = np.dtype(np.int).itemsize
+
+
+def degrees_to_radians(degrees):
+    """Convert compass-style degrees to radians.
+
+    Convert angles in degrees measured clockwise starting from north to
+    angles measured counter-clockwise from the positive x-axis in radians
+
+    Parameters
+    ----------
+    degrees : float or ndarray
+        Converted angles in degrees.
+
+    Returns
+    -------
+    rads : float or ndarray
+        Angles in radians.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.core.utils import degrees_to_radians
+
+    >>> degrees_to_radians(90.0)
+    0.0
+    >>> degrees_to_radians(0.0) == np.pi / 2.
+    True
+    >>> degrees_to_radians(-180.0) == 3. * np.pi / 2.
+    True
+    >>> np.testing.assert_array_almost_equal([ np.pi, np.pi],
+    ...                                       degrees_to_radians([ -90.,  270.]))
+    """
+    rads = np.pi * np.array(degrees) / 180.0
+
+    return (5.0 * np.pi / 2.0 - rads) % (2.0 * np.pi)
 
 
 def radians_to_degrees(rads):
@@ -57,8 +92,8 @@ def radians_to_degrees(rads):
     >>> radians_to_degrees(np.array([- np.pi, np.pi]))
     array([ 270.,  270.])
     """
-    degrees = (5. * np.pi / 2. - rads) % (2. * np.pi)
-    return 180. / np.pi * degrees
+    degrees = (5.0 * np.pi / 2.0 - rads) % (2.0 * np.pi)
+    return 180.0 / np.pi * degrees
 
 
 def extend_array(x, fill=0):
@@ -514,7 +549,7 @@ def anticlockwise_argsort_points(pts, midpt=None):
         midpt = pts.mean(axis=0)
     assert len(midpt) == 2
     theta = np.arctan2(pts[:, 1] - midpt[1], pts[:, 0] - midpt[0])
-    theta = theta % (2. * np.pi)
+    theta = theta % (2.0 * np.pi)
     sortorder = np.argsort(theta)
     return sortorder
 
@@ -561,7 +596,7 @@ def anticlockwise_argsort_points_multiline(pts_x, pts_y, out=None):
     theta = np.arctan2(
         pts_y - midpt[:, 1].reshape((nrows, 1)), pts_x - midpt[:, 0].reshape((nrows, 1))
     )
-    theta = theta % (2. * np.pi)
+    theta = theta % (2.0 * np.pi)
     sortorder = np.argsort(theta)
     if out is not None:
         out[:] = out[np.ogrid[:nrows].reshape((nrows, 1)), sortorder]

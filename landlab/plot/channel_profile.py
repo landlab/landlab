@@ -18,7 +18,7 @@ changes mid-run (e.g., channel piracy). This may be modified in the future.
 import numpy
 
 # DEJH, March 2014.
-from six.moves import range
+
 
 try:
     import matplotlib.pyplot as plt
@@ -46,7 +46,7 @@ def channel_nodes(
         )
         raise NotImplementedError(msg)
     if threshold is None:
-        threshold = 2. * numpy.amin(grid.area_of_cell)
+        threshold = 2.0 * numpy.amin(grid.area_of_cell)
     boundary_nodes = grid.boundary_nodes
     # top_two_pc = len(boundary_nodes)//50
     # starting_nodes = boundary_nodes[numpy.argsort(drainage_area[boundary_nodes])[-top_two_pc:]]
@@ -75,7 +75,7 @@ def get_distances_upstream(grid, len_node_arrays, profile_IDs, links_to_flow_rec
     distances_upstream = []
     for i in range(len(profile_IDs)):
         data_store = []
-        total_distance = 0.
+        total_distance = 0.0
         data_store.append(total_distance)
         for j in range(len(profile_IDs[i]) - 1):
             total_distance += grid.length_of_d8[
@@ -157,7 +157,7 @@ def analyze_channel_network_and_plot(
             len(starting_nodes) == number_of_channels
         ), "Length of starting_nodes must equal the number_of_channels!"
         if threshold is None:
-            threshold = 2. * numpy.amin(grid.area_of_cell)
+            threshold = 2.0 * numpy.amin(grid.area_of_cell)
         profile_IDs = []
         for i in starting_nodes:
             j = i

@@ -4,7 +4,6 @@ import sys
 import xml.dom.minidom
 
 import numpy as np
-from six.moves import range
 
 from landlab.io.vtk.encoders import encode
 from landlab.io.vtk.vtktypes import NUMPY_TO_VTK_TYPE, SYS_TO_VTK_ENDIAN
@@ -40,10 +39,10 @@ class VtkOrigin(object):
         self._spacing = spacing
         self._cell_origin = []
         for (dx, x0) in zip(spacing, origin):
-            self._cell_origin.append(x0 - dx * .5)
+            self._cell_origin.append(x0 - dx * 0.5)
 
         for _ in range(3 - len(origin)):
-            self._cell_origin.append(0.)
+            self._cell_origin.append(0.0)
 
         self._origin_str = " ".join(["%f" % x for x in self._cell_origin])
 
@@ -65,7 +64,7 @@ class VtkSpacing(object):
             self._padded_spacing.append(dx)
 
         for _ in range(3 - len(spacing)):
-            self._padded_spacing.append(0.)
+            self._padded_spacing.append(0.0)
 
         self._spacing_str = " ".join(["%f" % x for x in self._padded_spacing])
 
@@ -194,7 +193,7 @@ class VtkCoordinatesElement(VtkDataElement):
                 )
             except IndexError:
                 self.addData(
-                    np.array(xyz[0]) * 0.,
+                    np.array(xyz[0]) * 0.0,
                     label + "_coordinates",
                     NumberOfComponents=1,
                     **kwargs

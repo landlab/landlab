@@ -16,7 +16,8 @@ def test_add_ones_at_corners():
     grid.add_ones("z", at="corner")
 
     assert_array_equal(
-        grid.at_corner["z"], [1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]
+        grid.at_corner["z"],
+        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
     )
 
 

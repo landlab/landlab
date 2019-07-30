@@ -42,7 +42,7 @@ def test_read_file_name(pdict_setup):
 
 
 def test_read_file_like_twice(pdict_setup):
-    from six import StringIO
+    from io import StringIO
 
     param_file = StringIO(pdict_setup.param_dict_file)
     param_dict_1 = ModelParameterDictionary()
@@ -141,6 +141,6 @@ def test_int_vector(auto_type_setup):
 def test_float_vector(auto_type_setup):
     val = auto_type_setup["DBL_ARRAY_VAL"]
 
-    assert list(val) == [1., 2., 4., 7.]
+    assert list(val) == [1.0, 2.0, 4.0, 7.0]
     assert isinstance(val, np.ndarray)
     assert val.dtype == np.float

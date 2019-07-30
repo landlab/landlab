@@ -1,5 +1,4 @@
 import numpy as np
-from six.moves import range
 
 from ..core.utils import make_optional_arg_into_id_array
 
@@ -160,7 +159,7 @@ def find_nearest_node(rmg, coords, mode="raise"):
 
     >>> import landlab
     >>> from landlab.grid.raster_funcs import find_nearest_node
-    >>> rmg = landlab.RasterModelGrid(4, 5)
+    >>> rmg = landlab.RasterModelGrid((4, 5))
 
     The points can be either a tuple of scalars or of arrays.
 
@@ -314,7 +313,7 @@ def is_coord_on_grid(rmg, coords, axes=(0, 1)):
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.raster_funcs import is_coord_on_grid
-    >>> grid = RasterModelGrid(4, 5)
+    >>> grid = RasterModelGrid((4, 5))
     >>> is_coord_on_grid(grid, (3.999, 2.999))
     True
 

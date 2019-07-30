@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import os
 
 import numpy as np
@@ -681,9 +679,9 @@ class EventLayers(object):
             self._resize(self.allocated + 1)
 
         self._number_of_layers += 1
-        self._attrs["_dz"][self.number_of_layers - 1, :] = 0.
+        self._attrs["_dz"][self.number_of_layers - 1, :] = 0.0
         for name in self._attrs:
-            self._attrs[name][self.number_of_layers - 1] = 0.
+            self._attrs[name][self.number_of_layers - 1] = 0.0
 
     def _resize(self, newsize, exact=False):
         """Allocate more memory for the layers."""

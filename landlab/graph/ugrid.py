@@ -50,7 +50,7 @@ def ugrid_from_rectilinear(coords):
     return ugrid_from_structured_quad(node_y_and_x)
 
 
-def ugrid_from_uniform_rectilinear(shape, spacing=1., origin=0.):
+def ugrid_from_uniform_rectilinear(shape, spacing=1.0, origin=0.0):
     from .structured_quad.structured_quad import setup_node_coords
 
     node_y_and_x = setup_node_coords(shape, spacing, origin)
@@ -163,42 +163,3 @@ def update_links_at_patch(ugrid, patches):
         },
     )
     ugrid.update({"links_at_patch": links_at_patch})
-
-
-def update_nodes_at_patch(ugrid, nodes_at_patch):
-    nodes_at_patch = xr.DataArray(
-        data=nodes_at_patch,
-        dims=("patch", "max_patch_links"),
-        attrs={
-            "cf_role": "patch_node_connectivity",
-            "long_name": "nodes defining patches",
-            "start_index": 0,
-        },
-    )
-    ugrid.update({"nodes_at_patch": nodes_at_patch})
-
-
-def update_node_at_cell(ugrid, node_at_cell):
-    node_at_cell = xr.DataArray(
-        data=node_at_cell,
-        dims=("cell",),
-        attrs={
-            "cf_role": "node_cell_connectivity",
-            "long_name": "node at cell",
-            "start_index": 0,
-        },
-    )
-    ugrid.update({"node_at_cell": node_at_cell})
-
-
-def update_nodes_at_face(ugrid, nodes_at_face):
-    nodes_at_face = xr.DataArray(
-        data=nodes_at_face,
-        dims=("face", "Two"),
-        attrs={
-            "cf_role": "node_face_connectivity",
-            "long_name": "nodes at face",
-            "start_index": 0,
-        },
-    )
-    ugrid.update({"nodes_at_face": nodes_at_face})

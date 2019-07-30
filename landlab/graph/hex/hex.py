@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..voronoi.voronoi import VoronoiGraph
+from ..voronoi.voronoi import DelaunayGraph
 from .ext.hex import (
     fill_xy_of_node_hex_horizontal,
     fill_xy_of_node_hex_vertical,
@@ -133,16 +133,16 @@ def setup_xy_of_node(
     return (x_of_node, y_of_node)
 
 
-class HexGraph(VoronoiGraph):
+class TriGraph(DelaunayGraph):
 
     """Graph of a structured grid of triangles.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.graph import HexGraph
+    >>> from landlab.graph import TriGraph
 
-    >>> graph = HexGraph((3, 2))
+    >>> graph = TriGraph((3, 2))
     >>> graph.number_of_nodes == 6
     True
     >>> np.round(graph.y_of_node * 2. / np.sqrt(3))
@@ -159,6 +159,7 @@ class HexGraph(VoronoiGraph):
         origin=(0.0, 0.0),
         orientation="horizontal",
         node_layout="rect",
+        sort=True,
     ):
         """Create a structured grid of triangles.
 
@@ -203,18 +204,22 @@ class HexGraph(VoronoiGraph):
             orientation=orientation,
             node_layout=node_layout,
         )
+
         _perimeter_links = perimeter_links(
             self.shape, orientation=self.orientation, node_layout=self.node_layout
         )
         self._perimeter_nodes = _perimeter_links[:, 0].copy()
 
-        VoronoiGraph.__init__(
+        DelaunayGraph.__init__(
             self,
             (y_of_node, x_of_node),
-            xy_sort=True,
-            rot_sort=True,
+            # xy_sort=True,
+            # rot_sort=True,
             perimeter_links=_perimeter_links,
         )
+
+        if sort:
+            self.sort()
 
     @property
     def shape(self):

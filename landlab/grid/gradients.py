@@ -80,13 +80,15 @@ def calc_grad_of_active_link(grid, node_values, out=None):
 
     Examples
     --------
+    >>> import pytest
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> grid = RasterModelGrid((3, 4))
     >>> z = np.array([0., 0., 0., 0.,
     ...               1., 1., 1., 1.,
     ...               3., 3., 3., 3.])
-    >>> grid.calc_grad_of_active_link(z)
+    >>> with pytest.deprecated_call():
+    ...     grid.calc_grad_of_active_link(z)
     array([ 1.,  1.,  0.,  0.,  0.,  2.,  2.])
 
     This method is *deprecated*. Instead, use ``calc_grad_at_link``.
@@ -237,6 +239,7 @@ def calculate_diff_at_links(grid, node_values, out=None):
 
     Examples
     --------
+    >>> import pytest
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
 
@@ -244,7 +247,8 @@ def calculate_diff_at_links(grid, node_values, out=None):
     >>> z = np.zeros(9)
     >>> z[4] = 1.
 
-    >>> grid.calculate_diff_at_links(z)
+    >>> with pytest.deprecated_call():
+    ...     grid.calculate_diff_at_links(z)
     array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
 
     >>> grid.calc_diff_at_link(z)
@@ -399,7 +403,7 @@ def calc_slope_at_patch(
     if ignore_closed_nodes:
         badnodes = grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY
         bad_patches = badnodes.sum(axis=1) > 0
-        slopes_at_patch[bad_patches] = 0.
+        slopes_at_patch[bad_patches] = 0.0
 
     return slopes_at_patch
 
@@ -706,7 +710,7 @@ def calc_aspect_at_node(
     if unit == "degrees":
         return radians_to_degrees(angle_from_x_ccw)
     elif unit == "radians":
-        angle_from_north_cw = (5. * np.pi / 2. - angle_from_x_ccw) % (2. * np.pi)
+        angle_from_north_cw = (5.0 * np.pi / 2.0 - angle_from_x_ccw) % (2.0 * np.pi)
         return angle_from_north_cw
     else:
         raise TypeError("unit must be 'degrees' or 'radians'")

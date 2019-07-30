@@ -25,30 +25,27 @@ If you simply want the ordered list by itself, use::
 Created: GT Nov 2013
 """
 import numpy
-from six.moves import range
 
 from landlab.core.utils import as_id_array
 
-from .cfuncs import _accumulate_bw, _add_to_stack
+from .cfuncs import _accumulate_bw, _add_to_stack, _make_donors
 
 
 class _DrainageStack:
 
-    """
-    Implements Braun & Willett's add_to_stack function.
+    """Implements Braun & Willett's add_to_stack function.
 
     The _DrainageStack() class implements Braun & Willett's add_to_stack
-    function (as a method) and also keeps track of the counter (j) and the
-    stack (s). It is used by the make_ordered_node_array() function.
+    function (as a method) and also keeps track of the counter (j) and
+    the stack (s). It is used by the make_ordered_node_array() function.
     """
 
     def __init__(self, delta, D):
 
-        """
-        Initializes the _Drainage_Stack class.
+        """Initializes the _Drainage_Stack class.
 
-        Initializes the index counter j to zero, creates the stack array s,
-        and stores references to delta and D.
+        Initializes the index counter j to zero, creates the stack array
+        s, and stores references to delta and D.
         """
         self.j = 0
         self.s = numpy.zeros(len(D), dtype=int)
@@ -57,8 +54,7 @@ class _DrainageStack:
 
     def add_to_stack(self, l):
 
-        """
-        Adds node l to the stack and increments the current index (j).
+        """Adds node l to the stack and increments the current index (j).
 
         Examples
         --------
@@ -105,12 +101,6 @@ def _make_number_of_donors_array(r):
     >>> nd
     array([0, 2, 0, 0, 4, 1, 2, 1, 0, 0])
     """
-    # Vectorized, DEJH, 5/20/14
-    #    np = len(r)
-    #    nd = numpy.zeros(np, dtype=int)
-    #    for i in range(np):
-    #        nd[r[i]] += 1
-
     nd = numpy.zeros(r.size, dtype=int)
     max_index = numpy.max(r)
     nd[: (max_index + 1)] = numpy.bincount(r)
@@ -149,14 +139,6 @@ def _make_delta_array(nd):
     >>> delta
     array([ 0,  0,  2,  2,  2,  6,  7,  9, 10, 10, 10])
     """
-    # np = len(nd)
-    # delta = numpy.zeros(np+1, dtype=int)
-    # delta[np] = np   # not np+1 as in B&W because here we number from 0
-    # for i in range(np-1, -1, -1):
-    #    delta[i] = delta[i+1] - nd[i]
-    # return delta
-
-    # DEJH efficient delooping (only a small gain)
     np = len(nd)
     delta = numpy.zeros(np + 1, dtype=int)
     delta.fill(np)
@@ -166,8 +148,7 @@ def _make_delta_array(nd):
 
 def _make_array_of_donors(r, delta):
 
-    """
-    Creates and returns an array containing the IDs of donors for each node.
+    """Creates and returns an array containing the IDs of donors for each node.
 
     Essentially, the array is a series of lists (not in the Python list object
     sense) of IDs for each node. See Braun & Willett (2012) for details.
@@ -175,8 +156,6 @@ def _make_array_of_donors(r, delta):
     The example below is from Braun & Willett (2012), and produces D_i in their
     Table 1 (except that here the ID numbers are one less, because we number
     indices from zero).
-
-    Vectorized - inefficiently! - DEJH, 5/20/14
 
     Examples
     --------
@@ -193,25 +172,9 @@ def _make_array_of_donors(r, delta):
     w = numpy.zeros(np, dtype=int)
     D = numpy.zeros(np, dtype=int)
 
-    for i in range(np):
-        ri = r[i]
-        D[delta[ri] + w[ri]] = i
-        w[ri] += 1
+    _make_donors(np, w, D, delta, r)
 
     return D
-
-    # DEJH notes that for reasons he's not clear on, this looped version is
-    # actually much slower!
-    # D = numpy.zeros(np, dtype=int)
-    # wri_fin = numpy.bincount(r)
-    # wri_fin_nz = wri_fin.nonzero()[0]
-    # wri_fin_nz_T = wri_fin_nz.reshape((wri_fin_nz.size,1))
-    # logical = numpy.tile(r,(wri_fin_nz.size,1))==wri_fin_nz_T
-    # cum_logical = numpy.cumsum(logical, axis=1)
-    # wri = numpy.sum(numpy.where(logical, cum_logical-1,0) ,axis=0)
-    # D_index = delta[r] + wri
-    # D[D_index] = numpy.arange(r.size)
-    # return D
 
 
 def make_ordered_node_array(receiver_nodes):
@@ -317,7 +280,7 @@ def find_drainage_area_and_discharge(
     # transmission losses
     _accumulate_bw(np, s, r, drainage_area, discharge)
     # nodes at channel heads can still be negative with this method, so...
-    discharge = discharge.clip(0.)
+    discharge = discharge.clip(0.0)
 
     return drainage_area, discharge
 
@@ -326,13 +289,12 @@ def find_drainage_area_and_discharge_lossy(
     s, r, l, loss_function, grid, node_cell_area=1.0, runoff=1.0, boundary_nodes=None
 ):
 
-    """
-    Calculate the drainage area and water discharge at each node, permitting
+    """Calculate the drainage area and water discharge at each node, permitting
     discharge to fall (or gain) as it moves downstream according to some
     function. Note that only transmission creates loss, so water sourced
-    locally within a cell is always retained. The loss on each link is
-    recorded in the 'surface_water__discharge_loss' link field on the grid;
-    ensure this exists before running the function.
+    locally within a cell is always retained. The loss on each link is recorded
+    in the 'surface_water__discharge_loss' link field on the grid; ensure this
+    exists before running the function.
 
     Parameters
     ----------
@@ -453,7 +415,7 @@ def find_drainage_area_and_discharge_lossy(
         if donor != recvr:
             drainage_area[recvr] += drainage_area[donor]
             discharge_remaining = numpy.clip(
-                loss_function(discharge[donor], donor, lrec, grid), 0., float("inf")
+                loss_function(discharge[donor], donor, lrec, grid), 0.0, float("inf")
             )
             grid.at_node["surface_water__discharge_loss"][donor] = (
                 discharge[donor] - discharge_remaining

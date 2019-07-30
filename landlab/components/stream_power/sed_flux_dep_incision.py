@@ -1,9 +1,6 @@
-from __future__ import print_function
-
 import warnings
 
 import numpy as np
-from six.moves import range
 
 from landlab import Component
 from landlab.core.model_parameter_dictionary import MissingKeyError
@@ -192,12 +189,12 @@ class SedDepEroder(Component):
     def __init__(
         self,
         grid,
-        K_sp=1.e-6,
+        K_sp=1.0e-6,
         g=9.81,
         rock_density=2700,
         sediment_density=2700,
         fluid_density=1000,
-        runoff_rate=1.,
+        runoff_rate=1.0,
         sed_dependency_type="generalized_humped",
         kappa_hump=13.683,
         nu_hump=1.13,
@@ -205,15 +202,15 @@ class SedDepEroder(Component):
         c_hump=0.00181,
         Qc="power_law",
         m_sp=0.5,
-        n_sp=1.,
-        K_t=1.e-4,
+        n_sp=1.0,
+        K_t=1.0e-4,
         m_t=1.5,
-        n_t=1.,
+        n_t=1.0,
         # these params for Qc='MPM':
-        C_MPM=1.,
-        a_sp=1.,
+        C_MPM=1.0,
+        a_sp=1.0,
         b_sp=0.5,
-        c_sp=1.,
+        c_sp=1.0,
         k_w=2.5,
         k_Q=2.5e-7,
         mannings_n=0.05,
@@ -361,7 +358,7 @@ class SedDepEroder(Component):
         )
         self.count_active_links[:-1] = 1
 
-        self._K_unit_time = K_sp / 31557600.
+        self._K_unit_time = K_sp / 31557600.0
         # ^...because we work with dt in seconds
         # set gravity
         self.g = g
@@ -402,7 +399,7 @@ class SedDepEroder(Component):
                 # print("Found a shear stress threshold to use: ", self.thresh)
             else:
                 warnings.warn("Found no incision threshold to use.")
-                self.thresh = 0.
+                self.thresh = 0.0
                 self.set_threshold = False
             self._a = a_sp
             self._b = b_sp
@@ -411,10 +408,10 @@ class SedDepEroder(Component):
             self.k_Q = k_Q
             self.k_w = k_w
             self.mannings_n = mannings_n
-            if mannings_n < 0. or mannings_n > 0.2:
+            if mannings_n < 0.0 or mannings_n > 0.2:
                 warnings.warn("Manning's n outside it's typical range")
 
-            self.diffusivity_power_on_A = 0.9 * self._c * (1. - self._b)
+            self.diffusivity_power_on_A = 0.9 * self._c * (1.0 - self._b)
             # ^i.e., q/D**(1/6)
 
             self.override_threshold = set_threshold_from_Dchar
@@ -439,7 +436,7 @@ class SedDepEroder(Component):
         elif self.Qc == "power_law":
             self._m = m_sp
             self._n = n_sp
-            self._Kt = K_t / 31557600.  # in sec
+            self._Kt = K_t / 31557600.0  # in sec
             self._mt = m_t
             self._nt = n_t
 
@@ -494,7 +491,7 @@ class SedDepEroder(Component):
                     )
 
             # new 11/12/14
-            self.point6onelessb = 0.6 * (1. - self._b)
+            self.point6onelessb = 0.6 * (1.0 - self._b)
             self.shear_stress_prefactor = (
                 self.fluid_density * self.g * (self.mannings_n / self.k_w) ** 0.6
             )
@@ -509,20 +506,20 @@ class SedDepEroder(Component):
                         self.sed_density - self.fluid_density
                     ) * self.g
 
-            twothirds = 2. / 3.
+            twothirds = 2.0 / 3.0
             self.Qs_prefactor = (
-                4.
+                4.0
                 * self.C_MPM ** twothirds
                 * self.fluid_density ** twothirds
                 / (self.sed_density - self.fluid_density) ** twothirds
-                * self.g ** (twothirds / 2.)
+                * self.g ** (twothirds / 2.0)
                 * mannings_n ** 0.6
-                * self.k_w ** (1. / 15.)
-                * self.k_Q ** (0.6 + self._b / 15.)
+                * self.k_w ** (1.0 / 15.0)
+                * self.k_Q ** (0.6 + self._b / 15.0)
                 / self.sed_density ** twothirds
             )
             self.Qs_thresh_prefactor = (
-                4.
+                4.0
                 * (
                     self.C_MPM
                     * self.k_w
@@ -535,7 +532,7 @@ class SedDepEroder(Component):
                 ** twothirds
             )
             # both these are divided by sed density to give a vol flux
-            self.Qs_power_onA = self._c * (0.6 + self._b / 15.)
+            self.Qs_power_onA = self._c * (0.6 + self._b / 15.0)
             self.Qs_power_onAthresh = twothirds * self._b * self._c
 
         self.cell_areas = np.empty(grid.number_of_nodes)
@@ -556,22 +553,22 @@ class SedDepEroder(Component):
                 * np.exp(-self.phi * rel_sed_flux)
             )
         elif self.type == "linear_decline":
-            sed_flux_fn = 1. - rel_sed_flux
+            sed_flux_fn = 1.0 - rel_sed_flux
         elif self.type == "parabolic":
             raise MissingKeyError(
                 "Pure parabolic (where intersect at zero flux is exactly "
                 + "zero) is currently not supported, sorry. Try "
                 + "almost_parabolic instead?"
             )
-            sed_flux_fn = 1. - 4. * (rel_sed_flux - 0.5) ** 2.
+            sed_flux_fn = 1.0 - 4.0 * (rel_sed_flux - 0.5) ** 2.0
         elif self.type == "almost_parabolic":
             sed_flux_fn = np.where(
                 rel_sed_flux > 0.1,
-                1. - 4. * (rel_sed_flux - 0.5) ** 2.,
+                1.0 - 4.0 * (rel_sed_flux - 0.5) ** 2.0,
                 2.6 * rel_sed_flux + 0.1,
             )
         elif self.type == "None":
-            sed_flux_fn = 1.
+            sed_flux_fn = 1.0
         else:
             raise MissingKeyError(
                 "Provided sed flux sensitivity type in input file was not "
@@ -598,7 +595,7 @@ class SedDepEroder(Component):
         elif self.type == "linear_decline":
 
             def sed_flux_fn_gen(rel_sed_flux_in):
-                return 1. - rel_sed_flux_in
+                return 1.0 - rel_sed_flux_in
 
         elif self.type == "parabolic":
             raise MissingKeyError(
@@ -608,21 +605,21 @@ class SedDepEroder(Component):
             )
 
             def sed_flux_fn_gen(rel_sed_flux_in):
-                return 1. - 4. * (rel_sed_flux_in - 0.5) ** 2.
+                return 1.0 - 4.0 * (rel_sed_flux_in - 0.5) ** 2.0
 
         elif self.type == "almost_parabolic":
 
             def sed_flux_fn_gen(rel_sed_flux_in):
                 return np.where(
                     rel_sed_flux_in > 0.1,
-                    1. - 4. * (rel_sed_flux_in - 0.5) ** 2.,
+                    1.0 - 4.0 * (rel_sed_flux_in - 0.5) ** 2.0,
                     2.6 * rel_sed_flux_in + 0.1,
                 )
 
         elif self.type == "None":
 
             def sed_flux_fn_gen(rel_sed_flux_in):
-                return 1.
+                return 1.0
 
         else:
             raise MissingKeyError(
@@ -635,11 +632,11 @@ class SedDepEroder(Component):
             sed_vol_added = prefactor_for_volume * sed_flux_fn
             rel_sed_flux = rel_sed_flux_in + sed_vol_added / trans_cap_vol_out
             # print rel_sed_flux
-            if rel_sed_flux >= 1.:
-                rel_sed_flux = 1.
+            if rel_sed_flux >= 1.0:
+                rel_sed_flux = 1.0
                 break
-            if rel_sed_flux < 0.:
-                rel_sed_flux = 0.
+            if rel_sed_flux < 0.0:
+                rel_sed_flux = 0.0
                 break
         last_sed_flux_fn = sed_flux_fn
         sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
@@ -685,10 +682,10 @@ class SedDepEroder(Component):
         if type(flooded_depths) is str:
             flooded_depths = grid.at_node[flooded_depths]
             # also need a map of initial flooded conds:
-            flooded_nodes = flooded_depths > 0.
+            flooded_nodes = flooded_depths > 0.0
         elif type(flooded_depths) is np.ndarray:
             assert flooded_depths.size == self.grid.number_of_nodes
-            flooded_nodes = flooded_depths > 0.
+            flooded_nodes = flooded_depths > 0.0
             # need an *updateable* record of the pit depths
         else:
             # if None, handle in loop
@@ -758,13 +755,13 @@ class SedDepEroder(Component):
 
             transport_capacity_prefactor_withA = (
                 self.Qs_prefactor
-                * self.runoff_rate ** (0.6 + self._b / 15.)
+                * self.runoff_rate ** (0.6 + self._b / 15.0)
                 * node_A ** self.Qs_power_onA
             )
 
-            internal_t = 0.
+            internal_t = 0.0
             break_flag = False
-            dt_secs = dt * 31557600.
+            dt_secs = dt * 31557600.0
             counter = 0
             rel_sed_flux = np.empty_like(node_Q)
             # excess_vol_overhead = 0.
@@ -777,7 +774,7 @@ class SedDepEroder(Component):
                 # note slopes will be *negative* at pits
                 # track how many loops we perform:
                 counter += 1
-                downward_slopes = node_S.clip(0.)
+                downward_slopes = node_S.clip(0.0)
                 # this removes the tendency to transfer material against
                 # gradient, including in any lake depressions
                 # we DON'T immediately zero trp capacity in the lake.
@@ -787,7 +784,7 @@ class SedDepEroder(Component):
                     transport_capacity_prefactor_withA * slopes_tothe07
                 )
                 trp_diff = (transport_capacities_S - transport_capacities_thresh).clip(
-                    0.
+                    0.0
                 )
                 transport_capacities = np.sqrt(trp_diff * trp_diff * trp_diff)
                 shear_stress = shear_stress_prefactor_timesAparts * slopes_tothe07
@@ -822,13 +819,13 @@ class SedDepEroder(Component):
                         if flooded_nodes is not None:
                             flood_depth = flooded_depths[i]
                         else:
-                            flood_depth = 0.
+                            flood_depth = 0.0
                         sed_flux_into_this_node = sed_into_node[i]
                         node_capacity = transport_capacities[i]
                         # ^we work in volume flux, not volume per se here
                         node_vol_capacity = node_vol_capacities[i]
-                        if flood_depth > 0.:
-                            node_vol_capacity = 0.
+                        if flood_depth > 0.0:
+                            node_vol_capacity = 0.0
                             # requires special case handling - as much sed as
                             # possible is dumped here, then the remainder
                             # passed on
@@ -843,7 +840,7 @@ class SedDepEroder(Component):
                             dz_prefactor = (
                                 self._K_unit_time
                                 * dt_this_step
-                                * (shear_tothe_a[i] - thresh).clip(0.)
+                                * (shear_tothe_a[i] - thresh).clip(0.0)
                             )
                             vol_prefactor = dz_prefactor * cell_area
                             (
@@ -868,7 +865,7 @@ class SedDepEroder(Component):
                             rel_sed_flux[i] = rel_sed_flux_here
                             vol_pass = sed_flux_out
                         else:
-                            rel_sed_flux[i] = 1.
+                            rel_sed_flux[i] = 1.0
                             vol_dropped = sed_flux_into_this_node - node_vol_capacity
                             dz_here = -vol_dropped / cell_area
                             # with the pits, we aim to inhibit incision, but
@@ -876,20 +873,20 @@ class SedDepEroder(Component):
                             # grads, so sed can make it to the bottom of the
                             # pit but no further in a single step, which seems
                             # raeasonable. Pit should fill.
-                            if flood_depth <= 0.:
+                            if flood_depth <= 0.0:
                                 vol_pass = node_vol_capacity
                             else:
                                 height_excess = -dz_here - flood_depth
                                 # ...above water level
-                                if height_excess <= 0.:
-                                    vol_pass = 0.
+                                if height_excess <= 0.0:
+                                    vol_pass = 0.0
                                     # dz_here is already correct
                                     flooded_depths[i] += dz_here
                                 else:
                                     dz_here = -flood_depth
                                     vol_pass = height_excess * cell_area
                                     # ^bit cheeky?
-                                    flooded_depths[i] = 0.
+                                    flooded_depths[i] = 0.0
                                     # note we must update flooded depths
                                     # transiently to conserve mass
                             # do we need to retain a small downhill slope?
@@ -919,15 +916,15 @@ class SedDepEroder(Component):
             transport_capacity_prefactor_withA = self._Kt * node_A ** self._mt
             erosion_prefactor_withA = self._K_unit_time * node_A ** self._m
             # ^doesn't include S**n*f(Qc/Qc)
-            internal_t = 0.
+            internal_t = 0.0
             break_flag = False
-            dt_secs = dt * 31557600.
+            dt_secs = dt * 31557600.0
             counter = 0
             rel_sed_flux = np.empty_like(node_A)
             while 1:
                 counter += 1
                 # print counter
-                downward_slopes = node_S.clip(0.)
+                downward_slopes = node_S.clip(0.0)
                 # positive_slopes = np.greater(downward_slopes, 0.)
                 slopes_tothen = downward_slopes ** self._n
                 slopes_tothent = downward_slopes ** self._nt
@@ -951,13 +948,13 @@ class SedDepEroder(Component):
                     if flooded_nodes is not None:
                         flood_depth = flooded_depths[i]
                     else:
-                        flood_depth = 0.
+                        flood_depth = 0.0
                     sed_flux_into_this_node = sed_into_node[i]
                     node_capacity = transport_capacities[i]
                     # ^we work in volume flux, not volume per se here
                     node_vol_capacity = node_vol_capacities[i]
-                    if flood_depth > 0.:
-                        node_vol_capacity = 0.
+                    if flood_depth > 0.0:
+                        node_vol_capacity = 0.0
                     if sed_flux_into_this_node < node_vol_capacity:
                         # ^note incision is forbidden at capacity
                         dz_prefactor = dt_this_step * erosion_prefactor_withS[i]
@@ -984,29 +981,29 @@ class SedDepEroder(Component):
                         rel_sed_flux[i] = rel_sed_flux_here
                         vol_pass = sed_flux_out
                     else:
-                        rel_sed_flux[i] = 1.
+                        rel_sed_flux[i] = 1.0
                         vol_dropped = sed_flux_into_this_node - node_vol_capacity
                         dz_here = -vol_dropped / cell_area
                         try:
                             isflooded = flooded_nodes[i]
                         except TypeError:  # was None
                             isflooded = False
-                        if flood_depth <= 0. and not isflooded:
+                        if flood_depth <= 0.0 and not isflooded:
                             vol_pass = node_vol_capacity
                             # we want flooded nodes which have already been
                             # filled to enter the else statement
                         else:
                             height_excess = -dz_here - flood_depth
                             # ...above water level
-                            if height_excess <= 0.:
-                                vol_pass = 0.
+                            if height_excess <= 0.0:
+                                vol_pass = 0.0
                                 # dz_here is already correct
                                 flooded_depths[i] += dz_here
                             else:
                                 dz_here = -flood_depth
                                 vol_pass = height_excess * cell_area
                                 # ^bit cheeky?
-                                flooded_depths[i] = 0.
+                                flooded_depths[i] = 0.0
 
                     dz[i] -= dz_here
                     sed_into_node[flow_receiver[i]] += vol_pass

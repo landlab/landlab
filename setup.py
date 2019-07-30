@@ -21,7 +21,7 @@ def find_extensions(path="."):
             os.path.join(root, fname) for fname in files if fname.endswith(".pyx")
         ]
     return [
-        Extension(re.sub("/", ".", ext[: -len(".pyx")]), [ext])
+        Extension(re.sub(re.escape(os.path.sep), ".", ext[: -len(".pyx")]), [ext])
         for ext in extensions
     ]
 
@@ -74,13 +74,22 @@ setup(
     url="https://github.com/landlab",
     description="Plugin-based component modeling tool.",
     long_description=open("README.rst").read(),
-    setup_requires=["cython"],
+    setup_requires=["cython", "numpy"],
+    install_requires=[
+        "bmipy<1",
+        "matplotlib",
+        "netcdf4",
+        "pyyaml",
+        "pyshp",
+        "scipy<1.3",
+        "statsmodels",
+        "xarray",
+    ],
     classifiers=[
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Cython",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: Implementation :: CPython",

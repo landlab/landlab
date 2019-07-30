@@ -1,11 +1,10 @@
 import numpy as np
-import six
 import xarray as xr
 
 from .grouped import GroupError
 from .scalar_data_fields import FieldError
 
-FIELD_LOCATIONS = ("node", "link", "patch", "corner", "face", "cell")
+FIELD_LOCATIONS = ("node", "link", "patch", "corner", "face", "cell", "grid")
 
 
 def reshape_for_storage(array, field_size=None):
@@ -200,7 +199,7 @@ class FieldDataset(dict):
         self._units[name] = attrs["units"]
 
     def __getitem__(self, name):
-        if isinstance(name, six.string_types):
+        if isinstance(name, str):
             try:
                 return self._ds[name].values
             except KeyError:

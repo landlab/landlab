@@ -7,7 +7,7 @@ from landlab import RasterModelGrid
 
 class TestLinkEndsToLink:
     def test_max(self):
-        rmg = RasterModelGrid(4, 5)
+        rmg = RasterModelGrid((4, 5))
         rmg.add_empty("node", "values")
         node_values = rmg.at_node["values"]
         node_values[:] = np.arange(rmg.number_of_nodes)
@@ -54,7 +54,7 @@ class TestLinkEndsToLink:
         )
 
     def test_min(self):
-        rmg = RasterModelGrid(4, 5)
+        rmg = RasterModelGrid((4, 5))
         rmg.add_empty("node", "values")
         node_values = rmg.at_node["values"]
         node_values[:] = np.arange(rmg.number_of_nodes)
@@ -103,7 +103,7 @@ class TestLinkEndsToLink:
 
 class TestNodeToLinkMappers:
     def test_to_node(self):
-        rmg = RasterModelGrid((4, 5), xy_spacing=(1., 1.))
+        rmg = RasterModelGrid((4, 5), xy_spacing=(1.0, 1.0))
         rmg.add_empty("node", "values")
 
         node_values = rmg.at_node["values"]
@@ -260,4 +260,4 @@ class TestNodeToLinkMappers:
 
         cell_values = maps.map_node_to_cell(rmg, "values")
 
-        assert_array_equal(np.array([6., 7., 8., 11., 12., 13.]), cell_values)
+        assert_array_equal(np.array([6.0, 7.0, 8.0, 11.0, 12.0, 13.0]), cell_values)

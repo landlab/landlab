@@ -11,7 +11,6 @@ for a grid in which a node has N neighbors (N might happen to be 8, or not).
 # Created GT Nov 2013
 # Modified to save data to grid directly, DEJH March 2014
 
-from __future__ import print_function
 
 #
 # import landlab
@@ -212,6 +211,7 @@ class FlowRouter(FlowAccumulator):
 
         Examples
         --------
+        >>> import pytest
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.components.flow_routing import FlowRouter
@@ -223,7 +223,8 @@ class FlowRouter(FlowAccumulator):
         ...                  0.,  0.,  0., 0.])
         >>> _ = mg.add_field('node','topographic__elevation', elev)
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-        >>> fr = FlowRouter(mg)
+        >>> with pytest.deprecated_call():
+        ...    fr = FlowRouter(mg)
         >>> mg = fr.route_flow()
         >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
         array([  0,  1,  2,  3,
@@ -246,7 +247,8 @@ class FlowRouter(FlowAccumulator):
 
         >>> _ = mg.add_field('node','topographic__elevation', elev)
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-        >>> fr = FlowRouter(mg)
+        >>> with pytest.deprecated_call():
+        ...     fr = FlowRouter(mg)
         >>> runoff_rate = np.arange(mg.number_of_nodes)
         >>> _ = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
         ...                  noclobber=False)
@@ -257,7 +259,6 @@ class FlowRouter(FlowAccumulator):
                    0.,   900.,  3700.,     0.,
                    0.,  1300.,  1400.,     0.,
                    0.,     0.,     0.,     0.])
-
         """
         self._test_for_method_change(**kwds)
         self.accumulate_flow()
@@ -277,6 +278,7 @@ class FlowRouter(FlowAccumulator):
 
         Examples
         --------
+        >>> import pytest
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> from landlab.components.flow_routing import FlowRouter
@@ -288,7 +290,8 @@ class FlowRouter(FlowAccumulator):
         ...                  0.,  0.,  0., 0.])
         >>> _ = mg.add_field('node','topographic__elevation', elev)
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-        >>> fr = FlowRouter(mg)
+        >>> with pytest.deprecated_call():
+        ...    fr = FlowRouter(mg)
         >>> fr.run_one_step()
         >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
         array([  0,  1,  2,  3,
@@ -315,7 +318,8 @@ class FlowRouter(FlowAccumulator):
         ...                  0.,  0.,  0., 0.])
         >>> _ = mg.add_field('node','topographic__elevation', elev)
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-        >>> fr = FlowRouter(mg, method = 'D4')
+        >>> with pytest.deprecated_call():
+        ...     fr = FlowRouter(mg, method = 'D4')
         >>> fr.run_one_step()
         >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
         array([ 0,  1,  2,  3,
@@ -339,7 +343,8 @@ class FlowRouter(FlowAccumulator):
         >>> dx=(2./(3.**0.5))**0.5
         >>> mg = HexModelGrid(5,3, dx)
         >>> _ = mg.add_field('topographic__elevation', mg.node_x + np.round(mg.node_y), at = 'node')
-        >>> fr = FlowRouter(mg)
+        >>> with pytest.deprecated_call():
+        ...    fr = FlowRouter(mg)
         >>> fr.run_one_step()
         >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
         array([ 0,  1,  2,
@@ -363,7 +368,8 @@ class FlowRouter(FlowAccumulator):
 
         >>> _ = mg.add_field('node','topographic__elevation', elev)
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-        >>> fr = FlowRouter(mg)
+        >>> with pytest.deprecated_call():
+        ...    fr = FlowRouter(mg)
         >>> runoff_rate = np.arange(mg.number_of_nodes)
         >>> _ = mg.add_field('node', 'water__unit_flux_in', runoff_rate,
         ...                  noclobber=False)

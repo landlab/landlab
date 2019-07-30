@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from landlab import HexModelGrid, RasterModelGrid
+from landlab import FieldError, HexModelGrid, NetworkModelGrid, RasterModelGrid
 from landlab.components import LinearDiffuser
 from landlab.components.flow_accum import FlowAccumulator
 from landlab.components.flow_director import (
@@ -36,8 +36,8 @@ def test_check_fields():
     assert_array_equal(np.zeros(100), mg.at_node["drainage_area"])
     assert_array_equal(np.ones(100), mg.at_node["water__unit_flux_in"])
 
-    FlowAccumulator(mg, runoff_rate=2.)
-    assert_array_equal(np.full(100, 2.), mg.at_node["water__unit_flux_in"])
+    FlowAccumulator(mg, runoff_rate=2.0)
+    assert_array_equal(np.full(100, 2.0), mg.at_node["water__unit_flux_in"])
 
 
 def test_director_adding_methods_are_equivalent_Steepest():
@@ -367,34 +367,34 @@ def test_field_name_array_float_case1():
     mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     topographic__elevation = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            21.,
-            10.,
-            0.,
-            0.,
-            31.,
-            20.,
-            0.,
-            0.,
-            32.,
-            30.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            21.0,
+            10.0,
+            0.0,
+            0.0,
+            31.0,
+            20.0,
+            0.0,
+            0.0,
+            32.0,
+            30.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
     mg.add_field("node", "topographic__elevation", topographic__elevation)
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
-    fa = FlowAccumulator(mg, "topographic__elevation", runoff_rate=10.)
+    fa = FlowAccumulator(mg, "topographic__elevation", runoff_rate=10.0)
     assert_array_equal(
-        mg.at_node["water__unit_flux_in"], 10. * np.ones(mg.size("node"))
+        mg.at_node["water__unit_flux_in"], 10.0 * np.ones(mg.size("node"))
     )
 
     fa.run_one_step()
@@ -403,31 +403,52 @@ def test_field_name_array_float_case1():
     )
 
     da = np.array(
-        [0., 1., 5., 0., 0., 1., 5., 0., 0., 1., 4., 0., 0., 1., 2., 0., 0., 0., 0., 0.]
+        [
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            4.0,
+            0.0,
+            0.0,
+            1.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
     )
 
     q = np.array(
         [
-            0.,
-            10.,
-            50.,
-            0.,
-            0.,
-            10.,
-            50.,
-            0.,
-            0.,
-            10.,
-            40.,
-            0.,
-            0.,
-            10.,
-            20.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            10.0,
+            50.0,
+            0.0,
+            0.0,
+            10.0,
+            50.0,
+            0.0,
+            0.0,
+            10.0,
+            40.0,
+            0.0,
+            0.0,
+            10.0,
+            20.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -441,50 +462,50 @@ def test_field_name_array_float_case2():
     mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     topographic__elevation = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            21.,
-            10.,
-            0.,
-            0.,
-            31.,
-            20.,
-            0.,
-            0.,
-            32.,
-            30.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            21.0,
+            10.0,
+            0.0,
+            0.0,
+            31.0,
+            20.0,
+            0.0,
+            0.0,
+            32.0,
+            30.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
     runoff_rate = [
-        1.,
-        1.,
-        1.,
-        1.,
-        2.,
-        2.,
-        2.,
-        2.,
-        3.,
-        3.,
-        3.,
-        3.,
-        4.,
-        4.,
-        4.,
-        4.,
-        5.,
-        5.,
-        5.,
-        5.,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        5.0,
+        5.0,
+        5.0,
+        5.0,
     ]
 
     mg.add_field("node", "topographic__elevation", topographic__elevation)
@@ -500,31 +521,52 @@ def test_field_name_array_float_case2():
     )
 
     da = np.array(
-        [0., 1., 5., 0., 0., 1., 5., 0., 0., 1., 4., 0., 0., 1., 2., 0., 0., 0., 0., 0.]
+        [
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            4.0,
+            0.0,
+            0.0,
+            1.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
     )
 
     q = np.array(
         [
-            0.,
-            2.,
-            16.,
-            0.,  # KRB double checked these numbers by hand 5/15/18 - OK
-            0.,
-            2.,
-            16.,
-            0.,
-            0.,
-            3.,
-            14.,
-            0.,
-            0.,
-            4.,
-            8.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            2.0,
+            16.0,
+            0.0,  # KRB double checked these numbers by hand 5/15/18 - OK
+            0.0,
+            2.0,
+            16.0,
+            0.0,
+            0.0,
+            3.0,
+            14.0,
+            0.0,
+            0.0,
+            4.0,
+            8.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -538,50 +580,50 @@ def test_field_name_array_float_case3():
     mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     topographic__elevation = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            21.,
-            10.,
-            0.,
-            0.,
-            31.,
-            20.,
-            0.,
-            0.,
-            32.,
-            30.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            21.0,
+            10.0,
+            0.0,
+            0.0,
+            31.0,
+            20.0,
+            0.0,
+            0.0,
+            32.0,
+            30.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
     runoff_rate = [
-        1.,
-        1.,
-        1.,
-        1.,
-        2.,
-        2.,
-        2.,
-        2.,
-        3.,
-        3.,
-        3.,
-        3.,
-        4.,
-        4.,
-        4.,
-        4.,
-        5.,
-        5.,
-        5.,
-        5.,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        5.0,
+        5.0,
+        5.0,
+        5.0,
     ]
 
     mg.add_field("node", "topographic__elevation", topographic__elevation)
@@ -596,31 +638,52 @@ def test_field_name_array_float_case3():
     )
 
     da = np.array(
-        [0., 1., 5., 0., 0., 1., 5., 0., 0., 1., 4., 0., 0., 1., 2., 0., 0., 0., 0., 0.]
+        [
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            4.0,
+            0.0,
+            0.0,
+            1.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
     )
 
     q = np.array(
         [
-            0.,
-            2.,
-            16.,
-            0.,  # KRB double checked these numbers by hand 5/15/18 - OK
-            0.,
-            2.,
-            16.,
-            0.,
-            0.,
-            3.,
-            14.,
-            0.,
-            0.,
-            4.,
-            8.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            2.0,
+            16.0,
+            0.0,  # KRB double checked these numbers by hand 5/15/18 - OK
+            0.0,
+            2.0,
+            16.0,
+            0.0,
+            0.0,
+            3.0,
+            14.0,
+            0.0,
+            0.0,
+            4.0,
+            8.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -634,34 +697,34 @@ def test_field_name_array_float_case4():
     mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     topographic__elevation = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            21.,
-            10.,
-            0.,
-            0.,
-            31.,
-            20.,
-            0.,
-            0.,
-            32.,
-            30.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            21.0,
+            10.0,
+            0.0,
+            0.0,
+            31.0,
+            20.0,
+            0.0,
+            0.0,
+            32.0,
+            30.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
     mg.add_field("node", "topographic__elevation", topographic__elevation)
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
-    fa = FlowAccumulator(mg, topographic__elevation, runoff_rate=10.)
+    fa = FlowAccumulator(mg, topographic__elevation, runoff_rate=10.0)
     assert_array_equal(
-        mg.at_node["water__unit_flux_in"], 10. * np.ones(mg.size("node"))
+        mg.at_node["water__unit_flux_in"], 10.0 * np.ones(mg.size("node"))
     )
 
     fa.run_one_step()
@@ -670,31 +733,52 @@ def test_field_name_array_float_case4():
     )
 
     da = np.array(
-        [0., 1., 5., 0., 0., 1., 5., 0., 0., 1., 4., 0., 0., 1., 2., 0., 0., 0., 0., 0.]
+        [
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            4.0,
+            0.0,
+            0.0,
+            1.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
     )
 
     q = np.array(
         [
-            0.,
-            10.,
-            50.,
-            0.,
-            0.,
-            10.,
-            50.,
-            0.,
-            0.,
-            10.,
-            40.,
-            0.,
-            0.,
-            10.,
-            20.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            10.0,
+            50.0,
+            0.0,
+            0.0,
+            10.0,
+            50.0,
+            0.0,
+            0.0,
+            10.0,
+            40.0,
+            0.0,
+            0.0,
+            10.0,
+            20.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -708,50 +792,50 @@ def test_field_name_array_float_case5():
     mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     topographic__elevation = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            21.,
-            10.,
-            0.,
-            0.,
-            31.,
-            20.,
-            0.,
-            0.,
-            32.,
-            30.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            21.0,
+            10.0,
+            0.0,
+            0.0,
+            31.0,
+            20.0,
+            0.0,
+            0.0,
+            32.0,
+            30.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
     runoff_rate = [
-        1.,
-        1.,
-        1.,
-        1.,
-        2.,
-        2.,
-        2.,
-        2.,
-        3.,
-        3.,
-        3.,
-        3.,
-        4.,
-        4.,
-        4.,
-        4.,
-        5.,
-        5.,
-        5.,
-        5.,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        5.0,
+        5.0,
+        5.0,
+        5.0,
     ]
 
     mg.add_field("node", "topographic__elevation", topographic__elevation)
@@ -767,31 +851,52 @@ def test_field_name_array_float_case5():
     )
 
     da = np.array(
-        [0., 1., 5., 0., 0., 1., 5., 0., 0., 1., 4., 0., 0., 1., 2., 0., 0., 0., 0., 0.]
+        [
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            4.0,
+            0.0,
+            0.0,
+            1.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
     )
 
     q = np.array(
         [
-            0.,
-            2.,
-            16.,
-            0.,  # KRB double checked these numbers by hand 5/15/18 - OK
-            0.,
-            2.,
-            16.,
-            0.,
-            0.,
-            3.,
-            14.,
-            0.,
-            0.,
-            4.,
-            8.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            2.0,
+            16.0,
+            0.0,  # KRB double checked these numbers by hand 5/15/18 - OK
+            0.0,
+            2.0,
+            16.0,
+            0.0,
+            0.0,
+            3.0,
+            14.0,
+            0.0,
+            0.0,
+            4.0,
+            8.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -805,50 +910,50 @@ def test_field_name_array_float_case6():
     mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     topographic__elevation = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            21.,
-            10.,
-            0.,
-            0.,
-            31.,
-            20.,
-            0.,
-            0.,
-            32.,
-            30.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            21.0,
+            10.0,
+            0.0,
+            0.0,
+            31.0,
+            20.0,
+            0.0,
+            0.0,
+            32.0,
+            30.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
     runoff_rate = [
-        1.,
-        1.,
-        1.,
-        1.,
-        2.,
-        2.,
-        2.,
-        2.,
-        3.,
-        3.,
-        3.,
-        3.,
-        4.,
-        4.,
-        4.,
-        4.,
-        5.,
-        5.,
-        5.,
-        5.,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        5.0,
+        5.0,
+        5.0,
+        5.0,
     ]
 
     mg.add_field("node", "topographic__elevation", topographic__elevation)
@@ -863,31 +968,52 @@ def test_field_name_array_float_case6():
     )
 
     da = np.array(
-        [0., 1., 5., 0., 0., 1., 5., 0., 0., 1., 4., 0., 0., 1., 2., 0., 0., 0., 0., 0.]
+        [
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            4.0,
+            0.0,
+            0.0,
+            1.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
     )
 
     q = np.array(
         [
-            0.,
-            2.,
-            16.,
-            0.,  # KRB double checked these numbers by hand 5/15/18 - OK
-            0.,
-            2.,
-            16.,
-            0.,
-            0.,
-            3.,
-            14.,
-            0.,
-            0.,
-            4.,
-            8.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            2.0,
+            16.0,
+            0.0,  # KRB double checked these numbers by hand 5/15/18 - OK
+            0.0,
+            2.0,
+            16.0,
+            0.0,
+            0.0,
+            3.0,
+            14.0,
+            0.0,
+            0.0,
+            4.0,
+            8.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -904,31 +1030,31 @@ def test_flow_accumulator_properties():
 
     node_drainage_area = np.array(
         [
-            0.,
-            3.,
-            3.,
-            3.,
-            0.,
-            0.,
-            3.,
-            3.,
-            3.,
-            0.,
-            0.,
-            2.,
-            2.,
-            2.,
-            0.,
-            0.,
-            1.,
-            1.,
-            1.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            3.0,
+            3.0,
+            3.0,
+            0.0,
+            0.0,
+            3.0,
+            3.0,
+            3.0,
+            0.0,
+            0.0,
+            2.0,
+            2.0,
+            2.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -985,7 +1111,7 @@ def test_bad_director_name():
 def test_bad_director_instance():
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    ld = LinearDiffuser(mg, linear_diffusivity=1.)
+    ld = LinearDiffuser(mg, linear_diffusivity=1.0)
     with pytest.raises(ValueError):
         FlowAccumulator(mg, flow_director=ld)
 
@@ -1023,7 +1149,7 @@ def test_depression_finder_as_instance():
 def test_depression_finder_bad_instance():
     mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    ld = LinearDiffuser(mg, linear_diffusivity=1.)
+    ld = LinearDiffuser(mg, linear_diffusivity=1.0)
     with pytest.raises(ValueError):
         FlowAccumulator(mg, flow_director="D8", depression_finder=ld)
 
@@ -1057,7 +1183,7 @@ def test_flat_grids_all_directors():
         "FlowDirectorD8",
         "FlowDirectorDINF",
     ]:
-        mg = RasterModelGrid(10, 10)
+        mg = RasterModelGrid((10, 10))
         z = mg.add_zeros("topographic__elevation", at="node")
         fa = FlowAccumulator(mg, flow_director=fd)
         fa.run_one_step()
@@ -1066,3 +1192,13 @@ def test_flat_grids_all_directors():
         true_da[mg.core_nodes] = 1.0
         assert_array_equal(true_da, fa.drainage_area)
         del mg, z, fa
+
+
+def test_nmg_no_cell_area():
+    y_of_node = (0, 1, 2, 2)
+    x_of_node = (0, 0, -1, 1)
+    nodes_at_link = ((1, 0), (2, 1), (3, 1))
+    nmg = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
+    nmg.add_field("topographic__elevation", nmg.x_of_node + nmg.y_of_node, at="node")
+    with pytest.raises(FieldError):
+        FlowAccumulator(nmg)

@@ -1,5 +1,4 @@
 import numpy as np
-from six.moves import range
 
 from ...core.utils import as_id_array
 from ...utils.jaggedarray import JaggedArray
@@ -91,8 +90,8 @@ def find_active_links(node_status, node_at_link_ends):
     return as_id_array(active_link_ids)
 
 
-def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
-    """in_link_count_per_node((node0, node1), number_of_nodes=None)
+def in_link_count_per_node(node_at_link_ends, number_of_nodes=0):
+    """in_link_count_per_node((node0, node1), number_of_nodes=0)
     Number of links entering nodes.
 
     Parameters
@@ -121,8 +120,8 @@ def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
     return as_id_array(np.bincount(node_at_link_end, minlength=number_of_nodes))
 
 
-def out_link_count_per_node(node_at_link_ends, number_of_nodes=None):
-    """out_link_count_per_node((node0, node1), number_of_nodes=None)
+def out_link_count_per_node(node_at_link_ends, number_of_nodes=0):
+    """out_link_count_per_node((node0, node1), number_of_nodes=0)
     Number of links leaving nodes.
 
     Parameters
@@ -196,8 +195,8 @@ def _sort_links_by_node(node_at_link_ends, link_ids=None, sortby=0):
         return as_id_array(sorted_links)
 
 
-def in_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None):
-    """in_link_ids_at_node((node0, node1), number_of_nodes=None)
+def in_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=0):
+    """in_link_ids_at_node((node0, node1), number_of_nodes=0)
     Links entering nodes.
 
     Parameters

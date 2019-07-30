@@ -8,36 +8,16 @@ environment:
     WITH_COMPILER: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
 
   matrix:
-    - TARGET_ARCH: x86
-      CONDA_NPY: 111
-      CONDA_PY: 27
-      CONDA_INSTALL_LOCN: C:\\Miniconda
-
-    - TARGET_ARCH: x64
-      CONDA_NPY: 111
-      CONDA_PY: 27
-      CONDA_INSTALL_LOCN: C:\\Miniconda-x64
-      DISTUTILS_USE_SDK: 1
-
-    - TARGET_ARCH: x86
-      CONDA_NPY: 111
-      CONDA_INSTALL_LOCN: C:\\Miniconda37
-      CONDA_PY: 37
 
     - TARGET_ARCH: x64
       CONDA_NPY: 111
       CONDA_INSTALL_LOCN: C:\\Miniconda37-x64
-      CONDA_PY: 37
-
-    - TARGET_ARCH: x86
-      CONDA_NPY: 111
-      CONDA_INSTALL_LOCN: C:\\Miniconda36
-      CONDA_PY: 36
+      CONDA_PY: 3.7
 
     - TARGET_ARCH: x64
       CONDA_NPY: 111
       CONDA_INSTALL_LOCN: C:\\Miniconda36-x64
-      CONDA_PY: 36
+      CONDA_PY: 3.6
 
 platform:
   - x64
@@ -53,23 +33,17 @@ install:
   - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
   - cmd: conda update --yes --quiet conda
   - cmd: set PYTHONUNBUFFERED=1
-  - cmd: conda info
   - cmd: conda config --set always_yes yes
-  - cmd: conda update conda
-  - cmd: conda install -q --force --no-deps psutil ruamel_yaml requests
-  - cmd: conda install -q conda-build
-  - cmd: conda install -q anaconda-client
-  - cmd: conda install -q numpy=1.11
-  - cmd: conda config --append channels conda-forge
-  - cmd: pip install twine
+  - cmd: pip install twine pytest pytest-cov pytest-datadir
+  - cmd: conda info
   - cmd: conda list
 
 build: false
 
 test_script:
-  - "%WITH_COMPILER% conda build -q .conda-recipe --old-build-string"
-  # - cmd: conda install -q landlab --use-local
-  # - cmd: python scripts/test-installed-landlab.py
+  - "%WITH_COMPILER% pip install numpy"
+  - "%WITH_COMPILER% pip install -e ."
+  - pytest -vvv
 
 after_test:
   - cmd: python setup.py bdist_wheel
@@ -79,7 +53,6 @@ artifacts:
   - path: 'dist\*'
 
 deploy_script:
-  - cmd: python .ci/appveyor/anaconda_upload.py
   - cmd: python .ci/appveyor/pypi_upload.py
 
 notifications:

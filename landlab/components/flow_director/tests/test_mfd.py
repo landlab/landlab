@@ -1,4 +1,3 @@
-
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
@@ -104,7 +103,7 @@ def test_mfd_flat_closed_upper():
 
 
 def test_MFD_SW_slope():
-    mg = RasterModelGrid(10, 10, xy_spacing=(1, 1))
+    mg = RasterModelGrid((10, 10))
     mg.add_field("topographic__elevation", mg.node_y + mg.node_x, at="node")
     fa = FlowAccumulator(mg, flow_director="FlowDirectorMFD")
     fa.run_one_step()
@@ -127,7 +126,7 @@ def test_MFD_SW_slope():
 
 
 def test_MFD_SW_slope_w_diags():
-    mg = RasterModelGrid(10, 10, xy_spacing=(1, 1))
+    mg = RasterModelGrid((10, 10))
     mg.add_field("topographic__elevation", mg.node_y + mg.node_x, at="node")
     fa = FlowAccumulator(mg, flow_director="FlowDirectorMFD", diagonals=True)
     fa.run_one_step()
@@ -146,11 +145,11 @@ def test_MFD_SW_slope_w_diags():
     true_proportions = np.zeros(fa.flow_director.proportions.shape)
     true_proportions[mg.boundary_nodes, 0] = 1
 
-    total_sum_of_slopes = 1. + 1. + (2. / 2. ** 0.5)
+    total_sum_of_slopes = 1.0 + 1.0 + (2.0 / 2.0 ** 0.5)
 
     true_proportions[mg.core_nodes, 2] = 1.0 / total_sum_of_slopes
     true_proportions[mg.core_nodes, 3] = 1.0 / total_sum_of_slopes
-    true_proportions[mg.core_nodes, 6] = (2. / 2. ** 0.5) / total_sum_of_slopes
+    true_proportions[mg.core_nodes, 6] = (2.0 / 2.0 ** 0.5) / total_sum_of_slopes
 
     assert_array_equal(true_recievers, fa.flow_director.receivers)
     assert_array_almost_equal(true_proportions, fa.flow_director.proportions)
@@ -158,7 +157,7 @@ def test_MFD_SW_slope_w_diags():
 
 # %%
 def test_MFD_S_slope():
-    mg = RasterModelGrid(10, 10, xy_spacing=(1, 1))
+    mg = RasterModelGrid((10, 10))
     mg.add_field("topographic__elevation", mg.node_y, at="node")
     fa = FlowAccumulator(mg, flow_director="FlowDirectorMFD")
     fa.run_one_step()
@@ -179,7 +178,7 @@ def test_MFD_S_slope():
 
 
 def test_MFD_S_slope_w_diag():
-    mg = RasterModelGrid(10, 10, xy_spacing=(1, 1))
+    mg = RasterModelGrid((10, 10))
     mg.add_field("topographic__elevation", mg.node_y, at="node")
     fa = FlowAccumulator(mg, flow_director="FlowDirectorMFD", diagonals=True)
     fa.run_one_step()
@@ -198,11 +197,11 @@ def test_MFD_S_slope_w_diag():
     true_proportions = np.zeros(fa.flow_director.proportions.shape)
     true_proportions[mg.boundary_nodes, 0] = 1
 
-    total_sum_of_slopes = 1. + 2. * (1. / 2. ** 0.5)
+    total_sum_of_slopes = 1.0 + 2.0 * (1.0 / 2.0 ** 0.5)
 
     true_proportions[mg.core_nodes, 3] = 1.0 / total_sum_of_slopes
-    true_proportions[mg.core_nodes, 6] = (1. / 2. ** 0.5) / total_sum_of_slopes
-    true_proportions[mg.core_nodes, 7] = (1. / 2. ** 0.5) / total_sum_of_slopes
+    true_proportions[mg.core_nodes, 6] = (1.0 / 2.0 ** 0.5) / total_sum_of_slopes
+    true_proportions[mg.core_nodes, 7] = (1.0 / 2.0 ** 0.5) / total_sum_of_slopes
 
     assert_array_equal(true_recievers, fa.flow_director.receivers)
     assert_array_almost_equal(true_proportions, fa.flow_director.proportions)

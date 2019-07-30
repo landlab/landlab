@@ -3,7 +3,6 @@ import os
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
-from six.moves import range
 
 from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components import FlowAccumulator, StreamPowerEroder
@@ -19,36 +18,36 @@ def test_sp_widths():
     dx = inputs.read_float("dx")
     dt = inputs.read_float("dt")
 
-    mg = RasterModelGrid(nrows, ncols, xy_spacing=dx)
+    mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
     widths = np.ones(mg.number_of_nodes, dtype=float)
     mg.add_zeros("topographic__elevation", at="node")
     z = np.array(
         [
-            5.,
-            5.,
-            0.,
-            5.,
-            5.,
-            5.,
-            2.,
-            1.,
-            2.,
-            5.,
-            5.,
-            3.,
-            2.,
-            3.,
-            5.,
-            5.,
-            4.,
-            4.,
-            4.,
-            5.,
-            5.,
-            5.,
-            5.,
-            5.,
-            5.,
+            5.0,
+            5.0,
+            0.0,
+            5.0,
+            5.0,
+            5.0,
+            2.0,
+            1.0,
+            2.0,
+            5.0,
+            5.0,
+            3.0,
+            2.0,
+            3.0,
+            5.0,
+            5.0,
+            4.0,
+            4.0,
+            4.0,
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            5.0,
         ]
     )
     mg["node"]["topographic__elevation"] = z
@@ -68,31 +67,31 @@ def test_sp_widths():
 
     z_tg = np.array(
         [
-            5.,
-            5.,
-            0.,
-            5.,
-            5.,
-            5.,
+            5.0,
+            5.0,
+            0.0,
+            5.0,
+            5.0,
+            5.0,
             1.37222369,
             0.36876358,
             1.37222369,
-            5.,
-            5.,
+            5.0,
+            5.0,
             2.17408606,
             1.07986038,
             2.17408606,
-            5.,
-            5.,
+            5.0,
+            5.0,
             3.08340277,
             2.85288049,
             3.08340277,
-            5.,
-            5.,
-            5.,
-            5.,
-            5.,
-            5.,
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            5.0,
+            5.0,
         ]
     )
 

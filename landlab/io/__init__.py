@@ -1,16 +1,20 @@
 """
 Modules that read/write ModelGrids from various file formats.
 """
-from .shapefile import read_shapefile
-from .esri_ascii import read_esri_ascii, read_asc_header, write_esri_ascii
 from .esri_ascii import (
-    MissingRequiredKeyError,
+    BadHeaderLineError,
+    DataSizeError,
     KeyTypeError,
     KeyValueError,
-    DataSizeError,
-    BadHeaderLineError,
     MismatchGridDataSizeError,
+    MismatchGridXYLowerLeft,
+    MismatchGridXYSpacing,
+    MissingRequiredKeyError,
+    read_asc_header,
+    read_esri_ascii,
+    write_esri_ascii,
 )
+from .shapefile import read_shapefile
 
 __all__ = [
     "read_esri_ascii",
@@ -23,4 +27,6 @@ __all__ = [
     "BadHeaderLineError",
     "KeyValueError",
     "MismatchGridDataSizeError",
+    "MismatchGridXYSpacing",
+    "MismatchGridXYLowerLeft",
 ]

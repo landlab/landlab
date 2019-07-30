@@ -1,10 +1,9 @@
-"""Test HexGraph and DualHexGraph."""
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 from pytest import approx
 
-from landlab.graph import HexGraph
+from landlab.graph import TriGraph
 from landlab.graph.hex.ext.hex import (
     fill_xy_of_node_hex_vertical,
     fill_xy_of_node_rect_vertical,
@@ -82,7 +81,7 @@ def test_create_hex_graph(n_rows, node_layout, orientation, at):
         shape = (2, n_rows)
     else:
         shape = (n_rows, 2)
-    graph = HexGraph(shape, node_layout=node_layout, orientation=orientation)
+    graph = TriGraph(shape, node_layout=node_layout, orientation=orientation)
     assert (
         getattr(graph, "number_of_{at}".format(at=at))
         == expected[node_layout][orientation][at]
@@ -91,7 +90,7 @@ def test_create_hex_graph(n_rows, node_layout, orientation, at):
 
 def test_create_rect():
     """Test creating a hex graph with rectangular layout."""
-    graph = HexGraph((3, 2), node_layout="rect")
+    graph = TriGraph((3, 2), node_layout="rect")
 
     assert graph.number_of_nodes == 6
     assert graph.number_of_links == 9
@@ -100,7 +99,7 @@ def test_create_rect():
 
 def test_create_hex():
     """Test creating a hex graph with hex layout."""
-    graph = HexGraph((3, 2), node_layout="hex")
+    graph = TriGraph((3, 2), node_layout="hex")
 
     assert graph.number_of_nodes == 7
     assert graph.number_of_links == 12
@@ -110,7 +109,7 @@ def test_create_hex():
 @pytest.mark.skip
 def test_create_rect1():
     """Test creating a hex graph."""
-    graph = HexGraph((3, 2), node_layout="rect1")
+    graph = TriGraph((3, 2), node_layout="rect1")
 
     assert graph.number_of_nodes == 7
     assert graph.number_of_links == 12
@@ -119,10 +118,10 @@ def test_create_rect1():
 
 def test_spacing():
     """Test spacing of nodes."""
-    graph = HexGraph((20, 31))
+    graph = TriGraph((20, 31))
     assert_array_almost_equal(graph.length_of_link, 1.0)
 
-    graph = HexGraph((31, 20), spacing=2)
+    graph = TriGraph((31, 20), spacing=2)
     assert_array_almost_equal(graph.length_of_link, 2.0)
 
 
@@ -132,12 +131,12 @@ def test_spacing():
 @pytest.mark.parametrize("node_layout", ("hex", "rect"))
 def test_origin_keyword(node_layout, orientation, n_rows, n_cols):
     """Test setting the origin."""
-    graph = HexGraph((n_rows, n_cols))
+    graph = TriGraph((n_rows, n_cols))
 
     assert np.min(graph.x_of_node) == approx(0.0)
     assert np.min(graph.y_of_node) == approx(0.0)
 
-    graph = HexGraph((n_rows, n_cols), origin=(0.5, 0.25))
+    graph = TriGraph((n_rows, n_cols), origin=(0.5, 0.25))
 
     assert np.min(graph.x_of_node[0]) == approx(0.5)
     assert np.min(graph.y_of_node[0]) == approx(0.25)
@@ -145,29 +144,29 @@ def test_origin_keyword(node_layout, orientation, n_rows, n_cols):
 
 def test_orientation():
     """Test vertical and horizontal orientation."""
-    graph = HexGraph((3, 3), orientation="vertical")
+    graph = TriGraph((3, 3), orientation="vertical")
     assert_array_almost_equal(
         graph.y_of_node, [0.0, 0.0, 0.5, 1.0, 1.0, 1.5, 2.0, 2.0, 2.5]
     )
 
-    graph = HexGraph((3, 3), orientation="horizontal")
+    graph = TriGraph((3, 3), orientation="horizontal")
     assert_array_almost_equal(
         graph.x_of_node, [0.0, 1.0, 2.0, 0.5, 1.5, 2.5, 0.0, 1.0, 2.0]
     )
 
 
 def test_perimeter_nodes_rect():
-    graph = HexGraph((3, 4), node_layout="rect")
+    graph = TriGraph((3, 4), node_layout="rect")
     assert_array_equal(graph.perimeter_nodes, [3, 7, 11, 10, 9, 8, 4, 0, 1, 2])
 
 
 def test_perimeter_nodes_hex():
-    graph = HexGraph((4, 2), node_layout="hex")
+    graph = TriGraph((4, 2), node_layout="hex")
     assert_array_equal(graph.perimeter_nodes, [1, 4, 8, 11, 10, 9, 5, 2, 0])
 
 
 def test_adjacent_nodes_at_node():
-    graph = HexGraph((3, 3), node_layout="hex")
+    graph = TriGraph((3, 3), node_layout="hex")
     assert_array_equal(
         graph.adjacent_nodes_at_node,
         [
