@@ -52,7 +52,7 @@ class RadialGraph(DelaunayGraph):
     array([ 0., -1.,  0.,  1.,  0.])
     """
 
-    def __init__(self, shape, spacing=1.0, origin=(0.0, 0.0), sort=True):
+    def __init__(self, shape, spacing=1.0, origin=(0.0, 0.0), sort=False):
         """Create a structured grid of triangles arranged radially.
 
         Parameters
