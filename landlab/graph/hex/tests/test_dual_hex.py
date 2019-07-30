@@ -1,7 +1,7 @@
 """Test HexGraph and DualHexGraph."""
 import numpy as np
 from numpy.testing import assert_array_almost_equal, assert_array_equal
-from pytest import approx
+from pytest import approx, mark
 
 from landlab.graph import DualHexGraph
 
@@ -34,6 +34,7 @@ def test_create_hex():
     assert graph.number_of_cells == 5
 
 
+@mark.skip("rect1 is not supported")
 def test_create_rect1():
     """Test creating a dual hex graph."""
     graph = DualHexGraph((4, 3), node_layout="rect1")
@@ -47,6 +48,7 @@ def test_create_rect1():
     assert graph.number_of_cells == 3
 
 
+@mark.skip("rect1 is not supported")
 def test_spacing():
     """Test spacing of nodes."""
     graph = DualHexGraph((20, 31), node_layout="rect1")
@@ -64,7 +66,7 @@ def test_origin():
     assert graph.x_of_node[0] == approx(0.0)
     assert graph.x_of_corner[0] == approx(1.5)
 
-    graph = DualHexGraph((4, 3), origin=(0.5, 0.25))
+    graph = DualHexGraph((4, 3), origin=(0.25, 0.5))
 
     assert graph.y_of_node[0] == approx(0.5)
     assert graph.x_of_node[0] == approx(0.25)
