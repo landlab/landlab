@@ -1438,67 +1438,6 @@ class RasterModelGrid(
         """
         return rfuncs.find_nearest_node(self, coords, mode=mode)
 
-    @property
-    @cache_result_in_object()
-    def length_of_link(self):
-        """Get lengths of links.
-
-        Return the link lengths in the grid, as a nlinks-long array.
-
-        Returns
-        -------
-        (4, N) ndarray
-            Link lengths.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 3), xy_spacing=(4, 3))
-        >>> grid.length_of_link
-        array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
-
-        LLCATS: LINF MEAS
-        """
-        length_of_link = np.empty(self.number_of_links, dtype=float)
-        length_of_link[self.vertical_links] = self.dy
-        length_of_link[self.horizontal_links] = self.dx
-
-        return length_of_link
-
-    def _create_length_of_link(self):
-        """Calculate link lengths for a raster grid.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 4), xy_spacing=(3, 2))
-        >>> grid._create_length_of_link() # doctest: +NORMALIZE_WHITESPACE
-        array([ 3., 3., 3.,
-                2., 2., 2., 2.,
-                3., 3., 3.,
-                2., 2., 2., 2.,
-                3., 3., 3.])
-
-        >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
-        >>> grid._create_length_of_link() # doctest: +NORMALIZE_WHITESPACE
-        array([ 2., 2.,
-                1., 1., 1.,
-                2., 2.,
-                1., 1., 1.,
-                2., 2.])
-
-        Notes
-        -----
-        We initially set all lengths to dy. Then we loop over each row, setting
-        the horizontal links in that row to dx.
-        """
-        if self._link_length is None:
-            self._link_length = np.empty(self.number_of_links, dtype=float)
-            self._link_length[self.vertical_links] = self.dy
-            self._link_length[self.horizontal_links] = self.dx
-
-        return self._link_length
-
     def set_closed_boundaries_at_grid_edges(
         self, right_is_closed, top_is_closed, left_is_closed, bottom_is_closed
     ):
