@@ -404,7 +404,14 @@ class RasterModelGrid(
 
         return new
 
-    def __init__(self, *args, **kwds):
+    def __init__(
+        self,
+        shape,
+        xy_spacing=1.0,
+        xy_of_lower_left=(0.0, 0.0),
+        xy_of_reference=(0.0, 0.0),
+        bc=None,
+    ):
         """Create a 2D grid with equal spacing.
 
         Optionally takes numbers of rows and columns and cell size as
@@ -443,23 +450,24 @@ class RasterModelGrid(
         defined. Either we force users to give arguments on instantiation,
         or set it up such that one can create a zero-node grid.
         """
-        args, kwds = self._parse_parameters(args, kwds)
+        # args, kwds = self._parse_parameters(args, kwds)
 
-        shape = args[0]
-        xy_spacing = np.broadcast_to(kwds.get("xy_spacing", 1.0), 2)
-        xy_of_lower_left = kwds.get("xy_of_lower_left", (0.0, 0.0))
+        # shape = args[0]
+        shape = tuple(shape)
+        xy_spacing = np.asfarray(np.broadcast_to(xy_spacing, 2))
+        xy_of_lower_left = np.asfarray(xy_of_lower_left)
 
         if shape[0] <= 0 or shape[1] <= 0:
             raise ValueError("number of rows and columns must be positive")
 
-        shape = (num_rows, num_cols)
-        spacing = np.asfarray(np.broadcast_to(dx, (2,)))
-        origin = np.asfarray(np.broadcast_to(origin, (2,)))
+        # shape = (num_rows, num_cols)
+        # spacing = np.asfarray(np.broadcast_to(dx, (2,)))
+        # origin = np.asfarray(np.broadcast_to(origin, (2,)))
 
         DualUniformRectilinearGraph.__init__(
-            self, shape, spacing=xy_spacing, origin=xy_of_lower_left
+            self, shape, spacing=xy_spacing[::-1], origin=xy_of_lower_left[::-1]
         )
-        ModelGrid.__init__(self, **kwds)
+        ModelGrid.__init__(self) #, **kwds)
 
         self._node_status = np.full(
             self.number_of_nodes, self.BC_NODE_IS_CORE, dtype=np.uint8
@@ -467,13 +475,12 @@ class RasterModelGrid(
         self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
 
         self._DEBUG_TRACK_METHODS = False
-        bc_at_edges = kwds.pop(
-            "bc", {"right": "open", "top": "open", "left": "open", "bottom": "open"}
-        )
-        if "closed" in bc_at_edges.values():
-            self.set_closed_boundaries_at_grid_edges(
-                *grid_edge_is_closed_from_dict(bc_at_edges)
-            )
+
+        if bc is None:
+            bc = {"right": "open", "top": "open", "left": "open", "bottom": "open"}
+
+        if "closed" in bc.values():
+            self.set_closed_boundaries_at_grid_edges(*grid_edge_is_closed_from_dict(bc))
 
         self.looped_node_properties = {}
             
@@ -893,7 +900,7 @@ class RasterModelGrid(
 
         LLCATS: NINF
         """
-        return super(RasterModelGrid, self).nodes
+        return super(RasterModelGrid, self).nodes.reshape(self.shape)
 
     def _create_cell_areas_array(self):
         """Set up array of cell areas.
