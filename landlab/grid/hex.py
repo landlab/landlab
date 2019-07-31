@@ -57,22 +57,19 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     have 2 nodes, and the second nodes.
 
     >>> from landlab import HexModelGrid
-    >>> hmg = HexModelGrid(shape=(3, 2), dx=1.0)
+    >>> hmg = HexModelGrid((3, 2), spacing=1.0)
     >>> hmg.number_of_nodes
     7
     """
 
     def __init__(
         self,
-        base_num_rows=0,
-        base_num_cols=0,
-        dx=1.0,
+        shape,
+        spacing=1.0,
         xy_of_lower_left=(0.0, 0.0),
         orientation="horizontal",
         node_layout="hex",
         reorient_links=True,
-        shape=None,
-        **kwds
     ):
         """Create a grid of hexagonal cells.
 
@@ -82,11 +79,9 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         Parameters
         ----------
-        base_num_rows : int
-            Number of rows of nodes in the left column.
-        base_num_cols : int
-            Number of nodes on the first row.
-        dx : float, optional
+        shape : tuple of int
+            Number of rows and columns of nodes.
+        spacing : float, optional
             Node spacing.
         xy_of_lower_left : tuple, optional
             Minimum x-of-node and y-of-node values. Depending on the grid
@@ -97,8 +92,8 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         orientation : string, optional
             One of the 3 cardinal directions in the grid, either 'horizontal'
             (default) or 'vertical'
-        shape : string
-            Either 'hex' (default) or 'rect'
+        node_layout : {"hex", "rect"}
+            The grid layout of nodes.
         reorient_links : bool, optional
             Whether or not to re-orient all links to point between -45 deg
             and +135 deg clockwise from "north" (i.e., along y axis). default
@@ -115,26 +110,27 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         have 2 nodes, and the second nodes.
 
         >>> from landlab import HexModelGrid
-        >>> hmg = HexModelGrid(3, 2, 1.0)
+        >>> hmg = HexModelGrid((3, 2), spacing=1.0)
         >>> hmg.number_of_nodes
         7
         """
-        node_layout = shape
-        shape = (base_num_rows, base_num_cols)
-        spacing = dx
+        # node_layout = shape
+        # shape = (base_num_rows, base_num_cols)
+        # spacing = dx
 
         DualHexGraph.__init__(
             self,
             shape,
             spacing=spacing,
-            origin=origin,
+            xy_of_lower_left=xy_of_lower_left,
             orientation=orientation,
             node_layout=node_layout,
         )
-        ModelGrid.__init__(self, **kwds)
+        ModelGrid.__init__(self) #, **kwds)
 
-        self._node_status = numpy.full(self.number_of_nodes,
-                                       self.BC_NODE_IS_CORE, dtype=numpy.uint8)
+        self._node_status = numpy.full(
+            self.number_of_nodes, self.BC_NODE_IS_CORE, dtype=numpy.uint8
+        )
         self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
 
     @property
@@ -161,18 +157,18 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid(3, 3, node_layout='rect', dx=2.0)
+        >>> hg = HexModelGrid((3, 3), node_layout="rect", spacing=2.0)
         >>> hg.status_at_node
         array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=uint8)
-        >>> hg = HexModelGrid((3, 3), shape='rect', orientation="vertical")
+        >>> hg = HexModelGrid((3, 3), node_layout="rect", orientation="vertical")
         >>> hg.status_at_node
         array([1, 1, 1, 1, 1, 0, 1, 1, 1], dtype=uint8)
-        >>> hg = HexModelGrid((4, 4), shape='rect', orientation="vertcal")
+        >>> hg = HexModelGrid((4, 4), node_layout='rect', orientation="vertical")
         >>> hg.status_at_node
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
         >>> hg.boundary_nodes
         array([ 0,  1,  2,  3,  4,  7,  8, 11, 12, 13, 14, 15])
-        >>> hg = HexModelGrid(3, 4, node_layout='rect')
+        >>> hg = HexModelGrid((3, 4), node_layout="rect")
         >>> hg.status_at_node
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
         """
@@ -476,7 +472,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(5, 5, node_layout='rect')
+        >>> grid = HexModelGrid((5, 5), node_layout="rect")
         >>> grid.number_of_node_columns
         5
 
@@ -499,7 +495,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(5, 5, node_layout='rect')
+        >>> grid = HexModelGrid((5, 5), node_layout="rect")
         >>> grid.number_of_node_rows
         5
 
@@ -513,10 +509,10 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid((3, 4), shape='rect', orientation='vertical')
+        >>> grid = HexModelGrid((3, 4), node_layout='rect', orientation="vertical")
         >>> grid.node_row_and_column(5)
         (1, 2)
-        >>> grid = HexModelGrid((3, 5), shape='rect', orientation='vertical')
+        >>> grid = HexModelGrid((3, 5), node_layout='rect', orientation="vertical")
         >>> grid.node_row_and_column(13)
         (2, 1)
         """
@@ -696,7 +692,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> hmg = HexModelGrid(5, 4)
+        >>> hmg = HexModelGrid((5, 4))
         >>> hmg.node_has_boundary_neighbor(6)
         True
         >>> hmg.node_has_boundary_neighbor(12)
@@ -764,8 +760,8 @@ class HexModelGrid(DualHexGraph, ModelGrid):
                 1. ,  2. ,  3. ,  4.
 
         >>> from landlab import HexModelGrid
-        >>> hmg = HexModelGrid(5, 4)
-        >>> z = hmg.add_zeros('node', 'topographic__elevation')
+        >>> hmg = HexModelGrid((5, 4))
+        >>> z = hmg.add_zeros("topographic__elevation", at="node")
         >>> z += hmg.x_of_node + 1.0
 
         >>> hmg.status_at_node
@@ -840,11 +836,10 @@ class HexModelGrid(DualHexGraph, ModelGrid):
                 1. ,  2. ,  3. ,  4.
 
         >>> from landlab import HexModelGrid
-        >>> hmg = HexModelGrid(5, 4)
-        >>> z = hmg.add_zeros('node', 'topographic__elevation')
+        >>> hmg = HexModelGrid((5, 4))
+        >>> z = hmg.add_zeros("topographic__elevation", at="node")
         >>> z += hmg.x_of_node + 1.0
-        >>> out_id = hmg.set_watershed_boundary_condition(z, -9999.,
-        ...                                               True)
+        >>> out_id = hmg.set_watershed_boundary_condition(z, -9999., True)
         >>> out_id
         array([9])
         >>> hmg.status_at_node
@@ -956,6 +951,6 @@ def from_dict(param_dict):
     except ValueError:
         raise
     else:
-        hg = HexModelGrid(n_rows, n_cols, dx)
+        hg = HexModelGrid((n_rows, n_cols), spacing=dx)
 
     return hg
