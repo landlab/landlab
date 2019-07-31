@@ -1,7 +1,7 @@
 import numpy as np
 
 from ...core.utils import argsort_points_by_x_then_y
-from ..voronoi.voronoi import VoronoiGraph
+from ..voronoi.voronoi import DelaunayGraph
 from ...utils.decorators import store_result_in_grid, read_only_array
 
 
@@ -9,7 +9,7 @@ def number_of_nodes(shape):
     return np.sum(np.arange(1, shape[0] + 1)) * shape[1] + 1
 
 
-def create_xy_of_node(shape, spacing=1., xy_of_center=(0., 0.)):
+def create_xy_of_node(shape, spacing=1.0, xy_of_center=(0.0, 0.0)):
     n_shells, n_points = shape
     n_nodes = number_of_nodes(shape)
 
@@ -18,7 +18,7 @@ def create_xy_of_node(shape, spacing=1., xy_of_center=(0., 0.)):
     # nodes_per_shell = np.round(2. * np.pi * np.arange(1, n_shells + 1)).astype(int)
     # n_nodes = np.sum(nodes_per_shell) + 1
 
-    x[0] = y[0] = 0.
+    x[0] = y[0] = 0.0
     offset = 1
     # for shell in range(0, n_shells):
     for shell in range(1, n_shells + 1):
@@ -206,7 +206,7 @@ class RadialGraphExtras(object):
                 pass
 
 
-class RadialGraph(RadialGraphExtras, VoronoiGraph):
+class RadialGraph(RadialGraphExtras, DelaunayGraph):
 
     """Graph of a series of points on concentric circles.
 
@@ -214,7 +214,7 @@ class RadialGraph(RadialGraphExtras, VoronoiGraph):
     --------
     >>> import numpy as np
     >>> from landlab.graph import RadialGraph
-    >>> graph = RadialGraph((1, 4))
+    >>> graph = RadialGraph((1, 4), sort=True)
     >>> graph.number_of_nodes
     5
     >>> graph.y_of_node
@@ -223,7 +223,7 @@ class RadialGraph(RadialGraphExtras, VoronoiGraph):
     array([ 0., -1.,  0.,  1.,  0.])
     """
 
-    def __init__(self, shape, spacing=1., xy_of_center=(0., 0.)):
+    def __init__(self, shape, spacing=1.0, xy_of_center=(0.0, 0.0), sort=False):
         """Create a structured grid of triangles arranged radially.
 
         Parameters
@@ -264,9 +264,14 @@ class RadialGraph(RadialGraphExtras, VoronoiGraph):
 
         # nodes = RadialNodeLayout(self.shape[0], spacing=spacing, origin=xy_of_center)
 
-        VoronoiGraph.__init__(
-            self, (y_of_node, x_of_node), xy_sort=True, rot_sort=True
-        )
+        # VoronoiGraph.__init__(
+        #     self, (y_of_node, x_of_node), xy_sort=True, rot_sort=True
+        # )
+
+        DelaunayGraph.__init__(self, (y_of_node, x_of_node))
+
+        if sort:
+            self.sort()
 
     @property
     def xy_of_center(self):
@@ -322,7 +327,7 @@ class RadialGraph(RadialGraphExtras, VoronoiGraph):
             The distance from the center node of each node.
 
         >>> from landlab.graph import RadialGraph
-        >>> graph = RadialGraph((2, 6))
+        >>> graph = RadialGraph((2, 6), sort=True)
         >>> np.round(graph.radius_at_node, 3)
         array([ 2.,  2.,  2.,  2.,  2.,  1.,  1.,  2.,  1.,  0.,  1.,  2.,  1.,
                 1.,  2.,  2.,  2.,  2.,  2.])

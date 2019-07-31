@@ -1,11 +1,11 @@
 """Test HexGraph and DualHexGraph."""
 import numpy as np
 from numpy.testing import assert_array_almost_equal, assert_array_equal
-from pytest import approx
+from pytest import approx, mark
 
 from landlab.graph import DualHexGraph
 
-ROOT_3_OVER_2 = np.sqrt(3.) * .5
+ROOT_3_OVER_2 = np.sqrt(3.0) * 0.5
 
 
 def test_create():
@@ -34,6 +34,7 @@ def test_create_hex():
     assert graph.number_of_cells == 5
 
 
+@mark.skip("rect1 is not supported")
 def test_create_rect1():
     """Test creating a dual hex graph."""
     graph = DualHexGraph((4, 3), node_layout="rect1")
@@ -47,45 +48,46 @@ def test_create_rect1():
     assert graph.number_of_cells == 3
 
 
+@mark.skip("rect1 is not supported")
 def test_spacing():
     """Test spacing of nodes."""
     graph = DualHexGraph((20, 31), node_layout="rect1")
-    assert_array_almost_equal(graph.length_of_link, 1.)
+    assert_array_almost_equal(graph.length_of_link, 1.0)
 
     graph = DualHexGraph((31, 20), spacing=2, node_layout="rect1")
-    assert_array_almost_equal(graph.length_of_link, 2.)
+    assert_array_almost_equal(graph.length_of_link, 2.0)
 
 
 def test_origin():
     """Test setting the origin."""
     graph = DualHexGraph((4, 3))
 
-    assert graph.y_of_node[0] == approx(0.)
-    assert graph.x_of_node[0] == approx(0.)
-    assert graph.x_of_corner[0] == approx(0.5)
+    assert graph.y_of_node.min() == approx(0.0)
+    assert graph.x_of_node.min() == approx(0.0)
+    # assert graph.x_of_corner[0] == approx(1.5)
 
-    graph = DualHexGraph((4, 3), origin=(.5, .25))
+    graph = DualHexGraph((4, 3), xy_of_lower_left=(0.25, 0.5))
 
-    assert graph.y_of_node[0] == approx(.5)
-    assert graph.x_of_node[0] == approx(.25)
-    assert graph.x_of_corner[0] == approx(0.75)
+    assert graph.y_of_node.min() == approx(0.5)
+    assert graph.x_of_node.min() == approx(0.25)
+    # assert graph.x_of_corner[0] == approx(1.75)
 
 
 def test_orientation():
     """Test vertical and horizontal orientation."""
-    graph = DualHexGraph((3, 4), orientation="vertical")
-    assert graph.y_of_corner == approx(
-        [ 0.5,  0.5,  0.5,  1. ,  1. ,  1. ,  1.5,  1.5,  1.5,  2. ,  2. , 2. ]
+    graph = DualHexGraph((3, 4), orientation="vertical", sort=True)
+    assert_array_almost_equal(
+        graph.y_of_corner, [0.5, 0.5, 0.5, 1, 1, 1, 1.5, 1.5, 1.5, 2, 2, 2]
     )
 
-    graph = DualHexGraph((4, 3), orientation="horizontal")
-    assert graph.x_of_corner == approx(
-        [ 0.5,  1.5,  1. ,  2. ,  1. ,  2. ,  0.5,  1.5,  0.5,  1.5,  1. , 2. ]
+    graph = DualHexGraph((4, 3), orientation="horizontal", sort=True)
+    assert_array_almost_equal(
+        graph.x_of_corner, [0.5, 1.5, 1, 2, 1, 2, 0.5, 1.5, 0.5, 1.5, 1, 2]
     )
 
 
 def test_adjacent_corners_at_corner():
-    graph = DualHexGraph((3, 3), node_layout="hex")
+    graph = DualHexGraph((3, 3), node_layout="hex", sort=True)
     assert_array_equal(
         graph.adjacent_corners_at_corner,
         [

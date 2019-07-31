@@ -1,7 +1,6 @@
 import numpy as np
 import scipy.sparse as sparse
 import scipy.sparse.linalg as linalg
-from six.moves import range
 
 from landlab import Component, MissingKeyError, ModelParameterDictionary
 from landlab.utils.decorators import use_file_name_or_kwds
@@ -76,9 +75,9 @@ class PerronNLDiffuse(Component):
         self,
         grid,
         nonlinear_diffusivity=None,
-        S_crit=33. * np.pi / 180.,
-        rock_density=2700.,
-        sed_density=2700.,
+        S_crit=33.0 * np.pi / 180.0,
+        rock_density=2700.0,
+        sed_density=2700.0,
         **kwds
     ):
         """
@@ -115,7 +114,7 @@ class PerronNLDiffuse(Component):
                 )
         if internal_uplift is None:
             self.internal_uplifts = False
-            self._uplift = 0.
+            self._uplift = 0.0
         else:
             self.internal_uplifts = True
             self._uplift = float(internal_uplift)
@@ -140,11 +139,11 @@ class PerronNLDiffuse(Component):
 
         self._delta_x = grid.dx
         self._delta_y = grid.dy
-        self._one_over_delta_x = 1. / self._delta_x
-        self._one_over_delta_y = 1. / self._delta_y
-        self._one_over_delta_x_sqd = self._one_over_delta_x ** 2.
-        self._one_over_delta_y_sqd = self._one_over_delta_y ** 2.
-        self._b = 1. / self._S_crit ** 2.
+        self._one_over_delta_x = 1.0 / self._delta_x
+        self._one_over_delta_y = 1.0 / self._delta_y
+        self._one_over_delta_x_sqd = self._one_over_delta_x ** 2.0
+        self._one_over_delta_y_sqd = self._one_over_delta_y ** 2.0
+        self._b = 1.0 / self._S_crit ** 2.0
 
         ncols = grid.number_of_node_columns
         self.ncols = ncols
@@ -399,7 +398,7 @@ class PerronNLDiffuse(Component):
             except MissingKeyError:
                 self._uplift = inputs.read_float("uplift_rate")
         else:
-            self._uplift = 0.
+            self._uplift = 0.0
         self._rock_density = inputs.read_float("rock_density")
         self._sed_density = inputs.read_float("sed_density")
         self._kappa = inputs.read_float("kappa")  # ==_a
@@ -420,11 +419,11 @@ class PerronNLDiffuse(Component):
 
         self._delta_x = grid.dx
         self._delta_y = grid.dy
-        self._one_over_delta_x = 1. / self._delta_x
-        self._one_over_delta_y = 1. / self._delta_y
-        self._one_over_delta_x_sqd = self._one_over_delta_x ** 2.
-        self._one_over_delta_y_sqd = self._one_over_delta_y ** 2.
-        self._b = 1. / self._S_crit ** 2.
+        self._one_over_delta_x = 1.0 / self._delta_x
+        self._one_over_delta_y = 1.0 / self._delta_y
+        self._one_over_delta_x_sqd = self._one_over_delta_x ** 2.0
+        self._one_over_delta_y_sqd = self._one_over_delta_y ** 2.0
+        self._b = 1.0 / self._S_crit ** 2.0
 
         ncols = grid.number_of_node_columns
         self.ncols = ncols
@@ -801,10 +800,10 @@ class PerronNLDiffuse(Component):
             * _one_over_delta_y
         )
         _z_xx = (
-            elev[cell_neighbors[:, 0]] - 2. * elev + elev[cell_neighbors[:, 2]]
+            elev[cell_neighbors[:, 0]] - 2.0 * elev + elev[cell_neighbors[:, 2]]
         ) * _one_over_delta_x_sqd
         _z_yy = (
-            elev[cell_neighbors[:, 1]] - 2. * elev + elev[cell_neighbors[:, 3]]
+            elev[cell_neighbors[:, 1]] - 2.0 * elev + elev[cell_neighbors[:, 3]]
         ) * _one_over_delta_y_sqd
         _z_xy = (
             (
@@ -817,25 +816,25 @@ class PerronNLDiffuse(Component):
             * _one_over_delta_x
             * _one_over_delta_y
         )
-        _d = 1. / (1. - _b * (_z_x * _z_x + _z_y * _z_y))
+        _d = 1.0 / (1.0 - _b * (_z_x * _z_x + _z_y * _z_y))
 
         _abd_sqd = _kappa * _b * _d * _d
-        _F_ij = -2. * _kappa * _d * (
+        _F_ij = -2.0 * _kappa * _d * (
             _one_over_delta_x_sqd + _one_over_delta_y_sqd
-        ) - 4. * _abd_sqd * (
+        ) - 4.0 * _abd_sqd * (
             _z_x * _z_x * _one_over_delta_x_sqd + _z_y * _z_y * _one_over_delta_y_sqd
         )
         _F_ijminus1 = (
             _kappa * _d * _one_over_delta_x_sqd
             - _abd_sqd * _z_x * (_z_xx + _z_yy) * _one_over_delta_x
-            - 4.
+            - 4.0
             * _abd_sqd
             * _b
             * _d
-            * (_z_x * _z_x * _z_xx + _z_y * _z_y * _z_yy + 2. * _z_x * _z_y * _z_xy)
+            * (_z_x * _z_x * _z_xx + _z_y * _z_y * _z_yy + 2.0 * _z_x * _z_y * _z_xy)
             * _z_x
             * _one_over_delta_x
-            - 2.
+            - 2.0
             * _abd_sqd
             * (
                 _z_x * _z_xx * _one_over_delta_x
@@ -846,14 +845,14 @@ class PerronNLDiffuse(Component):
         _F_ijplus1 = (
             _kappa * _d * _one_over_delta_x_sqd
             + _abd_sqd * _z_x * (_z_xx + _z_yy) * _one_over_delta_x
-            + 4.
+            + 4.0
             * _abd_sqd
             * _b
             * _d
-            * (_z_x * _z_x * _z_xx + _z_y * _z_y * _z_yy + 2. * _z_x * _z_y * _z_xy)
+            * (_z_x * _z_x * _z_xx + _z_y * _z_y * _z_yy + 2.0 * _z_x * _z_y * _z_xy)
             * _z_x
             * _one_over_delta_x
-            + 2.
+            + 2.0
             * _abd_sqd
             * (
                 _z_x * _z_xx * _one_over_delta_x
@@ -864,14 +863,14 @@ class PerronNLDiffuse(Component):
         _F_iminus1j = (
             _kappa * _d * _one_over_delta_y_sqd
             - _abd_sqd * _z_y * (_z_xx + _z_yy) * _one_over_delta_y
-            - 4.
+            - 4.0
             * _abd_sqd
             * _b
             * _d
-            * (_z_x * _z_x * _z_xx + _z_y * _z_y * _z_yy + 2. * _z_x * _z_y * _z_xy)
+            * (_z_x * _z_x * _z_xx + _z_y * _z_y * _z_yy + 2.0 * _z_x * _z_y * _z_xy)
             * _z_y
             * _one_over_delta_y
-            - 2.
+            - 2.0
             * _abd_sqd
             * (
                 _z_y * _z_yy * _one_over_delta_y
@@ -882,14 +881,14 @@ class PerronNLDiffuse(Component):
         _F_iplus1j = (
             _kappa * _d * _one_over_delta_y_sqd
             + _abd_sqd * _z_y * (_z_xx + _z_yy) * _one_over_delta_y
-            + 4.
+            + 4.0
             * _abd_sqd
             * _b
             * _d
-            * (_z_x * _z_x * _z_xx + _z_y * _z_y * _z_yy + 2. * _z_x * _z_y * _z_xy)
+            * (_z_x * _z_x * _z_xx + _z_y * _z_y * _z_yy + 2.0 * _z_x * _z_y * _z_xy)
             * _z_y
             * _one_over_delta_y
-            + 2.
+            + 2.0
             * _abd_sqd
             * (
                 _z_y * _z_yy * _one_over_delta_y
@@ -919,13 +918,13 @@ class PerronNLDiffuse(Component):
 
         # RHS of equ 6 (see para [20])
         _func_on_z = self._rock_density / self._sed_density * self._uplift + _kappa * (
-            (_z_xx + _z_yy) / (1. - (_z_x * _z_x + _z_y * _z_y) / _S_crit * _S_crit)
-            + 2.
-            * (_z_x * _z_x * _z_xx + _z_y * _z_y * _z_yy + 2. * _z_x * _z_y * _z_xy)
+            (_z_xx + _z_yy) / (1.0 - (_z_x * _z_x + _z_y * _z_y) / _S_crit * _S_crit)
+            + 2.0
+            * (_z_x * _z_x * _z_xx + _z_y * _z_y * _z_yy + 2.0 * _z_x * _z_y * _z_xy)
             / (
                 _S_crit
                 * _S_crit
-                * (1. - (_z_x * _z_x + _z_y * _z_y) / _S_crit * _S_crit) ** 2.
+                * (1.0 - (_z_x * _z_x + _z_y * _z_y) / _S_crit * _S_crit) ** 2.0
             )
         )
 
@@ -940,7 +939,7 @@ class PerronNLDiffuse(Component):
             np.vstack((_F_iminus1jminus1, _F_iminus1j, _F_iminus1jplus1)) * -_delta_t
         )
         mid_row = np.vstack(
-            (-_delta_t * _F_ijminus1, 1. - _delta_t * _F_ij, -_delta_t * _F_ijplus1)
+            (-_delta_t * _F_ijminus1, 1.0 - _delta_t * _F_ij, -_delta_t * _F_ijplus1)
         )
         top_row = np.vstack((_F_iplus1jminus1, _F_iplus1j, _F_iplus1jplus1)) * -_delta_t
         nine_node_map = np.vstack((low_row, mid_row, top_row)).T

@@ -13,7 +13,7 @@ from landlab import RasterModelGrid
 
 def test_link_order():
     """Test ordering of links."""
-    rg = RasterModelGrid(3, 4)
+    rg = RasterModelGrid((3, 4))
     assert_array_equal(
         rg.node_at_link_tail, [0, 1, 2, 0, 1, 2, 3, 4, 5, 6, 4, 5, 6, 7, 8, 9, 10]
     )

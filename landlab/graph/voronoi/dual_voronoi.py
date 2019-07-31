@@ -1,10 +1,12 @@
 from scipy.spatial import Voronoi
+import numpy as np
 
 from ...utils.jaggedarray import JaggedArray
 from ..dual import DualGraph
 from ..graph import Graph
-from .voronoi import VoronoiGraph
+from .voronoi import DelaunayGraph
 from .voronoi_helpers import VoronoiConverter
+from .voronoi_to_graph import VoronoiDelaunayToGraph
 
 
 def ugrid_from_voronoi_dual(node_y_and_x, min_cell_size=3,
@@ -35,11 +37,29 @@ def ugrid_from_voronoi_dual(node_y_and_x, min_cell_size=3,
     return dual, node_at_cell, nodes_at_face
 
 
-class DualVoronoiGraph(VoronoiGraph, DualGraph):
+def create_dual_graph(node_y_and_x, min_cell_size=3, max_node_spacing=None):
+    voronoi = Voronoi(list(zip(node_y_and_x[1], node_y_and_x[0])))
 
-    """Dual graph of a voronoi grid."""
+    converter = VoronoiConverter(voronoi, min_patch_size=min_cell_size)
 
-    def __init__(self, node_y_and_x, min_cell_size=3, **kwds):
+    corners = converter.get_nodes()
+    corners = (corners[:, 1], corners[:, 0])
+    faces = converter.get_nodes_at_link()
+    cells = converter.get_links_at_patch()
+    cells = [cell for cell in JaggedArray(cells)]
+
+    node_at_cell = converter.get_corner_at_patch()
+    nodes_at_face = converter.get_corners_at_link()
+
+    graph = Graph(corners, links=faces, patches=cells, sort=False)
+
+    return graph, node_at_cell, nodes_at_face
+
+
+class DualVoronoiGraph(DualGraph, DelaunayGraph):
+
+    # def __init__(self, node_y_and_x, max_node_spacing=None, min_cell_size=3):
+    def __init__(self, node_y_and_x, max_node_spacing=None, sort=False, perimeter_links=None):
         """Create a voronoi grid.
 
         Parameters
@@ -56,7 +76,7 @@ class DualVoronoiGraph(VoronoiGraph, DualGraph):
         >>> node_y = [0, 0, 0, 0,
         ...           1, 1, 1, 1,
         ...           2, 2, 2, 2]
-        >>> graph = DualVoronoiGraph((node_y, node_x))
+        >>> graph = DualVoronoiGraph((node_y, node_x), sort=True)
         >>> graph.x_of_corner
         array([ 0.5,  1.5,  2.5,  0.7,  1.7,  2.7,  0.7,  1.7,  2.7,  0.9,  1.9,
                 2.9])
@@ -75,6 +95,50 @@ class DualVoronoiGraph(VoronoiGraph, DualGraph):
         >>> graph.node_at_cell
         array([5, 6])
         """
+        mesh = VoronoiDelaunayToGraph(
+            np.vstack((node_y_and_x[1], node_y_and_x[0])).T,
+            perimeter_links=perimeter_links,
+            # perimeter_links=kwds.get("perimeter_links", None),
+        )
+
+        Graph.__init__(
+            self,
+            node_y_and_x,
+            links=mesh.nodes_at_link,
+            patches=mesh.links_at_patch,
+            sort=False,
+        )
+        # DelaunayGraph.__init__(
+        #     self,
+        #     node_y_and_x,
+        #     max_node_spacing=max_node_spacing,
+        #     sort=False,
+        # )
+
+        dual_graph = Graph(
+            (mesh.y_of_corner, mesh.x_of_corner),
+            links=mesh.corners_at_face,
+            patches=mesh.faces_at_cell,
+            # node_y_and_x,
+            # links=mesh.nodes_at_link,
+            # patches=mesh.links_at_patch,
+            sort=False,
+        )
+
+        # dual_graph, node_at_cell, nodes_at_face = create_dual_graph(
+        #     node_y_and_x, min_cell_size=min_cell_size, max_node_spacing=max_node_spacing
+        # )
+
+        self.merge(dual_graph, node_at_cell=mesh.node_at_cell, nodes_at_face=mesh.nodes_at_face)
+
+        if sort:
+            self.sort()
+
+
+
+def __REMOVE_THIS():
+        return
+
         max_node_spacing = kwds.pop('max_node_spacing', None)
         VoronoiGraph.__init__(self, node_y_and_x,
                               max_node_spacing=max_node_spacing, sort=False)
@@ -106,11 +170,3 @@ class DualVoronoiGraph(VoronoiGraph, DualGraph):
                                                   max_node_spacing=max_node_spacing)
         if len(node_at_cell) == 0:
             node_at_cell = None
-
-        self._dual = Graph(dual, sort=False)
-        VoronoiGraph.__init__(
-            self, node_y_and_x, max_node_spacing=max_node_spacing, sort=False
-        )
-        DualGraph.__init__(
-            self, node_at_cell=node_at_cell, nodes_at_face=nodes_at_face, sort=True
-        )

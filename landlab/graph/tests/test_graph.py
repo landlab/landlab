@@ -33,18 +33,18 @@ LINKS_AT_PATCH = ((3, 2, 0, 1), (3, 5, 6, 4))
 
 def test_create_graph_with_nodes():
     """Create a graph of unconnected nodes."""
-    graph = Graph((NODE_Y, NODE_X))
+    graph = Graph((NODE_Y, NODE_X), sort=True)
 
-    assert_array_almost_equal(graph.x_of_node, [0., 1., 2., 0., 1., 2.])
-    assert_array_almost_equal(graph.y_of_node, [0., 0., 0., 1., 1., 1.])
+    assert_array_almost_equal(graph.x_of_node, [0.0, 1.0, 2.0, 0.0, 1.0, 2.0])
+    assert_array_almost_equal(graph.y_of_node, [0.0, 0.0, 0.0, 1.0, 1.0, 1.0])
 
 
 def test_create_graph_with_links():
     """Create a graph of connected nodes."""
-    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK)
+    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, sort=True)
 
-    assert_array_almost_equal(graph.x_of_node, [0., 1., 2., 0., 1., 2.])
-    assert_array_almost_equal(graph.y_of_node, [0., 0., 0., 1., 1., 1.])
+    assert_array_almost_equal(graph.x_of_node, [0.0, 1.0, 2.0, 0.0, 1.0, 2.0])
+    assert_array_almost_equal(graph.y_of_node, [0.0, 0.0, 0.0, 1.0, 1.0, 1.0])
     assert_array_almost_equal(
         graph.nodes_at_link, [[0, 1], [1, 2], [0, 3], [1, 4], [2, 5], [3, 4], [4, 5]]
     )
@@ -52,21 +52,21 @@ def test_create_graph_with_links():
 
 def test_graph_link_heads():
     """Test nodes at link heads."""
-    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK)
+    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, sort=True)
 
     assert_array_equal(graph.node_at_link_head, [1, 2, 3, 4, 5, 4, 5])
 
 
 def test_graph_link_tails():
     """Test nodes at link tails."""
-    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK)
+    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, sort=True)
 
     assert_array_equal(graph.node_at_link_tail, [0, 1, 0, 1, 2, 3, 4])
 
 
 def test_graph_links_at_node():
     """Test links at nodes without rotational sorting."""
-    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK)
+    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, sort=True)
 
     assert_array_equal(
         graph.links_at_node,
@@ -76,7 +76,7 @@ def test_graph_links_at_node():
 
 def test_graph_link_dirs_at_node():
     """Test links directions at nodes without rotational sorting."""
-    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK)
+    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, sort=True)
 
     assert_array_equal(
         graph.link_dirs_at_node,
@@ -86,13 +86,13 @@ def test_graph_link_dirs_at_node():
 
 def test_links_at_patch_ccw():
     """Test links at patch with rotational sorting."""
-    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, patches=LINKS_AT_PATCH)
+    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, patches=LINKS_AT_PATCH, sort=True)
 
     assert_array_equal(graph.links_at_patch, [[3, 5, 2, 0], [4, 6, 3, 1]])
 
 
 def test_nodes_at_patch_ccw():
     """Test nodes at patch with rotational sorting."""
-    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, patches=LINKS_AT_PATCH)
+    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, patches=LINKS_AT_PATCH, sort=True)
 
     assert_array_equal(graph.nodes_at_patch, [[4, 3, 0, 1], [5, 4, 1, 2]])

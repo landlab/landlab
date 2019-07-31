@@ -1,5 +1,4 @@
 import numpy as np
-import six
 import xarray as xr
 
 from .grouped import GroupError
@@ -203,7 +202,7 @@ class FieldDataset(dict):
         self._units[name] = attrs["units"]
 
     def __getitem__(self, name):
-        if isinstance(name, six.string_types):
+        if isinstance(name, str):
             try:
                 return self._ds[name].values
             except KeyError:

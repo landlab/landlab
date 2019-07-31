@@ -38,7 +38,6 @@ FIRST THING PROBABLY IS TO FIX LINK_AT_FACE FOR RASTER, THEN IMPLEMENT FOR HEX.
 """
 import numpy as np
 from numpy.testing import assert_array_equal
-from six.moves import range
 
 from landlab import HexModelGrid
 
@@ -176,7 +175,7 @@ def testing_flux_divergence_with_hex():
     for r in range(MAX_NUM_LINKS):
         raw_net_flux += f[hmg.gt_links_at_node[r, :]] * hmg.gt_link_dirs_at_node[r, :]
     assert_array_equal(
-        raw_net_flux, [-5., -10., -12., -17., -19., -19., 1., 6., 26., 49.]
+        raw_net_flux, [-5.0, -10.0, -12.0, -17.0, -19.0, -19.0, 1.0, 6.0, 26.0, 49.0]
     )
 
     nv = np.arange(hmg.number_of_nodes)

@@ -3,7 +3,6 @@ import os
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
-from six.moves import range
 
 from landlab import VoronoiDelaunayGrid
 from landlab.components import FlowAccumulator, StreamPowerEroder
@@ -22,7 +21,7 @@ def test_sp_voronoi():
 
     np.random.seed(2)
     z = mg.add_field(
-        "node", "topographic__elevation", np.random.rand(nnodes) / 10000., copy=False
+        "node", "topographic__elevation", np.random.rand(nnodes) / 10000.0, copy=False
     )
 
     fr = FlowAccumulator(mg)
@@ -31,7 +30,7 @@ def test_sp_voronoi():
     for i in range(10):
         z[mg.core_nodes] += 0.01
         fr.run_one_step()
-        spe.erode(mg, 1.)
+        spe.erode(mg, 1.0)
 
     z_tg = np.array(
         [

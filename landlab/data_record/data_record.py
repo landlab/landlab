@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from six import string_types
 from xarray import Dataset
 
 
@@ -203,7 +202,7 @@ class DataRecord(Dataset):
 
             self._number_of_items = len(_element_ids)
             if len(_grid_elements) != self._number_of_items:
-                if isinstance(_grid_elements, string_types):
+                if isinstance(_grid_elements, str):
                     pass
                 else:
                     raise ValueError(
@@ -291,7 +290,7 @@ class DataRecord(Dataset):
 
     def _check_grid_element_and_id(self, grid_element, element_id, flag=None):
         """Check the location and size of grid_element and element_id."""
-        if isinstance(grid_element, string_types):
+        if isinstance(grid_element, str):
             # all items are on same type of grid_element
             if grid_element in self.permitted_locations:
                 pass

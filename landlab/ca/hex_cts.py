@@ -60,6 +60,7 @@ class HexCTS(CellLabCTSModel):
         initial_node_states,
         prop_data=None,
         prop_reset_value=None,
+        seed=0
     ):
         """
         HexCTS constructor: sets number of orientations to 1 and calls
@@ -81,6 +82,8 @@ class HexCTS(CellLabCTSModel):
         prop_reset_value : number or object, optional
             Default or initial value for a node/cell property (e.g., 0.0).
             Must be same type as *prop_data*.
+        seed : int (default 0)
+            Seed for random number generator
         """
 
         # Make sure caller has sent the right grid type
@@ -100,10 +103,5 @@ class HexCTS(CellLabCTSModel):
             initial_node_states,
             prop_data,
             prop_reset_value,
+            seed
         )
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

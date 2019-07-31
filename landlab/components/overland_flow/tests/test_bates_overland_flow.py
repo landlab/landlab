@@ -8,7 +8,7 @@ import numpy as np
 
 from landlab.components.overland_flow import OverlandFlowBates
 
-(_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0., 0.))
+(_SHAPE, _SPACING, _ORIGIN) = ((32, 240), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
@@ -43,7 +43,7 @@ def test_field_initialized_to_zero(bates):
     for name in bates.grid["node"].keys():
         field = bates.grid["node"][name]
         if name != "surface_water__depth":
-            assert np.all(np.isclose(field, 0.))
+            assert np.all(np.isclose(field, 0.0))
         else:
             assert np.all(np.isclose(field, 0.001))
             # this remains broken, and needs JA's attention
@@ -57,7 +57,7 @@ def test_grid_shape(bates):
 def test_Bates_analytical():
     from landlab import RasterModelGrid
 
-    grid = RasterModelGrid((32, 240), spacing=25)
+    grid = RasterModelGrid((32, 240), xy_spacing=25)
     grid.add_zeros("node", "surface_water__depth")
     grid.add_zeros("node", "topographic__elevation")
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
@@ -66,16 +66,16 @@ def test_Bates_analytical():
     bates.dt = 1.0
     while time < 500:
         bates.overland_flow(grid)
-        h_boundary = ((7. / 3.) * (0.01 ** 2) * (0.4 ** 3) * time) ** (3. / 7.)
+        h_boundary = ((7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 3) * time) ** (3.0 / 7.0)
         grid.at_node["surface_water__depth"][grid.nodes[1:-1, 1]] = h_boundary
         time += bates.dt
 
     x = np.arange(0, ((grid.shape[1]) * grid.dx), grid.dx)
-    h_analytical = -(7. / 3.) * (0.01 ** 2) * (0.4 ** 2) * (x - (0.4 * 500))
+    h_analytical = -(7.0 / 3.0) * (0.01 ** 2) * (0.4 ** 2) * (x - (0.4 * 500))
 
     h_analytical[np.where(h_analytical > 0)] = h_analytical[
         np.where(h_analytical > 0)
-    ] ** (3. / 7.)
+    ] ** (3.0 / 7.0)
     h_analytical[np.where(h_analytical < 0)] = 0.0
 
     hBates = bates.h.reshape(grid.shape)

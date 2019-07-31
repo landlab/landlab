@@ -14,16 +14,16 @@ Examples
        \ / \ /
         * - *
 
->>> from landlab.graph import HexGraph
->>> graph = HexGraph((5, 2), node_layout="hex")
+>>> from landlab.graph import TriGraph
+>>> graph = TriGraph((5, 2), node_layout="hex", sort=True)
 >>> graph.number_of_nodes
 14
 >>> graph.x_of_node
-array([ 0. ,  1. ,
-       -0.5,  0.5,  1.5,
-       -1. ,  0. ,  1. ,  2. ,
-       -0.5,  0.5, 1.5,
-        0. ,  1. ])
+array([ 1. ,  2. ,
+        0.5,  1.5,  2.5,
+        0. ,  1. ,  2. ,  3. ,
+        0.5,  1.5, 2.5,
+        1. ,  2. ])
 >>> graph.number_of_links
 29
 >>> graph.number_of_patches
@@ -37,8 +37,8 @@ array([ 0. ,  1. ,
      / \ / \ / \ /
     * - * - * - *
 
->>> from landlab.graph import HexGraph
->>> graph = HexGraph((3, 4), orientation="horizontal", node_layout="rect")
+>>> from landlab.graph import TriGraph
+>>> graph = TriGraph((3, 4), orientation="horizontal", node_layout="rect", sort=True)
 >>> graph.number_of_nodes
 12
 >>> graph.x_of_node.reshape((3, 4))
@@ -49,40 +49,23 @@ array([[ 0. ,  1. ,  2. ,  3. ],
 23
 >>> graph.number_of_patches
 12
-
-::
-
-  * - * - * - *
-   \ / \ / \ /
-    * - * - *
-   / \ / \ / \
-  * - * - * - *
-   \ / \ / \ /
-    * - * - *
-
->>> from landlab.graph import HexGraph
->>> graph = HexGraph((4, 3), orientation="horizontal", node_layout="rect1")
->>> graph.number_of_nodes
-14
->>> graph.x_of_node
-array([ 0.5,  1.5,  2.5,
-        0. ,  1. ,  2. ,  3. ,
-        0.5,  1.5,  2.5,
-        0. ,  1. ,  2. ,  3. ])
->>> graph.number_of_links
-28
->>> graph.number_of_patches
-15
 """
 
 
 import numpy as np
 
 from ...utils.decorators import cache_result_in_object, make_return_array_immutable
-from ..voronoi.voronoi import VoronoiGraph
+from ..voronoi.voronoi import DelaunayGraph
+from .ext.hex import (
+    fill_xy_of_node_hex_horizontal,
+    fill_xy_of_node_hex_vertical,
+    fill_xy_of_node_rect_horizontal,
+    fill_xy_of_node_rect_vertical,
+)
+from .perimeternodes import perimeter_links, perimeter_nodes
 
 
-def number_of_nodes(shape, node_layout="rect"):
+def number_of_nodes(shape, node_layout="rect", orientation="horizontal"):
     """Get the number of nodes in a hex graph.
 
     Parameters
@@ -116,6 +99,10 @@ def number_of_nodes(shape, node_layout="rect"):
     >>> number_of_nodes((4, 2), node_layout='rect1')
     10
     """
+    if orientation == "vertical":
+        return number_of_nodes(
+            shape[::-1], node_layout=node_layout, orientation="horizontal"
+        )
     if node_layout not in ("rect", "hex", "rect1"):
         raise ValueError("node_layout not understood")
 
@@ -129,24 +116,12 @@ def number_of_nodes(shape, node_layout="rect"):
         return (2 * n_cols + 1) * (n_rows // 2) + n_cols * (n_rows % 2)
 
 
-def setup_perimeter_nodes(shape, orientation="horizontal", node_layout="rect"):
-    from .ext.hex import fill_perimeter_nodes, fill_hex_perimeter_nodes
-
-    n_perimeter_nodes = 2 * shape[0] + 2 * (shape[1] - 2)
-    if node_layout in ("hex", "rect1"):
-        n_perimeter_nodes += (shape[0] + 1) % 2
-    perimeter_nodes = np.empty(n_perimeter_nodes, dtype=int)
-
-    if node_layout == "hex":
-        fill_hex_perimeter_nodes(shape, perimeter_nodes)
-    else:
-        fill_perimeter_nodes(shape, perimeter_nodes)
-
-    return perimeter_nodes
-
-
 def setup_xy_of_node(
-    shape, spacing=1., origin=(0., 0.), orientation="horizontal", node_layout="rect"
+    shape,
+    spacing=1.0,
+    xy_of_lower_left=(0.0, 0.0),
+    orientation="horizontal",
+    node_layout="rect",
 ):
     """Create arrays of coordinates of a node on a hex grid.
 
@@ -158,8 +133,8 @@ def setup_xy_of_node(
         number of nodes in the first column.
     spacing : float, optional
         Length of links.
-    origin : tuple of float, optional
-        Coordinates of lower-left corner of the grid.
+    xy_of_lower_left : tuple of float, optional
+        (x, y) coordinates of lower-left corner of the grid.
 
     Examples
     --------
@@ -169,68 +144,51 @@ def setup_xy_of_node(
     >>> x, y = setup_xy_of_node((3, 2))
     >>> x
     array([ 0. ,  1. ,  0.5,  1.5,  0. ,  1. ])
-    >>> y / (np.sqrt(3) / 2.)
+    >>> np.round(y / (np.sqrt(3) / 2.))
     array([ 0.,  0.,  1.,  1.,  2.,  2.])
     >>> x, y = setup_xy_of_node((2, 2))
     >>> x
     array([ 0. ,  1. ,  0.5,  1.5])
-    >>> y / (np.sqrt(3) / 2.)
+    >>> np.round(y / (np.sqrt(3) / 2.))
     array([ 0.,  0.,  1.,  1.])
 
-    >>> x, y = setup_xy_of_node((2, 2), spacing=2, origin=(1, 2))
+    >>> x, y = setup_xy_of_node((2, 2), spacing=2, xy_of_lower_left=(2, 1))
     >>> x
     array([ 2.,  4.,  3.,  5.])
-    >>> (y - 1) / (np.sqrt(3) / 2.)
+    >>> np.round((y - 1) / (np.sqrt(3) / 2.))
     array([ 0.,  0.,  2.,  2.])
     """
-    from .ext.hex import get_xy_of_node, fill_xy_of_node, fill_hex_xy_of_node
+    fill_xy_of_node = {
+        "rect": {
+            "horizontal": fill_xy_of_node_rect_horizontal,
+            "vertical": fill_xy_of_node_rect_vertical,
+        },
+        "hex": {
+            "horizontal": fill_xy_of_node_hex_horizontal,
+            "vertical": fill_xy_of_node_hex_vertical,
+        },
+    }
 
-    if orientation == "vertical":
-        return setup_xy_of_node(
-            (shape[1], shape[0]),
-            spacing=spacing,
-            origin=(origin[1], origin[0]),
-            node_layout=node_layout,
-            orientation="horizontal",
-        )[::-1]
-
-    n_nodes = number_of_nodes(shape, node_layout=node_layout)
+    n_nodes = number_of_nodes(shape, orientation=orientation, node_layout=node_layout)
 
     x_of_node = np.empty((n_nodes,), dtype=float)
     y_of_node = np.empty((n_nodes,), dtype=float)
 
-    if node_layout == "rect":
-        fill_xy_of_node(shape, x_of_node, y_of_node)
-    elif node_layout == "hex":
-        fill_hex_xy_of_node(shape, x_of_node, y_of_node)
-    elif node_layout == "rect1":
-        get_xy_of_node(shape, x_of_node, y_of_node)
+    fill_xy_of_node[node_layout][orientation](shape, x_of_node, y_of_node)
 
-    x_of_node *= spacing
-    x_of_node += origin[1]
-    y_of_node *= spacing * np.sin(np.pi / 3.)
-    y_of_node += origin[0]
+    if orientation == "horizontal":
+        x_of_node *= spacing
+        y_of_node *= spacing * np.round(np.sin(np.pi / 3.0), 5)
+    else:
+        x_of_node *= spacing * np.sin(np.pi / 3.0)
+        y_of_node *= spacing
+    x_of_node += xy_of_lower_left[0]
+    y_of_node += xy_of_lower_left[1]
 
     return (x_of_node, y_of_node)
 
 
-class HexGraphExtras(object):
-    @property
-    def shape(self):
-        return self._shape
-
-    @property
-    def spacing(self):
-        return self._spacing
-
-    @property
-    def orientation(self):
-        return self._orientation
-
-    @property
-    def node_layout(self):
-        return self._node_layout
-
+class HexGraphExtras:
     @property
     @cache_result_in_object()
     @make_return_array_immutable
@@ -240,8 +198,8 @@ class HexGraphExtras(object):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.graph import DualHexGraph
-        >>> graph = DualHexGraph((3, 4), node_layout='rect')
+        >>> from landlab.graph import TriGraph
+        >>> graph = TriGraph((3, 4), node_layout='rect')
         >>> graph.nodes_at_right_edge
         array([ 3,  7, 11])
         """
@@ -258,8 +216,8 @@ class HexGraphExtras(object):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.graph import DualHexGraph
-        >>> graph = DualHexGraph((3, 4), node_layout='rect')
+        >>> from landlab.graph import TriGraph
+        >>> graph = TriGraph((3, 4), node_layout='rect')
         >>> graph.nodes_at_top_edge
         array([ 8,  9, 10, 11])
         """
@@ -276,8 +234,8 @@ class HexGraphExtras(object):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.graph import DualHexGraph
-        >>> graph = DualHexGraph((3, 4), node_layout='rect')
+        >>> from landlab.graph import TriGraph
+        >>> graph = TriGraph((3, 4), node_layout='rect')
         >>> graph.nodes_at_left_edge
         array([0, 4, 8])
         """
@@ -292,8 +250,8 @@ class HexGraphExtras(object):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab.graph import DualHexGraph
-        >>> graph = DualHexGraph((3, 4), node_layout='rect')
+        >>> from landlab.graph import TriGraph
+        >>> graph = TriGraph((3, 4), node_layout='rect')
         >>> graph.nodes_at_bottom_edge
         array([0, 1, 2, 3])
         """
@@ -312,16 +270,16 @@ class HexGraphExtras(object):
         return np.full(self.number_of_links, self.spacing, dtype=float)
 
 
-class HexGraph(HexGraphExtras, VoronoiGraph):
+class TriGraph(HexGraphExtras, DelaunayGraph):
 
     """Graph of a structured grid of triangles.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.graph import HexGraph
+    >>> from landlab.graph import TriGraph
 
-    >>> graph = HexGraph((3, 2))
+    >>> graph = TriGraph((3, 2))
     >>> graph.number_of_nodes == 6
     True
     >>> np.round(graph.y_of_node * 2. / np.sqrt(3))
@@ -334,10 +292,11 @@ class HexGraph(HexGraphExtras, VoronoiGraph):
     def __init__(
         self,
         shape,
-        spacing=1.,
-        origin=(0., 0.),
+        spacing=1.0,
+        xy_of_lower_left=(0.0, 0.0),
         orientation="horizontal",
         node_layout="rect",
+        sort=True,
     ):
         """Create a structured grid of triangles.
 
@@ -349,11 +308,11 @@ class HexGraph(HexGraphExtras, VoronoiGraph):
             number of nodes in the first column.
         spacing : float, optional
             Length of links.
-        origin : tuple of float, optional
+        xy_of_lower_left : tuple of float, optional
             Coordinates of lower-left corner of the grid.
         orientation: {'horizontal', 'vertical'}
             Specify if triangles should be laid out in rows or columns.
-        node_layout: {'rect', 'hex', 'rect1'}
+        node_layout: {'rect', 'hex'}
             Specify the overall layout of the nodes. Use *rect* for
             the layout to approximate a rectangle and *hex* for
             a hexagon.
@@ -366,7 +325,7 @@ class HexGraph(HexGraphExtras, VoronoiGraph):
         self._shape = tuple(shape)
         self._spacing = spacing
 
-        if node_layout not in ("rect", "hex", "rect1"):
+        if node_layout not in ("rect", "hex"):
             raise ValueError("node_layout not understood")
         else:
             self._node_layout = node_layout
@@ -379,22 +338,42 @@ class HexGraph(HexGraphExtras, VoronoiGraph):
         x_of_node, y_of_node = setup_xy_of_node(
             shape,
             spacing=spacing,
-            origin=origin,
+            xy_of_lower_left=xy_of_lower_left,
             orientation=orientation,
             node_layout=node_layout,
         )
-        if node_layout == "hex":
-            max_node_spacing = shape[1] + shape[0] / 2 + 2
-            max_node_spacing = None
-        elif node_layout == "rect":
-            max_node_spacing = shape[1] + 1
-        elif node_layout == "rect1":
-            max_node_spacing = shape[1] + 1
 
-        VoronoiGraph.__init__(
+        _perimeter_links = perimeter_links(
+            self.shape, orientation=self.orientation, node_layout=self.node_layout
+        )
+        self._perimeter_nodes = _perimeter_links[:, 0].copy()
+
+        DelaunayGraph.__init__(
             self,
             (y_of_node, x_of_node),
-            xy_sort=True,
-            rot_sort=True,
-            max_node_spacing=max_node_spacing,
+            perimeter_links=_perimeter_links,
+            sort=False,
         )
+
+        if sort:
+            self.sort()
+
+    @property
+    def shape(self):
+        return self._shape
+
+    @property
+    def spacing(self):
+        return self._spacing
+
+    @property
+    def orientation(self):
+        return self._orientation
+
+    @property
+    def node_layout(self):
+        return self._node_layout
+
+    @property
+    def perimeter_nodes(self):
+        return self._perimeter_nodes

@@ -38,18 +38,14 @@ from .grid import (
     LOOPED_BOUNDARY,
     HexModelGrid,
     ModelGrid,
+    NetworkModelGrid,
     RadialModelGrid,
     RasterModelGrid,
     VoronoiDelaunayGrid,
     create_and_initialize_grid,
+    create_grid,
 )
-from .plot import (
-    analyze_channel_network_and_plot,
-    imshow_cell_grid,
-    imshow_grid,
-    imshow_grid_at_node,
-    imshow_node_grid,
-)
+from .plot import analyze_channel_network_and_plot, imshow_grid, imshow_grid_at_node
 
 try:
     set_printoptions(legacy="1.13")
@@ -59,7 +55,6 @@ finally:
     del set_printoptions
 
 cite_as = registry.format_citations
-
 
 __all__ = [
     "registry",
@@ -81,6 +76,7 @@ __all__ = [
     "RadialModelGrid",
     "RasterModelGrid",
     "VoronoiDelaunayGrid",
+    "NetworkModelGrid",
     "BAD_INDEX_VALUE",
     "CORE_NODE",
     "FIXED_VALUE_BOUNDARY",
@@ -91,9 +87,8 @@ __all__ = [
     "FIXED_LINK",
     "INACTIVE_LINK",
     "create_and_initialize_grid",
+    "create_grid",
     "imshow_grid",
-    "imshow_node_grid",
-    "imshow_cell_grid",
     "imshow_grid_at_node",
     "analyze_channel_network_and_plot",
 ]

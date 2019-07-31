@@ -1,19 +1,19 @@
 import numpy as np
 
 from ...core.utils import argsort_points_by_x_then_y
-from ..voronoi import DualVoronoiGraph
-from .radial import create_xy_of_node, RadialGraphExtras, RadialNodeLayout, RadialGraph
+from ..dual import DualGraph
+from ..voronoi.dual_voronoi import DualVoronoiGraph
+from .radial import RadialGraph, create_xy_of_node
 
 
-# class DualRadialGraph(RadialGraphExtras, DualVoronoiGraph):
-class DualRadialGraph(RadialGraph, DualVoronoiGraph):
+class DualRadialGraph(DualGraph, RadialGraph):
 
     """Graph of a series of points on concentric circles.
 
     Examples
     --------
     >>> from landlab.graph import DualRadialGraph
-    >>> graph = DualRadialGraph((1, 4))
+    >>> graph = DualRadialGraph((1, 4), sort=True)
     >>> graph.number_of_corners
     4
     >>> graph.y_of_corner
@@ -22,7 +22,7 @@ class DualRadialGraph(RadialGraph, DualVoronoiGraph):
     array([-0.5,  0.5, -0.5,  0.5])
     """
 
-    def __init__(self, shape, spacing=1., xy_of_center=(0., 0.)):
+    def __init__(self, shape, spacing=1.0, xy_of_center=(0.0, 0.0), sort=False):
         """Create a structured grid of triangles arranged radially.
 
         Parameters
@@ -35,10 +35,10 @@ class DualRadialGraph(RadialGraph, DualVoronoiGraph):
         xy_of_center : tuple of float, optional
             Coordinates of the center of the grid.
         """
-        try:
-            spacing = float(spacing)
-        except TypeError:
-            raise TypeError("spacing must be a float")
+        # try:
+        #     spacing = float(spacing)
+        # except TypeError:
+        #     raise TypeError("spacing must be a float")
 
         # x_of_node, y_of_node = create_xy_of_node(shape, spacing=spacing, xy_of_center=xy_of_center)
 
@@ -49,9 +49,10 @@ class DualRadialGraph(RadialGraph, DualVoronoiGraph):
         # self._shape = tuple(np.asarray(shape).astype(int))
         # self._origin = tuple(np.broadcast_to(origin, (2, )).astype(float))
         # self._spacing = float(spacing)
-        self._shape = int(shape[0]), int(shape[1])
-        self._spacing = float(spacing)
-        self._xy_of_center = tuple(np.broadcast_to(xy_of_center, (2, )).astype(float))
+
+        # self._shape = int(shape[0]), int(shape[1])
+        # self._spacing = float(spacing)
+        # self._xy_of_center = tuple(np.broadcast_to(xy_of_center, (2, )).astype(float))
 
         # graph = RadialGraphExtras()
         # graph._shape = self._shape
@@ -65,12 +66,45 @@ class DualRadialGraph(RadialGraph, DualVoronoiGraph):
 
         ###   nodes = RadialNodeLayout(shape[0], spacing=spacing, origin=origin)
 
-        RadialGraph.__init__(self, shape, spacing=spacing, xy_of_center=xy_of_center)
-        # super(DualRadialGraph, self).__init__(
-        # DualVoronoiGraph.__init__(self, (y_of_node[sorted_nodes], x_of_node[sorted_nodes]), xy_sort=True,
-        # DualVoronoiGraph.__init__(self, (nodes.y_of_node, nodes.x_of_node),
-        DualVoronoiGraph.__init__(self, (self.y_of_node, self.x_of_node),
-                                  xy_sort=True, rot_sort=True)
+        # RadialGraph.__init__(self, shape, spacing=spacing, xy_of_center=xy_of_center)
+        # # super(DualRadialGraph, self).__init__(
+        # # DualVoronoiGraph.__init__(self, (y_of_node[sorted_nodes], x_of_node[sorted_nodes]), xy_sort=True,
+        # # DualVoronoiGraph.__init__(self, (nodes.y_of_node, nodes.x_of_node),
+        # DualVoronoiGraph.__init__(self, (self.y_of_node, self.x_of_node),
+        #                           xy_sort=True, rot_sort=True)
+
+        if 0:
+            RadialGraph.__init__(
+                self, shape=shape, spacing=spacing, xy_of_center=xy_of_center, sort=False
+            )
+
+            dual_graph, node_at_cell, nodes_at_face = create_dual_graph(
+                (self.y_of_node, self.x_of_node)
+            )
+
+            self.merge(dual_graph, node_at_cell=node_at_cell, nodes_at_face=nodes_at_face)
+
+            if sort:
+                self.sort()
+        try:
+            spacing = float(spacing)
+        except TypeError:
+            raise TypeError("spacing must be a float")
+
+        xy_of_center = tuple(np.broadcast_to(xy_of_center, 2))
+
+        x_of_node, y_of_node = create_xy_of_node(
+            shape, spacing=spacing, xy_of_center=xy_of_center
+        )
+
+        self._shell_spacing = spacing
+        self._shape = tuple(shape)
+        self._xy_of_center = xy_of_center
+
+        DualVoronoiGraph.__init__(self, (y_of_node, x_of_node), sort=False)
+
+        if sort:
+            self.sort()
 
     @property
     def shape(self):

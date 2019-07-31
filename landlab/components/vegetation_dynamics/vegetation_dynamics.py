@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from landlab import Component
@@ -33,7 +32,7 @@ class Vegetation(Component):
 
     Create a grid on which to simulate vegetation dynamics.
 
-    >>> grid = RasterModelGrid((5,4), spacing=(0.2, 0.2))
+    >>> grid = RasterModelGrid((5,4), xy_spacing=(0.2, 0.2))
 
     The grid will need some input data. To check the names of the fields
     that provide the input to this component, use the *input_var_names*
@@ -165,28 +164,28 @@ class Vegetation(Component):
     def __init__(
         self,
         grid,
-        Blive_init=102.,
-        Bdead_init=450.,
+        Blive_init=102.0,
+        Bdead_init=450.0,
         ETthreshold_up=3.8,
         ETthreshold_down=6.8,
-        Tdmax=10.,
+        Tdmax=10.0,
         w=0.55,
         WUE_grass=0.01,
-        LAI_max_grass=2.,
+        LAI_max_grass=2.0,
         cb_grass=0.0047,
         cd_grass=0.009,
         ksg_grass=0.012,
         kdd_grass=0.013,
         kws_grass=0.02,
         WUE_shrub=0.0025,
-        LAI_max_shrub=2.,
+        LAI_max_shrub=2.0,
         cb_shrub=0.004,
         cd_shrub=0.01,
         ksg_shrub=0.002,
         kdd_shrub=0.013,
         kws_shrub=0.02,
         WUE_tree=0.0045,
-        LAI_max_tree=4.,
+        LAI_max_tree=4.0,
         cb_tree=0.004,
         cd_tree=0.01,
         ksg_tree=0.002,
@@ -294,28 +293,28 @@ class Vegetation(Component):
 
     def initialize(
         self,
-        Blive_init=102.,
-        Bdead_init=450.,
+        Blive_init=102.0,
+        Bdead_init=450.0,
         ETthreshold_up=3.8,
         ETthreshold_down=6.8,
-        Tdmax=10.,
+        Tdmax=10.0,
         w=0.55,
         WUE_grass=0.01,
-        LAI_max_grass=2.,
+        LAI_max_grass=2.0,
         cb_grass=0.0047,
         cd_grass=0.009,
         ksg_grass=0.012,
         kdd_grass=0.013,
         kws_grass=0.02,
         WUE_shrub=0.0025,
-        LAI_max_shrub=2.,
+        LAI_max_shrub=2.0,
         cb_shrub=0.004,
         cd_shrub=0.01,
         ksg_shrub=0.002,
         kdd_shrub=0.013,
         kws_shrub=0.02,
         WUE_tree=0.0045,
-        LAI_max_tree=4.,
+        LAI_max_tree=4.0,
         cb_tree=0.004,
         cd_tree=0.01,
         ksg_tree=0.002,
@@ -417,7 +416,7 @@ class Vegetation(Component):
         self._Blive_ini = self._Blive_init * np.ones(self.grid.number_of_cells)
         self._Bdead_ini = self._Bdead_init * np.ones(self.grid.number_of_cells)
 
-    def update(self, PETthreshold_switch=0, Tb=24., Tr=0.01, **kwds):
+    def update(self, PETthreshold_switch=0, Tb=24.0, Tr=0.01, **kwds):
         """
         Update fields with current loading conditions.
 
@@ -457,7 +456,7 @@ class Vegetation(Component):
             # ETdmax = self._ETdmax[cell]
             LAIlive = min(cb * self._Blive_ini[cell], LAImax)
             LAIdead = min(cd * self._Bdead_ini[cell], (LAImax - LAIlive))
-            NPP = max((ActualET[cell] / (Tb + Tr)) * WUE * 24. * self._w * 1000, 0.001)
+            NPP = max((ActualET[cell] / (Tb + Tr)) * WUE * 24.0 * self._w * 1000, 0.001)
 
             if self._vegtype[cell] == 0:
                 if PET30_[cell] > PETthreshold:
@@ -467,15 +466,15 @@ class Vegetation(Component):
                         (1 / Bmax) + (((kws * Water_stress[cell]) + ksg) / NPP)
                     )
                     Blive = (self._Blive_ini[cell] - Yconst) * np.exp(
-                        -(NPP / Yconst) * ((Tb + Tr) / 24.)
+                        -(NPP / Yconst) * ((Tb + Tr) / 24.0)
                     ) + Yconst
                     Bdead = (
                         self._Bdead_ini[cell]
-                        + (Blive - max(Blive * np.exp(-1 * ksg * Tb / 24.), 0.00001))
-                    ) * np.exp(-1 * kdd * min(PET[cell] / self._Tdmax, 1.) * Tb / 24.)
+                        + (Blive - max(Blive * np.exp(-1 * ksg * Tb / 24.0), 0.00001))
+                    ) * np.exp(-1 * kdd * min(PET[cell] / self._Tdmax, 1.0) * Tb / 24.0)
                 else:  # Senescense
                     Blive = max(
-                        self._Blive_ini[cell] * np.exp((-2) * ksg * Tb / 24.), 1
+                        self._Blive_ini[cell] * np.exp((-2) * ksg * Tb / 24.0), 1
                     )
                     Bdead = max(
                         (
@@ -485,40 +484,48 @@ class Vegetation(Component):
                                 - (
                                     max(
                                         self._Blive_ini[cell]
-                                        * np.exp((-2) * ksg * Tb / 24.),
+                                        * np.exp((-2) * ksg * Tb / 24.0),
                                         0.000001,
                                     )
                                 )
                             )
                             * np.exp(
-                                (-1) * kdd * min(PET[cell] / self._Tdmax, 1.) * Tb / 24.
+                                (-1)
+                                * kdd
+                                * min(PET[cell] / self._Tdmax, 1.0)
+                                * Tb
+                                / 24.0
                             ),
-                            0.,
+                            0.0,
                         )
                     )
 
             elif self._vegtype[cell] == 3:
-                Blive = 0.
-                Bdead = 0.
+                Blive = 0.0
+                Bdead = 0.0
 
             else:
                 Bmax = LAImax / cb
-                Yconst = 1. / ((1. / Bmax) + (((kws * Water_stress[cell]) + ksg) / NPP))
+                Yconst = 1.0 / (
+                    (1.0 / Bmax) + (((kws * Water_stress[cell]) + ksg) / NPP)
+                )
                 Blive = (self._Blive_ini[cell] - Yconst) * np.exp(
-                    -(NPP / Yconst) * ((Tb + Tr) / 24.)
+                    -(NPP / Yconst) * ((Tb + Tr) / 24.0)
                 ) + Yconst
                 Bdead = (
                     self._Bdead_ini[cell]
-                    + (Blive - max(Blive * np.exp(-ksg * Tb / 24.), 0.00001))
-                ) * np.exp(-kdd * min(PET[cell] / self._Tdmax, 1.) * Tb / 24.)
+                    + (Blive - max(Blive * np.exp(-ksg * Tb / 24.0), 0.00001))
+                ) * np.exp(-kdd * min(PET[cell] / self._Tdmax, 1.0) * Tb / 24.0)
 
-            LAIlive = min(cb * (Blive + self._Blive_ini[cell]) / 2., LAImax)
-            LAIdead = min(cd * (Bdead + self._Bdead_ini[cell]) / 2., (LAImax - LAIlive))
+            LAIlive = min(cb * (Blive + self._Blive_ini[cell]) / 2.0, LAImax)
+            LAIdead = min(
+                cd * (Bdead + self._Bdead_ini[cell]) / 2.0, (LAImax - LAIlive)
+            )
             if self._vegtype[cell] == 0:
-                Vt = 1. - np.exp(-0.75 * (LAIlive + LAIdead))
+                Vt = 1.0 - np.exp(-0.75 * (LAIlive + LAIdead))
             else:
                 # Vt = 1 - np.exp(-0.75 * LAIlive)
-                Vt = 1.
+                Vt = 1.0
 
             self._LAIlive[cell] = LAIlive
             self._LAIdead[cell] = LAIdead

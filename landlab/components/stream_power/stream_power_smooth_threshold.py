@@ -48,7 +48,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> rg = RasterModelGrid((3, 4), 1.0)
+    >>> rg = RasterModelGrid((3, 4))
     >>> rg.set_closed_boundaries_at_grid_edges(False, True, True, True)
     >>> z = rg.add_zeros('node', 'topographic__elevation')
     >>> z[5] = 2.0
@@ -80,9 +80,9 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         grid,
         K_sp=None,
         m_sp=0.5,
-        n_sp=1.,
-        threshold_sp=1.,
-        rainfall_intensity=1.,
+        n_sp=1.0,
+        threshold_sp=1.0,
+        rainfall_intensity=1.0,
         use_Q=None,
         **kwargs
     ):
@@ -146,7 +146,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rg = RasterModelGrid((3, 3), 1.0)
+        >>> rg = RasterModelGrid((3, 3))
         >>> rg.set_closed_boundaries_at_grid_edges(False, True, True, True)
         >>> z = rg.add_zeros('node', 'topographic__elevation')
         >>> z[4] = 1.0

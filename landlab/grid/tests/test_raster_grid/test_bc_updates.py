@@ -23,11 +23,11 @@ def test_issue_428_b():
     grid = RasterModelGrid((4, 4))
 
     z = np.ones(grid.number_of_nodes)
-    z[grid.nodes_at_bottom_edge] = -9999.
-    z[grid.nodes_at_left_edge] = -9999.
-    z[grid.nodes_at_top_edge] = -9999.
-    z[grid.nodes_at_right_edge] = -9999.
-    z[1] = .5
+    z[grid.nodes_at_bottom_edge] = -9999.0
+    z[grid.nodes_at_left_edge] = -9999.0
+    z[grid.nodes_at_top_edge] = -9999.0
+    z[grid.nodes_at_right_edge] = -9999.0
+    z[1] = 0.5
 
     assert_array_equal(grid.active_link_dirs_at_node[1], [0, -1, 0, 0])
 

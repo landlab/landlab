@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import pytest
 
 from landlab import RasterModelGrid
@@ -15,7 +13,7 @@ def test_MaterialLayersMixIn():
 
 def test_adding_untracked_layer():
     layers = MaterialLayers(3)
-    layers.add(1., type=3., size="sand")
-    layers.add([0., 0., 1.], type=3., size="sand")
+    layers.add(1.0, type=3.0, size="sand")
+    layers.add([0.0, 0.0, 1.0], type=3.0, size="sand")
     with pytest.raises(ValueError):
-        layers.add([1.], type=3., size="sand", spam="eggs")
+        layers.add([1.0], type=3.0, size="sand", spam="eggs")

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import numpy as np
-import six
 
 from landlab import Component
 
@@ -24,7 +23,7 @@ class SoilInfiltrationGreenAmpt(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import SoilInfiltrationGreenAmpt
-    >>> mg = RasterModelGrid((4,3), spacing=10.)
+    >>> mg = RasterModelGrid((4,3), xy_spacing=10.)
     >>> hydraulic_conductivity = mg.ones('node')*1.e-6
     >>> hydraulic_conductivity.reshape((4,3))[0:2,:] *= 10000.
     >>> h = mg.add_ones('node', 'surface_water__depth')
@@ -88,13 +87,13 @@ class SoilInfiltrationGreenAmpt(Component):
         self,
         grid,
         hydraulic_conductivity=0.005,
-        soil_bulk_density=1590.,
-        rock_density=2650.,
+        soil_bulk_density=1590.0,
+        rock_density=2650.0,
         initial_soil_moisture_content=0.15,
         soil_type="sandy loam",
         volume_fraction_coarse_fragments=0.2,
         coarse_sed_flag=False,
-        surface_water_minimum_depth=1.e-8,
+        surface_water_minimum_depth=1.0e-8,
         soil_pore_size_distribution_index=None,
         soil_bubbling_pressure=None,
         wetting_front_capillary_pressure_head=None,
@@ -150,7 +149,7 @@ class SoilInfiltrationGreenAmpt(Component):
         self.hydraulic_conductivity = hydraulic_conductivity
 
         if not coarse_sed_flag:
-            volume_fraction_coarse_fragments = 0.
+            volume_fraction_coarse_fragments = 0.0
 
         self.moisture_deficit = self.calc_moisture_deficit(
             soil_bulk_density=soil_bulk_density,
@@ -170,7 +169,9 @@ class SoilInfiltrationGreenAmpt(Component):
 
     @staticmethod
     def calc_soil_pressure(
-        soil_type=None, soil_pore_size_distribution_index=1., soil_bubbling_pressure=0.
+        soil_type=None,
+        soil_pore_size_distribution_index=1.0,
+        soil_bubbling_pressure=0.0,
     ):
         """Calculate capillary pressure in a soil type.
 
@@ -212,14 +213,14 @@ class SoilInfiltrationGreenAmpt(Component):
             controlling effective hydraulic conductivity at varying
             water contents, following Brooks and Corey (1964) [m]
         """
-        return (2. + 3. * lam) / (1. + 3. * lam) * h_b * .5
+        return (2.0 + 3.0 * lam) / (1.0 + 3.0 * lam) * h_b * 0.5
 
     @staticmethod
     def calc_moisture_deficit(
-        soil_bulk_density=1590.,
-        rock_density=2650.,
-        volume_fraction_coarse_fragments=0.,
-        soil_moisture_content=0.,
+        soil_bulk_density=1590.0,
+        rock_density=2650.0,
+        volume_fraction_coarse_fragments=0.0,
+        soil_moisture_content=0.0,
     ):
         """Calculate the moisture deficit in a soil.
 
@@ -239,17 +240,17 @@ class SoilInfiltrationGreenAmpt(Component):
         float or array of float
             Moisture deficit.
         """
-        if np.any(soil_bulk_density <= 0.):
+        if np.any(soil_bulk_density <= 0.0):
             raise ValueError("non-positive soil bulk density")
         if np.any(rock_density < soil_bulk_density):
             raise ValueError("soil bulk density greater than rock density")
-        if np.any(volume_fraction_coarse_fragments < 0.):
+        if np.any(volume_fraction_coarse_fragments < 0.0):
             raise ValueError("negative volume fraction of coarse grains")
-        if np.any(volume_fraction_coarse_fragments > 1.):
+        if np.any(volume_fraction_coarse_fragments > 1.0):
             raise ValueError("volume fraction of coarse grains")
 
-        soil_porosity = 1. - np.true_divide(soil_bulk_density, rock_density)
-        soil_porosity *= 1. - volume_fraction_coarse_fragments
+        soil_porosity = 1.0 - np.true_divide(soil_bulk_density, rock_density)
+        soil_porosity *= 1.0 - volume_fraction_coarse_fragments
 
         if np.any(soil_moisture_content > soil_porosity):
             raise ValueError("soil moisture greater than porosity")
@@ -263,7 +264,7 @@ class SoilInfiltrationGreenAmpt(Component):
 
     @min_water.setter
     def min_water(self, new_value):
-        if np.any(new_value <= 0.):
+        if np.any(new_value <= 0.0):
             raise ValueError("minimum water depth must be positive")
         self._min_water = new_value
 
@@ -274,9 +275,9 @@ class SoilInfiltrationGreenAmpt(Component):
 
     @hydraulic_conductivity.setter
     def hydraulic_conductivity(self, new_value):
-        if isinstance(new_value, six.string_types):
+        if isinstance(new_value, str):
             new_value = self.grid.at_node[new_value]
-        if np.any(new_value < 0.):
+        if np.any(new_value < 0.0):
             raise ValueError("hydraulic conductivity must be positive")
         self._hydraulic_conductivity = new_value
 
@@ -287,7 +288,7 @@ class SoilInfiltrationGreenAmpt(Component):
 
     @moisture_deficit.setter
     def moisture_deficit(self, new_value):
-        if np.any(new_value < 0.):
+        if np.any(new_value < 0.0):
             raise ValueError("negative moisture deficit")
         self._moisture_deficit = new_value
 
@@ -298,7 +299,7 @@ class SoilInfiltrationGreenAmpt(Component):
 
     @capillary_pressure.setter
     def capillary_pressure(self, new_value):
-        if np.any(new_value < 0.):
+        if np.any(new_value < 0.0):
             raise ValueError("negative capillary pressure")
         self._capillary_pressure = new_value
 
@@ -313,7 +314,7 @@ class SoilInfiltrationGreenAmpt(Component):
         water_depth = self.grid.at_node["surface_water__depth"]
         infiltration_depth = self.grid.at_node["soil_water_infiltration__depth"]
 
-        assert np.all(infiltration_depth >= 0.)
+        assert np.all(infiltration_depth >= 0.0)
 
         wettingfront_depth = infiltration_depth / self.moisture_deficit
 
@@ -325,10 +326,10 @@ class SoilInfiltrationGreenAmpt(Component):
                 / wettingfront_depth
             )
         )
-        np.clip(potential_infilt, 0., None, out=potential_infilt)
+        np.clip(potential_infilt, 0.0, None, out=potential_infilt)
 
         available_water = water_depth - self.min_water
-        np.clip(available_water, 0., None, out=available_water)
+        np.clip(available_water, 0.0, None, out=available_water)
 
         actual_infiltration = np.choose(
             potential_infilt > available_water, (potential_infilt, available_water)

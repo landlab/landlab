@@ -9,8 +9,8 @@ from landlab.io.netcdf import read_netcdf
 
 
 def test_save_esri_ascii(tmpdir):
-    grid = RasterModelGrid((4, 5), 2.)
-    grid.add_field("node", "air__temperature", np.arange(20.))
+    grid = RasterModelGrid((4, 5), xy_spacing=2.0)
+    grid.add_field("node", "air__temperature", np.arange(20.0))
 
     with tmpdir.as_cwd():
         grid.save("test.asc", format="esri-ascii")
@@ -18,8 +18,8 @@ def test_save_esri_ascii(tmpdir):
 
 
 def test_add_extension(tmpdir):
-    grid = RasterModelGrid((4, 5), 2.)
-    grid.add_field("node", "air__temperature", np.arange(20.))
+    grid = RasterModelGrid((4, 5), xy_spacing=2.0)
+    grid.add_field("node", "air__temperature", np.arange(20.0))
 
     with tmpdir.as_cwd():
         grid.save("test", format="esri-ascii")
@@ -31,8 +31,8 @@ def test_add_extension(tmpdir):
 
 
 def test_replace_extension(tmpdir):
-    grid = RasterModelGrid((4, 5), 2.)
-    grid.add_field("node", "air__temperature", np.arange(20.))
+    grid = RasterModelGrid((4, 5), xy_spacing=2.0)
+    grid.add_field("node", "air__temperature", np.arange(20.0))
 
     with tmpdir.as_cwd():
         grid.save("test.nc", format="esri-ascii")
@@ -44,8 +44,8 @@ def test_replace_extension(tmpdir):
 
 
 def test_guess_format(tmpdir):
-    grid = RasterModelGrid((4, 5), spacing=2.)
-    grid.add_field("node", "air__temperature", np.arange(20.))
+    grid = RasterModelGrid((4, 5), xy_spacing=2.0)
+    grid.add_field("node", "air__temperature", np.arange(20.0))
 
     with tmpdir.as_cwd():
         grid.save("test.asc")
@@ -59,9 +59,9 @@ def test_guess_format(tmpdir):
 
 
 def test_names_keyword_as_str(tmpdir):
-    grid = RasterModelGrid((4, 5), spacing=2.)
-    grid.add_field("air__temperature", np.arange(20.), at="node")
-    grid.add_field("land_surface__elevation", np.arange(20.), at="node")
+    grid = RasterModelGrid((4, 5), xy_spacing=2.0)
+    grid.add_field("air__temperature", np.arange(20.0), at="node")
+    grid.add_field("land_surface__elevation", np.arange(20.0), at="node")
 
     with tmpdir.as_cwd():
         grid.save("test.asc", names="land_surface__elevation")
@@ -70,9 +70,9 @@ def test_names_keyword_as_str(tmpdir):
 
 
 def test_names_keyword_as_list(tmpdir):
-    grid = RasterModelGrid((4, 5), 2.)
-    grid.add_field("air__temperature", np.arange(20.), at="node")
-    grid.add_field("land_surface__elevation", np.arange(20.), at="node")
+    grid = RasterModelGrid((4, 5), xy_spacing=2.0)
+    grid.add_field("air__temperature", np.arange(20.0), at="node")
+    grid.add_field("land_surface__elevation", np.arange(20.0), at="node")
 
     with tmpdir.as_cwd():
         grid.save("test.asc", names=["land_surface__elevation", "air__temperature"])

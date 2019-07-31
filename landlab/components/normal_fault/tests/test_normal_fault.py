@@ -8,7 +8,7 @@ from landlab.components import NormalFault
 
 def test_dx_equals_zero():
     """Test a vertical fault trace."""
-    grid = RasterModelGrid((6, 6), spacing=10)
+    grid = RasterModelGrid((6, 6), xy_spacing=10)
 
     grid.add_zeros("node", "topographic__elevation")
 
@@ -39,7 +39,7 @@ def test_dx_equals_zero():
 
 def test_anti_aximuth_greq_2pi():
     """Test anti azimuth over 2*pi."""
-    grid = RasterModelGrid((6, 6), spacing=10)
+    grid = RasterModelGrid((6, 6), xy_spacing=10)
 
     grid.add_zeros("node", "topographic__elevation")
 
@@ -72,7 +72,7 @@ def test_anti_aximuth_greq_2pi():
 
 def test_non_raster():
     """Test a hex model grid."""
-    grid = HexModelGrid(7, 3, dx=10)
+    grid = HexModelGrid(7, 3, dx=10, xy_of_lower_left=(-15.0, 0.0))
 
     grid.add_zeros("node", "topographic__elevation")
 
@@ -136,7 +136,7 @@ def test_non_raster():
 
 def test_dip_geq_90():
     """Test dip angles of >90 degrees."""
-    grid = RasterModelGrid((6, 6), spacing=10)
+    grid = RasterModelGrid((6, 6), xy_spacing=10)
 
     grid.add_zeros("node", "topographic__elevation")
 
@@ -146,13 +146,13 @@ def test_dip_geq_90():
 
 def test_uplifting_multiple_fields():
     """Test uplifting multiple fields with NormalFault."""
-    grid = RasterModelGrid((6, 6), spacing=10)
+    grid = RasterModelGrid((6, 6), xy_spacing=10)
 
     grid.add_zeros("node", "topographic__elevation")
 
     zbr = grid.add_zeros("node", "bedrock__elevation")
 
-    zbr -= 1.
+    zbr -= 1.0
 
     param_dict = {
         "faulted_surface": ["topographic__elevation", "bedrock__elevation"],
@@ -168,83 +168,83 @@ def test_uplifting_multiple_fields():
 
     elev = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            10.,
-            10.,
-            10.,
-            10.,
-            0.,
-            0.,
-            10.,
-            10.,
-            10.,
-            10.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            10.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            0.0,
+            0.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
     bedrock = np.array(
         [
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            9.,
-            9.,
-            9.,
-            9.,
-            -1.,
-            -1.,
-            9.,
-            9.,
-            9.,
-            9.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            9.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
-            -1.,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            9.0,
+            9.0,
+            9.0,
+            9.0,
+            -1.0,
+            -1.0,
+            9.0,
+            9.0,
+            9.0,
+            9.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            9.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            -1.0,
         ]
     )
 
@@ -254,13 +254,13 @@ def test_uplifting_multiple_fields():
 
 def test_uplifting_a_not_yet_created_field():
     """Test uplifting a field that does not exist with  NormalFault."""
-    grid = RasterModelGrid((6, 6), spacing=10)
+    grid = RasterModelGrid((6, 6), xy_spacing=10)
 
     grid.add_zeros("node", "topographic__elevation")
 
     zbr = grid.add_zeros("node", "bedrock__elevation")
 
-    zbr -= 1.
+    zbr -= 1.0
 
     param_dict = {
         "faulted_surface": [
@@ -310,42 +310,42 @@ def test_uplifting_a_not_yet_created_field():
 
     vals = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            10.,
-            10.,
-            10.,
-            10.,
-            0.,
-            0.,
-            10.,
-            10.,
-            10.,
-            10.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            10.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            0.0,
+            0.0,
+            10.0,
+            10.0,
+            10.0,
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            10.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 

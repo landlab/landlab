@@ -2,9 +2,9 @@
 These tests use the following arrangement of nodes::
 
           o --- o --- o --- o
-         /     /     /     /
+         /  \  /  \  /  \  /
        o --- o --- o --- o
-      /     /     /    /
+      /  \  /  \  / \  /
     o --- o --- o --- o
 
 This result in two bound voronoi polygons (12 total) centered on points
@@ -23,8 +23,8 @@ from landlab.graph.voronoi.voronoi_helpers import VoronoiConverter
 #     get_links_at_patch, get_corner_at_patch)
 
 
-NODE_X = (0., 1., 2., 3., .1, 1.1, 2.1, 3.1, .2, 1.2, 2.2, 3.2)
-NODE_Y = (0., 0., 0., 0., 1., 1., 1., 1., 2., 2., 2., 2.)
+NODE_X = (0.0, 1.0, 2.0, 3.0, 0.1, 1.1, 2.1, 3.1, 0.2, 1.2, 2.2, 3.2)
+NODE_Y = (0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0)
 POINTS = list(zip(NODE_X, NODE_Y))
 
 
@@ -112,13 +112,13 @@ def test_nodes_at_link():
     """Test getting nodes at links from a voronoi."""
     converter = VoronoiConverter(Voronoi(POINTS))
 
-    nodes_at_link = converter.get_nodes_at_link()
+    nodes_at_link = converter.nodes_at_link
 
-    assert nodes_at_link.shape == (11, 2)
+    assert nodes_at_link.shape == (13, 2)
     assert np.all(nodes_at_link >= 0)
-    assert np.all(nodes_at_link < 10)
+    assert np.all(nodes_at_link < 12)
 
-    assert_array_equal(np.unique(nodes_at_link), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    assert_array_equal(np.unique(nodes_at_link), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
 
 
 def test_nodes():
@@ -147,7 +147,7 @@ def test_links_at_patch():
     """Test getting links that bound patches from a voronoi."""
     converter = VoronoiConverter(Voronoi(POINTS))
 
-    links_at_patch = converter.get_links_at_patch()
+    links_at_patch = converter.links_at_patch
 
     assert links_at_patch.shape == (2, 6)
     assert np.all(links_at_patch >= 0)

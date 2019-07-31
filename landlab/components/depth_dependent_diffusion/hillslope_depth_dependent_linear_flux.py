@@ -16,6 +16,17 @@ class DepthDependentDiffuser(Component):
     This component implements a depth and slope dependent linear diffusion rule
     in the style of Johnstone and Hilley (2014).
 
+    Hillslope sediment flux uses depth dependent component inspired by
+    Johnstone and Hilley (2014). The flux :math:`q_s` is given as:
+
+    .. math::
+
+        q_s = D S H^* (1.0 - exp( H / H^*)
+
+    where :math:`D` is is the diffusivity, :math:`S` is the slope, :math:`H` is
+    the soil depth on links, and :math:`H^*` is the soil transport decay depth.
+
+
     This component will ignore soil thickness located at non-core nodes.
 
     Parameters
@@ -24,8 +35,6 @@ class DepthDependentDiffuser(Component):
         Landlab ModelGrid object
     linear_diffusivity: float
         Hillslope diffusivity, m**2/yr
-        Equivalent to the soil creep efficiency
-        times the soil transport decay depth.
     soil_transport_decay_depth: float
         characteristic transport soil depth, m
 
@@ -78,6 +87,30 @@ class DepthDependentDiffuser(Component):
     True
     >>> np.allclose(mg.at_node['soil__depth'], z - BRz)
     True
+
+    Now, we'll test that changing the transport decay depth behaves as expected.
+
+    >>> mg = RasterModelGrid((3, 5))
+    >>> soilTh = mg.add_zeros('node', 'soil__depth')
+    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
+    >>> z += mg.node_x.copy()**0.5
+    >>> BRz = z.copy() - 1.0
+    >>> soilTh[:] = z - BRz
+    >>> DDdiff = DepthDependentDiffuser(mg, soil_transport_decay_depth = 0.1)
+    >>> DDdiff.soilflux(1)
+    >>> soil_decay_depth_point1 = mg.at_node['topographic__elevation'][mg.core_nodes]
+    >>> z[:] = 0
+    >>> z += mg.node_x.copy()**0.5
+    >>> BRz = z.copy() - 1.0
+    >>> soilTh[:] = z - BRz
+    >>> DDdiff = DepthDependentDiffuser(mg, soil_transport_decay_depth = 1.0)
+    >>> DDdiff.soilflux(1)
+    >>> soil_decay_depth_1 = mg.at_node['topographic__elevation'][mg.core_nodes]
+    >>> np.greater(soil_decay_depth_1[1], soil_decay_depth_point1[1])
+    False
+
+
     """
 
     _name = "DepthDependentDiffuser"
@@ -191,11 +224,14 @@ class DepthDependentDiffuser(Component):
 
         # Calculate gradients
         slope = self.grid.calc_grad_at_link(self.elev)
-        slope[self.grid.status_at_link == INACTIVE_LINK] = 0.
+        slope[self.grid.status_at_link == INACTIVE_LINK] = 0.0
 
         # Calculate flux
         self.flux[:] = (
-            -self.K * slope * (1.0 - np.exp(-H_link / self.soil_transport_decay_depth))
+            -self.K
+            * slope
+            * self.soil_transport_decay_depth
+            * (1.0 - np.exp(-H_link / self.soil_transport_decay_depth))
         )
 
         # Calculate flux divergence

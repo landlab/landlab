@@ -92,7 +92,7 @@ class LandslideProbability(Component):
 
     Create a grid on which to calculate landslide probability.
 
-    >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
 
     Check the number of core nodes.
 
@@ -288,8 +288,8 @@ class LandslideProbability(Component):
         grid,
         number_of_iterations=250,
         groundwater__recharge_distribution="uniform",
-        groundwater__recharge_min_value=20.,
-        groundwater__recharge_max_value=120.,
+        groundwater__recharge_min_value=20.0,
+        groundwater__recharge_max_value=120.0,
         groundwater__recharge_mean=None,
         groundwater__recharge_standard_deviation=None,
         groundwater__recharge_HSD_inputs=[],
@@ -351,7 +351,7 @@ class LandslideProbability(Component):
             self._Re = np.random.uniform(
                 self._recharge_min, self._recharge_max, size=self.n
             )
-            self._Re /= 1000.  # Convert mm to m
+            self._Re /= 1000.0  # Convert mm to m
         # Lognormal Distribution - Uniform in space
         elif self.groundwater__recharge_distribution == "lognormal":
             assert (
@@ -372,7 +372,7 @@ class LandslideProbability(Component):
             self._Re = np.random.lognormal(
                 self._mu_lognormal, self._sigma_lognormal, self.n
             )
-            self._Re /= 1000.  # Convert mm to m
+            self._Re /= 1000.0  # Convert mm to m
         # Lognormal Distribution - Variable in space
         elif self.groundwater__recharge_distribution == "lognormal_spatial":
             assert groundwater__recharge_mean.shape[0] == (
@@ -450,7 +450,7 @@ class LandslideProbability(Component):
         # recharge distribution based on distribution type
         if self.groundwater__recharge_distribution == "data_driven_spatial":
             self._calculate_HSD_recharge(i)
-            self._Re /= 1000.  # mm->m
+            self._Re /= 1000.0  # mm->m
         elif self.groundwater__recharge_distribution == "lognormal_spatial":
             mu_lognormal = np.log(
                 (self._recharge_mean[i] ** 2)
@@ -462,7 +462,7 @@ class LandslideProbability(Component):
                 )
             )
             self._Re = np.random.lognormal(mu_lognormal, sigma_lognormal, self.n)
-            self._Re /= 1000.  # Convert mm to m
+            self._Re /= 1000.0  # Convert mm to m
 
         # Cohesion
         # if don't provide fields of min and max C, uncomment 2 lines below
@@ -479,7 +479,7 @@ class LandslideProbability(Component):
         hs_min = self._hs_mode - 0.3 * self._hs_mode
         hs_max = self._hs_mode + 0.1 * self._hs_mode
         self._hs = np.random.triangular(hs_min, self._hs_mode, hs_max, size=self.n)
-        self._hs[self._hs <= 0.] = 0.005
+        self._hs[self._hs <= 0.0] = 0.005
         if self.Ksat_provided:
             # Hydraulic conductivity (Ksat)
             Ksatmin = self._Ksatmode - (0.3 * self._Ksatmode)
@@ -534,9 +534,9 @@ class LandslideProbability(Component):
         and probability of saturation are assigned as fields to nodes.
         """
         # Create arrays for data with -9999 as default to store output
-        self.mean_Relative_Wetness = np.full(self.grid.number_of_nodes, -9999.)
-        self.prob_fail = np.full(self.grid.number_of_nodes, -9999.)
-        self.prob_sat = np.full(self.grid.number_of_nodes, -9999.)
+        self.mean_Relative_Wetness = np.full(self.grid.number_of_nodes, -9999.0)
+        self.prob_fail = np.full(self.grid.number_of_nodes, -9999.0)
+        self.prob_sat = np.full(self.grid.number_of_nodes, -9999.0)
         # Run factor of safety Monte Carlo for all core nodes in domain
         # i refers to each core node id
         for i in self.grid.core_nodes:
@@ -546,8 +546,8 @@ class LandslideProbability(Component):
             self.prob_fail[i] = self._landslide__probability_of_failure
             self.prob_sat[i] = self._soil__probability_of_saturation
         # Values can't be negative
-        self.mean_Relative_Wetness[self.mean_Relative_Wetness < 0.] = 0.
-        self.prob_fail[self.prob_fail < 0.] = 0.
+        self.mean_Relative_Wetness[self.mean_Relative_Wetness < 0.0] = 0.0
+        self.prob_fail[self.prob_fail < 0.0] = 0.0
         # assign output fields to nodes
         self.grid.at_node["soil__mean_relative_wetness"] = self.mean_Relative_Wetness
         self.grid.at_node["landslide__probability_of_failure"] = self.prob_fail

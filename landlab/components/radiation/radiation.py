@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from landlab import Component
@@ -31,7 +30,7 @@ class Radiation(Component):
     >>> from landlab.components import Radiation
     >>> import numpy as np
 
-    >>> grid = RasterModelGrid((5, 4), spacing=(0.2, 0.2))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     >>> rad = Radiation(grid)
     >>> rad.name
     'Radiation'
@@ -108,11 +107,11 @@ class Radiation(Component):
         grid,
         method="Grid",
         cloudiness=0.2,
-        latitude=34.,
+        latitude=34.0,
         albedo=0.2,
         solar_constant=1366.67,
-        clearsky_turbidity=2.,
-        opt_airmass=0.,
+        clearsky_turbidity=2.0,
+        opt_airmass=0.0,
         **kwds
     ):
         """
@@ -173,7 +172,7 @@ class Radiation(Component):
         self._cell_values["Slope"] = self._slope
         self._cell_values["Aspect"] = self._aspect
 
-    def update(self, current_time, hour=12., **kwds):
+    def update(self, current_time, hour=12.0, **kwds):
         """Update fields with current loading conditions.
 
         Parameters
@@ -212,8 +211,8 @@ class Radiation(Component):
         self._Rgl = self._Io * np.exp(
             (-1)
             * self._n
-            * (0.128 - 0.054 * np.log10(1. / np.sin(self._alpha)))
-            * (1. / np.sin(self._alpha))
+            * (0.128 - 0.054 * np.log10(1.0 / np.sin(self._alpha)))
+            * (1.0 / np.sin(self._alpha))
         )
 
         self._phisun = np.arctan(
@@ -248,8 +247,8 @@ class Radiation(Component):
         # of a flat surface
         self._radf = self._sloped / self._flat
 
-        self._radf[self._radf <= 0.] = 0.
-        self._radf[self._radf > 6.] = 6.
+        self._radf[self._radf <= 0.0] = 0.0
+        self._radf[self._radf > 6.0] = 6.0
 
         # Sloped surface Toatl Incoming Shortwave Radn
         self._Rs = self._Rsflat * self._radf

@@ -7,10 +7,8 @@ Created July 2013 GT
 Last updated March 2016 DEJH with LL v1.0 component style
 """
 
-from __future__ import print_function
 
 import numpy as np
-from six.moves import range
 
 from landlab import (
     FIXED_GRADIENT_BOUNDARY,
@@ -52,7 +50,7 @@ class LinearDiffuser(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> import numpy as np
-    >>> mg = RasterModelGrid((9, 9), 1.)
+    >>> mg = RasterModelGrid((9, 9))
     >>> z = mg.add_zeros('node', 'topographic__elevation')
     >>> z.reshape((9, 9))[4, 4] = 1.
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
@@ -61,7 +59,7 @@ class LinearDiffuser(Component):
     ...     ld.run_one_step(1.)
     >>> np.isclose(z[mg.core_nodes].sum(), 1.)
     True
-    >>> mg2 = RasterModelGrid((5, 30), 1.)
+    >>> mg2 = RasterModelGrid((5, 30))
     >>> z2 = mg2.add_zeros('node', 'topographic__elevation')
     >>> z2.reshape((5, 30))[2, 8] = 1.
     >>> z2.reshape((5, 30))[2, 22] = 1.
@@ -77,8 +75,8 @@ class LinearDiffuser(Component):
 
     An example using links:
 
-    >>> mg1 = RasterModelGrid((10, 10), 100.)
-    >>> mg2 = RasterModelGrid((10, 10), 100.)
+    >>> mg1 = RasterModelGrid((10, 10), xy_spacing=100.)
+    >>> mg2 = RasterModelGrid((10, 10), xy_spacing=100.)
     >>> z1 = mg1.add_zeros('node', 'topographic__elevation')
     >>> z2 = mg2.add_zeros('node', 'topographic__elevation')
     >>> dt = 1.
@@ -187,7 +185,7 @@ class LinearDiffuser(Component):
             self._use_diags = True
         else:
             self._use_diags = False
-        self.current_time = 0.
+        self.current_time = 0.0
         self._run_before = False
         self._kd_on_links = False
         if linear_diffusivity is not None:
@@ -252,7 +250,7 @@ class LinearDiffuser(Component):
         # and irregular grids
         # CFL condition precalc:
         CFL_prefactor = (
-            _ALPHA * self.grid.length_of_link[: self.grid.number_of_links] ** 2.
+            _ALPHA * self.grid.length_of_link[: self.grid.number_of_links] ** 2.0
         )
         # ^ link_length can include diags, if not careful...
         self._CFL_actives_prefactor = CFL_prefactor[self.grid.active_links]
@@ -297,9 +295,9 @@ class LinearDiffuser(Component):
             # note there will be null entries here
             # by our defs, every active link must have a face.
             # calc the length of a diag "face":
-            rt2 = np.sqrt(2.)
-            horizontal_face = self.grid.dx / (1. + rt2)
-            vertical_face = self.grid.dy / (1. + rt2)
+            rt2 = np.sqrt(2.0)
+            horizontal_face = self.grid.dx / (1.0 + rt2)
+            vertical_face = self.grid.dy / (1.0 + rt2)
             diag_face = np.sqrt(0.5 * (horizontal_face ** 2 + vertical_face ** 2))
             self._hoz = self.grid.horizontal_links
             self._vert = self.grid.vertical_links
@@ -346,7 +344,7 @@ class LinearDiffuser(Component):
         --------
         >>> from landlab import RasterModelGrid
         >>> import numpy as np
-        >>> mg = RasterModelGrid((4, 5), 1.)
+        >>> mg = RasterModelGrid((4, 5))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> z[mg.core_nodes] = 1.
         >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
@@ -383,7 +381,7 @@ class LinearDiffuser(Component):
             vals[self.fixed_grad_nodes] - vals[self.fixed_grad_anchors]
         )
         if self._use_diags:
-            self.g.fill(0.)
+            self.g.fill(0.0)
 
         if self._kd_on_links or self._use_patches:
             mg = self.grid
@@ -456,11 +454,11 @@ class LinearDiffuser(Component):
             # need this else diffusivities on inactive links deform off-angle
             # calculations
             kd_links = kd_links.copy()
-            kd_links[self.grid.status_at_link == INACTIVE_LINK] = 0.
+            kd_links[self.grid.status_at_link == INACTIVE_LINK] = 0.0
 
         # Take the smaller of delt or built-in time-step size self.dt
         self.tstep_ratio = dt / self.dt
-        repeats = int(self.tstep_ratio // 1.)
+        repeats = int(self.tstep_ratio // 1.0)
         extra_time = self.tstep_ratio - repeats
 
         # Can really get into trouble if no diffusivity happens but we run...
@@ -517,7 +515,7 @@ class LinearDiffuser(Component):
                     # flux_x = slx * Kx
                     # flux_y = sly * Ky
                     # flux_links = np.sqrt(flux_x*flux_x + flux_y*flux_y)
-                    theta = np.arctan(np.fabs(sly) / (np.fabs(slx) + 1.e-10))
+                    theta = np.arctan(np.fabs(sly) / (np.fabs(slx) + 1.0e-10))
                     flux_links[self._hoz] *= np.sign(slx[self._hoz]) * np.cos(
                         theta[self._hoz]
                     )
@@ -571,7 +569,7 @@ class LinearDiffuser(Component):
             # Calculate the total rate of elevation change
             dzdt = -self.dqsds
             if not self._deposit:
-                dzdt[np.where(dzdt > 0)] = 0.
+                dzdt[np.where(dzdt > 0)] = 0.0
             # Update the elevations
             timestep = self.dt
             if i == (repeats):

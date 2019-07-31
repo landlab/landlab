@@ -18,7 +18,7 @@ class _GeneralizedErosionDeposition(Component):
         "flow__receiver_node",
         "flow__upstream_node_order",
         "topographic__steepest_slope",
-        "drainage_area",
+        "surface_water__discharge",
     )
 
     _output_var_names = "topographic__elevation"
@@ -27,7 +27,7 @@ class _GeneralizedErosionDeposition(Component):
         "flow__receiver_node": "-",
         "flow__upstream_node_order": "-",
         "topographic__steepest_slope": "-",
-        "drainage_area": "m**2",
+        "surface_water__discharge": "m**2/s",
         "topographic__elevation": "m",
     }
 
@@ -35,7 +35,7 @@ class _GeneralizedErosionDeposition(Component):
         "flow__receiver_node": "node",
         "flow__upstream_node_order": "node",
         "topographic__steepest_slope": "node",
-        "drainage_area": "node",
+        "surface_water__discharge": "node",
         "topographic__elevation": "node",
     }
 
@@ -45,19 +45,18 @@ class _GeneralizedErosionDeposition(Component):
         "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
         "node IDs",
         "topographic__steepest_slope": "Topographic slope at each node",
-        "drainage_area": "Upstream accumulated surface area contributing to the node's "
-        "discharge",
+        "surface_water__discharge": "Water discharge at each node",
         "topographic__elevation": "Land surface topographic elevation",
     }
 
     def __init__(
         self,
         grid,
-        m_sp=None,
-        n_sp=None,
-        phi=None,
-        F_f=None,
-        v_s=None,
+        m_sp,
+        n_sp,
+        phi,
+        F_f,
+        v_s,
         discharge_field="surface_water__discharge",
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
     ):
@@ -68,7 +67,7 @@ class _GeneralizedErosionDeposition(Component):
         grid : ModelGrid
             Landlab ModelGrid object
         m_sp : float
-            Drainage area exponent (units vary)
+            Discharge exponent (units vary)
         n_sp : float
             Slope exponent (units vary)
         phi : float

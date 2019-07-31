@@ -10,9 +10,9 @@ def setup_grids():
     """Set up test grids with unit and non-unit spacing."""
     _GRIDS.update(
         {
-            "unit": RasterModelGrid(4, 5),
-            "non_unit": RasterModelGrid(4, 5, 2.),
-            "non_square": RasterModelGrid((4, 5), spacing=(5, 2)),
+            "unit": RasterModelGrid((4, 5)),
+            "non_unit": RasterModelGrid((4, 5), xy_spacing=2.0),
+            "non_square": RasterModelGrid((4, 5), xy_spacing=(5, 2)),
         }
     )
 
@@ -54,7 +54,7 @@ def test_unit_spacing():
 
 def test_non_unit_spacing():
     """Test with a grid with non-unit spacing."""
-    rmg = RasterModelGrid((4, 5), spacing=(5, 2))
+    rmg = RasterModelGrid((4, 5), xy_spacing=(2, 5))
     values_at_nodes = np.arange(20)
 
     grads = rmg.calc_grad_at_link(values_at_nodes)[rmg.active_links]
@@ -111,7 +111,7 @@ def test_non_unit_spacing():
 
 def test_out_array():
     """Test using the out keyword."""
-    rmg = RasterModelGrid((4, 5), spacing=(5, 2))
+    rmg = RasterModelGrid((4, 5), xy_spacing=(2, 5))
     values_at_nodes = np.arange(20)
 
     output_array = np.empty(rmg.number_of_links)
@@ -145,7 +145,7 @@ def test_out_array():
 
 def test_diff_out_array():
     """Test returned array is the same as that passed as out keyword."""
-    rmg = RasterModelGrid(4, 5)
+    rmg = RasterModelGrid((4, 5))
     values = np.arange(20)
     diff = np.empty(rmg.number_of_links)
     rtn_diff = rmg.calc_diff_at_link(values, out=diff)

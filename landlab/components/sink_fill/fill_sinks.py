@@ -4,7 +4,7 @@ Created on Mon Oct 19.
 
 @author: dejh
 """
-from __future__ import print_function
+
 
 import numpy as np
 
@@ -14,6 +14,8 @@ from landlab.components import DepressionFinderAndRouter, FlowAccumulator
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import deprecated, use_file_name_or_kwds
+
+# TODO: this should probably follow Barnes et al., 2014 for max efficiency
 
 
 class SinkFiller(Component):
@@ -41,7 +43,7 @@ class SinkFiller(Component):
     >>> lake2 = np.array([78, 87, 88])
     >>> guard_nodes = np.array([23, 33, 53, 63, 73, 83])
     >>> lake = np.concatenate((lake1, lake2))
-    >>> mg = RasterModelGrid((10, 10), 1.)
+    >>> mg = RasterModelGrid((10, 10))
     >>> z = np.ones(100, dtype=float)
     >>> z += mg.node_x  # add a slope
     >>> z[guard_nodes] += 0.001  # forces the flow out of a particular node
@@ -93,7 +95,9 @@ class SinkFiller(Component):
     }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, routing="D8", apply_slope=False, fill_slope=1.e-5, **kwds):
+    def __init__(
+        self, grid, routing="D8", apply_slope=False, fill_slope=1.0e-5, **kwds
+    ):
         """
         Parameters
         ----------
@@ -126,11 +130,11 @@ class SinkFiller(Component):
                 raise NotImplementedError(msg)
 
         self._grid = grid
-        if routing is not "D8":
-            assert routing is "D4"
+        if routing != "D8":
+            assert routing == "D4"
         self._routing = routing
         if (type(self._grid) is landlab.grid.raster.RasterModelGrid) and (
-            routing is "D8"
+            routing == "D8"
         ):
             self._D8 = True
             self.num_nbrs = 8
@@ -254,9 +258,9 @@ class SinkFiller(Component):
                 lowest_elev_perim = perim_elevs[perim_elevs != out_elev].min()
                 # note we exclude the outlet node
                 elev_increment = (lowest_elev_perim - self._elev[outlet_node]) / (
-                    lake_nodes.size + 2.
+                    lake_nodes.size + 2.0
                 )
-                assert elev_increment > 0.
+                assert elev_increment > 0.0
                 all_ordering = self._grid.at_node["flow__upstream_node_order"]
                 upstream_order_bool = np.in1d(
                     all_ordering, lake_nodes, assume_unique=True
@@ -264,7 +268,7 @@ class SinkFiller(Component):
                 lake_upstream_order = all_ordering[upstream_order_bool]
                 argsort_lake = np.argsort(lake_upstream_order)
                 elevs_to_add = (
-                    np.arange(lake_nodes.size, dtype=float) + 1.
+                    np.arange(lake_nodes.size, dtype=float) + 1.0
                 ) * elev_increment
                 sorted_elevs_to_add = elevs_to_add[argsort_lake]
                 self._elev[lake_nodes] += sorted_elevs_to_add
@@ -338,7 +342,7 @@ class SinkFiller(Component):
         if apply_slope is True:
             apply_slope = self._fill_slope
         elif type(apply_slope) in (float, int):
-            assert apply_slope >= 0.
+            assert apply_slope >= 0.0
         if apply_slope:
             # this isn't very efficient, but OK as we're only running this
             # code ONCE in almost all use cases
@@ -359,7 +363,7 @@ class SinkFiller(Component):
                     # This is necessary as there are some configs where adding
                     # the slope could create subsidiary pits in the topo
                     self._lf.map_depressions(pits=None, reroute_flow=False)
-                    if len(self._lf.lake_outlets) == 0.:
+                    if len(self._lf.lake_outlets) == 0.0:
                         break
                     self._elev += self._grid.at_node["depression__depth"]
                     sublake = True

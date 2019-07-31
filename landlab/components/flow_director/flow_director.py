@@ -1,17 +1,14 @@
 #! /usr/env/python
 
-"""
-flow_director.py provides a private class to help create FlowDirectors.
+"""flow_director.py provides a private class to help create FlowDirectors.
 
-Provides the _FlowDirector component which does grid type testing, adds the
-surface over which flow will be routed to the component, and sets up part of
-the boundary condition testing.
+Provides the _FlowDirector component which does grid type testing, adds
+the surface over which flow will be routed to the component, and sets up
+part of the boundary condition testing.
 """
 
-from __future__ import print_function
 
 import numpy
-import six
 
 from landlab import RasterModelGrid  # for type tests
 from landlab import Component
@@ -20,12 +17,16 @@ from landlab.utils.return_array import return_array_at_node
 
 class _FlowDirector(Component):
 
-    """
-    Private class for creating components to calculate flow directions.
+    """Private class for creating components to calculate flow directions.
 
     This class is not meant to be used directly in modeling efforts.
     Instead it has the functionality that all flow direction calculators need
     to initialize and check boundary conditions.
+
+    It also creates the following field used by all FlowDirectors.
+
+    -  Link array identifing if flow goes with (1) or against (-1) the link
+       direction: *'flow_link_direction'*
 
     The primary method of this class, :func:`run_one_step` is not implemented.
 
@@ -41,11 +42,13 @@ class _FlowDirector(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flow_director.flow_director import(
     ... _FlowDirector)
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + mg.node_y,
-    ...                  at = 'node')
+    >>> _ = mg.add_field(
+    ...     'topographic__elevation',
+    ...     mg.node_x + mg.node_y,
+    ...     at = 'node'
+    ...     )
     >>> fd = _FlowDirector(mg, 'topographic__elevation')
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
@@ -55,8 +58,9 @@ class _FlowDirector(Component):
     True
 
     _FlowDirector also works if you pass it an array instead of a field name.
+
     >>> import numpy as np
-    >>> mg = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> z = np.array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> fd = _FlowDirector(mg, z)
     >>> fd.surface_values
@@ -87,10 +91,10 @@ class _FlowDirector(Component):
     def _changed_surface(self):
         """Check if the surface values have changed.
 
-        If the surface values are stored as a field, it is important to check
-        if they have changed since the component was instantiated.
+        If the surface values are stored as a field, it is important to
+        check if they have changed since the component was instantiated.
         """
-        if isinstance(self.surface, six.string_types):
+        if isinstance(self.surface, str):
             self.surface_values = return_array_at_node(self._grid, self.surface)
 
     def _check_updated_bc(self):

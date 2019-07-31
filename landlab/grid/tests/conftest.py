@@ -32,3 +32,14 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("graph_element", GRAPH_ELEMENTS)
     elif "field_dtype" in metafunc.fixturenames:
         metafunc.parametrize("field_dtype", FIELD_DTYPES)
+    elif "random_xy" in metafunc.fixturenames:
+        from numpy.random import random_sample
+
+        metafunc.parametrize(
+            "random_xy",
+            (
+                tuple(-1e3 * random_sample(2)),
+                tuple(1e3 * random_sample(2)),
+                tuple(1e3 * (random_sample(2) - 0.5)),
+            ),
+        )

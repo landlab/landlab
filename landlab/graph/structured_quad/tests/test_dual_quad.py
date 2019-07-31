@@ -23,7 +23,7 @@ def test_create():
 
 def test_create_raster():
     """Test creating a quad graph."""
-    graph = DualUniformRectilinearGraph((3, 4), spacing=(2., 3.))
+    graph = DualUniformRectilinearGraph((3, 4), spacing=(2.0, 3.0))
 
     assert graph.number_of_nodes == 12
     assert graph.number_of_links == 17
@@ -36,55 +36,94 @@ def test_create_raster():
 
 def test_raster_spacing():
     """Test the spacing keyword for raster."""
-    graph = DualUniformRectilinearGraph((3, 4), spacing=(2., 3.))
+    graph = DualUniformRectilinearGraph((3, 4), spacing=(2.0, 3.0))
 
     assert_array_equal(
         graph.length_of_link,
-        [3., 3., 3., 2., 2., 2., 2., 3., 3., 3., 2., 2., 2., 2., 3., 3., 3.],
+        [
+            3.0,
+            3.0,
+            3.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            3.0,
+            3.0,
+            3.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            3.0,
+            3.0,
+            3.0,
+        ],
     )
-    assert_array_equal(graph.length_of_face, [3., 3., 2., 2., 2., 3., 3.])
+    assert_array_equal(graph.length_of_face, [3.0, 3.0, 2.0, 2.0, 2.0, 3.0, 3.0])
 
 
 def test_raster_spacing_as_scalar():
     """Test the spacing keyword as a scalar for raster."""
-    graph = DualUniformRectilinearGraph((3, 4), spacing=2.)
+    graph = DualUniformRectilinearGraph((3, 4), spacing=2.0)
 
     assert_array_equal(
         graph.length_of_link,
-        [2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.],
+        [
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+        ],
     )
-    assert_array_equal(graph.length_of_face, [2., 2., 2., 2., 2., 2., 2.])
+    assert_array_equal(graph.length_of_face, [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0])
 
 
 def test_raster_origin():
     """Test the origin keyword for raster."""
-    graph = DualUniformRectilinearGraph((3, 4), origin=(-1., 10.))
+    graph = DualUniformRectilinearGraph((3, 4), origin=(-1.0, 10.0))
 
     assert_array_equal(
         graph.xy_of_node[:, 0],
-        [10., 11., 12., 13., 10., 11., 12., 13., 10., 11., 12., 13.],
+        [10.0, 11.0, 12.0, 13.0, 10.0, 11.0, 12.0, 13.0, 10.0, 11.0, 12.0, 13.0],
     )
     assert_array_equal(
-        graph.xy_of_node[:, 1], [-1., -1., -1., -1., 0., 0., 0., 0., 1., 1., 1., 1.]
+        graph.xy_of_node[:, 1],
+        [-1.0, -1.0, -1.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0],
     )
 
     assert_array_equal(graph.xy_of_corner[:, 0], [10.5, 11.5, 12.5, 10.5, 11.5, 12.5])
-    assert_array_equal(graph.xy_of_corner[:, 1], [-.5, -.5, -.5, .5, .5, .5])
+    assert_array_equal(graph.xy_of_corner[:, 1], [-0.5, -0.5, -0.5, 0.5, 0.5, 0.5])
 
 
 def test_raster_origin_as_scalar():
     """Test the origin keyword as a scalar for raster."""
-    graph = DualUniformRectilinearGraph((3, 4), origin=-1.)
+    graph = DualUniformRectilinearGraph((3, 4), origin=-1.0)
 
     assert_array_equal(
-        graph.xy_of_node[:, 0], [-1., 0., 1., 2., -1., 0., 1., 2., -1., 0., 1., 2.]
+        graph.xy_of_node[:, 0],
+        [-1.0, 0.0, 1.0, 2.0, -1.0, 0.0, 1.0, 2.0, -1.0, 0.0, 1.0, 2.0],
     )
     assert_array_equal(
-        graph.xy_of_node[:, 1], [-1., -1., -1., -1., 0., 0., 0., 0., 1., 1., 1., 1.]
+        graph.xy_of_node[:, 1],
+        [-1.0, -1.0, -1.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0],
     )
 
-    assert_array_equal(graph.xy_of_corner[:, 0], [-.5, .5, 1.5, -.5, .5, 1.5])
-    assert_array_equal(graph.xy_of_corner[:, 1], [-.5, -.5, -.5, .5, .5, .5])
+    assert_array_equal(graph.xy_of_corner[:, 0], [-0.5, 0.5, 1.5, -0.5, 0.5, 1.5])
+    assert_array_equal(graph.xy_of_corner[:, 1], [-0.5, -0.5, -0.5, 0.5, 0.5, 0.5])
 
 
 def test_perimeter_corners():
@@ -101,15 +140,13 @@ def test_length_of_face():
     x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
     graph = DualStructuredQuadGraph((y, x), shape=(3, 3))
 
-    assert graph.length_of_face == approx([1.5, 1.5, 1.5, 1.5])
-    assert graph.width_of_face == approx([1.5, 1.5, 1.5, 1.5])
-    assert graph.length_of_face is graph.width_of_face
+    assert graph.length_of_face == approx(1.5)
 
 
 def test_area_of_cell():
     """Test areas of patches."""
-    y = [0, 1, 3, 0, 1, 3, 0, 1, 3]
-    x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
+    y = [0, 0, 0, 1, 1, 1, 3, 3, 3]
+    x = [3, 4, 6, 3, 4, 6, 3, 4, 6]
     graph = DualStructuredQuadGraph((y, x), shape=(3, 3))
     assert graph.area_of_cell == approx([2.25])
 

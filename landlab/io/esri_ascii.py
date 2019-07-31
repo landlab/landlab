@@ -16,7 +16,8 @@ import os
 import re
 
 import numpy as np
-import six
+
+from landlab.utils import add_halo
 
 _VALID_HEADER_KEYS = [
     "ncols",
@@ -117,6 +118,36 @@ class MismatchGridDataSizeError(Error):
 
     def __str__(self):
         return "(data size) %s != %s (grid size)" % (
+            self._actual,
+            self._expected,
+        )  # this line not yet tested
+
+
+class MismatchGridXYSpacing(Error):
+
+    """Raise this error if the file cell size does not match the grid dx."""
+
+    def __init__(self, dx, expected_dx):
+        self._actual = dx
+        self._expected = expected_dx
+
+    def __str__(self):
+        return "(data dx) %s != %s (grid dx)" % (
+            self._actual,
+            self._expected,
+        )  # this line not yet tested
+
+
+class MismatchGridXYLowerLeft(Error):
+
+    """Raise this error if the file lower left does not match the grid."""
+
+    def __init__(self, llc, expected_llc):
+        self._actual = llc
+        self._expected = expected_llc
+
+    def __str__(self):
+        return "(data lower-left) %s != %s (grid lower-left)" % (
             self._actual,
             self._expected,
         )  # this line not yet tested
@@ -258,7 +289,7 @@ def read_asc_header(asc_file):
 
     Examples
     --------
-    >>> from six import StringIO
+    >>> from io import StringIO
     >>> from landlab.io.esri_ascii import read_asc_header
     >>> contents = StringIO('''
     ...     nrows 100
@@ -364,8 +395,14 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
     DataSizeError
         Data are not the same size as indicated by the header file.
     MismatchGridDataSizeError
-        If a grid is passed, the size of the grid does not agree with the
+        If a grid is passed, and the size of the grid does not agree with the
         size of the data.
+    MismatchGridXYSpacing
+        If a grid is passed, and the cellsize listed in the heading does not
+        match the grid dx and dy.
+    MismatchGridXYLowerLeft
+        If a grid is passed and the xllcorner and yllcorner do not match that
+        of the grid.
 
     Examples
     --------
@@ -400,7 +437,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
 
     # if the asc_file is provided as a string, open it and pass the pointer to
     # _read_asc_header, and _read_asc_data
-    if isinstance(asc_file, six.string_types):
+    if isinstance(asc_file, str):
         with open(asc_file, "r") as f:
             header = read_asc_header(f)
             data = _read_asc_data(f)
@@ -422,37 +459,24 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
         if "nodata_value" in header.keys():
             nodata_value = header["nodata_value"]
         else:
-            header["nodata_value"] = -9999.
+            header["nodata_value"] = -9999.0
             nodata_value = header["nodata_value"]
         if data.size != (shape[0] - 2 * halo) * (shape[1] - 2 * halo):
             raise DataSizeError(shape[0] * shape[1], data.size)
-    spacing = (header["cellsize"], header["cellsize"])
-    origin = (
-        header["yllcorner"] - halo * header["cellsize"],
+    xy_spacing = (header["cellsize"], header["cellsize"])
+    xy_of_lower_left = (
         header["xllcorner"] - halo * header["cellsize"],
+        header["yllcorner"] - halo * header["cellsize"],
     )
 
     data = np.flipud(data)
 
-    # REMEMBER, shape contains the size with halo in place
-    # header contains the shape of the original data
-    # Add halo below
     if halo > 0:
-        helper_row = np.ones(shape[1]) * nodata_value
-        # for the first halo row(s), add num cols worth of nodata vals to data
-        for i in range(0, halo):
-            data = np.insert(data, 0, helper_row)
-        # then for header['nrows'] add halo number nodata vals, header['ncols']
-        # of data, then halo number of nodata vals
-        helper_row_ends = np.ones(halo) * nodata_value
-        for i in range(halo, header["nrows"] + halo):
-            # this adds at the beginning of the row
-            data = np.insert(data, i * shape[1], helper_row_ends)
-            # this adds at the end of the row
-            data = np.insert(data, (i + 1) * shape[1] - halo, helper_row_ends)
-        # for the last halo row(s), add num cols worth of nodata vals to data
-        for i in range(header["nrows"] + halo, shape[0]):
-            data = np.insert(data, data.size, helper_row)
+        data = add_halo(
+            data.reshape(header["nrows"], header["ncols"]),
+            halo=halo,
+            halo_value=nodata_value,
+        ).reshape((-1,))
 
     if not reshape:
         data = data.flatten()
@@ -465,9 +489,16 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
                 shape[0] * shape[1],
                 grid.number_of_node_rows * grid.number_of_node_columns,
             )
+        if (grid.dx, grid.dy) != xy_spacing:
+            raise MismatchGridXYSpacing((grid.dx, grid.dy), xy_spacing)
+
+        if grid.xy_of_lower_left != xy_of_lower_left:
+            raise MismatchGridXYLowerLeft(grid.xy_of_lower_left, xy_of_lower_left)
 
     if grid is None:
-        grid = RasterModelGrid(shape, spacing=spacing, origin=origin)
+        grid = RasterModelGrid(
+            shape, xy_spacing=xy_spacing, xy_of_lower_left=xy_of_lower_left
+        )
     if name:
         grid.add_field("node", name, data)
 
@@ -500,7 +531,7 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     >>> from landlab import RasterModelGrid
     >>> from landlab.io.esri_ascii import write_esri_ascii
 
-    >>> grid = RasterModelGrid((4, 5), spacing=(2., 2.))
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=(2., 2.))
     >>> _ = grid.add_field('node', 'air__temperature', np.arange(20.))
     >>> with cdtemp() as _:
     ...     files = write_esri_ascii('test.asc', grid)
@@ -517,7 +548,7 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     if os.path.exists(path) and not clobber:
         raise ValueError("file exists")
 
-    if isinstance(names, six.string_types):
+    if isinstance(names, str):
         names = [names]
 
     names = names or fields.at_node.keys()

@@ -36,6 +36,11 @@ def get_centroid_of_patch(graph, out=None):
         # graph.links_at_patch,
         np.ascontiguousarray(graph.xy_of_link[:, 0]),
         np.ascontiguousarray(graph.xy_of_link[:, 1]),
+
+        # graph.ds["nodes_at_patch"].values,
+        # graph.nodes_at_patch,
+        # np.ascontiguousarray(graph.x_of_node),
+        # np.ascontiguousarray(graph.y_of_node),
         out,
     )
 

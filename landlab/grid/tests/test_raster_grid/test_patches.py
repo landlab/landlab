@@ -90,7 +90,7 @@ class TestSlopesAtPatches:
         rmg = RasterModelGrid((4, 5))
         rmg.at_node["topographic__elevation"] = rmg.node_x.copy()
         slopes_out = rmg.calc_slope_at_node()
-        assert np.all(slopes_out == approx(np.full(20, np.pi / 4., dtype=float)))
+        assert np.all(slopes_out == approx(np.full(20, np.pi / 4.0, dtype=float)))
 
     def test_slopes_at_patches_comps(self):
         rmg = RasterModelGrid((4, 5))
@@ -98,8 +98,8 @@ class TestSlopesAtPatches:
         slopes_out = rmg.calc_slope_at_node(
             rmg.at_node["topographic__elevation"], return_components=True
         )
-        assert np.all(slopes_out[0] == approx(np.full(20, np.pi / 4., dtype=float)))
-        assert np.all(slopes_out[1][1] == approx(np.full(20, -np.pi / 4., dtype=float)))
+        assert np.all(slopes_out[0] == approx(np.full(20, np.pi / 4.0, dtype=float)))
+        assert np.all(slopes_out[1][1] == approx(np.full(20, -np.pi / 4.0, dtype=float)))
         assert np.all(slopes_out[1][0] == approx(np.zeros(20, dtype=float)))
 
 

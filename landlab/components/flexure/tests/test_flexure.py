@@ -8,11 +8,11 @@ import pytest
 from landlab import RasterModelGrid
 from landlab.components import Flexure
 
-(_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e3, 10e3), (0., 0.))
+(_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e3, 10e3), (0.0, 0.0))
 
 
 def test_method_names():
-    grid = RasterModelGrid((20, 20), spacing=10e3)
+    grid = RasterModelGrid((20, 20), xy_spacing=10e3)
     assert Flexure(grid, method="airy").method == "airy"
     assert Flexure(grid, method="flexure").method == "flexure"
     with pytest.raises(ValueError):
@@ -20,7 +20,7 @@ def test_method_names():
 
 
 def test_eet_attribute():
-    grid = RasterModelGrid((20, 20), spacing=10e3)
+    grid = RasterModelGrid((20, 20), xy_spacing=10e3)
     for val in (10e3, 1e3):
         assert Flexure(grid, eet=val).eet == pytest.approx(val)
     with pytest.raises(ValueError):
@@ -28,19 +28,19 @@ def test_eet_attribute():
 
 
 def test_youngs_attribute():
-    grid = RasterModelGrid((20, 20), spacing=10e3)
+    grid = RasterModelGrid((20, 20), xy_spacing=10e3)
     for val in (10e3, 1e3):
         assert Flexure(grid, youngs=val).youngs == pytest.approx(val)
 
 
 def test_gravity_attribute():
-    grid = RasterModelGrid((20, 20), spacing=10e3)
+    grid = RasterModelGrid((20, 20), xy_spacing=10e3)
     for val in (10e3, 1e3):
         assert Flexure(grid, gravity=val).gravity == pytest.approx(val)
 
 
 def test_rho_mantle_attribute():
-    grid = RasterModelGrid((20, 20), spacing=10e3)
+    grid = RasterModelGrid((20, 20), xy_spacing=10e3)
     for val in (10e3, 1e3):
         assert Flexure(grid, rho_mantle=val).rho_mantle == pytest.approx(val)
 
@@ -94,7 +94,7 @@ def test_field_getters(flex):
 def test_field_initialized_to_zero(flex):
     for name in flex.grid["node"]:
         field = flex.grid["node"][name]
-        assert np.all(field == 0.)
+        assert np.all(field == 0.0)
 
 
 def test_update():
@@ -103,7 +103,7 @@ def test_update():
     i_mid = np.ravel_multi_index((n_mid, n_mid), (n, n))
     load_0 = 1e9
 
-    grid = RasterModelGrid((n, n), spacing=1e3)
+    grid = RasterModelGrid((n, n), xy_spacing=1e3)
     flex = Flexure(grid, method="flexure")
 
     load = grid.at_node["lithosphere__overlying_pressure_increment"]
@@ -113,7 +113,7 @@ def test_update():
     dz = flex.grid.at_node["lithosphere_surface__elevation_increment"].reshape((n, n))
 
     assert np.argmax(dz) == i_mid
-    assert dz[n_mid, n_mid] > 0.
+    assert dz[n_mid, n_mid] > 0.0
     assert np.all(dz[:, n_mid::-1] == dz[:, n_mid:])
     assert np.all(dz[n_mid::-1, :] == dz[n_mid:, :])
 
@@ -121,7 +121,7 @@ def test_update():
 def test_subside_loads():
     n, load_0 = 11, 1e9
 
-    grid = RasterModelGrid((n, n), spacing=1e3)
+    grid = RasterModelGrid((n, n), xy_spacing=1e3)
     flex = Flexure(grid, method="flexure")
 
     grid.at_node["lithosphere__overlying_pressure_increment"][0] = load_0

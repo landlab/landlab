@@ -11,7 +11,6 @@ Created on Fri Feb 20 09:32:27 2015
 import inspect
 
 import numpy as np
-from six.moves import range
 
 from landlab import Component, FieldError, RasterModelGrid
 
@@ -51,7 +50,7 @@ class DischargeDiffuser(Component):
     >>> from landlab import HexModelGrid
     >>> from landlab.components import PotentialityFlowRouter
     >>> import numpy as np
-    >>> mg = HexModelGrid(4, 6, dx=2., shape='rect', orientation='vertical')
+    >>> mg = HexModelGrid(4, 6, dx=2., node_layout='rect', orientation='vertical')
     >>> z = mg.add_zeros('node', 'topographic__elevation')
     >>> Q_in = mg.add_ones('node', 'water__unit_flux_in')
     >>> z += mg.node_y.copy()
@@ -114,10 +113,10 @@ class DischargeDiffuser(Component):
         ),
     }
 
-    _min_slope_thresh = 1.e-24
+    _min_slope_thresh = 1.0e-24
     # if your flow isn't connecting up, this probably needs to be reduced
 
-    def __init__(self, grid, slope, flat_thresh=1.e-4, **kwds):
+    def __init__(self, grid, slope, flat_thresh=1.0e-4, **kwds):
         """
         Parameters
         ----------
@@ -250,17 +249,17 @@ class DischargeDiffuser(Component):
         # note cols/rows which don't get updated will always remain as 0,
         # which is right provided we want no flow BCs
         eta_diff = -eta[:-1, :] + eta[1:, :]
-        self._ann[:-1, :] = eta_diff.clip(0.)
-        self._anp[:-1, :] = (-eta_diff).clip(0.)
+        self._ann[:-1, :] = eta_diff.clip(0.0)
+        self._anp[:-1, :] = (-eta_diff).clip(0.0)
         eta_diff = -eta[1:, :] + eta[:-1, :]
-        self._ass[1:, :] = eta_diff.clip(0.)
-        self._asp[1:, :] = (-eta_diff).clip(0.)
+        self._ass[1:, :] = eta_diff.clip(0.0)
+        self._asp[1:, :] = (-eta_diff).clip(0.0)
         eta_diff = -eta[:, :-1] + eta[:, 1:]
-        self._aee[:, :-1] = eta_diff.clip(0.)
-        self._aep[:, :-1] = (-eta_diff).clip(0.)
+        self._aee[:, :-1] = eta_diff.clip(0.0)
+        self._aep[:, :-1] = (-eta_diff).clip(0.0)
         eta_diff = -eta[:, 1:] + eta[:, :-1]
-        self._aww[:, 1:] = eta_diff.clip(0.)
-        self._awp[:, 1:] = (-eta_diff).clip(0.)
+        self._aww[:, 1:] = eta_diff.clip(0.0)
+        self._awp[:, 1:] = (-eta_diff).clip(0.0)
 
         self._app[:] = self._awp + self._aep + self._asp + self._anp
 
@@ -327,7 +326,7 @@ class DischargeDiffuser(Component):
         --------
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((3, 4), (0.5, 1.))
+        >>> mg = RasterModelGrid((3, 4), xy_spacing=(1., 0.5))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> z[:] = np.array([[1, 2, 3, 4, 2, 3, 4, 5, 3, 4, 5, 6]])
         >>> zpad = np.pad(z.reshape((3, 4)), ((1, 1), (1, 1)), 'edge')
@@ -400,9 +399,9 @@ class DischargeDiffuser(Component):
             deadedge = (slice(0, 1, 1), slice(0, -1, 1))
         else:
             raise NameError("direction must be {'E', 'N', 'S', 'W'}")
-        slope_diff = (S_val - S_thresh).clip(0.)
+        slope_diff = (S_val - S_thresh).clip(0.0)
         dir_sed_flux[thisslice] = dir_water_flux[thisslice] * slope_diff[thisslice]
-        dir_sed_flux[deadedge] = 0.
+        dir_sed_flux[deadedge] = 0.0
 
     def diffuse_sediment(self, Qw_in, Qsed_in, **kwds):
         """
@@ -419,7 +418,7 @@ if __name__ == "__main__":
     Qw_in = mg.add_zeros("node", "water__discharge_in")
     Qs_in = mg.add_zeros("node", "sediment__discharge_in")
     Qw_in[0] = 0.5 * np.pi
-    Qs_in[0] = (1. - S_crit) * 0.5 * np.pi
+    Qs_in[0] = (1.0 - S_crit) * 0.5 * np.pi
     dd = DischargeDiffuser(mg, S_crit)
     for i in range(5):  # 501
         dd.run_one_step(0.01)  # 0.08

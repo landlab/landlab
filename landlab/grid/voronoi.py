@@ -9,7 +9,6 @@ automated fashion. To modify the text seen on the web, edit the files
 """
 import numpy as np
 from scipy.spatial import Voronoi
-from six.moves import range
 
 from landlab.core.utils import (
     argsort_points_by_x_then_y,
@@ -64,7 +63,7 @@ def simple_poly_area(x, y):
     # For short arrays (less than about 100 elements) it seems that the
     # Python sum is faster than the numpy sum. Likewise for the Python
     # built-in abs.
-    return .5 * abs(sum(x[:-1] * y[1:] - x[1:] * y[:-1]) + x[-1] * y[0] - x[0] * y[-1])
+    return 0.5 * abs(sum(x[:-1] * y[1:] - x[1:] * y[:-1]) + x[-1] * y[0] - x[0] * y[-1])
 
 
 class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
@@ -148,6 +147,9 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
             y-coordinate of points
         reorient_links (optional) : bool
             whether to point all links to the upper-right quadrant
+        xy_of_reference : tuple, optional
+            Coordinate value in projected space of (0., 0.)
+            Default is (0., 0.)
 
         Returns
         -------
@@ -178,6 +180,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         Creates an unstructured grid around the given (x,y) points.
         """
         x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+
         if x.size != y.size:
             raise ValueError("x and y arrays must have the same size")
 
@@ -505,7 +508,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         for i in range(num_links):
             link_midpoints[i][:] = (
                 vor.points[vor.ridge_points[i, 0]] + vor.points[vor.ridge_points[i, 1]]
-            ) / 2.
+            ) / 2.0
         ind = argsort_points_by_x_then_y(link_midpoints)
 
         # Loop through the list of ridges. For each ridge, there is a link, and
@@ -573,7 +576,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
         # Find locations where the angle is negative; these are the ones we
         # want to flip
-        (flip_locs,) = np.where(link_angle < 0.)
+        (flip_locs,) = np.where(link_angle < 0.0)
 
         # If there are any flip locations, proceed to switch their fromnodes
         # and tonodes; otherwise, we're done
@@ -653,7 +656,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
     def save(self, path, clobber=False):
         """Save a grid and fields.
 
-        This method uses cPickle to save a Voronoi grid as a cPickle file.
+        This method uses pickle to save a Voronoi grid as a pickle file.
         At the time of coding, this is the only convenient output format
         for Voronoi grids, but support for netCDF is likely coming.
 
@@ -692,7 +695,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         LLCATS: GINF
         """
         import os
-        from six.moves import cPickle
+        import pickle
 
         if os.path.exists(path) and not clobber:
             raise ValueError("file exists")
@@ -703,4 +706,4 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         path = base + ext
 
         with open(path, "wb") as fp:
-            cPickle.dump(self, fp)
+            pickle.dump(self, fp)
