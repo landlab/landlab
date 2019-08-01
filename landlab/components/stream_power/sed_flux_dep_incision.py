@@ -909,14 +909,27 @@ class SedDepEroder(Component):
                 downstr_vert_diff = node_z - node_z[flow_receiver]
                 botharepositive = np.logical_and(ratediff > 0.,
                                                  downstr_vert_diff > 0.)
+                # this ignores possibility of flooded nodes dstr, and so
+                # we can plausibly get in the situation where there's too
+                # much sed coming in to a pit, and it can't fill to the
+                # point where it ought to outflow because of this
+                # convergence limit.
                 try:
-                    t_to_converge = np.amin(
+                    times_to_converge = (
                         downstr_vert_diff[botharepositive] /
-                        ratediff[botharepositive])
+                        ratediff[botharepositive]
+                    )
+                    times_to_converge *= CONV_FACTOR_LOOSE
+                    # ^arbitrary safety factor; CHILD uses 0.3
+                    times_to_converge[isflooded] /= (
+                        CONV_FACTOR_LOOSE - np.spacing(CONV_FACTOR_LOOSE)
+                    )
+                    # this means the flooded node can fill fully if needed;
+                    # we permit the node to slightly overfill to get
+                    # ourselves out of this scenario next step.
+                    t_to_converge = np.amin(times_to_converge)
                 except ValueError:  # no node pair converges
                     t_to_converge = dt_secs
-                t_to_converge *= CONV_FACTOR_LOOSE
-            # ^arbitrary safety factor; CHILD uses 0.3
             if t_to_converge < 3600. and flood_node is not None:
                 t_to_converge = 3600.  # forbid tsteps < 1hr; a bit hacky
             # without this, it's possible for the component to get stuck in
