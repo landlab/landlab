@@ -17,6 +17,5 @@ def test_shape_dep_warning():
         # Trigger the deprecation warning.
         HexModelGrid(3, 2, shape="rect")
         # Verify some things
-        assert len(w) == 1
         assert issubclass(w[-1].category, DeprecationWarning)
         assert "node_layout" in str(w[-1].message)
