@@ -344,15 +344,15 @@ def is_coord_on_grid(rmg, coords, axes=(0, 1)):
     return is_in_bounds
 
 
-def line_to_grid_coords(x0, y0, x1, y1):
-    """Return integer grid coords forming line segment (x0, y0)->(x1, y1).
+def line_to_grid_coords(c0, r0, c1, r1):
+    """Return integer grid coords forming line segment (c0, r0)->(c1, r1).
 
     Parameters
     ----------
-    x0, y0 : float or int
-        x and y coordinates of "starting" endpoint, in grid (column, row) units
-    x1, y1 : float or int
-        x and y coordinates of "ending" endpoint, in grid (column, row) units
+    c0, r0 : int
+        column and row coordinates of "starting" endpoint
+    c1, r1 : float or int
+        column and row coordinates of "ending" endpoint
 
     Returns
     -------
@@ -386,13 +386,13 @@ def line_to_grid_coords(x0, y0, x1, y1):
     flipped first.
     """
 
-    dx = x1 - x0
-    dy = y1 - y0
+    dx = c1 - c0
+    dy = r1 - r0
 
     # Flip endpoints if needed to have segment point to up/right
     if (dx + dy) < 0:
-        (x0, x1) = _swap(x0, x1)
-        (y0, y1) = _swap(y0, y1)
+        (c0, c1) = _swap(c0, c1)
+        (r0, r1) = _swap(r0, r1)
         dx = -dx
         dy = -dy
         flip_array = True
@@ -400,17 +400,17 @@ def line_to_grid_coords(x0, y0, x1, y1):
         flip_array = False
 
     if dx > dy:  # more horizontal than vertical
-        npts = _iround(x1 - x0) + 1
+        npts = _iround(c1 - c0) + 1
         xy = np.zeros((npts, 2), dtype=int)
         xy[:, 0] = np.arange(npts)
-        xy[:, 1] = np.round(y0 + (float(dy) / dx) * xy[:, 0])
-        xy[:, 0] += _iround(x0)
+        xy[:, 1] = np.round(r0 + (float(dy) / dx) * xy[:, 0])
+        xy[:, 0] += _iround(c0)
     else:
-        npts = _iround(y1 - y0) + 1
+        npts = _iround(r1 - r0) + 1
         xy = np.zeros((npts, 2), dtype=int)
         xy[:, 1] = np.arange(npts)
-        xy[:, 0] = np.round(x0 + (float(dx) / dy) * xy[:, 1])
-        xy[:, 1] += _iround(y0)
+        xy[:, 0] = np.round(c0 + (float(dx) / dy) * xy[:, 1])
+        xy[:, 1] += _iround(r0)
 
     # If endpoints were flipped, here we "un-flip" again
     if flip_array:
