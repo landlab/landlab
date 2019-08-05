@@ -15,7 +15,7 @@ def test_line_to_grid_coords():
     rr, cc = line_to_grid_coords(2, 0, 5, 0)  # E
     assert_array_equal(cc, [2, 3, 4, 5])
     assert_array_equal(rr, [0, 0, 0, 0])
-    
+
     rr, cc = line_to_grid_coords(0, 0, 4, 1)  # ENE
     assert_array_equal(cc, [0, 1, 2, 3, 4])
     assert_array_equal(rr, [0, 0, 0, 1, 1])
