@@ -351,22 +351,18 @@ def line_to_grid_coords(c0, r0, c1, r1):
     ----------
     c0, r0 : int
         column and row coordinates of "starting" endpoint
-    c1, r1 : float or int
+    c1, r1 : int
         column and row coordinates of "ending" endpoint
 
     Returns
     -------
-    N x 2 numpy array of int
-        x (column 0) and y (column 1) coordinates of nodes in the line
+    rr, cc : (N,) ndarray of int
+        row and column coordinates of nodes in the line
 
     Examples
     --------
     >>> line_to_grid_coords(0, 0, 4, 1)
-    array([[0, 0],
-           [1, 0],
-           [2, 0],
-           [3, 1],
-           [4, 1]])
+    (array([0, 0, 0, 1, 1]), array([0, 1, 2, 3, 4]))
 
     Notes
     -----
@@ -374,6 +370,8 @@ def line_to_grid_coords(c0, r0, c1, r1):
     the grid has unit spacing, in which case they are the same). To convert
     from real (x, y) to (x_grid, y_grid) use x_grid = x / Dx, where Dx is
     horizontal grid spacing (and similarly for y).
+        To convert a raster-grid node ID to column and row coords, use
+    numpy.unravel_index(node_id, (num_rows, num_cols)).
         To convert the returned grid coordinates to node IDs, use the
     RasterModelGrid method grid_coords_to_node_id().
         This function uses an incremental algorithm for line scan-conversion
@@ -401,19 +399,22 @@ def line_to_grid_coords(c0, r0, c1, r1):
 
     if dx > dy:  # more horizontal than vertical
         npts = _iround(c1 - c0) + 1
-        xy = np.zeros((npts, 2), dtype=int)
-        xy[:, 0] = np.arange(npts)
-        xy[:, 1] = np.round(r0 + (float(dy) / dx) * xy[:, 0])
-        xy[:, 0] += _iround(c0)
+        cc = np.zeros(npts, dtype=int)
+        rr = np.zeros(npts, dtype=int)
+        cc[:] = np.arange(npts)
+        rr[:] = np.round(r0 + (float(dy) / dx) * cc)
+        cc[:] += _iround(c0)
     else:
         npts = _iround(r1 - r0) + 1
-        xy = np.zeros((npts, 2), dtype=int)
-        xy[:, 1] = np.arange(npts)
-        xy[:, 0] = np.round(c0 + (float(dx) / dy) * xy[:, 1])
-        xy[:, 1] += _iround(r0)
+        cc = np.zeros(npts, dtype=int)
+        rr = np.zeros(npts, dtype=int)
+        rr[:] = np.arange(npts)
+        cc[:] = np.round(c0 + (float(dx) / dy) * rr)
+        rr[:] += _iround(r0)
 
     # If endpoints were flipped, here we "un-flip" again
     if flip_array:
-        xy = np.flipud(xy)
+        rr = np.flipud(rr)
+        cc = np.flipud(cc)
 
-    return xy
+    return rr, cc
