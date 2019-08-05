@@ -2,16 +2,28 @@
 """
 GroundwaterDupuitPercolator Component
 
-@author: G Tucker
+@author: G Tucker, D Litwin
 """
 
 import numpy as np
-from landlab import Component
+from landlab import Component, BAD_INDEX_VALUE
+from landlab.components import FlowAccumulator
 from landlab.utils import return_array_at_node, return_array_at_link
-from landlab.grid.mappers import map_mean_of_link_nodes_to_link
+from landlab.grid.mappers import map_mean_of_link_nodes_to_link, \
+        map_max_of_node_links_to_node, map_value_at_max_node_to_link, map_link_head_node_to_link
+from landlab.grid.raster_mappers import map_sum_of_outlinks_to_node
 
 
 ACTIVE_LINK = 0
+
+
+#regularization functions used to deal with numerical demons of seepage
+def _regularize_G(u,reg_factor):
+    return np.exp(-(1-u)/reg_factor)
+
+
+def _regularize_R(u):
+    return u*np.greater_equal(u,0)
 
 
 class GroundwaterDupuitPercolator(Component):
@@ -31,8 +43,11 @@ class GroundwaterDupuitPercolator(Component):
     recharge_rate: float, field name, or array of float
             Rate of recharge, m/s
             Default = 1.0e-8 m/s
+    regularization_f: float
+            factor controlling the smoothness of the transition between
+            surface and subsurface flow
 
-    Examples
+       Examples
     --------
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((3, 3))
@@ -61,18 +76,21 @@ class GroundwaterDupuitPercolator(Component):
                             "aquifer_base__elevation"))
 
     _output_var_names = set(
-        ("aquifer__thickness", "water_table__elevation", "hydraulic__gradient",
-         "groundwater__specific_discharge", "groundwater__velocity")
+        ("aquifer__thickness", "water_table__elevation","aquifer_base__gradient",
+         "hydraulic__gradient", "groundwater__specific_discharge",
+         "groundwater__velocity", "surface_water__specific_discharge","")
     )
 
     _var_units = {
         "topographic__elevation": "m",
         "aquifer_base__elevation": "m",
         "aquifer__thickness": "m",
+        "aquifer_base__gradient": "m/m",
         "water_table__elevation": "m",
         "hydraulic__gradient": "m/m",
         "groundwater__specific_discharge": "m2/s",
-        "groundwater__velocity": "m/s"
+        "groundwater__velocity": "m/s",
+        "surface_water__specific_discharge": "m/s",
     }
 
     _var_mapping = {
@@ -81,8 +99,10 @@ class GroundwaterDupuitPercolator(Component):
         "aquifer__thickness": "node",
         "water_table__elevation": "node",
         "hydraulic__gradient": "link",
+        "aquifer_base__gradient":"link",
         "groundwater__specific_discharge": "link",
         "groundwater__velocity": "link",
+        "surface_water__specific_discharge": "node",
     }
 
     _var_doc = {
@@ -91,12 +111,14 @@ class GroundwaterDupuitPercolator(Component):
         "aquifer__thickness": "thickness of saturated zone",
         "water_table__elevation": "elevation of water table",
         "hydraulic__gradient": "gradient of water table in link direction",
+        "aquifer_base__gradient":"gradient of the aquifer base in the link direction",
         "groundwater__specific_discharge": "discharge per width in link dir",
         "groundwater__velocity": "velocity of groundwater in link direction",
+        "surface_water__specific_discharge": "rate of seepage to surface",
     }
 
-    def __init__(self, grid, hydraulic_conductivity=0.01,
-                 recharge_rate=1.0e-8):
+    def __init__(self, grid, hydraulic_conductivity=0.01,porosity=0.5,
+                 recharge_rate=1.0e-8,regularization_f=1E-3):
         """Initialize the GroundwaterDupuitPercolator.
 
         Parameters
@@ -106,9 +128,15 @@ class GroundwaterDupuitPercolator(Component):
         hydraulic_conductivity: float, field name, or array of float
                 saturated hydraulic conductivity, m/s
                 Default = 0.01 m/s
+        porosity: float, field name or array of float
+                the porosity of the aquifer [-]
+                Default = 0.5
         recharge_rate: float, field name, or array of float
                 Rate of recharge, m/s
                 Default = 1.0e-8 m/s
+        regularization_f: float
+                factor controlling the smoothness of the transition between
+                surface and subsurface flow
         """
         # Store grid
         self._grid = grid
@@ -120,6 +148,9 @@ class GroundwaterDupuitPercolator(Component):
         # Convert parameters to fields if needed, and store a reference
         self.K = return_array_at_link(grid, hydraulic_conductivity)
         self.recharge = return_array_at_node(grid, recharge_rate)
+        self.n = return_array_at_node(grid,porosity)
+        self.n_link = map_mean_of_link_nodes_to_link(self._grid,self.n)
+        self.r = regularization_f
 
         # Create fields:
 
@@ -138,6 +169,8 @@ class GroundwaterDupuitPercolator(Component):
         else:
             self.wtable = self.grid.add_zeros("node", "water_table__elevation")
 
+        self.wtable[grid.closed_boundary_nodes] = 0
+
         if "aquifer__thickness" in self.grid.at_node:
             self.thickness = self.grid.at_node["aquifer__thickness"]
         else:
@@ -148,6 +181,11 @@ class GroundwaterDupuitPercolator(Component):
             self.hydr_grad = self.grid.at_link["hydraulic__gradient"]
         else:
             self.hydr_grad = self.grid.add_zeros("link", "hydraulic__gradient")
+
+        if "aquifer_base__gradient" in self.grid.at_link:
+            self.base_grad = self.grid.at_link["aquifer_base__gradient"]
+        else:
+            self.base_grad = self.grid.add_zeros("link", "aquifer_base__gradient")
 
         if "groundwater__specific_discharge" in self.grid.at_link:
             self.q = self.grid.at_link["groundwater__specific_discharge"]
@@ -160,6 +198,34 @@ class GroundwaterDupuitPercolator(Component):
         else:
             self.vel = self.grid.add_zeros("link", "groundwater__velocity")
 
+        if "surface_water__specific_discharge" in self.grid.at_node:
+            self.qs = self.grid.at_node["surface_water__specific_discharge"]
+        else:
+            self.qs = self.grid.add_zeros("node", "surface_water__specific_discharge")
+
+
+    def calc_rechage_flux_in(self):
+        #  calculate flux into the domain from recharge. Includes recharge that
+        #  may immediately become saturation excess overland flow.
+        return np.sum(self._grid.area_of_cell*self.recharge[self.cores])
+
+    def calc_gw_flux_out(self):
+        # calculate the groundwater flux out of the domain through open boundaries
+        return np.sum(self._grid.dy*map_max_of_node_links_to_node(self._grid,
+                abs(self._grid.at_link['groundwater__specific_discharge']))[self._grid.open_boundary_nodes])
+
+    def calc_sw_flux_out(self):
+        # surface water flux out of the domain through seepage and saturation excess.
+        # Note that model does not allow for reinfiltration.
+
+        return np.sum(self._grid.at_node['surface_water__discharge'][self._grid.open_boundary_nodes] )
+
+    def calc_total_storage(self):
+        # calculate the current water storage in the aquifer
+        return np.sum(self.n[self.cores] * self._grid.area_of_cell *
+                        self._grid.at_node['aquifer__thickness'][self.cores])
+
+
     def run_one_step(self, dt, **kwds):
         """
         Advance component by one time step of size dt.
@@ -170,24 +236,35 @@ class GroundwaterDupuitPercolator(Component):
             The imposed timestep.
         """
 
+        #Calculate base gradient
+        self.base_grad[:] = self._grid.calc_grad_at_link(self.base)
+        self.base_grad[self.inactive_links] = 0.0
+
         # Calculate hydraulic gradient
-        self.hydr_grad[:] = self._grid.calc_grad_at_link(self.wtable)
+        self.hydr_grad[:] = self._grid.calc_grad_at_link(self.thickness)
         self.hydr_grad[self.inactive_links] = 0.0
 
         # Calculate groundwater velocity
-        self.vel[:] = -self.K * self.hydr_grad
+        self.vel[:] = -self.K *(self.hydr_grad*np.cos(np.arctan(abs(self.base_grad)))
+                                    + np.sin(np.arctan(self.base_grad)))
         self.vel[self._grid.status_at_link != 0] = 0.0
 
-        # Aquifer thickness at links
-        hlink = map_mean_of_link_nodes_to_link(self._grid,
-                                               'aquifer__thickness')
+        # Aquifer thickness at links (upwind)
+        hlink = map_value_at_max_node_to_link(self._grid,
+                               'water_table__elevation','aquifer__thickness')
 
         # Calculate specific discharge
         self.q[:] = hlink * self.vel
 
-        # Mass balance
+        # Groundwater flux divergence
         dqdx = self._grid.calc_flux_div_at_node(self.q)
-        dhdt = self.recharge - dqdx
+
+        # Calculate surface discharge at nodes
+        self.qs[:] = _regularize_G(self.thickness/(self.elev-self.base),
+                                    self.r)*_regularize_R(self.recharge - dqdx)
+
+        # Mass balance
+        dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
 
         # Update
         self.thickness[self._grid.core_nodes] += dhdt[self.cores] * dt
@@ -195,3 +272,54 @@ class GroundwaterDupuitPercolator(Component):
         # Recalculate water surface height
         self.wtable[self._grid.core_nodes] = (self.base[self.cores]
                                               + self.thickness[self.cores])
+
+    def run_with_adaptive_time_step_solver(self, dt, **kwds):
+
+        remaining_time = dt
+        self.num_substeps = 0
+
+        while remaining_time > 0.0:
+            #Calculate base gradient
+            self.base_grad[:] = self._grid.calc_grad_at_link(self.base)
+            self.base_grad[self.inactive_links] = 0.0
+
+            # Calculate hydraulic gradient
+            self.hydr_grad[:] = self._grid.calc_grad_at_link(self.thickness)
+            self.hydr_grad[self.inactive_links] = 0.0
+
+            # Calculate groundwater velocity
+            self.vel[:] = -self.K *(self.hydr_grad*np.cos(np.arctan(self.base_grad))
+                                        + np.sin(np.arctan(self.base_grad)))
+            self.vel[self._grid.status_at_link != 0] = 0.0
+
+            # Aquifer thickness at links (upwind)
+            hlink = map_value_at_max_node_to_link(self._grid,
+                                   'water_table__elevation','aquifer__thickness')
+
+            # Calculate specific discharge
+            self.q[:] = hlink * self.vel
+
+            # Groundwater flux divergence
+            dqdx = self._grid.calc_flux_div_at_node(self.q)
+
+            # Calculate surface discharge at nodes
+            self.qs[:] = _regularize_G(self.thickness/(self.elev-self.base),
+                                        self.r)*_regularize_R(self.recharge - dqdx)
+
+            # Mass balance
+            dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
+
+            #calculate criteria for timestep
+            max_vel = max(abs(self.vel/self.n_link))
+            grid_dist = max(self._grid.dy,self._grid.dx)
+            substep_dt = np.nanmin([0.5*grid_dist/max_vel,remaining_time])
+
+            # Update
+            self.thickness[self._grid.core_nodes] += dhdt[self.cores] * substep_dt
+
+            # Recalculate water surface height
+            self.wtable[self._grid.core_nodes] = (self.base[self.cores]
+                                                  + self.thickness[self.cores])
+
+            remaining_time -= substep_dt
+            self.num_substeps += 1

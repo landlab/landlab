@@ -17,6 +17,7 @@ from .flow_director import (
 from .flow_routing import DepressionFinderAndRouter, FlowRouter
 from .fracture_grid import FractureGridGenerator
 from .gflex import gFlex
+from .groundwater import GroundwaterDupuitPercolator
 from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
 from .lithology import LithoLayers, Lithology
