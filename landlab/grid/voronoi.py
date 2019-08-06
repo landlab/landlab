@@ -193,77 +193,6 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         args = (kwds.pop("x"), kwds.pop("y"))
         return cls(*args, **kwds)
 
-    def REMOVE_initialize(self, x, y, reorient_links=True):
-        """
-        Creates an unstructured grid around the given (x,y) points.
-        """
-        x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
-
-        if x.size != y.size:
-            raise ValueError("x and y arrays must have the same size")
-
-        # Make a copy of the points in a 2D array (useful for calls to geometry
-        # routines, but takes extra memory space).
-        xy_of_node = np.hstack((x.reshape((-1, 1)), y.reshape((-1, 1))))
-        self._xy_of_node = sort_points_by_x_then_y(xy_of_node)
-
-        # NODES AND CELLS: Set up information pertaining to nodes and cells:
-        #   - number of nodes
-        #   - node x, y coordinates
-        #   - default boundary status
-        #   - interior and boundary nodes
-        #   - nodes associated with each cell and active cell
-        #   - cells and active cells associated with each node
-        #     (or BAD_VALUE_INDEX if none)
-        #
-        # Assumptions we make here:
-        #   - all interior (non-perimeter) nodes have cells (this should be
-        #       guaranteed in a Delaunay triangulation, but there may be
-        #       special cases)
-        #   - all cells are active (later we'll build a mechanism for the user
-        #       specify a subset of cells as active)
-        self._find_perimeter_nodes_and_BC_set(self._xy_of_node)
-        [self._cell_at_node, self._node_at_cell] = self._node_to_cell_connectivity(
-            self.status_at_node, self.number_of_cells
-        )
-
-        # ACTIVE CELLS: Construct Voronoi diagram and calculate surface area of
-        # each active cell.
-        vor = Voronoi(self._xy_of_node)
-        self.vor = vor
-        self._area_of_cell = np.zeros(self.number_of_cells)
-        for node in self._node_at_cell:
-            xv = vor.vertices[vor.regions[vor.point_region[node]], 0]
-            yv = vor.vertices[vor.regions[vor.point_region[node]], 1]
-            self._area_of_cell[self.cell_at_node[node]] = simple_poly_area(xv, yv)
-
-        # LINKS: Construct Delaunay triangulation and construct lists of link
-        # "from" and "to" nodes.
-        (
-            node_at_link_tail,
-            node_at_link_head,
-            _,
-            self._face_width,
-        ) = self._create_links_and_faces_from_voronoi_diagram(vor)
-
-        self._nodes_at_link = np.hstack(
-            (node_at_link_tail.reshape((-1, 1)), node_at_link_head.reshape((-1, 1)))
-        )
-
-        # Sort them by midpoint coordinates
-        self._sort_links_by_midpoint()
-
-        # Optionally re-orient links so that they all point within upper-right
-        # semicircle
-        if reorient_links:
-            self._reorient_links_upper_right()
-
-        # NODES & LINKS: IDs and directions of links at each node
-        self._create_links_and_link_dirs_at_node()
-
-        # LINKS: set up link unit vectors and node unit-vector sums
-        self._create_link_unit_vectors()
-
     def _find_perimeter_nodes_and_BC_set(self, pts):
         """
         Uses a convex hull to locate the perimeter nodes of the Voronoi grid,
@@ -548,57 +477,6 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
                 j += 1
 
         return link_fromnode, link_tonode, active_links, face_width
-
-    def _reorient_links_upper_right(self):
-        r"""Reorient links to all point within the upper-right semi-circle.
-
-        Notes
-        -----
-        "Upper right semi-circle" means that the angle of the link with respect
-        to the vertical (measured clockwise) falls between -45 and +135. More
-        precisely, if :math:`\theta' is the angle,
-        :math:`-45 \ge \theta < 135`.
-        For example, the link could point up and left as much as -45, but not
-        -46. It could point down and right as much as 134.9999, but not 135. It
-        will never point down and left, or up-but-mostly-left, or
-        right-but-mostly-down.
-
-        Examples
-        --------
-        >>> from landlab.grid import HexModelGrid
-        >>> hg = HexModelGrid((3, 2), spacing=1.0, reorient_links=True)
-        >>> hg.node_at_link_tail
-        array([0, 0, 0, 1, 1, 2, 3, 2, 3, 3, 4, 5])
-        >>> hg.node_at_link_head
-        array([1, 2, 3, 3, 4, 3, 4, 5, 5, 6, 6, 6])
-        """
-
-        # Calculate the horizontal (dx) and vertical (dy) link offsets
-        link_dx = (
-            self.node_x[self.node_at_link_head] - self.node_x[self.node_at_link_tail]
-        )
-        link_dy = (
-            self.node_y[self.node_at_link_head] - self.node_y[self.node_at_link_tail]
-        )
-
-        # Calculate the angle, clockwise, with respect to vertical, then rotate
-        # by 45 degrees counter-clockwise (by adding pi/4)
-        link_angle = np.arctan2(link_dx, link_dy) + np.pi / 4
-
-        # The range of values should be -180 to +180 degrees (but in radians).
-        # It won't be after the above operation, because angles that were
-        # > 135 degrees will now have values > 180. To correct this, we
-        # subtract 360 (i.e., 2 pi radians) from those that are > 180 (i.e.,
-        # > pi radians).
-        link_angle -= 2 * np.pi * (link_angle >= np.pi)
-
-        # Find locations where the angle is negative; these are the ones we
-        # want to flip
-        (flip_locs,) = np.where(link_angle < 0.0)
-
-        # If there are any flip locations, proceed to switch their fromnodes
-        # and tonodes; otherwise, we're done
-        self._nodes_at_link[flip_locs, :] = self._nodes_at_link[flip_locs, ::-1]
 
     def _create_patches_from_delaunay_diagram(self, pts, vor):
         """
