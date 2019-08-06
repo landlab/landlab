@@ -58,9 +58,24 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     have 2 nodes, and the second nodes.
 
     >>> from landlab import HexModelGrid
-    >>> hmg = HexModelGrid((3, 2), spacing=1.0)
-    >>> hmg.number_of_nodes
+    >>> grid = HexModelGrid((3, 2), spacing=1.0)
+    >>> grid.number_of_nodes
     7
+
+    >>> grid = HexModelGrid((3, 3), node_layout="rect", spacing=2.0)
+    >>> grid.status_at_node
+    array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=uint8)
+    >>> grid = HexModelGrid((3, 3), node_layout="rect", orientation="vertical")
+    >>> grid.status_at_node
+    array([1, 1, 1, 1, 1, 0, 1, 1, 1], dtype=uint8)
+    >>> grid = HexModelGrid((4, 4), node_layout='rect', orientation="vertical")
+    >>> grid.status_at_node
+    array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
+    >>> grid.boundary_nodes
+    array([ 0,  1,  2,  3,  4,  7,  8, 11, 12, 13, 14, 15])
+    >>> grid = HexModelGrid((3, 4), node_layout="rect")
+    >>> grid.status_at_node
+    array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
     """
 
     def __init__(
@@ -165,61 +180,6 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             self.y_of_node[:] -= dy
 
         self._xy_of_lower_left = tuple(xy_of_lower_left)
-
-    def _set_boundary_stat_at_rect_grid_ragged_edges(self, orientation, dx):
-        """Assign boundary status to all edge nodes along the 'ragged' edges.
-
-        Handle special case of boundary nodes in rectangular node layout.
-        One pair of edges will have the nodes staggered. By default, only the
-        outer nodes will be assigned boundary status; we need the inner edge
-        nodes on these "ragged" edges also to be flagged as boundary nodes.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid((3, 3), node_layout="rect", spacing=2.0)
-        >>> hg.status_at_node
-        array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=uint8)
-        >>> hg = HexModelGrid((3, 3), node_layout="rect", orientation="vertical")
-        >>> hg.status_at_node
-        array([1, 1, 1, 1, 1, 0, 1, 1, 1], dtype=uint8)
-        >>> hg = HexModelGrid((4, 4), node_layout='rect', orientation="vertical")
-        >>> hg.status_at_node
-        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
-        >>> hg.boundary_nodes
-        array([ 0,  1,  2,  3,  4,  7,  8, 11, 12, 13, 14, 15])
-        >>> hg = HexModelGrid((3, 4), node_layout="rect")
-        >>> hg.status_at_node
-        array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
-        """
-        if orientation[0].lower() == "v":  # vert; top & bottom staggered
-            bot_row = numpy.where(self.y_of_node <= 0.5 * dx)[0]
-            self.status_at_node[bot_row] = self.status_at_node[0]
-            top_row = numpy.where(self.y_of_node >= (self._nrows - 1) * dx)[0]
-            self.status_at_node[top_row] = self.status_at_node[0]
-        else:  # horizontal orientation; left & right staggered
-            left_row = numpy.where(self.x_of_node <= 0.5 * dx)[0]
-            self.status_at_node[left_row] = self.status_at_node[0]
-            right_row = numpy.where(self.x_of_node >= (self._ncols - 1) * dx)[0]
-            self.status_at_node[right_row] = self.status_at_node[0]
-        self._boundary_nodes = numpy.where(self.status_at_node != CORE_NODE)[0]
-
-    def _create_cell_areas_array(self):
-        r"""Create an array of surface areas of hexagonal cells.
-
-        Creates and returns an array containing the surface areas of the
-        hexagonal (Voronoi) cells.
-
-        These cells are perfect hexagons in which the apothem is dx/2. The
-        formula for area is:
-
-        .. math::
-            A = 3 dx^2 / 2 \sqrt{3} \approx 0.866 dx^2
-        """
-        self._area_of_cell = 0.8660254 * self._dx ** 2 + numpy.zeros(
-            self.number_of_cells
-        )
-        return self._area_of_cell
 
     @staticmethod
     def _shift_to_lower_left(pts, xy_of_lower_left):
@@ -348,129 +308,6 @@ class HexModelGrid(DualHexGraph, ModelGrid):
                 xshift = half_dxh * (r % 2)
                 pts[i, 0] = c * dxh + xshift
                 pts[i, 1] = r * dxv
-                i += 1
-
-        return HexModelGrid._shift_to_lower_left(pts, xy_of_lower_left)
-
-    @staticmethod
-    def _hex_points_with_vertical_hex(base_num_rows, num_cols, dxv, xy_of_lower_left):
-        """
-        Creates and returns a set of (x,y) points in a staggered grid in which
-        the points represent the centers of regular hexagonal cells, and the
-        points could be connected to form equilateral triangles. The overall
-        shape of the lattice is hexagonal.
-
-        Parameters
-        ----------
-        base_num_rows : int
-            Number of columns in the left and right columns (middle columns
-            have more)
-        num_cols : int
-            Number of columns in lattice
-        dxv : float
-            Vertical and diagonal spacing between points
-        xy_of_lower_left : tuple
-            (x, y) coordinates of the xy_of_lower_left. Default is (0., 0.)
-
-        Returns
-        -------
-        points : ndarray of shape `(n_points, 2)`
-            2D numpy array containing point (x,y) coordinates, and total
-            number of points.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_vertical_hex(2, 3,
-        ...                                                     1.0,
-        ...                                                     (0., 0.))
-        >>> len(points)
-        7
-        >>> points[2, :]
-        array([ 0.8660254,  0.       ])
-        >>> points[:3, 1]
-        array([ 0.5,  1.5,  0. ])
-        """
-        dxh = dxv * numpy.sqrt(3.0) / 2.0
-        half_dxv = dxv / 2.0
-
-        if numpy.mod(num_cols, 2) == 0:  # even number of columns
-            npts = base_num_rows * num_cols + (num_cols * num_cols) // 4
-        else:  # odd number of columns
-            npts = base_num_rows * num_cols + ((num_cols - 1) // 2) * (
-                (num_cols - 1) // 2
-            )
-        pts = numpy.zeros((npts, 2))
-        middle_col = num_cols // 2
-        extra_rows = 0
-
-        yshift = 0
-        i = 0
-
-        for c in range(num_cols):
-            for r in range(base_num_rows + extra_rows):
-                pts[i, 1] = r * dxv + yshift
-                pts[i, 0] = c * dxh
-                i += 1
-            if c < middle_col:
-                extra_rows += 1
-            else:
-                extra_rows -= 1
-
-            yshift = -half_dxv * extra_rows
-
-        return HexModelGrid._shift_to_lower_left(pts, xy_of_lower_left)
-
-    @staticmethod
-    def _hex_points_with_vertical_rect(num_rows, num_cols, dxv, xy_of_lower_left):
-        """
-        Creates and returns a set of (x,y) points in a staggered grid in which
-        the points represent the centers of regular hexagonal cells, and the
-        points could be connected to form equilateral triangles. The overall
-        shape of the lattice is rectangular.
-
-        Parameters
-        ----------
-        num_rows : int
-            Number of columns in lattice
-        num_cols : int
-            Number of columns in lattice
-        dxv : float
-            Vertical and diagonal spacing between points
-        xy_of_lower_left : tuple
-            (x, y) coordinates of the xy_of_lower_left. Default is (0., 0.).
-
-        Returns
-        -------
-        points : ndarray of shape `(n_points, 2)`
-            2D numpy array containing point (x,y) coordinates, and total
-            number of points.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_vertical_rect(3, 3,
-        ...                                                      1.0,
-        ...                                                      (0., 0.))
-        >>> len(points)
-        9
-        >>> points[1, :]
-        array([ 0.,  1.])
-        >>> points[:3, 1]
-        array([ 0.,  1.,  2.])
-        """
-        dxh = dxv * numpy.sqrt(3.0) / 2.0
-        half_dxv = dxv / 2.0
-
-        npts = num_rows * num_cols
-        pts = numpy.zeros((npts, 2))
-
-        i = 0
-        for c in range(num_cols):
-            for r in range(num_rows):
-                yshift = half_dxv * (c % 2)
-                pts[i, 1] = r * dxv + yshift
-                pts[i, 0] = c * dxh
                 i += 1
 
         return HexModelGrid._shift_to_lower_left(pts, xy_of_lower_left)
