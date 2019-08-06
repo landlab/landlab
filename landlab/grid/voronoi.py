@@ -193,11 +193,6 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         args = (kwds.pop("x"), kwds.pop("y"))
         return cls(*args, **kwds)
 
-    def _create_cell_areas_array(self):
-        """Set up an array of cell areas."""
-        self._cell_areas = self.active_cell_areas
-        return self._cell_areas
-
     @staticmethod
     def _node_to_cell_connectivity(node_status, ncells):
         """Set up node connectivity.
