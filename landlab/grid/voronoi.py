@@ -132,7 +132,15 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
            [10,  8, -1, -1, -1, -1]])
     """
 
-    def __init__(self, x=None, y=None, reorient_links=True, **kwds):
+    def __init__(
+        self,
+        x=None,
+        y=None,
+        reorient_links=True,
+        xy_of_reference=(0.0, 0.0),
+        xy_axis_name=("x", "y"),
+        xy_axis_units="-",
+    ):
         """
         Create a Voronoi Delaunay grid from a set of points.
 
@@ -165,8 +173,13 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         >>> vmg.number_of_nodes
         25
         """
-        DualVoronoiGraph.__init__(self, (y, x))
-        ModelGrid.__init__(self, **kwds)
+        DualVoronoiGraph.__init__(self, (y, x), sort=True)
+        ModelGrid.__init__(
+            self,
+            xy_axis_name=xy_axis_name,
+            xy_axis_units=xy_axis_units,
+            xy_of_reference=xy_of_reference,
+        )
 
         self._node_status = np.full(self.number_of_nodes,
                                     self.BC_NODE_IS_CORE, dtype=np.uint8)
@@ -174,6 +187,11 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
         # DualVoronoiGraph.__init__(self, (y, x), **kwds)
         # ModelGrid.__init__(self, **kwds)
+
+    @classmethod
+    def from_dict(cls, kwds):
+        args = (kwds.pop("x"), kwds.pop("y"))
+        return cls(*args, **kwds)
 
     def REMOVE_initialize(self, x, y, reorient_links=True):
         """
@@ -548,7 +566,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         Examples
         --------
         >>> from landlab.grid import HexModelGrid
-        >>> hg = HexModelGrid(3, 2, 1., reorient_links=True)
+        >>> hg = HexModelGrid((3, 2), spacing=1.0, reorient_links=True)
         >>> hg.node_at_link_tail
         array([0, 0, 0, 1, 1, 2, 3, 2, 3, 3, 4, 5])
         >>> hg.node_at_link_head
