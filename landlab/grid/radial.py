@@ -31,49 +31,18 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
     cells. Within each ring, nodes are numbered according to Landlab
     convention, from the first node counterclockwise of east. Numbering
     begins at the centermost node and works outwards through the rings.
-
-    Parameters
-    ----------
-    num_shells : int
-        Number of rings in the grid.
-    dr : float, optional
-        Radial interval for rings.
-    xy_of_center : tuple, optional
-        (x, y) coordinate of center point. Default
-        is (0., 0.)
-    xy_of_reference : tuple, optional
-        Coordinate value in projected space of the reference point,
-        `xy_of_lower_left`. Default is (0., 0.)
-
-    Returns
-    -------
-    RadialModelGrid
-        A newly-created grid.
-
-    Examples
-    --------
-    A grid with just one ring will have a node at the origin surrounded
-    by six other nodes.
-
-    >>> from landlab import RadialModelGrid
-    >>> omg = RadialModelGrid(num_shells=1, dr=1., xy_of_center=(0., 0.))
-    >>> omg.number_of_nodes
-    7
-    >>> omg.number_of_cells
-    1
-
-    A second rings will have 13 nodes.
-
-    >>> omg = RadialModelGrid(2)
-    >>> omg.number_of_nodes
-    20
-
-    >>> omg.radius_at_node
-    array([ 2.,  2.,  2.,  2.,  1.,  2.,  1.,  1.,  2.,  2.,  0.,  2.,  1.,
-            1.,  2.,  1.,  2.,  2.,  2.,  2.])
     """
 
-    def __init__(self, num_shells=0, dr=1.0, xy_of_center=(0.0, 0.0), **kwds):
+    def __init__(
+        self,
+        n_rings=0,
+        nodes_in_first_ring=6,
+        spacing=1.0,
+        xy_of_center=(0.0, 0.0),
+        xy_of_reference=(0.0, 0.0),
+        xy_axis_name=("x", "y"),
+        xy_axis_units="-",
+    ):
         """Create a circular grid.
 
         Create a circular grid in which grid nodes are placed at regular
@@ -83,12 +52,15 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         *dr*.  The points are then arranged in a Delaunay triangulation with
         Voronoi cells.
 
+
         Parameters
         ----------
-        num_shells : int
+        n_rings : int
             Number of rings in the grid.
-        dr : float, optional
-            Radial interval for rings.
+        nodes_in_first_ring : int, optional
+            Number of nodes in the first ring.
+        spacing : float, optional
+            Distance between rings.
         xy_of_center : tuple, optional
             (x, y) coordinate of center point. Default
             is (0., 0.)
@@ -106,57 +78,64 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         A grid with just one ring will have a node at the origin surrounded
         by six other nodes.
 
+        >>> import numpy as np
         >>> from landlab import RadialModelGrid
-        >>> omg = RadialModelGrid(num_shells=1, dr=1., xy_of_center=(0., 0.))
+        >>> omg = RadialModelGrid(
+        ...     n_rings=1, nodes_in_first_ring=8, xy_of_center=(0., 0.)
+        ... )
         >>> omg.number_of_nodes
-        7
+        9
         >>> omg.number_of_cells
         1
 
-        A grid with two rings will have 13 nodes.
+        A second rings will have 15 nodes.
 
-        >>> omg = RadialModelGrid(2)
+        >>> omg = RadialModelGrid(2, nodes_in_first_ring=8)
         >>> omg.number_of_nodes
-        19
+        25
+
+        >>> np.round(omg.radius_at_node)
+        array([ 2.,  2.,  2.,  2.,  2.,  1.,  2.,  2.,  1.,  1.,  2.,  1.,  0.,
+                1.,  2.,  1.,  1.,  2.,  2.,  1.,  2.,  2.,  2.,  2.,  2.])
         """
-        # shape = (num_shells + 1, 6)
-        # spacing = dr
-        # origin = origin_y, origin_x
-
-        if "xy_of_center" not in kwds:
-            DualRadialGraph.__init__(
-                self,
-                (num_shells, int(2. * np.pi / dr)),
-                **kwds,
-                xy_of_center=(origin_x, origin_y)
-            )
-        else:
-            DualRadialGraph.__init__(self, (num_shells, int(2. * np.pi / dr)), **kwds)
-        ModelGrid.__init__(self, **kwds)
-
-        # DualRadialGraph.__init__(self, shape, spacing=spacing, origin=origin)
-        # ModelGrid.__init__(self, **kwds)
-
-        self._node_status = np.full(self.number_of_nodes,
-                                    self.BC_NODE_IS_CORE, dtype=np.uint8)
-        self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
-        # Set number of nodes, and initialize if caller has given dimensions
-        if "origin_x" in kwds:
-            msg = "The origin_x keyword is deprecated. Use xy_of_center."
-            warn(msg, DeprecationWarning)
-
-        if "origin_y" in kwds:
-            msg = "The origin_y keyword is deprecated. Use xy_of_center."
-            warn(msg, DeprecationWarning)
-
-        # return cls(num_shells=num_shells, dr=dr, origin_x=origin[0], origin_y=origin[1])
-        xy_of_center = (
-            kwds.get("origin_x", xy_of_center[0]),
-            kwds.get("origin_y", xy_of_center[1]),
-        )
         xy_of_center = tuple(xy_of_center)
 
-        if num_shells > 0:
-            self._initialize(num_shells, dr, xy_of_center)
-        super(RadialModelGrid, self).__init__(**kwds)
+        DualRadialGraph.__init__(
+            self,
+            (n_rings, nodes_in_first_ring),
+            spacing=spacing,
+            xy_of_center=xy_of_center,
+            sort=True,
+        )
+        ModelGrid.__init__(
+            self,
+            xy_of_reference=xy_of_reference,
+            xy_axis_name=xy_axis_name,
+            xy_axis_units=xy_axis_units,
+        )
+
+        self._node_status = np.full(
+            self.number_of_nodes, self.BC_NODE_IS_CORE, dtype=np.uint8
+        )
+        self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
+        self._xy_of_center = tuple(xy_of_center)
+
+    @classmethod
+    def from_dict(cls, kwds):
+        args = ()
+        return cls(*args, **kwds)
+
+    @property
+    def xy_of_center(self):
+        """Return (x, y) of the reference point."""
+        return self._xy_of_center
+
+    @xy_of_center.setter
+    def xy_of_center(self, xy_of_center):
+        """Set a new value for the xy_of_lower_left."""
+        dx = self.xy_of_center[0] - xy_of_center[0]
+        dy = self.xy_of_center[1] - xy_of_center[1]
+        with self.thawed():
+            self.x_of_node[:] -= dx
+            self.y_of_node[:] -= dy
         self._xy_of_center = xy_of_center
