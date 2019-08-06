@@ -193,63 +193,6 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         args = (kwds.pop("x"), kwds.pop("y"))
         return cls(*args, **kwds)
 
-    def _find_perimeter_nodes_and_BC_set(self, pts):
-        """
-        Uses a convex hull to locate the perimeter nodes of the Voronoi grid,
-        then sets them as fixed value boundary nodes.
-        It then sets/updates the various relevant node lists held by the grid,
-        and returns *node_status*, *core_nodes*, *boundary_nodes*.
-        """
-
-        # Calculate the convex hull for the set of points
-        from scipy.spatial import ConvexHull
-
-        hull = ConvexHull(pts, qhull_options="Qc")  # see below why we use 'Qt'
-
-        # The ConvexHull object lists the edges that form the hull. We need to
-        # get from this list of edges the unique set of nodes. To do this, we
-        # first flatten the list of vertices that make up all the hull edges
-        # ("simplices"), so it becomes a 1D array. With that, we can use the
-        # set() function to turn the array into a set, which removes duplicate
-        # vertices. Then we turn it back into an array, which now contains the
-        # set of IDs for the nodes that make up the convex hull.
-        #   The next thing to worry about is the fact that the mesh perimeter
-        # might contain nodes that are co-planar (that is, co-linear in our 2D
-        # world). For example, if you make a set of staggered points for a
-        # hexagonal lattice using make_hex_points(), there will be some
-        # co-linear points along the perimeter. The ones of these that don't
-        # form convex corners won't be included in convex_hull_nodes, but they
-        # are nonetheless part of the perimeter and need to be included in
-        # the list of boundary_nodes. To deal with this, we pass the 'Qt'
-        # option to ConvexHull, which makes it generate a list of coplanar
-        # points. We include these in our set of boundary nodes.
-        convex_hull_nodes = np.array(list(set(hull.simplices.flatten())))
-        coplanar_nodes = hull.coplanar[:, 0]
-        boundary_nodes = as_id_array(
-            np.concatenate((convex_hull_nodes, coplanar_nodes))
-        )
-
-        # Now we'll create the "node_status" array, which contains the code
-        # indicating whether the node is interior and active (=0) or a
-        # boundary (=1). This means that all perimeter (convex hull) nodes are
-        # initially flagged as boundary code 1. An application might wish to
-        # change this so that, for example, some boundaries are inactive.
-        node_status = np.zeros(len(pts[:, 0]), dtype=np.uint8)
-        node_status[boundary_nodes] = 1
-
-        # It's also useful to have a list of interior nodes
-        core_nodes = as_id_array(np.where(node_status == 0)[0])
-
-        # save the arrays and update the properties
-        self._node_status = node_status
-        self._node_at_cell = core_nodes
-        self._boundary_nodes = boundary_nodes
-
-        self.status_at_node = node_status
-
-        # Return the results
-        return node_status, core_nodes, boundary_nodes
-
     def _create_cell_areas_array(self):
         """Set up an array of cell areas."""
         self._cell_areas = self.active_cell_areas
