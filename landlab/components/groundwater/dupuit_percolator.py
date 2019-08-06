@@ -210,9 +210,30 @@ class GroundwaterDupuitPercolator(Component):
         return np.sum(self._grid.area_of_cell*self.recharge[self.cores])
 
     def calc_gw_flux_out(self):
-        # calculate the groundwater flux out of the domain through open boundaries
-        return np.sum(self._grid.dy*map_max_of_node_links_to_node(self._grid,
-                abs(self._grid.at_link['groundwater__specific_discharge']))[self._grid.open_boundary_nodes])
+
+        """
+        Groundwater flux through open boundaries may be positive (out of
+        the domain) or negative (into the domain). This function determines the
+        correct sign for specific discharge based upon this convention,
+        and sums the flux across the boundary faces.
+
+        """
+
+        open_nodes = self._grid.fixed_value_boundary_nodes
+        links_at_open = self._grid.links_at_node[open_nodes]
+        link_dirs_at_open = self._grid.active_link_dirs_at_node[open_nodes]
+
+        active_links_at_open = links_at_open[link_dirs_at_open!=0]
+        active_link_dirs_at_open = link_dirs_at_open[link_dirs_at_open!=0]
+
+        q_at_open_links = self._grid.at_link['groundwater__specific_discharge'][active_links_at_open]
+
+        faces = self._grid.face_at_link[active_links_at_open]
+        face_widths = self._grid.width_of_face[faces]
+
+        gw_volume_flux_rate_out = q_at_open_links*active_link_dirs_at_open*face_widths
+
+        return np.sum(gw_volume_flux_rate_out)
 
     def calc_sw_flux_out(self):
         # surface water flux out of the domain through seepage and saturation excess.
@@ -273,7 +294,20 @@ class GroundwaterDupuitPercolator(Component):
         self.wtable[self._grid.core_nodes] = (self.base[self.cores]
                                               + self.thickness[self.cores])
 
-    def run_with_adaptive_time_step_solver(self, dt, **kwds):
+    def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.5, **kwds):
+        """
+        Advance component by one time step of size dt, subdividing the timestep
+        into substeps as necessary to meet a Courant condition.
+        Note this method only returns the fluxes at the last subtimestep.
+
+        Parameters
+        ----------
+        dt: float (time in seconds)
+            The imposed timestep.
+        courant_coefficient: float
+            The muliplying factor on the condition that the timestep is
+            smaller than the minimum link length over groundwater flow velocity
+        """
 
         remaining_time = dt
         self.num_substeps = 0
@@ -311,8 +345,8 @@ class GroundwaterDupuitPercolator(Component):
 
             #calculate criteria for timestep
             max_vel = max(abs(self.vel/self.n_link))
-            grid_dist = max(self._grid.dy,self._grid.dx)
-            substep_dt = np.nanmin([0.5*grid_dist/max_vel,remaining_time])
+            grid_dist = min(self._grid.length_of_link)
+            substep_dt = np.nanmin([courant_coefficient*grid_dist/max_vel,remaining_time])
 
             # Update
             self.thickness[self._grid.core_nodes] += dhdt[self.cores] * substep_dt
