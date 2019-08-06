@@ -7,6 +7,7 @@ Do NOT add new documentation here. Grid documentation is now built in a semi-
 automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
+from functools import lru_cache
 from warnings import warn
 
 import numpy
@@ -70,6 +71,9 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         orientation="horizontal",
         node_layout="hex",
         reorient_links=True,
+        xy_of_reference=(0.0, 0.0),
+        xy_axis_name=("x", "y"),
+        xy_axis_units="-",
     ):
         """Create a grid of hexagonal cells.
 
@@ -117,21 +121,33 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         # node_layout = shape
         # shape = (base_num_rows, base_num_cols)
         # spacing = dx
+        self._xy_of_lower_left = tuple(numpy.asfarray(xy_of_lower_left))
 
         DualHexGraph.__init__(
             self,
             shape,
             spacing=spacing,
-            xy_of_lower_left=xy_of_lower_left,
+            xy_of_lower_left=self.xy_of_lower_left,
             orientation=orientation,
             node_layout=node_layout,
+            sort=True,
         )
-        ModelGrid.__init__(self) #, **kwds)
+        ModelGrid.__init__(
+            self,
+            xy_axis_name=xy_axis_name,
+            xy_axis_units=xy_axis_units,
+            xy_of_reference=xy_of_reference,
+        )
 
         self._node_status = numpy.full(
             self.number_of_nodes, self.BC_NODE_IS_CORE, dtype=numpy.uint8
         )
         self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
+
+    @classmethod
+    def from_dict(cls, kwds):
+        args = (kwds.pop("shape"),)
+        return cls(*args, **kwds)
 
     @property
     def xy_of_lower_left(self):
@@ -141,10 +157,14 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     @xy_of_lower_left.setter
     def xy_of_lower_left(self, xy_of_lower_left):
         """Set a new value for the xy_of_lower_left."""
-        dx = self.x_of_node[0] - xy_of_lower_left[0]
-        dy = self.y_of_node[0] - xy_of_lower_left[1]
-        self._xy_of_node -= (dx, dy)
-        self._xy_of_lower_left = xy_of_lower_left
+        dx = self.xy_of_lower_left[0] - xy_of_lower_left[0]
+        dy = self.xy_of_lower_left[1] - xy_of_lower_left[1]
+        # self._xy_of_node -= (dx, dy)
+        with self.thawed():
+            self.x_of_node[:] -= dx
+            self.y_of_node[:] -= dy
+
+        self._xy_of_lower_left = tuple(xy_of_lower_left)
 
     def _set_boundary_stat_at_rect_grid_ragged_edges(self, orientation, dx):
         """Assign boundary status to all edge nodes along the 'ragged' edges.
@@ -662,7 +682,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         return ax
 
-    def node_has_boundary_neighbor(self, ids):
+    def OLD_node_has_boundary_neighbor(self, ids):
         """Check if HexModelGrid nodes have neighbors that are boundary nodes.
 
         Parameters
@@ -693,12 +713,12 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         --------
         >>> from landlab import HexModelGrid
         >>> hmg = HexModelGrid((5, 4))
-        >>> hmg.node_has_boundary_neighbor(6)
+        >>> hmg.node_has_boundary_neighbor()[6]
         True
-        >>> hmg.node_has_boundary_neighbor(12)
+        >>> hmg.node_has_boundary_neighbor()[12]
         False
-        >>> hmg.node_has_boundary_neighbor([12, 0])
-        [False, True]
+        >>> hmg.node_has_boundary_neighbor()[((12, 0),)]
+        array([False,  True], dtype=bool)
 
         LLCATS: NINF CONN BC
         """
@@ -750,8 +770,8 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         Examples
         --------
-        The example will use a HexModelGrid with node data values
-        as illustrated:
+        The example will use a *HexModelGrid* with node data values
+        as illustrated::
 
                 1. ,  2. ,  3. ,  4. ,
             0.5,  1.5,  2.5,  3.5,  4.5,
@@ -768,8 +788,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         array([1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1,
            1], dtype=uint8)
 
-        >>> outlet = hmg.set_watershed_boundary_condition_outlet_id(
-        ...          9, z, -9999.)
+        >>> outlet = hmg.set_watershed_boundary_condition_outlet_id(9, z, -9999.)
         >>> hmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 0, 4, 1, 0, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
            4], dtype=uint8)
@@ -827,7 +846,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         Examples
         --------
         The example will use a HexModelGrid with node data values
-        as illustrated:
+        as illustrated::
 
                 1. ,  2. ,  3. ,  4. ,
             0.5,  1.5,  2.5,  3.5,  4.5,
@@ -875,17 +894,17 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             # now check the min locations to see if any are next to
             # a boundary node
             local_not_found = True
-            next_to_boundary = []
+            # next_to_boundary = []
 
             # check all nodes rather than selecting the first node that meets
             # the criteria
-            for i in range(len(min_locs)):
-                next_to_boundary.append(self.node_has_boundary_neighbor(min_locs[i]))
-
+            # for i in range(len(min_locs)):
+            #     next_to_boundary.append(self.node_has_boundary_neighbor()[min_locs[i])]
+            next_to_boundary = self.node_has_boundary_neighbor()[(min_locs,)]
             # if any of those nodes were adjacent to the boundary, check
             # that  there is only one. If only one, set as outlet loc, else,
             # raise a value error
-            if any(next_to_boundary):
+            if numpy.any(next_to_boundary):
                 local_not_found = False
                 if sum(next_to_boundary) > 1:
                     potential_locs = min_locs[
