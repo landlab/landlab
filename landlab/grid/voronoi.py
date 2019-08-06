@@ -194,53 +194,6 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         return cls(*args, **kwds)
 
     @staticmethod
-    def _node_to_cell_connectivity(node_status, ncells):
-        """Set up node connectivity.
-
-        Creates and returns the following arrays:
-
-        *  For each node, the ID of the corresponding cell, or
-           BAD_INDEX_VALUE if the node has no cell.
-        *  For each cell, the ID of the corresponding node.
-
-        Parameters
-        ----------
-        node_status : ndarray of ints
-            1D array containing the boundary status code for each node.
-        ncells : ndarray of ints
-            Number of cells (must equal the number of occurrences of CORE_NODE
-            in node_status).
-
-        Examples
-        --------
-        >>> from landlab import VoronoiDelaunayGrid as vdg
-        >>> import numpy as np
-        >>> from landlab.grid import BAD_INDEX_VALUE
-        >>> ns = np.array([1, 0, 0, 1, 0])  # 3 interior, 2 boundary nodes
-        >>> [node_cell, cell_node] = vdg._node_to_cell_connectivity(ns, 3)
-        >>> node_cell[1:3]
-        array([0, 1])
-        >>> node_cell[0] == BAD_INDEX_VALUE
-        True
-        >>> cell_node
-        array([1, 2, 4])
-        """
-        assert ncells == np.count_nonzero(
-            node_status == ModelGrid.BC_NODE_IS_CORE
-        ), "ncells must equal number of CORE_NODE values in node_status"
-
-        cell = 0
-        node_cell = np.ones(len(node_status), dtype=int) * BAD_INDEX_VALUE
-        cell_node = np.zeros(ncells, dtype=int)
-        for node in range(len(node_cell)):
-            if node_status[node] == ModelGrid.BC_NODE_IS_CORE:
-                node_cell[node] = cell
-                cell_node[cell] = node
-                cell += 1
-
-        return node_cell, cell_node
-
-    @staticmethod
     def _create_links_from_triangulation(tri):
         """Create links from a Delaunay triangulation.
 
