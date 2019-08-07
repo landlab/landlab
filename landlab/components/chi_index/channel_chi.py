@@ -195,7 +195,9 @@ class ChiFinder(Component):
         self._set_up_reference_area(reference_area)
 
         self.use_true_dx = use_true_dx
-        self.chi = self._grid.add_zeros("node", "channel__chi_index", noclobber=noclobber)
+        self.chi = self._grid.add_zeros(
+            "node", "channel__chi_index", noclobber=noclobber
+        )
         self._mask = self.grid.ones("node", dtype=bool)
         # this one needs modifying if smooth_elev
         self._elev = self.grid.at_node["topographic__elevation"]
