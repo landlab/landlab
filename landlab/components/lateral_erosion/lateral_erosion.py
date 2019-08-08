@@ -104,7 +104,7 @@ class LateralEroder(Component):
     needed for the next part of the test.
 
     >>> fa.run_one_step()
-    >>> mg, dzlat = latero.run_one_step(mg, dt)
+    >>> mg, dzlat = latero.run_one_step(dt)
 
     Evolve the landscape until the first occurence of lateral erosion. Save arrays
     volume of lateral erosion and topographic elevation before and after the first
@@ -114,7 +114,7 @@ class LateralEroder(Component):
     ...     oldlatvol = mg.at_node["volume__lateral_erosion"].copy()
     ...     oldelev = mg.at_node["topographic__elevation"].copy()
     ...     fa.run_one_step()
-    ...     mg, dzlat = latero.run_one_step(mg, dt)
+    ...     mg, dzlat = latero.run_one_step(dt)
     ...     newlatvol = mg.at_node["volume__lateral_erosion"]
     ...     newelev = mg.at_node["topographic__elevation"]
     ...     mg.at_node["topographic__elevation"][mg.core_nodes] += U * dt
@@ -175,7 +175,12 @@ class LateralEroder(Component):
         "topographic__steepest_slope",
     )
 
-    _output_var_names = ("topographic__elevation", "dzdt", "dzlat", "vollat", "qs_in")
+    _output_var_names = ("topographic__elevation",
+         "dzdt",
+         "dzlat",
+         "vollat",
+         "qs_in"
+     )
     _var_units = {
         "topographic__elevation": "m",
         "drainage_area": "m2",
@@ -276,7 +281,7 @@ class LateralEroder(Component):
         self.Kv = np.ones(self.grid.number_of_nodes, dtype=float) * Kv
 
     def run_one_step_basic(
-        self, grid, dt=None, Klr=None, inlet_area_ts=None, qsinlet_ts=None, **kwds
+        self, dt=None, Klr=None, inlet_area_ts=None, qsinlet_ts=None, **kwds
     ):
         if Klr is None:  # Added10/9 to allow changing rainrate (indirectly this way.)
             Klr = self.Klr
@@ -440,7 +445,7 @@ class LateralEroder(Component):
 
 
     def run_one_step_adaptive(
-        self, grid, dt=None, Klr=None, inlet_area_ts=None, qsinlet_ts=None, **kwds
+        self, dt=None, Klr=None, inlet_area_ts=None, qsinlet_ts=None, **kwds
     ):
         if Klr is None:  # Added10/9 to allow changing rainrate (indirectly this way.)
             Klr = self.Klr
