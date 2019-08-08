@@ -1,7 +1,7 @@
 #! /usr/env/python
 # -*- coding: utf-8 -*-
 """
-April 4, 2019 Starting to rehab lateral erosion
+Grid-based simulation of lateral erosion by channels in a drainage network.
 ALangston
 
 
@@ -257,11 +257,11 @@ class LateralEroder(Component):
             if len(self.Kv) != self.grid.number_of_nodes:
                 raise TypeError("Supplied value of Kv is not n_nodes long")
 
-    def run_one_step_basic(self, grid, dt=None, Klr=None,
+    def run_one_step_basic(self, dt=None, Klr=None,
                            inlet_area_ts=None, qsinlet_ts=None, **kwds):
         if Klr is None:  # Added10/9 to allow changing rainrate (indirectly this way.)
             Klr = self.Klr
-
+        grid=self.grid
         UC = self._UC
         TB = self._TB
         inlet_on = self.inlet_on  # this is a true/false flag
@@ -415,11 +415,12 @@ class LateralEroder(Component):
         return grid, dzlat
 
 # %%
-    def run_one_step_adaptive(self, grid, dt=None, Klr=None,
+    def run_one_step_adaptive(self, dt=None, Klr=None,
                               inlet_area_ts=None, qsinlet_ts=None, **kwds):
 
         if Klr is None:  # Added10/9 to allow changing rainrate (indirectly this way.)
             Klr = self.Klr
+        grid=self.grid
         UC = self._UC
         TB = self._TB
         inlet_on = self.inlet_on  # this is a true/false flag
@@ -492,7 +493,7 @@ class LateralEroder(Component):
         # reverse list so we go from upstream to down stream
         dwnst_nodes = dwnst_nodes[::-1]
         # local time
-        time = 0
+        time = 0.
         globdt = dt
 
         while time < globdt:
@@ -614,11 +615,12 @@ class LateralEroder(Component):
                 dt = globdt - time
                 qs_in = grid.zeros(centering='node')
                 # recalculate flow directions
-                fa = FlowAccumulator(grid,
-                                     surface='topographic__elevation',
-                                     flow_director='FlowDirectorD8',
-                                     runoff_rate=None,
-                                     depression_finder="DepressionFinderAndRouter", router="D8")
+                print("taking short timesteps")
+#                fa = FlowAccumulator(grid,
+#                                     surface='topographic__elevation',
+#                                     flow_director='FlowDirectorD8',
+#                                     runoff_rate=None,
+#                                     depression_finder="DepressionFinderAndRouter", router="D8")
                 (da, q) = fa.accumulate_flow()
                 if inlet_on:
                     #                   #if inlet on, reset drainage area and qsin to reflect inlet conditions
