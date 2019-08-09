@@ -973,7 +973,7 @@ class SedDepEroder(Component):
                 (node_z - node_z[flow_receiver])[core_draining_nodes] /
                 link_length[core_draining_nodes]
             )
-            downward_slopes = node_S.clip(0.)
+            downward_slopes = node_S.clip(np.spacing(0.))
 
         grid.at_node['channel_sediment__volumetric_transport_capacity'][
             :] = transport_capacities

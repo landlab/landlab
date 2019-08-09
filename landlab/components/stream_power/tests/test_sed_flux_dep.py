@@ -1296,9 +1296,17 @@ def test_lower_below_rim():
         mg, K_sp=1., K_t=1., m_sp=0., n_sp=1., sed_dependency_type='almost_parabolic',
     )
     mg.at_node['channel_sediment__depth'][5] += 10.
-    for i in range(31):
+    for i in range(35):
         print(i)
         fa.run_one_step()
         pit.map_depressions()
         sde.run_one_step(1.)
         # seizes up at 33
+
+    # note that oscillations can develop within the internal stability loop
+    # e.g., capacities at end of step can be 0, but erosion has occurred...
+    # e.g., 1st timestep - dt=0.1 => E = 0.05, but dt=1. => E ~0.07 only
+    # This is definitely related to the dicing up of timesteps: dt=0.1 ten
+    # times over will not crash (dt below stab limit), whereas dt=1. would.
+
+# A test here for mass conservation
