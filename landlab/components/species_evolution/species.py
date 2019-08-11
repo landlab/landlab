@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-"""Base Species object of SpeciesEvolver .
+"""Base Species object of SpeciesEvolver.
 """
 import numpy as np
-
-from landlab.components.species_evolution import ZoneManager as zm
 
 
 class Species(object):
@@ -16,88 +14,34 @@ class Species(object):
     letters. The second element is the species number that is assigned
     sequentially for each clade. The clade id is passed to child species.
     """
-    def __init__(self, initial_zones, parent_species=None):
+    def __init__(self, initial_zones, parent_species=None, parameters=None):
         """Initialize a species.
 
         Parameters
         ----------
-        initial_zones : SpeciesEvolver Zone or Zone list
-            A list of SpeciesEvolver Zone objects of the species.
+        initial_zones : Zone or Zone list
+            An individual or list of SpeciesEvolver Zones where the species
+            is located.
         parent_species : SpeciesEvolver Species
             The parent species object. The default value, 'None' indicates no
             parent species.
+        minimum_area : float, optional
+            The minimum area in which the species can persist.
         """
         # Set parameters.
+
         self._identifier = None
-        self.parent_species = parent_species
+        self._parent_species = parent_species
+        self._parameters = parameters
 
         # Set initial zone(s).
+
         if isinstance(initial_zones, list):
-            z = initial_zones
+            zone_list = initial_zones
         else:
-            z = [initial_zones]
-        self.zones = z
+            zone_list = [initial_zones]
 
-    def _evolve(self, time):
-        """Run species evolutionary processes.
-
-        Extinction is not explicitly implemented in this method. The base class
-        of species leaves extinction to the disappearance of the range of a
-        species.
-
-        Parameters
-        ----------
-        time : float or int
-
-        Returns
-        -------
-        output : dictionary
-            Required keys:
-                'species_persists' : boolean
-                    `True` indicates that this species persists.
-                    `False` indicates that this species is becomes extinct.
-                'child_species' : SpeciesEvolver Species list
-                    The child species produced by the current species after the
-                    macroevolution processes run. An empty array indicates no
-                    child species.
-            Optional keys:
-                'species_evolver_add_on' : dictionary
-                    The items of this dictionary will become items in the
-                    SpeciesEvolver records for this time.
-        """
-        species_persists = True
-        child_species = []
-
-        # Disperse and speciate. Extinction effectively occurs when the species
-        # does not disperse to or remain in any zones.
-
-        for z in self.zones:
-            path_type = z.path[time][0]
-            destinations = z.path[time][1]
-
-            if path_type in [zm.ONE_TO_ONE, zm.MANY_TO_ONE]:
-                # The species in this zone disperses to/remains in the zone.
-                self.zones = destinations
-                species_persists = True
-
-            elif path_type in [zm.ONE_TO_MANY, zm.MANY_TO_MANY]:
-                # The zone and the species within it was fragmented. A new
-                # child species is added to every destination zone. The species
-                # self does not continue. It is assumed to have evolved into
-                # one of the child species.
-                species_persists = False
-
-                for d in destinations:
-                    child_species_d = Species(d, parent_species=self)
-                    child_species.append(child_species_d)
-
-            elif path_type == zm.ONE_TO_NONE:
-                species_persists = False
-
-        # Create a unique array of child species.
-        child_species = np.array(list(set(child_species)))
-
-        return species_persists, child_species
+        self.zones = zone_list
 
     @property
     def identifier(self):
@@ -113,6 +57,10 @@ class Species(object):
         return self._identifier
 
     @property
+    def parent_species(self):
+        return self._parent_species
+
+    @property
     def clade(self):
         """Get the species clade identifier.
 
@@ -122,3 +70,122 @@ class Species(object):
             The string representation of the clade of the species.
         """
         return self._identifier[0]
+
+    @property
+    def zones(self):
+        return self._zones
+
+    @zones.setter
+    def zones(self, zones):
+        self.zones = self._get_suitable_zones(zones)
+
+    def _evolve(self, time):
+        """Run the evolutionary processes of the species.
+
+        Extinction is not explicitly implemented in this method. The base class
+        of species leaves extinction to the disappearance of the range of a
+        species.
+
+        Parameters
+        ----------
+        time : float
+            The time in the simulation.
+
+        Returns
+        -------
+        boolean
+            `True` indicates this species persists. `False` indicates this
+            species has become extinct.
+        Species list
+            A list of SpeciesEvolver species objects that are the child species
+            that result from the macroevolutionary processes run. An empty list
+            indicates no child species.
+        """
+        persist_list = []
+        child_species = []
+
+        # The current zones, `self.zones` act as the origin zone. The
+        # destinations of each origin are
+
+        for origin in self.zones:
+            path_type = origin.path[time][0]
+            destinations = origin.path[time][1]
+            suitable_zones = self._get_suitable_zones(destinations)
+
+            if suitable_zones:
+                # Handle zones by path type.
+
+                func_name = '_evolve_zone_' + path_type.replace('-', '_')
+                evolve_zone_func = getattr(self, func_name)
+
+                persist_in_zone, children = evolve_zone_func(suitable_zones)
+                persist_list.append(persist_in_zone)
+                child_species.extend(children)
+            else:
+                persist_list.append(False)
+
+        species_persists = self._determine_species_persistance(persist_list)
+
+        # Create a unique array of child species.
+        child_species = np.array(list(set(child_species)))
+
+        return species_persists, child_species
+
+    def _get_suitable_zones(self, candidate_zones):
+        return candidate_zones
+
+    def _determine_species_persistance(self, species_persist_list):
+        """Determine species persistance across zones.
+
+        Parameters
+        ----------
+        species_persist_list : boolean list
+            Each element indicates if the species persists in a zone.
+
+        Returns
+        -------
+        boolean
+            `True` indicates this species persists. `False` indicates this
+            species has become extinct.
+        """
+        return np.any(species_persist_list)
+
+    # Evolve by zone path type methods
+
+    def _evolve_zone_one_to_none(self, zones):
+        species_persists = False
+        child_species = []
+
+        return species_persists, child_species
+
+    def _evolve_zone_one_to_one(self, zones):
+        self._zones = zones
+
+        # The species in this zone disperses to/remains in the zone.
+        species_persists = True
+        child_species = []
+
+        return species_persists, child_species
+
+    def _evolve_zone_one_to_many(self, zones):
+        species_persists = False
+        child_species = []
+
+        for z in zones:
+            child = Species(z, parent_species=self,
+                            parameters=self._parameters)
+            child_species.append(child)
+
+        return species_persists, child_species
+
+    def _evolve_zone_many_to_none(self, zones):
+        species_persists = False
+        child_species = []
+
+        return species_persists, child_species
+
+    def _evolve_zone_many_to_one(self, zones):
+        return self._evolve_zone_one_to_one(zones)
+
+    def _evolve_zone_many_to_many(self, zones):
+        return self._evolve_zone_one_to_many(zones)

@@ -18,7 +18,7 @@ from .zone import ZoneManager
 
 
 class SpeciesEvolver(Component):
-    """Simulate the macroevolution processes of species.
+    """Simulate the macroevolutionary processes of species.
 
     This component evolves the species that live on a model grid. The
     macroevolution rules are coded in `Species` objects. The geographic range
@@ -104,9 +104,9 @@ class SpeciesEvolver(Component):
         adjacent to each other.
 
         >>> se = SpeciesEvolver(mg)
-        >>> se.zones
-           time_appeared  latest_time  object
-        0            0.0          0.0  <Zone>
+        >>> zones = se.zones_at_time(0)
+        >>> len(zones) == 1
+        True
 
         All nodes of the grid are included because the elevation of each node
         is below 100 units.
@@ -117,18 +117,16 @@ class SpeciesEvolver(Component):
 
         Seed the zone with a species.
 
-        >>> zone = se.zones_at_time(0, return_objects=True)[0]
-        >>> new_species = Species(zone)
+        >>> new_species = Species(zones[0])
         >>> se.introduce_species(new_species)
-        >>> se.species
-          clade species  time_appeared  latest_time     object
-        0     A       0            0.0          0.0  <Species>
+        >>> len(se.species_at_time(0)) == 1
+        True
 
         Drive a change in the zone mask to demonstrate component functionality.
         Here we begin a new time step where topography is uplifted by 200 units
         forming a ridge that trends north-south in the center of the grid.
 
-        >>> mg.at_node['topographic__elevation'][[3, 10, 17]] = 200
+        >>> z[[3, 10, 17]] = 200
 
         The elevation after uplift is represented here.
 
@@ -150,10 +148,9 @@ class SpeciesEvolver(Component):
 
         >>> dt = 1
         >>> se.run_one_step(dt)
-        >>> se.zones
-           time_appeared  latest_time  object
-        0            0.0          1.0  <Zone>
-        1            1.0          1.0  <Zone>
+        >>> zones = se.zones_at_time(1)
+        >>> len(zones) == 2
+        True
 
         A new zone was created because the zone mask was not continuous.
 
@@ -163,11 +160,8 @@ class SpeciesEvolver(Component):
 
         The split of the initial zone triggered speciation.
 
-        >>> se.species
-          clade species  time_appeared  latest_time     object
-        0     A       0            0.0          0.0  <Species>
-        1     A       1            1.0          1.0  <Species>
-        2     A       2            1.0          1.0  <Species>
+        >>> len(se.species_at_time(1)) == 2
+        True
         """
         Component.__init__(self, grid)
 
@@ -240,7 +234,7 @@ class SpeciesEvolver(Component):
         time = max(self._record['time']) + dt
         self._record['time'].append(time)
 
-        # Get zone present at *time*.
+        # Get the zones present at *time*.
 
         new_zones = []
         for zm in self._zone_managers:
@@ -253,7 +247,7 @@ class SpeciesEvolver(Component):
 
         # Process species.
 
-        if len(self.species) == 0:
+        if len(self.species['object']) == 0:
             print(warning_message('No species exist. Introduce species to '
                                   'SpeciesEvolver.'))
         else:
@@ -290,7 +284,8 @@ class SpeciesEvolver(Component):
     def _get_surviving_species(self, time):
         # Process only the species extant at the prior time.
 
-        extant_species = self._objects_at_time(time, self._species)
+        prior_time = self._get_prior_time()
+        extant_species = self._objects_at_time(prior_time, self._species)
 
         # Get the species that persist in `time` given the outcome of the
         # macroevolution processes of the species.
@@ -384,7 +379,7 @@ class SpeciesEvolver(Component):
         """Add a species to SpeciesEvolver.
 
         The species is introduced at the latest time in the record. It is
-        assigned an identifier if it does not have one.
+        assigned an identifier.
 
         Parameters
         ----------
@@ -400,22 +395,23 @@ class SpeciesEvolver(Component):
             msg = 'The species object, {} was already introduced.'
             raise Exception(msg.format(species))
 
-        # Set species identifier.
+        if not species.zones:
+            # Species with no zones are not introduced.
+            msg = ('The species object, {} is not found in any zones. It was '
+                   'not introduced.')
+            raise Exception(msg.format(species))
+            return
 
-        if species.identifier == None:
-            if species.parent_species == None:
-                cn = self._get_unused_clade_name()
-            else:
-                cn = species.parent_species.clade
+        # Set species identifier, `sid`.
 
-            sid = self._get_unused_species_id(cn)
-            species._identifier = sid
+        clade_name = self._get_unused_clade_name()
+        sid = self._get_unused_species_id(clade_name)
+        species._identifier = sid
 
-        # Update data frame.
+        # Update the species data structure.
 
         time = max(self._record['time'])
         self._update_species_data_structure(time, [species])
-#        self._update_zone_data_frame(time, species.zones)
 
     def _get_unused_clade_name(self):
         alphabet = list(ascii_uppercase)
@@ -455,6 +451,39 @@ class SpeciesEvolver(Component):
         objects = np.array(dictionary['object'])[extant_at_time]
 
         return list(objects)
+
+    def zones_at_time(self, time):
+        """Get the zones that exist at a time.
+
+        Parameters
+        ----------
+        time : float
+            The time in the simulation.
+
+        Returns
+        -------
+        zones : Zone list
+            The SpeciesEvolver zones that exist at *time*.
+        """
+        return self._objects_at_time(time, self.zones)
+
+    def species_at_time(self, time):
+        """Get the species that exist at a time.
+
+        Parameters
+        ----------
+        time : float
+            The time in the simulation.
+
+        Returns
+        -------
+        species : Species list
+            The SpeciesEvolver species that exist at *time*.
+
+        Examples
+        --------
+        """
+        return self._objects_at_time(time, self.species)
 
     def species_with_identifier(self, identifier_element,
                                 return_data_frame=False):

@@ -329,11 +329,6 @@ class ZoneManager(object):
         cluster_array, cluster_count = label(zone_mask.reshape(self._grid.shape),
                                              structure=s)
 
-        # Get the unique field values.
-
-        values = np.unique(zone_mask)
-        values = values[~np.isnan(values)]
-
         # Create a zone for each field value.
 
         zones = [None] * cluster_count
