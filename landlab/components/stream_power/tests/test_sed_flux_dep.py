@@ -802,104 +802,6 @@ def test_diagonal_route():
         ] * 31557600., np.array([0.01, 0.01, 0.]))  # 8, 12, 16
 
 
-# When running on a rough topo, it's very possible to force an infinite loop,
-# since we can overfill
-
-
-
-# # # add a regression test :
-# # def test_arbitrary_grid():
-# #     """
-# #     This runs stably but wrongly, though unclear what's up as profiles look OK
-# #     """
-#     from landlab.components import LinearDiffuser
-#     mg = RasterModelGrid((50, 50), xy_spacing=100.)
-#     for edge in ['top', 'left', 'bottom']:
-#         mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
-#     z = mg.add_zeros('node', 'topographic__elevation')
-#     np.random.seed(50)
-#     z += np.random.rand(mg.number_of_nodes) / 1000.
-#     z_init = z.copy()
-#     dfn = LinearDiffuser(mg, linear_diffusivity=1.e-2)
-#     fa = FlowAccumulator(mg, flow_director="D8")
-#     pit = DepressionFinderAndRouter(mg, routing="D8")
-#     sde = SedDepEroder(mg, K_sp=1.e-4, K_=1.e-4, sed_dependency_type='almost_parabolic')
-#     sp = FastscapeEroder(mg, K_sp=1.e-4)
-#     th = mg.at_node['channel_sediment__depth']
-#     dt = 1000.
-#     U = 0.001
-#     # burn in a good network
-#     # for i in range(500):
-#     #     z[mg.core_nodes] += 0.001 * U * dt
-#     #     fa.run_one_step()
-#     #     sp.run_one_step(dt)
-#     for i in range(600):
-#         z[mg.core_nodes] += U * dt
-#         # z_init[:] = z
-#         # dfn.run_one_step(dt)
-#         # dz = z - z_init  # -ve when lowering
-#         # th += dz
-#         # np.clip(th, a_max=None, a_min=0., out=th)
-#         # z -= th
-#         # th[mg.core_nodes] += 0.1 * U * dt  # a st st soil prod of 0.2*U
-#         fa.run_one_step()
-#         pit.map_depressions()
-#         sde.run_one_step(dt, flooded_nodes=pit.lake_at_node)
-#         # z += th
-#         print(i)
-#         if i%25 == 24:
-#             figure(i)
-#             imshow_grid_at_node(mg, z)
-#             figure(i+600)
-#             imshow_grid_at_node(mg, 'channel_sediment__depth')
-    # --> Issue here is that top row, in particular top right, is high
-    # relative to rest of grid. Something is screwy here.
-    # Problem goes away if sed_dependency_type='linear_decline'
-    # Check convergence rules where the dstr node is flooded
-    # All this is emerging from the piling up of large amounts of sediment
-    # (10s m) in certain cells, which either diverts the flow (if BR surface
-    # is altered) or destabilises the SFF (topo is altered) in the next
-    # iteration
-# 
-# 
-# # add a regression test :
-# def test_arbitrary_grid_with_flood():
-#     """
-#     This does not run stably, though unclear what's up as profiles look OK
-#     """
-#     from landlab.components import LinearDiffuser
-#     mg = RasterModelGrid((30, 30), xy_spacing=500.)
-#     for edge in ['top', 'left', 'bottom']:
-#         mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
-#     z = mg.add_zeros('node', 'topographic__elevation')
-#     np.random.seed(50)
-#     z += np.random.rand(mg.number_of_nodes) / 1000.
-#     z_init = z.copy()
-#     dfn = LinearDiffuser(mg, linear_diffusivity=1.e-2)
-#     fa = FlowAccumulator(mg, flow_director="D8")
-#     pit = DepressionFinderAndRouter(mg, routing="D8")
-#     sde = SedDepEroder(mg, K_sp=1.e-4)
-#     th = mg.at_node['channel_sediment__depth']
-#     dt = 1000.
-#     U = 0.001
-#     for i in range(1000):
-#         z[mg.core_nodes] += U * dt
-#         # z_init[:] = z
-#         # dfn.run_one_step(dt)
-#         # dz = z - z_init  # -ve when lowering
-#         # th += dz
-#         # np.clip(th, a_max=None, a_min=0., out=th)
-#         # z -= th
-#         th[mg.core_nodes] += 0.1 * U * dt  # a st st soil prod of 0.2*U
-#         fa.run_one_step()
-#         pit.map_depressions()
-#         sde.run_one_step(dt, flooded_nodes=pit.lake_at_node)
-#         # z += th
-#         print(i)
-#     # --> Issue here is that top row, in particular top right, is high
-#     # relative to rest of grid. Something is screwy here.
-
-
 def test_flooding():
     mg = RasterModelGrid((3, 7), xy_spacing=100.)
     for edge in ['top', 'left', 'bottom']:
@@ -1007,29 +909,6 @@ def test_flooding_w_field():
         mg.at_node['channel_sediment__depth'][mg.core_nodes],
         np.array([0., 2.72436105e-05, 0., 0., 0.])
     )
-
-# 
-# 
-# def test_sed_pile_in_pit():
-#     """
-#     This attempts to breach a pit by filling it, rather than by breaking
-#     through the rim.
-#     """
-#     mg = RasterModelGrid((3, 7), xy_spacing=100.)
-#     for edge in ['top', 'left', 'bottom']:
-#         mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
-#     z = mg.add_zeros('node', 'topographic__elevation')
-#     X = np.spacing(2.5)
-#     X2 = np.spacing(2.5 + X)
-#     z[mg.core_nodes] = np.array([3., 2., 2.5+X+X2, 2.5+X, 2.5])
-#     fa = FlowAccumulator(mg, flow_director="D8")
-#     pit = DepressionFinderAndRouter(mg, routing="D8")
-#     sde = SedDepEroder(mg, K_sp=1.e-3, K_t=1.e-4)
-# 
-# # def test_large_steps_for_timestepping():
-# #     pass
-# 
-
 
 
 ############################## Need a test for supplied Voronoi grid
@@ -1355,9 +1234,16 @@ def test_flooding_w_field():
 # # a possible issue is that a boundary-adjacent node attempts to lower itself
 # # below the rim, and so is forbidden. Test this:
 
+
+
+
 #### currently a smoke test for a hang. Currently passing...
 def test_lower_below_rim():
-    mg = RasterModelGrid((3, 4))
+    crude_z_store = []
+    crude_th_store = []
+    first_stable_step = 0.17178978708367437 - np.spacing(0.17178978708367437)
+    second_stable_step = 0.14759859454412846 - np.spacing(0.14759859454412846)
+    mg = RasterModelGrid((3, 4), xy_spacing=1.)
     closed_nodes = np.array(
         [True,  True,  True,  True,
          True, False, False, False,
@@ -1366,25 +1252,40 @@ def test_lower_below_rim():
     mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
     z_init = np.array(
         [0.,    0.,    0.,    0.,
-         0.,    3.,   2.5,    2.,
+         0.,    4.,    3.,    2.,
          0.,    0.,    0.,    0.]
     )
 
-    mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
-
     z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
     fa = FlowAccumulator(mg, routing='D8')
-    pit = DepressionFinderAndRouter(mg, routing='D8')
     sde = SedDepEroder(
-        mg, K_sp=1., K_t=1., m_sp=0., n_sp=1., sed_dependency_type='almost_parabolic',
+        mg, K_sp=1., K_t=1., m_sp=0., n_sp=1.,
+        sed_dependency_type='almost_parabolic',
     )
     mg.at_node['channel_sediment__depth'][5] += 10.
-    for i in range(35):
-        print(i)
-        fa.run_one_step()
-        pit.map_depressions()
-        sde.run_one_step(1.)
-        # seizes up at 33
+    fa.run_one_step()
+    # now dice up the run to produce equivalent internal chunks...
+    sde.run_one_step(first_stable_step)
+    sde.run_one_step(0.2 - first_stable_step)
+    crude_z_store.append(z.copy())
+    crude_th_store.append(mg.at_node['channel_sediment__depth'].copy())
+
+    mg = RasterModelGrid((3, 4), xy_spacing=1.)
+    mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
+    z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
+    fa = FlowAccumulator(mg, routing='D8')
+    sde = SedDepEroder(
+        mg, K_sp=1., K_t=1., m_sp=0., n_sp=1.,
+        sed_dependency_type='almost_parabolic',
+    )
+    mg.at_node['channel_sediment__depth'][5] += 10.
+    fa.run_one_step()
+    sde.run_one_step(0.2)  # should be totally equivalent...
+    crude_z_store.append(z.copy())
+    crude_th_store.append(mg.at_node['channel_sediment__depth'].copy())
+
+    assert np.allclose(crude_z_store[0], crude_z_store[1])
+    assert np.allclose(crude_th_store[0], crude_th_store[1])
 
     # note that oscillations can develop within the internal stability loop
     # e.g., capacities at end of step can be 0, but erosion has occurred...
