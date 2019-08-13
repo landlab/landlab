@@ -803,6 +803,8 @@ class SedDepEroder(Component):
         node_S = grid.at_node['topographic__steepest_slope']
 
         dt_secs = dt * 31557600.
+        # we work in secs here because one day we may be ingesting real sed
+        # transport formulae, which return these units.
 
         if type(flooded_nodes) is str:
             flooded_nodes = self.grid.at_node[flooded_nodes]
@@ -938,6 +940,7 @@ class SedDepEroder(Component):
             # the new handling of flooded nodes as of 25/10/16 should make
             # this redundant, but retained to help ensure stability
             this_tstep = min((t_to_converge, dt_secs))
+            self._t_to_converge = t_to_converge/31557600.
             t_elapsed_internal += this_tstep
             if t_elapsed_internal >= dt_secs:
                 break_flag = True
@@ -963,13 +966,14 @@ class SedDepEroder(Component):
                 * t_elapsed_internal/dt_secs  # how dominant is it?
                 + flux_in_cells * (dt_secs - t_elapsed_internal) / dt_secs
             )
+            # flux_in_cells is the original, fully time-averaged flux from
+            # outside the loop
             # self._voldroprate.fill(0.)  # this is zeroed in the cython
 
 
 
 
 
-            # now how we handle this is dependent on the stab cond:
             node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
 
             if break_flag:
