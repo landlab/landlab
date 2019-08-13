@@ -145,7 +145,7 @@ class power_law_transporter():
         else:
             trp = self._KAtothem * slopes_at_nodes ** self._n_t
             if np.isclose(self._n_t, 0.):
-                trp[isflooded] = 0.
+                trp[is_flooded] = 0.
         return trp
 
 
@@ -225,7 +225,7 @@ class SedDepEroder(Component):
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
     >>> from landlab.components import FlowAccumulator, SedDepEroder
 
-    >>> mg = RasterModelGrid((10, 3), 200.)
+    >>> mg = RasterModelGrid((10, 3), xy_spacing=200.)
     >>> for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
     ...              mg.nodes_at_right_edge):
     ...     mg.status_at_node[edge] = CLOSED_BOUNDARY
@@ -250,20 +250,30 @@ class SedDepEroder(Component):
     ...     fr.run_one_step()
     ...     sde.run_one_step(dt)
 
-    Where TL conditions predominate, the incision is linked only to movement
-    of the sediment layer:
+    In this model, the sediment layer is "virtualised", and in practical
+    terms, the topographic__surface corresponds to the bedrock surface.
+    So, in a simple model like this, where we have TL conditions there can
+    be no incision, and we can simply assert
 
     >>> TLs = mg.core_nodes[sde.is_it_TL[mg.core_nodes]]
-    >>> np.allclose(th[TLs] + (initz - z)[TLs], 0.0007)
+    >>> np.allclose((initz - z)[TLs], 0.)
+    True
+
+    Similarly, a node in DL condition without any external supply must by
+    definition have a capacity at its outflow greater than the sediment it
+    recieves, and hence all DL nodes do not accumulate sediment. In contrast,
+    TL nodes can accumulate:
+
+    >>> np.all(np.greater(th[TLs], 0.))
+    True
+    >>> DLs = mg.core_nodes[np.logical_not(sde.is_it_TL)[mg.core_nodes]]
+    >>> np.allclose(th[DLs], 0.)
     True
 
     Otherwise, incision procedes in the naked nodes according to the sediment
     dependent bedrock incision rules:
 
-    >>> incising_nodes = mg.core_nodes[
-    ...     np.logical_not(sde.is_it_TL)[mg.core_nodes]]
-    >>> np.all(np.logical_or((initz - z)[incising_nodes] > 0.0007,
-    ...                      np.isclose((initz - z)[incising_nodes], 0.0007)))
+    >>> np.all(np.greater_equal((initz - z)[DLs], 0.))
     True
 
     The component will dump all sediment in transit if it encounters flooded
@@ -283,16 +293,22 @@ class SedDepEroder(Component):
     >>> for i in range(1):
     ...     fr.run_one_step()
     ...     sde.run_one_step(100., flooded_nodes=myflood)
-    >>> z[7] > mg.node_y[7]/10000.  # sed ends up here
+    >>> th[7] > 0.  # sed ends up here
     True
-    >>> np.isclose(z[4], mg.node_y[4]/10000.)  # ...but not here
+    >>> np.isclose(th[4], 0.)  # ...but not here, the next node down
+    True
+
+    However, note that the topo itself does not evolve while this is
+    happening, because the sediment is handled virtually (see above):
+
+    >>> np.isclose(z[7], mg.node_y[7]/10000.)
     True
 
     Pleasingly, the solution for a constant f(Qs) is very close to the stream
     power solution:
 
     >>> from landlab.components import FastscapeEroder
-    >>> mg = RasterModelGrid((10, 3), 200.)
+    >>> mg = RasterModelGrid((10, 3), xy_spacing=200.)
     >>> for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge,
     ...              mg.nodes_at_right_edge):
     ...     mg.status_at_node[edge] = CLOSED_BOUNDARY
@@ -450,7 +466,7 @@ class SedDepEroder(Component):
         sediment_density=2700.,
         fluid_density=1000.,
         # runoff_rate=1.,
-        stability_condition='tight',
+        stability_condition='loose',
         sed_dependency_type="generalized_humped",
         kappa_hump=13.683,
         nu_hump=1.13,
@@ -740,8 +756,11 @@ class SedDepEroder(Component):
             flooded_nodes = self.grid.at_node[flooded_nodes]
             is_flooded = flooded_nodes
         elif type(flooded_nodes) is np.ndarray:
-            assert (flooded_nodes.size == self.grid.number_of_nodes or
-                    flooded_nodes.dtype == np.integer)
+            assert (flooded_nodes.size == self.grid.number_of_nodes
+                    or flooded_nodes.dtype == np.integer)
+            # if (flooded_nodes.size == self.grid.number_of_nodes
+            #         and flooded_nodes.dtype != np.integer):
+            #     flooded_nodes = np.where(flooded_nodes)[0]
             is_flooded = flooded_nodes
             # need an *updateable* record of the pit depths
         else:
@@ -837,6 +856,7 @@ class SedDepEroder(Component):
 
 # There's a fundamental issue here somewhere regarding the sediment depth. It's
 # way too big!! (comparable to the relief). If this because Ksp ~ Kt??
+# This new handling needs to come later, so see below
 
             # now perform a CHILD-like convergence-based stability test:
             if self._stab_cond == 'tight':
@@ -921,9 +941,7 @@ class SedDepEroder(Component):
                     )
                     times_to_converge *= CONV_FACTOR_LOOSE
                     # ^arbitrary safety factor; CHILD uses 0.3
-                    times_to_converge[isflooded] /= (
-                        CONV_FACTOR_LOOSE - np.spacing(CONV_FACTOR_LOOSE)
-                    )
+                    floodedcanconverge = botharepositive[is_flooded]
                     # this means the flooded node can fill fully if needed;
                     # we permit the node to slightly overfill to get
                     # ourselves out of this scenario next step.
@@ -950,6 +968,26 @@ class SedDepEroder(Component):
             self._hillslope_sediment[self.grid.core_nodes] += (
                 sed_dep_rate[self.grid.core_nodes] * this_tstep
             )
+# Now, don't drop the sed within the step. Effectively, we should,
+# but will remobilise it immediately in the next loop, so not
+# needed. Instead, add the drop to the hillslope sed flux going on
+
+# This is super ugly, and if it works it needs to be incorporated into the
+# Cython? So...
+            # keep everything up in the flow while inside the loop.
+            # Weight by elapsed times...
+            self._hillslope_sediment_flux_wzeros[self.grid.node_at_cell] = (
+                self._hillslope_sediment[self.grid.node_at_cell]
+                * self.grid.area_of_cell/t_elapsed_internal  # now a flux again
+                * t_elapsed_internal/dt_secs  # how dominant is it?
+                + flux_in_cells * (dt_secs - t_elapsed_internal) / dt_secs
+            )
+            # self._voldroprate.fill(0.)  # this is zeroed in the cython
+
+
+
+
+
             # now how we handle this is dependent on the stab cond:
             if self._stab_cond == 'tight':
                 br_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
@@ -975,6 +1013,12 @@ class SedDepEroder(Component):
             )
             downward_slopes = node_S.clip(np.spacing(0.))
 
+# MORE NEW TREATMENT
+        # sed_dep_rate = self._hillslope_sediment_flux_wzeros / self.cell_areas
+        # self._hillslope_sediment[self.grid.core_nodes] = (
+        #     sed_dep_rate[self.grid.core_nodes] * dt_secs
+        # )
+# END
         grid.at_node['channel_sediment__volumetric_transport_capacity'][
             :] = transport_capacities
         grid.at_node['channel_sediment__volumetric_discharge'][
