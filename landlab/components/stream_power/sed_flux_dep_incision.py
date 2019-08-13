@@ -17,7 +17,6 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
 
 WAVE_STABILITY_PREFACTOR = 0.2
 CONV_FACTOR_LOOSE = 0.1  # controls the convergence of node elevs in the loop
-CONV_FACTOR_TIGHT = 0.3
 
 # NB: The inline documentation of this component freely (& incorrectly!)
 # interchanges "flux" and "discharge". Almost always, "discharge" is intended
@@ -39,8 +38,7 @@ class power_law_eroder():
 
     Its interface is designed to mirror the other helpers available here.
     """
-    def __init__(self, K_sp, m_sp, n_sp, drainage_areas,
-                 stability_condition='tight', **kwds):
+    def __init__(self, K_sp, m_sp, n_sp, drainage_areas, **kwds):
         """Constructor for the class.
 
         Parameters
@@ -78,13 +76,53 @@ class power_law_eroder():
             flooded nodes before supply (for efficiency).
         flooded_nodes : int array or nnodes-long bool array of flooded nodes.
             Always supplied, but only used if n is close to 0.
+
+        Examples
+        --------
+        >>> ple = power_law_eroder(0.5, 0.5, 1., np.array([1., 4., 9.]))
+        >>> ple.update_prefactors_without_slope_terms()
+        >>> rates = ple.calc_erosion_rates(
+        ...     np.array([0.1, 0.2, 0.5]),
+        ...     flooded_nodes=np.array([])
+        ... )
+        >>> np.allclose(np.array([0.05, 0.2, 0.75]), rates)
+        True
+
+        >>> ple = power_law_eroder(0.5, 1., 0.5, np.array([10., 20., 30.]))
+        >>> ple.update_prefactors_without_slope_terms()
+        >>> rates = ple.calc_erosion_rates(
+        ...     np.array([0.01, 0.04, 0.09]),
+        ...     flooded_nodes=np.array([])
+        ... )
+        >>> np.allclose(np.array([0.5, 2., 4.5]), rates)
+        True
+
+        Now test flooding. Note effect only present if n ~ 0.
+
+        >>> ple = power_law_eroder(0.5, 1., 0.5, np.array([10., 20., 30.]))
+        >>> ple.update_prefactors_without_slope_terms()
+        >>> rates = ple.calc_erosion_rates(
+        ...     np.array([0.01, 0.04, 0.09]),
+        ...     flooded_nodes=np.array([1, ])
+        ... )
+        >>> np.allclose(np.array([0.5, 2., 4.5]), rates)
+        True
+
+        >>> ple = power_law_eroder(0.5, 1., 0., np.array([10., 20., 30.]))
+        >>> ple.update_prefactors_without_slope_terms()
+        >>> rates = ple.calc_erosion_rates(
+        ...     np.array([0.01, 0.04, 0.09]),
+        ...     flooded_nodes=np.array([1, ])
+        ... )
+        >>> np.allclose(np.array([5., 0., 15.]), rates)
+        True
         """
         if np.isclose(self._n_sp, 1.):
             erosion = self._KAtothem * slopes_at_nodes
         else:
             erosion = self._KAtothem * slopes_at_nodes ** self._n_sp
             if np.isclose(self._n_sp, 0.):
-                erosion[is_flooded] = 0.
+                erosion[flooded_nodes] = 0.
         return erosion
 
     @property
@@ -139,13 +177,53 @@ class power_law_transporter():
             flooded nodes before supply (for efficiency).
         flooded_nodes : int array or nnodes-long bool array of flooded nodes.
             Always supplied, but only used if n_t is close to 0.
+
+        Examples
+        --------
+        >>> ple = power_law_transporter(0.5, 0.5, 1., np.array([1., 4., 9.]))
+        >>> ple.update_prefactors_without_slope_terms()
+        >>> rates = ple.calc_erosion_rates(
+        ...     np.array([0.1, 0.2, 0.5]),
+        ...     flooded_nodes=np.array([])
+        ... )
+        >>> np.allclose(np.array([0.05, 0.2, 0.75]), rates)
+        True
+
+        >>> ple = power_law_transporter(0.5, 1., 0.5, np.array([10., 20., 30.]))
+        >>> ple.update_prefactors_without_slope_terms()
+        >>> rates = ple.calc_erosion_rates(
+        ...     np.array([0.01, 0.04, 0.09]),
+        ...     flooded_nodes=np.array([])
+        ... )
+        >>> np.allclose(np.array([0.5, 2., 4.5]), rates)
+        True
+
+        Now test flooding. Note effect only present if n ~ 0.
+
+        >>> ple = power_law_transporter(0.5, 1., 0.5, np.array([10., 20., 30.]))
+        >>> ple.update_prefactors_without_slope_terms()
+        >>> rates = ple.calc_erosion_rates(
+        ...     np.array([0.01, 0.04, 0.09]),
+        ...     flooded_nodes=np.array([1, ])
+        ... )
+        >>> np.allclose(np.array([0.5, 2., 4.5]), rates)
+        True
+
+        >>> ple = power_law_transporter(0.5, 1., 0., np.array([10., 20., 30.]))
+        >>> ple.update_prefactors_without_slope_terms()
+        >>> rates = ple.calc_erosion_rates(
+        ...     np.array([0.01, 0.04, 0.09]),
+        ...     flooded_nodes=np.array([1, ])
+        ... )
+        >>> np.allclose(np.array([5., 0., 15.]), rates)
+        True
         """
         if np.isclose(self._n_t, 1.):
             trp = self._KAtothem * slopes_at_nodes
         else:
             trp = self._KAtothem * slopes_at_nodes ** self._n_t
             if np.isclose(self._n_t, 0.):
-                trp[is_flooded] = 0.
+                trp[flooded_nodes] = 0.
         return trp
 
 
@@ -193,30 +271,22 @@ class SedDepEroder(Component):
     Tools-driven bedrock erosion is permitted only when this layer thickness
     is reduced to zero. The sediment recorded in channel_sediment__depth is
     considered loose, and freely transportable by clearwater flow.
-    Note that the topography tracked by 'topographic__elevation' is the true
-    surface topography, not the bedrock topography (...as is consistent with
-    that field name). The bedrock topography can be found from the
-    topographic__elevation less the channel_sediment__depth.
+    HOWEVER
+    Note that, unusually for Landlab, this component regards the
+    topographic__elevation as the bedrock surface, not the sediment surface.
+    It retains this name for clean interface with other components. This
+    adjustment is made to enhance model stability while retaining sensible
+    run times. In practical terms, this means the sediment thickness as
+    understood by this model is "virtual", and although spatial variation in
+    thickness could develop, the model bakes in the hard assumption that in
+    topographic terms, the thickness is mathematically thin and constant.
 
     The component is able to handle flooded nodes, if created by a lake
     filler. It assumes the flow paths found in the fields already reflect
     any lake routing operations, and then requires the optional argument
     *flooded_nodes* be passed to the run method. A flooded depression
-    acts as a perfect sediment trap, and will be filled sequentially
-    from the inflow points towards the outflow points.
-
-    It is possible to set the stability condition on this component to either
-    'loose' (default) or 'tight'. The difference is that with loose stability
-    the component only enforces stability on the *topographic surface*, whereas
-    with a tight condition it enforces stability on *both the topograhic and
-    bedrock surfaces together*. Because of the pseudoimplicit calculation of
-    the sediment flux, the former is in fact a reasonable approximation of the
-    latter in terms of the calculated sediment fluxes and topographies.
-    However, vitally, *if the stability condition is 'loose', the calculated
-    sediment thicknesses are completely untrustworthy*. Do not use them!
-    However, in many cases, the loose condition is recommended, since the
-    tight condition is so restrictive as to cause the component to almost
-    grind to a halt.
+    acts as a perfect sediment trap, and so only nodes at the periphery of
+    a flooded region can receive sediment from this component.
 
     Examples
     --------
@@ -301,7 +371,18 @@ class SedDepEroder(Component):
     However, note that the topo itself does not evolve while this is
     happening, because the sediment is handled virtually (see above):
 
-    >>> np.isclose(z[7], mg.node_y[7]/10000.)
+    >>> np.allclose(z[7], mg.node_y[7]/10000.)
+    True
+
+    If you want the thickness of sediment to be included, add it yourself
+    (but beware unrealistic in the thickness of the sed layer, and of double-
+    counting the sediment as it accumulates if running multiple components
+    together).
+
+    >>> z += th
+    >>> z[7] > mg.node_y[7]/10000.
+    True
+    >>> np.isclose(z[4], mg.node_y[4]/10000.)
     True
 
     Pleasingly, the solution for a constant f(Qs) is very close to the stream
@@ -461,12 +542,9 @@ class SedDepEroder(Component):
         self,
         grid,
         K_sp=1.e-6,
-        # g=9.81,
         rock_density=2700.,
         sediment_density=2700.,
         fluid_density=1000.,
-        # runoff_rate=1.,
-        stability_condition='loose',
         sed_dependency_type="generalized_humped",
         kappa_hump=13.683,
         nu_hump=1.13,
@@ -502,9 +580,6 @@ class SedDepEroder(Component):
             Density of the fluid. Currently redundant, but will become
             necessary in a future version using e.g. MPM for the transport
             law.
-        # runoff_rate : float, array or field name (m/s)
-        #     The rate of excess overland flow production at each node (i.e.,
-        #     rainfall rate less infiltration).
         pseudoimplicit_repeats : int
             Maximum number of loops to perform with the pseudoimplicit
             iterator, seeking a stable solution. Convergence is typically
@@ -517,11 +592,6 @@ class SedDepEroder(Component):
             stability issues at channel heads.
         Qc : {'power_law', }
             At present, only `power_law` is supported.
-        stability_condition : {'tight', 'loose'}
-            If 'tight', uses a robust condition that ensures true continuity of
-            the topographic surface at all times. If 'loose', elides the
-            bedrock surface and the topographic surface to produce a solution.
-            In this case, do not trust the "depth to bedrock" at all.
 
         If ``sed_dependency_type == 'generalized_humped'``...
 
@@ -686,10 +756,6 @@ class SedDepEroder(Component):
         self.cell_areas.fill(np.mean(grid.area_of_cell))
         self.cell_areas[grid.node_at_cell] = grid.area_of_cell
 
-        if stability_condition not in ['tight', 'loose']:
-            raise NameError("stability_condition must be 'tight' or 'loose'!")
-        self._stab_cond = stability_condition
-
     def set_sed_flux_fn_gen(self):
         """
         Sets the property self._sed_flux_fn_gen that controls which sed flux
@@ -747,8 +813,6 @@ class SedDepEroder(Component):
         flow_receiver = grid.at_node['flow__receiver_node']
         s_in = grid.at_node['flow__upstream_node_order']
         node_S = grid.at_node['topographic__steepest_slope']
-        if self._stab_cond == 'tight':
-            br_z = node_z - self._hillslope_sediment
 
         dt_secs = dt * 31557600.
 
@@ -859,95 +923,30 @@ class SedDepEroder(Component):
 # This new handling needs to come later, so see below
 
             # now perform a CHILD-like convergence-based stability test:
-            if self._stab_cond == 'tight':
-                t_to_converge = dt_secs  # we'll overwrite if needed, below
-                ratediffz = dzbydt[flow_receiver] - dzbydt
-                ratediffth = sed_dep_rate[flow_receiver] - sed_dep_rate
-                ratediffbr = ratediffz + ratediffth
-                # Idea here is that for a tight condition, BOTH the true
-                # surface and the bedrock surface must behave themselves.
-                # If stability is tight, then ratediff1 describes the br
-                # interface, not the surface...
-                downstr_vert_diffz = node_z - node_z[flow_receiver]
-                downstr_vert_diffbr = (
-                    br_z -
-                    br_z[flow_receiver]
+            ratediff = dzbydt[flow_receiver] - dzbydt
+            # if this is +ve, the nodes are converging
+            downstr_vert_diff = node_z - node_z[flow_receiver]
+            botharepositive = np.logical_and(ratediff > 0.,
+                                             downstr_vert_diff > 0.)
+            # this ignores possibility of flooded nodes dstr, and so
+            # we can plausibly get in the situation where there's too
+            # much sed coming in to a pit, and it can't fill to the
+            # point where it ought to outflow because of this
+            # convergence limit.
+            try:
+                times_to_converge = (
+                    downstr_vert_diff[botharepositive] /
+                    ratediff[botharepositive]
                 )
-                botharepositivez = np.logical_and(ratediffz > 0.,
-                                                  downstr_vert_diffz > 0.)
-                botharepositivebr = np.logical_and(ratediffbr > 0.,
-                                                   downstr_vert_diffbr > 0.)
-                try:
-                    t_to_converge = np.amin(
-                        downstr_vert_diffz[botharepositivez] /
-                        ratediffz[botharepositivez])
-                except ValueError:  # no node pair converges
-                    pass  # leave t_to_converge alone
-                try:
-                    t_to_convergebr = np.amin(
-                        downstr_vert_diffbr[botharepositivebr] /
-                        ratediffbr[botharepositivebr])
-                    t_to_converge = np.amin([t_to_converge, t_to_convergebr])
-                except ValueError:  # no node pair converges
-                    pass  # leave t_to_converge alone
-                t_to_converge *= CONV_FACTOR_TIGHT
-                # the below block does NOT resolve the arising oscillations
-                # in sediment thickness
-                # Is this because it looks only at change at a single node,
-                # not at the next node?
-                # No, these "oscillations" are not. They nucleate then wax and
-                # wane over several timesteps, so are not classic numerical
-                # instabilities. More like emergent dynamics.
-
-                # # also a third condition: the two surfaces must not strongly
-                # # diverge *from each other* (oscillation possible in sed layer)
-                # th_new = node_z - br_z
-                # # th must not diverge by >CONV_FACTOR from old value
-                # # this will be very slow when thicknesses are v low...
-                # # so add an arbitrary 1 cm min threshold.
-                # max_change = th_new * CONV_FACTOR
-                # max_change = np.maximum(max_change, 0.01)
-                # t_to_convergeth = np.amin(np.fabs(max_change / ratediffth))
-                # # now, ratediffz is -ve if diverging, so negative sign on this
-                # # note th_new cannot ever be negative, unlike scenarios above
-                # # but equally, we shouldn't let the thickness crash too fast
-                # # either, so we have the fabs.
-                # t_to_converge = np.amin([t_to_converge, t_to_convergeth])
-
-                # # and alternative approach to a very similar thing might be:
-                # th_new = node_z - br_z
-                # # no need for a vert_diff term here, as it shouldn't matter
-                # # which we take. Such a term could be +ve or -ve w/o
-                # # limitation on the calc.
-                # t_to_convergeth = np.amin(th_new[flow_receiver] / np.fabs(ratediffth))
-                # t_to_converge = np.amin([t_to_converge, t_to_convergeth])
-                # # ...
-                # # this fails since the diff can easily be 0
-            else:
-                ratediff = dzbydt[flow_receiver] - dzbydt
-                # if this is +ve, the nodes are converging
-                downstr_vert_diff = node_z - node_z[flow_receiver]
-                botharepositive = np.logical_and(ratediff > 0.,
-                                                 downstr_vert_diff > 0.)
-                # this ignores possibility of flooded nodes dstr, and so
-                # we can plausibly get in the situation where there's too
-                # much sed coming in to a pit, and it can't fill to the
-                # point where it ought to outflow because of this
-                # convergence limit.
-                try:
-                    times_to_converge = (
-                        downstr_vert_diff[botharepositive] /
-                        ratediff[botharepositive]
-                    )
-                    times_to_converge *= CONV_FACTOR_LOOSE
-                    # ^arbitrary safety factor; CHILD uses 0.3
-                    floodedcanconverge = botharepositive[is_flooded]
-                    # this means the flooded node can fill fully if needed;
-                    # we permit the node to slightly overfill to get
-                    # ourselves out of this scenario next step.
-                    t_to_converge = np.amin(times_to_converge)
-                except ValueError:  # no node pair converges
-                    t_to_converge = dt_secs
+                times_to_converge *= CONV_FACTOR_LOOSE
+                # ^arbitrary safety factor; CHILD uses 0.3
+                floodedcanconverge = botharepositive[is_flooded]
+                # this means the flooded node can fill fully if needed;
+                # we permit the node to slightly overfill to get
+                # ourselves out of this scenario next step.
+                t_to_converge = np.amin(times_to_converge)
+            except ValueError:  # no node pair converges
+                t_to_converge = dt_secs
             if t_to_converge < 3600. and flood_node is not None:
                 t_to_converge = 3600.  # forbid tsteps < 1hr; a bit hacky
             # without this, it's possible for the component to get stuck in
@@ -989,14 +988,7 @@ class SedDepEroder(Component):
 
 
             # now how we handle this is dependent on the stab cond:
-            if self._stab_cond == 'tight':
-                br_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
-                node_z[grid.core_nodes] = (
-                    br_z[grid.core_nodes] +
-                    self._hillslope_sediment[grid.core_nodes]
-                )
-            else:
-                node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
+            node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
 
             if break_flag:
                 break
