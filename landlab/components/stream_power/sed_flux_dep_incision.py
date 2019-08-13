@@ -795,18 +795,6 @@ class SedDepEroder(Component):
             provided but flow has still been routed across depressions, erosion
             and deposition may still occur beneath the apparent water level.
         """
-        if (
-            self._grid.at_node["flow__receiver_node"].size !=
-            self._grid.size("node")
-        ):
-            msg = (
-                "A route-to-multiple flow director has been "
-                "run on this grid. The landlab development team has not "
-                "verified that SedDepEroder is compatible with "
-                "route-to-multiple methods. Please open a GitHub Issue "
-                "to start this process."
-            )
-            raise NotImplementedError(msg)
         grid = self.grid
         node_z = grid.at_node['topographic__elevation']
         node_A = grid.at_node['drainage_area']
@@ -880,8 +868,6 @@ class SedDepEroder(Component):
         dzbydt = np.zeros(grid.number_of_nodes, dtype=float)
         self._loopcounter = 0
         while 1:
-            flood_node = None  # int if timestep is limited by flooding
-            flood_tstep = dt_secs
             downward_slopes[is_flooded] = 0.
 
             transport_capacities = (
@@ -940,14 +926,10 @@ class SedDepEroder(Component):
                 )
                 times_to_converge *= CONV_FACTOR_LOOSE
                 # ^arbitrary safety factor; CHILD uses 0.3
-                floodedcanconverge = botharepositive[is_flooded]
-                # this means the flooded node can fill fully if needed;
-                # we permit the node to slightly overfill to get
-                # ourselves out of this scenario next step.
                 t_to_converge = np.amin(times_to_converge)
             except ValueError:  # no node pair converges
                 t_to_converge = dt_secs
-            if t_to_converge < 3600. and flood_node is not None:
+            if t_to_converge < 3600.:
                 t_to_converge = 3600.  # forbid tsteps < 1hr; a bit hacky
             # without this, it's possible for the component to get stuck in
             # a loop, presumably when the gradient is "supposed" to level
@@ -1005,12 +987,6 @@ class SedDepEroder(Component):
             )
             downward_slopes = node_S.clip(np.spacing(0.))
 
-# MORE NEW TREATMENT
-        # sed_dep_rate = self._hillslope_sediment_flux_wzeros / self.cell_areas
-        # self._hillslope_sediment[self.grid.core_nodes] = (
-        #     sed_dep_rate[self.grid.core_nodes] * dt_secs
-        # )
-# END
         grid.at_node['channel_sediment__volumetric_transport_capacity'][
             :] = transport_capacities
         grid.at_node['channel_sediment__volumetric_discharge'][
