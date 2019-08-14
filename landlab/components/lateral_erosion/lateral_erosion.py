@@ -249,9 +249,9 @@ class LateralEroder(Component):
             self._TB = False
         # option use adaptive time stepping. Default is fixed dt supplied by user
         if solver == "basic":
-            self._run_one_step = self.run_one_step_basic
+            self.run_one_step = self.run_one_step_basic
         elif solver == "adaptive":
-            self._run_one_step = self.run_one_step_adaptive
+            self.run_one_step = self.run_one_step_adaptive
             self.frac = 0.3  # for time step calculations
         self.alph = alph
         self.Kv = Kv  # can be overwritten with spatially variable
@@ -647,6 +647,7 @@ class LateralEroder(Component):
                 time = globdt
 
             else:
+#                print("little timesteps")
                 dt = globdt - time
                 qs_in = grid.zeros(centering="node")
                 # recalculate flow directions
