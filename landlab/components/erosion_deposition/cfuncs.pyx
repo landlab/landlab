@@ -20,8 +20,7 @@ def calculate_qs_in(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] qs_in,
                     np.ndarray[DTYPE_FLOAT_t, ndim=1] Es,
                     DTYPE_FLOAT_t v_s,
-                    DTYPE_FLOAT_t F_f,
-                    DTYPE_FLOAT_t phi):
+                    DTYPE_FLOAT_t F_f):
 
     """Calculate and qs and qs_in."""
     # define internal variables
@@ -45,7 +44,7 @@ def calculate_qs_in(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud,
         #
         if q[node_id] > 0:
             qs[node_id] = ((qs_in[node_id]
-                            + ((1.0 - F_f) * (1. - phi) * Es[node_id]) * cell_area_at_node[node_id])
+                            + ((1.0 - F_f) * Es[node_id]) * cell_area_at_node[node_id])
                            / (1.0 + (v_s * cell_area_at_node[node_id] / (q[node_id]))))
 
             # finally, add this nodes qs to recieiving nodes qs_in.
