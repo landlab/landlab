@@ -176,7 +176,6 @@ class LateralEroder(Component):
     )
 
     _output_var_names = ("topographic__elevation",
-         "dzdt",
          "dzlat",
          "vollat",
          "qs_in"
@@ -187,10 +186,24 @@ class LateralEroder(Component):
         "flow__receiver_node": "-",
         "flow__upstream_node_order": "-",
         "topographic__steepest_slope": "-",
-        "dzdt": "m/y",
         "dzlat": "m/y",
         "vollat": "m3",
         "qs_in": "m3/y",
+    }
+    
+    _var_doc = {
+        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
+        "node)",
+        "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
+        "node IDs",
+        "topographic__steepest_slope": "Topographic slope at each node",
+        "drainage_area": "Upstream accumulated surface area contributing to the node's "
+        "discharge",
+        "soil__depth": "Depth of sediment above bedrock",
+        "topographic__elevation": "Land surface topographic elevation",
+        "dzlat": "Change in elevation at each node from lateral erosion during time step",
+        "vollat": "Array tracking volume eroded at each node from lateral erosion",
+        "qs_in": "Volume per unit time of sediment entering each node"
     }
 
     def __init__(
