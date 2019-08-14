@@ -293,7 +293,7 @@ class LateralEroder(Component):
         # for arrays of Kv. Checks that length of Kv array is good.
         self.Kv = np.ones(self.grid.number_of_nodes, dtype=float) * Kv
 
-    def run_one_step_basic(self, dt=1.0, **kwds):
+    def run_one_step_basic(self, dt=1.0):
         Klr = self.Klr
         grid=self.grid
         UC = self._UC
@@ -419,7 +419,7 @@ class LateralEroder(Component):
         return grid, dzlat
 
 
-    def run_one_step_adaptive(self, dt=1.0, **kwds):
+    def run_one_step_adaptive(self, dt=1.0):
         Klr = self.Klr
         grid=self.grid
         UC = self._UC
