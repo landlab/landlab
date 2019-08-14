@@ -271,7 +271,7 @@ class LateralEroder(Component):
         self.inlet_on = False  # will be overwritten below if inlet area is provided
         self.Klr = float(Kl_ratio)  # default ratio of Kv/Kl is 1. Can be overwritten
 
-        self.dzdt = grid.add_zeros("dzdt", at="node")  # elevation change rate (M/Y)
+        self.dzdt = grid.add_zeros("dzdt", at="node", noclobber=False)  # elevation change rate (M/Y)
         # optional inputs
         self.inlet_on = inlet_on
         if inlet_on:
@@ -293,11 +293,8 @@ class LateralEroder(Component):
         # for arrays of Kv. Checks that length of Kv array is good.
         self.Kv = np.ones(self.grid.number_of_nodes, dtype=float) * Kv
 
-    def run_one_step_basic(
-        self, dt=None, Klr=None, inlet_area_ts=None, qsinlet_ts=None, **kwds
-    ):
-        if Klr is None:  # Added10/9 to allow changing rainrate (indirectly this way.)
-            Klr = self.Klr
+    def run_one_step_basic(self, dt=1.0, **kwds):
+        Klr = self.Klr
         grid=self.grid
         UC = self._UC
         TB = self._TB
@@ -326,47 +323,12 @@ class LateralEroder(Component):
         vol_lat_dt = np.zeros(grid.number_of_nodes)
         if inlet_on is True:
             inlet_node = self.inlet_node
-            # if a value is passed with qsinlet_ts, qsinlet has changed with this timestep,
-            # so reset qsinlet to qsinlet_ts
-            if qsinlet_ts is not None:
-                qsinlet = qsinlet_ts
-                qs_in[inlet_node] = qsinlet
-            # if nothing is passed with qsinlet_ts, qsinlet remains the same from
-            # initialized parameters
-            else:  # qsinlet_ts==None:
-                qsinlet = self.qsinlet
-                qs_in[inlet_node] = qsinlet
-            if inlet_area_ts is not None:
-                inlet_area = inlet_area_ts
-                runoffinlet = np.ones(grid.number_of_nodes) * grid.dx ** 2
-                # Change the runoff at the inlet node to node area + inlet node
-                runoffinlet[inlet_node] += inlet_area
-                _ = grid.add_field(
-                    "node", "water__unit_flux_in", runoffinlet, noclobber=False
-                )
-                # if inlet area has changed with time (so we have a new inlet area here)
-                fa = FlowAccumulator(
-                    grid,
-                    surface="topographic__elevation",
-                    flow_director="FlowDirectorD8",
-                    runoff_rate=None,
-                    depression_finder="DepressionFinderAndRouter",
-                    router="D8",
-                )
-                (da, q) = fa.accumulate_flow()
-                q = grid.at_node["surface_water__discharge"]
-                # this is the drainage area that I need for code below with an inlet set
-                # by spatially varible runoff.
-                da = q / grid.dx ** 2
-            else:  # inletarea not changing with time
-                q = grid.at_node["surface_water__discharge"]
-                # this is the drainage area that I need for code below with an inlet set
-                # by spatially varible runoff.
-                da = q / grid.dx ** 2
-        #                print ("da", da[inlet_node])
+            qsinlet = self.qsinlet
+            qs_in[inlet_node] = qsinlet
+            q = grid.at_node["surface_water__discharge"]
+            da = q / grid.dx ** 2
         # if inlet flag is not on, proceed as normal.
         else:
-            # renamed this drainage area set by flow router
             da = grid.at_node["drainage_area"]
         # flow__upstream_node_order is node array contianing downstream to
         # upstream order list of node ids
@@ -457,11 +419,8 @@ class LateralEroder(Component):
         return grid, dzlat
 
 
-    def run_one_step_adaptive(
-        self, dt=None, Klr=None, inlet_area_ts=None, qsinlet_ts=None, **kwds
-    ):
-        if Klr is None:  # Added10/9 to allow changing rainrate (indirectly this way.)
-            Klr = self.Klr
+    def run_one_step_adaptive(self, dt=1.0, **kwds):
+        Klr = self.Klr
         grid=self.grid
         UC = self._UC
         TB = self._TB
@@ -489,44 +448,10 @@ class LateralEroder(Component):
         if inlet_on is True:
             # define inlet_node
             inlet_node = self.inlet_node
-            # if a value is passed with qsinlet_ts, qsinlet has changed with this timestep,
-            # so reset qsinlet to qsinlet_ts
-            if qsinlet_ts is not None:
-                qsinlet = qsinlet_ts
-                qs_in[inlet_node] = qsinlet
-            # if nothing is passed with qsinlet_ts, qsinlet remains the same from
-            # initialized parameters
-            else:  # qsinlet_ts==None:
-                qsinlet = self.qsinlet
-                qs_in[inlet_node] = qsinlet
-
-            if inlet_area_ts is not None:
-                inlet_area = inlet_area_ts
-                runoffinlet = np.ones(grid.number_of_nodes) * grid.dx ** 2
-                # Change the runoff at the inlet node to node area + inlet node
-                runoffinlet[inlet_node] += inlet_area
-                _ = grid.add_field(
-                    "node", "water__unit_flux_in", runoffinlet, noclobber=False
-                )
-                # if inlet area has changed with time (so we have a new inlet area here)
-                fa = FlowAccumulator(
-                    grid,
-                    surface="topographic__elevation",
-                    flow_director="FlowDirectorD8",
-                    runoff_rate=None,
-                    depression_finder="DepressionFinderAndRouter",
-                    router="D8",
-                )
-                (da, q) = fa.accumulate_flow()
-                q = grid.at_node["surface_water__discharge"]
-                # this is the drainage area that I need for code below with an inlet set
-                # by spatially varible runoff.
-                da = q / grid.dx ** 2
-            else:
-                q = grid.at_node["surface_water__discharge"]
-                # this is the drainage area that I need for code below with an inlet set
-                # by spatially varible runoff.
-                da = q / grid.dx ** 2
+            qsinlet = self.qsinlet
+            qs_in[inlet_node] = qsinlet
+            q = grid.at_node["surface_water__discharge"]
+            da = q / grid.dx ** 2
         # if inlet flag is not on, proceed as normal.
         else:
             # renamed this drainage area set by flow router
@@ -660,20 +585,20 @@ class LateralEroder(Component):
                 time = globdt
 
             else:
-#                print("little timesteps")
+                print("little timesteps")
                 dt = globdt - time
                 qs_in = grid.zeros(centering="node")
                 # recalculate flow directions
 
-                fa = FlowAccumulator(
-                    grid,
-                    surface="topographic__elevation",
-                    flow_director="FlowDirectorD8",
-                    runoff_rate=None,
-                    depression_finder="DepressionFinderAndRouter",
-                    router="D8",
-                )
-                (da, q) = fa.accumulate_flow()
+#                fa = FlowAccumulator(
+#                    grid,
+#                    surface="topographic__elevation",
+#                    flow_director="FlowDirectorD8",
+#                    runoff_rate=None,
+#                    depression_finder="DepressionFinderAndRouter",
+#                    router="D8",
+#                )
+#                (da, q) = fa.accumulate_flow()
                 if inlet_on:
                     #                   #if inlet on, reset drainage area and qsin to reflect inlet conditions
                     # this is the drainage area that I need for code below with an inlet
