@@ -16,7 +16,9 @@ from .flow_director import (
     FlowDirectorSteepest,
 )
 from .flow_routing import DepressionFinderAndRouter, FlowRouter
+from .fracture_grid import FractureGridGenerator
 from .gflex import gFlex
+from .groundwater import GroundwaterDupuitPercolator
 from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
 from .lithology import LithoLayers, Lithology
@@ -51,6 +53,7 @@ from .weathering import ExponentialWeatherer
 
 COMPONENTS = [
     ChiFinder,
+    GroundwaterDupuitPercolator,
     LinearDiffuser,
     LateralEroder,
     Flexure,
@@ -91,6 +94,7 @@ COMPONENTS = [
     FlowDirectorMFD,
     FlowDirectorDINF,
     FlowAccumulator,
+    FractureGridGenerator,
     LossyFlowAccumulator,
     Space,
     ErosionDeposition,
