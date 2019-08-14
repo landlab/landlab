@@ -1240,7 +1240,7 @@ def test_flooding_w_field():
 
 def test_mass_balance():
     # force us to be well within a single stable internal step:
-    for dt in (0.01, 0.15):
+    for dt in (0.01, 0.15, 0.3):  # 1, 2, 3 loops
         mg = RasterModelGrid((3, 4), xy_spacing=1.)
         closed_nodes = np.array(
             [True,  True,  True,  True,
@@ -1270,7 +1270,7 @@ def test_mass_balance():
                 * mg.at_node['channel_sediment__volumetric_discharge'][6]
         ))  # seconds to yr, and dt for total volume
 
-# The DEPTH is not consistent now with the other elements of this. 
+# Now a test across multiple steps...
 
 
 #######TO MODIFY 14/8/19
