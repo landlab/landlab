@@ -799,6 +799,11 @@ class SedDepEroder(Component):
         flow_receiver = grid.at_node['flow__receiver_node']
         s_in = grid.at_node['flow__upstream_node_order']
         node_S = grid.at_node['topographic__steepest_slope']
+        vQc = grid.at_node['channel_sediment__volumetric_transport_capacity']
+        vQs = grid.at_node['channel_sediment__volumetric_discharge']
+        # & for debug, expose the sed in as private variable:
+        QbyQs = grid.at_node['channel_sediment__relative_flux']
+        # elevs set automatically to the name used in the function call.
 
         dt_secs = dt * 31557600.
         # we work in secs here because one day we may be ingesting real sed
@@ -866,6 +871,9 @@ class SedDepEroder(Component):
         rel_sed_flux = np.empty_like(node_A)
 
         dzbydt = np.zeros(grid.number_of_nodes, dtype=float)
+        vQs.fill(0.)
+        vQc.fill(0.)
+        QbyQs.fill(0.)
         self._loopcounter = 0
         while 1:
             downward_slopes[is_flooded] = 0.
@@ -882,8 +890,8 @@ class SedDepEroder(Component):
                 )
             )  # no time, no fqs
 
-            river_volume_flux_into_node = np.zeros(grid.number_of_nodes,
-                                                   dtype=float)
+            river_volume_flux_out_of_node = np.zeros(grid.number_of_nodes,
+                                                     dtype=float)
             dzbydt.fill(0.)
 
             self._is_it_TL = np.zeros(
@@ -892,7 +900,7 @@ class SedDepEroder(Component):
             iterate_sde_downstream(s_in, self.cell_areas,
                                    self._hillslope_sediment_flux_wzeros,
                                    self._porosity,
-                                   river_volume_flux_into_node,
+                                   river_volume_flux_out_of_node,
                                    transport_capacities,
                                    erosion_prefactor_withS,
                                    rel_sed_flux, self._is_it_TL,
@@ -950,6 +958,7 @@ class SedDepEroder(Component):
             self._hillslope_sediment[self.grid.core_nodes] += (
                 sed_dep_rate[self.grid.core_nodes] * this_tstep
             )
+
 # Now, don't drop the sed within the step. Effectively, we should,
 # but will remobilise it immediately in the next loop, so not
 # needed. Instead, add the drop to the hillslope sed flux going on
@@ -973,6 +982,12 @@ class SedDepEroder(Component):
 
 
             node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
+            # the field outputs also need to be set proportionately w/i the
+            # loop:
+            time_fraction = this_tstep / dt_secs
+            vQc += time_fraction * transport_capacities
+            vQs += time_fraction * river_volume_flux_out_of_node
+            QbyQs += time_fraction * rel_sed_flux
 
             if break_flag:
                 break
@@ -988,15 +1003,6 @@ class SedDepEroder(Component):
                 link_length[core_draining_nodes]
             )
             downward_slopes = node_S.clip(np.spacing(0.))
-
-        grid.at_node['channel_sediment__volumetric_transport_capacity'][
-            :] = transport_capacities
-        grid.at_node['channel_sediment__volumetric_discharge'][
-            :] = rel_sed_flux * transport_capacities
-        # & for debug, expose the sed in as private variable:
-        self._river_volume_Q_into_node = river_volume_flux_into_node
-        grid.at_node['channel_sediment__relative_flux'][:] = rel_sed_flux
-        # elevs set automatically to the name used in the function call.
 
         return grid, grid.at_node["topographic__elevation"]
 

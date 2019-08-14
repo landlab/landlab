@@ -310,7 +310,7 @@ def test_iteration_dstr():
     trans_caps = np.array([0., 1., 1., 1., 0.9, 0.6])
     erosion_prefac_w_S = np.array([1., 2., 1., 1., 1., 1.])
     # output arrays:
-    river_volume_flux_into_node = np.zeros(6, dtype=float)
+    river_volume_flux_out_of_node = np.zeros(6, dtype=float)
     rel_sed_flux = np.zeros(6, dtype=float)
     is_it_TL = np.zeros(6, dtype=np.int8)
     vol_drop_rate = np.zeros(6, dtype=float)
@@ -320,7 +320,7 @@ def test_iteration_dstr():
         cell_areas,
         hillsl_sed,
         porosity,
-        river_volume_flux_into_node,
+        river_volume_flux_out_of_node,
         trans_caps,
         erosion_prefac_w_S,
         rel_sed_flux,
@@ -336,8 +336,8 @@ def test_iteration_dstr():
     assert np.all(np.equal(
         is_it_TL, np.array([1, 0, 0, 0, 1, 1], dtype=np.int8))
     )
-    assert np.allclose(river_volume_flux_into_node,
-                       np.array([0., 0., 0.2, 0.7, 1., 0.9]))
+    assert np.allclose(river_volume_flux_out_of_node,
+                       np.array([0., 0.2, 0.7, 1., 0.9, 0.6]))
     assert np.allclose(rel_sed_flux, np.array([1., 0.1, 0.45, 0.85, 1., 1.]))
     assert np.allclose(vol_drop_rate, np.array([0., 0., 0., 0., 0.1, 0.3]))
 
@@ -345,14 +345,14 @@ def test_iteration_dstr():
     # i.e., a true SP run.
     # ...also tests porosity is working OK.
     trans_caps.fill(1.e20)
-    river_volume_flux_into_node.fill(0.)
+    river_volume_flux_out_of_node.fill(0.)
     porosity = 2./3.
     iterate_sde_downstream(
         upstr_order,
         cell_areas,
         hillsl_sed,
         porosity,
-        river_volume_flux_into_node,
+        river_volume_flux_out_of_node,
         trans_caps,
         erosion_prefac_w_S,
         rel_sed_flux,
@@ -366,8 +366,8 @@ def test_iteration_dstr():
     )
     assert np.allclose(dzbydt, np.array([-1., -2., -1., -1., -1., -1.]))
     assert np.all(np.equal(is_it_TL, np.int8(0)))
-    assert np.allclose(river_volume_flux_into_node,
-                       1.5 * np.array([0., 0., 1.2, 1.7, 2.7, 3.7]))
+    assert np.allclose(river_volume_flux_out_of_node,
+                       1.5 * np.array([1., 0.2, 1.7, 2.7, 3.7, 4.7]))
     # note the 1.5 is the effect of the sed porosity
     assert np.allclose(rel_sed_flux, 0., atol=1.e-10)
     assert np.allclose(vol_drop_rate, 0.)
@@ -390,7 +390,7 @@ def test_iteration_with_sed_in_channel():
     trans_caps = np.array([0., 1., 1., 1., 0.9, 0.6])
     erosion_prefac_w_S = np.array([1., 2., 1., 1., 1., 1.])
     # output arrays:
-    river_volume_flux_into_node = np.zeros(6, dtype=float)
+    river_volume_flux_out_of_node = np.zeros(6, dtype=float)
     rel_sed_flux = np.zeros(6, dtype=float)
     is_it_TL = np.zeros(6, dtype=np.int8)
     vol_drop_rate = np.zeros(6, dtype=float)
@@ -400,7 +400,7 @@ def test_iteration_with_sed_in_channel():
         cell_areas,
         hillsl_sed,
         porosity,
-        river_volume_flux_into_node,
+        river_volume_flux_out_of_node,
         trans_caps,
         erosion_prefac_w_S,
         rel_sed_flux,
@@ -415,8 +415,8 @@ def test_iteration_with_sed_in_channel():
     assert np.allclose(dzbydt, 0.)
     assert np.all(is_it_TL == 1)
     assert np.allclose(rel_sed_flux, 1.)
-    assert np.allclose(river_volume_flux_into_node, np.array(
-        [0., 0., 1., 1., 1., 0.9]
+    assert np.allclose(river_volume_flux_out_of_node, np.array(
+        [0., 1., 1., 1., 0.9, 0.6]
     ))
     assert np.allclose(vol_drop_rate, np.array(
         [10., 9., 10., 10., 10.1, 10.3]
@@ -648,9 +648,12 @@ def test_basic_functionality():
                 mg.core_nodes
             ], 0.
         ))
+        mid_network_and_core = np.logical_and(
+            mg.at_node['drainage_area'] > 1., mg.node_is_core()
+        )
         assert np.all(np.greater(
             mg.at_node['channel_sediment__volumetric_discharge'][
-                mg.at_node['drainage_area'] > 1.
+                mid_network_and_core
             ], 0.
         ))  # ...because if A==1, there's no sed discharge coming in
         assert np.allclose(
@@ -1235,8 +1238,42 @@ def test_flooding_w_field():
 # # below the rim, and so is forbidden. Test this:
 
 
+def test_mass_balance():
+    # force us to be well within a single stable internal step:
+    for dt in (0.01, 0.15):
+        mg = RasterModelGrid((3, 4), xy_spacing=1.)
+        closed_nodes = np.array(
+            [True,  True,  True,  True,
+             True, False, False, False,
+             True,  True,  True,  True], dtype=bool
+        )
+        mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
+        z_init = np.array(
+            [0.,    0.,    0.,    0.,
+             0.,    4.,    3.,    2.,
+             0.,    0.,    0.,    0.]
+        )
+
+        z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
+        fa = FlowAccumulator(mg, routing='D8')
+        sde = SedDepEroder(
+            mg, K_sp=1., K_t=1., m_sp=0., n_sp=1.,
+            sed_dependency_type='None',
+        )
+        th = mg.at_node['channel_sediment__depth']
+        th[5] += 10.
+        fa.run_one_step()
+        sde.run_one_step(dt)
+        assert np.isclose(
+            10. - th[5] + (z_init - z).sum(), (
+                31557600. * dt
+                * mg.at_node['channel_sediment__volumetric_discharge'][6]
+        ))  # seconds to yr, and dt for total volume
+
+# The DEPTH is not consistent now with the other elements of this
 
 
+#######TO MODIFY 14/8/19
 #### currently a smoke test for a hang. Currently passing...
 def test_lower_below_rim():
     crude_z_store = []

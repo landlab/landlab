@@ -911,7 +911,7 @@ cpdef void iterate_sde_downstream(
                 np.ndarray[DTYPE_FLOAT_t, ndim=1] cell_areas,
                 np.ndarray[DTYPE_FLOAT_t, ndim=1] hillslope_sediment_flux,
                 DTYPE_FLOAT_t sed_porosity,
-                np.ndarray[DTYPE_FLOAT_t, ndim=1] river_volume_flux_into_node,
+                np.ndarray[DTYPE_FLOAT_t, ndim=1] river_volume_flux_out_of_node,
                 np.ndarray[DTYPE_FLOAT_t, ndim=1] transport_capacities,
                 np.ndarray[DTYPE_FLOAT_t, ndim=1] erosion_prefactor_withS,
                 np.ndarray[DTYPE_FLOAT_t, ndim=1] rel_sed_flux,
@@ -948,9 +948,8 @@ cpdef void iterate_sde_downstream(
     sed_porosity : float
         One over the "bulking factor" as rock is turned into sediment,
         broadly equivalent to the sediment porosity.
-    river_volume_flux_into_node : array
-        Total ""true" river flux coming into node from upstream. In principle
-        can be used as an updating input, but in practice best passed as zeros and used an a pure output.
+    river_volume_flux_out_of_node : array
+        Total river flux leaving each node from upstream. (output)
     transport_capacities : array
         The bedload transport capacity at each node, expressed as a flux
         (input).
@@ -981,6 +980,7 @@ cpdef void iterate_sde_downstream(
         zero otherwise (input).
     """
     cdef np.ndarray[DTYPE_FLOAT_t, ndim=1] out_array = np.empty(4, dtype=float)
+    cdef np.ndarray[DTYPE_FLOAT_t, ndim=1] river_volume_flux_into_node = np.zeros_like(river_volume_flux_out_of_node, dtype=float)
     cdef unsigned int i
     cdef double cell_area
     cdef double flood_depth_flux
@@ -1024,5 +1024,6 @@ cpdef void iterate_sde_downstream(
             vol_pass_rate = node_capacity
             vol_drop_rate[i] = sed_flux_into_this_node_bydt - vol_pass_rate
 
+        river_volume_flux_out_of_node[i] += vol_pass_rate
         if flow_receiver[i] != i:  # don't add to yourself
             river_volume_flux_into_node[flow_receiver[i]] += vol_pass_rate
