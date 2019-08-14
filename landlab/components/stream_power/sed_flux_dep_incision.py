@@ -525,12 +525,10 @@ class SedDepEroder(Component):
         ),
         "channel_sediment__volumetric_transport_capacity": (
             "Volumetric transport capacity of a channel carrying all runoff"
-            + " through the node, assuming the Meyer-Peter Muller transport "
-            + "equation"
+            + " through the node"
         ),
         "channel_sediment__volumetric_discharge": (
-            "Total volumetric fluvial sediment flux brought into the node "
-            + "from upstream"
+            "Total volumetric fluvial sediment flux leaving the node"
         ),
         "channel_sediment__relative_flux": (
             "The channel_sediment__volumetric_discharge divided by the " +
@@ -994,10 +992,9 @@ class SedDepEroder(Component):
         grid.at_node['channel_sediment__volumetric_transport_capacity'][
             :] = transport_capacities
         grid.at_node['channel_sediment__volumetric_discharge'][
-            :] = river_volume_flux_into_node
-        # ^note this excludes the hillslope fluxes now, i.e., it's the
-        # incoming sed flux to the node. Including the local flux in would
-        # make little sense as it could easily exceed capacity.
+            :] = rel_sed_flux * transport_capacities
+        # & for debug, expose the sed in as private variable:
+        self._river_volume_Q_into_node = river_volume_flux_into_node
         grid.at_node['channel_sediment__relative_flux'][:] = rel_sed_flux
         # elevs set automatically to the name used in the function call.
 

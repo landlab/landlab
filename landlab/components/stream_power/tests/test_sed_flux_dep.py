@@ -799,7 +799,7 @@ def test_diagonal_route():
     assert np.allclose(
         mg.at_node['channel_sediment__volumetric_discharge'][
             mg.core_nodes
-        ] * 31557600., np.array([0.01, 0.01, 0.]))  # 8, 12, 16
+        ] * 31557600., np.array([0.01, 0.01, 0.01]))  # 8, 12, 16
 
 
 def test_flooding():
