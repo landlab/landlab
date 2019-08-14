@@ -270,6 +270,8 @@ class LateralEroder(Component):
         self.Kv = Kv  # can be overwritten with spatially variable
         self.inlet_on = False  # will be overwritten below if inlet area is provided
         self.Klr = float(Kl_ratio)  # default ratio of Kv/Kl is 1. Can be overwritten
+        self.wid_coeff = 0.4    #coefficient for calculating channel width
+        self.wid_exp = 0.35    #exponent for calculating channel width
 
         self.dzdt = grid.add_zeros("dzdt", at="node", noclobber=False)  # elevation change rate (M/Y)
         # optional inputs
@@ -307,6 +309,8 @@ class LateralEroder(Component):
         vol_lat = self.grid.at_node["volume__lateral_erosion"]
         kw = 10.0
         F = 0.02
+        wid_exp = self.wid_exp
+        wid_coeff = self.wid_coeff
         # May 2, runoff calculated below (in m/s) is important for calculating
         # discharge and water depth correctly. renamed runoffms to prevent
         # confusion with other uses of runoff
@@ -350,7 +354,7 @@ class LateralEroder(Component):
             # potential lateral erosion initially set to 0
             petlat = 0.0
             # water depth in meters, needed for lateral erosion calc
-            wd = 0.4 * (da[i] * runoffms) ** 0.35
+            wd = wid_coeff * (da[i] * runoffms) ** wid_exp
 
             # Choose lateral node for node i. If node i flows downstream, continue.
             # if node i is the first cell at the top of the drainage network, don't go
@@ -434,6 +438,8 @@ class LateralEroder(Component):
         vol_lat = self.grid.at_node["volume__lateral_erosion"]
         kw = 10.0
         F = 0.02
+        wid_exp = self.wid_exp
+        wid_coeff = self.wid_coeff
         runoffms = (Klr * F / kw) ** 2
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
@@ -476,7 +482,7 @@ class LateralEroder(Component):
                 dzver[i] = dep + ero
                 petlat = 0.0
                 # water depth in meters, needed for lateral erosion calc
-                wd = 0.4 * (da[i] * runoffms) ** 0.35
+                wd = wid_coeff * (da[i] * runoffms) ** wid_exp
 
                 if i in flowdirs:
                     # node_finder picks the lateral node to erode based on angle
@@ -585,20 +591,19 @@ class LateralEroder(Component):
                 time = globdt
 
             else:
-                print("little timesteps")
                 dt = globdt - time
                 qs_in = grid.zeros(centering="node")
                 # recalculate flow directions
 
-#                fa = FlowAccumulator(
-#                    grid,
-#                    surface="topographic__elevation",
-#                    flow_director="FlowDirectorD8",
-#                    runoff_rate=None,
-#                    depression_finder="DepressionFinderAndRouter",
-#                    router="D8",
-#                )
-#                (da, q) = fa.accumulate_flow()
+                fa = FlowAccumulator(
+                    grid,
+                    surface="topographic__elevation",
+                    flow_director="FlowDirectorD8",
+                    runoff_rate=None,
+                    depression_finder="DepressionFinderAndRouter",
+                    router="D8",
+                )
+                (da, q) = fa.accumulate_flow()
                 if inlet_on:
                     #                   #if inlet on, reset drainage area and qsin to reflect inlet conditions
                     # this is the drainage area that I need for code below with an inlet
