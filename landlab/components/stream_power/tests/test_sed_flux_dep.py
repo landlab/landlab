@@ -1270,7 +1270,7 @@ def test_mass_balance():
                 * mg.at_node['channel_sediment__volumetric_discharge'][6]
         ))  # seconds to yr, and dt for total volume
 
-# The DEPTH is not consistent now with the other elements of this
+# The DEPTH is not consistent now with the other elements of this. 
 
 
 #######TO MODIFY 14/8/19

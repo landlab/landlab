@@ -874,6 +874,7 @@ class SedDepEroder(Component):
         vQs.fill(0.)
         vQc.fill(0.)
         QbyQs.fill(0.)
+        time_avg_sed_dep_rate = grid.zeros('node', dtype=float)
         self._loopcounter = 0
         while 1:
             downward_slopes[is_flooded] = 0.
@@ -954,32 +955,33 @@ class SedDepEroder(Component):
                 self.t_to_converge = t_to_converge
                 this_tstep -= t_elapsed_internal - dt_secs
 
-            # back-calc the sed budget in the nodes, as appropriate:
-            self._hillslope_sediment[self.grid.core_nodes] += (
-                sed_dep_rate[self.grid.core_nodes] * this_tstep
-            )
+#             # back-calc the sed budget in the nodes, as appropriate:
+#             self._hillslope_sediment[self.grid.core_nodes] += (
+#                 sed_dep_rate[self.grid.core_nodes] * this_tstep
+#             )
+# 
+# # Now, don't drop the sed within the step. Effectively, we should,
+# # but will remobilise it immediately in the next loop, so not
+# # needed. Instead, add the drop to the hillslope sed flux going on
+# 
+# # This is super ugly, and if it works it needs to be incorporated into the
+# # Cython? So...
+#             # keep everything up in the flow while inside the loop.
+#             # Weight by elapsed times...
+#             self._hillslope_sediment_flux_wzeros[self.grid.node_at_cell] = (
+#                 self._hillslope_sediment[self.grid.node_at_cell]
+#                 * self.grid.area_of_cell/t_elapsed_internal  # now a flux again
+#                 * t_elapsed_internal/dt_secs  # how dominant is it?
+#                 + flux_in_cells * (dt_secs - t_elapsed_internal) / dt_secs
+#             )
+#             # flux_in_cells is the original, fully time-averaged flux from
+#             # outside the loop
+#             # self._voldroprate.fill(0.)  # this is zeroed in the cython
+# ### ^^should we use sed_dep_rate direct in this flux expression??
 
-# Now, don't drop the sed within the step. Effectively, we should,
-# but will remobilise it immediately in the next loop, so not
-# needed. Instead, add the drop to the hillslope sed flux going on
-
-# This is super ugly, and if it works it needs to be incorporated into the
-# Cython? So...
-            # keep everything up in the flow while inside the loop.
-            # Weight by elapsed times...
-            self._hillslope_sediment_flux_wzeros[self.grid.node_at_cell] = (
-                self._hillslope_sediment[self.grid.node_at_cell]
-                * self.grid.area_of_cell/t_elapsed_internal  # now a flux again
-                * t_elapsed_internal/dt_secs  # how dominant is it?
-                + flux_in_cells * (dt_secs - t_elapsed_internal) / dt_secs
-            )
-            # flux_in_cells is the original, fully time-averaged flux from
-            # outside the loop
-            # self._voldroprate.fill(0.)  # this is zeroed in the cython
-
-
-
-
+            # better, cleaner approach?: maintain the hillslope flux
+            # throughout, and time weight the sed dep rate...
+            # see work w time_avg_sed_dep_rate below
 
             node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
             # the field outputs also need to be set proportionately w/i the
@@ -988,6 +990,7 @@ class SedDepEroder(Component):
             vQc += time_fraction * transport_capacities
             vQs += time_fraction * river_volume_flux_out_of_node
             QbyQs += time_fraction * rel_sed_flux
+            time_avg_sed_dep_rate += time_fraction * sed_dep_rate
 
             if break_flag:
                 break
@@ -1003,6 +1006,10 @@ class SedDepEroder(Component):
                 link_length[core_draining_nodes]
             )
             downward_slopes = node_S.clip(np.spacing(0.))
+
+        self._hillslope_sediment[grid.core_nodes] += (
+            time_avg_sed_dep_rate[grid.core_nodes] * dt_secs
+        )
 
         return grid, grid.at_node["topographic__elevation"]
 
