@@ -1276,8 +1276,9 @@ def test_mass_balance():
 def test_equivalence_across_tsteps():
     crude_z_store = []
     crude_th_store = []
-    first_stable_step = 0.17178978708367437 - np.spacing(0.17178978708367437)
-    second_stable_step = 0.14759859454412846 - np.spacing(0.14759859454412846)
+    first_stable_step = 0.1
+    second_stable_step = None
+    total_t = 0.18
     mg = RasterModelGrid((3, 4), xy_spacing=1.)
     closed_nodes = np.array(
         [True,  True,  True,  True,
@@ -1295,32 +1296,37 @@ def test_equivalence_across_tsteps():
     fa = FlowAccumulator(mg, routing='D8')
     sde = SedDepEroder(
         mg, K_sp=1., K_t=1., m_sp=0., n_sp=1.,
-        sed_dependency_type='almost_parabolic',
+        sed_dependency_type='None',
     )
-    mg.at_node['channel_sediment__depth'][5] += 10.
     fa.run_one_step()
     # now dice up the run to produce equivalent internal chunks...
+    sed_in_1st_step = 10. * first_stable_step / total_t
+    mg.at_node['channel_sediment__depth'][5] += 10.
+    #mg.at_node['channel_sediment__depth'][5] += sed_in_1st_step
     sde.run_one_step(first_stable_step)
-    sde.run_one_step(0.2 - first_stable_step)
+    # splitting the sed like this is essential for comparison
+    #mg.at_node['channel_sediment__depth'][5] += 10. - sed_in_1st_step
+    sde.run_one_step(total_t - first_stable_step)
     crude_z_store.append(z.copy())
     crude_th_store.append(mg.at_node['channel_sediment__depth'].copy())
 
-    mg = RasterModelGrid((3, 4), xy_spacing=1.)
-    mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
-    z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
-    fa = FlowAccumulator(mg, routing='D8')
+    mg2 = RasterModelGrid((3, 4), xy_spacing=1.)
+    mg2.status_at_node[closed_nodes] = CLOSED_BOUNDARY
+    z = mg2.add_field('node', 'topographic__elevation', z_init, copy=True)
+    fa = FlowAccumulator(mg2, routing='D8')
     sde = SedDepEroder(
-        mg, K_sp=1., K_t=1., m_sp=0., n_sp=1.,
-        sed_dependency_type='almost_parabolic',
+        mg2, K_sp=1., K_t=1., m_sp=0., n_sp=1.,
+        sed_dependency_type='None',
     )
-    mg.at_node['channel_sediment__depth'][5] += 10.
+    mg2.at_node['channel_sediment__depth'][5] += 10.
     fa.run_one_step()
-    sde.run_one_step(0.2)  # should be totally equivalent...
+    sde.run_one_step(total_t)  # should be totally equivalent...
     crude_z_store.append(z.copy())
-    crude_th_store.append(mg.at_node['channel_sediment__depth'].copy())
+    crude_th_store.append(mg2.at_node['channel_sediment__depth'].copy())
 
     assert np.allclose(crude_z_store[0], crude_z_store[1])
     assert np.allclose(crude_th_store[0], crude_th_store[1])
+    ##### How the hell can thickness go UP in the top node, with no outside supply???????
 
     # note that oscillations can develop within the internal stability loop
     # e.g., capacities at end of step can be 0, but erosion has occurred...
