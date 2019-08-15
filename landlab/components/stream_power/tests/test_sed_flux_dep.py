@@ -1273,7 +1273,7 @@ def test_mass_balance():
 
 
 #######TO MODIFY 14/8/19
-def test_lower_below_rim():
+def test_equivalence_across_tsteps():
     crude_z_store = []
     crude_th_store = []
     first_stable_step = 0.17178978708367437 - np.spacing(0.17178978708367437)
