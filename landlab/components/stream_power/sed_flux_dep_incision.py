@@ -992,20 +992,20 @@ class SedDepEroder(Component):
             QbyQs += time_fraction * rel_sed_flux
             time_avg_sed_dep_rate += time_fraction * sed_dep_rate
 
-            if break_flag:
-                break
-            else:
-                self._loopcounter += 1
             # do we need to reroute the flow/recalc the slopes here?
             # -> NO, slope is such a minor component of Diff we'll be OK
             # BUT could be important not for the stability, but for the
             # actual calc. So YES to the slopes.
-            node_S = np.zeros_like(node_S)
             node_S[core_draining_nodes] = (
                 (node_z - node_z[flow_receiver])[core_draining_nodes] /
                 link_length[core_draining_nodes]
             )
             downward_slopes = node_S.clip(np.spacing(0.))
+
+            if break_flag:
+                break
+            else:
+                self._loopcounter += 1
 
         self._hillslope_sediment[grid.core_nodes] += (
             time_avg_sed_dep_rate[grid.core_nodes] * dt_secs
