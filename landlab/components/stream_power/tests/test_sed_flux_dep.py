@@ -1277,62 +1277,76 @@ def test_equivalence_across_tsteps():
     crude_z_store = []
     crude_th_store = []
     first_stable_step = 0.1
-    second_stable_step = None
-    total_t = 0.18
-    mg = RasterModelGrid((3, 4), xy_spacing=1.)
-    closed_nodes = np.array(
-        [True,  True,  True,  True,
-         True, False, False, False,
-         True,  True,  True,  True], dtype=bool
-    )
-    mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
-    z_init = np.array(
-        [0.,    0.,    0.,    0.,
-         0.,    4.,    3.,    2.,
-         0.,    0.,    0.,    0.]
-    )
+    second_stable_step = None  # could add one more I guess here
+    total_t = 0.15
+    for sed_dep_type in ('None', 'linear_decline', 'almost_parabolic'):
+        mg = RasterModelGrid((3, 4), xy_spacing=1.)
+        closed_nodes = np.array(
+            [True,  True,  True,  True,
+             True, False, False, False,
+             True,  True,  True,  True], dtype=bool
+        )
+        mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
+        z_init = np.array(
+            [0.,    0.,    0.,    0.,
+             0.,    4.,    3.,    2.,
+             0.,    0.,    0.,    0.]
+        )
 
-    z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
-    fa = FlowAccumulator(mg, routing='D8')
-    sde = SedDepEroder(
-        mg, K_sp=1., K_t=1., m_sp=0., n_sp=1.,
-        sed_dependency_type='None',
-    )
-    fa.run_one_step()
-    # now dice up the run to produce equivalent internal chunks...
-    sed_in_1st_step = 10. * first_stable_step / total_t
-    mg.at_node['channel_sediment__depth'][5] += 10.
-    #mg.at_node['channel_sediment__depth'][5] += sed_in_1st_step
-    sde.run_one_step(first_stable_step)
-    # splitting the sed like this is essential for comparison
-    #mg.at_node['channel_sediment__depth'][5] += 10. - sed_in_1st_step
-    sde.run_one_step(total_t - first_stable_step)
-    crude_z_store.append(z.copy())
-    crude_th_store.append(mg.at_node['channel_sediment__depth'].copy())
+        z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
+        fa = FlowAccumulator(mg, routing='D8')
+        sde = SedDepEroder(
+            mg, K_sp=1., K_t=1., m_sp=0., n_sp=1.,
+            sed_dependency_type=sed_dep_type,
+        )
+        fa.run_one_step()
+        # now dice up the run to produce equivalent internal chunks...
+        sed_in_1st_step = 10. * first_stable_step / total_t
+        #mg.at_node['channel_sediment__depth'][5] += 10.
+        mg.at_node['channel_sediment__depth'][5] += sed_in_1st_step
+        sde.run_one_step(first_stable_step)
+        # splitting the sed like this is essential for comparison??
+        mg.at_node['channel_sediment__depth'][5] += 10. - sed_in_1st_step
+        sde.run_one_step(total_t - first_stable_step)
+        crude_z_store.append(z.copy())
+        crude_th_store.append(mg.at_node['channel_sediment__depth'].copy())
 
-    mg2 = RasterModelGrid((3, 4), xy_spacing=1.)
-    mg2.status_at_node[closed_nodes] = CLOSED_BOUNDARY
-    z = mg2.add_field('node', 'topographic__elevation', z_init, copy=True)
-    fa = FlowAccumulator(mg2, routing='D8')
-    sde = SedDepEroder(
-        mg2, K_sp=1., K_t=1., m_sp=0., n_sp=1.,
-        sed_dependency_type='None',
-    )
-    mg2.at_node['channel_sediment__depth'][5] += 10.
-    fa.run_one_step()
-    sde.run_one_step(total_t)  # should be totally equivalent...
-    crude_z_store.append(z.copy())
-    crude_th_store.append(mg2.at_node['channel_sediment__depth'].copy())
+        mg2 = RasterModelGrid((3, 4), xy_spacing=1.)
+        mg2.status_at_node[closed_nodes] = CLOSED_BOUNDARY
+        z2 = mg2.add_field('node', 'topographic__elevation', z_init, copy=True)
+        fa = FlowAccumulator(mg2, routing='D8')
+        sde = SedDepEroder(
+            mg2, K_sp=1., K_t=1., m_sp=0., n_sp=1.,
+            sed_dependency_type=sed_dep_type,
+        )
+        mg2.at_node['channel_sediment__depth'][5] += 10.
+        fa.run_one_step()
+        sde.run_one_step(total_t)  # should be totally equivalent...
+        crude_z_store.append(z2.copy())
+        crude_th_store.append(mg2.at_node['channel_sediment__depth'].copy())
 
-    assert np.allclose(crude_z_store[0], crude_z_store[1])
-    assert np.allclose(crude_th_store[0], crude_th_store[1])
-    ##### How the hell can thickness go UP in the top node, with no outside supply???????
+        # test mass balances for the hell of it
+        assert np.isclose(
+            10. - mg2.at_node['channel_sediment__depth'][5] + (z_init - z2).sum(), (
+                31557600. * total_t
+                * mg2.at_node['channel_sediment__volumetric_discharge'][6]
+        ))  # seconds to yr, and dt for total volume
+        assert np.isclose(
+            10. - mg.at_node['channel_sediment__depth'][5] + (z_init - z).sum(), (
+                31557600. * total_t
+                * mg.at_node['channel_sediment__volumetric_discharge'][6]
+        ))  # seconds to yr, and dt for total volume
 
-    # note that oscillations can develop within the internal stability loop
-    # e.g., capacities at end of step can be 0, but erosion has occurred...
-    # e.g., 1st timestep - dt=0.1 => E = 0.05, but dt=1. => E ~0.07 only
-    # This is definitely related to the dicing up of timesteps: dt=0.1 ten
-    # times over will not crash (dt below stab limit), whereas dt=1. would.
+        # now affirm the two versions are equivalent:
+        assert np.allclose(crude_z_store[0], crude_z_store[1])
+        assert np.allclose(crude_th_store[0], crude_th_store[1])
+        # Works for None, but not for any sed dep version
+
+# note that oscillations can develop within the internal stability loop
+# e.g., capacities at end of step can be 0, but erosion has occurred...
+# e.g., 1st timestep - dt=0.1 => E = 0.05, but dt=1. => E ~0.07 only
+# This is definitely related to the dicing up of timesteps: dt=0.1 ten
+# times over will not crash (dt below stab limit), whereas dt=1. would.
 
 # A test here for mass conservation
 # A test here for equivalency of ten dt=0.1 and one dt=1.
