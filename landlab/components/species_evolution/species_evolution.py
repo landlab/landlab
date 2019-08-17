@@ -5,12 +5,12 @@ Landlab component that manages species and evolves the species over time.
 
 Component written by Nathan Lyons beginning August 2017.
 """
-from collections import OrderedDict
+from collections import defaultdict, OrderedDict
 from itertools import product
 from string import ascii_uppercase
 
 import numpy as np
-import pandas as pd
+from pandas import DataFrame
 
 from landlab import Component
 from landlab.core.messages import warning_message
@@ -20,40 +20,55 @@ from .zone import ZoneManager
 class SpeciesEvolver(Component):
     """Simulate the macroevolutionary processes of species.
 
-    This component evolves the species that live on a model grid. The
-    macroevolution rules are coded in `Species` objects. The geographic range
-    of species is controlled by `Zone` objects. Both object types are designed
-    to be subclassed for specialty behavior.
+    This component evolves the species introduced to a model grid. The
+    evolutionary rules are coded in `Species` objects. The geographic range
+    of species is controlled by `Zone` objects. Zones are located, created, and
+    updated  by `ZoneManager` objects. Species, Zones, and ZoneManagers are
+    designed to be subclassed to expand functionality.
 
-    The standard workflow:
+    The standard workflow provides basic functionality. The steps of the
+    standard workflow:
 
-    1.  Instantiate zone managers.
-    2.  Instantiate the component. The initial zones are identified and
-        created by the zone managers.
-    3.  Introduce species. Use the :func:`introduce_species` method to do so.
-        Species can be seeded to the initial zones created in the prior step.
-    4.  Increment the model. The primary method of this class is
+    1.  Create a 'zone_mask' field at model grid nodes. Set the nodes that meet
+        zone conditions to `True`.
+    2.  Instantiate the component. The initial zones demarcated by the field,
+        `zone_mask` are identified and created by a zone manager when the
+        component is initialized. A zone is created for each cluster of
+        adjacent nodes set to `True` in this mask.
+    3.  Get the initial zones using the :func:`get_zones_at_time` method.
+    4.  Instantiate the initial species. The initial zone(s) of the species are
+        set as species are initialized.
+    5.  Introduce the intial species. Use the :func:`introduce_species` method
+        to do so. Species can be seeded to the initial zones created in the
+        prior step.
+    6.  Increment the model. The primary method of this class is
         :func:`run_one_step`. The temporal connectivity of zones is identified
         by this method and stored in `zone_paths`. The Species method
         :func:`evolve` is called through :func:`run_one_step`.
 
-        Species evolution rules take into account
+    Flexibility is provided by the standard workflow. The spatial distribution
+    of zones can be updated at each time step. The count and spatial
+    distribution of species can be set as desired at model onset and later time
+    steps. Species can be the base class or custom subclasses. Limitations of
+    the standard workflow include zones cannot overlap, and a singular zone and
+    zone manager type. These limitations can be overcome by adapting the
+    workflow.
 
-    Time and other variables are recorded in a Landlab DataRecord data
-    structure. Time is unitless, and for example, can be thought of as in years
-    or time steps. Time is advanced using the *dt* parameter in `run_one_step`.
+    This component tracks model time to construct lineage phylogeny. Time is
+    unitless within the component, and for example, can be thought of as in
+    years or time steps. Time is advanced using the *dt* parameter in
+    `run_one_step`.
 
-    Class attributes `species` and `zones` are Pandas DataFrames that contain
-    all of the species and zones added to a component instance, respectively.
-    Zones are located, created, and updated using logic-based zone managers.
-    Species are explictedly introduced. Although this is all designed to be
-    adapted as needed.
+    Time and other variables can be viewed in the class attribute, *record*.
+    Zones and species can send variables in a 'record_add_on' at each time
+    step. Metadata of the species and zones of a component instance can be
+    viewed with the attributes, `species` and `zones`, respectively.
 
-    Species are automatically assigned identifiers in the order that they are
-    introduced and created by parent species. Clades are lettered from A to Z
-    then AA to AZ and so forth. Clade members are numbered in the order of
-    appearance. For example, the first species introduced is A.0 and if that
-    species speciates, the first child species is A.1.
+    Species are assigned identifiers in the order that they are introduced and
+    created by parent species. Clades are lettered from A to Z then AA to AZ
+    and so forth. Clade members are numbered in the order of appearance. For
+    example, the first species introduced is A.0 and if that species speciates,
+    the first child species is A.1.
 
     This component is inspired by SEAMLESS (Spatially Explicit Area Model of
     Landscape Evolution by SimulationS). See Albert et al., 2017, Systematic
@@ -69,11 +84,11 @@ class SpeciesEvolver(Component):
         grid : ModelGrid
             A Landlab ModelGrid.
         initial_time : int or float, optional
-            The initial time inserted in the data record. The default is 0.
-        zone_managers : Zone type list, optional
+            The initial time. The default is 0.
+        zone_managers : ZoneManager list, optional
             A list of SpeciesEvolver ZoneManagers. If 'None` is specified, a
             ZoneManager instance will be created that requires *grid* to have a
-            'zone_mask' field at nodes.
+            'zone_mask' field at the nodes of *grid*.
 
         Examples
         --------
@@ -165,13 +180,6 @@ class SpeciesEvolver(Component):
         """
         Component.__init__(self, grid)
 
-        # Create a default zone manager if *zone_managers* was not specified.
-
-        if zone_managers == None:
-            # Instantiate a default ZoneManager. An exception will be raised if
-            # *grid* does not have a 'zone_mask' field at nodes.
-            zone_managers = [ZoneManager(grid, 'zone_mask')]
-
         # Create data structures.
 
         self._record = OrderedDict([('time', [initial_time])])
@@ -186,16 +194,26 @@ class SpeciesEvolver(Component):
                                    ('latest_time', []),
                                    ('object', [])])
 
-        # Track the clade names (keys) and their max species number (values).
+        # Instantiate a dictionary to track the clade names (dict keys) and
+        # their maximum species number (dict values).
 
         self._species_ids = {}
 
+        # Set the zone_managers. Create a default zone manager if
+        # *zone_managers* was not specified.
+
+        if zone_managers == None:
+            # Instantiate a default ZoneManager. An exception will be raised if
+            # *grid* does not have a 'zone_mask' field at nodes.
+            self._zone_managers = [ZoneManager(grid)]
+        else:
+            self._zone_managers = zone_managers
+
         # Set initial zones.
 
-        self._zone_managers = zone_managers
-
         initial_zones = []
-        for zm in zone_managers:
+
+        for zm in self._zone_managers:
             initial_zones.extend(zm._create_zones())
 
         self._update_zone_data_structure(initial_time, initial_zones)
@@ -204,30 +222,34 @@ class SpeciesEvolver(Component):
 
     @property
     def record(self):
-        """A dictionary of SpeciesEvolver variables over time."""
-        return self._record
+        """A DataFrame of SpeciesEvolver variables over time."""
+        return DataFrame(self._record)
 
     @property
     def species(self):
-        """A dictionary of the variables and objects of species."""
-        return self._species
+        """A DataFrame of the variables and objects of species."""
+        columns = list(self._species.keys())
+        columns.remove('object')
+        return DataFrame(self._species, columns=columns)
 
     @property
     def zones(self):
-        """A dictionary of the variables and objects of zones."""
-        return self._zones
+        """A DataFrame of the variables and objects of zones."""
+        columns = list(self._zones.keys())
+        columns.remove('object')
+        return DataFrame(self._zones, columns=columns)
 
     # Update methods
 
     def run_one_step(self, dt):
         """Run macroevolution processes for a single timestep.
 
-        Data describing the connectivity of zones over timee.
+        Data describing the connectivity of zones over time.
 
         Parameters
         ----------
         dt : float
-            The model time step.
+            The model time step duration.
         """
         # Insert the new time in the record.
 
@@ -247,16 +269,25 @@ class SpeciesEvolver(Component):
 
         # Process species.
 
-        if len(self.species['object']) == 0:
+        if len(self._species['object']) == 0:
             print(warning_message('No species exist. Introduce species to '
                                   'SpeciesEvolver.'))
         else:
-            survivors = self._get_surviving_species(time)
+            survivors = self._get_surviving_species(time, dt)
             self._update_species_data_structure(time, survivors)
 
     def _get_updated_zones(self, time, new_zones):
+
+        # Process only the zones extant at the prior time.
+
         prior_time = self._get_prior_time()
-        prior_zones = self._objects_at_time(prior_time, self._zones)
+        prior_zones = self.zones_at_time(prior_time)
+
+        # Create an add on to insert into *record*.
+
+        add_on = defaultdict(float)
+
+        # Get the zones that persist in *time* given zone rules.
 
         destinations = []
 
@@ -266,55 +297,41 @@ class SpeciesEvolver(Component):
 
             zm_new_zones = list(filter(lambda z: z._manager == zm, new_zones))
 
-            zm_dest, add_on = zm._update_paths(zm_prior_zones, zm_new_zones,
-                                               time)
+            zm_dest = zm._update_paths(time, zm_prior_zones, zm_new_zones,
+                                       add_on)
 
             destinations.extend(zm_dest)
 
-            for key, value in add_on.items():
-                if key not in self._record.keys():
-                    self._record[key] = [np.nan] * (len(self._record['time']) - 1)
+        self._insert_record_add_on(add_on)
 
-                self._record[key].append(value)
-
-        # Return unique zone path destinations.
+        # Return only the unique zone path destinations.
 
         return list(set(destinations))
 
-    def _get_surviving_species(self, time):
+    def _get_surviving_species(self, time, dt):
+
         # Process only the species extant at the prior time.
 
         prior_time = self._get_prior_time()
-        extant_species = self._objects_at_time(prior_time, self._species)
+        extant_species = self.species_at_time(prior_time)
 
-        # Get the species that persist in `time` given the outcome of the
+        # Create an add on to insert into *record*.
+
+        add_on = defaultdict(float)
+
+        # Get the species that persist in *time* given the outcome of the
         # macroevolution processes of the species.
 
         surviving_species = []
 
-        # Initialize metrics.
-
-        speciation_count = 0
-        extinction_count = 0
-        pseudoextinction_count = 0
-
-        # Evolve extant species.
-
         for es in extant_species:
-            species_persists, child_species = es._evolve(time)
+            child_species = es._evolve(time, dt, add_on)
 
-            # Update metrics.
-
-            if species_persists:
+            if es.extant:
                 surviving_species.append(es)
-            elif len(child_species) > 0:
-                pseudoextinction_count += 1
-            else:
-                extinction_count += 1
 
             if len(child_species) > 0:
                 surviving_species.extend(child_species)
-                speciation_count += len(child_species)
 
             # Set id for child species.
 
@@ -322,13 +339,15 @@ class SpeciesEvolver(Component):
                 clade = cs.parent_species.clade
                 cs._identifier = self._get_unused_species_id(clade)
 
+        self._insert_record_add_on(add_on)
+
         return surviving_species
 
     # Update data structure methods
 
     def _update_zone_data_structure(self, time, zones_at_time):
         z_updated, z_new = self._object_set_difference(zones_at_time,
-                                                       self.zones)
+                                                       self._zones)
 
         for z in z_updated:
             # Update the latest time value of the updated zones.
@@ -348,7 +367,8 @@ class SpeciesEvolver(Component):
 
         for s in s_updated:
             # Update the latest time value of the updated species.
-            self._species['latest_time'][self._species['object'].index(s)] = time
+            idx = self._species['object'].index(s)
+            self._species['latest_time'][idx] = time
 
         if s_new:
             clade = [s.identifier[0] for s in s_new]
@@ -384,18 +404,18 @@ class SpeciesEvolver(Component):
         Parameters
         ----------
         species : Species
-            The SpeciesEvolver species to introduce.
+            A SpeciesEvolver species to introduce.
 
         Examples
         --------
 
 
         """
-        if species in self.species['object']:
+        if species in self._species['object']:
             msg = 'The species object, {} was already introduced.'
             raise Exception(msg.format(species))
 
-        if not species.zones:
+        if not species._zones:
             # Species with no zones are not introduced.
             msg = ('The species object, {} is not found in any zones. It was '
                    'not introduced.')
@@ -465,7 +485,7 @@ class SpeciesEvolver(Component):
         zones : Zone list
             The SpeciesEvolver zones that exist at *time*.
         """
-        return self._objects_at_time(time, self.zones)
+        return self._objects_at_time(time, self._zones)
 
     def species_at_time(self, time):
         """Get the species that exist at a time.
@@ -483,7 +503,7 @@ class SpeciesEvolver(Component):
         Examples
         --------
         """
-        return self._objects_at_time(time, self.species)
+        return self._objects_at_time(time, self._species)
 
     def species_with_identifier(self, identifier_element,
                                 return_data_frame=False):
@@ -582,7 +602,7 @@ class SpeciesEvolver(Component):
         >>> species_obj.identifier
         ('B', 0)
         """
-        sdf = pd.DataFrame(self.species)
+        sdf = DataFrame(self._species)
 
         element_type = type(identifier_element)
 
@@ -628,3 +648,10 @@ class SpeciesEvolver(Component):
             return np.nan
         else:
             return sorted(self._record['time'])[-2]
+
+    def _insert_record_add_on(self, add_on):
+        for key, value in add_on.items():
+            if key not in self._record.keys():
+                self._record[key] = [np.nan] * (len(self._record['time']) - 1)
+
+            self._record[key].append(value)

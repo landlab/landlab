@@ -57,7 +57,8 @@ class ZoneManager(object):
     MANY_TO_ONE = 'many-to-one'
     MANY_TO_MANY = 'many-to-many'
 
-    def __init__(self, grid, zone_field_name, cluster_structure='d8'):
+    def __init__(self, grid, zone_field_name='zone_mask',
+                 cluster_structure='d8', minimum_area=0):
         """Instantiate ZoneManager.
 
         Parameters
@@ -67,6 +68,9 @@ class ZoneManager(object):
         zone_field_name : string
             The name of the grid field that masks the total zone extent.
         cluster_structure : string, optional
+
+        minimum_area : float, optional
+            The minimum area of a zone.
 
         Examples
         --------
@@ -98,13 +102,14 @@ class ZoneManager(object):
             raise Exception(msg.format(zone_field_name))
 
         self._cluster_structure = cluster_structure
+        self._minimum_area = minimum_area
 
     @property
     def field_name(self):
         """The name of the grid field that masks the total zone extent."""
         return self._field_name
 
-    def _update_paths(self, prior_zones, new_zones, time):
+    def _update_paths(self, time, prior_zones, new_zones, record_add_on):
         """Get the data of connectivity paths across two timesteps.
 
         Paths represent the temporal connectivity of zones. The returned
@@ -127,23 +132,22 @@ class ZoneManager(object):
 
         Parameters
         ----------
+        time : float
+            The current simulation time.
         prior_zones : Zone list
             The zones of the prior timestep.
         new_patches : Zone list
             The zones of the current timestep.
-        time : float
-            The current simulation time.
         grid : ModelGrid
             A Landlab ModelGrid.
+        record_add_on : defaultdict
+            A dictionary to pass values to the SpeciesEvolver record.
 
         Returns
         -------
-        paths : Pandas DataFrame
+        Zone list
             Zone connectivity across two timesteps in a DataFrame with the
             columns, time, origin, destinations, and path_type.
-        be_records_supplement : dictionary
-            The items of this dictionary will become items in the
-            SpeciesEvolver records for this time.
         """
         # Stack the masks for prior (p) and new (n) zones.
         ps = np.vstack(list(p.mask for p in prior_zones))
@@ -161,9 +165,10 @@ class ZoneManager(object):
         # The cumulation of captured grid area for zones is retained
         # in order to add it to be_records_supplement after all zones are
         # processed.
-        number_of_captures = 0
+        capture_count = 0
         area_captured = [0]
         cell_area = self._grid.cellarea
+        fragment_count = 0
 
         all_destinations = []
 
@@ -255,18 +260,22 @@ class ZoneManager(object):
 
             # Update the capture statistics.
             if path_type in [self.MANY_TO_ONE]:
-                number_of_captures += len(n_overlaps_p)
+                capture_count += len(n_overlaps_p)
 
                 for n_i in n_overlaps_p:
                     captured_nodes = np.all([~p_mask_copy, n_i.mask], 0)
                     number_of_captured_nodes = len(np.where(captured_nodes)[0])
                     area_captured.append(number_of_captured_nodes * cell_area)
 
+            elif path_type in [self.ONE_TO_MANY]:
+                fragment_count += len(p_overlaps_n)
+
             # Update path.
 
             p.path[time] = (path_type, destinations)
 
             all_destinations.extend(destinations)
+            print(time, path_type)
 
         # Handle new zones that did not overlap prior zones.
         for n in new_overlap_not_found:
@@ -283,12 +292,15 @@ class ZoneManager(object):
                 i = np.where(zone == np.array(all_destinations))[0][0]
                 all_destinations[i] = replacements[zone]
 
-        # Construct output.
-        add_on = {'number_of_captures': number_of_captures,
-                  'area_captured_max': max(area_captured),
-                  'area_captured_sum': sum(area_captured)}
+        # Update record add on.
 
-        return all_destinations, add_on
+        record_add_on['capture_count'] += capture_count
+        if max(area_captured) > record_add_on['area_captured_max']:
+            record_add_on['area_captured_max'] = max(area_captured)
+        record_add_on['area_captured_sum'] += sum(area_captured)
+        record_add_on['fragmententation_count'] += fragment_count
+
+        return all_destinations
 
     def _determine_path_type(self, prior_zone_count, new_zone_count):
         # Set path type.
@@ -318,7 +330,8 @@ class ZoneManager(object):
     def _create_zones(self):
         """Get zones using a grid field.
         """
-        zone_mask = self._grid.at_node[self._field_name]
+        zone_mask = np.all([self._grid.at_node[self._field_name],
+                           self._grid.node_is_core()], 0)
 
         # Find zone clusters.
 
@@ -331,10 +344,12 @@ class ZoneManager(object):
 
         # Create a zone for each field value.
 
-        zones = [None] * cluster_count
+        zones = []
 
         for i in range(cluster_count):
             mask = cluster_array == i + 1
-            zones[i] = Zone(self, mask.flatten())
+
+            if sum(mask.flatten()) * self._grid.cellarea >= self._minimum_area:
+                zones.append(Zone(self, mask.flatten()))
 
         return zones

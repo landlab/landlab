@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 """Base Species object of SpeciesEvolver.
 """
-import numpy as np
-
 
 class Species(object):
-    """The SpeciesEvolver base species.
+    """The base species of SpeciesEvolver.
 
     Species contains
 
@@ -14,7 +12,9 @@ class Species(object):
     letters. The second element is the species number that is assigned
     sequentially for each clade. The clade id is passed to child species.
     """
-    def __init__(self, initial_zones, parent_species=None, parameters=None):
+
+    def __init__(self, initial_zones, parent_species=None,
+                 allopatric_wait_time=0, pseudoextinction=True):
         """Initialize a species.
 
         Parameters
@@ -22,17 +22,24 @@ class Species(object):
         initial_zones : Zone or Zone list
             An individual or list of SpeciesEvolver Zones where the species
             is located.
-        parent_species : SpeciesEvolver Species
-            The parent species object. The default value, 'None' indicates no
-            parent species.
-        minimum_area : float, optional
-            The minimum area in which the species can persist.
+        parent_species : Species, optional
+            A SpeciesEvolver species that is the parent species. The default
+            value, 'None' indicates no parent species.
+        allopatric_wait_time : float, optional
+            The delay in model time between geographic seperation and
+            speciation. Speciation occurs at the first time step when the delay
+            is exceeded. The default value of 0 indicates speciation occurs at
+            the same time step when geographic serperation occurs.
+        pseudoextinction : boolean, optional
+            When 'True', species become extinct when it speciates into child
+            species.
         """
         # Set parameters.
 
         self._identifier = None
         self._parent_species = parent_species
-        self._parameters = parameters
+        self._allopatric_wait_time = allopatric_wait_time
+        self._pseudoextinction = pseudoextinction
 
         # Set initial zone(s).
 
@@ -41,7 +48,7 @@ class Species(object):
         else:
             zone_list = [initial_zones]
 
-        self.zones = zone_list
+        self._zones = dict.fromkeys(zone_list, {})
 
     @property
     def identifier(self):
@@ -67,125 +74,123 @@ class Species(object):
         Returns
         -------
         clade_identifier : string
-            The string representation of the clade of the species.
+            The clade identifier of the species.
         """
         return self._identifier[0]
 
     @property
     def zones(self):
-        return self._zones
+        return list(self._zones.keys())
 
-    @zones.setter
-    def zones(self, zones):
-        self.zones = self._get_suitable_zones(zones)
+    @property
+    def extant(self):
+        return len(self.zones) > 0
 
-    def _evolve(self, time):
+    def _evolve(self, time, dt, record_add_on):
         """Run the evolutionary processes of the species.
 
-        Extinction is not explicitly implemented in this method. The base class
-        of species leaves extinction to the disappearance of the range of a
-        species.
+        Extinction effectively occurs when the species attribute, *zones*
+        returns an empty list.
 
         Parameters
         ----------
         time : float
             The time in the simulation.
+        dt : float
+            The model time step duration.
+        record_add_on : defaultdict
+            A dictionary to pass values to the SpeciesEvolver record.
 
         Returns
         -------
-        boolean
-            `True` indicates this species persists. `False` indicates this
-            species has become extinct.
         Species list
             A list of SpeciesEvolver species objects that are the child species
             that result from the macroevolutionary processes run. An empty list
             indicates no child species.
         """
-        persist_list = []
-        child_species = []
+        new_zones = []
 
-        # The current zones, `self.zones` act as the origin zone. The
-        # destinations of each origin are
+        # Disperse: `self.zones` are the origin zones.
 
         for origin in self.zones:
             path_type = origin.path[time][0]
-            destinations = origin.path[time][1]
-            suitable_zones = self._get_suitable_zones(destinations)
+            candidate_destinations = origin.path[time][1]
 
-            if suitable_zones:
-                # Handle zones by path type.
+            # Get disperse function for path type.
+            func_name = '_disperse_zone_' + path_type.replace('-', '_')
+            disperse_func = getattr(self, func_name)
 
-                func_name = '_evolve_zone_' + path_type.replace('-', '_')
-                evolve_zone_func = getattr(self, func_name)
+            new_zones_of_origin = disperse_func(candidate_destinations)
+            new_zones.extend(new_zones_of_origin)
 
-                persist_in_zone, children = evolve_zone_func(suitable_zones)
-                persist_list.append(persist_in_zone)
-                child_species.extend(children)
-            else:
-                persist_list.append(False)
+        self._update_zones(new_zones)
 
-        species_persists = self._determine_species_persistance(persist_list)
+        child_species = self._speciate(dt)
 
-        # Create a unique array of child species.
-        child_species = np.array(list(set(child_species)))
+        if self._pseudoextinction and len(child_species) > 0:
+            self._zones = {}
 
-        return species_persists, child_species
+        self._update_record(record_add_on, child_species)
 
-    def _get_suitable_zones(self, candidate_zones):
+        return child_species
+
+    def _update_zones(self, new_zones):
+        new_zones = dict.fromkeys(new_zones, {})
+
+        for z in new_zones.keys():
+            if z in self._zones.keys():
+                new_zones[z] = {**new_zones[z], **self._zones[z]}
+
+        self._zones = new_zones
+
+    def _update_record(self, record, child_species):
+        pseudoextinct = self._pseudoextinction and len(child_species) > 0
+
+        record['speciation_count'] += len(child_species)
+        record['extinction_count'] += (not pseudoextinct and not self.extant)
+        record['pseudoextinction_count'] += pseudoextinct
+
+    # Macroevolutionary process methods
+
+    def _disperse_zone_one_to_none(self, candidate_zones):
+        return []
+
+    def _disperse_zone_one_to_one(self, candidate_zones):
+        # The species in this zone disperses to/remains in the same zone.
         return candidate_zones
 
-    def _determine_species_persistance(self, species_persist_list):
-        """Determine species persistance across zones.
+    def _disperse_zone_one_to_many(self, candidate_zones):
+        return candidate_zones
 
-        Parameters
-        ----------
-        species_persist_list : boolean list
-            Each element indicates if the species persists in a zone.
+    def _disperse_zone_many_to_none(self, candidate_zones):
+        return []
 
-        Returns
-        -------
-        boolean
-            `True` indicates this species persists. `False` indicates this
-            species has become extinct.
-        """
-        return np.any(species_persist_list)
+    def _disperse_zone_many_to_one(self, candidate_zones):
+        return candidate_zones
 
-    # Evolve by zone path type methods
+    def _disperse_zone_many_to_many(self, candidate_zones):
+        return candidate_zones
 
-    def _evolve_zone_one_to_none(self, zones):
-        species_persists = False
+    def _speciate(self, dt):
         child_species = []
+        wait_time = self._allopatric_wait_time
+        key = 'time_to_allopatric_speciation'
 
-        return species_persists, child_species
+        for z in self.zones:
+            # Update remaining time to allopatric speciation.
 
-    def _evolve_zone_one_to_one(self, zones):
-        self._zones = zones
+            if len(self.zones) > 1 and not key in self._zones[z]:
+                self._zones[z][key] = wait_time
+            elif key in self._zones[z] and self._zones[z][key] > 0:
+                self._zones[z][key] -= dt
 
-        # The species in this zone disperses to/remains in the zone.
-        species_persists = True
-        child_species = []
+            # Speciate if time is reached.
 
-        return species_persists, child_species
+            if key in self._zones[z] and self._zones[z][key] <= 0:
+                child = Species(z, parent_species=self,
+                                allopatric_wait_time=wait_time)
+                child_species.append(child)
 
-    def _evolve_zone_one_to_many(self, zones):
-        species_persists = False
-        child_species = []
+                del self._zones[z][key]
 
-        for z in zones:
-            child = Species(z, parent_species=self,
-                            parameters=self._parameters)
-            child_species.append(child)
-
-        return species_persists, child_species
-
-    def _evolve_zone_many_to_none(self, zones):
-        species_persists = False
-        child_species = []
-
-        return species_persists, child_species
-
-    def _evolve_zone_many_to_one(self, zones):
-        return self._evolve_zone_one_to_one(zones)
-
-    def _evolve_zone_many_to_many(self, zones):
-        return self._evolve_zone_one_to_many(zones)
+        return child_species
