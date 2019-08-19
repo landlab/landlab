@@ -874,7 +874,7 @@ class SedDepEroder(Component):
 
         t_elapsed_internal = 0.
         break_flag = False
-        rel_sed_flux = np.empty_like(node_A)
+        rel_sed_flux = np.zeros_like(node_A)
 
         dzbydt = np.zeros(grid.number_of_nodes, dtype=float)
         vQs.fill(0.)

@@ -947,7 +947,7 @@ cpdef void iterate_sde_downstream(
         occurred (input).
     sed_porosity : float
         One over the "bulking factor" as rock is turned into sediment,
-        broadly equivalent to the sediment porosity.
+        broadly equivalent to the sediment porosity. (input)
     river_volume_flux_out_of_node : array
         Total river flux leaving each node from upstream. (output)
     transport_capacities : array
@@ -1027,3 +1027,6 @@ cpdef void iterate_sde_downstream(
         river_volume_flux_out_of_node[i] += vol_pass_rate
         if flow_receiver[i] != i:  # don't add to yourself
             river_volume_flux_into_node[flow_receiver[i]] += vol_pass_rate
+        else:
+            river_volume_flux_out_of_node[i] = river_volume_flux_into_node[i]
+            dzbydt[i] = 0.
