@@ -10,6 +10,7 @@ from landlab import Component, FieldError
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import make_return_array_immutable
+from landlab import RasterModelGrid, VoronoiDelaunayGrid
 
 from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
                      sed_flux_fn_gen_almostparabolic, sed_flux_fn_gen_const,
@@ -739,6 +740,11 @@ class SedDepEroder(Component):
             )
             raise NameError(msg)
 
+        if isinstance(grid, RasterModelGrid):
+            self.gridlinklengths = grid.length_of_d8
+        elif isinstance(grid, VoronoiDelaunayGrid):
+            self.gridlinklengths = grid.length_of_link
+
         self._hillslope_sediment_flux_wzeros = self.grid.zeros('node',
                                                                dtype=float)
         try:
@@ -832,7 +838,7 @@ class SedDepEroder(Component):
         core_draining_nodes = np.intersect1d(
             np.where(draining_nodes)[0], grid.core_nodes, assume_unique=True
         )
-        link_length[core_draining_nodes] = grid.length_of_d8[
+        link_length[core_draining_nodes] = self.gridlinklengths[
             grid.at_node[steepest_link][core_draining_nodes]
         ]
 
