@@ -17,6 +17,7 @@ from landlab.components import FlowAccumulator
 from landlab.components import SedDepEroder
 from landlab.components import FastscapeEroder
 from landlab.components import DepressionFinderAndRouter
+from landlab.components import LinearDiffuser
 
 from landlab.components.stream_power.cfuncs import (
     sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
@@ -337,7 +338,7 @@ def test_iteration_dstr():
         is_it_TL, np.array([1, 0, 0, 0, 1, 1], dtype=np.int8))
     )
     assert np.allclose(river_volume_flux_out_of_node,
-                       np.array([0., 0.2, 0.7, 1., 0.9, 0.6]))
+                       np.array([0., 0.2, 0.7, 1., 0.9, 0.9]))
     assert np.allclose(rel_sed_flux, np.array([1., 0.1, 0.45, 0.85, 1., 1.]))
     assert np.allclose(vol_drop_rate, np.array([0., 0., 0., 0., 0.1, 0.3]))
 
@@ -364,10 +365,10 @@ def test_iteration_dstr():
         funct,
         0., 0., 0., 0., 0.
     )
-    assert np.allclose(dzbydt, np.array([-1., -2., -1., -1., -1., -1.]))
+    assert np.allclose(dzbydt, np.array([-1., -2., -1., -1., -1., 0.]))
     assert np.all(np.equal(is_it_TL, np.int8(0)))
     assert np.allclose(river_volume_flux_out_of_node,
-                       1.5 * np.array([1., 0.2, 1.7, 2.7, 3.7, 4.7]))
+                       1.5 * np.array([1., 0.2, 1.7, 2.7, 3.7, 3.7]))
     # note the 1.5 is the effect of the sed porosity
     assert np.allclose(rel_sed_flux, 0., atol=1.e-10)
     assert np.allclose(vol_drop_rate, 0.)
@@ -387,7 +388,7 @@ def test_iteration_with_sed_in_channel():
     # 0 and 1 drain to 2 then 3 then 4 then 5
     upstr_order = np.array([5, 4, 3, 2, 0, 1])
     flow_receiver = np.array([2, 2, 3, 4, 5, 5])
-    trans_caps = np.array([0., 1., 1., 1., 0.9, 0.6])
+    trans_caps = np.array([0., 1., 1., 1., 0.9, 0.9])
     erosion_prefac_w_S = np.array([1., 2., 1., 1., 1., 1.])
     # output arrays:
     river_volume_flux_out_of_node = np.zeros(6, dtype=float)
@@ -416,10 +417,10 @@ def test_iteration_with_sed_in_channel():
     assert np.all(is_it_TL == 1)
     assert np.allclose(rel_sed_flux, 1.)
     assert np.allclose(river_volume_flux_out_of_node, np.array(
-        [0., 1., 1., 1., 0.9, 0.6]
+        [0., 1., 1., 1., 0.9, 0.9]
     ))
     assert np.allclose(vol_drop_rate, np.array(
-        [10., 9., 10., 10., 10.1, 10.3]
+        [10., 9., 10., 10., 10.1, 10.]
     ))
 
 
@@ -1354,13 +1355,47 @@ def test_equivalence_across_tsteps():
         # version
 
 
-def test_full_run_smoketest():
+def full_run_smoketest():
     """
     This is a run on a "normal"-style grid with a small external sed
-    supply, mirroring typical run conditions. Grid is voronoi to cover that
+    supply, mirroring typical run conditions. Voronoi grid to cover that
     option also.
     """
-    pass
+    np.random.seed = 100
+    dt = 5000.
+    total_t = 300000.
+    U = 0.001
+    dimension = 100
+    rmg = RasterModelGrid((dimension, dimension), xy_spacing=500.)
+    x = np.random.rand(dimension**2) * 5000.
+    y = np.random.rand(dimension**2) * 5000.
+    #vdg = VoronoiDelaunayGrid(x=x, y=y)
+    rmg_z_at_X = np.array([])
+    vdg_z_at_X = np.array([])
+    grids = (rmg, )#vdg)
+    ans = (rmg_z_at_X, )#vdg_z_at_X)
+    for mg, z_to_match in zip(grids, ans):
+        z_init = mg.x_of_node / 1000.
+        z = mg.add_field('node', 'topographic__elevation', z_init,
+                         copy=True)
+        z += np.random.rand(dimension**2)/1.e6
+        th = mg.add_zeros('node', 'channel_sediment__depth')
+        if isinstance(mg, RasterModelGrid):
+            fa = FlowAccumulator(mg, routing='D8')
+        else:
+            fa = FlowAccumulator(mg)
+        dfn = LinearDiffuser(mg, linear_diffusivity=1.e-2)
+        sde = SedDepEroder(mg, K_sp=1.e-4, K_t=1.e-4)
+        elapsed_t = 0.
+        while elapsed_t < total_t:
+            print(elapsed_t)
+            z_pre = z.copy()
+            dfn.run_one_step(dt)
+            th[mg.core_nodes] += (z[mg.core_nodes] - z_pre[mg.core_nodes]).clip(0.)
+            fa.run_one_step()
+            sde.run_one_step(dt)
+            z[mg.core_nodes] += U * dt
+            elapsed_t += dt
 
 # note that oscillations can develop within the internal stability loop
 # e.g., capacities at end of step can be 0, but erosion has occurred...
