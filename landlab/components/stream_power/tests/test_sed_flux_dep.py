@@ -176,7 +176,7 @@ def test_sff_convergence():
         z = mg.add_zeros('node', 'topographic__elevation')
         fa = FlowAccumulator(mg)
         out_array = np.empty(4, dtype=float)
-        sde = SedDepEroder(mg, sed_dependency_type=sff_style)
+        sde = SedDepEroder(mg, sed_dependency_type=sff_style, simple_stab=False)
         # special case
         get_sed_flux_function_pseudoimplicit_bysedout(1000., 0., 1., 1.,
                                                       sde._sed_flux_fn_gen,
@@ -275,7 +275,7 @@ def test_sff_convergence():
     z = mg.add_zeros('node', 'topographic__elevation')
     fa = FlowAccumulator(mg)
     out_array = np.empty(4, dtype=float)
-    sde = SedDepEroder(mg, sed_dependency_type='linear_decline')
+    sde = SedDepEroder(mg, sed_dependency_type='linear_decline', simple_stab=False)
     get_sed_flux_function_pseudoimplicit_bysedout(
         2500., 5000., 2500., 100000./3.,
         sde._sed_flux_fn_gen,
@@ -615,7 +615,7 @@ def test_basic_functionality():
         z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
         fa = FlowAccumulator(mg)
         sde = SedDepEroder(
-            mg, K_sp=1.e-6, K_t=1.e10, m_sp=1., sed_dependency_type=sff_type
+            mg, K_sp=1.e-6, K_t=1.e10, m_sp=1., sed_dependency_type=sff_type, simple_stab=False
         )
         fa.run_one_step()
         sde.run_one_step(1.)
@@ -681,7 +681,7 @@ def test_basic_functionality():
     fa = FlowAccumulator(mg)
     sde = SedDepEroder(
         mg, K_sp=1.e-5, K_t=1.e10, m_sp=1.,
-        sed_dependency_type='almost_parabolic'
+        sed_dependency_type='almost_parabolic', simple_stab=False
     )  # note 1.e-5 not 1.e-6 now
     fa.run_one_step()
     sde.run_one_step(1.)
@@ -714,7 +714,7 @@ def test_basic_functionality():
     z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
     fa = FlowAccumulator(mg)
     sde = SedDepEroder(
-        mg, K_sp=1., K_t=1.e-20, sed_dependency_type='linear_decline'
+        mg, K_sp=1., K_t=1.e-20, sed_dependency_type='linear_decline', simple_stab=False
     )
     fa.run_one_step()
     sde.run_one_step(1.)
@@ -747,7 +747,7 @@ def test_supplied_sediment():
     fa = FlowAccumulator(mg)
     sde = SedDepEroder(
         mg, K_sp=1.e10, K_t=1., m_sp=0., n_sp=1., m_t=0., n_t=1.,
-        sed_dependency_type='linear_decline'
+        sed_dependency_type='linear_decline', simple_stab=False
     )
     fa.run_one_step()
     sde.run_one_step(10.)
@@ -792,7 +792,7 @@ def test_diagonal_route():
     fa = FlowAccumulator(mg, flow_director="D8")
     sde = SedDepEroder(
         mg, K_sp=1.e-4, K_t=1., m_sp=0., n_sp=1., m_t=0., n_t=1.,
-        sed_dependency_type='linear_decline'
+        sed_dependency_type='linear_decline', simple_stab=False
     )
     fa.run_one_step()
     sde.run_one_step(10.)
@@ -1252,14 +1252,14 @@ def test_mass_balance():
             fa = FlowAccumulator(mg, routing='D8')
             sde = SedDepEroder(
                 mg, K_sp=1., K_t=1., m_sp=0., n_sp=1.,
-                sed_dependency_type=sed_dep_type,
+                sed_dependency_type=sed_dep_type, simple_stab=False
             )
             th = mg.at_node['channel_sediment__depth']
             th[5] += 10.
             fa.run_one_step()
             sde.run_one_step(dt)
             assert np.isclose(
-                10. - th[5] + (z_init - z).sum(), (
+                (z_init - z).sum(), (
                     31557600. * dt
                     * mg.at_node['channel_sediment__volumetric_discharge'][6]
                 )
@@ -1278,9 +1278,12 @@ def test_equivalence_across_tsteps():
     """
     first_stable_step = 0.1
     total_t = 0.15
+    simple_stab = True
     for sed_dep_type in ('None', 'linear_decline', 'almost_parabolic'):
         crude_z_store = []
         crude_th_store = []
+        if not simple_stab:
+            crude_br_z_store = []
         mg = RasterModelGrid((3, 4), xy_spacing=1.)
         closed_nodes = np.array(
             [True,  True,  True,  True,
@@ -1299,7 +1302,7 @@ def test_equivalence_across_tsteps():
         fa = FlowAccumulator(mg, routing='D8')
         sde = SedDepEroder(
             mg, K_sp=1., K_t=1., m_sp=0., n_sp=1.,
-            sed_dependency_type=sed_dep_type,
+            sed_dependency_type=sed_dep_type, simple_stab=simple_stab
         )
         fa.run_one_step()
         # now dice up the run to produce equivalent internal chunks...
@@ -1318,6 +1321,8 @@ def test_equivalence_across_tsteps():
         )
         crude_z_store.append(z.copy())
         crude_th_store.append(mg.at_node['channel_sediment__depth'].copy())
+        if not simple_stab:
+            crude_br_z_store.append(sde._br_z.copy())
 
         mg2 = RasterModelGrid((3, 4), xy_spacing=1.)
         mg2.status_at_node[closed_nodes] = CLOSED_BOUNDARY
@@ -1326,7 +1331,7 @@ def test_equivalence_across_tsteps():
         fa = FlowAccumulator(mg2, routing='D8')
         sde = SedDepEroder(
             mg2, K_sp=1., K_t=1., m_sp=0., n_sp=1.,
-            sed_dependency_type=sed_dep_type,
+            sed_dependency_type=sed_dep_type, simple_stab=simple_stab
         )
         mg2.at_node['channel_sediment__depth'][5] += 10.
         fa.run_one_step()
@@ -1337,20 +1342,30 @@ def test_equivalence_across_tsteps():
         )
         crude_z_store.append(z2.copy())
         crude_th_store.append(mg2.at_node['channel_sediment__depth'].copy())
+        if not simple_stab:
+            crude_br_z_store.append(sde._br_z.copy())
 
         # test mass balances for the hell of it
-        assert np.isclose((
-            10. - mg.at_node['channel_sediment__depth'][5]
-            + (z_init - z).sum()
-        ), accum_vol_out)
-        assert np.isclose((
-            10. - mg2.at_node['channel_sediment__depth'][5]
-            + (z_init - z2).sum()
-        ), accum_vol_out2)
+        if simple_stab is True:
+            assert np.isclose((
+                10. - mg.at_node['channel_sediment__depth'][5]
+                + (z_init - z).sum()
+            ), accum_vol_out)
+            assert np.isclose((
+                10. - mg2.at_node['channel_sediment__depth'][5]
+                + (z_init - z2).sum()
+            ), accum_vol_out2)
+        else:
+            assert np.isclose((
+                (z_init - z).sum()
+            ), accum_vol_out)
+            assert np.isclose((
+                (z_init - z2).sum()
+            ), accum_vol_out2)
 
         # now affirm the two versions are (broadly) equivalent:
-        assert np.allclose(crude_z_store[0], crude_z_store[1], rtol=1.e-3)
-        assert np.allclose(crude_th_store[0], crude_th_store[1], rtol=1.e-3)
+        assert np.allclose(crude_z_store[0], crude_z_store[1], rtol=5.e-3)
+        assert np.allclose(crude_th_store[0], crude_th_store[1], rtol=5.e-3)
         # Works precisely for None, but not a perfect match for any sed dep
         # version
 
@@ -1363,7 +1378,7 @@ def full_run_smoketest():
     """
     np.random.seed = 100
     dt = 5000.
-    total_t = 300000.
+    total_t = 3000000.
     U = 0.001
     dimension = 100
     rmg = RasterModelGrid((dimension, dimension), xy_spacing=500.)
@@ -1382,20 +1397,23 @@ def full_run_smoketest():
         th = mg.add_zeros('node', 'channel_sediment__depth')
         if isinstance(mg, RasterModelGrid):
             fa = FlowAccumulator(mg, routing='D8')
+            pit = DepressionFinderAndRouter(mg, routing="D8")
         else:
             fa = FlowAccumulator(mg)
+            pit = DepressionFinderAndRouter(mg)
         dfn = LinearDiffuser(mg, linear_diffusivity=1.e-2)
-        sde = SedDepEroder(mg, K_sp=1.e-4, K_t=1.e-4)
+        sde = SedDepEroder(mg, K_sp=1.e-4, K_t=1.e-4, simple_stab=False)
         elapsed_t = 0.
         while elapsed_t < total_t:
             print(elapsed_t)
             z_pre = z.copy()
             dfn.run_one_step(dt)
             # th += 0.001 * dt
-            th[mg.core_nodes] += 0.001 * dt
+            # th[mg.core_nodes] += 0.001 * dt
             # th[mg.core_nodes] += (z[mg.core_nodes] - z_pre[mg.core_nodes]).clip(0.)
             fa.run_one_step()
-            sde.run_one_step(dt)
+            #pit.map_depressions()
+            sde.run_one_step(dt)#, flooded_nodes=pit.lake_at_node)
             z[mg.core_nodes] += U * dt
             elapsed_t += dt
 

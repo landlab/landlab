@@ -559,6 +559,7 @@ class SedDepEroder(Component):
         n_t=1.,
         # params for model numeric behavior:
         pseudoimplicit_repeats=50,
+        simple_stab=True,  # for exploratory work; to remove
         **kwds
     ):
         """Constructor for the class.
@@ -637,6 +638,7 @@ class SedDepEroder(Component):
                 raise NotImplementedError(msg)
         self._grid = grid
         self._pseudoimplicit_repeats = pseudoimplicit_repeats
+        self._simple_stab = simple_stab
 
         # # set gravity
         # self._g = g
@@ -849,6 +851,14 @@ class SedDepEroder(Component):
         # a convergent flow node
         # ...worst that can happen is that the river can't move it, and dumps
         # it in the first node
+        if not self._simple_stab:
+            br_z = node_z - self._hillslope_sediment
+            br_S = np.empty_like(br_z, dtype=float)
+            br_S[core_draining_nodes] = (
+                (br_z - br_z[flow_receiver])[core_draining_nodes] /
+                link_length[core_draining_nodes]
+            )
+            br_downward_slopes = br_S.clip(np.spacing(0.))
         # Take care to add this sed to the cover, but not to actually move it.
         # turn depth into a supply flux:
         sed_in_cells = self._hillslope_sediment[self.grid.node_at_cell]
@@ -885,6 +895,8 @@ class SedDepEroder(Component):
         self._loopcounter = 0
         while 1:
             downward_slopes[is_flooded] = 0.
+            if not self._simple_stab:
+                br_downward_slopes[is_flooded] = 0.
 
             transport_capacities = (
                 self._sed_transport_func.calc_erosion_rates(
@@ -897,6 +909,12 @@ class SedDepEroder(Component):
                     downward_slopes, is_flooded
                 )
             )  # no time, no fqs
+            if not self._simple_stab:  # clearly no need to do the above if this works
+                erosion_prefactor_withS = (
+                    self._erosion_func.calc_erosion_rates(
+                        br_downward_slopes, is_flooded
+                    )
+                )
 
             river_volume_flux_out_of_node = np.zeros(grid.number_of_nodes,
                                                      dtype=float)
@@ -920,14 +938,12 @@ class SedDepEroder(Component):
 
             sed_dep_rate = self._voldroprate / self.cell_areas
 
-# There's a fundamental issue here somewhere regarding the sediment depth. It's
-# way too big!! (comparable to the relief). If this because Ksp ~ Kt??
-# This new handling needs to come later, so see below
-
             # now perform a CHILD-like convergence-based stability test:
             ratediff = dzbydt[flow_receiver] - dzbydt
             # if this is +ve, the nodes are converging
             downstr_vert_diff = node_z - node_z[flow_receiver]
+            if not self._simple_stab:
+                downstr_vert_diff = br_z - br_z[flow_receiver]
             botharepositive = np.logical_and(ratediff > 0.,
                                              downstr_vert_diff > 0.)
             # this ignores possibility of flooded nodes dstr, and so
@@ -943,6 +959,7 @@ class SedDepEroder(Component):
                 times_to_converge *= CONV_FACTOR_LOOSE
                 # ^arbitrary safety factor; CHILD uses 0.3
                 t_to_converge = np.amin(times_to_converge)
+
             except ValueError:  # no node pair converges
                 t_to_converge = dt_secs
             if t_to_converge < 3600.:
@@ -962,35 +979,14 @@ class SedDepEroder(Component):
                 self.t_to_converge = t_to_converge
                 this_tstep -= t_elapsed_internal - dt_secs
 
-#             # back-calc the sed budget in the nodes, as appropriate:
-#             self._hillslope_sediment[self.grid.core_nodes] += (
-#                 sed_dep_rate[self.grid.core_nodes] * this_tstep
-#             )
-# 
-# # Now, don't drop the sed within the step. Effectively, we should,
-# # but will remobilise it immediately in the next loop, so not
-# # needed. Instead, add the drop to the hillslope sed flux going on
-# 
-# # This is super ugly, and if it works it needs to be incorporated into the
-# # Cython? So...
-#             # keep everything up in the flow while inside the loop.
-#             # Weight by elapsed times...
-#             self._hillslope_sediment_flux_wzeros[self.grid.node_at_cell] = (
-#                 self._hillslope_sediment[self.grid.node_at_cell]
-#                 * self.grid.area_of_cell/t_elapsed_internal  # now a flux again
-#                 * t_elapsed_internal/dt_secs  # how dominant is it?
-#                 + flux_in_cells * (dt_secs - t_elapsed_internal) / dt_secs
-#             )
-#             # flux_in_cells is the original, fully time-averaged flux from
-#             # outside the loop
-#             # self._voldroprate.fill(0.)  # this is zeroed in the cython
-# ### ^^should we use sed_dep_rate direct in this flux expression??
-
             # better, cleaner approach?: maintain the hillslope flux
             # throughout, and time weight the sed dep rate...
             # see work w time_avg_sed_dep_rate below
 
-            node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
+            if self._simple_stab:
+                node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
+            else:
+                br_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
             # the field outputs also need to be set proportionately w/i the
             # loop:
             time_fraction = this_tstep / dt_secs
@@ -999,15 +995,21 @@ class SedDepEroder(Component):
             QbyQs += time_fraction * rel_sed_flux
             time_avg_sed_dep_rate += time_fraction * sed_dep_rate
 
-            # do we need to reroute the flow/recalc the slopes here?
-            # -> NO, slope is such a minor component of Diff we'll be OK
-            # BUT could be important not for the stability, but for the
-            # actual calc. So YES to the slopes.
+            if not self._simple_stab:
+                node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep  # feels changes to BR
+                node_z[grid.core_nodes] += sed_dep_rate[grid.core_nodes] * dt_secs / this_tstep  # ...but also changes to sed dep rate
+
             node_S[core_draining_nodes] = (
                 (node_z - node_z[flow_receiver])[core_draining_nodes] /
                 link_length[core_draining_nodes]
             )
             downward_slopes = node_S.clip(np.spacing(0.))
+            if not self._simple_stab:
+                br_S[core_draining_nodes] = (
+                    (br_z - br_z[flow_receiver])[core_draining_nodes] /
+                    link_length[core_draining_nodes]
+                )
+                br_downward_slopes = br_S.clip(np.spacing(0.))
 
             if break_flag:
                 break
@@ -1017,6 +1019,9 @@ class SedDepEroder(Component):
         self._hillslope_sediment[grid.core_nodes] = (
             time_avg_sed_dep_rate[grid.core_nodes] * dt_secs
         )  # doesn't need to be blanked, above, if we fill like this.
+        if not self._simple_stab:
+            node_z[grid.core_nodes] = br_z[grid.core_nodes] + self._hillslope_sediment[grid.core_nodes]
+            self._br_z = br_z
 
         return grid, grid.at_node["topographic__elevation"]
 
