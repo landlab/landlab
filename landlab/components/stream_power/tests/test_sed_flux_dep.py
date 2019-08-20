@@ -1391,7 +1391,9 @@ def full_run_smoketest():
             print(elapsed_t)
             z_pre = z.copy()
             dfn.run_one_step(dt)
-            th[mg.core_nodes] += (z[mg.core_nodes] - z_pre[mg.core_nodes]).clip(0.)
+            # th += 0.001 * dt
+            th[mg.core_nodes] += 0.001 * dt
+            # th[mg.core_nodes] += (z[mg.core_nodes] - z_pre[mg.core_nodes]).clip(0.)
             fa.run_one_step()
             sde.run_one_step(dt)
             z[mg.core_nodes] += U * dt

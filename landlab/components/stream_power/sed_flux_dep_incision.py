@@ -18,6 +18,7 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
 
 WAVE_STABILITY_PREFACTOR = 0.2
 CONV_FACTOR_LOOSE = 0.1  # controls the convergence of node elevs in the loop
+YEAR_SECS = 31557600.
 
 # NB: The inline documentation of this component freely (& incorrectly!)
 # interchanges "flux" and "discharge". Almost always, "discharge" is intended
@@ -711,7 +712,7 @@ class SedDepEroder(Component):
             raise NameError("erosion_law must currently be set to 'power_law'")
         if erosion_law == 'power_law':
             self._erosion_func = power_law_eroder(
-                K_sp / 31557600., m_sp, n_sp,
+                K_sp / YEAR_SECS, m_sp, n_sp,
                 self.grid.at_node['drainage_area']
             )
             self._n = n_sp
@@ -721,14 +722,14 @@ class SedDepEroder(Component):
             raise NameError('MPM is no longer a permitted value for Qc!')
         elif Qc == 'power_law':  # note this works in discharge/s.
             self._sed_transport_func = power_law_transporter(
-                K_t / 31557600., m_t, n_t, self.grid.at_node['drainage_area']
+                K_t/YEAR_SECS, m_t, n_t, self.grid.at_node['drainage_area']
             )
             self._nt = n_t
         elif Qc == 'Voller_generalized':
             raise NameError('Voller_generalized not yet supported!')
             # self._m = m_sp
             # self._n = n_sp
-            # self._Kt = K_t/31557600.  # in sec
+            # self._Kt = K_t/YEAR_SECS  # in sec
             # self._mt = m_t
             # self._nt = n_t
             # self._bt = b_t
@@ -811,7 +812,7 @@ class SedDepEroder(Component):
         QbyQs = grid.at_node['channel_sediment__relative_flux']
         # elevs set automatically to the name used in the function call.
 
-        dt_secs = dt * 31557600.
+        dt_secs = dt * YEAR_SECS
         # we work in secs here because one day we may be ingesting real sed
         # transport formulae, which return these units.
 
@@ -953,7 +954,7 @@ class SedDepEroder(Component):
             # the new handling of flooded nodes as of 25/10/16 should make
             # this redundant, but retained to help ensure stability
             this_tstep = min((t_to_converge, dt_secs))
-            self._t_to_converge = t_to_converge/31557600.
+            self._t_to_converge = t_to_converge/YEAR_SECS
             t_elapsed_internal += this_tstep
             if t_elapsed_internal >= dt_secs:
                 break_flag = True
@@ -1013,9 +1014,9 @@ class SedDepEroder(Component):
             else:
                 self._loopcounter += 1
 
-        self._hillslope_sediment[grid.core_nodes] += (
+        self._hillslope_sediment[grid.core_nodes] = (
             time_avg_sed_dep_rate[grid.core_nodes] * dt_secs
-        )
+        )  # doesn't need to be blanked, above, if we fill like this.
 
         return grid, grid.at_node["topographic__elevation"]
 
