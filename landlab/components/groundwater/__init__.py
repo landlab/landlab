@@ -1,2 +1,3 @@
 from .dupuit_percolator import GroundwaterDupuitPercolator
+from .lumped_unsaturated_model import LumpedUnsaturatedZone
 #from .hillslope_linear_reservoir import HillslopeLinearReservoir
