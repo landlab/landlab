@@ -203,6 +203,15 @@ class GroundwaterDupuitPercolator(Component):
         else:
             self.qs = self.grid.add_zeros("node", "surface_water__specific_discharge")
 
+        if "water_table__velocity" in self.grid.at_node:
+            self.dhdt = self.grid.at_node["water_table__velocity"]
+        else:
+            self.dhdt = self.grid.add_zeros("node", "water_table__velocity")
+
+        #just shoving these in here temporarily
+        self.S = grid.calc_grad_at_link(self.elev)
+        self.S_node = map_max_of_node_links_to_node(grid,self.S)
+
 
     def calc_rechage_flux_in(self):
         #  calculate flux into the domain from recharge. Includes recharge that
@@ -285,10 +294,10 @@ class GroundwaterDupuitPercolator(Component):
                                     self.r)*_regularize_R(self.recharge - dqdx)
 
         # Mass balance
-        dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
+        self.dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
 
         # Update
-        self.thickness[self._grid.core_nodes] += dhdt[self.cores] * dt
+        self.thickness[self._grid.core_nodes] += self.dhdt[self.cores] * dt
 
         # Recalculate water surface height
         self.wtable[self._grid.core_nodes] = (self.base[self.cores]
@@ -341,7 +350,7 @@ class GroundwaterDupuitPercolator(Component):
                                         self.r)*_regularize_R(self.recharge - dqdx)
 
             # Mass balance
-            dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
+            self.dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
 
             #calculate criteria for timestep
             max_vel = max(abs(self.vel/self.n_link))
@@ -349,7 +358,7 @@ class GroundwaterDupuitPercolator(Component):
             substep_dt = np.nanmin([courant_coefficient*grid_dist/max_vel,remaining_time])
 
             # Update
-            self.thickness[self._grid.core_nodes] += dhdt[self.cores] * substep_dt
+            self.thickness[self._grid.core_nodes] += self.dhdt[self.cores] * substep_dt
 
             # Recalculate water surface height
             self.wtable[self._grid.core_nodes] = (self.base[self.cores]
