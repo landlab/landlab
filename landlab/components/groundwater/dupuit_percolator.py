@@ -250,6 +250,18 @@ class GroundwaterDupuitPercolator(Component):
 
         return np.sum(self._grid.at_node['surface_water__discharge'][self._grid.open_boundary_nodes] )
 
+    def calc_gw_flux_at_node(self):
+        return map_max_of_node_links_to_node(self._grid,self._grid.dx* abs(self._grid.at_link['groundwater__specific_discharge']))
+
+    def calc_sw_flux_at_node(self):
+        return self._grid.at_node['surface_water__discharge']
+
+    def calc_shear_stress_at_node(self,n_manning=0.05):
+        rho = 1000
+        g = 9.81
+        return rho*g*self.S_node *( (n_manning*self._grid.at_node['surface_water__discharge']/3600)/(self._grid.dx*np.sqrt(self.S_node)) )**(3/5)
+
+
     def calc_total_storage(self):
         # calculate the current water storage in the aquifer
         return np.sum(self.n[self.cores] * self._grid.area_of_cell *
