@@ -983,12 +983,10 @@ cpdef void iterate_sde_downstream(
     cdef np.ndarray[DTYPE_FLOAT_t, ndim=1] river_volume_flux_into_node = np.zeros_like(river_volume_flux_out_of_node, dtype=float)
     cdef unsigned int i
     cdef double cell_area
-    cdef double flood_depth_flux
     cdef double sed_flux_into_this_node_bydt
     cdef double node_capacity
     cdef double vol_prefactor_bydt
     cdef double vol_pass_rate
-    cdef double depth_sed_in
 
     # blank stuff as needed
     is_it_TL[:] = 0

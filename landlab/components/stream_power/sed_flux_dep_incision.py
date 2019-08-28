@@ -18,6 +18,7 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
 
 WAVE_STABILITY_PREFACTOR = 0.2
 CONV_FACTOR_LOOSE = 0.1  # controls the convergence of node elevs in the loop
+CONV_FACTOR_SED = 0.3
 YEAR_SECS = 31557600.
 
 # NB: The inline documentation of this component freely (& incorrectly!)
@@ -804,10 +805,10 @@ class SedDepEroder(Component):
         """
         grid = self.grid
         node_z = grid.at_node['topographic__elevation']
+        node_S = grid.at_node['topographic__steepest_slope']
         node_A = grid.at_node['drainage_area']
         flow_receiver = grid.at_node['flow__receiver_node']
         s_in = grid.at_node['flow__upstream_node_order']
-        node_S = grid.at_node['topographic__steepest_slope']
         vQc = grid.at_node['channel_sediment__volumetric_transport_capacity']
         vQs = grid.at_node['channel_sediment__volumetric_discharge']
         # & for debug, expose the sed in as private variable:
@@ -861,8 +862,11 @@ class SedDepEroder(Component):
             br_downward_slopes = br_S.clip(np.spacing(0.))
         # Take care to add this sed to the cover, but not to actually move it.
         # turn depth into a supply flux:
+        sed_rate_at_nodes = grid.zeros('node', dtype=float)
         sed_in_cells = self._hillslope_sediment[self.grid.node_at_cell]
-        flux_in_cells = sed_in_cells * self.grid.area_of_cell / dt_secs
+        sed_rate_in_cells = sed_in_cells / dt_secs
+        sed_rate_at_nodes[grid.node_at_cell] = sed_rate_in_cells
+        flux_in_cells = sed_rate_in_cells * self.grid.area_of_cell
         self._hillslope_sediment_flux_wzeros[
             self.grid.node_at_cell] = flux_in_cells
         self._voldroprate = self.grid.zeros('node', dtype=float)
@@ -904,12 +908,13 @@ class SedDepEroder(Component):
                 )
             )
 
-            erosion_prefactor_withS = (
-                self._erosion_func.calc_erosion_rates(
-                    downward_slopes, is_flooded
-                )
-            )  # no time, no fqs
-            if not self._simple_stab:  # clearly no need to do the above if this works
+            if self._simple_stab:
+                erosion_prefactor_withS = (
+                    self._erosion_func.calc_erosion_rates(
+                        downward_slopes, is_flooded
+                    )
+                )  # no time, no fqs
+            else:
                 erosion_prefactor_withS = (
                     self._erosion_func.calc_erosion_rates(
                         br_downward_slopes, is_flooded
@@ -941,8 +946,9 @@ class SedDepEroder(Component):
             # now perform a CHILD-like convergence-based stability test:
             ratediff = dzbydt[flow_receiver] - dzbydt
             # if this is +ve, the nodes are converging
-            downstr_vert_diff = node_z - node_z[flow_receiver]
-            if not self._simple_stab:
+            if self._simple_stab:
+                downstr_vert_diff = node_z - node_z[flow_receiver]
+            else:  # because our definitions differ in this mode
                 downstr_vert_diff = br_z - br_z[flow_receiver]
             botharepositive = np.logical_and(ratediff > 0.,
                                              downstr_vert_diff > 0.)
@@ -957,9 +963,8 @@ class SedDepEroder(Component):
                     ratediff[botharepositive]
                 )
                 times_to_converge *= CONV_FACTOR_LOOSE
-                # ^arbitrary safety factor; CHILD uses 0.3
+                # ^arbitrary safety factor; CHILD uses 0.3 for SP
                 t_to_converge = np.amin(times_to_converge)
-
             except ValueError:  # no node pair converges
                 t_to_converge = dt_secs
             if t_to_converge < 3600.:
@@ -970,6 +975,37 @@ class SedDepEroder(Component):
             # "just so"
             # the new handling of flooded nodes as of 25/10/16 should make
             # this redundant, but retained to help ensure stability
+
+            if not self._simple_stab:
+                # now, if we're doing both surfaces, we need to enforce a
+                # stability condition on both. The above handles the BR
+                # interface, so we need to add one for the surface
+                # Now, remember, this is the sed dep rate relative to the
+                # fully swept bedrock. So this value will always be +ve,
+                # regardless of convergence or otherwise of the surface.
+                relative_sed_dep_rate = sed_dep_rate - sed_rate_at_nodes
+                ratediff += relative_sed_dep_rate[flow_receiver] - relative_sed_dep_rate
+                print(sed_dep_rate.reshape(grid.shape))
+                print(relative_sed_dep_rate.reshape(grid.shape))
+                print(ratediff.reshape(grid.shape))
+                print('***')
+                downstr_vert_diff = node_z - node_z[flow_receiver]
+                botharepositive = np.logical_and(ratediff > 0.,
+                                                 downstr_vert_diff > 0.)
+                try:
+                    times_to_converge = (
+                        downstr_vert_diff[botharepositive] /
+                        ratediff[botharepositive]
+                    )
+                    times_to_converge *= CONV_FACTOR_SED
+                    # ^arbitrary safety factor; CHILD uses 0.3 for SP
+                    t_to_converge_surf = np.amin(times_to_converge)
+                except ValueError:  # no node pair converges
+                    t_to_converge_surf = dt_secs
+                t_to_converge = min((t_to_converge, t_to_converge_surf))
+                # if t_to_converge*1000. < dt_secs:  # Are we going crazy here?
+                #     raise ValueError(str(t_to_converge/dt_secs))
+
             this_tstep = min((t_to_converge, dt_secs))
             self._t_to_converge = t_to_converge/YEAR_SECS
             t_elapsed_internal += this_tstep
@@ -996,8 +1032,17 @@ class SedDepEroder(Component):
             time_avg_sed_dep_rate += time_fraction * sed_dep_rate
 
             if not self._simple_stab:
-                node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep  # feels changes to BR
-                node_z[grid.core_nodes] += sed_dep_rate[grid.core_nodes] * dt_secs / this_tstep  # ...but also changes to sed dep rate
+                #node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep  # feels changes to BR
+                #node_z[grid.core_nodes] += sed_dep_rate[grid.core_nodes] * dt_secs / this_tstep  # ...but also changes to sed dep rate
+                node_z[grid.core_nodes] += (dzbydt + relative_sed_dep_rate)[grid.core_nodes] * this_tstep
+                #sed_rate_at_nodes = sed_dep_rate + relative_sed_dep_rate
+                sed_rate_at_nodes += relative_sed_dep_rate * this_tstep/dt_secs
+### This is now working in the first tstep, but mass balance fails immediately after - so problem is probably here
+                print(this_tstep/YEAR_SECS)
+                print(sed_dep_rate*dt_secs)
+                print(br_z)
+                print(node_z)
+                print ('***********')
 
             node_S[core_draining_nodes] = (
                 (node_z - node_z[flow_receiver])[core_draining_nodes] /
