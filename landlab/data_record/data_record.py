@@ -688,7 +688,7 @@ class DataRecord(object):
             coords_to_add = {"item_id": np.array(new_item_ids)}
             # check that grid_element and element_id exist on
             # the grid and have valid format:
-            _grid_elements = self._check_grid_element_and_id(
+            _grid_elements, _element_ids = self._check_grid_element_and_id(
                 _grid_elements, _element_ids
             )
             # check that element IDs do not exceed number of
