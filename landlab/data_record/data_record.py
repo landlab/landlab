@@ -15,10 +15,24 @@ class DataRecord(object):
     Dataset by providing additional attributes and functions, including the
     ability to aggregate values on Landlab grid elements.
 
-    Data variables can vary along one or both of the following dimensions:
+    DataRecord uses the concept of an "item", a physical thing that is located
+    on the grid and has some properties, stored as variables. DataRecord was
+    built to keep track of variables associated with a Landlab grid across
+    items, through time, or both.
+
+    Thus data variables can vary along one or both of the following dimensions:
         - time (model time)
         - item_id: variables can characterize a set of items (each identified
             by an individual id) that reside on the grid.
+
+    If an item or set of items is defined, each item must be defined by the
+    grid element and the element id at which it resides, e.g.:
+
+        grid_element = 'node'
+        element_id = 9.
+
+    When items are defined, each item is given a unique id and the underlying
+    Dataset uses a dimension "item_id".
 
     Examples:
         - the variable 'mean_elevation' characterizes the grid and varies with
@@ -27,20 +41,21 @@ class DataRecord(object):
             and varies with item_id,
         - the variable 'clast__size' can vary with both time and item_id
 
-    If an item or set of items is defined, each item must be defined by the
-    grid element and the element id at which it resides, e.g.:
-
-        grid_element = 'node'
-        element_id = 9.
-
     In the above case, `grid_element` and `element_id` are default data
     variables (in addition to any user-specified variables).
 
     For each item, `element_id` must be less than the number of this item's
-    grid_element that exist on the grid. For example, if the grid has 100
-    links, no item can live at link 100 or link -3 because only links 0 to 99
-    exist in this example.
+    grid_element that exist on the grid or be one of the dummy element values.
+    For example, if the grid has 100 links, and no dummy link values are
+    indicated, then, no item can live at link 100 or link -3 because only links
+    0 to 99 exist in this example.
 
+    Anything that the DataRecord keeps track of is considered a "record",
+    whether it uses one or both of the two standard dimensions.
+
+    DataRecord provides two method to assist with adding new records. The
+    method ``add_item`` should be used when no new variables are being added.
+    The method ``add_record`` should be used when new variables are being added.
     """
 
     _name = "DataRecord"
@@ -363,7 +378,11 @@ class DataRecord(object):
             )
 
     def add_record(self, time=None, item_id=None, new_item_loc=None, new_record=None):
-        """Add a time-related record to an existing DataRecord.
+        """Add a new record to an existing DataRecord.
+
+        Unlike add_item, this method can support adding records that include
+        new variables to the DataRecord. It can also support adding records
+        that do not include time.
 
         Parameters
         ----------
@@ -544,6 +563,8 @@ class DataRecord(object):
     def add_item(self, time=None, new_item=None, new_item_spec=None):
         """Add new item(s) to the current DataRecord.
 
+        Parameters
+        ----------
         time : list or 1-D array of float or int
             Time step at which the items are to be added.
         new_item : dict
