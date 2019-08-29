@@ -791,7 +791,9 @@ class DataRecord(object):
                     raise IndexError(
                         "The item_id you passed does not exist " "in this DataRecord"
                     )
-                return self.dataset.isel(time=time_index, item_id=item_id)[data_variable].values
+                return self.dataset.isel(time=time_index, item_id=item_id)[
+                    data_variable
+                ].values
 
     def set_data(self, time=None, item_id=None, data_variable=None, new_value=np.nan):
         """Set a variable value at a model time and/or an item to a new value.
@@ -982,17 +984,6 @@ class DataRecord(object):
         array([  8.,   3.,   4.,   5.,  nan,  nan,  nan,  nan,  nan])
 
         """
-
-        #    (From ItemCollection:)
-        #        To add to Example, when I can make it work:
-        #        You can even pass functions that require additional positional
-        #        arguments or keyword arguments. For example, in order to get the 25th
-        #        percentile, we we do the following.
-        #
-        #        >>> s = ic.calc_aggregate_value(np.percentile, 'ages', q=25)
-        #        >>> print(s)
-        #        [ 10.75  14.    15.    16.     8.    10.      nan    nan    nan]
-
         filter_at = self.dataset["grid_element"] == at
 
         if filter_array is None:
@@ -1004,10 +995,6 @@ class DataRecord(object):
         filtered = self.dataset.where(my_filter).groupby("element_id")
 
         vals = filtered.apply(func, *args, **kwargs)  # .reduce
-        #        vals = xr.apply_ufunc(func,
-        #                            filtered,
-        #                            #input_core_dims=[['item_id']],
-        #                            **kwargs)
 
         # create a nan array that we will fill with the results of the sum
         # this should be the size of the number of elements, even if there are
@@ -1070,7 +1057,6 @@ class DataRecord(object):
                [ 3.,  3.,  3.]])
 
         """
-
         # Forward fill element_id:
         fill_value = []
         ei = self.dataset["element_id"].values

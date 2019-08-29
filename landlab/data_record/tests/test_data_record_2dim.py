@@ -126,4 +126,6 @@ def test_ffill_grid_element_and_id(dr_2dim):
     assert dr_2dim.dataset["grid_element"].values[0, 0] == (
         dr_2dim.dataset["grid_element"].values[0, 1]
     )
-    assert dr_2dim.dataset["element_id"].values[0, 0] == (dr_2dim.dataset["element_id"].values[0, 1])
+    assert dr_2dim.dataset["element_id"].values[0, 0] == (
+        dr_2dim.dataset["element_id"].values[0, 1]
+    )
