@@ -41,15 +41,7 @@ class DataRecord(object):
 
     _name = "DataRecord"
 
-    def __init__(
-        self,
-        grid,
-        time=None,
-        items=None,
-        data_vars=None,
-        attrs=None,
-        compat="broadcast_equals",
-    ):
+    def __init__(self, grid, time=None, items=None, data_vars=None, attrs=None):
         """
         Parameters
         ----------
@@ -87,15 +79,6 @@ class DataRecord(object):
         attrs : dict (optional)
             Dictionary of global attributes on the DataRecord (metadata).
             Example: {'time_units' : 'y'}
-        compat: str (optional)
-            String indicating how to compare variables of the same name
-            for potential conflicts:
-                - 'broadcast_equals': all values must be equal when variables
-                are broadcast against each other to ensure common dimensions.
-                - 'equals': all values and dimensions must be the same.
-                - 'identical': all values, dimensions and attributes must be
-                the same.
-            The default is 'broadcast_equals'.
 
         Examples
         --------
@@ -285,9 +268,7 @@ class DataRecord(object):
                 )
 
         # create an xarray Dataset:
-        self.dataset = Dataset(
-            data_vars=data_vars_dict, coords=coords, attrs=attrs, compat=compat
-        )
+        self.dataset = Dataset(data_vars=data_vars_dict, coords=coords, attrs=attrs)
 
     def _check_grid_element_and_id(self, grid_element, element_id, flag=None):
         """Check the location and size of grid_element and element_id."""
