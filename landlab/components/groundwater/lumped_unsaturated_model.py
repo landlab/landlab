@@ -40,6 +40,21 @@ def LeakageLoss(S,f,qet,Sf,Ksat,dt):
 
 # def RootWaterLoss():
 
+def _regularize_R(u):
+    return u*np.greater_equal(u,0)
+
+def _EvapotranspirationLoss(p,S,Sw,St,ETmax):
+    qet = np.zeros_like(S)
+    n = St>0
+    qet[n] = (p==0.0)*_regularize_R((S[n]-Sw[n])/(St[n]-Sw[n]))*ETmax[n]
+    return qet
+
+def _LeakageLoss(S,f,qet,Sf,Ksat,dt):
+    ql = np.zeros_like(S)
+    n = St>0
+    ql[n] =  _regularize_R((S[n]-Sf[n])/(St[n]-Sf[n]))*Ksat[n]
+    return ql
+
 
 class LumpedUnsaturatedZone(Component):
     """
@@ -199,7 +214,10 @@ class LumpedUnsaturatedZone(Component):
         return self.ql
 
     def calc_hortonian_overland_flux(self):
-        return np.sum(self.ho)
+        return np.sum(self.ho[self._grid.core_nodes]*self._grid.area_of_cell)
 
     def calc_et_flux(self):
-        return np.sum(self.qet)
+        return np.sum(self.qet[self._grid.core_nodes]*self._grid.area_of_cell)
+
+    def calc_total_storage(self):
+        return np.sum(self.S[self._grid.core_nodes]*self._grid.area_of_cell)
