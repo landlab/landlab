@@ -3,7 +3,6 @@ from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
 from .detachment_ltd_erosion import DepthSlopeProductErosion, DetachmentLtdErosion
 from .diffusion import LinearDiffuser
-from .lateral_erosion import LateralEroder
 from .drainage_density import DrainageDensity
 from .erosion_deposition import ErosionDeposition
 from .fire_generator import FireGenerator
@@ -21,6 +20,7 @@ from .gflex import gFlex
 from .groundwater import GroundwaterDupuitPercolator
 from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
+from .lateral_erosion import LateralEroder
 from .lithology import LithoLayers, Lithology
 from .nonlinear_diffusion import PerronNLDiffuse
 from .normal_fault import NormalFault

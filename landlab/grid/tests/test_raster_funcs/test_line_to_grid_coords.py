@@ -6,8 +6,9 @@ Created on Fri Jul 26 13:59:55 2019
 @author: gtucker
 """
 
-from landlab.grid.raster_funcs import line_to_grid_coords
 from numpy.testing import assert_array_equal
+
+from landlab.grid.raster_funcs import line_to_grid_coords
 
 
 def test_line_to_grid_coords():

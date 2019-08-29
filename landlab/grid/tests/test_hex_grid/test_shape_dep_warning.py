@@ -17,7 +17,7 @@ def test_shape_dep_warning():
         # Trigger the deprecation warning.
         HexModelGrid(3, 2, shape="rect")
         # Verify some things
-        catmsg = ''
+        catmsg = ""
         for warn in w:
             catmsg += str(warn.message)
-        assert 'node_layout' in catmsg
+        assert "node_layout" in catmsg

@@ -10,6 +10,7 @@ import numpy as np
 
 from landlab import Component
 from landlab.components.flow_accum import FlowAccumulator
+
 from .node_finder import node_finder
 
 
@@ -175,11 +176,7 @@ class LateralEroder(Component):
         "topographic__steepest_slope",
     )
 
-    _output_var_names = ("topographic__elevation",
-         "dzlat",
-         "vollat",
-         "qs_in"
-     )
+    _output_var_names = ("topographic__elevation", "dzlat", "vollat", "qs_in")
     _var_units = {
         "topographic__elevation": "m",
         "drainage_area": "m2",
@@ -190,7 +187,7 @@ class LateralEroder(Component):
         "vollat": "m3",
         "qs_in": "m3/y",
     }
-    
+
     _var_doc = {
         "flow__receiver_node": "Node array of receivers (node that receives flow from current "
         "node)",
@@ -203,7 +200,7 @@ class LateralEroder(Component):
         "topographic__elevation": "Land surface topographic elevation",
         "dzlat": "Change in elevation at each node from lateral erosion during time step",
         "vollat": "Array tracking volume eroded at each node from lateral erosion",
-        "qs_in": "Volume per unit time of sediment entering each node"
+        "qs_in": "Volume per unit time of sediment entering each node",
     }
 
     def __init__(
@@ -222,13 +219,15 @@ class LateralEroder(Component):
         if solver not in ("basic", "adaptive"):
             raise ValueError(
                 "value for solver not understood ({val} not one of {valid})".format(
-                    val=solver, valid=", ".join(("basic", "adaptive")))
+                    val=solver, valid=", ".join(("basic", "adaptive"))
+                )
             )
 
         if latero_mech not in ("UC", "TB"):
             raise ValueError(
                 "value for latero_mech not understood ({val} not one of {valid})".format(
-                    val=latero_mech, valid=", ".join(("UC", "TB")))
+                    val=latero_mech, valid=", ".join(("UC", "TB"))
+                )
             )
 
         if inlet_on and (inlet_node is None or inlet_area is None):
@@ -270,10 +269,12 @@ class LateralEroder(Component):
         self.Kv = Kv  # can be overwritten with spatially variable
         self.inlet_on = False  # will be overwritten below if inlet area is provided
         self.Klr = float(Kl_ratio)  # default ratio of Kv/Kl is 1. Can be overwritten
-        self.wid_coeff = 0.4    #coefficient for calculating channel width
-        self.wid_exp = 0.35    #exponent for calculating channel width
+        self.wid_coeff = 0.4  # coefficient for calculating channel width
+        self.wid_exp = 0.35  # exponent for calculating channel width
 
-        self.dzdt = grid.add_zeros("dzdt", at="node", noclobber=False)  # elevation change rate (M/Y)
+        self.dzdt = grid.add_zeros(
+            "dzdt", at="node", noclobber=False
+        )  # elevation change rate (M/Y)
         # optional inputs
         self.inlet_on = inlet_on
         if inlet_on:
@@ -297,7 +298,7 @@ class LateralEroder(Component):
 
     def run_one_step_basic(self, dt=1.0):
         Klr = self.Klr
-        grid=self.grid
+        grid = self.grid
         UC = self._UC
         TB = self._TB
         inlet_on = self.inlet_on  # this is a true/false flag
@@ -422,10 +423,9 @@ class LateralEroder(Component):
         grid.at_node["topographic__elevation"][grid.core_nodes] = z[grid.core_nodes]
         return grid, dzlat
 
-
     def run_one_step_adaptive(self, dt=1.0):
         Klr = self.Klr
-        grid=self.grid
+        grid = self.grid
         UC = self._UC
         TB = self._TB
         inlet_on = self.inlet_on  # this is a true/false flag
@@ -470,7 +470,7 @@ class LateralEroder(Component):
         # reverse list so we go from upstream to down stream
         dwnst_nodes = dwnst_nodes[::-1]
         # local time
-        time = 0.
+        time = 0.0
         globdt = dt
 
         while time < globdt:
