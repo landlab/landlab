@@ -209,7 +209,7 @@ class GroundwaterDupuitPercolator(Component):
             self.dhdt = self.grid.add_zeros("node", "water_table__velocity")
 
         #just shoving these in here temporarily
-        self.S = grid.calc_grad_at_link(self.elev)
+        self.S = abs(grid.calc_grad_at_link(self.elev))
         self.S_node = map_max_of_node_links_to_node(grid,self.S)
 
 
@@ -228,7 +228,7 @@ class GroundwaterDupuitPercolator(Component):
 
         """
 
-        open_nodes = self._grid.fixed_value_boundary_nodes
+        open_nodes = self._grid.open_boundary_nodes
         links_at_open = self._grid.links_at_node[open_nodes]
         link_dirs_at_open = self._grid.active_link_dirs_at_node[open_nodes]
 
