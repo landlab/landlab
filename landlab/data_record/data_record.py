@@ -536,7 +536,7 @@ class DataRecord(object):
         # create dataset of new record
         ds_to_add = Dataset(data_vars=_new_data_vars, coords=coords_to_add)
         # merge new record and original dataset
-        self.dataset.merge(ds_to_add, inplace="True", compat="no_conflicts")
+        self.dataset = self.dataset.merge(ds_to_add, compat="no_conflicts")
 
     def add_item(self, time=None, new_item=None, new_item_spec=None):
         """Add new item(s) to the current DataRecord.
@@ -701,7 +701,7 @@ class DataRecord(object):
         ds_to_add = Dataset(data_vars=data_vars_dict, coords=coords_to_add)
 
         # Merge new record and original dataset:
-        self.dataset.merge(ds_to_add, inplace="True", compat="no_conflicts")
+        self.dataset = self.dataset.merge(ds_to_add, compat="no_conflicts")
 
     def get_data(self, time=None, item_id=None, data_variable=None):
         """Get the value of a variable at a model time and/or for an item.
