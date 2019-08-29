@@ -12,7 +12,7 @@ class DataRecord(object):
     This class uses a xarray Dataset to store variables. This datastructure is
     located at the property ``dataset``. The DataRecord improves on an xarray
     Dataset by providing additional attributes and functions, including the
-    ability to aggregate values on Landlab grid elements. 
+    ability to aggregate values on Landlab grid elements.
 
     Data variables can vary along one or both of the following dimensions:
         - time (model time)
@@ -155,7 +155,7 @@ class DataRecord(object):
         self._grid = grid
 
         # depending on the grid type, permitted locations for items vary
-        self.permitted_locations = self._grid.groups
+        self._permitted_locations = self._grid.groups
 
         # set initial time coordinates, if any
         if isinstance(time, (list, np.ndarray)):
@@ -276,7 +276,7 @@ class DataRecord(object):
         """Check the location and size of grid_element and element_id."""
         if isinstance(grid_element, string_types):
             # all items are on same type of grid_element
-            if grid_element in self.permitted_locations:
+            if grid_element in self._permitted_locations:
                 pass
             else:
                 raise ValueError(
@@ -306,7 +306,7 @@ class DataRecord(object):
                 if isinstance(loc, np.ndarray):
                     # depending on dims
                     loc = loc[0]
-                if loc in self.permitted_locations:
+                if loc in self._permitted_locations:
                     pass
                 else:
                     raise ValueError(
@@ -319,7 +319,7 @@ class DataRecord(object):
 
     def _check_element_id_values(self, grid_element, element_id):
         """Check that element_id values are valid."""
-        for at in self.permitted_locations:
+        for at in self._permitted_locations:
             max_size = self._grid[at].size
             selected_elements_ind = [
                 i for i in range(len(grid_element)) if grid_element[i] == at
