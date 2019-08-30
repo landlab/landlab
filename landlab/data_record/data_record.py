@@ -60,7 +60,15 @@ class DataRecord(object):
 
     _name = "DataRecord"
 
-    def __init__(self, grid, dummy_elements=None, time=None, items=None, data_vars=None, attrs=None):
+    def __init__(
+        self,
+        grid,
+        dummy_elements=None,
+        time=None,
+        items=None,
+        data_vars=None,
+        attrs=None,
+    ):
         """
         Parameters
         ----------
@@ -353,14 +361,11 @@ class DataRecord(object):
 
             # this needs to work with 2d arrays (rows, col = np.where (so grid element always needs to be at least 2d.))
             ind = np.nonzero(grid_element == at)
-            #print(grid_element)
-            ##print(ind)
-            #print(element_id)
             selected_elements = element_id[ind]
 
             if selected_elements.size > 0:
 
-                dummy_values  = self._dummy_elements.get(at, [])
+                dummy_values = self._dummy_elements.get(at, [])
                 index_values = np.arange(0, max_size)
                 valid_values = np.concatenate((dummy_values, index_values))
 
@@ -925,9 +930,7 @@ class DataRecord(object):
                     )
                 assoc_element_id = new_value
                 assoc_grid_element = self.get_data(time, item_id, "grid_element")[0]
-            self._check_grid_element_and_id(
-                assoc_grid_element, assoc_element_id
-            )
+            self._check_grid_element_and_id(assoc_grid_element, assoc_element_id)
             if assoc_element_id >= self._grid[assoc_grid_element].size:
                 raise ValueError(
                     "The location "

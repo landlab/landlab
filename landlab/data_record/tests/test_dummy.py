@@ -9,8 +9,6 @@ def test_ok_dummy():
     grid = RasterModelGrid((3, 3))
     element_id = [0, 0, 0, -9999, 1, 2, 3, 4, 5]
     volumes = [4, 5, 1, 2, 3, 4, 5, 6, 7]
-    grid_element = "node"
-    data = {"volumes": volumes}
     dr = DataRecord(
         grid,
         dummy_elements={"link": [9999, 1234, -9999], "node": [9999, 1234, -9999]},
@@ -29,10 +27,8 @@ def test_bad_dummy_init(dmmy):
     grid = RasterModelGrid((3, 3))
     element_id = [0, 0, 0, -9999, 1, 2, 3, 4, 5]
     volumes = [4, 5, 1, 2, 3, 4, 5, 6, 7]
-    grid_element = "node"
-    data = {"volumes": volumes}
     with pytest.raises(ValueError):
-        dr = DataRecord(
+        DataRecord(
             grid,
             dummy_elements={"node": [dmmy]},
             items={"grid_element": "node", "element_id": np.array(element_id)},
@@ -45,8 +41,6 @@ def test_add_bad_dummy(dmmy):
     grid = RasterModelGrid((3, 3))
     element_id = [0, 0, 0, -9999, 1, 2, 3, 4, 5]
     volumes = [4, 5, 1, 2, 3, 4, 5, 6, 7]
-    grid_element = "node"
-    data = {"volumes": volumes}
     dr = DataRecord(
         grid,
         dummy_elements={"link": [9999, 1234, -9999], "node": [9999, 1234, -9999]},
