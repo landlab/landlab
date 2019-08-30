@@ -33,7 +33,7 @@ from .overland_flow import (
 from .pet import PotentialEvapotranspiration
 from .plant_competition_ca import VegCA
 from .potentiality_flowrouting import PotentialityFlowRouter
-from .profiler import ChannelProfiler
+from .profiler import ChannelProfiler, Profiler
 from .radiation import Radiation
 from .sink_fill import SinkFiller, SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt, SoilMoisture
@@ -106,6 +106,7 @@ COMPONENTS = [
     LithoLayers,
     TransportLengthHillslopeDiffuser,
     HackCalculator,
+    Profiler,
 ]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]
