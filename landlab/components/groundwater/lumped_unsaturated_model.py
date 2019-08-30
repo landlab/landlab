@@ -49,7 +49,7 @@ def _EvapotranspirationLoss(p,S,Sw,St,ETmax):
     qet[n] = (p==0.0)*_regularize_R((S[n]-Sw[n])/(St[n]-Sw[n]))*ETmax[n]
     return qet
 
-def _LeakageLoss(S,f,qet,Sf,Ksat,dt):
+def _LeakageLoss(f,qet,S,Sf,St,Ksat):
     ql = np.zeros_like(S)
     n = St>0
     ql[n] =  _regularize_R((S[n]-Sf[n])/(St[n]-Sf[n]))*Ksat[n]
@@ -138,7 +138,7 @@ class LumpedUnsaturatedZone(Component):
 
 
     def __init__(self, grid, porosity=0.5, soil_wilting_point=0.18,
-            soil_field_capacity=0.3, plant_rooting_depth=1.0, ETmax=2.0e-7,
+            soil_field_capacity=0.3, plant_rooting_depth=1.0, ETmax=2.0e-8,
             hydraulic_conductivity=0.005):
 
         # Store grid
@@ -200,15 +200,15 @@ class LumpedUnsaturatedZone(Component):
         dt = duration
         self.p = intensity
         self.f = np.minimum(self.p,self.Ksat)
-        self.ho = np.maximum(self.p-self.Ksat,0)
+        self.ho = np.maximum(self.p-self.Ksat,0.)
 
-        self.qet = EvapotranspirationLoss(intensity,self.S,Sw,St,self.ETmax,dt)
-        self.ql = LeakageLoss(self.S,self.f,self.qet,Sf,self.Ksat,dt)
+        self.qet = _EvapotranspirationLoss(intensity,self.S,Sw,St,self.ETmax)
+        self.ql = _LeakageLoss(self.f,self.qet,self.S,Sf,St,self.Ksat)
 
         self.S += self.f*dt - self.qet*dt - self.ql*dt
 
         self.sat[self.thickness > 0.] = self.S[self.thickness > 0.]/self.thickness[self.thickness > 0.]
-        self.sat[self.thickness == 0] = 1.0
+        self.sat[self.thickness == 0.] = 1.0
 
     def get_recharge_rate(self):
         return self.ql
