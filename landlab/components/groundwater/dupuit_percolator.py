@@ -25,6 +25,13 @@ def _regularize_G(u,reg_factor):
 def _regularize_R(u):
     return u*np.greater_equal(u,0)
 
+def get_link_hydraulic_conductivity(grid,K):
+    #where grid is a landlab grid object, and K is a 2D hydraulic conductivity tensor
+    u = grid.unit_vector_at_link
+    K_link = np.zeros(len(u))
+    for i in range(len(u)):
+        K_link[i] = np.dot(np.dot(u[i,:],K),u[i,:])
+    return K_link
 
 class GroundwaterDupuitPercolator(Component):
     """
