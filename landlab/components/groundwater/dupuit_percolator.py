@@ -6,10 +6,10 @@ GroundwaterDupuitPercolator Component
 """
 
 import numpy as np
-from landlab import Component
-from landlab.utils import return_array_at_node, return_array_at_link
-from landlab.grid.mappers import map_mean_of_link_nodes_to_link
 
+from landlab import Component
+from landlab.grid.mappers import map_mean_of_link_nodes_to_link
+from landlab.utils import return_array_at_link, return_array_at_node
 
 ACTIVE_LINK = 0
 
@@ -46,12 +46,16 @@ class GroundwaterDupuitPercolator(Component):
 
     _name = "GroundwaterDupuitPercolator"
 
-    _input_var_names = set(("topographic__elevation",
-                            "aquifer_base__elevation"))
+    _input_var_names = set(("topographic__elevation", "aquifer_base__elevation"))
 
     _output_var_names = set(
-        ("aquifer__thickness", "water_table__elevation", "hydraulic__gradient",
-         "groundwater__specific_discharge", "groundwater__velocity")
+        (
+            "aquifer__thickness",
+            "water_table__elevation",
+            "hydraulic__gradient",
+            "groundwater__specific_discharge",
+            "groundwater__velocity",
+        )
     )
 
     _var_units = {
@@ -61,7 +65,7 @@ class GroundwaterDupuitPercolator(Component):
         "water_table__elevation": "m",
         "hydraulic__gradient": "m/m",
         "groundwater__specific_discharge": "m2/s",
-        "groundwater__velocity": "m/s"
+        "groundwater__velocity": "m/s",
     }
 
     _var_mapping = {
@@ -84,8 +88,7 @@ class GroundwaterDupuitPercolator(Component):
         "groundwater__velocity": "velocity of groundwater in link direction",
     }
 
-    def __init__(self, grid, hydraulic_conductivity=0.01,
-                 recharge_rate=1.0e-8):
+    def __init__(self, grid, hydraulic_conductivity=0.01, recharge_rate=1.0e-8):
         """Initialize the GroundwaterDupuitPercolator.
 
         Parameters
@@ -141,8 +144,7 @@ class GroundwaterDupuitPercolator(Component):
         if "groundwater__specific_discharge" in self._grid.at_link:
             self._q = self._grid.at_link["groundwater__specific_discharge"]
         else:
-            self._q = self._grid.add_zeros("link",
-                                           "groundwater__specific_discharge")
+            self._q = self._grid.add_zeros("link", "groundwater__specific_discharge")
 
         if "groundwater__velocity" in self._grid.at_link:
             self._vel = self._grid.at_link["groundwater__velocity"]
@@ -168,8 +170,7 @@ class GroundwaterDupuitPercolator(Component):
         self._vel[self._grid.status_at_link != 0] = 0.0
 
         # Aquifer thickness at links
-        hlink = map_mean_of_link_nodes_to_link(self._grid,
-                                               'aquifer__thickness')
+        hlink = map_mean_of_link_nodes_to_link(self._grid, "aquifer__thickness")
 
         # Calculate specific discharge
         self._q[:] = hlink * self._vel
@@ -182,5 +183,6 @@ class GroundwaterDupuitPercolator(Component):
         self._thickness[self._grid.core_nodes] += dhdt[self._cores] * dt
 
         # Recalculate water surface height
-        self._wtable[self._grid.core_nodes] = (self._base[self._cores]
-                                               + self._thickness[self._cores])
+        self._wtable[self._grid.core_nodes] = (
+            self._base[self._cores] + self._thickness[self._cores]
+        )
