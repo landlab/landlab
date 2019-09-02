@@ -9,7 +9,7 @@ Created on Fri Feb 20 13:45:52 2015
 from __future__ import print_function
 
 # from landlab import RasterModelGrid
-# from landlab.plot.imshow import imshow_node_grid
+# from landlab.plot.imshow import imshow_grid
 import numpy as np
 from matplotlib.ticker import MaxNLocator
 from pylab import clabel, contour, figure, quiver
@@ -274,7 +274,7 @@ vval = uN[core] + uS[core]
 # velmag = sqrt(uval**2 + vval**2)
 # uval /= velmag
 # vval /= velmag
-# imshow_node_grid(mg, h)
+# imshow_grid(mg, h)
 figure(1)
 mg = RasterModelGrid((nrows, ncols))
 f1 = imshow_grid_at_node(mg, hR[core].flatten(), grid_units=("m", "m"))

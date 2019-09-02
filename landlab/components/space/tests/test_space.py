@@ -20,7 +20,7 @@ def test_route_to_multiple_error_raised():
             K_br=0.1,
             F_f=0.5,
             phi=0.1,
-            H_star=1.,
+            H_star=1.0,
             v_s=0.001,
             m_sp=1.0,
             n_sp=0.5,
@@ -53,7 +53,7 @@ def test_bad_solver_name():
         top_is_closed=True,
     )
     mg.set_watershed_boundary_condition_outlet_id(
-        0, mg["node"]["topographic__elevation"], -9999.
+        0, mg["node"]["topographic__elevation"], -9999.0
     )
     br[:] = z[:] - soil[:]
 
@@ -91,7 +91,7 @@ def test_soil_field_already_on_grid():
     z = mg.add_zeros("node", "topographic__elevation")
     br = mg.add_zeros("node", "bedrock__elevation")
     soil = mg.add_zeros("node", "soil__depth")
-    soil += 1.  # add 1m of soil everywehre
+    soil += 1.0  # add 1m of soil everywehre
 
     mg["node"]["topographic__elevation"] += (
         mg.node_y / 10000 + mg.node_x / 10000 + np.random.rand(len(mg.node_y)) / 10000
@@ -103,7 +103,7 @@ def test_soil_field_already_on_grid():
         top_is_closed=True,
     )
     mg.set_watershed_boundary_condition_outlet_id(
-        0, mg["node"]["topographic__elevation"], -9999.
+        0, mg["node"]["topographic__elevation"], -9999.0
     )
     br[:] = z[:] - soil[:]
 
@@ -147,7 +147,7 @@ def test_br_field_already_on_grid():
 
     z = mg.add_zeros("node", "topographic__elevation")
     br = mg.add_zeros("node", "bedrock__elevation")
-    br += 1.  # make bedrock elevation 5m below surface
+    br += 1.0  # make bedrock elevation 5m below surface
     soil = mg.add_zeros("node", "soil__depth")
 
     mg["node"]["topographic__elevation"] += (
@@ -160,7 +160,7 @@ def test_br_field_already_on_grid():
         top_is_closed=True,
     )
     mg.set_watershed_boundary_condition_outlet_id(
-        0, mg["node"]["topographic__elevation"], -9999.
+        0, mg["node"]["topographic__elevation"], -9999.0
     )
     z[:] = br[:] + soil[:]
 
@@ -216,7 +216,7 @@ def test_matches_detachment_solution():
         top_is_closed=True,
     )
     mg.set_watershed_boundary_condition_outlet_id(
-        0, mg["node"]["topographic__elevation"], -9999.
+        0, mg["node"]["topographic__elevation"], -9999.0
     )
     br[:] = z[:] - soil[:]
 
@@ -238,7 +238,7 @@ def test_matches_detachment_solution():
         K_br=K_br,
         F_f=F_f,
         phi=0.1,
-        H_star=1.,
+        H_star=1.0,
         v_s=0.001,
         m_sp=m_sp,
         n_sp=n_sp,
@@ -255,7 +255,7 @@ def test_matches_detachment_solution():
 
     # compare numerical and analytical slope solutions
     num_slope = mg.at_node["topographic__steepest_slope"][mg.core_nodes]
-    analytical_slope = np.power(U / K_br, 1. / n_sp) * np.power(
+    analytical_slope = np.power(U / K_br, 1.0 / n_sp) * np.power(
         mg.at_node["drainage_area"][mg.core_nodes], -m_sp / n_sp
     )
 
@@ -298,9 +298,9 @@ def test_matches_transport_solution():
         top_is_closed=True,
     )
     mg.set_watershed_boundary_condition_outlet_id(
-        0, mg["node"]["topographic__elevation"], -9999.
+        0, mg["node"]["topographic__elevation"], -9999.0
     )
-    soil[:] += 100.  # initial soil depth of 100 m
+    soil[:] += 100.0  # initial soil depth of 100 m
     br[:] = z[:]
     z[:] += soil[:]
 
@@ -329,7 +329,7 @@ def test_matches_transport_solution():
         K_br=0.01,
         F_f=F_f,
         phi=phi,
-        H_star=1.,
+        H_star=1.0,
         v_s=v_s,
         m_sp=m_sp,
         n_sp=n_sp,
@@ -345,18 +345,21 @@ def test_matches_transport_solution():
         br[mg.core_nodes] += U * dt  # m
         soil[
             0
-        ] = 100.  # enforce constant soil depth at boundary to keep lowering steady
+        ] = 100.0  # enforce constant soil depth at boundary to keep lowering steady
         z[:] = br[:] + soil[:]
 
     # compare numerical and analytical slope solutions
     num_slope = mg.at_node["topographic__steepest_slope"][mg.core_nodes]
     analytical_slope = np.power(
         (
-            (U * v_s)
+            (U * v_s * (1 - phi))
             / (K_sed * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))
         )
-        + (U / (K_sed * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))),
-        1. / n_sp,
+        + (
+            (U * (1 - phi))
+            / (K_sed * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))
+        ),
+        1.0 / n_sp,
     )
 
     # test for match with analytical slope-area relationship
@@ -412,9 +415,9 @@ def test_matches_bedrock_alluvial_solution():
         top_is_closed=True,
     )
     mg.set_watershed_boundary_condition_outlet_id(
-        0, mg["node"]["topographic__elevation"], -9999.
+        0, mg["node"]["topographic__elevation"], -9999.0
     )
-    soil[:] += 0.  # initial condition of no soil depth.
+    soil[:] += 0.0  # initial condition of no soil depth.
     br[:] = z[:]
     z[:] += soil[:]
 
@@ -458,7 +461,7 @@ def test_matches_bedrock_alluvial_solution():
         flooded = np.where(df.flood_status == 3)[0]
         sp.run_one_step(dt=dt, flooded_nodes=flooded)
         br[mg.core_nodes] += U * dt  # m
-        soil[0] = 0.  # enforce 0 soil depth at boundary to keep lowering steady
+        soil[0] = 0.0  # enforce 0 soil depth at boundary to keep lowering steady
         z[:] = br[:] + soil[:]
 
     # compare numerical and analytical slope solutions
@@ -469,7 +472,7 @@ def test_matches_bedrock_alluvial_solution():
             / (K_sed * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))
         )
         + (U / (K_br * np.power(mg.at_node["drainage_area"][mg.core_nodes], m_sp))),
-        1. / n_sp,
+        1.0 / n_sp,
     )
 
     # test for match with analytical slope-area relationship
@@ -517,7 +520,7 @@ def test_can_run_with_hex():
         K_br=0.00000000001,
         F_f=0.5,
         phi=0.1,
-        H_star=1.,
+        H_star=1.0,
         v_s=0.001,
         m_sp=0.5,
         n_sp=1.0,

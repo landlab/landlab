@@ -306,7 +306,7 @@ class MaterialLayers(EventLayers):
         bool
             ``True`` if the new layer is compatible, otherwise ``False``.
         """
-        where_deposition = np.where(dz > 0.)[0]
+        where_deposition = np.where(dz > 0.0)[0]
         if len(where_deposition) > 0:
             for name in kwds:
                 try:
