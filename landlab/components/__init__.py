@@ -17,8 +17,8 @@ from .flow_director import (
 from .flow_routing import DepressionFinderAndRouter, FlowRouter
 from .fracture_grid import FractureGridGenerator
 from .gflex import gFlex
-from .hack_calculator import HackCalculator
 from .groundwater import GroundwaterDupuitPercolator
+from .hack_calculator import HackCalculator
 from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
 from .lithology import LithoLayers, Lithology
