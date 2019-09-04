@@ -55,7 +55,6 @@ grid.at_link["channel_width"][3] = 10
 
 g = 9.81  # m/s2
 rho = 1000  # kg/m3
-active_layer_thickness = 0.5
 
 bed_porosity = 0.3  # porosity of the bed material
 
@@ -177,7 +176,6 @@ nst = NetworkSedimentTransporter(
     parcels,
     fd,
     flow_depth,
-    active_layer_thickness,
     bed_porosity,
     g=9.81,
     fluid_density=1000,

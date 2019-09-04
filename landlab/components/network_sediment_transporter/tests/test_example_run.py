@@ -19,7 +19,6 @@ from landlab.plot import graph
 
 _OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
 
-# %% Set the geometry using Network model grid (should be able to read in a shapefile here)
 def test_example(
     example_nmg, example_parcels, example_flow_director, example_flow_depth
 ):
