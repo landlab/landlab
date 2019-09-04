@@ -12,7 +12,14 @@ from landlab import Component, RasterModelGrid
 from landlab.components.flow_accum import FlowAccumulator
 
 from .node_finder import node_finder
+from landlab.components.erosion_deposition.generalized_erosion_deposition import (
+    _GeneralizedErosionDeposition,
+)
 
+# Hard coded constants
+cfl_cond = 0.3 #CFL timestep condition
+wid_coeff = 0.4  # coefficient for calculating channel width
+wid_exp = 0.35  # exponent for calculating channel width
 
 class LateralEroder(Component):
     """
@@ -51,11 +58,7 @@ class LateralEroder(Component):
         Drainage area at inlet node, must be specified if inlet node is "on", m^2
     qsinlet : float, optional
         Sediment flux supplied at inlet, optional. m3/year
-    
-    **HARD CODED COEFFICIENTS************
-    wid_coeff, wid_exp are a width coefficient and width exponent with hard coded
-    values of 0.4 and 0.35, respectively
-    
+        
     Examples
     --------
     >>> import numpy as np
@@ -262,10 +265,7 @@ class LateralEroder(Component):
             )
 
         self._grid = grid
-        # Hard coded constants
-        self._cfl_cond = 0.3 #CFL timestep condition
-        self._wid_coeff = 0.4  # coefficient for calculating channel width
-        self._wid_exp = 0.35  # exponent for calculating channel width
+
         # Create fields needed for this component if not already existing
         if "volume__lateral_erosion" in grid.at_node:
             self._vol_lat = grid.at_node["volume__lateral_erosion"]
@@ -341,8 +341,6 @@ class LateralEroder(Component):
         vol_lat = self.grid.at_node["volume__lateral_erosion"]
         kw = 10.0
         F = 0.02
-        wid_exp = self._wid_exp
-        wid_coeff = self._wid_coeff
         # May 2, runoff calculated below (in m/s) is important for calculating
         # discharge and water depth correctly. renamed runoffms to prevent
         # confusion with other uses of runoff
@@ -464,7 +462,6 @@ class LateralEroder(Component):
         TB = self._TB
         inlet_on = self._inlet_on  # this is a true/false flag
         Kv = self._Kv
-        cfl_cond = self._cfl_cond
         qs_in = self._qs_in
         dzdt = self._dzdt
         alph = self._alph
@@ -472,8 +469,6 @@ class LateralEroder(Component):
         vol_lat = self.grid.at_node["volume__lateral_erosion"]
         kw = 10.0
         F = 0.02
-        wid_exp = self._wid_exp
-        wid_coeff = self._wid_coeff
         runoffms = (Klr * F / kw) ** 2
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
