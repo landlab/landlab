@@ -19,7 +19,11 @@ class LateralEroder(Component):
     Laterally erode neighbor node through fluvial erosion.
 
     Landlab component that finds a neighbor node to laterally erode and
-    calculates lateral erosion.
+    calculates lateral erosion. 
+    See the publication:
+    Langston, A.L., Tucker, G.T.: Developing and exploring a theory for the
+    lateral erosion of bedrock channels for use in landscape evolution models.
+    Earth Surface Dynamics, 6, 1-27, https://doi.org/10.5194/esurf-6-1-2018
 
     Parameteters
     ------------
@@ -47,7 +51,11 @@ class LateralEroder(Component):
         Drainage area at inlet node, must be specified if inlet node is "on", m^2
     qsinlet : float, optional
         Sediment flux supplied at inlet, optional. m3/year
-
+    
+    **HARD CODED COEFFICIENTS************
+    wid_coeff, wid_exp are a width coefficient and width exponent with hard coded
+    values of 0.4 and 0.35, respectively
+    
     Examples
     --------
     >>> import numpy as np
@@ -241,15 +249,19 @@ class LateralEroder(Component):
             )
 
         self._grid = grid
+        # Hard coded constants
+        self._cfl_cond = 0.3 #CFL timestep condition
+        self._wid_coeff = 0.4  # coefficient for calculating channel width
+        self._wid_exp = 0.35  # exponent for calculating channel width
         # Create fields needed for this component if not already existing
         if "volume__lateral_erosion" in grid.at_node:
-            self.vol_lat = grid.at_node["volume__lateral_erosion"]
+            self._vol_lat = grid.at_node["volume__lateral_erosion"]
         else:
-            self.vol_lat = grid.add_zeros("volume__lateral_erosion", at="node")
+            self._vol_lat = grid.add_zeros("volume__lateral_erosion", at="node")
         if "qs_in" in grid.at_node:
-            self.qs_in = grid.at_node["qs_in"]
+            self._qs_in = grid.at_node["qs_in"]
         else:
-            self.qs_in = grid.add_zeros("qs_in", at="node")
+            self._qs_in = grid.add_zeros("qs_in", at="node")
 
         # you can specify the type of lateral erosion model you want to use.
         # But if you don't the default is the undercutting-slump model
@@ -264,22 +276,19 @@ class LateralEroder(Component):
             self.run_one_step = self.run_one_step_basic
         elif solver == "adaptive":
             self.run_one_step = self.run_one_step_adaptive
-            self.frac = 0.3  # for time step calculations
-        self.alph = alph
-        self.Kv = Kv  # can be overwritten with spatially variable
-        self.inlet_on = False  # will be overwritten below if inlet area is provided
-        self.Klr = float(Kl_ratio)  # default ratio of Kv/Kl is 1. Can be overwritten
-        self.wid_coeff = 0.4  # coefficient for calculating channel width
-        self.wid_exp = 0.35  # exponent for calculating channel width
+        self._alph = alph
+        self._Kv = Kv  # can be overwritten with spatially variable
+        self._Klr = float(Kl_ratio)  # default ratio of Kv/Kl is 1. Can be overwritten
 
-        self.dzdt = grid.add_zeros(
+
+        self._dzdt = grid.add_zeros(
             "dzdt", at="node", noclobber=False
         )  # elevation change rate (M/Y)
         # optional inputs
-        self.inlet_on = inlet_on
+        self._inlet_on = inlet_on
         if inlet_on:
-            self.inlet_node = inlet_node
-            self.inlet_area = inlet_area
+            self._inlet_node = inlet_node
+            self._inlet_area = inlet_area
             # runoff is an array with values of the area of each node (dx**2)
             runoffinlet = np.full(grid.number_of_nodes, grid.dx ** 2, dtype=float)
             # Change the runoff at the inlet node to node area + inlet node
@@ -289,29 +298,29 @@ class LateralEroder(Component):
             )
             # set qsinlet at inlet node. This doesn't have to be provided, defaults
             # to 0.
-            self.qsinlet = qsinlet
-            self.qs_in[self.inlet_node] = self.qsinlet
+            self._qsinlet = qsinlet
+            self._qs_in[self._inlet_node] = self._qsinlet
 
         # handling Kv for floats (inwhich case it populates an array N_nodes long) or
         # for arrays of Kv. Checks that length of Kv array is good.
-        self.Kv = np.ones(self.grid.number_of_nodes, dtype=float) * Kv
+        self._Kv = np.ones(self.grid.number_of_nodes, dtype=float) * Kv
 
     def run_one_step_basic(self, dt=1.0):
-        Klr = self.Klr
+        Klr = self._Klr
         grid = self.grid
         UC = self._UC
         TB = self._TB
-        inlet_on = self.inlet_on  # this is a true/false flag
-        Kv = self.Kv
-        qs_in = self.qs_in
-        dzdt = self.dzdt
-        alph = self.alph
+        inlet_on = self._inlet_on  # this is a true/false flag
+        Kv = self._Kv
+        qs_in = self._qs_in
+        dzdt = self._dzdt
+        alph = self._alph
         self.dt = dt
         vol_lat = self.grid.at_node["volume__lateral_erosion"]
         kw = 10.0
         F = 0.02
-        wid_exp = self.wid_exp
-        wid_coeff = self.wid_coeff
+        wid_exp = self._wid_exp
+        wid_coeff = self._wid_coeff
         # May 2, runoff calculated below (in m/s) is important for calculating
         # discharge and water depth correctly. renamed runoffms to prevent
         # confusion with other uses of runoff
@@ -327,8 +336,8 @@ class LateralEroder(Component):
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
         if inlet_on is True:
-            inlet_node = self.inlet_node
-            qsinlet = self.qsinlet
+            inlet_node = self._inlet_node
+            qsinlet = self._qsinlet
             qs_in[inlet_node] = qsinlet
             q = grid.at_node["surface_water__discharge"]
             da = q / grid.dx ** 2
@@ -394,7 +403,7 @@ class LateralEroder(Component):
         # the height of the neighbor node.
         for i in dwnst_nodes:
             lat_node = lat_nodes[i]
-            wd = 0.4 * (da[i] * runoffms) ** 0.35
+            wd = wid_coeff * (da[i] * runoffms) ** wid_exp
             if lat_node > 0:  # greater than zero now bc inactive neighbors are value -1
                 if z[lat_node] > z[i]:
                     # vol_diff is the volume that must be eroded from lat_node so that its
@@ -424,22 +433,22 @@ class LateralEroder(Component):
         return grid, dzlat
 
     def run_one_step_adaptive(self, dt=1.0):
-        Klr = self.Klr
+        Klr = self._Klr
         grid = self.grid
         UC = self._UC
         TB = self._TB
-        inlet_on = self.inlet_on  # this is a true/false flag
-        Kv = self.Kv
-        frac = self.frac
-        qs_in = self.qs_in
-        dzdt = self.dzdt
-        alph = self.alph
+        inlet_on = self._inlet_on  # this is a true/false flag
+        Kv = self._Kv
+        cfl_cond = self._cfl_cond
+        qs_in = self._qs_in
+        dzdt = self._dzdt
+        alph = self._alph
         self.dt = dt
         vol_lat = self.grid.at_node["volume__lateral_erosion"]
         kw = 10.0
         F = 0.02
-        wid_exp = self.wid_exp
-        wid_coeff = self.wid_coeff
+        wid_exp = self._wid_exp
+        wid_coeff = self._wid_coeff
         runoffms = (Klr * F / kw) ** 2
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
@@ -453,8 +462,8 @@ class LateralEroder(Component):
 
         if inlet_on is True:
             # define inlet_node
-            inlet_node = self.inlet_node
-            qsinlet = self.qsinlet
+            inlet_node = self._inlet_node
+            qsinlet = self._qsinlet
             qs_in[inlet_node] = qsinlet
             q = grid.at_node["surface_water__discharge"]
             da = q / grid.dx ** 2
@@ -519,7 +528,7 @@ class LateralEroder(Component):
             # or at least a flattening of the landscape.
             # Limit dt so that this flattening or reversal doesn't happen.
             # How close you allow these two points to get to eachother is
-            # determined by the variable frac.
+            # determined by the cfl timestep condition, hard coded to equal 0.3
             # dtn is an arbitrarily large number to begin with, but will be adapted as we step through
             # the nodes
             dtn = dt * 50  # starting minimum timestep for this round
@@ -538,7 +547,7 @@ class LateralEroder(Component):
                     # time to flat
                     if dzdtdif * dtflat > (z[i] - z[flowdirs[i]]):
                         dtn = (z[i] - z[flowdirs[i]]) / dzdtdif
-            dtn *= frac
+            dtn *= cfl_cond
             # new minimum timestep for this round of nodes
             dt = min(abs(dtn), dt)
             assert dt > 0.0, "timesteps less than 0."
@@ -551,7 +560,7 @@ class LateralEroder(Component):
             # the height of the neighbor node.
             for i in dwnst_nodes:
                 lat_node = lat_nodes[i]
-                wd = 0.4 * (da[i] * runoffms) ** 0.35
+                wd = wid_coeff * (da[i] * runoffms) ** wid_exp
                 if (
                     lat_node > 0
                 ):  # greater than zero now bc inactive neighbors are value -1
