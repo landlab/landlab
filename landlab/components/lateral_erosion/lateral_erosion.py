@@ -8,7 +8,7 @@ ALangston
 
 import numpy as np
 
-from landlab import Component
+from landlab import Component, RasterModelGrid
 from landlab.components.flow_accum import FlowAccumulator
 
 from .node_finder import node_finder
@@ -28,7 +28,7 @@ class LateralEroder(Component):
     Parameteters
     ------------
     grid : ModelGrid
-        A Landlab grid object
+        A Landlab square cell raster grid object
     latero_mech : string, optional (defaults to UC)
         Lateral erosion algorithm, choices are "UC" for undercutting-slump
         model and "TB" for total block erosion
@@ -224,6 +224,19 @@ class LateralEroder(Component):
         inlet_area=None,
         qsinlet=0.0,
     ):
+        
+        assert isinstance(grid, RasterModelGrid), "LateralEroder requires a sqare raster grid."
+        
+        if "flow__receiver_node" in grid.at_node:
+            if grid.at_node["flow__receiver_node"].size != grid.size("node"):
+                msg = (
+                    "A route-to-multiple flow director has been "
+                    "run on this grid. The LateralEroder is not currently "
+                    "compatible with route-to-multiple methods. Use a route-to-"
+                    "one flow director."
+                )
+                raise NotImplementedError(msg)
+
         if solver not in ("basic", "adaptive"):
             raise ValueError(
                 "value for solver not understood ({val} not one of {valid})".format(
@@ -306,6 +319,15 @@ class LateralEroder(Component):
         self._Kv = np.ones(self.grid.number_of_nodes, dtype=float) * Kv
 
     def run_one_step_basic(self, dt=1.0):
+        """Calculate vertical and lateral erosion for
+        a time period 'dt'.
+
+        Parameters
+        ----------
+        dt : float
+            Model timestep [T]
+
+        """
         Klr = self._Klr
         grid = self.grid
         UC = self._UC
@@ -393,6 +415,7 @@ class LateralEroder(Component):
 
             # send sediment downstream. sediment eroded from vertical incision
             # and lateral erosion is sent downstream
+#            print("debug before 406")
             qs_in[flowdirs[i]] += (
                 qs_in[i] - (dzver[i] * grid.dx ** 2) - (petlat * grid.dx * wd)
             )  # qsin to next node
@@ -428,11 +451,13 @@ class LateralEroder(Component):
         # combine vertical and lateral erosion
         dz = dzdt + dzlat
         # change height of landscape
-        z[:] = dz + z
-        grid.at_node["topographic__elevation"][grid.core_nodes] = z[grid.core_nodes]
+        z[:] += dz
         return grid, dzlat
 
     def run_one_step_adaptive(self, dt=1.0):
+        """Run time step with adaptive time stepping to prevent
+        slope flattening.
+        """
         Klr = self._Klr
         grid = self.grid
         UC = self._UC
@@ -589,8 +614,7 @@ class LateralEroder(Component):
             # dzlat, which is already a length for the chosen time step
             dz = dzdt * dt + dzlat
             # change height of landscape
-            z[:] = dz + z
-            grid["node"]["topographic__elevation"][grid.core_nodes] = z[grid.core_nodes]
+            z[:] += dz
             # update elapsed time
             time = dt + time
             # check to see that you are within 0.01% of the storm duration, if so
