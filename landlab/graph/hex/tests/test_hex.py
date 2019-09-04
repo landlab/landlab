@@ -4,62 +4,60 @@ from numpy.testing import assert_array_almost_equal, assert_array_equal
 from pytest import approx
 
 from landlab.graph import TriGraph
-from landlab.graph.hex.ext.hex import (
-    fill_xy_of_node_hex_vertical,
-    fill_xy_of_node_rect_vertical,
+from landlab.graph.hex.hex import (
+    HorizontalHexTriGraph,
+    HorizontalRectTriGraph,
+    VerticalHexTriGraph,
+    VerticalRectTriGraph,
 )
-from landlab.graph.hex.hex import number_of_nodes, setup_xy_of_node
 
 
-@pytest.mark.parametrize("n_cols", (2, 3))
-@pytest.mark.parametrize("n_rows", (1, 2, 3))
-@pytest.mark.parametrize("orientation", ("horizontal", "vertical"))
-@pytest.mark.parametrize("node_layout", ("rect", "hex"))
-def test_number_of_nodes(node_layout, orientation, n_rows, n_cols):
-    expected = {
-        "rect": {
-            "horizontal": {
-                (1, 2): 2,
-                (1, 3): 3,
-                (2, 2): 4,
-                (2, 3): 6,
-                (3, 2): 6,
-                (3, 3): 9,
-            },
-            "vertical": {
-                (1, 2): 2,
-                (1, 3): 3,
-                (2, 2): 4,
-                (2, 3): 6,
-                (3, 2): 6,
-                (3, 3): 9,
-            },
-        },
-        "hex": {
-            "horizontal": {
-                (1, 2): 2,
-                (1, 3): 3,
-                (2, 2): 5,
-                (2, 3): 7,
-                (3, 2): 7,
-                (3, 3): 10,
-            },
-            "vertical": {
-                (1, 2): 3,
-                (1, 3): 4,
-                (2, 2): 5,
-                (2, 3): 7,
-                (3, 2): 7,
-                (3, 3): 10,
-            },
-        },
-    }
-    assert (
-        number_of_nodes(
-            (n_rows, n_cols), orientation=orientation, node_layout=node_layout
-        )
-        == expected[node_layout][orientation][(n_rows, n_cols)]
-    )
+def test_number_of_nodes_horizontal_rect():
+    assert HorizontalRectTriGraph.number_of_nodes((1, 2)) == 2
+    assert HorizontalRectTriGraph.number_of_nodes((1, 3)) == 3
+    assert HorizontalRectTriGraph.number_of_nodes((2, 2)) == 4
+    assert HorizontalRectTriGraph.number_of_nodes((2, 3)) == 6
+    assert HorizontalRectTriGraph.number_of_nodes((3, 2)) == 6
+    assert HorizontalRectTriGraph.number_of_nodes((3, 3)) == 9
+
+
+def test_number_of_nodes_vertical_rect():
+    assert VerticalRectTriGraph.number_of_nodes((1, 2)) == 2
+    assert VerticalRectTriGraph.number_of_nodes((1, 3)) == 3
+    assert VerticalRectTriGraph.number_of_nodes((2, 2)) == 4
+    assert VerticalRectTriGraph.number_of_nodes((2, 3)) == 6
+    assert VerticalRectTriGraph.number_of_nodes((3, 2)) == 6
+    assert VerticalRectTriGraph.number_of_nodes((3, 3)) == 9
+
+
+def test_number_of_nodes_horizontal_hex():
+    assert HorizontalHexTriGraph.number_of_nodes((1, 2)) == 2
+    assert HorizontalHexTriGraph.number_of_nodes((1, 3)) == 3
+    assert HorizontalHexTriGraph.number_of_nodes((2, 2)) == 5
+    assert HorizontalHexTriGraph.number_of_nodes((2, 3)) == 7
+    assert HorizontalHexTriGraph.number_of_nodes((3, 2)) == 7
+    assert HorizontalHexTriGraph.number_of_nodes((3, 3)) == 10
+
+
+def test_number_of_nodes_vertical_hex():
+    assert VerticalHexTriGraph.number_of_nodes((1, 2)) == 3
+    assert VerticalHexTriGraph.number_of_nodes((1, 3)) == 4
+    assert VerticalHexTriGraph.number_of_nodes((2, 2)) == 5
+    assert VerticalHexTriGraph.number_of_nodes((2, 3)) == 7
+    assert VerticalHexTriGraph.number_of_nodes((3, 2)) == 7
+    assert VerticalHexTriGraph.number_of_nodes((3, 3)) == 10
+
+
+def test_number_of_nodes_symetric_rect(hex_shape):
+    assert VerticalRectTriGraph.number_of_nodes(
+        hex_shape
+    ) == HorizontalRectTriGraph.number_of_nodes(hex_shape[::-1])
+
+
+def test_number_of_nodes_symetric_hex(hex_shape):
+    assert VerticalHexTriGraph.number_of_nodes(
+        hex_shape
+    ) == HorizontalHexTriGraph.number_of_nodes(hex_shape[::-1])
 
 
 @pytest.mark.parametrize("n_rows", (3,))
@@ -106,37 +104,25 @@ def test_create_hex():
     assert graph.number_of_patches == 6
 
 
-@pytest.mark.skip
-def test_create_rect1():
-    """Test creating a hex graph."""
-    graph = TriGraph((3, 2), node_layout="rect1")
-
-    assert graph.number_of_nodes == 7
-    assert graph.number_of_links == 12
-    assert graph.number_of_patches == 6
-
-
-def test_spacing():
+def test_spacing(small_hex_shape):
     """Test spacing of nodes."""
-    graph = TriGraph((20, 31))
+    graph = TriGraph(small_hex_shape)
     assert_array_almost_equal(graph.length_of_link, 1.0)
 
-    graph = TriGraph((31, 20), spacing=2)
+    graph = TriGraph(small_hex_shape, spacing=2)
     assert_array_almost_equal(graph.length_of_link, 2.0)
 
 
-@pytest.mark.parametrize("n_cols", (3, 4))
-@pytest.mark.parametrize("n_rows", (3, 4))
 @pytest.mark.parametrize("orientation", ("horizontal", "vertical"))
 @pytest.mark.parametrize("node_layout", ("hex", "rect"))
-def test_origin_keyword(node_layout, orientation, n_rows, n_cols):
+def test_origin_keyword(node_layout, orientation, small_hex_shape):
     """Test setting the origin."""
-    graph = TriGraph((n_rows, n_cols))
+    graph = TriGraph(small_hex_shape)
 
     assert np.min(graph.x_of_node) == approx(0.0)
     assert np.min(graph.y_of_node) == approx(0.0)
 
-    graph = TriGraph((n_rows, n_cols), xy_of_lower_left=(0.5, 0.25))
+    graph = TriGraph(small_hex_shape, xy_of_lower_left=(0.5, 0.25))
 
     assert np.min(graph.x_of_node[0]) == approx(0.5)
     assert np.min(graph.y_of_node[0]) == approx(0.25)
@@ -162,7 +148,7 @@ def test_perimeter_nodes_rect():
 
 def test_perimeter_nodes_hex():
     graph = TriGraph((4, 2), node_layout="hex")
-    assert_array_equal(graph.perimeter_nodes, [1, 4, 8, 11, 10, 9, 5, 2, 0])
+    assert_array_equal(graph.perimeter_nodes, [8, 11, 10, 9, 5, 2, 0, 1, 4])
 
 
 def test_adjacent_nodes_at_node():
@@ -186,19 +172,23 @@ def test_adjacent_nodes_at_node():
 
 def test_patches_at_node():
     grid = TriGraph((3, 3), node_layout="hex", sort=True)
-    assert_array_equal(grid.patches_at_node,
-                       [[ 0,  2, -1, -1, -1, -1],
-                        [ 1,  3,  0, -1, -1, -1],
-                        [ 4,  1, -1, -1, -1, -1],
-                        [ 5,  2, -1, -1, -1, -1],
-                        [ 6,  8,  5,  2,  0,  3],
-                        [ 7,  9,  6,  3,  1,  4],
-                        [ 7,  4, -1, -1, -1, -1],
-                        [ 5,  8, -1, -1, -1, -1],
-                        [ 8,  6,  9, -1, -1, -1],
-                        [ 9,  7, -1, -1, -1, -1]])
+    assert_array_equal(
+        grid.patches_at_node,
+        [
+            [0, 2, -1, -1, -1, -1],
+            [1, 3, 0, -1, -1, -1],
+            [4, 1, -1, -1, -1, -1],
+            [5, 2, -1, -1, -1, -1],
+            [6, 8, 5, 2, 0, 3],
+            [7, 9, 6, 3, 1, 4],
+            [7, 4, -1, -1, -1, -1],
+            [5, 8, -1, -1, -1, -1],
+            [8, 6, 9, -1, -1, -1],
+            [9, 7, -1, -1, -1, -1],
+        ],
+    )
 
-# @pytest.mark.skip
+
 @pytest.mark.parametrize("n_cols", (2, 3))
 @pytest.mark.parametrize("n_rows", (2, 3))
 def test_xy_of_node_rect_vertical(n_rows, n_cols):
@@ -208,11 +198,11 @@ def test_xy_of_node_rect_vertical(n_rows, n_cols):
         (3, 2): ([0, 1, 0, 1, 0, 1], [0, 0.5, 1, 1.5, 2, 2.5]),
         (3, 3): ([0, 2, 1, 0, 2, 1, 0, 2, 1], [0, 0, 0.5, 1, 1, 1.5, 2, 2, 2.5]),
     }
-    x_of_node = np.empty(n_rows * n_cols, dtype=float)
-    y_of_node = np.empty(n_rows * n_cols, dtype=float)
-    fill_xy_of_node_rect_vertical((n_rows, n_cols), x_of_node, y_of_node)
+    x_of_node, y_of_node = VerticalRectTriGraph.xy_of_node((n_rows, n_cols))
 
-    assert np.all(x_of_node == approx(expected[(n_rows, n_cols)][0]))
+    assert np.all(
+        x_of_node / np.sin(np.pi / 3.0) == approx(expected[(n_rows, n_cols)][0])
+    )
     assert np.all(y_of_node == approx(expected[(n_rows, n_cols)][1]))
 
 
@@ -220,35 +210,36 @@ def test_xy_of_node_rect_vertical(n_rows, n_cols):
 @pytest.mark.parametrize("n_rows", (1, 2, 3))
 def test_xy_of_node_hex_vertical(n_rows, n_cols):
     expected = {
-        (1, 2): ([0.5, 0, 0.5], [0, 1, 2]),
-        (1, 3): ([0.5, 0, 1, 0.5], [0, 1, 1, 2]),
-        (2, 2): ([0.5, 0, 0.5, 0, 0.5], [0, 1, 2, 3, 4]),
-        (2, 3): ([0.5, 0, 1, 0.5, 0, 1, 0.5], [0, 1, 1, 2, 3, 3, 4]),
-        (3, 2): ([0.5, 0, 0.5, 0, 0.5, 0.0, 0.5], [0, 1, 2, 3, 4, 5, 6]),
+        (1, 2): ([1.0, 0, 1.0], [0, 0.5, 1]),
+        (1, 3): ([1.0, 0, 2, 1.0], [0, 0.5, 0.5, 1]),
+        (2, 2): ([1.0, 0, 1.0, 0, 1.0], [0, 0.5, 1, 1.5, 2]),
+        (2, 3): ([1.0, 0, 2, 1.0, 0, 2, 1.0], [0, 0.5, 0.5, 1, 1.5, 1.5, 2]),
+        (3, 2): ([1.0, 0, 1.0, 0, 1.0, 0.0, 1.0], [0, 0.5, 1, 1.5, 2, 2.5, 3]),
         (3, 3): (
-            [0.5, 0, 1, 0.5, 0, 1, 0.5, 0, 1, 0.5],
-            [0, 1, 1, 2, 3, 3, 4, 5, 5, 6],
+            [1.0, 0, 2, 1.0, 0, 2, 1.0, 0, 2, 1.0],
+            [0, 0.5, 0.5, 1, 1.5, 1.5, 2, 2.5, 2.5, 3],
         ),
     }
-    n_nodes = number_of_nodes(
-        (n_rows, n_cols), orientation="vertical", node_layout="hex"
-    )
-    x_of_node = np.empty(n_nodes, dtype=float)
-    y_of_node = np.empty(n_nodes, dtype=float)
-    fill_xy_of_node_hex_vertical((n_rows, n_cols), x_of_node, y_of_node)
+    x_of_node, y_of_node = VerticalHexTriGraph.xy_of_node((n_rows, n_cols))
 
-    assert np.all(x_of_node == approx(expected[(n_rows, n_cols)][0]))
+    assert np.all(
+        x_of_node / np.sin(np.pi / 3.0) == approx(expected[(n_rows, n_cols)][0])
+    )
     assert np.all(y_of_node == approx(expected[(n_rows, n_cols)][1]))
+
+
+def test_xy_of_node_spacing(hex_layout):
+    x_of_node_expected, y_of_node_expected = hex_layout.xy_of_node((3, 4))
+    x_of_node, y_of_node = hex_layout.xy_of_node((3, 4), spacing=2.0)
+
+    assert_array_almost_equal(x_of_node / 2.0, x_of_node_expected)
+    assert_array_almost_equal(y_of_node / 2.0, y_of_node_expected)
 
 
 @pytest.mark.parametrize("n_cols", (2, 3))
 @pytest.mark.parametrize("n_rows", (1, 2, 3))
-@pytest.mark.parametrize("orientation", ("horizontal", "vertical"))
-@pytest.mark.parametrize("node_layout", ("hex", "rect"))
-def test_xy_of_node_lower_left(node_layout, orientation, n_rows, n_cols):
-    (x_of_node, y_of_node) = setup_xy_of_node(
-        (n_rows, n_cols), orientation=orientation, node_layout=node_layout
-    )
+def test_xy_of_node_lower_left(hex_layout, n_rows, n_cols):
+    (x_of_node, y_of_node) = hex_layout.xy_of_node((n_rows, n_cols))
 
     assert np.min(x_of_node) == approx(0.0)
     assert np.min(y_of_node) == approx(0.0)

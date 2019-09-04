@@ -1,7 +1,14 @@
+import numpy as np
+
 from ..dual import DualGraph
-from ..voronoi.dual_voronoi import create_dual_graph, DualVoronoiGraph
-from .hex import TriGraph, setup_xy_of_node
-from .perimeternodes import perimeter_links
+from ..voronoi.dual_voronoi import DualVoronoiGraph
+from .hex import (
+    HorizontalHexTriGraph,
+    HorizontalRectTriGraph,
+    TriGraph,
+    VerticalHexTriGraph,
+    VerticalRectTriGraph,
+)
 
 
 class DualHexGraph(DualGraph, TriGraph):
@@ -54,34 +61,19 @@ class DualHexGraph(DualGraph, TriGraph):
             the layout to approximate a rectangle and *hex* for
             a hexagon.
         """
-        if 0:
-            TriGraph.__init__(
-                self,
-                shape,
-                spacing=spacing,
-                xy_of_lower_left=xy_of_lower_left,
-                orientation=orientation,
-                node_layout=node_layout,
-                sort=False,
-            )
+        if node_layout not in ("rect", "hex"):
+            raise ValueError("node_layout not understood")
 
-            if node_layout == "hex":
-                max_node_spacing = None
-            else:
-                max_node_spacing = shape[1] + 1
+        if orientation not in ("horizontal", "vertical"):
+            raise ValueError("orientation not understood")
 
-            dual_graph, node_at_cell, nodes_at_face = create_dual_graph(
-                (self.y_of_node, self.x_of_node),
-                min_cell_size=6,
-                max_node_spacing=max_node_spacing,
-            )
-
-            self.merge(dual_graph, node_at_cell=node_at_cell, nodes_at_face=nodes_at_face)
-
-            if sort:
-                self.sort()
-
-            return
+        layouts = {
+            "horizontal_hex": HorizontalHexTriGraph,
+            "vertical_hex": VerticalHexTriGraph,
+            "horizontal_rect": HorizontalRectTriGraph,
+            "vertical_rect": VerticalRectTriGraph,
+        }
+        layout = layouts["_".join([orientation, node_layout])]
 
         try:
             spacing = float(spacing)
@@ -90,35 +82,21 @@ class DualHexGraph(DualGraph, TriGraph):
 
         self._shape = tuple(shape)
         self._spacing = spacing
+        self._orientation = orientation
+        self._node_layout = node_layout
 
-        if node_layout not in ("rect", "hex"):
-            raise ValueError("node_layout not understood")
-        else:
-            self._node_layout = node_layout
-
-        if orientation not in ("horizontal", "vertical"):
-            raise ValueError("orientation not understood")
-        else:
-            self._orientation = orientation
-
-        x_of_node, y_of_node = setup_xy_of_node(
-            shape,
-            spacing=spacing,
-            xy_of_lower_left=xy_of_lower_left,
-            orientation=orientation,
-            node_layout=node_layout,
+        x_of_node, y_of_node = layout.xy_of_node(
+            shape, spacing=spacing, xy_of_lower_left=xy_of_lower_left
         )
+        self._perimeter_nodes = layout.perimeter_nodes(shape)
 
-        _perimeter_links = perimeter_links(
-            self.shape, orientation=self.orientation, node_layout=self.node_layout
-        )
-        self._perimeter_nodes = _perimeter_links[:, 0].copy()
+        perimeter_links = np.empty((len(self._perimeter_nodes), 2), dtype=int)
+        perimeter_links[:, 0] = self._perimeter_nodes
+        perimeter_links[:-1, 1] = self._perimeter_nodes[1:]
+        perimeter_links[-1, 1] = self._perimeter_nodes[0]
 
         DualVoronoiGraph.__init__(
-            self,
-            (y_of_node, x_of_node),
-            perimeter_links=_perimeter_links,
-            sort=False,
+            self, (y_of_node, x_of_node), perimeter_links=perimeter_links, sort=False
         )
 
         if sort:
