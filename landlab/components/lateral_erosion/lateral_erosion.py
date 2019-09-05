@@ -47,6 +47,10 @@ class LateralEroder(Component):
         Drainage area at inlet node, must be specified if inlet node is "on", m^2
     qsinlet : float, optional
         Sediment flux supplied at inlet, optional. m3/year
+    flow_accumulator : Instantiated Landlab FlowAccumulator, optional
+        When solver is set to "adaptive", then a valid Landlab FlowAccumulator
+        must be passed. It will be run within sub-timesteps in order to update
+        the flow directions and drainage area.
 
     Examples
     --------
@@ -215,6 +219,7 @@ class LateralEroder(Component):
         inlet_node=None,
         inlet_area=None,
         qsinlet=0.0,
+        flow_accumulator=None,
     ):
         if solver not in ("basic", "adaptive"):
             raise ValueError(
@@ -239,6 +244,13 @@ class LateralEroder(Component):
             raise ValueError(
                 "Kv must be set as a float, node array, or field name. It was None."
             )
+
+        if solver == "adaptive":
+            if not isinstance(flow_accumulator, FlowAccumulator):
+                raise ValueError(("When the adaptive solver is used, a valid "
+                                  "FlowAccumulator must be passed on "
+                                  "instantiation."))
+            self._flow_accumulator = flow_accumulator
 
         self._grid = grid
         # Create fields needed for this component if not already existing
@@ -593,17 +605,10 @@ class LateralEroder(Component):
             else:
                 dt = globdt - time
                 qs_in = grid.zeros(centering="node")
-                # recalculate flow directions
 
-                fa = FlowAccumulator(
-                    grid,
-                    surface="topographic__elevation",
-                    flow_director="FlowDirectorD8",
-                    runoff_rate=None,
-                    depression_finder="DepressionFinderAndRouter",
-                    router="D8",
-                )
-                (da, q) = fa.accumulate_flow()
+                # recalculate flow directions
+                (da, q) = self._flow_accumulator.accumulate_flow()
+
                 if inlet_on:
                     #                   #if inlet on, reset drainage area and qsin to reflect inlet conditions
                     # this is the drainage area that I need for code below with an inlet
