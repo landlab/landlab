@@ -17,6 +17,7 @@ from .flow_director import (
 )
 from .fracture_grid import FractureGridGenerator
 from .gflex import gFlex
+from .groundwater import GroundwaterDupuitPercolator
 from .hack_calculator import HackCalculator
 from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
@@ -53,6 +54,7 @@ from .weathering import ExponentialWeatherer
 
 COMPONENTS = [
     ChiFinder,
+    GroundwaterDupuitPercolator,
     ChannelProfiler,
     LinearDiffuser,
     Flexure,
