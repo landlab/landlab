@@ -1,6 +1,6 @@
 # coding: utf8
 # ! /usr/env/python
-"""profiler.py component to create user-defined profiles."""
+"""profiler.py component to create profiles with user-defined endpoints."""
 from collections import OrderedDict
 
 import matplotlib as mpl
@@ -8,174 +8,178 @@ from matplotlib import cm
 import matplotlib.pyplot as plt
 import numpy as np
 
-from landlab import FieldError
 from landlab.components.profiler.base_profiler import _BaseProfiler
 
 
 class Profiler(_BaseProfiler):
-    """Extract and plot profiles defined by points within a grid."""
+    """Extract and plot profiles defined by points within a grid.
 
+    The profile is constructed from the first to final point in `endpoints`.
+    Endpoints are located at grid nodes. Two successive endpoints bound a
+    profile segment. A profile with one segment is a straight line. The
+    segments of a profile with multiple segments meet at endpoints. Every grid
+    node along the profile and between segment endpoints is sampled, including
+    the segment endpoints.
+
+    The structure of the profile in a model grid is diagramed below. The
+    diagram is explained in this list:
+    -   The grid contains nine columns and nine rows.
+    -   The profile is constructed from three endpoints that bound two
+        segments.
+    -   In the diagram below, 'o' indicates a segment endpoint, '.' and '*' are
+        sample nodes of the first and second segment, respectively. 'X' are
+        nodes not included in the profile.
+    -   Segments have seven sample points each (nodes at endpoints are also
+        sampled).
+    -   The first segment begins in the lower-left and continues horizontally
+        and almost reaches the right boundary. The second segment is joined to
+        the first in the lower-right of the grid and it continues diagonally to
+        the upper-left.
+    -   Segment and sample ordering is dictated by the ordering of endpoints.
+        The endpoints used to construct this profile must be of been ordered
+        lower-left, lower-right, and then upper-left because the horizontal
+        segment was designated as being first.
+
+        X X X X X X X X X
+        X o X X X X X X X
+        X X * X X X X X X
+        X X X * X X X X X
+        X X X X * X X X X
+        X X X X X * X X X
+        X X X X X X * X X
+        X o . . . . . o X
+        X X X X X X X X X
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components import Profiler
+    >>> mg = RasterModelGrid((10, 10), 10)
+    >>> mg.at_node['topographic__elevation'] = mg.node_x * mg.node_y
+
+    Create a profile with three endpoints.
+    >>> endpoints = [10, 16, 64]
+    >>> profiler = Profiler(mg, endpoints)
+    profiler.run_one_step()
+
+    The keys of the network structure are the segment ids.
+    >>> profiler.network_structure.keys()
+    odict_keys([0, 1])
+
+    The nodes of the first segment.
+    >>> profiler.network_structure[0]['ids']
+    [10, 11, 12, 13, 14, 15, 16]
+
+    The first node of the second segment is the same as the final node of the
+    first segment.
+    >>> profiler.network_structure[1]['ids']
+    [16, 24, 32, 40, 48, 56, 64]
+
+    Alternative to nodes, profiles can be instantiated with coordinates.
+    >>> profiler = Profiler(mg, [(10, 10), (70, 10), (10, 70)])
+
+    Endpoints can also be set with a combination of coordinates and nodes.
+    >>> profiler = Profiler(mg, [(10, 10), 16, (10, 70)])
+    """
     _name = "Profiler"
 
-    def __init__(self, grid, field, trace_nodes, sample_spacing=None,
-                 cmap="viridis"):
+    def __init__(self, grid, endpoints, cmap="viridis"):
         """Instantiate Profiler.
 
         Parameters
         ----------
         grid : RasterModelGrid
             A landlab RasterModelGrid.
-        field : string
-            The `grid` field at nodes in which to extract the profile.
-        trace_nodes : tuple list or integer list
-            Each element of the list is a node along the profile trace. The
-            first and last nodes in this list are the trace endpoints. The
-            second to penultimate nodes in this list are trace vertices.
-            elements can be tuples of coordinates (x, y) and/or node ids.
-        sample_spacing : float, integer, or none
-            The distance along the profile to sample `field`. The default value
-            of `none` will set the sample spacing to the `dx` of `grid`.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> from landlab.plot import FieldProfiler
-        >>> from numpy import array
-        >>> mg = RasterModelGrid((7, 7), 10)
-        >>> z = array([
-        ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.,
-        ...     -9999.,    26.,     0.,    30.,    32.,    34., -9999.,
-        ...     -9999.,    28.,     1.,    25.,    28.,    32., -9999.,
-        ...     -9999.,    30.,     3.,     3.,    11.,    34., -9999.,
-        ...     -9999.,    32.,    11.,    25.,    18.,    38., -9999.,
-        ...     -9999.,    34.,    32.,    34.,    36.,    40., -9999.,
-        ...     -9999., -9999., -9999., -9999., -9999., -9999., -9999.])
-        >>> mg.at_node['topographic__elevation'] = z
-        >>> mg.set_watershed_boundary_condition_outlet_id(2, z,
-        ...     nodata_value=-9999.)
-
-        Create profile with tuples of endpoint (ep) coordinates.
-        >>> ep0 = (9.5, 28.1)
-        >>> ep1 = (48.0, 29.5)
-        >>> field = 'topographic__elevation'
-        >>> fp = FieldProfiler(mg, field, [ep0, ep1])
-
-        Arrays of profile and grid field values will match at the nodes where
-        the profile crosses.
-        >>> row_mask = mg.y_of_node[mg.core_nodes] == 3 * mg.dy
-        >>> fp.field_value == mg.at_node[field][mg.core_nodes][row_mask]
-        array([ True,  True,  True,  True,  True], dtype=bool)
+        endpoints : list of integers or list of tuples
+            The endpoints that bound segments of the profile. Endpoints can be
+            node ids and tuples of coordinates (x, y). Both node ids and
+            coordinate tuples can be used in the same endpoint list. The
+            profile begins with the first element of `endpoints` and continues
+            in the order of this list.
+        cmap : str
+            A valid matplotlib cmap string. Default is "viridis".
         """
         super(_BaseProfiler, self).__init__(grid)
 
-        if field not in grid.at_node.keys():
-            raise FieldError('the field, {} must be a field of the input grid '
-                             'at nodes to create a profile'.format(field))
-
-        if not isinstance(trace_nodes, list) or len(trace_nodes) < 2:
-            msg = '`trace_nodes` must be a list of at least 2 nodes'
+        if not isinstance(endpoints, list) and len(endpoints) > 1:
+            msg = ('`endpoints` must be a list of at least 2 nodes or a list '
+                   'of at least two tuples where each tuple contains the x, y '
+                   'coordinates of endpoints.')
             raise ValueError(msg)
 
-        # Store inputs.
-
         self._grid = grid
-        self._field = field
-        self._trace_nodes = trace_nodes
+        self._endpoints = endpoints
         self._cmap = plt.get_cmap(cmap)
 
-        if sample_spacing == None:
-            self._spacing = self._grid.dx
-        else:
-            self._spacing = sample_spacing
+    @property
+    def network_structure(self):
+        """OrderedDict defining the profile.
+
+        The node IDs and distances upstream of the channel network are stored
+        in `network_structure`. It is a dictionary with keys of the segment
+        ID.
+
+        First, 'ids' contains a list of the segment node IDs ordered from
+        the start to the end of the profile. It includes the endpoints. Second,
+        'distances' contains a list of along-profile distances that mirrors the
+        list in 'ids'. Finally, 'color' is an RGBA tuple indicating the color
+        for the segment.
+        """
+        return self._net_struct
 
     def _create_profile_structure(self):
-        """ """
-        # Track profile cumulative distance by iteratively adding segment
-        # lengths.
+        """Create the network data structure of the profile.
 
-        cum_distance = 0
-
-        # The sample length remainder is tracked to apply it to the beginning
-        # of the next segment next for the purpose of sample spacing.
-
-        seg_sample_len_remainder = 0
-
-        # Process the profile by segment. Segments are bound by successive
-        # elements in `points`.
-
+        The profile is processed by segment. Segments are bound by successive
+        endpoints. The cumulative distance along the profile is accumulated by
+        iteratively adding segment lengths.
+        """
         self._net_struct = OrderedDict()
-        n_points = len(self._trace_nodes)
+        grid = self._grid
+        endpts = self._endpoints
+        cum_dist = 0
 
-        for i, node in enumerate(self._trace_nodes):
-            x, y = self._grid.xy_of_node[node]
+        for i_endpt in range(len(endpts) - 1):
+            # Get the endpoints and samples of the segment.
 
-            if i == 0:
-                continue
+            start_node, start_xy = self._get_node_and_coords(endpts[i_endpt])
+            end_node, end_xy = self._get_node_and_coords(endpts[i_endpt + 1])
 
-            # `h` is segment start index and `i` is segment end index.
-            h = i - 1
-            xh, yh = self._grid.xy_of_node[self._trace_nodes[h]]
+            sample_nodes = self._get_sample_nodes(start_node, end_node)
 
-            # Calculate total segment length.
+            # Calculate the along-profile distance of samples along the
+            # segment.
 
-            seg_len = np.sqrt((x - xh)**2 + (y - yh)**2)
+            n_samples = len(sample_nodes)
+            sample_distances = np.empty(n_samples, dtype=float)
 
-            # Calculate `d_samples`: the distance values along the segment.
+            for i_sample, node in enumerate(sample_nodes):
+                sample_xy = grid.xy_of_node[node]
 
-            if seg_sample_len_remainder == 0:
-                d_min = 0
-                n_samples = int(np.floor((seg_len - d_min) / self._spacing)) + 1
-                d_max = (n_samples - 1) * self._spacing
-                print(1, d_min, n_samples, d_max)
+                pt = self._project_point_onto_line(sample_xy, start_xy, end_xy)
+                d = grid.calc_distances_of_nodes_to_point(
+                        pt, node_subset=start_node)
+                sample_distances[i_sample] = d
 
-            else:
-                d_min = self._spacing - seg_sample_len_remainder
-                n_samples = int(np.floor((seg_len - d_min) / self._spacing)) + 1
-                d_max = n_samples * self._spacing - seg_sample_len_remainder
-                print(2, d_min, n_samples, d_max)
+            # Store the segment data.
 
-            d_samples = np.linspace(d_min, d_max, n_samples)
+            self._net_struct[i_endpt] = {
+                    'ids': sample_nodes,
+                    'distances': sample_distances + cum_dist}
 
-            # Ensure segment endpoint is included even when its distance is not
-            # a multiple of sample spacing.
-
-            if seg_len not in d_samples:
-                d_samples = np.append(d_samples, seg_len)
-
-            # Get segment sample coordinates.
-
-            d_norm = d_samples / seg_len
-            x_sample = xh + d_norm * (x - xh)
-            y_sample = yh + d_norm * (y - yh)
-
-            # Adjust first segment sample given the remainder sample length
-            # from prior segment. Then update segment remainder.
-
-            d_samples += seg_sample_len_remainder
-
-            seg_sample_len_remainder = seg_len - d_max
-
-            # Set the network structure for the segment.
-
-            seg_nodes = self._grid.find_nearest_node((x_sample, y_sample))
-
-            self._net_struct[i] = {'ids': seg_nodes,
-                                   'distances': d_samples + cum_distance}
-
-            cum_distance += d_max
+            cum_dist += max(sample_distances)
 
         self._assign_colors()
         self._create_flat_structures()
 
     def _assign_colors(self, color_mapping=None):
-        """Assign a unique color for each watershed.
+        """Assign a unique color for each segment.
 
         Parameters
         ----------
         color_mapping : str
             Color map name.
         """
-
         if color_mapping is None:
             segment_count = len(self._net_struct)
             norm = mpl.colors.Normalize(vmin=0, vmax=segment_count)
@@ -202,3 +206,112 @@ class Profiler(_BaseProfiler):
             self._distance_along_profile.append(
                     self._net_struct[segment_id]["distances"])
             self._colors.append(self._net_struct[segment_id]["color"])
+
+    def _get_node_and_coords(self, point):
+        """Get the node and coordinates for a point.
+
+        The point might be a node or tuple. This method handles this option.
+        """
+        if isinstance(point, (float, int)):
+            return point, self._grid.xy_of_node[point]
+        elif isinstance(point, tuple):
+            return self._grid.find_nearest_node(point), point
+        else:
+            raise TypeError('each element of `endpoints` must be a number '
+                            'representing a node id or a tuple of node x, y '
+                            'coordinates')
+
+    def _get_sample_nodes(self, start_node, end_node):
+        """Get the profile sample nodes using Bresenham's line algorithm.
+
+        Parameters
+        ----------
+        start_node, end_node : integer
+            The node id of the profile endpoints.
+
+        Returns
+        -------
+        list of integers
+            The node ids of the profile samples.
+
+        Notes
+        -----
+        See: https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+        """
+        # Get node column and row numbers to act as the coordinates.
+
+        y0, x0 = np.argwhere(self._grid.nodes == start_node)[0]
+        y1, x1 = np.argwhere(self._grid.nodes == end_node)[0]
+
+        dx = x1 - x0
+        dy = y1 - y0
+
+        trace_is_steep = abs(dy) > abs(dx)
+
+        if trace_is_steep:
+            # Transpose the profile trace.
+            x0, y0 = y0, x0
+            x1, y1 = y1, x1
+
+        swapped_nodes = x0 > x1
+
+        if swapped_nodes:
+            # Swap the start and end nodes.
+            x0, x1 = x1, x0
+            y0, y1 = y1, y0
+
+        dx = x1 - x0
+        dy = y1 - y0
+
+        error = int(dx / 2.)
+        if y0 < y1:
+            y_step = 1
+        else:
+            y_step = -1
+
+        # Iterate within the bounding box to identify the profile sample nodes.
+
+        samples = []
+        y = y0
+
+        for x in range(x0, x1 + 1):
+            if trace_is_steep:
+                coord = (x, y)
+            else:
+                coord = (y, x)
+
+            samples.append(self._grid.grid_coords_to_node_id(*coord))
+
+            error -= abs(dy)
+            if error < 0:
+                y += y_step
+                error += dx
+
+        if swapped_nodes:
+            # Reverse the list if the endpoint nodes were swapped.
+            samples.reverse()
+
+        return samples
+
+    def _project_point_onto_line(self, p, ep0, ep1):
+        """Get the coordinates along a line nearest to a point.
+
+        Parameters
+        ----------
+        p : tuple of floats
+            The x, y coordinates of the point to project onto the line.
+        ep0, ep1 : tuple of floats
+            The endpoints of the line. Each endpoint is a tuple of x, y
+            coordinates.
+
+        Returns
+        -------
+        tuple
+            The x, y coordinates along a line (bounded by `ep1` and `ep2`) that
+            is nearest to `p`.
+        """
+        dx, dy = ep1[0] - ep0[0], ep1[1] - ep0[1]
+        determinant = dx * dx + dy * dy
+        coeff = (dy * (p[1] - ep0[1]) + dx * (p[0] - ep0[0])) / determinant
+
+        return ep0[0] + coeff * dx, ep0[1] + coeff * dy
