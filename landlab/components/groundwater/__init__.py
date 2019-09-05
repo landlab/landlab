@@ -7,6 +7,4 @@
 
 from .dupuit_percolator import GroundwaterDupuitPercolator
 
-__all__ = [
-    "GroundwaterDupuitPercolator",
-]
+__all__ = ["GroundwaterDupuitPercolator"]
