@@ -123,7 +123,11 @@ def shape_for_storage(array, field_size=None):
         field_size = array.size
 
     if array.size % field_size != 0:
-        raise ValueError("unable to reshape array to field size")
+        raise ValueError(
+            "unable to reshape array to field size ({0} != {1})".format(
+                array.size, field_size
+            )
+        )
 
     if field_size in (1, array.size):
         shape = (array.size,)
@@ -194,12 +198,17 @@ class FieldDataset(dict):
             dims = (self._name,)
             if value_array.ndim > 1:
                 dims += (name + "_per_" + self._name,)
+            elif value_array.ndim == 0:
+                dims = ()
 
         if name in self._ds:
             self._ds = self._ds.drop(name)
 
         self._ds.update({name: xr.DataArray(value_array, dims=dims, attrs=attrs)})
         self._units[name] = attrs["units"]
+
+    def pop(self, name):
+        self._ds = self._ds.drop(name)
 
     def __getitem__(self, name):
         if isinstance(name, str):
@@ -390,7 +399,7 @@ class GraphFields(object):
         """
         dataset_name = "at_" + loc
         if loc not in self._groups:
-            setattr(self, dataset_name, FieldDataset(loc, size))
+            setattr(self, dataset_name, FieldDataset(loc, size, fixed_size=size is not None))
             self._groups.add(loc)
         else:
             raise ValueError("{loc} location already exists".format(loc=loc))
