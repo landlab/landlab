@@ -59,6 +59,7 @@ array([[4, 3, 0, 1],
        [8, 7, 4, 5]])
 """
 import json
+from functools import lru_cache
 
 import numpy as np
 import xarray as xr
@@ -73,8 +74,8 @@ from .quantity.of_link import (
     get_midpoint_of_link,
 )
 from .quantity.of_patch import get_area_of_patch, get_centroid_of_patch
-from .sort import reindex_by_xy, reorder_links_at_patch, sort_links_at_patch
-from .sort.sort import reorient_link_dirs, reverse_one_to_many
+from .sort import reindex_by_xy
+from .sort.sort import reorient_link_dirs, reverse_one_to_many, sort_spokes_at_hub
 from .ugrid import ugrid_from_unstructured
 
 
@@ -189,17 +190,13 @@ class NetworkGraph:
         with self.thawed():
             reorient_link_dirs(self)
             sorted_nodes, sorted_links, sorted_patches = reindex_by_xy(self)
-            try:
-                self.links_at_patch
-            except AttributeError:
-                pass
-            else:
-                sort_links_at_patch(
+            if "links_at_patch" in self.ds:
+                sort_spokes_at_hub(
                     self.links_at_patch,
-                    self.nodes_at_link,
-                    self.xy_of_node,
+                    np.round(self.xy_of_patch, decimals=4),
+                    np.round(self.xy_of_link, decimals=4),
+                    inplace=True,
                 )
-            # reorder_links_at_patch(self)
 
         return sorted_nodes, sorted_links, sorted_patches
 
@@ -687,12 +684,57 @@ class NetworkGraph:
 
         return out
 
+    @property
+    @lru_cache()
+    def adjacent_links_at_link(self):
+        from .object.ext.at_link import find_adjacent_links_at_link
+
+        adjacent_links_at_link = np.empty((self.number_of_links, 2), dtype=int)
+
+        find_adjacent_links_at_link(
+            self.nodes_at_link, self.links_at_node, adjacent_links_at_link
+        )
+
+        return adjacent_links_at_link
+
+    @property
+    @lru_cache()
+    def unit_vector_at_link(self):
+        """Make arrays to store the unit vectors associated with each link.
+
+        For each link, the x and y components of the link's unit vector (that
+        is, the link's x and y dimensions if it were shrunk to unit length but
+        retained its orientation).
+
+        Examples
+        --------
+
+        The example below is a seven-node hexagonal grid, with six nodes around
+        the perimeter and one node (#3) in the interior. There are four
+        horizontal links with unit vector (1,0), and 8 diagonal links with
+        unit vector (+/-0.5, +/-sqrt(3)/2) (note: sqrt(3)/2 ~ 0.866).
+
+        >>> from landlab.graph import TriGraph
+        >>> graph = TriGraph((3, 2), spacing=2.0, node_layout="hex", sort=True)
+
+        >>> np.round(graph.unit_vector_at_link[:, 0], decimals=1)
+        array([ 1. , -0.5,  0.5, -0.5,  0.5,  1. ,  1. ,  0.5, -0.5,  0.5, -0.5,
+                1. ])
+        >>> np.round(graph.unit_vector_at_link[:, 1], decimals=5)
+        array([ 0.     ,  0.86603,  0.86603,  0.86603,  0.86603,  0.     ,
+                0.     ,  0.86603,  0.86603,  0.86603,  0.86603,  0.     ])
+        """
+        u = np.diff(self.xy_of_node[self.nodes_at_link], axis=1).reshape((-1, 2))
+        return u / np.linalg.norm(u, axis=1).reshape((-1, 1))
+
 
 class Graph(NetworkGraph):
 
     """Define the connectivity of a graph of nodes, links, and patches."""
 
     def __init__(self, node_y_and_x, links=None, patches=None, sort=False):
+        if patches is not None and len(patches) == 0:
+            patches = None
         self._ds = ugrid_from_unstructured(node_y_and_x, links=links, patches=patches)
 
         self._frozen = False
@@ -715,7 +757,14 @@ class Graph(NetworkGraph):
         with self.thawed():
             reorient_link_dirs(self)
             sorted_nodes, sorted_links, sorted_patches = reindex_by_xy(self)
-            reorder_links_at_patch(self)
+            # reorder_links_at_patch(self)
+            if "links_at_patch" in self.ds:
+                sort_spokes_at_hub(
+                    self.links_at_patch,
+                    np.round(self.xy_of_patch, decimals=4),
+                    np.round(self.xy_of_link, decimals=4),
+                    inplace=True,
+                )
 
         return sorted_nodes, sorted_links, sorted_patches
 
@@ -818,6 +867,7 @@ class Graph(NetworkGraph):
 
     @property
     # @store_result_in_grid()
+    @lru_cache()
     @read_only_array
     def nodes_at_patch(self):
         """Get the nodes that define a patch.
@@ -840,10 +890,16 @@ class Graph(NetworkGraph):
 
         LLCATS: NINF
         """
-        return get_nodes_at_patch(self)
+        # return get_nodes_at_patch(self)
+        nodes_at_patch = get_nodes_at_patch(self)
+        sort_spokes_at_hub(
+            nodes_at_patch, self.xy_of_patch, self.xy_of_node, inplace=True
+        )
+        return nodes_at_patch
 
     @property
-    @store_result_in_grid()
+    # @store_result_in_grid()
+    @lru_cache()
     @read_only_array
     def patches_at_node(self):
         """Get the patches that touch each node.
@@ -859,12 +915,16 @@ class Graph(NetworkGraph):
         >>> patches = ((0, 3, 5, 2), (1, 4, 6, 3))
         >>> graph = Graph((node_y, node_x), links=links, patches=patches, sort=True)
         >>> graph.patches_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 0, -1], [ 0,  1], [ 1, -1],
+        array([[ 0, -1], [ 1,  0], [ 1, -1],
                [ 0, -1], [ 0,  1], [ 1, -1]])
 
         LLCATS: PINF
         """
-        return reverse_one_to_many(self.nodes_at_patch)
+        patches_at_node = reverse_one_to_many(self.nodes_at_patch)
+        sort_spokes_at_hub(
+            patches_at_node, self.xy_of_node, self.xy_of_patch, inplace=True
+        )
+        return patches_at_node
 
     @property
     @store_result_in_grid()
@@ -889,7 +949,10 @@ class Graph(NetworkGraph):
 
         LLCATS: PINF
         """
-        return reverse_one_to_many(self.links_at_patch, min_counts=2)
+        patches_at_link = reverse_one_to_many(self.links_at_patch, min_counts=2)
+        # reorder_patches_at_link(patches_at_link, inplace=True)
+        return patches_at_link
+
         try:
             return self.ds["patches_at_link"].values
         except KeyError:
