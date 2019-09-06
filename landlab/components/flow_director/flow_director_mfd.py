@@ -192,7 +192,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     wave.
 
     >>> from landlab import HexModelGrid
-    >>> mg = HexModelGrid(5,3)
+    >>> mg = HexModelGrid((5, 3))
     >>> _ = mg.add_field(
     ...     'topographic__elevation',
     ...     mg.node_x + numpy.round(mg.node_y),

@@ -13,18 +13,48 @@ from landlab import HexModelGrid
 
 def test_hex_grid_link_order():
     """Test the order of links in a small hex grid."""
-    hg = HexModelGrid(3, 2)
-    assert_array_equal(hg.node_at_link_tail, [0, 0, 0, 1, 1, 2, 3, 2, 3, 3, 4, 5])
-    assert_array_equal(hg.node_at_link_head, [1, 2, 3, 3, 4, 3, 4, 5, 5, 6, 6, 6])
+    grid = HexModelGrid((3, 2))
+    assert_array_equal(
+        grid.nodes_at_link,
+        [
+            [0, 1],
+            [0, 2],
+            [0, 3],
+            [1, 3],
+            [1, 4],
+            [2, 3],
+            [3, 4],
+            [2, 5],
+            [3, 5],
+            [3, 6],
+            [4, 6],
+            [5, 6],
+        ]
+    )
 
-    hg = HexModelGrid(2, 3, orientation="vertical")
-    assert_array_equal(hg.node_at_link_tail, [1, 0, 0, 1, 3, 1, 2, 4, 3, 3, 4, 6])
-    assert_array_equal(hg.node_at_link_head, [0, 2, 3, 3, 2, 4, 5, 3, 5, 6, 6, 5])
+    grid = HexModelGrid((2, 3), orientation="vertical")
+    assert_array_equal(
+        grid.nodes_at_link,
+        [
+            [1, 0],
+            [0, 2],
+            [0, 3],
+            [1, 3],
+            [3, 2],
+            [1, 4],
+            [2, 5],
+            [4, 3],
+            [3, 5],
+            [3, 6],
+            [4, 6],
+            [6, 5],
+        ]
+    )
 
 
 def test_nodes_at_link():
     """Test nodes_at_link shares data with tail and head."""
-    grid = HexModelGrid(3, 2)
+    grid = HexModelGrid((3, 2))
 
     assert_array_equal(grid.nodes_at_link[:, 0], grid.node_at_link_tail)
     assert_array_equal(grid.nodes_at_link[:, 1], grid.node_at_link_head)
@@ -34,19 +64,19 @@ def test_nodes_at_link():
 
 
 def test_face_at_link():
-    grid = HexModelGrid(3, 3)
+    grid = HexModelGrid((3, 3))
     assert_array_equal(grid.face_at_link,
                        [-1, -1, -1,  0,  1,  2,  3, -1,  4,  5,  6, -1, 7,  8,
                          9, 10, -1, -1, -1])
 
 
-def test_width_of_face():
-    grid = HexModelGrid(3, 3)
-    assert grid.width_of_face == approx(np.tan(np.pi / 6.), abs=1e-5)
-    assert len(grid.width_of_face) == grid.number_of_faces
+def test_length_of_face():
+    grid = HexModelGrid((3, 3))
+    assert grid.length_of_face == approx(np.tan(np.pi / 6.), abs=1e-5)
+    assert len(grid.length_of_face) == grid.number_of_faces
 
 
 def test_link_at_face():
-    grid = HexModelGrid(3, 3)
+    grid = HexModelGrid((3, 3))
     assert_array_equal(grid.link_at_face,
                        [ 3,  4,  5,  6,  8,  9, 10, 12, 13, 14, 15])

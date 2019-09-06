@@ -55,7 +55,7 @@ def calc_grad_at_link(grid, node_values, out=None):
            -5. , -3.6,  0. ,  0. ,  0. ,  0. ])
 
     >>> from landlab import HexModelGrid
-    >>> hg = HexModelGrid(3, 3, 10.0)
+    >>> hg = HexModelGrid((3, 3), spacing=10.0)
     >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
@@ -169,7 +169,7 @@ def calculate_gradients_at_faces(grid, node_values, out=None):
     array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
 
     >>> from landlab import HexModelGrid
-    >>> hg = HexModelGrid(3, 3, 10.0)
+    >>> hg = HexModelGrid((3, 3), spacing=10.0)
     >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
@@ -308,7 +308,7 @@ def calc_unit_normal_at_patch(grid, elevs="topographic__elevation"):
     Examples
     --------
     >>> from landlab import HexModelGrid
-    >>> mg = HexModelGrid(3, 3)
+    >>> mg = HexModelGrid((3, 3))
     >>> z = mg.node_x * 3. / 4.
     >>> mg.calc_unit_normal_at_patch(z)
     array([[-0.6,  0. ,  0.8],
@@ -543,7 +543,7 @@ def calc_slope_at_node(
     >>> np.allclose(cmp[1], - np.pi / 4.)
     True
 
-    >>> mg = RadialModelGrid(num_shells=9)
+    >>> mg = RadialModelGrid(n_rings=9)
     >>> z = mg.radius_at_node
     >>> slopes = mg.calc_slope_at_node(elevs=z)
     >>> mean_ring_slope = []

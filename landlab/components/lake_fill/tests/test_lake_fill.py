@@ -56,7 +56,7 @@ def test_bad_init_method2():
 
 
 def test_bad_init_gridmethod():
-    hmg = HexModelGrid(30, 29, dx=3.0)
+    hmg = HexModelGrid((30, 29), spacing=3.0)
     hmg.add_zeros("node", "topographic__elevation", dtype=float)
     with pytest.raises(ValueError):
         LakeMapperBarnes(hmg, method="D8")
@@ -117,7 +117,7 @@ def test_neighbor_shaping_D4():
 
 
 def test_neighbor_shaping_hex():
-    hmg = HexModelGrid(6, 5, dx=1.0)
+    hmg = HexModelGrid((6, 5), spacing=1.0)
     hmg.add_zeros("node", "topographic__elevation", dtype=float)
     hmg.add_zeros("node", "topographic__steepest_slope", dtype=float)
     hmg.add_zeros("node", "flow__receiver_node", dtype=int)

@@ -199,7 +199,7 @@ def calc_net_flux_at_node(grid, unit_flux_at_links, out=None):
               0.,    0.,    0.])
 
     >>> from landlab import HexModelGrid
-    >>> hg = HexModelGrid(3, 3, 10.0)
+    >>> hg = HexModelGrid((3, 3), spacing=10.0)
     >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
@@ -274,7 +274,7 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     array([ 114.,   22.])
 
     >>> from landlab import HexModelGrid
-    >>> hg = HexModelGrid(3, 3, 10.0)
+    >>> hg = HexModelGrid((3, 3), spacing=10.0)
     >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
@@ -295,7 +295,7 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     """
     if out is None:
         out = grid.empty(at="cell")
-    total_flux = unit_flux_at_faces * grid.width_of_face
+    total_flux = unit_flux_at_faces * grid.length_of_face
     out = np.zeros(grid.number_of_cells)
     fac = grid.faces_at_cell
     for c in range(grid.link_dirs_at_node.shape[1]):
@@ -390,7 +390,7 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     array([ 114.,   22.])
 
     >>> from landlab import HexModelGrid
-    >>> hg = HexModelGrid(3, 3, 10.0)
+    >>> hg = HexModelGrid((3, 3), spacing=10.0)
     >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
@@ -410,7 +410,7 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     """
     if out is None:
         out = grid.empty(at="cell")
-    total_flux = unit_flux_at_faces * grid.width_of_face
+    total_flux = unit_flux_at_faces * grid.length_of_face
     out = np.zeros(grid.number_of_cells)
     fac = grid.faces_at_cell
     for c in range(grid.active_link_dirs_at_node.shape[1]):
@@ -514,7 +514,7 @@ def _calc_net_active_link_flux_at_node(grid, unit_flux_at_links, out=None):
               0.,    0.,    0.])
 
     >>> from landlab import HexModelGrid
-    >>> hg = HexModelGrid(3, 3, 10.0)
+    >>> hg = HexModelGrid((3, 3), spacing=10.0)
     >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
@@ -644,7 +644,7 @@ def _calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None):
               0.,    0.,    0.])
 
     >>> from landlab import HexModelGrid
-    >>> hg = HexModelGrid(3, 3, 10.0)
+    >>> hg = HexModelGrid((3, 3), spacing=10.0)
     >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
@@ -712,7 +712,7 @@ def _calc_net_active_face_flux_at_node(grid, unit_flux_at_faces, out=None):
               0.,    0.,    0.])
 
     >>> from landlab import HexModelGrid
-    >>> hg = HexModelGrid(3, 3, 10.0)
+    >>> hg = HexModelGrid((3, 3), spacing=10.0)
     >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
     >>> z[4] = 50.0
     >>> z[5] = 36.0

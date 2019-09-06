@@ -8,6 +8,7 @@ Created on Thu Jul  9 08:20:06 2015
 """
 
 import numpy as np
+import pytest
 from numpy.testing import assert_array_equal, assert_raises
 
 from landlab import HexModelGrid, RasterModelGrid
@@ -121,7 +122,7 @@ def test_raster_cts():
     # Test that passing a random seed other than 0 changes the event queue.
     # Do this by creating a RasterCTS identical to the previous one but with
     # a different random seed.
-    mg = RasterModelGrid(4, 4)
+    mg = RasterModelGrid((4, 4))
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     nsg = mg.add_ones("node", "node_state_map", dtype=int)
     nsg[6] = 0
@@ -152,7 +153,13 @@ def test_oriented_raster_cts():
 
 def test_hex_cts():
     """Tests instantiation of a HexCTS() object"""
-    mg = HexModelGrid(3, 2, 1.0, orientation='vertical', node_layout='hex', reorient_links=True)
+    mg = HexModelGrid(
+        (3, 2),
+        spacing=1.0,
+        orientation='vertical',
+        node_layout="hex",
+        # reorient_links=True,
+    )
     nsd = {0 : "zero", 1 : "one"}
     xnlist = []
     xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "transitioning"))
@@ -165,7 +172,13 @@ def test_hex_cts():
 
 def test_oriented_hex_cts():
     """Tests instantiation of an OrientedHexCTS() object"""
-    mg = HexModelGrid(3, 2, 1.0, orientation="vertical", node_layout="hex", reorient_links=True)
+    mg = HexModelGrid(
+        (3, 2),
+        spacing=1.0,
+        orientation="vertical",
+        node_layout="hex",
+        reorient_links=True,
+    )
     nsd = {0 : "zero", 1 : "one"}
     xnlist = []
     xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "transitioning"))
@@ -330,7 +343,7 @@ def test_setup_transition_data():
 def test_transitions_as_ids():
     """Test passing from-state and to-state IDs instead of tuples """
 
-    mg = HexModelGrid(3, 2, 1.0, orientation="vertical", reorient_links=True)
+    mg = HexModelGrid((3, 2), spacing=1.0, orientation="vertical", reorient_links=True)
     nsd = {0: "zero", 1: "one"}
     xnlist = []
     xnlist.append(Transition(2, 3, 1.0, "transitioning"))
@@ -341,7 +354,7 @@ def test_transitions_as_ids():
 
 def test_handle_grid_mismatch():
     """Test error handling when user passes wrong grid type."""
-    mg = HexModelGrid(3, 2, 1.0, orientation="vertical", reorient_links=True)
+    mg = HexModelGrid((3, 2), spacing=1.0, orientation="vertical", reorient_links=True)
     nsd = {0: "zero", 1: "one"}
     xnlist = []
     xnlist.append(Transition(2, 3, 1.0, "transitioning"))

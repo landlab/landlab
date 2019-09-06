@@ -57,8 +57,9 @@ def is_perim_link(link, grid):
     --------
     >>> from landlab import HexModelGrid
     >>> import numpy as np
-    >>> mg = HexModelGrid(3, 4, 1.0, orientation='vertical',
-    ...                   node_layout='rect')
+    >>> mg = HexModelGrid(
+    ...     (3, 4), spacing=1.0, orientation="vertical", node_layout="rect"
+    ... )
     >>> is_perim_link(6, mg)
     True
     >>> is_perim_link(17, mg)
@@ -101,7 +102,7 @@ class HexLatticeTectonicizer(object):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid(6, 6, node_layout='rect')
+        >>> hg = HexModelGrid((6, 6), node_layout="rect")
         >>> hlt = HexLatticeTectonicizer()
         >>> hlt.grid.number_of_nodes
         25
@@ -115,9 +116,8 @@ class HexLatticeTectonicizer(object):
             num_rows = _DEFAULT_NUM_ROWS
             num_cols = _DEFAULT_NUM_COLS
             self.grid = HexModelGrid(
-                num_rows,
-                num_cols,
-                dx=1.0,
+                (num_rows, num_cols),
+                spacing=1.0,
                 orientation="vertical",
                 node_layout="rect",
                 reorient_links=True,
@@ -160,8 +160,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     >>> pid = np.arange(25, dtype=int)
     >>> pdata = np.arange(25)
     >>> ns = np.arange(25, dtype=int)
-    >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical',
-    ...                     node_layout='rect')
+    >>> grid = HexModelGrid(
+    ...     (5, 5), spacing=1.0, orientation='vertical', node_layout='rect'
+    ... )
     >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
     >>> lnf.first_fw_col
     1
@@ -175,8 +176,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     >>> pid = np.arange(16, dtype=int)
     >>> ns = np.arange(16, dtype=int)
     >>> pdata = np.arange(16)
-    >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical',
-    ...                     node_layout='rect')
+    >>> grid = HexModelGrid(
+    ...     (4, 4), spacing=1.0, orientation="vertical", node_layout="rect"
+    ... )
     >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
     >>> lnf.num_fw_rows
     array([0, 1, 3, 4])
@@ -193,8 +195,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
     >>> pid = np.arange(20, dtype=int)
     >>> ns = np.arange(20, dtype=int)
     >>> pdata = np.arange(20)
-    >>> grid = HexModelGrid(4, 5, 1.0, orientation='vertical',
-    ...                     node_layout='rect')
+    >>> grid = HexModelGrid(
+    ...     (4, 5), spacing=1.0, orientation="vertical", node_layout="rect"
+    ... )
     >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
     >>> lnf.incoming_node
     array([1, 3, 4, 6])
@@ -230,8 +233,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
         >>> ns = np.arange(25, dtype=int)
-        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical',
-        ...                     node_layout='rect')
+        >>> grid = HexModelGrid(
+        ...     (5, 5), spacing=1.0, orientation="vertical", node_layout="rect"
+        ... )
         >>> lnf = LatticeNormalFault(-0.01, grid, ns, pid, pdata, 0.0)
         >>> lnf.first_fw_col
         0
@@ -245,8 +249,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pid = np.arange(16, dtype=int)
         >>> pdata = np.arange(16)
         >>> ns = np.arange(16, dtype=int)
-        >>> grid = HexModelGrid(4, 4, 1.0, orientation='vertical',
-        ...                     node_layout='rect')
+        >>> grid = HexModelGrid(
+        ...     (4, 4), spacing=1.0, orientation="vertical", node_layout="rect"
+        ... )
         >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
         >>> lnf.first_fw_col
         1
@@ -260,8 +265,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pid = np.arange(45, dtype=int)
         >>> pdata = np.arange(45)
         >>> ns = np.arange(45, dtype=int)
-        >>> grid = HexModelGrid(5, 9, 1.0, orientation='vertical',
-        ...                     node_layout='rect')
+        >>> grid = HexModelGrid(
+        ...     (5, 9), spacing=1.0, orientation="vertical", node_layout="rect"
+        ... )
         >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
         >>> lnf.first_fw_col
         1
@@ -456,8 +462,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
         >>> ns = np.arange(25, dtype=int)
-        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical',
-        ...                     node_layout='rect')
+        >>> grid = HexModelGrid(
+        ...     (5, 5), spacing=1.0, orientation="vertical", node_layout="rect"
+        ... )
         >>> lnf = LatticeNormalFault(-0.01, grid, ns, pid, pdata, 0.0)
         >>> lnf.link_offset_id[16:24]
         array([37, 17, 18, 19, 40, 21, 22, 43])
@@ -469,8 +476,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pid = np.arange(36, dtype=int)
         >>> pdata = np.arange(36)
         >>> ns = np.arange(36, dtype=int)
-        >>> grid = HexModelGrid(6, 6, 1.0, orientation='vertical',
-        ...                     node_layout='rect')
+        >>> grid = HexModelGrid(
+        ...     (6, 6), spacing=1.0, orientation="vertical", node_layout="rect"
+        ... )
         >>> lnf = LatticeNormalFault(-0.1, grid, ns, pid, pdata, 0.0)
         >>> lnf.first_link_shifted_from
         19
@@ -518,7 +526,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid(5, 5, orientation='vert', node_layout='rect')
+        >>> hg = HexModelGrid((5, 5), orientation="vertical", node_layout="rect")
         >>> lu = LatticeNormalFault(fault_x_intercept=-0.01, grid=hg)
         >>> lu.first_link_shifted_to
         37
@@ -574,8 +582,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> from landlab.ca.celllab_cts import Transition
         >>> import numpy as np
 
-        >>> mg = HexModelGrid(5, 5, 1.0, orientation='vertical',
-        ...                   node_layout='rect')
+        >>> mg = HexModelGrid(
+        ...     (5, 5), spacing=1.0, orientation="vertical", node_layout="rect"
+        ... )
         >>> nsd = {0 : 'yes', 1 : 'no'}
         >>> xnlist = []
         >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'test'))
@@ -620,8 +629,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> from landlab.ca.celllab_cts import Transition
         >>> import numpy as np
 
-        >>> mg = HexModelGrid(5, 5, 1.0, orientation='vertical',
-        ...                   node_layout='rect')
+        >>> mg = HexModelGrid(
+        ...     (5, 5), spacing=1.0, orientation="vertical", node_layout="rect"
+        ... )
         >>> nsd = {0 : 'yes', 1 : 'no'}
         >>> xnlist = []
         >>> xnlist.append(Transition((1,0,0), (1,1,0), 1.0, 'frogging'))
@@ -687,8 +697,9 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> pid = np.arange(25, dtype=int)
         >>> pdata = np.arange(25)
         >>> ns = np.arange(25, dtype=int)
-        >>> grid = HexModelGrid(5, 5, 1.0, orientation='vertical',
-        ...                     node_layout='rect')
+        >>> grid = HexModelGrid(
+        ...     (5, 5), spacing=1.0, orientation="vertical", node_layout="rect"
+        ... )
         >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
         >>> lnf.do_offset(rock_state=25)
         >>> ns
@@ -796,8 +807,9 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> lu.inner_base_row_nodes
         array([1, 3, 4])
 
-        >>> hg = HexModelGrid(5, 6, 1.0, orientation='vertical',
-        ...                   node_layout='rect')
+        >>> hg = HexModelGrid(
+        ...     (5, 6), spacing=1.0, orientation="vertical", node_layout="rect"
+        ... )
         >>> lu = LatticeUplifter(grid=hg)
         >>> lu.inner_base_row_nodes
         array([1, 2, 3, 4])
@@ -845,13 +857,13 @@ class LatticeUplifter(HexLatticeTectonicizer):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid(6, 6, orientation='vert', node_layout='rect')
+        >>> hg = HexModelGrid((6, 6), orientation="vertical", node_layout="rect")
         >>> lu = LatticeUplifter(grid=hg)
         >>> lu.links_to_update
         array([ 8,  9, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 22, 24, 25, 26, 30,
                34, 38, 42, 46, 50, 54, 58, 62, 66, 70, 72, 73, 74, 75, 76, 77, 79,
                80])
-        >>> hg = HexModelGrid(5, 5, orientation='vert', node_layout='rect')
+        >>> hg = HexModelGrid((5, 5), orientation="vertical", node_layout="rect")
         >>> lu = LatticeUplifter(grid=hg)
         >>> lu.links_to_update
         array([ 7, 10, 11, 13, 14, 15, 16, 17, 18, 20, 22, 25, 28, 31, 35, 38, 41,
@@ -882,8 +894,9 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> from landlab import HexModelGrid
         >>> from landlab.ca.hex_cts import HexCTS
         >>> from landlab.ca.celllab_cts import Transition
-        >>> mg = HexModelGrid(5, 5, 1.0, orientation='vertical',
-        ...                   node_layout='rect')
+        >>> mg = HexModelGrid(
+        ...     (5, 5), spacing=1.0, orientation="vertical", node_layout="rect"
+        ... )
         >>> nsd = {}  # node state dict
         >>> for i in range(10):
         ...     nsd[i] = i
@@ -1043,8 +1056,9 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> from landlab import HexModelGrid
         >>> from landlab.ca.hex_cts import HexCTS
         >>> from landlab.ca.celllab_cts import Transition
-        >>> mg = HexModelGrid(5, 5, 1.0, orientation='vertical',
-        ...                   node_layout='rect')
+        >>> mg = HexModelGrid(
+        ...     (5, 5), spacing=1.0, orientation="vertical", node_layout="rect"
+        ... )
         >>> nsd = {}
         >>> for i in range(26):
         ...     nsd[i] = i

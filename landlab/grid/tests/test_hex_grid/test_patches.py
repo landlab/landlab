@@ -4,21 +4,21 @@ from landlab import HexModelGrid
 
 
 def test_number_of_patches():
-    grid = HexModelGrid(4, 3)
+    grid = HexModelGrid((4, 3))
     assert grid.number_of_patches == 19
 
-    grid = HexModelGrid(3, 4)
+    grid = HexModelGrid((3, 4))
     assert grid.number_of_patches == 14
 
-    grid = HexModelGrid(4, 3, shape='rect')
+    grid = HexModelGrid((4, 3), node_layout='rect')
     assert grid.number_of_patches == 12
 
-    grid = HexModelGrid(3, 4, shape='rect')
+    grid = HexModelGrid((3, 4), node_layout='rect')
     assert grid.number_of_patches == 12
 
 
 def test_nodes_at_path():
-    grid = HexModelGrid(3, 2)
+    grid = HexModelGrid((3, 2))
     assert_array_equal(grid.nodes_at_patch,
                        [[3, 0, 1],
                         [3, 2, 0],
@@ -29,7 +29,7 @@ def test_nodes_at_path():
 
 
 def test_links_at_patch():
-    grid = HexModelGrid(3, 2)
+    grid = HexModelGrid((3, 2))
     assert (
         grid.links_at_patch
         == [

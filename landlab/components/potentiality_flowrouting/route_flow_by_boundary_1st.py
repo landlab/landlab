@@ -66,9 +66,11 @@ class PotentialityFlowRouter(Component):
     --------
     >>> from landlab import HexModelGrid
     >>> import numpy as np
-    >>> mg = HexModelGrid(4, 6, dx=2., node_layout='rect', orientation='vertical')
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
-    >>> Q_in = mg.add_ones('node', 'water__unit_flux_in')
+    >>> mg = HexModelGrid(
+    ...     (4, 6), spacing=2.0, node_layout="rect", orientation="vertical"
+    ... )
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> Q_in = mg.add_ones("water__unit_flux_in", at="node")
     >>> z += mg.node_y.copy()
     >>> potfr = PotentialityFlowRouter(mg)
     >>> potfr.run_one_step()
@@ -229,7 +231,7 @@ class PotentialityFlowRouter(Component):
             # ^...because both Manning and Chezy actually follow sqrt
             # slope, not slope
         # weight by face width - NO, because diags
-        # g *= grid.width_of_face[grid.face_at_link]
+        # g *= grid.length_of_face[grid.face_at_link]
         link_grad_at_node_w_dir = g[grid.links_at_node] * grid.active_link_dirs_at_node
         # active_link_dirs strips "wrong" face widths
 

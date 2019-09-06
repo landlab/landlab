@@ -27,7 +27,7 @@ def test_bad_reference_area():
 
 
 def test_functions_with_Hex():
-    mg = HexModelGrid(10, 10)
+    mg = HexModelGrid((10, 10))
     z = mg.add_zeros("node", "topographic__elevation")
     z += mg.x_of_node + mg.y_of_node
     fa = FlowAccumulator(mg)

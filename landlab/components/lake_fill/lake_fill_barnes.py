@@ -1425,7 +1425,7 @@ class LakeMapperBarnes(Component):
         The component is completely happy with irregular grids:
 
         >>> from landlab import HexModelGrid, FieldError
-        >>> hmg = HexModelGrid(5, 4, dx=2.)
+        >>> hmg = HexModelGrid((5, 4), spacing=2.)
         >>> z_hex = hmg.add_zeros('node', 'topographic__elevation')
         >>> z_hex[:] = hmg.node_x
         >>> z_hex[11] = -3.
@@ -1474,8 +1474,8 @@ class LakeMapperBarnes(Component):
         True
         >>> np.allclose(lmb.lake_depths[10:14], np.array([ 0.,  5.,  3.,  0.]))
         True
-        >>> np.round(lmb.lake_volumes, 4)
-        array([ 27.7128])
+        >>> np.round(lmb.lake_volumes, decimals=5)
+        array([ 27.71296])
 
         Together, all this means that we can now run a topographic growth
         model that permits flooding as it runs:

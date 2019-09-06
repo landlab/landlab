@@ -7,7 +7,7 @@ Do NOT add new documentation here. Grid documentation is now built in a semi-
 automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
-
+from functools import lru_cache
 import numpy as np
 
 from landlab.core.utils import argsort_points_by_x_then_y
@@ -116,12 +116,12 @@ def _default_axis_names(n_dims):
     >>> _default_axis_names(1)
     ('x',)
     >>> _default_axis_names(2)
-    ('y', 'x')
+    ('x', 'y')
     >>> _default_axis_names(3)
-    ('z', 'y', 'x')
+    ('x', 'y', 'z')
     """
-    _DEFAULT_NAMES = ("z", "y", "x")
-    return _DEFAULT_NAMES[-n_dims:]
+    _DEFAULT_NAMES = ("x", "y", "z")
+    return _DEFAULT_NAMES[:n_dims]
 
 
 def _default_axis_units(n_dims):
@@ -366,8 +366,8 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         return cls(**params)
 
     def __init__(self, **kwds):
-        axis_units = kwds.pop("axis_units", "-")
-        axis_name = kwds.pop("axis_name", ("y", "x"))
+        axis_units = kwds.pop("xy_axis_units", "-")
+        axis_name = kwds.pop("xy_axis_name", ("x", "y"))
 
         super(ModelGrid, self).__init__()
 
@@ -449,12 +449,13 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         """
         return 2
 
-    def _setup_nodes(self):
-        """Set up the node id array."""
-        self._nodes = np.arange(self.number_of_nodes, dtype=int)
-        return self._nodes
+    # def _setup_nodes(self):
+    #     """Set up the node id array."""
+    #     self._nodes = np.arange(self.number_of_nodes, dtype=int)
+    #     return self._nodes
 
     @property
+    @lru_cache()
     @make_return_array_immutable
     def nodes(self):
         """Get node ids for the grid.
@@ -462,16 +463,18 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RadialModelGrid
-        >>> mg = RadialModelGrid(num_shells=1)
+        >>> import numpy as np
+        >>> mg = RadialModelGrid(n_rings=1, nodes_in_first_ring=8)
         >>> mg.nodes
-        array([0, 1, 2, 3, 4, 5, 6])
+        array([0, 1, 2, 3, 4, 5, 6, 7, 8])
 
         LLCATS: NINF
         """
-        try:
-            return self._nodes
-        except AttributeError:
-            return self._setup_nodes()
+        return np.arange(self.number_of_nodes, dtype=int)
+        # try:
+        #     return self._nodes
+        # except AttributeError:
+        #     return self._setup_nodes()
 
     @property
     @override_array_setitem_and_reset("reset_status_at_node")
@@ -542,7 +545,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(3, 3)
+        >>> grid = HexModelGrid((3, 3))
         >>> grid.adjacent_nodes_at_node
         array([[ 1,  4,  3, -1, -1, -1],
                [ 2,  5,  4,  0, -1, -1],
@@ -598,7 +601,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         >>> grid.active_adjacent_nodes_at_node[2]
         array([-1,  7, -1, -1])
 
-        >>> grid = HexModelGrid(3, 2)
+        >>> grid = HexModelGrid((3, 2))
         >>> grid.status_at_node[0] = grid.BC_NODE_IS_CLOSED
         >>> grid.active_adjacent_nodes_at_node
         array([[-1, -1, -1, -1, -1, -1],
@@ -652,7 +655,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         >>> grid.active_adjacent_nodes_at_node[2]
         array([-1,  7, -1, -1])
 
-        >>> grid = HexModelGrid(3, 2)
+        >>> grid = HexModelGrid((3, 2))
         >>> grid.status_at_node[0] = grid.BC_NODE_IS_CLOSED
         >>> grid.active_adjacent_nodes_at_node
         array([[-1, -1, -1, -1, -1, -1],
@@ -1684,7 +1687,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.axis_name
-        ('y', 'x')
+        ('x', 'y')
         >>> grid.axis_name = ('lon', 'lat')
         >>> grid.axis_name
         ('lon', 'lat')
@@ -1779,7 +1782,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid(3, 3)
+        >>> hg = HexModelGrid((3, 3))
         >>> hg.links_at_node
         array([[ 0,  3,  2, -1, -1, -1],
                [ 1,  5,  4,  0, -1, -1],
@@ -1850,14 +1853,18 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> mg = HexModelGrid(3, 2)
-        >>> mg.angle_of_link_about_head[:3] / np.pi * 3.  # 60 deg segments
+        >>> import numpy as np
+
+        >>> grid = HexModelGrid((3, 2), node_layout="hex")
+        >>> np.round(grid.angle_of_link[:3] / np.pi * 3.0)
+        array([ 0., 2.,  1.])
+        >>> np.round(grid.angle_of_link_about_head[:3] / np.pi * 3.0)  # 60 deg segments
         array([ 3.,  5.,  4.])
 
         LLCATS: LINF MEAS
         """
-        return np.arctan2(- np.sin(self.angle_of_link),
-                          - np.cos(self.angle_of_link))
+        angles = np.arctan2(-np.sin(self.angle_of_link), -np.cos(self.angle_of_link))
+        return np.mod(angles, 2.0 * np.pi, out=angles)
 
     def _create_angle_of_link(self):
         """
@@ -2229,7 +2236,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
                [11, 14, 10,  7],
                [12, 15, 11,  8],
                [13, 16, 12,  9]])
-        >>> mg = HexModelGrid(3, 4)
+        >>> mg = HexModelGrid((3, 4))
         >>> mg.faces_at_cell
         array([[ 7, 11, 10,  6,  0,  1],
                [ 8, 13, 12,  7,  2,  3],
@@ -2249,7 +2256,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid(3, 3)
+        >>> hg = HexModelGrid((3, 3))
         >>> hg.number_of_faces_at_cell()
         array([6, 6])
 
@@ -2285,8 +2292,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid(3, 3)
+        >>> hg = HexModelGrid((3, 3))
         >>> # hg._create_faces_at_cell()
+        >>> # hg.xy_of_face, hg.xy_of_cell
         >>> hg.faces_at_cell
         array([[ 5,  8,  7,  4,  0,  1],
                [ 6, 10,  9,  5,  2,  3]])
@@ -3134,20 +3142,18 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             different platforms. If that happens, the example needs to be
             made generic somehow ...
 
-        >>> import landlab as ll
-        >>> hmg = ll.HexModelGrid(3, 2, 2.0)
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid((3, 2), spacing=2.0)
         >>> hmg.unit_vector_at_link[:, 0] # doctest: +NORMALIZE_WHITESPACE
         array([ 1. , -0.5,  0.5, -0.5,  0.5,  1. ,  1. ,  0.5, -0.5,  0.5, -0.5,
                 1. ])
         >>> hmg.unit_vector_at_link[:, 1]
-        array([ 0.       ,  0.8660254,  0.8660254,  0.8660254,  0.8660254,
-                0.       ,  0.       ,  0.8660254,  0.8660254,  0.8660254,
-                0.8660254,  0.       ])
+        array([ 0.     ,  0.86603,  0.86603,  0.86603,  0.86603,  0.     ,
+                0.     ,  0.86603,  0.86603,  0.86603,  0.86603,  0.     ])
         >>> hmg.unit_vector_at_node[:, 0]
         array([ 2.,  2.,  2.,  4.,  2.,  2.,  2.])
         >>> hmg.unit_vector_at_node[:, 1]
-        array([ 1.73205081,  1.73205081,  1.73205081,  3.46410162,  1.73205081,
-                1.73205081,  1.73205081])
+        array([ 1.73206,  1.73206,  1.73206,  3.46412,  1.73206,  1.73206,  1.73206])
         """
         nodes_at_link = ((self.node_at_link_tail, self.node_at_link_head),)
 
@@ -3582,7 +3588,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> import landlab as ll
-        >>> m = ll.HexModelGrid(5, 3, 1.0)
+        >>> m = ll.HexModelGrid((5, 3), spacing=1.0)
         >>> [r,t,l,b] = m._assign_boundary_nodes_to_grid_sides()
         >>> l
         array([ 7, 12,  3])
@@ -3940,36 +3946,39 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         --------
         >>> import pytest
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 3)) # rows, columns, spacing
-        >>> rmg.node_x
+        >>> rmg = RasterModelGrid((4, 3))
+        >>> rmg.x_of_node
         array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
-        >>> rmg.node_y
+        >>> rmg.y_of_node
         array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.])
-        >>> with pytest.deprecated_call():
-        ...     rmg.move_origin((5., 1.5))
-        >>> rmg.node_x
+        >>> rmg.move_origin((5., 1.5))
+        >>> rmg.x_of_node
         array([ 5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.])
-        >>> rmg.node_y
+        >>> rmg.y_of_node
         array([ 1.5,  1.5,  1.5,  2.5,  2.5,  2.5,  3.5,  3.5,  3.5,  4.5,  4.5,
         4.5])
 
         LLCATS: GINF MEAS
         """
-        for dim, attr in enumerate(('y_of_node', 'x_of_node')):
-            x = getattr(self, attr)
-            x.flags.writeable = True
-            x += origin[dim]
-            x.flags.writeable = False
-        del self.__dict__['_xy_of_node']
+        self.xy_of_lower_left = origin
+        # for dim, attr in enumerate(('y_of_node', 'x_of_node')):
+        #     x = getattr(self, attr)
+        #     x.flags.writeable = True
+        #     x += origin[dim]
+        #     x.flags.writeable = False
+        # del self.__dict__['_xy_of_node']
 
-    def node_has_boundary_neighbor(self, ids):
+    # def node_has_boundary_neighbor(self, ids):
+    def node_has_boundary_neighbor(self):
         """Check if ModelGrid nodes have neighbors that are boundary nodes.
+
+        Checks to see if one of the eight neighbor nodes of node(s) with
+        *id* has a boundary node.  Returns True if a node has a boundary node,
+        False if all neighbors are interior.
 
         Parameters
         ----------
-        mg : ModelGrid
-            Source grid
-        node_id : int
+        ids : int, or iterable of int
             ID of node to test.
 
         Returns
@@ -3978,10 +3987,10 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             ``True`` if node has a neighbor with a boundary ID,
             ``False`` otherwise.
 
+        Examples
+        --------
 
-        Checks to see if one of the eight neighbor nodes of node(s) with
-        *id* has a boundary node.  Returns True if a node has a boundary node,
-        False if all neighbors are interior.
+        ::
 
                 0,  1,  2,  3,
               4,  5,  6,  7,  8,
@@ -3989,15 +3998,18 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
               15, 16, 17, 18, 19,
                 20, 21, 22, 23
 
-        Examples
-        --------
         >>> from landlab import HexModelGrid
-        >>> hmg = HexModelGrid(5, 4)
-        >>> hmg.node_has_boundary_neighbor(6)
+        >>> grid = HexModelGrid((5, 4))
+        >>> grid.node_has_boundary_neighbor()
+        array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
+                True,  True, False, False,  True,  True,  True,  True,  True,
+                True,  True,  True,  True,  True,  True], dtype=bool)
+
+        >>> grid.node_has_boundary_neighbor()[6]
         True
-        >>> hmg.node_has_boundary_neighbor(12)
+        >>> grid.node_has_boundary_neighbor()[12]
         False
-        >>> hmg.node_has_boundary_neighbor([12, 0])
+        >>> grid.node_has_boundary_neighbor()[((12, 0),)]
         array([False,  True], dtype=bool)
 
         LLCATS: NINF CONN BC
@@ -4006,11 +4018,10 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         neighbor_not_core = status_of_neighbor != CORE_NODE
         bad_neighbor = self.adjacent_nodes_at_node == BAD_INDEX_VALUE
         neighbor_not_core[bad_neighbor] = False
-        node_has_boundary_neighbor = np.any(neighbor_not_core, axis=1)
+        return np.any(neighbor_not_core, axis=1)
 
-        ans = node_has_boundary_neighbor[ids]
-
-        return ans
+        # node_has_boundary_neighbor = np.any(neighbor_not_core, axis=1)
+        # return node_has_boundary_neighbor[ids]
 
 
 add_module_functions_to_class(ModelGrid, "mappers.py", pattern="map_*")
@@ -4018,9 +4029,3 @@ add_module_functions_to_class(ModelGrid, "mappers.py", pattern="map_*")
 #                               pattern='calculate_*')
 add_module_functions_to_class(ModelGrid, "gradients.py", pattern="calc_*")
 add_module_functions_to_class(ModelGrid, "divergence.py", pattern="calc_*")
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

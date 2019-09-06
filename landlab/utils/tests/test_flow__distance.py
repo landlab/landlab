@@ -169,7 +169,7 @@ def test_flow__distance_irregular_grid_d4():
     # instantiate a model grid
 
     dx = 1.0
-    hmg = HexModelGrid(5, 3, dx)
+    hmg = HexModelGrid((5, 3), spacing=dx)
 
     # instantiate and add the elevation field
 

@@ -181,7 +181,7 @@ def test_can_run_with_hex():
     """Test that model can run with hex model grid."""
 
     # Set up a 5x5 grid with open boundaries and low initial elevations.
-    mg = HexModelGrid(7, 7)
+    mg = HexModelGrid((7, 7))
     z = mg.add_zeros("node", "topographic__elevation")
     z[:] = 0.01 * mg.x_of_node
 
@@ -221,7 +221,7 @@ def test_phi_affects_transience():
     """Test that different porosity values affect the transient case."""
 
     # Set up one 5x5 grid with open boundaries and low initial elevations.
-    mg1 = HexModelGrid(7, 7)
+    mg1 = HexModelGrid((7, 7))
     z1 = mg1.add_zeros("node", "topographic__elevation")
     z1[:] = 0.01 * mg1.x_of_node
 
@@ -247,7 +247,7 @@ def test_phi_affects_transience():
         z1[mg1.core_nodes] += U1 * dt1
 
     # Set up a second 5x5 grid with open boundaries and low initial elevations.
-    mg2 = HexModelGrid(7, 7)
+    mg2 = HexModelGrid((7, 7))
     z2 = mg2.add_zeros("node", "topographic__elevation")
     z2[:] = 0.01 * mg2.x_of_node
 

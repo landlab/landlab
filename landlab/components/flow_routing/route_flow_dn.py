@@ -347,18 +347,18 @@ class FlowRouter(FlowAccumulator):
 
         >>> from landlab import HexModelGrid
         >>> dx=(2./(3.**0.5))**0.5
-        >>> mg = HexModelGrid(5,3, dx)
+        >>> mg = HexModelGrid((5, 3), spacing=dx)
         >>> _ = mg.add_field('topographic__elevation', mg.node_x + np.round(mg.node_y), at = 'node')
         >>> with pytest.deprecated_call():
         ...    fr = FlowRouter(mg)
         >>> fr.run_one_step()
-        >>> mg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
+        >>> mg.at_node['flow__receiver_node']
         array([ 0,  1,  2,
                 3,  0,  1,  6,
                 7,  3,  4,  5, 11,
                12,  8,  9, 15,
                16, 17, 18])
-        >>> mg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+        >>> np.round(mg.at_node['drainage_area'])
         array([ 3.,  2.,  0.,
                 2.,  3.,  2.,  0.,
                 0.,  2.,  2.,  1.,  0.,
