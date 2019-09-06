@@ -130,8 +130,8 @@ class FlowDirectorD8(_FlowDirectorToOne):
         Call this if boundary conditions on the grid are updated after
         the component is instantiated.
         """
-        self._active_links = self.grid.active_d8
-        nodes_at_d8 = self.grid.nodes_at_d8[self._active_links]
+        self._active_links = self._grid.active_d8
+        nodes_at_d8 = self._grid.nodes_at_d8[self._active_links]
         self._activelink_tail = nodes_at_d8[:, 0]
         self._activelink_head = nodes_at_d8[:, 1]
 

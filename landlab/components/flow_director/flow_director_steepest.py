@@ -287,9 +287,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         Call this if boundary conditions on the grid are updated after
         the component is instantiated.
         """
-        self._active_links = self.grid.active_links
-        self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
-        self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
+        self._active_links = self._grid.active_links
+        self._activelink_tail = self._grid.node_at_link_tail[self._grid.active_links]
+        self._activelink_head = self._grid.node_at_link_head[self._grid.active_links]
 
     def run_one_step(self):
         """Find flow directions and save to the model grid.

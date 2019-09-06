@@ -175,7 +175,7 @@ class DepressionFinderAndRouter(Component):
         """
         super(DepressionFinderAndRouter, self).__init__(grid)
 
-        self._bc_set_code = self.grid.bc_set_code
+        self._bc_set_code = self._grid.bc_set_code
 
         if routing != "D8":
             assert routing == "D4"
@@ -190,7 +190,7 @@ class DepressionFinderAndRouter(Component):
             if isinstance(grid, RasterModelGrid):
                 self.num_nbrs = 4
             else:
-                self.num_nbrs = self.grid.links_at_node.shape[1]
+                self.num_nbrs = self._grid.links_at_node.shape[1]
 
         if "flow__receiver_node" in self._grid.at_node:
             if self._grid.at_node["flow__receiver_node"].size != self._grid.size(
@@ -253,7 +253,7 @@ class DepressionFinderAndRouter(Component):
         if self._D8:
             diag_nbrs = self._grid.diagonal_adjacent_nodes_at_node.copy()
             # remove the inactive nodes:
-            diag_nbrs[self.grid.status_at_node[diag_nbrs] == CLOSED_BOUNDARY] = -1
+            diag_nbrs[self._grid.status_at_node[diag_nbrs] == CLOSED_BOUNDARY] = -1
             self._node_nbrs = np.concatenate((self._node_nbrs, diag_nbrs), 1)
             self._link_lengths = np.empty(8, dtype=float)
             self._link_lengths[0] = dx
@@ -261,7 +261,7 @@ class DepressionFinderAndRouter(Component):
             self._link_lengths[1] = dy
             self._link_lengths[3] = dy
             self._link_lengths[4:].fill(np.sqrt(dx * dx + dy * dy))
-        elif (type(self.grid) is landlab.grid.raster.RasterModelGrid) and (
+        elif (type(self._grid) is landlab.grid.raster.RasterModelGrid) and (
             self._routing == "D4"
         ):
             self._link_lengths = np.empty(4, dtype=float)
@@ -270,7 +270,7 @@ class DepressionFinderAndRouter(Component):
             self._link_lengths[1] = dy
             self._link_lengths[3] = dy
         else:
-            self._link_lengths = self.grid.length_of_link
+            self._link_lengths = self._grid.length_of_link
 
     def _find_pits(self):
         """Locate local depressions ("pits") in a gridded elevation field.
@@ -328,7 +328,7 @@ class DepressionFinderAndRouter(Component):
         # TODO: update the diagonal link data structures
         # DEJH doesn't understand why this can't be vectorized as above...
         if self._D8:
-            for h, t in self.grid.nodes_at_diagonal[self.grid.active_diagonals]:
+            for h, t in self._grid.nodes_at_diagonal[self._grid.active_diagonals]:
                 if self._elev[h] > self._elev[t]:
                     self.is_pit[h] = False
                 elif self._elev[t] > self._elev[h]:
@@ -837,9 +837,9 @@ class DepressionFinderAndRouter(Component):
         . ~ . . .
         o . . . .
         """
-        if self._bc_set_code != self.grid.bc_set_code:
+        if self._bc_set_code != self._grid.bc_set_code:
             self.updated_boundary_conditions()
-            self._bc_set_code = self.grid.bc_set_code
+            self._bc_set_code = self._grid.bc_set_code
         self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)
         self.depression_outlet_map.fill(LOCAL_BAD_INDEX_VALUE)
         self.depression_depth.fill(0.0)
@@ -1003,8 +1003,8 @@ class DepressionFinderAndRouter(Component):
 
                 # Get active and unresolved neighbors of cn
                 (nbrs, lnks) = self._find_unresolved_neighbors_new(
-                    self.grid.adjacent_nodes_at_node[cn],
-                    self.grid.links_at_node[cn],
+                    self._grid.adjacent_nodes_at_node[cn],
+                    self._grid.links_at_node[cn],
                     self.receivers,
                 )
                 # They will now flow to cn
@@ -1077,7 +1077,7 @@ class DepressionFinderAndRouter(Component):
 
                 # find the correct outlet for the lake, if necessary
                 if self.lake_map[self.receivers[outlet_node]] == lake_code:
-                    nbrs = self.grid.active_adjacent_nodes_at_node[outlet_node]
+                    nbrs = self._grid.active_adjacent_nodes_at_node[outlet_node]
                     not_lake = nbrs[np.where(self.lake_map[nbrs] != lake_code)[0]]
                     min_index = np.argmin(self._elev[not_lake])
                     new_receiver = not_lake[min_index]
@@ -1133,9 +1133,9 @@ class DepressionFinderAndRouter(Component):
         )
 
         # finish the property updating:
-        self.grid.at_node["drainage_area"][:] = self.a
-        self.grid.at_node["surface_water__discharge"][:] = q
-        self.grid.at_node["flow__upstream_node_order"][:] = s
+        self._grid.at_node["drainage_area"][:] = self.a
+        self._grid.at_node["surface_water__discharge"][:] = q
+        self._grid.at_node["flow__upstream_node_order"][:] = s
 
     def _handle_outlet_node(self, outlet_node, nodes_in_lake):
         """Ensure the outlet node drains to the grid edge.

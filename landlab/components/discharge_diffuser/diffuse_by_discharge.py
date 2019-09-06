@@ -139,7 +139,7 @@ class DischargeDiffuser(Component):
         for out_field in self._output_var_names:
             if self._var_mapping[out_field] == "node":
                 try:
-                    self.grid.add_zeros(
+                    self._grid.add_zeros(
                         self._var_mapping[out_field], out_field, dtype=float
                     )
                 except FieldError:
@@ -147,7 +147,7 @@ class DischargeDiffuser(Component):
             else:
                 pass
             try:
-                self.grid.add_zeros("node", "surface_water__discharge", dtype=float)
+                self._grid.add_zeros("node", "surface_water__discharge", dtype=float)
             except FieldError:
                 pass
         ni = grid.number_of_node_rows
@@ -189,7 +189,7 @@ class DischargeDiffuser(Component):
     def run_one_step(self, dt):
         """
         """
-        grid = self.grid
+        grid = self._grid
         ni = grid.number_of_node_rows
         nj = grid.number_of_node_columns
         z = grid.at_node["topographic__elevation"]
@@ -334,40 +334,40 @@ class DischargeDiffuser(Component):
         """
         core = (slice(1, -1, 1), slice(1, -1, 1))
         if direction == "W":
-            self._slx[:] = (padded_eta[1:-1, :-2] - padded_eta[core]) / self.grid.dx
+            self._slx[:] = (padded_eta[1:-1, :-2] - padded_eta[core]) / self._grid.dx
             self._sly[:] = padded_eta[:-2, :-2]
             self._sly -= padded_eta[2:, :-2]
             self._sly += padded_eta[:-2, 1:-1]
             self._sly -= padded_eta[2:, 1:-1]
             self._sly *= 0.25
-            self._sly /= self.grid.dy
+            self._sly /= self._grid.dy
 
         elif direction == "E":
-            self._slx[:] = (padded_eta[1:-1, 2:] - padded_eta[core]) / self.grid.dx
+            self._slx[:] = (padded_eta[1:-1, 2:] - padded_eta[core]) / self._grid.dx
             self._sly[:] = padded_eta[:-2, 2:]
             self._sly -= padded_eta[2:, 2:]
             self._sly += padded_eta[:-2, 1:-1]
             self._sly -= padded_eta[2:, 1:-1]
             self._sly *= 0.25
-            self._sly /= self.grid.dy
+            self._sly /= self._grid.dy
 
         elif direction == "S":
-            self._sly[:] = (padded_eta[:-2, 1:-1] - padded_eta[core]) / self.grid.dy
+            self._sly[:] = (padded_eta[:-2, 1:-1] - padded_eta[core]) / self._grid.dy
             self._slx[:] = padded_eta[:-2, :-2]
             self._slx -= padded_eta[:-2, 2:]
             self._slx += padded_eta[1:-1, :-2]
             self._slx -= padded_eta[1:-1, 2:]
             self._slx *= 0.25
-            self._slx /= self.grid.dx
+            self._slx /= self._grid.dx
 
         elif direction == "N":
-            self._sly[:] = (padded_eta[2:, 1:-1] - padded_eta[core]) / self.grid.dy
+            self._sly[:] = (padded_eta[2:, 1:-1] - padded_eta[core]) / self._grid.dy
             self._slx[:] = padded_eta[2:, :-2]
             self._slx -= padded_eta[2:, 2:]
             self._slx += padded_eta[1:-1, :-2]
             self._slx -= padded_eta[1:-1, 2:]
             self._slx *= 0.25
-            self._slx /= self.grid.dx
+            self._slx /= self._grid.dx
 
         else:
             raise NameError("direction must be {'E', 'N', 'S', 'W'}")

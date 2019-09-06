@@ -74,7 +74,7 @@ class _FlowDirector(Component):
         # We keep a local reference to the grid
         super(_FlowDirector, self).__init__(grid)
 
-        self._bc_set_code = self.grid.bc_set_code
+        self._bc_set_code = self._grid.bc_set_code
 
         # set up the grid type testing
         self._is_raster = isinstance(self._grid, RasterModelGrid)
@@ -98,9 +98,9 @@ class _FlowDirector(Component):
 
     def _check_updated_bc(self):
         # step 0. Check and update BCs
-        if self._bc_set_code != self.grid.bc_set_code:
+        if self._bc_set_code != self._grid.bc_set_code:
             self.updated_boundary_conditions()
-            self._bc_set_code = self.grid.bc_set_code
+            self._bc_set_code = self._grid.bc_set_code
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""

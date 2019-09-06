@@ -313,8 +313,8 @@ class LakeMapperBarnes(Component):
 
         self._open = StablePriorityQueue()
         self._pit = []
-        self._closed = self.grid.zeros("node", dtype=bool)
-        self._gridclosednodes = self.grid.status_at_node == CLOSED_BOUNDARY
+        self._closed = self._grid.zeros("node", dtype=bool)
+        self._gridclosednodes = self._grid.status_at_node == CLOSED_BOUNDARY
         # close up the CLOSED_BOUNDARY permanently:
         self._closed[self._gridclosednodes] = True
 
@@ -338,8 +338,8 @@ class LakeMapperBarnes(Component):
             if isinstance(grid, RasterModelGrid):
                 self._allneighbors = np.concatenate(
                     (
-                        self.grid.adjacent_nodes_at_node,
-                        self.grid.diagonal_adjacent_nodes_at_node,
+                        self._grid.adjacent_nodes_at_node,
+                        self._grid.diagonal_adjacent_nodes_at_node,
                     ),
                     axis=1,
                 )
@@ -351,7 +351,7 @@ class LakeMapperBarnes(Component):
                     ).format(gridtype=type(grid))
                 )
         else:
-            self._allneighbors = self.grid.adjacent_nodes_at_node
+            self._allneighbors = self._grid.adjacent_nodes_at_node
 
         # A key difference from the "pure" Barnes algorithm for LL is that
         # we must'n flood from all the edges. Instead, we can only flood from
@@ -362,8 +362,8 @@ class LakeMapperBarnes(Component):
         # of outlet!!
         self._edges = np.where(
             np.logical_or(
-                self.grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                self.grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
+                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
             )
         )[0]
         if self._edges.size == 0:
@@ -403,25 +403,25 @@ class LakeMapperBarnes(Component):
             # This will cause a bunch of our tests to break, so users will
             # never see this.
             assert len(FlowDirectorSteepest.output_var_names) == 4
-            self._receivers = self.grid.at_node["flow__receiver_node"]
-            self._receiverlinks = self.grid.at_node["flow__link_to_receiver_node"]
-            self._steepestslopes = self.grid.at_node["topographic__steepest_slope"]
+            self._receivers = self._grid.at_node["flow__receiver_node"]
+            self._receiverlinks = self._grid.at_node["flow__link_to_receiver_node"]
+            self._steepestslopes = self._grid.at_node["topographic__steepest_slope"]
             # if raster, do the neighbors & diagonals separate when rerouting
             # so we'll need to pull these separately:
             if method == "D8":  # Raster test unnecessary given tests above
                 self._neighbor_arrays = (
-                    self.grid.adjacent_nodes_at_node,
-                    self.grid.diagonal_adjacent_nodes_at_node,
+                    self._grid.adjacent_nodes_at_node,
+                    self._grid.diagonal_adjacent_nodes_at_node,
                 )
                 self._link_arrays = (
-                    self.grid.links_at_node,
-                    self.grid.d8s_at_node[:, 4:],
+                    self._grid.links_at_node,
+                    self._grid.d8s_at_node[:, 4:],
                 )
-                self._neighbor_lengths = self.grid.length_of_d8
+                self._neighbor_lengths = self._grid.length_of_d8
             else:
-                self._neighbor_arrays = (self.grid.adjacent_nodes_at_node,)
-                self._link_arrays = (self.grid.links_at_node,)
-                self._neighbor_lengths = self.grid.length_of_link
+                self._neighbor_arrays = (self._grid.adjacent_nodes_at_node,)
+                self._link_arrays = (self._grid.links_at_node,)
+                self._neighbor_lengths = self._grid.length_of_link
 
         if reaccumulate_flow:
             if not redirect_flow_steepest_descent:
@@ -430,7 +430,7 @@ class LakeMapperBarnes(Component):
                     + "want to reaccumulate_flow!"
                 )
             self._reaccumulate = True
-            self._fa = FlowAccumulator(self.grid, flow_director=method)
+            self._fa = FlowAccumulator(self._grid, flow_director=method)
         else:
             self._reaccumulate = False
 
@@ -1096,12 +1096,12 @@ class LakeMapperBarnes(Component):
         True
         """
         openq = self._open
-        closedq = self.grid.ones("node", dtype=int)
+        closedq = self._grid.ones("node", dtype=int)
         # Using a slightly different approach. We recognise three types: lake
         # (0), lake margin (1), and closed (2). This lets us work the
         # perimeter too. Open each lake as needed.
         # close the known boundary nodes:
-        closedq[self.grid.status_at_node != CORE_NODE] = 2
+        closedq[self._grid.status_at_node != CORE_NODE] = 2
 
         # now the actual loop. Work forward lake by lake to avoid unnecessary
         # processing (nodes outside lakes are already correct, by definition).
@@ -1115,7 +1115,7 @@ class LakeMapperBarnes(Component):
             # it's possible the outlet used to drain *into* the lake,
             # so it needs separate consideration. Likewise, the gradients
             # of the perimeter nodes are likely to be wrong.
-            if self.grid.status_at_node[outlet] != CORE_NODE:
+            if self._grid.status_at_node[outlet] != CORE_NODE:
                 # don't do anything if the outlet happens to be a boundary
                 pass
             else:
@@ -1127,7 +1127,7 @@ class LakeMapperBarnes(Component):
                     minusones = np.equal(neighbor_set[outlet], -1)
                     not_lake_neighbors[minusones] = False
                     closednodes = np.equal(
-                        self.grid.status_at_node[neighbor_set[outlet]], CLOSED_BOUNDARY
+                        self._grid.status_at_node[neighbor_set[outlet]], CLOSED_BOUNDARY
                     )  # closed BCs can't count
                     not_lake_neighbors[closednodes] = False
                     try:
@@ -1166,7 +1166,7 @@ class LakeMapperBarnes(Component):
                                 continue
                             elif n == -1:
                                 continue
-                            elif self.grid.status_at_node[n] != CORE_NODE:
+                            elif self._grid.status_at_node[n] != CORE_NODE:
                                 closedq[n] = 2
                                 continue
                             else:
@@ -1199,7 +1199,7 @@ class LakeMapperBarnes(Component):
                     neighbors = neighbor_set[liminal]
                     neighbors_valid = np.not_equal(neighbors, -1)
                     closednodes = np.equal(
-                        self.grid.status_at_node[neighbors], CLOSED_BOUNDARY
+                        self._grid.status_at_node[neighbors], CLOSED_BOUNDARY
                     )  # closed BCs can't count
                     neighbors_valid[closednodes] = False
                     neighbors_to_check = neighbors[neighbors_valid]
@@ -1229,7 +1229,7 @@ class LakeMapperBarnes(Component):
                 self._steepestslopes[liminal] = max_grad
 
             # by the time we get here, we've removed all the pits! So...
-            self.grid.at_node["flow__sink_flag"][lakenodes] = 0
+            self._grid.at_node["flow__sink_flag"][lakenodes] = 0
             # reclose the lake:
             closedq[outlet] = 1
             closedq[lakenodes] = 1
@@ -1889,7 +1889,7 @@ class LakeMapperBarnes(Component):
         if self._runcount > self._lastcountforlakemap:
             # things have changed since last call to lake_map
             self._lake_map = np.full(
-                self.grid.number_of_nodes, LOCAL_BAD_INDEX_VALUE, dtype=int
+                self._grid.number_of_nodes, LOCAL_BAD_INDEX_VALUE, dtype=int
             )
             for (outlet, lakenodes) in self.lake_dict.items():
                 self._lake_map[lakenodes] = outlet
@@ -2043,7 +2043,7 @@ class LakeMapperBarnes(Component):
         """
         lakeareas = np.empty(self.number_of_lakes, dtype=float)
         for (i, (outlet, lakenodes)) in enumerate(self.lake_dict.items()):
-            lakeareas[i] = self.grid.cell_area_at_node[lakenodes].sum()
+            lakeareas[i] = self._grid.cell_area_at_node[lakenodes].sum()
         return lakeareas
 
     @property
@@ -2099,7 +2099,7 @@ class LakeMapperBarnes(Component):
         True
         """
         lake_vols = np.empty(self.number_of_lakes, dtype=float)
-        col_vols = self.grid.cell_area_at_node * self.lake_depths
+        col_vols = self._grid.cell_area_at_node * self.lake_depths
         for (i, (outlet, lakenodes)) in enumerate(self.lake_dict.items()):
             lake_vols[i] = col_vols[lakenodes].sum()
         return lake_vols

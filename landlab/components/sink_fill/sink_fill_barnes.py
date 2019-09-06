@@ -109,7 +109,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
         # get used dynamically.
         self._supplied_surface = return_array_at_node(grid, surface).copy()
         # create the only new output field:
-        self._sed_fill_depth = self.grid.add_zeros(
+        self._sed_fill_depth = self._grid.add_zeros(
             "node", "sediment_fill__depth", noclobber=False
         )
 
@@ -297,7 +297,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
         as that of the keys in fill_dict, and of fill_outlets.
         """
         fill_vols = np.empty(self.number_of_fills, dtype=float)
-        col_vols = self.grid.cell_area_at_node * self.fill_depths
+        col_vols = self._grid.cell_area_at_node * self.fill_depths
         for (i, (outlet, fillnodes)) in enumerate(self.fill_dict.items()):
             fill_vols[i] = col_vols[fillnodes].sum()
         return fill_vols

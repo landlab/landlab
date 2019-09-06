@@ -165,9 +165,9 @@ class SteepnessFinder(Component):
         self._ksn = self._grid.add_zeros(
             "node", "channel__steepness_index", noclobber=False
         )
-        self._mask = self.grid.ones("node", dtype=bool)
+        self._mask = self._grid.ones("node", dtype=bool)
         # this one needs modifying if smooth_elev
-        self._elev = self.grid.at_node["topographic__elevation"]
+        self._elev = self._grid.at_node["topographic__elevation"]
 
     def calculate_steepnesses(self):
         """
@@ -190,14 +190,14 @@ class SteepnessFinder(Component):
         elev_step = self._elev_step
         discretization_length = self._discretization
 
-        upstr_order = self.grid.at_node["flow__upstream_node_order"]
+        upstr_order = self._grid.at_node["flow__upstream_node_order"]
         # get an array of only nodes with A above threshold:
         valid_dstr_order = (
-            upstr_order[self.grid.at_node["drainage_area"][upstr_order] >= min_drainage]
+            upstr_order[self._grid.at_node["drainage_area"][upstr_order] >= min_drainage]
         )[::-1]
         # note elevs are guaranteed to be in order, UNLESS a fill
         # algorithm has been used.
-        nodes_incorporated = self.grid.zeros("node", dtype=bool)
+        nodes_incorporated = self._grid.zeros("node", dtype=bool)
         # now do each poss channel in turn
         # get the head of the first (longest!) channel:
         for dstr_order_index in range(valid_dstr_order.size):
@@ -208,7 +208,7 @@ class SteepnessFinder(Component):
                 penultimate_node = this_ch_top_node
                 current_node_incorporated = False
                 while not current_node_incorporated:
-                    next_node = self.grid.at_node["flow__receiver_node"][
+                    next_node = self._grid.at_node["flow__receiver_node"][
                         penultimate_node
                     ]
                     if next_node == penultimate_node:  # end of flow path
@@ -233,7 +233,7 @@ class SteepnessFinder(Component):
                     # algorithm:
                     ch_nodes = np.array(nodes_in_channel)
                     # ^ this is top-to-bottom
-                    ch_A = self.grid.at_node["drainage_area"][ch_nodes]
+                    ch_A = self._grid.at_node["drainage_area"][ch_nodes]
                     ch_dists = self.channel_distances_downstream(ch_nodes)
                     ch_S = self.interpolate_slopes_with_step(
                         ch_nodes, ch_dists, interp_pt_elevs
@@ -242,8 +242,8 @@ class SteepnessFinder(Component):
                     # all the nodes; much easier as links work
                     ch_nodes = np.array(nodes_in_channel)
                     ch_dists = self.channel_distances_downstream(ch_nodes)
-                    ch_A = self.grid.at_node["drainage_area"][ch_nodes]
-                    ch_S = self.grid.at_node["topographic__steepest_slope"][ch_nodes]
+                    ch_A = self._grid.at_node["drainage_area"][ch_nodes]
+                    ch_S = self._grid.at_node["topographic__steepest_slope"][ch_nodes]
                     assert np.all(ch_S >= 0.0)
                 # if we're doing spatial discretization, do it here:
                 if discretization_length:
@@ -298,11 +298,11 @@ class SteepnessFinder(Component):
         >>> sf.channel_distances_downstream(ch_nodes)
         array([  0.        ,  10.        ,  21.18033989,  31.18033989])
         """
-        ch_links = self.grid.at_node["flow__link_to_receiver_node"][ch_nodes]
+        ch_links = self._grid.at_node["flow__link_to_receiver_node"][ch_nodes]
         ch_dists = np.empty_like(ch_nodes, dtype=float)
         # dists from ch head, NOT drainage divide
         ch_dists[0] = 0.0
-        np.cumsum(self.grid.length_of_d8[ch_links[:-1]], out=ch_dists[1:])
+        np.cumsum(self._grid.length_of_d8[ch_links[:-1]], out=ch_dists[1:])
         return ch_dists
 
     def interpolate_slopes_with_step(self, ch_nodes, ch_dists, interp_pt_elevs):
@@ -356,7 +356,7 @@ class SteepnessFinder(Component):
         ...                                 interp_pt_elevs)
         array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
         """
-        ch_z = self.grid.at_node["topographic__elevation"][ch_nodes]
+        ch_z = self._grid.at_node["topographic__elevation"][ch_nodes]
         assert (
             ch_z[0] >= interp_pt_elevs[-1]
         ), "Highest interp_pt_elev must be below top channel node"

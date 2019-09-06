@@ -93,7 +93,7 @@ class PerronNLDiffuse(Component):
         """
         super(PerronNLDiffuse, self).__init__(grid)
 
-        self._bc_set_code = self.grid.bc_set_code
+        self._bc_set_code = self._grid.bc_set_code
         self.values_to_diffuse = "topographic__elevation"
         self._kappa = nonlinear_diffusivity
         self._rock_density = rock_density
@@ -222,7 +222,7 @@ class PerronNLDiffuse(Component):
     def updated_boundary_conditions(self):
         """Call if grid BCs are updated after component instantiation.
         """
-        grid = self.grid
+        grid = self._grid
         nrows = self.nrows
         ncols = self.ncols
         # ^Set up terms for BC handling (still feels very clumsy)
@@ -357,22 +357,22 @@ class PerronNLDiffuse(Component):
         slopes > Scrit. If the method persistently explodes, this may be the
         problem.
         """
-        extended_elevs = np.empty(self.grid.number_of_nodes + 1, dtype=float)
+        extended_elevs = np.empty(self._grid.number_of_nodes + 1, dtype=float)
         extended_elevs[-1] = np.nan
-        node_neighbors = self.grid.active_adjacent_nodes_at_node
+        node_neighbors = self._grid.active_adjacent_nodes_at_node
         extended_elevs[:-1] = new_grid["node"][self.values_to_diffuse]
         max_offset = np.nanmax(
             np.fabs(
                 extended_elevs[:-1][node_neighbors]
-                - extended_elevs[:-1].reshape((self.grid.number_of_nodes, 1))
+                - extended_elevs[:-1].reshape((self._grid.number_of_nodes, 1))
             )
         )
-        if max_offset > np.tan(self._S_crit) * min(self.grid.dx, self.grid.dy):
+        if max_offset > np.tan(self._S_crit) * min(self._grid.dx, self._grid.dy):
             # ^using S not tan(S) adds a buffer - but not appropriate
             self.internal_repeats = (
                 int(
                     max_offset
-                    // (np.tan(self._S_crit) * min(self.grid.dx, self.grid.dy))
+                    // (np.tan(self._S_crit) * min(self._grid.dx, self._grid.dy))
                 )
                 + 1
             )
@@ -381,7 +381,7 @@ class PerronNLDiffuse(Component):
             self._delta_t = timestep_in / self.internal_repeats
             self.uplift_per_step = (
                 new_grid["node"][self.values_to_diffuse]
-                - self.grid["node"][self.values_to_diffuse]
+                - self._grid["node"][self.values_to_diffuse]
             ) / self.internal_repeats
             if self.internal_repeats > 10000:
                 raise ValueError(
@@ -393,7 +393,7 @@ class PerronNLDiffuse(Component):
             self._delta_t = timestep_in
             self.uplift_per_step = (
                 new_grid["node"][self.values_to_diffuse]
-                - self.grid["node"][self.values_to_diffuse]
+                - self._grid["node"][self.values_to_diffuse]
             )
         return self._delta_t
 
@@ -1420,37 +1420,37 @@ class PerronNLDiffuse(Component):
         dt : float (time)
             The imposed timestep.
         """
-        if self._bc_set_code != self.grid.bc_set_code:
+        if self._bc_set_code != self._grid.bc_set_code:
             self.updated_boundary_conditions()
-            self._bc_set_code = self.grid.bc_set_code
+            self._bc_set_code = self._grid.bc_set_code
         else:
-            self._gear_timestep(dt, self.grid)
+            self._gear_timestep(dt, self._grid)
             for i in range(self.internal_repeats):
                 # Initialize the variables for the step:
-                self._set_variables(self.grid)
+                self._set_variables(self._grid)
                 # Solve interior of grid:
                 _interior_elevs = linalg.spsolve(self._operating_matrix, self._mat_RHS)
                 # this fn solves Ax=B for x
 
                 # Handle the BC cells; test common cases first for speed
-                self.grid["node"][self.values_to_diffuse][
+                self._grid["node"][self.values_to_diffuse][
                     self.interior_IDs_as_real
                 ] = _interior_elevs
 
         # if BC==1 or BC==4, don't need to take any action; in both
         # cases the values are unchanged.
         if self.fixed_grad_BCs_present:
-            self.grid["node"][self.values_to_diffuse][
-                self.grid.fixed_gradient_node_properties["boundary_node_IDs"]
+            self._grid["node"][self.values_to_diffuse][
+                self._grid.fixed_gradient_node_properties["boundary_node_IDs"]
             ] = (
-                self.grid["node"][self.values_to_diffuse][
-                    self.grid.fixed_gradient_node_properties["anchor_node_IDs"]
+                self._grid["node"][self.values_to_diffuse][
+                    self._grid.fixed_gradient_node_properties["anchor_node_IDs"]
                 ]
-                + self.grid.fixed_gradient_node_properties["values_to_add"]
+                + self._grid.fixed_gradient_node_properties["values_to_add"]
             )
         if self.looped_BCs_present:
-            self.grid["node"][self.values_to_diffuse][
-                self.grid.looped_node_properties["boundary_node_IDs"]
-            ] = self.grid["node"][self.values_to_diffuse][
-                self.grid.looped_node_properties["linked_node_IDs"]
+            self._grid["node"][self.values_to_diffuse][
+                self._grid.looped_node_properties["boundary_node_IDs"]
+            ] = self._grid["node"][self.values_to_diffuse][
+                self._grid.looped_node_properties["linked_node_IDs"]
             ]

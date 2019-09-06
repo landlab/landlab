@@ -232,7 +232,7 @@ class gFlex(Component):
         self.pre_flex = np.zeros(grid.number_of_nodes, dtype=float)
 
         # create the primary output field:
-        self.grid.add_zeros(
+        self._grid.add_zeros(
             "lithosphere_surface__elevation_increment",
             at="node",
             dtype=float,
@@ -246,13 +246,13 @@ class gFlex(Component):
         in a single timestep.
         """
         self.flex.qs = (
-            self.grid.at_node["surface_load__stress"].view().reshape(self.grid.shape)
+            self._grid.at_node["surface_load__stress"].view().reshape(self._grid.shape)
         )
         self.flex.initialize()
         self.flex.run()
         self.flex.finalize()
 
-        self.grid.at_node["lithosphere_surface__elevation_increment"][
+        self._grid.at_node["lithosphere_surface__elevation_increment"][
             :
         ] = self.flex.w.view().ravel()
 
@@ -263,10 +263,10 @@ class gFlex(Component):
             pass
         else:
             topo_diff = (
-                self.grid.at_node["lithosphere_surface__elevation_increment"]
+                self._grid.at_node["lithosphere_surface__elevation_increment"]
                 - self.pre_flex
             )
-            self.grid.at_node["topographic__elevation"] += topo_diff
+            self._grid.at_node["topographic__elevation"] += topo_diff
             self.pre_flex += topo_diff
 
     def run_one_step(self):

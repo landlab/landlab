@@ -207,12 +207,12 @@ class Flexure1D(Component):
         self.eet = eet
 
         for name in self._input_var_names + self._output_var_names:
-            if name not in self.grid.at_node:
-                self.grid.add_zeros(name, units=self._var_units[name], at="node")
+            if name not in self._grid.at_node:
+                self._grid.add_zeros(name, units=self._var_units[name], at="node")
 
         self._rows = (rows,) or Ellipsis
 
-        self._x_at_node = self.grid.x_of_node.reshape(self.grid.shape).copy()
+        self._x_at_node = self._grid.x_of_node.reshape(self._grid.shape).copy()
 
     @property
     def eet(self):
@@ -332,14 +332,14 @@ class Flexure1D(Component):
 
     @property
     def load_at_node(self):
-        return self.grid.at_node[
+        return self._grid.at_node[
             "lithosphere__increment_of_overlying_pressure"
-        ].reshape(self.grid.shape)
+        ].reshape(self._grid.shape)
 
     @property
     def dz_at_node(self):
-        return self.grid.at_node["lithosphere_surface__increment_of_elevation"].reshape(
-            self.grid.shape
+        return self._grid.at_node["lithosphere_surface__increment_of_elevation"].reshape(
+            self._grid.shape
         )
 
     def update(self):
@@ -376,7 +376,7 @@ class Flexure1D(Component):
             Deflections caused by the loading.
         """
         if out is None:
-            out = np.zeros(self.grid.shape)
+            out = np.zeros(self._grid.shape)
         loads = np.asarray(loads)
         if self._method == "airy":
             out[:] = loads / self.gamma_mantle

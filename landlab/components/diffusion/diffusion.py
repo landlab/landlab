@@ -171,14 +171,14 @@ class LinearDiffuser(Component):
         """
         super(LinearDiffuser, self).__init__(grid)
 
-        self._bc_set_code = self.grid.bc_set_code
+        self._bc_set_code = self._grid.bc_set_code
         assert method in ("simple", "resolve_on_patches", "on_diagonals")
         if method == "resolve_on_patches":
-            assert isinstance(self.grid, RasterModelGrid)
+            assert isinstance(self._grid, RasterModelGrid)
             self._use_patches = True
         else:
             self._use_patches = False
-        if method == "on_diagonals" and isinstance(self.grid, RasterModelGrid):
+        if method == "on_diagonals" and isinstance(self._grid, RasterModelGrid):
             self._use_diags = True
         else:
             self._use_diags = False
@@ -192,23 +192,23 @@ class LinearDiffuser(Component):
                     if type(self._kd) is int:
                         self._kd = float(self._kd)
                 else:
-                    if self._kd.size == self.grid.number_of_links:
+                    if self._kd.size == self._grid.number_of_links:
                         self._kd_on_links = True
                     else:
-                        assert self._kd.size == self.grid.number_of_nodes
+                        assert self._kd.size == self._grid.number_of_nodes
             else:
                 try:
-                    self._kd = self.grid.at_link[linear_diffusivity]
+                    self._kd = self._grid.at_link[linear_diffusivity]
                     self._kd_on_links = True
                 except KeyError:
-                    self._kd = self.grid.at_node[linear_diffusivity]
+                    self._kd = self._grid.at_node[linear_diffusivity]
         else:
             raise KeyError(
                 "linear_diffusivity must be provided to the "
                 + "LinearDiffuser component"
             )
         if self._kd_on_links is True:
-            assert isinstance(self.grid, RasterModelGrid)
+            assert isinstance(self._grid, RasterModelGrid)
 
         # if we're using patches, it is VITAL that diffusivity is defined on
         # links. The whole point of this functionality is that we honour
@@ -234,38 +234,38 @@ class LinearDiffuser(Component):
         # and irregular grids
         # CFL condition precalc:
         CFL_prefactor = (
-            _ALPHA * self.grid.length_of_link[: self.grid.number_of_links] ** 2.0
+            _ALPHA * self._grid.length_of_link[: self._grid.number_of_links] ** 2.0
         )
         # ^ link_length can include diags, if not careful...
-        self._CFL_actives_prefactor = CFL_prefactor[self.grid.active_links]
+        self._CFL_actives_prefactor = CFL_prefactor[self._grid.active_links]
         # ^note we can do this as topology shouldn't be changing
 
         # Get a list of interior cells
-        self.interior_cells = self.grid.node_at_core_cell
+        self.interior_cells = self._grid.node_at_core_cell
 
-        self.z = self.grid.at_node[self.values_to_diffuse]
-        self.dqsds = self.grid.zeros("node", dtype=float)
+        self.z = self._grid.at_node[self.values_to_diffuse]
+        self.dqsds = self._grid.zeros("node", dtype=float)
         if not self._use_diags:
-            g = self.grid.zeros(at="link")
-            qs = self.grid.zeros(at="link")
+            g = self._grid.zeros(at="link")
+            qs = self._grid.zeros(at="link")
             try:
-                self.g = self.grid.add_field(
+                self.g = self._grid.add_field(
                     "link", "topographic__gradient", g, noclobber=True
                 )
                 # ^note this will object if this exists already
             except FieldError:  # keep a ref
-                self.g = self.grid.at_link["topographic__gradient"]
+                self.g = self._grid.at_link["topographic__gradient"]
             try:
-                self.qs = self.grid.add_field(
+                self.qs = self._grid.add_field(
                     "link", "hillslope_sediment__unit_volume_flux", qs, noclobber=True
                 )
             except FieldError:
-                self.qs = self.grid.at_link["hillslope_sediment__unit_volume_flux"]
+                self.qs = self._grid.at_link["hillslope_sediment__unit_volume_flux"]
             # note all these terms are deliberately loose, as we won't always
             # be dealing with topo
         else:
-            g = np.zeros(self.grid.number_of_d8, dtype=float)
-            qs = np.zeros(self.grid.number_of_d8, dtype=float)
+            g = np.zeros(self._grid.number_of_d8, dtype=float)
+            qs = np.zeros(self._grid.number_of_d8, dtype=float)
             self.g = g
             self.qs = qs
             # now we have to choose what the face width of a diagonal is...
@@ -275,30 +275,30 @@ class LinearDiffuser(Component):
             # shaped holes centered at the corners.
             # Note that this WON'T affect the inferred cell size - that's
             # still derived from the rectangle.
-            self._d8width_face_at_link = np.empty(self.grid.number_of_d8)
+            self._d8width_face_at_link = np.empty(self._grid.number_of_d8)
             # note there will be null entries here
             # by our defs, every active link must have a face.
             # calc the length of a diag "face":
             rt2 = np.sqrt(2.0)
-            horizontal_face = self.grid.dx / (1.0 + rt2)
-            vertical_face = self.grid.dy / (1.0 + rt2)
+            horizontal_face = self._grid.dx / (1.0 + rt2)
+            vertical_face = self._grid.dy / (1.0 + rt2)
             diag_face = np.sqrt(0.5 * (horizontal_face ** 2 + vertical_face ** 2))
-            self._hoz = self.grid.horizontal_links.flatten()
-            self._vert = self.grid.vertical_links.flatten()
+            self._hoz = self._grid.horizontal_links.flatten()
+            self._vert = self._grid.vertical_links.flatten()
             self._d8width_face_at_link[self._hoz] = vertical_face
             self._d8width_face_at_link[self._vert] = horizontal_face
             # ^ this operation pastes in faces where there are none, but
             # we'll never use them
-            self._d8width_face_at_link[self.grid.number_of_links :] = diag_face
+            self._d8width_face_at_link[self._grid.number_of_links :] = diag_face
 
-        self._vertlinkcomp = np.sin(self.grid.angle_of_link)
-        self._hozlinkcomp = np.cos(self.grid.angle_of_link)
+        self._vertlinkcomp = np.sin(self._grid.angle_of_link)
+        self._hozlinkcomp = np.cos(self._grid.angle_of_link)
 
         if self._use_patches or self._kd_on_links:
-            mg = self.grid
+            mg = self._grid
             try:
-                self._hoz = self.grid.horizontal_links.flatten()
-                self._vert = self.grid.vertical_links.flatten()
+                self._hoz = self._grid.horizontal_links.flatten()
+                self._vert = self._grid.vertical_links.flatten()
             except AttributeError:
                 pass
             self._x_link_patches = mg.patches_at_link[self._hoz]
@@ -350,14 +350,14 @@ class LinearDiffuser(Component):
         True
         """
         fixed_grad_nodes = np.where(
-            self.grid.status_at_node == FIXED_GRADIENT_BOUNDARY
+            self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY
         )[0]
-        heads = self.grid.node_at_link_head[self.grid.fixed_links]
-        tails = self.grid.node_at_link_tail[self.grid.fixed_links]
+        heads = self._grid.node_at_link_head[self._grid.fixed_links]
+        tails = self._grid.node_at_link_tail[self._grid.fixed_links]
         head_is_fixed = np.in1d(heads, fixed_grad_nodes)
         self.fixed_grad_nodes = np.where(head_is_fixed, heads, tails)
         self.fixed_grad_anchors = np.where(head_is_fixed, tails, heads)
-        vals = self.grid.at_node[self.values_to_diffuse]
+        vals = self._grid.at_node[self.values_to_diffuse]
         self.fixed_grad_offsets = (
             vals[self.fixed_grad_nodes] - vals[self.fixed_grad_anchors]
         )
@@ -365,7 +365,7 @@ class LinearDiffuser(Component):
             self.g.fill(0.0)
 
         if self._kd_on_links or self._use_patches:
-            mg = self.grid
+            mg = self._grid
             x_link_patch_pres = mg.patches_present_at_link[self._hoz]
             self._x_link_patch_mask = np.logical_not(x_link_patch_pres)
             y_link_patch_pres = mg.patches_present_at_link[self._vert]
@@ -395,29 +395,29 @@ class LinearDiffuser(Component):
         """
         See :func:`run_one_step`.
         """
-        mg = self.grid
-        z = self.grid.at_node[self.values_to_diffuse]
+        mg = self._grid
+        z = self._grid.at_node[self.values_to_diffuse]
 
         if not self._run_before:
             self.updated_boundary_conditions()  # just in case
             self._run_before = True
-        if self._bc_set_code != self.grid.bc_set_code:
+        if self._bc_set_code != self._grid.bc_set_code:
             self.updated_boundary_conditions()
-            self._bc_set_code = self.grid.bc_set_code
+            self._bc_set_code = self._grid.bc_set_code
 
-        core_nodes = self.grid.node_at_core_cell
+        core_nodes = self._grid.node_at_core_cell
         # do mapping of array kd here, in case it points at an updating
         # field:
         if type(self._kd) is np.ndarray:
             if not self._kd_on_links:
-                kd_links = self.grid.map_max_of_link_nodes_to_link(self._kd)
-                kd_activelinks = kd_links[self.grid.active_links]
+                kd_links = self._grid.map_max_of_link_nodes_to_link(self._kd)
+                kd_activelinks = kd_links[self._grid.active_links]
                 # re-derive CFL condition, as could change dynamically:
                 dt_links = self._CFL_actives_prefactor / kd_activelinks
                 self.dt = np.nanmin(dt_links)
             else:
                 kd_links = self._kd
-                kd_activelinks = self._kd[self.grid.active_links]
+                kd_activelinks = self._kd[self._grid.active_links]
                 dt_links = self._CFL_actives_prefactor / kd_activelinks
                 self.dt_links = dt_links
                 self.dt = np.nanmin(np.fabs(dt_links))
@@ -431,7 +431,7 @@ class LinearDiffuser(Component):
             # need this else diffusivities on inactive links deform off-angle
             # calculations
             kd_links = kd_links.copy()
-            kd_links[self.grid.status_at_link == INACTIVE_LINK] = 0.0
+            kd_links[self._grid.status_at_link == INACTIVE_LINK] = 0.0
 
         # Take the smaller of delt or built-in time-step size self.dt
         self.tstep_ratio = dt / self.dt
@@ -502,7 +502,7 @@ class LinearDiffuser(Component):
                     # zero out the inactive links
                     self.qs[mg.active_links] = -flux_links[mg.active_links]
 
-                    self.grid.calc_flux_div_at_node(self.qs, out=self.dqsds)
+                    self._grid.calc_flux_div_at_node(self.qs, out=self.dqsds)
 
             else:  # ..._use_diags
                 # NB: this is dirty code. It uses the obsolete diagonal data
@@ -511,36 +511,36 @@ class LinearDiffuser(Component):
 
                 # remap the kds onto the links, as necessary
                 if isinstance(self._kd, np.ndarray):
-                    d8link_kd = np.empty(self.grid.number_of_d8, dtype=float)
-                    d8link_kd[self.grid.active_links] = kd_activelinks
-                    d8link_kd[self.grid.active_diagonals] = np.amax(
+                    d8link_kd = np.empty(self._grid.number_of_d8, dtype=float)
+                    d8link_kd[self._grid.active_links] = kd_activelinks
+                    d8link_kd[self._grid.active_diagonals] = np.amax(
                         self._kd[
-                            self.grid.nodes_at_diagonal[self.grid.active_diagonals]
+                            self._grid.nodes_at_diagonal[self._grid.active_diagonals]
                         ],
                         axis=1,
                     ).flatten()
                 else:
                     d8link_kd = self._kd
-                self.g[self.grid.active_links] = self.grid.calc_grad_at_link(z)[
-                    self.grid.active_links
+                self.g[self._grid.active_links] = self._grid.calc_grad_at_link(z)[
+                    self._grid.active_links
                 ]
-                self.g[self.grid.active_diagonals] = (
-                    z[self.grid._diag_activelink_tonode]
-                    - z[self.grid._diag_activelink_fromnode]
-                ) / self.grid.length_of_d8[self.grid.active_diagonals]
+                self.g[self._grid.active_diagonals] = (
+                    z[self._grid._diag_activelink_tonode]
+                    - z[self._grid._diag_activelink_fromnode]
+                ) / self._grid.length_of_d8[self._grid.active_diagonals]
                 self.qs[:] = -d8link_kd * self.g
 
                 total_flux = self.qs * self._d8width_face_at_link  # nlinks
                 totalflux_allnodes = (
-                    total_flux[self.grid.links_at_node]
-                    * self.grid.active_link_dirs_at_node
+                    total_flux[self._grid.links_at_node]
+                    * self._grid.active_link_dirs_at_node
                 ).sum(axis=1)
                 totalflux_allnodes += (
-                    total_flux[self.grid.d8s_at_node[:, 4:]]
-                    * self.grid.active_diagonal_dirs_at_node
+                    total_flux[self._grid.d8s_at_node[:, 4:]]
+                    * self._grid.active_diagonal_dirs_at_node
                 ).sum(axis=1)
-                self.dqsds[self.grid.node_at_cell] = (
-                    -totalflux_allnodes[self.grid.node_at_cell] / self.grid.area_of_cell
+                self.dqsds[self._grid.node_at_cell] = (
+                    -totalflux_allnodes[self._grid.node_at_cell] / self._grid.area_of_cell
                 )
 
             # Calculate the total rate of elevation change
@@ -553,17 +553,17 @@ class LinearDiffuser(Component):
                 timestep *= extra_time
             else:
                 pass
-            self.grid.at_node[self.values_to_diffuse][core_nodes] += (
+            self._grid.at_node[self.values_to_diffuse][core_nodes] += (
                 dzdt[core_nodes] * timestep
             )
 
             # check the BCs, update if fixed gradient
-            vals = self.grid.at_node[self.values_to_diffuse]
+            vals = self._grid.at_node[self.values_to_diffuse]
             vals[self.fixed_grad_nodes] = (
                 vals[self.fixed_grad_anchors] + self.fixed_grad_offsets
             )
 
-        return self.grid
+        return self._grid
 
     def run_one_step(self, dt):
         """Run the diffuser for one timestep, dt.

@@ -292,7 +292,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         )
 
         # topo elev is old elev + deposition - erosion
-        cores = self.grid.core_nodes
+        cores = self._grid.core_nodes
         self.topographic__elevation[cores] += (
             (self.depo_rate[cores] - self.erosion_term[cores]) / (1 - self.phi)
         ) * dt

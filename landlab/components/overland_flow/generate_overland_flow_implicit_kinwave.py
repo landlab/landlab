@@ -287,7 +287,7 @@ class KinwaveImplicitOverlandFlow(Component):
         if self.changing_topo or self.first_iteration:
 
             # Calculate the ground-surface slope
-            self.slope[self.grid.active_links] = self._grid.calc_grad_at_link(
+            self.slope[self._grid.active_links] = self._grid.calc_grad_at_link(
                 self.elev
             )[self._grid.active_links]
 
@@ -297,8 +297,8 @@ class KinwaveImplicitOverlandFlow(Component):
             # Re-route flow, which gives us the downstream-to-upstream
             # ordering
             self.flow_accum.run_one_step()
-            self.nodes_ordered = self.grid.at_node["flow__upstream_node_order"]
-            self.flow_lnks = self.grid.at_node["flow__link_to_receiver_node"]
+            self.nodes_ordered = self._grid.at_node["flow__upstream_node_order"]
+            self.flow_lnks = self._grid.at_node["flow__link_to_receiver_node"]
 
             # (Re)calculate, for each node, sum of sqrt(gradient) x width
             self.grad_width_sum[:] = 0.0
@@ -306,19 +306,19 @@ class KinwaveImplicitOverlandFlow(Component):
                 self.grad_width_sum[:] += (
                     self.sqrt_slope[self.flow_lnks[:, i]]
                     * self._grid.width_of_face[
-                        self.grid.face_at_link[self.flow_lnks[:, i]]
+                        self._grid.face_at_link[self.flow_lnks[:, i]]
                     ]
                 )
 
             # Calculate values of alpha, which is defined as
             #
             #   $\alpha = \frac{\Sigma W S^{1/2} \Delta t}{A C_r}$
-            cores = self.grid.core_nodes
+            cores = self._grid.core_nodes
             self.alpha[cores] = (
                 self.vel_coef
                 * self.grad_width_sum[cores]
                 * dt
-                / (self.grid.area_of_cell[self.grid.cell_at_node[cores]])
+                / (self._grid.area_of_cell[self._grid.cell_at_node[cores]])
             )
 
         # Zero out inflow discharge
@@ -327,7 +327,7 @@ class KinwaveImplicitOverlandFlow(Component):
         # Upstream-to-downstream loop
         for i in range(len(self.nodes_ordered) - 1, -1, -1):
             n = self.nodes_ordered[i]
-            if self.grid.status_at_node[n] == 0:
+            if self._grid.status_at_node[n] == 0:
 
                 # Solve for new water depth
                 aa = self.alpha[n]
@@ -335,7 +335,7 @@ class KinwaveImplicitOverlandFlow(Component):
                 ee = (dt * runoff_rate) + (
                     dt
                     * self.disch_in[n]
-                    / self.grid.area_of_cell[self.grid.cell_at_node[n]]
+                    / self._grid.area_of_cell[self._grid.cell_at_node[n]]
                 )
                 self.depth[n] = newton(
                     water_fn,
@@ -358,7 +358,7 @@ class KinwaveImplicitOverlandFlow(Component):
                 # we have a raster grid, there will be four neighbors and four
                 # proportions, some of which may be zero and some between 0 and
                 # 1.
-                self.disch_in[self.grid.adjacent_nodes_at_node[n]] += (
+                self.disch_in[self._grid.adjacent_nodes_at_node[n]] += (
                     outflow * self.flow_accum.flow_director.proportions[n]
                 )
 

@@ -169,7 +169,7 @@ class PotentialityFlowRouter(Component):
         for out_field in self._output_var_names:
             if self._var_mapping[out_field] == "node":
                 try:
-                    self.grid.add_zeros(
+                    self._grid.add_zeros(
                         self._var_mapping[out_field], out_field, dtype=float
                     )
                 except FieldError:
@@ -177,7 +177,7 @@ class PotentialityFlowRouter(Component):
             else:
                 pass
             try:
-                self.grid.add_zeros("node", "surface_water__discharge", dtype=float)
+                self._grid.add_zeros("node", "surface_water__discharge", dtype=float)
             except FieldError:
                 pass
 
@@ -193,12 +193,12 @@ class PotentialityFlowRouter(Component):
         if self.route_on_diagonals and self._raster:
             self._discharges_at_link = np.empty(grid.number_of_d8)
         else:
-            self._discharges_at_link = self.grid.empty("link")
+            self._discharges_at_link = self._grid.empty("link")
 
     def route_flow(self):
         """
         """
-        grid = self.grid
+        grid = self._grid
         self._K = grid.at_node["flow__potential"]
         self._Qw = grid.at_node["surface_water__discharge"]
         z = grid.at_node["topographic__elevation"]
@@ -245,7 +245,7 @@ class PotentialityFlowRouter(Component):
             if self.equation != "default":
                 gd[:] = np.sign(gd) * np.sqrt(np.fabs(gd))
             diag_grad_at_node_w_dir = (
-                gwd[grid.d8s_at_node[:, 4:]] * self.grid.active_diagonal_dirs_at_node
+                gwd[grid.d8s_at_node[:, 4:]] * self._grid.active_diagonal_dirs_at_node
             )
 
             outgoing_sum += np.sum(diag_grad_at_node_w_dir.clip(0.0), axis=1)

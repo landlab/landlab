@@ -304,16 +304,16 @@ class SoilMoisture(Component):
         )
 
         for name in self._input_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
+            if name not in self._grid.at_cell:
+                self._grid.add_zeros("cell", name, units=self._var_units[name])
 
         for name in self._output_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
+            if name not in self._grid.at_cell:
+                self._grid.add_zeros("cell", name, units=self._var_units[name])
 
-        self._nodal_values = self.grid["node"]
+        self._nodal_values = self._grid["node"]
 
-        self._cell_values = self.grid["cell"]
+        self._cell_values = self._grid["cell"]
 
     def initialize(
         self,
@@ -411,7 +411,7 @@ class SoilMoisture(Component):
             Reference leaf area index (m^2/m^2).
         """
 
-        self._vegtype = self.grid["cell"]["vegetation__plant_functional_type"]
+        self._vegtype = self._grid["cell"]["vegetation__plant_functional_type"]
         self._runon = runon
         self._fbare = f_bare
         self._interception_cap = np.choose(
@@ -519,14 +519,14 @@ class SoilMoisture(Component):
         # LAIl = self._cell_values['vegetation__live_leaf_area_index']
         # LAIt = LAIl+self._cell_values['DeadLeafAreaIndex']
         # if LAIt.all() == 0.:
-        #     self._fr = np.zeros(self.grid.number_of_cells)
+        #     self._fr = np.zeros(self._grid.number_of_cells)
         # else:
         #     self._fr = (self._vegcover[0]*LAIl/LAIt)
         self._fr[self._fr > 1.0] = 1.0
         self._Sini = np.zeros(self._SO.shape)
         self._ETmax = np.zeros(self._SO.shape)
 
-        for cell in range(0, self.grid.number_of_cells):
+        for cell in range(0, self._grid.number_of_cells):
             P = P_[cell]
             # print cell
             s = self._SO[cell]

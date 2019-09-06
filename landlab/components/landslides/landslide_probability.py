@@ -375,10 +375,10 @@ class LandslideProbability(Component):
         # Lognormal Distribution - Variable in space
         elif self.groundwater__recharge_distribution == "lognormal_spatial":
             assert groundwater__recharge_mean.shape[0] == (
-                self.grid.number_of_nodes
+                self._grid.number_of_nodes
             ), "Input array should be of the length of grid.number_of_nodes!"
             assert groundwater__recharge_standard_deviation.shape[0] == (
-                self.grid.number_of_nodes
+                self._grid.number_of_nodes
             ), "Input array should be of the length of grid.number_of_nodes!"
             self._recharge_mean = groundwater__recharge_mean
             self._recharge_stdev = groundwater__recharge_standard_deviation
@@ -391,25 +391,25 @@ class LandslideProbability(Component):
 
         # Check if all input fields are initialized
         for name in self._input_var_names:
-            if name not in self.grid.at_node:
-                self.grid.add_zeros(
+            if name not in self._grid.at_node:
+                self._grid.add_zeros(
                     name, at=self._var_mapping[name], units=self._var_units[name]
                 )
 
         # Check if all output fields are initialized
         for name in self._output_var_names:
-            if name not in self.grid.at_node:
-                self.grid.add_zeros(
+            if name not in self._grid.at_node:
+                self._grid.add_zeros(
                     name, at=self._var_mapping[name], units=self._var_units[name]
                 )
 
         # Create a switch to imply whether Ksat is provided.
-        if np.all(self.grid.at_node["soil__saturated_hydraulic_conductivity"] == 0):
+        if np.all(self._grid.at_node["soil__saturated_hydraulic_conductivity"] == 0):
             self.Ksat_provided = 0  # False
         else:
             self.Ksat_provided = 1  # True
 
-        self._nodal_values = self.grid.at_node
+        self._nodal_values = self._grid.at_node
 
     def calculate_factor_of_safety(self, i):
         """Method to calculate factor of safety.
@@ -430,21 +430,21 @@ class LandslideProbability(Component):
         # generate distributions to sample from to provide input parameters
         # currently triangle distribution using mode, min, & max
         self._a = np.float32(
-            self.grid.at_node["topographic__specific_contributing_area"][i]
+            self._grid.at_node["topographic__specific_contributing_area"][i]
         )
-        self._theta = np.float32(self.grid.at_node["topographic__slope"][i])
-        self._Tmode = np.float32(self.grid.at_node["soil__transmissivity"][i])
+        self._theta = np.float32(self._grid.at_node["topographic__slope"][i])
+        self._Tmode = np.float32(self._grid.at_node["soil__transmissivity"][i])
         self._Ksatmode = np.float32(
-            self.grid.at_node["soil__saturated_hydraulic_conductivity"][i]
+            self._grid.at_node["soil__saturated_hydraulic_conductivity"][i]
         )
-        self._Cmode = np.float32(self.grid.at_node["soil__mode_total_cohesion"][i])
-        self._Cmin = np.float32(self.grid.at_node["soil__minimum_total_cohesion"][i])
-        self._Cmax = np.float32(self.grid.at_node["soil__maximum_total_cohesion"][i])
+        self._Cmode = np.float32(self._grid.at_node["soil__mode_total_cohesion"][i])
+        self._Cmin = np.float32(self._grid.at_node["soil__minimum_total_cohesion"][i])
+        self._Cmax = np.float32(self._grid.at_node["soil__maximum_total_cohesion"][i])
         self._phi_mode = np.float32(
-            self.grid.at_node["soil__internal_friction_angle"][i]
+            self._grid.at_node["soil__internal_friction_angle"][i]
         )
-        self._rho = np.float32(self.grid.at_node["soil__density"][i])
-        self._hs_mode = np.float32(self.grid.at_node["soil__thickness"][i])
+        self._rho = np.float32(self._grid.at_node["soil__density"][i])
+        self._hs_mode = np.float32(self._grid.at_node["soil__thickness"][i])
 
         # recharge distribution based on distribution type
         if self.groundwater__recharge_distribution == "data_driven_spatial":
@@ -533,12 +533,12 @@ class LandslideProbability(Component):
         and probability of saturation are assigned as fields to nodes.
         """
         # Create arrays for data with -9999 as default to store output
-        self.mean_Relative_Wetness = np.full(self.grid.number_of_nodes, -9999.0)
-        self.prob_fail = np.full(self.grid.number_of_nodes, -9999.0)
-        self.prob_sat = np.full(self.grid.number_of_nodes, -9999.0)
+        self.mean_Relative_Wetness = np.full(self._grid.number_of_nodes, -9999.0)
+        self.prob_fail = np.full(self._grid.number_of_nodes, -9999.0)
+        self.prob_sat = np.full(self._grid.number_of_nodes, -9999.0)
         # Run factor of safety Monte Carlo for all core nodes in domain
         # i refers to each core node id
-        for i in self.grid.core_nodes:
+        for i in self._grid.core_nodes:
             self.calculate_factor_of_safety(i)
             # Populate storage arrays with calculated values
             self.mean_Relative_Wetness[i] = self._soil__mean_relative_wetness
@@ -548,9 +548,9 @@ class LandslideProbability(Component):
         self.mean_Relative_Wetness[self.mean_Relative_Wetness < 0.0] = 0.0
         self.prob_fail[self.prob_fail < 0.0] = 0.0
         # assign output fields to nodes
-        self.grid.at_node["soil__mean_relative_wetness"] = self.mean_Relative_Wetness
-        self.grid.at_node["landslide__probability_of_failure"] = self.prob_fail
-        self.grid.at_node["soil__probability_of_saturation"] = self.prob_sat
+        self._grid.at_node["soil__mean_relative_wetness"] = self.mean_Relative_Wetness
+        self._grid.at_node["landslide__probability_of_failure"] = self.prob_fail
+        self._grid.at_node["soil__probability_of_saturation"] = self.prob_sat
 
     def _seed_generator(self, seed=0):
         """Method to initiate random seed.

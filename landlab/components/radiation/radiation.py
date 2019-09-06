@@ -143,21 +143,21 @@ class Radiation(Component):
         _assert_method_is_valid(self._method)
 
         for name in self._input_var_names:
-            if name not in self.grid.at_node:
-                self.grid.add_zeros(name, at="node", units=self._var_units[name])
+            if name not in self._grid.at_node:
+                self._grid.add_zeros(name, at="node", units=self._var_units[name])
 
         for name in self._output_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros(name, at="cell", units=self._var_units[name])
+            if name not in self._grid.at_cell:
+                self._grid.add_zeros(name, at="cell", units=self._var_units[name])
 
-        if "Slope" not in self.grid.at_cell:
-            self.grid.add_zeros("Slope", at="cell", units="radians")
+        if "Slope" not in self._grid.at_cell:
+            self._grid.add_zeros("Slope", at="cell", units="radians")
 
-        if "Aspect" not in self.grid.at_cell:
-            self.grid.add_zeros("Aspect", at="cell", units="radians")
+        if "Aspect" not in self._grid.at_cell:
+            self._grid.add_zeros("Aspect", at="cell", units="radians")
 
-        self._nodal_values = self.grid["node"]
-        self._cell_values = self.grid["cell"]
+        self._nodal_values = self._grid["node"]
+        self._cell_values = self._grid["cell"]
         self._slope, self._aspect = grid.calculate_slope_aspect_at_nodes_burrough(
             vals="topographic__elevation"
         )

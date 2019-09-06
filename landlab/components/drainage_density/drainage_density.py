@@ -392,16 +392,16 @@ class DrainageDensity(Component):
             self._channel_network,
             self._flow_receivers,
             self._upstream_order,
-            self.grid.length_of_d8,
+            self._grid.length_of_d8,
             self._stack_links,
             self.distance_to_channel,
-            self.grid.number_of_nodes,
+            self._grid.number_of_nodes,
         )
         landscape_drainage_density = 1.0 / (
             2.0
             * np.mean(
-                self.grid.at_node["surface_to_channel__minimum_distance"][
-                    self.grid.core_nodes
+                self._grid.at_node["surface_to_channel__minimum_distance"][
+                    self._grid.core_nodes
                 ]
             )
         )

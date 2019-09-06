@@ -185,15 +185,15 @@ class Flexure(Component):
         self.eet = eet
 
         for name in self._input_var_names:
-            if name not in self.grid.at_node:
-                self.grid.add_zeros("node", name, units=self._var_units[name])
+            if name not in self._grid.at_node:
+                self._grid.add_zeros("node", name, units=self._var_units[name])
 
         for name in self._output_var_names:
-            if name not in self.grid.at_node:
-                self.grid.add_zeros("node", name, units=self._var_units[name])
+            if name not in self._grid.at_node:
+                self._grid.add_zeros("node", name, units=self._var_units[name])
 
         self._r = self._create_kei_func_grid(
-            self._grid.shape, (self.grid.dy, self.grid.dx), self.alpha
+            self._grid.shape, (self._grid.dy, self._grid.dx), self.alpha
         )
 
     @property
@@ -207,7 +207,7 @@ class Flexure(Component):
             raise ValueError("Effective elastic thickness must be positive.")
         self._eet = new_val
         self._r = self._create_kei_func_grid(
-            self._grid.shape, (self.grid.dy, self.grid.dx), self.alpha
+            self._grid.shape, (self._grid.dy, self._grid.dx), self.alpha
         )
 
     @property
@@ -260,8 +260,8 @@ class Flexure(Component):
         n_procs : int, optional
             Number of processors to use for calculations.
         """
-        load = self.grid.at_node["lithosphere__overlying_pressure_increment"]
-        deflection = self.grid.at_node["lithosphere_surface__elevation_increment"]
+        load = self._grid.at_node["lithosphere__overlying_pressure_increment"]
+        deflection = self._grid.at_node["lithosphere_surface__elevation_increment"]
 
         new_load = load.copy()
 
@@ -290,15 +290,15 @@ class Flexure(Component):
             Deflections caused by the loading.
         """
         if out is None:
-            out = np.zeros(self.grid.shape, dtype=np.float)
-        dz = out.reshape(self.grid.shape)
-        load = loads.reshape(self.grid.shape)
+            out = np.zeros(self._grid.shape, dtype=np.float)
+        dz = out.reshape(self._grid.shape)
+        load = loads.reshape(self._grid.shape)
 
         from .cfuncs import subside_grid_in_parallel
 
         subside_grid_in_parallel(
             dz,
-            load * self.grid.dx * self.grid.dy,
+            load * self._grid.dx * self._grid.dy,
             self._r,
             self.alpha,
             self.gamma_mantle,

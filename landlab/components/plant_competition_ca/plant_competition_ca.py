@@ -188,20 +188,20 @@ class VegCA(Component):
 
         assert_method_is_valid(self._method)
 
-        if "vegetation__plant_functional_type" not in self.grid.at_cell:
+        if "vegetation__plant_functional_type" not in self._grid.at_cell:
             grid["cell"]["vegetation__plant_functional_type"] = np.random.randint(
                 0, 6, grid.number_of_cells
             )
 
         for name in self._input_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
+            if name not in self._grid.at_cell:
+                self._grid.add_zeros("cell", name, units=self._var_units[name])
 
         for name in self._output_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
+            if name not in self._grid.at_cell:
+                self._grid.add_zeros("cell", name, units=self._var_units[name])
 
-        self._cell_values = self.grid["cell"]
+        self._cell_values = self._grid["cell"]
 
         VegType = grid["cell"]["vegetation__plant_functional_type"]
         tp = np.zeros(grid.number_of_cells, dtype=int)
@@ -249,8 +249,8 @@ class VegCA(Component):
         self._live_index = 1 - self._CumWS  # Plant live index = 1 - WS
         bare_cells = np.where(self._VegType == BARE)[0]
         n_bare = len(bare_cells)
-        first_ring = self.grid.looped_neighbors_at_cell[bare_cells]
-        second_ring = self.grid.second_ring_looped_neighbors_at_cell[bare_cells]
+        first_ring = self._grid.looped_neighbors_at_cell[bare_cells]
+        second_ring = self._grid.second_ring_looped_neighbors_at_cell[bare_cells]
         veg_type_fr = self._VegType[first_ring]
         veg_type_sr = self._VegType[second_ring]
         Sh_WS_fr = WS_PFT(veg_type_fr, SHRUB, self._live_index[first_ring])
@@ -324,10 +324,10 @@ class VegCA(Component):
         self._cell_values["plant__age"] = self._tp
 
         if Edit_VegCov:
-            self.grid["cell"]["vegetation__boolean_vegetated"] = np.zeros(
-                self.grid.number_of_cells, dtype=int
+            self._grid["cell"]["vegetation__boolean_vegetated"] = np.zeros(
+                self._grid.number_of_cells, dtype=int
             )
-            self.grid["cell"]["vegetation__boolean_vegetated"][
+            self._grid["cell"]["vegetation__boolean_vegetated"][
                 self._VegType != BARE
             ] = 1
 

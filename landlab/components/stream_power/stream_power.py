@@ -237,7 +237,7 @@ class StreamPowerEroder(Component):
             self._K_unit_time = K_sp
         else:
             try:
-                self._K_unit_time = self.grid.zeros("node", dtype=float)
+                self._K_unit_time = self._grid.zeros("node", dtype=float)
                 self._K_unit_time.fill(K_sp)
             except ValueError:  # could not cast => was a str
                 if K_sp == "array":
@@ -252,10 +252,10 @@ class StreamPowerEroder(Component):
             self._sp_crit = float(threshold_sp)
         except TypeError:
             try:
-                self._sp_crit = self.grid.at_node[threshold_sp]
+                self._sp_crit = self._grid.at_node[threshold_sp]
             except TypeError:  # was an array
                 self._sp_crit = threshold_sp
-                assert self._sp_crit.size == self.grid.number_of_nodes
+                assert self._sp_crit.size == self._grid.number_of_nodes
         if np.any(threshold_sp != 0.0):
             self._set_threshold = True
             # ^flag for sed_flux_dep_incision to see if the threshold was
@@ -272,7 +272,7 @@ class StreamPowerEroder(Component):
         else:
             self._use_W = True
             try:
-                self._W = self.grid.at_node[use_W]
+                self._W = self._grid.at_node[use_W]
             except (FieldError, TypeError):
                 assert use_W.size == self._grid.number_of_nodes
                 self._W = use_W
@@ -285,7 +285,7 @@ class StreamPowerEroder(Component):
         else:
             self._use_Q = True
             try:
-                self._Q = self.grid.at_node[use_Q]
+                self._Q = self._grid.at_node[use_Q]
             except (FieldError, TypeError):
                 assert use_Q.size == self._grid.number_of_nodes
                 self._Q = use_Q
@@ -339,7 +339,7 @@ class StreamPowerEroder(Component):
         # and W directly if appropriate
 
         self._stream_power_erosion = grid.zeros(centering="node")
-        self._alpha = self.grid.zeros("node")
+        self._alpha = self._grid.zeros("node")
 
     def erode(
         self,
@@ -470,7 +470,7 @@ class StreamPowerEroder(Component):
         flow_link_lengths = length_of_link[
             self._grid.at_node[link_mapping][defined_flow_receivers]
         ]
-        flow_receivers = self.grid["node"][flow_receiver]
+        flow_receivers = self._grid["node"][flow_receiver]
 
         if W_if_used is not None:
             assert self._use_W, (

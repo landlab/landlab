@@ -224,7 +224,7 @@ class SinkFiller(Component):
             if delete_me in self._grid.at_node:
                 self._grid.delete_field("node", delete_me)
         for update_me in existing_fields.keys():
-            self.grid.at_node[update_me][:] = existing_fields[update_me]
+            self._grid.at_node[update_me][:] = existing_fields[update_me]
         # fill the output field
         self.sed_fill_depth[:] = self._elev - self.original_elev
 
@@ -334,10 +334,10 @@ class SinkFiller(Component):
         # now put back any fields that were present initially, and wipe the
         # rest:
         for delete_me in spurious_fields:
-            if delete_me in self.grid.at_node:
+            if delete_me in self._grid.at_node:
                 self._grid.delete_field("node", delete_me)
         for update_me in existing_fields.keys():
-            self.grid.at_node[update_me] = existing_fields[update_me]
+            self._grid.at_node[update_me] = existing_fields[update_me]
         # fill the output field
         self.sed_fill_depth[:] = self._elev - self.original_elev
 
@@ -366,11 +366,11 @@ class SinkFiller(Component):
         """
         if self._D8 is True:
             all_poss = np.union1d(
-                self.grid.active_adjacent_nodes_at_node[lake_nodes],
-                self.grid.diagonal_adjacent_nodes_at_node[lake_nodes],
+                self._grid.active_adjacent_nodes_at_node[lake_nodes],
+                self._grid.diagonal_adjacent_nodes_at_node[lake_nodes],
             )
         else:
-            all_poss = np.unique(self.grid.active_adjacent_nodes_at_node[lake_nodes])
+            all_poss = np.unique(self._grid.active_adjacent_nodes_at_node[lake_nodes])
         lake_ext_edge = np.setdiff1d(all_poss, lake_nodes)
         return lake_ext_edge[lake_ext_edge != BAD_INDEX_VALUE]
 
@@ -423,12 +423,12 @@ class SinkFiller(Component):
         if self._D8:
             edge_neighbors = np.hstack(
                 (
-                    self.grid.active_adjacent_nodes_at_node[ext_edge],
-                    self.grid.diagonal_adjacent_nodes_at_node[ext_edge],
+                    self._grid.active_adjacent_nodes_at_node[ext_edge],
+                    self._grid.diagonal_adjacent_nodes_at_node[ext_edge],
                 )
             )
         else:
-            edge_neighbors = self.grid.active_adjacent_nodes_at_node[ext_edge].copy()
+            edge_neighbors = self._grid.active_adjacent_nodes_at_node[ext_edge].copy()
         edge_neighbors[edge_neighbors == BAD_INDEX_VALUE] = -1
         # ^value irrelevant
         old_neighbor_elevs = old_elevs[edge_neighbors]

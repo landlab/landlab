@@ -191,9 +191,9 @@ class ChiFinder(Component):
             raise NotImplementedError(msg)
 
         if isinstance(self._grid, RasterModelGrid):
-            self._link_lengths = self.grid.length_of_d8
+            self._link_lengths = self._grid.length_of_d8
         else:
-            self._link_lengths = self.grid.length_of_link  # not tested
+            self._link_lengths = self._grid.length_of_link  # not tested
 
         self._reftheta = reference_concavity
         self.min_drainage = min_drainage_area
@@ -204,9 +204,9 @@ class ChiFinder(Component):
         self.chi = self._grid.add_zeros(
             "node", "channel__chi_index", noclobber=noclobber
         )
-        self._mask = self.grid.ones("node", dtype=bool)
+        self._mask = self._grid.ones("node", dtype=bool)
         # this one needs modifying if smooth_elev
-        self._elev = self.grid.at_node["topographic__elevation"]
+        self._elev = self._grid.at_node["topographic__elevation"]
 
     def _set_up_reference_area(self, reference_area):
         """Set up and validate reference_area"""
@@ -234,12 +234,12 @@ class ChiFinder(Component):
 
         use_true_dx = self.use_true_dx
 
-        upstr_order = self.grid.at_node["flow__upstream_node_order"]
+        upstr_order = self._grid.at_node["flow__upstream_node_order"]
         # get an array of only nodes with A above threshold:
         valid_upstr_order = upstr_order[
-            self.grid.at_node["drainage_area"][upstr_order] >= min_drainage
+            self._grid.at_node["drainage_area"][upstr_order] >= min_drainage
         ]
-        valid_upstr_areas = self.grid.at_node["drainage_area"][valid_upstr_order]
+        valid_upstr_areas = self._grid.at_node["drainage_area"][valid_upstr_order]
         if not use_true_dx:
             chi_integrand = (self._A0 / valid_upstr_areas) ** reftheta
             mean_dx = self.mean_channel_node_spacing(valid_upstr_order)
@@ -247,14 +247,14 @@ class ChiFinder(Component):
                 valid_upstr_order, chi_integrand, self.chi, mean_dx
             )
         else:
-            chi_integrand = self.grid.zeros("node")
+            chi_integrand = self._grid.zeros("node")
             chi_integrand[valid_upstr_order] = (
                 self._A0 / valid_upstr_areas
             ) ** reftheta
             self.integrate_chi_each_dx(valid_upstr_order, chi_integrand, self.chi)
         # stamp over the closed nodes, as it's possible they can receive infs
         # if min_drainage_area < grid.cell_area_at_node
-        self.chi[self.grid.status_at_node == CLOSED_BOUNDARY] = 0.0
+        self.chi[self._grid.status_at_node == CLOSED_BOUNDARY] = 0.0
         self._mask[valid_upstr_order] = False
 
     def integrate_chi_avg_dx(
@@ -304,7 +304,7 @@ class ChiFinder(Component):
                [ 1.5,  3. ,  4.5,  0. ],
                [ 0. ,  0. ,  0. ,  0. ]])
         """
-        receivers = self.grid.at_node["flow__receiver_node"]
+        receivers = self._grid.at_node["flow__receiver_node"]
         # because chi_array is all zeros, BC cases where node is receiver
         # resolve themselves
         for (node, integrand) in izip(valid_upstr_order, chi_integrand):
@@ -391,8 +391,8 @@ class ChiFinder(Component):
                [   0. ,  100. ,  200.        ,  300.        ,    0. ],
                [   0. ,    0. ,    0.        ,    0.        ,    0. ]])
         """
-        receivers = self.grid.at_node["flow__receiver_node"]
-        links = self.grid.at_node["flow__link_to_receiver_node"]
+        receivers = self._grid.at_node["flow__receiver_node"]
+        links = self._grid.at_node["flow__link_to_receiver_node"]
 
         # because chi_array is all zeros, BC cases where node is receiver
         # resolve themselves
@@ -442,7 +442,7 @@ class ChiFinder(Component):
         >>> cf.mean_channel_node_spacing(ch_nodes)
         2.2761423749153966
         """
-        ch_links = self.grid.at_node["flow__link_to_receiver_node"][ch_nodes]
+        ch_links = self._grid.at_node["flow__link_to_receiver_node"][ch_nodes]
         ch_links_valid = ch_links[ch_links != BAD_INDEX_VALUE]
 
         valid_link_lengths = self._link_lengths[ch_links_valid]
@@ -511,7 +511,7 @@ class ChiFinder(Component):
         else:
             good_vals = np.array(ch_nodes)  # not tested
         chi_vals = self.chi_indices[good_vals]
-        elev_vals = self.grid.at_node["topographic__elevation"][good_vals]
+        elev_vals = self._grid.at_node["topographic__elevation"][good_vals]
         coeffs = np.polyfit(chi_vals, elev_vals, 1)
         return coeffs
 
@@ -548,10 +548,10 @@ class ChiFinder(Component):
         ch_nodes = []
         current_node = channel_head
         while True:
-            ch_A = self.grid.at_node["drainage_area"][current_node]
+            ch_A = self._grid.at_node["drainage_area"][current_node]
             if ch_A > self.min_drainage:
                 ch_nodes.append(current_node)
-            next_node = self.grid.at_node["flow__receiver_node"][current_node]
+            next_node = self._grid.at_node["flow__receiver_node"][current_node]
             if next_node == current_node:
                 break
             else:
@@ -600,7 +600,7 @@ class ChiFinder(Component):
                 ch_nodes = self.nodes_downstream_of_channel_head(head)
                 plot(
                     self.chi_indices[ch_nodes],
-                    self.grid.at_node["topographic__elevation"][ch_nodes],
+                    self._grid.at_node["topographic__elevation"][ch_nodes],
                     symbol,
                 )
                 if plot_line:
@@ -609,7 +609,7 @@ class ChiFinder(Component):
             ch_nodes = np.logical_not(self.hillslope_mask)
             plot(
                 self.chi_indices[ch_nodes],
-                self.grid.at_node["topographic__elevation"][ch_nodes],
+                self._grid.at_node["topographic__elevation"][ch_nodes],
                 symbol,
             )
             good_nodes = ch_nodes
