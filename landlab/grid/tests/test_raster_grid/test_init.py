@@ -45,25 +45,6 @@ def test_parse_parameters_new_style(kwds):
     assert new_kwds == kwds
 
 
-def test_init_with_kwds_classic():
-
-    with pytest.deprecated_call():
-        grid = RasterModelGrid(num_rows=4, num_cols=5, xy_spacing=1.0)
-
-    assert grid.number_of_node_rows == 4
-    assert grid.number_of_node_columns == 5
-    assert grid.dy == 1
-    assert grid.dx == 1
-
-    with pytest.deprecated_call():
-        grid = RasterModelGrid(3, 7, 2)
-
-    assert grid.number_of_node_rows == 3
-    assert grid.number_of_node_columns == 7
-    assert grid.dy == 2.0
-    assert grid.dx == 2.0
-
-
 def test_init_new_style():
     grid = RasterModelGrid((4, 5), xy_spacing=2)
 
