@@ -182,7 +182,7 @@ def test_internal_closed(internal_closed):
 
 def test_voronoi():
     """Test routing on a (radial) voronoi."""
-    vmg = RadialModelGrid(2, dr=2.0)
+    vmg = RadialModelGrid(n_rings=2, nodes_in_first_ring=3)
     z = np.full(20, 10.0, dtype=float)
     # vmg.status_at_node[8:] = CLOSED_BOUNDARY
     all_bounds_but_one = np.array((0, 1, 2, 3, 4, 7, 11, 15, 16, 17, 18, 19))
@@ -229,7 +229,7 @@ def test_voronoi():
 
 def test_voronoi_closedinternal():
     """Test routing on a (radial) voronoi, but with a closed interior node."""
-    vmg = RadialModelGrid(2, dr=2.0)
+    vmg = RadialModelGrid(n_rings=2, nodes_in_first_ring=3)
     z = np.full(20, 10.0, dtype=float)
     all_bounds_but_one = np.array((0, 1, 2, 3, 4, 7, 11, 15, 16, 17, 18, 19))
     vmg.status_at_node[all_bounds_but_one] = CLOSED_BOUNDARY
