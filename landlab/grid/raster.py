@@ -410,6 +410,8 @@ class RasterModelGrid(
         xy_spacing=1.0,
         xy_of_lower_left=(0.0, 0.0),
         xy_of_reference=(0.0, 0.0),
+        xy_axis_name=("x", "y"),
+        xy_axis_units="-",
         bc=None,
     ):
         """Create a 2D grid with equal spacing.
@@ -435,6 +437,10 @@ class RasterModelGrid(
         xy_of_reference : tuple, optional
             Coordinate value in projected space of the reference point,
             `xy_of_lower_left`. Default is (0., 0.)
+        xy_axis_name: tuple of str
+            Name to use for each axis.
+        xy_axis_units: tuple of str, or str
+            Units for coordinates of each axis.
         bc : dict, optional
             Edge boundary conditions.
 
@@ -455,7 +461,7 @@ class RasterModelGrid(
         # shape = args[0]
         shape = tuple(shape)
         xy_spacing = np.asfarray(np.broadcast_to(xy_spacing, 2))
-        xy_of_lower_left = np.asfarray(xy_of_lower_left)
+        self._xy_of_lower_left = tuple(np.asfarray(xy_of_lower_left))
 
         if shape[0] <= 0 or shape[1] <= 0:
             raise ValueError("number of rows and columns must be positive")
@@ -465,9 +471,14 @@ class RasterModelGrid(
         # origin = np.asfarray(np.broadcast_to(origin, (2,)))
 
         DualUniformRectilinearGraph.__init__(
-            self, shape, spacing=xy_spacing[::-1], origin=xy_of_lower_left[::-1]
+            self, shape, spacing=xy_spacing[::-1], origin=self.xy_of_lower_left[::-1]
         )
-        ModelGrid.__init__(self) #, **kwds)
+        ModelGrid.__init__(
+            self,
+            xy_axis_name=xy_axis_name,
+            xy_axis_units=xy_axis_units,
+            xy_of_reference=xy_of_reference,
+        )
 
         self._node_status = np.full(
             self.number_of_nodes, self.BC_NODE_IS_CORE, dtype=np.uint8
@@ -494,7 +505,9 @@ class RasterModelGrid(
 
     def __repr__(self):
         return "RasterModelGrid({0}, xy_spacing={1}, xy_of_lower_left={2})".format(
-            repr(self.shape), repr((self.dx, self.dy)), repr(self.xy_of_lower_left)
+            repr(self.shape),
+            repr((self.dx, self.dy)),
+            repr((self.x_of_node.min(), self.y_of_node.min())),
         )
 
     def __setstate__(self, state_dict):
@@ -643,10 +656,12 @@ class RasterModelGrid(
     @xy_of_lower_left.setter
     def xy_of_lower_left(self, xy_of_lower_left):
         """Set a new value for the xy_of_lower_left."""
-        dx = self.x_of_node[0] - xy_of_lower_left[0]
-        dy = self.y_of_node[0] - xy_of_lower_left[1]
-        self._xy_of_node -= (dx, dy)
-        self._xy_of_lower_left = xy_of_lower_left
+        dx = self.xy_of_lower_left[0] - xy_of_lower_left[0]
+        dy = self.xy_of_lower_left[1] - xy_of_lower_left[1]
+        with self.thawed():
+            self.x_of_node[:] -= dx
+            self.y_of_node[:] -= dy
+        self._xy_of_lower_left = tuple(np.asfarray(xy_of_lower_left))
 
     def _initialize(self, num_rows, num_cols, xy_spacing, xy_of_lower_left):
         """Set up a raster grid.

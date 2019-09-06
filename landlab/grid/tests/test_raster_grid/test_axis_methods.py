@@ -5,14 +5,14 @@ from landlab import RasterModelGrid
 
 def test_default_names():
     rmg = RasterModelGrid((4, 5))
-    assert rmg.axis_name == ("y", "x")
+    assert rmg.axis_name == ("x", "y")
 
 
 def test_name_keyword():
     rmg = RasterModelGrid(
         (4, 5),
-        axis_name=["longitude", "latitude"],
-        axis_units=["degrees_east", "degrees_north"],
+        xy_axis_name=["longitude", "latitude"],
+        xy_axis_units=["degrees_east", "degrees_north"],
     )
     assert rmg.axis_name == ("longitude", "latitude")
 
@@ -20,8 +20,8 @@ def test_name_keyword():
 def test_name_setter():
     rmg = RasterModelGrid(
         (4, 5),
-        axis_name=["longitude", "latitude"],
-        axis_units=["degrees_east", "degrees_north"],
+        xy_axis_name=["longitude", "latitude"],
+        xy_axis_units=["degrees_east", "degrees_north"],
     )
     rmg.axis_name = ("yyy", "xxx")
     assert rmg.axis_name == ("yyy", "xxx")
@@ -47,8 +47,8 @@ def test_default_units():
 def test_axis_units_keyword():
     rmg = RasterModelGrid(
         (4, 5),
-        axis_name=["longitude", "latitude"],
-        axis_units=["degrees_east", "degrees_north"],
+        xy_axis_name=["longitude", "latitude"],
+        xy_axis_units=["degrees_east", "degrees_north"],
     )
     assert rmg.axis_units == ("degrees_east", "degrees_north")
 
@@ -56,8 +56,8 @@ def test_axis_units_keyword():
 def test_axis_units_setter():
     rmg = RasterModelGrid(
         (4, 5),
-        axis_name=["longitude", "latitude"],
-        axis_units=["degrees_east", "degrees_north"],
+        xy_axis_name=["longitude", "latitude"],
+        xy_axis_units=["degrees_east", "degrees_north"],
     )
     rmg.axis_units = ("mm", "cm")
     assert rmg.axis_units == ("mm", "cm")
