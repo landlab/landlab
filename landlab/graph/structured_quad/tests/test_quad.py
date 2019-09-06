@@ -1,10 +1,87 @@
 """Test StructuredQuadGraph."""
-from pytest import approx
-
-from numpy.testing import assert_array_equal
 import numpy as np
+from numpy.testing import assert_array_equal
+from pytest import approx, mark
 
 from landlab.graph import StructuredQuadGraph, UniformRectilinearGraph
+from landlab.graph.structured_quad.structured_quad import (
+    StructuredQuadLayoutCython,
+    StructuredQuadLayoutPython,
+)
+
+
+@mark.parametrize("layout", (StructuredQuadLayoutCython, StructuredQuadLayoutPython))
+def test_layout_links_at_patch(layout):
+    assert_array_equal(
+        layout.links_at_patch((3, 4)),
+        [
+            [4, 7, 3, 0],
+            [5, 8, 4, 1],
+            [6, 9, 5, 2],
+            [11, 14, 10, 7],
+            [12, 15, 11, 8],
+            [13, 16, 12, 9],
+        ],
+    )
+
+
+@mark.parametrize(
+    "method",
+    (
+        "links_at_patch",
+        "nodes_at_link",
+        "horizontal_links",
+        "vertical_links",
+        "perimeter_nodes",
+        "links_at_node",
+        "patches_at_link",
+        "link_dirs_at_node",
+        "patches_at_node",
+    ),
+)
+def test_layouts_match(method):
+    assert_array_equal(
+        getattr(StructuredQuadLayoutCython, method)((3, 4)),
+        getattr(StructuredQuadLayoutPython, method)((3, 4)),
+    )
+
+
+@mark.parametrize(
+    "method",
+    (
+        "links_at_patch",
+        "nodes_at_link",
+        "horizontal_links",
+        "vertical_links",
+        "perimeter_nodes",
+        "links_at_node",
+        "patches_at_link",
+        "link_dirs_at_node",
+        "patches_at_node",
+    ),
+)
+@mark.parametrize("size", (10, 11))
+def test_layouts_cython_is_faster(method, size):
+    from timeit import timeit
+
+    n_rows, n_cols = 3 * 2 ** size, 4 * 2 ** size
+
+    def time_method(impl):
+        return timeit(
+            "{impl}.{method}(({n_rows}, {n_cols}))".format(
+                impl=impl, method=method, n_rows=n_rows, n_cols=n_cols
+            ),
+            setup="from landlab.graph.structured_quad.structured_quad import {impl}".format(
+                impl=impl
+            ),
+            number=1,
+        )
+
+    benchmark = time_method("StructuredQuadLayoutPython")
+    time = time_method("StructuredQuadLayoutCython")
+    speedup = benchmark / time
+
+    assert speedup > 1  # or time < 1e-2
 
 
 def test_create():
@@ -30,9 +107,8 @@ def test_length_of_link():
     y = [0, 1, 3, 0, 1, 3, 0, 1, 3]
     x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
     graph = StructuredQuadGraph((y, x), shape=(3, 3))
-    assert (
-        graph.length_of_link
-        == approx([1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 1.0, 2.0]),
+    assert graph.length_of_link == approx(
+        [1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 1.0, 2.0]
     )
 
 
@@ -48,7 +124,7 @@ def test_nodes_at_patch():
     """Test areas of patches."""
     y = [0, 1, 3, 0, 1, 3, 0, 1, 3]
     x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
-    graph = StructuredQuadGraph((y, x), shape=(3, 3))
+    graph = StructuredQuadGraph((y, x), shape=(3, 3), sort=True)
     assert_array_equal(
         graph.nodes_at_patch, [[4, 3, 0, 1], [5, 4, 1, 2], [7, 6, 3, 4], [8, 7, 4, 5]]
     )
@@ -159,18 +235,39 @@ def test_link_dirs_at_node():
     y = [0, 1, 3, 0, 1, 3, 0, 1, 3]
     x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
     graph = StructuredQuadGraph((y, x), shape=(3, 3))
-    assert_array_equal(graph.link_dirs_at_node,
-                       [[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
-                        [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
-                        [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]])
+    assert_array_equal(
+        graph.link_dirs_at_node,
+        [
+            [-1, -1, 0, 0],
+            [-1, -1, 1, 0],
+            [0, -1, 1, 0],
+            [-1, -1, 0, 1],
+            [-1, -1, 1, 1],
+            [0, -1, 1, 1],
+            [-1, 0, 0, 1],
+            [-1, 0, 1, 1],
+            [0, 0, 1, 1],
+        ],
+    )
 
 
 def test_link_dirs_at_node_raster():
     graph = UniformRectilinearGraph((4, 3))
     assert_array_equal(
         graph.link_dirs_at_node,
-        [[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
-         [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
-         [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
-         [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]])
+        [
+            [-1, -1, 0, 0],
+            [-1, -1, 1, 0],
+            [0, -1, 1, 0],
+            [-1, -1, 0, 1],
+            [-1, -1, 1, 1],
+            [0, -1, 1, 1],
+            [-1, -1, 0, 1],
+            [-1, -1, 1, 1],
+            [0, -1, 1, 1],
+            [-1, 0, 0, 1],
+            [-1, 0, 1, 1],
+            [0, 0, 1, 1],
+        ],
+    )
     assert graph.link_dirs_at_node.dtype == np.int8
