@@ -12,6 +12,10 @@ def fill_links_at_patch(shape, np.ndarray[DTYPE_t, ndim=2] links_at_patch):
     cdef int n_cols = shape[1]
     cdef int links_per_row = 2 * n_cols - 1
     cdef int patches_per_row = n_cols - 1
+    cdef int row
+    cdef int link
+    cdef int patch
+    cdef int col
 
     for row in range(n_rows - 1):
         link = row * links_per_row + n_cols
