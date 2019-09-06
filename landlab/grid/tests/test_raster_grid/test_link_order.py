@@ -23,7 +23,7 @@ def test_link_order():
 
 
 def test_link_at_face():
-    grid = RasterModelGrid((4, 5), spacing=1.)
+    grid = RasterModelGrid((4, 5), xy_spacing=1.0)
     assert_array_equal(grid.link_at_face, [ 5,  6,  7,
                                             9, 10, 11, 12,
                                            14, 15, 16,
@@ -35,7 +35,7 @@ def test_link_at_face():
 
 
 def test_horizontal_links():
-    grid = RasterModelGrid((4, 5), spacing=1.)
+    grid = RasterModelGrid((4, 5), xy_spacing=1.0)
     assert_array_equal(grid.horizontal_links,
                        [ 0,  1,  2,  3,
                          9, 10, 11, 12,
@@ -45,7 +45,7 @@ def test_horizontal_links():
 
 
 def test_vertical_links():
-    grid = RasterModelGrid((4, 5), spacing=1.)
+    grid = RasterModelGrid((4, 5), xy_spacing=1.0)
     assert_array_equal(grid.vertical_links,
                        [ 4,  5,  6,  7,  8,
                         13, 14, 15, 16, 17,
