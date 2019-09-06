@@ -115,19 +115,39 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         # Handle "use_Q" option (ideally should be done by base class, but
         # FastscapeEroder, unlike StreamPowerEroder, lacks this option)
         if use_Q is not None:
-            if type(use_Q) is str:  # if str, assume it's a field name
-                self.area_or_discharge = self._grid.at_node[use_Q]
-            elif type(use_Q) is np.ndarray:  # if array, use it
-                self.area_or_discharge = use_Q
+            if isinstance(use_Q, str):  # if str, assume it's a field name
+                self._area_or_discharge = self._grid.at_node[use_Q]
+            elif isinstance(use_Q, np.ndarray):  # if array, use it
+                self._area_or_discharge = use_Q
             else:
                 print("Warning: use_Q must be field name or array")
-                self.area_or_discharge = self._grid.at_node["drainage_area"]
+                self._area_or_discharge = self._grid.at_node["drainage_area"]
         else:
-            self.area_or_discharge = self._grid.at_node["drainage_area"]
+            self._area_or_discharge = self._grid.at_node["drainage_area"]
 
         # Arrays with parameters for use in implicit solver
-        self.gamma = grid.empty(at="node")
-        self.delta = grid.empty(at="node")
+        self._gamma = grid.empty(at="node")
+        self._delta = grid.empty(at="node")
+
+    @property
+    def alpha(self):
+        """TODO"""
+        return self._alpha
+
+    @property
+    def gamma(self):
+        """TODO"""
+        return self._gamma
+
+    @property
+    def thresholds(self):
+        """TODO"""
+        return self._thresholds
+
+    @property
+    def delta(self):
+        """TODO"""
+        return self._delta
 
     def run_one_step(self, dt, flooded_nodes=None, runoff_rate=None):
         """Run one forward iteration of duration dt.
@@ -195,50 +215,50 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         # variable K)
 
         # Handle possibility of spatially varying K
-        if type(self.K) is np.ndarray:
-            K = self.K[defined_flow_receivers]
+        if isinstance(self._K, np.ndarray):
+            K = self._K[defined_flow_receivers]
         else:
-            K = self.K
+            K = self._K
 
         # Handle possibility of spatially varying threshold
-        if isinstance(self.thresholds, np.ndarray):
-            thresh = self.thresholds[defined_flow_receivers]
+        if isinstance(self._thresholds, np.ndarray):
+            thresh = self._thresholds[defined_flow_receivers]
         else:
-            thresh = self.thresholds
+            thresh = self._thresholds
 
         # Set up alpha, beta, delta arrays
         #
         #   First, compute drainage area or discharge raised to the power m.
-        np.power(self.area_or_discharge, self.m, out=self.A_to_the_m)
+        np.power(self._area_or_discharge, self._m, out=self._A_to_the_m)
 
         #   Alpha
-        self.alpha[~defined_flow_receivers] = 0.0
-        self.alpha[defined_flow_receivers] = (
-            K * dt * self.A_to_the_m[defined_flow_receivers] / flow_link_lengths
+        self._alpha[~defined_flow_receivers] = 0.0
+        self._alpha[defined_flow_receivers] = (
+            K * dt * self._A_to_the_m[defined_flow_receivers] / flow_link_lengths
         )
 
         #   Gamma
-        self.gamma[~defined_flow_receivers] = 0.0
-        self.gamma[defined_flow_receivers] = dt * thresh
+        self._gamma[~defined_flow_receivers] = 0.0
+        self._gamma[defined_flow_receivers] = dt * thresh
 
         #   Delta
-        self.delta[~defined_flow_receivers] = 0.0
-        if isinstance(self.thresholds, np.ndarray):
-            self.delta[defined_flow_receivers] = (
-                K * self.A_to_the_m[defined_flow_receivers]
+        self._delta[~defined_flow_receivers] = 0.0
+        if isinstance(self._thresholds, np.ndarray):
+            self._delta[defined_flow_receivers] = (
+                K * self._A_to_the_m[defined_flow_receivers]
             ) / (thresh * flow_link_lengths)
 
-            self.delta[defined_flow_receivers][thresh == 0.0] = 0.0
+            self._delta[defined_flow_receivers][thresh == 0.0] = 0.0
         else:
             if thresh == 0:
-                self.delta[defined_flow_receivers] = 0.0
+                self._delta[defined_flow_receivers] = 0.0
             else:
-                self.delta[defined_flow_receivers] = (
-                    K * self.A_to_the_m[defined_flow_receivers]
+                self._delta[defined_flow_receivers] = (
+                    K * self._A_to_the_m[defined_flow_receivers]
                 ) / (thresh * flow_link_lengths)
 
         # Iterate over nodes from downstream to upstream, using scipy's
         # 'newton' function to find new elevation at each node in turn.
         smooth_stream_power_eroder_solver(
-            upstream_order_IDs, flow_receivers, z, self.alpha, self.gamma, self.delta
+            upstream_order_IDs, flow_receivers, z, self._alpha, self._gamma, self._delta
         )

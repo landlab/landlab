@@ -131,25 +131,25 @@ class PrecipitationDistribution(Component):
         """
         super(PrecipitationDistribution, self).__init__(grid)
 
-        self.mean_storm_duration = mean_storm_duration
+        self._mean_storm_duration = mean_storm_duration
 
-        self.mean_interstorm_duration = mean_interstorm_duration
+        self._mean_interstorm_duration = mean_interstorm_duration
 
-        self.mean_storm_depth = mean_storm_depth
+        self._mean_storm_depth = mean_storm_depth
 
-        self.run_time = total_t
+        self._run_time = total_t
 
-        self.delta_t = delta_t
+        self._delta_t = delta_t
 
-        if self.delta_t == 0.0:
-            self.delta_t = None
+        if self._delta_t == 0.0:
+            self._delta_t = None
 
         # Mean_intensity is not set by the MPD, but can be drawn from
         # the mean storm depth and mean storm duration.
-        self.mean_intensity = self.mean_storm_depth / self.mean_storm_duration
+        self._mean_intensity = self._mean_storm_depth / self._mean_storm_duration
 
         # If a time series is created later, this blank list will be used.
-        self.storm_time_series = []
+        self._storm_time_series = []
 
         # Seed the random-number generator
         self.seed_generator(random_seed)
@@ -158,9 +158,9 @@ class PrecipitationDistribution(Component):
         # parameter dictionary or the init function, we can call the
         # different methods to assign values from the Poisson distribution.
 
-        self.storm_duration = self.get_precipitation_event_duration()
-        self.interstorm_duration = self.get_interstorm_event_duration()
-        self.storm_depth = self.get_storm_depth()
+        self._storm_duration = self.get_precipitation_event_duration()
+        self._interstorm_duration = self.get_interstorm_event_duration()
+        self._storm_depth = self.get_storm_depth()
         self._elapsed_time = 0.0
 
         # Test if we got a grid. If we did, then assign it to _grid, and we
@@ -170,12 +170,36 @@ class PrecipitationDistribution(Component):
 
         # build LL fields, if a grid is supplied:
         if grid is not None:
-            self.grid.add_field("grid", "rainfall__flux", 0.0)
+            self._grid.add_field("grid", "rainfall__flux", 0.0)
             self._gridupdate = True
         else:
             self._gridupdate = False
 
         self._intensity = self.get_storm_intensity()
+
+    @property
+    def storm_duration(self):
+        """ TODO
+        """
+        return self._storm_duration
+
+    @property
+    def interstorm_duration(self):
+        """ TODO
+        """
+        return self._interstorm_duration
+
+    @property
+    def storm_depth(self):
+        """ TODO
+        """
+        return self._storm_depth
+
+    @property
+    def intensity(self):
+        """ TODO
+        """
+        return self._intensity
 
     def update(self):
         """Update the storm values.
@@ -218,9 +242,9 @@ class PrecipitationDistribution(Component):
         Notice that doing this will *not* automatically stop the iteration,
         however - it will continue ad infinitum.
         """
-        self.storm_duration = self.get_precipitation_event_duration()
-        self.interstorm_duration = self.get_interstorm_event_duration()
-        self.storm_depth = self.get_storm_depth()
+        self._storm_duration = self.get_precipitation_event_duration()
+        self._interstorm_duration = self.get_interstorm_event_duration()
+        self._storm_depth = self.get_storm_depth()
         self._intensity = self.get_storm_intensity()
 
     def get_precipitation_event_duration(self):
@@ -239,7 +263,7 @@ class PrecipitationDistribution(Component):
         float
             The storm duration.
         """
-        return random.expovariate(1.0 / self.mean_storm_duration)
+        return random.expovariate(1.0 / self._mean_storm_duration)
 
     def get_interstorm_event_duration(self):
         """Generate interstorm events.
@@ -260,7 +284,7 @@ class PrecipitationDistribution(Component):
         float
             The interstorm duration.
         """
-        return random.expovariate(1.0 / self.mean_interstorm_duration)
+        return random.expovariate(1.0 / self._mean_interstorm_duration)
 
     def get_storm_depth(self):
         """Generate storm depth.
@@ -286,10 +310,10 @@ class PrecipitationDistribution(Component):
             The storm depth.
         """
 
-        shape_parameter = self.storm_duration / self.mean_storm_duration
-        scale_parameter = self.mean_storm_depth
-        self.storm_depth = np.random.gamma(shape_parameter, scale_parameter)
-        return self.storm_depth
+        shape_parameter = self._storm_duration / self._mean_storm_duration
+        scale_parameter = self._mean_storm_depth
+        self._storm_depth = np.random.gamma(shape_parameter, scale_parameter)
+        return self._storm_depth
 
     def get_storm_intensity(self):
         """Get the storm intensity.
@@ -307,9 +331,9 @@ class PrecipitationDistribution(Component):
         float
             The storm intensity.
         """
-        self._intensity = self.storm_depth / self.storm_duration
+        self._intensity = self._storm_depth / self._storm_duration
         if self._gridupdate:
-            self.grid.at_grid["rainfall__flux"] = self._intensity
+            self._grid.at_grid["rainfall__flux"] = self._intensity
         return self._intensity
 
     def get_storm_time_series(self):
@@ -338,11 +362,11 @@ class PrecipitationDistribution(Component):
         storm = self.get_precipitation_event_duration()
         self.get_storm_depth()
         intensity = self.get_storm_intensity()
-        self.storm_time_series.append([0, storm, intensity])
+        self._storm_time_series.append([0, storm, intensity])
 
         storm_helper = storm
         storm_iterator = storm
-        while storm_iterator <= self.run_time:
+        while storm_iterator <= self._run_time:
             next_storm_start = storm_helper + (
                 round(self.get_interstorm_event_duration(), 2)
             )
@@ -351,11 +375,13 @@ class PrecipitationDistribution(Component):
             )
             intensity = round(self.get_storm_intensity(), 2)
             self.get_storm_depth()
-            self.storm_time_series.append([next_storm_start, next_storm_end, intensity])
+            self._storm_time_series.append(
+                [next_storm_start, next_storm_end, intensity]
+            )
             storm_iterator = storm_helper
             storm_helper = next_storm_end
             storm_iterator = storm_helper
-        return self.storm_time_series
+        return self._storm_time_series
 
     def yield_storm_interstorm_duration_intensity(self, subdivide_interstorms=False):
         """Iterator for a time series of storms interspersed with interstorms.
@@ -396,21 +422,21 @@ class PrecipitationDistribution(Component):
         # Added DEJH, Dec 2014
         # Modified to use an optional output field, DEJH 1/8/17
 
-        delta_t = self.delta_t
+        delta_t = self._delta_t
         if delta_t is None:
             assert subdivide_interstorms is False, (
                 "You specified you wanted storm subdivision, but did not "
                 + "provide a delta_t to allow this!"
             )
         self._elapsed_time = 0.0
-        while self._elapsed_time < self.run_time:
+        while self._elapsed_time < self._run_time:
             storm_duration = self.get_precipitation_event_duration()
             step_time = 0.0
             self.get_storm_depth()
             self._intensity = self.get_storm_intensity()  # this is a rate
             # ^ this updates the grid field, if needed
-            if self._elapsed_time + storm_duration > self.run_time:
-                storm_duration = self.run_time - self._elapsed_time
+            if self._elapsed_time + storm_duration > self._run_time:
+                storm_duration = self._run_time - self._elapsed_time
             while delta_t is not None and storm_duration - step_time > delta_t:
                 yield (delta_t, self._intensity)
                 step_time += delta_t
@@ -419,13 +445,13 @@ class PrecipitationDistribution(Component):
 
             # If the last storm did not use up all our elapsed time, generate
             # an inter-storm period.
-            if self._elapsed_time < self.run_time:
+            if self._elapsed_time < self._run_time:
                 interstorm_duration = self.get_interstorm_event_duration()
-                if self._elapsed_time + interstorm_duration > self.run_time:
-                    interstorm_duration = self.run_time - self._elapsed_time
+                if self._elapsed_time + interstorm_duration > self._run_time:
+                    interstorm_duration = self._run_time - self._elapsed_time
                 self._intensity = 0.0
                 if self._gridupdate:
-                    self.grid.at_grid["rainfall__flux"] = 0.0
+                    self._grid.at_grid["rainfall__flux"] = 0.0
                 if subdivide_interstorms:
                     step_time = 0.0
                     while interstorm_duration - step_time > delta_t:
@@ -543,8 +569,8 @@ class PrecipitationDistribution(Component):
 
         # now exploit the existing generator to make this easier & less
         # redundant:
-        delta_t = self.delta_t
-        self.delta_t = None  # this is necessary to suppress chunking behaviour
+        delta_t = self._delta_t
+        self._delta_t = None  # this is necessary to suppress chunking behaviour
         # in the other generator
         othergen = self.yield_storm_interstorm_duration_intensity()
         # enter a loop, to break as needed:
@@ -562,10 +588,10 @@ class PrecipitationDistribution(Component):
                 interstorm_dur = 0.0
             # reset the rainfall__flux field, that got overstamped in the
             # interstorm iter:
-            self.grid.at_grid["rainfall__flux"] = storm_int
+            self._grid.at_grid["rainfall__flux"] = storm_int
             yield (storm_dur, interstorm_dur)
-        # now, just in case, restore self.delta_t:
-        self.delta_t = delta_t
+        # now, just in case, restore self._delta_t:
+        self._delta_t = delta_t
 
     def generate_from_stretched_exponential(self, scale, shape):
         """Generate and return a random variable from a stretched exponential

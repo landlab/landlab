@@ -175,29 +175,30 @@ class TaylorNonLinearDiffuser(Component):
         super(TaylorNonLinearDiffuser, self).__init__(grid)
 
         # Store grid and parameters
-        self.K = linear_diffusivity
-        self.slope_crit = slope_crit
-        self.nterms = nterms
+
+        self._K = linear_diffusivity
+        self._slope_crit = slope_crit
+        self._nterms = nterms
 
         # Create fields:
 
         # elevation
-        if "topographic__elevation" in self.grid.at_node:
-            self.elev = self.grid.at_node["topographic__elevation"]
+        if "topographic__elevation" in self._grid.at_node:
+            self._elev = self._grid.at_node["topographic__elevation"]
         else:
-            self.elev = self.grid.add_zeros("node", "topographic__elevation")
+            self._elev = self._grid.add_zeros("node", "topographic__elevation")
 
         # slope gradient
-        if "topographic__slope" in self.grid.at_link:
-            self.slope = self.grid.at_link["topographic__slope"]
+        if "topographic__slope" in self._grid.at_link:
+            self._slope = self._grid.at_link["topographic__slope"]
         else:
-            self.slope = self.grid.add_zeros("link", "topographic__slope")
+            self._slope = self._grid.add_zeros("link", "topographic__slope")
 
         # soil flux
-        if "soil__flux" in self.grid.at_link:
-            self.flux = self.grid.at_link["soil__flux"]
+        if "soil__flux" in self._grid.at_link:
+            self._flux = self._grid.at_link["soil__flux"]
         else:
-            self.flux = self.grid.add_zeros("link", "soil__flux")
+            self._flux = self._grid.add_zeros("link", "soil__flux")
 
     def soilflux(self, dt, dynamic_dt=False, if_unstable="pass", courant_factor=0.2):
         """Calculate soil flux for a time period 'dt'.
@@ -223,13 +224,13 @@ class TaylorNonLinearDiffuser(Component):
         while time_left > 0.0:
 
             # Calculate gradients
-            self.slope[:] = self.grid.calc_grad_at_link(self.elev)
-            self.slope[self.grid.status_at_link == INACTIVE_LINK] = 0.0
+            self._slope[:] = self._grid.calc_grad_at_link(self._elev)
+            self._slope[self._grid.status_at_link == INACTIVE_LINK] = 0.0
 
             # Test for time stepping courant condition
             courant_slope_term = 0.0
-            courant_s_over_scrit = self.slope.max() / self.slope_crit
-            for i in range(0, 2 * self.nterms, 2):
+            courant_s_over_scrit = self._slope.max() / self._slope_crit
+            for i in range(0, 2 * self._nterms, 2):
                 courant_slope_term += courant_s_over_scrit ** i
                 if np.any(np.isinf(courant_slope_term)):
                     message = (
@@ -239,13 +240,13 @@ class TaylorNonLinearDiffuser(Component):
                     )
                     raise RuntimeError(message)
             # Calculate De Max
-            De_max = self.K * (courant_slope_term)
+            De_max = self._K * (courant_slope_term)
             # Calculate longest stable timestep
-            self.dt_max = courant_factor * (self.grid.dx ** 2) / De_max
+            self._dt_max = courant_factor * (self._grid.dx ** 2) / De_max
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
-            if (self.dt_max < dt) and (not dynamic_dt) and (if_unstable != "pass"):
+            if (self._dt_max < dt) and (not dynamic_dt) and (if_unstable != "pass"):
                 message = (
                     "Topographic slopes are high enough such that the "
                     "Courant condition is exceeded AND you have not "
@@ -254,7 +255,7 @@ class TaylorNonLinearDiffuser(Component):
                     "slope, elevation, and soil depth. Consider using a "
                     "smaller time step or dynamic timestepping. The "
                     "Courant condition recommends a timestep of "
-                    "" + str(self.dt_max) + " or smaller."
+                    "" + str(self._dt_max) + " or smaller."
                 )
                 if if_unstable == "raise":
                     raise RuntimeError(message)
@@ -263,16 +264,16 @@ class TaylorNonLinearDiffuser(Component):
 
             # if dynamic dt is selected, use it, otherwise, use the entire time
             if dynamic_dt:
-                self.sub_dt = np.min([dt, self.dt_max])
-                time_left -= self.sub_dt
+                self._sub_dt = np.min([dt, self._dt_max])
+                time_left -= self._sub_dt
             else:
-                self.sub_dt = dt
+                self._sub_dt = dt
                 time_left = 0
 
             # Calculate flux
             slope_term = 0.0
-            s_over_scrit = self.slope / self.slope_crit
-            for i in range(0, 2 * self.nterms, 2):
+            s_over_scrit = self._slope / self._slope_crit
+            for i in range(0, 2 * self._nterms, 2):
                 slope_term += s_over_scrit ** i
                 if np.any(np.isinf(slope_term)):
                     message = (
@@ -281,13 +282,15 @@ class TaylorNonLinearDiffuser(Component):
                     )
                     raise RuntimeError(message)
 
-            self.flux[:] = -((self.K * self.slope) * (slope_term))
+            self._flux[:] = -((self._K * self._slope) * (slope_term))
 
             # Calculate flux divergence
-            dqdx = self.grid.calc_flux_div_at_node(self.flux)
+            dqdx = self._grid.calc_flux_div_at_node(self._flux)
 
             # Update topography
-            self.elev[self.grid.core_nodes] -= dqdx[self.grid.core_nodes] * self.sub_dt
+            self._elev[self._grid.core_nodes] -= (
+                dqdx[self._grid.core_nodes] * self._sub_dt
+            )
 
     def run_one_step(self, dt):
         """

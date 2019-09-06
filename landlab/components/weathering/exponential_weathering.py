@@ -72,33 +72,29 @@ class ExponentialWeatherer(Component):
         super(ExponentialWeatherer, self).__init__(grid)
 
         # Store grid and parameters
-        self.wstar = soil_production__decay_depth
-        self.w0 = soil_production__maximum_rate
+
+        self._wstar = soil_production__decay_depth
+        self._w0 = soil_production__maximum_rate
 
         # Create fields:
         # soil depth
         if "soil__depth" in grid.at_node:
-            self.depth = grid.at_node["soil__depth"]
+            self._depth = grid.at_node["soil__depth"]
         else:
-            self.depth = grid.add_zeros("node", "soil__depth")
+            self._depth = grid.add_zeros("node", "soil__depth")
 
         # weathering rate
         if "soil_production__rate" in grid.at_node:
-            self.soil_prod_rate = grid.at_node["soil_production__rate"]
+            self._soil_prod_rate = grid.at_node["soil_production__rate"]
         else:
-            self.soil_prod_rate = grid.add_zeros("node", "soil_production__rate")
+            self._soil_prod_rate = grid.add_zeros("node", "soil_production__rate")
 
     def calc_soil_prod_rate(self):
-        """Calculate soil production rate.
-        """
-
+        """Calculate soil production rate."""
         # apply exponential function
-        self.soil_prod_rate[self._grid.core_nodes] = self.w0 * np.exp(
-            -self.depth[self._grid.core_nodes] / self.wstar
+        self._soil_prod_rate[self._grid.core_nodes] = self._w0 * np.exp(
+            -self._depth[self._grid.core_nodes] / self._wstar
         )
-
-        # weather
-        # self.weather[self._active_nodes] = (self.wnot*np.exp(-self.depth[self._active_nodes]/self.wstar))
 
     def run_one_step(self):
         """

@@ -158,11 +158,11 @@ class SteepnessFinder(Component):
             raise NotImplementedError(msg)
 
         self._reftheta = reference_concavity
-        self.min_drainage = min_drainage_area
+        self._min_drainage = min_drainage_area
         assert elev_step >= 0.0, "elev_step must be >= 0!"
         self._elev_step = elev_step
         self._discretization = discretization_length
-        self.ksn = self._grid.add_zeros(
+        self._ksn = self._grid.add_zeros(
             "node", "channel__steepness_index", noclobber=False
         )
         self._mask = self.grid.ones("node", dtype=bool)
@@ -183,10 +183,10 @@ class SteepnessFinder(Component):
         :func:`hillslope_mask`.
         """
         self._mask.fill(True)
-        self.ksn.fill(0.0)
+        self._ksn.fill(0.0)
 
         reftheta = self._reftheta
-        min_drainage = self.min_drainage
+        min_drainage = self._min_drainage
         elev_step = self._elev_step
         discretization_length = self._discretization
 
@@ -260,11 +260,11 @@ class SteepnessFinder(Component):
                 # save the answers into the main arrays:
                 assert np.all(self._mask[ch_nodes[:-1]])
                 # Final node gets trimmed off...
-                self.ksn[ch_nodes[:-1]] = ch_ksn
+                self._ksn[ch_nodes[:-1]] = ch_ksn
                 self._mask[ch_nodes] = False
         # now a final sweep to remove any undefined ksn values:
-        self._mask[self.ksn == -1.0] = True
-        self.ksn[self.ksn == -1.0] = 0.0
+        self._mask[self._ksn == -1.0] = True
+        self._ksn[self._ksn == -1.0] = 0.0
 
     def channel_distances_downstream(self, ch_nodes):
         """
@@ -493,7 +493,7 @@ class SteepnessFinder(Component):
         Return the array of channel steepness indices.
         Nodes not in the channel receive zeros.
         """
-        return self.ksn
+        return self._ksn
 
     @property
     def hillslope_mask(self):

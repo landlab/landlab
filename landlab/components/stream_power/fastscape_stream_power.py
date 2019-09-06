@@ -210,24 +210,22 @@ class FastscapeEroder(Component):
                 raise NotImplementedError(msg)
 
         self._K = K_sp  # overwritten below in special cases
-
-        self.K = K_sp  # overwritten below in special cases
-        self.m = float(m_sp)
-        self.n = float(n_sp)
+        self._m = float(m_sp)
+        self._n = float(n_sp)
         if isinstance(threshold_sp, (float, int)):
-            self.thresholds = float(threshold_sp)
+            self._thresholds = float(threshold_sp)
         else:
             if isinstance(threshold_sp, str):
-                self.thresholds = self.grid.at_node[threshold_sp]
+                self._thresholds = self._grid.at_node[threshold_sp]
             else:
-                self.thresholds = threshold_sp
-            assert self.thresholds.size == self.grid.number_of_nodes
+                self._thresholds = threshold_sp
+            assert self._thresholds.size == self._grid.number_of_nodes
 
         # make storage variables
-        self.A_to_the_m = grid.zeros(at="node")
-        self.alpha = grid.empty(at="node")
+        self._A_to_the_m = grid.zeros(at="node")
+        self._alpha = grid.empty(at="node")
 
-        if self.K is None:
+        if self._K is None:
             raise ValueError(
                 "K_sp must be set as a float, node array, or "
                 + "field name. It was None."
@@ -237,14 +235,14 @@ class FastscapeEroder(Component):
         # some support here for old-style inputs
         if isinstance(K_sp, str):
             if K_sp == "array":
-                self.K = None
+                self._K = None
             else:
-                self.K = self._grid.at_node[K_sp]
+                self._K = self._grid.at_node[K_sp]
         elif isinstance(K_sp, (float, int)):
-            self.K = float(K_sp)
+            self._K = float(K_sp)
         else:
-            self.K = np.asarray(K_sp, dtype=float)
-            if len(self.K) != self.grid.number_of_nodes:
+            self._K = np.asarray(K_sp, dtype=float)
+            if len(self._K) != self._grid.number_of_nodes:
                 raise TypeError("Supplied value of K_sp is not n_nodes long")
 
         if isinstance(rainfall_intensity, str):
@@ -261,7 +259,7 @@ class FastscapeEroder(Component):
                 self._r_i = self._grid.at_node[rainfall_intensity]
         elif isinstance(rainfall_intensity, (float, int)):  # a float
             self._r_i = float(rainfall_intensity)
-        elif len(rainfall_intensity) == self.grid.number_of_nodes:
+        elif len(rainfall_intensity) == self._grid.number_of_nodes:
             raise ValueError(
                 "This component can no longer handle "
                 "spatially variable runoff directly. Use "
@@ -274,7 +272,7 @@ class FastscapeEroder(Component):
             raise TypeError("Supplied type of rainfall_intensity was " "not recognised")
 
         # Handle option for area vs discharge
-        self.discharge_name = discharge_name
+        self._discharge_name = discharge_name
 
     def erode(
         self,
@@ -356,10 +354,10 @@ class FastscapeEroder(Component):
                 ]
             ]
         # make arrays from input the right size
-        if isinstance(self.K, np.ndarray):
-            K_here = self.K[defined_flow_receivers]
+        if isinstance(self._K, np.ndarray):
+            K_here = self._K[defined_flow_receivers]
         else:
-            K_here = self.K
+            K_here = self._K
         if rainfall_intensity_if_used is not None:
             assert type(rainfall_intensity_if_used) in (float, np.float64, int)
             r_i_here = float(rainfall_intensity_if_used)
@@ -367,29 +365,31 @@ class FastscapeEroder(Component):
             r_i_here = self._r_i
 
         if dt is None:
-            dt = self.dt
+            dt = self._dt
         assert dt is not None, (
             "Fastscape component could not find a dt to "
             + "use. Pass dt to the run_one_step() method."
         )
 
-        if self.K is None:  # "old style" setting of array
+        if self._K is None:  # "old style" setting of array
             assert K_if_used is not None
-            self.K = K_if_used
+            self._K = K_if_used
 
-        n = float(self.n)
+        n = float(self._n)
 
-        np.power(self._grid["node"][self.discharge_name], self.m, out=self.A_to_the_m)
-        self.alpha[defined_flow_receivers] = (
-            r_i_here ** self.m
+        np.power(
+            self._grid["node"][self._discharge_name], self._m, out=self._A_to_the_m
+        )
+        self._alpha[defined_flow_receivers] = (
+            r_i_here ** self._m
             * K_here
             * dt
-            * self.A_to_the_m[defined_flow_receivers]
-            / (flow_link_lengths ** self.n)
+            * self._A_to_the_m[defined_flow_receivers]
+            / (flow_link_lengths ** self._n)
         )
 
         flow_receivers = self._grid["node"]["flow__receiver_node"]
-        alpha = self.alpha
+        alpha = self._alpha
 
         # Handle flooded nodes, if any (no erosion there)
         if flooded_nodes is not None:
@@ -399,10 +399,10 @@ class FastscapeEroder(Component):
             # this check necessary if flow has been routed across depressions
             alpha[reversed_flow] = 0.0
 
-        threshsdt = self.thresholds * dt
+        threshsdt = self._thresholds * dt
 
         # solve using Brent's Method in Cython for Speed
-        if isinstance(self.thresholds, float):
+        if isinstance(self._thresholds, float):
             brent_method_erode_fixed_threshold(
                 upstream_order_IDs, flow_receivers, threshsdt, alpha, n, z
             )

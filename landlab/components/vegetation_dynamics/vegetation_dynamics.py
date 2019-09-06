@@ -235,6 +235,7 @@ class Vegetation(Component):
         super(Vegetation, self).__init__(grid)
 
         self._method = method
+
         assert_method_is_valid(self._method)
 
         self.initialize(
@@ -275,17 +276,17 @@ class Vegetation(Component):
         )
 
         for name in self._input_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
+            if name not in self._grid.at_cell:
+                self._grid.add_zeros("cell", name, units=self._var_units[name])
 
         for name in self._output_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
+            if name not in self._grid.at_cell:
+                self._grid.add_zeros("cell", name, units=self._var_units[name])
 
-        self._cell_values = self.grid["cell"]
+        self._cell_values = self._grid["cell"]
 
-        self._Blive_ini = self._Blive_init * np.ones(self.grid.number_of_cells)
-        self._Bdead_ini = self._Bdead_init * np.ones(self.grid.number_of_cells)
+        self._Blive_ini = self._Blive_init * np.ones(self._grid.number_of_cells)
+        self._Bdead_ini = self._Bdead_init * np.ones(self._grid.number_of_cells)
 
     def initialize(
         self,
@@ -360,7 +361,7 @@ class Vegetation(Component):
         kws: float, optional
             Maximum drought induced foliage loss rate (d-1).
         """
-        self._vegtype = self.grid["cell"]["vegetation__plant_functional_type"]
+        self._vegtype = self._grid["cell"]["vegetation__plant_functional_type"]
         self._WUE = np.choose(
             self._vegtype,
             [WUE_grass, WUE_shrub, WUE_tree, WUE_bare, WUE_shrub, WUE_tree],
@@ -408,8 +409,8 @@ class Vegetation(Component):
         self._Tdmax = Tdmax  # Constant for dead biomass loss adjustment
         self._w = w  # Conversion factor of CO2 to dry biomass
 
-        self._Blive_ini = self._Blive_init * np.ones(self.grid.number_of_cells)
-        self._Bdead_ini = self._Bdead_init * np.ones(self.grid.number_of_cells)
+        self._Blive_ini = self._Blive_init * np.ones(self._grid.number_of_cells)
+        self._Bdead_ini = self._Bdead_init * np.ones(self._grid.number_of_cells)
 
     def update(self, PETthreshold_switch=0, Tb=24.0, Tr=0.01):
         """
@@ -439,7 +440,7 @@ class Vegetation(Component):
         else:
             PETthreshold = self._ETthresholddown
 
-        for cell in range(0, self.grid.number_of_cells):
+        for cell in range(0, self._grid.number_of_cells):
 
             WUE = self._WUE[cell]
             LAImax = self._LAI_max[cell]

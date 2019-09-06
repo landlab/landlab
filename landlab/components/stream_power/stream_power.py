@@ -229,11 +229,11 @@ class StreamPowerEroder(Component):
                 )
                 raise NotImplementedError(msg)
 
-        if type(use_Q) is str and use_Q == "water__discharge":
+        if isinstance(use_Q, str) and use_Q == "water__discharge":
             use_Q = "surface_water__discharge"
 
-        self.use_K = False  # grandfathered in; only if K_sp == 'array'
-        if type(K_sp) is np.ndarray:
+        self._use_K = False  # grandfathered in; only if K_sp == 'array'
+        if isinstance(K_sp, np.ndarray):
             self._K_unit_time = K_sp
         else:
             try:
@@ -241,7 +241,7 @@ class StreamPowerEroder(Component):
                 self._K_unit_time.fill(K_sp)
             except ValueError:  # could not cast => was a str
                 if K_sp == "array":
-                    self.use_K = True
+                    self._use_K = True
                 else:
                     self._K_unit_time = grid.at_node[K_sp]
 
@@ -249,41 +249,41 @@ class StreamPowerEroder(Component):
         # for now, enforce threshold as a float
         assert type(threshold_sp) in (float, int)
         try:
-            self.sp_crit = float(threshold_sp)
+            self._sp_crit = float(threshold_sp)
         except TypeError:
             try:
-                self.sp_crit = self.grid.at_node[threshold_sp]
+                self._sp_crit = self.grid.at_node[threshold_sp]
             except TypeError:  # was an array
-                self.sp_crit = threshold_sp
-                assert self.sp_crit.size == self.grid.number_of_nodes
+                self._sp_crit = threshold_sp
+                assert self._sp_crit.size == self.grid.number_of_nodes
         if np.any(threshold_sp != 0.0):
-            self.set_threshold = True
+            self._set_threshold = True
             # ^flag for sed_flux_dep_incision to see if the threshold was
             # manually set.
         else:
-            self.set_threshold = False
+            self._set_threshold = False
 
-        if type(use_W) is bool:  # again for back-compatibility
-            self.use_W = use_W
+        if isinstance(use_W, bool):  # again for back-compatibility
+            self._use_W = use_W
             self._W = None
         elif use_W is None:
-            self.use_W = False
+            self._use_W = False
             self._W = None
         else:
-            self.use_W = True
+            self._use_W = True
             try:
                 self._W = self.grid.at_node[use_W]
             except (FieldError, TypeError):
                 assert use_W.size == self._grid.number_of_nodes
                 self._W = use_W
         if type(use_Q) is bool:
-            self.use_Q = use_Q
+            self._use_Q = use_Q
             self._Q = None
         elif use_Q is None:
-            self.use_Q = False
+            self._use_Q = False
             self._Q = None
         else:
-            self.use_Q = True
+            self._use_Q = True
             try:
                 self._Q = self.grid.at_node[use_Q]
             except (FieldError, TypeError):
@@ -313,13 +313,13 @@ class StreamPowerEroder(Component):
                 assert float(b_sp) >= 0.0, "b must be positive"
                 self._b = float(b_sp)
             else:
-                assert self.use_W, "b was not set"
+                assert self._use_W, "b was not set"
                 self._b = 0.0
             if c_sp is not None:
                 assert float(c_sp) >= 0.0, "c must be positive"
                 self._c = float(c_sp)
             else:
-                assert self.use_Q, "c was not set"
+                assert self._use_Q, "c was not set"
                 self._c = 1.0
             if self._type == "Total":
                 self._n = self._a
@@ -338,8 +338,8 @@ class StreamPowerEroder(Component):
         # m and n will always be set, but care needs to be taken to include Q
         # and W directly if appropriate
 
-        self.stream_power_erosion = grid.zeros(centering="node")
-        self.alpha = self.grid.zeros("node")
+        self._stream_power_erosion = grid.zeros(centering="node")
+        self._alpha = self.grid.zeros("node")
 
     def erode(
         self,
@@ -473,7 +473,7 @@ class StreamPowerEroder(Component):
         flow_receivers = self.grid["node"][flow_receiver]
 
         if W_if_used is not None:
-            assert self.use_W, (
+            assert self._use_W, (
                 "Widths were provided, but you didn't set "
                 + "the use_W flag in your input file! "
                 + "Aborting..."
@@ -484,7 +484,7 @@ class StreamPowerEroder(Component):
             )
 
         if Q_if_used is not None:
-            assert self.use_Q, (
+            assert self._use_Q, (
                 "Discharges were provided, but you didn't "
                 + "set the use_Q flag in your input file! "
                 + "Aborting..."
@@ -495,7 +495,7 @@ class StreamPowerEroder(Component):
             )
 
         if K_if_used is not None:
-            assert self.use_K, (
+            assert self._use_K, (
                 "An array of erodabilities was provided, "
                 + "but you didn't set K_sp to 'array' in your "
                 + "input file! Aborting..."
@@ -526,8 +526,8 @@ class StreamPowerEroder(Component):
             _K_unit_time[flooded_nodes] = 0.0
 
         # Operate the main function:
-        if self.use_W is False and self.use_Q is False:  # normal case
-            self.alpha[defined_flow_receivers] = (
+        if self._use_W is False and self._use_Q is False:  # normal case
+            self._alpha[defined_flow_receivers] = (
                 _K_unit_time[defined_flow_receivers]
                 * dt
                 * A[defined_flow_receivers] ** self._m
@@ -535,15 +535,15 @@ class StreamPowerEroder(Component):
             )
             # Handle flooded nodes, if any (no erosion there)
             if flooded_nodes is not None:
-                self.alpha[flooded_nodes] = 0.0
+                self._alpha[flooded_nodes] = 0.0
             reversed_flow = z < z[flow_receivers]
             # this check necessary if flow has been routed across
             # depressions
-            self.alpha[reversed_flow] = 0.0
+            self._alpha[reversed_flow] = 0.0
 
-            threshdt = self.sp_crit * dt
+            threshdt = self._sp_crit * dt
 
-        elif self.use_W:
+        elif self._use_W:
             if self._W is None:
                 try:
                     W = grid.at_node[W_if_used]
@@ -551,7 +551,7 @@ class StreamPowerEroder(Component):
                     W = W_if_used
             else:
                 W = self._W
-            if self.use_Q:  # use both Q and W direct
+            if self._use_Q:  # use both Q and W direct
                 if self._Q is None:
                     try:
                         Q_direct = grid.at_node[Q_if_used]
@@ -559,7 +559,7 @@ class StreamPowerEroder(Component):
                         Q_direct = Q_if_used
                 else:
                     Q_direct = self._Q
-                self.alpha[defined_flow_receivers] = (
+                self._alpha[defined_flow_receivers] = (
                     _K_unit_time[defined_flow_receivers]
                     * dt
                     * Q_direct[defined_flow_receivers] ** self._m
@@ -568,16 +568,16 @@ class StreamPowerEroder(Component):
                 )
                 # Handle flooded nodes, if any (no erosion there)
                 if flooded_nodes is not None:
-                    self.alpha[flooded_nodes] = 0.0
+                    self._alpha[flooded_nodes] = 0.0
                 reversed_flow = z < z[flow_receivers]
                 # this check necessary if flow has been routed across
                 # depressions
-                self.alpha[reversed_flow] = 0.0
+                self._alpha[reversed_flow] = 0.0
 
-                threshdt = self.sp_crit * dt
+                threshdt = self._sp_crit * dt
 
             else:  # just W to be used
-                self.alpha[defined_flow_receivers] = (
+                self._alpha[defined_flow_receivers] = (
                     _K_unit_time[defined_flow_receivers]
                     * dt
                     * A[defined_flow_receivers] ** self._m
@@ -586,13 +586,13 @@ class StreamPowerEroder(Component):
                 )
                 # Handle flooded nodes, if any (no erosion there)
                 if flooded_nodes is not None:
-                    self.alpha[flooded_nodes] = 0.0
+                    self._alpha[flooded_nodes] = 0.0
                 reversed_flow = z < z[flow_receivers]
                 # this check necessary if flow has been routed across
                 # depressions
-                self.alpha[reversed_flow] = 0.0
+                self._alpha[reversed_flow] = 0.0
 
-                threshdt = self.sp_crit * dt
+                threshdt = self._sp_crit * dt
 
         else:  # just use_Q
             if self._Q is None:
@@ -603,7 +603,7 @@ class StreamPowerEroder(Component):
                     Q_direct = Q_if_used
             else:
                 Q_direct = self._Q
-            self.alpha[defined_flow_receivers] = (
+            self._alpha[defined_flow_receivers] = (
                 _K_unit_time[defined_flow_receivers]
                 * dt
                 * Q_direct[defined_flow_receivers] ** self._m
@@ -611,25 +611,25 @@ class StreamPowerEroder(Component):
             )
             # Handle flooded nodes, if any (no erosion there)
             if flooded_nodes is not None:
-                self.alpha[flooded_nodes] = 0.0
+                self._alpha[flooded_nodes] = 0.0
             reversed_flow = z < z[flow_receivers]
             # this check necessary if flow has been routed across
             # depressions
-            self.alpha[reversed_flow] = 0.0
+            self._alpha[reversed_flow] = 0.0
 
-            threshdt = self.sp_crit * dt
+            threshdt = self._sp_crit * dt
 
         # solve using Brent's Method in Cython for Speed
         if isinstance(threshdt, float):
             brent_method_erode_fixed_threshold(
-                upstream_order_IDs, flow_receivers, threshdt, self.alpha, self._n, z
+                upstream_order_IDs, flow_receivers, threshdt, self._alpha, self._n, z
             )
         else:
             brent_method_erode_variable_threshold(
-                upstream_order_IDs, flow_receivers, threshdt, self.alpha, self._n, z
+                upstream_order_IDs, flow_receivers, threshdt, self._alpha, self._n, z
             )
 
-        return grid, z, self.stream_power_erosion
+        return grid, z, self._stream_power_erosion
 
     def run_one_step(self, dt, flooded_nodes=None):
         """
