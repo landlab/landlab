@@ -12,9 +12,6 @@ from landlab import Component, RasterModelGrid
 from landlab.components.flow_accum import FlowAccumulator
 
 from .node_finder import node_finder
-from landlab.components.erosion_deposition.generalized_erosion_deposition import (
-    _GeneralizedErosionDeposition,
-)
 
 # Hard coded constants
 cfl_cond = 0.3 #CFL timestep condition
