@@ -175,7 +175,6 @@ class TaylorNonLinearDiffuser(Component):
         super(TaylorNonLinearDiffuser, self).__init__(grid)
 
         # Store grid and parameters
-        self._grid = grid
         self.K = linear_diffusivity
         self.slope_crit = slope_crit
         self.nterms = nterms

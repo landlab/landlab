@@ -179,7 +179,7 @@ class gFlex(Component):
         flex = self.flex
 
         # set up the grid variables:
-        self._grid = grid
+
         flex.dx = grid.dx
         flex.dy = grid.dy
 

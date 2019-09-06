@@ -254,7 +254,6 @@ class NormalFault(Component):
         super(NormalFault, self).__init__(grid)
 
         # save a reference to the grid
-        self._grid = grid
 
         # get the surface to be faulted
         self.surfaces = {}

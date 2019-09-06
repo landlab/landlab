@@ -287,7 +287,7 @@ class DepthDependentTaylorDiffuser(Component):
         """
         super(DepthDependentTaylorDiffuser, self).__init__(grid)
         # Store grid and parameters
-        self._grid = grid
+
         self.K = linear_diffusivity
         self.soil_transport_decay_depth = soil_transport_decay_depth
         self.slope_crit = slope_crit

@@ -310,7 +310,7 @@ class LakeMapperBarnes(Component):
                     "to start this process."
                 )
                 raise NotImplementedError(msg)
-        self._grid = grid
+
         self._open = StablePriorityQueue()
         self._pit = []
         self._closed = self.grid.zeros("node", dtype=bool)

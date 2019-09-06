@@ -168,7 +168,6 @@ class TransportLengthHillslopeDiffuser(Component):
             raise NotImplementedError(msg)
 
         # Store grid and parameters
-        self._grid = grid
         self.k = erodibility
         self.slope_crit = slope_crit
 

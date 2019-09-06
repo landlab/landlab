@@ -102,8 +102,7 @@ class GroundwaterDupuitPercolator(Component):
             Rate of recharge, m/s
             Default = 1.0e-8 m/s
         """
-        # Store grid
-        self._grid = grid
+        super(GroundwaterDupuitPercolator, self).__init__(grid)
 
         # Shorthand
         self._cores = grid.core_nodes

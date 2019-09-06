@@ -176,15 +176,13 @@ class Flexure(Component):
         if method not in ("airy", "flexure"):
             raise ValueError("{method}: method not understood".format(method=method))
 
-        self._grid = grid
+        super(Flexure, self).__init__(grid)
 
         self._youngs = youngs
         self._method = method
         self._rho_mantle = rho_mantle
         self._gravity = gravity
         self.eet = eet
-
-        super(Flexure, self).__init__(grid)
 
         for name in self._input_var_names:
             if name not in self.grid.at_node:

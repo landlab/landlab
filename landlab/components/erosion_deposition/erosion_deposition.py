@@ -228,8 +228,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             discharge_field=discharge_field,
         )
 
-        self._grid = grid  # store grid
-
         # E/D specific inits.
 
         # K's and critical values can be floats, grid fields, or arrays

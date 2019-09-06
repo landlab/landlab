@@ -97,8 +97,8 @@ class KinwaveOverlandFlowModel(Component):
         """
         super(KinwaveOverlandFlowModel, self).__init__(grid)
 
-        # Store grid and parameters and do unit conversion
-        self._grid = grid
+        # Store parameters and do unit conversion
+
         self.precip = precip_rate / 3600000.0  # convert to m/s
         self.precip_duration = precip_duration * 3600.0  # h->s
         self.infilt = infilt_rate / 3600000.0  # convert to m/s

@@ -242,8 +242,6 @@ class Space(_GeneralizedErosionDeposition):
             discharge_field=discharge_field,
         )
 
-        self._grid = grid  # store grid
-
         # space specific inits
         self.H_star = H_star
 

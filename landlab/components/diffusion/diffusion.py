@@ -170,7 +170,7 @@ class LinearDiffuser(Component):
             to False.
         """
         super(LinearDiffuser, self).__init__(grid)
-        self._grid = grid
+
         self._bc_set_code = self.grid.bc_set_code
         assert method in ("simple", "resolve_on_patches", "on_diagonals")
         if method == "resolve_on_patches":

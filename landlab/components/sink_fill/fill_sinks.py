@@ -127,7 +127,6 @@ class SinkFiller(Component):
                 )
                 raise NotImplementedError(msg)
 
-        self._grid = grid
         if routing != "D8":
             assert routing == "D4"
         self._routing = routing

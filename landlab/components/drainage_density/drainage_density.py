@@ -216,7 +216,6 @@ class DrainageDensity(Component):
             which channels exist
         """
         super(DrainageDensity, self).__init__(grid)
-        self._grid = grid
 
         for name in _REQUIRED_FIELDS:
             if name not in grid.at_node:

@@ -693,7 +693,6 @@ class FlowAccumulator(Component):
         """
         super(FlowAccumulator, self).__init__(grid)
         # Keep a local reference to the grid
-        self._grid = grid
 
         # Grid type testing
         self._is_raster = isinstance(self._grid, RasterModelGrid)

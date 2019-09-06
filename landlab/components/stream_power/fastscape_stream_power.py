@@ -209,7 +209,7 @@ class FastscapeEroder(Component):
                 )
                 raise NotImplementedError(msg)
 
-        self._grid = grid
+        self._K = K_sp  # overwritten below in special cases
 
         self.K = K_sp  # overwritten below in special cases
         self.m = float(m_sp)

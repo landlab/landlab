@@ -174,7 +174,7 @@ class DepressionFinderAndRouter(Component):
             Has no effect if grid is not a raster.
         """
         super(DepressionFinderAndRouter, self).__init__(grid)
-        self._grid = grid
+
         self._bc_set_code = self.grid.bc_set_code
 
         if routing != "D8":

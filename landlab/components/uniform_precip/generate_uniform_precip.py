@@ -167,7 +167,6 @@ class PrecipitationDistribution(Component):
         # are able to use the at_grid field. If not, that's cool too.
         if grid is not None:
             assert isinstance(grid, ModelGrid)  # must be a grid
-            self._grid = grid
 
         # build LL fields, if a grid is supplied:
         if grid is not None:

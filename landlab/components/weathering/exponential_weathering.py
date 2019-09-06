@@ -72,7 +72,6 @@ class ExponentialWeatherer(Component):
         super(ExponentialWeatherer, self).__init__(grid)
 
         # Store grid and parameters
-        self._grid = grid
         self.wstar = soil_production__decay_depth
         self.w0 = soil_production__maximum_rate
 

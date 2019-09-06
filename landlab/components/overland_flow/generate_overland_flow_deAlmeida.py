@@ -196,7 +196,6 @@ class OverlandFlow(Component):
         super(OverlandFlow, self).__init__(grid)
 
         # First we copy our grid
-        self._grid = grid
 
         self.h_init = h_init
         self.alpha = alpha

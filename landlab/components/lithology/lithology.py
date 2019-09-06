@@ -154,9 +154,6 @@ class Lithology(Component):
         """
         super(Lithology, self).__init__(grid)
 
-        # save reference to the grid and the last time steps's elevation.
-        self._grid = grid
-
         try:
             self.last_elevation = self._grid["node"]["topographic__elevation"][:].copy()
         except KeyError:

@@ -26,7 +26,6 @@ class DepthDependentDiffuser(Component):
     where :math:`D` is is the diffusivity, :math:`S` is the slope, :math:`H` is
     the soil depth on links, and :math:`H^*` is the soil transport decay depth.
 
-
     This component will ignore soil thickness located at non-core nodes.
 
     Parameters
@@ -160,7 +159,7 @@ class DepthDependentDiffuser(Component):
         """Initialize the DepthDependentDiffuser."""
         super(DepthDependentDiffuser, self).__init__(grid)
         # Store grid and parameters
-        self._grid = grid
+
         self.K = linear_diffusivity
         self.soil_transport_decay_depth = soil_transport_decay_depth
 

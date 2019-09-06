@@ -206,7 +206,7 @@ class HackCalculator(Component):
             Values to pass to the ChannelProfiler.
         """
         super(HackCalculator, self).__init__(grid)
-        self._grid = grid
+
         self._profiler = ChannelProfiler(grid, **kwds)
         self._save_full_df = save_full_df
 

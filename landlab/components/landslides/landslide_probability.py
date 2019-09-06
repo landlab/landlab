@@ -337,7 +337,7 @@ class LandslideProbability(Component):
 
         super(LandslideProbability, self).__init__(grid)
 
-        # Store grid and parameters and do unit conversions
+        # Store parameters and do unit conversions
         self.n = int(number_of_iterations)
         self._g = g or scipy.constants.g
         self.groundwater__recharge_distribution = groundwater__recharge_distribution

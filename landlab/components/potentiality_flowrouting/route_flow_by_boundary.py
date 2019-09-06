@@ -153,7 +153,6 @@ class PotentialityFlowRouter(Component):
         else:
             self._raster = False
 
-        self._grid = grid
         self.equation = flow_equation
         assert self.equation in ("default", "Chezy", "Manning")
         if self.equation == "Chezy":

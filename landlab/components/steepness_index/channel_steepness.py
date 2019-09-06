@@ -156,7 +156,7 @@ class SteepnessFinder(Component):
                 "to start this process."
             )
             raise NotImplementedError(msg)
-        self._grid = grid
+
         self._reftheta = reference_concavity
         self.min_drainage = min_drainage_area
         assert elev_step >= 0.0, "elev_step must be >= 0!"

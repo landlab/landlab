@@ -231,7 +231,6 @@ class StreamPowerEroder(Component):
 
         if type(use_Q) is str and use_Q == "water__discharge":
             use_Q = "surface_water__discharge"
-        self._grid = grid
 
         self.use_K = False  # grandfathered in; only if K_sp == 'array'
         if type(K_sp) is np.ndarray:

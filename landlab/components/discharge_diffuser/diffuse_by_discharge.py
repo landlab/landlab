@@ -132,7 +132,6 @@ class DischargeDiffuser(Component):
 
         assert self._raster is True  # ...for now
 
-        self._grid = grid
         self._slope = slope
         self._flat_thresh = flat_thresh
 

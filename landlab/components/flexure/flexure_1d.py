@@ -199,8 +199,6 @@ class Flexure1D(Component):
 
         super(Flexure1D, self).__init__(grid)
 
-        self._grid = grid
-
         self._method = method
         self.youngs = youngs
         self.rho_mantle = rho_mantle

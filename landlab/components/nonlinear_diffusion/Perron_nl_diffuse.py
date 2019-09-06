@@ -92,7 +92,7 @@ class PerronNLDiffuse(Component):
             The density of the mobile (sediment) layer
         """
         super(PerronNLDiffuse, self).__init__(grid)
-        self._grid = grid
+
         self._bc_set_code = self.grid.bc_set_code
         self.values_to_diffuse = "topographic__elevation"
         self._kappa = nonlinear_diffusivity

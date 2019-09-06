@@ -541,7 +541,6 @@ class ChannelProfiler(_BaseProfiler):
         """
         super(ChannelProfiler, self).__init__(grid)
 
-        self._grid = grid
         self._cmap = plt.get_cmap(cmap)
         if channel_definition_field in grid.at_node:
             self._channel_definition_field = grid.at_node[channel_definition_field]

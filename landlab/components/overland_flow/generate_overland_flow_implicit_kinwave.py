@@ -217,8 +217,8 @@ class KinwaveImplicitOverlandFlow(Component):
             implicit; 0 = explicit)
         """
         super(KinwaveImplicitOverlandFlow, self).__init__(grid)
-        # Store grid and parameters and do unit conversion
-        self._grid = grid
+        # Store parameters and do unit conversion
+
         self.runoff_rate = runoff_rate / 3600000.0  # convert to m/s
         self.vel_coef = 1.0 / roughness  # do division now to save time
         self.changing_topo = changing_topo

@@ -74,7 +74,6 @@ class _FlowDirector(Component):
         # We keep a local reference to the grid
         super(_FlowDirector, self).__init__(grid)
 
-        self._grid = grid
         self._bc_set_code = self.grid.bc_set_code
 
         # set up the grid type testing

@@ -349,7 +349,6 @@ class SedDepEroder(Component):
                     "to start this process."
                 )
                 raise NotImplementedError(msg)
-        self._grid = grid
         self.pseudoimplicit_repeats = pseudoimplicit_repeats
 
         self.link_S_with_trailing_blank = np.zeros(grid.number_of_links + 1)

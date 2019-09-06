@@ -189,7 +189,6 @@ class ChiFinder(Component):
                 "to start this process."
             )
             raise NotImplementedError(msg)
-        self._grid = grid
 
         if isinstance(self._grid, RasterModelGrid):
             self._link_lengths = self.grid.length_of_d8

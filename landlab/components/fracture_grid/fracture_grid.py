@@ -194,7 +194,6 @@ class FractureGridGenerator(Component):
     def __init__(self, grid, frac_spacing=10.0, seed=0):
         """Initialize the FractureGridGenerator."""
 
-        self._grid = grid
         self.frac_spacing = frac_spacing
         self.seed = seed
         super(FractureGridGenerator, self).__init__(grid)
