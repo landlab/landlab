@@ -20,18 +20,18 @@ class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
     >>> node_x = [ 0,  1,  2,
     ...            0,  2,  3,
     ...            0,  1,  2]
-    >>> graph = DualStructuredQuadGraph((node_y, node_x), shape=(3, 3))
+    >>> graph = DualStructuredQuadGraph((node_y, node_x), shape=(3, 3), sort=True)
     >>> graph.number_of_corners == 4
     True
     >>> graph.y_of_corner
-    array([-0.75, -1.25,  0.75,  1.25])
+    array([-1.25, -0.75,  0.75,  1.25])
     >>> graph.x_of_corner
-    array([ 0.75,  2.  ,  0.75,  2.  ])
+    array([ 2.  ,  0.75,  0.75,  2.  ])
     >>> graph.node_at_cell
     array([4])
     """
 
-    def __init__(self, node_y_and_x, shape=None):
+    def __init__(self, node_y_and_x, shape=None, sort=True):
         StructuredQuadGraph.__init__(self, node_y_and_x, shape=shape)
 
         dual_graph = StructuredQuadGraph(
@@ -43,6 +43,9 @@ class DualStructuredQuadGraph(DualGraph, StructuredQuadGraph):
             node_at_cell=DualStructuredQuadGraph.get_node_at_cell(self.shape),
             nodes_at_face=DualStructuredQuadGraph.get_nodes_at_face(self.shape),
         )
+
+        if sort:
+            self.sort()
 
     @staticmethod
     def get_corners(node_y_and_x, shape):
