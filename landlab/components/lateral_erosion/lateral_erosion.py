@@ -23,7 +23,7 @@ class LateralEroder(Component):
     Laterally erode neighbor node through fluvial erosion.
 
     Landlab component that finds a neighbor node to laterally erode and
-    calculates lateral erosion. 
+    calculates lateral erosion.
     See the publication:
     Langston, A.L., Tucker, G.T.: Developing and exploring a theory for the
     lateral erosion of bedrock channels for use in landscape evolution models.
@@ -55,7 +55,11 @@ class LateralEroder(Component):
         Drainage area at inlet node, must be specified if inlet node is "on", m^2
     qsinlet : float, optional
         Sediment flux supplied at inlet, optional. m3/year
-        
+    flow_accumulator : Instantiated Landlab FlowAccumulator, optional
+        When solver is set to "adaptive", then a valid Landlab FlowAccumulator
+        must be passed. It will be run within sub-timesteps in order to update
+        the flow directions and drainage area.
+
     Examples
     --------
     >>> import numpy as np
@@ -223,10 +227,11 @@ class LateralEroder(Component):
         inlet_node=None,
         inlet_area=None,
         qsinlet=0.0,
+        flow_accumulator=None,
     ):
-        
+
         assert isinstance(grid, RasterModelGrid), "LateralEroder requires a sqare raster grid."
-        
+
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
                 msg = (
@@ -260,6 +265,13 @@ class LateralEroder(Component):
             raise ValueError(
                 "Kv must be set as a float, node array, or field name. It was None."
             )
+
+        if solver == "adaptive":
+            if not isinstance(flow_accumulator, FlowAccumulator):
+                raise ValueError(("When the adaptive solver is used, a valid "
+                                  "FlowAccumulator must be passed on "
+                                  "instantiation."))
+            self._flow_accumulator = flow_accumulator
 
         self._grid = grid
 
@@ -618,17 +630,10 @@ class LateralEroder(Component):
             else:
                 dt = globdt - time
                 qs_in = grid.zeros(centering="node")
-                # recalculate flow directions
 
-                fa = FlowAccumulator(
-                    grid,
-                    surface="topographic__elevation",
-                    flow_director="FlowDirectorD8",
-                    runoff_rate=None,
-                    depression_finder="DepressionFinderAndRouter",
-                    router="D8",
-                )
-                (da, q) = fa.accumulate_flow()
+                # recalculate flow directions
+                (da, q) = self._flow_accumulator.accumulate_flow()
+
                 if inlet_on:
                     #                   #if inlet on, reset drainage area and qsin to reflect inlet conditions
                     # this is the drainage area that I need for code below with an inlet
