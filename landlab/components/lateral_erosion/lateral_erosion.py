@@ -21,7 +21,7 @@ cfl_cond = 0.3 #CFL timestep condition
 wid_coeff = 0.4  # coefficient for calculating channel width
 wid_exp = 0.35  # exponent for calculating channel width
 
-class LateralEroder(_GeneralizedErosionDeposition):
+class LateralEroder(Component):
     """
     Laterally erode neighbor node through fluvial erosion.
 
@@ -501,7 +501,6 @@ class LateralEroder(_GeneralizedErosionDeposition):
         # local time
         time = 0.0
         globdt = dt
-        first_iteration=True
 
         while time < globdt:
             max_slopes[:] = max_slopes.clip(0)
@@ -571,7 +570,6 @@ class LateralEroder(_GeneralizedErosionDeposition):
             dtn *= cfl_cond
             # new minimum timestep for this round of nodes
             dt = min(abs(dtn), dt)
-            print("dt", dt)
             assert dt > 0.0, "timesteps less than 0."
 
             # vol_lat is the total volume eroded from the lateral nodes through
@@ -612,12 +610,11 @@ class LateralEroder(_GeneralizedErosionDeposition):
             dz = dzdt * dt + dzlat
             # change height of landscape
             z[:] += dz
-            grid.at_node["topographic__elevation"][grid.core_nodes] = z[grid.core_nodes]
             # update elapsed time
             time = dt + time
-            print("time", time)
             # check to see that you are within 0.01% of the storm duration, if so
             # done, if not continue
+
             if time > 0.9999 * globdt:
                 time = globdt
 
@@ -625,26 +622,6 @@ class LateralEroder(_GeneralizedErosionDeposition):
                 dt = globdt - time
                 qs_in = grid.zeros(centering="node")
                 # recalculate flow directions
-                ###******************TESTING HERE**************#
-                # For the first iteration, we assume this has already been done
-                # outside the component (e.g., by flow router), but we need to do
-                # it ourselves on subsequent iterations.
-                if not first_iteration:
-                    # update the link slopes
-                    print("before updated slopes")
-                    print("max slopes", grid.at_node["topographic__steepest_slope"])
-                    self._update_flow_link_slopes()
-                    print("after updated slopes")
-                    print("max slopes", grid.at_node["topographic__steepest_slope"])
-#                    # update where nodes are flooded. This shouuldn't happen because
-#                    # of the dynamic timestepper, but just in case, we update here.
-#                    new_flooded_nodes = np.where(self.slope < 0)[0]
-#                    flooded_nodes = np.asarray(
-#                        np.unique(np.concatenate((flooded_nodes, new_flooded_nodes))),
-#                        dtype=np.int64,
-#                    )
-                else:
-                    first_iteration = False
 
                 fa = FlowAccumulator(
                     grid,
