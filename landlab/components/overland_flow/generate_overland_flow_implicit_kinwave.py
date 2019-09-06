@@ -306,7 +306,7 @@ class KinwaveImplicitOverlandFlow(Component):
             for i in range(self.flow_lnks.shape[1]):
                 self.grad_width_sum[:] += (
                     self.sqrt_slope[self.flow_lnks[:, i]]
-                    * self._grid.width_of_face[
+                    * self._grid.length_of_face[
                         self.grid.face_at_link[self.flow_lnks[:, i]]
                     ]
                 )

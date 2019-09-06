@@ -205,7 +205,7 @@ class PotentialityFlowRouter(Component):
             # ^...because both Manning and Chezy actually follow sqrt
             # slope, not slope
         # weight by face width - NO, because diags
-        # g *= grid.width_of_face[grid.face_at_link]
+        # g *= grid.length_of_face[grid.face_at_link]
         link_grad_at_node_w_dir = g[grid.links_at_node] * grid.active_link_dirs_at_node
         # active_link_dirs strips "wrong" face widths
 
