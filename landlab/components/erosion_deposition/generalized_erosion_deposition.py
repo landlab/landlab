@@ -86,39 +86,39 @@ class _GeneralizedErosionDeposition(Component):
         """
         super(_GeneralizedErosionDeposition, self).__init__(grid)
 
-        self.flow_receivers = grid.at_node["flow__receiver_node"]
-        self.stack = grid.at_node["flow__upstream_node_order"]
-        self.topographic__elevation = grid.at_node["topographic__elevation"]
-        self.slope = grid.at_node["topographic__steepest_slope"]
-        self.link_to_reciever = grid.at_node["flow__link_to_receiver_node"]
-        self.cell_area_at_node = grid.cell_area_at_node
+        self._flow_receivers = grid.at_node["flow__receiver_node"]
+        self._stack = grid.at_node["flow__upstream_node_order"]
+        self._topographic__elevation = grid.at_node["topographic__elevation"]
+        self._slope = grid.at_node["topographic__steepest_slope"]
+        self._link_to_reciever = grid.at_node["flow__link_to_receiver_node"]
+        self._cell_area_at_node = grid.cell_area_at_node
 
         if isinstance(grid, RasterModelGrid):
-            self.link_lengths = grid.length_of_d8
+            self._link_lengths = grid.length_of_d8
         else:
-            self.link_lengths = grid.length_of_link
+            self._link_lengths = grid.length_of_link
 
         if "sediment__flux" in grid.at_node:
-            self.qs = grid.at_node["sediment__flux"]
+            self._qs = grid.at_node["sediment__flux"]
         else:
-            self.qs = grid.add_zeros("sediment__flux", at="node", dtype=float)
+            self._qs = grid.add_zeros("sediment__flux", at="node", dtype=float)
 
-        self.q = return_array_at_node(grid, discharge_field)
+        self._q = return_array_at_node(grid, discharge_field)
 
         # Create arrays for sediment influx at each node, discharge to the
         # power "m", and deposition rate
-        self.qs_in = np.zeros(grid.number_of_nodes)
-        self.Q_to_the_m = np.zeros(grid.number_of_nodes)
-        self.S_to_the_n = np.zeros(grid.number_of_nodes)
-        self.depo_rate = np.zeros(grid.number_of_nodes)
+        self._qs_in = np.zeros(grid.number_of_nodes)
+        self._Q_to_the_m = np.zeros(grid.number_of_nodes)
+        self._S_to_the_n = np.zeros(grid.number_of_nodes)
+        self._depo_rate = np.zeros(grid.number_of_nodes)
 
         # store other constants
-        self.m_sp = float(m_sp)
-        self.n_sp = float(n_sp)
-        self.phi = float(phi)
-        self.v_s = float(v_s)
-        self.dt_min = dt_min
-        self.F_f = float(F_f)
+        self._m_sp = float(m_sp)
+        self._n_sp = float(n_sp)
+        self._phi = float(phi)
+        self._v_s = float(v_s)
+        self._dt_min = dt_min
+        self._F_f = float(F_f)
 
         if phi >= 1.0:
             raise ValueError("Porosity must be < 1.0")
@@ -157,10 +157,10 @@ class _GeneralizedErosionDeposition(Component):
         >>> rg.at_node['topographic__steepest_slope'][5:7]
         array([ 0.14142136,  0.14142136])
         """
-        self.slope[:] = (
-            self.topographic__elevation
-            - self.topographic__elevation[self.flow_receivers]
-        ) / self.link_lengths[self.link_to_reciever]
+        self._slope[:] = (
+            self._topographic__elevation
+            - self._topographic__elevation[self._flow_receivers]
+        ) / self._link_lengths[self._link_to_reciever]
 
     def _calc_hydrology(self):
-        self.Q_to_the_m[:] = np.power(self.q, self.m_sp)
+        self._Q_to_the_m[:] = np.power(self._q, self._m_sp)

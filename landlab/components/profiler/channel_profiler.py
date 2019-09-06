@@ -561,7 +561,7 @@ class ChannelProfiler(_BaseProfiler):
             raise ValueError(msg)
 
         self._main_channel_only = main_channel_only
-        self.minimum_channel_threshold = minimum_channel_threshold
+        self._minimum_channel_threshold = minimum_channel_threshold
 
         # verify that the number of starting nodes is the specified number of channels
         if outlet_nodes is not None:
@@ -674,7 +674,7 @@ class ChannelProfiler(_BaseProfiler):
 
                 if (
                     self._channel_definition_field[supplying_nodes[max_drainage]]
-                    < self.minimum_channel_threshold
+                    < self._minimum_channel_threshold
                 ):
                     nodes_to_process = []
                     channel_upstream = False
@@ -690,7 +690,7 @@ class ChannelProfiler(_BaseProfiler):
                 upstream_das = self._channel_definition_field[supplying_nodes]
 
                 # if no nodes upstream exceed the threshold, exit
-                if np.sum(upstream_das > self.minimum_channel_threshold) == 0:
+                if np.sum(upstream_das > self._minimum_channel_threshold) == 0:
                     nodes_to_process = []
                     channel_upstream = False
 
@@ -698,7 +698,7 @@ class ChannelProfiler(_BaseProfiler):
                 else:
                     # if only one upstream node exceeds the threshold, proceed
                     # up the channel.
-                    if np.sum(upstream_das > self.minimum_channel_threshold) == 1:
+                    if np.sum(upstream_das > self._minimum_channel_threshold) == 1:
                         max_drainage = np.argmax(
                             self._channel_definition_field[supplying_nodes]
                         )
@@ -707,7 +707,7 @@ class ChannelProfiler(_BaseProfiler):
                     # processed into a new channel.
                     else:
                         nodes_to_process = supplying_nodes[
-                            upstream_das > self.minimum_channel_threshold
+                            upstream_das > self._minimum_channel_threshold
                         ]
                         channel_upstream = False
 

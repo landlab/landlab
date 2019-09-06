@@ -296,8 +296,8 @@ class SinkFillerBarnes(LakeMapperBarnes):
         A nlakes-long array of the volume of each fill. The order is the same
         as that of the keys in fill_dict, and of fill_outlets.
         """
-        fill_vols = np.empty(self.number_of_fills, dtype=float)
-        col_vols = self._grid.cell_area_at_node * self.fill_depths
-        for (i, (outlet, fillnodes)) in enumerate(self.fill_dict.items()):
+        fill_vols = np.empty(self._number_of_fills, dtype=float)
+        col_vols = self._grid.cell_area_at_node * self._fill_depths
+        for (i, (outlet, fillnodes)) in enumerate(self._fill_dict.items()):
             fill_vols[i] = col_vols[fillnodes].sum()
         return fill_vols

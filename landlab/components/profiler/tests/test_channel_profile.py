@@ -98,7 +98,7 @@ def test_no_minimum_channel_threshold():
 
     profiler = ChannelProfiler(mg)
 
-    assert profiler.minimum_channel_threshold == 0.0
+    assert profiler._minimum_channel_threshold == 0.0
 
 
 def test_no_channel_definition_field():

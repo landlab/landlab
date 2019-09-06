@@ -153,17 +153,17 @@ class PotentialityFlowRouter(Component):
         else:
             self._raster = False
 
-        self.equation = flow_equation
-        assert self.equation in ("default", "Chezy", "Manning")
-        if self.equation == "Chezy":
-            self.chezy_C = Chezys_C
-        elif self.equation == "Manning":
-            self.manning_n = Mannings_n
+        self._equation = flow_equation
+        assert self._equation in ("default", "Chezy", "Manning")
+        if self._equation == "Chezy":
+            self._chezy_C = Chezys_C
+        elif self._equation == "Manning":
+            self._manning_n = Mannings_n
         assert method in ("D8", "D4")
         if method == "D8":
-            self.route_on_diagonals = True
+            self._route_on_diagonals = True
         else:
-            self.route_on_diagonals = False
+            self._route_on_diagonals = False
 
         # hacky fix because water__discharge is defined on both links and nodes
         for out_field in self._output_var_names:
@@ -182,15 +182,15 @@ class PotentialityFlowRouter(Component):
                 pass
 
         if self._raster:
-            self.equiv_circ_diam = 2.0 * np.sqrt(grid.dx * grid.dy / np.pi)
+            self._equiv_circ_diam = 2.0 * np.sqrt(grid.dx * grid.dy / np.pi)
         else:
             for_cell_areas = 2.0 * np.sqrt(grid.area_of_cell / np.pi)
             mean_A = for_cell_areas.mean()
-            self.equiv_circ_diam = for_cell_areas[grid.cell_at_node]
-            self.equiv_circ_diam[grid.cell_at_node == -1] = mean_A
+            self._equiv_circ_diam = for_cell_areas[grid.cell_at_node]
+            self._equiv_circ_diam[grid.cell_at_node == -1] = mean_A
         # ^this is the equivalent seen CSWidth of a cell for a flow in a
         # generic 360 direction
-        if self.route_on_diagonals and self._raster:
+        if self._route_on_diagonals and self._raster:
             self._discharges_at_link = np.empty(grid.number_of_d8)
         else:
             self._discharges_at_link = self._grid.empty("link")
@@ -208,7 +208,7 @@ class PotentialityFlowRouter(Component):
         mismatch = 10000.0
         # do the ortho nodes first, in isolation
         g = grid.calc_grad_at_link(z)
-        if self.equation != "default":
+        if self._equation != "default":
             g = np.sign(g) * np.sqrt(np.fabs(g))
             # ^...because both Manning and Chezy actually follow sqrt
             # slope, not slope
@@ -223,7 +223,7 @@ class PotentialityFlowRouter(Component):
         )
         pos_incoming_link_grads = (-link_grad_at_node_w_dir).clip(0.0)
 
-        if not self.route_on_diagonals or not self._raster:
+        if not self._route_on_diagonals or not self._raster:
             while mismatch > 1.0e-6:
                 K_link_ends = self._K[grid.adjacent_nodes_at_node]
                 incoming_K_sum = (pos_incoming_link_grads * K_link_ends).sum(
@@ -242,7 +242,7 @@ class PotentialityFlowRouter(Component):
             gd = gwd[grid.number_of_links :]
             gd[:] = z[grid.nodes_at_diagonal[:, 1]] - z[grid.nodes_at_diagonal[:, 0]]
             gd /= grid.length_of_d8[grid.number_of_links :]
-            if self.equation != "default":
+            if self._equation != "default":
                 gd[:] = np.sign(gd) * np.sqrt(np.fabs(gd))
             diag_grad_at_node_w_dir = (
                 gwd[grid.d8s_at_node[:, 4:]] * self._grid.active_diagonal_dirs_at_node
@@ -280,15 +280,15 @@ class PotentialityFlowRouter(Component):
         # for now, let's make a property
 
         # now process uval and vval to give the depths, if Chezy or Manning:
-        if self.equation == "Chezy":
+        if self._equation == "Chezy":
             # Chezy: Q = C*Area*sqrt(depth*slope)
             grid.at_node["surface_water__depth"][:] = (
-                grid.at_node["flow__potential"] / self.chezy_C / self.equiv_circ_diam
+                grid.at_node["flow__potential"] / self._chezy_C / self._equiv_circ_diam
             ) ** (2.0 / 3.0)
-        elif self.equation == "Manning":
+        elif self._equation == "Manning":
             # Manning: Q = w/n*depth**(5/3)
             grid.at_node["surface_water__depth"][:] = (
-                grid.at_node["flow__potential"] * self.manning_n / self.equiv_circ_diam
+                grid.at_node["flow__potential"] * self._manning_n / self._equiv_circ_diam
             ) ** 0.6
         else:
             pass

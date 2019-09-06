@@ -256,18 +256,18 @@ class NormalFault(Component):
         # save a reference to the grid
 
         # get the surface to be faulted
-        self.surfaces = {}
+        self._surfaces = {}
         self._not_yet_instantiated = []
         if isinstance(faulted_surface, list):
             # if faulted surface is a list, then itterate through multiple
             # surfaces and save
             for surf in faulted_surface:
                 try:
-                    self.surfaces[surf] = grid.at_node[surf]
+                    self._surfaces[surf] = grid.at_node[surf]
                 except FieldError:
                     self._not_yet_instantiated.append(surf)
         else:
-            self.surfaces[faulted_surface] = grid.at_node[faulted_surface]
+            self._surfaces[faulted_surface] = grid.at_node[faulted_surface]
 
         if fault_dip_angle > 90.0:
             raise ValueError(
@@ -275,72 +275,86 @@ class NormalFault(Component):
             )
 
         # get the fault throw parameter values from the parameter dictionary
-        self.throw_time = np.array(fault_throw_rate_through_time["time"])
-        self.throw_rate = np.array(fault_throw_rate_through_time["rate"])
-        self.fault_dip = np.deg2rad(fault_dip_angle)
-        self.uplift = self.throw_rate * np.sin(self.fault_dip)
+        self._throw_time = np.array(fault_throw_rate_through_time["time"])
+        self._throw_rate = np.array(fault_throw_rate_through_time["rate"])
+        self._fault_dip = np.deg2rad(fault_dip_angle)
+        self._uplift = self._throw_rate * np.sin(self._fault_dip)
 
         # Identify in current boundaries will be included
-        self.include_boundaries = include_boundaries
+        self._include_boundaries = include_boundaries
 
         # Instantiate record of current time.
-        self.current_time = 0.0
+        self._current_time = 0.0
 
         # get the fault trace dictionary and use to to calculate where the
         # faulted nodes are located.
-        self.fault_trace = fault_trace
-        dx = self.fault_trace["x2"] - self.fault_trace["x1"]
-        dy = self.fault_trace["y2"] - self.fault_trace["y1"]
-        self.fault_azimuth = np.mod(np.arctan2(dy, dx), TWO_PI)
-        self.fault_anti_azimuth = self.fault_azimuth + np.pi
+        self._fault_trace = fault_trace
+        dx = self._fault_trace["x2"] - self._fault_trace["x1"]
+        dy = self._fault_trace["y2"] - self._fault_trace["y1"]
+        self._fault_azimuth = np.mod(np.arctan2(dy, dx), TWO_PI)
+        self._fault_anti_azimuth = self._fault_azimuth + np.pi
         # deal with the edge case in which dx == 0
         if dx == 0:
-            self.dy_over_dx = 0.0
-            self.fault_trace_y_intercept = 0.0
-            self.fault_trace_x_intercept = self.fault_trace["x2"]
+            self._dy_over_dx = 0.0
+            self._fault_trace_y_intercept = 0.0
+            self._fault_trace_x_intercept = self._fault_trace["x2"]
         else:
-            self.dy_over_dx = dy / dx
-            self.fault_trace_y_intercept = self.fault_trace["y1"] - (
-                self.dy_over_dx * self.fault_trace["x1"]
+            self._dy_over_dx = dy / dx
+            self._fault_trace_y_intercept = self._fault_trace["y1"] - (
+                self._dy_over_dx * self._fault_trace["x1"]
             )
-            self.fault_trace_x_intercept = 0.0
+            self._fault_trace_x_intercept = 0.0
 
         # set the considered nodes based on whether the boundaries will be
         # included in the faulted terrain.
-        if self.include_boundaries:
+        if self._include_boundaries:
             potential_nodes = np.arange(self._grid.size("node"))
         else:
             potential_nodes = self._grid.core_nodes
 
         # select those nodes that are on the correct side of the fault
-        dx_pn = self._grid.x_of_node[potential_nodes] - self.fault_trace_x_intercept
-        dy_pn = self._grid.y_of_node[potential_nodes] - self.fault_trace_y_intercept
+        dx_pn = self._grid.x_of_node[potential_nodes] - self._fault_trace_x_intercept
+        dy_pn = self._grid.y_of_node[potential_nodes] - self._fault_trace_y_intercept
         potential_angles = np.mod(np.arctan2(dy_pn, dx_pn), TWO_PI)
-        if self.fault_anti_azimuth <= TWO_PI:
+        if self._fault_anti_azimuth <= TWO_PI:
             faulted_node_ids = potential_nodes[
                 (
-                    (potential_angles > self.fault_azimuth)
-                    & (potential_angles <= (self.fault_anti_azimuth))
+                    (potential_angles > self._fault_azimuth)
+                    & (potential_angles <= (self._fault_anti_azimuth))
                 )
             ]
         else:
             faulted_node_ids = potential_nodes[
                 (
-                    (potential_angles > self.fault_azimuth)
-                    | (potential_angles <= np.mod(self.fault_anti_azimuth, TWO_PI))
+                    (potential_angles > self._fault_azimuth)
+                    | (potential_angles <= np.mod(self._fault_anti_azimuth, TWO_PI))
                 )
             ]
 
         # save a n-node array of boolean identifing faulted nodes.
-        self.faulted_nodes = np.zeros(self._grid.size("node"), dtype=bool)
-        self.faulted_nodes[faulted_node_ids] = True
+        self._faulted_nodes = np.zeros(self._grid.size("node"), dtype=bool)
+        self._faulted_nodes[faulted_node_ids] = True
+
+    @property
+    def faulted_nodes(self):
+        """
+        TODO
+        """
+        return self._faulted_nodes
+
+    @property
+    def current_time(self):
+        """
+        TODO
+        """
+        return self._current_time
 
     def _check_surfaces(self):
         if len(self._not_yet_instantiated) > 0:
             still_not_instantiated = []
             for surf in self._not_yet_instantiated:
                 if surf in self._grid.at_node:
-                    self.surfaces[surf] = self._grid.at_node[surf]
+                    self._surfaces[surf] = self._grid.at_node[surf]
                 else:
                     still_not_instantiated.append(surf)
             self._not_yet_instantiated = still_not_instantiated
@@ -350,33 +364,33 @@ class NormalFault(Component):
         self._check_surfaces()
 
         # save z before uplift only if using include boundaries.
-        if self.include_boundaries:
+        if self._include_boundaries:
             surfs_before_uplift = {}
-            for surf_name in self.surfaces:
-                surfs_before_uplift[surf_name] = self.surfaces[surf_name].copy()
+            for surf_name in self._surfaces:
+                surfs_before_uplift[surf_name] = self._surfaces[surf_name].copy()
 
         # uplift the faulted_nodes
-        for surf_name in self.surfaces:
-            self.surfaces[surf_name][self.faulted_nodes] += dz
+        for surf_name in self._surfaces:
+            self._surfaces[surf_name][self._faulted_nodes] += dz
 
         # if faulted nodes includes boundaries we must do some extra work because
         # landlab components will typically not erode these boundaries. This means
         # they will be uplifted but not eroded.
 
-        if self.include_boundaries:
+        if self._include_boundaries:
 
             #  here our goal is to set faulted boundaries to average of open
             # node faulted neighbors
 
             # create boolean of the faulted boundary nodes
-            faulted_boundaries = self.faulted_nodes.copy()
+            faulted_boundaries = self._faulted_nodes.copy()
             faulted_boundaries[self._grid.core_nodes] = False
 
             core_nodes = np.zeros(self._grid.size("node"), dtype=bool)
             core_nodes[self._grid.core_nodes] = True
 
             neighbor_is_core = core_nodes[self._grid.adjacent_nodes_at_node]
-            neighbor_is_faulted = self.faulted_nodes[self._grid.adjacent_nodes_at_node]
+            neighbor_is_faulted = self._faulted_nodes[self._grid.adjacent_nodes_at_node]
 
             neighbor_for_averaging = neighbor_is_faulted & neighbor_is_core
 
@@ -390,7 +404,7 @@ class NormalFault(Component):
             averaged = neighbor_for_averaging[faulted_boundaries].sum(axis=1) == 1
             if any(averaged):
                 averaged_nodes = np.where(faulted_boundaries)[0][np.where(averaged)[0]]
-                for surf_name in self.surfaces:
+                for surf_name in self._surfaces:
                     elevations_to_average = surfs_before_uplift[surf_name][
                         self._grid.adjacent_nodes_at_node
                     ]
@@ -398,7 +412,7 @@ class NormalFault(Component):
                         self._grid.adjacent_nodes_at_node == -1
                     ] = np.nan
                     elevations_to_average[~neighbor_for_averaging] = np.nan
-                    self.surfaces[surf_name][averaged_nodes] = np.nanmean(
+                    self._surfaces[surf_name][averaged_nodes] = np.nanmean(
                         elevations_to_average[averaged_nodes], axis=1
                     )
 
@@ -411,15 +425,15 @@ class NormalFault(Component):
                 un_averaged_nodes = np.where(faulted_boundaries)[0][
                     np.where(~averaged)[0]
                 ]
-                for surf_name in self.surfaces:
-                    elevations_to_average = self.surfaces[surf_name][
+                for surf_name in self._surfaces:
+                    elevations_to_average = self._surfaces[surf_name][
                         self._grid.adjacent_nodes_at_node
                     ]
                     elevations_to_average[
                         self._grid.adjacent_nodes_at_node == -1
                     ] = np.nan
                     elevations_to_average[~neighbor_is_faulted] = np.nan
-                    self.surfaces[surf_name][un_averaged_nodes] = np.nanmean(
+                    self._surfaces[surf_name][un_averaged_nodes] = np.nanmean(
                         elevations_to_average[un_averaged_nodes], axis=1
                     )
 
@@ -438,15 +452,15 @@ class NormalFault(Component):
         """
         # if current time is provided, use it to re-set the current time.
         if current_time is not None:
-            self.current_time = current_time
+            self._current_time = current_time
 
         # calculate the current uplift rate
         current_uplift_rate = np.interp(
-            self.current_time, self.throw_time, self.throw_rate
+            self._current_time, self._throw_time, self._throw_rate
         )
 
         # run one earthquake of size current_uplift_rate * dt
         self.run_one_earthquake(current_uplift_rate * dt)
 
         # increment time
-        self.current_time += dt
+        self._current_time += dt

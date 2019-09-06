@@ -141,13 +141,13 @@ class SoilInfiltrationGreenAmpt(Component):
         """
         super(SoilInfiltrationGreenAmpt, self).__init__(grid)
 
-        self.min_water = surface_water_minimum_depth
-        self.hydraulic_conductivity = hydraulic_conductivity
+        self._min_water = surface_water_minimum_depth
+        self._hydraulic_conductivity = hydraulic_conductivity
 
         if not coarse_sed_flag:
             volume_fraction_coarse_fragments = 0.0
 
-        self.moisture_deficit = self.calc_moisture_deficit(
+        self._moisture_deficit = self.calc_moisture_deficit(
             soil_bulk_density=soil_bulk_density,
             rock_density=rock_density,
             volume_fraction_coarse_fragments=volume_fraction_coarse_fragments,
@@ -155,13 +155,13 @@ class SoilInfiltrationGreenAmpt(Component):
         )
 
         if wetting_front_capillary_pressure_head is None:
-            self.capillary_pressure = self.calc_soil_pressure(
+            self._capillary_pressure = self.calc_soil_pressure(
                 soil_type=soil_type,
                 soil_pore_size_distribution_index=soil_pore_size_distribution_index,
                 soil_bubbling_pressure=soil_bubbling_pressure,
             )
         else:
-            self.capillary_pressure = wetting_front_capillary_pressure_head
+            self._capillary_pressure = wetting_front_capillary_pressure_head
 
     @staticmethod
     def calc_soil_pressure(
@@ -312,19 +312,19 @@ class SoilInfiltrationGreenAmpt(Component):
 
         assert np.all(infiltration_depth >= 0.0)
 
-        wettingfront_depth = infiltration_depth / self.moisture_deficit
+        wettingfront_depth = infiltration_depth / self._moisture_deficit
 
         potential_infilt = (
             dt
-            * self.hydraulic_conductivity
+            * self._hydraulic_conductivity
             * (
-                (wettingfront_depth + self.capillary_pressure + water_depth)
+                (wettingfront_depth + self._capillary_pressure + water_depth)
                 / wettingfront_depth
             )
         )
         np.clip(potential_infilt, 0.0, None, out=potential_infilt)
 
-        available_water = water_depth - self.min_water
+        available_water = water_depth - self._min_water
         np.clip(available_water, 0.0, None, out=available_water)
 
         actual_infiltration = np.choose(

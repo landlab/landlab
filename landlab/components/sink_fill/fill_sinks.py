@@ -134,19 +134,19 @@ class SinkFiller(Component):
             routing == "D8"
         ):
             self._D8 = True
-            self.num_nbrs = 8
+            self._num_nbrs = 8
         else:
             self._D8 = False  # useful shorthand for thia test we do a lot
             if type(self._grid) is landlab.grid.raster.RasterModelGrid:
-                self.num_nbrs = 4
+                self._num_nbrs = 4
         self._fill_slope = fill_slope
         self._apply_slope = apply_slope
 
         self._elev = self._grid.at_node["topographic__elevation"]
-        self.topo_field_name = "topographic__elevation"
+        self._topo_field_name = "topographic__elevation"
 
         # create the only new output field:
-        self.sed_fill_depth = self._grid.add_zeros(
+        self._sed_fill_depth = self._grid.add_zeros(
             "node", "sediment_fill__depth", noclobber=False
         )
 
@@ -164,7 +164,7 @@ class SinkFiller(Component):
         This is the main method. Call it to fill depressions in a starting
         topography.
         """
-        self.original_elev = self._elev.copy()
+        self._original_elev = self._elev.copy()
         # We need this, as we'll have to do ALL this again if we manage
         # to jack the elevs too high in one of the "subsidiary" lakes.
         # We're going to implement the lake_mapper component to do the heavy
@@ -175,7 +175,7 @@ class SinkFiller(Component):
         spurious_fields = set()
         set_of_outputs = set(self._lf.output_var_names) | set(self._fr.output_var_names)
         try:
-            set_of_outputs.remove(self.topo_field_name)
+            set_of_outputs.remove(self._topo_field_name)
         except KeyError:
             pass
         for field in set_of_outputs:
@@ -226,7 +226,7 @@ class SinkFiller(Component):
         for update_me in existing_fields.keys():
             self._grid.at_node[update_me][:] = existing_fields[update_me]
         # fill the output field
-        self.sed_fill_depth[:] = self._elev - self.original_elev
+        self._sed_fill_depth[:] = self._elev - self._original_elev
 
     @deprecated(use="fill_pits", version=1.0)
     def _fill_pits_old(self, apply_slope=None):
@@ -258,7 +258,7 @@ class SinkFiller(Component):
             if it can't deal with it. If you pass True, the method will use
             the default value of 1.e-5.
         """
-        self.original_elev = self._elev.copy()
+        self._original_elev = self._elev.copy()
         # We need this, as we'll have to do ALL this again if we manage
         # to jack the elevs too high in one of the "subsidiary" lakes.
         # We're going to implement the lake_mapper component to do the heavy
@@ -269,7 +269,7 @@ class SinkFiller(Component):
         spurious_fields = set()
         set_of_outputs = self._lf.output_var_names | self._fr.output_var_names
         try:
-            set_of_outputs.remove(self.topo_field_name)
+            set_of_outputs.remove(self._topo_field_name)
         except KeyError:
             pass
         for field in set_of_outputs:
@@ -295,7 +295,7 @@ class SinkFiller(Component):
             sublake = False
             unstable = True
             stability_increment = 0
-            self.lake_nodes_treated = np.array([], dtype=int)
+            self._lake_nodes_treated = np.array([], dtype=int)
             while unstable:
                 while 1:
                     for (outlet_node, lake_code) in zip(
@@ -313,17 +313,17 @@ class SinkFiller(Component):
                         break
                     self._elev += self._grid.at_node["depression__depth"]
                     sublake = True
-                    self.lake_nodes_treated = np.array([], dtype=int)
+                    self._lake_nodes_treated = np.array([], dtype=int)
                 # final test that all lakes are not reversing flow dirs
                 all_lakes = np.where(self._lf.flood_status < BAD_INDEX_VALUE)[0]
                 unstable = self.drainage_directions_change(
-                    all_lakes, self.original_elev, self._elev
+                    all_lakes, self._original_elev, self._elev
                 )
                 if unstable:
                     apply_slope *= 0.1
                     sublake = False
-                    self.lake_nodes_treated = np.array([], dtype=int)
-                    self._elev[:] = self.original_elev  # put back init conds
+                    self._lake_nodes_treated = np.array([], dtype=int)
+                    self._elev[:] = self._original_elev  # put back init conds
                     stability_increment += 1
                     if stability_increment == 10:
                         raise OverflowError(
@@ -339,7 +339,7 @@ class SinkFiller(Component):
         for update_me in existing_fields.keys():
             self._grid.at_node[update_me] = existing_fields[update_me]
         # fill the output field
-        self.sed_fill_depth[:] = self._elev - self.original_elev
+        self._sed_fill_depth[:] = self._elev - self._original_elev
 
     def _add_slopes(self, slope, outlet_node, lake_code):
         """
@@ -349,14 +349,14 @@ class SinkFiller(Component):
         new_elevs = self._elev.copy()
         outlet_coord = (self._grid.node_x[outlet_node], self._grid.node_y[outlet_node])
         lake_nodes = np.where(self._lf.lake_map == lake_code)[0]
-        lake_nodes = np.setdiff1d(lake_nodes, self.lake_nodes_treated)
+        lake_nodes = np.setdiff1d(lake_nodes, self._lake_nodes_treated)
         # lake_ext_margin = self._get_lake_ext_margin(lake_nodes)
         d = self._grid.calc_distances_of_nodes_to_point(
             outlet_coord, node_subset=lake_nodes
         )
         add_vals = slope * d
         new_elevs[lake_nodes] += add_vals
-        self.lake_nodes_treated = np.union1d(self.lake_nodes_treated, lake_nodes)
+        self._lake_nodes_treated = np.union1d(self._lake_nodes_treated, lake_nodes)
         return new_elevs, lake_nodes
 
     def _get_lake_ext_margin(self, lake_nodes):
