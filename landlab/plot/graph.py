@@ -68,7 +68,7 @@ def plot_graph(graph, at="node,link,patch", with_id=True):
         plot_nodes(graph.dual, color="c")
     if "face" in locs:
         plot_links(graph.dual, linestyle="dotted", color="k")
-    if "cell" in locs:
+    if "cell" in locs and graph.number_of_cells > 0:
         plot_patches(graph.dual, color="m")
 
     plt.xlabel("x")
