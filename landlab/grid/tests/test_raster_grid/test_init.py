@@ -4,47 +4,6 @@ import pytest
 from landlab import BAD_INDEX_VALUE as X, RasterModelGrid
 
 
-@pytest.mark.parametrize("params", [[(3, 4), {}], [(), {"num_rows": 3, "num_cols": 4}]])
-def test_parse_parameters_deprecated_shape(params):
-    with pytest.deprecated_call():
-        args, kwds = RasterModelGrid._parse_parameters(*params)
-    assert args == ((3, 4),)
-    assert kwds == {}
-
-
-@pytest.mark.parametrize(
-    "params",
-    [[((3, 4),), {"dx": 20.0}], [((3, 4),), {"spacing": 20.0}], [(3, 4, 20.0), {}]],
-)
-def test_parse_parameters_deprecated_spacing(params):
-    with pytest.deprecated_call():
-        args, kwds = RasterModelGrid._parse_parameters(*params)
-    assert args == ((3, 4),)
-    assert kwds == {"xy_spacing": 20.0}
-
-
-def test_parse_parameters_deprecated_xy_of_lower_left():
-    with pytest.deprecated_call():
-        args, kwds = RasterModelGrid._parse_parameters([(3, 4)], {"origin": (1.0, 2.0)})
-    assert args == ((3, 4),)
-    assert kwds == {"xy_of_lower_left": (1.0, 2.0)}
-
-
-@pytest.mark.parametrize(
-    "kwds",
-    [
-        dict(xy_of_lower_left=(3.0, 4.0)),
-        dict(xy_spacing=(30.0, 40.0)),
-        dict(xy_spacing=(30.0, 40.0), xy_of_lower_left=(3.0, 4.0)),
-        dict(xy_spacing=(30.0, 40.0), xy_of_lower_left=(3.0, 4.0), another_kwd=True),
-    ],
-)
-def test_parse_parameters_new_style(kwds):
-    args, new_kwds = RasterModelGrid._parse_parameters([(3, 4)], kwds)
-    assert args == ((3, 4),)
-    assert new_kwds == kwds
-
-
 def test_init_new_style():
     grid = RasterModelGrid((4, 5), xy_spacing=2)
 

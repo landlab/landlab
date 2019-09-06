@@ -82,45 +82,6 @@ def _node_has_boundary_neighbor(mg, id, method="d8"):
     return False
 
 
-def _make_arg_into_array(arg):
-    """Make an argument into an iterable.
-
-    This function tests if the provided object is a Python list or a numpy
-    array. If not, attempts to cast the object to a list. If it cannot, it will
-    raise a TypeError.
-
-    Parameters
-    ----------
-    arg : array_like
-        Input array.
-
-    Returns
-    -------
-    array_like
-        The input array converted to an iterable.
-
-    Examples
-    --------
-    >>> from landlab.grid.raster import _make_arg_into_array
-    >>> _make_arg_into_array(1)
-    [1]
-    >>> _make_arg_into_array((1, ))
-    [1]
-    >>> _make_arg_into_array([1, 2])
-    [1, 2]
-    >>> import numpy as np
-    >>> _make_arg_into_array(np.arange(3))
-    array([0, 1, 2])
-    """
-    ids = arg
-    if not isinstance(ids, list) and not isinstance(ids, np.ndarray):
-        try:
-            ids = list(ids)
-        except TypeError:
-            ids = [ids]
-    return ids
-
-
 _node_has_boundary_neighbor = np.vectorize(_node_has_boundary_neighbor, excluded=["mg"])
 
 
@@ -195,88 +156,6 @@ def grid_edge_is_closed_from_dict(boundary_conditions):
         boundary_conditions.get(loc, "open") == "closed"
         for loc in ["right", "top", "left", "bottom"]
     ]
-
-
-def _old_style_args(args):
-    """Test if arguments are the old-style RasterModelGrid __init__ method.
-
-    The old way of initializing a :any:`RasterModelGrid` was like,
-
-    .. code::
-        grid = RasterModelGrid(n_rows, n_cols)
-
-    The new way passes the grid shape as a tuple, like numpy functions,
-
-    .. code::
-        grid = RasterModelGrid((n_rows, n_cols))
-
-    Parameters
-    ----------
-    args : iterable
-        Arguments to a function.
-
-    Examples
-    --------
-    >>> from landlab.grid.raster import _old_style_args
-    >>> _old_style_args((4, 5))
-    True
-    >>> _old_style_args(((4, 5), ))
-    False
-    >>> _old_style_args(([4, 5], ))
-    False
-    """
-    return len(args) in (2, 3) and isinstance(args[0], int)
-
-
-def _parse_grid_shape_from_args(args):
-    """Get grid shape from args.
-
-    Parameters
-    ----------
-    args : iterable
-        Arguments to a function.
-
-    Examples
-    --------
-    >>> from landlab.grid.raster import _parse_grid_shape_from_args
-    >>> _parse_grid_shape_from_args((3, 4))
-    (3, 4)
-    >>> _parse_grid_shape_from_args(((3, 4), ))
-    (3, 4)
-    """
-    if _old_style_args(args):
-        rows, cols = args[0], args[1]
-    else:
-        try:
-            (rows, cols) = args[0]
-        except ValueError:
-            raise ValueError("grid shape must be tuple")
-    return rows, cols
-
-
-def _parse_grid_spacing_from_args(args):
-    """Get grid spacing from args.
-
-    Parameters
-    ----------
-    args : iterable
-        Arguments to a function.
-
-    Examples
-    --------
-    >>> from landlab.grid.raster import _parse_grid_spacing_from_args
-    >>> _parse_grid_spacing_from_args((3, 4, 5))
-    5
-    >>> _parse_grid_spacing_from_args(((3, 4), 5))
-    5
-    """
-    try:
-        if _old_style_args(args):
-            return args[2]
-        else:
-            return args[1]
-    except IndexError:
-        return None
 
 
 class RasterModelGrid(
@@ -357,53 +236,6 @@ class RasterModelGrid(
     or set it up such that one can create a zero-node grid.
     """
 
-    @staticmethod
-    def _parse_parameters(args, kwds):
-        """Parse __init__ parameters into new-style parameters."""
-        old = (args, kwds)
-        deprecation_warning = None
-        try:
-            shape = kwds.pop("num_rows"), kwds.pop("num_cols")
-        except KeyError:
-            shape = _parse_grid_shape_from_args(args)
-            if len(args) >= 2:
-                deprecation_warning = DeprecatedRowsColsArguments
-        else:
-            deprecation_warning = DeprecatedRowsColsKeywords
-            if args:
-                raise ValueError(
-                    "number of args must be 0 when using keywords for grid shape"
-                )
-
-        new_kwds = kwds.copy()
-        new = ((shape,), new_kwds)
-
-        xy_spacing = None
-        if "dx" in kwds:
-            deprecation_warning = DeprecatedDxKeyword
-            xy_spacing = new_kwds.pop("dx")
-        if "spacing" in kwds:
-            deprecation_warning = DeprecatedSpacingKeyword
-            xy_spacing = new_kwds.pop("spacing")
-        if _parse_grid_spacing_from_args(args) is not None:
-            deprecation_warning = DeprecatedSpacingArgument
-            xy_spacing = _parse_grid_spacing_from_args(args)
-
-        if "xy_spacing" not in kwds and xy_spacing is not None:
-            try:
-                new_kwds.setdefault("xy_spacing", xy_spacing[::-1])
-            except TypeError:
-                new_kwds.setdefault("xy_spacing", xy_spacing)
-
-        if "origin" in kwds:
-            deprecation_warning = DeprecatedOriginKeyword
-            new_kwds.setdefault("xy_of_lower_left", new_kwds.pop("origin"))
-
-        if deprecation_warning:
-            warn(deprecation_warning("RasterModelGrid", old=old, new=new))
-
-        return new
-
     def __init__(
         self,
         shape,
@@ -456,9 +288,6 @@ class RasterModelGrid(
         defined. Either we force users to give arguments on instantiation,
         or set it up such that one can create a zero-node grid.
         """
-        # args, kwds = self._parse_parameters(args, kwds)
-
-        # shape = args[0]
         shape = tuple(shape)
         xy_spacing = np.asfarray(np.broadcast_to(xy_spacing, 2))
         self._xy_of_lower_left = tuple(np.asfarray(xy_of_lower_left))
