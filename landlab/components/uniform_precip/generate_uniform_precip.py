@@ -171,7 +171,7 @@ class PrecipitationDistribution(Component):
 
         # build LL fields, if a grid is supplied:
         if grid is not None:
-            self.grid.add_field("grid", "rainfall__flux", 0.0)
+            self.grid.add_field("rainfall__flux", 0.0, at="grid")
             self._gridupdate = True
         else:
             self._gridupdate = False
@@ -511,10 +511,14 @@ class PrecipitationDistribution(Component):
 
 
         >>> # ^^this lets you "manually" get the next item from the iterator
-        >>> _ = mg.at_grid.pop('rainfall__flux')  # remove the existing field
-        >>> precip = PrecipitationDistribution(mg, mean_storm_duration=1.5,
-        ...     mean_interstorm_duration=15.0, mean_storm_depth=0.5,
-        ...     total_t=46.)
+        >>> mg.at_grid.pop('rainfall__flux')  # remove the existing field
+        >>> precip = PrecipitationDistribution(
+        ...     mg,
+        ...     mean_storm_duration=1.5,
+        ...     mean_interstorm_duration=15.0,
+        ...     mean_storm_depth=0.5,
+        ...     total_t=46.,
+        ... )
         >>> precip.seed_generator(seedval=1)
         >>> mystorm_generator = precip.yield_storms()
         >>> my_list_of_storms = []
