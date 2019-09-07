@@ -18,24 +18,19 @@ class Profiler(_BaseProfiler):
     segments of a profile with multiple segments meet at endpoints. The grid
     node along the profile are sampled, including the segment endpoints.
 
-    The structure of the profile in a model grid is diagramed below. The
-    diagram is explained in this list:
-    -   The grid contains nine columns and nine rows.
-    -   The profile is constructed from three endpoints that bound two
-        segments.
-    -   In the diagram below, ``o`` indicates a segment endpoint, ``.`` and
-        ``*`` are sample nodes of the first and second segment, respectively.
-        ``X`` are nodes not included in the profile.
-    -   The first segment begins in the lower-left and continues horizontally
-        and almost reaches the right boundary. The second segment is joined to
-        the first in the lower-right of the grid and it continues diagonally to
-        the upper-left.
-    -   Segments have seven sample points each (nodes at endpoints are also
-        sampled). The segments share the second endpoint.
-    -   Segment and sample ordering is dictated by the ordering of endpoints.
-        If the horizontal segment is the first segment, the endpoints used to
-        construct this profile must be ordered: lower-left, lower-right, and
-        then upper-left.
+    The structure of the profile in a model grid is diagramed below. The grid
+    contains nine columns and nine rows. The profile is constructed from three
+    endpoints that bound two segments. In the diagram below, ``o`` indicates a
+    segment endpoint, ``.`` and ``*`` are sample nodes of the first and second
+    segment, respectively. ``X`` are nodes not included in the profile. The
+    first segment begins in the lower-left and continues horizontally and
+    almost reaches the right boundary. The second segment is joined to the
+    first in the lower-right of the grid and it continues diagonally to
+    the upper-left. Segments have seven sample points each (nodes at endpoints
+    are also sampled). The segments share the second endpoint. Segment and
+    sample ordering is dictated by the ordering of endpoints. If the horizontal
+    segment is the first segment, the endpoints used to construct this profile
+    must be ordered: lower-left, lower-right, and then upper-left.
 
         X X X X X X X X X
         X o X X X X X X X
@@ -152,14 +147,12 @@ class Profiler(_BaseProfiler):
 
         The node IDs and distances along the profile are stored in
         `network_structure`. It is a dictionary with keys of the segment ID.
-        The value of each key is itself a dictionary of the following segment
-        attributes:
-        -   'ids' contains a list of the node IDs of segment samples ordered
-            from the start to the end of the segment. It includes the
-            endpoints.
-        -   'distances' contains a list of along-profile distances that mirrors
-            the list in 'ids'.
-        -   'color' is an RGBA tuple indicating the color for the segment.
+        The value of each key is itself a dictionary of the segment
+        attributes. First, 'ids' contains a list of the node IDs of segment
+        samples ordered from the start to the end of the segment. It includes
+        the endpoints. Second, 'distances' contains a list of along-profile
+        distances that mirrors the list in 'ids'. Finally, 'color' is an RGBA
+        tuple indicating the color for the segment.
         """
         return self._net_struct
 
