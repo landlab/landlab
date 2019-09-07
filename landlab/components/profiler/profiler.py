@@ -186,15 +186,15 @@ class Profiler(_BaseProfiler):
                 sample_xy = grid.xy_of_node[node]
 
                 pt = self._project_point_onto_line(sample_xy, start_xy, end_xy)
-                d = grid.calc_distances_of_nodes_to_point(
-                        pt, node_subset=start_node)
+                d = grid.calc_distances_of_nodes_to_point(pt,
+                                                          node_subset=start_node)
                 sample_distances[i_sample] = d
 
             # Store the segment data.
 
             self._net_struct[i_endpt] = {
-                    'ids': np.array(sample_nodes),
-                    'distances': sample_distances + cum_dist}
+                'ids': np.array(sample_nodes),
+                'distances': sample_distances + cum_dist}
 
             cum_dist += max(sample_distances)
 
@@ -233,7 +233,8 @@ class Profiler(_BaseProfiler):
         for segment_id in self._net_struct:
             self._net_ids.append(self._net_struct[segment_id]["ids"])
             self._distance_along_profile.append(
-                    self._net_struct[segment_id]["distances"])
+                self._net_struct[segment_id]["distances"]
+            )
             self._colors.append(self._net_struct[segment_id]["color"])
 
     def _get_node_and_coords(self, point):
@@ -244,7 +245,7 @@ class Profiler(_BaseProfiler):
         """
         if isinstance(point, (float, int, np.integer)):
             return point, self._grid.xy_of_node[point]
-        elif isinstance(point, (tuple, list, np.ndarray)):
+        elif isinstance(point, (tuple, list, np.ndarray)) and len(point) == 2:
             return self._grid.find_nearest_node(point), point
         else:
             raise TypeError('each element of `endpoints` must be a number '

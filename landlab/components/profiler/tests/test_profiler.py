@@ -31,6 +31,17 @@ def test_flipped_single_segment_profile():
     np.testing.assert_array_equal(profiler.network_ids[0], np.flip(core_nodes))
 
 
+def test_positive_ystep_profile():
+    mg = RasterModelGrid((4, 5))
+    core_nodes = mg.core_nodes
+
+    endpoints = [core_nodes.min(), core_nodes.max()]
+    profiler = Profiler(mg, endpoints)
+    profiler.run_one_step()
+
+    np.testing.assert_array_equal(profiler.network_ids[0], np.array([ 6,  7, 13]))
+
+
 def test_steep_profile():
     mg = RasterModelGrid((5, 3))
     core_nodes = mg.core_nodes
@@ -38,7 +49,6 @@ def test_steep_profile():
     endpoints = [core_nodes.min(), core_nodes.max()]
     profiler = Profiler(mg, endpoints)
     profiler.run_one_step()
-
     np.testing.assert_array_equal(profiler.network_ids[0], core_nodes)
 
 
@@ -87,6 +97,10 @@ def test_incorrect_endpoints_type():
 
     endpoints = [core_nodes.min()]
     with pytest.raises(ValueError):
+        Profiler(mg, endpoints)
+
+    endpoints = [core_nodes.min(), (0, 1, 2)]
+    with pytest.raises(TypeError):
         Profiler(mg, endpoints)
 
 
