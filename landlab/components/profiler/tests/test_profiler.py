@@ -63,15 +63,13 @@ def test_multi_segment_profile_structure():
     np.testing.assert_array_equal(list(profiler.network_structure.keys()),
                                   [0, 1])
 
-    np.testing.assert_array_equal(profiler.network_structure[0]['ids'],
-                                  [6, 7, 8])
-    np.testing.assert_array_equal(profiler.network_structure[1]['ids'],
-                                  [8, 13, 18])
+    ns = profiler.network_structure
 
-    np.testing.assert_array_equal(profiler.network_structure[0]['distances'],
-                                  [0, 1, 2])
-    np.testing.assert_array_equal(profiler.network_structure[1]['distances'],
-                                  [2, 3, 4])
+    np.testing.assert_array_equal(ns[0]['ids'], [6, 7, 8])
+    np.testing.assert_array_equal(ns[1]['ids'], [8, 13, 18])
+
+    np.testing.assert_array_equal(ns[0]['distances'], [0, 1, 2])
+    np.testing.assert_array_equal(ns[1]['distances'], [2, 3, 4])
 
 
 def test_endpoint_options():
@@ -87,8 +85,8 @@ def test_endpoint_options():
     profiler_coords = Profiler(mg, [ep0, ep1])
     profiler_coords.run_one_step()
 
-    np.testing.assert_array_equal(profiler_nodes.network_ids[0],
-                                  profiler_coords.network_ids[0])
+    np.testing.assert_array_equal(
+        profiler_nodes.network_ids[0], profiler_coords.network_ids[0])
 
 
 def test_incorrect_endpoints_type():
