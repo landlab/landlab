@@ -245,6 +245,7 @@ Terrain Analysis
   landlab.components.drainage_density
   landlab.components.channel_profile
   landlab.components.hack_calculator
+  landlab.components.profile
 
 Tectonics
 ---------

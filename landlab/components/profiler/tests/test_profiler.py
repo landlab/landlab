@@ -2,7 +2,6 @@
 # ! /usr/env/python
 """Tests for Profiler.
 """
-from matplotlib import pyplot as plt
 import numpy as np
 import pytest
 

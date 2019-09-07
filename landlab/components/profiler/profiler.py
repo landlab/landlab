@@ -3,18 +3,16 @@
 """profiler.py component to create profiles with user-defined endpoints."""
 from collections import OrderedDict
 
-import matplotlib as mpl
-from matplotlib import cm
-import matplotlib.pyplot as plt
+from matplotlib import cm, colors, pyplot as plt
 import numpy as np
 
 from landlab.components.profiler.base_profiler import _BaseProfiler
 
 
 class Profiler(_BaseProfiler):
-    """Extract and plot profiles defined by points within a grid.
+    """Extract and plot profiles set up using points within a grid.
 
-    The profile is constructed from the first to final point in `endpoints`.
+    The profile is constructed from the first to final point in ``endpoints``.
     Endpoints are located at grid nodes. Two successive endpoints bound a
     profile segment. A profile with one segment is a straight line. The
     segments of a profile with multiple segments meet at endpoints. The grid
@@ -25,9 +23,9 @@ class Profiler(_BaseProfiler):
     -   The grid contains nine columns and nine rows.
     -   The profile is constructed from three endpoints that bound two
         segments.
-    -   In the diagram below, 'o' indicates a segment endpoint, '.' and '*' are
-        sample nodes of the first and second segment, respectively. 'X' are
-        nodes not included in the profile.
+    -   In the diagram below, ``o`` indicates a segment endpoint, ``.`` and
+        ``*`` are sample nodes of the first and second segment, respectively.
+        ``X`` are nodes not included in the profile.
     -   The first segment begins in the lower-left and continues horizontally
         and almost reaches the right boundary. The second segment is joined to
         the first in the lower-right of the grid and it continues diagonally to
@@ -36,8 +34,8 @@ class Profiler(_BaseProfiler):
         sampled). The segments share the second endpoint.
     -   Segment and sample ordering is dictated by the ordering of endpoints.
         If the horizontal segment is the first segment, the endpoints used to
-        construct this profile must of been ordered: lower-left, lower-right,
-        and then upper-left.
+        construct this profile must be ordered: lower-left, lower-right, and
+        then upper-left.
 
         X X X X X X X X X
         X o X X X X X X X
@@ -51,9 +49,9 @@ class Profiler(_BaseProfiler):
 
     The node IDs and distances along the profile are stored in a data structure
     called ``network_structure``. It is a dictionary with keys indicating the
-    segment ID that reflects the order of the segments.
+    segment IDs that are enumerated along the profile.
 
-    By default a unique color will be assigned to each segment. To change the
+    By default, a unique color will be assigned to each segment. To change the
     color, a user can change values stored in ``network_structure``.
     Additionally, a ``cmap`` keyword argument can provide some user control
     over the color at the instantiation of the component.
@@ -85,7 +83,7 @@ class Profiler(_BaseProfiler):
     Create a profile with three endpoints.
     >>> endpoints = [10, 16, 64]
     >>> profiler = Profiler(mg, endpoints)
-    profiler.run_one_step()
+    >>> profiler.run_one_step()
 
     The keys of the network structure are the segment ids.
     >>> profiler.network_structure.keys()
@@ -100,8 +98,8 @@ class Profiler(_BaseProfiler):
     >>> np.round(profiler.network_structure[0]['color'], decimals=2)
     array([ 0.27,  0.  ,  0.33,  1.  ])
 
-    The first node of the second segment is the same as the final node of the
-    first segment.
+    Note that the first node of the second segment is the same as the final
+    node of the first segment.
     >>> profiler.network_structure[1]['ids']
     array([16, 26, 35, 45, 54, 64])
 
@@ -122,7 +120,7 @@ class Profiler(_BaseProfiler):
             A landlab RasterModelGrid.
         endpoints : list of integers or list of tuples
             The endpoints that bound segments of the profile. Endpoints can be
-            node ids and tuples of coordinates (x, y). Both node ids and
+            node ids and/or tuples of coordinates (x, y). Both node ids and
             coordinate tuples can be used in the same endpoint list. The
             profile begins with the first element of `endpoints` and continues
             in the order of this list.
@@ -131,21 +129,22 @@ class Profiler(_BaseProfiler):
         """
         super(_BaseProfiler, self).__init__(grid)
 
+        self._grid = grid
+        self._cmap = plt.get_cmap(cmap)
+
         if not isinstance(endpoints, list) or len(endpoints) < 2:
             msg = ('`endpoints` must be a list of at least 2 node IDs or a '
                    'list of at least two tuples where each tuple contains the '
                    'x, y coordinates of endpoints.')
             raise ValueError(msg)
 
-        self._grid = grid
-        self._cmap = plt.get_cmap(cmap)
+        # Check if `endpoints` are within grid bounds while setting
+        # `_end_nodes`.
 
-        # Verify `endpoints` are within grid bounds while setting `_end_nodes`.
-
-        self._endnodes = []
+        self._end_nodes = []
         for point in endpoints:
             node, _ = self._get_node_and_coords(point)
-            self._endnodes.append(node)
+            self._end_nodes.append(node)
 
     @property
     def network_structure(self):
@@ -173,7 +172,7 @@ class Profiler(_BaseProfiler):
         """
         self._net_struct = OrderedDict()
         grid = self._grid
-        endnodes = self._endnodes
+        endnodes = self._end_nodes
         cum_dist = 0
 
         for i_endpt in range(len(endnodes) - 1):
@@ -219,7 +218,7 @@ class Profiler(_BaseProfiler):
         """
         if color_mapping is None:
             segment_count = len(self._net_struct)
-            norm = mpl.colors.Normalize(vmin=0, vmax=segment_count)
+            norm = colors.Normalize(vmin=0, vmax=segment_count)
             mappable = cm.ScalarMappable(norm=norm, cmap=self._cmap)
             color_mapping = {
                 segment_id: mappable.to_rgba(idx)
@@ -247,9 +246,8 @@ class Profiler(_BaseProfiler):
     def _get_node_and_coords(self, point):
         """Get the node and coordinates for a point.
 
-        This method handles this option that point might be a node or tuple.
-        The grid methods called here also verify if the point is within the
-        grid.
+        This method handles the option that endpoints can be a node or tuple.
+        The grid methods called here verify if the point is within the grid.
         """
         if isinstance(point, (float, int, np.integer)):
             return point, self._grid.xy_of_node[point]
@@ -266,7 +264,7 @@ class Profiler(_BaseProfiler):
         Parameters
         ----------
         start_node, end_node : integer
-            The node id of the profile endpoints.
+            The node id of a profile endpoint.
 
         Returns
         -------
@@ -288,15 +286,12 @@ class Profiler(_BaseProfiler):
         trace_is_steep = abs(dy) > abs(dx)
 
         if trace_is_steep:
-            # Transpose the profile trace.
             x0, y0 = y0, x0
             x1, y1 = y1, x1
-
 
         flipped_nodes = x0 > x1
 
         if flipped_nodes:
-            # Flip the start and end nodes.
             x0, x1 = x1, x0
             y0, y1 = y1, y0
 
@@ -304,6 +299,7 @@ class Profiler(_BaseProfiler):
         dy = y1 - y0
 
         error = int(dx / 2.)
+
         if y0 < y1:
             y_step = 1
         else:
@@ -328,7 +324,6 @@ class Profiler(_BaseProfiler):
                 error += dx
 
         if flipped_nodes:
-            # Reverse the list if the endpoint nodes were flipped.
             samples.reverse()
 
         return samples
