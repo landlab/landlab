@@ -17,9 +17,8 @@ class Profiler(_BaseProfiler):
     The profile is constructed from the first to final point in `endpoints`.
     Endpoints are located at grid nodes. Two successive endpoints bound a
     profile segment. A profile with one segment is a straight line. The
-    segments of a profile with multiple segments meet at endpoints. Every grid
-    node along the profile and between segment endpoints is sampled, including
-    the segment endpoints.
+    segments of a profile with multiple segments meet at endpoints. The grid
+    node along the profile are sampled, including the segment endpoints.
 
     The structure of the profile in a model grid is diagramed below. The
     diagram is explained in this list:
@@ -29,16 +28,16 @@ class Profiler(_BaseProfiler):
     -   In the diagram below, 'o' indicates a segment endpoint, '.' and '*' are
         sample nodes of the first and second segment, respectively. 'X' are
         nodes not included in the profile.
-    -   Segments have seven sample points each (nodes at endpoints are also
-        sampled).
     -   The first segment begins in the lower-left and continues horizontally
         and almost reaches the right boundary. The second segment is joined to
         the first in the lower-right of the grid and it continues diagonally to
         the upper-left.
+    -   Segments have seven sample points each (nodes at endpoints are also
+        sampled). The segments share the second endpoint.
     -   Segment and sample ordering is dictated by the ordering of endpoints.
-        The endpoints used to construct this profile must be of been ordered
-        lower-left, lower-right, and then upper-left because the horizontal
-        segment was designated as being first.
+        If the horizontal segment is the first segment, the endpoints used to
+        construct this profile must of been ordered: lower-left, lower-right,
+        and then upper-left.
 
         X X X X X X X X X
         X o X X X X X X X
@@ -50,10 +49,36 @@ class Profiler(_BaseProfiler):
         X o . . . . . o X
         X X X X X X X X X
 
+    The node IDs and distances along the profile are stored in a data structure
+    called ``network_structure``. It is a dictionary with keys indicating the
+    segment ID that reflects the order of the segments.
+
+    By default a unique color will be assigned to each segment. To change the
+    color, a user can change values stored in ``network_structure``.
+    Additionally, a ``cmap`` keyword argument can provide some user control
+    over the color at the instantiation of the component.
+
+    The data structure example above will look as follows:
+
+    .. code-block:: python
+
+        {0: {
+            'ids': [10, 11, 12, 13, 14, 15, 16],
+            'distances': [0, 1, 2, 3, 4, 5, 6]
+            'color': (0.27,  0,  0.33,  1)
+            },
+         1: {
+            'ids': [16, 24, 32, 40, 48, 56, 64],
+            'distances': [6, 7.41, 8.83, 10.24, 11.66, 13.07, 14.49]
+            'color': (0.13,  0.57,  0.55,  1)
+            }
+        }
+
     Examples
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import Profiler
+    >>> import numpy as np
     >>> mg = RasterModelGrid((10, 10), 10)
     >>> mg.at_node['topographic__elevation'] = mg.node_x * mg.node_y
 
@@ -66,14 +91,19 @@ class Profiler(_BaseProfiler):
     >>> profiler.network_structure.keys()
     odict_keys([0, 1])
 
-    The nodes of the first segment.
+    The network structure contains data of segment samples. Below is the first
+    segment.
     >>> profiler.network_structure[0]['ids']
-    [10, 11, 12, 13, 14, 15, 16]
+    array([10, 11, 12, 13, 14, 15, 16])
+    >>> profiler.network_structure[0]['distances']
+    array([  0.,  10.,  20.,  30.,  40.,  50.,  60.])
+    >>> np.round(profiler.network_structure[0]['color'], decimals=2)
+    array([ 0.27,  0.  ,  0.33,  1.  ])
 
     The first node of the second segment is the same as the final node of the
     first segment.
     >>> profiler.network_structure[1]['ids']
-    [16, 24, 32, 40, 48, 56, 64]
+    array([16, 26, 35, 45, 54, 64])
 
     Alternative to nodes, profiles can be instantiated with coordinates.
     >>> profiler = Profiler(mg, [(10, 10), (70, 10), (10, 70)])
@@ -101,29 +131,36 @@ class Profiler(_BaseProfiler):
         """
         super(_BaseProfiler, self).__init__(grid)
 
-        if not isinstance(endpoints, list) and len(endpoints) > 1:
-            msg = ('`endpoints` must be a list of at least 2 nodes or a list '
-                   'of at least two tuples where each tuple contains the x, y '
-                   'coordinates of endpoints.')
+        if not isinstance(endpoints, list) or len(endpoints) < 2:
+            msg = ('`endpoints` must be a list of at least 2 node IDs or a '
+                   'list of at least two tuples where each tuple contains the '
+                   'x, y coordinates of endpoints.')
             raise ValueError(msg)
 
         self._grid = grid
-        self._endpoints = endpoints
         self._cmap = plt.get_cmap(cmap)
+
+        # Verify `endpoints` are within grid bounds while setting `_end_nodes`.
+
+        self._endnodes = []
+        for point in endpoints:
+            node, _ = self._get_node_and_coords(point)
+            self._endnodes.append(node)
 
     @property
     def network_structure(self):
         """OrderedDict defining the profile.
 
-        The node IDs and distances upstream of the channel network are stored
-        in `network_structure`. It is a dictionary with keys of the segment
-        ID.
-
-        First, 'ids' contains a list of the segment node IDs ordered from
-        the start to the end of the profile. It includes the endpoints. Second,
-        'distances' contains a list of along-profile distances that mirrors the
-        list in 'ids'. Finally, 'color' is an RGBA tuple indicating the color
-        for the segment.
+        The node IDs and distances along the profile are stored in
+        `network_structure`. It is a dictionary with keys of the segment ID.
+        The value of each key is itself a dictionary of the following segment
+        attributes:
+        -   'ids' contains a list of the node IDs of segment samples ordered
+            from the start to the end of the segment. It includes the
+            endpoints.
+        -   'distances' contains a list of along-profile distances that mirrors
+            the list in 'ids'.
+        -   'color' is an RGBA tuple indicating the color for the segment.
         """
         return self._net_struct
 
@@ -136,14 +173,14 @@ class Profiler(_BaseProfiler):
         """
         self._net_struct = OrderedDict()
         grid = self._grid
-        endpts = self._endpoints
+        endnodes = self._endnodes
         cum_dist = 0
 
-        for i_endpt in range(len(endpts) - 1):
+        for i_endpt in range(len(endnodes) - 1):
             # Get the endpoints and samples of the segment.
 
-            start_node, start_xy = self._get_node_and_coords(endpts[i_endpt])
-            end_node, end_xy = self._get_node_and_coords(endpts[i_endpt + 1])
+            start_node, start_xy = self._get_node_and_coords(endnodes[i_endpt])
+            end_node, end_xy = self._get_node_and_coords(endnodes[i_endpt + 1])
 
             sample_nodes = self._get_sample_nodes(start_node, end_node)
 
@@ -164,7 +201,7 @@ class Profiler(_BaseProfiler):
             # Store the segment data.
 
             self._net_struct[i_endpt] = {
-                    'ids': sample_nodes,
+                    'ids': np.array(sample_nodes),
                     'distances': sample_distances + cum_dist}
 
             cum_dist += max(sample_distances)
@@ -210,11 +247,13 @@ class Profiler(_BaseProfiler):
     def _get_node_and_coords(self, point):
         """Get the node and coordinates for a point.
 
-        The point might be a node or tuple. This method handles this option.
+        This method handles this option that point might be a node or tuple.
+        The grid methods called here also verify if the point is within the
+        grid.
         """
-        if isinstance(point, (float, int)):
+        if isinstance(point, (float, int, np.integer)):
             return point, self._grid.xy_of_node[point]
-        elif isinstance(point, tuple):
+        elif isinstance(point, (tuple, list, np.ndarray)):
             return self._grid.find_nearest_node(point), point
         else:
             raise TypeError('each element of `endpoints` must be a number '
@@ -253,10 +292,11 @@ class Profiler(_BaseProfiler):
             x0, y0 = y0, x0
             x1, y1 = y1, x1
 
-        swapped_nodes = x0 > x1
 
-        if swapped_nodes:
-            # Swap the start and end nodes.
+        flipped_nodes = x0 > x1
+
+        if flipped_nodes:
+            # Flip the start and end nodes.
             x0, x1 = x1, x0
             y0, y1 = y1, y0
 
@@ -287,8 +327,8 @@ class Profiler(_BaseProfiler):
                 y += y_step
                 error += dx
 
-        if swapped_nodes:
-            # Reverse the list if the endpoint nodes were swapped.
+        if flipped_nodes:
+            # Reverse the list if the endpoint nodes were flipped.
             samples.reverse()
 
         return samples
