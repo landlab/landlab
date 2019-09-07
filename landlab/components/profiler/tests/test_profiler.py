@@ -39,7 +39,7 @@ def test_positive_ystep_profile():
     profiler = Profiler(mg, endpoints)
     profiler.run_one_step()
 
-    np.testing.assert_array_equal(profiler.network_ids[0], np.array([ 6,  7, 13]))
+    np.testing.assert_array_equal(profiler.network_ids[0], np.array([6, 7, 13]))
 
 
 def test_steep_profile():

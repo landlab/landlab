@@ -16,19 +16,19 @@ class Profiler(_BaseProfiler):
     Endpoints are located at grid nodes. Two successive endpoints bound a
     profile segment. A profile with one segment is a straight line. The
     segments of a profile with multiple segments meet at endpoints. The grid
-    node along the profile are sampled, including the segment endpoints.
+    nodes along the profile are sampled, including the segment endpoints.
 
     The structure of the profile in a model grid is diagramed below. The grid
     contains nine columns and nine rows. The profile is constructed from three
-    endpoints that bound two segments. In the diagram below, ``o`` indicates a
-    segment endpoint, ``.`` and ``*`` are sample nodes of the first and second
-    segment, respectively. ``X`` are nodes not included in the profile. The
-    first segment begins in the lower-left and continues horizontally and
-    almost reaches the right boundary. The second segment is joined to the
-    first in the lower-right of the grid and it continues diagonally to
-    the upper-left. Segments have seven sample points each (nodes at endpoints
-    are also sampled). The segments share the second endpoint. Segment and
-    sample ordering is dictated by the ordering of endpoints. If the horizontal
+    endpoints that bound two segments. Here, ``o`` indicates a segment
+    endpoint, ``.`` and ``*`` are sample nodes of the first and second segment,
+    respectively. ``X`` are nodes not included in the profile. The first
+    segment begins in the lower-left and continues horizontally and almost
+    reaches the right boundary. The second segment is joined to the first in
+    the lower-right of the grid and it continues diagonally to the upper-left.
+    Segments have seven sample points each (nodes at endpoints are also
+    sampled). The segments share the second endpoint. Segment and sample
+    ordering is dictated by the ordering of endpoints. If the horizontal
     segment is the first segment, the endpoints used to construct this profile
     must be ordered: lower-left, lower-right, and then upper-left.
 
@@ -51,7 +51,7 @@ class Profiler(_BaseProfiler):
     Additionally, a ``cmap`` keyword argument can provide some user control
     over the color at the instantiation of the component.
 
-    The data structure example above will look as follows:
+    The data structure of the example above will look as follows:
 
     .. code-block:: python
 
