@@ -1667,10 +1667,6 @@ class RasterModelGrid(
         """
         return np.ravel_multi_index((row, col), self.shape, **kwds)
 
-    def _unit_test(self):
-        """Stub for adding unit tests to RasterModelGrid."""
-        pass
-
     def calc_unit_normal_at_patch(self, elevs="topographic__elevation"):
         """Calculate and return the unit normal vector <a, b, c> to a patch.
 
@@ -1685,63 +1681,6 @@ class RasterModelGrid(
             "unit normal for a square patch. Use "
             "`_calc_unit_normals_to_patch_subtriangles` instead."
         )
-
-    @deprecated(use="calc_aspect_at_node", version=1.0)
-    def calculate_aspect_at_nodes_bestFitPlane(self, id, val):
-        """Aspect at nodes.
-
-        .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
-
-        Calculates the aspect at each node based on the elevation of
-        the node and its neighbors using a best fit plane calculated
-        using single value decomposition.
-
-        Parameters
-        ----------
-        id : array-like
-            ID of nodes at which to calculate the aspect.
-        val : ndarray
-            Elevation at all nodes
-
-        Returns
-        -------
-        ndarray
-            Aspect at the nodes given by id
-
-        LLCATS: DEPR NINF SURF
-        """
-        # additional note, KRB has written three codes in raster.py
-        # one to calculate slope, one to calculate aspect, and one
-        # to calculate both
-
-        # get the list of neighboring nodes for the nodes given by id
-        n = self.active_adjacent_nodes_at_node[id]
-        a = []
-
-        # for each node in id make a list with the node id and the ids of
-        # its neighbors.
-
-        # determine the values for the x, y, and z coordinates of each node,
-        # pass these to rfuncs.calculate_slope_aspect_bfp to calculate the
-        # slope and aspect.
-
-        indBool = n != BAD_INDEX_VALUE
-
-        for i in range(len(id)):
-            # make a list of the neighbor nodes and
-            # check that none of the nodes are bad
-
-            ns = list(n[0][indBool[0]])
-            ns.append(id[i])
-
-            x = self.node_x[ns]
-            y = self.node_y[ns]
-            z = val[ns]
-            slope, aspect = rfuncs.calculate_slope_aspect_bfp(x, y, z)
-            a.append(aspect)
-            del ns
-        # return aspect alone
-        return a
 
     @deprecated(use="calc_slope_at_node", version=1.0)
     def calculate_slope_at_nodes_bestFitPlane(self, id, val):
