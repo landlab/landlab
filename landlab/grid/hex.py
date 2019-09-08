@@ -133,9 +133,6 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         >>> hmg.number_of_nodes
         7
         """
-        # node_layout = shape
-        # shape = (base_num_rows, base_num_cols)
-        # spacing = dx
         self._xy_of_lower_left = tuple(numpy.asfarray(xy_of_lower_left))
 
         DualHexGraph.__init__(
@@ -188,74 +185,6 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         pts[:, 0] += xshift
         pts[:, 1] += yshift
         return pts
-
-    @staticmethod
-    def _hex_points_with_horizontal_hex(num_rows, base_num_cols, dxh, xy_of_lower_left):
-        """Create a set of points on a staggered grid.
-
-        Creates and returns a set of (x,y) points in a staggered grid in which
-        the points represent the centers of regular hexagonal cells, and the
-        points could be connected to form equilateral triangles. The overall
-        shape of the lattice is hexagonal, and one of the 3 axes is horizontal.
-
-        Parameters
-        ----------
-        num_rows : int
-            Number of rows in lattice
-        base_num_cols : int
-            Number of columns in the bottom and top rows (middle rows have
-            more)
-        dxh : float
-            Horizontal and diagonal spacing between points
-        xy_of_lower_left : tuple
-            (x, y) coordinates of the xy_of_lower_left. Default is (0., 0.)
-        Returns
-        -------
-        poinst : ndarray
-            A 2D numpy array containing point (x,y) coordinates, and total
-            number of points.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_horizontal_hex(3, 2,
-        ...                                                       1.0,
-        ...                                                       (0., 0.))
-        >>> len(points)
-        7
-        >>> points[1, :]
-        array([ 1.5,  0. ])
-        >>> points[:3, 0]
-        array([ 0.5,  1.5,  0. ])
-        """
-        dxv = dxh * numpy.sqrt(3.0) / 2.0
-        half_dxh = dxh / 2.0
-
-        if numpy.mod(num_rows, 2) == 0:  # even number of rows
-            npts = num_rows * base_num_cols + (num_rows * num_rows) // 4
-        else:  # odd number of rows
-            npts = num_rows * base_num_cols + ((num_rows - 1) // 2) * (
-                (num_rows - 1) // 2
-            )
-        pts = numpy.zeros((npts, 2))
-        middle_row = num_rows // 2
-        extra_cols = 0
-
-        xshift = 0
-        i = 0
-        for r in range(num_rows):
-            for c in range(base_num_cols + extra_cols):
-                pts[i, 0] = c * dxh + xshift
-                pts[i, 1] = r * dxv
-                i += 1
-            if r < middle_row:
-                extra_cols += 1
-            else:
-                extra_cols -= 1
-            xshift = -half_dxh * extra_cols
-
-        # return pts
-        return HexModelGrid._shift_to_lower_left(pts, xy_of_lower_left)
 
     @staticmethod
     def _hex_points_with_horizontal_rect(num_rows, num_cols, dxh, xy_of_lower_left):
