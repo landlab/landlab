@@ -1682,65 +1682,6 @@ class RasterModelGrid(
             "`_calc_unit_normals_to_patch_subtriangles` instead."
         )
 
-    @deprecated(use="calc_slope_at_node", version=1.0)
-    def calculate_slope_at_nodes_bestFitPlane(self, id, val):
-        """Slope of best-fit plane at nodes.
-
-        .. codeauthor:: Katy Barnhart <katherine.barnhart@colorado.edu>
-
-        Calculates the slope at each node based on the elevation of
-        the node and its neighbors using a best fit plane calculated
-        using single value decomposition.
-
-        Parameters
-        ----------
-        id : array-like
-            ID of nodes at which to calculate the aspect
-        val : ndarray
-            Elevation at all nodes
-
-        Returns
-        -------
-        ndarray
-            Slope at the nodes given by id
-
-        LLCATS: DEPR NINF GRAD SURF
-        """
-        #
-        # additional note, KRB has written three codes in raster.py
-        # one to calculate slope, one to calculate aspect, and one
-        # to calculate both
-
-        # get the list of neighboring nodes for the nodes given by id
-        n = self.active_adjacent_nodes_at_node[id]
-        s = []
-
-        # for each node in id make a list with the node id and the ids of
-        # its neighbors.
-
-        # determine the values for the x, y, and z coordinates of each node,
-        # pass these to rfuncs.calculate_slope_aspect_bfp to calculate the
-        # slope and aspect.
-
-        indBool = n != BAD_INDEX_VALUE
-
-        for i in range(len(id)):
-            # make a list of the neighbor nodes and
-            # check that none of the nodes are bad
-
-            ns = list(n[0][indBool[0]])
-            ns.append(id[i])
-
-            x = self.node_x[ns]
-            y = self.node_y[ns]
-            z = val[ns]
-
-            slope, _ = rfuncs.calculate_slope_aspect_bfp(x, y, z)
-            s.append(slope)
-            del ns
-        # return slope alone
-        return s
-
     @deprecated(use="calc_slope_at_node, calc_aspect_at_node", version=1.0)
     def calculate_slope_aspect_at_nodes_burrough(self, ids=None, vals="Elevation"):
         """Calculate topographic slope.
