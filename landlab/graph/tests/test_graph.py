@@ -1,3 +1,4 @@
+import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from landlab.graph import Graph
@@ -50,6 +51,13 @@ def test_create_graph_with_links():
     )
 
 
+def test_graph_nodes_property():
+    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, sort=True)
+    assert_array_equal(graph.nodes, [0, 1, 2, 3, 4, 5])
+    with pytest.raises(ValueError):
+        graph.nodes[0] = 99
+
+
 def test_graph_link_heads():
     """Test nodes at link heads."""
     graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, sort=True)
@@ -86,13 +94,17 @@ def test_graph_link_dirs_at_node():
 
 def test_links_at_patch_ccw():
     """Test links at patch with rotational sorting."""
-    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, patches=LINKS_AT_PATCH, sort=True)
+    graph = Graph(
+        (NODE_Y, NODE_X), links=NODES_AT_LINK, patches=LINKS_AT_PATCH, sort=True
+    )
 
     assert_array_equal(graph.links_at_patch, [[3, 5, 2, 0], [4, 6, 3, 1]])
 
 
 def test_nodes_at_patch_ccw():
     """Test nodes at patch with rotational sorting."""
-    graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK, patches=LINKS_AT_PATCH, sort=True)
+    graph = Graph(
+        (NODE_Y, NODE_X), links=NODES_AT_LINK, patches=LINKS_AT_PATCH, sort=True
+    )
 
     assert_array_equal(graph.nodes_at_patch, [[4, 3, 0, 1], [5, 4, 1, 2]])
