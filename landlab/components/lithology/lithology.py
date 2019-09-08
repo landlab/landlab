@@ -155,7 +155,7 @@ class Lithology(Component):
         super(Lithology, self).__init__(grid)
 
         try:
-            self.last_elevation = self._grid["node"]["topographic__elevation"][:].copy()
+            self._last_elevation = self._grid["node"]["topographic__elevation"][:].copy()
         except KeyError:
             msg = (
                 "Lithology requires that topographic__elevation already "
@@ -908,11 +908,11 @@ class Lithology(Component):
         """
         # calculate amount of erosion
         elevation_change = self._grid["node"]["topographic__elevation"] - (
-            self.last_elevation + dz_advection
+            self._last_elevation + dz_advection
         )
 
         # add layer
         self.add_layer(elevation_change, rock_id=rock_id)
 
         # update the last elevation.
-        self.last_elevation = self._grid["node"]["topographic__elevation"][:].copy()
+        self._last_elevation = self._grid["node"]["topographic__elevation"][:].copy()
