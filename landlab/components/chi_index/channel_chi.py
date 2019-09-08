@@ -196,12 +196,12 @@ class ChiFinder(Component):
             self._link_lengths = self._grid.length_of_link  # not tested
 
         self._reftheta = reference_concavity
-        self.min_drainage = min_drainage_area
+        self._min_drainage = min_drainage_area
 
         self._set_up_reference_area(reference_area)
 
-        self.use_true_dx = use_true_dx
-        self.chi = self._grid.add_zeros(
+        self._use_true_dx = use_true_dx
+        self._chi = self._grid.add_zeros(
             "node", "channel__chi_index", noclobber=noclobber
         )
         self._mask = self._grid.ones("node", dtype=bool)
@@ -225,14 +225,14 @@ class ChiFinder(Component):
         are also identified in the mask retrieved with :func:`hillslope_mask`.
         """
         self._mask.fill(True)
-        self.chi.fill(0.0)
+        self._chi.fill(0.0)
 
         reftheta = self._reftheta
-        min_drainage = self.min_drainage
+        min_drainage = self._min_drainage
         reference_area = self._A0
         self._set_up_reference_area(reference_area)
 
-        use_true_dx = self.use_true_dx
+        use_true_dx = self._use_true_dx
 
         upstr_order = self._grid.at_node["flow__upstream_node_order"]
         # get an array of only nodes with A above threshold:
@@ -244,17 +244,17 @@ class ChiFinder(Component):
             chi_integrand = (self._A0 / valid_upstr_areas) ** reftheta
             mean_dx = self.mean_channel_node_spacing(valid_upstr_order)
             self.integrate_chi_avg_dx(
-                valid_upstr_order, chi_integrand, self.chi, mean_dx
+                valid_upstr_order, chi_integrand, self._chi, mean_dx
             )
         else:
             chi_integrand = self._grid.zeros("node")
             chi_integrand[valid_upstr_order] = (
                 self._A0 / valid_upstr_areas
             ) ** reftheta
-            self.integrate_chi_each_dx(valid_upstr_order, chi_integrand, self.chi)
+            self.integrate_chi_each_dx(valid_upstr_order, chi_integrand, self._chi)
         # stamp over the closed nodes, as it's possible they can receive infs
         # if min_drainage_area < grid.cell_area_at_node
-        self.chi[self._grid.status_at_node == CLOSED_BOUNDARY] = 0.0
+        self._chi[self._grid.status_at_node == CLOSED_BOUNDARY] = 0.0
         self._mask[valid_upstr_order] = False
 
     def integrate_chi_avg_dx(
@@ -455,7 +455,7 @@ class ChiFinder(Component):
 
         Nodes not in the channel receive zeros.
         """
-        return self.chi
+        return self._chi
 
     @property
     def hillslope_mask(self):
@@ -507,10 +507,10 @@ class ChiFinder(Component):
         True
         """
         if ch_nodes is None:
-            good_vals = np.logical_not(self.hillslope_mask)
+            good_vals = np.logical_not(self._mask)
         else:
             good_vals = np.array(ch_nodes)  # not tested
-        chi_vals = self.chi_indices[good_vals]
+        chi_vals = self._chi[good_vals]
         elev_vals = self._grid.at_node["topographic__elevation"][good_vals]
         coeffs = np.polyfit(chi_vals, elev_vals, 1)
         return coeffs
@@ -549,7 +549,7 @@ class ChiFinder(Component):
         current_node = channel_head
         while True:
             ch_A = self._grid.at_node["drainage_area"][current_node]
-            if ch_A > self.min_drainage:
+            if ch_A > self._min_drainage:
                 ch_nodes.append(current_node)
             next_node = self._grid.at_node["flow__receiver_node"][current_node]
             if next_node == current_node:
@@ -599,16 +599,16 @@ class ChiFinder(Component):
             for head in channel_heads:
                 ch_nodes = self.nodes_downstream_of_channel_head(head)
                 plot(
-                    self.chi_indices[ch_nodes],
+                    self._chi[ch_nodes],
                     self._grid.at_node["topographic__elevation"][ch_nodes],
                     symbol,
                 )
                 if plot_line:
                     good_nodes.update(ch_nodes)
         else:
-            ch_nodes = np.logical_not(self.hillslope_mask)
+            ch_nodes = np.logical_not(self._mask)
             plot(
-                self.chi_indices[ch_nodes],
+                self._chi[ch_nodes],
                 self._grid.at_node["topographic__elevation"][ch_nodes],
                 symbol,
             )
@@ -617,8 +617,8 @@ class ChiFinder(Component):
             coeffs = self.best_fit_chi_elevation_gradient_and_intercept(good_nodes)
             p = np.poly1d(coeffs)
             chirange = np.linspace(
-                self.chi_indices[good_nodes].min(),
-                self.chi_indices[good_nodes].max(),
+                self._chi[good_nodes].min(),
+                self._chi[good_nodes].max(),
                 100,
             )
             plot(chirange, p(chirange), line_symbol)
@@ -666,4 +666,4 @@ class ChiFinder(Component):
         >>> imshow_grid_at_node(mg, cf.masked_chi_indices,
         ...                     color_for_closed=None, cmap='winter')
         """
-        return np.ma.array(self.chi_indices, mask=self.hillslope_mask)
+        return np.ma.array(self._chi, mask=self._mask)
