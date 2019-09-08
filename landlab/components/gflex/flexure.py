@@ -175,8 +175,8 @@ class gFlex(Component):
         )
 
         # instantiate the module:
-        self.flex = gflex.F2D()
-        flex = self.flex
+        self._flex = gflex.F2D()
+        flex = self._flex
 
         # set up the grid variables:
 
@@ -229,7 +229,7 @@ class gFlex(Component):
 
         # create a holder for the "pre-flexure" state of the grid, to allow
         # updating of elevs:
-        self.pre_flex = np.zeros(grid.number_of_nodes, dtype=float)
+        self._pre_flex = np.zeros(grid.number_of_nodes, dtype=float)
 
         # create the primary output field:
         self._grid.add_zeros(
@@ -245,16 +245,16 @@ class gFlex(Component):
         of gFlex. Note that flexure of the lithosphere proceeds to steady state
         in a single timestep.
         """
-        self.flex.qs = (
+        self._flex.qs = (
             self._grid.at_node["surface_load__stress"].view().reshape(self._grid.shape)
         )
-        self.flex.initialize()
-        self.flex.run()
-        self.flex.finalize()
+        self._flex.initialize()
+        self._flex.run()
+        self._flex.finalize()
 
         self._grid.at_node["lithosphere_surface__elevation_increment"][
             :
-        ] = self.flex.w.view().ravel()
+        ] = self._flex.w.view().ravel()
 
         try:
             self._grid.at_node["topographic__elevation"]
@@ -264,10 +264,10 @@ class gFlex(Component):
         else:
             topo_diff = (
                 self._grid.at_node["lithosphere_surface__elevation_increment"]
-                - self.pre_flex
+                - self._pre_flex
             )
             self._grid.at_node["topographic__elevation"] += topo_diff
-            self.pre_flex += topo_diff
+            self._pre_flex += topo_diff
 
     def run_one_step(self):
         """
@@ -279,4 +279,4 @@ class gFlex(Component):
         ----------
         None
         """
-        self.flex_lithosphere()
+        self._flex_lithosphere()
