@@ -71,7 +71,7 @@ class _FlowDirectorToMany(_FlowDirector):
         """Initialize the _FlowDirectorTo_One class."""
         # run init for the inherited class
         super(_FlowDirectorToMany, self).__init__(grid, surface)
-        self.to_n_receivers = "many"
+        self._to_n_receivers = "many"
         # initialize new fields
 
     def run_one_step(self):

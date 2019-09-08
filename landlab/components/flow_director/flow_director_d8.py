@@ -112,7 +112,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
             The surface to direct flow across, default is field at node:
             topographic__elevation,.
         """
-        self.method = "D8"
+        self._method = "D8"
         super(FlowDirectorD8, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
         if self._is_Voroni:
@@ -168,7 +168,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
         # step 1. Calculate link slopes.
         link_slope = -self._grid._calculate_gradients_at_d8_active_links(
-            self.surface_values
+            self._surface_values
         )
 
         # Step 2. Find and save base level nodes.
@@ -181,7 +181,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
         # Calculate flow directions by D8 method
         receiver, steepest_slope, sink, recvr_link = flow_direction_DN.flow_directions(
-            self.surface_values,
+            self._surface_values,
             self._active_links,
             self._activelink_tail,
             self._activelink_head,

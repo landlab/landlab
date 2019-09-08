@@ -110,27 +110,27 @@ class _FlowDirectorToOne(_FlowDirector):
         """Initialize the _FlowDirectorTo_One class."""
         # run init for the inherited class
         super(_FlowDirectorToOne, self).__init__(grid, surface)
-        self.to_n_receivers = "one"
+        self._to_n_receivers = "one"
         # initialize new fields
         if "flow__receiver_node" not in grid.at_node:
-            self.receiver = grid.add_field(
+            self._receiver = grid.add_field(
                 "flow__receiver_node",
                 BAD_INDEX_VALUE * grid.ones(at="node", dtype=int),
                 at="node",
                 dtype=int,
             )
         else:
-            self.receiver = grid.at_node["flow__receiver_node"]
+            self._receiver = grid.at_node["flow__receiver_node"]
 
         if "topographic__steepest_slope" not in grid.at_node:
-            self.steepest_slope = grid.add_zeros(
+            self._steepest_slope = grid.add_zeros(
                 "topographic__steepest_slope", at="node", dtype=float
             )
         else:
-            self.steepest_slope = grid.at_node["topographic__steepest_slope"]
+            self._steepest_slope = grid.at_node["topographic__steepest_slope"]
 
         if "flow__link_to_receiver_node" not in grid.at_node:
-            self.links_to_receiver = grid.add_field(
+            self._links_to_receiver = grid.add_field(
                 "flow__link_to_receiver_node",
                 BAD_INDEX_VALUE * grid.ones(at="node", dtype=int),
                 at="node",
@@ -138,7 +138,7 @@ class _FlowDirectorToOne(_FlowDirector):
             )
 
         else:
-            self.links_to_receiver = grid.at_node["flow__link_to_receiver_node"]
+            self._links_to_receiver = grid.at_node["flow__link_to_receiver_node"]
 
         grid.add_zeros("flow__sink_flag", at="node", dtype=numpy.int8, noclobber=False)
 
@@ -148,6 +148,12 @@ class _FlowDirectorToOne(_FlowDirector):
 
     # set properties. These are the same for all DirectToOne Directors
     # Number of Node
+
+    @property
+    def links_to_receiver(self):
+        """TODO"""
+        return self._links_to_receiver
+
     @property
     def node_receiving_flow(self):
         """Return the node id of the node receiving flow.

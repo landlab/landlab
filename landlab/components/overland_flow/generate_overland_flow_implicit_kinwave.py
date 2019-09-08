@@ -374,7 +374,7 @@ class KinwaveImplicitOverlandFlow(Component):
                 # proportions, some of which may be zero and some between 0 and
                 # 1.
                 self._disch_in[self._grid.adjacent_nodes_at_node[n]] += (
-                    outflow * self._flow_accum.flow_director.proportions[n]
+                    outflow * self._flow_accum.flow_director._proportions[n]
                 )
 
                 # TODO: the above is enough to implement the solution for flow

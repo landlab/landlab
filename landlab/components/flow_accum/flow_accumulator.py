@@ -974,7 +974,7 @@ class FlowAccumulator(Component):
                 )
 
         # save method as attribute
-        self.method = self.flow_director.method
+        self.method = self.flow_director._method
 
     def _add_depression_finder(self, depression_finder):
         """Test and add the depression finder component."""
@@ -1116,7 +1116,7 @@ class FlowAccumulator(Component):
         # step 2. Get r
         r = as_id_array(self._grid["node"]["flow__receiver_node"])
 
-        if self.flow_director.to_n_receivers == "one":
+        if self.flow_director._to_n_receivers == "one":
 
             # step 2b. Run depression finder if passed
             # Depression finder reaccumulates flow at the end of its routine.

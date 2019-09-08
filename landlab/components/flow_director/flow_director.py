@@ -79,22 +79,27 @@ class _FlowDirector(Component):
         # set up the grid type testing
         self._is_raster = isinstance(self._grid, RasterModelGrid)
         if not self._is_raster:
-            self.method = None
+            self._method = None
 
         # save elevations as class properites.
-        self.surface = surface
-        self.surface_values = return_array_at_node(grid, surface)
+        self._surface = surface
+        self._surface_values = return_array_at_node(grid, surface)
 
         grid.add_zeros("flow__sink_flag", at="node", dtype=numpy.int8, noclobber=False)
 
+    @property
+    def surface_values(self):
+        """TODO"""
+        return self._surface_values
+        
     def _changed_surface(self):
         """Check if the surface values have changed.
 
         If the surface values are stored as a field, it is important to
         check if they have changed since the component was instantiated.
         """
-        if isinstance(self.surface, str):
-            self.surface_values = return_array_at_node(self._grid, self.surface)
+        if isinstance(self._surface, str):
+            self._surface_values = return_array_at_node(self._grid, self._surface)
 
     def _check_updated_bc(self):
         # step 0. Check and update BCs

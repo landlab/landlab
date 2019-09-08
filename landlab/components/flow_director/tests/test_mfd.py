@@ -36,15 +36,15 @@ def test_mfd_on_flat_terrain():
     fd.run_one_step()
 
     node_ids = np.arange(mg.number_of_nodes)
-    true_recievers = -1 * np.ones(fd.receivers.shape)
-    true_recievers[:, 0] = node_ids
+    true_receivers = -1 * np.ones(fd._receivers.shape)
+    true_receivers[:, 0] = node_ids
 
-    true_proportions = np.zeros(fd.proportions.shape)
+    true_proportions = np.zeros(fd._proportions.shape)
     true_proportions[:, 0] = 1
 
-    assert_array_equal(fd.receivers, true_recievers)
+    assert_array_equal(fd._receivers, true_receivers)
     assert_array_equal(
-        np.round(fd.proportions, decimals=6), np.round(true_proportions, decimals=6)
+        np.round(fd._proportions, decimals=6), np.round(true_proportions, decimals=6)
     )
 
 
@@ -63,15 +63,15 @@ def test_mfd_flat_closed_lower():
     fd.run_one_step()
 
     node_ids = np.arange(mg.number_of_nodes)
-    true_recievers = -1 * np.ones(fd.receivers.shape)
-    true_recievers[:, 0] = node_ids
+    true_receivers = -1 * np.ones(fd._receivers.shape)
+    true_receivers[:, 0] = node_ids
 
-    true_proportions = np.zeros(fd.proportions.shape)
+    true_proportions = np.zeros(fd._proportions.shape)
     true_proportions[:, 0] = 1
 
-    assert_array_equal(fd.receivers, true_recievers)
+    assert_array_equal(fd._receivers, true_receivers)
     assert_array_equal(
-        np.round(fd.proportions, decimals=6), np.round(true_proportions, decimals=6)
+        np.round(fd._proportions, decimals=6), np.round(true_proportions, decimals=6)
     )
 
 
@@ -90,15 +90,15 @@ def test_mfd_flat_closed_upper():
     fd.run_one_step()
 
     node_ids = np.arange(mg.number_of_nodes)
-    true_recievers = -1 * np.ones(fd.receivers.shape)
-    true_recievers[:, 0] = node_ids
+    true_receivers = -1 * np.ones(fd._receivers.shape)
+    true_receivers[:, 0] = node_ids
 
-    true_proportions = np.zeros(fd.proportions.shape)
+    true_proportions = np.zeros(fd._proportions.shape)
     true_proportions[:, 0] = 1
 
-    assert_array_equal(fd.receivers, true_recievers)
+    assert_array_equal(fd._receivers, true_receivers)
     assert_array_equal(
-        np.round(fd.proportions, decimals=6), np.round(true_proportions, decimals=6)
+        np.round(fd._proportions, decimals=6), np.round(true_proportions, decimals=6)
     )
 
 
@@ -112,17 +112,17 @@ def test_MFD_SW_slope():
     w_links = mg.adjacent_nodes_at_node[:, 2]
     s_links = mg.adjacent_nodes_at_node[:, 3]
     node_ids = np.arange(mg.number_of_nodes)
-    true_recievers = -1 * np.ones(fa.flow_director.receivers.shape)
-    true_recievers[mg.core_nodes, 2] = w_links[mg.core_nodes]
-    true_recievers[mg.core_nodes, 3] = s_links[mg.core_nodes]
-    true_recievers[mg.boundary_nodes, 0] = node_ids[mg.boundary_nodes]
+    true_receivers = -1 * np.ones(fa.flow_director._receivers.shape)
+    true_receivers[mg.core_nodes, 2] = w_links[mg.core_nodes]
+    true_receivers[mg.core_nodes, 3] = s_links[mg.core_nodes]
+    true_receivers[mg.boundary_nodes, 0] = node_ids[mg.boundary_nodes]
 
-    true_proportions = np.zeros(fa.flow_director.proportions.shape)
+    true_proportions = np.zeros(fa.flow_director._proportions.shape)
     true_proportions[mg.boundary_nodes, 0] = 1
     true_proportions[mg.core_nodes, 2:] = 0.5
 
-    assert_array_equal(true_recievers, fa.flow_director.receivers)
-    assert_array_equal(true_proportions, fa.flow_director.proportions)
+    assert_array_equal(true_receivers, fa.flow_director._receivers)
+    assert_array_equal(true_proportions, fa.flow_director._proportions)
 
 
 def test_MFD_SW_slope_w_diags():
@@ -136,13 +136,13 @@ def test_MFD_SW_slope_w_diags():
     w_links = mg.adjacent_nodes_at_node[:, 2]
     s_links = mg.adjacent_nodes_at_node[:, 3]
     node_ids = np.arange(mg.number_of_nodes)
-    true_recievers = -1 * np.ones(fa.flow_director.receivers.shape)
-    true_recievers[mg.core_nodes, 2] = w_links[mg.core_nodes]
-    true_recievers[mg.core_nodes, 3] = s_links[mg.core_nodes]
-    true_recievers[mg.core_nodes, 6] = sw_diags[mg.core_nodes]
-    true_recievers[mg.boundary_nodes, 0] = node_ids[mg.boundary_nodes]
+    true_receivers = -1 * np.ones(fa.flow_director._receivers.shape)
+    true_receivers[mg.core_nodes, 2] = w_links[mg.core_nodes]
+    true_receivers[mg.core_nodes, 3] = s_links[mg.core_nodes]
+    true_receivers[mg.core_nodes, 6] = sw_diags[mg.core_nodes]
+    true_receivers[mg.boundary_nodes, 0] = node_ids[mg.boundary_nodes]
 
-    true_proportions = np.zeros(fa.flow_director.proportions.shape)
+    true_proportions = np.zeros(fa.flow_director._proportions.shape)
     true_proportions[mg.boundary_nodes, 0] = 1
 
     total_sum_of_slopes = 1.0 + 1.0 + (2.0 / 2.0 ** 0.5)
@@ -151,8 +151,8 @@ def test_MFD_SW_slope_w_diags():
     true_proportions[mg.core_nodes, 3] = 1.0 / total_sum_of_slopes
     true_proportions[mg.core_nodes, 6] = (2.0 / 2.0 ** 0.5) / total_sum_of_slopes
 
-    assert_array_equal(true_recievers, fa.flow_director.receivers)
-    assert_array_almost_equal(true_proportions, fa.flow_director.proportions)
+    assert_array_equal(true_receivers, fa.flow_director._receivers)
+    assert_array_almost_equal(true_proportions, fa.flow_director._proportions)
 
 
 # %%
@@ -165,16 +165,16 @@ def test_MFD_S_slope():
     # this should flow totally to the south
     node_ids = np.arange(mg.number_of_nodes)
     s_links = mg.adjacent_nodes_at_node[:, 3]
-    true_recievers = -1 * np.ones(fa.flow_director.receivers.shape)
-    true_recievers[mg.core_nodes, 3] = s_links[mg.core_nodes]
-    true_recievers[mg.boundary_nodes, 0] = node_ids[mg.boundary_nodes]
+    true_receivers = -1 * np.ones(fa.flow_director._receivers.shape)
+    true_receivers[mg.core_nodes, 3] = s_links[mg.core_nodes]
+    true_receivers[mg.boundary_nodes, 0] = node_ids[mg.boundary_nodes]
 
-    true_proportions = np.zeros(fa.flow_director.proportions.shape)
+    true_proportions = np.zeros(fa.flow_director._proportions.shape)
     true_proportions[mg.boundary_nodes, 0] = 1
     true_proportions[mg.core_nodes, 3] = 1.0
 
-    assert_array_equal(true_recievers, fa.flow_director.receivers)
-    assert_array_equal(true_proportions, fa.flow_director.proportions)
+    assert_array_equal(true_receivers, fa.flow_director._receivers)
+    assert_array_equal(true_proportions, fa.flow_director._proportions)
 
 
 def test_MFD_S_slope_w_diag():
@@ -188,13 +188,13 @@ def test_MFD_S_slope_w_diag():
     se_diags = mg.diagonal_adjacent_nodes_at_node[:, 3]
     s_links = mg.adjacent_nodes_at_node[:, 3]
     node_ids = np.arange(mg.number_of_nodes)
-    true_recievers = -1 * np.ones(fa.flow_director.receivers.shape)
-    true_recievers[mg.core_nodes, 3] = s_links[mg.core_nodes]
-    true_recievers[mg.core_nodes, 6] = sw_diags[mg.core_nodes]
-    true_recievers[mg.core_nodes, 7] = se_diags[mg.core_nodes]
-    true_recievers[mg.boundary_nodes, 0] = node_ids[mg.boundary_nodes]
+    true_receivers = -1 * np.ones(fa.flow_director._receivers.shape)
+    true_receivers[mg.core_nodes, 3] = s_links[mg.core_nodes]
+    true_receivers[mg.core_nodes, 6] = sw_diags[mg.core_nodes]
+    true_receivers[mg.core_nodes, 7] = se_diags[mg.core_nodes]
+    true_receivers[mg.boundary_nodes, 0] = node_ids[mg.boundary_nodes]
 
-    true_proportions = np.zeros(fa.flow_director.proportions.shape)
+    true_proportions = np.zeros(fa.flow_director._proportions.shape)
     true_proportions[mg.boundary_nodes, 0] = 1
 
     total_sum_of_slopes = 1.0 + 2.0 * (1.0 / 2.0 ** 0.5)
@@ -203,5 +203,5 @@ def test_MFD_S_slope_w_diag():
     true_proportions[mg.core_nodes, 6] = (1.0 / 2.0 ** 0.5) / total_sum_of_slopes
     true_proportions[mg.core_nodes, 7] = (1.0 / 2.0 ** 0.5) / total_sum_of_slopes
 
-    assert_array_equal(true_recievers, fa.flow_director.receivers)
-    assert_array_almost_equal(true_proportions, fa.flow_director.proportions)
+    assert_array_equal(true_receivers, fa.flow_director._receivers)
+    assert_array_almost_equal(true_proportions, fa.flow_director._proportions)
