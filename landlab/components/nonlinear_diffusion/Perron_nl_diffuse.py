@@ -320,7 +320,9 @@ class PerronNLDiffuse(Component):
 
         self._corner_flags = grid.status_at_node[[0, ncols - 1, -ncols, -1]]
 
-        op_mat_just_corners = self._operating_matrix_ID_map[self._corner_interior_IDs, :]
+        op_mat_just_corners = self._operating_matrix_ID_map[
+            self._corner_interior_IDs, :
+        ]
         op_mat_cnr0 = op_mat_just_corners[0, self._bottomleft_mask]
         op_mat_cnr1 = op_mat_just_corners[1, self._bottomright_mask]
         op_mat_cnr2 = op_mat_just_corners[2, self._topleft_mask]
@@ -342,10 +344,14 @@ class PerronNLDiffuse(Component):
             self._operating_matrix_ID_map[self._top_interior_IDs, :][:, self._top_mask]
         )
         self._operating_matrix_left_int_IDs = self._realIDtointerior(
-            self._operating_matrix_ID_map[self._left_interior_IDs, :][:, self._left_mask]
+            self._operating_matrix_ID_map[self._left_interior_IDs, :][
+                :, self._left_mask
+            ]
         )
         self._operating_matrix_right_int_IDs = self._realIDtointerior(
-            self._operating_matrix_ID_map[self._right_interior_IDs, :][:, self._right_mask]
+            self._operating_matrix_ID_map[self._right_interior_IDs, :][
+                :, self._right_mask
+            ]
         )
 
     def _gear_timestep(self, timestep_in, new_grid):

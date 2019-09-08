@@ -617,9 +617,7 @@ class ChiFinder(Component):
             coeffs = self.best_fit_chi_elevation_gradient_and_intercept(good_nodes)
             p = np.poly1d(coeffs)
             chirange = np.linspace(
-                self._chi[good_nodes].min(),
-                self._chi[good_nodes].max(),
-                100,
+                self._chi[good_nodes].min(), self._chi[good_nodes].max(), 100
             )
             plot(chirange, p(chirange), line_symbol)
         if label_axes:

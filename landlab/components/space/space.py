@@ -256,7 +256,9 @@ class Space(_GeneralizedErosionDeposition):
             self._bedrock__elevation = grid.add_zeros(
                 "bedrock__elevation", at="node", dtype=float
             )
-            self._bedrock__elevation[:] = self._topographic__elevation - self._soil__depth
+            self._bedrock__elevation[:] = (
+                self._topographic__elevation - self._soil__depth
+            )
 
         self._Es = np.zeros(grid.number_of_nodes)
         self._Er = np.zeros(grid.number_of_nodes)
@@ -376,12 +378,15 @@ class Space(_GeneralizedErosionDeposition):
         # positive slopes, not flooded
         pos_not_flood = (self._q > 0) & (blowup) & (self._slope > 0) & (~flooded)
         self._soil__depth[pos_not_flood] = self._H_star * np.log(
-            ((self._sed_erosion_term[pos_not_flood] / (1 - self._phi)) / self._H_star) * dt
+            ((self._sed_erosion_term[pos_not_flood] / (1 - self._phi)) / self._H_star)
+            * dt
             + np.exp(self._soil__depth[pos_not_flood] / self._H_star)
         )
         # positive slopes, flooded
         pos_flood = (self._q > 0) & (blowup) & (self._slope > 0) & (flooded)
-        self._soil__depth[pos_flood] = (self._depo_rate[pos_flood] / (1 - self._phi)) * dt
+        self._soil__depth[pos_flood] = (
+            self._depo_rate[pos_flood] / (1 - self._phi)
+        ) * dt
 
         # non-positive slopes, not flooded
         non_pos_not_flood = (self._q > 0) & (blowup) & (self._slope <= 0) & (~flooded)

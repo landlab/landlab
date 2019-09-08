@@ -155,7 +155,9 @@ class Lithology(Component):
         super(Lithology, self).__init__(grid)
 
         try:
-            self._last_elevation = self._grid["node"]["topographic__elevation"][:].copy()
+            self._last_elevation = self._grid["node"]["topographic__elevation"][
+                :
+            ].copy()
         except KeyError:
             msg = (
                 "Lithology requires that topographic__elevation already "

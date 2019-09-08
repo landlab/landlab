@@ -158,7 +158,7 @@ class OverlandFlowBates(Component):
     @dt.setter
     def dt(self, dt):
         """ """
-        assert dt>0
+        assert dt > 0
         self._dt = dt
 
     def calc_time_step(self):
@@ -225,7 +225,8 @@ class OverlandFlowBates(Component):
         # Here we calculate discharge at all active links using Eq. 11 from
         # Bates et al., 2010
         self._q[self._active_links] = (
-            self._q[self._active_links] - self._g * hflow * self._dt * water_surface_slope
+            self._q[self._active_links]
+            - self._g * hflow * self._dt * water_surface_slope
         ) / (
             1.0
             + self._g

@@ -467,7 +467,9 @@ class LandslideProbability(Component):
         # if don't provide fields of min and max C, uncomment 2 lines below
         #    Cmin = self._Cmode-0.3*self._Cmode
         #    Cmax = self._Cmode+0.3*self._Cmode
-        self._C = np.random.triangular(self._Cmin, self._Cmode, self._Cmax, size=self._n)
+        self._C = np.random.triangular(
+            self._Cmin, self._Cmode, self._Cmax, size=self._n
+        )
 
         # phi - internal angle of friction provided in degrees
         phi_min = self._phi_mode - 0.18 * self._phi_mode

@@ -91,7 +91,7 @@ class _FlowDirector(Component):
     def surface_values(self):
         """TODO"""
         return self._surface_values
-        
+
     def _changed_surface(self):
         """Check if the surface values have changed.
 

@@ -535,7 +535,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0]], dtype=int8)
         """
-        flow_link_direction_at_node = self._flow_link_direction[self._grid.links_at_node]
+        flow_link_direction_at_node = self._flow_link_direction[
+            self._grid.links_at_node
+        ]
         flow_to_bad = self._grid.links_at_node == BAD_INDEX_VALUE
         flow_link_direction_at_node[flow_to_bad] = 0
 

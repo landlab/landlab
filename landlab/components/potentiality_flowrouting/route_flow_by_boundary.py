@@ -288,7 +288,9 @@ class PotentialityFlowRouter(Component):
         elif self._equation == "Manning":
             # Manning: Q = w/n*depth**(5/3)
             grid.at_node["surface_water__depth"][:] = (
-                grid.at_node["flow__potential"] * self._manning_n / self._equiv_circ_diam
+                grid.at_node["flow__potential"]
+                * self._manning_n
+                / self._equiv_circ_diam
             ) ** 0.6
         else:
             pass

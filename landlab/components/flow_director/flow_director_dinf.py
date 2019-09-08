@@ -248,7 +248,9 @@ class FlowDirectorDINF(_FlowDirectorToMany):
         self._steepest_slope = grid.add_field(
             "topographic__steepest_slope",
             BAD_INDEX_VALUE
-            * numpy.ones((self._grid.number_of_nodes, self._max_receivers), dtype=float),
+            * numpy.ones(
+                (self._grid.number_of_nodes, self._max_receivers), dtype=float
+            ),
             at="node",
             dtype=float,
             noclobber=False,
@@ -266,7 +268,9 @@ class FlowDirectorDINF(_FlowDirectorToMany):
         self._proportions = grid.add_field(
             "flow__receiver_proportions",
             BAD_INDEX_VALUE
-            * numpy.ones((self._grid.number_of_nodes, self._max_receivers), dtype=float),
+            * numpy.ones(
+                (self._grid.number_of_nodes, self._max_receivers), dtype=float
+            ),
             at="node",
             dtype=int,
             noclobber=False,

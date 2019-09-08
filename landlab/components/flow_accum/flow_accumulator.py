@@ -26,6 +26,7 @@ from landlab.core.messages import warning_message
 from landlab.core.utils import as_id_array
 from landlab.utils.return_array import return_array_at_node
 
+
 class FlowAccumulator(Component):
 
     """Component to accumulate flow and calculate drainage area.
@@ -740,7 +741,9 @@ class FlowAccumulator(Component):
         #
 
         if "drainage_area" not in grid.at_node:
-            self._drainage_area = grid.add_zeros("drainage_area", at="node", dtype=float)
+            self._drainage_area = grid.add_zeros(
+                "drainage_area", at="node", dtype=float
+            )
         else:
             self._drainage_area = grid.at_node["drainage_area"]
 
@@ -797,7 +800,7 @@ class FlowAccumulator(Component):
     def surface_values(self):
         """TODO"""
         return self._surface_values
-        
+
     @property
     def flow_director(self):
         """TODO"""

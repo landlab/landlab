@@ -211,7 +211,9 @@ class DetachmentLtdErosion(Component):
 
         S_to_n = np.power(S, self._n)
 
-        self._I = (self._K * Q_to_m * S_to_n) - self._entrainment_threshold  # noqa: E741
+        self._I = (
+            self._K * Q_to_m * S_to_n
+        ) - self._entrainment_threshold  # noqa: E741
 
         self._I[self._I < 0.0] = 0.0
 

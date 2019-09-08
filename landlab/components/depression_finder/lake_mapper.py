@@ -231,7 +231,9 @@ class DepressionFinderAndRouter(Component):
         self._lake_outlets = []  # a list of each unique lake outlet
         # ^note this is nlakes-long
 
-        self._is_pit = self._grid.add_ones("node", "is_pit", dtype=bool, noclobber=False)
+        self._is_pit = self._grid.add_ones(
+            "node", "is_pit", dtype=bool, noclobber=False
+        )
         self._flood_status = self._grid.add_zeros(
             "node", "flood_status_code", dtype=int, noclobber=False
         )
@@ -830,7 +832,9 @@ class DepressionFinderAndRouter(Component):
 
         assert len(self._depression_outlets) == self._unique_pits.size
 
-        self._unique_lake_outlets = np.array(self._depression_outlets)[self._unique_pits]
+        self._unique_lake_outlets = np.array(self._depression_outlets)[
+            self._unique_pits
+        ]
 
     def map_depressions(self, pits="flow__sink_flag", reroute_flow=True):
         """Map depressions/lakes in a topographic surface.
@@ -1288,7 +1292,9 @@ class DepressionFinderAndRouter(Component):
         lake_areas = np.empty(self.number_of_lakes)
         lake_counter = 0
         for lake_code in self.lake_codes:
-            each_cell_in_lake = self._grid.cell_area_at_node[self._lake_map == lake_code]
+            each_cell_in_lake = self._grid.cell_area_at_node[
+                self._lake_map == lake_code
+            ]
             lake_areas[lake_counter] = each_cell_in_lake.sum()
             lake_counter += 1
         return lake_areas

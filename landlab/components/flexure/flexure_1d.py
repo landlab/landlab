@@ -338,9 +338,9 @@ class Flexure1D(Component):
 
     @property
     def dz_at_node(self):
-        return self._grid.at_node["lithosphere_surface__increment_of_elevation"].reshape(
-            self._grid.shape
-        )
+        return self._grid.at_node[
+            "lithosphere_surface__increment_of_elevation"
+        ].reshape(self._grid.shape)
 
     def update(self):
         """Update fields with current loading conditions."""

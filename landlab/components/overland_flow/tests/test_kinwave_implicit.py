@@ -132,7 +132,9 @@ def test_curved_surface():
     runoff_rate = 0.001
     unit_area = 4.0
     for i in range(15, 95, 10):
-        assert round(kw._disch_in[i], 6) == round(runoff_rate * (area[i] - unit_area), 6)
+        assert round(kw._disch_in[i], 6) == round(
+            runoff_rate * (area[i] - unit_area), 6
+        )
 
 
 if __name__ == "__main__":

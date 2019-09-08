@@ -295,7 +295,7 @@ class OverlandFlow(Component):
     @dt.setter
     def dt(self, dt):
         """ """
-        assert dt>0
+        assert dt > 0
         self._dt = dt
 
     def calc_time_step(self):
@@ -374,7 +374,9 @@ class OverlandFlow(Component):
             links.is_vertical_link(self._grid.shape, self._active_links_at_open_bdy)
         ]
 
-        self._vert_bdy_ids = links.nth_vertical_link(self._grid.shape, self._vert_bdy_ids)
+        self._vert_bdy_ids = links.nth_vertical_link(
+            self._grid.shape, self._vert_bdy_ids
+        )
 
         self._horiz_bdy_ids = self._active_links_at_open_bdy[
             links.is_horizontal_link(self._grid.shape, self._active_links_at_open_bdy)
@@ -420,7 +422,9 @@ class OverlandFlow(Component):
         self._south_neighbors[ids] = self._vertical_active_link_ids[ids]
 
         # Set up arrays for discharge in the horizontal & vertical directions.
-        self._q_horizontal = np.zeros(links.number_of_horizontal_links(self._grid.shape))
+        self._q_horizontal = np.zeros(
+            links.number_of_horizontal_links(self._grid.shape)
+        )
         self._q_vertical = np.zeros(links.number_of_vertical_links(self._grid.shape))
 
         # Once the neighbor arrays are set up, we change the flag to True!
@@ -487,7 +491,9 @@ class OverlandFlow(Component):
             ]
 
             # And insert these values into an array of all links
-            self._water_surface_slope[self._active_links] = self._water_surface__gradient
+            self._water_surface_slope[
+                self._active_links
+            ] = self._water_surface__gradient
             # If the user chooses to set boundary links to the neighbor value,
             # we set the discharge array to have the boundary links set to
             # their neighbor value
@@ -601,7 +607,9 @@ class OverlandFlow(Component):
                 # Our two limiting factors, the froude number and courant
                 # number.
                 # Looking a calculated q to be compared to our Fr number.
-                calculated_q = (self._q / self._h_links) / np.sqrt(self._g * self._h_links)
+                calculated_q = (self._q / self._h_links) / np.sqrt(
+                    self._g * self._h_links
+                )
 
                 # Looking at our calculated q and comparing it to Courant no.,
                 q_courant = self._q * self._dt / self._grid.dx
@@ -656,7 +664,8 @@ class OverlandFlow(Component):
 
                 self._q[self._if_statement_4] = (
                     0.0
-                    - (self._h_links[self._if_statement_4] * self._grid.dx / 5.0) / self._dt
+                    - (self._h_links[self._if_statement_4] * self._grid.dx / 5.0)
+                    / self._dt
                 )
 
             # Once stability has been restored, we calculate the change in

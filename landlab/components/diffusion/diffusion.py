@@ -465,7 +465,9 @@ class LinearDiffuser(Component):
                 if not self._use_patches:  # currently forbidden
                     # if diffusivity is an array, self._kd is already
                     # active_links-long
-                    self._qs[mg.active_links] = -kd_activelinks * self._g[mg.active_links]
+                    self._qs[mg.active_links] = (
+                        -kd_activelinks * self._g[mg.active_links]
+                    )
                     # Calculate the net deposition/erosion rate at each node
                     mg.calc_flux_div_at_node(self._qs, out=self._dqsds)
                 else:  # project onto patches
@@ -555,7 +557,8 @@ class LinearDiffuser(Component):
                     * self._grid.active_diagonal_dirs_at_node
                 ).sum(axis=1)
                 self._dqsds[self._grid.node_at_cell] = (
-                    -totalflux_allnodes[self._grid.node_at_cell] / self._grid.area_of_cell
+                    -totalflux_allnodes[self._grid.node_at_cell]
+                    / self._grid.area_of_cell
                 )
 
             # Calculate the total rate of elevation change

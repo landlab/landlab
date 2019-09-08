@@ -137,7 +137,7 @@ class KinwaveOverlandFlowModel(Component):
         ]
         self._sqrt_slope = np.sqrt(self._slope)
         self._sign_slope = np.sign(self._slope)
-        
+
     @property
     def vel_coef(self):
         """TODO"""
