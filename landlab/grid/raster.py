@@ -570,69 +570,6 @@ class RasterModelGrid(
         )
 
     @property
-    def grid_xdimension(self):
-        """Length of the grid in the x-dimension.
-
-        Return the x-dimension of the grid. Because boundary nodes don't have
-        cells, the dimension of the grid is num_cols-1, not num_cols.
-
-        Returns
-        -------
-        float
-            Length of the grid in the x-dimension.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> grid.grid_xdimension
-        4.0
-
-        >>> grid = RasterModelGrid((4, 5), xy_spacing=0.5)
-        >>> grid.grid_xdimension
-        2.0
-
-        >>> grid = RasterModelGrid((4, 5), xy_spacing=(3, 2))
-        >>> grid.grid_xdimension
-        12.0
-
-        LLCATS: GINF MEAS
-        """
-        return (self.number_of_node_columns - 1) * self.dx
-
-    @property
-    def grid_ydimension(self):
-        """Length of the grid in the y-dimension.
-
-        Return the y-dimension of the grid. Because boundary nodes don't have
-        cells, the dimension of the grid is num_rows-1, not num_rows.
-
-        Returns
-        -------
-        float
-            Length of the grid in the y-dimension.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> grid.grid_ydimension
-        3.0
-
-        >>> grid = RasterModelGrid((4, 5), xy_spacing=0.5)
-        >>> grid.grid_ydimension
-        1.5
-
-        >>> grid = RasterModelGrid((4, 5), xy_spacing=(3, 2))
-        >>> grid.grid_ydimension
-        6.0
-
-        LLCATS: GINF MEAS
-        """
-        # Method added 5/1/13 by DEJH, modified DEJH 4/3/14, as above.
-        return (self.number_of_node_rows - 1) * self.dy
-
-    @property
     def number_of_interior_nodes(self):
         """Number of interior nodes.
 
