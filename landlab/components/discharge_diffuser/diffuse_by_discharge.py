@@ -82,6 +82,8 @@ class DischargeDiffuser(Component):
         "surface_water__discharge": "m**3/s",
         "flow__potential": "m**3/s",
         "surface_water__depth": "m",
+        "water__discharge_in": "TODO",
+        "sediment__discharge_in": "TODO",
     }
 
     _var_mapping = {
@@ -90,6 +92,8 @@ class DischargeDiffuser(Component):
         "surface_water__discharge": "node",
         "flow__potential": "node",
         "surface_water__depth": "node",
+        "water__discharge_in": "node",
+        "sediment__discharge_in": "node",
     }
 
     _var_doc = {
@@ -109,6 +113,8 @@ class DischargeDiffuser(Component):
             "If Manning or Chezy specified, the depth of flow in the cell, "
             + "calculated assuming flow occurs over the whole surface"
         ),
+        "water__discharge_in": "TODO",
+        "sediment__discharge_in": "TODO",
     }
 
     _min_slope_thresh = 1.0e-24
@@ -327,6 +333,8 @@ class DischargeDiffuser(Component):
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((3, 4), xy_spacing=(1., 0.5))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros('node', 'water__discharge_in')
+        >>> z = mg.add_zeros('node', 'sediment__discharge_in')
         >>> z[:] = np.array([[1, 2, 3, 4, 2, 3, 4, 5, 3, 4, 5, 6]])
         >>> zpad = np.pad(z.reshape((3, 4)), ((1, 1), (1, 1)), 'edge')
         >>> dd = DischargeDiffuser(mg, 0.25)

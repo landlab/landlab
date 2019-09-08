@@ -72,7 +72,9 @@ class _FlowDirectorToOne(_FlowDirector):
 
     _name = "FlowDirectorToOne"
 
-    _input_var_names = ("topographic__elevation",)
+    _input_var_names = ()
+
+    _optional_var_names = ("topographic__elevation",)
 
     _output_var_names = (
         "flow__receiver_node",

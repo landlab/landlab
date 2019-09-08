@@ -12,6 +12,9 @@ Create a grid on which we will run the flexure calculations.
 >>> from landlab import RasterModelGrid
 >>> from landlab.components.flexure import Flexure
 >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
+>>> lith_press = grid.add_zeros(
+...     "node",
+...     "lithosphere__overlying_pressure_increment")
 
 Check the fields that are used as input to the flexure component.
 
@@ -75,6 +78,9 @@ class Flexure(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flexure import Flexure
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
+    >>> lith_press = grid.add_zeros(
+    ...     "node",
+    ...     "lithosphere__overlying_pressure_increment")
 
     >>> flex = Flexure(grid)
     >>> flex.name
@@ -183,10 +189,6 @@ class Flexure(Component):
         self._rho_mantle = rho_mantle
         self._gravity = gravity
         self.eet = eet
-
-        for name in self._input_var_names:
-            if name not in self._grid.at_node:
-                self._grid.add_zeros("node", name, units=self._var_units[name])
 
         for name in self._output_var_names:
             if name not in self._grid.at_node:

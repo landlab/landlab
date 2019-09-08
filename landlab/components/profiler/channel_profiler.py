@@ -466,30 +466,24 @@ class ChannelProfiler(_BaseProfiler):
 
     _name = "ChannelProfiler"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "drainage_area",
-        "flow__receiver_node",
-        "flow__link_to_receiver_node",
-    )
+    _input_var_names = ("flow__receiver_node", "flow__link_to_receiver_node")
+
+    _optional_var_names = "drainage_area"
 
     _output_var_names = ()
 
     _var_units = {
-        "topographic__elevation": "m",
         "flow__receiver_node": "-",
         "drainage_area": "m**2",
         "flow__link_to_receiver_node": "-",
     }
 
     _var_mapping = {
-        "topographic__elevation": "node",
         "flow__receiver_node": "node",
         "drainage_area": "node",
         "flow__link_to_receiver_node": "node",
     }
     _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
         "flow__receiver_node": "Node array of receivers (node that receives flow from current node)",
         "drainage_area": "Upstream accumulated surface area contributing to the node's discharge",
         "flow__link_to_receiver_node": "Node array containing ID of link that leads from each node to its receiver, or BAD_INDEX_VALUE if no link",
@@ -548,17 +542,9 @@ class ChannelProfiler(_BaseProfiler):
             msg = "Required field {name} not present. This field is required by the ChannelProfiler to define the start and stop of channel networks."
             raise ValueError(msg)
 
-        if "flow__receiver_node" in grid.at_node:
-            self._flow_receiver = grid.at_node["flow__receiver_node"]
-        else:
-            msg = "flow__receiver_node is a required field to run a ChannelProfiler."
-            raise ValueError(msg)
+        self._flow_receiver = grid.at_node["flow__receiver_node"]
 
-        if "flow__link_to_receiver_node" in grid.at_node:
-            self._link_to_flow_receiver = grid.at_node["flow__link_to_receiver_node"]
-        else:
-            msg = "flow__link_to_receiver_node is a required field to run a ChannelProfiler."
-            raise ValueError(msg)
+        self._link_to_flow_receiver = grid.at_node["flow__link_to_receiver_node"]
 
         self._main_channel_only = main_channel_only
         self._minimum_channel_threshold = minimum_channel_threshold

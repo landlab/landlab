@@ -51,7 +51,7 @@ def test_run_one_step():
 
     grid = RasterModelGrid((10, 10), xy_spacing=0.5)
     grid.add_zeros("node", "topographic__elevation", dtype=float)
-    grid.add_zeros("node", "topographic__gradient")
+    grid.add_zeros("link", "topographic__gradient")
 
     topo_arr = np.ones(100).reshape(10, 10)
     i = 0

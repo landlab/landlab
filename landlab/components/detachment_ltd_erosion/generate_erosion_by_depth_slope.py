@@ -115,7 +115,9 @@ class DepthSlopeProductErosion(Component):
 
     _name = "DetachmentLtdErosion"
 
-    _input_var_names = (
+    _input_var_names = ()
+
+    _optional_var_names = (
         "topographic__elevation",
         "topographic__slope",
         "surface_water__depth",

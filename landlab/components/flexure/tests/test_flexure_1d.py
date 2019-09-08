@@ -68,7 +68,11 @@ def test_var_doc(flex1d):
 
 def test_calc_airy():
     """Test airy isostasy."""
-    flex = Flexure1D(RasterModelGrid((3, 5)), method="airy")
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid, method="airy")
     flex.load_at_node[:] = flex.gamma_mantle
 
     assert_array_equal(flex.dz_at_node, 0.0)
@@ -79,7 +83,11 @@ def test_calc_airy():
 def test_with_method_flexure():
     n = 101
     i_mid = (n - 1) // 2
-    flex = Flexure1D(RasterModelGrid((3, n)), method="flexure")
+    grid = RasterModelGrid((3, n))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid, method="flexure")
     flex.load_at_node[1, i_mid] = 1.0
 
     flex.update()
@@ -92,7 +100,11 @@ def test_with_method_flexure():
 
 def test_run_one_step():
     """Test the run_one_step method."""
-    flex = Flexure1D(RasterModelGrid((3, 5)), method="airy")
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid, method="airy")
     flex.load_at_node[:] = flex.gamma_mantle
 
     assert_array_equal(flex.dz_at_node, 0.0)
@@ -102,7 +114,11 @@ def test_run_one_step():
 
 def test_with_one_row():
     """Test calculating on one row."""
-    flex = Flexure1D(RasterModelGrid((3, 5)), method="airy", rows=1)
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid, method="airy", rows=1)
     flex.load_at_node[:] = flex.gamma_mantle
 
     assert_array_equal(flex.dz_at_node, 0.0)
@@ -114,7 +130,11 @@ def test_with_one_row():
 
 def test_with_two_row():
     """Test calculating on one row."""
-    flex = Flexure1D(RasterModelGrid((3, 5)), method="airy", rows=(0, 2))
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid, method="airy", rows=(0, 2))
     flex.load_at_node[:] = -flex.gamma_mantle
 
     assert_array_equal(flex.dz_at_node, 0.0)
@@ -126,7 +146,11 @@ def test_with_two_row():
 
 def test_field_is_updated():
     """Test the output field is updated."""
-    flex = Flexure1D(RasterModelGrid((3, 5)), method="airy", rows=(0, 2))
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid, method="airy", rows=(0, 2))
     flex.load_at_node[:] = -flex.gamma_mantle
 
     assert_array_equal(flex.dz_at_node, 0.0)
@@ -183,7 +207,11 @@ DEPENDS_ON = {
 
 def test_setters(flexure_keyword):
     EPS = 1e-6
-    flex = Flexure1D(RasterModelGrid((3, 5)))
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid)
     val_before = {}
     for name in DEPENDS_ON[flexure_keyword]:
         val_before[name] = 1.0 * getattr(flex, name)
@@ -196,25 +224,36 @@ def test_setters(flexure_keyword):
 
 def test_method_keyword():
     """Test using the method keyword."""
-    flex = Flexure1D(RasterModelGrid((3, 5)), method="airy")
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid, method="airy")
     assert flex.method == "airy"
-    flex = Flexure1D(RasterModelGrid((3, 5)), method="flexure")
+    flex = Flexure1D(grid, method="flexure")
     assert flex.method == "flexure"
     with pytest.raises(ValueError):
-        Flexure1D(RasterModelGrid((3, 5)), method="Flexure")
+        Flexure1D(grid, method="Flexure")
 
 
 def test_flexure_keywords(flexure_keyword):
-    flex = Flexure1D(RasterModelGrid((3, 5)), **{flexure_keyword: 1.0})
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+    flex = Flexure1D(grid, **{flexure_keyword: 1.0})
     assert getattr(flex, flexure_keyword) == 1.0
     assert isinstance(getattr(flex, flexure_keyword), float)
     with pytest.raises(ValueError):
-        flex = Flexure1D(RasterModelGrid((3, 5)), **{flexure_keyword: -1})
+        flex = Flexure1D(grid, **{flexure_keyword: -1})
 
 
 def test_x_at_node():
     """Test x_at_node is reshaped and shares memory with the grid."""
-    flex = Flexure1D(RasterModelGrid((3, 5)))
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid)
 
     assert_array_equal(
         flex.x_at_node,
@@ -228,7 +267,11 @@ def test_x_at_node():
 
 def test_dz_at_node():
     """Test dz_at_node is reshaped and shares memory with its field."""
-    flex = Flexure1D(RasterModelGrid((3, 5)))
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid)
 
     vals = flex.grid.at_node["lithosphere_surface__increment_of_elevation"]
     assert_array_equal(vals, 0.0)
@@ -239,7 +282,11 @@ def test_dz_at_node():
 
 def test_load_at_node():
     """Test load_at_node is reshaped and shares memory with its field."""
-    flex = Flexure1D(RasterModelGrid((3, 5)))
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid)
 
     vals = flex.grid.at_node["lithosphere__increment_of_overlying_pressure"]
     assert_array_equal(vals, 0.0)
@@ -250,29 +297,49 @@ def test_load_at_node():
 
 def test_x_is_contiguous():
     """Test that x_at_node is contiguous."""
-    flex = Flexure1D(RasterModelGrid((3, 5)))
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid)
     assert flex.x_at_node.flags["C_CONTIGUOUS"]
 
 
 def test_dz_is_contiguous():
     """Test that dz_at_node is contiguous."""
-    flex = Flexure1D(RasterModelGrid((3, 5)))
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid)
     assert flex.dz_at_node.flags["C_CONTIGUOUS"]
 
 
 def test_load_is_contiguous():
     """Test that load_at_node is contiguous."""
-    flex = Flexure1D(RasterModelGrid((3, 5)))
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid)
     assert flex.load_at_node.flags["C_CONTIGUOUS"]
 
 
 def test_subside_loads():
-    flex = Flexure1D(RasterModelGrid((3, 5)), method="airy")
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid, method="airy")
     dz_airy = flex.subside_loads([0.0, 0.0, flex.gamma_mantle, 0.0, 0])
     assert dz_airy.shape == flex.grid.shape
     assert np.all(dz_airy == [0.0, 0.0, 1.0, 0.0, 0])
 
-    flex = Flexure1D(RasterModelGrid((3, 5)), method="flexure")
+    grid = RasterModelGrid((3, 5))
+    grid.add_zeros("node", "lithosphere_surface__increment_of_elevation")
+    grid.add_zeros("node", "lithosphere__increment_of_overlying_pressure")
+
+    flex = Flexure1D(grid, method="flexure")
     dz_flexure = flex.subside_loads([0.0, 0.0, flex.gamma_mantle, 0.0, 0])
 
     assert dz_flexure.shape == flex.grid.shape

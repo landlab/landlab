@@ -389,13 +389,6 @@ class LandslideProbability(Component):
             self._fract_dict = groundwater__recharge_HSD_inputs[2]
             self._interpolate_HSD_dict()
 
-        # Check if all input fields are initialized
-        for name in self._input_var_names:
-            if name not in self._grid.at_node:
-                self._grid.add_zeros(
-                    name, at=self._var_mapping[name], units=self._var_units[name]
-                )
-
         # Check if all output fields are initialized
         for name in self._output_var_names:
             if name not in self._grid.at_node:

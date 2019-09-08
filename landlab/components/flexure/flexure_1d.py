@@ -11,6 +11,9 @@ Create a grid on which we will run the flexure calculations.
 >>> from landlab import RasterModelGrid
 >>> from landlab.components.flexure import Flexure1D
 >>> grid = RasterModelGrid((3, 4), xy_spacing=(1.e4, 1.e4))
+>>> lith_press = grid.add_zeros(
+...     "node",
+...     "lithosphere__increment_of_overlying_pressure")
 
 Because `Flexure1D` is a one-dimensional component, it operates
 *independently* on each row of grid nodes. By default, it will
@@ -96,19 +99,21 @@ class Flexure1D(Component):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.flexure import Flexure
+    >>> from landlab.components.flexure import Flexure1D
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
-
-    >>> flex = Flexure(grid)
+    >>> lith_press = grid.add_zeros(
+    ...     "node",
+    ...     "lithosphere__increment_of_overlying_pressure")
+    >>> flex = Flexure1D(grid)
     >>> flex.name
-    'Flexure'
+    '1D Flexure Equation'
     >>> flex.input_var_names
-    ('lithosphere__overlying_pressure_increment',)
+    ('lithosphere__increment_of_overlying_pressure',)
     >>> flex.output_var_names
-    ('lithosphere_surface__elevation_increment',)
+    ('lithosphere_surface__increment_of_elevation',)
     >>> sorted(flex.units) # doctest: +NORMALIZE_WHITESPACE
-    [('lithosphere__overlying_pressure_increment', 'Pa'),
-     ('lithosphere_surface__elevation_increment', 'm')]
+    [('lithosphere__increment_of_overlying_pressure', 'Pa'),
+     ('lithosphere_surface__increment_of_elevation', 'm')]
 
     >>> flex.grid.number_of_node_rows
     5
@@ -117,23 +122,23 @@ class Flexure1D(Component):
     >>> flex.grid is grid
     True
 
-    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node['lithosphere_surface__increment_of_elevation'] == 0.)
     True
 
-    >>> np.all(grid.at_node['lithosphere__overlying_pressure_increment'] == 0.)
+    >>> np.all(grid.at_node['lithosphere__increment_of_overlying_pressure'] == 0.)
     True
     >>> flex.update()
-    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node['lithosphere_surface__increment_of_elevation'] == 0.)
     True
 
-    >>> load = grid.at_node['lithosphere__overlying_pressure_increment']
+    >>> load = grid.at_node['lithosphere__increment_of_overlying_pressure']
     >>> load[4] = 1e9
-    >>> dz = grid.at_node['lithosphere_surface__elevation_increment']
+    >>> dz = grid.at_node['lithosphere_surface__increment_of_elevation']
     >>> np.all(dz == 0.)
     True
 
     >>> flex.update()
-    >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
+    >>> np.all(grid.at_node['lithosphere_surface__increment_of_elevation'] == 0.)
     False
     """
 
@@ -206,7 +211,7 @@ class Flexure1D(Component):
         self.gravity = gravity
         self.eet = eet
 
-        for name in self._input_var_names + self._output_var_names:
+        for name in self._output_var_names:
             if name not in self._grid.at_node:
                 self._grid.add_zeros(name, units=self._var_units[name], at="node")
 

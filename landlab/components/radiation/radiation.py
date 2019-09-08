@@ -29,6 +29,7 @@ class Radiation(Component):
     >>> import numpy as np
 
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
+    >>> z = grid.add_zeros("node", "topographic__elevation")
     >>> rad = Radiation(grid)
     >>> rad.name
     'Radiation'
@@ -141,10 +142,6 @@ class Radiation(Component):
         self._m = opt_airmass
 
         _assert_method_is_valid(self._method)
-
-        for name in self._input_var_names:
-            if name not in self._grid.at_node:
-                self._grid.add_zeros(name, at="node", units=self._var_units[name])
 
         for name in self._output_var_names:
             if name not in self._grid.at_cell:

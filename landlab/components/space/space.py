@@ -96,9 +96,9 @@ class Space(_GeneralizedErosionDeposition):
 
     Instantiate Fastscape eroder, flow router, and depression finder
 
-    >>> fsc = FastscapeEroder(mg, K_sp=.001, m_sp=.5, n_sp=1)
     >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> df = DepressionFinderAndRouter(mg)
+    >>> fsc = FastscapeEroder(mg, K_sp=.001, m_sp=.5, n_sp=1)
 
     Burn in an initial drainage network using the Fastscape eroder:
 

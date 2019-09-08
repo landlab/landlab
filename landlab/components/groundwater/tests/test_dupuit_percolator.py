@@ -36,6 +36,8 @@ def test_simple_water_table():
     """
     boundaries = {"top": "closed", "left": "closed", "bottom": "closed"}
     rg = RasterModelGrid((3, 3), bc=boundaries)
+    rg.add_zeros("node", "aquifer_base__elevation")
+    rg.add_zeros("node", "topographic__elevation")
     gdp = GroundwaterDupuitPercolator(
         rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01
     )

@@ -56,6 +56,11 @@ class SoilMoisture(Component):
      ('vegetation__water_stress', 'None')]
     >>> grid['cell']['vegetation__plant_functional_type']= (
     ...            np.zeros(grid.number_of_cells, dtype=int))
+    >>> _ = grid.add_zeros("vegetation__cover_fraction", at="cell")
+    >>> _ = grid.add_zeros("vegetation__live_leaf_area_index", at="cell")
+    >>> _ = grid.add_zeros("surface__potential_evapotranspiration_rate", at="cell")
+    >>> _ = grid.add_zeros("soil_moisture__initial_saturation_fraction", at="cell")
+    >>> _ = grid.add_zeros("rainfall__daily_depth", at="cell")
     >>> SM = SoilMoisture(grid)
     >>> SM.grid.number_of_cell_rows
     3
@@ -302,10 +307,6 @@ class SoilMoisture(Component):
             LAI_max_bare=LAI_max_bare,
             LAIR_max_bare=LAIR_max_bare,
         )
-
-        for name in self._input_var_names:
-            if name not in self._grid.at_cell:
-                self._grid.add_zeros("cell", name, units=self._var_units[name])
 
         for name in self._output_var_names:
             if name not in self._grid.at_cell:

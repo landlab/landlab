@@ -26,6 +26,7 @@ class GroundwaterDupuitPercolator(Component):
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((3, 3))
     >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> abe = mg.add_zeros('node', 'aquifer_base__elevation')
     >>> gdp = GroundwaterDupuitPercolator(mg)
 
     Notes
@@ -113,16 +114,8 @@ class GroundwaterDupuitPercolator(Component):
         self._recharge = return_array_at_node(grid, recharge_rate)
 
         # Create fields:
-
-        if "topographic__elevation" in self._grid.at_node:
-            self._elev = self._grid.at_node["topographic__elevation"]
-        else:
-            self._elev = self._grid.add_ones("node", "topographic__elevation")
-
-        if "aquifer_base__elevation" in self._grid.at_node:
-            self._base = self._grid.at_node["aquifer_base__elevation"]
-        else:
-            self._base = self._grid.add_zeros("node", "aquifer_base__elevation")
+        self._elev = self._grid.at_node["topographic__elevation"]
+        self._base = self._grid.at_node["aquifer_base__elevation"]
 
         if "water_table__elevation" in self._grid.at_node:
             self._wtable = self._grid.at_node["water_table__elevation"]

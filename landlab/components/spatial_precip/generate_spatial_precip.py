@@ -254,7 +254,9 @@ class SpatialPrecipitationDistribution(Component):
         doi={10.5194/gmd-2018-86}
         }"""
 
-    _input_var_names = ("topographic__elevation",)
+    _optional_var_names = ("topographic__elevation",)
+
+    _input_var_names = ()
 
     _output_var_names = ("rainfall__flux", "rainfall__total_depth_per_year")
 

@@ -623,13 +623,14 @@ class FlowAccumulator(Component):
 
     _name = "FlowAccumulator"
 
-    _input_var_names = ("topographic__elevation", "water__unit_flux_in")
+    _optional_var_names = ("topographic__elevation", "water__unit_flux_in")
+
+    _input_var_names = ()
 
     _output_var_names = (
         "drainage_area",
         "surface_water__discharge",
         "flow__upstream_node_order",
-        # "flow__nodes_not_in_stack",
         "flow__data_structure_delta",
         "flow__data_structure_D",
     )
@@ -643,7 +644,6 @@ class FlowAccumulator(Component):
         "flow__upstream_node_order": "-",
         "flow__data_structure_delta": "-",
         "flow__data_structure_D": "-",
-        # "flow__nodes_not_in_stack": "-",
     }
 
     _var_mapping = {
@@ -653,7 +653,6 @@ class FlowAccumulator(Component):
         "drainage_area": "node",
         "surface_water__discharge": "node",
         "flow__upstream_node_order": "node",
-        # "flow__nodes_not_in_stack": "grid",
         "flow__data_structure_delta": "node",
         "flow__data_structure_D": "grid",
     }

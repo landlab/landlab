@@ -193,6 +193,8 @@ def wrap_as_bmi(cls):
 
     >>> BmiFlexure = wrap_as_bmi(Flexure)
     >>> flexure = BmiFlexure()
+    >>> sorted(flexure.get_input_var_names())
+    ['boundary_condition_flag', 'lithosphere__overlying_pressure_increment']
 
     >>> config = \"\"\"
     ... flexure:
@@ -206,6 +208,11 @@ def wrap_as_bmi(cls):
     ...     RasterModelGrid:
     ...     - [20, 40]
     ...     - xy_spacing: [2000., 1000.]
+    ...     - fields:
+    ...        node:
+    ...          lithosphere__overlying_pressure_increment:
+    ...            constant:
+    ...              - value: 0.0
     ... \"\"\"
     >>> flexure.initialize(config)
     >>> sorted(flexure.get_output_var_names())

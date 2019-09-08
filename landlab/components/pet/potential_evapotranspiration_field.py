@@ -29,6 +29,10 @@ class PotentialEvapotranspiration(Component):
     >>> from landlab.components.pet import PotentialEvapotranspiration
 
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
+    >>> grid['cell']['radiation__ratio_to_flat_surface'] = np.array([
+    ...       0.38488566, 0.38488566,
+    ...       0.33309785, 0.33309785,
+    ...       0.37381705, 0.37381705])
     >>> PET = PotentialEvapotranspiration(grid)
     >>> PET.name
     'Potential Evapotranspiration'
@@ -56,10 +60,6 @@ class PotentialEvapotranspiration(Component):
     >>> pet_rate = grid.at_cell['surface__potential_evapotranspiration_rate']
     >>> np.allclose(pet_rate, 0.)
     True
-    >>> grid['cell']['radiation__ratio_to_flat_surface'] = np.array([
-    ...       0.38488566, 0.38488566,
-    ...       0.33309785, 0.33309785,
-    ...       0.37381705, 0.37381705])
     >>> current_time = 0.5
     >>> PET.update(current_time)
     >>> np.allclose(pet_rate, 0.)

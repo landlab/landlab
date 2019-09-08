@@ -6,14 +6,7 @@ from warnings import warn
 
 import numpy as np
 
-from landlab import Component, FieldError
-
-_REQUIRED_FIELDS = (
-    "flow__receiver_node",
-    "flow__link_to_receiver_node",
-    "topographic__steepest_slope",
-    "flow__upstream_node_order",
-)
+from landlab import Component
 
 
 class DrainageDensity(Component):
@@ -148,6 +141,10 @@ class DrainageDensity(Component):
         "flow__receiver_node",
         "flow__link_to_receiver_node",
         "topographic__steepest_slope",
+        "flow__upstream_node_order",
+    )
+
+    _optional_var_names = (
         "channel__mask",
         "area_coefficient",
         "slope_coefficient",
@@ -155,7 +152,6 @@ class DrainageDensity(Component):
         "slope_exponent",
         "channelization_threshold",
     )
-
     _output_var_names = ("surface_to_channel__minimum_distance",)
 
     _var_units = {
@@ -216,10 +212,6 @@ class DrainageDensity(Component):
             which channels exist
         """
         super(DrainageDensity, self).__init__(grid)
-
-        for name in _REQUIRED_FIELDS:
-            if name not in grid.at_node:
-                raise FieldError("{name}: missing required field".format(name=name))
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             msg = (

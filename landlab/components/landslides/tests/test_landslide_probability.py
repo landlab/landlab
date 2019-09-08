@@ -117,6 +117,7 @@ def test_calculate_landslide_probability_uniform_method():
     np.random.seed(seed=5)
     grid_1.at_node["topographic__slope"] = np.random.rand(gridnum)
     scatter_dat = np.random.randint(1, 10, gridnum)
+    grid_1.add_zeros("soil__saturated_hydraulic_conductivity", at="node")
     grid_1.at_node["topographic__specific_contributing_area"] = np.sort(
         np.random.randint(30, 900, gridnum)
     )
@@ -163,6 +164,7 @@ def test_calculate_landslide_probability_lognormal_method():
     gridnum = grid_2.number_of_nodes
     np.random.seed(seed=6)
     grid_2.at_node["topographic__slope"] = np.random.rand(gridnum)
+    grid_2.add_zeros("soil__saturated_hydraulic_conductivity", at="node")
     scatter_dat = np.random.randint(1, 10, gridnum)
     grid_2.at_node["topographic__specific_contributing_area"] = np.sort(
         np.random.randint(30, 900, gridnum)
@@ -209,6 +211,7 @@ def test_calculate_landslide_probability_lognormal_spatial_method():
     grid_3 = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     gridnum = grid_3.number_of_nodes
     np.random.seed(seed=7)
+    grid_3.add_zeros("soil__saturated_hydraulic_conductivity", at="node")
     grid_3.at_node["topographic__slope"] = np.random.rand(gridnum)
     scatter_dat = np.random.randint(1, 10, gridnum)
     grid_3.at_node["topographic__specific_contributing_area"] = np.sort(

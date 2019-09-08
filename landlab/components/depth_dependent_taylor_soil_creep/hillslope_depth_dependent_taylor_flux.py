@@ -192,6 +192,7 @@ class DepthDependentTaylorDiffuser(Component):
     >>> z += mg.node_x.copy()**0.5
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
+    >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentTaylorDiffuser(mg, soil_transport_decay_depth = 0.1)
     >>> DDdiff.soilflux(1)
     >>> soil_decay_depth_point1 = mg.at_node['topographic__elevation'][mg.core_nodes]

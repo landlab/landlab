@@ -34,6 +34,7 @@ import os
 import textwrap
 
 from .. import registry
+from ..field.scalar_data_fields import FieldError
 from .model_parameter_loader import load_params
 
 _VAR_HELP_MESSAGE = """
@@ -92,6 +93,24 @@ class Component(object):
 
     def __init__(self, grid):
         self._grid = grid
+
+        for field in self._input_var_names:
+            at = self._var_mapping[field]
+
+            # ensure that required input fields exist
+            if field not in self._grid[at]:
+                raise FieldError(
+                    "{component} is missing {field} at {at}".format(
+                        component=self._name, field=field, at=at
+                    )
+                )
+
+        # # Check if all output fields are initialized
+        # for name in self._output_var_names:
+        #     if name not in self._grid.at_node:
+        #         self._grid.add_zeros(
+        #             name, at=self._var_mapping[name], units=self._var_units[name]
+        #         )
 
     @classmethod
     def from_path(cls, grid, path):
@@ -269,6 +288,8 @@ class Component(object):
             intent = "in"
         if name in cls._output_var_names:
             intent += "out"
+        if name in cls._optional_var_names:
+            intent += "optional"
 
         help = _VAR_HELP_MESSAGE.format(
             name=name, desc=desc, units=units, loc=loc, intent=intent

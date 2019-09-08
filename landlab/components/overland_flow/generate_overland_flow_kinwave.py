@@ -30,6 +30,8 @@ class KinwaveOverlandFlowModel(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((4, 5), xy_spacing=10.0)
+    >>> z = rg.add_zeros("node", "topographic__elevation")
+    >>> s = rg.add_zeros("link", "topographic__gradient")
     >>> kw = KinwaveOverlandFlowModel(rg)
     >>> kw.vel_coef
     100.0
@@ -106,20 +108,17 @@ class KinwaveOverlandFlowModel(Component):
 
         # Create fields...
         #   Elevation
-        if "topographic__elevation" in grid.at_node:
-            self._elev = grid.at_node["topographic__elevation"]
-        else:
-            self._elev = grid.add_zeros("node", "topographic__elevation")
+        self._elev = grid.at_node["topographic__elevation"]
+
+        #   Slope
+        self._slope = grid.at_link["topographic__gradient"]
+
         #  Water depth
         if "surface_water__depth" in grid.at_node:
             self._depth = grid.at_node["surface_water__depth"]
         else:
             self._depth = grid.add_zeros("node", "surface_water__depth")
-        #   Slope
-        if "topographic__gradient" in grid.at_link:
-            self._slope = grid.at_link["topographic__gradient"]
-        else:
-            self._slope = grid.add_zeros("link", "topographic__gradient")
+
         #  Velocity
         if "water__velocity" in grid.at_link:
             self._vel = grid.at_link["water__velocity"]

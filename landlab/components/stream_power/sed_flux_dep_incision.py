@@ -673,16 +673,6 @@ class SedDepEroder(Component):
             with sediment (...but does NOT update any other related lake
             fields).
         """
-        if self._grid.at_node["flow__receiver_node"].size != self._grid.size("node"):
-            msg = (
-                "A route-to-multiple flow director has been "
-                "run on this grid. The landlab development team has not "
-                "verified that SedDepEroder is compatible with "
-                "route-to-multiple methods. Please open a GitHub Issue "
-                "to start this process."
-            )
-            raise NotImplementedError(msg)
-
         grid = self._grid
         node_z = grid.at_node["topographic__elevation"]
         node_A = grid.at_node["drainage_area"]
@@ -1089,7 +1079,10 @@ class SedDepEroder(Component):
         Examples
         --------
         >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator, SedDepEroder
         >>> mg1 = RasterModelGrid((3,4))
+        >>> z1 = mg1.add_zeros("node", "topographic__elevation")
+        >>> fa1 = FlowAccumulator(mg1)
         >>> thresh_shields = np.arange(1, mg1.number_of_nodes+1, dtype=float)
         >>> thresh_shields /= 100.
         >>> sde1 = SedDepEroder(mg1, threshold_shear_stress=100., Qc='MPM',
@@ -1102,13 +1095,15 @@ class SedDepEroder(Component):
                 0.05451166,  0.04996902])
 
         >>> mg2 = RasterModelGrid((3,4))
+        >>> z2 = mg2.add_zeros("node", "topographic__elevation")
+        >>> fa2 = FlowAccumulator(mg2)
         >>> sde2 = SedDepEroder(mg2, threshold_shear_stress=100., Qc='MPM',
         ...                     Dchar=None, set_threshold_from_Dchar=False,
         ...                     set_Dchar_from_threshold=True,
         ...                     threshold_Shields=None,
         ...                     slope_sensitive_threshold=True)
-        >>> S = mg2.add_ones('node', 'topographic__steepest_slope')
-        >>> S *= 0.05  # thresh = 100 Pa @ 5pc slope
+        >>> S = mg2['node']['topographic__steepest_slope']
+        >>> S[:] = 0.05  # thresh = 100 Pa @ 5pc slope
         >>> sde2.characteristic_grainsize  # doctest: +NORMALIZE_WHITESPACE
         array([ 0.08453729,  0.08453729,  0.08453729,  0.08453729,
                 0.08453729,  0.08453729,  0.08453729,  0.08453729,

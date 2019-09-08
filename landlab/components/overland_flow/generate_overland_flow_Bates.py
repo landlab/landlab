@@ -81,14 +81,14 @@ class OverlandFlowBates(Component):
 
     _var_mapping = {
         "surface_water__depth": "node",
-        "topographic__elevtation": "node",
-        "surface_water__discharge": "active_link",
+        "topographic__elevation": "node",
+        "surface_water__discharge": "link",
         "water_surface__gradient": "node",
     }
 
-    _var_mapping = {
+    _var_doc = {
         "surface_water__depth": "The depth of water at each node.",
-        "topographic__elevtation": "The land surface elevation.",
+        "topographic__elevation": "The land surface elevation.",
         "surface_water__discharge": "The discharge of water on active links.",
         "water_surface__gradient": "The slope of the water surface at each node.",
     }

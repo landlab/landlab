@@ -267,7 +267,9 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     _name = "LossyFlowAccumulator"
 
-    _input_var_names = ("topographic__elevation", "water__unit_flux_in")
+    _optional_var_names = ("topographic__elevation", "water__unit_flux_in")
+
+    _input_var_names = ()
 
     _output_var_names = (
         "drainage_area",
