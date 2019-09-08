@@ -444,22 +444,6 @@ class RasterModelGrid(
             self.y_of_node[:] -= dy
         self._xy_of_lower_left = tuple(np.asfarray(xy_of_lower_left))
 
-    def _create_cell_areas_array_force_inactive(self):
-        """Set up array cell areas including extra cells for perimeter nodes.
-
-        This method supports the creation of the array that stores cell areas.
-        It differs from _create_cell_areas_array in that it forces ALL nodes to
-        have a surrounding cell, which is not actually the case for the generic
-        perimeter node (these are unbounded). This is only possible because the
-        grid is a raster.
-        It is not meant to be called manually.
-        """
-        self._forced_cell_areas = np.full(self.shape, self.dx * self.dy, dtype=float)
-        self._forced_cell_areas[(0, -1), :] = 0.0
-        self._forced_cell_areas[:, (0, -1)] = 0.0
-        self._forced_cell_areas.shape = (-1,)
-        return self._forced_cell_areas
-
     @property
     def cell_grid_shape(self):
         """Get the shape of the cellular grid (grid with only cells).

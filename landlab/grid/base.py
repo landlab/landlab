@@ -2626,6 +2626,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         return shaded.clip(0.0)
 
     @property
+    @lru_cache()
     @make_return_array_immutable
     def cell_area_at_node(self):
         """Cell areas in a nnodes-long array.
@@ -2650,22 +2651,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: CINF NINF CONN
         """
-        try:
-            return self._cell_area_at_node
-        except AttributeError:
-            return self._create_cell_areas_array_force_inactive()
-
-    def _create_cell_areas_array_force_inactive(self):
-        """Set up an array of cell areas that is n_nodes long.
-
-        Sets up an array of cell areas that is nnodes long. Nodes that have
-        cells receive the area of that cell. Nodes which do not, receive
-        zeros.
-        """
-        _cell_area_at_node_zero = np.zeros(self.number_of_nodes, dtype=float)
-        _cell_area_at_node_zero[self.node_at_cell] = self.area_of_cell
-        self._cell_area_at_node = _cell_area_at_node_zero
-        return self._cell_area_at_node
+        cell_area_at_node = np.zeros(self.number_of_nodes, dtype=float)
+        cell_area_at_node[self.node_at_cell] = self.area_of_cell
+        return cell_area_at_node
 
     @deprecated(use="no replacement", version=1.0)
     def active_link_connecting_node_pair(self, node1, node2):
