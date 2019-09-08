@@ -444,10 +444,6 @@ class RasterModelGrid(
             self.y_of_node[:] -= dy
         self._xy_of_lower_left = tuple(np.asfarray(xy_of_lower_left))
 
-    def _setup_nodes(self):
-        self._nodes = np.arange(self.number_of_nodes, dtype=int).reshape(self.shape)
-        return self._nodes
-
     @property
     @make_return_array_immutable
     def nodes(self):
