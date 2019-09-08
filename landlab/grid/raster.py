@@ -1622,17 +1622,6 @@ class RasterModelGrid(
             return ans
 
     @deprecated(use="nodes_are_all_core", version=1.0)
-    def are_all_interior(self, IDs):
-        """Check if nodes are interior.
-
-        Returns a single boolean truth value, True if all nodes with *IDs* are
-        interior nodes, False if not.
-
-        LLCATS: DEPR NINF BC
-        """
-        return np.all(np.equal(self._node_status[IDs], CORE_NODE))
-
-    @deprecated(use="nodes_are_all_core", version=1.0)
     def are_all_core(self, ids):
         """
         LLCATS: DEPR NINF BC
