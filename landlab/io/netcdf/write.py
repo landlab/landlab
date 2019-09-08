@@ -322,11 +322,11 @@ def _add_cell_spatial_variables(root, grid, **kwds):
 
         axis = grid.axis_name.index(name[0])
 
-        var.units = grid.axis_units[axis]
+        var.units = str(grid.axis_units[axis])
         try:
-            var.long_name = long_name[name]
+            var.long_name = str(long_name[name])
         except KeyError:
-            var.long_name = grid.axis_name[axis]
+            var.long_name = str(grid.axis_name[axis])
 
 
 def _add_spatial_variables(root, grid, **kwds):
@@ -407,11 +407,11 @@ def _add_raster_spatial_variables(root, grid, **kwds):
 
         var[:] = coords
 
-        var.units = grid.axis_units[axis]
+        var.units = str(grid.axis_units[axis])
         try:
-            var.long_name = long_name[name]
+            var.long_name = str(long_name[name])
         except KeyError:
-            var.long_name = grid.axis_name[axis]
+            var.long_name = str(grid.axis_name[axis])
 
 
 def _add_variables_at_points(root, fields, names=None):
@@ -495,8 +495,8 @@ def _add_variables_at_cells(root, fields, names=None):
         else:
             var[n_times] = cell_fields[var_name].flat[0]
 
-        var.units = cell_fields.units[var_name] or "?"
-        var.long_name = var_name
+        var.units = str(cell_fields.units[var_name] or "?")
+        var.long_name = str(var_name)
 
 
 def _add_time_variable(root, time, **kwds):
@@ -557,7 +557,7 @@ def _guess_at_location(fields, names):
     cell_fields = set(fields["cell"].keys())
 
     if names is None or len(names) == 0:
-        if len(fields["node"]) > 0:
+        if len(fields["node"].keys()) > 0:
             at = "node"
         else:
             at = "cell"
@@ -608,8 +608,8 @@ def write_netcdf(
     some data fields to it.
 
     >>> rmg = RasterModelGrid((4, 3))
-    >>> _ = rmg.add_field('node', 'topographic__elevation', np.arange(12.))
-    >>> _ = rmg.add_field('node', 'uplift_rate', 2. * np.arange(12.))
+    >>> rmg.at_node["topographic__elevation"] = np.arange(12.0)
+    >>> rmg.at_node["uplift_rate"] = 2.0 * np.arange(12.0)
 
     Create a temporary directory to write the netcdf file into.
 
@@ -635,9 +635,9 @@ def write_netcdf(
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
 
-    >>> _ = rmg.add_field('cell', 'air__temperature', np.arange(2.))
-    >>> write_netcdf('test-cell.nc', rmg, format='NETCDF3_64BIT',
-    ...     names='air__temperature', at='cell')
+    >>> rmg.at_cell["air__temperature"] = np.arange(2.0)
+    >>> write_netcdf("test-cell.nc", rmg, format="NETCDF3_64BIT",
+    ...     names="air__temperature", at="cell")
     """
     if format not in _VALID_NETCDF_FORMATS:
         raise ValueError("format not understood")
@@ -734,8 +734,8 @@ def write_raster_netcdf(
     some data fields to it.
 
     >>> rmg = RasterModelGrid((4, 3))
-    >>> _ = rmg.add_field('node', 'topographic__elevation', np.arange(12.))
-    >>> _ = rmg.add_field('node', 'uplift_rate', 2. * np.arange(12.))
+    >>> rmg.at_node["topographic__elevation"] = np.arange(12.0)
+    >>> rmg.at_node["uplift_rate"] = 2.0 * np.arange(12.0)
 
     Create a temporary directory to write the netcdf file into.
 
@@ -746,8 +746,12 @@ def write_raster_netcdf(
     Write the grid to a netcdf4 file but only include the *uplift_rate*
     data in the file.
 
-    >>> write_raster_netcdf('test.nc', rmg, format='NETCDF3_64BIT',
-    ...     names='uplift_rate')
+    >>> write_raster_netcdf(
+    ...     "test.nc",
+    ...     rmg,
+    ...     format="NETCDF3_64BIT",
+    ...     names="uplift_rate",
+    ... )
 
     Read the file back in and check its contents.
 
