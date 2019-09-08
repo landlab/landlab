@@ -1169,7 +1169,7 @@ def test_flat_grids_all_directors(fd):
 
     true_da = np.zeros(mg.size("node"))
     true_da[mg.core_nodes] = 1.0
-    assert_array_equal(true_da, fa.drainage_area)
+    assert_array_equal(true_da, fa._drainage_area)
 
 
 def test_nmg_no_cell_area():

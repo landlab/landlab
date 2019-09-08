@@ -26,7 +26,6 @@ from landlab.core.messages import warning_message
 from landlab.core.utils import as_id_array
 from landlab.utils.return_array import return_array_at_node
 
-
 class FlowAccumulator(Component):
 
     """Component to accumulate flow and calculate drainage area.
@@ -698,14 +697,14 @@ class FlowAccumulator(Component):
         self._is_raster = isinstance(self._grid, RasterModelGrid)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
         self._is_Network = isinstance(self._grid, NetworkModelGrid)
-        self.kwargs = kwargs
+        self._kwargs = kwargs
         # STEP 1: Testing of input values, supplied either in function call or
         # as part of the grid.
         self._test_water_inputs(grid, runoff_rate)
 
         # save elevations and node_cell_area to class properites.
-        self.surface = surface
-        self.surface_values = return_array_at_node(grid, surface)
+        self._surface = surface
+        self._surface_values = return_array_at_node(grid, surface)
 
         if self._is_Network:
             try:
@@ -720,7 +719,7 @@ class FlowAccumulator(Component):
             node_cell_area = self._grid.cell_area_at_node.copy()
             node_cell_area[self._grid.closed_boundary_nodes] = 0.0
 
-        self.node_cell_area = node_cell_area
+        self._node_cell_area = node_cell_area
 
         # STEP 2:
         # identify Flow Director method, save name, import and initialize the correct
@@ -741,41 +740,41 @@ class FlowAccumulator(Component):
         #
 
         if "drainage_area" not in grid.at_node:
-            self.drainage_area = grid.add_zeros("drainage_area", at="node", dtype=float)
+            self._drainage_area = grid.add_zeros("drainage_area", at="node", dtype=float)
         else:
-            self.drainage_area = grid.at_node["drainage_area"]
+            self._drainage_area = grid.at_node["drainage_area"]
 
         if "surface_water__discharge" not in grid.at_node:
-            self.discharges = grid.add_zeros(
+            self._discharges = grid.add_zeros(
                 "surface_water__discharge", at="node", dtype=float
             )
         else:
-            self.discharges = grid.at_node["surface_water__discharge"]
+            self._discharges = grid.at_node["surface_water__discharge"]
 
         if "flow__upstream_node_order" not in grid.at_node:
-            self.upstream_ordered_nodes = grid.add_field(
+            self._upstream_ordered_nodes = grid.add_field(
                 "flow__upstream_node_order",
                 BAD_INDEX_VALUE * grid.ones(at="node", dtype=int),
                 at="node",
                 dtype=int,
             )
         else:
-            self.upstream_ordered_nodes = grid.at_node["flow__upstream_node_order"]
+            self._upstream_ordered_nodes = grid.at_node["flow__upstream_node_order"]
 
         if "flow__data_structure_delta" not in grid.at_node:
-            self.delta_structure = grid.add_field(
+            self._delta_structure = grid.add_field(
                 "flow__data_structure_delta",
                 BAD_INDEX_VALUE * grid.ones(at="node", dtype=int),
                 at="node",
                 dtype=int,
             )
         else:
-            self.delta_structure = grid.at_node["flow__data_structure_delta"]
+            self._delta_structure = grid.at_node["flow__data_structure_delta"]
 
         try:
             D = BAD_INDEX_VALUE * grid.ones(at="link", dtype=int)
             D_structure = np.array([D], dtype=object)
-            self.D_structure = grid.add_field(
+            self._D_structure = grid.add_field(
                 "flow__data_structure_D",
                 D_structure,
                 at="grid",
@@ -784,15 +783,30 @@ class FlowAccumulator(Component):
             )
 
         except FieldError:
-            self.D_structure = grid.at_grid["flow__data_structure_D"]
+            self._D_structure = grid.at_grid["flow__data_structure_D"]
 
-        self.nodes_not_in_stack = True
+        self._nodes_not_in_stack = True
 
-        if len(self.kwargs) > 0:
-            kwdstr = " ".join(list(self.kwargs.keys()))
+        if len(self._kwargs) > 0:
+            kwdstr = " ".join(list(self._kwargs.keys()))
             raise ValueError(
                 "Extra kwargs passed to FlowAccumulator:{kwds}".format(kwds=kwdstr)
             )
+
+    @property
+    def surface_values(self):
+        """TODO"""
+        return self._surface_values
+        
+    @property
+    def flow_director(self):
+        """TODO"""
+        return self._flow_director
+
+    @property
+    def depression_finder(self):
+        """TODO"""
+        return self._depression_finder
 
     @property
     def node_drainage_area(self):
@@ -845,7 +859,7 @@ class FlowAccumulator(Component):
         array([ 5, 14, 10,  6, 11,  7, 23, 19, 15, 20, 16, 28, 24, 29, 25])
         """
         downstream_links = self._grid["node"]["flow__link_to_receiver_node"][
-            self.node_order_upstream
+            self._upstream_ordered_nodes
         ]
         out = downstream_links.flatten()
         return out[out != BAD_INDEX_VALUE]
@@ -871,7 +885,7 @@ class FlowAccumulator(Component):
         >>> fa.run_one_step()
         >>> assert_array_equal(fa.headwater_nodes(), np.array([16, 17, 18]))
         """
-        delta = np.concatenate(([0], self.delta_structure))
+        delta = np.concatenate(([0], self._delta_structure))
         num_donors = np.diff(delta)
         # note closed nodes have a value of 1 here since they flow to
         # themselves
@@ -911,8 +925,8 @@ class FlowAccumulator(Component):
         potential_kwargs = ["partition_method", "diagonals"]
         kw = {}
         for p_k in potential_kwargs:
-            if p_k in self.kwargs.keys():
-                kw[p_k] = self.kwargs.pop(p_k)
+            if p_k in self._kwargs.keys():
+                kw[p_k] = self._kwargs.pop(p_k)
 
         # flow director is provided as a string.
         if isinstance(flow_director, str):
@@ -942,11 +956,11 @@ class FlowAccumulator(Component):
                     "valid method or component name. The following"
                     "components are valid imputs:\n" + str(PERMITTED_DIRECTORS)
                 )
-            self.flow_director = FlowDirector(self._grid, self.surface, **kw)
+            self._flow_director = FlowDirector(self._grid, self._surface, **kw)
         # flow director is provided as an instantiated flow director
         elif isinstance(flow_director, Component):
             if flow_director._name in PERMITTED_DIRECTORS:
-                self.flow_director = flow_director
+                self._flow_director = flow_director
             else:
                 raise ValueError(
                     "String provided in flow_director is not a "
@@ -965,7 +979,7 @@ class FlowAccumulator(Component):
         else:
             if flow_director._name in PERMITTED_DIRECTORS:
                 FlowDirector = flow_director
-                self.flow_director = FlowDirector(self._grid, self.surface, **kw)
+                self._flow_director = FlowDirector(self._grid, self._surface, **kw)
             else:
                 raise ValueError(
                     "String provided in flow_director is not a "
@@ -974,26 +988,26 @@ class FlowAccumulator(Component):
                 )
 
         # save method as attribute
-        self.method = self.flow_director._method
+        self._method = self._flow_director._method
 
     def _add_depression_finder(self, depression_finder):
         """Test and add the depression finder component."""
         PERMITTED_DEPRESSION_FINDERS = ["DepressionFinderAndRouter"]
 
         # now do a similar thing for the depression finder.
-        self.depression_finder_provided = depression_finder
-        if self.depression_finder_provided is not None:
+        self._depression_finder_provided = depression_finder
+        if self._depression_finder_provided is not None:
 
             # collect potential kwargs to pass to depression_finder
             # instantiation
             potential_kwargs = ["routing"]
             kw = {}
             for p_k in potential_kwargs:
-                if p_k in self.kwargs.keys():
-                    kw[p_k] = self.kwargs.pop(p_k)
+                if p_k in self._kwargs.keys():
+                    kw[p_k] = self._kwargs.pop(p_k)
 
             # NEED TO TEST WHICH FLOWDIRECTOR WAS PROVIDED.
-            if self.flow_director._name in ("FlowDirectorMFD", "FlowDirectorDINF"):
+            if self._flow_director._name in ("FlowDirectorMFD", "FlowDirectorDINF"):
                 msg = (
                     "The depression finder only works with route "
                     "to one FlowDirectors such as "
@@ -1006,7 +1020,7 @@ class FlowAccumulator(Component):
             if (
                 (("routing" not in kw) or (kw["routing"] != "D4"))
                 and isinstance(self._grid, RasterModelGrid)
-                and (self.flow_director._name in ("FlowDirectorSteepest"))
+                and (self._flow_director._name in ("FlowDirectorSteepest"))
             ):
 
                 message = (
@@ -1025,7 +1039,7 @@ class FlowAccumulator(Component):
                 raise ValueError(warning_message(message))
 
             # depression finder is provided as a string.
-            if isinstance(self.depression_finder_provided, str):
+            if isinstance(self._depression_finder_provided, str):
 
                 from landlab.components import DepressionFinderAndRouter
 
@@ -1035,7 +1049,7 @@ class FlowAccumulator(Component):
 
                 try:
                     DepressionFinder = DEPRESSION_METHODS[
-                        self.depression_finder_provided
+                        self._depression_finder_provided
                     ]
                 except KeyError:
                     raise ValueError(
@@ -1045,15 +1059,15 @@ class FlowAccumulator(Component):
                         + str(PERMITTED_DEPRESSION_FINDERS)
                     )
 
-                self.depression_finder = DepressionFinder(self._grid, **kw)
+                self._depression_finder = DepressionFinder(self._grid, **kw)
             # flow director is provided as an instantiated depression finder
-            elif isinstance(self.depression_finder_provided, Component):
+            elif isinstance(self._depression_finder_provided, Component):
 
                 if (
-                    self.depression_finder_provided._name
+                    self._depression_finder_provided._name
                     in PERMITTED_DEPRESSION_FINDERS
                 ):
-                    self.depression_finder = self.depression_finder_provided
+                    self._depression_finder = self._depression_finder_provided
                 else:
                     raise ValueError(
                         "Component provided in depression_finder "
@@ -1069,15 +1083,15 @@ class FlowAccumulator(Component):
                         "These kwargs would be ignored.",
                     )
 
-            # depression_fiuner is provided as an uninstantiated depression finder
+            # depression_finder is provided as an uninstantiated depression finder
             else:
 
                 if (
-                    self.depression_finder_provided._name
+                    self._depression_finder_provided._name
                     in PERMITTED_DEPRESSION_FINDERS
                 ):
-                    DepressionFinder = self.depression_finder_provided
-                    self.depression_finder = DepressionFinder(self._grid, **kw)
+                    DepressionFinder = self._depression_finder_provided
+                    self._depression_finder = DepressionFinder(self._grid, **kw)
                 else:
                     raise ValueError(
                         "Component provided in depression_finder "
@@ -1086,7 +1100,7 @@ class FlowAccumulator(Component):
                         + str(PERMITTED_DEPRESSION_FINDERS)
                     )
         else:
-            self.depression_finder = None
+            self._depression_finder = None
 
     def accumulate_flow(self, update_flow_director=True):
         """Function to make FlowAccumulator calculate drainage area and
@@ -1108,7 +1122,7 @@ class FlowAccumulator(Component):
 
         # step 1. Find flow directions by specified method
         if update_flow_director:
-            self.flow_director.run_one_step()
+            self._flow_director.run_one_step()
 
         # further steps vary depending on how many recievers are present
         # one set of steps is for route to one (D8, Steepest/D4)
@@ -1116,18 +1130,18 @@ class FlowAccumulator(Component):
         # step 2. Get r
         r = as_id_array(self._grid["node"]["flow__receiver_node"])
 
-        if self.flow_director._to_n_receivers == "one":
+        if self._flow_director._to_n_receivers == "one":
 
             # step 2b. Run depression finder if passed
             # Depression finder reaccumulates flow at the end of its routine.
             # At the moment, no depression finders work with to-many, so it
             # lives here
-            if self.depression_finder_provided is not None:
-                self.depression_finder.map_depressions()
+            if self._depression_finder_provided is not None:
+                self._depression_finder.map_depressions()
 
                 # if FlowDirectorSteepest is used, update the link directions
-                if self.flow_director._name == "FlowDirectorSteepest":
-                    self.flow_director._determine_link_directions()
+                if self._flow_director._name == "FlowDirectorSteepest":
+                    self._flow_director._determine_link_directions()
 
             # step 3. Stack, D, delta construction
             nd = as_id_array(flow_accum_bw._make_number_of_donors_array(r))
@@ -1174,7 +1188,7 @@ class FlowAccumulator(Component):
         Note this can be overridden in inherited components.
         """
         a, q = flow_accum_bw.find_drainage_area_and_discharge(
-            s, r, self.node_cell_area, self._grid.at_node["water__unit_flux_in"]
+            s, r, self._node_cell_area, self._grid.at_node["water__unit_flux_in"]
         )
         return (a, q)
 
@@ -1184,7 +1198,7 @@ class FlowAccumulator(Component):
         Note this can be overridden in inherited components.
         """
         a, q = flow_accum_to_n.find_drainage_area_and_discharge_to_n(
-            s, r, p, self.node_cell_area, self._grid.at_node["water__unit_flux_in"]
+            s, r, p, self._node_cell_area, self._grid.at_node["water__unit_flux_in"]
         )
         return (a, q)
 

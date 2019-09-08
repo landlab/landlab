@@ -441,7 +441,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             link,
             self._lossfunc,
             self._grid,
-            self.node_cell_area,
+            self._node_cell_area,
             self._grid.at_node["water__unit_flux_in"],
         )
         return a, q
@@ -456,7 +456,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             p,
             self._lossfunc,
             self._grid,
-            self.node_cell_area,
+            self._node_cell_area,
             self._grid.at_node["water__unit_flux_in"],
         )
         return a, q

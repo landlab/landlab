@@ -294,7 +294,7 @@ class ChannelProfiler(_BaseProfiler):
     >>> mg.set_nodata_nodes_to_closed(z, 0)
     >>> fa = FlowAccumulator(mg, flow_director='D4')
     >>> fa.run_one_step()
-    >>> fa.drainage_area.reshape(mg.shape)
+    >>> fa.node_drainage_area.reshape(mg.shape)
     array([[  0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,  11.,   0.],
            [  0.,   0.,   0.,   0.,   0.,   0.,   9.,  10.,  11.,   0.],
            [  0.,   0.,   0.,   1.,   2.,   3.,   8.,   0.,   0.,   0.],
