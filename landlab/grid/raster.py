@@ -1621,33 +1621,6 @@ class RasterModelGrid(
         else:
             return ans
 
-    @deprecated(use="nodes_are_all_core", version=1.0)
-    def are_all_core(self, ids):
-        """
-        LLCATS: DEPR NINF BC
-        """
-        return self.nodes_are_all_core(ids)
-
-    def nodes_are_all_core(self, ids):
-        """Check if nodes are all core.
-
-        Returns a single boolean truth value, True if all nodes with *IDs* are
-        core nodes, False if not.
-
-        Parameters
-        ----------
-        ids : array-like
-            Grid nodes.
-
-        Returns
-        -------
-        boolean
-            ``True`` if all the given nodes are *core* nodes.
-
-        LLCATS: NINF BC
-        """
-        return np.all(np.equal(self._node_status[ids], CORE_NODE))
-
     @deprecated(use="no replacement", version=1.0)
     def face_connecting_cell_pair(self, cell_a, cell_b):
         """Get the face that connects two cells.
