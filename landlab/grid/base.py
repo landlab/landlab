@@ -2655,14 +2655,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         except AttributeError:
             return self._create_cell_areas_array_force_inactive()
 
-    @property
-    @deprecated(use="width_of_face", version=1.0)
-    def face_width(self):
-        """
-        LLCATS: DEPR FINF MEAS
-        """
-        return self.width_of_face
-
     def _create_cell_areas_array_force_inactive(self):
         """Set up an array of cell areas that is n_nodes long.
 
