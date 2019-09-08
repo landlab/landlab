@@ -178,14 +178,6 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
         self._xy_of_lower_left = tuple(xy_of_lower_left)
 
-    @staticmethod
-    def _shift_to_lower_left(pts, xy_of_lower_left):
-        xshift = xy_of_lower_left[0] - numpy.min(pts[:, 0])
-        yshift = xy_of_lower_left[1] - numpy.min(pts[:, 1])
-        pts[:, 0] += xshift
-        pts[:, 1] += yshift
-        return pts
-
     @property
     def number_of_node_columns(self):
         """Number of node columns hex grid.
