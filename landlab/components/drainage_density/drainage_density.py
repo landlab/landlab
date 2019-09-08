@@ -344,11 +344,11 @@ class DrainageDensity(Component):
 
         # Distance to channel
         if "surface_to_channel__minimum_distance" in grid.at_node:
-            self.distance_to_channel = grid.at_node[
+            self._distance_to_channel = grid.at_node[
                 "surface_to_channel__minimum_distance"
             ]
         else:
-            self.distance_to_channel = grid.add_zeros(
+            self._distance_to_channel = grid.add_zeros(
                 "surface_to_channel__minimum_distance", at="node", dtype=float
             )
 
@@ -394,7 +394,7 @@ class DrainageDensity(Component):
             self._upstream_order,
             self._grid.length_of_d8,
             self._stack_links,
-            self.distance_to_channel,
+            self._distance_to_channel,
             self._grid.number_of_nodes,
         )
         landscape_drainage_density = 1.0 / (
