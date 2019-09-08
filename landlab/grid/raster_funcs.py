@@ -3,35 +3,6 @@ import numpy as np
 from ..core.utils import make_optional_arg_into_id_array
 
 
-def neighbor_active_link_at_cell(grid, inds, *args):
-    """neighbor_active_link_at_cell(grid, link_ids [, cell_ids])
-
-    Return an array of the active link ids for neighbors of *cell_id* cells.
-    *link_ids* is an index into the links of a cell as measured
-    clockwise starting from the south.
-
-    If *cell_ids* is not given, return neighbors for all cells in the grid.
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        Source grid.
-    link_inds : array_like
-        IDs of links
-    cell_ids : array_like, optional
-        IDs of cells for which to get links
-
-    """
-    cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
-    node_ids = grid.node_at_cell[cell_ids]
-    links = grid._active_links_at_node(node_ids).T
-
-    if not isinstance(inds, np.ndarray):
-        inds = np.array(inds)
-
-    return links[range(len(cell_ids)), inds]
-
-
 def neighbor_node_at_cell(grid, inds, *args):
     """ node_id_of_cell_neighbor(grid, neighbor_ids [, cell_ids])
 
