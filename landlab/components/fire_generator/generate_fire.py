@@ -108,15 +108,20 @@ class FireGenerator(Component):
             get_scale_parameter().
         """
         super(FireGenerator, self).__init__(grid)
-        self.mean_fire_recurrence = mean_fire_recurrence
+        self._mean_fire_recurrence = mean_fire_recurrence
 
-        self.shape_parameter = shape_parameter
+        self._shape_parameter = shape_parameter
 
         if scale_parameter is None:
             self.get_scale_parameter()
 
         else:
-            self.scale_parameter = scale_parameter
+            self._scale_parameter = scale_parameter
+
+    @property
+    def scale_parameter(self):
+        """TODO"""
+        return self._scale_parameter
 
     def get_scale_parameter(self):
         """Get the scale parameter.
@@ -128,9 +133,9 @@ class FireGenerator(Component):
         sets the scale parameter.
         """
 
-        shape_in_gamma_func = float(1 + (1 / self.shape_parameter))
+        shape_in_gamma_func = float(1 + (1 / self._shape_parameter))
         gamma_func = special.gamma(shape_in_gamma_func)
-        self.scale_parameter = self.mean_fire_recurrence / gamma_func
+        self._scale_parameter = self._mean_fire_recurrence / gamma_func
 
     def generate_fire_recurrence(self):
         """Get time to next fire.
@@ -148,7 +153,7 @@ class FireGenerator(Component):
             Updated value for the time to next fire.
 
         """
-        self.time_to_next_fire = round(
-            weibullvariate(self.scale_parameter, self.shape_parameter), 2
+        self._time_to_next_fire = round(
+            weibullvariate(self._scale_parameter, self._shape_parameter), 2
         )
-        return self.time_to_next_fire
+        return self._time_to_next_fire
