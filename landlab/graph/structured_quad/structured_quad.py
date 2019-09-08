@@ -391,21 +391,39 @@ class StructuredQuadGraphTopology:
 
     @property
     @lru_cache()
+    @read_only_array
+    def nodes(self):
+        """A shaped array of node ids
+
+        Returns
+        -------
+        ndarray
+            Node IDs in an array shaped as *number_of_node_rows* by
+            *number_of_node_columns*.
+        """
+        return np.arange(self.shape[0] * self.shape[1]).reshape(self.shape)
+
+    @property
+    @lru_cache()
+    @read_only_array
     def nodes_at_right_edge(self):
         return np.arange(self.shape[1] - 1, np.prod(self.shape), self.shape[1])
 
     @property
     @lru_cache()
+    @read_only_array
     def nodes_at_top_edge(self):
         return np.arange(self.number_of_nodes - self.shape[1], np.prod(self.shape))
 
     @property
     @lru_cache()
+    @read_only_array
     def nodes_at_left_edge(self):
         return np.arange(0, np.prod(self.shape), self.shape[1])
 
     @property
     @lru_cache()
+    @read_only_array
     def nodes_at_bottom_edge(self):
         return np.arange(self.shape[1])
 

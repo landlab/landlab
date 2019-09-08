@@ -350,6 +350,7 @@ class NetworkGraph:
         return self.ds["y_of_node"].values
 
     @property
+    @read_only_array
     def nodes(self):
         """Get identifier for each node.
 

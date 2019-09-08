@@ -1,9 +1,9 @@
 """Test StructuredQuadGraph."""
 import numpy as np
 from numpy.testing import assert_array_equal
-from pytest import approx, mark
+from pytest import approx, mark, raises
 
-from landlab.graph import StructuredQuadGraph, UniformRectilinearGraph
+from landlab.graph import RectilinearGraph, StructuredQuadGraph, UniformRectilinearGraph
 from landlab.graph.structured_quad.structured_quad import (
     StructuredQuadLayoutCython,
     StructuredQuadLayoutPython,
@@ -93,6 +93,24 @@ def test_create():
     assert graph.number_of_nodes == 9
     assert graph.number_of_links == 12
     assert graph.number_of_patches == 4
+
+
+def test_nodes():
+    graphs = (
+        UniformRectilinearGraph((3, 4)),
+        StructuredQuadGraph(
+            (
+                [[0.0, 0.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0], [2.0, 2.0, 2.0, 2.0]],
+                [[0.0, 1.0, 2.0, 3.0], [0.0, 1.0, 2.0, 3.0], [0.0, 1.0, 2.0, 3.0]],
+            )
+        ),
+        RectilinearGraph(([0.0, 1.0, 2.0], [0.0, 1.0, 2.0, 3.0])),
+    )
+
+    for graph in graphs:
+        assert_array_equal(graph.nodes, [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11]])
+        with raises(ValueError):
+            graph.nodes[0, 0] = 99
 
 
 def test_perimeter_nodes():

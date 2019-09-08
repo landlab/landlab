@@ -444,36 +444,6 @@ class RasterModelGrid(
             self.y_of_node[:] -= dy
         self._xy_of_lower_left = tuple(np.asfarray(xy_of_lower_left))
 
-    @property
-    @make_return_array_immutable
-    def nodes(self):
-        """Get a shaped array of nodes.
-
-        Returns
-        -------
-        ndarray
-            Node IDs in an array shaped as *number_of_node_rows* by
-            *number_of_node_columns*.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 4))
-        >>> grid.nodes
-        array([[ 0,  1,  2,  3],
-               [ 4,  5,  6,  7],
-               [ 8,  9, 10, 11]])
-
-        You can't change node ids.
-
-        >>> grid.nodes[0] = 99 # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-        ValueError: assignment destination is read-only
-
-        LLCATS: NINF
-        """
-        return super(RasterModelGrid, self).nodes.reshape(self.shape)
-
     def _create_cell_areas_array(self):
         """Set up array of cell areas.
 
