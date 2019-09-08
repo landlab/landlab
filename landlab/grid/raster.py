@@ -1621,32 +1621,6 @@ class RasterModelGrid(
         else:
             return ans
 
-    @deprecated(use="no replacement", version=1.0)
-    def face_connecting_cell_pair(self, cell_a, cell_b):
-        """Get the face that connects two cells.
-
-        Returns an array of face indices that *cell_a* and *cell_b* share.
-        If the cells do not share any faces, returns an empty array.
-
-        Examples
-        --------
-        >>> import pytest
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5))
-        >>> with pytest.deprecated_call():
-        ...     mg.face_connecting_cell_pair(0, 1)
-        array([4])
-        >>> with pytest.deprecated_call():
-        ...     mg.face_connecting_cell_pair(0, 2).size  # empty array returned
-        0
-
-        LLCATS: DEPR FINF CINF CONN
-        """
-        cell_faces = self.faces_at_cell[[cell_a, cell_b]]
-        return as_id_array(
-            np.intersect1d(cell_faces[0], cell_faces[1], assume_unique=True)
-        )
-
     @return_id_array
     def grid_coords_to_node_id(self, row, col, **kwds):
         """Convert node indices to node ID.
