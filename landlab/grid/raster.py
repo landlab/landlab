@@ -444,17 +444,6 @@ class RasterModelGrid(
             self.y_of_node[:] -= dy
         self._xy_of_lower_left = tuple(np.asfarray(xy_of_lower_left))
 
-    def _create_cell_areas_array(self):
-        """Set up array of cell areas.
-
-        This method supports the creation of the array that stores cell areas.
-        It is not meant to be called manually.
-        """
-        self._area_of_cell = np.full(
-            self.number_of_cells, self.dx * self.dy, dtype=float
-        )
-        return self._area_of_cell
-
     def _create_cell_areas_array_force_inactive(self):
         """Set up array cell areas including extra cells for perimeter nodes.
 
