@@ -338,21 +338,21 @@ class LandslideProbability(Component):
         super(LandslideProbability, self).__init__(grid)
 
         # Store parameters and do unit conversions
-        self.n = int(number_of_iterations)
+        self._n = int(number_of_iterations)
         self._g = g or scipy.constants.g
-        self.groundwater__recharge_distribution = groundwater__recharge_distribution
+        self._groundwater__recharge_distribution = groundwater__recharge_distribution
         # Following code will deal with the input distribution and associated
         # parameters
         # Uniform distribution
-        if self.groundwater__recharge_distribution == "uniform":
+        if self._groundwater__recharge_distribution == "uniform":
             self._recharge_min = groundwater__recharge_min_value
             self._recharge_max = groundwater__recharge_max_value
             self._Re = np.random.uniform(
-                self._recharge_min, self._recharge_max, size=self.n
+                self._recharge_min, self._recharge_max, size=self._n
             )
             self._Re /= 1000.0  # Convert mm to m
         # Lognormal Distribution - Uniform in space
-        elif self.groundwater__recharge_distribution == "lognormal":
+        elif self._groundwater__recharge_distribution == "lognormal":
             assert (
                 groundwater__recharge_mean is not None
             ), "Input mean of the distribution!"
@@ -369,11 +369,11 @@ class LandslideProbability(Component):
                 np.log((self._recharge_stdev ** 2) / (self._recharge_mean ** 2) + 1)
             )
             self._Re = np.random.lognormal(
-                self._mu_lognormal, self._sigma_lognormal, self.n
+                self._mu_lognormal, self._sigma_lognormal, self._n
             )
             self._Re /= 1000.0  # Convert mm to m
         # Lognormal Distribution - Variable in space
-        elif self.groundwater__recharge_distribution == "lognormal_spatial":
+        elif self._groundwater__recharge_distribution == "lognormal_spatial":
             assert groundwater__recharge_mean.shape[0] == (
                 self._grid.number_of_nodes
             ), "Input array should be of the length of grid.number_of_nodes!"
@@ -383,7 +383,7 @@ class LandslideProbability(Component):
             self._recharge_mean = groundwater__recharge_mean
             self._recharge_stdev = groundwater__recharge_standard_deviation
         # Custom HSD inputs - Hydrologic Source Domain -> Model Domain
-        elif self.groundwater__recharge_distribution == "data_driven_spatial":
+        elif self._groundwater__recharge_distribution == "data_driven_spatial":
             self._HSD_dict = groundwater__recharge_HSD_inputs[0]
             self._HSD_id_dict = groundwater__recharge_HSD_inputs[1]
             self._fract_dict = groundwater__recharge_HSD_inputs[2]
@@ -405,9 +405,9 @@ class LandslideProbability(Component):
 
         # Create a switch to imply whether Ksat is provided.
         if np.all(self._grid.at_node["soil__saturated_hydraulic_conductivity"] == 0):
-            self.Ksat_provided = 0  # False
+            self._Ksat_provided = 0  # False
         else:
-            self.Ksat_provided = 1  # True
+            self._Ksat_provided = 1  # True
 
         self._nodal_values = self._grid.at_node
 
@@ -447,10 +447,10 @@ class LandslideProbability(Component):
         self._hs_mode = np.float32(self._grid.at_node["soil__thickness"][i])
 
         # recharge distribution based on distribution type
-        if self.groundwater__recharge_distribution == "data_driven_spatial":
+        if self._groundwater__recharge_distribution == "data_driven_spatial":
             self._calculate_HSD_recharge(i)
             self._Re /= 1000.0  # mm->m
-        elif self.groundwater__recharge_distribution == "lognormal_spatial":
+        elif self._groundwater__recharge_distribution == "lognormal_spatial":
             mu_lognormal = np.log(
                 (self._recharge_mean[i] ** 2)
                 / np.sqrt(self._recharge_stdev[i] ** 2 + self._recharge_mean[i] ** 2)
@@ -460,38 +460,38 @@ class LandslideProbability(Component):
                     (self._recharge_stdev[i] ** 2) / (self._recharge_mean[i] ** 2) + 1
                 )
             )
-            self._Re = np.random.lognormal(mu_lognormal, sigma_lognormal, self.n)
+            self._Re = np.random.lognormal(mu_lognormal, sigma_lognormal, self._n)
             self._Re /= 1000.0  # Convert mm to m
 
         # Cohesion
         # if don't provide fields of min and max C, uncomment 2 lines below
         #    Cmin = self._Cmode-0.3*self._Cmode
         #    Cmax = self._Cmode+0.3*self._Cmode
-        self._C = np.random.triangular(self._Cmin, self._Cmode, self._Cmax, size=self.n)
+        self._C = np.random.triangular(self._Cmin, self._Cmode, self._Cmax, size=self._n)
 
         # phi - internal angle of friction provided in degrees
         phi_min = self._phi_mode - 0.18 * self._phi_mode
         phi_max = self._phi_mode + 0.32 * self._phi_mode
-        self._phi = np.random.triangular(phi_min, self._phi_mode, phi_max, size=self.n)
+        self._phi = np.random.triangular(phi_min, self._phi_mode, phi_max, size=self._n)
         # soil thickness
         # hs_min = min(0.005, self._hs_mode-0.3*self._hs_mode) # Alternative
         hs_min = self._hs_mode - 0.3 * self._hs_mode
         hs_max = self._hs_mode + 0.1 * self._hs_mode
-        self._hs = np.random.triangular(hs_min, self._hs_mode, hs_max, size=self.n)
+        self._hs = np.random.triangular(hs_min, self._hs_mode, hs_max, size=self._n)
         self._hs[self._hs <= 0.0] = 0.005
-        if self.Ksat_provided:
+        if self._Ksat_provided:
             # Hydraulic conductivity (Ksat)
             Ksatmin = self._Ksatmode - (0.3 * self._Ksatmode)
             Ksatmax = self._Ksatmode + (0.1 * self._Ksatmode)
             self._Ksat = np.random.triangular(
-                Ksatmin, self._Ksatmode, Ksatmax, size=self.n
+                Ksatmin, self._Ksatmode, Ksatmax, size=self._n
             )
             self._T = self._Ksat * self._hs
         else:
             # Transmissivity (T)
             Tmin = self._Tmode - (0.3 * self._Tmode)
             Tmax = self._Tmode + (0.1 * self._Tmode)
-            self._T = np.random.triangular(Tmin, self._Tmode, Tmax, size=self.n)
+            self._T = np.random.triangular(Tmin, self._Tmode, Tmax, size=self._n)
 
         # calculate Factor of Safety for n number of times
         # calculate components of FS equation
@@ -507,7 +507,7 @@ class LandslideProbability(Component):
             if val >= 1.0:
                 countr = countr + 1  # number with RW values (>=1)
         # probability: No. high RW values/total No. of values (n)
-        self._soil__probability_of_saturation = np.float32(countr) / self.n
+        self._soil__probability_of_saturation = np.float32(countr) / self._n
         # Maximum Rel_wetness = 1.0
         np.place(self._rel_wetness, self._rel_wetness > 1, 1.0)
         self._soil__mean_relative_wetness = np.mean(self._rel_wetness)
@@ -522,7 +522,7 @@ class LandslideProbability(Component):
             if val <= 1.0:
                 count = count + 1  # number with unstable FS values (<=1)
         # probability: No. unstable values/total No. of values (n)
-        self._landslide__probability_of_failure = np.float32(count) / self.n
+        self._landslide__probability_of_failure = np.float32(count) / self._n
 
     def calculate_landslide_probability(self):
         """Main method of Landslide Probability class.
@@ -533,24 +533,24 @@ class LandslideProbability(Component):
         and probability of saturation are assigned as fields to nodes.
         """
         # Create arrays for data with -9999 as default to store output
-        self.mean_Relative_Wetness = np.full(self._grid.number_of_nodes, -9999.0)
-        self.prob_fail = np.full(self._grid.number_of_nodes, -9999.0)
-        self.prob_sat = np.full(self._grid.number_of_nodes, -9999.0)
+        self._mean_Relative_Wetness = np.full(self._grid.number_of_nodes, -9999.0)
+        self._prob_fail = np.full(self._grid.number_of_nodes, -9999.0)
+        self._prob_sat = np.full(self._grid.number_of_nodes, -9999.0)
         # Run factor of safety Monte Carlo for all core nodes in domain
         # i refers to each core node id
         for i in self._grid.core_nodes:
             self.calculate_factor_of_safety(i)
             # Populate storage arrays with calculated values
-            self.mean_Relative_Wetness[i] = self._soil__mean_relative_wetness
-            self.prob_fail[i] = self._landslide__probability_of_failure
-            self.prob_sat[i] = self._soil__probability_of_saturation
+            self._mean_Relative_Wetness[i] = self._soil__mean_relative_wetness
+            self._prob_fail[i] = self._landslide__probability_of_failure
+            self._prob_sat[i] = self._soil__probability_of_saturation
         # Values can't be negative
-        self.mean_Relative_Wetness[self.mean_Relative_Wetness < 0.0] = 0.0
-        self.prob_fail[self.prob_fail < 0.0] = 0.0
+        self._mean_Relative_Wetness[self._mean_Relative_Wetness < 0.0] = 0.0
+        self._prob_fail[self._prob_fail < 0.0] = 0.0
         # assign output fields to nodes
-        self._grid.at_node["soil__mean_relative_wetness"] = self.mean_Relative_Wetness
-        self._grid.at_node["landslide__probability_of_failure"] = self.prob_fail
-        self._grid.at_node["soil__probability_of_saturation"] = self.prob_sat
+        self._grid.at_node["soil__mean_relative_wetness"] = self._mean_Relative_Wetness
+        self._grid.at_node["landslide__probability_of_failure"] = self._prob_fail
+        self._grid.at_node["soil__probability_of_saturation"] = self._prob_sat
 
     def _seed_generator(self, seed=0):
         """Method to initiate random seed.
@@ -571,7 +571,7 @@ class LandslideProbability(Component):
         """
         HSD_dict = copy.deepcopy(self._HSD_dict)
         # First generate interpolated Re for each HSD grid
-        Yrand = np.sort(np.random.rand(self.n))
+        Yrand = np.sort(np.random.rand(self._n))
         # n random numbers (0 to 1) in a column
         for vkey in HSD_dict.keys():
             if isinstance(HSD_dict[vkey], int):
@@ -598,7 +598,7 @@ class LandslideProbability(Component):
         fractions of upstream contributing HSD ids. Output is a numpy array
         of recharge at node i.
         """
-        store_Re = np.zeros(self.n)
+        store_Re = np.zeros(self._n)
         HSD_id_list = self._HSD_id_dict[i]
         fract_list = self._fract_dict[i]
         for j in range(0, len(HSD_id_list)):
