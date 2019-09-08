@@ -813,7 +813,7 @@ class SedDepEroder(Component):
                     # ^tripped out deliberately for now; doesn't appear to
                     # accelerate much
                     weave.inline(
-                        self.routing_code,
+                        self._routing_code,
                         [
                             "len_s_in",
                             "sed_into_node",

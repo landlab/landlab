@@ -110,7 +110,7 @@ class OverlandFlowBates(Component):
         self._alpha = alpha
         self._mannings_n = mannings_n
         self._g = g
-        self.rainfall_intensity = rainfall_intensity
+        self._rainfall_intensity = rainfall_intensity
 
         # Now setting up fields at the links...
         # For water discharge
@@ -237,7 +237,7 @@ class OverlandFlowBates(Component):
         )
 
         # Update our water depths
-        dhdt = self.rainfall_intensity - self._grid.calc_flux_div_at_node(self._q)
+        dhdt = self._rainfall_intensity - self._grid.calc_flux_div_at_node(self._q)
 
         self._h[self._core_nodes] = (
             self._h[self._core_nodes] + dhdt[self._core_nodes] * self._dt
