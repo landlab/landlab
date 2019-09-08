@@ -186,61 +186,6 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         pts[:, 1] += yshift
         return pts
 
-    @staticmethod
-    def _hex_points_with_horizontal_rect(num_rows, num_cols, dxh, xy_of_lower_left):
-        """Create a set of points in a taggered grid.
-        Creates and returns a set of (x,y) points in a staggered grid in which
-        the points represent the centers of regular hexagonal cells, and the
-        points could be connected to form equilateral triangles. The overall
-        shape of the lattice is rectangular, and one of the 3 axes is
-        horizontal.
-
-        Parameters
-        ----------
-        num_rows : int
-            Number of rows in lattice
-        num_cols : int
-            Number of columns in lattice
-        dxh : float
-            Horizontal and diagonal spacing between points
-        xy_of_lower_left : tuple
-            (x, y) coordinates of the xy_of_lower_left. Default is (0., 0.)
-
-        Returns
-        -------
-        points : ndarray of shape `(n_points, 2)`
-            A 2D numpy array containing point (x, y) coordinates, and total
-            number of points.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_horizontal_rect(3, 3,
-        ...                                                        1.0,
-        ...                                                        (0., 0.))
-        >>> len(points)
-        9
-        >>> points[1, :]
-        array([ 1.,  0.])
-        >>> points[:3, 0]
-        array([ 0.,  1.,  2.])
-        """
-        dxv = dxh * numpy.sqrt(3.0) / 2.0
-        half_dxh = dxh / 2.0
-
-        npts = num_rows * num_cols
-        pts = numpy.zeros((npts, 2))
-
-        i = 0
-        for r in range(num_rows):
-            for c in range(num_cols):
-                xshift = half_dxh * (r % 2)
-                pts[i, 0] = c * dxh + xshift
-                pts[i, 1] = r * dxv
-                i += 1
-
-        return HexModelGrid._shift_to_lower_left(pts, xy_of_lower_left)
-
     @property
     def number_of_node_columns(self):
         """Number of node columns hex grid.
