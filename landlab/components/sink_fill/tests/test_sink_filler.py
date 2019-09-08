@@ -115,7 +115,7 @@ def test_add_slopes(sink_grid1):
     lake_map.fill(XX)
     lake_map[sink_grid1.lake] = sink_grid1.lake_code
     hf._lf._lake_map = lake_map
-    hf.lake_nodes_treated = np.array([], dtype=int)
+    hf._lake_nodes_treated = np.array([], dtype=int)
     dists = sink_grid1.calc_distances_of_nodes_to_point(
         (sink_grid1.node_x[sink_grid1.outlet], sink_grid1.node_y[sink_grid1.outlet])
     )
