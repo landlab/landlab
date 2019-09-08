@@ -163,15 +163,15 @@ class DetachmentLtdErosion(Component):
         """
         super(DetachmentLtdErosion, self).__init__(grid)
 
-        self.K = K_sp
-        self.m = m_sp
-        self.n = n_sp
+        self._K = K_sp
+        self._m = m_sp
+        self._n = n_sp
 
-        self.I = self._grid.zeros(at="node")  # noqa: E741
-        self.uplift_rate = uplift_rate
-        self.entrainment_threshold = entrainment_threshold
+        self._I = self._grid.zeros(at="node")  # noqa: E741
+        self._uplift_rate = uplift_rate
+        self._entrainment_threshold = entrainment_threshold
 
-        self.dzdt = self._grid.zeros(at="node")
+        self._dzdt = self._grid.zeros(at="node")
 
     def erode(
         self,
@@ -207,14 +207,14 @@ class DetachmentLtdErosion(Component):
         else:
             Q = discharge_cms
 
-        Q_to_m = np.power(Q, self.m)
+        Q_to_m = np.power(Q, self._m)
 
-        S_to_n = np.power(S, self.n)
+        S_to_n = np.power(S, self._n)
 
-        self.I = (self.K * Q_to_m * S_to_n) - self.entrainment_threshold  # noqa: E741
+        self._I = (self._K * Q_to_m * S_to_n) - self._entrainment_threshold  # noqa: E741
 
-        self.I[self.I < 0.0] = 0.0
+        self._I[self._I < 0.0] = 0.0
 
-        self.dz = (self.uplift_rate - self.I) * dt
+        self._dz = (self._uplift_rate - self._I) * dt
 
-        self._grid["node"][elevs] += self.dz
+        self._grid["node"][elevs] += self._dz

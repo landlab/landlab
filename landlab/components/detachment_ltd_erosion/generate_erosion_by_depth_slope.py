@@ -180,15 +180,15 @@ class DepthSlopeProductErosion(Component):
         """
         super(DepthSlopeProductErosion, self).__init__(grid)
 
-        self.a = a_exp
-        self.g = g
-        self.rho = fluid_density
-        self.E = self._grid.zeros(at="node")
-        self.uplift_rate = uplift_rate
-        self.tau_crit = tau_crit
-        self.k_e = k_e
+        self._a = a_exp
+        self._g = g
+        self._rho = fluid_density
+        self._E = self._grid.zeros(at="node")
+        self._uplift_rate = uplift_rate
+        self._tau_crit = tau_crit
+        self._k_e = k_e
 
-        self.dz = self._grid.zeros(at="node")
+        self._dz = self._grid.zeros(at="node")
 
     def erode(
         self,
@@ -225,22 +225,27 @@ class DepthSlopeProductErosion(Component):
         except FieldError:
             raise ValueError("Depth field is missing!")
 
-        self.tau = self.rho * self.g * h * S
+        self._tau = self._rho * self._g * h * S
 
-        greater_than_tc, = np.where(self.tau >= self.tau_crit)
-        less_than_tc, = np.where(self.tau < self.tau_crit)
+        greater_than_tc, = np.where(self._tau >= self._tau_crit)
+        less_than_tc, = np.where(self._tau < self._tau_crit)
 
-        self.E[less_than_tc] = 0.0
+        self._E[less_than_tc] = 0.0
 
-        self.E[greater_than_tc] = self.k_e * (
-            (self.tau[greater_than_tc] ** self.a) - (self.tau_crit ** self.a)
+        self._E[greater_than_tc] = self._k_e * (
+            (self._tau[greater_than_tc] ** self._a) - (self._tau_crit ** self._a)
         )
 
-        self.E[self.E < 0.0] = 0.0
+        self._E[self._E < 0.0] = 0.0
 
-        self.dz = (self.uplift_rate - self.E) * dt
+        self._dz = (self._uplift_rate - self._E) * dt
 
-        self._grid["node"][elevs] += self.dz
+        self._grid["node"][elevs] += self._dz
+
+    @property
+    def dz(self):
+        """TODO"""
+        return self._dz
 
     def run_one_step(
         self,
