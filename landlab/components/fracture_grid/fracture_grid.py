@@ -194,8 +194,8 @@ class FractureGridGenerator(Component):
     def __init__(self, grid, frac_spacing=10.0, seed=0):
         """Initialize the FractureGridGenerator."""
 
-        self.frac_spacing = frac_spacing
-        self.seed = seed
+        self._frac_spacing = frac_spacing
+        self._seed = seed
         super(FractureGridGenerator, self).__init__(grid)
 
         # TODO: delete this once we have generation of output fields in
@@ -205,7 +205,7 @@ class FractureGridGenerator(Component):
 
     def run_one_step(self):
         """Run FractureGridGenerator and create a random fracture grid."""
-        self._make_frac_grid(self.frac_spacing, self.seed)
+        self._make_frac_grid(self._frac_spacing, self._seed)
 
     def _make_frac_grid(self, frac_spacing, seed):
         """Create a grid that contains a network of random fractures.
