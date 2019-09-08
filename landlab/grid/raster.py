@@ -1621,35 +1621,6 @@ class RasterModelGrid(
         else:
             return ans
 
-    @deprecated(use="node_is_core", version=1.0)
-    def is_core(self, *args):
-        """
-        LLCATS: DEPR NINF BC
-        """
-        return self.node_is_core(*args)
-
-    def node_is_core(self, *args):
-        """node_is_core([ids])
-        Check if a node is a core node.
-
-        Returns an boolean array of truth values for each node ID provided;
-        True if the node is a core node, False otherwise.
-        If no IDs are provided, method returns a boolean array for every node.
-
-        (Core status is typically indicated by a value of 0 in node_status.)
-
-        LLCATS: NINF BC
-        """
-        # NG changed this.
-        # Modified DEJH May 2014 to accept simulaneous tests of multiple nodes;
-        # should still be back-conmpatible.
-        try:
-            node_ids = args[0]
-        except IndexError:  # return all nodes
-            return np.equal(self._node_status, CORE_NODE)
-        else:
-            return np.equal(self._node_status[node_ids], CORE_NODE)
-
     @deprecated(use="nodes_are_all_core", version=1.0)
     def are_all_interior(self, IDs):
         """Check if nodes are interior.
