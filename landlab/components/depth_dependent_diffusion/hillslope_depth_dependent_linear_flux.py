@@ -160,45 +160,45 @@ class DepthDependentDiffuser(Component):
         super(DepthDependentDiffuser, self).__init__(grid)
         # Store grid and parameters
 
-        self.K = linear_diffusivity
-        self.soil_transport_decay_depth = soil_transport_decay_depth
+        self._K = linear_diffusivity
+        self._soil_transport_decay_depth = soil_transport_decay_depth
 
         # create fields
         # elevation
         if "topographic__elevation" in self._grid.at_node:
-            self.elev = self._grid.at_node["topographic__elevation"]
+            self._elev = self._grid.at_node["topographic__elevation"]
         else:
-            self.elev = self._grid.add_zeros("node", "topographic__elevation")
+            self._elev = self._grid.add_zeros("node", "topographic__elevation")
 
         # slope
         if "topographic__slope" in self._grid.at_link:
-            self.slope = self._grid.at_link["topographic__slope"]
+            self._slope = self._grid.at_link["topographic__slope"]
         else:
-            self.slope = self._grid.add_zeros("link", "topographic__slope")
+            self._slope = self._grid.add_zeros("link", "topographic__slope")
 
         # soil depth
         if "soil__depth" in self._grid.at_node:
-            self.depth = self._grid.at_node["soil__depth"]
+            self._depth = self._grid.at_node["soil__depth"]
         else:
-            self.depth = self._grid.add_zeros("node", "soil__depth")
+            self._depth = self._grid.add_zeros("node", "soil__depth")
 
         # soil flux
         if "soil__flux" in self._grid.at_link:
-            self.flux = self._grid.at_link["soil__flux"]
+            self._flux = self._grid.at_link["soil__flux"]
         else:
-            self.flux = self._grid.add_zeros("link", "soil__flux")
+            self._flux = self._grid.add_zeros("link", "soil__flux")
 
         # weathering rate
         if "soil_production__rate" in self._grid.at_node:
-            self.soil_prod_rate = self._grid.at_node["soil_production__rate"]
+            self._soil_prod_rate = self._grid.at_node["soil_production__rate"]
         else:
-            self.soil_prod_rate = self._grid.add_zeros("node", "soil_production__rate")
+            self._soil_prod_rate = self._grid.add_zeros("node", "soil_production__rate")
 
         # bedrock elevation
         if "bedrock__elevation" in self._grid.at_node:
-            self.bedrock = self._grid.at_node["bedrock__elevation"]
+            self._bedrock = self._grid.at_node["bedrock__elevation"]
         else:
-            self.bedrock = self._grid.add_zeros("node", "bedrock__elevation")
+            self._bedrock = self._grid.add_zeros("node", "bedrock__elevation")
 
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.
@@ -222,37 +222,37 @@ class DepthDependentDiffuser(Component):
         )
 
         # Calculate gradients
-        slope = self._grid.calc_grad_at_link(self.elev)
+        slope = self._grid.calc_grad_at_link(self._elev)
         slope[self._grid.status_at_link == INACTIVE_LINK] = 0.0
 
         # Calculate flux
-        self.flux[:] = (
-            -self.K
+        self._flux[:] = (
+            -self._K
             * slope
-            * self.soil_transport_decay_depth
-            * (1.0 - np.exp(-H_link / self.soil_transport_decay_depth))
+            * self._soil_transport_decay_depth
+            * (1.0 - np.exp(-H_link / self._soil_transport_decay_depth))
         )
 
         # Calculate flux divergence
-        dqdx = self._grid.calc_flux_div_at_node(self.flux)
+        dqdx = self._grid.calc_flux_div_at_node(self._flux)
 
         # Calculate change in soil depth
-        dhdt = self.soil_prod_rate - dqdx
+        dhdt = self._soil_prod_rate - dqdx
 
         # Calculate soil depth at nodes
-        self.depth[self._grid.core_nodes] += dhdt[self._grid.core_nodes] * dt
+        self._depth[self._grid.core_nodes] += dhdt[self._grid.core_nodes] * dt
 
         # prevent negative soil thickness
-        self.depth[self.depth < 0.0] = 0.0
+        self._depth[self._depth < 0.0] = 0.0
 
         # Calculate bedrock elevation
-        self.bedrock[self._grid.core_nodes] -= (
-            self.soil_prod_rate[self._grid.core_nodes] * dt
+        self._bedrock[self._grid.core_nodes] -= (
+            self._soil_prod_rate[self._grid.core_nodes] * dt
         )
 
         # Update topography
-        self.elev[self._grid.core_nodes] = (
-            self.depth[self._grid.core_nodes] + self.bedrock[self._grid.core_nodes]
+        self._elev[self._grid.core_nodes] = (
+            self._depth[self._grid.core_nodes] + self._bedrock[self._grid.core_nodes]
         )
 
     def run_one_step(self, dt):
