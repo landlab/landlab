@@ -288,51 +288,51 @@ class DepthDependentTaylorDiffuser(Component):
         super(DepthDependentTaylorDiffuser, self).__init__(grid)
         # Store grid and parameters
 
-        self.K = linear_diffusivity
-        self.soil_transport_decay_depth = soil_transport_decay_depth
-        self.slope_crit = slope_crit
-        self.nterms = nterms
+        self._K = linear_diffusivity
+        self._soil_transport_decay_depth = soil_transport_decay_depth
+        self._slope_crit = slope_crit
+        self._nterms = nterms
 
-        self.dynamic_dt = dynamic_dt
-        self.if_unstable = if_unstable
-        self.courant_factor = courant_factor
+        self._dynamic_dt = dynamic_dt
+        self._if_unstable = if_unstable
+        self._courant_factor = courant_factor
 
         # create fields
         # elevation
         if "topographic__elevation" in self._grid.at_node:
-            self.elev = self._grid.at_node["topographic__elevation"]
+            self._elev = self._grid.at_node["topographic__elevation"]
         else:
-            self.elev = self._grid.add_zeros("node", "topographic__elevation")
+            self._elev = self._grid.add_zeros("node", "topographic__elevation")
 
         # slope
         if "topographic__slope" in self._grid.at_link:
-            self.slope = self._grid.at_link["topographic__slope"]
+            self._slope = self._grid.at_link["topographic__slope"]
         else:
-            self.slope = self._grid.add_zeros("link", "topographic__slope")
+            self._slope = self._grid.add_zeros("link", "topographic__slope")
 
         # soil depth
         if "soil__depth" in self._grid.at_node:
-            self.depth = self._grid.at_node["soil__depth"]
+            self._depth = self._grid.at_node["soil__depth"]
         else:
-            self.depth = self._grid.add_zeros("node", "soil__depth")
+            self._depth = self._grid.add_zeros("node", "soil__depth")
 
         # soil flux
         if "soil__flux" in self._grid.at_link:
-            self.flux = self._grid.at_link["soil__flux"]
+            self._flux = self._grid.at_link["soil__flux"]
         else:
-            self.flux = self._grid.add_zeros("link", "soil__flux")
+            self._flux = self._grid.add_zeros("link", "soil__flux")
 
         # weathering rate
         if "soil_production__rate" in self._grid.at_node:
-            self.soil_prod_rate = self._grid.at_node["soil_production__rate"]
+            self._soil_prod_rate = self._grid.at_node["soil_production__rate"]
         else:
-            self.soil_prod_rate = self._grid.add_zeros("node", "soil_production__rate")
+            self._soil_prod_rate = self._grid.add_zeros("node", "soil_production__rate")
 
         # bedrock elevation
         if "bedrock__elevation" in self._grid.at_node:
-            self.bedrock = self._grid.at_node["bedrock__elevation"]
+            self._bedrock = self._grid.at_node["bedrock__elevation"]
         else:
-            self.bedrock = self._grid.add_zeros("node", "bedrock__elevation")
+            self._bedrock = self._grid.add_zeros("node", "bedrock__elevation")
 
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.
@@ -364,19 +364,19 @@ class DepthDependentTaylorDiffuser(Component):
             )
 
             # Calculate soil depth at links.
-            self.H_link = self._grid.map_value_at_max_node_to_link(
+            self._H_link = self._grid.map_value_at_max_node_to_link(
                 "topographic__elevation", "soil__depth"
             )
 
             # Calculate gradients
-            self.slope = self._grid.calc_grad_at_link(self.elev)
-            self.slope[self._grid.status_at_link == INACTIVE_LINK] = 0.0
+            self._slope = self._grid.calc_grad_at_link(self._elev)
+            self._slope[self._grid.status_at_link == INACTIVE_LINK] = 0.0
 
             # Test for time stepping courant condition
             # Test for time stepping courant condition
             courant_slope_term = 0.0
-            courant_s_over_scrit = self.slope.max() / self.slope_crit
-            for i in range(0, 2 * self.nterms, 2):
+            courant_s_over_scrit = self._slope.max() / self._slope_crit
+            for i in range(0, 2 * self._nterms, 2):
                 courant_slope_term += courant_s_over_scrit ** i
                 if np.any(np.isinf(courant_slope_term)):
                     message = (
@@ -386,16 +386,16 @@ class DepthDependentTaylorDiffuser(Component):
                     )
                     raise RuntimeError(message)
             # Calculate De Max
-            De_max = self.K * (courant_slope_term)
+            De_max = self._K * (courant_slope_term)
             # Calculate longest stable timestep
-            self.dt_max = self.courant_factor * (self._grid.dx ** 2) / De_max
+            self._dt_max = self._courant_factor * (self._grid.dx ** 2) / De_max
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
             if (
-                (self.dt_max < dt)
-                and (not self.dynamic_dt)
-                and (self.if_unstable != "pass")
+                (self._dt_max < dt)
+                and (not self._dynamic_dt)
+                and (self._if_unstable != "pass")
             ):
                 message = (
                     "Topographic slopes are high enough such that the "
@@ -405,31 +405,31 @@ class DepthDependentTaylorDiffuser(Component):
                     "slope, elevation, and soil depth. Consider using a "
                     "smaller time step or dynamic timestepping. The "
                     "Courant condition recommends a timestep of "
-                    "" + str(self.dt_max) + " or smaller."
+                    "" + str(self._dt_max) + " or smaller."
                 )
-                if self.if_unstable == "raise":
+                if self._if_unstable == "raise":
                     raise RuntimeError(message)
-                if self.if_unstable == "warn":
+                if self._if_unstable == "warn":
                     print(message)
 
             # if dynamic dt is selected, use it, otherwise, use the entire time
-            if self.dynamic_dt:
-                self.sub_dt = np.min([dt, self.dt_max])
-                time_left -= self.sub_dt
+            if self._dynamic_dt:
+                self._sub_dt = np.min([dt, self._dt_max])
+                time_left -= self._sub_dt
             else:
-                self.sub_dt = dt
+                self._sub_dt = dt
                 time_left = 0
 
             # update sed flux, topography, soil, and bedrock based on the
-            # current self.sub_dt
+            # current self._sub_dt
             self._update_flux_topography_soil_and_bedrock()
 
     def _update_flux_topography_soil_and_bedrock(self):
         """Calculate soil flux and update topography. """
         # Calculate flux
         slope_term = 0.0
-        s_over_scrit = self.slope / self.slope_crit
-        for i in range(0, 2 * self.nterms, 2):
+        s_over_scrit = self._slope / self._slope_crit
+        for i in range(0, 2 * self._nterms, 2):
             slope_term += s_over_scrit ** i
             if np.any(np.isinf(slope_term)):
                 message = (
@@ -438,32 +438,32 @@ class DepthDependentTaylorDiffuser(Component):
                 )
                 raise RuntimeError(message)
 
-        self.flux[:] = -(
-            (self.K * self.slope * self.soil_transport_decay_depth)
+        self._flux[:] = -(
+            (self._K * self._slope * self._soil_transport_decay_depth)
             * (slope_term)
-            * (1.0 - np.exp(-self.H_link / self.soil_transport_decay_depth))
+            * (1.0 - np.exp(-self._H_link / self._soil_transport_decay_depth))
         )
 
         # Calculate flux divergence
-        dqdx = self._grid.calc_flux_div_at_node(self.flux)
+        dqdx = self._grid.calc_flux_div_at_node(self._flux)
 
         # Calculate change in soil depth
-        dhdt = self.soil_prod_rate - dqdx
+        dhdt = self._soil_prod_rate - dqdx
 
         # Calculate soil depth at nodes
-        self.depth[self._grid.core_nodes] += dhdt[self._grid.core_nodes] * self.sub_dt
+        self._depth[self._grid.core_nodes] += dhdt[self._grid.core_nodes] * self._sub_dt
 
         # prevent negative soil thickness
-        self.depth[self.depth < 0.0] = 0.0
+        self._depth[self._depth < 0.0] = 0.0
 
         # Calculate bedrock elevation
-        self.bedrock[self._grid.core_nodes] -= (
-            self.soil_prod_rate[self._grid.core_nodes] * self.sub_dt
+        self._bedrock[self._grid.core_nodes] -= (
+            self._soil_prod_rate[self._grid.core_nodes] * self._sub_dt
         )
 
         # Update topography
-        self.elev[self._grid.core_nodes] = (
-            self.depth[self._grid.core_nodes] + self.bedrock[self._grid.core_nodes]
+        self._elev[self._grid.core_nodes] = (
+            self._depth[self._grid.core_nodes] + self._bedrock[self._grid.core_nodes]
         )
 
     def run_one_step(self, dt):
