@@ -99,44 +99,49 @@ class KinwaveOverlandFlowModel(Component):
 
         # Store parameters and do unit conversion
 
-        self.precip = precip_rate / 3600000.0  # convert to m/s
-        self.precip_duration = precip_duration * 3600.0  # h->s
-        self.infilt = infilt_rate / 3600000.0  # convert to m/s
-        self.vel_coef = 1.0 / roughness  # do division now to save time
+        self._precip = precip_rate / 3600000.0  # convert to m/s
+        self._precip_duration = precip_duration * 3600.0  # h->s
+        self._infilt = infilt_rate / 3600000.0  # convert to m/s
+        self._vel_coef = 1.0 / roughness  # do division now to save time
 
         # Create fields...
         #   Elevation
         if "topographic__elevation" in grid.at_node:
-            self.elev = grid.at_node["topographic__elevation"]
+            self._elev = grid.at_node["topographic__elevation"]
         else:
-            self.elev = grid.add_zeros("node", "topographic__elevation")
+            self._elev = grid.add_zeros("node", "topographic__elevation")
         #  Water depth
         if "surface_water__depth" in grid.at_node:
-            self.depth = grid.at_node["surface_water__depth"]
+            self._depth = grid.at_node["surface_water__depth"]
         else:
-            self.depth = grid.add_zeros("node", "surface_water__depth")
+            self._depth = grid.add_zeros("node", "surface_water__depth")
         #   Slope
         if "topographic__gradient" in grid.at_link:
-            self.slope = grid.at_link["topographic__gradient"]
+            self._slope = grid.at_link["topographic__gradient"]
         else:
-            self.slope = grid.add_zeros("link", "topographic__gradient")
+            self._slope = grid.add_zeros("link", "topographic__gradient")
         #  Velocity
         if "water__velocity" in grid.at_link:
-            self.vel = grid.at_link["water__velocity"]
+            self._vel = grid.at_link["water__velocity"]
         else:
-            self.vel = grid.add_zeros("link", "water__velocity")
+            self._vel = grid.add_zeros("link", "water__velocity")
         #  Discharge
         if "water__specific_discharge" in grid.at_link:
-            self.disch = grid.at_link["water__specific_discharge"]
+            self._disch = grid.at_link["water__specific_discharge"]
         else:
-            self.disch = grid.add_zeros("link", "water__specific_discharge")
+            self._disch = grid.add_zeros("link", "water__specific_discharge")
 
         # Calculate the ground-surface slope (assume it won't change)
-        self.slope[self._grid.active_links] = self._grid.calc_grad_at_link(self.elev)[
+        self._slope[self._grid.active_links] = self._grid.calc_grad_at_link(self._elev)[
             self._grid.active_links
         ]
-        self.sqrt_slope = np.sqrt(self.slope)
-        self.sign_slope = np.sign(self.slope)
+        self._sqrt_slope = np.sqrt(self._slope)
+        self._sign_slope = np.sign(self._slope)
+        
+    @property
+    def vel_coef(self):
+        """TODO"""
+        return self._vel_coef
 
     def run_one_step(self, dt, current_time=0.0):
         """Calculate water flow for a time period `dt`.
@@ -151,28 +156,28 @@ class KinwaveOverlandFlowModel(Component):
         )
 
         # Calculate velocity using the Manning equation.
-        self.vel = (
-            -self.sign_slope * self.vel_coef * H_link ** 0.66667 * self.sqrt_slope
+        self._vel = (
+            -self._sign_slope * self._vel_coef * H_link ** 0.66667 * self._sqrt_slope
         )
 
         # Calculate discharge
-        self.disch = H_link * self.vel
+        self._disch = H_link * self._vel
 
         # Flux divergence
-        dqda = self._grid.calc_flux_div_at_node(self.disch)
+        dqda = self._grid.calc_flux_div_at_node(self._disch)
 
         # Rate of change of water depth
-        if current_time < self.precip_duration:
-            ppt = self.precip
+        if current_time < self._precip_duration:
+            ppt = self._precip
         else:
             ppt = 0.0
-        dHdt = ppt - self.infilt - dqda
+        dHdt = ppt - self._infilt - dqda
 
         # Update water depth: simple forward Euler scheme
-        self.depth[self._grid.core_nodes] += dHdt[self._grid.core_nodes] * dt
+        self._depth[self._grid.core_nodes] += dHdt[self._grid.core_nodes] * dt
 
         # Very crude numerical hack: prevent negative water depth
-        self.depth[np.where(self.depth < 0.0)[0]] = 0.0
+        self._depth[np.where(self._depth < 0.0)[0]] = 0.0
 
 
 if __name__ == "__main__":
