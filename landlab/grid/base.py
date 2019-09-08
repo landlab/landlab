@@ -423,24 +423,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         """Set a new value for the model grid xy_of_reference."""
         self._ref_coord = (new_xy_of_reference[0], new_xy_of_reference[1])
 
-    def _create_neighbor_list(self, **kwds):
-        """Create list of neighbor node IDs.
-
-        Creates a list of IDs of neighbor nodes for each node, as a
-        2D array. Only record neighbor nodes that are on the other end of an
-        *active* link. Nodes attached to *inactive* links or neighbor nodes
-        that would be outside of the grid are given an ID of
-        :const:`~landlab.grid.base.BAD_INDEX_VALUE`.
-
-        Neighbors are ordered as [*right*, *top*, *left*, *bottom*].
-        """
-        self._active_neighbor_nodes = self.adjacent_nodes_at_node.copy()
-        self._active_neighbor_nodes[
-            self.active_link_dirs_at_node == 0
-        ] = BAD_INDEX_VALUE
-        self.neighbor_list_created = True
-        return self._active_neighbor_nodes
-
     @property
     def ndim(self):
         """Number of spatial dimensions of the grid.
@@ -448,11 +430,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         LLCATS: GINF
         """
         return 2
-
-    # def _setup_nodes(self):
-    #     """Set up the node id array."""
-    #     self._nodes = np.arange(self.number_of_nodes, dtype=int)
-    #     return self._nodes
 
     @property
     @lru_cache()

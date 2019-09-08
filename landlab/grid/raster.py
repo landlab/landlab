@@ -1582,33 +1582,6 @@ class RasterModelGrid(
         for i in range(0, shift):
             data[ncols * i + offset : ncols * (i + 1) - offset] = top_rows_to_move[i, :]
 
-    def REMOVE_create_neighbor_list(self, bad_index=BAD_INDEX_VALUE):
-        """Create list of neighbor node IDs.
-
-        Creates a list of IDs of neighbor nodes for each node, as a
-        2D array. Only record neighbor nodes that are on the other end of an
-        *active* link. Nodes attached to *inactive* links or neighbor nodes
-        that would be outside of the grid are given an ID of
-        :const:`~landlab.grid.base.BAD_INDEX_VALUE`.
-
-        Neighbors are ordered as [*right*, *top*, *left*, *bottom*].
-        """
-        # assert(self.neighbor_list_created == False)
-        # this method can now be called to create multiple neighbor lists with
-        # different BAD_INDEX_VALUES
-        # note self.nieghbor_nodes is no longer created... but nobody should be
-        # calling it direct anyway.
-
-        neighbor_nodes = sgrid.neighbor_node_array(
-            self.shape,
-            closed_boundary_nodes=self.closed_boundary_nodes,
-            open_boundary_nodes=self.open_boundary_nodes,
-            inactive=bad_index,
-        ).T
-
-        self.neighbor_list_created = True
-        return neighbor_nodes
-
     @deprecated(use="node_has_boundary_neighbor", version=1.0)
     def has_boundary_neighbor(self, ids, method="d8"):
         """
