@@ -181,7 +181,7 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
 
             else:
                 # non-existant links are coded with -1
-                useable_recievers = np.where(reciever != BAD_INDEX_VALUE)[0]
+                useable_receivers = np.where(reciever != BAD_INDEX_VALUE)[0]
 
                 # we will have the stream flow to the downstream node with the
                 # shortest distance to the outlet.
@@ -190,12 +190,12 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
                 # get the flow distances of the downstream nodes
                 potential_downstream_stream_lengths = flow__distance[
                     flow__receiver_node[node]
-                ][useable_recievers]
+                ][useable_receivers]
 
                 # get the stream segment lengths from this node to its downstream
                 # neighbor
                 potential_stream_increment_lengths = flow_link_lengths[node][
-                    useable_recievers
+                    useable_receivers
                 ]
 
                 # get the lowest downstream stream length.
