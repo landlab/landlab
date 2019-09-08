@@ -131,11 +131,9 @@ class TaylorNonLinearDiffuser(Component):
 
     _name = "TaylorNonLinearDiffuser"
 
-    _input_var_names = set(("topographic__elevation",))
+    _input_var_names = ("topographic__elevation",)
 
-    _output_var_names = set(
-        ("soil__flux", "topographic__slope", "topographic__elevation")
-    )
+    _output_var_names = ("soil__flux", "topographic__slope", "topographic__elevation")
 
     _var_units = {
         "topographic__elevation": "m",
@@ -183,10 +181,7 @@ class TaylorNonLinearDiffuser(Component):
         # Create fields:
 
         # elevation
-        if "topographic__elevation" in self._grid.at_node:
-            self._elev = self._grid.at_node["topographic__elevation"]
-        else:
-            self._elev = self._grid.add_zeros("node", "topographic__elevation")
+        self._elev = self._grid.at_node["topographic__elevation"]
 
         # slope gradient
         if "topographic__slope" in self._grid.at_link:

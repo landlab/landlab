@@ -13,7 +13,7 @@ Created on Fri Feb 20 09:32:27 2015
 
 import numpy as np
 
-from landlab import FIXED_LINK, INACTIVE_LINK, Component, FieldError, RasterModelGrid
+from landlab import FIXED_LINK, INACTIVE_LINK, Component, RasterModelGrid
 
 
 class PotentialityFlowRouter(Component):
@@ -165,21 +165,10 @@ class PotentialityFlowRouter(Component):
         else:
             self._route_on_diagonals = False
 
-        # hacky fix because water__discharge is defined on both links and nodes
         for out_field in self._output_var_names:
-            if self._var_mapping[out_field] == "node":
-                try:
-                    self._grid.add_zeros(
-                        self._var_mapping[out_field], out_field, dtype=float
-                    )
-                except FieldError:
-                    pass
-            else:
-                pass
-            try:
-                self._grid.add_zeros("node", "surface_water__discharge", dtype=float)
-            except FieldError:
-                pass
+            at = self._var_mapping[out_field]
+            if out_field not in self._grid[at]:
+                self._grid.add_zeros(at, out_field, dtype=float)
 
         if self._raster:
             self._equiv_circ_diam = 2.0 * np.sqrt(grid.dx * grid.dy / np.pi)

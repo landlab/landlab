@@ -84,9 +84,9 @@ class PrecipitationDistribution(Component):
 
     _name = "PrecipitationDistribution"
 
-    _input_var_names = tuple()
+    _input_var_names = ()
 
-    _output_var_names = tuple()
+    _output_var_names = ()
 
     _optional_var_names = ("rainfall__flux",)
 

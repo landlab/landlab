@@ -166,10 +166,9 @@ class DepthDependentDiffuser(Component):
 
         # create fields
         # elevation
-        if "topographic__elevation" in self._grid.at_node:
-            self._elev = self._grid.at_node["topographic__elevation"]
-        else:
-            self._elev = self._grid.add_zeros("node", "topographic__elevation")
+        self._elev = self._grid.at_node["topographic__elevation"]
+        self._depth = self._grid.at_node["soil__depth"]
+        self._soil_prod_rate = self._grid.at_node["soil_production__rate"]
 
         # slope
         if "topographic__slope" in self._grid.at_link:
@@ -177,23 +176,11 @@ class DepthDependentDiffuser(Component):
         else:
             self._slope = self._grid.add_zeros("link", "topographic__slope")
 
-        # soil depth
-        if "soil__depth" in self._grid.at_node:
-            self._depth = self._grid.at_node["soil__depth"]
-        else:
-            self._depth = self._grid.add_zeros("node", "soil__depth")
-
         # soil flux
         if "soil__flux" in self._grid.at_link:
             self._flux = self._grid.at_link["soil__flux"]
         else:
             self._flux = self._grid.add_zeros("link", "soil__flux")
-
-        # weathering rate
-        if "soil_production__rate" in self._grid.at_node:
-            self._soil_prod_rate = self._grid.at_node["soil_production__rate"]
-        else:
-            self._soil_prod_rate = self._grid.add_zeros("node", "soil_production__rate")
 
         # bedrock elevation
         if "bedrock__elevation" in self._grid.at_node:

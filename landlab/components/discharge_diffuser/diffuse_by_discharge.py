@@ -156,6 +156,7 @@ class DischargeDiffuser(Component):
                 self._grid.add_zeros("node", "surface_water__discharge", dtype=float)
             except FieldError:
                 pass
+
         ni = grid.number_of_node_rows
         nj = grid.number_of_node_columns
 

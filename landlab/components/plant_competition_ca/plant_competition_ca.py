@@ -188,14 +188,10 @@ class VegCA(Component):
 
         assert_method_is_valid(self._method)
 
-        if "vegetation__plant_functional_type" not in self._grid.at_cell:
-            grid["cell"]["vegetation__plant_functional_type"] = np.random.randint(
-                0, 6, grid.number_of_cells
-            )
-
-        for name in self._input_var_names:
-            if name not in self._grid.at_cell:
-                self._grid.add_zeros("cell", name, units=self._var_units[name])
+        # if "vegetation__plant_functional_type" not in self._grid.at_cell:
+        #     grid["cell"]["vegetation__plant_functional_type"] = np.random.randint(
+        #         0, 6, grid.number_of_cells
+        #     )
 
         for name in self._output_var_names:
             if name not in self._grid.at_cell:

@@ -78,10 +78,7 @@ class ExponentialWeatherer(Component):
 
         # Create fields:
         # soil depth
-        if "soil__depth" in grid.at_node:
-            self._depth = grid.at_node["soil__depth"]
-        else:
-            self._depth = grid.add_zeros("node", "soil__depth")
+        self._depth = grid.at_node["soil__depth"]
 
         # weathering rate
         if "soil_production__rate" in grid.at_node:

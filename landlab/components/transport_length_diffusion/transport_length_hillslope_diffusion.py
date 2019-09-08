@@ -87,20 +87,20 @@ class TransportLengthHillslopeDiffuser(Component):
 
     _name = "TransportLengthHillslopeDiffuser"
 
-    _input_var_names = set(
-        ("topographic__elevation", "flow__receiver_node", "topographic__steepest_slope")
+    _input_var_names = (
+        "topographic__elevation",
+        "flow__receiver_node",
+        "topographic__steepest_slope",
     )
 
-    _output_var_names = set(
-        (
-            "topographic__elevation",
-            "sediment__deposition_rate",
-            "sediment__transfer_rate",
-            "sediment__deposition_coeff",
-            "sediment__flux_in",
-            "sediment__flux_out",
-            "sediment__erosion_rate",
-        )
+    _output_var_names = (
+        "topographic__elevation",
+        "sediment__deposition_rate",
+        "sediment__transfer_rate",
+        "sediment__deposition_coeff",
+        "sediment__flux_in",
+        "sediment__flux_out",
+        "sediment__erosion_rate",
     )
 
     _var_units = {
@@ -174,10 +174,13 @@ class TransportLengthHillslopeDiffuser(Component):
 
         # Create fields:
         # Elevation
-        if "topographic__elevation" in self._grid.at_node:
-            self._elev = self._grid.at_node["topographic__elevation"]
-        else:
-            self._elev = self._grid.add_zeros("node", "topographic__elevation")
+        self._elev = self._grid.at_node["topographic__elevation"]
+
+        # Downstream steepest slope at node:
+        self._steepest = self._grid.at_node["topographic__steepest_slope"]
+        # On each node, node ID of downstream receiver node
+        # (on node (i), ID of node that receives flow from node (i)):
+        self._receiver = self._grid.at_node["flow__receiver_node"]
 
         # Deposition
         if "sediment__deposition_rate" in self._grid.at_node:
@@ -230,12 +233,6 @@ class TransportLengthHillslopeDiffuser(Component):
         self._depo[:] = 0.0
         self._trans[:] = 0.0
         self._flux_in[:] = 0.0
-
-        # Downstream steepest slope at node:
-        self._steepest = self._grid.at_node["topographic__steepest_slope"]
-        # On each node, node ID of downstream receiver node
-        # (on node (i), ID of node that receives flow from node (i)):
-        self._receiver = self._grid.at_node["flow__receiver_node"]
 
         dx = self._grid.dx
         cores = self._grid.core_nodes

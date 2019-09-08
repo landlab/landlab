@@ -234,20 +234,9 @@ class OverlandFlow(Component):
         except FieldError:
             self._h_links = grid.at_link["surface_water__depth"]
             self._h_links.fill(0.0)
-
         self._h_links += self._h_init
 
-        try:
-            self._h = grid.add_zeros(
-                "surface_water__depth",
-                at="node",
-                units=self._var_units["surface_water__depth"],
-            )
-
-        except FieldError:
-            # Field was already set
-            self._h = grid.at_node["surface_water__depth"]
-
+        self._h = grid.at_node["surface_water__depth"]
         self._h += self._h_init
 
         # For water surface slopes at links

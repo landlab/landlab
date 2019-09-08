@@ -221,11 +221,6 @@ class LinearDiffuser(Component):
 
         self._values_to_diffuse = "topographic__elevation"
 
-        # Raise an error if somehow someone is using this weird functionality
-        if self._grid is None:
-            raise ValueError("You must now provide an existing grid!")
-        # ###
-
         # Set internal time step
         # ..todo:
         #   implement mechanism to compute time-steps dynamically if grid is

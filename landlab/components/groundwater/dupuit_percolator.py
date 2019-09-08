@@ -47,16 +47,14 @@ class GroundwaterDupuitPercolator(Component):
 
     _name = "GroundwaterDupuitPercolator"
 
-    _input_var_names = set(("topographic__elevation", "aquifer_base__elevation"))
+    _input_var_names = ("topographic__elevation", "aquifer_base__elevation")
 
-    _output_var_names = set(
-        (
-            "aquifer__thickness",
-            "water_table__elevation",
-            "hydraulic__gradient",
-            "groundwater__specific_discharge",
-            "groundwater__velocity",
-        )
+    _output_var_names = (
+        "aquifer__thickness",
+        "water_table__elevation",
+        "hydraulic__gradient",
+        "groundwater__specific_discharge",
+        "groundwater__velocity",
     )
 
     _var_units = {

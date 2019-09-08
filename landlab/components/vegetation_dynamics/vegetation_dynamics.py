@@ -275,10 +275,6 @@ class Vegetation(Component):
             kws_bare=kws_bare,
         )
 
-        for name in self._input_var_names:
-            if name not in self._grid.at_cell:
-                self._grid.add_zeros("cell", name, units=self._var_units[name])
-
         for name in self._output_var_names:
             if name not in self._grid.at_cell:
                 self._grid.add_zeros("cell", name, units=self._var_units[name])
