@@ -390,11 +390,7 @@ class LandslideProbability(Component):
             self._interpolate_HSD_dict()
 
         # Check if all output fields are initialized
-        for name in self._output_var_names:
-            if name not in self._grid.at_node:
-                self._grid.add_zeros(
-                    name, at=self._var_mapping[name], units=self._var_units[name]
-                )
+        self._initialize_output_fields_with_zero_floats()
 
         # Create a switch to imply whether Ksat is provided.
         if np.all(self._grid.at_node["soil__saturated_hydraulic_conductivity"] == 0):

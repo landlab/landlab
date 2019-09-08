@@ -211,9 +211,7 @@ class Flexure1D(Component):
         self.gravity = gravity
         self.eet = eet
 
-        for name in self._output_var_names:
-            if name not in self._grid.at_node:
-                self._grid.add_zeros(name, units=self._var_units[name], at="node")
+        self._initialize_output_fields_with_zero_floats()
 
         self._rows = (rows,) or Ellipsis
 

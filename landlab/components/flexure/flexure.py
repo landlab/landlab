@@ -190,9 +190,7 @@ class Flexure(Component):
         self._gravity = gravity
         self.eet = eet
 
-        for name in self._output_var_names:
-            if name not in self._grid.at_node:
-                self._grid.add_zeros("node", name, units=self._var_units[name])
+        self._initialize_output_fields_with_zero_floats()
 
         self._r = self._create_kei_func_grid(
             self._grid.shape, (self._grid.dy, self._grid.dx), self.alpha

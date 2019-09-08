@@ -105,12 +105,11 @@ class Component(object):
                     )
                 )
 
-        # # Check if all output fields are initialized
-        # for name in self._output_var_names:
-        #     if name not in self._grid.at_node:
-        #         self._grid.add_zeros(
-        #             name, at=self._var_mapping[name], units=self._var_units[name]
-        #         )
+    def _initialize_output_fields_with_zero_floats(self):
+        for name in self._output_var_names:
+            at = self._var_mapping[name]
+            if name not in self._grid[at]:
+                self._grid.add_zeros(name, at=at, units=self._var_units[name])
 
     @classmethod
     def from_path(cls, grid, path):

@@ -143,9 +143,7 @@ class Radiation(Component):
 
         _assert_method_is_valid(self._method)
 
-        for name in self._output_var_names:
-            if name not in self._grid.at_cell:
-                self._grid.add_zeros(name, at="cell", units=self._var_units[name])
+        self._initialize_output_fields_with_zero_floats()
 
         if "Slope" not in self._grid.at_cell:
             self._grid.add_zeros("Slope", at="cell", units="radians")
