@@ -13,7 +13,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from landlab import CLOSED_BOUNDARY, RadialModelGrid, RasterModelGrid
+from landlab import RadialModelGrid, RasterModelGrid
 from landlab.components.flow_routing import FlowRouter
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -184,9 +184,9 @@ def test_voronoi():
     """Test routing on a (radial) voronoi."""
     vmg = RadialModelGrid(n_rings=2, nodes_in_first_ring=3)
     z = np.full(20, 10.0, dtype=float)
-    # vmg.status_at_node[8:] = CLOSED_BOUNDARY
+    # vmg.status_at_node[8:] = vmg.BC_NODE_IS_CLOSED
     all_bounds_but_one = np.array((0, 1, 2, 3, 4, 7, 11, 15, 16, 17, 18, 19))
-    vmg.status_at_node[all_bounds_but_one] = CLOSED_BOUNDARY
+    vmg.status_at_node[all_bounds_but_one] = vmg.BC_NODE_IS_CLOSED
     # z[7] = 0.  # outlet
     z[12] = 0.0  # outlet
     # inner_elevs = (3., 1., 4., 5., 6., 7., 8.)
@@ -232,8 +232,8 @@ def test_voronoi_closedinternal():
     vmg = RadialModelGrid(n_rings=2, nodes_in_first_ring=3)
     z = np.full(20, 10.0, dtype=float)
     all_bounds_but_one = np.array((0, 1, 2, 3, 4, 7, 11, 15, 16, 17, 18, 19))
-    vmg.status_at_node[all_bounds_but_one] = CLOSED_BOUNDARY
-    vmg.status_at_node[8] = CLOSED_BOUNDARY  # new internal closed
+    vmg.status_at_node[all_bounds_but_one] = vmg.BC_NODE_IS_CLOSED
+    vmg.status_at_node[8] = vmg.BC_NODE_IS_CLOSED # new internal closed
     z[12] = 0.0  # outlet
     inner_elevs = (8.0, 7.0, 1.0, 6.0, 4.0, 5.0)
     z[vmg.core_nodes] = np.array(inner_elevs)
