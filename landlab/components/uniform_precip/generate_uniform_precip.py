@@ -195,12 +195,6 @@ class PrecipitationDistribution(Component):
         """
         return self._storm_depth
 
-    @property
-    def intensity(self):
-        """ TODO
-        """
-        return self._intensity
-
     def update(self):
         """Update the storm values.
 
