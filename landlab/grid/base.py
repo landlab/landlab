@@ -1096,54 +1096,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
     @property
     @make_return_array_immutable
-    def node_x(self):
-        """Get array of the x-coordinates of nodes.
-
-        See also
-        --------
-        x_of_node
-            Exquivalent method.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
-        >>> mg.node_x.reshape((4, 5))
-        array([[  0.,   3.,   6.,   9.,  12.],
-               [  0.,   3.,   6.,   9.,  12.],
-               [  0.,   3.,   6.,   9.,  12.],
-               [  0.,   3.,   6.,   9.,  12.]])
-
-        LLCATS: NINF MEAS
-        """
-        return self.x_of_node
-
-    @property
-    @make_return_array_immutable
-    def node_y(self):
-        """Get array of the y-coordinates of nodes.
-
-        See also
-        --------
-        y_of_node
-            Exquivalent method.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
-        >>> mg.node_y.reshape((4, 5))
-        array([[ 0.,  0.,  0.,  0.,  0.],
-               [ 2.,  2.,  2.,  2.,  2.],
-               [ 4.,  4.,  4.,  4.,  4.],
-               [ 6.,  6.,  6.,  6.,  6.]])
-
-        LLCATS: NINF MEAS
-        """
-        return self.y_of_node
-
-    @property
-    @make_return_array_immutable
     def x_of_cell(self):
         """Get array of the x-coordinates of nodes at cells.
 
