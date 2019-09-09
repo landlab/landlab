@@ -1567,42 +1567,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         else:
             return big_ordered_array
 
-    def number_of_faces_at_cell(self):
-        """Number of faces attached to each cell.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid((3, 3))
-        >>> hg.number_of_faces_at_cell()
-        array([6, 6])
-
-        LLCATS: FINF CINF CONN
-        """
-        num_faces_at_cell = np.zeros(self.number_of_cells, dtype=np.int)
-        node_at_link_tail = self.node_at_link_tail
-        node_at_link_head = self.node_at_link_head
-        for ln in range(self.number_of_links):
-            cell = self.cell_at_node[node_at_link_tail[ln]]
-            if cell != BAD_INDEX_VALUE:
-                num_faces_at_cell[cell] += 1
-            cell = self.cell_at_node[node_at_link_head[ln]]
-            if cell != BAD_INDEX_VALUE:
-                num_faces_at_cell[cell] += 1
-        return num_faces_at_cell
-
-    def _sort_faces_at_cell_by_angle(self):
-        """Sort the faces_at_cell array by angle.
-
-        Assumes links_at_node and link_dirs_at_node created.
-        """
-        for cell in range(self.number_of_cells):
-            sorted_links = self.links_at_node[self.node_at_cell[cell], :]
-            sorted_faces = self._faces_at_cell[cell, :] = self.face_at_link[
-                sorted_links
-            ]
-            self._faces_at_cell[cell, :] = sorted_faces
-
     @property
     @make_return_array_immutable
     def patches_present_at_node(self):
