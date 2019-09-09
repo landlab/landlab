@@ -946,55 +946,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         return self.cell_at_node[self.core_nodes]
 
     @property
-    def nodes_at_link(self):
-        """Get array of the nodes at each link.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((3, 4))
-        >>> mg.nodes_at_link # doctest: +NORMALIZE_WHITESPACE
-        array([[ 0, 1], [ 1,  2], [ 2,  3],
-               [ 0, 4], [ 1,  5], [ 2,  6], [ 3,  7],
-               [ 4, 5], [ 5,  6], [ 6,  7],
-               [ 4, 8], [ 5,  9], [ 6, 10], [ 7, 11],
-               [ 8, 9], [ 9, 10], [10, 11]])
-
-        LLCATS: NINF LINF CONN
-        """
-        return self._nodes_at_link
-
-    @property
-    def node_at_link_head(self):
-        """Get array of the node at each link head (*to-node*).
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5))
-        >>> mg.node_at_link_head[:5]
-        array([1, 2, 3, 4, 5])
-
-        LLCATS: NINF LINF CONN
-        """
-        return self._nodes_at_link[:, 1]
-
-    @property
-    def node_at_link_tail(self):
-        """Get array of the node at each link tail (*from-node*).
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5))
-        >>> mg.node_at_link_tail[:5]
-        array([0, 1, 2, 3, 0])
-
-        LLCATS: NINF LINF CONN
-        """
-        return self._nodes_at_link[:, 0]
-
-    @property
     def number_of_nodes(self):
         """Total number of nodes.
 
