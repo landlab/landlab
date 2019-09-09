@@ -2985,49 +2985,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         return self._all_node_distances_map, self._all_node_azimuths_map
 
-    def move_origin(self, origin):
-        """Changes the x and y coordinate values of all nodes.
-
-        Initially a grid will have an origin of 0,0, and all x,y values will be
-        relative to 0,0.  This will move origin a new location.
-
-        Note this is most likely useful when importing a DEM that has an
-        absolute location, however it can be used generally.
-
-        As with initializing the grid, *origin* is specified as (x, y).
-
-        Parameters
-        ----------
-        origin : list of two float values, can be negative.
-            [x, y], where x is the new x value for the origin and y is the new
-            y value for the origin.
-
-        Examples
-        --------
-        >>> import pytest
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 3))
-        >>> rmg.x_of_node
-        array([ 0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.,  0.,  1.,  2.])
-        >>> rmg.y_of_node
-        array([ 0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.])
-        >>> rmg.move_origin((5., 1.5))
-        >>> rmg.x_of_node
-        array([ 5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.,  5.,  6.,  7.])
-        >>> rmg.y_of_node
-        array([ 1.5,  1.5,  1.5,  2.5,  2.5,  2.5,  3.5,  3.5,  3.5,  4.5,  4.5,
-        4.5])
-
-        LLCATS: GINF MEAS
-        """
-        self.xy_of_lower_left = origin
-        # for dim, attr in enumerate(('y_of_node', 'x_of_node')):
-        #     x = getattr(self, attr)
-        #     x.flags.writeable = True
-        #     x += origin[dim]
-        #     x.flags.writeable = False
-        # del self.__dict__['_xy_of_node']
-
     # def node_has_boundary_neighbor(self, ids):
     def node_has_boundary_neighbor(self):
         """Check if ModelGrid nodes have neighbors that are boundary nodes.
