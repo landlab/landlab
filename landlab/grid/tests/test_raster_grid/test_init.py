@@ -226,14 +226,6 @@ def test_diagonal_list_boundary():
     assert np.all(rmg.diagonal_adjacent_nodes_at_node[0] == np.array([6, X, X, X]))
 
 
-def test_node_is_core():
-    rmg = RasterModelGrid((4, 5))
-    for cell_id in [0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 16, 17, 18, 19]:
-        assert not rmg.node_is_core(cell_id)
-    for cell_id in [6, 7, 8, 11, 12, 13]:
-        assert rmg.node_is_core(cell_id)
-
-
 def test_get_interior_cells():
     rmg = RasterModelGrid((4, 5), xy_spacing=1.0)
     assert np.all(rmg.node_at_core_cell == np.array([6, 7, 8, 11, 12, 13]))
