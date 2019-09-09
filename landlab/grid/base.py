@@ -1943,23 +1943,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         return np.array([active_link])
 
     @property
-    @make_return_array_immutable
-    def area_of_cell(self):
-        """Get areas of grid cells.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5), xy_spacing=(2, 3))
-        >>> grid.area_of_cell # doctest: +NORMALIZE_WHITESPACE
-        array([ 6.,  6.,  6.,
-                6.,  6.,  6.])
-
-        LLCATS: CINF MEAS
-        """
-        return self._area_of_cell
-
-    @property
     @deprecated(use="length_of_link", version=1.0)
     def link_length(self):
         """
