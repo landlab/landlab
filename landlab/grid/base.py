@@ -1990,28 +1990,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
                     fv[i] = u[tonode[i]]
         return fv
 
-    def _reset_link_status_list(self):
-        """Create of reset a list of links statuses.
-
-        Creates or resets a list of link statuses. We do this by sweeping
-        through the given lists of from and to nodes, and checking the status
-        of these as given in the node_status list. A link is active if both its
-        nodes are core, or if one is core and the other is fixed value.
-        A link is inactive if either node is closed.
-        A link is fixed if either node is fixed gradient.
-
-        Note that by default, any link which has been previously set as fixed
-        will remain so, and if a closed-core node pair is found at each of its
-        ends, the closed node will be converted to a fixed gradient node. If
-        you want to close a node which has a fixed link already connected to
-        it, first change the link status to inactive.
-
-        A further test is performed to ensure that the final maps of node and
-        link status are internally consistent.
-        """
-        self._activelink_fromnode = self.node_at_link_tail[self.active_links]
-        self._activelink_tonode = self.node_at_link_head[self.active_links]
-
     def reset_status_at_node(self):
         attrs = [
             "_active_link_dirs_at_node",
