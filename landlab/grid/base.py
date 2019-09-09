@@ -522,36 +522,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
     @property
     @make_return_array_immutable
-    def links_at_node(self):
-        """Get links of nodes.
-
-        Returns
-        -------
-        (NODES, LINKS) ndarray of int
-            Link for the nodes of a grid. The shape of the matrix will be
-            number of nodes rows by max number of links per node. Order is
-            anticlockwise from east.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 3))
-        >>> grid.links_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([[ 0,  2, -1, -1], [ 1,  3,  0, -1], [-1,  4,  1, -1],
-               [ 5,  7, -1,  2], [ 6,  8,  5,  3], [-1,  9,  6,  4],
-               [10, 12, -1,  7], [11, 13, 10,  8], [-1, 14, 11,  9],
-               [15, -1, -1, 12], [16, -1, 15, 13], [-1, -1, 16, 14]])
-        >>> grid.links_at_node[4]
-        array([6, 8, 5, 3])
-        >>> grid.links_at_node[(4, 7), :]
-        array([[ 6,  8,  5,  3], [11, 13, 10, 8]])
-
-        LLCATS: NINF LINF CONN
-        """
-        return self._links_at_node
-
-    @property
-    @make_return_array_immutable
     @cache_result_in_object()
     def active_link_dirs_at_node(self):
         """
