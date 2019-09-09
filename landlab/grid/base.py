@@ -1567,37 +1567,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         else:
             return big_ordered_array
 
-    @property
-    def REMOVE_faces_at_cell(self):
-        """Return array containing face IDs at each cell.
-
-        Creates array if it doesn't already exist.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid, RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5))
-        >>> mg.faces_at_cell
-        array([[ 4,  7,  3,  0],
-               [ 5,  8,  4,  1],
-               [ 6,  9,  5,  2],
-               [11, 14, 10,  7],
-               [12, 15, 11,  8],
-               [13, 16, 12,  9]])
-        >>> mg = HexModelGrid((3, 4))
-        >>> mg.faces_at_cell
-        array([[ 7, 11, 10,  6,  0,  1],
-               [ 8, 13, 12,  7,  2,  3],
-               [ 9, 15, 14,  8,  4,  5]])
-
-        LLCATS: FINF CINF CONN
-        """
-        try:
-            return self._faces_at_cell
-        except AttributeError:
-            self._create_faces_at_cell()
-            return self._faces_at_cell
-
     def number_of_faces_at_cell(self):
         """Number of faces attached to each cell.
 
