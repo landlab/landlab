@@ -14,9 +14,10 @@ from landlab.components.flow_accum import FlowAccumulator
 from .node_finder import node_finder
 
 # Hard coded constants
-cfl_cond = 0.3 #CFL timestep condition
+cfl_cond = 0.3  # CFL timestep condition
 wid_coeff = 0.4  # coefficient for calculating channel width
 wid_exp = 0.35  # exponent for calculating channel width
+
 
 class LateralEroder(Component):
     """
@@ -154,7 +155,7 @@ class LateralEroder(Component):
 
 
     After lateral erosion at node 6, elevation at node 6 is reduced by -1.41
-    (the height stored in dzlat[6]).
+    (the elevation change stored in dzlat[6]).
 
     >>> np.around(oldelev, decimals=2)
     array([ 0.  ,  1.03,  2.03,  3.  ,
@@ -195,7 +196,7 @@ class LateralEroder(Component):
         "flow__receiver_node": "-",
         "flow__upstream_node_order": "-",
         "topographic__steepest_slope": "-",
-        "dzlat": "m/y",
+        "dzlat": "m",
         "vollat": "m3",
         "qs_in": "m3/y",
     }
@@ -230,7 +231,8 @@ class LateralEroder(Component):
         flow_accumulator=None,
     ):
 
-        assert isinstance(grid, RasterModelGrid), "LateralEroder requires a sqare raster grid."
+        assert isinstance(
+            grid, RasterModelGrid), "LateralEroder requires a sqare raster grid."
 
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
@@ -301,7 +303,6 @@ class LateralEroder(Component):
         self._alph = alph
         self._Kv = Kv  # can be overwritten with spatially variable
         self._Klr = float(Kl_ratio)  # default ratio of Kv/Kl is 1. Can be overwritten
-
 
         self._dzdt = grid.add_zeros(
             "dzdt", at="node", noclobber=False
@@ -455,7 +456,7 @@ class LateralEroder(Component):
                         # after the lateral node is eroded, reset its volume eroded to
                         # zero
                         vol_lat[lat_node] = 0.0
-        # combine vertical and lateral erosion
+        # combine vertical and lateral erosion.
         dz = dzdt + dzlat
         # change height of landscape
         z[:] += dz
@@ -614,14 +615,14 @@ class LateralEroder(Component):
                             # to zero
                             vol_lat[lat_node] = 0.0
 
-            # multiply dzver(changed to dzdt above) by timestep size and combine with lateral erosion
-            # dzlat, which is already a length for the chosen time step
+            # multiply dzdt by timestep size and combine with lateral erosion
+            # dzlat, which is already a length for the calculated time step
             dz = dzdt * dt + dzlat
             # change height of landscape
             z[:] += dz
             # update elapsed time
             time = dt + time
-            # check to see that you are within 0.01% of the storm duration, if so
+            # check to see that you are within 0.01% of the global timestep, if so
             # done, if not continue
 
             if time > 0.9999 * globdt:
@@ -635,15 +636,13 @@ class LateralEroder(Component):
                 (da, q) = self._flow_accumulator.accumulate_flow()
 
                 if inlet_on:
-                    #                   #if inlet on, reset drainage area and qsin to reflect inlet conditions
-                    # this is the drainage area that I need for code below with an inlet
+                    # if inlet on, reset drainage area and qsin to reflect inlet conditions
+                    # this is the drainage area needed for code below with an inlet
                     # set by spatially varible runoff.
                     da = q / grid.dx ** 2
                     qs_in[inlet_node] = qsinlet
                 else:
-                    # otherwise, drainage area is just drainage area. *** could remove the
-                    # below line to speed up model. It's not really necessary.
-                    # renamed this drainage area set by flow router
+                    # otherwise, drainage area is just drainage area.
                     da = grid.at_node["drainage_area"]
                 s = grid.at_node["flow__upstream_node_order"]
                 max_slopes = grid.at_node["topographic__steepest_slope"]
