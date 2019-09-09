@@ -1298,20 +1298,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             self._angle_of_link_bothends[dirs] = ang.copy()
         self._angle_of_link_created = True
 
-    def _sort_links_at_node_by_angle(self):
-        """Sort the links_at_node and link_dirs_at_node arrays by angle.
-        """
-        ang = self.angle_of_link[self.links_at_node]
-        linkhead_at_node = self.link_dirs_at_node == 1
-        ang[linkhead_at_node] = self.angle_of_link_about_head[
-            self.links_at_node[linkhead_at_node]
-        ]
-        ang[self.link_dirs_at_node == 0] = 100.0
-        argsorted = np.argsort(ang, axis=1)
-        indices = np.indices(ang.shape)[0] * ang.shape[1] + argsorted
-        self._links_at_node.flat = self._links_at_node.flat[indices.flatten()]
-        self._link_dirs_at_node.flat = self._link_dirs_at_node.flat[indices.flatten()]
-
     def resolve_values_on_links(self, link_values, out=None):
         """Resolve the xy-components of links.
 
