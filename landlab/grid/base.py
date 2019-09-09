@@ -2215,27 +2215,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         """
         return np.max(node_data[self.nodes_at_link[self.active_links]], axis=1)
 
-    def _calc_numbers_of_node_neighbors(self):
-        """Number of neighbor nodes.
-
-        Calculates the number of neighboring nodes for each node, and returns
-        the result as a 1D numpy array. Used to find the maximum number of
-        neighbors, so that inlink and outlink matrices can be dimensioned
-        accordingly. Assumes that self.number_of_nodes, self.node_at_link_tail,
-        and self.node_at_link_head have already been set up.
-
-        Algorithm works by simply looping through all links; for each, the
-        endpoints are neighbors of one another, so we increment the number of
-        neighbors for both the endpoint nodes.
-        """
-        num_nbrs = np.zeros(self.number_of_nodes, dtype=int)
-        node_at_link_tail = self.node_at_link_tail
-        node_at_link_head = self.node_at_link_head
-        for link in range(self.number_of_links):
-            num_nbrs[node_at_link_tail[link]] += 1
-            num_nbrs[node_at_link_head[link]] += 1
-        return num_nbrs
-
     def _create_link_unit_vectors(self):
         """Make arrays to store the unit vectors associated with each link.
 
