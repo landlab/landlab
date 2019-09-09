@@ -1942,14 +1942,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
                 break
         return np.array([active_link])
 
-    @property
-    @deprecated(use="length_of_link", version=1.0)
-    def link_length(self):
-        """
-        LLCATS: DEPR LINF MEAS
-        """
-        return self.length_of_link
-
     @deprecated(use="map_max_of_link_nodes_to_link", version=1.0)
     def _assign_upslope_vals_to_active_links(self, u, v=None):
         """Assign upslope node value to link.
