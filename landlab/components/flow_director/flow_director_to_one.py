@@ -6,8 +6,6 @@ FlowDirectors.
 Provides the _FlowDirectorToOne component which makes sure all model
 grid fields are set up correctly.
 """
-import numpy
-
 from landlab import BAD_INDEX_VALUE
 from landlab.components.flow_director.flow_director import _FlowDirector
 
