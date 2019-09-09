@@ -205,7 +205,7 @@ def test_flow__distance_irregular_grid_d4():
 
     # setting boundary conditions
 
-    hmg.set_closed_nodes(hmg.boundary_nodes)
+    hmg.status_at_node[hmg.boundary_nodes] = hmg.BC_NODE_IS_CLOSED
 
     # calculating flow directions with FlowAccumulator component: D4 algorithm
 

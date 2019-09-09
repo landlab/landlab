@@ -1,11 +1,13 @@
 import numpy as np
 
 from landlab import RasterModelGrid
-from landlab.components.overland_flow.generate_overland_flow_deAlmeida import _active_links_at_node
+from landlab.components.overland_flow.generate_overland_flow_deAlmeida import (
+    _active_links_at_node,
+)
 
 
 def test_active_links_at_node_scalar_interior():
-    grid = RasterModelGrid((4, 5), xy_spacing=1.)
+    grid = RasterModelGrid((4, 5), xy_spacing=1.0)
     assert np.all(_active_links_at_node(grid, [6]) == np.array([[5, 9, 14, 10]]).T)
 
 
@@ -123,7 +125,7 @@ def test_active_links_at_node_with_no_args():
 
 def test_inactive_interiors():
     grid = RasterModelGrid((4, 5))
-    grid.set_closed_nodes([6, 12])
+    grid.status_at_node[(6, 12),] = hmg.BC_NODE_IS_CLOSED
     np.all(
         _active_links_at_node(grid)
         == np.array(
@@ -217,5 +219,5 @@ def test_inactive_interiors():
                     -1,
                 ],
             ]
-        ),
+        )
     )

@@ -2676,17 +2676,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         else:
             return self._node_status[ids] == boundary_flag
 
-    @deprecated(use="status_at_node", version=1.0)
-    def set_closed_nodes(self, nodes):
-        """Make nodes closed boundaries.
-
-        Sets the given nodes' boundary condition statuses to CLOSED_BOUNDARY
-        (==4), and resets the list of active links to reflect any changes.
-
-        LLCATS: DEPR NINF BC
-        """
-        self.status_at_node[nodes] = CLOSED_BOUNDARY
-
     def calc_distances_of_nodes_to_point(
         self, coord, get_az=None, node_subset=None, out_distance=None, out_azimuth=None
     ):
