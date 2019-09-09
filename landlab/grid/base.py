@@ -1236,42 +1236,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         """
         return set_status_at_link(self.status_at_node[self.nodes_at_link])
 
-    def _create_number_of_links_at_node(self):
-        """Find and record how many links are attached to each node.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((3, 4))
-        >>> mg.number_of_links_at_node
-        array([2, 3, 3, 2, 3, 4, 4, 3, 2, 3, 3, 2])
-        """
-        self._number_of_links_at_node = np.zeros(self.number_of_nodes, dtype=np.int)
-        node_at_link_tail = self.node_at_link_tail
-        node_at_link_head = self.node_at_link_head
-        for ln in range(self.number_of_links):
-            self._number_of_links_at_node[node_at_link_tail[ln]] += 1
-            self._number_of_links_at_node[node_at_link_head[ln]] += 1
-
-    @property
-    def number_of_links_at_node(self):
-        """Number of links connected to each node.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((3, 4))
-        >>> mg.number_of_links_at_node
-        array([2, 3, 3, 2, 3, 4, 4, 3, 2, 3, 3, 2])
-
-        LLCATS: LINF NINF CONN
-        """
-        try:
-            return self._number_of_links_at_node
-        except AttributeError:
-            self._create_number_of_links_at_node()
-            return self._number_of_links_at_node
-
     def _create_links_and_link_dirs_at_node(self):
         """Make arrays with links and link directions at each node.
 
