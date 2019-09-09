@@ -1236,69 +1236,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         """
         return set_status_at_link(self.status_at_node[self.nodes_at_link])
 
-    def _create_links_and_link_dirs_at_node(self):
-        """Make arrays with links and link directions at each node.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid((3, 3))
-        >>> hg.links_at_node
-        array([[ 0,  3,  2, -1, -1, -1],
-               [ 1,  5,  4,  0, -1, -1],
-               [ 7,  6,  1, -1, -1, -1],
-               [ 8, 11,  2, -1, -1, -1],
-               [ 9, 13, 12,  8,  3,  4],
-               [10, 15, 14,  9,  5,  6],
-               [16, 10,  7, -1, -1, -1],
-               [17, 11, 12, -1, -1, -1],
-               [18, 17, 13, 14, -1, -1],
-               [18, 15, 16, -1, -1, -1]])
-        >>> hg.link_dirs_at_node
-        array([[-1, -1, -1,  0,  0,  0],
-               [-1, -1, -1,  1,  0,  0],
-               [-1, -1,  1,  0,  0,  0],
-               [-1, -1,  1,  0,  0,  0],
-               [-1, -1, -1,  1,  1,  1],
-               [-1, -1, -1,  1,  1,  1],
-               [-1,  1,  1,  0,  0,  0],
-               [-1,  1,  1,  0,  0,  0],
-               [-1,  1,  1,  1,  0,  0],
-               [ 1,  1,  1,  0,  0,  0]], dtype=int8)
-        """
-        # # Find maximum number of links per node
-        # nlpn = self.number_of_links_at_node
-        # # ^this fn should become member and property
-        # max_num_links = np.amax(nlpn)
-        # nlpn[:] = 0  # we'll zero it out, then rebuild it
-
-        # # Create arrays for link-at-node information
-        # self._links_at_node = - np.ones((self.number_of_nodes, max_num_links),
-        #                                 dtype=int)
-        # self._link_dirs_at_node = np.zeros((self.number_of_nodes,
-        #                                     max_num_links), dtype=np.int8)
-
-        # # Sweep over all links
-        # node_at_link_tail = self.node_at_link_tail
-        # node_at_link_head = self.node_at_link_head
-        # for lk in range(self.number_of_links):
-        #     # Find the IDs of the tail and head nodes
-        #     t = node_at_link_tail[lk]
-        #     h = node_at_link_head[lk]
-
-        #     # Add this link to the list for this node, set the direction
-        #     # (outgoing, indicated by -1), and increment the number found so
-        #     # far
-        #     self._links_at_node[t][nlpn[t]] = lk
-        #     self._links_at_node[h][nlpn[h]] = lk
-        #     self._link_dirs_at_node[t][nlpn[t]] = -1
-        #     self._link_dirs_at_node[h][nlpn[h]] = 1
-        #     nlpn[t] += 1
-        #     nlpn[h] += 1
-
-        # # Sort the links at each node by angle, counter-clockwise from +x
-        # self._sort_links_at_node_by_angle()
-
     @property
     @make_return_array_immutable
     @cache_result_in_object()
