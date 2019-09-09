@@ -1603,37 +1603,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             ]
             self._faces_at_cell[cell, :] = sorted_faces
 
-    def REMOVE_create_faces_at_cell(self):
-        """Construct faces_at_cell array.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid((3, 3))
-        >>> # hg._create_faces_at_cell()
-        >>> # hg.xy_of_face, hg.xy_of_cell
-        >>> hg.faces_at_cell
-        array([[ 5,  8,  7,  4,  0,  1],
-               [ 6, 10,  9,  5,  2,  3]])
-        """
-        num_faces = self.number_of_faces_at_cell()
-        self._faces_at_cell = np.zeros(
-            (self.number_of_cells, np.amax(num_faces)), dtype=int
-        )
-        num_faces[:] = 0  # Zero out and count again, to use as index
-        node_at_link_tail = self.node_at_link_tail
-        node_at_link_head = self.node_at_link_head
-        for ln in range(self.number_of_links):
-            cell = self.cell_at_node[node_at_link_tail[ln]]
-            if cell != BAD_INDEX_VALUE:
-                self._faces_at_cell[cell, num_faces[cell]] = self.face_at_link[ln]
-                num_faces[cell] += 1
-            cell = self.cell_at_node[node_at_link_head[ln]]
-            if cell != BAD_INDEX_VALUE:
-                self._faces_at_cell[cell, num_faces[cell]] = self.face_at_link[ln]
-                num_faces[cell] += 1
-        self._sort_faces_at_cell_by_angle()
-
     @property
     @make_return_array_immutable
     def patches_present_at_node(self):
