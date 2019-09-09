@@ -470,28 +470,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         self.reset_status_at_node()
 
     @property
-    @deprecated(use="adjacent_nodes_at_node", version=1.2)
-    @make_return_array_immutable
-    def neighbors_at_node(self):
-        """Get neighboring nodes.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
-        >>> grid = RasterModelGrid((4, 3))
-        >>> neighbors = grid.adjacent_nodes_at_node.copy()
-        >>> neighbors[neighbors == BAD_INDEX_VALUE] = -1
-        >>> neighbors # doctest: +NORMALIZE_WHITESPACE
-        array([[ 1,  3, -1, -1], [ 2,  4,  0, -1], [-1,  5,  1, -1],
-               [ 4,  6, -1,  0], [ 5,  7,  3,  1], [-1,  8,  4,  2],
-               [ 7,  9, -1,  3], [ 8, 10,  6,  4], [-1, 11,  7,  5],
-               [10, -1, -1,  6], [11, -1,  9,  7], [-1, -1, 10,  8]])
-
-        LLCATS: NINF CONN
-        """
-        return self.adjacent_nodes_at_node
-
-    @property
     @cache_result_in_object()
     @make_return_array_immutable
     def adjacent_nodes_at_node(self):
