@@ -1950,54 +1950,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         """
         return self.length_of_link
 
-    @property
-    @cache_result_in_object()
-    def length_of_link(self):
-        """Get lengths of links.
-
-        Returns
-        -------
-        ndarray
-            Lengths of all links, in ID order.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> grid.length_of_link
-        array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
-                1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
-                1.,  1.,  1.,  1.,  1.])
-        >>> len(grid.length_of_link) == grid.number_of_links
-        True
-
-        LLCATS: LINF MEAS
-        """
-        return np.sqrt(
-            np.power(np.diff(self.xy_of_node[self.nodes_at_link], axis=1), 2.0).sum(
-                axis=2
-            )
-        ).flatten()
-
-    def _create_length_of_link(self):
-        """Get array of the lengths of all links.
-
-        Calculates, returns, and stores as a property of the grid the lengths
-        of all the links in the grid.
-        """
-        if self._link_length is None:
-            self._link_length = self.empty(at="link", dtype=float)
-
-        diff_x = (
-            self.node_x[self.node_at_link_tail] - self.node_x[self.node_at_link_head]
-        )
-        diff_y = (
-            self.node_y[self.node_at_link_tail] - self.node_y[self.node_at_link_head]
-        )
-        np.sqrt(diff_x ** 2 + diff_y ** 2, out=self._link_length)
-
-        return self._link_length
-
     @deprecated(use="map_max_of_link_nodes_to_link", version=1.0)
     def _assign_upslope_vals_to_active_links(self, u, v=None):
         """Assign upslope node value to link.
