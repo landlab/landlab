@@ -561,42 +561,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         return self.status_at_link[self.links_at_node]
 
     @property
-    def node_at_cell(self):
-        """Node ID associated with grid cells.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
-        >>> grid = RasterModelGrid((4, 5))
-        >>> grid.node_at_cell # doctest: +NORMALIZE_WHITESPACE
-        array([ 6,  7,  8,
-               11, 12, 13])
-
-        LLCATS: NINF CINF CONN
-        """
-        return self._node_at_cell
-
-    @property
-    def cell_at_node(self):
-        """Node ID associated with grid cells.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
-        >>> grid = RasterModelGrid((4, 5))
-        >>> ids = grid.cell_at_node
-        >>> ids[ids == BAD_INDEX_VALUE] = -1
-        >>> ids # doctest: +NORMALIZE_WHITESPACE
-        array([-1, -1, -1, -1, -1,
-               -1,  0,  1,  2, -1,
-               -1,  3,  4,  5, -1,
-               -1, -1, -1, -1, -1])
-
-        LLCATS: CINF NINF CONN
-        """
-        return self._cell_at_node
-
-    @property
     @return_readonly_id_array
     @cache_result_in_object()
     def core_nodes(self):
