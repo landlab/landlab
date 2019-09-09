@@ -2676,42 +2676,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         else:
             return self._node_status[ids] == boundary_flag
 
-    def _assign_boundary_nodes_to_grid_sides(self):
-        """Assign boundary nodes to a quadrant.
-
-        For each boundary node, determines whether it belongs to the left,
-        right, top or bottom of the grid, based on its distance from the grid's
-        centerpoint (mean (x,y) position). Returns lists of nodes on each of
-        the four grid sides. Assumes self.status_at_node, self.number_of_nodes,
-        self.boundary_nodes, self._node_x, and self._node_y have been
-        initialized.
-
-        Returns
-        -------
-        tuple of array_like
-            Tuple of nodes in each coordinate. Nodes are grouped as
-            (*east*, *north*, *west*, *south*).
-
-        Examples
-        --------
-        >>> import landlab as ll
-        >>> m = ll.HexModelGrid((5, 3), spacing=1.0)
-        >>> [r,t,l,b] = m._assign_boundary_nodes_to_grid_sides()
-        >>> l
-        array([ 7, 12,  3])
-        >>> r
-        array([11, 15,  6])
-        >>> t
-        array([16, 18, 17])
-        >>> b
-        array([0, 2, 1])
-        """
-        # Calculate x and y distance from centerpoint
-        diff_x = self.node_x[self.boundary_nodes] - np.mean(self.node_x)
-        diff_y = self.node_y[self.boundary_nodes] - np.mean(self.node_y)
-
-        return _sort_points_into_quadrants(diff_x, diff_y, self.boundary_nodes)
-
     @deprecated(use="status_at_node", version=1.0)
     def set_closed_nodes(self, nodes):
         """Make nodes closed boundaries.
