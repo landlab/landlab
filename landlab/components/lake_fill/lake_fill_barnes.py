@@ -218,28 +218,32 @@ class LakeMapperBarnes(Component):
         keywords = "Pit filling, Terrain analysis, Hydrology, Drainage network, Modeling, GIS"
         }"""
 
-    _input_var_names = (
-        "topographic__elevation",
-        "drainage_area",
-        "surface_water__discharge",
-        "flow__link_to_receiver_node",
-        "flow__upstream_node_order",
-        "flow__data_structure_delta",
-        "flow__data_structure_D",
-        "flow__receiver_node",
-        "flow__sink_flag",
+    _input_var_names = set(
+        (
+            "topographic__elevation",
+            "drainage_area",
+            "surface_water__discharge",
+            "flow__link_to_receiver_node",
+            "flow__upstream_node_order",
+            "flow__data_structure_delta",
+            "flow__data_structure_D",
+            "flow__receiver_node",
+            "flow__sink_flag",
+        )
     )
 
-    _output_var_names = (
-        "topographic__elevation",
-        "drainage_area",
-        "surface_water__discharge",
-        "flow__link_to_receiver_node",
-        "flow__upstream_node_order",
-        "flow__data_structure_delta",
-        "flow__data_structure_D",
-        "flow__receiver_node",
-        "flow__sink_flag",
+    _output_var_names = set(
+        (
+            "topographic__elevation",
+            "drainage_area",
+            "surface_water__discharge",
+            "flow__link_to_receiver_node",
+            "flow__upstream_node_order",
+            "flow__data_structure_delta",
+            "flow__data_structure_D",
+            "flow__receiver_node",
+            "flow__sink_flag",
+        )
     )
 
     _var_units = {
@@ -439,6 +443,8 @@ class LakeMapperBarnes(Component):
             self._fill_one_node = _fill_one_node_to_flat
         else:
             self._fill_one_node = self._fill_one_node_to_slant
+
+        self._verify_output_fields()
 
     def _fill_one_node_to_slant(
         self, fill_surface, all_neighbors, pitq, openq, closedq, ignore_overfill

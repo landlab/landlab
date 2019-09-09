@@ -186,24 +186,28 @@ class LandslideProbability(Component):
     _name = "Landslide Probability"
     __version__ = "1.0"
     # component requires these values to do its calculation, get from driver
-    _input_var_names = (
-        "topographic__specific_contributing_area",
-        "topographic__slope",
-        "soil__transmissivity",
-        "soil__saturated_hydraulic_conductivity",
-        "soil__mode_total_cohesion",
-        "soil__minimum_total_cohesion",
-        "soil__maximum_total_cohesion",
-        "soil__internal_friction_angle",
-        "soil__density",
-        "soil__thickness",
+    _input_var_names = set(
+        (
+            "topographic__specific_contributing_area",
+            "topographic__slope",
+            "soil__transmissivity",
+            "soil__saturated_hydraulic_conductivity",
+            "soil__mode_total_cohesion",
+            "soil__minimum_total_cohesion",
+            "soil__maximum_total_cohesion",
+            "soil__internal_friction_angle",
+            "soil__density",
+            "soil__thickness",
+        )
     )
 
     #  component creates these output values
-    _output_var_names = (
-        "soil__mean_relative_wetness",
-        "landslide__probability_of_failure",
-        "soil__probability_of_saturation",
+    _output_var_names = set(
+        (
+            "soil__mean_relative_wetness",
+            "landslide__probability_of_failure",
+            "soil__probability_of_saturation",
+        )
     )
 
     # units for each parameter and output
@@ -399,6 +403,7 @@ class LandslideProbability(Component):
             self._Ksat_provided = 1  # True
 
         self._nodal_values = self._grid.at_node
+        self._verify_output_fields()
 
     def calculate_factor_of_safety(self, i):
         """Method to calculate factor of safety.

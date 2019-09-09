@@ -254,9 +254,9 @@ class SpatialPrecipitationDistribution(Component):
         doi={10.5194/gmd-2018-86}
         }"""
 
-    _optional_var_names = ("topographic__elevation",)
+    _optional_var_names = set(("topographic__elevation",))
 
-    _input_var_names = ()
+    _input_var_names = set()
 
     _output_var_names = ("rainfall__flux", "rainfall__total_depth_per_year")
 
@@ -332,6 +332,8 @@ class SpatialPrecipitationDistribution(Component):
         self._open_area = self._grid.cell_area_at_node[open_nodes].sum()
         self._scaling_to_WG = self._open_area / 275710702.0
         # ^ this is the relative size of the catchment compared to WG
+
+        self._verify_output_fields()
 
     def yield_storms(
         self,

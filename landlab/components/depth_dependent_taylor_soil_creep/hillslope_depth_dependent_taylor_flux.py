@@ -209,18 +209,18 @@ class DepthDependentTaylorDiffuser(Component):
 
     _name = "DepthDependentTaylorDiffuser"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "soil__depth",
-        "soil_production__rate",
+    _input_var_names = set(
+        ("topographic__elevation", "soil__depth", "soil_production__rate")
     )
 
-    _output_var_names = (
-        "soil__flux",
-        "topographic__slope",
-        "topographic__elevation",
-        "bedrock__elevation",
-        "soil__depth",
+    _output_var_names = set(
+        (
+            "soil__flux",
+            "topographic__slope",
+            "topographic__elevation",
+            "bedrock__elevation",
+            "soil__depth",
+        )
     )
 
     _var_units = {
@@ -321,6 +321,8 @@ class DepthDependentTaylorDiffuser(Component):
             self._bedrock = self._grid.at_node["bedrock__elevation"]
         else:
             self._bedrock = self._grid.add_zeros("node", "bedrock__elevation")
+
+        self._verify_output_fields()
 
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.

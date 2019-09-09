@@ -795,6 +795,8 @@ class FlowAccumulator(Component):
                 "Extra kwargs passed to FlowAccumulator:{kwds}".format(kwds=kwdstr)
             )
 
+        self._verify_output_fields()
+
     @property
     def surface_values(self):
         """TODO"""

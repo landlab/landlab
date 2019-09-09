@@ -53,19 +53,44 @@ class _FlowDirectorToMany(_FlowDirector):
     """
 
     _name = "FlowDirectorToMany"
+    _input_var_names = set(())
 
-    _input_var_names = ()
+    _optional_var_names = set(("topographic__elevation",))
 
-    _optional_var_names = ("topographic__elevation",)
+    _output_var_names = set(
+        (
+            "flow__receiver_node",
+            "flow__receiver_proportions",
+            "topographic__steepest_slope",
+            "flow__link_to_receiver_node",
+            "flow__sink_flag",
+        )
+    )
 
-    _output_var_names = ("flow__sink_flag",)
+    _var_units = {
+        "topographic__elevation": "m",
+        "flow__receiver_node": "-",
+        "flow__receiver_proportions": "-",
+        "topographic__steepest_slope": "-",
+        "flow__link_to_receiver_node": "-",
+        "flow__sink_flag": "-",
+    }
 
-    _var_units = {"topographic__elevation": "m", "flow__sink_flag": "-"}
-
-    _var_mapping = {"topographic__elevation": "node", "flow__sink_flag": "node"}
+    _var_mapping = {
+        "topographic__elevation": "node",
+        "flow__receiver_node": "node",
+        "flow__receiver_proportions": "node",
+        "topographic__steepest_slope": "node",
+        "flow__link_to_receiver_node": "node",
+        "flow__sink_flag": "node",
+    }
 
     _var_doc = {
         "topographic__elevation": "Land surface topographic elevation",
+        "flow__receiver_node": "Node array of receivers (node that receives flow from current node)",
+        "flow__receiver_proportions": "Node array of proportion of flow sent to each receiver.",
+        "topographic__steepest_slope": "Node array of steepest *downhill* slopes",
+        "flow__link_to_receiver_node": "ID of link downstream of each node, which carries the discharge",
         "flow__sink_flag": "Boolean array, True at local lows",
     }
 
@@ -74,7 +99,7 @@ class _FlowDirectorToMany(_FlowDirector):
         # run init for the inherited class
         super(_FlowDirectorToMany, self).__init__(grid, surface)
         self._to_n_receivers = "many"
-        # initialize new fields
+        self._verify_output_fields()
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""

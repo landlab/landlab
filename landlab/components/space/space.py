@@ -149,15 +149,17 @@ class Space(_GeneralizedErosionDeposition):
 
     _name = "Space"
 
-    _input_var_names = (
-        "flow__receiver_node",
-        "flow__upstream_node_order",
-        "topographic__steepest_slope",
-        "drainage_area",
-        "soil__depth",
+    _input_var_names = set(
+        (
+            "flow__receiver_node",
+            "flow__upstream_node_order",
+            "topographic__steepest_slope",
+            "drainage_area",
+            "soil__depth",
+        )
     )
 
-    _output_var_names = "topographic__elevation" "soil__depth"
+    _output_var_names = set(("topographic__elevation", "soil__depth"))
 
     _var_units = {
         "flow__receiver_node": "-",
@@ -278,6 +280,8 @@ class Space(_GeneralizedErosionDeposition):
             raise ValueError(
                 "Parameter 'solver' must be one of: " + "'basic', 'adaptive'"
             )
+
+        self._verify_output_fields()
 
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""

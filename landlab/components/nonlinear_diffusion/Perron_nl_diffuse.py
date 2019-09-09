@@ -54,9 +54,9 @@ class PerronNLDiffuse(Component):
 
     _name = "PerronNLDiffuse"
 
-    _input_var_names = ("topographic__elevation",)
+    _input_var_names = set(("topographic__elevation",))
 
-    _output_var_names = ("topographic__elevation",)
+    _output_var_names = set(("topographic__elevation",))
 
     _var_units = {"topographic__elevation": "m"}
 
@@ -218,6 +218,8 @@ class PerronNLDiffuse(Component):
         )
 
         self.updated_boundary_conditions()
+
+        self._verify_output_fields()
 
     def updated_boundary_conditions(self):
         """Call if grid BCs are updated after component instantiation.

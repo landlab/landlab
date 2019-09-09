@@ -115,12 +115,10 @@ class DepthSlopeProductErosion(Component):
 
     _name = "DetachmentLtdErosion"
 
-    _input_var_names = ()
+    _input_var_names = set()
 
-    _optional_var_names = (
-        "topographic__elevation",
-        "topographic__slope",
-        "surface_water__depth",
+    _optional_var_names = set(
+        ("topographic__elevation", "topographic__slope", "surface_water__depth")
     )
 
     _output_var_names = ("topographic__elevation",)
@@ -191,6 +189,8 @@ class DepthSlopeProductErosion(Component):
         self._k_e = k_e
 
         self._dz = self._grid.zeros(at="node")
+
+        self._verify_output_fields()
 
     def erode(
         self,

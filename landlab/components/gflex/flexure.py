@@ -109,11 +109,10 @@ class gFlex(Component):
 
     _name = "gFlex"
 
-    _input_var_names = ("surface_load__stress",)
+    _input_var_names = set(("surface_load__stress",))
 
-    _output_var_names = (
-        "lithosphere_surface__elevation_increment",
-        "topographic__elevation",
+    _output_var_names = set(
+        ("lithosphere_surface__elevation_increment", "topographic__elevation")
     )
 
     _var_units = {
@@ -238,6 +237,8 @@ class gFlex(Component):
             dtype=float,
             noclobber=False,
         )
+
+        self._verify_output_fields()
 
     def flex_lithosphere(self):
         """

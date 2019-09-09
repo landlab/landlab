@@ -53,6 +53,13 @@ class LithoLayers(Lithology):
                     author = "Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini and Gregory E. Tucker",
                     }"""
 
+    _input_var_names = set()
+    _output_var_names = set()
+    _optional_var_names = set()
+    _var_units = dict()
+    _var_doc = dict()
+    _var_mapping = dict()
+
     def __init__(
         self,
         grid,
@@ -187,3 +194,5 @@ class LithoLayers(Lithology):
         super(LithoLayers, self).__init__(
             grid, layer_thicknesses, layer_ids, attrs, layer_type=layer_type
         )
+
+        self._verify_output_fields()

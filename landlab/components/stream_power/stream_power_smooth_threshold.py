@@ -75,6 +75,47 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     array([ 1.754,  0.164])
     """
 
+    _name = "StreamPowerSmoothThresholdEroder"
+
+    _input_var_names = set(
+        (
+            "topographic__elevation",
+            "drainage_area",
+            "flow__link_to_receiver_node",
+            "flow__upstream_node_order",
+            "flow__receiver_node",
+        )
+    )
+
+    _output_var_names = set(("topographic__elevation",))
+
+    _var_units = {
+        "topographic__elevation": "m",
+        "drainage_area": "m**2",
+        "flow__link_to_receiver_node": "-",
+        "flow__upstream_node_order": "-",
+        "flow__receiver_node": "-",
+    }
+
+    _var_mapping = {
+        "topographic__elevation": "node",
+        "drainage_area": "node",
+        "flow__link_to_receiver_node": "node",
+        "flow__upstream_node_order": "node",
+        "flow__receiver_node": "node",
+    }
+
+    _var_doc = {
+        "topographic__elevation": "Land surface topographic elevation",
+        "drainage_area": "Upstream accumulated surface area contributing to the node's "
+        "discharge",
+        "flow__link_to_receiver_node": "ID of link downstream of each node, which carries the discharge",
+        "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
+        "node IDs",
+        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
+        "node)",
+    }
+
     def __init__(
         self,
         grid,
@@ -128,6 +169,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         # Arrays with parameters for use in implicit solver
         self._gamma = grid.empty(at="node")
         self._delta = grid.empty(at="node")
+        self._verify_output_fields()
 
     @property
     def alpha(self):

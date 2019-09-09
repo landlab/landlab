@@ -80,9 +80,9 @@ class SinkFiller(Component):
 
     _name = "SinkFiller"
 
-    _input_var_names = ("topographic__elevation",)
+    _input_var_names = set(("topographic__elevation",))
 
-    _output_var_names = ("topographic__elevation", "sediment_fill__depth")
+    _output_var_names = set(("topographic__elevation", "sediment_fill__depth"))
 
     _var_units = {"topographic__elevation": "m", "sediment_fill__depth": "m"}
 
@@ -152,6 +152,8 @@ class SinkFiller(Component):
 
         self._lf = DepressionFinderAndRouter(self._grid, routing=self._routing)
         self._fr = FlowAccumulator(self._grid, flow_director=self._routing)
+
+        self._verify_output_fields()
 
     def fill_pits(self):
         """

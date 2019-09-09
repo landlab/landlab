@@ -84,11 +84,11 @@ class PrecipitationDistribution(Component):
 
     _name = "PrecipitationDistribution"
 
-    _input_var_names = ()
+    _input_var_names = set()
 
-    _output_var_names = ()
+    _output_var_names = set()
 
-    _optional_var_names = ("rainfall__flux",)
+    _optional_var_names = set(("rainfall__flux",))
 
     _var_units = {"rainfall__flux": "[depth unit]/[time unit]"}
 
@@ -176,6 +176,7 @@ class PrecipitationDistribution(Component):
             self._gridupdate = False
 
         self._intensity = self.get_storm_intensity()
+        self._verify_output_fields()
 
     @property
     def storm_duration(self):

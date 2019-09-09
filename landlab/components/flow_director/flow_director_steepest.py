@@ -253,6 +253,44 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     _name = "FlowDirectorSteepest"
 
+    _input_var_names = set(())
+
+    _optional_var_names = set(("topographic__elevation",))
+
+    _output_var_names = set(
+        (
+            "flow__receiver_node",
+            "topographic__steepest_slope",
+            "flow__link_to_receiver_node",
+            "flow__sink_flag",
+        )
+    )
+
+    _var_units = {
+        "topographic__elevation": "m",
+        "flow__receiver_node": "-",
+        "topographic__steepest_slope": "-",
+        "flow__link_to_receiver_node": "-",
+        "flow__sink_flag": "-",
+    }
+
+    _var_mapping = {
+        "topographic__elevation": "node",
+        "flow__receiver_node": "node",
+        "topographic__steepest_slope": "node",
+        "flow__link_to_receiver_node": "node",
+        "flow__sink_flag": "node",
+    }
+
+    _var_doc = {
+        "topographic__elevation": "Land surface topographic elevation",
+        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
+        "node)",
+        "topographic__steepest_slope": "Node array of steepest *downhill* slopes",
+        "flow__link_to_receiver_node": "ID of link downstream of each node, which carries the discharge",
+        "flow__sink_flag": "Boolean array, True at local lows",
+    }
+
     def __init__(self, grid, surface="topographic__elevation"):
         """
         Parameters
@@ -279,6 +317,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             self._flow_link_direction = grid.at_link["flow_link_direction"]
 
         self.updated_boundary_conditions()
+        self._verify_output_fields()
 
     def updated_boundary_conditions(self):
         """Method to update FlowDirectorSteepest when boundary conditions

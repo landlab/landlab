@@ -96,16 +96,18 @@ class ChiFinder(Component):
 
     _name = "ChiFinder"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "drainage_area",
-        "topographic__steepest_slope",
-        "flow__receiver_node",
-        "flow__upstream_node_order",
-        "flow__link_to_receiver_node",
+    _input_var_names = set(
+        (
+            "topographic__elevation",
+            "drainage_area",
+            "topographic__steepest_slope",
+            "flow__receiver_node",
+            "flow__upstream_node_order",
+            "flow__link_to_receiver_node",
+        )
     )
 
-    _output_var_names = ("channel__chi_index",)
+    _output_var_names = set(("channel__chi_index",))
 
     _var_units = {
         "topographic__elevation": "m",
@@ -206,6 +208,8 @@ class ChiFinder(Component):
         )
         self._mask = self._grid.ones("node", dtype=bool)
         self._elev = self._grid.at_node["topographic__elevation"]
+
+        self._verify_output_fields()
 
     def _set_up_reference_area(self, reference_area):
         """Set up and validate reference_area"""

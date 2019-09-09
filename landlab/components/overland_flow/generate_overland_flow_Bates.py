@@ -64,12 +64,10 @@ class OverlandFlowBates(Component):
 
     _name = "OverlandFlowBates"
 
-    _input_var_names = ("surface_water__depth", "topographic__elevation")
+    _input_var_names = set(("surface_water__depth", "topographic__elevation"))
 
-    _output_var_names = (
-        "surface_water__depth",
-        "surface_water__discharge",
-        "water_surface__gradient",
+    _output_var_names = set(
+        ("surface_water__depth", "surface_water__discharge", "water_surface__gradient")
     )
 
     _var_units = {
@@ -139,6 +137,8 @@ class OverlandFlowBates(Component):
 
         # Assiging a class variable to the elevation field.
         self._z = self._grid.at_node["topographic__elevation"]
+
+        self._verify_output_fields()
 
     @property
     def surface_water__discharge(self):

@@ -196,6 +196,8 @@ class Flexure(Component):
             self._grid.shape, (self._grid.dy, self._grid.dx), self.alpha
         )
 
+        self._verify_output_fields()
+
     @property
     def eet(self):
         """Effective elastic thickness (m)."""

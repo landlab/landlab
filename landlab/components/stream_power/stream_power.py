@@ -110,16 +110,18 @@ class StreamPowerEroder(Component):
 
     _name = "StreamPowerEroder"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "flow__link_to_receiver_node",
-        "drainage_area",
-        "flow__receiver_node",
-        "flow__upstream_node_order",
-        "topographic__steepest_slope",
+    _input_var_names = set(
+        (
+            "topographic__elevation",
+            "flow__link_to_receiver_node",
+            "drainage_area",
+            "flow__receiver_node",
+            "flow__upstream_node_order",
+            "topographic__steepest_slope",
+        )
     )
 
-    _output_var_names = ("topographic__elevation",)
+    _output_var_names = set(("topographic__elevation",))
 
     _var_units = {
         "topographic__elevation": "m",
@@ -340,6 +342,8 @@ class StreamPowerEroder(Component):
 
         self._stream_power_erosion = grid.zeros(centering="node")
         self._alpha = self._grid.zeros("node")
+
+        self._verify_output_fields()
 
     def erode(
         self,

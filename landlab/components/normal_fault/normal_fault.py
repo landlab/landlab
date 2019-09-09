@@ -50,9 +50,9 @@ class NormalFault(Component):
 
     # _cite_as = """ """
 
-    _input_var_names = ("topographic__elevation",)
+    _input_var_names = set(("topographic__elevation",))
 
-    _output_var_names = ("topographic__elevation",)
+    _output_var_names = set(("topographic__elevation",))
 
     _var_units = {"topographic__elevation": "m"}
 
@@ -334,6 +334,8 @@ class NormalFault(Component):
         # save a n-node array of boolean identifing faulted nodes.
         self._faulted_nodes = np.zeros(self._grid.size("node"), dtype=bool)
         self._faulted_nodes[faulted_node_ids] = True
+
+        self._verify_output_fields()
 
     @property
     def faulted_nodes(self):

@@ -67,12 +67,11 @@ class VegCA(Component):
 
     _name = "Cellular Automata Plant Competition"
 
-    _input_var_names = (
-        "vegetation__cumulative_water_stress",
-        "vegetation__plant_functional_type",
+    _input_var_names = set(
+        ("vegetation__cumulative_water_stress", "vegetation__plant_functional_type")
     )
 
-    _output_var_names = ("plant__live_index", "plant__age")
+    _output_var_names = set(("plant__live_index", "plant__age"))
 
     _var_units = {
         "vegetation__cumulative_water_stress": "None",
@@ -210,6 +209,8 @@ class VegCA(Component):
         VegType[locs_trees[tp[locs_trees] < self._tpmax_tr_s]] = TREESEEDLING
         VegType[locs_shrubs[tp[locs_shrubs] < self._tpmax_sh_s]] = SHRUBSEEDLING
         grid["cell"]["plant__age"] = tp
+
+        self._verify_output_fields()
 
     def update(self, time_elapsed=1, Edit_VegCov=True):
         """

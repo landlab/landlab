@@ -19,15 +19,15 @@ def test_SI_name(si):
 
 def test_SI_input_var_names(si):
     assert si.input_var_names == (
-        "surface_water__depth",
         "soil_water_infiltration__depth",
+        "surface_water__depth",
     )
 
 
 def test_SI_output_var_names(si):
     assert si.output_var_names == (
-        "surface_water__depth",
         "soil_water_infiltration__depth",
+        "surface_water__depth",
     )
 
 

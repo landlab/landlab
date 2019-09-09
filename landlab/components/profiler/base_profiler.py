@@ -54,18 +54,19 @@ class _BaseProfiler(Component, ABC):
 
     _name = "_BaseProfiler"
 
-    _input_var_names = ()
+    _input_var_names = set()
 
-    _output_var_names = ()
+    _output_var_names = set()
 
-    _var_units = {}
+    _var_units = dict()
 
-    _var_mapping = {}
+    _var_mapping = dict()
 
-    _var_doc = {}
+    _var_doc = dict()
 
     def __init__(self, grid):
         super(_BaseProfiler, self).__init__(grid)
+        self._verify_output_fields()
 
     def run_one_step(self):
         """Calculate the profile datastructure and distances along it."""

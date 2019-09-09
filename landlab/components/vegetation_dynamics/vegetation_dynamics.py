@@ -99,20 +99,24 @@ class Vegetation(Component):
 
     _name = "Vegetation"
 
-    _input_var_names = (
-        "surface__evapotranspiration",
-        "vegetation__water_stress",
-        "surface__potential_evapotranspiration_rate",
-        "surface__potential_evapotranspiration_30day_mean",
-        "vegetation__plant_functional_type",
+    _input_var_names = set(
+        (
+            "surface__evapotranspiration",
+            "vegetation__water_stress",
+            "surface__potential_evapotranspiration_rate",
+            "surface__potential_evapotranspiration_30day_mean",
+            "vegetation__plant_functional_type",
+        )
     )
 
-    _output_var_names = (
-        "vegetation__live_leaf_area_index",
-        "vegetation__dead_leaf_area_index",
-        "vegetation__cover_fraction",
-        "vegetation__live_biomass",
-        "vegetation__dead_biomass",
+    _output_var_names = set(
+        (
+            "vegetation__live_leaf_area_index",
+            "vegetation__dead_leaf_area_index",
+            "vegetation__cover_fraction",
+            "vegetation__live_biomass",
+            "vegetation__dead_biomass",
+        )
     )
 
     _var_units = {
@@ -281,6 +285,8 @@ class Vegetation(Component):
 
         self._Blive_ini = self._Blive_init * np.ones(self._grid.number_of_cells)
         self._Bdead_ini = self._Bdead_init * np.ones(self._grid.number_of_cells)
+
+        self._verify_output_fields()
 
     def initialize(
         self,

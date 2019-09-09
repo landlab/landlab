@@ -73,27 +73,29 @@ class SedDepEroder(Component):
 
     _name = "SedDepEroder"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "drainage_area",
-        "flow__receiver_node",
-        "flow__upstream_node_order",
-        "topographic__steepest_slope",
-        "flow__link_to_receiver_node",
+    _input_var_names = set(
+        (
+            "topographic__elevation",
+            "drainage_area",
+            "flow__receiver_node",
+            "flow__upstream_node_order",
+            "topographic__steepest_slope",
+            "flow__link_to_receiver_node",
+        )
     )
 
-    _output_var_names = (
-        "topographic__elevation",
-        "channel__bed_shear_stress",
-        "channel_sediment__volumetric_transport_capacity",
-        "channel_sediment__volumetric_flux",
-        "channel_sediment__relative_flux",
-        "channel__discharge",
-        "channel__width",  # optional
-        "channel__depth",  # optional
+    _output_var_names = set(
+        (
+            "topographic__elevation",
+            "channel__bed_shear_stress",
+            "channel_sediment__volumetric_transport_capacity",
+            "channel_sediment__volumetric_flux",
+            "channel_sediment__relative_flux",
+            "channel__discharge",
+        )
     )
 
-    _optional_var_names = ("channel__width", "channel__depth")
+    _optional_var_names = set(("channel__width", "channel__depth"))
 
     _var_units = {
         "topographic__elevation": "m",
@@ -548,6 +550,8 @@ class SedDepEroder(Component):
         self.initialize_output_fields()
         if self._return_ch_props:
             self.initialize_optional_output_fields()
+
+        self._verify_output_fields()
 
     def get_sed_flux_function(self, rel_sed_flux):
         """

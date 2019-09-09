@@ -62,6 +62,12 @@ class Lithology(Component):
                     doi = "10.21105/joss.00979",
                     author = "Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini and Gregory E. Tucker",
                     }"""
+    _input_var_names = set()
+    _output_var_names = set()
+    _optional_var_names = set()
+    _var_units = dict()
+    _var_doc = dict()
+    _var_mapping = dict()
 
     def __init__(self, grid, thicknesses, ids, attrs, layer_type="MaterialLayers"):
         """Create a new instance of Lithology.
@@ -260,6 +266,8 @@ class Lithology(Component):
                 self.add_layer(self._init_thicknesses[i, :], self._layer_ids[i, :])
             except IndexError:
                 self.add_layer(self._init_thicknesses[i], self._layer_ids[i])
+
+        self._verify_output_fields()
 
     def __getitem__(self, name):
         return self._get_surface_values(name)

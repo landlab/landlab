@@ -70,18 +70,12 @@ class PotentialityFlowRouter(Component):
     True
     """
 
-    #    >>> Q_at_core_nodes = np.array(
-    #    ...     [ 17.02012846,  16.88791903,  13.65746194,  14.85578934,
-    #    ...       11.41908145,  11.43630865,   8.95902559,  10.04348075,
-    #    ...        6.28696459,   6.44316089,   4.62478522,   5.29145188])
     _name = "PotentialityFlowRouter"
 
-    _input_var_names = ("topographic__elevation", "water__unit_flux_in")
+    _input_var_names = set(("topographic__elevation", "water__unit_flux_in"))
 
-    _output_var_names = (
-        "surface_water__discharge",
-        "flow__potential",
-        "surface_water__depth",
+    _output_var_names = set(
+        ("surface_water__discharge", "flow__potential", "surface_water__depth")
     )
 
     _var_units = {
@@ -183,6 +177,8 @@ class PotentialityFlowRouter(Component):
             self._discharges_at_link = np.empty(grid.number_of_d8)
         else:
             self._discharges_at_link = self._grid.empty("link")
+
+        self._verify_output_fields()
 
     def route_flow(self):
         """

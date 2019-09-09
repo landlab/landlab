@@ -47,14 +47,16 @@ class GroundwaterDupuitPercolator(Component):
 
     _name = "GroundwaterDupuitPercolator"
 
-    _input_var_names = ("topographic__elevation", "aquifer_base__elevation")
+    _input_var_names = set(("topographic__elevation", "aquifer_base__elevation"))
 
-    _output_var_names = (
-        "aquifer__thickness",
-        "water_table__elevation",
-        "hydraulic__gradient",
-        "groundwater__specific_discharge",
-        "groundwater__velocity",
+    _output_var_names = set(
+        (
+            "aquifer__thickness",
+            "water_table__elevation",
+            "hydraulic__gradient",
+            "groundwater__specific_discharge",
+            "groundwater__velocity",
+        )
     )
 
     _var_units = {
@@ -115,31 +117,16 @@ class GroundwaterDupuitPercolator(Component):
         self._elev = self._grid.at_node["topographic__elevation"]
         self._base = self._grid.at_node["aquifer_base__elevation"]
 
-        if "water_table__elevation" in self._grid.at_node:
-            self._wtable = self._grid.at_node["water_table__elevation"]
-        else:
-            self._wtable = self._grid.add_zeros("node", "water_table__elevation")
+        self._initialize_output_fields_with_zero_floats()
 
-        if "aquifer__thickness" in self._grid.at_node:
-            self._thickness = self._grid.at_node["aquifer__thickness"]
-        else:
-            self._thickness = self._grid.add_zeros("node", "aquifer__thickness")
-            self._thickness[:] = self._wtable - self._base
+        self._wtable = self._grid.at_node["water_table__elevation"]
+        self._thickness = self._grid.at_node["aquifer__thickness"]
+        self._thickness[:] = self._wtable - self._base
+        self._hydr_grad = self._grid.at_link["hydraulic__gradient"]
+        self._q = self._grid.at_link["groundwater__specific_discharge"]
+        self._vel = self._grid.at_link["groundwater__velocity"]
 
-        if "hydraulic__gradient" in self._grid.at_link:
-            self._hydr_grad = self._grid.at_link["hydraulic__gradient"]
-        else:
-            self._hydr_grad = self._grid.add_zeros("link", "hydraulic__gradient")
-
-        if "groundwater__specific_discharge" in self._grid.at_link:
-            self._q = self._grid.at_link["groundwater__specific_discharge"]
-        else:
-            self._q = self._grid.add_zeros("link", "groundwater__specific_discharge")
-
-        if "groundwater__velocity" in self._grid.at_link:
-            self._vel = self._grid.at_link["groundwater__velocity"]
-        else:
-            self._vel = self._grid.add_zeros("link", "groundwater__velocity")
+        self._verify_output_fields()
 
     def run_one_step(self, dt, **kwds):
         """

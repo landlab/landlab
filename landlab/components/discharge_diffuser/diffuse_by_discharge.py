@@ -64,16 +64,12 @@ class DischargeDiffuser(Component):
 
     _name = "DischargeDiffuser"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "water__discharge_in",
-        "sediment__discharge_in",
+    _input_var_names = set(
+        ("topographic__elevation", "water__discharge_in", "sediment__discharge_in")
     )
 
-    _output_var_names = (
-        "topographic__elevation",
-        "surface_water__discharge",
-        "flow__potential",
+    _output_var_names = set(
+        ("topographic__elevation", "surface_water__discharge", "flow__potential")
     )
 
     _var_units = {
@@ -192,6 +188,8 @@ class DischargeDiffuser(Component):
         self._Qsed_e = np.empty((ni, nj), dtype=float)
         self._Qsed_n = np.empty((ni, nj), dtype=float)
         self._Qsed_s = np.empty((ni, nj), dtype=float)
+
+        self._verify_output_fields()
 
     def run_one_step(self, dt):
         """

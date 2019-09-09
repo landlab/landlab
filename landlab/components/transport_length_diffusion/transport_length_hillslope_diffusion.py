@@ -87,20 +87,20 @@ class TransportLengthHillslopeDiffuser(Component):
 
     _name = "TransportLengthHillslopeDiffuser"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "flow__receiver_node",
-        "topographic__steepest_slope",
+    _input_var_names = set(
+        ("topographic__elevation", "flow__receiver_node", "topographic__steepest_slope")
     )
 
-    _output_var_names = (
-        "topographic__elevation",
-        "sediment__deposition_rate",
-        "sediment__transfer_rate",
-        "sediment__deposition_coeff",
-        "sediment__flux_in",
-        "sediment__flux_out",
-        "sediment__erosion_rate",
+    _output_var_names = set(
+        (
+            "topographic__elevation",
+            "sediment__deposition_rate",
+            "sediment__transfer_rate",
+            "sediment__deposition_coeff",
+            "sediment__flux_in",
+            "sediment__flux_out",
+            "sediment__erosion_rate",
+        )
     )
 
     _var_units = {
@@ -182,41 +182,26 @@ class TransportLengthHillslopeDiffuser(Component):
         # (on node (i), ID of node that receives flow from node (i)):
         self._receiver = self._grid.at_node["flow__receiver_node"]
 
+        self._initialize_output_fields_with_zero_floats()
         # Deposition
-        if "sediment__deposition_rate" in self._grid.at_node:
-            self._depo = self._grid.at_node["sediment__deposition_rate"]
-        else:
-            self._depo = self._grid.add_zeros("node", "sediment__deposition_rate")
+        self._depo = self._grid.at_node["sediment__deposition_rate"]
 
         # Transferred sediments (crossing over node)
-        if "sediment__transfer_rate" in self._grid.at_node:
-            self._trans = self._grid.at_node["sediment__transfer_rate"]
-        else:
-            self._trans = self._grid.add_zeros("node", "sediment__transfer_rate")
+        self._trans = self._grid.at_node["sediment__transfer_rate"]
 
         # Transport coefficient
-        if "sediment__deposition_coeff" in self._grid.at_node:
-            self._d_coeff = self._grid.at_node["sediment__deposition_coeff"]
-        else:
-            self._d_coeff = self._grid.add_zeros("node", "sediment__deposition_coeff")
+        self._d_coeff = self._grid.at_node["sediment__deposition_coeff"]
 
         # Flux in
-        if "sediment__flux_in" in self._grid.at_node:
-            self._flux_in = self._grid.at_node["sediment__flux_in"]
-        else:
-            self._flux_in = self._grid.add_zeros("node", "sediment__flux_in")
+        self._flux_in = self._grid.at_node["sediment__flux_in"]
 
         # Flux out
-        if "sediment__flux_out" in self._grid.at_node:
-            self._flux_out = self._grid.at_node["sediment__flux_out"]
-        else:
-            self._flux_out = self._grid.add_zeros("node", "sediment__flux_out")
+        self._flux_out = self._grid.at_node["sediment__flux_out"]
 
         # Erosion
-        if "sediment__erosion_rate" in self._grid.at_node:
-            self._erosion = self._grid.at_node["sediment__erosion_rate"]
-        else:
-            self._erosion = self._grid.add_zeros("node", "sediment__erosion_rate")
+        self._erosion = self._grid.at_node["sediment__erosion_rate"]
+
+        self._verify_output_fields()
 
     def tldiffusion(self, dt):
         """Calculate hillslope diffusion for a time period 'dt'.

@@ -50,14 +50,16 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
     _name = "ErosionDeposition"
 
-    _input_var_names = (
-        "flow__receiver_node",
-        "flow__upstream_node_order",
-        "topographic__steepest_slope",
-        "surface_water__discharge",
+    _input_var_names = set(
+        (
+            "flow__receiver_node",
+            "flow__upstream_node_order",
+            "topographic__steepest_slope",
+            "surface_water__discharge",
+        )
     )
 
-    _output_var_names = "topographic__elevation"
+    _output_var_names = set(("topographic__elevation",))
 
     _var_units = {
         "flow__receiver_node": "-",
@@ -244,6 +246,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             raise ValueError(
                 "Parameter 'solver' must be one of: " + "'basic', 'adaptive'"
             )
+
+        self._verify_output_fields()
 
     def _calc_erosion_rates(self):
         """Calculate erosion rates"""

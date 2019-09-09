@@ -53,9 +53,9 @@ class ExponentialWeatherer(Component):
 
     _name = "ExponentialWeatherer"
 
-    _input_var_names = ("soil__depth",)
+    _input_var_names = set(("soil__depth",))
 
-    _output_var_names = ("soil_production__rate",)
+    _output_var_names = set(("soil_production__rate",))
 
     _var_units = {"soil__depth": "m", "soil_production__rate": "m/yr"}
 
@@ -85,6 +85,8 @@ class ExponentialWeatherer(Component):
             self._soil_prod_rate = grid.at_node["soil_production__rate"]
         else:
             self._soil_prod_rate = grid.add_zeros("node", "soil_production__rate")
+
+        self._verify_output_fields()
 
     def calc_soil_prod_rate(self):
         """Calculate soil production rate."""

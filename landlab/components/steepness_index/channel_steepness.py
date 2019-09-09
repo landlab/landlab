@@ -64,16 +64,18 @@ class SteepnessFinder(Component):
 
     _name = "SteepnessFinder"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "drainage_area",
-        "topographic__steepest_slope",
-        "flow__receiver_node",
-        "flow__upstream_node_order",
-        "flow__link_to_receiver_node",
+    _input_var_names = set(
+        (
+            "topographic__elevation",
+            "drainage_area",
+            "topographic__steepest_slope",
+            "flow__receiver_node",
+            "flow__upstream_node_order",
+            "flow__link_to_receiver_node",
+        )
     )
 
-    _output_var_names = ("channel__steepness_index",)
+    _output_var_names = set(("channel__steepness_index",))
 
     _var_units = {
         "topographic__elevation": "m",
@@ -168,6 +170,8 @@ class SteepnessFinder(Component):
         self._mask = self._grid.ones("node", dtype=bool)
         # this one needs modifying if smooth_elev
         self._elev = self._grid.at_node["topographic__elevation"]
+
+        self._verify_output_fields()
 
     def calculate_steepnesses(self):
         """

@@ -103,12 +103,14 @@ class LinearDiffuser(Component):
 
     _name = "LinearDiffuser"
 
-    _input_var_names = ("topographic__elevation",)
+    _input_var_names = set(("topographic__elevation",))
 
-    _output_var_names = (
-        "topographic__elevation",
-        "topographic__gradient",
-        "hillslope_sediment__unit_volume_flux",
+    _output_var_names = set(
+        (
+            "topographic__elevation",
+            "topographic__gradient",
+            "hillslope_sediment__unit_volume_flux",
+        )
     )
 
     _var_units = {
@@ -307,6 +309,8 @@ class LinearDiffuser(Component):
 
         # do some pre-work to make fixed grad BC updating faster in the loop:
         self.updated_boundary_conditions()
+
+        self._verify_output_fields()
 
     @property
     def fixed_grad_nodes(self):

@@ -22,8 +22,8 @@ def test_KinWaveOF_input_var_names(kin_wave_of):
 def test_KinWaveOF_output_var_names(kin_wave_of):
     assert kin_wave_of.output_var_names == (
         "surface_water__depth",
-        "water__velocity",
         "water__specific_discharge",
+        "water__velocity",
     )
 
 

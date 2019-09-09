@@ -56,9 +56,9 @@ class SinkFillerBarnes(LakeMapperBarnes):
 
     _name = "SinkFillerBarnes"
 
-    _input_var_names = ("topographic__elevation",)
+    _input_var_names = set(("topographic__elevation",))
 
-    _output_var_names = ("topographic__elevation", "sediment_fill__depth")
+    _output_var_names = set(("topographic__elevation", "sediment_fill__depth"))
 
     _var_units = {"topographic__elevation": "m", "sediment_fill__depth": "m"}
 
@@ -112,6 +112,8 @@ class SinkFillerBarnes(LakeMapperBarnes):
         self._sed_fill_depth = self._grid.add_zeros(
             "node", "sediment_fill__depth", noclobber=False
         )
+
+        self._verify_output_fields()
 
     def run_one_step(self):
         """

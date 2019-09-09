@@ -124,15 +124,17 @@ class FastscapeEroder(Component):
 
     _name = "FastscapeEroder"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "drainage_area",
-        "flow__link_to_receiver_node",
-        "flow__upstream_node_order",
-        "flow__receiver_node",
+    _input_var_names = set(
+        (
+            "topographic__elevation",
+            "drainage_area",
+            "flow__link_to_receiver_node",
+            "flow__upstream_node_order",
+            "flow__receiver_node",
+        )
     )
 
-    _output_var_names = ("topographic__elevation",)
+    _output_var_names = set(("topographic__elevation",))
 
     _var_units = {
         "topographic__elevation": "m",
@@ -273,6 +275,7 @@ class FastscapeEroder(Component):
 
         # Handle option for area vs discharge
         self._discharge_name = discharge_name
+        self._verify_output_fields()
 
     def erode(
         self,

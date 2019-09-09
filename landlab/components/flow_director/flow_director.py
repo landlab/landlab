@@ -69,6 +69,14 @@ class _FlowDirector(Component):
 
     _name = "_FlowDirector"
 
+    _input_var_names = set()
+
+    _output_var_names = set()
+
+    _var_doc = {}
+
+    _var_mapping = {}
+
     def __init__(self, grid, surface):
         """Initialize the _FlowDirector class."""
         # We keep a local reference to the grid
@@ -86,6 +94,7 @@ class _FlowDirector(Component):
         self._surface_values = return_array_at_node(grid, surface)
 
         grid.add_zeros("flow__sink_flag", at="node", dtype=numpy.int8, noclobber=False)
+        self._verify_output_fields()
 
     @property
     def surface_values(self):

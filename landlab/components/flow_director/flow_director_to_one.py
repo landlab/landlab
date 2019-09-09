@@ -72,15 +72,17 @@ class _FlowDirectorToOne(_FlowDirector):
 
     _name = "FlowDirectorToOne"
 
-    _input_var_names = ()
+    _input_var_names = set(())
 
-    _optional_var_names = ("topographic__elevation",)
+    _optional_var_names = set(("topographic__elevation",))
 
-    _output_var_names = (
-        "flow__receiver_node",
-        "topographic__steepest_slope",
-        "flow__link_to_receiver_node",
-        "flow__sink_flag",
+    _output_var_names = set(
+        (
+            "flow__receiver_node",
+            "topographic__steepest_slope",
+            "flow__link_to_receiver_node",
+            "flow__sink_flag",
+        )
     )
 
     _var_units = {
@@ -142,7 +144,7 @@ class _FlowDirectorToOne(_FlowDirector):
         else:
             self._links_to_receiver = grid.at_node["flow__link_to_receiver_node"]
 
-        grid.add_zeros("flow__sink_flag", at="node", dtype=numpy.int8, noclobber=False)
+        self._verify_output_fields()
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""

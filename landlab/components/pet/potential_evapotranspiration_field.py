@@ -68,14 +68,16 @@ class PotentialEvapotranspiration(Component):
 
     _name = "Potential Evapotranspiration"
 
-    _input_var_names = ("radiation__ratio_to_flat_surface",)
+    _input_var_names = set(("radiation__ratio_to_flat_surface",))
 
-    _output_var_names = (
-        "surface__potential_evapotranspiration_rate",
-        "radiation__incoming_shortwave_flux",
-        "radiation__net_shortwave_flux",
-        "radiation__net_longwave_flux",
-        "radiation__net_flux",
+    _output_var_names = set(
+        (
+            "surface__potential_evapotranspiration_rate",
+            "radiation__incoming_shortwave_flux",
+            "radiation__net_shortwave_flux",
+            "radiation__net_longwave_flux",
+            "radiation__net_flux",
+        )
     )
 
     _var_units = {
@@ -180,6 +182,8 @@ class PotentialEvapotranspiration(Component):
         self._initialize_output_fields_with_zero_floats()
 
         self._cell_values = self._grid["cell"]
+
+        self._verify_output_fields()
 
     def update(
         self,

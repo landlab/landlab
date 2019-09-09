@@ -86,6 +86,8 @@ class Component(object):
     _output_var_names = set()
     _optional_var_names = set()
     _var_units = dict()
+    _var_doc = dict()
+    _var_mapping = dict()
 
     def __new__(cls, *args, **kwds):
         registry.add(cls)
@@ -94,14 +96,13 @@ class Component(object):
     def __init__(self, grid):
         self._grid = grid
 
-        for field in self._input_var_names:
-            at = self._var_mapping[field]
-
-            # ensure that required input fields exist
-            if field not in self._grid[at]:
+        # ensure that required input fields exist
+        for name in self._input_var_names:
+            at = self._var_mapping[name]
+            if name not in self._grid[at]:
                 raise FieldError(
-                    "{component} is missing {field} at {at}".format(
-                        component=self._name, field=field, at=at
+                    "{component} is missing input variable: {name} at {at}".format(
+                        component=self._name, name=name, at=at
                     )
                 )
 
@@ -110,6 +111,19 @@ class Component(object):
             at = self._var_mapping[name]
             if name not in self._grid[at]:
                 self._grid.add_zeros(name, at=at, units=self._var_units[name])
+
+    def _verify_output_fields(self):
+        for name in self._output_var_names:
+            try:
+                at = self._var_mapping[name]
+                if name not in self._grid[at]:
+                    raise FieldError(
+                        "{component} is missing output variable: {name} at {at}".format(
+                            component=self._name, name=name, at=at
+                        )
+                    )
+            except KeyError:
+                pass  # print(name, self.var_mapping)
 
     @classmethod
     def from_path(cls, grid, path):
@@ -145,7 +159,7 @@ class Component(object):
         tuple of str
             Tuple of field names.
         """
-        return tuple(cls._input_var_names)
+        return tuple(sorted(cls._input_var_names))
 
     @classproperty
     @classmethod
@@ -157,7 +171,7 @@ class Component(object):
         tuple of str
             Tuple of field names.
         """
-        return tuple(self._output_var_names)
+        return tuple(sorted(self._output_var_names))
 
     @classproperty
     @classmethod
@@ -172,7 +186,7 @@ class Component(object):
             Tuple of field names.
         """
         try:
-            return tuple(self._optional_var_names)
+            return tuple(sorted(self._optional_var_names))
         except AttributeError:
             return ()
 

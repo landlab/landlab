@@ -137,22 +137,27 @@ class DrainageDensity(Component):
 
     _name = "DrainageDensity"
 
-    _input_var_names = (
-        "flow__receiver_node",
-        "flow__link_to_receiver_node",
-        "topographic__steepest_slope",
-        "flow__upstream_node_order",
+    _input_var_names = set(
+        (
+            "flow__receiver_node",
+            "flow__link_to_receiver_node",
+            "topographic__steepest_slope",
+            "flow__upstream_node_order",
+        )
     )
 
-    _optional_var_names = (
-        "channel__mask",
-        "area_coefficient",
-        "slope_coefficient",
-        "area_exponent",
-        "slope_exponent",
-        "channelization_threshold",
+    _optional_var_names = set(
+        (
+            "channel__mask",
+            "area_coefficient",
+            "slope_coefficient",
+            "area_exponent",
+            "slope_exponent",
+            "channelization_threshold",
+        )
     )
-    _output_var_names = ("surface_to_channel__minimum_distance",)
+
+    _output_var_names = set(("surface_to_channel__minimum_distance",))
 
     _var_units = {
         "flow__receiver_node": "-",
@@ -343,6 +348,8 @@ class DrainageDensity(Component):
             self._distance_to_channel = grid.add_zeros(
                 "surface_to_channel__minimum_distance", at="node", dtype=float
             )
+
+        self._verify_output_fields()
 
     def _update_channel_mask_array(self):
         raise NotImplementedError(

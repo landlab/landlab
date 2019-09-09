@@ -42,12 +42,10 @@ class KinwaveOverlandFlowModel(Component):
 
     _name = "KinwaveOverlandFlowModel"
 
-    _input_var_names = ("topographic__elevation", "topographic__gradient")
+    _input_var_names = set(("topographic__elevation", "topographic__gradient"))
 
-    _output_var_names = (
-        "surface_water__depth",
-        "water__velocity",
-        "water__specific_discharge",
+    _output_var_names = set(
+        ("surface_water__depth", "water__velocity", "water__specific_discharge")
     )
 
     _var_units = {
@@ -113,22 +111,10 @@ class KinwaveOverlandFlowModel(Component):
         #   Slope
         self._slope = grid.at_link["topographic__gradient"]
 
-        #  Water depth
-        if "surface_water__depth" in grid.at_node:
-            self._depth = grid.at_node["surface_water__depth"]
-        else:
-            self._depth = grid.add_zeros("node", "surface_water__depth")
-
-        #  Velocity
-        if "water__velocity" in grid.at_link:
-            self._vel = grid.at_link["water__velocity"]
-        else:
-            self._vel = grid.add_zeros("link", "water__velocity")
-        #  Discharge
-        if "water__specific_discharge" in grid.at_link:
-            self._disch = grid.at_link["water__specific_discharge"]
-        else:
-            self._disch = grid.add_zeros("link", "water__specific_discharge")
+        self._initialize_output_fields_with_zero_floats()
+        self._depth = grid.at_node["surface_water__depth"]
+        self._vel = grid.at_link["water__velocity"]
+        self._disch = grid.at_link["water__specific_discharge"]
 
         # Calculate the ground-surface slope (assume it won't change)
         self._slope[self._grid.active_links] = self._grid.calc_grad_at_link(self._elev)[
@@ -136,6 +122,8 @@ class KinwaveOverlandFlowModel(Component):
         ]
         self._sqrt_slope = np.sqrt(self._slope)
         self._sign_slope = np.sign(self._slope)
+
+        self._verify_output_fields()
 
     @property
     def vel_coef(self):

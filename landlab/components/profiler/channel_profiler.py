@@ -466,11 +466,11 @@ class ChannelProfiler(_BaseProfiler):
 
     _name = "ChannelProfiler"
 
-    _input_var_names = ("flow__receiver_node", "flow__link_to_receiver_node")
+    _input_var_names = set(("flow__receiver_node", "flow__link_to_receiver_node"))
 
-    _optional_var_names = "drainage_area"
+    _optional_var_names = set(("drainage_area",))
 
-    _output_var_names = ()
+    _output_var_names = set()
 
     _var_units = {
         "flow__receiver_node": "-",
@@ -589,6 +589,8 @@ class ChannelProfiler(_BaseProfiler):
             raise ValueError(msg)
 
         self._outlet_nodes = outlet_nodes
+
+        self._verify_output_fields()
 
     @property
     def network_structure(self):

@@ -276,7 +276,6 @@ class LossyFlowAccumulator(FlowAccumulator):
         "surface_water__discharge",
         "surface_water__discharge_loss",
         "flow__upstream_node_order",
-        "flow__nodes_not_in_stack",
         "flow__data_structure_delta",
         "flow__data_structure_D",
     )
@@ -291,7 +290,6 @@ class LossyFlowAccumulator(FlowAccumulator):
         "flow__upstream_node_order": "-",
         "flow__data_structure_delta": "-",
         "flow__data_structure_D": "-",
-        "flow__nodes_not_in_stack": "-",
     }
 
     _var_mapping = {
@@ -302,7 +300,6 @@ class LossyFlowAccumulator(FlowAccumulator):
         "surface_water__discharge": "node",
         "surface_water__discharge_loss": "node",
         "flow__upstream_node_order": "node",
-        "flow__nodes_not_in_stack": "grid",
         "flow__data_structure_delta": "node",
         "flow__data_structure_D": "grid",
     }
@@ -324,9 +321,6 @@ class LossyFlowAccumulator(FlowAccumulator):
         + "construction of the downstream-to-upstream node array",
         "flow__data_structure_D": "Grid array containing the data structure "
         + "D used for construction of the downstream-to-upstream node array",
-        "flow__nodes_not_in_stack": "Boolean value indicating if there "
-        + "are any nodes that have not yet been added to the stack stored "
-        + "in flow__upstream_node_order.",
     }
 
     def __init__(
@@ -346,6 +340,13 @@ class LossyFlowAccumulator(FlowAccumulator):
         keyword arguments, tests the argument of runoff_rate, and
         initializes new fields.
         """
+
+        # add the new loss discharge field if necessary:
+        if "surface_water__discharge_loss" not in grid.at_node:
+            grid.add_zeros(
+                "node", "surface_water__discharge_loss", dtype=float, noclobber=False
+            )
+
         super(LossyFlowAccumulator, self).__init__(
             grid,
             surface=surface,
@@ -428,11 +429,7 @@ class LossyFlowAccumulator(FlowAccumulator):
 
             self._lossfunc = lossfunc
 
-        # add the new loss discharge field if necessary:
-        if "surface_water__discharge_loss" not in grid.at_node:
-            self._grid.add_zeros(
-                "node", "surface_water__discharge_loss", dtype=float, noclobber=False
-            )
+        self._verify_output_fields()
 
     def _accumulate_A_Q_to_one(self, s, r):
         """Accumulate area and discharge for a route-to-one scheme."""

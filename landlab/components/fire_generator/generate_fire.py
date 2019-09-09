@@ -118,6 +118,8 @@ class FireGenerator(Component):
         else:
             self._scale_parameter = scale_parameter
 
+        self._verify_output_fields()
+
     @property
     def scale_parameter(self):
         """TODO"""

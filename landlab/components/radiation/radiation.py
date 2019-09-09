@@ -70,12 +70,14 @@ class Radiation(Component):
 
     _name = "Radiation"
 
-    _input_var_names = ("topographic__elevation",)
+    _input_var_names = set(("topographic__elevation",))
 
-    _output_var_names = (
-        "radiation__incoming_shortwave_flux",
-        "radiation__ratio_to_flat_surface",
-        "radiation__net_shortwave_flux",
+    _output_var_names = set(
+        (
+            "radiation__incoming_shortwave_flux",
+            "radiation__ratio_to_flat_surface",
+            "radiation__net_shortwave_flux",
+        )
     )
 
     _var_units = {
@@ -159,6 +161,8 @@ class Radiation(Component):
 
         self._cell_values["Slope"] = self._slope
         self._cell_values["Aspect"] = self._aspect
+
+        self._verify_output_fields()
 
     def update(self, current_time, hour=12.0):
         """Update fields with current loading conditions.

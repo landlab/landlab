@@ -135,9 +135,9 @@ class DepressionFinderAndRouter(Component):
 
     _name = "DepressionFinderAndRouter"
 
-    _input_var_names = ("topographic__elevation",)
+    _input_var_names = set(("topographic__elevation",))
 
-    _output_var_names = ("depression__depth", "depression__outlet_node")
+    _output_var_names = set(("depression__depth", "depression__outlet_node"))
 
     _var_units = {
         "topographic__elevation": "m",
@@ -239,6 +239,8 @@ class DepressionFinderAndRouter(Component):
         )
         self._lake_map = np.empty(self._grid.number_of_nodes, dtype=int)
         self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)
+
+        self._verify_output_fields()
 
     def updated_boundary_conditions(self):
         """Call this if boundary conditions on the grid are updated after the

@@ -181,9 +181,9 @@ class FractureGridGenerator(Component):
 
     _name = "FractureGridGenerator"
 
-    _input_var_names = ()
+    _input_var_names = set(())
 
-    _output_var_names = ("fracture_at_node",)
+    _output_var_names = set(("fracture_at_node",))
 
     _var_units = {"fracture_at_node": "-"}
 
@@ -202,6 +202,7 @@ class FractureGridGenerator(Component):
         # base class
         if "fracture_at_node" not in grid.at_node:
             grid.add_zeros("node", "fracture_at_node", dtype=np.int8)
+        self._verify_output_fields()
 
     def run_one_step(self):
         """Run FractureGridGenerator and create a random fracture grid."""

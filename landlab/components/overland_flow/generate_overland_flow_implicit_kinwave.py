@@ -150,30 +150,27 @@ class KinwaveImplicitOverlandFlow(Component):
 
     _name = "KinwaveImplicitOverlandFlow"
 
-    _input_var_names = ("topographic__elevation",)
+    _input_var_names = set(("topographic__elevation",))
 
-    _output_var_names = (
-        "topographic__gradient",
-        "surface_water__depth",
-        # 'water__velocity',
-        # 'water__specific_discharge',
-        "surface_water_inflow__discharge",
+    _output_var_names = set(
+        (
+            "topographic__gradient",
+            "surface_water__depth",
+            "surface_water_inflow__discharge",
+        )
     )
 
     _var_units = {
         "topographic__elevation": "m",
-        "topographic__slope": "m/m",
+        "topographic__gradient": "m/m",
         "surface_water__depth": "m",
-        "water__velocity": "m/s",
-        "water__specific_discharge": "m2/s",
+        "surface_water_inflow__discharge": "m3/s",
     }
 
     _var_mapping = {
         "topographic__elevation": "node",
         "topographic__gradient": "link",
         "surface_water__depth": "node",
-        # 'water__velocity': 'link',
-        # 'water__specific_discharge': 'link',
         "surface_water_inflow__discharge": "node",
     }
 
@@ -181,10 +178,6 @@ class KinwaveImplicitOverlandFlow(Component):
         "topographic__elevation": "elevation of the ground surface relative to some datum",
         "topographic__gradient": "gradient of the ground surface",
         "surface_water__depth": "depth of water",
-        #        'water__velocity':
-        #            'flow velocity component in the direction of the link',
-        #        'water__specific_discharge':
-        #            'flow discharge component in the direction of the link',
         "surface_water_inflow__discharge": "water volume inflow rate to the cell around each node",
     }
 
@@ -229,32 +222,11 @@ class KinwaveImplicitOverlandFlow(Component):
         self._elev = grid.at_node["topographic__elevation"]
 
         # Create fields...
-        #  Water depth
-        if "surface_water__depth" in grid.at_node:
-            self._depth = grid.at_node["surface_water__depth"]
-        else:
-            self._depth = grid.add_zeros("node", "surface_water__depth")
-        #   Slope
-        if "topographic__gradient" in grid.at_link:
-            self._slope = grid.at_link["topographic__gradient"]
-        else:
-            self._slope = grid.add_zeros("link", "topographic__gradient")
-        #  Velocity
-        #        if 'water__velocity' in grid.at_link:
-        #            self._vel = grid.at_link['water__velocity']
-        #        else:
-        #            self._vel = grid.add_zeros('link', 'water__velocity')
-        #  Discharge
-        #        if 'surface_water__specific_discharge' in grid.at_link:
-        #            self._disch = grid.at_link['surface_water__specific_discharge']
-        #        else:
-        #            self._disch = grid.add_zeros('link',
-        #                                        'surface_water__specific_discharge')
-        #  Inflow discharge at nodes
-        if "surface_water_inflow__discharge" in grid.at_node:
-            self._disch_in = grid.at_node["surface_water_inflow__discharge"]
-        else:
-            self._disch_in = grid.add_zeros("node", "surface_water_inflow__discharge")
+        self._initialize_output_fields_with_zero_floats()
+
+        self._depth = grid.at_node["surface_water__depth"]
+        self._slope = grid.at_link["topographic__gradient"]
+        self._disch_in = grid.at_node["surface_water_inflow__discharge"]
 
         # This array holds, for each node, the sum of sqrt(slope) x face width
         # for each link/face.
@@ -274,6 +246,7 @@ class KinwaveImplicitOverlandFlow(Component):
 
         # Flag to let us know whether this is our first iteration
         self._first_iteration = True
+        self._verify_output_fields()
 
     @property
     def runoff_rate(self):

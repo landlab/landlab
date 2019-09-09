@@ -100,13 +100,11 @@ class DetachmentLtdErosion(Component):
 
     _name = "DetachmentLtdErosion"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "topographic__slope",
-        "surface_water__discharge",
+    _input_var_names = set(
+        ("topographic__elevation", "topographic__slope", "surface_water__discharge")
     )
 
-    _output_var_names = ("topographic__elevation",)
+    _output_var_names = set(("topographic__elevation",))
 
     _var_units = {
         "topographic__elevation": "m",
@@ -172,6 +170,8 @@ class DetachmentLtdErosion(Component):
         self._entrainment_threshold = entrainment_threshold
 
         self._dzdt = self._grid.zeros(at="node")
+
+        self._verify_output_fields()
 
     def erode(
         self,
