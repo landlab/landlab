@@ -432,28 +432,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         return 2
 
     @property
-    @lru_cache()
-    @make_return_array_immutable
-    def nodes(self):
-        """Get node ids for the grid.
-
-        Examples
-        --------
-        >>> from landlab import RadialModelGrid
-        >>> import numpy as np
-        >>> mg = RadialModelGrid(n_rings=1, nodes_in_first_ring=8)
-        >>> mg.nodes
-        array([0, 1, 2, 3, 4, 5, 6, 7, 8])
-
-        LLCATS: NINF
-        """
-        return np.arange(self.number_of_nodes, dtype=int)
-        # try:
-        #     return self._nodes
-        # except AttributeError:
-        #     return self._setup_nodes()
-
-    @property
     @override_array_setitem_and_reset("reset_status_at_node")
     def status_at_node(self):
         """Get array of the boundary status for each node.
