@@ -1263,41 +1263,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         angles = np.arctan2(-np.sin(self.angle_of_link), -np.cos(self.angle_of_link))
         return np.mod(angles, 2.0 * np.pi, out=angles)
 
-    def _create_angle_of_link(self):
-        """
-        Build a dict with keys (-1, 1) that contains the angles of the links
-        about both the link heads (1) and link tails (-1).
-
-        Notes
-        -----
-        dx and dy are the x and y differences between the link endpoints.
-        Multiplying this by dirs orients these offsets correctly (i.e.,
-        the correct node is the origin). The call to arctan2 calculates
-        the angle in radians. Angles in the lower two quadrants will be
-        negative and clockwise from the positive x axis. We want them
-        counter-clockwise, which is what the last couple of lines before
-        the return statement do.
-
-        LLCATS: LINF MEAS
-        """
-        self._angle_of_link_bothends = {}
-        for dirs in (-1, 1):
-            dx = -dirs * (
-                self.node_x[self.node_at_link_head]
-                - self.node_x[self.node_at_link_tail]
-            )
-            dy = -dirs * (
-                self.node_y[self.node_at_link_head]
-                - self.node_y[self.node_at_link_tail]
-            )
-            ang = np.arctan2(dy, dx)
-            (lower_two_quads,) = np.where(ang < 0.0)
-            ang[lower_two_quads] = (2 * np.pi) + ang[lower_two_quads]
-            (no_link,) = np.where(dirs == 0)
-            ang[no_link] = 2 * np.pi
-            self._angle_of_link_bothends[dirs] = ang.copy()
-        self._angle_of_link_created = True
-
     def resolve_values_on_links(self, link_values, out=None):
         """Resolve the xy-components of links.
 
