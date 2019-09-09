@@ -45,8 +45,8 @@ def test_xy_node_raster(four_by_four_raster):
 def test_xy_cell_raster(four_by_four_raster):
     vals = plane(four_by_four_raster, "values", "cell", normal=_NORMAL)
     truth = _plane_function(
-        four_by_four_raster.x_of_cell,
-        four_by_four_raster.y_of_cell,
+        four_by_four_raster.xy_of_cell[:, 0],
+        four_by_four_raster.xy_of_cell[:, 1],
         point=_POINT,
         normal=_NORMAL,
     )

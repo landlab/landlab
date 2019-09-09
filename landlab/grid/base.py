@@ -1095,40 +1095,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             raise TypeError("{name}: element name not understood".format(name=name))
 
     @property
-    @make_return_array_immutable
-    def x_of_cell(self):
-        """Get array of the x-coordinates of nodes at cells.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
-        >>> mg.x_of_cell.reshape((2, 3))
-        array([[  3.,   6.,   9.],
-               [  3.,   6.,   9.]])
-
-        LLCATS: CINF MEAS
-        """
-        return self.x_of_node[self.node_at_cell]
-
-    @property
-    @make_return_array_immutable
-    def y_of_cell(self):
-        """Get array of the y-coordinates of nodes at cells.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((4, 5), xy_spacing=(3., 2.))
-        >>> mg.y_of_cell.reshape((2, 3))
-        array([[ 2.,  2.,  2.],
-               [ 4.,  4.,  4.]])
-
-        LLCATS: CINF MEAS
-        """
-        return self.y_of_node[self.node_at_cell]
-
-    @property
     @cache_result_in_object()
     @make_return_array_immutable
     def x_of_link(self):

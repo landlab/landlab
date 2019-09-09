@@ -317,8 +317,7 @@ def _get_x_and_y(grid, at):
         x = grid.x_of_link
         y = grid.y_of_link
     elif at == "cell":
-        x = grid.x_of_cell
-        y = grid.y_of_cell
+        x, y = grid.xy_of_cell[:, 0], grid.xy_of_cell[:, 1]
     elif at == "face":
         x = grid.x_of_face
         y = grid.y_of_face
