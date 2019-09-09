@@ -69,7 +69,6 @@ class ZoneSpecies(object):
             The species object that produced the species. A value of `None`
             indicates no parent species.
         """
-
         return self._parent_species
 
     @property

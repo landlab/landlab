@@ -64,14 +64,14 @@ class ZoneSpeciesController(_SpeciesController):
         Parameters
         ----------
         range_mask : ndarray
-            Grid number of nodes array of booleans where `True` values indicates a
-            node within the species range.
+            Grid number of nodes array of booleans where `True` values
+            indicates a node within the species range.
         minimum_area : float, optional
             The minimum area of zones to be returned.
         neighborhood_structure : {'D8', 'D4'}, optional
-            The structure describes how clusters are identified. The default, 'D8'
-            evaluates the eight neighboring nodes. The diagonal neighboring
-            nodes are excluded when 'D4' is selected.
+            The structure describes how clusters are identified. The default,
+            'D8' evaluates the eight neighboring nodes. The diagonal
+            neighboring nodes are excluded when 'D4' is selected.
 
         Returns
         -------
