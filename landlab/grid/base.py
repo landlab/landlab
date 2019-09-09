@@ -521,57 +521,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         )
 
     @property
-    @deprecated(use="active_adjacent_nodes_at_node", version=1.2)
-    @cache_result_in_object()
-    @return_readonly_id_array
-    def active_neighbors_at_node(self):
-        """Get list of neighbor node IDs.
-
-        Return lists of neighbor nodes, where the neighbor is connected by an
-        active link. For each node, the list gives neighbor ids as [right, top,
-        left, bottom]. Nodes at the end of inactive links or nodes in missing
-        positions get BAD_INDEX_VALUE.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid, HexModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-
-        >>> grid.active_adjacent_nodes_at_node[(-1, 6, 2), ]
-        array([[-1, -1, -1, -1],
-               [ 7, 11,  5,  1],
-               [-1,  7, -1, -1]])
-
-        Setting a node to closed causes all links touching it to
-        be inactive.
-
-        >>> grid.status_at_node[6] = grid.BC_NODE_IS_CLOSED
-        >>> grid.active_adjacent_nodes_at_node[(-1, 6, 2), ]
-        array([[-1, -1, -1, -1],
-               [-1, -1, -1, -1],
-               [-1,  7, -1, -1]])
-
-        >>> grid.active_adjacent_nodes_at_node[7]
-        array([ 8, 12, -1,  2])
-        >>> grid.active_adjacent_nodes_at_node[2]
-        array([-1,  7, -1, -1])
-
-        >>> grid = HexModelGrid((3, 2))
-        >>> grid.status_at_node[0] = grid.BC_NODE_IS_CLOSED
-        >>> grid.active_adjacent_nodes_at_node
-        array([[-1, -1, -1, -1, -1, -1],
-               [-1,  3, -1, -1, -1, -1],
-               [ 3, -1, -1, -1, -1, -1],
-               [ 4,  6,  5,  2, -1,  1],
-               [-1,  3, -1, -1, -1, -1],
-               [-1, -1,  3, -1, -1, -1],
-               [-1,  3, -1, -1, -1, -1]])
-
-        LLCATS: NINF CONN BC
-        """
-        return self.active_adjacent_nodes_at_node
-
-    @property
     @make_return_array_immutable
     def links_at_node(self):
         """Get links of nodes.
