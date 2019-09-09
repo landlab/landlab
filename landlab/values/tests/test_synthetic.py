@@ -56,8 +56,8 @@ def test_xy_cell_raster(four_by_four_raster):
 def test_xy_link_raster(four_by_four_raster):
     vals = plane(four_by_four_raster, "values", "link", normal=_NORMAL)
     truth = _plane_function(
-        four_by_four_raster.x_of_link,
-        four_by_four_raster.y_of_link,
+        four_by_four_raster.xy_of_link[:, 0],
+        four_by_four_raster.xy_of_link[:, 1],
         point=_POINT,
         normal=_NORMAL,
     )
@@ -67,8 +67,8 @@ def test_xy_link_raster(four_by_four_raster):
 def test_xy_face_raster(four_by_four_raster):
     vals = plane(four_by_four_raster, "values", "face", normal=_NORMAL)
     truth = _plane_function(
-        four_by_four_raster.x_of_face,
-        four_by_four_raster.y_of_face,
+        four_by_four_raster.xy_of_face[:, 0],
+        four_by_four_raster.xy_of_face[:, 1],
         point=_POINT,
         normal=_NORMAL,
     )
