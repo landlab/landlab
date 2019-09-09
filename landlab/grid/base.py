@@ -2642,13 +2642,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         plt.show()
 
-    @deprecated(use="node_is_boundary", version=1.0)
-    def is_boundary(self, ids, boundary_flag=None):
-        """
-        LLCATS: DEPR NINF BC
-        """
-        return self.node_is_boundary(ids, boundary_flag=boundary_flag)
-
     def node_is_boundary(self, ids, boundary_flag=None):
         """Check if nodes are boundary nodes.
 
