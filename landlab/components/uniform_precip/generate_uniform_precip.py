@@ -509,9 +509,8 @@ class PrecipitationDistribution(Component):
 
         An alternative way to use the generator might be:
 
-
         >>> # ^^this lets you "manually" get the next item from the iterator
-        >>> mg.at_grid.pop('rainfall__flux')  # remove the existing field
+        >>> flux = mg.at_grid.pop('rainfall__flux')  # remove the existing field
         >>> precip = PrecipitationDistribution(
         ...     mg,
         ...     mean_storm_duration=1.5,
