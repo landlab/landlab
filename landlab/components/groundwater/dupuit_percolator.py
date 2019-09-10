@@ -128,7 +128,7 @@ class GroundwaterDupuitPercolator(Component):
 
         self._verify_output_fields()
 
-    def run_one_step(self, dt, **kwds):
+    def run_one_step(self, dt):
         """
         Advance component by one time step of size dt.
 
