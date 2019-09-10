@@ -125,7 +125,7 @@ class GroundwaterDupuitPercolator(Component):
     }
 
     def __init__(self, grid, hydraulic_conductivity=0.01,porosity=0.5,
-                 recharge_rate=1.0e-8,regularization_f=1E-3):
+                 recharge_rate=1.0e-8,regularization_f=1E-3,unsaturated_zone=False):
         """Initialize the GroundwaterDupuitPercolator.
 
         Parameters
@@ -158,7 +158,7 @@ class GroundwaterDupuitPercolator(Component):
         self.n = return_array_at_node(grid,porosity)
         self.n_link = map_mean_of_link_nodes_to_link(self._grid,self.n)
         self.r = regularization_f
-
+        self.unsat = unsaturated_zone
         # Create fields:
 
         if "topographic__elevation" in self.grid.at_node:
@@ -281,7 +281,7 @@ class GroundwaterDupuitPercolator(Component):
                         self._grid.at_node['aquifer__thickness'][self.cores])
 
 
-    def run_one_step(self, dt, **kwds):
+    def run_one_step(self, dt, qc=0.001,Sf=0.3,**kwds):
         """
         Advance component by one time step of size dt.
 
@@ -319,7 +319,10 @@ class GroundwaterDupuitPercolator(Component):
                                     self.r)*_regularize_R(self.recharge - dqdx)
 
         # Mass balance
-        self.dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
+        if self.unsat==True:
+            self.dhdt = (1/(self.n*(1+Sf)))*(self.recharge - dqdx - self.qs)
+        else:
+            self.dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
 
         # Update
         self.thickness[self._grid.core_nodes] += self.dhdt[self.cores] * dt
@@ -328,7 +331,7 @@ class GroundwaterDupuitPercolator(Component):
         self.wtable[self._grid.core_nodes] = (self.base[self.cores]
                                               + self.thickness[self.cores])
 
-    def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.5, **kwds):
+    def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.5,Sf=0.3,**kwds):
         """
         Advance component by one time step of size dt, subdividing the timestep
         into substeps as necessary to meet a Courant condition.
@@ -375,7 +378,10 @@ class GroundwaterDupuitPercolator(Component):
                                         self.r)*_regularize_R(self.recharge - dqdx)
 
             # Mass balance
-            self.dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
+            if self.unsat==True:
+                self.dhdt = (1/(self.n*(1+Sf)))*(self.recharge - dqdx - self.qs)
+            else:
+                self.dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
 
             #calculate criteria for timestep
             max_vel = max(abs(self.vel/self.n_link))
