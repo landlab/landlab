@@ -94,7 +94,7 @@ def shape_for_storage(array, field_size=None):
 
     For field sizes of 1, the array is always flattened.
 
-    >>> shape_for_storage(data, 1) == (6, )
+    >>> shape_for_storage(data, 1) == (1, 6)
     True
 
     For scalar arrays, the field size must be 1.
@@ -129,7 +129,7 @@ def shape_for_storage(array, field_size=None):
             )
         )
 
-    if field_size in (1, array.size):
+    if field_size == array.size:
         shape = (array.size,)
     else:
         shape = (field_size, array.size // field_size)
@@ -147,21 +147,111 @@ class FieldDataset(dict):
     needed. The setitem method is also overriden so that when arrays
     are added they are stored reshaped in the landlab style. That
     is, shaped as `(n_elements, values_per_element)`.
+
+    Examples
+    --------
+    >>> from landlab.field.graph_field import FieldDataset
+
+    >>> ds = FieldDataset("node")
+    >>> ds.size is None
+    True
+    >>> ds.set_value("air_temperature", [1.0, 1.0, 1.0, 1.0])
+    >>> ds["air_temperature"]
+    array([ 1.,  1.,  1.,  1.])
+    >>> ds.size
+    4
+    >>> ds.set_value("air_temperature", [1.0, 1.0, 1.0])
+    Traceback (most recent call last):
+    ValueError: unable to reshape array to field size (3 != 4)
+
+    >>> ds = FieldDataset("node", fixed_size=False)
+    >>> ds.size is None
+    True
+    >>> ds.set_value("air_temperature", [1.0, 1.0, 1.0, 1.0])
+    >>> ds.size
+    4
+    >>> ds.set_value("air_temperature", [0.0, 0.0])
+    >>> ds.size
+    2
+    >>> ds["air_temperature"]
+    array([ 0.,  0.])
     """
 
-    def __init__(self, *args, **kwds):
-        self._name, self._size = args[0], args[1]
-        self._fixed_size = bool(kwds.get("fixed_size", True))
+    def __init__(self, name, size=None, fixed_size=True):
+        self._name = name
+        self._size = None
+        self._fixed_size = bool(fixed_size)
         self._ds = xr.Dataset()
         self._units = {}
 
+        self.size = size
+
+        super(FieldDataset, self).__init__()
+
     @property
     def size(self):
+        """Size of the field dataset as number of elements.
+
+        Examples
+        --------
+        >>> from landlab.field.graph_field import FieldDataset
+
+        >>> ds = FieldDataset("grid", size=1)
+        >>> ds.set_value("air_temperature", [1.0, 1.0, 1.0])
+        >>> ds.set_value("ground_temperature", [0.0, 0.0])
+        >>> ds["ground_temperature"]
+        array([[ 0.,  0.]])
+
+        >>> ds = FieldDataset("grid", size=1)
+        >>> ds.set_value("air_temperature", 0.1)
+        >>> ds["air_temperature"]
+        array(0.1)
+        """
         return self._size
+
+    @size.setter
+    def size(self, size):
+        if self._size != size:
+            if self._size is not None and self.fixed_size:
+                raise ValueError(
+                    "size has already been set ({size}) and fixed_size is True".format(
+                        size=self._size
+                    )
+                )
+            elif not isinstance(size, int) or size < 0:
+                raise ValueError(
+                    "size must be a positive integer or None ({size})".format(size=size)
+                )
+            self._size = size
 
     @property
     def fixed_size(self):
+        """Flag that indicates if arrays added to the dataset must be of a fixed size.
+
+        Examples
+        --------
+        >>> from landlab.field.graph_field import FieldDataset
+
+        >>> ds = FieldDataset("node", fixed_size=False)
+        >>> ds.set_value("air_temperature", [1.0, 1.0, 1.0, 1.0])
+        >>> ds.set_value("air_temperature", [0.0, 0.0])
+        >>> ds["air_temperature"]
+        array([ 0.,  0.])
+
+        >>> ds.fixed_size = True
+        >>> ds.size
+        2
+        >>> ds.set_value("air_temperature", [1.0, 1.0, 1.0])
+        Traceback (most recent call last):
+        ValueError: unable to reshape array to field size (4 != 2)
+        """
         return self._fixed_size
+
+    @fixed_size.setter
+    def fixed_size(self, fixed_size):
+        self._fixed_size = bool(fixed_size)
+        if self._fixed_size:
+            self.size = self._ds.dims[self._name]
 
     @property
     def units(self):
@@ -180,26 +270,26 @@ class FieldDataset(dict):
 
         value_array = np.asarray(value_array)
 
-        if self.fixed_size and self.size is None:
-            self._size = value_array.size
-
         if name in self._ds and self._ds[name].values is value_array:
             self._ds[name].values.shape = shape_for_storage(value_array, self.size)
             return
 
-        value_array = reshape_for_storage(value_array, self._size)
-
-        if self.size == 1:
-            if value_array.ndim > 0:
-                dims = (name + "_per_" + self._name,)
-            else:
-                dims = ()
+        if self.fixed_size:
+            value_array = reshape_for_storage(value_array, self.size)
         else:
-            dims = (self._name,)
-            if value_array.ndim > 1:
-                dims += (name + "_per_" + self._name,)
-            elif value_array.ndim == 0:
-                dims = ()
+            value_array = reshape_for_storage(value_array, None)
+
+        if value_array.ndim > 0:
+            self.size = value_array.shape[0]
+        else:
+            self.size = value_array.size
+
+        if value_array.ndim == 0:
+            dims = ()
+        elif value_array.ndim == 1:
+            dims = (self._name, )
+        else:
+            dims = (self._name, name + "_per_" + self._name)
 
         if name in self._ds:
             self._ds = self._ds.drop(name)
@@ -208,7 +298,9 @@ class FieldDataset(dict):
         self._units[name] = attrs["units"]
 
     def pop(self, name):
+        array = self._ds[name].values
         self._ds = self._ds.drop(name)
+        return array
 
     def __getitem__(self, name):
         if isinstance(name, str):
@@ -228,8 +320,18 @@ class FieldDataset(dict):
     def __str__(self):
         return str(self._ds)
 
+    def __repr__(self):
+        return "FieldDataset({name}, size={size}, fixed_size={fixed_size})".format(
+            name=repr(self._name),
+            size=repr(self.size),
+            fixed_size=repr(self.fixed_size),
+        )
+
     def __len__(self):
-        return self._size
+        return len(self._ds.variables)
+
+    def __iter__(self):
+        return iter(self._ds.variables)
 
 
 class GraphFields(object):
@@ -372,8 +474,8 @@ class GraphFields(object):
 
         >>> from landlab.field import GraphFields
         >>> fields = GraphFields()
-        >>> fields.new_field_location('node', 12)
-        >>> fields.new_field_location('cell', 2)
+        >>> fields.new_field_location("node", 12)
+        >>> fields.new_field_location("cell", 2)
 
         The group names in the collection are retrieved with the *groups*
         attribute as a `set`.
@@ -385,13 +487,15 @@ class GraphFields(object):
 
         Access the new (empty) groups with the *at_* attributes.
 
-        >>> fields.at_cell, fields.at_node
-        ({}, {})
+        >>> fields.at_cell
+        FieldDataset('cell', size=2, fixed_size=True)
+        >>> fields.at_node
+        FieldDataset('node', size=12, fixed_size=True)
 
-        >>> fields.new_field_location('core_node')
+        >>> fields.new_field_location("core_node")
         >>> fields.at_core_node.size is None
         True
-        >>> fields.at_core_node['air__temperature'] = [0, 1]
+        >>> fields.at_core_node["air__temperature"] = [0, 1]
         >>> fields.at_core_node.size
         2
 
@@ -533,7 +637,7 @@ class GraphFields(object):
 
         LLCATS: GINF FIELDINF
         """
-        return len(self[group])
+        return self[group].size
 
     def field_values(self, group, field):
         """Get values of a field.
