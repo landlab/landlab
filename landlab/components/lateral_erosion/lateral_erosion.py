@@ -347,7 +347,7 @@ class LateralEroder(Component):
         qs_in = self._qs_in
         dzdt = self._dzdt
         alph = self._alph
-        self.dt = dt
+        vol_lat = self._grid.at_node["volume__lateral_erosion"]
         vol_lat = self.grid.at_node["volume__lateral_erosion"]
         kw = 10.0
         F = 0.02
@@ -475,7 +475,7 @@ class LateralEroder(Component):
         qs_in = self._qs_in
         dzdt = self._dzdt
         alph = self._alph
-        self.dt = dt
+        vol_lat = self._grid.at_node["volume__lateral_erosion"]
         vol_lat = self.grid.at_node["volume__lateral_erosion"]
         kw = 10.0
         F = 0.02
