@@ -125,7 +125,7 @@ def test_active_links_at_node_with_no_args():
 
 def test_inactive_interiors():
     grid = RasterModelGrid((4, 5))
-    grid.status_at_node[(6, 12),] = hmg.BC_NODE_IS_CLOSED
+    grid.status_at_node[(6, 12),] = grid.BC_NODE_IS_CLOSED
     np.all(
         _active_links_at_node(grid)
         == np.array(
