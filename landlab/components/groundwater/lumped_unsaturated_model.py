@@ -10,6 +10,7 @@ import numpy as np
 from landlab import RasterModelGrid, Component
 from landlab.utils import return_array_at_node
 
+#old definition
 def EvapotranspirationLoss(p,S,Sw,St,ETmax,dt):
     qet = np.zeros_like(S)
 
@@ -25,6 +26,7 @@ def EvapotranspirationLoss(p,S,Sw,St,ETmax,dt):
             qet[i] = 0
     return qet
 
+#old definition
 def LeakageLoss(S,f,qet,Sf,Ksat,dt):
     ql = np.zeros_like(S)
 
@@ -38,23 +40,45 @@ def LeakageLoss(S,f,qet,Sf,Ksat,dt):
 
     return ql
 
-# def RootWaterLoss():
-
 def _regularize_R(u):
     return u*np.greater_equal(u,0)
 
 def _EvapotranspirationLoss(p,S,Sw,St,ETmax):
     qet = np.zeros_like(S)
-    n = St>0
-    qet[n] = (p==0.0)*_regularize_R((S[n]-Sw[n])/(St[n]-Sw[n]))*ETmax[n]
+    i = St>0
+    qet[i] = (p==0.0)*_regularize_R((S[i]-Sw[i])/(St[i]-Sw[i]))*ETmax[i]
     return qet
 
-def _LeakageLoss(f,qet,S,Sf,St,Ksat):
+
+def _CapillaryRise(S,Sw,Sf,St,Qcapmax,Zwt,Z,Qrootmax,hroot,dt,n):
+    #Loss of water from the aquifer due to capillary rise into the unsat zone
+    q_capillary = np.zeros_like(S)
+    q_root = np.zeros_like(S)
+    i = St>0
+
+    q_capillary[i] = (Z[i]-Zwt[i] > Qcapmax[i]*dt/n[i])*(S[i]<Sf[i])*(Qcapmax[i]
+                        - Qcapmax[i]*_regularize_R((S[i]-Sw[i])/(Sf[i]-Sw[i])))
+    q_root[i] = (Z[i]-Zwt[i]<hroot[i])*Qrootmax[i]
+    return q_capillary+q_root
+
+def _LeakageLoss(S,Sf,St,Ksat):
+    #leakage under unit hydraulic gradient and hydraulic
+    #conductivity that varies linearly from 0 at field capacity to Ksat
+    #at full saturation.
     ql = np.zeros_like(S)
-    n = St>0
-    ql[n] =  _regularize_R((S[n]-Sf[n])/(St[n]-Sf[n]))*Ksat[n]
+    i = St>0
+    ql[i] =  _regularize_R((S[i]-Sf[i])/(St[i]-Sf[i]))*Ksat[i]
     return ql
 
+#untested
+def _LeakageLoss_MVG(S,Sf,Sw,St,Ko,n,L):
+    #leakage loss under unit hydraulic gradient and hydraulic
+    #conductivity given by the Mualem-van Genuchten model K(Se)
+    Se = np.zeros_like(S)
+    i = St>0
+    Se[i] = _regularize_R((S[i]-Sw[i])/(St[i]-Sw[i]))
+    ql =  1*Ko*(Se**L)*(1 - (1 - Se**(n/(n-1)) )**(1-1/n) )**2
+    return ql
 
 class LumpedUnsaturatedZone(Component):
     """
@@ -79,6 +103,8 @@ class LumpedUnsaturatedZone(Component):
             water uptake is zero.
             Default = 1 m
     ETmax:
+    Qcapmax:
+    Qrootmax:
 
     Notes
     -----
@@ -139,7 +165,7 @@ class LumpedUnsaturatedZone(Component):
 
     def __init__(self, grid, porosity=0.5, soil_wilting_point=0.18,
             soil_field_capacity=0.3, plant_rooting_depth=1.0, ETmax=2.0e-8,
-            hydraulic_conductivity=0.005):
+            Qrootmax=1E-9, Qcapmax = 1E-9,hydraulic_conductivity=0.005):
 
         # Store grid
         self._grid = grid
@@ -150,6 +176,8 @@ class LumpedUnsaturatedZone(Component):
         self.sf = return_array_at_node(grid, soil_field_capacity)
         self.dr = return_array_at_node(grid, plant_rooting_depth)
         self.ETmax = return_array_at_node(grid, ETmax)
+        self.Qcapmax = return_array_at_node(grid, Qcapmax)
+        self.Qrootmax = return_array_at_node(grid, Qrootmax)
         self.Ksat = return_array_at_node(grid, hydraulic_conductivity)
 
         # Create fields:
@@ -189,7 +217,7 @@ class LumpedUnsaturatedZone(Component):
 
     def correct_soil_water__storage(self,dt):
         dhdt = self._grid.at_node["water_table__velocity"]
-        self.r = self.n*self.sf*dhdt
+        self.r = (dhdt<0)*self.n*self.sf*dhdt - (dhdt>0)*self.n*dhdt*(self.S/(self.thickness*self.n))
         self.S += self.r*dt
 
     def run_one_step(self,duration,intensity):
@@ -203,9 +231,9 @@ class LumpedUnsaturatedZone(Component):
         self.ho = np.maximum(self.p-self.Ksat,0.)
 
         self.qet = _EvapotranspirationLoss(intensity,self.S,Sw,St,self.ETmax)
-        self.ql = _LeakageLoss(self.f,self.qet,self.S,Sf,St,self.Ksat)
-
-        self.S += self.f*dt - self.qet*dt - self.ql*dt
+        self.ql = _LeakageLoss(self.S,Sf,St,self.Ksat)
+        self.qc = _CapillaryRise(self.S,Sw,Sf,St,self.Qcapmax,self.wtable,self.elev,self.Qrootmax,self.dr,dt,self.n)
+        self.S += self.f*dt + self.qc*dt - self.qet*dt - self.ql*dt
 
         self.sat[self.thickness > 0.] = self.S[self.thickness > 0.]/self.thickness[self.thickness > 0.]
         self.sat[self.thickness == 0.] = 1.0
@@ -213,11 +241,17 @@ class LumpedUnsaturatedZone(Component):
     def get_recharge_rate(self):
         return self.ql
 
+    def get_capillary_loss(self):
+        return self.qc
+
     def calc_hortonian_overland_flux(self):
         return np.sum(self.ho[self._grid.core_nodes]*self._grid.area_of_cell)
 
     def calc_et_flux(self):
         return np.sum(self.qet[self._grid.core_nodes]*self._grid.area_of_cell)
+
+    def calc_cap_flux(self):
+        return np.sum(self.qc[self._grid.core_nodes]*self._grid.area_of_cell)
 
     def calc_total_storage(self):
         return np.sum(self.S[self._grid.core_nodes]*self._grid.area_of_cell)
