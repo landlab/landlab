@@ -230,6 +230,7 @@ class LateralEroder(Component):
         qsinlet=0.0,
         flow_accumulator=None,
     ):
+        super(LateralEroder, self).__init__(grid)
 
         assert isinstance(
             grid, RasterModelGrid), "LateralEroder requires a sqare raster grid."
@@ -274,8 +275,6 @@ class LateralEroder(Component):
                                   "FlowAccumulator must be passed on "
                                   "instantiation."))
             self._flow_accumulator = flow_accumulator
-
-        self._grid = grid
 
         # Create fields needed for this component if not already existing
         if "volume__lateral_erosion" in grid.at_node:
@@ -326,7 +325,7 @@ class LateralEroder(Component):
 
         # handling Kv for floats (inwhich case it populates an array N_nodes long) or
         # for arrays of Kv. Checks that length of Kv array is good.
-        self._Kv = np.ones(self.grid.number_of_nodes, dtype=float) * Kv
+        self._Kv = np.ones(self._grid.number_of_nodes, dtype=float) * Kv
 
     def run_one_step_basic(self, dt=1.0):
         """Calculate vertical and lateral erosion for
@@ -339,7 +338,7 @@ class LateralEroder(Component):
 
         """
         Klr = self._Klr
-        grid = self.grid
+        grid = self._grid
         UC = self._UC
         TB = self._TB
         inlet_on = self._inlet_on  # this is a true/false flag
@@ -348,7 +347,6 @@ class LateralEroder(Component):
         dzdt = self._dzdt
         alph = self._alph
         vol_lat = self._grid.at_node["volume__lateral_erosion"]
-        vol_lat = self.grid.at_node["volume__lateral_erosion"]
         kw = 10.0
         F = 0.02
         # May 2, runoff calculated below (in m/s) is important for calculating
@@ -467,7 +465,7 @@ class LateralEroder(Component):
         slope flattening.
         """
         Klr = self._Klr
-        grid = self.grid
+        grid = self._grid
         UC = self._UC
         TB = self._TB
         inlet_on = self._inlet_on  # this is a true/false flag
@@ -476,7 +474,6 @@ class LateralEroder(Component):
         dzdt = self._dzdt
         alph = self._alph
         vol_lat = self._grid.at_node["volume__lateral_erosion"]
-        vol_lat = self.grid.at_node["volume__lateral_erosion"]
         kw = 10.0
         F = 0.02
         runoffms = (Klr * F / kw) ** 2
