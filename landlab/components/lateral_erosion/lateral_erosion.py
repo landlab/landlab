@@ -155,7 +155,8 @@ class LateralEroder(Component):
 
 
     After lateral erosion at node 6, elevation at node 6 is reduced by -1.41
-    (the elevation change stored in dzlat[6]).
+    (the elevation change stored in dzlat[6]). It is also provided as the
+    at-node grid field *elevation_change__lateral_erosion*.
 
     >>> np.around(oldelev, decimals=2)
     array([ 0.  ,  1.03,  2.03,  3.  ,
@@ -181,24 +182,25 @@ class LateralEroder(Component):
 
     _name = "LateralEroder"
 
-    _input_var_names = (
+    _input_var_names = set((
         "topographic__elevation",
         "drainage_area",
         "flow__receiver_node",
         "flow__upstream_node_order",
         "topographic__steepest_slope",
-    )
+    ))
 
-    _output_var_names = ("topographic__elevation", "dzlat", "vollat", "qs_in")
+    _output_var_names = set(("topographic__elevation", "elevation_change__lateral_erosion", "volume__lateral_erosion", "sediment__flux"))
+
     _var_units = {
         "topographic__elevation": "m",
         "drainage_area": "m2",
         "flow__receiver_node": "-",
         "flow__upstream_node_order": "-",
         "topographic__steepest_slope": "-",
-        "dzlat": "m",
-        "vollat": "m3",
-        "qs_in": "m3/y",
+        "elevation_change__lateral_erosion": "m",
+        "volume__lateral_erosion": "m3",
+        "sediment__flux": "m3/y",
     }
 
     _var_doc = {
@@ -211,9 +213,9 @@ class LateralEroder(Component):
         "discharge",
         "soil__depth": "Depth of sediment above bedrock",
         "topographic__elevation": "Land surface topographic elevation",
-        "dzlat": "Change in elevation at each node from lateral erosion during time step",
-        "vollat": "Array tracking volume eroded at each node from lateral erosion",
-        "qs_in": "Volume per unit time of sediment entering each node",
+        "elevation_change__lateral_erosion": "Change in elevation at each node from lateral erosion during time step",
+        "volume__lateral_erosion": "Array tracking volume eroded at each node from lateral erosion",
+        "sediment__flux": "Volume per unit time of sediment entering each node",
     }
 
     def __init__(
@@ -281,10 +283,16 @@ class LateralEroder(Component):
             self._vol_lat = grid.at_node["volume__lateral_erosion"]
         else:
             self._vol_lat = grid.add_zeros("volume__lateral_erosion", at="node")
-        if "qs_in" in grid.at_node:
-            self._qs_in = grid.at_node["qs_in"]
+
+        if "sediment__flux" in grid.at_node:
+            self._qs_in = grid.at_node["sediment__flux"]
         else:
-            self._qs_in = grid.add_zeros("qs_in", at="node")
+            self._qs_in = grid.add_zeros("sediment__flux", at="node")
+
+        if "elevation_change__lateral_erosion" in grid.at_node:
+            self._dzlat = grid.at_node["elevation_change__lateral_erosion"]
+        else:
+            self._dzlat = grid.add_zeros("elevation_change__lateral_erosion", at="node")
 
         # you can specify the type of lateral erosion model you want to use.
         # But if you don't the default is the undercutting-slump model
@@ -357,10 +365,9 @@ class LateralEroder(Component):
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
         # clear qsin for next loop
-        qs_in = grid.add_zeros("node", "qs_in", noclobber=False)
+        qs_in = grid.add_zeros("node", "sediment__flux", noclobber=False)
         qs = grid.add_zeros("node", "qs", noclobber=False)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
-        dzlat = np.zeros(grid.number_of_nodes)
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
         if inlet_on is True:
@@ -450,15 +457,15 @@ class LateralEroder(Component):
                     # then instantaneously remove this height from lat node. already has
                     # timestep in it
                     if vol_lat[lat_node] >= voldiff:
-                        dzlat[lat_node] = z[flowdirs[i]] - z[lat_node]  # -0.001
+                        self._dzlat[lat_node] = z[flowdirs[i]] - z[lat_node]  # -0.001
                         # after the lateral node is eroded, reset its volume eroded to
                         # zero
                         vol_lat[lat_node] = 0.0
         # combine vertical and lateral erosion.
-        dz = dzdt + dzlat
+        dz = dzdt + self._dzlat
         # change height of landscape
         z[:] += dz
-        return grid, dzlat
+        return grid, self._dzlat
 
     def run_one_step_adaptive(self, dt=1.0):
         """Run time step with adaptive time stepping to prevent
@@ -480,10 +487,9 @@ class LateralEroder(Component):
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
         # clear qsin for next loop
-        qs_in = grid.add_zeros("node", "qs_in", noclobber=False)
+        qs_in = grid.add_zeros("node", "sediment__flux", noclobber=False)
         qs = grid.add_zeros("node", "qs", noclobber=False)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
-        dzlat = np.zeros(grid.number_of_nodes)
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
 
@@ -607,14 +613,14 @@ class LateralEroder(Component):
                         # then instantaneously remove this height from lat node. already
                         # has timestep in it
                         if vol_lat[lat_node] >= voldiff:
-                            dzlat[lat_node] = z[flowdirs[i]] - z[lat_node]  # -0.001
+                            self._dzlat[lat_node] = z[flowdirs[i]] - z[lat_node]  # -0.001
                             # after the lateral node is eroded, reset its volume eroded
                             # to zero
                             vol_lat[lat_node] = 0.0
 
             # multiply dzdt by timestep size and combine with lateral erosion
-            # dzlat, which is already a length for the calculated time step
-            dz = dzdt * dt + dzlat
+            # self._dzlat, which is already a length for the calculated time step
+            dz = dzdt * dt + self._dzlat
             # change height of landscape
             z[:] += dz
             # update elapsed time
@@ -650,8 +656,8 @@ class LateralEroder(Component):
                 dwnst_nodes = dwnst_nodes[::-1]
 
                 lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
-                dzlat = np.zeros(grid.number_of_nodes)
+                self._dzlat = np.zeros(grid.number_of_nodes)
                 vol_lat_dt = np.zeros(grid.number_of_nodes)
                 dzver = np.zeros(grid.number_of_nodes)
 
-        return grid, dzlat
+        return grid, self._dzlat
