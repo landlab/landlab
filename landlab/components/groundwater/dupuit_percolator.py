@@ -258,7 +258,13 @@ class GroundwaterDupuitPercolator(Component):
         return np.sum(self._grid.at_node['surface_water__discharge'][self._grid.open_boundary_nodes] )
 
     def calc_gw_flux_at_node(self):
-        return map_max_of_node_links_to_node(self._grid,self._grid.dx* abs(self._grid.at_link['groundwater__specific_discharge']))
+        # the sum of the flux of groundwater leaving a node
+        gw = self._grid.at_link['groundwater__specific_discharge'][self._grid.links_at_node]*self._grid.link_dirs_at_node
+        gw_out = -np.sum(gw*(gw<0),axis=1)
+        return gw_out
+
+        # Old definition of gw flux at node.
+        # return map_max_of_node_links_to_node(self._grid,self._grid.dx* abs(self._grid.at_link['groundwater__specific_discharge']))
 
     def calc_sw_flux_at_node(self):
         return self._grid.at_node['surface_water__discharge']
