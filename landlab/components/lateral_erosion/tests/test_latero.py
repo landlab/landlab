@@ -278,7 +278,13 @@ def test_variable_bedrock_K():
     # ***NOTE, YOU MUST USE ADAPTIVE TIME STEPPER FOR variable K, or you may get strange
     # topography
     latero = LateralEroder(
-        mg, latero_mech="UC", Kv=Kvar, solver="adaptive", alph=0.0, Kl_ratio=0.0, flow_accumulator=fa
+        mg,
+        latero_mech="UC",
+        Kv=Kvar,
+        solver="adaptive",
+        alph=0.0,
+        Kl_ratio=0.0,
+        flow_accumulator=fa,
     )
 
     for i in range(2000):

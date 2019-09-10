@@ -156,7 +156,7 @@ class LateralEroder(Component):
 
     After lateral erosion at node 6, elevation at node 6 is reduced by -1.41
     (the elevation change stored in dzlat[6]). It is also provided as the
-    at-node grid field *elevation_change__lateral_erosion*.
+    at-node grid field *lateral_erosion__depth_increment*.
 
     >>> np.around(oldelev, decimals=2)
     array([ 0.  ,  1.03,  2.03,  3.  ,
@@ -182,15 +182,24 @@ class LateralEroder(Component):
 
     _name = "LateralEroder"
 
-    _input_var_names = set((
-        "topographic__elevation",
-        "drainage_area",
-        "flow__receiver_node",
-        "flow__upstream_node_order",
-        "topographic__steepest_slope",
-    ))
+    _input_var_names = set(
+        (
+            "topographic__elevation",
+            "drainage_area",
+            "flow__receiver_node",
+            "flow__upstream_node_order",
+            "topographic__steepest_slope",
+        )
+    )
 
-    _output_var_names = set(("topographic__elevation", "elevation_change__lateral_erosion", "volume__lateral_erosion", "sediment__flux"))
+    _output_var_names = set(
+        (
+            "topographic__elevation",
+            "lateral_erosion__depth_increment",
+            "volume__lateral_erosion",
+            "sediment__flux",
+        )
+    )
 
     _var_units = {
         "topographic__elevation": "m",
@@ -198,7 +207,7 @@ class LateralEroder(Component):
         "flow__receiver_node": "-",
         "flow__upstream_node_order": "-",
         "topographic__steepest_slope": "-",
-        "elevation_change__lateral_erosion": "m",
+        "lateral_erosion__depth_increment": "m",
         "volume__lateral_erosion": "m3",
         "sediment__flux": "m3/y",
     }
@@ -213,7 +222,7 @@ class LateralEroder(Component):
         "discharge",
         "soil__depth": "Depth of sediment above bedrock",
         "topographic__elevation": "Land surface topographic elevation",
-        "elevation_change__lateral_erosion": "Change in elevation at each node from lateral erosion during time step",
+        "lateral_erosion__depth_increment": "Change in elevation at each node from lateral erosion during time step",
         "volume__lateral_erosion": "Array tracking volume eroded at each node from lateral erosion",
         "sediment__flux": "Volume per unit time of sediment entering each node",
     }
@@ -235,7 +244,8 @@ class LateralEroder(Component):
         super(LateralEroder, self).__init__(grid)
 
         assert isinstance(
-            grid, RasterModelGrid), "LateralEroder requires a sqare raster grid."
+            grid, RasterModelGrid
+        ), "LateralEroder requires a sqare raster grid."
 
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
@@ -273,9 +283,13 @@ class LateralEroder(Component):
 
         if solver == "adaptive":
             if not isinstance(flow_accumulator, FlowAccumulator):
-                raise ValueError(("When the adaptive solver is used, a valid "
-                                  "FlowAccumulator must be passed on "
-                                  "instantiation."))
+                raise ValueError(
+                    (
+                        "When the adaptive solver is used, a valid "
+                        "FlowAccumulator must be passed on "
+                        "instantiation."
+                    )
+                )
             self._flow_accumulator = flow_accumulator
 
         # Create fields needed for this component if not already existing
@@ -289,10 +303,10 @@ class LateralEroder(Component):
         else:
             self._qs_in = grid.add_zeros("sediment__flux", at="node")
 
-        if "elevation_change__lateral_erosion" in grid.at_node:
-            self._dzlat = grid.at_node["elevation_change__lateral_erosion"]
+        if "lateral_erosion__depth_increment" in grid.at_node:
+            self._dzlat = grid.at_node["lateral_erosion__depth_increment"]
         else:
-            self._dzlat = grid.add_zeros("elevation_change__lateral_erosion", at="node")
+            self._dzlat = grid.add_zeros("lateral_erosion__depth_increment", at="node")
 
         # you can specify the type of lateral erosion model you want to use.
         # But if you don't the default is the undercutting-slump model
@@ -428,7 +442,7 @@ class LateralEroder(Component):
 
             # send sediment downstream. sediment eroded from vertical incision
             # and lateral erosion is sent downstream
-#            print("debug before 406")
+            #            print("debug before 406")
             qs_in[flowdirs[i]] += (
                 qs_in[i] - (dzver[i] * grid.dx ** 2) - (petlat * grid.dx * wd)
             )  # qsin to next node
@@ -613,7 +627,9 @@ class LateralEroder(Component):
                         # then instantaneously remove this height from lat node. already
                         # has timestep in it
                         if vol_lat[lat_node] >= voldiff:
-                            self._dzlat[lat_node] = z[flowdirs[i]] - z[lat_node]  # -0.001
+                            self._dzlat[lat_node] = (
+                                z[flowdirs[i]] - z[lat_node]
+                            )  # -0.001
                             # after the lateral node is eroded, reset its volume eroded
                             # to zero
                             vol_lat[lat_node] = 0.0
