@@ -137,18 +137,22 @@ class DepressionFinderAndRouter(Component):
 
     _input_var_names = set(("topographic__elevation",))
 
-    _output_var_names = set(("depression__depth", "depression__outlet_node"))
+    _output_var_names = set(("depression__depth", "depression__outlet_node", "flood_status_code", "is_pit"))
 
     _var_units = {
         "topographic__elevation": "m",
         "depression__depth": "m",
         "depression__outlet_node": "-",
+        "flood_status_code": "-",
+        "is_pit": "-",
     }
 
     _var_mapping = {
         "topographic__elevation": "node",
         "depression__depth": "node",
         "depression__outlet_node": "node",
+        "flood_status_code": "node",
+        "is_pit": "node",
     }
 
     _var_doc = {
@@ -156,6 +160,8 @@ class DepressionFinderAndRouter(Component):
         "depression__depth": "Depth of depression below its spillway point",
         "depression__outlet_node": "If a depression, the id of the outlet node for that depression, "
         "otherwise BAD_INDEX_VALUE",
+        "flood_status_code": "TODO",
+        "is_pit": "TODO",
     }
 
     def __init__(self, grid, routing="D8"):
