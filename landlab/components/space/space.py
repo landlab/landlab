@@ -159,7 +159,7 @@ class Space(_GeneralizedErosionDeposition):
         )
     )
 
-    _output_var_names = set(("topographic__elevation", "soil__depth"))
+    _output_var_names = set(("topographic__elevation", "soil__depth", "sediment__flux"))
 
     _var_units = {
         "flow__receiver_node": "-",
@@ -168,6 +168,8 @@ class Space(_GeneralizedErosionDeposition):
         "drainage_area": "m**2",
         "soil__depth": "m",
         "topographic__elevation": "m",
+        "sediment__flux": "m3/s",
+
     }
 
     _var_mapping = {
@@ -177,6 +179,7 @@ class Space(_GeneralizedErosionDeposition):
         "drainage_area": "node",
         "soil__depth": "node",
         "topographic__elevation": "node",
+        "sediment__flux": "node"
     }
 
     _var_doc = {
@@ -189,6 +192,8 @@ class Space(_GeneralizedErosionDeposition):
         "discharge",
         "soil__depth": "Depth of sediment above bedrock",
         "topographic__elevation": "Land surface topographic elevation",
+        "sediment__flux": "TODO",
+
     }
 
     _cite_as = """@Article{gmd-10-4577-2017,

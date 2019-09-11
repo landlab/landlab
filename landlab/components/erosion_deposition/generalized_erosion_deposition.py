@@ -14,20 +14,22 @@ class _GeneralizedErosionDeposition(Component):
 
     _name = "ErosionDeposition"
 
-    _input_var_names = (
+    _input_var_names = set((
         "flow__receiver_node",
         "flow__upstream_node_order",
         "topographic__steepest_slope",
         "surface_water__discharge",
-    )
+    ))
 
-    _output_var_names = set(("topographic__elevation",))
+    _output_var_names = set(("topographic__elevation", "sediment__flux"))
+
     _var_units = {
         "flow__receiver_node": "-",
         "flow__upstream_node_order": "-",
         "topographic__steepest_slope": "-",
         "surface_water__discharge": "m**2/s",
         "topographic__elevation": "m",
+        "sediment__flux": "m3/s",
     }
 
     _var_mapping = {
@@ -36,6 +38,7 @@ class _GeneralizedErosionDeposition(Component):
         "topographic__steepest_slope": "node",
         "surface_water__discharge": "node",
         "topographic__elevation": "node",
+        "sediment__flux": "node",
     }
 
     _var_doc = {
@@ -46,6 +49,7 @@ class _GeneralizedErosionDeposition(Component):
         "topographic__steepest_slope": "Topographic slope at each node",
         "surface_water__discharge": "Water discharge at each node",
         "topographic__elevation": "Land surface topographic elevation",
+        "sediment__flux": "TODO",
     }
 
     def __init__(
