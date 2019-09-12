@@ -200,7 +200,7 @@ class PotentialEvapotranspiration(Component):
         ----------
         current_time: float, required only for 'Cosine' method
             Current time (Years)
-        constant_potential_evapotranspiration: float, optional for
+        const_potential_evapotranspiration: float, optional for
             'Constant' method
             Constant PET value to be spatially distributed.
         Tmin: float, required for 'Priestley Taylor' method
