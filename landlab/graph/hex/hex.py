@@ -60,6 +60,103 @@ from ..graph import Graph
 from ..voronoi.voronoi import DelaunayGraph
 
 
+class HorizontalRectTriGraphCython:
+    @staticmethod
+    def xy_of_node(shape, spacing=1.0, xy_of_lower_left=(0.0, 0.0)):
+        from .ext.hex import fill_xy_of_node_rect_horizontal
+
+        x_of_node = np.empty(shape[0] * shape[1], dtype=float)
+        y_of_node = np.empty(shape[0] * shape[1], dtype=float)
+        fill_xy_of_node_rect_horizontal(shape, x_of_node, y_of_node)
+
+        x_of_node[:] *= spacing
+        y_of_node[:] *= spacing * np.sin(np.pi / 3.0)
+        x_of_node[:] += xy_of_lower_left[0]
+        y_of_node[:] += xy_of_lower_left[1]
+
+        return x_of_node, y_of_node
+
+
+class VerticalRectTriGraphCython:
+    @staticmethod
+    def xy_of_node(shape, spacing=1.0, xy_of_lower_left=(0.0, 0.0)):
+        from .ext.hex import fill_xy_of_node_rect_vertical
+
+        n_rows, n_cols = shape
+        x_spacing = np.sin(np.pi / 3.0) * spacing
+        y_spacing = spacing
+
+        x_of_node = np.empty(n_rows * n_cols, dtype=float)
+        y_of_node = np.empty(n_rows * n_cols, dtype=float)
+
+        fill_xy_of_node_rect_vertical(shape, x_of_node, y_of_node)
+
+        x_of_node *= x_spacing
+        y_of_node *= y_spacing
+        x_of_node += xy_of_lower_left[0]
+        y_of_node += xy_of_lower_left[1]
+
+        return x_of_node, y_of_node
+
+        x_of_node[:, (n_cols + 1) // 2 :] = (
+            np.arange(n_cols // 2) * x_spacing * 2.0 + x_spacing + xy_of_lower_left[0]
+        )
+        x_of_node[:, : (n_cols + 1) // 2] = (
+            np.arange((n_cols + 1) // 2) * x_spacing * 2.0 + xy_of_lower_left[0]
+        )
+
+        y_of_node[:, : (n_cols + 1) // 2] = (
+            np.arange(n_rows) * y_spacing + xy_of_lower_left[1]
+        ).reshape((n_rows, 1))
+        y_of_node[:, (n_cols + 1) // 2 :] = (
+            np.arange(n_rows) * y_spacing + xy_of_lower_left[1] + y_spacing * 0.5
+        ).reshape((n_rows, 1))
+
+        return x_of_node.reshape(-1), y_of_node.reshape(-1)
+
+
+class HorizontalHexTriGraphCython:
+    @staticmethod
+    def xy_of_node(shape, spacing=1.0, xy_of_lower_left=(0.0, 0.0)):
+        from .ext.hex import fill_xy_of_node_hex_horizontal
+
+        n_rows, n_cols = shape
+        n_nodes = n_rows * n_cols + (n_rows // 2) ** 2
+
+        x_of_node = np.empty(n_nodes, dtype=float)
+        y_of_node = np.empty(n_nodes, dtype=float)
+
+        fill_xy_of_node_hex_horizontal(shape, x_of_node, y_of_node)
+
+        x_of_node[:] *= spacing
+        y_of_node[:] *= spacing * np.sin(np.pi / 3.0)
+        x_of_node[:] += xy_of_lower_left[0]
+        y_of_node[:] += xy_of_lower_left[1]
+
+        return x_of_node, y_of_node
+
+
+class VerticalHexTriGraphCython:
+    @staticmethod
+    def xy_of_node(shape, spacing=1.0, xy_of_lower_left=(0.0, 0.0)):
+        from .ext.hex import fill_xy_of_node_hex_vertical
+
+        n_rows, n_cols = shape
+        n_nodes = n_cols * n_rows + (n_cols // 2) ** 2
+
+        x_of_node = np.empty(n_nodes, dtype=float)
+        y_of_node = np.empty(n_nodes, dtype=float)
+
+        fill_xy_of_node_hex_vertical(shape, x_of_node, y_of_node)
+
+        x_of_node[:] *= spacing * np.sin(np.pi / 3.0)
+        y_of_node[:] *= spacing
+        x_of_node[:] += xy_of_lower_left[0]
+        y_of_node[:] += xy_of_lower_left[1]
+
+        return x_of_node, y_of_node
+
+
 class HorizontalRectTriGraph:
     @staticmethod
     def number_of_nodes(shape):
@@ -129,12 +226,12 @@ class HorizontalRectTriGraph:
         if n_rows > 1:
             south = np.arange(southwest, southeast)
         else:
-            south = np.array([southwest])
+            south = np.array([southwest], dtype=int)
 
         if n_cols > 1:
             west = np.arange(northwest, southwest, -n_cols)
         else:
-            west = np.array([northwest])
+            west = np.array([northwest], dtype=int)
 
         return (
             np.arange(southeast, northeast, n_cols),
@@ -250,7 +347,7 @@ class VerticalRectTriGraph:
             south[::2] = np.arange(0, n_cols // 2)
             south[1::2] = (n_cols + 1) // 2 + np.arange(n_cols - n_cols // 2 - 1)
         else:
-            south = np.array([southwest])
+            south = np.array([southwest], dtype=int)
 
         return (
             np.arange(southeast, northeast, n_cols),
@@ -375,19 +472,33 @@ class HorizontalHexTriGraph:
         ) = HorizontalHexTriGraph.corner_nodes(shape)
 
         if n_rows == 1:
-            nodes_at_south_edge = [southwest]
+            nodes_at_south_edge = np.asarray([southwest], dtype=int)
         else:
             nodes_at_south_edge = np.arange(southwest, southeast)
 
         return (
-            northeast
-            - np.arange(northeast - northwest + 1, east - west + 1).cumsum()[::-1],
+            np.asarray(
+                northeast
+                - np.arange(northeast - northwest + 1, east - west + 1).cumsum()[::-1],
+                dtype=int,
+            ),
             np.arange(northeast, northwest, -1),
-            west
-            + np.arange(east - west + 1, northeast - northwest + 1, -1).cumsum()[::-1],
-            southwest + np.arange(n_cols, n_rows // 2 + n_cols).cumsum()[::-1],
+            np.asarray(
+                west
+                + np.arange(east - west + 1, northeast - northwest + 1, -1).cumsum()[
+                    ::-1
+                ],
+                dtype=int,
+            ),
+            np.asarray(
+                southwest + np.arange(n_cols, n_rows // 2 + n_cols).cumsum()[::-1],
+                dtype=int,
+            ),
             nodes_at_south_edge,
-            east - np.arange(n_cols + n_rows // 2, n_cols, -1).cumsum()[::-1],
+            np.asarray(
+                east - np.arange(n_cols + n_rows // 2, n_cols, -1).cumsum()[::-1],
+                dtype=int,
+            ),
         )
 
 
@@ -555,11 +666,15 @@ class VerticalHexTriGraph:
 
         return (
             np.arange(southeast, northeast, n_cols),
-            (north - np.arange(1, (n_cols + 1) // 2).cumsum())[::-1],
-            north - np.arange(1, (n_cols + 2) // 2).cumsum() + 1,
+            np.asarray(north - np.arange(1, (n_cols + 1) // 2).cumsum(), dtype=int)[
+                ::-1
+            ],
+            np.asarray(north - np.arange(1, (n_cols + 2) // 2).cumsum() + 1, dtype=int),
             np.arange(northwest, southwest, -n_cols),
-            south + np.arange(1, (n_cols + 2) // 2).cumsum()[::-1],
-            south + np.arange(1, (n_cols + 1) // 2).cumsum() - 1,
+            np.asarray(south + np.arange(1, (n_cols + 2) // 2).cumsum(), dtype=int)[
+                ::-1
+            ],
+            np.asarray(south + np.arange(1, (n_cols + 1) // 2).cumsum() - 1, dtype=int),
         )
 
 
