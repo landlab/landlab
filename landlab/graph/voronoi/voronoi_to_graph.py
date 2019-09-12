@@ -78,7 +78,8 @@ class VoronoiDelaunay(object):
                 "nodes_at_face": xr.DataArray(
                     np.asarray(voronoi.ridge_points, dtype=int), dims=("face", "Two")
                 ),
-                "cell_at_node": xr.DataArray(voronoi.point_region, dims=("node",)),
+                "cell_at_node": xr.DataArray(
+                    np.asarray(voronoi.point_region, dtype=int), dims=("node",)),
             }
         )
         self._mesh = mesh
