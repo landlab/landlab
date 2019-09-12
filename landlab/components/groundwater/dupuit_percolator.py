@@ -331,7 +331,7 @@ class GroundwaterDupuitPercolator(Component):
         self.wtable[self._grid.core_nodes] = (self.base[self.cores]
                                               + self.thickness[self.cores])
 
-    def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.5,Sf=0.3,**kwds):
+    def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.5,s=None,sf=None,**kwds):
         """
         Advance component by one time step of size dt, subdividing the timestep
         into substeps as necessary to meet a Courant condition.
@@ -379,7 +379,12 @@ class GroundwaterDupuitPercolator(Component):
 
             # Mass balance
             if self.unsat==True:
-                self.dhdt = (1/(self.n*(1+Sf)))*(self.recharge - dqdx - self.qs)
+                # unsaturated method interfaces with the LumpedUnsaturatedZone model
+                # accounting for the water gained and lost as the water table moves
+                # into and out of the unsaturated zone.
+                dsdt = self.recharge - dqdx - self.qs
+                self.dhdt = (dsdt>0)*(1/(self.n*(1-s)))*dsdt \
+                            + (dsdt<0)*(1/(self.n*(1+sf)))*dsdt
             else:
                 self.dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
 
