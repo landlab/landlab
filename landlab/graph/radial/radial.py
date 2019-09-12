@@ -360,4 +360,6 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
 
         LLCATS: NINF MEAS
         """
-        return self._shape[1] * 2 ** np.arange(self.number_of_rings)
+        return np.asarray(
+            self._shape[1] * 2 ** np.arange(self.number_of_rings), dtype=np.int
+        )
