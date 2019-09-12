@@ -131,13 +131,13 @@ def test_steady_state_with_basic_solver_option():
         n_sp=n_sp,
         sp_crit=0,
         solver="basic",
+        erode_flooded_nodes=False
     )
 
     # ... and run it to steady state (5000x1-year timesteps).
     for i in range(5000):
         fa.run_one_step()
-        flooded = np.where(df.flood_status == 3)[0]
-        ed.run_one_step(dt=dt, flooded_nodes=flooded)
+        ed.run_one_step(dt=dt)
         z[mg.core_nodes] += U * dt  # m
 
     # compare numerical and analytical slope solutions

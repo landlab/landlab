@@ -4,6 +4,7 @@ from landlab.utils.return_array import return_array_at_node
 
 from .cfuncs import calculate_qs_in
 from .generalized_erosion_deposition import _GeneralizedErosionDeposition
+from ..depression_finder.lake_mapper import _FLOODED
 
 ROOT2 = np.sqrt(2.0)  # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
@@ -100,6 +101,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         F_f=0.0,
         discharge_field="surface_water__discharge",
         solver="basic",
+        erode_flooded_nodes=True,
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
     ):
         """Initialize the ErosionDeposition model.
@@ -125,6 +127,11 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             contribute to (coarse) sediment load. Defaults to zero.
         discharge_field : float, field name, or array
             Discharge [L^2/T].
+        erode_flooded_nodes : bool (optional)
+            Whether erosion occurs in flooded nodes identified by a
+            depression/lake mapper (e.g., DepressionFinderAndRouter). When set
+            to false, the field *flood_status_code* must be present on the grid
+            (this is created by the DepressionFinderAndRouter). Default True.
         solver : string
             Solver to use. Options at present include:
                 (1) 'basic' (default): explicit forward-time extrapolation.
@@ -191,15 +198,15 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         Instantiate the E/D component:
 
         >>> ed = ErosionDeposition(mg, K=0.00001, phi=0.0, v_s=0.001,
-        ...                        m_sp=0.5, n_sp = 1.0, sp_crit=0)
+        ...                        m_sp=0.5, n_sp = 1.0, sp_crit=0,
+        ...                        erode_flooded_nodes=False)
 
         Now run the E/D component for 2000 short timesteps:
 
         >>> for x in range(2000): #E/D component loop
         ...     fr.run_one_step()
         ...     df.map_depressions()
-        ...     flooded = np.where(df.flood_status==3)[0]
-        ...     ed.run_one_step(dt = ed_dt, flooded_nodes=flooded)
+        ...     ed.run_one_step(dt = ed_dt)
         ...     mg.at_node['topographic__elevation'][0] -= 2e-4 * ed_dt
 
         Now we test to see if topography is right:
@@ -229,6 +236,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             v_s=v_s,
             dt_min=dt_min,
             discharge_field=discharge_field,
+            erode_flooded_nodes=erode_flooded_nodes,
         )
 
         # E/D specific inits.
@@ -259,7 +267,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         self._erosion_term = omega - self._sp_crit * (1.0 - np.exp(-omega_over_sp_crit))
 
-    def run_one_step_basic(self, dt=1.0, flooded_nodes=[]):
+    def run_one_step_basic(self, dt=1.0):
         """Calculate change in rock and alluvium thickness for
            a time period 'dt'.
 
@@ -267,12 +275,16 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         ----------
         dt : float
             Model timestep [T]
-        flooded_nodes : array
-            Indices of flooded nodes, passed from flow router
         """
 
         self._calc_hydrology()
         self._calc_erosion_rates()
+
+        if not self._erode_flooded_nodes:
+            flood_status = self._grid.at_node["flood_status_code"]
+            flooded_nodes = np.nonzero(flood_status==_FLOODED)[0]
+        else:
+            flooded_nodes = []
 
         self._erosion_term[flooded_nodes] = 0.0
         self._qs_in[:] = 0.0
@@ -302,7 +314,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             (self._depo_rate[cores] - self._erosion_term[cores]) / (1 - self._phi)
         ) * dt
 
-    def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[]):
+    def run_with_adaptive_time_step_solver(self, dt=1.0):
         """CHILD-like solver that adjusts time steps to prevent slope
         flattening."""
 
@@ -316,6 +328,12 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         cores = self._grid.core_nodes
 
         first_iteration = True
+
+        if not self._erode_flooded_nodes:
+            flood_status = self._grid.at_node["flood_status_code"]
+            flooded_nodes = np.nonzero(flood_status==_FLOODED)[0]
+        else:
+            flooded_nodes = []
 
         # Outer WHILE loop: keep going until time is used up
         while remaining_time > 0.0:
