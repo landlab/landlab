@@ -303,6 +303,18 @@ The Component base class
 
   landlab.core.model_component
 
+Data Structure
+==============
+
+DataRecord
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+  landlab.data_record.data_record
+
+
 Input/Output (IO)
 =================
 
