@@ -484,7 +484,7 @@ class StructuredQuadGraphTopology:
         return self._layout.links_at_node(self.shape)
 
     @property
-    # @lru_cache()
+    @lru_cache()
     def link_dirs_at_node(self):
         return self._layout.link_dirs_at_node(self.shape)
 
