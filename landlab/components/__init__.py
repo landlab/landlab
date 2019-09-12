@@ -15,7 +15,10 @@ from .flow_director import (
     FlowDirectorSteepest,
 )
 from .flow_routing import DepressionFinderAndRouter, FlowRouter
+from .fracture_grid import FractureGridGenerator
 from .gflex import gFlex
+from .groundwater import GroundwaterDupuitPercolator
+from .hack_calculator import HackCalculator
 from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
 from .lithology import LithoLayers, Lithology
@@ -30,6 +33,7 @@ from .overland_flow import (
 from .pet import PotentialEvapotranspiration
 from .plant_competition_ca import VegCA
 from .potentiality_flowrouting import PotentialityFlowRouter
+from .profiler import ChannelProfiler
 from .radiation import Radiation
 from .sink_fill import SinkFiller, SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt, SoilMoisture
@@ -50,6 +54,8 @@ from .weathering import ExponentialWeatherer
 
 COMPONENTS = [
     ChiFinder,
+    GroundwaterDupuitPercolator,
+    ChannelProfiler,
     LinearDiffuser,
     Flexure,
     FlowRouter,
@@ -89,6 +95,7 @@ COMPONENTS = [
     FlowDirectorMFD,
     FlowDirectorDINF,
     FlowAccumulator,
+    FractureGridGenerator,
     LossyFlowAccumulator,
     Space,
     ErosionDeposition,
@@ -98,6 +105,7 @@ COMPONENTS = [
     Lithology,
     LithoLayers,
     TransportLengthHillslopeDiffuser,
+    HackCalculator,
 ]
 
 __all__ = [cls.__name__ for cls in COMPONENTS]

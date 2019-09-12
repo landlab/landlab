@@ -3,6 +3,14 @@ import numpy as np
 from ..core.utils import make_optional_arg_into_id_array
 
 
+def _swap(a, b):
+    return (b, a)
+
+
+def _iround(x):
+    return int(round(x))
+
+
 def neighbor_node_at_cell(grid, inds, *args):
     """ node_id_of_cell_neighbor(grid, neighbor_ids [, cell_ids])
 
@@ -304,3 +312,79 @@ def is_coord_on_grid(rmg, coords, axes=(0, 1)):
         is_in_bounds &= _value_is_within_axis_bounds(rmg, coords[1 - axis], axis)
 
     return is_in_bounds
+
+
+def line_to_grid_coords(c0, r0, c1, r1):
+    """Return integer grid coords forming line segment (c0, r0)->(c1, r1).
+
+    Parameters
+    ----------
+    c0, r0 : int
+        column and row coordinates of "starting" endpoint
+    c1, r1 : int
+        column and row coordinates of "ending" endpoint
+
+    Returns
+    -------
+    rr, cc : (N,) ndarray of int
+        row and column coordinates of nodes in the line
+
+    Examples
+    --------
+    >>> line_to_grid_coords(0, 0, 4, 1)
+    (array([0, 0, 0, 1, 1]), array([0, 1, 2, 3, 4]))
+
+    Notes
+    -----
+    Inputs must be grid coordinates rather than actual (x, y) values (unless
+    the grid has unit spacing, in which case they are the same). To convert
+    from real (x, y) to (x_grid, y_grid) use x_grid = x / Dx, where Dx is
+    horizontal grid spacing (and similarly for y).
+        To convert a raster-grid node ID to column and row coords, use
+    numpy.unravel_index(node_id, (num_rows, num_cols)).
+        To convert the returned grid coordinates to node IDs, use the
+    RasterModelGrid method grid_coords_to_node_id().
+        This function uses an incremental algorithm for line scan-conversion
+    (see, e.g., Foley et al., 1990, chapter 3). For a line with a slope
+    0 > m > 1, start with the x coordinates for a set of grid columns that span
+    the line. The corresponding y of the first one is just y0. The y for the
+    next one is y0 + m, for the next y0 + 2m, etc. If m > 1, you use y instead
+    of x. In the below, any line segments that "point" toward the lower-left
+    half-grid (i.e., with azimuth between 135o and 315o) have their endpoints
+    flipped first.
+    """
+
+    dx = c1 - c0
+    dy = r1 - r0
+
+    # Flip endpoints if needed to have segment point to up/right
+    if (dx + dy) < 0:
+        (c0, c1) = _swap(c0, c1)
+        (r0, r1) = _swap(r0, r1)
+        dx = -dx
+        dy = -dy
+        flip_array = True
+    else:
+        flip_array = False
+
+    if dx > dy:  # more horizontal than vertical
+        npts = _iround(c1 - c0) + 1
+        cc = np.zeros(npts, dtype=int)
+        rr = np.zeros(npts, dtype=int)
+        cc[:] = np.arange(npts)
+        rr[:] = np.round(r0 + (float(dy) / dx) * cc)
+        cc[:] += _iround(c0)
+    else:
+        npts = _iround(r1 - r0) + 1
+        cc = np.zeros(npts, dtype=int)
+        rr = np.zeros(npts, dtype=int)
+        rr[:] = np.arange(npts)
+        cc[:] = np.round(c0 + (float(dx) / dy) * rr)
+        rr[:] += _iround(r0)
+
+    # If endpoints were flipped, here we "un-flip" again
+    if flip_array:
+        rr = np.flipud(rr)
+        cc = np.flipud(cc)
+
+    return rr, cc
