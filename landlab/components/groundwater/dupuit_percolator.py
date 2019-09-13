@@ -281,7 +281,7 @@ class GroundwaterDupuitPercolator(Component):
                         self._grid.at_node['aquifer__thickness'][self.cores])
 
 
-    def run_one_step(self, dt, qc=0.001,Sf=0.3,**kwds):
+    def run_one_step(self, dt, s=None,sf=None,**kwds):
         """
         Advance component by one time step of size dt.
 
@@ -320,7 +320,12 @@ class GroundwaterDupuitPercolator(Component):
 
         # Mass balance
         if self.unsat==True:
-            self.dhdt = (1/(self.n*(1+Sf)))*(self.recharge - dqdx - self.qs)
+            # unsaturated method interfaces with the LumpedUnsaturatedZone model
+            # accounting for the water gained and lost as the water table moves
+            # into and out of the unsaturated zone.
+            dsdt = self.recharge - dqdx - self.qs
+            self.dhdt = (dsdt>=0)*(1/(self.n*(1-s)))*dsdt \
+                        + (dsdt<0)*(1/(self.n*(1+sf)))*dsdt
         else:
             self.dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
 
@@ -383,7 +388,7 @@ class GroundwaterDupuitPercolator(Component):
                 # accounting for the water gained and lost as the water table moves
                 # into and out of the unsaturated zone.
                 dsdt = self.recharge - dqdx - self.qs
-                self.dhdt = (dsdt>0)*(1/(self.n*(1-s)))*dsdt \
+                self.dhdt = (dsdt>=0)*(1/(self.n*(1-s)))*dsdt \
                             + (dsdt<0)*(1/(self.n*(1+sf)))*dsdt
             else:
                 self.dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
