@@ -23,7 +23,7 @@ def _EvapotranspirationLoss(p,S,Sw,Sf,St,ETmax):
 def _CapillaryRise(S,Sw,Sf,St,ETmax,Zwt,Z,hroot):
     qc = np.zeros_like(S)
     i = St>0.0
-    qc[i] = (Z[i]-Zwt[i] < hroot)*(ETmax[i] - np.minimum(
+    qc[i] = (Z[i]-Zwt[i] < hroot[i])*(ETmax[i] - np.minimum(
                 _regularize_R((S[i]-Sw[i])/(Sf[i]-Sw[i]))*ETmax[i],ETmax[i]))
 
     qc[~i] = ETmax[~i]
@@ -156,13 +156,13 @@ class LumpedUnsaturatedZone(Component):
             self.wtable = self.grid.at_node["water_table__elevation"]
         else:
             self.wtable = self.grid.add_zeros("node", "water_table__elevation")
-            self.wtable[grid.closed_boundary_nodes] = 0
+            self.wtable[grid.closed_boundary_nodes] = 0.0
 
         if "unsaturated__thickness" in self.grid.at_node:
             self.thickness = self.grid.at_node["unsaturated__thickness"]
         else:
             self.thickness = self.elev - self.wtable
-            self.thickness[grid.closed_boundary_nodes] = 0
+            self.thickness[grid.closed_boundary_nodes] = 0.0
 
         if "infiltration__rate" in self.grid.at_node:
             self.f = self.grid.at_node["infiltration__rate"]
@@ -173,7 +173,7 @@ class LumpedUnsaturatedZone(Component):
             self.sat = self.grid.at_node["relative_saturation"]
         else:
             self.sat = self.sf*self.grid.add_ones("node", "relative_saturation")
-            self.sat[grid.closed_boundary_nodes] = 0
+            self.sat[grid.closed_boundary_nodes] = 0.0
 
         if "soil_water__storage" in self.grid.at_node:
             self.S = self.grid.at_node["soil_water__storage"]
@@ -201,8 +201,9 @@ class LumpedUnsaturatedZone(Component):
         self.qc = _CapillaryRise(self.S,Sw,Sf,St,self.ETmax,self.wtable,self.elev,self.dr)
         self.S += self.f*dt + self.qc*dt - self.qet*dt - self.ql*dt
 
-        self.sat[self.thickness > 0.] = self.S[self.thickness > 0.]/(self.thickness[self.thickness > 0.]*self.n)
-        self.sat[self.thickness == 0.] = 1.0
+        j = self.thickness > 0.0
+        self.sat[j] = self.S[j]/(self.thickness[j]*self.n[j])
+        self.sat[~j] = 0.0
 
     def get_recharge_rate(self):
         return self.ql
