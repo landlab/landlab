@@ -335,13 +335,13 @@ def test_matches_transport_solution():
         n_sp=n_sp,
         sp_crit_sed=0,
         sp_crit_br=0,
+        erode_flooded_nodes=False,
     )
 
     # ... and run it to steady state (5000x1-year timesteps).
     for i in range(5000):
         fa.run_one_step()
-        flooded = np.where(df.flood_status == 3)[0]
-        sp.run_one_step(dt=dt, flooded_nodes=flooded)
+        sp.run_one_step(dt=dt)
         br[mg.core_nodes] += U * dt  # m
         soil[
             0
@@ -453,13 +453,13 @@ def test_matches_bedrock_alluvial_solution():
         n_sp=n_sp,
         sp_crit_sed=0,
         sp_crit_br=0,
+        erode_flooded_nodes=False,
     )
 
     # ... and run it to steady state (10000x1-year timesteps).
     for i in range(10000):
         fa.run_one_step()
-        flooded = np.where(df.flood_status == 3)[0]
-        sp.run_one_step(dt=dt, flooded_nodes=flooded)
+        sp.run_one_step(dt=dt)
         br[mg.core_nodes] += U * dt  # m
         soil[0] = 0.0  # enforce 0 soil depth at boundary to keep lowering steady
         z[:] = br[:] + soil[:]

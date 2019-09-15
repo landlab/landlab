@@ -10,6 +10,7 @@ import numpy as np
 
 from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX, Component, RasterModelGrid
 
+from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import (
     brent_method_erode_fixed_threshold,
     brent_method_erode_variable_threshold,
@@ -172,6 +173,7 @@ class FastscapeEroder(Component):
         threshold_sp=0.0,
         rainfall_intensity=1.0,
         discharge_name="drainage_area",
+        erode_flooded_nodes=True,
     ):
         """
         Initialize the Fastscape stream power component. Note: a timestep,
@@ -197,6 +199,11 @@ class FastscapeEroder(Component):
             to have created and populated a 'drainage_area' field. To use a
             different field, such as 'surface_water__discharge', give its name in
             this argument.
+        erode_flooded_nodes : bool (optional)
+            Whether erosion occurs in flooded nodes identified by a
+            depression/lake mapper (e.g., DepressionFinderAndRouter). When set
+            to false, the field *flood_status_code* must be present on the grid
+            (this is created by the DepressionFinderAndRouter). Default True.
         """
         super(FastscapeEroder, self).__init__(grid)
 
@@ -210,6 +217,17 @@ class FastscapeEroder(Component):
                     "to start this process."
                 )
                 raise NotImplementedError(msg)
+
+        if not erode_flooded_nodes:
+            if "flood_status_code" not in self._grid.at_node:
+                msg = (
+                    "In order to not erode flooded nodes another component "
+                    "must create the field *flood_status_code*. You want to "
+                    "run a lake mapper/depression finder."
+                )
+                raise ValueError(msg)
+
+        self._erode_flooded_nodes = erode_flooded_nodes
 
         self._K = K_sp  # overwritten below in special cases
         self._m = float(m_sp)
@@ -406,7 +424,7 @@ class FastscapeEroder(Component):
 
         return self._grid
 
-    def run_one_step(self, dt, flooded_nodes=None, rainfall_intensity_if_used=None):
+    def run_one_step(self, dt, rainfall_intensity_if_used=None):
         """Erode for a single time step.
 
         This method implements the stream power erosion across one time
@@ -420,15 +438,16 @@ class FastscapeEroder(Component):
         ----------
         dt : float
             Time-step size
-        flooded_nodes : ndarray of int (optional)
-            IDs of nodes that are flooded and should have no erosion. If not
-            provided but flow has still been routed across depressions, erosion
-            may still occur beneath the apparent water level (though will
-            always still be positive).
         rainfall_intensity_if_used : float or None (optional)
             Supply to drive this component with a time-varying spatially
             constant rainfall.
         """
+        if not self._erode_flooded_nodes:
+            flood_status = self._grid.at_node["flood_status_code"]
+            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
+        else:
+            flooded_nodes = []
+
         self.erode(
             grid_in=self._grid,
             dt=dt,

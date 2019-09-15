@@ -6,6 +6,7 @@ from landlab.components.erosion_deposition.generalized_erosion_deposition import
 )
 from landlab.utils.return_array import return_array_at_node
 
+from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import calculate_qs_in
 
 ROOT2 = np.sqrt(2.0)  # syntactic sugar for precalculated square root of 2
@@ -56,6 +57,11 @@ class Space(_GeneralizedErosionDeposition):
         multiplied by the default rainfall rate (1 m/yr). To use custom
         spatially/temporally varying flow, use 'water__unit_flux_in'
         as the discharge field.
+    erode_flooded_nodes : bool (optional)
+        Whether erosion occurs in flooded nodes identified by a
+        depression/lake mapper (e.g., DepressionFinderAndRouter). When set
+        to false, the field *flood_status_code* must be present on the grid
+        (this is created by the DepressionFinderAndRouter). Default True.
     solver : string
         Solver to use. Options at present include:
             (1) 'basic' (default): explicit forward-time extrapolation.
@@ -98,15 +104,19 @@ class Space(_GeneralizedErosionDeposition):
 
     >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> df = DepressionFinderAndRouter(mg)
-    >>> fsc = FastscapeEroder(mg, K_sp=.001, m_sp=.5, n_sp=1)
+    >>> fsc = FastscapeEroder(
+    ...     mg,
+    ...     K_sp=.001,
+    ...     m_sp=.5,
+    ...     n_sp=1,
+    ...     erode_flooded_nodes=False)
 
     Burn in an initial drainage network using the Fastscape eroder:
 
     >>> for x in range(100):
     ...     fr.run_one_step()
     ...     df.map_depressions()
-    ...     flooded = np.where(df.flood_status == 3)[0]
-    ...     fsc.run_one_step(dt=fsc_dt, flooded_nodes=flooded)
+    ...     fsc.run_one_step(dt=fsc_dt)
     ...     mg.at_node['topographic__elevation'][0] -= 0.001 # Uplift
 
     Add some soil to the drainage network:
@@ -117,18 +127,26 @@ class Space(_GeneralizedErosionDeposition):
 
     Instantiate the Space component:
 
-    >>> ha = Space(mg, K_sed=0.00001, K_br=0.00000000001,
-    ...            F_f=0.5, phi=0.1, H_star=1., v_s=0.001,
-    ...            m_sp=0.5, n_sp = 1.0, sp_crit_sed=0,
-    ...            sp_crit_br=0)
+    >>> ha = Space(
+    ...     mg,
+    ...     K_sed=0.00001,
+    ...     K_br=0.00000000001,
+    ...     F_f=0.5,
+    ...     phi=0.1,
+    ...     H_star=1.,
+    ...     v_s=0.001,
+    ...     m_sp=0.5,
+    ...     n_sp = 1.0,
+    ...     sp_crit_sed=0,
+    ...     sp_crit_br=0,
+    ...     erode_flooded_nodes=False)
 
     Now run the Space component for 2000 short timesteps:
 
     >>> for x in range(2000): #Space component loop
     ...     fr.run_one_step()
     ...     df.map_depressions()
-    ...     flooded = np.where(df.flood_status == 3)[0]
-    ...     ha.run_one_step(dt=space_dt, flooded_nodes=flooded)
+    ...     ha.run_one_step(dt=space_dt)
     ...     mg.at_node['bedrock__elevation'][0] -= 2e-6 * space_dt
 
     Now we test to see if soil depth and topography are right:
@@ -169,7 +187,6 @@ class Space(_GeneralizedErosionDeposition):
         "soil__depth": "m",
         "topographic__elevation": "m",
         "sediment__flux": "m3/s",
-
     }
 
     _var_mapping = {
@@ -179,7 +196,7 @@ class Space(_GeneralizedErosionDeposition):
         "drainage_area": "node",
         "soil__depth": "node",
         "topographic__elevation": "node",
-        "sediment__flux": "node"
+        "sediment__flux": "node",
     }
 
     _var_doc = {
@@ -193,7 +210,6 @@ class Space(_GeneralizedErosionDeposition):
         "soil__depth": "Depth of sediment above bedrock",
         "topographic__elevation": "Land surface topographic elevation",
         "sediment__flux": "TODO",
-
     }
 
     _cite_as = """@Article{gmd-10-4577-2017,
@@ -223,6 +239,7 @@ class Space(_GeneralizedErosionDeposition):
         sp_crit_br=0.0,
         discharge_field="surface_water__discharge",
         solver="basic",
+        erode_flooded_nodes=True,
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
     ):
         """Initialize the Space model.
@@ -247,6 +264,7 @@ class Space(_GeneralizedErosionDeposition):
             v_s=v_s,
             dt_min=dt_min,
             discharge_field=discharge_field,
+            erode_flooded_nodes=erode_flooded_nodes,
         )
 
         # space specific inits
@@ -343,12 +361,19 @@ class Space(_GeneralizedErosionDeposition):
         ----------
         dt : float
             Model timestep [T]
-        flooded_nodes : array
-            Indices of flooded nodes, passed from flow router
         """
         # Choose a method for calculating erosion:
         self._calc_hydrology()
         self._calc_erosion_rates()
+
+        if not self._erode_flooded_nodes:
+            flood_status = self._grid.at_node["flood_status_code"]
+            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
+        else:
+            flooded_nodes = []
+
+        flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
+        flooded[flooded_nodes] = True
 
         self._qs_in[:] = 0
 
@@ -373,9 +398,6 @@ class Space(_GeneralizedErosionDeposition):
 
         # now, the analytical solution to soil thickness in time:
         # need to distinguish D=kqS from all other cases to save from blowup!
-
-        flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
-        flooded[flooded_nodes] = True
 
         # distinguish cases:
         blowup = self._depo_rate == self._K_sed * self._Q_to_the_m * self._slope
@@ -511,6 +533,15 @@ class Space(_GeneralizedErosionDeposition):
         cores = self._grid.core_nodes
 
         first_iteration = True
+
+        if not self._erode_flooded_nodes:
+            flood_status = self._grid.at_node["flood_status_code"]
+            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
+        else:
+            flooded_nodes = []
+
+        flooded = np.full(self._grid.number_of_nodes, False, dtype=bool)
+        flooded[flooded_nodes] = True
 
         # Outer WHILE loop: keep going until time is used up
         while remaining_time > 0.0:

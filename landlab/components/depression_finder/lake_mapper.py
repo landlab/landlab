@@ -137,7 +137,9 @@ class DepressionFinderAndRouter(Component):
 
     _input_var_names = set(("topographic__elevation",))
 
-    _output_var_names = set(("depression__depth", "depression__outlet_node", "flood_status_code", "is_pit"))
+    _output_var_names = set(
+        ("depression__depth", "depression__outlet_node", "flood_status_code", "is_pit")
+    )
 
     _var_units = {
         "topographic__elevation": "m",

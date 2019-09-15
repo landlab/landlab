@@ -14,12 +14,14 @@ class _GeneralizedErosionDeposition(Component):
 
     _name = "ErosionDeposition"
 
-    _input_var_names = set((
-        "flow__receiver_node",
-        "flow__upstream_node_order",
-        "topographic__steepest_slope",
-        "surface_water__discharge",
-    ))
+    _input_var_names = set(
+        (
+            "flow__receiver_node",
+            "flow__upstream_node_order",
+            "topographic__steepest_slope",
+            "surface_water__discharge",
+        )
+    )
 
     _output_var_names = set(("topographic__elevation", "sediment__flux"))
 
@@ -97,7 +99,11 @@ class _GeneralizedErosionDeposition(Component):
 
         if not erode_flooded_nodes:
             if "flood_status_code" not in self._grid.at_node:
-                msg = "TODO"
+                msg = (
+                    "In order to not erode flooded nodes another component "
+                    "must create the field *flood_status_code*. You want to "
+                    "run a lake mapper/depression finder."
+                )
                 raise ValueError(msg)
 
         self._erode_flooded_nodes = erode_flooded_nodes

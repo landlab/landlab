@@ -2,9 +2,9 @@ import numpy as np
 
 from landlab.utils.return_array import return_array_at_node
 
+from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import calculate_qs_in
 from .generalized_erosion_deposition import _GeneralizedErosionDeposition
-from ..depression_finder.lake_mapper import _FLOODED
 
 ROOT2 = np.sqrt(2.0)  # syntactic sugar for precalculated square root of 2
 TIME_STEP_FACTOR = 0.5  # factor used in simple subdivision solver
@@ -51,12 +51,14 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
     _name = "ErosionDeposition"
 
-    _input_var_names = set((
-        "flow__receiver_node",
-        "flow__upstream_node_order",
-        "topographic__steepest_slope",
-        "surface_water__discharge",
-    ))
+    _input_var_names = set(
+        (
+            "flow__receiver_node",
+            "flow__upstream_node_order",
+            "topographic__steepest_slope",
+            "surface_water__discharge",
+        )
+    )
 
     _output_var_names = set(("topographic__elevation", "sediment__flux"))
 
@@ -282,7 +284,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         if not self._erode_flooded_nodes:
             flood_status = self._grid.at_node["flood_status_code"]
-            flooded_nodes = np.nonzero(flood_status==_FLOODED)[0]
+            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
         else:
             flooded_nodes = []
 
@@ -331,7 +333,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         if not self._erode_flooded_nodes:
             flood_status = self._grid.at_node["flood_status_code"]
-            flooded_nodes = np.nonzero(flood_status==_FLOODED)[0]
+            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
         else:
             flooded_nodes = []
 

@@ -131,7 +131,7 @@ def test_steady_state_with_basic_solver_option():
         n_sp=n_sp,
         sp_crit=0,
         solver="basic",
-        erode_flooded_nodes=False
+        erode_flooded_nodes=False,
     )
 
     # ... and run it to steady state (5000x1-year timesteps).

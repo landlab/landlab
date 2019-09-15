@@ -7,6 +7,7 @@ from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX, Component
 from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.field.scalar_data_fields import FieldError
 
+from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import (
     brent_method_erode_fixed_threshold,
     brent_method_erode_variable_threshold,
@@ -166,6 +167,7 @@ class StreamPowerEroder(Component):
         c_sp=None,
         use_W=None,
         use_Q=None,
+        erode_flooded_nodes=True,
     ):
         """Initialize the StreamPowerEroder
 
@@ -217,6 +219,11 @@ class StreamPowerEroder(Component):
             If not None, the equation becomes E=K*Q**m*S**n. Effectively sets c=1
             in Wh&T's 1999 derivation, if you are setting m and n through a, b,
             and c.
+        erode_flooded_nodes : bool (optional)
+            Whether erosion occurs in flooded nodes identified by a
+            depression/lake mapper (e.g., DepressionFinderAndRouter). When set
+            to false, the field *flood_status_code* must be present on the grid
+            (this is created by the DepressionFinderAndRouter). Default True.
         """
         super(StreamPowerEroder, self).__init__(grid)
 
@@ -230,6 +237,17 @@ class StreamPowerEroder(Component):
                     "to start this process."
                 )
                 raise NotImplementedError(msg)
+
+        if not erode_flooded_nodes:
+            if "flood_status_code" not in self._grid.at_node:
+                msg = (
+                    "In order to not erode flooded nodes another component "
+                    "must create the field *flood_status_code*. You want to "
+                    "run a lake mapper/depression finder."
+                )
+                raise ValueError(msg)
+
+        self._erode_flooded_nodes = erode_flooded_nodes
 
         if isinstance(use_Q, str) and use_Q == "water__discharge":
             use_Q = "surface_water__discharge"
@@ -626,7 +644,7 @@ class StreamPowerEroder(Component):
 
         return grid, z, self._stream_power_erosion
 
-    def run_one_step(self, dt, flooded_nodes=None):
+    def run_one_step(self, dt):
         """
         A simple, explicit implementation of a stream power algorithm.
 
@@ -645,10 +663,11 @@ class StreamPowerEroder(Component):
         ----------
         dt : float
             Time-step size
-        flooded_nodes : ndarray of int (optional)
-            IDs of nodes that are flooded and should have no erosion. If not
-            provided but flow has still been routed across depressions, erosion
-            may still occur beneath the apparent water level (though will
-            always still be positive).
         """
+        if not self._erode_flooded_nodes:
+            flood_status = self._grid.at_node["flood_status_code"]
+            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
+        else:
+            flooded_nodes = []
+
         self.erode(grid=self._grid, dt=dt, flooded_nodes=flooded_nodes)
