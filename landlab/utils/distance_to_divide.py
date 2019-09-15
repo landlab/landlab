@@ -107,7 +107,7 @@ def calculate_distance_to_divide(
     >>> from landlab.utils.distance_to_divide import (
     ...     calculate_distance_to_divide)
     >>> dx = 1
-    >>> hmg = HexModelGrid(5,3, dx)
+    >>> hmg = HexModelGrid((5, 3), dx)
     >>> _ = hmg.add_field('topographic__elevation',
     ...                   hmg.node_x + np.round(hmg.node_y),
     ...                   at = 'node')
