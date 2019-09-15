@@ -23,7 +23,7 @@ matplotlib.use("agg")
 
 def test_assertion_error():
     """Test that the correct assertion error will be raised."""
-    mg = RasterModelGrid(10, 10)
+    mg = RasterModelGrid((10, 10))
     z = mg.add_zeros("topographic__elevation", at="node")
     z += 200 + mg.x_of_node + mg.y_of_node + np.random.randn(mg.size("node"))
 
@@ -53,7 +53,7 @@ def test_assertion_error():
 
 
 def test_asking_for_too_many_watersheds():
-    mg = RasterModelGrid(10, 10)
+    mg = RasterModelGrid((10, 10))
     z = mg.add_zeros("topographic__elevation", at="node")
     z += 200 + mg.x_of_node + mg.y_of_node
     mg.set_closed_boundaries_at_grid_edges(
@@ -80,7 +80,7 @@ def test_asking_for_too_many_watersheds():
 
 
 def test_no_minimum_channel_threshold():
-    mg = RasterModelGrid(10, 10)
+    mg = RasterModelGrid((10, 10))
     z = mg.add_zeros("topographic__elevation", at="node")
     z += 200 + mg.x_of_node + mg.y_of_node + np.random.randn(mg.size("node"))
 
@@ -102,7 +102,7 @@ def test_no_minimum_channel_threshold():
 
 
 def test_no_channel_definition_field():
-    mg = RasterModelGrid(10, 10)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("flow__link_to_receiver_node", at="node")
     mg.add_zeros("flow__receiver_node", at="node")
@@ -111,7 +111,7 @@ def test_no_channel_definition_field():
 
 
 def test_no_flow__link_to_receiver_node():
-    mg = RasterModelGrid(10, 10)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("drainage_area", at="node")
     mg.add_zeros("flow__receiver_node", at="node")
@@ -120,7 +120,7 @@ def test_no_flow__link_to_receiver_node():
 
 
 def test_no_flow__receiver_node():
-    mg = RasterModelGrid(10, 10)
+    mg = RasterModelGrid((10, 10))
     mg.add_zeros("topographic__elevation", at="node")
     mg.add_zeros("drainage_area", at="node")
     mg.add_zeros("flow__link_to_receiver_node", at="node")
@@ -130,7 +130,7 @@ def test_no_flow__receiver_node():
 
 @pytest.fixture()
 def profile_example_grid():
-    mg = RasterModelGrid(40, 60)
+    mg = RasterModelGrid((40, 60))
     z = mg.add_zeros("topographic__elevation", at="node")
     z += 200 + mg.x_of_node + mg.y_of_node
     mg.set_closed_boundaries_at_grid_edges(
@@ -392,10 +392,9 @@ def test_re_calculating_network_ids_and_distance():
 
     dt = 1000
     uplift_per_step = 0.001 * dt
-    core_mask = mg.node_is_core()
 
     for i in range(10):
-        z[core_mask] += uplift_per_step
+        z[mg.core_nodes] += uplift_per_step
         fa.run_one_step()
         sp.run_one_step(dt=dt)
 
@@ -446,10 +445,9 @@ def test_getting_all_the_way_to_the_divide(main, nshed):
 
     dt = 1000
     uplift_per_step = 0.001 * dt
-    core_mask = mg.node_is_core()
 
     for i in range(100):
-        z[core_mask] += uplift_per_step
+        z[mg.core_nodes] += uplift_per_step
         fa.run_one_step()
         sp.run_one_step(dt=dt)
 
