@@ -4,9 +4,7 @@
 
 info about the component here
 
-Fixes that need to happen:
-
-    -- Fix capacity calculation ~line 404. Still a placeholder. 
+Fixes that need to happen: 
     
     -- Channel width-- why is this anything other than a link attribute??
     
@@ -23,8 +21,6 @@ Fixes that need to happen:
             typically, to first index on time, and then based on variables (e.g. where
             in the network, what size fraction). THis is hard to do without (2) being functional.
 
-    -- What to do with parcels when they get to the last link?
-            -KRB has dummy element_id in the works
 
     -- JC: I found two items that I think should be changed in the _calc_transport_wilcock_crowe and I made these changes
             - frac_parcels was the inverse of what it should be so instead of a fraction it was a number >1
@@ -37,19 +33,7 @@ Fixes that need to happen:
               Plus, I think one day we will have a better way to parameterize parcel virtual velocity and this will then be
               easy to incorporate/update.
 
-    DONE -- Need to calculate distance a parcel travels in a timestep for abrasion
-    JC: now complete with a rewrite of _move_parcel_downstream; this rewrite should be easier to understand
-        I tried to test, but was having trouble putting in values for abrasion rate that would let the code run.
-
-    DONE -- The abrasion exponent is applied to diameter, but doesn't impact parcel volume. Need to fix.
-    JC: complete
-
     -- Fix inelegant time indexing
-
-    -- Looks to me that as part of run-one-step the element_id variable in parcels is being changed from
-       An int to a float. I haven't tracked down why... but I think it should stay as an int.
-       ^ JC: This was happening for me for current_link[p] in move_parcel_downstream
-           ... I fixed for now with int() but would be good to figure this out.
     
 .. codeauthor:: Jon Allison Katy
 
@@ -449,10 +433,8 @@ class NetworkSedimentTransporter(Component):
             for i in range(self._grid.number_of_links):
                 d_i = Darray[Linkarray ==i]
                 vol_i = Volarray[Linkarray ==i]
-                print('vol_i = ',vol_i)
                 rhos_i = Rhoarray[Linkarray ==i]
                 vol_tot_i = np.sum(vol_i)
-                print('vol_tot_i = ', vol_tot_i)
                 
                 d_mean_active[i] = np.sum(d_i * vol_i) / (
                     vol_tot_i
@@ -546,10 +528,13 @@ class NetworkSedimentTransporter(Component):
         self._active_parcel_records = (
             self._parcels.dataset.active_layer == _ACTIVE
         ) * (self._this_timesteps_parcels)
-
+        
+        # print("active_parcel_records",self._active_parcel_records)
+        
         vol_act = self._parcels.calc_aggregate_value(
             np.sum, "volume", at="link", filter_array=self._active_parcel_records
         )
+        
         vol_act[np.isnan(vol_act) == 1] = 0
 
         self.vol_stor = (vol_tot - vol_act) / (1 - self.bed_porosity)
@@ -638,9 +623,8 @@ class NetworkSedimentTransporter(Component):
         Sarray = np.zeros(self._num_parcels)
         Harray = np.zeros(self._num_parcels)
         Larray = np.zeros(self._num_parcels)
-# I think the following 4 lines are unnecessary, and naming scheme is confusing.
-#        d_mean_active = np.zeros(self._num_parcels)
-#        d_mean_active.fill(np.nan)
+        D_mean_activearray = np.zeros(self._num_parcels) * (np.nan)
+        active_layer_thickness_array = np.zeros(self._num_parcels) * np.nan
 #        rhos_mean_active = np.zeros(self._num_parcels)
 #        rhos_mean_active.fill(np.nan)
         self.Ttimearray = np.zeros(self._num_parcels)
@@ -689,14 +673,23 @@ class NetworkSedimentTransporter(Component):
             self.d_mean_active[i] = np.sum(d_act_i * vol_act_i) / (
                 vol_act_tot_i
             )
-            self.rhos_mean_active[i] = np.sum(rhos_act_i * vol_act_i) / (
-                vol_act_tot_i
-            )
+            if vol_act_tot_i >0:
+                self.rhos_mean_active[i] = np.sum(rhos_act_i * vol_act_i) / (
+                    vol_act_tot_i
+                )
+            else:
+                self.rhos_mean_active[i] = np.nan
+                
+                
+            D_mean_activearray[Linkarray == i] = self.d_mean_active[i]
             frac_sand_array[Linkarray == i] = frac_sand[i]
             vol_act_array[Linkarray == i] = vol_act[i]
             Sarray[Linkarray == i] = self._grid.at_link["channel_slope"][i]
             Harray[Linkarray == i] = self.flow_depth[self._time_idx, i]
             Larray[Linkarray == i] = self._grid.at_link["link_length"][i]
+            active_layer_thickness_array[Linkarray == i] = (
+                    self.active_layer_thickness[i]
+                    )
 
         Sarray = np.squeeze(Sarray)
         Harray = np.squeeze(Harray)
@@ -710,7 +703,7 @@ class NetworkSedimentTransporter(Component):
             self.fluid_density
             * R
             * self.g
-            * self.d_mean_active
+            * D_mean_activearray
             * (0.021 + 0.015 * np.exp(-20.0 * frac_sand_array))
         )
 
@@ -729,11 +722,10 @@ class NetworkSedimentTransporter(Component):
 
         # print("frac_parcel = ", frac_parcel)
 
-        b = 0.67 / (1 + np.exp(1.5 - Darray / self.d_mean_active))
+        b = 0.67 / (1 + np.exp(1.5 - Darray / D_mean_activearray))
         tau = self.fluid_density * self.g * Harray * Sarray
 
-        taur = taursg * (Darray / self.
-                         self.d_mean_active) ** b
+        taur = taursg * (Darray / D_mean_activearray) ** b
 
         tautaur = tau / taur
         tautaur_cplx = tautaur.astype(np.complex128)
@@ -752,10 +744,10 @@ class NetworkSedimentTransporter(Component):
             / (self.fluid_density ** (3 / 2))
             / self.g
             / R[Activearray == 1]
-            / self.active_layer_thickness
+            / active_layer_thickness_array[Activearray == 1]
         )
-
-        # print("pvelocity = ", self.pvelocity)
+        
+        self.pvelocity[np.isnan(self.pvelocity)] = 0
 
         # Assign those things to the grid -- might be useful for plotting later...?
         self._grid.at_link["sediment_total_volume"] = vol_tot

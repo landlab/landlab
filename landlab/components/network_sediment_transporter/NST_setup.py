@@ -68,12 +68,18 @@ bed_porosity = 0.3  # porosity of the bed material
 # Ultimately,
 # parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
 
-timesteps = 3
+timesteps = 17
 
-element_id = np.array(
-    [0, 0, 1, 1, 1, 5, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 2, 3, 4, 4, 4, 3, 4, 5],
-    dtype=int,
-)  # current link for each parcel
+element_id = np.repeat(np.array([0, 1, 2, 3, 4, 5, 6], dtype=int),
+                       100
+                       )
+
+#  
+#element_id = np.array(
+#    [0, 0, 1, 1, 1, 
+#     5, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 2, 3, 4, 4, 4, 3, 4, 5],
+#    dtype=int,
+#) # current link for each parcel
 
 element_id = np.expand_dims(element_id, axis=1)
 
@@ -138,7 +144,7 @@ parcels = DataRecord(
 
 # Made up hydraulic geometry
 
-Qgage = 80000.0  # (m3/s)
+Qgage = 100000.0  # (m3/s)
 dt = 60 * 60 * 24  # (seconds) daily timestep
 
 Bgage = 30.906 * Qgage ** 0.1215
@@ -155,7 +161,6 @@ channel_width = (np.tile(Bgage, (grid.number_of_links)) / (Agage ** 0.5)) * np.t
 flow_depth = (np.tile(Hgage, (grid.number_of_links)) / (Agage ** 0.4)) * np.tile(
     grid.at_link["drainage_area"], (timesteps + 1, 1)
 ) ** 0.4
-
 
 Btmax = np.amax(channel_width, axis=0)  # CURRENTLY UNUSED
 
