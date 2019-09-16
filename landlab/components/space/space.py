@@ -353,7 +353,7 @@ class Space(_GeneralizedErosionDeposition):
         "TODO"
         return self._H
 
-    def run_one_step_basic(self, dt=1.0, flooded_nodes=None):
+    def run_one_step_basic(self, dt=1.0):
         """Calculate change in rock and alluvium thickness for
         a time period 'dt'.
 
@@ -485,7 +485,7 @@ class Space(_GeneralizedErosionDeposition):
             self._bedrock__elevation[cores] + self._soil__depth[cores]
         )
 
-    def run_with_adaptive_time_step_solver(self, dt=1.0, flooded_nodes=[]):
+    def run_with_adaptive_time_step_solver(self, dt=1.0):
         """Run step with CHILD-like solver that adjusts time steps to prevent
         slope flattening.
 
