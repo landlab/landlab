@@ -529,10 +529,10 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> hg = HexModelGrid((5, 5), orientation="vertical", node_layout="rect")
         >>> lu = LatticeNormalFault(fault_x_intercept=-0.01, grid=hg)
         >>> lu.first_link_shifted_to
-        37
+        35
         >>> lu.links_to_update
-        array([ 7, 10, 11, 13, 14, 15, 16, 17, 18, 20, 22, 23, 24, 25, 26, 27, 29,
-               30, 31, 33, 36, 38, 42, 44, 46, 50, 51, 53])
+        array([ 5,  8,  9, 11, 12, 13, 14, 15, 16, 18, 20, 21, 22, 23, 24, 25, 27,
+               28, 29, 31, 34, 36, 40, 42, 44, 48, 49, 51])
         """
         g = self.grid
         lower_active = logical_and(
