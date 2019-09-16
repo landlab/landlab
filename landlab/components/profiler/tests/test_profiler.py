@@ -17,7 +17,7 @@ def test_single_segment_profile():
     profiler = Profiler(mg, endpoints)
     profiler.run_one_step()
 
-    np.testing.assert_array_equal(profiler.network_ids[0], core_nodes)
+    np.testing.assert_array_equal(profiler.nodes[0], core_nodes)
 
 
 def test_flipped_single_segment_profile():
@@ -28,7 +28,7 @@ def test_flipped_single_segment_profile():
     profiler = Profiler(mg, endpoints)
     profiler.run_one_step()
 
-    np.testing.assert_array_equal(profiler.network_ids[0], np.flip(core_nodes))
+    np.testing.assert_array_equal(profiler.nodes[0], np.flip(core_nodes))
 
 
 def test_positive_ystep_profile():
@@ -39,7 +39,7 @@ def test_positive_ystep_profile():
     profiler = Profiler(mg, endpoints)
     profiler.run_one_step()
 
-    np.testing.assert_array_equal(profiler.network_ids[0], np.array([6, 7, 13]))
+    np.testing.assert_array_equal(profiler.nodes[0], np.array([6, 7, 13]))
 
 
 def test_steep_profile():
@@ -49,7 +49,7 @@ def test_steep_profile():
     endpoints = [core_nodes.min(), core_nodes.max()]
     profiler = Profiler(mg, endpoints)
     profiler.run_one_step()
-    np.testing.assert_array_equal(profiler.network_ids[0], core_nodes)
+    np.testing.assert_array_equal(profiler.nodes[0], core_nodes)
 
 
 def test_multi_segment_profile_structure():
@@ -77,16 +77,16 @@ def test_endpoint_options():
     core_nodes = mg.core_nodes
 
     endpoints = [core_nodes.min(), core_nodes.max()]
-    profiler_nodes = Profiler(mg, endpoints)
-    profiler_nodes.run_one_step()
+    profiler_by_nodes = Profiler(mg, endpoints)
+    profiler_by_nodes.run_one_step()
 
     ep0 = mg.xy_of_node[core_nodes.min()]
     ep1 = mg.xy_of_node[core_nodes.max()]
-    profiler_coords = Profiler(mg, [ep0, ep1])
-    profiler_coords.run_one_step()
+    profiler_by_coords = Profiler(mg, [ep0, ep1])
+    profiler_by_coords.run_one_step()
 
     np.testing.assert_array_equal(
-        profiler_nodes.network_ids[0], profiler_coords.network_ids[0])
+        profiler_by_nodes.nodes[0], profiler_by_coords.nodes[0])
 
 
 def test_incorrect_endpoints_type():

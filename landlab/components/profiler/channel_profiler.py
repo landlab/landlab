@@ -758,13 +758,13 @@ class ChannelProfiler(_BaseProfiler):
     def _create_flat_structures(self):
         """Create expected flattened structures for ids, distances, and colors.
         """
-        self._net_ids = []
+        self._nodes = []
         self._distance_along_profile = []
         self._colors = []
 
         for outlet_id in self._net_struct:
             seg_tuples = self._net_struct[outlet_id].keys()
-            self._net_ids.extend(
+            self._nodes.extend(
                 [self._net_struct[outlet_id][seg]["ids"] for seg in seg_tuples]
             )
             self._distance_along_profile.extend(
