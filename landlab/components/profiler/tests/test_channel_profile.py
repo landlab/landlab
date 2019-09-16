@@ -463,10 +463,10 @@ def test_getting_all_the_way_to_the_divide(main, nshed):
     profiler.run_one_step()
 
     # assert that with minimum_channel_threshold set to zero, we get all the way to the top of the divide.
-    for outlet_id in profiler._net_struct:
-        seg_tuples = profiler._net_struct[outlet_id].keys()
+    for outlet_id in profiler._data_struct:
+        seg_tuples = profiler._data_struct[outlet_id].keys()
 
-        wshd_ids = [profiler._net_struct[outlet_id][seg]["ids"] for seg in seg_tuples]
+        wshd_ids = [profiler._data_struct[outlet_id][seg]["ids"] for seg in seg_tuples]
 
         nodes = np.concatenate(wshd_ids).ravel()
         da = mg.at_node["drainage_area"][nodes]

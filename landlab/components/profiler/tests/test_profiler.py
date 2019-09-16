@@ -60,16 +60,15 @@ def test_multi_segment_profile_structure():
     profiler = Profiler(mg, endpoints)
     profiler.run_one_step()
 
-    np.testing.assert_array_equal(list(profiler.network_structure.keys()),
-                                  [0, 1])
+    np.testing.assert_array_equal(list(profiler.data_structure.keys()), [0, 1])
 
-    ns = profiler.network_structure
+    ds = profiler.data_structure
 
-    np.testing.assert_array_equal(ns[0]['ids'], [6, 7, 8])
-    np.testing.assert_array_equal(ns[1]['ids'], [8, 13, 18])
+    np.testing.assert_array_equal(ds[0]['ids'], [6, 7, 8])
+    np.testing.assert_array_equal(ds[1]['ids'], [8, 13, 18])
 
-    np.testing.assert_array_equal(ns[0]['distances'], [0, 1, 2])
-    np.testing.assert_array_equal(ns[1]['distances'], [2, 3, 4])
+    np.testing.assert_array_equal(ds[0]['distances'], [0, 1, 2])
+    np.testing.assert_array_equal(ds[1]['distances'], [2, 3, 4])
 
 
 def test_endpoint_options():

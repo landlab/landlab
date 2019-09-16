@@ -43,13 +43,13 @@ class Profiler(_BaseProfiler):
         X X X X X X X X X
 
     The node IDs and distances along the profile are stored in a data structure
-    called ``network_structure``. It is a dictionary with keys indicating the
+    called ``data_structure``. It is a dictionary with keys indicating the
     segment IDs that are enumerated along the profile.
 
     By default, a unique color will be assigned to each segment. To change the
-    color, a user can change values stored in ``network_structure``.
-    Additionally, a ``cmap`` keyword argument can provide some user control
-    over the color at the instantiation of the component.
+    color, a user can change values stored in ``data_structure``. Additionally,
+    a ``cmap`` keyword argument can provide some user control over the color at
+    the instantiation of the component.
 
     The data structure of the example above will look as follows:
 
@@ -80,22 +80,22 @@ class Profiler(_BaseProfiler):
     >>> profiler = Profiler(mg, endpoints)
     >>> profiler.run_one_step()
 
-    The keys of the network structure are the segment ids.
-    >>> profiler.network_structure.keys()
+    The keys of the data structure are the segment ids.
+    >>> profiler.data_structure.keys()
     odict_keys([0, 1])
 
-    The network structure contains data of segment samples. Below is the first
+    The data structure contains data of segment samples. Below is the first
     segment.
-    >>> profiler.network_structure[0]['ids']
+    >>> profiler.data_structure[0]['ids']
     array([10, 11, 12, 13, 14, 15, 16])
-    >>> profiler.network_structure[0]['distances']
+    >>> profiler.data_structure[0]['distances']
     array([  0.,  10.,  20.,  30.,  40.,  50.,  60.])
-    >>> np.round(profiler.network_structure[0]['color'], decimals=2)
+    >>> np.round(profiler.data_structure[0]['color'], decimals=2)
     array([ 0.27,  0.  ,  0.33,  1.  ])
 
     Note that the first node of the second segment is the same as the final
     node of the first segment.
-    >>> profiler.network_structure[1]['ids']
+    >>> profiler.data_structure[1]['ids']
     array([16, 26, 35, 45, 54, 64])
 
     Alternative to nodes, profiles can be instantiated with coordinates.
@@ -142,28 +142,28 @@ class Profiler(_BaseProfiler):
             self._end_nodes.append(node)
 
     @property
-    def network_structure(self):
+    def data_structure(self):
         """OrderedDict defining the profile.
 
         The node IDs and distances along the profile are stored in
-        `network_structure`. It is a dictionary with keys of the segment ID.
-        The value of each key is itself a dictionary of the segment
-        attributes. First, 'ids' contains a list of the node IDs of segment
-        samples ordered from the start to the end of the segment. It includes
-        the endpoints. Second, 'distances' contains a list of along-profile
-        distances that mirrors the list in 'ids'. Finally, 'color' is an RGBA
-        tuple indicating the color for the segment.
+        ``data_structure``. It is a dictionary with keys of the segment ID.
+        The value of each key is itself a dictionary of the segment attributes.
+        First, 'ids' contains a list of the node IDs of segment samples ordered
+        from the start to the end of the segment. It includes the endpoints.
+        Second, 'distances' contains a list of along-profile distances that
+        mirrors the list in 'ids'. Finally, 'color' is an RGBA tuple indicating
+        the color for the segment.
         """
-        return self._net_struct
+        return self._data_struct
 
     def _create_profile_structure(self):
-        """Create the network data structure of the profile.
+        """Create the data structure of the profile.
 
         The profile is processed by segment. Segments are bound by successive
         endpoints. The cumulative distance along the profile is accumulated by
         iteratively adding segment lengths.
         """
-        self._net_struct = OrderedDict()
+        self._data_struct = OrderedDict()
         grid = self._grid
         endnodes = self._end_nodes
         cum_dist = 0
@@ -192,7 +192,7 @@ class Profiler(_BaseProfiler):
 
             # Store the segment data.
 
-            self._net_struct[i_endpt] = {
+            self._data_struct[i_endpt] = {
                 'ids': np.array(sample_nodes),
                 'distances': sample_distances + cum_dist}
 
@@ -210,16 +210,16 @@ class Profiler(_BaseProfiler):
             Color map name.
         """
         if color_mapping is None:
-            segment_count = len(self._net_struct)
+            segment_count = len(self._data_struct)
             norm = colors.Normalize(vmin=0, vmax=segment_count)
             mappable = cm.ScalarMappable(norm=norm, cmap=self._cmap)
             color_mapping = {
                 segment_id: mappable.to_rgba(idx)
-                for idx, segment_id in enumerate(self._net_struct)
+                for idx, segment_id in enumerate(self._data_struct)
             }
 
-        for segment_id in self._net_struct:
-            self._net_struct[segment_id]["color"] = color_mapping[
+        for segment_id in self._data_struct:
+            self._data_struct[segment_id]["color"] = color_mapping[
                 segment_id
             ]
 
@@ -230,12 +230,12 @@ class Profiler(_BaseProfiler):
         self._distance_along_profile = []
         self._colors = []
 
-        for segment_id in self._net_struct:
-            self._nodes.append(self._net_struct[segment_id]["ids"])
+        for segment_id in self._data_struct:
+            self._nodes.append(self._data_struct[segment_id]["ids"])
             self._distance_along_profile.append(
-                self._net_struct[segment_id]["distances"]
+                self._data_struct[segment_id]["distances"]
             )
-            self._colors.append(self._net_struct[segment_id]["color"])
+            self._colors.append(self._data_struct[segment_id]["color"])
 
     def _get_node_and_coords(self, point):
         """Get the node and coordinates for a point.
