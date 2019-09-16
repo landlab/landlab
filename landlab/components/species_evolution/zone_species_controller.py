@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Generic Species type of SpeciesEvolver."""
+"""Zone-based SpeciesController of SpeciesEvolver."""
 from scipy.ndimage.measurements import label
 
 from landlab.components.species_evolution import (_SpeciesController,
@@ -47,14 +47,18 @@ class ZoneSpeciesController(_SpeciesController):
 
     @property
     def extant_species(self):
+        """The species that exist at the current model time."""
         return self._species
 
     @property
     def extinct_species(self):
+        """The species that no longer exist at the current model time.
+        """
         return self._extinct_species
 
     @property
     def zones(self):
+        """The zones of the SpeciesController."""
         return self._zones
 
     def _get_zones_with_mask(self, range_mask, minimum_area=0,
@@ -82,8 +86,6 @@ class ZoneSpeciesController(_SpeciesController):
 
         # Label clusters of 'True' values in `range_mask`.
 
-        range_mask[grid.node_is_boundary(grid.nodes.flatten())] = False
-
         if neighborhood_structure == 'D4':
             s = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]
         elif neighborhood_structure == 'D8':
@@ -104,23 +106,27 @@ class ZoneSpeciesController(_SpeciesController):
 
         return zones
 
-    def populate_each_zone(self, species_count, species_type=ZoneSpecies):
-        """Populate each zone with a number of species.
+    def populate_zones_uniformly(self, species_count, species_type=ZoneSpecies,
+                                 **kwargs):
+        """Populate each zone with the same species count.
 
         Parameters
         ----------
         species_count : int
             The count of species to populate to each zone.
-        species_type :
-
+        species_type : type of Species
+            A Species type that takes a list of Zones as its first parameter.
+        kwargs : dictionary
+            Keyword arguments of ``species_type``.
         """
+        species = []
+
         for z in self._zones:
-            species = [species_type([z]) for _ in range(species_count)]
+            species.extend([species_type([z], **kwargs) for _ in range(species_count)])
 
-            for s in species:
-                self._delegate.introduce_species(s)
+        self._delegate._introduce_species(species)
 
-            self._species.extend(species)
+        self._species.extend(species)
 
     def _get_surviving_species(self, dt, time, record_add_on):
         """Run the evolutionary processes of the species.
@@ -148,11 +154,7 @@ class ZoneSpeciesController(_SpeciesController):
 
         Returns
         -------
-        boolean
-            The value informs SpeciesEvolver if the species persists at `time`.
-            True indicates that the species persists. False indicates the
-            species has become extinct.
-        Species list
+        list of Species
             A list of SpeciesEvolver species objects that are the child species
             that result from the evolutionary processes run. An empty list
             indicates no child species.
@@ -165,8 +167,8 @@ class ZoneSpeciesController(_SpeciesController):
         zone_mask = self._zone_func(**self._zone_params)
         new_zones = self._get_zones_with_mask(zone_mask, **self._zone_params)
 
-        self._zones = zone._resolve_paths(self._grid, time, prior_zones,
-                                          new_zones, record_add_on)
+        self._zones = zone._update_zones(self._grid, time, prior_zones,
+                                         new_zones, record_add_on)
 
         # Evolve species.
 
@@ -182,13 +184,8 @@ class ZoneSpeciesController(_SpeciesController):
                 self._extinct_species.append(es)
 
             if len(child_species) > 0:
+                self._delegate._introduce_species(child_species)
                 surviving_species.extend(child_species)
-
-            # Set id for child species.
-
-            for cs in child_species:
-                clade = cs.parent_species.clade
-                cs._identifier = self._delegate._get_unused_species_id(clade)
 
         self._species = surviving_species
 

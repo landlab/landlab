@@ -1,10 +1,8 @@
 #!/usr/bin/env python
-
 from abc import ABC, abstractmethod
 
-from landlab.components.species_evolution.species_evolution import SpeciesDataMixIn
 
-class _SpeciesController(SpeciesDataMixIn, ABC):
+class _SpeciesController(ABC):
     """The base Species controller.
 
     All species classes must include these class attributes: `identifier`,

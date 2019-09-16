@@ -5,16 +5,17 @@ import numpy as np
 
 # Define path types.
 
+_NONE_TO_NONE = 'none_to_none'
+_NONE_TO_ONE = 'none_to_one'
 _ONE_TO_NONE = 'one-to-none'
 _ONE_TO_ONE = 'one-to-one'
 _ONE_TO_MANY = 'one-to-many'
-_MANY_TO_NONE = 'many-to-none'
 _MANY_TO_ONE = 'many-to-one'
 _MANY_TO_MANY = 'many-to-many'
 
 
-def _resolve_paths(grid, time, prior_zones, new_zones, record_add_on):
-    """Get the data of connectivity paths across two timesteps.
+def _update_zones(grid, time, prior_zones, new_zones, record_add_on):
+    """Resolve the spatial connectivity of zones across two timesteps.
 
     Paths represent the temporal connectivity of zones. The returned
     DataFrame describes all of the paths of the inputted zones. The origin
@@ -53,171 +54,118 @@ def _resolve_paths(grid, time, prior_zones, new_zones, record_add_on):
         Zone connectivity across two timesteps in a DataFrame with the
         columns, time, origin, destinations, and path_type.
     """
-    # Stack the masks of prior (`p`) and new (`n`) zones.
-
-    if len(prior_zones) > 0:
-        ps = np.stack([p.mask for p in prior_zones])
-    else:
-        ps = []
-
-    if len(new_zones) > 0:
-        ns = np.stack([n.mask for n in new_zones])
-    else:
-        ns = []
-
-    # Keep track of new zones replaced by prior zones. Zone in the dictionary
-    # key will be replaced by their values after the prior zones are processed.
-    replacements = {}
-
-    # New zones that do not intersect prior zones will be process after
-    # the prior zones.
-    new_overlap_not_found = np.array(new_zones)
-
-    # The cumulation of captured grid area for zones is retained
-    # in order to add it to be_records_supplement after all zones are
-    # processed.
-    capture_count = 0
+    # Stats are calculated for `record_add_on`.
+    fragment_ct = 0
+    capture_ct = 0
     area_captured = [0]
     cell_area = grid.cellarea
-    fragment_count = 0
 
-    all_destinations = []
+    # Get `destinations`, the zones of `time`.
 
-    for p in prior_zones:
-        # Retain a copy of the prior zone mask to compare with the new zone
-        # mask after the zone masks are updated.
-        p_mask_copy = p.mask.copy()
+    if len(prior_zones) == 0 and len(new_zones) == 0:
+        destinations = []
 
-        # Get the new zones that overlap (`o`) the prior zone.
-        nop_mask = np.all([p.mask == ns, ns], 0)
-        nop_indices = np.argwhere(nop_mask)
-        nop_indices = np.unique(nop_indices[:, 0])
-        nop = [new_zones[i] for i in nop_indices]
-        nop_count = len(nop)
+    elif len(prior_zones) > 0 and len(new_zones) == 0:
+        destinations = []
+        path_type = _determine_path_type(1, 0)
+        for p in prior_zones:
+            p.path[time] = (path_type, [])
 
-        # Get the prior zones that are overlapped by the new zones.
-        if nop_count > 0:
-            n = new_zones[nop_indices[0]]
-            n_in_ps = np.all([n.mask == ps, ps], 0)
-            p_indices = np.argwhere(n_in_ps)
-            p_indices = np.unique(p_indices[:, 0])
-            p_overlaps_n = [prior_zones[i] for i in p_indices]
-            p_overlaps_n_count = len(p_indices)
-        else:
-            p_overlaps_n_count = 1
+    elif len(prior_zones) == 0 and len(new_zones) > 0:
+        destinations = new_zones
+        path_type = _determine_path_type(0, 1)
+        for n in new_zones:
+            n.path[time] = (path_type, [n])
 
-        # The new zones that overlapped this p can be deleted. They
-        # cannot have none-to-one path type because they intersect at
-        # least this p.
-        delete = np.where(new_overlap_not_found == nop)
-        new_overlap_not_found = np.delete(new_overlap_not_found, delete)
+    elif len(prior_zones) > 0 and len(new_zones) > 0:
+        destinations = []
 
-        path_type = _determine_path_type(p_overlaps_n_count, nop_count)
+        # Get index maps for the prior zones (`ps`) and new zones (`ns`).
+        ps_index_map = _create_index_map(grid, prior_zones)
+        ns_index_map = _create_index_map(grid, new_zones)
 
-        # Determine path attributes depending upon the path type.
+        for i_p, p in enumerate(prior_zones):
+            # Retain a copy of the prior zone mask to compare with the new zone
+            # mask after the zone masks are updated.
+            p_mask_copy = p.mask.copy()
 
-        if path_type == _ONE_TO_NONE:
-            destinations = []
+            # Get the new zones that intersect (`i`) the prior zone.
+            ns_i_p = _intersecting_zones(ps_index_map == i_p, ns_index_map,
+                                         new_zones)
+            ns_i_p_ct = len(ns_i_p)
 
-        elif path_type == _ONE_TO_ONE:
-            # The prior zone is set as the new zone
-            # because only the one new and the one prior overlap.
-            p.mask = n.mask
-            destinations = [p]
+            # Get the other prior zones that intersect the new zones.
+            ns_mask = np.any([n.mask for n in ns_i_p])
+            ps_i_ns = _intersecting_zones(ns_mask, ps_index_map,
+                                          prior_zones)
+            ps_i_ns_ct = len(ps_i_ns)
 
-            replacements[n] = p
+            # Get destinations depending on path type.
 
-        elif path_type == _ONE_TO_MANY:
-            # Set the destinations to the new zones that overlap p.
-            # Although, replace the dominant n with p.
-            dominant_n = p._get_largest_intersection(nop)
-            p.mask = dominant_n.mask
-            nop[nop.index(dominant_n)] = p
-            destinations = nop
+            path_type = _determine_path_type(ps_i_ns_ct, ns_i_p_ct)
 
-            replacements[dominant_n] = p
+            p_destinations = _get_destinations(p, path_type, ps_i_ns, ns_i_p,
+                                               prior_zones, ps_index_map)
 
-        elif path_type == _MANY_TO_ONE:
-            # Set the destination to the prior zone that intersects n the
-            # most.
-            dominant_p = n._get_largest_intersection(p_overlaps_n)
-            dominant_p.mask = n.mask
-            destinations = [dominant_p]
+            # Update statistics.
 
-            replacements[n] = dominant_p
+            if path_type in [_MANY_TO_ONE, _MANY_TO_MANY]:
+                captured_zones = p_destinations.copy()
+                if p in captured_zones:
+                    captured_zones.remove(p)
+                capture_ct += len(captured_zones)
 
-        elif path_type == _MANY_TO_MANY:
-            # Get the new zone that intersects p the most.
-            dominant_n = p._get_largest_intersection(nop)
-            dominant_n_nodes = dominant_n.mask
-            dominant_n_in_ps = np.all([dominant_n_nodes == ps, ps], 0)
+                for z in captured_zones:
+                    captured_nodes = np.all([~p_mask_copy, z.mask], 0)
+                    number_of_captured_nodes = len(np.where(captured_nodes)[0])
+                    area_captured.append(number_of_captured_nodes * cell_area)
 
-            # Get the prior zone that intersects the dominant n the most.
-            p_indices = np.argwhere(dominant_n_in_ps)
-            p_indices = np.unique(p_indices[:, 0])
-            p_of_dominant_n = [prior_zones[i] for i in p_indices]
-            dominant_p = dominant_n._get_largest_intersection(p_of_dominant_n)
+            elif path_type in [_ONE_TO_MANY, _MANY_TO_MANY]:
+                fragment_ct += len(ps_i_ns)
 
-            # Set the destination to the n that overlaps p. Although, the
-            # p that greatest intersects the dominant n replaces the
-            # dominant n in the destination list.
-            dominant_p.mask = dominant_n.mask
-            nop[nop.index(dominant_n)] = dominant_p
-            destinations = nop
+            # Update path.
 
-            replacements[dominant_n] = dominant_p
+            p.path[time] = (path_type, p_destinations)
 
-        # Update the capture statistics.
-        if path_type in [_MANY_TO_ONE]:
-            capture_count += nop_count
+            destinations.extend(p_destinations)
 
-            for n_i in nop:
-                captured_nodes = np.all([~p_mask_copy, n_i.mask], 0)
-                number_of_captured_nodes = len(np.where(captured_nodes)[0])
-                area_captured.append(number_of_captured_nodes * cell_area)
-
-        elif path_type in [_ONE_TO_MANY]:
-            fragment_count += len(p_overlaps_n)
-
-        # Update path.
-
-        p.path[time] = (path_type, destinations)
-
-        all_destinations.extend(destinations)
-
-    # Handle new zones that did not overlap prior zones.
-    for n in new_overlap_not_found:
-        path_type = _determine_path_type(p_overlaps_n_count,
-                                         nop_count)
-
-        # Update path.
-
-        n.path[time] = (path_type, [n])
-
-    # Update zones that were replaced using the dominant zones above.
-    for zone in replacements.keys():
-        if zone in all_destinations:
-            print(11111111,zone)
-            i = np.where(zone == np.array(all_destinations))[0][0]
-            all_destinations[i] = replacements[zone]
-
-    all_destinations = list(set(all_destinations))
+        destinations = list(set(destinations))
 
     # Update record add on.
 
-    record_add_on['capture_count'] += capture_count
+    record_add_on['capture_count'] += capture_ct
     if max(area_captured) > record_add_on['area_captured_max']:
         record_add_on['area_captured_max'] = max(area_captured)
     record_add_on['area_captured_sum'] += sum(area_captured)
-    record_add_on['fragmentation_count'] += fragment_count
+    record_add_on['fragmentation_count'] += fragment_ct
 
-    return all_destinations
+    return destinations
+
+
+def _create_index_map(grid, zones):
+    i = np.where([z.mask for z in zones])
+    index_map = np.zeros(grid.number_of_nodes, dtype=int)
+    index_map[:] = -1
+    index_map[i[1]] = i[0]
+    return index_map
+
+
+def _intersecting_zones(condition, zone_index_map, zone_list):
+    mask = np.all([condition, zone_index_map > -1], 0)
+    indices = np.unique(zone_index_map[np.argwhere(mask)])
+    zones = [zone_list[i] for i in indices]
+    return zones
 
 
 def _determine_path_type(prior_zone_count, new_zone_count):
-    """Get path type.
-    """
-    if prior_zone_count == 1:
+    """Get the path type based on the count of prior and new zones."""
+    if prior_zone_count == 0:
+        if new_zone_count == 0:
+            return _NONE_TO_NONE
+        if new_zone_count == 1:
+            return _NONE_TO_ONE
+
+    elif prior_zone_count == 1:
         if new_zone_count == 0:
             return _ONE_TO_NONE
         elif new_zone_count == 1:
@@ -226,12 +174,58 @@ def _determine_path_type(prior_zone_count, new_zone_count):
             return _ONE_TO_MANY
 
     elif prior_zone_count > 1:
-        if new_zone_count == 0:
-            return _MANY_TO_NONE
-        elif new_zone_count == 1:
+        if new_zone_count == 1:
             return _MANY_TO_ONE
         elif new_zone_count > 1:
             return _MANY_TO_MANY
+
+
+def _get_destinations(p, path_type, ps_i_ns, ns_i_p, prior_zones,
+                      ps_index_map):
+    if path_type in [_NONE_TO_NONE, _ONE_TO_NONE]:
+        destinations = []
+
+    elif path_type == _ONE_TO_ONE:
+        # The prior zone is set as the new zone because only the one new
+        # and the one prior overlap.
+        n = ns_i_p[0]
+        p.mask = n.mask
+        destinations = [p]
+
+    elif path_type == _ONE_TO_MANY:
+        # Set the destinations to the new zones that overlap p.
+        # Although, replace the dominant n with p.
+        dn = p._get_largest_intersection(ns_i_p)
+        p.mask = dn.mask
+        ns_i_p[ns_i_p.index(dn)] = p
+        destinations = ns_i_p
+
+    elif path_type == _MANY_TO_ONE:
+        # Set the destination to the prior zone that intersects n the most.
+        n = ns_i_p[0]
+        dp = n._get_largest_intersection(ps_i_ns)
+        dp.mask = n.mask
+        destinations = [dp]
+
+    elif path_type == _MANY_TO_MANY:
+        # Get the new zone that intersects `p` the most.
+        dn = p._get_largest_intersection(ns_i_p)
+
+        # Get the prior zone that intersects the dominant n the most.
+        ps_i_dn_mask = np.all([dn.mask, ps_index_map > -1], 0)
+        ps_i_dn_indices = np.argwhere(ps_i_dn_mask)
+        ps_i_dn_indices = np.unique(ps_index_map[ps_i_dn_indices])
+        ps_i_dn = [prior_zones[i] for i in ps_i_dn_indices]
+        dp = dn._get_largest_intersection(ps_i_dn)
+
+        # Set the destination to the new zones that overlaps `p`. The
+        # `p` that most intersects the `dominant_n` replaces the
+        # `dominant_n` in the destination list.
+        dp.mask = dn.mask
+        ns_i_p[ns_i_p.index(dn)] = dp
+        destinations = ns_i_p
+
+    return destinations
 
 
 class Zone(object):
@@ -249,14 +243,14 @@ class Zone(object):
             The mask of the zone. True elements of this array correspond to the
             grid nodes of the zone.
         """
-        self.mask = mask
-
+        self.mask = mask.flatten()
+        self._species = []
         self.path = {}
 
     def _get_largest_intersection(self, zones):
-        new_zone_overlap_nodes = []
+        node_intersection_count = []
         for z in zones:
             n = len(np.where(np.all([z.mask, self.mask], 0))[0])
-            new_zone_overlap_nodes.append(n)
+            node_intersection_count.append(n)
 
-        return zones[np.argmax(new_zone_overlap_nodes)]
+        return zones[np.argmax(node_intersection_count)]
