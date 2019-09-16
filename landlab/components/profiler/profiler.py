@@ -344,3 +344,27 @@ class Profiler(_BaseProfiler):
         coeff = (dy * (p[1] - ep0[1]) + dx * (p[0] - ep0[0])) / determinant
 
         return ep0[0] + coeff * dx, ep0[1] + coeff * dy
+
+    def plot_profiles_in_map_view(
+        self, field="topographic__elevation", endpoints_only=True, **kwds
+    ):
+        """Plot profile locations in map view.
+
+        This method overrides the method in ``_BaseProfiler`` to set the
+        default of ``endpoints_only`` to True.
+
+        Parameters
+        ----------
+        field : field name or nnode array
+            Array of the at-node-field to plot as the 2D map values.
+            Default value is the at-node field 'topographic__elevation'.
+        endpoints_only : boolean
+            Boolean where False indicates every node along the profile is
+            plotted, or True (default) indicating only segment endpoints are
+            plotted.
+        **kwds : dictionary
+            Keyword arguments to pass to imshow_grid.
+        """
+        print(endpoints_only)
+        super().plot_profiles_in_map_view(field, endpoints_only=endpoints_only,
+             **kwds)

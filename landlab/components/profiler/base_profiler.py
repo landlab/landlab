@@ -193,8 +193,7 @@ class _BaseProfiler(Component, ABC):
         ylabel="Plotted Quantity",
         title="Extracted Profiles",
     ):
-        """
-        Plot distance-upstream vs at at-node or size (nnodes,) quantity.
+        """Plot distance-upstream vs at at-node or size (nnodes,) quantity.
 
         Parameters
         ----------
@@ -238,8 +237,7 @@ class _BaseProfiler(Component, ABC):
     def plot_profiles_in_map_view(
         self, field="topographic__elevation", endpoints_only=False, **kwds
     ):
-        """
-        Plot profile locations in map view.
+        """Plot profile locations in map view.
 
         Parameters
         ----------
@@ -247,8 +245,9 @@ class _BaseProfiler(Component, ABC):
             Array of the at-node-field to plot as the 2D map values.
             Default value is the at-node field 'topographic__elevation'.
         endpoints_only : boolean
-            Boolean indicating whether to plot every node along the profile, or
-            a straight line beteween the endpoints.
+            Boolean where False (default) indicates every node along the
+            profile is plotted, or True indicating only segment endpoints are
+            plotted.
         **kwds : dictionary
             Keyword arguments to pass to imshow_grid.
         """
