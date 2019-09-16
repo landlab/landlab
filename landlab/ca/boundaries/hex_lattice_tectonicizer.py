@@ -466,12 +466,12 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         ...     (5, 5), spacing=1.0, orientation="vertical", node_layout="rect"
         ... )
         >>> lnf = LatticeNormalFault(-0.01, grid, ns, pid, pdata, 0.0)
-        >>> lnf.link_offset_id[16:24]
-        array([37, 17, 18, 19, 40, 21, 22, 43])
+        >>> lnf.link_offset_id[14:22]
+        array([35, 15, 16, 17, 38, 19, 20, 41])
         >>> lnf.first_link_shifted_from
-        16
+        14
         >>> lnf.first_link_shifted_to
-        37
+        35
 
         >>> pid = np.arange(36, dtype=int)
         >>> pdata = np.arange(36)
@@ -481,12 +481,12 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         ... )
         >>> lnf = LatticeNormalFault(-0.1, grid, ns, pid, pdata, 0.0)
         >>> lnf.first_link_shifted_from
-        19
+        17
         >>> lnf.first_link_shifted_to
-        44
-        >>> lnf.link_offset_id[19:41]
-        array([44, 45, 21, 22, 23, 48, 25, 26, 52, 53, 29, 30, 31, 57, 33, 34, 35,
-               61, 37, 38, 39, 64])
+        42
+        >>> lnf.link_offset_id[17:39]
+        array([42, 43, 19, 20, 21, 46, 23, 24, 50, 51, 27, 28, 29, 55, 31, 32, 33,
+               59, 35, 36, 37, 62])
         """
         self.link_offset_id = arange(self.grid.number_of_links, dtype=np.int)
         nc = self.grid.number_of_node_columns
