@@ -14,7 +14,6 @@ from landlab.grid.mappers import map_mean_of_link_nodes_to_link, \
 from landlab.grid.raster_mappers import map_sum_of_outlinks_to_node
 
 
-ACTIVE_LINK = 0
 
 
 #regularization functions used to deal with numerical demons of seepage
@@ -150,7 +149,6 @@ class GroundwaterDupuitPercolator(Component):
 
         # Shorthand
         self.cores = grid.core_nodes
-        self.inactive_links = np.where(grid.status_at_link != ACTIVE_LINK)[0]
 
         # Convert parameters to fields if needed, and store a reference
         self.K = return_array_at_link(grid, hydraulic_conductivity)
@@ -292,17 +290,15 @@ class GroundwaterDupuitPercolator(Component):
         """
 
         #Calculate base gradient
-        self.base_grad[:] = self._grid.calc_grad_at_link(self.base)
-        self.base_grad[self.inactive_links] = 0.0
+        self.base_grad[self._grid.active_links] = self._grid.calc_grad_at_link(self.base)[self._grid.active_links]
 
         # Calculate hydraulic gradient
-        self.hydr_grad[:] = self._grid.calc_grad_at_link(self.thickness)
-        self.hydr_grad[self.inactive_links] = 0.0
+        self.hydr_grad[self._grid.active_links] = self._grid.calc_grad_at_link(self.thickness)[self._grid.active_links]
 
         # Calculate groundwater velocity
         self.vel[:] = -self.K *(self.hydr_grad*np.cos(np.arctan(abs(self.base_grad)))
                                     + np.sin(np.arctan(self.base_grad)))
-        self.vel[self._grid.status_at_link != 0] = 0.0
+        self.vel[self._grid.status_at_link == 4] = 0.0
 
         # Aquifer thickness at links (upwind)
         hlink = map_value_at_max_node_to_link(self._grid,
@@ -356,17 +352,15 @@ class GroundwaterDupuitPercolator(Component):
 
         while remaining_time > 0.0:
             #Calculate base gradient
-            self.base_grad[:] = self._grid.calc_grad_at_link(self.base)
-            self.base_grad[self.inactive_links] = 0.0
+            self.base_grad[self._grid.active_links] = self._grid.calc_grad_at_link(self.base)[self._grid.active_links]
 
             # Calculate hydraulic gradient
-            self.hydr_grad[:] = self._grid.calc_grad_at_link(self.thickness)
-            self.hydr_grad[self.inactive_links] = 0.0
+            self.hydr_grad[self._grid.active_links] = self._grid.calc_grad_at_link(self.thickness)[self._grid.active_links]
 
             # Calculate groundwater velocity
             self.vel[:] = -self.K *(self.hydr_grad*np.cos(np.arctan(self.base_grad))
                                         + np.sin(np.arctan(self.base_grad)))
-            self.vel[self._grid.status_at_link != 0] = 0.0
+            self.vel[self._grid.status_at_link == 4] = 0.0
 
             # Aquifer thickness at links (upwind)
             hlink = map_value_at_max_node_to_link(self._grid,
