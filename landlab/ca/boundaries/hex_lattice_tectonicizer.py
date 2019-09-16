@@ -716,11 +716,11 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> xnlist.append(Transition((0,0,0), (1,1,0), 1.0, 'test'))
         >>> ohcts = OrientedHexCTS(grid, nsd, xnlist, ns)
         >>> lnf = LatticeNormalFault(0.0, grid, ns, pid, pdata, 0.0)
-        >>> ohcts.link_state[7:35]
+        >>> ohcts.link_state[5:33]
         array([2, 0, 0, 6, 9, 0, 2, 2, 4, 8, 4, 8, 0, 0, 0, 8, 4, 8, 4, 0, 0, 4,
                8, 4, 8, 0, 0, 0])
         >>> lnf.do_offset(ca=ohcts, current_time=0.0, rock_state=1)
-        >>> ohcts.link_state[7:35]
+        >>> ohcts.link_state[5:33]
         array([ 3,  0,  0,  7, 11,  0,  2,  3,  4,  9,  7, 11,  0,  3,  0,  8,  5,
                11,  7,  0,  2,  4,  9,  6,  9,  0,  2,  0])
         """
