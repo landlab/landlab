@@ -4,21 +4,20 @@
 import numpy as np
 import xarray as xr
 from six import string_types
-from xarray import Dataset
 
 
 class DataRecord(object):
     """Data structure to store variables in time and/or space dimensions.
 
     This class uses a xarray Dataset to store variables. This datastructure is
-    located at the property ``dataset``. The DataRecord improves on an xarray
-    Dataset by providing additional attributes and functions, including the
-    ability to aggregate values on Landlab grid elements.
+    located at the property ``dataset``. The DataRecord expands xarray Dataset
+    with additional attributes and functions, including the ability to
+    aggregate values on Landlab grid elements.
 
     DataRecord uses the concept of an "item", a physical thing that is located
-    on the grid and has some properties, stored as variables. DataRecord was
-    built to keep track of variables associated with a Landlab grid across
-    items, through time, or both.
+    on the grid and has some properties, stored as variables. DataRecord tracks
+    variables through time, variables associated with a Landlab grid across
+    items, or both.
 
     Thus data variables can vary along one or both of the following dimensions:
         - time (model time)
@@ -32,7 +31,8 @@ class DataRecord(object):
         element_id = 9.
 
     When items are defined, each item is given a unique id and the underlying
-    Dataset uses a dimension "item_id".
+    Dataset uses a dimension "item_id". **Items are assigned ids beginning with
+    0 followed by consecutively increasing integers.**
 
     Examples:
         - the variable 'mean_elevation' characterizes the grid and varies with
@@ -51,11 +51,13 @@ class DataRecord(object):
     0 to 99 exist in this example.
 
     Anything that the DataRecord keeps track of is considered a "record",
-    whether it uses one or both of the two standard dimensions.
+    whether it uses one or both of the two standard dimensions (**time** and
+    **item_id**).
 
     DataRecord provides two method to assist with adding new records. The
     method ``add_item`` should be used when no new variables are being added.
-    The method ``add_record`` should be used when new variables are being added.
+    The method ``add_record`` should be used when new variables are being
+    added or when a variable is only tracked over the **time** dimension.
     """
 
     _name = "DataRecord"
@@ -78,7 +80,8 @@ class DataRecord(object):
              example, if you need an "exit" off of a grid with  100 links, you could indicate
                 dummy_elements = {"link": [9999]}
              to set a link id of 9999 as a dummy link. Multiple dummy elements
-             are possible.
+             are possible and we recommend using values larger than the number
+             of grid elements for the dummy values.
         time : list or 1-D array of float or int (optional)
             The initial time(s) to add to the record. A time dimension is not
             created if the value is 'None' (default).
@@ -133,10 +136,11 @@ class DataRecord(object):
 
         A DataRecord can have dimensions 'time' and/or 'item_id'.
 
-        The xarray Dataset is stored in the attribute self.dataset.
+        The xarray Dataset is stored in the public attribute ``dataset``.
 
         Coordinates are one dimensional arrays used for label-based indexing.
-        DataRecord inherits all the methods and attributes from xarray.Dataset.
+        DataRecord inherits all the methods and attributes from
+        ``xarray.Dataset``.
 
         >>> dr1.dataset.to_dataframe()
               mean_elevation
@@ -196,7 +200,7 @@ class DataRecord(object):
         self._permitted_locations = self._grid.groups
 
         # save dummy elements reference
-        # check dummies and refomat into {"node": [0, 1, 2]}
+        # check dummies and reformat into {"node": [0, 1, 2]}
         self._dummy_elements = dummy_elements or {}
         for at in self._permitted_locations:
             for item in self._dummy_elements.get(at, []):
@@ -317,7 +321,7 @@ class DataRecord(object):
                 )
 
         # create an xarray Dataset:
-        self._dataset = Dataset(data_vars=data_vars_dict, coords=coords, attrs=attrs)
+        self._dataset = xr.Dataset(data_vars=data_vars_dict, coords=coords, attrs=attrs)
 
     def _check_grid_element_and_id(self, grid_element, element_id):
         """Check the location and size of grid_element and element_id."""
@@ -383,7 +387,7 @@ class DataRecord(object):
             )
 
     def add_record(self, time=None, item_id=None, new_item_loc=None, new_record=None):
-        """Add a new record to an existing DataRecord.
+        """Add a new record to the DataRecord.
 
         Unlike add_item, this method can support adding records that include
         new variables to the DataRecord. It can also support adding records
@@ -560,7 +564,7 @@ class DataRecord(object):
             _new_data_vars.update(new_record)
 
         # create dataset of new record
-        ds_to_add = Dataset(data_vars=_new_data_vars, coords=coords_to_add)
+        ds_to_add = xr.Dataset(data_vars=_new_data_vars, coords=coords_to_add)
 
         # merge new record and original dataset
         self._dataset = xr.merge((self._dataset, ds_to_add), compat="no_conflicts")
@@ -731,7 +735,7 @@ class DataRecord(object):
             data_vars_dict.update(new_item_spec)
 
         # Dataset of new record:
-        ds_to_add = Dataset(data_vars=data_vars_dict, coords=coords_to_add)
+        ds_to_add = xr.Dataset(data_vars=data_vars_dict, coords=coords_to_add)
 
         # Merge new record and original dataset:
         self._dataset = xr.merge((self._dataset, ds_to_add), compat="no_conflicts")
