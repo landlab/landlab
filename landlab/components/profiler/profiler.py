@@ -16,7 +16,9 @@ class Profiler(_BaseProfiler):
     Endpoints are located at grid nodes. Two successive endpoints bound a
     profile segment. A profile with one segment is a straight line. The
     segments of a profile with multiple segments meet at endpoints. The grid
-    nodes along the profile are sampled, including the segment endpoints.
+    nodes along the profile are sampled, including the segment endpoints. The
+    extracted quantity of the node is retained; no interpolation is conducted
+    even for profile traces that reside between nodes.
 
     The structure of the profile in a model grid is diagramed below. The grid
     contains nine columns and nine rows. The profile is constructed from three
@@ -69,13 +71,15 @@ class Profiler(_BaseProfiler):
 
     Examples
     --------
+    Create a model grid with the same dimensions as the diagram above.
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import Profiler
     >>> import numpy as np
     >>> mg = RasterModelGrid((10, 10), 10)
     >>> mg.at_node['topographic__elevation'] = mg.node_x * mg.node_y
 
-    Create a profile with three endpoints.
+    Create a profile with three endpoints. This profile is laid out the same as
+    the diagram above.
     >>> endpoints = [10, 16, 64]
     >>> profiler = Profiler(mg, endpoints)
     >>> profiler.run_one_step()
@@ -113,18 +117,18 @@ class Profiler(_BaseProfiler):
         ----------
         grid : RasterModelGrid
             A landlab RasterModelGrid.
-        endpoints : list of integers or list of tuples
+        endpoints : list of node id integers or coordinate tuples
             The endpoints that bound segments of the profile. Endpoints can be
-            node ids and/or tuples of coordinates (x, y). Both node ids and
-            coordinate tuples can be used in the same endpoint list. The
-            profile begins with the first element of `endpoints` and continues
-            in the order of this list.
+            node ids and/or tuples of coordinates (x, y, where these
+            coordinates are the measurement from the grid lower-left). The list
+            can be a mix of node ids and coordinate tuples. The profile begins
+            with the first element of `endpoints` and continues in the order of
+            this list.
         cmap : str
             A valid matplotlib cmap string. Default is "viridis".
         """
         super(_BaseProfiler, self).__init__(grid)
 
-        self._grid = grid
         self._cmap = plt.get_cmap(cmap)
 
         if not isinstance(endpoints, list) or len(endpoints) < 2:

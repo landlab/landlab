@@ -149,7 +149,7 @@ class ChannelProfiler(_BaseProfiler):
     Additionally, a ``cmap`` keyword argument can provide some user control
     over the color at the instantiation of the component.
 
-    In the main channel only example, the datastructure will look as follows:
+    In the main channel only example, the data structure will look as follows:
 
     .. code-block:: python
 

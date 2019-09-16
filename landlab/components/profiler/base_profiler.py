@@ -68,8 +68,8 @@ class _BaseProfiler(Component, ABC):
         super(_BaseProfiler, self).__init__(grid)
 
     def run_one_step(self):
-        """Calculate the profile datastructure and distances along it."""
-        # calculate the profile IDs datastructure.
+        """Calculate the profile data structure and distances along it."""
+        # calculate the profile IDs data structure.
         self._create_profile_structure()
 
     @abstractmethod
@@ -89,7 +89,7 @@ class _BaseProfiler(Component, ABC):
         is a list of RGBA tuples, one tuple per segment.
 
         The order of segments is expected to be consistent between each of the
-        three datastructures.
+        three data structures.
         """
         ...  # pragma: no cover
 
