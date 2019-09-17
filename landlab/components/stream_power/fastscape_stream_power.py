@@ -9,13 +9,13 @@
 import numpy as np
 
 from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX, Component, RasterModelGrid
+from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import (
     brent_method_erode_fixed_threshold,
     brent_method_erode_variable_threshold,
 )
-from landlab.utils.return_array import return_array_at_node
 
 
 class FastscapeEroder(Component):
@@ -108,12 +108,18 @@ class FastscapeEroder(Component):
     >>> grid.status_at_node[grid.nodes_at_top_edge] = CLOSED_BOUNDARY
     >>> grid.status_at_node[grid.nodes_at_bottom_edge] = CLOSED_BOUNDARY
     >>> grid.status_at_node[grid.nodes_at_right_edge] = CLOSED_BOUNDARY
-    >>> rainfall = grid.add_zeros("node", "water__unit_flux_in")
-    >>> rainfall[:] = 2.0
-    >>> fr = FlowAccumulator(grid, flow_director='D8')
+    >>> cell_area = 1.0
+    >>> fr = FlowAccumulator(grid, flow_director='D8', runoff_rate=2.0)
+    >>> grid.at_node["water__unit_flux_in"]
+    array([ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.,
+            2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.])
     >>> K_field = grid.ones(at='node') # K can be a field
-    >>> sp = FastscapeEroder(grid, K_sp=K_field, m_sp=1., n_sp=0.6,
-    ...                      threshold_sp=grid.node_x)
+    >>> sp = FastscapeEroder(grid,
+    ...     K_sp=K_field,
+    ...     m_sp=1.,
+    ...     n_sp=0.6,
+    ...     threshold_sp=grid.node_x,
+    ...     discharge_field="surface_water__discharge")
     >>> fr.run_one_step()
     >>> sp.run_one_step(1.)
     >>> z.reshape(grid.shape)[1, :]  # doctest: +NORMALIZE_WHITESPACE
@@ -187,12 +193,12 @@ class FastscapeEroder(Component):
             m in the stream power equation (power on drainage area).
         n_sp : float, optional
             n in the stream power equation (power on slope).
-        discharge_field : string; optional
-            Name of field to use for discharge proxy. Defaults to 'drainage_area',
-            which means the component will expect the driver or another component
-            to have created and populated a 'drainage_area' field. To use a
-            different field, such as 'surface_water__discharge', give its name in
-            this argument.
+        discharge_field : float, field name, or array, optional
+            Discharge [L^2/T]. The default is to use the grid field
+            'drainage_area'. To use custom spatially/temporally varying
+            rainfall, use 'water__unit_flux_in' to specify water input to the
+            FlowAccumulator and use "surface_water__discharge" for this
+            keyword argument.
         erode_flooded_nodes : bool (optional)
             Whether erosion occurs in flooded nodes identified by a
             depression/lake mapper (e.g., DepressionFinderAndRouter). When set
@@ -226,15 +232,18 @@ class FastscapeEroder(Component):
         self._K = return_array_at_node(grid, K_sp)
         self._m = float(m_sp)
         self._n = float(n_sp)
-        self._thresholds = return_array_at_node(grid, threshold_sp)
 
+        if isinstance(threshold_sp, (float, int)):
+            self._thresholds = float(threshold_sp)
+        else:
+            self._thresholds = return_array_at_node(grid, threshold_sp)
+
+        self._A = return_array_at_node(grid, discharge_field)
 
         # make storage variables
         self._A_to_the_m = grid.zeros(at="node")
         self._alpha = grid.empty(at="node")
 
-        # Handle option for area vs discharge
-        self._discharge_field = discharge_field
         self._verify_output_fields()
 
     def run_one_step(self, dt):
@@ -279,10 +288,7 @@ class FastscapeEroder(Component):
                 ]
             ]
 
-
-        np.power(
-            self._grid["node"][self._discharge_field], self._m, out=self._A_to_the_m
-        )
+        np.power(self._A, self._m, out=self._A_to_the_m)
         self._alpha[defined_flow_receivers] = (
             self._K[defined_flow_receivers]
             * dt

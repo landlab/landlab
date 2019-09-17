@@ -29,9 +29,6 @@ class StreamPowerEroder(Component):
     .. math::
         E = K A^m S^n / W - sp_{crit}
 
-    DEJH Sept 2013, major modifications Sept 14 and May 16. This component
-    now wraps Fastscape-style functionality under the hood.
-
     Note that although the Braun-Willett (2013) scheme that underlies this
     component is nominally implicit, and will reach a numerically-correct
     solution under topographic steady state regardless of timestep length, the
@@ -211,15 +208,12 @@ class StreamPowerEroder(Component):
             per unit width. If sp_type is 'set_mn', follows the equation given
             above. If sp_type in ('Unit', 'Shear_stress'), the width value will
             be implemented directly. W has no effect if sp_type is 'Total'.
-        discharge_field : float, array, or field name, optional
+        discharge_field : float, field name, or array, optional
             Discharge [L^2/T]. The default is to use the grid field
-            'surface_water__discharge', which is simply drainage area
-            multiplied by the default rainfall rate (1 m/yr). To use custom
-            spatially/temporally varying rainfall, use 'water__unit_flux_in'
-            to specify water input to the FlowAccumulator.
-            If not None, the equation becomes E=K*Q**m*S**n. Effectively sets c=1
-            in Wh&T's 1999 derivation, if you are setting m and n through a, b,
-            and c.
+            'drainage_area'. To use custom spatially/temporally varying
+            rainfall, use 'water__unit_flux_in' to specify water input to the
+            FlowAccumulator and use "surface_water__discharge" for this
+            keyword argument.
         erode_flooded_nodes : bool (optional)
             Whether erosion occurs in flooded nodes identified by a
             depression/lake mapper (e.g., DepressionFinderAndRouter). When set

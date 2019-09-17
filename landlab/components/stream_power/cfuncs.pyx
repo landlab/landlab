@@ -18,7 +18,7 @@ ctypedef np.int_t DTYPE_INT_t
 cdef extern from "math.h":
     double fabs(double x) nogil
     double pow(double x, double y) nogil
-    
+
 @cython.boundscheck(False)
 def erode_avoiding_pits(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
                         np.ndarray[DTYPE_INT_t, ndim=1] dst_nodes,
@@ -216,7 +216,7 @@ def brent_method_erode_variable_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_no
 
     The alpha value is given as
 
-    alpha = delta_t*K * (rainfall_intensity*A)**m/(delta_x**n)
+    alpha = delta_t*K * (A)**m/(delta_x**n)
 
     It will be multiplied by the value:
         (z_node(t) - z_downstream(t+delta_t))**(n-1)
@@ -343,7 +343,7 @@ def brent_method_erode_fixed_threshold(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes
 
     The alpha value is given as
 
-    alpha = delta_t*K * (rainfall_intensity*A)**m/(delta_x**n)
+    alpha = delta_t*K * (A)**m/(delta_x**n)
 
     It will be multiplied by the value:
         (z_node(t) - z_downstream(t+delta_t))**(n-1)
@@ -491,7 +491,7 @@ def erode_fn(DTYPE_FLOAT_t x,
 
     Consider stream power erosion under the equation:
 
-        E = K * (rainfall_intensity*A)**m * S**n - threshold_sp,
+        E = K * (A)**m * S**n - threshold_sp,
 
     on a grid with link delta_x and for a timestep of delta_t.
 
@@ -508,7 +508,7 @@ def erode_fn(DTYPE_FLOAT_t x,
 
     where
 
-    alpha = delta_t*K * (rainfall_intensity*A)**m/(delta_x**n) * (z_node(t) - z_downstream(t+delta_t))**(n-1)
+    alpha = delta_t*K * (A)**m/(delta_x**n) * (z_node(t) - z_downstream(t+delta_t))**(n-1)
 
     and
 
@@ -553,15 +553,15 @@ def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
                                       np.ndarray[DTYPE_FLOAT_t, ndim=1] delta):
     """Erode node elevations using Newtons Method for smoothed Stream Power. "
 
-    This method takes three parameters, alpha, gamma, and delta. 
+    This method takes three parameters, alpha, gamma, and delta.
 
     alpha = K A^m dt / L
-    
-    delta = K A^m / (L * wc)
-    
-    gamma = omega_c * dt 
 
-    This method will use the new_elev and new_elev_prime equations. 
+    delta = K A^m / (L * wc)
+
+    gamma = omega_c * dt
+
+    This method will use the new_elev and new_elev_prime equations.
 
     Parameters
     ----------
@@ -570,11 +570,11 @@ def smooth_stream_power_eroder_solver(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
     dst_nodes : array_like
         Node ids of nodes receiving flow.
     alpha : array_like
-        Erosion equation parameter. 
+        Erosion equation parameter.
     gamma : array_like
-        Erosion equation parameter. 
+        Erosion equation parameter.
     delta : array_like
-        Erosion equation parameter. 
+        Erosion equation parameter.
     z : array_like
         Node elevations.
     """
