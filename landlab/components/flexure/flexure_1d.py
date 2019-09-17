@@ -362,7 +362,7 @@ class Flexure1D(Component):
         if not np.may_share_memory(deflection, self.dz_at_node):
             self.dz_at_node[self._rows] = deflection
 
-    def run_one_step(self, dt=None):
+    def run_one_step(self):
         self.update()
 
     def subside_loads(self, loads, out=None):

@@ -161,6 +161,7 @@ class Flexure(Component):
         method="airy",
         rho_mantle=3300.0,
         gravity=9.80665,
+        n_procs=1,
     ):
         """Initialize the flexure component.
 
@@ -178,6 +179,8 @@ class Flexure(Component):
             Density of the mantle (kg / m^3).
         gravity : float, optional
             Acceleration due to gravity (m / s^2).
+        n_procs : int, optional
+            Number of processors to use for calculations.
         """
         if method not in ("airy", "flexure"):
             raise ValueError("{method}: method not understood".format(method=method))
@@ -189,6 +192,7 @@ class Flexure(Component):
         self._rho_mantle = rho_mantle
         self._gravity = gravity
         self.eet = eet
+        self._n_procs = n_procs
 
         self._initialize_output_fields_with_zero_floats()
 
@@ -254,13 +258,8 @@ class Flexure(Component):
 
         return kei(np.sqrt(dx ** 2 + dy ** 2) / alpha)
 
-    def update(self, n_procs=1):
+    def update(self):
         """Update fields with current loading conditions.
-
-        Parameters
-        ----------
-        n_procs : int, optional
-            Number of processors to use for calculations.
         """
         load = self._grid.at_node["lithosphere__overlying_pressure_increment"]
         deflection = self._grid.at_node["lithosphere_surface__elevation_increment"]
@@ -272,9 +271,9 @@ class Flexure(Component):
         if self.method == "airy":
             deflection[:] = new_load / self.gamma_mantle
         else:
-            self.subside_loads(new_load, out=deflection, n_procs=n_procs)
+            self.subside_loads(new_load, out=deflection)
 
-    def subside_loads(self, loads, out=None, n_procs=1):
+    def subside_loads(self, loads, out=None):
         """Subside surface due to multiple loads.
 
         Parameters
@@ -283,8 +282,6 @@ class Flexure(Component):
             Loads applied to each grid node.
         out : ndarray of float, optional
             Buffer to place resulting deflection values.
-        n_procs : int, optional
-            Number of processors to use for calculations.
 
         Returns
         -------
@@ -304,7 +301,7 @@ class Flexure(Component):
             self._r,
             self.alpha,
             self.gamma_mantle,
-            n_procs,
+            self._n_procs,
         )
 
         return out
