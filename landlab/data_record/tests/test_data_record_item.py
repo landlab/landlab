@@ -29,7 +29,7 @@ def test_grid_shape(dr_item):
     assert dr_item._grid.number_of_node_columns == shape[1]
 
 
-def test__permitted_locations(dr_item):
+def test_permitted_locations(dr_item):
     assert dr_item._permitted_locations == grid.groups
 
 
