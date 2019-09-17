@@ -37,14 +37,13 @@ def test_assertion_error():
     fa = FlowAccumulator(
         mg, flow_director="D8", depression_finder=DepressionFinderAndRouter
     )
-    sp = FastscapeEroder(mg, K_sp=0.0001, m_sp=0.5, n_sp=1)
+    sp = FastscapeEroder(mg, K_sp=0.0001, m_sp=0.5, n_sp=1, erode_flooded_nodes=True)
     ld = LinearDiffuser(mg, linear_diffusivity=0.0001)
 
     dt = 100
     for i in range(200):
         fa.run_one_step()
-        flooded = np.where(fa.depression_finder.flood_status == 3)[0]
-        sp.run_one_step(dt=dt, flooded_nodes=flooded)
+        sp.run_one_step(dt=dt)
         ld.run_one_step(dt=dt)
         mg.at_node["topographic__elevation"][0] -= 0.001  # Uplift
 
