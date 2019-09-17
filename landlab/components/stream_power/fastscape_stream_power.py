@@ -117,10 +117,6 @@ class FastscapeEroder(Component):
     >>> z.reshape(grid.shape)[1, :]  # doctest: +NORMALIZE_WHITESPACE
     array([  0.        ,   0.0647484 ,   0.58634455,   2.67253503,
              8.49212152,  20.92606987,  36.        ])
-    >>> previous_z = z.copy()
-    >>> sp.run_one_step(1., rainfall_intensity_if_used=0.)
-    >>> np.allclose(z, previous_z)
-    True
     """
 
     _name = "FastscapeEroder"
@@ -295,59 +291,31 @@ class FastscapeEroder(Component):
         self._discharge_name = discharge_name
         self._verify_output_fields()
 
-    def erode(
-        self,
-        grid_in,
-        dt=None,
-        K_if_used=None,
-        flooded_nodes=None,
-        rainfall_intensity_if_used=None,
-    ):
-        """Erode using stream power erosion.
+    def run_one_step(self, dt):
+        """Erode for a single time step.
 
-        This method implements the stream power erosion, following the Braun-
-        Willett (2013) implicit Fastscape algorithm. This should allow it to
-        be stable against larger timesteps than an explicit stream power
-        scheme.
+        This method implements the stream power erosion across one time
+        interval, dt, following the Braun-Willett (2013) implicit Fastscape
+        algorithm.
 
-        This driving method for this component is now superceded by the new,
-        standardized wrapper :func:`run_one_step`, but is retained for
-        back compatibility.
-
-        Set *K_if_used* as a field name or nnodes-long array if you set
-        *K_sp* as *"array"* during initialization.
-
-        It returns the grid, in which it will have modified the value of
-        *value_field*, as specified in component initialization.
+        This follows Landlab standardized component design, and supercedes the
+        old driving method :func:`erode`.
 
         Parameters
         ----------
-        grid_in : a grid
-            This is a dummy argument maintained for component back-
-            compatibility. It is superceded by the copy of the grid passed
-            during initialization.
         dt : float
-            Time-step size. If you are calling the deprecated function
-            :func:`gear_timestep`, that method will supercede any value
-            supplied here.
-        K_if_used : array (optional)
-            Set this to an array if you set K_sp to 'array' in your input file.
-        flooded_nodes : ndarray of int (optional)
-            IDs of nodes that are flooded and should have no erosion. If not
-            provided but flow has still been routed across depressions, erosion
-            may still occur beneath the apparent water level (though will
-            always still be positive).
-        rainfall_intensity_if_used : float or None (optional)
-            Supply to drive this component with a time-varying spatially
-            constant rainfall.
-
-        Returns
-        -------
-        grid
-            A reference to the grid.
+            Time-step size
         """
+        if not self._erode_flooded_nodes:
+            flood_status = self._grid.at_node["flood_status_code"]
+            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
+        else:
+            flooded_nodes = []
+
         upstream_order_IDs = self._grid.at_node["flow__upstream_node_order"]
+        flow_receivers = self._grid["node"]["flow__receiver_node"]
         z = self._grid.at_node["topographic__elevation"]
+
         defined_flow_receivers = np.not_equal(
             self._grid.at_node["flow__link_to_receiver_node"], UNDEFINED_INDEX
         )
@@ -369,18 +337,8 @@ class FastscapeEroder(Component):
             K_here = self._K[defined_flow_receivers]
         else:
             K_here = self._K
-        if rainfall_intensity_if_used is not None:
-            assert type(rainfall_intensity_if_used) in (float, np.float64, int)
-            r_i_here = float(rainfall_intensity_if_used)
-        else:
-            r_i_here = self._r_i
 
-        if dt is None:
-            dt = self._dt
-        assert dt is not None, (
-            "Fastscape component could not find a dt to "
-            + "use. Pass dt to the run_one_step() method."
-        )
+        r_i_here = self._r_i
 
         if self._K is None:  # "old style" setting of array
             assert K_if_used is not None
@@ -399,11 +357,10 @@ class FastscapeEroder(Component):
             / (flow_link_lengths ** self._n)
         )
 
-        flow_receivers = self._grid["node"]["flow__receiver_node"]
         alpha = self._alpha
 
         # Handle flooded nodes, if any (no erosion there)
-        if flooded_nodes is not None:
+        if len(flooded_nodes) > 0:
             alpha[flooded_nodes] = 0.0
         else:
             reversed_flow = z < z[flow_receivers]
@@ -421,36 +378,3 @@ class FastscapeEroder(Component):
             brent_method_erode_variable_threshold(
                 upstream_order_IDs, flow_receivers, threshsdt, alpha, n, z
             )
-
-        return self._grid
-
-    def run_one_step(self, dt, rainfall_intensity_if_used=None):
-        """Erode for a single time step.
-
-        This method implements the stream power erosion across one time
-        interval, dt, following the Braun-Willett (2013) implicit Fastscape
-        algorithm.
-
-        This follows Landlab standardized component design, and supercedes the
-        old driving method :func:`erode`.
-
-        Parameters
-        ----------
-        dt : float
-            Time-step size
-        rainfall_intensity_if_used : float or None (optional)
-            Supply to drive this component with a time-varying spatially
-            constant rainfall.
-        """
-        if not self._erode_flooded_nodes:
-            flood_status = self._grid.at_node["flood_status_code"]
-            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
-        else:
-            flooded_nodes = []
-
-        self.erode(
-            grid_in=self._grid,
-            dt=dt,
-            flooded_nodes=flooded_nodes,
-            rainfall_intensity_if_used=rainfall_intensity_if_used,
-        )
