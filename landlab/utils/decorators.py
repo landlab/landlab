@@ -323,7 +323,7 @@ class use_field_name_array_or_value(object):
                     raise FieldError(vals)
             else:
                 expected_size = grid.size(self._at)
-                vals = np.asarray(vals).flatten()
+                vals = np.asarray(vals).ravel()
                 if vals.size == 1:
                     vals = np.broadcast_to(vals, (expected_size,))
 
