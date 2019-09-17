@@ -212,6 +212,17 @@ class LateralEroder(Component):
         "sediment__flux": "m3/y",
     }
 
+    _var_mapping = {
+        "topographic__elevation": "node",
+        "drainage_area": "node",
+        "flow__receiver_node": "node",
+        "flow__upstream_node_order": "node",
+        "topographic__steepest_slope": "node",
+        "lateral_erosion__depth_increment": "node",
+        "volume__lateral_erosion": "node",
+        "sediment__flux": "node",
+    }
+
     _var_doc = {
         "flow__receiver_node": "Node array of receivers (node that receives flow from current "
         "node)",
