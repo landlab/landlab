@@ -1,0 +1,14 @@
+component rules
+---------------
+super is called in the init
+all public attributes are properties
+all outputs are verified with self._verify_output_fields() at the end of init
+
+all components have a primary method called r1s that takes either nothing, or dt,
+and returns a reference to the grid.
+
+all arguments and keyword arguments have reasonable names (e.g., no Tmax, but temp_max instead)
+wherever possible arguments and keyword arguments have defaults. 
+
+creation of necessary input vars and output vars is done by base class via
+header information is present.

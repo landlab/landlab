@@ -20,6 +20,7 @@ import numpy as np
 
 from landlab import BAD_INDEX_VALUE
 
+from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import smooth_stream_power_eroder_solver
 from .fastscape_stream_power import FastscapeEroder
 

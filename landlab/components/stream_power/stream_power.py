@@ -5,7 +5,7 @@ import numpy as np
 
 from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX, Component
 from landlab.core.model_parameter_dictionary import MissingKeyError
-from landlab.field.scalar_data_fields import FieldError
+from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import (
@@ -24,7 +24,7 @@ class StreamPowerEroder(Component):
 
     and if :math:`E < 0`, :math:`E = 0`.
 
-    If ``use_W`` is declared and ``True``, the module instead implements:
+    If ``channel_width_field`` is declared and ``True``, the module instead implements:
 
     .. math::
         E = K A^m S^n / W - sp_{crit}
@@ -42,10 +42,6 @@ class StreamPowerEroder(Component):
     is still possible to create numerical instability through use of too long
     a timestep while using this component. The user is cautioned to check their
     implementation is behaving stably before fully trusting it.
-
-    NB: If you want spatially or temporally variable runoff, pass the
-    runoff values at each pixel to the flow router using the input argument
-    *use_Q*.
 
     Examples
     --------
@@ -96,9 +92,14 @@ class StreamPowerEroder(Component):
     >>> mg3.status_at_node[mg3.nodes_at_right_edge] = CLOSED_BOUNDARY
     >>> mg3.at_node['water__unit_flux_in'] = mg3.node_y
     >>> fr3 = FlowAccumulator(mg3, flow_director='D8')
-    >>> Q = mg3.at_node['surface_water__discharge']
-    >>> sp3 = StreamPowerEroder(mg3, K_sp=1., sp_type='Unit', a_sp=1.,
-    ...                         b_sp=0.5, c_sp=1., use_Q=Q)
+    >>> sp3 = StreamPowerEroder(
+    ...     mg3,
+    ...     K_sp=1.,
+    ...     sp_type='Unit',
+    ...     a_sp=1.,
+    ...     b_sp=0.5,
+    ...     c_sp=1.,
+    ...     discharge_field='surface_water__discharge')
     >>> fr3.run_one_step()
     >>> sp3.run_one_step(1.)
     >>> z
@@ -118,7 +119,6 @@ class StreamPowerEroder(Component):
             "drainage_area",
             "flow__receiver_node",
             "flow__upstream_node_order",
-            "topographic__steepest_slope",
         )
     )
 
@@ -130,7 +130,6 @@ class StreamPowerEroder(Component):
         "flow__link_to_receiver_node": "-",
         "flow__receiver_node": "-",
         "flow__upstream_node_order": "-",
-        "topographic__steepest_slope": "-",
     }
 
     _var_mapping = {
@@ -139,7 +138,6 @@ class StreamPowerEroder(Component):
         "flow__link_to_receiver_node": "node",
         "flow__receiver_node": "node",
         "flow__upstream_node_order": "node",
-        "topographic__steepest_slope": "node",
     }
 
     _var_doc = {
@@ -151,7 +149,6 @@ class StreamPowerEroder(Component):
         "node)",
         "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
         "node IDs",
-        "topographic__steepest_slope": "Node array of steepest *downhill* slopes",
     }
 
     def __init__(
@@ -165,8 +162,8 @@ class StreamPowerEroder(Component):
         a_sp=None,
         b_sp=None,
         c_sp=None,
-        use_W=None,
-        use_Q=None,
+        channel_width_field=1.0,
+        discharge_field="drainage_area",
         erode_flooded_nodes=True,
     ):
         """Initialize the StreamPowerEroder
@@ -177,7 +174,7 @@ class StreamPowerEroder(Component):
             A grid.
         K_sp : float, array, or field name
             K in the stream power equation (units vary with other parameters).
-        threshold_sp : positive float, optional
+        threshold_sp : positive float, array, or field name, optional
             The threshold stream power, below which no erosion occurs. This
             threshold is assumed to be in "stream power" units, i.e., if
             sp_type is 'Shear_stress', the value should be tau**a.
@@ -207,15 +204,19 @@ class StreamPowerEroder(Component):
         c_sp : float, optional
             The power on area to get discharge; the "basin hydology" term. Only
             used if sp_type is not 'set_mn'.
-        use_W : None, array, or field name, optional
+        channel_width_field : None, float, array, or field name, optional
             If not None, component will look for node-centered data describing
-            channel width in grid.at_node[use_W] or if an array, will take the
-            array as the channel widths. It will use the widths to implement
-            incision ~ stream power per unit width. If sp_type is 'set_mn',
-            follows the equation given above. If sp_type in ('Unit',
-            'Shear_stress'), the width value will be implemented directly. W has no
-            effect if sp_type is 'Total'.
-        use_Q : None, array, or field name, optional
+            channel width or if an array, will take the array as the channel
+            widths. It will use the widths to implement incision ~ stream power
+            per unit width. If sp_type is 'set_mn', follows the equation given
+            above. If sp_type in ('Unit', 'Shear_stress'), the width value will
+            be implemented directly. W has no effect if sp_type is 'Total'.
+        discharge_field : float, array, or field name, optional
+            Discharge [L^2/T]. The default is to use the grid field
+            'surface_water__discharge', which is simply drainage area
+            multiplied by the default rainfall rate (1 m/yr). To use custom
+            spatially/temporally varying rainfall, use 'water__unit_flux_in'
+            to specify water input to the FlowAccumulator.
             If not None, the equation becomes E=K*Q**m*S**n. Effectively sets c=1
             in Wh&T's 1999 derivation, if you are setting m and n through a, b,
             and c.
@@ -249,33 +250,24 @@ class StreamPowerEroder(Component):
 
         self._erode_flooded_nodes = erode_flooded_nodes
 
-        if isinstance(use_Q, str) and use_Q == "water__discharge":
-            use_Q = "surface_water__discharge"
+        self._A = return_array_at_node(grid, discharge_field)
+        self._elevs = return_array_at_node(grid, "topographic__elevation")
+        self._K_unit_time = return_array_at_node(grid, K_sp)
+        self._sp_crit = return_array_at_node(grid, threshold_sp)
 
-        self._use_K = False  # grandfathered in; only if K_sp == 'array'
-        if isinstance(K_sp, np.ndarray):
-            self._K_unit_time = K_sp
+        assert np.all(self._sp_crit >= 0.0)
+
+        if discharge_field == "drainage_area":
+            self._use_Q = False
         else:
-            try:
-                self._K_unit_time = self._grid.zeros("node", dtype=float)
-                self._K_unit_time.fill(K_sp)
-            except ValueError:  # could not cast => was a str
-                if K_sp == "array":
-                    self._use_K = True
-                else:
-                    self._K_unit_time = grid.at_node[K_sp]
+            self._use_Q = True
 
-        assert np.all(threshold_sp >= 0.0)
-        # for now, enforce threshold as a float
-        assert type(threshold_sp) in (float, int)
-        try:
-            self._sp_crit = float(threshold_sp)
-        except TypeError:
-            try:
-                self._sp_crit = self._grid.at_node[threshold_sp]
-            except TypeError:  # was an array
-                self._sp_crit = threshold_sp
-                assert self._sp_crit.size == self._grid.number_of_nodes
+        if channel_width_field is None:
+            self._use_W = False
+        else:
+            self._use_W = True
+            self._W = return_array_at_node(grid, channel_width_field)
+
         if np.any(threshold_sp != 0.0):
             self._set_threshold = True
             # ^flag for sed_flux_dep_incision to see if the threshold was
@@ -283,32 +275,6 @@ class StreamPowerEroder(Component):
         else:
             self._set_threshold = False
 
-        if isinstance(use_W, bool):  # again for back-compatibility
-            self._use_W = use_W
-            self._W = None
-        elif use_W is None:
-            self._use_W = False
-            self._W = None
-        else:
-            self._use_W = True
-            try:
-                self._W = self._grid.at_node[use_W]
-            except (FieldError, TypeError):
-                assert use_W.size == self._grid.number_of_nodes
-                self._W = use_W
-        if type(use_Q) is bool:
-            self._use_Q = use_Q
-            self._Q = None
-        elif use_Q is None:
-            self._use_Q = False
-            self._Q = None
-        else:
-            self._use_Q = True
-            try:
-                self._Q = self._grid.at_node[use_Q]
-            except (FieldError, TypeError):
-                assert use_Q.size == self._grid.number_of_nodes
-                self._Q = use_Q
         self._type = sp_type
         if sp_type == "set_mn":
             assert (float(m_sp) >= 0.0) and (
@@ -353,311 +319,26 @@ class StreamPowerEroder(Component):
                 self._n = 2.0 * self._a / 3.0
             else:
                 raise MissingKeyError(
-                    "Not enough information was provided " + "on the exponents to use!"
+                    "Not enough information was provided on the exponents to use!"
                 )
+
         # m and n will always be set, but care needs to be taken to include Q
         # and W directly if appropriate
 
-        self._stream_power_erosion = grid.zeros(centering="node")
+        self._stream_power_erosion = self._grid.zeros(centering="node")
         self._alpha = self._grid.zeros("node")
 
         self._verify_output_fields()
-
-    def erode(
-        self,
-        grid,
-        dt,
-        elevs="topographic__elevation",
-        drainage_areas="drainage_area",
-        flow_receiver="flow__receiver_node",
-        order_upstream="flow__upstream_node_order",
-        slopes_at_nodes="topographic__steepest_slope",
-        link_mapping="flow__link_to_receiver_node",
-        link_slopes=None,
-        slopes_from_elevs=None,
-        W_if_used=None,
-        Q_if_used=None,
-        K_if_used=None,
-        flooded_nodes=None,
-    ):
-        """
-        .. note:: deprecated
-            This run method is now DEPRECATED. Use the fully standardized
-            method :func:`run_one_step` instead.
-
-        A simple, explicit implementation of a stream power algorithm.
-
-        Parameters
-        ----------
-        grid : RasterModelGrid
-            A grid.
-        dt : float
-            Component time step.
-
-        elevs : str or ndarray, optional
-            Elevations on the grid, either a field string or nnodes-long array.
-
-        drainage_areas: str or ndarray, optional
-            Tells the component where to look for the drainage area values.
-            Change to another string to override which grid field the
-            component looks at, or pass a nnodes-long array of drainage
-            areas values directly instead.
-
-        flow_receiver, order_upstream : str or ndarray, optional
-            The downstream node to which each node flows and the ordering of
-            the nodes in the network starting at the outlet, respectively,
-            are both necessary as inputs to allow stability testing.
-
-            If you already have slopes defined at nodes on the grid, pass them
-            to the component with *slopes_at_nodes*. The same syntax is
-            expected: string gives a name in the grid fields, an array gives
-            values direct.
-
-            Alternatively, set *link_slopes* (and *link_mapping*) if this
-            data
-            is only available at links. 'topographic__derivative_of_elevation'
-            is the default field name for link slopes. Override this name by
-            setting the variable as the appropriate string, or override use of
-            grid fields altogether by passing an array. *link_mapping*
-            controls how the component maps these link values onto the arrays.
-            We assume there is always a 1:1 mapping (pass the values already
-            projected onto the nodes using slopes_at_nodes if not). Other
-            components, e.g., the FlowAccumulator, may provide the
-            necessary outputs to make the mapping easier: e.g., just pass
-            'flow__link_to_receiver_node' from that module (the default name).
-            If the component cannot find an existing mapping through this
-            parameter, it will derive one on the fly, at considerable cost of
-            speed (see on-screen reports).
-
-        slopes_from_elevs : str, optional
-            Allows the module to create gradients internally
-            from elevations rather than have them provided. Set to True to
-            force the component to look for the data in the location specified
-            by elevs. Using this option is
-            considerably slower than any of the alternatives, as it also has to
-            calculate the link_mapping from stratch each time.
-
-            In both these cases, at present the mapping is to use the maximum
-            slope of *any* link attached to the node as the representative
-            node slope. This is primarily for speed, but may be a good idea
-            to modify later.
-
-        W_if_used, Q_if_used : str or ndarray, optional
-            Must be provided if you set *use_W* and *use_Q* respectively in
-            the component initialization. They can be either field names or
-            nnodes arrays as in the other cases.
-
-            If you are routing across flooded depressions in your flow routing
-            scheme, be sure to set *flooded_nodes* with a boolean array or
-            array of IDs to ensure erosion cannot occur in the lake. Erosion
-            is always zero if the gradient is adverse, but can still procede as
-            usual on the entry into the depression unless *flooded_nodes* is
-            set.
-
-            NB: If you want spatially or temporally variable runoff, pass the
-            runoff values at each pixel to the flow router, then pass
-            discharges at each node using *Q_if_used* to this component.
-
-        Returns
-        -------
-        tuple
-            Tuple of (*grid*, *modified_elevs*, *stream_power_erosion*);
-            modifies grid elevation fields to reflect updates. Note the value
-            stream_power_erosion is not an excess stream power; any specified
-            erosion threshold is not incorporated into it.
-        """
-        if type(order_upstream) is str:
-            upstream_order_IDs = grid.at_node[order_upstream]
-        else:
-            upstream_order_IDs = self._grid["node"][order_upstream]
-
-        defined_flow_receivers = np.not_equal(
-            self._grid["node"][link_mapping], UNDEFINED_INDEX
-        )
-
-        try:
-            length_of_link = self._grid.length_of_d8
-        except AttributeError:
-            length_of_link = self._grid.length_of_link
-
-        flow_link_lengths = length_of_link[
-            self._grid.at_node[link_mapping][defined_flow_receivers]
-        ]
-        flow_receivers = self._grid["node"][flow_receiver]
-
-        if W_if_used is not None:
-            assert self._use_W, (
-                "Widths were provided, but you didn't set "
-                + "the use_W flag in your input file! "
-                + "Aborting..."
-            )
-            assert self._W is None, (
-                "Do not pass W to the run method "
-                + "if you also set them at initialization!"
-            )
-
-        if Q_if_used is not None:
-            assert self._use_Q, (
-                "Discharges were provided, but you didn't "
-                + "set the use_Q flag in your input file! "
-                + "Aborting..."
-            )
-            assert self._Q is None, (
-                "Do not pass Q to the run method "
-                + "if you also set them at initialization!"
-            )
-
-        if K_if_used is not None:
-            assert self._use_K, (
-                "An array of erodabilities was provided, "
-                + "but you didn't set K_sp to 'array' in your "
-                + "input file! Aborting..."
-            )
-            try:
-                _K_unit_time = grid.at_node[K_if_used]
-            except TypeError:
-                _K_unit_time = K_if_used
-        else:
-            # little move to save a bit of memory management time...
-            if flooded_nodes is not None:
-                _K_unit_time = self._K_unit_time.copy()
-            else:
-                _K_unit_time = self._K_unit_time
-
-        if type(elevs) is str:
-            z = grid.at_node[elevs]
-        else:
-            z = elevs
-
-        if type(drainage_areas) is str:
-            A = grid.at_node[drainage_areas]
-        else:
-            A = drainage_areas
-
-        # Disable incision in flooded nodes, as appropriate
-        if flooded_nodes is not None:
-            _K_unit_time[flooded_nodes] = 0.0
-
-        # Operate the main function:
-        if self._use_W is False and self._use_Q is False:  # normal case
-            self._alpha[defined_flow_receivers] = (
-                _K_unit_time[defined_flow_receivers]
-                * dt
-                * A[defined_flow_receivers] ** self._m
-                / (flow_link_lengths ** self._n)
-            )
-            # Handle flooded nodes, if any (no erosion there)
-            if flooded_nodes is not None:
-                self._alpha[flooded_nodes] = 0.0
-            reversed_flow = z < z[flow_receivers]
-            # this check necessary if flow has been routed across
-            # depressions
-            self._alpha[reversed_flow] = 0.0
-
-            threshdt = self._sp_crit * dt
-
-        elif self._use_W:
-            if self._W is None:
-                try:
-                    W = grid.at_node[W_if_used]
-                except TypeError:
-                    W = W_if_used
-            else:
-                W = self._W
-            if self._use_Q:  # use both Q and W direct
-                if self._Q is None:
-                    try:
-                        Q_direct = grid.at_node[Q_if_used]
-                    except TypeError:
-                        Q_direct = Q_if_used
-                else:
-                    Q_direct = self._Q
-                self._alpha[defined_flow_receivers] = (
-                    _K_unit_time[defined_flow_receivers]
-                    * dt
-                    * Q_direct[defined_flow_receivers] ** self._m
-                    / W[defined_flow_receivers]
-                    / (flow_link_lengths ** self._n)
-                )
-                # Handle flooded nodes, if any (no erosion there)
-                if flooded_nodes is not None:
-                    self._alpha[flooded_nodes] = 0.0
-                reversed_flow = z < z[flow_receivers]
-                # this check necessary if flow has been routed across
-                # depressions
-                self._alpha[reversed_flow] = 0.0
-
-                threshdt = self._sp_crit * dt
-
-            else:  # just W to be used
-                self._alpha[defined_flow_receivers] = (
-                    _K_unit_time[defined_flow_receivers]
-                    * dt
-                    * A[defined_flow_receivers] ** self._m
-                    / W[defined_flow_receivers]
-                    / flow_link_lengths ** self._n
-                )
-                # Handle flooded nodes, if any (no erosion there)
-                if flooded_nodes is not None:
-                    self._alpha[flooded_nodes] = 0.0
-                reversed_flow = z < z[flow_receivers]
-                # this check necessary if flow has been routed across
-                # depressions
-                self._alpha[reversed_flow] = 0.0
-
-                threshdt = self._sp_crit * dt
-
-        else:  # just use_Q
-            if self._Q is None:
-                try:
-                    Q_direct = grid.at_node[Q_if_used]
-                except TypeError:
-                    assert type(Q_if_used) in (np.ndarray, list)
-                    Q_direct = Q_if_used
-            else:
-                Q_direct = self._Q
-            self._alpha[defined_flow_receivers] = (
-                _K_unit_time[defined_flow_receivers]
-                * dt
-                * Q_direct[defined_flow_receivers] ** self._m
-                / flow_link_lengths ** self._n
-            )
-            # Handle flooded nodes, if any (no erosion there)
-            if flooded_nodes is not None:
-                self._alpha[flooded_nodes] = 0.0
-            reversed_flow = z < z[flow_receivers]
-            # this check necessary if flow has been routed across
-            # depressions
-            self._alpha[reversed_flow] = 0.0
-
-            threshdt = self._sp_crit * dt
-
-        # solve using Brent's Method in Cython for Speed
-        if isinstance(threshdt, float):
-            brent_method_erode_fixed_threshold(
-                upstream_order_IDs, flow_receivers, threshdt, self._alpha, self._n, z
-            )
-        else:
-            brent_method_erode_variable_threshold(
-                upstream_order_IDs, flow_receivers, threshdt, self._alpha, self._n, z
-            )
-
-        return grid, z, self._stream_power_erosion
 
     def run_one_step(self, dt):
         """
         A simple, explicit implementation of a stream power algorithm.
 
-        This component now looks exclusively for the field
-        'topographic__steepest_slope' at each node to determine the local
-        slope (previoiusly it was possible to map values from links explicitly
-        within the component, but this functionality is now deprecated).
-
         If you are routing across flooded depressions in your flow routing
-        scheme, be sure to set *flooded_nodes* with a boolean array or array
-        of IDs to ensure erosion cannot occur in the lake. Erosion
+        scheme, be sure to set *erode_flooded_nodes* flag in the instantiation
+        of the component to ensure erosion cannot occur in the lake. Erosion
         is always zero if the gradient is adverse, but can still procede as
-        usual on the entry into the depression unless *flooded_nodes* is set.
+        usual on the entry into the depression unless this flag is set.
 
         Parameters
         ----------
@@ -670,4 +351,76 @@ class StreamPowerEroder(Component):
         else:
             flooded_nodes = []
 
-        self.erode(grid=self._grid, dt=dt, flooded_nodes=flooded_nodes)
+        upstream_order_IDs = self._grid["node"]["flow__upstream_node_order"]
+
+        defined_flow_receivers = np.not_equal(
+            self._grid["node"]["flow__link_to_receiver_node"], UNDEFINED_INDEX
+        )
+
+        try:
+            length_of_link = self._grid.length_of_d8
+        except AttributeError:
+            length_of_link = self._grid.length_of_link
+
+        flow_link_lengths = length_of_link[
+            self._grid.at_node["flow__link_to_receiver_node"][defined_flow_receivers]
+        ]
+        flow_receivers = self._grid["node"]["flow__receiver_node"]
+
+        # little move to save a bit of memory management time...
+        if flooded_nodes is not None:
+            _K_unit_time = self._K_unit_time.copy()
+        else:
+            _K_unit_time = self._K_unit_time
+
+        # Disable incision in flooded nodes, as appropriate
+        if len(flooded_nodes) > 0:
+            _K_unit_time[flooded_nodes] = 0.0
+
+        # Operate the main function:
+        if self._use_W:
+            self._alpha[defined_flow_receivers] = (
+                _K_unit_time[defined_flow_receivers]
+                * dt
+                * self._A[defined_flow_receivers] ** self._m
+                / self._W[defined_flow_receivers]
+                / (flow_link_lengths ** self._n)
+            )
+
+        else:
+            self._alpha[defined_flow_receivers] = (
+                _K_unit_time[defined_flow_receivers]
+                * dt
+                * self._A[defined_flow_receivers] ** self._m
+                / (flow_link_lengths ** self._n)
+            )
+
+        # Handle flooded nodes, if any (no erosion there)
+        if flooded_nodes is not None:
+            self._alpha[flooded_nodes] = 0.0
+        reversed_flow = self._elevs < self._elevs[flow_receivers]
+        # this check necessary if flow has been routed across
+        # depressions
+        self._alpha[reversed_flow] = 0.0
+
+        threshdt = self._sp_crit * dt
+
+        # solve using Brent's Method in Cython for Speed
+        if isinstance(threshdt, float):
+            brent_method_erode_fixed_threshold(
+                upstream_order_IDs,
+                flow_receivers,
+                threshdt,
+                self._alpha,
+                self._n,
+                self._elevs,
+            )
+        else:
+            brent_method_erode_variable_threshold(
+                upstream_order_IDs,
+                flow_receivers,
+                threshdt,
+                self._alpha,
+                self._n,
+                self._elevs,
+            )

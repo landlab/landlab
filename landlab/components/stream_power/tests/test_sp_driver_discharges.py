@@ -46,13 +46,13 @@ def test_sp_discharges_old():
     mg["node"]["topographic__elevation"] = z
 
     fr = FlowAccumulator(mg, flow_director="D8")
-    my_Q = mg.at_node["surface_water__discharge"]
-    sp = StreamPowerEroder(mg, K_sp=0.5, m_sp=0.5, n_sp=1.0, use_Q=my_Q)
+    sp = StreamPowerEroder(
+        mg, K_sp=0.5, m_sp=0.5, n_sp=1.0, discharge_field="surface_water__discharge"
+    )
 
     # perform the loop (once!)
     for i in range(1):
         fr.run_one_step()
-        my_Q[:] = mg.at_node["surface_water__discharge"] * 1.0
         sp.run_one_step(dt)
 
     z_tg = np.array(

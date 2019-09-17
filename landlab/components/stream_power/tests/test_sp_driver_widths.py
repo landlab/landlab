@@ -51,7 +51,7 @@ def test_sp_widths():
 
     fr = FlowAccumulator(mg, flow_director="D8")
     sp = StreamPowerEroder(
-        mg, use_W=widths, K_sp=0.5, m_sp=1.0, n_sp=1.0, threshold_sp=0.0
+        mg, channel_width_field=widths, K_sp=0.5, m_sp=1.0, n_sp=1.0, threshold_sp=0.0
     )
 
     # perform the loop (once!)

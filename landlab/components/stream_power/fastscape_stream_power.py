@@ -340,10 +340,6 @@ class FastscapeEroder(Component):
 
         r_i_here = self._r_i
 
-        if self._K is None:  # "old style" setting of array
-            assert K_if_used is not None
-            self._K = K_if_used
-
         n = float(self._n)
 
         np.power(

@@ -45,7 +45,7 @@ def test_storms():
         m_sp=0.5,
         n_sp=1.0,
         threshold_sp=1.0,
-        use_Q="surface_water__discharge",
+        discharge_field="surface_water__discharge",
     )
 
     for (
