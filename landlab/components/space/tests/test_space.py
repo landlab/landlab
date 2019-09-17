@@ -3,7 +3,7 @@ import pytest
 from numpy import testing
 
 from landlab import HexModelGrid, RasterModelGrid
-from landlab.components import DepressionFinderAndRouter, FlowAccumulator, Space
+from landlab.components import FlowAccumulator, Space
 
 
 def test_route_to_multiple_error_raised():
@@ -304,9 +304,6 @@ def test_matches_transport_solution():
     br[:] = z[:]
     z[:] += soil[:]
 
-    # Instantiate DepressionFinderAndRouter
-    df = DepressionFinderAndRouter(mg)
-
     # Create a D8 flow handler
     fa = FlowAccumulator(
         mg, flow_director="D8", depression_finder="DepressionFinderAndRouter"
@@ -420,9 +417,6 @@ def test_matches_bedrock_alluvial_solution():
     soil[:] += 0.0  # initial condition of no soil depth.
     br[:] = z[:]
     z[:] += soil[:]
-
-    # Instantiate DepressionFinderAndRouter
-    df = DepressionFinderAndRouter(mg)
 
     # Create a D8 flow handler
     fa = FlowAccumulator(

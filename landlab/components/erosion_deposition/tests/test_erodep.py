@@ -11,11 +11,7 @@ import pytest
 from numpy import testing
 
 from landlab import HexModelGrid, RasterModelGrid
-from landlab.components import (
-    DepressionFinderAndRouter,
-    ErosionDeposition,
-    FlowAccumulator,
-)
+from landlab.components import ErosionDeposition, FlowAccumulator
 
 
 def test_route_to_multiple_error_raised():
@@ -101,9 +97,6 @@ def test_steady_state_with_basic_solver_option():
     mg.set_watershed_boundary_condition_outlet_id(
         0, mg["node"]["topographic__elevation"], -9999.0
     )
-
-    # Instantiate DepressionFinderAndRouter
-    df = DepressionFinderAndRouter(mg)
 
     # Create a D8 flow handler
     fa = FlowAccumulator(
