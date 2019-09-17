@@ -241,7 +241,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
             flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
         else:
             flooded_nodes = []
-                    
+
         # Set up needed arrays
         #
         # Get shorthand for elevation field ("z"), and for up-to-downstream

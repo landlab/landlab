@@ -30,7 +30,7 @@ def test_sp_voronoi():
     for i in range(10):
         z[mg.core_nodes] += 0.01
         fr.run_one_step()
-        spe.erode(mg, 1.0)
+        spe.run_one_step(1.0)
 
     z_tg = np.array(
         [

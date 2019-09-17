@@ -36,7 +36,7 @@ def test_sp_old():
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
         fr.run_one_step()
-        sp.erode(mg, dt)
+        sp.run_one_step(dt)
         mg.at_node["topographic__elevation"][mg.core_nodes] += uplift * dt
         elapsed_time += dt
 
