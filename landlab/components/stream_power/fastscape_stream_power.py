@@ -168,7 +168,7 @@ class FastscapeEroder(Component):
         n_sp=1.0,
         threshold_sp=0.0,
         rainfall_intensity=1.0,
-        discharge_name="drainage_area",
+        discharge_field="drainage_area",
         erode_flooded_nodes=True,
     ):
         """
@@ -189,7 +189,7 @@ class FastscapeEroder(Component):
         rainfall intensity : float, array, or field name; optional
             Modifying factor on drainage area to convert it to a true water
             volume flux in (m/time). i.e., E = K * (r_i*A)**m * S**n
-        discharge_name : string; optional
+        discharge_field : string; optional
             Name of field to use for discharge proxy. Defaults to 'drainage_area',
             which means the component will expect the driver or another component
             to have created and populated a 'drainage_area' field. To use a
@@ -288,7 +288,7 @@ class FastscapeEroder(Component):
             raise TypeError("Supplied type of rainfall_intensity was " "not recognised")
 
         # Handle option for area vs discharge
-        self._discharge_name = discharge_name
+        self._discharge_field = discharge_field
         self._verify_output_fields()
 
     def run_one_step(self, dt):
@@ -347,7 +347,7 @@ class FastscapeEroder(Component):
         n = float(self._n)
 
         np.power(
-            self._grid["node"][self._discharge_name], self._m, out=self._A_to_the_m
+            self._grid["node"][self._discharge_field], self._m, out=self._A_to_the_m
         )
         self._alpha[defined_flow_receivers] = (
             r_i_here ** self._m

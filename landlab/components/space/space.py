@@ -55,8 +55,8 @@ class Space(_GeneralizedErosionDeposition):
         Discharge [L^2/T]. The default is to use the grid field
         'surface_water__discharge', which is simply drainage area
         multiplied by the default rainfall rate (1 m/yr). To use custom
-        spatially/temporally varying flow, use 'water__unit_flux_in'
-        as the discharge field.
+        spatially/temporally varying rainfall, use 'water__unit_flux_in'
+        to specify water input to the FlowAccumulator.
     erode_flooded_nodes : bool (optional)
         Whether erosion occurs in flooded nodes identified by a
         depression/lake mapper (e.g., DepressionFinderAndRouter). When set
