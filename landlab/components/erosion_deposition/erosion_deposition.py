@@ -186,7 +186,12 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> df = DepressionFinderAndRouter(mg)
-        >>> fsc = FastscapeEroder(mg, K_sp=.001, m_sp=.5, n_sp=1)
+        >>> fsc = FastscapeEroder(
+        ...     mg,
+        ...     K_sp=.001,
+        ...     m_sp=.5,
+        ...     n_sp=1,
+        ...     erode_flooded_nodes=False)
 
         Burn in an initial drainage network using the Fastscape eroder:
 
@@ -194,14 +199,20 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         ...     fr.run_one_step()
         ...     df.map_depressions()
         ...     flooded = np.where(df.flood_status==3)[0]
-        ...     fsc.run_one_step(dt = fsc_dt, flooded_nodes=flooded)
+        ...     fsc.run_one_step(dt = fsc_dt)
         ...     mg.at_node['topographic__elevation'][0] -= 0.001 #uplift
 
         Instantiate the E/D component:
 
-        >>> ed = ErosionDeposition(mg, K=0.00001, phi=0.0, v_s=0.001,
-        ...                        m_sp=0.5, n_sp = 1.0, sp_crit=0,
-        ...                        erode_flooded_nodes=False)
+        >>> ed = ErosionDeposition(
+        ...     mg,
+        ...     K=0.00001,
+        ...     phi=0.0,
+        ...     v_s=0.001,
+        ...     m_sp=0.5,
+        ...     n_sp = 1.0,
+        ...     sp_crit=0,
+        ...     erode_flooded_nodes=False)
 
         Now run the E/D component for 2000 short timesteps:
 
