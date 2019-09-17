@@ -597,18 +597,18 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         >>> lnf = LatticeNormalFault(-0.1, grid=mg)
         >>> pq = ohcts.priority_queue._queue
         >>> (int(1000 * pq[11][0]), pq[11][1:])
-        (752, (11, 23))
+        (752, (11, 21))
         >>> (int(1000 * pq[12][0]), pq[12][1:])
-        (483, (9, 20))
+        (483, (9, 18))
         >>> (int(1000 * pq[30][0]), pq[30][1:])
-        (575, (6, 16))
+        (575, (6, 14))
         >>> lnf.do_offset(ca=ohcts)
         >>> (int(1000 * pq[48][0]), pq[48][1:])
-        (752, (11, 43))
+        (752, (11, 41))
         >>> (int(1000 * pq[54][0]), pq[54][1:])
-        (483, (9, 40))
+        (483, (9, 38))
         >>> (int(1000 * pq[61][0]), pq[61][1:])
-        (575, (6, 37))
+        (575, (6, 35))
         """
         for i in range(len(ca.priority_queue._queue)):
             link = ca.priority_queue._queue[i][2]
@@ -860,18 +860,18 @@ class LatticeUplifter(HexLatticeTectonicizer):
         >>> hg = HexModelGrid((6, 6), orientation="vertical", node_layout="rect")
         >>> lu = LatticeUplifter(grid=hg)
         >>> lu.links_to_update
-        array([ 8,  9, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 22, 24, 25, 26, 30,
-               34, 38, 42, 46, 50, 54, 58, 62, 66, 70, 72, 73, 74, 75, 76, 77, 79,
-               80])
+        array([ 6,  7,  9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 22, 23, 24, 28,
+               32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 70, 71, 72, 73, 74, 75, 77,
+               78])
         >>> hg = HexModelGrid((5, 5), orientation="vertical", node_layout="rect")
         >>> lu = LatticeUplifter(grid=hg)
         >>> lu.links_to_update
-        array([ 7, 10, 11, 13, 14, 15, 16, 17, 18, 20, 22, 25, 28, 31, 35, 38, 41,
-               44, 46, 48, 49, 50, 51, 52, 53])
+        array([ 5,  8,  9, 11, 12, 13, 14, 15, 16, 18, 20, 23, 26, 29, 33, 36, 39,
+               42, 44, 46, 47, 48, 49, 50, 51])
         """
         g = self.grid
         nc = g.number_of_node_columns
-        max_link_id = 3 * (nc - 1) + 2 * ((nc + 1) // 2) + nc // 2 + (nc - 1) // 2
+        max_link_id = 3 * (nc - 1) + 2 * ((nc + 1) // 2) + nc // 2
         lower_active = logical_and(
             arange(g.number_of_links) < max_link_id, g.status_at_link == 0
         )
