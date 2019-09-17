@@ -31,7 +31,7 @@ class DrainageDensity(Component):
     If the channel__mask is created using an area coefficent,
     slope coefficient, area exponent, slope exponent, and channelization
     threshold, the location of the mask will be re-update when
-    calc_drainage_density is called.
+    calculate_drainage_density is called.
 
     If an area coefficient, :math:`C_A`, a slope coefficent, :math:`C_S`, an
     area exponent, :math:`m_r`, a slope exponent, :math:`n_r`, and
@@ -44,10 +44,10 @@ class DrainageDensity(Component):
     where :math:`A` is the drainage density and :math:`S` is the local slope,
     will be marked as channel nodes.
 
-   ``calc_drainage_density`` function returns drainage density for the model
+   ``calculate_drainage_density`` function returns drainage density for the model
     domain.
 
-    ``calc_drainage_density`` calculates the distance from every node to the
+    ``calculate_drainage_density`` calculates the distance from every node to the
     nearest channel node :math:`L` along the flow line of steepest descent
     (assuming D8 routing).
 
@@ -103,7 +103,7 @@ class DrainageDensity(Component):
     ...     mg.at_node['topographic__elevation'][mg.core_nodes] += .01
     >>> channels = np.array(mg.at_node['drainage_area'] > 5, dtype=np.uint8)
     >>> dd = DrainageDensity(mg, channel__mask=channels)
-    >>> mean_drainage_density = dd.calc_drainage_density()
+    >>> mean_drainage_density = dd.calculate_drainage_density()
     >>> np.isclose(mean_drainage_density, 0.3831100571)
     True
 
@@ -129,7 +129,7 @@ class DrainageDensity(Component):
     ...                      area_exponent=1.0,
     ...                      slope_exponent=0.0,
     ...                      channelization_threshold=5)
-    >>> mean_drainage_density = dd.calc_drainage_density()
+    >>> mean_drainage_density = dd.calculate_drainage_density()
     >>> np.isclose(mean_drainage_density, 0.3831100571)
     True
 
@@ -371,7 +371,7 @@ class DrainageDensity(Component):
         ) > self._channelization_threshold
         self._grid.at_node["channel__mask"] = channel__mask.astype(np.uint8)
 
-    def calc_drainage_density(self):
+    def calculate_drainage_density(self):
         """Calculate drainage density. \
 
         If the channel mask is defined based on slope and area coefficients,

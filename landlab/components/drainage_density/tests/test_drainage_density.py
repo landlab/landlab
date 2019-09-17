@@ -40,7 +40,7 @@ def test_mask_is_stable():
     dd = DrainageDensity(mg, channel__mask=mask)
     mask1 = mask.copy()
 
-    dd.calc_drainage_density()
+    dd.calculate_drainage_density()
     mask2 = mask.copy()
 
     assert_array_equal(mask0, mask1)
