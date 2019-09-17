@@ -154,7 +154,7 @@ class StreamPowerEroder(Component):
     def __init__(
         self,
         grid,
-        K_sp=None,
+        K_sp=0.001,
         threshold_sp=0.0,
         sp_type="set_mn",
         m_sp=0.5,
@@ -367,20 +367,10 @@ class StreamPowerEroder(Component):
         ]
         flow_receivers = self._grid["node"]["flow__receiver_node"]
 
-        # little move to save a bit of memory management time...
-        if flooded_nodes is not None:
-            _K_unit_time = self._K_unit_time.copy()
-        else:
-            _K_unit_time = self._K_unit_time
-
-        # Disable incision in flooded nodes, as appropriate
-        if len(flooded_nodes) > 0:
-            _K_unit_time[flooded_nodes] = 0.0
-
         # Operate the main function:
         if self._use_W:
             self._alpha[defined_flow_receivers] = (
-                _K_unit_time[defined_flow_receivers]
+                self._K_unit_time[defined_flow_receivers]
                 * dt
                 * self._A[defined_flow_receivers] ** self._m
                 / self._W[defined_flow_receivers]
@@ -389,7 +379,7 @@ class StreamPowerEroder(Component):
 
         else:
             self._alpha[defined_flow_receivers] = (
-                _K_unit_time[defined_flow_receivers]
+                self._K_unit_time[defined_flow_receivers]
                 * dt
                 * self._A[defined_flow_receivers] ** self._m
                 / (flow_link_lengths ** self._n)
@@ -398,6 +388,7 @@ class StreamPowerEroder(Component):
         # Handle flooded nodes, if any (no erosion there)
         if flooded_nodes is not None:
             self._alpha[flooded_nodes] = 0.0
+
         reversed_flow = self._elevs < self._elevs[flow_receivers]
         # this check necessary if flow has been routed across
         # depressions
