@@ -108,7 +108,7 @@ def example_flow_director(example_nmg):
 def example_flow_depth(example_nmg):
     timesteps = 30
 
-    Qgage = 80000.0  # (m3/s)
+    Qgage = 8000.0  # (m3/s)
     dt = 60 * 60 * 24  # (seconds) daily timestep
 
     Hgage = 1.703 * Qgage ** 0.3447

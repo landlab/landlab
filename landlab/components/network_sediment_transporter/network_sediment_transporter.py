@@ -6,6 +6,9 @@ info about the component here
 
 Fixes that need to happen: 
     
+    -- (9/16/19) Something is wrong with abrasion (or at least that's where 
+    it's obvious). See test comparing actual abrasion to calculated. Hmm..
+    
     -- Channel width-- why is this anything other than a link attribute??
     
     -- Need to find better way to define filterarrays in time and item_id
@@ -678,8 +681,7 @@ class NetworkSedimentTransporter(Component):
                     vol_act_tot_i
                 )
             else:
-                self.rhos_mean_active[i] = np.nan
-                
+                self.rhos_mean_active[i] = np.nan              
                 
             D_mean_activearray[Linkarray == i] = self.d_mean_active[i]
             frac_sand_array[Linkarray == i] = frac_sand[i]
@@ -723,19 +725,25 @@ class NetworkSedimentTransporter(Component):
         # print("frac_parcel = ", frac_parcel)
 
         b = 0.67 / (1 + np.exp(1.5 - Darray / D_mean_activearray))
-        tau = self.fluid_density * self.g * Harray * Sarray
-
+        
+        tau = (self.fluid_density 
+               * self.g 
+               * Harray
+               * Sarray
+               )
+        tau = np.atleast_1d(tau)
+        
         taur = taursg * (Darray / D_mean_activearray) ** b
-
         tautaur = tau / taur
         tautaur_cplx = tautaur.astype(np.complex128)
         # ^ work around needed b/c np fails with non-integer powers of negative numbers
+        
         W = 0.002 * np.power(tautaur_cplx.real, 7.5)
         W[tautaur >= 1.35] = 14 * np.power(
             (1 - (0.894 / np.sqrt(tautaur_cplx.real[tautaur >= 1.35]))), 4.5
         )
         W = W.real
-
+        
         # compute parcel virtual velocity, m/s
         self.pvelocity[Activearray == 1] = (
             W[Activearray == 1]
