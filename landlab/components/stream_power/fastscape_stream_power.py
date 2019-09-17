@@ -15,6 +15,7 @@ from .cfuncs import (
     brent_method_erode_fixed_threshold,
     brent_method_erode_variable_threshold,
 )
+from landlab.utils.return_array import return_array_at_node
 
 
 class FastscapeEroder(Component):
@@ -40,7 +41,7 @@ class FastscapeEroder(Component):
 
     .. math::
 
-        E = K (\textit{rainfall_intensity} \, A) ^ m  S ^ n -
+        E = K  A ^ m  S ^ n -
                \textit{threshold_sp}
 
     if :math:`K A ^ m S ^ n > \textit{threshold_sp}`, and:
@@ -107,11 +108,12 @@ class FastscapeEroder(Component):
     >>> grid.status_at_node[grid.nodes_at_top_edge] = CLOSED_BOUNDARY
     >>> grid.status_at_node[grid.nodes_at_bottom_edge] = CLOSED_BOUNDARY
     >>> grid.status_at_node[grid.nodes_at_right_edge] = CLOSED_BOUNDARY
+    >>> rainfall = grid.add_zeros("node", "water__unit_flux_in")
+    >>> rainfall[:] = 2.0
     >>> fr = FlowAccumulator(grid, flow_director='D8')
     >>> K_field = grid.ones(at='node') # K can be a field
     >>> sp = FastscapeEroder(grid, K_sp=K_field, m_sp=1., n_sp=0.6,
-    ...                      threshold_sp=grid.node_x,
-    ...                      rainfall_intensity=2.)
+    ...                      threshold_sp=grid.node_x)
     >>> fr.run_one_step()
     >>> sp.run_one_step(1.)
     >>> z.reshape(grid.shape)[1, :]  # doctest: +NORMALIZE_WHITESPACE
@@ -163,11 +165,10 @@ class FastscapeEroder(Component):
     def __init__(
         self,
         grid,
-        K_sp=None,
+        K_sp=0.001,
         m_sp=0.5,
         n_sp=1.0,
         threshold_sp=0.0,
-        rainfall_intensity=1.0,
         discharge_field="drainage_area",
         erode_flooded_nodes=True,
     ):
@@ -186,9 +187,6 @@ class FastscapeEroder(Component):
             m in the stream power equation (power on drainage area).
         n_sp : float, optional
             n in the stream power equation (power on slope).
-        rainfall intensity : float, array, or field name; optional
-            Modifying factor on drainage area to convert it to a true water
-            volume flux in (m/time). i.e., E = K * (r_i*A)**m * S**n
         discharge_field : string; optional
             Name of field to use for discharge proxy. Defaults to 'drainage_area',
             which means the component will expect the driver or another component
@@ -225,67 +223,15 @@ class FastscapeEroder(Component):
 
         self._erode_flooded_nodes = erode_flooded_nodes
 
-        self._K = K_sp  # overwritten below in special cases
+        self._K = return_array_at_node(grid, K_sp)
         self._m = float(m_sp)
         self._n = float(n_sp)
-        if isinstance(threshold_sp, (float, int)):
-            self._thresholds = float(threshold_sp)
-        else:
-            if isinstance(threshold_sp, str):
-                self._thresholds = self._grid.at_node[threshold_sp]
-            else:
-                self._thresholds = threshold_sp
-            assert self._thresholds.size == self._grid.number_of_nodes
+        self._thresholds = return_array_at_node(grid, threshold_sp)
+
 
         # make storage variables
         self._A_to_the_m = grid.zeros(at="node")
         self._alpha = grid.empty(at="node")
-
-        if self._K is None:
-            raise ValueError(
-                "K_sp must be set as a float, node array, or "
-                + "field name. It was None."
-            )
-
-        # now handle the inputs that could be float, array or field name:
-        # some support here for old-style inputs
-        if isinstance(K_sp, str):
-            if K_sp == "array":
-                self._K = None
-            else:
-                self._K = self._grid.at_node[K_sp]
-        elif isinstance(K_sp, (float, int)):
-            self._K = float(K_sp)
-        else:
-            self._K = np.asarray(K_sp, dtype=float)
-            if len(self._K) != self._grid.number_of_nodes:
-                raise TypeError("Supplied value of K_sp is not n_nodes long")
-
-        if isinstance(rainfall_intensity, str):
-            raise ValueError(
-                "This component can no longer handle "
-                + "spatially variable runoff directly. Use "
-                + "FlowAccumulator with specified "
-                + "water__unit_flux_in, or use StreamPowerEroder"
-                + "component instead of FastscapeEroder."
-            )
-            if rainfall_intensity == "array":
-                self._r_i = None
-            else:
-                self._r_i = self._grid.at_node[rainfall_intensity]
-        elif isinstance(rainfall_intensity, (float, int)):  # a float
-            self._r_i = float(rainfall_intensity)
-        elif len(rainfall_intensity) == self._grid.number_of_nodes:
-            raise ValueError(
-                "This component can no longer handle "
-                "spatially variable runoff directly. Use "
-                "FlowAccumulator with specified "
-                "water__unit_flux_in, or use StreamPowerEroder"
-                "component instead of FastscapeEroder."
-            )
-            self._r_i = np.array(rainfall_intensity)
-        else:
-            raise TypeError("Supplied type of rainfall_intensity was " "not recognised")
 
         # Handle option for area vs discharge
         self._discharge_field = discharge_field
@@ -332,45 +278,34 @@ class FastscapeEroder(Component):
                     defined_flow_receivers
                 ]
             ]
-        # make arrays from input the right size
-        if isinstance(self._K, np.ndarray):
-            K_here = self._K[defined_flow_receivers]
-        else:
-            K_here = self._K
 
-        r_i_here = self._r_i
-
-        n = float(self._n)
 
         np.power(
             self._grid["node"][self._discharge_field], self._m, out=self._A_to_the_m
         )
         self._alpha[defined_flow_receivers] = (
-            r_i_here ** self._m
-            * K_here
+            self._K[defined_flow_receivers]
             * dt
             * self._A_to_the_m[defined_flow_receivers]
             / (flow_link_lengths ** self._n)
         )
 
-        alpha = self._alpha
-
         # Handle flooded nodes, if any (no erosion there)
         if len(flooded_nodes) > 0:
-            alpha[flooded_nodes] = 0.0
+            self._alpha[flooded_nodes] = 0.0
         else:
             reversed_flow = z < z[flow_receivers]
             # this check necessary if flow has been routed across depressions
-            alpha[reversed_flow] = 0.0
+            self._alpha[reversed_flow] = 0.0
 
         threshsdt = self._thresholds * dt
 
         # solve using Brent's Method in Cython for Speed
         if isinstance(self._thresholds, float):
             brent_method_erode_fixed_threshold(
-                upstream_order_IDs, flow_receivers, threshsdt, alpha, n, z
+                upstream_order_IDs, flow_receivers, threshsdt, self._alpha, self._n, z
             )
         else:
             brent_method_erode_variable_threshold(
-                upstream_order_IDs, flow_receivers, threshsdt, alpha, n, z
+                upstream_order_IDs, flow_receivers, threshsdt, self._alpha, self._n, z
             )
