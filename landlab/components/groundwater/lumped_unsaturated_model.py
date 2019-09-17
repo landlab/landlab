@@ -187,6 +187,9 @@ class LumpedUnsaturatedZone(Component):
         self.S += self.r*dt
 
     def run_one_step(self,duration,intensity):
+
+        self.thickness = self.elev - self.wtable
+
         Sw = self.sw*self.thickness*self.n #m storage at the wilting point
         Sf = self.sf*self.thickness*self.n #m storage at the field capacity
         St = 1*self.thickness*self.n #m total available storage
