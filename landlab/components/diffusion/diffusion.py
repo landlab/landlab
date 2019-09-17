@@ -405,9 +405,17 @@ class LinearDiffuser(Component):
                 self._hoz_link_neighbors == -1,
             )
 
-    def diffuse(self, dt):
-        """
-        See :func:`run_one_step`.
+    def run_one_step(self, dt):
+        """Run the diffuser for one timestep, dt.
+
+        If the imposed timestep dt is longer than the Courant-Friedrichs-Lewy
+        condition for the diffusion, this timestep will be internally divided
+        as the component runs, as needed.
+
+        Parameters
+        ----------
+        dt : float (time)
+            The imposed timestep.
         """
         mg = self._grid
         z = self._grid.at_node[self._values_to_diffuse]
@@ -579,22 +587,6 @@ class LinearDiffuser(Component):
             vals[self._fixed_grad_nodes] = (
                 vals[self._fixed_grad_anchors] + self._fixed_grad_offsets
             )
-
-        return self._grid
-
-    def run_one_step(self, dt):
-        """Run the diffuser for one timestep, dt.
-
-        If the imposed timestep dt is longer than the Courant-Friedrichs-Lewy
-        condition for the diffusion, this timestep will be internally divided
-        as the component runs, as needed.
-
-        Parameters
-        ----------
-        dt : float (time)
-            The imposed timestep.
-        """
-        self.diffuse(dt)
 
     @property
     def time_step(self):
