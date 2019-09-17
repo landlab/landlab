@@ -30,7 +30,7 @@ def test_grid_shape(dr_item):
 
 
 def test_permitted_locations(dr_item):
-    assert dr_item.permitted_locations == grid.groups
+    assert dr_item._permitted_locations == grid.groups
 
 
 def test_coordinates(dr_item):
@@ -39,7 +39,7 @@ def test_coordinates(dr_item):
     assert list(dr_item.item_coordinates) == [0, 1]
     assert dr_item.number_of_items == len(my_items2["element_id"])
     with pytest.raises(AttributeError):
-        dr_item.time
+        dr_item.dataset.time
     with pytest.raises(AttributeError):
         dr_item.time_coordinates
     with pytest.raises(AttributeError):

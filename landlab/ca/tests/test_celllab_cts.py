@@ -127,10 +127,7 @@ def test_raster_cts():
     nsg[6] = 0
     pd = mg.add_zeros("node", "property_data", dtype=int)
     pd[5] = 50
-    ca = RasterCTS(
-        mg, ns_dict, xn_list, nsg, prop_data=pd,
-        prop_reset_value=0, seed=1
-    )
+    ca = RasterCTS(mg, ns_dict, xn_list, nsg, prop_data=pd, prop_reset_value=0, seed=1)
     prior_first_event_time = event_time
     (event_time, index, event_link) = ca.priority_queue.pop()
     assert event_time != prior_first_event_time, "event times should differ"

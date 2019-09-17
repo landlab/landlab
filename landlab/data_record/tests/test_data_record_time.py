@@ -29,7 +29,7 @@ def test_grid_shape(dr_time):
 
 
 def test_permitted_locations(dr_time):
-    assert dr_time.permitted_locations == grid.groups
+    assert dr_time._permitted_locations == grid.groups
 
 
 def test_coordinates(dr_time):

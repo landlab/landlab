@@ -35,7 +35,7 @@ def test_grid_shape(dr_2dim):
 
 
 def test_permitted_locations(dr_2dim):
-    assert dr_2dim.permitted_locations == grid.groups
+    assert dr_2dim._permitted_locations == grid.groups
 
 
 def test_coordinates(dr_2dim):
