@@ -44,6 +44,11 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         The threshold stream power.
     rainfall_intensity : float; optional
         NOT PRESENTLY HONORED (TODO)
+    erode_flooded_nodes : bool (optional)
+        Whether erosion occurs in flooded nodes identified by a
+        depression/lake mapper (e.g., DepressionFinderAndRouter). When set
+        to false, the field *flood_status_code* must be present on the grid
+        (this is created by the DepressionFinderAndRouter). Default True.
 
     Examples
     --------
@@ -125,6 +130,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         threshold_sp=1.0,
         rainfall_intensity=1.0,
         use_Q=None,
+        erode_flooded_nodes=True,
     ):
         """Initialize StreamPowerSmoothThresholdEroder."""
         if "flow__receiver_node" in grid.at_node:
@@ -137,6 +143,15 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
                     "to start this process."
                 )
                 raise NotImplementedError(msg)
+
+        if not erode_flooded_nodes:
+            if "flood_status_code" not in self._grid.at_node:
+                msg = (
+                    "In order to not erode flooded nodes another component "
+                    "must create the field *flood_status_code*. You want to "
+                    "run a lake mapper/depression finder."
+                )
+                raise ValueError(msg)
 
         if n_sp != 1.0:
             raise ValueError(
@@ -191,15 +206,13 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         """TODO"""
         return self._delta
 
-    def run_one_step(self, dt, flooded_nodes=None, runoff_rate=None):
+    def run_one_step(self, dt, runoff_rate=None):
         """Run one forward iteration of duration dt.
 
         Parameters
         ----------
         dt : float
             Time step size
-        flooded_nodes : ndarray of int (optional)
-            Indices of nodes in lakes/depressions
         runoff_rate : (not used yet)
             (to be added later)
 
@@ -223,6 +236,12 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         >>> sp.delta
         array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
         """
+        if not self._erode_flooded_nodes:
+            flood_status = self._grid.at_node["flood_status_code"]
+            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
+        else:
+            flooded_nodes = []
+                    
         # Set up needed arrays
         #
         # Get shorthand for elevation field ("z"), and for up-to-downstream
