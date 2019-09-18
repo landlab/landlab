@@ -8,6 +8,7 @@ from scipy.interpolate import interp1d
 
 from landlab import Component
 from landlab.layers import EventLayers, MaterialLayers
+from landlab.utils.return_array import return_array_at_node
 
 
 class Lithology(Component):
@@ -62,6 +63,7 @@ class Lithology(Component):
                     doi = "10.21105/joss.00979",
                     author = "Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini and Gregory E. Tucker",
                     }"""
+
     _input_var_names = set()
     _output_var_names = set()
     _optional_var_names = set()
@@ -69,7 +71,16 @@ class Lithology(Component):
     _var_doc = dict()
     _var_mapping = dict()
 
-    def __init__(self, grid, thicknesses, ids, attrs, layer_type="MaterialLayers"):
+    def __init__(
+        self,
+        grid,
+        thicknesses,
+        ids,
+        attrs,
+        layer_type="MaterialLayers",
+        dz_advection=0,
+        rock_id=None,
+    ):
         """Create a new instance of Lithology.
 
         Parameters
@@ -93,6 +104,12 @@ class Lithology(Component):
             used, then erosion removes material and creates layers of thickness
             zero. Thus, EventLayers may be appropriate if the user is interested
             in chronostratigraphy.
+        dz_advection : float, `(n_nodes, ) shape array, or at-node field array optional
+            Change in rock elevation due to advection by some external process.
+            This can be changed using the property setter.
+        rock_id : value or `(n_nodes, ) shape array, optional
+            Rock type id for new material if deposited.
+            This can be changed using the property setter.
 
         Examples
         --------
@@ -267,10 +284,61 @@ class Lithology(Component):
             except IndexError:
                 self.add_layer(self._init_thicknesses[i], self._layer_ids[i])
 
+        self.dz_advection = dz_advection
+        self.rock_id = rock_id
+
         self._verify_output_fields()
 
     def __getitem__(self, name):
         return self._get_surface_values(name)
+
+    @property
+    def dz_advection(self):
+        """Rate of vertical advection.
+
+        Parameters
+        ----------
+        dz_advection : float, `(n_nodes, ) shape array, or at-node field array optional
+            Change in rock elevation due to advection by some external process.
+            This can be changed using the property setter.
+
+        Returns
+        -------
+        current rate of vertical advection
+        """
+        return return_array_at_node(self._grid, self._dz_advection)
+
+    @dz_advection.setter
+    def dz_advection(self, dz_advection):
+        _ = return_array_at_node(
+            self._grid, dz_advection
+        )  # verify that this will work.
+        self._dz_advection = dz_advection
+
+    @property
+    def rock_id(self):
+        """Rock type for deposition.
+
+        Parameters
+        ----------
+        rock_id : value or `(n_nodes, ) shape array, optional
+            Rock type id for new material if deposited.
+            This can be changed using the property setter.
+
+        Returns
+        -------
+        current type of rock being deposited (if deposition occurs)
+        """
+        if self._rock_id is None:
+            return None
+        else:
+            return return_array_at_node(self._grid, self._rock_id)
+
+    @rock_id.setter
+    def rock_id(self, rock_id):
+        _ = return_array_at_node(self._grid, rock_id)  # verify that this will work.
+        # verify that all rock types are valid
+        self._rock_id = rock_id
 
     @property
     def ids(self):
@@ -783,20 +851,13 @@ class Lithology(Component):
 
         return ds
 
-    def run_one_step(self, dz_advection=0, rock_id=None):
+    def run_one_step(self):
         """Update Lithology.
 
         The ``run_one_step`` method calculates elevation change of the
         Lithology surface (taking into account any advection due to external
         processes) and then either deposits or erodes based on elevation
         change.
-
-        Parameters
-        ----------
-        dz_advection : float or `(n_nodes, ) shape array, optional
-            Change in rock elevation due to advection by some external process.
-        rock_id : value or `(n_nodes, ) shape array, optional
-            Rock type id for new material if deposited.
 
         Examples
         --------
@@ -821,7 +882,7 @@ class Lithology(Component):
         change.
 
         >>> z -= 0.5
-        >>> lith.run_one_step(dz_advection=0)
+        >>> lith.run_one_step()
         >>> lith.thickness
         array([ 7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5])
 
@@ -842,10 +903,12 @@ class Lithology(Component):
 
         If you deposit, a valid rock_id must be provided. If the rock type
         is the same as the current surface value everywhere, then the layers
-        will be combined.
+        will be combined. This rock_id can be provided as part of the init of
+        Lithology or by setting a property (as shown below).
 
         >>> z += 1.5
-        >>> lith.run_one_step(dz_advection=0, rock_id = 1)
+        >>> lith.rock_id = 1
+        >>> lith.run_one_step()
         >>> lith.thickness
         array([ 9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.])
 
@@ -883,7 +946,7 @@ class Lithology(Component):
         represents the event of erosion.
 
         >>> z -= 0.5
-        >>> lith.run_one_step(dz_advection=0)
+        >>> lith.run_one_step()
         >>> lith.thickness
         array([ 7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5,  7.5])
         >>> lith.dz
@@ -904,7 +967,8 @@ class Lithology(Component):
         have the same properties.
 
         >>> z += 1.5
-        >>> lith.run_one_step(dz_advection=0, rock_id = 1)
+        >>> lith.rock_id = 1
+        >>> lith.run_one_step()
         >>> lith.thickness
         array([ 9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.,  9.])
 
@@ -918,11 +982,11 @@ class Lithology(Component):
         """
         # calculate amount of erosion
         elevation_change = self._grid["node"]["topographic__elevation"] - (
-            self._last_elevation + dz_advection
+            self._last_elevation + self.dz_advection
         )
 
         # add layer
-        self.add_layer(elevation_change, rock_id=rock_id)
+        self.add_layer(elevation_change, rock_id=self.rock_id)
 
         # update the last elevation.
         self._last_elevation = self._grid["node"]["topographic__elevation"][:].copy()

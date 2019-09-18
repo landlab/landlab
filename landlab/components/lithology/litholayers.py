@@ -70,6 +70,8 @@ class LithoLayers(Lithology):
         y0=0,
         function=lambda x, y: 0 * x + 0 * y,
         layer_type="EventLayers",
+        dz_advection=0,
+        rock_id=None,
     ):
         """Create a new instance of a LithoLayers.
 
@@ -98,6 +100,12 @@ class LithoLayers(Lithology):
             used, then erosion removes material and creates layers of thickness
             zero. Thus, EventLayers may be appropriate if the user is interested
             in chronostratigraphy.
+        dz_advection : float, `(n_nodes, ) shape array, or at-node field array optional
+            Change in rock elevation due to advection by some external process.
+            This can be changed using the property setter.
+        rock_id : value or `(n_nodes, ) shape array, optional
+            Rock type id for new material if deposited.
+            This can be changed using the property setter.
 
         Examples
         --------
@@ -192,7 +200,13 @@ class LithoLayers(Lithology):
             layer_ids.append(ids[i] * np.ones(z_surf.size))
 
         super(LithoLayers, self).__init__(
-            grid, layer_thicknesses, layer_ids, attrs, layer_type=layer_type
+            grid,
+            layer_thicknesses,
+            layer_ids,
+            attrs,
+            layer_type=layer_type,
+            dz_advection=dz_advection,
+            rock_id=rock_id,
         )
 
         self._verify_output_fields()
