@@ -203,13 +203,22 @@ class NetworkGraph:
     def freeze(self):
         """Freeze the graph by making arrays read-only."""
         for var in self.ds.variables:
-            self.ds[var].values.flags.writeable = False
+            array = self.ds[var].values
+            while array is not None:
+                array.flags.writeable = False
+                array = array.base
         self._frozen = True
 
     def thaw(self):
         """Thaw the graph by making arrays writable."""
         for var in self.ds.variables:
-            self.ds[var].values.flags.writeable = True
+            arrays = []
+            array = self.ds[var].values
+            while array is not None:
+                arrays.append(array)
+                array = array.base
+            for array in arrays[::-1]:
+                array.flags.writeable = True
         self._frozen = False
 
     def _add_variable(self, name, var, dims=None, attrs=None):
