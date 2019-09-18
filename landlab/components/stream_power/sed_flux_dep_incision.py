@@ -225,6 +225,8 @@ class SedDepEroder(Component):
         # params for model numeric behavior:
         pseudoimplicit_repeats=5,
         return_stream_properties=False,
+        # flooded node info
+        flooded_depths=None,
     ):
         """Constructor for the class.
 
@@ -338,6 +340,11 @@ class SedDepEroder(Component):
         slope_sensitive_threshold : bool
             If True, the threshold_Shields will be set according to
             0.15 * S ** 0.25, per Lamb et al., 2008 & Hobley et al., 2011.
+        flooded_depths : array or field name (m)
+            Depths of flooding at each node, zero where no lake. Note that the
+            component will dynamically update this array as it fills nodes
+            with sediment (...but does NOT update any other related lake
+            fields).
         """
         super(SedDepEroder, self).__init__(grid)
 
@@ -351,7 +358,7 @@ class SedDepEroder(Component):
                     "to start this process."
                 )
                 raise NotImplementedError(msg)
-
+        self._flooded_depths = flooded_depths
         self._pseudoimplicit_repeats = pseudoimplicit_repeats
 
         self._link_S_with_trailing_blank = np.zeros(grid.number_of_links + 1)
@@ -661,7 +668,7 @@ class SedDepEroder(Component):
         sed_flux_out = rel_sed_flux * trans_cap_vol_out
         return dz, sed_flux_out, rel_sed_flux, error_in_sed_flux_fn
 
-    def run_one_step(self, dt, flooded_depths=None):
+    def run_one_step(self, dt):
         """Run the component across one timestep increment, dt.
 
         Erosion occurs according to the sediment dependent rules specified
@@ -672,11 +679,6 @@ class SedDepEroder(Component):
         ----------
         dt : float (years, only!)
             Timestep for which to run the component.
-        flooded_depths : array or field name (m)
-            Depths of flooding at each node, zero where no lake. Note that the
-            component will dynamically update this array as it fills nodes
-            with sediment (...but does NOT update any other related lake
-            fields).
         """
 
         grid = self._grid
@@ -686,13 +688,13 @@ class SedDepEroder(Component):
         s_in = grid.at_node["flow__upstream_node_order"]
         node_S = grid.at_node["topographic__steepest_slope"]
 
-        if type(flooded_depths) is str:
-            flooded_depths = grid.at_node[flooded_depths]
+        if type(self._flooded_depths) is str:
+            flooded_depths = grid.at_node[self._flooded_depths]
             # also need a map of initial flooded conds:
             flooded_nodes = flooded_depths > 0.0
-        elif type(flooded_depths) is np.ndarray:
-            assert flooded_depths.size == self._grid.number_of_nodes
-            flooded_nodes = flooded_depths > 0.0
+        elif type(self._flooded_depths) is np.ndarray:
+            assert self._flooded_depths.size == self._grid.number_of_nodes
+            flooded_nodes = self._flooded_depths > 0.0
             # need an *updateable* record of the pit depths
         else:
             # if None, handle in loop
