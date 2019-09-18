@@ -58,7 +58,7 @@ run it. In this simple case, we need to pass it a time step ('dt')
 
 >>> dt = 10.0
 >>> dle = DetachmentLtdErosion(grid)
->>> dle.erode(dt=dt)
+>>> dle.run_one_step(dt=dt)
 
 After calculating the erosion rate, the elevation field is updated in the
 grid. Use the *output_var_names* property to see the names of the fields that
@@ -87,7 +87,6 @@ array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
 import numpy as np
 
 from landlab import Component
-from landlab.field.scalar_data_fields import FieldError
 
 
 class DetachmentLtdErosion(Component):
@@ -100,27 +99,19 @@ class DetachmentLtdErosion(Component):
 
     _name = "DetachmentLtdErosion"
 
-    _input_var_names = set(
-        ("topographic__elevation", "topographic__slope", "surface_water__discharge")
-    )
+    _input_var_names = set(("topographic__elevation", "surface_water__discharge"))
 
     _output_var_names = set(("topographic__elevation",))
 
-    _var_units = {
-        "topographic__elevation": "m",
-        "topographic__slope": "-",
-        "surface_water__discharge": "m^3/s",
-    }
+    _var_units = {"topographic__elevation": "m", "surface_water__discharge": "m^3/s"}
 
     _var_mapping = {
         "topographic__elevation": "node",
-        "topographic__slope": "node",
         "surface_water__discharge": "node",
     }
 
     _var_doc = {
         "topographic__elevation": "Land surface topographic elevation",
-        "topographic__slope": "Slope of ",
         "surface_water__discharge": "node",
     }
 
@@ -132,6 +123,7 @@ class DetachmentLtdErosion(Component):
         n_sp=1.0,
         uplift_rate=0.0,
         entrainment_threshold=0.0,
+        slope="topographic__slope",
     ):
         """Calculate detachment limited erosion rate on nodes.
 
@@ -139,8 +131,7 @@ class DetachmentLtdErosion(Component):
         equation, primarily to be coupled to the the Landlab OverlandFlow
         component.
 
-        This component adjusts topographic elevation and is contained in the
-        landlab.components.detachment_ltd_sed_trp folder.
+        This component adjusts topographic elevation.
 
         Parameters
         ----------
@@ -158,8 +149,12 @@ class DetachmentLtdErosion(Component):
             changes in topographic elevation due to tectonic uplift
         entrainment_threshold : float, optional
             threshold for sediment movement
+        slope : str
+            Field name of an at-node field that contains the slope.
         """
         super(DetachmentLtdErosion, self).__init__(grid)
+
+        assert slope in grid.at_node
 
         self._K = K_sp
         self._m = m_sp
@@ -173,13 +168,7 @@ class DetachmentLtdErosion(Component):
 
         self._verify_output_fields()
 
-    def erode(
-        self,
-        dt,
-        elevs="topographic__elevation",
-        discharge_cms="surface_water__discharge",
-        slope="topographic__slope",
-    ):
+    def run_one_step(self, dt):
         """Erode into grid topography.
 
         For one time step, this erodes into the grid topography using
@@ -191,21 +180,10 @@ class DetachmentLtdErosion(Component):
         ----------
         dt : float
             Time step.
-        discharge_cms : str, optional
-            Name of the field that represents discharge on the nodes, if
-            from the de Almeida solution have units of cubic meters per second.
-        slope : str, optional
-            Name of the field that represent topographic slope on each node.
         """
-        try:
-            S = self._grid.at_node[slope]
-        except FieldError:
-            raise ValueError("missing field for slope")
 
-        if type(discharge_cms) is str:
-            Q = self._grid.at_node[discharge_cms]
-        else:
-            Q = discharge_cms
+        S = self._grid.at_node["topographic__slope"]
+        Q = self._grid.at_node["surface_water__discharge"]
 
         Q_to_m = np.power(Q, self._m)
 
@@ -219,4 +197,4 @@ class DetachmentLtdErosion(Component):
 
         self._dz = (self._uplift_rate - self._I) * dt
 
-        self._grid["node"][elevs] += self._dz
+        self._grid["node"]["topographic__elevation"] += self._dz

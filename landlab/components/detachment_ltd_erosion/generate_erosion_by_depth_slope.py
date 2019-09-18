@@ -79,8 +79,8 @@ run it. In this simple case, we need to pass it a time step ('dt') and also
 an erodibility factor ('k_e').
 
 >>> dt = 1.
->>> dspe = DepthSlopeProductErosion(grid, k_e=0.00005)
->>> dspe.erode(dt=dt, slope='water_surface__slope')
+>>> dspe = DepthSlopeProductErosion(grid, k_e=0.00005, slope='water_surface__slope')
+>>> dspe.run_one_step(dt=dt, )
 
 Now we test to see how the topography changed as a function of the erosion
 rate. First, we'll look at the erosion rate:
@@ -102,7 +102,6 @@ array([ 10.    ,   7.5475,   7.5475,   7.5475,  10.    ,  10.    ,
 import numpy as np
 
 from landlab import Component
-from landlab.field.scalar_data_fields import FieldError
 
 
 class DepthSlopeProductErosion(Component):
@@ -117,27 +116,16 @@ class DepthSlopeProductErosion(Component):
 
     _input_var_names = set()
 
-    _optional_var_names = set(
-        ("topographic__elevation", "topographic__slope", "surface_water__depth")
-    )
+    _optional_var_names = set(("topographic__elevation", "surface_water__depth"))
 
     _output_var_names = ("topographic__elevation",)
 
-    _var_units = {
-        "topographic__elevation": "m",
-        "topographic__slope": "-",
-        "surface_water__depth": "m",
-    }
+    _var_units = {"topographic__elevation": "m", "surface_water__depth": "m"}
 
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "topographic__slope": "node",
-        "surface_water__depth": "node",
-    }
+    _var_mapping = {"topographic__elevation": "node", "surface_water__depth": "node"}
 
     _var_doc = {
         "topographic__elevation": "Land surface topographic elevation",
-        "topographic__slope": "Slope of the land surface",
         "surface_water__depth": "Depth of water on the surface",
     }
 
@@ -150,6 +138,7 @@ class DepthSlopeProductErosion(Component):
         a_exp=1.0,
         tau_crit=0.0,
         uplift_rate=0.0,
+        slope="topographic__slope",
     ):
         """Calculate detachment limited erosion rate on nodes using the shear
         stress equation, solved using the depth slope product.
@@ -177,9 +166,14 @@ class DepthSlopeProductErosion(Component):
             threshold for sediment movement, (kg/m/s^2)
         uplift_rate : float, optional
             uplift rate applied to the topographic surface, m/s
+        slope : str
+            Field name of an at-node field that contains the slope.
         """
         super(DepthSlopeProductErosion, self).__init__(grid)
 
+        assert slope in grid.at_node
+
+        self._slope = slope
         self._a = a_exp
         self._g = g
         self._rho = fluid_density
@@ -192,13 +186,7 @@ class DepthSlopeProductErosion(Component):
 
         self._verify_output_fields()
 
-    def erode(
-        self,
-        dt,
-        elevs="topographic__elevation",
-        depth="surface_water__depth",
-        slope="topographic__slope",
-    ):
+    def run_one_step(self, dt):
         """Erode into grid topography.
 
         For one time step, this erodes into the grid topography using
@@ -210,22 +198,9 @@ class DepthSlopeProductErosion(Component):
         ----------
         dt : float
             Time step.
-        elevs : str, optional
-            Name of the field that represents topographic elevation on nodes.
-        depth : str, optional
-            Name of the field that represents water depths on nodes.
-        slope : str, optional
-            Name of the field that represent topographic slope on each node.
         """
-        try:
-            S = self._grid.at_node[slope]
-        except FieldError:
-            raise ValueError("Slope field is missing!")
-
-        try:
-            h = self._grid.at_node[depth]
-        except FieldError:
-            raise ValueError("Depth field is missing!")
+        S = self._grid.at_node[self._slope]
+        h = self._grid.at_node["surface_water__depth"]
 
         self._tau = self._rho * self._g * h * S
 
@@ -242,19 +217,9 @@ class DepthSlopeProductErosion(Component):
 
         self._dz = (self._uplift_rate - self._E) * dt
 
-        self._grid["node"][elevs] += self._dz
+        self._grid["node"]["topographic__elevation"] += self._dz
 
     @property
     def dz(self):
         """TODO"""
         return self._dz
-
-    def run_one_step(
-        self,
-        dt,
-        elevs="topographic__elevation",
-        depth="surface_water__depth",
-        slope="topographic__slope",
-    ):
-
-        self.erode(dt=dt, elevs=elevs, depth=depth, slope=slope)
