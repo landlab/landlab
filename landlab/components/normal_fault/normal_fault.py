@@ -48,8 +48,6 @@ class NormalFault(Component):
 
     _name = "NormalFault"
 
-    # _cite_as = """ """
-
     _input_var_names = set(("topographic__elevation",))
 
     _output_var_names = set(("topographic__elevation",))
@@ -219,9 +217,7 @@ class NormalFault(Component):
         The faulted nodes have been uplifted and eroded! Note that here the
         boundary nodes are also uplifted.
 
-        If a user chooses to set a rate-time pattern, but not run NormalFault
-        along with all other components, then NormalFault's internal
-        time-keeping will be incorrect.
+        NormalFault keeps track of internal time.
 
         For example, if a user wanted to only run NormalFault every tenth
         timestep (or some more seismogenically reasonable set of times).
@@ -235,20 +231,14 @@ class NormalFault(Component):
         >>> dt = 100.0
         >>> for i in range(300):
         ...     if i%10 == 0:
-        ...         nf.run_one_step(dt, current_time = model_time)
+        ...         nf.run_one_step(dt*10)
         ...     fr.run_one_step()
         ...     fs.run_one_step(dt)
         ...     model_time += dt
         >>> model_time
         30000.0
         >>> nf.current_time
-        29100.0
-
-        This may seem incorrect as the model time and the current time are not
-        the same. However, this is correct as the NormalFault runs one step only
-        at the first of each 10 timesteps. The value of 2910.0 reflects that
-        NormalFault ran from model time 29000.0 to 29100.0 and has not run since
-        which is what we'd expect.
+        30000.0
 
         """
         super(NormalFault, self).__init__(grid)
@@ -344,13 +334,6 @@ class NormalFault(Component):
         """
         return self._faulted_nodes
 
-    @property
-    def current_time(self):
-        """
-        TODO
-        """
-        return self._current_time
-
     def _check_surfaces(self):
         if len(self._not_yet_instantiated) > 0:
             still_not_instantiated = []
@@ -439,7 +422,7 @@ class NormalFault(Component):
                         elevations_to_average[un_averaged_nodes], axis=1
                     )
 
-    def run_one_step(self, dt, current_time=None):
+    def run_one_step(self, dt):
         """Run_one_step method for NormalFault.
 
         Parameters
@@ -452,10 +435,6 @@ class NormalFault(Component):
             by providing a value for current time. Default value is None which
             results in the internal timekeeping not being changed.
         """
-        # if current time is provided, use it to re-set the current time.
-        if current_time is not None:
-            self._current_time = current_time
-
         # calculate the current uplift rate
         current_uplift_rate = np.interp(
             self._current_time, self._throw_time, self._throw_rate
