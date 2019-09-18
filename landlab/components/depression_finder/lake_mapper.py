@@ -57,7 +57,7 @@ class DepressionFinderAndRouter(Component):
     irregular grids.
 
     The prinary method of this class is
-    *map_depressions(pits='flow__sink_flag', reroute_flow=True)*.
+    *map_depressions()*.
 
     Examples
     --------
@@ -166,7 +166,7 @@ class DepressionFinderAndRouter(Component):
         "is_pit": "TODO",
     }
 
-    def __init__(self, grid, routing="D8"):
+    def __init__(self, grid, routing="D8", pits="flow__sink_flag", reroute_flow=True):
         """Create a DepressionFinderAndRouter.
 
         Constructor assigns a copy of the grid, sets the current time, and
@@ -180,10 +180,26 @@ class DepressionFinderAndRouter(Component):
             If grid is a raster type, controls whether lake connectivity can
             occur on diagonals ('D8', default), or only orthogonally ('D4').
             Has no effect if grid is not a raster.
+        pits : array or str or None, optional
+            If a field name, the boolean field containing True where pits.
+            If an array, either a boolean array of nodes of the pits, or an
+            array of pit node IDs. It does not matter whether or not open
+            boundary nodes are flagged as pits; they are never treated as such.
+            Default is 'flow__sink_flag', the pit field output from
+            'route_flow_dn'
+        reroute_flow : bool, optional
+            If True (default), and the component detects the output fields in
+            the grid produced by the FlowAccumulator component, this component
+            will modify the existing flow fields to route the flow across the
+            lake surface(s).
+
         """
         super(DepressionFinderAndRouter, self).__init__(grid)
 
         self._bc_set_code = self._grid.bc_set_code
+
+        self._user_supplied_pits = pits
+        self._reroute_flow = reroute_flow
 
         if routing != "D8":
             assert routing == "D4"
@@ -846,25 +862,8 @@ class DepressionFinderAndRouter(Component):
             self._unique_pits
         ]
 
-    def map_depressions(self, pits="flow__sink_flag", reroute_flow=True):
+    def map_depressions(self):
         """Map depressions/lakes in a topographic surface.
-
-        Parameters
-        ----------
-        pits : array or str or None, optional
-            If a field name, the boolean field containing True where pits.
-            If an array, either a boolean array of nodes of the pits, or an
-            array of pit node IDs. It does not matter whether or not open
-            boundary nodes are flagged as pits; they are never treated as such.
-            Default is 'flow__sink_flag', the pit field output from
-            'route_flow_dn'
-        reroute_flow : bool, optional
-            If True (default), and the component detects the output fields in
-            the grid produced by the route_flow_dn component, this component
-            will modify the existing flow fields to route the flow across the
-            lake surface(s).
-            Ensure you call this method *after* you have already routed flow
-            in each loop of your model.
 
         Examples
         --------
@@ -882,8 +881,8 @@ class DepressionFinderAndRouter(Component):
         ...                  100., 101.,   2., 101., 100.,
         ...                  100.,   3., 101., 101., 100.,
         ...                   90.,  95., 100., 100., 100.])
-        >>> df = DepressionFinderAndRouter(rg)
-        >>> df.map_depressions(pits=None, reroute_flow=False)
+        >>> df = DepressionFinderAndRouter(rg, reroute_flow=False)
+        >>> df.map_depressions()
         >>> df.display_depression_map()  # doctest: +NORMALIZE_WHITESPACE
         . . . . .
         . . . ~ .
@@ -899,9 +898,9 @@ class DepressionFinderAndRouter(Component):
         self._depression_depth.fill(0.0)
         self._depression_outlets = []  # reset these
         # Locate nodes with pits
-        if type(pits) == str:
+        if type(self._user_supplied_pits) == str:
             try:
-                pits = self._grid.at_node[pits]
+                pits = self._grid.at_node[self._user_supplied_pits]
                 supplied_pits = np.where(pits)[0]
                 self._pit_node_ids = as_id_array(
                     np.setdiff1d(supplied_pits, self._grid.boundary_nodes)
@@ -911,13 +910,13 @@ class DepressionFinderAndRouter(Component):
                 self._is_pit[self._pit_node_ids] = True
             except FieldError:
                 self._find_pits()
-        elif pits is None:
+        elif self._user_supplied_pits is None:
             self._find_pits()
         else:  # hopefully an array or other sensible iterable
-            if len(pits) == self._grid.number_of_nodes:
-                supplied_pits = np.where(pits)[0]
+            if len(self._user_supplied_pits) == self._grid.number_of_nodes:
+                supplied_pits = np.where(self._user_supplied_pits)[0]
             else:  # it's an array of node ids
-                supplied_pits = pits
+                supplied_pits = self._user_supplied_pits
             # remove any boundary nodes from the supplied pit list
             self._pit_node_ids = as_id_array(
                 np.setdiff1d(supplied_pits, self._grid.boundary_nodes)
@@ -930,9 +929,9 @@ class DepressionFinderAndRouter(Component):
         self._flood_status.fill(_UNFLOODED)
         self._flood_status[self._pit_node_ids] = _PIT
 
-        self._identify_depressions_and_outlets(reroute_flow)
+        self._identify_depressions_and_outlets(self._reroute_flow)
 
-        if reroute_flow and ("flow__receiver_node" in self._grid.at_node):
+        if self._reroute_flow and ("flow__receiver_node" in self._grid.at_node):
 
             self._receivers = self._grid.at_node["flow__receiver_node"]
             self._sinks = self._grid.at_node["flow__sink_flag"]
