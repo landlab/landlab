@@ -261,7 +261,7 @@ class KinwaveImplicitOverlandFlow(Component):
 
         Returns
         -------
-        The current value of the runoff rate. 
+        The current value of the runoff rate.
         """
         return self._runoff_rate
 

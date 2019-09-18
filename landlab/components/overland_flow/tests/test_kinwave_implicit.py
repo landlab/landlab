@@ -60,7 +60,7 @@ def test_steady_basic_ramp():
     rg.add_field("topographic__elevation", 0.1 * rg.node_y, at="node")
 
     # Create component and run it
-    kw = KinwaveImplicitOverlandFlow(rg, runoff_rate=0.001*3600000.0)
+    kw = KinwaveImplicitOverlandFlow(rg, runoff_rate=0.001 * 3600000.0)
     for i in range(12):
         kw.run_one_step(1.0)
 
@@ -120,7 +120,7 @@ def test_curved_surface():
     )
 
     # Create component and run it
-    kw = KinwaveImplicitOverlandFlow(rg, runoff_rate=0.001*3600000.0)
+    kw = KinwaveImplicitOverlandFlow(rg, runoff_rate=0.001 * 3600000.0)
     for i in range(8):
         kw.run_one_step(1.0)
 
