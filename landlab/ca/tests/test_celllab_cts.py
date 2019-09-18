@@ -8,7 +8,6 @@ Created on Thu Jul  9 08:20:06 2015
 """
 
 import numpy as np
-import pytest
 from numpy.testing import assert_array_equal, assert_raises
 
 from landlab import HexModelGrid, RasterModelGrid
