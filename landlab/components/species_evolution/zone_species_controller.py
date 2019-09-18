@@ -10,14 +10,86 @@ import zone
 class ZoneSpeciesController(_SpeciesController):
     """A controller for zone-based species.
 
-    This class manages a collection of species objects introduced to
-    SpeciesEvolver. It features 'zones' that are used to characterize the
-    geographic aspect of species. The range of the species is defined by a
-    function. The range is updated using this function at each time step. A
-    zone is created for each discrete range portion.
+    This implementation of SpeciesController manages a collection of species
+    using 'zones' that characterize the geographic aspect of species. A zone
+    represents a portion of a model grid and it is made up of spatially
+    continous nodes. The nodes of all zones of a certain type are identified
+    using a function set with ``zone_function``. This function is called by
+    SpeciesEvolver at each time step to identify all the zone nodes and then
+    delineate individual zones.
+
+    The structure of a model grid is diagramed below. The grid contains six
+    columns and six rows. In this example, zones are designated where ``field``
+    is greater than 0. Nodes marked with an ``*`` are nodes that meet the zone
+    designation. All other nodes are marked with a ``·``. A zone is created for
+    each cluster of designated nodes.
+
+                   zone
+    field          designation
+    0 0 0 0 0 0    · · · · · ·
+    0 0 4 5 4 0    · · * * * ·
+    0 0 6 3 0 0    · · * * · ·
+    0 0 0 0 0 0    · · · · · ·
+    0 6 4 0 4 0    · * * · * ·
+    2 0 0 0 0 0    * · · · · ·
+
+    The above example is continued in the following four diagrams that
+    demonstrate how individual zones are identified. Each zone is marked with a
+    ``x``, ``o``, ``+``, or ``@``. Clusters can be identified using ``D8``
+    where diagonal neighbors are included or ``D4`` where diagonal neighbors
+    are not included. A minimum zone area can be enforced
+
+    Individual zones are
+    identified using the ``neighborhood_structure`` keyword.
+
+
+    D8             D4             D8, min=2      D4, min=2
+    · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
+    · · + + + ·    · · + + + ·    · · + + + ·    · · + + + ·
+    · · + + · ·    · · + + · ·    · · + + · ·    · · + + · ·
+    · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
+    · x x · o ·    · @ @ · o ·    · x x · · ·    · x x · · ·
+    x · · · · ·    x · · · · ·    x · · · · ·    · · · · · ·
 
     Speciation occurs when the species exists in more than one zone, although
     speciation is delayed until the allopatric wait time is exceeded in a zone.
+
+
+    The grid represents the time, ``T0``.
+
+        T0
+    · · · · · ·
+    · · · · · ·
+    · · x x · ·
+    · · x x · ·
+    · · · · · ·
+    · · · · · ·
+
+    Below are variations of the grid at time 1, ``T1`` in three variations where
+    each contains one zone. In ``T1a``, ``T1b``, and ``T1c`` the zone stayed
+    the stayed, moved and changed size, respectively. Species migrated with the
+    zone. However, in ``T1c``, no nodes overlaps, therefore it is assumed species
+    did not disperse from the zone in T0 to the zone in T1d.
+
+    T1a            T1b            T1c            T1d
+    · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
+    · · · · · ·    · · · · · ·    · · · * · *    · · · · · ·
+    · · * * · ·    · · · · · ·    · · * * * *    · · · · · ·
+    · · * * · ·    · * * · · ·    · · · · · ·    · · · · · ·
+    · · · · · ·    · * * · · ·    · · · · · ·    * * · · · ·
+    · · · · · ·    · · · · · ·    · · · · · ·    * * · · · ·
+
+    Below are more ``T1`` variations, now demonstrating two zones.
+
+    T1e
+    · · · · · ·
+    · · · · · ·
+    · x · · x x
+    x x · · x x
+    x x · · x ·
+    x · · · · ·
+
+
     """
     def __init__(self, species_evolver, zone_function, **kwargs):
         """Initialize a species.
@@ -29,9 +101,9 @@ class ZoneSpeciesController(_SpeciesController):
         range_function : function
             A function that return a mask of the species range.
         kwargs
-            Keyword arguments for `zone_function`.
+            Keyword arguments for ``zone_function``.
         """
-        _SpeciesController.__init__(self, species_evolver)
+        super(ZoneSpeciesController, self).__init__(species_evolver)
 
         # Set parameters.
 
@@ -52,8 +124,7 @@ class ZoneSpeciesController(_SpeciesController):
 
     @property
     def extinct_species(self):
-        """The species that no longer exist at the current model time.
-        """
+        """The species that no longer exist at the current model time."""
         return self._extinct_species
 
     @property

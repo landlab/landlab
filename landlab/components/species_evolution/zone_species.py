@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Generic ZoneSpecies object of SpeciesEvolver."""
+"""ZoneSpecies object of SpeciesEvolver."""
 
 import numpy as np
 
@@ -14,35 +14,34 @@ class _Population(object):
         self._zone._species.append(species)
         self._time_to_allopatric_speciation = time_to_allopatric_speciation
 
-#    def _update_time(self, dt):
-#        if disperses_multiple_zones and splinter_zone:
-#            self._time_to_allopatric_speciation = self._allopatric_wait_time
-#        elif key in new_dict.keys():
-#            self._time_to_allopatric_speciation -= dt
-
     def _remove_species(self, species):
+        """Remove a species from a zone."""
         self._zone._species.remove(species)
         self._zone = None
 
 
 class ZoneSpecies(_Species):
-    """A generic zone-based species.
+    """A species based in zones.
 
-    The default implementation evolves species by methods
-
-    `_evaluate_dispersal`, `_evaluate_speciation`, and `evaluate_extinction`.
+    A species can reside in one or multiple zones. The total extent of the
+    species is depicted by the ``range_mask`` attribute. The evolution of this
+    species type is carried out in the following three processes: dispersal,
+    speciation, and extinction.
 
     Dispersal is dictated by the spatial connectivity of zones over two
-    successive time steps. Speciation occurs when a species exists in multiple
+    successive time steps.
+
+
+
+    Speciation occurs when a species exists in multiple
     zones following a delay set by the `allopatric_wait_time` initialization
     parameter. A clock counts down for each zone of the species where the
     species dispersed beyond one zone. The clock starts when a zone in the
     earlier time step overlaps multiple zones in the later time step. The clock
-    is tracked by `_zones['time_to_allopatric_speciation`].
+    is tracked by `_zones['time_to_allopatric_speciation'].
 
-
-    Extinction occurs when the species exists in no
-    zones. Extinction also occurs if *pseudoextinction* is `True` and the
+    Extinction occurs when the species exists in no zones. Extinction also
+    occurs if ``pseudoextinction`` is True and the
     species speciates.
     """
     def __init__(self, initial_zones, parent_species=None,
@@ -65,11 +64,12 @@ class ZoneSpecies(_Species):
             When 'True', species become extinct when it speciates into child
             species.
         """
-        _Species.__init__(self, parent_species)
+        super(ZoneSpecies, self).__init__()
+
+        self._parent_species = parent_species
 
         self._allopatric_wait_time = allopatric_wait_time
         self._pseudoextinction = pseudoextinction
-        self._identifier = None
 
         # Set initial populations.
 
@@ -82,42 +82,6 @@ class ZoneSpecies(_Species):
         self._populations = pops
 
         self._mask_len = len(initial_zones[0].mask)
-
-    @property
-    def identifier(self):
-        """Get the species identifier.
-
-        Returns
-        -------
-        tuple
-            The identifier of the species. The first element is the clade of a
-            species represented by a string. The second element is the specie
-            number represented by an integer.
-        """
-        return self._identifier
-
-    @property
-    def parent_species(self):
-        """The parent species.
-
-        Returns
-        -------
-        species
-            The species object that produced the species. A value of `None`
-            indicates no parent species.
-        """
-        return self._parent_species
-
-    @property
-    def clade(self):
-        """Get the species clade identifier.
-
-        Returns
-        -------
-        string
-            The clade identifier of the species.
-        """
-        return self._identifier[0]
 
     @property
     def range_mask(self):
@@ -193,7 +157,7 @@ class ZoneSpecies(_Species):
 
         record_add_on['speciation_count'] += child_count
         record_add_on['extinction_count'] += extinct
-        record_add_on['pseudoextinction_count'] += pseudoextinct
+        record_add_on['pseudoextinction_count'] += int(pseudoextinct)
 
         return not extinct, child_species
 
@@ -223,13 +187,10 @@ class ZoneSpecies(_Species):
         if len(destination_zones) == 0:
             # Remove `population` from its zone because it now exists nowhere.
             population._remove_species(self)
-            print('bbb',0)
 
         # Handle new populations.
 
         for zone in destination_zones:
-            population_moved = population._zone not in destination_zones
-
             if population._zone == zone:
                 # The zone and population remain unchanged.
                 updated_populations.append(population)
@@ -237,21 +198,12 @@ class ZoneSpecies(_Species):
                 if self._pseudoextinction and len(destination_zones) > 1:
                     population._time_to_allopatric_speciation = self._allopatric_wait_time
 
-            elif self in zone._species:
-                print('bbb',1)
-                population._remove_species(self)
-                population._zone = zone
-                zone._species.append(self)
-                updated_populations.append(population)
-                population._time_to_allopatric_speciation = self._allopatric_wait_time
-
             elif self not in zone._species:
-                print('bbb',2)
                 zone_pop = _Population(self, zone, self._allopatric_wait_time)
                 updated_populations.append(zone_pop)
 
             else:
-                print('bbb',3)
+                Exception('Dispersal condition not determined.')
 
         return updated_populations
 

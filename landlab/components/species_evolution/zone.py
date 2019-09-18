@@ -134,6 +134,10 @@ def _update_zones(grid, time, prior_zones, new_zones, record_add_on):
     # Update record add on.
 
     record_add_on['capture_count'] += capture_ct
+
+    if capture_ct > 0:
+        print(capture_ct, record_add_on['capture_count'])
+
     if max(area_captured) > record_add_on['area_captured_max']:
         record_add_on['area_captured_max'] = max(area_captured)
     record_add_on['area_captured_sum'] += sum(area_captured)
