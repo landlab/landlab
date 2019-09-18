@@ -50,7 +50,7 @@ def test_sed_dep():
     for i in range(nt):
         mg.at_node["topographic__elevation"][mg.core_nodes] += uplift_per_step
         mg = fr.run_one_step()
-        mg, _ = sde.erode(dt)
+        mg, _ = sde.run_one_step(dt)
 
     z_tg = np.loadtxt(os.path.join(_THIS_DIR, "seddepz_tg.txt"))
 

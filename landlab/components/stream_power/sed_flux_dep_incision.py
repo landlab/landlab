@@ -661,11 +661,12 @@ class SedDepEroder(Component):
         sed_flux_out = rel_sed_flux * trans_cap_vol_out
         return dz, sed_flux_out, rel_sed_flux, error_in_sed_flux_fn
 
-    def erode(self, dt, flooded_depths=None):
-        """Erode and deposit on the channel bed for a duration of *dt*.
+    def run_one_step(self, dt, flooded_depths=None):
+        """Run the component across one timestep increment, dt.
 
         Erosion occurs according to the sediment dependent rules specified
-        during initialization.
+        during initialization. Method is fully equivalent to the :func:`erode`
+        method.
 
         Parameters
         ----------
@@ -677,6 +678,7 @@ class SedDepEroder(Component):
             with sediment (...but does NOT update any other related lake
             fields).
         """
+
         grid = self._grid
         node_z = grid.at_node["topographic__elevation"]
         node_A = grid.at_node["drainage_area"]
@@ -1048,25 +1050,6 @@ class SedDepEroder(Component):
         self._iterations_in_dt = counter
 
         return grid, grid.at_node["topographic__elevation"]
-
-    def run_one_step(self, dt, flooded_depths=None):
-        """Run the component across one timestep increment, dt.
-
-        Erosion occurs according to the sediment dependent rules specified
-        during initialization. Method is fully equivalent to the :func:`erode`
-        method.
-
-        Parameters
-        ----------
-        dt : float (years, only!)
-            Timestep for which to run the component.
-        flooded_depths : array or field name (m)
-            Depths of flooding at each node, zero where no lake. Note that the
-            component will dynamically update this array as it fills nodes
-            with sediment (...but does NOT update any other related lake
-            fields).
-        """
-        self.erode(dt=dt, flooded_depths=flooded_depths)
 
     @property
     @make_return_array_immutable
