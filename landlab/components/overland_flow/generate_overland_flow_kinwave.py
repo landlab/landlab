@@ -98,6 +98,7 @@ class KinwaveOverlandFlowModel(Component):
         super(KinwaveOverlandFlowModel, self).__init__(grid)
 
         # Store parameters and do unit conversion
+        self._current_time = 0
 
         self._precip = precip_rate / 3600000.0  # convert to m/s
         self._precip_duration = precip_duration * 3600.0  # h->s
@@ -130,7 +131,7 @@ class KinwaveOverlandFlowModel(Component):
         """TODO"""
         return self._vel_coef
 
-    def run_one_step(self, dt, current_time=0.0):
+    def run_one_step(self, dt):
         """Calculate water flow for a time period `dt`.
 
         Default units for dt are *seconds*.
@@ -154,7 +155,7 @@ class KinwaveOverlandFlowModel(Component):
         dqda = self._grid.calc_flux_div_at_node(self._disch)
 
         # Rate of change of water depth
-        if current_time < self._precip_duration:
+        if self._current_time < self._precip_duration:
             ppt = self._precip
         else:
             ppt = 0.0
@@ -166,6 +167,7 @@ class KinwaveOverlandFlowModel(Component):
         # Very crude numerical hack: prevent negative water depth
         self._depth[np.where(self._depth < 0.0)[0]] = 0.0
 
+        self._current_time += dt
 
 if __name__ == "__main__":
     import doctest

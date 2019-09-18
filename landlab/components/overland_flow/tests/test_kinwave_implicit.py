@@ -60,9 +60,9 @@ def test_steady_basic_ramp():
     rg.add_field("topographic__elevation", 0.1 * rg.node_y, at="node")
 
     # Create component and run it
-    kw = KinwaveImplicitOverlandFlow(rg)
+    kw = KinwaveImplicitOverlandFlow(rg, runoff_rate=0.001*3600000.0)
     for i in range(12):
-        kw.run_one_step(1.0, runoff_rate=0.001)
+        kw.run_one_step(1.0)
 
     # Look at a column of nodes down the middle. The inflow from uphill should
     # be, from top to bottom: 0, 0.004, 0.008, 0.012, 0.016, 0.02, 0.024, 0.028
@@ -120,9 +120,9 @@ def test_curved_surface():
     )
 
     # Create component and run it
-    kw = KinwaveImplicitOverlandFlow(rg)
+    kw = KinwaveImplicitOverlandFlow(rg, runoff_rate=0.001*3600000.0)
     for i in range(8):
-        kw.run_one_step(1.0, runoff_rate=0.001)
+        kw.run_one_step(1.0)
 
     # The inflow discharge to each cell at steady state should equal the
     # runoff rate times the "inflow" drainage area, which is the total drainage

@@ -197,7 +197,8 @@ class KinwaveImplicitOverlandFlow(Component):
         grid : ModelGrid
             Landlab ModelGrid object
         runoff_rate : float, optional (defaults to 1 mm/hr)
-            Precipitation rate, mm/hr
+            Precipitation rate, mm/hr. The value provide is divided by
+            3600000.0.
         roughnes : float, defaults to 0.01
             Manning roughness coefficient, s/m^1/3
         changing_topo : boolean, optional (defaults to False)
@@ -250,8 +251,24 @@ class KinwaveImplicitOverlandFlow(Component):
 
     @property
     def runoff_rate(self):
-        """TODO"""
+        """Runoff rate.
+
+        Parameters
+        ----------
+        runoff_rate : float, optional (defaults to 1 mm/hr)
+            Precipitation rate, mm/hr. The value provide is divided by
+            3600000.0.
+
+        Returns
+        -------
+        The current value of the runoff rate. 
+        """
         return self._runoff_rate
+
+    @runoff_rate.setter
+    def runoff_rate(self, new_rate):
+        assert new_rate > 0
+        self._runoff_rate = new_rate / 3600000.0  # convert to m/s
 
     @property
     def vel_coef(self):
@@ -263,12 +280,9 @@ class KinwaveImplicitOverlandFlow(Component):
         """TODO"""
         return self._depth
 
-    def run_one_step(self, dt, current_time=0.0, runoff_rate=None):
+    def run_one_step(self, dt):
         """Calculate water flow for a time period `dt`.
         """
-        # Handle runoff rate
-        if runoff_rate is None:
-            runoff_rate = self._runoff_rate
 
         # If it's our first iteration, or if the topography may be changing,
         # do flow routing and calculate square root of slopes at links
@@ -320,7 +334,7 @@ class KinwaveImplicitOverlandFlow(Component):
                 # Solve for new water depth
                 aa = self._alpha[n]
                 cc = self._depth[n]
-                ee = (dt * runoff_rate) + (
+                ee = (dt * self._runoff_rate) + (
                     dt
                     * self._disch_in[n]
                     / self._grid.area_of_cell[self._grid.cell_at_node[n]]
