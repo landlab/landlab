@@ -9,6 +9,7 @@ Last significant modification: conversion to proper component 7/2019 GT
 """
 
 import numpy as np
+
 from landlab import Component
 
 
@@ -182,21 +183,13 @@ class FractureGridGenerator(Component):
 
     _input_var_names = ()
 
-    _output_var_names = (
-        "fracture_at_node",
-    )
+    _output_var_names = ("fracture_at_node",)
 
-    _var_units = {
-        "fracture_at_node": "-",
-    }
+    _var_units = {"fracture_at_node": "-"}
 
-    _var_mapping = {
-        "fracture_at_node": "node",
-    }
+    _var_mapping = {"fracture_at_node": "node"}
 
-    _var_doc = {
-        "fracture_at_node": "presence (1) or absence (0) of fracture",
-    }
+    _var_doc = {"fracture_at_node": "presence (1) or absence (0) of fracture"}
 
     def __init__(self, grid, frac_spacing=10.0, seed=0):
         """Initialize the FractureGridGenerator."""
@@ -209,7 +202,7 @@ class FractureGridGenerator(Component):
         # TODO: delete this once we have generation of output fields in
         # base class
         if "fracture_at_node" not in grid.at_node:
-            grid.add_zeros('node', 'fracture_at_node', dtype=np.int8)
+            grid.add_zeros("node", "fracture_at_node", dtype=np.int8)
 
     def run_one_step(self):
         """Run FractureGridGenerator and create a random fracture grid."""

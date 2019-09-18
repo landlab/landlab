@@ -81,7 +81,7 @@ setup(
         "netcdf4",
         "pyyaml",
         "pyshp",
-        "scipy<1.3",
+        "scipy",
         "six",
         "statsmodels",
         "xarray",
