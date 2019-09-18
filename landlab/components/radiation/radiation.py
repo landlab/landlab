@@ -62,8 +62,8 @@ class Radiation(Component):
     ...       2., 2., 2., 2.,
     ...       3., 4., 4., 3.,
     ...       4., 4., 4., 4.])
-    >>> current_time = 0.5
-    >>> rad.update(current_time)
+    >>> rad.current_time = 0.5
+    >>> rad.update()
     >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.)
     False
     """
@@ -112,6 +112,8 @@ class Radiation(Component):
         solar_constant=1366.67,
         clearsky_turbidity=2.0,
         opt_airmass=0.0,
+        current_time=0.0,
+        hour=12.0,
     ):
         """
         Parameters
@@ -132,8 +134,15 @@ class Radiation(Component):
             Clear sky turbidity.
         opt_airmass: float, optional
             Optical air mass.
+        current_time: float
+              Current time (years).
+        hour: float, optional
+              Hour of the day. Default is 12 (solar noon)
         """
         super(Radiation, self).__init__(grid)
+
+        self.current_time = current_time
+        self.hour = hour
 
         self._method = method
         self._N = cloudiness
@@ -164,23 +173,30 @@ class Radiation(Component):
 
         self._verify_output_fields()
 
-    def update(self, current_time, hour=12.0):
+    @property
+    def hour(self):
+        """Hour of the day. Default is 12 (solar noon)."""
+        return self._hour
+
+    @hour.setter
+    def hour(self, hour):
+        assert hour >= 0.0
+        assert hour <= 24.0
+        self._hour = hour
+
+    def update(self):
         """Update fields with current loading conditions.
 
-        Parameters
-        ----------
-        current_time: float
-              Current time (years).
-        hour: float, optional
-              Hour of the day.
+        This method looks to the properties ``current_time`` and ``hour`` and
+        uses their values in updating fields.
         """
-        self._t = hour
+        self._t = self._hour
         self._radf = self._cell_values["radiation__ratio_to_flat_surface"]
         self._Rs = self._cell_values["radiation__incoming_shortwave_flux"]
         self._Rnet = self._cell_values["radiation__net_shortwave_flux"]
 
         self._julian = np.floor(
-            (current_time - np.floor(current_time)) * 365.25
+            (self._current_time - np.floor(self._current_time)) * 365.25
         )  # Julian day
 
         self._phi = np.radians(self._latitude)  # Latitude in Radians

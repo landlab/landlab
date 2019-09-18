@@ -117,6 +117,7 @@ class VegCA(Component):
         PmbTreeSeedling=0.03,
         tpmaxTreeSeedling=18,
         method="Grid",
+        Edit_VegCov=True,
     ):
         """
         Parameters
@@ -160,9 +161,17 @@ class VegCA(Component):
         tpmaxTreeSeedling: float, optional
             Maximum age of tree seedling (years).
         method: str, optional
+            Method used.
+        Edit_VegCov: bool, optional
+            If Edit_VegCov=True, an optional field
+            'vegetation__boolean_vegetated' will be output, (i.e.) if a cell is
+            vegetated the corresponding cell of the field will be 1, otherwise
+            it will be 0.
 
         """
         super(VegCA, self).__init__(grid)
+
+        self.Edit_VegCov = Edit_VegCov
 
         self._Pemaxg = Pemaxg  # Pe-max-grass - max probability
         self._Pemaxsh = Pemaxsh  # Pe-max-shrub
@@ -212,23 +221,35 @@ class VegCA(Component):
 
         self._verify_output_fields()
 
-    def update(self, time_elapsed=1, Edit_VegCov=True):
+    @property
+    def Edit_VegCov(self):
+        """Flag to indicate whether an optional field is created.
+
+        If Edit_VegCov=True, an optional field
+        'vegetation__boolean_vegetated' will be output, (i.e.) if a cell is
+        vegetated the corresponding cell of the field will be 1, otherwise
+        it will be 0.
+        """
+        return self._Edit_VegCov
+
+    @Edit_VegCov.setter
+    def Edit_VegCov(self, Edit_VegCov):
+        assert isinstance(Edit_VegCov, bool)
+        self._Edit_VegCov = Edit_VegCov
+
+    def update(self, dt=1):
         """
         Update fields with current loading conditions.
 
         Parameters
         ----------
-        time_elapsed: int, optional
+        dt: int, optional
             Time elapsed - time step (years).
-        Edit_VegCov: switch (0 or 1), optional
-            If Edit_VegCov=1, an optional field 'vegetation__boolean_vegetated'
-            will be output, (i.e.) if a cell is vegetated the corresponding
-            cell of the field will be 1, otherwise it will be 0.
         """
         self._VegType = self._cell_values["vegetation__plant_functional_type"]
         self._CumWS = self._cell_values["vegetation__cumulative_water_stress"]
         self._live_index = self._cell_values["plant__live_index"]
-        self._tp = self._cell_values["plant__age"] + time_elapsed
+        self._tp = self._cell_values["plant__age"] + dt
 
         # Check if shrub and tree seedlings have matured
         shrub_seedlings = np.where(self._VegType == SHRUBSEEDLING)[0]
@@ -318,7 +339,7 @@ class VegCA(Component):
 
         self._cell_values["plant__age"] = self._tp
 
-        if Edit_VegCov:
+        if self._Edit_VegCov:
             self._grid["cell"]["vegetation__boolean_vegetated"] = np.zeros(
                 self._grid.number_of_cells, dtype=int
             )

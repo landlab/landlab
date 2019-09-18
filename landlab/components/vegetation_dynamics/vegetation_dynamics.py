@@ -200,6 +200,9 @@ class Vegetation(Component):
         kdd_bare=0.013,
         kws_bare=0.02,
         method="Grid",
+        PETthreshold_switch=0,
+        Tb=24.0,
+        Tr=0.01,
     ):
         """
         Parameters
@@ -235,8 +238,20 @@ class Vegetation(Component):
         kws: float, optional
             Maximum drought induced foliage loss rate (d-1).
         method: str
+            Method name.
+        Tr: float, optional
+            Storm duration (hours).
+        Tb: float, optional
+            Inter-storm duration (hours).
+        PETthreshold_switch: int, optional
+            Flag to indiate the PET threshold. This controls whether the
+            threshold is for growth (1) or dormancy (any other value).
         """
         super(Vegetation, self).__init__(grid)
+
+        self.Tb = Tb
+        self.Tr = Tr
+        self.PETthreshold_switch = PETthreshold_switch
 
         self._method = method
 
@@ -287,6 +302,39 @@ class Vegetation(Component):
         self._Bdead_ini = self._Bdead_init * np.ones(self._grid.number_of_cells)
 
         self._verify_output_fields()
+
+    @property
+    def Tb(self):
+        """Storm duration (hours)."""
+        return self._Tb
+
+    @Tb.setter
+    def Tb(self, Tb):
+        assert Tb >= 0
+        self._Tb = Tb
+
+    @property
+    def Tr(self):
+        """Inter-storm duration (hours)."""
+        return self._Tr
+
+    @Tr.setter
+    def Tr(self, Tr):
+        assert Tr >= 0
+        self._Tr = Tr
+
+    @property
+    def PETthreshold_switch(self):
+        """Flag to indiate the PET threshold.
+
+        This controls whether the threshold is for growth (1) or dormancy
+        (any other value).
+        """
+        return self._PETthreshold_switch
+
+    @PETthreshold_switch.setter
+    def PETthreshold_switch(self, PETthreshold_switch):
+        self._PETthreshold_switch = PETthreshold_switch
 
     def initialize(
         self,
@@ -412,18 +460,18 @@ class Vegetation(Component):
         self._Blive_ini = self._Blive_init * np.ones(self._grid.number_of_cells)
         self._Bdead_ini = self._Bdead_init * np.ones(self._grid.number_of_cells)
 
-    def update(self, PETthreshold_switch=0, Tb=24.0, Tr=0.01):
+    def update(self):
         """
         Update fields with current loading conditions.
 
-        Parameters
-        ----------
-        Tr: float, optional
-            Storm duration (hours).
-        Tb: float, optional
-            Inter-storm duration (hours).
+        This method looks to the properties ``PETthreshold_switch``, ``Tb``,
+        and ``Tr`` and uses their values to calculate the new field values.
+
         """
-        PETthreshold_ = PETthreshold_switch
+        PETthreshold_ = self._PETthreshold_switch
+        Tb = self._Tb
+        Tr = self._Tr
+
         PET = self._cell_values["surface__potential_evapotranspiration_rate"]
         PET30_ = self._cell_values["surface__potential_evapotranspiration_30day_mean"]
         ActualET = self._cell_values["surface__evapotranspiration"]

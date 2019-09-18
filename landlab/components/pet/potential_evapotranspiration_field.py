@@ -60,8 +60,8 @@ class PotentialEvapotranspiration(Component):
     >>> pet_rate = grid.at_cell['surface__potential_evapotranspiration_rate']
     >>> np.allclose(pet_rate, 0.)
     True
-    >>> current_time = 0.5
-    >>> PET.update(current_time)
+    >>> PET.current_time = 0.5
+    >>> PET.update()
     >>> np.allclose(pet_rate, 0.)
     False
     """
@@ -125,6 +125,12 @@ class PotentialEvapotranspiration(Component):
         nd=365.0,
         MeanTmaxF=12.0,
         delta_d=5.0,
+        current_time=None,
+        const_potential_evapotranspiration=12.0,
+        Tmin=0.0,
+        Tmax=1.0,
+        Tavg=0.5,
+        obs_radiation=350.0,
     ):
         """
         Parameters
@@ -159,8 +165,29 @@ class PotentialEvapotranspiration(Component):
             Mean annual rate of TmaxF (mm/d).
         delta_d: float, optional
             Calibrated difference between max & min daily TmaxF (mm/d).
+        current_time: float, required only for 'Cosine' method
+            Current time (Years)
+        const_potential_evapotranspiration: float, optional for
+            'Constant' method
+            Constant PET value to be spatially distributed.
+        Tmin: float, required for 'Priestley Taylor' method
+            Minimum temperature of the day (deg C)
+        Tmax: float, required for 'Priestley Taylor' method
+            Maximum temperature of the day (deg C)
+        Tavg: float, required for 'Priestley Taylor' and 'MeasuredRadiationPT'
+            methods
+            Average temperature of the day (deg C)
+        obs_radiation float, required for 'MeasuredRadiationPT' method
+            Observed radiation (W/m^2)
         """
         super(PotentialEvapotranspiration, self).__init__(grid)
+
+        self.current_time = current_time
+        self.const_potential_evapotranspiration = const_potential_evapotranspiration
+        self.Tmin = Tmin
+        self.Tmax = Tmax
+        self.Tavg = Tavg
+        self.obs_radiation = obs_radiation
 
         self._method = method
         # For Priestley Taylor
@@ -185,39 +212,86 @@ class PotentialEvapotranspiration(Component):
 
         self._verify_output_fields()
 
-    def update(
-        self,
-        current_time=None,
-        const_potential_evapotranspiration=12.0,
-        Tmin=0.0,
-        Tmax=1.0,
-        Tavg=0.5,
-        obs_radiation=350.0,
-    ):
+    @property
+    def const_potential_evapotranspiration(self):
+        """Constant PET value to be spatially distributed.
+
+        Used by 'Constant' method.
+        """
+        return self._const_potential_evapotranspiration
+
+    @const_potential_evapotranspiration.setter
+    def const_potential_evapotranspiration(self, const_potential_evapotranspiration):
+        self._const_potential_evapotranspiration = const_potential_evapotranspiration
+
+    @property
+    def obs_radiation(self):
+        """Observed radiation (W/m^2)
+
+        obs_radiation float, required for 'MeasuredRadiationPT' method.
+        """
+        return self._obs_radiation
+
+    @obs_radiation.setter
+    def obs_radiation(self, obs_radiation):
+        self._obs_radiation = obs_radiation
+
+    @property
+    def Tmin(self):
+        """Minimum temperature of the day (deg C)
+
+        Tmin: float, required for 'Priestley Taylor' method.
+        """
+        return self._Tmin
+
+    @Tmin.setter
+    def Tmin(self, Tmin):
+        self._Tmin = Tmin
+
+    @property
+    def Tmax(self):
+        """Maximum temperature of the day (deg C)
+
+        Tmax: float, required for 'Priestley Taylor' method.
+        """
+        return self._Tmax
+
+    @Tmax.setter
+    def Tmax(self, Tmax):
+        self._Tmax = Tmax
+
+    @property
+    def Tavg(self):
+        """Average temperature of the day (deg C)
+
+        Tavg: float, required for 'Priestley Taylor' and 'MeasuredRadiationPT'
+        methods.
+        """
+        return self._Tavg
+
+    @Tavg.setter
+    def Tavg(self, Tavg):
+        self._Tavg = Tavg
+
+    def update(self):
         """Update fields with current conditions.
 
-        Parameters
-        ----------
-        current_time: float, required only for 'Cosine' method
-            Current time (Years)
-        const_potential_evapotranspiration: float, optional for
-            'Constant' method
-            Constant PET value to be spatially distributed.
-        Tmin: float, required for 'Priestley Taylor' method
-            Minimum temperature of the day (deg C)
-        Tmax: float, required for 'Priestley Taylor' method
-            Maximum temperature of the day (deg C)
-        Tavg: float, required for 'Priestley Taylor' and 'MeasuredRadiationPT'
-            methods
-            Average temperature of the day (deg C)
-        obs_radiation float, required for 'MeasuredRadiationPT' method
-            Observed radiation (W/m^2)
+        If the 'Constant' method is used, this method looks to the value of
+        the ``const_potential_evapotranspiration`` property.
+
+        If the 'PriestleyTaylor' method is used, this method looks to the
+        values of the ``Tmin``, ``Tmax``, and ``Tavg`` properties.
+
+        If the 'MeasuredRadiationPT' method is use this method looks to the
+        values of the ``Tavg`` and ``obs_radiation`` property.
         """
 
         if self._method == "Constant":
-            self._PET_value = const_potential_evapotranspiration
+            self._PET_value = self._const_potential_evapotranspiration
         elif self._method == "PriestleyTaylor":
-            self._PET_value = self._PriestleyTaylor(current_time, Tmax, Tmin, Tavg)
+            self._PET_value = self._PriestleyTaylor(
+                self._current_time, self._Tmax, self._Tmin, self._Tavg
+            )
             self._cell_values["radiation__incoming_shortwave_flux"] = (
                 self._Rs * self._cell_values["radiation__ratio_to_flat_surface"]
             )
@@ -231,10 +305,12 @@ class PotentialEvapotranspiration(Component):
                 self._Rn * self._cell_values["radiation__ratio_to_flat_surface"]
             )
         elif self._method == "MeasuredRadiationPT":
-            Robs = obs_radiation
-            self._PET_value = self._MeasuredRadPT(Tavg, (1 - self._a) * Robs)
+            Robs = self._obs_radiation
+            self._PET_value = self._MeasuredRadPT(self._Tavg, (1 - self._a) * Robs)
         elif self._method == "Cosine":
-            self._J = np.floor((current_time - np.floor(current_time)) * 365.0)
+            self._J = np.floor(
+                (self._current_time - np.floor(self._current_time)) * 365.0
+            )
             self._PET_value = max(
                 (
                     self._TmaxF_mean

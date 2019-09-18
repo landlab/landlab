@@ -80,10 +80,10 @@ class SoilMoisture(Component):
     ...        2. * np.ones(grid.number_of_cells))
     >>> grid['cell']['vegetation__cover_fraction']= (
     ...        np.ones(grid.number_of_cells))
-    >>> current_time = 0.5
     >>> grid['cell']['rainfall__daily_depth'] = (
     ...        25. * np.ones(grid.number_of_cells))
-    >>> current_time = SM.update(current_time)
+    >>> SM.current_time = 0.5
+    >>> current_time = SM.update()
     >>> np.allclose(grid.at_cell['soil_moisture__saturation_fraction'], 0.)
     False
     """
@@ -208,6 +208,9 @@ class SoilMoisture(Component):
         LAI_max_bare=0.01,
         LAIR_max_bare=0.01,
         method="Grid",
+        Tb=24.0,
+        Tr=0.0,
+        current_time=0,
     ):
         """
         Parameters
@@ -247,11 +250,20 @@ class SoilMoisture(Component):
         LAIR_max: float, optional
             Reference leaf area index (m^2/m^2).
         method: str
+            Method used
+        Tr: float, optional
+            Storm duration (hours).
+        Tb: float, optional
+            Inter-storm duration (hours).
+        current_time: float
+              Current time (years).
         """
         super(SoilMoisture, self).__init__(grid)
 
+        self.current_time = 0
         self._method = method
-
+        self.Tr = Tr
+        self.Tb = Tb
         assert_method_is_valid(self._method)
 
         self.initialize(
@@ -313,6 +325,26 @@ class SoilMoisture(Component):
         self._nodal_values = self._grid["node"]
 
         self._cell_values = self._grid["cell"]
+
+    @property
+    def Tb(self):
+        """Storm duration (hours)."""
+        return self._Tb
+
+    @Tb.setter
+    def Tb(self, Tb):
+        assert Tb >= 0
+        self._Tb = Tb
+
+    @property
+    def Tr(self):
+        """Inter-storm duration (hours)."""
+        return self._Tr
+
+    @Tr.setter
+    def Tr(self, Tr):
+        assert Tr >= 0
+        self._Tr = Tr
 
     def initialize(
         self,
@@ -490,19 +522,17 @@ class SoilMoisture(Component):
             ],
         )
 
-    def update(self, current_time=0.0, Tb=24.0, Tr=0.0):
+    def update(self):
         """
         Update fields with current loading conditions.
 
-        Parameters
-        ----------
-        current_time: float
-            Current time (years).
-        Tr: float, optional
-            Storm duration (hours).
-        Tb: float, optional
-            Inter-storm duration (hours).
+        This method looks to the properties ``current_time``, ``Tb``, and
+        ``Tr``, and uses their values in updating fields.
         """
+        Tb = self._Tb
+        Tr = self._Tr
+        current_time = self._current_time
+
         P_ = self._cell_values["rainfall__daily_depth"]
         self._PET = self._cell_values["surface__potential_evapotranspiration_rate"]
         self._SO = self._cell_values["soil_moisture__initial_saturation_fraction"]
@@ -691,5 +721,5 @@ class SoilMoisture(Component):
             self._SO[cell] = s
             self._Sini[cell] = sini
 
-        current_time += (Tb + Tr) / (24.0 * 365.25)
+        self.current_time += (Tb + Tr) / (24.0 * 365.25)
         return current_time
