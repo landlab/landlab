@@ -166,6 +166,11 @@ class DrainageDensity(Component):
         "topographic__steepest_slope": "-",
         "channel__mask": "-",
         "surface_to_channel__minimum_distance": "m",
+        "area_coefficient": "-",
+        "slope_coefficient": "-",
+        "area_exponent": "-",
+        "slope_exponent": "-",
+        "channelization_threshold": "-",
     }
 
     _var_mapping = {
@@ -175,6 +180,11 @@ class DrainageDensity(Component):
         "topographic__steepest_slope": "node",
         "channel__mask": "node",
         "surface_to_channel__minimum_distance": "node",
+        "area_coefficient": "node",
+        "slope_coefficient": "node",
+        "area_exponent": "node",
+        "slope_exponent": "node",
+        "channelization_threshold": "node",
     }
 
     _var_doc = {
@@ -186,6 +196,11 @@ class DrainageDensity(Component):
         "topographic__steepest_slope": "Topographic slope at each node",
         "channel__mask": "Logical map of at which grid nodes channels are present",
         "surface_to_channel__minimum_distance": "Distance from each node to the nearest channel",
+        "area_coefficient": "Area coefficient to define channels.",
+        "slope_coefficient": "Slope coefficient to define channels.",
+        "area_exponent": "Area exponent to define channels.",
+        "slope_exponent": "Slope exponent to define channels.",
+        "channelization_threshold": "Channelization threshold for use with area and slope coefficients and exponents.",
     }
 
     def __init__(

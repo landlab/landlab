@@ -167,7 +167,7 @@ class HackCalculator(Component):
         "flow__upstream_node_order",
     )
 
-    _output_var_names = "distance_to_divide"
+    _output_var_names = set(("distance_to_divide",))
 
     _var_units = {
         "topographic__elevation": "m",

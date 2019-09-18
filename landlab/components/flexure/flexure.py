@@ -133,9 +133,9 @@ class Flexure(Component):
         publisher={Pergamon}
         }"""
 
-    _input_var_names = ("lithosphere__overlying_pressure_increment",)
+    _input_var_names = set(("lithosphere__overlying_pressure_increment",))
 
-    _output_var_names = ("lithosphere_surface__elevation_increment",)
+    _output_var_names = set(("lithosphere_surface__elevation_increment",))
 
     _var_units = {
         "lithosphere__overlying_pressure_increment": "Pa",
