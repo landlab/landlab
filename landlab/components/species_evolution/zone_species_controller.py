@@ -4,7 +4,7 @@ from scipy.ndimage.measurements import label
 
 from landlab.components.species_evolution import (_SpeciesController,
                                                   ZoneSpecies, Zone)
-import zone
+from .zone import _update_zones
 
 
 class ZoneSpeciesController(_SpeciesController):
@@ -238,8 +238,8 @@ class ZoneSpeciesController(_SpeciesController):
         zone_mask = self._zone_func(**self._zone_params)
         new_zones = self._get_zones_with_mask(zone_mask, **self._zone_params)
 
-        self._zones = zone._update_zones(self._grid, time, prior_zones,
-                                         new_zones, record_add_on)
+        self._zones = _update_zones(self._grid, time, prior_zones, new_zones,
+                                    record_add_on)
 
         # Evolve species.
 
