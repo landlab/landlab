@@ -164,7 +164,8 @@ class Component(object):
 
     @current_time.setter
     def current_time(self, new_time):
-        assert new_time > self._current_time
+        if self._current_time is not None:
+            assert new_time > self._current_time
         self._current_time = new_time
 
     @classproperty
