@@ -741,7 +741,7 @@ class NetworkGraph:
         >>> from landlab.graph import TriGraph
         >>> graph = TriGraph((3, 2), spacing=2.0, node_layout="hex", sort=True)
 
-        >>> np.round(graph.unit_vector_at_link[:, 0], decimals=1)
+        >>> np.round(graph.unit_vector_at_link[:, 0], decimals=5)
         array([ 1. , -0.5,  0.5, -0.5,  0.5,  1. ,  1. ,  0.5, -0.5,  0.5, -0.5,
                 1. ])
         >>> np.round(graph.unit_vector_at_link[:, 1], decimals=5)
@@ -750,6 +750,39 @@ class NetworkGraph:
         """
         u = np.diff(self.xy_of_node[self.nodes_at_link], axis=1).reshape((-1, 2))
         return u / np.linalg.norm(u, axis=1).reshape((-1, 1))
+
+    @property
+    @lru_cache()
+    @read_only_array
+    def unit_vector_at_node(self):
+        """Get a unit vector for each node.
+
+        Examples
+        --------
+        >>> from landlab.graph import UniformRectilinearGraph
+        >>> graph = UniformRectilinearGraph((3, 3))
+        >>> graph.unit_vector_at_node
+        array([[ 1.,  1.],
+               [ 2.,  1.],
+               [ 1.,  1.],
+               [ 1.,  2.],
+               [ 2.,  2.],
+               [ 1.,  2.],
+               [ 1.,  1.],
+               [ 2.,  1.],
+               [ 1.,  1.]])
+
+        >>> from landlab.graph import TriGraph
+        >>> graph = TriGraph((3, 2), spacing=2.0, node_layout="hex", sort=True)
+
+        >>> unit_vector_at_node = np.round(graph.unit_vector_at_node, decimals=5)
+        >>> unit_vector_at_node[:, 0]
+        array([ 2.,  2.,  2.,  4.,  2.,  2.,  2.])
+        >>> unit_vector_at_node[:, 1]
+        array([ 1.73205,  1.73205,  1.73205,  3.4641 ,  1.73205,  1.73205,  1.73205])
+        """
+        unit_vector_at_link = np.vstack((self.unit_vector_at_link, [0.0, 0.0]))
+        return np.abs(unit_vector_at_link[self.links_at_node]).sum(axis=1)
 
 
 class Graph(NetworkGraph):
