@@ -95,7 +95,7 @@ class Component(object):
 
     def __init__(self, grid):
         self._grid = grid
-
+        self._current_time = None
         # ensure that required input fields exist
         for name in self._input_var_names:
             at = self._var_mapping[name]
@@ -148,6 +148,24 @@ class Component(object):
         else:
             params = load_params(path)
         return cls(grid, **params)
+
+    @property
+    def current_time(self):
+        """Current time.
+
+        Some components may keep track of the current time. In this case, the
+        ``current_time`` attribute is incremented. Otherwise it is set to None.
+
+        Returns
+        -------
+        current_time
+        """
+        return self._current_time
+
+    @current_time.setter
+    def current_time(self, new_time):
+        assert new_time > self._current_time
+        self._current_time = new_time
 
     @classproperty
     @classmethod
