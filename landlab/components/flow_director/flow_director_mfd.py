@@ -399,7 +399,6 @@ class FlowDirectorMFD(_FlowDirectorToMany):
 
         super(FlowDirectorMFD, self).__init__(grid, surface)
         self.updated_boundary_conditions()
-        
 
     def updated_boundary_conditions(self):
         """Method to update FlowDirectorMFD when boundary conditions change.

@@ -161,8 +161,6 @@ class SinkFiller(Component):
         )
         self._fr = FlowAccumulator(self._grid, flow_director=self._routing)
 
-        
-
     def fill_pits(self):
         """
         This is a synonym for the main method :func:`run_one_step`.

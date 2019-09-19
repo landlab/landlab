@@ -543,7 +543,9 @@ class ChannelProfiler(_BaseProfiler):
         if channel_definition_field in grid.at_node:
             self._channel_definition_field = grid.at_node[channel_definition_field]
         else:
-            msg = "Required field {name} not present. This field is required by the ChannelProfiler to define the start and stop of channel networks.".format(name=channel_definition_field)
+            msg = "Required field {name} not present. This field is required by the ChannelProfiler to define the start and stop of channel networks.".format(
+                name=channel_definition_field
+            )
             raise ValueError(msg)
 
         self._flow_receiver = grid.at_node["flow__receiver_node"]
@@ -593,8 +595,6 @@ class ChannelProfiler(_BaseProfiler):
             raise ValueError(msg)
 
         self._outlet_nodes = outlet_nodes
-
-        
 
     @property
     def network_structure(self):

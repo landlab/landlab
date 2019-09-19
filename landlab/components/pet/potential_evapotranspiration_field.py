@@ -221,8 +221,6 @@ class PotentialEvapotranspiration(Component):
 
         self._cell_values = self._grid["cell"]
 
-        
-
     @property
     def const_potential_evapotranspiration(self):
         """Constant PET value to be spatially distributed.

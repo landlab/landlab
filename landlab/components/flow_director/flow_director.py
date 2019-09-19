@@ -98,8 +98,6 @@ class _FlowDirector(Component):
 
         grid.add_zeros("flow__sink_flag", at="node", dtype=numpy.int8, noclobber=False)
 
-        
-
     @property
     def surface_values(self):
         """TODO"""

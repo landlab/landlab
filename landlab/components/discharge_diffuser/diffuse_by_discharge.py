@@ -10,7 +10,7 @@ Created on Fri Feb 20 09:32:27 2015
 
 import numpy as np
 
-from landlab import Component, FieldError, RasterModelGrid
+from landlab import Component, RasterModelGrid
 
 
 class DischargeDiffuser(Component):
@@ -169,8 +169,6 @@ class DischargeDiffuser(Component):
         self._Qsed_e = np.empty((ni, nj), dtype=float)
         self._Qsed_n = np.empty((ni, nj), dtype=float)
         self._Qsed_s = np.empty((ni, nj), dtype=float)
-
-
 
     def run_one_step(self, dt):
         """

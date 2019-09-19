@@ -302,8 +302,6 @@ class LinearDiffuser(Component):
         # do some pre-work to make fixed grad BC updating faster in the loop:
         self.updated_boundary_conditions()
 
-        
-
     @property
     def fixed_grad_nodes(self):
         """TODO"""

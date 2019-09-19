@@ -326,8 +326,6 @@ class NormalFault(Component):
         self._faulted_nodes = np.zeros(self._grid.size("node"), dtype=bool)
         self._faulted_nodes[faulted_node_ids] = True
 
-        
-
     @property
     def faulted_nodes(self):
         """

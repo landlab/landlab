@@ -292,8 +292,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                 "Parameter 'solver' must be one of: " + "'basic', 'adaptive'"
             )
 
-
-
     def _calc_erosion_rates(self):
         """Calculate erosion rates"""
         omega = self._K * self._Q_to_the_m * np.power(self._slope, self._n_sp)

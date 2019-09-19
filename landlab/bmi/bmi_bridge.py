@@ -267,11 +267,12 @@ def wrap_as_bmi(cls):
             self._info = self._cls._info.copy()
 
             self._info["boundary_condition_flag"] = {
-            "mapping": "node",
-            "units": "",
-            "dtype": int,
-            "intent": None,
-            "doc": "boundary condition flag of grid nodes"}
+                "mapping": "node",
+                "units": "",
+                "dtype": int,
+                "intent": None,
+                "doc": "boundary condition flag of grid nodes",
+            }
 
         def get_component_name(self):
             """Name of the component."""

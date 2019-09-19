@@ -110,8 +110,6 @@ class FireGenerator(Component):
         else:
             self._scale_parameter = scale_parameter
 
-        
-
     @property
     def scale_parameter(self):
         """TODO"""

@@ -389,8 +389,6 @@ class DrainageDensity(Component):
                 "surface_to_channel__minimum_distance", at="node", dtype=float
             )
 
-
-
     def _update_channel_mask_array(self):
         raise NotImplementedError(
             (

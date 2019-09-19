@@ -226,8 +226,6 @@ class VegCA(Component):
         VegType[locs_shrubs[tp[locs_shrubs] < self._tpmax_sh_s]] = SHRUBSEEDLING
         grid["cell"]["plant__age"] = tp
 
-        
-
     @property
     def Edit_VegCov(self):
         """Flag to indicate whether an optional field is created.

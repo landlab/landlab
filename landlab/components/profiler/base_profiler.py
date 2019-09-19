@@ -58,7 +58,6 @@ class _BaseProfiler(Component, ABC):
 
     def __init__(self, grid):
         super(_BaseProfiler, self).__init__(grid)
-        
 
     def run_one_step(self):
         """Calculate the profile datastructure and distances along it."""

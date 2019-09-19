@@ -9,12 +9,7 @@ Tarboton 1997.
 
 import numpy
 
-from landlab import (
-    BAD_INDEX_VALUE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
-    VoronoiDelaunayGrid,
-)
+from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, VoronoiDelaunayGrid
 from landlab.components.flow_director import flow_direction_dinf
 from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 
@@ -284,7 +279,6 @@ class FlowDirectorDINF(_FlowDirectorToMany):
             )
 
         self.updated_boundary_conditions()
-        
 
     def updated_boundary_conditions(self):
         """Method to update FlowDirectorDINF when boundary conditions change.

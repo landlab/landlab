@@ -177,8 +177,6 @@ class PotentialityFlowRouter(Component):
         else:
             self._discharges_at_link = self._grid.empty("link")
 
-        
-
     def route_flow(self):
         """
         """

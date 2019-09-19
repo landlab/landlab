@@ -106,7 +106,8 @@ class DetachmentLtdErosion(Component):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Discharge of water through each node",},
+            "doc": "Discharge of water through each node",
+        },
         "topographic__elevation": {
             "type": None,
             "intent": "inout",
@@ -123,7 +124,7 @@ class DetachmentLtdErosion(Component):
             "mapping": "node",
             "doc": "Gradient of surface, on links",
         },
-        }
+    }
 
     def __init__(
         self,
@@ -175,8 +176,6 @@ class DetachmentLtdErosion(Component):
         self._entrainment_threshold = entrainment_threshold
 
         self._dzdt = self._grid.zeros(at="node")
-
-        
 
     def run_one_step(self, dt):
         """Erode into grid topography.

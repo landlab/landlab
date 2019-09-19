@@ -203,7 +203,6 @@ class FractureGridGenerator(Component):
         # base class
         if "fracture_at_node" not in grid.at_node:
             grid.add_zeros("node", "fracture_at_node", dtype=np.int8)
-        
 
     def run_one_step(self):
         """Run FractureGridGenerator and create a random fracture grid."""

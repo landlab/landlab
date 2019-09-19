@@ -179,7 +179,6 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         # Arrays with parameters for use in implicit solver
         self._gamma = grid.empty(at="node")
         self._delta = grid.empty(at="node")
-        
 
     @property
     def alpha(self):

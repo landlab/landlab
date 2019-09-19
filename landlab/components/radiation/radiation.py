@@ -174,8 +174,6 @@ class Radiation(Component):
         self._cell_values["Slope"] = self._slope
         self._cell_values["Aspect"] = self._aspect
 
-        
-
     @property
     def hour(self):
         """Hour of the day. Default is 12 (solar noon)."""

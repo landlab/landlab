@@ -216,8 +216,6 @@ class Flexure1D(Component):
 
         self._x_at_node = self._grid.x_of_node.reshape(self._grid.shape).copy()
 
-        
-
     @property
     def eet(self):
         """Effective elastic thickness (m)."""

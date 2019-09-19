@@ -282,8 +282,6 @@ class Lithology(Component):
         self.dz_advection = dz_advection
         self.rock_id = rock_id
 
-        
-
     def __getitem__(self, name):
         return self._get_surface_values(name)
 

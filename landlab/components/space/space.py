@@ -214,7 +214,8 @@ class Space(_GeneralizedErosionDeposition):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Discharge of water through each node",},
+            "doc": "Discharge of water through each node",
+        },
         "topographic__elevation": {
             "type": None,
             "intent": "inout",
@@ -324,8 +325,6 @@ class Space(_GeneralizedErosionDeposition):
             raise ValueError(
                 "Parameter 'solver' must be one of: " + "'basic', 'adaptive'"
             )
-
-
 
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""

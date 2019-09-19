@@ -196,8 +196,6 @@ class DepthSlopeProductErosion(Component):
 
         self._dz = self._grid.zeros(at="node")
 
-
-
     def run_one_step(self, dt):
         """Erode into grid topography.
 

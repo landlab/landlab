@@ -158,8 +158,6 @@ class _FlowDirectorToMany(_FlowDirector):
             noclobber=False,
         )
 
-        
-
     def run_one_step(self):
         """run_one_step is not implemented for this component."""
         raise NotImplementedError("run_one_step()")

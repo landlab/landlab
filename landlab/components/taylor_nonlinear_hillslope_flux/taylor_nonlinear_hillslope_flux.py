@@ -200,8 +200,6 @@ class TaylorNonLinearDiffuser(Component):
         else:
             self._flux = self._grid.add_zeros("link", "soil__flux")
 
-        
-
     def soilflux(self, dt, dynamic_dt=False, if_unstable="pass", courant_factor=0.2):
         """Calculate soil flux for a time period 'dt'.
 

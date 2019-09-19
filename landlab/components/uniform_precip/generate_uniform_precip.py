@@ -173,7 +173,6 @@ class PrecipitationDistribution(Component):
             self._gridupdate = False
 
         self._intensity = self.get_storm_intensity()
-        
 
     @property
     def storm_duration(self):

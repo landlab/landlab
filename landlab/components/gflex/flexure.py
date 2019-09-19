@@ -236,8 +236,6 @@ class gFlex(Component):
             noclobber=False,
         )
 
-        
-
     def flex_lithosphere(self):
         """
         Executes (& finalizes, from the perspective of gFlex) the core method

@@ -26,7 +26,7 @@ from landlab import (
     Component,
     RasterModelGrid,
 )
-from landlab.components import FlowAccumulator, FlowDirectorSteepest
+from landlab.components import FlowAccumulator
 from landlab.utils import StablePriorityQueue
 from landlab.utils.return_array import return_array_at_node
 

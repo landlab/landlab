@@ -248,8 +248,6 @@ class FastscapeEroder(Component):
         self._A_to_the_m = grid.zeros(at="node")
         self._alpha = grid.empty(at="node")
 
-        
-
     def run_one_step(self, dt):
         """Erode for a single time step.
 

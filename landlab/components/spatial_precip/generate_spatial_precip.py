@@ -336,8 +336,6 @@ class SpatialPrecipitationDistribution(Component):
         self._scaling_to_WG = self._open_area / 275710702.0
         # ^ this is the relative size of the catchment compared to WG
 
-        
-
     def yield_storms(
         self,
         limit="total_time",

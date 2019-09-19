@@ -203,5 +203,3 @@ class LithoLayers(Lithology):
             dz_advection=dz_advection,
             rock_id=rock_id,
         )
-
-        

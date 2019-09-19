@@ -4,7 +4,7 @@ component rules
 
 super is called in the init
 all public attributes are properties
-all outputs are verified with self._verify_output_fields() at the end of init
+all outputs are verified with  at the end of init
 
 
 but components may also have other main methods at the developer's discretion.

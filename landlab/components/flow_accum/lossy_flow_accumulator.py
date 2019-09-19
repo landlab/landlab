@@ -440,8 +440,6 @@ class LossyFlowAccumulator(FlowAccumulator):
 
             self._lossfunc = lossfunc
 
-        
-
     def _accumulate_A_Q_to_one(self, s, r):
         """Accumulate area and discharge for a route-to-one scheme."""
         link = self._grid.at_node["flow__link_to_receiver_node"]

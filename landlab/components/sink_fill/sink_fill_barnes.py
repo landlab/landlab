@@ -119,8 +119,6 @@ class SinkFillerBarnes(LakeMapperBarnes):
             "node", "sediment_fill__depth", noclobber=False
         )
 
-        
-
     def run_one_step(self):
         """
         Fills the surface to remove all pits.

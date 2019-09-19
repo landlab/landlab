@@ -143,8 +143,6 @@ class GroundwaterDupuitPercolator(Component):
         self._q = self._grid.at_link["groundwater__specific_discharge"]
         self._vel = self._grid.at_link["groundwater__velocity"]
 
-        
-
     def run_one_step(self, dt):
         """
         Advance component by one time step of size dt.

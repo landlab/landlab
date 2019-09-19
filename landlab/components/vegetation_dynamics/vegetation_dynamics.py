@@ -321,8 +321,6 @@ class Vegetation(Component):
         self._Blive_ini = self._Blive_init * np.ones(self._grid.number_of_cells)
         self._Bdead_ini = self._Bdead_init * np.ones(self._grid.number_of_cells)
 
-        
-
     @property
     def Tb(self):
         """Storm duration (hours)."""
