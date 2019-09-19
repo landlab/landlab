@@ -166,7 +166,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
             )
 
         self.updated_boundary_conditions()
-        self._verify_output_fields()
+        
 
     def updated_boundary_conditions(self):
         """Method to update FlowDirectorD8 when boundary conditions change.

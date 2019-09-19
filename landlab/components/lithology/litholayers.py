@@ -204,4 +204,4 @@ class LithoLayers(Lithology):
             rock_id=rock_id,
         )
 
-        self._verify_output_fields()
+        

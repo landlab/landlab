@@ -149,7 +149,7 @@ class _FlowDirectorToOne(_FlowDirector):
         else:
             self._links_to_receiver = grid.at_node["flow__link_to_receiver_node"]
 
-        # self._verify_output_fields()
+
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""

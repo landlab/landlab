@@ -440,7 +440,7 @@ class LossyFlowAccumulator(FlowAccumulator):
 
             self._lossfunc = lossfunc
 
-        self._verify_output_fields()
+        
 
     def _accumulate_A_Q_to_one(self, s, r):
         """Accumulate area and discharge for a route-to-one scheme."""

@@ -236,7 +236,7 @@ class gFlex(Component):
             noclobber=False,
         )
 
-        self._verify_output_fields()
+        
 
     def flex_lithosphere(self):
         """

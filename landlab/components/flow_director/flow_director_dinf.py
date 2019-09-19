@@ -45,7 +45,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
        uphill or flat, the value is assigned zero.
     -  Boolean node array of all local lows: *'flow__sink_flag'*
     -  Link array identifing if flow goes with (1) or against (-1) the link
-       direction: *'flow_link_direction'*
+       direction: *'flow__link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -284,7 +284,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
             )
 
         self.updated_boundary_conditions()
-        self._verify_output_fields()
+        
 
     def updated_boundary_conditions(self):
         """Method to update FlowDirectorDINF when boundary conditions change.

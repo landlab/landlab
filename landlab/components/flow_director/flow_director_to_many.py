@@ -158,7 +158,7 @@ class _FlowDirectorToMany(_FlowDirector):
             noclobber=False,
         )
 
-        # self._verify_output_fields()
+        
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""

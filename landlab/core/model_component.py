@@ -104,21 +104,6 @@ class Component(object):
                     )
                 )
 
-    def _verify_output_fields(self, names=None):
-        names = names or self._info.keys()
-
-        for name in names:
-            at = self._info[name]["mapping"]
-            optional = self._info[name]["optional"]
-            out_true = "out" in self._info[name]["intent"]
-
-            if (out_true) and (not optional) and (name not in self._grid[at]):
-                raise FieldError(
-                    "{component} is missing output variable: {name} at {at}".format(
-                        component=self._name, name=name, at=at
-                    )
-                )
-
     @classmethod
     def from_path(cls, grid, path):
         """Create a component from an input file.

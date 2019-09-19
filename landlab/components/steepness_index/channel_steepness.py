@@ -177,7 +177,7 @@ class SteepnessFinder(Component):
         # this one needs modifying if smooth_elev
         self._elev = self._grid.at_node["topographic__elevation"]
 
-        self._verify_output_fields()
+        
 
     def calculate_steepnesses(self):
         """

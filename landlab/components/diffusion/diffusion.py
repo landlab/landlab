@@ -183,28 +183,24 @@ class LinearDiffuser(Component):
         self._current_time = 0.0
         self._run_before = False
         self._kd_on_links = False
-        if linear_diffusivity is not None:
-            if type(linear_diffusivity) is not str:
-                self._kd = linear_diffusivity
-                if type(self._kd) in (float, int):
-                    if type(self._kd) is int:
-                        self._kd = float(self._kd)
-                else:
-                    if self._kd.size == self._grid.number_of_links:
-                        self._kd_on_links = True
-                    else:
-                        assert self._kd.size == self._grid.number_of_nodes
-            else:
-                try:
-                    self._kd = self._grid.at_link[linear_diffusivity]
-                    self._kd_on_links = True
-                except KeyError:
-                    self._kd = self._grid.at_node[linear_diffusivity]
+
+        if isinstance(linear_diffusivity, str):
+            try:
+                self._kd = self._grid.at_link[linear_diffusivity]
+                self._kd_on_links = True
+            except KeyError:
+                self._kd = self._grid.at_node[linear_diffusivity]
         else:
-            raise KeyError(
-                "linear_diffusivity must be provided to the "
-                + "LinearDiffuser component"
-            )
+            self._kd = linear_diffusivity
+
+            if isinstance(self._kd, (float, int)):
+                self._kd = float(self._kd)
+            else:
+                if self._kd.size == self._grid.number_of_links:
+                    self._kd_on_links = True
+                else:
+                    assert self._kd.size == self._grid.number_of_nodes
+
         if self._kd_on_links is True:
             assert isinstance(self._grid, RasterModelGrid)
 
@@ -306,7 +302,7 @@ class LinearDiffuser(Component):
         # do some pre-work to make fixed grad BC updating faster in the loop:
         self.updated_boundary_conditions()
 
-        self._verify_output_fields()
+        
 
     @property
     def fixed_grad_nodes(self):
@@ -426,7 +422,7 @@ class LinearDiffuser(Component):
         core_nodes = self._grid.node_at_core_cell
         # do mapping of array kd here, in case it points at an updating
         # field:
-        if type(self._kd) is np.ndarray:
+        if isinstance(self._kd, np.ndarray):
             if not self._kd_on_links:
                 kd_links = self._grid.map_max_of_link_nodes_to_link(self._kd)
                 kd_activelinks = kd_links[self._grid.active_links]

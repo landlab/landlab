@@ -292,7 +292,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                 "Parameter 'solver' must be one of: " + "'basic', 'adaptive'"
             )
 
-        self._verify_output_fields()
+
 
     def _calc_erosion_rates(self):
         """Calculate erosion rates"""

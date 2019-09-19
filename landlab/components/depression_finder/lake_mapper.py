@@ -276,7 +276,7 @@ class DepressionFinderAndRouter(Component):
         self._lake_map = np.empty(self._grid.number_of_nodes, dtype=int)
         self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)
 
-        self._verify_output_fields()
+        
 
     def updated_boundary_conditions(self):
         """Call this if boundary conditions on the grid are updated after the

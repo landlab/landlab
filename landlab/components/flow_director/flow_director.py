@@ -26,7 +26,7 @@ class _FlowDirector(Component):
     It also creates the following field used by all FlowDirectors.
 
     -  Link array identifing if flow goes with (1) or against (-1) the link
-       direction: *'flow_link_direction'*
+       direction: *'flow__link_direction'*
 
     The primary method of this class, :func:`run_one_step` is not implemented.
 
@@ -98,7 +98,7 @@ class _FlowDirector(Component):
 
         grid.add_zeros("flow__sink_flag", at="node", dtype=numpy.int8, noclobber=False)
 
-        # self._verify_output_fields()
+        
 
     @property
     def surface_values(self):

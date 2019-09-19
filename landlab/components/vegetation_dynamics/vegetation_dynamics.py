@@ -321,7 +321,7 @@ class Vegetation(Component):
         self._Blive_ini = self._Blive_init * np.ones(self._grid.number_of_cells)
         self._Bdead_ini = self._Bdead_init * np.ones(self._grid.number_of_cells)
 
-        self._verify_output_fields()
+        
 
     @property
     def Tb(self):

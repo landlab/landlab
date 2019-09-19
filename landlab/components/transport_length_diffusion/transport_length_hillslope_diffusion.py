@@ -162,7 +162,7 @@ class TransportLengthHillslopeDiffuser(Component):
         },
     }
 
-    def __init__(self, grid, erodibility, slope_crit=1.0):
+    def __init__(self, grid, erodibility=0.001, slope_crit=1.0):
 
         """Initialize Diffuser.
 
@@ -221,7 +221,7 @@ class TransportLengthHillslopeDiffuser(Component):
         # Erosion
         self._erosion = self._grid.at_node["sediment__erosion_rate"]
 
-        self._verify_output_fields()
+
 
     def tldiffusion(self, dt):
         """Calculate hillslope diffusion for a time period 'dt'.

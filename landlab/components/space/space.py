@@ -168,14 +168,6 @@ class Space(_GeneralizedErosionDeposition):
     _name = "Space"
 
     _info = {
-        "drainage_area": {
-            "type": None,
-            "intent": "in",
-            "optional": False,
-            "units": "m**2",
-            "mapping": "node",
-            "doc": "Upstream accumulated surface area contributing to the node's discharge",
-        },
         "flow__link_to_receiver_node": {
             "type": None,
             "intent": "in",
@@ -216,6 +208,13 @@ class Space(_GeneralizedErosionDeposition):
             "mapping": "node",
             "doc": "Depth of sediment above bedrock",
         },
+        "surface_water__discharge": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Discharge of water through each node",},
         "topographic__elevation": {
             "type": None,
             "intent": "inout",
@@ -326,7 +325,7 @@ class Space(_GeneralizedErosionDeposition):
                 "Parameter 'solver' must be one of: " + "'basic', 'adaptive'"
             )
 
-        self._verify_output_fields()
+
 
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""

@@ -98,9 +98,9 @@ class PrecipitationDistribution(Component):
     def __init__(
         self,
         grid=None,
-        mean_storm_duration=0.0,
-        mean_interstorm_duration=0.0,
-        mean_storm_depth=0.0,
+        mean_storm_duration=1.0,
+        mean_interstorm_duration=1.0,
+        mean_storm_depth=1.0,
         total_t=0.0,
         delta_t=None,
         random_seed=0,
@@ -173,7 +173,7 @@ class PrecipitationDistribution(Component):
             self._gridupdate = False
 
         self._intensity = self.get_storm_intensity()
-        self._verify_output_fields()
+        
 
     @property
     def storm_duration(self):

@@ -449,8 +449,6 @@ class LakeMapperBarnes(Component):
         else:
             self._fill_one_node = self._fill_one_node_to_slant
 
-        self._verify_output_fields(names=LakeMapperBarnes.output_var_names)
-
     def _fill_one_node_to_slant(
         self, fill_surface, all_neighbors, pitq, openq, closedq, ignore_overfill
     ):

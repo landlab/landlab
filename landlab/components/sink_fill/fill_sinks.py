@@ -161,7 +161,7 @@ class SinkFiller(Component):
         )
         self._fr = FlowAccumulator(self._grid, flow_director=self._routing)
 
-        self._verify_output_fields()
+        
 
     def fill_pits(self):
         """

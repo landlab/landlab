@@ -92,7 +92,7 @@ class ExponentialWeatherer(Component):
         else:
             self._soil_prod_rate = grid.add_zeros("node", "soil_production__rate")
 
-        self._verify_output_fields()
+        
 
     def calc_soil_prod_rate(self):
         """Calculate soil production rate."""

@@ -172,7 +172,7 @@ class _GeneralizedErosionDeposition(Component):
         if F_f < 0.0:
             raise ValueError("Fraction of fines must be > 0.0")
 
-        self._verify_output_fields()
+
 
     def _update_flow_link_slopes(self):
         """Updates gradient between each core node and its receiver.

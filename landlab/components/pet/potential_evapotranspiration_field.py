@@ -221,7 +221,7 @@ class PotentialEvapotranspiration(Component):
 
         self._cell_values = self._grid["cell"]
 
-        self._verify_output_fields()
+        
 
     @property
     def const_potential_evapotranspiration(self):

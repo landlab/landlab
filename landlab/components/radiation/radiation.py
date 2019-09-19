@@ -174,7 +174,7 @@ class Radiation(Component):
         self._cell_values["Slope"] = self._slope
         self._cell_values["Aspect"] = self._aspect
 
-        self._verify_output_fields()
+        
 
     @property
     def hour(self):

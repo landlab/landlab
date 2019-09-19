@@ -104,10 +104,9 @@ class DetachmentLtdErosion(Component):
             "type": None,
             "intent": "in",
             "optional": False,
-            "units": "m^3/s",
+            "units": "m**3/s",
             "mapping": "node",
-            "doc": "TODO",
-        },
+            "doc": "Discharge of water through each node",},
         "topographic__elevation": {
             "type": None,
             "intent": "inout",
@@ -177,7 +176,7 @@ class DetachmentLtdErosion(Component):
 
         self._dzdt = self._grid.zeros(at="node")
 
-        self._verify_output_fields()
+        
 
     def run_one_step(self, dt):
         """Erode into grid topography.

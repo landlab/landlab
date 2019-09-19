@@ -110,7 +110,7 @@ class DischargeDiffuser(Component):
     _min_slope_thresh = 1.0e-24
     # if your flow isn't connecting up, this probably needs to be reduced
 
-    def __init__(self, grid, slope, flat_thresh=1.0e-4):
+    def __init__(self, grid, slope=0.25, flat_thresh=1.0e-4):
         """
         Parameters
         ----------
@@ -132,20 +132,7 @@ class DischargeDiffuser(Component):
         self._flat_thresh = flat_thresh
 
         # hacky fix because water__discharge is defined on both links and nodes
-        for out_field in self._output_var_names:
-            if self._var_mapping[out_field] == "node":
-                try:
-                    self._grid.add_zeros(
-                        self._var_mapping[out_field], out_field, dtype=float
-                    )
-                except FieldError:
-                    pass
-            else:
-                pass
-            try:
-                self._grid.add_zeros("node", "surface_water__discharge", dtype=float)
-            except FieldError:
-                pass
+        self.initialize_output_fields()
 
         ni = grid.number_of_node_rows
         nj = grid.number_of_node_columns
@@ -183,7 +170,7 @@ class DischargeDiffuser(Component):
         self._Qsed_n = np.empty((ni, nj), dtype=float)
         self._Qsed_s = np.empty((ni, nj), dtype=float)
 
-        self._verify_output_fields()
+
 
     def run_one_step(self, dt):
         """

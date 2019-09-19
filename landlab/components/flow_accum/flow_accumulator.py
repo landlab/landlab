@@ -78,7 +78,7 @@ class FlowAccumulator(Component):
             methods and has the shape (n-nodes x max number of receivers).
         -  Boolean node array of all local lows: *'flow__sink_flag'*
         -  Link array identifing if flow goes with (1) or against (-1) the link
-           direction: *'flow_link_direction'*
+           direction: *'flow__link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -803,7 +803,7 @@ class FlowAccumulator(Component):
                 "Extra kwargs passed to FlowAccumulator:{kwds}".format(kwds=kwdstr)
             )
 
-        self._verify_output_fields()
+        
 
     @property
     def surface_values(self):

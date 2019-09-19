@@ -251,7 +251,7 @@ class KinwaveImplicitOverlandFlow(Component):
 
         # Flag to let us know whether this is our first iteration
         self._first_iteration = True
-        self._verify_output_fields()
+        
 
     @property
     def runoff_rate(self):

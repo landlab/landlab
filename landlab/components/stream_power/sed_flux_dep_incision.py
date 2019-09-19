@@ -550,7 +550,7 @@ class SedDepEroder(Component):
         if self._return_ch_props:
             self.initialize_optional_output_fields()
 
-        self._verify_output_fields()
+        
 
     def get_sed_flux_function(self, rel_sed_flux):
         """

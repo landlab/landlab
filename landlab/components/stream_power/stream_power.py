@@ -326,7 +326,7 @@ class StreamPowerEroder(Component):
         self._stream_power_erosion = self._grid.zeros(centering="node")
         self._alpha = self._grid.zeros("node")
 
-        self._verify_output_fields()
+        
 
     def run_one_step(self, dt):
         """

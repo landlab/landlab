@@ -409,7 +409,7 @@ class LandslideProbability(Component):
             self._Ksat_provided = 1  # True
 
         self._nodal_values = self._grid.at_node
-        self._verify_output_fields()
+        
 
     def calculate_factor_of_safety(self, i):
         """Method to calculate factor of safety.

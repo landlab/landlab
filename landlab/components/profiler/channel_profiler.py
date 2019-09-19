@@ -594,7 +594,7 @@ class ChannelProfiler(_BaseProfiler):
 
         self._outlet_nodes = outlet_nodes
 
-        self._verify_output_fields()
+        
 
     @property
     def network_structure(self):

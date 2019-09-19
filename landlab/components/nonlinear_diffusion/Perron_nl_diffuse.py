@@ -215,7 +215,7 @@ class PerronNLDiffuse(Component):
 
         self.updated_boundary_conditions()
 
-        self._verify_output_fields()
+        
 
     def updated_boundary_conditions(self):
         """Call if grid BCs are updated after component instantiation.

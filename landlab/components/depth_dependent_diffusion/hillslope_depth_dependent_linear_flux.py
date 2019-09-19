@@ -198,7 +198,7 @@ class DepthDependentDiffuser(Component):
         else:
             self._bedrock = self._grid.add_zeros("node", "bedrock__elevation")
 
-        self._verify_output_fields()
+        
 
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.

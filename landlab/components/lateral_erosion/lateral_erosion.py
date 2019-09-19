@@ -254,7 +254,7 @@ class LateralEroder(Component):
         grid,
         latero_mech="UC",
         alph=0.8,
-        Kv=None,
+        Kv=0.001,
         Kl_ratio=1.0,
         solver="basic",
         inlet_on=False,

@@ -162,7 +162,7 @@ class SoilInfiltrationGreenAmpt(Component):
         else:
             self._capillary_pressure = wetting_front_capillary_pressure_head
 
-        self._verify_output_fields()
+        
 
     @staticmethod
     def calc_soil_pressure(

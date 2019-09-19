@@ -138,7 +138,7 @@ class OverlandFlowBates(Component):
         # Assiging a class variable to the elevation field.
         self._z = self._grid.at_node["topographic__elevation"]
 
-        self._verify_output_fields()
+        
 
     @property
     def surface_water__discharge(self):

@@ -119,7 +119,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
             "node", "sediment_fill__depth", noclobber=False
         )
 
-        self._verify_output_fields()
+        
 
     def run_one_step(self):
         """

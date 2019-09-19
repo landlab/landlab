@@ -215,7 +215,7 @@ class ChiFinder(Component):
         self._mask = self._grid.ones("node", dtype=bool)
         self._elev = self._grid.at_node["topographic__elevation"]
 
-        self._verify_output_fields()
+        
 
     def _set_up_reference_area(self, reference_area):
         """Set up and validate reference_area"""

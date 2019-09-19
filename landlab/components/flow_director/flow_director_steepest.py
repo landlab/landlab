@@ -41,7 +41,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
        *'flow__link_to_receiver_node'*
     -  Boolean node array of all local lows: *'flow__sink_flag'*
     -  Link array identifing if flow goes with (1) or against (-1) the link
-       direction: *'flow_link_direction'*
+       direction: *'flow__link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -94,11 +94,11 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
            12, 14, 10, 15,
            16, 17, 18, 19])
 
-    And the at-link field ``'flow_link_direction'`` indicates if the flow along
+    And the at-link field ``'flow__link_direction'`` indicates if the flow along
     the link is with or against the direction indicated by ``'link_dirs_at_node'``
     (from tail node to head node).
 
-    >>> mg_2.at_link['flow_link_direction']
+    >>> mg_2.at_link['flow__link_direction']
     array([ 0,  0,  0,  0, -1, -1,  0,  0,  0,  0,  0,  0, -1,  0,  0,  1,  0,
         0,  0, -1,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0], dtype=int8)
 
@@ -318,16 +318,16 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         super(FlowDirectorSteepest, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
 
-        # create a : 'flow_link_direction' field if it does not exist yest
-        if "flow_link_direction" not in self._grid.at_link:
+        # create a : 'flow__link_direction' field if it does not exist yest
+        if "flow__link_direction" not in self._grid.at_link:
             self._flow_link_direction = grid.add_field(
-                "flow_link_direction",
+                "flow__link_direction",
                 grid.zeros(at="link", dtype=np.int8),
                 at="link",
-                dtype=int,
+                dtype=np.int8,
             )
         else:
-            self._flow_link_direction = grid.at_link["flow_link_direction"]
+            self._flow_link_direction = grid.at_link["flow__link_direction"]
 
         self.updated_boundary_conditions()
 
