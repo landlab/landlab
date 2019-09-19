@@ -543,23 +543,20 @@ def calc_slope_at_node(
     >>> np.allclose(cmp[1], - np.pi / 4.)
     True
 
-    >>> mg = RadialModelGrid(n_rings=9)
+    >>> mg = RadialModelGrid(n_rings=3)
     >>> z = mg.radius_at_node
-    >>> slopes = mg.calc_slope_at_node(elevs=z)
-    >>> mean_ring_slope = []
-    >>> for i in range(10):
-    ...     mean_ring_slope.append(
-    ...         slopes[np.isclose(mg.radius_at_node, i)].mean())
+    >>> slope_at_node = np.round(mg.calc_slope_at_node(elevs=z), decimals=5)
 
-    Notice the small amounts of numerical error here:
-
-    >>> target_mean_ring_slope = [0.85707194785013108, 0.79363155567711452,
-    ...                           0.77922185867135429, 0.78359813570962411,
-    ...                           0.78433070957439543, 0.78452745144699965,
-    ...                           0.78477643475446901, 0.78506472422668094,
-    ...                           0.78505793680521629, 0.78661256633611021]
-    >>> np.allclose(mean_ring_slope, target_mean_ring_slope)
-    True
+    >>> nodes_at_ring = [
+    ...     np.where(np.isclose(mg.radius_at_node, radius)) for radius in range(3)
+    ... ]
+    >>> slope_at_node[nodes_at_ring[0]]
+    array([ 0.85707])
+    >>> slope_at_node[nodes_at_ring[1]]
+    array([ 0.79417,  0.79417,  0.79417,  0.79417,  0.79417,  0.79417])
+    >>> slope_at_node[nodes_at_ring[2]]
+    array([ 0.77542,  0.78453,  0.78453,  0.77542,  0.77542,  0.78453,
+            0.78453,  0.77542,  0.77542,  0.78453,  0.78453,  0.77542])
 
     LLCATS: NINF GRAD SURF
     """
