@@ -13,19 +13,18 @@ from landlab.grid.mappers import map_mean_of_link_nodes_to_link, \
         map_max_of_node_links_to_node, map_value_at_max_node_to_link, map_link_head_node_to_link
 from landlab.grid.raster_mappers import map_sum_of_outlinks_to_node
 
-
-
-
-#regularization functions used to deal with numerical demons of seepage
+# regularization functions used to deal with numerical demons of seepage
 def _regularize_G(u,reg_factor):
+    ''' Smooths transition of step function with an exponential. 0<=u<=1. '''
     return np.exp(-(1-u)/reg_factor)
 
-
 def _regularize_R(u):
+    ''' ramp function on u '''
     return u*np.greater_equal(u,0)
 
 def get_link_hydraulic_conductivity(grid,K):
-    #where grid is a landlab grid object, and K is a 2D hydraulic conductivity tensor
+    ''' returns array of hydraulic conductivity on links based upon K, a
+        2D hydraulic conductivity tensor'''
     u = grid.unit_vector_at_link
     K_link = np.zeros(len(u))
     for i in range(len(u)):
@@ -36,7 +35,9 @@ class GroundwaterDupuitPercolator(Component):
     """
     Simulate groundwater flow in a shallow unconfined aquifer.
 
-    The GroundwaterDupuitPercolator uses the Dupuit approximation that the
+    The GroundwaterDupuitPercolator solves the Boussinesq equation for
+    flow in an unconfined aquifer over an impermeable aquifer base that may
+    have uneven slope. This method uses the Dupuit approximation that the
     hydraulic gradient is equal to the slope of the water table.
 
     Parameters
@@ -46,6 +47,9 @@ class GroundwaterDupuitPercolator(Component):
     hydraulic_conductivity: float, field name, or array of float
             saturated hydraulic conductivity, m/s
             Default = 0.01 m/s
+    porosity: float, field name or array of float
+            the porosity of the aquifer [-]
+            Default = 0.5
     recharge_rate: float, field name, or array of float
             Rate of recharge, m/s
             Default = 1.0e-8 m/s
@@ -64,16 +68,23 @@ class GroundwaterDupuitPercolator(Component):
     -----
     Groundwater discharge per unit length, q, is calculated as:
 
-        q = - K H dw/dx,
+        q = - K H ( dH/dx cos(alpha) + sin(alpha) ),
 
-    where K is hydraulic conductivity, H is aquifer thickness, w is water table
-    height, and x is horizontal distance.
+    where K is hydraulic conductivity, H is aquifer thickness, alpha is
+    the slope angle of the aquifer base, and x is horizontal distance.
+
+    Surface water discharge per unit area, qs, is calculated as:
+
+        qs = G( H/(Z-Zb) ) * R( f - dq/dx)
+
+    where G is a smoothed step function, R is the ramp function, Z is the
+    topographic elevation, Zb is the aquifer base elevation, and f is
+    the recharge rate.
 
     An explicit forward-in-time finite-volume method is used to implement a
     numerical solution. Flow discharge between neighboring nodes is calculated
-    using the average depth at the nodes.
+    using the saturated thickness at the up-gradient node.
 
-    Note that the current version does NOT handle surface seepage.
     """
 
     _name = "GroundwaterDupuitPercolator"
@@ -84,7 +95,8 @@ class GroundwaterDupuitPercolator(Component):
     _output_var_names = set(
         ("aquifer__thickness", "water_table__elevation","aquifer_base__gradient",
          "hydraulic__gradient", "groundwater__specific_discharge",
-         "groundwater__velocity", "surface_water__specific_discharge","")
+         "groundwater__velocity", "surface_water__specific_discharge",
+         "water_table__velocity","")
     )
 
     _var_units = {
@@ -97,6 +109,7 @@ class GroundwaterDupuitPercolator(Component):
         "groundwater__specific_discharge": "m2/s",
         "groundwater__velocity": "m/s",
         "surface_water__specific_discharge": "m/s",
+        "water water_table__velocity":"m/s",
     }
 
     _var_mapping = {
@@ -109,6 +122,7 @@ class GroundwaterDupuitPercolator(Component):
         "groundwater__specific_discharge": "link",
         "groundwater__velocity": "link",
         "surface_water__specific_discharge": "node",
+        "water_table__velocity": "node",
     }
 
     _var_doc = {
@@ -121,6 +135,7 @@ class GroundwaterDupuitPercolator(Component):
         "groundwater__specific_discharge": "discharge per width in link dir",
         "groundwater__velocity": "velocity of groundwater in link direction",
         "surface_water__specific_discharge": "rate of seepage to surface",
+        "water_table__velocity": "rate of change of water table elevation"
     }
 
     def __init__(self, grid, hydraulic_conductivity=0.01,porosity=0.5,
@@ -157,8 +172,8 @@ class GroundwaterDupuitPercolator(Component):
         self.n_link = map_mean_of_link_nodes_to_link(self._grid,self.n)
         self.r = regularization_f
         self.unsat = unsaturated_zone
-        # Create fields:
 
+        # Create fields:
         if "topographic__elevation" in self.grid.at_node:
             self.elev = self.grid.at_node["topographic__elevation"]
         else:
@@ -173,7 +188,6 @@ class GroundwaterDupuitPercolator(Component):
             self.wtable = self.grid.at_node["water_table__elevation"]
         else:
             self.wtable = self.grid.add_zeros("node", "water_table__elevation")
-
         self.wtable[grid.closed_boundary_nodes] = 0
 
         if "aquifer__thickness" in self.grid.at_node:
@@ -213,7 +227,7 @@ class GroundwaterDupuitPercolator(Component):
         else:
             self.dhdt = self.grid.add_zeros("node", "water_table__velocity")
 
-        #just shoving these in here temporarily
+        #calculate surface slope for use in shear stress method
         self.S = abs(grid.calc_grad_at_link(self.elev))
         self.S_node = map_max_of_node_links_to_node(grid,self.S)
 
@@ -232,31 +246,39 @@ class GroundwaterDupuitPercolator(Component):
         and sums the flux across the boundary faces.
 
         """
-
+        # get links at open boundary nodes
         open_nodes = self._grid.open_boundary_nodes
         links_at_open = self._grid.links_at_node[open_nodes]
         link_dirs_at_open = self._grid.active_link_dirs_at_node[open_nodes]
 
+        # find active links at open boundary nodes
         active_links_at_open = links_at_open[link_dirs_at_open!=0]
         active_link_dirs_at_open = link_dirs_at_open[link_dirs_at_open!=0]
 
+        # get groundwater specific discharge at these locations
         q_at_open_links = self._grid.at_link['groundwater__specific_discharge'][active_links_at_open]
 
+        #get cell widths at these locations
         faces = self._grid.face_at_link[active_links_at_open]
         face_widths = self._grid.width_of_face[faces]
 
+        #get volume flux out at these locations
         gw_volume_flux_rate_out = q_at_open_links*active_link_dirs_at_open*face_widths
 
         return np.sum(gw_volume_flux_rate_out)
 
     def calc_sw_flux_out(self):
-        # surface water flux out of the domain through seepage and saturation excess.
-        # Note that model does not allow for reinfiltration.
-
+        """
+        Surface water flux out of the domain through seepage and saturation excess.
+        Note that model does not allow for reinfiltration.
+        """
         return np.sum(self._grid.at_node['surface_water__discharge'][self._grid.open_boundary_nodes] )
 
     def calc_gw_flux_at_node(self):
-        # the sum of the flux of groundwater leaving a node
+        """
+        Calculate the sum of the groundwater flux leaving a node.
+
+        """
         gw = self._grid.at_link['groundwater__specific_discharge'][self._grid.links_at_node]*self._grid.link_dirs_at_node
         gw_out = -np.sum(gw*(gw<0),axis=1)
         return gw_out
@@ -265,16 +287,38 @@ class GroundwaterDupuitPercolator(Component):
         # return map_max_of_node_links_to_node(self._grid,self._grid.dx* abs(self._grid.at_link['groundwater__specific_discharge']))
 
     def calc_sw_flux_at_node(self):
+        """
+        Return the surface water flux at a node
+        """
         return self._grid.at_node['surface_water__discharge']
 
     def calc_shear_stress_at_node(self,n_manning=0.05):
+        """
+        Calculate the shear stress Tau based upon the equations:
+
+            Tau = rho g S d
+            d = n q / ( dx S^1/2)^3/5
+
+        where rho is the density of water, g is the gravitational constant,
+        S is the slope, d is the water depth calculated with manning's equation,
+        n is Manning's n, q is surface water discharge, and dx is the grid cell
+        width.
+
+        Parameters
+        ----------
+        n_manning: float or array of float (-)
+            Manning's n at nodes, giving surface roughness.
+
+        """
         rho = 1000
         g = 9.81
         return rho*g*self.S_node *( (n_manning*self._grid.at_node['surface_water__discharge']/3600)/(self._grid.dx*np.sqrt(self.S_node)) )**(3/5)
 
 
     def calc_total_storage(self):
-        # calculate the current water storage in the aquifer
+        """
+        calculate the current water storage in the aquifer
+        """
         return np.sum(self.n[self.cores] * self._grid.area_of_cell *
                         self._grid.at_node['aquifer__thickness'][self.cores])
 
@@ -287,6 +331,13 @@ class GroundwaterDupuitPercolator(Component):
         ----------
         dt: float (time in seconds)
             The imposed timestep.
+        s: array of float (-)
+            The relative saturation in the
+            unsaturated zone at each node, returned
+            by the LumpedUnsaturatedZone component.
+        sf: float (-)
+            The relative saturation at field capacity
+            in the unsaturated zone.
         """
 
         #Calculate base gradient
@@ -342,9 +393,16 @@ class GroundwaterDupuitPercolator(Component):
         ----------
         dt: float (time in seconds)
             The imposed timestep.
-        courant_coefficient: float
+        courant_coefficient: float (-)
             The muliplying factor on the condition that the timestep is
             smaller than the minimum link length over groundwater flow velocity
+        s: array of float (-)
+            The relative saturation in the
+            unsaturated zone at each node, returned
+            by the LumpedUnsaturatedZone component.
+        sf: float (-)
+            The relative saturation at field capacity
+            in the unsaturated zone.
         """
 
         remaining_time = dt
@@ -399,5 +457,6 @@ class GroundwaterDupuitPercolator(Component):
             self.wtable[self._grid.core_nodes] = (self.base[self.cores]
                                                   + self.thickness[self.cores])
 
+            #calculate the time remaining and advance count of substeps
             remaining_time -= substep_dt
             self.num_substeps += 1
