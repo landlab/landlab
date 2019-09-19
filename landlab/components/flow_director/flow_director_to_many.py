@@ -6,6 +6,9 @@ FlowDirectors.
 Provides the _FlowDirectorToMany component which makes sure all model
 grid fields are set up correctly.
 """
+import numpy
+
+from landlab import BAD_INDEX_VALUE
 from landlab.components.flow_director.flow_director import _FlowDirector
 
 
@@ -49,57 +52,113 @@ class _FlowDirectorToMany(_FlowDirector):
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> sorted(list(mg.at_node.keys()))
-    ['flow__sink_flag', 'topographic__elevation']
+    ['flow__link_to_receiver_node', 'flow__receiver_node', 'flow__receiver_proportions', 'flow__sink_flag', 'topographic__elevation', 'topographic__steepest_slope']
     """
 
     _name = "FlowDirectorToMany"
-    _input_var_names = set(())
 
-    _optional_var_names = set(("topographic__elevation",))
-
-    _output_var_names = set(
-        (
-            "flow__receiver_node",
-            "flow__receiver_proportions",
-            "topographic__steepest_slope",
-            "flow__link_to_receiver_node",
-            "flow__sink_flag",
-        )
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "flow__receiver_node": "-",
-        "flow__receiver_proportions": "-",
-        "topographic__steepest_slope": "-",
-        "flow__link_to_receiver_node": "-",
-        "flow__sink_flag": "-",
+    _info = {
+        "flow__link_to_receiver_node": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__receiver_proportions": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of proportion of flow sent to each receiver.",
+        },
+        "flow__sink_flag": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Boolean array, True at local lows",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__steepest_slope": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of steepest *downhill* slopes.",
+        },
     }
 
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "flow__receiver_node": "node",
-        "flow__receiver_proportions": "node",
-        "topographic__steepest_slope": "node",
-        "flow__link_to_receiver_node": "node",
-        "flow__sink_flag": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "flow__receiver_node": "Node array of receivers (node that receives flow from current node)",
-        "flow__receiver_proportions": "Node array of proportion of flow sent to each receiver.",
-        "topographic__steepest_slope": "Node array of steepest *downhill* slopes",
-        "flow__link_to_receiver_node": "ID of link downstream of each node, which carries the discharge",
-        "flow__sink_flag": "Boolean array, True at local lows",
-    }
+    _max_receivers = 2
 
     def __init__(self, grid, surface):
-        """Initialize the _FlowDirectorTo_One class."""
+        """Initialize the _FlowDirectorToMany class."""
         # run init for the inherited class
         super(_FlowDirectorToMany, self).__init__(grid, surface)
         self._to_n_receivers = "many"
-        self._verify_output_fields()
+
+        # set the number of recievers, proportions, and receiver links with the
+        # right size.
+        self._receivers = grid.add_field(
+            "flow__receiver_node",
+            BAD_INDEX_VALUE
+            * numpy.ones((self._grid.number_of_nodes, self._max_receivers), dtype=int),
+            at="node",
+            dtype=int,
+            noclobber=False,
+        )
+
+        self._steepest_slope = grid.add_field(
+            "topographic__steepest_slope",
+            BAD_INDEX_VALUE
+            * numpy.ones(
+                (self._grid.number_of_nodes, self._max_receivers), dtype=float
+            ),
+            at="node",
+            dtype=float,
+            noclobber=False,
+        )
+
+        self._receiver_links = grid.add_field(
+            "flow__link_to_receiver_node",
+            BAD_INDEX_VALUE
+            * numpy.ones((self._grid.number_of_nodes, self._max_receivers), dtype=int),
+            at="node",
+            dtype=int,
+            noclobber=False,
+        )
+
+        self._proportions = grid.add_field(
+            "flow__receiver_proportions",
+            BAD_INDEX_VALUE
+            * numpy.ones(
+                (self._grid.number_of_nodes, self._max_receivers), dtype=float
+            ),
+            at="node",
+            dtype=int,
+            noclobber=False,
+        )
+
+        # self._verify_output_fields()
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""

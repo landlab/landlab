@@ -72,45 +72,47 @@ class PotentialityFlowRouter(Component):
 
     _name = "PotentialityFlowRouter"
 
-    _input_var_names = set(("topographic__elevation", "water__unit_flux_in"))
-
-    _output_var_names = set(
-        ("surface_water__discharge", "flow__potential", "surface_water__depth")
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "water__unit_flux_in": "m/s",
-        "surface_water__discharge": "m**3/s",
-        "flow__potential": "m**3/s",
-        "surface_water__depth": "m",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "water__unit_flux_in": "node",
-        "surface_water__discharge": "node",
-        "flow__potential": "node",
-        "surface_water__depth": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "water__unit_flux_in": (
-            "External volume water per area per time input to each node "
-            + "(e.g., rainfall rate)"
-        ),
-        "surface_water__discharge": (
-            "Magnitude of volumetric water flux out of each node"
-        ),
-        "flow__potential": (
-            'Value of the hypothetical field "K", used to force water flux '
-            + "to flow downhill"
-        ),
-        "surface_water__depth": (
-            "If Manning or Chezy specified, the depth of flow in the cell, "
-            + "calculated assuming flow occurs over the whole surface"
-        ),
+    _info = {
+        "flow__potential": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Value of the hypothetical field 'K', used to force water flux to flow downhill",
+        },
+        "surface_water__depth": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "If Manning or Chezy specified, the depth of flow in the cell, calculated assuming flow occurs over the whole surface",
+        },
+        "surface_water__discharge": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Magnitude of volumetric water flux out of each node",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "water__unit_flux_in": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m/s",
+            "mapping": "node",
+            "doc": "External volume water per area per time input to each node (e.g., rainfall rate)",
+        },
     }
 
     _min_slope_thresh = 1.0e-24
@@ -159,10 +161,7 @@ class PotentialityFlowRouter(Component):
         else:
             self._route_on_diagonals = False
 
-        for out_field in self._output_var_names:
-            at = self._var_mapping[out_field]
-            if out_field not in self._grid[at]:
-                self._grid.add_zeros(at, out_field, dtype=float)
+        self.initialize_output_fields()
 
         if self._raster:
             self._equiv_circ_diam = 2.0 * np.sqrt(grid.dx * grid.dy / np.pi)

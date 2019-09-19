@@ -109,43 +109,47 @@ class StreamPowerEroder(Component):
 
     _name = "StreamPowerEroder"
 
-    _input_var_names = set(
-        (
-            "topographic__elevation",
-            "flow__link_to_receiver_node",
-            "drainage_area",
-            "flow__receiver_node",
-            "flow__upstream_node_order",
-        )
-    )
-
-    _output_var_names = set(("topographic__elevation",))
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "drainage_area": "m**2",
-        "flow__link_to_receiver_node": "-",
-        "flow__receiver_node": "-",
-        "flow__upstream_node_order": "-",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "drainage_area": "node",
-        "flow__link_to_receiver_node": "node",
-        "flow__receiver_node": "node",
-        "flow__upstream_node_order": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "drainage_area": "Upstream accumulated surface area contributing to the node's "
-        "discharge",
-        "flow__link_to_receiver_node": "ID of link downstream of each node, which carries the discharge",
-        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
-        "node)",
-        "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
-        "node IDs",
+    _info = {
+        "drainage_area": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m**2",
+            "mapping": "node",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
+        },
+        "flow__link_to_receiver_node": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__upstream_node_order": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
     }
 
     def __init__(

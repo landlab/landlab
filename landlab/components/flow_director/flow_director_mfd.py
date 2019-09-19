@@ -11,12 +11,7 @@ use FlowDirectorD8.
 
 import numpy
 
-from landlab import (
-    BAD_INDEX_VALUE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
-    VoronoiDelaunayGrid,
-)
+from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, VoronoiDelaunayGrid
 from landlab.components.flow_director import flow_direction_mfd
 from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 
@@ -319,45 +314,55 @@ class FlowDirectorMFD(_FlowDirectorToMany):
 
     _name = "FlowDirectorMFD"
 
-    _input_var_names = set(())
-
-    _optional_var_names = set(("topographic__elevation",))
-
-    _output_var_names = set(
-        (
-            "flow__receiver_node",
-            "flow__receiver_proportions",
-            "topographic__steepest_slope",
-            "flow__link_to_receiver_node",
-            "flow__sink_flag",
-        )
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "flow__receiver_node": "-",
-        "flow__receiver_proportions": "-",
-        "topographic__steepest_slope": "-",
-        "flow__link_to_receiver_node": "-",
-        "flow__sink_flag": "-",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "flow__receiver_node": "node",
-        "flow__receiver_proportions": "node",
-        "topographic__steepest_slope": "node",
-        "flow__link_to_receiver_node": "node",
-        "flow__sink_flag": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "flow__receiver_node": "Node array of receivers (node that receives flow from current node)",
-        "flow__receiver_proportions": "Node array of proportion of flow sent to each receiver.",
-        "topographic__steepest_slope": "Node array of steepest *downhill* slopes.",
-        "flow__link_to_receiver_node": "ID of link downstream of each node, which carries the discharge",
-        "flow__sink_flag": "Boolean array, True at local lows",
+    _info = {
+        "flow__link_to_receiver_node": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__receiver_proportions": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of proportion of flow sent to each receiver.",
+        },
+        "flow__sink_flag": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Boolean array, True at local lows",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__steepest_slope": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of steepest *downhill* slopes.",
+        },
     }
 
     def __init__(self, grid, surface="topographic__elevation", **kwargs):
@@ -378,11 +383,10 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         diagonals = kwargs.get("diagonals", False)
 
         self._method = "MFD"
-        super(FlowDirectorMFD, self).__init__(grid, surface)
-        self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
+
+        self._is_Voroni = isinstance(grid, VoronoiDelaunayGrid)
         if self._is_Voroni:
             diagonals = False
-        self.updated_boundary_conditions()
         self._partition_method = partition_method
         self._diagonals = diagonals
 
@@ -391,49 +395,10 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         if self._is_Voroni is False and diagonals is True:
             self._max_receivers = 8
         else:
-            self._max_receivers = self._grid.adjacent_nodes_at_node.shape[1]
+            self._max_receivers = grid.adjacent_nodes_at_node.shape[1]
 
-        # set the number of recievers, proportions, and receiver links with the
-        # right size.
-        self._receivers = grid.add_field(
-            "flow__receiver_node",
-            BAD_INDEX_VALUE
-            * numpy.ones((self._grid.number_of_nodes, self._max_receivers), dtype=int),
-            at="node",
-            dtype=int,
-            noclobber=False,
-        )
-
-        self._steepest_slope = grid.add_field(
-            "topographic__steepest_slope",
-            BAD_INDEX_VALUE
-            * numpy.ones(
-                (self._grid.number_of_nodes, self._max_receivers), dtype=float
-            ),
-            at="node",
-            dtype=float,
-            noclobber=False,
-        )
-
-        self._receiver_links = grid.add_field(
-            "flow__link_to_receiver_node",
-            BAD_INDEX_VALUE
-            * numpy.ones((self._grid.number_of_nodes, self._max_receivers), dtype=int),
-            at="node",
-            dtype=int,
-            noclobber=False,
-        )
-
-        self._proportions = grid.add_field(
-            "flow__receiver_proportions",
-            BAD_INDEX_VALUE
-            * numpy.ones(
-                (self._grid.number_of_nodes, self._max_receivers), dtype=float
-            ),
-            at="node",
-            dtype=int,
-            noclobber=False,
-        )
+        super(FlowDirectorMFD, self).__init__(grid, surface)
+        self.updated_boundary_conditions()
         self._verify_output_fields()
 
     def updated_boundary_conditions(self):

@@ -218,74 +218,79 @@ class LakeMapperBarnes(Component):
         keywords = "Pit filling, Terrain analysis, Hydrology, Drainage network, Modeling, GIS"
         }"""
 
-    _input_var_names = set(
-        (
-            "topographic__elevation",
-            "drainage_area",
-            "surface_water__discharge",
-            "flow__link_to_receiver_node",
-            "flow__upstream_node_order",
-            "flow__data_structure_delta",
-            "flow__data_structure_D",
-            "flow__receiver_node",
-            "flow__sink_flag",
-        )
-    )
-
-    _output_var_names = set(
-        (
-            "topographic__elevation",
-            "drainage_area",
-            "surface_water__discharge",
-            "flow__link_to_receiver_node",
-            "flow__upstream_node_order",
-            "flow__data_structure_delta",
-            "flow__data_structure_D",
-            "flow__receiver_node",
-            "flow__sink_flag",
-        )
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "drainage_area": "m**2",
-        "surface_water__discharge": "m**3/s",
-        "flow__link_to_receiver_node": "-",
-        "flow__upstream_node_order": "-",
-        "flow__data_structure_delta": "-",
-        "flow__data_structure_D": "-",
-        "flow__receiver_node": "-",
-        "flow__sink_flag": "-",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "drainage_area": "node",
-        "surface_water__discharge": "node",
-        "flow__link_to_receiver_node": "node",
-        "flow__upstream_node_order": "node",
-        "flow__data_structure_delta": "node",
-        "flow__data_structure_D": "grid",
-        "flow__receiver_node": "node",
-        "flow__sink_flag": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "drainage_area": "Upstream accumulated surface area contributing to the node's "
-        "discharge",
-        "surface_water__discharge": "Discharge of water through each node",
-        "flow__link_to_receiver_node": "ID of link downstream of each node, which carries the discharge",
-        "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
-        "node IDs",
-        "flow__data_structure_delta": "Node array containing the elements delta[1:] of the data "
-        'structure "delta" used for construction of the downstream-to-'
-        "upstream node array",
-        "flow__data_structure_D": "Link array containing the data structure D used for construction"
-        "of the downstream-to-upstream node array",
-        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
-        "node)",
-        "flow__sink_flag": "Boolean array, True at local lows",
+    _info = {
+        "drainage_area": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m**2",
+            "mapping": "node",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
+        },
+        "flow__data_structure_D": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "-",
+            "mapping": "grid",
+            "doc": "Link array containing the data structure D used for constructionof the downstream-to-upstream node array",
+        },
+        "flow__data_structure_delta": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing the elements delta[1:] of the data structure 'delta' used for construction of the downstream-to-upstream node array",
+        },
+        "flow__link_to_receiver_node": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__sink_flag": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Boolean array, True at local lows",
+        },
+        "flow__upstream_node_order": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
+        },
+        "surface_water__discharge": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Discharge of water through each node",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
     }
 
     def __init__(
@@ -304,6 +309,7 @@ class LakeMapperBarnes(Component):
         Initialize the component.
         """
         super(LakeMapperBarnes, self).__init__(grid)
+
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
                 msg = (
@@ -406,7 +412,6 @@ class LakeMapperBarnes(Component):
             # These will raise FieldErrors if they don't.
             # This will cause a bunch of our tests to break, so users will
             # never see this.
-            assert len(FlowDirectorSteepest.output_var_names) == 4
             self._receivers = self._grid.at_node["flow__receiver_node"]
             self._receiverlinks = self._grid.at_node["flow__link_to_receiver_node"]
             self._steepestslopes = self._grid.at_node["topographic__steepest_slope"]
@@ -444,7 +449,7 @@ class LakeMapperBarnes(Component):
         else:
             self._fill_one_node = self._fill_one_node_to_slant
 
-        self._verify_output_fields()
+        self._verify_output_fields(names=LakeMapperBarnes.output_var_names)
 
     def _fill_one_node_to_slant(
         self, fill_surface, all_neighbors, pitq, openq, closedq, ignore_overfill

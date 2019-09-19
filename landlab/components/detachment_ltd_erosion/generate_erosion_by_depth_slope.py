@@ -112,27 +112,39 @@ class DepthSlopeProductErosion(Component):
     incision.
     """
 
-    _name = "DetachmentLtdErosion"
+    _name = "DepthSlopeProductErosion"
 
-    _input_var_names = set()
-
-    _optional_var_names = set(("topographic__elevation", "surface_water__depth"))
-
-    _output_var_names = ("topographic__elevation",)
-
-    _var_units = {"topographic__elevation": "m", "surface_water__depth": "m"}
-
-    _var_mapping = {"topographic__elevation": "node", "surface_water__depth": "node"}
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "surface_water__depth": "Depth of water on the surface",
+    _info = {
+        "surface_water__depth": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Depth of water on the surface",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__slope": {
+            "type": None,
+            "intent": "in",
+            "optional": True,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Gradient of surface, on links",
+        },
     }
 
     def __init__(
         self,
         grid,
-        k_e,
+        k_e=0.001,
         fluid_density=1000.0,
         g=9.81,
         a_exp=1.0,

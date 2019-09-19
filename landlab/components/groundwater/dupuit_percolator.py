@@ -47,46 +47,63 @@ class GroundwaterDupuitPercolator(Component):
 
     _name = "GroundwaterDupuitPercolator"
 
-    _input_var_names = set(("topographic__elevation", "aquifer_base__elevation"))
-
-    _output_var_names = set(
-        (
-            "aquifer__thickness",
-            "water_table__elevation",
-            "hydraulic__gradient",
-            "groundwater__specific_discharge",
-            "groundwater__velocity",
-        )
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "aquifer_base__elevation": "m",
-        "aquifer__thickness": "m",
-        "water_table__elevation": "m",
-        "hydraulic__gradient": "m/m",
-        "groundwater__specific_discharge": "m2/s",
-        "groundwater__velocity": "m/s",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "aquifer_base__elevation": "node",
-        "aquifer__thickness": "node",
-        "water_table__elevation": "node",
-        "hydraulic__gradient": "link",
-        "groundwater__specific_discharge": "link",
-        "groundwater__velocity": "link",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "elevation of land surface",
-        "aquifer_base__elevation": "elevation of impervious layer",
-        "aquifer__thickness": "thickness of saturated zone",
-        "water_table__elevation": "elevation of water table",
-        "hydraulic__gradient": "gradient of water table in link direction",
-        "groundwater__specific_discharge": "discharge per width in link dir",
-        "groundwater__velocity": "velocity of groundwater in link direction",
+    _info = {
+        "aquifer__thickness": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "thickness of saturated zone",
+        },
+        "aquifer_base__elevation": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "elevation of impervious layer",
+        },
+        "groundwater__specific_discharge": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m2/s",
+            "mapping": "link",
+            "doc": "discharge per width in link dir",
+        },
+        "groundwater__velocity": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m/s",
+            "mapping": "link",
+            "doc": "velocity of groundwater in link direction",
+        },
+        "hydraulic__gradient": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m/m",
+            "mapping": "link",
+            "doc": "gradient of water table in link direction",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "elevation of land surface",
+        },
+        "water_table__elevation": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "elevation of water table",
+        },
     }
 
     def __init__(self, grid, hydraulic_conductivity=0.01, recharge_rate=1.0e-8):
@@ -117,7 +134,7 @@ class GroundwaterDupuitPercolator(Component):
         self._elev = self._grid.at_node["topographic__elevation"]
         self._base = self._grid.at_node["aquifer_base__elevation"]
 
-        self._initialize_output_fields_with_zero_floats()
+        self.initialize_output_fields()
 
         self._wtable = self._grid.at_node["water_table__elevation"]
         self._thickness = self._grid.at_node["aquifer__thickness"]

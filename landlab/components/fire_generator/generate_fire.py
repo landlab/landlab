@@ -76,18 +76,10 @@ class FireGenerator(Component):
 
     _name = "FireGenerator"
 
-    _input_var_names = tuple()
-
-    _output_var_names = tuple()
-
-    _var_units = dict()
-
-    _var_mapping = dict()
-
-    _var_doc = dict()
+    _info = {}
 
     def __init__(
-        self, grid, mean_fire_recurrence=0.0, shape_parameter=0.0, scale_parameter=None
+        self, grid, mean_fire_recurrence=1.0, shape_parameter=3.5, scale_parameter=None
     ):
         """Generate a random fire event in time.
 

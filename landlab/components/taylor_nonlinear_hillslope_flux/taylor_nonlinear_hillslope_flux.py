@@ -131,28 +131,31 @@ class TaylorNonLinearDiffuser(Component):
 
     _name = "TaylorNonLinearDiffuser"
 
-    _input_var_names = set(("topographic__elevation",))
-
-    _output_var_names = set(
-        ("soil__flux", "topographic__slope", "topographic__elevation")
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "topographic__slope": "m/m",
-        "soil__flux": "m^2/yr",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "topographic__slope": "link",
-        "soil__flux": "link",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "elevation of the ground surface",
-        "topographic__slope": "gradient of the ground surface",
-        "soil__flux": "flux of soil in direction of link",
+    _info = {
+        "soil__flux": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m^2/yr",
+            "mapping": "link",
+            "doc": "flux of soil in direction of link",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "elevation of the ground surface",
+        },
+        "topographic__slope": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m/m",
+            "mapping": "link",
+            "doc": "gradient of the ground surface",
+        },
     }
 
     def __init__(self, grid, linear_diffusivity=1.0, slope_crit=1.0, nterms=2):

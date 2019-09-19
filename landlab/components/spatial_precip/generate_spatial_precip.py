@@ -254,28 +254,31 @@ class SpatialPrecipitationDistribution(Component):
         doi={10.5194/gmd-2018-86}
         }"""
 
-    _optional_var_names = set(("topographic__elevation",))
-
-    _input_var_names = set()
-
-    _output_var_names = ("rainfall__flux", "rainfall__total_depth_per_year")
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "rainfall__flux": "mm/hr",
-        "rainfall__total_depth_per_year": "mm/yr",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "rainfall__flux": "node",
-        "rainfall__total_depth_per_year": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "rainfall__flux": "Depth of water delivered per unit time in each storm",
-        "rainfall__total_depth_per_year": "Depth of water delivered in total in each model year",
+    _info = {
+        "rainfall__flux": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "mm/hr",
+            "mapping": "node",
+            "doc": "Depth of water delivered per unit time in each storm",
+        },
+        "rainfall__total_depth_per_year": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "mm/yr",
+            "mapping": "node",
+            "doc": "Depth of water delivered in total in each model year",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
     }
 
     def __init__(

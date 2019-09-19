@@ -183,108 +183,114 @@ class LandslideProbability(Component):
     """
 
     # component name
-    _name = "Landslide Probability"
+    _name = "LandslideProbability"
     __version__ = "1.0"
-    # component requires these values to do its calculation, get from driver
-    _input_var_names = set(
-        (
-            "topographic__specific_contributing_area",
-            "topographic__slope",
-            "soil__transmissivity",
-            "soil__saturated_hydraulic_conductivity",
-            "soil__mode_total_cohesion",
-            "soil__minimum_total_cohesion",
-            "soil__maximum_total_cohesion",
-            "soil__internal_friction_angle",
-            "soil__density",
-            "soil__thickness",
-        )
-    )
-
-    #  component creates these output values
-    _output_var_names = set(
-        (
-            "soil__mean_relative_wetness",
-            "landslide__probability_of_failure",
-            "soil__probability_of_saturation",
-        )
-    )
-
-    # units for each parameter and output
-    _var_units = {
-        "topographic__specific_contributing_area": "m",
-        "topographic__slope": "tan theta",
-        "soil__transmissivity": "m2/day",
-        "soil__saturated_hydraulic_conductivity": "m/day",
-        "soil__mode_total_cohesion": "Pa or kg/m-s2",
-        "soil__minimum_total_cohesion": "Pa or kg/m-s2",
-        "soil__maximum_total_cohesion": "Pa or kg/m-s2",
-        "soil__internal_friction_angle": "degrees",
-        "soil__density": "kg/m3",
-        "soil__thickness": "m",
-        "soil__mean_relative_wetness": "None",
-        "landslide__probability_of_failure": "None",
-        "soil__probability_of_saturation": "None",
+    _info = {
+        "landslide__probability_of_failure": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "node",
+            "doc": "number of times FS is <=1 out of number of iterations user selected",
+        },
+        "soil__density": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "kg/m3",
+            "mapping": "node",
+            "doc": "wet bulk density of soil",
+        },
+        "soil__internal_friction_angle": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "degrees",
+            "mapping": "node",
+            "doc": "critical angle just before failure due to friction between particles",
+        },
+        "soil__maximum_total_cohesion": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "Pa or kg/m-s2",
+            "mapping": "node",
+            "doc": "maximum of combined root and soil cohesion at node",
+        },
+        "soil__mean_relative_wetness": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "node",
+            "doc": "Indicator of soil wetness; relative depth perched water table within the soil layer",
+        },
+        "soil__minimum_total_cohesion": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "Pa or kg/m-s2",
+            "mapping": "node",
+            "doc": "minimum of combined root and soil cohesion at node",
+        },
+        "soil__mode_total_cohesion": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "Pa or kg/m-s2",
+            "mapping": "node",
+            "doc": "mode of combined root and soil cohesion at node",
+        },
+        "soil__probability_of_saturation": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "node",
+            "doc": "number of times relative wetness is >=1 out of number of iterations user selected",
+        },
+        "soil__saturated_hydraulic_conductivity": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m/day",
+            "mapping": "node",
+            "doc": "mode rate of water transmitted through soil - provided if transmissivity is NOT provided to calculate tranmissivity  with soil depth",
+        },
+        "soil__thickness": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "soil depth to restrictive layer",
+        },
+        "soil__transmissivity": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m2/day",
+            "mapping": "node",
+            "doc": "mode rate of water transmitted through a unit width of saturated soil - either provided or calculated with Ksat and soil depth",
+        },
+        "topographic__slope": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "tan theta",
+            "mapping": "node",
+            "doc": "slope of surface at node represented by tan theta",
+        },
+        "topographic__specific_contributing_area": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "specific contributing (upslope area/cell face ) that drains to node",
+        },
     }
-
-    # grid centering of each field and variable
-    _var_mapping = {
-        "topographic__specific_contributing_area": "node",
-        "topographic__slope": "node",
-        "soil__transmissivity": "node",
-        "soil__saturated_hydraulic_conductivity": "node",
-        "soil__mode_total_cohesion": "node",
-        "soil__minimum_total_cohesion": "node",
-        "soil__maximum_total_cohesion": "node",
-        "soil__internal_friction_angle": "node",
-        "soil__density": "node",
-        "soil__thickness": "node",
-        "soil__mean_relative_wetness": "node",
-        "landslide__probability_of_failure": "node",
-        "soil__probability_of_saturation": "node",
-    }
-
-    # short description of each field
-    _var_doc = {
-        "topographic__specific_contributing_area": (
-            "specific contributing (upslope area/cell face )" + " that drains to node"
-        ),
-        "topographic__slope": "slope of surface at node represented by tan theta",
-        "soil__transmissivity": (
-            "mode rate of water transmitted"
-            + " through a unit width of saturated soil - "
-            + "either provided or calculated with Ksat "
-            + "and soil depth"
-        ),
-        "soil__saturated_hydraulic_conductivity": (
-            "mode rate of water transmitted"
-            + " through soil - provided if transmissivity "
-            + "is NOT provided to calculate tranmissivity "
-            + " with soil depth"
-        ),
-        "soil__mode_total_cohesion": "mode of combined root and soil cohesion at node",
-        "soil__minimum_total_cohesion": "minimum of combined root and soil cohesion at node",
-        "soil__maximum_total_cohesion": "maximum of combined root and soil cohesion at node",
-        "soil__internal_friction_angle": (
-            "critical angle just before failure" + " due to friction between particles"
-        ),
-        "soil__density": "wet bulk density of soil",
-        "soil__thickness": "soil depth to restrictive layer",
-        "soil__mean_relative_wetness": (
-            "Indicator of soil wetness;"
-            + " relative depth perched water table"
-            + " within the soil layer"
-        ),
-        "landslide__probability_of_failure": (
-            "number of times FS is <=1 out of number of" + " iterations user selected"
-        ),
-        "soil__probability_of_saturation": (
-            "number of times relative wetness is >=1 out of"
-            + " number of iterations user selected"
-        ),
-    }
-
-    # Run Component
 
     def __init__(
         self,
@@ -394,7 +400,7 @@ class LandslideProbability(Component):
             self._interpolate_HSD_dict()
 
         # Check if all output fields are initialized
-        self._initialize_output_fields_with_zero_floats()
+        self.initialize_output_fields()
 
         # Create a switch to imply whether Ksat is provided.
         if np.all(self._grid.at_node["soil__saturated_hydraulic_conductivity"] == 0):

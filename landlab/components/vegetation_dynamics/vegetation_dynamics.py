@@ -99,67 +99,87 @@ class Vegetation(Component):
 
     _name = "Vegetation"
 
-    _input_var_names = set(
-        (
-            "surface__evapotranspiration",
-            "vegetation__water_stress",
-            "surface__potential_evapotranspiration_rate",
-            "surface__potential_evapotranspiration_30day_mean",
-            "vegetation__plant_functional_type",
-        )
-    )
-
-    _output_var_names = set(
-        (
-            "vegetation__live_leaf_area_index",
-            "vegetation__dead_leaf_area_index",
-            "vegetation__cover_fraction",
-            "vegetation__live_biomass",
-            "vegetation__dead_biomass",
-        )
-    )
-
-    _var_units = {
-        "vegetation__live_leaf_area_index": "None",
-        "vegetation__dead_leaf_area_index": "None",
-        "vegetation__cover_fraction": "None",
-        "surface__evapotranspiration": "mm",
-        "surface__potential_evapotranspiration_rate": "mm",
-        "surface__potential_evapotranspiration_30day_mean": "mm",
-        "vegetation__water_stress": "None",
-        "vegetation__live_biomass": "g m^-2 d^-1",
-        "vegetation__dead_biomass": "g m^-2 d^-1",
-        "vegetation__plant_functional_type": "None",
-    }
-
-    _var_mapping = {
-        "vegetation__live_leaf_area_index": "cell",
-        "vegetation__dead_leaf_area_index": "cell",
-        "vegetation__cover_fraction": "cell",
-        "surface__evapotranspiration": "cell",
-        "surface__potential_evapotranspiration_rate": "cell",
-        "surface__potential_evapotranspiration_30day_mean": "cell",
-        "vegetation__water_stress": "cell",
-        "vegetation__live_biomass": "cell",
-        "vegetation__dead_biomass": "cell",
-        "vegetation__plant_functional_type": "cell",
-    }
-
-    _var_doc = {
-        "vegetation__live_leaf_area_index": "one-sided green leaf area per unit ground surface area",
-        "vegetation__dead_leaf_area_index": "one-sided dead leaf area per unit ground surface area",
-        "vegetation__cover_fraction": "fraction of land covered by vegetation",
-        "surface__evapotranspiration": "actual sum of evaporation and plant transpiration",
-        "surface__potential_evapotranspiration_rate": "potential sum of evaporation and platnt transpiration",
-        "surface__potential_evapotranspiration_30day_mean": "30 day mean of surface__potential_evapotranspiration",
-        "vegetation__water_stress": "parameter that represents nonlinear effects of water defecit \
-             on plants",
-        "vegetation__live_biomass": "weight of green organic mass per unit area - measured in terms \
-             of dry matter",
-        "vegetation__dead_biomass": "weight of dead organic mass per unit area - measured in terms \
-             of dry matter",
-        "vegetation__plant_functional_type": "classification of plants (int), grass=0, shrub=1, tree=2, \
-             bare=3, shrub_seedling=4, tree_seedling=5",
+    _info = {
+        "surface__evapotranspiration": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "actual sum of evaporation and plant transpiration",
+        },
+        "surface__potential_evapotranspiration_30day_mean": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "30 day mean of surface__potential_evapotranspiration",
+        },
+        "surface__potential_evapotranspiration_rate": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "potential sum of evaporation and platnt transpiration",
+        },
+        "vegetation__cover_fraction": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "fraction of land covered by vegetation",
+        },
+        "vegetation__dead_biomass": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "g m^-2 d^-1",
+            "mapping": "cell",
+            "doc": "weight of dead organic mass per unit area - measured in terms of dry matter",
+        },
+        "vegetation__dead_leaf_area_index": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "one-sided dead leaf area per unit ground surface area",
+        },
+        "vegetation__live_biomass": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "g m^-2 d^-1",
+            "mapping": "cell",
+            "doc": "weight of green organic mass per unit area - measured in terms of dry matter",
+        },
+        "vegetation__live_leaf_area_index": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "one-sided green leaf area per unit ground surface area",
+        },
+        "vegetation__plant_functional_type": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "classification of plants (int), grass=0, shrub=1, tree=2, bare=3, shrub_seedling=4, tree_seedling=5",
+        },
+        "vegetation__water_stress": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "parameter that represents nonlinear effects of water defecit on plants",
+        },
     }
 
     def __init__(
@@ -294,7 +314,7 @@ class Vegetation(Component):
             kws_bare=kws_bare,
         )
 
-        self._initialize_output_fields_with_zero_floats()
+        self.initialize_output_fields()
 
         self._cell_values = self._grid["cell"]
 

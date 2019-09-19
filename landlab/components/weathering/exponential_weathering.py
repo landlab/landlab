@@ -53,17 +53,23 @@ class ExponentialWeatherer(Component):
 
     _name = "ExponentialWeatherer"
 
-    _input_var_names = set(("soil__depth",))
-
-    _output_var_names = set(("soil_production__rate",))
-
-    _var_units = {"soil__depth": "m", "soil_production__rate": "m/yr"}
-
-    _var_mapping = {"soil__depth": "node", "soil_production__rate": "node"}
-
-    _var_doc = {
-        "soil__depth": "depth of soil/weather bedrock",
-        "soil_production__rate": "rate of soil production at nodes",
+    _info = {
+        "soil__depth": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "depth of soil/weather bedrock",
+        },
+        "soil_production__rate": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m/yr",
+            "mapping": "node",
+            "doc": "rate of soil production at nodes",
+        },
     }
 
     def __init__(

@@ -267,60 +267,71 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     _name = "LossyFlowAccumulator"
 
-    _optional_var_names = ("topographic__elevation", "water__unit_flux_in")
-
-    _input_var_names = ()
-
-    _output_var_names = (
-        "drainage_area",
-        "surface_water__discharge",
-        "surface_water__discharge_loss",
-        "flow__upstream_node_order",
-        "flow__data_structure_delta",
-        "flow__data_structure_D",
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "flow__receiver_node": "m",
-        "water__unit_flux_in": "m/s",
-        "drainage_area": "m**2",
-        "surface_water__discharge": "m**3/s",
-        "surface_water__discharge_loss": "m**3/s",
-        "flow__upstream_node_order": "-",
-        "flow__data_structure_delta": "-",
-        "flow__data_structure_D": "-",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "flow__receiver_node": "node",
-        "water__unit_flux_in": "node",
-        "drainage_area": "node",
-        "surface_water__discharge": "node",
-        "surface_water__discharge_loss": "node",
-        "flow__upstream_node_order": "node",
-        "flow__data_structure_delta": "node",
-        "flow__data_structure_D": "grid",
-    }
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "flow__receiver_node": "Node array of receivers (node that "
-        + "receives flow from current node)",
-        "drainage_area": "Upstream accumulated surface area contributing "
-        + "to the node's discharge",
-        "surface_water__discharge": "Discharge of water through each node",
-        "surface_water__discharge_loss": "Total volume of water per second "
-        + "lost during all flow out of the node",
-        "water__unit_flux_in": "External volume water per area per time "
-        + "input to each node (e.g., rainfall rate)",
-        "flow__upstream_node_order": "Node array containing "
-        + "downstream-to-upstream ordered list of node IDs",
-        "flow__data_structure_delta": "Node array containing the "
-        + "elements delta[1:] of the data structure 'delta' used for "
-        + "construction of the downstream-to-upstream node array",
-        "flow__data_structure_D": "Grid array containing the data structure "
-        + "D used for construction of the downstream-to-upstream node array",
+    _info = {
+        "drainage_area": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m**2",
+            "mapping": "node",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
+        },
+        "flow__data_structure_D": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "grid",
+            "doc": "Grid array containing the data structure D used for construction of the downstream-to-upstream node array",
+        },
+        "flow__data_structure_delta": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing the elements delta[1:] of the data structure 'delta' used for construction of the downstream-to-upstream node array",
+        },
+        "flow__upstream_node_order": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
+        },
+        "surface_water__discharge": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Discharge of water through each node",
+        },
+        "surface_water__discharge_loss": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Total volume of water per second lost during all flow out of the node",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "water__unit_flux_in": {
+            "type": None,
+            "intent": "in",
+            "optional": True,
+            "units": "m/s",
+            "mapping": "node",
+            "doc": "External volume water per area per time input to each node (e.g., rainfall rate)",
+        },
     }
 
     def __init__(

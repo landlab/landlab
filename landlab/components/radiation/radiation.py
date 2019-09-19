@@ -70,36 +70,39 @@ class Radiation(Component):
 
     _name = "Radiation"
 
-    _input_var_names = set(("topographic__elevation",))
-
-    _output_var_names = set(
-        (
-            "radiation__incoming_shortwave_flux",
-            "radiation__ratio_to_flat_surface",
-            "radiation__net_shortwave_flux",
-        )
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "radiation__incoming_shortwave_flux": "W/m^2",
-        "radiation__ratio_to_flat_surface": "None",
-        "radiation__net_shortwave_flux": "W/m^2",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "radiation__incoming_shortwave_flux": "cell",
-        "radiation__ratio_to_flat_surface": "cell",
-        "radiation__net_shortwave_flux": "cell",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "elevation of the ground surface relative to some datum",
-        "radiation__incoming_shortwave_flux": "total incident shortwave radiation over the time step",
-        "radiation__ratio_to_flat_surface": "ratio of total incident shortwave radiation on sloped surface \
-             to flat surface",
-        "radiation__net_shortwave_flux": "net incident shortwave radiation over the time step",
+    _info = {
+        "radiation__incoming_shortwave_flux": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "W/m^2",
+            "mapping": "cell",
+            "doc": "total incident shortwave radiation over the time step",
+        },
+        "radiation__net_shortwave_flux": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "W/m^2",
+            "mapping": "cell",
+            "doc": "net incident shortwave radiation over the time step",
+        },
+        "radiation__ratio_to_flat_surface": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "ratio of total incident shortwave radiation on sloped surface to flat surface",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "elevation of the ground surface relative to some datum",
+        },
     }
 
     def __init__(
@@ -154,7 +157,7 @@ class Radiation(Component):
 
         _assert_method_is_valid(self._method)
 
-        self._initialize_output_fields_with_zero_floats()
+        self.initialize_output_fields()
 
         if "Slope" not in self._grid.at_cell:
             self._grid.add_zeros("Slope", at="cell", units="radians")

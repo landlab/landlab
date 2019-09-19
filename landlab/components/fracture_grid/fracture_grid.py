@@ -181,15 +181,16 @@ class FractureGridGenerator(Component):
 
     _name = "FractureGridGenerator"
 
-    _input_var_names = set(())
-
-    _output_var_names = set(("fracture_at_node",))
-
-    _var_units = {"fracture_at_node": "-"}
-
-    _var_mapping = {"fracture_at_node": "node"}
-
-    _var_doc = {"fracture_at_node": "presence (1) or absence (0) of fracture"}
+    _info = {
+        "fracture_at_node": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "presence (1) or absence (0) of fracture",
+        }
+    }
 
     def __init__(self, grid, frac_spacing=10.0, seed=0):
         """Initialize the FractureGridGenerator."""

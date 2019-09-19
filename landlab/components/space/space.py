@@ -167,49 +167,71 @@ class Space(_GeneralizedErosionDeposition):
 
     _name = "Space"
 
-    _input_var_names = set(
-        (
-            "flow__receiver_node",
-            "flow__upstream_node_order",
-            "topographic__steepest_slope",
-            "drainage_area",
-            "soil__depth",
-        )
-    )
-
-    _output_var_names = set(("topographic__elevation", "soil__depth", "sediment__flux"))
-
-    _var_units = {
-        "flow__receiver_node": "-",
-        "flow__upstream_node_order": "-",
-        "topographic__steepest_slope": "-",
-        "drainage_area": "m**2",
-        "soil__depth": "m",
-        "topographic__elevation": "m",
-        "sediment__flux": "m3/s",
-    }
-
-    _var_mapping = {
-        "flow__receiver_node": "node",
-        "flow__upstream_node_order": "node",
-        "topographic__steepest_slope": "node",
-        "drainage_area": "node",
-        "soil__depth": "node",
-        "topographic__elevation": "node",
-        "sediment__flux": "node",
-    }
-
-    _var_doc = {
-        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
-        "node)",
-        "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
-        "node IDs",
-        "topographic__steepest_slope": "Topographic slope at each node",
-        "drainage_area": "Upstream accumulated surface area contributing to the node's "
-        "discharge",
-        "soil__depth": "Depth of sediment above bedrock",
-        "topographic__elevation": "Land surface topographic elevation",
-        "sediment__flux": "TODO",
+    _info = {
+        "drainage_area": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m**2",
+            "mapping": "node",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
+        },
+        "flow__link_to_receiver_node": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__upstream_node_order": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
+        },
+        "sediment__flux": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/s",
+            "mapping": "node",
+            "doc": "TODO",
+        },
+        "soil__depth": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Depth of sediment above bedrock",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__steepest_slope": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Topographic slope at each node",
+        },
     }
 
     _cite_as = """@Article{gmd-10-4577-2017,

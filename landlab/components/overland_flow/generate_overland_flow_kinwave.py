@@ -42,34 +42,47 @@ class KinwaveOverlandFlowModel(Component):
 
     _name = "KinwaveOverlandFlowModel"
 
-    _input_var_names = set(("topographic__elevation", "topographic__gradient"))
-
-    _output_var_names = set(
-        ("surface_water__depth", "water__velocity", "water__specific_discharge")
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "topographic__gradient": "m/m",
-        "surface_water__depth": "m",
-        "water__velocity": "m/s",
-        "water__specific_discharge": "m2/s",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "topographic__gradient": "link",
-        "surface_water__depth": "node",
-        "water__velocity": "link",
-        "water__specific_discharge": "link",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "elevation of the ground surface relative to some datum",
-        "topographic__gradient": "gradient of the ground surface",
-        "surface_water__depth": "depth of water",
-        "water__velocity": "flow velocity component in the direction of the link",
-        "water__specific_discharge": "flow discharge component in the direction of the link",
+    _info = {
+        "surface_water__depth": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "depth of water",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "elevation of the ground surface relative to some datum",
+        },
+        "topographic__gradient": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m/m",
+            "mapping": "link",
+            "doc": "gradient of the ground surface",
+        },
+        "water__specific_discharge": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m2/s",
+            "mapping": "link",
+            "doc": "flow discharge component in the direction of the link",
+        },
+        "water__velocity": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m/s",
+            "mapping": "link",
+            "doc": "flow velocity component in the direction of the link",
+        },
     }
 
     def __init__(
@@ -112,7 +125,7 @@ class KinwaveOverlandFlowModel(Component):
         #   Slope
         self._slope = grid.at_link["topographic__gradient"]
 
-        self._initialize_output_fields_with_zero_floats()
+        self.initialize_output_fields()
         self._depth = grid.at_node["surface_water__depth"]
         self._vel = grid.at_link["water__velocity"]
         self._disch = grid.at_link["water__specific_discharge"]

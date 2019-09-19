@@ -48,15 +48,16 @@ class NormalFault(Component):
 
     _name = "NormalFault"
 
-    _input_var_names = set(("topographic__elevation",))
-
-    _output_var_names = set(("topographic__elevation",))
-
-    _var_units = {"topographic__elevation": "m"}
-
-    _var_mapping = {"topographic__elevation": "node"}
-
-    _var_doc = {"topographic__elevation": "elevation of the ground surface"}
+    _info = {
+        "topographic__elevation": {
+            "type": None,
+            "intent": "inout",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "elevation of the ground surface",
+        }
+    }
 
     def __init__(
         self,

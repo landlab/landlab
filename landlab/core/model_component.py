@@ -82,12 +82,7 @@ class Component(object):
         ~landlab.core.model_component.Component.imshow
     """
 
-    _input_var_names = set()
-    _output_var_names = set()
-    _optional_var_names = set()
-    _var_units = dict()
-    _var_doc = dict()
-    _var_mapping = dict()
+    _info = {}
 
     def __new__(cls, *args, **kwds):
         registry.add(cls)
@@ -97,33 +92,32 @@ class Component(object):
         self._grid = grid
         self._current_time = None
         # ensure that required input fields exist
-        for name in self._input_var_names:
-            at = self._var_mapping[name]
-            if name not in self._grid[at]:
+        for name in self._info.keys():
+            at = self._info[name]["mapping"]
+            optional = self._info[name]["optional"]
+            in_true = "in" in self._info[name]["intent"]
+
+            if (in_true) and (not optional) and (name not in self._grid[at]):
                 raise FieldError(
                     "{component} is missing input variable: {name} at {at}".format(
                         component=self._name, name=name, at=at
                     )
                 )
 
-    def _initialize_output_fields_with_zero_floats(self):
-        for name in self._output_var_names:
-            at = self._var_mapping[name]
-            if name not in self._grid[at]:
-                self._grid.add_zeros(name, at=at, units=self._var_units[name])
+    def _verify_output_fields(self, names=None):
+        names = names or self._info.keys()
 
-    def _verify_output_fields(self):
-        for name in self._output_var_names:
-            try:
-                at = self._var_mapping[name]
-                if name not in self._grid[at]:
-                    raise FieldError(
-                        "{component} is missing output variable: {name} at {at}".format(
-                            component=self._name, name=name, at=at
-                        )
+        for name in names:
+            at = self._info[name]["mapping"]
+            optional = self._info[name]["optional"]
+            out_true = "out" in self._info[name]["intent"]
+
+            if (out_true) and (not optional) and (name not in self._grid[at]):
+                raise FieldError(
+                    "{component} is missing output variable: {name} at {at}".format(
+                        component=self._name, name=name, at=at
                     )
-            except KeyError:
-                pass  # print(name, self.var_mapping)
+                )
 
     @classmethod
     def from_path(cls, grid, path):
@@ -178,11 +172,16 @@ class Component(object):
         tuple of str
             Tuple of field names.
         """
-        return tuple(sorted(cls._input_var_names))
+        input_var_names = [
+            name
+            for name in cls._info.keys()
+            if (not cls._info[name]["optional"]) and ("in" in cls._info[name]["intent"])
+        ]
+        return tuple(sorted(input_var_names))
 
     @classproperty
     @classmethod
-    def output_var_names(self):
+    def output_var_names(cls):
         """Names of fields that are provided by the component.
 
         Returns
@@ -190,11 +189,17 @@ class Component(object):
         tuple of str
             Tuple of field names.
         """
-        return tuple(sorted(self._output_var_names))
+        output_var_names = [
+            name
+            for name in cls._info.keys()
+            if (not cls._info[name]["optional"])
+            and ("out" in cls._info[name]["intent"])
+        ]
+        return tuple(sorted(output_var_names))
 
     @classproperty
     @classmethod
-    def optional_var_names(self):
+    def optional_var_names(cls):
         """
         Names of fields that are optionally provided by the component, if
         any.
@@ -204,10 +209,10 @@ class Component(object):
         tuple of str
             Tuple of field names.
         """
-        try:
-            return tuple(sorted(self._optional_var_names))
-        except AttributeError:
-            return ()
+        optional_var_names = [
+            name for name in cls._info.keys() if cls._info[name]["optional"]
+        ]
+        return tuple(sorted(optional_var_names))
 
     @classmethod
     def var_type(cls, name):
@@ -225,14 +230,11 @@ class Component(object):
         dtype
             The dtype of the field.
         """
-        try:
-            return cls._var_type[name]
-        except AttributeError:
-            return float
+        return cls._info[name]["type"] or float
 
     @classproperty
     @classmethod
-    def name(self):
+    def name(cls):
         """Name of the component.
 
         Returns
@@ -240,11 +242,11 @@ class Component(object):
         str
             Component name.
         """
-        return self._name
+        return cls._name
 
     @classproperty
     @classmethod
-    def units(self):
+    def units(cls):
         """Get the units for all field values.
 
         Returns
@@ -252,7 +254,9 @@ class Component(object):
         tuple or str
             Units for each field.
         """
-        return tuple(self._var_units.items())
+        return tuple(
+            sorted([(name, cls._info[name]["units"]) for name in cls._info.keys()])
+        )
 
     @classmethod
     def var_units(cls, name):
@@ -268,7 +272,7 @@ class Component(object):
         str
             Units for the given field.
         """
-        return cls._var_units[name]
+        return cls._info[name]["units"]
 
     @classproperty
     @classmethod
@@ -280,7 +284,9 @@ class Component(object):
         tuple of (*name*, *description*)
             A description of each field.
         """
-        return tuple(cls._var_doc.items())
+        return tuple(
+            sorted([(name, cls._info[name]["doc"]) for name in cls._info.keys()])
+        )
 
     @classmethod
     def var_definition(cls, name):
@@ -296,7 +302,7 @@ class Component(object):
         tuple of (*name*, *description*)
             A description of each field.
         """
-        return cls._var_doc[name]
+        return cls._info[name]["doc"]
 
     @classmethod
     def var_help(cls, name):
@@ -309,19 +315,12 @@ class Component(object):
         """
         desc = os.linesep.join(
             textwrap.wrap(
-                cls._var_doc[name], initial_indent="  ", subsequent_indent="  "
+                cls._info[name]["doc"], initial_indent="  ", subsequent_indent="  "
             )
         )
-        units = cls._var_units[name]
-        loc = cls._var_mapping[name]
-
-        intent = ""
-        if name in cls._input_var_names:
-            intent = "in"
-        if name in cls._output_var_names:
-            intent += "out"
-        if name in cls._optional_var_names:
-            intent += "optional"
+        units = cls._info[name]["units"]
+        loc = cls._info[name]["mapping"]
+        intent = cls._info[name]["intent"]
 
         help = _VAR_HELP_MESSAGE.format(
             name=name, desc=desc, units=units, loc=loc, intent=intent
@@ -331,7 +330,7 @@ class Component(object):
 
     @classproperty
     @classmethod
-    def var_mapping(self):
+    def var_mapping(cls):
         """Location where variables are defined.
 
         Returns
@@ -339,7 +338,9 @@ class Component(object):
         tuple of (name, location)
             Tuple of variable name and location ('node', 'link', etc.) pairs.
         """
-        return tuple(self._var_mapping.items())
+        return tuple(
+            sorted([(name, cls._info[name]["mapping"]) for name in cls._info.keys()])
+        )
 
     @classmethod
     def var_loc(cls, name):
@@ -355,7 +356,7 @@ class Component(object):
         str
             The location ('node', 'link', etc.) where a variable is defined.
         """
-        return cls._var_mapping[name]
+        return cls._info[name]["mapping"]
 
     def initialize_output_fields(self):
         """
@@ -363,22 +364,20 @@ class Component(object):
 
         This method will create new fields (without overwrite) for any fields
         output by, but not supplied to, the component. New fields are
-        initialized to zero. Ignores optional fields, if specified by
-        _optional_var_names. New fields are created as arrays of floats, unless
-        the component also contains the specifying property _var_type.
+        initialized to zero. Ignores optional fields. New fields are created as
+        arrays of floats, unless the component specifies the variable type.
         """
-        for field_to_set in (
-            set(self.output_var_names)
-            - set(self.input_var_names)
-            - set(self.optional_var_names)
-        ):
-            grp = self.var_loc(field_to_set)
-            type_in = self.var_type(field_to_set)
-            init_vals = self.grid.zeros(grp, dtype=type_in)
-            units_in = self.var_units(field_to_set)
-            self.grid.add_field(
-                grp, field_to_set, init_vals, units=units_in, copy=False, noclobber=True
-            )
+        for name in self._info.keys():
+            at = self._info[name]["mapping"]
+            optional = self._info[name]["optional"]
+            out_true = "out" in self._info[name]["intent"]
+            if (out_true) and (not optional) and (name not in self._grid[at]):
+
+                type_in = self.var_type(name)
+                init_vals = self.grid.zeros(at, dtype=type_in)
+                units_in = self.var_units(name)
+
+                self.grid.add_field(at, name, init_vals, units=units_in, copy=False)
 
     def initialize_optional_output_fields(self):
         """
@@ -390,14 +389,18 @@ class Component(object):
         initialized to zero. New fields are created as arrays of floats, unless
         the component also contains the specifying property _var_type.
         """
-        for field_to_set in set(self.optional_var_names) - set(self.input_var_names):
-            self.grid.add_field(
-                self.var_loc(field_to_set),
-                field_to_set,
-                self.grid.zeros(dtype=self.var_type(field_to_set)),
-                units=self.var_units(field_to_set),
-                noclobber=True,
-            )
+
+        for name in self._info.keys():
+            at = self._info[name]["mapping"]
+            optional = self._info[name]["optional"]
+            out_true = "out" in self._info[name]["intent"]
+            if (out_true) and (optional) and (name not in self._grid[at]):
+
+                type_in = self.var_type(name)
+                init_vals = self.grid.zeros(at, dtype=type_in)
+                units_in = self.var_units(name)
+
+                self.grid.add_field(at, name, init_vals, units=units_in, copy=False)
 
     @property
     def shape(self):

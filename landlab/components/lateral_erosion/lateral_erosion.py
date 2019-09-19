@@ -182,60 +182,71 @@ class LateralEroder(Component):
 
     _name = "LateralEroder"
 
-    _input_var_names = set(
-        (
-            "topographic__elevation",
-            "drainage_area",
-            "flow__receiver_node",
-            "flow__upstream_node_order",
-            "topographic__steepest_slope",
-        )
-    )
-
-    _output_var_names = set(
-        (
-            "topographic__elevation",
-            "lateral_erosion__depth_increment",
-            "volume__lateral_erosion",
-            "sediment__flux",
-        )
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "drainage_area": "m2",
-        "flow__receiver_node": "-",
-        "flow__upstream_node_order": "-",
-        "topographic__steepest_slope": "-",
-        "lateral_erosion__depth_increment": "m",
-        "volume__lateral_erosion": "m3",
-        "sediment__flux": "m3/y",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "drainage_area": "node",
-        "flow__receiver_node": "node",
-        "flow__upstream_node_order": "node",
-        "topographic__steepest_slope": "node",
-        "lateral_erosion__depth_increment": "node",
-        "volume__lateral_erosion": "node",
-        "sediment__flux": "node",
-    }
-
-    _var_doc = {
-        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
-        "node)",
-        "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
-        "node IDs",
-        "topographic__steepest_slope": "Topographic slope at each node",
-        "drainage_area": "Upstream accumulated surface area contributing to the node's "
-        "discharge",
-        "soil__depth": "Depth of sediment above bedrock",
-        "topographic__elevation": "Land surface topographic elevation",
-        "lateral_erosion__depth_increment": "Change in elevation at each node from lateral erosion during time step",
-        "volume__lateral_erosion": "Array tracking volume eroded at each node from lateral erosion",
-        "sediment__flux": "Volume per unit time of sediment entering each node",
+    _info = {
+        "drainage_area": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m2",
+            "mapping": "node",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
+        },
+        "flow__receiver_node": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__upstream_node_order": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
+        },
+        "lateral_erosion__depth_increment": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Change in elevation at each node from lateral erosion during time step",
+        },
+        "sediment__flux": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/y",
+            "mapping": "node",
+            "doc": "Volume per unit time of sediment entering each node",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__steepest_slope": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Topographic slope at each node",
+        },
+        "volume__lateral_erosion": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m3",
+            "mapping": "node",
+            "doc": "Array tracking volume eroded at each node from lateral erosion",
+        },
     }
 
     def __init__(

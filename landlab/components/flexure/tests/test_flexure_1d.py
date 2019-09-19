@@ -44,11 +44,11 @@ def test_var_units(flex1d):
 
 def test_var_mapping(flex1d):
     """Test input/output var mappings."""
-    assert isinstance(flex1d._var_mapping, dict)
+    assert isinstance(flex1d._info, dict)
     for name in flex1d.input_var_names + flex1d.output_var_names:
-        assert name in flex1d._var_mapping
-        assert isinstance(flex1d._var_mapping[name], str)
-        assert flex1d._var_mapping[name] in (
+        assert name in flex1d._info
+        assert isinstance(flex1d._info[name]["doc"], str)
+        assert flex1d._info[name]["mapping"] in (
             "node",
             "link",
             "patch",
@@ -58,12 +58,12 @@ def test_var_mapping(flex1d):
         )
 
 
-def test_var_doc(flex1d):
+def test_info(flex1d):
     """Test input/output var docs."""
-    assert isinstance(flex1d._var_doc, dict)
+    assert isinstance(flex1d._info, dict)
     for name in flex1d.input_var_names + flex1d.output_var_names:
-        assert name in flex1d._var_doc
-        assert isinstance(flex1d._var_doc[name], str)
+        assert name in flex1d._info
+        assert isinstance(flex1d._info[name]["doc"], str)
 
 
 def test_calc_airy():

@@ -64,57 +64,63 @@ class SteepnessFinder(Component):
 
     _name = "SteepnessFinder"
 
-    _input_var_names = set(
-        (
-            "topographic__elevation",
-            "drainage_area",
-            "topographic__steepest_slope",
-            "flow__receiver_node",
-            "flow__upstream_node_order",
-            "flow__link_to_receiver_node",
-        )
-    )
-
-    _output_var_names = set(("channel__steepness_index",))
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "drainage_area": "m**2",
-        "topographic__steepest_slope": "-",
-        "flow__receiver_node": "-",
-        "flow__upstream_node_order": "-",
-        "flow__link_to_receiver_node": "-",
-        "channel__steepness_index": "variable",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "drainage_area": "node",
-        "topographic__steepest_slope": "node",
-        "flow__receiver_node": "node",
-        "flow__upstream_node_order": "node",
-        "flow__link_to_receiver_node": "node",
-        "channel__steepness_index": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Surface topographic elevation",
-        "drainage_area": "upstream drainage area",
-        "topographic__steepest_slope": (
-            "the steepest downslope " + "rise/run leaving the node"
-        ),
-        "flow__receiver_node": (
-            "the downstream node at the end of the " + "steepest link"
-        ),
-        "flow__upstream_node_order": (
-            "node order such that nodes must "
-            + "appear in the list after all nodes "
-            + "downstream of them"
-        ),
-        "flow__link_to_receiver_node": (
-            "ID of link downstream of each node, which carries the " + "discharge"
-        ),
-        "channel__steepness_index": "the local steepness index",
+    _info = {
+        "channel__steepness_index": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "variable",
+            "mapping": "node",
+            "doc": "the local steepness index",
+        },
+        "drainage_area": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m**2",
+            "mapping": "node",
+            "doc": "upstream drainage area",
+        },
+        "flow__link_to_receiver_node": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "the downstream node at the end of the steepest link",
+        },
+        "flow__upstream_node_order": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "node order such that nodes must appear in the list after all nodes downstream of them",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Surface topographic elevation",
+        },
+        "topographic__steepest_slope": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "the steepest downslope rise/run leaving the node",
+        },
     }
 
     def __init__(

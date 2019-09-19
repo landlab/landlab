@@ -106,7 +106,7 @@ class Flexure1D(Component):
     ...     "lithosphere__increment_of_overlying_pressure")
     >>> flex = Flexure1D(grid)
     >>> flex.name
-    '1D Flexure Equation'
+    'Flexure1D'
     >>> flex.input_var_names
     ('lithosphere__increment_of_overlying_pressure',)
     >>> flex.output_var_names
@@ -142,29 +142,28 @@ class Flexure1D(Component):
     False
     """
 
-    _name = "1D Flexure Equation"
+    _name = "Flexure1D"
 
-    _input_var_names = ("lithosphere__increment_of_overlying_pressure",)
-
-    _output_var_names = ("lithosphere_surface__increment_of_elevation",)
-
-    _var_units = {
-        "lithosphere__increment_of_overlying_pressure": "Pa",
-        "lithosphere_surface__increment_of_elevation": "m",
+    _info = {
+        "lithosphere__increment_of_overlying_pressure": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "Pa",
+            "mapping": "node",
+            "doc": "Applied pressure to the lithosphere over a time step",
+        },
+        "lithosphere_surface__increment_of_elevation": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "The change in elevation of the top of the lithosphere (the land surface) in one timestep",
+        },
     }
 
-    _var_mapping = {
-        "lithosphere__increment_of_overlying_pressure": "node",
-        "lithosphere_surface__increment_of_elevation": "node",
-    }
-
-    _var_doc = {
-        "lithosphere__increment_of_overlying_pressure": "Applied pressure to the lithosphere over a time step",
-        "lithosphere_surface__increment_of_elevation": "The change in elevation of the top of the lithosphere (the land "
-        "surface) in one timestep",
-    }
-
-    POISSON = 0.25
+    _POISSON = 0.25
 
     def __init__(
         self,
@@ -211,7 +210,7 @@ class Flexure1D(Component):
         self.gravity = gravity
         self.eet = eet
 
-        self._initialize_output_fields_with_zero_floats()
+        self.initialize_output_fields()
 
         self._rows = (rows,) or Ellipsis
 
@@ -311,7 +310,7 @@ class Flexure1D(Component):
             self._rigidity
         except AttributeError:
             self._rigidity = (
-                self._eet ** 3.0 * self._youngs / (12.0 * (1.0 - self.POISSON ** 2.0))
+                self._eet ** 3.0 * self._youngs / (12.0 * (1.0 - self._POISSON ** 2.0))
             )
         finally:
             return self._rigidity

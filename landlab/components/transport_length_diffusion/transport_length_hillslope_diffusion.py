@@ -87,59 +87,79 @@ class TransportLengthHillslopeDiffuser(Component):
 
     _name = "TransportLengthHillslopeDiffuser"
 
-    _input_var_names = set(
-        ("topographic__elevation", "flow__receiver_node", "topographic__steepest_slope")
-    )
-
-    _output_var_names = set(
-        (
-            "topographic__elevation",
-            "sediment__deposition_rate",
-            "sediment__transfer_rate",
-            "sediment__deposition_coeff",
-            "sediment__flux_in",
-            "sediment__flux_out",
-            "sediment__erosion_rate",
-        )
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "flow__receiver_node": "-",
-        "topographic__steepest_slope": "m/m",
-        "sediment__deposition_rate": "m/yr",
-        "sediment__transfer_rate": "m/yr",
-        "sediment__deposition_coeff": "-",
-        "sediment__flux_in": "m/yr",
-        "sediment__flux_out": "m/yr",
-        "sediment__erosion_rate": "m/yr",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "flow__receiver_node": "node",
-        "topographic__steepest_slope": "node",
-        "sediment__deposition_rate": "node",
-        "sediment__transfer_rate": "node",
-        "sediment__deposition_coeff": "node",
-        "sediment__flux_in": "node",
-        "sediment__flux_out": "node",
-        "sediment__erosion_rate": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Elevation of the ground surface",
-        "flow__receiver_node": "Node array of receivers (node that receives flow from "
-        "current node)",
-        "topographic__steepest_slope": "Steepest gradient of the ground surface at each node",
-        "sediment__deposition_rate": "Deposition rate on node",
-        "sediment__transfer_rate": "Rate of transferred sediment across a node (incoming "
-        "sediment - deposited sediment on node)",
-        "sediment__deposition_coeff": "Fraction of incoming sediment that is deposited on the node",
-        "sediment__flux_in": "Incoming sediment rate on node (=qs/dx)",
-        "sediment__flux_out": "Outgoing sediment rate on node = sediment eroded on"
-        " node + sediment transported across node from upstream",
-        "sediment__erosion_rate": "Erosion rate on node",
+    _info = {
+        "flow__receiver_node": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "sediment__deposition_coeff": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Fraction of incoming sediment that is deposited on the node",
+        },
+        "sediment__deposition_rate": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m/yr",
+            "mapping": "node",
+            "doc": "Deposition rate on node",
+        },
+        "sediment__erosion_rate": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m/yr",
+            "mapping": "node",
+            "doc": "Erosion rate on node",
+        },
+        "sediment__flux_in": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m/yr",
+            "mapping": "node",
+            "doc": "Incoming sediment rate on node (=qs/dx)",
+        },
+        "sediment__flux_out": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m/yr",
+            "mapping": "node",
+            "doc": "Outgoing sediment rate on node = sediment eroded on node + sediment transported across node from upstream",
+        },
+        "sediment__transfer_rate": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m/yr",
+            "mapping": "node",
+            "doc": "Rate of transferred sediment across a node (incoming sediment - deposited sediment on node)",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Elevation of the ground surface",
+        },
+        "topographic__steepest_slope": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m/m",
+            "mapping": "node",
+            "doc": "Steepest gradient of the ground surface at each node",
+        },
     }
 
     def __init__(self, grid, erodibility, slope_crit=1.0):
@@ -182,7 +202,7 @@ class TransportLengthHillslopeDiffuser(Component):
         # (on node (i), ID of node that receives flow from node (i)):
         self._receiver = self._grid.at_node["flow__receiver_node"]
 
-        self._initialize_output_fields_with_zero_floats()
+        self.initialize_output_fields()
         # Deposition
         self._depo = self._grid.at_node["sediment__deposition_rate"]
 

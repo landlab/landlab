@@ -84,18 +84,15 @@ class PrecipitationDistribution(Component):
 
     _name = "PrecipitationDistribution"
 
-    _input_var_names = set()
-
-    _output_var_names = set()
-
-    _optional_var_names = set(("rainfall__flux",))
-
-    _var_units = {"rainfall__flux": "[depth unit]/[time unit]"}
-
-    _var_mapping = {"rainfall__flux": "grid"}
-
-    _var_doc = {
-        "rainfall__flux": "Depth of water delivered per unit time in each storm"
+    _info = {
+        "rainfall__flux": {
+            "type": None,
+            "intent": "out",
+            "optional": True,
+            "units": "[depth unit]/[time unit]",
+            "mapping": "grid",
+            "doc": "Depth of water delivered per unit time in each storm",
+        }
     }
 
     def __init__(

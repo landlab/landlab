@@ -115,45 +115,55 @@ class DepthDependentDiffuser(Component):
 
     _name = "DepthDependentDiffuser"
 
-    _input_var_names = set(
-        ("topographic__elevation", "soil__depth", "soil_production__rate")
-    )
-
-    _output_var_names = set(
-        (
-            "soil__flux",
-            "topographic__slope",
-            "topographic__elevation",
-            "bedrock__elevation",
-            "soil__depth",
-        )
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "topographic__slope": "m/m",
-        "soil__depth": "m",
-        "soil__flux": "m^2/yr",
-        "soil_production__rate": "m/yr",
-        "bedrock__elevation": "m",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "topographic__slope": "link",
-        "soil__depth": "node",
-        "soil__flux": "link",
-        "soil_production__rate": "node",
-        "bedrock__elevation": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "elevation of the ground surface",
-        "topographic__slope": "gradient of the ground surface",
-        "soil__depth": "depth of soil/weather bedrock",
-        "soil__flux": "flux of soil in direction of link",
-        "soil_production__rate": "rate of soil production at nodes",
-        "bedrock__elevation": "elevation of the bedrock surface",
+    _info = {
+        "bedrock__elevation": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "elevation of the bedrock surface",
+        },
+        "soil__depth": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "depth of soil/weather bedrock",
+        },
+        "soil__flux": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m^2/yr",
+            "mapping": "link",
+            "doc": "flux of soil in direction of link",
+        },
+        "soil_production__rate": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m/yr",
+            "mapping": "node",
+            "doc": "rate of soil production at nodes",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "elevation of the ground surface",
+        },
+        "topographic__slope": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m/m",
+            "mapping": "link",
+            "doc": "gradient of the ground surface",
+        },
     }
 
     def __init__(self, grid, linear_diffusivity=1.0, soil_transport_decay_depth=1.0):

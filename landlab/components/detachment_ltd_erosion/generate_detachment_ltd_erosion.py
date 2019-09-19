@@ -99,21 +99,32 @@ class DetachmentLtdErosion(Component):
 
     _name = "DetachmentLtdErosion"
 
-    _input_var_names = set(("topographic__elevation", "surface_water__discharge"))
-
-    _output_var_names = set(("topographic__elevation",))
-
-    _var_units = {"topographic__elevation": "m", "surface_water__discharge": "m^3/s"}
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "surface_water__discharge": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "surface_water__discharge": "node",
-    }
+    _info = {
+        "surface_water__discharge": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m^3/s",
+            "mapping": "node",
+            "doc": "TODO",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__slope": {
+            "type": None,
+            "intent": "in",
+            "optional": True,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Gradient of surface, on links",
+        },
+        }
 
     def __init__(
         self,

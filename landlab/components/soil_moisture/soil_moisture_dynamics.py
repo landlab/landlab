@@ -35,7 +35,7 @@ class SoilMoisture(Component):
     >>> from landlab.components.soil_moisture import SoilMoisture
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     >>> SoilMoisture.name
-    'Soil Moisture'
+    'SoilMoisture'
     >>> sorted(SoilMoisture.output_var_names) # doctest: +NORMALIZE_WHITESPACE
     ['soil_moisture__root_zone_leakage',
      'soil_moisture__saturation_fraction',
@@ -88,69 +88,97 @@ class SoilMoisture(Component):
     False
     """
 
-    _name = "Soil Moisture"
+    _name = "SoilMoisture"
 
-    _input_var_names = (
-        "vegetation__cover_fraction",
-        "vegetation__live_leaf_area_index",
-        "surface__potential_evapotranspiration_rate",
-        "soil_moisture__initial_saturation_fraction",
-        "vegetation__plant_functional_type",
-        "rainfall__daily_depth",
-    )
-
-    _output_var_names = (
-        "vegetation__water_stress",
-        "soil_moisture__saturation_fraction",
-        "soil_moisture__root_zone_leakage",
-        "surface__runoff",
-        "surface__evapotranspiration",
-    )
-
-    _var_units = {
-        "vegetation__cover_fraction": "None",
-        "vegetation__live_leaf_area_index": "None",
-        "surface__potential_evapotranspiration_rate": "mm",
-        "vegetation__plant_functional_type": "None",
-        "vegetation__water_stress": "None",
-        "soil_moisture__saturation_fraction": "None",
-        "soil_moisture__initial_saturation_fraction": "None",
-        "soil_moisture__root_zone_leakage": "mm",
-        "surface__runoff": "mm",
-        "surface__evapotranspiration": "mm",
-        "rainfall__daily_depth": "mm",
-    }
-
-    _var_mapping = {
-        "vegetation__cover_fraction": "cell",
-        "vegetation__live_leaf_area_index": "cell",
-        "surface__potential_evapotranspiration_rate": "cell",
-        "vegetation__plant_functional_type": "cell",
-        "vegetation__water_stress": "cell",
-        "soil_moisture__saturation_fraction": "cell",
-        "soil_moisture__initial_saturation_fraction": "cell",
-        "soil_moisture__root_zone_leakage": "cell",
-        "surface__runoff": "cell",
-        "surface__evapotranspiration": "cell",
-        "rainfall__daily_depth": "cell",
-    }
-
-    _var_doc = {
-        "vegetation__cover_fraction": "fraction of land covered by vegetation",
-        "vegetation__live_leaf_area_index": "one-sided green leaf area per unit ground surface area",
-        "surface__potential_evapotranspiration_rate": "potential sum of evaporation and plant transpiration",
-        "vegetation__plant_functional_type": "classification of plants (int), grass=0, shrub=1, tree=2, \
-             bare=3, shrub_seedling=4, tree_seedling=5",
-        "vegetation__water_stress": "parameter that represents nonlinear effects of water deficit \
-             on plants",
-        "soil_moisture__saturation_fraction": "relative volumetric water content (theta) - limits=[0,1]",
-        "soil_moisture__initial_saturation_fraction": "initial soil_moisture__saturation_fraction",
-        "soil_moisture__root_zone_leakage": "leakage of water into deeper portions of the soil not accessible \
-             to the plant",
-        "surface__runoff": "runoff from ground surface",
-        "surface__evapotranspiration": "actual sum of evaporation and plant transpiration",
-        "rainfall__daily_depth": "Rain in (mm) as a field, allowing spatio-temporal soil moisture \
-             saturation analysis.",
+    _info = {
+        "rainfall__daily_depth": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "Rain in (mm) as a field, allowing spatio-temporal soil moisture saturation analysis.",
+        },
+        "soil_moisture__initial_saturation_fraction": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "initial soil_moisture__saturation_fraction",
+        },
+        "soil_moisture__root_zone_leakage": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "leakage of water into deeper portions of the soil not accessible to the plant",
+        },
+        "soil_moisture__saturation_fraction": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "relative volumetric water content (theta) - limits=[0,1]",
+        },
+        "surface__evapotranspiration": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "actual sum of evaporation and plant transpiration",
+        },
+        "surface__potential_evapotranspiration_rate": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "potential sum of evaporation and plant transpiration",
+        },
+        "surface__runoff": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "runoff from ground surface",
+        },
+        "vegetation__cover_fraction": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "fraction of land covered by vegetation",
+        },
+        "vegetation__live_leaf_area_index": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "one-sided green leaf area per unit ground surface area",
+        },
+        "vegetation__plant_functional_type": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "classification of plants (int), grass=0, shrub=1, tree=2, bare=3, shrub_seedling=4, tree_seedling=5",
+        },
+        "vegetation__water_stress": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "parameter that represents nonlinear effects of water deficit on plants",
+        },
     }
 
     def __init__(
@@ -320,7 +348,7 @@ class SoilMoisture(Component):
             LAIR_max_bare=LAIR_max_bare,
         )
 
-        self._initialize_output_fields_with_zero_floats()
+        self.initialize_output_fields()
 
         self._nodal_values = self._grid["node"]
 

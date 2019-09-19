@@ -159,40 +159,55 @@ class HackCalculator(Component):
 
     _name = "HackCalculator"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "drainage_area",
-        "flow__receiver_node",
-        "flow__link_to_receiver_node",
-        "flow__upstream_node_order",
-    )
-
-    _output_var_names = set(("distance_to_divide",))
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "flow__receiver_node": "-",
-        "drainage_area": "m**2",
-        "flow__link_to_receiver_node": "-",
-        "distance_to_divide": "m",
-        "flow__upstream_node_order": "-",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "flow__receiver_node": "node",
-        "drainage_area": "node",
-        "flow__link_to_receiver_node": "node",
-        "distance_to_divide": "node",
-        "flow__upstream_node_order": "node",
-    }
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "flow__receiver_node": "Node array of receivers (node that receives flow from current node)",
-        "drainage_area": "Upstream accumulated surface area contributing to the node's discharge",
-        "flow__link_to_receiver_node": "Node array containing ID of link that leads from each node to its receiver, or BAD_INDEX_VALUE if no link",
-        "distance_to_divide": "Distance from drainage divide.",
-        "flow__upstream_node_order": "node order such that nodes must appear in the list after all nodes downstream of them",
+    __info = {
+        "distance_to_divide": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Distance from drainage divide.",
+        },
+        "drainage_area": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m**2",
+            "mapping": "node",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
+        },
+        "flow__link_to_receiver_node": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing ID of link that leads from each node to its receiver, or BAD_INDEX_VALUE if no link",
+        },
+        "flow__receiver_node": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__upstream_node_order": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "node order such that nodes must appear in the list after all nodes downstream of them",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
     }
 
     def __init__(self, grid, save_full_df=False, **kwds):

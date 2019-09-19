@@ -73,119 +73,111 @@ class SedDepEroder(Component):
 
     _name = "SedDepEroder"
 
-    _input_var_names = set(
-        (
-            "topographic__elevation",
-            "drainage_area",
-            "flow__receiver_node",
-            "flow__upstream_node_order",
-            "topographic__steepest_slope",
-            "flow__link_to_receiver_node",
-        )
-    )
-
-    _output_var_names = set(
-        (
-            "topographic__elevation",
-            "channel__bed_shear_stress",
-            "channel_sediment__volumetric_transport_capacity",
-            "channel_sediment__volumetric_flux",
-            "channel_sediment__relative_flux",
-            "channel__discharge",
-        )
-    )
-
-    _optional_var_names = set(("channel__width", "channel__depth"))
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "drainage_area": "m**2",
-        "flow__receiver_node": "-",
-        "topographic__steepest_slope": "-",
-        "flow__upstream_node_order": "-",
-        "flow__link_to_receiver_node": "-",
-        "channel__bed_shear_stress": "Pa",
-        "channel_sediment__volumetric_transport_capacity": "m**3/s",
-        "channel_sediment__volumetric_flux": "m**3/s",
-        "channel_sediment__relative_flux": "-",
-        "channel__discharge": "m**3/s",
-        "channel__width": "m",
-        "channel__depth": "m",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "drainage_area": "node",
-        "flow__receiver_node": "node",
-        "topographic__steepest_slope": "node",
-        "flow__upstream_node_order": "node",
-        "flow__link_to_receiver_node": "node",
-        "channel__bed_shear_stress": "node",
-        "channel_sediment__volumetric_transport_capacity": "node",
-        "channel_sediment__volumetric_flux": "node",
-        "channel_sediment__relative_flux": "node",
-        "channel__discharge": "node",
-        "channel__width": "node",
-        "channel__depth": "node",
-    }
-
-    _var_type = {
-        "topographic__elevation": float,
-        "drainage_area": float,
-        "flow__receiver_node": int,
-        "topographic__steepest_slope": float,
-        "flow__upstream_node_order": int,
-        "flow__link_to_receiver_node": int,
-        "channel__bed_shear_stress": float,
-        "channel_sediment__volumetric_transport_capacity": float,
-        "channel_sediment__volumetric_flux": float,
-        "channel_sediment__relative_flux": float,
-        "channel__discharge": float,
-        "channel__width": float,
-        "channel__depth": float,
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "drainage_area": (
-            "Upstream accumulated surface area contributing to the node's "
-            + "discharge"
-        ),
-        "flow__receiver_node": (
-            "Node array of receivers (node that receives flow from current " + "node)"
-        ),
-        "topographic__steepest_slope": "Node array of steepest *downhill* slopes",
-        "flow__upstream_node_order": (
-            "Node array containing downstream-to-upstream ordered list of " + "node IDs"
-        ),
-        "flow__link_to_receiver_node": "ID of link downstream of each node, which carries the discharge",
-        "channel__bed_shear_stress": (
-            "Shear exerted on the bed of the channel, assuming all "
-            + "discharge travels along a single, self-formed channel"
-        ),
-        "channel_sediment__volumetric_transport_capacity": (
-            "Volumetric transport capacity of a channel carrying all runoff"
-            + " through the node, assuming the Meyer-Peter Muller transport "
-            + "equation"
-        ),
-        "channel_sediment__volumetric_flux": (
-            "Total volumetric fluvial sediment flux brought into the node "
-            + "from upstream"
-        ),
-        "channel_sediment__relative_flux": (
-            "The fluvial_sediment_flux_into_node divided by the fluvial_"
-            + "sediment_transport_capacity"
-        ),
-        "channel__discharge": (
-            "Volumetric water flux of the a single channel carrying all "
-            + "runoff through the node"
-        ),
-        "channel__width": (
-            "Width of the a single channel carrying all runoff through the " + "node"
-        ),
-        "channel__depth": (
-            "Depth of the a single channel carrying all runoff through the " + "node"
-        ),
+    _info = {
+        "channel__bed_shear_stress": {
+            "type": float,
+            "intent": "out",
+            "optional": False,
+            "units": "Pa",
+            "mapping": "node",
+            "doc": "Shear exerted on the bed of the channel, assuming all discharge travels along a single, self-formed channel",
+        },
+        "channel__depth": {
+            "type": float,
+            "intent": "out",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Depth of the a single channel carrying all runoff through the node",
+        },
+        "channel__discharge": {
+            "type": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Volumetric water flux of the a single channel carrying all runoff through the node",
+        },
+        "channel__width": {
+            "type": float,
+            "intent": "out",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Width of the a single channel carrying all runoff through the node",
+        },
+        "channel_sediment__relative_flux": {
+            "type": float,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "The fluvial_sediment_flux_into_node divided by the fluvial_sediment_transport_capacity",
+        },
+        "channel_sediment__volumetric_flux": {
+            "type": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Total volumetric fluvial sediment flux brought into the node from upstream",
+        },
+        "channel_sediment__volumetric_transport_capacity": {
+            "type": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Volumetric transport capacity of a channel carrying all runoff through the node, assuming the Meyer-Peter Muller transport equation",
+        },
+        "drainage_area": {
+            "type": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m**2",
+            "mapping": "node",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
+        },
+        "flow__link_to_receiver_node": {
+            "type": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "type": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__upstream_node_order": {
+            "type": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
+        },
+        "topographic__elevation": {
+            "type": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__steepest_slope": {
+            "type": float,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of steepest *downhill* slopes",
+        },
     }
 
     def __init__(

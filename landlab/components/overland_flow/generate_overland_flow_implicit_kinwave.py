@@ -150,35 +150,39 @@ class KinwaveImplicitOverlandFlow(Component):
 
     _name = "KinwaveImplicitOverlandFlow"
 
-    _input_var_names = set(("topographic__elevation",))
-
-    _output_var_names = set(
-        (
-            "topographic__gradient",
-            "surface_water__depth",
-            "surface_water_inflow__discharge",
-        )
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "topographic__gradient": "m/m",
-        "surface_water__depth": "m",
-        "surface_water_inflow__discharge": "m3/s",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "topographic__gradient": "link",
-        "surface_water__depth": "node",
-        "surface_water_inflow__discharge": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "elevation of the ground surface relative to some datum",
-        "topographic__gradient": "gradient of the ground surface",
-        "surface_water__depth": "depth of water",
-        "surface_water_inflow__discharge": "water volume inflow rate to the cell around each node",
+    _info = {
+        "surface_water__depth": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "depth of water",
+        },
+        "surface_water_inflow__discharge": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/s",
+            "mapping": "node",
+            "doc": "water volume inflow rate to the cell around each node",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "elevation of the ground surface relative to some datum",
+        },
+        "topographic__gradient": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m/m",
+            "mapping": "link",
+            "doc": "gradient of the ground surface",
+        },
     }
 
     def __init__(
@@ -223,7 +227,7 @@ class KinwaveImplicitOverlandFlow(Component):
         self._elev = grid.at_node["topographic__elevation"]
 
         # Create fields...
-        self._initialize_output_fields_with_zero_floats()
+        self.initialize_output_fields()
 
         self._depth = grid.at_node["surface_water__depth"]
         self._slope = grid.at_link["topographic__gradient"]

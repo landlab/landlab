@@ -15,7 +15,7 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 def test_name(ls_prob):
     """Testing if the name is right.
     """
-    assert ls_prob.name == "Landslide Probability"
+    assert ls_prob.name == "LandslideProbability"
 
 
 def test_input_var_names(ls_prob):

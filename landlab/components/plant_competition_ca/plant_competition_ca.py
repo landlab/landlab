@@ -39,7 +39,7 @@ class VegCA(Component):
     >>> from landlab.components import VegCA
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     >>> VegCA.name
-    'Cellular Automata Plant Competition'
+    'VegCA'
     >>> sorted(VegCA.output_var_names)
     ['plant__age', 'plant__live_index']
     >>> sorted(VegCA.units) # doctest: +NORMALIZE_WHITESPACE
@@ -65,34 +65,41 @@ class VegCA(Component):
     False
     """
 
-    _name = "Cellular Automata Plant Competition"
+    _name = "VegCA"
 
-    _input_var_names = set(
-        ("vegetation__cumulative_water_stress", "vegetation__plant_functional_type")
-    )
-
-    _output_var_names = set(("plant__live_index", "plant__age"))
-
-    _var_units = {
-        "vegetation__cumulative_water_stress": "None",
-        "vegetation__plant_functional_type": "None",
-        "plant__live_index": "None",
-        "plant__age": "Years",
-    }
-
-    _var_mapping = {
-        "vegetation__cumulative_water_stress": "cell",
-        "vegetation__plant_functional_type": "cell",
-        "plant__live_index": "cell",
-        "plant__age": "cell",
-    }
-
-    _var_doc = {
-        "vegetation__cumulative_water_stress": "cumulative vegetation__water_stress over the growing season",
-        "vegetation__plant_functional_type": "classification of plants (int), grass=0, shrub=1, tree=2, \
-             bare=3, shrub_seedling=4, tree_seedling=5",
-        "plant__live_index": "1 - vegetation__cumulative_water_stress",
-        "plant__age": "Age of plant",
+    _info = {
+        "plant__age": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "Years",
+            "mapping": "cell",
+            "doc": "Age of plant",
+        },
+        "plant__live_index": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "1 - vegetation__cumulative_water_stress",
+        },
+        "vegetation__cumulative_water_stress": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "cumulative vegetation__water_stress over the growing season",
+        },
+        "vegetation__plant_functional_type": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "classification of plants (int), grass=0, shrub=1, tree=2, bare=3, shrub_seedling=4, tree_seedling=5",
+        },
     }
 
     def __init__(
@@ -201,7 +208,7 @@ class VegCA(Component):
         #         0, 6, grid.number_of_cells
         #     )
 
-        self._initialize_output_fields_with_zero_floats()
+        self.initialize_output_fields()
 
         self._cell_values = self._grid["cell"]
 

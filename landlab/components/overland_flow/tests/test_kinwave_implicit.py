@@ -22,10 +22,10 @@ def test_initialization():
     kw = KinwaveImplicitOverlandFlow(rg)
 
     # Make sure fields have been created
-    for field_name in kw._var_mapping:
-        if kw._var_mapping[field_name] == "node":
+    for field_name in kw._info:
+        if kw._info[field_name]["mapping"] == "node":
             assert field_name in kw.grid.at_node
-        elif kw._var_mapping[field_name] == "link":
+        elif kw._info[field_name]["mapping"] == "link":
             assert field_name in kw.grid.at_link
 
     # Re-initialize, this time with fields already existing in the grid

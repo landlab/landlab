@@ -133,24 +133,23 @@ class Flexure(Component):
         publisher={Pergamon}
         }"""
 
-    _input_var_names = set(("lithosphere__overlying_pressure_increment",))
-
-    _output_var_names = set(("lithosphere_surface__elevation_increment",))
-
-    _var_units = {
-        "lithosphere__overlying_pressure_increment": "Pa",
-        "lithosphere_surface__elevation_increment": "m",
-    }
-
-    _var_mapping = {
-        "lithosphere__overlying_pressure_increment": "node",
-        "lithosphere_surface__elevation_increment": "node",
-    }
-
-    _var_doc = {
-        "lithosphere__overlying_pressure_increment": "Applied pressure to the lithosphere over a time step",
-        "lithosphere_surface__elevation_increment": "The change in elevation of the top of the lithosphere (the land "
-        "surface) in one timestep",
+    _info = {
+        "lithosphere__overlying_pressure_increment": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "Pa",
+            "mapping": "node",
+            "doc": "Applied pressure to the lithosphere over a time step",
+        },
+        "lithosphere_surface__elevation_increment": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "The change in elevation of the top of the lithosphere (the land surface) in one timestep",
+        },
     }
 
     def __init__(
@@ -194,7 +193,7 @@ class Flexure(Component):
         self.eet = eet
         self._n_procs = n_procs
 
-        self._initialize_output_fields_with_zero_floats()
+        self.initialize_output_fields()
 
         self._r = self._create_kei_func_grid(
             self._grid.shape, (self._grid.dy, self._grid.dx), self.alpha

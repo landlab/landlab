@@ -45,24 +45,23 @@ class SoilInfiltrationGreenAmpt(Component):
 
     _name = "SoilInfiltrationGreenAmpt"
 
-    _input_var_names = ("surface_water__depth", "soil_water_infiltration__depth")
-
-    _output_var_names = ("surface_water__depth", "soil_water_infiltration__depth")
-
-    _var_units = {"surface_water__depth": "m", "soil_water_infiltration__depth": "m"}
-
-    _var_mapping = {
-        "surface_water__depth": "node",
-        "soil_water_infiltration__depth": "node",
-    }
-
-    _var_doc = {
-        "surface_water__depth": "Depth of water above the surface",
-        "soil_water_infiltration__depth": (
-            "Water column height above the surface previously absorbed into "
-            "the soil. Note that this is NOT the actual depth of the wetted "
-            "front, which also depends on the porosity."
-        ),
+    _info = {
+        "soil_water_infiltration__depth": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Water column height above the surface previously absorbed into the soil. Note that this is NOT the actual depth of the wetted front, which also depends on the porosity.",
+        },
+        "surface_water__depth": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Depth of water above the surface",
+        },
     }
 
     # This follows mean values from Rawls et al., 1992; lambda then h_b

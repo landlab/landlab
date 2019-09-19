@@ -466,27 +466,31 @@ class ChannelProfiler(_BaseProfiler):
 
     _name = "ChannelProfiler"
 
-    _input_var_names = set(("flow__receiver_node", "flow__link_to_receiver_node"))
-
-    _optional_var_names = set(("drainage_area",))
-
-    _output_var_names = set()
-
-    _var_units = {
-        "flow__receiver_node": "-",
-        "drainage_area": "m**2",
-        "flow__link_to_receiver_node": "-",
-    }
-
-    _var_mapping = {
-        "flow__receiver_node": "node",
-        "drainage_area": "node",
-        "flow__link_to_receiver_node": "node",
-    }
-    _var_doc = {
-        "flow__receiver_node": "Node array of receivers (node that receives flow from current node)",
-        "drainage_area": "Upstream accumulated surface area contributing to the node's discharge",
-        "flow__link_to_receiver_node": "Node array containing ID of link that leads from each node to its receiver, or BAD_INDEX_VALUE if no link",
+    _info = {
+        "drainage_area": {
+            "type": None,
+            "intent": "in",
+            "optional": True,
+            "units": "m**2",
+            "mapping": "node",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
+        },
+        "flow__link_to_receiver_node": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing ID of link that leads from each node to its receiver, or BAD_INDEX_VALUE if no link",
+        },
+        "flow__receiver_node": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
     }
 
     def __init__(
@@ -539,7 +543,7 @@ class ChannelProfiler(_BaseProfiler):
         if channel_definition_field in grid.at_node:
             self._channel_definition_field = grid.at_node[channel_definition_field]
         else:
-            msg = "Required field {name} not present. This field is required by the ChannelProfiler to define the start and stop of channel networks."
+            msg = "Required field {name} not present. This field is required by the ChannelProfiler to define the start and stop of channel networks.".format(name=channel_definition_field)
             raise ValueError(msg)
 
         self._flow_receiver = grid.at_node["flow__receiver_node"]

@@ -128,31 +128,41 @@ class OverlandFlow(Component):
         }
     """
 
-    _input_var_names = set(("surface_water__depth", "topographic__elevation"))
+    _name = "OverlandFlow"
 
-    _output_var_names = set(
-        ("surface_water__depth", "surface_water__discharge", "water_surface__gradient")
-    )
-
-    _var_units = {
-        "surface_water__depth": "m",
-        "surface_water__discharge": "m3/s",
-        "topographic__elevation": "m",
-        "water_surface__gradient": "-",
-    }
-
-    _var_mapping = {
-        "surface_water__depth": "node",
-        "topographic__elevation": "node",
-        "surface_water__discharge": "link",
-        "water_surface__gradient": "link",
-    }
-
-    _var_doc = {
-        "surface_water__depth": "The depth of water at each node.",
-        "topographic__elevation": "The land surface elevation.",
-        "surface_water__discharge": "The discharge of water on active links.",
-        "water_surface__gradient": "Downstream gradient of the water surface.",
+    _info = {
+        "surface_water__depth": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "The depth of water at each node.",
+        },
+        "surface_water__discharge": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/s",
+            "mapping": "link",
+            "doc": "The discharge of water on active links.",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "The land surface elevation.",
+        },
+        "water_surface__gradient": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "link",
+            "doc": "Downstream gradient of the water surface.",
+        },
     }
 
     def __init__(
@@ -214,7 +224,7 @@ class OverlandFlow(Component):
             self._q = grid.add_zeros(
                 "surface_water__discharge",
                 at="link",
-                units=self._var_units["surface_water__discharge"],
+                units=self._info["surface_water__discharge"]["units"],
             )
 
         except FieldError:
@@ -227,7 +237,7 @@ class OverlandFlow(Component):
             self._h_links = grid.add_zeros(
                 "surface_water__depth",
                 at="link",
-                units=self._var_units["surface_water__depth"],
+                units=self._info["surface_water__depth"]["units"],
             )
         except FieldError:
             self._h_links = grid.at_link["surface_water__depth"]

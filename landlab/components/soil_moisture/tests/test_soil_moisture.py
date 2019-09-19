@@ -11,7 +11,7 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
 def test_name(sm):
-    assert sm.name == "Soil Moisture"
+    assert sm.name == "SoilMoisture"
 
 
 def test_input_var_names(sm):

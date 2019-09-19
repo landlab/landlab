@@ -56,17 +56,23 @@ class SinkFillerBarnes(LakeMapperBarnes):
 
     _name = "SinkFillerBarnes"
 
-    _input_var_names = set(("topographic__elevation",))
-
-    _output_var_names = set(("topographic__elevation", "sediment_fill__depth"))
-
-    _var_units = {"topographic__elevation": "m", "sediment_fill__depth": "m"}
-
-    _var_mapping = {"topographic__elevation": "node", "sediment_fill__depth": "node"}
-
-    _var_doc = {
-        "topographic__elevation": "Surface topographic elevation",
-        "sediment_fill__depth": "Depth of sediment added at each" + "node",
+    _info = {
+        "sediment_fill__depth": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Depth of sediment added at eachnode",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Surface topographic elevation",
+        },
     }
 
     def __init__(

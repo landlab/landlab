@@ -64,53 +64,47 @@ class DischargeDiffuser(Component):
 
     _name = "DischargeDiffuser"
 
-    _input_var_names = set(
-        ("topographic__elevation", "water__discharge_in", "sediment__discharge_in")
-    )
-
-    _output_var_names = set(
-        ("topographic__elevation", "surface_water__discharge", "flow__potential")
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "water__unit_flux_in": "m/s",
-        "surface_water__discharge": "m**3/s",
-        "flow__potential": "m**3/s",
-        "surface_water__depth": "m",
-        "water__discharge_in": "TODO",
-        "sediment__discharge_in": "TODO",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "water__unit_flux_in": "node",
-        "surface_water__discharge": "node",
-        "flow__potential": "node",
-        "surface_water__depth": "node",
-        "water__discharge_in": "node",
-        "sediment__discharge_in": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "water__unit_flux_in": (
-            "External volume water per area per time input to each node "
-            + "(e.g., rainfall rate)"
-        ),
-        "surface_water__discharge": (
-            "Magnitude of volumetric water flux out of each node"
-        ),
-        "flow__potential": (
-            'Value of the hypothetical field "K", used to force water flux '
-            + "to flow downhill"
-        ),
-        "surface_water__depth": (
-            "If Manning or Chezy specified, the depth of flow in the cell, "
-            + "calculated assuming flow occurs over the whole surface"
-        ),
-        "water__discharge_in": "TODO",
-        "sediment__discharge_in": "TODO",
+    _info = {
+        "flow__potential": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Value of the hypothetical field 'K', used to force water flux to flow downhill",
+        },
+        "sediment__discharge_in": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "TODO",
+            "mapping": "node",
+            "doc": "TODO",
+        },
+        "surface_water__discharge": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Magnitude of volumetric water flux out of each node",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "water__discharge_in": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "TODO",
+            "mapping": "node",
+            "doc": "TODO",
+        },
     }
 
     _min_slope_thresh = 1.0e-24

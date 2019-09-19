@@ -35,7 +35,7 @@ class PotentialEvapotranspiration(Component):
     ...       0.37381705, 0.37381705])
     >>> PET = PotentialEvapotranspiration(grid)
     >>> PET.name
-    'Potential Evapotranspiration'
+    'PotentialEvapotranspiration'
     >>> PET.input_var_names
     ('radiation__ratio_to_flat_surface',)
     >>> sorted(PET.output_var_names)
@@ -66,46 +66,57 @@ class PotentialEvapotranspiration(Component):
     False
     """
 
-    _name = "Potential Evapotranspiration"
+    _name = "PotentialEvapotranspiration"
 
-    _input_var_names = set(("radiation__ratio_to_flat_surface",))
-
-    _output_var_names = set(
-        (
-            "surface__potential_evapotranspiration_rate",
-            "radiation__incoming_shortwave_flux",
-            "radiation__net_shortwave_flux",
-            "radiation__net_longwave_flux",
-            "radiation__net_flux",
-        )
-    )
-
-    _var_units = {
-        "radiation__ratio_to_flat_surface": "None",
-        "surface__potential_evapotranspiration_rate": "mm",
-        "radiation__incoming_shortwave_flux": "W/m^2",
-        "radiation__net_shortwave_flux": "W/m^2",
-        "radiation__net_longwave_flux": "W/m^2",
-        "radiation__net_flux": "W/m^2",
-    }
-
-    _var_mapping = {
-        "radiation__ratio_to_flat_surface": "cell",
-        "surface__potential_evapotranspiration_rate": "cell",
-        "radiation__incoming_shortwave_flux": "cell",
-        "radiation__net_shortwave_flux": "cell",
-        "radiation__net_longwave_flux": "cell",
-        "radiation__net_flux": "cell",
-    }
-
-    _var_doc = {
-        "radiation__ratio_to_flat_surface": "ratio of total incident shortwave radiation on sloped surface \
-             to flat surface",
-        "surface__potential_evapotranspiration_rate": "potential sum of evaporation and potential transpiration",
-        "radiation__incoming_shortwave_flux": "total incident shortwave radiation over the time step",
-        "radiation__net_shortwave_flux": "net incident shortwave radiation over the time step",
-        "radiation__net_longwave_flux": "net incident longwave radiation over the time step",
-        "radiation__net_flux": "net total radiation over the time step",
+    _info = {
+        "radiation__incoming_shortwave_flux": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "W/m^2",
+            "mapping": "cell",
+            "doc": "total incident shortwave radiation over the time step",
+        },
+        "radiation__net_flux": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "W/m^2",
+            "mapping": "cell",
+            "doc": "net total radiation over the time step",
+        },
+        "radiation__net_longwave_flux": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "W/m^2",
+            "mapping": "cell",
+            "doc": "net incident longwave radiation over the time step",
+        },
+        "radiation__net_shortwave_flux": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "W/m^2",
+            "mapping": "cell",
+            "doc": "net incident shortwave radiation over the time step",
+        },
+        "radiation__ratio_to_flat_surface": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "ratio of total incident shortwave radiation on sloped surface to flat surface",
+        },
+        "surface__potential_evapotranspiration_rate": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "potential sum of evaporation and potential transpiration",
+        },
     }
 
     def __init__(
@@ -206,7 +217,7 @@ class PotentialEvapotranspiration(Component):
         self._DeltaD = delta_d
         _assert_method_is_valid(self._method)
 
-        self._initialize_output_fields_with_zero_floats()
+        self.initialize_output_fields()
 
         self._cell_values = self._grid["cell"]
 

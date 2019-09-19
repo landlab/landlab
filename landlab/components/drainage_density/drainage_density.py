@@ -137,70 +137,95 @@ class DrainageDensity(Component):
 
     _name = "DrainageDensity"
 
-    _input_var_names = set(
-        (
-            "flow__receiver_node",
-            "flow__link_to_receiver_node",
-            "topographic__steepest_slope",
-            "flow__upstream_node_order",
-        )
-    )
-
-    _optional_var_names = set(
-        (
-            "channel__mask",
-            "area_coefficient",
-            "slope_coefficient",
-            "area_exponent",
-            "slope_exponent",
-            "channelization_threshold",
-        )
-    )
-
-    _output_var_names = set(("surface_to_channel__minimum_distance",))
-
-    _var_units = {
-        "flow__receiver_node": "-",
-        "flow__link_to_receiver_node": "-",
-        "flow__upstream_node_order": "-",
-        "topographic__steepest_slope": "-",
-        "channel__mask": "-",
-        "surface_to_channel__minimum_distance": "m",
-        "area_coefficient": "-",
-        "slope_coefficient": "-",
-        "area_exponent": "-",
-        "slope_exponent": "-",
-        "channelization_threshold": "-",
-    }
-
-    _var_mapping = {
-        "flow__receiver_node": "node",
-        "flow__link_to_receiver_node": "node",
-        "flow__upstream_node_order": "node",
-        "topographic__steepest_slope": "node",
-        "channel__mask": "node",
-        "surface_to_channel__minimum_distance": "node",
-        "area_coefficient": "node",
-        "slope_coefficient": "node",
-        "area_exponent": "node",
-        "slope_exponent": "node",
-        "channelization_threshold": "node",
-    }
-
-    _var_doc = {
-        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
-        "node)",
-        "flow__link_to_receiver_node": "ID of link downstream of each node, which carries the discharge",
-        "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
-        "node IDs",
-        "topographic__steepest_slope": "Topographic slope at each node",
-        "channel__mask": "Logical map of at which grid nodes channels are present",
-        "surface_to_channel__minimum_distance": "Distance from each node to the nearest channel",
-        "area_coefficient": "Area coefficient to define channels.",
-        "slope_coefficient": "Slope coefficient to define channels.",
-        "area_exponent": "Area exponent to define channels.",
-        "slope_exponent": "Slope exponent to define channels.",
-        "channelization_threshold": "Channelization threshold for use with area and slope coefficients and exponents.",
+    _info = {
+        "area_coefficient": {
+            "type": None,
+            "intent": "in",
+            "optional": True,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Area coefficient to define channels.",
+        },
+        "area_exponent": {
+            "type": None,
+            "intent": "in",
+            "optional": True,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Area exponent to define channels.",
+        },
+        "channel__mask": {
+            "type": None,
+            "intent": "in",
+            "optional": True,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Logical map of at which grid nodes channels are present",
+        },
+        "channelization_threshold": {
+            "type": None,
+            "intent": "in",
+            "optional": True,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Channelization threshold for use with area and slope coefficients and exponents.",
+        },
+        "flow__link_to_receiver_node": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__upstream_node_order": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
+        },
+        "slope_coefficient": {
+            "type": None,
+            "intent": "in",
+            "optional": True,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Slope coefficient to define channels.",
+        },
+        "slope_exponent": {
+            "type": None,
+            "intent": "in",
+            "optional": True,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Slope exponent to define channels.",
+        },
+        "surface_to_channel__minimum_distance": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Distance from each node to the nearest channel",
+        },
+        "topographic__steepest_slope": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Topographic slope at each node",
+        },
     }
 
     def __init__(

@@ -103,38 +103,34 @@ class LinearDiffuser(Component):
 
     _name = "LinearDiffuser"
 
-    _input_var_names = set(("topographic__elevation",))
-
-    _output_var_names = set(
-        (
-            "topographic__elevation",
-            "topographic__gradient",
-            "hillslope_sediment__unit_volume_flux",
-        )
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "topographic__gradient": "-",
-        "hillslope_sediment__unit_volume_flux": "m**2/s",
+    _info = {
+        "hillslope_sediment__unit_volume_flux": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m**2/s",
+            "mapping": "link",
+            "doc": "Volume flux per unit width along links",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation; can be overwritten in initialization",
+        },
+        "topographic__gradient": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "link",
+            "doc": "Gradient of surface, on links",
+        },
     }
 
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "topographic__gradient": "link",
-        "hillslope_sediment__unit_volume_flux": "link",
-    }
-
-    _var_doc = {
-        "topographic__elevation": (
-            "Land surface topographic elevation; can "
-            + "be overwritten in initialization"
-        ),
-        "topographic__gradient": "Gradient of surface, on links",
-        "hillslope_sediment__unit_volume_flux": "Volume flux per unit width along links",
-    }
-
-    def __init__(self, grid, linear_diffusivity=None, method="simple", deposit=True):
+    def __init__(self, grid, linear_diffusivity=0.01, method="simple", deposit=True):
         """
         Parameters
         ----------

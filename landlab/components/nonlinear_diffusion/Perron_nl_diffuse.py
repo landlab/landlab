@@ -54,19 +54,15 @@ class PerronNLDiffuse(Component):
 
     _name = "PerronNLDiffuse"
 
-    _input_var_names = set(("topographic__elevation",))
-
-    _output_var_names = set(("topographic__elevation",))
-
-    _var_units = {"topographic__elevation": "m"}
-
-    _var_mapping = {"topographic__elevation": "node"}
-
-    _var_doc = {
-        "topographic__elevation": (
-            "Land surface topographic elevation; can "
-            + "be overwritten in initialization"
-        )
+    _info = {
+        "topographic__elevation": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation; can be overwritten in initialization",
+        }
     }
 
     def __init__(

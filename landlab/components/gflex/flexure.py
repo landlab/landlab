@@ -109,33 +109,31 @@ class gFlex(Component):
 
     _name = "gFlex"
 
-    _input_var_names = set(("surface_load__stress",))
-
-    _output_var_names = set(
-        ("lithosphere_surface__elevation_increment", "topographic__elevation")
-    )
-
-    _var_units = {
-        "surface_load__stress": "Pa",
-        "lithosphere_surface__elevation_increment": "m",
-        "topographic__elevation": "m",
-    }
-
-    _var_mapping = {
-        "surface_load__stress": "node",
-        "lithosphere_surface__elevation_increment": "node",
-        "topographic__elevation": "node",
-    }
-
-    _var_doc = {
-        "surface_load__stress": ("Magnitude of stress exerted by surface load"),
-        "lithosphere_surface__elevation_increment": (
-            "Vertical deflection of the surface and of the " + "lithospheric plate"
-        ),
-        "topographic__elevation": (
-            "Land surface topographic elevation; can "
-            + "be overwritten in initialization"
-        ),
+    _info = {
+        "lithosphere_surface__elevation_increment": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Vertical deflection of the surface and of the lithospheric plate",
+        },
+        "surface_load__stress": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "Pa",
+            "mapping": "node",
+            "doc": "Magnitude of stress exerted by surface load",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation; can be overwritten in initialization",
+        },
     }
 
     def __init__(

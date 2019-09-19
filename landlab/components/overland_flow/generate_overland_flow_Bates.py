@@ -64,31 +64,31 @@ class OverlandFlowBates(Component):
 
     _name = "OverlandFlowBates"
 
-    _input_var_names = set(("surface_water__depth", "topographic__elevation"))
-
-    _output_var_names = set(
-        ("surface_water__depth", "surface_water__discharge", "water_surface__gradient")
-    )
-
-    _var_units = {
-        "surface_water__depth": "m",
-        "surface_water__discharge": "m3/s",
-        "water_surface__gradient": "m/m",
-        "topographic__elevation": "m",
-    }
-
-    _var_mapping = {
-        "surface_water__depth": "node",
-        "topographic__elevation": "node",
-        "surface_water__discharge": "link",
-        "water_surface__gradient": "node",
-    }
-
-    _var_doc = {
-        "surface_water__depth": "The depth of water at each node.",
-        "topographic__elevation": "The land surface elevation.",
-        "surface_water__discharge": "The discharge of water on active links.",
-        "water_surface__gradient": "The slope of the water surface at each node.",
+    _info = {
+        "surface_water__depth": {
+            "type": None,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "The depth of water at each node.",
+        },
+        "surface_water__discharge": {
+            "type": None,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/s",
+            "mapping": "link",
+            "doc": "The discharge of water on active links.",
+        },
+        "topographic__elevation": {
+            "type": None,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "The land surface elevation.",
+        },
     }
 
     def __init__(
@@ -116,7 +116,7 @@ class OverlandFlowBates(Component):
         self._surface_water__discharge = grid.add_zeros(
             "link",
             "surface_water__discharge",
-            units=self._var_units["surface_water__discharge"],
+            units=self._info["surface_water__discharge"]["units"],
         )
 
         # Pre-calculated values included for speed.

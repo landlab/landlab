@@ -97,8 +97,12 @@ def test_check_fields():
     )
     _FlowDirectorToMany(mg1, "topographic__elevation")
     assert sorted(list(mg1.at_node.keys())) == [
+        "flow__link_to_receiver_node",
+        "flow__receiver_node",
+        "flow__receiver_proportions",
         "flow__sink_flag",
         "topographic__elevation",
+        "topographic__steepest_slope",
     ]
     assert np.size(mg1.at_node["topographic__elevation"]) == mg1.number_of_nodes
 
