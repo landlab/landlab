@@ -1630,28 +1630,28 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((3, 3))
-        >>> mg.status_at_node[mg.nodes_at_top_edge] = CLOSED_BOUNDARY
+        >>> mg.status_at_node[mg.nodes_at_top_edge] = mg.BC_NODE_IS_CLOSED
         >>> mg.patches_at_link
-        array([[ 0, -1],
-               [ 1, -1],
+        array([[-1,  0],
+               [-1,  1],
                [ 0, -1],
-               [ 0,  1],
-               [ 1, -1],
+               [ 1,  0],
+               [-1,  1],
                [ 0,  2],
                [ 1,  3],
                [ 2, -1],
-               [ 2,  3],
-               [ 3, -1],
+               [ 3,  2],
+               [-1,  3],
                [ 2, -1],
                [ 3, -1]])
         >>> mg.patches_present_at_link
-        array([[ True, False],
-               [ True, False],
+        array([[False,  True],
+               [False,  True],
                [ True, False],
                [ True,  True],
-               [ True, False],
+               [False,  True],
                [ True, False],
                [ True, False],
                [False, False],
@@ -1712,15 +1712,15 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((3, 3))
-        >>> mg.status_at_node[mg.nodes_at_top_edge] = CLOSED_BOUNDARY
+        >>> mg.status_at_node[mg.nodes_at_top_edge] = mg.BC_NODE_IS_CLOSED
         >>> mg.patches_present_at_link
-        array([[ True, False],
-               [ True, False],
+        array([[False,  True],
+               [False,  True],
                [ True, False],
                [ True,  True],
-               [ True, False],
+               [False,  True],
                [ True, False],
                [ True, False],
                [False, False],
