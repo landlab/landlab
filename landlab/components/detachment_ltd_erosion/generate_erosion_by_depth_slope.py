@@ -231,5 +231,5 @@ class DepthSlopeProductErosion(Component):
 
     @property
     def dz(self):
-        """TODO"""
+        """Magnitude of change of the topographic__elevation due to erosion [L]."""
         return self._dz

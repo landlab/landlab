@@ -183,7 +183,7 @@ class FractureGridGenerator(Component):
 
     _info = {
         "fracture_at_node": {
-            "type": None,
+            "type": np.int8,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -199,8 +199,6 @@ class FractureGridGenerator(Component):
         self._seed = seed
         super(FractureGridGenerator, self).__init__(grid)
 
-        # TODO: delete this once we have generation of output fields in
-        # base class
         if "fracture_at_node" not in grid.at_node:
             grid.add_zeros("node", "fracture_at_node", dtype=np.int8)
 

@@ -137,7 +137,7 @@ class DepressionFinderAndRouter(Component):
 
     _info = {
         "depression__depth": {
-            "type": None,
+            "type": float,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -145,7 +145,7 @@ class DepressionFinderAndRouter(Component):
             "doc": "Depth of depression below its spillway point",
         },
         "depression__outlet_node": {
-            "type": None,
+            "type": int,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -153,23 +153,23 @@ class DepressionFinderAndRouter(Component):
             "doc": "If a depression, the id of the outlet node for that depression, otherwise BAD_INDEX_VALUE",
         },
         "flood_status_code": {
-            "type": None,
+            "type": int,
             "intent": "out",
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "TODO",
+            "doc": "Map of flood status (_PIT, _CURRENT_LAKE, _UNFLOODED, or _FLOODED).",
         },
         "is_pit": {
-            "type": None,
+            "type": bool,
             "intent": "out",
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "TODO",
+            "doc": "Boolean flag indicating whether a node is a pit.",
         },
         "topographic__elevation": {
-            "type": None,
+            "type": float,
             "intent": "in",
             "optional": False,
             "units": "m",
@@ -312,42 +312,41 @@ class DepressionFinderAndRouter(Component):
 
     @property
     def is_pit(self):
-        """TODO"""
+        """At node array indicating whether the node is a pit or not."""
         return self._is_pit
 
     @property
     def number_of_pits(self):
-        """TODO"""
+        """The number of pits on the grid."""
         return self._number_of_pits
 
     @property
     def pit_node_ids(self):
-        """TODO"""
+        """Node IDs of grid nodes identified as pits."""
         return self._pit_node_ids
 
     @property
     def flood_status(self):
-        """TODO"""
+        """Map of flood status (_PIT, _CURRENT_LAKE, _UNFLOODED, or _FLOODED)."""
         return self._flood_status
 
     @property
     def receivers(self):
-        """TODO"""
+        """At node array indicating which node receives flow."""
         return self._receivers
 
     @receivers.setter
     def receivers(self, receivers):
-        """TODO"""
         self._receivers = receivers
 
     @property
     def depression_depth(self):
-        """TODO"""
+        """At node array of depression depths."""
         return self._depression_depth
 
     @property
     def depression_outlet_map(self):
-        """TODO"""
+        """At node array indicating the node-id of the depression outlet."""
         return self._depression_outlet_map
 
     def _find_pits(self):

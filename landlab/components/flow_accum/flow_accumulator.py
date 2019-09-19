@@ -805,17 +805,17 @@ class FlowAccumulator(Component):
 
     @property
     def surface_values(self):
-        """TODO"""
+        """Values of the surface over which flow is accumulated."""
         return self._surface_values
 
     @property
     def flow_director(self):
-        """TODO"""
+        """The FlowDirector used internally."""
         return self._flow_director
 
     @property
     def depression_finder(self):
-        """TODO"""
+        """The DepressionFinder used internally."""
         return self._depression_finder
 
     @property

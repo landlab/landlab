@@ -45,7 +45,7 @@ class _GeneralizedErosionDeposition(Component):
             "optional": False,
             "units": "m3/s",
             "mapping": "node",
-            "doc": "TODO",
+            "doc": "Sediment flux.",
         },
         "surface_water__discharge": {
             "type": None,

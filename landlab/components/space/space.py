@@ -198,7 +198,7 @@ class Space(_GeneralizedErosionDeposition):
             "optional": False,
             "units": "m3/s",
             "mapping": "node",
-            "doc": "TODO",
+            "doc": "Sediment flux.",
         },
         "soil__depth": {
             "type": None,
@@ -360,17 +360,17 @@ class Space(_GeneralizedErosionDeposition):
 
     @property
     def Es(self):
-        "TODO"
+        """Sediment erosion term."""
         return self._Es
 
     @property
     def Er(self):
-        "TODO"
+        """Bedrock erosion term."""
         return self._Er
 
     @property
     def H(self):
-        "TODO"
+        "Sediment thickness. "
         return self._H
 
     def run_one_step_basic(self, dt=1.0):

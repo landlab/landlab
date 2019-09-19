@@ -158,7 +158,7 @@ class _FlowDirectorToOne(_FlowDirector):
 
     @property
     def links_to_receiver(self):
-        """TODO"""
+        """ID of link downstream of each node, which carries the discharge."""
         return self._links_to_receiver
 
     @property

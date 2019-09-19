@@ -182,22 +182,39 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
 
     @property
     def alpha(self):
-        """TODO"""
+        """Erosion term divided by link length.
+
+        Alpha is given as::
+
+            alpha = K A^m dt / L
+
+        where K is the erodibility, A is the drainage area, m is the
+        drainage area exponent, dt is the timestep, and L is the link length.
+        """
         return self._alpha
 
     @property
     def gamma(self):
-        """TODO"""
+        """Erosion threshold times timestep."""
         return self._gamma
 
     @property
     def thresholds(self):
-        """TODO"""
+        """Erosion thresholds."""
         return self._thresholds
 
     @property
     def delta(self):
-        """TODO"""
+        """Erosion term divided by link length and erosion threshold.
+
+        delta is given as::
+
+            delta = K A^m dt / (L * omega_c)
+
+        where K is the erodibility, A is the drainage area, m is the
+        drainage area exponent, dt is the timestep, L is the link length, and
+        omega_c is the erosion threshold.
+        """
         return self._delta
 
     def run_one_step(self, dt, runoff_rate=None):

@@ -281,17 +281,16 @@ class OverlandFlow(Component):
 
     @property
     def h(self):
-        """TODO"""
+        """The depth of water at each node."""
         return self._h
 
     @property
     def dt(self):
-        """TODO"""
+        """dt: Component timestep."""
         return self._dt
 
     @dt.setter
     def dt(self, dt):
-        """ """
         assert dt > 0
         self._dt = dt
 

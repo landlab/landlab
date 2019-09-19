@@ -140,22 +140,21 @@ class OverlandFlowBates(Component):
 
     @property
     def surface_water__discharge(self):
-        """TODO"""
+        """The discharge of water on active links."""
         return self._surface_water__discharge
 
     @property
     def h(self):
-        """TODO"""
+        """The depth of water at each node."""
         return self._h
 
     @property
     def dt(self):
-        """TODO"""
+        """dt: component timestep."""
         return self._dt
 
     @dt.setter
     def dt(self, dt):
-        """ """
         assert dt > 0
         self._dt = dt
 

@@ -77,9 +77,9 @@ class DischargeDiffuser(Component):
             "type": None,
             "intent": "in",
             "optional": False,
-            "units": "TODO",
+            "units": "m**3/s",
             "mapping": "node",
-            "doc": "TODO",
+            "doc": "Sediment discharge into a node.",
         },
         "surface_water__discharge": {
             "type": None,
@@ -101,9 +101,9 @@ class DischargeDiffuser(Component):
             "type": None,
             "intent": "in",
             "optional": False,
-            "units": "TODO",
+            "units": "m**3/s",
             "mapping": "node",
-            "doc": "TODO",
+            "doc": "Incoming water discharge at node.",
         },
     }
 
@@ -171,7 +171,11 @@ class DischargeDiffuser(Component):
         self._Qsed_s = np.empty((ni, nj), dtype=float)
 
     def run_one_step(self, dt):
-        """
+        """Run forward a duration of time, dt.
+
+        Parameters
+        ----------
+        dt: float
         """
         grid = self._grid
         ni = grid.number_of_node_rows

@@ -112,7 +112,7 @@ class FireGenerator(Component):
 
     @property
     def scale_parameter(self):
-        """TODO"""
+        """Scale parameter for the random distribution."""
         return self._scale_parameter
 
     def get_scale_parameter(self):

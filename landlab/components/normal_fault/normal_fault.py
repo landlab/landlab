@@ -328,9 +328,7 @@ class NormalFault(Component):
 
     @property
     def faulted_nodes(self):
-        """
-        TODO
-        """
+        """At node array indicating which nodes are on the upthrown block."""
         return self._faulted_nodes
 
     def _check_surfaces(self):
@@ -344,7 +342,7 @@ class NormalFault(Component):
             self._not_yet_instantiated = still_not_instantiated
 
     def run_one_earthquake(self, dz):
-        """ """
+        """Run one earthquake with uplift of magnitude ``dz``."""
         self._check_surfaces()
 
         # save z before uplift only if using include boundaries.

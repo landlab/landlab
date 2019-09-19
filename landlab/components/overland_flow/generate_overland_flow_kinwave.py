@@ -139,7 +139,7 @@ class KinwaveOverlandFlowModel(Component):
 
     @property
     def vel_coef(self):
-        """TODO"""
+        """Velocity coefficient. (1/roughness)"""
         return self._vel_coef
 
     def run_one_step(self, dt):

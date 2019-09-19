@@ -275,17 +275,16 @@ class KinwaveImplicitOverlandFlow(Component):
 
     @property
     def vel_coef(self):
-        """TODO"""
+        """Velocity coefficient."""
         return self._vel_coef
 
     @property
     def depth(self):
-        """TODO"""
+        """The depth of water at each node."""
         return self._depth
 
     def run_one_step(self, dt):
-        """Calculate water flow for a time period `dt`.
-        """
+        """Calculate water flow for a time period `dt`."""
 
         # If it's our first iteration, or if the topography may be changing,
         # do flow routing and calculate square root of slopes at links

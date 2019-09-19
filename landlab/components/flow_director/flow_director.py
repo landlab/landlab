@@ -100,7 +100,7 @@ class _FlowDirector(Component):
 
     @property
     def surface_values(self):
-        """TODO"""
+        """Values of the surface over which flow is directed."""
         return self._surface_values
 
     def _changed_surface(self):

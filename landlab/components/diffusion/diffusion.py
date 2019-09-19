@@ -304,17 +304,17 @@ class LinearDiffuser(Component):
 
     @property
     def fixed_grad_nodes(self):
-        """TODO"""
+        """Fixed gradient nodes."""
         return self._fixed_grad_nodes
 
     @property
     def fixed_grad_anchors(self):
-        """TODO"""
+        """Fixed gradient anchors."""
         return self._fixed_grad_anchors
 
     @property
     def fixed_grad_offsets(self):
-        """TODO"""
+        """Fixed gradient offsets."""
         return self._fixed_grad_offsets
 
     def updated_boundary_conditions(self):
