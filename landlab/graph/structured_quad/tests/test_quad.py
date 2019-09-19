@@ -46,6 +46,7 @@ def test_layouts_match(method):
     )
 
 
+@mark.skip("speed tests")
 @mark.parametrize(
     "method",
     (
