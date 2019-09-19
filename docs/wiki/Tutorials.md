@@ -1,0 +1,66 @@
+[Landlab](http://landlab.github.io) |
+[[About |About]] |
+[[Examples |Examples]] |
+[[User Guide | User-Guide]] |
+[Reference Manual](http://landlab.readthedocs.org/en/latest/#developer-documentation) |
+[[Tutorials| Tutorials ]] |
+[[FAQs |FAQs]]
+
+The [Landlab tutorials](https://github.com/landlab/tutorials) repository contains [IPython notebooks](https://ipython.org/notebook.html) that are both unexpanded (so you can run them in an IPython notebook viewer) and expanded (so you can read them like a regular text tutorial) along with code examples. Landlab's tutorials repo can also be accessed from [nbviewer](https://nbviewer.jupyter.org/github/landlab/tutorials).
+
+### IPython notebook tutorials
+
+Instructions on how to run an IPython notebook can be found [here](https://github.com/landlab/tutorials/blob/release/README.md).
+
+A short IPython notebook tutorial along with a screencast can be found [here](http://www.randalolson.com/2012/05/12/a-short-demo-on-how-to-use-ipython-notebook-as-a-research-notebook/) 
+(the tutorial uses an example with statistics, but you can substitute Landlab!)
+
+[**Click here to download all the tutorials**](https://github.com/landlab/tutorials/archive/release.zip)
+
+A suggested introduction to Landlab follows roughly this order:
+
+* [Introduction to Python and NumPy](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/python_intro/Python_intro.ipynb).
+_Learn about:_ The very basics of Python.
+* [Introduction to Landlab: example model of fault-scarp degradation](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/fault_scarp/landlab-fault-scarp.ipynb).
+A short overview of some of the things Landlab can do.
+* [Introduction to the model grid object](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/grid_object_demo/grid_object_demo.ipynb).
+Grid topology; how landlab represents data; connectivity of grid elements.
+* [Introduction to Landlab data fields](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/fields/working_with_fields.ipynb).
+How Landlab stores spatial data on the grid; a little on naming conventions.
+* [Introduction to plotting output with Landlab](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/plotting/landlab-plotting.ipynb).
+The basics of plotting with Landlab; combining matplotlib and out plots; the all-powerful `imshow_grid()` function.
+* [Introduction to using the Landlab component library](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/component_tutorial/component_tutorial.ipynb).
+The basics of working with and coupling components, using _diffusion_, _stream power_, and a _storm generator_ as examples.
+* [Using the gradient and flux-divergence functions](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/gradient_and_divergence/gradient_and_divergence.ipynb).
+Landlab as solving environment for staggered grid finite difference differential approximations; functions available to help you do this.
+* [Mapping values from nodes to links](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/mappers/mappers.ipynb).
+Options for getting data on links to nodes, nodes to links, etc.; min, max, and mean; upwinding and downwinding schemes; one-to-one, one-to-many, and many-to-one mappings.
+* [Setting boundary conditions on Landlab grids (several tutorials)](https://nbviewer.jupyter.org/github/landlab/tutorials/tree/release/boundary_conds/)
+How Landlab conceptualises boundary conditions; various ways to interact and work with them.
+* [Reading DEMs into Landlab](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/reading_dem_into_landlab/reading_dem_into_landlab.ipynb)
+Getting an ARC ESRI ASCII into Landlab; getting the boundary conditions set right.
+* [How to write a Landlab component](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/making_components/making_components.ipynb)
+What makes up a Landlab Component Standard Interface; how to make one for your process model.
+
+Notebook tutorials on Landlab's components include:
+* Flow Direction and Accumulation
+  * [Introduction to the FlowDirector Components](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/flow_direction_and_accumulation/the_FlowDirectors.ipynb)
+  * [Introduction to the FlowAccumulator Component](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/flow_direction_and_accumulation/the_FlowAccumulator.ipynb)
+  * [Comparison of FlowDirector Components](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/flow_direction_and_accumulation/compare_FlowDirectors.ipynb)
+* [Flexure](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/flexure/lots_of_loads.ipynb)
+* [Overland flow](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/overland_flow/overland_flow_driver.ipynb)
+* [Diffusion, stream power, and the storm generator](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/component_tutorial/component_tutorial.ipynb)
+* [Ecohydrology Model on Flat Domain](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/ecohydrology/cellular_automaton_vegetation_flat_surface/cellular_automaton_vegetation_flat_domain.ipynb)
+* [Ecohydrology Model on Actual Landscape](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/ecohydrology/cellular_automaton_vegetation_DEM/cellular_automaton_vegetation_DEM.ipynb)
+
+### Tutorial-like examples
+
+* [How to import topography data from a grid-based digital elevation model (DEM)](https://github.com/landlab/landlab/wiki/Grid#importing-a-dem)
+
+* [OverlandFlow component User Guide](https://github.com/landlab/landlab/wiki/OverlandFlow-Component-Users-Manual)
+
+### Landlab clinics and workshops
+
+For more examples and tutorials, see also our [Clinics & workshops page](https://github.com/landlab/landlab/wiki/Landlab-Clinics-and-Workshops)
+
+If you write a Landlab tutorial or Gist, please add a link to it here:
