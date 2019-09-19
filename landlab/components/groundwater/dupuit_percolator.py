@@ -6,12 +6,11 @@ GroundwaterDupuitPercolator Component
 """
 
 import numpy as np
-from landlab import Component, BAD_INDEX_VALUE
+from landlab import Component
 from landlab.components import FlowAccumulator
 from landlab.utils import return_array_at_node, return_array_at_link
 from landlab.grid.mappers import map_mean_of_link_nodes_to_link, \
-        map_max_of_node_links_to_node, map_value_at_max_node_to_link, map_link_head_node_to_link
-from landlab.grid.raster_mappers import map_sum_of_outlinks_to_node
+        map_max_of_node_links_to_node, map_value_at_max_node_to_link
 
 # regularization functions used to deal with numerical demons of seepage
 def _regularize_G(u,reg_factor):
@@ -23,8 +22,17 @@ def _regularize_R(u):
     return u*np.greater_equal(u,0)
 
 def get_link_hydraulic_conductivity(grid,K):
-    ''' returns array of hydraulic conductivity on links based upon K, a
-        2D hydraulic conductivity tensor'''
+    '''
+    Returns array of hydraulic conductivity on links, allowing
+    for aquifers with laterally anisotropic hydraulic conductivity
+
+    Parameters
+    ----------
+    K: (2x2) array of floats (m/s)
+        The hydraulic conductivity tensor:
+        [[Kxx, Kxy],[Kyx,Kyy]]
+    '''
+
     u = grid.unit_vector_at_link
     K_link = np.zeros(len(u))
     for i in range(len(u)):
@@ -57,7 +65,7 @@ class GroundwaterDupuitPercolator(Component):
             factor controlling the smoothness of the transition between
             surface and subsurface flow
 
-       Examples
+    Examples
     --------
     >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((3, 3))
@@ -233,18 +241,18 @@ class GroundwaterDupuitPercolator(Component):
 
 
     def calc_rechage_flux_in(self):
-        #  calculate flux into the domain from recharge. Includes recharge that
-        #  may immediately become saturation excess overland flow.
+        """
+        Calculate flux into the domain from recharge. Includes recharge that
+        may immediately become saturation excess overland flow
+        """
         return np.sum(self._grid.area_of_cell*self.recharge[self.cores])
 
     def calc_gw_flux_out(self):
-
         """
         Groundwater flux through open boundaries may be positive (out of
         the domain) or negative (into the domain). This function determines the
         correct sign for specific discharge based upon this convention,
         and sums the flux across the boundary faces.
-
         """
         # get links at open boundary nodes
         open_nodes = self._grid.open_boundary_nodes
@@ -277,7 +285,6 @@ class GroundwaterDupuitPercolator(Component):
     def calc_gw_flux_at_node(self):
         """
         Calculate the sum of the groundwater flux leaving a node.
-
         """
         gw = self._grid.at_link['groundwater__specific_discharge'][self._grid.links_at_node]*self._grid.link_dirs_at_node
         gw_out = -np.sum(gw*(gw<0),axis=1)
