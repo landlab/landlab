@@ -1368,9 +1368,10 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True, out
     and patch 2 westwards and downwards components.
 
     >>> xcomp, ycomp = map_link_vector_sum_to_patch(mg, "vals")
-    >>> np.allclose(xcomp[[6, 9, 10]], [2., 0., -1])
+    >>> xcomp, ycomp = np.round(xcomp, decimals=5), np.round(ycomp, decimals=5)
+    >>> np.allclose(xcomp[(6, 9, 10),], [2.0, 0.0, -1.0])
     True
-    >>> np.allclose(ycomp[[6, 9, 10]] / np.sqrt(3.0), [0.0, 0.0, -1.0])
+    >>> np.allclose(ycomp[(6, 9, 10),] / np.sqrt(3.0), [0.0, 0.0, -1.0])
     True
 
     These are the patches with *INACTIVE_LINK*s on all three sides:
