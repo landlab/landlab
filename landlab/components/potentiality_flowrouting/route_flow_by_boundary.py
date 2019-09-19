@@ -177,8 +177,10 @@ class PotentialityFlowRouter(Component):
         else:
             self._discharges_at_link = self._grid.empty("link")
 
-    def route_flow(self):
-        """
+    def run_one_step(self):
+        """Route surface-water flow over a landscape.
+
+        Both convergent and divergent flow can occur.
         """
         grid = self._grid
         self._K = grid.at_node["flow__potential"]
@@ -276,13 +278,6 @@ class PotentialityFlowRouter(Component):
             ) ** 0.6
         else:
             pass
-
-    def run_one_step(self):
-        """Route surface-water flow over a landscape.
-
-        Both convergent and divergent flow can occur.
-        """
-        self.route_flow()
 
     @property
     def discharges_at_links(self):

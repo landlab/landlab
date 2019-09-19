@@ -12,7 +12,6 @@ import landlab
 from landlab import Component, FieldError
 from landlab.components import DepressionFinderAndRouter, FlowAccumulator
 from landlab.grid.base import BAD_INDEX_VALUE
-from landlab.utils.decorators import deprecated
 
 # TODO: this should probably follow Barnes et al., 2014 for max efficiency
 
@@ -231,119 +230,6 @@ class SinkFiller(Component):
                 self._grid.delete_field("node", delete_me)
         for update_me in existing_fields.keys():
             self._grid.at_node[update_me][:] = existing_fields[update_me]
-        # fill the output field
-        self._sed_fill_depth[:] = self._elev - self._original_elev
-
-    @deprecated(use="fill_pits", version=1.0)
-    def _fill_pits_old(self, apply_slope=None):
-        """
-
-        .. deprecated:: 0.1.38
-            Use :func:`fill_pits` instead.
-
-        This is the main method. Call it to fill depressions in a starting
-        topography.
-
-        **Output fields**
-
-        *  `topographic__elevation` : the updated elevations
-        *  `sediment_fill__depth` : the depth of sediment added at each node
-
-        Parameters
-        ----------
-        apply_slope : None, bool, or float
-            If a float is provided this is the slope of the surface down
-            towards the lake outlet. Supply a small positive number, e.g.,
-            1.e-5 (or True, to use this default value).
-            A test is performed to ensure applying this slope will not alter
-            the drainage structure at the edge of the filled region (i.e.,
-            that we are not accidentally reversing the flow direction far
-            from the outlet.) The component will automatically decrease the
-            (supplied or default) gradient a number of times to try to
-            accommodate this, but will eventually raise an OverflowError
-            if it can't deal with it. If you pass True, the method will use
-            the default value of 1.e-5.
-        """
-        self._original_elev = self._elev.copy()
-        # We need this, as we'll have to do ALL this again if we manage
-        # to jack the elevs too high in one of the "subsidiary" lakes.
-        # We're going to implement the lake_mapper component to do the heavy
-        # lifting here, then delete its fields. This means we first need to
-        # test if these fields already exist, in which case, we should *not*
-        # delete them!
-        existing_fields = {}
-        spurious_fields = set()
-        set_of_outputs = self._lf.output_var_names | self._fr.output_var_names
-        try:
-            set_of_outputs.remove(self._topo_field_name)
-        except KeyError:
-            pass
-        for field in set_of_outputs:
-            try:
-                existing_fields[field] = self._grid.at_node[field].copy()
-            except FieldError:  # not there; good!
-                spurious_fields.add(field)
-
-        self._fr.run_one_step()
-        self._lf.map_depressions(
-            pits=self._grid.at_node["flow__sink_flag"], reroute_flow=False
-        )
-        # add the depression depths to get up to flat:
-        self._elev += self._grid.at_node["depression__depth"]
-        # if apply_slope is none, we're now done! But if not...
-        if apply_slope is True:
-            apply_slope = self._fill_slope
-        elif type(apply_slope) in (float, int):
-            assert apply_slope >= 0.0
-        if apply_slope:
-            # this isn't very efficient, but OK as we're only running this
-            # code ONCE in almost all use cases
-            sublake = False
-            unstable = True
-            stability_increment = 0
-            self._lake_nodes_treated = np.array([], dtype=int)
-            while unstable:
-                while 1:
-                    for (outlet_node, lake_code) in zip(
-                        self._lf.lake_outlets, self._lf.lake_codes
-                    ):
-                        self._apply_slope_current_lake(
-                            apply_slope, outlet_node, lake_code, sublake
-                        )
-                    # Call the mapper again here. Bail out if no core pits are
-                    # found.
-                    # This is necessary as there are some configs where adding
-                    # the slope could create subsidiary pits in the topo
-                    self._lf.map_depressions(pits=None, reroute_flow=False)
-                    if len(self._lf.lake_outlets) == 0.0:
-                        break
-                    self._elev += self._grid.at_node["depression__depth"]
-                    sublake = True
-                    self._lake_nodes_treated = np.array([], dtype=int)
-                # final test that all lakes are not reversing flow dirs
-                all_lakes = np.where(self._lf.flood_status < BAD_INDEX_VALUE)[0]
-                unstable = self.drainage_directions_change(
-                    all_lakes, self._original_elev, self._elev
-                )
-                if unstable:
-                    apply_slope *= 0.1
-                    sublake = False
-                    self._lake_nodes_treated = np.array([], dtype=int)
-                    self._elev[:] = self._original_elev  # put back init conds
-                    stability_increment += 1
-                    if stability_increment == 10:
-                        raise OverflowError(
-                            "Filler could not find a stable "
-                            + "condition with a sloping "
-                            + "surface!"
-                        )
-        # now put back any fields that were present initially, and wipe the
-        # rest:
-        for delete_me in spurious_fields:
-            if delete_me in self._grid.at_node:
-                self._grid.delete_field("node", delete_me)
-        for update_me in existing_fields.keys():
-            self._grid.at_node[update_me] = existing_fields[update_me]
         # fill the output field
         self._sed_fill_depth[:] = self._elev - self._original_elev
 
