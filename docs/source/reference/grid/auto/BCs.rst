@@ -10,7 +10,7 @@ Base class
 ----------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.base.ModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.base.ModelGrid.active_faces
@@ -47,7 +47,7 @@ Raster
 ------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.raster.RasterModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.raster.RasterModelGrid.active_faces
@@ -101,7 +101,7 @@ Irregular Voronoi-cell
 ----------------------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_adjacent_nodes_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_faces
@@ -138,7 +138,7 @@ Hexagonal
 ---------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.hex.HexModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.hex.HexModelGrid.active_faces
@@ -181,7 +181,7 @@ Radial
 ------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.radial.RadialModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.radial.RadialModelGrid.active_faces

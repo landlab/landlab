@@ -18,8 +18,8 @@ Landlab Graph
    voronoi
 
 
-Exentions
----------
+Extensions
+----------
 
 .. toctree::
    :maxdepth: 2

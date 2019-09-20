@@ -10,7 +10,7 @@ Base class
 ----------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.base.ModelGrid.calc_diff_at_link
     ~landlab.grid.base.ModelGrid.calc_flux_div_at_cell
@@ -30,7 +30,7 @@ Raster
 ------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.raster.RasterModelGrid.calc_diff_at_link
     ~landlab.grid.raster.RasterModelGrid.calc_flux_div_at_cell
@@ -57,7 +57,7 @@ Irregular Voronoi-cell
 ----------------------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_diff_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_flux_div_at_cell
@@ -77,7 +77,7 @@ Hexagonal
 ---------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.hex.HexModelGrid.calc_diff_at_link
     ~landlab.grid.hex.HexModelGrid.calc_flux_div_at_cell
@@ -97,7 +97,7 @@ Radial
 ------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.radial.RadialModelGrid.calc_diff_at_link
     ~landlab.grid.radial.RadialModelGrid.calc_flux_div_at_cell

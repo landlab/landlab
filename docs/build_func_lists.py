@@ -34,7 +34,7 @@ str_sequence = ('Base class', 'Raster', 'Irregular Voronoi-cell', 'Hexagonal',
                 'Radial')
 paths = ('base', 'raster', 'voronoi', 'hex', 'radial')
 
-autosummary = '\n\n.. autosummary::\n    :toctree: \n\n'
+autosummary = '\n\n.. autosummary::\n    :toctree: generated/\n\n'
 
 
 all_methods_for_cat_allgrid = {}

@@ -4,7 +4,7 @@
 Data Record
 ===========
 
-.. toctree::
-   :maxdepth: 2
-
-  data_record
+.. automodule:: landlab.data_record.data_record
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -10,7 +10,7 @@ Base class
 ----------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.base.ModelGrid.axis_name
     ~landlab.grid.base.ModelGrid.axis_units
@@ -28,7 +28,7 @@ Raster
 ------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.raster.RasterModelGrid.axis_name
     ~landlab.grid.raster.RasterModelGrid.axis_units
@@ -65,7 +65,7 @@ Irregular Voronoi-cell
 ----------------------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.axis_name
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.axis_units
@@ -84,7 +84,7 @@ Hexagonal
 ---------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.hex.HexModelGrid.axis_name
     ~landlab.grid.hex.HexModelGrid.axis_units
@@ -106,7 +106,7 @@ Radial
 ------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.radial.RadialModelGrid.axis_name
     ~landlab.grid.radial.RadialModelGrid.axis_units

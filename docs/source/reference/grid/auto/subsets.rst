@@ -10,7 +10,7 @@ Base class
 ----------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
 
 .. _SUBSET_RasterModelGrid:
@@ -19,7 +19,7 @@ Raster
 ------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid
     ~landlab.grid.raster.RasterModelGrid.find_nearest_node
@@ -45,7 +45,7 @@ Irregular Voronoi-cell
 ----------------------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
 
 .. _SUBSET_HexModelGrid:
@@ -54,7 +54,7 @@ Hexagonal
 ---------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge
     ~landlab.grid.hex.HexModelGrid.nodes_at_left_edge
@@ -69,5 +69,5 @@ Radial
 ------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 

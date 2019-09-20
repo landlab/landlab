@@ -10,7 +10,7 @@ Base class
 ----------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.base.ModelGrid.calc_aspect_at_node
     ~landlab.grid.base.ModelGrid.calc_hillshade_at_node
@@ -24,7 +24,7 @@ Raster
 ------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.raster.RasterModelGrid.calc_aspect_at_cell_subtriangles
     ~landlab.grid.raster.RasterModelGrid.calc_aspect_at_node
@@ -39,7 +39,7 @@ Irregular Voronoi-cell
 ----------------------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_aspect_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_hillshade_at_node
@@ -53,7 +53,7 @@ Hexagonal
 ---------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.hex.HexModelGrid.calc_aspect_at_node
     ~landlab.grid.hex.HexModelGrid.calc_hillshade_at_node
@@ -67,7 +67,7 @@ Radial
 ------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.radial.RadialModelGrid.calc_aspect_at_node
     ~landlab.grid.radial.RadialModelGrid.calc_hillshade_at_node

@@ -10,7 +10,7 @@ Base class
 ----------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.base.ModelGrid.number_of_patches_present_at_link
     ~landlab.grid.base.ModelGrid.number_of_patches_present_at_node
@@ -25,7 +25,7 @@ Raster
 ------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.raster.RasterModelGrid.links_at_patch
     ~landlab.grid.raster.RasterModelGrid.nodes_at_patch
@@ -45,7 +45,7 @@ Irregular Voronoi-cell
 ----------------------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_patch
@@ -65,7 +65,7 @@ Hexagonal
 ---------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.hex.HexModelGrid.links_at_patch
     ~landlab.grid.hex.HexModelGrid.nodes_at_patch
@@ -85,7 +85,7 @@ Radial
 ------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.radial.RadialModelGrid.links_at_patch
     ~landlab.grid.radial.RadialModelGrid.nodes_at_patch

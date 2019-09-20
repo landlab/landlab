@@ -10,7 +10,7 @@ Base class
 ----------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.base.ModelGrid.map_downwind_node_link_max_to_node
     ~landlab.grid.base.ModelGrid.map_downwind_node_link_mean_to_node
@@ -42,7 +42,7 @@ Raster
 ------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_max_to_node
     ~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_mean_to_node
@@ -87,7 +87,7 @@ Irregular Voronoi-cell
 ----------------------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_downwind_node_link_max_to_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_downwind_node_link_mean_to_node
@@ -119,7 +119,7 @@ Hexagonal
 ---------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.hex.HexModelGrid.map_downwind_node_link_max_to_node
     ~landlab.grid.hex.HexModelGrid.map_downwind_node_link_mean_to_node
@@ -151,7 +151,7 @@ Radial
 ------
 
 .. autosummary::
-    :toctree: 
+    :toctree: generated/
 
     ~landlab.grid.radial.RadialModelGrid.map_downwind_node_link_max_to_node
     ~landlab.grid.radial.RadialModelGrid.map_downwind_node_link_mean_to_node

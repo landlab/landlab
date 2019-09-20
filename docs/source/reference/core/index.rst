@@ -5,20 +5,46 @@ Core Landlab Classes
 ====================
 
 
-The Component base class
-------------------------
+Submodules
+----------
 
-.. toctree::
-  :maxdepth: 2
+landlab.core.model_component module
+-----------------------------------
 
-  model_component
+.. automodule:: landlab.core.model_component
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.core.model_parameter_dictionary module
+----------------------------------------------
+
+.. automodule:: landlab.core.model_parameter_dictionary
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.core.model_parameter_loader module
+------------------------------------------
+
+.. automodule:: landlab.core.model_parameter_loader
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+landlab.core.utils module
+-------------------------
+
+.. automodule:: landlab.core.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 
-Core functions and utilities
-----------------------------
+Module contents
+---------------
 
-.. toctree::
-  :maxdepth: 2
-
-  core.core
-  utils
+.. automodule:: landlab.core
+    :members:
+    :undoc-members:
+    :show-inheritance:
