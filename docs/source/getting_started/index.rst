@@ -5,6 +5,7 @@ Getting Started
 ===============
 
 .. toctree::
- :maxdepth: 3
+   :maxdepth: 3
 
- teach_yourself_landlab
+   10min
+   teach_yourself_landlab

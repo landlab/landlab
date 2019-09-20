@@ -1,7 +1,7 @@
-`Landlab <http://landlab.github.io>`__ \| [[ About \| About ]] \| [[
-Examples \| Examples ]] \| [[ User Guide \| User-Guide ]] \| `Reference
-Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`__
-\| [[ Tutorials\| Tutorials ]] \| [[ FAQs \| FAQs ]]
+.. _grass:
+
+Landlab and GRASS GIS
+=====================
 
 Landlab has some known issues when operating alongside GRASS GIS, the
 open-source GIS software package. If you’re familiar with GRASS, this

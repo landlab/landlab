@@ -1,10 +1,7 @@
-`Landlab <http://landlab.github.io>`_ |
-[[ About | About ]] |
-[[ Examples | Examples ]] |
-[[ User Guide | User-Guide ]] |
-`Reference Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`_ |
-[[ Tutorials| Tutorials ]] |
-[[ FAQs | FAQs ]]
+.. _updating:
+
+Updating Landlab
+================
 
 Fundamental update instructions
 -------------------------------
@@ -17,24 +14,24 @@ Through the command line, you should be able to update your Landlab repository f
 
    > git fetch upstream
 
-A common reason why this might not work is if you haven't set the remotes correctly. This `GitHub page <https://help.github.com/categories/managing-remotes/>`_ on managing remotes might be helpful. 
+A common reason why this might not work is if you haven't set the remotes correctly. This `GitHub page <https://help.github.com/categories/managing-remotes/>`_ on managing remotes might be helpful.
 
 If we have added a dependency, you may see an import error. Similarly, if we have added a dependency, you may see some tests break. A likely fix is to ensure you have all the requirements specified in the `requirements-dev.txt` file::
 
    > conda install --yes --file=requirements-dev.txt
    > pip install -e .
 
-The first of these installs any new requirements for development (in requirements-dev.txt). The second will install any additional requirements for landlab (which are indicated in the setup.py file used by pip install). 
+The first of these installs any new requirements for development (in requirements-dev.txt). The second will install any additional requirements for landlab (which are indicated in the setup.py file used by pip install).
 
 If the Cython code has changed since you last updated, you will probably see errors associated with files named `cfuncs.pyx` (or similar). These changes require that you recompile your code. This can be done by executing the following from within the top level landlab folder (which contains the `setup.py` file)::
 
    > pip install -e .
 
-If none of these options work, please make an issue. 
+If none of these options work, please make an issue.
 
 Additional issues
 -----------------
-If you have been developing code and making commits to the ``master`` branch on your fork, this may not work. It is for this reason that we highly recommend you develop on a development branch.  
+If you have been developing code and making commits to the ``master`` branch on your fork, this may not work. It is for this reason that we highly recommend you develop on a development branch.
 
 Still having problems? This probably means that some time early in our
 development cycle you installed Landlab with one of our old procedures. The clue
@@ -90,7 +87,7 @@ If you prefer to remain with pip, try another pip install::
 
     > pip install landlab
 
-This should now take. 
+This should now take.
 
 *Still* having problems? There are probably multiple
 versions of Python on your machine interfering with each other. Solve

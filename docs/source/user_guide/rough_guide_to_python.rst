@@ -1,10 +1,7 @@
-`Landlab <http://landlab.github.io>`_ |
-[[ About | About ]] |
-[[ Examples | Examples ]] |
-[[ User Guide | User-Guide ]] |
-`Reference Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`_ |
-[[ Tutorials| Tutorials ]] |
-[[ FAQs | FAQs ]]
+.. _rough_guide:
+
+Rough Guide to Python and Landlab Install
+==========================================
 
 *Handling Python installs on Linux if you are non-expert can be a confusing
 and frustrating experience. However, one of us (DEJH) has recently gone
@@ -94,9 +91,9 @@ Once you have it, make sure you're fully up-to-date:
     $ pip install --upgrade pip
 
 NB: DO NOT TRY TO INSTALL PIP WITH APT-GET. Pip binds to your Python
-install, and the binding probably won't take properly unless you 
+install, and the binding probably won't take properly unless you
 install through your version of Python, as described here. Note that
-there is a copy of pip you can get with apt-get, but you don't 
+there is a copy of pip you can get with apt-get, but you don't
 want it.
 
 
@@ -107,11 +104,11 @@ Now you have pip and it's bound correctly to your Python install,
 adding packages should be trouble free:
 
     $ sudo pip install numpy
-    
+
     $ sudo pip install scipy
-    
+
     $ sudo pip install matplotlib
-    
+
     $ sudo pip install sympy
 
     $ sudo pip install netCDF4
@@ -123,9 +120,9 @@ Note in future, you can update these packages to new versions by:
 Now test the versions like this:
 
     $ python
-    
+
     >>> import numpy
-    
+
     >>> numpy.__version__
 
 And everything should now be great. You can now continue to install
@@ -139,7 +136,7 @@ and run
 and test:
 
     $ python
-    
+
     >>> import landlab
     >>> landlab.test()
 

@@ -1,12 +1,4 @@
-`Landlab <http://landlab.github.io>`_ |
-[[ About | About ]] |
-[[ Examples | Examples ]] |
-[[ User Guide | User-Guide ]] |
-`Reference Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`_ |
-[[ Tutorials| Tutorials ]] |
-[[ FAQs | FAQs ]]
-
-[[ ← Previous topic: the Landlab Grid | Grid ]] |  [[Next topic: Components → | Components ]]
+.. _build_a_model:
 
 What goes into a Landlab model?
 ==============================

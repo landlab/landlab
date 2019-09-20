@@ -1,3 +1,5 @@
+.. _teach_yourself:
+
 Self-study course for learning to use Landlab in your research
 ==============================================================
 

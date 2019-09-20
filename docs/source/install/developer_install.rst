@@ -1,7 +1,7 @@
-`Landlab <http://landlab.github.io>`__ \| [[ About \| About ]] \| [[
-Examples \| Examples ]] \| [[ User Guide \| User-Guide ]] \| `Reference
-Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`__
-\| [[ Tutorials\| Tutorials ]] \| [[ FAQs \| FAQs ]]
+.. _developer_install:
+
+Developer Installation
+======================
 
 If you intend to modify the Landlab code base, including design of new
 components, you will probably want to install Landlab directly from the

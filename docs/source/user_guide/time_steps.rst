@@ -1,13 +1,7 @@
-`Landlab <http://landlab.github.io>`_ |
-[[ About | About ]] |
-[[ Examples | Examples ]] |
-[[ User Guide | User-Guide ]] |
-`Reference Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`_ |
-[[ Tutorials| Tutorials ]] |
-[[ FAQs | FAQs ]]
+.. _time_steps:
 
-About time steps
-________________
+Time steps
+==========
 
 Anyone who has taken a numerical computing course knows the importance of time-step size: choose too small a step and your calculation takes forever to run; choose too big a step and it goes unstable. The details depend, of course, on the particular equations and the numerical method used to solve them.
 

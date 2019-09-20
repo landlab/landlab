@@ -1,17 +1,7 @@
-`Landlab <http://landlab.github.io>`_ |
-[[ About | About ]] |
-[[ Examples | Examples ]] |
-[[ User Guide | User-Guide ]] |
-`Reference Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`_ |
-[[ Tutorials| Tutorials ]] |
-[[ FAQs | FAQs ]]
-
-[[ ← Previous topic: Build a Model | Build-a-Model ]]
-
 .. _landlab_components_page:
 
-The Landlab component library
------------------------------
+The Component Library
+=====================
 
 Landlab offers an ever-growing library of components that aim to describe individual or closely associated suites of surface processes. Components are designed to be “plug-and-play” and to interact with each other with the minimum of technical difficulties. Each component makes use of Landlab grid fields to enable the sharing of data between the components, and we aim to have a relatively standardized way of interacting with and using each different one.
 
@@ -19,7 +9,7 @@ Landlab components exist as classes, and can be imported from *landlab.component
 
     We emphasize that at the moment most Landlab components are under active development, and it is possible that    changes may occur to things such as input argument format with little or no warning. Please let the Landlab development team know if you’re making heavy use of a component so we can avoid unnecessarily breaking your code in future Landlab releases! Components are presented as-is in this beta release and we don't make any guarantees about the stability or otherwise of the implementations.
 
-To develop your own Landlab component, see `this page <https://github.com/landlab/landlab/wiki/Develop-your-own-component>`_ and `this tutorial <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/making_components/making_components.ipynb>`_. 
+To develop your own Landlab component, see `this page <https://github.com/landlab/landlab/wiki/Develop-your-own-component>`_ and `this tutorial <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/making_components/making_components.ipynb>`_.
 
 Component Library Tutorial
 ----------------------------
@@ -29,7 +19,7 @@ Available Landlab components
 ----------------------------
 
 For the complete list of Landlab components type the following command in a command prompt:
- 
+
 ``landlab list``
 
 See the `Components section <http://landlab.readthedocs.io/en/release/#components>`_ of the Landlab reference manual for a list of all Landlab components currently available.
@@ -43,7 +33,7 @@ must first import the class, then ``instantiate`` a Python instance of that clas
 then call a method from the class to run the component. The way this is done has now
 been almost totally standardised across Landlab.
 
-A component class is imported from the library as 
+A component class is imported from the library as
 
 >>> from landlab.components import [ComponentClass]
 
@@ -51,7 +41,7 @@ e.g., to get the linear diffusion component, we would do::
 
 >>> from landlab.components import LinearDiffuser
 
-The available components are listed 
+The available components are listed
 in the `Landlab Reference Manual <http://landlab.readthedocs.io/en/latest/#components>`_.
 
 Component classes always take a copy of the grid as their first argument. They then take a
@@ -203,7 +193,7 @@ Landlab standard naming conventions
 
 The Landlab component library attempts to make use of a relatively standardized set of names across
 the various components, in order to maximize ease of component coupling. If you’re familiar with
-the concept of the `CSDMS standard naming conventions 
+the concept of the `CSDMS standard naming conventions
 <http://csdms.colorado.edu/wiki/CSDMS_Standard_Names>`_, note that we have tried to strike a balance
 between the rigor and uniqueness of those names and a more user-friendly, succinct approach.
 Nonetheless, you may recognize the basic style of the names:
@@ -230,6 +220,6 @@ you can just do:
 >>> mg.add_field(‘node’, ‘second_name’, mg.at_node[‘first_name’])
 
 Note that we are making slow progress towards truly standardizing the component library, but
-these kind of idiosyncrasies might yet persist for a while! 
+these kind of idiosyncrasies might yet persist for a while!
 
 [[ ← Previous topic: Build a Model | Build-a-Model ]]

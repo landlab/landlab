@@ -1,17 +1,8 @@
-`Landlab <http://landlab.github.io>`_ |
-[[ About | About ]] |
-[[ Examples | Examples ]] |
-[[ User Guide | User-Guide ]] |
-`Reference Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`_ |
-[[ Tutorials| Tutorials ]] |
-[[ FAQs | FAQs ]]
-
-[[ ← Previous topic: Components | Components ]]
-
-
+.. _standard_names:
 
 Standard naming in Landlab
-------------------------------------
+==========================
+
 See `this page <https://github.com/landlab/landlab/wiki/Components#landlab-standard-naming-conventions>`_
 for information on the naming conventions.
 
@@ -19,43 +10,43 @@ for information on the naming conventions.
 List of Standard names in Landlab
 ------------------------------------
 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| Name                                              | Used by                      | Provided by                        | 
-+===================================================+==============================+====================================+ 
-| area_coefficient                                  | 'DrainageDensity'            |                                    | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| area_exponent                                     | 'DrainageDensity'            |                                    | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
++---------------------------------------------------+------------------------------+------------------------------------+
+| Name                                              | Used by                      | Provided by                        |
++===================================================+==============================+====================================+
+| area_coefficient                                  | 'DrainageDensity'            |                                    |
++---------------------------------------------------+------------------------------+------------------------------------+
+| area_exponent                                     | 'DrainageDensity'            |                                    |
++---------------------------------------------------+------------------------------+------------------------------------+
 | bedrock__elevation                                |                              | 'DepthDependentDiffuser'           |
-|                                                   |                              | 'DepthDependentCubicDiffuser'      | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| channel__bed_shear_stress                         |                              | 'SedDepEroder'                     | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| channel__chi_index                                |                              | 'ChiFinder'                        | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| channel__depth                                    |                              | 'SedDepEroder'                     | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| channel__discharge                                |                              | 'SedDepEroder'                     | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| channel__mask                                     | 'DrainageDensity'            |                                    | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| channel__steepness_index                          |                              |'SteepnessFinder'                   | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| channel__width                                    |                              | 'SedDepEroder'                     | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-|channel_sediment__relative_flux                    |                              | 'SedDepEroder'                     | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| channel_sediment__volumetric_flux                 |                              | 'SedDepEroder'                     | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| channel_sediment__volumetric_transport_capacity   |                              | 'SedDepEroder'                     | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| channelization_threshold                          | 'DrainageDensity'            |                                    | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| depression__depth                                 |                              | 'DepressionFinderAndRouter'        | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| depression__outlet_node                           |                              | 'DepressionFinderAndRouter'        | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| drainage_area                                     | 'ChiFinder'                  | 'FlowRouter'                       | 
+|                                                   |                              | 'DepthDependentCubicDiffuser'      |
++---------------------------------------------------+------------------------------+------------------------------------+
+| channel__bed_shear_stress                         |                              | 'SedDepEroder'                     |
++---------------------------------------------------+------------------------------+------------------------------------+
+| channel__chi_index                                |                              | 'ChiFinder'                        |
++---------------------------------------------------+------------------------------+------------------------------------+
+| channel__depth                                    |                              | 'SedDepEroder'                     |
++---------------------------------------------------+------------------------------+------------------------------------+
+| channel__discharge                                |                              | 'SedDepEroder'                     |
++---------------------------------------------------+------------------------------+------------------------------------+
+| channel__mask                                     | 'DrainageDensity'            |                                    |
++---------------------------------------------------+------------------------------+------------------------------------+
+| channel__steepness_index                          |                              |'SteepnessFinder'                   |
++---------------------------------------------------+------------------------------+------------------------------------+
+| channel__width                                    |                              | 'SedDepEroder'                     |
++---------------------------------------------------+------------------------------+------------------------------------+
+|channel_sediment__relative_flux                    |                              | 'SedDepEroder'                     |
++---------------------------------------------------+------------------------------+------------------------------------+
+| channel_sediment__volumetric_flux                 |                              | 'SedDepEroder'                     |
++---------------------------------------------------+------------------------------+------------------------------------+
+| channel_sediment__volumetric_transport_capacity   |                              | 'SedDepEroder'                     |
++---------------------------------------------------+------------------------------+------------------------------------+
+| channelization_threshold                          | 'DrainageDensity'            |                                    |
++---------------------------------------------------+------------------------------+------------------------------------+
+| depression__depth                                 |                              | 'DepressionFinderAndRouter'        |
++---------------------------------------------------+------------------------------+------------------------------------+
+| depression__outlet_node                           |                              | 'DepressionFinderAndRouter'        |
++---------------------------------------------------+------------------------------+------------------------------------+
+| drainage_area                                     | 'ChiFinder'                  | 'FlowRouter'                       |
 |                                                   | 'StreamPowerEroder'          | 'FlowAccumulator'                  |
 |                                                   | 'StreamPowerSmooth...        |                                    |
 |                                                   | ...ThresholdEroder'          |                                    |
@@ -64,12 +55,12 @@ List of Standard names in Landlab
 |                                                   | 'SteepnessFinder'            |                                    |
 |                                                   | 'Space'                      |                                    |
 |                                                   | 'ErosionDeposition'          |                                    |
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| flow__data_structure_D                            |                              | 'FlowAccumulator'                  | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| flow__data_structure_delta                        |                              | 'FlowAccumulator'                  | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| flow__link_to_receiver_node                       | 'ChiFinder'                  | 'FlowRouter'                       | 
++---------------------------------------------------+------------------------------+------------------------------------+
+| flow__data_structure_D                            |                              | 'FlowAccumulator'                  |
++---------------------------------------------------+------------------------------+------------------------------------+
+| flow__data_structure_delta                        |                              | 'FlowAccumulator'                  |
++---------------------------------------------------+------------------------------+------------------------------------+
+| flow__link_to_receiver_node                       | 'ChiFinder'                  | 'FlowRouter'                       |
 |                                                   | 'StreamPowerEroder'          | 'FlowDirectorD8'                   |
 |                                                   | 'StreamPowerSmooth...        | 'FlowDirectorSteepest'             |
 |                                                   | ...ThresholdEroder'          | 'FlowDirectorMFD'                  |
@@ -78,34 +69,34 @@ List of Standard names in Landlab
 |                                                   | 'SteepnessFinder'            |                                    |
 |                                                   | 'DrainageDensity'.           |                                    |
 |                                                   | 'Space'                      |                                    |
-|                                                   | 'ErosionDeposition'          |                                    | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| flow__nodes_not_in_stack                          |                              | 'FlowAccumulator'                  | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| flow__potential                                   |                              | 'PotentialityFlowRouter'           | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| flow__receiver_node                               | 'ChiFinder'                  | 'FlowRouter'                       | 
+|                                                   | 'ErosionDeposition'          |                                    |
++---------------------------------------------------+------------------------------+------------------------------------+
+| flow__nodes_not_in_stack                          |                              | 'FlowAccumulator'                  |
++---------------------------------------------------+------------------------------+------------------------------------+
+| flow__potential                                   |                              | 'PotentialityFlowRouter'           |
++---------------------------------------------------+------------------------------+------------------------------------+
+| flow__receiver_node                               | 'ChiFinder'                  | 'FlowRouter'                       |
 |                                                   | 'StreamPowerEroder'          | 'FlowDirectorD8'                   |
 |                                                   | 'StreamPowerSmooth...        | 'FlowDirectorSteepest'             |
 |                                                   | ...ThresholdEroder'          | 'FlowDirectorMFD'                  |
 |                                                   | 'FastscapeEroder'            | 'FlowDirectorDINF'                 |
 |                                                   | 'SedDepEroder'               |                                    |
 |                                                   | 'SteepnessFinder'            |                                    |
-|                                                   | 'DrainageDensity'            |                                    | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
+|                                                   | 'DrainageDensity'            |                                    |
++---------------------------------------------------+------------------------------+------------------------------------+
 | flow__receiver_nodes                              |                              | 'FlowDirectorMFD'                  |
-|                                                   |                              | 'FlowDirectorDINF'                 | 
+|                                                   |                              | 'FlowDirectorDINF'                 |
 +---------------------------------------------------+------------------------------+------------------------------------+
 | flow__receiver_proportionsflow...                 |                              | 'FlowDirectorMFD'                  |
-| ...__link_to_receiver_nodes                       |                              | 'FlowDirectorDINF'                 | 
+| ...__link_to_receiver_nodes                       |                              | 'FlowDirectorDINF'                 |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| flow__sink_flag.                                  |                              | 'FlowRouter'                       | 
+| flow__sink_flag.                                  |                              | 'FlowRouter'                       |
 |                                                   |                              | 'FlowDirectorD8'                   |
 |                                                   |                              | 'FlowDirectorSteepest'             |
 |                                                   |                              | 'FlowDirectorMFD'                  |
 |                                                   |                              | 'FlowDirectorDINF'                 |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| flow__upstream_node_order                         | 'ChiFinder'                  | 'FlowRouter'                       | 
+| flow__upstream_node_order                         | 'ChiFinder'                  | 'FlowRouter'                       |
 |                                                   | 'StreamPowerEroder'          | 'FlowAccumulator'                  |
 |                                                   | 'StreamPowerSmooth...        |                                    |
 |                                                   | ...ThresholdEroder'          |                                    |
@@ -113,107 +104,107 @@ List of Standard names in Landlab
 |                                                   | 'SedDepEroder'               |                                    |
 |                                                   | 'SteepnessFinder'            |                                    |
 |                                                   | 'Space'                      |                                    |
-|                                                   | 'ErosionDeposition'          |                                    | 
-+---------------------------------------------------+------------------------------+------------------------------------+   
-| hillslope_sediment__unit_volume_flux              |                              | 'LinearDiffuser'                   | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| landslide__probability_of_failure                 |                              | 'LandslideProbability'             | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| lithosphere__overlying_pressure_increment         | 'Flexure'                    |                                    | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| lithosphere_surface__elevation_increment          |                              | 'Flexure'                          | 
-|                                                   |                              | 'gFlex'                            | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| plant__age                                        |                              | 'VegCA'                            | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| plant__live_index                                 |                              | 'VegCA'                            | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
+|                                                   | 'ErosionDeposition'          |                                    |
++---------------------------------------------------+------------------------------+------------------------------------+
+| hillslope_sediment__unit_volume_flux              |                              | 'LinearDiffuser'                   |
++---------------------------------------------------+------------------------------+------------------------------------+
+| landslide__probability_of_failure                 |                              | 'LandslideProbability'             |
++---------------------------------------------------+------------------------------+------------------------------------+
+| lithosphere__overlying_pressure_increment         | 'Flexure'                    |                                    |
++---------------------------------------------------+------------------------------+------------------------------------+
+| lithosphere_surface__elevation_increment          |                              | 'Flexure'                          |
+|                                                   |                              | 'gFlex'                            |
++---------------------------------------------------+------------------------------+------------------------------------+
+| plant__age                                        |                              | 'VegCA'                            |
++---------------------------------------------------+------------------------------+------------------------------------+
+| plant__live_index                                 |                              | 'VegCA'                            |
++---------------------------------------------------+------------------------------+------------------------------------+
 | radiation__incoming_shortwave_flux                |                              | 'PotentialEvapotranspiration'      |
-|                                                   |                              | 'Radiation'                        | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| radiation__net_flux                               |                              | 'PotentialEvapotranspiration'      | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| radiation__net_longwave_flux                      |                              | 'PotentialEvapotranspiration'      | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
+|                                                   |                              | 'Radiation'                        |
++---------------------------------------------------+------------------------------+------------------------------------+
+| radiation__net_flux                               |                              | 'PotentialEvapotranspiration'      |
++---------------------------------------------------+------------------------------+------------------------------------+
+| radiation__net_longwave_flux                      |                              | 'PotentialEvapotranspiration'      |
++---------------------------------------------------+------------------------------+------------------------------------+
 | radiation__net_shortwave_flux                     |                              | 'PotentialEvapotranspiration'      |
-|                                                   |                              | 'Radiation'                        | 
+|                                                   |                              | 'Radiation'                        |
 +---------------------------------------------------+------------------------------+------------------------------------+
 | radiation__ratio_to_flat_surface                  | 'PotentialEvapotranspiration'| 'Radiation'                        |
-+---------------------------------------------------+------------------------------+------------------------------------+  
-| rainfall__daily_depth                             | 'SoilMoisture'               |                                    | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| sediment_fill__depth                              |                              | 'SinkFiller'                       | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| slope_coefficient                                 | 'DrainageDensity'            |                                    | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| slope_exponent                                    | 'DrainageDensity'            |                                    | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| soil__density                                     | 'LandslideProbability'       |                                    | 
++---------------------------------------------------+------------------------------+------------------------------------+
+| rainfall__daily_depth                             | 'SoilMoisture'               |                                    |
++---------------------------------------------------+------------------------------+------------------------------------+
+| sediment_fill__depth                              |                              | 'SinkFiller'                       |
++---------------------------------------------------+------------------------------+------------------------------------+
+| slope_coefficient                                 | 'DrainageDensity'            |                                    |
++---------------------------------------------------+------------------------------+------------------------------------+
+| slope_exponent                                    | 'DrainageDensity'            |                                    |
++---------------------------------------------------+------------------------------+------------------------------------+
+| soil__density                                     | 'LandslideProbability'       |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
 | soil__depth                                       | 'ExponentialWeatherer'       | 'DepthDependentDiffuser'           |
 |                                                   | 'DepthDependentDiffuser'     | 'DepthDependentCubicDiffuser'      |
 |                                                   | 'Space'                      |                                    |
-|                                                   | 'DepthDependentCubicDiffuser'|                                    | 
+|                                                   | 'DepthDependentCubicDiffuser'|                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
 | soil__flux                                        |                              | 'DepthDependentDiffuser'           |
 |                                                   |                              | 'CubicNonLinearDiffuser'           |
 |                                                   |                              | 'DepthDependentCubicDiffuser'      |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| soil__internal_friction_angle                     | 'LandslideProbability'       |                                    | 
+| soil__internal_friction_angle                     | 'LandslideProbability'       |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| soil__maximum_total_cohesion                      | 'LandslideProbability'       |                                    | 
+| soil__maximum_total_cohesion                      | 'LandslideProbability'       |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| soil__mean_relative_wetness                       |                              | 'LandslideProbability'             | 
+| soil__mean_relative_wetness                       |                              | 'LandslideProbability'             |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| soil__minimum_total_cohesion                      | 'LandslideProbability'       |                                    | 
+| soil__minimum_total_cohesion                      | 'LandslideProbability'       |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| soil__mode_total_cohesion                         | 'LandslideProbability'       |                                    | 
+| soil__mode_total_cohesion                         | 'LandslideProbability'       |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| soil__probability_of_saturation                   |                              | 'LandslideProbability'             | 
+| soil__probability_of_saturation                   |                              | 'LandslideProbability'             |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| soil__saturated_hydraulic_conductivity            | 'LandslideProbability'       |                                    | 
+| soil__saturated_hydraulic_conductivity            | 'LandslideProbability'       |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| soil__thickness                                   | 'LandslideProbability'       |                                    | 
+| soil__thickness                                   | 'LandslideProbability'       |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| soil__transmissivity                              | 'LandslideProbability'       |                                    | 
+| soil__transmissivity                              | 'LandslideProbability'       |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| soil_moisture__initial_saturation_fraction        | 'SoilMoisture'               |                                    | 
+| soil_moisture__initial_saturation_fraction        | 'SoilMoisture'               |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| soil_moisture__root_zone_leakage                  | 'SoilMoisture'               |                                    | 
+| soil_moisture__root_zone_leakage                  | 'SoilMoisture'               |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| soil_moisture__saturation_fraction                |                              | 'SoilMoisture'                     | 
+| soil_moisture__saturation_fraction                |                              | 'SoilMoisture'                     |
 +---------------------------------------------------+------------------------------+------------------------------------+
 | soil_production__rate                             | 'DepthDependentDiffuser'     | 'ExponentialWeatherer'             |
-|                                                   | 'DepthDependentCubicDiffuser'|                                    | 
+|                                                   | 'DepthDependentCubicDiffuser'|                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| soil_water_infiltration__depth                    | 'SoilInfiltrationGreenAmpt'  | 'SoilInfiltrationGreenAmpt'        | 
+| soil_water_infiltration__depth                    | 'SoilInfiltrationGreenAmpt'  | 'SoilInfiltrationGreenAmpt'        |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| surface__evapotranspiration                       | 'Vegetation'                 | 'SoilMoisture'                     | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| surface__potential_evapotranspiration_30day_mean  | 'Vegetation'                 |                                    | 
+| surface__evapotranspiration                       | 'Vegetation'                 | 'SoilMoisture'                     |
++---------------------------------------------------+------------------------------+------------------------------------+
+| surface__potential_evapotranspiration_30day_mean  | 'Vegetation'                 |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
 | surface__potential_evapotranspiration_rate        | 'SoilMoisture'               | 'PotentialEvapotranspiration'      |
-|                                                   | 'Vegetation'                 |                                    | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| surface__runoff                                   |                              | 'SoilMoisture'                     | 
+|                                                   | 'Vegetation'                 |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| surface_load__stress                              | 'gFlex'                      |                                    | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
-| surface_to_channel__minimum_distance              |                              | 'DrainageDensity'                  | 
+| surface__runoff                                   |                              | 'SoilMoisture'                     |
++---------------------------------------------------+------------------------------+------------------------------------+
+| surface_load__stress                              | 'gFlex'                      |                                    |
++---------------------------------------------------+------------------------------+------------------------------------+
+| surface_to_channel__minimum_distance              |                              | 'DrainageDensity'                  |
 +---------------------------------------------------+------------------------------+------------------------------------+
 | surface_water__depth                              | 'OverlandFlowBates'          | 'OverlandFlowBates'                |
 |                                                   | 'OverlandFlow'               | 'OverlandFlow'                     |
 |                                                   | 'SoilInfiltrationGreenAmpt'  | 'KinwaveImplicitOverlandFlow'      |
-|                                                   | 'DepthSlopeProductErosion'   | 'PotentialityFlowRouter'           | 
-|                                                   |                              | 'SoilInfiltrationGreenAmpt'        | 
-+---------------------------------------------------+------------------------------+------------------------------------+ 
+|                                                   | 'DepthSlopeProductErosion'   | 'PotentialityFlowRouter'           |
+|                                                   |                              | 'SoilInfiltrationGreenAmpt'        |
++---------------------------------------------------+------------------------------+------------------------------------+
 | surface_water__discharge                          | 'DetachmentLtdErosion'       | 'FlowRouter'                       |
 |                                                   |                              | 'OverlandFlowBates'                |
 |                                                   |                              | 'OverlandFlow'                     |
-|                                                   |                              | 'PotentialityFlowRouter'           | 
-|                                                   |                              | 'FlowAccumulator'                  | 
+|                                                   |                              | 'PotentialityFlowRouter'           |
+|                                                   |                              | 'FlowAccumulator'                  |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| surface_water_inflow__discharge                   |                              | 'KinwaveImplicitOverlandFlow'      | 
+| surface_water_inflow__discharge                   |                              | 'KinwaveImplicitOverlandFlow'      |
 +---------------------------------------------------+------------------------------+------------------------------------+
 | topographic__elevation                            | 'ChiFinder'                  | 'LinearDiffuser'                   |
 |                                                   | 'LinearDiffuser'             | 'PerronNLDiffuse'                  |
@@ -244,13 +235,13 @@ List of Standard names in Landlab
 |                                                   | 'DepthDependentCubicDiffuser'|                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
 | topographic__gradient                             |                              | LinearDiffuser'                    |
-|                                                   |                              | 'KinwaveImplicitOverlandFlow'      | 
+|                                                   |                              | 'KinwaveImplicitOverlandFlow'      |
 +---------------------------------------------------+------------------------------+------------------------------------+
 | topographic__slope                                | 'DetachmentLtdErosion'       | 'DepthDependentDiffuser'           |
 |                                                   | 'DepthSlopeProductErosion'   | 'CubicNonLinearDiffuser'           |
-|                                                   | 'LandslideProbability'       | 'DepthDependentCubicDiffuser'      | 
+|                                                   | 'LandslideProbability'       | 'DepthDependentCubicDiffuser'      |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| topographic__specific_contributing_area           | 'LandslideProbability'       |                                    | 
+| topographic__specific_contributing_area           | 'LandslideProbability'       |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
 | topographic__steepest_slope                       | 'ChiFinder'                  | 'FlowRouter'                       |
 |                                                   | 'StreamPowerEroder'          | 'FlowDirectorD8'                   |
@@ -258,33 +249,33 @@ List of Standard names in Landlab
 |                                                   | 'SteepnessFinder'            | 'FlowDirectorMFD'                  |
 |                                                   | 'DrainageDensity'            | 'FlowDirectorDINF'                 |
 |                                                   | 'Space'                      |                                    |
-|                                                   | 'ErosionDeposition'          |                                    | 
+|                                                   | 'ErosionDeposition'          |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| vegetation__cover_fraction                        | 'SoilMoisture'               | 'Vegetation'                       | 
+| vegetation__cover_fraction                        | 'SoilMoisture'               | 'Vegetation'                       |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| vegetation__cumulative_water_stress               | 'VegCA'                      |                                    | 
+| vegetation__cumulative_water_stress               | 'VegCA'                      |                                    |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| vegetation__dead_biomass                          |                              | 'Vegetation'                       | 
+| vegetation__dead_biomass                          |                              | 'Vegetation'                       |
 +---------------------------------------------------+------------------------------+------------------------------------+
 | vegetation__dead_leaf_area_index                  |                              | 'Vegetation'                       |
 +---------------------------------------------------+------------------------------+------------------------------------+
 | vegetation__live_biomass                          |                              | 'Vegetation'                       |
-+---------------------------------------------------+------------------------------+------------------------------------+  
++---------------------------------------------------+------------------------------+------------------------------------+
 | vegetation__live_leaf_area_index                  | 'SoilMoisture'               | 'Vegetation'                       |
-+---------------------------------------------------+------------------------------+------------------------------------+  
++---------------------------------------------------+------------------------------+------------------------------------+
 | vegetation__plant_functional_type                 | 'SoilMoisture'               |                                    |
 |                                                   | 'Vegetation'                 |                                    |
 |                                                   | 'VegCA'                      |                                    |
-+---------------------------------------------------+------------------------------+------------------------------------+  
++---------------------------------------------------+------------------------------+------------------------------------+
 | vegetation__water_stress                          | 'Vegetation'                 | 'SoilMoisture'                     |
 +---------------------------------------------------+------------------------------+------------------------------------+
-| water__unit_flux_in                               | 'FlowRouter'                 |                                    | 
+| water__unit_flux_in                               | 'FlowRouter'                 |                                    |
 |                                                   | 'PotentialityFlowRouter'     |                                    |
 |                                                   | 'FlowAccumulator'            |                                    |
-+---------------------------------------------------+------------------------------+------------------------------------+ 
++---------------------------------------------------+------------------------------+------------------------------------+
 | water_surface__gradient                           |                              | 'OverlandFlowBates'                |
 |                                                   |                              | 'OverlandFlow'                     |
-+---------------------------------------------------+------------------------------+------------------------------------+    
++---------------------------------------------------+------------------------------+------------------------------------+
 
 
 

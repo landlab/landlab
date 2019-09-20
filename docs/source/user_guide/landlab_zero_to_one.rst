@@ -1,7 +1,7 @@
-`Landlab <http://landlab.github.io>`__ \| [[ About \| About ]] \| [[
-Examples \| Examples ]] \| [[ User Guide \| User-Guide ]] \| `Reference
-Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`__
-\| [[ Tutorials\| Tutorials ]] \| [[ FAQs \| FAQs ]]
+.. _zero_to_one:
+
+Transition from Landlab 0.x to 1.0
+==================================
 
 Landlab 1.0beta was introduced May 12, 2016. This new version—the first
 official stable release—introduces some powerful new capabilities. It

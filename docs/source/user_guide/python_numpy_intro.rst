@@ -1,12 +1,8 @@
-`Landlab <http://landlab.github.io>`_ |
-[[ About | About ]] |
-[[ Examples | Examples ]] |
-[[ User Guide | User-Guide ]] |
-`Reference Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`_ |
-[[ Tutorials| Tutorials ]] |
-[[ FAQs | FAQs ]]
+.. _python_intro:
 
-[[ ← Previous topic: User Guide | User-Guide ]] | [[ Next topic: the Landlab Grid  → | Grid ]]
+======================
+Introduction to Python
+======================
 
 Why Python?
 ===========
@@ -30,9 +26,9 @@ If you’re already familiar with Matlab, you will probably feel at home with Py
 Python’s indexing is inclusive at the start and exclusive at the end (in contrast to Matlab). For example, in Python
 
 >>> numpy.arange(0, 100)
-    
+
 will give an array of 100 numbers, starting at 0 and ending at 99.
-    
+
 Python doesn’t use parentheses or brackets to delimit code blocks (functions, loops, if statements, etc.). Instead it uses a colon to declare the start of a code block, then consistent indenting (normally 4 spaces) to for the rest of the block. e.g.,
 
 >>> def myfunction(input_param):
@@ -41,7 +37,7 @@ Python doesn’t use parentheses or brackets to delimit code blocks (functions, 
 ...     else:
 ...         print(“The input parameter wasn’t a string.”)
 ...         print(“It was actually " + str(type(input_param)))
-    
+
 Lines don’t need to end with the semicolon to suppress output; Python won’t print output unless you explicitly call ``print``.
 
 Finally, but importantly, Python doesn't use the hat ``^`` as its raise-to-the-power symbol. Instead, it uses a double star ``**``. Simple, but typically very frustrating for a day or two during transition! There's also the NumPy method, ``np.square``, which if you're using arrays typically outperforms the ``**`` operator.
@@ -49,7 +45,7 @@ Finally, but importantly, Python doesn't use the hat ``^`` as its raise-to-the-p
 We have a very short tutorial on Python and NumPy from the point of view of Landlab (and the key differences with Matlab) `here <https://nbviewer.jupyter.org/github/landlab/drivers/blob/master/notebooks/Python_intro.ipynb>`_.
 
 NumPy, SciPy, and Efficient Coding Style
-===========================================
+========================================
 
 NumPy and SciPy are the workhorse scientific computing packages of Python. They provide fast, efficient, and surprisingly comprehensive data structures and numerical methods that we (and you) can exploit to make coding in Landlab faster and easier.
 
@@ -64,12 +60,12 @@ Don’t! Try instead to develop a coding style where each line operates on the w
 
 >>> myoutputarray += myarray
 
-In particular, it can be very tempting to use loops to apply a condition over a whole array. Try not to do this! Instead of 
+In particular, it can be very tempting to use loops to apply a condition over a whole array. Try not to do this! Instead of
 
 >>> for i in myarray:
         if i < 0:
             i = 0
-            
+
 which will be really slow. Do this:
 
 >>> myarray[myarray < 0] = 0

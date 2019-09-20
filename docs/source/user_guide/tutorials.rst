@@ -1,7 +1,7 @@
-`Landlab <http://landlab.github.io>`__ \| [[About \|About]] \|
-[[Examples \|Examples]] \| [[User Guide \| User-Guide]] \| `Reference
-Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`__
-\| [[Tutorials\| Tutorials ]] \| [[FAQs \|FAQs]]
+.. _tutorials:
+
+Tutorials
+=========
 
 The `Landlab tutorials <https://github.com/landlab/tutorials>`__
 repository contains `IPython

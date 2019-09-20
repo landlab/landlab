@@ -1,3 +1,5 @@
+.. _troubleshooting:
+
 Troubleshooting Installation/Testing Problems
 =============================================
 

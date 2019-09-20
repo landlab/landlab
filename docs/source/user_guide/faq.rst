@@ -1,10 +1,7 @@
-`Landlab <http://landlab.github.io>`_ |
-[[ About | About ]] |
-[[ Examples | Examples ]] |
-[[ User Guide | User-Guide ]] |
-`Reference Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`_ |
-[[ Tutorials| Tutorials ]] |
-[[ FAQs | FAQs ]]
+.. _faq:
+
+Frequently Asked Questions
+==========================
 
 * [[I can't install/test/run Landlab, what should I do? | https://github.com/landlab/landlab/wiki/FAQs#i-cant-installtestrun-landlab-what-should-i-do]]
 * [[ What is the difference between a cell and a node? | FAQs#What-is-the-difference-between-a-cell-and-a-node ]]
@@ -170,19 +167,19 @@ There are several ways to get help:
 (3) File an issue at `https://github.com/landlab/landlab <https://github.com/landlab/landlab/issues>`_ using the ``New issue`` button in the upper right. Tell us about your issue, and we'll be in touch.
 
 .. raw:: html
-     
+
      <img width="800" src="https://raw.githubusercontent.com/wiki/landlab/landlab/images/issues-tab.png" />
 
 
 How do I keep in touch with Landlab developments?
 --------------------------------------------------------------------------------------
 
-There are a few ways to follow Landlab developments. You can 
-- contribute questions to this wiki (see below), 
-- follow Landlab on [[Twitter | https://twitter.com/landlabtoolkit]]  @landlabtoolkit, 
-- join the Landlab User Group on [[Slack | knuth@colorado.edu?subject=Landlab%20User%20Group&body=Invite%20to%20Slack]], 
-- follow [[releases | https://github.com/landlab/landlab/releases]], 
-- "watch" Landlab's GitHub repository, 
+There are a few ways to follow Landlab developments. You can
+- contribute questions to this wiki (see below),
+- follow Landlab on [[Twitter | https://twitter.com/landlabtoolkit]]  @landlabtoolkit,
+- join the Landlab User Group on [[Slack | knuth@colorado.edu?subject=Landlab%20User%20Group&body=Invite%20to%20Slack]],
+- follow [[releases | https://github.com/landlab/landlab/releases]],
+- "watch" Landlab's GitHub repository,
 - file a pull request or an issue at [[https://github.com/landlab/landlab | https://github.com/landlab/landlab]],
 - sign up to the [[Landlab Lookout newsletter | https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7]] to get the latest news, tips, publications and more.
 

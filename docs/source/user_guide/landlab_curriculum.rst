@@ -1,10 +1,8 @@
-`Landlab <http://landlab.github.io>`__ \| [[ About \| About ]] \| [[
-Examples \| Examples ]] \| [[ User Guide \| User-Guide ]] \| `Reference
-Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`__
-\| [[ Tutorials\| Tutorials ]] \| [[ FAQs \| FAQs ]]
+.. _wickert_curriculum:
 
+================================
 Landscape Evolution with Landlab
---------------------------------
+================================
 
 by Andy Wickert, University of Minnesota
 
@@ -83,7 +81,7 @@ The Code
    spr = StreamPowerEroder(mg, K_sp=K_sp, m_sp=m_sp, n_sp=1, threshold_sp=0,
                            use_Q=None)
    lake = DepressionFinderAndRouter(mg)
-       
+
    # Hillslopes
    dfn = LinearDiffuser(mg, linear_diffusivity=K_hs)
 

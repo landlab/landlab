@@ -1,8 +1,7 @@
-[[ Landlab \| http://landlab.github.io ]] \| [[ About \| About ]] \| [[
-Examples \| Examples ]] \| [[ User Guide \| User-Guide ]] \| [[
-Reference Manual \|
-http://landlab.readthedocs.org/en/latest/#developer-documentation]] \|
-[[ Tutorials\| Tutorials ]] \| [[ FAQs \| FAQs ]]
+.. _examples:
+
+Examples
+========
 
 Welcome to the **Landlab** gallery of examples!
 

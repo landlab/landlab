@@ -1,8 +1,7 @@
-[[ Landlab \| https://landlab.github.io ]] \| [[ About \| About ]] \| [[
-Examples \| Examples ]] \| [[ User Guide \| User-Guide ]] \| [[
-Reference Manual \|
-https://landlab.readthedocs.org/en/latest/#developer-documentation ]] \|
-[[ Tutorials\| Tutorials ]] \| [[ FAQs \| FAQs ]]
+.. _anaconda_install:
+
+Clinics and Workshops
+=====================
 
 2019
 ----

@@ -1,22 +1,19 @@
-`Landlab <http://landlab.github.io>`_ |
-[[ About | About ]] |
-[[ Examples | Examples ]] |
-[[ User Guide | User-Guide ]] |
-`Reference Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`_ |
-[[ Tutorials| Tutorials ]] |
-[[ FAQs | FAQs ]]
+.. _anaconda_install:
 
-    If you have used a decent amount of scientific software on  your machine before, it is
-    likely that have already installed "pieces" of Python
-    onto your system. Nevertheless, we *strongly* recommend that if you haven't before,
-    you download a complete Python distribution, as this will ensure that all of the Python
-    modules that Landlab needs to run are definitely present. Most of the bug reports we
-    get about problems installing Landlab relate to conflicts with older or incomplete versions of Python.
-    Common symptoms are running the python setup commands at the end of this
-    file, but then not being able to load landlab. Try [[ the Test | Installing-Python#the-test ]]
-    to ensure your current distribution with all its dependencies is the default.
-    If you suspect a path or version problem after you've installed one
-    of the distributions described below, click [[ here | Correcting-Install-Paths]].
+Python Installation
+===================
+
+If you have used a decent amount of scientific software on  your machine before, it is
+likely that have already installed "pieces" of Python
+onto your system. Nevertheless, we *strongly* recommend that if you haven't before,
+you download a complete Python distribution, as this will ensure that all of the Python
+modules that Landlab needs to run are definitely present. Most of the bug reports we
+get about problems installing Landlab relate to conflicts with older or incomplete versions of Python.
+Common symptoms are running the python setup commands at the end of this
+file, but then not being able to load landlab. Try [[ the Test | Installing-Python#the-test ]]
+to ensure your current distribution with all its dependencies is the default.
+If you suspect a path or version problem after you've installed one
+of the distributions described below, click [[ here | Correcting-Install-Paths]].
 
 On all platforms (Linux, Windows 7 or greater, and MacOS X), we recommend a
 preassembled scientific python distribution such as `Continuum IO's
@@ -52,7 +49,7 @@ The Test
 ----------
 
 Once you have a full Python distribution on your machine, it is vital to check that
-it has been successfully set as the default copy of Python on your system. 
+it has been successfully set as the default copy of Python on your system.
 
 On Linux or Mac, open a Terminal window and and type the lines below (note the ``>`` indicates that you are on a command line)::
 
@@ -64,7 +61,7 @@ operating system. For instance, Dan's Macbook Pro shows ``python`` on the path::
 
    /anaconda/bin/python
 
-On a PC, run ``python`` from your Command Prompt window. You should see a reference to anaconda when it is running. 
+On a PC, run ``python`` from your Command Prompt window. You should see a reference to anaconda when it is running.
 
 If you *don't* see reference to your newly installed distribution or the file is not found, click [[ here | Correcting-Install-Paths]] to resolve the problem.
 

@@ -1,12 +1,7 @@
-`Landlab <http://landlab.github.io>`_ |
-[[ About | About ]] |
-[[ Examples | Examples ]] |
-[[ User Guide | User-Guide ]] |
-`Reference Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`_ |
-[[ Tutorials| Tutorials ]] |
-[[ FAQs | FAQs ]]
-
 .. _correcting_install_paths:
+
+Correcting Install Paths
+========================
 
 Based on our experience of guiding users through the install process so far, we have
 found that the vast majority of technical issues arise due to incorrect paths to your Python distribution. Basically, your computer does not know where to look for the correct file or program and you need to tell it where to look using your system's `$PATH` variable.
@@ -112,11 +107,11 @@ Type ::
      > which python
      > which ipython
 
-In both cases the path should be the same and reference your distribution. 
+In both cases the path should be the same and reference your distribution.
 
 
 PC
-------------
+--
 
 On a PC, the same principle of modifying your environment variables applies, but
 you access them differently. Go to the Control Panel, then System. On **Windows 8**, you then
@@ -152,7 +147,7 @@ If you are on **Windows 10**, you need to make sure you see these paths.
 
 If you installed for a single user::
 
-    C:\Users\your_user_name\Anaconda3 
+    C:\Users\your_user_name\Anaconda3
     C:\Users\your_user_name\Anaconda3\Scripts
 
 If you installed for all users::
@@ -170,7 +165,7 @@ Type ::
      > where python
      > where ipython
 
-In both cases the path should be the same and reference your distribution. 
+In both cases the path should be the same and reference your distribution.
 
 Other issues
 >>>>>>>>>>>>

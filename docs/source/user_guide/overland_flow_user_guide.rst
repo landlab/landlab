@@ -1,23 +1,21 @@
-`Landlab <http://landlab.github.io>`_ |
-[[ About | About ]] |
-[[ Examples | Examples ]] |
-[[ User Guide | User-Guide ]] |
-`Reference Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`_ |
-[[ Tutorials| Tutorials ]] |
-[[ FAQs | FAQs ]]
+.. _overland_flow_manual:
+
+===================================
+Overland Flow Component User Manual
+===================================
 
 Background on OverlandFlow component
-------------
+------------------------------------
 
-The Landlab OverlandFlow component implements a 2-D solution of the shallow water equations, following the algorithm of de Almeida et al., (2012). In this component, an explicit solution simulates a flood wave moving across a gridded terrain, capturing hydrodynamics throughout the system. At each point within the grid, surface water discharge is calculated based on physical properties. This component expands the hydrologic capabilities of Landlab by offering a nonsteady flow routing method as an alternative to the steady-state flow routing regimes found in many geomorphic or landscape evolution models (such as the Landlab FlowRouter_ component). 
+The Landlab OverlandFlow component implements a 2-D solution of the shallow water equations, following the algorithm of de Almeida et al., (2012). In this component, an explicit solution simulates a flood wave moving across a gridded terrain, capturing hydrodynamics throughout the system. At each point within the grid, surface water discharge is calculated based on physical properties. This component expands the hydrologic capabilities of Landlab by offering a nonsteady flow routing method as an alternative to the steady-state flow routing regimes found in many geomorphic or landscape evolution models (such as the Landlab FlowRouter_ component).
 
 .. _FlowRouter: http://landlab.readthedocs.io/en/latest/landlab.components.flow_routing.html
 
-This User Manual describes how to instantiate, parameterize and plot data using the OverlandFlow component, using an example described in Adams et al., (in press, *Geoscientific Model Development*). For further information about the derivation of the algorithm used in this component, see: Bates et al., (2010) and de Almeida et al., (2012). 
+This User Manual describes how to instantiate, parameterize and plot data using the OverlandFlow component, using an example described in Adams et al., (in press, *Geoscientific Model Development*). For further information about the derivation of the algorithm used in this component, see: Bates et al., (2010) and de Almeida et al., (2012).
 
-**Note**: Currently, the OverlandFlow component can only operate on a structured grid, and so all references to the grid below are specifically referring to the Landlab RasterModelGrid module. 
+**Note**: Currently, the OverlandFlow component can only operate on a structured grid, and so all references to the grid below are specifically referring to the Landlab RasterModelGrid module.
 
-*Prerequisites*: A working knowledge of the Python programming language (any version) and familiarity with the Python libraries NumPy and Matplotlib. A basic understanding of the Landlab modeling framework (Hobley et al., 2017) is also recommended. 
+*Prerequisites*: A working knowledge of the Python programming language (any version) and familiarity with the Python libraries NumPy and Matplotlib. A basic understanding of the Landlab modeling framework (Hobley et al., 2017) is also recommended.
 
 Model parameters and variables
 ------------
@@ -26,7 +24,7 @@ Model parameters and variables
 
 Parameters listed here are easily tuned by the model user. For a complete list, see here_.
 
-.. _here: http://landlab.readthedocs.io/en/latest/landlab.components.overland_flow.html 
+.. _here: http://landlab.readthedocs.io/en/latest/landlab.components.overland_flow.html
 
 - **Alpha** : Weight on the adaptive time step, ranging between 0.2 - 0.7. For more information, see Hunter et al., (2005).
 - **Manning’s n** : An empirical value describing surface roughness. See Chow (1959).
@@ -36,22 +34,22 @@ Parameters listed here are easily tuned by the model user. For a complete list, 
 
 Variables listed here are updated by the component at the grid locations listed.
 
-- **surface_water__discharge**, *link*, [m^2 s^-1] : At each link in grid, *surface_water__discharge* is calculated using the de Almeida et al., (2012) equation. Discharge is a function of the water depth, adaptive time step, surface water slope and Manning’s roughness coefficient. 
+- **surface_water__discharge**, *link*, [m^2 s^-1] : At each link in grid, *surface_water__discharge* is calculated using the de Almeida et al., (2012) equation. Discharge is a function of the water depth, adaptive time step, surface water slope and Manning’s roughness coefficient.
 - **surface_water__depth**, *node*, [m] : At each node in the grid, *surface_water__depth* is updated using the *surface_water__discharge* on links connected to a given node.
 
 Basic steps of an OverlandFlow model
 ------------
 1. **Import the necessary libraries**: ``OverlandFlow`` is required. Optional libraries include the ``SinkFiller`` component, the Landlab plotting method ``imshow__grid``. Additional packages mentioned here include ``matplotlib.pyplot`` and ``numpy``.
-2. **Defining the model domain**: The computational domain of an OverlandFlow model can only work on RasterModelGrid instances as of Landlab version 1.0.0. 
-3. **Setting the boundary conditions**: If a clipped watershed digital elevation model (DEM) from ArcGIS is imported in ASCII format, the method ``set_watershed_boundary_condition()`` can be used. Alternatively, ``fixed_link`` boundary conditions can be used for discharge inputs on links. Other boundary condition scenarios can be accommodated by setting individual nodes or edges of the grid using Landlab boundary condition handling. 
-4. **Pre-processing the DEM**: This step is *optional*. If a watershed DEM is used, ArcGIS "D8" pit-filling will not create a continuous network for the "D4" ``OverlandFlow`` algorithm. The ``SinkFiller`` component can pit fill for a "D4" network. 
-5. **Initializing the OverlandFlow component**: The instance of the ``OverlandFlow`` class is declared, and parameters are set by the user. 
-6. **Determining precipitation inputs**: A constant precipitation rate can be passed to the ``OverlandFlow`` class, where precipitation persists for the entire model run. Alternatively, a single event can be set within the time loop, and then water can drain from the system when the precipitation event is over. 
-7. **Time loop**: The main ``OverlandFlow`` methods are called, and grid variables are updated through time. Data can be saved for plotting or later analysis. 
+2. **Defining the model domain**: The computational domain of an OverlandFlow model can only work on RasterModelGrid instances as of Landlab version 1.0.0.
+3. **Setting the boundary conditions**: If a clipped watershed digital elevation model (DEM) from ArcGIS is imported in ASCII format, the method ``set_watershed_boundary_condition()`` can be used. Alternatively, ``fixed_link`` boundary conditions can be used for discharge inputs on links. Other boundary condition scenarios can be accommodated by setting individual nodes or edges of the grid using Landlab boundary condition handling.
+4. **Pre-processing the DEM**: This step is *optional*. If a watershed DEM is used, ArcGIS "D8" pit-filling will not create a continuous network for the "D4" ``OverlandFlow`` algorithm. The ``SinkFiller`` component can pit fill for a "D4" network.
+5. **Initializing the OverlandFlow component**: The instance of the ``OverlandFlow`` class is declared, and parameters are set by the user.
+6. **Determining precipitation inputs**: A constant precipitation rate can be passed to the ``OverlandFlow`` class, where precipitation persists for the entire model run. Alternatively, a single event can be set within the time loop, and then water can drain from the system when the precipitation event is over.
+7. **Time loop**: The main ``OverlandFlow`` methods are called, and grid variables are updated through time. Data can be saved for plotting or later analysis.
 
 Step 1. Import the necessary libraries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-To build an OverlandFlow model, first the necessary Landlab components and utilities, as well as any necessary Python packages must be imported. Standard Python style dictates all import statements belong in the top of the driver file, after the module docstrings. In this simple example, the OverlandFlow model driver begins as follows: 
+To build an OverlandFlow model, first the necessary Landlab components and utilities, as well as any necessary Python packages must be imported. Standard Python style dictates all import statements belong in the top of the driver file, after the module docstrings. In this simple example, the OverlandFlow model driver begins as follows:
 
 .. code-block:: python
 
@@ -59,7 +57,7 @@ To build an OverlandFlow model, first the necessary Landlab components and utili
 	overland_flow_driver.py
 
         OverlandFlow component example, initializing a 36 km^2 square watershed with a
-        grid resolution of 30 m, from an ESRI ASCII file, simulating a 5 mm/hr rainfall 
+        grid resolution of 30 m, from an ESRI ASCII file, simulating a 5 mm/hr rainfall
         intensity over 2 hours, the standard storm example from Adams et al.,
         in prep for Geoscientific Model Development
 
@@ -78,9 +76,9 @@ To build an OverlandFlow model, first the necessary Landlab components and utili
 
 To run the test case presented here, two components are needed. First is the required ``OverlandFlow`` component, which will be used to calculate surface water discharge and surface water depth across the model grid. Also presented here is the ``SinkFiller`` component, which can be used optionally to pre-process the DEM. The ``SinkFiller`` component is described in more detail in **Step 4** of this Users Manual.
 
-To create a model domain, a Landlab RasterModelGrid instance must be initialized. In this example, the Landlab input/output suite of tools is used to read in a DEM that is formatted as an ESRI ASCII file ``read_esri_ascii``). Alternatively, a model domain can be manually created by the user. Both of these methods are described in detail in **Step 2** of this Users Manual. 
+To create a model domain, a Landlab RasterModelGrid instance must be initialized. In this example, the Landlab input/output suite of tools is used to read in a DEM that is formatted as an ESRI ASCII file ``read_esri_ascii``). Alternatively, a model domain can be manually created by the user. Both of these methods are described in detail in **Step 2** of this Users Manual.
 
-Other Landlab utilities used in this example are the plotting library ``imshow_grid``, which is a utility that can plot a Landlab grid instance and data field in map view, as described in the **Plotting and visualization** section in this Users Manual. 
+Other Landlab utilities used in this example are the plotting library ``imshow_grid``, which is a utility that can plot a Landlab grid instance and data field in map view, as described in the **Plotting and visualization** section in this Users Manual.
 
 Finally, additional Python packages are imported. In this example, both packages are dependencies of Landlab, which means they are required for Landlab installation and as such, should already be present on the user's machine. The scientific computing library NumPy is used for mathematical operations, and the matplotlib library is used for plotting model output.
 
@@ -93,7 +91,7 @@ As previously stated, the algorithm used in the OverlandFlow component was deriv
 
 **Figure** 1: Example of a Landlab RasterModelGrid instance. Each RasterModelGrid is composed of 3 core elements: nodes, which are points in (x, y) space; cells, a polygon with an area around a node; and links, ordered lines which connect neighboring pairs of node that store directionality.
 
-There are two ways to implement a RasterModelGrid that work with Landlab: reading in remotely-sensed data from a DEM with ``read_esri_ascii()``, or manually setting a generic structured grid using the RasterModelGrid library. Both of these methods are described in detail below. 
+There are two ways to implement a RasterModelGrid that work with Landlab: reading in remotely-sensed data from a DEM with ``read_esri_ascii()``, or manually setting a generic structured grid using the RasterModelGrid library. Both of these methods are described in detail below.
 
 Reading in a watershed DEM
 >>>>>>>>>>>>>>>>>
@@ -104,7 +102,7 @@ Landlab can easily interact with DEM data output by ESRI's ArcGIS software. In t
 	watershed_dem = 'Square_TestBasin.asc'
 	(rmg, z) = read_esri_ascii(watershed_dem, name='topographic__elevation’)
 
-In this example, the watershed DEM is read in by the ``read_esri_ascii()`` method, and the elevation data from the DEM is automatically assigned to the Landlab data field ``topographic__elevation``, for use by the components. 
+In this example, the watershed DEM is read in by the ``read_esri_ascii()`` method, and the elevation data from the DEM is automatically assigned to the Landlab data field ``topographic__elevation``, for use by the components.
 
 Setting up a generic RasterModelGrid
 >>>>>>>>>>>>>>>>>
@@ -114,13 +112,13 @@ The alternative to reading in a watershed DEM is to set the RasterModelGrid inst
 
 	rmg = RasterModelGrid((number_of_node_rows, number_of_node_columns), dx)
         z = user_defined_elevation_data        # length of number_of_nodes
-        rmg[‘node’][‘topographic__elevation’] = z 
+        rmg[‘node’][‘topographic__elevation’] = z
 
 This example assumes that the model users knows the following information: the number of grid rows (``number_of_grid_rows``), the number of grid columns (``number_of_grid_columns``), the grid resolution (``dx``) and some elevation data for each node. Here, the user must manually set the elevation data. When passing elevation data to the  ``topographic__elevation`` field, the length of ``user_defined_elevation_data`` **must** be equal to the number of nodes in the grid (which can be found using a command such as: ``rmg.number_of_nodes``.
 
 Step 3. Setting the boundary conditions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Landlab contains several methods which can set and update boundary conditions at *node* and *link* grid elements. When modeling water flow across a grid, a user needs to predetermine locations where water can and cannot flow. If a user reads in a single watershed DEM, (as described in **Step 2**), there is a utility within Landlab that can handle the specific boundary conditions needed to control flow: 
+Landlab contains several methods which can set and update boundary conditions at *node* and *link* grid elements. When modeling water flow across a grid, a user needs to predetermine locations where water can and cannot flow. If a user reads in a single watershed DEM, (as described in **Step 2**), there is a utility within Landlab that can handle the specific boundary conditions needed to control flow:
 
 .. code-block:: python
 
@@ -129,7 +127,7 @@ Landlab contains several methods which can set and update boundary conditions at
 By definition, a watershed has only one outlet, or open boundary location, and therefore all other nodes surrounding the watershed will be closed, or no flux, boundaries.
 The ``set_watershed_boundary_condition()`` method reads the gridded elevation data, (``z``), identifies the watershed outlet and sets it to an open boundary (also called a ``FIXED_VALUE_BOUNDARY`` in Landlab).  An open boundary allows flux to leave the modeling domain.  Additionally, this methods also identifies all NODATA nodes (given a default value of -9999) and sets them to closed, or no flux, boundaries.
 
-**Note**: As of Landlab version 1.0.0., this method only works on single watersheds, and so assumes that the watershed has been clipped in ArcGIS and has only one outlet point. 
+**Note**: As of Landlab version 1.0.0., this method only works on single watersheds, and so assumes that the watershed has been clipped in ArcGIS and has only one outlet point.
 
 Other boundary condition options
 >>>>>>>>>>>>>>>>>
@@ -141,19 +139,19 @@ Here, the ``FIXED_GRADIENT`` boundary condition is described. The ``set_nodata_n
 
 .. code-block:: python
 
-	rmg.set_nodata_nodes_to_fixed_gradient(z) 
+	rmg.set_nodata_nodes_to_fixed_gradient(z)
 	rmg.fixed_links = input_discharge_value
 
-This boundary condition can be useful because of how the underlying algorithm in OverlandFlow (de Almeida et al., 2012) updates discharge at each time step. In this model, discharge is calculated as a function of the neighboring discharge values: 
+This boundary condition can be useful because of how the underlying algorithm in OverlandFlow (de Almeida et al., 2012) updates discharge at each time step. In this model, discharge is calculated as a function of the neighboring discharge values:
 
 .. figure:: images/deAlmeidaGridExample.png
     :align: center
 
 **Figure 2**: The algorithm from de Almeida et al., (2012) uses discharge information on neighboring links to calculate discharge. Fixed link boundary conditions allow the user to set discharge on links along the boundary, so that the interior discharges can be updated using those manually-set fluxes.
 
-In this example, calculating discharge on q\ :sub:`x` requires discharge values q\ :sub:`x-1` and q\ :sub:`x+1`. If a link is along the boundary of the domain, the default value is 0. Fixed link boundary statuses allow the user to manually update the discharge value at a boundary link, to simulate some influx of water discharge into the model domain. 
+In this example, calculating discharge on q\ :sub:`x` requires discharge values q\ :sub:`x-1` and q\ :sub:`x+1`. If a link is along the boundary of the domain, the default value is 0. Fixed link boundary statuses allow the user to manually update the discharge value at a boundary link, to simulate some influx of water discharge into the model domain.
 
-If the user desires, these fixed links can also be updated to contain flux value of their nearest interior neighbor. Following the earlier example, if discharge q\ :sub:`x-1` is at on a fixed boundary link, it can be updated to contain the value of its neighboring discharge q\ :sub:`x`. This is done exclusively in the OverlandFlow component. The user simply needs to call  ``default_fixed_links = True`` when initializing the ``OverlandFlow`` component, as described in **Step 5**. This method prevents flow from exiting the edge of the watershed onto NODATA nodes, and does not set an outlet node by default. If the user wants to set an outlet node to an open boundary, that must be done manually, not described here. 
+If the user desires, these fixed links can also be updated to contain flux value of their nearest interior neighbor. Following the earlier example, if discharge q\ :sub:`x-1` is at on a fixed boundary link, it can be updated to contain the value of its neighboring discharge q\ :sub:`x`. This is done exclusively in the OverlandFlow component. The user simply needs to call  ``default_fixed_links = True`` when initializing the ``OverlandFlow`` component, as described in **Step 5**. This method prevents flow from exiting the edge of the watershed onto NODATA nodes, and does not set an outlet node by default. If the user wants to set an outlet node to an open boundary, that must be done manually, not described here.
 
 Step 4. Pre-processing the DEM (*Optional*)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -190,7 +188,7 @@ When the instance of the class is created, parameters are passed as keywords to 
 
 Stability criteria
 >>>>>>>>>>>>>>>>>
-The OverlandFlow component is built off the de Almeida et al., (2012) algorithm for urban flood inundation, and is most stable in flat environments. Because of this, instabilities can arise when trying to apply the algorithm to steep landscapes. To adapt this model for use across a variety of terrains, stability criteria (following Coulthard et al., 2013) is implemented to using the ``steep_slopes`` flag. This method reduces flow discharge to keep flow subcritical according to the Froude number less than or equal to 1.0. For more information, see Adams et al., (in prep for *Geoscientific Model Development*). 
+The OverlandFlow component is built off the de Almeida et al., (2012) algorithm for urban flood inundation, and is most stable in flat environments. Because of this, instabilities can arise when trying to apply the algorithm to steep landscapes. To adapt this model for use across a variety of terrains, stability criteria (following Coulthard et al., 2013) is implemented to using the ``steep_slopes`` flag. This method reduces flow discharge to keep flow subcritical according to the Froude number less than or equal to 1.0. For more information, see Adams et al., (in prep for *Geoscientific Model Development*).
 
 Step 6. Precipitation inputs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -220,7 +218,7 @@ Alternatively, a user may decide to route an event where rainfall stops, and wat
 	storm_duration = 7200.0
 	rainfall_mmhr = 5.
 
-In this example, storm characteristics (duration and intensity) are set separately from the OverlandFlow component  initialization. These characteristics are used in a time loop within the model driver (seen in **Step 7**). While elapsed_time in a model is less than storm duration, the precipitation intensity is input across all nodes in the model domain. When the storm event ends, the precipitation intensity is reset to 0 [m s\ :sup:`-1`], allowing the water remaining in the system to drain out. 
+In this example, storm characteristics (duration and intensity) are set separately from the OverlandFlow component  initialization. These characteristics are used in a time loop within the model driver (seen in **Step 7**). While elapsed_time in a model is less than storm duration, the precipitation intensity is input across all nodes in the model domain. When the storm event ends, the precipitation intensity is reset to 0 [m s\ :sup:`-1`], allowing the water remaining in the system to drain out.
 
 Step 7. Iterate through time
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -236,20 +234,20 @@ The key part of any Landlab model driver is the time loop, where components reca
 		of.rainfall_intensity =  rainfall_mmhr * (2.777778 * 10**-7)
 	else:
         	of.rainfall_intensity = 0.0
-  
+
 	of.overland_flow()
-        
+
 	rmg.at_node['surface_water__discharge'] = of.discharge_mapper(of.q, convert_to_volume=True)
-																			
+
 	elapsed_time += of.dt
 
 This code snippet is described here:
 
 - This OverlandFlow example loops through time as a ``while`` loop. After each time loop, ``elapsed_time`` is increased until it exceeds ``model_run_time``.
 
-- An adaptive time step is recommended, and is calculated here at the start of each time loop. (See the next subsection for more information about the adaptive time step). 
+- An adaptive time step is recommended, and is calculated here at the start of each time loop. (See the next subsection for more information about the adaptive time step).
 
-- Inside the time loop, there is a test to see if the ``elapsed_time`` is less than the ``storm_duration``. If so, the rainfall intensity property of OverlandFlow is updated to the rainfall intensity (here converted from [mm hr\ :sup:`-1` to [m s\ :sup:`-1`). 
+- Inside the time loop, there is a test to see if the ``elapsed_time`` is less than the ``storm_duration``. If so, the rainfall intensity property of OverlandFlow is updated to the rainfall intensity (here converted from [mm hr\ :sup:`-1` to [m s\ :sup:`-1`).
 
 - If the ``elapsed_time`` is greater than the ``storm_duration``, the rainfall intensity parameter of the OverlandFlow component is reset to 0 [m s\ :sup:`-1`].
 
@@ -257,15 +255,15 @@ This code snippet is described here:
 
 - To translate the discharge values calculated on Landlab links to nodes, values on links (``of.q``) are summed and mapped to their node neighbors using the method ``of.discharge_mapper``. Using the ``convert_to_volume`` flag, these discharge values are converted from units of [m\ :sup:`2` s\ :sup:`-1`] to [m\ :sup:`3` s\ :sup:`-1`].
 
-- At the end of each loop, ``elapsed_time`` is updated with the adaptive time step. 
+- At the end of each loop, ``elapsed_time`` is updated with the adaptive time step.
 
-**Note**: If using the adaptive time step, it may be possible that both the storm duration and model run time may be exceeded if the calculated time step is too large. It is recommended the use add additional logic tests to ensure both the storm_duration and model_run_time are not exceeded. during the time loop. 
+**Note**: If using the adaptive time step, it may be possible that both the storm duration and model run time may be exceeded if the calculated time step is too large. It is recommended the use add additional logic tests to ensure both the storm_duration and model_run_time are not exceeded. during the time loop.
 
 Adaptive time step
 >>>>>>>>>>>>>>>>>
 de Almeida et al., (2012) implement an adaptive time step to maintain model stability and computational efficiency. This adaptive time step follows Hunter et al., (2005). By default, the OverlandFlow component calculates this adaptive time step. It is listed explicitly the **Step 7** code for clarity. If that lines was removed from that code, the component would still call ``calc_time_step()`` every time the ``overland_flow()`` method is called.
 
-Alternatively, an explicit time step can be passed to the ``overland_flow()`` method. However, this method cannot guarantee model stability. Numerical instability in the model can drive surface water depth 'checkerboarding' patterns. Additionally, water mass imbalances can be linked to model instability. If an explicit time step must be used, a small time step is recommended to maintain model stability. 
+Alternatively, an explicit time step can be passed to the ``overland_flow()`` method. However, this method cannot guarantee model stability. Numerical instability in the model can drive surface water depth 'checkerboarding' patterns. Additionally, water mass imbalances can be linked to model instability. If an explicit time step must be used, a small time step is recommended to maintain model stability.
 
 **Note**: Model behavior can vary across different parameter space and grid resolution. Stability testing is always recommended.
 
@@ -276,7 +274,7 @@ Hydrographs
 Before time loop:
 >>>>>>>>>>>>>>>>>
 
-To plot a hydrograph, the user simply needs to save the discharge value at a given link at each time step. This can be achieved using a Python list object. Before the time loop starts, the user initializes at least two loops, one to save the model time, and one to save the discharge value. 
+To plot a hydrograph, the user simply needs to save the discharge value at a given link at each time step. This can be achieved using a Python list object. Before the time loop starts, the user initializes at least two loops, one to save the model time, and one to save the discharge value.
 
 **Note**: Currently, this plotting solution assumes the user has identified a link to sample on. In this example, the active link connecting outlet node to its neighbor core node is selected. If, in other DEMs, more than one active link is identified on the outlet node, the link with the steepest topographic slope is recommended.
 
@@ -320,7 +318,7 @@ The Landlab plotting library includes a utility ``imshow__grid`` which can easil
 
 .. code-block:: python
 
-	imshow_grid(rmg, 'surface_water__depth', plot_name='Water depth at time = 2 hr', 
+	imshow_grid(rmg, 'surface_water__depth', plot_name='Water depth at time = 2 hr',
                 var_name='Water Depth', var_units='m', grid_units=('m', 'm'), cmap='Blues')
 
 .. figure:: images/OverlandFlow_Manual_WaterDepth.png
@@ -337,7 +335,7 @@ In this example, the water depths are plotted after 2 hours of model run time ``
 References
 ------------
 
-Adams, J. M., Gasparini, N. M., Hobley, D. E. J., Tucker, G. E., Hutton, E. W. H., Nudurupati, S. S. and Istanbulluoglu, E. (2017) The Landlab OverlandFlow component: a Python library for modeling the shallow water equations across watersheds, in press. 
+Adams, J. M., Gasparini, N. M., Hobley, D. E. J., Tucker, G. E., Hutton, E. W. H., Nudurupati, S. S. and Istanbulluoglu, E. (2017) The Landlab OverlandFlow component: a Python library for modeling the shallow water equations across watersheds, in press.
 
 Bates, P. D., Horritt, M. S., & Fewtrell, T. J. (2010). A simple inertial formulation of the shallow water equations for efficient two-dimensional flood inundation modelling. *Journal of Hydrology*, 387(1), 33-45.
 

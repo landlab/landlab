@@ -1,17 +1,8 @@
-`Landlab <http://landlab.github.io>`_ |
-[[ About | About ]] |
-[[ Examples | Examples ]] |
-[[ User Guide | User-Guide ]] |
-`Reference Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`_ |
-[[ Tutorials| Tutorials ]] |
-[[ FAQs | FAQs ]]
-
-[[ ← Previous topic: Intro to Python | Python,-NumPy,-SciPy,-Cython ]] |  [[Next topic: Build a Model → | Build-a-Model]]
-
 .. _model_grid_description:
 
+==========================================
 Introduction to Landlab's Gridding Library
-===========================================
+==========================================
 
 When creating a two-dimensional simulation model, often the most time-consuming and
 error-prone task involves writing the code to set up the underlying grid. Irregular
@@ -107,7 +98,7 @@ or a Delaunay-Voronoi grid in which cells are triangular elements with
 nodes at their circumcenters.
 
 Creating a Grid
---------------------------------------------------
+---------------
 
 Creating a grid is easy.  The first step is to import Landlab's
 `RasterModelGrid <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.raster.RasterModelGrid>`_ class (this
@@ -303,7 +294,7 @@ Landlab offers a command line interface that lets you find out about all the fie
 ``$ landlab uses [field__name]``  # What components take the field field__name as an input?
 
 ``$ landlab provides [field__name]``  # What components give the field field__name as an output?
-  
+
 ``$ landlab list``  # list all the components
 
 ``$ (landlab provided_by && landlab used_by) | sort | uniq``  # some command line magic to see all the fields currently used in components
@@ -615,7 +606,7 @@ the keywords *vmin* and *vmax*, much as in similar functions in the matplotlib l
 
 **Note if using Anaconda**: there have been documented issues with resolution with default inline plotting within the Spyder IDE iPython console. To generate dynamic plots (e.g. Matlab-like plots), change the graphics settings in Spyder by following this work flow:
 
-In *Spyder -> Preferences -> iPython console -> Graphics -> Graphics Backend -> Automatic -> Apply -> OK -> Make sure to restart Spyder to update the preferences.* 
+In *Spyder -> Preferences -> iPython console -> Graphics -> Graphics Backend -> Automatic -> Apply -> OK -> Make sure to restart Spyder to update the preferences.*
 
 Visualizing transects through your data
 ---------------------------------------

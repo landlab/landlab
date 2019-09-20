@@ -133,7 +133,6 @@ Additional resources
     standard_names
     time_steps
     faq
-    contact
     examples
 
 Presentations, Clinics, and Classroom Use
