@@ -45,7 +45,6 @@ Information about the grid as a whole
 
     ~landlab.grid.hex.HexModelGrid.axis_name
     ~landlab.grid.hex.HexModelGrid.axis_units
-    ~landlab.grid.hex.HexModelGrid.from_dict
     ~landlab.grid.hex.HexModelGrid.hexplot
     ~landlab.grid.hex.HexModelGrid.move_origin
     ~landlab.grid.hex.HexModelGrid.ndim

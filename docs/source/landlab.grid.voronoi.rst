@@ -83,6 +83,7 @@ Information about nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_head
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_tail
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_axis_coordinates
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_has_boundary_neighbor
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_is_boundary
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_x
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_y
@@ -376,6 +377,7 @@ defined at other grid elements automatically.
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_value_boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_core_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_has_boundary_neighbor
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_is_boundary
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_faces
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links
