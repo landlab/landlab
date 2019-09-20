@@ -1,13 +1,14 @@
 .. _correcting_install_paths:
 
+========================
 Correcting Install Paths
 ========================
 
 Based on our experience of guiding users through the install process so far, we have
 found that the vast majority of technical issues arise due to incorrect paths to your Python distribution. Basically, your computer does not know where to look for the correct file or program and you need to tell it where to look using your system's `$PATH` variable.
 
-SYMPTOMS:
->>>>>>>>>
+Symptoms:
+=========
 
 #. Typing ``conda`` after an Anaconda install gives ``command not found``.
 #. Typing ``which python`` and ``which ipython``
@@ -24,15 +25,15 @@ SYMPTOMS:
 You may have some subset of the above symptoms occurring together, but one is normally
 enough to indicate a Python conflict is the problem.
 
-THE SOLUTION:
->>>>>>>>>>>>>>
+The Solution:
+=============
 
 Path problems can be solved by editing your environmental variables. How you do this is system dependent. A rough outline for how to do this on MAC/LINUX or PC follows.
 
 .. _the_hard_way:
 
 MAC/LINUX
-------------
+---------
 
 To set your path variables in a MAC/LINUX system, you will need to manually edit the ``.profile`` or ``.rc`` files for your terminal shell.
 
@@ -168,7 +169,7 @@ Type ::
 In both cases the path should be the same and reference your distribution.
 
 Other issues
->>>>>>>>>>>>
+============
 
 Other install issues often mean that some component of your Python distribution is out
 of date. A very common culprit is ``setuptools``, which—extremely frustratingly—isn't

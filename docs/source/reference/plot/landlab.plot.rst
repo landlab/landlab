@@ -12,14 +12,6 @@ landlab.plot.imshow module
     :undoc-members:
     :show-inheritance:
 
-landlab.plot.channel_profile module
------------------------------------
-
-.. automodule:: landlab.plot.channel_profile
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 landlab.plot.colors module
 --------------------------
 

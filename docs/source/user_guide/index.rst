@@ -146,14 +146,21 @@ Presentations, Clinics, and Classroom Use
     landlab_curriculum
 
 
-Module User Guides
-------------------
+Overland flow User Guide
+------------------------
 
 .. toctree::
     :maxdepth: 2
 
     overland_flow_user_guide
-    cell_lab_user_guide
+
+CellLab-CTS User Guide
+----------------------
+
+.. toctree::
+    :maxdepth: 2
+
+    overland_flow_user_guide
 
 
 Major Version Transition Guides
@@ -163,10 +170,3 @@ Major Version Transition Guides
     :maxdepth: 2
 
     landlab_zero_to_one
-
-
-Landlab User Group
-------------------
-
-To join the Landlab User Group on Slack, send an email request to: Join
-Landlab User Group
