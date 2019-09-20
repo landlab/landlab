@@ -74,7 +74,7 @@ def create_dicts_of_cats():
  fails_allgrid) = create_dicts_of_cats()
 
 for grid_to_modify in grid_name_to_class.keys():
-    f = open('source/text_for_' + grid_to_modify + '.py.txt', "rt")
+    f = open('source/reference/grid/text_for_' + grid_to_modify + '.py.txt', "rt")
     text = f.read()
     f.close()
     for LLCAT in LLCATS:
@@ -102,6 +102,6 @@ for grid_to_modify in grid_name_to_class.keys():
 
         text = text.replace('LLCATKEY: ' + LLCAT, text_to_add)
 
-    f = open('source/landlab.grid.' + grid_to_modify + '.rst', "wt")
+    f = open('source/reference/grid/landlab.grid.' + grid_to_modify + '.rst', "wt")
     f.write(text)
     f.close()

@@ -142,6 +142,6 @@ for LLCAT, outfile_name, text in zip(LLCATS, outfile_names, text_heads):
         except KeyError:
             print('Failed at ' + grid + ' looking for ' + LLCAT)
 
-    f = open('./' + outfile_name, "wb")
+    f = open('source/reference/grid/auto/' + outfile_name, "w")
     f.write(text)
     f.close()
