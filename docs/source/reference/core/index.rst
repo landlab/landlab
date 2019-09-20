@@ -11,7 +11,7 @@ The Component base class
 .. toctree::
   :maxdepth: 2
 
-  landlab.core.model_component
+  model_component
 
 
 Core functions and utilities
@@ -20,5 +20,5 @@ Core functions and utilities
 .. toctree::
   :maxdepth: 2
 
-  landlab.core.core
-  landlab.core.utils
+  core.core
+  utils

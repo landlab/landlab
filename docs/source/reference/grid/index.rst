@@ -28,46 +28,52 @@ and ``RadialModelGrid``.
 A final class is ``NetworkModelGrid``.
 
 .. toctree::
+   :maxdepth: 1
+
+   raster
+   voronoi
+   hex
+   radial
+   network
+
+Systematic Information about Grid Elements
+------------------------------------------
+
+.. toctree::
    :maxdepth: 2
 
-   landlab.grid.raster
-   landlab.grid.voronoi
-   landlab.grid.hex
-   landlab.grid.radial
-   landlab.grid.network
+   auto/index
 
 
 Methods and properties common to all grids
 ------------------------------------------
 
 .. toctree::
-   :maxdepth: 2
+  :maxdepth: 1
 
-   landlab.grid.base
-   landlab.grid.mappers
-   landlab.grid.gradients
-   landlab.grid.divergence
-   landlab.grid.create
-   landlab.grid.decorators
+   base
+   mappers
+   gradients
+   divergence
+   create
+   decorators
 
 
 Additional methods
 ------------------
 
 .. toctree::
-   :maxdepth: 2
 
-    landlab.grid.raster_aspect
-    landlab.grid.raster_funcs
-    landlab.grid.raster_mappers
-    landlab.grid.raster_set_status
+  raster_aspect
+  raster_funcs
+  raster_mappers
+  raster_set_status
 
 
 Additional Grid Base Classes
 ----------------------------
 
 .. toctree::
-   :maxdepth: 2
 
-    landlab.grid.structured_quad
-    landlab.grid.unstructured
+  structured_quad
+  unstructured

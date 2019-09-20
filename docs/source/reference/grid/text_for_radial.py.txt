@@ -6,6 +6,10 @@
 
 ..  _Radial:
 
+===============
+RadialModelGrid
+===============
+
 General class methods and attributes of the `landlab.grid.radial` module
 ------------------------------------------------------------------------
 

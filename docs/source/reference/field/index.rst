@@ -7,4 +7,4 @@ Landlab Fields
 .. toctree::
   :maxdepth: 2
 
-  landlab.field.
+  field

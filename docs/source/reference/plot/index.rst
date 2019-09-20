@@ -7,4 +7,4 @@ Plotting and Visualization
 .. toctree::
   :maxdepth: 2
 
-  landlab.plot
+  plot

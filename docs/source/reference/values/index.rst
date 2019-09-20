@@ -10,4 +10,4 @@ As with the rest of Landlab, we welcome contributions to this package.
 .. toctree::
    :maxdepth: 2
 
-   landlab.values.synthetic
+   synthetic

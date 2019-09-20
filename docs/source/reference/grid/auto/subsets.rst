@@ -1,6 +1,7 @@
 
+========================
 Identifying node subsets
-------------------------
+========================
 
 
 .. _SUBSET_ModelGrid:
@@ -9,7 +10,7 @@ Base class
 ----------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
 
 .. _SUBSET_RasterModelGrid:
@@ -18,7 +19,7 @@ Raster
 ------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid
     ~landlab.grid.raster.RasterModelGrid.find_nearest_node
@@ -44,7 +45,7 @@ Irregular Voronoi-cell
 ----------------------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
 
 .. _SUBSET_HexModelGrid:
@@ -53,7 +54,7 @@ Hexagonal
 ---------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge
     ~landlab.grid.hex.HexModelGrid.nodes_at_left_edge
@@ -68,5 +69,5 @@ Radial
 ------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 

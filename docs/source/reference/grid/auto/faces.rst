@@ -1,6 +1,7 @@
 
+=======================
 Information about faces
-+++++++++++++++++++++++
+=======================
 
 
 .. _FINF_ModelGrid:
@@ -9,7 +10,7 @@ Base class
 ----------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.base.ModelGrid.active_faces
     ~landlab.grid.base.ModelGrid.face_at_link
@@ -30,7 +31,7 @@ Raster
 ------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.raster.RasterModelGrid.active_faces
     ~landlab.grid.raster.RasterModelGrid.face_at_link
@@ -51,7 +52,7 @@ Irregular Voronoi-cell
 ----------------------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_faces
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.face_at_link
@@ -72,7 +73,7 @@ Hexagonal
 ---------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.hex.HexModelGrid.active_faces
     ~landlab.grid.hex.HexModelGrid.face_at_link
@@ -93,7 +94,7 @@ Radial
 ------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.radial.RadialModelGrid.active_faces
     ~landlab.grid.radial.RadialModelGrid.face_at_link

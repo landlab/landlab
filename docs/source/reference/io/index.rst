@@ -10,8 +10,9 @@ output to a file.
 .. toctree::
   :maxdepth: 2
 
-  landlab.io.esri_ascii
-  landlab.io.gebco
-  landlab.io.native_landlab
-  landlab.io.shapefile
-  landlab.io.vtk
+  esri_ascii
+  gebco
+  native_landlab
+  shapefile
+  vtk
+  io

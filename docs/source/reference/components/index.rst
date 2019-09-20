@@ -13,12 +13,12 @@ Hillslope geomorphology
 .. toctree::
    :maxdepth: 2
 
-   landlab.components.diffusion
-   landlab.components.nonlinear_diffusion
-   landlab.components.depth_dependent_diffusion
-   landlab.components.transport_length_diffusion
-   landlab.components.taylor_nonlinear_hillslope_flux
-   landlab.components.depth_dependent_taylor_soil_creep
+   diffusion
+   nonlinear_diffusion
+   depth_dependent_diffusion
+   transport_length_diffusion
+   taylor_nonlinear_hillslope_flux
+   depth_dependent_taylor_soil_creep
 
 Fluvial geomorphology
 ---------------------
@@ -26,10 +26,10 @@ Fluvial geomorphology
 .. toctree::
    :maxdepth: 2
 
-   landlab.components.stream_power
-   landlab.components.detachment_ltd_erosion
-   landlab.components.erosion_deposition
-   landlab.components.space
+   stream_power
+   detachment_ltd_erosion
+   erosion_deposition
+   space
 
 Flow routing
 ------------
@@ -37,11 +37,11 @@ Flow routing
 .. toctree::
    :maxdepth: 2
 
-   landlab.components.flow_director
-   landlab.components.flow_accum
-   landlab.components.flow_routing
-   landlab.components.lake_fill
-   landlab.components.sink_fill
+   flow_director
+   flow_accum
+   flow_routing
+   lake_fill
+   sink_fill
 
 Shallow water hydrodynamics
 ---------------------------
@@ -49,7 +49,7 @@ Shallow water hydrodynamics
 .. toctree::
    :maxdepth: 2
 
-   landlab.components.overland_flow
+   overland_flow
 
 Land surface and groundwater hydrology
 --------------------------------------
@@ -57,11 +57,11 @@ Land surface and groundwater hydrology
 .. toctree::
   :maxdepth: 2
 
-  landlab.components.radiation
-  landlab.components.pet
-  landlab.components.soil_moisture
-  landlab.components.greenampt
-  landlab.components.groundwater
+  radiation
+  pet
+  soil_moisture
+  greenampt
+  groundwater
 
 Landslides
 ----------
@@ -69,7 +69,7 @@ Landslides
 .. toctree::
   :maxdepth: 2
 
-  landlab.components.landslides
+  landslides
 
 Vegetation
 ----------
@@ -77,8 +77,8 @@ Vegetation
 .. toctree::
   :maxdepth: 2
 
-  landlab.components.vegetation_dynamics
-  landlab.components.plant_competition_ca
+  vegetation_dynamics
+  plant_competition_ca
 
 Precipitation
 -------------
@@ -86,8 +86,8 @@ Precipitation
 .. toctree::
   :maxdepth: 2
 
-  landlab.components.uniform_precip
-  landlab.components.spatial_precip
+  uniform_precip
+  spatial_precip
 
 Weathering
 ----------
@@ -95,7 +95,7 @@ Weathering
 .. toctree::
   :maxdepth: 2
 
-  landlab.components.weathering
+  weathering
 
 Terrain Analysis
 ----------------
@@ -103,11 +103,11 @@ Terrain Analysis
 .. toctree::
   :maxdepth: 2
 
-  landlab.components.steepness_index
-  landlab.components.chi_index
-  landlab.components.drainage_density
-  landlab.components.channel_profile
-  landlab.components.hack_calculator
+  steepness_index
+  chi_index
+  drainage_density
+  channel_profile
+  hack_calculator
 
 Tectonics
 ---------
@@ -115,10 +115,10 @@ Tectonics
 .. toctree::
   :maxdepth: 2
 
-  landlab.components.flexure
-  landlab.components.flexure.ext
-  landlab.components.gflex
-  landlab.components.normal_fault
+  flexure
+  flexure.ext
+  gflex
+  normal_fault
 
 Fire
 ----
@@ -126,7 +126,7 @@ Fire
 .. toctree::
   :maxdepth: 2
 
-  landlab.components.fire_generator
+  fire_generator
 
 
 Fracture Generation
@@ -135,7 +135,7 @@ Fracture Generation
 .. toctree::
   :maxdepth: 2
 
-  landlab.components.fracture_grid
+  fracture_grid
 
 
 Lithology
@@ -152,11 +152,11 @@ lithology.
   .. toctree::
      :maxdepth: 2
 
-     landlab.components.lithology
+     lithology
 
 Second is LithoLayers which makes it easy to make layered rock.
 
    .. toctree::
       :maxdepth: 2
 
-      landlab.components.litholayers
+      litholayers

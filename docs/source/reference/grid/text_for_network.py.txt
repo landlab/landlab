@@ -6,6 +6,10 @@
 
 ..  _Network:
 
+================
+NetworkModelGrid
+================
+
 General class methods and attributes of the `landlab.grid.network` module
 ------------------------------------------------------------------------
 

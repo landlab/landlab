@@ -7,4 +7,4 @@ Testing Tools
 .. toctree::
   :maxdepth: 2
 
-  landlab.testing
+  testing

@@ -1,6 +1,7 @@
 
+=========================
 Information about corners
-+++++++++++++++++++++++++
+=========================
 
 
 .. _CNINF_ModelGrid:
@@ -9,7 +10,7 @@ Base class
 ----------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.base.ModelGrid.number_of_corners
 
@@ -21,7 +22,7 @@ Raster
 ------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.raster.RasterModelGrid.number_of_corners
 
@@ -33,7 +34,7 @@ Irregular Voronoi-cell
 ----------------------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_corners
 
@@ -45,7 +46,7 @@ Hexagonal
 ---------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.hex.HexModelGrid.number_of_corners
 
@@ -57,7 +58,7 @@ Radial
 ------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.radial.RadialModelGrid.number_of_corners
 

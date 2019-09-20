@@ -102,6 +102,6 @@ for grid_to_modify in grid_name_to_class.keys():
 
         text = text.replace('LLCATKEY: ' + LLCAT, text_to_add)
 
-    f = open('source/reference/grid/landlab.grid.' + grid_to_modify + '.rst', "wt")
+    f = open('source/reference/grid/' + grid_to_modify + '.rst', "wt")
     f.write(text)
     f.close()

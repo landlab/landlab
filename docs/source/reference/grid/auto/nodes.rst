@@ -1,6 +1,7 @@
 
+=======================
 Information about nodes
-+++++++++++++++++++++++
+=======================
 
 
 .. _NINF_ModelGrid:
@@ -9,7 +10,7 @@ Base class
 ----------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.base.ModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.base.ModelGrid.active_link_dirs_at_node
@@ -66,7 +67,7 @@ Raster
 ------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.raster.RasterModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.raster.RasterModelGrid.active_link_dirs_at_node
@@ -146,7 +147,7 @@ Irregular Voronoi-cell
 ----------------------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_adjacent_nodes_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_link_dirs_at_node
@@ -205,7 +206,7 @@ Hexagonal
 ---------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.hex.HexModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.hex.HexModelGrid.active_link_dirs_at_node
@@ -270,7 +271,7 @@ Radial
 ------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.radial.RadialModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.radial.RadialModelGrid.active_link_dirs_at_node

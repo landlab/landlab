@@ -15,8 +15,8 @@ MaterialLayers will likely use less memory than EventLayers.
   .. toctree::
      :maxdepth: 2
 
-     landlab.layers.eventlayers
-     landlab.layers.materiallayers
+     eventlayers
+     materiallayers
 
 
 Extensions
@@ -25,5 +25,5 @@ Extensions
 .. toctree::
    :maxdepth: 2
 
-   landlab.layers.eventlayers.ext
-   landlab.layers.materiallayers.ext
+   eventlayers_ext
+   materiallayers_ext

@@ -7,21 +7,21 @@ Utilities and Decorators
 .. toctree::
   :maxdepth: 2
 
-  ../core/landlab.core.utils
-  landlab.utils.add_halo
-  landlab.utils.count_repeats
-  landlab.utils.decorators
-  landlab.utils.depth_dependent_roughness
-  landlab.utils.distance_to_divide
-  landlab.utils.fault_facet_finder
-  landlab.utils.flow__distance
-  landlab.utils.jaggedarray
-  landlab.utils.jaggedarray_ma
-  landlab.utils.return_array
-  landlab.utils.structured_grid
-  landlab.utils.source_tracking_algorithm
-  landlab.utils.stable_priority_queue
-  landlab.utils.watershed
+  ../core/utils
+  add_halo
+  count_repeats
+  decorators
+  depth_dependent_roughness
+  distance_to_divide
+  fault_facet_finder
+  flow__distance
+  jaggedarray
+  jaggedarray_ma
+  return_array
+  structured_grid
+  source_tracking_algorithm
+  stable_priority_queue
+  watershed
 
 
   Extensions
@@ -30,4 +30,4 @@ Utilities and Decorators
   .. toctree::
     :maxdepth: 2
 
-    landlab.utils.ext
+    landlab.utils_ext

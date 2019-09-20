@@ -6,6 +6,10 @@
 
 ..  _Hex:
 
+============
+HexModelGrid
+============
+
 General class methods and attributes of the `landlab.grid.hex` module
 ---------------------------------------------------------------------
 

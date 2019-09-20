@@ -6,6 +6,10 @@
 
 ..  _Raster:
 
+===============
+RasterModelGrid
+===============
+
 General class methods and attributes of the `landlab.grid.raster` module
 ------------------------------------------------------------------------
 

@@ -7,5 +7,5 @@ Cellular Automata (CA)
 .. toctree::
   :maxdepth: 2
 
-  landlab.ca
-  landlab.ca.boundaries
+  ca
+  ca.boundaries

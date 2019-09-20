@@ -1,6 +1,7 @@
 
+=======================
 Information about cells
-+++++++++++++++++++++++
+=======================
 
 
 .. _CINF_ModelGrid:
@@ -9,7 +10,7 @@ Base class
 ----------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.base.ModelGrid.area_of_cell
     ~landlab.grid.base.ModelGrid.cell_area_at_node
@@ -32,7 +33,7 @@ Raster
 ------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.raster.RasterModelGrid.area_of_cell
     ~landlab.grid.raster.RasterModelGrid.cell_area_at_node
@@ -60,7 +61,7 @@ Irregular Voronoi-cell
 ----------------------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.area_of_cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_area_at_node
@@ -83,7 +84,7 @@ Hexagonal
 ---------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.hex.HexModelGrid.area_of_cell
     ~landlab.grid.hex.HexModelGrid.cell_area_at_node
@@ -106,7 +107,7 @@ Radial
 ------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.radial.RadialModelGrid.area_of_cell
     ~landlab.grid.radial.RadialModelGrid.cell_area_at_node

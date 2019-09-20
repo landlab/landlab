@@ -1,10 +1,10 @@
 .. _api.cmd:
 
-======================
-Command Line Interface
-======================
+=================
+Command Interface
+=================
 
 .. toctree::
   :maxdepth: 2
 
-  landlab.cmd
+  cmd

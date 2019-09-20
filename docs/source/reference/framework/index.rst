@@ -7,4 +7,4 @@ Landlab Framework
 .. toctree::
    :maxdepth: 2
 
-  landlab.framework
+  framework

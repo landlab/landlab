@@ -6,6 +6,10 @@
 
 ..  _Base:
 
+==========
+Model Grid
+==========
+
 General class methods and attributes of the `landlab.grid.base` module
 ----------------------------------------------------------------------
 

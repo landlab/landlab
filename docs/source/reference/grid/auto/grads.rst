@@ -1,6 +1,7 @@
 
+==============================================
 Gradients, fluxes, and divergences on the grid
-----------------------------------------------
+==============================================
 
 
 .. _GRAD_ModelGrid:
@@ -9,7 +10,7 @@ Base class
 ----------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.base.ModelGrid.calc_diff_at_link
     ~landlab.grid.base.ModelGrid.calc_flux_div_at_cell
@@ -29,7 +30,7 @@ Raster
 ------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.raster.RasterModelGrid.calc_diff_at_link
     ~landlab.grid.raster.RasterModelGrid.calc_flux_div_at_cell
@@ -56,7 +57,7 @@ Irregular Voronoi-cell
 ----------------------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_diff_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_flux_div_at_cell
@@ -76,7 +77,7 @@ Hexagonal
 ---------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.hex.HexModelGrid.calc_diff_at_link
     ~landlab.grid.hex.HexModelGrid.calc_flux_div_at_cell
@@ -96,7 +97,7 @@ Radial
 ------
 
 .. autosummary::
-    :toctree: generated/
+    :toctree: 
 
     ~landlab.grid.radial.RadialModelGrid.calc_diff_at_link
     ~landlab.grid.radial.RadialModelGrid.calc_flux_div_at_cell

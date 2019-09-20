@@ -6,6 +6,10 @@
 
 ..  _Voronoi:
 
+===================
+VoronoiDelaunayGrid
+===================
+
 General class methods and attributes of the `landlab.grid.voronoi` module
 -------------------------------------------------------------------------
 
