@@ -47,7 +47,7 @@ The basic steps in most CellLab-CTS models are as follows:
 8. Run the model by calling the CellLab-CTS object's ``run`` method (perhaps pausing every so often to display the grid and/or write output to file)
 9. Clean up
 
-We will illustrate each of these steps using a simple example called ``isotropic_turbulent_suspension.py``. This program simulates the random motion of neutrally buoyant sediment particles that are immersed in a turbulent fluid: think of tea leaves in a jar of tea that you are stirring with an invisible spoon. Each random motion is simulated by simply swapping a fluid state and a particle state. 
+We will illustrate each of these steps using a simple example called ``isotropic_turbulent_suspension.py``. This program simulates the random motion of neutrally buoyant sediment particles that are immersed in a turbulent fluid: think of tea leaves in a jar of tea that you are stirring with an invisible spoon. Each random motion is simulated by simply swapping a fluid state and a particle state.
 
 .. figure:: images/transition_example.png
     :figwidth: 80 %
@@ -90,7 +90,7 @@ A CellLab-CTS application normally starts by importing the appropriate type of C
 	"""
 	isotropic_turbulent_suspension.py
 
-	Example of a continuous-time, stochastic, pair-based cellular automaton model, 
+	Example of a continuous-time, stochastic, pair-based cellular automaton model,
 	which simulates the diffusion of suspended, neutrally buoyant particles in a
 	turbulent fluid.
 
@@ -113,7 +113,7 @@ Setting up transitions
 Sequence matters!
 >>>>>>>>>>>>>>>>>
 
-A particular pair state is described by the two node states, and optionally by the pair's orientation. A key thing to understand here is that any particular pair sequence, such as 0 and 1, is *different from the sequence in reverse*. The pair 0-1 is not the same as the pair 1-0! This is true for all four types of model. So then which is which? To answer this question, we first need to recall that each pair corresponds to the two ends of a *link* in the Landlab grid. A link is simply a directed line segment that connects two neighboring nodes. Every link has a *tail* and a *head* (like the head of an arrow); the direction of the link is from tail to head. The rule for CellLab-CTS pairs is that the first number refers to the tail of the corresponding link, and the second refers to its head. Thus, the pair state 0-1 means that the tail node has state 0 and the head node has state 1. 
+A particular pair state is described by the two node states, and optionally by the pair's orientation. A key thing to understand here is that any particular pair sequence, such as 0 and 1, is *different from the sequence in reverse*. The pair 0-1 is not the same as the pair 1-0! This is true for all four types of model. So then which is which? To answer this question, we first need to recall that each pair corresponds to the two ends of a *link* in the Landlab grid. A link is simply a directed line segment that connects two neighboring nodes. Every link has a *tail* and a *head* (like the head of an arrow); the direction of the link is from tail to head. The rule for CellLab-CTS pairs is that the first number refers to the tail of the corresponding link, and the second refers to its head. Thus, the pair state 0-1 means that the tail node has state 0 and the head node has state 1.
 
 By default, the links in a raster grid always run from down to up (for vertical links) or left to right (for horizontal links) (Figure 3). For example, with a 0-1 pair in a raster grid, the 0 is either the left-hand node (if it's a horizontal pair) or the bottom node (if the pair is vertical). In a default hex grid, the links point either (1) upward, (2) angling right and up 30 degrees, or (3) angling right and down 30 degrees. (Note that you also have the option of switching the grid orientation so that one of the principal axes is horizontal instead of vertical; in that case, the three orientations are horizontal, 30 degrees clockwise from vertical, and 30 degrees counter-clockwise from vertical).
 
@@ -125,7 +125,7 @@ By default, the links in a raster grid always run from down to up (for vertical 
 How transitions are represented
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-Each transition type is described by the states of the tail and head nodes, and by the orientation of the pair. This information is encoded in a 3-element tuple. Recall that each pair is associated with a link. The first number is the state of the link's tail node, the second is the state of the link's head node, and the third is an *orientation code* that represents the pair's spatial orientation (Figure 4). In a non-oriented model, the orientation code is always zero. In an oriented raster, the orientation code is either 0 (horizontal) or 1 (vertical). For example, the code (0, 1, 0) in an oriented raster model would represent a vertical pair in which the left node has state 0 and the right state 1. 
+Each transition type is described by the states of the tail and head nodes, and by the orientation of the pair. This information is encoded in a 3-element tuple. Recall that each pair is associated with a link. The first number is the state of the link's tail node, the second is the state of the link's head node, and the third is an *orientation code* that represents the pair's spatial orientation (Figure 4). In a non-oriented model, the orientation code is always zero. In an oriented raster, the orientation code is either 0 (horizontal) or 1 (vertical). For example, the code (0, 1, 0) in an oriented raster model would represent a vertical pair in which the left node has state 0 and the right state 1.
 
 .. figure:: images/cell_pair_orientation.png
     :align: center
@@ -145,21 +145,21 @@ It can be helpful to put the transition setup procedure inside a function of its
 		"""
 		Creates and returns a list of Transition() objects to represent state
 		transitions for an unbiased random walk.
-	
+
 		Parameters
 		----------
 		(none)
-	
+
 		Returns
 		-------
 		xn_list : list of Transition objects
 			List of objects that encode information about the link-state transitions.
-	
+
 		Notes
 		-----
-		State 0 represents fluid and state 1 represents a particle (such as a 
+		State 0 represents fluid and state 1 represents a particle (such as a
 		sediment grain, tea leaf, or solute molecule).
-	
+
 		The states and transitions are as follows:
 
 		Pair state      Transition to       Process             Rate (cells/s)
@@ -168,12 +168,12 @@ It can be helpful to put the transition setup procedure inside a function of its
 		1 (0-1)         2 (1-0)             left/down motion    10.0
 		2 (1-0)         1 (0-1)             right/up motion     10.0
 		3 (1-1)         (none)              -                   -
-	
+
 		"""
-	
+
 		# Create an empty transition list
 		xn_list = []
-	
+
 		# Append two transitions to the list.
 		# Note that the arguments to the Transition() object constructor are:
 		#  - Tuple representing starting pair state
@@ -184,7 +184,7 @@ It can be helpful to put the transition setup procedure inside a function of its
 		#  - Name for transition
 		xn_list.append( Transition((0,1,0), (1,0,0), 10., 'left/down motion') )
 		xn_list.append( Transition((1,0,0), (0,1,0), 10., 'right/up motion') )
-	
+
 		return xn_list
 
 
@@ -202,7 +202,7 @@ Typical parameters in a CellLab-CTS model, in addition to the transitions and ra
 .. code-block:: python
 
 	def main():
-	
+
 		# INITIALIZE
 
 		# User-defined parameters
@@ -211,7 +211,7 @@ Typical parameters in a CellLab-CTS model, in addition to the transitions and ra
 		plot_interval = 0.5   # time interval for plotting, sec
 		run_duration = 20.0   # duration of run, sec
 		report_interval = 10.0  # report interval, in real-time seconds
-	
+
 		# Remember the clock time, and calculate when we next want to report
 		# progress.
 		current_real_time = time.time()
@@ -226,10 +226,10 @@ Depending on the type of CTS model to be used, your code will need to instantiat
 
     # Create grid
     mg = RasterModelGrid(nr, nc, 1.0)
-    
+
     # Make the boundaries be walls
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    
+
 Step 3: Create a node-state dictionary
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -247,7 +247,7 @@ If you've already defined a transition setup function, all you need to do here i
 .. code-block:: python
 
     xn_list = setup_transition_list()
-    
+
 Step 5: Create an array containing the initial node-state values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -257,7 +257,7 @@ The node state array should be a 1D numpy array of integers, with length equal t
 
     # Create the node-state array and attach it to the grid
     node_state_grid = mg.add_zeros('node', 'node_state_map', dtype=int)
-    
+
 The first argument here is the name of the grid element to which values should be attached, the second is a name to give the array, and the third sets the data type to integer (instead of the default ``float`` type).
 
 Depending on the nature of the model, the next step is to set the initial values of the node states. You can do this just as you would with any Landlab grid field. Remember that the coordinates of each node in a Landlab grid are available through the ``node_x`` and ``node_y`` arrays. For our working example, we'll set the lower 10% of nodes to state 1, indicating that we are starting with a pile of tea leaves at the bottom of the container:
@@ -268,10 +268,10 @@ Depending on the nature of the model, the next step is to set the initial values
     # resting grains at the bottom of a container.
     bottom_rows = where(mg.node_y<0.1*nr)[0]
     node_state_grid[bottom_rows] = 1
-    
+
     # For visual display purposes, set all boundary nodes to fluid
     node_state_grid[mg.closed_boundary_nodes] = 0
-    
+
 Note the use of the numpy ``where`` function, which we imported in Step 1.
 
 Step 6: Instantiate a CellLab-CTS object
@@ -301,7 +301,7 @@ Here's an example of how to use a CAPlotter:
 
     # Create a CAPlotter object for handling screen display
     ca_plotter = CAPlotter(ca, cmap=my_cmap)
-    
+
     # Plot the initial grid
     ca_plotter.update_plot()
 
@@ -321,7 +321,7 @@ If you wish to pause occasionally to plot and/or write data to file, a natural a
     # RUN
     current_time = 0.0
     while current_time < run_duration:
-        
+
         # Once in a while, print out simulation real time to let the user
         # know that the sim is running ok
         current_real_time = time.time()
@@ -329,12 +329,12 @@ If you wish to pause occasionally to plot and/or write data to file, a natural a
             print('Current simulation time '+str(current_time)+'  \
             	   ('+str(int(100*current_time/run_duration))+'%)')
             next_report = current_real_time + report_interval
-        
+
         # Run the model forward in time until the next output step
-        ca.run(current_time+plot_interval, ca.node_state, 
+        ca.run(current_time+plot_interval, ca.node_state,
                plot_each_transition=False)
         current_time += plot_interval
-        
+
         # Plot the current grid
         ca_plotter.update_plot()
 
@@ -355,18 +355,18 @@ Main data structures in the CellLabCTSModel class
 
 Each of the four types of CTS model inherits from the base class (CellLabCTSModel) the following data structures. These are also illustrated in Figure 2. (Note: some of the data structures and names have changed since the publication of Tucker et al. (2016); thus, the list below differs in some respects from the original paper and from Figure 2.)
 
-``node_state`` : 1d array (x number of nodes in grid)    
+``node_state`` : 1d array (x number of nodes in grid)
 	Node-based grid of node-state codes. This is the grid of cell (sic) states.
-    
+
 ``node_pair`` : list (x number of possible link states)
     List of 3-element tuples representing all the various link states. Allows
-    you to look up the node states and orientation corresponding to a particular 
+    you to look up the node states and orientation corresponding to a particular
     link-state ID.
-    
+
 ``priority_queue`` : object
-    Data structure that implements a priority queue. The queue contains all 
+    Data structure that implements a priority queue. The queue contains all
     future transition events, sorted by time of occurrence (from soonest to latest).
-    
+
 ``next_update`` : 1d array (x number of active links)
     Time (in the future) at which the link will undergo its next transition.
     You might notice that the update time for every scheduled transition is also
@@ -379,7 +379,7 @@ Each of the four types of CTS model inherits from the base class (CellLabCTSMode
 
 ``link_orientation`` : 1d array of ints (x number of active links)
     Orientation code for each link.
-    
+
 ``link_state`` : 1d array of ints (x number of active links)
     State code for each link.
 
@@ -388,7 +388,7 @@ Each of the four types of CTS model inherits from the base class (CellLabCTSMode
     state.
 
 ``trn_to`` : 1d array of np.int (x number of transitions)
-    Stores the link-state code(s) to which a particular link state can 
+    Stores the link-state code(s) to which a particular link state can
     transition.
 
 ``trn_rate`` : 1d array of floats (x number of transitions)
@@ -408,7 +408,7 @@ Source Code Documentation for CellLab-CTS
 * [[Methods and Internal Documentation for the OrientedHexCTS class | https://landlab.readthedocs.io/en/latest/landlab.ca.html#landlab.ca.oriented_hex_cts.OrientedHexCTS]]
 
 
-	
+
 References
 ----------
 
