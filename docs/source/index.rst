@@ -29,16 +29,20 @@ across scales.
    development/index
 
 Acknowledgements
-----------------
+================
+
+Funding
+-------
 
 Landlab is funded by the US National Science Foundation. It has been supported
 by the following grants:
 
-    *  
+    *
     *
     *
 
-Citing Landlab:
+Citing Landlab
+--------------
 
 `Hobley, D. E. J. <http://www.earth-surf-dynam.net/5/21/2017/>`_, Adams, J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu, E. and Tucker, G. E., 2017, Creative computing with Landlab: an open-source toolkit for building, coupling, and exploring two-dimensional numerical models of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46, 10.5194/esurf-5-21-2017.
 
