@@ -23,11 +23,9 @@ from landlab.io import (
     read_esri_ascii,
 )
 
-_TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
-
-def test_hugo_read_file_name():
-    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR, "hugo_site.asc"))
+def test_hugo_read_file_name(datadir):
+    (grid, field) = read_esri_ascii(datadir / "hugo_site.asc")
 
     assert isinstance(grid, RasterModelGrid)
 
@@ -36,8 +34,8 @@ def test_hugo_read_file_name():
     assert (grid.x_of_node.min(), grid.y_of_node.min()) == (0.0, 0.0)
 
 
-def test_hugo_read_file_like():
-    with open(os.path.join(_TEST_DATA_DIR, "hugo_site.asc")) as asc_file:
+def test_hugo_read_file_like(datadir):
+    with open(datadir / "hugo_site.asc") as asc_file:
         (grid, field) = read_esri_ascii(asc_file)
 
     assert isinstance(grid, RasterModelGrid)
@@ -46,8 +44,8 @@ def test_hugo_read_file_like():
     assert field.shape == (55 * 76,)
 
 
-def test_hugo_reshape():
-    with open(os.path.join(_TEST_DATA_DIR, "hugo_site.asc")) as asc_file:
+def test_hugo_reshape(datadir):
+    with open(datadir / "hugo_site.asc") as asc_file:
         (grid, field) = read_esri_ascii(asc_file, reshape=True)
 
     assert isinstance(grid, RasterModelGrid)
@@ -55,8 +53,8 @@ def test_hugo_reshape():
     assert field.shape == (55, 76)
 
 
-def test_4x3_read_file_name():
-    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR, "4_x_3.asc"))
+def test_4x3_read_file_name(datadir):
+    (grid, field) = read_esri_ascii(datadir / "4_x_3.asc")
 
     assert isinstance(grid, RasterModelGrid)
 
@@ -67,8 +65,8 @@ def test_4x3_read_file_name():
     )
 
 
-def test_4x3_read_file_like():
-    with open(os.path.join(_TEST_DATA_DIR, "4_x_3.asc")) as asc_file:
+def test_4x3_read_file_like(datadir):
+    with open(datadir / "4_x_3.asc") as asc_file:
         (grid, field) = read_esri_ascii(asc_file)
 
     assert isinstance(grid, RasterModelGrid)
@@ -346,10 +344,8 @@ NODATA_value  -999
         read_asc_header(asc_file)
 
 
-def test_name_keyword():
-    (grid, field) = read_esri_ascii(
-        os.path.join(_TEST_DATA_DIR, "4_x_3.asc"), name="air__temperature"
-    )
+def test_name_keyword(datadir):
+    (grid, field) = read_esri_ascii(datadir / "4_x_3.asc", name="air__temperature")
 
     assert isinstance(grid, RasterModelGrid)
 
@@ -361,8 +357,8 @@ def test_name_keyword():
     assert grid.at_node["air__temperature"] is field
 
 
-def test_halo_keyword():
-    (grid, field) = read_esri_ascii(os.path.join(_TEST_DATA_DIR, "4_x_3.asc"), halo=1)
+def test_halo_keyword(datadir):
+    (grid, field) = read_esri_ascii(datadir / "4_x_3.asc", halo=1)
 
     assert isinstance(grid, RasterModelGrid)
 
@@ -406,10 +402,8 @@ def test_halo_keyword():
     )
 
 
-def test_halo_keyword_no_nodata_value():
-    (grid, field) = read_esri_ascii(
-        os.path.join(_TEST_DATA_DIR, "4_x_3_no_nodata_value.asc"), halo=1
-    )
+def test_halo_keyword_no_nodata_value(datadir):
+    (grid, field) = read_esri_ascii(datadir / "4_x_3_no_nodata_value.asc", halo=1)
 
     assert isinstance(grid, RasterModelGrid)
 
