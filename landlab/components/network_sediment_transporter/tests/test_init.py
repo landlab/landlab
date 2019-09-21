@@ -189,7 +189,7 @@ def test_parcel_leaves(
 
     timesteps = 3
 
-    example_flow_depth = example_flow_depth*10# outrageously high transport rate
+    example_flow_depth = example_flow_depth*20# outrageously high transport rate
 
     nst = NetworkSedimentTransporter(
             example_nmg,
@@ -245,7 +245,7 @@ def test_abrasion(
 
     timesteps = 8
 
-    example_flow_depth = example_flow_depth*5 # outrageously high transport rate
+    example_flow_depth = example_flow_depth*5 # high transport rate
 
     nst = NetworkSedimentTransporter(
             example_nmg,

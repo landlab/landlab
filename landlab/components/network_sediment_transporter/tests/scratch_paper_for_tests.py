@@ -108,7 +108,7 @@ example_flow_director.run_one_step()
 
 timesteps = 30
 
-Qgage = 80000.0  # (m3/s)
+Qgage = 8000.0  # (m3/s)
 dt = 60 * 60 * 24  # (seconds) daily timestep
 
 Hgage = 1.703 * Qgage ** 0.3447

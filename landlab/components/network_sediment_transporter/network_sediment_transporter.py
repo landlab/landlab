@@ -8,22 +8,9 @@ Fixes that need to happen:
 
     -- (9/16/19) Something is wrong with abrasion (or at least that's where
     it's obvious). See test comparing actual abrasion to calculated. Hmm..
+    -- Check abrasion exponent units (per km or per m?)
 
     -- Channel width-- why is this anything other than a link attribute??
-
-    -- Need to find better way to define filterarrays in time and item_id
-	current option is very clunky. The one Nathan Lyons suggested doesn't work.\
-
-        KRB note: I've made some updates on this. Its not perfect, but better.
-        I think I understand why this is difficult.
-        1) Sometimes we just want the present timesteps data records, but the
-            datarecord has everything in it.
-        2) If you index the data record, it doesn't actually return a new TRUE data
-            record that includes attributes like self._grid...
-        3) Indexing is best supported for the COORDINATES (time and record ID)... we want
-            typically, to first index on time, and then based on variables (e.g. where
-            in the network, what size fraction). THis is hard to do without (2) being functional.
-
 
     -- JC: I found two items that I think should be changed in the _calc_transport_wilcock_crowe and I made these changes
             - frac_parcels was the inverse of what it should be so instead of a fraction it was a number >1
@@ -602,15 +589,15 @@ class NetworkSedimentTransporter(Component):
                 ):  # I'm sure there's a better way to do this, but...
                     length_of_downstream_link = 0
 
-                # TESTABLE METHOD
-                alluvium__depth = (
-                    2
-                    * self.vol_stor[downstream_link_id][n]
-                    / (
-                        np.sum(width_of_upstream_links * length_of_upstream_links)
-                        + width_of_downstream_link * length_of_downstream_link
-                    )
-                )
+                alluvium__depth = _calculate_alluvium_depth(
+                        self.vol_stor[downstream_link_id][n],
+                        width_of_upstream_links,
+                        length_of_upstream_links,
+                        width_of_downstream_link,
+                        length_of_downstream_link, 
+                        self.bed_porosity
+                        )
+
 
                 #                print("alluvium depth = ",alluvium__depth)
                 #                print("Volume stored at n = ",n,"=",self.vol_stor[downstream_link_id][n])
@@ -717,15 +704,13 @@ class NetworkSedimentTransporter(Component):
         frac_sand_array = np.squeeze(frac_sand_array)
 
         # Wilcock and crowe claculate transport for all parcels (active and inactive)
-
-        # TESTABLE METHOD
-        taursg = (
-            self.fluid_density
-            * R
-            * self.g
-            * D_mean_activearray
-            * (0.021 + 0.015 * np.exp(-20.0 * frac_sand_array))
-        )
+        taursg = _calculate_reference_shear_stress(
+                self.fluid_density,
+                R,
+                self.g,
+                D_mean_activearray,
+                frac_sand_array
+                )
 
         #        print("d_mean_active = ", d_mean_active)
         #        print("taursg = ", taursg)
@@ -738,9 +723,6 @@ class NetworkSedimentTransporter(Component):
         frac_parcel[vol_act_array != 0] = (
             Volarray[vol_act_array != 0] / vol_act_array[vol_act_array != 0]
         )
-        # frac_parcel = Volarray / vol_act_array
-
-        # print("frac_parcel = ", frac_parcel)
 
         b = 0.67 / (1 + np.exp(1.5 - Darray / D_mean_activearray))
 
@@ -892,20 +874,18 @@ class NetworkSedimentTransporter(Component):
                     )
 
                 # reduce D and volume due to abrasion
+                vol = _calculate_parcel_volume_post_abrasion(
+                        self._parcels.dataset.volume[p, self._time_idx],
+                        distance_to_travel_this_timestep[p],
+                        self._parcels.dataset.abrasion_rate[p]
+                        )
 
-                # TESTABLE METHOD
-                vol = (self._parcels.dataset.volume[p, self._time_idx]) * (
-                    np.exp(
-                        distance_to_travel_this_timestep[p]
-                        * (-self._parcels.dataset.abrasion_rate[p])
-                    )
-                )
-
-                # TESTABLE METHOD
-                D = (self._parcels.dataset.D[p, self._time_idx]) * (
-                    vol / self._parcels.dataset.volume[p, self._time_idx]
-                ) ** (1 / 3)
-
+                D = _calculate_parcel_grain_diameter_post_abrasion(
+                        self._parcels.dataset.D[p, self._time_idx],
+                        self._parcels.dataset.volume[p, self._time_idx],
+                        vol
+                        )
+   
                 # update parcel attributes
                 self._parcels.dataset.location_in_link[
                     p, self._time_idx
@@ -999,3 +979,183 @@ def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
         chan_slope = threshold
 
     return chan_slope
+
+
+def _calculate_alluvium_depth(
+                        stored_volume,
+                        width_of_upstream_links,
+                        length_of_upstream_links,
+                        width_of_downstream_link,
+                        length_of_downstream_link,
+                        porosity
+                        ):
+    """Calculate alluvium depth based on adjacent link inactive parcel volumes.
+
+    Parameters
+    ----------
+    stored_volume : float
+        Total volume of inactive parcels in this link.
+    width_of_upstream_links : float
+        Channel widths of upstream links.
+    length_of_upstream_link : float
+        Channel lengths of upstream links.
+    width_of_downstream_link : float
+        Channel widths of downstream links.
+    length_of_downstream_link : float
+        Channel lengths of downstream links.
+    porosity: float
+        Channel bed sediment porosity.
+
+    Examples
+    --------
+    >>> from landlab.components.network_sediment_transporter.network_sediment_transporter import _calculate_alluvium_depth
+    >>> import pytest
+    >>> _calculate_alluvium_depth(100,np.array([0.5,1]),np.array([10,10]) 1, 10, 0.2)
+    10.0
+    >>>_calculate_alluvium_depth(24,np.array([0.1,3]),np.array([10,10]), 1, 1, 0.5)
+    3.0
+    >>> with pytest.raises(ValueError):
+    ...     _calculate_alluvium_depth(24,np.array([0.1,3]),np.array([10,10]), 1, 1, 2)
+
+    """
+
+    alluvium__depth = (
+        2
+        * stored_volume
+        / (
+            np.sum(width_of_upstream_links * length_of_upstream_links)
+            + width_of_downstream_link * length_of_downstream_link
+        )
+        /(1-porosity)
+    )
+    # NOTE: Jon, porosity was left out in earlier version of the LL component,
+    # but it seems it should be in here. Check me: is the eqn correct?
+
+    if alluvium__depth < 0.0:
+        raise ValueError("NST Alluvium Depth Negative")
+
+    return alluvium__depth
+
+
+def _calculate_reference_shear_stress(
+                        fluid_density, 
+                        R, 
+                        g,
+                        mean_active_grain_size,
+                        frac_sand
+                        ):
+    """Calculate reference shields stress (taursg) using the sand content of
+    the bed surface, as per Wilcock and Crowe (2003).
+
+    Parameters
+    ----------
+    fluid_density : float
+        Density of fluid (generally, water).
+    R: float
+        Specific weight..?
+    g: float
+        Gravitational acceleration.
+    mean_active_grain_size: float
+        Mean grain size of the 'active' sediment parcels.
+    frac_sand: float
+        Fraction of the bed surface grain size composed of sand sized parcels.
+
+    Examples
+    --------
+    >>> from landlab.components.network_sediment_transporter.network_sediment_transporter _calculate_reference_shear_stress
+    >>> import pytest
+    >>> _calculate_reference_shear_stress(1, 1, 1, 1, 0)
+    0.036
+    # Katy: I'm running in to a float representation issue here. The python 
+    # result is 0.036000000000000004 , should be 0.036
+    >>>_calculate_reference_shear_stress(1000, 1.65, 9.8, 0.1, 0.9)
+    33.957000369403168
+
+    """
+
+    taursg = (
+        fluid_density
+        * R
+        * g
+        * mean_active_grain_size
+        * (0.021 + 0.015 * np.exp(-20.0 * frac_sand))
+    )
+
+    if any(n < 0 for n in taursg):
+        raise ValueError("NST reference Shields stress is negative")
+        
+    return taursg
+
+def _calculate_parcel_volume_post_abrasion(
+                        starting_volume,
+                        travel_distance,
+                        abrasion_rate
+                        ):
+    """Calculate parcel volumes after abrasion, according to Sternberg 
+    exponential abrasion.
+
+    Parameters
+    ----------
+    starting_volume : float
+        Starting volume of each parcel.
+    travel_distance: float
+        Travel distance for each parcel during this timestep, in ___.
+    abrasion_rate: float
+        Mean grain size of the 'active' sediment parcels.
+
+    Examples
+    --------
+    >>> from landlab.components.network_sediment_transporter.network_sediment_transporter import _calculate_parcel_volume_post_abrasion
+    >>> import pytest
+    >>> _calculate_parcel_volume_post_abrasion(10,100,0.003)
+    7.4081822068171785
+    >>>_calculate_parcel_volume_post_abrasion(10,300,0.1)
+    9.3576229688401746e-13
+    >>> with pytest.raises(ValueError):
+    ...     _calculate_parcel_volume_post_abrasion(10,300,-3)
+
+    """
+
+    volume = starting_volume * np.exp(travel_distance * (-abrasion_rate))
+
+    if volume > starting_volume:
+        raise ValueError("NST parcel volume *increases* due to abrasion")
+
+    return volume
+
+
+def _calculate_parcel_grain_diameter_post_abrasion(
+                        starting_diameter,
+                        pre_abrasion_volume,
+                        post_abrasion_volume
+                        ):
+    """Calculate parcel grain diameters after abrasion, according to Sternberg 
+    exponential abrasion.
+
+    Parameters
+    ----------
+    starting_diameter : float
+        Starting volume of each parcel.
+    pre_abrasion_volume: float
+        Parcel volume before abrasion. 
+    post_abrasion_volume: float
+        Parcel volume after abrasion. 
+
+    Examples
+    --------
+    >>> from landlab.components.network_sediment_transporter.network_sediment_transporter import _calculate_parcel_grain_diameter_post_abrasion
+    >>> import pytest
+    >>> _calculate_parcel_grain_diameter_post_abrasion(10,1,1)
+    10.0
+    >>>_calculate_parcel_grain_diameter_post_abrasion(10,1,2)
+    0.0001
+
+    """
+
+    abraded_grain_diameter = (starting_diameter
+            * (post_abrasion_volume
+            / pre_abrasion_volume
+            ) ** (1 / 3)
+            )
+
+    return abraded_grain_diameter
