@@ -49,7 +49,7 @@ Additional Methods and Properties
 ---------------------------------
 
 .. toctree::
-  :maxdepth: 1
+   :maxdepth: 1
 
    base
    cfuncs

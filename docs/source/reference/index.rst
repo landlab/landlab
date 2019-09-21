@@ -14,7 +14,7 @@ methods.
     cmd/index
     components/index
     core/index
-    data_record/index
+    datarecord/index
     field/index
     framework/index
     graph/index

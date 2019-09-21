@@ -96,7 +96,7 @@ Presentations, Clinics, and Classroom Use
     :maxdepth: 2
 
     papers_presentations
-    clinic_workshops
+    clinics_workshops
     landlab_curriculum
 
 
@@ -114,7 +114,7 @@ CellLab-CTS User Guide
 .. toctree::
     :maxdepth: 2
 
-    overland_flow_user_guide
+    cell_lab_user_guide
 
 
 Major Version Transition Guides

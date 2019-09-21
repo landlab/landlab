@@ -13,6 +13,7 @@ output to a file.
   esri_ascii
   gebco
   native_landlab
+  netcdf
   shapefile
   vtk
 

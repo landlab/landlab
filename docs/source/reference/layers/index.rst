@@ -25,8 +25,7 @@ Extensions
 .. toctree::
    :maxdepth: 2
 
-   eventlayers_ext
-   materiallayers_ext
+   layers_ext
 
 
 Module contents
