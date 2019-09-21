@@ -47,14 +47,14 @@ Information about the grid as a whole
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.axis_name
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.axis_units
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.move_origin
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.ndim
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_axis_coordinates
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_elements
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.save
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.size
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.axis_name`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.axis_units`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.move_origin`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.ndim`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_axis_coordinates`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_elements`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.save`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.size`
 
 Information about nodes
 +++++++++++++++++++++++
@@ -62,54 +62,54 @@ Information about nodes
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_adjacent_nodes_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_link_dirs_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_neighbors_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.adjacent_nodes_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.all_node_azimuths_map
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.all_node_distances_map
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.boundary_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_distances_of_nodes_to_point
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_area_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.closed_boundary_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.core_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.downwind_links_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_gradient_boundary_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_value_boundary_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_downwind
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_upwind
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_dirs_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.neighbors_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_core_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_head
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_tail
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_axis_coordinates
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_has_boundary_neighbor
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_is_boundary
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_x
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_y
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_patch
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.open_boundary_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_closed
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_fixed_gradient
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_sum_xcomponent_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_sum_ycomponent_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.upwind_links_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.xy_of_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_node
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.active_adjacent_nodes_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.active_link_dirs_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.active_neighbors_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.adjacent_nodes_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.all_node_azimuths_map`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.all_node_distances_map`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.boundary_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_distances_of_nodes_to_point`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_area_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.closed_boundary_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.core_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.downwind_links_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_gradient_boundary_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_value_boundary_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_downwind`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_upwind`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.link_dirs_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.neighbors_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_cell`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_core_cell`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_head`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_tail`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_axis_coordinates`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_has_boundary_neighbor`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_is_boundary`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_x`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_y`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_patch`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.open_boundary_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_closed`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_fixed_gradient`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_sum_xcomponent_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_sum_ycomponent_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.upwind_links_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.xy_of_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_node`
 
 Information about links
 +++++++++++++++++++++++
@@ -117,38 +117,38 @@ Information about links
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_link_dirs_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.angle_of_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.angle_of_link_about_head
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.downwind_links_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.face_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.length_of_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_face
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_downwind
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_upwind
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_dirs_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_patch
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_head
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_tail
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_active_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.upwind_links_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_link
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.active_link_dirs_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.active_links`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.angle_of_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.angle_of_link_about_head`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.downwind_links_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.face_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_links`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.length_of_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_face`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_downwind`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_upwind`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.link_dirs_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_patch`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_head`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_tail`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_active_links`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_links`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.upwind_links_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_link`
 
 Information about cells
 +++++++++++++++++++++++
@@ -156,18 +156,18 @@ Information about cells
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.area_of_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_area_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.core_cells
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.faces_at_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_core_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_cells
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_cells
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces_at_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_cell
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.area_of_cell`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_area_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.core_cells`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.faces_at_cell`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_cell`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_core_cell`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_cells`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_cells`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces_at_cell`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_cell`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_cell`
 
 Information about faces
 +++++++++++++++++++++++
@@ -175,16 +175,16 @@ Information about faces
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_faces
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.face_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.faces_at_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_face
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_faces
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces_at_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.width_of_face
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_face
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_face
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.active_faces`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.face_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.faces_at_cell`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_face`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_faces`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces_at_cell`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.width_of_face`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_face`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_face`
 
 Information about patches
 +++++++++++++++++++++++++
@@ -192,15 +192,15 @@ Information about patches
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_patch
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_patch
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_node
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_patch`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_patch`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_node`
 
 Information about corners
 +++++++++++++++++++++++++
@@ -208,7 +208,7 @@ Information about corners
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_corners
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_corners`
 
 
 Data Fields in ModelGrid
@@ -316,15 +316,15 @@ methods tend to start with `calc_`.
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_diff_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_flux_div_at_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_flux_div_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_grad_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_grad_at_patch
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_net_flux_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_slope_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_slope_at_patch
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_unit_normal_at_patch
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_diff_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_flux_div_at_cell`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_flux_div_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_grad_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_grad_at_patch`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_net_flux_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_slope_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_slope_at_patch`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_unit_normal_at_patch`
 
 Mappers
 -------
@@ -336,27 +336,27 @@ nodes.
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_downwind_node_link_max_to_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_downwind_node_link_mean_to_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_head_node_to_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_tail_node_to_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_vector_sum_to_patch
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_vector_to_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_max_of_link_nodes_to_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_max_of_node_links_to_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_max_of_patch_nodes_to_patch
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_mean_of_link_nodes_to_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_mean_of_patch_nodes_to_patch
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_min_of_link_nodes_to_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_min_of_node_links_to_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_min_of_patch_nodes_to_patch
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_node_to_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_upwind_node_link_max_to_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_upwind_node_link_mean_to_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_value_at_downwind_node_link_max_to_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_value_at_max_node_to_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_value_at_min_node_to_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.map_value_at_upwind_node_link_max_to_node
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_downwind_node_link_max_to_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_downwind_node_link_mean_to_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_head_node_to_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_tail_node_to_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_vector_sum_to_patch`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_link_vector_to_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_max_of_link_nodes_to_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_max_of_node_links_to_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_max_of_patch_nodes_to_patch`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_mean_of_link_nodes_to_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_mean_of_patch_nodes_to_patch`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_min_of_link_nodes_to_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_min_of_node_links_to_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_min_of_patch_nodes_to_patch`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_node_to_cell`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_upwind_node_link_max_to_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_upwind_node_link_mean_to_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_value_at_downwind_node_link_max_to_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_value_at_max_node_to_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_value_at_min_node_to_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.map_value_at_upwind_node_link_max_to_node`
 
 Boundary condition control
 --------------------------
@@ -369,32 +369,32 @@ defined at other grid elements automatically.
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_adjacent_nodes_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_faces
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_neighbors_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.boundary_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.closed_boundary_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.core_cells
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.core_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_gradient_boundary_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_value_boundary_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_core_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_has_boundary_neighbor
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_is_boundary
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_faces
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_cells
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.open_boundary_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_closed
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_fixed_gradient
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_node
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.active_adjacent_nodes_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.active_faces`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.active_links`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.active_neighbors_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.boundary_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.closed_boundary_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.core_cells`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.core_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_gradient_boundary_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_links`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_value_boundary_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_core_cell`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_has_boundary_neighbor`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.node_is_boundary`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_faces`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_cells`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.open_boundary_nodes`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_closed`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_fixed_gradient`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_link`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_node`
 
 Identifying node subsets
 ------------------------
@@ -413,9 +413,9 @@ find in GIS software.
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_aspect_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_hillshade_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_slope_at_node
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_aspect_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_hillshade_at_node`
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_slope_at_node`
 
 Notes
 -----

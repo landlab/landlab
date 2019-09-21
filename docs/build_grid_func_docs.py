@@ -93,8 +93,8 @@ for grid_to_modify in grid_name_to_class.keys():
                 if np.in1d(exclude,
                            all_cats_for_method_allgrid[grid][meth]).sum() == 0:
                     text_to_add += (
-                        '    ~landlab.grid.' + grid_to_modify + '.' +
-                        grid + '.' + meth + '\n'
+                        '    :py:meth:`~landlab.grid.' + grid_to_modify + '.' +
+                        grid + '.' + meth + '`\n'
                     )
         except KeyError:
             # print('For ' + grid + ' found no ' + LLCAT)

@@ -147,8 +147,8 @@ for LLCAT, outfile_name, text in zip(LLCATS, outfile_names, text_heads):
                 if np.in1d(exclude,
                            all_cats_for_method_allgrid[grid][meth]).sum() == 0:
                     text += (
-                        '    ~landlab.grid.' + path + '.' + grid + '.' + meth +
-                        '\n'
+                        '    :py:meth:`~landlab.grid.' + path + '.' + grid + '.' + meth +
+                        '`\n'
                     )
             text += '\n\n'
         except KeyError:

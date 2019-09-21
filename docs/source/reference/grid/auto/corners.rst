@@ -12,7 +12,7 @@ Base class
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.base.ModelGrid.number_of_corners
+    :py:meth:`~landlab.grid.base.ModelGrid.number_of_corners`
 
 
 
@@ -24,7 +24,7 @@ Raster
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.raster.RasterModelGrid.number_of_corners
+    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_corners`
 
 
 
@@ -36,7 +36,7 @@ Irregular Voronoi-cell
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_corners
+    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_corners`
 
 
 
@@ -48,7 +48,7 @@ Hexagonal
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.hex.HexModelGrid.number_of_corners
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_corners`
 
 
 
@@ -60,6 +60,6 @@ Radial
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.radial.RadialModelGrid.number_of_corners
+    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_corners`
 
 

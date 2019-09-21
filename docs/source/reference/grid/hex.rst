@@ -47,17 +47,17 @@ Information about the grid as a whole
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.hex.HexModelGrid.axis_name
-    ~landlab.grid.hex.HexModelGrid.axis_units
-    ~landlab.grid.hex.HexModelGrid.hexplot
-    ~landlab.grid.hex.HexModelGrid.move_origin
-    ~landlab.grid.hex.HexModelGrid.ndim
-    ~landlab.grid.hex.HexModelGrid.node_axis_coordinates
-    ~landlab.grid.hex.HexModelGrid.number_of_elements
-    ~landlab.grid.hex.HexModelGrid.number_of_node_columns
-    ~landlab.grid.hex.HexModelGrid.number_of_node_rows
-    ~landlab.grid.hex.HexModelGrid.save
-    ~landlab.grid.hex.HexModelGrid.size
+    :py:meth:`~landlab.grid.hex.HexModelGrid.axis_name`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.axis_units`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.hexplot`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.move_origin`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.ndim`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_axis_coordinates`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_elements`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_node_columns`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_node_rows`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.save`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.size`
 
 Information about nodes
 +++++++++++++++++++++++
@@ -65,60 +65,60 @@ Information about nodes
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.hex.HexModelGrid.active_adjacent_nodes_at_node
-    ~landlab.grid.hex.HexModelGrid.active_link_dirs_at_node
-    ~landlab.grid.hex.HexModelGrid.active_neighbors_at_node
-    ~landlab.grid.hex.HexModelGrid.adjacent_nodes_at_node
-    ~landlab.grid.hex.HexModelGrid.all_node_azimuths_map
-    ~landlab.grid.hex.HexModelGrid.all_node_distances_map
-    ~landlab.grid.hex.HexModelGrid.boundary_nodes
-    ~landlab.grid.hex.HexModelGrid.calc_distances_of_nodes_to_point
-    ~landlab.grid.hex.HexModelGrid.cell_area_at_node
-    ~landlab.grid.hex.HexModelGrid.cell_at_node
-    ~landlab.grid.hex.HexModelGrid.closed_boundary_nodes
-    ~landlab.grid.hex.HexModelGrid.core_nodes
-    ~landlab.grid.hex.HexModelGrid.downwind_links_at_node
-    ~landlab.grid.hex.HexModelGrid.fixed_gradient_boundary_nodes
-    ~landlab.grid.hex.HexModelGrid.fixed_value_boundary_nodes
-    ~landlab.grid.hex.HexModelGrid.link_at_node_is_downwind
-    ~landlab.grid.hex.HexModelGrid.link_at_node_is_upwind
-    ~landlab.grid.hex.HexModelGrid.link_dirs_at_node
-    ~landlab.grid.hex.HexModelGrid.links_at_node
-    ~landlab.grid.hex.HexModelGrid.neighbors_at_node
-    ~landlab.grid.hex.HexModelGrid.node_at_cell
-    ~landlab.grid.hex.HexModelGrid.node_at_core_cell
-    ~landlab.grid.hex.HexModelGrid.node_at_link_head
-    ~landlab.grid.hex.HexModelGrid.node_at_link_tail
-    ~landlab.grid.hex.HexModelGrid.node_axis_coordinates
-    ~landlab.grid.hex.HexModelGrid.node_has_boundary_neighbor
-    ~landlab.grid.hex.HexModelGrid.node_is_boundary
-    ~landlab.grid.hex.HexModelGrid.node_x
-    ~landlab.grid.hex.HexModelGrid.node_y
-    ~landlab.grid.hex.HexModelGrid.nodes
-    ~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_left_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_link
-    ~landlab.grid.hex.HexModelGrid.nodes_at_patch
-    ~landlab.grid.hex.HexModelGrid.nodes_at_right_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_top_edge
-    ~landlab.grid.hex.HexModelGrid.number_of_core_nodes
-    ~landlab.grid.hex.HexModelGrid.number_of_links_at_node
-    ~landlab.grid.hex.HexModelGrid.number_of_node_columns
-    ~landlab.grid.hex.HexModelGrid.number_of_node_rows
-    ~landlab.grid.hex.HexModelGrid.number_of_nodes
-    ~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_node
-    ~landlab.grid.hex.HexModelGrid.open_boundary_nodes
-    ~landlab.grid.hex.HexModelGrid.patches_at_node
-    ~landlab.grid.hex.HexModelGrid.patches_present_at_node
-    ~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_closed
-    ~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_fixed_gradient
-    ~landlab.grid.hex.HexModelGrid.status_at_node
-    ~landlab.grid.hex.HexModelGrid.unit_vector_sum_xcomponent_at_node
-    ~landlab.grid.hex.HexModelGrid.unit_vector_sum_ycomponent_at_node
-    ~landlab.grid.hex.HexModelGrid.upwind_links_at_node
-    ~landlab.grid.hex.HexModelGrid.x_of_node
-    ~landlab.grid.hex.HexModelGrid.xy_of_node
-    ~landlab.grid.hex.HexModelGrid.y_of_node
+    :py:meth:`~landlab.grid.hex.HexModelGrid.active_adjacent_nodes_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.active_link_dirs_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.active_neighbors_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.adjacent_nodes_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.all_node_azimuths_map`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.all_node_distances_map`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.boundary_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_distances_of_nodes_to_point`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.cell_area_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.cell_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.closed_boundary_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.core_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.downwind_links_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.fixed_gradient_boundary_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.fixed_value_boundary_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.link_at_node_is_downwind`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.link_at_node_is_upwind`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.link_dirs_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.links_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.neighbors_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_at_cell`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_at_core_cell`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_at_link_head`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_at_link_tail`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_axis_coordinates`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_has_boundary_neighbor`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_is_boundary`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_x`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_y`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_left_edge`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_patch`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_right_edge`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_top_edge`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_core_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_links_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_node_columns`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_node_rows`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.open_boundary_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.patches_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.patches_present_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_closed`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_fixed_gradient`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.status_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.unit_vector_sum_xcomponent_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.unit_vector_sum_ycomponent_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.upwind_links_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.x_of_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.xy_of_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.y_of_node`
 
 Information about links
 +++++++++++++++++++++++
@@ -126,38 +126,38 @@ Information about links
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.hex.HexModelGrid.active_link_dirs_at_node
-    ~landlab.grid.hex.HexModelGrid.active_links
-    ~landlab.grid.hex.HexModelGrid.angle_of_link
-    ~landlab.grid.hex.HexModelGrid.angle_of_link_about_head
-    ~landlab.grid.hex.HexModelGrid.downwind_links_at_node
-    ~landlab.grid.hex.HexModelGrid.face_at_link
-    ~landlab.grid.hex.HexModelGrid.fixed_links
-    ~landlab.grid.hex.HexModelGrid.length_of_link
-    ~landlab.grid.hex.HexModelGrid.link_at_face
-    ~landlab.grid.hex.HexModelGrid.link_at_node_is_downwind
-    ~landlab.grid.hex.HexModelGrid.link_at_node_is_upwind
-    ~landlab.grid.hex.HexModelGrid.link_dirs_at_node
-    ~landlab.grid.hex.HexModelGrid.links_at_node
-    ~landlab.grid.hex.HexModelGrid.links_at_patch
-    ~landlab.grid.hex.HexModelGrid.node_at_link_head
-    ~landlab.grid.hex.HexModelGrid.node_at_link_tail
-    ~landlab.grid.hex.HexModelGrid.nodes_at_link
-    ~landlab.grid.hex.HexModelGrid.number_of_active_links
-    ~landlab.grid.hex.HexModelGrid.number_of_fixed_links
-    ~landlab.grid.hex.HexModelGrid.number_of_links
-    ~landlab.grid.hex.HexModelGrid.number_of_links_at_node
-    ~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_link
-    ~landlab.grid.hex.HexModelGrid.patches_at_link
-    ~landlab.grid.hex.HexModelGrid.patches_present_at_link
-    ~landlab.grid.hex.HexModelGrid.resolve_values_on_active_links
-    ~landlab.grid.hex.HexModelGrid.resolve_values_on_links
-    ~landlab.grid.hex.HexModelGrid.status_at_link
-    ~landlab.grid.hex.HexModelGrid.unit_vector_at_link
-    ~landlab.grid.hex.HexModelGrid.unit_vector_at_node
-    ~landlab.grid.hex.HexModelGrid.upwind_links_at_node
-    ~landlab.grid.hex.HexModelGrid.x_of_link
-    ~landlab.grid.hex.HexModelGrid.y_of_link
+    :py:meth:`~landlab.grid.hex.HexModelGrid.active_link_dirs_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.active_links`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.angle_of_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.angle_of_link_about_head`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.downwind_links_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.face_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.fixed_links`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.length_of_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.link_at_face`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.link_at_node_is_downwind`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.link_at_node_is_upwind`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.link_dirs_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.links_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.links_at_patch`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_at_link_head`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_at_link_tail`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_active_links`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_fixed_links`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_links`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_links_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.patches_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.patches_present_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.resolve_values_on_active_links`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.resolve_values_on_links`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.status_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.unit_vector_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.unit_vector_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.upwind_links_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.x_of_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.y_of_link`
 
 Information about cells
 +++++++++++++++++++++++
@@ -169,16 +169,16 @@ Information about faces
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.hex.HexModelGrid.active_faces
-    ~landlab.grid.hex.HexModelGrid.face_at_link
-    ~landlab.grid.hex.HexModelGrid.faces_at_cell
-    ~landlab.grid.hex.HexModelGrid.link_at_face
-    ~landlab.grid.hex.HexModelGrid.number_of_active_faces
-    ~landlab.grid.hex.HexModelGrid.number_of_faces
-    ~landlab.grid.hex.HexModelGrid.number_of_faces_at_cell
-    ~landlab.grid.hex.HexModelGrid.width_of_face
-    ~landlab.grid.hex.HexModelGrid.x_of_face
-    ~landlab.grid.hex.HexModelGrid.y_of_face
+    :py:meth:`~landlab.grid.hex.HexModelGrid.active_faces`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.face_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.faces_at_cell`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.link_at_face`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_active_faces`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_faces`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_faces_at_cell`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.width_of_face`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.x_of_face`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.y_of_face`
 
 Information about patches
 +++++++++++++++++++++++++
@@ -186,15 +186,15 @@ Information about patches
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.hex.HexModelGrid.links_at_patch
-    ~landlab.grid.hex.HexModelGrid.nodes_at_patch
-    ~landlab.grid.hex.HexModelGrid.number_of_patches
-    ~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_link
-    ~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_node
-    ~landlab.grid.hex.HexModelGrid.patches_at_link
-    ~landlab.grid.hex.HexModelGrid.patches_at_node
-    ~landlab.grid.hex.HexModelGrid.patches_present_at_link
-    ~landlab.grid.hex.HexModelGrid.patches_present_at_node
+    :py:meth:`~landlab.grid.hex.HexModelGrid.links_at_patch`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_patch`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_patches`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.patches_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.patches_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.patches_present_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.patches_present_at_node`
 
 Information about corners
 +++++++++++++++++++++++++
@@ -202,7 +202,7 @@ Information about corners
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.hex.HexModelGrid.number_of_corners
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_corners`
 
 
 Data Fields in ModelGrid
@@ -310,15 +310,15 @@ methods tend to start with `calc_`.
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.hex.HexModelGrid.calc_diff_at_link
-    ~landlab.grid.hex.HexModelGrid.calc_flux_div_at_cell
-    ~landlab.grid.hex.HexModelGrid.calc_flux_div_at_node
-    ~landlab.grid.hex.HexModelGrid.calc_grad_at_link
-    ~landlab.grid.hex.HexModelGrid.calc_grad_at_patch
-    ~landlab.grid.hex.HexModelGrid.calc_net_flux_at_node
-    ~landlab.grid.hex.HexModelGrid.calc_slope_at_node
-    ~landlab.grid.hex.HexModelGrid.calc_slope_at_patch
-    ~landlab.grid.hex.HexModelGrid.calc_unit_normal_at_patch
+    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_diff_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_flux_div_at_cell`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_flux_div_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_grad_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_grad_at_patch`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_net_flux_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_slope_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_slope_at_patch`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_unit_normal_at_patch`
 
 Mappers
 -------
@@ -330,27 +330,27 @@ nodes.
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.hex.HexModelGrid.map_downwind_node_link_max_to_node
-    ~landlab.grid.hex.HexModelGrid.map_downwind_node_link_mean_to_node
-    ~landlab.grid.hex.HexModelGrid.map_link_head_node_to_link
-    ~landlab.grid.hex.HexModelGrid.map_link_tail_node_to_link
-    ~landlab.grid.hex.HexModelGrid.map_link_vector_sum_to_patch
-    ~landlab.grid.hex.HexModelGrid.map_link_vector_to_nodes
-    ~landlab.grid.hex.HexModelGrid.map_max_of_link_nodes_to_link
-    ~landlab.grid.hex.HexModelGrid.map_max_of_node_links_to_node
-    ~landlab.grid.hex.HexModelGrid.map_max_of_patch_nodes_to_patch
-    ~landlab.grid.hex.HexModelGrid.map_mean_of_link_nodes_to_link
-    ~landlab.grid.hex.HexModelGrid.map_mean_of_patch_nodes_to_patch
-    ~landlab.grid.hex.HexModelGrid.map_min_of_link_nodes_to_link
-    ~landlab.grid.hex.HexModelGrid.map_min_of_node_links_to_node
-    ~landlab.grid.hex.HexModelGrid.map_min_of_patch_nodes_to_patch
-    ~landlab.grid.hex.HexModelGrid.map_node_to_cell
-    ~landlab.grid.hex.HexModelGrid.map_upwind_node_link_max_to_node
-    ~landlab.grid.hex.HexModelGrid.map_upwind_node_link_mean_to_node
-    ~landlab.grid.hex.HexModelGrid.map_value_at_downwind_node_link_max_to_node
-    ~landlab.grid.hex.HexModelGrid.map_value_at_max_node_to_link
-    ~landlab.grid.hex.HexModelGrid.map_value_at_min_node_to_link
-    ~landlab.grid.hex.HexModelGrid.map_value_at_upwind_node_link_max_to_node
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_downwind_node_link_max_to_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_downwind_node_link_mean_to_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_link_head_node_to_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_link_tail_node_to_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_link_vector_sum_to_patch`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_link_vector_to_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_max_of_link_nodes_to_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_max_of_node_links_to_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_max_of_patch_nodes_to_patch`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_mean_of_link_nodes_to_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_mean_of_patch_nodes_to_patch`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_min_of_link_nodes_to_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_min_of_node_links_to_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_min_of_patch_nodes_to_patch`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_node_to_cell`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_upwind_node_link_max_to_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_upwind_node_link_mean_to_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_value_at_downwind_node_link_max_to_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_value_at_max_node_to_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_value_at_min_node_to_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.map_value_at_upwind_node_link_max_to_node`
 
 Boundary condition control
 --------------------------
@@ -363,38 +363,38 @@ defined at other grid elements automatically.
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.hex.HexModelGrid.active_adjacent_nodes_at_node
-    ~landlab.grid.hex.HexModelGrid.active_faces
-    ~landlab.grid.hex.HexModelGrid.active_links
-    ~landlab.grid.hex.HexModelGrid.active_neighbors_at_node
-    ~landlab.grid.hex.HexModelGrid.boundary_nodes
-    ~landlab.grid.hex.HexModelGrid.closed_boundary_nodes
-    ~landlab.grid.hex.HexModelGrid.core_cells
-    ~landlab.grid.hex.HexModelGrid.core_nodes
-    ~landlab.grid.hex.HexModelGrid.fixed_gradient_boundary_nodes
-    ~landlab.grid.hex.HexModelGrid.fixed_links
-    ~landlab.grid.hex.HexModelGrid.fixed_value_boundary_nodes
-    ~landlab.grid.hex.HexModelGrid.node_at_core_cell
-    ~landlab.grid.hex.HexModelGrid.node_has_boundary_neighbor
-    ~landlab.grid.hex.HexModelGrid.node_is_boundary
-    ~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_left_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_right_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_top_edge
-    ~landlab.grid.hex.HexModelGrid.number_of_active_faces
-    ~landlab.grid.hex.HexModelGrid.number_of_active_links
-    ~landlab.grid.hex.HexModelGrid.number_of_core_cells
-    ~landlab.grid.hex.HexModelGrid.number_of_core_nodes
-    ~landlab.grid.hex.HexModelGrid.number_of_fixed_links
-    ~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_link
-    ~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_node
-    ~landlab.grid.hex.HexModelGrid.open_boundary_nodes
-    ~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_closed
-    ~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_fixed_gradient
-    ~landlab.grid.hex.HexModelGrid.set_watershed_boundary_condition
-    ~landlab.grid.hex.HexModelGrid.set_watershed_boundary_condition_outlet_id
-    ~landlab.grid.hex.HexModelGrid.status_at_link
-    ~landlab.grid.hex.HexModelGrid.status_at_node
+    :py:meth:`~landlab.grid.hex.HexModelGrid.active_adjacent_nodes_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.active_faces`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.active_links`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.active_neighbors_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.boundary_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.closed_boundary_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.core_cells`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.core_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.fixed_gradient_boundary_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.fixed_links`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.fixed_value_boundary_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_at_core_cell`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_has_boundary_neighbor`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.node_is_boundary`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_left_edge`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_right_edge`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_top_edge`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_active_faces`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_active_links`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_core_cells`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_core_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_fixed_links`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_patches_present_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.open_boundary_nodes`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_closed`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.set_nodata_nodes_to_fixed_gradient`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.set_watershed_boundary_condition`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.set_watershed_boundary_condition_outlet_id`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.status_at_link`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.status_at_node`
 
 Identifying node subsets
 ------------------------
@@ -405,10 +405,10 @@ to a point; nodes at edges.
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_left_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_right_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_top_edge
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_left_edge`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_right_edge`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.nodes_at_top_edge`
 
 Surface analysis
 ----------------
@@ -419,9 +419,9 @@ find in GIS software.
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.hex.HexModelGrid.calc_aspect_at_node
-    ~landlab.grid.hex.HexModelGrid.calc_hillshade_at_node
-    ~landlab.grid.hex.HexModelGrid.calc_slope_at_node
+    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_aspect_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_hillshade_at_node`
+    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_slope_at_node`
 
 Notes
 -----
