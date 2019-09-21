@@ -5,21 +5,21 @@ Introduction to Python
 ======================
 
 Why Python?
-===========
+-----------
 
 Landlab is coded in Python and exploits and includes as dependencies a number of widely used scientific Python packages—in particular, NumPy and SciPy. The decision to code in Python was explicitly made to lower the bar to entry for Landlab; to increase the flexibility and reusability of the code base; and to increase development speed both for the core development team and for future users. The choice of Python also means that developers using Landlab can take advantage of that language’s affinity for rapid development timescales.
 
 Other advantages of this choice include high portability between platforms, open source language, numerous existing scientific libraries that prevent developers having to “reinvent the wheel,” and support for selective optimization of time-critical parts of the code base in Cython (see [[Cython | Python,-NumPy,-Scipy,-Cython#cython]]).
 
 Getting to know Python
-======================
+----------------------
 
 We recommend you approach Landlab with a basic working knowledge of the Python coding language. A good, concise, complete beginner’s guide that will get you to enough knowledge to be able to get started can be found `here <http://interactivepython.org/runestone/static/thinkcspy/GeneralIntro/ThePythonProgrammingLanguage.html>`_. We like `the Software Carpentry intro <http://software-carpentry.org/v4/python/>`_  and `these Python notebooks <https://nbviewer.jupyter.org/github/jrjohansson/scientific-python-lectures/tree/master/>`_ as more comprehensive introductions to Python.
 
 Landlab is also written in an object-oriented coding style. Many of the elements of Landlab that you will interact with—grids, components, utilities—are Python objects, which means they contain both data that describe the object and functions that you can call that operate on the object. Think of the object as a container in which everything relevant to that part of the code is stored, so that it can be accessed easily. You can read a bit more about Python objects `here <http://learnpythonthehardway.org/book/ex40.html>`_ for general information. There is more detail on what this means in terms of running our code on the [[Build a Model page| Build-a-Model]].
 
 If you know MatLab…
-^^^^^^^^^^^^^^^^^^^^^^
+```````````````````
 
 If you’re already familiar with Matlab, you will probably feel at home with Python fairly quickly. However,     there are some critical differences. Important things to remember include:
 
@@ -45,7 +45,7 @@ Finally, but importantly, Python doesn't use the hat ``^`` as its raise-to-the-p
 We have a very short tutorial on Python and NumPy from the point of view of Landlab (and the key differences with Matlab) `here <https://nbviewer.jupyter.org/github/landlab/drivers/blob/master/notebooks/Python_intro.ipynb>`_.
 
 NumPy, SciPy, and Efficient Coding Style
-========================================
+----------------------------------------
 
 NumPy and SciPy are the workhorse scientific computing packages of Python. They provide fast, efficient, and surprisingly comprehensive data structures and numerical methods that we (and you) can exploit to make coding in Landlab faster and easier.
 
@@ -76,12 +76,10 @@ We also strongly recommend the book “High Performance Python” by Gorelick an
 .. _cython:
 
 Cython
-======
+------
 
 If you explore the Landlab source code, you will discover that not all of Landlab is written in pure Python. Some of it is written in Cython. Cython is a programming language closely related to Python, and indeed, all code written in pure Python is automatically also Cython code. Cython is probably best thought of as a cross between C++ and Python, which aims to combine the flexibility of Python with the brute power and granular control that C++ provides. For example, if there are sections of code where looping through an array is unavoidable, Cython provides a way to significantly accelerate the speed of this code. Cython code largely looks like straightforward Python, but may have type declarations or other C++-like features.
 
 From the user’s perspective, the most important thing to note is that Cython is a compiled language. (This isn’t true of Python, which is an interpreted—compiled at run time—language.) We provide the pre-compiled executables you will need to run Landlab when you install, and this should be sufficient for the vast majority of users.
 
 However if, as a developer, you intend to modify any of the sections of code that we provide to you, you will probably need to recompile that code on your machine before the changes take effect. See the [[developer installation instructions | http://landlab.readthedocs.org/en/latest/dev_guide_install.html]] for more information on this.
-
-[[ Next topic: the Landlab Grid  → | Grid ]]

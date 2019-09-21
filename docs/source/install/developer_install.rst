@@ -45,7 +45,7 @@ don’t have working compiler when calling ``python setup.py develop``
 2|Installing-Landlab-from-source-code-(“developer-install”)#2-installing-landlab-in-developer-mode]]).*
 
 1. Getting the code from Github
-===============================
+-------------------------------
 
 Landlab development takes place in your own *fork* of the main Landlab
 repository. A fork is a *mirror* of the repository and is hosted on your
@@ -56,7 +56,7 @@ your changes. This is known as a pull request and is facilitated through
 the GitHub website.
 
 How to create a fork
---------------------
+````````````````````
 
 You will only need to do this once for each project to which you want to
 contribute. Github has some great documentation on `how to create a
@@ -144,7 +144,7 @@ Use the following commands from a terminal of your choice.
    > git remote add upstream git://github.com/landlab/landlab.git
 
 2. Installing Landlab in developer mode
-=======================================
+---------------------------------------
 
 **Before you start:** Ensure you have installed with Xcode from the
 Apple app store (macs) or [[installed a working C++ compiler on your
@@ -209,7 +209,7 @@ With Landlab uninstalled, you will no longer be able to import Landlab
 from outside the root folder of your working copy.
 
 Testing your install
---------------------
+````````````````````
 
 In order to test your installation you’ll need to install the
 ```pytest`` <https://docs.pytest.org/en/latest/>`__ package that is used
@@ -271,7 +271,7 @@ would do the following:
    > pytest $TEST_DIR --doctest-modules --cov=$TEST_DIR --cov-report term-missing
 
 3. Updating your Landlab install
-================================
+--------------------------------
 
 It is very important to regularly update your code to keep up with bug
 fixes, new features and improvements!
@@ -281,7 +281,7 @@ page <https://github.com/landlab/landlab/wiki/Updating-Landlab>`__ for
 instructions.
 
 Working with your local version of Landlab
-==========================================
+------------------------------------------
 
 Obviously, feel free to just dive into modifying the code, but your life
 in the future will be a bit easier if you follow some basic
@@ -296,10 +296,10 @@ develop back to the community. For information about our in-house code
 formatting conventions and standards, see [[here|Style-conventions]].
 
 Troubleshooting
-===============
+---------------
 
 I updated my working version and now it is broken. What do I do?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+````````````````````````````````````````````````````````````````
 
 One possibility is that the landlab requirements changed between when
 you originally installed landlab and when you updated landlab. To
@@ -311,7 +311,7 @@ address this, re-run the following lines and then test the installation.
    > python setup.py develop
 
 What do I do if my pull request cannot be automatically merged?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```````````````````````````````````````````````````````````````
 
 Get the latest upstream/master and go to the master branch. Remember,
 *do not develop here*. Always develop in a feature branch. Merge the
@@ -353,7 +353,7 @@ resolve them one by one. When you’re done, commit then sync the
 un-conflicted version’s changes as if they were any other.
 
 I’m seeing errors about Cython when I try to run my code/import Landlab. It used to be fine.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+````````````````````````````````````````````````````````````````````````````````````````````
 
 Very occasionally, local code updates or rebasing can break the compiled
 code that lives in your local developer’s install. *Provided you used to
@@ -369,7 +369,7 @@ this install function rather than when you try to actually run some
 code/import Landlab, see immediately below.
 
 I see errors about Cython when I try to *install* Landlab
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`````````````````````````````````````````````````````````
 
 If you see errors referring to Cython when you try to run
 ``python setup.py develop``, it indicates you have a problem with your
@@ -383,7 +383,7 @@ instructions it will give you, then try the install for Landlab again.
 On a PC? Try updating Anaconda.
 
 I’m still confused
-~~~~~~~~~~~~~~~~~~
+``````````````````
 
 If you are having problems when installing, testing or running Landlab,
 please visit our `Troubleshooting

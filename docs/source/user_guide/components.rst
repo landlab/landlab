@@ -221,5 +221,3 @@ you can just do:
 
 Note that we are making slow progress towards truly standardizing the component library, but
 these kind of idiosyncrasies might yet persist for a while!
-
-[[ ← Previous topic: Build a Model | Build-a-Model ]]

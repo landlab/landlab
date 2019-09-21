@@ -303,5 +303,3 @@ most of these were not widely used or public-facing. The list is as follows::
 Of these, `'water__depth'` is most likely to impact people, as it formed an input to the
 `StreamPowerEroder`. However, for back compatibility, you should still find that that component
 is still able to handle both the old and new names.
-
-[[ ← Previous topic: Components | Components ]]

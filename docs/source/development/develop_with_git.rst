@@ -1,7 +1,8 @@
-`Landlab <http://landlab.github.io>`__ \| [[ About \| About ]] \| [[
-Examples \| Examples ]] \| [[ User Guide \| User-Guide ]] \| `Reference
-Manual <http://landlab.readthedocs.org/en/latest/#developer-documentation>`__
-\| [[ Tutorials\| Tutorials ]] \| [[ FAQs \| FAQs ]]
+.. _landlab_develop_with_git:
+
+================
+Develop with Git
+================
 
 *This information is intended to help users who have [[downloaded the
 Landlab source code from Github|Installing Landlab from source code
@@ -39,10 +40,10 @@ that avoids the command line, if that sounds like something you’d
 prefer.*
 
 Branching with git
-==================
+------------------
 
 Making a new branch
--------------------
+```````````````````
 
 Before making any changes to your code, you should create a new branch.
 
@@ -82,7 +83,7 @@ active branch, you can update your active branch from the master with
 or with the “Update from master” button in the app.
 
 Pushing changes from your local machine to your fork on Github
---------------------------------------------------------------
+``````````````````````````````````````````````````````````````
 
 If you want to keep a copy of the files you have modified or created on
 your branches on your public GitHub page for Landlab (you probably do as
@@ -103,7 +104,7 @@ various branches to see the code you have committed. The app also lets
 you see the structure of your branches on your local machine.
 
 Committing changes and merging branches back in
------------------------------------------------
+```````````````````````````````````````````````
 
 Changes you make to your code are “saved” in git when you commit them to
 your branch. Save your files, then at the command line
@@ -151,7 +152,7 @@ website using the prominent green button. On your local machine, sync
 your master branch to pick up the changes locally.
 
 Pulling changes from your fork to the Landlab master fork
-=========================================================
+---------------------------------------------------------
 
 Once you’ve completed whatever modifications you were working on with
 Landlab, we’d like to incorporate your changes back into the main code
