@@ -32,7 +32,7 @@ str_sequence = ('Base class', 'Raster', 'Irregular Voronoi-cell', 'Hexagonal',
                 'Radial', 'Network')
 paths = ('base', 'raster', 'voronoi', 'hex', 'radial', 'network')
 
-autosummary = '.. autosummary::\n    :toctree: generated/\n\n'
+autosummary = '.. currentmodule:: landlab \n\n.. autosummary::\n\n'
 
 LLCATS = ('GINF', 'NINF', 'LINF', 'CINF', 'PINF', 'FINF', 'CNINF', 'GRAD',
           'MAP', 'BC', 'SUBSET', 'SURF')
@@ -93,8 +93,8 @@ for grid_to_modify in grid_name_to_class.keys():
                 if np.in1d(exclude,
                            all_cats_for_method_allgrid[grid][meth]).sum() == 0:
                     text_to_add += (
-                        '    :py:meth:`~landlab.grid.' + grid_to_modify + '.' +
-                        grid + '.' + meth + '`\n'
+                        '    ~landlab.grid.' + grid_to_modify + '.' +
+                        grid + '.' + meth + '\n'
                     )
         except KeyError:
             # print('For ' + grid + ' found no ' + LLCAT)

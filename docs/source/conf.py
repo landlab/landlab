@@ -38,7 +38,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.todo',
               'sphinx.ext.mathjax',
               'sphinx.ext.napoleon',
-              'sphinx.ext.autosummary']
+              'sphinx.ext.autosummary',]
 
 if os.getenv('READTHEDOCS'):
     template_bridge = 'landlab_ext.MyTemplateLoader'

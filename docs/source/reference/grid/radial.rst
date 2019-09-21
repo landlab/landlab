@@ -44,176 +44,183 @@ as in the example `area_of_cell`.
 Information about the grid as a whole
 +++++++++++++++++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.axis_name`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.axis_units`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.move_origin`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.ndim`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_axis_coordinates`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_elements`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_nodes_in_shell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_shells`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.save`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.size`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.spacing_of_shells`
+.. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.axis_name
+    ~landlab.grid.radial.RadialModelGrid.axis_units
+    ~landlab.grid.radial.RadialModelGrid.move_origin
+    ~landlab.grid.radial.RadialModelGrid.ndim
+    ~landlab.grid.radial.RadialModelGrid.node_axis_coordinates
+    ~landlab.grid.radial.RadialModelGrid.number_of_elements
+    ~landlab.grid.radial.RadialModelGrid.number_of_nodes_in_shell
+    ~landlab.grid.radial.RadialModelGrid.number_of_shells
+    ~landlab.grid.radial.RadialModelGrid.save
+    ~landlab.grid.radial.RadialModelGrid.size
+    ~landlab.grid.radial.RadialModelGrid.spacing_of_shells
 
 Information about nodes
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.active_adjacent_nodes_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.active_link_dirs_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.active_neighbors_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.adjacent_nodes_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.all_node_azimuths_map`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.all_node_distances_map`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.boundary_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_distances_of_nodes_to_point`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.cell_area_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.cell_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.closed_boundary_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.core_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.downwind_links_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.fixed_gradient_boundary_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.fixed_value_boundary_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.link_at_node_is_downwind`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.link_at_node_is_upwind`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.link_dirs_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.links_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.neighbors_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_at_cell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_at_core_cell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_at_link_head`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_at_link_tail`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_axis_coordinates`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_has_boundary_neighbor`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_is_boundary`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_x`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_y`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.nodes_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.nodes_at_patch`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_core_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_links_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_nodes_in_shell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.open_boundary_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.patches_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.patches_present_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.radius_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_closed`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_fixed_gradient`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.status_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.unit_vector_sum_xcomponent_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.unit_vector_sum_ycomponent_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.upwind_links_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.x_of_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.xy_of_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.y_of_node`
+.. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.active_adjacent_nodes_at_node
+    ~landlab.grid.radial.RadialModelGrid.active_link_dirs_at_node
+    ~landlab.grid.radial.RadialModelGrid.active_neighbors_at_node
+    ~landlab.grid.radial.RadialModelGrid.adjacent_nodes_at_node
+    ~landlab.grid.radial.RadialModelGrid.all_node_azimuths_map
+    ~landlab.grid.radial.RadialModelGrid.all_node_distances_map
+    ~landlab.grid.radial.RadialModelGrid.boundary_nodes
+    ~landlab.grid.radial.RadialModelGrid.calc_distances_of_nodes_to_point
+    ~landlab.grid.radial.RadialModelGrid.cell_area_at_node
+    ~landlab.grid.radial.RadialModelGrid.cell_at_node
+    ~landlab.grid.radial.RadialModelGrid.closed_boundary_nodes
+    ~landlab.grid.radial.RadialModelGrid.core_nodes
+    ~landlab.grid.radial.RadialModelGrid.downwind_links_at_node
+    ~landlab.grid.radial.RadialModelGrid.fixed_gradient_boundary_nodes
+    ~landlab.grid.radial.RadialModelGrid.fixed_value_boundary_nodes
+    ~landlab.grid.radial.RadialModelGrid.link_at_node_is_downwind
+    ~landlab.grid.radial.RadialModelGrid.link_at_node_is_upwind
+    ~landlab.grid.radial.RadialModelGrid.link_dirs_at_node
+    ~landlab.grid.radial.RadialModelGrid.links_at_node
+    ~landlab.grid.radial.RadialModelGrid.neighbors_at_node
+    ~landlab.grid.radial.RadialModelGrid.node_at_cell
+    ~landlab.grid.radial.RadialModelGrid.node_at_core_cell
+    ~landlab.grid.radial.RadialModelGrid.node_at_link_head
+    ~landlab.grid.radial.RadialModelGrid.node_at_link_tail
+    ~landlab.grid.radial.RadialModelGrid.node_axis_coordinates
+    ~landlab.grid.radial.RadialModelGrid.node_has_boundary_neighbor
+    ~landlab.grid.radial.RadialModelGrid.node_is_boundary
+    ~landlab.grid.radial.RadialModelGrid.node_x
+    ~landlab.grid.radial.RadialModelGrid.node_y
+    ~landlab.grid.radial.RadialModelGrid.nodes
+    ~landlab.grid.radial.RadialModelGrid.nodes_at_link
+    ~landlab.grid.radial.RadialModelGrid.nodes_at_patch
+    ~landlab.grid.radial.RadialModelGrid.number_of_core_nodes
+    ~landlab.grid.radial.RadialModelGrid.number_of_links_at_node
+    ~landlab.grid.radial.RadialModelGrid.number_of_nodes
+    ~landlab.grid.radial.RadialModelGrid.number_of_nodes_in_shell
+    ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.radial.RadialModelGrid.open_boundary_nodes
+    ~landlab.grid.radial.RadialModelGrid.patches_at_node
+    ~landlab.grid.radial.RadialModelGrid.patches_present_at_node
+    ~landlab.grid.radial.RadialModelGrid.radius_at_node
+    ~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_closed
+    ~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.radial.RadialModelGrid.status_at_node
+    ~landlab.grid.radial.RadialModelGrid.unit_vector_sum_xcomponent_at_node
+    ~landlab.grid.radial.RadialModelGrid.unit_vector_sum_ycomponent_at_node
+    ~landlab.grid.radial.RadialModelGrid.upwind_links_at_node
+    ~landlab.grid.radial.RadialModelGrid.x_of_node
+    ~landlab.grid.radial.RadialModelGrid.xy_of_node
+    ~landlab.grid.radial.RadialModelGrid.y_of_node
 
 Information about links
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.active_link_dirs_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.active_links`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.angle_of_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.angle_of_link_about_head`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.downwind_links_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.face_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.fixed_links`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.length_of_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.link_at_face`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.link_at_node_is_downwind`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.link_at_node_is_upwind`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.link_dirs_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.links_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.links_at_patch`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_at_link_head`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_at_link_tail`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.nodes_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_active_links`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_fixed_links`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_links`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_links_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.patches_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.patches_present_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.resolve_values_on_active_links`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.resolve_values_on_links`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.status_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.unit_vector_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.unit_vector_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.upwind_links_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.x_of_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.y_of_link`
+.. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.active_link_dirs_at_node
+    ~landlab.grid.radial.RadialModelGrid.active_links
+    ~landlab.grid.radial.RadialModelGrid.angle_of_link
+    ~landlab.grid.radial.RadialModelGrid.angle_of_link_about_head
+    ~landlab.grid.radial.RadialModelGrid.downwind_links_at_node
+    ~landlab.grid.radial.RadialModelGrid.face_at_link
+    ~landlab.grid.radial.RadialModelGrid.fixed_links
+    ~landlab.grid.radial.RadialModelGrid.length_of_link
+    ~landlab.grid.radial.RadialModelGrid.link_at_face
+    ~landlab.grid.radial.RadialModelGrid.link_at_node_is_downwind
+    ~landlab.grid.radial.RadialModelGrid.link_at_node_is_upwind
+    ~landlab.grid.radial.RadialModelGrid.link_dirs_at_node
+    ~landlab.grid.radial.RadialModelGrid.links_at_node
+    ~landlab.grid.radial.RadialModelGrid.links_at_patch
+    ~landlab.grid.radial.RadialModelGrid.node_at_link_head
+    ~landlab.grid.radial.RadialModelGrid.node_at_link_tail
+    ~landlab.grid.radial.RadialModelGrid.nodes_at_link
+    ~landlab.grid.radial.RadialModelGrid.number_of_active_links
+    ~landlab.grid.radial.RadialModelGrid.number_of_fixed_links
+    ~landlab.grid.radial.RadialModelGrid.number_of_links
+    ~landlab.grid.radial.RadialModelGrid.number_of_links_at_node
+    ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.radial.RadialModelGrid.patches_at_link
+    ~landlab.grid.radial.RadialModelGrid.patches_present_at_link
+    ~landlab.grid.radial.RadialModelGrid.resolve_values_on_active_links
+    ~landlab.grid.radial.RadialModelGrid.resolve_values_on_links
+    ~landlab.grid.radial.RadialModelGrid.status_at_link
+    ~landlab.grid.radial.RadialModelGrid.unit_vector_at_link
+    ~landlab.grid.radial.RadialModelGrid.unit_vector_at_node
+    ~landlab.grid.radial.RadialModelGrid.upwind_links_at_node
+    ~landlab.grid.radial.RadialModelGrid.x_of_link
+    ~landlab.grid.radial.RadialModelGrid.y_of_link
 
 Information about cells
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.area_of_cell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.cell_area_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.cell_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.core_cells`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.faces_at_cell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_at_cell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_at_core_cell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_cells`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_core_cells`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_faces_at_cell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.x_of_cell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.y_of_cell`
+.. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.area_of_cell
+    ~landlab.grid.radial.RadialModelGrid.cell_area_at_node
+    ~landlab.grid.radial.RadialModelGrid.cell_at_node
+    ~landlab.grid.radial.RadialModelGrid.core_cells
+    ~landlab.grid.radial.RadialModelGrid.faces_at_cell
+    ~landlab.grid.radial.RadialModelGrid.node_at_cell
+    ~landlab.grid.radial.RadialModelGrid.node_at_core_cell
+    ~landlab.grid.radial.RadialModelGrid.number_of_cells
+    ~landlab.grid.radial.RadialModelGrid.number_of_core_cells
+    ~landlab.grid.radial.RadialModelGrid.number_of_faces_at_cell
+    ~landlab.grid.radial.RadialModelGrid.x_of_cell
+    ~landlab.grid.radial.RadialModelGrid.y_of_cell
 
 Information about faces
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.active_faces`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.face_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.faces_at_cell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.link_at_face`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_active_faces`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_faces`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_faces_at_cell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.width_of_face`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.x_of_face`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.y_of_face`
+.. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.active_faces
+    ~landlab.grid.radial.RadialModelGrid.face_at_link
+    ~landlab.grid.radial.RadialModelGrid.faces_at_cell
+    ~landlab.grid.radial.RadialModelGrid.link_at_face
+    ~landlab.grid.radial.RadialModelGrid.number_of_active_faces
+    ~landlab.grid.radial.RadialModelGrid.number_of_faces
+    ~landlab.grid.radial.RadialModelGrid.number_of_faces_at_cell
+    ~landlab.grid.radial.RadialModelGrid.width_of_face
+    ~landlab.grid.radial.RadialModelGrid.x_of_face
+    ~landlab.grid.radial.RadialModelGrid.y_of_face
 
 Information about patches
 +++++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.links_at_patch`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.nodes_at_patch`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_patches`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.patches_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.patches_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.patches_present_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.patches_present_at_node`
+.. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.links_at_patch
+    ~landlab.grid.radial.RadialModelGrid.nodes_at_patch
+    ~landlab.grid.radial.RadialModelGrid.number_of_patches
+    ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.radial.RadialModelGrid.patches_at_link
+    ~landlab.grid.radial.RadialModelGrid.patches_at_node
+    ~landlab.grid.radial.RadialModelGrid.patches_present_at_link
+    ~landlab.grid.radial.RadialModelGrid.patches_present_at_node
 
 Information about corners
 +++++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_corners`
+.. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.number_of_corners
 
 Data Fields in ModelGrid
 ------------------------
@@ -230,7 +237,6 @@ To access these groups, use the same methods as accessing groups with
 itself that provide access to the values groups:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.grid.radial.RadialModelGrid.at_node
@@ -254,7 +260,6 @@ folowing methods create and, optionally, initialize new arrays. These arrays
 are of the correct size but a new field will not be added to the field:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.field.grouped.ModelDataFields.empty
@@ -272,7 +277,6 @@ The following methods will create a new array and add a reference to that
 array to the ModelGrid:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.grid.radial.RadialModelGrid.add_empty
@@ -296,7 +300,6 @@ Use the following methods/attributes get information about the stored data
 fields:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.field.grouped.ModelDataFields.size
@@ -317,18 +320,19 @@ grid, and to construct fluxes and flux divergences from them. Because these
 calculations tend to be a little more involved than property lookups, the
 methods tend to start with `calc_`.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_diff_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_flux_div_at_cell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_flux_div_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_grad_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_grad_at_patch`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_net_flux_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_slope_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_slope_at_patch`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_unit_normal_at_patch`
+.. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.calc_diff_at_link
+    ~landlab.grid.radial.RadialModelGrid.calc_flux_div_at_cell
+    ~landlab.grid.radial.RadialModelGrid.calc_flux_div_at_node
+    ~landlab.grid.radial.RadialModelGrid.calc_grad_at_link
+    ~landlab.grid.radial.RadialModelGrid.calc_grad_at_patch
+    ~landlab.grid.radial.RadialModelGrid.calc_net_flux_at_node
+    ~landlab.grid.radial.RadialModelGrid.calc_slope_at_node
+    ~landlab.grid.radial.RadialModelGrid.calc_slope_at_patch
+    ~landlab.grid.radial.RadialModelGrid.calc_unit_normal_at_patch
 
 Mappers
 -------
@@ -337,30 +341,31 @@ These methods allow mapping of values defined on one grid element type onto a
 second, e.g., mapping upwind node values onto links, or mean link values onto
 nodes.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_downwind_node_link_max_to_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_downwind_node_link_mean_to_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_link_head_node_to_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_link_tail_node_to_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_link_vector_sum_to_patch`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_link_vector_to_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_max_of_link_nodes_to_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_max_of_node_links_to_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_max_of_patch_nodes_to_patch`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_mean_of_link_nodes_to_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_mean_of_patch_nodes_to_patch`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_min_of_link_nodes_to_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_min_of_node_links_to_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_min_of_patch_nodes_to_patch`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_node_to_cell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_upwind_node_link_max_to_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_upwind_node_link_mean_to_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_value_at_downwind_node_link_max_to_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_value_at_max_node_to_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_value_at_min_node_to_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.map_value_at_upwind_node_link_max_to_node`
+.. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.map_downwind_node_link_max_to_node
+    ~landlab.grid.radial.RadialModelGrid.map_downwind_node_link_mean_to_node
+    ~landlab.grid.radial.RadialModelGrid.map_link_head_node_to_link
+    ~landlab.grid.radial.RadialModelGrid.map_link_tail_node_to_link
+    ~landlab.grid.radial.RadialModelGrid.map_link_vector_sum_to_patch
+    ~landlab.grid.radial.RadialModelGrid.map_link_vector_to_nodes
+    ~landlab.grid.radial.RadialModelGrid.map_max_of_link_nodes_to_link
+    ~landlab.grid.radial.RadialModelGrid.map_max_of_node_links_to_node
+    ~landlab.grid.radial.RadialModelGrid.map_max_of_patch_nodes_to_patch
+    ~landlab.grid.radial.RadialModelGrid.map_mean_of_link_nodes_to_link
+    ~landlab.grid.radial.RadialModelGrid.map_mean_of_patch_nodes_to_patch
+    ~landlab.grid.radial.RadialModelGrid.map_min_of_link_nodes_to_link
+    ~landlab.grid.radial.RadialModelGrid.map_min_of_node_links_to_node
+    ~landlab.grid.radial.RadialModelGrid.map_min_of_patch_nodes_to_patch
+    ~landlab.grid.radial.RadialModelGrid.map_node_to_cell
+    ~landlab.grid.radial.RadialModelGrid.map_upwind_node_link_max_to_node
+    ~landlab.grid.radial.RadialModelGrid.map_upwind_node_link_mean_to_node
+    ~landlab.grid.radial.RadialModelGrid.map_value_at_downwind_node_link_max_to_node
+    ~landlab.grid.radial.RadialModelGrid.map_value_at_max_node_to_link
+    ~landlab.grid.radial.RadialModelGrid.map_value_at_min_node_to_link
+    ~landlab.grid.radial.RadialModelGrid.map_value_at_upwind_node_link_max_to_node
 
 Boundary condition control
 --------------------------
@@ -370,35 +375,36 @@ conditions. Changes made to :meth:`~.ModelGrid.status_at_node` and
 :meth:`~.ModelGrid.status_at_node` will automatically update the conditions
 defined at other grid elements automatically.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.active_adjacent_nodes_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.active_faces`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.active_links`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.active_neighbors_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.boundary_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.closed_boundary_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.core_cells`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.core_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.fixed_gradient_boundary_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.fixed_links`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.fixed_value_boundary_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_at_core_cell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_has_boundary_neighbor`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.node_is_boundary`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_active_faces`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_active_links`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_core_cells`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_core_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_fixed_links`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.open_boundary_nodes`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_closed`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_fixed_gradient`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.status_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.status_at_node`
+.. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.active_adjacent_nodes_at_node
+    ~landlab.grid.radial.RadialModelGrid.active_faces
+    ~landlab.grid.radial.RadialModelGrid.active_links
+    ~landlab.grid.radial.RadialModelGrid.active_neighbors_at_node
+    ~landlab.grid.radial.RadialModelGrid.boundary_nodes
+    ~landlab.grid.radial.RadialModelGrid.closed_boundary_nodes
+    ~landlab.grid.radial.RadialModelGrid.core_cells
+    ~landlab.grid.radial.RadialModelGrid.core_nodes
+    ~landlab.grid.radial.RadialModelGrid.fixed_gradient_boundary_nodes
+    ~landlab.grid.radial.RadialModelGrid.fixed_links
+    ~landlab.grid.radial.RadialModelGrid.fixed_value_boundary_nodes
+    ~landlab.grid.radial.RadialModelGrid.node_at_core_cell
+    ~landlab.grid.radial.RadialModelGrid.node_has_boundary_neighbor
+    ~landlab.grid.radial.RadialModelGrid.node_is_boundary
+    ~landlab.grid.radial.RadialModelGrid.number_of_active_faces
+    ~landlab.grid.radial.RadialModelGrid.number_of_active_links
+    ~landlab.grid.radial.RadialModelGrid.number_of_core_cells
+    ~landlab.grid.radial.RadialModelGrid.number_of_core_nodes
+    ~landlab.grid.radial.RadialModelGrid.number_of_fixed_links
+    ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.radial.RadialModelGrid.open_boundary_nodes
+    ~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_closed
+    ~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.radial.RadialModelGrid.status_at_link
+    ~landlab.grid.radial.RadialModelGrid.status_at_node
 
 Identifying node subsets
 ------------------------
@@ -414,12 +420,13 @@ Surface analysis
 These methods permit the kinds of surface analysis that you might expect to
 find in GIS software.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_aspect_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_hillshade_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_slope_at_node`
+.. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.calc_aspect_at_node
+    ~landlab.grid.radial.RadialModelGrid.calc_hillshade_at_node
+    ~landlab.grid.radial.RadialModelGrid.calc_slope_at_node
 
 Notes
 -----

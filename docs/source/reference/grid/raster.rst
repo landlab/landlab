@@ -44,220 +44,227 @@ as in the example `area_of_cell`.
 Information about the grid as a whole
 +++++++++++++++++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.axis_name`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.axis_units`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.cell_grid_shape`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.cell_vector_to_raster`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.dx`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.dy`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.extent`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.from_dict`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.grid_xdimension`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.grid_ydimension`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.imshow`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.is_point_on_grid`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.move_origin`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.ndim`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_axis_coordinates`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_vector_to_raster`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_corners_of_grid`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_cell_columns`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_cell_rows`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_elements`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_node_columns`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_node_rows`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.save`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.shape`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.size`
+.. autosummary::
+
+    ~landlab.grid.raster.RasterModelGrid.axis_name
+    ~landlab.grid.raster.RasterModelGrid.axis_units
+    ~landlab.grid.raster.RasterModelGrid.cell_grid_shape
+    ~landlab.grid.raster.RasterModelGrid.cell_vector_to_raster
+    ~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid
+    ~landlab.grid.raster.RasterModelGrid.dx
+    ~landlab.grid.raster.RasterModelGrid.dy
+    ~landlab.grid.raster.RasterModelGrid.extent
+    ~landlab.grid.raster.RasterModelGrid.from_dict
+    ~landlab.grid.raster.RasterModelGrid.grid_xdimension
+    ~landlab.grid.raster.RasterModelGrid.grid_ydimension
+    ~landlab.grid.raster.RasterModelGrid.imshow
+    ~landlab.grid.raster.RasterModelGrid.is_point_on_grid
+    ~landlab.grid.raster.RasterModelGrid.move_origin
+    ~landlab.grid.raster.RasterModelGrid.ndim
+    ~landlab.grid.raster.RasterModelGrid.node_axis_coordinates
+    ~landlab.grid.raster.RasterModelGrid.node_vector_to_raster
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_corners_of_grid
+    ~landlab.grid.raster.RasterModelGrid.number_of_cell_columns
+    ~landlab.grid.raster.RasterModelGrid.number_of_cell_rows
+    ~landlab.grid.raster.RasterModelGrid.number_of_elements
+    ~landlab.grid.raster.RasterModelGrid.number_of_node_columns
+    ~landlab.grid.raster.RasterModelGrid.number_of_node_rows
+    ~landlab.grid.raster.RasterModelGrid.save
+    ~landlab.grid.raster.RasterModelGrid.shape
+    ~landlab.grid.raster.RasterModelGrid.size
 
 Information about nodes
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.active_adjacent_nodes_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.active_link_dirs_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.active_neighbors_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.adjacent_nodes_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.all_node_azimuths_map`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.all_node_distances_map`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.boundary_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_distances_of_nodes_to_point`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.cell_area_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.cell_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.closed_boundary_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.core_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.d8s_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.diagonal_adjacent_nodes_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.diagonals_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.downwind_links_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.find_nearest_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.fixed_gradient_boundary_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.fixed_value_boundary_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.grid_coords_to_node_id`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.link_at_node_is_downwind`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.link_at_node_is_upwind`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.link_dirs_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.links_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.neighbors_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_at_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_at_core_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_at_link_head`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_at_link_tail`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_axis_coordinates`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_has_boundary_neighbor`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_is_boundary`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_is_core`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_vector_to_raster`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_x`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_y`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_are_all_core`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_around_point`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_bottom_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_corners_of_grid`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_left_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_patch`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_right_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_top_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_cell_columns`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_core_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_interior_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_links_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_node_columns`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_node_rows`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.open_boundary_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.patches_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.patches_present_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.roll_nodes_ud`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_closed`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_fixed_gradient`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.shape`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.status_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.unit_vector_sum_xcomponent_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.unit_vector_sum_ycomponent_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.upwind_links_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.x_of_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.xy_of_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.y_of_node`
+.. autosummary::
+
+    ~landlab.grid.raster.RasterModelGrid.active_adjacent_nodes_at_node
+    ~landlab.grid.raster.RasterModelGrid.active_link_dirs_at_node
+    ~landlab.grid.raster.RasterModelGrid.active_neighbors_at_node
+    ~landlab.grid.raster.RasterModelGrid.adjacent_nodes_at_node
+    ~landlab.grid.raster.RasterModelGrid.all_node_azimuths_map
+    ~landlab.grid.raster.RasterModelGrid.all_node_distances_map
+    ~landlab.grid.raster.RasterModelGrid.boundary_nodes
+    ~landlab.grid.raster.RasterModelGrid.calc_distances_of_nodes_to_point
+    ~landlab.grid.raster.RasterModelGrid.cell_area_at_node
+    ~landlab.grid.raster.RasterModelGrid.cell_at_node
+    ~landlab.grid.raster.RasterModelGrid.closed_boundary_nodes
+    ~landlab.grid.raster.RasterModelGrid.core_nodes
+    ~landlab.grid.raster.RasterModelGrid.d8s_at_node
+    ~landlab.grid.raster.RasterModelGrid.diagonal_adjacent_nodes_at_node
+    ~landlab.grid.raster.RasterModelGrid.diagonals_at_node
+    ~landlab.grid.raster.RasterModelGrid.downwind_links_at_node
+    ~landlab.grid.raster.RasterModelGrid.find_nearest_node
+    ~landlab.grid.raster.RasterModelGrid.fixed_gradient_boundary_nodes
+    ~landlab.grid.raster.RasterModelGrid.fixed_value_boundary_nodes
+    ~landlab.grid.raster.RasterModelGrid.grid_coords_to_node_id
+    ~landlab.grid.raster.RasterModelGrid.link_at_node_is_downwind
+    ~landlab.grid.raster.RasterModelGrid.link_at_node_is_upwind
+    ~landlab.grid.raster.RasterModelGrid.link_dirs_at_node
+    ~landlab.grid.raster.RasterModelGrid.links_at_node
+    ~landlab.grid.raster.RasterModelGrid.neighbors_at_node
+    ~landlab.grid.raster.RasterModelGrid.node_at_cell
+    ~landlab.grid.raster.RasterModelGrid.node_at_core_cell
+    ~landlab.grid.raster.RasterModelGrid.node_at_link_head
+    ~landlab.grid.raster.RasterModelGrid.node_at_link_tail
+    ~landlab.grid.raster.RasterModelGrid.node_axis_coordinates
+    ~landlab.grid.raster.RasterModelGrid.node_has_boundary_neighbor
+    ~landlab.grid.raster.RasterModelGrid.node_is_boundary
+    ~landlab.grid.raster.RasterModelGrid.node_is_core
+    ~landlab.grid.raster.RasterModelGrid.node_vector_to_raster
+    ~landlab.grid.raster.RasterModelGrid.node_x
+    ~landlab.grid.raster.RasterModelGrid.node_y
+    ~landlab.grid.raster.RasterModelGrid.nodes
+    ~landlab.grid.raster.RasterModelGrid.nodes_are_all_core
+    ~landlab.grid.raster.RasterModelGrid.nodes_around_point
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_bottom_edge
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_corners_of_grid
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_edge
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_left_edge
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_link
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_patch
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_right_edge
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_top_edge
+    ~landlab.grid.raster.RasterModelGrid.number_of_cell_columns
+    ~landlab.grid.raster.RasterModelGrid.number_of_core_nodes
+    ~landlab.grid.raster.RasterModelGrid.number_of_interior_nodes
+    ~landlab.grid.raster.RasterModelGrid.number_of_links_at_node
+    ~landlab.grid.raster.RasterModelGrid.number_of_node_columns
+    ~landlab.grid.raster.RasterModelGrid.number_of_node_rows
+    ~landlab.grid.raster.RasterModelGrid.number_of_nodes
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.raster.RasterModelGrid.open_boundary_nodes
+    ~landlab.grid.raster.RasterModelGrid.patches_at_node
+    ~landlab.grid.raster.RasterModelGrid.patches_present_at_node
+    ~landlab.grid.raster.RasterModelGrid.roll_nodes_ud
+    ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_closed
+    ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.raster.RasterModelGrid.shape
+    ~landlab.grid.raster.RasterModelGrid.status_at_node
+    ~landlab.grid.raster.RasterModelGrid.unit_vector_sum_xcomponent_at_node
+    ~landlab.grid.raster.RasterModelGrid.unit_vector_sum_ycomponent_at_node
+    ~landlab.grid.raster.RasterModelGrid.upwind_links_at_node
+    ~landlab.grid.raster.RasterModelGrid.x_of_node
+    ~landlab.grid.raster.RasterModelGrid.xy_of_node
+    ~landlab.grid.raster.RasterModelGrid.y_of_node
 
 Information about links
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.active_link_dirs_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.active_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.angle_of_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.angle_of_link_about_head`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.d8s_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.diagonals_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.downwind_links_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.face_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.fixed_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.horizontal_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.length_of_d8`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.length_of_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.link_at_face`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.link_at_node_is_downwind`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.link_at_node_is_upwind`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.link_dirs_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.links_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.links_at_patch`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_at_link_head`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_at_link_tail`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_active_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_fixed_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_links_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.patches_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.patches_present_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.resolve_values_on_active_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.resolve_values_on_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.status_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.unit_vector_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.unit_vector_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.upwind_links_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.vertical_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.x_of_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.y_of_link`
+.. autosummary::
+
+    ~landlab.grid.raster.RasterModelGrid.active_link_dirs_at_node
+    ~landlab.grid.raster.RasterModelGrid.active_links
+    ~landlab.grid.raster.RasterModelGrid.angle_of_link
+    ~landlab.grid.raster.RasterModelGrid.angle_of_link_about_head
+    ~landlab.grid.raster.RasterModelGrid.d8s_at_node
+    ~landlab.grid.raster.RasterModelGrid.diagonals_at_node
+    ~landlab.grid.raster.RasterModelGrid.downwind_links_at_node
+    ~landlab.grid.raster.RasterModelGrid.face_at_link
+    ~landlab.grid.raster.RasterModelGrid.fixed_links
+    ~landlab.grid.raster.RasterModelGrid.horizontal_links
+    ~landlab.grid.raster.RasterModelGrid.length_of_d8
+    ~landlab.grid.raster.RasterModelGrid.length_of_link
+    ~landlab.grid.raster.RasterModelGrid.link_at_face
+    ~landlab.grid.raster.RasterModelGrid.link_at_node_is_downwind
+    ~landlab.grid.raster.RasterModelGrid.link_at_node_is_upwind
+    ~landlab.grid.raster.RasterModelGrid.link_dirs_at_node
+    ~landlab.grid.raster.RasterModelGrid.links_at_node
+    ~landlab.grid.raster.RasterModelGrid.links_at_patch
+    ~landlab.grid.raster.RasterModelGrid.node_at_link_head
+    ~landlab.grid.raster.RasterModelGrid.node_at_link_tail
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_link
+    ~landlab.grid.raster.RasterModelGrid.number_of_active_links
+    ~landlab.grid.raster.RasterModelGrid.number_of_fixed_links
+    ~landlab.grid.raster.RasterModelGrid.number_of_links
+    ~landlab.grid.raster.RasterModelGrid.number_of_links_at_node
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.raster.RasterModelGrid.patches_at_link
+    ~landlab.grid.raster.RasterModelGrid.patches_present_at_link
+    ~landlab.grid.raster.RasterModelGrid.resolve_values_on_active_links
+    ~landlab.grid.raster.RasterModelGrid.resolve_values_on_links
+    ~landlab.grid.raster.RasterModelGrid.status_at_link
+    ~landlab.grid.raster.RasterModelGrid.unit_vector_at_link
+    ~landlab.grid.raster.RasterModelGrid.unit_vector_at_node
+    ~landlab.grid.raster.RasterModelGrid.upwind_links_at_node
+    ~landlab.grid.raster.RasterModelGrid.vertical_links
+    ~landlab.grid.raster.RasterModelGrid.x_of_link
+    ~landlab.grid.raster.RasterModelGrid.y_of_link
 
 Information about cells
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.area_of_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.cell_area_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.cell_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.cell_grid_shape`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.cell_vector_to_raster`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.core_cells`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.faces_at_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_at_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_at_core_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_cell_rows`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_cells`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_core_cells`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_faces_at_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.second_ring_looped_neighbors_at_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.x_of_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.y_of_cell`
+.. autosummary::
+
+    ~landlab.grid.raster.RasterModelGrid.area_of_cell
+    ~landlab.grid.raster.RasterModelGrid.cell_area_at_node
+    ~landlab.grid.raster.RasterModelGrid.cell_at_node
+    ~landlab.grid.raster.RasterModelGrid.cell_grid_shape
+    ~landlab.grid.raster.RasterModelGrid.cell_vector_to_raster
+    ~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid
+    ~landlab.grid.raster.RasterModelGrid.core_cells
+    ~landlab.grid.raster.RasterModelGrid.faces_at_cell
+    ~landlab.grid.raster.RasterModelGrid.node_at_cell
+    ~landlab.grid.raster.RasterModelGrid.node_at_core_cell
+    ~landlab.grid.raster.RasterModelGrid.number_of_cell_rows
+    ~landlab.grid.raster.RasterModelGrid.number_of_cells
+    ~landlab.grid.raster.RasterModelGrid.number_of_core_cells
+    ~landlab.grid.raster.RasterModelGrid.number_of_faces_at_cell
+    ~landlab.grid.raster.RasterModelGrid.second_ring_looped_neighbors_at_cell
+    ~landlab.grid.raster.RasterModelGrid.x_of_cell
+    ~landlab.grid.raster.RasterModelGrid.y_of_cell
 
 Information about faces
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.active_faces`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.face_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.faces_at_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.link_at_face`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_active_faces`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_faces`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_faces_at_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.width_of_face`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.x_of_face`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.y_of_face`
+.. autosummary::
+
+    ~landlab.grid.raster.RasterModelGrid.active_faces
+    ~landlab.grid.raster.RasterModelGrid.face_at_link
+    ~landlab.grid.raster.RasterModelGrid.faces_at_cell
+    ~landlab.grid.raster.RasterModelGrid.link_at_face
+    ~landlab.grid.raster.RasterModelGrid.number_of_active_faces
+    ~landlab.grid.raster.RasterModelGrid.number_of_faces
+    ~landlab.grid.raster.RasterModelGrid.number_of_faces_at_cell
+    ~landlab.grid.raster.RasterModelGrid.width_of_face
+    ~landlab.grid.raster.RasterModelGrid.x_of_face
+    ~landlab.grid.raster.RasterModelGrid.y_of_face
 
 Information about patches
 +++++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.links_at_patch`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_patch`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_patches`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.patches_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.patches_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.patches_present_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.patches_present_at_node`
+.. autosummary::
+
+    ~landlab.grid.raster.RasterModelGrid.links_at_patch
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_patch
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.raster.RasterModelGrid.patches_at_link
+    ~landlab.grid.raster.RasterModelGrid.patches_at_node
+    ~landlab.grid.raster.RasterModelGrid.patches_present_at_link
+    ~landlab.grid.raster.RasterModelGrid.patches_present_at_node
 
 Information about corners
 +++++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_corners`
+.. autosummary::
+
+    ~landlab.grid.raster.RasterModelGrid.number_of_corners
 
 Data Fields in ModelGrid
 ------------------------
@@ -274,7 +281,6 @@ To access these groups, use the same methods as accessing groups with
 itself that provide access to the values groups:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.grid.raster.RasterModelGrid.at_node
@@ -298,7 +304,6 @@ folowing methods create and, optionally, initialize new arrays. These arrays
 are of the correct size but a new field will not be added to the field:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.field.grouped.ModelDataFields.empty
@@ -316,7 +321,6 @@ The following methods will create a new array and add a reference to that
 array to the ModelGrid:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.grid.raster.RasterModelGrid.add_empty
@@ -340,7 +344,6 @@ Use the following methods/attributes get information about the stored data
 fields:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.field.grouped.ModelDataFields.size
@@ -361,25 +364,26 @@ grid, and to construct fluxes and flux divergences from them. Because these
 calculations tend to be a little more involved than property lookups, the
 methods tend to start with `calc_`.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_diff_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_flux_div_at_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_flux_div_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_grad_across_cell_corners`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_grad_across_cell_faces`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_grad_along_node_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_grad_at_active_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_grad_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_grad_at_patch`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_net_flux_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_slope_at_cell_subtriangles`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_slope_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_slope_at_patch`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_unit_normal_at_patch`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_cell_subtriangles`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_patch_subtriangles`
+.. autosummary::
+
+    ~landlab.grid.raster.RasterModelGrid.calc_diff_at_link
+    ~landlab.grid.raster.RasterModelGrid.calc_flux_div_at_cell
+    ~landlab.grid.raster.RasterModelGrid.calc_flux_div_at_node
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_across_cell_corners
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_across_cell_faces
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_along_node_links
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_at_active_link
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_at_link
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_at_patch
+    ~landlab.grid.raster.RasterModelGrid.calc_net_flux_at_node
+    ~landlab.grid.raster.RasterModelGrid.calc_slope_at_cell_subtriangles
+    ~landlab.grid.raster.RasterModelGrid.calc_slope_at_node
+    ~landlab.grid.raster.RasterModelGrid.calc_slope_at_patch
+    ~landlab.grid.raster.RasterModelGrid.calc_unit_normal_at_patch
+    ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_cell_subtriangles
+    ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_patch_subtriangles
 
 Mappers
 -------
@@ -388,43 +392,44 @@ These methods allow mapping of values defined on one grid element type onto a
 second, e.g., mapping upwind node values onto links, or mean link values onto
 nodes.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_max_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_mean_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_link_head_node_to_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_link_tail_node_to_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_link_vector_sum_to_patch`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_link_vector_to_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_max_of_inlinks_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_max_of_link_nodes_to_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_max_of_node_links_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_max_of_outlinks_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_max_of_patch_nodes_to_patch`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_mean_of_horizontal_active_links_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_mean_of_horizontal_links_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_mean_of_inlinks_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_mean_of_link_nodes_to_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_mean_of_links_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_mean_of_outlinks_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_mean_of_patch_nodes_to_patch`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_mean_of_vertical_active_links_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_mean_of_vertical_links_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_min_of_inlinks_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_min_of_link_nodes_to_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_min_of_node_links_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_min_of_outlinks_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_min_of_patch_nodes_to_patch`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_node_to_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_sum_of_inlinks_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_sum_of_outlinks_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_upwind_node_link_max_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_upwind_node_link_mean_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_value_at_downwind_node_link_max_to_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_value_at_max_node_to_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_value_at_min_node_to_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.map_value_at_upwind_node_link_max_to_node`
+.. autosummary::
+
+    ~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_max_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_downwind_node_link_mean_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_link_head_node_to_link
+    ~landlab.grid.raster.RasterModelGrid.map_link_tail_node_to_link
+    ~landlab.grid.raster.RasterModelGrid.map_link_vector_sum_to_patch
+    ~landlab.grid.raster.RasterModelGrid.map_link_vector_to_nodes
+    ~landlab.grid.raster.RasterModelGrid.map_max_of_inlinks_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_max_of_link_nodes_to_link
+    ~landlab.grid.raster.RasterModelGrid.map_max_of_node_links_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_max_of_outlinks_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_max_of_patch_nodes_to_patch
+    ~landlab.grid.raster.RasterModelGrid.map_mean_of_horizontal_active_links_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_mean_of_horizontal_links_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_mean_of_inlinks_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_mean_of_link_nodes_to_link
+    ~landlab.grid.raster.RasterModelGrid.map_mean_of_links_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_mean_of_outlinks_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_mean_of_patch_nodes_to_patch
+    ~landlab.grid.raster.RasterModelGrid.map_mean_of_vertical_active_links_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_mean_of_vertical_links_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_min_of_inlinks_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_min_of_link_nodes_to_link
+    ~landlab.grid.raster.RasterModelGrid.map_min_of_node_links_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_min_of_outlinks_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_min_of_patch_nodes_to_patch
+    ~landlab.grid.raster.RasterModelGrid.map_node_to_cell
+    ~landlab.grid.raster.RasterModelGrid.map_sum_of_inlinks_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_sum_of_outlinks_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_upwind_node_link_max_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_upwind_node_link_mean_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_value_at_downwind_node_link_max_to_node
+    ~landlab.grid.raster.RasterModelGrid.map_value_at_max_node_to_link
+    ~landlab.grid.raster.RasterModelGrid.map_value_at_min_node_to_link
+    ~landlab.grid.raster.RasterModelGrid.map_value_at_upwind_node_link_max_to_node
 
 Boundary condition control
 --------------------------
@@ -434,52 +439,53 @@ conditions. Changes made to :meth:`~.ModelGrid.status_at_node` and
 :meth:`~.ModelGrid.status_at_node` will automatically update the conditions
 defined at other grid elements automatically.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.active_adjacent_nodes_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.active_faces`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.active_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.active_neighbors_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.boundary_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.closed_boundary_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.core_cells`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.core_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.fixed_gradient_boundary_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.fixed_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.fixed_value_boundary_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_at_core_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_has_boundary_neighbor`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_is_boundary`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.node_is_core`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_are_all_core`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_bottom_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_left_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_right_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_top_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_active_faces`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_active_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_core_cells`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_core_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_fixed_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.open_boundary_nodes`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.second_ring_looped_neighbors_at_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_fixed_link_boundaries_at_grid_edges`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_looped_boundaries`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_closed`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_fixed_gradient`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_open_nodes_disconnected_from_watershed_to_closed`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_status_at_node_on_edges`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition_outlet_coords`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition_outlet_id`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.status_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.status_at_node`
+.. autosummary::
+
+    ~landlab.grid.raster.RasterModelGrid.active_adjacent_nodes_at_node
+    ~landlab.grid.raster.RasterModelGrid.active_faces
+    ~landlab.grid.raster.RasterModelGrid.active_links
+    ~landlab.grid.raster.RasterModelGrid.active_neighbors_at_node
+    ~landlab.grid.raster.RasterModelGrid.boundary_nodes
+    ~landlab.grid.raster.RasterModelGrid.closed_boundary_nodes
+    ~landlab.grid.raster.RasterModelGrid.core_cells
+    ~landlab.grid.raster.RasterModelGrid.core_nodes
+    ~landlab.grid.raster.RasterModelGrid.fixed_gradient_boundary_nodes
+    ~landlab.grid.raster.RasterModelGrid.fixed_links
+    ~landlab.grid.raster.RasterModelGrid.fixed_value_boundary_nodes
+    ~landlab.grid.raster.RasterModelGrid.node_at_core_cell
+    ~landlab.grid.raster.RasterModelGrid.node_has_boundary_neighbor
+    ~landlab.grid.raster.RasterModelGrid.node_is_boundary
+    ~landlab.grid.raster.RasterModelGrid.node_is_core
+    ~landlab.grid.raster.RasterModelGrid.nodes_are_all_core
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_bottom_edge
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_edge
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_left_edge
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_right_edge
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_top_edge
+    ~landlab.grid.raster.RasterModelGrid.number_of_active_faces
+    ~landlab.grid.raster.RasterModelGrid.number_of_active_links
+    ~landlab.grid.raster.RasterModelGrid.number_of_core_cells
+    ~landlab.grid.raster.RasterModelGrid.number_of_core_nodes
+    ~landlab.grid.raster.RasterModelGrid.number_of_fixed_links
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.raster.RasterModelGrid.open_boundary_nodes
+    ~landlab.grid.raster.RasterModelGrid.second_ring_looped_neighbors_at_cell
+    ~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
+    ~landlab.grid.raster.RasterModelGrid.set_fixed_link_boundaries_at_grid_edges
+    ~landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges
+    ~landlab.grid.raster.RasterModelGrid.set_looped_boundaries
+    ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_closed
+    ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.raster.RasterModelGrid.set_open_nodes_disconnected_from_watershed_to_closed
+    ~landlab.grid.raster.RasterModelGrid.set_status_at_node_on_edges
+    ~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition
+    ~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition_outlet_coords
+    ~landlab.grid.raster.RasterModelGrid.set_watershed_boundary_condition_outlet_id
+    ~landlab.grid.raster.RasterModelGrid.status_at_link
+    ~landlab.grid.raster.RasterModelGrid.status_at_node
 
 Identifying node subsets
 ------------------------
@@ -487,24 +493,25 @@ Identifying node subsets
 These methods are useful in identifying subsets of nodes, e.g., closest node
 to a point; nodes at edges.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.find_nearest_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.grid_coords_to_node_id`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.is_point_on_grid`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_around_point`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_bottom_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_corners_of_grid`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_left_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_right_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.nodes_at_top_edge`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_fixed_link_boundaries_at_grid_edges`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.set_looped_boundaries`
+.. autosummary::
+
+    ~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid
+    ~landlab.grid.raster.RasterModelGrid.find_nearest_node
+    ~landlab.grid.raster.RasterModelGrid.grid_coords_to_node_id
+    ~landlab.grid.raster.RasterModelGrid.is_point_on_grid
+    ~landlab.grid.raster.RasterModelGrid.nodes_around_point
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_bottom_edge
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_corners_of_grid
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_edge
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_left_edge
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_right_edge
+    ~landlab.grid.raster.RasterModelGrid.nodes_at_top_edge
+    ~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
+    ~landlab.grid.raster.RasterModelGrid.set_fixed_link_boundaries_at_grid_edges
+    ~landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges
+    ~landlab.grid.raster.RasterModelGrid.set_looped_boundaries
 
 Surface analysis
 ----------------
@@ -512,13 +519,14 @@ Surface analysis
 These methods permit the kinds of surface analysis that you might expect to
 find in GIS software.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_aspect_at_cell_subtriangles`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_aspect_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_hillshade_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_slope_at_node`
+.. autosummary::
+
+    ~landlab.grid.raster.RasterModelGrid.calc_aspect_at_cell_subtriangles
+    ~landlab.grid.raster.RasterModelGrid.calc_aspect_at_node
+    ~landlab.grid.raster.RasterModelGrid.calc_hillshade_at_node
+    ~landlab.grid.raster.RasterModelGrid.calc_slope_at_node
 
 Notes
 -----

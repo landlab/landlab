@@ -44,161 +44,168 @@ as in the example `area_of_cell`.
 Information about the grid as a whole
 +++++++++++++++++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.base.ModelGrid.axis_name`
-    :py:meth:`~landlab.grid.base.ModelGrid.axis_units`
-    :py:meth:`~landlab.grid.base.ModelGrid.move_origin`
-    :py:meth:`~landlab.grid.base.ModelGrid.ndim`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_axis_coordinates`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_elements`
-    :py:meth:`~landlab.grid.base.ModelGrid.size`
+.. autosummary::
+
+    ~landlab.grid.base.ModelGrid.axis_name
+    ~landlab.grid.base.ModelGrid.axis_units
+    ~landlab.grid.base.ModelGrid.move_origin
+    ~landlab.grid.base.ModelGrid.ndim
+    ~landlab.grid.base.ModelGrid.node_axis_coordinates
+    ~landlab.grid.base.ModelGrid.number_of_elements
+    ~landlab.grid.base.ModelGrid.size
 
 Information about nodes
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.base.ModelGrid.active_adjacent_nodes_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.active_link_dirs_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.active_neighbors_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.adjacent_nodes_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.all_node_azimuths_map`
-    :py:meth:`~landlab.grid.base.ModelGrid.all_node_distances_map`
-    :py:meth:`~landlab.grid.base.ModelGrid.boundary_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_distances_of_nodes_to_point`
-    :py:meth:`~landlab.grid.base.ModelGrid.cell_area_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.cell_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.closed_boundary_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.core_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.downwind_links_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.fixed_gradient_boundary_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.fixed_value_boundary_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.link_at_node_is_downwind`
-    :py:meth:`~landlab.grid.base.ModelGrid.link_at_node_is_upwind`
-    :py:meth:`~landlab.grid.base.ModelGrid.link_dirs_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.links_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.neighbors_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_at_cell`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_at_core_cell`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_at_link_head`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_at_link_tail`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_axis_coordinates`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_has_boundary_neighbor`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_is_boundary`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_x`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_y`
-    :py:meth:`~landlab.grid.base.ModelGrid.nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.nodes_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_core_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_links_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_patches_present_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.open_boundary_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.patches_present_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed`
-    :py:meth:`~landlab.grid.base.ModelGrid.set_nodata_nodes_to_fixed_gradient`
-    :py:meth:`~landlab.grid.base.ModelGrid.status_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.unit_vector_sum_xcomponent_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.unit_vector_sum_ycomponent_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.upwind_links_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.x_of_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.xy_of_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.y_of_node`
+.. autosummary::
+
+    ~landlab.grid.base.ModelGrid.active_adjacent_nodes_at_node
+    ~landlab.grid.base.ModelGrid.active_link_dirs_at_node
+    ~landlab.grid.base.ModelGrid.active_neighbors_at_node
+    ~landlab.grid.base.ModelGrid.adjacent_nodes_at_node
+    ~landlab.grid.base.ModelGrid.all_node_azimuths_map
+    ~landlab.grid.base.ModelGrid.all_node_distances_map
+    ~landlab.grid.base.ModelGrid.boundary_nodes
+    ~landlab.grid.base.ModelGrid.calc_distances_of_nodes_to_point
+    ~landlab.grid.base.ModelGrid.cell_area_at_node
+    ~landlab.grid.base.ModelGrid.cell_at_node
+    ~landlab.grid.base.ModelGrid.closed_boundary_nodes
+    ~landlab.grid.base.ModelGrid.core_nodes
+    ~landlab.grid.base.ModelGrid.downwind_links_at_node
+    ~landlab.grid.base.ModelGrid.fixed_gradient_boundary_nodes
+    ~landlab.grid.base.ModelGrid.fixed_value_boundary_nodes
+    ~landlab.grid.base.ModelGrid.link_at_node_is_downwind
+    ~landlab.grid.base.ModelGrid.link_at_node_is_upwind
+    ~landlab.grid.base.ModelGrid.link_dirs_at_node
+    ~landlab.grid.base.ModelGrid.links_at_node
+    ~landlab.grid.base.ModelGrid.neighbors_at_node
+    ~landlab.grid.base.ModelGrid.node_at_cell
+    ~landlab.grid.base.ModelGrid.node_at_core_cell
+    ~landlab.grid.base.ModelGrid.node_at_link_head
+    ~landlab.grid.base.ModelGrid.node_at_link_tail
+    ~landlab.grid.base.ModelGrid.node_axis_coordinates
+    ~landlab.grid.base.ModelGrid.node_has_boundary_neighbor
+    ~landlab.grid.base.ModelGrid.node_is_boundary
+    ~landlab.grid.base.ModelGrid.node_x
+    ~landlab.grid.base.ModelGrid.node_y
+    ~landlab.grid.base.ModelGrid.nodes
+    ~landlab.grid.base.ModelGrid.nodes_at_link
+    ~landlab.grid.base.ModelGrid.number_of_core_nodes
+    ~landlab.grid.base.ModelGrid.number_of_links_at_node
+    ~landlab.grid.base.ModelGrid.number_of_nodes
+    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.base.ModelGrid.open_boundary_nodes
+    ~landlab.grid.base.ModelGrid.patches_present_at_node
+    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
+    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.base.ModelGrid.status_at_node
+    ~landlab.grid.base.ModelGrid.unit_vector_sum_xcomponent_at_node
+    ~landlab.grid.base.ModelGrid.unit_vector_sum_ycomponent_at_node
+    ~landlab.grid.base.ModelGrid.upwind_links_at_node
+    ~landlab.grid.base.ModelGrid.x_of_node
+    ~landlab.grid.base.ModelGrid.xy_of_node
+    ~landlab.grid.base.ModelGrid.y_of_node
 
 Information about links
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.base.ModelGrid.active_link_dirs_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.active_links`
-    :py:meth:`~landlab.grid.base.ModelGrid.angle_of_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.angle_of_link_about_head`
-    :py:meth:`~landlab.grid.base.ModelGrid.downwind_links_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.face_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.fixed_links`
-    :py:meth:`~landlab.grid.base.ModelGrid.length_of_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.link_at_face`
-    :py:meth:`~landlab.grid.base.ModelGrid.link_at_node_is_downwind`
-    :py:meth:`~landlab.grid.base.ModelGrid.link_at_node_is_upwind`
-    :py:meth:`~landlab.grid.base.ModelGrid.link_dirs_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.links_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_at_link_head`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_at_link_tail`
-    :py:meth:`~landlab.grid.base.ModelGrid.nodes_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_active_links`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_fixed_links`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_links`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_links_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_patches_present_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.patches_present_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.resolve_values_on_active_links`
-    :py:meth:`~landlab.grid.base.ModelGrid.resolve_values_on_links`
-    :py:meth:`~landlab.grid.base.ModelGrid.status_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.unit_vector_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.unit_vector_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.upwind_links_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.x_of_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.y_of_link`
+.. autosummary::
+
+    ~landlab.grid.base.ModelGrid.active_link_dirs_at_node
+    ~landlab.grid.base.ModelGrid.active_links
+    ~landlab.grid.base.ModelGrid.angle_of_link
+    ~landlab.grid.base.ModelGrid.angle_of_link_about_head
+    ~landlab.grid.base.ModelGrid.downwind_links_at_node
+    ~landlab.grid.base.ModelGrid.face_at_link
+    ~landlab.grid.base.ModelGrid.fixed_links
+    ~landlab.grid.base.ModelGrid.length_of_link
+    ~landlab.grid.base.ModelGrid.link_at_face
+    ~landlab.grid.base.ModelGrid.link_at_node_is_downwind
+    ~landlab.grid.base.ModelGrid.link_at_node_is_upwind
+    ~landlab.grid.base.ModelGrid.link_dirs_at_node
+    ~landlab.grid.base.ModelGrid.links_at_node
+    ~landlab.grid.base.ModelGrid.node_at_link_head
+    ~landlab.grid.base.ModelGrid.node_at_link_tail
+    ~landlab.grid.base.ModelGrid.nodes_at_link
+    ~landlab.grid.base.ModelGrid.number_of_active_links
+    ~landlab.grid.base.ModelGrid.number_of_fixed_links
+    ~landlab.grid.base.ModelGrid.number_of_links
+    ~landlab.grid.base.ModelGrid.number_of_links_at_node
+    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.base.ModelGrid.patches_present_at_link
+    ~landlab.grid.base.ModelGrid.resolve_values_on_active_links
+    ~landlab.grid.base.ModelGrid.resolve_values_on_links
+    ~landlab.grid.base.ModelGrid.status_at_link
+    ~landlab.grid.base.ModelGrid.unit_vector_at_link
+    ~landlab.grid.base.ModelGrid.unit_vector_at_node
+    ~landlab.grid.base.ModelGrid.upwind_links_at_node
+    ~landlab.grid.base.ModelGrid.x_of_link
+    ~landlab.grid.base.ModelGrid.y_of_link
 
 Information about cells
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.base.ModelGrid.area_of_cell`
-    :py:meth:`~landlab.grid.base.ModelGrid.cell_area_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.cell_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.core_cells`
-    :py:meth:`~landlab.grid.base.ModelGrid.faces_at_cell`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_at_cell`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_at_core_cell`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_cells`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_core_cells`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_faces_at_cell`
-    :py:meth:`~landlab.grid.base.ModelGrid.x_of_cell`
-    :py:meth:`~landlab.grid.base.ModelGrid.y_of_cell`
+.. autosummary::
+
+    ~landlab.grid.base.ModelGrid.area_of_cell
+    ~landlab.grid.base.ModelGrid.cell_area_at_node
+    ~landlab.grid.base.ModelGrid.cell_at_node
+    ~landlab.grid.base.ModelGrid.core_cells
+    ~landlab.grid.base.ModelGrid.faces_at_cell
+    ~landlab.grid.base.ModelGrid.node_at_cell
+    ~landlab.grid.base.ModelGrid.node_at_core_cell
+    ~landlab.grid.base.ModelGrid.number_of_cells
+    ~landlab.grid.base.ModelGrid.number_of_core_cells
+    ~landlab.grid.base.ModelGrid.number_of_faces_at_cell
+    ~landlab.grid.base.ModelGrid.x_of_cell
+    ~landlab.grid.base.ModelGrid.y_of_cell
 
 Information about faces
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.base.ModelGrid.active_faces`
-    :py:meth:`~landlab.grid.base.ModelGrid.face_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.faces_at_cell`
-    :py:meth:`~landlab.grid.base.ModelGrid.link_at_face`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_active_faces`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_faces`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_faces_at_cell`
-    :py:meth:`~landlab.grid.base.ModelGrid.width_of_face`
-    :py:meth:`~landlab.grid.base.ModelGrid.x_of_face`
-    :py:meth:`~landlab.grid.base.ModelGrid.y_of_face`
+.. autosummary::
+
+    ~landlab.grid.base.ModelGrid.active_faces
+    ~landlab.grid.base.ModelGrid.face_at_link
+    ~landlab.grid.base.ModelGrid.faces_at_cell
+    ~landlab.grid.base.ModelGrid.link_at_face
+    ~landlab.grid.base.ModelGrid.number_of_active_faces
+    ~landlab.grid.base.ModelGrid.number_of_faces
+    ~landlab.grid.base.ModelGrid.number_of_faces_at_cell
+    ~landlab.grid.base.ModelGrid.width_of_face
+    ~landlab.grid.base.ModelGrid.x_of_face
+    ~landlab.grid.base.ModelGrid.y_of_face
 
 Information about patches
 +++++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_patches_present_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_patches_present_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.patches_present_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.patches_present_at_node`
+.. autosummary::
+
+    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.base.ModelGrid.patches_present_at_link
+    ~landlab.grid.base.ModelGrid.patches_present_at_node
 
 Information about corners
 +++++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_corners`
+.. autosummary::
+
+    ~landlab.grid.base.ModelGrid.number_of_corners
 
 
 Data Fields in ModelGrid
@@ -218,7 +225,6 @@ To access these groups, use the same methods as accessing groups with
 itself that provide access to the values groups:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.grid.base.ModelGrid.at_node
@@ -243,7 +249,6 @@ folowing methods create and, optionally, initialize new arrays. These arrays
 are of the correct size but a new field will not be added to the field:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.field.grouped.ModelDataFields.empty
@@ -261,7 +266,6 @@ The following methods will create a new array and add a reference to that
 array to the ModelGrid:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.grid.base.ModelGrid.add_empty
@@ -285,7 +289,6 @@ Use the following methods/attributes get information about the stored data
 fields:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.field.grouped.ModelDataFields.size
@@ -306,18 +309,19 @@ grid, and to construct fluxes and flux divergences from them. Because these
 calculations tend to be a little more involved than property lookups, the
 methods tend to start with `calc_`.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_diff_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_flux_div_at_cell`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_flux_div_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_grad_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_grad_at_patch`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_net_flux_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_slope_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_slope_at_patch`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_unit_normal_at_patch`
+.. autosummary::
+
+    ~landlab.grid.base.ModelGrid.calc_diff_at_link
+    ~landlab.grid.base.ModelGrid.calc_flux_div_at_cell
+    ~landlab.grid.base.ModelGrid.calc_flux_div_at_node
+    ~landlab.grid.base.ModelGrid.calc_grad_at_link
+    ~landlab.grid.base.ModelGrid.calc_grad_at_patch
+    ~landlab.grid.base.ModelGrid.calc_net_flux_at_node
+    ~landlab.grid.base.ModelGrid.calc_slope_at_node
+    ~landlab.grid.base.ModelGrid.calc_slope_at_patch
+    ~landlab.grid.base.ModelGrid.calc_unit_normal_at_patch
 
 Mappers
 -------
@@ -326,30 +330,31 @@ These methods allow mapping of values defined on one grid element type onto a
 second, e.g., mapping upwind node values onto links, or mean link values onto
 nodes.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.base.ModelGrid.map_downwind_node_link_max_to_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_downwind_node_link_mean_to_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_link_head_node_to_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_link_tail_node_to_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_link_vector_sum_to_patch`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_link_vector_to_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_max_of_link_nodes_to_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_max_of_node_links_to_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_max_of_patch_nodes_to_patch`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_mean_of_link_nodes_to_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_mean_of_patch_nodes_to_patch`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_min_of_link_nodes_to_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_min_of_node_links_to_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_min_of_patch_nodes_to_patch`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_node_to_cell`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_upwind_node_link_max_to_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_upwind_node_link_mean_to_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_value_at_downwind_node_link_max_to_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_value_at_max_node_to_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_value_at_min_node_to_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.map_value_at_upwind_node_link_max_to_node`
+.. autosummary::
+
+    ~landlab.grid.base.ModelGrid.map_downwind_node_link_max_to_node
+    ~landlab.grid.base.ModelGrid.map_downwind_node_link_mean_to_node
+    ~landlab.grid.base.ModelGrid.map_link_head_node_to_link
+    ~landlab.grid.base.ModelGrid.map_link_tail_node_to_link
+    ~landlab.grid.base.ModelGrid.map_link_vector_sum_to_patch
+    ~landlab.grid.base.ModelGrid.map_link_vector_to_nodes
+    ~landlab.grid.base.ModelGrid.map_max_of_link_nodes_to_link
+    ~landlab.grid.base.ModelGrid.map_max_of_node_links_to_node
+    ~landlab.grid.base.ModelGrid.map_max_of_patch_nodes_to_patch
+    ~landlab.grid.base.ModelGrid.map_mean_of_link_nodes_to_link
+    ~landlab.grid.base.ModelGrid.map_mean_of_patch_nodes_to_patch
+    ~landlab.grid.base.ModelGrid.map_min_of_link_nodes_to_link
+    ~landlab.grid.base.ModelGrid.map_min_of_node_links_to_node
+    ~landlab.grid.base.ModelGrid.map_min_of_patch_nodes_to_patch
+    ~landlab.grid.base.ModelGrid.map_node_to_cell
+    ~landlab.grid.base.ModelGrid.map_upwind_node_link_max_to_node
+    ~landlab.grid.base.ModelGrid.map_upwind_node_link_mean_to_node
+    ~landlab.grid.base.ModelGrid.map_value_at_downwind_node_link_max_to_node
+    ~landlab.grid.base.ModelGrid.map_value_at_max_node_to_link
+    ~landlab.grid.base.ModelGrid.map_value_at_min_node_to_link
+    ~landlab.grid.base.ModelGrid.map_value_at_upwind_node_link_max_to_node
 
 Boundary condition control
 --------------------------
@@ -359,35 +364,36 @@ conditions. Changes made to :meth:`~.ModelGrid.status_at_node` and
 :meth:`~.ModelGrid.status_at_node` will automatically update the conditions
 defined at other grid elements automatically.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.base.ModelGrid.active_adjacent_nodes_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.active_faces`
-    :py:meth:`~landlab.grid.base.ModelGrid.active_links`
-    :py:meth:`~landlab.grid.base.ModelGrid.active_neighbors_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.boundary_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.closed_boundary_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.core_cells`
-    :py:meth:`~landlab.grid.base.ModelGrid.core_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.fixed_gradient_boundary_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.fixed_links`
-    :py:meth:`~landlab.grid.base.ModelGrid.fixed_value_boundary_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_at_core_cell`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_has_boundary_neighbor`
-    :py:meth:`~landlab.grid.base.ModelGrid.node_is_boundary`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_active_faces`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_active_links`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_core_cells`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_core_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_fixed_links`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_patches_present_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_patches_present_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.open_boundary_nodes`
-    :py:meth:`~landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed`
-    :py:meth:`~landlab.grid.base.ModelGrid.set_nodata_nodes_to_fixed_gradient`
-    :py:meth:`~landlab.grid.base.ModelGrid.status_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.status_at_node`
+.. autosummary::
+
+    ~landlab.grid.base.ModelGrid.active_adjacent_nodes_at_node
+    ~landlab.grid.base.ModelGrid.active_faces
+    ~landlab.grid.base.ModelGrid.active_links
+    ~landlab.grid.base.ModelGrid.active_neighbors_at_node
+    ~landlab.grid.base.ModelGrid.boundary_nodes
+    ~landlab.grid.base.ModelGrid.closed_boundary_nodes
+    ~landlab.grid.base.ModelGrid.core_cells
+    ~landlab.grid.base.ModelGrid.core_nodes
+    ~landlab.grid.base.ModelGrid.fixed_gradient_boundary_nodes
+    ~landlab.grid.base.ModelGrid.fixed_links
+    ~landlab.grid.base.ModelGrid.fixed_value_boundary_nodes
+    ~landlab.grid.base.ModelGrid.node_at_core_cell
+    ~landlab.grid.base.ModelGrid.node_has_boundary_neighbor
+    ~landlab.grid.base.ModelGrid.node_is_boundary
+    ~landlab.grid.base.ModelGrid.number_of_active_faces
+    ~landlab.grid.base.ModelGrid.number_of_active_links
+    ~landlab.grid.base.ModelGrid.number_of_core_cells
+    ~landlab.grid.base.ModelGrid.number_of_core_nodes
+    ~landlab.grid.base.ModelGrid.number_of_fixed_links
+    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_link
+    ~landlab.grid.base.ModelGrid.number_of_patches_present_at_node
+    ~landlab.grid.base.ModelGrid.open_boundary_nodes
+    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
+    ~landlab.grid.base.ModelGrid.set_nodata_nodes_to_fixed_gradient
+    ~landlab.grid.base.ModelGrid.status_at_link
+    ~landlab.grid.base.ModelGrid.status_at_node
 
 Identifying node subsets
 ------------------------
@@ -403,12 +409,13 @@ Surface analysis
 These methods permit the kinds of surface analysis that you might expect to
 find in GIS software.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_aspect_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_hillshade_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_slope_at_node`
+.. autosummary::
+
+    ~landlab.grid.base.ModelGrid.calc_aspect_at_node
+    ~landlab.grid.base.ModelGrid.calc_hillshade_at_node
+    ~landlab.grid.base.ModelGrid.calc_slope_at_node
 
 Notes
 -----

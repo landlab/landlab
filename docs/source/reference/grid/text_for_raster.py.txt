@@ -84,7 +84,6 @@ To access these groups, use the same methods as accessing groups with
 itself that provide access to the values groups:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.grid.raster.RasterModelGrid.at_node
@@ -108,7 +107,6 @@ folowing methods create and, optionally, initialize new arrays. These arrays
 are of the correct size but a new field will not be added to the field:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.field.grouped.ModelDataFields.empty
@@ -126,7 +124,6 @@ The following methods will create a new array and add a reference to that
 array to the ModelGrid:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.grid.raster.RasterModelGrid.add_empty
@@ -150,7 +147,6 @@ Use the following methods/attributes get information about the stored data
 fields:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.field.grouped.ModelDataFields.size

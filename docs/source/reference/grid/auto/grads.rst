@@ -9,18 +9,19 @@ Gradients, fluxes, and divergences on the grid
 Base class
 ----------
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_diff_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_flux_div_at_cell`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_flux_div_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_grad_at_link`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_grad_at_patch`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_net_flux_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_slope_at_node`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_slope_at_patch`
-    :py:meth:`~landlab.grid.base.ModelGrid.calc_unit_normal_at_patch`
+.. autosummary::
+
+    ~landlab.grid.base.ModelGrid.calc_diff_at_link
+    ~landlab.grid.base.ModelGrid.calc_flux_div_at_cell
+    ~landlab.grid.base.ModelGrid.calc_flux_div_at_node
+    ~landlab.grid.base.ModelGrid.calc_grad_at_link
+    ~landlab.grid.base.ModelGrid.calc_grad_at_patch
+    ~landlab.grid.base.ModelGrid.calc_net_flux_at_node
+    ~landlab.grid.base.ModelGrid.calc_slope_at_node
+    ~landlab.grid.base.ModelGrid.calc_slope_at_patch
+    ~landlab.grid.base.ModelGrid.calc_unit_normal_at_patch
 
 
 
@@ -29,25 +30,26 @@ Base class
 Raster
 ------
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_diff_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_flux_div_at_cell`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_flux_div_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_grad_across_cell_corners`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_grad_across_cell_faces`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_grad_along_node_links`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_grad_at_active_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_grad_at_link`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_grad_at_patch`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_net_flux_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_slope_at_cell_subtriangles`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_slope_at_node`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_slope_at_patch`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_unit_normal_at_patch`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_cell_subtriangles`
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_patch_subtriangles`
+.. autosummary::
+
+    ~landlab.grid.raster.RasterModelGrid.calc_diff_at_link
+    ~landlab.grid.raster.RasterModelGrid.calc_flux_div_at_cell
+    ~landlab.grid.raster.RasterModelGrid.calc_flux_div_at_node
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_across_cell_corners
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_across_cell_faces
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_along_node_links
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_at_active_link
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_at_link
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_at_patch
+    ~landlab.grid.raster.RasterModelGrid.calc_net_flux_at_node
+    ~landlab.grid.raster.RasterModelGrid.calc_slope_at_cell_subtriangles
+    ~landlab.grid.raster.RasterModelGrid.calc_slope_at_node
+    ~landlab.grid.raster.RasterModelGrid.calc_slope_at_patch
+    ~landlab.grid.raster.RasterModelGrid.calc_unit_normal_at_patch
+    ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_cell_subtriangles
+    ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_patch_subtriangles
 
 
 
@@ -56,18 +58,19 @@ Raster
 Irregular Voronoi-cell
 ----------------------
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_diff_at_link`
-    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_flux_div_at_cell`
-    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_flux_div_at_node`
-    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_grad_at_link`
-    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_grad_at_patch`
-    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_net_flux_at_node`
-    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_slope_at_node`
-    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_slope_at_patch`
-    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_unit_normal_at_patch`
+.. autosummary::
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_diff_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_flux_div_at_cell
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_flux_div_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_grad_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_grad_at_patch
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_net_flux_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_slope_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_slope_at_patch
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_unit_normal_at_patch
 
 
 
@@ -76,18 +79,19 @@ Irregular Voronoi-cell
 Hexagonal
 ---------
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_diff_at_link`
-    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_flux_div_at_cell`
-    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_flux_div_at_node`
-    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_grad_at_link`
-    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_grad_at_patch`
-    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_net_flux_at_node`
-    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_slope_at_node`
-    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_slope_at_patch`
-    :py:meth:`~landlab.grid.hex.HexModelGrid.calc_unit_normal_at_patch`
+.. autosummary::
+
+    ~landlab.grid.hex.HexModelGrid.calc_diff_at_link
+    ~landlab.grid.hex.HexModelGrid.calc_flux_div_at_cell
+    ~landlab.grid.hex.HexModelGrid.calc_flux_div_at_node
+    ~landlab.grid.hex.HexModelGrid.calc_grad_at_link
+    ~landlab.grid.hex.HexModelGrid.calc_grad_at_patch
+    ~landlab.grid.hex.HexModelGrid.calc_net_flux_at_node
+    ~landlab.grid.hex.HexModelGrid.calc_slope_at_node
+    ~landlab.grid.hex.HexModelGrid.calc_slope_at_patch
+    ~landlab.grid.hex.HexModelGrid.calc_unit_normal_at_patch
 
 
 
@@ -96,17 +100,18 @@ Hexagonal
 Radial
 ------
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_diff_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_flux_div_at_cell`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_flux_div_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_grad_at_link`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_grad_at_patch`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_net_flux_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_slope_at_node`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_slope_at_patch`
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.calc_unit_normal_at_patch`
+.. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.calc_diff_at_link
+    ~landlab.grid.radial.RadialModelGrid.calc_flux_div_at_cell
+    ~landlab.grid.radial.RadialModelGrid.calc_flux_div_at_node
+    ~landlab.grid.radial.RadialModelGrid.calc_grad_at_link
+    ~landlab.grid.radial.RadialModelGrid.calc_grad_at_patch
+    ~landlab.grid.radial.RadialModelGrid.calc_net_flux_at_node
+    ~landlab.grid.radial.RadialModelGrid.calc_slope_at_node
+    ~landlab.grid.radial.RadialModelGrid.calc_slope_at_patch
+    ~landlab.grid.radial.RadialModelGrid.calc_unit_normal_at_patch
 
 

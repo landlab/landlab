@@ -12,7 +12,6 @@ Information about the grid as a whole
 +++++++++++++++++++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.grid.raster.RasterModelGrid.axis_name
     ~landlab.grid.raster.RasterModelGrid.axis_units
@@ -34,7 +33,7 @@ str_sequence = ('Base class', 'Raster', 'Irregular Voronoi-cell', 'Hexagonal',
                 'Radial')
 paths = ('base', 'raster', 'voronoi', 'hex', 'radial')
 
-autosummary = '\n\n.. autosummary::\n    :toctree: generated/\n\n'
+autosummary = '\n\n.. currentmodule:: landlab \n\n.. autosummary::\n\n'
 
 
 all_methods_for_cat_allgrid = {}
@@ -147,8 +146,8 @@ for LLCAT, outfile_name, text in zip(LLCATS, outfile_names, text_heads):
                 if np.in1d(exclude,
                            all_cats_for_method_allgrid[grid][meth]).sum() == 0:
                     text += (
-                        '    :py:meth:`~landlab.grid.' + path + '.' + grid + '.' + meth +
-                        '`\n'
+                        '    ~landlab.grid.' + path + '.' + grid + '.' + meth +
+                        '\n'
                     )
             text += '\n\n'
         except KeyError:

@@ -43,47 +43,50 @@ as in the example `area_of_cell`.
 Information about the grid as a whole
 +++++++++++++++++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.axis_name`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.axis_units`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.size`
+.. autosummary::
+
+    ~landlab.grid.network.NetworkModelGrid.axis_name
+    ~landlab.grid.network.NetworkModelGrid.axis_units
+    ~landlab.grid.network.NetworkModelGrid.size
 
 Information about nodes
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.active_links`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.adjacent_nodes_at_node`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.node_at_link_head`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.node_at_link_tail`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.nodes`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.nodes_at_link`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.number_of_nodes`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.perimeter_nodes`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.status_at_node`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.x_of_node`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.xy_of_node`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.y_of_node`
+.. autosummary::
+
+    ~landlab.grid.network.NetworkModelGrid.active_links
+    ~landlab.grid.network.NetworkModelGrid.adjacent_nodes_at_node
+    ~landlab.grid.network.NetworkModelGrid.node_at_link_head
+    ~landlab.grid.network.NetworkModelGrid.node_at_link_tail
+    ~landlab.grid.network.NetworkModelGrid.nodes
+    ~landlab.grid.network.NetworkModelGrid.nodes_at_link
+    ~landlab.grid.network.NetworkModelGrid.number_of_nodes
+    ~landlab.grid.network.NetworkModelGrid.perimeter_nodes
+    ~landlab.grid.network.NetworkModelGrid.status_at_node
+    ~landlab.grid.network.NetworkModelGrid.x_of_node
+    ~landlab.grid.network.NetworkModelGrid.xy_of_node
+    ~landlab.grid.network.NetworkModelGrid.y_of_node
 
 Information about links
 +++++++++++++++++++++++
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.angle_of_link`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.length_of_link`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.link_dirs_at_node`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.links_at_node`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.midpoint_of_link`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.number_of_links`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.status_at_link`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.x_of_link`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.y_of_link`
+.. autosummary::
+
+    ~landlab.grid.network.NetworkModelGrid.angle_of_link
+    ~landlab.grid.network.NetworkModelGrid.length_of_link
+    ~landlab.grid.network.NetworkModelGrid.link_dirs_at_node
+    ~landlab.grid.network.NetworkModelGrid.links_at_node
+    ~landlab.grid.network.NetworkModelGrid.midpoint_of_link
+    ~landlab.grid.network.NetworkModelGrid.number_of_links
+    ~landlab.grid.network.NetworkModelGrid.status_at_link
+    ~landlab.grid.network.NetworkModelGrid.x_of_link
+    ~landlab.grid.network.NetworkModelGrid.y_of_link
 
 Data Fields in ModelGrid
 ------------------------
@@ -100,7 +103,6 @@ To access these groups, use the same methods as accessing groups with
 itself that provide access to the values groups:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.grid.network.NetworkModelGrid.at_node
@@ -120,7 +122,6 @@ folowing methods create and, optionally, initialize new arrays. These arrays
 are of the correct size but a new field will not be added to the field:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.field.grouped.ModelDataFields.empty
@@ -138,7 +139,6 @@ The following methods will create a new array and add a reference to that
 array to the ModelGrid:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.grid.raster.RasterModelGrid.add_empty
@@ -162,7 +162,6 @@ Use the following methods/attributes get information about the stored data
 fields:
 
 .. autosummary::
-    :toctree: generated/
     :nosignatures:
 
     ~landlab.field.grouped.ModelDataFields.size
@@ -183,10 +182,11 @@ grid, and to construct fluxes and flux divergences from them. Because these
 calculations tend to be a little more involved than property lookups, the
 methods tend to start with `calc_`.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.calc_grad_at_link`
+.. autosummary::
+
+    ~landlab.grid.network.NetworkModelGrid.calc_grad_at_link
 
 Mappers
 -------
@@ -195,24 +195,25 @@ These methods allow mapping of values defined on one grid element type onto a
 second, e.g., mapping upwind node values onto links, or mean link values onto
 nodes.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_downwind_node_link_max_to_node`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_downwind_node_link_mean_to_node`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_link_head_node_to_link`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_link_tail_node_to_link`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_max_of_link_nodes_to_link`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_max_of_node_links_to_node`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_mean_of_link_nodes_to_link`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_min_of_link_nodes_to_link`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_min_of_node_links_to_node`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_upwind_node_link_max_to_node`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_upwind_node_link_mean_to_node`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_value_at_downwind_node_link_max_to_node`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_value_at_max_node_to_link`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_value_at_min_node_to_link`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.map_value_at_upwind_node_link_max_to_node`
+.. autosummary::
+
+    ~landlab.grid.network.NetworkModelGrid.map_downwind_node_link_max_to_node
+    ~landlab.grid.network.NetworkModelGrid.map_downwind_node_link_mean_to_node
+    ~landlab.grid.network.NetworkModelGrid.map_link_head_node_to_link
+    ~landlab.grid.network.NetworkModelGrid.map_link_tail_node_to_link
+    ~landlab.grid.network.NetworkModelGrid.map_max_of_link_nodes_to_link
+    ~landlab.grid.network.NetworkModelGrid.map_max_of_node_links_to_node
+    ~landlab.grid.network.NetworkModelGrid.map_mean_of_link_nodes_to_link
+    ~landlab.grid.network.NetworkModelGrid.map_min_of_link_nodes_to_link
+    ~landlab.grid.network.NetworkModelGrid.map_min_of_node_links_to_node
+    ~landlab.grid.network.NetworkModelGrid.map_upwind_node_link_max_to_node
+    ~landlab.grid.network.NetworkModelGrid.map_upwind_node_link_mean_to_node
+    ~landlab.grid.network.NetworkModelGrid.map_value_at_downwind_node_link_max_to_node
+    ~landlab.grid.network.NetworkModelGrid.map_value_at_max_node_to_link
+    ~landlab.grid.network.NetworkModelGrid.map_value_at_min_node_to_link
+    ~landlab.grid.network.NetworkModelGrid.map_value_at_upwind_node_link_max_to_node
 
 Boundary condition control
 --------------------------
@@ -222,13 +223,14 @@ conditions. Changes made to :meth:`~.ModelGrid.status_at_node` and
 :meth:`~.ModelGrid.status_at_node` will automatically update the conditions
 defined at other grid elements automatically.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.active_links`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.perimeter_nodes`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.status_at_link`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.status_at_node`
+.. autosummary::
+
+    ~landlab.grid.network.NetworkModelGrid.active_links
+    ~landlab.grid.network.NetworkModelGrid.perimeter_nodes
+    ~landlab.grid.network.NetworkModelGrid.status_at_link
+    ~landlab.grid.network.NetworkModelGrid.status_at_node
 
 Identifying node subsets
 ------------------------
@@ -236,9 +238,10 @@ Identifying node subsets
 These methods are useful in identifying subsets of nodes, e.g., closest node
 to a point; nodes at edges.
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.active_links`
-    :py:meth:`~landlab.grid.network.NetworkModelGrid.perimeter_nodes`
+.. autosummary::
+
+    ~landlab.grid.network.NetworkModelGrid.active_links
+    ~landlab.grid.network.NetworkModelGrid.perimeter_nodes
 

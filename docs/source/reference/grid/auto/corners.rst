@@ -9,10 +9,11 @@ Information about corners
 Base class
 ----------
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.base.ModelGrid.number_of_corners`
+.. autosummary::
+
+    ~landlab.grid.base.ModelGrid.number_of_corners
 
 
 
@@ -21,10 +22,11 @@ Base class
 Raster
 ------
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.raster.RasterModelGrid.number_of_corners`
+.. autosummary::
+
+    ~landlab.grid.raster.RasterModelGrid.number_of_corners
 
 
 
@@ -33,10 +35,11 @@ Raster
 Irregular Voronoi-cell
 ----------------------
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_corners`
+.. autosummary::
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_corners
 
 
 
@@ -45,10 +48,11 @@ Irregular Voronoi-cell
 Hexagonal
 ---------
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.hex.HexModelGrid.number_of_corners`
+.. autosummary::
+
+    ~landlab.grid.hex.HexModelGrid.number_of_corners
 
 
 
@@ -57,9 +61,10 @@ Hexagonal
 Radial
 ------
 
-.. autosummary::
-    :toctree: generated/
+.. currentmodule:: landlab 
 
-    :py:meth:`~landlab.grid.radial.RadialModelGrid.number_of_corners`
+.. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.number_of_corners
 
 
