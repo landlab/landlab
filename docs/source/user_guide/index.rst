@@ -124,3 +124,4 @@ Major Version Transition Guides
     :maxdepth: 2
 
     landlab_zero_to_one
+    landlab_one_to_two
