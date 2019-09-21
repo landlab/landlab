@@ -7,6 +7,7 @@ Components
 This section contains documentation and API reference information for the
 following categories of components:
 
+
 Hillslope geomorphology
 -----------------------
 
@@ -160,3 +161,56 @@ Second is LithoLayers which makes it easy to make layered rock.
       :maxdepth: 2
 
       litholayers
+
+
+Alphabetical Listing of Modules
+-------------------------------
+.. toctree::
+
+   channel_profiler
+   chi_index
+   depth_dependent_diffusion
+   depth_dependent_taylor_soil_creep
+   detachment_ltd_erosion
+   diffusion
+   drainage_density
+   erosion_deposition
+   fire_generator
+   flexure
+   flow_accum
+   flow_director
+   flow_routing
+   fracture_grid
+   gflex
+   groundwater
+   hack_calculator
+   lake_fill
+   landslides
+   lateral_erosion
+   lithology
+   nonlinear_diffusion
+   normal_fault
+   overland_flow
+   pet
+   plant_competition_ca
+   potentiality_flowrouting
+   radiation
+   sink_fill
+   soil_moisture
+   space
+   spatial_precip
+   steepness_index
+   stream_power
+   taylor_nonlinear_hillslope_flux
+   transport_length_diffusion
+   uniform_precip
+   vegetation_dynamics
+   weathering
+
+Module contents
+---------------
+
+.. automodule:: landlab.components
+   :members:
+   :undoc-members:
+   :show-inheritance:

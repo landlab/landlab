@@ -15,4 +15,11 @@ output to a file.
   native_landlab
   shapefile
   vtk
-  io
+
+Module contents
+---------------
+
+.. automodule:: landlab.io
+   :members:
+   :undoc-members:
+   :show-inheritance:

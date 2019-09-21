@@ -1,22 +1,7 @@
-landlab.components.groundwater package
-======================================
+GroundwaterDupuitPercolator: model flow in a shallow unconfined aquifer using the Dupuit-Forscheimer approximation
+----------------------------------------------------------------------------------------------------
 
-Submodules
-----------
-
-landlab.components.groundwater.dupuit\_percolator module
---------------------------------------------------------
-
-.. automodule:: landlab.components.groundwater.dupuit_percolator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: landlab.components.groundwater
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. automodule:: landlab.components.groundwater_dupuit_percolator
+    :members:
+    :undoc-members:
+    :show-inheritance:

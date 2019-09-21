@@ -31,3 +31,11 @@ Utilities and Decorators
     :maxdepth: 2
 
     landlab.utils_ext
+
+Module contents
+---------------
+
+.. automodule:: landlab.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:

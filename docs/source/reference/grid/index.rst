@@ -45,30 +45,29 @@ Systematic Information about Grid Elements
    auto/index
 
 
-Methods and properties common to all grids
-------------------------------------------
+Additional Methods and Properties
+---------------------------------
 
 .. toctree::
   :maxdepth: 1
 
    base
-   mappers
-   gradients
-   divergence
+   cfuncs
    create
    decorators
-
-
-Additional methods
-------------------
-
-.. toctree::
-
-  raster_aspect
-  raster_funcs
-  raster_mappers
-  raster_set_status
-
+   diagonals
+   divergence
+   gradients
+   grid_funcs
+   link_status
+   mappers
+   nodestatus
+   raster_aspect
+   raster_funcs
+   raster_gradients
+   raster_mappers
+   raster_set_status
+   warnings
 
 Additional Grid Base Classes
 ----------------------------
@@ -77,3 +76,11 @@ Additional Grid Base Classes
 
   structured_quad
   unstructured
+
+  Module contents
+  ---------------
+
+.. automodule:: landlab.grid
+   :members:
+   :undoc-members:
+   :show-inheritance:

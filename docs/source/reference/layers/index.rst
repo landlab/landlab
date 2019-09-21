@@ -27,3 +27,12 @@ Extensions
 
    eventlayers_ext
    materiallayers_ext
+
+
+Module contents
+---------------
+
+.. automodule:: landlab.layers
+  :members:
+  :undoc-members:
+  :show-inheritance:

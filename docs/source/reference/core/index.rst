@@ -4,47 +4,61 @@
 Core Landlab Classes
 ====================
 
+Subpackages
+-----------
+
+.. toctree::
+
+   landlab.core.tests
 
 Submodules
 ----------
 
-landlab.core.model_component module
------------------------------------
+landlab.core.messages module
+----------------------------
+
+.. automodule:: landlab.core.messages
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+landlab.core.model\_component module
+------------------------------------
 
 .. automodule:: landlab.core.model_component
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-landlab.core.model_parameter_dictionary module
-----------------------------------------------
+landlab.core.model\_parameter\_dictionary module
+------------------------------------------------
 
 .. automodule:: landlab.core.model_parameter_dictionary
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
-landlab.core.model_parameter_loader module
-------------------------------------------
+landlab.core.model\_parameter\_loader module
+--------------------------------------------
 
 .. automodule:: landlab.core.model_parameter_loader
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 landlab.core.utils module
 -------------------------
 
 .. automodule:: landlab.core.utils
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 
 Module contents
 ---------------
 
 .. automodule:: landlab.core
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
