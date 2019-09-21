@@ -3,27 +3,14 @@
 Frequently Asked Questions
 ==========================
 
-* [[I can't install/test/run Landlab, what should I do? | https://github.com/landlab/landlab/wiki/FAQs#i-cant-installtestrun-landlab-what-should-i-do]]
-* [[ What is the difference between a cell and a node? | FAQs#What-is-the-difference-between-a-cell-and-a-node ]]
-* [[ Why is my node data a 1d array? | FAQs#why-is-my-node-data-a-1d-array-im-using-a-raster ]]
-* [[ How do I set the boundary codes for the edges of a grid? | FAQs#how-do-i-set-the-boundary-codes-for-the-edges-of-a-grid ]]
-* [[ Can I import Landlab output into ParaView or VisIt? | FAQs#can-i-import-landlab-output-into-paraview-or-visit ]]
-* [[ How do I get netCDF output? | FAQs#how-do-i-get-netcdf-output ]]
-* [[ How do I assign values from nodes to links? | FAQs#how-do-i-assign-values-from-nodes-to-links ]]
-* [[ How do I test whether my grid is regular or irregular? | FAQs#how-do-i-test-whether-my-grid-is-regular-or-irregular ]]
-* [[ How do I modify boundary conditions for part of the grid where I know the coordinates? | FAQs#how-do-i-modify-boundary-conditions-for-part-of-the-grid-where-i-know-the-coordinates]]
-* [[ How do I install Landlab on Ubuntu? | FAQs#i-am-having-trouble-installing-landlab-on-ubuntu-without-anaconda-what-is-the-fix ]]
-* [[ Support: How can I ask more questions and get help? | FAQs#support-how-can-i-ask-more-questions-and-get-help ]]
-* [[ How do I keep in touch with Landlab developments? | FAQs#how-do-i-keep-in-touch-with-landlab-developments ]]
-
-
 I can't install/test/run Landlab, what should I do?
------------------------------------------------------
+---------------------------------------------------
+
 If you are having trouble when installing, testing or running Landlab, please visit our [[Troubleshooting page | https://github.com/landlab/landlab/wiki/Troubleshooting]].
 
 
 What is the difference between a cell and a node?
------------------------------------------------------
+-------------------------------------------------
 
 A cell is a polygon surrounding a node. Nodes on the grid perimeter do not have cells. Cells have area, nodes have coordinates.
 
@@ -139,7 +126,8 @@ How do I modify boundary conditions for part of the grid where I know the coordi
 See https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/boundary_conds/set_BCs_from_xy.ipynb.
 
 I am having trouble installing Landlab on Ubuntu without Anaconda. What is the fix?
---------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+
 Andy Wickert (5/16) suggests the following:
 
 "The version of setuptools that comes standard on Ubuntu is out-of-date with respect to Landlab's Cython code. Here is the fix:"
@@ -158,7 +146,7 @@ And then you can cd to landlab and this works:
     python setup.py develop
 
 Support: How can I ask more questions and get help?
---------------------------------------------------------------------------------------
+---------------------------------------------------
 
 There are several ways to get help:
 
@@ -172,7 +160,7 @@ There are several ways to get help:
 
 
 How do I keep in touch with Landlab developments?
---------------------------------------------------------------------------------------
+-------------------------------------------------
 
 There are a few ways to follow Landlab developments. You can
 - contribute questions to this wiki (see below),
