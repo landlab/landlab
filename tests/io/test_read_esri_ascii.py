@@ -2,7 +2,6 @@
 """
 Unit tests for landlab.io.esri_ascii module.
 """
-import os
 from io import StringIO
 
 import numpy as np
