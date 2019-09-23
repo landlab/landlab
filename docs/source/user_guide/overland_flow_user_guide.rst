@@ -116,8 +116,8 @@ The alternative to reading in a watershed DEM is to set the RasterModelGrid inst
 .. code-block:: python
 
 	rmg = RasterModelGrid((number_of_node_rows, number_of_node_columns), dx)
-        z = user_defined_elevation_data        # length of number_of_nodes
-        rmg[‘node’][‘topographic__elevation’] = z
+  z = user_defined_elevation_data        # length of number_of_nodes
+  rmg['node']['topographic__elevation'] = z
 
 This example assumes that the model users knows the following information: the number of grid rows (``number_of_grid_rows``), the number of grid columns (``number_of_grid_columns``), the grid resolution (``dx``) and some elevation data for each node. Here, the user must manually set the elevation data. When passing elevation data to the  ``topographic__elevation`` field, the length of ``user_defined_elevation_data`` **must** be equal to the number of nodes in the grid (which can be found using a command such as: ``rmg.number_of_nodes``.
 
@@ -176,7 +176,7 @@ To address this discrepancy, the SinkFiller component in Landlab has been develo
 
 .. code-block:: python
 
-	sf = SinkFiller(rmg, routing=’D4’, apply_slope=True, fill_slope=1.e-5)
+	sf = SinkFiller(rmg, routing='D4', apply_slope=True, fill_slope=1.e-5)
 	sf.fill_pits()
 
 
