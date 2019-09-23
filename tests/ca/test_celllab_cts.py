@@ -188,7 +188,7 @@ def test_oriented_hex_cts():
 
 def test_priority_queue():
     """Test import and use of priority queue."""
-    from ..cfuncs import PriorityQueue
+    from landlab.ca.cfuncs import PriorityQueue
 
     # Create a priority queue
     pq = PriorityQueue()
