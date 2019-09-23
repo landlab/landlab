@@ -5,7 +5,6 @@ ESRI ASCII functions
 ++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.io.esri_ascii.read_asc_header
     ~landlab.io.esri_ascii.read_esri_ascii

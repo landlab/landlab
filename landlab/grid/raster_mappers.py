@@ -5,7 +5,6 @@ Mapping functions unique to raster grids
 ++++++++++++++++++++++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.grid.raster_mappers.map_sum_of_inlinks_to_node
     ~landlab.grid.raster_mappers.map_mean_of_inlinks_to_node

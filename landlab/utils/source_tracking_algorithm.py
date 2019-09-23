@@ -3,7 +3,7 @@
 Source Tracking Algorithm
 +++++++++++++++++++++++++
 .. autosummary::
-    :toctree: generated/
+
     ~landlab.utils.source_tracking_algorithm.convert_arc_flow_directions_to_landlab_node_ids
     ~landlab.utils.source_tracking_algorithm.track_source
     ~landlab.utils.source_tracking_algorithm.find_unique_upstream_hsd_ids_and_fractions

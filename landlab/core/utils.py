@@ -5,7 +5,6 @@ Landlab utilities
 +++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.core.utils.radians_to_degrees
     ~landlab.core.utils.extend_array

@@ -4,7 +4,6 @@ General Landlab decorators
 ++++++++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.utils.decorators.use_file_name_or_kwds
     ~landlab.utils.decorators.use_field_name_or_array

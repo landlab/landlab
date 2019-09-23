@@ -6,7 +6,6 @@ Base component class methods
 ++++++++++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.core.model_component.Component.from_path
     ~landlab.core.model_component.Component.name
@@ -60,7 +59,6 @@ class Component(object):
     **Base component class methods**
 
     .. autosummary::
-        :toctree: generated/
 
         ~landlab.core.model_component.Component.from_path
         ~landlab.core.model_component.Component.name

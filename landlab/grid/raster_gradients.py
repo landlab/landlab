@@ -5,7 +5,6 @@ Gradient calculators for raster grids
 +++++++++++++++++++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.grid.raster_gradients.calc_grad_at_link
     ~landlab.grid.raster_gradients.calc_grad_at_active_link

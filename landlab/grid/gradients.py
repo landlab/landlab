@@ -5,7 +5,6 @@ Gradient calculation functions
 ++++++++++++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.grid.gradients.calc_grad_at_active_link
     ~landlab.grid.gradients.calc_grad_at_link

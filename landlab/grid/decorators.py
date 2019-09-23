@@ -4,7 +4,6 @@ Grid decorators
 +++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.grid.decorators.override_array_setitem_and_reset
     ~landlab.grid.decorators.return_id_array

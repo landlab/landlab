@@ -5,7 +5,6 @@ Write netcdf
 ++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.io.netcdf.write.write_netcdf
 """

@@ -5,7 +5,6 @@ Grid mapping functions
 +++++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.grid.mappers.map_link_head_node_to_link
     ~landlab.grid.mappers.map_link_tail_node_to_link

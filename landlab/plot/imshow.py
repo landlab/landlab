@@ -6,7 +6,6 @@ Plotting functions
 ++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.plot.imshow.imshow_grid
     ~landlab.plot.imshow.imshow_grid_at_cell
