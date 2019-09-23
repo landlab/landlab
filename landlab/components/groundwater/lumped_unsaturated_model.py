@@ -29,13 +29,13 @@ def _CapillaryRise(S,Sw,Sf,St,ETmax,Zwt,Z,hroot):
     qc[~i] = ETmax[~i]
     return qc
 
-def _LeakageLoss(S,Sf,St,Ksat):
+def _LeakageLoss(S,Sf,St,Ksat,dt):
     #leakage under unit hydraulic gradient and hydraulic
     #conductivity that varies linearly from 0 at field capacity to Ksat
     #at full saturation.
     ql = np.zeros_like(S)
     i = St>0
-    ql[i] =  _regularize_R((S[i]-Sf[i])/(St[i]-Sf[i]))*Ksat[i]
+    ql[i] =  np.minimum(_regularize_R((S[i]-Sf[i])/(St[i]-Sf[i]))*Ksat[i], np.maximum((S[i]-Sf[i])/dt,np.zeros_like(S)[i]))
     return ql
 
 #untested
@@ -183,7 +183,7 @@ class LumpedUnsaturatedZone(Component):
 
     def correct_soil_water__storage(self,dt):
         dhdt = self._grid.at_node["water_table__velocity"]
-        self.r = (dhdt<0)*self.n*self.sf*dhdt - (dhdt>0)*self.n*self.sat*dhdt
+        self.r = (dhdt<0)*self.n*self.sf*(-dhdt) - (dhdt>0)*self.n*self.sat*dhdt
         self.S += self.r*dt
 
     def run_one_step(self,duration,intensity):
@@ -200,7 +200,7 @@ class LumpedUnsaturatedZone(Component):
         self.ho = np.maximum(self.p-self.Ksat,0.)
 
         self.qet = _EvapotranspirationLoss(intensity,self.S,Sw,Sf,St,self.ETmax)
-        self.ql = _LeakageLoss(self.S,Sf,St,self.Ksat)
+        self.ql = _LeakageLoss(self.S,Sf,St,self.Ksat,dt)
         self.qc = _CapillaryRise(self.S,Sw,Sf,St,self.ETmax,self.wtable,self.elev,self.dr)
         self.S += self.f*dt + self.qc*dt - self.qet*dt - self.ql*dt
 
