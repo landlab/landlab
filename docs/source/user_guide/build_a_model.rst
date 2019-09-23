@@ -1,7 +1,7 @@
 .. _build_a_model:
 
 What goes into a Landlab model?
-==============================
+===============================
 
 In the previous section, [[ Grid,| Grid]] we showed you most of the core
 functionality of the Landlab grid. In this section, we introduce you to how to

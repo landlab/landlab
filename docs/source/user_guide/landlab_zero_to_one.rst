@@ -19,8 +19,6 @@ Old: ``link_length``
 
 New: ``length_of_link``
 
---------------
-
 Old: ``node_x``, ``node_y``
 
 New: ``x_of_node``, ``y_of_node`` OR ``node_x``, ``node_y``
@@ -55,10 +53,9 @@ Old: ``face_width``
 
 New: ``width_of_face``
 
---------------
 
 Common grid functions
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 Old: ``calculate_gradients_at_active_links``,
 ``calculate_gradients_at_links``
@@ -66,17 +63,13 @@ Old: ``calculate_gradients_at_active_links``,
 New: ``calc_grad_at_link`` (input is node-based array or field name;
 output is a link-based array [**not** just active links])
 
---------------
-
 Old: ``calculate_flux_divergence_at_nodes``
 
 New: ``calc_flux_div_at_node`` (input is a *link-based array* [**not**
 just active links])
 
---------------
-
 Creating and running components
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------
 
 [TO BE ADDED]
 
@@ -84,7 +77,7 @@ New standardized function usage and syntax
 ------------------------------------------
 
 Syntax of grid properties and functions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------
 
 Data associated with Landlab grids include:
 
