@@ -378,17 +378,16 @@ class GroundwaterDupuitPercolator(Component):
             # accounting for the water gained and lost as the water table moves
             # into and out of the unsaturated zone.
             dsdt = self.recharge - dqdx - self.qs
-            self.dhdt = (dsdt>=0)*(1/(self.n*(1-s)))*dsdt \
-                        + (dsdt<0)*(1/(self.n*(1+sf)))*dsdt
+            self.dhdt[:] = (dsdt>=0)*(1/(self.n*(1-s)))*dsdt \
+                        + (dsdt<0)*(1/(self.n*(1-sf)))*dsdt
         else:
-            self.dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
+            self.dhdt[:] = (1/self.n)*(self.recharge - dqdx - self.qs)
 
         # Update
-        self.thickness[self._grid.core_nodes] += self.dhdt[self.cores] * dt
+        self.thickness[self.cores] += self.dhdt[self.cores] * dt
 
         # Recalculate water surface height
-        self.wtable[self._grid.core_nodes] = (self.base[self.cores]
-                                              + self.thickness[self.cores])
+        self.wtable[self.cores] = self.base[self.cores] + self.thickness[self.cores]
 
     def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.5,s=None,sf=None,**kwds):
         """
@@ -447,10 +446,10 @@ class GroundwaterDupuitPercolator(Component):
                 # accounting for the water gained and lost as the water table moves
                 # into and out of the unsaturated zone.
                 dsdt = self.recharge - dqdx - self.qs
-                self.dhdt = (dsdt>=0)*(1/(self.n*(1-s)))*dsdt \
-                            + (dsdt<0)*(1/(self.n*(1+sf)))*dsdt
+                self.dhdt[:] = (dsdt>=0)*(1/(self.n*(1-s)))*dsdt \
+                            + (dsdt<0)*(1/(self.n*(1-sf)))*dsdt
             else:
-                self.dhdt = (1/self.n)*(self.recharge - dqdx - self.qs)
+                self.dhdt[:] = (1/self.n)*(self.recharge - dqdx - self.qs)
 
             #calculate criteria for timestep
             max_vel = max(abs(self.vel/self.n_link))
@@ -458,11 +457,10 @@ class GroundwaterDupuitPercolator(Component):
             substep_dt = np.nanmin([courant_coefficient*grid_dist/max_vel,remaining_time])
 
             # Update
-            self.thickness[self._grid.core_nodes] += self.dhdt[self.cores] * substep_dt
+            self.thickness[self.cores] += self.dhdt[self.cores] * substep_dt
 
             # Recalculate water surface height
-            self.wtable[self._grid.core_nodes] = (self.base[self.cores]
-                                                  + self.thickness[self.cores])
+            self.wtable[self.cores] = self.base[self.cores] + self.thickness[self.cores]
 
             #calculate the time remaining and advance count of substeps
             remaining_time -= substep_dt
