@@ -3,7 +3,7 @@ import pytest
 from landlab import RasterModelGrid
 from landlab.components import COMPONENTS
 
-_REQ_ATTRS = ["doc", "mapping", "type", "intent", "optional", "units"]
+_REQ_ATTRS = ["doc", "mapping", "dtype", "intent", "optional", "units"]
 
 
 @pytest.mark.parametrize("Comp", COMPONENTS)
