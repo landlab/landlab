@@ -1,8 +1,7 @@
 import pytest
 
-from landlab import RasterModelGrid
+from landlab import FieldError, RasterModelGrid
 from landlab.components import COMPONENTS
-
 
 _VALID_LOCS = ("grid", "node", "link", "patch", "corner", "face", "cell")
 
@@ -56,8 +55,12 @@ def test_component_metadata(Comp):
                         assert field.dtype == dtype
                     except AssertionError:
                         raise FieldError(
-                            "{component} output required variable: {name} at {at} has incorrect dtype".format(
-                                component=Comp._name, name=name, at=at
+                            "{component} output required variable: {name} at {at} has incorrect dtype. dtype must be {dtype} and is {actual}".format(
+                                component=Comp._name,
+                                name=name,
+                                at=at,
+                                dtype=dtype,
+                                actual=field.dtype,
                             )
                         )
 

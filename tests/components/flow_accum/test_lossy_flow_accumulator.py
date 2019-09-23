@@ -395,7 +395,6 @@ def test_fields():
         "topographic__steepest_slope",
         "water__unit_flux_in",
     ]
-    assert sorted(list(mg.at_grid.keys())) == ["flow__data_structure_D"]
 
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
@@ -415,8 +414,6 @@ def test_fields():
         "topographic__steepest_slope",
         "water__unit_flux_in",
     ]
-
-    assert sorted(list(mg2.at_grid.keys())) == ["flow__data_structure_D"]
 
 
 @pytest.mark.parametrize("fd", ["Steepest", "D8", "MFD", "DINF"])

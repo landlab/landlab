@@ -81,7 +81,7 @@ class SinkFiller(Component):
 
     _info = {
         "sediment_fill__depth": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -89,7 +89,7 @@ class SinkFiller(Component):
             "doc": "Depth of sediment added at eachnode",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "inout",
             "optional": False,
             "units": "m",

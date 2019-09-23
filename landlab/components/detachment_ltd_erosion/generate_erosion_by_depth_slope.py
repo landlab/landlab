@@ -116,7 +116,7 @@ class DepthSlopeProductErosion(Component):
 
     _info = {
         "surface_water__depth": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m",
@@ -124,7 +124,7 @@ class DepthSlopeProductErosion(Component):
             "doc": "Depth of water on the surface",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -132,7 +132,7 @@ class DepthSlopeProductErosion(Component):
             "doc": "Land surface topographic elevation",
         },
         "topographic__slope": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": True,
             "units": "-",

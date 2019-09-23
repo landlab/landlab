@@ -92,7 +92,7 @@ class SoilMoisture(Component):
 
     _info = {
         "rainfall__daily_depth": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "mm",
@@ -100,7 +100,7 @@ class SoilMoisture(Component):
             "doc": "Rain in (mm) as a field, allowing spatio-temporal soil moisture saturation analysis.",
         },
         "soil_moisture__initial_saturation_fraction": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "None",
@@ -108,7 +108,7 @@ class SoilMoisture(Component):
             "doc": "initial soil_moisture__saturation_fraction",
         },
         "soil_moisture__root_zone_leakage": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "mm",
@@ -116,7 +116,7 @@ class SoilMoisture(Component):
             "doc": "leakage of water into deeper portions of the soil not accessible to the plant",
         },
         "soil_moisture__saturation_fraction": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "None",
@@ -124,7 +124,7 @@ class SoilMoisture(Component):
             "doc": "relative volumetric water content (theta) - limits=[0,1]",
         },
         "surface__evapotranspiration": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "mm",
@@ -132,7 +132,7 @@ class SoilMoisture(Component):
             "doc": "actual sum of evaporation and plant transpiration",
         },
         "surface__potential_evapotranspiration_rate": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "mm",
@@ -140,7 +140,7 @@ class SoilMoisture(Component):
             "doc": "potential sum of evaporation and plant transpiration",
         },
         "surface__runoff": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "mm",
@@ -148,7 +148,7 @@ class SoilMoisture(Component):
             "doc": "runoff from ground surface",
         },
         "vegetation__cover_fraction": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "None",
@@ -156,7 +156,7 @@ class SoilMoisture(Component):
             "doc": "fraction of land covered by vegetation",
         },
         "vegetation__live_leaf_area_index": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "None",
@@ -164,7 +164,7 @@ class SoilMoisture(Component):
             "doc": "one-sided green leaf area per unit ground surface area",
         },
         "vegetation__plant_functional_type": {
-            "dtype":None,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "None",
@@ -172,7 +172,7 @@ class SoilMoisture(Component):
             "doc": "classification of plants (int), grass=0, shrub=1, tree=2, bare=3, shrub_seedling=4, tree_seedling=5",
         },
         "vegetation__water_stress": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "None",

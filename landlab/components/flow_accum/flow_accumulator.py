@@ -54,7 +54,6 @@ class FlowAccumulator(Component):
             IDs: *'flow__upstream_node_order'*
         -  Node array of all but the first element of the delta data structure:
             *flow__data_structure_delta*. The first element is always zero.
-        -  At Grid: D data structure: *flow__data_structure_D*
 
     The FlowDirector component will add additional ModelGrid fields.
     DirectToOne methods(Steepest/D4 and D8) and DirectToMany(DINF and MFD) use
@@ -625,23 +624,15 @@ class FlowAccumulator(Component):
 
     _info = {
         "drainage_area": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m**2",
             "mapping": "node",
             "doc": "Upstream accumulated surface area contributing to the node's discharge",
         },
-        "flow__data_structure_D": {
-            "dtype":None,
-            "intent": "out",
-            "optional": False,
-            "units": "-",
-            "mapping": "grid",
-            "doc": "Array containing the data structure D used for constructionof the downstream-to-upstream node array. Stored at Grid.",
-        },
         "flow__data_structure_delta": {
-            "dtype":None,
+            "dtype": int,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -649,7 +640,7 @@ class FlowAccumulator(Component):
             "doc": "Node array containing the elements delta[1:] of the data structure 'delta' used for construction of the downstream-to-upstream node array",
         },
         "flow__upstream_node_order": {
-            "dtype":None,
+            "dtype": int,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -657,7 +648,7 @@ class FlowAccumulator(Component):
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "surface_water__discharge": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m**3/s",
@@ -665,7 +656,7 @@ class FlowAccumulator(Component):
             "doc": "Discharge of water through each node",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": True,
             "units": "m",
@@ -673,7 +664,7 @@ class FlowAccumulator(Component):
             "doc": "Land surface topographic elevation",
         },
         "water__unit_flux_in": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": True,
             "units": "m/s",
@@ -781,19 +772,7 @@ class FlowAccumulator(Component):
         else:
             self._delta_structure = grid.at_node["flow__data_structure_delta"]
 
-        try:
-            D = BAD_INDEX_VALUE * grid.ones(at="link", dtype=int)
-            D_structure = np.array([D], dtype=object)
-            self._D_structure = grid.add_field(
-                "flow__data_structure_D",
-                D_structure,
-                at="grid",
-                dtype=object,
-                noclobber=False,
-            )
-
-        except FieldError:
-            self._D_structure = grid.at_grid["flow__data_structure_D"]
+        self._D_structure = BAD_INDEX_VALUE * grid.ones(at="link", dtype=int)
 
         self._nodes_not_in_stack = True
 
@@ -1162,7 +1141,7 @@ class FlowAccumulator(Component):
             # put these in grid so that depression finder can use it.
             # store the generated data in the grid
             self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
-            self._grid["grid"]["flow__data_structure_D"] = np.array([D], dtype=object)
+            self._D_structure = D
             self._grid["node"]["flow__upstream_node_order"][:] = s
 
             # step 4. Accumulate (to one or to N depending on direction method)
@@ -1181,9 +1160,8 @@ class FlowAccumulator(Component):
             # put theese in grid so that depression finder can use it.
             # store the generated data in the grid
             self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
-            self._grid["grid"]["flow__data_structure_D"][0] = np.array(
-                [D], dtype=object
-            )
+            self._D_structure = D
+
             self._grid["node"]["flow__upstream_node_order"][:] = s
             self._grid["node"]["flow__upstream_node_order"][:] = s
 

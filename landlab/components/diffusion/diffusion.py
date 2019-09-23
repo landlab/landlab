@@ -105,7 +105,7 @@ class LinearDiffuser(Component):
 
     _info = {
         "hillslope_sediment__unit_volume_flux": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m**2/s",
@@ -113,7 +113,7 @@ class LinearDiffuser(Component):
             "doc": "Volume flux per unit width along links",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -121,7 +121,7 @@ class LinearDiffuser(Component):
             "doc": "Land surface topographic elevation; can be overwritten in initialization",
         },
         "topographic__gradient": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "-",

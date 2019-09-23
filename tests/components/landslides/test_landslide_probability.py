@@ -119,13 +119,13 @@ def test_calculate_landslide_probability_uniform_method():
     scatter_dat = np.random.randint(1, 10, gridnum)
     grid_1.add_zeros("soil__saturated_hydraulic_conductivity", at="node")
     grid_1.at_node["topographic__specific_contributing_area"] = np.sort(
-        np.random.randint(30, 900, gridnum)
+        np.random.randint(30, 900, gridnum).astype(float)
     )
     grid_1.at_node["soil__transmissivity"] = np.sort(
-        np.random.randint(5, 20, gridnum), -1
+        np.random.randint(5, 20, gridnum).astype(float), -1
     )
     grid_1.at_node["soil__mode_total_cohesion"] = np.sort(
-        np.random.randint(30, 900, gridnum)
+        np.random.randint(30, 900, gridnum).astype(float)
     )
     grid_1.at_node["soil__minimum_total_cohesion"] = (
         grid_1.at_node["soil__mode_total_cohesion"] - scatter_dat
@@ -134,9 +134,11 @@ def test_calculate_landslide_probability_uniform_method():
         grid_1.at_node["soil__mode_total_cohesion"] + scatter_dat
     )
     grid_1.at_node["soil__internal_friction_angle"] = np.sort(
-        np.random.randint(26, 37, gridnum)
+        np.random.randint(26, 37, gridnum).astype(float)
     )
-    grid_1.at_node["soil__thickness"] = np.sort(np.random.randint(1, 10, gridnum))
+    grid_1.at_node["soil__thickness"] = np.sort(
+        np.random.randint(1, 10, gridnum).astype(float)
+    )
     grid_1.at_node["soil__density"] = 2000.0 * np.ones(gridnum)
 
     ls_prob_uniform = LandslideProbability(
@@ -165,15 +167,15 @@ def test_calculate_landslide_probability_lognormal_method():
     np.random.seed(seed=6)
     grid_2.at_node["topographic__slope"] = np.random.rand(gridnum)
     grid_2.add_zeros("soil__saturated_hydraulic_conductivity", at="node")
-    scatter_dat = np.random.randint(1, 10, gridnum)
+    scatter_dat = np.random.randint(1, 10, gridnum).astype(float)
     grid_2.at_node["topographic__specific_contributing_area"] = np.sort(
-        np.random.randint(30, 900, gridnum)
+        np.random.randint(30, 900, gridnum).astype(float)
     )
     grid_2.at_node["soil__transmissivity"] = np.sort(
-        np.random.randint(5, 20, gridnum), -1
+        np.random.randint(5, 20, gridnum).astype(float), -1
     )
     grid_2.at_node["soil__mode_total_cohesion"] = np.sort(
-        np.random.randint(30, 900, gridnum)
+        np.random.randint(30, 900, gridnum).astype(float)
     )
     grid_2.at_node["soil__minimum_total_cohesion"] = (
         grid_2.at_node["soil__mode_total_cohesion"] - scatter_dat
@@ -182,9 +184,11 @@ def test_calculate_landslide_probability_lognormal_method():
         grid_2.at_node["soil__mode_total_cohesion"] + scatter_dat
     )
     grid_2.at_node["soil__internal_friction_angle"] = np.sort(
-        np.random.randint(26, 37, gridnum)
+        np.random.randint(26, 37, gridnum).astype(float)
     )
-    grid_2.at_node["soil__thickness"] = np.sort(np.random.randint(1, 10, gridnum))
+    grid_2.at_node["soil__thickness"] = np.sort(
+        np.random.randint(1, 10, gridnum).astype(float)
+    )
     grid_2.at_node["soil__density"] = 2000.0 * np.ones(gridnum)
 
     ls_prob_lognormal = LandslideProbability(
@@ -213,15 +217,15 @@ def test_calculate_landslide_probability_lognormal_spatial_method():
     np.random.seed(seed=7)
     grid_3.add_zeros("soil__saturated_hydraulic_conductivity", at="node")
     grid_3.at_node["topographic__slope"] = np.random.rand(gridnum)
-    scatter_dat = np.random.randint(1, 10, gridnum)
+    scatter_dat = np.random.randint(1, 10, gridnum).astype(float)
     grid_3.at_node["topographic__specific_contributing_area"] = np.sort(
-        np.random.randint(30, 900, gridnum)
+        np.random.randint(30, 900, gridnum).astype(float)
     )
     grid_3.at_node["soil__transmissivity"] = np.sort(
-        np.random.randint(5, 20, gridnum), -1
+        np.random.randint(5, 20, gridnum).astype(float), -1
     )
     grid_3.at_node["soil__mode_total_cohesion"] = np.sort(
-        np.random.randint(30, 900, gridnum)
+        np.random.randint(30, 900, gridnum).astype(float)
     )
     grid_3.at_node["soil__minimum_total_cohesion"] = (
         grid_3.at_node["soil__mode_total_cohesion"] - scatter_dat
@@ -230,16 +234,18 @@ def test_calculate_landslide_probability_lognormal_spatial_method():
         grid_3.at_node["soil__mode_total_cohesion"] + scatter_dat
     )
     grid_3.at_node["soil__internal_friction_angle"] = np.sort(
-        np.random.randint(26, 37, gridnum)
+        np.random.randint(26, 37, gridnum).astype(float)
     )
-    grid_3.at_node["soil__thickness"] = np.sort(np.random.randint(1, 10, gridnum))
+    grid_3.at_node["soil__thickness"] = np.sort(
+        np.random.randint(1, 10, gridnum).astype(float)
+    )
     grid_3.at_node["soil__density"] = 2000.0 * np.ones(gridnum)
 
     ls_prob_lognormal_spatial = LandslideProbability(
         grid_3,
         number_of_iterations=10,
         groundwater__recharge_distribution="lognormal_spatial",
-        groundwater__recharge_mean=np.random.randint(2, 7, gridnum),
+        groundwater__recharge_mean=np.random.randint(2, 7, gridnum).astype(float),
         groundwater__recharge_standard_deviation=np.random.rand(gridnum),
         seed=7,
     )

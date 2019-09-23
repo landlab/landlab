@@ -117,7 +117,7 @@ class DepthDependentDiffuser(Component):
 
     _info = {
         "bedrock__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -125,7 +125,7 @@ class DepthDependentDiffuser(Component):
             "doc": "elevation of the bedrock surface",
         },
         "soil__depth": {
-            "dtype":None,
+            "dtype": float,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -133,7 +133,7 @@ class DepthDependentDiffuser(Component):
             "doc": "depth of soil/weather bedrock",
         },
         "soil__flux": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m^2/yr",
@@ -141,7 +141,7 @@ class DepthDependentDiffuser(Component):
             "doc": "flux of soil in direction of link",
         },
         "soil_production__rate": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m/yr",
@@ -149,7 +149,7 @@ class DepthDependentDiffuser(Component):
             "doc": "rate of soil production at nodes",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -157,7 +157,7 @@ class DepthDependentDiffuser(Component):
             "doc": "elevation of the ground surface",
         },
         "topographic__slope": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m/m",

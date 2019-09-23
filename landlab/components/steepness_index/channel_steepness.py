@@ -66,7 +66,7 @@ class SteepnessFinder(Component):
 
     _info = {
         "channel__steepness_index": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "variable",
@@ -74,7 +74,7 @@ class SteepnessFinder(Component):
             "doc": "the local steepness index",
         },
         "drainage_area": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m**2",
@@ -82,7 +82,7 @@ class SteepnessFinder(Component):
             "doc": "upstream drainage area",
         },
         "flow__link_to_receiver_node": {
-            "dtype":None,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -90,7 +90,7 @@ class SteepnessFinder(Component):
             "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
-            "dtype":None,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -98,7 +98,7 @@ class SteepnessFinder(Component):
             "doc": "the downstream node at the end of the steepest link",
         },
         "flow__upstream_node_order": {
-            "dtype":None,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -106,7 +106,7 @@ class SteepnessFinder(Component):
             "doc": "node order such that nodes must appear in the list after all nodes downstream of them",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m",
@@ -114,7 +114,7 @@ class SteepnessFinder(Component):
             "doc": "Surface topographic elevation",
         },
         "topographic__steepest_slope": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "-",

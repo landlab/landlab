@@ -70,7 +70,7 @@ class PotentialEvapotranspiration(Component):
 
     _info = {
         "radiation__incoming_shortwave_flux": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "W/m^2",
@@ -78,7 +78,7 @@ class PotentialEvapotranspiration(Component):
             "doc": "total incident shortwave radiation over the time step",
         },
         "radiation__net_flux": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "W/m^2",
@@ -86,7 +86,7 @@ class PotentialEvapotranspiration(Component):
             "doc": "net total radiation over the time step",
         },
         "radiation__net_longwave_flux": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "W/m^2",
@@ -94,7 +94,7 @@ class PotentialEvapotranspiration(Component):
             "doc": "net incident longwave radiation over the time step",
         },
         "radiation__net_shortwave_flux": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "W/m^2",
@@ -102,7 +102,7 @@ class PotentialEvapotranspiration(Component):
             "doc": "net incident shortwave radiation over the time step",
         },
         "radiation__ratio_to_flat_surface": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "None",
@@ -110,7 +110,7 @@ class PotentialEvapotranspiration(Component):
             "doc": "ratio of total incident shortwave radiation on sloped surface to flat surface",
         },
         "surface__potential_evapotranspiration_rate": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "mm",

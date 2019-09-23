@@ -72,7 +72,7 @@ class Radiation(Component):
 
     _info = {
         "radiation__incoming_shortwave_flux": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "W/m^2",
@@ -80,7 +80,7 @@ class Radiation(Component):
             "doc": "total incident shortwave radiation over the time step",
         },
         "radiation__net_shortwave_flux": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "W/m^2",
@@ -88,7 +88,7 @@ class Radiation(Component):
             "doc": "net incident shortwave radiation over the time step",
         },
         "radiation__ratio_to_flat_surface": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "None",
@@ -96,7 +96,7 @@ class Radiation(Component):
             "doc": "ratio of total incident shortwave radiation on sloped surface to flat surface",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m",

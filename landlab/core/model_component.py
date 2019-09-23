@@ -109,12 +109,14 @@ class Component(object):
                 field = self._grid[at][name]
                 dtype = self._info[name]["dtype"]
 
-                try:
-                    assert field.dtype == dtype
-                except AssertionError:
+                if field.dtype != dtype:
                     raise FieldError(
                         "{component} required input variable: {name} at {at} has incorrect dtype. dtype must be {dtype} and is {actual}".format(
-                            component=self._name, name=name, at=at, dtype=dtype, actual=field.dtype
+                            component=self._name,
+                            name=name,
+                            at=at,
+                            dtype=dtype,
+                            actual=field.dtype,
                         )
                     )
 
@@ -125,12 +127,14 @@ class Component(object):
                     field = self._grid[at][name]
                     dtype = self._info[name]["dtype"]
 
-                    try:
-                        assert field.dtype == dtype
-                    except AssertionError:
+                    if field.dtype != dtype:
                         raise FieldError(
-                            "{component} optional input variable: {name} at {at} has incorrect dtype. dtype must be {dtype}".format(
-                                component=self._name, name=name, at=at, dtype=dtype
+                            "{component} optional input variable: {name} at {at} has incorrect dtype. dtype must be {dtype} and is {actual}".format(
+                                component=self._name,
+                                name=name,
+                                at=at,
+                                dtype=dtype,
+                                actual=field.dtype,
                             )
                         )
 

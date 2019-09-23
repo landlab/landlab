@@ -104,7 +104,7 @@ def test_updating_with_array_provided():
 def test_mask_field_exists():
     mg = RasterModelGrid((10, 10))
     mg.add_zeros("node", "topographic__elevation")
-    mg.add_zeros("node", "channel__mask")
+    mg.add_zeros("node", "channel__mask", dtype=np.uint8)
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")

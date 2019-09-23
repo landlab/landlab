@@ -49,7 +49,7 @@ class GroundwaterDupuitPercolator(Component):
 
     _info = {
         "aquifer__thickness": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -57,7 +57,7 @@ class GroundwaterDupuitPercolator(Component):
             "doc": "thickness of saturated zone",
         },
         "aquifer_base__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m",
@@ -65,7 +65,7 @@ class GroundwaterDupuitPercolator(Component):
             "doc": "elevation of impervious layer",
         },
         "groundwater__specific_discharge": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m2/s",
@@ -73,7 +73,7 @@ class GroundwaterDupuitPercolator(Component):
             "doc": "discharge per width in link dir",
         },
         "groundwater__velocity": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m/s",
@@ -81,7 +81,7 @@ class GroundwaterDupuitPercolator(Component):
             "doc": "velocity of groundwater in link direction",
         },
         "hydraulic__gradient": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m/m",
@@ -89,7 +89,7 @@ class GroundwaterDupuitPercolator(Component):
             "doc": "gradient of water table in link direction",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m",
@@ -97,7 +97,7 @@ class GroundwaterDupuitPercolator(Component):
             "doc": "elevation of land surface",
         },
         "water_table__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m",

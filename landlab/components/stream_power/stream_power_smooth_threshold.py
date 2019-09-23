@@ -89,7 +89,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
 
     _info = {
         "drainage_area": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m**2",
@@ -97,7 +97,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
             "doc": "Upstream accumulated surface area contributing to the node's discharge",
         },
         "flow__link_to_receiver_node": {
-            "dtype":None,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -105,7 +105,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
             "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
-            "dtype":None,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -113,7 +113,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__upstream_node_order": {
-            "dtype":None,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -121,7 +121,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "inout",
             "optional": False,
             "units": "m",

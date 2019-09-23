@@ -69,7 +69,7 @@ class VegCA(Component):
 
     _info = {
         "plant__age": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "Years",
@@ -77,7 +77,7 @@ class VegCA(Component):
             "doc": "Age of plant",
         },
         "plant__live_index": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "None",
@@ -85,7 +85,7 @@ class VegCA(Component):
             "doc": "1 - vegetation__cumulative_water_stress",
         },
         "vegetation__cumulative_water_stress": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "None",
@@ -93,7 +93,7 @@ class VegCA(Component):
             "doc": "cumulative vegetation__water_stress over the growing season",
         },
         "vegetation__plant_functional_type": {
-            "dtype":None,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "None",
@@ -213,6 +213,7 @@ class VegCA(Component):
         self._cell_values = self._grid["cell"]
 
         VegType = grid["cell"]["vegetation__plant_functional_type"]
+
         tp = np.zeros(grid.number_of_cells, dtype=int)
         tp[VegType == TREE] = np.random.randint(
             0, self._tpmax_tr, np.where(VegType == TREE)[0].shape
@@ -224,7 +225,7 @@ class VegCA(Component):
         locs_shrubs = np.where(VegType == SHRUB)[0]
         VegType[locs_trees[tp[locs_trees] < self._tpmax_tr_s]] = TREESEEDLING
         VegType[locs_shrubs[tp[locs_shrubs] < self._tpmax_sh_s]] = SHRUBSEEDLING
-        grid["cell"]["plant__age"] = tp
+        grid["cell"]["plant__age"] = tp.astype(float)
 
     @property
     def Edit_VegCov(self):

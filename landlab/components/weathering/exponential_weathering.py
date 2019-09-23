@@ -55,7 +55,7 @@ class ExponentialWeatherer(Component):
 
     _info = {
         "soil__depth": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m",
@@ -63,7 +63,7 @@ class ExponentialWeatherer(Component):
             "doc": "depth of soil/weather bedrock",
         },
         "soil_production__rate": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m/yr",

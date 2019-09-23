@@ -139,21 +139,21 @@ class LandslideProbability(Component):
 
     >>> scatter_dat = np.random.randint(1, 10, grid.number_of_nodes)
     >>> grid.at_node['topographic__specific_contributing_area'] = np.sort(
-    ...      np.random.randint(30, 900, grid.number_of_nodes))
+    ...      np.random.randint(30, 900, grid.number_of_nodes).astype(float))
     >>> grid.at_node['soil__transmissivity'] = np.sort(
-    ...      np.random.randint(5, 20, grid.number_of_nodes), -1)
+    ...      np.random.randint(5, 20, grid.number_of_nodes).astype(float), -1)
     >>> grid.at_node['soil__saturated_hydraulic_conductivity'] = np.sort(
-    ...      np.random.randint(2, 10, grid.number_of_nodes), -1)
+    ...      np.random.randint(2, 10, grid.number_of_nodes).astype(float), -1)
     >>> grid.at_node['soil__mode_total_cohesion'] = np.sort(
-    ...      np.random.randint(30, 900, grid.number_of_nodes))
+    ...      np.random.randint(30, 900, grid.number_of_nodes).astype(float))
     >>> grid.at_node['soil__minimum_total_cohesion'] = (
     ...      grid.at_node['soil__mode_total_cohesion'] - scatter_dat)
     >>> grid.at_node['soil__maximum_total_cohesion'] = (
     ...      grid.at_node['soil__mode_total_cohesion'] + scatter_dat)
     >>> grid.at_node['soil__internal_friction_angle'] = np.sort(
-    ...      np.random.randint(26, 40, grid.number_of_nodes))
+    ...      np.random.randint(26, 40, grid.number_of_nodes).astype(float))
     >>> grid.at_node['soil__thickness'] = np.sort(
-    ...      np.random.randint(1, 10, grid.number_of_nodes))
+    ...      np.random.randint(1, 10, grid.number_of_nodes).astype(float))
     >>> grid.at_node['soil__density'] = (2000. * np.ones(grid.number_of_nodes))
 
     Instantiate the 'LandslideProbability' component to work on this grid,
@@ -187,7 +187,7 @@ class LandslideProbability(Component):
     __version__ = "1.0"
     _info = {
         "landslide__probability_of_failure": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "None",
@@ -195,7 +195,7 @@ class LandslideProbability(Component):
             "doc": "number of times FS is <=1 out of number of iterations user selected",
         },
         "soil__density": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "kg/m3",
@@ -203,7 +203,7 @@ class LandslideProbability(Component):
             "doc": "wet bulk density of soil",
         },
         "soil__internal_friction_angle": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "degrees",
@@ -211,7 +211,7 @@ class LandslideProbability(Component):
             "doc": "critical angle just before failure due to friction between particles",
         },
         "soil__maximum_total_cohesion": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "Pa or kg/m-s2",
@@ -219,7 +219,7 @@ class LandslideProbability(Component):
             "doc": "maximum of combined root and soil cohesion at node",
         },
         "soil__mean_relative_wetness": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "None",
@@ -227,7 +227,7 @@ class LandslideProbability(Component):
             "doc": "Indicator of soil wetness; relative depth perched water table within the soil layer",
         },
         "soil__minimum_total_cohesion": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "Pa or kg/m-s2",
@@ -235,7 +235,7 @@ class LandslideProbability(Component):
             "doc": "minimum of combined root and soil cohesion at node",
         },
         "soil__mode_total_cohesion": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "Pa or kg/m-s2",
@@ -243,7 +243,7 @@ class LandslideProbability(Component):
             "doc": "mode of combined root and soil cohesion at node",
         },
         "soil__probability_of_saturation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "None",
@@ -251,7 +251,7 @@ class LandslideProbability(Component):
             "doc": "number of times relative wetness is >=1 out of number of iterations user selected",
         },
         "soil__saturated_hydraulic_conductivity": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m/day",
@@ -259,7 +259,7 @@ class LandslideProbability(Component):
             "doc": "mode rate of water transmitted through soil - provided if transmissivity is NOT provided to calculate tranmissivity  with soil depth",
         },
         "soil__thickness": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m",
@@ -267,7 +267,7 @@ class LandslideProbability(Component):
             "doc": "soil depth to restrictive layer",
         },
         "soil__transmissivity": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m2/day",
@@ -275,7 +275,7 @@ class LandslideProbability(Component):
             "doc": "mode rate of water transmitted through a unit width of saturated soil - either provided or calculated with Ksat and soil depth",
         },
         "topographic__slope": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "tan theta",
@@ -283,7 +283,7 @@ class LandslideProbability(Component):
             "doc": "slope of surface at node represented by tan theta",
         },
         "topographic__specific_contributing_area": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m",

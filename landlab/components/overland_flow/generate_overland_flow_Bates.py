@@ -66,7 +66,7 @@ class OverlandFlowBates(Component):
 
     _info = {
         "surface_water__depth": {
-            "dtype":None,
+            "dtype": float,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -74,7 +74,7 @@ class OverlandFlowBates(Component):
             "doc": "The depth of water at each node.",
         },
         "surface_water__discharge": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m3/s",
@@ -82,7 +82,7 @@ class OverlandFlowBates(Component):
             "doc": "The discharge of water on active links.",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m",

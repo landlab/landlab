@@ -68,8 +68,8 @@ class FlowDirectorD8(_FlowDirectorToOne):
             0.        ,  0.        ,  0.        ,  0.        ])
     >>> mg.at_node['flow__link_to_receiver_node']
     array([-1, -1, -1, -1, 12, -1, -1, -1, -1])
-    >>> mg.at_node['flow__sink_flag']
-    array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=int8)
+    >>> mg.at_node['flow__sink_flag'].astype(int)
+    array([1, 1, 1, 1, 0, 1, 1, 1, 1])
     >>> mg_2 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
     ...                                    0., 21., 10., 0.,
@@ -104,7 +104,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
     _info = {
         "flow__link_to_receiver_node": {
-            "dtype":None,
+            "dtype": int,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -112,7 +112,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
             "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
-            "dtype":None,
+            "dtype": int,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -120,7 +120,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__sink_flag": {
-            "dtype":None,
+            "dtype": bool,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -128,7 +128,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
             "doc": "Boolean array, True at local lows",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": True,
             "units": "m",
@@ -136,7 +136,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
             "doc": "Land surface topographic elevation",
         },
         "topographic__steepest_slope": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "-",

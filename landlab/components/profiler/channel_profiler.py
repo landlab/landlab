@@ -468,7 +468,7 @@ class ChannelProfiler(_BaseProfiler):
 
     _info = {
         "drainage_area": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": True,
             "units": "m**2",
@@ -476,7 +476,7 @@ class ChannelProfiler(_BaseProfiler):
             "doc": "Upstream accumulated surface area contributing to the node's discharge",
         },
         "flow__link_to_receiver_node": {
-            "dtype":None,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -484,7 +484,7 @@ class ChannelProfiler(_BaseProfiler):
             "doc": "Node array containing ID of link that leads from each node to its receiver, or BAD_INDEX_VALUE if no link",
         },
         "flow__receiver_node": {
-            "dtype":None,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "-",

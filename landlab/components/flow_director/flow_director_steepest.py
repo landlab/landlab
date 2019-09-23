@@ -71,8 +71,8 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
     >>> mg.at_node['flow__link_to_receiver_node']
     array([-1, -1, -1, -1,  3, -1, -1, -1, -1])
-    >>> mg.at_node['flow__sink_flag']
-    array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=int8)
+    >>> mg.at_node['flow__sink_flag'].astype(int)
+    array([1, 1, 1, 1, 0, 1, 1, 1, 1])
     >>> mg_2 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
     ...                                    0., 21., 10., 0.,
@@ -236,12 +236,12 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
        -1, 12, 14, 16, -1,
          -1, 25, 27, -1,
            -1, -1, -1])
-    >>> mg.at_node['flow__sink_flag']
+    >>> mg.at_node['flow__sink_flag'].astype(int)
     array([1, 1, 1,
           1, 0, 0, 1,
          1, 0, 0, 0, 1,
           1, 0, 0, 1,
-            1, 1, 1], dtype=int8)
+            1, 1, 1])
     >>> receiver = fd.direct_flow()
     >>> receiver
     array([ 0,  1,  2,
@@ -255,7 +255,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     _info = {
         "flow__link_direction": {
-            "dtype":None,
+            "dtype": np.int8,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -263,7 +263,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             "doc": "Direction of flow on link. A value of -1 indicates that water flow goes from head node to tail node, while a value of 1 indicates that water flow goes from tail node to head node.",
         },
         "flow__link_to_receiver_node": {
-            "dtype":None,
+            "dtype": int,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -271,7 +271,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
-            "dtype":None,
+            "dtype": int,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -279,7 +279,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__sink_flag": {
-            "dtype":None,
+            "dtype": bool,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -287,7 +287,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             "doc": "Boolean array, True at local lows",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": True,
             "units": "m",
@@ -295,7 +295,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             "doc": "Land surface topographic elevation",
         },
         "topographic__steepest_slope": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "-",

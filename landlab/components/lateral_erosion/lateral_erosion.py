@@ -184,7 +184,7 @@ class LateralEroder(Component):
 
     _info = {
         "drainage_area": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m2",
@@ -192,7 +192,7 @@ class LateralEroder(Component):
             "doc": "Upstream accumulated surface area contributing to the node's discharge",
         },
         "flow__receiver_node": {
-            "dtype":None,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -200,7 +200,7 @@ class LateralEroder(Component):
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__upstream_node_order": {
-            "dtype":None,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -208,7 +208,7 @@ class LateralEroder(Component):
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "lateral_erosion__depth_increment": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -216,7 +216,7 @@ class LateralEroder(Component):
             "doc": "Change in elevation at each node from lateral erosion during time step",
         },
         "sediment__flux": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m3/y",
@@ -224,7 +224,7 @@ class LateralEroder(Component):
             "doc": "Volume per unit time of sediment entering each node",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -232,7 +232,7 @@ class LateralEroder(Component):
             "doc": "Land surface topographic elevation",
         },
         "topographic__steepest_slope": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -240,7 +240,7 @@ class LateralEroder(Component):
             "doc": "Topographic slope at each node",
         },
         "volume__lateral_erosion": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m3",

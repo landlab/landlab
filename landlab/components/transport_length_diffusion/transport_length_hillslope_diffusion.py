@@ -89,7 +89,7 @@ class TransportLengthHillslopeDiffuser(Component):
 
     _info = {
         "flow__receiver_node": {
-            "dtype":None,
+            "dtype": int,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -97,7 +97,7 @@ class TransportLengthHillslopeDiffuser(Component):
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "sediment__deposition_coeff": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -105,7 +105,7 @@ class TransportLengthHillslopeDiffuser(Component):
             "doc": "Fraction of incoming sediment that is deposited on the node",
         },
         "sediment__deposition_rate": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m/yr",
@@ -113,7 +113,7 @@ class TransportLengthHillslopeDiffuser(Component):
             "doc": "Deposition rate on node",
         },
         "sediment__erosion_rate": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m/yr",
@@ -121,7 +121,7 @@ class TransportLengthHillslopeDiffuser(Component):
             "doc": "Erosion rate on node",
         },
         "sediment__flux_in": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m/yr",
@@ -129,7 +129,7 @@ class TransportLengthHillslopeDiffuser(Component):
             "doc": "Incoming sediment rate on node (=qs/dx)",
         },
         "sediment__flux_out": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m/yr",
@@ -137,7 +137,7 @@ class TransportLengthHillslopeDiffuser(Component):
             "doc": "Outgoing sediment rate on node = sediment eroded on node + sediment transported across node from upstream",
         },
         "sediment__transfer_rate": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m/yr",
@@ -145,7 +145,7 @@ class TransportLengthHillslopeDiffuser(Component):
             "doc": "Rate of transferred sediment across a node (incoming sediment - deposited sediment on node)",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -153,7 +153,7 @@ class TransportLengthHillslopeDiffuser(Component):
             "doc": "Elevation of the ground surface",
         },
         "topographic__steepest_slope": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "m/m",

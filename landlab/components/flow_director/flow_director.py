@@ -71,7 +71,7 @@ class _FlowDirector(Component):
 
     _info = {
         "flow__sink_flag": {
-            "dtype":None,
+            "dtype": bool,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -96,7 +96,7 @@ class _FlowDirector(Component):
         self._surface = surface
         self._surface_values = return_array_at_node(grid, surface)
 
-        grid.add_zeros("flow__sink_flag", at="node", dtype=numpy.int8, noclobber=False)
+        grid.add_zeros("flow__sink_flag", at="node", dtype=bool, noclobber=False)
 
     @property
     def surface_values(self):

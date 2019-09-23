@@ -56,7 +56,7 @@ class PerronNLDiffuse(Component):
 
     _info = {
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "inout",
             "optional": False,
             "units": "m",

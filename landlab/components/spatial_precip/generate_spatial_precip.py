@@ -256,7 +256,7 @@ class SpatialPrecipitationDistribution(Component):
 
     _info = {
         "rainfall__flux": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "mm/hr",
@@ -264,7 +264,7 @@ class SpatialPrecipitationDistribution(Component):
             "doc": "Depth of water delivered per unit time in each storm",
         },
         "rainfall__total_depth_per_year": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "mm/yr",
@@ -272,7 +272,7 @@ class SpatialPrecipitationDistribution(Component):
             "doc": "Depth of water delivered in total in each model year",
         },
         "topographic__elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": True,
             "units": "m",

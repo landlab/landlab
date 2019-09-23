@@ -146,7 +146,7 @@ class Flexure1D(Component):
 
     _info = {
         "lithosphere__increment_of_overlying_pressure": {
-            "dtype":None,
+            "dtype": float,
             "intent": "in",
             "optional": False,
             "units": "Pa",
@@ -154,7 +154,7 @@ class Flexure1D(Component):
             "doc": "Applied pressure to the lithosphere over a time step",
         },
         "lithosphere_surface__increment_of_elevation": {
-            "dtype":None,
+            "dtype": float,
             "intent": "out",
             "optional": False,
             "units": "m",
