@@ -8,7 +8,7 @@ Peer-reviewed journal articles
 ------------------------------
 
 2019
-~~~~
+````
 
 Bandaragoda, C. J., Castronova, A., Istanbulluoglu, E., Strauch, R.,
 Nudurupati, S. S., Phuong, J., Adams, J.M., Gasparini, N.M., Barnhart,
@@ -50,10 +50,8 @@ products for spatial-temporal exploratory analysis and
 intercomparison.** Environmental Modeling and Software. Vol 116.
 p. 119-30: https://doi.org/10.1016/j.envsoft.2019.01.007.
 
-.. _section-1:
-
 2018
-~~~~
+````
 
 Barnhart, K. R., Hutton, E. W., Gasparini, N. M., & Tucker, G. E.
 (2018). **Lithology: A Landlab submodule for spatially variable rock
@@ -102,10 +100,9 @@ model of hillslope evolution.** *Earth Surface Dynamics*, v. 6,
 p. 563-582, doi: 10.5194/esurf-6-563-2018. [[abstract and paper \|
 https://doi.org/10.5194/esurf-6-563-2018]]
 
-.. _section-2:
 
 2017
-~~~~
+````
 
 Adams, J.M., Gasparini, N.M., Hobley, D.E.J., Tucker, G.E., Hutton,
 E.W.H., Nudurupati, S.S., and Istanbulluoglu, E. **The Landlab v1.0
@@ -138,10 +135,8 @@ erosion, and landscape evolution.** *Geoscientific Model Development*,
 https://www.geosci-model-dev.net/10/4577/2017/]] \| [[paper \|
 https://www.geosci-model-dev.net/10/4577/2017/gmd-10-4577-2017.pdf]]
 
-.. _section-3:
-
 2016
-~~~~
+````
 
 Tucker, G.E., Hobley, D.E.J., Hutton, E., Gasparini, N.M.,
 Istanbulluoglu, E., Adams, J.M., and Nudurupati, S.S. **CellLab-CTS
@@ -177,10 +172,8 @@ https://news.tulane.edu/news/grad-student-helps-build-model-study-wildfires]]
 Presentations
 -------------
 
-.. _section-4:
-
 2018
-~~~~
+````
 
 Istanbulluoglu E., Strauch R., Nudurupati S.S., Bandaragoda C.,
 Gasparini N.M., and G.E. Tucker (2018). A hydro-climatological approach
@@ -195,8 +188,6 @@ National Meeting, November 4–7, 2018, Indianapolis, IN.
 [[abstract|https://gsa.confex.com/gsa/2018AM/webprogram/Paper324626.html]]
 \|
 [[poster|https://drive.google.com/open?id=16_hRtF6DsBKQGSHE3E2zkYUwovUQEiVZ]]
-
-.. _section-5:
 
 2017
 ~~~~
@@ -335,10 +326,8 @@ landscape evolution as a testbed for comparing alternative geomorphic
 model formulations. Invited paper presented at CUAHSI HydroInformatics
 Conference, Tuscaloosa, AL.
 
-.. _section-6:
-
 2016
-~~~~
+````
 
 Adams, J.M., Gasparini, N.M., Tucker, G.E., and Istanbulluoglu, E.
 (2016) Nonsteady flow routing in Landlab: implications for modeling
@@ -455,10 +444,8 @@ http://maxim.ucsd.edu/suave/index.html?file=si2n.cxml]] \| [[poster \|
 images/si2pi_landlab_poster_tucker.jpg]] \| [[download poster \|
 images/si2pi_landlab_poster_tucker.pdf]]
 
-.. _section-7:
-
 2015
-~~~~
+````
 
 Adams, J.M., Gasparini, N.M., Tucker, G.E., Hobley, D., Hutton, E.W.H.,
 Nudurupati, S.S., and Istanbulluoglu, E. (2015) Modeling overland
@@ -480,10 +467,8 @@ Hazard from Coupled Inherent and Dynamic Probabilities. Paper presented
 at American Geophysical Union fall meeting, San Francisco, CA, Dec 2015.
 [[abstract \| http://bit.ly/1P5ct05]]
 
-.. _section-8:
-
 2014
-~~~~
+````
 
 Adams, J.M., Rengers, F.K., Gasparini, N.M., Tucker, G.E., Nudurupati,
 S.S., Istanbulluoglu, E., and Hutton, E. (2014) Exploring Post-Wildfire
@@ -528,10 +513,8 @@ environment. 2014: Community Surface Dynamics Modeling System Annual
 Meeting, Boulder, Colorado, May 2014. [[abstract \|
 http://bit.ly/1RkIK55]] \| [[poster \| http://bit.ly/1RkIT8y]]
 
-.. _section-9:
-
 2013
-~~~~
+````
 
 Adams, J., Gasparini, N.M., Tucker, G.E., Istanbulluoglu, E., Hutton,
 E., Hobley, D., and Nudurupati, S.S. (2013) Modeling wildfire and

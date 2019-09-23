@@ -7,7 +7,7 @@ Utilities and Decorators
 .. toctree::
   :maxdepth: 2
 
-  ../core/utils
+  ../../core/utils
   add_halo
   count_repeats
   decorators
@@ -22,15 +22,6 @@ Utilities and Decorators
   source_tracking_algorithm
   stable_priority_queue
   watershed
-
-
-  Extensions
-  ----------
-
-  .. toctree::
-    :maxdepth: 2
-
-    landlab.utils_ext
 
 Module contents
 ---------------

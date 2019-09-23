@@ -16,43 +16,19 @@ some of the major changes.
 ###Grid element and attribute names
 
 Old: ``link_length``
-
 New: ``length_of_link``
 
 Old: ``node_x``, ``node_y``
-
 New: ``x_of_node``, ``y_of_node`` OR ``node_x``, ``node_y``
 
 (NOTE: ``node_x`` and ``node_y`` are still supported, but best practice
 is now to use ``x_of_node`` and ``y_of_node``)
 
-+----+
-| Ol |
-| d: |
-| `` |
-| ce |
-| ll |
-| _a |
-| re |
-| a` |
-| `  |
-+----+
-| Ne |
-| w: |
-| `` |
-| ar |
-| ea |
-| _o |
-| f_ |
-| ce |
-| ll |
-| `` |
-+----+
+Old:``cell_area``
+New:``area_of_cell``
 
 Old: ``face_width``
-
 New: ``width_of_face``
-
 
 Common grid functions
 ---------------------

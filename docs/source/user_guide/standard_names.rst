@@ -7,6 +7,7 @@ See `this page <https://github.com/landlab/landlab/wiki/Components#landlab-stand
 for information on the naming conventions.
 
 .. _standard_name_list:
+
 List of Standard names in Landlab
 ------------------------------------
 
@@ -276,8 +277,6 @@ List of Standard names in Landlab
 | water_surface__gradient                           |                              | 'OverlandFlowBates'                |
 |                                                   |                              | 'OverlandFlow'                     |
 +---------------------------------------------------+------------------------------+------------------------------------+
-
-
 
 
 .. _standard_name_changes:

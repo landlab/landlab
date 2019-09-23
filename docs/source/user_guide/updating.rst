@@ -143,7 +143,7 @@ servers—easiest through the app, using the "Sync" button in the top right (mak
 sure you're in the local master branch).
 
 If you didn't get the green "able to merge" button, it means some of your local
-changes conflict with what's in the main Landlab repo. Don't panic! This is 
+changes conflict with what's in the main Landlab repo. Don't panic! This is
 fine. Just follow the instructions to press ahead. Conflicts can be resolved
 manually later in the process—conflicting sections of the code will be tagged
 with a distinctive >>>>>>> symbology, and you can find and modify them by hand.

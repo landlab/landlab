@@ -11,7 +11,7 @@ NetworkModelGrid
 ================
 
 General class methods and attributes of the `landlab.grid.network` module
-------------------------------------------------------------------------
+-------------------------------------------------------------------------
 
 Landlab's network grids are implemented by the class `NetworkModelGrid`,
 which inherits from `Graph` and `GraphFields`. This text lists grid methods

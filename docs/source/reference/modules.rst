@@ -1,7 +1,10 @@
+=======
 landlab
 =======
 
-.. toctree::
-   :maxdepth: 2
+.. automodule:: landlab.components.profiler.channel_profiler
+   :members:
+   :undoc-members:
+   :noindex:
 
    landlab

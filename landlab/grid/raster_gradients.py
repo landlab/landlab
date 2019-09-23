@@ -10,7 +10,7 @@ Gradient calculators for raster grids
     ~landlab.grid.raster_gradients.calc_grad_at_active_link
     ~landlab.grid.raster_gradients.calc_grad_across_cell_faces
     ~landlab.grid.raster_gradients.calc_grad_across_cell_corners
-    ~landlab.grid.raster_gradients.alculate_gradient_along_node_links
+    ~landlab.grid.raster_gradients.calculate_gradient_along_node_links
 
 """
 from collections import deque

@@ -1,7 +1,7 @@
-landlab.utils.fault_facet_finder module
+landlab.utils.distance_to_divide module
 =======================================
 
-.. automodule:: landlab.utils.fault_facet_finder
+.. automodule:: landlab.utils.distance_to_divide
     :members:
     :undoc-members:
     :show-inheritance:
