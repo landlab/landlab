@@ -75,7 +75,7 @@ class SedDepEroder(Component):
 
     _info = {
         "channel__bed_shear_stress": {
-            "type": float,
+            "dtype":float,
             "intent": "out",
             "optional": False,
             "units": "Pa",
@@ -83,7 +83,7 @@ class SedDepEroder(Component):
             "doc": "Shear exerted on the bed of the channel, assuming all discharge travels along a single, self-formed channel",
         },
         "channel__depth": {
-            "type": float,
+            "dtype":float,
             "intent": "out",
             "optional": True,
             "units": "m",
@@ -91,7 +91,7 @@ class SedDepEroder(Component):
             "doc": "Depth of the a single channel carrying all runoff through the node",
         },
         "channel__discharge": {
-            "type": float,
+            "dtype":float,
             "intent": "out",
             "optional": False,
             "units": "m**3/s",
@@ -99,7 +99,7 @@ class SedDepEroder(Component):
             "doc": "Volumetric water flux of the a single channel carrying all runoff through the node",
         },
         "channel__width": {
-            "type": float,
+            "dtype":float,
             "intent": "out",
             "optional": True,
             "units": "m",
@@ -107,7 +107,7 @@ class SedDepEroder(Component):
             "doc": "Width of the a single channel carrying all runoff through the node",
         },
         "channel_sediment__relative_flux": {
-            "type": float,
+            "dtype":float,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -115,7 +115,7 @@ class SedDepEroder(Component):
             "doc": "The fluvial_sediment_flux_into_node divided by the fluvial_sediment_transport_capacity",
         },
         "channel_sediment__volumetric_flux": {
-            "type": float,
+            "dtype":float,
             "intent": "out",
             "optional": False,
             "units": "m**3/s",
@@ -123,7 +123,7 @@ class SedDepEroder(Component):
             "doc": "Total volumetric fluvial sediment flux brought into the node from upstream",
         },
         "channel_sediment__volumetric_transport_capacity": {
-            "type": float,
+            "dtype":float,
             "intent": "out",
             "optional": False,
             "units": "m**3/s",
@@ -131,7 +131,7 @@ class SedDepEroder(Component):
             "doc": "Volumetric transport capacity of a channel carrying all runoff through the node, assuming the Meyer-Peter Muller transport equation",
         },
         "drainage_area": {
-            "type": float,
+            "dtype":float,
             "intent": "in",
             "optional": False,
             "units": "m**2",
@@ -139,7 +139,7 @@ class SedDepEroder(Component):
             "doc": "Upstream accumulated surface area contributing to the node's discharge",
         },
         "flow__link_to_receiver_node": {
-            "type": int,
+            "dtype":int,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -147,7 +147,7 @@ class SedDepEroder(Component):
             "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
-            "type": int,
+            "dtype":int,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -155,7 +155,7 @@ class SedDepEroder(Component):
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__upstream_node_order": {
-            "type": int,
+            "dtype":int,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -163,7 +163,7 @@ class SedDepEroder(Component):
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "topographic__elevation": {
-            "type": float,
+            "dtype":float,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -171,7 +171,7 @@ class SedDepEroder(Component):
             "doc": "Land surface topographic elevation",
         },
         "topographic__steepest_slope": {
-            "type": float,
+            "dtype":float,
             "intent": "in",
             "optional": False,
             "units": "-",

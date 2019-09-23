@@ -111,7 +111,7 @@ class StreamPowerEroder(Component):
 
     _info = {
         "drainage_area": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "m**2",
@@ -119,7 +119,7 @@ class StreamPowerEroder(Component):
             "doc": "Upstream accumulated surface area contributing to the node's discharge",
         },
         "flow__link_to_receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -127,7 +127,7 @@ class StreamPowerEroder(Component):
             "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -135,7 +135,7 @@ class StreamPowerEroder(Component):
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__upstream_node_order": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -143,7 +143,7 @@ class StreamPowerEroder(Component):
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "m",

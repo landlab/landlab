@@ -137,7 +137,7 @@ class DepressionFinderAndRouter(Component):
 
     _info = {
         "depression__depth": {
-            "type": float,
+            "dtype":float,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -145,7 +145,7 @@ class DepressionFinderAndRouter(Component):
             "doc": "Depth of depression below its spillway point",
         },
         "depression__outlet_node": {
-            "type": int,
+            "dtype":int,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -153,7 +153,7 @@ class DepressionFinderAndRouter(Component):
             "doc": "If a depression, the id of the outlet node for that depression, otherwise BAD_INDEX_VALUE",
         },
         "flood_status_code": {
-            "type": int,
+            "dtype":int,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -161,7 +161,7 @@ class DepressionFinderAndRouter(Component):
             "doc": "Map of flood status (_PIT, _CURRENT_LAKE, _UNFLOODED, or _FLOODED).",
         },
         "is_pit": {
-            "type": bool,
+            "dtype":bool,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -169,7 +169,7 @@ class DepressionFinderAndRouter(Component):
             "doc": "Boolean flag indicating whether a node is a pit.",
         },
         "topographic__elevation": {
-            "type": float,
+            "dtype":float,
             "intent": "in",
             "optional": False,
             "units": "m",

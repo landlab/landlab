@@ -161,7 +161,7 @@ class HackCalculator(Component):
 
     __info = {
         "distance_to_divide": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -169,7 +169,7 @@ class HackCalculator(Component):
             "doc": "Distance from drainage divide.",
         },
         "drainage_area": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "m**2",
@@ -177,7 +177,7 @@ class HackCalculator(Component):
             "doc": "Upstream accumulated surface area contributing to the node's discharge",
         },
         "flow__link_to_receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -185,7 +185,7 @@ class HackCalculator(Component):
             "doc": "Node array containing ID of link that leads from each node to its receiver, or BAD_INDEX_VALUE if no link",
         },
         "flow__receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -193,7 +193,7 @@ class HackCalculator(Component):
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__upstream_node_order": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -201,7 +201,7 @@ class HackCalculator(Component):
             "doc": "node order such that nodes must appear in the list after all nodes downstream of them",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "m",

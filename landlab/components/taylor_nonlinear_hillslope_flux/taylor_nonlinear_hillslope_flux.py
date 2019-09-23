@@ -133,7 +133,7 @@ class TaylorNonLinearDiffuser(Component):
 
     _info = {
         "soil__flux": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m^2/yr",
@@ -141,7 +141,7 @@ class TaylorNonLinearDiffuser(Component):
             "doc": "flux of soil in direction of link",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -149,7 +149,7 @@ class TaylorNonLinearDiffuser(Component):
             "doc": "elevation of the ground surface",
         },
         "topographic__slope": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m/m",

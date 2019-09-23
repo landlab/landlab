@@ -44,7 +44,7 @@ class KinwaveOverlandFlowModel(Component):
 
     _info = {
         "surface_water__depth": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -52,7 +52,7 @@ class KinwaveOverlandFlowModel(Component):
             "doc": "depth of water",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "m",
@@ -60,7 +60,7 @@ class KinwaveOverlandFlowModel(Component):
             "doc": "elevation of the ground surface relative to some datum",
         },
         "topographic__gradient": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "m/m",
@@ -68,7 +68,7 @@ class KinwaveOverlandFlowModel(Component):
             "doc": "gradient of the ground surface",
         },
         "water__specific_discharge": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m2/s",
@@ -76,7 +76,7 @@ class KinwaveOverlandFlowModel(Component):
             "doc": "flow discharge component in the direction of the link",
         },
         "water__velocity": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m/s",

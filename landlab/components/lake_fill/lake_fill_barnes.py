@@ -220,7 +220,7 @@ class LakeMapperBarnes(Component):
 
     _info = {
         "drainage_area": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "m**2",
@@ -228,7 +228,7 @@ class LakeMapperBarnes(Component):
             "doc": "Upstream accumulated surface area contributing to the node's discharge",
         },
         "flow__data_structure_D": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "-",
@@ -236,7 +236,7 @@ class LakeMapperBarnes(Component):
             "doc": "Link array containing the data structure D used for constructionof the downstream-to-upstream node array",
         },
         "flow__data_structure_delta": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "-",
@@ -244,7 +244,7 @@ class LakeMapperBarnes(Component):
             "doc": "Node array containing the elements delta[1:] of the data structure 'delta' used for construction of the downstream-to-upstream node array",
         },
         "flow__link_to_receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "-",
@@ -252,7 +252,7 @@ class LakeMapperBarnes(Component):
             "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "-",
@@ -260,7 +260,7 @@ class LakeMapperBarnes(Component):
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__sink_flag": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "-",
@@ -268,7 +268,7 @@ class LakeMapperBarnes(Component):
             "doc": "Boolean array, True at local lows",
         },
         "flow__upstream_node_order": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "-",
@@ -276,7 +276,7 @@ class LakeMapperBarnes(Component):
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "surface_water__discharge": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "m**3/s",
@@ -284,7 +284,7 @@ class LakeMapperBarnes(Component):
             "doc": "Discharge of water through each node",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "m",

@@ -74,7 +74,7 @@ class PotentialityFlowRouter(Component):
 
     _info = {
         "flow__potential": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m**3/s",
@@ -82,7 +82,7 @@ class PotentialityFlowRouter(Component):
             "doc": "Value of the hypothetical field 'K', used to force water flux to flow downhill",
         },
         "surface_water__depth": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -90,7 +90,7 @@ class PotentialityFlowRouter(Component):
             "doc": "If Manning or Chezy specified, the depth of flow in the cell, calculated assuming flow occurs over the whole surface",
         },
         "surface_water__discharge": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m**3/s",
@@ -98,7 +98,7 @@ class PotentialityFlowRouter(Component):
             "doc": "Magnitude of volumetric water flux out of each node",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "m",
@@ -106,7 +106,7 @@ class PotentialityFlowRouter(Component):
             "doc": "Land surface topographic elevation",
         },
         "water__unit_flux_in": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "m/s",

@@ -169,7 +169,7 @@ class Space(_GeneralizedErosionDeposition):
 
     _info = {
         "flow__link_to_receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -177,7 +177,7 @@ class Space(_GeneralizedErosionDeposition):
             "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -185,7 +185,7 @@ class Space(_GeneralizedErosionDeposition):
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__upstream_node_order": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -193,7 +193,7 @@ class Space(_GeneralizedErosionDeposition):
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "sediment__flux": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m3/s",
@@ -201,7 +201,7 @@ class Space(_GeneralizedErosionDeposition):
             "doc": "Sediment flux.",
         },
         "soil__depth": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -209,7 +209,7 @@ class Space(_GeneralizedErosionDeposition):
             "doc": "Depth of sediment above bedrock",
         },
         "surface_water__discharge": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "m**3/s",
@@ -217,7 +217,7 @@ class Space(_GeneralizedErosionDeposition):
             "doc": "Discharge of water through each node",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -225,7 +225,7 @@ class Space(_GeneralizedErosionDeposition):
             "doc": "Land surface topographic elevation",
         },
         "topographic__steepest_slope": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",

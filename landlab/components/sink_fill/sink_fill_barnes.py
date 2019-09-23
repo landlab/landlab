@@ -58,7 +58,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
 
     _info = {
         "sediment_fill__depth": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -66,7 +66,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
             "doc": "Depth of sediment added at eachnode",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "m",

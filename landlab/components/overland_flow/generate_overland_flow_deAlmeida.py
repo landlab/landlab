@@ -132,7 +132,7 @@ class OverlandFlow(Component):
 
     _info = {
         "surface_water__depth": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -140,7 +140,7 @@ class OverlandFlow(Component):
             "doc": "The depth of water at each node.",
         },
         "surface_water__discharge": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m3/s",
@@ -148,7 +148,7 @@ class OverlandFlow(Component):
             "doc": "The discharge of water on active links.",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "m",
@@ -156,7 +156,7 @@ class OverlandFlow(Component):
             "doc": "The land surface elevation.",
         },
         "water_surface__gradient": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",

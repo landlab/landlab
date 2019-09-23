@@ -71,7 +71,7 @@ class _FlowDirector(Component):
 
     _info = {
         "flow__sink_flag": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",

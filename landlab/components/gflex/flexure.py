@@ -111,7 +111,7 @@ class gFlex(Component):
 
     _info = {
         "lithosphere_surface__elevation_increment": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -119,7 +119,7 @@ class gFlex(Component):
             "doc": "Vertical deflection of the surface and of the lithospheric plate",
         },
         "surface_load__stress": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "Pa",
@@ -127,7 +127,7 @@ class gFlex(Component):
             "doc": "Magnitude of stress exerted by surface load",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m",

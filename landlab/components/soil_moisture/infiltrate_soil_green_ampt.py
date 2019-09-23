@@ -47,7 +47,7 @@ class SoilInfiltrationGreenAmpt(Component):
 
     _info = {
         "soil_water_infiltration__depth": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -55,7 +55,7 @@ class SoilInfiltrationGreenAmpt(Component):
             "doc": "Water column height above the surface previously absorbed into the soil. Note that this is NOT the actual depth of the wetted front, which also depends on the porosity.",
         },
         "surface_water__depth": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "m",

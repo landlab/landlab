@@ -152,7 +152,7 @@ class KinwaveImplicitOverlandFlow(Component):
 
     _info = {
         "surface_water__depth": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -160,7 +160,7 @@ class KinwaveImplicitOverlandFlow(Component):
             "doc": "depth of water",
         },
         "surface_water_inflow__discharge": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m3/s",
@@ -168,7 +168,7 @@ class KinwaveImplicitOverlandFlow(Component):
             "doc": "water volume inflow rate to the cell around each node",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "m",
@@ -176,7 +176,7 @@ class KinwaveImplicitOverlandFlow(Component):
             "doc": "elevation of the ground surface relative to some datum",
         },
         "topographic__gradient": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m/m",

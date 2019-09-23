@@ -139,7 +139,7 @@ class DrainageDensity(Component):
 
     _info = {
         "area_coefficient": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": True,
             "units": "-",
@@ -147,7 +147,7 @@ class DrainageDensity(Component):
             "doc": "Area coefficient to define channels.",
         },
         "area_exponent": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": True,
             "units": "-",
@@ -155,7 +155,7 @@ class DrainageDensity(Component):
             "doc": "Area exponent to define channels.",
         },
         "channel__mask": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": True,
             "units": "-",
@@ -163,7 +163,7 @@ class DrainageDensity(Component):
             "doc": "Logical map of at which grid nodes channels are present",
         },
         "channelization_threshold": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": True,
             "units": "-",
@@ -171,7 +171,7 @@ class DrainageDensity(Component):
             "doc": "Channelization threshold for use with area and slope coefficients and exponents.",
         },
         "flow__link_to_receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -179,7 +179,7 @@ class DrainageDensity(Component):
             "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -187,7 +187,7 @@ class DrainageDensity(Component):
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__upstream_node_order": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -195,7 +195,7 @@ class DrainageDensity(Component):
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "slope_coefficient": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": True,
             "units": "-",
@@ -203,7 +203,7 @@ class DrainageDensity(Component):
             "doc": "Slope coefficient to define channels.",
         },
         "slope_exponent": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": True,
             "units": "-",
@@ -211,7 +211,7 @@ class DrainageDensity(Component):
             "doc": "Slope exponent to define channels.",
         },
         "surface_to_channel__minimum_distance": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -219,7 +219,7 @@ class DrainageDensity(Component):
             "doc": "Distance from each node to the nearest channel",
         },
         "topographic__steepest_slope": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",

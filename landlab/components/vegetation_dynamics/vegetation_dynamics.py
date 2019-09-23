@@ -101,7 +101,7 @@ class Vegetation(Component):
 
     _info = {
         "surface__evapotranspiration": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "mm",
@@ -109,7 +109,7 @@ class Vegetation(Component):
             "doc": "actual sum of evaporation and plant transpiration",
         },
         "surface__potential_evapotranspiration_30day_mean": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "mm",
@@ -117,7 +117,7 @@ class Vegetation(Component):
             "doc": "30 day mean of surface__potential_evapotranspiration",
         },
         "surface__potential_evapotranspiration_rate": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "mm",
@@ -125,7 +125,7 @@ class Vegetation(Component):
             "doc": "potential sum of evaporation and platnt transpiration",
         },
         "vegetation__cover_fraction": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "None",
@@ -133,7 +133,7 @@ class Vegetation(Component):
             "doc": "fraction of land covered by vegetation",
         },
         "vegetation__dead_biomass": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "g m^-2 d^-1",
@@ -141,7 +141,7 @@ class Vegetation(Component):
             "doc": "weight of dead organic mass per unit area - measured in terms of dry matter",
         },
         "vegetation__dead_leaf_area_index": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "None",
@@ -149,7 +149,7 @@ class Vegetation(Component):
             "doc": "one-sided dead leaf area per unit ground surface area",
         },
         "vegetation__live_biomass": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "g m^-2 d^-1",
@@ -157,7 +157,7 @@ class Vegetation(Component):
             "doc": "weight of green organic mass per unit area - measured in terms of dry matter",
         },
         "vegetation__live_leaf_area_index": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "None",
@@ -165,7 +165,7 @@ class Vegetation(Component):
             "doc": "one-sided green leaf area per unit ground surface area",
         },
         "vegetation__plant_functional_type": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "None",
@@ -173,7 +173,7 @@ class Vegetation(Component):
             "doc": "classification of plants (int), grass=0, shrub=1, tree=2, bare=3, shrub_seedling=4, tree_seedling=5",
         },
         "vegetation__water_stress": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "None",

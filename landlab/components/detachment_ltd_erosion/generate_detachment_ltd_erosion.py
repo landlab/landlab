@@ -101,7 +101,7 @@ class DetachmentLtdErosion(Component):
 
     _info = {
         "surface_water__discharge": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "m**3/s",
@@ -109,7 +109,7 @@ class DetachmentLtdErosion(Component):
             "doc": "Discharge of water through each node",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -117,7 +117,7 @@ class DetachmentLtdErosion(Component):
             "doc": "Land surface topographic elevation",
         },
         "topographic__slope": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": True,
             "units": "-",

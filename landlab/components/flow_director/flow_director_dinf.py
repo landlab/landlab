@@ -206,7 +206,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
 
     _info = {
         "flow__link_to_receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -214,7 +214,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
             "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -222,7 +222,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__receiver_proportions": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -230,7 +230,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
             "doc": "Node array of proportion of flow sent to each receiver.",
         },
         "flow__sink_flag": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -238,7 +238,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
             "doc": "Boolean array, True at local lows",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": True,
             "units": "m",
@@ -246,7 +246,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
             "doc": "Land surface topographic elevation",
         },
         "topographic__steepest_slope": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",

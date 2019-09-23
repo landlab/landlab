@@ -215,7 +215,7 @@ class Component(object):
         dtype
             The dtype of the field.
         """
-        return cls._info[name]["type"] or float
+        return cls._info[name]["dtype"] or float
 
     @classproperty
     @classmethod

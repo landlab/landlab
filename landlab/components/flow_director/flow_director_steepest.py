@@ -255,7 +255,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     _info = {
         "flow__link_direction": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -263,7 +263,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             "doc": "Direction of flow on link. A value of -1 indicates that water flow goes from head node to tail node, while a value of 1 indicates that water flow goes from tail node to head node.",
         },
         "flow__link_to_receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -271,7 +271,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -279,7 +279,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__sink_flag": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -287,7 +287,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             "doc": "Boolean array, True at local lows",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": True,
             "units": "m",
@@ -295,7 +295,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             "doc": "Land surface topographic elevation",
         },
         "topographic__steepest_slope": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",

@@ -86,7 +86,7 @@ class PrecipitationDistribution(Component):
 
     _info = {
         "rainfall__flux": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": True,
             "units": "[depth unit]/[time unit]",

@@ -183,7 +183,7 @@ class FractureGridGenerator(Component):
 
     _info = {
         "fracture_at_node": {
-            "type": np.int8,
+            "dtype":np.int8,
             "intent": "out",
             "optional": False,
             "units": "-",

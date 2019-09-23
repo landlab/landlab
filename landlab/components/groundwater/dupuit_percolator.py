@@ -49,7 +49,7 @@ class GroundwaterDupuitPercolator(Component):
 
     _info = {
         "aquifer__thickness": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m",
@@ -57,7 +57,7 @@ class GroundwaterDupuitPercolator(Component):
             "doc": "thickness of saturated zone",
         },
         "aquifer_base__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "m",
@@ -65,7 +65,7 @@ class GroundwaterDupuitPercolator(Component):
             "doc": "elevation of impervious layer",
         },
         "groundwater__specific_discharge": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m2/s",
@@ -73,7 +73,7 @@ class GroundwaterDupuitPercolator(Component):
             "doc": "discharge per width in link dir",
         },
         "groundwater__velocity": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m/s",
@@ -81,7 +81,7 @@ class GroundwaterDupuitPercolator(Component):
             "doc": "velocity of groundwater in link direction",
         },
         "hydraulic__gradient": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m/m",
@@ -89,7 +89,7 @@ class GroundwaterDupuitPercolator(Component):
             "doc": "gradient of water table in link direction",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "m",
@@ -97,7 +97,7 @@ class GroundwaterDupuitPercolator(Component):
             "doc": "elevation of land surface",
         },
         "water_table__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m",

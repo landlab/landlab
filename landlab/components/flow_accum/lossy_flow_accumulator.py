@@ -269,7 +269,7 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     _info = {
         "drainage_area": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m**2",
@@ -277,7 +277,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             "doc": "Upstream accumulated surface area contributing to the node's discharge",
         },
         "flow__data_structure_D": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -285,7 +285,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             "doc": "Grid array containing the data structure D used for construction of the downstream-to-upstream node array",
         },
         "flow__data_structure_delta": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -293,7 +293,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             "doc": "Node array containing the elements delta[1:] of the data structure 'delta' used for construction of the downstream-to-upstream node array",
         },
         "flow__upstream_node_order": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "-",
@@ -301,7 +301,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "surface_water__discharge": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m**3/s",
@@ -309,7 +309,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             "doc": "Discharge of water through each node",
         },
         "surface_water__discharge_loss": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m**3/s",
@@ -317,7 +317,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             "doc": "Total volume of water per second lost during all flow out of the node",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": True,
             "units": "m",
@@ -325,7 +325,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             "doc": "Land surface topographic elevation",
         },
         "water__unit_flux_in": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": True,
             "units": "m/s",

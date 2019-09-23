@@ -50,7 +50,7 @@ class NormalFault(Component):
 
     _info = {
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": True,
             "units": "m",

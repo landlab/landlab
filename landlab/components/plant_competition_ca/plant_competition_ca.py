@@ -69,7 +69,7 @@ class VegCA(Component):
 
     _info = {
         "plant__age": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "Years",
@@ -77,7 +77,7 @@ class VegCA(Component):
             "doc": "Age of plant",
         },
         "plant__live_index": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "None",
@@ -85,7 +85,7 @@ class VegCA(Component):
             "doc": "1 - vegetation__cumulative_water_stress",
         },
         "vegetation__cumulative_water_stress": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "None",
@@ -93,7 +93,7 @@ class VegCA(Component):
             "doc": "cumulative vegetation__water_stress over the growing season",
         },
         "vegetation__plant_functional_type": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "None",

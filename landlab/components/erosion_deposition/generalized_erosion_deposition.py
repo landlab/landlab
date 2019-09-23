@@ -16,7 +16,7 @@ class _GeneralizedErosionDeposition(Component):
 
     _info = {
         "flow__link_to_receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -24,7 +24,7 @@ class _GeneralizedErosionDeposition(Component):
             "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -32,7 +32,7 @@ class _GeneralizedErosionDeposition(Component):
             "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__upstream_node_order": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
@@ -40,7 +40,7 @@ class _GeneralizedErosionDeposition(Component):
             "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "sediment__flux": {
-            "type": None,
+            "dtype":None,
             "intent": "out",
             "optional": False,
             "units": "m3/s",
@@ -48,7 +48,7 @@ class _GeneralizedErosionDeposition(Component):
             "doc": "Sediment flux.",
         },
         "surface_water__discharge": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "m**2/s",
@@ -56,7 +56,7 @@ class _GeneralizedErosionDeposition(Component):
             "doc": "Water discharge at each node",
         },
         "topographic__elevation": {
-            "type": None,
+            "dtype":None,
             "intent": "inout",
             "optional": False,
             "units": "m",
@@ -64,7 +64,7 @@ class _GeneralizedErosionDeposition(Component):
             "doc": "Land surface topographic elevation",
         },
         "topographic__steepest_slope": {
-            "type": None,
+            "dtype":None,
             "intent": "in",
             "optional": False,
             "units": "-",
