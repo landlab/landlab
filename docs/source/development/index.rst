@@ -1,7 +1,7 @@
 .. _development:
 
-Contributing to Landlab
-=======================
+Contributing code to Landlab
+============================
 
 If you're intending to make changes to the Landlab code base,
 or want to develop your own components, we recommend you follow

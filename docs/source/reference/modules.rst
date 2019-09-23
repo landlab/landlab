@@ -2,9 +2,7 @@
 landlab
 =======
 
-.. automodule:: landlab.components.profiler.channel_profiler
+.. automodule:: landlab
    :members:
    :undoc-members:
    :noindex:
-
-   landlab
