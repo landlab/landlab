@@ -96,13 +96,43 @@ class Component(object):
             at = self._info[name]["mapping"]
             optional = self._info[name]["optional"]
             in_true = "in" in self._info[name]["intent"]
-
-            if (in_true) and (not optional) and (name not in self._grid[at]):
-                raise FieldError(
-                    "{component} is missing input variable: {name} at {at}".format(
-                        component=self._name, name=name, at=at
+            if (in_true) and (not optional):
+                # if required input, verify that it exists.
+                if name not in self._grid[at]:
+                    raise FieldError(
+                        "{component} is missing required input field: {name} at {at}".format(
+                            component=self._name, name=name, at=at
+                        )
                     )
-                )
+
+                # if required input exists, check dtype.
+                field = self._grid[at][name]
+                dtype = self._info[name]["dtype"]
+
+                try:
+                    assert field.dtype == dtype
+                except AssertionError:
+                    raise FieldError(
+                        "{component} required input variable: {name} at {at} has incorrect dtype. dtype must be {dtype} and is {actual}".format(
+                            component=self._name, name=name, at=at, dtype=dtype, actual=field.dtype
+                        )
+                    )
+
+            # if optional input exists, check dtype
+            if in_true and optional:
+
+                if name in self._grid[at]:
+                    field = self._grid[at][name]
+                    dtype = self._info[name]["dtype"]
+
+                    try:
+                        assert field.dtype == dtype
+                    except AssertionError:
+                        raise FieldError(
+                            "{component} optional input variable: {name} at {at} has incorrect dtype. dtype must be {dtype}".format(
+                                component=self._name, name=name, at=at, dtype=dtype
+                            )
+                        )
 
     @classmethod
     def from_path(cls, grid, path):
@@ -202,8 +232,7 @@ class Component(object):
     @classmethod
     def var_type(cls, name):
         """
-        Returns the dtype of a field (float, int, bool, str...), if declared.
-        Default is float.
+        Returns the dtype of a field (float, int, bool, str...).
 
         Parameters
         ----------
@@ -215,7 +244,7 @@ class Component(object):
         dtype
             The dtype of the field.
         """
-        return cls._info[name]["dtype"] or float
+        return cls._info[name]["dtype"]
 
     @classproperty
     @classmethod
