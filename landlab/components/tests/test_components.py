@@ -59,6 +59,16 @@ def test_component_metadata(Comp):
                         )
                     )
 
+            # TODO: Verify that all units are UDUNITS compatible.
+
+            # TODO: Verify that all dtypes are valid.
+
+
+            # TODO: Verify that all mappings are valid grid locations.
+
+
+
+
             if len(info) > 0:
                 raise ValueError(
                     "{component} has an extra attribute {attribute} about variable: {name} at {at}".format(
