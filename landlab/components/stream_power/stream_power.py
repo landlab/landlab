@@ -3,8 +3,7 @@
 
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX, Component
-from landlab.core.model_parameter_dictionary import MissingKeyError
+from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX, Component, MissingKeyError
 from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.lake_mapper import _FLOODED

@@ -3,8 +3,7 @@ import warnings
 import numpy as np
 import scipy.constants
 
-from landlab import Component
-from landlab.core.model_parameter_dictionary import MissingKeyError
+from landlab import Component, MissingKeyError
 from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import make_return_array_immutable
 

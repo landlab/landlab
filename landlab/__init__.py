@@ -16,7 +16,7 @@ from numpy import set_printoptions
 from ._registry import registry
 from ._version import get_versions
 from .core.model_component import Component
-from .core.model_parameter_dictionary import MissingKeyError, ParameterValueError
+from .core.errors import MissingKeyError, ParameterValueError
 from .core.model_parameter_loader import load_params
 from .field.scalar_data_fields import FieldError
 from .framework.collections import Arena, NoProvidersError, Palette
