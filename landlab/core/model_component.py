@@ -378,7 +378,7 @@ class Component(object):
         """
         return cls._info[name]["mapping"]
 
-    def initialize_output_fields(self, axis=None):
+    def initialize_output_fields(self, dim=None):
         """
         Create fields for a component based on its input and output var names.
 
@@ -386,6 +386,14 @@ class Component(object):
         output by, but not supplied to, the component. New fields are
         initialized to zero. Ignores optional fields. New fields are created as
         arrays of floats, unless the component specifies the variable type.
+
+        Parameters
+        ----------
+        dim: int (optional)
+            On occasion, it is necessary to create a field that is of size
+            (n_grid_elements, dim) instead of the default size
+            (n_grid_elements,). Use this keyword argument to acomplish this
+            task.
         """
         for name in self._info.keys():
             at = self._info[name]["mapping"]
@@ -396,10 +404,10 @@ class Component(object):
                 type_in = self.var_type(name)
                 num_elements = self._grid.size(at)
 
-                if axis is None:
+                if dim is None:
                     size = num_elements
                 else:
-                    size = (num_elements, axis)
+                    size = (num_elements, dim)
 
                 init_vals = np.zeros(size, dtype=type_in)
                 units_in = self.var_units(name)
