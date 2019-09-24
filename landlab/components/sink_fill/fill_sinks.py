@@ -8,7 +8,6 @@ Created on Mon Oct 19.
 
 import numpy as np
 
-import landlab
 from landlab import Component, FieldError, RasterModelGrid
 from landlab.components import DepressionFinderAndRouter, FlowAccumulator
 from landlab.grid.base import BAD_INDEX_VALUE
