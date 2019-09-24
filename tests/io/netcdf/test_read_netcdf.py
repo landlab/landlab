@@ -12,7 +12,7 @@ from landlab.io import (
     MismatchGridXYLowerLeft,
     MismatchGridXYSpacing,
 )
-from landlab.io.netcdf import WITH_NETCDF4, read_netcdf
+from landlab.io.netcdf import read_netcdf
 
 _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 
@@ -63,7 +63,6 @@ def test_read_netcdf_64bit(datadir):
     )
 
 
-@pytest.mark.skipif(not WITH_NETCDF4, reason="netCDF4 package not installed")
 def test_read_netcdf4_bad_field_name(datadir):
     with pytest.raises(ValueError):
         read_netcdf(datadir / "test-netcdf4.nc", name="not_surface__elevation")
@@ -75,7 +74,6 @@ def test_read_netcdf3_64bit(datadir):
     assert grid.shape == (4, 3)
 
 
-@pytest.mark.skipif(not WITH_NETCDF4, reason="netCDF4 package not installed")
 def test_read_netcdf4(datadir):
     """Test read_netcdf with netcdf4 format."""
     grid = read_netcdf(datadir / "test-netcdf4.nc")
@@ -85,7 +83,6 @@ def test_read_netcdf4(datadir):
     assert grid.shape == (4, 3)
 
 
-@pytest.mark.skipif(not WITH_NETCDF4, reason="netCDF4 package not installed")
 def test_bad_data_size(datadir):
     """Test read_netcdf with netcdf4 format."""
     grid = RasterModelGrid((10, 10))
@@ -93,7 +90,6 @@ def test_bad_data_size(datadir):
         read_netcdf(datadir / "test-netcdf4.nc", grid=grid)
 
 
-@pytest.mark.skipif(not WITH_NETCDF4, reason="netCDF4 package not installed")
 def test_bad_dx(datadir):
     """Test read_netcdf with netcdf4 format."""
     grid = RasterModelGrid((4, 3), xy_spacing=10)
@@ -101,7 +97,6 @@ def test_bad_dx(datadir):
         read_netcdf(datadir / "test-netcdf4.nc", grid=grid)
 
 
-@pytest.mark.skipif(not WITH_NETCDF4, reason="netCDF4 package not installed")
 def test_bad_llc(datadir):
     """Test read_netcdf with netcdf4 format."""
     grid = RasterModelGrid((4, 3), xy_of_lower_left=(-1, -2))
