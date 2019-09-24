@@ -149,6 +149,13 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     For this example, we will turn the diagonals off. This is the default
     value.
 
+    >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
+    >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    >>> _ = mg.add_field(
+    ...     'topographic__elevation',
+    ...     mg.node_x + mg.node_y,
+    ...     at = 'node'
+    ... )
     >>> fd = FlowDirectorMFD(mg, 'topographic__elevation')
     >>> fd.run_one_step()
     >>> receivers, proportions = fd.direct_flow()

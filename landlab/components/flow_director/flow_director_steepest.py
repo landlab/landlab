@@ -318,16 +318,8 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         super(FlowDirectorSteepest, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
 
-        # create a : 'flow__link_direction' field if it does not exist yest
-        if "flow__link_direction" not in self._grid.at_link:
-            self._flow_link_direction = grid.add_field(
-                "flow__link_direction",
-                grid.zeros(at="link", dtype=np.int8),
-                at="link",
-                dtype=np.int8,
-            )
-        else:
-            self._flow_link_direction = grid.at_link["flow__link_direction"]
+        # get 'flow__link_direction' field
+        self._flow_link_direction = grid.at_link["flow__link_direction"]
 
         self.updated_boundary_conditions()
 

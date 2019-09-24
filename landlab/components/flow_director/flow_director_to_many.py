@@ -6,7 +6,7 @@ FlowDirectors.
 Provides the _FlowDirectorToMany component which makes sure all model
 grid fields are set up correctly.
 """
-import numpy
+import numpy as np
 
 from landlab import BAD_INDEX_VALUE
 from landlab.components.flow_director.flow_director import _FlowDirector
@@ -118,45 +118,17 @@ class _FlowDirectorToMany(_FlowDirector):
 
         # set the number of recievers, proportions, and receiver links with the
         # right size.
-        self._receivers = grid.add_field(
-            "flow__receiver_node",
-            BAD_INDEX_VALUE
-            * numpy.ones((self._grid.number_of_nodes, self._max_receivers), dtype=int),
-            at="node",
-            dtype=int,
-            noclobber=False,
-        )
+        self.initialize_output_fields(axis=self._max_receivers)
+        self._receivers = grid.at_node["flow__receiver_node"]
+        if np.all(self._receivers == 0):
+            self._receivers.fill(BAD_INDEX_VALUE)
 
-        self._steepest_slope = grid.add_field(
-            "topographic__steepest_slope",
-            BAD_INDEX_VALUE
-            * numpy.ones(
-                (self._grid.number_of_nodes, self._max_receivers), dtype=float
-            ),
-            at="node",
-            dtype=float,
-            noclobber=False,
-        )
+        self._receiver_links = grid.at_node["flow__link_to_receiver_node"]
+        if np.all(self._receiver_links == 0):
+            self._receiver_links.fill(BAD_INDEX_VALUE)
 
-        self._receiver_links = grid.add_field(
-            "flow__link_to_receiver_node",
-            BAD_INDEX_VALUE
-            * numpy.ones((self._grid.number_of_nodes, self._max_receivers), dtype=int),
-            at="node",
-            dtype=int,
-            noclobber=False,
-        )
-
-        self._proportions = grid.add_field(
-            "flow__receiver_proportions",
-            BAD_INDEX_VALUE
-            * numpy.ones(
-                (self._grid.number_of_nodes, self._max_receivers), dtype=float
-            ),
-            at="node",
-            dtype=int,
-            noclobber=False,
-        )
+        self._proportions = grid.at_node["flow__receiver_proportions"]
+        self._steepest_slope = grid.at_node["topographic__steepest_slope"]
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""

@@ -697,6 +697,7 @@ class FlowAccumulator(Component):
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
         self._is_Network = isinstance(self._grid, NetworkModelGrid)
         self._kwargs = kwargs
+
         # STEP 1: Testing of input values, supplied either in function call or
         # as part of the grid.
         self._test_water_inputs(grid, runoff_rate)
@@ -732,48 +733,22 @@ class FlowAccumulator(Component):
 
         #   - drainage area at each node
         #   - receiver of each node
-        #   - D array
         #   - delta array
-        #   - missing nodes in stack.
 
-        #
+        self.initialize_output_fields()
 
-        if "drainage_area" not in grid.at_node:
-            self._drainage_area = grid.add_zeros(
-                "drainage_area", at="node", dtype=float
-            )
-        else:
-            self._drainage_area = grid.at_node["drainage_area"]
+        self._drainage_area = grid.at_node["drainage_area"]
+        self._discharges = grid.at_node["surface_water__discharge"]
 
-        if "surface_water__discharge" not in grid.at_node:
-            self._discharges = grid.add_zeros(
-                "surface_water__discharge", at="node", dtype=float
-            )
-        else:
-            self._discharges = grid.at_node["surface_water__discharge"]
+        self._upstream_ordered_nodes = grid.at_node["flow__upstream_node_order"]
+        if np.all(self._upstream_ordered_nodes == 0):
+            self._upstream_ordered_nodes.fill(BAD_INDEX_VALUE)
 
-        if "flow__upstream_node_order" not in grid.at_node:
-            self._upstream_ordered_nodes = grid.add_field(
-                "flow__upstream_node_order",
-                BAD_INDEX_VALUE * grid.ones(at="node", dtype=int),
-                at="node",
-                dtype=int,
-            )
-        else:
-            self._upstream_ordered_nodes = grid.at_node["flow__upstream_node_order"]
-
-        if "flow__data_structure_delta" not in grid.at_node:
-            self._delta_structure = grid.add_field(
-                "flow__data_structure_delta",
-                BAD_INDEX_VALUE * grid.ones(at="node", dtype=int),
-                at="node",
-                dtype=int,
-            )
-        else:
-            self._delta_structure = grid.at_node["flow__data_structure_delta"]
+        self._delta_structure = grid.at_node["flow__data_structure_delta"]
+        if np.all(self._delta_structure == 0):
+            self._delta_structure[:] = BAD_INDEX_VALUE
 
         self._D_structure = BAD_INDEX_VALUE * grid.ones(at="link", dtype=int)
-
         self._nodes_not_in_stack = True
 
         if len(self._kwargs) > 0:

@@ -33,6 +33,8 @@ Base component class methods
 import os
 import textwrap
 
+import numpy as np
+
 from .. import registry
 from ..field.scalar_data_fields import FieldError
 from .model_parameter_loader import load_params
@@ -376,7 +378,7 @@ class Component(object):
         """
         return cls._info[name]["mapping"]
 
-    def initialize_output_fields(self):
+    def initialize_output_fields(self, axis=None):
         """
         Create fields for a component based on its input and output var names.
 
@@ -392,7 +394,14 @@ class Component(object):
             if (out_true) and (not optional) and (name not in self._grid[at]):
 
                 type_in = self.var_type(name)
-                init_vals = self.grid.zeros(at, dtype=type_in)
+                num_elements = self._grid.size(at)
+
+                if axis is None:
+                    size = num_elements
+                else:
+                    size = (num_elements, axis)
+
+                init_vals = np.zeros(size, dtype=type_in)
                 units_in = self.var_units(name)
 
                 self.grid.add_field(at, name, init_vals, units=units_in, copy=False)

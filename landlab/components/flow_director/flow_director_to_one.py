@@ -6,6 +6,8 @@ FlowDirectors.
 Provides the _FlowDirectorToOne component which makes sure all model
 grid fields are set up correctly.
 """
+import numpy as np
+
 from landlab import BAD_INDEX_VALUE
 from landlab.components.flow_director.flow_director import _FlowDirector
 
@@ -118,36 +120,19 @@ class _FlowDirectorToOne(_FlowDirector):
         # run init for the inherited class
 
         super(_FlowDirectorToOne, self).__init__(grid, surface)
+        self.initialize_output_fields()
 
         self._to_n_receivers = "one"
         # initialize new fields
-        if "flow__receiver_node" not in grid.at_node:
-            self._receiver = grid.add_field(
-                "flow__receiver_node",
-                BAD_INDEX_VALUE * grid.ones(at="node", dtype=int),
-                at="node",
-                dtype=int,
-            )
-        else:
-            self._receiver = grid.at_node["flow__receiver_node"]
+        self._steepest_slope = grid.at_node["topographic__steepest_slope"]
 
-        if "topographic__steepest_slope" not in grid.at_node:
-            self._steepest_slope = grid.add_zeros(
-                "topographic__steepest_slope", at="node", dtype=float
-            )
-        else:
-            self._steepest_slope = grid.at_node["topographic__steepest_slope"]
+        self._links_to_receiver = grid.at_node["flow__link_to_receiver_node"]
+        if np.all(self._links_to_receiver == 0):
+            self._links_to_receiver.fill(BAD_INDEX_VALUE)
 
-        if "flow__link_to_receiver_node" not in grid.at_node:
-            self._links_to_receiver = grid.add_field(
-                "flow__link_to_receiver_node",
-                BAD_INDEX_VALUE * grid.ones(at="node", dtype=int),
-                at="node",
-                dtype=int,
-            )
-
-        else:
-            self._links_to_receiver = grid.at_node["flow__link_to_receiver_node"]
+        self._receiver = grid.at_node["flow__receiver_node"]
+        if np.all(self._receiver == 0):
+            self._receiver.fill(BAD_INDEX_VALUE)
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""
