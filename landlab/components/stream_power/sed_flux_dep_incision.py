@@ -386,9 +386,9 @@ class SedDepEroder(Component):
             assert self._Qc == "MPM", (
                 "Qc must be 'MPM' to return stream " + "properties"
             )
-        if type(runoff_rate) in (float, int):
+        if isinstance(runoff_rate, (float, int)):
             self._runoff_rate = float(runoff_rate)
-        elif type(runoff_rate) is str:
+        elif isinstance(runoff_rate, str):
             self._runoff_rate = self._grid.at_node[runoff_rate]
         else:
             self._runoff_rate = np.array(runoff_rate)
@@ -453,9 +453,9 @@ class SedDepEroder(Component):
 
         if self._Qc == "MPM":
             if Dchar is not None:
-                if type(Dchar) in (int, float):
+                if isinstance(Dchar, (int, float)):
                     self._Dchar_in = float(Dchar)
-                elif type(Dchar) is str:
+                elif isinstance(Dchar, str):
                     self._Dchar_in = self._grid.at_node[Dchar]
                 else:
                     self._Dchar_in = np.array(Dchar)
@@ -689,11 +689,11 @@ class SedDepEroder(Component):
         s_in = grid.at_node["flow__upstream_node_order"]
         node_S = grid.at_node["topographic__steepest_slope"]
 
-        if type(self._flooded_depths) is str:
+        if isinstance(self._flooded_depths, str):
             flooded_depths = grid.at_node[self._flooded_depths]
             # also need a map of initial flooded conds:
             flooded_nodes = flooded_depths > 0.0
-        elif type(self._flooded_depths) is np.ndarray:
+        elif isinstance(self._flooded_depths, np.ndarray):
             assert self._flooded_depths.size == self._grid.number_of_nodes
             flooded_nodes = self._flooded_depths > 0.0
             # need an *updateable* record of the pit depths

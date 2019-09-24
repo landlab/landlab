@@ -9,7 +9,7 @@ Created on Mon Oct 19.
 import numpy as np
 
 import landlab
-from landlab import Component, FieldError
+from landlab import Component, FieldError, RasterModelGrid
 from landlab.components import DepressionFinderAndRouter, FlowAccumulator
 from landlab.grid.base import BAD_INDEX_VALUE
 
@@ -135,14 +135,12 @@ class SinkFiller(Component):
         if routing != "D8":
             assert routing == "D4"
         self._routing = routing
-        if (type(self._grid) is landlab.grid.raster.RasterModelGrid) and (
-            routing == "D8"
-        ):
+        if isinstance(self._grid, RasterModelGrid) and (routing == "D8"):
             self._D8 = True
             self._num_nbrs = 8
         else:
             self._D8 = False  # useful shorthand for thia test we do a lot
-            if type(self._grid) is landlab.grid.raster.RasterModelGrid:
+            if isinstance(self._grid, RasterModelGrid):
                 self._num_nbrs = 4
         self._fill_slope = fill_slope
         self._apply_slope = apply_slope

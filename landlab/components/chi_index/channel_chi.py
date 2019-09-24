@@ -601,7 +601,7 @@ class ChiFinder(Component):
         if channel_heads is not None:
             if plot_line:
                 good_nodes = set()
-            if type(channel_heads) is int:
+            if isinstance(channel_heads, int):
                 channel_heads = [channel_heads]
             for head in channel_heads:
                 ch_nodes = self.nodes_downstream_of_channel_head(head)

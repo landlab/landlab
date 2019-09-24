@@ -299,9 +299,7 @@ class DepressionFinderAndRouter(Component):
             self._link_lengths[1] = dy
             self._link_lengths[3] = dy
             self._link_lengths[4:].fill(np.sqrt(dx * dx + dy * dy))
-        elif (type(self._grid) is landlab.grid.raster.RasterModelGrid) and (
-            self._routing == "D4"
-        ):
+        elif isinstance(self._grid, RasterModelGrid) and (self._routing == "D4"):
             self._link_lengths = np.empty(4, dtype=float)
             self._link_lengths[0] = dx
             self._link_lengths[2] = dx
@@ -907,7 +905,7 @@ class DepressionFinderAndRouter(Component):
         self._depression_depth.fill(0.0)
         self._depression_outlets = []  # reset these
         # Locate nodes with pits
-        if type(self._user_supplied_pits) == str:
+        if isinstance(self._user_supplied_pits, str):
             try:
                 pits = self._grid.at_node[self._user_supplied_pits]
                 supplied_pits = np.where(pits)[0]

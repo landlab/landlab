@@ -208,7 +208,7 @@ class OverlandFlow(Component):
         self._h_init = h_init
         self._alpha = alpha
 
-        if type(mannings_n) is str:
+        if isinstance(mannings_n, str):
             self._mannings_n = self._grid.at_link[mannings_n]
         else:
             self._mannings_n = mannings_n
