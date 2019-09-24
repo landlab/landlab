@@ -328,7 +328,7 @@ class Vegetation(Component):
 
     @Tb.setter
     def Tb(self, Tb):
-        if Tb<0.0:
+        if Tb < 0.0:
             raise ValueError("Tb must be non-negative")
         self._Tb = Tb
 
