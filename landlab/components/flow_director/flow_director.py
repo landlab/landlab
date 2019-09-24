@@ -7,9 +7,6 @@ the surface over which flow will be routed to the component, and sets up
 part of the boundary condition testing.
 """
 
-
-import numpy
-
 from landlab import RasterModelGrid  # for type tests
 from landlab import Component
 from landlab.utils.return_array import return_array_at_node
