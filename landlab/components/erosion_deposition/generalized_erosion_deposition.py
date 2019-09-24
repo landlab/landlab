@@ -12,7 +12,7 @@ class _GeneralizedErosionDeposition(Component):
     More documenation here.
     """
 
-    _name = "ErosionDeposition"
+    _name = "_GeneralizedErosionDeposition"
 
     _info = {
         "flow__link_to_receiver_node": {
