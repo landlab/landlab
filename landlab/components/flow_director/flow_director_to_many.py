@@ -118,7 +118,7 @@ class _FlowDirectorToMany(_FlowDirector):
 
         # set the number of recievers, proportions, and receiver links with the
         # right size.
-        self.initialize_output_fields(axis=self._max_receivers)
+        self.initialize_output_fields(dim=self._max_receivers)
         self._receivers = grid.at_node["flow__receiver_node"]
         if np.all(self._receivers == 0):
             self._receivers.fill(BAD_INDEX_VALUE)
