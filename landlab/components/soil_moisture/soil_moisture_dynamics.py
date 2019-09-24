@@ -35,7 +35,7 @@ class SoilMoisture(Component):
     >>> from landlab.components.soil_moisture import SoilMoisture
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     >>> SoilMoisture.name
-    'SoilMoisture'
+    'Soil Moisture'
     >>> sorted(SoilMoisture.output_var_names) # doctest: +NORMALIZE_WHITESPACE
     ['soil_moisture__root_zone_leakage',
      'soil_moisture__saturation_fraction',
@@ -88,7 +88,7 @@ class SoilMoisture(Component):
     False
     """
 
-    _name = "SoilMoisture"
+    _name = "Soil Moisture"
 
     _info = {
         "rainfall__daily_depth": {

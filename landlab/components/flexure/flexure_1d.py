@@ -106,7 +106,7 @@ class Flexure1D(Component):
     ...     "lithosphere__increment_of_overlying_pressure")
     >>> flex = Flexure1D(grid)
     >>> flex.name
-    'Flexure1D'
+    '1D Flexure Equation'
     >>> flex.input_var_names
     ('lithosphere__increment_of_overlying_pressure',)
     >>> flex.output_var_names
@@ -142,7 +142,7 @@ class Flexure1D(Component):
     False
     """
 
-    _name = "Flexure1D"
+    _name = "1D Flexure Equation"
 
     _info = {
         "lithosphere__increment_of_overlying_pressure": {

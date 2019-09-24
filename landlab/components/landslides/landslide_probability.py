@@ -183,7 +183,7 @@ class LandslideProbability(Component):
     """
 
     # component name
-    _name = "LandslideProbability"
+    _name = "Landslide Probability"
     __version__ = "1.0"
     _info = {
         "landslide__probability_of_failure": {

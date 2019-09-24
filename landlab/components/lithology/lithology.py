@@ -303,9 +303,7 @@ class Lithology(Component):
 
     @dz_advection.setter
     def dz_advection(self, dz_advection):
-        return_array_at_node(
-            self._grid, dz_advection
-        )  # verify that this will work.
+        return_array_at_node(self._grid, dz_advection)  # verify that this will work.
         self._dz_advection = dz_advection
 
     @property

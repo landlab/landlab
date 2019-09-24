@@ -10,7 +10,7 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
 def test_name(ca_veg):
-    assert ca_veg.name == "VegCA"
+    assert ca_veg.name == "Cellular Automata Plant Competition"
 
 
 def test_input_var_names(ca_veg):

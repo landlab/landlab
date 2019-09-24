@@ -39,7 +39,7 @@ class VegCA(Component):
     >>> from landlab.components import VegCA
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
     >>> VegCA.name
-    'VegCA'
+    'Cellular Automata Plant Competition'
     >>> sorted(VegCA.output_var_names)
     ['plant__age', 'plant__live_index']
     >>> sorted(VegCA.units) # doctest: +NORMALIZE_WHITESPACE
@@ -65,7 +65,7 @@ class VegCA(Component):
     False
     """
 
-    _name = "VegCA"
+    _name = "Cellular Automata Plant Competition"
 
     _info = {
         "plant__age": {
