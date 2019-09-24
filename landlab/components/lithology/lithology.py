@@ -303,7 +303,7 @@ class Lithology(Component):
 
     @dz_advection.setter
     def dz_advection(self, dz_advection):
-        _ = return_array_at_node(
+        return_array_at_node(
             self._grid, dz_advection
         )  # verify that this will work.
         self._dz_advection = dz_advection
@@ -329,7 +329,7 @@ class Lithology(Component):
 
     @rock_id.setter
     def rock_id(self, rock_id):
-        _ = return_array_at_node(self._grid, rock_id)  # verify that this will work.
+        return_array_at_node(self._grid, rock_id)  # verify that this will work.
         # verify that all rock types are valid
         self._rock_id = rock_id
 
