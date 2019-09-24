@@ -296,7 +296,7 @@ class LandslideProbability(Component):
         self,
         grid,
         number_of_iterations=250,
-        g=None,
+        g=scipy.constants.g,
         groundwater__recharge_distribution="uniform",
         groundwater__recharge_min_value=20.0,
         groundwater__recharge_max_value=120.0,
@@ -349,7 +349,7 @@ class LandslideProbability(Component):
 
         # Store parameters and do unit conversions
         self._n = int(number_of_iterations)
-        self._g = g or scipy.constants.g
+        self._g = g
         self._groundwater__recharge_distribution = groundwater__recharge_distribution
         # Following code will deal with the input distribution and associated
         # parameters

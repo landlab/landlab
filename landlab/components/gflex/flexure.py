@@ -22,6 +22,7 @@ Created on Thu Feb 19 18:47:11 2015
 
 
 import numpy as np
+import scipy.constants
 
 from landlab import Component, FieldError, RasterModelGrid
 
@@ -152,7 +153,7 @@ class gFlex(Component):
         BC_E="0Displacement0Slope",
         BC_N="0Displacement0Slope",
         BC_S="0Displacement0Slope",
-        g=9.81,
+        g=scipy.constants.g,
     ):
         """Constructor for Wickert's gFlex in Landlab."""
         super(gFlex, self).__init__(grid)

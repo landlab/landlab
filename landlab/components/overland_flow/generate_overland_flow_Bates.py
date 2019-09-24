@@ -11,6 +11,7 @@ Last updated: April 21, 2016
 
 """
 import numpy as np
+import scipy.constants
 
 from landlab import Component
 
@@ -97,7 +98,7 @@ class OverlandFlowBates(Component):
         h_init=0.00001,
         alpha=0.7,
         mannings_n=0.03,
-        g=9.81,
+        g=scipy.constants.g,
         rainfall_intensity=0.0,
     ):
         super(OverlandFlowBates, self).__init__(grid)

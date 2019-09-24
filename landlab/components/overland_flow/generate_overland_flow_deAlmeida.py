@@ -87,6 +87,7 @@ array([ 0. ,  0. ,  0. ,  0. ,
         0. ,  0. ,  0. ,  0. ])
 """
 import numpy as np
+import scipy.constants
 
 from landlab import Component, FieldError
 from landlab.grid.structured_quad import links
@@ -172,7 +173,7 @@ class OverlandFlow(Component):
         h_init=0.00001,
         alpha=0.7,
         mannings_n=0.03,
-        g=9.81,
+        g=scipy.constants.g,
         theta=0.8,
         rainfall_intensity=0.0,
         steep_slopes=False,

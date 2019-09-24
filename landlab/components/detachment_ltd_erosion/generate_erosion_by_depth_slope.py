@@ -79,7 +79,11 @@ run it. In this simple case, we need to pass it a time step ('dt') and also
 an erodibility factor ('k_e').
 
 >>> dt = 1.
->>> dspe = DepthSlopeProductErosion(grid, k_e=0.00005, slope='water_surface__slope')
+>>> dspe = DepthSlopeProductErosion(
+...     grid,
+...     k_e=0.00005,
+...     g=9.81,
+...     slope='water_surface__slope')
 >>> dspe.run_one_step(dt=dt, )
 
 Now we test to see how the topography changed as a function of the erosion
@@ -100,6 +104,7 @@ array([ 10.    ,   7.5475,   7.5475,   7.5475,  10.    ,  10.    ,
 """
 
 import numpy as np
+import scipy.constants
 
 from landlab import Component
 
@@ -146,7 +151,7 @@ class DepthSlopeProductErosion(Component):
         grid,
         k_e=0.001,
         fluid_density=1000.0,
-        g=9.81,
+        g=scipy.constants.g,
         a_exp=1.0,
         tau_crit=0.0,
         uplift_rate=0.0,

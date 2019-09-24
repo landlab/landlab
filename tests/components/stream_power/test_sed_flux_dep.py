@@ -45,6 +45,7 @@ def test_sed_dep():
         threshold_Shields=0.05,
         sed_dependency_type="almost_parabolic",
         set_threshold_from_Dchar=True,
+        g=9.81,
     )
 
     for i in range(nt):

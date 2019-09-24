@@ -1,6 +1,7 @@
 import warnings
 
 import numpy as np
+import scipy.constants
 
 from landlab import Component
 from landlab.core.model_parameter_dictionary import MissingKeyError
@@ -184,7 +185,7 @@ class SedDepEroder(Component):
         self,
         grid,
         K_sp=1.0e-6,
-        g=9.81,
+        g=scipy.constants.g,
         rock_density=2700,
         sediment_density=2700,
         fluid_density=1000,
@@ -1075,10 +1076,15 @@ class SedDepEroder(Component):
         >>> fa1 = FlowAccumulator(mg1)
         >>> thresh_shields = np.arange(1, mg1.number_of_nodes+1, dtype=float)
         >>> thresh_shields /= 100.
-        >>> sde1 = SedDepEroder(mg1, threshold_shear_stress=100., Qc='MPM',
-        ...                     Dchar=None, set_threshold_from_Dchar=False,
-        ...                     set_Dchar_from_threshold=True,
-        ...                     threshold_Shields=thresh_shields)
+        >>> sde1 = SedDepEroder(
+        ...     mg1,
+        ...     threshold_shear_stress=100.,
+        ...     Qc='MPM',
+        ...     Dchar=None,
+        ...     set_threshold_from_Dchar=False,
+        ...     set_Dchar_from_threshold=True,
+        ...     threshold_Shields=thresh_shields,
+        ...     g=9.81)
         >>> sde1.characteristic_grainsize
         array([ 0.59962823,  0.29981412,  0.19987608,  0.14990706,  0.11992565,
                 0.09993804,  0.08566118,  0.07495353,  0.06662536,  0.05996282,
@@ -1087,11 +1093,16 @@ class SedDepEroder(Component):
         >>> mg2 = RasterModelGrid((3,4))
         >>> z2 = mg2.add_zeros("node", "topographic__elevation")
         >>> fa2 = FlowAccumulator(mg2)
-        >>> sde2 = SedDepEroder(mg2, threshold_shear_stress=100., Qc='MPM',
-        ...                     Dchar=None, set_threshold_from_Dchar=False,
-        ...                     set_Dchar_from_threshold=True,
-        ...                     threshold_Shields=None,
-        ...                     slope_sensitive_threshold=True)
+        >>> sde2 = SedDepEroder(
+        ...     mg2,
+        ...     threshold_shear_stress=100.,
+        ...     Qc='MPM',
+        ...     Dchar=None,
+        ...     set_threshold_from_Dchar=False,
+        ...     set_Dchar_from_threshold=True,
+        ...     threshold_Shields=None,
+        ...     slope_sensitive_threshold=True,
+        ...     g=9.81)
         >>> S = mg2['node']['topographic__steepest_slope']
         >>> S[:] = 0.05  # thresh = 100 Pa @ 5pc slope
         >>> sde2.characteristic_grainsize  # doctest: +NORMALIZE_WHITESPACE
