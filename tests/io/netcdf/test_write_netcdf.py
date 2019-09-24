@@ -7,13 +7,10 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.io.netcdf import WITH_NETCDF4, NotRasterGridError, write_netcdf
+from landlab.io.netcdf import NotRasterGridError, write_netcdf
 from landlab.io.netcdf.read import _get_raster_spacing
 
-try:
-    import netCDF4 as nc
-except ImportError:
-    pass
+import netCDF4 as nc
 
 
 _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
@@ -95,7 +92,6 @@ def test_netcdf_write_as_netcdf3_classic(tmpdir):
         f.close()
 
 
-@pytest.mark.skipif(not WITH_NETCDF4, reason="netCDF4 package not installed")
 def test_netcdf_write(tmpdir):
     """Test generic write_netcdf."""
     field = RasterModelGrid((4, 3))
@@ -129,7 +125,6 @@ def test_netcdf_write(tmpdir):
         root.close()
 
 
-@pytest.mark.skipif(not WITH_NETCDF4, reason="netCDF4 package not installed")
 def test_netcdf_write_as_netcdf4_classic(tmpdir):
     """Test write_netcdf to netcdf4 classic format."""
     field = RasterModelGrid((4, 3))
@@ -147,7 +142,6 @@ def test_netcdf_write_as_netcdf4_classic(tmpdir):
         root.close()
 
 
-@pytest.mark.skipif(not WITH_NETCDF4, reason="netCDF4 package not installed")
 def test_netcdf_write_names_keyword_as_list(tmpdir):
     """Test write_netcdf using a list for the *names* keyword."""
     field = RasterModelGrid((4, 3))
@@ -170,7 +164,6 @@ def test_netcdf_write_names_keyword_as_list(tmpdir):
         root.close()
 
 
-@pytest.mark.skipif(not WITH_NETCDF4, reason="netCDF4 package not installed")
 def test_netcdf_write_names_keyword_as_str(tmpdir):
     """Test write_netcdf using a ``str`` for the *names* keyword."""
     field = RasterModelGrid((4, 3))
@@ -190,7 +183,6 @@ def test_netcdf_write_names_keyword_as_str(tmpdir):
         root.close()
 
 
-@pytest.mark.skipif(not WITH_NETCDF4, reason="netCDF4 package not installed")
 def test_netcdf_write_names_keyword_as_none(tmpdir):
     """Test write_netcdf using ``None`` for the *names* keyword."""
     field = RasterModelGrid((4, 3))
@@ -266,7 +258,6 @@ def test_1d_uneven_spacing():
         _get_raster_spacing((np.logspace(0.0, 2.0, num=5),))
 
 
-@pytest.mark.skipif(not WITH_NETCDF4, reason="netCDF4 package not installed")
 def test_netcdf_write_at_cells(tmpdir):
     """Test write_netcdf using with cell fields"""
     field = RasterModelGrid((4, 3))
