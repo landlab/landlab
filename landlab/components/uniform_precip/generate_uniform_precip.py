@@ -176,20 +176,17 @@ class PrecipitationDistribution(Component):
 
     @property
     def storm_duration(self):
-        """ TODO
-        """
+        """Duration of storm. [T]"""
         return self._storm_duration
 
     @property
     def interstorm_duration(self):
-        """ TODO
-        """
+        """Interstorm duration. [T]"""
         return self._interstorm_duration
 
     @property
     def storm_depth(self):
-        """ TODO
-        """
+        """Depth of water in the storm. [L]"""
         return self._storm_depth
 
     def update(self):
