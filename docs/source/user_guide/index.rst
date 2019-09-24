@@ -39,16 +39,6 @@ Installation
     ../install/index
 
 
-Updating and Troubleshooting
-----------------------------
-
-.. toctree::
-    :maxdepth: 2
-
-    updating
-    troubleshooting
-
-
 Introduction to Python
 ----------------------
 
@@ -56,7 +46,6 @@ Introduction to Python
     :maxdepth: 2
 
     python_numpy_intro
-    rough_guide_to_python
 
 
 The Landlab Grid
@@ -86,8 +75,8 @@ Additional resources
     tutorials
     standard_names
     time_steps
-    faq
     examples
+    faq
 
 Presentations, Clinics, and Classroom Use
 -----------------------------------------

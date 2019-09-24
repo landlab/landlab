@@ -1,5 +1,6 @@
 .. _build_a_model:
 
+===============================
 What goes into a Landlab model?
 ===============================
 

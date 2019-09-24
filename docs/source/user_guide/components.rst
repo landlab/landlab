@@ -1,5 +1,6 @@
 .. _landlab_components_page:
 
+=====================
 The Component Library
 =====================
 

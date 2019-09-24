@@ -13,3 +13,6 @@ Installation Instructions
    installing_grass
    installing_windows_compiler
    correcting_paths
+   updating
+   troubleshooting
+   rough_guide_to_python
