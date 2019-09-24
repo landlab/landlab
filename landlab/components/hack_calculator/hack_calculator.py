@@ -159,7 +159,7 @@ class HackCalculator(Component):
 
     _name = "HackCalculator"
 
-    __info = {
+    _info = {
         "distance_to_divide": {
             "dtype": float,
             "intent": "out",
