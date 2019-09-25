@@ -38,7 +38,6 @@ Additional Methods and Properties
    :maxdepth: 1
 
    base
-   cfuncs
    create
    decorators
    diagonals

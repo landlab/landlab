@@ -6,7 +6,7 @@ Subpackages
 
 .. toctree::
 
-    landlab.graph.hex.ext
+    hex_ext
 
 Submodules
 ----------

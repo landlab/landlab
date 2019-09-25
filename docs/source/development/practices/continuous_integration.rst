@@ -1,7 +1,8 @@
-.. _unit_tests::
+.. _dev_ci:
 
-Testing
--------
+================================
+Continuous Integration Practices
+================================
 
 Before merging any changes into the Landlab trunk, *all* unit tests (including
 doctests) should be passing. In addition, any new features added to Landlab

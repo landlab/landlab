@@ -6,7 +6,7 @@ Subpackages
 
 .. toctree::
 
-    landlab.graph.sort.ext
+    sort_ext
 
 Submodules
 ----------

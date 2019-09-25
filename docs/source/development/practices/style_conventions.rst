@@ -4,12 +4,31 @@
 Style Guidelines and Enforcement
 ================================
 
+General Coding Style
+--------------------
+
+-  Please stick to the coding style described by
+   `PEP8 <http://www.python.org/dev/peps/pep-0008/>`__. PEP8 is one of
+   the standard worldwide stylistic conventions for coding in Python.
+
+-  Class and function docstrings should follow the `numpydoc
+   conventions <https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>`__.
+
+-  Further, Landlab-specific advice for developing your own components
+   can be found in the `component development
+   guide <https://github.com/landlab/landlab/wiki/Develop-your-own-component>`__.
+
+Many modern text editors, e.g., `Atom <https://atom.io>`__, provide interactive tools to
+examine your code as you edit it and highlight where it diverges from
+standards.
+
+
 Style enforcement
 -----------------
 
 All tools used for development are specified in our `environment-dev.yml` file.
 If you followed the
-:ref:`developer installation instructions <_developer_install>` you have
+:ref:`developer installation instructions <developer_install>` you have
 everything you need in the `landlab_dev` conda environment.
 
 Currently we check for all the `flake8
@@ -49,24 +68,3 @@ from the top level directory or
 .. code-block:: bash
 
    flake8 <file-to-check>
-
-General Coding Style
---------------------
-
--  Please stick to the coding style described by
-   `PEP8 <http://www.python.org/dev/peps/pep-0008/>`__. PEP8 is one of
-   the standard worldwide stylistic conventions for coding in Python.
-
--  Class and function docstrings should follow the `numpydoc
-   conventions <https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>`__.
-
--  Further, Landlab-specific advice for developing your own components
-   can be found in the `component development
-   guide <https://github.com/landlab/landlab/wiki/Develop-your-own-component>`__.
-
-If you want to check how well you are doing, please look at our
-`Landscape page <https://landscape.io>`__. Landscape will grade the
-health of the landlab code with every push to GitHub. Many modern text
-editors, e.g., `Atom <https://atom.io>`__, provide interactive tools to
-examine your code as you edit it and highlight where it diverges from
-standards.

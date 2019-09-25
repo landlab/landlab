@@ -6,7 +6,7 @@ Subpackages
 
 .. toctree::
 
-    landlab.graph.matrix.ext
+    matrix_ext
 
 Submodules
 ----------

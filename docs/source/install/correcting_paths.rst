@@ -10,7 +10,7 @@ paths to your Python distribution. Basically, your computer does not know where
 to look for the correct file or program and you need to tell it where to look
 using your system's `$PATH` variable.
 
-Symptoms:
+Symptoms
 --------
 
 1. Typing ``conda`` after an Anaconda install gives ``command not found``.
@@ -31,7 +31,7 @@ Symptoms:
 You may have some subset of the above symptoms occurring together, but one is
 normally enough to indicate a Python conflict is the problem.
 
-The Solution:
+The Solution
 ------------
 
 Path problems can be solved by editing your environmental variables. How you do

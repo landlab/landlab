@@ -6,7 +6,7 @@ Subpackages
 
 .. toctree::
 
-    landlab.graph.voronoi.ext
+    voronoi_ext
 
 Submodules
 ----------

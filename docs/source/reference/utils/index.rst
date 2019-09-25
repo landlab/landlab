@@ -7,7 +7,6 @@ Utilities and Decorators
 .. toctree::
   :maxdepth: 2
 
-  ../../core/utils
   add_halo
   count_repeats
   decorators
@@ -23,6 +22,13 @@ Utilities and Decorators
   stable_priority_queue
   watershed
 
+Additional utilities are located within the `core` submodule:
+
+.. toctree::
+   :maxdepth: 2
+
+   ../core/index
+
 Module contents
 ---------------
 
@@ -30,3 +36,4 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+   :noindex:

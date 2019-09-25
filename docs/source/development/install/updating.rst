@@ -1,11 +1,10 @@
 .. _updating:
 
-================
-Updating Landlab
-================
+====================
+Keep Landlab Updated
+====================
 
-Fundamental update instructions
--------------------------------
+
 To take advantage of new features and new library additions, we recommend you
 **update Landlab** fairly frequently. From time to time you should fetch
 commits to the "trunk" version of Landlab that you don’t have in your forked

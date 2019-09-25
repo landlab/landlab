@@ -6,7 +6,7 @@ Subpackages
 
 .. toctree::
 
-    landlab.graph.quantity.ext
+    quantity_ext
 
 Submodules
 ----------

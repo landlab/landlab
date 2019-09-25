@@ -10,42 +10,15 @@ need.
 
 The most important things to remember are to:
 
-    * Create a fork of Landlab's repository,
-    * Make your changes to the source code on a development branch, and
-    * Stay up to date with changes in the main Landlab repository.
-
-Installing Landlab for Developers
----------------------------------
-
-.. toctree::
-   :maxdepth: 2
-
-   developer_install
-   updating
-
-Using Git
----------
+  * Start by creating a fork of Landlab's repository;
+  * Make changes to the source code on a development branch, not the default
+    `master` branch; and
+  * Keep your fork's `master` and development branches up to date with changes
+    in the main Landlab repository.
 
 .. toctree::
    :maxdepth: 2
 
-   develop_with_git
-
-
-Writing Code to Contribute to Landlab
--------------------------------------
-
-.. toctree::
-   :maxdepth: 2
-
-   develop_a_component
-   style_conventions
-   unit_tests
-
-Other Developer Resources
--------------------------
-
-.. toctree::
-   :maxdepth: 2
-
-   dev_guide_releases
+   install/index
+   contribution/index
+   practices/index

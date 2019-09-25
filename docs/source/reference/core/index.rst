@@ -4,16 +4,6 @@
 Core Landlab Classes
 ====================
 
-Subpackages
------------
-
-.. toctree::
-
-   landlab.core.tests
-
-Submodules
-----------
-
 landlab.core.messages module
 ----------------------------
 

@@ -1,4 +1,4 @@
-.. _anaconda_install:
+.. _python_installation:
 
 ===================
 Python Installation

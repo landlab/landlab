@@ -173,9 +173,6 @@ This method allows slightly more granular control over how the field gets create
 >>> elevs_in = np.random.rand(mg.number_of_nodes)
 >>> mg.add_field('node', 'elevation', elevs_in, units='m', copy=True, noclobber=True)
 
-
-.. Dan has taken all reference to active_links, core_cells, etc out of this section, as it's not
-.. best practice.
 Fields can store data at nodes, cells, links, faces, patches, junctions, and corners (though the
 latter two or three are very rarely, if ever, used). The grid element you select is
 described in Landlab jargon as that field's *centering* or *group*, and you will
@@ -222,8 +219,6 @@ accessed individually through the properties
 
 We also maintain this list of all the `Landlab standard names <https://github.com/landlab/landlab/wiki/Standard-names>`_.
 
-
-.. internal link goes on "direct compatibility"
 Our fields also offer direct compatibility with `CSDMS’s standard naming system for
 variables <http://csdms.colorado.edu/wiki/CSDMS_Standard_Names>`_.
 However, note that, for ease of use and readability, Landlab standard

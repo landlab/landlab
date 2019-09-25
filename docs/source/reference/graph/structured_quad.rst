@@ -6,7 +6,7 @@ Subpackages
 
 .. toctree::
 
-    landlab.graph.structured_quad.ext
+    structured_quad_ext
 
 Submodules
 ----------

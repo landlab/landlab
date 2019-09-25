@@ -6,7 +6,7 @@ Subpackages
 
 .. toctree::
 
-    landlab.graph.object.ext
+    object_ext
 
 Submodules
 ----------

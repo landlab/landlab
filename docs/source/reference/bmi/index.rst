@@ -4,9 +4,6 @@
 Basic Model Interface
 =====================
 
-Submodules
-----------
-
 landlab.bmi.bmi\_bridge module
 ------------------------------
 
