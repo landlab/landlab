@@ -186,7 +186,6 @@ Other known pb:
    `Install GRASS GIS after installing
    Landlab <https://github.com/landlab/landlab/wiki/Installing-GRASS-after-installing-Landlab>`__
 
---------------
 
 If this does not solve your issue:
 ----------------------------------

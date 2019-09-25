@@ -26,7 +26,7 @@ embedded in both OSX El Capitan and Sierra. It is nonetheless possible
 to disable this security, however (see below).
 
 Installing GRASS after Anaconda
-===============================
+-------------------------------
 
 (Before trying this, test that you definitely cannot install GRASS.
 There’s always a chance that you already had the troublesome libraries
@@ -63,7 +63,7 @@ will run happily side by side.
 Except…
 
 GRASS won’t run on OSX El Capitan and later
-===========================================
+-------------------------------------------
 
 This isn’t really our problem, but we suspect it will nonetheless catch
 out many of our users. Apparently, Apple have added an inbuilt layer of

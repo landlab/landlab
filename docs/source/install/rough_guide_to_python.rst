@@ -23,6 +23,8 @@ maintained through the Debian package repository that *apt-get* looks at
 tend not to be up to date. This is problematic, as Landlab needs at least
 Python 2.7, Numpy 1.8, and Scipy 0.12. So first, check your version:
 
+.. code-block:: bash
+
     $ python --version
 
 Note the two dashes.
@@ -30,8 +32,9 @@ If you got 2.7 or higher, congratulations! You win. No further changes to
 python installs are needed. But if you didn't, first check whether you can
 simply update through the package manager:
 
-    $ sudo apt-get install -u python
+.. code-block:: bash
 
+    $ sudo apt-get install -u python
     $ python --version
 
 If you're still seeing a sub-2.7 version number (as I was...), you're going
@@ -41,27 +44,31 @@ link to the highest version
 number of Python 2.X available (2.7.6 at time of writing), and download it
 as a gzipped source tarball. Then:
 
+.. code-block:: bash
+
     $ tar -xzf the_downloaded_file.tgz
-
     $ cd the_new_directory
-
     $ ./configure
-
     $ make
-
     $ sudo make install
 
 You should now have Python 2.7! Close the terminal, reopen, and check:
+
+.. code-block:: bash
 
     $ python2.7
 
 BUT, it's highly likely if you just run "python", you won't get this
 version. Check by
 
+.. code-block:: bash
+
     $ python --version
 
 again. You can resolve this by messing with your ~/.bashrc profile. Open
 that file in your favourite text editor, and add at the end:
+
+.. code-block:: bash
 
     alias python="python2.7"
 

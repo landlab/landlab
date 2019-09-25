@@ -180,3 +180,36 @@ actually make the merge (*please don’t do this yourself!*).
 If you’re confused by this process, just create the request, and one of
 us will see it and come to help you. You can create comments on your
 request from the website at any time after you’ve made it.
+
+
+Troubleshooting
+---------------
+
+What do I do if my pull request cannot be automatically merged?
+```````````````````````````````````````````````````````````````
+
+Get the latest upstream/master and go to the `master` branch. Remember,
+*do not develop here*.  Always develop in a feature branch. Merge the lastest
+upstream master with your master::
+
+  > git fetch upstream
+  > git checkout master
+  > git merge upstream/master
+
+Go to the branch on which you are developing and merge the lastest upstream
+master with your branch::
+
+  > git checkout <branch_name>
+  > git merge upstream/master
+
+Fix the conflicts. Do this by hand or with a merge editor. This is where you
+decide how to integrate the conflicting changes. Since only you know what and
+why you made the changes you did, this can only be done by you::
+
+  > git mergetool
+
+After everything has been fixed, commit the changes and push the changes to
+the repository.  The pull request will automatically be updated::
+
+  > git commit
+  > git push

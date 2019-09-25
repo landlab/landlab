@@ -1,5 +1,6 @@
 .. _updating:
 
+================
 Updating Landlab
 ================
 
@@ -15,9 +16,11 @@ Before you begin, we recommend you review this `GitHub page describing syncing
 a `fork <https://help.github.com/articles/syncing-a-fork/>`_.
 
 Through the command line, you should be able to update your Landlab repository
-from master using the following command::
+from master using the following command
 
-   > git fetch upstream
+.. code-block:: bash
+
+   $ git fetch upstream
 
 A common reason why this might not work is if you haven't set the remotes
 correctly. This
@@ -27,10 +30,12 @@ managing remotes might be helpful.
 If we have added a dependency, you may see an import error. Similarly, if we
 have added a dependency, you may see some tests break. A likely fix is to
 ensure you have all the requirements specified in the
-`requirements-dev.txt` file::
+`requirements-dev.txt` file
 
-   > conda install --yes --file=requirements-dev.txt
-   > pip install -e .
+.. code-block:: bash
+
+   $ conda install --yes --file=requirements-dev.txt
+   $ pip install -e .
 
 The first of these installs any new requirements for development (in
 requirements-dev.txt). The second will install any additional requirements for
@@ -40,9 +45,11 @@ If the Cython code has changed since you last updated, you will probably see
 errors associated with files named `cfuncs.pyx` (or similar). These changes
 require that you recompile your code. This can be done by executing the
 following from within the top level landlab folder (which contains the
-`setup.py` file)::
+`setup.py` file)
 
-   > pip install -e .
+.. code-block:: bash
+
+   $ pip install -e .
 
 If none of these options work, please make an issue.
 
@@ -66,10 +73,12 @@ In a terminal, navigate to the top level directory of
 that old code, the one that contains the file *setup.py*.
 This is likely to be *your_home_dir*/landlab, if you installed with git
 and left all the defaults as is.
-Then::
+Then
 
-    > pip uninstall landlab #just to be on the safe side, may get errors again
-    > python setup.py develop -u
+.. code-block:: bash
+
+    $ pip uninstall landlab #just to be on the safe side, may get errors again
+    $ python setup.py develop -u
 
 This should remove the install, **if** you installed as a developer.
 
@@ -79,13 +88,17 @@ Landlab that lives inside *your_python_install*/lib/python2.7/site-packages.
 **Do this only after you've exhausted other possibilities, above**, as
 packages like pip will get annoyed with you if you start manually deleting
 their files if they installed them in the first place. To minimize the risk,
-once again make sure you have just run::
+once again make sure you have just run
 
-    > pip uninstall landlab
+.. code-block:: bash
 
-Then find your Python directory with::
+    $ pip uninstall landlab
 
-    > which python
+Then find your Python directory with
+
+.. code-block:: bash
+
+    $ which python
 
 Find that folder, ignoring everything after and including the subfolder
 *bin*. Instead, go to *your_install*/lib/python2.7/site-packages. In here,
@@ -94,20 +107,25 @@ you should find one (or more) folders referring to Landlab, e.g.,
 *landlab.egg*. Delete these. Leave everything else as it is!
 
 If you are running an Anaconda distribution, we now recommend you replace your
-pip install with a conda install. Simply do this::
+pip install with a conda install. Simply do this
 
-     > pip uninstall landlab
+.. code-block:: bash
 
-     > conda install landlab -c landlab
+     $ pip uninstall landlab
+     $ conda install landlab -c landlab
 
 You will then be able to update Landlab along with the rest of your conda
-packages::
+packages
 
-     > conda update --all -c landlab
+.. code-block:: bash
+
+     $ conda update --all -c landlab
 
 If you prefer to remain with pip, try another pip install::
 
-    > pip install landlab
+.. code-block:: bash
+
+    $ pip install landlab
 
 This should now take.
 

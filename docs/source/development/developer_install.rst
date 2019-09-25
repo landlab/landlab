@@ -12,37 +12,36 @@ information on how to do this.
 
 The process breaks down to three parts:
 
-1. [[Fork|Installing-Landlab-from-source-code-(“developer-install”)#1-getting-the-code-from-github]]
-   our code repository on `Github <http://github.com>`__ to give you a
-   copy of the code on your own machine.
-2. [[Install|Installing-Landlab-from-source-code-(“developer-install”)#2-installing-landlab-in-developer-mode]]
-   the Landlab library from the code; updating the code will
-   automatically update your install.
-3. Periodically,
-   [[update|Installing-Landlab-from-source-code-(“developer-install”)#3-updating-your-landlab-install]]
-   your local Landlab code from Github to keep up to date with bug
-   fixes, updates etc.
+1. :ref:`Fork<dev_install_fork>` our code repository on
+   `Github <https://github.com/landlab/landlab>`_ to give you a copy of the
+   code on your own machine.
+2. :ref:`Install<dev_install_install>` the Landlab library from the code;
+   modifying the code will automatically be seein by your install.
+3. Periodically, :ref:`update<dev_install_update>` your local Landlab code from
+   Github to keep up to date with bug fixes, updates etc.
 
-**Note:** *For dev work, we actively recommend Anaconda over the
+**Note:** For dev work, we actively recommend Anaconda over the
 Enthought Python Distribution, especially on Windows machines. This is
 because it ships with a working compiler already associated with Python,
 whereas the EPD does not. On a Mac, this is less important as the Xcode
 app (available through iTunes) gives you the necessary compilers
 instead—install it now if you don’t have it! If you choose to use the
-EPD on a Windows machine, however,*\ `you’ll need to install separately
+EPD on a Windows machine, however, you’ll need to install separately
 either Visual Basic or MinGW and successfully associate them with your
-Python
-install <http://landlab.readthedocs.org/en/latest/compilers_in_windows.html#compile-in-windows>`__\ *.
-Email the development team if you’re really struggling. But unless
-you’re really invested in Canopy and the EPD, uninstalling it and
+Python install. See :ref:`this page<compile_in_windows>` on Windows Compilers.
+
+Make a GitHub Issue to contact the development team if you’re really struggling.
+But unless you’re really invested in Canopy and the EPD, uninstalling it and
 replacing with Anaconda is probably the more stress-free way to go.*
 
 *Either way, you’ll need a working C++ compiler running alongside Python
 to be able to perform a full developer install. You’ll see errors
-referring to [[ Cython \| Python,-NumPy,-SciPy,-Cython#cython]] if you
+referring to :ref:`Cython<cython>` if you
 don’t have working compiler when calling ``python setup.py develop``
-(see [[Section
-2|Installing-Landlab-from-source-code-(“developer-install”)#2-installing-landlab-in-developer-mode]]).*
+(see :ref:`Section 2<dev_install_install>`.*
+
+
+.. _dev_install_fork:
 
 1. Getting the code from Github
 -------------------------------
@@ -137,11 +136,14 @@ github.com/landlab/landlab).
 
 Use the following commands from a terminal of your choice.
 
-::
+.. code-block:: bash
 
-   > git clone git@github.com:your-user-name/landlab.git
-   > cd landlab
-   > git remote add upstream git://github.com/landlab/landlab.git
+   $ git clone git@github.com:your-user-name/landlab.git
+   $ cd landlab
+   $ git remote add upstream git://github.com/landlab/landlab.git
+
+
+.. _dev_install_install:
 
 2. Installing Landlab in developer mode
 ---------------------------------------
@@ -152,11 +154,15 @@ machine (PCs) \| Installing-Compilers-on-Windows ]] before proceeding
 with your developer install. **You should also update your Python
 distribution!** For Anaconda, use
 
-``conda update --all``
+.. code-block:: bash
+
+    $ conda update --all
 
 (two dashes), and then separately,
 
-``conda update setuptools``
+.. code-block:: bash
+
+    $ conda update setuptools
 
 (the second being essential!) from your terminal.
 
@@ -164,16 +170,16 @@ distribution!** For Anaconda, use
 before**. If you’ve previously used pip to install Landlab, we recommend
 you take that version off first. At a command prompt, use the command
 
-::
+.. code-block:: bash
 
-   > pip uninstall landlab
+    $ pip uninstall landlab
 
 If you have used ``conda`` to install a prebuilt version of Landlab, you
 should uninstall that too.
 
-::
+.. code-block:: bash
 
-   > conda uninstall landlab
+    $ conda uninstall landlab
 
 If you’re not sure whether you have or not in the past, there’s no harm
 doing both of these uninstall commands.
@@ -183,11 +189,11 @@ you need to install it. To install Landlab in developer mode, navigate
 to the root Landlab folder (it will be landlab with a small ``l`` and
 will contain the file ``setup.py``) and run the following commands:
 
-::
+.. code-block:: bash
 
-   > conda env create --file=environment-dev.yml
-   > conda activate landlab_dev
-   > pip install -e .
+   $ conda env create --file=environment-dev.yml
+   $ conda activate landlab_dev
+   $ pip install -e .
 
 This first command installs all of the dependencies required by Landlab
 into a new environment called *landlab_dev*. The second command
@@ -201,9 +207,9 @@ any changes you make to your copy of the code is seen by Python the
 To uninstall your development version of Landlab (again from the root
 ``landlab/`` folder) run the following command:
 
-::
+.. code-block:: bash
 
-   > pip unintall landlab
+   $ pip unintall landlab
 
 With Landlab uninstalled, you will no longer be able to import Landlab
 from outside the root folder of your working copy.
@@ -212,41 +218,41 @@ Testing your install
 ````````````````````
 
 In order to test your installation you’ll need to install the
-```pytest`` <https://docs.pytest.org/en/latest/>`__ package that is used
+```pytest`` <https://docs.pytest.org/en/latest/>`_ package that is used
 to run the tests.
 
-::
+.. code-block:: bash
 
-   > conda install pytest
+   $ conda install pytest
 
 Once ``pytest`` has been installed navigate to the main Landlab
 directory (the one with ``setup.py`` in it) and type into a terminal:
 
-::
+.. code-block:: bash
 
-   > pytest
+   $ pytest
 
 This command will collect and run all of the tests. If you want to only
 want to test one part of Landlab (perhaps a component you are working
 on), you would run:
 
-::
+.. code-block:: bash
 
-   > pytest path\to\directory\you\want\to\test
+   $ pytest path\to\directory\you\want\to\test
 
 You may also want to see the code coverage of different parts of
 Landlab. To do this, you’ll first need to install
 ```pytest-cov`` <https://pytest-cov.readthedocs.io/en/latest/readme.html>`__.
 
-::
+.. code-block:: bash
 
-   > conda install pytest-cov
+   $ conda install pytest-cov
 
 Then execute
 
-::
+.. code-block:: bash
 
-   > pytest landlab --doctest-modules --cov=landlab --cov-report term-missing
+   $ pytest landlab --doctest-modules --cov=landlab --cov-report term-missing
 
 from the main Landlab directory.
 
@@ -257,18 +263,20 @@ As above, you can also run the coverage tools for a more specific
 directory. For example, to run them for your current directory you could
 execute
 
-::
+.. code-block:: bash
 
-   > pytest . --doctest-modules --cov=. --cov-report term-missing
+   $ pytest . --doctest-modules --cov=. --cov-report term-missing
 
 or to run them for a specific directory (for example, the
 erosion_deposition submodule) stored as an environment variable you
 would do the following:
 
-::
+.. code-block:: bash
 
-   > TEST_DIR=landlab/components/erosion_deposition/
-   > pytest $TEST_DIR --doctest-modules --cov=$TEST_DIR --cov-report term-missing
+   $ TEST_DIR=landlab/components/erosion_deposition/
+   $ pytest $TEST_DIR --doctest-modules --cov=$TEST_DIR --cov-report term-missing
+
+.. _dev_install_update:
 
 3. Updating your Landlab install
 --------------------------------
@@ -287,13 +295,13 @@ Obviously, feel free to just dive into modifying the code, but your life
 in the future will be a bit easier if you follow some basic
 recommendations for good work flow with git forks and branches. Even if
 you have a working knowledge of using git in a collaborative project, we
-highly recommend that you review [[this section|Developing with github
-and git]] of the documentation to get a sense of how to track
+highly recommend that you review :ref:`this section<landlab_develop_with_git>`
+of the documentation to get a sense of how to track
 modifications to your version of Landlab in a way that makes it easy to
 (a) get updates to Landlab made by the development team and other
 contributors and (b) contribute improvements and new features you
 develop back to the community. For information about our in-house code
-formatting conventions and standards, see [[here|Style-conventions]].
+formatting conventions and standards, see :ref:`here<style_enforcement>`.
 
 Troubleshooting
 ---------------
@@ -305,10 +313,10 @@ One possibility is that the landlab requirements changed between when
 you originally installed landlab and when you updated landlab. To
 address this, re-run the following lines and then test the installation.
 
-::
+.. code-block:: bash
 
-   > conda install --yes --file=requirements.txt
-   > python setup.py develop
+   $ conda install --yes --file=requirements.txt
+   $ python setup.py develop
 
 What do I do if my pull request cannot be automatically merged?
 ```````````````````````````````````````````````````````````````
@@ -317,35 +325,35 @@ Get the latest upstream/master and go to the master branch. Remember,
 *do not develop here*. Always develop in a feature branch. Merge the
 lastest upstream master with your master:
 
-::
+.. code-block:: bash
 
-   > git fetch upstream
-   > git checkout master
-   > git merge upstream/master
+   $ git fetch upstream
+   $ git checkout master
+   $ git merge upstream/master
 
 Go to the branch on which you are developing and merge the lastest
 upstream master with your branch:
 
-::
+.. code-block:: bash
 
-   > git checkout <branch_name>
-   > git merge upstream/master
+   $ git checkout <branch_name>
+   $ git merge upstream/master
 
 Fix the conflicts. Do this by hand or with a merge editor. This is where
 you decide how to integrate the conflicting changes. Since only you know
 what and why you made the changes you did, this can only be done by you:
 
-::
+.. code-block:: bash
 
-   > git merge tool
+   $ git merge tool
 
 After everything has been fixed, commit the changes and push the changes
 to the repository. The pull request will automatically be updated:
 
-::
+.. code-block:: bash
 
-   > git commit
-   > git push
+   $ git commit
+   $ git push
 
 Most of these steps have equivalents in the Github app. Use the
 “changes” pane to identify where conflicts exist in your version, then
@@ -360,9 +368,9 @@ code that lives in your local developer’s install. *Provided you used to
 have a fully working Landlab install*, you can fix this by just calling
 again from the main Landlab local folder
 
-::
+.. code-block:: bash
 
-   > python setup.py develop
+   $ python setup.py develop
 
 as described above in the main text. If this is happening when you call
 this install function rather than when you try to actually run some

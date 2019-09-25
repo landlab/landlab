@@ -2,9 +2,9 @@
 
 .. module:: landlab
 
-********************************************************
-Landlab: modular Earth Surface Dynamics modeling library
-********************************************************
+==========================================================
+Landlab: A modular Earth Surface Dynamics modeling library
+==========================================================
 
 
 Landlab is a Python-based library that allows scientists and students to

@@ -22,21 +22,7 @@ to use a surface process model often build their own unique model from the groun
 up, re-coding the basic building blocks of their surface process model rather than
 taking advantage of codes that have already been written.
 
-A list of papers and presentations using Landlab can be found on here:
-
-.. toctree::
-    :maxdepth: 2
-
-    papers_presentations
-
-
-Installation
-------------
-
-.. toctree::
-    :maxdepth: 2
-
-    ../install/index
+A list of papers and presentations using Landlab can be found :ref:`here <papers>`.
 
 
 Introduction to Python

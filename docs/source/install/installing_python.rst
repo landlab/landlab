@@ -47,7 +47,7 @@ up-to-date version of its dependencies from `PyPI
 installed.)
 
 The Test
-========
+--------
 
 Once you have a full Python distribution on your machine, it is vital to check that
 it has been successfully set as the default copy of Python on your system.
