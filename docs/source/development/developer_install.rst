@@ -214,12 +214,14 @@ To uninstall your development version of Landlab (again from the root
 With Landlab uninstalled, you will no longer be able to import Landlab
 from outside the root folder of your working copy.
 
+.. _testing::
+
 Testing your install
 ````````````````````
 
 In order to test your installation you’ll need to install the
 ```pytest`` <https://docs.pytest.org/en/latest/>`_ package that is used
-to run the tests.
+to run the tests. This is included in the conda environment described above.
 
 .. code-block:: bash
 
