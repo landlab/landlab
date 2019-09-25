@@ -5,11 +5,3 @@ DepressionFinderAndRouter: Handle depressions in terrain by calculating extent a
     :members:
     :undoc-members:
     :show-inheritance:
-
-PotentialityFlowRouter: Find flow directions and accumulation using potential-field theory
-------------------------------------------------------------------------------------------
-
-.. automodule:: landlab.components.potentiality_flowrouting
-    :members:
-    :undoc-members:
-    :show-inheritance:
