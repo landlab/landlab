@@ -54,23 +54,66 @@ class GroundwaterDupuitPercolator(Component):
             Landlab ModelGrid object
     hydraulic_conductivity: float, field name, or array of float
             saturated hydraulic conductivity, m/s
-            Default = 0.01 m/s
+            Default = 0.001 m/s
     porosity: float, field name or array of float
             the porosity of the aquifer [-]
-            Default = 0.5
+            Default = 0.2
     recharge_rate: float, field name, or array of float
             Rate of recharge, m/s
             Default = 1.0e-8 m/s
     regularization_f: float
             factor controlling the smoothness of the transition between
             surface and subsurface flow
+            Default = 1e-2
 
     Examples
     --------
+    Import the grid class and component
     >>> from landlab import RasterModelGrid
-    >>> mg = RasterModelGrid((3, 3))
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
-    >>> gdp = GroundwaterDupuitPercolator(mg)
+    >>> from landlab.components import GroundwaterDupuitPercolator
+
+    Initialize the grid and component
+    >>> grid = RasterModelGrid((10, 10), spacing=10.0)
+    >>> elev = grid.add_zeros('node', 'topographic__elevation')
+    >>> elev[:] = 5.0
+    >>> gdp = GroundwaterDupuitPercolator(grid)
+
+    Run component forward. Note all time units in the model are in seconds.
+    >>> dt = 1E4
+    >>> for i in range(100):
+    >>>     gdp.run_one_step(dt)
+
+    In an example that generates surface water leakage, the surface water flux
+    out of the domain can be calculated only after a FlowAccumulator is run.
+    Here is a more advanced example with a sloping aquifer that returns surface water flow.
+
+    >>> from landlab.components import FlowAccumulator
+
+    Set boundary conditions and initialize grid
+    >>> boundaries = {'top': 'closed','bottom': 'closed','right':'closed','left':'open'}
+    >>> grid = RasterModelGrid((5, 41), spacing=10.0,bc=boundaries)
+
+    Make a sloping, 3 m thick aquifer, initially fully saturated
+    >>> elev = grid.add_zeros('node', 'topographic__elevation')
+    >>> elev[:] = grid.x_of_node/100+3
+    >>> base = grid.add_zeros('node', 'aquifer_base__elevation')
+    >>> base[:] = grid.x_of_node/100
+    >>> wt = grid.add_zeros('node', 'water_table__elevation')
+    >>> wt[:] = grid.x_of_node/100 + 3
+
+    Initialize components
+    >>> gdp = GroundwaterDupuitPercolator(grid, recharge_rate=1E-7)
+    >>> fa = FlowAccumulator(grid, runoff_rate='surface_water__specific_discharge')
+
+    Advance timestep
+    >>> dt = 1E3
+    >>> for i in range(1000):
+    >>>     gdp.run_one_step(dt)
+
+    Calculate surface water flux out of domain
+    >>> fa.run_one_step()
+    >>> gdp.calc_sw_flux_out()
+    {0.00050767}
 
     Notes
     -----
