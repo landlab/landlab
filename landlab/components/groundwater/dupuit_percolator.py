@@ -189,8 +189,8 @@ class GroundwaterDupuitPercolator(Component):
         "water_table__velocity": "rate of change of water table elevation"
     }
 
-    def __init__(self, grid, hydraulic_conductivity=0.01,porosity=0.5,
-                 recharge_rate=1.0e-8,regularization_f=1E-3,unsaturated_zone=False):
+    def __init__(self, grid, hydraulic_conductivity=0.001,porosity=0.2,
+                 recharge_rate=1.0e-8,regularization_f=1E-2,unsaturated_zone=False):
         """Initialize the GroundwaterDupuitPercolator.
 
         Parameters
@@ -199,10 +199,10 @@ class GroundwaterDupuitPercolator(Component):
             Landlab ModelGrid object
         hydraulic_conductivity: float, field name, or array of float
                 saturated hydraulic conductivity, m/s
-                Default = 0.01 m/s
+                Default = 0.001 m/s
         porosity: float, field name or array of float
                 the porosity of the aquifer [-]
-                Default = 0.5
+                Default = 0.2
         recharge_rate: float, field name, or array of float
                 Rate of recharge, m/s
                 Default = 1.0e-8 m/s
