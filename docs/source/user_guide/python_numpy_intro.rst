@@ -19,7 +19,7 @@ Other advantages of this choice include high portability between platforms,
 open source language, numerous existing scientific libraries that prevent
 developers having to “reinvent the wheel,” and support for selective
 optimization of time-critical parts of the code base in Cython
-(see [[Cython | Python,-NumPy,-Scipy,-Cython#cython]]).
+(see :ref:`Cython  < Python,-NumPy,-Scipy,-Cython#cython>`).
 
 Getting to know Python
 ----------------------
@@ -41,7 +41,7 @@ of the object as a container in which everything relevant to that part of the
 code is stored, so that it can be accessed easily. You can read a bit more
 about Python objects `on this page <http://learnpythonthehardway.org/book/ex40.html>`_
 for general information. There is more detail on what this means in terms of
-running our code on the [[Build a Model page| Build-a-Model]].
+running our code on the :ref:`Build a Model page < Build-a-Model>`.
 
 If you know MatLab…
 ```````````````````
@@ -92,7 +92,7 @@ faster and easier.
 
 In particular, Landlab makes extensive use of the NumPy array data structure.
 Almost all data input and output from Landlab is in the form of an array (see
-[[ Landlab Fields | https://github.com/landlab/landlab/wiki/Grid#adding-data-to-a-landlab-grid-element-using-fields]] for more information).
+:ref:` Landlab Fields  < https://github.com/landlab/landlab/wiki/Grid#adding-data-to-a-landlab-grid-element-using-fields>` for more information).
 These arrays allow operations to happen much faster on the data than would be
 possible in a pure Python data structure like a list or a dictionary. (This is
 possible because NumPy arrays suppress some of Python’s inbuilt type checking
@@ -156,5 +156,5 @@ sufficient for the vast majority of users.
 However if, as a developer, you intend to modify any of the sections of code
 that we provide to you, you will probably need to recompile that code on your
 machine before the changes take effect. See the
-[[developer installation instructions | http://landlab.readthedocs.org/en/latest/dev_guide_install.html]]
+:ref:`developer installation instructions  < http://landlab.readthedocs.org/en/latest/dev_guide_install.html>`
 for more information on this.

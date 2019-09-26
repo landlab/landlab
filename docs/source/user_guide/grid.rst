@@ -102,7 +102,9 @@ Creating a Grid
 
 Creating a grid is easy.  The first step is to import Landlab's
 `RasterModelGrid <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.raster.RasterModelGrid>`_ class (this
-assumes you have [[installed Landlab | Installing Landlab ]] and are working in your favorite [[Python environment| Installing Python]]):
+assumes you have :ref:`installed Landlab <Installing Landlab >`
+and are working in your favorite
+:ref:`Python environment <Installing Python>`):
 
 >>> from landlab import RasterModelGrid
 
@@ -130,7 +132,7 @@ the associated grid element, and 2) fields attach these data to the grid, so tha
 access to the grid also has access to the data stored in fields.
 
 Suppose you would like like to
-track the elevation at each node. The following code creates a data field (array) called *elevation*. In this case, we'll use the grid method *add_zeros* to create a field that initially sets all values in the field to zero (we'll explain how to read in elevation values from a file in the section on [[DEMs below | Grid#importing-a-dem]]). The *add_zeros* method takes two arguments: the name of the grid element (in this case, *node*, in the singular) and a name we choose for the value in the data field (here we'll just call it *elevation*). Each *elevation* value in the data field is then associated with a specific grid node. The data field is just a NumPy array whose length is equal to the number of nodes in the grid.
+track the elevation at each node. The following code creates a data field (array) called *elevation*. In this case, we'll use the grid method *add_zeros* to create a field that initially sets all values in the field to zero (we'll explain how to read in elevation values from a file in the section on :ref:`DEMs below  < Grid#importing-a-dem>`). The *add_zeros* method takes two arguments: the name of the grid element (in this case, *node*, in the singular) and a name we choose for the value in the data field (here we'll just call it *elevation*). Each *elevation* value in the data field is then associated with a specific grid node. The data field is just a NumPy array whose length is equal to the number of nodes in the grid.
 
 >>> z = mg.add_zeros('node', 'elevation')
 
@@ -676,5 +678,3 @@ individual plots from, e.g., **plot()** or `landlab.plot.imshow.imshow_node_grid
 then stitching them together
 into, e.g., a gif using external software. Note it’s possible to do this directly from
 Preview on a Mac.
-
-[[ ← Previous topic: Intro to Python | Python,-NumPy,-SciPy,-Cython ]] |  [[Next topic: Build a Model → | Build-a-Model]]

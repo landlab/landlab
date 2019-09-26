@@ -133,4 +133,4 @@ The Code
 The Assignment
 ~~~~~~~~~~~~~~
 
-[[download pdf \| images/landscape_evolution_assignment_AW.pdf ]]
+`download pdf <images/landscape_evolution_assignment_AW.pdf>`_

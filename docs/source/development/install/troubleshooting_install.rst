@@ -92,8 +92,7 @@ I’m still confused
 ------------------
 
 If you are having problems when installing, testing or running Landlab,
-please visit our `Troubleshooting
-page <https://github.com/landlab/landlab/wiki/Troubleshooting>`__.
+please visit our :ref:`Troubleshooting page <troubleshooting>.
 
 The Landlab development team will be happy to hear from you. We
 recommend that you either post a question to the [[ Landlab User Group

@@ -6,7 +6,7 @@ Frequently Asked Questions
 I can't install/test/run Landlab, what should I do?
 ---------------------------------------------------
 
-If you are having trouble when installing, testing or running Landlab, please visit our [[Troubleshooting page | https://github.com/landlab/landlab/wiki/Troubleshooting]].
+If you are having trouble when installing, testing or running Landlab, please visit our :ref:`Troubleshooting page <https://github.com/landlab/landlab/wiki/Troubleshooting>`.
 
 
 What is the difference between a cell and a node?
@@ -99,7 +99,7 @@ are some options:
 (3) assign the downstream value
 (4) ...
 
-Look at this [[Tutorial | https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/mappers/mappers.ipynb]] for all the Landlab mappers
+Look at this `Tutorial <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/mappers/mappers.ipynb>`_ for all the Landlab mappers
 
 How do I test whether my grid is regular or irregular?
 ------------------------------------------------------
@@ -164,12 +164,12 @@ How do I keep in touch with Landlab developments?
 
 There are a few ways to follow Landlab developments. You can
 - contribute questions to this wiki (see below),
-- follow Landlab on [[Twitter | https://twitter.com/landlabtoolkit]]  @landlabtoolkit,
-- join the Landlab User Group on [[Slack | knuth@colorado.edu?subject=Landlab%20User%20Group&body=Invite%20to%20Slack]],
-- follow [[releases | https://github.com/landlab/landlab/releases]],
+- follow Landlab on `Twitter <https://twitter.com/landlabtoolkit>`_  @landlabtoolkit,
+- join the Landlab User Group on `Slack <knuth@colorado.edu?subject=Landlab%20User%20Group&body=Invite%20to%20Slack>`_,
+- follow `releases <https://github.com/landlab/landlab/releases>`_,
 - "watch" Landlab's GitHub repository,
-- file a pull request or an issue at [[https://github.com/landlab/landlab | https://github.com/landlab/landlab]],
-- sign up to the [[Landlab Lookout newsletter | https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7]] to get the latest news, tips, publications and more.
+- file a pull request or an issue at `https://github.com/landlab/landlab <https://github.com/landlab/landlab>`_,
+- sign up to the `Landlab Lookout newsletter <https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7>`_ to get the latest news, tips, publications and more.
 
 Why are there no other FAQs besides these few?
 ----------------------------------------------

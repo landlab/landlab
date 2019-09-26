@@ -393,15 +393,15 @@ Each of the four types of CTS model inherits from the base class (CellLabCTSMode
 Source Code Documentation for CellLab-CTS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* [[Methods and Internal Documentation for the base class: CellLabCTSModel | https://landlab.readthedocs.io/en/latest/landlab.ca.html#landlab.ca.celllab_cts.CellLabCTSModel]]
+* :ref:`Methods and Internal Documentation for the base class: CellLabCTSModel  < https://landlab.readthedocs.io/en/latest/landlab.ca.html#landlab.ca.celllab_cts.CellLabCTSModel>`* 
 
-* [[Methods and Internal Documentation for the RasterCTS class | https://landlab.readthedocs.io/en/latest/landlab.ca.html#landlab.ca.raster_cts.RasterCTS]]
+* :ref:`Methods and Internal Documentation for the RasterCTS class  < https://landlab.readthedocs.io/en/latest/landlab.ca.html#landlab.ca.raster_cts.RasterCTS>`* 
 
-* [[Methods and Internal Documentation for the OrientedRasterCTS class | https://landlab.readthedocs.io/en/latest/landlab.ca.html#landlab.ca.oriented_raster_cts.OrientedRasterCTS]]
+* :ref:`Methods and Internal Documentation for the OrientedRasterCTS class  < https://landlab.readthedocs.io/en/latest/landlab.ca.html#landlab.ca.oriented_raster_cts.OrientedRasterCTS>`* 
 
-* [[Methods and Internal Documentation for the HexCTS class | https://landlab.readthedocs.io/en/latest/landlab.ca.html#landlab.ca.hex_cts.HexCTS]]
+* :ref:`Methods and Internal Documentation for the HexCTS class  < https://landlab.readthedocs.io/en/latest/landlab.ca.html#landlab.ca.hex_cts.HexCTS>`* 
 
-* [[Methods and Internal Documentation for the OrientedHexCTS class | https://landlab.readthedocs.io/en/latest/landlab.ca.html#landlab.ca.oriented_hex_cts.OrientedHexCTS]]
+* :ref:`Methods and Internal Documentation for the OrientedHexCTS class  < https://landlab.readthedocs.io/en/latest/landlab.ca.html#landlab.ca.oriented_hex_cts.OrientedHexCTS>`
 
 
 
@@ -416,4 +416,4 @@ Narteau, C., Zhang, D., Rozier, O., & Claudin, P. (2009). Setting the length and
 
 Rozier, O., & Narteau, C. (2014). A real‐space cellular automaton laboratory. Earth Surface Processes and Landforms, 39(1), 98-109.
 
-Tucker, G. E., Hobley, D. E., Hutton, E., Gasparini, N. M., Istanbulluoglu, E., Adams, J. M., & Nudurupati, S. S. (2016). [[CellLab-CTS 2015: continuous-time stochastic cellular automaton modeling using Landlab. | https://doi.org/10.5194/gmd-9-823-2016]] Geoscientific Model Development, 9(2), 823-839, doi:10.5194/gmd-9-823-2016.
+:ref:`Tucker, G. E., Hobley, D. E., Hutton, E., Gasparini, N. M., Istanbulluoglu, E., Adams, J. M., & Nudurupati, S. S. (2016). [[CellLab-CTS 2015: continuous-time stochastic cellular automaton modeling using Landlab.  < https://doi.org/10.5194/gmd-9-823-2016>` Geoscientific Model Development, 9(2), 823-839, doi:10.5194/gmd-9-823-2016.

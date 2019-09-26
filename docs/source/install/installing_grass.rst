@@ -52,7 +52,7 @@ continue to open once you restore the path, also add a line reading
 BEFORE the commented out line setting the PATH.
 
 You can find out a bit more about messing with your system PATH
-[[here|Correcting-Install-Paths]].
+:ref:`here <Correcting-Install-Paths>`.
 
 Once you’ve done this, you can follow the normal GRASS instructions,
 installing both its framework packages and GRASS itself. Fire GRASS up

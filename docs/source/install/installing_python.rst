@@ -11,10 +11,10 @@ you download a complete Python distribution, as this will ensure that all of the
 modules that Landlab needs to run are definitely present. Most of the bug reports we
 get about problems installing Landlab relate to conflicts with older or incomplete versions of Python.
 Common symptoms are running the python setup commands at the end of this
-file, but then not being able to load landlab. Try [[ the Test | Installing-Python#the-test ]]
+file, but then not being able to load landlab. Try :ref:` the Test  < Installing-Python#the-test >`
 to ensure your current distribution with all its dependencies is the default.
 If you suspect a path or version problem after you've installed one
-of the distributions described below, click [[ here | Correcting-Install-Paths]].
+of the distributions described below, click :ref:` here  < Correcting-Install-Paths>`.
 
 On all platforms (Linux, Windows 7 or greater, and MacOS X), we recommend a
 preassembled scientific python distribution such as `Continuum IO's
@@ -37,7 +37,7 @@ In *Spyder -> Preferences -> iPython console -> Graphics -> Graphics Backend -> 
 
 On Linux systems, you can also install Python and the Landlab dependencies
 from your package manager. If you're running Linux but aren't that familiar
-with handling Python packages in it, [[ this | Rough-Guide-to-Python-on-Linux ]]
+with handling Python packages in it, :ref:` this  < Rough-Guide-to-Python-on-Linux >`
 might help.
 
 (Landlab uses `setuptools <https://pypi.python.org/pypi/setuptools>`_ for
@@ -64,6 +64,6 @@ operating system. For instance, Dan's Macbook Pro shows ``python`` on the path::
 
 On a PC, run ``python`` from your Command Prompt window. You should see a reference to anaconda when it is running.
 
-If you *don't* see reference to your newly installed distribution or the file is not found, click [[ here | Correcting-Install-Paths]] to resolve the problem.
+If you *don't* see reference to your newly installed distribution or the file is not found, click :ref:` here  < Correcting-Install-Paths>` to resolve the problem.
 
 Once you have installed a complete Python distribution on your machine, follow `these instructions <https://landlab.github.io/#/#install>`_ to install Landlab.

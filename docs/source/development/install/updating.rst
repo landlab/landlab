@@ -164,5 +164,5 @@ changes conflict with what's in the main Landlab repo. Don't panic! This is
 fine. Just follow the instructions to press ahead. Conflicts can be resolved
 manually later in the process—conflicting sections of the code will be tagged
 with a distinctive >>>>>>> symbology, and you can find and modify them by hand.
-See [[here|Installing-Landlab-from-source-code-("developer-install")#what-do-i-do-if-my-pull-request-cannot-be-automatically-merged]]
+See :ref:`here<Installing-Landlab-from-source-code-("developer-install")#what-do-i-do-if-my-pull-request-cannot-be-automatically-merged>`
 for more documentation on this.

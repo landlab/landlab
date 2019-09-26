@@ -19,7 +19,7 @@ Symptoms
    these commands gives an error.
 3. The install procedure appeared to go fine, including the test import in the
    Python shell
-   [[ described at the end of the instructions | Installing-Landlab-with-Anaconda#test-landlab-install ]],
+   :ref:` described at the end of the instructions  < Installing-Landlab-with-Anaconda#test-landlab-install >`,
    but now you can't import Landlab from the Python prompt provided inside Anaconda.
 4. As above, but you can't import Landlab from inside an iPython shell or from
    an iPython Notebook.
@@ -95,7 +95,7 @@ Use your favorite Unix editor to make the changes—almost all machines have
 ``nano``, which is super basic, but works. Once you're done, save
 (Ctrl-X, say yes to save in ``nano``), then quit and restart any apps that are
 using Python—including the terminal app itself.
-[[ Test | Installing-Landlab-with-Anaconda#test-landlab-install ]]
+:ref:` Test  < Installing-Landlab-with-Anaconda#test-landlab-install >`
 if this solved your problem.
 
 If you only have one of ``.bash_profile`` or ``.profile``, open it in an editor
@@ -129,7 +129,7 @@ your shell's ``.profile`` and ``.rc`` files so that they point to your Anaconda
 binaries. However, your shell's ``.profile`` and ``.rc`` files will have
 different names, so refer to this page for some guidance on the names of
 configuation files for popular shells
-[[ https://en.wikipedia.org/wiki/Unix_shell | https://en.wikipedia.org/wiki/Unix_shell ]].
+` https://en.wikipedia.org/wiki/Unix_shell  < https://en.wikipedia.org/wiki/Unix_shell >`_.
 Note the syntax for the shell commands to do this will probably also be
 different in each shell! But since both Anaconda and Canopy assume you are
 using Bash, another clue will be to start with a copy of the (correct) path
@@ -235,6 +235,6 @@ start again from scratch.
 
 For example, your Anaconda distribution is contained in one folder. You can
 move this folder to the trash and install a fresh version following the
-directions on the [[ Anaconda | https://www.continuum.io/downloads ]] site.
+directions on the ` Anaconda  < https://www.continuum.io/downloads >`_ site.
 
 Update ``conda`` and ``pip``, uninstall Landlab, and then install a fresh copy.
