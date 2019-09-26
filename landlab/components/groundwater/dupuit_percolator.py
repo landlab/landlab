@@ -190,7 +190,7 @@ class GroundwaterDupuitPercolator(Component):
     }
 
     def __init__(self, grid, hydraulic_conductivity=0.001,porosity=0.2,
-                 recharge_rate=1.0e-8,regularization_f=1E-2,unsaturated_zone=False):
+                 recharge_rate=1.0e-8,regularization_f=1E-2):
         """Initialize the GroundwaterDupuitPercolator.
 
         Parameters
@@ -383,7 +383,7 @@ class GroundwaterDupuitPercolator(Component):
                         self._grid.at_node['aquifer__thickness'][self._cores])
 
 
-    def run_one_step(self, dt, s=None,sf=None,**kwds):
+    def run_one_step(self, dt,**kwds):
         """
         Advance component by one time step of size dt.
 
@@ -391,13 +391,6 @@ class GroundwaterDupuitPercolator(Component):
         ----------
         dt: float (time in seconds)
             The imposed timestep.
-        s: array of float (-)
-            The relative saturation in the
-            unsaturated zone at each node, returned
-            by the LumpedUnsaturatedZone component.
-        sf: float (-)
-            The relative saturation at field capacity
-            in the unsaturated zone.
         """
 
         #Calculate base gradient
@@ -426,15 +419,7 @@ class GroundwaterDupuitPercolator(Component):
                                     self._r)*_regularize_R(self._recharge - dqdx)
 
         # Mass balance
-        if self._unsat==True:
-            # unsaturated method interfaces with the LumpedUnsaturatedZone model
-            # accounting for the water gained and lost as the water table moves
-            # into and out of the unsaturated zone.
-            dsdt = self._recharge - dqdx - self._qs
-            self._dhdt[:] = (dsdt>=0)*(1/(self._n*(1-s)))*dsdt \
-                        + (dsdt<0)*(1/(self._n*(1-sf)))*dsdt
-        else:
-            self._dhdt[:] = (1/self._n)*(self._recharge - dqdx - self._qs)
+        self._dhdt[:] = (1/self._n)*(self._recharge - dqdx - self._qs)
 
         # Update
         self._thickness[self._cores] += self._dhdt[self._cores] * dt
@@ -442,7 +427,7 @@ class GroundwaterDupuitPercolator(Component):
         # Recalculate water surface height
         self._wtable[self._cores] = self._base[self._cores] + self._thickness[self._cores]
 
-    def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.5,s=None,sf=None,**kwds):
+    def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.5,**kwds):
         """
         Advance component by one time step of size dt, subdividing the timestep
         into substeps as necessary to meet a Courant condition.
@@ -455,13 +440,6 @@ class GroundwaterDupuitPercolator(Component):
         courant_coefficient: float (-)
             The muliplying factor on the condition that the timestep is
             smaller than the minimum link length over groundwater flow velocity
-        s: array of float (-)
-            The relative saturation in the
-            unsaturated zone at each node, returned
-            by the LumpedUnsaturatedZone component.
-        sf: float (-)
-            The relative saturation at field capacity
-            in the unsaturated zone.
         """
 
         remaining_time = dt
@@ -494,15 +472,7 @@ class GroundwaterDupuitPercolator(Component):
                                         self._r)*_regularize_R(self._recharge - dqdx)
 
             # Mass balance
-            if self._unsat==True:
-                # unsaturated method interfaces with the LumpedUnsaturatedZone model
-                # accounting for the water gained and lost as the water table moves
-                # into and out of the unsaturated zone.
-                dsdt = self._recharge - dqdx - self._qs
-                self._dhdt[:] = (dsdt>=0)*(1/(self._n*(1-s)))*dsdt \
-                            + (dsdt<0)*(1/(self._n*(1-sf)))*dsdt
-            else:
-                self._dhdt[:] = (1/self._n)*(self._recharge - dqdx - self._qs)
+            self._dhdt[:] = (1/self._n)*(self._recharge - dqdx - self._qs)
 
             #calculate criteria for timestep
             max_vel = max(abs(self._vel/self._n_link))
