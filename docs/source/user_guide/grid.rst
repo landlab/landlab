@@ -1,8 +1,8 @@
 .. _model_grid_description:
 
-==========================================
+******************************************
 Introduction to Landlab's Gridding Library
-==========================================
+******************************************
 
 When creating a two-dimensional simulation model, often the most time-consuming and
 error-prone task involves writing the code to set up the underlying grid. Irregular
@@ -106,20 +106,26 @@ assumes you have :ref:`installed Landlab <Installing Landlab >`
 and are working in your favorite
 :ref:`Python environment <Installing Python>`):
 
->>> from landlab import RasterModelGrid
+.. code-block:: python
+
+    from landlab import RasterModelGrid
 
 Now, create a regular (raster) grid with 10 rows and 40 columns, with a node spacing (dx) of 5:
 
->>> mg = RasterModelGrid((10, 40), 5.)
+.. code-block:: python
+
+    mg = RasterModelGrid((10, 40), 5.)
 
 *mg* is now a grid object with 400 ``( 10*40 )`` nodes and 750 ``( 40*(10-1) + 30*(10-1) )`` links.
 
->>> mg.number_of_node_columns
-40
->>> mg.number_of_nodes
-400
->>> mg.number_of_links
-750
+.. code-block:: python
+
+    mg.number_of_node_columns
+    40
+    mg.number_of_nodes
+    400
+    mg.number_of_links
+    750
 
 .. _fields:
 
@@ -134,46 +140,60 @@ access to the grid also has access to the data stored in fields.
 Suppose you would like like to
 track the elevation at each node. The following code creates a data field (array) called *elevation*. In this case, we'll use the grid method *add_zeros* to create a field that initially sets all values in the field to zero (we'll explain how to read in elevation values from a file in the section on :ref:`DEMs below  < Grid#importing-a-dem>`). The *add_zeros* method takes two arguments: the name of the grid element (in this case, *node*, in the singular) and a name we choose for the value in the data field (here we'll just call it *elevation*). Each *elevation* value in the data field is then associated with a specific grid node. The data field is just a NumPy array whose length is equal to the number of nodes in the grid.
 
->>> z = mg.add_zeros('node', 'elevation')
+.. code-block:: python
+
+    z = mg.add_zeros('node', 'elevation')
 
 Here *z* is an array of zeros. We can verify that *z* has the same length as the number of nodes:
 
->>> z.size  #or len(z)
-400
+.. code-block:: python
+
+    z.size  #or len(z)
+    400
 
 Note that *z* is a reference to the data stored in the model field. This means that if you change z, you
 also change the data in the ModelGrid's elevation field. Therefore, you can access and manipulate data in the field either through the variable *z* or through the grid, as in the following examples:
 
->>> mg.at_node['elevation'][5] = 1000.
+.. code-block:: python
+
+    mg.at_node['elevation'][5] = 1000.
 
 or the alternative notation:
 
->>> mg['node']['elevation'][5]
-1000.
+.. code-block:: python
+
+    mg['node']['elevation'][5]
+    1000.
 
 Now the sixth element in the model's elevation field array, or in *z*, is equal to 1000.  (Remember that the first element of a Python array has an index of 0 (zero)).
 
 You can see all of the field data available at the nodes on *mg* with the following:
 
->>> mg.at_node.keys()
-['elevation']
+.. code-block:: python
+
+    mg.at_node.keys()
+    ['elevation']
 
 You may recognize this as a dictionary-type structure, where
 the keys are the names (as strings) of the data arrays.
 
 There are currently no data values (fields) assigned to the links, as shown by the following:
 
->>> mg.at_link.keys()
-[]
+.. code-block:: python
+
+    mg.at_link.keys()
+    []
 
 It is also possible, and indeed, often quite useful, to initialize a field from an
 existing NumPy array of data. You can do this with the
 `add_field <http://landlab.readthedocs.org/en/latest/landlab.field.html#landlab.field.grouped.ModelDataFields.add_field>`_   method.
 This method allows slightly more granular control over how the field gets created. In addition to the grid element and field name, this method takes an array of values to assign to the field. Optional arguments include: ``units=`` to assign a unit of measurement (as a string) to the value, ``copy=`` a boolean to determine whether to make a copy of the data, and ``noclobber=`` a boolean that prevents accidentally overwriting an existing field.
 
->>> import numpy as np
->>> elevs_in = np.random.rand(mg.number_of_nodes)
->>> mg.add_field('node', 'elevation', elevs_in, units='m', copy=True, noclobber=True)
+.. code-block:: python
+
+    import numpy as np
+    elevs_in = np.random.rand(mg.number_of_nodes)
+    mg.add_field('node', 'elevation', elevs_in, units='m', copy=True, noclobber=True)
 
 Fields can store data at nodes, cells, links, faces, patches, junctions, and corners (though the
 latter two or three are very rarely, if ever, used). The grid element you select is
@@ -183,50 +203,59 @@ sometimes see these terms used as input parameters to various grid methods.
 To access only the core nodes, core cells, active links, or some other subset of node values using the
 properties available through the ModelGrid, you can specify a subset of the field data array. For example, if we wanted to determine the elevations at core nodes only we can do the following:
 
->>> core_node_elevs = mg.at_node['elevation'][mg.core_nodes]
+.. code-block:: python
+
+    core_node_elevs = mg.at_node['elevation'][mg.core_nodes]
 
 The first set of brackets, in this case *elevation*, indicates the field data array, and the second set of brackets, in this case *mg.core_nodes* (itself an array of core node IDs), is a NumPy filter that specifies which *elevation* elements to return.
 
 Here is another example of initializing a field with the *add_ones* method. Note that when initializing a field, the singular of the grid
 element type is provided:
 
->>> veg = mg.add_ones('cell', 'percent_vegetation')
->>> mg.at_cell.keys()
-['percent_vegetation']
+.. code-block:: python
+
+    veg = mg.add_ones('cell', 'percent_vegetation')
+    mg.at_cell.keys()
+    ['percent_vegetation']
 
 Here *veg* is an array of ones that has the same length as the number of cells. Because there are
 no cells around the edge of a grid, there are fewer cells than nodes:
 
->>> mg.at_cell['percent_vegetation'].size
-304
+.. code-block:: python
+
+    mg.at_cell['percent_vegetation'].size
+    304
 
 As you can see, fields are convenient because you don't have to keep track of how many nodes, links, cells, etc.
 there are on the grid. It is easy for any part of the code to query what data are already associated with the grid and operate on these data.
 
 You are free to call your fields whatever you want. However, field names are more useful if standardized across components. If you are writing a Landlab component
-you should use `Landlab’s standard names <https://github.com/landlab/landlab/wiki/Standard-names>`_.
+you should use `Landlab's standard names <https://github.com/landlab/landlab/wiki/Standard-names>`_.
 Standard names for fields in a particular component can be
 accessed individually through the properties
 *component_instance._input_var_names* and *component_instance._output_var_names*
 (returned as dictionaries), and are listed in the docstring for each component.
 
->>> from landlab.components.flexure import FlexureComponent
->>> flexer = FlexureComponent(rg)
->>> flexer._input_var_names
-{'lithosphere__elevation',
- 'lithosphere__overlying_pressure',
- 'planet_surface_sediment__deposition_increment'}
->>> flexer._output_var_names
-{'lithosphere__elevation', 'lithosphere__elevation_increment'}
+.. code-block:: python
 
-We also maintain this list of all the `Landlab standard names <https://github.com/landlab/landlab/wiki/Standard-names>`_.
+    from landlab.components.flexure import Flexure
+    flexer = Flexure(rg)
+    flexer._input_var_names
+    {'lithosphere__elevation',
+     'lithosphere__overlying_pressure',
+     'planet_surface_sediment__deposition_increment'}
+    flexer._output_var_names
+    {'lithosphere__elevation', 'lithosphere__elevation_increment'}
 
-Our fields also offer direct compatibility with `CSDMS’s standard naming system for
+We also maintain this list of all the
+:ref:`Landlab standard names <standard_names>`.
+
+Our fields also offer direct compatibility with `CSDMS's standard naming system for
 variables <http://csdms.colorado.edu/wiki/CSDMS_Standard_Names>`_.
 However, note that, for ease of use and readability, Landlab standard
 names are typically much shorter than CSDMS standard names. We anticipate that future
 Landlab versions will be able to automatically map from Landlab standard names to CSDMS
-standard names as part of Landlab’s built-in `Basic Model Interface for CSDMS
+standard names as part of Landlab's built-in `Basic Model Interface for CSDMS
 compatibility <http://csdms.colorado.edu/wiki/BMI_Description>`_.
 
 The following gives an overview of the commands you can use to interact with the grid fields.
@@ -234,11 +263,11 @@ The following gives an overview of the commands you can use to interact with the
 Field initialization
 ^^^^^^^^^^^^^^^^^^^^
 
-* ``grid.add_empty(group, name, units=’-’)``
-* ``grid.add_ones(group, name, units=’-’)``
-* ``grid.add_zeros(group, name, units=’-’)``
+* ``grid.add_empty(group, name, units='-')``
+* ``grid.add_ones(group, name, units='-')``
+* ``grid.add_zeros(group, name, units='-')``
 
-“group” is one of ‘node’, ‘link’, ‘cell’, ‘face’, ‘corner’, ‘junction’, ‘patch’
+“group” is one of 'node', 'link', 'cell', 'face', 'corner', 'junction', 'patch'
 
 “name” is a string giving the field name
 
@@ -248,7 +277,7 @@ Field initialization
 Field creation from existing data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* ``grid.add_field(group, name, value_array, units=’-’, copy=False, noclobber=False)``
+* ``grid.add_field(group, name, value_array, units='-', copy=False, noclobber=False)``
 
 Arguments as above, plus:
 
@@ -262,21 +291,21 @@ Arguments as above, plus:
 Field access
 ^^^^^^^^^^^^
 
-* ``grid.at_node`` or ``grid[‘node’]``
-* ``grid.at_cell`` or ``grid[‘cell’]``
-* ``grid.at_link`` or ``grid[‘link’]``
-* ``grid.at_face`` or ``grid[‘face’]``
-* ``grid.at_corner`` or ``grid[‘corner’]``
-* ``grid.at_junction`` or ``grid[‘junction’]``
-* ``grid.at_patch`` or ``grid[‘patch’]``
+* ``grid.at_node`` or ``grid['node']``
+* ``grid.at_cell`` or ``grid['cell']``
+* ``grid.at_link`` or ``grid['link']``
+* ``grid.at_face`` or ``grid['face']``
+* ``grid.at_corner`` or ``grid['corner']``
+* ``grid.at_junction`` or ``grid['junction']``
+* ``grid.at_patch`` or ``grid['patch']``
 
 Each of these is then followed by the field name as a string in square brackets, e.g.,
 
->>> grid.at_node[‘my_field_name’] #or
->>> grid[‘node’][‘my_field_name’]
+>>> grid.at_node['my_field_name'] #or
+>>> grid['node']['my_field_name']
 
 You can also use these commands to create fields from existing arrays,
-as long as you don’t want to take advantage of the added control ``add_field()`` gives you.
+as long as you don't want to take advantage of the added control ``add_field()`` gives you.
 
 
 Getting information about fields
@@ -314,7 +343,9 @@ Here we simply illustrate the method for
 calculating gradients on the links.  Remember that we have already created the
 elevation array z, which is also accessible from the elevation field on *mg*.
 
->>> gradients = mg.calculate_gradients_at_active_links(z)
+.. code-block:: python
+
+    gradients = mg.calculate_gradients_at_active_links(z)
 
 Now gradients have been calculated at all links that are active, or links on which
 flow is possible (see boundary conditions below).
@@ -432,7 +463,7 @@ of each node in the grid. There are 5 possible types:
 A number of different methods are available to you to interact with (i.e., set and
 update) boundary conditions at nodes. Landlab is smart enough to automatically
 initialize new grids with fixed value boundary conditions at all perimeters and core
-nodes for all interior nodes, but if you want something else, you’ll need to modify
+nodes for all interior nodes, but if you want something else, you'll need to modify
 the boundary conditions.
 
 If you are working with a simple Landlab raster where all interior nodes are core and
@@ -462,30 +493,30 @@ with your raster boundary conditions, you will need to modify the
 boundary types from landlab then set the node statuses. The links will be updated
 alongside these changes automatically:
 
->>> from landlab import CLOSED_BOUNDARY
->>> mg = RasterModelGrid((5,5))
->>> mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
->>> mg.number_of_active_links
-18
->>> mg.status_at_node[[6, 8]] = CLOSED_BOUNDARY
->>> mg.status_at_node.reshape((5,5))
-array([[4, 4, 4, 4, 4],
-       [1, 4, 0, 4, 1],
-       [1, 0, 0, 0, 1],
-       [1, 0, 0, 0, 1],
-       [4, 4, 4, 4, 4]], dtype=int8)
->>> mg.number_of_active_links  # links were inactivated automatically when we closed nodes
-12
+.. code-block:: python
 
-
+    from landlab import CLOSED_BOUNDARY
+    mg = RasterModelGrid((5,5))
+    mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
+    mg.number_of_active_links
+    18
+    mg.status_at_node[[6, 8]] = CLOSED_BOUNDARY
+    mg.status_at_node.reshape((5,5))
+    array([[4, 4, 4, 4, 4],
+           [1, 4, 0, 4, 1],
+           [1, 0, 0, 0, 1],
+           [1, 0, 0, 0, 1],
+           [4, 4, 4, 4, 4]], dtype=int8)
+    mg.number_of_active_links  # links were inactivated automatically when we closed nodes
+    12
 
 Note that while setting Landlab boundary conditions on the grid is straightforward, it
 is up to the individual developer of each Landlab component to ensure it is compatible
 with these boundary condition schemes! Almost all existing components work fine with
 core, closed, and fixed_value conditions, but some may struggle with fixed_gradient,
-and most will struggle with looped. If you’re working with the component library, take
+and most will struggle with looped. If you're working with the component library, take
 a moment to check your components can understand your implemented boundary conditions!
-See the `Component Developer’s Guide <http://landlab.readthedocs.org/en/latest/dev_guide_components.html>`_ for more information.
+See the `Component Developer's Guide <http://landlab.readthedocs.org/en/latest/dev_guide_components.html>`_ for more information.
 
 
 Using a Different Grid Type
@@ -496,14 +527,12 @@ As noted earlier, Landlab provides several different types of grid. Available gr
 classes, with more specialized grids inheriting properties and behavior from more
 general types. The class hierarchy is given in the second column, **Inherits from**.
 
-=======================   =======================   ==================   ================
 Grid type                 Inherits from             Node arrangement     Cell geometry
-=======================   =======================   ==================   ================
+=========                 =============             ================     =============
 ``RasterModelGrid``       ``ModelGrid``             raster               squares
 ``VoronoiDelaunayGrid``   ``ModelGrid``             Delaunay triangles   Voronoi polygons
 ``HexModelGrid``          ``VoronoiDelaunayGrid``   triagonal            hexagons
 ``RadialModelGrid``       ``VoronoiDelaunayGrid``   concentric           Voronoi polygons
-=======================   =======================   ==================   ================
 
 `landlab.grid.raster.RasterModelGrid <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.raster.RasterModelGrid>`_ gives a regular (square) grid, initialized
 with *number_of_node_rows*, *number_of_node_columns*, and a *spacing*.
@@ -532,17 +561,21 @@ as a grid.
 It returns a tuple, containing the grid and the elevations in Landlab ID order.
 Use the *name* keyword to add the elevation to a field in the imported grid.
 
->>> from landlab.io import read_esri_ascii
->>> (mg, z) = read_esri_ascii('myARCoutput.txt', name='topographic__elevation')
->>> mg.at_node.keys()
-['topographic__elevation']
+.. code-block:: python
+
+    from landlab.io import read_esri_ascii
+    (mg, z) = read_esri_ascii('myARCoutput.txt', name='topographic__elevation')
+    mg.at_node.keys()
+    ['topographic__elevation']
 
 **read_netcdf** allows import of the open source netCDF format for DEMs. Fields will
 automatically be created according to the names of variables found in the file.
 Returns a `landlab.grid.raster.RasterModelGrid <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.raster.RasterModelGrid>`_.
 
->>> from landlab.io.netcdf import read_netcdf
->>> mg = read_netcdf('mynetcdf.nc')
+.. code-block:: python
+
+    from landlab.io.netcdf import read_netcdf
+    mg = read_netcdf('mynetcdf.nc')
 
 
 After import, you can use `landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed <http://landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed>`_
@@ -562,36 +595,38 @@ Visualizing a Grid
 ------------------
 
 Landlab offers a set of matplotlib-based plotting routines for your data. These exist
-in the landlab.plot library. You’ll also need to import some basic plotting functions
+in the landlab.plot library. You'll also need to import some basic plotting functions
 from pylab (or matplotlib) to let you control your plotting output: at a minimum **show**
 and **figure**. The most useful function is called
 `landlab.plot.imshow.imshow_node_grid <http://landlab.readthedocs.org/en/latest/landlab.plot.html#landlab.plot.imshow.imshow_node_grid>`_, and is imported
 and used as follows:
 
->>> from landlab.plot.imshow import imshow_node_grid
->>> from pylab import show, figure
->>> mg = RasterModelGrid(50,50, 1.) #make a grid to plot
->>> z = mg.node_x *0.1 #make an arbitrary sloping surface
->>> #create the data as a field
->>> mg.add_field(‘node’, ‘topographic_elevation’, z, units=’meters’,
-                 copy=True)
->>> figure(‘Elevations from the field’) #new fig, with a name
->>> imshow_node_grid(mg, ‘topographic_elevation’)
->>> figure(‘You can also use values directly, not fields’)
->>> #...but if you, do you’ll lose the units, figure naming capabilities, etc
->>> imshow_node_grid(mg, z)
->>> show()
+.. code-block:: python
+
+    from landlab.plot.imshow import imshow_node_grid
+    from pylab import show, figure
+    mg = RasterModelGrid(50,50, 1.) #make a grid to plot
+    z = mg.node_x *0.1 #make an arbitrary sloping surface
+    #create the data as a field
+    mg.add_field('node', 'topographic_elevation', z, units='meters',
+    copy=True)
+    figure('Elevations from the field') #new fig, with a name
+    imshow_node_grid(mg, 'topographic_elevation')
+    figure('You can also use values directly, not fields')
+    #...but if you, do you'll lose the units, figure naming capabilities, etc
+    imshow_node_grid(mg, z)
+    show()
 
 Note that `landlab.plot.imshow.imshow_node_grid <http://landlab.readthedocs.org/en/latest/landlab.plot.html#landlab.plot.imshow.imshow_node_grid>`_
 is clever enough to examine the grid object you pass it,
 work out whether the grid is irregular or regular, and plot the data appropriately.
 
-By default, Landlab uses a Python colormap called *‘pink’*. This was a deliberate choice
-to improve Landlab’s user-friendliness to the colorblind in the science community.
+By default, Landlab uses a Python colormap called *'pink'*. This was a deliberate choice
+to improve Landlab's user-friendliness to the colorblind in the science community.
 Nonetheless, you can easily override this color scheme using the keyword *cmap* as an
-argument to imshow_node_grid. Other useful built in colorschemes are *‘bone’* (black
-to white), *'jet'*, (blue to red, through green), *‘Blues’* (white to blue), and
-*‘terrain’* (blue-green-brown-white) (note these names are case sensitive).
+argument to imshow_node_grid. Other useful built in colorschemes are *'bone'* (black
+to white), *'jet'*, (blue to red, through green), *'Blues'* (white to blue), and
+*'terrain'* (blue-green-brown-white) (note these names are case sensitive).
 See `the matplotlib reference guide
 <http://matplotlib.org/examples/color/colormaps_reference.html>`_ for more options.
 Note that imshow_node_grid takes many of the same keyword arguments as, and is designed
@@ -614,13 +649,15 @@ sections through your data. The grid provides the method
 will turn a Landlab 1D node data array into a two dimensional rows*columns NumPy array,
 which you can then take slices of, e.g., we can do this:
 
->>> from pylab import plot, show
->>> mg = RasterModelGrid(10,10, 1.)
->>> z = mg.node_x *0.1
->>> my_section = mg.node_vector_to_raster(z, flip_vertically=True)[:,5]
->>> my_ycoords = mg.node_vector_to_raster(mg.node_y, flip_vertically=True)[:,5]
->>> plot(my_ycoords, my_section)
->>> show()
+.. code-block:: python
+
+    from pylab import plot, show
+    mg = RasterModelGrid(10,10, 1.)
+    z = mg.node_x *0.1
+    my_section = mg.node_vector_to_raster(z, flip_vertically=True)[:,5]
+    my_ycoords = mg.node_vector_to_raster(mg.node_y, flip_vertically=True)[:,5]
+    plot(my_ycoords, my_section)
+    show()
 
 
 Visualizing river profiles
@@ -667,14 +704,14 @@ Making Movies
 -------------
 
 Landlab does have an experimental movie making component. However, it has come to the
-developers’ attention that the matplotlib functions it relies on in turn demand that
+developers' attention that the matplotlib functions it relies on in turn demand that
 your machine already has installed one of a small set of highly temperamental open
 source video codecs. It is quite likely using the component in its current form is
-more trouble than it’s worth; however, the brave can take a look at the library
+more trouble than it's worth; however, the brave can take a look at the library
 `landlab.plot.video_out <http://landlab.readthedocs.org/en/latest/landlab.plot.html#module-landlab.plot.video_out>`_. We intend to improve video out in future Landlab releases.
 
 For now, we advocate the approach of creating an animation by saving separately
 individual plots from, e.g., **plot()** or `landlab.plot.imshow.imshow_node_grid <http://landlab.readthedocs.org/en/latest/landlab.plot.html#landlab.plot.imshow.imshow_node_grid>`_,
 then stitching them together
-into, e.g., a gif using external software. Note it’s possible to do this directly from
+into, e.g., a gif using external software. Note it's possible to do this directly from
 Preview on a Mac.

@@ -6,18 +6,28 @@ Frequently Asked Questions
 I can't install/test/run Landlab, what should I do?
 ---------------------------------------------------
 
-If you are having trouble when installing, testing or running Landlab, please visit our :ref:`Troubleshooting page <https://github.com/landlab/landlab/wiki/Troubleshooting>`.
+If you are having trouble when installing, testing or running Landlab, please
+visit our :ref:`Troubleshooting page <Troubleshooting>`.
 
 
 What is the difference between a cell and a node?
 -------------------------------------------------
 
-A cell is a polygon surrounding a node. Nodes on the grid perimeter do not have cells. Cells have area, nodes have coordinates.
+A cell is a polygon surrounding a node. Nodes on the grid perimeter do not have
+cells. Cells have area, nodes have coordinates.
 
 Why is my node data a 1d array? I'm using a raster...
 -----------------------------------------------------
 
-All Landlab data structures have to be compatible with both regular and irregular grids. A 2d structure for node data might make sense for a raster, but it wouldn't work for an irregular grid - and moreover, there is also no sensible way to represent link data as a 2d raster either, even for a raster. Thus, instead, Landlab stores all data in an order set by *node ID number*. For a raster, IDs begin at zero in the bottom left corner of the grid, then run along each row in turn. For links, the IDs also start in the bottom left and run across then up, but in this case all vertical links are listed, then all horizontal links. Here's a sketch summary of this scheme for a 4x5 raster::
+All Landlab data structures have to be compatible with both regular and
+irregular grids. A 2d structure for node data might make sense for a raster,
+but it wouldn't work for an irregular grid - and moreover, there is also no
+sensible way to represent link data as a 2d raster either, even for a raster.
+Thus, instead, Landlab stores all data in an order set by *node ID number*.
+For a raster, IDs begin at zero in the bottom left corner of the grid, then
+run along each row in turn. For links, the IDs also start in the bottom left
+and run across then up, but in this case all vertical links are listed, then
+all horizontal links. Here's a sketch summary of this scheme for a 4x5 raster::
 
     NODES:                                    LINKS:
     15------16------17------18------19        *--27-->*--28-->*--29-->*--30-->*
@@ -40,50 +50,58 @@ How do I set the boundary codes for the edges of a grid?
 
 By default, the boundary nodes around the perimeter of a grid are all
 open boundaries. For a raster grid, if you want to make one or more sides
-closed boundaries, use the grid method `landlab.grid.Raster.RasterModelGrid.set_closed_boundaries_at_grid_edges <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.RasterModelGrid.set_closed_boundaries_at_grid_edges>`_.
+closed boundaries, use the grid method
+:ref:`RasterModelGrid.set_closed_boundaries_at_grid_edges <RasterModelGrid.set_closed_boundaries_at_grid_edges>`.
 
-The following code snippet sets the southern boundary nodes to be closed::
+The following code snippet sets the southern boundary nodes to be closed:
 
-  >>> import landlab
-  >>> grid = landlab.RasterModelGrid(3, 4)
-  >>> grid.set_closed_boundaries_at_grid_edges(True, False, False, False)
-  >>> grid.status_at_node
+.. code-block:: python
+
+  import landlab
+  grid = landlab.RasterModelGrid(3, 4)
+  grid.set_closed_boundaries_at_grid_edges(True, False, False, False)
+  grid.status_at_node
   array([4, 4, 4, 4, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
 
 It's also possible to set the boundary conditions "by hand", if you know the ID of the element you're trying to change:
-::
+:
 
-  >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
-  >>> mynodes_to_close = z < 0.  # if z is some elevation field
-  >>> grid.status_at_node[mynodes_to_close] = CLOSED_BOUNDARY
-  >>> my_fixed_node = mg.find_nearest_node((1.2, 2.3))
-  >>> my_fixed_node
+.. code-block:: python
+
+  from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
+  mynodes_to_close = z < 0.  # if z is some elevation field
+  grid.status_at_node[mynodes_to_close] = CLOSED_BOUNDARY
+  my_fixed_node = mg.find_nearest_node((1.2, 2.3))
+  my_fixed_node
   9
-  >>> grid.status_at_node[my_fixed_node] = FIXED_VALUE_BOUNDARY  # to fix the node closest to (1.2, 2.3)
+  grid.status_at_node[my_fixed_node] = FIXED_VALUE_BOUNDARY  # to fix the node closest to (1.2, 2.3)
 
 See also:
 
-  `landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges <http://landlab.readthedocs.io/en/latest/landlab.grid.html#landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges>`_,
-  `landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed>`_
+  :ref:`RasterModelGrid.set_fixed_value_boundaries_at_grid_edges <landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges>`,
+  :ref:`ModelGrid.set_nodata_nodes_to_closed <landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed>`
 
 
 Can I import Landlab output into ParaView or VisIt?
 ---------------------------------------------------
 
-See `How do I get netCDF output? <https://github.com/landlab/landlab/wiki/FAQs#how-do-i-get-netcdf-output>`_ below.
+See :ref:`How do I get netCDF output? <how-do-i-get-netcdf-output>` below.
 
 How do I get netCDF output?
 ---------------------------
 
 At present, Landlab can write output to a netCDF file if you are using a raster grid
 (support for unstructured grids is coming later). To create netCDF output, use the function
-`landlab.io.netcdf.write_netcdf <http://landlab.readthedocs.org/en/latest/landlab.io.netcdf.html?highlight=write_netcdf#landlab.io.netcdf.write_netcdf>`_. This function will write to file
+:ref:`landlab.io.netcdf.write_netcdf <landlab.io.netcdf.write_netcdf>`.
+This function will write to file
 
 (1) the grid geometry, and
 (2) any data arrays that are linked to the grid
 
 this will automatically include any arrays that you created with functions
-such as `landlab.grid.base.ModelGrid.add_zeros <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.base.ModelGrid.add_zeros>`_, as long as you provided a name for the array as one of the arguments.
+such as
+:ref:`landlab.grid.base.ModelGrid.add_zeros <landlab.grid.base.ModelGrid.add_zeros>`,
+as long as you provided a name for the array as one of the arguments.
 
 
 How do I assign values from nodes to links?
@@ -99,7 +117,9 @@ are some options:
 (3) assign the downstream value
 (4) ...
 
-Look at this `Tutorial <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/mappers/mappers.ipynb>`_ for all the Landlab mappers
+Look at this
+`Tutorial <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/mappers/mappers.ipynb>`_
+for all the Landlab mappers
 
 How do I test whether my grid is regular or irregular?
 ------------------------------------------------------
@@ -123,7 +143,7 @@ The way to do this is:
 How do I modify boundary conditions for part of the grid where I know the coordinates?
 --------------------------------------------------------------------------------------
 
-See https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/boundary_conds/set_BCs_from_xy.ipynb.
+See `this tutorial <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/boundary_conds/set_BCs_from_xy.ipynb>`_.
 
 I am having trouble installing Landlab on Ubuntu without Anaconda. What is the fix?
 -----------------------------------------------------------------------------------
@@ -154,10 +174,6 @@ There are several ways to get help:
 (2) Join the Landlab User Group on Slack <knuth@colorado.edu?subject=Landlab%20User%20Group&body=Invite%20to%20Slack>
 (3) File an issue at `https://github.com/landlab/landlab <https://github.com/landlab/landlab/issues>`_ using the ``New issue`` button in the upper right. Tell us about your issue, and we'll be in touch.
 
-.. raw:: html
-
-     <img width="800" src="https://raw.githubusercontent.com/wiki/landlab/landlab/images/issues-tab.png" />
-
 
 How do I keep in touch with Landlab developments?
 -------------------------------------------------
@@ -174,4 +190,4 @@ There are a few ways to follow Landlab developments. You can
 Why are there no other FAQs besides these few?
 ----------------------------------------------
 
-Because we need your questions. Please feel free to add your own questions to this wiki page using the ``Edit`` button above.
+Because we need your questions. Please feel free to add your own questions by making a GitHub Issue.

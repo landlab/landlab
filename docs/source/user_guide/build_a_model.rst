@@ -10,24 +10,24 @@ actually use it to build models and work with the Landlab component library.
 
 Using Landlab requires that you build a Python script to import, instantiate,
 and then run your landscape model. We describe such a script as a **driver**.
-It’s also possible to do the same set of processes on the fly in an interactive
+It's also possible to do the same set of processes on the fly in an interactive
 Python environment like iPython.
 
 Typically, a driver file will consist of six distinct sections:
 
-* **Import** the Python and Landlab libraries you’ll need to run your model
+* **Import** the Python and Landlab libraries you'll need to run your model
 * **Instantiate** the Landlab elements (grid and, if using them, components)
 * **Load** any necessary data into the grid fields
 * Set the **boundary conditions**
 * **Run** the model, typically by creating a for loop or using a Landlab generator (see below)
 * **Finalize** and handle the data (e.g., plot, export)
 
-Beyond the driver, if you’re using Landlab components, you’ll probably also need
+Beyond the driver, if you're using Landlab components, you'll probably also need
 a :ref:`parameter file<Components#input-files>`. This file supplies the components with the additional
 parameter and setup information they need. Landlab parameter files are text
 files ``.txt``, have fixed format, and for convenience (so you only have to
 specify the minimum of path information in the file name) should be placed in
-the same folder as the driver file. Find out more about parameter files :ref:`here<Components#input-files>`. However, if you’re not using components, there’s little need
+the same folder as the driver file. Find out more about parameter files :ref:`here<Components#input-files>`. However, if you're not using components, there's little need
 to create a parameter file; you can just directly pass other parameters to the grid
 in the driver.
 
@@ -51,56 +51,35 @@ producing models that couple more than one process significantly easier because
 existing, off-the-shelf components can be slotted in alongside novel process
 descriptions.
 
-At the time of writing, the existing library contains the following components:
-
-* Detachment limited/stream power channel incision
-* Transport limited channel incision
-* Linear (hillslope) diffusion
-* Nonlinear hillslope diffusion D8/Dn (D8 generalized to Voronoi) flow routing
-* Simple and not-so-simple crustal flexure
-* A simple fire simulator
-* A thin-ice glacial approximation
-* Precipitation/evapotranspiration
-* A relatively simple router for overland flow
-* A radiative intensity calculator
-* A generalized framework for cellular automata
-* A hillslope particle cellular automaton
-* A storm-rainfall generator
-
-And under active development are:
-
-* A vegetation cellular automaton
-* An impact cratering simulator
-* Divergent and mixed convergent-divergent flow routers
-* A deltaic simulator
+A list of the current components is found within the Reference guide
+:ref:`components section <api.components>`.
 
 Note that not all components will run under all conditions, but any
-limitations should be made clear in the inline documentation associated with
-that component (access help either through the indices you can find `on this
-site
-<http://landlab.readthedocs.org/en/latest/users_guide.html#list-of-landlab-components>`_
-or by typing ``[component or method]?`` in an interactive Python session). In
-particular, some components may demand you are running on a regular grid. It
+limitations should be made clear in the documentation associated with
+that component.
+
+In particular, some components may demand you are running on a regular grid. It
 should probably also be emphasized that most of these components are still under
 active development within this beta release of Landlab, and may behave in
 idiosyncratic ways or be subject to sudden changes with little or no warning. In
-all cases, before setting out on any
-major research challenges using a component, we’d recommend contacting the original coder of the component to let
+all cases, before setting out on any major research challenges using a
+component, we'd recommend contacting the original coder of the component to let
 them know they have external users to think about!
 
 Implementing a Landlab driver
 -----------------------------
 
 As noted above, the process of creating a driver is essentially equivalent
-whether you want to implement Landlab components, purely use your own code, or combine some
-mixture of the two. Here we take a closer look at the various steps.
+whether you want to implement Landlab components, purely use your own code, or
+combine some mixture of the two. Here we take a closer look at the various
+steps.
 
 1. Import the libraries and functions you need
 ++++++++++++++++++++++++++++++++++++++++++++++
 
-Landlab handles a lot like NumPy, and like NumPy you’ll need to import the
-various libraries and functions that you’ll want to use. At the very least, we
-suspect you’ll need from outside Landlab:
+Landlab handles a lot like NumPy, and like NumPy you'll need to import the
+various libraries and functions that you'll want to use. At the very least, we
+suspect you'll need from outside Landlab:
 
 * *NumPy* itself
 * rudimentary Pylab plotting routines: *plot*, *show*, *figure*
@@ -108,13 +87,20 @@ suspect you’ll need from outside Landlab:
 Also useful can be:
 
 * the Python module *time*, to time various parts of your code elements
-* from *SciPy*, the scientific computing library. Lots of useful methods (e.g., matrix solutions, curve fitting) can be found in here, to avoid reinventing the wheel.
+* from *SciPy*, the scientific computing library. Lots of useful methods (e.g.,
+  matrix solutions, curve fitting) can be found in here, to avoid reinventing
+  the wheel.
 
-From inside Landlab, you’ll also need:
+From inside Landlab, you'll also need:
 
-* A **grid** class—choose from `landlab.grid.raster.RasterModelGrid <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.raster.RasterModelGrid>`_, `landlab.grid.voronoi.VoronoiDelaunayGrid <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.voronoi.VoronoiDelaunayGrid>`_, or some of the more specialized classes
+* A **grid** class—choose from :ref:`RasterModelGrid <>`,
+  :ref:`landlab.grid.voronoi.VoronoiDelaunayGrid <>`,
+  or some of the more specialized classes listed on the
+  :ref:`grid documentation page <>`.
 * Any **components** you want to run
-* Any Landlab **utilities** you need, such as plotters (`landlab.plot.imshow.imshow_node_grid <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.plot.imshow.imshow_node_grid>`_) or **io** functions
+* Any Landlab **utilities** you need, such as plotters (
+  :ref:`imshow_grid <>`) or
+  :ref:`io functions <>`.
 
 A specific example might be:
 
@@ -124,7 +110,7 @@ A specific example might be:
     from pylab import show, figure, plot
     import time
     from landlab import RasterModelGrid
-    from landlab.components.flow_routing import FlowRouter
+    from landlab.components import FlowAccumlator
     from landlab.plot.imshow import imshow_node_grid
 
 2. Instantiate objects
@@ -132,17 +118,17 @@ A specific example might be:
 
 As noted in previous sections, Landlab is coded in an `object-oriented style
 <http://code.tutsplus.com/articles/python-from-scratch-object-oriented-programming--net-21476>`_.
-This means that we need to “instantiate” the various Landlab objects such as the grid and the components that we
-will use to store data and run the model.
+This means that we need to “instantiate” the various Landlab objects such as
+the grid and the components that we will use to store data and run the model.
 
 Note that most components require the grid object be passed to them as one of
-their arguments during instantiation, so the first thing you’ll want to
+their arguments during instantiation, so the first thing you'll want to
 instantiate will be the grid.
 
 Check the docstrings for each class (grid, component) you want to instantiate
 for a detailed description of what you need to supply as arguments.
 
-For a RasterModelGrid, this will be ``((i, j), [node_spacing])``. Here, ``(i, j)`` is a tuple where *i* is the number of rows and *j* the number of columns, and ``node_spacing`` is an optional second tuple or float. If you want uniform node spacing in the *y* and *x* directions, use a float, otherwise use a tuple to specify ``(dy, dx)`` if you want them to be different (see example immediately below). Spacing will default to (1., 1.). [Landlab also recognizes an older style of RasterModelGrid signature, which looks like ``(number_of_node_rows, number_of_node_columns, node_spacing(optional))``, and is clever enough to work with this form.] For a VoronoiDelaunayGrid, the signature will be ``(array_of_node_x_coords, array_of_node_y_coords)``. For a generic component, it will typically be ``(ModelGrid, ‘path_to_parameter_file.txt’)``, though there may be some variation, and optional inputs may also be available.
+For a RasterModelGrid, this will be ``((i, j), [node_spacing])``. Here, ``(i, j)`` is a tuple where *i* is the number of rows and *j* the number of columns, and ``node_spacing`` is an optional second tuple or float. If you want uniform node spacing in the *y* and *x* directions, use a float, otherwise use a tuple to specify ``(dy, dx)`` if you want them to be different (see example immediately below). Spacing will default to (1., 1.). [Landlab also recognizes an older style of RasterModelGrid signature, which looks like ``(number_of_node_rows, number_of_node_columns, node_spacing(optional))``, and is clever enough to work with this form.] For a VoronoiDelaunayGrid, the signature will be ``(array_of_node_x_coords, array_of_node_y_coords)``. For a generic component, it will typically be ``(ModelGrid, 'path_to_parameter_file.txt')``, though there may be some variation, and optional inputs may also be available.
 
 Give each object you instantiate a variable name. We like ``mg`` for ModelGrid
 objects and some appropriate abbreviation for a component.
@@ -151,15 +137,15 @@ An example might be:
 
 .. code-block:: python
 
-    mg = RasterModelGrid((10, 10), (1., 2.))  # 100 nodes, dy=1., dx=2.
-    fr = FlowRouter(mg, './params.txt') # this assumes params.txt is in the current directory
+    mg = RasterModelGrid((10, 10), xy_spacing(1., 2.))  # 100 nodes, dy=1., dx=2.
+    fr = FlowAccumlator(mg)
 
 3. Load/create data in fields
 +++++++++++++++++++++++++++++
 
-(:ref:`See this section<Grid#adding-data-to-a-landlab-grid-element-using-fields>` if you don’t know what a Landlab field is.)
+(:ref:`See this section<Grid#adding-data-to-a-landlab-grid-element-using-fields>` if you don't know what a Landlab field is.)
 
-Now we need some data to work with. Here we’ll assume that you’re going to be
+Now we need some data to work with. Here we'll assume that you're going to be
 working with a DEM-style elevation map across the nodes of the grid, but similar
 considerations would apply for any other type of data.
 
@@ -185,18 +171,19 @@ the above cases:
     mg.add_field('node', 'topographic__elevation', z, units='m')
 
 Alternatively, we can use the specialized Landlab function
-`landlab.io.esri_ascii.read_esri_ascii
-<http://landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.io.esri_ascii.read_esri_ascii>`_
+:ref:`read_esri_ascii <>`
 to import an ascii raster that can be output from ARC. Note this function both
 creates the grid for you and loads the data as a field if you provide ``name``.
-If not, you’ll have to load the data output (*z*, below) manually::
+If not, you'll have to load the data output (*z*, below) manually
 
-    >>> from landlab.io import read_esri_ascii
-    >>> mg, z = read_esri_ascii('my_ARC_output.asc', name='topographic__elevation')
-    >>> np.all(mg.at_node['topographic__elevation'] == z)
-    True
+  .. code-block:: python
 
-Note that if you don’t want to use any Landlab components, you can continue to
+    from landlab.io import read_esri_ascii
+    mg, z = read_esri_ascii('my_ARC_output.asc', name='topographic__elevation')
+    np.all(mg.at_node['topographic__elevation'] == z)
+
+
+Note that if you don't want to use any Landlab components, you can continue to
 work with data as “free floating” NumPy arrays, and can ignore the fields (e.g.,
 see this `simple introductory tutorial
 <https://gist.github.com/jennyknuth/034e696d65aec808b70e>`_).
@@ -204,53 +191,59 @@ see this `simple introductory tutorial
 4. Set the boundary conditions
 ++++++++++++++++++++++++++++++
 
-Once you have a grid and the initial condition data you’ll need, it’s time to
-set the boundary conditions. If you’re working with a raster, or some
+Once you have a grid and the initial condition data you'll need, it's time to
+set the boundary conditions. If you're working with a raster, or some
 pre-existing imported data, this is very straightforward using the built in
 RasterModelGrid functions. For a raster where only the edges are to be boundary
-nodes::
+nodes
 
-    >>> mg.set_fixed_value_boundaries_at_grid_edges(False, True, False, True)
-    >>> mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
+  .. code-block:: python
+
+    mg.set_fixed_value_boundaries_at_grid_edges(False, True, False, True)
+    mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
 
 This will give a grid with fixed value boundaries at the left and right edges,
 and closed boundaries at the top and bottom.
 
-If you’re working with, say, an ARC imported array with a null value on the
-closed nodes (e.g., -9999), you can do this::
+If you're working with, say, an ARC imported array with a null value on the
+closed nodes (e.g., -9999), you can do this
 
-    >>> mg.set_nodata_nodes_to_closed(mg.at_node['topographic__elevation'], -9999)
+  .. code-block:: python
 
-(Be aware that you’re still likely to have to reopen an outlet node manually!
-In which case you’ll also need to follow the instructions below.)
+    mg.set_nodata_nodes_to_closed(mg.at_node['topographic__elevation'], -9999)
 
-If you’re working with individual node’s boundary statuses, you’ll need to set
+(Be aware that you're still likely to have to reopen an outlet node manually!
+In which case you'll also need to follow the instructions below.)
+
+If you're working with individual node's boundary statuses, you'll need to set
 the boundary conditions by hand. This means individually modifying the boundary
 condition status of each node or link that you want to be of the new type.
 Fortunately, Landlab uses some Python magic to make sure that when you update,
 for example, the status of a node, the statuses of attached links and cells
-change concomitantly. For example::
+change concomitantly. For example
 
-    >>> # import the BC values we'll need:
-    >>> from landlab import FIXED_LINK, FIXED_GRADIENT_BOUNDARY
-    >>> # find the ID of the lowest elevation core node.
-    >>> # we'll make this a fixed gradient outlet:
-    >>> outlet_id = mg.core_nodes[np.argmin(mg.at_node['topographic__elevation'][mg.core_nodes])]
-    >>> # show there are no FIXED_LINK boundary conditions in the grid yet:
-    >>> np.any(mg.status_at_link==FIXED_LINK)
-    False
-    >>> # update the outlet node:
-    >>> mg.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
-    >>> np.any(mg.status_at_link==FIXED_LINK)
-    True
-    >>> # the corresponding link has been automatically updated.
+  .. code-block:: python
+
+    # import the BC values we'll need:
+    from landlab import FIXED_LINK, FIXED_GRADIENT_BOUNDARY
+    # find the ID of the lowest elevation core node.
+    # we'll make this a fixed gradient outlet:
+    outlet_id = mg.core_nodes[np.argmin(mg.at_node['topographic__elevation'][mg.core_nodes])]
+    # show there are no FIXED_LINK boundary conditions in the grid yet:
+    np.any(mg.status_at_link==FIXED_LINK)
+    e
+    # update the outlet node:
+    mg.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
+    np.any(mg.status_at_link==FIXED_LINK)
+
+    # the corresponding link has been automatically updated.
 
 5. Run the model
 ++++++++++++++++
 
-We’re now ready to actually implement a run of our model! Most things you might
+We're now ready to actually implement a run of our model! Most things you might
 want to do with Landlab are probably time-sensitive, so in almost all cases,
-you’ll probably be placing the guts of your simulation inside a loop of some
+you'll probably be placing the guts of your simulation inside a loop of some
 sort. In simple cases, you can just use some variation on a simple for loop or
 while statement, either:
 
@@ -275,12 +268,10 @@ that the latter technique is particularly amenable to situations where your
 explicit timestep is varying (e.g., a storm sequence). (For more on time steps in numerical models see the :ref:`Time Steps<time-steps>` page.)
 
 Landlab also however has a built in storm generator component,
-`landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution
-<http://landlab.readthedocs.org/en/latest/landlab.components.uniform_precip.html#landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution>`_,
+:ref:`PrecipitationDistribution<>`,
 which (as its name suggests) acts as a true `Python generator
 <http://www.python-course.eu/generators.php>`_. The main method is
-`landlab.components.uniform_precip.generate_uniform_precip
-<http://landlab.readthedocs.org/en/latest/landlab.components.uniform_precip.html#landlab.components.uniform_precip.generate_uniform_precip.PrecipitationDistribution.yield_storm_interstorm_duration_intensity>`_.
+:ref:`yield_storm_interstorm_duration_intensity <>`.
 This means producing a storm series in Landlab is also very easy:
 
 .. code-block:: python
@@ -301,7 +292,7 @@ for an example of this generator in action.
 
 What exactly “…do the thing” consists of is up to you. You can either design
 your own operations to do in the loop for yourself, or you can implement
-processes from Landlab’s component library. See `here
+processes from Landlab's component library. See `here
 <https://github.com/landlab/landlab/wiki/Components>`_
 for more information on using the components.
 
@@ -314,7 +305,7 @@ will still need to output the data somehow! Some options include:
 Save or export the data
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-If you’re using a raster grid, you can easily save your grid output to either
+If you're using a raster grid, you can easily save your grid output to either
 ESRI ascii (i.e., ARCmap) or open source netCDF formats. netCDF in particular is
 a powerful format, and allows easy subsequent re-loading of a Landlab modelgrid
 and all its fields. Save your raster like this:
@@ -335,15 +326,16 @@ The former way will give two save files, ``my_savename_field1.asc`` and
 ``my_savename_field2.asc``. The latter will just give ``my_savename.nc``.
 
 To reload a netCDF file, use the Landlab io function
-`landlab.io.netcdf.read_netcdf
-<http://landlab.readthedocs.org/en/latest/landlab.io.netcdf.html#landlab.io.netcdf.read_netcdf>`_ ::
+:ref:`read_netcdf<>`
 
-    >>> from landlab.io.netcdf import read_netcdf
-    >>> mg = read_netcdf('my_savename.nc')
+.. code-block:: python
+
+    from landlab.io.netcdf import read_netcdf
+    mg = read_netcdf('my_savename.nc')
 
 Note all the original fields you had will automatically be repopulated.
 
-If you’re using an irregular grid, the simple grid save function is not yet
+If you're using an irregular grid, the simple grid save function is not yet
 operational (though is under development). Instead, we recommend using Pickle, a
 native Python way of saving (“pickling”) any Python object. It works like this::
 
@@ -378,7 +370,7 @@ more about them :ref:`here<Grid#plotting-and-visualization>`.
 You also of course have the option of using the `matplotlib plotting library
 <http://matplotlib.org>`_ of Python for things like cross-sections.
 
-If you’re careful, you can also build plotting functions into the body of a run
+If you're careful, you can also build plotting functions into the body of a run
 loop for your model, so you can see how your output evolves through time. Note
 however that all Python save and plot functions are considerably time expensive,
 so it would probably be a bad idea to do this kind of thing every timestep.
@@ -398,8 +390,8 @@ Instead, you can try something like:
          last_accumulated_time_remainder = accumulated_time%100.
     show()
 
-Note that if you’re running inside an interactive Python session like iPython,
-all the variables and objects (both grid and component) that you’ve used in your
+Note that if you're running inside an interactive Python session like iPython,
+all the variables and objects (both grid and component) that you've used in your
 model will still be available in the environment. Thus, you can play with your
 data for as long as you want!
 

@@ -17,7 +17,7 @@ Landlab components exist as classes, and can be imported from
     We emphasize that at the moment most Landlab components are under active
     development, and it is possible that    changes may occur to things such as
     input argument format with little or no warning. Please let the Landlab
-    development team know if you’re making heavy use of a component so we can
+    development team know if you're making heavy use of a component so we can
     avoid unnecessarily breaking your code in future Landlab releases!
     Components are presented as-is in this beta release and we don't make any
     guarantees about the stability or otherwise of the implementations.
@@ -40,11 +40,8 @@ command prompt:
 
 ``landlab list``
 
-See the
-`Components section <http://landlab.readthedocs.io/en/release/#components>`_
-of the Landlab reference manual for a list of all Landlab components currently
-available.
-
+See the :ref: `Components section <api.components>` of the Landlab reference
+manual for a list of all Landlab components currently available.
 
 Landlab component classes, their import, and their instantiation
 ----------------------------------------------------------------
@@ -56,22 +53,28 @@ this is done has now been almost totally standardised across Landlab.
 
 A component class is imported from the library as
 
->>> from landlab.components import [ComponentClass]
+.. code-block:: python
 
-e.g., to get the linear diffusion component, we would do::
+    from landlab.components import [ComponentClass]
 
->>> from landlab.components import LinearDiffuser
+e.g., to get the linear diffusion component, we would do:
+
+.. code-block:: python
+
+    from landlab.components import LinearDiffuser
 
 The available components are listed in the
-`Landlab Reference Manual <http://landlab.readthedocs.io/en/latest/#components>`_.
+:ref:`Components section <api.components>` of the Landlab Reference Manual.
 
 Component classes always take a copy of the grid as their first argument. They
 then take a sequence of additional keyword arguments that set the actual
 parameters for the component. This means that the instantiation of a component
 looks something like
-this::
+this:
 
->>> dfn = LinearDiffuser(grid, 'linear_diffusivity'=0.01)
+.. code-block:: python
+
+    dfn = LinearDiffuser(grid, 'linear_diffusivity'=0.01)
 
 These keywords can also be set by passing a Python dictionary, or using a text
 input file (see below).
@@ -79,10 +82,12 @@ input file (see below).
 Here, `dfn` is now the `component object`—an "instance" of the component. We
 can run it by calling its run method. The component's documentation will
 explain how to do this for each individual case, but typically a component will
-have a method called `run_one_step`, which can be called like this::
+have a method called `run_one_step`, which can be called like this:
 
->>> dt = 100.  # the timestep
->>> dfn.run_one_step(dt)
+.. code-block:: python
+
+    dt = 100.  # the timestep
+    dfn.run_one_step(dt)
 
 If the component describes a time-varying process, the first argument of
 `run_one_step` will be the duration for which to run the component in this
@@ -94,7 +99,7 @@ details.
 Running one of these methods will update the fields held in common by the
 single grid object which you linked to all your components during component
 instantiation. If you look inside the grid fields having run one of these
-methods, you’ll see the new fields it has created and populated. The docstrings
+methods, you'll see the new fields it has created and populated. The docstrings
 for the component should make it clear which fields the component needs to have
 in the grid as inputs, and which it modifies and/or creates as outputs.
 
@@ -104,10 +109,12 @@ website, or in a dynamic Python session by getting help for either the imported
 class or the instantiated component object. i.e., in this case, any of the
 following would work::
 
->>> help(LinearDiffuser)
->>> help(dfn)
->>> LinearDiffuser?
->>> dfn?
+.. code-block:: python
+
+    help(LinearDiffuser)
+    help(dfn)
+    LinearDiffuser?
+    dfn?
 
 Quit interactive help in iPython by pressing "q".
 
@@ -127,17 +134,21 @@ that need to deviate from the defaults. So, for example, the default parameter
 values for the `FastscapeEroder` are
 `K_sp=None, m_sp=0.5, n_sp=1., threshold_sp=0., rainfall_intensity=1.`. So if
 I want to set the `K_sp` to, say, `1.e-6`, but I am happy with these other
-parameters, I can simply do::
+parameters, I can simply do:
 
->>> fsc = FastscapeEroder(grid, K_sp=1.e-6)
+.. code-block:: python
+
+    fsc = FastscapeEroder(grid, K_sp=1.e-6)
 
 Because Landlab components make use of Python's native `**kwargs` argument
 syntax, we can also pass multiple keywords at once to a component using a
-Python dictionary::
+Python dictionary:
 
->>> sp_thresholds = grid.add_ones('node', 'sp_thresholds')
->>> myargs = {'K_sp': 1.e-5, 'rainfall_intensity': 0.5, 'threshold_sp': sp_thresholds}
->>> fsc = FastscapeEroder(grid, **myargs)
+.. code-block:: python
+
+    sp_thresholds = grid.add_ones('node', 'sp_thresholds')
+    myargs = {'K_sp': 1.e-5, 'rainfall_intensity': 0.5, 'threshold_sp': sp_thresholds}
+    fsc = FastscapeEroder(grid, **myargs)
 
 Note the "magic" `**` decorator that is placed on the dictionary when it is
 passed to the component that makes this work. Also note that we can allow the
@@ -147,12 +158,16 @@ field names like this too (see, e.g., `threshold_sp` above). You can have all
 of your input parameters for all components in one dictionary if you so wish;
 components will ignore any keywords they are passed that they don't recognize.
 
+**Note that Landlab components will raise an error if they are passed
+keyword arguments that they do not need.**
+
 Landlab components always want to see a Python dictionary as their input, as
-illustrated above (passing a string for an actual input file is deprecated
-functionality in Landlab version 1). However, Landlab does offer a native file
+illustrated above. However, Landlab does offer a native file
 reader called `load_params` that allows you to create dictionaries to pass to
 components from input files. This function recognizes both
-`"yaml" <http://www.yaml.org/start.html>`_ formatted data files, e.g.,::
+`"yaml" <http://www.yaml.org/start.html>`_ formatted data files, e.g.,
+
+.. code-block:: yaml
 
     K_sp: 0.3
     m_sp: 0.5
@@ -161,11 +176,13 @@ components from input files. This function recognizes both
 
 The `load_params` method will figure out which to use by itself, and will do
 any necessary typecasting automatically (i.e., floats will be floats, not
-strings)::
+strings):
 
->>> from landlab import load_params
->>> my_input_dict = load_params('./mytextinputfile.txt')
->>> dfn = FastscapeEroder(grid, **my_input_dict)
+.. code-block:: python
+
+    from landlab import load_params
+    my_input_dict = load_params('./mytextinputfile.txt')
+    dfn = FastscapeEroder(grid, **my_input_dict)
 
 Component standard properties
 -----------------------------
@@ -174,30 +191,27 @@ All Landlab components offer a standardized interface. This provides automated i
 on the fields, units, etc. that the component works with, creates, and/or modifies. For a
 fully compliant component, you will find you can call:
 
-==================================  ===========================================================
 Property                            Description
-==================================  ===========================================================
+========                            ===========
 component.name 		                  a string
 component.input_var_names 	        a tuple giving input field names
 component.output_var_names	        a tuple giving output field names
-component.var_loc		                a tuple of (var_name, [‘node’, ‘link’, etc])
+component.var_loc		                a tuple of (var_name, ['node', 'link', etc])
 component.definitions	              a tuple of pairs of (var_name, short description)
-component.units                     a tuple of (var_name, [‘m’, ‘Pa’, etc])
+component.units                     a tuple of (var_name, ['m', 'Pa', etc])
 component.var_units('field')        method to return the unit of 'field'
 component.var_definition('field')   method to return a short description of 'field'
 component.var_mapping('field')      method to return the element of 'field' (e.g., 'node')
 component.var_type('field')         method to return dtype of 'field' (e.g., float)
 component.var_help('field')         a text summary of all of this information for 'field'
-==================================  ===========================================================
 
-See `the tutorials <https://github.com/landlab/landlab/wiki/Tutorials>`_ for
+See :ref:`the tutorials <tutorials>` for
 examples of use cases with one, two, and more coupled components.
 
 You can also get an overview of field usage by all components through Landlab's
 command line interface. See
-`here <https://github.com/landlab/landlab/wiki/Grid#getting-information-about-fields>`_
+:ref:`here <Grid#getting-information-about-fields>`
 for more information.
-
 
 .. _component_standard_names:
 
@@ -205,7 +219,7 @@ Landlab standard naming conventions
 -----------------------------------
 
 The Landlab component library attempts to make use of a relatively standardized set of names across
-the various components, in order to maximize ease of component coupling. If you’re familiar with
+the various components, in order to maximize ease of component coupling. If you're familiar with
 the concept of the `CSDMS standard naming conventions
 <http://csdms.colorado.edu/wiki/CSDMS_Standard_Names>`_, note that we have tried to strike a balance
 between the rigor and uniqueness of those names and a more user-friendly, succinct approach.
@@ -215,9 +229,10 @@ Nonetheless, you may recognize the basic style of the names:
 
 e.g., *topographic__elevation*, *water_surface__gradient*, *water__volume_flux*
 
- You can see a list of the names currently in use here: `Landlab Standard Names <https://github.com/landlab/landlab/wiki/Standard-names>`_
+ You can see a list of the names currently in use here:
+ :ref:`Landlab Standard Names <standard_names>`
 
-See `here <https://github.com/landlab/landlab/wiki/Standard-names#changes-to-standard-names-in-landlab>`_ for a list of recent changes
+See :ref:`here <changes-to-standard-names-in-landlab>` for a list of recent changes
 to the standard name list.
 
 
@@ -225,12 +240,12 @@ Dealing with nonstandard names
 ++++++++++++++++++++++++++++++
 
 The large number of developers on Landlab and historical accident have meant that despite our
-best efforts you’ll inevitably find instances where different components use different names
+best efforts you'll inevitably find instances where different components use different names
 for the same thing. In these cases, you need to make equivalent two fields in the grid which
 have different names so that two components can talk to each other. This is actually easy;
 you can just do:
 
->>> mg.add_field(‘node’, ‘second_name’, mg.at_node[‘first_name’])
+>>> mg.add_field('node', 'second_name', mg.at_node['first_name'])
 
 Note that we are making slow progress towards truly standardizing the component library, but
 these kind of idiosyncrasies might yet persist for a while!
