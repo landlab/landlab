@@ -101,7 +101,8 @@ class Lithology(Component):
             in chronostratigraphy.
         dz_advection : float, `(n_nodes, ) shape array, or at-node field array optional
             Change in rock elevation due to advection by some external process.
-            This can be changed using the property setter.
+            This can be changed using the property setter. Dimensions are in
+            length, not length per time.
         rock_id : value or `(n_nodes, ) shape array, optional
             Rock type id for new material if deposited.
             This can be changed using the property setter.
@@ -293,7 +294,8 @@ class Lithology(Component):
         ----------
         dz_advection : float, `(n_nodes, ) shape array, or at-node field array optional
             Change in rock elevation due to advection by some external process.
-            This can be changed using the property setter.
+            This can be changed using the property setter. Dimensions are in 
+            length, not length per time.
 
         Returns
         -------
