@@ -14,7 +14,7 @@ components and doing model output post-processing. While this document
 primarily discusses creating, documenting, and testing a components, most of
 the steps are the same for developing a utility. Unlike a component, a utility
 can just be a function. But like a component, we expect contributed utilities
-to follow the landlab standard practices outlined here.
+to follow the landlab standard practices outlined in our documentation.
 
 Once you have installed Landlab (:ref:`developer install <developer_install>`)
 and :ref:`created your own branch <landlab_develop_with_git>`, you can start
@@ -29,11 +29,18 @@ files) that get added or modified when a component is added to Landlab.
 See the :ref:`Standard Naming conventions <standard_names>` for good practice
 on parameters and variables naming.
 
-If you have any questions about the process after you have finished reading the
-documentation, consider making an `Issue <https://github.com/landlab/landlab/issues/new/>`_
-to ask the development team for help.
+The following pages describe the software development practices that Landlab
+strives to follow. Our goal is to make the capabilities of Landlab
+well-documented to support new users while not enforcing substantial burdens on
+community contributors. If you have any questions about the process after you
+have finished reading the documentation, consider making an
+`Issue <https://github.com/landlab/landlab/issues/new/>`_ to ask the
+development team for help.
 
-See :ref:`this page <style_enforcement>` for recommendations on coding style.
+.. toctree::
+   :maxdepth: 2
+
+   ../practices/index
 
 Files structure
 ---------------
@@ -49,8 +56,9 @@ For your new component, you should create a folder in
      __all__ = ['MyComponent', ]
 
   Where
-  `'.my_component_name'` is the name of the python script.
-  `'MyComponent'` is as defined in the _name header of your python script
+
+      - `'.my_component_name'` is the name of the python script.
+      - `'MyComponent'` is as defined in the _name header of your python script
 
 - a folder in the `tests/components/` directory containing unit tests. The unit
   tests are run every time changes are pushed to the Landlab repository. They
@@ -64,23 +72,23 @@ Once everything is working, you can :ref:`create a pull request <landlab_develop
 to have your branch merged into the master so that your component can be
 included in the Landlab library and used by others.
 
-This will trigger integration :ref:`testing <testing>` of your branch (doc
-tests and unit tests) to ensure its compatibility on all supported
+This will trigger :ref:`continuous integration testing <dev_ci>` of your branch
+(doc tests, unit tests, and lint) to ensure its compatibility on all supported
 environments. You can find the results of these tests on the GitHub page of
 your pull request. If the tests fail, edit your files and commit your changes
-to re-run the tests (you don’t need to make another pull request).
-
-
+to re-run the tests (you don't need to make another pull request).
 
 Getting your component into the documentation
 ---------------------------------------------
 Landlab uses the third party Sphinx code documentation tool to automatically
-build the Reference Manual webpages that list our user-facing components. This
-means your new component won't appear on the webpages unless you also make
-some changes to files you'll find in `landlab/docs`.
+build the :ref:`Reference section <api>` that list our user-facing components.
+This means your new component won't appear on the webpages unless you also make
+some changes to files you'll find in `landlab/docs/source`.
 
-You need to modify `index.rst`, and also create a new file in the folder
-`docs/source/reference/components`, called `[short_name_for_your_component].rst`.
+You need to modify `landlab/docs/source/reference/components/index.rst`, and
+also create a new file in the folder
+`landlab/docs/source/reference/components`, called
+`[short_name_for_your_component].rst`.
 
 The best advice for both of these is to follow an existing example.
 
@@ -114,8 +122,8 @@ advertise your work on the :ref:`Landlab Papers and Presentations <papers>`
 page. Make your request to a member of the Landlab development team via a
 GitHub Issue. If you'd like, also attach an abstract or poster PDF.
 
-I’m still confused
+I'm still confused
 ------------------
 The Landlab development team will be happy to hear from you.
-`Create an issue <https://github.com/landlab/landlab/issues>`_ and we’ll try to
+`Create an issue <https://github.com/landlab/landlab/issues>`_ and we'll try to
 resolve your problem.
