@@ -27,19 +27,19 @@ Enthought Python Distribution, especially on Windows machines. This is
 because it ships with a working compiler already associated with Python,
 whereas the EPD does not. On a Mac, this is less important as the Xcode
 app (available through iTunes) gives you the necessary compilers
-instead—install it now if you don’t have it! If you choose to use the
-EPD on a Windows machine, however, you’ll need to install separately
+instead—install it now if you don't have it! If you choose to use the
+EPD on a Windows machine, however, you'll need to install separately
 either Visual Basic or MinGW and successfully associate them with your
 Python install. See :ref:`this page<compile_in_windows>` on Windows Compilers.
 
-Make a GitHub Issue to contact the development team if you’re really struggling.
-But unless you’re really invested in Canopy and the EPD, uninstalling it and
+Make a GitHub Issue to contact the development team if you're really struggling.
+But unless you're really invested in Canopy and the EPD, uninstalling it and
 replacing with Anaconda is probably the more stress-free way to go.*
 
-*Either way, you’ll need a working C++ compiler running alongside Python
-to be able to perform a full developer install. You’ll see errors
+*Either way, you'll need a working C++ compiler running alongside Python
+to be able to perform a full developer install. You'll see errors
 referring to :ref:`Cython<cython>` if you
-don’t have working compiler when calling ``python setup.py develop``
+don't have working compiler when calling ``python setup.py develop``
 (see :ref:`Section 2<dev_install_install>`.*
 
 Working with your local version of Landlab

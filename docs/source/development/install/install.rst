@@ -27,7 +27,7 @@ Before You Begin
 
 2.  Ensure that you have removed other versions of Landlab from your computer.
 
-    If you’ve previously used pip to install Landlab, we recommend
+    If you've previously used pip to install Landlab, we recommend
     you take that version off first. At a command prompt, use the command
 
     .. code-block:: bash
@@ -41,7 +41,7 @@ Before You Begin
 
         $ conda uninstall landlab
 
-    If you’re not sure whether you have or not in the past, there’s no harm
+    If you're not sure whether you have or not in the past, there's no harm
     doing both of these uninstall commands.
 
 Install

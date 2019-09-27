@@ -7,7 +7,7 @@ Keep Landlab Updated
 
 To take advantage of new features and new library additions, we recommend you
 **update Landlab** fairly frequently. From time to time you should fetch
-commits to the "trunk" version of Landlab that you don’t have in your forked
+commits to the "trunk" version of Landlab that you don't have in your forked
 working copy. This is also important to keep your branch up to date with
 improvements/bug elimination happening as part of core Landlab development.
 

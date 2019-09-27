@@ -7,7 +7,7 @@ Verify that Landlab is Working with Tests
 Testing Your Installation
 -------------------------
 
-In order to test your installation you’ll need to install the
+In order to test your installation you'll need to install the
 ```pytest`` <https://docs.pytest.org/en/latest/>`_ package that is used
 to run the tests. This is included in the conda environment described above.
 
@@ -31,7 +31,7 @@ on), you would run:
    $ pytest path\to\directory\you\want\to\test
 
 You may also want to see the code coverage of different parts of
-Landlab. To do this, you’ll first need to install
+Landlab. To do this, you'll first need to install
 ```pytest-cov`` <https://pytest-cov.readthedocs.io/en/latest/readme.html>`__.
 
 .. code-block:: bash

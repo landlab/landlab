@@ -27,14 +27,14 @@ Parameters listed here are easily tuned by the model user. For a complete list, 
 .. _here: http://landlab.readthedocs.io/en/latest/landlab.components.overland_flow.html
 
 - **Alpha** : Weight on the adaptive time step, ranging between 0.2 - 0.7. For more information, see Hunter et al., (2005).
-- **Manning’s n** : An empirical value describing surface roughness. See Chow (1959).
+- **Manning's n** : An empirical value describing surface roughness. See Chow (1959).
 - **Theta** : A weighting factor in the de Almeida et al., (2012) equation, suggested value between 0.8 and 0.9
 
 **Model variables**
 
 Variables listed here are updated by the component at the grid locations listed.
 
-- **surface_water__discharge**, *link*, [m^2 s^-1] : At each link in grid, *surface_water__discharge* is calculated using the de Almeida et al., (2012) equation. Discharge is a function of the water depth, adaptive time step, surface water slope and Manning’s roughness coefficient.
+- **surface_water__discharge**, *link*, [m^2 s^-1] : At each link in grid, *surface_water__discharge* is calculated using the de Almeida et al., (2012) equation. Discharge is a function of the water depth, adaptive time step, surface water slope and Manning's roughness coefficient.
 - **surface_water__depth**, *node*, [m] : At each node in the grid, *surface_water__depth* is updated using the *surface_water__discharge* on links connected to a given node.
 
 Basic steps of an OverlandFlow model
@@ -104,7 +104,7 @@ Landlab can easily interact with DEM data output by ESRI's ArcGIS software. In t
 .. code-block:: python
 
 	watershed_dem = 'Square_TestBasin.asc'
-	(rmg, z) = read_esri_ascii(watershed_dem, name='topographic__elevation’)
+	(rmg, z) = read_esri_ascii(watershed_dem, name='topographic__elevation')
 
 In this example, the watershed DEM is read in by the ``read_esri_ascii()`` method, and the elevation data from the DEM is automatically assigned to the Landlab data field ``topographic__elevation``, for use by the components.
 

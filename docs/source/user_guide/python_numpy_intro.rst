@@ -13,7 +13,7 @@ decision to code in Python was explicitly made to lower the bar to entry for
 Landlab; to increase the flexibility and reusability of the code base; and to
 increase development speed both for the core development team and for future
 users. The choice of Python also means that developers using Landlab can take
-advantage of that language’s affinity for rapid development timescales.
+advantage of that language's affinity for rapid development timescales.
 
 Other advantages of this choice include high portability between platforms,
 open source language, numerous existing scientific libraries that prevent
@@ -25,7 +25,7 @@ Getting to know Python
 ----------------------
 
 We recommend you approach Landlab with a basic working knowledge of the Python
-coding language. A good, concise, complete beginner’s guide that will get you
+coding language. A good, concise, complete beginner's guide that will get you
 to enough knowledge to be able to get started can be found
 `at interactivepython <http://interactivepython.org/runestone/static/thinkcspy/GeneralIntro/ThePythonProgrammingLanguage.html>`_.
 We like `the Software Carpentry intro <http://software-carpentry.org/v4/python/>`_
@@ -46,18 +46,18 @@ running our code on the :ref:`Build a Model page < Build-a-Model>`.
 If you know MatLab…
 ```````````````````
 
-If you’re already familiar with Matlab, you will probably feel at home with
+If you're already familiar with Matlab, you will probably feel at home with
 Python fairly quickly. However, there are some critical differences. Important
 things to remember include:
 
-Python’s indexing is inclusive at the start and exclusive at the end (in
+Python's indexing is inclusive at the start and exclusive at the end (in
 contrast to Matlab). For example, in Python
 
 >>> numpy.arange(0, 100)
 
 will give an array of 100 numbers, starting at 0 and ending at 99.
 
-Python doesn’t use parentheses or brackets to delimit code blocks (functions,
+Python doesn't use parentheses or brackets to delimit code blocks (functions,
 loops, if statements, etc.). Instead it uses a colon to declare the start of a
 code block, then consistent indenting (normally 4 spaces) to for the rest of
 the block. e.g.,
@@ -66,10 +66,10 @@ the block. e.g.,
 ...     if type(input_param) is str:
 ...         print(“The input to the function said: “, input_param)
 ...     else:
-...         print(“The input parameter wasn’t a string.”)
+...         print(“The input parameter wasn't a string.”)
 ...         print(“It was actually " + str(type(input_param)))
 
-Lines don’t need to end with the semicolon to suppress output; Python won’t
+Lines don't need to end with the semicolon to suppress output; Python won't
 print output unless you explicitly call ``print``.
 
 Finally, but importantly, Python doesn't use the hat ``^`` as its r
@@ -95,11 +95,11 @@ Almost all data input and output from Landlab is in the form of an array (see
 :ref:` Landlab Fields  < https://github.com/landlab/landlab/wiki/Grid#adding-data-to-a-landlab-grid-element-using-fields>` for more information).
 These arrays allow operations to happen much faster on the data than would be
 possible in a pure Python data structure like a list or a dictionary. (This is
-possible because NumPy arrays suppress some of Python’s inbuilt type checking
+possible because NumPy arrays suppress some of Python's inbuilt type checking
 and memory management and impose a more ordered structure on the way raw data
-is held in your computer’s memory).
+is held in your computer's memory).
 
-In order to exploit the speed gains that NumPy can give you, you’ll need to
+In order to exploit the speed gains that NumPy can give you, you'll need to
 adopt a coding style quite different to what would be natural in, say, C++ (or
 likely, Matlab). A typical bottleneck in Python code occurs when looping over
 data, and NumPy arrays let you avoid doing this. So if you find yourself about
@@ -108,7 +108,7 @@ to write something like:
 >>> for i in range(len(myarray)):
         myoutputarray[i] = myoutputarray[i] + myarray[i]
 
-Don’t! Try instead to develop a coding style where each line operates on the
+Don't! Try instead to develop a coding style where each line operates on the
  whole array at once. For example:
 
 >>> myoutputarray += myarray
@@ -128,7 +128,7 @@ There is much more information about writing efficient NumPy code online. For
 example, `UW's astronomy department has a great online intro
 <http://www.astro.washington.edu/users/vanderplas/Astr599/notebooks/11_EfficientNumpy>`_.
 We also strongly recommend the book “High Performance Python” by Gorelick and
-Ozsvald, published by O’Reilly, if you’re looking for a more comprehensive
+Ozsvald, published by O'Reilly, if you're looking for a more comprehensive
 treatment.
 
 .. _cython:
@@ -147,8 +147,8 @@ unavoidable, Cython provides a way to significantly accelerate the speed of
 this code. Cython code largely looks like straightforward Python, but may have
 type declarations or other C++-like features.
 
-From the user’s perspective, the most important thing to note is that Cython is
-a compiled language. (This isn’t true of Python, which is an
+From the user's perspective, the most important thing to note is that Cython is
+a compiled language. (This isn't true of Python, which is an
 interpreted—compiled at run time—language.) We provide the pre-compiled
 executables you will need to run Landlab when you install, and this should be
 sufficient for the vast majority of users.

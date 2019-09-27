@@ -8,7 +8,7 @@ repository contains `IPython
 notebooks <https://ipython.org/notebook.html>`__ that are both
 unexpanded (so you can run them in an IPython notebook viewer) and
 expanded (so you can read them like a regular text tutorial) along with
-code examples. Landlab’s tutorials repo can also be accessed from
+code examples. Landlab's tutorials repo can also be accessed from
 `nbviewer <https://nbviewer.jupyter.org/github/landlab/tutorials>`__.
 
 IPython notebook tutorials
@@ -71,7 +71,7 @@ A suggested introduction to Landlab follows roughly this order:
    What makes up a Landlab Component Standard Interface; how to make one
    for your process model.
 
-Notebook tutorials on Landlab’s components include: \* Flow Direction
+Notebook tutorials on Landlab's components include: \* Flow Direction
 and Accumulation \* `Introduction to the FlowDirector
 Components <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/flow_direction_and_accumulation/the_FlowDirectors.ipynb>`__
 \* `Introduction to the FlowAccumulator

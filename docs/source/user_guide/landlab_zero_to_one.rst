@@ -7,7 +7,7 @@ Landlab 1.0beta was introduced May 12, 2016. This new version—the first
 official stable release—introduces some powerful new capabilities. It
 also brings some standardization, which means changes to certain
 function names and ways of doing things. In order to minimize the impact
-of these changes on your work, we’ve provided here a simple guide to
+of these changes on your work, we've provided here a simple guide to
 some of the major changes.
 
 ##Quick summary: how to make your Landlab programs work with version
@@ -105,7 +105,7 @@ each grid link.
 Gradient and flux divergence functions
 --------------------------------------
 
-New functionality in Landlab’s built-in gradient and flux-divergence
+New functionality in Landlab's built-in gradient and flux-divergence
 methods include:
 
 1 - The primary gradient-calculation function (for scalar quantities
@@ -114,7 +114,7 @@ previous functions ``calculate_gradients_at_active_links`` and
 ``calculates_gradients_at_links``.
 
 2 - ``calc_grad_at_link`` returns gradient values at **all** links, not
-just active links. In general, Landlab’s grid functions now only operate
+just active links. In general, Landlab's grid functions now only operate
 with “complete” sets of grid elements. They will neither accept nor
 return partial sets of a given element type (such as active or inactive
 links, core or boundary nodes, etc.).
@@ -244,69 +244,69 @@ will fix things very fast.
 The following represents a (hopefully) almost complete list of the name
 substitutions:
 
--  ‘channel_bed_shear_stress’ → ’channel__bed_shear_stress’
--  ‘channel_depth’ → ’channel__depth’
--  ‘channel_discharge’ → ’channel__discharge’
--  ‘channel_width’ → ’channel__width’
--  ‘drainage_area’ –> We’re keeping it BOOM
--  ‘effective_fluvial_diffusivity’ → field removed
--  ‘elevation’ –> ’topographic__elevation’
--  ‘flow_receiver’ –> ‘flow__receiver_node’
--  ‘flow_sinks’ –> ‘flow__sink_flag’
--  ‘fluvial_sediment_flux_into_node’ →
-   ’channel_sediment__volumetric_flux’
--  ‘Fluvial_sediment_transport_capacity’ →
-   ’channel_sediment__volumetric_transport_capacity’
--  ‘Links_to_flow_receiver’ →flow__link_to_receiver_node’
--  ’lithosphere__elevation’ –> ’lithosphere_surface__elevation’
--  ’lithosphere__elevation_increment’ →
-   ’lithosphere_surface__elevation_increment’
--  ’planet_surface_sediment__deposition_increment’ –>
-   ’sediment__deposition_increment’
--  ‘potentiality_field’ –> ’flow__potential’
--  ‘relative_sediment_flux’ → ’channel_sediment__relative_flux’
--  ‘shear_stress’ –> ’channel__bed_shear_stress’
--  ‘slope_at_nodes’ –> ’topographic__steepest_slope’ (slope === downhill
+-  'channel_bed_shear_stress' → 'channel__bed_shear_stress'
+-  'channel_depth' → 'channel__depth'
+-  'channel_discharge' → 'channel__discharge'
+-  'channel_width' → 'channel__width'
+-  'drainage_area' –> We're keeping it BOOM
+-  'effective_fluvial_diffusivity' → field removed
+-  'elevation' –> 'topographic__elevation'
+-  'flow_receiver' –> 'flow__receiver_node'
+-  'flow_sinks' –> 'flow__sink_flag'
+-  'fluvial_sediment_flux_into_node' →
+   'channel_sediment__volumetric_flux'
+-  'Fluvial_sediment_transport_capacity' →
+   'channel_sediment__volumetric_transport_capacity'
+-  'Links_to_flow_receiver' →flow__link_to_receiver_node'
+-  'lithosphere__elevation' –> 'lithosphere_surface__elevation'
+-  'lithosphere__elevation_increment' →
+   'lithosphere_surface__elevation_increment'
+-  'planet_surface_sediment__deposition_increment' –>
+   'sediment__deposition_increment'
+-  'potentiality_field' –> 'flow__potential'
+-  'relative_sediment_flux' → 'channel_sediment__relative_flux'
+-  'shear_stress' –> 'channel__bed_shear_stress'
+-  'slope_at_nodes' –> 'topographic__steepest_slope' (slope === downhill
    gradient)
--  ‘stream_power_erosion’ → field removed
--  ‘surface_gradient’ –> ’topographic__slope’
--  ‘upstream_ID_order’ –> ‘flow__upstream_node_order’
--  ‘Upstream_node_order’ –> ‘flow__upstream_node_order’
--  ’water__volume_flux’ → ’water__discharge’
--  ’water__volume_flux_in’ → ’water__unit_flux_in’ (special case in flow
+-  'stream_power_erosion' → field removed
+-  'surface_gradient' –> 'topographic__slope'
+-  'upstream_ID_order' –> 'flow__upstream_node_order'
+-  'Upstream_node_order' –> 'flow__upstream_node_order'
+-  'water__volume_flux' → 'water__discharge'
+-  'water__volume_flux_in' → 'water__unit_flux_in' (special case in flow
    router)
--  ’water__volume_flux_magnitude’, → ’water__discharge’
--  ’water__volume_flux_xcomponent’, → ’water__discharge_x_component’
--  ’water__volume_flux_ycomponent’, → ’water__discharge_y_component’
--  ‘water_depth’ –> ’water__depth’
--  ‘water_discharge’ –> ’water__discharge’
--  ‘water_discharge_at_nodes’ –> ’water__discharge’
--  ‘water_surface_slope_at_nodes’ –> ’water_surface__gradient’
+-  'water__volume_flux_magnitude', → 'water__discharge'
+-  'water__volume_flux_xcomponent', → 'water__discharge_x_component'
+-  'water__volume_flux_ycomponent', → 'water__discharge_y_component'
+-  'water_depth' –> 'water__depth'
+-  'water_discharge' –> 'water__discharge'
+-  'water_discharge_at_nodes' –> 'water__discharge'
+-  'water_surface_slope_at_nodes' –> 'water_surface__gradient'
 
 These changes are likely to occur in components probably not released as
 part of LL1.0, but will have likely occurred once the components return
 in a future release:
 
--  ‘ActualEvapotranspiration’ –> surface__evapotranspiration_rate
--  ‘CumulativeWaterStress’ –> vegetation__cumulative_water_stress
--  ‘DeadBiomass’ –> vegetation__dead_biomass
--  ’DeadLeafAreaIndex –> vegetation__dead_leaf_area_index
--  ‘Drainage’ –> duplicate of ‘drainage_area’ ?
--  ‘Elevation’ –> duplicate of topographic__elevation, or needs to be
+-  'ActualEvapotranspiration' –> surface__evapotranspiration_rate
+-  'CumulativeWaterStress' –> vegetation__cumulative_water_stress
+-  'DeadBiomass' –> vegetation__dead_biomass
+-  'DeadLeafAreaIndex –> vegetation__dead_leaf_area_index
+-  'Drainage' –> duplicate of 'drainage_area' ?
+-  'Elevation' –> duplicate of topographic__elevation, or needs to be
    more specific
--  ‘LiveBiomass’ –> vegetation__live_biomass
--  ‘LiveLeafAreaIndex’ –> vegetation__live_leaf_area_index
--  ‘NetLongWaveRadiation’ –> radiation__net_longwave
--  ‘NetRadiation’ –> radiation__net
--  ‘NetShortWaveRadiation’ –> radiation__net_shortwave
--  ‘PlantAge’ –> plant__age
--  ‘PlantLiveIndex’ –> plant__live_index
--  ‘PotentialEvapotranspiration’ –>
+-  'LiveBiomass' –> vegetation__live_biomass
+-  'LiveLeafAreaIndex' –> vegetation__live_leaf_area_index
+-  'NetLongWaveRadiation' –> radiation__net_longwave
+-  'NetRadiation' –> radiation__net
+-  'NetShortWaveRadiation' –> radiation__net_shortwave
+-  'PlantAge' –> plant__age
+-  'PlantLiveIndex' –> plant__live_index
+-  'PotentialEvapotranspiration' –>
    surface__potential_evapotranspiration_rate
--  ‘RadiationFactor’ –> radiation__ratio_to_flat_surface
--  ‘Runoff’ –> I think I’m OK with runoff__rate
--  ‘SaturationFraction’ –> soil_moisture__saturation_fraction
--  ‘TotalShortWaveRadiation’ –> radiation__incoming_shortwave
--  ‘VegetationCover’, –> vegetation__cover_fraction
--  ‘VegetationType’ –> vegetation__type
--  ‘WaterStress’ –> soil_moisture__water_stress
+-  'RadiationFactor' –> radiation__ratio_to_flat_surface
+-  'Runoff' –> I think I'm OK with runoff__rate
+-  'SaturationFraction' –> soil_moisture__saturation_fraction
+-  'TotalShortWaveRadiation' –> radiation__incoming_shortwave
+-  'VegetationCover', –> vegetation__cover_fraction
+-  'VegetationType' –> vegetation__type
+-  'WaterStress' –> soil_moisture__water_stress

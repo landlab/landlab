@@ -213,7 +213,7 @@ Bandaragoda, C.J., Castronova, A., Phuong, J., Strauch, R.,
 Istanbulluoglu, E., Nudurupati*, S.S., Barnhart**, K., Gasparini, N.M.,
 Tarboton, D., Yin, D., Wang, S., Tucker, G.E., Hutton, E.W.H., Hobley,
 D.E.J., Adams, J.M. \* (2017, December) Lowering the barriers to
-computational modeling of Earth’s surface: coupling Jupyter Notebooks
+computational modeling of Earth's surface: coupling Jupyter Notebooks
 with Landlab, HydroShare, and CyberGIS for research and education.
 Poster presented at American Geophysical Union fall meeting, New
 Orleans, LA.
@@ -546,8 +546,8 @@ Paper presented at Community Surface Dynamics Modeling System annual
 meeting, Boulder, Colorado, Mar 2013.
 
 Nudurupati, S.S., Istanbulluoglu, E., Tucker, G.E., Gasparini, N.M.,
-Hutton, E., and Hobley, D.E.J. (2013) Integration of an ‘Eco-hydrologic
-Component’ to a Generic Gridding Engine for 2D Modeling of Earth-Surface
+Hutton, E., and Hobley, D.E.J. (2013) Integration of an 'Eco-hydrologic
+Component' to a Generic Gridding Engine for 2D Modeling of Earth-Surface
 Dynamics. Paper presented at Community Surface Dynamics Modeling System
 annual meeting, Boulder, Colorado, Mar 2013.
 

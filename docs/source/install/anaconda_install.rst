@@ -103,7 +103,7 @@ operating system but it could look something like this:
 
    <p>
 
-If you don’t see reference to your newly installed distribution (i.e.,
+If you don't see reference to your newly installed distribution (i.e.,
 /anaconda), click here to resolve the problem.
 
 .. raw:: html

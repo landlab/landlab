@@ -55,14 +55,14 @@ to the repository. The pull request will automatically be updated:
 
 Most of these steps have equivalents in the Github app. Use the
 “changes” pane to identify where conflicts exist in your version, then
-resolve them one by one. When you’re done, commit then sync the
-un-conflicted version’s changes as if they were any other.
+resolve them one by one. When you're done, commit then sync the
+un-conflicted version's changes as if they were any other.
 
-I’m seeing errors about Cython when I try to run my code/import Landlab. It used to be fine.
+I'm seeing errors about Cython when I try to run my code/import Landlab. It used to be fine.
 --------------------------------------------------------------------------------------------
 
 Very occasionally, local code updates or rebasing can break the compiled
-code that lives in your local developer’s install. *Provided you used to
+code that lives in your local developer's install. *Provided you used to
 have a fully working Landlab install*, you can fix this by just calling
 again from the main Landlab local folder
 
@@ -88,7 +88,7 @@ re-authorize its permissions. Open the Xcode app manually, follow the
 instructions it will give you, then try the install for Landlab again.
 On a PC? Try updating Anaconda.
 
-I’m still confused
+I'm still confused
 ------------------
 
 If you are having problems when installing, testing or running Landlab,
@@ -97,7 +97,7 @@ please visit our :ref:`Troubleshooting page <troubleshooting>.
 The Landlab development team will be happy to hear from you. We
 recommend that you either post a question to the [[ Landlab User Group
 \| User-Guide#landlab-user-group]], or [[create an new issue
-request|https://github.com/landlab/landlab/issues/new]], and we’ll try
+request|https://github.com/landlab/landlab/issues/new]], and we'll try
 to resolve your problem. When reporting your problem (in either place)
 we recommend that you provide a minimal, complete, and verifiable
 example which will help the development team and involved users

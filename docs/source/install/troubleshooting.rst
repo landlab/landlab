@@ -11,8 +11,8 @@ First, make sure you:
    -  `Install Landlab using
       Anaconda <https://github.com/landlab/landlab/wiki/Installing-Landlab-with-Anaconda>`__
       if you are just going to **use** Landlab
-   -  `Install from source code (‘Developer
-      install’) <https://github.com/landlab/landlab/wiki/Installing-Landlab-from-source-code-(%22developer-install%22)>`__
+   -  `Install from source code ('Developer
+      install') <https://github.com/landlab/landlab/wiki/Installing-Landlab-from-source-code-(%22developer-install%22)>`__
       if you are going to **use and modify** Landlab
 
 -  Follow the instructions relating to the system you are using

@@ -25,7 +25,7 @@ Create a Github account
 
 1. You can create a GitHub account by going to the `GitHub
    website <http://github.com>`_.
-2. If you haven’t already, `Install
+2. If you haven't already, `Install
    Git <https://help.github.com/articles/set-up-git/>`_. Note that if
    you are using a mac with OS lower than 10.7, we have found it
    difficult to setup git, and you may want to upgrade your OS.
@@ -67,7 +67,7 @@ Cloning your fork to your computer
 
 You can clone the fork (that lives on the Github website) locally to
 your computer either using the Github app (the GUI), or directly from
-the command line using git. If you’ve never used git before, the app is
+the command line using git. If you've never used git before, the app is
 probably the way to go.
 
 Using the GUI/app

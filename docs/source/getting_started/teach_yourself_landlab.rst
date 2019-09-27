@@ -14,7 +14,7 @@ Introduction and scope
 The following set of steps is intended as a self-guided journey in which
 you will learn how to use Landlab for your research.
 
-You will : - Get a comprehensive overview of Landlab’s model grid,
+You will : - Get a comprehensive overview of Landlab's model grid,
 process components, and utilities. - Make different models. - Practice
 using Landlab to build a model on your own.
 
@@ -47,7 +47,7 @@ Basic Outline
 Follow [[these instructions for a standard installation \|
 Installing-Landlab ]].
 
-It’s a good idea to keep your version up to date. Once you have
+It's a good idea to keep your version up to date. Once you have
 installed Landlab, you can update it to the latest release version by
 entering the following on the command line:
 
@@ -79,7 +79,7 @@ Reference Manual, and working through the tutorials.
 
 The tutorials are presented as Jupyter notebooks, which contain a
 mixture of text, images, and code blocks. When you look at the
-tutorials, don’t just read them. Start by clearing the results by
+tutorials, don't just read them. Start by clearing the results by
 selecting “Kernel ==> Restart & Clear Output,” then go ahead and try
 running each code block as you come to it.
 
@@ -149,7 +149,7 @@ Then spend some time (we recommend at least 30 minutes) clicking around
 in the rest of the `Reference
 Manual <http://landlab.readthedocs.io/en/latest/#developer-documentation>`__
 getting a sense for what is there. Tip: to find a particular command,
-click on Index and use your browser’s search function to search for a
+click on Index and use your browser's search function to search for a
 command by name or keyword.
 
 An important thing to appreciate about Components is that they often
@@ -174,14 +174,14 @@ one other component-specific tutorial based on your interests.
 Interacting with the Landlab Developers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-| You may find yourself with have a question to which you can’t find the
-  answer in the User Guide or Reference Manual pages. Maybe you’ve
+| You may find yourself with have a question to which you can't find the
+  answer in the User Guide or Reference Manual pages. Maybe you've
   stumbled on a bug (heaven forbid!). Or you might have a feature
   request. For such matters, the best way to communicate with the
   Landlab Developer Team
 | is through `GitHub
   Issues <https://github.com/landlab/landlab/issues>`__: post an issue,
-  and we’ll do our best to get back to you within 48 hours.
+  and we'll do our best to get back to you within 48 hours.
 
 Task: Make an issue describing an improvement that you think should be
 made to the Reference Manual Documentation based on your experience
