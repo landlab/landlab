@@ -263,7 +263,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
             A grid.
         surface : field name at node or array of length node, optional
             The surface to direct flow across, default is field at node:
-            topographic__self._surface_valuesation.
+            topographic__elevation.
         partition_method: string, optional
             Method for partitioning flow. Options include 'slope' (default) and
             'square_root_of_slope'.
