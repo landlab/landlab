@@ -126,7 +126,7 @@ class DepthDependentTaylorDiffuser(Component):
     (if_unstable = 'warn') and a boolean flag that turns on dynamic timestepping
     (dynamic_dt = False).
 
-    >>> DDdiff = DepthDependentTaylorDiffuser(mg,  if_unstable='warn')
+    >>> DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable='warn')
     >>> DDdiff.soilflux(2.)
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
