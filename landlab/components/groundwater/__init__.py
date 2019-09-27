@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+"""
+.. codeauthor:: Eric Hutton <huttone@colorado.edu>
+
+.. sectionauthor:: Eric Hutton <huttone@colorado.edu>
+"""
+
 from .dupuit_percolator import GroundwaterDupuitPercolator
-from .lumped_unsaturated_model import LumpedUnsaturatedZone
-#from .hillslope_linear_reservoir import HillslopeLinearReservoir
+
+__all__ = ["GroundwaterDupuitPercolator"]

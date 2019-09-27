@@ -6,10 +6,11 @@ Created on Tue Jun  4 16:26:31 2019
 @author: gtucker
 """
 
-from dupuit_percolator import GroundwaterDupuitPercolator
-from landlab import RasterModelGrid
-from numpy.testing import assert_equal
 import numpy as np
+from numpy.testing import assert_equal
+
+from landlab import RasterModelGrid
+from landlab.components import GroundwaterDupuitPercolator
 
 
 def test_simple_water_table():
@@ -33,16 +34,15 @@ def test_simple_water_table():
 
         H ~ 0.00141 m.
     """
-    boundaries = {'top': 'closed',
-                  'left': 'closed',
-                  'bottom': 'closed'}
+    boundaries = {"top": "closed", "left": "closed", "bottom": "closed"}
     rg = RasterModelGrid((3, 3), bc=boundaries)
-    gdp = GroundwaterDupuitPercolator(rg, recharge_rate=1.0e-8,
-                                      hydraulic_conductivity=0.01)
+    gdp = GroundwaterDupuitPercolator(
+        rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01
+    )
     for i in range(12):
         gdp.run_one_step(5.0e4)
 
-    assert_equal(np.round(gdp.thickness[4], 5), 0.00141)
+    assert_equal(np.round(gdp._thickness[4], 5), 0.00141)
 
     # Re-instantiate to test the case when the necessary fields already exist
     gdp = GroundwaterDupuitPercolator(rg)
