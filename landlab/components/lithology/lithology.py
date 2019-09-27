@@ -294,7 +294,7 @@ class Lithology(Component):
         ----------
         dz_advection : float, `(n_nodes, ) shape array, or at-node field array optional
             Change in rock elevation due to advection by some external process.
-            This can be changed using the property setter. Dimensions are in 
+            This can be changed using the property setter. Dimensions are in
             length, not length per time.
 
         Returns
