@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from ..hex import (
+from landlab.graph.hex.hex import (
     HorizontalHexTriGraph,
     HorizontalRectTriGraph,
     VerticalHexTriGraph,
