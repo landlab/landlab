@@ -11,13 +11,13 @@ Landlab development takes place in your own *fork* of the main Landlab
 repository. A fork is a *mirror* of the repository and is hosted on your
 personal GitHub account. You will use this fork for developing new
 Landlab features. Your changes will migrate to the core repository (for
-review and merging) by requesting that the main repository “pull” in
+review and merging) by requesting that the main repository "pull" in
 your changes. This is known as a pull request and is facilitated through
 the GitHub website.
 
 You will only need to do this once for each project to which you want to
 contribute. Github has some great documentation on `how to create a
-fork <https://help.github.com/articles/fork-a-repo/>`__. We outline
+fork <https://help.github.com/articles/fork-a-repo/>`_. We outline
 below the basic steps as applied to Landlab.
 
 Create a Github account
@@ -39,7 +39,7 @@ Create a Github account
    install the git GUI, then it will set-up an SSH key for you. If you
    install on the command line, you might need some help with this, see
    `Generating SSH Keys on
-   GitHub <https://help.github.com/articles/generating-an-ssh-key/>`__.
+   GitHub <https://help.github.com/articles/generating-an-ssh-key/>`_.
 4. If you want to ensure the ssh key is set correctly, go to your home
    page on github and hit the account settings (wrench and screwdriver
    button in upper right corner). On this page hit the SSH keys tab on
@@ -55,7 +55,7 @@ The following steps will create a fork of the Landlab repository under
 your GitHub account.
 
 1. Sign in to your GitHub account.
-2. Go to the `Landlab home page <https://github.com/landlab/landlab>`__
+2. Go to the `Landlab home page <https://github.com/landlab/landlab>`_
    on GitHub.
 3. Click the fork button in the upper-right corner of the page.
 
@@ -83,7 +83,7 @@ Using the GUI/app
 
 Alternatively, you can also clone your fork in the GUI directly through
 the website. Navigate to the page for your fork on the web
-(UserName/landlab) and hit the “Clone in Desktop” button
+(UserName/landlab) and hit the "Clone in Desktop" button
 (monitor-with-downward-arrow) on the top/right hand side of the page.
 Make sure you have the GUI installed and set up on your machine before
 you try this for the most pain-free results. Also ensure you clone your

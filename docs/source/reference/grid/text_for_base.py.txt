@@ -172,6 +172,9 @@ calculations tend to be a little more involved than property lookups, the
 methods tend to start with `calc_`.
 
 LLCATKEY: GRAD
+
+.. _api.grid.base.mappers
+
 Mappers
 -------
 
@@ -180,6 +183,9 @@ second, e.g., mapping upwind node values onto links, or mean link values onto
 nodes.
 
 LLCATKEY: MAP
+
+.. _api.grid.base.bcc:
+
 Boundary condition control
 --------------------------
 

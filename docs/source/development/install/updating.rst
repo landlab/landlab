@@ -63,7 +63,7 @@ development cycle you installed Landlab with one of our old procedures. The clue
 will be that you still have a (very out of date!) copy of the Landlab code
 base somewhere on your machine. Another possibility is that you've previously
 tried a
-`developer install <http://landlab.readthedocs.org/en/latest/dev_guide_install.html>`_.
+:ref:`developer install <developer_install>`.
 This procedure will also work in this case.
 
 Try this:
@@ -131,7 +131,7 @@ This should now take.
 *Still* having problems? There are probably multiple
 versions of Python on your machine interfering with each other. Solve
 that problem first (see
-`here <https://github.com/landlab/landlab/wiki/Correcting-Install-Paths>`_ for
+:ref:`here <correcting_install_paths>` for
 some help), then return to trying to install Landlab.
 
 **Without using command line:**
@@ -164,5 +164,5 @@ changes conflict with what's in the main Landlab repo. Don't panic! This is
 fine. Just follow the instructions to press ahead. Conflicts can be resolved
 manually later in the process—conflicting sections of the code will be tagged
 with a distinctive >>>>>>> symbology, and you can find and modify them by hand.
-See :ref:`here<Installing-Landlab-from-source-code-("developer-install")#what-do-i-do-if-my-pull-request-cannot-be-automatically-merged>`
+See :ref:`here<what_do_if_cant_merge_pr>`
 for more documentation on this.

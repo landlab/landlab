@@ -13,7 +13,7 @@ getting Python talking to them.
 This process is only necessary if you want to build Landlab directly from its
 source code on your PC. Some parts of Landlab use compiled C++ code to
 accelerate things, via Cython. If you are using a binary install, as described
-:ref:` here  < Installing-Landlab-with-Anaconda#now-to-install-landlab >`, you don't
+:ref:` here  <anaconda_install_landlab>`, you don't
 need to do this.
 
 Getting the compilers
@@ -22,8 +22,9 @@ Getting the compilers
 Anaconda provides some of the necessary compilers. Install it first.
 
 The easiest way to discover if you have other compiler issues is to attempt an
-install! Follow the :ref:` main instructions  < Installing-Landlab-from-source-code-("developer-install") >`
-until you attempt to perform the main install::
+install! Follow the
+:ref:` developer installation instructions <developer_install>`
+until you attempt to perform the developer installation ::
 
 .. code-block:: bash
 

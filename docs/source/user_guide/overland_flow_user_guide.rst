@@ -7,9 +7,9 @@ Overland Flow Component User Manual
 Background on OverlandFlow component
 ------------------------------------
 
-The Landlab OverlandFlow component implements a 2-D solution of the shallow water equations, following the algorithm of de Almeida et al., (2012). In this component, an explicit solution simulates a flood wave moving across a gridded terrain, capturing hydrodynamics throughout the system. At each point within the grid, surface water discharge is calculated based on physical properties. This component expands the hydrologic capabilities of Landlab by offering a nonsteady flow routing method as an alternative to the steady-state flow routing regimes found in many geomorphic or landscape evolution models (such as the Landlab FlowRouter_ component).
+The Landlab OverlandFlow component implements a 2-D solution of the shallow water equations, following the algorithm of de Almeida et al., (2012). In this component, an explicit solution simulates a flood wave moving across a gridded terrain, capturing hydrodynamics throughout the system. At each point within the grid, surface water discharge is calculated based on physical properties. This component expands the hydrologic capabilities of Landlab by offering a nonsteady flow routing method as an alternative to the steady-state flow routing regimes found in many geomorphic or landscape evolution models
+(such as the Landlab :ref:`FlowAccumulator<landlab.components.flow_accum.FlowAccumulator>` component).
 
-.. _FlowRouter: http://landlab.readthedocs.io/en/latest/landlab.components.flow_routing.html
 
 This User Manual describes how to instantiate, parameterize and plot data using the OverlandFlow component, using an example described in Adams et al., (in press, *Geoscientific Model Development*). For further information about the derivation of the algorithm used in this component, see: Bates et al., (2010) and de Almeida et al., (2012).
 
@@ -22,9 +22,8 @@ Model parameters and variables
 
 **Input parameters**
 
-Parameters listed here are easily tuned by the model user. For a complete list, see here_.
-
-.. _here: http://landlab.readthedocs.io/en/latest/landlab.components.overland_flow.html
+Parameters listed here are easily tuned by the model user. For a complete list, see
+:ref:`here<landlab.components.overland_flow>`.
 
 - **Alpha** : Weight on the adaptive time step, ranging between 0.2 - 0.7. For more information, see Hunter et al., (2005).
 - **Manning's n** : An empirical value describing surface roughness. See Chow (1959).
@@ -138,11 +137,17 @@ The ``set_watershed_boundary_condition()`` method reads the gridded elevation da
 Other boundary condition options
 ................................
 
-There are other options for boundary condition handling that are more appropriate for non-DEM modeling domains. (For a complete review of boundary condition handling in Landlab, review Hobley et al., in submission for *Earth Surface Dynamics* or Landlab boundary_ condition documentation :
+There are other options for boundary condition handling that are more
+appropriate for non-DEM modeling domains. (For a complete review of boundary
+condition handling in Landlab, review Hobley et al., in submission for
+*Earth Surface Dynamics* or Landlab
+:ref:`boundary <api.grid.base.bcc>` condition documentation
 
-	.. _boundary: http://landlab.readthedocs.io/en/latest/landlab.grid.base.html#boundary-condition-control
-
-Here, the ``FIXED_GRADIENT`` boundary condition is described. The ``set_nodata_nodes_to_fixed_gradient()`` method sets all NODATA nodes to ``FIXED_GRADIENT``, and all boundary links (links that connect core nodes within the model domain to a fixed gradient nodes) are set to ``FIXED_LINK`` status. Then, boundary links can be updated with some input discharge value:
+Here, the ``FIXED_GRADIENT`` boundary condition is described. The
+``set_nodata_nodes_to_fixed_gradient()`` method sets all NODATA nodes to
+``FIXED_GRADIENT``, and all boundary links (links that connect core nodes
+within the model domain to a fixed gradient nodes) are set to ``FIXED_LINK``
+status. Then, boundary links can be updated with some input discharge value:
 
 .. code-block:: python
 
@@ -180,9 +185,7 @@ To address this discrepancy, the SinkFiller component in Landlab has been develo
 	sf.fill_pits()
 
 
-**Note**: For more information about the SinkFiller component_ :
-
- .. _component: http://landlab.readthedocs.io/en/latest/landlab.components.sink_fill.html
+**Note**: For more information about the SinkFiller :ref:`component <landlab.components.sink_fill>`.
 
 Step 5. Initializing the OverlandFlow component
 ```````````````````````````````````````````````
@@ -346,9 +349,10 @@ The Landlab plotting library includes a utility ``imshow__grid`` which can easil
 
 In this example, the water depths are plotted after 2 hours of model run time ``model_run_time`` = 7200 s in **Step 6**). The method ``imshow__grid`` takes a grid instance and data field by default. Optional methods displayed here include plot title, color bar title (``var__name``), color bar units (``var__units``), grid dimension units (``grid_units``), and matplotlib color map (``cmap``).
 
-**Note**: As of right now, ``imshow__grid`` plots data on nodes and cells. If the user wants to plot data from link elements, a mapper from link to cell or link to node must be used first. An extensive list of Landlab mapper_ methods is available in the documentation.
-
-.. _mapper: http://landlab.readthedocs.io/en/latest/landlab.grid.base.html#mappers
+**Note**: As of right now, ``imshow__grid`` plots data on nodes and cells.
+If the user wants to plot data from link elements, a mapper from link to cell
+or link to node must be used first. An extensive list of Landlab
+:ref:`mapper <api.grid.base.mappers>` methods is available in the documentation.
 
 References
 ----------

@@ -1,4 +1,4 @@
-.. landlab documentation master file
+.. _landlab:
 
 .. module:: landlab
 
@@ -71,7 +71,7 @@ BibTeX format:
                Doi = {10.5194/esurf-5-21-2017}}
 
 If you are working with existing Landlab components, please also read the
-`component documentation <http://landlab.readthedocs.io/en/latest/#components>`_
+:ref:`component documentation <api.components>`
 to see if there are also specific publications linked to them. An example might be
 `Adams et al. (2017) <http://www.geosci-model-dev-discuss.net/gmd-2016-277/>`_
 for the OverlandFlow components. Table 5 in Hobley et al. (2017) also lists
@@ -96,6 +96,8 @@ The Landlab Team:
  - Christina Bandaragoda (UW)
  - Nathan Lyons (Tulane)
 
+.. _contact:
+
 Contact
 =======
 
@@ -107,10 +109,10 @@ Want to contribute?
 
 You can contact the Landlab development team here:
 
--  Make an `Issue <https://github.com/landlab/landlab/issues>`__
+-  Make an `Issue <https://github.com/landlab/landlab/issues>`_
 
 To keep in touch with the latest Landlab news:
 
--  Get the `Landlab Lookout Newsletter <http://eepurl.com/dADtrT>`__
--  Join the `Landlab Slack channel <landlab.slack.com>`__
--  Landlab is on `Twitter <https://twitter.com/landlabtoolkit>`__!
+-  Get the `Landlab Lookout Newsletter <http://eepurl.com/dADtrT>`_
+-  Join the `Landlab Slack channel <landlab.slack.com>`_
+-  Landlab is on `Twitter <https://twitter.com/landlabtoolkit>`_!

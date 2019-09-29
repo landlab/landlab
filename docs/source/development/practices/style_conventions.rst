@@ -15,10 +15,9 @@ General Coding Style
    conventions <https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>`_.
 
 -  Further, Landlab-specific advice for developing your own components
-   can be found in the `component development
-   guide <https://github.com/landlab/landlab/wiki/Develop-your-own-component>`_.
+   can be found in the :ref:`component development guide <dev_contributing>`_.
 
-Many modern text editors, e.g., `Atom <https://atom.io>`__, provide interactive tools to
+Many modern text editors, e.g., `Atom <https://atom.io>`_, provide interactive tools to
 examine your code as you edit it and highlight where it diverges from
 standards.
 

@@ -1,4 +1,4 @@
-.. _model_grid_description:
+.. _grid_user_guide:
 
 ******************************************
 Introduction to Landlab's Gridding Library
@@ -46,10 +46,10 @@ that illustrate how to build models using simple scripts.
 How a Grid is Represented
 =========================
 
+.. _basic_grid_elements:
+
 Basic Grid Elements
 -------------------
-
-.. _grid:
 
 .. figure:: images/grid_schematic_ab.png
     :figwidth: 80%
@@ -64,7 +64,7 @@ Basic Grid Elements
     (Note that not all links and patches are shown, and only one representative cell is
     shaded.)
 
-`Figure 1 <https://github.com/landlab/landlab/wiki/Grid#basic-grid-elements>`_ illustrates
+:ref:`Figure 1 <basic_grid_elements>` illustrates
 how **ModelGrid** represents a simulation grid. The
 grid contains a set of *(x,y)* points called **nodes**. In a typical
 finite-difference or finite-volume model, nodes are the locations at which one tracks
@@ -78,20 +78,20 @@ runs from one node (known as its **from-node** or **tail-node**) to another node
 (known as its **to-node** or **head-node**).
 
 Every node in the grid interior is associated with a polygon known as a **cell** (illustrated,
-for example, by the shaded square region in `Figure 1a <https://github.com/landlab/landlab/wiki/Grid#basic-grid-elements>`_). Each cell is
+for example, by the shaded square region in :ref:`Figure 1a <basic_grid_elements>`). Each cell is
 bounded by a set of line segments known as **faces**, which it shares with its neighboring
 cells.
 
 In the simple case of a regular (raster) grid, the cells are square, the nodes
-are the center points of the cells (`Figure 1 <https://github.com/landlab/landlab/wiki/Grid#basic-grid-elements>`_), and the links and faces have
+are the center points of the cells (:ref:`Figure 1 <basic_grid_elements>`), and the links and faces have
 identical length (equal to the node spacing). In a Voronoi-Delaunay grid, the
 cells are Voronoi polygons (also known as Theissen polygons)
-(`Figure 1 <https://github.com/landlab/landlab/wiki/Grid#basic-grid-elements>`_). In this case, each cell represents the surface area that
+(:ref:`Figure 1a <basic_grid_elements>`). In this case, each cell represents the surface area that
 is closer to its own node than to any other node in the grid. The faces
 represent locations that are equidistant between two neighboring nodes. Other grid
 configurations are possible as well. The spring 2015 version of Landlab includes
 support for hexagonal and radial grids, which are specialized versions of the
-Voronoi-Delaunay grid shown in `Figure 1 <https://github.com/landlab/landlab/wiki/Grid#basic-grid-elements>`_. Note that the node-link-cell-face
+Voronoi-Delaunay grid shown in :ref:`Figure 1a <basic_grid_elements>`. Note that the node-link-cell-face
 topology is general enough to represent other types of grid; for example, one could use
 **ModelGrid's** data structures to implement a quad-tree grid,
 or a Delaunay-Voronoi grid in which cells are triangular elements with
@@ -101,10 +101,10 @@ Creating a Grid
 ---------------
 
 Creating a grid is easy.  The first step is to import Landlab's
-`RasterModelGrid <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.raster.RasterModelGrid>`_ class (this
-assumes you have :ref:`installed Landlab <Installing Landlab >`
+:ref:`RasterModelGrid <landlab.grid.raster.RasterModelGrid>` class (this
+assumes you have :ref:`installed Landlab <install>`
 and are working in your favorite
-:ref:`Python environment <Installing Python>`):
+:ref:`Python environment <python_installation>`):
 
 .. code-block:: python
 
@@ -138,7 +138,16 @@ the associated grid element, and 2) fields attach these data to the grid, so tha
 access to the grid also has access to the data stored in fields.
 
 Suppose you would like like to
-track the elevation at each node. The following code creates a data field (array) called *elevation*. In this case, we'll use the grid method *add_zeros* to create a field that initially sets all values in the field to zero (we'll explain how to read in elevation values from a file in the section on :ref:`DEMs below  < Grid#importing-a-dem>`). The *add_zeros* method takes two arguments: the name of the grid element (in this case, *node*, in the singular) and a name we choose for the value in the data field (here we'll just call it *elevation*). Each *elevation* value in the data field is then associated with a specific grid node. The data field is just a NumPy array whose length is equal to the number of nodes in the grid.
+track the elevation at each node. The following code creates a data field
+(array) called *elevation*. In this case, we'll use the grid method
+*add_zeros* to create a field that initially sets all values in the field to
+zero (we'll explain how to read in elevation values from a file in the section
+on :ref:`DEMs below <importing_a_dem>`). The *add_zeros* method takes
+two arguments: the name of the grid element (in this case, *node*, in the
+singular) and a name we choose for the value in the data field (here we'll just
+call it *elevation*). Each *elevation* value in the data field is then
+associated with a specific grid node. The data field is just a NumPy array
+whose length is equal to the number of nodes in the grid.
 
 .. code-block:: python
 
@@ -186,7 +195,7 @@ There are currently no data values (fields) assigned to the links, as shown by t
 
 It is also possible, and indeed, often quite useful, to initialize a field from an
 existing NumPy array of data. You can do this with the
-`add_field <http://landlab.readthedocs.org/en/latest/landlab.field.html#landlab.field.grouped.ModelDataFields.add_field>`_   method.
+:ref:`add_field <landlab.field.grouped.ModelDataFields.add_field>` method.
 This method allows slightly more granular control over how the field gets created. In addition to the grid element and field name, this method takes an array of values to assign to the field. Optional arguments include: ``units=`` to assign a unit of measurement (as a string) to the value, ``copy=`` a boolean to determine whether to make a copy of the data, and ``noclobber=`` a boolean that prevents accidentally overwriting an existing field.
 
 .. code-block:: python
@@ -230,7 +239,7 @@ As you can see, fields are convenient because you don't have to keep track of ho
 there are on the grid. It is easy for any part of the code to query what data are already associated with the grid and operate on these data.
 
 You are free to call your fields whatever you want. However, field names are more useful if standardized across components. If you are writing a Landlab component
-you should use `Landlab's standard names <https://github.com/landlab/landlab/wiki/Standard-names>`_.
+you should use `Landlab's standard names <standard_names>`_.
 Standard names for fields in a particular component can be
 accessed individually through the properties
 *component_instance._input_var_names* and *component_instance._output_var_names*
@@ -267,11 +276,11 @@ Field initialization
 * ``grid.add_ones(group, name, units='-')``
 * ``grid.add_zeros(group, name, units='-')``
 
-“group” is one of 'node', 'link', 'cell', 'face', 'corner', 'junction', 'patch'
+"group" is one of 'node', 'link', 'cell', 'face', 'corner', 'junction', 'patch'
 
-“name” is a string giving the field name
+"name" is a string giving the field name
 
-“units” (optional) is a string denoting the units associated with the field values.
+"units" (optional) is a string denoting the units associated with the field values.
 
 
 Field creation from existing data
@@ -281,11 +290,11 @@ Field creation from existing data
 
 Arguments as above, plus:
 
-“value_array” is a correctly sized numpy array of data from which you want to create the field.
+"value_array" is a correctly sized numpy array of data from which you want to create the field.
 
-“copy” (optional) if True adds a *copy* of value_array to the field; if False, creates a reference to value_array.
+"copy" (optional) if True adds a *copy* of value_array to the field; if False, creates a reference to value_array.
 
-“noclobber” (optional) if True, raises an exception if a field called name already exists.
+"noclobber" (optional) if True, raises an exception if a field called name already exists.
 
 
 Field access
@@ -307,6 +316,8 @@ Each of these is then followed by the field name as a string in square brackets,
 You can also use these commands to create fields from existing arrays,
 as long as you don't want to take advantage of the added control ``add_field()`` gives you.
 
+
+.. _getting_info_about_fields:
 
 Getting information about fields
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -354,10 +365,10 @@ flow is possible (see boundary conditions below).
 Other Grid Elements
 -------------------
 
-The cell vertices are called *corners* (`Figure 1, solid squares <grid>`).
+The cell vertices are called *corners* (`Figure 1, solid squares <basic_grid_elements>`).
 Each face is therefore a line segment connecting two corners. The intersection
 of a face and a link (or directed edge) is known as a *junction*
-(`Figure 1, open diamonds <https://github.com/landlab/landlab/wiki/Grid#basic-grid-elements>`_). Often, it is useful to calculate scalar
+(:ref:`Figure 1, open diamonds <basic_grid_elements>`). Often, it is useful to calculate scalar
 values (say, ice thickness in a glacier) at nodes, and vector values (say, ice
 velocity) at junctions. This approach is sometimes referred to as a
 staggered-grid scheme. It lends itself naturally to finite-volume methods, in
@@ -366,17 +377,17 @@ maintains conservation of mass within cells.  (In the spring 2015 version of Lan
 there are no supporting functions for the use of junctions, but support is imminent.)
 
 Notice that the links also enclose a set of polygons that are offset from the
-cells. These secondary polygons are known as *patches* (`Figure 1,
-dotted <https://github.com/landlab/landlab/wiki/Grid#basic-grid-elements>`_). This means that any grid comprises two complementary tesselations: one
+cells. These secondary polygons are known as *patches* (:ref:`Figure 1,
+dotted <basic_grid_elements>`). This means that any grid comprises two complementary tesselations: one
 made of cells, and one made of patches. If one of these is a Voronoi
 tessellation, the other is a Delaunay triangulation. For this reason, Delaunay
 triangulations and Voronoi diagrams are said to be dual to one another: for any
 given Delaunay triangulation, there is a unique corresponding Voronoi diagram.
 With **ModelGrid,** one can
 create a mesh with Voronoi polygons as cells and Delaunay triangles as patches
-(`Figure 1b <https://github.com/landlab/landlab/wiki/Grid#basic-grid-elements>`_). Alternatively, with a raster grid, one simply has
+(:ref:`Figure 1b <basic_grid_elements>`). Alternatively, with a raster grid, one simply has
 two sets of square elements that are offset by half the grid spacing
-(`Figure 1a <https://github.com/landlab/landlab/wiki/Grid#basic-grid-elements>`_). Whatever the form of the tessellation, **ModelGrid** keeps
+(:ref:`Figure 1a <basic_grid_elements>`). Whatever the form of the tessellation, **ModelGrid** keeps
 track of the geometry and topology of the grid. patches can be useful for processes
 like calculating the mean gradient at a node, incorporating influence from its
 neighbors.
@@ -394,7 +405,7 @@ portions of the grid perimeter, so that they effectively act as walls.
 
 Let's look first at how ModelGrid treats its own geometrical boundaries. The
 outermost elements of a grid are nodes and links (as opposed to corners and
-faces). For example, `Figure 2 <https://github.com/landlab/landlab/wiki/Grid#id17>`_ shows a sketch of a regular
+faces). For example, :ref:`Figure 2 <raster4x5>` shows a sketch of a regular
 four-row by five-column grid created by RasterModelGrid. The edges of the grid
 are composed of nodes and links. Only the inner six nodes have cells around
 them; the remaining 14 nodes form the perimeter of the grid.
@@ -406,7 +417,8 @@ them; the remaining 14 nodes form the perimeter of the grid.
     :align: center
 
     Figure 2: Illustration of a simple four-row by five-column raster grid created with
-    `landlab.grid.raster.RasterModelGrid <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.raster.RasterModelGrid>`_. By default, all perimeter
+    :ref:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.RasterModelGrid>`.
+    By default, all perimeter
     nodes are tagged as open (fixed value) boundaries, and all interior cells
     are tagged as core. An active link is one that connects either
     two core nodes, or one core node and one open boundary node.
@@ -416,7 +428,7 @@ perimeter of the grid are automatically tagged as boundary nodes. Nodes on the
 inside are *core* by default, but it is possible to tag some of them as
 *boundary* instead (this would be useful, for example, if you wanted to
 represent an irregular region, such as a watershed, inside a regular grid). In the example
-shown in `Figure 2 <https://github.com/landlab/landlab/wiki/Grid#id17>`_, all the interior nodes are *core*, and all
+shown in :ref:`Figure 2 <raster4x5>`, all the interior nodes are *core*, and all
 perimeter nodes are *open boundary*.
 
 Boundary nodes are flagged as either *open* or *closed*, and links are tagged as
@@ -516,7 +528,7 @@ with these boundary condition schemes! Almost all existing components work fine 
 core, closed, and fixed_value conditions, but some may struggle with fixed_gradient,
 and most will struggle with looped. If you're working with the component library, take
 a moment to check your components can understand your implemented boundary conditions!
-See the `Component Developer's Guide <http://landlab.readthedocs.org/en/latest/dev_guide_components.html>`_ for more information.
+See the :ref:`Component Developer's Guide <dev_contributing>` for more information.
 
 
 Using a Different Grid Type
@@ -534,26 +546,29 @@ Grid type                 Inherits from             Node arrangement     Cell ge
 ``HexModelGrid``          ``VoronoiDelaunayGrid``   triagonal            hexagons
 ``RadialModelGrid``       ``VoronoiDelaunayGrid``   concentric           Voronoi polygons
 
-`landlab.grid.raster.RasterModelGrid <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.raster.RasterModelGrid>`_ gives a regular (square) grid, initialized
+:ref:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.RasterModelGrid>`
+gives a regular (square) grid, initialized
 with *number_of_node_rows*, *number_of_node_columns*, and a *spacing*.
-In a `landlab.grid.voronoi.VoronoiDelaunayGrid <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.voronoi.VoronoiDelaunayGrid>`_, a set of node coordinates
+In a :ref:`landlab.grid.voronoi.VoronoiDelaunayGrid <landlab.grid.voronoi.VoronoiDelaunayGrid>`,
+a set of node coordinates
 is given as an initial condition.
 Landlab then forms a Delaunay triangulation, so that the links between nodes are the
 edges of the triangles, and the cells are Voronoi polygons.
-A `landlab.grid.hex.HexModelGrid <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.hex.HexModelGrid>`_ is a
+A :ref:`landlab.grid.hex.HexModelGrid <landlab.grid.hex.HexModelGrid>` is a
 special type of VoronoiDelaunayGrid in which the Voronoi cells happen to be
 regular hexagons.
-In a `landlab.grid.radial.RadialModelGrid <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.radial.RadialModelGrid>`_, nodes are created in concentric
+In a :ref:`landlab.grid.radial.RadialModelGrid <landlab.grid.radial.RadialModelGrid>`, nodes are created in concentric
 circles and then connected to
 form a Delaunay triangulation (again with Voronoi polygons as cells).
-.. The next example illustrates the use of a RadialModelGrid.
 
+.. _importing_a_dem:
 
 Importing a DEM
 ===============
 
-Landlab offers the methods `landlab.io.esri_ascii.read_esri_ascii <http://landlab.readthedocs.org/en/latest/manual_index_alt_format.htmli#landlab.io.esri_ascii.read_esri_ascii>`_ and
-`landlab.io.netcdf.read_netcdf <http://landlab.readthedocs.org/en/latest/landlab.io.netcdf.html#landlab.io.netcdf.read_netcdf>`_ to allow ingestion of
+Landlab offers the methods
+:ref:`landlab.io.esri_ascii.read_esri_ascii <landlab.io.esri_ascii.read_esri_ascii>` and
+:ref:`landlab.io.netcdf.read_netcdf <landlab.io.netcdf.read_netcdf>` to allow ingestion of
 existing digital elevation models as raster grids.
 
 **read_esri_ascii** allows import of an ARCmap formatted ascii file (.asc or .txt)
@@ -570,7 +585,7 @@ Use the *name* keyword to add the elevation to a field in the imported grid.
 
 **read_netcdf** allows import of the open source netCDF format for DEMs. Fields will
 automatically be created according to the names of variables found in the file.
-Returns a `landlab.grid.raster.RasterModelGrid <http://landlab.readthedocs.org/en/latest/landlab.grid.html#landlab.grid.raster.RasterModelGrid>`_.
+Returns a :ref:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.RasterModelGrid>`.
 
 .. code-block:: python
 
@@ -578,15 +593,17 @@ Returns a `landlab.grid.raster.RasterModelGrid <http://landlab.readthedocs.org/e
     mg = read_netcdf('mynetcdf.nc')
 
 
-After import, you can use `landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed <http://landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed>`_
+After import, you can use :ref:`landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
+<landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed>`
 to handle the boundary conditions in your imported DEM.
 
-Equivalent methods for output are also available for both esri
-(`landlab.io.esri_ascii.write_esri_ascii <http://landlab.readthedocs.org/en/latest/landlab.io.html#landlab.io.esri_ascii.write_esri_ascii>`_) and netCDF
-(`landlab.io.netcdf.write_netcdf <http://landlab.readthedocs.org/en/latest/landlab.io.netcdf.html#landlab.io.netcdf.write_netcdf>`_) formats.
+Equivalent methods for output are also available for both esri ascii
+(:ref:`landlab.io.esri_ascii.write_esri_ascii <landlab.io.esri_ascii.write_esri_ascii>`)
+and netCDF
+(:ref:`landlab.io.netcdf.write_netcdf <landlab.io.netcdf.write_netcdf>`) formats.
 
 
-.. _Plotting:
+.. _plotting_and_vis:
 
 Plotting and Visualization
 ==========================
@@ -598,7 +615,7 @@ Landlab offers a set of matplotlib-based plotting routines for your data. These 
 in the landlab.plot library. You'll also need to import some basic plotting functions
 from pylab (or matplotlib) to let you control your plotting output: at a minimum **show**
 and **figure**. The most useful function is called
-`landlab.plot.imshow.imshow_node_grid <http://landlab.readthedocs.org/en/latest/landlab.plot.html#landlab.plot.imshow.imshow_node_grid>`_, and is imported
+:ref:`landlab.plot.imshow.imshow_node_grid <landlab.plot.imshow.imshow_node_grid>`, and is imported
 and used as follows:
 
 .. code-block:: python
@@ -617,7 +634,7 @@ and used as follows:
     imshow_node_grid(mg, z)
     show()
 
-Note that `landlab.plot.imshow.imshow_node_grid <http://landlab.readthedocs.org/en/latest/landlab.plot.html#landlab.plot.imshow.imshow_node_grid>`_
+Note that :ref:`landlab.plot.imshow.imshow_node_grid <landlab.plot.imshow.imshow_node_grid>`
 is clever enough to examine the grid object you pass it,
 work out whether the grid is irregular or regular, and plot the data appropriately.
 
@@ -645,8 +662,8 @@ Visualizing transects through your data
 
 If you are working with a regular grid, it is trivial to plot horizontal and vertical
 sections through your data. The grid provides the method
-`landlab.grid.raster.RasterModelGrid.node_vector_to_raster <http://landlab.readthedocs.org/en/latest/manual_index_alt_format.html#landlab.grid.raster.RasterModelGrid.node_vector_to_raster>`_, which
-will turn a Landlab 1D node data array into a two dimensional rows*columns NumPy array,
+:ref:`landlab.grid.raster.RasterModelGrid.node_vector_to_raster <landlab.grid.raster.RasterModelGrid.node_vector_to_raster>`,
+which will turn a Landlab 1D node data array into a two dimensional rows*columns NumPy array,
 which you can then take slices of, e.g., we can do this:
 
 .. code-block:: python
@@ -663,42 +680,8 @@ which you can then take slices of, e.g., we can do this:
 Visualizing river profiles
 --------------------------
 
-Landlab provides a (still somewhat experimental) basic stream profiler. It is also found
-in the `landlab.plot.channel_profile <http://landlab.readthedocs.org/en/latest/landlab.plot.html#module-landlab.plot.channel_profile>`_ library. The key function is called
-`landlab.plot.channel_profile.analyze_channel_network_and_plot <http://landlab.readthedocs.org/en/latest/landlab.plot.html#landlab.plot.channel_profile.analyze_channel_network_and_plot>`_,
-though you can also call the functions in `landlab.plot.channel_profile <http://landlab.readthedocs.org/en/latest/landlab.plot.html#module-landlab.plot.channel_profile>`_
-individually. It was designed to interface with the flow_routing
-Landlab component, and assumes you already have most of the fields that that component
-produces in your grid (i.e., *'topographic_elevation'*, *'drainage_area'*,
-*'flow_receiver'*, and *'links_to_flow_receiver'*). It can also take three additional
-arguments:
-
-* *number_of_channels* - an integer giving how many stream channels you want to extract
-  from the grid, default 1;
-* *starting_nodes* - the ID, or list or array of IDs (per number_of_channels), of the
-  node at which the outlet of the channel you want to profile is at. Default is None,
-  which tells the profiler to start from the number_of_channels nodes with the highest
-  drainage areas that are boundary nodes;
-* *threshold* - the threshold drainage area (in drainage area units, not pixels) to stop
-  tracing the channels upstream. Defaults to None, which tells the profiler to apply a
-  threshold of twice the smallest cell area in the grid.
-
-The profiler will add a plot of elevation vs distance upstream to the currently active
-figure each time it is called. It also returns a 2-item tuple containing
-1. a number_of_channels-long list of **arrays of profile IDs in each stream**, arranged in
-upstream order, and 2. a number_of_channels-long list of **arrays of distances of those
-nodes upstream**. In this way, you can extract drainage areas or other pertinent surface
-metrics to use with a call to pylab.plot to get, e.g., slope-area, elevation-drainage
-area, etc plots.
-
-See the `component tutorial
-<https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/component_tutorial/component_tutorial.ipynb>`_
-for an example of the profiler in use.
-(Tutorials available as downloadable and executable file  from
-https://github.com/landlab/tutorials/archive/master.zip.)
-
-Please let the development team know if you would like a better profiler, or better yet,
-code one up for Landlab yourself and contribute it!
+See the :ref:`ChannelProfiler <landlab.components.profiler.ChannelProfiler>`
+component.
 
 Making Movies
 -------------
@@ -708,10 +691,12 @@ developers' attention that the matplotlib functions it relies on in turn demand 
 your machine already has installed one of a small set of highly temperamental open
 source video codecs. It is quite likely using the component in its current form is
 more trouble than it's worth; however, the brave can take a look at the library
-`landlab.plot.video_out <http://landlab.readthedocs.org/en/latest/landlab.plot.html#module-landlab.plot.video_out>`_. We intend to improve video out in future Landlab releases.
+:ref:`landlab.plot.video_out <landlab.plot.video_out>`. We intend to improve
+video out in future Landlab releases.
 
 For now, we advocate the approach of creating an animation by saving separately
-individual plots from, e.g., **plot()** or `landlab.plot.imshow.imshow_node_grid <http://landlab.readthedocs.org/en/latest/landlab.plot.html#landlab.plot.imshow.imshow_node_grid>`_,
+individual plots from, e.g., **plot()** or
+:ref:`landlab.plot.imshow.imshow_node_grid <landlab.plot.imshow.imshow_node_grid>`,
 then stitching them together
 into, e.g., a gif using external software. Note it's possible to do this directly from
 Preview on a Mac.

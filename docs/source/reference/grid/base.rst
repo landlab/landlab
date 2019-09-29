@@ -323,6 +323,9 @@ methods tend to start with `calc_`.
     ~landlab.grid.base.ModelGrid.calc_slope_at_patch
     ~landlab.grid.base.ModelGrid.calc_unit_normal_at_patch
 
+
+.. _api.grid.base.mappers
+
 Mappers
 -------
 
@@ -355,6 +358,9 @@ nodes.
     ~landlab.grid.base.ModelGrid.map_value_at_max_node_to_link
     ~landlab.grid.base.ModelGrid.map_value_at_min_node_to_link
     ~landlab.grid.base.ModelGrid.map_value_at_upwind_node_link_max_to_node
+
+
+.. _api.grid.base.bcc:
 
 Boundary condition control
 --------------------------

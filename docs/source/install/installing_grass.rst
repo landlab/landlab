@@ -52,7 +52,7 @@ continue to open once you restore the path, also add a line reading
 BEFORE the commented out line setting the PATH.
 
 You can find out a bit more about messing with your system PATH
-:ref:`here <Correcting-Install-Paths>`.
+:ref:`here <correcting_install_paths>`.
 
 Once you've done this, you can follow the normal GRASS instructions,
 installing both its framework packages and GRASS itself. Fire GRASS up
@@ -67,7 +67,7 @@ GRASS won't run on OSX El Capitan and later
 
 This isn't really our problem, but we suspect it will nonetheless catch
 out many of our users. Apparently, Apple have added an inbuilt layer of
-security (“CSR”) to their newest operating systems, which treats GRASS
+security ("CSR") to their newest operating systems, which treats GRASS
 as hostile software and stops it running. A solution which you may be
 able to find online is to simply disable this security. This is done by
 rebooting into recovery mode, opening a terminal, and running

@@ -115,7 +115,7 @@ previous functions ``calculate_gradients_at_active_links`` and
 
 2 - ``calc_grad_at_link`` returns gradient values at **all** links, not
 just active links. In general, Landlab's grid functions now only operate
-with “complete” sets of grid elements. They will neither accept nor
+with "complete" sets of grid elements. They will neither accept nor
 return partial sets of a given element type (such as active or inactive
 links, core or boundary nodes, etc.).
 
@@ -211,7 +211,7 @@ instantiate a component:
    >>> sp4 = FastscapeEroder(mg, **myparamdict2)  # ...but it's best practice to use load_params instead
    >>> sp5 = FastscapeEroder(mg, 'my_input_file.txt')  # still works in many cases, but DEPRECATED
 
-3 - All components now have a “run method” with the standardised name
+3 - All components now have a "run method" with the standardised name
 ``run_one_step``. The first argument is always the timestep, dt, if
 needed by the component. Subsequent arguments may be present as flags to
 control run behaviour. As an example:

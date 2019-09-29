@@ -6,7 +6,7 @@ The Component Library
 
 Landlab offers an ever-growing library of components that aim to describe
 individual or closely associated suites of surface processes. Components are
-designed to be “plug-and-play” and to interact with each other with the minimum
+designed to be "plug-and-play" and to interact with each other with the minimum
 of technical difficulties. Each component makes use of Landlab grid fields to
 enable the sharing of data between the components, and we aim to have a
 relatively standardized way of interacting with and using each different one.
@@ -23,7 +23,7 @@ Landlab components exist as classes, and can be imported from
     guarantees about the stability or otherwise of the implementations.
 
 To develop your own Landlab component, see
-`this page <https://github.com/landlab/landlab/wiki/Develop-your-own-component>`_
+:ref:`this page <dev_contributing:>`
 and
 `this tutorial <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/making_components/making_components.ipynb>`_.
 
@@ -210,7 +210,7 @@ examples of use cases with one, two, and more coupled components.
 
 You can also get an overview of field usage by all components through Landlab's
 command line interface. See
-:ref:`here <Grid#getting-information-about-fields>`
+:ref:`here <info_about_fields>`
 for more information.
 
 .. _component_standard_names:

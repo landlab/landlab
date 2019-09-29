@@ -3,7 +3,7 @@
 Standard naming in Landlab
 ==========================
 
-See `this page <https://github.com/landlab/landlab/wiki/Components#landlab-standard-naming-conventions>`_
+See :ref:`this page <component_standard_names>`
 for information on the naming conventions.
 
 .. _standard_name_list:

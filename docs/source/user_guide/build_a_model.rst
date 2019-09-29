@@ -4,7 +4,7 @@
 What goes into a Landlab model?
 ===============================
 
-In the previous section, :ref:`Grid <grid>` we showed you most of the core
+In the previous section, :ref:`Grid <grid_user_guide>` we showed you most of the core
 functionality of the Landlab grid. In this section, we introduce you to how to
 actually use it to build models and work with the Landlab component library.
 
@@ -23,11 +23,12 @@ Typically, a driver file will consist of six distinct sections:
 * **Finalize** and handle the data (e.g., plot, export)
 
 Beyond the driver, if you're using Landlab components, you'll probably also need
-a :ref:`parameter file<Components#input-files>`. This file supplies the components with the additional
+a :ref:`parameter file<input_files>`. This file supplies the components with the additional
 parameter and setup information they need. Landlab parameter files are text
 files ``.txt``, have fixed format, and for convenience (so you only have to
 specify the minimum of path information in the file name) should be placed in
-the same folder as the driver file. Find out more about parameter files :ref:`here<Components#input-files>`. However, if you're not using components, there's little need
+the same folder as the driver file. Find out more about parameter files
+:ref:`here<input_files>`. However, if you're not using components, there's little need
 to create a parameter file; you can just directly pass other parameters to the grid
 in the driver.
 
@@ -93,14 +94,14 @@ Also useful can be:
 
 From inside Landlab, you'll also need:
 
-* A **grid** class—choose from :ref:`RasterModelGrid <>`,
-  :ref:`landlab.grid.voronoi.VoronoiDelaunayGrid <>`,
+* A **grid** class—choose from :ref:`RasterModelGrid <landlab.grid.raster.RasterModelGrid>`,
+  :ref:`landlab.grid.voronoi.VoronoiDelaunayGrid <landlab.grid.voronoi.VoronoiDelaunayGrid>`,
   or some of the more specialized classes listed on the
-  :ref:`grid documentation page <>`.
+  :ref:`grid documentation page <api.grid>`.
 * Any **components** you want to run
 * Any Landlab **utilities** you need, such as plotters (
-  :ref:`imshow_grid <>`) or
-  :ref:`io functions <>`.
+  :ref:`imshow_grid <landlab.plot.imshow>`) or
+  :ref:`io functions <api.io>`.
 
 A specific example might be:
 
@@ -118,7 +119,7 @@ A specific example might be:
 
 As noted in previous sections, Landlab is coded in an `object-oriented style
 <http://code.tutsplus.com/articles/python-from-scratch-object-oriented-programming--net-21476>`_.
-This means that we need to “instantiate” the various Landlab objects such as
+This means that we need to "instantiate" the various Landlab objects such as
 the grid and the components that we will use to store data and run the model.
 
 Note that most components require the grid object be passed to them as one of
@@ -143,7 +144,7 @@ An example might be:
 3. Load/create data in fields
 +++++++++++++++++++++++++++++
 
-(:ref:`See this section<Grid#adding-data-to-a-landlab-grid-element-using-fields>` if you don't know what a Landlab field is.)
+(:ref:`See this section<fields>` if you don't know what a Landlab field is.)
 
 Now we need some data to work with. Here we'll assume that you're going to be
 working with a DEM-style elevation map across the nodes of the grid, but similar
@@ -171,7 +172,7 @@ the above cases:
     mg.add_field('node', 'topographic__elevation', z, units='m')
 
 Alternatively, we can use the specialized Landlab function
-:ref:`read_esri_ascii <>`
+:ref:`read_esri_ascii <landlab.io.esri_ascii.read_esri_ascii>`
 to import an ascii raster that can be output from ARC. Note this function both
 creates the grid for you and loads the data as a field if you provide ``name``.
 If not, you'll have to load the data output (*z*, below) manually
@@ -184,7 +185,7 @@ If not, you'll have to load the data output (*z*, below) manually
 
 
 Note that if you don't want to use any Landlab components, you can continue to
-work with data as “free floating” NumPy arrays, and can ignore the fields (e.g.,
+work with data as "free floating" NumPy arrays, and can ignore the fields (e.g.,
 see this `simple introductory tutorial
 <https://gist.github.com/jennyknuth/034e696d65aec808b70e>`_).
 
@@ -265,13 +266,13 @@ or:
 
 Both produce 1000 time units of run, with an explicit timestep of 10. Notice
 that the latter technique is particularly amenable to situations where your
-explicit timestep is varying (e.g., a storm sequence). (For more on time steps in numerical models see the :ref:`Time Steps<time-steps>` page.)
+explicit timestep is varying (e.g., a storm sequence). (For more on time steps in numerical models see the :ref:`Time Steps<time_steps>` page.)
 
 Landlab also however has a built in storm generator component,
-:ref:`PrecipitationDistribution<>`,
+:ref:`PrecipitationDistribution<landlab.components.uniform_precip.PrecipitationDistribution>`,
 which (as its name suggests) acts as a true `Python generator
 <http://www.python-course.eu/generators.php>`_. The main method is
-:ref:`yield_storm_interstorm_duration_intensity <>`.
+:ref:`yield_storm_interstorm_duration_intensity <landlab.components.uniform_precip.PrecipitationDistribution.yield_storm_interstorm_duration_intensity>`.
 This means producing a storm series in Landlab is also very easy:
 
 .. code-block:: python
@@ -290,10 +291,10 @@ tutorial
 <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/component_tutorial/component_tutorial.ipynb>`_
 for an example of this generator in action.
 
-What exactly “…do the thing” consists of is up to you. You can either design
+What exactly "…do the thing" consists of is up to you. You can either design
 your own operations to do in the loop for yourself, or you can implement
-processes from Landlab's component library. See `here
-<https://github.com/landlab/landlab/wiki/Components>`_
+processes from Landlab's component library. See :ref:`here
+<landlab_components_page>`
 for more information on using the components.
 
 6. Finalize and handle the data
@@ -326,7 +327,7 @@ The former way will give two save files, ``my_savename_field1.asc`` and
 ``my_savename_field2.asc``. The latter will just give ``my_savename.nc``.
 
 To reload a netCDF file, use the Landlab io function
-:ref:`read_netcdf<>`
+:ref:`read_netcdf<landlab.io.netcdf.read.read_netcdf>`
 
 .. code-block:: python
 
@@ -337,7 +338,7 @@ Note all the original fields you had will automatically be repopulated.
 
 If you're using an irregular grid, the simple grid save function is not yet
 operational (though is under development). Instead, we recommend using Pickle, a
-native Python way of saving (“pickling”) any Python object. It works like this::
+native Python way of saving ("pickling") any Python object. It works like this::
 
     >>> import cPickle as pickle
     # cPickle is a lot faster than normal pickle
@@ -365,7 +366,7 @@ Plot the data
 ^^^^^^^^^^^^^
 
 Landlab has a fairly comprehensive suite of built in plotting functions; read
-more about them :ref:`here<Grid#plotting-and-visualization>`.
+more about them :ref:`here<plotting_and_vis>`.
 
 You also of course have the option of using the `matplotlib plotting library
 <http://matplotlib.org>`_ of Python for things like cross-sections.

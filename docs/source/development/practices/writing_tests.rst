@@ -8,7 +8,8 @@ All contributed code should be well tested. This should be done through both
 doctests and standard unit tests using `pytest <https://docs.pytest.org/en/latest/>`_.
 
 Doctests should be short, easy-to-read tests that are instructive to a user.
-These tests are included as examples in the Landlab `Reference Manual <http://landlab.readthedocs.io/en/release/>`_.
+These tests are included as examples in the Landlab
+:ref:`Reference Manual <landlab>`.
 
 Unit tests should be more extensive than doctests and give your new code
 thorough testing. Ideally your tests will cover what happens within every

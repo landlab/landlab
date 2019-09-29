@@ -16,6 +16,8 @@ address this, re-run the following lines and then test the installation.
    $ conda install --yes --file=requirements.txt
    $ python setup.py develop
 
+.. _what_do_if_cant_merge_pr:
+
 What do I do if my pull request cannot be automatically merged?
 ---------------------------------------------------------------
 
@@ -54,7 +56,7 @@ to the repository. The pull request will automatically be updated:
    $ git push
 
 Most of these steps have equivalents in the Github app. Use the
-“changes” pane to identify where conflicts exist in your version, then
+"changes" pane to identify where conflicts exist in your version, then
 resolve them one by one. When you're done, commit then sync the
 un-conflicted version's changes as if they were any other.
 
@@ -94,13 +96,11 @@ I'm still confused
 If you are having problems when installing, testing or running Landlab,
 please visit our :ref:`Troubleshooting page <troubleshooting>.
 
-The Landlab development team will be happy to hear from you. We
-recommend that you either post a question to the [[ Landlab User Group
-\| User-Guide#landlab-user-group]], or [[create an new issue
-request|https://github.com/landlab/landlab/issues/new]], and we'll try
-to resolve your problem. When reporting your problem (in either place)
+The Landlab development team will be happy to hear from you. Find contact
+information :ref:`here <contact>`.
+ When reporting your problem (in either place)
 we recommend that you provide a minimal, complete, and verifiable
 example which will help the development team and involved users
-reproduce your problem and determine a solution. [[This page from Stack
-Overflow|https://stackoverflow.com/help/mcve]] provides some background
+reproduce your problem and determine a solution. `This page from Stack
+Overflow <https://stackoverflow.com/help/mcwe>`_ provides some background
 on how to make a minimal, complete, and verifiable example.

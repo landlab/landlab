@@ -26,7 +26,7 @@ p. 1267-1297, `doi:10.5194/gmd-12-1267-2019 <https://doi.org/10.5194/gmd-12-126
 Glade, R.C.*, Shobe, C.M.*, Anderson, R.S., and Tucker, G.E. (2019)
 **Canyon shape and erosion dynamics governed by channel-hillslope
 feedbacks.** *Geology*,
-`doi:10.1130/G46219.1 <https://doi.org/10.1130/G46219.1>`__. \*Equal
+`doi:10.1130/G46219.1 <https://doi.org/10.1130/G46219.1>`_. \*Equal
 contributions
 
 Sharman, G. R., Sylvester, Z., & Covault, J. A. (2019). **Conversion of
@@ -38,7 +38,7 @@ Zebari, M., Grützner, C., Navabpour, P., & Ustaszewski, K. (2019).
 **Relative timing of uplift along the Zagros Mountain Front Flexure
 (Kurdistan Region of Iraq): Constrained by geomorphic indices and
 landscape evolution modeling.** *Solid Earth*, 10(3), 663-682
-`doi:10.5194/se-10-663-2019 < https://doi.org/10.5194/se-10-663-2019>`_.
+`doi:10.5194/se-10-663-2019 <https://doi.org/10.5194/se-10-663-2019>`_.
 
 Phuong J., C. Bandaragoda, E. Istanbulluoglu, C. Beveridge, R. Strauch,
 L. Setiawan, and S. D. Mooney (2019). **Automated retrieval,
@@ -53,7 +53,7 @@ p. 119-30: https://doi.org/10.1016/j.envsoft.2019.01.007.
 Barnhart, K. R., Hutton, E. W., Gasparini, N. M., & Tucker, G. E.
 (2018). **Lithology: A Landlab submodule for spatially variable rock
 properties.** *J. Open Source Software*, 3(30), 979,
-`doi:10.21105/joss.00979 < https://doi.org/10.21105/joss.00979>`_
+`doi:10.21105/joss.00979 <https://doi.org/10.21105/joss.00979>`_
 
 Lai J., and Anders, A. (2018) **Modeled Postglacial Landscape Evolution
 at the Southern Margin of the Laurentide Ice Sheet: Hydrological
@@ -206,7 +206,7 @@ Barnhart, K., Tucker, G.E., Hutton, E.W.H., Hobley D.E.J., Gasparini,
 N.M., Adams, J.M. (2017) Reproducible Earth-surface modeling with
 Landlab on HydroShare, EarthCube All-Hands Meeting 2017, Seattle,
 Washington, June, 2017
-`abstract <https://www.hydroshare.org/resource/38002ee4bf594901a29055bdf20b13da/ >`_
+`abstract <https://www.hydroshare.org/resource/38002ee4bf594901a29055bdf20b13da>`_
 `poster <https://www.hydroshare.org/django_irods/download/38002ee4bf594901a29055bdf20b13da/data/contents/Bandaragoda_ECAHM2017_HydroShare_Landlab_Poster.pdf>`_
 
 Bandaragoda, C.J., Castronova, A., Phuong, J., Strauch, R.,
@@ -552,6 +552,6 @@ Dynamics. Paper presented at Community Surface Dynamics Modeling System
 annual meeting, Boulder, Colorado, Mar 2013.
 
 Tucker, G.E., Gasparini, N.M., Istanbulluoglu, E., Hutton, E., and
-Hobley, D.E.J. (2013) A generic “gridding engine” for 2D modeling of
+Hobley, D.E.J. (2013) A generic "gridding engine" for 2D modeling of
 earth-surface dynamics. Paper presented at Community Surface Dynamics
 Modeling System annual meeting, Boulder, Colorado, Mar 2013.

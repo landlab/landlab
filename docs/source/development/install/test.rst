@@ -32,7 +32,7 @@ on), you would run:
 
 You may also want to see the code coverage of different parts of
 Landlab. To do this, you'll first need to install
-```pytest-cov`` <https://pytest-cov.readthedocs.io/en/latest/readme.html>`__.
+```pytest-cov`` <https://pytest-cov.readthedocs.io/en/latest/readme.html>`_.
 
 .. code-block:: bash
 

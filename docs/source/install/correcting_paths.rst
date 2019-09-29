@@ -19,7 +19,7 @@ Symptoms
    these commands gives an error.
 3. The install procedure appeared to go fine, including the test import in the
    Python shell
-   :ref:` described at the end of the instructions  < Installing-Landlab-with-Anaconda#test-landlab-install >`,
+   :ref:`described at the end of the instructions <test_landlab_install>`,
    but now you can't import Landlab from the Python prompt provided inside Anaconda.
 4. As above, but you can't import Landlab from inside an iPython shell or from
    an iPython Notebook.
@@ -95,7 +95,7 @@ Use your favorite Unix editor to make the changes—almost all machines have
 ``nano``, which is super basic, but works. Once you're done, save
 (Ctrl-X, say yes to save in ``nano``), then quit and restart any apps that are
 using Python—including the terminal app itself.
-:ref:` Test  < Installing-Landlab-with-Anaconda#test-landlab-install >`
+:ref:` Test <test_landlab_install>`
 if this solved your problem.
 
 If you only have one of ``.bash_profile`` or ``.profile``, open it in an editor

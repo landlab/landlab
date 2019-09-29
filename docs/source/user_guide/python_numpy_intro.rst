@@ -17,9 +17,9 @@ advantage of that language's affinity for rapid development timescales.
 
 Other advantages of this choice include high portability between platforms,
 open source language, numerous existing scientific libraries that prevent
-developers having to “reinvent the wheel,” and support for selective
+developers having to "reinvent the wheel," and support for selective
 optimization of time-critical parts of the code base in Cython
-(see :ref:`Cython  < Python,-NumPy,-Scipy,-Cython#cython>`).
+(see :ref:`Cython <cython>`).
 
 Getting to know Python
 ----------------------
@@ -41,7 +41,7 @@ of the object as a container in which everything relevant to that part of the
 code is stored, so that it can be accessed easily. You can read a bit more
 about Python objects `on this page <http://learnpythonthehardway.org/book/ex40.html>`_
 for general information. There is more detail on what this means in terms of
-running our code on the :ref:`Build a Model page < Build-a-Model>`.
+running our code on the :ref:`Build a Model page <build_a_model>`.
 
 If you know MatLab…
 ```````````````````
@@ -53,7 +53,9 @@ things to remember include:
 Python's indexing is inclusive at the start and exclusive at the end (in
 contrast to Matlab). For example, in Python
 
->>> numpy.arange(0, 100)
+.. code-block:: python
+
+    numpy.arange(0, 100)
 
 will give an array of 100 numbers, starting at 0 and ending at 99.
 
@@ -62,12 +64,14 @@ loops, if statements, etc.). Instead it uses a colon to declare the start of a
 code block, then consistent indenting (normally 4 spaces) to for the rest of
 the block. e.g.,
 
->>> def myfunction(input_param):
-...     if type(input_param) is str:
-...         print(“The input to the function said: “, input_param)
-...     else:
-...         print(“The input parameter wasn't a string.”)
-...         print(“It was actually " + str(type(input_param)))
+.. code-block:: python
+
+    def myfunction(input_param):
+        if type(input_param) is str:
+            print("The input to the function said: ", input_param)
+        else:
+            print("The input parameter wasn't a string.")
+            print("It was actually " + str(type(input_param)))
 
 Lines don't need to end with the semicolon to suppress output; Python won't
 print output unless you explicitly call ``print``.
@@ -92,7 +96,7 @@ faster and easier.
 
 In particular, Landlab makes extensive use of the NumPy array data structure.
 Almost all data input and output from Landlab is in the form of an array (see
-:ref:` Landlab Fields  < https://github.com/landlab/landlab/wiki/Grid#adding-data-to-a-landlab-grid-element-using-fields>` for more information).
+:ref:` Landlab Fields <fields>` for more information).
 These arrays allow operations to happen much faster on the data than would be
 possible in a pure Python data structure like a list or a dictionary. (This is
 possible because NumPy arrays suppress some of Python's inbuilt type checking
@@ -105,29 +109,37 @@ likely, Matlab). A typical bottleneck in Python code occurs when looping over
 data, and NumPy arrays let you avoid doing this. So if you find yourself about
 to write something like:
 
->>> for i in range(len(myarray)):
+.. code-block:: python
+
+    for i in range(len(myarray)):
         myoutputarray[i] = myoutputarray[i] + myarray[i]
 
 Don't! Try instead to develop a coding style where each line operates on the
  whole array at once. For example:
 
->>> myoutputarray += myarray
+.. code-block:: python
+
+    myoutputarray += myarray
 
 In particular, it can be very tempting to use loops to apply a condition over a
 whole array. Try not to do this! Instead of
 
->>> for i in myarray:
+.. code-block:: python
+
+    for i in myarray:
         if i < 0:
-            i = 0
+          i = 0
 
 which will be really slow. Do this:
 
->>> myarray[myarray < 0] = 0
+.. code-block:: python
+
+    myarray[myarray < 0] = 0
 
 There is much more information about writing efficient NumPy code online. For
 example, `UW's astronomy department has a great online intro
 <http://www.astro.washington.edu/users/vanderplas/Astr599/notebooks/11_EfficientNumpy>`_.
-We also strongly recommend the book “High Performance Python” by Gorelick and
+We also strongly recommend the book "High Performance Python" by Gorelick and
 Ozsvald, published by O'Reilly, if you're looking for a more comprehensive
 treatment.
 
@@ -156,5 +168,5 @@ sufficient for the vast majority of users.
 However if, as a developer, you intend to modify any of the sections of code
 that we provide to you, you will probably need to recompile that code on your
 machine before the changes take effect. See the
-:ref:`developer installation instructions  < http://landlab.readthedocs.org/en/latest/dev_guide_install.html>`
+:ref:`developer installation instructions <developer_install>`
 for more information on this.

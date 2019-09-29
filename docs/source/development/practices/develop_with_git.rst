@@ -33,8 +33,8 @@ branch.
 guide to the git command line tools. All this functionality is also
 available through the Github app.
 
-*Note: Github provides a nice GUI interface for using git called “Github
-Desktop”. This provides all the functionality described below in a form
+*Note: Github provides a nice GUI interface for using git called "Github
+Desktop". This provides all the functionality described below in a form
 that avoids the command line, if that sounds like something you'd
 prefer.*
 
@@ -59,7 +59,7 @@ If using git at the command line, make the new branch like this:
    $ git branch name-of-branch upstream/master
    $ git checkout name-of-branch
 
-From the Github app, you can do the same thing with the “branching”
+From the Github app, you can do the same thing with the "branching"
 button in the top line. A nice feature of the app is it shows you
 graphically how your active branch currently differs from the master
 branch - when you branched it, and when changes were committed to both
@@ -79,7 +79,7 @@ active branch, you can update your active branch from the master with
 
    $ git pull
 
-or with the “Update from master” button in the app.
+or with the "Update from master" button in the app.
 
 Pushing changes from your local machine to your fork on Github
 ``````````````````````````````````````````````````````````````
@@ -93,9 +93,9 @@ to your github repo. This is done with the following command:
 
    $ git push --set-upstream origin name-of-branch
 
-In the app, the same functionality is achieved by first “publishing”
+In the app, the same functionality is achieved by first "publishing"
 your branch (creating it on your page within the github.com central
-repository), then using the “sync” button to send the files to the
+repository), then using the "sync" button to send the files to the
 central github.com servers.
 
 On your Landlab GitHub page you will now be able to toggle between your
@@ -105,7 +105,7 @@ you see the structure of your branches on your local machine.
 Committing changes and merging branches back in
 ```````````````````````````````````````````````
 
-Changes you make to your code are “saved” in git when you commit them to
+Changes you make to your code are "saved" in git when you commit them to
 your branch. Save your files, then at the command line
 
 .. code-block:: bash
@@ -114,12 +114,12 @@ your branch. Save your files, then at the command line
 
 Again, the app provides the same functionality, but with the added bonus
 that it shows you what the changes you've made since your last commit
-actually are. Click on the “X Uncommitted Changes” button at the top
+actually are. Click on the "X Uncommitted Changes" button at the top
 centre, and see which files have changed and what's happened. Pick the
 files for which you want to store the changes as part of this commit,
-type text describing the change in the boxes, then hit “Commit to
-my-branch-name”. If you go to History, you can see a record of all past
-changes in the branch. You can then use git to travel “back in time” and
+type text describing the change in the boxes, then hit "Commit to
+my-branch-name". If you go to History, you can see a record of all past
+changes in the branch. You can then use git to travel "back in time" and
 review what the code was like at any time in the past!
 
 Note that files that you do not explicitly ask git to track (either by
@@ -142,7 +142,7 @@ your active branch again then *merge* the branch:
    $ git checkout master
    $ git merge my-branch-name
 
-In the app, create the merge by making a “pull request” using the button
+In the app, create the merge by making a "pull request" using the button
 in the top right. The process is fairly self explanatory, and provides a
 preview of whether there will be any conflicts. Once you've created the
 merge, click through the hyperlink and merge it into the master on the
@@ -162,14 +162,14 @@ from the master fork, as described :ref:`here<updating>`
 merged in).
 
 Perform this procedure through the Github website. Go to the github page
-for your fork, and click the green “New pull request” button at the top.
-The next page shows you which branch on which fork (the “head”) will be
-merged into which other branch and fork (the “base”). These details
+for your fork, and click the green "New pull request" button at the top.
+The next page shows you which branch on which fork (the "head") will be
+merged into which other branch and fork (the "base"). These details
 should all be correct as shown. There may well be conflicts reported on
 this page. If there are, consider
 :ref:`updating your fork from the master fork<updating>`
 before finalising the request. Once you're ready to go, click the next
-“Create pull request” green button. You'll be redirected to a discussion
+"Create pull request" green button. You'll be redirected to a discussion
 page for your request, and it will be visible to all of the admins for
 the main Landlab fork - one of whom will review your changes and
 actually make the merge (*please don't do this yourself!*).
