@@ -62,10 +62,14 @@ BibTeX format:
 ::
 
  @article{Hobley2017,
-               Author = {Hobley, D. E. J. and Adams, J. M. and Nudurupati, S. S. and Hutton, E. W. H. and Gasparini, N. M. and Istanbulluoglu, E. and Tucker, G. E.},
+               Author = {Hobley, D. E. J. and Adams, J. M. and Nudurupati,
+                         S. S. and Hutton, E. W. H. and Gasparini, N. M. and
+                         Istanbulluoglu, E. and Tucker, G. E.},
                Journal = {Earth Surface Dynamics},
                Year = {2017},
-               Title = {Creative computing with Landlab: an open-source toolkit for building, coupling, and exploring two-dimensional numerical models of Earth-surface dynamics},
+               Title = {Creative computing with Landlab: an open-source toolkit
+                        for building, coupling, and exploring two-dimensional
+                        numerical models of Earth-surface dynamics},
                Number = {5},
                Pages = {21-46},
                Doi = {10.5194/esurf-5-21-2017}}
