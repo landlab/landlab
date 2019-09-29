@@ -393,15 +393,11 @@ Each of the four types of CTS model inherits from the base class (CellLabCTSMode
 Source Code Documentation for CellLab-CTS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* :ref:`Methods and Internal Documentation for the base class: CellLabCTSModel <landlab.ca.celllab_cts.CellLabCTSModel>`*
-
-* :ref:`Methods and Internal Documentation for the RasterCTS class <landlab.ca.raster_cts.RasterCTS>`*
-
-* :ref:`Methods and Internal Documentation for the OrientedRasterCTS class <landlab.ca.oriented_raster_cts.OrientedRasterCTS>`*
-
-* :ref:`Methods and Internal Documentation for the HexCTS class <landlab.ca.hex_cts.HexCTS>`*
-
-* :ref:`Methods and Internal Documentation for the OrientedHexCTS class <landlab.ca.oriented_hex_cts.OrientedHexCTS>`
+* :py:class:`Methods and Internal Documentation for the base class: CellLabCTSModel <landlab.ca.celllab_cts.CellLabCTSModel>`
+* :py:class:`Methods and Internal Documentation for the RasterCTS class <landlab.ca.raster_cts.RasterCTS>`
+* :py:class:`Methods and Internal Documentation for the OrientedRasterCTS class <landlab.ca.oriented_raster_cts.OrientedRasterCTS>`
+* :py:class:`Methods and Internal Documentation for the HexCTS class <landlab.ca.hex_cts.HexCTS>`
+* :py:class:`Methods and Internal Documentation for the OrientedHexCTS class <landlab.ca.oriented_hex_cts.OrientedHexCTS>`
 
 
 

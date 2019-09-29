@@ -101,7 +101,7 @@ Creating a Grid
 ---------------
 
 Creating a grid is easy.  The first step is to import Landlab's
-:ref:`RasterModelGrid <landlab.grid.raster.RasterModelGrid>` class (this
+:py:class:`RasterModelGrid <landlab.grid.raster.RasterModelGrid>` class (this
 assumes you have :ref:`installed Landlab <install>`
 and are working in your favorite
 :ref:`Python environment <python_installation>`):
@@ -195,7 +195,7 @@ There are currently no data values (fields) assigned to the links, as shown by t
 
 It is also possible, and indeed, often quite useful, to initialize a field from an
 existing NumPy array of data. You can do this with the
-:ref:`add_field <landlab.field.grouped.ModelDataFields.add_field>` method.
+:py:func:`add_field <landlab.field.grouped.ModelDataFields.add_field>` method.
 This method allows slightly more granular control over how the field gets created. In addition to the grid element and field name, this method takes an array of values to assign to the field. Optional arguments include: ``units=`` to assign a unit of measurement (as a string) to the value, ``copy=`` a boolean to determine whether to make a copy of the data, and ``noclobber=`` a boolean that prevents accidentally overwriting an existing field.
 
 .. code-block:: python
@@ -417,7 +417,7 @@ them; the remaining 14 nodes form the perimeter of the grid.
     :align: center
 
     Figure 2: Illustration of a simple four-row by five-column raster grid created with
-    :ref:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.RasterModelGrid>`.
+    :py:class:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.RasterModelGrid>`.
     By default, all perimeter
     nodes are tagged as open (fixed value) boundaries, and all interior cells
     are tagged as core. An active link is one that connects either
@@ -546,18 +546,18 @@ Grid type                 Inherits from             Node arrangement     Cell ge
 ``HexModelGrid``          ``VoronoiDelaunayGrid``   triagonal            hexagons
 ``RadialModelGrid``       ``VoronoiDelaunayGrid``   concentric           Voronoi polygons
 
-:ref:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.RasterModelGrid>`
+:py:class:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.RasterModelGrid>`
 gives a regular (square) grid, initialized
 with *number_of_node_rows*, *number_of_node_columns*, and a *spacing*.
-In a :ref:`landlab.grid.voronoi.VoronoiDelaunayGrid <landlab.grid.voronoi.VoronoiDelaunayGrid>`,
+In a :py:class:`landlab.grid.voronoi.VoronoiDelaunayGrid <landlab.grid.voronoi.VoronoiDelaunayGrid>`,
 a set of node coordinates
 is given as an initial condition.
 Landlab then forms a Delaunay triangulation, so that the links between nodes are the
 edges of the triangles, and the cells are Voronoi polygons.
-A :ref:`landlab.grid.hex.HexModelGrid <landlab.grid.hex.HexModelGrid>` is a
+A :py:class:`landlab.grid.hex.HexModelGrid <landlab.grid.hex.HexModelGrid>` is a
 special type of VoronoiDelaunayGrid in which the Voronoi cells happen to be
 regular hexagons.
-In a :ref:`landlab.grid.radial.RadialModelGrid <landlab.grid.radial.RadialModelGrid>`, nodes are created in concentric
+In a :py:class:`landlab.grid.radial.RadialModelGrid <landlab.grid.radial.RadialModelGrid>`, nodes are created in concentric
 circles and then connected to
 form a Delaunay triangulation (again with Voronoi polygons as cells).
 
@@ -567,8 +567,8 @@ Importing a DEM
 ===============
 
 Landlab offers the methods
-:ref:`landlab.io.esri_ascii.read_esri_ascii <landlab.io.esri_ascii.read_esri_ascii>` and
-:ref:`landlab.io.netcdf.read_netcdf <landlab.io.netcdf.read_netcdf>` to allow ingestion of
+:py:func:`landlab.io.esri_ascii.read_esri_ascii <landlab.io.esri_ascii.read_esri_ascii>` and
+:py:func:`landlab.io.netcdf.read_netcdf <landlab.io.netcdf.read_netcdf>` to allow ingestion of
 existing digital elevation models as raster grids.
 
 **read_esri_ascii** allows import of an ARCmap formatted ascii file (.asc or .txt)
@@ -585,7 +585,7 @@ Use the *name* keyword to add the elevation to a field in the imported grid.
 
 **read_netcdf** allows import of the open source netCDF format for DEMs. Fields will
 automatically be created according to the names of variables found in the file.
-Returns a :ref:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.RasterModelGrid>`.
+Returns a :py:class:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.RasterModelGrid>`.
 
 .. code-block:: python
 
@@ -593,14 +593,14 @@ Returns a :ref:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.RasterM
     mg = read_netcdf('mynetcdf.nc')
 
 
-After import, you can use :ref:`landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
+After import, you can use :py:func:`landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
 <landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed>`
 to handle the boundary conditions in your imported DEM.
 
 Equivalent methods for output are also available for both esri ascii
-(:ref:`landlab.io.esri_ascii.write_esri_ascii <landlab.io.esri_ascii.write_esri_ascii>`)
+(:py:func:`landlab.io.esri_ascii.write_esri_ascii <landlab.io.esri_ascii.write_esri_ascii>`)
 and netCDF
-(:ref:`landlab.io.netcdf.write_netcdf <landlab.io.netcdf.write_netcdf>`) formats.
+(:py:func:`landlab.io.netcdf.write_netcdf <landlab.io.netcdf.write_netcdf>`) formats.
 
 
 .. _plotting_and_vis:
@@ -615,7 +615,7 @@ Landlab offers a set of matplotlib-based plotting routines for your data. These 
 in the landlab.plot library. You'll also need to import some basic plotting functions
 from pylab (or matplotlib) to let you control your plotting output: at a minimum **show**
 and **figure**. The most useful function is called
-:ref:`landlab.plot.imshow.imshow_node_grid <landlab.plot.imshow.imshow_node_grid>`, and is imported
+:py:func:`landlab.plot.imshow.imshow_node_grid <landlab.plot.imshow.imshow_node_grid>`, and is imported
 and used as follows:
 
 .. code-block:: python
@@ -634,7 +634,7 @@ and used as follows:
     imshow_node_grid(mg, z)
     show()
 
-Note that :ref:`landlab.plot.imshow.imshow_node_grid <landlab.plot.imshow.imshow_node_grid>`
+Note that :py:func:`landlab.plot.imshow.imshow_node_grid <landlab.plot.imshow.imshow_node_grid>`
 is clever enough to examine the grid object you pass it,
 work out whether the grid is irregular or regular, and plot the data appropriately.
 
@@ -662,7 +662,7 @@ Visualizing transects through your data
 
 If you are working with a regular grid, it is trivial to plot horizontal and vertical
 sections through your data. The grid provides the method
-:ref:`landlab.grid.raster.RasterModelGrid.node_vector_to_raster <landlab.grid.raster.RasterModelGrid.node_vector_to_raster>`,
+:py:func:`landlab.grid.raster.RasterModelGrid.node_vector_to_raster <landlab.grid.raster.RasterModelGrid.node_vector_to_raster>`,
 which will turn a Landlab 1D node data array into a two dimensional rows*columns NumPy array,
 which you can then take slices of, e.g., we can do this:
 
@@ -680,7 +680,7 @@ which you can then take slices of, e.g., we can do this:
 Visualizing river profiles
 --------------------------
 
-See the :ref:`ChannelProfiler <landlab.components.profiler.ChannelProfiler>`
+See the :py:class:`ChannelProfiler <landlab.components.profiler.ChannelProfiler>`
 component.
 
 Making Movies
@@ -691,12 +691,12 @@ developers' attention that the matplotlib functions it relies on in turn demand 
 your machine already has installed one of a small set of highly temperamental open
 source video codecs. It is quite likely using the component in its current form is
 more trouble than it's worth; however, the brave can take a look at the library
-:ref:`landlab.plot.video_out <landlab.plot.video_out>`. We intend to improve
+:py:mod:`landlab.plot.video_out <landlab.plot.video_out>`. We intend to improve
 video out in future Landlab releases.
 
 For now, we advocate the approach of creating an animation by saving separately
 individual plots from, e.g., **plot()** or
-:ref:`landlab.plot.imshow.imshow_node_grid <landlab.plot.imshow.imshow_node_grid>`,
+:py:func:`landlab.plot.imshow.imshow_node_grid <landlab.plot.imshow.imshow_node_grid>`,
 then stitching them together
 into, e.g., a gif using external software. Note it's possible to do this directly from
 Preview on a Mac.

@@ -51,7 +51,7 @@ How do I set the boundary codes for the edges of a grid?
 By default, the boundary nodes around the perimeter of a grid are all
 open boundaries. For a raster grid, if you want to make one or more sides
 closed boundaries, use the grid method
-:ref:`RasterModelGrid.set_closed_boundaries_at_grid_edges <RasterModelGrid.set_closed_boundaries_at_grid_edges>`.
+:py:func:`RasterModelGrid.set_closed_boundaries_at_grid_edges <RasterModelGrid.set_closed_boundaries_at_grid_edges>`.
 
 The following code snippet sets the southern boundary nodes to be closed:
 
@@ -78,8 +78,8 @@ It's also possible to set the boundary conditions "by hand", if you know the ID 
 
 See also:
 
-  :ref:`RasterModelGrid.set_fixed_value_boundaries_at_grid_edges <landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges>`,
-  :ref:`ModelGrid.set_nodata_nodes_to_closed <landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed>`
+  :py:func:`RasterModelGrid.set_fixed_value_boundaries_at_grid_edges <landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges>`,
+  :py:func:ModelGrid.set_nodata_nodes_to_closed <landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed>`
 
 
 Can I import Landlab output into ParaView or VisIt?
@@ -92,7 +92,7 @@ How do I get netCDF output?
 
 At present, Landlab can write output to a netCDF file if you are using a raster grid
 (support for unstructured grids is coming later). To create netCDF output, use the function
-:ref:`landlab.io.netcdf.write_netcdf <landlab.io.netcdf.write_netcdf>`.
+:py:func:`landlab.io.netcdf.write_netcdf <landlab.io.netcdf.write_netcdf>`.
 This function will write to file
 
 (1) the grid geometry, and
@@ -100,7 +100,7 @@ This function will write to file
 
 this will automatically include any arrays that you created with functions
 such as
-:ref:`landlab.grid.base.ModelGrid.add_zeros <landlab.grid.base.ModelGrid.add_zeros>`,
+:py:func:`landlab.grid.base.ModelGrid.add_zeros <landlab.grid.base.ModelGrid.add_zeros>`,
 as long as you provided a name for the array as one of the arguments.
 
 

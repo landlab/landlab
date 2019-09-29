@@ -23,7 +23,7 @@ Landlab components exist as classes, and can be imported from
     guarantees about the stability or otherwise of the implementations.
 
 To develop your own Landlab component, see
-:ref:`this page <dev_contributing:>`
+:ref:`this page <dev_contributing>`
 and
 `this tutorial <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/making_components/making_components.ipynb>`_.
 
@@ -210,7 +210,7 @@ examples of use cases with one, two, and more coupled components.
 
 You can also get an overview of field usage by all components through Landlab's
 command line interface. See
-:ref:`here <info_about_fields>`
+:ref:`here <getting_info_about_fields>`
 for more information.
 
 .. _component_standard_names:
@@ -232,7 +232,7 @@ e.g., *topographic__elevation*, *water_surface__gradient*, *water__volume_flux*
  You can see a list of the names currently in use here:
  :ref:`Landlab Standard Names <standard_names>`
 
-See :ref:`here <changes-to-standard-names-in-landlab>` for a list of recent changes
+See :ref:`here <standard_name_changes>` for a list of recent changes
 to the standard name list.
 
 

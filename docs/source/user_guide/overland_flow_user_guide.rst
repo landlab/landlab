@@ -8,7 +8,7 @@ Background on OverlandFlow component
 ------------------------------------
 
 The Landlab OverlandFlow component implements a 2-D solution of the shallow water equations, following the algorithm of de Almeida et al., (2012). In this component, an explicit solution simulates a flood wave moving across a gridded terrain, capturing hydrodynamics throughout the system. At each point within the grid, surface water discharge is calculated based on physical properties. This component expands the hydrologic capabilities of Landlab by offering a nonsteady flow routing method as an alternative to the steady-state flow routing regimes found in many geomorphic or landscape evolution models
-(such as the Landlab :ref:`FlowAccumulator<landlab.components.flow_accum.FlowAccumulator>` component).
+(such as the Landlab :py:class:`FlowAccumulator<landlab.components.flow_accum.FlowAccumulator>` component).
 
 
 This User Manual describes how to instantiate, parameterize and plot data using the OverlandFlow component, using an example described in Adams et al., (in press, *Geoscientific Model Development*). For further information about the derivation of the algorithm used in this component, see: Bates et al., (2010) and de Almeida et al., (2012).
@@ -23,7 +23,7 @@ Model parameters and variables
 **Input parameters**
 
 Parameters listed here are easily tuned by the model user. For a complete list, see
-:ref:`here<landlab.components.overland_flow>`.
+:py:mod:`here<landlab.components.overland_flow>`.
 
 - **Alpha** : Weight on the adaptive time step, ranging between 0.2 - 0.7. For more information, see Hunter et al., (2005).
 - **Manning's n** : An empirical value describing surface roughness. See Chow (1959).

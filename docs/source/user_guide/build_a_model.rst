@@ -94,13 +94,13 @@ Also useful can be:
 
 From inside Landlab, you'll also need:
 
-* A **grid** class—choose from :ref:`RasterModelGrid <landlab.grid.raster.RasterModelGrid>`,
-  :ref:`landlab.grid.voronoi.VoronoiDelaunayGrid <landlab.grid.voronoi.VoronoiDelaunayGrid>`,
+* A **grid** class—choose from :py:class:`RasterModelGrid <landlab.grid.raster.RasterModelGrid>`,
+  :py:class:`landlab.grid.voronoi.VoronoiDelaunayGrid <landlab.grid.voronoi.VoronoiDelaunayGrid>`,
   or some of the more specialized classes listed on the
   :ref:`grid documentation page <api.grid>`.
 * Any **components** you want to run
 * Any Landlab **utilities** you need, such as plotters (
-  :ref:`imshow_grid <landlab.plot.imshow>`) or
+  :py:func:`imshow_grid <landlab.plot.imshow>`) or
   :ref:`io functions <api.io>`.
 
 A specific example might be:
@@ -172,7 +172,7 @@ the above cases:
     mg.add_field('node', 'topographic__elevation', z, units='m')
 
 Alternatively, we can use the specialized Landlab function
-:ref:`read_esri_ascii <landlab.io.esri_ascii.read_esri_ascii>`
+:py:func:`read_esri_ascii <landlab.io.esri_ascii.read_esri_ascii>`
 to import an ascii raster that can be output from ARC. Note this function both
 creates the grid for you and loads the data as a field if you provide ``name``.
 If not, you'll have to load the data output (*z*, below) manually
@@ -269,10 +269,10 @@ that the latter technique is particularly amenable to situations where your
 explicit timestep is varying (e.g., a storm sequence). (For more on time steps in numerical models see the :ref:`Time Steps<time_steps>` page.)
 
 Landlab also however has a built in storm generator component,
-:ref:`PrecipitationDistribution<landlab.components.uniform_precip.PrecipitationDistribution>`,
+:py:class:`PrecipitationDistribution<landlab.components.uniform_precip.PrecipitationDistribution>`,
 which (as its name suggests) acts as a true `Python generator
 <http://www.python-course.eu/generators.php>`_. The main method is
-:ref:`yield_storm_interstorm_duration_intensity <landlab.components.uniform_precip.PrecipitationDistribution.yield_storm_interstorm_duration_intensity>`.
+:py:func:`yield_storm_interstorm_duration_intensity <landlab.components.uniform_precip.PrecipitationDistribution.yield_storm_interstorm_duration_intensity>`.
 This means producing a storm series in Landlab is also very easy:
 
 .. code-block:: python
@@ -327,7 +327,7 @@ The former way will give two save files, ``my_savename_field1.asc`` and
 ``my_savename_field2.asc``. The latter will just give ``my_savename.nc``.
 
 To reload a netCDF file, use the Landlab io function
-:ref:`read_netcdf<landlab.io.netcdf.read.read_netcdf>`
+:py:func:`read_netcdf<landlab.io.netcdf.read.read_netcdf>`
 
 .. code-block:: python
 
