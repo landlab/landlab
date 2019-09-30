@@ -276,7 +276,6 @@ class GroundwaterDupuitPercolator(Component):
         self._n = return_array_at_node(grid,porosity)
         self._n_link = map_mean_of_link_nodes_to_link(self._grid,self._n)
         self._r = regularization_f
-        self._unsat = unsaturated_zone
         self._S = abs(grid.calc_grad_at_link(self._elev))
         self._S_node = map_max_of_node_links_to_node(grid,self._S)
 
