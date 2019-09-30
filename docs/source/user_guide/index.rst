@@ -51,6 +51,13 @@ Model with Landlab and Components
     components
     build_a_model
 
+Landlab Tutorial Library
+------------------------
+
+.. toctree::
+    :maxdepth: 2
+
+    tutorials
 
 Additional resources
 --------------------
@@ -58,7 +65,6 @@ Additional resources
 .. toctree::
     :maxdepth: 2
 
-    tutorials
     standard_names
     time_steps
     examples
