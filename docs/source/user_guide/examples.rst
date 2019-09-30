@@ -5,96 +5,47 @@ Examples
 
 Welcome to the **Landlab** gallery of examples!
 
-.. raw:: html
-
-   <table>
-
-.. raw:: html
-
-   <tr valign="top">
-
-.. raw:: html
-
-   <td>
 
 Overland Flow
+-------------
 
-.. raw:: html
-
-   </td>
-
-.. raw:: html
-
-   <td>
+.. figure:: images/SS_vs_OverlandFlow_Cartoon.jpg
+    :figwidth: 80%
+    :align: center
 
 Square Basin
+------------
 
-.. raw:: html
-
-   </td>
-
-.. raw:: html
-
-   </tr>
-
-.. raw:: html
-
-   <tr valign="top">
-
-.. raw:: html
-
-   <td>
+.. figure:: images/SquareBasin.jpg
+    :figwidth: 300px
+    :align: center
 
 Flexure
+-------
 
-.. raw:: html
-
-   </td>
-
-.. raw:: html
-
-   <td>
+.. figure:: images/flexure.png
+    :figwidth: 300px
+    :align: center
+    :target: https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/flexure/lots_of_loads.ipynb
 
 Hydrograph of Changing Storm Intensity
+--------------------------------------
 
-.. raw:: html
-
-   </td>
-
-.. raw:: html
-
-   </tr>
-
-.. raw:: html
-
-   <tr valign="top">
-
-.. raw:: html
-
-   <td>
+.. figure:: images/Hydrograph_ChangingIntensity.jpg
+    :figwidth: 300px
+    :align: center
 
 Topographic Elevation
+---------------------
 
-.. raw:: html
-
-   </td>
-
-.. raw:: html
-
-   <td>
+.. figure:: images/topographic-elevation.png
+    :figwidth: 300px
+    :align: center
+    :target: https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/component_tutorial/component_tutorial.ipynb
 
 CA Transition
+-------------
 
-.. raw:: html
-
-   </td>
-
-.. raw:: html
-
-   </tr>
-
-.. raw:: html
-
-   </table>
-
-Add yours here:
+.. figure:: images/transition_example.png
+    :figwidth: 300px
+    :align: center
