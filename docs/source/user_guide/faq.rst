@@ -85,7 +85,9 @@ See also:
 Can I import Landlab output into ParaView or VisIt?
 ---------------------------------------------------
 
-See :ref:`How do I get netCDF output? <how-do-i-get-netcdf-output>` below.
+See :ref:`How do I get netCDF output? <how_do_i_get_netcdf_output>` below.
+
+.. _how_do_i_get_netcdf_output:
 
 How do I get netCDF output?
 ---------------------------

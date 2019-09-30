@@ -173,7 +173,7 @@ methods tend to start with `calc_`.
 
 LLCATKEY: GRAD
 
-.. _api.grid.base.mappers
+.. _api.grid.base.mappers:
 
 Mappers
 -------

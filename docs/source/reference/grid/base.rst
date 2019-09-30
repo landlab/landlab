@@ -324,7 +324,7 @@ methods tend to start with `calc_`.
     ~landlab.grid.base.ModelGrid.calc_unit_normal_at_patch
 
 
-.. _api.grid.base.mappers
+.. _api.grid.base.mappers:
 
 Mappers
 -------

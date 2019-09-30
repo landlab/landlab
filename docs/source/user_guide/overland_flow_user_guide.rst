@@ -185,7 +185,7 @@ To address this discrepancy, the SinkFiller component in Landlab has been develo
 	sf.fill_pits()
 
 
-**Note**: For more information about the SinkFiller :ref:`component <landlab.components.sink_fill>`.
+**Note**: For more information about the SinkFiller :py:class:`component <landlab.components.sink_fill.SinkFiller>`.
 
 Step 5. Initializing the OverlandFlow component
 ```````````````````````````````````````````````
