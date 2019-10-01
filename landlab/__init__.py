@@ -9,7 +9,6 @@
 :URL: http://csdms.colorado.edu/trac/landlab
 :License: MIT
 """
-from __future__ import absolute_import
 
 from numpy import set_printoptions
 

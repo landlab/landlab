@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 """Create landlab model grids."""
-from __future__ import absolute_import
 
 from ..core import load_params
 from ..io import read_esri_ascii
