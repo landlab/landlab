@@ -72,7 +72,8 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         Examples
         --------
         A grid with just one ring will have a node at the origin surrounded
-        by six other nodes.
+        by six other nodes by default. This can be changed by providing the
+        keyword argument `nodes_in_first_ring`.
 
         >>> import numpy as np
         >>> from landlab import RadialModelGrid
@@ -84,7 +85,7 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         >>> omg.number_of_cells
         1
 
-        A second rings will have 15 nodes.
+        A second rings will have 16 nodes (1 + 8 + 16 = 25).
 
         >>> omg = RadialModelGrid(2, nodes_in_first_ring=8)
         >>> omg.number_of_nodes
