@@ -84,7 +84,7 @@ class GroundwaterDupuitPercolator(Component):
 
     >>> dt = 1E4
     >>> for i in range(100):
-            gdp.run_one_step(dt)
+    ...     gdp.run_one_step(dt)
 
     In an example that generates surface water leakage, the surface water flux
     out of the domain can be calculated only after a FlowAccumulator is run.
@@ -115,13 +115,12 @@ class GroundwaterDupuitPercolator(Component):
 
     >>> dt = 1E3
     >>> for i in range(1000):
-    >>>     gdp.run_one_step(dt)
+    ...     gdp.run_one_step(dt)
 
     Calculate surface water flux out of domain
 
     >>> fa.run_one_step()
-    >>> gdp.calc_sw_flux_out()
-    {0.00050767}
+    >>> np.testing.assert_almost_equal(gdp.calc_sw_flux_out(),0.0005077)
 
     Notes
     -----

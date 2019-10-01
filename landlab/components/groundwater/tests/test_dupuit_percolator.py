@@ -24,25 +24,25 @@ def test_simple_water_table():
     volume per unit time is R m/s x 1 m x 1 m. The outgoing discharge is equal
     to the conductivity, K (m/s), times the thickness at the boundary, Hb,
     times the hydraulic gradient, which in this case is (H - 0) / dx = H.
-    The thickness at the boundary in this test is H/2. Therefore:
+    The model uses the upwind thickness, which in this case is H. Therefore:
 
-        K H^2 / 2 = R, or
+        K H^2 = R, or
 
-        H = sqrt( 2 R / K ).
+        H = sqrt( R / K ).
 
     With R = 10^-8 m/s and K = 10^-2 m/s, we should have
 
-        H ~ 0.00141 m.
+        H = 0.001 m.
     """
     boundaries = {"top": "closed", "left": "closed", "bottom": "closed"}
     rg = RasterModelGrid((3, 3), bc=boundaries)
     gdp = GroundwaterDupuitPercolator(
         rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01
     )
-    for i in range(12):
-        gdp.run_one_step(5.0e4)
+    for i in range(100):
+        gdp.run_one_step(1e3)
 
-    assert_equal(np.round(gdp._thickness[4], 5), 0.00141)
+    assert_equal(np.round(gdp._thickness[4], 5), 0.001)
 
     # Re-instantiate to test the case when the necessary fields already exist
     gdp = GroundwaterDupuitPercolator(rg)
