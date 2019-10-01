@@ -53,7 +53,6 @@ For example, node 'X' has four link-neighbors. From south and going clockwise,
 these neighbors are [6, 10, 15, 11]. Both link 6 and link 10 have node 'X' as
 their 'head' node, while links 15 and 11 have node 'X' as their tail node.
 """
-from __future__ import division
 
 import numpy as np
 
