@@ -8,17 +8,9 @@ automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
 import numpy as np
-from scipy.spatial import Voronoi
-
-from landlab.core.utils import (
-    argsort_points_by_x_then_y,
-    as_id_array,
-    sort_points_by_x_then_y,
-)
 
 from ..graph import DualVoronoiGraph
-from .base import BAD_INDEX_VALUE, ModelGrid
-from .decorators import return_readonly_id_array
+from .base import ModelGrid
 
 
 def simple_poly_area(x, y):

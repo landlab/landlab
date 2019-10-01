@@ -7,14 +7,13 @@ Do NOT add new documentation here. Grid documentation is now built in a semi-
 automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
-from functools import lru_cache
 from warnings import warn
 
 import numpy
 
 from ..core.utils import as_id_array
 from ..graph import DualHexGraph
-from .base import ModelGrid, BAD_INDEX_VALUE
+from .base import ModelGrid
 
 
 class HexModelGrid(DualHexGraph, ModelGrid):

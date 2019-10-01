@@ -14,7 +14,7 @@ from warnings import warn
 import numpy as np
 
 from landlab.field.scalar_data_fields import FieldError
-from landlab.grid.structured_quad import cells as squad_cells, links as squad_links
+from landlab.grid.structured_quad import links as squad_links
 from landlab.utils import structured_grid as sgrid
 from landlab.utils.decorators import deprecated, make_return_array_immutable
 
@@ -22,10 +22,8 @@ from ..core.utils import add_module_functions_to_class, as_id_array
 from ..graph import DualUniformRectilinearGraph
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
-from ..utils.decorators import cache_result_in_object
 from . import raster_funcs as rfuncs
 from .base import (
-    BAD_INDEX_VALUE,
     CLOSED_BOUNDARY,
     CORE_NODE,
     FIXED_VALUE_BOUNDARY,
@@ -34,14 +32,6 @@ from .base import (
 )
 from .decorators import return_id_array
 from .diagonals import DiagonalsMixIn
-from .warnings import (
-    DeprecatedDxKeyword,
-    DeprecatedOriginKeyword,
-    DeprecatedRowsColsArguments,
-    DeprecatedRowsColsKeywords,
-    DeprecatedSpacingArgument,
-    DeprecatedSpacingKeyword,
-)
 
 
 def _node_has_boundary_neighbor(mg, id, method="d8"):

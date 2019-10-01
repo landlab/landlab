@@ -10,7 +10,6 @@ automated fashion. To modify the text seen on the web, edit the files
 from functools import lru_cache
 import numpy as np
 
-from landlab.core.utils import argsort_points_by_x_then_y
 from landlab.utils.decorators import deprecated, make_return_array_immutable
 
 from ..core import load_params

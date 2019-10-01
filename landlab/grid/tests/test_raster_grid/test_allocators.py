@@ -49,6 +49,5 @@ def test_empty(graph_element):
 
 def test_add_empty(graph_element):
     grid = RasterModelGrid((4, 5))
-    number_of_elements = grid.number_of_elements(graph_element)
     rtn_values = grid.add_empty("name", at=graph_element, dtype=field_dtype)
     assert rtn_values is grid.field_values(graph_element, "name")

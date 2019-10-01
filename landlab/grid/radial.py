@@ -9,11 +9,7 @@ automated fashion. To modify the text seen on the web, edit the files
 """
 from __future__ import absolute_import
 
-from warnings import warn
-
 import numpy as np
-
-from landlab.utils.decorators import deprecated
 
 from ..graph import DualRadialGraph
 from .base import ModelGrid
