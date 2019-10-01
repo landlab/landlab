@@ -69,19 +69,22 @@ class GroundwaterDupuitPercolator(Component):
     Examples
     --------
     Import the grid class and component
+
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import GroundwaterDupuitPercolator
 
     Initialize the grid and component
+
     >>> grid = RasterModelGrid((10, 10), spacing=10.0)
     >>> elev = grid.add_zeros('node', 'topographic__elevation')
     >>> elev[:] = 5.0
     >>> gdp = GroundwaterDupuitPercolator(grid)
 
     Run component forward. Note all time units in the model are in seconds.
+
     >>> dt = 1E4
     >>> for i in range(100):
-    >>>     gdp.run_one_step(dt)
+            gdp.run_one_step(dt)
 
     In an example that generates surface water leakage, the surface water flux
     out of the domain can be calculated only after a FlowAccumulator is run.
@@ -90,10 +93,12 @@ class GroundwaterDupuitPercolator(Component):
     >>> from landlab.components import FlowAccumulator
 
     Set boundary conditions and initialize grid
-    >>> boundaries = {'top': 'closed','bottom': 'closed','right':'closed','left':'open'}
-    >>> grid = RasterModelGrid((5, 41), spacing=10.0,bc=boundaries)
+
+    >>> grid = RasterModelGrid((5, 41), xy_spacing=10.0)
+    >>> grid.set_closed_boundaries_at_grid_edges(True, True, False, True)
 
     Make a sloping, 3 m thick aquifer, initially fully saturated
+
     >>> elev = grid.add_zeros('node', 'topographic__elevation')
     >>> elev[:] = grid.x_of_node/100+3
     >>> base = grid.add_zeros('node', 'aquifer_base__elevation')
@@ -102,15 +107,18 @@ class GroundwaterDupuitPercolator(Component):
     >>> wt[:] = grid.x_of_node/100 + 3
 
     Initialize components
+
     >>> gdp = GroundwaterDupuitPercolator(grid, recharge_rate=1E-7)
     >>> fa = FlowAccumulator(grid, runoff_rate='surface_water__specific_discharge')
 
     Advance timestep
+
     >>> dt = 1E3
     >>> for i in range(1000):
     >>>     gdp.run_one_step(dt)
 
     Calculate surface water flux out of domain
+
     >>> fa.run_one_step()
     >>> gdp.calc_sw_flux_out()
     {0.00050767}
@@ -238,6 +246,7 @@ class GroundwaterDupuitPercolator(Component):
         else:
             self._thickness = self.grid.add_zeros("node", "aquifer__thickness")
             self._thickness[:] = self._wtable - self._base
+        self._thickness[grid.closed_boundary_nodes] = 0
 
         if "hydraulic__gradient" in self.grid.at_link:
             self._hydr_grad = self.grid.at_link["hydraulic__gradient"]
