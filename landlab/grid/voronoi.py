@@ -76,15 +76,6 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
     Create an unstructured grid from points whose coordinates are given
     by the arrays *x*, *y*.
 
-    Parameters
-    ----------
-    x : array_like
-        x-coordinate of points
-    y : array_like
-        y-coordinate of points
-    reorient_links (optional) : bool
-        whether to point all links to the upper-right quadrant
-
     Returns
     -------
     VoronoiDelaunayGrid

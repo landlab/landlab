@@ -282,6 +282,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Values at faces.
     at_grid: dict-like
         Global values
+
     Other Parameters
     ----------------
     axis_name : tuple, optional
