@@ -32,8 +32,7 @@ def get_links_at_node(graph, sort=False):
 
     max_node_count = np.max(node_count)
 
-    link_dirs_at_node = np.full((number_of_nodes, max_node_count), 0,
-                                dtype=np.int8)
+    link_dirs_at_node = np.full((number_of_nodes, max_node_count), 0, dtype=np.int8)
     links_at_node = np.full((number_of_nodes, max_node_count), -1, dtype=int)
 
     get_links_at_node(graph.nodes_at_link, links_at_node, link_dirs_at_node)

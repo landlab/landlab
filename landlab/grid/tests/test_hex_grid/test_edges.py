@@ -35,8 +35,8 @@ def test_bottom_edge_nodes():
 
 
 def test_edges_are_readonly(edge_name):
-    grid = HexModelGrid((3, 4), node_layout='rect')
-    assert not grid.perimeter_nodes.flags['WRITEABLE']
+    grid = HexModelGrid((3, 4), node_layout="rect")
+    assert not grid.perimeter_nodes.flags["WRITEABLE"]
     with pytest.raises(ValueError):
         getattr(grid, "nodes_at_" + edge_name)[0] = 999
 

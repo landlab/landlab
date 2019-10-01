@@ -12,13 +12,13 @@ def test_id_as_int():
 
 def test_length_of_face():
     grid = RasterModelGrid((3, 3))
-    assert_array_equal(grid.length_of_face, [1., 1., 1., 1.])
+    assert_array_equal(grid.length_of_face, [1.0, 1.0, 1.0, 1.0])
 
     grid = RasterModelGrid((3, 3), xy_spacing=2.0)
-    assert_array_equal(grid.length_of_face, [2., 2., 2., 2.])
+    assert_array_equal(grid.length_of_face, [2.0, 2.0, 2.0, 2.0])
 
     grid = RasterModelGrid((3, 3), xy_spacing=(3.0, 2.0))
-    assert_array_equal(grid.length_of_face, [3., 2., 2., 3.])
+    assert_array_equal(grid.length_of_face, [3.0, 2.0, 2.0, 3.0])
 
 
 def test_id_as_array():

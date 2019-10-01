@@ -14,10 +14,7 @@ from warnings import warn
 import numpy as np
 
 from landlab.field.scalar_data_fields import FieldError
-from landlab.grid.structured_quad import (
-    cells as squad_cells,
-    links as squad_links,
-)
+from landlab.grid.structured_quad import cells as squad_cells, links as squad_links
 from landlab.utils import structured_grid as sgrid
 from landlab.utils.decorators import deprecated, make_return_array_immutable
 
@@ -263,7 +260,6 @@ class RasterModelGrid(
 
         if shape[0] <= 0 or shape[1] <= 0:
             raise ValueError("number of rows and columns must be positive")
-
 
         DualUniformRectilinearGraph.__init__(
             self, shape, spacing=xy_spacing[::-1], origin=self.xy_of_lower_left[::-1]

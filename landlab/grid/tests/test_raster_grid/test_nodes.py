@@ -66,22 +66,24 @@ def test_x_of_node():
     """Test x-coordinates of nodes."""
     grid = RasterModelGrid((3, 4), xy_spacing=(3.0, 2.0))
     assert_array_equal(
-        grid.x_of_node, np.array([0., 3., 6., 9., 0., 3., 6., 9., 0., 3., 6., 9.])
+        grid.x_of_node,
+        np.array([0.0, 3.0, 6.0, 9.0, 0.0, 3.0, 6.0, 9.0, 0.0, 3.0, 6.0, 9.0]),
     )
 
     with pytest.raises(ValueError):
-        grid.x_of_node[0, 0] = 1.
+        grid.x_of_node[0, 0] = 1.0
 
 
 def test_y_of_node():
     """Test y-coordinates of nodes."""
     grid = RasterModelGrid((3, 4), xy_spacing=(3.0, 2.0))
     assert_array_equal(
-        grid.y_of_node, np.array([0., 0., 0., 0., 2., 2., 2., 2., 4., 4., 4., 4.])
+        grid.y_of_node,
+        np.array([0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 2.0, 2.0, 4.0, 4.0, 4.0, 4.0]),
     )
 
     with pytest.raises(ValueError):
-        grid.y_of_node[0, 0] = 1.
+        grid.y_of_node[0, 0] = 1.0
 
 
 def test_xy_of_node():
@@ -91,18 +93,18 @@ def test_xy_of_node():
         grid.xy_of_node,
         np.array(
             [
-                [0., 0.],
-                [3., 0.],
-                [6., 0.],
-                [9., 0.],
-                [0., 2.],
-                [3., 2.],
-                [6., 2.],
-                [9., 2.],
-                [0., 4.],
-                [3., 4.],
-                [6., 4.],
-                [9., 4.],
+                [0.0, 0.0],
+                [3.0, 0.0],
+                [6.0, 0.0],
+                [9.0, 0.0],
+                [0.0, 2.0],
+                [3.0, 2.0],
+                [6.0, 2.0],
+                [9.0, 2.0],
+                [0.0, 4.0],
+                [3.0, 4.0],
+                [6.0, 4.0],
+                [9.0, 4.0],
             ]
         ),
     )
@@ -110,7 +112,7 @@ def test_xy_of_node():
     assert_array_equal(grid.xy_of_node[:, 1], grid.y_of_node)
 
     with pytest.raises(ValueError):
-        grid.xy_of_node[0, 0] = 1.
+        grid.xy_of_node[0, 0] = 1.0
 
 
 def test_dx():
@@ -128,12 +130,12 @@ def test_dx():
 def test_dy():
     """Test spacing of rows."""
     grid = RasterModelGrid((4, 5))
-    assert grid.dy == 1.
+    assert grid.dy == 1.0
 
     grid = RasterModelGrid((4, 5), xy_spacing=2.0)
-    assert grid.dy == 2.
+    assert grid.dy == 2.0
 
-    grid = RasterModelGrid((4, 5), xy_spacing=(1., 2.))
+    grid = RasterModelGrid((4, 5), xy_spacing=(1.0, 2.0))
     assert grid.dy == 2.0
 
 

@@ -29,7 +29,7 @@ def test_hex_grid_link_order():
             [3, 6],
             [4, 6],
             [5, 6],
-        ]
+        ],
     )
 
     grid = HexModelGrid((2, 3), orientation="vertical")
@@ -48,7 +48,7 @@ def test_hex_grid_link_order():
             [3, 6],
             [4, 6],
             [6, 5],
-        ]
+        ],
     )
 
 
@@ -65,18 +65,18 @@ def test_nodes_at_link():
 
 def test_face_at_link():
     grid = HexModelGrid((3, 3))
-    assert_array_equal(grid.face_at_link,
-                       [-1, -1, -1,  0,  1,  2,  3, -1,  4,  5,  6, -1, 7,  8,
-                         9, 10, -1, -1, -1])
+    assert_array_equal(
+        grid.face_at_link,
+        [-1, -1, -1, 0, 1, 2, 3, -1, 4, 5, 6, -1, 7, 8, 9, 10, -1, -1, -1],
+    )
 
 
 def test_length_of_face():
     grid = HexModelGrid((3, 3))
-    assert grid.length_of_face == approx(np.tan(np.pi / 6.), abs=1e-5)
+    assert grid.length_of_face == approx(np.tan(np.pi / 6.0), abs=1e-5)
     assert len(grid.length_of_face) == grid.number_of_faces
 
 
 def test_link_at_face():
     grid = HexModelGrid((3, 3))
-    assert_array_equal(grid.link_at_face,
-                       [ 3,  4,  5,  6,  8,  9, 10, 12, 13, 14, 15])
+    assert_array_equal(grid.link_at_face, [3, 4, 5, 6, 8, 9, 10, 12, 13, 14, 15])

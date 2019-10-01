@@ -65,7 +65,9 @@ def test_hex_lower_left_as_iterables(random_xy, to_iterable):
 def test_radial_center_as_iterables(random_xy, to_iterable):
     expected = approx(tuple(random_xy))
 
-    grid = RadialModelGrid(n_rings=9, nodes_in_first_ring=8, xy_of_center=to_iterable(random_xy))
+    grid = RadialModelGrid(
+        n_rings=9, nodes_in_first_ring=8, xy_of_center=to_iterable(random_xy)
+    )
     assert isinstance(grid.xy_of_center, tuple)
     assert grid.xy_of_center == expected
 

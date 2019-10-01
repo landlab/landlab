@@ -172,8 +172,9 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
             xy_of_reference=xy_of_reference,
         )
 
-        self._node_status = np.full(self.number_of_nodes,
-                                    self.BC_NODE_IS_CORE, dtype=np.uint8)
+        self._node_status = np.full(
+            self.number_of_nodes, self.BC_NODE_IS_CORE, dtype=np.uint8
+        )
         self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
 
         # DualVoronoiGraph.__init__(self, (y, x), **kwds)
