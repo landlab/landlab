@@ -110,83 +110,6 @@ def test_move_reference_radial(random_xy):
     assert grid.y_of_node - y == approx(45.0 - random_xy[1])
 
 
-@pytest.mark.skip("landlab-1.0")
-def test_radial_deprecate_origin_x():
-    with pytest.deprecated_call():
-        mg = RadialModelGrid(n_rings=1, nodes_in_first_ring=8, origin_x=10)
-    assert mg._xy_of_center == (10.0, 0.0)
-    pts, npts = mg._create_radial_points(1, 1, xy_of_center=mg._xy_of_center)
-    assert pts[0, 0] == approx(mg._xy_of_center[0])
-    assert pts[0, 1] == approx(mg._xy_of_center[1])
-
-
-@pytest.mark.skip("landlab-1.0")
-def test_radial_deprecate_origin_y():
-    with pytest.deprecated_call():
-        mg = RadialModelGrid(n_rings=1, nodes_in_first_ring=8, origin_y=10)
-    assert mg._xy_of_center == (0.0, 10.0)
-    pts, npts = mg._create_radial_points(1, 1, xy_of_center=mg._xy_of_center)
-    assert pts[0, 0] == approx(mg._xy_of_center[0])
-    assert pts[0, 1] == approx(mg._xy_of_center[1])
-
-
-@pytest.mark.skip("landlab-1.0")
-def test_raster_with_args_and_shape():
-    with pytest.deprecated_call():
-        RasterModelGrid(3, 3, num_cols=3)
-
-
-def test_raster_with_negative_shape():
-    with pytest.raises(ValueError):
-        with pytest.deprecated_call():
-            RasterModelGrid((-2, 3))
-
-
-@pytest.mark.skip("landlab-1.0")
-def test_raise_deprecation_dx():
-    with pytest.deprecated_call():
-        mg = RasterModelGrid(3, 3, dx=3)
-    X, Y = np.meshgrid([0.0, 3.0, 6.0], [0.0, 3.0, 6.0])
-    assert_array_equal(mg.x_of_node, X.flatten())
-    assert_array_equal(mg.y_of_node, Y.flatten())
-
-
-@pytest.mark.skip("landlab-1.0")
-def test_raise_deprecation_dxdx():
-    with pytest.deprecated_call():
-        mg = RasterModelGrid(3, 3, dx=(4, 5))
-    X, Y = np.meshgrid([0.0, 5.0, 10.0], [0.0, 4.0, 8.0])
-    assert_array_equal(mg.x_of_node, X.flatten())
-    assert_array_equal(mg.y_of_node, Y.flatten())
-
-
-@pytest.mark.skip("landlab-1.0")
-def test_raise_deprecation_spacing():
-    with pytest.deprecated_call():
-        mg = RasterModelGrid(3, 3, spacing=(4, 5))
-    X, Y = np.meshgrid([0.0, 5.0, 10.0], [0.0, 4.0, 8.0])
-    assert_array_equal(mg.x_of_node, X.flatten())
-    assert_array_equal(mg.y_of_node, Y.flatten())
-
-
-@pytest.mark.skip("landlab-1.0")
-def test_raise_deprecation_spacing_as_arg():
-    with pytest.deprecated_call():
-        mg = RasterModelGrid(3, 3, 3)
-    X, Y = np.meshgrid([0.0, 3.0, 6.0], [0.0, 3.0, 6.0])
-    assert_array_equal(mg.x_of_node, X.flatten())
-    assert_array_equal(mg.y_of_node, Y.flatten())
-
-
-@pytest.mark.skip("landlab-1.0")
-def test_raise_deprecation_spacing2_as_arg():
-    with pytest.deprecated_call():
-        mg = RasterModelGrid(3, 3, (4, 5))
-    X, Y = np.meshgrid([0.0, 5.0, 10.0], [0.0, 4.0, 8.0])
-    assert_array_equal(mg.x_of_node, X.flatten())
-    assert_array_equal(mg.y_of_node, Y.flatten())
-
-
 def test_bad_shape_xy_spacing():
     with pytest.raises(ValueError):
         RasterModelGrid((3, 3), xy_spacing=(4, 5, 5))
@@ -197,35 +120,6 @@ def test_bad_type_xy_spacing():
         RasterModelGrid((3, 3), xy_spacing="spam and eggs")
 
 
-@pytest.mark.skip("landlab-1.0")
-def test_deprecate_origin():
-    with pytest.deprecated_call():
-        mg = RasterModelGrid(3, 3, origin=(10, 13))
-    X, Y = np.meshgrid([0.0, 1.0, 2.0], [0.0, 1.0, 2.0])
-    assert_array_equal(mg.x_of_node, X.flatten() + 10.0)
-    assert_array_equal(mg.y_of_node, Y.flatten() + 13.0)
-
-
 def test_bad_origin():
     with pytest.raises(ValueError):
         RasterModelGrid((3, 3), xy_of_lower_left=(10, 13, 12))
-
-
-@pytest.mark.skip("landlab-1.0")
-def test_curent_vs_past_origin():
-    with pytest.deprecated_call():
-        mg1 = RasterModelGrid(3, 3, origin=(10, 13))
-    with pytest.deprecated_call():
-        mg2 = RasterModelGrid(3, 3, xy_of_lower_left=(10, 13))
-    assert_array_equal(mg1.x_of_node, mg2.x_of_node)
-    assert_array_equal(mg1.y_of_node, mg2.y_of_node)
-
-
-@pytest.mark.skip("landlab-1.0")
-def test_curent_vs_past_spacing():
-    with pytest.deprecated_call():
-        mg1 = RasterModelGrid(3, 3, spacing=(5, 4))
-    with pytest.deprecated_call():
-        mg2 = RasterModelGrid(3, 3, xy_spacing=(4, 5))
-    assert_array_equal(mg1.x_of_node, mg2.x_of_node)
-    assert_array_equal(mg1.y_of_node, mg2.y_of_node)
