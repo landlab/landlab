@@ -51,8 +51,8 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr .pytest_cache
 
 lint: ## check style with flake8
-	flake8 landlab --exclude=examples
-
+	flake8 landlab
+	
 pretty: ## reformat files to make them look pretty
 	find landlab -name '*.py' | xargs isort
 	black setup.py landlab
