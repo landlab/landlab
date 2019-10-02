@@ -408,7 +408,7 @@ class GroundwaterDupuitPercolator(Component):
 
         # Calculate groundwater velocity
         self._vel[:] = -self._K *(self._hydr_grad*np.cos(np.arctan(abs(self._base_grad)))
-                                    + np.sin(np.arctan(self._base_grad)))
+                                    + np.sin(np.arctan(abs(self._base_grad))) )
         self._vel[self._grid.status_at_link == 4] = 0.0
 
         # Aquifer thickness at links (upwind)
@@ -430,11 +430,12 @@ class GroundwaterDupuitPercolator(Component):
 
         # Update
         self._thickness[self._cores] += self._dhdt[self._cores] * dt
+        self._thickness[self._thickness < 0 ] = 0.0
 
         # Recalculate water surface height
         self._wtable[self._cores] = self._base[self._cores] + self._thickness[self._cores]
 
-    def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.5,**kwds):
+    def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.01,**kwds):
         """
         Advance component by one time step of size dt, subdividing the timestep
         into substeps as necessary to meet a Courant condition.
@@ -460,8 +461,8 @@ class GroundwaterDupuitPercolator(Component):
             self._hydr_grad[self._grid.active_links] = self._grid.calc_grad_at_link(self._thickness)[self._grid.active_links]
 
             # Calculate groundwater velocity
-            self._vel[:] = -self._K *(self._hydr_grad*np.cos(np.arctan(self._base_grad))
-                                        + np.sin(np.arctan(self._base_grad)))
+            self._vel[:] = -self._K *(self._hydr_grad*np.cos(np.arctan(abs(self._base_grad)))
+                                        + np.sin(np.arctan(abs(self._base_grad))) )
             self._vel[self._grid.status_at_link == 4] = 0.0
 
             # Aquifer thickness at links (upwind)
@@ -488,6 +489,7 @@ class GroundwaterDupuitPercolator(Component):
 
             # Update
             self._thickness[self._cores] += self._dhdt[self._cores] * substep_dt
+            self._thickness[self._thickness < 0 ] = 0.0
 
             # Recalculate water surface height
             self._wtable[self._cores] = self._base[self._cores] + self._thickness[self._cores]
