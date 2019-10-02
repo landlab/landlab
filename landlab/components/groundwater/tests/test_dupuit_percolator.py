@@ -7,10 +7,10 @@ Created on Tue Jun  4 16:26:31 2019
 """
 
 import numpy as np
-from numpy.testing import assert_equal, assert_almost_equal
+from numpy.testing import assert_almost_equal, assert_equal
 
 from landlab import RasterModelGrid
-from landlab.components import GroundwaterDupuitPercolator, FlowAccumulator
+from landlab.components import FlowAccumulator, GroundwaterDupuitPercolator
 
 
 def test_simple_water_table():
@@ -47,6 +47,7 @@ def test_simple_water_table():
     # Re-instantiate to test the case when the necessary fields already exist
     gdp = GroundwaterDupuitPercolator(rg)
 
+
 def test_simple_surface_leakage():
     """ test a one-node steady simulation for surface leakage.
 
@@ -60,7 +61,7 @@ def test_simple_surface_leakage():
     grid = RasterModelGrid((3, 3), xy_spacing=1.0)
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
-    gdp = GroundwaterDupuitPercolator(grid, recharge_rate=1.0e-6,)
+    gdp = GroundwaterDupuitPercolator(grid, recharge_rate=1.0e-6)
 
     for i in range(1000):
         gdp.run_one_step(1e3)
@@ -85,12 +86,13 @@ def test_simple_water_table_adaptive_dt():
         rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01
     )
     for i in range(10):
-        gdp.run_with_adaptive_time_step_solver(1e4,courant_coefficient=0.01)
+        gdp.run_with_adaptive_time_step_solver(1e4, courant_coefficient=0.01)
 
     assert_equal(np.round(gdp._thickness[4], 5), 0.001)
 
     # Re-instantiate to test the case when the necessary fields already exist
     gdp = GroundwaterDupuitPercolator(rg)
+
 
 def test_conservation_of_mass_adaptive_dt():
     """ test conservation of mass in a sloping aquifer.
@@ -106,14 +108,16 @@ def test_conservation_of_mass_adaptive_dt():
 
     grid = RasterModelGrid((3, 10), spacing=10.0)
     grid.set_closed_boundaries_at_grid_edges(True, True, False, True)
-    elev = grid.add_zeros('node', 'topographic__elevation')
-    elev[:] = grid.x_of_node/100+1
-    wt = grid.add_zeros('node', 'water_table__elevation')
+    elev = grid.add_zeros("node", "topographic__elevation")
+    elev[:] = grid.x_of_node / 100 + 1
+    wt = grid.add_zeros("node", "water_table__elevation")
     wt[:] = elev
 
     # initialize the groundwater model
-    gdp = GroundwaterDupuitPercolator(grid, hydraulic_conductivity=0.0005, recharge_rate=1e-7)
-    fa = FlowAccumulator(grid, runoff_rate='surface_water__specific_discharge')
+    gdp = GroundwaterDupuitPercolator(
+        grid, hydraulic_conductivity=0.0005, recharge_rate=1e-7
+    )
+    fa = FlowAccumulator(grid, runoff_rate="surface_water__specific_discharge")
 
     # initialize fluxes we will record
     recharge_flux = 0
@@ -122,14 +126,16 @@ def test_conservation_of_mass_adaptive_dt():
     storage = 0
     storage_0 = gdp.calc_total_storage()
 
-    dt = 1E4
+    dt = 1e4
     for i in range(500):
-        gdp.run_with_adaptive_time_step_solver(dt,courant_coefficient=0.01)
+        gdp.run_with_adaptive_time_step_solver(dt, courant_coefficient=0.01)
         fa.run_one_step()
 
-        recharge_flux += gdp.calc_recharge_flux_in()*dt
-        gw_flux += gdp.calc_gw_flux_out()*dt
-        sw_flux += gdp.calc_sw_flux_out()*dt
+        recharge_flux += gdp.calc_recharge_flux_in() * dt
+        gw_flux += gdp.calc_gw_flux_out() * dt
+        sw_flux += gdp.calc_sw_flux_out() * dt
     storage = gdp.calc_total_storage()
 
-    assert_almost_equal((gw_flux+sw_flux+storage-storage_0)/recharge_flux, 1.0, decimal=3)
+    assert_almost_equal(
+        (gw_flux + sw_flux + storage - storage_0) / recharge_flux, 1.0, decimal=3
+    )
