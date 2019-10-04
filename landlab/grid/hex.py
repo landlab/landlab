@@ -7,14 +7,13 @@ Do NOT add new documentation here. Grid documentation is now built in a semi-
 automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
-from functools import lru_cache
 from warnings import warn
 
 import numpy
 
 from ..core.utils import as_id_array
 from ..graph import DualHexGraph
-from .base import ModelGrid, BAD_INDEX_VALUE
+from .base import ModelGrid
 
 
 class HexModelGrid(DualHexGraph, ModelGrid):
@@ -23,34 +22,6 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     This inherited class implements a regular 2D grid with hexagonal cells and
     triangular patches. It is a special type of VoronoiDelaunay grid in which
     the initial set of points is arranged in a triangular/hexagonal lattice.
-
-    Parameters
-    ----------
-    base_num_rows : int
-        Number of rows of nodes in the left column.
-    base_num_cols : int
-        Number of nodes on the first row.
-    dx : float, optional
-        Node spacing.
-    xy_of_lower_left : tuple, optional
-        Minimum x-of-node and y-of-node values. Depending on the grid
-        no node may be present at this coordinate. Default is (0., 0.).
-    xy_of_reference : tuple, optional
-        Coordinate value in projected space of the reference point,
-        `xy_of_lower_left`. Default is (0., 0.)
-    orientation : string, optional
-        One of the 3 cardinal directions in the grid, either 'horizontal'
-        (default) or 'vertical'
-    node_layout : string, optional
-        Controls the shape of the bounding hull, i.e., are the nodes arranged
-        in a hexagon, or a rectangle? Either 'hex' (default) or 'rect'.
-    shape : tuple of 2 int
-        Alternative way to specify (base_num_rows, base_num_cols)
-
-    Returns
-    -------
-    HexModelGrid
-        A newly-created grid.
 
     Examples
     --------

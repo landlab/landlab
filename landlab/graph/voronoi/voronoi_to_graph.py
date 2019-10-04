@@ -1,5 +1,4 @@
 import re
-from itertools import combinations
 
 import numpy as np
 import xarray as xr
@@ -79,7 +78,8 @@ class VoronoiDelaunay(object):
                     np.asarray(voronoi.ridge_points, dtype=int), dims=("face", "Two")
                 ),
                 "cell_at_node": xr.DataArray(
-                    np.asarray(voronoi.point_region, dtype=int), dims=("node",)),
+                    np.asarray(voronoi.point_region, dtype=int), dims=("node",)
+                ),
             }
         )
         self._mesh = mesh

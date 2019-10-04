@@ -99,7 +99,9 @@ class TestSlopesAtPatches:
             rmg.at_node["topographic__elevation"], return_components=True
         )
         assert np.all(slopes_out[0] == approx(np.full(20, np.pi / 4.0, dtype=float)))
-        assert np.all(slopes_out[1][1] == approx(np.full(20, -np.pi / 4.0, dtype=float)))
+        assert np.all(
+            slopes_out[1][1] == approx(np.full(20, -np.pi / 4.0, dtype=float))
+        )
         assert np.all(slopes_out[1][0] == approx(np.zeros(20, dtype=float)))
 
 

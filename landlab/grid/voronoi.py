@@ -8,17 +8,9 @@ automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
 import numpy as np
-from scipy.spatial import Voronoi
-
-from landlab.core.utils import (
-    argsort_points_by_x_then_y,
-    as_id_array,
-    sort_points_by_x_then_y,
-)
 
 from ..graph import DualVoronoiGraph
-from .base import BAD_INDEX_VALUE, ModelGrid
-from .decorators import return_readonly_id_array
+from .base import ModelGrid
 
 
 def simple_poly_area(x, y):
@@ -75,15 +67,6 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
     Create an unstructured grid from points whose coordinates are given
     by the arrays *x*, *y*.
-
-    Parameters
-    ----------
-    x : array_like
-        x-coordinate of points
-    y : array_like
-        y-coordinate of points
-    reorient_links (optional) : bool
-        whether to point all links to the upper-right quadrant
 
     Returns
     -------
@@ -181,8 +164,9 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
             xy_of_reference=xy_of_reference,
         )
 
-        self._node_status = np.full(self.number_of_nodes,
-                                    self.BC_NODE_IS_CORE, dtype=np.uint8)
+        self._node_status = np.full(
+            self.number_of_nodes, self.BC_NODE_IS_CORE, dtype=np.uint8
+        )
         self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
 
         # DualVoronoiGraph.__init__(self, (y, x), **kwds)

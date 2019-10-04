@@ -53,7 +53,7 @@ def test_nodes_around_point():
     surrounding_ids = rmg.nodes_around_point(2.1, 1.1)
     assert np.all(surrounding_ids == np.array([7, 12, 13, 8]))
 
-    surrounding_ids = rmg.nodes_around_point(2.1, .9)
+    surrounding_ids = rmg.nodes_around_point(2.1, 0.9)
     assert np.all(surrounding_ids == np.array([2, 7, 8, 3]))
 
 

@@ -1,5 +1,4 @@
 from numpy.testing import assert_array_equal
-import numpy as np
 
 from pytest import approx
 from landlab import RadialModelGrid
@@ -9,9 +8,31 @@ def test_radius_at_node():
     grid = RadialModelGrid(2, 8)
     assert grid.radius_at_node == approx(
         [
-            2.,  2.,  2.,  2.,  2.,  1.,  2.,  2.,  1.,  1.,
-            2.,  1.,  0.,  1.,  2.,  1.,  1.,  2.,  2.,  1.,
-            2.,  2.,  2.,  2.,  2.
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            1.0,
+            2.0,
+            2.0,
+            1.0,
+            1.0,
+            2.0,
+            1.0,
+            0.0,
+            1.0,
+            2.0,
+            1.0,
+            1.0,
+            2.0,
+            2.0,
+            1.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
+            2.0,
         ]
     )
 

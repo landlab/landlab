@@ -6,7 +6,6 @@ class when defining other types of graphs.
 import inspect
 
 import numpy as np
-import xarray as xr
 
 from ..core.utils import as_id_array
 from .graph import Graph

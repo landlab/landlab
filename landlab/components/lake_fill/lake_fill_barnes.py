@@ -1474,8 +1474,10 @@ class LakeMapperBarnes(Component):
         True
         >>> np.allclose(lmb.lake_depths[10:14], np.array([ 0.,  5.,  3.,  0.]))
         True
-        >>> np.round(lmb.lake_volumes, decimals=5)
-        array([ 27.71296])
+        >>> np.testing.assert_array_almost_equal(
+        ...     lmb.lake_volumes,
+        ...     27.712,
+        ...     decimal=3)
 
         Together, all this means that we can now run a topographic growth
         model that permits flooding as it runs:

@@ -14,10 +14,7 @@ from warnings import warn
 import numpy as np
 
 from landlab.field.scalar_data_fields import FieldError
-from landlab.grid.structured_quad import (
-    cells as squad_cells,
-    links as squad_links,
-)
+from landlab.grid.structured_quad import links as squad_links
 from landlab.utils import structured_grid as sgrid
 from landlab.utils.decorators import deprecated, make_return_array_immutable
 
@@ -25,10 +22,8 @@ from ..core.utils import add_module_functions_to_class, as_id_array
 from ..graph import DualUniformRectilinearGraph
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
-from ..utils.decorators import cache_result_in_object
 from . import raster_funcs as rfuncs
 from .base import (
-    BAD_INDEX_VALUE,
     CLOSED_BOUNDARY,
     CORE_NODE,
     FIXED_VALUE_BOUNDARY,
@@ -37,14 +32,6 @@ from .base import (
 )
 from .decorators import return_id_array
 from .diagonals import DiagonalsMixIn
-from .warnings import (
-    DeprecatedDxKeyword,
-    DeprecatedOriginKeyword,
-    DeprecatedRowsColsArguments,
-    DeprecatedRowsColsKeywords,
-    DeprecatedSpacingArgument,
-    DeprecatedSpacingKeyword,
-)
 
 
 def _node_has_boundary_neighbor(mg, id, method="d8"):
@@ -164,31 +151,6 @@ class RasterModelGrid(
 
     """A 2D uniform rectilinear grid.
 
-    Create a uniform rectilinear grid that has *num_rows* and *num_cols*
-    of grid nodes, with a row and column spacing of *dx*.
-
-    Use the *bc* keyword to specify boundary_conditions along the edge nodes
-    of the grid. *bc* is a dict whose keys indicate edge location (as
-    "bottom", "left", "top", "right") and values must be one of "open", or
-    "closed". If an edge location key is missing, that edge is assumed to be
-    *open*.
-
-    *Deprecation Warning*: The keywords *spacing* and *origin* have been
-    deprecated as of Landlab v1.5.5. They will be removed in v2.0.
-
-    Parameters
-    ----------
-    shape : tuple of int
-        Shape of the grid in nodes.
-    xy_spacing : tuple or float, optional
-        dx and dy spacing. Either provided as a float or a
-        (dx, dy) tuple. Default is (1., 1.)
-    xy_of_lower_left: tuple, optional
-        (x, y) coordinates of the lower left corner. Default
-        is (0., 0.)
-    bc : dict, optional
-        Edge boundary conditions.
-
     Examples
     --------
     Create a uniform rectilinear grid that has 4 rows and 5 columns of nodes.
@@ -228,12 +190,6 @@ class RasterModelGrid(
             0., 2., 4., 6., 8.,
             0., 2., 4., 6., 8.])
 
-    Notes
-    -----
-    The option for NOT giving rows, cols, and dx no longer works,
-    because the *field* init requires num_active_cells, etc., to be
-    defined. Either we force users to give arguments on instantiation,
-    or set it up such that one can create a zero-node grid.
     """
 
     def __init__(
@@ -295,10 +251,6 @@ class RasterModelGrid(
         if shape[0] <= 0 or shape[1] <= 0:
             raise ValueError("number of rows and columns must be positive")
 
-        # shape = (num_rows, num_cols)
-        # spacing = np.asfarray(np.broadcast_to(dx, (2,)))
-        # origin = np.asfarray(np.broadcast_to(origin, (2,)))
-
         DualUniformRectilinearGraph.__init__(
             self, shape, spacing=xy_spacing[::-1], origin=self.xy_of_lower_left[::-1]
         )
@@ -323,7 +275,7 @@ class RasterModelGrid(
             self.set_closed_boundaries_at_grid_edges(*grid_edge_is_closed_from_dict(bc))
 
         self.looped_node_properties = {}
-            
+
         # List of looped neighbor cells (all 8 neighbors) for
         # given *cell ids* can be created if requested by the user.
         self._looped_cell_neighbor_list = None

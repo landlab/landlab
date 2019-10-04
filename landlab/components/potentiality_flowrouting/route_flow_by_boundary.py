@@ -60,8 +60,10 @@ class PotentialityFlowRouter(Component):
     >>> from landlab import HexModelGrid
     >>> import numpy as np
     >>> mg = HexModelGrid(
-    ...     (4, 6), spacing=2., node_layout="rect", orientation="vertical"
-    ... )
+    ...     (4, 6),
+    ...     spacing=2.,
+    ...     node_layout="rect",
+    ...     orientation="vertical")
     >>> z = mg.add_zeros("topographic__elevation", at="node")
     >>> Q_in = mg.add_ones("water__unit_flux_in", at="node")
     >>> z += mg.node_y.copy()

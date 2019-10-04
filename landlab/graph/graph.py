@@ -65,7 +65,7 @@ import numpy as np
 import xarray as xr
 
 from ..core.utils import as_id_array
-from ..utils.decorators import read_only_array, store_result_in_grid
+from ..utils.decorators import read_only_array
 from .object.at_node import get_links_at_node
 from .object.at_patch import get_nodes_at_patch
 from .quantity.of_link import (

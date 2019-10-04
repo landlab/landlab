@@ -24,40 +24,47 @@ def test_link_order():
 
 def test_link_at_face():
     grid = RasterModelGrid((4, 5), xy_spacing=1.0)
-    assert_array_equal(grid.link_at_face, [ 5,  6,  7,
-                                            9, 10, 11, 12,
-                                           14, 15, 16,
-                                           18, 19, 20, 21,
-                                           23, 24, 25])
+    assert_array_equal(
+        grid.link_at_face,
+        [5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 18, 19, 20, 21, 23, 24, 25],
+    )
 
     grid = RasterModelGrid((3, 4))
-    assert_array_equal(grid.link_at_face, [ 4,  5,  7,  8,  9, 11, 12])
+    assert_array_equal(grid.link_at_face, [4, 5, 7, 8, 9, 11, 12])
 
 
 def test_horizontal_links():
     grid = RasterModelGrid((4, 5), xy_spacing=1.0)
-    assert_array_equal(grid.horizontal_links,
-                       [ 0,  1,  2,  3,
-                         9, 10, 11, 12,
-                        18, 19, 20, 21,
-                        27, 28, 29, 30,
-                       ])
+    assert_array_equal(
+        grid.horizontal_links,
+        [0, 1, 2, 3, 9, 10, 11, 12, 18, 19, 20, 21, 27, 28, 29, 30],
+    )
 
 
 def test_vertical_links():
     grid = RasterModelGrid((4, 5), xy_spacing=1.0)
-    assert_array_equal(grid.vertical_links,
-                       [ 4,  5,  6,  7,  8,
-                        13, 14, 15, 16, 17,
-                        22, 23, 24, 25, 26,])
+    assert_array_equal(
+        grid.vertical_links, [4, 5, 6, 7, 8, 13, 14, 15, 16, 17, 22, 23, 24, 25, 26]
+    )
 
 
 def test_link_dirs_at_node():
     grid = RasterModelGrid((4, 3))
     assert_array_equal(
         grid.link_dirs_at_node,
-        [[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
-         [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
-         [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
-         [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]])
+        [
+            [-1, -1, 0, 0],
+            [-1, -1, 1, 0],
+            [0, -1, 1, 0],
+            [-1, -1, 0, 1],
+            [-1, -1, 1, 1],
+            [0, -1, 1, 1],
+            [-1, -1, 0, 1],
+            [-1, -1, 1, 1],
+            [0, -1, 1, 1],
+            [-1, 0, 0, 1],
+            [-1, 0, 1, 1],
+            [0, 0, 1, 1],
+        ],
+    )
     assert grid.link_dirs_at_node.dtype == np.int8
