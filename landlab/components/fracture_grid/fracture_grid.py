@@ -177,7 +177,7 @@ class FractureGridGenerator(Component):
     - Use of starting position along either x or y axis makes fracture net
         somewhat asymmetric. One would need a different algorithm to make it
         fully (statistically) symmetric.
-        
+
     """
 
     _name = "FractureGridGenerator"

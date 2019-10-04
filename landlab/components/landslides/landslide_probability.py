@@ -13,6 +13,7 @@ simulation as the number of iterations with factor-of-safety <= 1.0
 divided by the number of iterations.
 
 .. codeauthor:: R.Strauch, E.Istanbulluoglu, & S.S.Nudurupati
+
 University of Washington
 
 Ref 1: Strauch et. al. 2017, 'A hydro-climatological approach to predicting
@@ -49,9 +50,9 @@ class LandslideProbability(Component):
     by the user.
 
     The main method of the LandslideProbability class is
-    calculate_landslide_probability(), which calculates the mean soil relative
-    wetness, probability of soil saturation, and probability of failure at
-    each node based on a Monte Carlo simulation.
+    `calculate_landslide_probability()``, which calculates the mean soil
+    relative wetness, probability of soil saturation, and probability of
+    failure at each node based on a Monte Carlo simulation.
 
     **Usage:**
 
@@ -75,7 +76,7 @@ class LandslideProbability(Component):
                              groundwater__recharge_mean=30.,
                              groundwater__recharge_standard_deviation=0.25)
 
-    Option 3 - Lognormal_spatial recharge::
+    Option 3 - Lognormal_spatial recharge
 
     .. code-block:: python
 
@@ -85,7 +86,7 @@ class LandslideProbability(Component):
                              groundwater__recharge_mean=np.random.randint(20, 120, grid_size),
                              groundwater__recharge_standard_deviation=np.random.rand(grid_size))
 
-    Option 4 - Data_driven_spatial recharge::
+    Option 4 - Data_driven_spatial recharge
 
     .. code-block:: python
 
@@ -193,7 +194,7 @@ class LandslideProbability(Component):
     >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
     False
     >>> core_nodes = ls_prob.grid.core_nodes
-    
+
     """
 
     # component name

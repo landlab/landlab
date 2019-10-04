@@ -62,7 +62,6 @@ __all__ = [
     "ImplementsOrRaise",
     "Framework",
     "FieldError",
-    "LandlabTester",
     "load_params",
     "ModelGrid",
     "HexModelGrid",

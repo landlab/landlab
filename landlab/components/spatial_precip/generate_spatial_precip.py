@@ -59,6 +59,7 @@ class SpatialPrecipitationDistribution(Component):
     distributions.
 
     Key methods are:
+
     yield_storms
         Generate a timeseries of storm:interstorm duration pairs, alongside
         a field that describes the spatial distribution of rain during that
@@ -77,6 +78,7 @@ class SpatialPrecipitationDistribution(Component):
 
     A large number of properties are available to access storm properties
     during generation:
+
     - current_year
     - current_season
     - storm_depth_last_storm
@@ -101,6 +103,7 @@ class SpatialPrecipitationDistribution(Component):
     != median_total_rainfall_this_year.
 
     Significant differences between this component and the Singer code are:
+
     - The component does not model evapotranspiration. Use a separate
         Landlab component for this.
     - The component runs only over a LL grid; there is no such thing as a
@@ -238,6 +241,7 @@ class SpatialPrecipitationDistribution(Component):
     >>> np.isclose(mean_rf_last_year[2],
     ...            mean_rf_season[0] + mean_rf_season[1])
     True
+
     """
 
     _name = "SpatialPrecipitationDistribution"
@@ -388,7 +392,7 @@ class SpatialPrecipitationDistribution(Component):
         },
     ):
         """
-        Yield a timeseries giving the number if storms occurring each year in
+        Yield a timeseries giving the number of storms occurring each year in
         a rainfall simulation.
 
         All default distributions specified as parameters reflect values for
@@ -396,15 +400,17 @@ class SpatialPrecipitationDistribution(Component):
 
         Parameters
         ----------
-        limit : ('total_time', 'total_rainfall')
+        limit : str
             Controls whether a season is defined based on its total rainfall
             (and can be any length), or by its duration (and can have any
-            amount of rainfall). If 'total_time', monsoon_fraction_of_year
+            amount of rainfall). One of 'total_time' or 'total_rainfall'.
+            If 'total_time', monsoon_fraction_of_year
             sets the fraction of a year occupied by the monsoon.
-        style : ('whole_year', 'monsoonal', 'winter')
+        style : str
             Controls whether the component seeks to simulate a western US-
             style "monsoonal" climate, a western US-style winter climate,
-            or a full year combining both. These distributions are by default
+            or a full year combining both. One of 'whole_year', 'monsoonal',
+            or 'winter' These distributions are by default
             based on Singer et al.'s calibrations. Note if 'monsoonal',
             the total duration of a "year" will appear to be only
             `monsoon_fraction_of_year`, and the opposite for `winter`.
@@ -424,17 +430,20 @@ class SpatialPrecipitationDistribution(Component):
             If limit == 'total_time', sets the fraction of one year occupied
             by the monsoon season. If not, ignored. Singer's monsoon runs from
             May to September, inclusive, and the default reflects this.
-
-       monsoon_total_rf_gaussian is a normal distribution controlling the total
+       monsoon_total_rf_gaussian : dict
+            Parameters defining the normal distribution controlling the total
             rainfall expected in each year. S&M use 'mu' in {143., 271.} for
             step changes up/down in rainfall totals.
-        monsoon_storm_duration_GEV is a generalised extreme value distribution
-            controlling the duration of each storm. In MIN.
-        monsoon_storm_area_GEV is a generalised extreme value distribution
+        monsoon_storm_duration_GEV : dict
+            Parameters defining a generalised extreme value distribution
+            controlling the duration of each storm. In minutes.
+        monsoon_storm_area_GEV : dict
+            Parameters defining a generalised extreme value distribution
             controlling the plan view area of each storm. S&M use 'shape': 0.,
             which collapses the distribution to a plain extreme value
             distribution.
-        monsoon_storm_interarrival_GEV is a generalised extreme value
+        monsoon_storm_interarrival_GEV : dict
+            Parameters defining a generalised extreme value
             distribution controlling the interarrival time between each storm.
             In HRS. Note that this calibration is specifically to Walnut Gulch,
             which has an area of 275 km**2. The generator directly scales this
@@ -444,26 +453,30 @@ class SpatialPrecipitationDistribution(Component):
             tail on this distribution means the default distribution shape
             will not be trustworthy for catchments with big differences in
             size from Walnut Gulch.
-        monsoon_storm_radial_weakening_gaussian is a normal distribution
+        monsoon_storm_radial_weakening_gaussian : dict
+            Parameters defining a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
             et al., 2005.
-
-        winter_total_rf_gaussian is a normal distribution controlling the total
+        winter_total_rf_gaussian : dict
+            Parameters defining a normal distribution controlling the total
             rainfall expected in each year. S&M use 'mu' in {143., 271.} for
             step changes up/down in rainfall totals.
-        winter_storm_duration_fisk is a Fisk (i.e., log-logistic) distribution
+        winter_storm_duration_fisk : dict
+            Parameters defining a Fisk (i.e., log-logistic) distribution
             controlling the duration of each storm. Note this differs from the
-            summer scaling. In MIN.
+            summer scaling. In Minutes.
         winter_storm_area_GEV is a generalised extreme value distribution
             controlling the plan view area of each storm. S&M use 'shape': 0.,
             which collapses the distribution to a plain extreme value
             distribution.
-        winter_storm_interarrival_GEV is a generalised extreme value
+        winter_storm_interarrival_GEV : dict
+            Parameters defining a generalised extreme value
             distribution controlling the interarrival time between each storm.
             In HRS. The same considerations apply here as for the monsoonal
             interstorm equivalent.
-        winter_storm_radial_weakening_gaussian is a normal distribution
+        winter_storm_radial_weakening_gaussian : dict
+            Parameters defining a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
             et al., 2005.
@@ -479,6 +492,7 @@ class SpatialPrecipitationDistribution(Component):
             accumulated rainfall depth during the *last completed* model year,
             not the year to the point of yield. For the latter, use the
             property `total_rainfall_this_year`.
+
         """
         return self._run_the_process(
             yield_storms=True,

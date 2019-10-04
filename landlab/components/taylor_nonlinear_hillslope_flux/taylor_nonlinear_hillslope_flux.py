@@ -31,17 +31,17 @@ class TaylorNonLinearDiffuser(Component):
     Parameters
     ----------
     grid: ModelGrid
-            Landlab ModelGrid object
+        Landlab ModelGrid object
     linear_diffusivity: float, optional
-            Hillslope diffusivity, m**2/yr
-            Default = 1.0
+        Hillslope diffusivity, m**2/yr
+        Default = 1.0
     slope_crit: float, optional
-            Critical slope
-            Default = 1.0
-    nterms: int, optional. default = 2
-            number of terms in the Taylor expansion.
-            Two terms (Default) gives the behavior
-            described in Ganti et al. (2012).
+        Critical slope
+        Default = 1.0
+    nterms: int, optional
+        number of terms in the Taylor expansion.
+        Two terms (Default) gives the behavior
+        described in Ganti et al. (2012).
 
     Examples
     --------
@@ -160,6 +160,7 @@ class TaylorNonLinearDiffuser(Component):
 
     def __init__(self, grid, linear_diffusivity=1.0, slope_crit=1.0, nterms=2):
         """Initialize the TaylorNonLinearDiffuser.
+
         Parameters
         ----------
         grid: ModelGrid
@@ -174,6 +175,7 @@ class TaylorNonLinearDiffuser(Component):
             number of terms in the Taylor expansion.
             Two terms (Default) gives the behavior
             described in Ganti et al. (2012).
+            
         """
         super(TaylorNonLinearDiffuser, self).__init__(grid)
 

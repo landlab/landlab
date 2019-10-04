@@ -75,7 +75,7 @@ class Flexure(Component):
 
     Examples
     --------
-    
+
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flexure import Flexure
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
