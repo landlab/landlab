@@ -10,7 +10,7 @@ from .base import (
     LOOPED_BOUNDARY,
     ModelGrid,
 )
-from .create import create_and_initialize_grid, create_grid
+from .create import create_grid
 from .hex import HexModelGrid
 from .network import NetworkModelGrid
 from .radial import RadialModelGrid
@@ -33,6 +33,5 @@ __all__ = [
     "ACTIVE_LINK",
     "FIXED_LINK",
     "INACTIVE_LINK",
-    "create_and_initialize_grid",
     "create_grid",
 ]

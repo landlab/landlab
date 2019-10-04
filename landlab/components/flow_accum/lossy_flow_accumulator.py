@@ -57,7 +57,6 @@ class LossyFlowAccumulator(FlowAccumulator):
            IDs: *'flow__upstream_node_order'*
         -  Node array of all but the first element of the delta data structure:
             *flow__data_structure_delta*. The first element is always zero.
-        -  At-grid D data structure: *flow__data_structure_D*
 
     The FlowDirector component will add additional ModelGrid fields; see the
     `FlowAccumulator component <https://landlab.readthedocs.io/en/latest/landlab.components.flow_accum.html>`_
@@ -148,7 +147,7 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
     ...                           flow_director=FlowDirectorSteepest,
-    ...                           routing='D4', loss_function=mylossfunction)
+    ...                           loss_function=mylossfunction)
     >>> fa.run_one_step()
 
     >>> mg.at_node['drainage_area'].reshape(mg.shape)
@@ -267,64 +266,63 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     _name = "LossyFlowAccumulator"
 
-    _input_var_names = ("topographic__elevation", "water__unit_flux_in")
-
-    _output_var_names = (
-        "drainage_area",
-        "surface_water__discharge",
-        "surface_water__discharge_loss",
-        "flow__upstream_node_order",
-        "flow__nodes_not_in_stack",
-        "flow__data_structure_delta",
-        "flow__data_structure_D",
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "flow__receiver_node": "m",
-        "water__unit_flux_in": "m/s",
-        "drainage_area": "m**2",
-        "surface_water__discharge": "m**3/s",
-        "surface_water__discharge_loss": "m**3/s",
-        "flow__upstream_node_order": "-",
-        "flow__data_structure_delta": "-",
-        "flow__data_structure_D": "-",
-        "flow__nodes_not_in_stack": "-",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "flow__receiver_node": "node",
-        "water__unit_flux_in": "node",
-        "drainage_area": "node",
-        "surface_water__discharge": "node",
-        "surface_water__discharge_loss": "node",
-        "flow__upstream_node_order": "node",
-        "flow__nodes_not_in_stack": "grid",
-        "flow__data_structure_delta": "node",
-        "flow__data_structure_D": "grid",
-    }
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "flow__receiver_node": "Node array of receivers (node that "
-        + "receives flow from current node)",
-        "drainage_area": "Upstream accumulated surface area contributing "
-        + "to the node's discharge",
-        "surface_water__discharge": "Discharge of water through each node",
-        "surface_water__discharge_loss": "Total volume of water per second "
-        + "lost during all flow out of the node",
-        "water__unit_flux_in": "External volume water per area per time "
-        + "input to each node (e.g., rainfall rate)",
-        "flow__upstream_node_order": "Node array containing "
-        + "downstream-to-upstream ordered list of node IDs",
-        "flow__data_structure_delta": "Node array containing the "
-        + "elements delta[1:] of the data structure 'delta' used for "
-        + "construction of the downstream-to-upstream node array",
-        "flow__data_structure_D": "Grid array containing the data structure "
-        + "D used for construction of the downstream-to-upstream node array",
-        "flow__nodes_not_in_stack": "Boolean value indicating if there "
-        + "are any nodes that have not yet been added to the stack stored "
-        + "in flow__upstream_node_order.",
+    _info = {
+        "drainage_area": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**2",
+            "mapping": "node",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
+        },
+        "flow__data_structure_delta": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing the elements delta[1:] of the data structure 'delta' used for construction of the downstream-to-upstream node array",
+        },
+        "flow__upstream_node_order": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
+        },
+        "surface_water__discharge": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Discharge of water through each node",
+        },
+        "surface_water__discharge_loss": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Total volume of water per second lost during all flow out of the node",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "water__unit_flux_in": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m/s",
+            "mapping": "node",
+            "doc": "External volume water per area per time input to each node (e.g., rainfall rate)",
+        },
     }
 
     def __init__(
@@ -344,6 +342,13 @@ class LossyFlowAccumulator(FlowAccumulator):
         keyword arguments, tests the argument of runoff_rate, and
         initializes new fields.
         """
+
+        # add the new loss discharge field if necessary:
+        if "surface_water__discharge_loss" not in grid.at_node:
+            grid.add_zeros(
+                "node", "surface_water__discharge_loss", dtype=float, noclobber=False
+            )
+
         super(LossyFlowAccumulator, self).__init__(
             grid,
             surface=surface,
@@ -426,12 +431,6 @@ class LossyFlowAccumulator(FlowAccumulator):
 
             self._lossfunc = lossfunc
 
-        # add the new loss discharge field if necessary:
-        if "surface_water__discharge_loss" not in grid.at_node:
-            self.grid.add_zeros(
-                "node", "surface_water__discharge_loss", dtype=float, noclobber=False
-            )
-
     def _accumulate_A_Q_to_one(self, s, r):
         """Accumulate area and discharge for a route-to-one scheme."""
         link = self._grid.at_node["flow__link_to_receiver_node"]
@@ -441,7 +440,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             link,
             self._lossfunc,
             self._grid,
-            self.node_cell_area,
+            self._node_cell_area,
             self._grid.at_node["water__unit_flux_in"],
         )
         return a, q
@@ -456,7 +455,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             p,
             self._lossfunc,
             self._grid,
-            self.node_cell_area,
+            self._node_cell_area,
             self._grid.at_node["water__unit_flux_in"],
         )
         return a, q

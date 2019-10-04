@@ -32,7 +32,7 @@ def test_D_infinity_low_closed_boundary_conditions():
     fd = FlowDirectorDINF(mg)
     fd.run_one_step()
 
-    true_recievers = np.array(
+    true_receivers = np.array(
         [
             [0, -1],
             [1, -1],
@@ -81,9 +81,9 @@ def test_D_infinity_low_closed_boundary_conditions():
             [1.0, 0.0],
         ]
     )
-    assert_array_equal(fd.receivers, true_recievers)
+    assert_array_equal(fd._receivers, true_receivers)
     assert_array_equal(
-        np.round(fd.proportions, decimals=6), np.round(true_proportions, decimals=6)
+        np.round(fd._proportions, decimals=6), np.round(true_proportions, decimals=6)
     )
 
 
@@ -95,7 +95,7 @@ def test_D_infinity_open_boundary_conditions():
     fd = FlowDirectorDINF(mg)
     fd.run_one_step()
 
-    true_recievers = np.array(
+    true_receivers = np.array(
         [
             [0, -1],
             [1, -1],
@@ -144,9 +144,9 @@ def test_D_infinity_open_boundary_conditions():
             [1.0, 0.0],
         ]
     )
-    assert_array_equal(fd.receivers, true_recievers)
+    assert_array_equal(fd._receivers, true_receivers)
     assert_array_equal(
-        np.round(fd.proportions, decimals=6), np.round(true_proportions, decimals=6)
+        np.round(fd._proportions, decimals=6), np.round(true_proportions, decimals=6)
     )
 
 
@@ -158,15 +158,15 @@ def test_D_infinity_flat():
     fd.run_one_step()
 
     node_ids = np.arange(mg.number_of_nodes)
-    true_recievers = -1 * np.ones(fd.receivers.shape)
-    true_recievers[:, 0] = node_ids
+    true_receivers = -1 * np.ones(fd._receivers.shape)
+    true_receivers[:, 0] = node_ids
 
-    true_proportions = np.zeros(fd.proportions.shape)
+    true_proportions = np.zeros(fd._proportions.shape)
     true_proportions[:, 0] = 1
 
-    assert_array_equal(fd.receivers, true_recievers)
+    assert_array_equal(fd._receivers, true_receivers)
     assert_array_equal(
-        np.round(fd.proportions, decimals=6), np.round(true_proportions, decimals=6)
+        np.round(fd._proportions, decimals=6), np.round(true_proportions, decimals=6)
     )
 
 
@@ -185,15 +185,15 @@ def test_D_infinity_flat_closed_lower():
     fd.run_one_step()
 
     node_ids = np.arange(mg.number_of_nodes)
-    true_recievers = -1 * np.ones(fd.receivers.shape)
-    true_recievers[:, 0] = node_ids
+    true_receivers = -1 * np.ones(fd._receivers.shape)
+    true_receivers[:, 0] = node_ids
 
-    true_proportions = np.zeros(fd.proportions.shape)
+    true_proportions = np.zeros(fd._proportions.shape)
     true_proportions[:, 0] = 1
 
-    assert_array_equal(fd.receivers, true_recievers)
+    assert_array_equal(fd._receivers, true_receivers)
     assert_array_equal(
-        np.round(fd.proportions, decimals=6), np.round(true_proportions, decimals=6)
+        np.round(fd._proportions, decimals=6), np.round(true_proportions, decimals=6)
     )
 
 
@@ -212,15 +212,15 @@ def test_D_infinity_flat_closed_upper():
     fd.run_one_step()
 
     node_ids = np.arange(mg.number_of_nodes)
-    true_recievers = -1 * np.ones(fd.receivers.shape)
-    true_recievers[:, 0] = node_ids
+    true_receivers = -1 * np.ones(fd._receivers.shape)
+    true_receivers[:, 0] = node_ids
 
-    true_proportions = np.zeros(fd.proportions.shape)
+    true_proportions = np.zeros(fd._proportions.shape)
     true_proportions[:, 0] = 1
 
-    assert_array_equal(fd.receivers, true_recievers)
+    assert_array_equal(fd._receivers, true_receivers)
     assert_array_equal(
-        np.round(fd.proportions, decimals=6), np.round(true_proportions, decimals=6)
+        np.round(fd._proportions, decimals=6), np.round(true_proportions, decimals=6)
     )
 
 
@@ -233,15 +233,15 @@ def test_D_infinity_SW_slope():
     # this one should all flow to the soutwest (third column of diagonal neighbors at node)
     node_ids = np.arange(mg.number_of_nodes)
     sw_diags = mg.diagonal_adjacent_nodes_at_node[:, 2]
-    true_recievers = -1 * np.ones(fa.flow_director.receivers.shape)
-    true_recievers[:, 0] = sw_diags
-    true_recievers[mg.boundary_nodes, 0] = node_ids[mg.boundary_nodes]
+    true_receivers = -1 * np.ones(fa.flow_director._receivers.shape)
+    true_receivers[:, 0] = sw_diags
+    true_receivers[mg.boundary_nodes, 0] = node_ids[mg.boundary_nodes]
 
-    true_proportions = np.zeros(fa.flow_director.proportions.shape)
+    true_proportions = np.zeros(fa.flow_director._proportions.shape)
     true_proportions[:, 0] = 1
 
-    assert_array_equal(true_recievers, fa.flow_director.receivers)
-    assert_array_equal(true_proportions, fa.flow_director.proportions)
+    assert_array_equal(true_receivers, fa.flow_director._receivers)
+    assert_array_equal(true_proportions, fa.flow_director._proportions)
 
 
 def test_D_infinity_WSW_slope():
@@ -256,14 +256,14 @@ def test_D_infinity_WSW_slope():
     node_ids = np.arange(mg.number_of_nodes)
     sw_diags = mg.diagonal_adjacent_nodes_at_node[:, 2]
     w_links = mg.adjacent_nodes_at_node[:, 2]
-    true_recievers = -1 * np.ones(fa.flow_director.receivers.shape)
-    true_recievers[mg.core_nodes, 0] = w_links[mg.core_nodes]
-    true_recievers[mg.core_nodes, 1] = sw_diags[mg.core_nodes]
-    true_recievers[mg.boundary_nodes, 0] = node_ids[mg.boundary_nodes]
+    true_receivers = -1 * np.ones(fa.flow_director._receivers.shape)
+    true_receivers[mg.core_nodes, 0] = w_links[mg.core_nodes]
+    true_receivers[mg.core_nodes, 1] = sw_diags[mg.core_nodes]
+    true_receivers[mg.boundary_nodes, 0] = node_ids[mg.boundary_nodes]
 
-    true_proportions = np.zeros(fa.flow_director.proportions.shape)
+    true_proportions = np.zeros(fa.flow_director._proportions.shape)
     true_proportions[mg.boundary_nodes, 0] = 1
     true_proportions[mg.core_nodes, 0] = 0.5
     true_proportions[mg.core_nodes, 1] = 0.5
 
-    assert_array_equal(true_recievers, fa.flow_director.receivers)
+    assert_array_equal(true_receivers, fa.flow_director._receivers)

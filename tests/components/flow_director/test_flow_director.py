@@ -51,9 +51,9 @@ def test_fields_already_added():
     links_to_receiver = mg.add_field("flow__link_to_receiver_node", mg.nodes, at="node")
     fd = _FlowDirectorToOne(mg, "topographic__elevation")
 
-    assert_array_equal(r, fd.receiver)
-    assert_array_equal(links_to_receiver, fd.links_to_receiver)
-    assert_array_equal(s, fd.steepest_slope)
+    assert_array_equal(r, fd._receiver)
+    assert_array_equal(links_to_receiver, fd._links_to_receiver)
+    assert_array_equal(s, fd._steepest_slope)
 
 
 def test_grid_type_testing():
@@ -97,8 +97,12 @@ def test_check_fields():
     )
     _FlowDirectorToMany(mg1, "topographic__elevation")
     assert sorted(list(mg1.at_node.keys())) == [
+        "flow__link_to_receiver_node",
+        "flow__receiver_node",
+        "flow__receiver_proportions",
         "flow__sink_flag",
         "topographic__elevation",
+        "topographic__steepest_slope",
     ]
     assert np.size(mg1.at_node["topographic__elevation"]) == mg1.number_of_nodes
 
@@ -345,7 +349,7 @@ def test_change_bc_post_init():
             24,
         ]
     )
-    assert_array_equal(true_reciever, fd.receiver)
+    assert_array_equal(true_reciever, fd._receiver)
 
     mg.status_at_node[mg.nodes_at_bottom_edge] = CLOSED_BOUNDARY
     fd.run_one_step()
@@ -378,14 +382,14 @@ def test_change_bc_post_init():
             24,
         ]
     )
-    assert_array_equal(new_true_reciever, fd.receiver)
+    assert_array_equal(new_true_reciever, fd._receiver)
 
 
 def test_flow_director_steepest_flow__link_dir_field_creation():
     mg = RasterModelGrid((3, 3))
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    mg.add_ones("flow_link_direction", at="link", dtype=int)
+    mg.add_ones("flow__link_direction", at="link", dtype=int)
     fd = FlowDirectorSteepest(mg, z)
     assert_array_equal(
         fd.flow_link_direction, np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])

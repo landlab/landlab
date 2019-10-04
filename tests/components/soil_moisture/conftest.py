@@ -9,6 +9,12 @@ from landlab.components.soil_moisture.soil_moisture_dynamics import SoilMoisture
 def sm():
     grid = RasterModelGrid((20, 20), xy_spacing=10e0)
     grid.add_zeros("vegetation__plant_functional_type", at="cell", dtype=int)
+    grid.add_zeros("vegetation__cover_fraction", at="cell")
+    grid.add_zeros("vegetation__live_leaf_area_index", at="cell")
+    grid.add_zeros("surface__potential_evapotranspiration_rate", at="cell")
+    grid.add_zeros("soil_moisture__initial_saturation_fraction", at="cell")
+    grid.add_zeros("rainfall__daily_depth", at="cell")
+
     return SoilMoisture(grid)
 
 

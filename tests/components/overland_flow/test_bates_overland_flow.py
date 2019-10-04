@@ -24,7 +24,7 @@ def test_Bates_input_var_names(bates):
 
 def test_Bates_output_var_names(bates):
     assert set(bates.output_var_names) == set(
-        ("surface_water__depth", "surface_water__discharge", "water_surface__gradient")
+        ("surface_water__depth", "surface_water__discharge")
     )
 
 
@@ -35,7 +35,6 @@ def test_Bates_var_units(bates):
 
     assert bates.var_units("surface_water__depth") == "m"
     assert bates.var_units("surface_water__discharge") == "m3/s"
-    assert bates.var_units("water_surface__gradient") == "m/m"
     assert bates.var_units("topographic__elevation") == "m"
 
 

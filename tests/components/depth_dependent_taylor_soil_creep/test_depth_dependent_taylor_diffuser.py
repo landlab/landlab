@@ -24,15 +24,17 @@ def test_4x7_grid_vs_analytical_solution():
 
     # Create an elevation field, initially zero
     z = mg.add_zeros("node", "topographic__elevation")
+    _ = mg.add_zeros("node", "soil__depth")
 
     # Instantiate components, and set their parameters. Note that traditional
     # diffusivity, D, is D = SCE x H*, where SCE is soil-creep efficiency.
     # Here we want D = 0.01 m2/yr and H* = 0,.5 m, so cwe set SCE = 0.02.
-    diffuser = DepthDependentTaylorDiffuser(
-        mg, linear_diffusivity=0.01, slope_crit=0.8, soil_transport_decay_depth=0.5
-    )
     weatherer = ExponentialWeatherer(
         mg, soil_production__maximum_rate=0.0002, soil_production__decay_depth=0.5
+    )
+
+    diffuser = DepthDependentTaylorDiffuser(
+        mg, linear_diffusivity=0.01, slope_crit=0.8, soil_transport_decay_depth=0.5
     )
 
     # Get a reference to bedrock elevation field
@@ -75,10 +77,10 @@ def test_raise_stability_error():
     BRz = z.copy() - 1.0
     soilTh[:] = z - BRz
     expweath = ExponentialWeatherer(mg)
-    DDdiff = DepthDependentTaylorDiffuser(mg)
+    DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable="raise")
     expweath.calc_soil_prod_rate()
     with pytest.raises(RuntimeError):
-        DDdiff.soilflux(10, if_unstable="raise")
+        DDdiff.soilflux(10)
 
 
 def test_raise_kwargs_error():

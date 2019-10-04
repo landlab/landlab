@@ -4,8 +4,6 @@ import numpy as np
 
 from landlab import Component
 
-from ...utils.decorators import use_file_name_or_kwds
-
 
 class SoilInfiltrationGreenAmpt(Component):
 
@@ -47,24 +45,23 @@ class SoilInfiltrationGreenAmpt(Component):
 
     _name = "SoilInfiltrationGreenAmpt"
 
-    _input_var_names = ("surface_water__depth", "soil_water_infiltration__depth")
-
-    _output_var_names = ("surface_water__depth", "soil_water_infiltration__depth")
-
-    _var_units = {"surface_water__depth": "m", "soil_water_infiltration__depth": "m"}
-
-    _var_mapping = {
-        "surface_water__depth": "node",
-        "soil_water_infiltration__depth": "node",
-    }
-
-    _var_doc = {
-        "surface_water__depth": "Depth of water above the surface",
-        "soil_water_infiltration__depth": (
-            "Water column height above the surface previously absorbed into "
-            "the soil. Note that this is NOT the actual depth of the wetted "
-            "front, which also depends on the porosity."
-        ),
+    _info = {
+        "soil_water_infiltration__depth": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Water column height above the surface previously absorbed into the soil. Note that this is NOT the actual depth of the wetted front, which also depends on the porosity.",
+        },
+        "surface_water__depth": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Depth of water above the surface",
+        },
     }
 
     # This follows mean values from Rawls et al., 1992; lambda then h_b
@@ -82,7 +79,6 @@ class SoilInfiltrationGreenAmpt(Component):
         "clay": (0.165, 0.3730),
     }
 
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -97,7 +93,6 @@ class SoilInfiltrationGreenAmpt(Component):
         soil_pore_size_distribution_index=None,
         soil_bubbling_pressure=None,
         wetting_front_capillary_pressure_head=None,
-        **kwds
     ):
         """Kinematic wave approximation overland flow component.
 
@@ -143,15 +138,15 @@ class SoilInfiltrationGreenAmpt(Component):
             calculated by the component from the pore size distribution and
             bubbling pressure, following Brooks and Corey.
         """
+        super(SoilInfiltrationGreenAmpt, self).__init__(grid)
 
-        self._grid = grid
-        self.min_water = surface_water_minimum_depth
-        self.hydraulic_conductivity = hydraulic_conductivity
+        self._min_water = surface_water_minimum_depth
+        self._hydraulic_conductivity = hydraulic_conductivity
 
         if not coarse_sed_flag:
             volume_fraction_coarse_fragments = 0.0
 
-        self.moisture_deficit = self.calc_moisture_deficit(
+        self._moisture_deficit = self.calc_moisture_deficit(
             soil_bulk_density=soil_bulk_density,
             rock_density=rock_density,
             volume_fraction_coarse_fragments=volume_fraction_coarse_fragments,
@@ -159,13 +154,13 @@ class SoilInfiltrationGreenAmpt(Component):
         )
 
         if wetting_front_capillary_pressure_head is None:
-            self.capillary_pressure = self.calc_soil_pressure(
+            self._capillary_pressure = self.calc_soil_pressure(
                 soil_type=soil_type,
                 soil_pore_size_distribution_index=soil_pore_size_distribution_index,
                 soil_bubbling_pressure=soil_bubbling_pressure,
             )
         else:
-            self.capillary_pressure = wetting_front_capillary_pressure_head
+            self._capillary_pressure = wetting_front_capillary_pressure_head
 
     @staticmethod
     def calc_soil_pressure(
@@ -276,7 +271,7 @@ class SoilInfiltrationGreenAmpt(Component):
     @hydraulic_conductivity.setter
     def hydraulic_conductivity(self, new_value):
         if isinstance(new_value, str):
-            new_value = self.grid.at_node[new_value]
+            new_value = self._grid.at_node[new_value]
         if np.any(new_value < 0.0):
             raise ValueError("hydraulic conductivity must be positive")
         self._hydraulic_conductivity = new_value
@@ -311,24 +306,24 @@ class SoilInfiltrationGreenAmpt(Component):
         dt : float (s)
             The imposed timestep for the model.
         """
-        water_depth = self.grid.at_node["surface_water__depth"]
-        infiltration_depth = self.grid.at_node["soil_water_infiltration__depth"]
+        water_depth = self._grid.at_node["surface_water__depth"]
+        infiltration_depth = self._grid.at_node["soil_water_infiltration__depth"]
 
         assert np.all(infiltration_depth >= 0.0)
 
-        wettingfront_depth = infiltration_depth / self.moisture_deficit
+        wettingfront_depth = infiltration_depth / self._moisture_deficit
 
         potential_infilt = (
             dt
-            * self.hydraulic_conductivity
+            * self._hydraulic_conductivity
             * (
-                (wettingfront_depth + self.capillary_pressure + water_depth)
+                (wettingfront_depth + self._capillary_pressure + water_depth)
                 / wettingfront_depth
             )
         )
         np.clip(potential_infilt, 0.0, None, out=potential_infilt)
 
-        available_water = water_depth - self.min_water
+        available_water = water_depth - self._min_water
         np.clip(available_water, 0.0, None, out=available_water)
 
         actual_infiltration = np.choose(

@@ -5,7 +5,6 @@ General Landlab decorators
 
 .. autosummary::
 
-    ~landlab.utils.decorators.use_file_name_or_kwds
     ~landlab.utils.decorators.use_field_name_or_array
     ~landlab.utils.decorators.make_return_array_immutable
     ~landlab.utils.decorators.deprecated
@@ -20,8 +19,6 @@ from functools import wraps
 import numpy as np
 
 from landlab import FieldError
-
-from ..core.model_parameter_loader import load_params
 
 try:
     from inspect import getfullargspec
@@ -146,83 +143,6 @@ def add_signature_to_doc(func):
         argspec=inspect.formatargspec(*argspec),
         body=inspect.getdoc(func),
     )
-
-
-def use_file_name_or_kwds(func):
-
-    """Decorate a method so that it takes a file name or keywords.
-
-    Parameters
-    ----------
-    func : A function
-        A method function that accepts a ModelGrid as a first argument.
-
-    Returns
-    -------
-    function
-        A function that takes an optional second argument, a file, from which
-        to read keywords.
-
-    Examples
-    --------
-    >>> from landlab import RasterModelGrid
-    >>> from landlab.utils.decorators import use_file_name_or_kwds
-
-    >>> class MyClass(object):
-    ...     @use_file_name_or_kwds
-    ...     def __init__(self, grid, kw=0.):
-    ...         self.kw = kw
-
-    >>> grid = RasterModelGrid((4, 5))
-    >>> foo = MyClass(grid)
-    >>> foo.kw
-    0.0
-
-    >>> foo = MyClass(grid, "kw: 1945")
-    >>> foo.kw
-    1945
-    >>> foo = MyClass(grid, "kw: 1945", kw=1973)
-    >>> foo.kw
-    1973
-
-    >>> mpd = \"\"\"
-    ... kw: kw value
-    ... 1e6
-    ... \"\"\"
-    >>> foo = MyClass(grid, mpd)
-    >>> foo.kw
-    1000000.0
-    """
-
-    func.__doc__ = add_signature_to_doc(func)
-
-    @wraps(func)
-    def _wrapped(self, *args, **kwds):
-        from ..grid import ModelGrid
-
-        if not isinstance(args[0], ModelGrid):
-            raise ValueError("first argument must be a ModelGrid")
-
-        if len(args) == 2:
-            warnings.warn(
-                "Passing a file to a component's __init__ method is "
-                "deprecated. Instead, pass parameters as keywords.",
-                category=DeprecationWarning,
-            )
-
-            if os.path.isfile(args[1]):
-                with open(args[1], "r") as fp:
-                    params = load_params(fp)
-            else:
-                params = load_params(args[1])
-        else:
-            params = {}
-
-        params.update(kwds)
-
-        func(self, args[0], **params)
-
-    return _wrapped
 
 
 class use_field_name_or_array(object):
@@ -402,7 +322,7 @@ class use_field_name_array_or_value(object):
                     raise FieldError(vals)
             else:
                 expected_size = grid.size(self._at)
-                vals = np.asarray(vals).flatten()
+                vals = np.asarray(vals).ravel()
                 if vals.size == 1:
                     vals = np.broadcast_to(vals, (expected_size,))
 

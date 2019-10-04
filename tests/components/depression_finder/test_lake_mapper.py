@@ -1113,13 +1113,14 @@ def test_filling_alone(dans_grid3):
     Setting the the *pits* parameter to None causes the mapper to look for pits
     using its _find_pits method.
     """
-    dans_grid3.lf.map_depressions(pits=None, reroute_flow=False)
+    lf = DepressionFinderAndRouter(dans_grid3.mg, reroute_flow=False, pits=None)
+    assert lf._user_supplied_pits is None
+
+    lf.map_depressions()
     assert_array_equal(
         dans_grid3.mg.at_node["flow__receiver_node"], XX * np.ones(49, dtype=int)
     )
-    assert_array_equal(
-        dans_grid3.lf.depression_outlet_map, dans_grid3.depr_outlet_target
-    )
+    assert_array_equal(lf.depression_outlet_map, dans_grid3.depr_outlet_target)
 
 
 def test_filling_supplied_pits(dans_grid3):
@@ -1129,9 +1130,11 @@ def test_filling_supplied_pits(dans_grid3):
     Also tests the supply of an array for 'pits'
     """
     dans_grid3.fr.run_one_step()
-    dans_grid3.lf.map_depressions(
-        pits=dans_grid3.mg.at_node["flow__sink_flag"], reroute_flow=False
+
+    lf = DepressionFinderAndRouter(
+        dans_grid3.mg, reroute_flow=False, pits="flow__sink_flag"
     )
+    lf.map_depressions()
     assert_array_equal(dans_grid3.mg.at_node["flow__receiver_node"], dans_grid3.r_old)
 
 
@@ -1140,9 +1143,11 @@ def test_pits_as_IDs(dans_grid3):
     Smoke test for passing specific IDs, not an array, to the mapper.
     """
     dans_grid3.fr.run_one_step()
-    dans_grid3.lf.map_depressions(
-        pits=np.where(dans_grid3.mg.at_node["flow__sink_flag"])[0]
-    )
+
+    pits = np.nonzero(dans_grid3.mg.at_node["flow__sink_flag"])[0]
+    lf = DepressionFinderAndRouter(dans_grid3.mg, pits=pits)
+    lf.map_depressions()
+
     assert dans_grid3.mg.at_node["drainage_area"] == approx(dans_grid3.A_new)
 
 
@@ -1795,10 +1800,18 @@ def test_D8_D4_fill(d4_grid):
     """
     Tests the functionality of D4 filling.
     """
-    d4_grid.lfD8.map_depressions(pits=None, reroute_flow=False)
-    d4_grid.lfD4.map_depressions(pits=None, reroute_flow=False)
-    assert d4_grid.lfD8.number_of_lakes == 1
-    assert d4_grid.lfD4.number_of_lakes == 3
+    lfD8 = DepressionFinderAndRouter(
+        d4_grid.mg1, pits=None, routing="D8", reroute_flow=False
+    )
+    lfD4 = DepressionFinderAndRouter(
+        d4_grid.mg2, pits=None, routing="D4", reroute_flow=False
+    )
+
+    lfD8.map_depressions()
+    lfD4.map_depressions()
+
+    assert lfD8.number_of_lakes == 1
+    assert lfD4.number_of_lakes == 3
 
     correct_D8_lake_map = np.empty(7 * 7, dtype=int)
     correct_D8_lake_map.fill(XX)
@@ -1812,8 +1825,8 @@ def test_D8_D4_fill(d4_grid):
     correct_D4_depths[d4_grid.lake_nodes[5:]] = 4.0
     correct_D4_depths[d4_grid.lake_nodes[-2]] = 3.0
 
-    assert_array_equal(d4_grid.lfD8.lake_map, correct_D8_lake_map)
-    assert_array_equal(d4_grid.lfD4.lake_map, correct_D4_lake_map)
+    assert_array_equal(lfD8.lake_map, correct_D8_lake_map)
+    assert_array_equal(lfD4.lake_map, correct_D4_lake_map)
 
     assert d4_grid.mg1.at_node["depression__depth"] == approx(correct_D8_depths)
     assert d4_grid.mg2.at_node["depression__depth"] == approx(correct_D4_depths)

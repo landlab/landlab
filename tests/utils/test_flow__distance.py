@@ -9,7 +9,7 @@ from landlab.components import FlowAccumulator, FlowDirectorSteepest
 from landlab.utils.flow__distance import calculate_flow__distance
 
 
-def test_no_flow_recievers():
+def test_no_flow_receivers():
     """Test that correct error is raised when no flow recievers are
     on the grid."""
 

@@ -10,39 +10,33 @@ import os
 import numpy
 from numpy.testing import assert_array_almost_equal
 
-from landlab import ModelParameterDictionary, RasterModelGrid
+from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator, StreamPowerEroder
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_sp_old():
-    input_str = os.path.join(_THIS_DIR, "drive_sp_params.txt")
-    inputs = ModelParameterDictionary(input_str)
-    nrows = inputs.read_int("nrows")
-    ncols = inputs.read_int("ncols")
-    dx = inputs.read_float("dx")
-    dt = inputs.read_float("dt")
-    time_to_run = inputs.read_float("run_time")
-    uplift = inputs.read_float("uplift_rate")
-    init_elev = inputs.read_float("init_elev")
 
-    mg = RasterModelGrid((nrows, ncols), xy_spacing=(dx, dx))
+    uplift = 0.001
+    dt = 1.0
+    time_to_run = 10.0
+    mg = RasterModelGrid((10, 5))
     mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
 
     mg.add_zeros("topographic__elevation", at="node")
-    z = mg.zeros(at="node") + init_elev
+    z = mg.zeros(at="node")
     numpy.random.seed(0)
     mg["node"]["topographic__elevation"] = z + numpy.random.rand(len(z)) / 1000.0
 
     fr = FlowAccumulator(mg, flow_director="D8")
-    sp = StreamPowerEroder(mg, input_str)
+    sp = StreamPowerEroder(mg, K_sp=0.1, m_sp=0.5, n_sp=1.0, threshold_sp=0.0)
     elapsed_time = 0.0
     while elapsed_time < time_to_run:
         if elapsed_time + dt > time_to_run:
             dt = time_to_run - elapsed_time
         fr.run_one_step()
-        sp.erode(mg, dt)
+        sp.run_one_step(dt)
         mg.at_node["topographic__elevation"][mg.core_nodes] += uplift * dt
         elapsed_time += dt
 
@@ -108,26 +102,20 @@ def test_sp_new():
     """
     Tests new style component instantiation and run.
     """
-    input_str = os.path.join(_THIS_DIR, "drive_sp_params.txt")
-    inputs = ModelParameterDictionary(input_str, auto_type=True)
-    nrows = inputs.read_int("nrows")
-    ncols = inputs.read_int("ncols")
-    dx = inputs.read_float("dx")
-    dt = inputs.read_float("dt")
-    time_to_run = inputs.read_float("run_time")
-    uplift = inputs.read_float("uplift_rate")
-    init_elev = inputs.read_float("init_elev")
+    uplift = 0.001
+    dt = 1.0
+    time_to_run = 10.0
+    mg = RasterModelGrid((10, 5))
 
-    mg = RasterModelGrid((nrows, ncols), xy_spacing=(dx, dx))
     mg.set_closed_boundaries_at_grid_edges(False, False, True, True)
 
     mg.add_zeros("topographic__elevation", at="node")
-    z = mg.zeros(at="node") + init_elev
+    z = mg.zeros(at="node")
     numpy.random.seed(0)
     mg["node"]["topographic__elevation"] = z + numpy.random.rand(len(z)) / 1000.0
 
     fr = FlowAccumulator(mg, flow_director="D8")
-    sp = StreamPowerEroder(mg, **inputs)
+    sp = StreamPowerEroder(mg, K_sp=0.1, m_sp=0.5, n_sp=1.0, threshold_sp=0.0)
     elapsed_time = 0.0
     while elapsed_time < time_to_run:
         if elapsed_time + dt > time_to_run:

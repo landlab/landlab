@@ -181,32 +181,30 @@ class FractureGridGenerator(Component):
 
     _name = "FractureGridGenerator"
 
-    _input_var_names = ()
-
-    _output_var_names = ("fracture_at_node",)
-
-    _var_units = {"fracture_at_node": "-"}
-
-    _var_mapping = {"fracture_at_node": "node"}
-
-    _var_doc = {"fracture_at_node": "presence (1) or absence (0) of fracture"}
+    _info = {
+        "fracture_at_node": {
+            "dtype": np.int8,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "presence (1) or absence (0) of fracture",
+        }
+    }
 
     def __init__(self, grid, frac_spacing=10.0, seed=0):
         """Initialize the FractureGridGenerator."""
 
-        self._grid = grid
-        self.frac_spacing = frac_spacing
-        self.seed = seed
+        self._frac_spacing = frac_spacing
+        self._seed = seed
         super(FractureGridGenerator, self).__init__(grid)
 
-        # TODO: delete this once we have generation of output fields in
-        # base class
         if "fracture_at_node" not in grid.at_node:
             grid.add_zeros("node", "fracture_at_node", dtype=np.int8)
 
     def run_one_step(self):
         """Run FractureGridGenerator and create a random fracture grid."""
-        self._make_frac_grid(self.frac_spacing, self.seed)
+        self._make_frac_grid(self._frac_spacing, self._seed)
 
     def _make_frac_grid(self, frac_spacing, seed):
         """Create a grid that contains a network of random fractures.
