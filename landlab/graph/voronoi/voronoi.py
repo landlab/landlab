@@ -39,8 +39,8 @@ def setup_links_and_patches(node_y_and_x, max_node_spacing=None, boundary_nodes=
 
     delaunay = Delaunay(list(zip(node_y_and_x[1], node_y_and_x[0])))
 
-    nodes_at_patch = np.asarray(delaunay.simplices, dtype=int)
-    neighbors_at_patch = np.asarray(delaunay.neighbors, dtype=int)
+    nodes_at_patch = np.asarray(delaunay.simplices, dtype=np.int)
+    neighbors_at_patch = np.asarray(delaunay.neighbors, dtype=np.int)
 
     if boundary_nodes is not None:
         nodes_at_patch, neighbors_at_patch = remove_bad_patches(
@@ -54,8 +54,8 @@ def setup_links_and_patches(node_y_and_x, max_node_spacing=None, boundary_nodes=
     n_shared_links = np.count_nonzero(neighbors_at_patch > -1)
     n_links = 3 * n_patches - n_shared_links // 2
 
-    links_at_patch = np.empty((n_patches, 3), dtype=int)
-    nodes_at_link = np.empty((n_links, 2), dtype=int)
+    links_at_patch = np.empty((n_patches, 3), dtype=np.int)
+    nodes_at_link = np.empty((n_links, 2), dtype=np.int)
 
     _setup_links_at_patch(
         nodes_at_patch, neighbors_at_patch, nodes_at_link, links_at_patch
@@ -147,8 +147,8 @@ class DelaunayGraph(Graph):
 
         delaunay = Delaunay(list(zip(node_y_and_x[1], node_y_and_x[0])))
 
-        nodes_at_patch = np.asarray(delaunay.simplices, dtype=int)
-        neighbors_at_patch = np.asarray(delaunay.neighbors, dtype=int)
+        nodes_at_patch = np.asarray(delaunay.simplices, dtype=np.int)
+        neighbors_at_patch = np.asarray(delaunay.neighbors, dtype=np.int)
 
         if max_node_spacing is not None:
             nodes_at_patch, neighbors_at_patch = remove_bad_patches(
@@ -159,8 +159,8 @@ class DelaunayGraph(Graph):
         n_shared_links = np.count_nonzero(neighbors_at_patch > -1)
         n_links = 3 * n_patches - n_shared_links // 2
 
-        links_at_patch = np.empty((n_patches, 3), dtype=int)
-        nodes_at_link = np.empty((n_links, 2), dtype=int)
+        links_at_patch = np.empty((n_patches, 3), dtype=np.int)
+        nodes_at_link = np.empty((n_links, 2), dtype=np.int)
 
         _setup_links_at_patch(
             nodes_at_patch, neighbors_at_patch, nodes_at_link, links_at_patch
