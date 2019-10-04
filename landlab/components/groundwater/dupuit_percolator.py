@@ -228,6 +228,7 @@ class GroundwaterDupuitPercolator(Component):
         porosity=0.2,
         recharge_rate=1.0e-8,
         regularization_f=1e-2,
+        courant_coefficient=0.01,
     ):
         """Initialize the GroundwaterDupuitPercolator.
 
@@ -247,6 +248,12 @@ class GroundwaterDupuitPercolator(Component):
         regularization_f: float
                 factor controlling the smoothness of the transition between
                 surface and subsurface flow
+        courant_coefficient: float (-)
+            The muliplying factor on the condition that the timestep is
+            smaller than the minimum link length over groundwater flow
+            velocity. This parameter is only used with
+            ``run_with_adaptive_time_step_solver`` and must be greater than
+            zero.
         """
         super(GroundwaterDupuitPercolator, self).__init__(grid)
 
@@ -285,6 +292,29 @@ class GroundwaterDupuitPercolator(Component):
         self._r = regularization_f
         self._S = abs(grid.calc_grad_at_link(self._elev))
         self._S_node = map_max_of_node_links_to_node(grid, self._S)
+
+        # save courant_coefficient (and test)
+        self.courant_coefficient = courant_coefficient
+
+    @property
+    def courant_coefficient(self):
+        """Courant coefficient for adaptive time step.
+
+        Parameters
+        ----------
+        courant_coefficient: float (-)
+            The muliplying factor on the condition that the timestep is
+            smaller than the minimum link length over groundwater flow
+            velocity. This parameter is only used with
+            ``run_with_adaptive_time_step_solver`` and must be greater than
+            zero.
+        """
+
+    @courant_coefficient.setter
+    def courant_coefficient(self, new_val):
+        if new_val <= 0:
+            raise ValueError("courant_coefficient must be > 0.")
+        self._courant_coefficient = new_val
 
     @property
     def K(self):
@@ -467,19 +497,17 @@ class GroundwaterDupuitPercolator(Component):
             self._base[self._cores] + self._thickness[self._cores]
         )
 
-    def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.01):
+    def run_with_adaptive_time_step_solver(self, dt):
         """
         Advance component by one time step of size dt, subdividing the timestep
-        into substeps as necessary to meet a Courant condition.
+        into substeps as necessary to meet a Courant condition (defined in
+        the init).
         Note this method only returns the fluxes at the last subtimestep.
 
         Parameters
         ----------
         dt: float (time in seconds)
             The imposed timestep.
-        courant_coefficient: float (-)
-            The muliplying factor on the condition that the timestep is
-            smaller than the minimum link length over groundwater flow velocity
         """
 
         remaining_time = dt
@@ -526,7 +554,7 @@ class GroundwaterDupuitPercolator(Component):
             max_vel = max(abs(self._vel / self._n_link))
             grid_dist = min(self._grid.length_of_link)
             substep_dt = np.nanmin(
-                [courant_coefficient * grid_dist / max_vel, remaining_time]
+                [self._courant_coefficient * grid_dist / max_vel, remaining_time]
             )
 
             # Update
