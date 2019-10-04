@@ -218,7 +218,7 @@ class GroundwaterDupuitPercolator(Component):
             "units": "m/s",
             "mapping": "node",
             "doc": "rate of change of water table elevation",
-    },
+        },
     }
 
     def __init__(
