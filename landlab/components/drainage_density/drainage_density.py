@@ -39,6 +39,7 @@ class DrainageDensity(Component):
     criteria
 
     .. math::
+
         C_A A^{m_r} C_s S^{n_r} > T_c
 
     where :math:`A` is the drainage density and :math:`S` is the local slope,
@@ -63,9 +64,9 @@ class DrainageDensity(Component):
 
     where :math:`\overline{L}` is the mean L for the model domain.
 
-
     Examples
     --------
+
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, FastscapeEroder

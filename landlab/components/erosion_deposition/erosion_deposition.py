@@ -12,7 +12,7 @@ DEFAULT_MINIMUM_TIME_STEP = 0.001  # default minimum time step duration
 
 
 class ErosionDeposition(_GeneralizedErosionDeposition):
-    """
+    r"""
     Erosion-Deposition model in the style of Davy and Lague (2009). It uses a
     mass balance approach across the total sediment mass both in the bed and
     in transport coupled with explicit representation of the sediment
@@ -21,20 +21,27 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
     This implementation is close to the Davy & Lague scheme, with a few
     deviations:
-    - Sediment porosity is handled explicitly in this implementation.
-    - A fraction of the eroded sediment is permitted to enter the wash load,
-      and lost to the mass balance (F_f).
-    - Here an incision threshold is permitted, where it was not by Davy &
-      Lague. It is implemented with an exponentially smoothed form to prevent
-      discontinuities in the parameter space. See the
-      StreamPowerSmoothThresholdEroder for more documentation.
-    - This component uses an "effective" settling velocity, v_s, as one of its
-      inputs. This parameter is simply equal to Davy & Lague's `d_star * V`
-      dimensionless number.
+
+        - Sediment porosity is handled explicitly in this implementation.
+
+        - A fraction of the eroded sediment is permitted to enter the wash load,
+          and lost to the mass balance (`F_f`).
+
+        - Here an incision threshold :math:`\omega` is permitted, where it was not by Davy &
+          Lague. It is implemented with an exponentially smoothed form to prevent
+          discontinuities in the parameter space. See the
+          :py:class:`~landlab.components.StreamPowerSmoothThresholdEroder`
+          for more documentation.
+
+        - This component uses an "effective" settling velocity, v_s, as one of its
+          inputs. This parameter is simply equal to Davy & Lague's `d_star * V`
+          dimensionless number.
 
     Erosion of the bed follows a stream power formulation, i.e.,
 
-    E = K * q ** m_sp * S ** n_sp - optional threshold (see above)
+    .. math:
+
+        E = K * q ** m_{sp} * S ** {n_sp} - \omega
 
     Note that the transition between transport-limited and detachment-limited
     behavior is controlled by the dimensionless ratio (v_s/r) where r is the

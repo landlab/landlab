@@ -168,7 +168,7 @@ class FractureGridGenerator(Component):
     Notes
     -----
     Potential improvements:
-    - Add doctests
+
     - Fractures could be defined by links rather than nodes (i.e., return a
         link array with a code indicating whether the link crosses a fracture
         or not)
@@ -177,6 +177,7 @@ class FractureGridGenerator(Component):
     - Use of starting position along either x or y axis makes fracture net
         somewhat asymmetric. One would need a different algorithm to make it
         fully (statistically) symmetric.
+        
     """
 
     _name = "FractureGridGenerator"

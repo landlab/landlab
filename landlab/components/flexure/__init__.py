@@ -14,5 +14,4 @@ __all__ = [
     "Flexure1D",
     "get_flexure_parameter",
     "subside_point_load",
-    "subside_point_loads",
 ]

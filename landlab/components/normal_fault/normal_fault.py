@@ -87,7 +87,7 @@ class NormalFault(Component):
             ``fault_throw_rate_through_time = {'time': array, 'rate': array}``
             Default value is a constant rate of 0.001 (units not specified).
             This is acomplished by providing the dictionary
-            ``{'time': [0], 'rate': [0.001]}``. NormalFault uses numpy interp
+            ``{'time': [0], 'rate': [0.001]}``. NormalFault uses numpy.interp
             to interpolate the time and rate pattern to the current model time.
             This function uses the first value for all values less than the
             first, and the last value for all values greater than the last, and
@@ -123,7 +123,6 @@ class NormalFault(Component):
         Add an elevation field.
 
         >>> z = grid.add_zeros('node', 'topographic__elevation')
-
 
         Set the parameter values for the NormalFault component.
 

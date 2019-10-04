@@ -30,8 +30,8 @@ class LateralEroder(Component):
     lateral erosion of bedrock channels for use in landscape evolution models.
     Earth Surface Dynamics, 6, 1-27, https://doi.org/10.5194/esurf-6-1-2018
 
-    Parameteters
-    ------------
+    Parameters
+    ----------
     grid : ModelGrid
         A Landlab square cell raster grid object
     latero_mech : string, optional (defaults to UC)

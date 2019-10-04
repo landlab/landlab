@@ -55,36 +55,49 @@ class LandslideProbability(Component):
 
     **Usage:**
 
-    Option 1 - Uniform recharge::
+    Option 1 - Uniform recharge
 
-        LandslideProbability(grid, number_of_iterations=250,
+    .. code-block:: python
+
+        LandslideProbability(grid,
+                             number_of_iterations=250,
                              groundwater__recharge_distribution='uniform',
                              groundwater__recharge_min_value=5.,
                              groundwater__recharge_max_value=121.)
 
-    Option 2 - Lognormal recharge::
+    Option 2 - Lognormal recharge
 
-        LandslideProbability(grid, number_of_iterations=250,
+    .. code-block:: python
+
+        LandslideProbability(grid,
+                             number_of_iterations=250,
                              groundwater__recharge_distribution='lognormal',
                              groundwater__recharge_mean=30.,
                              groundwater__recharge_standard_deviation=0.25)
 
     Option 3 - Lognormal_spatial recharge::
 
-        LandslideProbability(grid, number_of_iterations=250,
+    .. code-block:: python
+
+        LandslideProbability(grid,
+                             number_of_iterations=250,
                              groundwater__recharge_distribution='lognormal_spatial',
                              groundwater__recharge_mean=np.random.randint(20, 120, grid_size),
                              groundwater__recharge_standard_deviation=np.random.rand(grid_size))
 
     Option 4 - Data_driven_spatial recharge::
 
-        LandslideProbability(grid, number_of_iterations=250,
+    .. code-block:: python
+
+        LandslideProbability(grid,
+                             number_of_iterations=250,
                              groundwater__recharge_distribution='data_driven_spatial',
-                             groundwater__recharge_HSD_inputs=[HSD_dict, HSD_id_dict,
-                             fract_dict])
+                             groundwater__recharge_HSD_inputs=[HSD_dict,
+                                                               HSD_id_dict,
+                                                               fract_dict])
 
     Examples
-    ----------
+    --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.landslides import LandslideProbability
     >>> import numpy as np
@@ -180,6 +193,7 @@ class LandslideProbability(Component):
     >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
     False
     >>> core_nodes = ls_prob.grid.core_nodes
+    
     """
 
     # component name
@@ -315,7 +329,7 @@ class LandslideProbability(Component):
         groundwater__recharge_distribution: str, optional
             single word indicating recharge distribution, either 'uniform',
             'lognormal', 'lognormal_spatial,' or 'data_driven_spatial'.
-             (default='uniform')
+            (default='uniform')
         groundwater__recharge_min_value: float, optional (mm/d)
             minium groundwater recharge for 'uniform' (default=20.)
         groundwater__recharge_max_value: float, optional (mm/d)

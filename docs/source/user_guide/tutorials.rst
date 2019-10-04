@@ -15,10 +15,10 @@ IPython notebook tutorials
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Instructions on how to run an IPython notebook can be found
-`here <https://github.com/landlab/tutorials/blob/release/README.md>`_.
+`here <https://github.com/landlab/tutorials/blob/release/README.md>`__.
 
 A short IPython notebook tutorial along with a screencast can be found
-`here <http://www.randalolson.com/2012/05/12/a-short-demo-on-how-to-use-ipython-notebook-as-a-research-notebook/>`_
+`here <http://www.randalolson.com/2012/05/12/a-short-demo-on-how-to-use-ipython-notebook-as-a-research-notebook/>`__
 (the tutorial uses an example with statistics, but you can substitute
 Landlab!)
 

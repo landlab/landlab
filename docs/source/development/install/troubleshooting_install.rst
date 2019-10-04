@@ -94,13 +94,12 @@ I'm still confused
 ------------------
 
 If you are having problems when installing, testing or running Landlab,
-please visit our :ref:`Troubleshooting page <troubleshooting>.
+please visit our :ref:`Troubleshooting page <troubleshooting>`.
 
 The Landlab development team will be happy to hear from you. Find contact
 information :ref:`here <contact>`.
- When reporting your problem (in either place)
-we recommend that you provide a minimal, complete, and verifiable
-example which will help the development team and involved users
-reproduce your problem and determine a solution. `This page from Stack
-Overflow <https://stackoverflow.com/help/mcwe>`_ provides some background
-on how to make a minimal, complete, and verifiable example.
+When reporting your problem (in either place) we recommend that you provide a
+minimal, complete, and verifiable example which will help the development team
+and involved users reproduce your problem and determine a solution.
+`This page from Stack Overflow <https://stackoverflow.com/help/mcve>`_ provides
+some background on how to make a minimal, complete, and verifiable example.

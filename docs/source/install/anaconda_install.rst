@@ -7,7 +7,7 @@ Anaconda Install
 Install Anaconda
 ----------------
 
-This should work for `Anaconda<https://www.continuum.io/downloads>`_ users
+This should work for `Anaconda <https://www.continuum.io/downloads>`_ users
 with Windows 7+, Mac OS 10.6+, or
 Ubuntu Linux (only the latest version has been tested).
 
@@ -103,7 +103,7 @@ reopen Anaconda before typing the below commands):
 
 
 The version number should be greater than 1. You can check the version
-number of the most recent release `here<https://github.com/landlab/landlab/releases>`_.
+number of the most recent release `here <https://github.com/landlab/landlab/releases>`_.
 
 Install/Test problems
 ---------------------

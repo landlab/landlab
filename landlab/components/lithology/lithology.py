@@ -99,11 +99,11 @@ class Lithology(Component):
             used, then erosion removes material and creates layers of thickness
             zero. Thus, EventLayers may be appropriate if the user is interested
             in chronostratigraphy.
-        dz_advection : float, `(n_nodes, ) shape array, or at-node field array optional
+        dz_advection : float, `(n_nodes, )` shape array, or at-node field array optional
             Change in rock elevation due to advection by some external process.
             This can be changed using the property setter. Dimensions are in
             length, not length per time.
-        rock_id : value or `(n_nodes, ) shape array, optional
+        rock_id : value or `(n_nodes, )` shape array, optional
             Rock type id for new material if deposited.
             This can be changed using the property setter.
 
@@ -292,7 +292,7 @@ class Lithology(Component):
 
         Parameters
         ----------
-        dz_advection : float, `(n_nodes, ) shape array, or at-node field array optional
+        dz_advection : float, `(n_nodes, )` shape array, or at-node field array optional
             Change in rock elevation due to advection by some external process.
             This can be changed using the property setter. Dimensions are in
             length, not length per time.
@@ -314,7 +314,7 @@ class Lithology(Component):
 
         Parameters
         ----------
-        rock_id : value or `(n_nodes, ) shape array, optional
+        rock_id : value or `(n_nodes, )` shape array, optional
             Rock type id for new material if deposited.
             This can be changed using the property setter.
 
@@ -536,13 +536,13 @@ class Lithology(Component):
 
         >>> lith.add_layer(3, rock_id=3)
 
-        The value of K_sp at node is now updated to the value of rock type 3
+        The value of `K_sp` at node is now updated to the value of rock type 3
 
         >>> mg.at_node['K_sp']
         array([ 0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01])
 
         A negative value will erode. We can also pass a `(n_nodes,) long array
-        to erode unevenly. If all parts of the layer erode, then no rock_id
+        to erode unevenly. If all parts of the layer erode, then no `rock_id`
         needs to be passed.
 
         >>> erosion_amount = [-2., -2., -2., -4., -4., -4., -6., -6., -6.]
@@ -551,7 +551,7 @@ class Lithology(Component):
         array([ 0.01  ,  0.01  ,  0.01  ,  0.0001,  0.0001,  0.0001,  0.001 ,
                 0.001 ,  0.001 ])
 
-        Now different layers are exposed at the surface and the value of K_sp
+        Now different layers are exposed at the surface and the value of `K_sp`
         is spatially variable.
         """
         thickness = np.array(thickness)
@@ -723,8 +723,8 @@ class Lithology(Component):
     def update_rock_properties(self, at, rock_id, value):
         """Update rock type attribute.
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         at : str
             Attribute name
         rock_id : value
@@ -791,8 +791,8 @@ class Lithology(Component):
         Note also that when this method is called, it will construct the current
         values of lithology with depth, NOT the initial values.
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         depths : array
 
         Returns

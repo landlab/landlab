@@ -12,7 +12,7 @@ working copy. This is also important to keep your branch up to date with
 improvements/bug elimination happening as part of core Landlab development.
 
 Before you begin, we recommend you review this `GitHub page describing syncing
-a `fork <https://help.github.com/articles/syncing-a-fork/>`_.
+a fork <https://help.github.com/articles/syncing-a-fork/>`_.
 
 Through the command line, you should be able to update your Landlab repository
 from master using the following command
@@ -140,9 +140,9 @@ You can't do the equivalent in the GitHub app, but you can do it through the
 website—though it is a bit more involved. Navigate to the
 `master Landlab fork <http://github.com/landlab/landlab>`_. Hit the big green
 "new pull request" button. Hit the "compare across forks" hyperlink. You now
-want to set the _base fork_ dropdown menu to your local Landlab
-(`UserName/landlab`), and leave the _head fork_ as it is (`landlab/landlab`).
-Leave both the _base_ and _compare_ boxes set to `master`, as they should
+want to set the *base fork* dropdown menu to your local Landlab
+(`UserName/landlab`), and leave the *head fork* as it is (`landlab/landlab`).
+Leave both the *base* and *compare* boxes set to `master`, as they should
 already be. The site will then have a think, then report back to you whether it
 can perform an automatic merge (in green or yellow, just below the dropdown
 boxes), and also what the differences between these two versions are (scroll

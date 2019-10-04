@@ -487,8 +487,8 @@ class PrecipitationDistribution(Component):
         Notes
         -----
         One recommended procedure is to instantiate the generator, then call
-        instance.next() (in Python 2) or next(instance) (in Python 3)
-        repeatedly to get the sequence (See Examples, below).
+        next(instance) (in Python 3) repeatedly to get the sequence (See
+        Examples, below).
 
         Examples
         --------
@@ -521,7 +521,6 @@ class PrecipitationDistribution(Component):
         True
 
         An alternative way to use the generator might be:
-
 
         >>> # ^^this lets you "manually" get the next item from the iterator
         >>> _ = mg.at_grid.pop('rainfall__flux')  # remove the existing field
@@ -608,10 +607,11 @@ class PrecipitationDistribution(Component):
         """Seed the random-number generator.
 
         The examples illustrate:
-        (1) that we can get the same sequence again by re-seeding with the
-            same value (the default is zero)
-        (2) when we use a value other than the default, we get a different
-            sequence
+
+        1. That we can get the same sequence again by re-seeding with the
+           same value (the default is zero)
+        2. When we use a value other than the default, we get a different
+           sequence
 
         Examples
         --------

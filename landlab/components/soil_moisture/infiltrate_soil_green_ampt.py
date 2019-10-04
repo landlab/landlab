@@ -41,6 +41,7 @@ class SoilInfiltrationGreenAmpt(Component):
     array([ 0.20999999,  0.20999999,  0.20999999,  0.20999999,  0.20999999,
             0.20999999,  0.2001147 ,  0.2001147 ,  0.2001147 ,  0.2001147 ,
             0.2001147 ,  0.2001147 ])
+
     """
 
     _name = "SoilInfiltrationGreenAmpt"
@@ -94,8 +95,7 @@ class SoilInfiltrationGreenAmpt(Component):
         soil_bubbling_pressure=None,
         wetting_front_capillary_pressure_head=None,
     ):
-        """Kinematic wave approximation overland flow component.
-
+        """
         Parameters
         ----------
         grid : RasterModelGrid
@@ -108,12 +108,12 @@ class SoilInfiltrationGreenAmpt(Component):
             The density of the soil constituent material (i.e., lacking porosity).
         initial_soil_moisture_content : float (m**3/m**3, 0. to 1.)
             The fraction of the initial pore space filled with water.
-        soil_type : {'sand', loamy sand', 'sandy loam', 'loam', 'silt loam',
-                     'sandy clay loam', 'clay loam', 'silty clay loam',
-                     'sandy clay', 'silty clay', 'clay'}, or None
+        soil_type : str
             A soil type to automatically set soil_pore_size_distribution_index
             and soil_bubbling_pressure, using mean values from Rawls et al.,
-            1992.
+            1992. The following options are supported: 'sand', loamy sand',
+            'sandy loam', 'loam', 'silt loam', 'sandy clay loam', 'clay loam',
+            'silty clay loam', 'sandy clay', 'silty clay', or 'clay'.
         volume_fraction_coarse_fragments : float (m**3/m**3, 0. to 1.)
             The fraction of the soil made up of rocky fragments with very
             little porosity, with diameter > 2 mm.
@@ -137,6 +137,7 @@ class SoilInfiltrationGreenAmpt(Component):
             capillary pressure in the soil pores. If not set, will be
             calculated by the component from the pore size distribution and
             bubbling pressure, following Brooks and Corey.
+
         """
         super(SoilInfiltrationGreenAmpt, self).__init__(grid)
 

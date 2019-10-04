@@ -178,8 +178,7 @@ Other known pb:
 -  **Cygwin** may create some problems: see issue
    `#349 <https://github.com/landlab/landlab/issues/349>`_
 -  **GRASS GIS** and Landlab might not like each other too much:
-   :ref:`Install GRASS GIS after installing
-   Landlab <grass>`_
+   :ref:`Install GRASS GIS after installing Landlab <grass>`
 
 
 If this does not solve your issue:

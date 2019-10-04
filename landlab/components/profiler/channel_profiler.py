@@ -90,7 +90,7 @@ class ChannelProfiler(_BaseProfiler):
 
     Default behavior of this component is to extract only the largest channel
     in the single largest watershed. This would extract the following channel
-    segment (indicated by the *s).
+    segment (indicated by the `*` s).
     ::
 
         X X X X X X X X X X
@@ -268,7 +268,7 @@ class ChannelProfiler(_BaseProfiler):
         }
 
     Examples
-    ---------
+    --------
 
     Start by importing necessary modules
 

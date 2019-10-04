@@ -612,33 +612,35 @@ def get_categories_from_grid_methods(grid_type):
     values that are lists of the names of methods that have that category.
 
     Currently defined LLCATS are:
-        DEPR : deprecated
-        GINF : information about the grid as a whole
-        NINF : information about nodes
-        LINF : information about links
-        PINF : information about patches
-        CINF : information about cells
-        FINF : information about faces
-        CNINF : information about corners
-        FIELDIO : methods to access and change fields
-        FIELDADD : methods to create new fields/delete old fields
-        FIELDINF : information about fields (keys, names, etc)
-        GRAD : methods for gradients, fluxes, divergences and slopes
-        MAP : methods to map from one element type to another
-        BC : methods to interact with BCs
-        SURF : methods for surface analysis (slope, aspect, hillshade)
-        SUBSET : methods to indentify part of the grid based on conditions
-        CONN : method describing the connectivity of one element to another
-               (i.e., 'links_at_node')
-        MEAS : method describing a quantity defined on an element (i.e.,
-               'length_of_link')
-        OTHER : anything else
+
+        - DEPR : deprecated
+        - GINF : information about the grid as a whole
+        - NINF : information about nodes
+        - LINF : information about links
+        - PINF : information about patches
+        - CINF : information about cells
+        - FINF : information about faces
+        - CNINF : information about corners
+        - FIELDIO : methods to access and change fields
+        - FIELDADD : methods to create new fields/delete old fields
+        - FIELDINF : information about fields (keys, names, etc)
+        - GRAD : methods for gradients, fluxes, divergences and slopes
+        - MAP : methods to map from one element type to another
+        - BC : methods to interact with BCs
+        - SURF : methods for surface analysis (slope, aspect, hillshade)
+        - SUBSET : methods to indentify part of the grid based on conditions
+        - CONN : method describing the connectivity of one element to another
+          (i.e., 'links_at_node')
+        - MEAS : method describing a quantity defined on an element (i.e.,
+          'length_of_link')
+        - OTHER : anything else
 
     Parameters
     ----------
-    grid_type : {'ModelGrid', 'RasterModelGrid', 'HexModelGrid',
-                 'RadialModelGrid', 'VoronoiDelaunayGrid', 'NetworkModelGrid'}
-        String of raster to inspect.
+    grid_type : str
+        String of grid to inspect. Options are 'ModelGrid', 'RasterModelGrid',
+        'HexModelGrid', 'RadialModelGrid', 'VoronoiDelaunayGrid', or
+        'NetworkModelGrid'.
 
     Returns
     -------
@@ -651,6 +653,7 @@ def get_categories_from_grid_methods(grid_type):
     FAILS : dict of dicts
         contains any problematic LLCAT entries. Keys: 'MISSING' - list of names
         of any public method or property without an LLCAT declared.
+
     """
     import inspect
     import re
