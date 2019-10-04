@@ -2,6 +2,7 @@
 """Unit tests for landlab.io.netcdf module."""
 import os
 
+import netCDF4 as nc
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -9,9 +10,6 @@ from numpy.testing import assert_array_equal
 from landlab import RasterModelGrid
 from landlab.io.netcdf import NotRasterGridError, write_netcdf
 from landlab.io.netcdf.read import _get_raster_spacing
-
-import netCDF4 as nc
-
 
 _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 

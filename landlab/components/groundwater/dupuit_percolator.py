@@ -55,24 +55,6 @@ class GroundwaterDupuitPercolator(Component):
     have uneven slope. This method uses the Dupuit approximation that the
     hydraulic gradient is equal to the slope of the water table.
 
-    Parameters
-    ----------
-    grid: ModelGrid
-            Landlab ModelGrid object
-    hydraulic_conductivity: float, field name, or array of float
-            saturated hydraulic conductivity, m/s
-            Default = 0.001 m/s
-    porosity: float, field name or array of float
-            the porosity of the aquifer [-]
-            Default = 0.2
-    recharge_rate: float, field name, or array of float
-            Rate of recharge, m/s
-            Default = 1.0e-8 m/s
-    regularization_f: float
-            factor controlling the smoothness of the transition between
-            surface and subsurface flow
-            Default = 1e-2
-
     Examples
     --------
     Import the grid class and component
@@ -84,6 +66,7 @@ class GroundwaterDupuitPercolator(Component):
 
     >>> grid = RasterModelGrid((10, 10), spacing=10.0)
     >>> elev = grid.add_zeros('node', 'topographic__elevation')
+    >>> abe = grid.add_zeros('node', 'aquifer_base__elevation')
     >>> elev[:] = 5.0
     >>> gdp = GroundwaterDupuitPercolator(grid)
 
@@ -129,6 +112,7 @@ class GroundwaterDupuitPercolator(Component):
     >>> fa.run_one_step()
     >>> np.testing.assert_almost_equal(gdp.calc_sw_flux_out(),0.0005077)
 
+
     Notes
     -----
     Groundwater discharge per unit length, q, is calculated as:
@@ -154,59 +138,87 @@ class GroundwaterDupuitPercolator(Component):
 
     _name = "GroundwaterDupuitPercolator"
 
-    _input_var_names = set(("topographic__elevation", "aquifer_base__elevation"))
-
-    _output_var_names = set(
-        (
-            "aquifer__thickness",
-            "water_table__elevation",
-            "aquifer_base__gradient",
-            "hydraulic__gradient",
-            "groundwater__specific_discharge",
-            "groundwater__velocity",
-            "surface_water__specific_discharge",
-            "water_table__velocity",
-            "",
-        )
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "aquifer_base__elevation": "m",
-        "aquifer__thickness": "m",
-        "aquifer_base__gradient": "m/m",
-        "water_table__elevation": "m",
-        "hydraulic__gradient": "m/m",
-        "groundwater__specific_discharge": "m2/s",
-        "groundwater__velocity": "m/s",
-        "surface_water__specific_discharge": "m/s",
-        "water water_table__velocity": "m/s",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "aquifer_base__elevation": "node",
-        "aquifer__thickness": "node",
-        "water_table__elevation": "node",
-        "hydraulic__gradient": "link",
-        "aquifer_base__gradient": "link",
-        "groundwater__specific_discharge": "link",
-        "groundwater__velocity": "link",
-        "surface_water__specific_discharge": "node",
-        "water_table__velocity": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "elevation of land surface",
-        "aquifer_base__elevation": "elevation of impervious layer",
-        "aquifer__thickness": "thickness of saturated zone",
-        "water_table__elevation": "elevation of water table",
-        "hydraulic__gradient": "gradient of water table in link direction",
-        "aquifer_base__gradient": "gradient of the aquifer base in the link direction",
-        "groundwater__specific_discharge": "discharge per width in link dir",
-        "groundwater__velocity": "velocity of groundwater in link direction",
-        "surface_water__specific_discharge": "rate of seepage to surface",
-        "water_table__velocity": "rate of change of water table elevation",
+    _info = {
+        "aquifer__thickness": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "thickness of saturated zone",
+        },
+        "aquifer_base__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "elevation of impervious layer",
+        },
+        "aquifer_base__gradient": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m/m",
+            "mapping": "link",
+            "doc": "gradient of the aquifer base in the link directio",
+        },
+        "groundwater__specific_discharge": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m2/s",
+            "mapping": "link",
+            "doc": "discharge per width in link dir",
+        },
+        "groundwater__velocity": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m/s",
+            "mapping": "link",
+            "doc": "velocity of groundwater in link direction",
+        },
+        "hydraulic__gradient": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m/m",
+            "mapping": "link",
+            "doc": "gradient of water table in link direction",
+        },
+        "surface_water__specific_discharge": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m/s",
+            "mapping": "node",
+            "doc": "rate of seepage to surface",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "elevation of land surface",
+        },
+        "water_table__elevation": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "elevation of water table",
+        },
+        "water_table__velocity": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m/s",
+            "mapping": "node",
+            "doc": "rate of change of water table elevation",
+        },
     }
 
     def __init__(
@@ -216,6 +228,7 @@ class GroundwaterDupuitPercolator(Component):
         porosity=0.2,
         recharge_rate=1.0e-8,
         regularization_f=1e-2,
+        courant_coefficient=0.01,
     ):
         """Initialize the GroundwaterDupuitPercolator.
 
@@ -235,66 +248,41 @@ class GroundwaterDupuitPercolator(Component):
         regularization_f: float
                 factor controlling the smoothness of the transition between
                 surface and subsurface flow
+        courant_coefficient: float (-)
+            The muliplying factor on the condition that the timestep is
+            smaller than the minimum link length over groundwater flow
+            velocity. This parameter is only used with
+            ``run_with_adaptive_time_step_solver`` and must be greater than
+            zero.
         """
-        # Store grid
-        self._grid = grid
+        super(GroundwaterDupuitPercolator, self).__init__(grid)
 
         # Shorthand
         self._cores = grid.core_nodes
 
         # Create fields:
-        if "topographic__elevation" in self.grid.at_node:
-            self._elev = self.grid.at_node["topographic__elevation"]
-        else:
-            self._elev = self.grid.add_ones("node", "topographic__elevation")
 
-        if "aquifer_base__elevation" in self.grid.at_node:
-            self._base = self.grid.at_node["aquifer_base__elevation"]
-        else:
-            self._base = self.grid.add_zeros("node", "aquifer_base__elevation")
+        self._elev = self._grid.at_node["topographic__elevation"]
+        self._base = self._grid.at_node["aquifer_base__elevation"]
 
-        if "water_table__elevation" in self.grid.at_node:
-            self._wtable = self.grid.at_node["water_table__elevation"]
-        else:
-            self._wtable = self.grid.add_zeros("node", "water_table__elevation")
+        self.initialize_output_fields()
+
+        self._wtable = self._grid.at_node["water_table__elevation"]
         self._wtable[grid.closed_boundary_nodes] = 0
 
-        if "aquifer__thickness" in self.grid.at_node:
-            self._thickness = self.grid.at_node["aquifer__thickness"]
-        else:
-            self._thickness = self.grid.add_zeros("node", "aquifer__thickness")
-            self._thickness[:] = self._wtable - self._base
+        self._thickness = self._grid.at_node["aquifer__thickness"]
+        self._thickness[:] = self._wtable - self._base
         self._thickness[grid.closed_boundary_nodes] = 0
 
-        if "hydraulic__gradient" in self.grid.at_link:
-            self._hydr_grad = self.grid.at_link["hydraulic__gradient"]
-        else:
-            self._hydr_grad = self.grid.add_zeros("link", "hydraulic__gradient")
+        self._hydr_grad = self._grid.at_link["hydraulic__gradient"]
+        self._base_grad = self._grid.at_link["aquifer_base__gradient"]
 
-        if "aquifer_base__gradient" in self.grid.at_link:
-            self._base_grad = self.grid.at_link["aquifer_base__gradient"]
-        else:
-            self._base_grad = self.grid.add_zeros("link", "aquifer_base__gradient")
+        self._q = self._grid.at_link["groundwater__specific_discharge"]
+        self._qs = self._grid.at_node["surface_water__specific_discharge"]
 
-        if "groundwater__specific_discharge" in self.grid.at_link:
-            self._q = self.grid.at_link["groundwater__specific_discharge"]
-        else:
-            self._q = self.grid.add_zeros("link", "groundwater__specific_discharge")
+        self._vel = self._grid.at_link["groundwater__velocity"]
 
-        if "groundwater__velocity" in self.grid.at_link:
-            self._vel = self.grid.at_link["groundwater__velocity"]
-        else:
-            self._vel = self.grid.add_zeros("link", "groundwater__velocity")
-
-        if "surface_water__specific_discharge" in self.grid.at_node:
-            self._qs = self.grid.at_node["surface_water__specific_discharge"]
-        else:
-            self._qs = self.grid.add_zeros("node", "surface_water__specific_discharge")
-
-        if "water_table__velocity" in self.grid.at_node:
-            self._dhdt = self.grid.at_node["water_table__velocity"]
-        else:
-            self._dhdt = self.grid.add_zeros("node", "water_table__velocity")
+        self._dhdt = self._grid.at_node["water_table__velocity"]
 
         # Convert parameters to fields if needed, and store a reference
         self._K = return_array_at_link(grid, hydraulic_conductivity)
@@ -304,6 +292,29 @@ class GroundwaterDupuitPercolator(Component):
         self._r = regularization_f
         self._S = abs(grid.calc_grad_at_link(self._elev))
         self._S_node = map_max_of_node_links_to_node(grid, self._S)
+
+        # save courant_coefficient (and test)
+        self.courant_coefficient = courant_coefficient
+
+    @property
+    def courant_coefficient(self):
+        """Courant coefficient for adaptive time step.
+
+        Parameters
+        ----------
+        courant_coefficient: float (-)
+            The muliplying factor on the condition that the timestep is
+            smaller than the minimum link length over groundwater flow
+            velocity. This parameter is only used with
+            ``run_with_adaptive_time_step_solver`` and must be greater than
+            zero.
+        """
+
+    @courant_coefficient.setter
+    def courant_coefficient(self, new_val):
+        if new_val <= 0:
+            raise ValueError("courant_coefficient must be > 0.")
+        self._courant_coefficient = new_val
 
     @property
     def K(self):
@@ -431,7 +442,7 @@ class GroundwaterDupuitPercolator(Component):
             * self._grid.at_node["aquifer__thickness"][self._cores]
         )
 
-    def run_one_step(self, dt, **kwds):
+    def run_one_step(self, dt):
         """
         Advance component by one time step of size dt.
 
@@ -486,19 +497,17 @@ class GroundwaterDupuitPercolator(Component):
             self._base[self._cores] + self._thickness[self._cores]
         )
 
-    def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.01, **kwds):
+    def run_with_adaptive_time_step_solver(self, dt):
         """
         Advance component by one time step of size dt, subdividing the timestep
-        into substeps as necessary to meet a Courant condition.
+        into substeps as necessary to meet a Courant condition (defined in
+        the init).
         Note this method only returns the fluxes at the last subtimestep.
 
         Parameters
         ----------
         dt: float (time in seconds)
             The imposed timestep.
-        courant_coefficient: float (-)
-            The muliplying factor on the condition that the timestep is
-            smaller than the minimum link length over groundwater flow velocity
         """
 
         remaining_time = dt
@@ -545,7 +554,7 @@ class GroundwaterDupuitPercolator(Component):
             max_vel = max(abs(self._vel / self._n_link))
             grid_dist = min(self._grid.length_of_link)
             substep_dt = np.nanmin(
-                [courant_coefficient * grid_dist / max_vel, remaining_time]
+                [self._courant_coefficient * grid_dist / max_vel, remaining_time]
             )
 
             # Update

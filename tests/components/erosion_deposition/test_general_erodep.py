@@ -237,10 +237,10 @@ def test_q_as_field():
         solver="basic",
     )
 
-    # ensure that ed.q is everywhere equal to 1.0 m3/yr.
+    # ensure that ed._q is everywhere equal to 1.0 m3/yr.
     testing.assert_array_equal(
         np.ones(mg.number_of_nodes),
-        ed.q,
+        ed._q,
         err_msg="E/D discharge field test failed",
         verbose=True,
     )
@@ -293,10 +293,10 @@ def test_q_as_array():
         solver="basic",
     )
 
-    # ensure that ed.q is everywhere equal to 1.0 m3/yr.
+    # ensure that ed._q is everywhere equal to 1.0 m3/yr.
     testing.assert_array_equal(
         np.ones(mg.number_of_nodes),
-        ed.q,
+        ed._q,
         err_msg="E/D discharge array test failed",
         verbose=True,
     )
@@ -351,7 +351,7 @@ def test_sediment__flux_already_created():
     # ensure that 'sediment__flux' field is everywhere equal to 1.0 m3/yr.
     testing.assert_array_equal(
         np.ones(mg.number_of_nodes),
-        ed.qs,
+        ed._qs,
         err_msg="E/D sediment flux field test failed",
         verbose=True,
     )

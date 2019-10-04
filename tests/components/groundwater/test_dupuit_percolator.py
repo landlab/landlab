@@ -36,6 +36,8 @@ def test_simple_water_table():
     """
     boundaries = {"top": "closed", "left": "closed", "bottom": "closed"}
     rg = RasterModelGrid((3, 3), bc=boundaries)
+    rg.add_zeros("node", "aquifer_base__elevation")
+    rg.add_ones("node", "topographic__elevation")
     gdp = GroundwaterDupuitPercolator(
         rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01
     )
@@ -43,9 +45,6 @@ def test_simple_water_table():
         gdp.run_one_step(1e3)
 
     assert_equal(np.round(gdp._thickness[4], 5), 0.001)
-
-    # Re-instantiate to test the case when the necessary fields already exist
-    gdp = GroundwaterDupuitPercolator(rg)
 
 
 def test_simple_surface_leakage():
@@ -60,7 +59,8 @@ def test_simple_surface_leakage():
     """
     grid = RasterModelGrid((3, 3), xy_spacing=1.0)
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
-
+    grid.add_zeros("node", "aquifer_base__elevation")
+    grid.add_ones("node", "topographic__elevation")
     gdp = GroundwaterDupuitPercolator(grid, recharge_rate=1.0e-6)
 
     for i in range(1000):
@@ -82,16 +82,15 @@ def test_simple_water_table_adaptive_dt():
     """
     boundaries = {"top": "closed", "left": "closed", "bottom": "closed"}
     rg = RasterModelGrid((3, 3), bc=boundaries)
+    rg.add_zeros("node", "aquifer_base__elevation")
+    rg.add_ones("node", "topographic__elevation")
     gdp = GroundwaterDupuitPercolator(
-        rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01
+        rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01, courant_coefficient=0.01
     )
     for i in range(10):
-        gdp.run_with_adaptive_time_step_solver(1e4, courant_coefficient=0.01)
+        gdp.run_with_adaptive_time_step_solver(1e4)
 
     assert_equal(np.round(gdp._thickness[4], 5), 0.001)
-
-    # Re-instantiate to test the case when the necessary fields already exist
-    gdp = GroundwaterDupuitPercolator(rg)
 
 
 def test_conservation_of_mass_adaptive_dt():
@@ -109,13 +108,18 @@ def test_conservation_of_mass_adaptive_dt():
     grid = RasterModelGrid((3, 10), spacing=10.0)
     grid.set_closed_boundaries_at_grid_edges(True, True, False, True)
     elev = grid.add_zeros("node", "topographic__elevation")
+    grid.add_zeros("node", "aquifer_base__elevation")
+
     elev[:] = grid.x_of_node / 100 + 1
     wt = grid.add_zeros("node", "water_table__elevation")
     wt[:] = elev
 
     # initialize the groundwater model
     gdp = GroundwaterDupuitPercolator(
-        grid, hydraulic_conductivity=0.0005, recharge_rate=1e-7
+        grid,
+        hydraulic_conductivity=0.0005,
+        recharge_rate=1e-7,
+        courant_coefficient=0.01,
     )
     fa = FlowAccumulator(grid, runoff_rate="surface_water__specific_discharge")
 
@@ -128,7 +132,7 @@ def test_conservation_of_mass_adaptive_dt():
 
     dt = 1e4
     for i in range(500):
-        gdp.run_with_adaptive_time_step_solver(dt, courant_coefficient=0.01)
+        gdp.run_with_adaptive_time_step_solver(dt)
         fa.run_one_step()
 
         recharge_flux += gdp.calc_recharge_flux_in() * dt

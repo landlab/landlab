@@ -9,27 +9,21 @@ import os
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from landlab import CLOSED_BOUNDARY, ModelParameterDictionary, RasterModelGrid
+from landlab import CLOSED_BOUNDARY, RasterModelGrid
 from landlab.components import FlowAccumulator, SedDepEroder
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_sed_dep():
-    input_file = os.path.join(_THIS_DIR, "sed_dep_params.txt")
-    inputs = ModelParameterDictionary(input_file, auto_type=True)
-    nrows = inputs.read_int("nrows")
-    ncols = inputs.read_int("ncols")
-    dx = inputs.read_float("dx")
-    uplift_rate = inputs.read_float("uplift_rate")
-
-    runtime = inputs.read_float("total_time")
-    dt = inputs.read_float("dt")
+    uplift_rate = 0.0001
+    runtime = 20000.0
+    dt = 5000.0
 
     nt = int(runtime // dt)
     uplift_per_step = uplift_rate * dt
 
-    mg = RasterModelGrid((nrows, ncols), xy_spacing=(dx, dx))
+    mg = RasterModelGrid((50, 50), xy_spacing=1000.0)
 
     mg.add_zeros("topographic__elevation", at="node")
     z = np.loadtxt(os.path.join(_THIS_DIR, "seddepinit.txt"))
@@ -38,12 +32,26 @@ def test_sed_dep():
     mg.set_closed_boundaries_at_grid_edges(True, False, True, False)
 
     fr = FlowAccumulator(mg, flow_director="D8")
-    sde = SedDepEroder(mg, **inputs)
+    sde = SedDepEroder(
+        mg,
+        K_sp=1.0e-6,
+        b_sp=0.5,
+        c_sp=1.0,
+        Qc="MPM",
+        k_Q=2.5e-7,
+        k_w=2.5,
+        mannings_n=0.05,
+        Dchar=0.05,
+        threshold_Shields=0.05,
+        sed_dependency_type="almost_parabolic",
+        set_threshold_from_Dchar=True,
+        g=9.81,
+    )
 
     for i in range(nt):
         mg.at_node["topographic__elevation"][mg.core_nodes] += uplift_per_step
         mg = fr.run_one_step()
-        mg, _ = sde.erode(dt)
+        mg, _ = sde.run_one_step(dt)
 
     z_tg = np.loadtxt(os.path.join(_THIS_DIR, "seddepz_tg.txt"))
 

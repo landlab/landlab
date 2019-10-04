@@ -53,7 +53,7 @@ def test_anti_aximuth_greq_2pi():
 
     nf = NormalFault(grid, **param_dict)
 
-    assert nf.fault_anti_azimuth > 2.0 * np.pi
+    assert nf._fault_anti_azimuth > 2.0 * np.pi
 
     out = np.array(
         [

@@ -254,26 +254,31 @@ class SpatialPrecipitationDistribution(Component):
         doi={10.5194/gmd-2018-86}
         }"""
 
-    _input_var_names = ("topographic__elevation",)
-
-    _output_var_names = ("rainfall__flux", "rainfall__total_depth_per_year")
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "rainfall__flux": "mm/hr",
-        "rainfall__total_depth_per_year": "mm/yr",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "rainfall__flux": "node",
-        "rainfall__total_depth_per_year": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "rainfall__flux": "Depth of water delivered per unit time in each storm",
-        "rainfall__total_depth_per_year": "Depth of water delivered in total in each model year",
+    _info = {
+        "rainfall__flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "mm/hr",
+            "mapping": "node",
+            "doc": "Depth of water delivered per unit time in each storm",
+        },
+        "rainfall__total_depth_per_year": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "mm/yr",
+            "mapping": "node",
+            "doc": "Depth of water delivered in total in each model year",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
     }
 
     def __init__(
@@ -295,7 +300,8 @@ class SpatialPrecipitationDistribution(Component):
             to apply.
 
         """
-        self._grid = grid
+        super(SpatialPrecipitationDistribution, self).__init__(grid)
+
         gaugecount = (grid.status_at_node != CLOSED_BOUNDARY).sum()
         self._gauge_dist_km = np.zeros(gaugecount, dtype="float")
         self._temp_dataslots1 = np.zeros(gaugecount, dtype="float")
@@ -312,21 +318,21 @@ class SpatialPrecipitationDistribution(Component):
         # build LL fields:
         self.initialize_output_fields()
         # bind the field to the internal variable:
-        self._rain_int_gauge = self.grid.at_node["rainfall__flux"]
-        self._total_rf_year = self.grid.at_node["rainfall__total_depth_per_year"]
+        self._rain_int_gauge = self._grid.at_node["rainfall__flux"]
+        self._total_rf_year = self._grid.at_node["rainfall__total_depth_per_year"]
 
         # store some info on the open node grid extent:
-        open_nodes = self.grid.status_at_node != CLOSED_BOUNDARY
-        self._minx = self.grid.node_x[open_nodes].min()
-        self._maxx = self.grid.node_x[open_nodes].max()
-        self._miny = self.grid.node_y[open_nodes].min()
-        self._maxy = self.grid.node_y[open_nodes].max()
+        open_nodes = self._grid.status_at_node != CLOSED_BOUNDARY
+        self._minx = self._grid.node_x[open_nodes].min()
+        self._maxx = self._grid.node_x[open_nodes].max()
+        self._miny = self._grid.node_y[open_nodes].min()
+        self._maxy = self._grid.node_y[open_nodes].max()
         self._widthx = self._maxx - self._minx
         self._widthy = self._maxy - self._miny
-        self._running_total_rainfall_this_year = self.grid.zeros("node")
-        self._running_total_rainfall_this_season = self.grid.zeros("node")
+        self._running_total_rainfall_this_year = self._grid.zeros("node")
+        self._running_total_rainfall_this_season = self._grid.zeros("node")
 
-        self._open_area = self.grid.cell_area_at_node[open_nodes].sum()
+        self._open_area = self._grid.cell_area_at_node[open_nodes].sum()
         self._scaling_to_WG = self._open_area / 275710702.0
         # ^ this is the relative size of the catchment compared to WG
 
@@ -959,8 +965,8 @@ class SpatialPrecipitationDistribution(Component):
         self._phantom_storm_count = 0
         # ^this property tracks the number of storms in the run that received
         # zero intensity (and thus didn't really exist)
-        self._opennodes = self.grid.status_at_node != CLOSED_BOUNDARY
-        self._total_rainfall_last_season = self.grid.zeros("node")
+        self._opennodes = self._grid.status_at_node != CLOSED_BOUNDARY
+        self._total_rainfall_last_season = self._grid.zeros("node")
 
         # safety check for init conds:
         if yield_storms:
@@ -992,12 +998,12 @@ class SpatialPrecipitationDistribution(Component):
         opennodes = self._opennodes
         num_opennodes = np.sum(opennodes)
         IDs_open = np.where(opennodes)[0]  # need this later
-        X1 = self.grid.node_x
-        Y1 = self.grid.node_y
+        X1 = self._grid.node_x
+        Y1 = self._grid.node_y
         Xin = X1[opennodes]
         Yin = Y1[opennodes]
         try:
-            Zz = self.grid.at_node["topographic__elevation"][opennodes]
+            Zz = self._grid.at_node["topographic__elevation"][opennodes]
         except KeyError:
             assert self._orographic_scenario is None
         numgauges = Xin.size  # number of rain gauges in the basin.

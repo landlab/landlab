@@ -335,6 +335,13 @@ def test_latero_steady_inlet():
     ramp += np.random.random_sample(mg.number_of_nodes) * 0.8
     z += ramp
 
+    fa = FlowAccumulator(
+        mg,
+        surface="topographic__elevation",
+        flow_director="FlowDirectorD8",
+        runoff_rate=None,
+        depression_finder=None,
+    )
     # set inlet node = true, provide inlet node id, inlet drainage area, and inlet qs.
     latero = LateralEroder(
         mg,
@@ -346,13 +353,7 @@ def test_latero_steady_inlet():
         inlet_area=500,
         qsinlet=2.5,
     )
-    fa = FlowAccumulator(
-        mg,
-        surface="topographic__elevation",
-        flow_director="FlowDirectorD8",
-        runoff_rate=None,
-        depression_finder=None,
-    )
+
     for i in range(2000):
         fa.run_one_step()  # flow accumulator
         # erode the landscape with lateral erosion

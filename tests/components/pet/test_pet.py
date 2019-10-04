@@ -10,7 +10,7 @@ _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
 def test_name(pet):
-    assert pet.name == "Potential Evapotranspiration"
+    assert pet.name == "PotentialEvapotranspiration"
 
 
 def test_input_var_names(pet):
