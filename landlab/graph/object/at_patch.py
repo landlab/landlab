@@ -23,12 +23,3 @@ def get_nodes_at_patch(graph):
     _get_nodes_at_patch(graph.links_at_patch, graph.nodes_at_link, nodes_at_patch)
 
     return nodes_at_patch
-
-
-def get_links_at_patch(nodes_at_link, links_at_patch, out=None):
-    if out is None:
-        out = np.empty_like(links_at_patch)
-
-    _get_links_at_patch(nodes_at_link, links_at_patch, out)
-
-    return out

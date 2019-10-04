@@ -12,7 +12,7 @@ FlowDirectorSteepest instead.
 
 import numpy
 
-from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, VoronoiDelaunayGrid
+from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY
 from landlab.components.flow_director import flow_direction_DN
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 

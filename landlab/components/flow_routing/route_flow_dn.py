@@ -19,7 +19,6 @@ import warnings
 # from landlab.components.flow_director import flow_direction_DN
 # from landlab.components.flow_accum import flow_accum_bw
 # from landlab import FIXED_VALUE_BOUNDARY, FIXED_GRADIENT_BOUNDARY
-from landlab import VoronoiDelaunayGrid  # for type tests
 from landlab.components.flow_accum.flow_accumulator import FlowAccumulator
 from landlab.utils.decorators import use_file_name_or_kwds
 

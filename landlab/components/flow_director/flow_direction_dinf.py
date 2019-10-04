@@ -12,7 +12,6 @@ KRB Feb 2017
 
 import numpy as np
 
-from landlab import VoronoiDelaunayGrid  # for type tests
 from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 from landlab.core.utils import as_id_array
 from landlab.utils.return_array import return_array_at_node

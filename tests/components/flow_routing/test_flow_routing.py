@@ -187,7 +187,7 @@ def test_voronoi():
     outlet_node = 11
     z = np.full(vmg.number_of_nodes, 10.0)
 
-    all_bounds_but_one = [ 0, 1, 2, 3, 4, 7, 14, 15, 16, 17, 18]
+    all_bounds_but_one = [0, 1, 2, 3, 4, 7, 14, 15, 16, 17, 18]
     vmg.status_at_node[all_bounds_but_one] = vmg.BC_NODE_IS_CLOSED
     z[outlet_node] = 0.0  # outlet
     z[vmg.core_nodes] = [7.0, 8.0, 6.0, 3.0, 1.0, 5.0, 4.0]
@@ -227,7 +227,7 @@ def test_voronoi_closedinternal():
 
     all_bounds_but_one = [0, 1, 2, 3, 4, 7, 14, 15, 16, 17, 18]
     vmg.status_at_node[all_bounds_but_one] = vmg.BC_NODE_IS_CLOSED
-    vmg.status_at_node[9] = vmg.BC_NODE_IS_CLOSED # new internal closed
+    vmg.status_at_node[9] = vmg.BC_NODE_IS_CLOSED  # new internal closed
     z[outlet_node] = 0.0
     z[vmg.core_nodes] = [7.0, 8.0, 6.0, 1.0, 5.0, 4.0]
     vmg.add_field("topographic__elevation", z, at="node", units="-")
