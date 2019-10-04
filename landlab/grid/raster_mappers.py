@@ -23,8 +23,6 @@ Mapping functions unique to raster grids
 
 """
 
-from __future__ import division
-
 import numpy as np
 
 from landlab.grid.structured_quad import links
