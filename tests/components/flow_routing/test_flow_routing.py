@@ -182,28 +182,18 @@ def test_internal_closed(internal_closed):
 
 def test_voronoi():
     """Test routing on a (radial) voronoi."""
-    vmg = RadialModelGrid(n_rings=2, nodes_in_first_ring=3)
-    z = np.full(20, 10.0, dtype=float)
-    # vmg.status_at_node[8:] = vmg.BC_NODE_IS_CLOSED
-    all_bounds_but_one = np.array((0, 1, 2, 3, 4, 7, 11, 15, 16, 17, 18, 19))
+    vmg = RadialModelGrid(n_rings=2, nodes_in_first_ring=6)
+
+    outlet_node = 11
+    z = np.full(vmg.number_of_nodes, 10.0)
+
+    all_bounds_but_one = [ 0, 1, 2, 3, 4, 7, 14, 15, 16, 17, 18]
     vmg.status_at_node[all_bounds_but_one] = vmg.BC_NODE_IS_CLOSED
-    # z[7] = 0.  # outlet
-    z[12] = 0.0  # outlet
-    # inner_elevs = (3., 1., 4., 5., 6., 7., 8.)
-    inner_elevs = (8.0, 7.0, 3.0, 1.0, 6.0, 4.0, 5.0)
-    # z[:7] = np.array(inner_elevs)
-    z[vmg.core_nodes] = np.array(inner_elevs)
-    vmg.add_field("node", "topographic__elevation", z, units="-")
+    z[outlet_node] = 0.0  # outlet
+    z[vmg.core_nodes] = [7.0, 8.0, 6.0, 3.0, 1.0, 5.0, 4.0]
+    vmg.add_field("topographic__elevation", z, at="node", units="-")
     with pytest.deprecated_call():
         fr = FlowRouter(vmg)
-
-    #    nodes_contributing = [np.array([0, 3, 4, 5]),
-    #                          np.array([0, 1, 2, 3, 4, 5, 6]),
-    #                          np.array([2, ]),
-    #                          np.array([3, ]),
-    #                          np.array([4, ]),
-    #                          np.array([5, ]),
-    #                          np.array([6, ])]
 
     # The follow list contains arrays with the IDs of cells contributing flow
     # to nodes 5, 6, 8, 9, 10, 13, and 14, respectively (which correspond to
@@ -211,47 +201,50 @@ def test_voronoi():
     cells_contributing = [
         np.array([0]),
         np.array([1]),
-        np.array([1, 2, 4, 6]),
+        np.array([2]),
+        np.array([0, 3, 2, 5]),
         np.array([0, 1, 2, 3, 4, 5, 6]),
-        np.array([4]),
         np.array([5]),
         np.array([6]),
     ]
 
-    A_target_core = np.zeros(vmg.number_of_core_nodes)
-    for i in range(7):
+    A_target_core = np.zeros(len(vmg.core_nodes))
+    for i in range(len(cells_contributing)):
         A_target_core[i] = vmg.area_of_cell[cells_contributing[i]].sum()
     A_target_outlet = vmg.area_of_cell.sum()
     fr.run_one_step()
+
     assert vmg.at_node["drainage_area"][vmg.core_nodes] == pytest.approx(A_target_core)
-    assert vmg.at_node["drainage_area"][12] == pytest.approx(A_target_outlet)
+    assert vmg.at_node["drainage_area"][11] == pytest.approx(A_target_outlet)
 
 
 def test_voronoi_closedinternal():
     """Test routing on a (radial) voronoi, but with a closed interior node."""
-    vmg = RadialModelGrid(n_rings=2, nodes_in_first_ring=3)
-    z = np.full(20, 10.0, dtype=float)
-    all_bounds_but_one = np.array((0, 1, 2, 3, 4, 7, 11, 15, 16, 17, 18, 19))
+    vmg = RadialModelGrid(n_rings=2, nodes_in_first_ring=6)
+
+    outlet_node = 11
+    z = np.full(vmg.number_of_nodes, 10.0)
+
+    all_bounds_but_one = [0, 1, 2, 3, 4, 7, 14, 15, 16, 17, 18]
     vmg.status_at_node[all_bounds_but_one] = vmg.BC_NODE_IS_CLOSED
-    vmg.status_at_node[8] = vmg.BC_NODE_IS_CLOSED # new internal closed
-    z[12] = 0.0  # outlet
-    inner_elevs = (8.0, 7.0, 1.0, 6.0, 4.0, 5.0)
-    z[vmg.core_nodes] = np.array(inner_elevs)
-    vmg.add_field("node", "topographic__elevation", z, units="-")
+    vmg.status_at_node[9] = vmg.BC_NODE_IS_CLOSED # new internal closed
+    z[outlet_node] = 0.0
+    z[vmg.core_nodes] = [7.0, 8.0, 6.0, 1.0, 5.0, 4.0]
+    vmg.add_field("topographic__elevation", z, at="node", units="-")
     with pytest.deprecated_call():
         fr = FlowRouter(vmg)
 
     cells_contributing = [
         np.array([0]),
         np.array([1]),
-        np.array([0, 1, 3, 4, 5, 6]),
-        np.array([1, 4]),
-        np.array([1, 4, 5, 6]),
-        np.array([1, 4, 6]),
+        np.array([0, 2]),
+        np.array([0, 1, 2, 4, 5, 6]),
+        np.array([0, 2, 5]),
+        np.array([0, 2, 5, 6]),
     ]
 
-    A_target_internal = np.zeros(vmg.number_of_core_nodes, dtype=float)
-    for i in range(6):
+    A_target_internal = np.zeros(len(vmg.core_nodes))
+    for i in range(len(cells_contributing)):
         A_target_internal[i] = vmg.area_of_cell[cells_contributing[i]].sum()
     A_target_outlet = vmg.area_of_cell[vmg.cell_at_node[vmg.core_nodes]].sum()
     fr.run_one_step()
@@ -259,4 +252,4 @@ def test_voronoi_closedinternal():
     assert vmg.at_node["drainage_area"][vmg.core_nodes] == pytest.approx(
         A_target_internal
     )
-    assert vmg.at_node["drainage_area"][12] == pytest.approx(A_target_outlet)
+    assert vmg.at_node["drainage_area"][outlet_node] == pytest.approx(A_target_outlet)
