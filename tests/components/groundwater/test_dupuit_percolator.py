@@ -37,7 +37,7 @@ def test_simple_water_table():
     boundaries = {"top": "closed", "left": "closed", "bottom": "closed"}
     rg = RasterModelGrid((3, 3), bc=boundaries)
     rg.add_zeros("node", "aquifer_base__elevation")
-    rg.add_zeros("node", "topographic__elevation")
+    rg.add_ones("node", "topographic__elevation")
     gdp = GroundwaterDupuitPercolator(
         rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01
     )
@@ -60,7 +60,7 @@ def test_simple_surface_leakage():
     grid = RasterModelGrid((3, 3), xy_spacing=1.0)
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
     grid.add_zeros("node", "aquifer_base__elevation")
-    grid.add_zeros("node", "topographic__elevation")
+    grid.add_ones("node", "topographic__elevation")
     gdp = GroundwaterDupuitPercolator(grid, recharge_rate=1.0e-6)
 
     for i in range(1000):
@@ -83,7 +83,7 @@ def test_simple_water_table_adaptive_dt():
     boundaries = {"top": "closed", "left": "closed", "bottom": "closed"}
     rg = RasterModelGrid((3, 3), bc=boundaries)
     rg.add_zeros("node", "aquifer_base__elevation")
-    rg.add_zeros("node", "topographic__elevation")
+    rg.add_ones("node", "topographic__elevation")
     gdp = GroundwaterDupuitPercolator(
         rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01
     )
