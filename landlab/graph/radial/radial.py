@@ -1,5 +1,6 @@
 import numpy as np
 
+from ...core.utils import as_id_array
 from ...utils.decorators import read_only_array
 from ..voronoi.voronoi import DelaunayGraph
 
@@ -360,6 +361,4 @@ class RadialGraph(RadialGraphExtras, DelaunayGraph):
 
         LLCATS: NINF MEAS
         """
-        return np.asarray(
-            self._shape[1] * 2 ** np.arange(self.number_of_rings), dtype=np.int
-        )
+        return as_id_array(self._shape[1] * 2 ** np.arange(self.number_of_rings))

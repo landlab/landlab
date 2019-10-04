@@ -4,6 +4,7 @@ import numpy as np
 import xarray as xr
 from scipy.spatial import Delaunay, Voronoi
 
+from ...core.utils import as_id_array
 from ...utils import jaggedarray
 from ..sort.sort import reverse_one_to_one
 from ..sort.intpair import pair_isin
@@ -59,7 +60,7 @@ class VoronoiDelaunay(object):
         mesh.update(
             {
                 "nodes_at_link": xr.DataArray(
-                    np.asarray(voronoi.ridge_points, dtype=int), dims=("link", "Two")
+                    as_id_array(voronoi.ridge_points), dims=("link", "Two")
                 ),
                 "nodes_at_patch": xr.DataArray(
                     np.asarray(delaunay.simplices, dtype=int), dims=("patch", "Three")

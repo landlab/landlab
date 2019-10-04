@@ -55,6 +55,7 @@ from functools import lru_cache
 
 import numpy as np
 
+from ...core.utils import as_id_array
 from ...utils.decorators import cache_result_in_object, make_return_array_immutable
 from ..graph import Graph
 from ..voronoi.voronoi import DelaunayGraph
@@ -477,27 +478,23 @@ class HorizontalHexTriGraph:
             nodes_at_south_edge = np.arange(southwest, southeast)
 
         return (
-            np.asarray(
+            as_id_array(
                 northeast
                 - np.arange(northeast - northwest + 1, east - west + 1).cumsum()[::-1],
-                dtype=np.int,
             ),
             np.arange(northeast, northwest, -1),
-            np.asarray(
+            as_id_array(
                 west
                 + np.arange(east - west + 1, northeast - northwest + 1, -1).cumsum()[
                     ::-1
                 ],
-                dtype=np.int,
             ),
-            np.asarray(
+            as_id_array(
                 southwest + np.arange(n_cols, n_rows // 2 + n_cols).cumsum()[::-1],
-                dtype=np.int,
             ),
             nodes_at_south_edge,
-            np.asarray(
+            as_id_array(
                 east - np.arange(n_cols + n_rows // 2, n_cols, -1).cumsum()[::-1],
-                dtype=np.int,
             ),
         )
 
@@ -648,8 +645,6 @@ class VerticalHexTriGraph:
         (array([2]), array([5]), array([6]), array([4]), array([1]), array([0]))
         >>> VerticalHexTriGraph.nodes_at_edge((2, 4))
         (array([2, 6]), array([10]), array([11, 9]), array([7]), array([3, 1]), array([0]))
-        >>> VerticalHexTriGraph.nodes_at_edge((2, 2))
-        (array([0, 2]), array([], dtype=int64), array([4]), array([3]), array([1]), array([], dtype=int64))
         """
         n_rows, n_cols = shape
         (
@@ -666,15 +661,11 @@ class VerticalHexTriGraph:
 
         return (
             np.arange(southeast, northeast, n_cols),
-            np.asarray(north - np.arange(1, (n_cols + 1) // 2).cumsum(), dtype=int)[
-                ::-1
-            ],
-            np.asarray(north - np.arange(1, (n_cols + 2) // 2).cumsum() + 1, dtype=int),
+            as_id_array(north - np.arange(1, (n_cols + 1) // 2).cumsum())[::-1],
+            as_id_array(north - np.arange(1, (n_cols + 2) // 2).cumsum() + 1),
             np.arange(northwest, southwest, -n_cols),
-            np.asarray(south + np.arange(1, (n_cols + 2) // 2).cumsum(), dtype=int)[
-                ::-1
-            ],
-            np.asarray(south + np.arange(1, (n_cols + 1) // 2).cumsum() - 1, dtype=int),
+            as_id_array(south + np.arange(1, (n_cols + 2) // 2).cumsum())[::-1],
+            as_id_array(south + np.arange(1, (n_cols + 1) // 2).cumsum() - 1),
         )
 
 
