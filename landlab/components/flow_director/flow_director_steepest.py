@@ -41,7 +41,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
        *'flow__link_to_receiver_node'*
     -  Boolean node array of all local lows: *'flow__sink_flag'*
     -  Link array identifing if flow goes with (1) or against (-1) the link
-       direction: *'flow_link_direction'*
+       direction: *'flow__link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -71,8 +71,8 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
     >>> mg.at_node['flow__link_to_receiver_node']
     array([-1, -1, -1, -1,  3, -1, -1, -1, -1])
-    >>> mg.at_node['flow__sink_flag']
-    array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=int8)
+    >>> mg.at_node['flow__sink_flag'].astype(int)
+    array([1, 1, 1, 1, 0, 1, 1, 1, 1])
     >>> mg_2 = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     >>> topographic__elevation = np.array([0.,  0.,  0., 0.,
     ...                                    0., 21., 10., 0.,
@@ -94,11 +94,11 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
            12, 14, 10, 15,
            16, 17, 18, 19])
 
-    And the at-link field ``'flow_link_direction'`` indicates if the flow along
+    And the at-link field ``'flow__link_direction'`` indicates if the flow along
     the link is with or against the direction indicated by ``'link_dirs_at_node'``
     (from tail node to head node).
 
-    >>> mg_2.at_link['flow_link_direction']
+    >>> mg_2.at_link['flow__link_direction']
     array([ 0,  0,  0,  0, -1, -1,  0,  0,  0,  0,  0,  0, -1,  0,  0,  1,  0,
         0,  0, -1,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0], dtype=int8)
 
@@ -236,12 +236,12 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
        -1, 12, 14, 16, -1,
          -1, 25, 27, -1,
            -1, -1, -1])
-    >>> mg.at_node['flow__sink_flag']
+    >>> mg.at_node['flow__sink_flag'].astype(int)
     array([1, 1, 1,
           1, 0, 0, 1,
          1, 0, 0, 0, 1,
           1, 0, 0, 1,
-            1, 1, 1], dtype=int8)
+            1, 1, 1])
     >>> receiver = fd.direct_flow()
     >>> receiver
     array([ 0,  1,  2,
@@ -253,6 +253,57 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     _name = "FlowDirectorSteepest"
 
+    _info = {
+        "flow__link_direction": {
+            "dtype": np.int8,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "link",
+            "doc": "Direction of flow on link. A value of -1 indicates that water flow goes from head node to tail node, while a value of 1 indicates that water flow goes from tail node to head node.",
+        },
+        "flow__link_to_receiver_node": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__sink_flag": {
+            "dtype": bool,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Boolean array, True at local lows",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__steepest_slope": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of steepest *downhill* slopes",
+        },
+    }
+
     def __init__(self, grid, surface="topographic__elevation"):
         """
         Parameters
@@ -263,20 +314,12 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             The surface to direct flow across, default is field at node:
             topographic__elevation,.
         """
-        self.method = "D4"
+        self._method = "D4"
         super(FlowDirectorSteepest, self).__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
 
-        # create a : 'flow_link_direction' field if it does not exist yest
-        if "flow_link_direction" not in self._grid.at_link:
-            self._flow_link_direction = grid.add_field(
-                "flow_link_direction",
-                grid.zeros(at="link", dtype=np.int8),
-                at="link",
-                dtype=int,
-            )
-        else:
-            self._flow_link_direction = grid.at_link["flow_link_direction"]
+        # get 'flow__link_direction' field
+        self._flow_link_direction = grid.at_link["flow__link_direction"]
 
         self.updated_boundary_conditions()
 
@@ -287,9 +330,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         Call this if boundary conditions on the grid are updated after
         the component is instantiated.
         """
-        self._active_links = self.grid.active_links
-        self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
-        self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
+        self._active_links = self._grid.active_links
+        self._activelink_tail = self._grid.node_at_link_tail[self._grid.active_links]
+        self._activelink_head = self._grid.node_at_link_head[self._grid.active_links]
 
     def run_one_step(self):
         """Find flow directions and save to the model grid.
@@ -323,7 +366,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self._changed_surface()
 
         # step 1. Calculate link slopes at active links only.
-        all_grads = -self._grid.calc_grad_at_link(self.surface_values)
+        all_grads = -self._grid.calc_grad_at_link(self._surface_values)
         link_slope = all_grads[self._grid.active_links]
 
         # Step 2. Find and save base level nodes.
@@ -336,7 +379,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
         # Calculate flow directions
         receiver, steepest_slope, sink, recvr_link = flow_direction_DN.flow_directions(
-            self.surface_values,
+            self._surface_values,
             self._active_links,
             self._activelink_tail,
             self._activelink_head,
@@ -369,10 +412,10 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self._flow_link_direction[:] = 0
 
         # identify where flow is active on links
-        is_active_flow_link = self.links_to_receiver != BAD_INDEX_VALUE
+        is_active_flow_link = self._links_to_receiver != BAD_INDEX_VALUE
 
         # make an array that says which link ID is active
-        active_flow_links = self.links_to_receiver[is_active_flow_link]
+        active_flow_links = self._links_to_receiver[is_active_flow_link]
 
         # for each of those links, the position is the upstream node
         upstream_node_of_active_flow_link = np.where(is_active_flow_link)[0]
@@ -535,7 +578,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
                [ 0,  0,  0,  0],
                [ 0,  0,  0,  0]], dtype=int8)
         """
-        flow_link_direction_at_node = self.flow_link_direction[self._grid.links_at_node]
+        flow_link_direction_at_node = self._flow_link_direction[
+            self._grid.links_at_node
+        ]
         flow_to_bad = self._grid.links_at_node == BAD_INDEX_VALUE
         flow_link_direction_at_node[flow_to_bad] = 0
 

@@ -3,7 +3,7 @@ import os
 
 import numpy as np
 
-from landlab import ModelParameterDictionary, RasterModelGrid
+from landlab import RasterModelGrid
 from landlab.components import (
     FlowAccumulator,
     PrecipitationDistribution,
@@ -14,21 +14,17 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_storms():
-    input_file_string = os.path.join(_THIS_DIR, "drive_sp_params_storms.txt")
-    inputs = ModelParameterDictionary(input_file_string, auto_type=True)
-    nrows = inputs.read_int("nrows")
-    ncols = inputs.read_int("ncols")
-    dx = inputs.read_float("dx")
-    dt = inputs.read_float("dt")
-    uplift = inputs.read_float("uplift_rate")
 
-    mean_duration = inputs.read_float("mean_storm")
-    mean_interstorm = inputs.read_float("mean_interstorm")
-    mean_depth = inputs.read_float("mean_depth")
+    dt = 500.0
+    uplift = 0.0001
 
-    storm_run_time = inputs.read_float("storm_run_time")
-    delta_t = inputs.read_float("delta_t")
-    mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
+    mean_duration = 100.0
+    mean_interstorm = 400.0
+    mean_depth = 5.0
+
+    storm_run_time = 3000000.0
+    delta_t = 500.0
+    mg = RasterModelGrid((10, 10), xy_spacing=1000.0)
 
     mg.add_zeros("topographic__elevation", at="node")
     z = mg.zeros(at="node")
@@ -43,7 +39,14 @@ def test_storms():
         delta_t=delta_t,
     )
     fr = FlowAccumulator(mg, flow_director="D8")
-    sp = StreamPowerEroder(mg, **inputs)
+    sp = StreamPowerEroder(
+        mg,
+        K_sp=0.0001,
+        m_sp=0.5,
+        n_sp=1.0,
+        threshold_sp=1.0,
+        discharge_field="surface_water__discharge",
+    )
 
     for (
         interval_duration,

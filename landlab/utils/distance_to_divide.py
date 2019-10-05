@@ -208,11 +208,11 @@ def calculate_distance_to_divide(
 
         else:
             # non-existant links are coded with -1
-            useable_recievers = np.where(reciever != BAD_INDEX_VALUE)[0]
+            useable_receivers = np.where(reciever != BAD_INDEX_VALUE)[0]
 
-            for idx in range(len(useable_recievers)):
-                r = reciever[useable_recievers][idx]
-                fll = flow_link_lengths[node][useable_recievers][idx]
+            for idx in range(len(useable_receivers)):
+                r = reciever[useable_receivers][idx]
+                fll = flow_link_lengths[node][useable_receivers][idx]
 
                 # if not processing an outlet node.
                 if r != node:

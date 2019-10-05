@@ -11,6 +11,7 @@ from numpy.testing import assert_array_equal
 
 from landlab import HexModelGrid, RasterModelGrid
 from landlab.components import LinearDiffuser
+from landlab.components.depression_finder.lake_mapper import DepressionFinderAndRouter
 from landlab.components.flow_accum import LossyFlowAccumulator
 from landlab.components.flow_director import (
     FlowDirectorD8,
@@ -18,7 +19,6 @@ from landlab.components.flow_director import (
     FlowDirectorMFD,
     FlowDirectorSteepest,
 )
-from landlab.components.flow_routing.lake_mapper import DepressionFinderAndRouter
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -78,7 +78,6 @@ def test_run_with_2_fn_args():
         mg,
         "topographic__elevation",
         flow_director=FlowDirectorSteepest,
-        routing="D4",
         loss_function=mylossfunction,
     )
     fa.run_one_step()
@@ -117,7 +116,6 @@ def test_run_with_3_fn_args():
         mg,
         "topographic__elevation",
         flow_director=FlowDirectorSteepest,
-        routing="D4",
         loss_function=mylossfunction,
     )
     fa.run_one_step()
@@ -397,7 +395,6 @@ def test_fields():
         "topographic__steepest_slope",
         "water__unit_flux_in",
     ]
-    assert sorted(list(mg.at_grid.keys())) == ["flow__data_structure_D"]
 
     mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
@@ -418,32 +415,19 @@ def test_fields():
         "water__unit_flux_in",
     ]
 
-    assert sorted(list(mg2.at_grid.keys())) == ["flow__data_structure_D"]
 
-
-def test_accumulated_area_closes():
+@pytest.mark.parametrize("fd", ["Steepest", "D8", "MFD", "DINF"])
+def test_accumulated_area_closes(fd):
     """Check that accumulated area is area of core nodes."""
+    mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
+    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
+    fa = LossyFlowAccumulator(mg)
+    fa.run_one_step()
 
-    fds = ["Steepest", "D8", "MFD", "DINF"]
-
-    for fd in fds:
-        mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
-        mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-        fa = LossyFlowAccumulator(mg)
-        fa.run_one_step()
-
-        drainage_area = mg.at_node["drainage_area"]
-        drained_area = np.sum(drainage_area[mg.boundary_nodes])
-        core_area = np.sum(mg.cell_area_at_node[mg.core_nodes])
-        assert drained_area == core_area
-
-
-# def test_passing_unnecessary_kwarg():
-#     """Test that passing a bad kwarg raises a ValueError."""
-#     mg = RasterModelGrid((10,10), xy_spacing=(1, 1))
-#     z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
-#     with pytest.raises(ValueError):
-#         LossyFlowAccumulator(mg, bad_kwarg='woo')
+    drainage_area = mg.at_node["drainage_area"]
+    drained_area = np.sum(drainage_area[mg.boundary_nodes])
+    core_area = np.sum(mg.cell_area_at_node[mg.core_nodes])
+    assert drained_area == core_area
 
 
 def test_specifying_routing_method_wrong():
@@ -1190,14 +1174,6 @@ def test_flow_accumulator_properties():
     assert_array_equal(fa.node_order_upstream, node_order_upstream)
     assert_array_equal(fa.node_water_discharge, node_drainage_area)
     assert_array_equal(fa.node_drainage_area, node_drainage_area)
-
-
-def test_water_discharge_in_supplied():
-    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
-    mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    mg.add_field("water__discharge_in", mg.node_x + mg.node_y, at="node")
-    with pytest.deprecated_call():
-        LossyFlowAccumulator(mg)
 
 
 def test_bad_director_name():

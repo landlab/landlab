@@ -8,23 +8,19 @@ import os
 import numpy as np
 from numpy.testing import assert_array_almost_equal, assert_equal
 
-from landlab import ModelParameterDictionary, RasterModelGrid
+from landlab import RasterModelGrid
 from landlab.components.diffusion import LinearDiffuser
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def test_diffusion():
-    infile = os.path.join(_THIS_DIR, "diffusion_params.txt")
-    inputs = ModelParameterDictionary(infile, auto_type=True)
-    nrows = inputs.read_int("nrows")
-    ncols = inputs.read_int("ncols")
-    dx = inputs.read_float("dx")
-    dt = inputs.read_float("dt")
-    time_to_run = inputs.read_float("run_time")
-    init_elev = inputs.read_float("init_elev")
 
-    mg = RasterModelGrid((nrows, ncols), xy_spacing=(dx, dx))
+    dt = 1.0
+    time_to_run = 3.0
+    init_elev = 0.0
+
+    mg = RasterModelGrid((20, 10), xy_spacing=(100.0, 100.0))
     uplift_rate = mg.node_y[mg.core_cells] / 100000.0
 
     # create the fields in the grid
@@ -36,7 +32,7 @@ def test_diffusion():
     mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
 
     # instantiate:
-    dfn = LinearDiffuser(mg, **inputs)
+    dfn = LinearDiffuser(mg, linear_diffusivity=50000.0)
 
     # perform the loop:
     elapsed_time = 0.0  # total time in simulation

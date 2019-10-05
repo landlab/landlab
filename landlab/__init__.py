@@ -14,12 +14,8 @@ from numpy import set_printoptions
 
 from ._registry import registry
 from ._version import get_versions
+from .core.errors import MissingKeyError, ParameterValueError
 from .core.model_component import Component
-from .core.model_parameter_dictionary import (
-    MissingKeyError,
-    ModelParameterDictionary,
-    ParameterValueError,
-)
 from .core.model_parameter_loader import load_params
 from .field.scalar_data_fields import FieldError
 from .framework.collections import Arena, NoProvidersError, Palette
@@ -41,7 +37,6 @@ from .grid import (
     RadialModelGrid,
     RasterModelGrid,
     VoronoiDelaunayGrid,
-    create_and_initialize_grid,
     create_grid,
 )
 from .plot import imshow_grid, imshow_grid_at_node
@@ -57,7 +52,6 @@ cite_as = registry.format_citations
 
 __all__ = [
     "registry",
-    "ModelParameterDictionary",
     "MissingKeyError",
     "ParameterValueError",
     "Component",
@@ -85,7 +79,6 @@ __all__ = [
     "ACTIVE_LINK",
     "FIXED_LINK",
     "INACTIVE_LINK",
-    "create_and_initialize_grid",
     "create_grid",
     "imshow_grid",
     "imshow_grid_at_node",

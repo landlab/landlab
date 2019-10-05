@@ -3,7 +3,7 @@ import pytest
 from numpy import testing
 
 from landlab import HexModelGrid, RasterModelGrid
-from landlab.components import DepressionFinderAndRouter, FlowAccumulator, Space
+from landlab.components import FlowAccumulator, Space
 
 
 def test_route_to_multiple_error_raised():
@@ -128,7 +128,7 @@ def test_soil_field_already_on_grid():
     # ensure that 'soil__depth' field is everywhere equal to 1.0 m.
     testing.assert_array_equal(
         np.ones(mg.number_of_nodes),
-        sp.soil__depth,
+        sp._soil__depth,
         err_msg="SPACE soil depth field test failed",
         verbose=True,
     )
@@ -185,7 +185,7 @@ def test_br_field_already_on_grid():
     # ensure that 'bedrock__elevation' field is everywhere equal to 1.0 m.
     testing.assert_array_equal(
         np.ones(mg.number_of_nodes),
-        sp.bedrock__elevation,
+        sp._bedrock__elevation,
         err_msg="SPACE bedrock field test failed",
         verbose=True,
     )
@@ -304,9 +304,6 @@ def test_matches_transport_solution():
     br[:] = z[:]
     z[:] += soil[:]
 
-    # Instantiate DepressionFinderAndRouter
-    df = DepressionFinderAndRouter(mg)
-
     # Create a D8 flow handler
     fa = FlowAccumulator(
         mg, flow_director="D8", depression_finder="DepressionFinderAndRouter"
@@ -335,13 +332,13 @@ def test_matches_transport_solution():
         n_sp=n_sp,
         sp_crit_sed=0,
         sp_crit_br=0,
+        erode_flooded_nodes=False,
     )
 
     # ... and run it to steady state (5000x1-year timesteps).
     for i in range(5000):
         fa.run_one_step()
-        flooded = np.where(df.flood_status == 3)[0]
-        sp.run_one_step(dt=dt, flooded_nodes=flooded)
+        sp.run_one_step(dt=dt)
         br[mg.core_nodes] += U * dt  # m
         soil[
             0
@@ -421,9 +418,6 @@ def test_matches_bedrock_alluvial_solution():
     br[:] = z[:]
     z[:] += soil[:]
 
-    # Instantiate DepressionFinderAndRouter
-    df = DepressionFinderAndRouter(mg)
-
     # Create a D8 flow handler
     fa = FlowAccumulator(
         mg, flow_director="D8", depression_finder="DepressionFinderAndRouter"
@@ -453,13 +447,13 @@ def test_matches_bedrock_alluvial_solution():
         n_sp=n_sp,
         sp_crit_sed=0,
         sp_crit_br=0,
+        erode_flooded_nodes=False,
     )
 
     # ... and run it to steady state (10000x1-year timesteps).
     for i in range(10000):
         fa.run_one_step()
-        flooded = np.where(df.flood_status == 3)[0]
-        sp.run_one_step(dt=dt, flooded_nodes=flooded)
+        sp.run_one_step(dt=dt)
         br[mg.core_nodes] += U * dt  # m
         soil[0] = 0.0  # enforce 0 soil depth at boundary to keep lowering steady
         z[:] = br[:] + soil[:]
@@ -504,6 +498,7 @@ def test_can_run_with_hex():
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     mg = HexModelGrid((7, 7))
     z = mg.add_zeros("node", "topographic__elevation")
+    _ = mg.add_zeros("node", "soil__depth")
     z[:] = 0.01 * mg.x_of_node
 
     # Create a D8 flow handler

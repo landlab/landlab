@@ -21,7 +21,7 @@ def deAlm():
 def kin_wave_of():
     grid = RasterModelGrid((10, 10), xy_spacing=0.5)
     grid.add_zeros("topographic__elevation", at="node", dtype=float)
-    grid.add_zeros("topographic__gradient", at="node")
+    grid.add_zeros("topographic__gradient", at="link")
 
     return KinwaveOverlandFlowModel(grid)
 

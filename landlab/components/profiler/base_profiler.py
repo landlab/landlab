@@ -54,15 +54,7 @@ class _BaseProfiler(Component, ABC):
 
     _name = "_BaseProfiler"
 
-    _input_var_names = ()
-
-    _output_var_names = ()
-
-    _var_units = {}
-
-    _var_mapping = {}
-
-    _var_doc = {}
+    _info = {}
 
     def __init__(self, grid):
         super(_BaseProfiler, self).__init__(grid)

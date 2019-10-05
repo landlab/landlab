@@ -6,7 +6,7 @@ FlowDirectors.
 Provides the _FlowDirectorToOne component which makes sure all model
 grid fields are set up correctly.
 """
-import numpy
+import numpy as np
 
 from landlab import BAD_INDEX_VALUE
 from landlab.components.flow_director.flow_director import _FlowDirector
@@ -72,75 +72,67 @@ class _FlowDirectorToOne(_FlowDirector):
 
     _name = "FlowDirectorToOne"
 
-    _input_var_names = ("topographic__elevation",)
-
-    _output_var_names = (
-        "flow__receiver_node",
-        "topographic__steepest_slope",
-        "flow__link_to_receiver_node",
-        "flow__sink_flag",
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "flow__receiver_node": "-",
-        "topographic__steepest_slope": "-",
-        "flow__link_to_receiver_node": "-",
-        "flow__sink_flag": "-",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "flow__receiver_node": "node",
-        "topographic__steepest_slope": "node",
-        "flow__link_to_receiver_node": "node",
-        "flow__sink_flag": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
-        "node)",
-        "topographic__steepest_slope": "Node array of steepest *downhill* slopes",
-        "flow__link_to_receiver_node": "ID of link downstream of each node, which carries the discharge",
-        "flow__sink_flag": "Boolean array, True at local lows",
+    _info = {
+        "flow__link_to_receiver_node": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__sink_flag": {
+            "dtype": bool,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Boolean array, True at local lows",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__steepest_slope": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of steepest *downhill* slopes",
+        },
     }
 
     def __init__(self, grid, surface):
         """Initialize the _FlowDirectorTo_One class."""
         # run init for the inherited class
+
         super(_FlowDirectorToOne, self).__init__(grid, surface)
-        self.to_n_receivers = "one"
+        self.initialize_output_fields()
+
+        self._to_n_receivers = "one"
         # initialize new fields
-        if "flow__receiver_node" not in grid.at_node:
-            self.receiver = grid.add_field(
-                "flow__receiver_node",
-                BAD_INDEX_VALUE * grid.ones(at="node", dtype=int),
-                at="node",
-                dtype=int,
-            )
-        else:
-            self.receiver = grid.at_node["flow__receiver_node"]
+        self._steepest_slope = grid.at_node["topographic__steepest_slope"]
 
-        if "topographic__steepest_slope" not in grid.at_node:
-            self.steepest_slope = grid.add_zeros(
-                "topographic__steepest_slope", at="node", dtype=float
-            )
-        else:
-            self.steepest_slope = grid.at_node["topographic__steepest_slope"]
+        self._links_to_receiver = grid.at_node["flow__link_to_receiver_node"]
+        if np.all(self._links_to_receiver == 0):
+            self._links_to_receiver.fill(BAD_INDEX_VALUE)
 
-        if "flow__link_to_receiver_node" not in grid.at_node:
-            self.links_to_receiver = grid.add_field(
-                "flow__link_to_receiver_node",
-                BAD_INDEX_VALUE * grid.ones(at="node", dtype=int),
-                at="node",
-                dtype=int,
-            )
-
-        else:
-            self.links_to_receiver = grid.at_node["flow__link_to_receiver_node"]
-
-        grid.add_zeros("flow__sink_flag", at="node", dtype=numpy.int8, noclobber=False)
+        self._receiver = grid.at_node["flow__receiver_node"]
+        if np.all(self._receiver == 0):
+            self._receiver.fill(BAD_INDEX_VALUE)
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""
@@ -148,6 +140,12 @@ class _FlowDirectorToOne(_FlowDirector):
 
     # set properties. These are the same for all DirectToOne Directors
     # Number of Node
+
+    @property
+    def links_to_receiver(self):
+        """ID of link downstream of each node, which carries the discharge."""
+        return self._links_to_receiver
+
     @property
     def node_receiving_flow(self):
         """Return the node id of the node receiving flow.

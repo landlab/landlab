@@ -22,8 +22,8 @@ def test_KinWaveOF_input_var_names(kin_wave_of):
 def test_KinWaveOF_output_var_names(kin_wave_of):
     assert kin_wave_of.output_var_names == (
         "surface_water__depth",
-        "water__velocity",
         "water__specific_discharge",
+        "water__velocity",
     )
 
 
@@ -51,7 +51,7 @@ def test_run_one_step():
 
     grid = RasterModelGrid((10, 10), xy_spacing=0.5)
     grid.add_zeros("node", "topographic__elevation", dtype=float)
-    grid.add_zeros("node", "topographic__gradient")
+    grid.add_zeros("link", "topographic__gradient")
 
     topo_arr = np.ones(100).reshape(10, 10)
     i = 0

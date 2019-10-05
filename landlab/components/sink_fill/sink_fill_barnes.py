@@ -56,17 +56,23 @@ class SinkFillerBarnes(LakeMapperBarnes):
 
     _name = "SinkFillerBarnes"
 
-    _input_var_names = ("topographic__elevation",)
-
-    _output_var_names = ("topographic__elevation", "sediment_fill__depth")
-
-    _var_units = {"topographic__elevation": "m", "sediment_fill__depth": "m"}
-
-    _var_mapping = {"topographic__elevation": "node", "sediment_fill__depth": "node"}
-
-    _var_doc = {
-        "topographic__elevation": "Surface topographic elevation",
-        "sediment_fill__depth": "Depth of sediment added at each" + "node",
+    _info = {
+        "sediment_fill__depth": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Depth of sediment added at eachnode",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Surface topographic elevation",
+        },
     }
 
     def __init__(
@@ -109,7 +115,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
         # get used dynamically.
         self._supplied_surface = return_array_at_node(grid, surface).copy()
         # create the only new output field:
-        self._sed_fill_depth = self.grid.add_zeros(
+        self._sed_fill_depth = self._grid.add_zeros(
             "node", "sediment_fill__depth", noclobber=False
         )
 
@@ -231,7 +237,9 @@ class SinkFillerBarnes(LakeMapperBarnes):
                     "to start this process."
                 )
                 raise NotImplementedError(msg)
+
         super(SinkFillerBarnes, self).run_one_step()
+
         self._sed_fill_depth[:] = self._surface - self._supplied_surface
 
     @property
@@ -295,7 +303,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
         as that of the keys in fill_dict, and of fill_outlets.
         """
         fill_vols = np.empty(self.number_of_fills, dtype=float)
-        col_vols = self.grid.cell_area_at_node * self.fill_depths
+        col_vols = self._grid.cell_area_at_node * self._sed_fill_depth
         for (i, (outlet, fillnodes)) in enumerate(self.fill_dict.items()):
             fill_vols[i] = col_vols[fillnodes].sum()
         return fill_vols
