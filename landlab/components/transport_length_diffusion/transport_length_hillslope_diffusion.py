@@ -14,18 +14,24 @@ from landlab import Component
 
 class TransportLengthHillslopeDiffuser(Component):
 
-    """
-    Hillslope diffusion component in the style of Carretier et al. (2016,
-        ESurf), and Davy and Lague (2009)
+    r"""Transport length hillslope diffusion.
 
-    dz/dt = - E + D (+ Uplift)
-    D = qs / L
-    E = k * S
-    L = dx / (1 - (S / Sc)^2)
+    Hillslope diffusion component in the style of Carretier et al. (2016,
+    ESurf), and Davy and Lague (2009)
+
+    .. math::
+
+        \frac{dz}{dt} = -E + D (+ U)
+
+        D = \frac{q_s}{L}
+
+        E = k S
+
+        L = \frac{dx}{(1 - (S / S_c)^2}
 
     Works on regular raster-type grid (RasterModelGrid, dx=dy).
     To be coupled with FlowDirectorSteepest for the calculation of steepest
-     slope at each timestep.
+    slope at each timestep.
 
     Component written by Margaux Mouchene, 2017
 
@@ -40,16 +46,18 @@ class TransportLengthHillslopeDiffuser(Component):
 
     Examples
     --------
+
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowDirectorSteepest
     >>> from landlab.components import TransportLengthHillslopeDiffuser
 
     Define grid and initial topography:
+
         - 3x5 grid
         - east and west boundaries are open, north and south are closed
         - Initial topography is plane at base level on the boundaries and
-            1m of elevation elsewhere (core)
+          1m of elevation elsewhere (core)
 
     >>> mg = RasterModelGrid((5, 5))
     >>> mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
@@ -83,6 +91,7 @@ class TransportLengthHillslopeDiffuser(Component):
     ...                0.,  0.96175283,  0.99982519,  0.96175283,  0.,
     ...                0.,  0.        ,  0.        ,  0.        ,  0.]))
     True
+
     """
 
     _name = "TransportLengthHillslopeDiffuser"
@@ -224,11 +233,13 @@ class TransportLengthHillslopeDiffuser(Component):
     def tldiffusion(self, dt):
         """Calculate hillslope diffusion for a time period 'dt'.
 
-        Parameters:
+        Parameters
+        ----------
         grid : ModelGrid
             Landlab ModelGrid object
         dt: float (time)
             The imposed timestep.
+
         """
 
         # Reset erosion, depo, trans and flux_in to 0
@@ -279,7 +290,8 @@ class TransportLengthHillslopeDiffuser(Component):
         self._flux_out[:] = self._erosion + self._trans
 
     def run_one_step(self, dt):
-        """
+        """Advance one timestep.
+
         Advance transport length-model hillslope diffusion component
         by one time step of size dt and tests for timestep stability.
 
@@ -287,6 +299,7 @@ class TransportLengthHillslopeDiffuser(Component):
         ----------
         dt: float (time)
             The imposed timestep.
+
         """
         self.tldiffusion(dt)
 

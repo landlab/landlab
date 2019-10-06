@@ -175,7 +175,7 @@ class TaylorNonLinearDiffuser(Component):
             number of terms in the Taylor expansion.
             Two terms (Default) gives the behavior
             described in Ganti et al. (2012).
-            
+
         """
         super(TaylorNonLinearDiffuser, self).__init__(grid)
 

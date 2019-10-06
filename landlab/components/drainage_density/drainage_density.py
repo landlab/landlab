@@ -66,6 +66,7 @@ class DrainageDensity(Component):
 
     Examples
     --------
+
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, FastscapeEroder

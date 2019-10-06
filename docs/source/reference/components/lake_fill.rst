@@ -3,5 +3,5 @@ LakeMapperBarnes: Component to temporarily fill depressions and reroute flow acr
 
 .. automodule:: landlab.components.lake_fill
     :members:
-    :undoc=members:
-    :show=inheritance:
+    :undoc-members:
+    :show-inheritance:

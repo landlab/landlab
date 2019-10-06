@@ -79,24 +79,24 @@ class SpatialPrecipitationDistribution(Component):
     A large number of properties are available to access storm properties
     during generation:
 
-    - current_year
-    - current_season
-    - storm_depth_last_storm
-    - storm_recession_value_last_storm
-    - storm_duration_last_storm
-    - storm_area_last_storm
-    - storm_intensity_last_storm
-    - total_rainfall_this_season
-    - total_rainfall_this_year
-    - total_rainfall_last_season
-    - total_rainfall_last_year
-    - median_total_rainfall_this_season
-    - median_total_rainfall_this_year
-    - median_total_rainfall_last_season
-    - median_total_rainfall_last_year
-    - number_of_nodes_under_storm
-    - nodes_under_storm
-    - target_median_total_rainfall_this_season
+        - current_year
+        - current_season
+        - storm_depth_last_storm
+        - storm_recession_value_last_storm
+        - storm_duration_last_storm
+        - storm_area_last_storm
+        - storm_intensity_last_storm
+        - total_rainfall_this_season
+        - total_rainfall_this_year
+        - total_rainfall_last_season
+        - total_rainfall_last_year
+        - median_total_rainfall_this_season
+        - median_total_rainfall_this_year
+        - median_total_rainfall_last_season
+        - median_total_rainfall_last_year
+        - number_of_nodes_under_storm
+        - nodes_under_storm
+        - target_median_total_rainfall_this_season
 
     Note that becuase these are medians not means,
     median_total_rainfall_last_season + median_total_rainfall_this_season
@@ -104,28 +104,28 @@ class SpatialPrecipitationDistribution(Component):
 
     Significant differences between this component and the Singer code are:
 
-    - The component does not model evapotranspiration. Use a separate
-        Landlab component for this.
-    - The component runs only over a LL grid; there is no such thing as a
-        validation or simulation run.
-    - It produces "fuzz" around intensity values using a continuous
-        distribution; Singer does this with integer steps.
-    - Step changes mid-run cannot be explicitly modelled. Instead, run the
-        component for a fixed duration, make the change to the
-        distribution input parameter, then run it again.
-    - Storms can be centred at any spatial coordinate, not just over nodes.
-    - Edge buffering is now dynamic; i.e., big storms have a bigger edge
-        buffer than smaller storms. Storms can be centered off the grid
-        edges.
-    - Storms are never discarded - once a storm is drawn, it must hit the
-        catchment, and positions are repeatedly selected until this can
-        happen. Singer's method would discard such a storm and draw a new
-        one.
-    - Durations are not rescaled to ensure both total duration and total
-        precip are both satisfied at the same time, as in Singer's method.
-        Instead, the component either matches a year's duration, *or*
-        exactly a year's worth of rain. This choice is dictated by the
-        `limit` parameter in the yield methods.
+        - The component does not model evapotranspiration. Use a separate
+            Landlab component for this.
+        - The component runs only over a LL grid; there is no such thing as a
+            validation or simulation run.
+        - It produces "fuzz" around intensity values using a continuous
+            distribution; Singer does this with integer steps.
+        - Step changes mid-run cannot be explicitly modelled. Instead, run the
+            component for a fixed duration, make the change to the
+            distribution input parameter, then run it again.
+        - Storms can be centred at any spatial coordinate, not just over nodes.
+        - Edge buffering is now dynamic; i.e., big storms have a bigger edge
+            buffer than smaller storms. Storms can be centered off the grid
+            edges.
+        - Storms are never discarded - once a storm is drawn, it must hit the
+            catchment, and positions are repeatedly selected until this can
+            happen. Singer's method would discard such a storm and draw a new
+            one.
+        - Durations are not rescaled to ensure both total duration and total
+            precip are both satisfied at the same time, as in Singer's method.
+            Instead, the component either matches a year's duration, *or*
+            exactly a year's worth of rain. This choice is dictated by the
+            `limit` parameter in the yield methods.
 
     Examples
     --------
@@ -430,7 +430,7 @@ class SpatialPrecipitationDistribution(Component):
             If limit == 'total_time', sets the fraction of one year occupied
             by the monsoon season. If not, ignored. Singer's monsoon runs from
             May to September, inclusive, and the default reflects this.
-       monsoon_total_rf_gaussian : dict
+        monsoon_total_rf_gaussian : dict
             Parameters defining the normal distribution controlling the total
             rainfall expected in each year. S&M use 'mu' in {143., 271.} for
             step changes up/down in rainfall totals.

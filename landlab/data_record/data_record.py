@@ -59,6 +59,7 @@ class DataRecord(object):
     method ``add_item`` should be used when no new variables are being added.
     The method ``add_record`` should be used when new variables are being
     added or when a variable is only tracked over the **time** dimension.
+
     """
 
     _name = "DataRecord"
@@ -77,12 +78,12 @@ class DataRecord(object):
         ----------
         grid : ModelGrid
         dummy_elements : dict
-             Dictionary indicating valid values for dummy grid elements. For
-             example, if you need an "exit" off of a grid with  100 links, you could indicate
-                dummy_elements = {"link": [9999]}
-             to set a link id of 9999 as a dummy link. Multiple dummy elements
-             are possible and we recommend using values larger than the number
-             of grid elements for the dummy values.
+            Dictionary indicating valid values for dummy grid elements. For
+            example, if you need an "exit" off of a grid with  100 links, you
+            could indicate `dummy_elements = {"link": [9999]}`
+            to set a link id of 9999 as a dummy link. Multiple dummy elements
+            are possible and we recommend using values larger than the number
+            of grid elements for the dummy values.
         time : list or 1-D array of float or int (optional)
             The initial time(s) to add to the record. A time dimension is not
             created if the value is 'None' (default).
@@ -90,29 +91,44 @@ class DataRecord(object):
             Generic items that live on grid elements. No item is created if the
             value is 'None' (default). Otherwise, dictionary describes the
             position of generic items on the grid. The structure is:
+
+            .. code-block:: python
+
                 {'grid_element' : [grid_element],
                  'element_id' : [element_id]}
+
             where:
+
                 - [grid_element] is a str or number-of-items-long array
-                containing strings of the grid element(s) on which the items
-                live. Valid locations depend on the grid type. If provided as a
-                string it is assumed that all items live on the same type of
-                grid element.
+                  containing strings of the grid element(s) on which the items
+                  live. Valid locations depend on the grid type. If provided as a
+                  string it is assumed that all items live on the same type of
+                  grid element.
                 - [element_id] is an array of integers identifying the grid
-                element ID on which each item resides.
+                  element ID on which each item resides.
+
             An example argument would be:
+
+            .. code-block:: python
+
                 {'grid_element' : numpy.array(['node'], ['node'], ['link']),
                  'element_id' :   numpy.array([1],      [5],      [1]     )}
+
         data_vars : dict (optional)
             Dictionary of the data variables to be recorded. The structure is:
+
+            .. code-block:: python
+
                 {'variable_name_1' : (['dimensions'], variable_data_1),
                  'variable_name_2' : (['dimensions'], variable_data_2)}
+
             where:
+
                 - 'variable_name...' is a string of the variable name (label)
                 - ['dimensions'] is the dimension(s) over which the variable
-                exists: can be ['time'], ['item_id'] or ['item_id', 'time'].
+                  exists: can be ['time'], ['item_id'] or ['item_id', 'time'].
                 - variable_data is an array containing the data, its size must
-                match that of the variable dimension(s).
+                  match that of the variable dimension(s).
         attrs : dict (optional)
             Dictionary of global attributes on the DataRecord (metadata).
             Example: {'time_units' : 'y'}
@@ -402,6 +418,8 @@ class DataRecord(object):
             in the item location (grid_element and/or element_id), this field
             must be provided as:
 
+            .. code-block:: python
+
                 {'grid_element' : [grid_element],
                  'element_id' : [element_id]}
 
@@ -583,6 +601,8 @@ class DataRecord(object):
         new_item : dict
             Structure is:
 
+            .. code-block:: python
+
                 {'grid_element' : [grid_element],
                  'element_id' : [element_id]}
 
@@ -598,6 +618,8 @@ class DataRecord(object):
 
             An example argument would be:
 
+            .. code-block:: python
+
                 {'grid_element' : numpy.array([['node'], ['node'], ['link']]),
                  'element_id' :   numpy.array([[1],      [5],      [1]     ])}
 
@@ -605,6 +627,8 @@ class DataRecord(object):
             Dictionary containing any data variables (other than
             'grid_element' and 'element_id') relating to the new item(s) to be
             added. Structure is:
+
+            .. code-block:: python
 
                 {'variable_name_1' : (['dimensions'], variable_data_1)}
 
