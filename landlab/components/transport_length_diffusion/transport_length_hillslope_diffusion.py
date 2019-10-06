@@ -71,9 +71,10 @@ class TransportLengthHillslopeDiffuser(Component):
     Instantiate Flow director (steepest slope type) and TL hillslope diffuser
 
     >>> fdir = FlowDirectorSteepest(mg)
-    >>> tl_diff = TransportLengthHillslopeDiffuser(mg, \
-                                                   erodibility=0.001,\
-                                                   slope_crit=0.6)
+    >>> tl_diff = TransportLengthHillslopeDiffuser(
+    ...     mg,
+    ...     erodibility=0.001,
+    ...     slope_crit=0.6)
 
     Run the components for ten short timepsteps
 
