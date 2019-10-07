@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pytest
 from matplotlib.backends.backend_pdf import PdfPages
 
 import landlab
