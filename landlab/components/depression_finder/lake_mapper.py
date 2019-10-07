@@ -128,9 +128,10 @@ class DepressionFinderAndRouter(Component):
     >>> df.lake_areas  # the area of each lake in lake_codes
     array([ 2.25])
 
-    Because rereoute_flow defaults to True, the flow connectivity fields
-    created by the FlowAccumulator will have now been modified to route flow over
-    the depressions in the surface. The topogrphy itself is not modified.
+    Because `rereoute_flow` defaults to `True`, the flow connectivity fields
+    created by the :py:class:`~landlab.components.flow_accum.FlowAccumulator`
+    will have now been modified to route flow over the depressions in the
+    surface. The topogrphy itself is not modified.
     """
 
     _name = "DepressionFinderAndRouter"
@@ -197,8 +198,8 @@ class DepressionFinderAndRouter(Component):
             If an array, either a boolean array of nodes of the pits, or an
             array of pit node IDs. It does not matter whether or not open
             boundary nodes are flagged as pits; they are never treated as such.
-            Default is 'flow__sink_flag', the pit field output from
-            'route_flow_dn'
+            Default is 'flow__sink_flag', the pit field output from the
+            :py:mod:`FlowDirectors <landlab.components.flow_director>.
         reroute_flow : bool, optional
             If True (default), and the component detects the output fields in
             the grid produced by the FlowAccumulator component, this component
@@ -428,7 +429,7 @@ class DepressionFinderAndRouter(Component):
 
         Returns
         -------
-        int
+        lowest_node : int
             The lowest node on the perimeter of a depression.
         """
         # Start with the first node on the list, and an arbitrarily large elev

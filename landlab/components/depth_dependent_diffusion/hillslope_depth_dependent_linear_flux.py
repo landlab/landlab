@@ -35,7 +35,7 @@ class DepthDependentDiffuser(Component):
     linear_diffusivity: float
         Hillslope diffusivity, m**2/yr
     soil_transport_decay_depth: float
-        characteristic transport soil depth, m
+        Characteristic transport soil depth, m
 
     Examples
     --------

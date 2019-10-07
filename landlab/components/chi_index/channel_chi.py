@@ -17,7 +17,8 @@ except ImportError:
 
 
 class ChiFinder(Component):
-    """
+    """Calculate Chi Indices.
+
     This component calculates chi indices, sensu Perron & Royden, 2013,
     for a Landlab landscape.
 
@@ -27,6 +28,7 @@ class ChiFinder(Component):
     >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
     >>> from landlab.components import FlowAccumulator, FastscapeEroder
     >>> from landlab.components import ChiFinder
+
     >>> mg = RasterModelGrid((3, 4))
     >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
     ...               mg.nodes_at_top_edge):
@@ -224,9 +226,10 @@ class ChiFinder(Component):
         self._A0 = reference_area
 
     def calculate_chi(self):
-        """
+        """Calculate local chi indices.
+
         This is the main method. Call it to calculate local chi indices
-        at all points with drainage areas greater than *min_drainage_area*.
+        at all points with drainage areas greater than `min_drainage_area`.
 
         Chi of any node without a defined value is reported as 0. These nodes
         are also identified in the mask retrieved with :func:`hillslope_mask`.
@@ -267,8 +270,7 @@ class ChiFinder(Component):
     def integrate_chi_avg_dx(
         self, valid_upstr_order, chi_integrand, chi_array, mean_dx
     ):
-        """
-        Calculates chi at each channel node by summing chi_integrand.
+        """Calculates chi at each channel node by summing chi_integrand.
 
         This method assumes a uniform, mean spacing between nodes. Method is
         deliberately split out for potential cythonization at a later stage.
@@ -322,8 +324,7 @@ class ChiFinder(Component):
     def integrate_chi_each_dx(
         self, valid_upstr_order, chi_integrand_at_nodes, chi_array
     ):
-        """
-        Calculates chi at each channel node by summing chi_integrand*dx.
+        """Calculates chi at each channel node by summing chi_integrand*dx.
 
         This method accounts explicitly for spacing between each node. Method
         is deliberately split out for potential cythonization at a later
@@ -365,8 +366,6 @@ class ChiFinder(Component):
                [  0.        ,   6.        ,  12.        ,   0.        ],
                [  0.        ,   6.        ,  14.48528137,   0.        ],
                [  0.        ,   0.        ,   0.        ,   0.        ]])
-
-
         >>> from landlab.components import FastscapeEroder
         >>> mg2 = RasterModelGrid((5, 5), xy_spacing=100.)
         >>> for nodes in (mg2.nodes_at_right_edge, mg2.nodes_at_bottom_edge,
@@ -582,6 +581,7 @@ class ChiFinder(Component):
 
         Parameters
         ----------
+
         channel_heads : int, list or array of ints, or None
             Node IDs of channel heads to from which plot downstream.
         label_axes : bool
@@ -593,6 +593,7 @@ class ChiFinder(Component):
         line_symbol : str
             A matplotlib-style string for the style to use for the line, if
             plot_line.
+
         """
         from matplotlib.pyplot import plot, xlabel, ylabel, figure, clf
 

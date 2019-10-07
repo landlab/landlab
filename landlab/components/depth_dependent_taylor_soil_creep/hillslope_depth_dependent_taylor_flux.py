@@ -14,7 +14,7 @@ from landlab import INACTIVE_LINK, Component
 
 class DepthDependentTaylorDiffuser(Component):
 
-    """
+    r"""
     This component implements a depth-dependent Taylor series diffusion rule,
     combining concepts of Ganti et al. (2012) and Johnstone and Hilley (2014).
 
@@ -107,15 +107,26 @@ class DepthDependentTaylorDiffuser(Component):
     True
 
     The DepthDependentTaylorDiffuser makes and moves soil at a rate proportional
-    to slope, this means that there is a characteristic time scale for soil \
+    to slope, this means that there is a characteristic time scale for soil
     transport and an associated stability criteria for the timestep. The
-    maximum characteristic time scale, Demax, is given as a function of the
-    hillslope diffustivity, D, the maximum slope, Smax, and the critical slope
-    Sc.
+    maximum characteristic time scale, :math:`De_{max}`, is given as a function of the
+    hillslope diffustivity, :math:`D`, the maximum slope, :math:`S_{max}`, and the critical slope
+    :math:`S_c`.
 
-        Demax = D ( 1 + ( Smax / Sc )**2 ( Smax / Sc )**4 + .. + ( Smax / Sc )**( 2 * ( n - 1 )) )
+    .. math::
+
+        De_{max} = D
+            \left(
+            1 +
+            \left( \frac{S_{max}{S_c}\right )^2 +
+            \left( \frac{S_{max}{S_c}\right )^4 +
+            \dots +
+            \left( \frac{S_{max}{S_c}\right )^{( 2 * ( n - 1 ))}
+            \right)
 
     The maximum stable time step is given by
+
+    .. math::
 
         dtmax = courant_factor * dx * dx / Demax
 
