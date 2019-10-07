@@ -125,13 +125,7 @@ class DelaunayGraph(Graph):
         mesh = VoronoiDelaunayToGraph(
             np.vstack((node_y_and_x[1], node_y_and_x[0])).T,
             perimeter_links=perimeter_links,
-            # perimeter_links=kwds.get("perimeter_links", None),
         )
-
-        # nodes_at_link, links_at_patch = DelaunayGraph.get_links_and_patches(
-        #     node_y_and_x, max_node_spacing=max_node_spacing
-        # )
-        # mesh.links_at_patch
 
         Graph.__init__(
             self,
@@ -140,30 +134,3 @@ class DelaunayGraph(Graph):
             patches=mesh.links_at_patch,
             sort=sort,
         )
-
-    @staticmethod
-    def get_links_and_patches(node_y_and_x, max_node_spacing=None):
-        from .ext.delaunay import _setup_links_at_patch
-
-        delaunay = Delaunay(list(zip(node_y_and_x[1], node_y_and_x[0])))
-
-        nodes_at_patch = np.asarray(delaunay.simplices, dtype=np.int)
-        neighbors_at_patch = np.asarray(delaunay.neighbors, dtype=np.int)
-
-        if max_node_spacing is not None:
-            nodes_at_patch, neighbors_at_patch = remove_bad_patches(
-                max_node_spacing, nodes_at_patch, neighbors_at_patch
-            )
-
-        n_patches = len(nodes_at_patch)
-        n_shared_links = np.count_nonzero(neighbors_at_patch > -1)
-        n_links = 3 * n_patches - n_shared_links // 2
-
-        links_at_patch = np.empty((n_patches, 3), dtype=np.int)
-        nodes_at_link = np.empty((n_links, 2), dtype=np.int)
-
-        _setup_links_at_patch(
-            nodes_at_patch, neighbors_at_patch, nodes_at_link, links_at_patch
-        )
-
-        return nodes_at_link, links_at_patch
