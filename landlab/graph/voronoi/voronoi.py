@@ -64,20 +64,6 @@ def setup_links_and_patches(node_y_and_x, max_node_spacing=None, boundary_nodes=
     return nodes_at_link, links_at_patch
 
 
-def ugrid_from_voronoi(node_y_and_x, max_node_spacing=None, boundary_nodes=None):
-    ugrid = xr.Dataset({"mesh": xr.DataArray(data=1, attrs=MESH_ATTRS)})
-
-    nodes_at_link, links_at_patch = setup_links_and_patches(
-        node_y_and_x, max_node_spacing=max_node_spacing, boundary_nodes=boundary_nodes
-    )
-
-    update_node_coords(ugrid, node_y_and_x)
-    update_nodes_at_link(ugrid, nodes_at_link)
-    update_links_at_patch(ugrid, links_at_patch)
-
-    return ugrid
-
-
 class DelaunayGraph(Graph):
 
     """Graph of a voronoi grid.
