@@ -1,37 +1,7 @@
 import numpy as np
-import xarray as xr
-from scipy.spatial import Delaunay
 
-from ...core.utils import as_id_array
 from ..graph import Graph
-from ..ugrid import (
-    MESH_ATTRS,
-    update_links_at_patch,
-    update_node_coords,
-    update_nodes_at_link,
-)
 from .voronoi_to_graph import VoronoiDelaunayToGraph
-
-
-def remove_bad_patches(
-    max_node_spacing, nodes_at_patch, neighbors_at_patch, boundary_nodes=None
-):
-    from .ext.delaunay import remove_tris
-
-    bad_patches = []
-    if boundary_nodes is not None and len(boundary_nodes) > 0:
-        boundary_nodes = set(boundary_nodes)
-        for patch, nodes in enumerate(nodes_at_patch):
-            if set(nodes).issubset(boundary_nodes):
-                bad_patches.append(patch)
-    bad_patches = as_id_array(bad_patches)
-
-    if len(bad_patches) > 0:
-        remove_tris(nodes_at_patch, neighbors_at_patch, bad_patches)
-        nodes_at_patch = nodes_at_patch[: -len(bad_patches), :]
-        neighbors_at_patch = neighbors_at_patch[: -len(bad_patches), :]
-
-    return nodes_at_patch, neighbors_at_patch
 
 
 class DelaunayGraph(Graph):
