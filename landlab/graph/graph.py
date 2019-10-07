@@ -79,21 +79,6 @@ from .sort.sort import reorient_link_dirs, reverse_one_to_many, sort_spokes_at_h
 from .ugrid import ugrid_from_unstructured
 
 
-def _parse_sorting_opt(sorting):
-    SORTING_OPTS = ("xy", "ccw", "ne")
-
-    as_dict = None
-
-    if isinstance(sorting, bool):
-        as_dict = dict([(opt, format) for opt in SORTING_OPTS])
-    elif isinstance(sorting, dict):
-        as_dict = dict(sorting.items())
-        for opt in SORTING_OPTS:
-            sorting.setdefault(opt, True)
-
-    return as_dict
-
-
 def find_perimeter_nodes(graph):
     """Find nodes on the perimeter of a graph.
 
@@ -187,6 +172,8 @@ class NetworkGraph:
         return thawed(self)
 
     def sort(self):
+        """Sort graph elements.
+        """
         with self.thawed():
             reorient_link_dirs(self)
             sorted_nodes, sorted_links, sorted_patches = reindex_by_xy(self)
