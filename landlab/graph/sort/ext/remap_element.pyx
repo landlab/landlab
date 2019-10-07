@@ -370,7 +370,8 @@ def offset_to_sorted_block(
 def pair_isin(
     np.ndarray[long, ndim=2, mode="c"] src_pairs not None,
     np.ndarray[long, ndim=2, mode="c"] pairs not None,
-    np.ndarray[uint8, ndim=1, mode="c"] out not None,
+    # np.ndarray[uint8, ndim=1, mode="c"] out not None,
+    np.ndarray[uint8, ndim=1, mode="c", cast=True] out not None,
 ):
     cdef long n
     cdef long pair

@@ -29,15 +29,18 @@ def pair_isin(src, pairs, out=None, sorter=None, sorted=False):
     ndarray of bool
         Array that indicates if the pair is contained in the source set.
     """
-    if out is None:
-        out = np.empty(len(pairs), dtype=bool)
     if not sorted and sorter is None:
         sorter = np.argsort(src[:, 0])
     if sorter is not None:
         src = src[sorter]
 
-    _pair_isin(np.ascontiguousarray(src), pairs, out.view(dtype=np.uint8))
+    result = np.empty(len(pairs), dtype=np.uint8)
+    _pair_isin(np.ascontiguousarray(src), np.ascontiguousarray(pairs), result)
 
+    if out is None:
+        out = result.astype(dtype=bool, copy=False)
+    else:
+        out[:] = result.astype(dtype=bool, copy=False)
     return out
 
 

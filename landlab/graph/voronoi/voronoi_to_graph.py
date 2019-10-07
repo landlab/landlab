@@ -230,12 +230,7 @@ class VoronoiDelaunayToGraph(VoronoiDelaunay):
 
     def is_perimeter_link(self):
         if self._perimeter_links is not None:
-            is_perimeter_link = np.empty(len(self.nodes_at_link), dtype=bool)
-            pair_isin(
-                self._perimeter_links,
-                self.nodes_at_link,
-                is_perimeter_link.view(dtype=np.uint8),
-            )
+            is_perimeter_link = pair_isin(self._perimeter_links, self.nodes_at_link)
         else:
             is_perimeter_link = self.is_perimeter_face()
         return is_perimeter_link
