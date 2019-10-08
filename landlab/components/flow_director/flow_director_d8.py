@@ -12,7 +12,6 @@ FlowDirectorSteepest instead.
 
 import numpy
 
-from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY
 from landlab.components.flow_director import flow_direction_DN
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
@@ -222,8 +221,8 @@ class FlowDirectorD8(_FlowDirectorToOne):
         # Step 2. Find and save base level nodes.
         (baselevel_nodes,) = numpy.where(
             numpy.logical_or(
-                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+                self._grid.status_at_node == self._grid.BC_NODE_IS_FIXED_VALUE,
+                self._grid.status_at_node == self._grid.BC_NODE_IS_FIXED_GRADIENT,
             )
         )
 
