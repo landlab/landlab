@@ -29,22 +29,16 @@ class RadialGraphLayout:
 
         x = np.empty((n_nodes,), dtype=float)
         y = np.empty((n_nodes,), dtype=float)
-        # nodes_per_ring = np.round(2. * np.pi * np.arange(1, n_rings + 1)).astype(int)
-        # n_nodes = np.sum(nodes_per_ring) + 1
 
         x[0] = y[0] = 0.0
         offset = 1
-        # for ring in range(0, n_rings):
         for ring in range(1, n_rings + 1):
-            # rho = spacing * (ring + 1)
             rho = spacing * ring
             d_theta = np.pi * 2 / (ring * shape[1])
             theta = np.arange(ring * shape[1]) * d_theta
 
             y[offset : offset + len(theta)] = rho * np.sin(theta)
             x[offset : offset + len(theta)] = rho * np.cos(theta)
-            # d_theta = 2. * np.pi / nodes_per_ring[ring]
-            # theta = np.arange(nodes_per_ring[ring]) * d_theta
 
             offset += len(theta)
 
@@ -55,89 +49,6 @@ class RadialGraphLayout:
         y += xy_of_center[1]
 
         return (x, y)
-
-
-class RadialNodeLayout(object):
-    def __init__(self, n_rings, spacing=1.0, origin=0.0):
-        self._n_rings = n_rings
-
-        self._n_rings = int(n_rings)
-        self._spacing_of_rings = float(spacing)
-        self._origin = tuple(np.broadcast_to(origin, (2,)).astype(float))
-
-        # self._ring_at_node = np.repeat(np.arange(self.number_of_rings),
-        #                                 self.nodes_per_ring)
-
-        # y_of_node = graph.radius_at_node * np.sin(graph.angle_at_node) - origin[0]
-        # x_of_node = graph.radius_at_node * np.cos(graph.angle_at_node) - origin[1]
-
-        # sorted_nodes = argsort_points_by_x_then_y((x_of_node, y_of_node))
-
-    @property
-    def origin(self):
-        return self._origin
-
-    @property
-    def y_of_node(self):
-        return self.radius_at_node * np.sin(self.angle_at_node) - self.origin[0]
-
-    @property
-    def x_of_node(self):
-        return self.radius_at_node * np.cos(self.angle_at_node) - self.origin[1]
-
-    @property
-    def xy_of_node(self):
-        return self.x_of_node, self.y_of_node
-
-    @property
-    def number_of_rings(self):
-        return self._n_rings
-
-    @property
-    def spacing_of_rings(self):
-        return self._spacing_of_rings
-
-    @property
-    @read_only_array
-    def radius_of_ring(self):
-        return np.arange(0, self.number_of_rings, dtype=float) * self.spacing_of_rings
-
-    @property
-    @read_only_array
-    def ring_at_node(self):
-        return np.repeat(np.arange(self.number_of_rings), self.nodes_per_ring)
-
-    @property
-    @read_only_array
-    def radius_at_node(self):
-        return self.radius_of_ring[self.ring_at_node]
-
-    @property
-    @read_only_array
-    def angle_at_node(self):
-        angle_at_node = np.empty(self.nodes_per_ring.sum(), dtype=float)
-        angle_at_node[0] = 0.0
-        offset = 1
-        for n_nodes in self.nodes_per_ring[1:]:
-            angles, step = np.linspace(
-                0.0, 2 * np.pi, n_nodes, endpoint=False, retstep=True, dtype=float
-            )
-            angle_at_node[offset : offset + n_nodes] = np.add(
-                angles, 0.5 * step, out=angles
-            )
-            offset += n_nodes
-        return angle_at_node
-
-    @property
-    @read_only_array
-    def nodes_per_ring(self):
-        # nodes_per_ring = np.arange(self.number_of_rings, dtype=int) * self.shape[1]
-        # nodes_per_ring[0] = 1
-        # return nodes_per_ring
-        nodes_per_ring = np.empty(self.number_of_rings, dtype=int)
-        nodes_per_ring[0] = 1
-        nodes_per_ring[1:] = np.round(2.0 * np.pi * np.arange(1, self.number_of_rings))
-        return nodes_per_ring
 
 
 class RadialGraphExtras(object):
@@ -177,9 +88,6 @@ class RadialGraphExtras(object):
     # @store_result_in_grid()
     @read_only_array
     def nodes_per_ring(self):
-        # nodes_per_ring = np.arange(self.number_of_rings, dtype=int) * self.shape[1]
-        # nodes_per_ring[0] = 1
-        # return nodes_per_ring
         nodes_per_ring = np.empty(self.number_of_rings, dtype=int)
         nodes_per_ring[0] = 1
         nodes_per_ring[1:] = np.round(2.0 * np.pi * np.arange(1, self.number_of_rings))
