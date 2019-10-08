@@ -276,14 +276,9 @@ def test_offset_to_sorted_block_with_negatives():
     offset_to_sorted_block(pairs, out)
     assert tuple(out) == (3, 5, 7, 8, 9, 10, 11, 13, 13, 13, 13, 13, 13)
 
+
 def test_offset_to_sorted_block_all_negatives():
-    pairs = np.array(
-        [
-            [-1, 0],
-            [-1, 8],
-            [-1, 7],
-        ]
-    )
+    pairs = np.array([[-1, 0], [-1, 8], [-1, 7]])
     out = np.empty(len(pairs) + 1, dtype=int)
     offset_to_sorted_block(pairs, out)
     assert tuple(out) == (3, 3, 3, 3)

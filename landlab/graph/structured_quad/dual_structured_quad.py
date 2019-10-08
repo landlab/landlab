@@ -184,16 +184,6 @@ class DualUniformRectilinearGraph(DualGraph, UniformRectilinearGraph):
         spacing = np.broadcast_to(spacing, 2)
         origin = np.broadcast_to(origin, 2)
 
-        # node_y_and_x = (
-        #     np.arange(shape[0]) * spacing[0] + origin[0],
-        #     np.arange(shape[1]) * spacing[1] + origin[1],
-        # )
-
-        # super(DualUniformRectilinearGraph, self).__init__(node_y_and_x)
-
-        # self._spacing = tuple(spacing)
-        # self._origin = tuple(origin)
-
         UniformRectilinearGraph.__init__(self, shape, spacing=spacing, origin=origin)
 
         dual_graph = UniformRectilinearGraph(

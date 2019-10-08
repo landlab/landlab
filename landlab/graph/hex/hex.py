@@ -480,21 +480,21 @@ class HorizontalHexTriGraph:
         return (
             as_id_array(
                 northeast
-                - np.arange(northeast - northwest + 1, east - west + 1).cumsum()[::-1],
+                - np.arange(northeast - northwest + 1, east - west + 1).cumsum()[::-1]
             ),
             np.arange(northeast, northwest, -1),
             as_id_array(
                 west
                 + np.arange(east - west + 1, northeast - northwest + 1, -1).cumsum()[
                     ::-1
-                ],
+                ]
             ),
             as_id_array(
-                southwest + np.arange(n_cols, n_rows // 2 + n_cols).cumsum()[::-1],
+                southwest + np.arange(n_cols, n_rows // 2 + n_cols).cumsum()[::-1]
             ),
             nodes_at_south_edge,
             as_id_array(
-                east - np.arange(n_cols + n_rows // 2, n_cols, -1).cumsum()[::-1],
+                east - np.arange(n_cols + n_rows // 2, n_cols, -1).cumsum()[::-1]
             ),
         )
 

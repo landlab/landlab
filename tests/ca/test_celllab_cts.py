@@ -152,11 +152,11 @@ def test_hex_cts():
     mg = HexModelGrid(
         (3, 2),
         spacing=1.0,
-        orientation='vertical',
+        orientation="vertical",
         node_layout="hex",
         # reorient_links=True,
     )
-    nsd = {0 : "zero", 1 : "one"}
+    nsd = {0: "zero", 1: "one"}
     xnlist = []
     xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "transitioning"))
     nsg = mg.add_zeros("node", "node_state_grid")
@@ -175,7 +175,7 @@ def test_oriented_hex_cts():
         node_layout="hex",
         reorient_links=True,
     )
-    nsd = {0 : "zero", 1 : "one"}
+    nsd = {0: "zero", 1: "one"}
     xnlist = []
     xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "transitioning"))
     nsg = mg.add_zeros("node", "node_state_grid")

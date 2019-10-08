@@ -287,7 +287,7 @@ class FieldDataset(dict):
         if value_array.ndim == 0:
             dims = ()
         elif value_array.ndim == 1:
-            dims = (self._name, )
+            dims = (self._name,)
         else:
             dims = (self._name, name + "_per_" + self._name)
 
@@ -503,7 +503,9 @@ class GraphFields(object):
         """
         dataset_name = "at_" + loc
         if loc not in self._groups:
-            setattr(self, dataset_name, FieldDataset(loc, size, fixed_size=size is not None))
+            setattr(
+                self, dataset_name, FieldDataset(loc, size, fixed_size=size is not None)
+            )
             self._groups.add(loc)
         else:
             raise ValueError("{loc} location already exists".format(loc=loc))

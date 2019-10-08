@@ -6,8 +6,8 @@ from scipy.spatial import Delaunay, Voronoi
 
 from ...core.utils import as_id_array
 from ...utils import jaggedarray
-from ..sort.sort import reverse_one_to_one
 from ..sort.intpair import pair_isin
+from ..sort.sort import reverse_one_to_one
 
 
 class VoronoiDelaunay(object):

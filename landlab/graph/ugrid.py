@@ -3,7 +3,6 @@ import xarray as xr
 
 from ..utils.jaggedarray import flatten_jagged_array
 
-
 _MESH_ATTRS = {
     "cf_role": "mesh_topology",
     "long_name": "Topology data of 2D unstructured mesh",

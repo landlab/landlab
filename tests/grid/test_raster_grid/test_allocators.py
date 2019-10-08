@@ -3,7 +3,6 @@ from pytest import approx
 
 from landlab import RasterModelGrid
 
-
 field_dtype = float
 
 

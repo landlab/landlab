@@ -8,6 +8,7 @@ automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
 from functools import lru_cache
+
 import numpy as np
 
 from landlab.utils.decorators import deprecated, make_return_array_immutable

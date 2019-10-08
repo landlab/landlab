@@ -93,7 +93,6 @@ from landlab import Component, FieldError
 from landlab.grid.structured_quad import links
 from landlab.utils.decorators import deprecated
 
-
 _SEVEN_OVER_THREE = 7.0 / 3.0
 
 
