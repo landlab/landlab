@@ -2,10 +2,7 @@
 """
 Decorators for TheLandlab package.
 """
-
-import inspect
 import re
-import types
 
 
 def camel_case(text, sep=None):
