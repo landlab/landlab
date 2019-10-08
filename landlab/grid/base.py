@@ -291,16 +291,25 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Units of coordinates
     """
 
+    #: Indicates a node is *core*.
     BC_NODE_IS_CORE = CORE_NODE
+    #: Indicates a boundary node has a fixed value.
     BC_NODE_IS_FIXED_VALUE = FIXED_VALUE_BOUNDARY
+    #: Indicates a boundary node has a fixed gradient.
     BC_NODE_IS_FIXED_GRADIENT = FIXED_GRADIENT_BOUNDARY
+    #: Indicates a boundary node is wrap-around.
     BC_NODE_IS_LOOPED = LOOPED_BOUNDARY
+    #: Indicates a boundary node is closed
     BC_NODE_IS_CLOSED = CLOSED_BOUNDARY
 
+    #: Indicates a link is *active*, and can carry flux
     BC_LINK_IS_ACTIVE = ACTIVE_LINK
+    #: Indicates a link has a fixed gradient value, and behaves as a boundary
     BC_LINK_IS_FIXED = FIXED_LINK
+    #: Indicates a link is *inactive*, and cannot carry flux
     BC_LINK_IS_INACTIVE = INACTIVE_LINK
 
+    #: Grid elements on which fields can be placed.
     VALID_LOCATIONS = ("node", "link", "patch", "corner", "face", "cell")
 
     # Debugging flags (if True, activates some output statements)
