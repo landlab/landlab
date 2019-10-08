@@ -265,8 +265,6 @@ class RasterModelGrid(
         )
         self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
 
-        self._DEBUG_TRACK_METHODS = False
-
         if bc is None:
             bc = {"right": "open", "top": "open", "left": "open", "bottom": "open"}
 
@@ -968,9 +966,6 @@ class RasterModelGrid(
 
         LLCATS: BC SUBSET
         """
-        if self._DEBUG_TRACK_METHODS:
-            print("ModelGrid.set_closed_boundaries_at_grid_edges")
-
         bottom_edge = range(0, self.number_of_node_columns)
         right_edge = range(
             2 * self.number_of_node_columns - 1,

@@ -312,10 +312,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     #: Grid elements on which fields can be placed.
     VALID_LOCATIONS = ("node", "link", "patch", "corner", "face", "cell")
 
-    # Debugging flags (if True, activates some output statements)
-    _DEBUG_VERBOSE = False
-    _DEBUG_TRACK_METHODS = False
-
     at_node = {}  # : Values defined at nodes
     at_link = {}  # : Values defined at links
     at_patch = {}  # : Values defined at patches
