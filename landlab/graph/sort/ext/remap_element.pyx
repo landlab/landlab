@@ -301,10 +301,10 @@ def reorient_links(
 
 
 cdef _count_sorted_blocks(
-    long *array,
+    DTYPE_t *array,
     long len,
     long stride,
-    long *count,
+    DTYPE_t *count,
     long n_values,
 ):
     cdef long i
@@ -322,36 +322,41 @@ cdef _count_sorted_blocks(
 
 
 cdef _offset_to_sorted_blocks(
-    long *array,
+    DTYPE_t *array,
     long len,
     long stride,
-    long *offset,
+    DTYPE_t *offset,
     long n_values,
 ):
     cdef long i
     cdef long value
-    cdef long block
-    cdef long last_count, this_count
+    cdef long first_non_negative
 
+    first_non_negative = len * stride
     for i in range(0, len * stride, stride):
         if array[i] >= 0:
+            first_non_negative = i
             break
 
-    _count_sorted_blocks(array + i, len - i // stride, stride, offset, n_values)
+    offset[0] = first_non_negative
+    for value in range(1, n_values):
+        offset[value] = offset[value - 1]
+        for i in range(offset[value], len * stride, stride):
+            if array[i] >= value:
+                offset[value] = i
+                break
+        else:
+            offset[value] = len * stride
 
-    last_count = offset[0]
-    offset[0] = i // stride
-    for block in range(1, n_values):
-        this_count = offset[block]
-        offset[block] = offset[block - 1] + last_count
-        last_count = this_count
+    for value in range(n_values):
+        offset[value] = offset[value] // stride
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def offset_to_sorted_block(
-    np.ndarray[long, ndim=2, mode="c"] sorted_ids not None,
-    np.ndarray[long, ndim=1, mode="c"] offset_to_block not None,
+    np.ndarray[DTYPE_t, ndim=2, mode="c"] sorted_ids not None,
+    np.ndarray[DTYPE_t, ndim=1, mode="c"] offset_to_block not None,
 ):
     cdef long n_ids = sorted_ids.shape[0]
     cdef long n_blocks = offset_to_block.shape[0]
@@ -368,8 +373,8 @@ def offset_to_sorted_block(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def pair_isin(
-    np.ndarray[long, ndim=2, mode="c"] src_pairs not None,
-    np.ndarray[long, ndim=2, mode="c"] pairs not None,
+    np.ndarray[DTYPE_t, ndim=2, mode="c"] src_pairs not None,
+    np.ndarray[DTYPE_t, ndim=2, mode="c"] pairs not None,
     # np.ndarray[uint8, ndim=1, mode="c"] out not None,
     np.ndarray[uint8, ndim=1, mode="c", cast=True] out not None,
 ):
@@ -377,7 +382,7 @@ def pair_isin(
     cdef long pair
     cdef long n_pairs = pairs.shape[0]
     cdef long n_values = src_pairs.shape[0]
-    cdef long *data = <long *>malloc(n_values * sizeof(long))
+    cdef DTYPE_t *data = <DTYPE_t *>malloc(n_values * sizeof(DTYPE_t))
     cdef SparseMatrixInt mat
 
     for n in range(n_values):
@@ -395,10 +400,10 @@ def pair_isin(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def map_pairs_to_values(
-    np.ndarray[long, ndim=2, mode="c"] src_pairs not None,
-    np.ndarray[long, ndim=1, mode="c"] data not None,
-    np.ndarray[long, ndim=2, mode="c"] pairs not None,
-    np.ndarray[long, ndim=1, mode="c"] out not None,
+    np.ndarray[DTYPE_t, ndim=2, mode="c"] src_pairs not None,
+    np.ndarray[DTYPE_t, ndim=1, mode="c"] data not None,
+    np.ndarray[DTYPE_t, ndim=2, mode="c"] pairs not None,
+    np.ndarray[DTYPE_t, ndim=1, mode="c"] out not None,
 ):
     cdef long pair
     cdef long n_pairs = out.shape[0]
@@ -415,11 +420,11 @@ def map_pairs_to_values(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def map_rolling_pairs_to_values(
-    np.ndarray[long, ndim=2, mode="c"] src_pairs not None,
-    np.ndarray[long, ndim=1, mode="c"] data not None,
-    np.ndarray[long, ndim=2, mode="c"] pairs not None,
-    np.ndarray[long, ndim=1, mode="c"] size_of_row not None,
-    np.ndarray[long, ndim=2, mode="c"] out not None,
+    np.ndarray[DTYPE_t, ndim=2, mode="c"] src_pairs not None,
+    np.ndarray[DTYPE_t, ndim=1, mode="c"] data not None,
+    np.ndarray[DTYPE_t, ndim=2, mode="c"] pairs not None,
+    np.ndarray[DTYPE_t, ndim=1, mode="c"] size_of_row not None,
+    np.ndarray[DTYPE_t, ndim=2, mode="c"] out not None,
 ):
     cdef long n_values = data.shape[0]
     cdef long n_pairs = pairs.shape[0]
@@ -432,7 +437,7 @@ def map_rolling_pairs_to_values(
         _map_rolling_pairs(mat, &pairs[pair, 0], &out[pair, 0], size_of_row[pair])
 
 
-cdef _map_rolling_pairs(SparseMatrixInt mat, long *pairs, long *out, long size):
+cdef _map_rolling_pairs(SparseMatrixInt mat, DTYPE_t *pairs, DTYPE_t *out, long size):
     cdef long n
     cdef long val
 
@@ -445,10 +450,10 @@ cdef _map_rolling_pairs(SparseMatrixInt mat, long *pairs, long *out, long size):
 
 
 cdef struct SparseMatrixInt:
-    long *values
+    DTYPE_t *values
     long n_values
-    long *offset_to_row
-    long *col
+    DTYPE_t *offset_to_row
+    DTYPE_t *col
     long col_start
     long col_stride
     long n_rows
@@ -457,8 +462,8 @@ cdef struct SparseMatrixInt:
 
 
 cdef SparseMatrixInt sparse_matrix_alloc_with_tuple(
-    long *rows_and_cols,
-    long *values,
+    DTYPE_t *rows_and_cols,
+    DTYPE_t *values,
     long n_values,
     long no_val,
 ):
@@ -468,7 +473,7 @@ cdef SparseMatrixInt sparse_matrix_alloc_with_tuple(
     cdef long max_col = 0
     cdef long i
     cdef SparseMatrixInt mat
-    cdef long *offset
+    cdef DTYPE_t *offset
 
     for i in range(0, n_values * 2, 2):
         if rows_and_cols[i] > max_row:
@@ -478,7 +483,7 @@ cdef SparseMatrixInt sparse_matrix_alloc_with_tuple(
     n_rows = max_row + 1
     n_cols = max_col + 1
 
-    offset = <long *>malloc((n_rows + 1) * sizeof(long))
+    offset = <DTYPE_t *>malloc((n_rows + 1) * sizeof(DTYPE_t))
 
     _offset_to_sorted_blocks(rows_and_cols, n_values, 2, offset, n_rows + 1)
 
