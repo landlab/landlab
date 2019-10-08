@@ -14,7 +14,7 @@ class _Population(object):
         self._zone._species.append(species)
         self._time_to_allopatric_speciation = time_to_allopatric_speciation
 
-    def _remove_species(self, species):
+    def _remove_from_zone(self, species):
         """Remove a species from a zone."""
         self._zone._species.remove(species)
         self._zone = None
@@ -142,7 +142,7 @@ class ZoneSpecies(_Species):
 
         child_count = len(child_species)
         speciated = child_count > 0
-
+        
         # Handle extinction.
 
         extinct = self._evaluate_extinction(speciated)
@@ -150,7 +150,7 @@ class ZoneSpecies(_Species):
 
         if extinct and self._populations:
             for pop in self._populations:
-                pop._remove_species(self)
+                pop._remove_from_zone(self)
             self._populations = []
 
         # Update record add on.
@@ -180,30 +180,44 @@ class ZoneSpecies(_Species):
         """
         destination_zones = population._zone.path[time][1]
 
-        # Handle `population`.
-
         updated_populations = []
+
+        # Handle species by the number of destinations.
 
         if len(destination_zones) == 0:
             # Remove `population` from its zone because it now exists nowhere.
-            population._remove_species(self)
-
-        # Handle new populations.
-
-        for zone in destination_zones:
-            if population._zone == zone:
-                # The zone and population remain unchanged.
-                updated_populations.append(population)
-
-                if self._pseudoextinction and len(destination_zones) > 1:
-                    population._time_to_allopatric_speciation = self._allopatric_wait_time
-
-            elif self not in zone._species:
-                zone_pop = _Population(self, zone, self._allopatric_wait_time)
-                updated_populations.append(zone_pop)
-
-            else:
-                Exception('Dispersal condition not determined.')
+            population._remove_from_zone(self)
+        
+        elif len(destination_zones) == 1 and population._zone == destination_zones[0]:
+            # Population remains in the same zone.
+            updated_populations = [population]
+        
+        elif len(destination_zones) == 1:
+            # Population moved into a different zone. 
+            destination = destination_zones[0]
+            if self not in destination._species:
+                # Add population to new zone only if its not already in.
+                population._remove_from_zone(self)
+                population._zone = destination
+                destination._species.append(self)
+                updated_populations = [population]
+                
+        else:
+            for zone in destination_zones:
+                if population._zone == zone:
+                    # The zone and population remain unchanged.
+                    updated_populations.append(population)
+    
+                    if self._pseudoextinction and len(destination_zones) > 1:
+                        population._time_to_allopatric_speciation = self._allopatric_wait_time
+    
+                elif self not in zone._species:
+                    zone_pop = _Population(self, zone, 
+                                           self._allopatric_wait_time)
+                    updated_populations.append(zone_pop)
+    
+                else:
+                    Exception('Dispersal condition not determined.')
 
         return updated_populations
 
@@ -279,5 +293,5 @@ class ZoneSpecies(_Species):
         no_populations = len(self._populations) == 0
 
         pseudoextinct = self._pseudoextinction and speciation_occurred
-
+        
         return pseudoextinct or no_populations

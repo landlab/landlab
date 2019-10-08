@@ -64,9 +64,12 @@ class SpeciesEvolverDelegate(object):
             else:
                 clade = s.parent_species.identifier[0]
                 species_num = nums[np.where(clades == clade)[0]].max() + 1
-
-            s._identifier = (clade, species_num)
-
+                
+            s._identifier = (clade, species_num)    
+            
+            clades = np.append(clades, clade)
+            nums = np.append(nums, species_num)
+            
         # Update the species data structure.
 
         time = np.nanmax(self._record['time'])
@@ -337,7 +340,7 @@ class SpeciesEvolver(Component):
         appeared = np.array(self._delegate._species['time_appeared'])
         appeared[np.isnan(appeared)] = -1
         latest = np.array(self._delegate._species['latest_time'])
-        latest[np.isnan(appeared)] = -1
+        latest[np.isnan(latest)] = -1
 
         appeared_before_time = appeared <= time
         present_at_time = latest >= time
