@@ -4,6 +4,7 @@ This class should not be used directly. Instead, it should be used as a base
 class when defining other types of graphs.
 """
 import inspect
+from functools import lru_cache
 
 import numpy as np
 
@@ -57,10 +58,12 @@ class DualGraph(metaclass=DualGraphMeta):
         return self.ds["nodes_at_face"].values
 
     @property
+    @lru_cache()
     def cell_at_node(self):
         return reverse_one_to_one(self.node_at_cell, minlength=self.number_of_nodes)
 
     @property
+    @lru_cache()
     def link_at_face(self):
         return self._create_link_at_face()
 
@@ -81,6 +84,7 @@ class DualGraph(metaclass=DualGraphMeta):
         return self._link_at_face
 
     @property
+    @lru_cache()
     def face_at_link(self):
         return reverse_one_to_one(self.link_at_face, minlength=self.number_of_links)
 
