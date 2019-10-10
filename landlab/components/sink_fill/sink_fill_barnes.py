@@ -71,7 +71,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Surface topographic elevation",
+            "doc": "Land surface topographic elevation",
         },
     }
 

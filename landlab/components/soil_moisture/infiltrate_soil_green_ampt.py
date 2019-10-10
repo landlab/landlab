@@ -61,7 +61,7 @@ class SoilInfiltrationGreenAmpt(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Depth of water above the surface",
+            "doc": "Depth of water on the surface",
         },
     }
 

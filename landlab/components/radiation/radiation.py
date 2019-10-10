@@ -101,7 +101,7 @@ class Radiation(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "elevation of the ground surface relative to some datum",
+            "doc": "Land surface topographic elevation",
         },
     }
 

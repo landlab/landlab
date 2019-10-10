@@ -137,7 +137,7 @@ class SoilMoisture(Component):
             "optional": False,
             "units": "mm",
             "mapping": "cell",
-            "doc": "potential sum of evaporation and plant transpiration",
+            "doc": "potential sum of evaporation and potential transpiration",
         },
         "surface__runoff": {
             "dtype": float,

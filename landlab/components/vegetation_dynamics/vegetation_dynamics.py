@@ -122,7 +122,7 @@ class Vegetation(Component):
             "optional": False,
             "units": "mm",
             "mapping": "cell",
-            "doc": "potential sum of evaporation and platnt transpiration",
+            "doc": "potential sum of evaporation and potential transpiration",
         },
         "vegetation__cover_fraction": {
             "dtype": float,
@@ -178,7 +178,7 @@ class Vegetation(Component):
             "optional": False,
             "units": "None",
             "mapping": "cell",
-            "doc": "parameter that represents nonlinear effects of water defecit on plants",
+            "doc": "parameter that represents nonlinear effects of water deficit on plants",
         },
     }
 

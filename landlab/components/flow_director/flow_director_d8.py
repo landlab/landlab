@@ -141,7 +141,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Node array of steepest *downhill* slopes",
+            "doc": "The steepest *downhill* slope",
         },
     }
 

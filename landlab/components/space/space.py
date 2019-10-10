@@ -198,7 +198,7 @@ class Space(_GeneralizedErosionDeposition):
             "optional": False,
             "units": "m3/s",
             "mapping": "node",
-            "doc": "Sediment flux.",
+            "doc": "Sediment flux (volume per unit time of sediment entering each node)",
         },
         "soil__depth": {
             "dtype": float,
@@ -206,7 +206,7 @@ class Space(_GeneralizedErosionDeposition):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Depth of sediment above bedrock",
+            "doc": "Depth of soil or weathered bedrock",
         },
         "surface_water__discharge": {
             "dtype": float,
@@ -214,7 +214,7 @@ class Space(_GeneralizedErosionDeposition):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Discharge of water through each node",
+            "doc": "Volumetric discharge of surface water",
         },
         "topographic__elevation": {
             "dtype": float,
@@ -230,7 +230,7 @@ class Space(_GeneralizedErosionDeposition):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Topographic slope at each node",
+            "doc": "The steepest *downhill* slope",
         },
     }
 

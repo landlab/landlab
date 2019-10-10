@@ -481,7 +481,7 @@ class ChannelProfiler(_BaseProfiler):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Node array containing ID of link that leads from each node to its receiver, or BAD_INDEX_VALUE if no link",
+            "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
             "dtype": int,

@@ -36,6 +36,9 @@ class PotentialityFlowRouter(Component):
     It is VITAL you initialize this component AFTER setting boundary
     conditions.
 
+    If Manning or Chezy specified, the surface_water__depth is the depth of
+    flow in the cell, calculated assuming flow occurs over the whole surface.
+
     Note that this component offers the property `discharges_at_links`. This
     returns the discharges at all links. If method=='D8', this list will
     include diagonal links after the orthogonal links, which is why this
@@ -87,7 +90,7 @@ class PotentialityFlowRouter(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "If Manning or Chezy specified, the depth of flow in the cell, calculated assuming flow occurs over the whole surface",
+            "doc": "Depth of water on the surface",
         },
         "surface_water__discharge": {
             "dtype": float,
@@ -95,7 +98,7 @@ class PotentialityFlowRouter(Component):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Magnitude of volumetric water flux out of each node",
+            "doc": "Volumetric discharge of surface water",
         },
         "topographic__elevation": {
             "dtype": float,

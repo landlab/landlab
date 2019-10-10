@@ -295,7 +295,7 @@ class LandslideProbability(Component):
             "optional": False,
             "units": "tan theta",
             "mapping": "node",
-            "doc": "slope of surface at node represented by tan theta",
+            "doc": "gradient of the ground surface",
         },
         "topographic__specific_contributing_area": {
             "dtype": float,

@@ -118,7 +118,7 @@ class LinearDiffuser(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Land surface topographic elevation; can be overwritten in initialization",
+            "doc": "Land surface topographic elevation",
         },
         "topographic__gradient": {
             "dtype": float,
@@ -126,7 +126,7 @@ class LinearDiffuser(Component):
             "optional": False,
             "units": "-",
             "mapping": "link",
-            "doc": "Gradient of surface, on links",
+            "doc": "Gradient of the ground surface",
         },
     }
 

@@ -87,7 +87,7 @@ class DischargeDiffuser(Component):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Magnitude of volumetric water flux out of each node",
+            "doc": "Volumetric discharge of surface water",
         },
         "topographic__elevation": {
             "dtype": float,

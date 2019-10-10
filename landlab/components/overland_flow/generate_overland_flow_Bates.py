@@ -72,7 +72,7 @@ class OverlandFlowBates(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "The depth of water at each node.",
+            "doc": "Depth of water on the surface",
         },
         "surface_water__discharge": {
             "dtype": float,
@@ -80,7 +80,7 @@ class OverlandFlowBates(Component):
             "optional": False,
             "units": "m3/s",
             "mapping": "link",
-            "doc": "The discharge of water on active links.",
+            "doc": "Volumetric discharge of surface water",
         },
         "topographic__elevation": {
             "dtype": float,
@@ -88,7 +88,7 @@ class OverlandFlowBates(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "The land surface elevation.",
+            "doc": "Land surface topographic elevation",
         },
     }
 

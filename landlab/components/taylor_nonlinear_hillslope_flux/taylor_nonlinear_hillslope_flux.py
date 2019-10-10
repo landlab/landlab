@@ -146,7 +146,7 @@ class TaylorNonLinearDiffuser(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "elevation of the ground surface",
+            "doc": "Land surface topographic elevation",
         },
         "topographic__slope": {
             "dtype": float,

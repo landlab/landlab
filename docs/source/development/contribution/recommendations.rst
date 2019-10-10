@@ -27,6 +27,7 @@ Rules
     * Some common name patterns include `update()`, `run_one_step()`, or `calculate_name_of_thing()`.
 - A component raises a ``ValueError`` if unused keyword arguments are provided.
 - A component raises a ``ValueError`` if a grid type the component does not support is passed.
+- Component fields use consistent definition and dimensions (not necessarily units).
 
 Recommendations
 ---------------

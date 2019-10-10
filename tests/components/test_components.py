@@ -1,4 +1,5 @@
 import pytest
+import pandas as pd
 
 from landlab import FieldError, RasterModelGrid
 from landlab.components import COMPONENTS
@@ -96,3 +97,40 @@ def test_component_metadata(Comp):
                         component=Comp._name, name=name, at=at, attribute=attribute
                     )
                 )
+
+def test_consistent_doc_names():
+    out = []
+    for comp in COMPONENTS:
+        for name in comp._info:
+            temp = {'component': comp.__name__,
+                    'field': name}
+            for key in comp._info[name].keys():
+                temp[key] = comp._info[name][key]
+            out.append(temp)
+    df = pd.DataFrame(out)
+
+    unique_fields = df.field.unique().astype(str)
+
+    bad_fields = {}
+    for field in unique_fields:
+        where = df.field == field
+        if where.sum()>1:
+
+            sel = df[where]
+
+            doc_vals = df.doc[where].values.astype(str)
+
+            inconsistent = []
+            for i in range(len(doc_vals)-1):
+                if doc_vals[i] != doc_vals[-1]:
+                    inconsistent.append(sel.component.values[i])
+
+            if len(inconsistent)>0:
+                bad_fields[field] = inconsistent
+    if len(bad_fields)>0:
+        msg = ("The following fields have inconsistent documentation:\n")
+        for field in bad_fields.keys():
+            inconsistent = bad_fields[field]
+            msg+=('\n'+field+':\n  '+'\n  '.join(inconsistent))
+
+        raise ValueError(msg)

@@ -130,7 +130,7 @@ class DepthDependentDiffuser(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "depth of soil/weather bedrock",
+            "doc": "Depth of soil or weathered bedrock",
         },
         "soil__flux": {
             "dtype": float,
@@ -154,7 +154,7 @@ class DepthDependentDiffuser(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "elevation of the ground surface",
+            "doc": "Land surface topographic elevation",
         },
         "topographic__slope": {
             "dtype": float,

@@ -225,7 +225,7 @@ class DrainageDensity(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Topographic slope at each node",
+            "doc": "The steepest *downhill* slope",
         },
     }
 

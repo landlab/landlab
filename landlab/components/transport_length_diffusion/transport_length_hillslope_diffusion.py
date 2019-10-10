@@ -160,7 +160,7 @@ class TransportLengthHillslopeDiffuser(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Elevation of the ground surface",
+            "doc": "Land surface topographic elevation",
         },
         "topographic__steepest_slope": {
             "dtype": float,
@@ -168,7 +168,7 @@ class TransportLengthHillslopeDiffuser(Component):
             "optional": False,
             "units": "m/m",
             "mapping": "node",
-            "doc": "Steepest gradient of the ground surface at each node",
+            "doc": "The steepest *downhill* slope",
         },
     }
 

@@ -61,7 +61,7 @@ class PerronNLDiffuse(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Land surface topographic elevation; can be overwritten in initialization",
+            "doc": "Land surface topographic elevation",
         }
     }
 

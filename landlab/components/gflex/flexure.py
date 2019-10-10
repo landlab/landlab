@@ -117,7 +117,7 @@ class gFlex(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Vertical deflection of the surface and of the lithospheric plate",
+            "doc": "The change in elevation of the top of the lithosphere (the land surface) in one timestep",
         },
         "surface_load__stress": {
             "dtype": float,
@@ -133,7 +133,7 @@ class gFlex(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Land surface topographic elevation; can be overwritten in initialization",
+            "doc": "Land surface topographic elevation",
         },
     }
 

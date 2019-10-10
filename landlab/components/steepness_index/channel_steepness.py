@@ -79,7 +79,7 @@ class SteepnessFinder(Component):
             "optional": False,
             "units": "m**2",
             "mapping": "node",
-            "doc": "upstream drainage area",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
         },
         "flow__link_to_receiver_node": {
             "dtype": int,
@@ -95,7 +95,7 @@ class SteepnessFinder(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "the downstream node at the end of the steepest link",
+            "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__upstream_node_order": {
             "dtype": int,
@@ -103,7 +103,7 @@ class SteepnessFinder(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "node order such that nodes must appear in the list after all nodes downstream of them",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "topographic__elevation": {
             "dtype": float,
@@ -111,7 +111,7 @@ class SteepnessFinder(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Surface topographic elevation",
+            "doc": "Land surface topographic elevation",
         },
         "topographic__steepest_slope": {
             "dtype": float,
@@ -119,7 +119,7 @@ class SteepnessFinder(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "the steepest downslope rise/run leaving the node",
+            "doc": "The steepest *downhill* slope",
         },
     }
 

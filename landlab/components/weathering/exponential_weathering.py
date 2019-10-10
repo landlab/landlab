@@ -60,7 +60,7 @@ class ExponentialWeatherer(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "depth of soil/weather bedrock",
+            "doc": "Depth of soil or weathered bedrock",
         },
         "soil_production__rate": {
             "dtype": float,

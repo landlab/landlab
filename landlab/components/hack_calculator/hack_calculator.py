@@ -182,7 +182,7 @@ class HackCalculator(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Node array containing ID of link that leads from each node to its receiver, or BAD_INDEX_VALUE if no link",
+            "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
             "dtype": int,
@@ -198,7 +198,7 @@ class HackCalculator(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "node order such that nodes must appear in the list after all nodes downstream of them",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "topographic__elevation": {
             "dtype": float,

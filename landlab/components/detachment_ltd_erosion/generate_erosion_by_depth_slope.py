@@ -142,7 +142,7 @@ class DepthSlopeProductErosion(Component):
             "optional": True,
             "units": "-",
             "mapping": "node",
-            "doc": "Gradient of surface, on links",
+            "doc": "gradient of the ground surface",
         },
     }
 

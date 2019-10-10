@@ -297,7 +297,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Discharge of water through each node",
+            "doc": "Volumetric discharge of surface water",
         },
         "surface_water__discharge_loss": {
             "dtype": float,

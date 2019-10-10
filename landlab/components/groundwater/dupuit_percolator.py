@@ -201,7 +201,7 @@ class GroundwaterDupuitPercolator(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "elevation of land surface",
+            "doc": "Land surface topographic elevation",
         },
         "water_table__elevation": {
             "dtype": float,

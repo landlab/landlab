@@ -54,7 +54,7 @@ class NormalFault(Component):
             "optional": True,
             "units": "m",
             "mapping": "node",
-            "doc": "elevation of the ground surface",
+            "doc": "Land surface topographic elevation",
         }
     }
 
