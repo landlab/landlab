@@ -26,9 +26,11 @@ class LateralEroder(Component):
     Landlab component that finds a neighbor node to laterally erode and
     calculates lateral erosion.
     See the publication:
+
     Langston, A.L., Tucker, G.T.: Developing and exploring a theory for the
     lateral erosion of bedrock channels for use in landscape evolution models.
-    Earth Surface Dynamics, 6, 1-27, https://doi.org/10.5194/esurf-6-1-2018
+    Earth Surface Dynamics, 6, 1-27,
+    `https://doi.org/10.5194/esurf-6-1-2018 <https://www.earth-surf-dynam.net/6/1/2018/>`_
 
     Parameters
     ----------

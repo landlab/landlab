@@ -57,7 +57,7 @@ Specifications / dependencies conflicts:
 ``UnsatisfiableError: The following specifications were found to be in conflict:...``
 
 -  Possible fix: create and work in a `conda
-   environment <https://conda.io/docs/user-guide/tasks/manage-environments.html>`_
+   environment <https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_
 
 -  Related issues:
    `#625 <https://github.com/landlab/landlab/issues/625>`_,
@@ -102,7 +102,7 @@ directory and type:
 This tests whatever version of landlab you have installed. If this
 produces errors for which you cannot find a fix in this page, please
 contact the development team by `creating a GitHub
-issue <https://github.com/landlab/landlab/issues/new>`_. Provide the
+issue <https://github.com/landlab/landlab/issues>`_. Provide the
 results of the above test and all the information you can (operating
 system, type of install you have done, etc.)
 
@@ -186,9 +186,9 @@ If this does not solve your issue:
 
 -  Try a clean install: uninstall and reinstall conda, etc.
 -  Use a `conda
-   environment <https://conda.io/docs/user-guide/tasks/manage-environments.html>`_
+   environment <https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_
 -  Contact the Landlab development team: `create an issue on
-   GitHub <https://github.com/landlab/landlab/issues/new>`_. Please
+   GitHub <https://github.com/landlab/landlab/issues>`_. Please
    provide all the information you can: the system you are operating on,
    the install you have done, the command that produced the error, what
    the error message is… We will get back to you quickly!

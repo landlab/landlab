@@ -6,7 +6,7 @@
 :Authors: Greg Tucker, Nicole Gasparini, Erkan Istanbulluoglu, Daniel Hobley,
     Sai Nudurupati, Jordan Adams, Eric Hutton, Katherine Barnhart, Margaux
     Mouchene, Nathon Lyons
-:URL: http://csdms.colorado.edu/trac/landlab
+:URL: https://landlab.readthedocs.io/en/release/
 :License: MIT
 """
 

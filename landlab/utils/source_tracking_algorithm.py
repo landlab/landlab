@@ -11,7 +11,7 @@ Source Tracking Algorithm
 Authors: Sai Nudurupati & Erkan Istanbulluoglu
 
 Ref 1: 'The Landlab LandslideProbability Component User Manual' @
-https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.docx
+https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.pdf
 
 MD - Modeling Domain - Raster grid that is being analyzed/worked upon.
 HSD - Hydrologic Source Domain - Grid that is at least as coarse as MD. For
@@ -32,7 +32,7 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
     adjacent cells into which flow could travel. The valid output directions
     are powers of 2 starting from 2^0 (1) in the Eastern neighbor going
     clockwise to 2^7 (128) at Northeastern neighbor. For more information
-    refer 'http://pro.arcgis.com/en/pro-app/tool-reference/spatial-analyst/
+    refer 'https://pro.arcgis.com/en/pro-app/tool-reference/spatial-analyst/
     how-flow-direction-works.htm'
 
     Parameters

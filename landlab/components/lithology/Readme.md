@@ -11,5 +11,5 @@ repository](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/next/lith
 that describes the use of this submodule.
 
 If you have any questions, comments, issues, or bugs related to this submodule,
-please [open an Issue](https://github.com/landlab/landlab/issues/new) so we can
+please [open an Issue](https://github.com/landlab/landlab/issues) so we can
 respond.

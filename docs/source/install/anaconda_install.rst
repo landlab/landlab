@@ -7,7 +7,7 @@ Anaconda Install
 Install Anaconda
 ----------------
 
-This should work for `Anaconda <https://www.continuum.io/downloads>`_ users
+This should work for `Anaconda <https://www.anaconda.com/distribution/>`_ users
 with Windows 7+, Mac OS 10.6+, or
 Ubuntu Linux (only the latest version has been tested).
 

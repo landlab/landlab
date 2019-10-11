@@ -318,7 +318,7 @@ After model run:
 
 Once the model is done running, the hydrograph can be plotted using the matplotlib library. This is a simple example, for more customization options, we recommend the matplotlib documentation_.
 
-.. _documentation: http://matplotlib.org/api/pyplot_api.html
+.. _documentation: https://matplotlib.org//api/pyplot_api.html
 
 .. code-block:: python
 

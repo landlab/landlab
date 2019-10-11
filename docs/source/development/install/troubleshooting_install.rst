@@ -101,5 +101,5 @@ information :ref:`here <contact>`.
 When reporting your problem (in either place) we recommend that you provide a
 minimal, complete, and verifiable example which will help the development team
 and involved users reproduce your problem and determine a solution.
-`This page from Stack Overflow <https://stackoverflow.com/help/mcve>`_ provides
+`This page from Stack Overflow <https://stackoverflow.com/help/minimal-reproducible-example>`_ provides
 some background on how to make a minimal, complete, and verifiable example.

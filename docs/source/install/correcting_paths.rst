@@ -235,6 +235,6 @@ start again from scratch.
 
 For example, your Anaconda distribution is contained in one folder. You can
 move this folder to the trash and install a fresh version following the
-directions on the ` Anaconda  < https://www.continuum.io/downloads >`_ site.
+directions on the ` Anaconda  < https://www.anaconda.com/distribution/ >`_ site.
 
 Update ``conda`` and ``pip``, uninstall Landlab, and then install a fresh copy.

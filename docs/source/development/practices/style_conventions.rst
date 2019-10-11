@@ -8,7 +8,7 @@ General Coding Style
 --------------------
 
 -  Please stick to the coding style described by
-   `PEP8 <http://www.python.org/dev/peps/pep-0008/>`_. PEP8 is one of
+   `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_. PEP8 is one of
    the standard worldwide stylistic conventions for coding in Python.
 
 -  Class and function docstrings should follow the `numpydoc
@@ -42,7 +42,7 @@ except for (as defined in our ``setup.cfg``)
 
 To format files to meet these standards, we recommend using
 `isort <https://pypi.org/project/isort/>`_ +
-`black <https://github.com/ambv/black>`_.
+`black <https://github.com/psf/black>`_.
 
 You can run
 
@@ -52,7 +52,7 @@ You can run
 
 from the main landlab directory in a terminal to run both
 `isort <https://pypi.org/project/isort/>`_ and
-`black <https://github.com/ambv/black>`_ on your code.
+`black <https://github.com/psf/black>`_ on your code.
 
 To check if your files meet the standards that are enforced under
 continuous integration, we use

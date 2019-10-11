@@ -118,7 +118,7 @@ A specific example might be:
 ++++++++++++++++++++++
 
 As noted in previous sections, Landlab is coded in an `object-oriented style
-<http://code.tutsplus.com/articles/python-from-scratch-object-oriented-programming--net-21476>`_.
+<https://code.tutsplus.com/articles/python-from-scratch-object-oriented-programming--net-21476>`_.
 This means that we need to "instantiate" the various Landlab objects such as
 the grid and the components that we will use to store data and run the model.
 
@@ -369,7 +369,7 @@ Landlab has a fairly comprehensive suite of built in plotting functions; read
 more about them :ref:`here<plotting_and_vis>`.
 
 You also of course have the option of using the `matplotlib plotting library
-<http://matplotlib.org>`_ of Python for things like cross-sections.
+<https://matplotlib.org/>`_ of Python for things like cross-sections.
 
 If you're careful, you can also build plotting functions into the body of a run
 loop for your model, so you can see how your output evolves through time. Note

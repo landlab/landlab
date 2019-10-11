@@ -20,7 +20,7 @@ Ref 1: Strauch et. al. 2017, 'A hydro-climatological approach to predicting
 regional landslide probability using Landlab, Earth Surface Dynamics, In prep.
 
 Ref 2: 'The Landlab LandslideProbability Component User Manual' @
-https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.docx
+https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.pdf
 
 Created on Thu Aug 20, 2015
 Last edit June 7, 2017

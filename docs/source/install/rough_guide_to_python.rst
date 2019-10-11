@@ -39,7 +39,7 @@ simply update through the package manager:
 
 If you're still seeing a sub-2.7 version number (as I was...), you're going
 to need to download the python source and install it manually. Go to
-`the python download site <https://www.python.org/download/>`_, select the
+`the python download site <https://www.python.org/downloads/>`_, select the
 link to the highest version
 number of Python 2.X available (2.7.6 at time of writing), and download it
 as a gzipped source tarball. Then:
@@ -85,7 +85,7 @@ numpy*, you'll notice you don't have any packages. This is where pip -
 the powerful command line Python package manager - comes in.
 
 Get pip by going to `the pip site
-<https://pip.pypa.io/en/latest/installing.html>`_
+<https://pip.pypa.io/en/latest/installing/>`_
 and downloading get_pip.py, which links from that page. Navigate to
 the folder you downloaded it into, and simply run
 

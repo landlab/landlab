@@ -34,9 +34,9 @@ If you have compiler issues, you will see the message::
 
   ...building 'landlab.components.flexure.cfuncs' extension
   error: MS VisualC++ 9.0 is required (Unable to find vcvarsall.bat).
-  Get it from http://aka.ms/vcpython27
+  Get it fromhttps://www.microsoft.com/en-us/download/details.aspx?id=44266
 
-Simply go to `that specified Microsoft website <http://aka.ms/vcpython27>`_ and from
+Simply go to `that specified Microsoft website <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_ and from
 there download the software needed using the obvious download button.
 
 Once you have it, the above install command should then work fine.

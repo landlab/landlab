@@ -12,7 +12,7 @@ working copy. This is also important to keep your branch up to date with
 improvements/bug elimination happening as part of core Landlab development.
 
 Before you begin, we recommend you review this `GitHub page describing syncing
-a fork <https://help.github.com/articles/syncing-a-fork/>`_.
+a fork <https://help.github.com/en/articles/syncing-a-fork>`_.
 
 Through the command line, you should be able to update your Landlab repository
 from master using the following command
@@ -23,7 +23,7 @@ from master using the following command
 
 A common reason why this might not work is if you haven't set the remotes
 correctly. This
-`GitHub page <https://help.github.com/categories/managing-remotes/>`_ on
+`GitHub page <https://help.github.com/en/articles/managing-remote-repositories>`_ on
 managing remotes might be helpful.
 
 If we have added a dependency, you may see an import error. Similarly, if we
@@ -138,7 +138,7 @@ some help), then return to trying to install Landlab.
 
 You can't do the equivalent in the GitHub app, but you can do it through the
 website—though it is a bit more involved. Navigate to the
-`master Landlab fork <http://github.com/landlab/landlab>`_. Hit the big green
+`master Landlab fork <https://github.com/landlab/landlab>`_. Hit the big green
 "new pull request" button. Hit the "compare across forks" hyperlink. You now
 want to set the *base fork* dropdown menu to your local Landlab
 (`UserName/landlab`), and leave the *head fork* as it is (`landlab/landlab`).

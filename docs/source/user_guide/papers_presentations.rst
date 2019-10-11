@@ -120,8 +120,8 @@ N.M., Istanbulluoglu, E., and Tucker, G.E., **Creative computing with
 Landlab: an open-source toolkit for building, coupling, and exploring
 two-dimensional numerical models of Earth-surface dynamics.** *Earth
 Surface Dynamics*, 2017, doi:10.5194/esurf-5-21-2017.
-`abstract <http://www.earth-surf-dynam.net/5/21/2017/>`__
-`paper <http://www.earth-surf-dynam.net/5/21/2017/esurf-5-21-2017.pdf>`__
+`abstract <https://www.earth-surf-dynam.net/5/21/2017/>`__
+`paper <https://www.earth-surf-dynam.net/5/21/2017/esurf-5-21-2017.pdf>`__
 
 Shobe, C.M., Tucker, G.E., and Barnhart, K.R. **The SPACE 1.0 model: a
 Landlab component for 2-D calculation of sediment transport, bedrock

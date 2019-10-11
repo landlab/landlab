@@ -26,7 +26,7 @@ for instructions on the structure and content of your component code. See also
 shows you the common set of files (such as ``__init__.py`` and documentation
 files) that get added or modified when a component is added to Landlab.
 
-See the :ref:`Standard Naming conventions <standard_names>` for good practice
+See the :ref:`Standard Naming conventions <component_standard_names>` for good practice
 on parameters and variables naming.
 
 The following pages describe the software development practices that Landlab
@@ -34,7 +34,7 @@ strives to follow. Our goal is to make the capabilities of Landlab
 well-documented to support new users while not enforcing substantial burdens on
 community contributors. If you have any questions about the process after you
 have finished reading the documentation, consider making an
-`Issue <https://github.com/landlab/landlab/issues/new/>`_ to ask the
+`Issue <https://github.com/landlab/landlab/issues/>`_ to ask the
 development team for help.
 
 .. toctree::
@@ -108,7 +108,7 @@ Your component is accepted to Landlab. What's next?
 ---------------------------------------------------
 Congrats on all your hard work! Once you know your component has been accepted
 and is included in a Landlab release, please
-`add it to the CSDMS Model Repository <http://csdms.colorado.edu/wiki/Contribute_model>`_.
+`add it to the CSDMS Model Repository <https://csdms.colorado.edu/wiki/Contribute_model>`_.
 You can link directly to the source code on Github. Just fill out the questionnaire.
 
 Have you written up some tutorials or Jupyter notebooks to help teach new users

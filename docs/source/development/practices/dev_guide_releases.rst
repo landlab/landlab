@@ -29,7 +29,7 @@ is uploaded to `Anaconda.org <https://anaconda.org/landlab/landlab>`_.
 
 A couple notes about creating a new version:
 
-1. Landlab follows `Semantic Versioning <http://semver.org/>`_
+1. Landlab follows `Semantic Versioning <https://semver.org/>`_
    rules for version assignment and formatting. Please stick to them.
 
 2. The version given in the tag name must match that in
@@ -64,7 +64,7 @@ A couple notes about creating a new version:
       if your release appears there.
    *  Check if `conda` can see your new release with
       ``conda search landlab -c landlab``. See the
-      `conda docs <http://conda.pydata.org/docs/using/index.html>`_
+      `conda docs <https://docs.conda.io/en/latest/>`_
       for a description of ``conda`` and how to use it, or you can always use
       ``conda -h`` from the command line.
 
@@ -83,7 +83,7 @@ The Release Checklist
    $ git merge master
 
 3. Decide what new version number is appropriate based on
-   `Semantic Versioning <http://semver.org/>`_. Previously
+   `Semantic Versioning <https://semver.org/>`_. Previously
    updating the version number was done by hand, but now
    this is done automatically.
 
@@ -112,7 +112,7 @@ The Release Checklist
 Helpful links
 =============
 
-1. `Using conda <http://conda.pydata.org/docs/using/index.html>`_: What
+1. `Using conda <https://docs.conda.io/en/latest/>`_: What
    `conda` is and how to use it.
 2. `git tags <https://git-scm.com/book/en/v2/Git-Basics-Tagging>`_: What git
    tags are and how to create them.
@@ -123,5 +123,5 @@ Helpful links
    Travis builds of landlab.
 5. `landlab on Anaconda <https://anaconda.org/landlab/landlab>`_: The
    conda packages for landlab releases.
-6. `Semantic Versioning <http://semver.org/>`_: Rules for assigning and
+6. `Semantic Versioning <https://semver.org/>`_: Rules for assigning and
    formatting versions.

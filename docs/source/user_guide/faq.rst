@@ -182,7 +182,7 @@ How do I keep in touch with Landlab developments?
 
 There are a few ways to follow Landlab developments. You can
 - contribute questions to this wiki (see below),
-- follow Landlab on `Twitter <https://twitter.com/landlabtoolkit>`_  @landlabtoolkit,
+- follow Landlab on `Twitter <https://mobile.twitter.com/landlabtoolkit>`_  @landlabtoolkit,
 - join the Landlab User Group on `Slack <knuth@colorado.edu?subject=Landlab%20User%20Group&body=Invite%20to%20Slack>`_,
 - follow `releases <https://github.com/landlab/landlab/releases>`_,
 - "watch" Landlab's GitHub repository,

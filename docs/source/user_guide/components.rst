@@ -165,7 +165,7 @@ Landlab components always want to see a Python dictionary as their input, as
 illustrated above. However, Landlab does offer a native file
 reader called `load_params` that allows you to create dictionaries to pass to
 components from input files. This function recognizes both
-`"yaml" <http://www.yaml.org/start.html>`_ formatted data files, e.g.,
+`"yaml" <https://yaml.org/start.html>`_ formatted data files, e.g.,
 
 .. code-block:: yaml
 
@@ -235,7 +235,7 @@ Landlab standard naming conventions
 The Landlab component library attempts to make use of a relatively standardized set of names across
 the various components, in order to maximize ease of component coupling. If you're familiar with
 the concept of the `CSDMS standard naming conventions
-<http://csdms.colorado.edu/wiki/CSDMS_Standard_Names>`_, note that we have tried to strike a balance
+<https://csdms.colorado.edu/wiki/CSDMS_Standard_Names>`_, note that we have tried to strike a balance
 between the rigor and uniqueness of those names and a more user-friendly, succinct approach.
 Nonetheless, you may recognize the basic style of the names:
 

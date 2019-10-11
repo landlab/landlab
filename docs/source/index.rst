@@ -56,7 +56,7 @@ by the following grants:
 Citing Landlab
 --------------
 
-`Hobley, D. E. J. <http://www.earth-surf-dynam.net/5/21/2017/>`_, Adams, J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu, E. and Tucker, G. E., 2017, Creative computing with Landlab: an open-source toolkit for building, coupling, and exploring two-dimensional numerical models of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46, 10.5194/esurf-5-21-2017.
+`Hobley, D. E. J. <https://www.earth-surf-dynam.net/5/21/2017/>`_, Adams, J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu, E. and Tucker, G. E., 2017, Creative computing with Landlab: an open-source toolkit for building, coupling, and exploring two-dimensional numerical models of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46, 10.5194/esurf-5-21-2017.
 
 BibTeX format:
 ::
@@ -79,7 +79,7 @@ BibTeX format:
 If you are working with existing Landlab components, please also read the
 :ref:`component documentation <api.components>`
 to see if there are also specific publications linked to them. An example might be
-`Adams et al. (2017) <http://www.geosci-model-dev-discuss.net/gmd-2016-277/>`_
+`Adams et al. (2017) <https://www.geosci-model-dev-discuss.net/gmd-2016-277/>`_
 for the OverlandFlow components. Table 5 in Hobley et al. (2017) also lists
 many of these papers, as of the start of 2017.
 
@@ -121,4 +121,4 @@ To keep in touch with the latest Landlab news:
 
 -  Get the `Landlab Lookout Newsletter <http://eepurl.com/dADtrT>`_
 -  Join the `Landlab Slack channel <landlab.slack.com>`_
--  Landlab is on `Twitter <https://twitter.com/landlabtoolkit>`_!
+-  Landlab is on `Twitter <https://mobile.twitter.com/landlabtoolkit>`_!

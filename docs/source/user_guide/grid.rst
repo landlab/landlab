@@ -239,7 +239,7 @@ As you can see, fields are convenient because you don't have to keep track of ho
 there are on the grid. It is easy for any part of the code to query what data are already associated with the grid and operate on these data.
 
 You are free to call your fields whatever you want. However, field names are more useful if standardized across components. If you are writing a Landlab component
-you should use `Landlab's standard names <standard_names>`_.
+you should use `Landlab's standard names <component_standard_names>`_.
 Standard names for fields in a particular component can be
 accessed individually through the properties
 *component_instance._input_var_names* and *component_instance._output_var_names*
@@ -257,10 +257,10 @@ accessed individually through the properties
     {'lithosphere__elevation', 'lithosphere__elevation_increment'}
 
 We also maintain this list of all the
-:ref:`Landlab standard names <standard_names>`.
+:ref:`Landlab standard names <component_standard_names>`.
 
 Our fields also offer direct compatibility with `CSDMS's standard naming system for
-variables <http://csdms.colorado.edu/wiki/CSDMS_Standard_Names>`_.
+variables <https://csdms.colorado.edu/wiki/CSDMS_Standard_Names>`_.
 However, note that, for ease of use and readability, Landlab standard
 names are typically much shorter than CSDMS standard names. We anticipate that future
 Landlab versions will be able to automatically map from Landlab standard names to CSDMS
@@ -645,10 +645,10 @@ argument to imshow_node_grid. Other useful built in colorschemes are *'bone'* (b
 to white), *'jet'*, (blue to red, through green), *'Blues'* (white to blue), and
 *'terrain'* (blue-green-brown-white) (note these names are case sensitive).
 See `the matplotlib reference guide
-<http://matplotlib.org/examples/color/colormaps_reference.html>`_ for more options.
+<https://matplotlib.org//examples/color/colormaps_reference.html>`_ for more options.
 Note that imshow_node_grid takes many of the same keyword arguments as, and is designed
 to resemble, the standard matplotlib function `imshow
-<http://matplotlib.org/users/image_tutorial.html>`_. See also the method help for more
+<https://matplotlib.org//users/image_tutorial.html>`_. See also the method help for more
 details.
 In particular, note you can set the maximum and minimum you want for your colorbar using
 the keywords *vmin* and *vmax*, much as in similar functions in the matplotlib library.

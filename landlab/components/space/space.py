@@ -20,7 +20,7 @@ class Space(_GeneralizedErosionDeposition):
     Shobe, C. M., Tucker, G. E., and Barnhart, K. R.: The SPACE 1.0 model: a
     Landlab component for 2-D calculation of sediment transport, bedrock
     erosion, and landscape evolution, Geosci. Model Dev., 10, 4577-4604,
-    https://doi.org/10.5194/gmd-10-4577-2017, 2017.
+    `https://doi.org/10.5194/gmd-10-4577-2017 <https://www.geosci-model-dev.net/10/4577/2017/>`_, 2017.
 
     Note: If timesteps are large enough that Es*dt (sediment erosion)
     exceeds sediment thickness H, the 'adaptive' solver is necessary to

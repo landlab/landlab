@@ -17,16 +17,16 @@ the GitHub website.
 
 You will only need to do this once for each project to which you want to
 contribute. Github has some great documentation on `how to create a
-fork <https://help.github.com/articles/fork-a-repo/>`_. We outline
+fork <https://help.github.com/en/articles/fork-a-repo>`_. We outline
 below the basic steps as applied to Landlab.
 
 Create a Github account
 ```````````````````````
 
 1. You can create a GitHub account by going to the `GitHub
-   website <http://github.com>`_.
+   website <https://github.com>`_.
 2. If you haven't already, `Install
-   Git <https://help.github.com/articles/set-up-git/>`_. Note that if
+   Git <https://help.github.com/en/articles/set-up-git>`_. Note that if
    you are using a mac with OS lower than 10.7, we have found it
    difficult to setup git, and you may want to upgrade your OS.
    Alternatively, you can do this in a more user-friendly fashion by
@@ -39,7 +39,7 @@ Create a Github account
    install the git GUI, then it will set-up an SSH key for you. If you
    install on the command line, you might need some help with this, see
    `Generating SSH Keys on
-   GitHub <https://help.github.com/articles/generating-an-ssh-key/>`_.
+   GitHub <https://help.github.com/en/articles/connecting-to-github-with-ssh>`_.
 4. If you want to ensure the ssh key is set correctly, go to your home
    page on github and hit the account settings (wrench and screwdriver
    button in upper right corner). On this page hit the SSH keys tab on
