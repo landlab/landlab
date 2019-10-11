@@ -1,6 +1,6 @@
 #!/usr/env/python
-"""Landlab component that simulates landslide probability of failure as well
-as mean relative wetness and probability of saturation.
+"""Landlab component that simulates landslide probability of failure as well as
+mean relative wetness and probability of saturation.
 
 Relative wetness and factor-of-safety are based on the infinite slope
 stability model driven by topographic and soils inputs and recharge provided
@@ -194,7 +194,6 @@ class LandslideProbability(Component):
     >>> np.allclose(grid.at_node['landslide__probability_of_failure'], 0.)
     False
     >>> core_nodes = ls_prob.grid.core_nodes
-
     """
 
     # component name
@@ -543,10 +542,11 @@ class LandslideProbability(Component):
     def calculate_landslide_probability(self):
         """Main method of Landslide Probability class.
 
-        Method creates arrays for output variables then loops through all
-        the core nodes to run the method 'calculate_factor_of_safety.'
-        Output parameters probability of failure, mean relative wetness,
-        and probability of saturation are assigned as fields to nodes.
+        Method creates arrays for output variables then loops through
+        all the core nodes to run the method
+        'calculate_factor_of_safety.' Output parameters probability of
+        failure, mean relative wetness, and probability of saturation
+        are assigned as fields to nodes.
         """
         # Create arrays for data with -9999 as default to store output
         self._mean_Relative_Wetness = np.full(self._grid.number_of_nodes, -9999.0)
@@ -571,10 +571,10 @@ class LandslideProbability(Component):
     def _seed_generator(self, seed=0):
         """Method to initiate random seed.
 
-        Seed the random-number generator. This method will create the same
-        sequence again by re-seeding with the same value (default value is
-        zero). To create a sequence other than the default, assign non-zero
-        value for seed.
+        Seed the random-number generator. This method will create the
+        same sequence again by re-seeding with the same value (default
+        value is zero). To create a sequence other than the default,
+        assign non-zero value for seed.
         """
         np.random.seed(seed)
 
@@ -610,9 +610,9 @@ class LandslideProbability(Component):
         """Method to calculate recharge based on upstream fractions.
 
         This method calculates the resultant recharge at node i of the
-        model domain, using recharge of contributing HSD ids and the areal
-        fractions of upstream contributing HSD ids. Output is a numpy array
-        of recharge at node i.
+        model domain, using recharge of contributing HSD ids and the
+        areal fractions of upstream contributing HSD ids. Output is a
+        numpy array of recharge at node i.
         """
         store_Re = np.zeros(self._n)
         HSD_id_list = self._HSD_id_dict[i]

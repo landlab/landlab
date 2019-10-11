@@ -44,8 +44,7 @@ import numpy as np
 
 class MaskedJaggedArray(object):
 
-    """
-    A container for an array of variable-length arrays.
+    """A container for an array of variable-length arrays.
 
     MaskedJaggedArray([row0, row1, ...])
     MaskedJaggedArray(values, values_per_row)
@@ -67,9 +66,8 @@ class MaskedJaggedArray(object):
     """
 
     def __init__(self, *args):
-        """
-        MaskedJaggedArray([row0, row1, ...])
-        MaskedJaggedArray(values, values_per_row)
+        """MaskedJaggedArray([row0, row1, ...]) MaskedJaggedArray(values,
+        values_per_row)
 
         Examples
         --------

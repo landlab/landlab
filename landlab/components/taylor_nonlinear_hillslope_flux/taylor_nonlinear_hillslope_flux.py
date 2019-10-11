@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-TaylorNonLinearDiffuser Component
+"""TaylorNonLinearDiffuser Component.
 
 @author: R Glade
 @author: K Barnhart
@@ -15,10 +14,9 @@ from landlab import INACTIVE_LINK, Component
 
 
 class TaylorNonLinearDiffuser(Component):
-    """
-    Hillslope evolution using a Taylor Series expansion of the Andrews-Bucknam
-    formulation of nonlinear hillslope flux derived following following Ganti et
-    al., 2012. The flux is given as:
+    """Hillslope evolution using a Taylor Series expansion of the Andrews-
+    Bucknam formulation of nonlinear hillslope flux derived following following
+    Ganti et al., 2012. The flux is given as:
 
         qs = KS ( 1 + (S/Sc)**2 + (S / Sc)**4 + .. + (S / Sc)**2(n - 1) )
 
@@ -175,7 +173,6 @@ class TaylorNonLinearDiffuser(Component):
             number of terms in the Taylor expansion.
             Two terms (Default) gives the behavior
             described in Ganti et al. (2012).
-
         """
         super(TaylorNonLinearDiffuser, self).__init__(grid)
 
@@ -295,8 +292,7 @@ class TaylorNonLinearDiffuser(Component):
             )
 
     def run_one_step(self, dt):
-        """
-        Advance cubic soil flux component by one time step of size dt.
+        """Advance cubic soil flux component by one time step of size dt.
 
         Parameters
         ----------

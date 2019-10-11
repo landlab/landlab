@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-DepthDependentTaylorNonLinearDiffuser Component
+"""DepthDependentTaylorNonLinearDiffuser Component.
 
 @author: R Glade
 @author: K Barnhart
@@ -434,7 +433,7 @@ class DepthDependentTaylorDiffuser(Component):
             self._update_flux_topography_soil_and_bedrock()
 
     def _update_flux_topography_soil_and_bedrock(self):
-        """Calculate soil flux and update topography. """
+        """Calculate soil flux and update topography."""
         # Calculate flux
         slope_term = 0.0
         s_over_scrit = self._slope / self._slope_crit

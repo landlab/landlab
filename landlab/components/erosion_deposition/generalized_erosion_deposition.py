@@ -7,7 +7,7 @@ DEFAULT_MINIMUM_TIME_STEP = 0.001  # default minimum time step duration
 
 
 class _GeneralizedErosionDeposition(Component):
-    """ Base class for erosion-deposition type components.
+    """Base class for erosion-deposition type components.
 
     More documenation here.
     """

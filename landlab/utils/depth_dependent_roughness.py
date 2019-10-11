@@ -1,5 +1,4 @@
-"""
-Creates a field of Manning's n value, where each value is dependent on the
+"""Creates a field of Manning's n value, where each value is dependent on the
 water depth at a given node (e.g. Jain et al., 2005, Mugler et al., 2011 and
 Rengers et al., 2016). This "effectively creates separate values of Manning's n
 for hillslopes and channels" (Rengers et al., 2016).
@@ -49,8 +48,7 @@ def depth_dependent_mannings_n(
     index_flow_depth=0.003,
     veg_drag_exponent=(-1.0 / 3.0),
 ):
-    """
-    Method to create or overwrite a Manning's n field
+    """Method to create or overwrite a Manning's n field
     (grid.at_node['mannings_n']) with spatially variable n values based on
     water depths.
 

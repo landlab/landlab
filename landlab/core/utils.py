@@ -543,7 +543,7 @@ def anticlockwise_argsort_points(pts, midpt=None):
         >>> sortorder = anticlockwise_argsort_points(pts)
         >>> np.all(sortorder == np.array([2, 0, 3, 1]))
         True
-        """
+    """
     if midpt is None:
         midpt = pts.mean(axis=0)
     assert len(midpt) == 2
@@ -603,8 +603,7 @@ def anticlockwise_argsort_points_multiline(pts_x, pts_y, out=None):
 
 
 def get_categories_from_grid_methods(grid_type):
-    """
-    Create a dict of category:[method_names] for a LL grid type.
+    """Create a dict of category:[method_names] for a LL grid type.
 
     Looks in the final line of the docstrings
     of class methods and properties for a catgory declaration, "LLCATS: ".
@@ -653,7 +652,6 @@ def get_categories_from_grid_methods(grid_type):
     FAILS : dict of dicts
         contains any problematic LLCAT entries. Keys: 'MISSING' - list of names
         of any public method or property without an LLCAT declared.
-
     """
     import inspect
     import re

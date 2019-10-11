@@ -205,7 +205,6 @@ class DepressionFinderAndRouter(Component):
             the grid produced by the FlowAccumulator component, this component
             will modify the existing flow fields to route the flow across the
             lake surface(s).
-
         """
         super(DepressionFinderAndRouter, self).__init__(grid)
 
@@ -326,7 +325,8 @@ class DepressionFinderAndRouter(Component):
 
     @property
     def flood_status(self):
-        """Map of flood status (_PIT, _CURRENT_LAKE, _UNFLOODED, or _FLOODED)."""
+        """Map of flood status (_PIT, _CURRENT_LAKE, _UNFLOODED, or
+        _FLOODED)."""
         return self._flood_status
 
     @property

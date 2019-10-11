@@ -260,7 +260,6 @@ class MaterialLayers(EventLayers):
                [ 6.,  6.,  6.]])
         >>> layers.number_of_layers
         3
-
         """
         dz = np.asarray(dz)
 

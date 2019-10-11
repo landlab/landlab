@@ -41,7 +41,6 @@ class SoilInfiltrationGreenAmpt(Component):
     array([ 0.20999999,  0.20999999,  0.20999999,  0.20999999,  0.20999999,
             0.20999999,  0.2001147 ,  0.2001147 ,  0.2001147 ,  0.2001147 ,
             0.2001147 ,  0.2001147 ])
-
     """
 
     _name = "SoilInfiltrationGreenAmpt"

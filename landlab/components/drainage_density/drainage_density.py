@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Landlab component to calculate drainage density
-"""
+"""Landlab component to calculate drainage density."""
 from warnings import warn
 
 import numpy as np
@@ -255,7 +253,6 @@ class DrainageDensity(Component):
         >>> mean_drainage_density = dd.calculate_drainage_density()
         >>> np.isclose(mean_drainage_density, 0.3831100571)
         True
-
         """
         super(DrainageDensity, self).__init__(grid)
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-This is an implementation of Vaughan Voller's experimental boundary method
+"""This is an implementation of Vaughan Voller's experimental boundary method
 reduced complexity flow router. Credit: Voller, Hobley, Paola.
 
 Created on Fri Feb 20 09:32:27 2015
@@ -279,14 +278,14 @@ class DischargeDiffuser(Component):
     def discharges_at_links(self):
         """Return the discharges at links.
 
-        Note that if diagonal routing, this will return number_of_d8_links.
-        Otherwise, it will be number_of_links.
+        Note that if diagonal routing, this will return
+        number_of_d8_links. Otherwise, it will be number_of_links.
         """
         return self._discharges_at_link
 
     def _grad_on_link(self, padded_eta, direction):
-        """
-        Updates slx and sly with link gradient values according to `direction`.
+        """Updates slx and sly with link gradient values according to
+        `direction`.
 
         eta = elevations in grid form
         direction = {'E', 'N', 'S', 'W'}
@@ -345,9 +344,8 @@ class DischargeDiffuser(Component):
             raise NameError("direction must be {'E', 'N', 'S', 'W'}")
 
     def _link_sed_flux_from_slope(self, S_val, S_thresh, direction):
-        """
-        Update the sed flux array for a given link dir, assuming a critical S.
-        """
+        """Update the sed flux array for a given link dir, assuming a critical
+        S."""
         if direction == "W":
             dir_sed_flux = self._Qsed_w
             dir_water_flux = self._Qw
@@ -375,8 +373,7 @@ class DischargeDiffuser(Component):
         dir_sed_flux[deadedge] = 0.0
 
     def diffuse_sediment(self, Qw_in, Qsed_in):
-        """
-        """
+        """"""
         pass
 
 

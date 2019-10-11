@@ -11,7 +11,6 @@ Gradient calculation functions
     ~landlab.grid.gradients.calculate_gradients_at_faces
     ~landlab.grid.gradients.calculate_diff_at_links
     ~landlab.grid.gradients.calculate_diff_at_active_links
-
 """
 
 import numpy as np

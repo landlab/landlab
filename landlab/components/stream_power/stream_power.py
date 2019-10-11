@@ -166,7 +166,7 @@ class StreamPowerEroder(Component):
         discharge_field="drainage_area",
         erode_flooded_nodes=True,
     ):
-        """Initialize the StreamPowerEroder
+        """Initialize the StreamPowerEroder.
 
         Parameters
         ----------
@@ -326,8 +326,7 @@ class StreamPowerEroder(Component):
         self._alpha = self._grid.zeros("node")
 
     def run_one_step(self, dt):
-        """
-        A simple, explicit implementation of a stream power algorithm.
+        """A simple, explicit implementation of a stream power algorithm.
 
         If you are routing across flooded depressions in your flow routing
         scheme, be sure to set *erode_flooded_nodes* flag in the instantiation

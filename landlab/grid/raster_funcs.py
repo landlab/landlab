@@ -12,7 +12,7 @@ def _iround(x):
 
 
 def neighbor_node_at_cell(grid, inds, *args):
-    """ node_id_of_cell_neighbor(grid, neighbor_ids [, cell_ids])
+    """node_id_of_cell_neighbor(grid, neighbor_ids [, cell_ids])
 
     Return an array of the node ids for neighbors of *cell_id* cells.
     *neighbor_ids* is an index into the neighbors of a cell as measured

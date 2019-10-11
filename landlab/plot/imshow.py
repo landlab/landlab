@@ -1,6 +1,5 @@
 #! /usr/bin/env python
-"""
-Methods to plot data defined on Landlab grids.
+"""Methods to plot data defined on Landlab grids.
 
 Plotting functions
 ++++++++++++++++++
@@ -33,15 +32,10 @@ except ImportError:
 
 def imshow_grid_at_node(grid, values, **kwds):
     """imshow_grid_at_node(grid, values, plot_name=None, var_name=None,
-                           var_units=None, grid_units=None,
-                           symmetric_cbar=False, cmap='pink',
-                           limits=(values.min(), values.max()),
-                           vmin=values.min(), vmax=values.max(),
-                           allow_colorbar=True,
-                           norm=[linear], shrink=1.,
-                           color_for_closed='black',
-                           color_for_background=None,
-                           show_elements=False, output=None)
+    var_units=None, grid_units=None, symmetric_cbar=False, cmap='pink',
+    limits=(values.min(), values.max()), vmin=values.min(), vmax=values.max(),
+    allow_colorbar=True, norm=[linear], shrink=1., color_for_closed='black',
+    color_for_background=None, show_elements=False, output=None)
 
     Prepare a map view of data over all nodes in the grid.
 
@@ -146,15 +140,11 @@ def imshow_grid_at_node(grid, values, **kwds):
 
 def imshow_grid_at_cell(grid, values, **kwds):
     """imshow_grid_at_cell(grid, values, plot_name=None, var_name=None,
-                           var_units=None, grid_units=None,
-                           symmetric_cbar=False, cmap='pink',
-                           limits=(values.min(), values.max()),
-                           vmin=values.min(), vmax=values.max(),
-                           allow_colorbar=True, colorbar_label=None,
-                           norm=[linear], shrink=1.,
-                           color_for_closed='black',
-                           color_for_background=None,
-                           show_elements=False, output=None)
+    var_units=None, grid_units=None, symmetric_cbar=False, cmap='pink',
+    limits=(values.min(), values.max()), vmin=values.min(), vmax=values.max(),
+    allow_colorbar=True, colorbar_label=None, norm=[linear], shrink=1.,
+    color_for_closed='black', color_for_background=None, show_elements=False,
+    output=None)
 
     Map view of grid data over all grid cells.
 
@@ -430,16 +420,11 @@ def _imshow_grid_values(
 
 
 def imshow_grid(grid, values, **kwds):
-    """imshow_grid(grid, values, plot_name=None, var_name=None,
-                   var_units=None, grid_units=None,
-                   symmetric_cbar=False, cmap='pink',
-                   limits=(values.min(), values.max()),
-                   vmin=values.min(), vmax=values.max(),
-                   allow_colorbar=True, colorbar_label=None,
-                   norm=[linear], shrink=1.,
-                   color_for_closed='black',
-                   color_for_background=None,
-                   show_elements=False)
+    """imshow_grid(grid, values, plot_name=None, var_name=None, var_units=None,
+    grid_units=None, symmetric_cbar=False, cmap='pink', limits=(values.min(),
+    values.max()), vmin=values.min(), vmax=values.max(), allow_colorbar=True,
+    colorbar_label=None, norm=[linear], shrink=1., color_for_closed='black',
+    color_for_background=None, show_elements=False)
 
     Prepare a map view of data over all nodes or cells in the grid.
 

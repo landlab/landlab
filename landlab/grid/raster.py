@@ -1,11 +1,10 @@
 #! /usr/env/python
-"""
-A class used to create and manage regular raster grids for 2D numerical models
-in Landlab.
+"""A class used to create and manage regular raster grids for 2D numerical
+models in Landlab.
 
-Do NOT add new documentation here. Grid documentation is now built in a semi-
-automated fashion. To modify the text seen on the web, edit the files
-`docs/text_for_[gridfile].py.txt`.
+Do NOT add new documentation here. Grid documentation is now built in a
+semi- automated fashion. To modify the text seen on the web, edit the
+files `docs/text_for_[gridfile].py.txt`.
 """
 
 from warnings import warn
@@ -188,7 +187,6 @@ class RasterModelGrid(
             0., 2., 4., 6., 8.,
             0., 2., 4., 6., 8.,
             0., 2., 4., 6., 8.])
-
     """
 
     def __init__(
@@ -1712,8 +1710,7 @@ class RasterModelGrid(
     @property
     @make_return_array_immutable
     def looped_neighbors_at_cell(self):
-        """
-        For each cell in a raster, return the D8 neighboring cells, looping
+        """For each cell in a raster, return the D8 neighboring cells, looping
         across grid boundaries as necessary.
 
         Returns lists of looped neighbor cell IDs of given *cell ids*.
@@ -1931,9 +1928,9 @@ class RasterModelGrid(
     def _create_second_ring_looped_cell_neighbor_list(self):
         """Create list of looped second ring cell neighbors (16 cells).
 
-        Creates a list of looped immediate cell neighbors for each cell as a
-        2D array of size ( self.number_of_cells, 16 ).
-        Order or neighbors: Starts with E and goes counter clockwise
+        Creates a list of looped immediate cell neighbors for each cell
+        as a 2D array of size ( self.number_of_cells, 16 ). Order or
+        neighbors: Starts with E and goes counter clockwise
         """
         inf = self.looped_neighbors_at_cell
         second_ring = np.empty([self.number_of_cells, 16], dtype=int)
@@ -2208,8 +2205,7 @@ class RasterModelGrid(
         remove_disconnected=False,
         adjacency_method="D8",
     ):
-        """
-        Finds the node adjacent to a boundary node with the smallest value.
+        """Finds the node adjacent to a boundary node with the smallest value.
         This node is set as the outlet.  The outlet node must have a data
         value.  Can return the outlet id as a one element numpy array if
         return_outlet_id is set to True.
@@ -2434,8 +2430,9 @@ class RasterModelGrid(
     def set_open_nodes_disconnected_from_watershed_to_closed(
         self, node_data, outlet_id=None, nodata_value=-9999.0, adjacency_method="D8"
     ):
-        """
-        Identifys all non-closed nodes that are disconnected from the node given in
+        """Identifys all non-closed nodes that are disconnected from the node
+        given in.
+
         *outlet_id* and sets them as closed.
 
         If *outlet_id* is not given, the outlet will be identified as the node
@@ -2602,12 +2599,10 @@ class RasterModelGrid(
     def set_watershed_boundary_condition_outlet_coords(
         self, outlet_coords, node_data, nodata_value=-9999.0
     ):
-        """
-        Set the boundary conditions for a watershed.
-        All nodes with nodata_value are set to CLOSED_BOUNDARY
-        (grid.status_at_node == 4). All nodes with data values
-        are set to CORE_NODES (grid.status_at_node == 0), with
-        the exception that the outlet node is set to a
+        """Set the boundary conditions for a watershed. All nodes with
+        nodata_value are set to CLOSED_BOUNDARY (grid.status_at_node == 4). All
+        nodes with data values are set to CORE_NODES (grid.status_at_node ==
+        0), with the exception that the outlet node is set to a
         FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
 
         Note that the outer ring of the raster is set to CLOSED_BOUNDARY, even
@@ -2675,11 +2670,10 @@ class RasterModelGrid(
     def set_watershed_boundary_condition_outlet_id(
         self, outlet_id, node_data, nodata_value=-9999.0
     ):
-        """
-        Set the boundary conditions for a watershed.
-        All nodes with nodata_value are set to CLOSED_BOUNDARY (4).
-        All nodes with data values are set to CORE_NODES (0), with the
-        exception that the outlet node is set to a FIXED_VALUE_BOUNDARY (1).
+        """Set the boundary conditions for a watershed. All nodes with
+        nodata_value are set to CLOSED_BOUNDARY (4). All nodes with data values
+        are set to CORE_NODES (0), with the exception that the outlet node is
+        set to a FIXED_VALUE_BOUNDARY (1).
 
         Note that the outer ring of the raster is set to CLOSED_BOUNDARY, even
         if there are nodes that have values.  The only exception to this would

@@ -98,8 +98,7 @@ _SEVEN_OVER_THREE = 7.0 / 3.0
 
 @deprecated(use="vals[links_at_node]*active_link_dirs_at_node", version=1.0)
 def _active_links_at_node(grid, *args):
-    """_active_links_at_node([node_ids])
-    Active links of a node.
+    """_active_links_at_node([node_ids]) Active links of a node.
 
     Parameters
     ----------
@@ -352,8 +351,8 @@ class OverlandFlow(Component):
     def calc_time_step(self):
         """Calculate time step.
 
-        Adaptive time stepper from Bates et al., 2010 and de Almeida
-        et al., 2012
+        Adaptive time stepper from Bates et al., 2010 and de Almeida et
+        al., 2012
         """
         self._dt = (
             self._alpha
@@ -366,8 +365,8 @@ class OverlandFlow(Component):
     def set_up_neighbor_arrays(self):
         """Create and initialize link neighbor arrays.
 
-        Set up arrays of neighboring horizontal and vertical links that are
-        needed for the de Almeida solution.
+        Set up arrays of neighboring horizontal and vertical links that
+        are needed for the de Almeida solution.
         """
         # First we identify all active links
 
@@ -785,8 +784,7 @@ class OverlandFlow(Component):
         self.overland_flow(dt=dt)
 
     def discharge_mapper(self, input_discharge, convert_to_volume=False):
-        """
-        Maps discharge value from links onto nodes.
+        """Maps discharge value from links onto nodes.
 
         This method takes the discharge values on links and determines the
         links that are flowing INTO a given node. The fluxes moving INTO a

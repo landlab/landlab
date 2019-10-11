@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-"""The Landlab
+"""The Landlab.
 
 :Package name: TheLandlab
 :Release date: 2018-09-18

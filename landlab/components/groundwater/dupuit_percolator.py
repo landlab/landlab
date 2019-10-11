@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-GroundwaterDupuitPercolator Component
+"""GroundwaterDupuitPercolator Component.
 
 @author: G Tucker, D Litwin
 """
@@ -18,19 +17,21 @@ from landlab.utils import return_array_at_link, return_array_at_node
 
 # regularization functions used to deal with numerical demons of seepage
 def _regularize_G(u, reg_factor):
-    """ Smooths transition of step function with an exponential. 0<=u<=1. """
+    """Smooths transition of step function with an exponential.
+
+    0<=u<=1.
+    """
     return np.exp(-(1 - u) / reg_factor)
 
 
 def _regularize_R(u):
-    """ ramp function on u """
+    """ramp function on u."""
     return u * np.greater_equal(u, 0)
 
 
 def get_link_hydraulic_conductivity(grid, K):
-    """
-    Returns array of hydraulic conductivity on links, allowing
-    for aquifers with laterally anisotropic hydraulic conductivity
+    """Returns array of hydraulic conductivity on links, allowing for aquifers
+    with laterally anisotropic hydraulic conductivity.
 
     Parameters
     ----------
@@ -47,8 +48,7 @@ def get_link_hydraulic_conductivity(grid, K):
 
 
 class GroundwaterDupuitPercolator(Component):
-    """
-    Simulate groundwater flow in a shallow unconfined aquifer.
+    """Simulate groundwater flow in a shallow unconfined aquifer.
 
     The GroundwaterDupuitPercolator solves the Boussinesq equation for
     flow in an unconfined aquifer over an impermeable aquifer base that may
@@ -133,7 +133,6 @@ class GroundwaterDupuitPercolator(Component):
     An explicit forward-in-time finite-volume method is used to implement a
     numerical solution. Flow discharge between neighboring nodes is calculated
     using the saturated thickness at the up-gradient node.
-
     """
 
     _name = "GroundwaterDupuitPercolator"
@@ -336,18 +335,20 @@ class GroundwaterDupuitPercolator(Component):
         return self._n
 
     def calc_recharge_flux_in(self):
-        """
-        Calculate flux into the domain from recharge. Includes recharge that
-        may immediately become saturation excess overland flow. (m3/s)
+        """Calculate flux into the domain from recharge.
+
+        Includes recharge that may immediately become saturation excess
+        overland flow. (m3/s)
         """
         return np.sum(self._grid.area_of_cell * self._recharge[self._cores])
 
     def calc_gw_flux_out(self):
-        """
-        Groundwater flux through open boundaries may be positive (out of
-        the domain) or negative (into the domain). This function determines the
-        correct sign for specific discharge based upon this convention,
-        and sums the flux across the boundary faces. (m3/s)
+        """Groundwater flux through open boundaries may be positive (out of the
+        domain) or negative (into the domain).
+
+        This function determines the correct sign for specific discharge
+        based upon this convention, and sums the flux across the
+        boundary faces. (m3/s)
         """
         # get links at open boundary nodes
         open_nodes = self._grid.open_boundary_nodes
@@ -375,8 +376,9 @@ class GroundwaterDupuitPercolator(Component):
         return np.sum(gw_volume_flux_rate_out)
 
     def calc_sw_flux_out(self):
-        """
-        Surface water flux out of the domain through seepage and saturation excess.
+        """Surface water flux out of the domain through seepage and saturation
+        excess.
+
         Note that model does not allow for reinfiltration.  (m3/s)
         """
         return np.sum(
@@ -386,8 +388,9 @@ class GroundwaterDupuitPercolator(Component):
         )
 
     def calc_gw_flux_at_node(self):
-        """
-        Calculate the sum of the groundwater flux leaving a node. (m2/s)
+        """Calculate the sum of the groundwater flux leaving a node.
+
+        (m2/s)
         """
         gw = (
             self._grid.at_link["groundwater__specific_discharge"][
@@ -402,8 +405,7 @@ class GroundwaterDupuitPercolator(Component):
         # return map_max_of_node_links_to_node(self._grid,self._grid.dx* abs(self._grid.at_link['groundwater__specific_discharge']))
 
     def calc_shear_stress_at_node(self, n_manning=0.05):
-        """
-        Calculate the shear stress Tau based upon the equations: (N/m2)
+        """Calculate the shear stress Tau based upon the equations: (N/m2)
 
             Tau = rho g S d
             d = n q / ( dx S^1/2)^3/5
@@ -417,7 +419,6 @@ class GroundwaterDupuitPercolator(Component):
         ----------
         n_manning: float or array of float (-)
             Manning's n at nodes, giving surface roughness.
-
         """
         rho = 1000  # kg/m3
         g = 9.81  # m/s2
@@ -433,9 +434,7 @@ class GroundwaterDupuitPercolator(Component):
         )
 
     def calc_total_storage(self):
-        """
-        calculate the current water storage in the aquifer (m3)
-        """
+        """calculate the current water storage in the aquifer (m3)"""
         return np.sum(
             self._n[self._cores]
             * self._grid.area_of_cell
@@ -443,8 +442,7 @@ class GroundwaterDupuitPercolator(Component):
         )
 
     def run_one_step(self, dt):
-        """
-        Advance component by one time step of size dt.
+        """Advance component by one time step of size dt.
 
         Parameters
         ----------
@@ -498,11 +496,10 @@ class GroundwaterDupuitPercolator(Component):
         )
 
     def run_with_adaptive_time_step_solver(self, dt):
-        """
-        Advance component by one time step of size dt, subdividing the timestep
-        into substeps as necessary to meet a Courant condition (defined in
-        the init).
-        Note this method only returns the fluxes at the last subtimestep.
+        """Advance component by one time step of size dt, subdividing the
+        timestep into substeps as necessary to meet a Courant condition
+        (defined in the init). Note this method only returns the fluxes at the
+        last subtimestep.
 
         Parameters
         ----------

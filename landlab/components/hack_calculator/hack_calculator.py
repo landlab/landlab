@@ -87,8 +87,7 @@ def _flatten(l):
 
 
 class HackCalculator(Component):
-    """
-    This component calculates Hack's law parameters for drainage basins.
+    """This component calculates Hack's law parameters for drainage basins.
 
     Hacks law is given as
 

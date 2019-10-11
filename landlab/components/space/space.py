@@ -162,7 +162,6 @@ class Space(_GeneralizedErosionDeposition):
             0.438,  5.51 ,  2.54 ,  0.428,  0.428,  0.438,  6.526,  3.559,
             0.438,  0.438,  0.45 ,  7.553,  4.559,  5.541,  6.57 ,  7.504,
             8.51 ])
-
     """
 
     _name = "Space"
@@ -264,9 +263,7 @@ class Space(_GeneralizedErosionDeposition):
         erode_flooded_nodes=True,
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
     ):
-        """Initialize the Space model.
-
-        """
+        """Initialize the Space model."""
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             msg = (
                 "A route-to-multiple flow director has been "
@@ -370,12 +367,12 @@ class Space(_GeneralizedErosionDeposition):
 
     @property
     def H(self):
-        "Sediment thickness. "
+        """Sediment thickness."""
         return self._H
 
     def run_one_step_basic(self, dt=1.0):
-        """Calculate change in rock and alluvium thickness for
-        a time period 'dt'.
+        """Calculate change in rock and alluvium thickness for a time period
+        'dt'.
 
         Parameters
         ----------

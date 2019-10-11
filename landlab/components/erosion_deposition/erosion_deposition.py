@@ -300,7 +300,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             )
 
     def _calc_erosion_rates(self):
-        """Calculate erosion rates"""
+        """Calculate erosion rates."""
         omega = self._K * self._Q_to_the_m * np.power(self._slope, self._n_sp)
         omega_over_sp_crit = np.divide(
             omega, self._sp_crit, out=np.zeros_like(omega), where=self._sp_crit != 0
@@ -309,8 +309,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         self._erosion_term = omega - self._sp_crit * (1.0 - np.exp(-omega_over_sp_crit))
 
     def run_one_step_basic(self, dt=1.0):
-        """Calculate change in rock and alluvium thickness for
-           a time period 'dt'.
+        """Calculate change in rock and alluvium thickness for a time period
+        'dt'.
 
         Parameters
         ----------

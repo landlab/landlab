@@ -1,7 +1,5 @@
 #! /usr/bin/env python
-"""
-Decorators for TheLandlab package.
-"""
+"""Decorators for TheLandlab package."""
 import re
 
 

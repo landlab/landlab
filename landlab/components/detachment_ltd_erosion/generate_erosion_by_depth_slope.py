@@ -1,4 +1,4 @@
-"""Calculates erosion rate as a function of the depth-slope product
+"""Calculates erosion rate as a function of the depth-slope product.
 
 Erosion rate = k_e * ((Tau**a - Tau_crit**a))
 
@@ -113,8 +113,8 @@ class DepthSlopeProductErosion(Component):
 
     """Landlab component that simulates detachment-limited river erosion.
 
-    This component calculates changes in elevation in response to vertical
-    incision.
+    This component calculates changes in elevation in response to
+    vertical incision.
     """
 
     _name = "DepthSlopeProductErosion"
@@ -236,5 +236,6 @@ class DepthSlopeProductErosion(Component):
 
     @property
     def dz(self):
-        """Magnitude of change of the topographic__elevation due to erosion [L]."""
+        """Magnitude of change of the topographic__elevation due to erosion
+        [L]."""
         return self._dz

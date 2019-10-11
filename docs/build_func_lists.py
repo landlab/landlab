@@ -1,7 +1,6 @@
 #! /usr/env/python
-"""
-This script auto-constructs strings for Landlab methods, based around
-Sphinx and the new LLCATS type declaration system.
+"""This script auto-constructs strings for Landlab methods, based around Sphinx
+and the new LLCATS type declaration system.
 
 It saves as text files strings of this format, as seen at the tops of the grid
 files, and used by sphinx to build our docs. These can be pasted manually into

@@ -8,8 +8,7 @@ from landlab import BAD_INDEX_VALUE, FieldError, RasterModelGrid
 def calculate_distance_to_divide(
     grid, longest_path=True, add_to_grid=False, noclobber=True
 ):
-    """
-    Calculate the along flow distance from drainage divide to point.
+    """Calculate the along flow distance from drainage divide to point.
 
     This utility calculates the along flow distance based on the results of
     running flow accumulation on the grid. It will use the connectivity

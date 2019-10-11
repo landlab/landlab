@@ -1124,8 +1124,8 @@ def git_pieces_from_vcs(tag_prefix, root, verbose, run_command=run_command):
 def do_vcs_install(manifest_in, versionfile_source, ipy):
     """Git-specific installation logic for Versioneer.
 
-    For Git, this means creating/changing .gitattributes to mark _version.py
-    for export-subst keyword substitution.
+    For Git, this means creating/changing .gitattributes to mark
+    _version.py for export-subst keyword substitution.
     """
     GITS = ["git"]
     if sys.platform == "win32":
@@ -1162,9 +1162,10 @@ def do_vcs_install(manifest_in, versionfile_source, ipy):
 def versions_from_parentdir(parentdir_prefix, root, verbose):
     """Try to determine the version from the parent directory name.
 
-    Source tarballs conventionally unpack into a directory that includes both
-    the project name and a version string. We will also support searching up
-    two directory levels for an appropriately named parent directory
+    Source tarballs conventionally unpack into a directory that includes
+    both the project name and a version string. We will also support
+    searching up two directory levels for an appropriately named parent
+    directory
     """
     rootdirs = []
 

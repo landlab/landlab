@@ -497,7 +497,7 @@ class Lithology(Component):
                     raise ValueError(msg)
 
     def _update_surface_values(self):
-        """Update Lithology surface values"""
+        """Update Lithology surface values."""
         # Update surface values for each attribute.
         self._grid["node"][self._rock_id_name][:] = self._surface_rock_type
         for at in self._properties:
@@ -599,7 +599,7 @@ class Lithology(Component):
         self._update_surface_values()
 
     def add_property(self, attrs):
-        """Add new property to Lithology
+        """Add new property to Lithology.
 
         Parameters
         ----------
@@ -684,7 +684,6 @@ class Lithology(Component):
         [1, 2, 4, 6]
         >>> lith.properties
         {'K_sp': {1: 0.001, 2: 0.0001, 4: 0.03, 6: 0.004}}
-
         """
         # Check that the new rock type has all existing attributes
         for at in self._properties:
@@ -752,7 +751,6 @@ class Lithology(Component):
 
         >>> mg.at_node['K_sp']
         array([ 0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03])
-
         """
         if at not in self._properties:
             msg = (

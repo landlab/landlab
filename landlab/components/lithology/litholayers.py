@@ -38,7 +38,6 @@ class LithoLayers(Lithology):
     Where ``'K_sp'`` and ``'D'`` are properties to track, and ``1`` and ``2``
     are rock type IDs. The rock type IDs can be any type that is valid as a
     python dictionary key.
-
     """
 
     _name = "LithoLayers"
@@ -149,7 +148,6 @@ class LithoLayers(Lithology):
         >>> lith['K_sp']
         array([ 0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,
                 0.001 ,  0.0001])
-
         """
 
         function_args = function.__code__.co_varnames

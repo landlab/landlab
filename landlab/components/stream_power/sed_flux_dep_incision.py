@@ -558,7 +558,7 @@ class SedDepEroder(Component):
         rel_sed_flux
         """
         if self._type == "generalized_humped":
-            "Returns K*f(qs,qc)"
+            """Returns K*f(qs,qc)"""
             sed_flux_fn = (
                 self._kappa
                 * (rel_sed_flux ** self._nu + self._c)
@@ -591,8 +591,7 @@ class SedDepEroder(Component):
     def get_sed_flux_function_pseudoimplicit(
         self, sed_in, trans_cap_vol_out, prefactor_for_volume, prefactor_for_dz
     ):
-        """
-        Get the pseudoimplicit sediment flux function.
+        """Get the pseudoimplicit sediment flux function.
 
         Parameters
         ----------
@@ -600,13 +599,12 @@ class SedDepEroder(Component):
         trans_cap_vol_out
         prefactor_for_volume
         prefactor_for_dz
-
         """
         rel_sed_flux_in = sed_in / trans_cap_vol_out
         rel_sed_flux = rel_sed_flux_in
 
         if self._type == "generalized_humped":
-            "Returns K*f(qs,qc)"
+            """Returns K*f(qs,qc)"""
 
             def sed_flux_fn_gen(rel_sed_flux_in):
                 return (

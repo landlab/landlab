@@ -1,10 +1,9 @@
 #!/usr/env/python
 
-"""
-fill_sinks_barnes.py
+"""fill_sinks_barnes.py.
 
-Fill sinks in a landscape to the brim, following the Barnes et al. (2014)
-algorithms.
+Fill sinks in a landscape to the brim, following the Barnes et al.
+(2014) algorithms.
 """
 
 
@@ -18,8 +17,7 @@ LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
 
 
 class SinkFillerBarnes(LakeMapperBarnes):
-    """
-    Uses the Barnes et al (2014) algorithms to replace pits in a topography
+    """Uses the Barnes et al (2014) algorithms to replace pits in a topography
     with flats, or optionally with very shallow gradient surfaces to allow
     continued draining.
 
@@ -83,9 +81,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
         fill_flat=False,
         ignore_overfill=False,
     ):
-        """
-        Initialise the component.
-        """
+        """Initialise the component."""
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
                 msg = (
@@ -120,8 +116,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
         )
 
     def run_one_step(self):
-        """
-        Fills the surface to remove all pits.
+        """Fills the surface to remove all pits.
 
         Examples
         --------
@@ -244,63 +239,60 @@ class SinkFillerBarnes(LakeMapperBarnes):
 
     @property
     def fill_dict(self):
-        """
-        Return a dictionary where the keys are the outlet nodes of each filled
-        area, and the values are deques of nodes within each. Items are not
-        returned in ID order.
+        """Return a dictionary where the keys are the outlet nodes of each
+        filled area, and the values are deques of nodes within each.
+
+        Items are not returned in ID order.
         """
         return super(SinkFillerBarnes, self).lake_dict
 
     @property
     def fill_outlets(self):
-        """
-        Returns the outlet for each filled area, not necessarily in ID order.
-        """
+        """Returns the outlet for each filled area, not necessarily in ID
+        order."""
         return super(SinkFillerBarnes, self).lake_outlets
 
     @property
     def number_of_fills(self):
-        """
-        Return the number of individual filled areas.
-        """
+        """Return the number of individual filled areas."""
         return super(SinkFillerBarnes, self).number_of_lakes
 
     @property
     def fill_map(self):
-        """
-        Return an array of ints, where each filled node is labelled
-        with its outlet node ID.
-        Nodes not in a filled area are labelled with LOCAL_BAD_INDEX_VALUE
-        (default -1).
+        """Return an array of ints, where each filled node is labelled with its
+        outlet node ID.
+
+        Nodes not in a filled area are labelled with
+        LOCAL_BAD_INDEX_VALUE (default -1).
         """
         return super(SinkFillerBarnes, self).lake_map
 
     @property
     def fill_at_node(self):
-        """
-        Return a boolean array, True if the node is filled, False otherwise.
-        """
+        """Return a boolean array, True if the node is filled, False
+        otherwise."""
         return super(SinkFillerBarnes, self).lake_at_node
 
     @property
     def fill_depths(self):
-        """Return the change in surface elevation at each node this step.
-        """
+        """Return the change in surface elevation at each node this step."""
         return self._sed_fill_depth
 
     @property
     def fill_areas(self):
-        """
-        A nlakes-long array of the area of each fill. The order is the same as
-        that of the keys in fill_dict, and of fill_outlets.
+        """A nlakes-long array of the area of each fill.
+
+        The order is the same as that of the keys in fill_dict, and of
+        fill_outlets.
         """
         return super(SinkFillerBarnes, self).lake_areas
 
     @property
     def fill_volumes(self):
-        """
-        A nlakes-long array of the volume of each fill. The order is the same
-        as that of the keys in fill_dict, and of fill_outlets.
+        """A nlakes-long array of the volume of each fill.
+
+        The order is the same as that of the keys in fill_dict, and of
+        fill_outlets.
         """
         fill_vols = np.empty(self.number_of_fills, dtype=float)
         col_vols = self._grid.cell_area_at_node * self._sed_fill_depth

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Oct 10 13:03:01 2019
+"""Created on Thu Oct 10 13:03:01 2019.
 
 @author: barnhark
 """

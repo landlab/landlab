@@ -182,8 +182,7 @@ class FastscapeEroder(Component):
         discharge_field="drainage_area",
         erode_flooded_nodes=True,
     ):
-        """
-        Initialize the Fastscape stream power component. Note: a timestep,
+        """Initialize the Fastscape stream power component. Note: a timestep,
         dt, can no longer be supplied to this component through the input file.
         It must instead be passed directly to the run method.
 

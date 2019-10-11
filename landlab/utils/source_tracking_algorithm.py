@@ -30,7 +30,7 @@ import numpy as np
 
 
 def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
-    """Convert Arc flow_directions to RasterModelGrid node ids
+    """Convert Arc flow_directions to RasterModelGrid node ids.
 
     This function receives flow directions (D8) from ESRI ArcGIS and converts
     them to Landlab's RasterModelGrid node id. ESRI ArcGIS D8 flow directions
@@ -81,7 +81,7 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
 # have neighbors that are real values and not -1s.
 # Note 2: Nodes in the following comments in this section refer to core nodes.
 def track_source(grid, hsd_ids, flow_directions=None):
-    """Track all contributing upstream core nodes for each core node
+    """Track all contributing upstream core nodes for each core node.
 
     This algorithm traverses the grid based on information of flow directions
     at nodes and at every node identifies all the nodes upstream of a given

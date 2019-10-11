@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """Rock uplift along a normal fault.
 
-Landlab component that implements rock uplift by a normal fault. Note that this
-component does not make any attempt to advect topography laterally.
-
+Landlab component that implements rock uplift by a normal fault. Note
+that this component does not make any attempt to advect topography
+laterally.
 """
 
 import numpy as np
@@ -67,8 +67,7 @@ class NormalFault(Component):
         fault_trace={"x1": 0, "y1": 0, "x2": 1, "y2": 1},
         include_boundaries=False,
     ):
-        """
-        Instantiation of a NormalFault.
+        """Instantiation of a NormalFault.
 
         Parameters
         ----------
@@ -241,7 +240,6 @@ class NormalFault(Component):
         30000.0
         >>> nf.current_time
         30000.0
-
         """
         super(NormalFault, self).__init__(grid)
 

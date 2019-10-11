@@ -59,7 +59,6 @@ class DataRecord(object):
     method ``add_item`` should be used when no new variables are being added.
     The method ``add_record`` should be used when new variables are being
     added or when a variable is only tracked over the **time** dimension.
-
     """
 
     _name = "DataRecord"
@@ -481,7 +480,6 @@ class DataRecord(object):
         0.0         NaN
         2.0         NaN
         50.0      110.0
-
         """
         if time is not None:
             try:
@@ -686,7 +684,6 @@ class DataRecord(object):
         The previous line calls the values of the variable 'size', for all
         items, at time=1; the first two items don't have a value for the
         variable 'size'.
-
         """
         if time is None and "time" in self._dataset["grid_element"].coords:
             raise ValueError(
@@ -824,7 +821,6 @@ class DataRecord(object):
         >>> dr4.get_data(item_id=[1,2], data_variable='grid_element')
         array([['node'],
                ['node']], dtype=object)
-
         """
         try:
             self._dataset[data_variable]
@@ -945,7 +941,6 @@ class DataRecord(object):
                [ 0.4],
                [ 0.5],
                [ 0.4]])
-
         """
         if data_variable not in self.variable_names:
             raise KeyError(
@@ -1102,7 +1097,6 @@ class DataRecord(object):
         ...                               fill_value=0.)
         >>> v_f
         array([  8.,   3.,   4.,   5.,  0.,  0.,  0.,  0.,  0.])
-
         """
         filter_at = self._dataset["grid_element"] == at
 
@@ -1185,7 +1179,6 @@ class DataRecord(object):
         >>> dr3.dataset['element_id'].values
         array([[ 1.,  1.,  1.],
                [ 3.,  3.,  3.]])
-
         """
         # Forward fill element_id:
         fill_value = []
@@ -1210,14 +1203,13 @@ class DataRecord(object):
 
     @property
     def dataset(self):
-        """The xarray Dataset that serves as the core datastructure.
-        """
+        """The xarray Dataset that serves as the core datastructure."""
         return self._dataset
 
     @property
     def variable_names(self):
-        """Return the name(s) of the data variable(s) in the record as a list.
-        """
+        """Return the name(s) of the data variable(s) in the record as a
+        list."""
         _keys = []
         for key in self._dataset.to_dataframe().keys():
             _keys.append(key)
@@ -1225,44 +1217,37 @@ class DataRecord(object):
 
     @property
     def number_of_items(self):
-        """Return the number of items in the DataRecord.
-        """
+        """Return the number of items in the DataRecord."""
         return len(self._dataset.item_id)
 
     @property
     def item_coordinates(self):
-        """Return a list of the item_id coordinates in the DataRecord.
-        """
+        """Return a list of the item_id coordinates in the DataRecord."""
         return self._dataset.item_id.values.tolist()
 
     @property
     def number_of_timesteps(self):
-        """Return the number of time steps in the DataRecord.
-        """
+        """Return the number of time steps in the DataRecord."""
         return len(self._dataset.time)
 
     @property
     def time_coordinates(self):
-        """Return a list of the time coordinates in the DataRecord.
-        """
+        """Return a list of the time coordinates in the DataRecord."""
         return self._dataset.time.values.tolist()
 
     @property
     def earliest_time(self):
-        """Return the earliest time coordinate in the DataRecord.
-        """
+        """Return the earliest time coordinate in the DataRecord."""
         return min(self._dataset.time.values)
 
     @property
     def latest_time(self):
-        """Return the latest time coordinate in the DataRecord.
-        """
+        """Return the latest time coordinate in the DataRecord."""
         return max(self._dataset.time.values)
 
     @property
     def prior_time(self):
-        """Return the penultimate time coordinate in the DataRecord.
-        """
+        """Return the penultimate time coordinate in the DataRecord."""
         if self.number_of_timesteps < 2:
             return np.nan
         else:

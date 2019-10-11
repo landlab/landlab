@@ -94,7 +94,7 @@ import textwrap
 
 
 def indent_and_wrap(content, indent=""):
-    """Indent and wrap some text
+    """Indent and wrap some text.
 
     Lines are first dedented to remove common leading whitespace,
     then indented according to the value of *indent*, and then

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Apr 11 10:13:38 2017
+"""Created on Tue Apr 11 10:13:38 2017.
 
 @author: margauxmouchene
 """
@@ -240,7 +239,6 @@ class TransportLengthHillslopeDiffuser(Component):
             Landlab ModelGrid object
         dt: float (time)
             The imposed timestep.
-
         """
 
         # Reset erosion, depo, trans and flux_in to 0
@@ -300,7 +298,6 @@ class TransportLengthHillslopeDiffuser(Component):
         ----------
         dt: float (time)
             The imposed timestep.
-
         """
         self.tldiffusion(dt)
 

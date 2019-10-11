@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created March 2016.
+"""Created March 2016.
 
 @author: dejh
 """
@@ -93,7 +92,6 @@ class ChiFinder(Component):
            [ True,  True, False,  True,  True],
            [False, False, False,  True,  True],
            [ True,  True,  True,  True,  True]], dtype=bool)
-
     """
 
     _name = "ChiFinder"
@@ -218,7 +216,7 @@ class ChiFinder(Component):
         self._elev = self._grid.at_node["topographic__elevation"]
 
     def _set_up_reference_area(self, reference_area):
-        """Set up and validate reference_area"""
+        """Set up and validate reference_area."""
         if reference_area <= 0.0:
             raise ValueError(
                 "ChiFinder: reference_area must be positive."
@@ -415,8 +413,7 @@ class ChiFinder(Component):
                 chi_array[node] = chi_array[dstr_node] + chi_to_add
 
     def mean_channel_node_spacing(self, ch_nodes):
-        """
-        Calculates the mean spacing between all adjacent channel nodes.
+        """Calculates the mean spacing between all adjacent channel nodes.
 
         Parameters
         ----------
@@ -456,8 +453,7 @@ class ChiFinder(Component):
 
     @property
     def chi_indices(self):
-        """
-        Return the array of channel steepness indices.
+        """Return the array of channel steepness indices.
 
         Nodes not in the channel receive zeros.
         """
@@ -465,14 +461,12 @@ class ChiFinder(Component):
 
     @property
     def hillslope_mask(self):
-        """
-        Return a boolean array, False where steepness indices exist.
-        """
+        """Return a boolean array, False where steepness indices exist."""
         return self._mask
 
     def best_fit_chi_elevation_gradient_and_intercept(self, ch_nodes=None):
-        """
-        Returns least squares best fit for a straight line through a chi plot.
+        """Returns least squares best fit for a straight line through a chi
+        plot.
 
         Parameters
         ----------
@@ -522,8 +516,7 @@ class ChiFinder(Component):
         return coeffs
 
     def nodes_downstream_of_channel_head(self, channel_head):
-        """
-        Find and return an array with nodes downstream of channel_head.
+        """Find and return an array with nodes downstream of channel_head.
 
         Parameters
         ----------
@@ -572,8 +565,7 @@ class ChiFinder(Component):
         plot_line=False,
         line_symbol="r-",
     ):
-        """
-        Plots a "chi plot" (chi vs elevation for points in channel network).
+        """Plots a "chi plot" (chi vs elevation for points in channel network).
 
         If channel_heads is provided, only the channel nodes downstream of
         the provided points (and with area > min_drainage_area) will be
@@ -593,7 +585,6 @@ class ChiFinder(Component):
         line_symbol : str
             A matplotlib-style string for the style to use for the line, if
             plot_line.
-
         """
         from matplotlib.pyplot import plot, xlabel, ylabel, figure, clf
 
@@ -634,9 +625,9 @@ class ChiFinder(Component):
 
     @property
     def masked_chi_indices(self):
-        """
-        Returns a masked array version of the 'channel__chi_index' field.
-        This enables easier plotting of the values with
+        """Returns a masked array version of the 'channel__chi_index' field.
+        This enables easier plotting of the values with.
+
         :func:`landlab.imshow_grid_at_node` or similar.
 
         Examples

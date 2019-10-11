@@ -1,5 +1,4 @@
-"""
-synthetic.py provides functions to add synthetic values to a model grid.
+"""synthetic.py provides functions to add synthetic values to a model grid.
 
 Values can be added to any valid grid element (e.g. link or node). If no field
 exists, a field of float zeros will be initialized.
@@ -276,7 +275,6 @@ def plane(
             1.,  2.,  3.,  4.,
             2.,  3.,  4.,  5.,
             3.,  4.,  5.,  6.])
-
     """
     x, y = _get_x_and_y(grid, at)
 
@@ -289,7 +287,7 @@ def plane(
 
 
 def _plane_function(x, y, point, normal):
-    """calculate the plane function"""
+    """calculate the plane function."""
     if np.isclose(normal[2], 0):
         raise ValueError("")
 
@@ -367,7 +365,6 @@ def constant(grid, name, at="node", where=None, value=0.0, dtype=None):
     array([  0.,   0.,   0.,   0.,  10.,  10.,   0.,  10.,  10.,  10.,   0.,
             10.,  10.,   0.,  10.,  10.,  10.,   0.,  10.,  10.,   0.,   0.,
              0.,   0.])
-
     """
     dtype = dtype or type(value)
     where = _where_to_add_values(grid, at, where)

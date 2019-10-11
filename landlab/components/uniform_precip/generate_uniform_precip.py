@@ -176,17 +176,26 @@ class PrecipitationDistribution(Component):
 
     @property
     def storm_duration(self):
-        """Duration of storm. [T]"""
+        """Duration of storm.
+
+        [T]
+        """
         return self._storm_duration
 
     @property
     def interstorm_duration(self):
-        """Interstorm duration. [T]"""
+        """Interstorm duration.
+
+        [T]
+        """
         return self._interstorm_duration
 
     @property
     def storm_depth(self):
-        """Depth of water in the storm. [L]"""
+        """Depth of water in the storm.
+
+        [L]
+        """
         return self._storm_depth
 
     def update(self):
@@ -553,7 +562,6 @@ class PrecipitationDistribution(Component):
         >>> total_t = sum([sum(storm) for storm in allmytimes])
         >>> total_t > 46.
         True
-
         """
         # we must have instantiated with a grid, so check:
         assert hasattr(self, "_grid")
@@ -664,6 +672,5 @@ class PrecipitationDistribution(Component):
 
     @property
     def intensity(self):
-        """Get the intensity of the most recent storm simulated.
-        """
+        """Get the intensity of the most recent storm simulated."""
         return self.get_storm_intensity()

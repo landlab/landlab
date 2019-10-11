@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Landlab component for overland flow using a local implicit solution to the
+"""Landlab component for overland flow using a local implicit solution to the
 kinematic-wave approximation.
 
 Created on Fri May 27 14:26:13 2016

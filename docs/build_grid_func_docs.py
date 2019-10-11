@@ -45,8 +45,7 @@ grid_name_to_class = {'base': 'ModelGrid',
 
 
 def create_dicts_of_cats():
-    '''
-    Create the dicts that record grid methods by grid and LLCAT.
+    """Create the dicts that record grid methods by grid and LLCAT.
 
     Returns
     -------
@@ -58,7 +57,7 @@ def create_dicts_of_cats():
         lists of LLCATS assigned to each method.
     fails_allgrid : dict of lists
         Key is grid type, value is list of methods with no LLCATS.
-    '''
+    """
     all_methods_for_cat_allgrid = {}
     all_cats_for_method_allgrid = {}
     fails_allgrid = {}

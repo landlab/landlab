@@ -99,7 +99,8 @@ def map_pairs_to_values(mapping, pairs, out=None, sorter=None, sorted=False):
 def map_rolling_pairs_to_values(
     mapping, pairs, out=None, sorter=None, sorted=False, size_of_row=None
 ):
-    """Return the values for integer pairs given as a 2D matrix of rolling pairs.
+    """Return the values for integer pairs given as a 2D matrix of rolling
+    pairs.
 
     Parameters
     ----------

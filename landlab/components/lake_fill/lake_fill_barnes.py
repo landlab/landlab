@@ -1,10 +1,9 @@
 #!/usr/env/python
 
-"""
-lake_fill_barnes.py
+"""lake_fill_barnes.py.
 
-Fill sinks in a landscape to the brim, following the Barnes et al. (2014)
-algorithms.
+Fill sinks in a landscape to the brim, following the Barnes et al.
+(2014) algorithms.
 """
 
 
@@ -37,10 +36,9 @@ LARGE_ELEV = 9999999999.0
 
 
 def _fill_one_node_to_flat(fill_surface, all_neighbors, pitq, openq, closedq, dummy):
-    """
-    Implements the Barnes et al. algorithm for a simple fill. Assumes the
-    _open and _closed lists have already been updated per Barnes algos 2&3,
-    lns 1-7.
+    """Implements the Barnes et al. algorithm for a simple fill. Assumes the
+    _open and _closed lists have already been updated per Barnes algos 2&3, lns
+    1-7.
 
     Parameters
     ----------
@@ -116,18 +114,17 @@ def _fill_one_node_to_flat(fill_surface, all_neighbors, pitq, openq, closedq, du
 
 
 class LakeMapperBarnes(Component):
-    """
-    A Landlab implementation of the Barnes et al. (2014) lake filling & lake
+    """A Landlab implementation of the Barnes et al. (2014) lake filling & lake
     routing algorithms, lightly modified and adapted for Landlab by DEJH. This
     component is designed as a direct replacement for the LakeMapper as
     existing pre-Aug 2018, and provides a suite of properties to access
     information about the lakes created each time it is run. Only significant
-    difference is the way the lakes are coded: this component uses the
-    (unique) ID of the outlet node, whereas DepressionFinderAndRouter uses
-    one of the pit node IDs. Note also this component does not offer the
-    `lake_codes` or `display_depression_map` options, for essentially this
-    reason. Use `lake_map` instead for both. It also uses a much more
-    Landlabbian `run_one_step()` method as its driver, superceding
+    difference is the way the lakes are coded: this component uses the (unique)
+    ID of the outlet node, whereas DepressionFinderAndRouter uses one of the
+    pit node IDs. Note also this component does not offer the `lake_codes` or
+    `display_depression_map` options, for essentially this reason. Use
+    `lake_map` instead for both. It also uses a much more Landlabbian
+    `run_one_step()` method as its driver, superceding
     DepressionFinderAndRouter's `map_depressions()`.
 
     A variety of options is provided. Flow routing is route-to-one in this
@@ -297,9 +294,7 @@ class LakeMapperBarnes(Component):
         ignore_overfill=False,
         track_lakes=True,
     ):
-        """
-        Initialize the component.
-        """
+        """Initialize the component."""
         super(LakeMapperBarnes, self).__init__(grid)
 
         if "flow__receiver_node" in grid.at_node:
@@ -444,10 +439,9 @@ class LakeMapperBarnes(Component):
     def _fill_one_node_to_slant(
         self, fill_surface, all_neighbors, pitq, openq, closedq, ignore_overfill
     ):
-        """
-        Implements the Barnes et al. algorithm to obtain a naturally draining
-        surface, updating a single node. Assumes the _open and _closed lists
-        have already been updated per Barnes algos 2&3, lns 1-7.
+        """Implements the Barnes et al. algorithm to obtain a naturally
+        draining surface, updating a single node. Assumes the _open and _closed
+        lists have already been updated per Barnes algos 2&3, lns 1-7.
 
         Parameters
         ----------
@@ -618,10 +612,9 @@ class LakeMapperBarnes(Component):
     def _fill_to_flat_with_tracking(
         self, fill_surface, all_neighbors, pitq, openq, closedq
     ):
-        """
-        Implements the Barnes et al. algorithm for a simple fill over the
-        grid. Assumes the _open and _closed lists have already been updated
-        per Barnes algos 2&3, lns 1-7.
+        """Implements the Barnes et al. algorithm for a simple fill over the
+        grid. Assumes the _open and _closed lists have already been updated per
+        Barnes algos 2&3, lns 1-7.
 
         This version runs a little more slowly to enable tracking of which
         nodes are linked to which outlets.
@@ -718,10 +711,9 @@ class LakeMapperBarnes(Component):
         ignore_overfill,
         track_lakes,
     ):
-        """
-        Implements the Barnes et al. algorithm to obtain a naturally draining
-        surface over the grid. Assumes the _open and _closed lists have
-        already been updated per Barnes algos 2&3, lns 1-7.
+        """Implements the Barnes et al. algorithm to obtain a naturally
+        draining surface over the grid. Assumes the _open and _closed lists
+        have already been updated per Barnes algos 2&3, lns 1-7.
 
         This version runs a little more slowly to enable tracking of which
         nodes are linked to which outlets.
@@ -948,12 +940,11 @@ class LakeMapperBarnes(Component):
         return lakemappings
 
     def _track_original_surface(self):
-        """
-        This helper method ensures that if flow is to be redircted, the
+        """This helper method ensures that if flow is to be redircted, the
         _redirect_flowdirs() method can still get access to this information
         when it needs it. The idea here is that the operation is essentially
-        free when surface and fill_surface were different to start with,
-        which should make us faster.
+        free when surface and fill_surface were different to start with, which
+        should make us faster.
 
         Examples
         --------
@@ -987,8 +978,7 @@ class LakeMapperBarnes(Component):
         return orig_surf
 
     def _redirect_flowdirs(self, surface, lake_dict):
-        """
-        For nodes within lakes that have already been defined, modifies
+        """For nodes within lakes that have already been defined, modifies
         existing FlowDirector fields to account for the lake filling, viz.
         'flow__receiver_node', 'flow__link_to_receiver_node',
         'flow__sink_flag', and 'topographic__steepest_slope'.
@@ -1245,9 +1235,9 @@ class LakeMapperBarnes(Component):
             closedq[liminal_nodes] = 1
 
     def run_one_step(self):
-        """
-        Fills the surface to fill all pits. Note that a second run on a
-        surface that has already been filled will *not* "see" any existing
+        """Fills the surface to fill all pits. Note that a second run on a
+        surface that has already been filled will *not* "see" any existing.
+
         lakes correctly - it will see lakes, but with zero depths. In
         particular, if fill_flat is False, an attempt to fill a
         surface a second time will raise a ValueError unless ignore_overfill.
@@ -1709,10 +1699,9 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_dict(self):
-        """
-        Return a dictionary where the keys are the outlet nodes of each lake,
-        and the values are deques of nodes within each lake. Items are not
-        returned in ID order. The outlet nodes are NOT part of the lake.
+        """Return a dictionary where the keys are the outlet nodes of each
+        lake, and the values are deques of nodes within each lake. Items are
+        not returned in ID order. The outlet nodes are NOT part of the lake.
 
         Examples
         --------
@@ -1754,8 +1743,7 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_outlets(self):
-        """
-        Returns the outlet for each lake, not necessarily in ID order.
+        """Returns the outlet for each lake, not necessarily in ID order.
 
         Examples
         --------
@@ -1797,9 +1785,8 @@ class LakeMapperBarnes(Component):
 
     @property
     def number_of_lakes(self):
-        """
-        Return the number of individual lakes. Lakes sharing outlet nodes are
-        considered part of the same lake.
+        """Return the number of individual lakes. Lakes sharing outlet nodes
+        are considered part of the same lake.
 
         Examples
         --------
@@ -1845,11 +1832,10 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_map(self):
-        """
-        Return an array of ints, where each node within a lake is labelled
+        """Return an array of ints, where each node within a lake is labelled
         with its outlet node ID. The outlet nodes are NOT part of the lakes.
-        Nodes not in a lake are labelled with LOCAL_BAD_INDEX_VALUE
-        (default -1).
+        Nodes not in a lake are labelled with LOCAL_BAD_INDEX_VALUE (default
+        -1).
 
         Examples
         --------
@@ -1923,9 +1909,8 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_at_node(self):
-        """
-        Return a boolean array, True if the node is flooded, False otherwise.
-        The outlet nodes are NOT part of the lakes.
+        """Return a boolean array, True if the node is flooded, False
+        otherwise. The outlet nodes are NOT part of the lakes.
 
         Examples
         --------
@@ -1962,8 +1947,7 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_depths(self):
-        """
-        Return the change in surface elevation at each node this step.
+        """Return the change in surface elevation at each node this step.
         Requires that surface and fill_surface were not the same array at
         instantiation.
 
@@ -2023,9 +2007,8 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_areas(self):
-        """
-        A nlakes-long array of the area of each lake. The order is the same as
-        that of the keys in lake_dict, and of lake_outlets. Note that outlet
+        """A nlakes-long array of the area of each lake. The order is the same
+        as that of the keys in lake_dict, and of lake_outlets. Note that outlet
         nodes are not parts of the lakes.
 
         Examples
@@ -2074,12 +2057,11 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_volumes(self):
-        """
-        A nlakes-long array of the volume of each lake. The order is the same
-        as that of the keys in lake_dict, and of lake_outlets.
-        Note that this calculation is performed relative to the initial
-        surface, so is only a true lake volume if the initial surface was the
-        rock suface (not an earlier water level).
+        """A nlakes-long array of the volume of each lake. The order is the
+        same as that of the keys in lake_dict, and of lake_outlets. Note that
+        this calculation is performed relative to the initial surface, so is
+        only a true lake volume if the initial surface was the rock suface (not
+        an earlier water level).
 
         Requires that surface and fill_surface were not the same array at
         instantiation.
@@ -2133,8 +2115,7 @@ class LakeMapperBarnes(Component):
 
     @property
     def was_there_overfill(self):
-        """
-        If the ignore_overfill flag was set to True at instantiation, this
+        """If the ignore_overfill flag was set to True at instantiation, this
         property indicates if any depression in the grid has, at any point,
         been overfilled.
 

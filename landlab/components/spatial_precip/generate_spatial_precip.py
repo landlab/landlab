@@ -241,7 +241,6 @@ class SpatialPrecipitationDistribution(Component):
     >>> np.isclose(mean_rf_last_year[2],
     ...            mean_rf_season[0] + mean_rf_season[1])
     True
-
     """
 
     _name = "SpatialPrecipitationDistribution"
@@ -302,7 +301,6 @@ class SpatialPrecipitationDistribution(Component):
             here that turns the provided elevation of the storm center into
             a length-11 curve weighting to select which orographic scenario
             to apply.
-
         """
         super(SpatialPrecipitationDistribution, self).__init__(grid)
 
@@ -391,9 +389,8 @@ class SpatialPrecipitationDistribution(Component):
             "trunc_interval": (0.15, 0.67),
         },
     ):
-        """
-        Yield a timeseries giving the number of storms occurring each year in
-        a rainfall simulation.
+        """Yield a timeseries giving the number of storms occurring each year
+        in a rainfall simulation.
 
         All default distributions specified as parameters reflect values for
         Walnut Gulch, see Singer & Michaelides, 2017 & Singer et al, submitted.
@@ -492,7 +489,6 @@ class SpatialPrecipitationDistribution(Component):
             accumulated rainfall depth during the *last completed* model year,
             not the year to the point of yield. For the latter, use the
             property `total_rainfall_this_year`.
-
         """
         return self._run_the_process(
             yield_storms=True,
@@ -570,9 +566,8 @@ class SpatialPrecipitationDistribution(Component):
             "trunc_interval": (0.15, 0.67),
         },
     ):
-        """
-        Yield a timeseries giving the number if storms occurring each year in
-        a rainfall simulation.
+        """Yield a timeseries giving the number if storms occurring each year
+        in a rainfall simulation.
 
         All default distributions specified as parameters reflect values for
         Walnut Gulch, see Singer & Michaelides, 2017 & Singer et al, submitted.
@@ -736,10 +731,9 @@ class SpatialPrecipitationDistribution(Component):
             "trunc_interval": (0.15, 0.67),
         },
     ):
-        """
-        Yield a timeseries giving the number if storms occurring each season in
-        a rainfall simulation. Only meaningfully different from yield_years if
-        style=='whole_year'.
+        """Yield a timeseries giving the number if storms occurring each season
+        in a rainfall simulation. Only meaningfully different from yield_years
+        if style=='whole_year'.
 
         All default distributions specified as parameters reflect values for
         Walnut Gulch, see Singer & Michaelides, 2017 & Singer et al, submitted.
@@ -909,9 +903,9 @@ class SpatialPrecipitationDistribution(Component):
             "trunc_interval": (0.15, 0.67),
         },
     ):
-        """
-        This is the underlying process that runs the component, but it should
-        be run by a user through the yield_storms and yield_years methods.
+        """This is the underlying process that runs the component, but it
+        should be run by a user through the yield_storms and yield_years
+        methods.
 
         Fuzz to the chosen values is now selected from a continuous
         distribution, not from integer values.
@@ -972,7 +966,6 @@ class SpatialPrecipitationDistribution(Component):
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
             et al., 2005.
-
         """
         FUZZMETHOD = "DEJH"
         FUZZWIDTH = 5.0  # if DEJH
@@ -1401,8 +1394,7 @@ class SpatialPrecipitationDistribution(Component):
         monsoon_total_rf_gaussian={"sigma": 64.0, "mu": 207.0},
         winter_total_rf_gaussian={"sigma": 52.0, "mu": 1.65},
     ):
-        """
-        Return a tuple of rainfall totals (mm) for the year, with entries
+        """Return a tuple of rainfall totals (mm) for the year, with entries
         subdividing the yearly total into seasons as appropriate.
 
         Parameters
@@ -1479,10 +1471,10 @@ class SpatialPrecipitationDistribution(Component):
             return (summer_rf_limit, winter_rf_limit)
 
     def _locate_storm(self, storm_radius):
-        """
-        Because of the way the stats fall out, any simulated storm from the
-        distribution must intersect the catchment somewhere. Note written in a
-        grid-agnostic fashion.
+        """Because of the way the stats fall out, any simulated storm from the
+        distribution must intersect the catchment somewhere.
+
+        Note written in a grid-agnostic fashion.
         """
         stormposx = np.random.rand() * (self._widthx + 2.0 * storm_radius)
         stormposy = np.random.rand() * (self._widthy + 2.0 * storm_radius)
@@ -1497,7 +1489,10 @@ class SpatialPrecipitationDistribution(Component):
 
     @property
     def current_season(self):
-        """Get the current season. 'M' is monsoon, 'W' is winter."""
+        """Get the current season.
+
+        'M' is monsoon, 'W' is winter.
+        """
         return self._current_season
 
     @property
@@ -1522,35 +1517,32 @@ class SpatialPrecipitationDistribution(Component):
 
     @property
     def storm_intensity_last_storm(self):
-        """
-        Get the intensity (mm/hr) of the last storm, averaged under the storm
+        """Get the intensity (mm/hr) of the last storm, averaged under the
+        storm.
+
         footprint. Note that duration * intensity != storm max depth.
         """
         return self._intensity_val
 
     @property
     def total_rainfall_last_season(self):
-        """
-        Get the total recorded rainfall over the last (completed) simulated
-        season, spatially resolved (mm).
-        """
+        """Get the total recorded rainfall over the last (completed) simulated
+        season, spatially resolved (mm)."""
         return self._total_rainfall_last_season
 
     @property
     def total_rainfall_last_year(self):
-        """
-        Get the total recorded rainfall over the last (completed) simulated
-        year, spatially resolved (mm). Equivalent to the field
-        'rainfall__total_depth_per_year'.
+        """Get the total recorded rainfall over the last (completed) simulated
+        year, spatially resolved (mm).
+
+        Equivalent to the field 'rainfall__total_depth_per_year'.
         """
         return self._total_rf_year
 
     @property
     def total_rainfall_this_season(self):
-        """
-        Get the accumulated, spatially resolved total rainfall over the
-        grid for the season so far (mm).
-        """
+        """Get the accumulated, spatially resolved total rainfall over the grid
+        for the season so far (mm)."""
         self._running_total_rainfall_this_season[
             self._opennodes
         ] = self._Storm_running_sum_seas
@@ -1558,10 +1550,8 @@ class SpatialPrecipitationDistribution(Component):
 
     @property
     def total_rainfall_this_year(self):
-        """
-        Get the accumulated, spatially resolved total rainfall over the
-        grid for the year so far (mm).
-        """
+        """Get the accumulated, spatially resolved total rainfall over the grid
+        for the year so far (mm)."""
         self._running_total_rainfall_this_year[self._opennodes] = (
             self._storm_running_sum_1st_seas + self._Storm_running_sum_seas
         )
@@ -1569,34 +1559,26 @@ class SpatialPrecipitationDistribution(Component):
 
     @property
     def median_total_rainfall_last_season(self):
-        """
-        Get the median total rainfall recorded over the open nodes of the grid
-        during the last (completed) simulated season (mm).
-        """
+        """Get the median total rainfall recorded over the open nodes of the
+        grid during the last (completed) simulated season (mm)."""
         return np.nanmedian(self._total_rainfall_last_season[self._opennodes])
 
     @property
     def median_total_rainfall_last_year(self):
-        """
-        Get the median total rainfall recorded over the open nodes of the grid
-        during the last (completed) simulated year (mm).
-        """
+        """Get the median total rainfall recorded over the open nodes of the
+        grid during the last (completed) simulated year (mm)."""
         return np.nanmedian(self.total_rainfall_last_year[self._opennodes])
 
     @property
     def median_total_rainfall_this_season(self):
-        """
-        Get the accumulated median total rainfall over the open nodes of the
-        grid so far this season (mm).
-        """
+        """Get the accumulated median total rainfall over the open nodes of the
+        grid so far this season (mm)."""
         return self._median_seas_rf_total
 
     @property
     def median_total_rainfall_this_year(self):
-        """
-        Get the accumulated median total rainfall over the open nodes of the
-        grid so far this year (mm).
-        """
+        """Get the accumulated median total rainfall over the open nodes of the
+        grid so far this year (mm)."""
         return np.nanmedian(self.total_rainfall_this_year[self._opennodes])
 
     @property
@@ -1611,30 +1593,26 @@ class SpatialPrecipitationDistribution(Component):
 
     @property
     def coordinates_of_last_storm_center(self):
-        """
-        Get the coordinates of the center of the last storm as (x, y).
-        """
+        """Get the coordinates of the center of the last storm as (x, y)."""
         return (self._x, self._y)
 
     @property
     def target_median_total_rainfall_this_season(self):
-        """
-        Get the stochastically generated "target" average total rainfall
-        amount over the catchment for the current season. If limit ==
-        'total_rainfall', this will be very close to
-        median_total_rainfall_last_season. If 'total_time', it will diverge
-        from this value.
+        """Get the stochastically generated "target" average total rainfall
+        amount over the catchment for the current season.
+
+        If limit == 'total_rainfall', this will be very close to
+        median_total_rainfall_last_season. If 'total_time', it will
+        diverge from this value.
         """
         return self._season_rf_limit
 
 
 def Singer_orographic_rainfall(z_closest_node_to_center):
-    """
-    Return a set of curve weights for a provided z, assuming an orographic
-    rule following that presented in Singer & Michaelides 2017 & Singer et
-    al. 2018 and applicable specifically to Walnut Gulch.
-    i.e., there are three orographic divisions, divided at 1350 m and
-    1500 m.
+    """Return a set of curve weights for a provided z, assuming an orographic
+    rule following that presented in Singer & Michaelides 2017 & Singer et al.
+    2018 and applicable specifically to Walnut Gulch. i.e., there are three
+    orographic divisions, divided at 1350 m and 1500 m.
 
     Parameters
     ----------

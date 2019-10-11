@@ -6,8 +6,7 @@ from landlab import BAD_INDEX_VALUE, FieldError, RasterModelGrid
 
 
 def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
-    """
-    Calculate the along flow distance from node to outlet.
+    """Calculate the along flow distance from node to outlet.
 
     This utility calculates the along flow distance based on the results of
     running flow accumulation on the grid. It will use the connectivity

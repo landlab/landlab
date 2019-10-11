@@ -352,8 +352,7 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
 
 
 def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
-    """
-    Map the the value found in one node array to a link, based on the
+    """Map the the value found in one node array to a link, based on the
     minimum value found in a second node field or array.
 
     map_value_at_min_node_to_link iterates across the grid and
@@ -418,8 +417,7 @@ def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
 
 
 def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
-    """
-    Map the the value found in one node array to a link, based on the
+    """Map the the value found in one node array to a link, based on the
     maximum value found in a second node field or array.
 
     map_value_at_max_node_to_link iterates across the grid and
@@ -659,9 +657,8 @@ def map_max_of_node_links_to_node(grid, var_name, out=None):
 
 
 def map_upwind_node_link_max_to_node(grid, var_name, out=None):
-    """
-    Map the largest magnitude of the links bringing flux into the node to the
-    node.
+    """Map the largest magnitude of the links bringing flux into the node to
+    the node.
 
     map_upwind_node_link_max_to_node iterates across the grid and identifies
     the link values at each link connected to a node. It then uses the
@@ -726,9 +723,8 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
 
 
 def map_downwind_node_link_max_to_node(grid, var_name, out=None):
-    """
-    Map the largest magnitude of the links carrying flux from the node to the
-    node.
+    """Map the largest magnitude of the links carrying flux from the node to
+    the node.
 
     map_downwind_node_link_max_to_node iterates across the grid and identifies
     the link values at each link connected to a node. It then uses the
@@ -794,8 +790,7 @@ def map_downwind_node_link_max_to_node(grid, var_name, out=None):
 
 
 def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
-    """
-    Map the mean magnitude of the links bringing flux into the node to the
+    """Map the mean magnitude of the links bringing flux into the node to the
     node.
 
     map_upwind_node_link_mean_to_node iterates across the grid and identifies
@@ -866,8 +861,7 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
 
 
 def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
-    """
-    Map the mean magnitude of the links carrying flux out of the node to the
+    """Map the mean magnitude of the links carrying flux out of the node to the
     node.
 
     map_downwind_node_link_mean_to_node iterates across the grid and identifies
@@ -938,10 +932,9 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
 
 
 def map_value_at_upwind_node_link_max_to_node(grid, control_name, value_name, out=None):
-    """
-    Map the the value found in one link array to a node, based on the
-    largest magnitude value of links bringing fluxes into the node,
-    found in a second node array or field.
+    """Map the the value found in one link array to a node, based on the
+    largest magnitude value of links bringing fluxes into the node, found in a
+    second node array or field.
 
     map_upwind_node_link_max_to_node iterates across the grid and identifies
     the link control_values at each link connected to a node. It then uses the
@@ -1019,10 +1012,9 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name, value_name, ou
 def map_value_at_downwind_node_link_max_to_node(
     grid, control_name, value_name, out=None
 ):
-    """
-    Map the the value found in one link array to a node, based on the
-    largest magnitude value of links carrying fluxes out of the node,
-    found in a second node array or field.
+    """Map the the value found in one link array to a node, based on the
+    largest magnitude value of links carrying fluxes out of the node, found in
+    a second node array or field.
 
     map_downwind_node_link_max_to_node iterates across the grid and identifies
     the link control_values at each link connected to a node. It then uses the

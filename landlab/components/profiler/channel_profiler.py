@@ -598,8 +598,7 @@ class ChannelProfiler(_BaseProfiler):
 
     @property
     def network_structure(self):
-        """
-        OrderedDict defining the channel network.
+        """OrderedDict defining the channel network.
 
         The node IDs and distances upstream of the channel network are stored
         in ``network_structure``. It is a dictionary with keys of the outlet
@@ -706,15 +705,14 @@ class ChannelProfiler(_BaseProfiler):
         return (channel_segment, nodes_to_process)
 
     def _create_profile_structure(self):
-        """
-        Create the profile_IDs data structure for channel network.
+        """Create the profile_IDs data structure for channel network.
 
-        The bound attribute self._profile structure is the channel segment
-        datastructure. profile structure is a list of length
-        number_of_watersheds. Each element of profile_structure is itself a
-        list of length number of stream segments that drain to each of the
-        starting nodes. Each stream segment list contains the node ids of a
-        stream segment from downstream to upstream.
+        The bound attribute self._profile structure is the channel
+        segment datastructure. profile structure is a list of length
+        number_of_watersheds. Each element of profile_structure is
+        itself a list of length number of stream segments that drain to
+        each of the starting nodes. Each stream segment list contains
+        the node ids of a stream segment from downstream to upstream.
         """
         self._net_struct = OrderedDict()
 
@@ -747,8 +745,8 @@ class ChannelProfiler(_BaseProfiler):
         self._create_flat_structures()
 
     def _create_flat_structures(self):
-        """Create expected flattened structures for ids, distances, and colors.
-        """
+        """Create expected flattened structures for ids, distances, and
+        colors."""
         self._net_ids = []
         self._distance_along_profile = []
         self._colors = []
@@ -790,7 +788,7 @@ class ChannelProfiler(_BaseProfiler):
                 ]
 
     def _calculate_distances(self):
-        """Get distances along the network datastructure"""
+        """Get distances along the network datastructure."""
         distance_upstream = calculate_flow__distance(self._grid)
         for outlet_id in self._net_struct:
             offset = distance_upstream[outlet_id]

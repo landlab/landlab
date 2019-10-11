@@ -257,8 +257,7 @@ class Flexure(Component):
         return kei(np.sqrt(dx ** 2 + dy ** 2) / alpha)
 
     def update(self):
-        """Update fields with current loading conditions.
-        """
+        """Update fields with current loading conditions."""
         load = self._grid.at_node["lithosphere__overlying_pressure_increment"]
         deflection = self._grid.at_node["lithosphere_surface__elevation_increment"]
 

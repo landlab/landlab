@@ -1,11 +1,10 @@
 #! /usr/env/python
-"""
-Python implementation of ModelGrid, a base class used to create and manage
+"""Python implementation of ModelGrid, a base class used to create and manage
 grids for 2D numerical models.
 
-Do NOT add new documentation here. Grid documentation is now built in a semi-
-automated fashion. To modify the text seen on the web, edit the files
-`docs/text_for_[gridfile].py.txt`.
+Do NOT add new documentation here. Grid documentation is now built in a
+semi- automated fashion. To modify the text seen on the web, edit the
+files `docs/text_for_[gridfile].py.txt`.
 """
 from functools import lru_cache
 
@@ -531,10 +530,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     @make_return_array_immutable
     @cache_result_in_object()
     def active_link_dirs_at_node(self):
-        """
-        Link flux directions at each node: 1=incoming flux, -1=outgoing
-        flux, 0=no flux. Note that inactive links receive zero, but active
-        and fixed links are both reported normally.
+        """Link flux directions at each node: 1=incoming flux, -1=outgoing
+        flux, 0=no flux. Note that inactive links receive zero, but active and
+        fixed links are both reported normally.
 
         Returns
         -------
@@ -667,8 +665,8 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     @property
     @return_readonly_id_array
     def fixed_gradient_boundary_node_fixed_link(self):
-        """
-        An array of the fixed_links connected to fixed gradient boundary nodes.
+        """An array of the fixed_links connected to fixed gradient boundary
+        nodes.
 
         Note that on a raster, some nodes (notably the corners) can be
         FIXED_GRADIENT_BOUNDARY, but not have a true FIXED_LINK neighboring
@@ -701,8 +699,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     @property
     @return_readonly_id_array
     def fixed_gradient_boundary_node_anchor_node(self):
-        """
-        Returns the node at the other end of the fixed link for a fixed
+        """Returns the node at the other end of the fixed link for a fixed
         gradient boundary node.
 
         Degenerate FIXED_GRADIENT_BOUNDARY nodes (e.g., corners) are handled as
@@ -730,8 +727,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             return self._fixed_gradient_boundary_node_anchor_node
 
     def _create_fixed_gradient_boundary_node_links(self):
-        """
-        Builds a data structure to hold the fixed_links which control the
+        """Builds a data structure to hold the fixed_links which control the
         values of any FIXED_GRADIENT_BOUNDARY nodes in the grid.
 
         An AssertionError will be raised if for some reason a
@@ -771,10 +767,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         ]
 
     def _create_fixed_gradient_boundary_node_anchor_node(self):
-        """
-        Builds a data structure to hold the nodes which anchor the
-        values of any FIXED_GRADIENT_BOUNDARY nodes in the grid, i.e., those
-        at the other ends of the FIXED_LINKS.
+        """Builds a data structure to hold the nodes which anchor the values of
+        any FIXED_GRADIENT_BOUNDARY nodes in the grid, i.e., those at the other
+        ends of the FIXED_LINKS.
 
         An AssertionError will be raised if for some reason a
         FIXED_GRADIENT_BOUNDARY node exists which has neither a
@@ -1293,8 +1288,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         return gfuncs.resolve_values_on_active_links(self, link_values, out=out)
 
     def link_at_node_is_upwind(self, values, out=None):
-        """
-        Return a boolean the same shape as :func:`links_at_node` which flags
+        """Return a boolean the same shape as :func:`links_at_node` which flags
         links which are upwind of the node as True.
 
         link_at_node_is_upwind iterates across the grid and identifies the link
@@ -1362,8 +1356,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         return out
 
     def link_at_node_is_downwind(self, values, out=None):
-        """
-        Return a boolean the same shape as :func:`links_at_node` which flags
+        """Return a boolean the same shape as :func:`links_at_node` which flags
         links which are downwind of the node as True.
 
         link_at_node_is_downwind iterates across the grid and identifies the
@@ -1431,9 +1424,8 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         return out
 
     def upwind_links_at_node(self, values, bad_index=-1):
-        """
-        Return an (nnodes, X) shape array of link IDs of which links are upwind
-        of each node, according to *values* (field or array).
+        """Return an (nnodes, X) shape array of link IDs of which links are
+        upwind of each node, according to *values* (field or array).
 
         X is the maximum upwind links at any node. Nodes with fewer upwind
         links than this have additional slots filled with *bad_index*. Links
@@ -1503,8 +1495,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             return big_ordered_array
 
     def downwind_links_at_node(self, values, bad_index=-1):
-        """
-        Return an (nnodes, X) shape array of link IDs of which links are
+        """Return an (nnodes, X) shape array of link IDs of which links are
         downwind of each node, according to *values* (array or field).
 
         X is the maximum downwind links at any node. Nodes with fewer downwind
@@ -1577,8 +1568,8 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     @property
     @make_return_array_immutable
     def patches_present_at_node(self):
-        """
-        A boolean array, False where a patch has a closed node or is missing.
+        """A boolean array, False where a patch has a closed node or is
+        missing.
 
         The array is the same shape as :func:`patches_at_node`, and is designed
         to mask it.
@@ -1629,8 +1620,8 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     @property
     @make_return_array_immutable
     def patches_present_at_link(self):
-        """
-        A boolean array, False where a patch has a closed node or is missing.
+        """A boolean array, False where a patch has a closed node or is
+        missing.
 
         The array is the same shape as :func:`patches_at_link`, and is designed
         to mask it.
@@ -1748,8 +1739,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             return self._number_of_patches_present_at_link
 
     def _reset_patch_status(self):
-        """
-        Creates the array which stores patches_present_at_node.
+        """Creates the array which stores patches_present_at_node.
 
         Call whenever boundary conditions are updated on the grid.
         """

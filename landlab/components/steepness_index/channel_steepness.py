@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Oct 19.
+"""Created on Mon Oct 19.
 
 @author: dejh
 """
@@ -12,10 +11,9 @@ from landlab import Component
 
 
 class SteepnessFinder(Component):
-    """
-    This component calculates steepness indices, sensu Wobus et al. 2006,
-    for a Landlab landscape.
-    Follows broadly the approach used in GeomorphTools, geomorphtools.org.
+    """This component calculates steepness indices, sensu Wobus et al. 2006,
+    for a Landlab landscape. Follows broadly the approach used in
+    GeomorphTools, geomorphtools.org.
 
     Examples
     --------
@@ -59,7 +57,6 @@ class SteepnessFinder(Component):
     >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
     array([ 0.        ,  1.22673541,  1.2593727 ,  1.27781936,  1.25659369,
             1.12393156,  0.97335328,  0.79473963,  0.56196578,  0.        ])
-
     """
 
     _name = "SteepnessFinder"
@@ -178,9 +175,9 @@ class SteepnessFinder(Component):
         self._elev = self._grid.at_node["topographic__elevation"]
 
     def calculate_steepnesses(self):
-        """
-        This is the main method. Call it to calculate local steepness indices
-        at all points with drainage areas greater than *min_drainage_area*.
+        """This is the main method. Call it to calculate local steepness
+        indices at all points with drainage areas greater than
+        *min_drainage_area*.
 
         This "run" method can optionally take the same parameter set as
         provided at instantiation. If they are provided, they will override
@@ -277,8 +274,7 @@ class SteepnessFinder(Component):
         self._ksn[self._ksn == -1.0] = 0.0
 
     def channel_distances_downstream(self, ch_nodes):
-        """
-        Calculates distances downstream from top node of a defined flowpath.
+        """Calculates distances downstream from top node of a defined flowpath.
 
         Parameters
         ----------
@@ -316,8 +312,8 @@ class SteepnessFinder(Component):
         return ch_dists
 
     def interpolate_slopes_with_step(self, ch_nodes, ch_dists, interp_pt_elevs):
-        """
-        Maps slopes to nodes, interpolating withing defined vertical intervals.
+        """Maps slopes to nodes, interpolating withing defined vertical
+        intervals.
 
         This follows Geomorphtools' discretization methods. It is essentially a
         downwind map of the slopes.
@@ -386,8 +382,7 @@ class SteepnessFinder(Component):
     def calc_ksn_discretized(
         self, ch_dists, ch_A, ch_S, ref_theta, discretization_length
     ):
-        """
-        Calculate normalized steepness index on defined channel segments.
+        """Calculate normalized steepness index on defined channel segments.
 
         Every segment must have at least 2 nodes along it. If not, segments
         will be automatically merged to achieve this. The channel will be
@@ -499,24 +494,22 @@ class SteepnessFinder(Component):
 
     @property
     def steepness_indices(self):
-        """
-        Return the array of channel steepness indices.
+        """Return the array of channel steepness indices.
+
         Nodes not in the channel receive zeros.
         """
         return self._ksn
 
     @property
     def hillslope_mask(self):
-        """
-        Return a boolean array, False where steepness indices exist.
-        """
+        """Return a boolean array, False where steepness indices exist."""
         return self._mask
 
     @property
     def masked_steepness_indices(self):
-        """
-        Returns a masked array version of the 'channel__steepness_index' field.
-        This enables easier plotting of the values with
+        """Returns a masked array version of the 'channel__steepness_index'
+        field. This enables easier plotting of the values with.
+
         :func:`landlab.imshow_grid_at_node` or similar.
 
         Examples

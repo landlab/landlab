@@ -1,11 +1,10 @@
 #! /usr/env/python
-"""
-Python implementation of HexModelGrid, a grid class used to create and manage
-structured Voronoi-Delaunay grids for 2D numerical models.
+"""Python implementation of HexModelGrid, a grid class used to create and
+manage structured Voronoi-Delaunay grids for 2D numerical models.
 
-Do NOT add new documentation here. Grid documentation is now built in a semi-
-automated fashion. To modify the text seen on the web, edit the files
-`docs/text_for_[gridfile].py.txt`.
+Do NOT add new documentation here. Grid documentation is now built in a
+semi- automated fashion. To modify the text seen on the web, edit the
+files `docs/text_for_[gridfile].py.txt`.
 """
 
 from warnings import warn
@@ -177,8 +176,8 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
     @property
     def number_of_node_rows(self):
-        """Number of node rows in a rectangular-shaped and/or
-        horizontally oriented hex grid.
+        """Number of node rows in a rectangular-shaped and/or horizontally
+        oriented hex grid.
 
         Returns the number of rows, including boundaries.
 
@@ -226,8 +225,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         return (row, col)
 
     def _configure_hexplot(self, data, data_label=None, color_map=None):
-        """
-        Sets up necessary information for making plots of the hexagonal grid
+        """Sets up necessary information for making plots of the hexagonal grid
         colored by a given data element.
 
         Parameters
@@ -427,8 +425,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     def set_watershed_boundary_condition(
         self, node_data, nodata_value=-9999.0, return_outlet_id=False
     ):
-        """
-        Finds the node adjacent to a boundary node with the smallest value.
+        """Finds the node adjacent to a boundary node with the smallest value.
         This node is set as the outlet.  The outlet node must have a data
         value.  Can return the outlet id as a one element numpy array if
         return_outlet_id is set to True.
@@ -564,8 +561,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
 
 def from_dict(param_dict):
-    """
-    Create a HexModelGrid from the dictionary-like object, *param_dict*.
+    """Create a HexModelGrid from the dictionary-like object, *param_dict*.
     Required keys of the dictionary are NUM_ROWS, NUM_COLS. Raises a KeyError
     if either of these are missing.  If GRID_SPACING is given, use it as the
     HexModelGrid *dx* parameter, otherwise default to unit spacing.

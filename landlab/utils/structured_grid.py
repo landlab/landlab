@@ -86,8 +86,8 @@ def active_cell_count(shape):
 def core_cell_count(shape):
     """Number of core cells.
 
-    Number of core cells. By default, all cells are core so this is
-    the same as cell_count.
+    Number of core cells. By default, all cells are core so this is the
+    same as cell_count.
     """
     return cell_count(shape)
 
@@ -159,8 +159,8 @@ def perimeter_node_count(shape):
 def interior_cell_count(shape):
     """Number of interior cells.
 
-    Number of interior cells. Since cells are only defined on interior nodes,
-    this is the same as cell_count.
+    Number of interior cells. Since cells are only defined on interior
+    nodes, this is the same as cell_count.
     """
     return cell_count(shape)
 
@@ -525,9 +525,9 @@ def face_at_link(shape, actives=None, inactive_link_index=BAD_INDEX_VALUE):
 def status_at_node(shape, boundary_status=FIXED_VALUE_BOUNDARY):
     """Array of the statuses of nodes.
 
-    The statuses of the nodes in a structured grid with dimensions, *shape*.
-    Use the *boundary_status* keyword to specify the status of the top,
-    bottom, left and right boundary nodes.
+    The statuses of the nodes in a structured grid with dimensions,
+    *shape*. Use the *boundary_status* keyword to specify the status of
+    the top, bottom, left and right boundary nodes.
     """
     status = np.empty(np.prod(shape), dtype=np.int8)
 

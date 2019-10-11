@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Landlab component for overland flow using the kinematic-wave approximation.
+"""Landlab component for overland flow using the kinematic-wave approximation.
 
 Created on Fri May 27 14:26:13 2016
 
@@ -139,7 +138,10 @@ class KinwaveOverlandFlowModel(Component):
 
     @property
     def vel_coef(self):
-        """Velocity coefficient. (1/roughness)"""
+        """Velocity coefficient.
+
+        (1/roughness)
+        """
         return self._vel_coef
 
     def run_one_step(self, dt):

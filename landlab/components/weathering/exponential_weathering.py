@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Apr  8 08:32:48 2016
+"""Created on Fri Apr  8 08:32:48 2016.
 
 @author: RCGlade
 """

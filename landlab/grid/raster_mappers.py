@@ -19,7 +19,6 @@ Mapping functions unique to raster grids
     ~landlab.grid.raster_mappers.map_mean_of_horizontal_active_links_to_node
     ~landlab.grid.raster_mappers.map_mean_of_vertical_links_to_node
     ~landlab.grid.raster_mappers.map_mean_of_vertical_active_links_to_node
-
 """
 
 import numpy as np
@@ -526,8 +525,7 @@ def map_mean_of_links_to_node(grid, var_name, out=None):
 
 
 def map_mean_of_horizontal_links_to_node(grid, var_name, out=None):
-    """
-    Map the mean of links in the x direction touching a node to the node.
+    """Map the mean of links in the x direction touching a node to the node.
 
     map_mean_of_horizontal_links_to_node takes an array *at the links* and
     finds the average of all horizontal (x-direction) link neighbor values
@@ -582,8 +580,8 @@ def map_mean_of_horizontal_links_to_node(grid, var_name, out=None):
 
 
 def map_mean_of_horizontal_active_links_to_node(grid, var_name, out=None):
-    """
-    Map the mean of active links in the x direction touching node to the node.
+    """Map the mean of active links in the x direction touching node to the
+    node.
 
     map_mean_of_horizontal_active_links_to_node takes an array *at the links*
     and finds the average of all horizontal (x-direction) link neighbor values
@@ -642,8 +640,7 @@ def map_mean_of_horizontal_active_links_to_node(grid, var_name, out=None):
 
 
 def map_mean_of_vertical_links_to_node(grid, var_name, out=None):
-    """
-    Map the mean of links in the y direction touching a node to the node.
+    """Map the mean of links in the y direction touching a node to the node.
 
     map_mean_of_vertical_links_to_node takes an array *at the links* and
     finds the average of all vertical (y-direction) link neighbor values
@@ -698,8 +695,8 @@ def map_mean_of_vertical_links_to_node(grid, var_name, out=None):
 
 
 def map_mean_of_vertical_active_links_to_node(grid, var_name, out=None):
-    """
-    Map the mean of active links in the y direction touching node to the node.
+    """Map the mean of active links in the y direction touching node to the
+    node.
 
     map_mean_of_vertical_active_links_to_node takes an array *at the links*
     and finds the average of all vertical (y-direction) link neighbor values

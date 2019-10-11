@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-This is an implementation of Vaughan Voller's experimental boundary method
+"""This is an implementation of Vaughan Voller's experimental boundary method
 reduced complexity flow router. Credit: Voller, Hobley, Paola.
 
 Created on Fri Feb 20 09:32:27 2015

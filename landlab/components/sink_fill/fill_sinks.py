@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Oct 19.
+"""Created on Mon Oct 19.
 
 @author: dejh
 """
@@ -16,13 +15,12 @@ from landlab.grid.base import BAD_INDEX_VALUE
 
 
 class SinkFiller(Component):
-    """
-    This component identifies depressions in a topographic surface, then fills
-    them in in the topography.  No attempt is made to conserve sediment mass.
-    User may specify whether the holes should be filled to flat, or with a
-    gradient downwards towards the depression outlet. The gradient can be
-    spatially variable, and is chosen to not reverse any drainage directions
-    at the perimeter of each lake.
+    """This component identifies depressions in a topographic surface, then
+    fills them in in the topography.  No attempt is made to conserve sediment
+    mass. User may specify whether the holes should be filled to flat, or with
+    a gradient downwards towards the depression outlet. The gradient can be
+    spatially variable, and is chosen to not reverse any drainage directions at
+    the perimeter of each lake.
 
     The primary method of this class is 'run_one_step'. 'fill_pits' is a
     synonym.
@@ -158,15 +156,13 @@ class SinkFiller(Component):
         self._fr = FlowAccumulator(self._grid, flow_director=self._routing)
 
     def fill_pits(self):
-        """
-        This is a synonym for the main method :func:`run_one_step`.
-        """
+        """This is a synonym for the main method :func:`run_one_step`."""
         self.run_one_step()
 
     def run_one_step(self):
-        """
-        This is the main method. Call it to fill depressions in a starting
-        topography.
+        """This is the main method.
+
+        Call it to fill depressions in a starting topography.
         """
         self._original_elev = self._elev.copy()
         # We need this, as we'll have to do ALL this again if we manage
@@ -231,10 +227,8 @@ class SinkFiller(Component):
         self._sed_fill_depth[:] = self._elev - self._original_elev
 
     def _add_slopes(self, slope, outlet_node, lake_code):
-        """
-        Assuming you have already run the lake_mapper, adds an incline towards
-        the outlet to the nodes in the lake.
-        """
+        """Assuming you have already run the lake_mapper, adds an incline
+        towards the outlet to the nodes in the lake."""
         new_elevs = self._elev.copy()
         outlet_coord = (self._grid.node_x[outlet_node], self._grid.node_y[outlet_node])
         lake_nodes = np.where(self._lf.lake_map == lake_code)[0]
@@ -249,10 +243,8 @@ class SinkFiller(Component):
         return new_elevs, lake_nodes
 
     def _get_lake_ext_margin(self, lake_nodes):
-        """
-        Returns the nodes forming the external margin of the lake, honoring
-        the *routing* method (D4/D8) if applicable.
-        """
+        """Returns the nodes forming the external margin of the lake, honoring
+        the *routing* method (D4/D8) if applicable."""
         if self._D8 is True:
             all_poss = np.union1d(
                 self._grid.active_adjacent_nodes_at_node[lake_nodes],
@@ -264,10 +256,8 @@ class SinkFiller(Component):
         return lake_ext_edge[lake_ext_edge != BAD_INDEX_VALUE]
 
     def _get_lake_int_margin(self, lake_nodes, lake_ext_edge):
-        """
-        Returns the nodes forming the internal margin of the lake, honoring
-        the *routing* method (D4/D8) if applicable.
-        """
+        """Returns the nodes forming the internal margin of the lake, honoring
+        the *routing* method (D4/D8) if applicable."""
         lee = lake_ext_edge
         if self._D8 is True:
             all_poss_int = np.union1d(
@@ -280,10 +270,9 @@ class SinkFiller(Component):
         return lake_int_edge[lake_int_edge != BAD_INDEX_VALUE]
 
     def _apply_slope_current_lake(self, apply_slope, outlet_node, lake_code, sublake):
-        """
-        Wraps the _add_slopes method to allow handling of conditions where the
-        drainage structure would be changed or we're dealing with a sublake.
-        """
+        """Wraps the _add_slopes method to allow handling of conditions where
+        the drainage structure would be changed or we're dealing with a
+        sublake."""
         while 1:
             starting_elevs = self._elev.copy()
             self._elev[:], lake_nodes = self._add_slopes(
@@ -305,9 +294,8 @@ class SinkFiller(Component):
         # if we get here, either sublake, or drainage dirs are stable
 
     def drainage_directions_change(self, lake_nodes, old_elevs, new_elevs):
-        """
-        True if the drainage structure at lake margin changes, False otherwise.
-        """
+        """True if the drainage structure at lake margin changes, False
+        otherwise."""
         ext_edge = self._get_lake_ext_margin(lake_nodes)
         if self._D8:
             edge_neighbors = np.hstack(

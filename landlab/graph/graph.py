@@ -148,7 +148,6 @@ class NetworkGraph:
     def __init__(self, node_y_and_x, links=None, sort=False):
         """Define a graph of connected nodes.
 
-
         Parameters
         ----------
         mesh : Dataset
@@ -172,8 +171,7 @@ class NetworkGraph:
         return thawed(self)
 
     def sort(self):
-        """Sort graph elements.
-        """
+        """Sort graph elements."""
         with self.thawed():
             reorient_link_dirs(self)
             sorted_nodes, sorted_links, sorted_patches = reindex_by_xy(self)

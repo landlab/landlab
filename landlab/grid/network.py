@@ -1,7 +1,5 @@
 #! /usr/bin/env python
-"""
-A class used to create and manage network models in 2D.
-"""
+"""A class used to create and manage network models in 2D."""
 import numpy as np
 
 from landlab.utils.decorators import make_return_array_immutable

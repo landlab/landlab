@@ -43,7 +43,6 @@ To get a time to next fire:
 
 >>> fg.generate_fire_recurrence()  # doctest: +SKIP
 10.68
-
 """
 
 from random import weibullvariate
@@ -143,7 +142,6 @@ class FireGenerator(Component):
         -------
         float
             Updated value for the time to next fire.
-
         """
         self._time_to_next_fire = round(
             weibullvariate(self._scale_parameter, self._shape_parameter), 2
