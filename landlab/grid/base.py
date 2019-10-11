@@ -310,7 +310,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     BC_LINK_IS_INACTIVE = INACTIVE_LINK
 
     #: Grid elements on which fields can be placed.
-    VALID_LOCATIONS = ("node", "link", "patch", "corner", "face", "cell")
+    VALID_LOCATIONS = ("node", "link", "patch", "corner", "face", "cell", "grid")
 
     at_node = {}  # : Values defined at nodes
     at_link = {}  # : Values defined at links
@@ -318,7 +318,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     at_corner = {}  # : Values defined at corners
     at_face = {}  # : Values defined at faces
     at_cell = {}  # : Values defined at cells
-    at_grid = {} # : Values defined at grid
+    at_grid = {}  # : Values defined at grid
 
     @classmethod
     def from_file(cls, file_like):

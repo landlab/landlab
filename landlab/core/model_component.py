@@ -7,8 +7,8 @@ Base component class methods
 
 .. autosummary::
 
-    ~landlab.core.model_component.Component.from_path
     ~landlab.core.model_component.Component.name
+    ~landlab.core.model_component.Component.from_path
     ~landlab.core.model_component.Component.units
     ~landlab.core.model_component.Component.definitions
     ~landlab.core.model_component.Component.input_var_names
@@ -27,7 +27,6 @@ Base component class methods
     ~landlab.core.model_component.Component.coords
 
 """
-
 
 import os
 import textwrap

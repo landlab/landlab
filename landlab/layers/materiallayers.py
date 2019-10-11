@@ -185,10 +185,6 @@ class MaterialLayers(EventLayers):
         ...                           ['sand', 'sand', 'sand']])
         True
 
-        array([['sand', 'sand', 'sand'],
-               ['sand', 'sand', 'sand']],
-              dtype='<U4')
-
         Attributes for each layer will exist even if part the the layer is
         associated with erosion.
 
@@ -264,7 +260,7 @@ class MaterialLayers(EventLayers):
                [ 6.,  6.,  6.]])
         >>> layers.number_of_layers
         3
-        
+
         """
         dz = np.asarray(dz)
 

@@ -12,7 +12,14 @@ from ..field import GraphFields
 from ..graph import NetworkGraph
 from ..utils.decorators import cache_result_in_object
 from .decorators import override_array_setitem_and_reset, return_readonly_id_array
-from .linkstatus import ACTIVE_LINK, set_status_at_link
+from .linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK, set_status_at_link
+from .nodestatus import (
+    CLOSED_BOUNDARY,
+    CORE_NODE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+    LOOPED_BOUNDARY,
+)
 
 
 class NetworkModelGrid(NetworkGraph, GraphFields):
@@ -45,6 +52,31 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
            [1, 3]])
     """
 
+    #: Indicates a node is *core*.
+    BC_NODE_IS_CORE = CORE_NODE
+    #: Indicates a boundary node has a fixed value.
+    BC_NODE_IS_FIXED_VALUE = FIXED_VALUE_BOUNDARY
+    #: Indicates a boundary node has a fixed gradient.
+    BC_NODE_IS_FIXED_GRADIENT = FIXED_GRADIENT_BOUNDARY
+    #: Indicates a boundary node is wrap-around.
+    BC_NODE_IS_LOOPED = LOOPED_BOUNDARY
+    #: Indicates a boundary node is closed
+    BC_NODE_IS_CLOSED = CLOSED_BOUNDARY
+
+    #: Indicates a link is *active*, and can carry flux
+    BC_LINK_IS_ACTIVE = ACTIVE_LINK
+    #: Indicates a link has a fixed gradient value, and behaves as a boundary
+    BC_LINK_IS_FIXED = FIXED_LINK
+    #: Indicates a link is *inactive*, and cannot carry flux
+    BC_LINK_IS_INACTIVE = INACTIVE_LINK
+
+    #: Grid elements on which fields can be placed.
+    VALID_LOCATIONS = ("node", "link", "grid")
+
+    at_node = {}  # : Values defined at nodes
+    at_link = {}  # : Values defined at links
+    at_grid = {}  # : Values defined at grid
+
     def __init__(
         self,
         yx_of_node,
@@ -54,13 +86,22 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         xy_of_reference=(0.0, 0.0),
     ):
         NetworkGraph.__init__(self, yx_of_node, links=links, sort=True)
-
-        ModelGrid.__init__(
+        GraphFields.__init__(
             self,
-            xy_axis_name=xy_axis_name,
-            xy_axis_units=xy_axis_units,
-            xy_of_reference=xy_of_reference,
+            {"node": self.number_of_nodes, "link": self.number_of_links, "grid": 1},
+            default_group="node",
         )
+
+        self._node_status = np.zeros(self.number_of_nodes, dtype=np.uint8)
+        self.bc_set_code = 0
+
+        self._axis_name = None
+        self._axis_units = None
+        self._ref_coord = None
+
+        self.axis_name = xy_axis_name
+        self.axis_units = np.broadcast_to(xy_axis_units, 2)
+        self.xy_of_reference = xy_of_reference
 
     @classmethod
     def from_file(cls, file_like):
