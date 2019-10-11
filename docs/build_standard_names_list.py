@@ -58,7 +58,7 @@ for field in np.sort(unique_fields):
         io = sel.intent.values[i]
         mapping = sel.mapping.values[i]
         
-        listing = ":py:class:`~landlab.components."+name + "`("+mapping+")"
+        listing = ":py:class:`~landlab.components."+name + "` ("+mapping+")"
         
         if "in" in io:
             in_comps.append(listing)
@@ -70,3 +70,6 @@ for field in np.sort(unique_fields):
     table.append((field, "\n".join(in_comps), "\n".join(out_comps)))
 
 out = tabulate(table, headers, tablefmt="grid")
+
+with open("temp.txt", "w") as f:
+    f.write(out)

@@ -229,11 +229,15 @@ Nonetheless, you may recognize the basic style of the names:
 
 e.g., *topographic__elevation*, *water_surface__gradient*, *water__volume_flux*
 
- You can see a list of the names currently in use here:
- :ref:`Landlab Standard Names <standard_names>`
+We compile two tables to assist users with the Landlab standard names.
 
-See :ref:`here <standard_name_changes>` for a list of recent changes
-to the standard name list.
+- First is :ref:`a list of all names with their definitions
+  <standard_name_definitions>`.
+- Second is :ref:`a table listing which components create and use each field
+  <standard_name_mapping>`.
+
+See :ref:`here <standard_name_changes>` for a list of changes to the standard
+name list associated with the release of Landlab version 1.x (relative to 0.x).
 
 
 Dealing with nonstandard names

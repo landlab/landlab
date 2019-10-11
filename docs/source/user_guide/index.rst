@@ -65,7 +65,8 @@ Additional resources
 .. toctree::
     :maxdepth: 2
 
-    standard_names
+    field_definitions
+    field_io
     time_steps
     examples
     faq
@@ -106,3 +107,4 @@ Major Version Transition Guides
 
     landlab_zero_to_one
     landlab_one_to_two
+    standard_name_changes
