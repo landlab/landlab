@@ -21,4 +21,4 @@ help:
 %: Makefile
 	python build_func_lists.py
 	python build_grid_func_docs.py
-	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O) -w build_log.txt
+	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O) -W

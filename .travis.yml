@@ -25,9 +25,7 @@ jobs:
     - conda activate landlab_docs
     - pip install -e .
     script:
-    - make -C docs clean html
-
-    MAKE THIS BREAK IF THERE ARE WARNINGS OR BROKEN LINKS
+    - make -C docs clean html checklinks
 
   - &deploy
     stage: deploy
