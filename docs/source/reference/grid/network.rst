@@ -144,7 +144,6 @@ array to the ModelGrid:
     ~landlab.grid.raster.RasterModelGrid.add_ones
     ~landlab.grid.raster.RasterModelGrid.add_zeros
     ~landlab.grid.raster.RasterModelGrid.delete_field
-    ~landlab.grid.raster.RasterModelGrid.set_units
 
 These methods operate in the same way as the previous set except that, in
 addition to creating a new array, the newly-created array is added to the

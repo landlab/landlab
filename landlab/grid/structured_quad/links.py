@@ -866,16 +866,16 @@ def horizontal_active_link_ids(shape, active_ids, bad_index_value=-1):
 
     .. note::
 
-        ``*`` indicates the nodes that are set to :any:`CLOSED_BOUNDARY`
+        ``*`` indicates the nodes that are set to `CLOSED_BOUNDARY`
 
-        ``o`` indicates the nodes that are set to :any:`CORE_NODE`
+        ``o`` indicates the nodes that are set to `CORE_NODE`
 
-        ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
+        ``I`` indicates the links that are set to `INACTIVE_LINK`
 
         ``V`` indicates vertical active ids, which are ignored by this
         function.
 
-        Numeric values correspond to the horizontal :any:`ACTIVE_LINK`  ID.
+        Numeric values correspond to the horizontal `ACTIVE_LINK`  ID.
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import (active_link_ids,
@@ -944,18 +944,18 @@ def horizontal_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
 
     .. note::
 
-        ``*`` indicates the nodes that are set to :any:`FIXED_VALUE_BOUNDARY`
+        ``*`` indicates the nodes that are set to `FIXED_VALUE_BOUNDARY`
 
-        ``o`` indicates the nodes that are set to :any:`CORE_NODE`
+        ``o`` indicates the nodes that are set to `CORE_NODE`
 
-        ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
+        ``I`` indicates the links that are set to `INACTIVE_LINK`
 
         ``V`` indicates vertical ids, which are ignored by this function
 
-        ``H`` indicates horizontal :any:`ACTIVE_LINK` ids, which are ignored by
+        ``H`` indicates horizontal `ACTIVE_LINK` ids, which are ignored by
         this function
 
-        Numeric values correspond to the horizontal :any:`FIXED_LINK` ID.
+        Numeric values correspond to the horizontal `FIXED_LINK` ID.
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import (fixed_link_ids,
@@ -1181,16 +1181,16 @@ def vertical_active_link_ids(shape, active_ids, bad_index_value=-1):
 
     .. note::
 
-        ``*`` indicates the nodes that are set to :any:`CLOSED_BOUNDARY`
+        ``*`` indicates the nodes that are set to `CLOSED_BOUNDARY`
 
-        ``o`` indicates the nodes that are set to :any:`CORE_NODE`
+        ``o`` indicates the nodes that are set to `CORE_NODE`
 
-        ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
+        ``I`` indicates the links that are set to `INACTIVE_LINK`
 
         ``H`` indicates horizontal active ids, which are ignored by this
         function
 
-        Numeric values correspond to the vertical :any:`ACTIVE_LINK` IDs.
+        Numeric values correspond to the vertical `ACTIVE_LINK` IDs.
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import (active_link_ids,
@@ -1266,11 +1266,11 @@ def vertical_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
     .. note::
 
         ``*`` indicates the nodes that are set to
-        :any:`FIXED_GRADIENT_BOUNDARY`
+        `FIXED_GRADIENT_BOUNDARY`
 
-        ``o`` indicates the nodes that are set to :any:`CORE_NODE`
+        ``o`` indicates the nodes that are set to `CORE_NODE`
 
-        ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
+        ``I`` indicates the links that are set to `INACTIVE_LINK`
 
         ``H`` indicates horizontal active and fixed links, which are ignored by
         this function.
@@ -1278,7 +1278,7 @@ def vertical_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
         ``V`` indicates vertical active ids, which are ignored by this
         function.
 
-        Numeric values correspond to the vertical :any:`FIXED_LINK` IDs.
+        Numeric values correspond to the vertical `FIXED_LINK` IDs.
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import (fixed_link_ids,
@@ -1520,7 +1520,7 @@ def horizontal_north_link_neighbor(shape, horizontal_ids, bad_index_value=-1):
 
         ``*`` indicates nodes
 
-        Numeric values correspond to the horizontal :any:`ACTIVE_LINK` IDs.
+        Numeric values correspond to the horizontal `ACTIVE_LINK` IDs.
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import *
@@ -1602,7 +1602,7 @@ def horizontal_east_link_neighbor(shape, horizontal_ids, bad_index_value=-1):
 
         ``*`` indicates nodes
 
-        Numeric values correspond to the horizontal :any:`ACTIVE_LINK` IDs.
+        Numeric values correspond to the horizontal `ACTIVE_LINK` IDs.
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import *
@@ -1778,7 +1778,7 @@ def d4_horizontal_active_link_neighbors(shape, horizontal_ids, bad_index_value=-
 
         ``*`` indicates nodes
 
-        Numeric values correspond to the horizontal :any:`ACTIVE_LINK` IDs.
+        Numeric values correspond to the horizontal `ACTIVE_LINK` IDs.
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import *

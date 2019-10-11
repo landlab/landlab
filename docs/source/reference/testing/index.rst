@@ -7,14 +7,6 @@ Testing Tools
 Submodules
 ----------
 
-landlab.testing.decorators module
----------------------------------
-
-.. automodule:: landlab.testing.decorators
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 landlab.testing.tools module
 ----------------------------
 

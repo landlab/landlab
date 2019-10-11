@@ -54,22 +54,13 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         xy_of_reference=(0.0, 0.0),
     ):
         NetworkGraph.__init__(self, yx_of_node, links=links, sort=True)
-        GraphFields.__init__(
+
+        ModelGrid.__init__(
             self,
-            {"node": self.number_of_nodes, "link": self.number_of_links, "grid": 1},
-            default_group="node",
+            xy_axis_name=xy_axis_name,
+            xy_axis_units=xy_axis_units,
+            xy_of_reference=xy_of_reference,
         )
-
-        self._node_status = np.zeros(self.number_of_nodes, dtype=np.uint8)
-        self.bc_set_code = 0
-
-        self._axis_name = None
-        self._axis_units = None
-        self._ref_coord = None
-
-        self.axis_name = xy_axis_name
-        self.axis_units = np.broadcast_to(xy_axis_units, 2)
-        self.xy_of_reference = xy_of_reference
 
     @classmethod
     def from_file(cls, file_like):

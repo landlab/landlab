@@ -13,9 +13,15 @@ Authors: Sai Nudurupati & Erkan Istanbulluoglu
 Ref 1: 'The Landlab LandslideProbability Component User Manual' @
 https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.pdf
 
-MD - Modeling Domain - Raster grid that is being analyzed/worked upon.
-HSD - Hydrologic Source Domain - Grid that is at least as coarse as MD. For
-      more info, refer Ref 1
++----------+-------------------------------------------------------------------+
+| Notation | Definition                                                        |
++==========+===================================================================+
+| MD       | Modeling Domain - Raster grid that is being analyzed/worked upon. |
++----------+-------------------------------------------------------------------+
++ HSD      | Hydrologic Source Domain - Grid that is at least as coarse as MD. |
+|          | For more info, refer Ref 1                                        |
++----------+-------------------------------------------------------------------+
+
 """
 import copy
 from collections import Counter

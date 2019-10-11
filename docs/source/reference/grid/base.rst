@@ -219,7 +219,6 @@ array to the ModelGrid:
     ~landlab.grid.base.ModelGrid.add_ones
     ~landlab.grid.base.ModelGrid.add_zeros
     ~landlab.grid.base.ModelGrid.delete_field
-    ~landlab.grid.base.ModelGrid.set_units
 
 These methods operate in the same way as the previous set except that, in
 addition to creating a new array, the newly-created array is added to the

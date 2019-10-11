@@ -1977,7 +1977,7 @@ class RasterModelGrid(
 
         Sets the status of links along the specified side(s) of a raster
         grid--- bottom vertical links, right horizontal, top vertical links,
-        and/or left horizontal links ---to FIXED_LINK.
+        and/or left horizontal links ---to ``FIXED_LINK``.
 
         By definition, fixed links exist between fixed gradient nodes
         (status_at_node == 2) and core nodes (status_at_node == 0). Because the
@@ -2067,16 +2067,16 @@ class RasterModelGrid(
 
         .. note::
 
-          Links set to :any:`ACTIVE_LINK` are not indicated in this diagram.
+          Links set to `ACTIVE_LINK` are not indicated in this diagram.
 
         ``*`` indicates the nodes that are set to
-        :any:`FIXED_GRADIENT BOUNDARY`
+        `FIXED_GRADIENT BOUNDARY`
 
-        ``o`` indicates the nodes that are set to :any:`CORE_NODE`
+        ``o`` indicates the nodes that are set to `CORE_NODE`
 
-        ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
+        ``I`` indicates the links that are set to `INACTIVE_LINK`
 
-        ``X`` indicates the links that are set to :any:`FIXED_LINK`
+        ``X`` indicates the links that are set to `FIXED_LINK`
 
         >>> from landlab import RasterModelGrid
         >>> rmg = RasterModelGrid((4, 9), xy_spacing=1.0)

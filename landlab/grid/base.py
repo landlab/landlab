@@ -318,6 +318,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     at_corner = {}  # : Values defined at corners
     at_face = {}  # : Values defined at faces
     at_cell = {}  # : Values defined at cells
+    at_grid = {} # : Values defined at grid
 
     @classmethod
     def from_file(cls, file_like):
@@ -2035,11 +2036,11 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     def set_nodata_nodes_to_closed(self, node_data, nodata_value):
         """Make no-data nodes closed boundaries.
 
-        Sets node status to :any:`CLOSED_BOUNDARY` for all nodes whose value
+        Sets node status to `CLOSED_BOUNDARY` for all nodes whose value
         of *node_data* is equal to the *nodata_value*.
 
-        Any links connected to :any:`CLOSED_BOUNDARY` nodes are automatically
-        set to :any:`INACTIVE_LINK` boundary.
+        Any links connected to `CLOSED_BOUNDARY` nodes are automatically
+        set to `INACTIVE_LINK` boundary.
 
         Parameters
         ----------
@@ -2065,13 +2066,13 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         .. note::
 
-          Links set to :any:`ACTIVE_LINK` are not shown in this diagram.
+          Links set to `ACTIVE_LINK` are not shown in this diagram.
 
-        ``*`` indicates the nodes that are set to :any:`CLOSED_BOUNDARY`
+        ``*`` indicates the nodes that are set to `CLOSED_BOUNDARY`
 
-        ``o`` indicates the nodes that are set to :any:`CORE_NODE`
+        ``o`` indicates the nodes that are set to `CORE_NODE`
 
-        ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
+        ``I`` indicates the links that are set to `INACTIVE_LINK`
 
         >>> import numpy as np
         >>> import landlab as ll
@@ -2094,11 +2095,11 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     def set_nodata_nodes_to_fixed_gradient(self, node_data, nodata_value):
         """Make no-data nodes fixed gradient boundaries.
 
-        Set node status to :any:`FIXED_GRADIENT_BOUNDARY` for all nodes
+        Set node status to `FIXED_GRADIENT_BOUNDARY` for all nodes
         whose value of *node_data* is equal to *nodata_value*.
 
-        Any links between :any:`FIXED_GRADIENT_BOUNDARY` nodes and
-        :any:`CORE_NODES` are automatically set to :any:`FIXED_LINK` boundary
+        Any links between `FIXED_GRADIENT_BOUNDARY` nodes and
+        `CORE_NODES` are automatically set to `FIXED_LINK` boundary
         status.
 
         Parameters
@@ -2129,16 +2130,16 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         .. note::
 
-            Links set to :any:`ACTIVE_LINK` are not shown in this diagram.
+            Links set to `ACTIVE_LINK` are not shown in this diagram.
 
-        ``X`` indicates the links that are set to :any:`FIXED_LINK`
+        ``X`` indicates the links that are set to `FIXED_LINK`
 
-        ``I`` indicates the links that are set to :any:`INACTIVE_LINK`
+        ``I`` indicates the links that are set to `INACTIVE_LINK`
 
-        ``o`` indicates the nodes that are set to :any:`CORE_NODE`
+        ``o`` indicates the nodes that are set to `CORE_NODE`
 
         ``*`` indicates the nodes that are set to
-              :any:`FIXED_GRADIENT_BOUNDARY`
+              `FIXED_GRADIENT_BOUNDARY`
 
         >>> import numpy as np
         >>> from landlab import RasterModelGrid

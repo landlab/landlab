@@ -237,7 +237,6 @@ array to the ModelGrid:
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.add_ones
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.add_zeros
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.delete_field
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_units
 
 These methods operate in the same way as the previous set except that, in
 addition to creating a new array, the newly-created array is added to the

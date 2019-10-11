@@ -18,11 +18,11 @@ class StatusGrid(object):
 
         Return an array of the status of a grid's nodes. The node status can
         be one of the following:
-        - `CORE_NODE`
-        - `FIXED_VALUE_BOUNDARY`
-        - `FIXED_GRADIENT_BOUNDARY `
-        - `LOOPED_BOUNDARY`
-        - `CLOSED_BOUNDARY `
+        - ``CORE_NODE``
+        - ``FIXED_VALUE_BOUNDARY``
+        - ``FIXED_GRADIENT_BOUNDARY``
+        - ``LOOPED_BOUNDARY``
+        - ``CLOSED_BOUNDARY``
         """
         return self._node_status
 

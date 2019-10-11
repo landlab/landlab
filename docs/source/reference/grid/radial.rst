@@ -239,7 +239,6 @@ array to the ModelGrid:
     ~landlab.grid.radial.RadialModelGrid.add_ones
     ~landlab.grid.radial.RadialModelGrid.add_zeros
     ~landlab.grid.radial.RadialModelGrid.delete_field
-    ~landlab.grid.radial.RadialModelGrid.set_units
 
 These methods operate in the same way as the previous set except that, in
 addition to creating a new array, the newly-created array is added to the

@@ -7,14 +7,6 @@ Landlab Framework
 Submodules
 ----------
 
-landlab.framework.collections module
-------------------------------------
-
-.. automodule:: landlab.framework.collections
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 landlab.framework.component module
 ----------------------------------
 
@@ -27,14 +19,6 @@ landlab.framework.decorators module
 -----------------------------------
 
 .. automodule:: landlab.framework.decorators
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-landlab.framework.framework module
-----------------------------------
-
-.. automodule:: landlab.framework.framework
    :members:
    :undoc-members:
    :show-inheritance:

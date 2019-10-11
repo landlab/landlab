@@ -128,7 +128,7 @@ class DepressionFinderAndRouter(Component):
     >>> df.lake_areas  # the area of each lake in lake_codes
     array([ 2.25])
 
-    Because `rereoute_flow` defaults to `True`, the flow connectivity fields
+    Because ``rereoute_flow`` defaults to ``True``, the flow connectivity fields
     created by the :py:class:`~landlab.components.flow_accum.FlowAccumulator`
     will have now been modified to route flow over the depressions in the
     surface. The topogrphy itself is not modified.
@@ -189,7 +189,7 @@ class DepressionFinderAndRouter(Component):
         ----------
         grid : RasterModelGrid
             A landlab RasterModelGrid.
-        routing : 'D8' or 'D4' (optional)
+        routing : str
             If grid is a raster type, controls whether lake connectivity can
             occur on diagonals ('D8', default), or only orthogonally ('D4').
             Has no effect if grid is not a raster.
@@ -199,7 +199,7 @@ class DepressionFinderAndRouter(Component):
             array of pit node IDs. It does not matter whether or not open
             boundary nodes are flagged as pits; they are never treated as such.
             Default is 'flow__sink_flag', the pit field output from the
-            :py:mod:`FlowDirectors <landlab.components.flow_director>.
+            :py:mod:`FlowDirectors <landlab.components.flow_director>`.
         reroute_flow : bool, optional
             If True (default), and the component detects the output fields in
             the grid produced by the FlowAccumulator component, this component

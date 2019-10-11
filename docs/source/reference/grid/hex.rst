@@ -231,7 +231,6 @@ array to the ModelGrid:
     ~landlab.grid.hex.HexModelGrid.add_ones
     ~landlab.grid.hex.HexModelGrid.add_zeros
     ~landlab.grid.hex.HexModelGrid.delete_field
-    ~landlab.grid.hex.HexModelGrid.set_units
 
 These methods operate in the same way as the previous set except that, in
 addition to creating a new array, the newly-created array is added to the

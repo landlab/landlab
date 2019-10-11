@@ -27,15 +27,6 @@ landlab.graph.voronoi.voronoi module
     :undoc-members:
     :show-inheritance:
 
-landlab.graph.voronoi.voronoi_helpers module
---------------------------------------------
-
-.. automodule:: landlab.graph.voronoi.voronoi_helpers
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
 Module contents
 ---------------
 

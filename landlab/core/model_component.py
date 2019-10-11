@@ -25,7 +25,7 @@ Base component class methods
     ~landlab.core.model_component.Component.shape
     ~landlab.core.model_component.Component.grid
     ~landlab.core.model_component.Component.coords
-    ~landlab.core.model_component.Component.imshow
+
 """
 
 
@@ -227,7 +227,8 @@ class Component(object):
     @classproperty
     @classmethod
     def name(cls):
-        """Name of the component.
+        """
+        Name of the component.
 
         Returns
         -------

@@ -71,11 +71,13 @@ def sort_links_at_node_by_angle(
     >>> from landlab.graph.object.at_node import sort_links_at_node_by_angle
 
     ::
+
         (1) - 1 -> (3)
          |          ^
          2          3
          V          |
         (0) - 0 -> (2)
+
 
     >>> links_at_node = [[2, 0], [1, 2], [3, 0], [3, 1]]
     >>> link_dirs_at_node = [[1, -1], [-1, -1], [-1, 1], [1, 1]]

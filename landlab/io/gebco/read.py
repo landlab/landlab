@@ -90,7 +90,7 @@ def read_netcdf(nc_file, just_grid=False):
     Returns
     -------
     RasterModelGrid
-        A newly-created :any:`RasterModelGrid`.
+        A newly-created `RasterModelGrid`.
     """
     try:
         root = nc.netcdf_file(nc_file, "r", version=2)
