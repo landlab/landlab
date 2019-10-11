@@ -204,7 +204,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     of Voroni Grid that has regularly spaced hexagonal cells.
 
     >>> from landlab import HexModelGrid
-    >>> mg = HexModelGrid(5,3)
+    >>> mg = HexModelGrid((5, 3))
     >>> _ = mg.add_field(
     ...     'topographic__elevation',
     ...     mg.node_x + np.round(mg.node_y),

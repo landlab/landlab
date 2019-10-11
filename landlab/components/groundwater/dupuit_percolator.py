@@ -64,7 +64,7 @@ class GroundwaterDupuitPercolator(Component):
 
     Initialize the grid and component
 
-    >>> grid = RasterModelGrid((10, 10), spacing=10.0)
+    >>> grid = RasterModelGrid((10, 10), xy_spacing=10.0)
     >>> elev = grid.add_zeros('node', 'topographic__elevation')
     >>> abe = grid.add_zeros('node', 'aquifer_base__elevation')
     >>> elev[:] = 5.0
@@ -365,7 +365,7 @@ class GroundwaterDupuitPercolator(Component):
 
         # get cell widths at these locations
         faces = self._grid.face_at_link[active_links_at_open]
-        face_widths = self._grid.width_of_face[faces]
+        face_widths = self._grid.length_of_face[faces]
 
         # get volume flux out at these locations
         gw_volume_flux_rate_out = (

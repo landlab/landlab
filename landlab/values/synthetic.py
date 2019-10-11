@@ -311,17 +311,13 @@ def _get_x_and_y(grid, at):
             )
             raise ValueError(msg)
     if at == "node":
-        x = grid.x_of_node
-        y = grid.y_of_node
+        x, y = grid.xy_of_node[:, 0], grid.xy_of_node[:, 1]
     elif at == "link":
-        x = grid.x_of_link
-        y = grid.y_of_link
+        x, y = grid.xy_of_link[:, 0], grid.xy_of_link[:, 1]
     elif at == "cell":
-        x = grid.x_of_cell
-        y = grid.y_of_cell
+        x, y = grid.xy_of_cell[:, 0], grid.xy_of_cell[:, 1]
     elif at == "face":
-        x = grid.x_of_face
-        y = grid.y_of_face
+        x, y = grid.xy_of_face[:, 0], grid.xy_of_face[:, 1]
     else:
         msg = (
             "landlab.values.synthetic: ",

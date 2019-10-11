@@ -6,6 +6,34 @@ from libc.stdlib cimport malloc, free
 
 DTYPE = np.int
 ctypedef np.int_t DTYPE_t
+ctypedef np.uint8_t uint8
+
+
+cdef _id_array_contains(long *array, long size, long bad_id):
+    cdef long n
+    for n in range(size):
+        if array[n] == bad_id:
+            return 1
+    return 0
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def id_array_contains(
+    np.ndarray[long, ndim=2, mode="c"] corners_at_cell not None,
+    np.ndarray[long, ndim=1, mode="c"] n_corners_at_cell not None,
+    long bad_val,
+    np.ndarray[uint8, ndim=1, mode="c"] out not None,
+):
+    cdef long n_cells = corners_at_cell.shape[0]
+    cdef long cell
+
+    for cell in range(n_cells):
+        out[cell] = _id_array_contains(
+            &corners_at_cell[cell, 0],
+            n_corners_at_cell[cell],
+            bad_val,
+        )
 
 
 def _is_finite_region(np.ndarray[DTYPE_t, ndim=1] vertices_at_region,

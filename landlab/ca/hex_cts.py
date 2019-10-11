@@ -44,7 +44,7 @@ class HexCTS(CellLabCTSModel):
     >>> from landlab.ca.celllab_cts import Transition
     >>> from landlab.ca.hex_cts import HexCTS
 
-    >>> mg = HexModelGrid(4, 3, 1.0)
+    >>> mg = HexModelGrid((4, 3), spacing=1.0)
     >>> nsd = {0 : 'yes', 1 : 'no'}
     >>> xnlist = []
     >>> xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'frogging'))

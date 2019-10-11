@@ -12,7 +12,6 @@ FlowDirectorSteepest instead.
 
 import numpy
 
-from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, VoronoiDelaunayGrid
 from landlab.components.flow_director import flow_direction_DN
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
@@ -157,7 +156,12 @@ class FlowDirectorD8(_FlowDirectorToOne):
         """
         self._method = "D8"
         super(FlowDirectorD8, self).__init__(grid, surface)
-        self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
+        try:
+            self._grid.nodes_at_d8
+        except AttributeError:
+            self._is_Voroni = True
+        else:
+            self._is_Voroni = False
         if self._is_Voroni:
             raise NotImplementedError(
                 "FlowDirectorD8 not implemented for"
@@ -217,8 +221,8 @@ class FlowDirectorD8(_FlowDirectorToOne):
         # Step 2. Find and save base level nodes.
         (baselevel_nodes,) = numpy.where(
             numpy.logical_or(
-                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+                self._grid.status_at_node == self._grid.BC_NODE_IS_FIXED_VALUE,
+                self._grid.status_at_node == self._grid.BC_NODE_IS_FIXED_GRADIENT,
             )
         )
 

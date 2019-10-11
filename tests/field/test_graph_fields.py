@@ -212,16 +212,16 @@ def test_grid_field_as_array():
     fields.new_field_location("grid", 1)
 
     fields.at_grid["const"] = [1.0, 2.0]
-    assert_array_equal(np.array([1.0, 2.0]), fields.at_grid["const"])
+    assert_array_equal(fields.at_grid["const"], [[1.0, 2.0]])
 
     val = np.array([1.0, 2.0])
     fields.at_grid["const"] = val
-    assert val is fields.at_grid["const"]
+    assert np.shares_memory(val, fields.at_grid["const"])
 
     val.shape = (1, 1, 2, 1)
     fields.at_grid["const"] = val
-    assert_array_equal(np.array([1.0, 2.0]), fields.at_grid["const"])
-    assert val is fields.at_grid["const"]
+    assert_array_equal(fields.at_grid["const"], np.array([[1.0, 2.0]]))
+    assert np.shares_memory(val, fields.at_grid["const"])
 
 
 def test_grid_field_add_zeros_ones_empty():

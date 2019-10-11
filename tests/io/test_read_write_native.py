@@ -109,50 +109,52 @@ def test_pickle():
     #     os.remove('testsavedgrid.grid')
 
 
-def test_save():
-    # Make a simple-ish grid
-    mg1 = RasterModelGrid((10, 10), xy_spacing=2.0)
-    z = mg1.add_zeros("node", "topographic__elevation")
-    z += mg1.node_x.copy()
-    fa = FlowAccumulator(mg1, flow_director="D8")
-    fa.run_one_step()
+def test_save(tmpdir):
+    with tmpdir.as_cwd():
+        # Make a simple-ish grid
+        mg1 = RasterModelGrid((10, 10), xy_spacing=2.0)
+        z = mg1.add_zeros("topographic__elevation", at="node")
+        z += mg1.node_x.copy()
+        fa = FlowAccumulator(mg1, flow_director="D8")
+        fa.run_one_step()
 
-    save_grid(mg1, "testsavedgrid.grid")
+        save_grid(mg1, "testsavedgrid.grid")
 
-    mg2 = load_grid("testsavedgrid.grid")
+        mg2 = load_grid("testsavedgrid.grid")
 
-    os.remove("testsavedgrid.grid")
+        os.remove("testsavedgrid.grid")
 
-    assert mg1.shape == mg2.shape
-    assert (mg1.dy, mg1.dx) == (mg2.dy, mg2.dx)
-    assert_array_equal(mg1.status_at_node, mg2.status_at_node)
-    for name in mg1.at_node:
-        assert_array_equal(mg1.at_node[name], mg2.at_node[name])
+        assert mg1.shape == mg2.shape
+        assert (mg1.dy, mg1.dx) == (mg2.dy, mg2.dx)
+        assert_array_equal(mg1.status_at_node, mg2.status_at_node)
+        for name in mg1.at_node:
+            assert_array_equal(mg1.at_node[name], mg2.at_node[name])
 
-    # compare the two
-    # try:
-    #     len(mg1.__dict__) == len(mg2.__dict__)
-    #     mg1keys = sorted(list(mg1.__dict__.keys()))
-    #     mg2keys = sorted(list(mg2.__dict__.keys()))
+        # compare the two
+        # try:
+        #     len(mg1.__dict__) == len(mg2.__dict__)
+        #     mg1keys = sorted(list(mg1.__dict__.keys()))
+        #     mg2keys = sorted(list(mg2.__dict__.keys()))
 
-    #     for i in range(len(mg1keys)):
-    #         assert_equal(mg1keys[i], mg2keys[i])
+        #     for i in range(len(mg1keys)):
+        #         assert_equal(mg1keys[i], mg2keys[i])
 
-    #     a = compare_dictionaries(mg1.__dict__,mg2.__dict__,'m1','m2')
-    #     assert_equal(a, '')
-    # except Exception:
-    #     raise
-    # finally:
-    #     os.remove('testsavedgrid.grid')
+        #     a = compare_dictionaries(mg1.__dict__,mg2.__dict__,'m1','m2')
+        #     assert_equal(a, '')
+        # except Exception:
+        #     raise
+        # finally:
+        #     os.remove('testsavedgrid.grid')
 
 
-def test_save_and_load_hex():
+def test_save_and_load_hex(tmpdir):
     """Test saving and loading of a HexModelGrid."""
-    mg1 = HexModelGrid(3, 3, 1.0)
-    mg1.add_zeros("node", "topographic__elevation")
-    save_grid(mg1, "testsavedgrid.grid")
-    mg2 = load_grid("testsavedgrid.grid")
-    assert mg1.x_of_node[0] == mg2.x_of_node[0]
-    assert_array_equal(mg1.status_at_node, mg2.status_at_node)
-    for name in mg1.at_node:
-        assert_array_equal(mg1.at_node[name], mg2.at_node[name])
+    with tmpdir.as_cwd():
+        mg1 = HexModelGrid((3, 3), 1.0)
+        mg1.add_zeros("topographic__elevation", at="node")
+        save_grid(mg1, "testsavedgrid.grid")
+        mg2 = load_grid("testsavedgrid.grid")
+        assert mg1.x_of_node[0] == mg2.x_of_node[0]
+        assert_array_equal(mg1.status_at_node, mg2.status_at_node)
+        for name in mg1.at_node:
+            assert_array_equal(mg1.at_node[name], mg2.at_node[name])

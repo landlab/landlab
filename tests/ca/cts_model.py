@@ -120,9 +120,8 @@ class CTSModel(object):
             from landlab import HexModelGrid
 
             self.grid = HexModelGrid(
-                num_rows,
-                num_cols,
-                xy_spacing=1.0,
+                (num_rows, num_cols),
+                spacing=1.0,
                 orientation=grid_orientation,
                 node_layout=node_layout,
             )

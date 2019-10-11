@@ -167,7 +167,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     use a filled, non-raster grid.
 
     >>> dx=(2./(3.**0.5))**0.5  # area to be 100.
-    >>> hmg = HexModelGrid(5,3, dx, xy_of_lower_left=(-1.0745, 0.))
+    >>> hmg = HexModelGrid((5, 3), spacing=dx, xy_of_lower_left=(-1.0745, 0.))
     >>> z = hmg.add_field('topographic__elevation',
     ...                   hmg.node_x**2 + np.round(hmg.node_y)**2,
     ...                   at = 'node')
@@ -181,19 +181,19 @@ class LossyFlowAccumulator(FlowAccumulator):
     ...                           flow_director=FlowDirectorSteepest,
     ...                           depression_finder=DepressionFinderAndRouter)
     >>> fa.run_one_step()
-    >>> hmg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
+    >>> hmg.at_node['flow__receiver_node']
     array([ 0,  1,  2,
             3,  0,  9,  6,
             7,  9,  4,  9, 11,
            12,  9,  9, 15,
            16, 17, 18])
-    >>> hmg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+    >>> np.round(hmg.at_node['drainage_area'])
     array([ 7.,  0.,  0.,
             0.,  7.,  1.,  0.,
             0.,  1.,  6.,  1.,  0.,
             0., 1.,  1.,  0.,
             0.,  0.,  0.])
-    >>> hmg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
+    >>> np.round(hmg.at_node['surface_water__discharge'])
     array([ 7.,  0.,  0.,
             0.,  7.,  1.,  0.,
             0.,  1.,  6.,  1.,  0.,
@@ -209,20 +209,22 @@ class LossyFlowAccumulator(FlowAccumulator):
     ...                           depression_finder=DepressionFinderAndRouter,
     ...                           loss_function=mylossfunction2)
     >>> fa.run_one_step()
-    >>> hmg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+    >>> np.round(hmg.at_node['drainage_area'])
     array([ 7.,  0.,  0.,
             0.,  7.,  1.,  0.,
             0.,  1.,  6.,  1.,  0.,
             0., 1.,  1.,  0.,
             0.,  0.,  0.])
-    >>> hmg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
+    >>> np.round(hmg.at_node['surface_water__discharge'])
     array([ 6.,  0.,  0.,
             0.,  6.,  1.,  0.,
             0.,  1.,  5.,  1.,  0.,
             0., 1.,  1.,  0.,
             0.,  0.,  0.])
-    >>> np.allclose(hmg.at_node['surface_water__discharge_loss'],
-    ...             lossy*hmg.at_node['surface_water__discharge'])
+    >>> np.allclose(
+    ...     hmg.at_node["surface_water__discharge_loss"],
+    ...     lossy * hmg.at_node["surface_water__discharge"],
+    ... )
     True
 
     (Loss is only happening from the node, 14, that we set it to happen at.)
@@ -243,13 +245,16 @@ class LossyFlowAccumulator(FlowAccumulator):
     >>> mg.at_node['spatialloss'][13] = 1.
     >>> def fancyloss(Qw, nodeID, linkID, grid):
     ...     # now a true transmission loss:
-    ...     Lt = (1. - 1./grid.length_of_link[linkID]**2)
-    ...     Lsp = grid.at_node['spatialloss'][nodeID]
-    ...     return Qw * (1. - Lt) * (1. - Lsp)
+    ...     Lt = (1.0 - 1.0 / grid.length_of_link[linkID] ** 2)
+    ...     Lsp = grid.at_node["spatialloss"][nodeID]
+    ...     return Qw * (1.0 - Lt) * (1.0 - Lsp)
 
-    >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
-    ...                           flow_director=FlowDirectorMFD,
-    ...                           loss_function=fancyloss)
+    >>> fa = LossyFlowAccumulator(
+    ...     mg,
+    ...     "topographic__elevation",
+    ...     flow_director=FlowDirectorMFD,
+    ...     loss_function=fancyloss,
+    ... )
     >>> fa.run_one_step()
 
     >>> mg.at_node['drainage_area'].reshape(mg.shape)

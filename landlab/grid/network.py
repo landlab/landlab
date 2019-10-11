@@ -4,7 +4,6 @@ A class used to create and manage network models in 2D.
 """
 import numpy as np
 
-from landlab.grid.base import _default_axis_names, _default_axis_units
 from landlab.utils.decorators import make_return_array_immutable
 
 from ..core import load_params
@@ -46,8 +45,15 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
            [1, 3]])
     """
 
-    def __init__(self, yx_of_node, links, **kwds):
-        NetworkGraph.__init__(self, yx_of_node, links=links)
+    def __init__(
+        self,
+        yx_of_node,
+        links,
+        xy_axis_name=("x", "y"),
+        xy_axis_units="-",
+        xy_of_reference=(0.0, 0.0),
+    ):
+        NetworkGraph.__init__(self, yx_of_node, links=links, sort=True)
         GraphFields.__init__(
             self,
             {"node": self.number_of_nodes, "link": self.number_of_links, "grid": 1},
@@ -57,11 +63,13 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         self._node_status = np.zeros(self.number_of_nodes, dtype=np.uint8)
         self.bc_set_code = 0
 
-        self.axis_name = kwds.get("axis_name", _default_axis_names(self.ndim))
+        self._axis_name = None
+        self._axis_units = None
+        self._ref_coord = None
 
-        self.axis_units = kwds.get("axis_units", _default_axis_units(self.ndim))
-
-        self._ref_coord = tuple(kwds.get("xy_of_reference", (0.0, 0.0)))
+        self.axis_name = xy_axis_name
+        self.axis_units = np.broadcast_to(xy_axis_units, 2)
+        self.xy_of_reference = xy_of_reference
 
     @classmethod
     def from_file(cls, file_like):
@@ -156,11 +164,17 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         >>> y_of_node = (0, 1, 2, 2)
         >>> x_of_node = (0, 0, -1, 1)
         >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
-        >>> grid = NetworkModelGrid((y_of_node, x_of_node),
-        ...                         nodes_at_link)
+
+        >>> grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
         >>> grid.axis_name
-        ('y', 'x')
+        ('x', 'y')
         >>> grid.axis_name = ('lon', 'lat')
+        >>> grid.axis_name
+        ('lon', 'lat')
+
+        >>> grid = NetworkModelGrid(
+        ...     (y_of_node, x_of_node), nodes_at_link, xy_axis_name=("lon", "lat")
+        ... )
         >>> grid.axis_name
         ('lon', 'lat')
 

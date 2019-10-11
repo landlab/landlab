@@ -1,4 +1,4 @@
 from .dual_voronoi import DualVoronoiGraph
-from .voronoi import VoronoiGraph
+from .voronoi import DelaunayGraph
 
-__all__ = ["VoronoiGraph", "DualVoronoiGraph"]
+__all__ = ["DelaunayGraph", "DualVoronoiGraph"]

@@ -9,7 +9,7 @@ Tarboton 1997.
 
 import numpy
 
-from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, VoronoiDelaunayGrid
+from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY
 from landlab.components.flow_director import flow_direction_dinf
 from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 
@@ -272,7 +272,12 @@ class FlowDirectorDINF(_FlowDirectorToMany):
         self._method = "DINF"
         self._max_receivers = 2
         super(FlowDirectorDINF, self).__init__(grid, surface)
-        self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
+        try:
+            self._grid.nodes_at_d8
+        except AttributeError:
+            self._is_Voroni = True
+        else:
+            self._is_Voroni = False
         if self._is_Voroni:
             raise NotImplementedError(
                 "FlowDirectorDINF is not implemented" " for irregular grids."

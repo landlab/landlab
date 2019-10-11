@@ -111,6 +111,8 @@ class ComponentRegistry(object):
         --------
         >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
+        >>> registry.registered
+        ()
         >>> class FooBar(object):
         ...    pass
         >>> registry.add(FooBar)

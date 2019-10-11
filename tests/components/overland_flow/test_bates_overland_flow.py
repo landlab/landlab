@@ -5,6 +5,7 @@ Unit tests for landlab.components.overland_flow.OverlandFlowBates
 last updated: 3/14/16
 """
 import numpy as np
+import pytest
 
 from landlab.components.overland_flow import OverlandFlowBates
 
@@ -53,6 +54,7 @@ def test_grid_shape(bates):
     assert bates.grid.number_of_node_columns == _SHAPE[1]
 
 
+@pytest.mark.slow
 def test_Bates_analytical():
     from landlab import RasterModelGrid
 

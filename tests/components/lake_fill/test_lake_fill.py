@@ -47,7 +47,7 @@ def test_bad_init_method2():
 
 
 def test_bad_init_gridmethod():
-    hmg = HexModelGrid(30, 29, dx=3.0)
+    hmg = HexModelGrid((30, 29), spacing=3.0)
     hmg.add_zeros("node", "topographic__elevation", dtype=float)
     _ = FlowAccumulator(hmg, flow_director="Steepest")
     with pytest.raises(ValueError):
@@ -104,7 +104,7 @@ def test_neighbor_shaping_D4():
 
 
 def test_neighbor_shaping_hex():
-    hmg = HexModelGrid(6, 5, dx=1.0)
+    hmg = HexModelGrid((6, 5), spacing=1.0)
     hmg.add_zeros("node", "topographic__elevation", dtype=float)
     _ = FlowAccumulator(hmg)
     lmb = LakeMapperBarnes(hmg, redirect_flow_steepest_descent=True)

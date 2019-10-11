@@ -35,3 +35,9 @@ def test_is_immutable():
 def test_all_cells_with_spacing():
     rmg = RasterModelGrid((4, 4), xy_spacing=10.0)
     assert_array_equal(rmg.area_of_cell, 100 * np.ones(4))
+
+
+def test_cell_area_at_node():
+    grid = RasterModelGrid((3, 4), xy_spacing=(10.0, 2.0))
+    assert_array_equal(grid.cell_area_at_node[grid.perimeter_nodes], 0.0)
+    assert_array_equal(grid.cell_area_at_node.reshape((3, 4))[1:-1, 1:-1], 20.0)

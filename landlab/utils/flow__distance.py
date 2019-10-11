@@ -91,7 +91,7 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils.flow__distance import calculate_flow__distance
     >>> dx = 1
-    >>> hmg = HexModelGrid(5,3, dx)
+    >>> hmg = HexModelGrid((5, 3), spacing=dx)
     >>> _ = hmg.add_field('topographic__elevation',
     ...                   hmg.node_x + np.round(hmg.node_y),
     ...                   at = 'node')

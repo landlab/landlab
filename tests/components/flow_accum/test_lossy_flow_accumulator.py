@@ -1247,7 +1247,7 @@ def test_depression_finder_bad_uninstantiated_component():
 
 
 def test_hex_mfd():
-    mg = HexModelGrid(5, 3)
+    mg = HexModelGrid((5, 3))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     fa = LossyFlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()

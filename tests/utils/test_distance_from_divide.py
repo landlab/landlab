@@ -16,7 +16,7 @@ def test_no_flow_receivers():
 
 def test_no_upstream_array():
     """Test that correct error is raised when no flow__upstream_node_order."""
-    mg = RasterModelGrid(30, 70)
+    mg = RasterModelGrid((30, 70))
     mg.add_ones("node", "topographic__elevation")
     mg.add_ones("node", "drainage_area")
     fd = FlowDirectorSteepest(mg)
@@ -27,7 +27,7 @@ def test_no_upstream_array():
 
 def test_drainage_area():
     """Test that correct error is raised when no flow__upstream_node_order."""
-    mg = RasterModelGrid(30, 70)
+    mg = RasterModelGrid((30, 70))
     mg.add_ones("node", "topographic__elevation")
     mg.add_ones("node", "flow__upstream_node_order")
     fd = FlowDirectorSteepest(mg)
@@ -38,7 +38,7 @@ def test_drainage_area():
 
 @pytest.mark.parametrize("flow_dir", ["D8", "D4", "MFD"])
 def test_simple_case_same(flow_dir):
-    mg = RasterModelGrid(20, 5)
+    mg = RasterModelGrid((20, 5))
     z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.y_of_node
     mg.set_closed_boundaries_at_grid_edges(
@@ -84,7 +84,7 @@ def test_simple_case_same(flow_dir):
 
 
 def test_complex_case():
-    mg = RasterModelGrid(20, 5)
+    mg = RasterModelGrid((20, 5))
     z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.y_of_node
     middle = mg.x_of_node == 2
