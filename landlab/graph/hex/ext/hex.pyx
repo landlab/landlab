@@ -9,119 +9,160 @@ ctypedef np.int_t DTYPE_t
 
 
 @cython.boundscheck(False)
-def fill_perimeter_nodes(shape, np.ndarray[DTYPE_t, ndim=1] perimeter_nodes):
-    cdef int n_rows = shape[0]
-    cdef int n_cols = shape[1]
-    cdef int n_nodes = n_rows * n_cols
-    cdef int i
-    cdef int node
-
-    # Right edge
-    i = 0
-    for node in range(n_cols - 1, n_nodes - 1, n_cols):
-        perimeter_nodes[i] = node
-        i += 1
-
-    # Top edge
-    for node in range(n_nodes - 1, n_nodes - n_cols, - 1):
-        perimeter_nodes[i] = node
-        i += 1
-
-    # Left edge
-    for node in range((n_rows - 1) * n_cols, 0, - n_cols):
-        perimeter_nodes[i] = node
-        i += 1
-
-    # Bottom edge
-    for node in range(0, n_cols - 1):
-        perimeter_nodes[i] = node
-        i += 1
-
-
-@cython.boundscheck(False)
-def fill_hex_perimeter_nodes(shape,
-                             np.ndarray[DTYPE_t, ndim=1] perimeter_nodes):
-    cdef int n_rows = shape[0]
-    cdef int n_cols = shape[1]
-    cdef int n_bottom_rows = (n_rows + (n_rows + 1) % 2) // 2 + 1
-    cdef int i, i0
-    cdef int node
-    cdef int row
-    cdef int * nodes_per_row = <int *>malloc(n_rows * sizeof(int))
-
-    try:
-        nodes_per_row[0] = n_cols
-        for row in range(1, n_bottom_rows):
-            nodes_per_row[row] = nodes_per_row[row - 1] + 1
-        for row in range(n_bottom_rows, n_rows):
-            nodes_per_row[row] = nodes_per_row[row - 1] - 1
-
-        # Right edge
-        perimeter_nodes[0] = n_cols - 1
-        row = 1
-        for i in range(1, n_rows):
-            perimeter_nodes[i] = perimeter_nodes[i - 1] + nodes_per_row[row]
-            row += 1
-
-        # Top edge
-        i0 = i + 1
-        for i in range(i0, i0 + nodes_per_row[n_rows - 1] - 1):
-            perimeter_nodes[i] = perimeter_nodes[i - 1] - 1
-
-        # Left edge
-        i0 = i + 1
-        row = n_rows - 2
-        for i in range(i0, i0 + n_rows - 1):
-            perimeter_nodes[i] = perimeter_nodes[i - 1] - nodes_per_row[row]
-            row -= 1
-
-        # Bottom edge
-        i0 = i + 1
-        for i in range(i0, i0 + n_cols - 2):
-            perimeter_nodes[i] = perimeter_nodes[i - 1] + 1
-    finally:
-        free(nodes_per_row)
-
-
-@cython.boundscheck(False)
-def fill_hex_xy_of_node(shape,
-                        np.ndarray[np.double_t, ndim=1] x_of_node,
-                        np.ndarray[np.double_t, ndim=1] y_of_node):
+def fill_xy_of_node_hex_horizontal(
+    shape,
+    np.ndarray[np.double_t, ndim=1] x_of_node,
+    np.ndarray[np.double_t, ndim=1] y_of_node,
+):
     """Get x and y coordinates for each node."""
-    cdef int n_nodes = x_of_node.size
-    cdef int n_cols = shape[1]
-    cdef int node
-    cdef int row
-    cdef int col
-    cdef int offset
-    cdef int n
+    cdef long n_rows = shape[0]
+    cdef long n_cols = shape[1]
+    cdef long n_nodes = len(x_of_node)
+    cdef long longest_row = n_rows // 2
+    cdef long row
+    cdef long offset
+    cdef long *size_of_row
+    cdef long *offset_to_row
     cdef double x0
 
-    node = 0
-    x0 = 0.
-    for row in range(shape[0] / 2 + 1):
-        for col in range(n_cols):
-            x_of_node[node] = x0 + col
-            y_of_node[node] = row
-            node += 1
-        x0 -= .5
-        n_cols += 1
+    try:
+        size_of_row = <long*>malloc(sizeof(long) * n_rows)
+        offset_to_row = <long*>malloc(sizeof(long) * (n_rows + 1))
 
-    x0 += 1.
-    n_cols -= 2
-    for row in range(shape[0] / 2 + 1, shape[0]):
-        for col in range(n_cols):
-            x_of_node[node] = x0 + col
-            y_of_node[node] = row
-            node += 1
-        x0 += .5
-        n_cols -= 1
+        size_of_row[0] = shape[1]
+        for row in range(1, longest_row + 1):
+            size_of_row[row] = size_of_row[row - 1] + 1
+        for row in range(longest_row + 1, n_rows):
+            size_of_row[row] = size_of_row[row - 1] - 1
+
+        offset_to_row[0] = 0
+        for row in range(1, n_rows + 1):
+            offset_to_row[row] = offset_to_row[row - 1] + size_of_row[row - 1]
+
+        x0 = longest_row / 2.
+        for row in range(longest_row + 1):
+            for offset in range(offset_to_row[row], offset_to_row[row + 1]):
+                x_of_node[offset] = x0 + offset - offset_to_row[row]
+                y_of_node[offset] = row
+            x0 -= .5
+
+        x0 += 1.
+        for row in range(longest_row + 1, n_rows):
+            for offset in range(offset_to_row[row], offset_to_row[row + 1]):
+                x_of_node[offset] = x0 + offset - offset_to_row[row]
+                y_of_node[offset] = row
+            x0 += .5
+    finally:
+        free(offset_to_row)
+        free(size_of_row)
 
 
 @cython.boundscheck(False)
-def fill_xy_of_node(shape,
-                    np.ndarray[np.double_t, ndim=1] x_of_node,
-                    np.ndarray[np.double_t, ndim=1] y_of_node):
+def fill_xy_of_node_hex_vertical(
+    shape,
+    np.ndarray[np.double_t, ndim=1] x_of_node,
+    np.ndarray[np.double_t, ndim=1] y_of_node,
+):
+    cdef long n_nodes = len(x_of_node)
+    cdef int n_cols = shape[1]
+    cdef int longest_column = n_cols // 2
+    cdef int size_of_longest_column = longest_column + shape[0]
+    cdef int n_rows = 2 * size_of_longest_column - 1
+    cdef long size_of_odd_row = n_cols // 2
+    cdef long size_of_even_row = n_cols - size_of_odd_row
+    cdef long n_middle_rows = 2 * shape[0] - 1
+    cdef long n_top_rows = n_cols // 2
+    cdef long row
+    cdef long n
+    cdef long *size_of_row
+    cdef long *offset_to_row
+    cdef float x0
+    cdef long offset
+
+    try:
+        size_of_row = <long*>malloc(sizeof(long) * n_rows)
+        offset_to_row = <long*>malloc(sizeof(long) * (n_rows + 1))
+
+        # Bottom and top rows
+        for row in range(n_top_rows):
+            size_of_row[row] = row + 1
+            size_of_row[n_rows - row - 1] = row + 1
+
+        # Middle rows
+        for row in range(0, n_middle_rows, 2):
+            size_of_row[row + n_top_rows] = size_of_even_row
+            size_of_row[row + 1 + n_top_rows] = size_of_odd_row
+
+        offset_to_row[0] = 0
+        for row in range(1, n_rows + 1):
+            offset_to_row[row] = offset_to_row[row - 1] + size_of_row[row - 1]
+
+        for row in range(0, n_rows, 2):
+            # offset = offset_to_row[row]
+            x0 = - (size_of_row[row] - 1) // 2
+            # for n in range(size_of_row[row]):
+            #     x_of_node[offset + n] = x0 + n
+            #     y_of_node[offset + n] = row
+            for offset in range(offset_to_row[row], offset_to_row[row + 1]):
+                x_of_node[offset] = x0 + offset - offset_to_row[row]
+                y_of_node[offset] = row
+
+        for row in range(1, n_rows, 2):
+            # offset = offset_to_row[row]
+            x0 = - size_of_row[row] // 2 + .5
+            # for n in range(size_of_row[row]):
+            #     x_of_node[offset + n] = x0 + n
+            #     y_of_node[offset + n] = row
+            for offset in range(offset_to_row[row], offset_to_row[row + 1]):
+                x_of_node[offset] = x0 + offset - offset_to_row[row]
+                y_of_node[offset] = row
+
+        x0 = x_of_node[offset_to_row[n_top_rows]]
+        for n in range(n_nodes):
+            x_of_node[n] -= x0
+    finally:
+        free(offset_to_row)
+        free(size_of_row)
+
+
+@cython.boundscheck(False)
+def fill_xy_of_node_rect_vertical(
+    shape,
+    np.ndarray[np.double_t, ndim=1] x_of_node,
+    np.ndarray[np.double_t, ndim=1] y_of_node,
+):
+    """Get x and y coordinates for each node."""
+    cdef long n_cols = shape[1]
+    cdef long size_of_odd_row = n_cols // 2
+    cdef long size_of_even_row = n_cols - size_of_odd_row
+    cdef long n_rows = 2 * shape[0]
+    cdef long row
+    cdef long offset
+    cdef long n
+
+    # even rows
+    offset = 0
+    for row in range(0, n_rows, 2):
+        for n in range(size_of_even_row):
+            x_of_node[offset + n] = n * 2
+            y_of_node[offset + n] = row / 2.
+        offset += n_cols
+
+    # odd rows
+    offset = size_of_even_row
+    for row in range(1, n_rows, 2):
+        for n in range(size_of_odd_row):
+            x_of_node[offset + n] = 2 * n + 1
+            y_of_node[offset + n] = row / 2.
+        offset += n_cols
+
+
+@cython.boundscheck(False)
+def fill_xy_of_node_rect_horizontal(
+    shape,
+    np.ndarray[np.double_t, ndim=1] x_of_node,
+    np.ndarray[np.double_t, ndim=1] y_of_node,
+):
     """Get x and y coordinates for each node."""
     cdef int n_nodes = x_of_node.size
     cdef int stride = 2 * shape[1]

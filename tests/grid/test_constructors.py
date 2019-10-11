@@ -51,10 +51,10 @@ def test_raster_from_file():
         "xy_of_lower_left:\n"
         "    - 35\n"
         "    - 55\n"
-        "axis_name:\n"
+        "xy_axis_name:\n"
         "    - 'spam'\n"
         "    - 'eggs'\n"
-        "axis_units:\n"
+        "xy_axis_units:\n"
         "    - 'smoot'\n"
         "    - 'parsec'"
     )
@@ -83,8 +83,8 @@ def test_raster_from_dict():
             "bottom": "closed",
         },
         "xy_of_lower_left": (35, 55),
-        "axis_name": ("spam", "eggs"),
-        "axis_units": ("smoot", "parsec"),
+        "xy_axis_name": ("spam", "eggs"),
+        "xy_axis_units": ("smoot", "parsec"),
         "xy_of_reference": (12345, 678910),
     }
 
@@ -103,12 +103,11 @@ def test_raster_from_dict():
 
 def test_hex_from_dict():
     params = {
-        "base_num_rows": 5,
-        "base_num_cols": 4,
-        "dx": 2.0,
+        "shape": (5, 4),
+        "spacing": 2.0,
         "xy_of_lower_left": (35, 55),
-        "axis_name": ("spam", "eggs"),
-        "axis_units": ("smoot", "parsec"),
+        "xy_axis_name": ("spam", "eggs"),
+        "xy_axis_units": ("smoot", "parsec"),
         "xy_of_reference": (12345, 678910),
     }
 
@@ -152,31 +151,31 @@ def test_hex_from_dict():
 
 def test_radial_from_dict():
     params = {
-        "num_shells": 5,
-        "dr": 2.0,
+        "n_rings": 5,
+        "nodes_in_first_ring": 4,
         "xy_of_center": (35, 55),
-        "axis_name": ("spam", "eggs"),
-        "axis_units": ("smoot", "parsec"),
+        "xy_axis_name": ("spam", "eggs"),
+        "xy_axis_units": ("smoot", "parsec"),
         "xy_of_reference": (12345, 678910),
     }
 
-    mg = RadialModelGrid.from_dict(params)
+    grid_a = RadialModelGrid.from_dict(params)
+    grid_b = RadialModelGrid(**params)
 
-    # assert things.
-    assert mg.number_of_nodes == 95
-    assert mg.xy_of_center == (35, 55)
-    assert [35, 55] in mg.xy_of_node
-    assert mg.axis_units == ("smoot", "parsec")
-    assert mg.axis_name == ("spam", "eggs")
-    assert mg.xy_of_reference == (12345, 678910)
+    assert grid_a.number_of_nodes == grid_b.number_of_nodes
+    assert grid_a.xy_of_center == grid_b.xy_of_center == (35, 55)
+    assert grid_a.xy_of_node == pytest.approx(grid_b.xy_of_node)
+    assert grid_a.axis_units == ("smoot", "parsec")
+    assert grid_a.axis_name == ("spam", "eggs")
+    assert grid_a.xy_of_reference == (12345, 678910)
 
 
 def test_network_from_dict():
     params = {
         "yx_of_node": [(0, 1, 2, 2), (0, 0, -1, 1)],
         "links": ((1, 0), (2, 1), (3, 1)),
-        "axis_name": ("spam", "eggs"),
-        "axis_units": ("smoot", "parsec"),
+        "xy_axis_name": ("spam", "eggs"),
+        "xy_axis_units": ("smoot", "parsec"),
         "xy_of_reference": (12345, 678910),
     }
     mg = NetworkModelGrid.from_dict(params)
@@ -189,25 +188,26 @@ def test_network_from_dict():
 
 
 def test_network_from_file():
-    file_strn = (
-        "yx_of_node:\n"
-        "    - [0, 1, 2, 2]\n"
-        "    - [0, 0, -1, 1]\n"
-        "links:\n"
-        "    - [1, 0]\n"
-        "    - [2, 1]\n"
-        "    - [3, 1]\n"
-        "xy_of_reference:\n"
-        "    - 12345\n"
-        "    - 678910\n"
-        "axis_name:\n"
-        "    - 'spam'\n"
-        "    - 'eggs'\n"
-        "axis_units:\n"
-        "    - 'smoot'\n"
-        "    - 'parsec'"
+    file_like = StringIO(
+        """
+        yx_of_node:
+            - [0, 1, 2, 2]
+            - [0, 0, -1, 1]
+        links:
+            - [1, 0]
+            - [2, 1]
+            - [3, 1]
+        xy_of_reference:
+            - 12345
+            - 678910
+        xy_axis_name:
+            - 'spam'
+            - 'eggs'
+        xy_axis_units:
+            - 'smoot'
+            - 'parsec'
+        """
     )
-    file_like = StringIO(file_strn)
     mg = NetworkModelGrid.from_file(file_like)
 
     assert_array_equal(mg.x_of_node, np.array([0.0, 0.0, -1.0, 1.0]))
@@ -219,13 +219,13 @@ def test_network_from_file():
 
 
 def test_voronoi_from_dict():
-    x = [0, 0.1, 0.2, 0.3, 1, 1.1, 1.2, 1.3, 2, 2.1, 2.2, 2.3]
-    y = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]
+    x = [0.0, 0.1, 0.2, 0.3, 1.0, 1.1, 1.2, 1.3, 2.0, 2.1, 2.2, 2.3]
+    y = [0.0, 1.0, 2.0, 3.0, 0.0, 1.0, 2.0, 3.0, 0.0, 1.0, 2.0, 3.0]
     params = {
         "x": x,
         "y": y,
-        "axis_name": ("spam", "eggs"),
-        "axis_units": ("smoot", "parsec"),
+        "xy_axis_name": ("spam", "eggs"),
+        "xy_axis_units": ("smoot", "parsec"),
         "xy_of_reference": (12345, 678910),
     }
 
@@ -252,6 +252,6 @@ def test_voronoi_from_dict():
             [10, 8, -1, -1, -1, -1],
         ]
     )
-    assert_array_equal(mg.node_x, true_x)
-    assert_array_equal(mg.node_y, true_y)
+    assert_array_equal(mg.x_of_node, true_x)
+    assert_array_equal(mg.y_of_node, true_y)
     assert_array_equal(mg.adjacent_nodes_at_node, true_nodes_at_node)

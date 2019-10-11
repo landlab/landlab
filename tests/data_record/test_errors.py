@@ -84,8 +84,8 @@ def test_misc():
     #
     # test bad loc and id:
     rmg = RasterModelGrid((3, 3))
-    hmg = HexModelGrid(3, 2, 1.0)
-    radmg = RadialModelGrid(num_shells=1, dr=1.0, xy_of_center=(0.0, 0.0))
+    hmg = HexModelGrid((3, 2), spacing=1.0)
+    radmg = RadialModelGrid(n_rings=1, nodes_in_first_ring=5, xy_of_center=(0.0, 0.0))
     vdmg = VoronoiDelaunayGrid(np.random.rand(25), np.random.rand(25))
     my_items_bad_loc = {
         "grid_element": np.array(["node", "bad_loc"]),

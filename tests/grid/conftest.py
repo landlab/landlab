@@ -18,11 +18,20 @@ DIAGONAL_PROPERTIES = (
     "active_d8",
     "active_d8_dirs_at_node",
 )
+EDGE_NAMES = ["right_edge", "top_edge", "left_edge", "bottom_edge"]
+GRAPH_ELEMENTS = ["node", "cell", "link", "face"]
+FIELD_DTYPES = [float, int, bool]
 
 
 def pytest_generate_tests(metafunc):
     if "diagonal_property" in metafunc.fixturenames:
         metafunc.parametrize("diagonal_property", DIAGONAL_PROPERTIES)
+    elif "edge_name" in metafunc.fixturenames:
+        metafunc.parametrize("edge_name", EDGE_NAMES)
+    elif "graph_element" in metafunc.fixturenames:
+        metafunc.parametrize("graph_element", GRAPH_ELEMENTS)
+    elif "field_dtype" in metafunc.fixturenames:
+        metafunc.parametrize("field_dtype", FIELD_DTYPES)
     elif "random_xy" in metafunc.fixturenames:
         from numpy.random import random_sample
 

@@ -539,7 +539,8 @@ def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation")
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.raster_gradients import(
-    ...       _calc_subtriangle_unit_normals_at_node)
+    ...     _calc_subtriangle_unit_normals_at_node
+    ... )
     >>> mg = RasterModelGrid((3, 3))
     >>> z = mg.node_x ** 2
     >>> eight_tris = _calc_subtriangle_unit_normals_at_node(mg, z)
@@ -551,18 +552,17 @@ def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation")
     True
     >>> eight_tris[0] # doctest: +NORMALIZE_WHITESPACE
     array([[-0.70710678,  0.        ,  0.70710678],
-               [-0.9486833 ,  0.        ,  0.31622777],
-               [        nan,         nan,         nan],
-               [-0.70710678,  0.        ,  0.70710678],
-               [-0.9486833 ,  0.        ,  0.31622777],
-               [        nan,         nan,         nan],
-               [        nan,         nan,         nan],
-               [        nan,         nan,         nan],
-               [        nan,         nan,         nan]])
+           [-0.9486833 ,  0.        ,  0.31622777],
+           [        nan,         nan,         nan],
+           [-0.70710678,  0.        ,  0.70710678],
+           [-0.9486833 ,  0.        ,  0.31622777],
+           [        nan,         nan,         nan],
+           [        nan,         nan,         nan],
+           [        nan,         nan,         nan],
+           [        nan,         nan,         nan]])
 
     LLCATS: CINF GRAD
     """
-
     try:
         z = grid.at_node[elevs]
     except TypeError:
@@ -689,70 +689,47 @@ def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation")
 
     # now remove the bad subtriangles based on parts of the grid
     # make the bad subtriangle of length greater than one.
-    bad = np.nan * np.ones((3,))
+    bad = np.nan
 
     # first, corners:
-    corners = grid.nodes_at_corners_of_grid
+    (northeast, northwest, southwest, southeast) = grid.nodes_at_corners_of_grid
+
     # lower left corner only has NNE and ENE
-    nhat_NNW[corners[0], :] = bad
-    nhat_WNW[corners[0], :] = bad
-    nhat_WSW[corners[0], :] = bad
-    nhat_SSW[corners[0], :] = bad
-    nhat_SSE[corners[0], :] = bad
-    nhat_ESE[corners[0], :] = bad
+    for array in (nhat_NNW, nhat_WNW, nhat_WSW, nhat_SSW, nhat_SSE, nhat_ESE):
+        array[southwest] = bad
 
     # lower right corner only has NNW and WNW
-    nhat_ENE[corners[1], :] = bad
-    nhat_NNE[corners[1], :] = bad
-    nhat_WSW[corners[1], :] = bad
-    nhat_SSW[corners[1], :] = bad
-    nhat_SSE[corners[1], :] = bad
-    nhat_ESE[corners[1], :] = bad
+    for array in (nhat_ENE, nhat_NNE, nhat_WSW, nhat_SSW, nhat_SSE, nhat_ESE):
+        array[southeast] = bad
 
     # upper left corner only has ESE and SSE
-    nhat_ENE[corners[2], :] = bad
-    nhat_NNE[corners[2], :] = bad
-    nhat_NNW[corners[2], :] = bad
-    nhat_WNW[corners[2], :] = bad
-    nhat_WSW[corners[2], :] = bad
-    nhat_SSW[corners[2], :] = bad
+    for array in (nhat_ENE, nhat_NNE, nhat_NNW, nhat_WNW, nhat_WSW, nhat_SSW):
+        array[northwest] = bad
 
     # upper right corner only has WSW and SSW
-    nhat_ENE[corners[3], :] = bad
-    nhat_NNE[corners[3], :] = bad
-    nhat_NNW[corners[3], :] = bad
-    nhat_WNW[corners[3], :] = bad
-    nhat_SSE[corners[3], :] = bad
-    nhat_ESE[corners[3], :] = bad
+    for array in (nhat_ENE, nhat_NNE, nhat_NNW, nhat_WNW, nhat_SSE, nhat_ESE):
+        array[northeast] = bad
 
     # next, sizes:
     # bottom row only has Norths
     bottom = grid.nodes_at_bottom_edge
-    nhat_WSW[bottom, :] = bad
-    nhat_SSW[bottom, :] = bad
-    nhat_SSE[bottom, :] = bad
-    nhat_ESE[bottom, :] = bad
+    for array in (nhat_WSW, nhat_SSW, nhat_SSE, nhat_ESE):
+        array[bottom] = bad
 
     # left side only has Easts
     left = grid.nodes_at_left_edge
-    nhat_NNW[left, :] = bad
-    nhat_WNW[left, :] = bad
-    nhat_WSW[left, :] = bad
-    nhat_SSW[left, :] = bad
+    for array in (nhat_NNW, nhat_WNW, nhat_WSW, nhat_SSW):
+        array[left] = bad
 
     # top row only has Souths
     top = grid.nodes_at_top_edge
-    nhat_ENE[top, :] = bad
-    nhat_NNE[top, :] = bad
-    nhat_NNW[top, :] = bad
-    nhat_WNW[top, :] = bad
+    for array in (nhat_ENE, nhat_NNE, nhat_NNW, nhat_WNW):
+        array[top] = bad
 
     # right side only has Wests
     right = grid.nodes_at_right_edge
-    nhat_ENE[right, :] = bad
-    nhat_NNE[right, :] = bad
-    nhat_SSE[right, :] = bad
-    nhat_ESE[right, :] = bad
+    for array in (nhat_ENE, nhat_NNE, nhat_SSE, nhat_ESE):
+        array[right] = bad
 
     # calculate magnitude of cross product so that the result is a unit normal
     nmag_ENE = np.sqrt(np.square(nhat_ENE).sum(axis=1))

@@ -19,7 +19,7 @@ from landlab.grid.create import (
 SIMPLE_PARAMS_STR = """
 grid:
   RasterModelGrid:
-    args: [4, 5]
+    args: [[4, 5]]
     xy_spacing: [3, 4]
     fields:
       node:
@@ -50,7 +50,7 @@ def test_bad_grid_name():
 
 def test_two_grid_types_as_dict():
     dict_like = {
-        "grid": OrderedDict([("RasterModelGrid", [(4, 5)]), ("HexModelGrid", [6, 7])])
+        "grid": OrderedDict([("RasterModelGrid", [(4, 5)]), ("HexModelGrid", [(6, 7)])])
     }
 
     # dict_like = {"grid": {"RasterModelGrid": [(4, 5)], "HexModelGrid": [6, 7]}}
@@ -62,7 +62,7 @@ def test_two_grid_types_as_dict():
 
 
 def test_two_grid_types_as_list():
-    dict_like = {"grid": [{"RasterModelGrid": [(4, 5)]}, {"HexModelGrid": [6, 7]}]}
+    dict_like = {"grid": [{"RasterModelGrid": [(4, 5)]}, {"HexModelGrid": [(6, 7)]}]}
 
     grids = create_grid(dict_like, section="grid")
     assert len(grids) == 2
@@ -105,8 +105,7 @@ def test_simple_create(tmpdir):
     with tmpdir.as_cwd():
         with open("params.yaml", "w") as fp:
             fp.write(SIMPLE_PARAMS_STR)
-        with pytest.deprecated_call():
-            mg = create_grid("./params.yaml", section="grid")
+        mg = create_grid("./params.yaml", section="grid")
 
     assert mg.number_of_nodes == 20
     assert "topographic__elevation" in mg.at_node
@@ -311,8 +310,8 @@ def test_grid_from_dict_radial(xy_of_center):
     kwds = {}
     if xy_of_center is not None:
         kwds["xy_of_center"] = xy_of_center
-    expected = RadialModelGrid(3, 0.5, **kwds)
-    actual = grid_from_dict("RadialModelGrid", (3, 0.5, kwds))
+    expected = RadialModelGrid(3, 12, **kwds)
+    actual = grid_from_dict("RadialModelGrid", (3, 12, kwds))
 
     assert_array_almost_equal(expected.x_of_node, actual.x_of_node)
     assert_array_almost_equal(expected.y_of_node, actual.y_of_node)
@@ -363,7 +362,7 @@ def test_create_grid():
     contents = StringIO(
         """
 RasterModelGrid:
-  args: [3, 4]
+  args: [[3, 4]]
   xy_spacing: 2.0
   xy_of_lower_left: [1.0, 2.0]
   fields:
@@ -374,8 +373,7 @@ RasterModelGrid:
 """
     )
     expected = RasterModelGrid((3, 4), xy_spacing=2.0, xy_of_lower_left=(1, 2))
-    with pytest.deprecated_call():
-        actual = create_grid(contents)
+    actual = create_grid(contents)
     assert_array_almost_equal(expected.x_of_node, actual.x_of_node)
     assert_array_almost_equal(expected.y_of_node, actual.y_of_node)
 
@@ -389,18 +387,17 @@ grids:
       - xy_spacing: 2.0
         xy_of_lower_left: [1.0, 2.0]
     - RasterModelGrid:
-        args: [3, 4]
+        args: [[3, 4]]
         xy_spacing: 2.0
         xy_of_lower_left: [1.0, 2.0]
     - - RasterModelGrid
-      - args: [3, 4]
+      - args: [[3, 4]]
         xy_spacing: 2.0
         xy_of_lower_left: [1.0, 2.0]
 """
     )
     expected = RasterModelGrid((3, 4), xy_spacing=2.0, xy_of_lower_left=(1, 2))
-    with pytest.deprecated_call():
-        grids = create_grid(contents, section="grids")
+    grids = create_grid(contents, section="grids")
     assert len(grids) == 3
     for actual in grids:
         assert_array_almost_equal(expected.x_of_node, actual.x_of_node)

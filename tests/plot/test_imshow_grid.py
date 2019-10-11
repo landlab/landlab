@@ -1,10 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pytest
 from matplotlib.backends.backend_pdf import PdfPages
 
 import landlab
 
 
+@pytest.mark.slow
 def test_imshow_grid():
     rmg = landlab.RasterModelGrid((4, 5))
 

@@ -272,8 +272,13 @@ class LinearDiffuser(Component):
             horizontal_face = self._grid.dx / (1.0 + rt2)
             vertical_face = self._grid.dy / (1.0 + rt2)
             diag_face = np.sqrt(0.5 * (horizontal_face ** 2 + vertical_face ** 2))
-            self._hoz = self._grid.horizontal_links.flatten()
-            self._vert = self._grid.vertical_links.flatten()
+
+            # NOTE: Do these need to be flattened?
+            # self._hoz = self.grid.horizontal_links.flatten()
+            # self._vert = self.grid.vertical_links.flatten()
+            self._hoz = self.grid.horizontal_links
+            self._vert = self.grid.vertical_links
+
             self._d8width_face_at_link[self._hoz] = vertical_face
             self._d8width_face_at_link[self._vert] = horizontal_face
             # ^ this operation pastes in faces where there are none, but
@@ -286,8 +291,8 @@ class LinearDiffuser(Component):
         if self._use_patches or self._kd_on_links:
             mg = self._grid
             try:
-                self._hoz = self._grid.horizontal_links.flatten()
-                self._vert = self._grid.vertical_links.flatten()
+                self._hoz = self.grid.horizontal_links
+                self._vert = self.grid.vertical_links
             except AttributeError:
                 pass
             self._x_link_patches = mg.patches_at_link[self._hoz]

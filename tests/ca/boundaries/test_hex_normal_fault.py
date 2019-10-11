@@ -22,26 +22,28 @@ def test_links_to_update():
     """Test that update list includes lower 2 rows and fault-crossing links"""
 
     # Create a 6x6 test grid
-    hg = HexModelGrid(6, 6, node_layout="rect", orientation="vert")
+    hg = HexModelGrid((6, 6), node_layout="rect", orientation="vertical")
 
     lnf = LatticeNormalFault(grid=hg, fault_x_intercept=-0.1)
 
     assert_array_equal(
         lnf.links_to_update,
         [
-            8,
+            6,
+            7,
             9,
+            10,
             11,
             12,
             13,
             14,
-            15,
             16,
+            17,
             18,
             19,
             20,
-            21,
             22,
+            23,
             24,
             25,
             26,
@@ -49,27 +51,25 @@ def test_links_to_update():
             28,
             29,
             30,
-            31,
-            32,
+            33,
+            34,
             35,
             36,
-            37,
             38,
-            40,
+            39,
             41,
-            43,
-            46,
-            51,
+            44,
+            49,
+            52,
             54,
-            56,
+            58,
             60,
-            62,
+            66,
             68,
-            70,
-            73,
-            76,
-            77,
-            80,
+            71,
+            74,
+            75,
+            78,
         ],
     )
 
@@ -77,7 +77,7 @@ def test_links_to_update():
 def test_shift_link_and_transition_data_upward():
     """Test the LatticeUplifter method that uplifts link data and tr'ns."""
 
-    mg = HexModelGrid(4, 3, 1.0, orientation="vertical", node_layout="rect")
+    mg = HexModelGrid((4, 3), spacing=1.0, orientation="vertical", node_layout="rect")
     nsd = {0: "yes", 1: "no"}
     xnlist = []
     xnlist.append(Transition((0, 0, 0), (1, 1, 0), 1.0, "frogging"))
@@ -101,9 +101,9 @@ def test_shift_link_and_transition_data_upward():
 
     pq = ohcts.priority_queue
 
-    assert_equal(pq._queue[0][2], 20)  # link for first event = 20, not shifted
+    assert_equal(pq._queue[0][2], 19)  # link for first event = 19, not shifted
     assert_equal(round(pq._queue[0][0], 2), 0.48)  # trn scheduled for t = 0.48
-    assert_equal(pq._queue[2][2], 15)  # this event scheduled for link 15...
+    assert_equal(pq._queue[2][2], 14)  # this event scheduled for link 15...
     assert_equal(round(pq._queue[2][0], 2), 0.58)  # ...trn sched for t = 0.58
 
     lu = LatticeUplifter(grid=mg)
@@ -114,6 +114,6 @@ def test_shift_link_and_transition_data_upward():
         np.round(ohcts.next_update[mg.active_links], 2),
         [0.75, 0.84, 2.6, 0.07, 0.09, 0.8, 0.02, 1.79, 1.51, 2.04, 3.85],
     )
-    assert_equal(pq._queue[0][2], 15)  # new soonest event
-    assert_equal(pq._queue[9][2], 14)  # was previously 7, now shifted up...
+    assert_equal(pq._queue[0][2], 14)  # new soonest event
+    assert_equal(pq._queue[9][2], 13)  # was previously 7, now shifted up...
     assert_equal(round(pq._queue[9][0], 2), 0.8)  # ...still sched for t = 0.80

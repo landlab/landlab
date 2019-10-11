@@ -42,24 +42,6 @@ class DischargeDiffuser(Component):
     This is a "research grade" component, and is subject to dramatic change
     with little warning. No guarantees are made regarding its accuracy or
     utility. It is not recommended for user use yet!
-
-    Examples
-    --------
-    >>> from landlab import HexModelGrid
-    >>> from landlab.components import PotentialityFlowRouter
-    >>> import numpy as np
-    >>> mg = HexModelGrid(4, 6, dx=2., node_layout='rect', orientation='vertical')
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
-    >>> Q_in = mg.add_ones('node', 'water__unit_flux_in')
-    >>> z += mg.node_y.copy()
-    >>> potfr = PotentialityFlowRouter(mg)
-    >>> potfr.run_one_step()
-    >>> Q_at_core_nodes = np.array(
-    ...     [ 13.57233404,  13.93522481,  11.52216193,  11.29307277,
-    ...        8.80884751,   8.86380667,   6.47446459,   6.82161521])
-    >>> np.allclose(mg.at_node['surface_water__discharge'][mg.core_nodes],
-    ...             Q_at_core_nodes)
-    True
     """
 
     _name = "DischargeDiffuser"

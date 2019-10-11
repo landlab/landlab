@@ -282,7 +282,7 @@ class FlowAccumulator(Component):
     of Voroni Grid that has regularly spaced hexagonal cells.
 
     >>> from landlab import HexModelGrid
-    >>> hmg = HexModelGrid(5,3, xy_of_lower_left=(-1., 0.))
+    >>> hmg = HexModelGrid((5, 3), xy_of_lower_left=(-1., 0.))
     >>> _ = hmg.add_field(
     ...     'topographic__elevation',
     ...     hmg.node_x + np.round(hmg.node_y),
@@ -372,7 +372,7 @@ class FlowAccumulator(Component):
     Next, let's set the dx spacing such that each cell has an area of one.
 
     >>> dx=(2./(3.**0.5))**0.5
-    >>> hmg = HexModelGrid(5,3, dx, xy_of_lower_left=(-1.0745, 0.))
+    >>> hmg = HexModelGrid((5, 3), spacing=dx, xy_of_lower_left=(-1.0745, 0.))
     >>> _ = hmg.add_field(
     ...     'topographic__elevation',
     ...     hmg.node_x**2 + np.round(hmg.node_y)**2,
@@ -384,13 +384,13 @@ class FlowAccumulator(Component):
     ...      flow_director=FlowDirectorSteepest
     ... )
     >>> fa.run_one_step()
-    >>> hmg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
+    >>> hmg.at_node['flow__receiver_node']
     array([ 0,  1,  2,
             3,  0,  1,  6,
             7,  3,  4,  5, 11,
            12,  8,  9, 15,
            16, 17, 18])
-    >>> hmg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+    >>> np.round(hmg.at_node['drainage_area'])
     array([ 3.,  2.,  0.,
             2.,  3.,  2.,  0.,
             0.,  2.,  2.,  1.,  0.,
@@ -399,7 +399,7 @@ class FlowAccumulator(Component):
 
     Now let's change the cell area (100.) and the runoff rates:
 
-    >>> hmg = HexModelGrid(5,3, dx*10., xy_of_lower_left=(-10.745, 0.))
+    >>> hmg = HexModelGrid((5, 3), spacing=dx * 10.0, xy_of_lower_left=(-10.745, 0.))
 
     Put the data back into the new grid.
 
@@ -414,7 +414,7 @@ class FlowAccumulator(Component):
     ...      flow_director=FlowDirectorSteepest
     ...      )
     >>> fa.run_one_step()
-    >>> hmg.at_node['surface_water__discharge']
+    >>> np.round(hmg.at_node['surface_water__discharge'])
     array([ 500.,    0.,    0.,
             200.,  500.,  200.,    0.,
               0.,  200.,  200.,  100.,    0.,
@@ -1115,9 +1115,9 @@ class FlowAccumulator(Component):
 
             # put these in grid so that depression finder can use it.
             # store the generated data in the grid
-            self._grid["node"]["flow__data_structure_delta"][:] = delta[1:]
+            self._grid.at_node["flow__data_structure_delta"][:] = delta[1:]
             self._D_structure = D
-            self._grid["node"]["flow__upstream_node_order"][:] = s
+            self._grid.at_node["flow__upstream_node_order"][:] = s
 
             # step 4. Accumulate (to one or to N depending on direction method)
             a[:], q[:] = self._accumulate_A_Q_to_one(s, r)

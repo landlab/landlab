@@ -269,6 +269,7 @@ def test_matches_detachment_solution():
     )
 
 
+@pytest.mark.slow
 def test_matches_transport_solution():
     """
     Test that model matches the transport-limited analytical solution
@@ -382,6 +383,7 @@ def test_matches_transport_solution():
     )
 
 
+@pytest.mark.slow
 def test_matches_bedrock_alluvial_solution():
     """
     Test that model matches the bedrock-alluvial analytical solution
@@ -496,7 +498,7 @@ def test_can_run_with_hex():
     """Test that model can run with hex model grid."""
 
     # Set up a 5x5 grid with open boundaries and low initial elevations.
-    mg = HexModelGrid(7, 7)
+    mg = HexModelGrid((7, 7))
     z = mg.add_zeros("node", "topographic__elevation")
     _ = mg.add_zeros("node", "soil__depth")
     z[:] = 0.01 * mg.x_of_node

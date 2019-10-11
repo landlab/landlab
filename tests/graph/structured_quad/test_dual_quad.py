@@ -1,5 +1,6 @@
 """Test StructuredQuadGraph."""
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_equal
+from pytest import approx
 
 from landlab.graph import DualStructuredQuadGraph, DualUniformRectilinearGraph
 
@@ -138,24 +139,22 @@ def test_length_of_face():
     x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
     graph = DualStructuredQuadGraph((y, x), shape=(3, 3))
 
-    assert_array_almost_equal(graph.length_of_face, [1.5, 1.5, 1.5, 1.5])
-    assert_array_almost_equal(graph.width_of_face, [1.5, 1.5, 1.5, 1.5])
-    assert graph.length_of_face is graph.width_of_face
+    assert graph.length_of_face == approx(1.5)
 
 
 def test_area_of_cell():
     """Test areas of patches."""
-    y = [0, 1, 3, 0, 1, 3, 0, 1, 3]
-    x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
+    y = [0, 0, 0, 1, 1, 1, 3, 3, 3]
+    x = [3, 4, 6, 3, 4, 6, 3, 4, 6]
     graph = DualStructuredQuadGraph((y, x), shape=(3, 3))
-    assert_array_almost_equal(graph.area_of_cell, [2.25])
+    assert graph.area_of_cell == approx([2.25])
 
 
 def test_corners_at_cell():
     """Test corners of cells."""
     y = [0, 1, 3, 0, 1, 3, 0, 1, 3]
     x = [3, 3, 3, 4, 4, 4, 6, 6, 6]
-    graph = DualStructuredQuadGraph((y, x), shape=(3, 3))
+    graph = DualStructuredQuadGraph((y, x), shape=(3, 3), sort=True)
     assert_array_equal(graph.corners_at_cell, [[3, 2, 0, 1]])
 
 

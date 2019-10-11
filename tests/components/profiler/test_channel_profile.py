@@ -382,10 +382,9 @@ def test_re_calculating_network_ids_and_distance():
 
     dt = 1000
     uplift_per_step = 0.001 * dt
-    core_mask = mg.node_is_core()
 
     for i in range(10):
-        z[core_mask] += uplift_per_step
+        z[mg.core_nodes] += uplift_per_step
         fa.run_one_step()
         sp.run_one_step(dt=dt)
 
@@ -436,10 +435,9 @@ def test_getting_all_the_way_to_the_divide(main, nshed):
 
     dt = 1000
     uplift_per_step = 0.001 * dt
-    core_mask = mg.node_is_core()
 
     for i in range(100):
-        z[core_mask] += uplift_per_step
+        z[mg.core_nodes] += uplift_per_step
         fa.run_one_step()
         sp.run_one_step(dt=dt)
 

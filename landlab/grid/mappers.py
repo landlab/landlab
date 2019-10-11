@@ -1346,50 +1346,51 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True, out
     >>> import numpy as np
     >>> from landlab.grid.mappers import map_link_vector_sum_to_patch
     >>> from landlab import HexModelGrid
-    >>> from landlab import CLOSED_BOUNDARY, CORE_NODE, INACTIVE_LINK
 
-    >>> mg = HexModelGrid(4, 3)
-    >>> interior_nodes = mg.status_at_node == CORE_NODE
-    >>> exterior_nodes = mg.status_at_node != CORE_NODE
+    >>> mg = HexModelGrid((4, 3))
+    >>> interior_nodes = mg.status_at_node == mg.BC_NODE_IS_CORE
+    >>> exterior_nodes = mg.status_at_node != mg.BC_NODE_IS_CORE
 
     Add a ring of closed nodes at the edge:
 
-    >>> mg.status_at_node[exterior_nodes] = CLOSED_BOUNDARY
+    >>> mg.status_at_node[exterior_nodes] = mg.BC_NODE_IS_CLOSED
 
     This gives us 5 core nodes, 7 active links, and 3 present patches
 
     >>> (mg.number_of_core_nodes == 5 and mg.number_of_active_links == 7)
     True
-    >>> A = mg.add_ones('link', 'vals')
-    >>> A.fill(9.)  # any old values on the inactive links
+    >>> A = mg.add_ones("vals", at="link")
+    >>> A.fill(9.0)  # any old values on the inactive links
     >>> A[mg.active_links] = np.array([ 1., -1.,  1., -1., -1., -1., -1.])
 
     This setup should give present patch 0 pure east, patch 1 zero (vorticity),
     and patch 2 westwards and downwards components.
 
-    >>> xcomp, ycomp = map_link_vector_sum_to_patch(mg, 'vals')
-    >>> np.allclose(xcomp[[6, 9, 10]], [2., 0., -1])
+    >>> xcomp, ycomp = map_link_vector_sum_to_patch(mg, "vals")
+    >>> xcomp, ycomp = np.round(xcomp, decimals=5), np.round(ycomp, decimals=5)
+    >>> np.allclose(xcomp[(6, 9, 10),], [2.0, 0.0, -1.0])
     True
-    >>> np.allclose(ycomp[[6, 9, 10]]/np.sqrt(3.), [0., 0., -1.])
+    >>> np.allclose(ycomp[(6, 9, 10),] / np.sqrt(3.0), [0.0, 0.0, -1.0])
     True
 
-    These are the patches with INACTIVE_LINKs on all three sides:
+    These are the patches with *INACTIVE_LINK*s on all three sides:
 
     >>> absent_patches = np.array([0, 1, 2, 4, 8, 11, 12, 15, 16, 17, 18])
-    >>> np.allclose(xcomp[absent_patches], 0.)
+    >>> np.allclose(xcomp[absent_patches], 0.0)
     True
-    >>> np.allclose(ycomp[absent_patches], 0.)
+    >>> np.allclose(ycomp[absent_patches], 0.0)
     True
 
     Now demonstrate the remaining functionality:
 
     >>> A = mg.at_link['vals'].copy()
-    >>> A.fill(1.)
-    >>> _ = map_link_vector_sum_to_patch(mg, A, ignore_inactive_links=False,
-    ...                                  out=[xcomp, ycomp])
-    >>> np.allclose(xcomp[absent_patches], 0.)
+    >>> A.fill(1.0)
+    >>> _ = map_link_vector_sum_to_patch(
+    ...     mg, A, ignore_inactive_links=False, out=[xcomp, ycomp]
+    ... )
+    >>> np.allclose(xcomp[absent_patches], 0.0)
     False
-    >>> np.allclose(ycomp[absent_patches], 0.)
+    >>> np.allclose(ycomp[absent_patches], 0.0)
     False
 
     LLCATS: PINF LINF MAP

@@ -20,7 +20,7 @@ def test_create():
 
 def test_spacing():
     """Test the spacing keyword for raster."""
-    graph = DualRadialGraph((1, 4))
+    graph = DualRadialGraph((1, 4), sort=True)
 
     assert_array_almost_equal(
         graph.xy_of_node, [[0.0, -1.0], [-1.0, 0.0], [0.0, 0.0], [1.0, 0.0], [0.0, 1.0]]
@@ -33,7 +33,7 @@ def test_spacing():
 
 def test_spacing_keyword():
     """Test the spacing keyword for raster."""
-    graph = DualRadialGraph((1, 4), spacing=2.0)
+    graph = DualRadialGraph((1, 4), spacing=2.0, sort=True)
 
     assert_array_almost_equal(
         graph.xy_of_node, [[0.0, -2.0], [-2.0, 0.0], [0.0, 0.0], [2.0, 0.0], [0.0, 2.0]]
@@ -44,9 +44,9 @@ def test_spacing_keyword():
     )
 
 
-def test_origin():
-    """Test the origin keyword for raster."""
-    graph = DualRadialGraph((1, 4), spacing=2.0, origin=(-1.0, 2))
+def test_xy_of_center():
+    """Test the xy_of_center keyword for raster."""
+    graph = DualRadialGraph((1, 4), spacing=2.0, xy_of_center=(2.0, -1.0), sort=True)
 
     assert_array_almost_equal(
         graph.xy_of_node,
@@ -70,7 +70,7 @@ def test_length_of_face_and_link():
     """Test length of faces and links."""
     ROOT_2 = np.sqrt(2.0)
 
-    graph = DualRadialGraph((1, 4))
+    graph = DualRadialGraph((1, 4), sort=True)
 
     assert_array_almost_equal(
         graph.length_of_link, [ROOT_2, 1.0, ROOT_2, 1.0, 1.0, ROOT_2, 1.0, ROOT_2]
@@ -88,28 +88,28 @@ def test_area_of_cell_and_patch():
 
 def test_corners_at_cell():
     """Test corners of cells."""
-    graph = DualRadialGraph((1, 4))
+    graph = DualRadialGraph((1, 4), sort=True)
 
     assert_array_equal(
-        graph.nodes_at_patch, [[2, 1, 0], [2, 0, 3], [4, 1, 2], [3, 4, 2]]
+        graph.nodes_at_patch, [[2, 1, 0], [3, 2, 0], [4, 1, 2], [4, 2, 3]]
     )
     assert_array_equal(graph.corners_at_cell, [[3, 2, 0, 1]])
 
 
 def test_cells_at_corner():
     """Test areas of patches."""
-    graph = DualRadialGraph((1, 4))
+    graph = DualRadialGraph((1, 4), sort=True)
 
     assert_array_equal(
         graph.patches_at_node,
-        [[0, 1, -1, -1], [0, 2, -1, -1], [0, 1, 2, 3], [1, 3, -1, -1], [2, 3, -1, -1]],
+        [[1, 0, -1, -1], [2, 0, -1, -1], [3, 2, 0, 1], [3, 1, -1, -1], [2, 3, -1, -1]],
     )
     assert_array_equal(graph.cells_at_corner, [[0], [0], [0], [0]])
 
 
 def test_cells_at_face():
     """Test cells on either side of faces."""
-    graph = DualRadialGraph((1, 4))
+    graph = DualRadialGraph((1, 4), sort=True)
 
     assert_array_equal(
         graph.patches_at_link,
@@ -120,27 +120,27 @@ def test_cells_at_face():
 
 def test_faces_at_cell():
     """Test faces that form cells."""
-    graph = DualRadialGraph((1, 4))
+    graph = DualRadialGraph((1, 4), sort=True)
     assert_array_equal(
-        graph.links_at_patch, [[1, 3, 0], [4, 1, 2], [6, 5, 3], [4, 7, 6]]
+        graph.links_at_patch, [[3, 0, 1], [4, 1, 2], [6, 5, 3], [7, 6, 4]]
     )
     assert_array_equal(graph.faces_at_cell, [[2, 3, 1, 0]])
 
 
 def test_corners_at_face():
     """Test corners at face tail and head."""
-    graph = DualRadialGraph((1, 4))
+    graph = DualRadialGraph((1, 4), sort=True)
 
     assert_array_equal(graph.corners_at_face, [[0, 1], [0, 2], [1, 3], [2, 3]])
     assert_array_equal(
         graph.nodes_at_link,
-        [[1, 0], [0, 2], [0, 3], [1, 2], [2, 3], [1, 4], [2, 4], [3, 4]],
+        [[1, 0], [0, 2], [0, 3], [1, 2], [2, 3], [1, 4], [2, 4], [4, 3]],
     )
 
 
 def test_faces_at_corner():
     """Test faces around corners."""
-    graph = DualRadialGraph((1, 4))
+    graph = DualRadialGraph((1, 4), sort=True)
 
     assert_array_equal(graph.faces_at_corner, [[0, 1], [2, 0], [3, 1], [3, 2]])
     assert_array_equal(
@@ -151,10 +151,10 @@ def test_faces_at_corner():
 
 def test_face_dirs_at_corner():
     """Test face directions at corners."""
-    graph = DualRadialGraph((1, 4))
+    graph = DualRadialGraph((1, 4), sort=True)
 
     assert_array_equal(graph.face_dirs_at_corner, [[-1, -1], [-1, 1], [-1, 1], [1, 1]])
     assert_array_equal(
         graph.link_dirs_at_node,
-        [[-1, -1, 1, 0], [-1, -1, -1, 0], [-1, -1, 1, 1], [-1, 1, 1, 0], [1, 1, 1, 0]],
+        [[-1, -1, 1, 0], [-1, -1, -1, 0], [-1, -1, 1, 1], [1, 1, 1, 0], [1, 1, -1, 0]],
     )
