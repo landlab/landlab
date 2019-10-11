@@ -58,7 +58,7 @@ for field in np.sort(unique_fields):
         io = sel.intent.values[i]
         mapping = sel.mapping.values[i]
         
-        listing = name + " ("+mapping+")"
+        listing = ":py:class:`~landlab.components."+name + "`("+mapping+")"
         
         if "in" in io:
             in_comps.append(listing)
