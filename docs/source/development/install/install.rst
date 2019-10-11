@@ -56,7 +56,7 @@ will contain the file ``setup.py``) and run the following commands:
 
    $ conda env create --file=environment-dev.yml
    $ conda activate landlab_dev
-   $ pip install -e .
+   $ python setup.py develop
 
 This first command installs all of the dependencies required by Landlab
 into a new environment called *landlab_dev*. Read more about
@@ -79,7 +79,7 @@ Conda Environment Tips
     you will need to add them to the environment. Use the standard
     `conda install name_of_package` or
     `conda install name_of_package -c name_of_channel`
-    terminal calls to acomplish this.
+    terminal calls to accomplish this.
 
 Uninstall
 ---------
@@ -89,7 +89,7 @@ To uninstall your development version of Landlab (again from the root
 
 .. code-block:: bash
 
-   $ pip unintall landlab
+   $ python setup.py develop -u
 
 With Landlab uninstalled, you will no longer be able to import Landlab
 from outside the root folder of your working copy.
