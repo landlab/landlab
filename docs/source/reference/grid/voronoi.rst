@@ -50,8 +50,6 @@ Information about the grid as a whole
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.axis_name
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.axis_units
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.move_origin
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.ndim
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_axis_coordinates
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_elements
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.save
@@ -66,14 +64,12 @@ Information about nodes
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_adjacent_nodes_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_link_dirs_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_neighbors_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.adjacent_nodes_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.all_node_azimuths_map
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.all_node_distances_map
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.calc_distances_of_nodes_to_point
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_area_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.closed_boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.core_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.downwind_links_at_node
@@ -81,28 +77,21 @@ Information about nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_value_boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_downwind
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_upwind
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_dirs_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.neighbors_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_core_cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_head
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_tail
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_axis_coordinates
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_has_boundary_neighbor
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_is_boundary
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_x
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_y
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.open_boundary_nodes
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.perimeter_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_closed
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_fixed_gradient
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_node
@@ -125,33 +114,21 @@ Information about links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.angle_of_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.angle_of_link_about_head
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.downwind_links_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.face_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.fixed_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.length_of_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_face
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_downwind
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_node_is_upwind
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_dirs_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_patch
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_head
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_link_tail
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_link
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.midpoint_of_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_links_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_active_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.unit_vector_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.upwind_links_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_link
 
 Information about cells
 +++++++++++++++++++++++
@@ -160,18 +137,10 @@ Information about cells
 
 .. autosummary::
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.area_of_cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_area_at_node
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.cell_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.core_cells
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.faces_at_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.node_at_core_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_cells
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_core_cells
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces_at_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_cell
 
 Information about faces
 +++++++++++++++++++++++
@@ -181,15 +150,7 @@ Information about faces
 .. autosummary::
 
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_faces
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.face_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.faces_at_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.link_at_face
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_active_faces
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_faces_at_cell
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.width_of_face
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.x_of_face
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.y_of_face
 
 Information about patches
 +++++++++++++++++++++++++
@@ -198,8 +159,7 @@ Information about patches
 
 .. autosummary::
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.links_at_patch
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.nodes_at_patch
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.area_of_patch
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node
@@ -207,15 +167,12 @@ Information about patches
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_node
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.xy_of_patch
 
 Information about corners
 +++++++++++++++++++++++++
 
-.. currentmodule:: landlab 
-
-.. autosummary::
-
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_corners
+(None are available for this grid type)
 
 
 Data Fields in ModelGrid
@@ -378,7 +335,6 @@ defined at other grid elements automatically.
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_adjacent_nodes_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_faces
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_neighbors_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.closed_boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.core_cells
@@ -397,6 +353,7 @@ defined at other grid elements automatically.
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.open_boundary_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.perimeter_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_closed
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_fixed_gradient
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_link
@@ -408,7 +365,11 @@ Identifying node subsets
 These methods are useful in identifying subsets of nodes, e.g., closest node
 to a point; nodes at edges.
 
-(None are available for this grid type)
+.. currentmodule:: landlab 
+
+.. autosummary::
+
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.perimeter_nodes
 
 Surface analysis
 ----------------

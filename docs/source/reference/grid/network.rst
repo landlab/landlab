@@ -80,10 +80,8 @@ Information about links
 
     ~landlab.grid.network.NetworkModelGrid.angle_of_link
     ~landlab.grid.network.NetworkModelGrid.length_of_link
-    ~landlab.grid.network.NetworkModelGrid.link_dirs_at_node
     ~landlab.grid.network.NetworkModelGrid.links_at_node
     ~landlab.grid.network.NetworkModelGrid.midpoint_of_link
-    ~landlab.grid.network.NetworkModelGrid.number_of_links
     ~landlab.grid.network.NetworkModelGrid.status_at_link
     ~landlab.grid.network.NetworkModelGrid.x_of_link
     ~landlab.grid.network.NetworkModelGrid.y_of_link

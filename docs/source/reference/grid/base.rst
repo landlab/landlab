@@ -50,7 +50,6 @@ Information about the grid as a whole
 
     ~landlab.grid.base.ModelGrid.axis_name
     ~landlab.grid.base.ModelGrid.axis_units
-    ~landlab.grid.base.ModelGrid.move_origin
     ~landlab.grid.base.ModelGrid.ndim
     ~landlab.grid.base.ModelGrid.node_axis_coordinates
     ~landlab.grid.base.ModelGrid.number_of_elements
@@ -65,14 +64,11 @@ Information about nodes
 
     ~landlab.grid.base.ModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.base.ModelGrid.active_link_dirs_at_node
-    ~landlab.grid.base.ModelGrid.active_neighbors_at_node
-    ~landlab.grid.base.ModelGrid.adjacent_nodes_at_node
     ~landlab.grid.base.ModelGrid.all_node_azimuths_map
     ~landlab.grid.base.ModelGrid.all_node_distances_map
     ~landlab.grid.base.ModelGrid.boundary_nodes
     ~landlab.grid.base.ModelGrid.calc_distances_of_nodes_to_point
     ~landlab.grid.base.ModelGrid.cell_area_at_node
-    ~landlab.grid.base.ModelGrid.cell_at_node
     ~landlab.grid.base.ModelGrid.closed_boundary_nodes
     ~landlab.grid.base.ModelGrid.core_nodes
     ~landlab.grid.base.ModelGrid.downwind_links_at_node
@@ -80,23 +76,11 @@ Information about nodes
     ~landlab.grid.base.ModelGrid.fixed_value_boundary_nodes
     ~landlab.grid.base.ModelGrid.link_at_node_is_downwind
     ~landlab.grid.base.ModelGrid.link_at_node_is_upwind
-    ~landlab.grid.base.ModelGrid.link_dirs_at_node
-    ~landlab.grid.base.ModelGrid.links_at_node
-    ~landlab.grid.base.ModelGrid.neighbors_at_node
-    ~landlab.grid.base.ModelGrid.node_at_cell
     ~landlab.grid.base.ModelGrid.node_at_core_cell
-    ~landlab.grid.base.ModelGrid.node_at_link_head
-    ~landlab.grid.base.ModelGrid.node_at_link_tail
     ~landlab.grid.base.ModelGrid.node_axis_coordinates
     ~landlab.grid.base.ModelGrid.node_has_boundary_neighbor
     ~landlab.grid.base.ModelGrid.node_is_boundary
-    ~landlab.grid.base.ModelGrid.node_x
-    ~landlab.grid.base.ModelGrid.node_y
-    ~landlab.grid.base.ModelGrid.nodes
-    ~landlab.grid.base.ModelGrid.nodes_at_link
     ~landlab.grid.base.ModelGrid.number_of_core_nodes
-    ~landlab.grid.base.ModelGrid.number_of_links_at_node
-    ~landlab.grid.base.ModelGrid.number_of_nodes
     ~landlab.grid.base.ModelGrid.number_of_patches_present_at_node
     ~landlab.grid.base.ModelGrid.open_boundary_nodes
     ~landlab.grid.base.ModelGrid.patches_present_at_node
@@ -106,9 +90,6 @@ Information about nodes
     ~landlab.grid.base.ModelGrid.unit_vector_sum_xcomponent_at_node
     ~landlab.grid.base.ModelGrid.unit_vector_sum_ycomponent_at_node
     ~landlab.grid.base.ModelGrid.upwind_links_at_node
-    ~landlab.grid.base.ModelGrid.x_of_node
-    ~landlab.grid.base.ModelGrid.xy_of_node
-    ~landlab.grid.base.ModelGrid.y_of_node
 
 Information about links
 +++++++++++++++++++++++
@@ -119,34 +100,19 @@ Information about links
 
     ~landlab.grid.base.ModelGrid.active_link_dirs_at_node
     ~landlab.grid.base.ModelGrid.active_links
-    ~landlab.grid.base.ModelGrid.angle_of_link
     ~landlab.grid.base.ModelGrid.angle_of_link_about_head
     ~landlab.grid.base.ModelGrid.downwind_links_at_node
-    ~landlab.grid.base.ModelGrid.face_at_link
     ~landlab.grid.base.ModelGrid.fixed_links
-    ~landlab.grid.base.ModelGrid.length_of_link
-    ~landlab.grid.base.ModelGrid.link_at_face
     ~landlab.grid.base.ModelGrid.link_at_node_is_downwind
     ~landlab.grid.base.ModelGrid.link_at_node_is_upwind
-    ~landlab.grid.base.ModelGrid.link_dirs_at_node
-    ~landlab.grid.base.ModelGrid.links_at_node
-    ~landlab.grid.base.ModelGrid.node_at_link_head
-    ~landlab.grid.base.ModelGrid.node_at_link_tail
-    ~landlab.grid.base.ModelGrid.nodes_at_link
     ~landlab.grid.base.ModelGrid.number_of_active_links
     ~landlab.grid.base.ModelGrid.number_of_fixed_links
-    ~landlab.grid.base.ModelGrid.number_of_links
-    ~landlab.grid.base.ModelGrid.number_of_links_at_node
     ~landlab.grid.base.ModelGrid.number_of_patches_present_at_link
     ~landlab.grid.base.ModelGrid.patches_present_at_link
     ~landlab.grid.base.ModelGrid.resolve_values_on_active_links
     ~landlab.grid.base.ModelGrid.resolve_values_on_links
     ~landlab.grid.base.ModelGrid.status_at_link
-    ~landlab.grid.base.ModelGrid.unit_vector_at_link
-    ~landlab.grid.base.ModelGrid.unit_vector_at_node
     ~landlab.grid.base.ModelGrid.upwind_links_at_node
-    ~landlab.grid.base.ModelGrid.x_of_link
-    ~landlab.grid.base.ModelGrid.y_of_link
 
 Information about cells
 +++++++++++++++++++++++
@@ -155,18 +121,10 @@ Information about cells
 
 .. autosummary::
 
-    ~landlab.grid.base.ModelGrid.area_of_cell
     ~landlab.grid.base.ModelGrid.cell_area_at_node
-    ~landlab.grid.base.ModelGrid.cell_at_node
     ~landlab.grid.base.ModelGrid.core_cells
-    ~landlab.grid.base.ModelGrid.faces_at_cell
-    ~landlab.grid.base.ModelGrid.node_at_cell
     ~landlab.grid.base.ModelGrid.node_at_core_cell
-    ~landlab.grid.base.ModelGrid.number_of_cells
     ~landlab.grid.base.ModelGrid.number_of_core_cells
-    ~landlab.grid.base.ModelGrid.number_of_faces_at_cell
-    ~landlab.grid.base.ModelGrid.x_of_cell
-    ~landlab.grid.base.ModelGrid.y_of_cell
 
 Information about faces
 +++++++++++++++++++++++
@@ -176,15 +134,7 @@ Information about faces
 .. autosummary::
 
     ~landlab.grid.base.ModelGrid.active_faces
-    ~landlab.grid.base.ModelGrid.face_at_link
-    ~landlab.grid.base.ModelGrid.faces_at_cell
-    ~landlab.grid.base.ModelGrid.link_at_face
     ~landlab.grid.base.ModelGrid.number_of_active_faces
-    ~landlab.grid.base.ModelGrid.number_of_faces
-    ~landlab.grid.base.ModelGrid.number_of_faces_at_cell
-    ~landlab.grid.base.ModelGrid.width_of_face
-    ~landlab.grid.base.ModelGrid.x_of_face
-    ~landlab.grid.base.ModelGrid.y_of_face
 
 Information about patches
 +++++++++++++++++++++++++
@@ -201,11 +151,7 @@ Information about patches
 Information about corners
 +++++++++++++++++++++++++
 
-.. currentmodule:: landlab 
-
-.. autosummary::
-
-    ~landlab.grid.base.ModelGrid.number_of_corners
+(None are available for this grid type)
 
 
 Data Fields in ModelGrid
@@ -377,7 +323,6 @@ defined at other grid elements automatically.
     ~landlab.grid.base.ModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.base.ModelGrid.active_faces
     ~landlab.grid.base.ModelGrid.active_links
-    ~landlab.grid.base.ModelGrid.active_neighbors_at_node
     ~landlab.grid.base.ModelGrid.boundary_nodes
     ~landlab.grid.base.ModelGrid.closed_boundary_nodes
     ~landlab.grid.base.ModelGrid.core_cells

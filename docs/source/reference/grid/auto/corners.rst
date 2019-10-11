@@ -13,9 +13,6 @@ Base class
 
 .. autosummary::
 
-    ~landlab.grid.base.ModelGrid.number_of_corners
-
-
 
 .. _CNINF_RasterModelGrid:
 
@@ -26,7 +23,6 @@ Raster
 
 .. autosummary::
 
-    ~landlab.grid.raster.RasterModelGrid.number_of_corners
 
 
 
@@ -39,9 +35,6 @@ Irregular Voronoi-cell
 
 .. autosummary::
 
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_corners
-
-
 
 .. _CNINF_HexModelGrid:
 
@@ -52,9 +45,6 @@ Hexagonal
 
 .. autosummary::
 
-    ~landlab.grid.hex.HexModelGrid.number_of_corners
-
-
 
 .. _CNINF_RadialModelGrid:
 
@@ -64,7 +54,4 @@ Radial
 .. currentmodule:: landlab 
 
 .. autosummary::
-
-    ~landlab.grid.radial.RadialModelGrid.number_of_corners
-
 

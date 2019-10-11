@@ -50,15 +50,11 @@ Information about the grid as a whole
 
     ~landlab.grid.radial.RadialModelGrid.axis_name
     ~landlab.grid.radial.RadialModelGrid.axis_units
-    ~landlab.grid.radial.RadialModelGrid.move_origin
-    ~landlab.grid.radial.RadialModelGrid.ndim
     ~landlab.grid.radial.RadialModelGrid.node_axis_coordinates
     ~landlab.grid.radial.RadialModelGrid.number_of_elements
-    ~landlab.grid.radial.RadialModelGrid.number_of_nodes_in_shell
-    ~landlab.grid.radial.RadialModelGrid.number_of_shells
-    ~landlab.grid.radial.RadialModelGrid.save
+    ~landlab.grid.radial.RadialModelGrid.number_of_rings
     ~landlab.grid.radial.RadialModelGrid.size
-    ~landlab.grid.radial.RadialModelGrid.spacing_of_shells
+    ~landlab.grid.radial.RadialModelGrid.spacing_of_rings
 
 Information about nodes
 +++++++++++++++++++++++
@@ -69,14 +65,12 @@ Information about nodes
 
     ~landlab.grid.radial.RadialModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.radial.RadialModelGrid.active_link_dirs_at_node
-    ~landlab.grid.radial.RadialModelGrid.active_neighbors_at_node
     ~landlab.grid.radial.RadialModelGrid.adjacent_nodes_at_node
     ~landlab.grid.radial.RadialModelGrid.all_node_azimuths_map
     ~landlab.grid.radial.RadialModelGrid.all_node_distances_map
     ~landlab.grid.radial.RadialModelGrid.boundary_nodes
     ~landlab.grid.radial.RadialModelGrid.calc_distances_of_nodes_to_point
     ~landlab.grid.radial.RadialModelGrid.cell_area_at_node
-    ~landlab.grid.radial.RadialModelGrid.cell_at_node
     ~landlab.grid.radial.RadialModelGrid.closed_boundary_nodes
     ~landlab.grid.radial.RadialModelGrid.core_nodes
     ~landlab.grid.radial.RadialModelGrid.downwind_links_at_node
@@ -84,29 +78,22 @@ Information about nodes
     ~landlab.grid.radial.RadialModelGrid.fixed_value_boundary_nodes
     ~landlab.grid.radial.RadialModelGrid.link_at_node_is_downwind
     ~landlab.grid.radial.RadialModelGrid.link_at_node_is_upwind
-    ~landlab.grid.radial.RadialModelGrid.link_dirs_at_node
-    ~landlab.grid.radial.RadialModelGrid.links_at_node
-    ~landlab.grid.radial.RadialModelGrid.neighbors_at_node
-    ~landlab.grid.radial.RadialModelGrid.node_at_cell
     ~landlab.grid.radial.RadialModelGrid.node_at_core_cell
     ~landlab.grid.radial.RadialModelGrid.node_at_link_head
     ~landlab.grid.radial.RadialModelGrid.node_at_link_tail
     ~landlab.grid.radial.RadialModelGrid.node_axis_coordinates
     ~landlab.grid.radial.RadialModelGrid.node_has_boundary_neighbor
     ~landlab.grid.radial.RadialModelGrid.node_is_boundary
-    ~landlab.grid.radial.RadialModelGrid.node_x
-    ~landlab.grid.radial.RadialModelGrid.node_y
     ~landlab.grid.radial.RadialModelGrid.nodes
     ~landlab.grid.radial.RadialModelGrid.nodes_at_link
     ~landlab.grid.radial.RadialModelGrid.nodes_at_patch
     ~landlab.grid.radial.RadialModelGrid.number_of_core_nodes
-    ~landlab.grid.radial.RadialModelGrid.number_of_links_at_node
     ~landlab.grid.radial.RadialModelGrid.number_of_nodes
-    ~landlab.grid.radial.RadialModelGrid.number_of_nodes_in_shell
+    ~landlab.grid.radial.RadialModelGrid.number_of_nodes_in_ring
     ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_node
     ~landlab.grid.radial.RadialModelGrid.open_boundary_nodes
-    ~landlab.grid.radial.RadialModelGrid.patches_at_node
     ~landlab.grid.radial.RadialModelGrid.patches_present_at_node
+    ~landlab.grid.radial.RadialModelGrid.perimeter_nodes
     ~landlab.grid.radial.RadialModelGrid.radius_at_node
     ~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_fixed_gradient
@@ -130,33 +117,21 @@ Information about links
     ~landlab.grid.radial.RadialModelGrid.angle_of_link
     ~landlab.grid.radial.RadialModelGrid.angle_of_link_about_head
     ~landlab.grid.radial.RadialModelGrid.downwind_links_at_node
-    ~landlab.grid.radial.RadialModelGrid.face_at_link
     ~landlab.grid.radial.RadialModelGrid.fixed_links
     ~landlab.grid.radial.RadialModelGrid.length_of_link
-    ~landlab.grid.radial.RadialModelGrid.link_at_face
     ~landlab.grid.radial.RadialModelGrid.link_at_node_is_downwind
     ~landlab.grid.radial.RadialModelGrid.link_at_node_is_upwind
-    ~landlab.grid.radial.RadialModelGrid.link_dirs_at_node
     ~landlab.grid.radial.RadialModelGrid.links_at_node
     ~landlab.grid.radial.RadialModelGrid.links_at_patch
-    ~landlab.grid.radial.RadialModelGrid.node_at_link_head
-    ~landlab.grid.radial.RadialModelGrid.node_at_link_tail
-    ~landlab.grid.radial.RadialModelGrid.nodes_at_link
+    ~landlab.grid.radial.RadialModelGrid.midpoint_of_link
     ~landlab.grid.radial.RadialModelGrid.number_of_active_links
     ~landlab.grid.radial.RadialModelGrid.number_of_fixed_links
-    ~landlab.grid.radial.RadialModelGrid.number_of_links
-    ~landlab.grid.radial.RadialModelGrid.number_of_links_at_node
     ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link
-    ~landlab.grid.radial.RadialModelGrid.patches_at_link
     ~landlab.grid.radial.RadialModelGrid.patches_present_at_link
     ~landlab.grid.radial.RadialModelGrid.resolve_values_on_active_links
     ~landlab.grid.radial.RadialModelGrid.resolve_values_on_links
     ~landlab.grid.radial.RadialModelGrid.status_at_link
-    ~landlab.grid.radial.RadialModelGrid.unit_vector_at_link
-    ~landlab.grid.radial.RadialModelGrid.unit_vector_at_node
     ~landlab.grid.radial.RadialModelGrid.upwind_links_at_node
-    ~landlab.grid.radial.RadialModelGrid.x_of_link
-    ~landlab.grid.radial.RadialModelGrid.y_of_link
 
 Information about cells
 +++++++++++++++++++++++
@@ -165,18 +140,10 @@ Information about cells
 
 .. autosummary::
 
-    ~landlab.grid.radial.RadialModelGrid.area_of_cell
     ~landlab.grid.radial.RadialModelGrid.cell_area_at_node
-    ~landlab.grid.radial.RadialModelGrid.cell_at_node
     ~landlab.grid.radial.RadialModelGrid.core_cells
-    ~landlab.grid.radial.RadialModelGrid.faces_at_cell
-    ~landlab.grid.radial.RadialModelGrid.node_at_cell
     ~landlab.grid.radial.RadialModelGrid.node_at_core_cell
-    ~landlab.grid.radial.RadialModelGrid.number_of_cells
     ~landlab.grid.radial.RadialModelGrid.number_of_core_cells
-    ~landlab.grid.radial.RadialModelGrid.number_of_faces_at_cell
-    ~landlab.grid.radial.RadialModelGrid.x_of_cell
-    ~landlab.grid.radial.RadialModelGrid.y_of_cell
 
 Information about faces
 +++++++++++++++++++++++
@@ -186,15 +153,7 @@ Information about faces
 .. autosummary::
 
     ~landlab.grid.radial.RadialModelGrid.active_faces
-    ~landlab.grid.radial.RadialModelGrid.face_at_link
-    ~landlab.grid.radial.RadialModelGrid.faces_at_cell
-    ~landlab.grid.radial.RadialModelGrid.link_at_face
     ~landlab.grid.radial.RadialModelGrid.number_of_active_faces
-    ~landlab.grid.radial.RadialModelGrid.number_of_faces
-    ~landlab.grid.radial.RadialModelGrid.number_of_faces_at_cell
-    ~landlab.grid.radial.RadialModelGrid.width_of_face
-    ~landlab.grid.radial.RadialModelGrid.x_of_face
-    ~landlab.grid.radial.RadialModelGrid.y_of_face
 
 Information about patches
 +++++++++++++++++++++++++
@@ -203,8 +162,7 @@ Information about patches
 
 .. autosummary::
 
-    ~landlab.grid.radial.RadialModelGrid.links_at_patch
-    ~landlab.grid.radial.RadialModelGrid.nodes_at_patch
+    ~landlab.grid.radial.RadialModelGrid.area_of_patch
     ~landlab.grid.radial.RadialModelGrid.number_of_patches
     ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link
     ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_node
@@ -212,15 +170,12 @@ Information about patches
     ~landlab.grid.radial.RadialModelGrid.patches_at_node
     ~landlab.grid.radial.RadialModelGrid.patches_present_at_link
     ~landlab.grid.radial.RadialModelGrid.patches_present_at_node
+    ~landlab.grid.radial.RadialModelGrid.xy_of_patch
 
 Information about corners
 +++++++++++++++++++++++++
 
-.. currentmodule:: landlab 
-
-.. autosummary::
-
-    ~landlab.grid.radial.RadialModelGrid.number_of_corners
+(None are available for this grid type)
 
 Data Fields in ModelGrid
 ------------------------
@@ -382,7 +337,6 @@ defined at other grid elements automatically.
     ~landlab.grid.radial.RadialModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.radial.RadialModelGrid.active_faces
     ~landlab.grid.radial.RadialModelGrid.active_links
-    ~landlab.grid.radial.RadialModelGrid.active_neighbors_at_node
     ~landlab.grid.radial.RadialModelGrid.boundary_nodes
     ~landlab.grid.radial.RadialModelGrid.closed_boundary_nodes
     ~landlab.grid.radial.RadialModelGrid.core_cells
@@ -401,6 +355,7 @@ defined at other grid elements automatically.
     ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link
     ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_node
     ~landlab.grid.radial.RadialModelGrid.open_boundary_nodes
+    ~landlab.grid.radial.RadialModelGrid.perimeter_nodes
     ~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_fixed_gradient
     ~landlab.grid.radial.RadialModelGrid.status_at_link
@@ -412,7 +367,11 @@ Identifying node subsets
 These methods are useful in identifying subsets of nodes, e.g., closest node
 to a point; nodes at edges.
 
-(None are available for this grid type)
+.. currentmodule:: landlab 
+
+.. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.perimeter_nodes
 
 Surface analysis
 ----------------

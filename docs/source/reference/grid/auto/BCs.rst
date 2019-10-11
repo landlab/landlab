@@ -16,7 +16,6 @@ Base class
     ~landlab.grid.base.ModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.base.ModelGrid.active_faces
     ~landlab.grid.base.ModelGrid.active_links
-    ~landlab.grid.base.ModelGrid.active_neighbors_at_node
     ~landlab.grid.base.ModelGrid.boundary_nodes
     ~landlab.grid.base.ModelGrid.closed_boundary_nodes
     ~landlab.grid.base.ModelGrid.core_cells
@@ -54,7 +53,6 @@ Raster
     ~landlab.grid.raster.RasterModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.raster.RasterModelGrid.active_faces
     ~landlab.grid.raster.RasterModelGrid.active_links
-    ~landlab.grid.raster.RasterModelGrid.active_neighbors_at_node
     ~landlab.grid.raster.RasterModelGrid.boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.closed_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.core_cells
@@ -65,13 +63,6 @@ Raster
     ~landlab.grid.raster.RasterModelGrid.node_at_core_cell
     ~landlab.grid.raster.RasterModelGrid.node_has_boundary_neighbor
     ~landlab.grid.raster.RasterModelGrid.node_is_boundary
-    ~landlab.grid.raster.RasterModelGrid.node_is_core
-    ~landlab.grid.raster.RasterModelGrid.nodes_are_all_core
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_bottom_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_left_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_right_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_top_edge
     ~landlab.grid.raster.RasterModelGrid.number_of_active_faces
     ~landlab.grid.raster.RasterModelGrid.number_of_active_links
     ~landlab.grid.raster.RasterModelGrid.number_of_core_cells
@@ -109,7 +100,6 @@ Irregular Voronoi-cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_adjacent_nodes_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_faces
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_links
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.active_neighbors_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.closed_boundary_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.core_cells
@@ -128,6 +118,7 @@ Irregular Voronoi-cell
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_node
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.open_boundary_nodes
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.perimeter_nodes
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_closed
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.set_nodata_nodes_to_fixed_gradient
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_link
@@ -147,7 +138,6 @@ Hexagonal
     ~landlab.grid.hex.HexModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.hex.HexModelGrid.active_faces
     ~landlab.grid.hex.HexModelGrid.active_links
-    ~landlab.grid.hex.HexModelGrid.active_neighbors_at_node
     ~landlab.grid.hex.HexModelGrid.boundary_nodes
     ~landlab.grid.hex.HexModelGrid.closed_boundary_nodes
     ~landlab.grid.hex.HexModelGrid.core_cells
@@ -158,10 +148,6 @@ Hexagonal
     ~landlab.grid.hex.HexModelGrid.node_at_core_cell
     ~landlab.grid.hex.HexModelGrid.node_has_boundary_neighbor
     ~landlab.grid.hex.HexModelGrid.node_is_boundary
-    ~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_left_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_right_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_top_edge
     ~landlab.grid.hex.HexModelGrid.number_of_active_faces
     ~landlab.grid.hex.HexModelGrid.number_of_active_links
     ~landlab.grid.hex.HexModelGrid.number_of_core_cells
@@ -191,7 +177,6 @@ Radial
     ~landlab.grid.radial.RadialModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.radial.RadialModelGrid.active_faces
     ~landlab.grid.radial.RadialModelGrid.active_links
-    ~landlab.grid.radial.RadialModelGrid.active_neighbors_at_node
     ~landlab.grid.radial.RadialModelGrid.boundary_nodes
     ~landlab.grid.radial.RadialModelGrid.closed_boundary_nodes
     ~landlab.grid.radial.RadialModelGrid.core_cells
@@ -210,6 +195,7 @@ Radial
     ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link
     ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_node
     ~landlab.grid.radial.RadialModelGrid.open_boundary_nodes
+    ~landlab.grid.radial.RadialModelGrid.perimeter_nodes
     ~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.radial.RadialModelGrid.set_nodata_nodes_to_fixed_gradient
     ~landlab.grid.radial.RadialModelGrid.status_at_link

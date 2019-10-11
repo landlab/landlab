@@ -53,26 +53,16 @@ Information about the grid as a whole
     ~landlab.grid.raster.RasterModelGrid.cell_grid_shape
     ~landlab.grid.raster.RasterModelGrid.cell_vector_to_raster
     ~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid
-    ~landlab.grid.raster.RasterModelGrid.dx
-    ~landlab.grid.raster.RasterModelGrid.dy
     ~landlab.grid.raster.RasterModelGrid.extent
     ~landlab.grid.raster.RasterModelGrid.from_dict
-    ~landlab.grid.raster.RasterModelGrid.grid_xdimension
-    ~landlab.grid.raster.RasterModelGrid.grid_ydimension
     ~landlab.grid.raster.RasterModelGrid.imshow
     ~landlab.grid.raster.RasterModelGrid.is_point_on_grid
-    ~landlab.grid.raster.RasterModelGrid.move_origin
-    ~landlab.grid.raster.RasterModelGrid.ndim
     ~landlab.grid.raster.RasterModelGrid.node_axis_coordinates
     ~landlab.grid.raster.RasterModelGrid.node_vector_to_raster
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_corners_of_grid
     ~landlab.grid.raster.RasterModelGrid.number_of_cell_columns
     ~landlab.grid.raster.RasterModelGrid.number_of_cell_rows
     ~landlab.grid.raster.RasterModelGrid.number_of_elements
-    ~landlab.grid.raster.RasterModelGrid.number_of_node_columns
-    ~landlab.grid.raster.RasterModelGrid.number_of_node_rows
     ~landlab.grid.raster.RasterModelGrid.save
-    ~landlab.grid.raster.RasterModelGrid.shape
     ~landlab.grid.raster.RasterModelGrid.size
 
 Information about nodes
@@ -84,14 +74,12 @@ Information about nodes
 
     ~landlab.grid.raster.RasterModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.raster.RasterModelGrid.active_link_dirs_at_node
-    ~landlab.grid.raster.RasterModelGrid.active_neighbors_at_node
     ~landlab.grid.raster.RasterModelGrid.adjacent_nodes_at_node
     ~landlab.grid.raster.RasterModelGrid.all_node_azimuths_map
     ~landlab.grid.raster.RasterModelGrid.all_node_distances_map
     ~landlab.grid.raster.RasterModelGrid.boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.calc_distances_of_nodes_to_point
     ~landlab.grid.raster.RasterModelGrid.cell_area_at_node
-    ~landlab.grid.raster.RasterModelGrid.cell_at_node
     ~landlab.grid.raster.RasterModelGrid.closed_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.core_nodes
     ~landlab.grid.raster.RasterModelGrid.d8s_at_node
@@ -104,46 +92,26 @@ Information about nodes
     ~landlab.grid.raster.RasterModelGrid.grid_coords_to_node_id
     ~landlab.grid.raster.RasterModelGrid.link_at_node_is_downwind
     ~landlab.grid.raster.RasterModelGrid.link_at_node_is_upwind
-    ~landlab.grid.raster.RasterModelGrid.link_dirs_at_node
-    ~landlab.grid.raster.RasterModelGrid.links_at_node
-    ~landlab.grid.raster.RasterModelGrid.neighbors_at_node
-    ~landlab.grid.raster.RasterModelGrid.node_at_cell
     ~landlab.grid.raster.RasterModelGrid.node_at_core_cell
     ~landlab.grid.raster.RasterModelGrid.node_at_link_head
     ~landlab.grid.raster.RasterModelGrid.node_at_link_tail
     ~landlab.grid.raster.RasterModelGrid.node_axis_coordinates
     ~landlab.grid.raster.RasterModelGrid.node_has_boundary_neighbor
     ~landlab.grid.raster.RasterModelGrid.node_is_boundary
-    ~landlab.grid.raster.RasterModelGrid.node_is_core
     ~landlab.grid.raster.RasterModelGrid.node_vector_to_raster
-    ~landlab.grid.raster.RasterModelGrid.node_x
-    ~landlab.grid.raster.RasterModelGrid.node_y
-    ~landlab.grid.raster.RasterModelGrid.nodes
-    ~landlab.grid.raster.RasterModelGrid.nodes_are_all_core
     ~landlab.grid.raster.RasterModelGrid.nodes_around_point
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_bottom_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_corners_of_grid
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_left_edge
     ~landlab.grid.raster.RasterModelGrid.nodes_at_link
     ~landlab.grid.raster.RasterModelGrid.nodes_at_patch
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_right_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_top_edge
     ~landlab.grid.raster.RasterModelGrid.number_of_cell_columns
     ~landlab.grid.raster.RasterModelGrid.number_of_core_nodes
     ~landlab.grid.raster.RasterModelGrid.number_of_interior_nodes
-    ~landlab.grid.raster.RasterModelGrid.number_of_links_at_node
-    ~landlab.grid.raster.RasterModelGrid.number_of_node_columns
-    ~landlab.grid.raster.RasterModelGrid.number_of_node_rows
     ~landlab.grid.raster.RasterModelGrid.number_of_nodes
     ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_node
     ~landlab.grid.raster.RasterModelGrid.open_boundary_nodes
-    ~landlab.grid.raster.RasterModelGrid.patches_at_node
     ~landlab.grid.raster.RasterModelGrid.patches_present_at_node
     ~landlab.grid.raster.RasterModelGrid.roll_nodes_ud
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_closed
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_fixed_gradient
-    ~landlab.grid.raster.RasterModelGrid.shape
     ~landlab.grid.raster.RasterModelGrid.status_at_node
     ~landlab.grid.raster.RasterModelGrid.unit_vector_sum_xcomponent_at_node
     ~landlab.grid.raster.RasterModelGrid.unit_vector_sum_ycomponent_at_node
@@ -166,36 +134,21 @@ Information about links
     ~landlab.grid.raster.RasterModelGrid.d8s_at_node
     ~landlab.grid.raster.RasterModelGrid.diagonals_at_node
     ~landlab.grid.raster.RasterModelGrid.downwind_links_at_node
-    ~landlab.grid.raster.RasterModelGrid.face_at_link
     ~landlab.grid.raster.RasterModelGrid.fixed_links
-    ~landlab.grid.raster.RasterModelGrid.horizontal_links
     ~landlab.grid.raster.RasterModelGrid.length_of_d8
     ~landlab.grid.raster.RasterModelGrid.length_of_link
-    ~landlab.grid.raster.RasterModelGrid.link_at_face
     ~landlab.grid.raster.RasterModelGrid.link_at_node_is_downwind
     ~landlab.grid.raster.RasterModelGrid.link_at_node_is_upwind
-    ~landlab.grid.raster.RasterModelGrid.link_dirs_at_node
-    ~landlab.grid.raster.RasterModelGrid.links_at_node
     ~landlab.grid.raster.RasterModelGrid.links_at_patch
-    ~landlab.grid.raster.RasterModelGrid.node_at_link_head
-    ~landlab.grid.raster.RasterModelGrid.node_at_link_tail
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_link
+    ~landlab.grid.raster.RasterModelGrid.midpoint_of_link
     ~landlab.grid.raster.RasterModelGrid.number_of_active_links
     ~landlab.grid.raster.RasterModelGrid.number_of_fixed_links
-    ~landlab.grid.raster.RasterModelGrid.number_of_links
-    ~landlab.grid.raster.RasterModelGrid.number_of_links_at_node
     ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link
-    ~landlab.grid.raster.RasterModelGrid.patches_at_link
     ~landlab.grid.raster.RasterModelGrid.patches_present_at_link
     ~landlab.grid.raster.RasterModelGrid.resolve_values_on_active_links
     ~landlab.grid.raster.RasterModelGrid.resolve_values_on_links
     ~landlab.grid.raster.RasterModelGrid.status_at_link
-    ~landlab.grid.raster.RasterModelGrid.unit_vector_at_link
-    ~landlab.grid.raster.RasterModelGrid.unit_vector_at_node
     ~landlab.grid.raster.RasterModelGrid.upwind_links_at_node
-    ~landlab.grid.raster.RasterModelGrid.vertical_links
-    ~landlab.grid.raster.RasterModelGrid.x_of_link
-    ~landlab.grid.raster.RasterModelGrid.y_of_link
 
 Information about cells
 +++++++++++++++++++++++
@@ -204,23 +157,15 @@ Information about cells
 
 .. autosummary::
 
-    ~landlab.grid.raster.RasterModelGrid.area_of_cell
     ~landlab.grid.raster.RasterModelGrid.cell_area_at_node
-    ~landlab.grid.raster.RasterModelGrid.cell_at_node
     ~landlab.grid.raster.RasterModelGrid.cell_grid_shape
     ~landlab.grid.raster.RasterModelGrid.cell_vector_to_raster
     ~landlab.grid.raster.RasterModelGrid.cells_at_corners_of_grid
     ~landlab.grid.raster.RasterModelGrid.core_cells
-    ~landlab.grid.raster.RasterModelGrid.faces_at_cell
-    ~landlab.grid.raster.RasterModelGrid.node_at_cell
     ~landlab.grid.raster.RasterModelGrid.node_at_core_cell
     ~landlab.grid.raster.RasterModelGrid.number_of_cell_rows
-    ~landlab.grid.raster.RasterModelGrid.number_of_cells
     ~landlab.grid.raster.RasterModelGrid.number_of_core_cells
-    ~landlab.grid.raster.RasterModelGrid.number_of_faces_at_cell
     ~landlab.grid.raster.RasterModelGrid.second_ring_looped_neighbors_at_cell
-    ~landlab.grid.raster.RasterModelGrid.x_of_cell
-    ~landlab.grid.raster.RasterModelGrid.y_of_cell
 
 Information about faces
 +++++++++++++++++++++++
@@ -230,15 +175,7 @@ Information about faces
 .. autosummary::
 
     ~landlab.grid.raster.RasterModelGrid.active_faces
-    ~landlab.grid.raster.RasterModelGrid.face_at_link
-    ~landlab.grid.raster.RasterModelGrid.faces_at_cell
-    ~landlab.grid.raster.RasterModelGrid.link_at_face
     ~landlab.grid.raster.RasterModelGrid.number_of_active_faces
-    ~landlab.grid.raster.RasterModelGrid.number_of_faces
-    ~landlab.grid.raster.RasterModelGrid.number_of_faces_at_cell
-    ~landlab.grid.raster.RasterModelGrid.width_of_face
-    ~landlab.grid.raster.RasterModelGrid.x_of_face
-    ~landlab.grid.raster.RasterModelGrid.y_of_face
 
 Information about patches
 +++++++++++++++++++++++++
@@ -247,15 +184,13 @@ Information about patches
 
 .. autosummary::
 
-    ~landlab.grid.raster.RasterModelGrid.links_at_patch
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_patch
+    ~landlab.grid.raster.RasterModelGrid.area_of_patch
     ~landlab.grid.raster.RasterModelGrid.number_of_patches
     ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link
     ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_node
-    ~landlab.grid.raster.RasterModelGrid.patches_at_link
-    ~landlab.grid.raster.RasterModelGrid.patches_at_node
     ~landlab.grid.raster.RasterModelGrid.patches_present_at_link
     ~landlab.grid.raster.RasterModelGrid.patches_present_at_node
+    ~landlab.grid.raster.RasterModelGrid.xy_of_patch
 
 Information about corners
 +++++++++++++++++++++++++
@@ -264,7 +199,6 @@ Information about corners
 
 .. autosummary::
 
-    ~landlab.grid.raster.RasterModelGrid.number_of_corners
 
 Data Fields in ModelGrid
 ------------------------
@@ -446,7 +380,6 @@ defined at other grid elements automatically.
     ~landlab.grid.raster.RasterModelGrid.active_adjacent_nodes_at_node
     ~landlab.grid.raster.RasterModelGrid.active_faces
     ~landlab.grid.raster.RasterModelGrid.active_links
-    ~landlab.grid.raster.RasterModelGrid.active_neighbors_at_node
     ~landlab.grid.raster.RasterModelGrid.boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.closed_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.core_cells
@@ -457,13 +390,6 @@ defined at other grid elements automatically.
     ~landlab.grid.raster.RasterModelGrid.node_at_core_cell
     ~landlab.grid.raster.RasterModelGrid.node_has_boundary_neighbor
     ~landlab.grid.raster.RasterModelGrid.node_is_boundary
-    ~landlab.grid.raster.RasterModelGrid.node_is_core
-    ~landlab.grid.raster.RasterModelGrid.nodes_are_all_core
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_bottom_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_left_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_right_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_top_edge
     ~landlab.grid.raster.RasterModelGrid.number_of_active_faces
     ~landlab.grid.raster.RasterModelGrid.number_of_active_links
     ~landlab.grid.raster.RasterModelGrid.number_of_core_cells
@@ -502,12 +428,6 @@ to a point; nodes at edges.
     ~landlab.grid.raster.RasterModelGrid.grid_coords_to_node_id
     ~landlab.grid.raster.RasterModelGrid.is_point_on_grid
     ~landlab.grid.raster.RasterModelGrid.nodes_around_point
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_bottom_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_corners_of_grid
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_left_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_right_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_top_edge
     ~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_fixed_link_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges

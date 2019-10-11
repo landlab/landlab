@@ -28,12 +28,6 @@ Raster
     ~landlab.grid.raster.RasterModelGrid.grid_coords_to_node_id
     ~landlab.grid.raster.RasterModelGrid.is_point_on_grid
     ~landlab.grid.raster.RasterModelGrid.nodes_around_point
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_bottom_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_corners_of_grid
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_left_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_right_edge
-    ~landlab.grid.raster.RasterModelGrid.nodes_at_top_edge
     ~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_fixed_link_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges
@@ -50,6 +44,9 @@ Irregular Voronoi-cell
 
 .. autosummary::
 
+    ~landlab.grid.voronoi.VoronoiDelaunayGrid.perimeter_nodes
+
+
 
 .. _SUBSET_HexModelGrid:
 
@@ -60,12 +57,6 @@ Hexagonal
 
 .. autosummary::
 
-    ~landlab.grid.hex.HexModelGrid.nodes_at_bottom_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_left_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_right_edge
-    ~landlab.grid.hex.HexModelGrid.nodes_at_top_edge
-
-
 
 .. _SUBSET_RadialModelGrid:
 
@@ -75,4 +66,7 @@ Radial
 .. currentmodule:: landlab 
 
 .. autosummary::
+
+    ~landlab.grid.radial.RadialModelGrid.perimeter_nodes
+
 
