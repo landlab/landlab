@@ -189,21 +189,35 @@ Component standard properties
 
 All Landlab components offer a standardized interface. This provides automated information
 on the fields, units, etc. that the component works with, creates, and/or modifies. For a
-fully compliant component, you will find you can call:
+fully compliant component, you will find you can call the following methods and attributes.
 
-Property                            Description
-========                            ===========
-component.name 		                  a string
-component.input_var_names 	        a tuple giving input field names
-component.output_var_names	        a tuple giving output field names
-component.var_loc		                a tuple of (var_name, ['node', 'link', etc])
-component.definitions	              a tuple of pairs of (var_name, short description)
-component.units                     a tuple of (var_name, ['m', 'Pa', etc])
-component.var_units('field')        method to return the unit of 'field'
-component.var_definition('field')   method to return a short description of 'field'
-component.var_mapping('field')      method to return the element of 'field' (e.g., 'node')
-component.var_type('field')         method to return dtype of 'field' (e.g., float)
-component.var_help('field')         a text summary of all of this information for 'field'
+
++------------------------------------------------------------------------------------------------------+--------------------------------------------------------+
+| Property                                                                                             | Description                                            |
++======================================================================================================+========================================================+
+| :py:meth:`Component.name <landlab.core.model_component.Component.name>`                              | a string                                               |
++------------------------------------------------------------------------------------------------------+--------------------------------------------------------+
+| :py:meth:`Component.input_var_names <landlab.core.model_component.Component.input_var_names>`        | a tuple giving input field names                       |
++------------------------------------------------------------------------------------------------------+--------------------------------------------------------+
+| :py:meth:`Component.output_var_names <landlab.core.model_component.Component.output_var_names>`      | a tuple giving output field names                      |
++------------------------------------------------------------------------------------------------------+--------------------------------------------------------+
+| :py:meth:`Component.var_loc <landlab.core.model_component.Component.var_loc>`                        | a tuple of (var_name, ['node', 'link', etc])           |
++------------------------------------------------------------------------------------------------------+--------------------------------------------------------+
+| :py:meth:`Component.definitions <landlab.core.model_component.Component.definitions>`                | a tuple of pairs of (var_name, short description)      |
++------------------------------------------------------------------------------------------------------+--------------------------------------------------------+
+| :py:meth:`Component.units <landlab.core.model_component.Component.units>`                            | a tuple of (var_name, ['m', 'Pa', etc])                |
++------------------------------------------------------------------------------------------------------+--------------------------------------------------------+
+| :py:meth:`Component.var_units('field') <landlab.core.model_component.Component.var_units>`           | method to return the unit of 'field'                   |
++------------------------------------------------------------------------------------------------------+--------------------------------------------------------+
+| :py:meth:`Component.var_definition('field') <landlab.core.model_component.Component.var_definition>` | method to return a short description of 'field'        |
++------------------------------------------------------------------------------------------------------+--------------------------------------------------------+
+| :py:meth:`Component.var_mapping('field') <landlab.core.model_component.Component.var_mapping>`       | method to return the element of 'field' (e.g., 'node') |
++------------------------------------------------------------------------------------------------------+--------------------------------------------------------+
+| :py:meth:`Component.var_type('field') <landlab.core.model_component.Component.var_type>`             | method to return dtype of 'field' (e.g., float)        |
++------------------------------------------------------------------------------------------------------+--------------------------------------------------------+
+| :py:meth:`Component.var_help('field') <landlab.core.model_component.Component.var_help>`             | a text summary of all of this information for 'field'  |
++------------------------------------------------------------------------------------------------------+--------------------------------------------------------+
+
 
 See :ref:`the tutorials <tutorials>` for
 examples of use cases with one, two, and more coupled components.
