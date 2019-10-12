@@ -1899,43 +1899,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         cell_area_at_node[self.node_at_cell] = self.area_of_cell
         return cell_area_at_node
 
-    @deprecated(use="no replacement", version=1.0)
-    def active_link_connecting_node_pair(self, node1, node2):
-        """Get the active link that connects a pair of nodes.
-
-        Returns the ID number of the active link that connects the given pair
-        of nodes, or BAD_INDEX_VALUE if not found.
-        This method is slow, and can only take single ints as *node1* and
-        *node2*. It should ideally be overridden for optimal functionality in
-        more specialized grid modules (e.g., raster).
-
-        Examples
-        --------
-        >>> import pytest
-        >>> import landlab as ll
-        >>> rmg = ll.RasterModelGrid((4, 5))
-        >>> with pytest.deprecated_call():
-        ...     rmg.active_link_connecting_node_pair(8, 3)
-        array([2])
-
-        LLCATS: DEPR LINF NINF CONN
-        """
-        active_link = BAD_INDEX_VALUE
-        fromnode = self.nodes_at_link[self.active_links, 0]
-        tonode = self.nodes_at_link[self.active_links, 1]
-        for alink in range(0, len(self.active_links)):
-            link_connects_nodes = (
-                fromnode[alink] == node1 and tonode[alink] == node2
-            ) or (tonode[alink] == node1 and fromnode[alink] == node2)
-            # (self._activelink_fromnode[alink] == node1 and
-            #  self._activelink_tonode[alink] == node2) or
-            # (self._activelink_tonode[alink] == node1 and
-            #  self._activelink_fromnode[alink] == node2))
-            if link_connects_nodes:
-                active_link = alink
-                break
-        return np.array([active_link])
-
     @deprecated(use="map_max_of_link_nodes_to_link", version=1.0)
     def _assign_upslope_vals_to_active_links(self, u, v=None):
         """Assign upslope node value to link.
