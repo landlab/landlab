@@ -567,14 +567,6 @@ class RasterModelGrid(
         return self.shape[0] - 2
 
     @property
-    @deprecated(use="cells_at_corners_of_grid", version=1.0)
-    def corner_cells(self):
-        """
-        LLCATS: DEPR GINF CINF SUBSET
-        """
-        return self.cells_at_corners_of_grid
-
-    @property
     def cells_at_corners_of_grid(self):
         """Get array of cells in cellular grid (grid with only cells) corners.
 
