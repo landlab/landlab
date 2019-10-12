@@ -8,7 +8,6 @@ Gradient calculators for raster grids
     :toctree: generated/
 
     ~landlab.grid.raster_gradients.calc_grad_at_link
-    ~landlab.grid.raster_gradients.calc_grad_at_active_link
     ~landlab.grid.raster_gradients.calc_grad_across_cell_faces
     ~landlab.grid.raster_gradients.calc_grad_across_cell_corners
     ~landlab.grid.raster_gradients.alculate_gradient_along_node_links
@@ -76,91 +75,6 @@ def calc_grad_at_link(grid, node_values, out=None):
     #    diffs[n_vertical_links:] /= grid.dx
 
     return grads
-
-
-@use_field_name_or_array("node")
-def calc_grad_at_active_link(grid, node_values, out=None):
-    """Calculate gradients over active links.
-
-    .. deprecated:: 0.1
-        Use :func:`calc_grad_across_cell_faces`
-                or :func:`calc_grad_across_cell_corners` instead
-
-    Calculates the gradient in quantity s at each active link in the grid.
-    This is nearly identical to the method of the same name in ModelGrid,
-    except that it uses a constant node spacing for link length to improve
-    efficiency.
-
-    Note that a negative gradient corresponds to a lower node in the
-    direction of the link.
-
-    Returns
-    -------
-    ndarray
-        Gradients of the nodes values for each link.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid((4, 5), xy_spacing=1.0)
-    >>> u = [0., 1., 2., 3., 0.,
-    ...      1., 2., 3., 2., 3.,
-    ...      0., 1., 2., 1., 2.,
-    ...      0., 0., 2., 2., 0.]
-    >>> grad = grid.calc_grad_at_active_link(u)
-    >>> grad # doctest: +NORMALIZE_WHITESPACE
-    array([ 1.,  1., -1.,
-            1.,  1., -1.,  1.,
-           -1., -1., -1.,
-            1.,  1., -1.,  1.,
-           -1.,  0.,  1.])
-
-    For greater speed, sending a pre-created numpy array as an argument
-    avoids having to create a new one with each call:
-
-    >>> grad = np.empty(grid.number_of_active_links)
-    >>> rtn = grid.calc_grad_at_active_link(u, out=grad)
-    >>> grad # doctest: +NORMALIZE_WHITESPACE
-    array([ 1.,  1., -1.,
-            1.,  1., -1.,  1.,
-           -1., -1., -1.,
-            1.,  1., -1.,  1.,
-           -1.,  0.,  1.])
-    >>> rtn is grad
-    True
-
-    >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
-    >>> node_values = [0., 0., 0.,
-    ...                1., 3., 1.,
-    ...                2., 2., 2.]
-    >>> grid.calc_grad_at_active_link(node_values)
-    array([ 3.,  1., -1., -1.])
-
-    This function is *deprecated*. Instead, use ``calc_grad_at_link``.
-
-    >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
-    >>> node_values = [0., 0., 0.,
-    ...                1., 3., 1.,
-    ...                2., 2., 2.]
-    >>> grid.calc_grad_at_link(node_values)[grid.active_links]
-    array([ 3.,  1., -1., -1.])
-
-    LLCATS: LINF GRAD
-    """
-    if out is None:
-        out = np.empty(len(grid.active_links), dtype=float)
-
-    if len(out) != len(grid.active_links):
-        raise ValueError("output buffer does not match that of the grid.")
-
-    # grads = gradients.calc_diff_at_link(grid, node_values,
-    #                                                  out=out)
-    grads = gradients.calc_diff_at_link(grid, node_values)
-    out[:] = grads[grid.active_links]
-    out /= grid.length_of_link[grid.active_links]
-
-    return out
 
 
 @use_field_name_or_array("node")
