@@ -1899,54 +1899,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         cell_area_at_node[self.node_at_cell] = self.area_of_cell
         return cell_area_at_node
 
-    @deprecated(use="map_max_of_link_nodes_to_link", version=1.0)
-    def _assign_upslope_vals_to_active_links(self, u, v=None):
-        """Assign upslope node value to link.
-
-        Assigns to each active link the value of *u* at whichever of its
-        neighbors has a higher value of *v*. If *v* is omitted, uses *u* for
-        both. The order of the link values is by link ID.
-
-        Parameters
-        ----------
-        u : array-like
-            Node values to assign to links.
-        v : array-like, optional
-            Node values to test for upslope-ness.
-
-        Returns
-        -------
-        ndarray
-            Values at active links.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> import numpy as np
-        >>> grid = RasterModelGrid((3, 3))
-        >>> u = np.arange(9.)
-        >>> grid._assign_upslope_vals_to_active_links(u)
-        array([ 4.,  4.,  5.,  7.])
-
-        LLCATS: DEPR NINF LINF CONN
-        """
-        if v is None:
-            v = np.array((0.0,))
-
-        fv = np.zeros(len(self.active_links))
-        fromnode = self.nodes_at_link[self.active_links, 0]
-        tonode = self.nodes_at_link[self.active_links, 1]
-        if len(v) < len(u):
-            for i in range(0, len(self.active_links)):
-                fv[i] = max(u[fromnode[i]], u[tonode[i]])
-        else:
-            for i in range(0, len(self.active_links)):
-                if v[fromnode[i]] > v[tonode[i]]:
-                    fv[i] = u[fromnode[i]]
-                else:
-                    fv[i] = u[tonode[i]]
-        return fv
-
     def reset_status_at_node(self):
         attrs = [
             "_active_link_dirs_at_node",
