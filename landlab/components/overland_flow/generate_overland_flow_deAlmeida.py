@@ -91,15 +91,19 @@ import scipy.constants
 
 from landlab import Component, FieldError
 from landlab.grid.structured_quad import links
-from landlab.utils.decorators import deprecated
 
 _SEVEN_OVER_THREE = 7.0 / 3.0
 
 
-@deprecated(use="vals[links_at_node]*active_link_dirs_at_node", version=1.0)
 def _active_links_at_node(grid, *args):
     """_active_links_at_node([node_ids])
     Active links of a node.
+
+    .. note::
+
+        This function returns links that are in *clockwise* order,
+        rather than the standard *counterclockwise* ordering that
+        landlab uses everywhere else.
 
     Parameters
     ----------
