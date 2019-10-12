@@ -1279,18 +1279,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         """
         return gfuncs.resolve_values_on_links(self, link_values, out=out)
 
-    @deprecated(use="no replacement", version=1.0)
-    def resolve_values_on_active_links(self, link_values, out=None):
-        """Resolve the xy-components of active links.
-
-        Resolves values provided defined on active links into the x and y
-        directions.
-        Returns values_along_x, values_along_y
-
-        LLCATS: LINF
-        """
-        return gfuncs.resolve_values_on_active_links(self, link_values, out=out)
-
     def link_at_node_is_upwind(self, values, out=None):
         """
         Return a boolean the same shape as :func:`links_at_node` which flags
