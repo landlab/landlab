@@ -567,27 +567,6 @@ class RasterModelGrid(
         return self.shape[0] - 2
 
     @property
-    @deprecated(use="dx", version="0.5")
-    def node_spacing(self):
-        """Spacing betweem node rows and columns.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> grid.node_spacing
-        1.0
-        >>> grid = RasterModelGrid((4, 5), 3.0)
-        >>> grid.node_spacing
-        3.0
-
-        LLCATS: DEPR GINF NINF MEAS
-        """
-        if self.dx != self.dy:
-            raise RuntimeError("dx and dy are not the same")
-        return self.dx
-
-    @property
     @deprecated(use="cells_at_corners_of_grid", version=1.0)
     def corner_cells(self):
         """
