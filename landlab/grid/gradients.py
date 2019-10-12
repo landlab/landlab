@@ -7,7 +7,6 @@ Gradient calculation functions
 .. autosummary::
     :toctree: generated/
 
-    ~landlab.grid.gradients.calc_grad_at_active_link
     ~landlab.grid.gradients.calc_grad_at_link
     ~landlab.grid.gradients.calculate_gradients_at_faces
     ~landlab.grid.gradients.calculate_diff_at_links
@@ -70,39 +69,6 @@ def calc_grad_at_link(grid, node_values, out=None):
     return np.divide(
         node_values[grid.node_at_link_head] - node_values[grid.node_at_link_tail],
         grid.length_of_link,
-        out=out,
-    )
-
-
-@deprecated(use="calc_grad_at_link", version="1.0beta")
-@use_field_name_or_array("node")
-def calc_grad_at_active_link(grid, node_values, out=None):
-    """Calculate gradients of node values over active links.
-
-    Calculates the gradient in *quantity* node values at each active link in
-    the grid.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A ModelGrid.
-    node_values : ndarray or field name
-        Values at grid nodes.
-    out : ndarray, optional
-        Buffer to hold the result.
-
-    Returns
-    -------
-    ndarray
-        Gradients across active links.
-
-    LLCATS: DEPR LINF GRAD
-    """
-    if out is None:
-        out = np.empty(len(grid.active_links), dtype=float)
-    return np.divide(
-        np.diff(node_values[grid.nodes_at_link[grid.active_links]], axis=1).flatten(),
-        grid.length_of_link[grid.active_links],
         out=out,
     )
 
