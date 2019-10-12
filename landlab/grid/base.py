@@ -11,7 +11,7 @@ from functools import lru_cache
 
 import numpy as np
 
-from landlab.utils.decorators import deprecated, make_return_array_immutable
+from landlab.utils.decorators import make_return_array_immutable
 
 from ..core import load_params
 from ..core.utils import add_module_functions_to_class
@@ -2326,57 +2326,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         return np.divide(
             unit_vec_at_node, self.unit_vector_at_node, out=unit_vec_at_node
         )
-
-    @deprecated(use="plot.imshow_grid", version=1.0)
-    def display_grid(self, draw_voronoi=False):
-        """Display the grid.
-
-        LLCATS: DEPR GINF
-        """
-        import matplotlib.pyplot as plt
-
-        # Plot nodes, colored by boundary vs interior
-        plt.plot(self.node_x[self.core_nodes], self.node_y[self.core_nodes], "go")
-        plt.plot(
-            self.node_x[self.boundary_nodes], self.node_y[self.boundary_nodes], "ro"
-        )
-
-        # Draw links
-        for i in range(self.number_of_links):
-            plt.plot(
-                [
-                    self.node_x[self.node_at_link_tail[i]],
-                    self.node_x[self.node_at_link_head[i]],
-                ],
-                [
-                    self.node_y[self.node_at_link_tail[i]],
-                    self.node_y[self.node_at_link_head[i]],
-                ],
-                "k-",
-            )
-
-        # Draw active links
-        for link in self.active_links:
-            plt.plot(
-                [
-                    self.node_x[self.node_at_link_tail[link]],
-                    self.node_x[self.node_at_link_head[link]],
-                ],
-                [
-                    self.node_y[self.node_at_link_tail[link]],
-                    self.node_y[self.node_at_link_head[link]],
-                ],
-                "g-",
-            )
-
-        # If caller asked for a voronoi diagram, draw that too
-        if draw_voronoi:
-            from scipy.spatial import Voronoi, voronoi_plot_2d
-
-            vor = Voronoi(self.xy_of_node)
-            voronoi_plot_2d(vor)
-
-        plt.show()
 
     def node_is_boundary(self, ids, boundary_flag=None):
         """Check if nodes are boundary nodes.
