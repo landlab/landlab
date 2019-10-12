@@ -208,10 +208,6 @@ class RasterModelGrid(
         At the moment, num_rows and num_cols MUST be specified. Both must be
         >=3 to allow correct automated setup of boundary conditions.
 
-        *Deprecation Warning*: The keywords *spacing* and *origin* have been
-        deprecated as of Landlab v1.5.5. They will be removed in v2.0.
-        Additionally, passing spacing as an argument has been deprecated.
-
         Parameters
         ----------
         shape : tuple of int
