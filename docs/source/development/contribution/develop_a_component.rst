@@ -20,7 +20,7 @@ Once you have installed Landlab (:ref:`developer install <developer_install>`)
 and :ref:`created your own branch <landlab_develop_with_git>`, you can start
 writing a Python script for your component.
 
-See `this tutorial <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/making_components/making_components.ipynb>`_
+See `this tutorial <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=making_components/making_components.ipynb>`_
 for instructions on the structure and content of your component code. See also
 `this example pull request <https://github.com/landlab/landlab/pull/678>`_, which
 shows you the common set of files (such as ``__init__.py`` and documentation
@@ -64,7 +64,7 @@ For your new component, you should create a folder in
   tests are run every time changes are pushed to the Landlab repository. They
   should go through every line of your code (e.g. test every possible scenario in
   if/else loops, exceptions, etc.). See
-  `the tutorial on making a component <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/making_components/making_components.ipynb>`_
+  `the tutorial on making a component <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=making_components/making_components.ipynb>`_
   for instructions about making docstring tests and the next section for more
   information about making the unit tests.
 
