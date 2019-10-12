@@ -2079,51 +2079,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         nodata_locations = np.nonzero(node_data == nodata_value)
         self.status_at_node[nodata_locations] = FIXED_GRADIENT_BOUNDARY
 
-    @deprecated(use="map_max_of_link_nodes_to_link", version=1.0)
-    def max_of_link_end_node_values(self, node_data):
-        """Maximum value at the end of links.
-
-        For each active link, finds and returns the maximum value of node_data
-        at either of the two ends. Use this, for example, if you want to find
-        the maximum value of water depth at linked pairs of nodes (by passing
-        in an array of water depth values at nodes).
-
-        Parameters
-        ----------
-        node_data : ndarray
-            Values at grid nodes.
-
-        Returns
-        -------
-        ndarray :
-            Maximum values whose length is the number of active links.
-
-        Examples
-        --------
-        >>> import pytest
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid
-
-        >>> grid = RasterModelGrid((3, 4), xy_spacing=(1., 1.))
-        >>> h = np.array([ 2., 2., 8., 0.,
-        ...                8., 0., 3., 0.,
-        ...                5., 6., 8., 3.])
-
-        >>> with pytest.deprecated_call():
-        ...     grid.max_of_link_end_node_values(h)
-        array([ 2.,  8.,  8.,  3.,  3.,  6.,  8.])
-
-        Note that this method is *deprecatd*. The alternative is to use
-        ``map_max_of_link_nodes_to_link``.
-
-        >>> vals = grid.map_max_of_link_nodes_to_link(h)
-        >>> vals[grid.active_links]
-        array([ 2.,  8.,  8.,  3.,  3.,  6.,  8.])
-
-        LLCATS: DEPR LINF NINF CONN
-        """
-        return np.max(node_data[self.nodes_at_link[self.active_links]], axis=1)
-
     @property
     def unit_vector_sum_xcomponent_at_node(self):
         """Get array of x-component of unit vector sums at each node.
