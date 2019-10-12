@@ -1388,13 +1388,6 @@ class RasterModelGrid(
         for i in range(0, shift):
             data[ncols * i + offset : ncols * (i + 1) - offset] = top_rows_to_move[i, :]
 
-    @deprecated(use="node_has_boundary_neighbor", version=1.0)
-    def has_boundary_neighbor(self, ids, method="d8"):
-        """
-        LLCATS: DEPR NINF CONN BC
-        """
-        return self.node_has_boundary_neighbor(ids, method=method)
-
     def node_has_boundary_neighbor(self, ids, method="d8"):
         """Check if nodes have neighbors that are boundary nodes.
 
