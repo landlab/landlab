@@ -868,9 +868,7 @@ class RasterModelGrid(
         from the field values ***at the time you call this method***. If no
         values are present in the field, the module will complain but accept
         this, warning that it will be unable to automatically update boundary
-        conditions (and such methods, e.g.,
-        ``RasterModelGrid.update_boundary_nodes()``, will raise exceptions
-        if you try).
+        conditions.
 
         The status of links (active or inactive) is automatically updated to
         reflect the changes.
@@ -1152,48 +1150,6 @@ class RasterModelGrid(
                 "Switching a boundary between fixed gradient and looped will "
                 "result in bad BC handling! Bailing out..."
             )
-
-    @deprecated(use="_update_links_nodes_cells_to_new_BCs", version=1.0)
-    def update_boundary_nodes(self):
-        """Update the boundary nodes.
-
-        This method updates all the boundary nodes in the grid field on which
-        they are set (i.e., it updates the field
-        rmg.at_node[rmg.fixed_gradient_node_properties['fixed_gradient_of']]).
-        It currently works only with fixed value (type 1) and fixed gradient
-        (type 2) conditions. Looping must be handled internally to a component,
-        and is not dealt with here.
-
-        LLCATS: DEPR NINF BC
-        """
-        try:
-            self.fixed_value_node_properties["boundary_node_IDs"]
-        except AttributeError:
-            # no fixed value boundaries have been set
-            pass
-        else:
-            assert self.fixed_value_node_properties["internal_flag"], (
-                "Values were not supplied to the method that set the "
-                "boundary conditions! You cant update automatically!"
-            )
-            values_val = self.at_node[
-                self.fixed_value_node_properties["fixed_value_of"]
-            ]
-            values_val[
-                self.fixed_value_node_properties["boundary_node_IDs"]
-            ] = self.fixed_value_node_properties["values"]
-
-        try:
-            values_grad = self.at_node[
-                self.fixed_gradient_node_properties["fixed_gradient_of"]
-            ]
-            values_grad[self.fixed_gradient_node_properties["boundary_node_IDs"]] = (
-                values_grad[self.fixed_gradient_node_properties["anchor_node_IDs"]]
-                + self.fixed_gradient_node_properties["values_to_add"]
-            )
-        except AttributeError:
-            # no fixed grad boundaries have been set
-            pass
 
     # DEJH believes this needs deprecating, but it's pretty hard wired into
     # the flow router. So I've restored it for now.
