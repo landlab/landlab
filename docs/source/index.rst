@@ -119,6 +119,6 @@ You can contact the Landlab development team here:
 
 To keep in touch with the latest Landlab news:
 
--  Get the `Landlab Lookout Newsletter <http://eepurl.com/dADtrT>`_
--  Join the `Landlab Slack channel <landlab.slack.com>`_
+-  Get the `Landlab Lookout Newsletter <https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7>`_
+-  Join the `Landlab Slack channel <https://landlab.slack.com>`_
 -  Landlab is on `Twitter <https://mobile.twitter.com/landlabtoolkit>`_!

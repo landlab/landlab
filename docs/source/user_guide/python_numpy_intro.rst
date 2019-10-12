@@ -27,8 +27,8 @@ Getting to know Python
 We recommend you approach Landlab with a basic working knowledge of the Python
 coding language. A good, concise, complete beginner's guide that will get you
 to enough knowledge to be able to get started can be found
-`at interactivepython <http://interactivepython.org/runestone/static/thinkcspy/GeneralIntro/ThePythonProgrammingLanguage.html>`_.
-We like `the Software Carpentry intro <http://software-carpentry.org/v4/python/>`_
+`at interactivepython <https://runestone.academy/runestone/books/published/thinkcspy/GeneralIntro/ThePythonProgrammingLanguage.html>`_.
+We like `the Software Carpentry intro <https://v4.software-carpentry.org/python/index.html>`_
 and
 `these Python notebooks <https://nbviewer.jupyter.org/github/jrjohansson/scientific-python-lectures/tree/master/>`_
 as more comprehensive introductions to Python.
@@ -39,7 +39,7 @@ utilities—are Python objects, which means they contain both data that describe
 the object and functions that you can call that operate on the object. Think
 of the object as a container in which everything relevant to that part of the
 code is stored, so that it can be accessed easily. You can read a bit more
-about Python objects `on this page <http://learnpythonthehardway.org/book/ex40.html>`_
+about Python objects `on this page <https://learnpythonthehardway.org/book/ex40.html>`_
 for general information. There is more detail on what this means in terms of
 running our code on the :ref:`Build a Model page <build_a_model>`.
 
@@ -84,7 +84,7 @@ the ``**`` operator.
 
 We have a very short tutorial on Python and NumPy from the point of view of
 Landlab (and the key differences with Matlab)
-`here <https://nbviewer.jupyter.org/github/landlab/drivers/blob/master/notebooks/Python_intro.ipynb>`_.
+`here <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=python_intro/python_intro.ipynb>`_.
 
 NumPy, SciPy, and Efficient Coding Style
 ----------------------------------------
@@ -138,7 +138,7 @@ which will be really slow. Do this:
 
 There is much more information about writing efficient NumPy code online. For
 example, `UW's astronomy department has a great online intro
-<http://www.astro.washington.edu/users/vanderplas/Astr599/notebooks/11_EfficientNumpy>`_.
+<http://depts.washington.edu/astron/>`_.
 We also strongly recommend the book "High Performance Python" by Gorelick and
 Ozsvald, published by O'Reilly, if you're looking for a more comprehensive
 treatment.

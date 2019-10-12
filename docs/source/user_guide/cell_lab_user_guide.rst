@@ -423,4 +423,4 @@ Tucker, G. E., Hobley, D. E., Hutton, E., Gasparini, N. M., Istanbulluoglu, E.,
 Adams, J. M., & Nudurupati, S. S. (2016). CellLab-CTS 2015: continuous-time
 stochastic cellular automaton modeling using Landlab. Geoscientific Model
 Development, 9(2), 823-839,
-`doi:10.5194/gmd-9-823-2016 <https://doi.org/10.5194/gmd-9-823-2016>`_.
+`doi:10.5194/gmd-9-823-2016 <https://www.geosci-model-dev.net/9/823/2016/>`_.

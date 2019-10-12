@@ -16,36 +16,36 @@ K.R., Hutton, E.W.H., Hobley, D.E.J., Lyons, N.J., Tucker, G.E.,
 Tarboton, D.G., Idaszak, R., and Wang S. (2019). **Enabling
 collaborative numerical Modeling in Earth sciences using Knowledge
 Infrastructure.** *Environmental Modelling & Software*,
-`doi:10.1016/j.envsoft.2019.03.020 <https://doi.org/10.1016/j.envsoft.2019.03.020>`__.
+`doi:10.1016/j.envsoft.2019.03.020 <https://linkinghub.elsevier.com/retrieve/pii/S1364815219301562>`__.
 
 Barnhart, K. R., Glade, R. C., Shobe, C. M., and Tucker, G. E. (2019)
 **Terrainbento 1.0: a Python package for multi-model analysis in
 long-term drainage basin evolution.** *Geosci. Model Dev.*, v. 12,
-p. 1267-1297, `doi:10.5194/gmd-12-1267-2019 <https://doi.org/10.5194/gmd-12-1267-2019>`__.
+p. 1267-1297, `doi:10.5194/gmd-12-1267-2019 <https://www.geosci-model-dev.net/12/1267/2019/>`__.
 
 Glade, R.C.*, Shobe, C.M.*, Anderson, R.S., and Tucker, G.E. (2019)
 **Canyon shape and erosion dynamics governed by channel-hillslope
 feedbacks.** *Geology*,
-`doi:10.1130/G46219.1 <https://doi.org/10.1130/G46219.1>`__. \*Equal
+`doi:10.1130/G46219.1 <https://pubs.geoscienceworld.org/gsa/geology/article/47/7/650/570313/Canyon-shape-and-erosion-dynamics-governed-by>`__. \*Equal
 contributions
 
 Sharman, G. R., Sylvester, Z., & Covault, J. A. (2019). **Conversion of
 tectonic and climatic forcings into records of sediment supply and
 provenance.** *Scientific Reports*, 9(1), 4115,
-`doi:10.1038/s41598-019-39754-6 <https://doi.org/10.1038/s41598-019-39754-6>`__.
+`doi:10.1038/s41598-019-39754-6 <https://www.nature.com/articles/s41598-019-39754-6>`__.
 
 Zebari, M., Grützner, C., Navabpour, P., & Ustaszewski, K. (2019).
 **Relative timing of uplift along the Zagros Mountain Front Flexure
 (Kurdistan Region of Iraq): Constrained by geomorphic indices and
 landscape evolution modeling.** *Solid Earth*, 10(3), 663-682
-`doi:10.5194/se-10-663-2019 <https://doi.org/10.5194/se-10-663-2019>`__.
+`doi:10.5194/se-10-663-2019 <https://www.solid-earth.net/10/663/2019/>`__.
 
 Phuong J., C. Bandaragoda, E. Istanbulluoglu, C. Beveridge, R. Strauch,
 L. Setiawan, and S. D. Mooney (2019). **Automated retrieval,
 preprocessing, and visualization of gridded hydrometeorology data
 products for spatial-temporal exploratory analysis and
 intercomparison.** Environmental Modeling and Software. Vol 116.
-p. 119-30: https://doi.org/10.1016/j.envsoft.2019.01.007.
+p. 119-30: https://linkinghub.elsevier.com/retrieve/pii/S136481521830865X.
 
 2018
 ````
@@ -53,13 +53,13 @@ p. 119-30: https://doi.org/10.1016/j.envsoft.2019.01.007.
 Barnhart, K. R., Hutton, E. W., Gasparini, N. M., & Tucker, G. E.
 (2018). **Lithology: A Landlab submodule for spatially variable rock
 properties.** *J. Open Source Software*, 3(30), 979,
-`doi:10.21105/joss.00979 <https://doi.org/10.21105/joss.00979>`__
+`doi:10.21105/joss.00979 <https://joss.theoj.org/papers/10.21105/joss.00979>`__
 
 Lai J., and Anders, A. (2018) **Modeled Postglacial Landscape Evolution
 at the Southern Margin of the Laurentide Ice Sheet: Hydrological
 Connection of Uplands Controls the Pace and Style of Fluvial Network
 Expansion.** *Journal of Geophysical Research*, v. 123, no. 5,
-p. 967-984, `doi:10.1029/2017JF004509 <https://doi.org/10.1029/2017JF004509>`__
+p. 967-984, `doi:10.1029/2017JF004509 <https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2017JF004509>`__
 
 Langston, A.L., and Tucker, G. E. (2018) **Developing and exploring a
 theory for the lateral erosion of bedrock channels for use in landscape
@@ -74,7 +74,7 @@ Rasmussen, C., Richardson, P., Swetnam, T.L., and Tucker, G.E. (2018)
 **Which way do you lean? Using slope aspect variations to understand
 Critical Zone processes and feedbacks.** *Earth Surface Processes and
 Landforms*, doi:10.1002/esp.4306.
-`abstract <https://onlinelibrary.\.com/doi/abs/10.1002/esp.4306>`__
+`abstract <https://onlinelibrary.wiley.com/doi/abs/10.1002/esp.4306>`__
 `paper <https://onlinelibrary.wiley.com/doi/epdf/10.1002/esp.4306>`__
 
 Schmid, M., Ehlers, T.A., Werner, C., Hickler, T., and Fuentes-Espoz, J.
@@ -82,19 +82,19 @@ P. (2018). **Effect of changing vegetation and precipitation on
 denudation–Part 2: Predicted landscape response to transient climate and
 vegetation cover over millennial to million-year timescales.** *Earth
 Surface Dynamics*, 6(4), 859-881,
-`doi:10.5194/esurf-6-859-2018 <https://doi.org/10.5194/esurf-6-859-2018>`__.
+`doi:10.5194/esurf-6-859-2018 <https://www.earth-surf-dynam.net/6/859/2018/>`__.
 
 Strauch, R.E., Istanbulluoglu, E., Nudurupati, S.S., Bandaragoda, C.,
 Gasparini, N.M., & Tucker, G.E. (2018) **A hydro-climatological approach
 to predicting regional landslide probability using Landlab.** *Earth
 Surface Dynamics*, v. 6, p. 49-75, doi:10.5194/esurf-6-49-2018.
-`abstract <https://doi.org/10.5194/esurf-6-49-2018>`__
+`abstract <https://www.earth-surf-dynam.net/6/49/2018/>`__
 `paper <https://www.earth-surf-dynam.net/6/49/2018/esurf-6-49-2018.pdf>`__
 
 Tucker, G. E., McCoy, S.W., and Hobley, D.E.J. (2018) **A lattice grain
 model of hillslope evolution.** *Earth Surface Dynamics*, v. 6,
 p. 563-582, doi: 10.5194/esurf-6-563-2018.
-`abstract and paper <https://doi.org/10.5194/esurf-6-563-2018>`__
+`abstract and paper <https://www.earth-surf-dynam.net/6/563/2018/>`__
 
 
 2017
@@ -105,15 +105,15 @@ E.W.H., Nudurupati, S.S., and Istanbulluoglu, E. **The Landlab v1.0
 OverlandFlow component: a Python tool for computing shallow-water flow
 across watersheds.** *Geoscientific Model Development*, 2017,
 doi:10.5194/gmd-10-1645-2017.
-`abstract <http://www.geosci-model-dev.net/10/1645/2017/gmd-10-1645-2017.html>`__
-`paper <http://www.geosci-model-dev.net/10/1645/2017/gmd-10-1645-2017.pdf>`__
+`abstract <https://www.geosci-model-dev.net/10/1645/2017/gmd-10-1645-2017.html>`__
+`paper <https://www.geosci-model-dev.net/10/1645/2017/gmd-10-1645-2017.pdf>`__
 
 Gray, H.J., Shobe, C.M., Hobley, D.E.J., Tucker, G.E., Duvall, A.R.,
 Harbert, S.A., and Owen, L.A. (2017) **Off-fault deformation rate along
 the southern San Andreas fault at Mecca Hills, southern California,
 inferred from landscape modeling of curved drainages.** *Geology*, v.
 46(1), p. 59-62, doi: 10.1130/G39820.1.
-`abstract and paper <https://pubs.geoscienceworld.org/gsa/geology/article/46/1/59/522872/off-fault-deformation-rate-along-the-southern-san>`__
+`abstract and paper <https://pubs.geoscienceworld.org/gsa/geology/article-abstract/46/1/59/522872/Off-fault-deformation-rate-along-the-southern-San?redirectedFrom=fulltext>`__
 
 Hobley, D.E.J., Adams, J.M., Nudurupati, S.S., Hutton, E.W.H, Gasparini,
 N.M., Istanbulluoglu, E., and Tucker, G.E., **Creative computing with
@@ -137,14 +137,14 @@ Tucker, G.E., Hobley, D.E.J., Hutton, E., Gasparini, N.M.,
 Istanbulluoglu, E., Adams, J.M., and Nudurupati, S.S. **CellLab-CTS
 2015: continuous-time stochastic cellular automaton** **modeling using
 Landlab.** *Geoscientific Model Development*, February 2016.
-`abstract <http://www.geosci-model-dev.net/9/823/2016/>`__
-`paper <http://www.geosci-model-dev.net/9/823/2016/gmd-9-823-2016.pdf>`__
+`abstract <https://www.geosci-model-dev.net/9/823/2016/>`__
+`paper <https://www.geosci-model-dev.net/9/823/2016/gmd-9-823-2016.pdf>`__
 
 Wickert, A.D. **Open-source modular solutions for flexural isostasy:
 gFlex v1.0.** *Geoscientific Model Development*, 9, 997-1017,
 doi:10.5194/gmd-9-997-2016, 2016.
-`abstract <http://www.geosci-model-dev.net/9/997/2016/>`__
-`paper <http://www.geosci-model-dev.net/9/997/2016/gmd-9-997-2016.pdf>`__
+`abstract <https://www.geosci-model-dev.net/9/997/2016/>`__
+`paper <https://www.geosci-model-dev.net/9/997/2016/gmd-9-997-2016.pdf>`__
 
 Peer-reviewed conference proceedings
 ------------------------------------
@@ -179,7 +179,7 @@ S., Tucker G.E., (2018). Recent Advances in Landlab, a Software Toolkit
 for Modeling Earth Surface Dynamics. Pardee Keynote Symposia, GSA
 National Meeting, November 4–7, 2018, Indianapolis, IN.
 `abstract <https://gsa.confex.com/gsa/2018AM/webprogram/Paper324626.html>`__
-`poster <https://drive.google.com/open?id=16_hRtF6DsBKQGSHE3E2zkYUwovUQEiVZ>`__
+`poster <https://drive.google.com/file/d/16_hRtF6DsBKQGSHE3E2zkYUwovUQEiVZ/view?usp=drive_open>`__
 
 2017
 ~~~~
@@ -187,7 +187,7 @@ National Meeting, November 4–7, 2018, Indianapolis, IN.
 Adams, J. (2017) Nonsteady flow routing in Landlab: implications for
 modeling watershed evolution, Tulane Science and Engineering Research
 Days, New Orleans, Louisiana, April, 2017.
-` Poster tied for top graduate contribution <http://news.tulane.edu/news/outstanding-researchers-recognized-sse-research-day>`__
+` Poster tied for top graduate contribution <https://news.tulane.edu/news/outstanding-researchers-recognized-sse-research-day>`__
 
 Adams, J.M. (2017) Integrating and applying a 2-D hydrodynamic model in
 a landscape evolution framework. United States Naval Research
@@ -230,7 +230,7 @@ Barnhart, K., Tucker, G., Hobley, D., Hutton, E. (2017) Landlab
 components for surface hydrology: the FlowAccumulator and the
 FlowDirectors, CSDMS Annual Meeting, Modeling Coupled Earth and Human
 Systems - The Dynamic Duo, Boulder, Colorado, May, 2017.
-`abstract <http://csdms.colorado.edu/wiki/Annualmeeting:2017_CSDMS_meeting-053>`__
+`abstract <https://csdms.colorado.edu/wiki/Annualmeeting:2017_CSDMS_meeting-053>`__
 
 Carriere, A., Le Bouteiller, C., Tucker, G., and Naaim, M. (2017,
 April). Modelling the impact of vegetation on marly catchments in the
@@ -254,7 +254,7 @@ Glaubius J., Li, X., Maerker, M. (2017) The Agricultural Terraces Model
 (AgrTerrModel): Exploring Human-Environment Interactions in Terraced
 Landscapes, Modeling Coupled Earth and Human Systems - The Dynamic Duo,
 Boulder, Colorado, May, 2017.
-`abstract <http://csdms.colorado.edu/wiki/Annualmeeting:2017_CSDMS_meeting-005>`__
+`abstract <https://csdms.colorado.edu/wiki/Annualmeeting:2017_CSDMS_meeting-005>`__
 
 Hobley, D.E.J., Sinclair, H.D., Gasparini, N.M., Tucker, G.E., Cowie,
 P.A., Adams\ *, J.M., Hutton, E.W.H., Istanbulluoglu, E., and
@@ -266,7 +266,7 @@ Langston, A., Tucker, G. (2017) Using a landscape evolution model to
 evaluate the role of pulses of uplift on bedrock valley width and
 channel mobility, Modeling Coupled Earth and Human Systems - The Dynamic
 Duo, Boulder, Colorado, May, 2017.
-`abstract <http://csdms.colorado.edu/wiki/Annualmeeting:2017_CSDMS_meeting-128>`__
+`abstract <https://csdms.colorado.edu/wiki/Annualmeeting:2017_CSDMS_meeting-128>`__
 
 Langston, A.L., and Tucker, G.E. (2017, December) Working Towards
 Interpreting Strath Terraces as Records of Climate Change: Evaluating a
@@ -277,20 +277,20 @@ Lyons, N., Gasparini, N. (2017) Numerical simulations of transient
 landscape adjustment along the Mendocino Triple Junction, CSDMS Annual
 Meeting, Modeling Coupled Earth and Human Systems - The Dynamic Duo,
 Boulder, Colorado, May, 2017.
-`abstract <http://csdms.colorado.edu/wiki/Annualmeeting:2017_CSDMS_meeting-014>`__
+`abstract <https://csdms.colorado.edu/wiki/Annualmeeting:2017_CSDMS_meeting-014>`__
 
 Nudurupati, S.S., Istanbulluoglu, E., Adams, J., Hobley, D., Gasparini,
 N., Tucker, G., Hutton, E., Studying the Role of Disturbances on Woody
 Plant Encroachment in Southwestern US using a Coupled Landlab
 Ecohydrology Model, Modeling Coupled Earth and Human Systems - The
 Dynamic Duo, Boulder, Colorado, May, 2017.
-`abstract <http://csdms.colorado.edu/wiki/Annualmeeting:2017_CSDMS_meeting-019>`__
+`abstract <https://csdms.colorado.edu/wiki/Annualmeeting:2017_CSDMS_meeting-019>`__
 
 Shobe, C.M., Tucker, G.E., Barnhart, K.R. (2017) Exploring river
 response to tectonic perturbations with the open source, 2-D SPACE
 model, GSA annual meeting, Seattle, Washington, October 2017.
 `abstract <https://gsa.confex.com/gsa/2017AM/webprogram/Paper296922.html>`__
-`poster <https://doi.org/10.6084/m9.figshare.5547637>`__
+`poster <https://figshare.com/articles/_/5547637>`__
 
 Tucker, G.E. (2017, July) Some community resources for modeling
 critical-zone dynamics. Webinar presented to Cross-CZO Modeling Series.
@@ -352,8 +352,8 @@ Lai, J., and Anders, A.M. (2016) Numerical modeling of the evolution of
 fluvial networks on glaciated landscapes. Poster presented at AGU Fall
 Meeting, San Francisco, California, December 2016.
 `abstract <https://agu.confex.com/agu/fm16/meetingapp.cgi/Paper/168276>`__
-`poster <images/JingtaoLai_AGU_2016.jpg>`__
-`dowload poster PDF <images/JingtaoLai_AGU_2016.pdf>`__
+:download:`poster <images/JingtaoLai_AGU_2016.jpg>`
+:download:`dowload poster PDF <images/JingtaoLai_AGU_2016.pdf>`
 
 Lynch, B., Yanites, B., Shen, H., and Poulsen, C.J. (2016) Modeling
 Landscape Evolution and Climate: How Erosion and Precipitation are
@@ -384,16 +384,16 @@ Istanbulluoglu, E., and Nudurupati, S.S. (2016) Integrating a 2-D
 hydrodynamic model into the Landlab modeling framework. Paper presented
 at CSDMS Annual Meeting: Capturing Climate Change, Boulder, Colorado,
 May 2016.
-`abstract <https://csdms.colorado.edu/wiki/Meeting:Abstract_2016_jointed_SEN-CSDMS_meeting-086>`__
+`abstract <https://csdms.colorado.edu/wiki/Presenters-0078>`__
 
 Nudurupati, S.S., Istanbulluoglu, E., Adams, J.M., Hobley, D.,
 Gasparini, N.M., Tucker, G.E., and Hutton, E.W.H. (2016) Mechanisms of
 Shrub Encroachment explored in Southwestern United States using Landlab
 Ecohydrology. Poster presented at CSDMS Annual Meeting: Capturing
 Climate Change, Boulder, Colorado, May 2016.
-`abstract <https://csdms.colorado.edu/wiki/Meeting:Abstract_2016_jointed_SEN-CSDMS_meeting-108>`__
-`poster <images/SaiNudurupati_CSDMS_2016.jpg>`__
-`dowload poster PDF <images/SaiNudurupati_CSDMS_2016.pdf>`__
+`abstract <https://csdms.colorado.edu/wiki/CSDMS_2016_annual_meeting_poster_SaiSiddharthaNudurupati>`__
+:download:`poster <images/SaiNudurupati_CSDMS_2016.jpg>`
+:download:`dowload poster PDF <images/SaiNudurupati_CSDMS_2016.pdf>`
 
 Nudurupati, S.S. (2016) Are All Forest Fires Evil? Lightning talk
 presented at the Puget Sound Programming Python (PuPPy) monthly meetup,
@@ -405,8 +405,8 @@ new, open-source, modular, Python-based tool for modeling Earth surface
 dynamics. Poster presented at EGU General Assembly Meeting, Vienna,
 Austria, April 2016.
 `abstract <http://meetingorganizer.copernicus.org/EGU2016/EGU2016-9981.pdf>`__
-`poster <images/EGU_poster_2016.jpg>`__
-`pdf download <images/EGU_poster_2016.pdf>`__
+:download:`poster <images/EGU_poster_2016.jpg>`
+:download:`pdf download <images/EGU_poster_2016.pdf>`
 
 Hobley, D., Gasparini, N.M., and Tucker, G.E. (2016) Tools-and-cover
 effects in transiently responding mountain rivers: hallmarks and
@@ -419,17 +419,16 @@ Istanbulluoglu, E., and Nudurupati, S.S. (2016) Landlab: A numerical
 modeling framework for evolving Earth surfaces from mountains to the
 coast. Paper presented at the Ocean Sciences Meeting, New Orleans, LA,
 Feb 2016.
-`abstract <http://bit.ly/1nhjAXS>`__
-`poster <images/Landlab_OceanSciences2016.jpg>`__
+`abstract <https://agu.confex.com/agu/os16/meetingapp.cgi/Paper/87020>`__
+:download:`poster <images/Landlab_OceanSciences2016.jpg>`
 
 Tucker, G.E., Hobley, D.E.J., Gasparini, N.M., Adams, J.M., Nudurupati,
 S.S., Istanbulluoglu, E., Hutton, E.W.H., and Knuth, J.S. (2016)
 Landlab: A Python library for building and coupling 2D numerical models.
 Paper presented at the SI2 Principal Investigators Meeting, Arlington,
 VA, Feb 2016.
-`poster on SuaVE <http://maxim.ucsd.edu/suave/index.html?file=si2n.cxml>`__
-`poster <images/si2pi_landlab_poster_tucker.jpg>`__
-`download poster <images/si2pi_landlab_poster_tucker.pdf>`__
+:download:`poster <images/si2pi_landlab_poster_tucker.jpg>`
+:download:`download poster <images/si2pi_landlab_poster_tucker.pdf>`
 
 2015
 ````
@@ -439,22 +438,22 @@ Nudurupati, S.S., and Istanbulluoglu, E. (2015) Modeling overland
 flow-driven erosion across a watershed DEM using the Landlab modeling
 framework. Paper presented at American Geophysical Union fall meeting,
 San Francisco, CA, Dec 2015.
-`abstract <http://bit.ly/1I4uLgN>`__
-`poster <images/Adams_2015_AGUPoster_H13C-1542.jpg>`__
-` video <https://www.youtube.com/watch?v=4Ltr6HRUrQI>`__
+`abstract <https://agu.confex.com/agu/fm15/meetingapp.cgi/Paper/75514>`__
+:download:`poster <images/Adams_2015_AGUPoster_H13C-1542.jpg>`
+:download:` video <https://www.youtube.com/watch?v=4Ltr6HRUrQI>`
 
 Nudurupati, S.S., Istanbulluoglu, E., Adams, J.M., Hobley, D.,
 Gasparini, N.M., Tucker, G.E., and Hutton, E.W.H. (2015) Elevation
 Control on Vegetation Organization in a Semiarid Ecosystem in Central
 New Mexico. Paper presented at American Geophysical Union fall meeting,
 San Francisco, CA, Dec 2015.
-`abstract <http://bit.ly/1NPAuY5>`__
-`poster <images/Sai_AGU_2015.jpg>`__
+`abstract <https://agu.confex.com/agu/fm15/meetingapp.cgi/Paper/80794>`__
+:download:`poster <images/Sai_AGU_2015.jpg>`
 
 Strauch, R., Istanbulluoglu, E., and Nudurupati, S.S. (2015) Landslide
 Hazard from Coupled Inherent and Dynamic Probabilities. Paper presented
 at American Geophysical Union fall meeting, San Francisco, CA, Dec 2015.
-`abstract <http://bit.ly/1P5ct05>`__
+`abstract <https://agu.confex.com/agu/fm15/meetingapp.cgi/Paper/85607>`__
 
 2014
 ````
@@ -464,8 +463,8 @@ S.S., Istanbulluoglu, E., and Hutton, E. (2014) Exploring Post-Wildfire
 Hydrologic Response in Central Colorado Using Field Observations and the
 Landlab Modeling Framework. Paper presented at American Geophysical
 Union Fall Meeting, San Francisco, Dec 2014.
-`abstract <http://bit.ly/1ShbZ9d>`__
-`poster <images/Adams_AGU_2014_Poster_small.jpg>`__
+`abstract <https://abstractsearch.agu.org/meetings/2014/FM/EP51E-3562.html>`__
+:download:`poster <images/Adams_AGU_2014_Poster_small.jpg>`
 
 Gasparini, N.M., Hobley, D.E.J., Tucker, G.E., Istanbulluoglu, E.,
 Adams, J.M., Nudurupati, S.S., and Hutton, E. (2014) A Comparison of the
@@ -473,7 +472,7 @@ CHILD and Landlab Computational Landscape Evolution Models and Examples
 of Best Practices in Numerical Modeling of Surface Processes. Paper
 presented at American Geophysical Union Fall Meeting, San Francisco, Dec
 2014.
-`abstract <http://bit.ly/1OpODIf>`__
+`abstract <https://abstractsearch.agu.org/meetings/2014/FM/EP51E-3564.html>`__
 
 Hobley, D.E.J., Sinclair, H., Gasparini, N.M., Tucker, G.E., Cowie, P.,
 Adams, J.M., Hutton, E., Istanbulluoglu, E., and Nudurupati, S.S. (2014)
@@ -501,8 +500,8 @@ E., Hobley, D., and Nudurupati, S.S. (2014) Modeling hydrologic and
 erosional responses of landscapes to fire using the Landlab modeling
 environment. 2014: Community Surface Dynamics Modeling System Annual
 Meeting, Boulder, Colorado, May 2014.
-`abstract <http://bit.ly/1RkIK55>`__
-`poster <http://bit.ly/1RkIT8y>`__
+`abstract <https://csdms.colorado.edu/wiki/CSDMS_2014_annual_meeting_poster_Jordan_Adams>`__
+`poster <https://csdms.colorado.edu/mediawiki/images/CSDMS2014_poster_JordanAdams.pdf>`__
 
 2013
 ````
@@ -512,7 +511,7 @@ E., Hobley, D., and Nudurupati, S.S. (2013) Modeling wildfire and
 hydrologic response to global climate change using the Landlab numerical
 model. Paper presented at American Geophysical Union Fall Meeting, San
 Francisco, Dec 2013.
-`abstract <http://bit.ly/1UNcDJ9>`__
+`abstract <https://abstractsearch.agu.org/meetings/2013/FM/GC21C-0847.html>`__
 
 Hobley, D.E.J., Tucker, G.E., Adams, J.M., Gasparini, N.M., Hutton, E.,
 Istanbulluoglu, E., and Nudurupati, S.S. (2013) Modeling impact

@@ -238,8 +238,9 @@ no cells around the edge of a grid, there are fewer cells than nodes:
 As you can see, fields are convenient because you don't have to keep track of how many nodes, links, cells, etc.
 there are on the grid. It is easy for any part of the code to query what data are already associated with the grid and operate on these data.
 
-You are free to call your fields whatever you want. However, field names are more useful if standardized across components. If you are writing a Landlab component
-you should use `Landlab's standard names <component_standard_names>`_.
+You are free to call your fields whatever you want. However, field names are
+more useful if standardized across components. If you are writing a Landlab component
+you should use :ref:`Landlab's standard names <component_standard_names>`.
 Standard names for fields in a particular component can be
 accessed individually through the properties
 *component_instance._input_var_names* and *component_instance._output_var_names*
@@ -265,7 +266,7 @@ However, note that, for ease of use and readability, Landlab standard
 names are typically much shorter than CSDMS standard names. We anticipate that future
 Landlab versions will be able to automatically map from Landlab standard names to CSDMS
 standard names as part of Landlab's built-in `Basic Model Interface for CSDMS
-compatibility <http://csdms.colorado.edu/wiki/BMI_Description>`_.
+compatibility <https://csdms.colorado.edu/wiki/BMI_Description>`_.
 
 The following gives an overview of the commands you can use to interact with the grid fields.
 
@@ -346,7 +347,7 @@ evaluated between pairs of adjacent nodes. ModelGrid makes these calculations
 easier for programmers by providing built-in functions to calculate gradients
 along links and allowing applications to associate an array of gradient values
 with their corresponding links or edges. The `tutorial examples
-<https://nbviewer.jupyter.org/github/landlab/tutorials/tree/master/>`_
+<https://mybinder.org/v2/gh/landlab/tutorials/release>`_
 illustrate how this capability can be used to create models of processes
 such as diffusion and overland flow.
 
@@ -455,7 +456,7 @@ is one that joins either two core nodes, or one *core* and one
 *open boundary* node (Figure 3). You can use this
 distinction in models to implement closed boundaries by performing flow
 calculations only on active links, as seen in `this tutorial
-<https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/fault_scarp_notebook/landlab-fault-scarp.ipynb>`_.
+<https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=fault_scarp_notebook/landlab-fault-scarp.ipynb>`_.
 
 
 .. _bc_details:

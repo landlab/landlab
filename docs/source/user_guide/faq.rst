@@ -145,7 +145,7 @@ The way to do this is:
 How do I modify boundary conditions for part of the grid where I know the coordinates?
 --------------------------------------------------------------------------------------
 
-See `this tutorial <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/boundary_conds/set_BCs_from_xy.ipynb>`_.
+See `this tutorial <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=boundary_conds/set_BCs_from_xy.ipynb>`_.
 
 I am having trouble installing Landlab on Ubuntu without Anaconda. What is the fix?
 -----------------------------------------------------------------------------------

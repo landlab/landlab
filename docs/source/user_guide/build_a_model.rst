@@ -271,7 +271,7 @@ explicit timestep is varying (e.g., a storm sequence). (For more on time steps i
 Landlab also however has a built in storm generator component,
 :py:class:`PrecipitationDistribution<landlab.components.uniform_precip.PrecipitationDistribution>`,
 which (as its name suggests) acts as a true `Python generator
-<http://www.python-course.eu/generators.php>`_. The main method is
+<https://www.python-course.eu/generators.php>`_. The main method is
 :py:func:`yield_storm_interstorm_duration_intensity <landlab.components.uniform_precip.PrecipitationDistribution.yield_storm_interstorm_duration_intensity>`.
 This means producing a storm series in Landlab is also very easy:
 
@@ -288,7 +288,7 @@ This means producing a storm series in Landlab is also very easy:
 Notice that the advantage of the generator is that it just stops when the
 desired number of events/time duration has expired! See the end of `this
 tutorial
-<https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/component_tutorial/component_tutorial.ipynb>`_
+<https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=component_tutorial/component_tutorial.ipynb>`_
 for an example of this generator in action.
 
 What exactly "…do the thing" consists of is up to you. You can either design

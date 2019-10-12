@@ -25,12 +25,12 @@ Landlab components exist as classes, and can be imported from
 To develop your own Landlab component, see
 :ref:`this page <dev_contributing>`
 and
-`this tutorial <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/making_components/making_components.ipynb>`_.
+`this tutorial <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=making_components/making_components.ipynb>`_.
 
 Component Library Tutorial
 ----------------------------
 For a tutorial introduction to using the component library, see
-`here <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/master/component_tutorial/component_tutorial.ipynb>`_.
+`here <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=component_tutorial/component_tutorial.ipynb>`_.
 
 Available Landlab components
 ----------------------------
