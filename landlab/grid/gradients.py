@@ -8,7 +8,6 @@ Gradient calculation functions
     :toctree: generated/
 
     ~landlab.grid.gradients.calc_grad_at_link
-    ~landlab.grid.gradients.calculate_diff_at_links
     ~landlab.grid.gradients.calculate_diff_at_active_links
 
 """
@@ -113,33 +112,6 @@ def calc_diff_at_link(grid, node_values, out=None):
         node_values[grid.node_at_link_tail],
         out=out,
     )
-
-
-@deprecated(use="calc_diff_at_link", version="1.0beta")
-@use_field_name_or_array("node")
-def calculate_diff_at_links(grid, node_values, out=None):
-    """Calculate differences of node values over links.
-
-    Examples
-    --------
-    >>> import pytest
-    >>> import numpy as np
-    >>> from landlab import RasterModelGrid
-
-    >>> grid = RasterModelGrid((3, 3))
-    >>> z = np.zeros(9)
-    >>> z[4] = 1.
-
-    >>> with pytest.deprecated_call():
-    ...     grid.calculate_diff_at_links(z)
-    array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
-
-    >>> grid.calc_diff_at_link(z)
-    array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
-
-    LLCATS: DEPR LINF GRAD
-    """
-    return calc_diff_at_link(grid, node_values, out)
 
 
 @deprecated(use="calc_diff_at_link", version="1.0beta")
