@@ -8,7 +8,6 @@ Gradient calculation functions
     :toctree: generated/
 
     ~landlab.grid.gradients.calc_grad_at_link
-    ~landlab.grid.gradients.calculate_gradients_at_faces
     ~landlab.grid.gradients.calculate_diff_at_links
     ~landlab.grid.gradients.calculate_diff_at_active_links
 
@@ -69,60 +68,6 @@ def calc_grad_at_link(grid, node_values, out=None):
     return np.divide(
         node_values[grid.node_at_link_head] - node_values[grid.node_at_link_tail],
         grid.length_of_link,
-        out=out,
-    )
-
-
-@deprecated(use="calc_grad_at_link", version="1.0beta")
-@use_field_name_or_array("node")
-def calculate_gradients_at_faces(grid, node_values, out=None):
-    """Calculate gradients of node values over faces.
-
-    Calculate and return gradient in *node_values* at each face in the grid.
-    Gradients are calculated from the nodes at either end of the link that
-    crosses each face.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A ModelGrid.
-    node_values : ndarray or field name
-        Values at grid nodes.
-    out : ndarray, optional
-        Buffer to hold the result.
-
-    Returns
-    -------
-    ndarray (x number of faces)
-        Gradients across faces.
-
-    Examples
-    --------
-    >>> from landlab import RasterModelGrid
-    >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
-    >>> z[5] = 50.0
-    >>> z[6] = 36.0
-    >>> calculate_gradients_at_faces(rg, z)  # there are 7 faces
-    array([ 5. ,  3.6,  5. , -1.4, -3.6, -5. , -3.6])
-
-    >>> from landlab import HexModelGrid
-    >>> hg = HexModelGrid((3, 3), spacing=10.0)
-    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
-    >>> z[4] = 50.0
-    >>> z[5] = 36.0
-    >>> calculate_gradients_at_faces(hg, z)  # there are 11 faces
-    array([ 5. ,  5. ,  3.6,  3.6,  5. , -1.4, -3.6, -5. , -5. , -3.6, -3.6])
-
-    LLCATS: DEPR GRAD
-    """
-    if out is None:
-        out = grid.empty(at="face")
-    laf = grid.link_at_face
-    return np.divide(
-        node_values[grid.node_at_link_head[laf]]
-        - node_values[grid.node_at_link_tail[laf]],
-        grid.length_of_link[laf],
         out=out,
     )
 
