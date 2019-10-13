@@ -140,11 +140,6 @@ class StructuredQuadGrid(BaseGrid):
         return self.shape[0]
 
     @property
-    @deprecated(use="nodes_at_corners_of_grid", version=1.0)
-    def corner_nodes(self):
-        return self.nodes_at_corners_of_grid
-
-    @property
     def nodes_at_corners_of_grid(self):
         """Nodes in grid corners.
 
