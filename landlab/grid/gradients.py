@@ -8,7 +8,6 @@ Gradient calculation functions
     :toctree: generated/
 
     ~landlab.grid.gradients.calc_grad_at_link
-    ~landlab.grid.gradients.calculate_diff_at_active_links
 
 """
 
@@ -16,7 +15,7 @@ import numpy as np
 
 from landlab.core.utils import radians_to_degrees
 from landlab.grid.base import CLOSED_BOUNDARY
-from landlab.utils.decorators import deprecated, use_field_name_or_array
+from landlab.utils.decorators import use_field_name_or_array
 
 
 @use_field_name_or_array("node")
@@ -112,37 +111,6 @@ def calc_diff_at_link(grid, node_values, out=None):
         node_values[grid.node_at_link_tail],
         out=out,
     )
-
-
-@deprecated(use="calc_diff_at_link", version="1.0beta")
-@use_field_name_or_array("node")
-def calculate_diff_at_active_links(grid, node_values, out=None):
-    """Calculate differences of node values over active links.
-
-    Calculates the difference in quantity *node_values* at each active link
-    in the grid.
-
-    Parameters
-    ----------
-    grid : ModelGrid
-        A ModelGrid.
-    node_values : ndarray or field name
-        Values at grid nodes.
-    out : ndarray, optional
-        Buffer to hold the result.
-
-    Returns
-    -------
-    ndarray
-        Differences across active links.
-
-    LLCATS: DEPR LINF GRAD
-    """
-    if out is None:
-        out = np.empty(len(grid.active_links), dtype=float)
-    node_values = np.asarray(node_values)
-    node_values = node_values[grid.nodes_at_link[grid.active_links]]
-    return np.subtract(node_values[:, 1], node_values[:, 0], out=out)
 
 
 def calc_unit_normal_at_patch(grid, elevs="topographic__elevation"):
