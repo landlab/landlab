@@ -9,7 +9,7 @@ notebooks <https://ipython.org/notebook.html>`_ that are both
 unexpanded (so you can run them in an IPython notebook viewer) and
 expanded (so you can read them like a regular text tutorial) along with
 code examples. Landlab's tutorials repo can also be accessed from
-`nbviewer <https://mybinder.org/v2/gh/landlab/tutorials/release>`_.
+`Binder <https://mybinder.org/v2/gh/landlab/tutorials/release>`_.
 
 IPython notebook tutorials
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

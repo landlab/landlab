@@ -120,7 +120,7 @@ are some options:
 (4) ...
 
 Look at this
-`Tutorial <https://nbviewer.jupyter.org/github/landlab/tutorials/blob/release/mappers/mappers.ipynb>`_
+`Tutorial <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=file=mappers/mappers.ipynb>`_
 for all the Landlab mappers
 
 How do I test whether my grid is regular or irregular?
