@@ -281,6 +281,24 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Values at faces.
     at_grid: dict-like
         Global values
+    BAD_INDEX_VALUE : int
+        Indicates a grid element is undefined. 
+    BC_NODE_IS_CORE : int
+        Indicates a node is *core*.
+    BC_NODE_IS_FIXED_VALUE : int
+        Indicates a boundary node has a fixed value.
+    BC_NODE_IS_FIXED_GRADIENT : int
+        Indicates a boundary node has a fixed gradient.
+    BC_NODE_IS_LOOPED : int
+        Indicates a boundary node is wrap-around.
+    BC_NODE_IS_CLOSED : int
+        Indicates a boundary node is closed
+    BC_LINK_IS_ACTIVE : int
+        Indicates a link is *active*, and can carry flux.
+    BC_LINK_IS_FIXED : int
+        Indicates a link has a fixed gradient value, and behaves as a boundary
+    BC_LINK_IS_INACTIVE : int
+        Indicates a link is *inactive*, and cannot carry flux.
 
     Other Parameters
     ----------------
@@ -289,6 +307,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     axis_units : tuple, optional
         Units of coordinates
     """
+
+    # Bad index value
+    BAD_INDEX_VALUE = BAD_INDEX_VALUE
 
     #: Indicates a node is *core*.
     BC_NODE_IS_CORE = CORE_NODE

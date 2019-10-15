@@ -68,13 +68,12 @@ It's also possible to set the boundary conditions "by hand", if you know the ID 
 
 .. code-block:: python
 
-  from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
   mynodes_to_close = z < 0.  # if z is some elevation field
-  grid.status_at_node[mynodes_to_close] = CLOSED_BOUNDARY
+  grid.status_at_node[mynodes_to_close] = grid.BC_NODE_IS_CLOSED
   my_fixed_node = mg.find_nearest_node((1.2, 2.3))
   my_fixed_node
   9
-  grid.status_at_node[my_fixed_node] = FIXED_VALUE_BOUNDARY  # to fix the node closest to (1.2, 2.3)
+  grid.status_at_node[my_fixed_node] = grid.BC_NODE_IS_FIXED_GRADIENT  # to fix the node closest to (1.2, 2.3)
 
 See also:
 

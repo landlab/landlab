@@ -225,18 +225,15 @@ change concomitantly. For example
 
   .. code-block:: python
 
-    # import the BC values we'll need:
-    from landlab import FIXED_LINK, FIXED_GRADIENT_BOUNDARY
     # find the ID of the lowest elevation core node.
     # we'll make this a fixed gradient outlet:
     outlet_id = mg.core_nodes[np.argmin(mg.at_node['topographic__elevation'][mg.core_nodes])]
-    # show there are no FIXED_LINK boundary conditions in the grid yet:
-    np.any(mg.status_at_link==FIXED_LINK)
-    e
+    # show there are no links with *mg.BC_LINK_IS_FIXED* boundary conditions
+    in the grid yet:
+    np.any(mg.status_at_link==mg.BC_LINK_IS_FIXED)
     # update the outlet node:
-    mg.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
-    np.any(mg.status_at_link==FIXED_LINK)
-
+    mg.status_at_node[outlet_id] = mg.BC_LINK_IS_FIXED
+    np.any(mg.status_at_link==mg.BC_LINK_IS_FIXED)
     # the corresponding link has been automatically updated.
 
 5. Run the model

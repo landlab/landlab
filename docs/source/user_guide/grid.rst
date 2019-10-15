@@ -465,13 +465,14 @@ Boundary condition details and methods
 --------------------------------------
 
 A call to mg.node_status returns the codes representing the boundary condition
-of each node in the grid. There are 5 possible types:
+of each node in the grid. There are 5 possible types, they are stored on the
+model grid:
 
-* CORE_NODE (Type 0)
-* FIXED_VALUE_BOUNDARY (Type 1)
-* FIXED_GRADIENT_BOUNDARY (Type 2)
-* TRACKS_CELL_BOUNDARY (Type 3, used for looped boundaries)
-* CLOSED_BOUNDARY (Type 4)
+* mg.BC_NODE_IS_CORE (Type 0)
+* mg.BC_NODE_IS_FIXED_VALUE (Type 1)
+* mg.BC_NODE_IS_FIXED_GRADIENT (Type 2)
+* mg.BC_NODE_IS_LOOPED (Type 3, used for looped boundaries)
+* mg.BC_NODE_IS_CLOSED (Type 4)
 
 A number of different methods are available to you to interact with (i.e., set and
 update) boundary conditions at nodes. Landlab is smart enough to automatically
@@ -508,12 +509,11 @@ alongside these changes automatically:
 
 .. code-block:: python
 
-    from landlab import CLOSED_BOUNDARY
     mg = RasterModelGrid((5,5))
     mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
     mg.number_of_active_links
     18
-    mg.status_at_node[[6, 8]] = CLOSED_BOUNDARY
+    mg.status_at_node[[6, 8]] = mg.BC_NODE_IS_CLOSED
     mg.status_at_node.reshape((5,5))
     array([[4, 4, 4, 4, 4],
            [1, 4, 0, 4, 1],

@@ -123,16 +123,30 @@ This example assumes that the model users knows the following information: the n
 Step 3. Setting the boundary conditions
 ```````````````````````````````````````
 
-Landlab contains several methods which can set and update boundary conditions at *node* and *link* grid elements. When modeling water flow across a grid, a user needs to predetermine locations where water can and cannot flow. If a user reads in a single watershed DEM, (as described in **Step 2**), there is a utility within Landlab that can handle the specific boundary conditions needed to control flow:
+Landlab contains several methods which can set and update boundary conditions
+at *node* and *link* grid elements. When modeling water flow across a grid, a
+user needs to predetermine locations where water can and cannot flow. If a user
+reads in a single watershed DEM, (as described in **Step 2**), there is a
+utility within Landlab that can handle the specific boundary conditions needed
+to control flow:
 
 .. code-block:: python
 
 	rmg.set_watershed_boundary_condition(z, nodata_values=-9999.)
 
-By definition, a watershed has only one outlet, or open boundary location, and therefore all other nodes surrounding the watershed will be closed, or no flux, boundaries.
-The ``set_watershed_boundary_condition()`` method reads the gridded elevation data, (``z``), identifies the watershed outlet and sets it to an open boundary (also called a ``FIXED_VALUE_BOUNDARY`` in Landlab).  An open boundary allows flux to leave the modeling domain.  Additionally, this methods also identifies all NODATA nodes (given a default value of -9999) and sets them to closed, or no flux, boundaries.
+By definition, a watershed has only one outlet, or open boundary location,
+and therefore all other nodes surrounding the watershed will be closed, or
+no flux, boundaries.
+The ``set_watershed_boundary_condition()`` method reads the gridded elevation
+data, (``z``), identifies the watershed outlet and sets it to an open boundary
+(identified by the grid attribute ``grid.BC_NODE_IS_FIXED_VALUE`` in Landlab).
+An open boundary allows flux to leave the modeling domain.  Additionally, this
+methods also identifies all NODATA nodes (given a default value of -9999) and
+sets them to closed, or no flux, boundaries.
 
-**Note**: As of Landlab version 1.0.0., this method only works on single watersheds, and so assumes that the watershed has been clipped in ArcGIS and has only one outlet point.
+**Note**: As of Landlab version 1.0.0., this method only works on single
+watersheds, and so assumes that the watershed has been clipped in ArcGIS and
+has only one outlet point.
 
 Other boundary condition options
 ................................
