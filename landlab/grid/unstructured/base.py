@@ -1,7 +1,5 @@
 import numpy as np
 
-from landlab.utils.decorators import deprecated
-
 from .cells import CellGrid
 from .links import LinkGrid, _split_link_ends, find_active_links
 from .nodes import NodeGrid

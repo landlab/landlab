@@ -1,8 +1,5 @@
 #! /usr/bin/env python
 """Calculate slope aspects on a :any:`RasterModelGrid`."""
-import numpy as np
-
-from landlab.utils.decorators import deprecated
 
 
 def _one_line_slopes(input_array, grid, vals):

@@ -12,8 +12,6 @@ from landlab import (
     RasterModelGrid,
     VoronoiDelaunayGrid,
 )
-from landlab.grid.hex import from_dict as hex_from_dict
-from landlab.grid.raster import from_dict as raster_from_dict
 
 
 def test_raster_from_file():

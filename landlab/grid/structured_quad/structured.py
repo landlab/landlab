@@ -20,8 +20,6 @@ array([ 0,  4, 15, 19])
 """
 import numpy as np
 
-from landlab.utils.decorators import deprecated
-
 from ..base import FIXED_VALUE_BOUNDARY
 from ..unstructured.base import BaseGrid
 from . import cells as quad_cells, faces as quad_faces, links as quad_links, nodes
