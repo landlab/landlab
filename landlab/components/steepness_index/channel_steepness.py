@@ -18,13 +18,13 @@ class SteepnessFinder(Component):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, FastscapeEroder
     >>> from landlab.components import SteepnessFinder
     >>> mg = RasterModelGrid((3, 10), xy_spacing=100.)
     >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
     ...               mg.nodes_at_top_edge):
-    ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+    ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
     >>> _ = mg.add_zeros('node', 'topographic__elevation')
     >>> mg.at_node['topographic__elevation'][mg.core_nodes] = mg.node_x[
     ...     mg.core_nodes]/1000.
@@ -289,13 +289,13 @@ class SteepnessFinder(Component):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> mg = RasterModelGrid((4,5), xy_spacing=(10., 5.))
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
-        ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
-        >>> mg.status_at_node[[6, 12, 13, 14]] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
+        >>> mg.status_at_node[[6, 12, 13, 14]] = mg.BC_NODE_IS_CLOSED
         >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
@@ -336,12 +336,12 @@ class SteepnessFinder(Component):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> mg = RasterModelGrid((3,10), xy_spacing=(10., 5.))
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
-        ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x**1.1)
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
@@ -415,13 +415,13 @@ class SteepnessFinder(Component):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> from landlab.components import SteepnessFinder
         >>> mg = RasterModelGrid((3,10), xy_spacing=(10., 5.))
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
-        ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
@@ -517,13 +517,13 @@ class SteepnessFinder(Component):
         Make a topographic map with an overlay of steepness values:
 
         >>> from landlab import imshow_grid_at_node
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator, FastscapeEroder
         >>> from landlab.components import SteepnessFinder
         >>> mg = RasterModelGrid((5, 5), xy_spacing=100.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
-        ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> _ = mg.add_zeros('node', 'topographic__elevation')
         >>> mg.at_node['topographic__elevation'][mg.core_nodes] = mg.node_x[
         ...     mg.core_nodes]/1000.

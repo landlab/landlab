@@ -64,7 +64,6 @@ class FastscapeEroder(Component):
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
     >>> from landlab.components import FlowAccumulator, FastscapeEroder
 
     >>> grid = RasterModelGrid((5, 5), xy_spacing=10.)
@@ -88,10 +87,10 @@ class FastscapeEroder(Component):
     >>> grid = RasterModelGrid((3, 7), xy_spacing=1.)
     >>> z = np.array(grid.node_x ** 2.)
     >>> z = grid.add_field('topographic__elevation', z, at='node')
-    >>> grid.status_at_node[grid.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY
-    >>> grid.status_at_node[grid.nodes_at_top_edge] = CLOSED_BOUNDARY
-    >>> grid.status_at_node[grid.nodes_at_bottom_edge] = CLOSED_BOUNDARY
-    >>> grid.status_at_node[grid.nodes_at_right_edge] = CLOSED_BOUNDARY
+    >>> grid.status_at_node[grid.nodes_at_left_edge] = grid.BC_NODE_IS_FIXED_VALUE
+    >>> grid.status_at_node[grid.nodes_at_top_edge] = grid.BC_NODE_IS_CLOSED
+    >>> grid.status_at_node[grid.nodes_at_bottom_edge] = grid.BC_NODE_IS_CLOSED
+    >>> grid.status_at_node[grid.nodes_at_right_edge] = grid.BC_NODE_IS_CLOSED
     >>> fr = FlowAccumulator(grid, flow_director='D8')
     >>> sp = FastscapeEroder(grid, K_sp=0.1, m_sp=0., n_sp=2.,
     ...                      threshold_sp=2.)
@@ -104,10 +103,10 @@ class FastscapeEroder(Component):
     >>> grid = RasterModelGrid((3, 7), xy_spacing=1.)
     >>> z = np.array(grid.node_x ** 2.)
     >>> z = grid.add_field('topographic__elevation', z, at='node')
-    >>> grid.status_at_node[grid.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY
-    >>> grid.status_at_node[grid.nodes_at_top_edge] = CLOSED_BOUNDARY
-    >>> grid.status_at_node[grid.nodes_at_bottom_edge] = CLOSED_BOUNDARY
-    >>> grid.status_at_node[grid.nodes_at_right_edge] = CLOSED_BOUNDARY
+    >>> grid.status_at_node[grid.nodes_at_left_edge] = grid.BC_NODE_IS_FIXED_VALUE
+    >>> grid.status_at_node[grid.nodes_at_top_edge] = grid.BC_NODE_IS_CLOSED
+    >>> grid.status_at_node[grid.nodes_at_bottom_edge] = grid.BC_NODE_IS_CLOSED
+    >>> grid.status_at_node[grid.nodes_at_right_edge] = grid.BC_NODE_IS_CLOSED
     >>> cell_area = 1.0
     >>> fr = FlowAccumulator(grid, flow_director='D8', runoff_rate=2.0)
     >>> grid.at_node["water__unit_flux_in"]

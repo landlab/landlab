@@ -55,8 +55,6 @@ their 'head' node, while links 15 and 11 have node 'X' as their tail node.
 
 import numpy as np
 
-from landlab.grid.base import CLOSED_BOUNDARY, INACTIVE_LINK
-
 
 def map_link_head_node_to_link(grid, var_name, out=None):
     """Map values from a link head nodes to links.
@@ -1116,7 +1114,7 @@ def map_mean_of_patch_nodes_to_patch(
     --------
     >>> import numpy as np
     >>> from landlab.grid.mappers import map_mean_of_patch_nodes_to_patch
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
@@ -1129,7 +1127,7 @@ def map_mean_of_patch_nodes_to_patch(
     >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
     ...                                 5., 4., 3., 2.,
     ...                                 3., 2., 1., 0.])
-    >>> rmg.status_at_node[rmg.node_x > 1.5] = CLOSED_BOUNDARY
+    >>> rmg.status_at_node[rmg.node_x > 1.5] = rmg.BC_NODE_IS_CLOSED
     >>> ans = np.zeros(6, dtype=float)
     >>> _ = map_mean_of_patch_nodes_to_patch(rmg, 'vals', out=ans)
     >>> ans # doctest: +NORMALIZE_WHITESPACE
@@ -1146,7 +1144,7 @@ def map_mean_of_patch_nodes_to_patch(
     values_at_nodes = var_name[grid.nodes_at_patch]
     if ignore_closed_nodes:
         values_at_nodes = np.ma.masked_where(
-            grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY,
+            grid.status_at_node[grid.nodes_at_patch] == grid.BC_NODE_IS_CLOSED,
             values_at_nodes,
             copy=False,
         )
@@ -1188,7 +1186,7 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     --------
     >>> import numpy as np
     >>> from landlab.grid.mappers import map_max_of_patch_nodes_to_patch
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
@@ -1201,7 +1199,7 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
     ...                                 3., 4., 3., 2.,
     ...                                 3., 2., 1., 0.])
-    >>> rmg.status_at_node[rmg.node_x > 1.5] = CLOSED_BOUNDARY
+    >>> rmg.status_at_node[rmg.node_x > 1.5] = rmg.BC_NODE_IS_CLOSED
     >>> ans = np.zeros(6, dtype=float)
     >>> _ = map_max_of_patch_nodes_to_patch(rmg, 'vals', out=ans)
     >>> ans # doctest: +NORMALIZE_WHITESPACE
@@ -1218,7 +1216,7 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     values_at_nodes = var_name[grid.nodes_at_patch]
     if ignore_closed_nodes:
         values_at_nodes = np.ma.masked_where(
-            grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY,
+            grid.status_at_node[grid.nodes_at_patch] == grid.BC_NODE_IS_CLOSED,
             values_at_nodes,
             copy=False,
         )
@@ -1260,7 +1258,7 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     --------
     >>> import numpy as np
     >>> from landlab.grid.mappers import map_min_of_patch_nodes_to_patch
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
@@ -1273,7 +1271,7 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
     ...                                 5., 4., 3., 2.,
     ...                                 3., 2., 1., 0.])
-    >>> rmg.status_at_node[rmg.node_x > 1.5] = CLOSED_BOUNDARY
+    >>> rmg.status_at_node[rmg.node_x > 1.5] = rmg.BC_NODE_IS_CLOSED
     >>> ans = np.zeros(6, dtype=float)
     >>> _ = map_min_of_patch_nodes_to_patch(rmg, 'vals', out=ans)
     >>> ans # doctest: +NORMALIZE_WHITESPACE
@@ -1290,7 +1288,7 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     values_at_nodes = var_name[grid.nodes_at_patch]
     if ignore_closed_nodes:
         values_at_nodes = np.ma.masked_where(
-            grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY,
+            grid.status_at_node[grid.nodes_at_patch] == grid.BC_NODE_IS_CLOSED,
             values_at_nodes,
             copy=False,
         )
@@ -1404,7 +1402,7 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True, out
     hoz_vals_at_patches = hoz_vals[grid.links_at_patch]
     vert_vals_at_patches = vert_vals[grid.links_at_patch]
     if ignore_inactive_links:
-        linkmask = grid.status_at_link[grid.links_at_patch] == INACTIVE_LINK
+        linkmask = grid.status_at_link[grid.links_at_patch] == grid.BC_LINK_IS_INACTIVE
         hoz_vals_at_patches = np.ma.array(
             hoz_vals_at_patches, mask=linkmask, copy=False
         )

@@ -3,7 +3,8 @@ import os
 import numpy as np
 import pytest
 
-from landlab import BAD_INDEX_VALUE as XX, CLOSED_BOUNDARY, RasterModelGrid
+from landlab import RasterModelGrid
+from landlab.grid.base import BAD_INDEX_VALUE as XX
 
 
 @pytest.fixture
@@ -95,8 +96,8 @@ def internal_closed():
     mg = RasterModelGrid((6, 5), xy_spacing=(10.0, 10.0))
 
     mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
-    mg.status_at_node[7] = CLOSED_BOUNDARY
-    mg.status_at_node[16] = CLOSED_BOUNDARY
+    mg.status_at_node[7] = mg.BC_NODE_IS_CLOSED
+    mg.status_at_node[16] = mg.BC_NODE_IS_CLOSED
 
     z = mg.node_x.copy()
 

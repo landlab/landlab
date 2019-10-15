@@ -17,7 +17,6 @@ import inspect
 import numpy as np
 
 from landlab.field.scalar_data_fields import FieldError
-from landlab.grid import CLOSED_BOUNDARY
 from landlab.grid.raster import RasterModelGrid
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 from landlab.plot.event_handler import query_grid_on_button_press
@@ -46,7 +45,7 @@ def imshow_grid_at_node(grid, values, **kwds):
 
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
-    Landlab CLOSED_BOUNDARYs. Used together with the color_at_closed=None
+    Landlab BC_NODE_IS_CLOSED. Used together with the color_at_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).
@@ -120,7 +119,7 @@ def imshow_grid_at_node(grid, values, **kwds):
         raise ValueError("number of values does not match number of nodes")
 
     values_at_node = np.ma.masked_where(
-        grid.status_at_node == CLOSED_BOUNDARY, values_at_node
+        grid.status_at_node == grid.BC_NODE_IS_CLOSED, values_at_node
     )
 
     try:
@@ -437,7 +436,7 @@ def imshow_grid(grid, values, **kwds):
 
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
-    Landlab CLOSED_BOUNDARYs. Used together with the color_for_closed=None
+    Landlab BC_NODE_IS_CLOSED. Used together with the color_for_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).

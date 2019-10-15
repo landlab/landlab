@@ -7,12 +7,8 @@ import itertools
 import numpy as np
 
 from ..core.utils import as_id_array
-from ..grid.base import (
-    BAD_INDEX_VALUE,
-    CLOSED_BOUNDARY,
-    CORE_NODE,
-    FIXED_VALUE_BOUNDARY,
-)
+from ..grid.base import BAD_INDEX_VALUE
+from ..grid.nodestatus import CLOSED_BOUNDARY, CORE_NODE, FIXED_VALUE_BOUNDARY
 
 
 def node_count(shape):
@@ -562,7 +558,7 @@ def active_links(shape, node_status_array=None, link_nodes=None):
     only links attached to the interior nodes are *active*.
 
     >>> from landlab.utils.structured_grid import active_links
-    >>> from landlab import CLOSED_BOUNDARY, CORE_NODE
+    >>> from landlab.grid.nodestatus import CLOSED_BOUNDARY, CORE_NODE
     >>> active_links((3, 4))
     array([ 1,  2,  5,  6, 11, 12, 13])
 

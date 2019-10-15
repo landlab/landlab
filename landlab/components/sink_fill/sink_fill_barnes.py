@@ -121,11 +121,11 @@ class SinkFillerBarnes(LakeMapperBarnes):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import SinkFillerBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]

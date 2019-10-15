@@ -866,16 +866,16 @@ def horizontal_active_link_ids(shape, active_ids, bad_index_value=-1):
 
     .. note::
 
-        ``*`` indicates the nodes that are set to `CLOSED_BOUNDARY`
+        ``*`` indicates the nodes that are set to `BC_NODE_IS_CLOSED`
 
-        ``o`` indicates the nodes that are set to `CORE_NODE`
+        ``o`` indicates the nodes that are set to `BC_NODE_IS_CORE`
 
-        ``I`` indicates the links that are set to `INACTIVE_LINK`
+        ``I`` indicates the links that are set to `BC_LINK_IS_INACTIVE`
 
         ``V`` indicates vertical active ids, which are ignored by this
         function.
 
-        Numeric values correspond to the horizontal `ACTIVE_LINK`  ID.
+        Numeric values correspond to the horizontal `BC_LINK_IS_ACTIVE`  ID.
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import (active_link_ids,
@@ -1181,16 +1181,16 @@ def vertical_active_link_ids(shape, active_ids, bad_index_value=-1):
 
     .. note::
 
-        ``*`` indicates the nodes that are set to `CLOSED_BOUNDARY`
+        ``*`` indicates the nodes that are set to `BC_NODE_IS_CLOSED`
 
-        ``o`` indicates the nodes that are set to `CORE_NODE`
+        ``o`` indicates the nodes that are set to `BC_NODE_IS_CORE`
 
-        ``I`` indicates the links that are set to `INACTIVE_LINK`
+        ``I`` indicates the links that are set to `BC_LINK_IS_INACTIVE`
 
         ``H`` indicates horizontal active ids, which are ignored by this
         function
 
-        Numeric values correspond to the vertical `ACTIVE_LINK` IDs.
+        Numeric values correspond to the vertical `BC_LINK_IS_ACTIVE` IDs.
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.structured_quad.links import (active_link_ids,

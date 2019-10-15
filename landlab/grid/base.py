@@ -282,7 +282,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     at_grid: dict-like
         Global values
     BAD_INDEX_VALUE : int
-        Indicates a grid element is undefined. 
+        Indicates a grid element is undefined.
     BC_NODE_IS_CORE : int
         Indicates a node is *core*.
     BC_NODE_IS_FIXED_VALUE : int
@@ -564,9 +564,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 3))
-        >>> grid.status_at_node[grid.nodes_at_left_edge] = CLOSED_BOUNDARY
+        >>> grid.status_at_node[grid.nodes_at_left_edge] = grid.BC_NODE_IS_CLOSED
         >>> grid.active_link_dirs_at_node # doctest: +NORMALIZE_WHITESPACE
         array([[ 0,  0,  0,  0], [ 0, -1,  0,  0], [ 0,  0,  0,  0],
                [ 0,  0,  0,  0], [-1, -1,  0,  1], [ 0,  0,  1,  0],
@@ -630,18 +630,19 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
         >>> for edge in (mg.nodes_at_left_edge, mg.nodes_at_right_edge,
         ...              mg.nodes_at_bottom_edge):
-        ...     mg.status_at_node[edge] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[edge] = mg.BC_NODE_IS_CLOSED
         >>> mg.open_boundary_nodes
         array([16, 17, 18])
 
         LLCATS: NINF BC
         """
         (open_boundary_node_ids,) = np.where(
-            (self._node_status != CLOSED_BOUNDARY) & (self._node_status != CORE_NODE)
+            (self._node_status != self.BC_NODE_IS_CLOSED)
+            & (self._node_status != self.BC_NODE_IS_CORE)
         )
         return open_boundary_node_ids
 
@@ -652,15 +653,17 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
-        >>> mg.status_at_node[mg.nodes_at_top_edge] = CLOSED_BOUNDARY
+        >>> mg.status_at_node[mg.nodes_at_top_edge] = mg.BC_NODE_IS_CLOSED
         >>> mg.closed_boundary_nodes
         array([15, 16, 17, 18, 19])
 
         LLCATS: NINF BC
         """
-        (closed_boundary_node_ids,) = np.where(self._node_status == CLOSED_BOUNDARY)
+        (closed_boundary_node_ids,) = np.where(
+            self._node_status == self.BC_NODE_IS_CLOSED
+        )
         return closed_boundary_node_ids
 
     @property
@@ -670,16 +673,16 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, FIXED_GRADIENT_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
-        >>> mg.status_at_node[mg.nodes_at_top_edge] = FIXED_GRADIENT_BOUNDARY
+        >>> mg.status_at_node[mg.nodes_at_top_edge] = mg.BC_NODE_IS_FIXED_GRADIENT
         >>> mg.fixed_gradient_boundary_nodes
         array([15, 16, 17, 18, 19])
 
         LLCATS: NINF BC
         """
         (fixed_gradient_boundary_node_ids,) = np.where(
-            self._node_status == FIXED_GRADIENT_BOUNDARY
+            self._node_status == self.BC_NODE_IS_FIXED_GRADIENT
         )
         return fixed_gradient_boundary_node_ids
 
@@ -702,10 +705,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab import FIXED_GRADIENT_BOUNDARY
         >>> grid = RasterModelGrid((3, 4))
         >>> leftedge = grid.nodes_at_left_edge
-        >>> grid.status_at_node[leftedge] = FIXED_GRADIENT_BOUNDARY
+        >>> grid.status_at_node[leftedge] = grid.BC_NODE_IS_FIXED_GRADIENT
         >>> grid.fixed_gradient_boundary_nodes
         array([0, 4, 8])
         >>> grid.fixed_gradient_boundary_node_fixed_link
@@ -730,10 +732,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab import FIXED_GRADIENT_BOUNDARY
         >>> grid = RasterModelGrid((3, 4))
         >>> leftedge = grid.nodes_at_left_edge
-        >>> grid.status_at_node[leftedge] = FIXED_GRADIENT_BOUNDARY
+        >>> grid.status_at_node[leftedge] = grid.BC_NODE_IS_FIXED_GRADIENT
         >>> grid.fixed_gradient_boundary_nodes
         array([0, 4, 8])
         >>> grid.fixed_gradient_boundary_node_fixed_link
@@ -858,8 +859,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         >>> grid.active_faces
         array([0, 1, 2, 3, 4, 5, 6])
 
-        >>> from landlab import CLOSED_BOUNDARY
-        >>> grid.status_at_node[6] = CLOSED_BOUNDARY
+        >>> grid.status_at_node[6] = grid.BC_NODE_IS_CLOSED
         >>> grid.active_faces
         array([0, 2, 5])
 
@@ -986,8 +986,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         The number of active faces is updated when a node status changes.
 
-        >>> from landlab import CLOSED_BOUNDARY
-        >>> grid.status_at_node[6] = CLOSED_BOUNDARY
+        >>> grid.status_at_node[6] = grid.BC_NODE_IS_CLOSED
         >>> grid.number_of_active_faces
         3
 
@@ -1004,12 +1003,12 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.number_of_core_nodes
         6
 
-        >>> grid.status_at_node[7] = CLOSED_BOUNDARY
+        >>> grid.status_at_node[7] = grid.BC_NODE_IS_CLOSED
         >>> grid.number_of_core_nodes
         5
 
@@ -1025,12 +1024,12 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.number_of_core_cells
         6
 
-        >>> grid.status_at_node[7] = CLOSED_BOUNDARY
+        >>> grid.status_at_node[7] = grid.BC_NODE_IS_CLOSED
         >>> grid.number_of_core_cells
         5
 
@@ -1044,13 +1043,13 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
         >>> mg.number_of_active_links
         17
         >>> for edge in (mg.nodes_at_left_edge, mg.nodes_at_right_edge,
         ...              mg.nodes_at_bottom_edge):
-        ...     mg.status_at_node[edge] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[edge] = mg.BC_NODE_IS_CLOSED
         >>> mg.number_of_active_links
         10
 
@@ -1094,7 +1093,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
         >>> mg.number_of_elements('node')
         20
@@ -1104,7 +1103,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         31
         >>> mg.number_of_elements('active_link')
         17
-        >>> mg.status_at_node[8] = CLOSED_BOUNDARY
+        >>> mg.status_at_node[8] = mg.BC_NODE_IS_CLOSED
         >>> mg.number_of_elements('link')
         31
         >>> mg.number_of_elements('active_link')
@@ -1247,10 +1246,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> from landlab import CLOSED_BOUNDARY, FIXED_GRADIENT_BOUNDARY
         >>> mg = RasterModelGrid((4, 5))
-        >>> mg.status_at_node[mg.nodes_at_left_edge] = CLOSED_BOUNDARY
-        >>> mg.status_at_node[mg.nodes_at_right_edge] = FIXED_GRADIENT_BOUNDARY
+        >>> mg.status_at_node[mg.nodes_at_left_edge] = mg.BC_NODE_IS_CLOSED
+        >>> mg.status_at_node[mg.nodes_at_right_edge] = mg.BC_NODE_IS_FIXED_GRADIENT
         >>> mg.status_at_link # doctest: +NORMALIZE_WHITESPACE
         array([4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 0, 0, 2, 4, 0, 0, 0, 4, 4, 0, 0,
                2, 4, 0, 0, 0, 4, 4, 4, 4, 4], dtype=uint8)
@@ -1601,9 +1599,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((3, 3))
-        >>> mg.status_at_node[mg.nodes_at_top_edge] = CLOSED_BOUNDARY
+        >>> mg.status_at_node[mg.nodes_at_top_edge] = mg.BC_NODE_IS_CLOSED
         >>> mg.patches_at_node
         array([[ 0, -1, -1, -1],
                [ 1,  0, -1, -1],
@@ -1699,9 +1697,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((3, 3))
-        >>> mg.status_at_node[mg.nodes_at_top_edge] = CLOSED_BOUNDARY
+        >>> mg.status_at_node[mg.nodes_at_top_edge] = mg.BC_NODE_IS_CLOSED
         >>> mg.patches_present_at_node
         array([[ True, False, False, False],
                [ True,  True, False, False],
@@ -1773,7 +1771,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
             max_nodes_at_patch = 3
         else:
             max_nodes_at_patch = (self.nodes_at_patch > -1).sum(axis=1)
-        any_node_at_patch_closed = (node_status_at_patch == CLOSED_BOUNDARY).sum(
+        any_node_at_patch_closed = (node_status_at_patch == self.BC_NODE_IS_CLOSED).sum(
             axis=1
         ) > (max_nodes_at_patch - 3)
         absent_patches = any_node_at_patch_closed[self.patches_at_node]
@@ -1910,7 +1908,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         --------
         >>> from landlab import RasterModelGrid
         >>> grid = RasterModelGrid((4, 5), xy_spacing=(3, 4))
-        >>> grid.status_at_node[7] = CLOSED_BOUNDARY
+        >>> grid.status_at_node[7] = grid.BC_NODE_IS_CLOSED
         >>> grid.cell_area_at_node
         array([  0.,   0.,   0.,   0.,   0.,
                  0.,  12.,  12.,  12.,   0.,
@@ -2047,11 +2045,11 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     def set_nodata_nodes_to_closed(self, node_data, nodata_value):
         """Make no-data nodes closed boundaries.
 
-        Sets node status to `CLOSED_BOUNDARY` for all nodes whose value
+        Sets node status to `BC_NODE_IS_CLOSED` for all nodes whose value
         of *node_data* is equal to the *nodata_value*.
 
-        Any links connected to `CLOSED_BOUNDARY` nodes are automatically
-        set to `INACTIVE_LINK` boundary.
+        Any links connected to `BC_NODE_IS_CLOSED` nodes are automatically
+        set to `BC_LINK_IS_INACTIVE` boundary.
 
         Parameters
         ----------
@@ -2077,13 +2075,13 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         .. note::
 
-          Links set to `ACTIVE_LINK` are not shown in this diagram.
+          Links set to `BC_LINK_IS_ACTIVE` are not shown in this diagram.
 
-        ``*`` indicates the nodes that are set to `CLOSED_BOUNDARY`
+        ``*`` indicates the nodes that are set to `BC_NODE_IS_CLOSED`
 
-        ``o`` indicates the nodes that are set to `CORE_NODE`
+        ``o`` indicates the nodes that are set to `BC_NODE_IS_CORE`
 
-        ``I`` indicates the links that are set to `INACTIVE_LINK`
+        ``I`` indicates the links that are set to `BC_LINK_IS_INACTIVE`
 
         >>> import numpy as np
         >>> import landlab as ll
@@ -2101,16 +2099,16 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
         nodata_locations = np.nonzero(node_data == nodata_value)
-        self.status_at_node[nodata_locations] = CLOSED_BOUNDARY
+        self.status_at_node[nodata_locations] = self.BC_NODE_IS_CLOSED
 
     def set_nodata_nodes_to_fixed_gradient(self, node_data, nodata_value):
         """Make no-data nodes fixed gradient boundaries.
 
-        Set node status to `FIXED_GRADIENT_BOUNDARY` for all nodes
+        Set node status to `BC_NODE_IS_FIXED_VALUE` for all nodes
         whose value of *node_data* is equal to *nodata_value*.
 
-        Any links between `FIXED_GRADIENT_BOUNDARY` nodes and
-        `CORE_NODES` are automatically set to `FIXED_LINK` boundary
+        Any links between `BC_NODE_IS_FIXED_GRADIENT` nodes and
+        `BC_NODE_IS_CORE` are automatically set to `BC_LINK_IS_FIXED` boundary
         status.
 
         Parameters
@@ -2141,16 +2139,16 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         .. note::
 
-            Links set to `ACTIVE_LINK` are not shown in this diagram.
+            Links set to `BC_LINK_IS_ACTIVE` are not shown in this diagram.
 
-        ``X`` indicates the links that are set to `FIXED_LINK`
+        ``X`` indicates the links that are set to `BC_LINK_IS_FIXED`
 
-        ``I`` indicates the links that are set to `INACTIVE_LINK`
+        ``I`` indicates the links that are set to `BC_LINK_IS_INACTIVE`
 
-        ``o`` indicates the nodes that are set to `CORE_NODE`
+        ``o`` indicates the nodes that are set to `BC_NODE_IS_CORE`
 
         ``*`` indicates the nodes that are set to
-              `FIXED_GRADIENT_BOUNDARY`
+              `BC_NODE_IS_FIXED_GRADIENT`
 
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
@@ -2552,11 +2550,11 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
         >>> mg.node_is_boundary([0, 6])
         array([ True, False], dtype=bool)
-        >>> mg.node_is_boundary([0, 6], boundary_flag=CLOSED_BOUNDARY)
+        >>> mg.node_is_boundary([0, 6], boundary_flag=mg.BC_NODE_IS_CLOSED)
         array([False, False], dtype=bool)
 
         LLCATS: NINF BC

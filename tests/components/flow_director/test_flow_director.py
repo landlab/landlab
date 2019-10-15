@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from landlab import CLOSED_BOUNDARY, HexModelGrid, RasterModelGrid
+from landlab import HexModelGrid, RasterModelGrid
 from landlab.components.flow_director import (
     FlowDirectorD8,
     FlowDirectorDINF,
@@ -351,7 +351,7 @@ def test_change_bc_post_init():
     )
     assert_array_equal(true_reciever, fd._receiver)
 
-    mg.status_at_node[mg.nodes_at_bottom_edge] = CLOSED_BOUNDARY
+    mg.status_at_node[mg.nodes_at_bottom_edge] = mg.BC_NODE_IS_CLOSED
     fd.run_one_step()
     new_true_reciever = np.array(
         [

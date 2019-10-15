@@ -17,7 +17,7 @@ import numpy as np
 
 from landlab.core.utils import make_optional_arg_into_id_array, radians_to_degrees
 from landlab.grid import gradients
-from landlab.grid.base import BAD_INDEX_VALUE, CLOSED_BOUNDARY
+from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import use_field_name_or_array
 
 
@@ -1451,11 +1451,11 @@ def calc_slope_at_patch(
            [ 1.24904577,  1.24904577,  1.24904577,  1.24904577],
            [ 1.37340077,  1.37340077,  1.37340077,  1.37340077]])
 
-    >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
+    >>> from landlab import FIXED_VALUE_BOUNDARY
     >>> z = mg.node_x.copy()
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> mg.status_at_node[11] = CLOSED_BOUNDARY
-    >>> mg.status_at_node[9] = FIXED_VALUE_BOUNDARY
+    >>> mg.status_at_node[11] = mg.BC_NODE_IS_CLOSED
+    >>> mg.status_at_node[9] = mg.BC_NODE_IS_FIXED_VALUE
     >>> z[11] = 100.  # this should get ignored now
     >>> z[9] = 2.  # this should be felt by patch 7 only
     >>> mg.calc_slope_at_patch(elevs=z, ignore_closed_nodes=True).reshape(
@@ -1484,7 +1484,7 @@ def calc_slope_at_patch(
     slopes_at_patch_TR = np.arccos(dotprod_TR)  # 0
     slopes_at_patch_BL = np.arccos(dotprod_BL)  # 2
     if ignore_closed_nodes:
-        badnodes = grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY
+        badnodes = grid.status_at_node[grid.nodes_at_patch] == grid.BC_NODE_IS_CLOSED
         tot_bad = badnodes.sum(axis=1)
         tot_tris = 4.0 - 3.0 * (tot_bad > 0)  # 4 where all good, 1 where not
         # now shut down the bad tris. Remember, one bad node => 3 bad tris.
@@ -1565,11 +1565,10 @@ def calc_grad_at_patch(
     >>> np.allclose(x_grad, 0.)
     True
 
-    >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
     >>> z = mg.node_x.copy()
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> mg.status_at_node[11] = CLOSED_BOUNDARY
-    >>> mg.status_at_node[[9, 2]] = FIXED_VALUE_BOUNDARY
+    >>> mg.status_at_node[11] = mg.BC_NODE_IS_CLOSED
+    >>> mg.status_at_node[[9, 2]] = mg.BC_NODE_IS_FIXED_VALUE
     >>> z[11] = 100.  # this should get ignored now
     >>> z[9] = 2.  # this should be felt by patch 7 only
     >>> z[2] = 1.  # should be felt by patches 1 and 2
@@ -1602,7 +1601,7 @@ def calc_grad_at_patch(
         )
 
     if ignore_closed_nodes:
-        badnodes = grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY
+        badnodes = grid.status_at_node[grid.nodes_at_patch] == grid.BC_NODE_IS_CLOSED
         corners_rot = deque([n_BR, n_TR, n_TL, n_BL])
         # note initial offset so we are centered around TR on first slice
         for i in range(4):
@@ -1723,9 +1722,9 @@ def calc_slope_at_node(
                 copy=False,
             )
     # now, we also want to mask any "closed" patches (any node closed)
-    closed_patches = (grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY).sum(
-        axis=1
-    ) > 0
+    closed_patches = (
+        grid.status_at_node[grid.nodes_at_patch] == grid.BC_NODE_IS_CLOSED
+    ).sum(axis=1) > 0
     closed_patch_mask = np.logical_or(
         patches_at_node.mask, closed_patches[patches_at_node.data]
     )

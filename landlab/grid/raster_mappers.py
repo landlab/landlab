@@ -609,11 +609,11 @@ def map_mean_of_horizontal_active_links_to_node(grid, var_name, out=None):
     --------
     >>> import numpy as np
     >>> from landlab.grid.raster_mappers import map_mean_of_horizontal_active_links_to_node
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('link', 'z', -np.arange(17, dtype=float))
-    >>> rmg.status_at_node[rmg.nodes_at_left_edge] = CLOSED_BOUNDARY
+    >>> rmg.status_at_node[rmg.nodes_at_left_edge] = rmg.BC_NODE_IS_CLOSED
     >>> map_mean_of_horizontal_active_links_to_node(rmg, 'z')
     array([ 0. ,  0. ,  0. ,  0. ,  0. , -8. , -8.5, -9. ,  0. ,  0. ,  0. ,
             0. ])
@@ -724,11 +724,11 @@ def map_mean_of_vertical_active_links_to_node(grid, var_name, out=None):
     --------
     >>> import numpy as np
     >>> from landlab.grid.raster_mappers import map_mean_of_vertical_active_links_to_node
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('link', 'z', -np.arange(17, dtype=float))
-    >>> rmg.status_at_node[rmg.nodes_at_bottom_edge] = CLOSED_BOUNDARY
+    >>> rmg.status_at_node[rmg.nodes_at_bottom_edge] = rmg.BC_NODE_IS_CLOSED
     >>> map_mean_of_vertical_active_links_to_node(rmg, 'z')
     array([  0.,   0.,   0.,   0.,   0., -11., -12.,   0.,   0., -11., -12.,
              0.])

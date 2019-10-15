@@ -86,7 +86,7 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     will use a Hexagonal Model Grid, a special type of Voroni Grid that has
     regularly spaced hexagonal cells.
 
-    >>> from landlab import HexModelGrid, FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY
+    >>> from landlab import HexModelGrid
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils.flow__distance import calculate_flow__distance
     >>> dx = 1
@@ -94,8 +94,8 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     >>> _ = hmg.add_field('topographic__elevation',
     ...                   hmg.node_x + np.round(hmg.node_y),
     ...                   at = 'node')
-    >>> hmg.status_at_node[hmg.boundary_nodes] = CLOSED_BOUNDARY
-    >>> hmg.status_at_node[0] = FIXED_VALUE_BOUNDARY
+    >>> hmg.status_at_node[hmg.boundary_nodes] = hmg.BC_NODE_IS_CLOSED
+    >>> hmg.status_at_node[0] = hmg.BC_NODE_IS_FIXED_VALUE
     >>> fr = FlowAccumulator(hmg, flow_director = 'D4')
     >>> fr.run_one_step()
     >>> flow__distance = calculate_flow__distance(hmg,

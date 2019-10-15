@@ -9,13 +9,10 @@ from .nodestatus import (
 )
 
 # Define the link types
-
 #: Indicates a link is *active*, and can carry flux
 ACTIVE_LINK = 0
-
 #: Indicates a link has a fixed (gradient) value, & behaves as a boundary
 FIXED_LINK = 2
-
 #: Indicates a link is *inactive*, and cannot carry flux
 INACTIVE_LINK = 4
 

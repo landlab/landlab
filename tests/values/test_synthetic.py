@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from landlab import CLOSED_BOUNDARY, CORE_NODE
 from landlab.field import GroupError
 from landlab.values import constant, plane, random
 from landlab.values.synthetic import _plane_function, _where_to_add_values
@@ -90,7 +89,12 @@ def test_xy_face_network(simple_network):
 
 def test_where_status_with_patches(four_by_four_raster):
     with pytest.raises(AttributeError):
-        constant(four_by_four_raster, "values", "patch", where=CORE_NODE)
+        constant(
+            four_by_four_raster,
+            "values",
+            "patch",
+            where=four_by_four_raster.BC_NODE_IS_CORE,
+        )
 
 
 def test_multiple_status_node(four_by_four_raster):
@@ -99,7 +103,10 @@ def test_multiple_status_node(four_by_four_raster):
         four_by_four_raster,
         "values",
         "node",
-        where=[CORE_NODE, CLOSED_BOUNDARY],
+        where=[
+            four_by_four_raster.BC_NODE_IS_CORE,
+            four_by_four_raster.BC_NODE_IS_CLOSED,
+        ],
         value=10.0,
     )
     true_array = np.array(

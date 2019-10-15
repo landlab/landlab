@@ -241,7 +241,6 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         Examples
         --------
         >>> from landlab import NetworkModelGrid
-        >>> from landlab import CLOSED_BOUNDARY, CORE_NODE
 
         >>> y_of_node = (0, 1, 2, 2)
         >>> x_of_node = (0, 0, -1, 1)
@@ -255,7 +254,11 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         Now we change the status at node 0 to a closed boundary. This will
         result in changing the link status as well.
 
-        >>> grid.status_at_node = [CLOSED_BOUNDARY, CORE_NODE, CORE_NODE, CORE_NODE]
+        >>> grid.status_at_node = [
+        ...     grid.BC_NODE_IS_CLOSED,
+        ...     grid.BC_NODE_IS_CORE,
+        ...     grid.BC_NODE_IS_CORE,
+        ...     grid.BC_NODE_IS_CORE]
         >>> grid.status_at_node
         array([4, 0, 0, 0], dtype=uint8)
         >>> grid.status_at_link

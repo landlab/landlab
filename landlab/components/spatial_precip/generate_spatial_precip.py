@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import fisk, genextreme
 
-from landlab import CLOSED_BOUNDARY, Component, RasterModelGrid
+from landlab import Component, RasterModelGrid
 
 
 class SpatialPrecipitationDistribution(Component):
@@ -304,7 +304,7 @@ class SpatialPrecipitationDistribution(Component):
         """
         super(SpatialPrecipitationDistribution, self).__init__(grid)
 
-        gaugecount = (grid.status_at_node != CLOSED_BOUNDARY).sum()
+        gaugecount = (grid.status_at_node != grid.BC_NODE_IS_CLOSED).sum()
         self._gauge_dist_km = np.zeros(gaugecount, dtype="float")
         self._temp_dataslots1 = np.zeros(gaugecount, dtype="float")
         self._temp_dataslots2 = np.zeros(gaugecount, dtype="float")
@@ -324,7 +324,7 @@ class SpatialPrecipitationDistribution(Component):
         self._total_rf_year = self._grid.at_node["rainfall__total_depth_per_year"]
 
         # store some info on the open node grid extent:
-        open_nodes = self._grid.status_at_node != CLOSED_BOUNDARY
+        open_nodes = self._grid.status_at_node != self._grid.BC_NODE_IS_CLOSED
         self._minx = self._grid.node_x[open_nodes].min()
         self._maxx = self._grid.node_x[open_nodes].max()
         self._miny = self._grid.node_y[open_nodes].min()
@@ -972,7 +972,7 @@ class SpatialPrecipitationDistribution(Component):
         self._phantom_storm_count = 0
         # ^this property tracks the number of storms in the run that received
         # zero intensity (and thus didn't really exist)
-        self._opennodes = self._grid.status_at_node != CLOSED_BOUNDARY
+        self._opennodes = self._grid.status_at_node != self._grid.BC_NODE_IS_CLOSED
         self._total_rainfall_last_season = self._grid.zeros("node")
 
         # safety check for init conds:
@@ -1677,13 +1677,6 @@ if __name__ == "__main__":
     ny = 8
     dx = 1000.0
     mg = RasterModelGrid((nx, ny), xy_spacing=dx)
-    # closed_nodes = np.zeros((nx, ny), dtype=bool)
-    # closed_nodes[:, :10] = True
-    # closed_nodes[:, 30:] = True
-    # closed_nodes[30:, :] = True
-    # mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
-    # imshow_grid_at_node(mg, mg.status_at_node)
-    # show()
 
     z = mg.add_zeros("node", "topographic__elevation")
     z += 1400.0
@@ -1695,72 +1688,10 @@ if __name__ == "__main__":
         total_t += dt + interval_t
         print(dt, interval_t)
         if count % 100 == 0:
-            # imshow_grid_at_node(mg, rain.total_rainfall_this_year,
-            #                     cmap='Blues')
             print("Season:", rain.current_season, "of yr", rain.current_year)
             print("Current storm:", count)
-            # print('MEANS')
-            # print(rain.total_rainfall_this_season[rain._opennodes].mean())
-            # print(rain.total_rainfall_last_season[rain._opennodes].mean())
-            # print(rain.total_rainfall_this_year[rain._opennodes].mean())
-            # print(rain.total_rainfall_last_year[rain._opennodes].mean())
-            # print('-----')
-            # print('MEDIANS')
-            # print(rain.median_total_rainfall_this_season)
-            # print(rain.median_total_rainfall_last_season)
-            # print(rain.median_total_rainfall_this_year)
-            # print(rain.median_total_rainfall_last_year)
-            # print('*****')
             show()
     print("Effective total years:")
     print(total_t / 24.0 / 365.0)
     print("Storms simulated:")
     print(count)
-
-    # mg = RasterModelGrid((100, 100), xy_spacing=500.)
-    # # mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
-    # # imshow_grid_at_node(mg, mg.status_at_node)
-    # # show()
-    # z = mg.add_zeros('node', 'topographic__elevation')
-    # z += 1000.
-    # rain = SpatialPrecipitationDistribution(mg, number_of_years=2)
-    # count = 0
-    # total_storms = 0.
-    # for storms_in_year in rain.yield_years():
-    #     count += 1
-    #     total_storms += storms_in_year
-    #     print(storms_in_year)
-    #     imshow_grid_at_node(mg, 'rainfall__total_depth_per_year', cmap='jet')
-    #     show()
-    #
-    # _ = mg.at_node.pop('rainfall__total_depth_per_year')
-    # _ = mg.at_node.pop('rainfall__flux')
-    # rain = SpatialPrecipitationDistribution(mg, number_of_years=1)
-    # for storms_in_season in rain.yield_seasons():
-    #     print(storms_in_season)
-    #     imshow_grid_at_node(mg, rain.total_rainfall_last_season, cmap='jet')
-    #     show()
-    #
-    # for yr in range(30):
-    #     print(rain.calc_annual_rainfall(style='whole_year'))
-    #
-    # from landlab import VoronoiDelaunayGrid
-    #
-    # x = np.random.rand(2000)*50000.
-    # y = np.random.rand(2000)*50000.
-    # vdg = VoronoiDelaunayGrid(x, y)
-    # vdg.add_zeros('node', 'topographic__elevation')
-    # rain = SpatialPrecipitationDistribution(vdg, number_of_years=2)
-    # count = 0
-    # total_storms = 0.
-    # for storms_in_year in rain.yield_years(limit='total_rainfall'):
-    #     count += 1
-    #     total_storms += storms_in_year
-    #     print(storms_in_year)
-    #     imshow_grid_at_node(vdg, 'rainfall__total_depth_per_year',
-    #     cmap='jet')
-    #     print('Stochastically-set expected rainfall last season')
-    #     print()
-    #     print('Actual rainfall last season')
-    #     print()
-    #     show()

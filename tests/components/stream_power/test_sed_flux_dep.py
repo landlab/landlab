@@ -9,7 +9,7 @@ import os
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 
-from landlab import CLOSED_BOUNDARY, RasterModelGrid
+from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator, SedDepEroder
 
 _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -69,7 +69,7 @@ def test_sed_dep_new():
     """
     mg = RasterModelGrid((25, 50), xy_spacing=200.0)
     for edge in (mg.nodes_at_left_edge, mg.nodes_at_top_edge, mg.nodes_at_right_edge):
-        mg.status_at_node[edge] = CLOSED_BOUNDARY
+        mg.status_at_node[edge] = mg.BC_NODE_IS_CLOSED
 
     z = mg.add_zeros("node", "topographic__elevation")
 

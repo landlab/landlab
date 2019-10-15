@@ -21,13 +21,7 @@ from ..graph import DualUniformRectilinearGraph
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
 from . import raster_funcs as rfuncs
-from .base import (
-    CLOSED_BOUNDARY,
-    CORE_NODE,
-    FIXED_VALUE_BOUNDARY,
-    LOOPED_BOUNDARY,
-    ModelGrid,
-)
+from .base import CORE_NODE, FIXED_VALUE_BOUNDARY, LOOPED_BOUNDARY, ModelGrid
 from .decorators import return_id_array
 from .diagonals import DiagonalsMixIn
 
@@ -789,15 +783,15 @@ class RasterModelGrid(
         """Set boundary not to be closed.
 
         Sets the status of nodes along the specified side(s) of a raster
-        grid (bottom, right, top, and/or left) to ``CLOSED_BOUNDARY``.
+        grid (bottom, right, top, and/or left) to ``BC_NODE_IS_CLOSED``.
 
         Arguments are booleans indicating whether the bottom, left, top, and
         right are closed (``True``) or not (``False``).
 
         For a closed boundary:
 
-        *  the nodes are flagged ``CLOSED_BOUNDARY`` (status type 4)
-        *  all links that connect to a ``CLOSED_BOUNDARY`` node are
+        *  the nodes are flagged ``BC_NODE_IS_CLOSED`` (status type 4)
+        *  all links that connect to a ``BC_NODE_IS_CLOSED`` node are
            flagged as inactive (so they appear on link-based lists, but
            not active_link-based lists)
 
@@ -805,7 +799,7 @@ class RasterModelGrid(
         method, links connecting to closed boundaries will be ignored: there
         can be no gradients or fluxes calculated, because the links that
         connect to that edge of the grid are not included in the calculation.
-        So, setting a grid edge to CLOSED_BOUNDARY is a convenient way to
+        So, setting a grid edge to BC_NODE_IS_CLOSED is a convenient way to
         impose a no-flux boundary condition. Note, however, that this applies
         to the grid as a whole, rather than a particular variable that you
         might use in your application. In other words, if you want a no-flux
@@ -2210,13 +2204,13 @@ class RasterModelGrid(
         value.  Can return the outlet id as a one element numpy array if
         return_outlet_id is set to True.
 
-        All nodes with nodata_value are set to CLOSED_BOUNDARY
+        All nodes with nodata_value are set to ``BC_NODE_IS_CLOSED``
         (grid.status_at_node == 4). All nodes with data values are set to
-        CORE_NODES (grid.status_at_node == 0), with the exception that the
-        outlet node is set to a FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
+        ``BC_NODE_IS_CORE`` (grid.status_at_node == 0), with the exception that the
+        outlet node is set to a ``BC_NODE_IS_FIXED_GRADIENT`` (grid.status_at_node == 1).
 
         Note that the outer ring (perimeter) of the raster is set to
-        CLOSED_BOUNDARY, even if there are nodes that have values. The only
+        ``BC_NODE_IS_CLOSED``, even if there are nodes that have values. The only
         exception to this would be if the outlet node is on the perimeter, which
         is acceptable.
 
@@ -2436,11 +2430,11 @@ class RasterModelGrid(
         *outlet_id* and sets them as closed.
 
         If *outlet_id* is not given, the outlet will be identified as the node
-        for which the status at the node is FIXED_VALUE_BOUNDARY. If more than
+        for which the status at the node is ``BC_NODE_IS_FIXED_VALUE``. If more than
         one node has this value, the algorithm will fail.
 
         If *outlet_id* is given, the algorithm will check that it is not a node
-        with status of CLOSED_BOUNDARY.
+        with status of ``BC_NODE_IS_CLOSED``.
 
         The method supports both D4 and D8 (default) neighborhood evaluation in
         determining if a node is connected. This can be modified with the flag
@@ -2457,8 +2451,8 @@ class RasterModelGrid(
         outlet_id : one element numpy array, optional.
             The node ID of the outlet that all open nodes must be connected to.
             If a node ID is provided, it does not need have the status
-            FIXED_VALUE_BOUNDARY. However, it must not have the status of
-            CLOSED_BOUNDARY.
+            ``BC_NODE_IS_FIXED_VALUE``. However, it must not have the status of
+            ``BC_NODE_IS_CLOSED``.
         nodata_value : float, optional, default is -9999.
             Value that indicates an invalid value.
         adjacency_method : string, optional. Default is 'D8'.
@@ -2528,10 +2522,10 @@ class RasterModelGrid(
             raise ValueError("outlet_id must be a length 1 numpy array")
         else:
             # check that the node status at the node given by outlet_id is not
-            # CLOSED_BOUNDARY
-            if self.status_at_node[outlet_id] == CLOSED_BOUNDARY:
+            # BC_NODE_IS_CLOSED
+            if self.status_at_node[outlet_id] == self.BC_NODE_IS_CLOSED:
                 raise ValueError(
-                    "The node given by outlet_id must not have the status: CLOSED_BOUNDARY"
+                    "The node given by outlet_id must not have the status: BC_NODE_IS_CLOSED"
                 )
 
         # now test that the method given is either 'D8' or 'D4'
@@ -2556,7 +2550,8 @@ class RasterModelGrid(
             connected_orthogonal_nodes = self.adjacent_nodes_at_node[newNodes]
             potentialNewNodes = list(
                 connected_orthogonal_nodes[
-                    self.status_at_node[connected_orthogonal_nodes] != CLOSED_BOUNDARY
+                    self.status_at_node[connected_orthogonal_nodes]
+                    != self.BC_NODE_IS_CLOSED
                 ]
             )
 
@@ -2567,7 +2562,8 @@ class RasterModelGrid(
                 ]
                 potentialNewNodes.extend(
                     connected_diagonal_nodes[
-                        self.status_at_node[connected_diagonal_nodes] != CLOSED_BOUNDARY
+                        self.status_at_node[connected_diagonal_nodes]
+                        != self.BC_NODE_IS_CLOSED
                     ]
                 )
 
@@ -2585,7 +2581,7 @@ class RasterModelGrid(
         not_connected[np.array(connected_nodes)] = 0
 
         # identify those nodes that should be closed, but are not yet closed.
-        is_not_connected_to_outlet = (self.status_at_node != CLOSED_BOUNDARY) & (
+        is_not_connected_to_outlet = (self.status_at_node != self.BC_NODE_IS_CLOSED) & (
             not_connected == 1
         )
 
@@ -2600,12 +2596,12 @@ class RasterModelGrid(
         self, outlet_coords, node_data, nodata_value=-9999.0
     ):
         """Set the boundary conditions for a watershed. All nodes with
-        nodata_value are set to CLOSED_BOUNDARY (grid.status_at_node == 4). All
+        nodata_value are set to ``BC_NODE_IS_CLOSED`` (grid.status_at_node == 4). All
         nodes with data values are set to CORE_NODES (grid.status_at_node ==
         0), with the exception that the outlet node is set to a
         FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
 
-        Note that the outer ring of the raster is set to CLOSED_BOUNDARY, even
+        Note that the outer ring of the raster is set to ``BC_NODE_IS_CLOSED``, even
         if there are nodes that have values.  The only exception to this would
         be if the outlet node is on the boundary, which is acceptable.
 
@@ -2671,11 +2667,11 @@ class RasterModelGrid(
         self, outlet_id, node_data, nodata_value=-9999.0
     ):
         """Set the boundary conditions for a watershed. All nodes with
-        nodata_value are set to CLOSED_BOUNDARY (4). All nodes with data values
-        are set to CORE_NODES (0), with the exception that the outlet node is
-        set to a FIXED_VALUE_BOUNDARY (1).
+        nodata_value are set to ``BC_NODE_IS_CLOSED`` (4). All nodes with data values
+        are set to ``BC_NODE_IS_CORE`` (0), with the exception that the outlet node is
+        set to a ``BC_NODE_IS_FIXED_VALUE`` (1).
 
-        Note that the outer ring of the raster is set to CLOSED_BOUNDARY, even
+        Note that the outer ring of the raster is set to ``BC_NODE_IS_CLOSED``, even
         if there are nodes that have values.  The only exception to this would
         be if the outlet node is on the boundary, which is acceptable.
 

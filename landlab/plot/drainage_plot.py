@@ -2,12 +2,6 @@
 import matplotlib.pylab as plt
 import numpy as np
 
-from landlab import (
-    CLOSED_BOUNDARY,
-    CORE_NODE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
-)
 from landlab.plot.imshow import imshow_grid
 
 # KRB, FEB 2017.
@@ -78,29 +72,29 @@ def drainage_plot(
 
     # Plot differen types of nodes:
     o, = plt.plot(
-        mg.x_of_node[mg.status_at_node == CORE_NODE],
-        mg.y_of_node[mg.status_at_node == CORE_NODE],
+        mg.x_of_node[mg.status_at_node == mg.BC_NODE_IS_CORE],
+        mg.y_of_node[mg.status_at_node == mg.BC_NODE_IS_CORE],
         "b.",
         label="Core Nodes",
         zorder=4,
     )
     fg, = plt.plot(
-        mg.x_of_node[mg.status_at_node == FIXED_VALUE_BOUNDARY],
-        mg.y_of_node[mg.status_at_node == FIXED_VALUE_BOUNDARY],
+        mg.x_of_node[mg.status_at_node == mg.BC_NODE_IS_FIXED_VALUE],
+        mg.y_of_node[mg.status_at_node == mg.BC_NODE_IS_FIXED_VALUE],
         "c.",
         label="Fixed Gradient Nodes",
         zorder=5,
     )
     fv, = plt.plot(
-        mg.x_of_node[mg.status_at_node == FIXED_GRADIENT_BOUNDARY],
-        mg.y_of_node[mg.status_at_node == FIXED_GRADIENT_BOUNDARY],
+        mg.x_of_node[mg.status_at_node == mg.BC_NODE_IS_FIXED_GRADIENT],
+        mg.y_of_node[mg.status_at_node == mg.BC_NODE_IS_FIXED_GRADIENT],
         "g.",
         label="Fixed Value Nodes",
         zorder=6,
     )
     c, = plt.plot(
-        mg.x_of_node[mg.status_at_node == CLOSED_BOUNDARY],
-        mg.y_of_node[mg.status_at_node == CLOSED_BOUNDARY],
+        mg.x_of_node[mg.status_at_node == mg.BC_NODE_IS_CLOSED],
+        mg.y_of_node[mg.status_at_node == mg.BC_NODE_IS_CLOSED],
         "r.",
         label="Closed Nodes",
         zorder=7,

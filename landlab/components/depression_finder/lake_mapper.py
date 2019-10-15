@@ -9,14 +9,7 @@
 import numpy as np
 
 import landlab
-from landlab import (
-    CLOSED_BOUNDARY,
-    CORE_NODE,
-    FIXED_VALUE_BOUNDARY,
-    Component,
-    FieldError,
-    RasterModelGrid,
-)
+from landlab import Component, FieldError, RasterModelGrid
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.core.messages import warning_message
 from landlab.core.utils import as_id_array
@@ -291,7 +284,9 @@ class DepressionFinderAndRouter(Component):
         if self._D8:
             diag_nbrs = self._grid.diagonal_adjacent_nodes_at_node.copy()
             # remove the inactive nodes:
-            diag_nbrs[self._grid.status_at_node[diag_nbrs] == CLOSED_BOUNDARY] = -1
+            diag_nbrs[
+                self._grid.status_at_node[diag_nbrs] == self._grid.BC_NODE_IS_CLOSED
+            ] = -1
             self._node_nbrs = np.concatenate((self._node_nbrs, diag_nbrs), 1)
             self._link_lengths = np.empty(8, dtype=float)
             self._link_lengths[0] = dx
@@ -410,9 +405,15 @@ class DepressionFinderAndRouter(Component):
                 elif self._elev[t] > self._elev[h]:
                     self._is_pit[t] = False
                 elif self._elev[h] == self._elev[t]:
-                    if self._grid.status_at_node[h] == FIXED_VALUE_BOUNDARY:
+                    if (
+                        self._grid.status_at_node[h]
+                        == self._grid.BC_NODE_IS_FIXED_VALUE
+                    ):
                         self._is_pit[t] = False
-                    elif self._grid.status_at_node[t] == FIXED_VALUE_BOUNDARY:
+                    elif (
+                        self._grid.status_at_node[t]
+                        == self._grid.BC_NODE_IS_FIXED_VALUE
+                    ):
                         self._is_pit[h] = False
 
         # Record the number of pits and the IDs of pit nodes.
@@ -528,7 +529,7 @@ class DepressionFinderAndRouter(Component):
         >>> from landlab.components import FlowAccumulator
         >>> from landlab import RasterModelGrid
         >>> rg = RasterModelGrid((7, 7))
-        >>> rg.status_at_node[rg.nodes_at_right_edge] = CLOSED_BOUNDARY
+        >>> rg.status_at_node[rg.nodes_at_right_edge] = rg.BC_NODE_IS_CLOSED
         >>> z = rg.add_zeros('node', 'topographic__elevation')
         >>> z[:] = rg.x_of_node + 0.01 * rg.y_of_node
         >>> lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
@@ -590,7 +591,7 @@ class DepressionFinderAndRouter(Component):
                     (self._elev[nbr] + self._depression_depth[nbr])
                     < self._elev[receiver]
                 )
-                and self._grid.status_at_node[nbr] != CLOSED_BOUNDARY
+                and self._grid.status_at_node[nbr] != self._grid.BC_NODE_IS_CLOSED
             ):
 
                 # Next test: is it the steepest downhill grad so far?
@@ -619,7 +620,7 @@ class DepressionFinderAndRouter(Component):
                         (self._elev[nbr] + self._depression_depth[nbr])
                         < self._elev[receiver]
                     )
-                    and self._grid.status_at_node[nbr] != CLOSED_BOUNDARY
+                    and self._grid.status_at_node[nbr] != self._grid.BC_NODE_IS_CLOSED
                 ):
 
                     # Next test: is it the steepest downhill grad so far?
@@ -711,7 +712,7 @@ class DepressionFinderAndRouter(Component):
         boolean
             ``True`` if the node is a valid outlet. Otherwise, ``False``.
         """
-        if self._grid.status_at_node[the_node] == FIXED_VALUE_BOUNDARY:
+        if self._grid.status_at_node[the_node] == self._grid.BC_NODE_IS_FIXED_VALUE:
             return True
 
         if self.node_can_drain(the_node):
@@ -823,7 +824,10 @@ class DepressionFinderAndRouter(Component):
             # assign_outlet_receiver to find the correct receiver (so that it
             # doesn't simply drain back into the lake)
             elif ("flow__receiver_node" in self._grid.at_node) and reroute_flow:
-                if self._grid.status_at_node[lowest_node_on_perimeter] != CORE_NODE:
+                if (
+                    self._grid.status_at_node[lowest_node_on_perimeter]
+                    != self._grid.BC_NODE_IS_CORE
+                ):
                     self._grid.at_node["flow__receiver_node"][
                         lowest_node_on_perimeter
                     ] = lowest_node_on_perimeter

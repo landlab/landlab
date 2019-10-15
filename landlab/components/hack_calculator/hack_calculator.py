@@ -106,7 +106,7 @@ class HackCalculator(Component):
     >>> import pandas as pd
     >>> pd.set_option('display.max_columns', None)
     >>> import numpy as np
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
     >>> from landlab.components import (
     ...     FlowAccumulator,
     ...     FastscapeEroder,
