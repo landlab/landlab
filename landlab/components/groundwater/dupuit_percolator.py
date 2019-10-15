@@ -469,9 +469,13 @@ class GroundwaterDupuitPercolator(Component):
         # Groundwater flux divergence
         dqdx = self._grid.calc_flux_div_at_node(self._q)
 
+        soil_present = self._elev-self._base > 0.0
+        rel_thickness = np.ones_like(self._elev)
+        rel_thickness[soil_present] = np.minimum(1, self._thickness[soil_present] / (self._elev[soil_present] - self._base[soil_present]) )
+
         # Calculate surface discharge at nodes
         self._qs[:] = _regularize_G(
-            self._thickness / (self._elev - self._base), self._r
+            rel_thickness, self._r
         ) * _regularize_R(self._recharge - dqdx)
 
         # Mass balance
