@@ -15,7 +15,7 @@ import numpy as np
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.structured_quad import links as squad_links
 from landlab.utils import structured_grid as sgrid
-from landlab.utils.decorators import deprecated, make_return_array_immutable
+from landlab.utils.decorators import make_return_array_immutable
 
 from ..core.utils import add_module_functions_to_class, as_id_array
 from ..graph import DualUniformRectilinearGraph
@@ -1481,7 +1481,6 @@ class RasterModelGrid(
             "`_calc_unit_normals_to_patch_subtriangles` instead."
         )
 
-    @deprecated(use="calc_slope_at_node, calc_aspect_at_node", version=1.0)
     def calculate_slope_aspect_at_nodes_burrough(self, ids=None, vals="Elevation"):
         """Calculate topographic slope.
 
@@ -1516,9 +1515,7 @@ class RasterModelGrid(
         >>> z = np.array([0., 0., 0., 0.,
         ...               3., 3., 3., 3,
         ...               6., 6., 6., 6.])
-        >>> with pytest.deprecated_call():
-        ...     (slope, aspect) = (
-        ...              grid.calculate_slope_aspect_at_nodes_burrough(vals=z))
+        >>> slope, aspect = grid.calculate_slope_aspect_at_nodes_burrough(vals=z)
         >>> np.tan(slope)
         array([ 0.75,  0.75])
         >>> np.degrees(aspect)
@@ -1535,7 +1532,7 @@ class RasterModelGrid(
         >>> grid.calc_aspect_at_node(elevs=z)[grid.core_nodes]
         array([ 180.,  180.])
 
-        LLCATS: DEPR NINF SURF GRAD
+        LLCATS: NINF SURF GRAD
         """
         if ids is None:
             ids = self.node_at_cell
