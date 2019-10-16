@@ -1519,11 +1519,14 @@ class RasterModelGrid(
         >>> np.degrees(aspect)
         array([ 180.,  180.])
 
-        This method is *deprecated*. Use ``calc_slope_at_node`` and
-        ``calc_aspect_at_node`` instead. Notice that ``calc_slope_at_node``
-        and ``calc_aspect_at_node`` return values for all nodes, not just
-        core nodes. In addition, ``calc_aspect_at_node`` returns compass-style
-        angles in degrees.
+        We recommend using the following functions instead of this one:
+        - :py:meth:`~landlab.grid.RasterModelGrid.calc_slope_at_node`
+        - :py:meth:`~landlab.grid.RasterModelGrid.calc_aspect_at_node`
+        Notice that :py:meth:`~landlab.grid.RasterModelGrid.calc_slope_at_node`
+        and `:py:meth:`~landlab.grid.RasterModelGrid.calc_aspect_at_node` return
+        values for all nodes, not just core nodes. In addition,
+        `:py:meth:`~landlab.grid.RasterModelGrid.calc_aspect_at_node` returns
+        compass-style angles in degrees.
 
         >>> np.tan(grid.calc_slope_at_node(elevs=z)[grid.core_nodes])
         array([ 0.75,  0.75])
