@@ -308,24 +308,6 @@ def perimeter_iter(shape):
     )
 
 
-def boundary_nodes(shape):
-    """Array of perimeter nodes.
-
-    .. deprecated:: 0.6
-        Deprecated due to imprecise terminology. This is really perimeter_iter
-        (see below).
-
-    An array of the indices of the boundary nodes.
-
-    Examples
-    --------
-    >>> from landlab.utils.structured_grid import boundary_nodes
-    >>> boundary_nodes((3, 4))
-    array([ 0,  1,  2,  3,  4,  7,  8,  9, 10, 11])
-    """
-    return np.fromiter(boundary_iter(shape), dtype=np.int)
-
-
 def perimeter_nodes(shape):
     """Array of perimeter nodes.
 
@@ -532,7 +514,7 @@ def status_at_node(shape, boundary_status=FIXED_VALUE_BOUNDARY):
     status = np.empty(np.prod(shape), dtype=np.int8)
 
     status[interior_nodes(shape)] = CORE_NODE
-    status[boundary_nodes(shape)] = boundary_status
+    status[perimeter_nodes(shape)] = boundary_status
 
     return status
 
@@ -1461,7 +1443,7 @@ def node_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE):
 
     (interiors, boundaries) = (
         interior_nodes(shape_with_halo),
-        boundary_nodes(shape_with_halo),
+        perimeter_nodes(shape_with_halo),
     )
 
     ids.flat[interiors] = range(interior_node_count(shape_with_halo))
@@ -1690,7 +1672,7 @@ def diagonal_node_array(
     if boundary_node_mask is not None:
         boundaries = np.empty(4, dtype=np.int)
         boundaries.fill(boundary_node_mask)
-        diags[boundary_nodes(shape)] = boundaries
+        diags[perimeter_nodes(shape)] = boundaries
 
     if contiguous:
         return diags.copy()
