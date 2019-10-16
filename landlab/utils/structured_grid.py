@@ -264,30 +264,6 @@ def bottom_top_iter(shape):
     return itertools.chain(bottom_index_iter(shape), top_index_iter(shape))
 
 
-def boundary_iter(shape):
-    """Iterator for perimeter nodes.
-
-    .. deprecated:: 0.6
-
-        Deprecated due to imprecise terminology. This is really perimeter_iter
-        (see below).
-        Iterates over all of the boundary node indices of a structured grid in
-        order.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab.utils.structured_grid import boundary_iter
-    >>> np.fromiter(boundary_iter((4, 3)), dtype=np.int)
-    array([ 0,  1,  2,  3,  5,  6,  8,  9, 10, 11])
-    """
-    return itertools.chain(
-        bottom_index_iter(shape),
-        left_right_iter(shape, 1, shape[0] - 1),
-        top_index_iter(shape),
-    )
-
-
 def perimeter_iter(shape):
     """Iterator for perimeter nodes.
 
