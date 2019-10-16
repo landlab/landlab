@@ -2714,50 +2714,6 @@ def _add_format_extension(path, format):
     return base + ext
 
 
-def from_dict(param_dict):
-    """Create a RasterModelGrid from a dict-like object.
-
-    Create a RasterModelGrid from the dictionary-like object, *param_dict*.
-    Required keys of the dictionary are NUM_ROWS, NUM_COLS. Raises a KeyError
-    if either of these are missing is given, use it as the
-    HexModelGrid *dx* parameter, otherwise default to unit spacing.
-
-    Deprecated in version 1.6.X. Will be removed in version 2.0.
-    """
-    msg = (
-        "The non-class method version of 'from_dict' for RasterModelGrid "
-        "was Deprecated in version 1.6.X. Will be removed in version 2.0."
-    )
-    warn(msg, DeprecationWarning)
-
-    # Read and create basic raster grid
-    try:
-        nrows = int(param_dict["NUM_ROWS"])
-        ncols = int(param_dict["NUM_COLS"])
-        spacing = float(param_dict.get("GRID_SPACING", 1.0))
-    except KeyError:
-        raise
-    except ValueError:
-        raise
-    else:
-        grid = RasterModelGrid((nrows, ncols), xy_spacing=spacing)
-
-    # Set boundaries
-    left_boundary_type = param_dict.get("LEFT_BOUNDARY", "open")
-    right_boundary_type = param_dict.get("RIGHT_BOUNDARY", "open")
-    top_boundary_type = param_dict.get("TOP_BOUNDARY", "open")
-    bottom_boundary_type = param_dict.get("BOTTOM_BOUNDARY", "open")
-    grid.set_closed_boundaries_at_grid_edges(
-        _is_closed_boundary(right_boundary_type),
-        _is_closed_boundary(top_boundary_type),
-        _is_closed_boundary(left_boundary_type),
-        _is_closed_boundary(bottom_boundary_type),
-    )
-
-    # Return the created and initialized grid
-    return grid
-
-
 add_module_functions_to_class(RasterModelGrid, "raster_mappers.py", pattern="map_*")
 add_module_functions_to_class(RasterModelGrid, "raster_gradients.py", pattern="calc_*")
 add_module_functions_to_class(
