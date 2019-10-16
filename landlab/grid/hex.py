@@ -8,8 +8,6 @@ automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
 
-from warnings import warn
-
 import numpy
 
 from ..core.utils import as_id_array
