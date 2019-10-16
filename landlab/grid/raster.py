@@ -8,8 +8,6 @@ automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
 
-from warnings import warn
-
 import numpy as np
 
 from landlab.field.scalar_data_fields import FieldError
@@ -2650,15 +2648,6 @@ class RasterModelGrid(
 
         # set the boundary condition (fixed value) at the outlet_node
         self.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
-
-
-def _is_closed_boundary(boundary_string):
-    """Check if boundary string indicates a closed boundary.
-
-    Helper function, probably depreciated due to changes in BC handling
-    procedures (DEJH, May 14).
-    """
-    return boundary_string.lower() == "closed"
 
 
 def _guess_format_from_name(path):
