@@ -26,18 +26,10 @@ Boundary
 Flow routing
 ============
 
-Flow direction and accumulation from topography
------------------------------------------------
-
-.. automodule:: landlab.components.flow_routing.route_flow_dn
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 Lake filling and routing (handling depressions in terrain)
 ----------------------------------------------------------
 
-.. automodule:: landlab.components.flow_routing.lake_mapper
+.. automodule:: landlab.components.depression_finder.lake_mapper
     :members:
     :undoc-members:
     :show-inheritance:

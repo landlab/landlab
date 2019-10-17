@@ -294,7 +294,7 @@ class ChannelProfiler(_BaseProfiler):
     >>> mg.set_nodata_nodes_to_closed(z, 0)
     >>> fa = FlowAccumulator(mg, flow_director='D4')
     >>> fa.run_one_step()
-    >>> fa.drainage_area.reshape(mg.shape)
+    >>> fa.node_drainage_area.reshape(mg.shape)
     array([[  0.,   0.,   0.,   0.,   0.,   0.,   0.,   0.,  11.,   0.],
            [  0.,   0.,   0.,   0.,   0.,   0.,   9.,  10.,  11.,   0.],
            [  0.,   0.,   0.,   1.,   2.,   3.,   8.,   0.,   0.,   0.],
@@ -466,33 +466,31 @@ class ChannelProfiler(_BaseProfiler):
 
     _name = "ChannelProfiler"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "drainage_area",
-        "flow__receiver_node",
-        "flow__link_to_receiver_node",
-    )
-
-    _output_var_names = ()
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "flow__receiver_node": "-",
-        "drainage_area": "m**2",
-        "flow__link_to_receiver_node": "-",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "flow__receiver_node": "node",
-        "drainage_area": "node",
-        "flow__link_to_receiver_node": "node",
-    }
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "flow__receiver_node": "Node array of receivers (node that receives flow from current node)",
-        "drainage_area": "Upstream accumulated surface area contributing to the node's discharge",
-        "flow__link_to_receiver_node": "Node array containing ID of link that leads from each node to its receiver, or BAD_INDEX_VALUE if no link",
+    _info = {
+        "drainage_area": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m**2",
+            "mapping": "node",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
+        },
+        "flow__link_to_receiver_node": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing ID of link that leads from each node to its receiver, or BAD_INDEX_VALUE if no link",
+        },
+        "flow__receiver_node": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
     }
 
     def __init__(
@@ -541,28 +539,21 @@ class ChannelProfiler(_BaseProfiler):
         """
         super(ChannelProfiler, self).__init__(grid)
 
-        self._grid = grid
         self._cmap = plt.get_cmap(cmap)
         if channel_definition_field in grid.at_node:
             self._channel_definition_field = grid.at_node[channel_definition_field]
         else:
-            msg = "Required field {name} not present. This field is required by the ChannelProfiler to define the start and stop of channel networks."
+            msg = "Required field {name} not present. This field is required by the ChannelProfiler to define the start and stop of channel networks.".format(
+                name=channel_definition_field
+            )
             raise ValueError(msg)
 
-        if "flow__receiver_node" in grid.at_node:
-            self._flow_receiver = grid.at_node["flow__receiver_node"]
-        else:
-            msg = "flow__receiver_node is a required field to run a ChannelProfiler."
-            raise ValueError(msg)
+        self._flow_receiver = grid.at_node["flow__receiver_node"]
 
-        if "flow__link_to_receiver_node" in grid.at_node:
-            self._link_to_flow_receiver = grid.at_node["flow__link_to_receiver_node"]
-        else:
-            msg = "flow__link_to_receiver_node is a required field to run a ChannelProfiler."
-            raise ValueError(msg)
+        self._link_to_flow_receiver = grid.at_node["flow__link_to_receiver_node"]
 
         self._main_channel_only = main_channel_only
-        self.minimum_channel_threshold = minimum_channel_threshold
+        self._minimum_channel_threshold = minimum_channel_threshold
 
         # verify that the number of starting nodes is the specified number of channels
         if outlet_nodes is not None:
@@ -675,7 +666,7 @@ class ChannelProfiler(_BaseProfiler):
 
                 if (
                     self._channel_definition_field[supplying_nodes[max_drainage]]
-                    < self.minimum_channel_threshold
+                    < self._minimum_channel_threshold
                 ):
                     nodes_to_process = []
                     channel_upstream = False
@@ -691,7 +682,7 @@ class ChannelProfiler(_BaseProfiler):
                 upstream_das = self._channel_definition_field[supplying_nodes]
 
                 # if no nodes upstream exceed the threshold, exit
-                if np.sum(upstream_das > self.minimum_channel_threshold) == 0:
+                if np.sum(upstream_das > self._minimum_channel_threshold) == 0:
                     nodes_to_process = []
                     channel_upstream = False
 
@@ -699,7 +690,7 @@ class ChannelProfiler(_BaseProfiler):
                 else:
                     # if only one upstream node exceeds the threshold, proceed
                     # up the channel.
-                    if np.sum(upstream_das > self.minimum_channel_threshold) == 1:
+                    if np.sum(upstream_das > self._minimum_channel_threshold) == 1:
                         max_drainage = np.argmax(
                             self._channel_definition_field[supplying_nodes]
                         )
@@ -708,7 +699,7 @@ class ChannelProfiler(_BaseProfiler):
                     # processed into a new channel.
                     else:
                         nodes_to_process = supplying_nodes[
-                            upstream_das > self.minimum_channel_threshold
+                            upstream_das > self._minimum_channel_threshold
                         ]
                         channel_upstream = False
 

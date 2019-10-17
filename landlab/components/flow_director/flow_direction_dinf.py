@@ -12,7 +12,6 @@ KRB Feb 2017
 
 import numpy as np
 
-from landlab import VoronoiDelaunayGrid  # for type tests
 from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 from landlab.core.utils import as_id_array
 from landlab.utils.return_array import return_array_at_node
@@ -144,10 +143,11 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
            [ 0.40966553,  0.59033447],
            [ 0.40966553,  0.59033447]])
     """
-    # grid type testing
-    if isinstance(grid, VoronoiDelaunayGrid):
+    try:
+        grid.d8s_at_node
+    except AttributeError:
         raise NotImplementedError(
-            "Dinfinity is currently implemented for" " Raster grids only"
+            "Dinfinity is currently implemented for Raster grids only"
         )
     # get elevs
     elevs = return_array_at_node(grid, elevs)

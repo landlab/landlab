@@ -34,6 +34,8 @@ Examples
 >>> from landlab.components import Flexure
 
 >>> grid = RasterModelGrid((4, 5))
+>>> _ = grid.add_zeros("node", "lithosphere__overlying_pressure_increment")
+>>> _ = grid.add_zeros("node", "lithosphere_surface__elevation_increment")
 >>> flexure = Flexure(grid)
 >>> print(registry.format_citations())
 # Citations
@@ -66,7 +68,6 @@ Examples
     publisher={Pergamon}
     }
 """
-from __future__ import absolute_import
 
 import os
 
@@ -110,6 +111,8 @@ class ComponentRegistry(object):
         --------
         >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
+        >>> registry.registered
+        ()
         >>> class FooBar(object):
         ...    pass
         >>> registry.add(FooBar)

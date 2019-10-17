@@ -176,7 +176,7 @@ Flow routing
 
    landlab.components.flow_director
    landlab.components.flow_accum
-   landlab.components.flow_routing
+   landlab.components.depression_finder
    landlab.components.lake_fill
    landlab.components.sink_fill
 

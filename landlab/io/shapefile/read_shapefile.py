@@ -73,7 +73,7 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True):
     array([  0.,   5.,  10.,  10.])
     >>> grid.nodes_at_link
     array([[0, 1],
-           [1, 2],
+           [2, 1],
            [1, 3]])
     >>> assert "spam" in grid.at_link
     >>> grid.at_link["spam"]

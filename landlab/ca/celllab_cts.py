@@ -239,7 +239,7 @@ class CAPlotter(object):
 
     >>> from landlab.ca.hex_cts import HexCTS
     >>> import matplotlib
-    >>> grid = HexModelGrid(3, 3)
+    >>> grid = HexModelGrid((3, 3))
     >>> ins = np.zeros(grid.number_of_nodes, dtype=int)
     >>> ca = HexCTS(grid, nsd, trn_list, ins)
     >>> cap = CAPlotter(ca, cmap=matplotlib.cm.pink)

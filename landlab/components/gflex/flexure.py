@@ -21,9 +21,8 @@ Created on Thu Feb 19 18:47:11 2015
 """
 
 
-import inspect
-
 import numpy as np
+import scipy.constants
 
 from landlab import Component, FieldError, RasterModelGrid
 
@@ -111,34 +110,31 @@ class gFlex(Component):
 
     _name = "gFlex"
 
-    _input_var_names = ("surface_load__stress",)
-
-    _output_var_names = (
-        "lithosphere_surface__elevation_increment",
-        "topographic__elevation",
-    )
-
-    _var_units = {
-        "surface_load__stress": "Pa",
-        "lithosphere_surface__elevation_increment": "m",
-        "topographic__elevation": "m",
-    }
-
-    _var_mapping = {
-        "surface_load__stress": "node",
-        "lithosphere_surface__elevation_increment": "node",
-        "topographic__elevation": "node",
-    }
-
-    _var_doc = {
-        "surface_load__stress": ("Magnitude of stress exerted by surface load"),
-        "lithosphere_surface__elevation_increment": (
-            "Vertical deflection of the surface and of the " + "lithospheric plate"
-        ),
-        "topographic__elevation": (
-            "Land surface topographic elevation; can "
-            + "be overwritten in initialization"
-        ),
+    _info = {
+        "lithosphere_surface__elevation_increment": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Vertical deflection of the surface and of the lithospheric plate",
+        },
+        "surface_load__stress": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "Pa",
+            "mapping": "node",
+            "doc": "Magnitude of stress exerted by surface load",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation; can be overwritten in initialization",
+        },
     }
 
     def __init__(
@@ -149,15 +145,21 @@ class gFlex(Component):
         rho_mantle=3300.0,
         rho_fill=0.0,
         elastic_thickness=35000.0,
+        Method="FD",
+        Solver="direct",
+        PlateSolutionType="vWC1994",
+        quiet=True,
         BC_W="0Displacement0Slope",
         BC_E="0Displacement0Slope",
         BC_N="0Displacement0Slope",
         BC_S="0Displacement0Slope",
-        g=9.81,
-        **kwds
+        g=scipy.constants.g,
     ):
         """Constructor for Wickert's gFlex in Landlab."""
-        assert RasterModelGrid in inspect.getmro(grid.__class__)
+        super(gFlex, self).__init__(grid)
+
+        assert isinstance(grid, RasterModelGrid)
+
         if NO_GFLEX:
             raise ImportError(
                 "gFlex not installed! For installation instructions see "
@@ -171,35 +173,21 @@ class gFlex(Component):
         )
 
         # instantiate the module:
-        self.flex = gflex.F2D()
-        flex = self.flex
+        self._flex = gflex.F2D()
+        flex = self._flex
 
         # set up the grid variables:
-        self._grid = grid
+
         flex.dx = grid.dx
         flex.dy = grid.dy
 
         # we assume these properties are fixed in this relatively
         # straightforward implementation, but they can still be set if you
         # want:
-        try:
-            flex.Method = kwds["Method"]
-        except KeyError:
-            flex.Method = "FD"
-        try:
-            flex.PlateSolutionType = kwds["PlateSolutionType"]
-        except KeyError:
-            flex.PlateSolutionType = "vWC1994"
-        try:
-            flex.Solver = kwds["Solver"]
-        except KeyError:
-            flex.Solver = "direct"
-        try:
-            quiet = kwds["Quiet"]
-        except KeyError:
-            flex.Quiet = True
-        else:
-            flex.Quiet = bool(quiet)
+        flex.Method = Method
+        flex.PlateSolutionType = PlateSolutionType
+        flex.Solver = Solver
+        flex.Quiet = quiet
 
         flex.E = float(Youngs_modulus)
         flex.nu = float(Poissons_ratio)
@@ -239,34 +227,32 @@ class gFlex(Component):
 
         # create a holder for the "pre-flexure" state of the grid, to allow
         # updating of elevs:
-        self.pre_flex = np.zeros(grid.number_of_nodes, dtype=float)
+        self._pre_flex = np.zeros(grid.number_of_nodes, dtype=float)
 
         # create the primary output field:
-        self.grid.add_zeros(
+        self._grid.add_zeros(
             "lithosphere_surface__elevation_increment",
             at="node",
             dtype=float,
             noclobber=False,
         )
 
-    def flex_lithosphere(self, **kwds):
+    def flex_lithosphere(self):
         """
         Executes (& finalizes, from the perspective of gFlex) the core method
         of gFlex. Note that flexure of the lithosphere proceeds to steady state
         in a single timestep.
         """
-        # note kwds is redundant at the moment, but could be used subsequently
-        # for dynamic control over params
-        self.flex.qs = (
-            self.grid.at_node["surface_load__stress"].view().reshape(self.grid.shape)
+        self._flex.qs = (
+            self._grid.at_node["surface_load__stress"].view().reshape(self._grid.shape)
         )
-        self.flex.initialize()
-        self.flex.run()
-        self.flex.finalize()
+        self._flex.initialize()
+        self._flex.run()
+        self._flex.finalize()
 
-        self.grid.at_node["lithosphere_surface__elevation_increment"][
+        self._grid.at_node["lithosphere_surface__elevation_increment"][
             :
-        ] = self.flex.w.view().ravel()
+        ] = self._flex.w.view().ravel()
 
         try:
             self._grid.at_node["topographic__elevation"]
@@ -275,13 +261,13 @@ class gFlex(Component):
             pass
         else:
             topo_diff = (
-                self.grid.at_node["lithosphere_surface__elevation_increment"]
-                - self.pre_flex
+                self._grid.at_node["lithosphere_surface__elevation_increment"]
+                - self._pre_flex
             )
-            self.grid.at_node["topographic__elevation"] += topo_diff
-            self.pre_flex += topo_diff
+            self._grid.at_node["topographic__elevation"] += topo_diff
+            self._pre_flex += topo_diff
 
-    def run_one_step(self, **kwds):
+    def run_one_step(self):
         """
         Flex the lithosphere to find its steady state form.
 
@@ -291,4 +277,4 @@ class gFlex(Component):
         ----------
         None
         """
-        self.flex_lithosphere(**kwds)
+        self._flex_lithosphere()

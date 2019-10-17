@@ -12,7 +12,7 @@ def fill_horizontal_links(shape, np.ndarray[DTYPE_t, ndim=1] horizontal_links):
     cdef int n_cols = shape[1]
     cdef int n_links = n_rows * (n_cols - 1) + (n_rows - 1) * n_cols
     cdef int link_stride = 2 * n_cols - 1
-    cdef int i, n
+    cdef int i, n, link
 
     i = 0
     for link in range(0, n_links, link_stride):
@@ -27,7 +27,7 @@ def fill_vertical_links(shape, np.ndarray[DTYPE_t, ndim=1] vertical_links):
     cdef int n_cols = shape[1]
     cdef int link_stride = 2 * n_cols - 1
     cdef int n_links = n_rows * (n_cols - 1) + (n_rows - 1) * n_cols
-    cdef int i, n
+    cdef int i, n, link
 
     i = 0
     for link in range(n_cols - 1, n_links, link_stride):

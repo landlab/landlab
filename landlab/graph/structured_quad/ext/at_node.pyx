@@ -4,6 +4,8 @@ cimport cython
 
 DTYPE = np.int
 ctypedef np.int_t DTYPE_t
+INT8TYPE = np.int8
+ctypedef np.int8_t INT8TYPE_t
 
 
 @cython.boundscheck(False)
@@ -213,7 +215,7 @@ def fill_links_at_node(shape, np.ndarray[DTYPE_t, ndim=2] links_at_node):
 
 @cython.boundscheck(False)
 def fill_link_dirs_at_node(shape,
-                           np.ndarray[DTYPE_t, ndim=2] link_dirs_at_node):
+                           np.ndarray[INT8TYPE_t, ndim=2] link_dirs_at_node):
     cdef int n_rows = shape[0]
     cdef int n_cols = shape[1]
     cdef int n_nodes = n_rows * n_cols
