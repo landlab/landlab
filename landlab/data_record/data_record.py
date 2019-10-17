@@ -169,8 +169,8 @@ class DataRecord(object):
         ['mean_elevation']
         >>> dr1.dataset['mean_elevation'].values
         array([100])
-        >>> dr1.dataset.attrs
-        OrderedDict([('time_units', 'y')])
+        >>> list(dr1.dataset.attrs.items())
+        [('time_units', 'y')]
 
         Example of a DataRecord with item_id as the only dimension:
 
