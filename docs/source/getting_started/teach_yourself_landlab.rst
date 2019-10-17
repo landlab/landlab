@@ -91,9 +91,8 @@ A motivating example
 Introduction to the Landlab Grid and Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-First, read the `User Guide page on Landlab
-grids :ref:<grid_user_guide>`. Then work
-through the following tutorials:
+First, read the :ref:`User Guide page on Landlab
+grids <grid_user_guide>`. Then work through the following tutorials:
 
 -  `Introduction to the model grid
    object <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=grid_object_demo/grid_object_demo.ipynb>`_.
@@ -104,7 +103,7 @@ through the following tutorials:
    How Landlab stores spatial data on the grid; a little on naming
    conventions.
 
-Now, go back to the [Hobley et al. 2017 publication] and identify the
+Now, go back to the `Hobley et al. 2017 publication <https://www.earth-surf-dynam.net/5/21/2017/esurf-5-21-2017.html>` and identify the
 ordering conventions of nodes, links, and other grid elements.
 
 Plotting
@@ -118,7 +117,7 @@ Plotting
 How to Model with Landlab
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Read the `Build-A-Model page in the User
+Read the :ref:`Build-A-Model page in the User
 Guide <build_a_model>`.
 
 Introduction to Components
