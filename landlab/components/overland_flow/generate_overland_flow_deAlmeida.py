@@ -884,8 +884,7 @@ def find_active_neighbors_for_fixed_links(grid):
 
     >>> rmg.at_node['topographic__elevation'] = rmg.zeros(at='node')
     >>> rmg.at_link['topographic__slope'] = rmg.zeros(at='link')
-
-    >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+    >>> rmg.status_at_node[rmg.perimeter_nodes] = rmg.BC_NODE_IS_FIXED_GRADIENT
     >>> find_active_neighbors_for_fixed_links(rmg)
     array([20, 21, 22, 23, 24, 14, 17, 27, 30, 20, 21, 22, 23, 24])
     """

@@ -1996,7 +1996,7 @@ class RasterModelGrid(
         >>> s = np.arange(0, rmg.number_of_links)
         >>> rmg['node']['topographic__elevation'] = z
         >>> rmg['link']['topographic__slope'] = s
-        >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+        >>> rmg.status_at_node[rmg.perimeter_nodes] = rmg.BC_NODE_IS_FIXED_GRADIENT
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0,
                0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=uint8)

@@ -346,7 +346,7 @@ class LinearDiffuser(Component):
         True
         >>> mg.at_link['topographic__slope'] = mg.calc_grad_at_link(
         ...     'topographic__elevation')
-        >>> mg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+        >>> mg.status_at_node[mg.perimeter_nodes] = mg.BC_NODE_IS_FIXED_GRADIENT
         >>> ld.updated_boundary_conditions()
         >>> ld.fixed_grad_nodes
         array([ 1,  2,  3,  5,  9, 10, 14, 16, 17, 18])

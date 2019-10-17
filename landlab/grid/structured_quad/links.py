@@ -758,7 +758,7 @@ def is_fixed_link(shape, node_status):
     >>> rmg.at_node['topographic__elevation'] = z
     >>> rmg.at_link['topographic__slope'] = s
 
-    >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+    >>> rmg.status_at_node[rmg.perimeter_nodes] = rmg.BC_NODE_IS_FIXED_GRADIENT
     >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
     array([2, 2, 2, 2, 2,
            2, 0, 0, 0, 2,
@@ -815,7 +815,7 @@ def fixed_link_ids(shape, node_status):
     >>> s = np.arange(0, rmg.number_of_links)
     >>> rmg.at_node['topographic__elevation'] = z
     >>> rmg.at_link['topographic__slope'] = s
-    >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+    >>> rmg.status_at_node[rmg.perimeter_nodes] = rmg.BC_NODE_IS_FIXED_GRADIENT
     >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
     array([2, 2, 2, 2, 2,
            2, 0, 0, 0, 2,
@@ -968,7 +968,7 @@ def horizontal_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
     >>> rmg.at_link['topographic__slope'] = numpy.arange(
     ...     0, rmg.number_of_links)
 
-    >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+    >>> rmg.status_at_node[rmg.perimeter_nodes] = rmg.BC_NODE_IS_FIXED_GRADIENT
     >>> status = rmg.status_at_node
     >>> status # doctest: +NORMALIZE_WHITESPACE
     array([2, 2, 2, 2, 2,
@@ -1290,7 +1290,7 @@ def vertical_fixed_link_ids(shape, fixed_ids, bad_index_value=-1):
     ...     0, rmg.number_of_nodes)
     >>> rmg.at_link['topographic__slope'] = numpy.arange(
     ...     0, rmg.number_of_links)
-    >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+    >>> rmg.status_at_node[rmg.perimeter_nodes] = rmg.BC_NODE_IS_FIXED_GRADIENT
 
     >>> status = rmg.status_at_node
     >>> status # doctest: +NORMALIZE_WHITESPACE
