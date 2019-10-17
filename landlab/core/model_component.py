@@ -50,11 +50,11 @@ class classproperty(property):
         return self.fget.__get__(None, owner)()
 
 
-class Component(object):
-    """Defines the base component class from which Landlab components
-    inherit."""
+class Component:
+    """Base component class from which Landlab components inherit."""
 
     _info = {}
+    _name = None
 
     def __new__(cls, *args, **kwds):
         registry.add(cls)
