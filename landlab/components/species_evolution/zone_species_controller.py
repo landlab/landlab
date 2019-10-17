@@ -153,7 +153,7 @@ class ZoneSpeciesController(_SpeciesController):
         list of Zones
             The discrete zones identified in the range.
         """
-        grid = self._grid
+        grid = self._se._grid
 
         # Label clusters of 'True' values in `range_mask`.
 
@@ -195,7 +195,7 @@ class ZoneSpeciesController(_SpeciesController):
         for z in self._zones:
             species.extend([species_type([z], **kwargs) for _ in range(species_count)])
 
-        self._delegate._introduce_species(species)
+        self._se._introduce_species(species)
 
         self._species.extend(species)
 
@@ -238,8 +238,8 @@ class ZoneSpeciesController(_SpeciesController):
         zone_mask = self._zone_func(**self._zone_params)
         new_zones = self._get_zones_with_mask(zone_mask, **self._zone_params)
 
-        self._zones = _update_zones(self._grid, time, prior_zones, new_zones,
-                                    record_add_on)
+        self._zones = _update_zones(self._se._grid, time, prior_zones,
+                                    new_zones, record_add_on)
 
         # Evolve species.
 
@@ -255,7 +255,7 @@ class ZoneSpeciesController(_SpeciesController):
                 self._extinct_species.append(es)
 
             if len(child_species) > 0:
-                self._delegate._introduce_species(child_species)
+                self._se._introduce_species(child_species)
                 surviving_species.extend(child_species)
 
         self._species = surviving_species

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Simulate the develop of lineages in a landscape.
+"""Simulate the development of lineages in a landscape.
 
 Component written by Nathan Lyons beginning August 2017.
 """
@@ -14,116 +14,26 @@ from landlab import Component
 from landlab.core.messages import warning_message
 
 
-class SpeciesEvolverDelegate(object):
-    """SpeciesEvolver interface for SpeciesControllers."""
-
-    def __init__(self):
-        """Instantiate a SpeciesEvolver delegate."""
-        # Create data structures.
-
-        self._record = OrderedDict([('time', [np.nan])])
-
-        self._species = OrderedDict([('clade', []),
-                                     ('species_number', []),
-                                     ('time_appeared', []),
-                                     ('latest_time', []),
-                                     ('object', [])])
-
-        # Set a reference to a function that generates clade names.
-
-        def _get_next_clade_name():
-            for size in count(1):
-                for s in product(ascii_uppercase, repeat=size):
-                    yield ''.join(s)
-
-        self._clade_generator = _get_next_clade_name()
-
-    def _introduce_species(self, species):
-        """Add species to SpeciesEvolver.
-
-        The species are introduced at the latest time in the record. Each
-        species is assigned an identifier. The species are added to the
-        `_species` data structure.
-
-        This method is typically called by a SpeciesController.
-
-        Parameters
-        ----------
-        species : list of Species
-            The species to introduce.
-        """
-        # Set species identifier.
-
-        clades = np.array(self._species['clade'])
-        nums = np.array(self._species['species_number'])
-
-        for s in species:
-            if s.parent_species == None:
-                clade = next(self._clade_generator)
-                species_num = 0
-            else:
-                clade = s.parent_species.identifier[0]
-                species_num = nums[np.where(clades == clade)[0]].max() + 1
-                
-            s._identifier = (clade, species_num)    
-            
-            clades = np.append(clades, clade)
-            nums = np.append(nums, species_num)
-            
-        # Update the species data structure.
-
-        time = np.nanmax(self._record['time'])
-        self._update_species_data_structure(time, species)
-
-    def _update_species_data_structure(self, time, species_at_time):
-        s_at_time = set(species_at_time)
-        s_set = set(self._species['object'])
-
-        # Identify the objects already in the dataframe.
-        s_updated = list(s_at_time.intersection(s_set))
-
-        # Identify the objects that are new.
-        s_new = list(s_at_time - s_set)
-
-        # Update the latest time value of the updated species.
-        for s in s_updated:
-            idx = self._species['object'].index(s)
-            self._species['latest_time'][idx] = time
-
-        # Insert the data of new species.
-        if s_new:
-            clade = [s.identifier[0] for s in s_new]
-            s_number = [s.identifier[1] for s in s_new]
-            t = [time] * len(s_new)
-
-            self._species['clade'].extend(clade)
-            self._species['species_number'].extend(s_number)
-            self._species['time_appeared'].extend(t)
-            self._species['latest_time'].extend(t)
-            self._species['object'].extend(s_new)
-
-
 class SpeciesEvolver(Component):
     """Simulate the develop of lineages in a landscape.
 
     This component tracks the lineages of species introduced to a model grid.
-    ``SpeciesController`` introduce and manage species. Evolutionary processes
-    are coded in species classes. SpeciesControllers and species are designed
-    to be subclassed.
+    ``SpeciesController`` instances provide unique approaches to introduce
+    and evolve species. SpeciesControllers are designed to be subclassed.
 
     The standard workflow provides basic functionality. The steps of the
     standard workflow to include in a model driver:
 
     1.  Instantiate the component.
-    2.  Instantiate a SpeciesController with the instantiatized component as
-        the first parameter.
+    2.  Instantiate a SpeciesController.
     3.  Introduce species using the SpeciesController.
-    4.  Advance the model in time using the ``run_one_step`` method. This
-        method works with the SpeciesControllers to determine which species
-        persist in the current time step, among other tasks.
+    4.  Advance the model in time using the component ``run_one_step`` method.
 
-    This workflow provides flexibility. The count and spatial distribution of
-    species can be set as desired at model onset and later time steps. Species
+    The `run_one_step`` method calls the SpeciesControllers to determine
+    which species persist in the current time step, among other tasks.
+
+    This workflow provides flexibility. Species can bed seeded in any count and
+    spatial distribution as desired at model onset and later time steps. Species
     can be ``ZoneSpecies`` or custom types, and multiple types may be
     introduced to the same SpeciesEvolver instance.
 
@@ -134,10 +44,12 @@ class SpeciesEvolver(Component):
 
     Time and other variables can be viewed in the class attribute, ``record``.
     SpeciesControllers can send variables to the record in a 'record_add_on' at
-    each time step. Species metadata of a component instance can be viewed with
+    each time step.
+
+    Species metadata of a component instance can be viewed with
     the class attribute, ``species``.
 
-    Species are assigned identifiers in the order that they are introduced. The
+    Species are assigned identifiers in the order they are introduced. The
     identifier is a two element tuple automatically generated by
     SpeciesEvolver. The first element is the clade id. Clades are lettered from
     A to Z then AA to AZ and so forth as more clades are created. The second
@@ -249,25 +161,42 @@ class SpeciesEvolver(Component):
         """
         super(SpeciesEvolver, self).__init__(grid)
 
-        self._delegate = SpeciesEvolverDelegate()
+        # Create data structures.
+
+        self._record = OrderedDict([('time', [np.nan])])
+
+        self._species = OrderedDict([('clade', []),
+                                     ('species_number', []),
+                                     ('time_appeared', []),
+                                     ('latest_time', []),
+                                     ('object', [])])
 
         self._species_controllers = []
+
+        # Set a reference to a function that generates clade names.
+
+        def _get_next_clade_name():
+            for size in count(1):
+                for s in product(ascii_uppercase, repeat=size):
+                    yield ''.join(s)
+
+        self._clade_generator = _get_next_clade_name()
 
     # Define attributes
 
     @property
     def record(self):
         """A DataFrame of SpeciesEvolver variables over time."""
-        return DataFrame(self._delegate._record)
+        return DataFrame(self._record)
 
     @property
     def species(self):
         """A DataFrame of species variables."""
-        cols = list(self._delegate._species.keys())
+        cols = list(self._species.keys())
         cols.remove('object')
         sort_cols = ['clade', 'species_number']
         return DataFrame(
-                self._delegate._species,
+                self._species,
                 columns=cols).sort_values(by=sort_cols).reset_index(drop=True)
 
     # Update methods
@@ -285,16 +214,16 @@ class SpeciesEvolver(Component):
         """
         # Insert the new time in the record.
 
-        if self._delegate._record['time'] == [np.nan]:
+        if self._record['time'] == [np.nan]:
             time = 0
-            initial_ct = len(self._delegate._species['clade'])
+            initial_ct = len(self._species['clade'])
             self._insert_record_add_on({'species_count': initial_ct})
         else:
-            time = np.nanmax(self._delegate._record['time']) + dt
+            time = np.nanmax(self._record['time']) + dt
 
-        self._delegate._record['time'].append(time)
+        self._record['time'].append(time)
 
-        if len(self._delegate._species['object']) == 0:
+        if len(self._species['object']) == 0:
             msg = 'No species exist. Introduce species to a SpeciesController.'
             print(warning_message(msg))
 
@@ -315,7 +244,44 @@ class SpeciesEvolver(Component):
         ct_add_on = {'species_count': len(survivors)}
         self._insert_record_add_on(ct_add_on)
 
-        self._delegate._update_species_data_structure(time, survivors)
+        self._update_species_data_structure(time, survivors)
+
+    def _introduce_species(self, species):
+        """Add species to SpeciesEvolver.
+
+        The species are introduced at the latest time in the record. Each
+        species is assigned an identifier. The species are added to the
+        `_species` data structure.
+
+        This method is typically called by a SpeciesController.
+
+        Parameters
+        ----------
+        species : list of Species
+            The species to introduce.
+        """
+        # Set species identifier.
+
+        clades = np.array(self._species['clade'])
+        nums = np.array(self._species['species_number'])
+
+        for s in species:
+            if s.parent_species == None:
+                clade = next(self._clade_generator)
+                species_num = 0
+            else:
+                clade = s.parent_species.identifier[0]
+                species_num = nums[np.where(clades == clade)[0]].max() + 1
+
+            s._identifier = (clade, species_num)
+
+            clades = np.append(clades, clade)
+            nums = np.append(nums, species_num)
+
+        # Update the species data structure.
+
+        time = np.nanmax(self._record['time'])
+        self._update_species_data_structure(time, species)
 
     # Query methods
 
@@ -337,18 +303,45 @@ class SpeciesEvolver(Component):
         --------
 
         """
-        appeared = np.array(self._delegate._species['time_appeared'])
+        appeared = np.array(self._species['time_appeared'])
         appeared[np.isnan(appeared)] = -1
-        latest = np.array(self._delegate._species['latest_time'])
+        latest = np.array(self._species['latest_time'])
         latest[np.isnan(latest)] = -1
 
         appeared_before_time = appeared <= time
         present_at_time = latest >= time
         extant_at_time = np.all([appeared_before_time, present_at_time], 0)
 
-        objects = np.array(self._delegate._species['object'])[extant_at_time]
+        objects = np.array(self._species['object'])[extant_at_time]
 
         return list(objects)
+
+    def _update_species_data_structure(self, time, species_at_time):
+        s_at_time = set(species_at_time)
+        s_set = set(self._species['object'])
+
+        # Identify the objects already in the dataframe.
+        s_updated = list(s_at_time.intersection(s_set))
+
+        # Identify the objects that are new.
+        s_new = list(s_at_time - s_set)
+
+        # Update the latest time value of the updated species.
+        for s in s_updated:
+            idx = self._species['object'].index(s)
+            self._species['latest_time'][idx] = time
+
+        # Insert the data of new species.
+        if s_new:
+            clade = [s.identifier[0] for s in s_new]
+            s_number = [s.identifier[1] for s in s_new]
+            t = [time] * len(s_new)
+
+            self._species['clade'].extend(clade)
+            self._species['species_number'].extend(s_number)
+            self._species['time_appeared'].extend(t)
+            self._species['latest_time'].extend(t)
+            self._species['object'].extend(s_new)
 
     def species_with_identifier(self, identifier_element,
                                 return_data_frame=False):
@@ -447,7 +440,7 @@ class SpeciesEvolver(Component):
         >>> species_obj.identifier
         ('B', 0)
         """
-        sdf = DataFrame(self._delegate._species)
+        sdf = DataFrame(self._species)
 
         element_type = type(identifier_element)
 
@@ -489,15 +482,15 @@ class SpeciesEvolver(Component):
     # Record methods
 
     def _get_prior_time(self):
-        if len(self._delegate._record['time']) < 2:
+        if len(self._record['time']) < 2:
             return np.nan
         else:
-            return sorted(self._delegate._record['time'])[-2]
+            return sorted(self._record['time'])[-2]
 
     def _insert_record_add_on(self, add_on):
         for key, value in add_on.items():
-            if key not in self._delegate._record.keys():
-                n_records = len(self._delegate._record['time'])
-                self._delegate._record[key] = [np.nan] * (n_records - 1)
+            if key not in self._record.keys():
+                n_records = len(self._record['time'])
+                self._record[key] = [np.nan] * (n_records - 1)
 
-            self._delegate._record[key].append(value)
+            self._record[key].append(value)

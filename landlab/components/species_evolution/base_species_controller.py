@@ -17,9 +17,8 @@ class _SpeciesController(ABC):
         species_evolver: SpeciesEvolver
             An instance of the SpeciesEvolver component.
         """
-        self._delegate = species_evolver._delegate
+        self._se = species_evolver
         species_evolver._species_controllers.append(self)
-        self._grid = species_evolver._grid
 
     @abstractmethod
     def _get_surviving_species(self):
