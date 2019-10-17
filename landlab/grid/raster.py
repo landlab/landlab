@@ -2007,10 +2007,6 @@ class RasterModelGrid(
         array([4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0, 0, 0,
                0, 0, 0, 2, 4, 0, 0, 0, 0, 0, 0, 0, 4, 2, 0, 0, 0, 0, 0, 0, 2,
                4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4], dtype=uint8)
-        >>> rmg.fixed_link_properties['fixed_gradient_of']
-        'topographic__slope'
-        >>> rmg.fixed_gradient_node_properties['fixed_gradient_of']
-        'topographic__elevation'
 
         LLCATS: BC SUBSET
         """
