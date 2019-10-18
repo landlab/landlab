@@ -11,7 +11,6 @@ automated fashion. To modify the text seen on the web, edit the files
 import numpy as np
 
 from landlab.field.scalar_data_fields import FieldError
-from landlab.grid.structured_quad import links as squad_links
 from landlab.utils import structured_grid as sgrid
 from landlab.utils.decorators import make_return_array_immutable
 
@@ -1148,88 +1147,6 @@ class RasterModelGrid(
                 "Switching a boundary between fixed gradient and looped will "
                 "result in bad BC handling! Bailing out..."
             )
-
-    # DEJH believes this needs deprecating, but it's pretty hard wired into
-    # the flow router. So I've restored it for now.
-    def _calculate_gradients_at_d8_active_links(self, node_values):
-        """Calculate gradients over D8 active links.
-
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-
-        Parameters
-        ----------
-        node_values : ndarray
-            Values at nodes.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> import numpy as np
-        >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
-        >>> z = np.array([3., 3., 3., 3.,
-        ...               3., 3., 0., 0.,
-        ...               3., 0., 0., 0.])
-        >>> grid._calculate_gradients_at_d8_active_links(z)
-        ...     # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.  , -1.  ,  0.  , -0.75,  0.  , -1.  ,  0.  ,  0.  , -0.6 ,
-                0.  , -0.6 ,  0.  , -0.6 ,  0.  , 0. ])
-
-        LLCATS: LINF GRAD
-        """
-        active_links = self.active_d8
-        diagonal_links = squad_links.is_diagonal_link(self.shape, active_links)
-        active_links = active_links[~diagonal_links]
-
-        vertical_links = squad_links.is_vertical_link(self.shape, active_links)
-        horizontal_links = squad_links.is_horizontal_link(self.shape, active_links)
-
-        diffs = np.diff(node_values[self.nodes_at_link[self.active_links]], axis=1)
-
-        diffs[vertical_links] /= self.dy
-        diffs[horizontal_links] /= self.dx
-
-        diag_dist = np.sqrt(self.dy ** 2.0 + self.dx ** 2.0)
-        diagonal_link_slopes = (
-            np.diff(node_values[self.nodes_at_diagonal[self.active_diagonals]], axis=1)
-            / diag_dist
-        )
-
-        return np.concatenate((diffs.flatten(), diagonal_link_slopes.flatten()))
-
-    def _calculate_gradients_at_d8_links(self, node_values):
-        """Calculate gradients over all D8 links.
-
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-
-        Parameters
-        ----------
-        node_values : ndarray
-            Values at nodes.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> import numpy as np
-        >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
-        >>> z = np.array([3., 3., 3., 3.,
-        ...               3., 3., 0., 0.,
-        ...               3., 0., 0., 0.])
-        >>> grid._calculate_gradients_at_d8_links(z)
-        ...     # doctest: +NORMALIZE_WHITESPACE
-        array([ 0. ,  0. , -0.6,  0. , -0.6, -0.6, -0.6,  0. , -0.6,  0. ,  0. ,
-                0. ])
-
-        LLCATS: LINF GRAD
-        """
-        diag_dist = np.sqrt(self.dy ** 2.0 + self.dx ** 2.0)
-        diagonal_link_slopes = (
-            node_values[self.nodes_at_diagonal[:, 1]]
-            - node_values[self.nodes_at_diagonal[:, 0]]
-        ) / diag_dist
-
-        return diagonal_link_slopes
 
     def node_vector_to_raster(self, u, flip_vertically=False):
         """Unravel an array of node values.

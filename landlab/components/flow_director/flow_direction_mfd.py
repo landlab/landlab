@@ -154,8 +154,7 @@ def flow_directions_mfd(
     >>> diag_grads = np.zeros(diag_links.shape)
     >>> where_active_diag = dal>=diag_links.min()
     >>> active_diags_inds = dal[where_active_diag]-diag_links.min()
-    >>> active_diag_grads = grid._calculate_gradients_at_d8_active_links(elev)
-    >>> diag_grads[active_diags_inds] = active_diag_grads[where_active_diag]
+    >>> diag_grads = grid.calc_grad_at_d8(elev)
     >>> ortho_grads = grid.calc_grad_at_link(elev)
     >>> link_slope = np.hstack((np.arctan(ortho_grads),
     ...                         np.arctan(diag_grads)))
