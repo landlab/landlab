@@ -13,6 +13,21 @@ env:
 sudo: false
 jobs:
   include:
+  - stage: tutorials
+    if: branch = release
+    os: linux
+    install:
+    - conda env create --file environment-dev.yml
+    - conda activate landlab_dev
+    - pip install -e .
+    script:
+    - git clone https://github.com/landlab/tutorials.git landlab/tutorials
+    - git fetch origin release
+    - git checkout -qf release
+    - pushd landlab/tutorials
+    - pip install pytest
+    - travis_wait 50 pytest -vvv
+
   - stage: lint
     os: linux
     script:
