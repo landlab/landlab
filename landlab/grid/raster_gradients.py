@@ -1737,7 +1737,7 @@ def calc_diff_at_diagonal(grid, node_values):
     Returns
     -------
     ndarray
-        Differences across links.
+        Differences across diagonals.
 
     Examples
     --------
@@ -1756,6 +1756,40 @@ def calc_diff_at_diagonal(grid, node_values):
         node_values[grid.nodes_at_d8[:, 1]], node_values[grid.nodes_at_d8[:, 0]]
     )
 
+@use_field_name_or_array("node")
+def calc_diff_at_d8(grid, node_values):
+    """Calculate differences of node values over d8s.
+
+    Calculates the difference in quantity *node_values* at each d8 in the
+    grid.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    node_values : ndarray or field name
+        Values at grid nodes.
+
+    Returns
+    -------
+    ndarray
+        Differences across d8s.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> rmg = RasterModelGrid((3, 3))
+    >>> z = np.zeros(9)
+    >>> z[4] = 1.
+    >>> rmg.calc_diff_at_d8s(z)
+    array([ 0.,  0.,  0.,  1.,  0.,  1., -1.,  0., -1.,  0.,  0.,  0.])
+
+    LLCATS: LINF GRAD
+    """
+    link_diffs = calc_diff_at_link(grid, node_values)
+    diagonal_diffs = calc_diff_at_diagonal(grid, node_values)
+    return np.hstack(link_slopes, diagonal_slopes)
 
 @use_field_name_or_array("node")
 def calc_grad_at_diagonal(grid, node_values):
@@ -1822,5 +1856,5 @@ def calc_grad_at_d8(grid, node_values):
     """
     # need to calculate at link too.
     link_slopes = calc_grad_at_link(grid, node_values)
-    diagonal_slopes = calc_grad_at_link(grid, node_values)
+    diagonal_slopes = calc_grad_at_diagonal(grid, node_values)
     return np.hstack(link_slopes, diagonal_slopes)
