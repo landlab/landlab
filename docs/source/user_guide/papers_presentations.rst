@@ -207,7 +207,7 @@ N.M., Adams, J.M. (2017) Reproducible Earth-surface modeling with
 Landlab on HydroShare, EarthCube All-Hands Meeting 2017, Seattle,
 Washington, June, 2017
 `abstract <https://www.hydroshare.org/resource/38002ee4bf594901a29055bdf20b13da>`__
-`poster <https://www.hydroshare.org/django_irods/download/38002ee4bf594901a29055bdf20b13da/data/contents/Bandaragoda_ECAHM2017_HydroShare_Landlab_Poster.pdf>`__
+:download:`poster <images/Bandaragoda_ECAHM2017_HydroShare_Landlab_Poster.pdf>`
 
 Bandaragoda, C.J., Castronova, A., Phuong, J., Strauch, R.,
 Istanbulluoglu, E., Nudurupati*, S.S., Barnhart**, K., Gasparini, N.M.,
@@ -404,7 +404,7 @@ Istanbulluoglu, E., Nudurupati, S.S., and Tucker, G.E. (2016) Landlab: a
 new, open-source, modular, Python-based tool for modeling Earth surface
 dynamics. Poster presented at EGU General Assembly Meeting, Vienna,
 Austria, April 2016.
-`abstract <http://meetingorganizer.copernicus.org/EGU2016/EGU2016-9981.pdf>`__
+`abstract <https://meetingorganizer.copernicus.org/EGU2016/EGU2016-9981.pdf>`__
 :download:`poster <images/EGU_poster_2016.jpg>`
 :download:`pdf download <images/EGU_poster_2016.pdf>`
 
@@ -412,7 +412,7 @@ Hobley, D., Gasparini, N.M., and Tucker, G.E. (2016) Tools-and-cover
 effects in transiently responding mountain rivers: hallmarks and
 consequences. Paper presented at EGU General Assembly Meeting, Vienna,
 Austria, April 2016.
-`abstract <http://meetingorganizer.copernicus.org/EGU2016/EGU2016-9889.pdf>`__
+`abstract <https://meetingorganizer.copernicus.org/EGU2016/EGU2016-9889.pdf>`__
 
 Gasparini, N.M., Adams, J.M., Tucker, G.E., Hobley, D., Hutton, E.W.H.,
 Istanbulluoglu, E., and Nudurupati, S.S. (2016) Landlab: A numerical
@@ -440,7 +440,7 @@ framework. Paper presented at American Geophysical Union fall meeting,
 San Francisco, CA, Dec 2015.
 `abstract <https://agu.confex.com/agu/fm15/meetingapp.cgi/Paper/75514>`__
 :download:`poster <images/Adams_2015_AGUPoster_H13C-1542.jpg>`
-:download:` video <https://www.youtube.com/watch?v=4Ltr6HRUrQI>`
+`video <https://www.youtube.com/watch?v=4Ltr6HRUrQI>`__
 
 Nudurupati, S.S., Istanbulluoglu, E., Adams, J.M., Hobley, D.,
 Gasparini, N.M., Tucker, G.E., and Hutton, E.W.H. (2015) Elevation
