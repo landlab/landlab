@@ -13,6 +13,7 @@ from landlab.grid.mappers import (
     map_mean_of_link_nodes_to_link,
     map_value_at_max_node_to_link,
 )
+from landlab.grid.base import INACTIVE_LINK
 from landlab.utils import return_array_at_link, return_array_at_node
 
 
@@ -454,9 +455,9 @@ class GroundwaterDupuitPercolator(Component):
         # Calculate groundwater velocity
         self._vel[:] = -self._K * (
             self._hydr_grad * np.cos(np.arctan(abs(self._base_grad)))
-            + np.sin(np.arctan(abs(self._base_grad)))
+            + np.sin(np.arctan(self._base_grad))
         )
-        self._vel[self._grid.status_at_link == 4] = 0.0
+        self._vel[self._grid.status_at_link == INACTIVE_LINK] = 0.0
 
         # Aquifer thickness at links (upwind)
         hlink = map_value_at_max_node_to_link(
@@ -469,6 +470,7 @@ class GroundwaterDupuitPercolator(Component):
         # Groundwater flux divergence
         dqdx = self._grid.calc_flux_div_at_node(self._q)
 
+        # Determine the relative aquifer thickness, 1 if permeable thickness is 0.
         soil_present = self._elev-self._base > 0.0
         rel_thickness = np.ones_like(self._elev)
         rel_thickness[soil_present] = np.minimum(1, self._thickness[soil_present] / (self._elev[soil_present] - self._base[soil_present]) )
@@ -522,9 +524,9 @@ class GroundwaterDupuitPercolator(Component):
             # Calculate groundwater velocity
             self._vel[:] = -self._K * (
                 self._hydr_grad * np.cos(np.arctan(abs(self._base_grad)))
-                + np.sin(np.arctan(abs(self._base_grad)))
+                + np.sin(np.arctan(self._base_grad))
             )
-            self._vel[self._grid.status_at_link == 4] = 0.0
+            self._vel[self._grid.status_at_link == INACTIVE_LINK] = 0.0
 
             # Aquifer thickness at links (upwind)
             hlink = map_value_at_max_node_to_link(
@@ -537,6 +539,7 @@ class GroundwaterDupuitPercolator(Component):
             # Groundwater flux divergence
             dqdx = self._grid.calc_flux_div_at_node(self._q)
 
+            # Determine the relative aquifer thickness, 1 if permeable thickness is 0.
             soil_present = self._elev-self._base > 0.0
             rel_thickness = np.ones_like(self._elev)
             rel_thickness[soil_present] = np.minimum(1, self._thickness[soil_present] / (self._elev[soil_present] - self._base[soil_present]) )
