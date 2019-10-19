@@ -471,7 +471,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
             dal = self._grid.active_d8
 
             # calculate graidents across diagonals
-            diag_grads = self._grid.calc_grad_at_d8
+            diag_grads = self._grid.calc_grad_at_diagonal
 
             # calculate gradients on orthogonal links
             ortho_grads = self._grid.calc_grad_at_link(self._surface_values)
