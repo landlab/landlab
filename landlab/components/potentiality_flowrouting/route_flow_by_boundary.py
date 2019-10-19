@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-This is an implementation of Vaughan Voller's experimental boundary method
+"""This is an implementation of Vaughan Voller's experimental boundary method
 reduced complexity flow router. Credit: Voller, Hobley, Paola.
 
 Created on Fri Feb 20 09:32:27 2015
@@ -35,6 +34,9 @@ class PotentialityFlowRouter(Component):
 
     It is VITAL you initialize this component AFTER setting boundary
     conditions.
+
+    If Manning or Chezy specified, the surface_water__depth is the depth of
+    flow in the cell, calculated assuming flow occurs over the whole surface.
 
     Note that this component offers the property `discharges_at_links`. This
     returns the discharges at all links. If method=='D8', this list will
@@ -88,7 +90,7 @@ class PotentialityFlowRouter(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "If Manning or Chezy specified, the depth of flow in the cell, calculated assuming flow occurs over the whole surface",
+            "doc": "Depth of water on the surface",
         },
         "surface_water__discharge": {
             "dtype": float,
@@ -96,7 +98,7 @@ class PotentialityFlowRouter(Component):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Magnitude of volumetric water flux out of each node",
+            "doc": "Volumetric discharge of surface water",
         },
         "topographic__elevation": {
             "dtype": float,

@@ -5,7 +5,6 @@ Mapping functions unique to raster grids
 ++++++++++++++++++++++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.grid.raster_mappers.map_sum_of_inlinks_to_node
     ~landlab.grid.raster_mappers.map_mean_of_inlinks_to_node
@@ -20,7 +19,6 @@ Mapping functions unique to raster grids
     ~landlab.grid.raster_mappers.map_mean_of_horizontal_active_links_to_node
     ~landlab.grid.raster_mappers.map_mean_of_vertical_links_to_node
     ~landlab.grid.raster_mappers.map_mean_of_vertical_active_links_to_node
-
 """
 
 import numpy as np
@@ -527,8 +525,7 @@ def map_mean_of_links_to_node(grid, var_name, out=None):
 
 
 def map_mean_of_horizontal_links_to_node(grid, var_name, out=None):
-    """
-    Map the mean of links in the x direction touching a node to the node.
+    """Map the mean of links in the x direction touching a node to the node.
 
     map_mean_of_horizontal_links_to_node takes an array *at the links* and
     finds the average of all horizontal (x-direction) link neighbor values
@@ -583,8 +580,8 @@ def map_mean_of_horizontal_links_to_node(grid, var_name, out=None):
 
 
 def map_mean_of_horizontal_active_links_to_node(grid, var_name, out=None):
-    """
-    Map the mean of active links in the x direction touching node to the node.
+    """Map the mean of active links in the x direction touching node to the
+    node.
 
     map_mean_of_horizontal_active_links_to_node takes an array *at the links*
     and finds the average of all horizontal (x-direction) link neighbor values
@@ -612,11 +609,11 @@ def map_mean_of_horizontal_active_links_to_node(grid, var_name, out=None):
     --------
     >>> import numpy as np
     >>> from landlab.grid.raster_mappers import map_mean_of_horizontal_active_links_to_node
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('link', 'z', -np.arange(17, dtype=float))
-    >>> rmg.status_at_node[rmg.nodes_at_left_edge] = CLOSED_BOUNDARY
+    >>> rmg.status_at_node[rmg.nodes_at_left_edge] = rmg.BC_NODE_IS_CLOSED
     >>> map_mean_of_horizontal_active_links_to_node(rmg, 'z')
     array([ 0. ,  0. ,  0. ,  0. ,  0. , -8. , -8.5, -9. ,  0. ,  0. ,  0. ,
             0. ])
@@ -643,8 +640,7 @@ def map_mean_of_horizontal_active_links_to_node(grid, var_name, out=None):
 
 
 def map_mean_of_vertical_links_to_node(grid, var_name, out=None):
-    """
-    Map the mean of links in the y direction touching a node to the node.
+    """Map the mean of links in the y direction touching a node to the node.
 
     map_mean_of_vertical_links_to_node takes an array *at the links* and
     finds the average of all vertical (y-direction) link neighbor values
@@ -699,8 +695,8 @@ def map_mean_of_vertical_links_to_node(grid, var_name, out=None):
 
 
 def map_mean_of_vertical_active_links_to_node(grid, var_name, out=None):
-    """
-    Map the mean of active links in the y direction touching node to the node.
+    """Map the mean of active links in the y direction touching node to the
+    node.
 
     map_mean_of_vertical_active_links_to_node takes an array *at the links*
     and finds the average of all vertical (y-direction) link neighbor values
@@ -728,11 +724,11 @@ def map_mean_of_vertical_active_links_to_node(grid, var_name, out=None):
     --------
     >>> import numpy as np
     >>> from landlab.grid.raster_mappers import map_mean_of_vertical_active_links_to_node
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> _ = rmg.add_field('link', 'z', -np.arange(17, dtype=float))
-    >>> rmg.status_at_node[rmg.nodes_at_bottom_edge] = CLOSED_BOUNDARY
+    >>> rmg.status_at_node[rmg.nodes_at_bottom_edge] = rmg.BC_NODE_IS_CLOSED
     >>> map_mean_of_vertical_active_links_to_node(rmg, 'z')
     array([  0.,   0.,   0.,   0.,   0., -11., -12.,   0.,   0., -11., -12.,
              0.])

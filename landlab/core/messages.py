@@ -94,7 +94,7 @@ import textwrap
 
 
 def indent_and_wrap(content, indent=""):
-    """Indent and wrap some text
+    """Indent and wrap some text.
 
     Lines are first dedented to remove common leading whitespace,
     then indented according to the value of *indent*, and then
@@ -361,10 +361,11 @@ def assert_or_print(cond, msg=None, onerror="raise", file=sys.stdout):
 
     Specify an action to take if an assertion fails, depending on
     the values of *onerror*. *onerror* must be one of:
-        *  "pass": do nothing if the assertion passes or fails.
-        *  "warn": print a warning message if the assertion fails.
-        *  "error": print an error message and raise an `AssertionError`
-           on failure.
+
+    * "pass": do nothing if the assertion passes or fails.
+    * "warn": print a warning message if the assertion fails.
+    * "error": print an error message and raise an `AssertionError`
+      on failure.
 
     Parameters
     ----------

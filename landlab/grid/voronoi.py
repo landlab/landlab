@@ -1,11 +1,10 @@
 #! /usr/env/python
-"""
-Python implementation of VoronoiDelaunayGrid, a class used to create and manage
-unstructured, irregular grids for 2D numerical models.
+"""Python implementation of VoronoiDelaunayGrid, a class used to create and
+manage unstructured, irregular grids for 2D numerical models.
 
-Do NOT add new documentation here. Grid documentation is now built in a semi-
-automated fashion. To modify the text seen on the web, edit the files
-`docs/text_for_[gridfile].py.txt`.
+Do NOT add new documentation here. Grid documentation is now built in a
+semi- automated fashion. To modify the text seen on the web, edit the
+files `docs/text_for_[gridfile].py.txt`.
 """
 import numpy as np
 
@@ -60,8 +59,7 @@ def simple_poly_area(x, y):
 
 class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
 
-    """
-    This inherited class implements an unstructured grid in which cells are
+    """This inherited class implements an unstructured grid in which cells are
     Voronoi polygons and nodes are connected by a Delaunay triangulation. Uses
     scipy.spatial module to build the triangulation.
 
@@ -124,8 +122,7 @@ class VoronoiDelaunayGrid(DualVoronoiGraph, ModelGrid):
         xy_axis_name=("x", "y"),
         xy_axis_units="-",
     ):
-        """
-        Create a Voronoi Delaunay grid from a set of points.
+        """Create a Voronoi Delaunay grid from a set of points.
 
         Create an unstructured grid from points whose coordinates are given
         by the arrays *x*, *y*.

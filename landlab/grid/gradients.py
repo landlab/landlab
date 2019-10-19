@@ -5,16 +5,14 @@ Gradient calculation functions
 ++++++++++++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.grid.gradients.calc_grad_at_link
-
+    ~landlab.grid.gradients.calc_diff_at_link
 """
 
 import numpy as np
 
 from landlab.core.utils import radians_to_degrees
-from landlab.grid.base import CLOSED_BOUNDARY
 from landlab.utils.decorators import use_field_name_or_array
 
 
@@ -224,7 +222,7 @@ def calc_slope_at_patch(
     slopes_at_patch = np.arccos(cos_slopes_at_patch)
 
     if ignore_closed_nodes:
-        badnodes = grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY
+        badnodes = grid.status_at_node[grid.nodes_at_patch] == grid.BC_NODE_IS_CLOSED
         bad_patches = badnodes.sum(axis=1) > 0
         slopes_at_patch[bad_patches] = 0.0
 

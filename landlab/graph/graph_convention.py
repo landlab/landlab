@@ -50,32 +50,32 @@ class GraphConvention:
 
     @property
     def node(self):
-        """The name of things that are points"""
+        """The name of things that are points."""
         return self._node
 
     @property
     def nodes(self):
-        """The plural name for node"""
+        """The plural name for node."""
         return self._nodes
 
     @property
     def edge(self):
-        """The name of lines that connect two nodes"""
+        """The name of lines that connect two nodes."""
         return self._edge
 
     @property
     def edges(self):
-        """The plural name of edge"""
+        """The plural name of edge."""
         return self._edges
 
     @property
     def face(self):
-        """The name of objects made up of a closed set of edges"""
+        """The name of objects made up of a closed set of edges."""
         return self._face
 
     @property
     def faces(self):
-        """The plural name for face"""
+        """The plural name for face."""
         return self._faces
 
 

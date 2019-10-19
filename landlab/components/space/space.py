@@ -20,7 +20,7 @@ class Space(_GeneralizedErosionDeposition):
     Shobe, C. M., Tucker, G. E., and Barnhart, K. R.: The SPACE 1.0 model: a
     Landlab component for 2-D calculation of sediment transport, bedrock
     erosion, and landscape evolution, Geosci. Model Dev., 10, 4577-4604,
-    https://doi.org/10.5194/gmd-10-4577-2017, 2017.
+    `https://doi.org/10.5194/gmd-10-4577-2017 <https://www.geosci-model-dev.net/10/4577/2017/>`_, 2017.
 
     Note: If timesteps are large enough that Es*dt (sediment erosion)
     exceeds sediment thickness H, the 'adaptive' solver is necessary to
@@ -162,7 +162,6 @@ class Space(_GeneralizedErosionDeposition):
             0.438,  5.51 ,  2.54 ,  0.428,  0.428,  0.438,  6.526,  3.559,
             0.438,  0.438,  0.45 ,  7.553,  4.559,  5.541,  6.57 ,  7.504,
             8.51 ])
-
     """
 
     _name = "Space"
@@ -198,7 +197,7 @@ class Space(_GeneralizedErosionDeposition):
             "optional": False,
             "units": "m3/s",
             "mapping": "node",
-            "doc": "Sediment flux.",
+            "doc": "Sediment flux (volume per unit time of sediment entering each node)",
         },
         "soil__depth": {
             "dtype": float,
@@ -206,7 +205,7 @@ class Space(_GeneralizedErosionDeposition):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Depth of sediment above bedrock",
+            "doc": "Depth of soil or weathered bedrock",
         },
         "surface_water__discharge": {
             "dtype": float,
@@ -214,7 +213,7 @@ class Space(_GeneralizedErosionDeposition):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Discharge of water through each node",
+            "doc": "Volumetric discharge of surface water",
         },
         "topographic__elevation": {
             "dtype": float,
@@ -230,7 +229,7 @@ class Space(_GeneralizedErosionDeposition):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Topographic slope at each node",
+            "doc": "The steepest *downhill* slope",
         },
     }
 
@@ -264,9 +263,7 @@ class Space(_GeneralizedErosionDeposition):
         erode_flooded_nodes=True,
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
     ):
-        """Initialize the Space model.
-
-        """
+        """Initialize the Space model."""
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             msg = (
                 "A route-to-multiple flow director has been "
@@ -370,12 +367,12 @@ class Space(_GeneralizedErosionDeposition):
 
     @property
     def H(self):
-        "Sediment thickness. "
+        """Sediment thickness."""
         return self._H
 
     def run_one_step_basic(self, dt=1.0):
-        """Calculate change in rock and alluvium thickness for
-        a time period 'dt'.
+        """Calculate change in rock and alluvium thickness for a time period
+        'dt'.
 
         Parameters
         ----------

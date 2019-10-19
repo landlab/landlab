@@ -251,7 +251,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Node array of steepest *downhill* slopes",
+            "doc": "The steepest *downhill* slope",
         },
     }
 

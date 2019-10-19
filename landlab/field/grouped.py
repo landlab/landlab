@@ -819,7 +819,8 @@ class ModelDataFields(object):
         return self.add_field(group, name, self.zeros(group, **numpy_kwds), **kwds)
 
     def add_field(self, *args, **kwds):
-        """add_field(group, name, value_array, units='-', copy=False, noclobber=True)
+        """add_field(group, name, value_array, units='-', copy=False,
+        noclobber=True)
 
         Add an array of values to the field.
 

@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Grid-based simulation of lateral erosion by channels in a drainage network.
+"""Grid-based simulation of lateral erosion by channels in a drainage network.
+
 ALangston
-
-
 """
 
 import numpy as np
@@ -20,18 +18,19 @@ wid_exp = 0.35  # exponent for calculating channel width
 
 
 class LateralEroder(Component):
-    """
-    Laterally erode neighbor node through fluvial erosion.
+    """Laterally erode neighbor node through fluvial erosion.
 
     Landlab component that finds a neighbor node to laterally erode and
     calculates lateral erosion.
     See the publication:
+
     Langston, A.L., Tucker, G.T.: Developing and exploring a theory for the
     lateral erosion of bedrock channels for use in landscape evolution models.
-    Earth Surface Dynamics, 6, 1-27, https://doi.org/10.5194/esurf-6-1-2018
+    Earth Surface Dynamics, 6, 1-27,
+    `https://doi.org/10.5194/esurf-6-1-2018 <https://www.earth-surf-dynam.net/6/1/2018/>`_
 
-    Parameteters
-    ------------
+    Parameters
+    ----------
     grid : ModelGrid
         A Landlab square cell raster grid object
     latero_mech : string, optional (defaults to UC)
@@ -187,7 +186,7 @@ class LateralEroder(Component):
             "dtype": float,
             "intent": "in",
             "optional": False,
-            "units": "m2",
+            "units": "m**2",
             "mapping": "node",
             "doc": "Upstream accumulated surface area contributing to the node's discharge",
         },
@@ -221,7 +220,7 @@ class LateralEroder(Component):
             "optional": False,
             "units": "m3/y",
             "mapping": "node",
-            "doc": "Volume per unit time of sediment entering each node",
+            "doc": "Sediment flux (volume per unit time of sediment entering each node)",
         },
         "topographic__elevation": {
             "dtype": float,
@@ -237,7 +236,7 @@ class LateralEroder(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Topographic slope at each node",
+            "doc": "The steepest *downhill* slope",
         },
         "volume__lateral_erosion": {
             "dtype": float,
@@ -372,14 +371,12 @@ class LateralEroder(Component):
         self._Kv = np.ones(self._grid.number_of_nodes, dtype=float) * Kv
 
     def run_one_step_basic(self, dt=1.0):
-        """Calculate vertical and lateral erosion for
-        a time period 'dt'.
+        """Calculate vertical and lateral erosion for a time period 'dt'.
 
         Parameters
         ----------
         dt : float
             Model timestep [T]
-
         """
         Klr = self._Klr
         grid = self._grid
@@ -504,9 +501,8 @@ class LateralEroder(Component):
         return grid, self._dzlat
 
     def run_one_step_adaptive(self, dt=1.0):
-        """Run time step with adaptive time stepping to prevent
-        slope flattening.
-        """
+        """Run time step with adaptive time stepping to prevent slope
+        flattening."""
         Klr = self._Klr
         grid = self._grid
         UC = self._UC

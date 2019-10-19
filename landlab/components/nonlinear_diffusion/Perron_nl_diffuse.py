@@ -61,7 +61,7 @@ class PerronNLDiffuse(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Land surface topographic elevation; can be overwritten in initialization",
+            "doc": "Land surface topographic elevation",
         }
     }
 
@@ -216,8 +216,7 @@ class PerronNLDiffuse(Component):
         self.updated_boundary_conditions()
 
     def updated_boundary_conditions(self):
-        """Call if grid BCs are updated after component instantiation.
-        """
+        """Call if grid BCs are updated after component instantiation."""
         grid = self._grid
         nrows = self._nrows
         ncols = self._ncols
@@ -351,13 +350,13 @@ class PerronNLDiffuse(Component):
         )
 
     def _gear_timestep(self, timestep_in, new_grid):
-        """
-        This method allows the gearing between the model run step and the
+        """This method allows the gearing between the model run step and the
         component (shorter) step.
-        The method becomes unstable if S>Scrit, so we test to prevent this.
-        We implicitly assume the initial condition does not contain
-        slopes > Scrit. If the method persistently explodes, this may be the
-        problem.
+
+        The method becomes unstable if S>Scrit, so we test to prevent
+        this. We implicitly assume the initial condition does not
+        contain slopes > Scrit. If the method persistently explodes,
+        this may be the problem.
         """
         extended_elevs = np.empty(self._grid.number_of_nodes + 1, dtype=float)
         extended_elevs[-1] = np.nan
@@ -400,10 +399,10 @@ class PerronNLDiffuse(Component):
         return self._delta_t
 
     def _set_variables(self, grid):
-        """
-        This function sets the variables needed for update().
-        Now vectorized, shouold run faster.
-        At the moment, this method can only handle fixed value BCs.
+        """This function sets the variables needed for update().
+
+        Now vectorized, shouold run faster. At the moment, this method
+        can only handle fixed value BCs.
         """
         n_interior_nodes = grid.number_of_interior_nodes
 

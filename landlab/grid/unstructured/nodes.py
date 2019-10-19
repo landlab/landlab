@@ -2,8 +2,7 @@ import numpy as np
 
 
 class NodeGrid(object):
-    """__init__((coord0, coord1))
-    Create a grid of nodes.
+    """__init__((coord0, coord1)) Create a grid of nodes.
 
     Parameters
     ----------
@@ -43,8 +42,7 @@ class NodeGrid(object):
     """
 
     def __init__(self, nodes):
-        """__init__((coord0, coord1))
-        Create a grid of nodes.
+        """__init__((coord0, coord1)) Create a grid of nodes.
 
         Parameters
         ----------

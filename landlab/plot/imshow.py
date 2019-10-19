@@ -1,12 +1,10 @@
 #! /usr/bin/env python
-"""
-Methods to plot data defined on Landlab grids.
+"""Methods to plot data defined on Landlab grids.
 
 Plotting functions
 ++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.plot.imshow.imshow_grid
     ~landlab.plot.imshow.imshow_grid_at_cell
@@ -19,7 +17,6 @@ import inspect
 import numpy as np
 
 from landlab.field.scalar_data_fields import FieldError
-from landlab.grid import CLOSED_BOUNDARY
 from landlab.grid.raster import RasterModelGrid
 from landlab.grid.voronoi import VoronoiDelaunayGrid
 from landlab.plot.event_handler import query_grid_on_button_press
@@ -34,15 +31,10 @@ except ImportError:
 
 def imshow_grid_at_node(grid, values, **kwds):
     """imshow_grid_at_node(grid, values, plot_name=None, var_name=None,
-                           var_units=None, grid_units=None,
-                           symmetric_cbar=False, cmap='pink',
-                           limits=(values.min(), values.max()),
-                           vmin=values.min(), vmax=values.max(),
-                           allow_colorbar=True,
-                           norm=[linear], shrink=1.,
-                           color_for_closed='black',
-                           color_for_background=None,
-                           show_elements=False, output=None)
+    var_units=None, grid_units=None, symmetric_cbar=False, cmap='pink',
+    limits=(values.min(), values.max()), vmin=values.min(), vmax=values.max(),
+    allow_colorbar=True, norm=[linear], shrink=1., color_for_closed='black',
+    color_for_background=None, show_elements=False, output=None)
 
     Prepare a map view of data over all nodes in the grid.
 
@@ -53,7 +45,7 @@ def imshow_grid_at_node(grid, values, **kwds):
 
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
-    Landlab CLOSED_BOUNDARYs. Used together with the color_at_closed=None
+    Landlab BC_NODE_IS_CLOSED. Used together with the color_at_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).
@@ -127,7 +119,7 @@ def imshow_grid_at_node(grid, values, **kwds):
         raise ValueError("number of values does not match number of nodes")
 
     values_at_node = np.ma.masked_where(
-        grid.status_at_node == CLOSED_BOUNDARY, values_at_node
+        grid.status_at_node == grid.BC_NODE_IS_CLOSED, values_at_node
     )
 
     try:
@@ -147,15 +139,11 @@ def imshow_grid_at_node(grid, values, **kwds):
 
 def imshow_grid_at_cell(grid, values, **kwds):
     """imshow_grid_at_cell(grid, values, plot_name=None, var_name=None,
-                           var_units=None, grid_units=None,
-                           symmetric_cbar=False, cmap='pink',
-                           limits=(values.min(), values.max()),
-                           vmin=values.min(), vmax=values.max(),
-                           allow_colorbar=True, colorbar_label=None,
-                           norm=[linear], shrink=1.,
-                           color_for_closed='black',
-                           color_for_background=None,
-                           show_elements=False, output=None)
+    var_units=None, grid_units=None, symmetric_cbar=False, cmap='pink',
+    limits=(values.min(), values.max()), vmin=values.min(), vmax=values.max(),
+    allow_colorbar=True, colorbar_label=None, norm=[linear], shrink=1.,
+    color_for_closed='black', color_for_background=None, show_elements=False,
+    output=None)
 
     Map view of grid data over all grid cells.
 
@@ -431,16 +419,11 @@ def _imshow_grid_values(
 
 
 def imshow_grid(grid, values, **kwds):
-    """imshow_grid(grid, values, plot_name=None, var_name=None,
-                   var_units=None, grid_units=None,
-                   symmetric_cbar=False, cmap='pink',
-                   limits=(values.min(), values.max()),
-                   vmin=values.min(), vmax=values.max(),
-                   allow_colorbar=True, colorbar_label=None,
-                   norm=[linear], shrink=1.,
-                   color_for_closed='black',
-                   color_for_background=None,
-                   show_elements=False)
+    """imshow_grid(grid, values, plot_name=None, var_name=None, var_units=None,
+    grid_units=None, symmetric_cbar=False, cmap='pink', limits=(values.min(),
+    values.max()), vmin=values.min(), vmax=values.max(), allow_colorbar=True,
+    colorbar_label=None, norm=[linear], shrink=1., color_for_closed='black',
+    color_for_background=None, show_elements=False)
 
     Prepare a map view of data over all nodes or cells in the grid.
 
@@ -453,7 +436,7 @@ def imshow_grid(grid, values, **kwds):
 
     *values* can be a field name, a regular array, or a masked array. If a
     masked array is provided, masked entries will be treated as if they were
-    Landlab CLOSED_BOUNDARYs. Used together with the color_for_closed=None
+    Landlab BC_NODE_IS_CLOSED. Used together with the color_for_closed=None
     keyword (i.e., "transparent"), this can allow for construction of overlay
     layers in a figure (e.g., only defining values in a river network, and
     overlaying it on another landscape).

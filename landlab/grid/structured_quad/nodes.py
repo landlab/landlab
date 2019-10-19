@@ -169,8 +169,7 @@ def right_iter(shape):
 
 
 def left_right_iter(shape, *args):
-    """left_right_iter(shape, stop)
-    left_right_iter(shape, start, stop[, step])
+    """left_right_iter(shape, stop) left_right_iter(shape, start, stop[, step])
 
     Iterator for left and right perimeter nodes.
 
@@ -268,7 +267,6 @@ def perimeter(shape):
     >>> from landlab.grid.structured_quad.nodes import perimeter
     >>> perimeter((3, 4))
     array([ 0,  1,  2,  3,  4,  7,  8,  9, 10, 11])
-
     """
     return np.fromiter(perimeter_iter(shape), dtype=np.int)
 

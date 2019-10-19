@@ -1,7 +1,6 @@
 #! /usr/env/python
-"""
-This script auto-constructs strings for Landlab methods, based around
-Sphinx and the new LLCATS type declaration system.
+"""This script auto-constructs strings for Landlab methods, based around Sphinx
+and the new LLCATS type declaration system.
 
 It saves as text files strings of this format, as seen at the tops of the grid
 files, and used by sphinx to build our docs. These can be pasted manually into
@@ -12,7 +11,6 @@ Information about the grid as a whole
 +++++++++++++++++++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.grid.raster.RasterModelGrid.axis_name
     ~landlab.grid.raster.RasterModelGrid.axis_units
@@ -34,7 +32,7 @@ str_sequence = ('Base class', 'Raster', 'Irregular Voronoi-cell', 'Hexagonal',
                 'Radial')
 paths = ('base', 'raster', 'voronoi', 'hex', 'radial')
 
-autosummary = '\n\n.. autosummary::\n    :toctree: generated/\n\n'
+autosummary = '\n\n.. currentmodule:: landlab \n\n.. autosummary::\n\n'
 
 
 all_methods_for_cat_allgrid = {}
@@ -49,72 +47,84 @@ for grid_type in grid_types:
 
 LLCATS = ('GINF', 'NINF', 'LINF', 'CINF', 'PINF', 'FINF', 'CNINF', 'GRAD',
           'MAP', 'BC', 'SUBSET', 'SURF')
-outfile_names = ('auto_grid_info__whole.rst', 'auto_grid_info__nodes.rst',
-                 'auto_grid_info__links.rst', 'auto_grid_info__cells.rst',
-                 'auto_grid_info__patches.rst', 'auto_grid_info__faces.rst',
-                 'auto_grid_info__corners.rst', 'auto_grid_info__grads.rst',
-                 'auto_grid_info__mappers.rst', 'auto_grid_info__BCs.rst',
-                 'auto_grid_info__subsets.rst', 'auto_grid_info__surf.rst')
+outfile_names = ('whole.rst', 'nodes.rst',
+                 'links.rst', 'cells.rst',
+                 'patches.rst', 'faces.rst',
+                 'corners.rst', 'grads.rst',
+                 'mappers.rst', 'BCs.rst',
+                 'subsets.rst', 'surf.rst')
 
 text_heads = (
 '''
+=====================================
 Information about the grid as a whole
-+++++++++++++++++++++++++++++++++++++
+=====================================
 
 ''',
 '''
+=======================
 Information about nodes
-+++++++++++++++++++++++
+=======================
 
 ''',
 '''
+=======================
 Information about links
-+++++++++++++++++++++++
+=======================
 
 ''',
 '''
+=======================
 Information about cells
-+++++++++++++++++++++++
+=======================
 
 ''',
 '''
+=========================
 Information about patches
-+++++++++++++++++++++++++
+=========================
 
 ''',
 '''
+=======================
 Information about faces
-+++++++++++++++++++++++
+=======================
 
 ''',
 '''
+=========================
 Information about corners
-+++++++++++++++++++++++++
+=========================
 
 ''',
 '''
+==============================================
 Gradients, fluxes, and divergences on the grid
-----------------------------------------------
+==============================================
 
 ''',
 '''
+=======
 Mappers
--------
+=======
 
 ''',
 '''
+==========================
 Boundary condition control
---------------------------
+==========================
 
 ''',
 '''
+========================
 Identifying node subsets
-------------------------
+========================
 
 ''',
 '''
+================
 Surface analysis
-----------------
+================
 
 ''')
 
@@ -142,6 +152,6 @@ for LLCAT, outfile_name, text in zip(LLCATS, outfile_names, text_heads):
         except KeyError:
             print('Failed at ' + grid + ' looking for ' + LLCAT)
 
-    f = open('./' + outfile_name, "wb")
+    f = open('source/reference/grid/auto/' + outfile_name, "w")
     f.write(text)
     f.close()

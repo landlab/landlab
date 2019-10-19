@@ -11,10 +11,9 @@ def assert_method_is_valid(method):
 
 
 class Vegetation(Component):
-    """
-    Landlab component that simulates net primary productivity, biomass
-    and leaf area index at each cell based on inputs of root-zone
-    average soil moisture.
+    """Landlab component that simulates net primary productivity, biomass and
+    leaf area index at each cell based on inputs of root-zone average soil
+    moisture.
 
     Ref: Zhou, X., Istanbulluoglu, E., & Vivoni, E. R. (2013). Modeling the
     ecohydrological role of aspect controlled radiation on tree grass shrub
@@ -122,7 +121,7 @@ class Vegetation(Component):
             "optional": False,
             "units": "mm",
             "mapping": "cell",
-            "doc": "potential sum of evaporation and platnt transpiration",
+            "doc": "potential sum of evaporation and potential transpiration",
         },
         "vegetation__cover_fraction": {
             "dtype": float,
@@ -178,7 +177,7 @@ class Vegetation(Component):
             "optional": False,
             "units": "None",
             "mapping": "cell",
-            "doc": "parameter that represents nonlinear effects of water defecit on plants",
+            "doc": "parameter that represents nonlinear effects of water deficit on plants",
         },
     }
 
@@ -346,8 +345,8 @@ class Vegetation(Component):
     def PETthreshold_switch(self):
         """Flag to indiate the PET threshold.
 
-        This controls whether the threshold is for growth (1) or dormancy
-        (any other value).
+        This controls whether the threshold is for growth (1) or
+        dormancy (any other value).
         """
         return self._PETthreshold_switch
 
@@ -480,12 +479,11 @@ class Vegetation(Component):
         self._Bdead_ini = self._Bdead_init * np.ones(self._grid.number_of_cells)
 
     def update(self):
-        """
-        Update fields with current loading conditions.
+        """Update fields with current loading conditions.
 
-        This method looks to the properties ``PETthreshold_switch``, ``Tb``,
-        and ``Tr`` and uses their values to calculate the new field values.
-
+        This method looks to the properties ``PETthreshold_switch``,
+        ``Tb``, and ``Tr`` and uses their values to calculate the new
+        field values.
         """
         PETthreshold_ = self._PETthreshold_switch
         Tb = self._Tb

@@ -111,7 +111,7 @@ class _FlowDirectorToOne(_FlowDirector):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Node array of steepest *downhill* slopes",
+            "doc": "The steepest *downhill* slope",
         },
     }
 

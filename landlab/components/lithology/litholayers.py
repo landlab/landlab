@@ -38,7 +38,6 @@ class LithoLayers(Lithology):
     Where ``'K_sp'`` and ``'D'`` are properties to track, and ``1`` and ``2``
     are rock type IDs. The rock type IDs can be any type that is valid as a
     python dictionary key.
-
     """
 
     _name = "LithoLayers"
@@ -87,7 +86,7 @@ class LithoLayers(Lithology):
             y value of anchor point for all layers.
         function : function, optional
             Functional form of layers as a function of two variables, x and y.
-            Default value is lambda x, y: 0*x + 0*y for flatlying layers.
+            Default value is `lambda x, y: 0*x + 0*y` for flatlying layers.
         layer_type : str, optional
             Type of Landlab layers object used to store the layers. If
             MaterialLayers (default) is specified, then erosion removes material
@@ -95,10 +94,10 @@ class LithoLayers(Lithology):
             used, then erosion removes material and creates layers of thickness
             zero. Thus, EventLayers may be appropriate if the user is interested
             in chronostratigraphy.
-        dz_advection : float, `(n_nodes, ) shape array, or at-node field array optional
+        dz_advection : float, `(n_nodes, )` shape array, or at-node field array optional
             Change in rock elevation due to advection by some external process.
             This can be changed using the property setter.
-        rock_id : value or `(n_nodes, ) shape array, optional
+        rock_id : value or `(n_nodes, )` shape array, optional
             Rock type id for new material if deposited.
             This can be changed using the property setter.
 

@@ -1,5 +1,5 @@
 #! /usr/env/python
-"""Simple hexagonal Landlab cellular automaton
+"""Simple hexagonal Landlab cellular automaton.
 
 This file defines the OrientedHexCTS class, which is a sub-class of
 CellLabCTSModel that implements a simple, non-oriented, hex-grid
@@ -110,9 +110,8 @@ class OrientedHexCTS(CellLabCTSModel):
         )
 
     def setup_array_of_orientation_codes(self):
-        """
-        Creates and configures an array that contain the orientation code for
-        each active link (and corresponding cell pair).
+        """Creates and configures an array that contain the orientation code
+        for each active link (and corresponding cell pair).
 
         Notes
         -----

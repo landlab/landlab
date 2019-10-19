@@ -5,7 +5,6 @@ Grid mapping functions
 +++++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.grid.mappers.map_link_head_node_to_link
     ~landlab.grid.mappers.map_link_tail_node_to_link
@@ -55,8 +54,6 @@ their 'head' node, while links 15 and 11 have node 'X' as their tail node.
 """
 
 import numpy as np
-
-from landlab.grid.base import CLOSED_BOUNDARY, INACTIVE_LINK
 
 
 def map_link_head_node_to_link(grid, var_name, out=None):
@@ -353,8 +350,7 @@ def map_mean_of_link_nodes_to_link(grid, var_name, out=None):
 
 
 def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
-    """
-    Map the the value found in one node array to a link, based on the
+    """Map the the value found in one node array to a link, based on the
     minimum value found in a second node field or array.
 
     map_value_at_min_node_to_link iterates across the grid and
@@ -419,8 +415,7 @@ def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
 
 
 def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
-    """
-    Map the the value found in one node array to a link, based on the
+    """Map the the value found in one node array to a link, based on the
     maximum value found in a second node field or array.
 
     map_value_at_max_node_to_link iterates across the grid and
@@ -660,9 +655,8 @@ def map_max_of_node_links_to_node(grid, var_name, out=None):
 
 
 def map_upwind_node_link_max_to_node(grid, var_name, out=None):
-    """
-    Map the largest magnitude of the links bringing flux into the node to the
-    node.
+    """Map the largest magnitude of the links bringing flux into the node to
+    the node.
 
     map_upwind_node_link_max_to_node iterates across the grid and identifies
     the link values at each link connected to a node. It then uses the
@@ -727,9 +721,8 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
 
 
 def map_downwind_node_link_max_to_node(grid, var_name, out=None):
-    """
-    Map the largest magnitude of the links carrying flux from the node to the
-    node.
+    """Map the largest magnitude of the links carrying flux from the node to
+    the node.
 
     map_downwind_node_link_max_to_node iterates across the grid and identifies
     the link values at each link connected to a node. It then uses the
@@ -795,8 +788,7 @@ def map_downwind_node_link_max_to_node(grid, var_name, out=None):
 
 
 def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
-    """
-    Map the mean magnitude of the links bringing flux into the node to the
+    """Map the mean magnitude of the links bringing flux into the node to the
     node.
 
     map_upwind_node_link_mean_to_node iterates across the grid and identifies
@@ -867,8 +859,7 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
 
 
 def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
-    """
-    Map the mean magnitude of the links carrying flux out of the node to the
+    """Map the mean magnitude of the links carrying flux out of the node to the
     node.
 
     map_downwind_node_link_mean_to_node iterates across the grid and identifies
@@ -939,10 +930,9 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
 
 
 def map_value_at_upwind_node_link_max_to_node(grid, control_name, value_name, out=None):
-    """
-    Map the the value found in one link array to a node, based on the
-    largest magnitude value of links bringing fluxes into the node,
-    found in a second node array or field.
+    """Map the the value found in one link array to a node, based on the
+    largest magnitude value of links bringing fluxes into the node, found in a
+    second node array or field.
 
     map_upwind_node_link_max_to_node iterates across the grid and identifies
     the link control_values at each link connected to a node. It then uses the
@@ -1020,10 +1010,9 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name, value_name, ou
 def map_value_at_downwind_node_link_max_to_node(
     grid, control_name, value_name, out=None
 ):
-    """
-    Map the the value found in one link array to a node, based on the
-    largest magnitude value of links carrying fluxes out of the node,
-    found in a second node array or field.
+    """Map the the value found in one link array to a node, based on the
+    largest magnitude value of links carrying fluxes out of the node, found in
+    a second node array or field.
 
     map_downwind_node_link_max_to_node iterates across the grid and identifies
     the link control_values at each link connected to a node. It then uses the
@@ -1125,7 +1114,7 @@ def map_mean_of_patch_nodes_to_patch(
     --------
     >>> import numpy as np
     >>> from landlab.grid.mappers import map_mean_of_patch_nodes_to_patch
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
@@ -1138,7 +1127,7 @@ def map_mean_of_patch_nodes_to_patch(
     >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
     ...                                 5., 4., 3., 2.,
     ...                                 3., 2., 1., 0.])
-    >>> rmg.status_at_node[rmg.node_x > 1.5] = CLOSED_BOUNDARY
+    >>> rmg.status_at_node[rmg.node_x > 1.5] = rmg.BC_NODE_IS_CLOSED
     >>> ans = np.zeros(6, dtype=float)
     >>> _ = map_mean_of_patch_nodes_to_patch(rmg, 'vals', out=ans)
     >>> ans # doctest: +NORMALIZE_WHITESPACE
@@ -1155,7 +1144,7 @@ def map_mean_of_patch_nodes_to_patch(
     values_at_nodes = var_name[grid.nodes_at_patch]
     if ignore_closed_nodes:
         values_at_nodes = np.ma.masked_where(
-            grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY,
+            grid.status_at_node[grid.nodes_at_patch] == grid.BC_NODE_IS_CLOSED,
             values_at_nodes,
             copy=False,
         )
@@ -1197,7 +1186,7 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     --------
     >>> import numpy as np
     >>> from landlab.grid.mappers import map_max_of_patch_nodes_to_patch
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
@@ -1210,7 +1199,7 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
     ...                                 3., 4., 3., 2.,
     ...                                 3., 2., 1., 0.])
-    >>> rmg.status_at_node[rmg.node_x > 1.5] = CLOSED_BOUNDARY
+    >>> rmg.status_at_node[rmg.node_x > 1.5] = rmg.BC_NODE_IS_CLOSED
     >>> ans = np.zeros(6, dtype=float)
     >>> _ = map_max_of_patch_nodes_to_patch(rmg, 'vals', out=ans)
     >>> ans # doctest: +NORMALIZE_WHITESPACE
@@ -1227,7 +1216,7 @@ def map_max_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     values_at_nodes = var_name[grid.nodes_at_patch]
     if ignore_closed_nodes:
         values_at_nodes = np.ma.masked_where(
-            grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY,
+            grid.status_at_node[grid.nodes_at_patch] == grid.BC_NODE_IS_CLOSED,
             values_at_nodes,
             copy=False,
         )
@@ -1269,7 +1258,7 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     --------
     >>> import numpy as np
     >>> from landlab.grid.mappers import map_min_of_patch_nodes_to_patch
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
     >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
@@ -1282,7 +1271,7 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     >>> rmg.at_node['vals'] = np.array([5., 4., 3., 2.,
     ...                                 5., 4., 3., 2.,
     ...                                 3., 2., 1., 0.])
-    >>> rmg.status_at_node[rmg.node_x > 1.5] = CLOSED_BOUNDARY
+    >>> rmg.status_at_node[rmg.node_x > 1.5] = rmg.BC_NODE_IS_CLOSED
     >>> ans = np.zeros(6, dtype=float)
     >>> _ = map_min_of_patch_nodes_to_patch(rmg, 'vals', out=ans)
     >>> ans # doctest: +NORMALIZE_WHITESPACE
@@ -1299,7 +1288,7 @@ def map_min_of_patch_nodes_to_patch(grid, var_name, ignore_closed_nodes=True, ou
     values_at_nodes = var_name[grid.nodes_at_patch]
     if ignore_closed_nodes:
         values_at_nodes = np.ma.masked_where(
-            grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY,
+            grid.status_at_node[grid.nodes_at_patch] == grid.BC_NODE_IS_CLOSED,
             values_at_nodes,
             copy=False,
         )
@@ -1334,7 +1323,7 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True, out
         inactive at a patch, record zero if out is None or leave the existing
         value if out.
     out : len-2 list of npatches-long arrays, optional
-        Buffer to place mapped values into or `None` to create a new array.
+        Buffer to place mapped values into or ``None`` to create a new array.
 
     Returns
     -------
@@ -1373,7 +1362,7 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True, out
     >>> np.allclose(ycomp[(6, 9, 10),] / np.sqrt(3.0), [0.0, 0.0, -1.0])
     True
 
-    These are the patches with *INACTIVE_LINK*s on all three sides:
+    These are the patches with *INACTIVE_LINK* on all three sides:
 
     >>> absent_patches = np.array([0, 1, 2, 4, 8, 11, 12, 15, 16, 17, 18])
     >>> np.allclose(xcomp[absent_patches], 0.0)
@@ -1413,7 +1402,7 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True, out
     hoz_vals_at_patches = hoz_vals[grid.links_at_patch]
     vert_vals_at_patches = vert_vals[grid.links_at_patch]
     if ignore_inactive_links:
-        linkmask = grid.status_at_link[grid.links_at_patch] == INACTIVE_LINK
+        linkmask = grid.status_at_link[grid.links_at_patch] == grid.BC_LINK_IS_INACTIVE
         hoz_vals_at_patches = np.ma.array(
             hoz_vals_at_patches, mask=linkmask, copy=False
         )

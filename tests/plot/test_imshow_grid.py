@@ -17,7 +17,7 @@ def test_imshow_grid():
     pp.savefig()
 
     plt.clf()
-    rmg.status_at_node[7] = landlab.CLOSED_BOUNDARY
+    rmg.status_at_node[7] = rmg.BC_NODE_IS_CLOSED
     values = np.arange(rmg.number_of_cells)
     landlab.plot.imshow_grid(rmg, values, values_at="cell", symmetric_cbar=True)
     pp.savefig()

@@ -12,7 +12,7 @@ def _iround(x):
 
 
 def neighbor_node_at_cell(grid, inds, *args):
-    """ node_id_of_cell_neighbor(grid, neighbor_ids [, cell_ids])
+    """node_id_of_cell_neighbor(grid, neighbor_ids [, cell_ids])
 
     Return an array of the node ids for neighbors of *cell_id* cells.
     *neighbor_ids* is an index into the neighbors of a cell as measured
@@ -340,11 +340,14 @@ def line_to_grid_coords(c0, r0, c1, r1):
     the grid has unit spacing, in which case they are the same). To convert
     from real (x, y) to (x_grid, y_grid) use x_grid = x / Dx, where Dx is
     horizontal grid spacing (and similarly for y).
-        To convert a raster-grid node ID to column and row coords, use
+
+    To convert a raster-grid node ID to column and row coords, use
     numpy.unravel_index(node_id, (num_rows, num_cols)).
-        To convert the returned grid coordinates to node IDs, use the
+
+    To convert the returned grid coordinates to node IDs, use the
     RasterModelGrid method grid_coords_to_node_id().
-        This function uses an incremental algorithm for line scan-conversion
+
+    This function uses an incremental algorithm for line scan-conversion
     (see, e.g., Foley et al., 1990, chapter 3). For a line with a slope
     0 > m > 1, start with the x coordinates for a set of grid columns that span
     the line. The corresponding y of the first one is just y0. The y for the

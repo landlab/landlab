@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-"""Calculate slope aspects on a :any:`RasterModelGrid`."""
+"""Calculate slope aspects on a `RasterModelGrid`."""
 
 
 def _one_line_slopes(input_array, grid, vals):

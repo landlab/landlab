@@ -101,7 +101,7 @@ class Radiation(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "elevation of the ground surface relative to some datum",
+            "doc": "Land surface topographic elevation",
         },
     }
 
@@ -176,7 +176,10 @@ class Radiation(Component):
 
     @property
     def hour(self):
-        """Hour of the day. Default is 12 (solar noon)."""
+        """Hour of the day.
+
+        Default is 12 (solar noon).
+        """
         return self._hour
 
     @hour.setter
@@ -188,8 +191,8 @@ class Radiation(Component):
     def update(self):
         """Update fields with current loading conditions.
 
-        This method looks to the properties ``current_time`` and ``hour`` and
-        uses their values in updating fields.
+        This method looks to the properties ``current_time`` and
+        ``hour`` and uses their values in updating fields.
         """
         self._t = self._hour
         self._radf = self._cell_values["radiation__ratio_to_flat_surface"]

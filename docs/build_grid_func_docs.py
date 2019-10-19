@@ -32,7 +32,7 @@ str_sequence = ('Base class', 'Raster', 'Irregular Voronoi-cell', 'Hexagonal',
                 'Radial', 'Network')
 paths = ('base', 'raster', 'voronoi', 'hex', 'radial', 'network')
 
-autosummary = '.. autosummary::\n    :toctree: generated/\n\n'
+autosummary = '.. currentmodule:: landlab \n\n.. autosummary::\n\n'
 
 LLCATS = ('GINF', 'NINF', 'LINF', 'CINF', 'PINF', 'FINF', 'CNINF', 'GRAD',
           'MAP', 'BC', 'SUBSET', 'SURF')
@@ -45,8 +45,7 @@ grid_name_to_class = {'base': 'ModelGrid',
 
 
 def create_dicts_of_cats():
-    '''
-    Create the dicts that record grid methods by grid and LLCAT.
+    """Create the dicts that record grid methods by grid and LLCAT.
 
     Returns
     -------
@@ -58,7 +57,7 @@ def create_dicts_of_cats():
         lists of LLCATS assigned to each method.
     fails_allgrid : dict of lists
         Key is grid type, value is list of methods with no LLCATS.
-    '''
+    """
     all_methods_for_cat_allgrid = {}
     all_cats_for_method_allgrid = {}
     fails_allgrid = {}
@@ -74,7 +73,7 @@ def create_dicts_of_cats():
  fails_allgrid) = create_dicts_of_cats()
 
 for grid_to_modify in grid_name_to_class.keys():
-    f = open('./text_for_' + grid_to_modify + '.py.txt', "rt")
+    f = open('source/reference/grid/text_for_' + grid_to_modify + '.py.txt', "rt")
     text = f.read()
     f.close()
     for LLCAT in LLCATS:
@@ -102,6 +101,6 @@ for grid_to_modify in grid_name_to_class.keys():
 
         text = text.replace('LLCATKEY: ' + LLCAT, text_to_add)
 
-    f = open('./landlab.grid.' + grid_to_modify + '.rst', "wt")
+    f = open('source/reference/grid/' + grid_to_modify + '.rst', "wt")
     f.write(text)
     f.close()

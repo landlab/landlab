@@ -1,11 +1,10 @@
 #! /usr/env/python
-"""
-Python implementation of HexModelGrid, a grid class used to create and manage
-structured Voronoi-Delaunay grids for 2D numerical models.
+"""Python implementation of HexModelGrid, a grid class used to create and
+manage structured Voronoi-Delaunay grids for 2D numerical models.
 
-Do NOT add new documentation here. Grid documentation is now built in a semi-
-automated fashion. To modify the text seen on the web, edit the files
-`docs/text_for_[gridfile].py.txt`.
+Do NOT add new documentation here. Grid documentation is now built in a
+semi- automated fashion. To modify the text seen on the web, edit the
+files `docs/text_for_[gridfile].py.txt`.
 """
 
 import numpy
@@ -175,8 +174,8 @@ class HexModelGrid(DualHexGraph, ModelGrid):
 
     @property
     def number_of_node_rows(self):
-        """Number of node rows in a rectangular-shaped and/or
-        horizontally oriented hex grid.
+        """Number of node rows in a rectangular-shaped and/or horizontally
+        oriented hex grid.
 
         Returns the number of rows, including boundaries.
 
@@ -224,8 +223,7 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         return (row, col)
 
     def _configure_hexplot(self, data, data_label=None, color_map=None):
-        """
-        Sets up necessary information for making plots of the hexagonal grid
+        """Sets up necessary information for making plots of the hexagonal grid
         colored by a given data element.
 
         Parameters
@@ -360,11 +358,11 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     ):
         """Set the boundary conditions for a watershed on a HexModelGrid.
 
-        All nodes with nodata_value are set to CLOSED_BOUNDARY (4).
-        All nodes with data values are set to CORE_NODES (0), with the
-        exception that the outlet node is set to a FIXED_VALUE_BOUNDARY (1).
+        All nodes with nodata_value are set to BC_NODE_IS_CLOSED.
+        All nodes with data values are set to BC_NODE_IS_CORE, with the
+        exception that the outlet node is set to a BC_NODE_IS_FIXED_VALUE.
 
-        Note that the outer ring of the HexModelGrid is set to CLOSED_BOUNDARY, even
+        Note that the outer ring of the HexModelGrid is set to BC_NODE_IS_CLOSED, even
         if there are nodes that have values.  The only exception to this would
         be if the outlet node is on the boundary, which is acceptable.
 
@@ -425,19 +423,18 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     def set_watershed_boundary_condition(
         self, node_data, nodata_value=-9999.0, return_outlet_id=False
     ):
-        """
-        Finds the node adjacent to a boundary node with the smallest value.
+        """Finds the node adjacent to a boundary node with the smallest value.
         This node is set as the outlet.  The outlet node must have a data
         value.  Can return the outlet id as a one element numpy array if
         return_outlet_id is set to True.
 
-        All nodes with nodata_value are set to CLOSED_BOUNDARY
+        All nodes with nodata_value are set to BC_NODE_IS_CLOSED
         (grid.status_at_node == 4). All nodes with data values are set to
         CORE_NODES (grid.status_at_node == 0), with the exception that the
         outlet node is set to a FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
 
         Note that the outer ring (perimeter) of the grid is set to
-        CLOSED_BOUNDARY, even if there are nodes that have values. The only
+        BC_NODE_IS_CLOSED, even if there are nodes that have values. The only
         exception to this would be if the outlet node is on the perimeter, which
         is acceptable.
 

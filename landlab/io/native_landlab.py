@@ -5,7 +5,6 @@ Read Landlab native
 +++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.io.native_landlab.load_grid
     ~landlab.io.native_landlab.save_grid

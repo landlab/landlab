@@ -1,7 +1,5 @@
 #! /usr/bin/env python
-"""
-Functions to interact with figures that plot Landlab grid data.
-"""
+"""Functions to interact with figures that plot Landlab grid data."""
 
 from pprint import pprint
 
