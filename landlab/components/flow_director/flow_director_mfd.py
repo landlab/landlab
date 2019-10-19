@@ -471,13 +471,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
             dal = self._grid.active_d8
 
             # calculate graidents across diagonals
-            diag_grads = numpy.zeros(diag_links.shape)
-            where_active_diag = dal >= diag_links.min()
-            active_diags_inds = dal[where_active_diag] - diag_links.min()
-            active_diag_grads = self._grid._calculate_gradients_at_d8_active_links(
-                self._surface_values
-            )
-            diag_grads[active_diags_inds] = active_diag_grads[where_active_diag]
+            diag_grads = self._grid.calc_grad_at_d8
 
             # calculate gradients on orthogonal links
             ortho_grads = self._grid.calc_grad_at_link(self._surface_values)

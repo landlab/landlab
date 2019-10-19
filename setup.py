@@ -83,7 +83,6 @@ setup(
         "pyshp",
         "scipy",
         "statsmodels",
-        "pyshp",
         "pandas",
         "xarray",
     ],
