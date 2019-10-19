@@ -215,7 +215,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
 
         # step 1. Calculate link slopes.
         link_slope = -self._grid.calc_grad_at_d8(self._surface_values)
-        link_slope[self._grid.active_d8] = 0
+        link_slope[self._grid.status_at_d8 != self._grid.BC_LINK_IS_ACTIVE] = 0
 
         # Step 2. Find and save base level nodes.
         (baselevel_nodes,) = numpy.where(
@@ -229,8 +229,8 @@ class FlowDirectorD8(_FlowDirectorToOne):
         receiver, steepest_slope, sink, recvr_link = flow_direction_DN.flow_directions(
             self._surface_values,
             self._active_links,
-            self._activelink_tail[self._grid.active_d8],
-            self._activelink_head[self._grid.active_d8],
+            self._activelink_tail,
+            self._activelink_head,
             link_slope,
             grid=self._grid,
             baselevel_nodes=baselevel_nodes,
