@@ -81,7 +81,6 @@ array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
         0.99936754,  0.99910557,  0.99910557,  0.99910557,  0.99936754,
         1.99955279,  1.99936754,  1.99936754,  1.99936754,  1.99955279,
         2.99968377,  2.99955279,  2.99955279,  2.99955279,  2.99968377])
-
 """
 
 import numpy as np
@@ -93,8 +92,8 @@ class DetachmentLtdErosion(Component):
 
     """Landlab component that simulates detachment-limited river erosion.
 
-    This component calculates changes in elevation in response to vertical
-    incision.
+    This component calculates changes in elevation in response to
+    vertical incision.
     """
 
     _name = "DetachmentLtdErosion"
@@ -106,7 +105,7 @@ class DetachmentLtdErosion(Component):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Discharge of water through each node",
+            "doc": "Volumetric discharge of surface water",
         },
         "topographic__elevation": {
             "dtype": float,
@@ -122,7 +121,7 @@ class DetachmentLtdErosion(Component):
             "optional": True,
             "units": "-",
             "mapping": "node",
-            "doc": "Gradient of surface, on links",
+            "doc": "gradient of the ground surface",
         },
     }
 

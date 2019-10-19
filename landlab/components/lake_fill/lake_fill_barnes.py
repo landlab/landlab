@@ -1,10 +1,9 @@
 #!/usr/env/python
 
-"""
-lake_fill_barnes.py
+"""lake_fill_barnes.py.
 
-Fill sinks in a landscape to the brim, following the Barnes et al. (2014)
-algorithms.
+Fill sinks in a landscape to the brim, following the Barnes et al.
+(2014) algorithms.
 """
 
 
@@ -19,7 +18,6 @@ import numpy as np
 
 from landlab import (
     BAD_INDEX_VALUE,
-    CLOSED_BOUNDARY,
     CORE_NODE,
     FIXED_GRADIENT_BOUNDARY,
     FIXED_VALUE_BOUNDARY,
@@ -37,10 +35,9 @@ LARGE_ELEV = 9999999999.0
 
 
 def _fill_one_node_to_flat(fill_surface, all_neighbors, pitq, openq, closedq, dummy):
-    """
-    Implements the Barnes et al. algorithm for a simple fill. Assumes the
-    _open and _closed lists have already been updated per Barnes algos 2&3,
-    lns 1-7.
+    """Implements the Barnes et al. algorithm for a simple fill. Assumes the
+    _open and _closed lists have already been updated per Barnes algos 2&3, lns
+    1-7.
 
     Parameters
     ----------
@@ -61,10 +58,10 @@ def _fill_one_node_to_flat(fill_surface, all_neighbors, pitq, openq, closedq, du
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
     >>> mg = RasterModelGrid((5, 6))
     >>> for edge in ('left', 'top', 'bottom'):
-    ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+    ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
     >>> z = mg.zeros('node', dtype=float)
     >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
     >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
@@ -73,7 +70,7 @@ def _fill_one_node_to_flat(fill_surface, all_neighbors, pitq, openq, closedq, du
     >>> openq = StablePriorityQueue()
     >>> pitq = []
     >>> closedq = mg.zeros('node', dtype=bool)
-    >>> closedq[mg.status_at_node == CLOSED_BOUNDARY] = True
+    >>> closedq[mg.status_at_node == mg.BC_NODE_IS_CLOSED] = True
     >>> edges = np.array([11, 17, 23])
     >>> for edgenode in edges:
     ...     openq.add_task(edgenode, priority=z[edgenode])
@@ -116,18 +113,17 @@ def _fill_one_node_to_flat(fill_surface, all_neighbors, pitq, openq, closedq, du
 
 
 class LakeMapperBarnes(Component):
-    """
-    A Landlab implementation of the Barnes et al. (2014) lake filling & lake
+    """A Landlab implementation of the Barnes et al. (2014) lake filling & lake
     routing algorithms, lightly modified and adapted for Landlab by DEJH. This
     component is designed as a direct replacement for the LakeMapper as
     existing pre-Aug 2018, and provides a suite of properties to access
     information about the lakes created each time it is run. Only significant
-    difference is the way the lakes are coded: this component uses the
-    (unique) ID of the outlet node, whereas DepressionFinderAndRouter uses
-    one of the pit node IDs. Note also this component does not offer the
-    `lake_codes` or `display_depression_map` options, for essentially this
-    reason. Use `lake_map` instead for both. It also uses a much more
-    Landlabbian `run_one_step()` method as its driver, superceding
+    difference is the way the lakes are coded: this component uses the (unique)
+    ID of the outlet node, whereas DepressionFinderAndRouter uses one of the
+    pit node IDs. Note also this component does not offer the `lake_codes` or
+    `display_depression_map` options, for essentially this reason. Use
+    `lake_map` instead for both. It also uses a much more Landlabbian
+    `run_one_step()` method as its driver, superceding
     DepressionFinderAndRouter's `map_depressions()`.
 
     A variety of options is provided. Flow routing is route-to-one in this
@@ -273,7 +269,7 @@ class LakeMapperBarnes(Component):
             "optional": False,
             "units": "m**3/s",
             "mapping": "node",
-            "doc": "Discharge of water through each node",
+            "doc": "Volumetric discharge of surface water",
         },
         "topographic__elevation": {
             "dtype": float,
@@ -297,9 +293,7 @@ class LakeMapperBarnes(Component):
         ignore_overfill=False,
         track_lakes=True,
     ):
-        """
-        Initialize the component.
-        """
+        """Initialize the component."""
         super(LakeMapperBarnes, self).__init__(grid)
 
         if "flow__receiver_node" in grid.at_node:
@@ -316,8 +310,10 @@ class LakeMapperBarnes(Component):
         self._open = StablePriorityQueue()
         self._pit = []
         self._closed = self._grid.zeros("node", dtype=bool)
-        self._gridclosednodes = self._grid.status_at_node == CLOSED_BOUNDARY
-        # close up the CLOSED_BOUNDARY permanently:
+        self._gridclosednodes = (
+            self._grid.status_at_node == self._grid.BC_NODE_IS_CLOSED
+        )
+        # close up the BC_NODE_IS_CLOSED permanently:
         self._closed[self._gridclosednodes] = True
 
         # this component maintains its own internal count of how often it has
@@ -444,10 +440,9 @@ class LakeMapperBarnes(Component):
     def _fill_one_node_to_slant(
         self, fill_surface, all_neighbors, pitq, openq, closedq, ignore_overfill
     ):
-        """
-        Implements the Barnes et al. algorithm to obtain a naturally draining
-        surface, updating a single node. Assumes the _open and _closed lists
-        have already been updated per Barnes algos 2&3, lns 1-7.
+        """Implements the Barnes et al. algorithm to obtain a naturally
+        draining surface, updating a single node. Assumes the _open and _closed
+        lists have already been updated per Barnes algos 2&3, lns 1-7.
 
         Parameters
         ----------
@@ -471,11 +466,11 @@ class LakeMapperBarnes(Component):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
@@ -484,7 +479,7 @@ class LakeMapperBarnes(Component):
         >>> fa = FlowAccumulator(mg)
         >>> lmb = LakeMapperBarnes(mg, method='Steepest')
         >>> lmb._closed = mg.zeros('node', dtype=bool)
-        >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
+        >>> lmb._closed[mg.status_at_node == mg.BC_NODE_IS_CLOSED] = True
         >>> edges = np.array([11, 17, 23])
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
@@ -535,7 +530,7 @@ class LakeMapperBarnes(Component):
 
         >>> mg = RasterModelGrid((3, 7))
         >>> for edge in ('top', 'right', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
         ...                                 1.0000000000000004, 1.5]
@@ -543,7 +538,7 @@ class LakeMapperBarnes(Component):
         >>> fa = FlowAccumulator(mg)
         >>> lmb = LakeMapperBarnes(mg, method='Steepest')
         >>> lmb._closed = mg.zeros('node', dtype=bool)
-        >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
+        >>> lmb._closed[mg.status_at_node == mg.BC_NODE_IS_CLOSED] = True
         >>> edges = np.array([7, ])
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
@@ -618,10 +613,9 @@ class LakeMapperBarnes(Component):
     def _fill_to_flat_with_tracking(
         self, fill_surface, all_neighbors, pitq, openq, closedq
     ):
-        """
-        Implements the Barnes et al. algorithm for a simple fill over the
-        grid. Assumes the _open and _closed lists have already been updated
-        per Barnes algos 2&3, lns 1-7.
+        """Implements the Barnes et al. algorithm for a simple fill over the
+        grid. Assumes the _open and _closed lists have already been updated per
+        Barnes algos 2&3, lns 1-7.
 
         This version runs a little more slowly to enable tracking of which
         nodes are linked to which outlets.
@@ -650,11 +644,11 @@ class LakeMapperBarnes(Component):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
@@ -667,7 +661,7 @@ class LakeMapperBarnes(Component):
         >>> fa = FlowAccumulator(mg)
         >>> lmb = LakeMapperBarnes(mg, method='Steepest')
         >>> lmb._closed = mg.zeros('node', dtype=bool)
-        >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
+        >>> lmb._closed[mg.status_at_node == mg.BC_NODE_IS_CLOSED] = True
         >>> edges = np.array([11, 17, 23])
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
@@ -718,10 +712,9 @@ class LakeMapperBarnes(Component):
         ignore_overfill,
         track_lakes,
     ):
-        """
-        Implements the Barnes et al. algorithm to obtain a naturally draining
-        surface over the grid. Assumes the _open and _closed lists have
-        already been updated per Barnes algos 2&3, lns 1-7.
+        """Implements the Barnes et al. algorithm to obtain a naturally
+        draining surface over the grid. Assumes the _open and _closed lists
+        have already been updated per Barnes algos 2&3, lns 1-7.
 
         This version runs a little more slowly to enable tracking of which
         nodes are linked to which outlets.
@@ -761,11 +754,11 @@ class LakeMapperBarnes(Component):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
@@ -774,7 +767,7 @@ class LakeMapperBarnes(Component):
         >>> fa = FlowAccumulator(mg)
         >>> lmb = LakeMapperBarnes(mg, method='Steepest')
         >>> lmb._closed = mg.zeros('node', dtype=bool)
-        >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
+        >>> lmb._closed[mg.status_at_node == mg.BC_NODE_IS_CLOSED] = True
         >>> edges = np.array([11, 17, 23])
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
@@ -798,7 +791,7 @@ class LakeMapperBarnes(Component):
         >>> fa = FlowAccumulator(mg)
         >>> lmb = LakeMapperBarnes(mg, method='Steepest')
         >>> lmb._closed = mg.zeros('node', dtype=bool)
-        >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
+        >>> lmb._closed[mg.status_at_node == mg.BC_NODE_IS_CLOSED] = True
         >>> edges = np.array([11, 17, 23])
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
@@ -834,7 +827,7 @@ class LakeMapperBarnes(Component):
         >>> fa = FlowAccumulator(mg)
         >>> lmb = LakeMapperBarnes(mg, method='Steepest')
         >>> lmb._closed = mg.zeros('node', dtype=bool)
-        >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
+        >>> lmb._closed[mg.status_at_node == mg.BC_NODE_IS_CLOSED] = True
         >>> edges = np.array([11, 17, 23])
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
@@ -852,7 +845,7 @@ class LakeMapperBarnes(Component):
 
         >>> mg = RasterModelGrid((3, 7))
         >>> for edge in ('top', 'right', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
         ...                                 1.0000000000000004, 1.5]
@@ -860,7 +853,7 @@ class LakeMapperBarnes(Component):
         >>> fa = FlowAccumulator(mg)
         >>> lmb = LakeMapperBarnes(mg, method='Steepest')
         >>> lmb._closed = mg.zeros('node', dtype=bool)
-        >>> lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
+        >>> lmb._closed[mg.status_at_node == mg.BC_NODE_IS_CLOSED] = True
         >>> edges = np.array([7, ])
         >>> for edgenode in edges:
         ...     lmb._open.add_task(edgenode, priority=z[edgenode])
@@ -948,12 +941,11 @@ class LakeMapperBarnes(Component):
         return lakemappings
 
     def _track_original_surface(self):
-        """
-        This helper method ensures that if flow is to be redircted, the
+        """This helper method ensures that if flow is to be redircted, the
         _redirect_flowdirs() method can still get access to this information
         when it needs it. The idea here is that the operation is essentially
-        free when surface and fill_surface were different to start with,
-        which should make us faster.
+        free when surface and fill_surface were different to start with, which
+        should make us faster.
 
         Examples
         --------
@@ -987,8 +979,7 @@ class LakeMapperBarnes(Component):
         return orig_surf
 
     def _redirect_flowdirs(self, surface, lake_dict):
-        """
-        For nodes within lakes that have already been defined, modifies
+        """For nodes within lakes that have already been defined, modifies
         existing FlowDirector fields to account for the lake filling, viz.
         'flow__receiver_node', 'flow__link_to_receiver_node',
         'flow__sink_flag', and 'topographic__steepest_slope'.
@@ -1002,13 +993,13 @@ class LakeMapperBarnes(Component):
         >>> import numpy as np
         >>> from collections import deque
         >>> from landlab import RasterModelGrid
-        >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
-        >>> from landlab.components import LakeMapperBarnes
-        >>> from landlab.components import FlowDirectorSteepest
-        >>> from landlab.components import FlowAccumulator
+        >>> from landlab.components import (
+        ...     LakeMapperBarnes,
+        ...     FlowDirectorSteepest,
+        ...     FlowAccumulator)
         >>> mg = RasterModelGrid((5, 6), xy_spacing=2.)
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[23] = 1.3
@@ -1051,7 +1042,7 @@ class LakeMapperBarnes(Component):
 
         Note flow doesn't make it to the outlets:
 
-        >>> outlets = np.where(mg.status_at_node == FIXED_VALUE_BOUNDARY)
+        >>> outlets = np.where(mg.status_at_node == mg.BC_NODE_IS_FIXED_VALUE)
         >>> drainage_area[outlets].sum() == mg.cell_area_at_node[
         ...     mg.core_nodes].sum()
         False
@@ -1136,7 +1127,8 @@ class LakeMapperBarnes(Component):
                     minusones = np.equal(neighbor_set[outlet], -1)
                     not_lake_neighbors[minusones] = False
                     closednodes = np.equal(
-                        self._grid.status_at_node[neighbor_set[outlet]], CLOSED_BOUNDARY
+                        self._grid.status_at_node[neighbor_set[outlet]],
+                        self._grid.BC_NODE_IS_CLOSED,
                     )  # closed BCs can't count
                     not_lake_neighbors[closednodes] = False
                     try:
@@ -1208,7 +1200,8 @@ class LakeMapperBarnes(Component):
                     neighbors = neighbor_set[liminal]
                     neighbors_valid = np.not_equal(neighbors, -1)
                     closednodes = np.equal(
-                        self._grid.status_at_node[neighbors], CLOSED_BOUNDARY
+                        self._grid.status_at_node[neighbors],
+                        self._grid.BC_NODE_IS_CLOSED,
                     )  # closed BCs can't count
                     neighbors_valid[closednodes] = False
                     neighbors_to_check = neighbors[neighbors_valid]
@@ -1245,9 +1238,9 @@ class LakeMapperBarnes(Component):
             closedq[liminal_nodes] = 1
 
     def run_one_step(self):
-        """
-        Fills the surface to fill all pits. Note that a second run on a
-        surface that has already been filled will *not* "see" any existing
+        """Fills the surface to fill all pits. Note that a second run on a
+        surface that has already been filled will *not* "see" any existing.
+
         lakes correctly - it will see lakes, but with zero depths. In
         particular, if fill_flat is False, an attempt to fill a
         surface a second time will raise a ValueError unless ignore_overfill.
@@ -1261,12 +1254,12 @@ class LakeMapperBarnes(Component):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> from landlab.components import FlowDirectorSteepest
         >>> mg = RasterModelGrid((5, 6), xy_spacing=2.)
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
@@ -1501,13 +1494,13 @@ class LakeMapperBarnes(Component):
         model that permits flooding as it runs:
 
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> from landlab.components import FlowDirectorSteepest
         >>> from landlab.components import FastscapeEroder
         >>> mg = RasterModelGrid((6, 8))
         >>> for edge in ('right', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
 
         Because it is what we want the FastscapeEroder to see and work on,
         it's actually the water surface that needs to go in as
@@ -1658,7 +1651,7 @@ class LakeMapperBarnes(Component):
         # initial topo, so let's do that:
         if not self._dontredirect:
             orig_topo = self._track_original_surface()
-        # now, return _closed to its initial cond, w only the CLOSED_BOUNDARY
+        # now, return _closed to its initial cond, w only the BC_NODE_IS_CLOSED
         # and grid draining nodes pre-closed:
         closedq = self._closed.copy()
         if self._track_lakes:
@@ -1709,19 +1702,18 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_dict(self):
-        """
-        Return a dictionary where the keys are the outlet nodes of each lake,
-        and the values are deques of nodes within each lake. Items are not
-        returned in ID order. The outlet nodes are NOT part of the lake.
+        """Return a dictionary where the keys are the outlet nodes of each
+        lake, and the values are deques of nodes within each lake. Items are
+        not returned in ID order. The outlet nodes are NOT part of the lake.
 
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
@@ -1754,17 +1746,16 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_outlets(self):
-        """
-        Returns the outlet for each lake, not necessarily in ID order.
+        """Returns the outlet for each lake, not necessarily in ID order.
 
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
@@ -1797,18 +1788,17 @@ class LakeMapperBarnes(Component):
 
     @property
     def number_of_lakes(self):
-        """
-        Return the number of individual lakes. Lakes sharing outlet nodes are
-        considered part of the same lake.
+        """Return the number of individual lakes. Lakes sharing outlet nodes
+        are considered part of the same lake.
 
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
@@ -1845,20 +1835,19 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_map(self):
-        """
-        Return an array of ints, where each node within a lake is labelled
+        """Return an array of ints, where each node within a lake is labelled
         with its outlet node ID. The outlet nodes are NOT part of the lakes.
-        Nodes not in a lake are labelled with LOCAL_BAD_INDEX_VALUE
-        (default -1).
+        Nodes not in a lake are labelled with LOCAL_BAD_INDEX_VALUE (default
+        -1).
 
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
@@ -1923,18 +1912,17 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_at_node(self):
-        """
-        Return a boolean array, True if the node is flooded, False otherwise.
-        The outlet nodes are NOT part of the lakes.
+        """Return a boolean array, True if the node is flooded, False
+        otherwise. The outlet nodes are NOT part of the lakes.
 
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
@@ -1962,19 +1950,18 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_depths(self):
-        """
-        Return the change in surface elevation at each node this step.
+        """Return the change in surface elevation at each node this step.
         Requires that surface and fill_surface were not the same array at
         instantiation.
 
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
@@ -2023,19 +2010,18 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_areas(self):
-        """
-        A nlakes-long array of the area of each lake. The order is the same as
-        that of the keys in lake_dict, and of lake_outlets. Note that outlet
+        """A nlakes-long array of the area of each lake. The order is the same
+        as that of the keys in lake_dict, and of lake_outlets. Note that outlet
         nodes are not parts of the lakes.
 
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
@@ -2074,12 +2060,11 @@ class LakeMapperBarnes(Component):
 
     @property
     def lake_volumes(self):
-        """
-        A nlakes-long array of the volume of each lake. The order is the same
-        as that of the keys in lake_dict, and of lake_outlets.
-        Note that this calculation is performed relative to the initial
-        surface, so is only a true lake volume if the initial surface was the
-        rock suface (not an earlier water level).
+        """A nlakes-long array of the volume of each lake. The order is the
+        same as that of the keys in lake_dict, and of lake_outlets. Note that
+        this calculation is performed relative to the initial surface, so is
+        only a true lake volume if the initial surface was the rock suface (not
+        an earlier water level).
 
         Requires that surface and fill_surface were not the same array at
         instantiation.
@@ -2087,11 +2072,11 @@ class LakeMapperBarnes(Component):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
@@ -2133,8 +2118,7 @@ class LakeMapperBarnes(Component):
 
     @property
     def was_there_overfill(self):
-        """
-        If the ignore_overfill flag was set to True at instantiation, this
+        """If the ignore_overfill flag was set to True at instantiation, this
         property indicates if any depression in the grid has, at any point,
         been overfilled.
 
@@ -2144,7 +2128,7 @@ class LakeMapperBarnes(Component):
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((3, 7))
         >>> for edge in ('top', 'right', 'bottom'):
-        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
         >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
         >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
         ...                                 1.0000000000000004, 1.5]

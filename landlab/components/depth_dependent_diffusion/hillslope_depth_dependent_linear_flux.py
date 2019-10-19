@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Apr  8 08:32:48 2016
+"""Created on Fri Apr  8 08:32:48 2016.
 
 @author: RCGlade
 """
@@ -12,9 +11,8 @@ from landlab import INACTIVE_LINK, Component
 
 class DepthDependentDiffuser(Component):
 
-    """
-    This component implements a depth and slope dependent linear diffusion rule
-    in the style of Johnstone and Hilley (2014).
+    """This component implements a depth and slope dependent linear diffusion
+    rule in the style of Johnstone and Hilley (2014).
 
     Hillslope sediment flux uses depth dependent component inspired by
     Johnstone and Hilley (2014). The flux :math:`q_s` is given as:
@@ -35,7 +33,7 @@ class DepthDependentDiffuser(Component):
     linear_diffusivity: float
         Hillslope diffusivity, m**2/yr
     soil_transport_decay_depth: float
-        characteristic transport soil depth, m
+        Characteristic transport soil depth, m
 
     Examples
     --------
@@ -109,8 +107,6 @@ class DepthDependentDiffuser(Component):
     >>> soil_decay_depth_1 = mg.at_node['topographic__elevation'][mg.core_nodes]
     >>> np.greater(soil_decay_depth_1[1], soil_decay_depth_point1[1])
     False
-
-
     """
 
     _name = "DepthDependentDiffuser"
@@ -130,7 +126,7 @@ class DepthDependentDiffuser(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "depth of soil/weather bedrock",
+            "doc": "Depth of soil or weathered bedrock",
         },
         "soil__flux": {
             "dtype": float,
@@ -154,7 +150,7 @@ class DepthDependentDiffuser(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "elevation of the ground surface",
+            "doc": "Land surface topographic elevation",
         },
         "topographic__slope": {
             "dtype": float,

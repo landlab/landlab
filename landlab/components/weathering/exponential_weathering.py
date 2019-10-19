@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Apr  8 08:32:48 2016
+"""Created on Fri Apr  8 08:32:48 2016.
 
 @author: RCGlade
 """
@@ -60,7 +59,7 @@ class ExponentialWeatherer(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "depth of soil/weather bedrock",
+            "doc": "Depth of soil or weathered bedrock",
         },
         "soil_production__rate": {
             "dtype": float,

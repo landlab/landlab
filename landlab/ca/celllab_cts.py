@@ -180,8 +180,7 @@ class Transition(object):
         swap_properties=False,
         prop_update_fn=None,
     ):
-        """
-        Transition() constructor sets 3 required properties and 2 optional
+        """Transition() constructor sets 3 required properties and 2 optional
         properties for a transition from one cell pair to another.
 
         Parameters
@@ -250,8 +249,7 @@ class CAPlotter(object):
     """
 
     def __init__(self, ca, cmap=None, **kwds):
-        """
-        CAPlotter() constructor keeps a reference to the CA model, and
+        """CAPlotter() constructor keeps a reference to the CA model, and
         optionally a colormap to be used with plots.
 
         Parameters
@@ -295,8 +293,8 @@ class CAPlotter(object):
     def finalize(self):
         """Wrap up plotting.
 
-        Wrap up plotting by switching off interactive model and showing the
-        plot.
+        Wrap up plotting by switching off interactive model and showing
+        the plot.
         """
         plt.ioff()
         plt.show()
@@ -618,8 +616,7 @@ class CellLabCTSModel(object):
             self.n_trn[from_state] += 1
 
     def push_transitions_to_event_queue(self):
-        """
-        Initializes the event queue by creating transition events for each
+        """Initializes the event queue by creating transition events for each
         cell pair that has one or more potential transitions and pushing these
         onto the queue. Also records scheduled transition times in the
         self.next_update array.
@@ -667,10 +664,9 @@ class CellLabCTSModel(object):
         )
 
     def update_link_state_new(self, link, new_link_state, current_time):
-        """
-        Implements a link transition by updating the current state of the link
-        and (if appropriate) choosing the next transition event and pushing it
-        on to the event queue.
+        """Implements a link transition by updating the current state of the
+        link and (if appropriate) choosing the next transition event and
+        pushing it on to the event queue.
 
         Parameters
         ----------

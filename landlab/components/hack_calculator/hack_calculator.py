@@ -87,8 +87,7 @@ def _flatten(l):
 
 
 class HackCalculator(Component):
-    """
-    This component calculates Hack's law parameters for drainage basins.
+    """This component calculates Hack's law parameters for drainage basins.
 
     Hacks law is given as
 
@@ -107,7 +106,7 @@ class HackCalculator(Component):
     >>> import pandas as pd
     >>> pd.set_option('display.max_columns', None)
     >>> import numpy as np
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
     >>> from landlab.components import (
     ...     FlowAccumulator,
     ...     FastscapeEroder,
@@ -182,7 +181,7 @@ class HackCalculator(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Node array containing ID of link that leads from each node to its receiver, or BAD_INDEX_VALUE if no link",
+            "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
             "dtype": int,
@@ -198,7 +197,7 @@ class HackCalculator(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "node order such that nodes must appear in the list after all nodes downstream of them",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "topographic__elevation": {
             "dtype": float,

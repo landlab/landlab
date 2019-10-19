@@ -11,7 +11,7 @@ Doc tests and unit tests for lateral erosion.
 import numpy as np
 from numpy import testing
 
-from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY, RasterModelGrid
+from landlab import RasterModelGrid
 from landlab.components import FlowAccumulator, LateralEroder
 
 
@@ -31,9 +31,9 @@ def test_lateral_erosion_and_node():
         mg.nodes_at_left_edge,
         mg.nodes_at_right_edge,
     ):
-        mg.status_at_node[edge] = CLOSED_BOUNDARY
+        mg.status_at_node[edge] = mg.BC_NODE_IS_CLOSED
     for edge in mg.nodes_at_bottom_edge:
-        mg.status_at_node[edge] = FIXED_VALUE_BOUNDARY
+        mg.status_at_node[edge] = mg.BC_NODE_IS_FIXED_VALUE
 
     z = mg.add_zeros("node", "topographic__elevation")
     loading_vector = np.linspace(1, 4, num=nr)
@@ -124,9 +124,9 @@ def test_matches_detlim_solution():
         mg.nodes_at_left_edge,
         mg.nodes_at_right_edge,
     ):
-        mg.status_at_node[edge] = CLOSED_BOUNDARY
+        mg.status_at_node[edge] = mg.BC_NODE_IS_CLOSED
     for edge in mg.nodes_at_bottom_edge:
-        mg.status_at_node[edge] = FIXED_VALUE_BOUNDARY
+        mg.status_at_node[edge] = mg.BC_NODE_IS_FIXED_VALUE
 
     z = mg.add_zeros("node", "topographic__elevation")
     ir2 = np.random.uniform(low=0.0, high=0.5, size=(z.size))
@@ -189,9 +189,9 @@ def test_ss_sed_flux():
         mg.nodes_at_left_edge,
         mg.nodes_at_right_edge,
     ):
-        mg.status_at_node[edge] = CLOSED_BOUNDARY
+        mg.status_at_node[edge] = mg.BC_NODE_IS_CLOSED
     for edge in mg.nodes_at_bottom_edge:
-        mg.status_at_node[edge] = FIXED_VALUE_BOUNDARY
+        mg.status_at_node[edge] = mg.BC_NODE_IS_FIXED_VALUE
 
     z = mg.add_zeros("node", "topographic__elevation")
     ir2 = np.random.uniform(low=0.0, high=0.5, size=(z.size))
@@ -253,9 +253,9 @@ def test_variable_bedrock_K():
         mg.nodes_at_left_edge,
         mg.nodes_at_right_edge,
     ):
-        mg.status_at_node[edge] = CLOSED_BOUNDARY
+        mg.status_at_node[edge] = mg.BC_NODE_IS_CLOSED
     for edge in mg.nodes_at_bottom_edge:
-        mg.status_at_node[edge] = FIXED_VALUE_BOUNDARY
+        mg.status_at_node[edge] = mg.BC_NODE_IS_FIXED_VALUE
 
     z = mg.add_zeros("node", "topographic__elevation")
     loading_vector = np.linspace(1, 4, num=nr)
@@ -325,9 +325,9 @@ def test_latero_steady_inlet():
         mg.nodes_at_left_edge,
         mg.nodes_at_right_edge,
     ):
-        mg.status_at_node[edge] = CLOSED_BOUNDARY
+        mg.status_at_node[edge] = mg.BC_NODE_IS_CLOSED
     for edge in mg.nodes_at_bottom_edge:
-        mg.status_at_node[edge] = FIXED_VALUE_BOUNDARY
+        mg.status_at_node[edge] = mg.BC_NODE_IS_FIXED_VALUE
 
     z = mg.add_zeros("node", "topographic__elevation")
     loading_vector = np.linspace(1, 2.5, num=nr)

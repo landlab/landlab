@@ -75,6 +75,7 @@ class Flexure(Component):
 
     Examples
     --------
+
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flexure import Flexure
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
@@ -256,8 +257,7 @@ class Flexure(Component):
         return kei(np.sqrt(dx ** 2 + dy ** 2) / alpha)
 
     def update(self):
-        """Update fields with current loading conditions.
-        """
+        """Update fields with current loading conditions."""
         load = self._grid.at_node["lithosphere__overlying_pressure_increment"]
         deflection = self._grid.at_node["lithosphere_surface__elevation_increment"]
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-TaylorNonLinearDiffuser Component
+"""TaylorNonLinearDiffuser Component.
 
 @author: R Glade
 @author: K Barnhart
@@ -15,10 +14,9 @@ from landlab import INACTIVE_LINK, Component
 
 
 class TaylorNonLinearDiffuser(Component):
-    """
-    Hillslope evolution using a Taylor Series expansion of the Andrews-Bucknam
-    formulation of nonlinear hillslope flux derived following following Ganti et
-    al., 2012. The flux is given as:
+    """Hillslope evolution using a Taylor Series expansion of the Andrews-
+    Bucknam formulation of nonlinear hillslope flux derived following following
+    Ganti et al., 2012. The flux is given as:
 
         qs = KS ( 1 + (S/Sc)**2 + (S / Sc)**4 + .. + (S / Sc)**2(n - 1) )
 
@@ -31,17 +29,17 @@ class TaylorNonLinearDiffuser(Component):
     Parameters
     ----------
     grid: ModelGrid
-            Landlab ModelGrid object
+        Landlab ModelGrid object
     linear_diffusivity: float, optional
-            Hillslope diffusivity, m**2/yr
-            Default = 1.0
+        Hillslope diffusivity, m**2/yr
+        Default = 1.0
     slope_crit: float, optional
-            Critical slope
-            Default = 1.0
-    nterms: int, optional. default = 2
-            number of terms in the Taylor expansion.
-            Two terms (Default) gives the behavior
-            described in Ganti et al. (2012).
+        Critical slope
+        Default = 1.0
+    nterms: int, optional
+        number of terms in the Taylor expansion.
+        Two terms (Default) gives the behavior
+        described in Ganti et al. (2012).
 
     Examples
     --------
@@ -146,7 +144,7 @@ class TaylorNonLinearDiffuser(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "elevation of the ground surface",
+            "doc": "Land surface topographic elevation",
         },
         "topographic__slope": {
             "dtype": float,
@@ -160,6 +158,7 @@ class TaylorNonLinearDiffuser(Component):
 
     def __init__(self, grid, linear_diffusivity=1.0, slope_crit=1.0, nterms=2):
         """Initialize the TaylorNonLinearDiffuser.
+
         Parameters
         ----------
         grid: ModelGrid
@@ -293,8 +292,7 @@ class TaylorNonLinearDiffuser(Component):
             )
 
     def run_one_step(self, dt):
-        """
-        Advance cubic soil flux component by one time step of size dt.
+        """Advance cubic soil flux component by one time step of size dt.
 
         Parameters
         ----------

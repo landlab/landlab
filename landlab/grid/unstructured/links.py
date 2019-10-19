@@ -28,8 +28,7 @@ def _split_link_ends(link_ends):
 
 
 def link_is_active(status_at_link_ends):
-    """link_is_active((status0, status1))
-    Check if a link is active.
+    """link_is_active((status0, status1)) Check if a link is active.
 
     Links are *inactive* if they connect two boundary nodes or touch a
     closed boundary. Otherwise, the link is *active*.
@@ -52,8 +51,7 @@ def link_is_active(status_at_link_ends):
 
 
 def find_active_links(node_status, node_at_link_ends):
-    """find_active_links(node_status, (node0, node1))
-    IDs of active links.
+    """find_active_links(node_status, (node0, node1)) IDs of active links.
 
     Parameters
     ----------
@@ -91,8 +89,8 @@ def find_active_links(node_status, node_at_link_ends):
 
 
 def in_link_count_per_node(node_at_link_ends, number_of_nodes=0):
-    """in_link_count_per_node((node0, node1), number_of_nodes=0)
-    Number of links entering nodes.
+    """in_link_count_per_node((node0, node1), number_of_nodes=0) Number of
+    links entering nodes.
 
     Parameters
     ----------
@@ -121,8 +119,8 @@ def in_link_count_per_node(node_at_link_ends, number_of_nodes=0):
 
 
 def out_link_count_per_node(node_at_link_ends, number_of_nodes=0):
-    """out_link_count_per_node((node0, node1), number_of_nodes=0)
-    Number of links leaving nodes.
+    """out_link_count_per_node((node0, node1), number_of_nodes=0) Number of
+    links leaving nodes.
 
     Parameters
     ----------
@@ -152,8 +150,8 @@ def out_link_count_per_node(node_at_link_ends, number_of_nodes=0):
 
 
 def link_count_per_node(node_at_link_ends, number_of_nodes=None):
-    """link_count_per_node((node0, node1), number_of_nodes=None)
-    Number of links per node.
+    """link_count_per_node((node0, node1), number_of_nodes=None) Number of
+    links per node.
 
     Parameters
     ----------
@@ -196,8 +194,8 @@ def _sort_links_by_node(node_at_link_ends, link_ids=None, sortby=0):
 
 
 def in_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=0):
-    """in_link_ids_at_node((node0, node1), number_of_nodes=0)
-    Links entering nodes.
+    """in_link_ids_at_node((node0, node1), number_of_nodes=0) Links entering
+    nodes.
 
     Parameters
     ----------
@@ -240,8 +238,8 @@ def in_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=0):
 
 
 def out_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None):
-    """out_link_ids_at_node((node0, node1), number_of_nodes=None)
-    Links leaving nodes.
+    """out_link_ids_at_node((node0, node1), number_of_nodes=None) Links leaving
+    nodes.
 
     Parameters
     ----------
@@ -284,8 +282,8 @@ def out_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None)
 
 
 def link_ids_at_node(node_at_link_ends, number_of_nodes=None):
-    """link_ids_at_node((node0, node1), number_of_nodes=None)
-    Links entering and leaving nodes.
+    """link_ids_at_node((node0, node1), number_of_nodes=None) Links entering
+    and leaving nodes.
 
     Parameters
     ----------
@@ -333,8 +331,8 @@ def link_ids_at_node(node_at_link_ends, number_of_nodes=None):
 
 
 class LinkGrid(object):
-    """Create a grid of links that enter and leave nodes.
-    __init__((node0, node1), number_of_nodes=None)
+    """Create a grid of links that enter and leave nodes. __init__((node0,
+    node1), number_of_nodes=None)
 
     Parameters
     ----------
@@ -380,8 +378,8 @@ class LinkGrid(object):
     """
 
     def __init__(self, link_ends, number_of_nodes, link_ids=None, node_status=None):
-        """Create a grid of links that enter and leave nodes.
-        __init__((node0, node1), number_of_nodes=None)
+        """Create a grid of links that enter and leave nodes. __init__((node0,
+        node1), number_of_nodes=None)
 
         Parameters
         ----------
@@ -449,14 +447,12 @@ class LinkGrid(object):
 
     @property
     def number_of_links(self):
-        """Number of links in the grid.
-        """
+        """Number of links in the grid."""
         return self._number_of_links
 
     @property
     def number_of_nodes(self):
-        """Number of nodes in the grid.
-        """
+        """Number of nodes in the grid."""
         return self._number_of_nodes
 
     def number_of_in_links_at_node(self, node):

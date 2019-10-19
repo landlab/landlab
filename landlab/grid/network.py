@@ -1,7 +1,5 @@
 #! /usr/bin/env python
-"""
-A class used to create and manage network models in 2D.
-"""
+"""A class used to create and manage network models in 2D."""
 import numpy as np
 
 from landlab.utils.decorators import make_return_array_immutable
@@ -12,7 +10,14 @@ from ..field import GraphFields
 from ..graph import NetworkGraph
 from ..utils.decorators import cache_result_in_object
 from .decorators import override_array_setitem_and_reset, return_readonly_id_array
-from .linkstatus import ACTIVE_LINK, set_status_at_link
+from .linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK, set_status_at_link
+from .nodestatus import (
+    CLOSED_BOUNDARY,
+    CORE_NODE,
+    FIXED_GRADIENT_BOUNDARY,
+    FIXED_VALUE_BOUNDARY,
+    LOOPED_BOUNDARY,
+)
 
 
 class NetworkModelGrid(NetworkGraph, GraphFields):
@@ -44,6 +49,31 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
            [2, 1],
            [1, 3]])
     """
+
+    #: Indicates a node is *core*.
+    BC_NODE_IS_CORE = CORE_NODE
+    #: Indicates a boundary node has a fixed value.
+    BC_NODE_IS_FIXED_VALUE = FIXED_VALUE_BOUNDARY
+    #: Indicates a boundary node has a fixed gradient.
+    BC_NODE_IS_FIXED_GRADIENT = FIXED_GRADIENT_BOUNDARY
+    #: Indicates a boundary node is wrap-around.
+    BC_NODE_IS_LOOPED = LOOPED_BOUNDARY
+    #: Indicates a boundary node is closed
+    BC_NODE_IS_CLOSED = CLOSED_BOUNDARY
+
+    #: Indicates a link is *active*, and can carry flux
+    BC_LINK_IS_ACTIVE = ACTIVE_LINK
+    #: Indicates a link has a fixed gradient value, and behaves as a boundary
+    BC_LINK_IS_FIXED = FIXED_LINK
+    #: Indicates a link is *inactive*, and cannot carry flux
+    BC_LINK_IS_INACTIVE = INACTIVE_LINK
+
+    #: Grid elements on which fields can be placed.
+    VALID_LOCATIONS = ("node", "link", "grid")
+
+    at_node = {}  # : Values defined at nodes
+    at_link = {}  # : Values defined at links
+    at_grid = {}  # : Values defined at grid
 
     def __init__(
         self,
@@ -211,7 +241,6 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         Examples
         --------
         >>> from landlab import NetworkModelGrid
-        >>> from landlab import CLOSED_BOUNDARY, CORE_NODE
 
         >>> y_of_node = (0, 1, 2, 2)
         >>> x_of_node = (0, 0, -1, 1)
@@ -225,7 +254,11 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         Now we change the status at node 0 to a closed boundary. This will
         result in changing the link status as well.
 
-        >>> grid.status_at_node = [CLOSED_BOUNDARY, CORE_NODE, CORE_NODE, CORE_NODE]
+        >>> grid.status_at_node = [
+        ...     grid.BC_NODE_IS_CLOSED,
+        ...     grid.BC_NODE_IS_CORE,
+        ...     grid.BC_NODE_IS_CORE,
+        ...     grid.BC_NODE_IS_CORE]
         >>> grid.status_at_node
         array([4, 0, 0, 0], dtype=uint8)
         >>> grid.status_at_link

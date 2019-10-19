@@ -4,7 +4,6 @@ General Landlab decorators
 ++++++++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.utils.decorators.use_field_name_or_array
     ~landlab.utils.decorators.make_return_array_immutable

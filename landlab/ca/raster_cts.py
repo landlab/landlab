@@ -15,8 +15,7 @@ from .celllab_cts import CellLabCTSModel
 
 
 class RasterCTS(CellLabCTSModel):
-    """
-    Class RasterLCA implements a non-oriented raster CellLab-CTS model.
+    """Class RasterLCA implements a non-oriented raster CellLab-CTS model.
 
     RasterLCA constructor: sets number of orientations to 1 and calls
     base-class constructor.
@@ -64,8 +63,7 @@ class RasterCTS(CellLabCTSModel):
         prop_reset_value=None,
         seed=0,
     ):
-        """
-        RasterLCA constructor: sets number of orientations to 1 and calls
+        """RasterLCA constructor: sets number of orientations to 1 and calls
         base-class constructor.
 
         Parameters

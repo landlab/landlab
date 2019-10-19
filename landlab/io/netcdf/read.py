@@ -5,7 +5,6 @@ Read netcdf
 +++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.io.netcdf.read.read_netcdf
 """

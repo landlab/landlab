@@ -99,11 +99,11 @@ class Lithology(Component):
             used, then erosion removes material and creates layers of thickness
             zero. Thus, EventLayers may be appropriate if the user is interested
             in chronostratigraphy.
-        dz_advection : float, `(n_nodes, ) shape array, or at-node field array optional
+        dz_advection : float, `(n_nodes, )` shape array, or at-node field array optional
             Change in rock elevation due to advection by some external process.
             This can be changed using the property setter. Dimensions are in
             length, not length per time.
-        rock_id : value or `(n_nodes, ) shape array, optional
+        rock_id : value or `(n_nodes, )` shape array, optional
             Rock type id for new material if deposited.
             This can be changed using the property setter.
 
@@ -292,7 +292,7 @@ class Lithology(Component):
 
         Parameters
         ----------
-        dz_advection : float, `(n_nodes, ) shape array, or at-node field array optional
+        dz_advection : float, `(n_nodes, )` shape array, or at-node field array optional
             Change in rock elevation due to advection by some external process.
             This can be changed using the property setter. Dimensions are in
             length, not length per time.
@@ -314,7 +314,7 @@ class Lithology(Component):
 
         Parameters
         ----------
-        rock_id : value or `(n_nodes, ) shape array, optional
+        rock_id : value or `(n_nodes, )` shape array, optional
             Rock type id for new material if deposited.
             This can be changed using the property setter.
 
@@ -497,7 +497,7 @@ class Lithology(Component):
                     raise ValueError(msg)
 
     def _update_surface_values(self):
-        """Update Lithology surface values"""
+        """Update Lithology surface values."""
         # Update surface values for each attribute.
         self._grid["node"][self._rock_id_name][:] = self._surface_rock_type
         for at in self._properties:
@@ -536,13 +536,13 @@ class Lithology(Component):
 
         >>> lith.add_layer(3, rock_id=3)
 
-        The value of K_sp at node is now updated to the value of rock type 3
+        The value of `K_sp` at node is now updated to the value of rock type 3
 
         >>> mg.at_node['K_sp']
         array([ 0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01,  0.01])
 
         A negative value will erode. We can also pass a `(n_nodes,) long array
-        to erode unevenly. If all parts of the layer erode, then no rock_id
+        to erode unevenly. If all parts of the layer erode, then no `rock_id`
         needs to be passed.
 
         >>> erosion_amount = [-2., -2., -2., -4., -4., -4., -6., -6., -6.]
@@ -551,7 +551,7 @@ class Lithology(Component):
         array([ 0.01  ,  0.01  ,  0.01  ,  0.0001,  0.0001,  0.0001,  0.001 ,
                 0.001 ,  0.001 ])
 
-        Now different layers are exposed at the surface and the value of K_sp
+        Now different layers are exposed at the surface and the value of `K_sp`
         is spatially variable.
         """
         thickness = np.array(thickness)
@@ -599,7 +599,7 @@ class Lithology(Component):
         self._update_surface_values()
 
     def add_property(self, attrs):
-        """Add new property to Lithology
+        """Add new property to Lithology.
 
         Parameters
         ----------
@@ -684,7 +684,6 @@ class Lithology(Component):
         [1, 2, 4, 6]
         >>> lith.properties
         {'K_sp': {1: 0.001, 2: 0.0001, 4: 0.03, 6: 0.004}}
-
         """
         # Check that the new rock type has all existing attributes
         for at in self._properties:
@@ -723,8 +722,8 @@ class Lithology(Component):
     def update_rock_properties(self, at, rock_id, value):
         """Update rock type attribute.
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         at : str
             Attribute name
         rock_id : value
@@ -752,7 +751,6 @@ class Lithology(Component):
 
         >>> mg.at_node['K_sp']
         array([ 0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03,  0.03])
-
         """
         if at not in self._properties:
             msg = (
@@ -791,8 +789,8 @@ class Lithology(Component):
         Note also that when this method is called, it will construct the current
         values of lithology with depth, NOT the initial values.
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         depths : array
 
         Returns

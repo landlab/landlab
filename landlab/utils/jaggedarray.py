@@ -115,8 +115,7 @@ def unravel(data, offset, out=None, pad=None):
 
 class JaggedArray(object):
 
-    """
-    A container for an array of variable-length arrays.
+    """A container for an array of variable-length arrays.
 
     JaggedArray([row0, row1, ...])
     JaggedArray(values, values_per_row)
@@ -138,9 +137,7 @@ class JaggedArray(object):
     """
 
     def __init__(self, *args):
-        """
-        JaggedArray([row0, row1, ...])
-        JaggedArray(values, values_per_row)
+        """JaggedArray([row0, row1, ...]) JaggedArray(values, values_per_row)
 
         Examples
         --------

@@ -1,7 +1,7 @@
 """Define a graph of nodes-links-patches and its dual.
 
-This class should not be used directly. Instead, it should be used as a base
-class when defining other types of graphs.
+This class should not be used directly. Instead, it should be used as a
+base class when defining other types of graphs.
 """
 import inspect
 from functools import lru_cache

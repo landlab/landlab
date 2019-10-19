@@ -1,10 +1,8 @@
 #! /usr/env/python
-"""
+"""Component that models 2D diffusion using an explicit finite-volume method.
 
-Component that models 2D diffusion using an explicit finite-volume method.
-
-Created July 2013 GT
-Last updated March 2016 DEJH with LL v1.0 component style
+Created July 2013 GT Last updated March 2016 DEJH with LL v1.0 component
+style
 """
 
 
@@ -23,8 +21,7 @@ _ALPHA = 0.15  # time-step stability factor
 
 
 class LinearDiffuser(Component):
-    """
-    This component implements linear diffusion of a Landlab field.
+    """This component implements linear diffusion of a Landlab field.
 
     Component assumes grid does not deform. If the boundary conditions on the
     grid change after component instantiation, be sure to also call
@@ -118,7 +115,7 @@ class LinearDiffuser(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Land surface topographic elevation; can be overwritten in initialization",
+            "doc": "Land surface topographic elevation",
         },
         "topographic__gradient": {
             "dtype": float,
@@ -126,7 +123,7 @@ class LinearDiffuser(Component):
             "optional": False,
             "units": "-",
             "mapping": "link",
-            "doc": "Gradient of surface, on links",
+            "doc": "Gradient of the ground surface",
         },
     }
 
@@ -585,6 +582,5 @@ class LinearDiffuser(Component):
 
     @property
     def time_step(self):
-        """Returns internal time-step size (as a property).
-        """
+        """Returns internal time-step size (as a property)."""
         return self._dt

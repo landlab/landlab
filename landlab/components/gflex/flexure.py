@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-This is a Landlab wrapper for A Wickert's gFlex flexure model (Wickert et al.,
-submitted to Geoscientific Model Development). The most up-to-date version of
-his code can be found at github.com/awickert/gFlex.
+"""This is a Landlab wrapper for A Wickert's gFlex flexure model (Wickert et
+al., submitted to Geoscientific Model Development). The most up-to-date version
+of his code can be found at github.com/awickert/gFlex.
 
 This Landlab wrapper will use a snapshot of that code, which YOU need to
 install on your own machine.
@@ -35,10 +34,9 @@ else:
 
 
 class gFlex(Component):
-    """
-    This is a Landlab wrapper for A Wickert's gFlex flexure model (Wickert et
-    al., 2016, Geoscientific Model Development). The most up-to-date version of
-    his code can be found at github.com/awickert/gFlex.
+    """This is a Landlab wrapper for A Wickert's gFlex flexure model (Wickert
+    et al., 2016, Geoscientific Model Development). The most up-to-date version
+    of his code can be found at github.com/awickert/gFlex.
 
     This Landlab wrapper will use a snapshot of that code, which YOU need to
     install on your own machine.
@@ -117,7 +115,7 @@ class gFlex(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Vertical deflection of the surface and of the lithospheric plate",
+            "doc": "The change in elevation of the top of the lithosphere (the land surface) in one timestep",
         },
         "surface_load__stress": {
             "dtype": float,
@@ -133,7 +131,7 @@ class gFlex(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Land surface topographic elevation; can be overwritten in initialization",
+            "doc": "Land surface topographic elevation",
         },
     }
 
@@ -238,10 +236,11 @@ class gFlex(Component):
         )
 
     def flex_lithosphere(self):
-        """
-        Executes (& finalizes, from the perspective of gFlex) the core method
-        of gFlex. Note that flexure of the lithosphere proceeds to steady state
-        in a single timestep.
+        """Executes (& finalizes, from the perspective of gFlex) the core
+        method of gFlex.
+
+        Note that flexure of the lithosphere proceeds to steady state in
+        a single timestep.
         """
         self._flex.qs = (
             self._grid.at_node["surface_load__stress"].view().reshape(self._grid.shape)
@@ -268,8 +267,7 @@ class gFlex(Component):
             self._pre_flex += topo_diff
 
     def run_one_step(self):
-        """
-        Flex the lithosphere to find its steady state form.
+        """Flex the lithosphere to find its steady state form.
 
         The standardized run method for this component.
 

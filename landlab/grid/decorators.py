@@ -4,7 +4,6 @@ Grid decorators
 +++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.grid.decorators.override_array_setitem_and_reset
     ~landlab.grid.decorators.return_id_array
@@ -21,7 +20,7 @@ class override_array_setitem_and_reset(object):
 
     """Decorator that calls a grid method after setting array values.
 
-    This decorator wraps :any:`ModelGrid` methods that return a numpy array
+    This decorator wraps `ModelGrid` methods that return a numpy array
     so that it returns a wrapped array that overrides the numpy array
     `__setitem__`, `__setslice__`, and `itemset` methods. The wrapped methods
     set values in the array but then also call a grid method that resets some

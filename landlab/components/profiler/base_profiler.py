@@ -185,8 +185,7 @@ class _BaseProfiler(Component, ABC):
         ylabel="Plotted Quantity",
         title="Extracted Profiles",
     ):
-        """
-        Plot distance-upstream vs at at-node or size (nnodes,) quantity.
+        """Plot distance-upstream vs at at-node or size (nnodes,) quantity.
 
         Parameters
         ----------
@@ -230,8 +229,7 @@ class _BaseProfiler(Component, ABC):
     def plot_profiles_in_map_view(
         self, field="topographic__elevation", endpoints_only=False, **kwds
     ):
-        """
-        Plot profile locations in map view.
+        """Plot profile locations in map view.
 
         Parameters
         ----------

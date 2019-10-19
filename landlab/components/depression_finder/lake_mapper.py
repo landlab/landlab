@@ -9,14 +9,7 @@
 import numpy as np
 
 import landlab
-from landlab import (
-    CLOSED_BOUNDARY,
-    CORE_NODE,
-    FIXED_VALUE_BOUNDARY,
-    Component,
-    FieldError,
-    RasterModelGrid,
-)
+from landlab import Component, FieldError, RasterModelGrid
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.core.messages import warning_message
 from landlab.core.utils import as_id_array
@@ -128,9 +121,10 @@ class DepressionFinderAndRouter(Component):
     >>> df.lake_areas  # the area of each lake in lake_codes
     array([ 2.25])
 
-    Because rereoute_flow defaults to True, the flow connectivity fields
-    created by the FlowAccumulator will have now been modified to route flow over
-    the depressions in the surface. The topogrphy itself is not modified.
+    Because ``rereoute_flow`` defaults to ``True``, the flow connectivity fields
+    created by the :py:class:`~landlab.components.flow_accum.FlowAccumulator`
+    will have now been modified to route flow over the depressions in the
+    surface. The topogrphy itself is not modified.
     """
 
     _name = "DepressionFinderAndRouter"
@@ -174,7 +168,7 @@ class DepressionFinderAndRouter(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Surface topographic elevation",
+            "doc": "Land surface topographic elevation",
         },
     }
 
@@ -188,7 +182,7 @@ class DepressionFinderAndRouter(Component):
         ----------
         grid : RasterModelGrid
             A landlab RasterModelGrid.
-        routing : 'D8' or 'D4' (optional)
+        routing : str
             If grid is a raster type, controls whether lake connectivity can
             occur on diagonals ('D8', default), or only orthogonally ('D4').
             Has no effect if grid is not a raster.
@@ -197,14 +191,13 @@ class DepressionFinderAndRouter(Component):
             If an array, either a boolean array of nodes of the pits, or an
             array of pit node IDs. It does not matter whether or not open
             boundary nodes are flagged as pits; they are never treated as such.
-            Default is 'flow__sink_flag', the pit field output from
-            'route_flow_dn'
+            Default is 'flow__sink_flag', the pit field output from the
+            :py:mod:`FlowDirectors <landlab.components.flow_director>`.
         reroute_flow : bool, optional
             If True (default), and the component detects the output fields in
             the grid produced by the FlowAccumulator component, this component
             will modify the existing flow fields to route the flow across the
             lake surface(s).
-
         """
         super(DepressionFinderAndRouter, self).__init__(grid)
 
@@ -291,7 +284,9 @@ class DepressionFinderAndRouter(Component):
         if self._D8:
             diag_nbrs = self._grid.diagonal_adjacent_nodes_at_node.copy()
             # remove the inactive nodes:
-            diag_nbrs[self._grid.status_at_node[diag_nbrs] == CLOSED_BOUNDARY] = -1
+            diag_nbrs[
+                self._grid.status_at_node[diag_nbrs] == self._grid.BC_NODE_IS_CLOSED
+            ] = -1
             self._node_nbrs = np.concatenate((self._node_nbrs, diag_nbrs), 1)
             self._link_lengths = np.empty(8, dtype=float)
             self._link_lengths[0] = dx
@@ -325,7 +320,8 @@ class DepressionFinderAndRouter(Component):
 
     @property
     def flood_status(self):
-        """Map of flood status (_PIT, _CURRENT_LAKE, _UNFLOODED, or _FLOODED)."""
+        """Map of flood status (_PIT, _CURRENT_LAKE, _UNFLOODED, or
+        _FLOODED)."""
         return self._flood_status
 
     @property
@@ -409,9 +405,15 @@ class DepressionFinderAndRouter(Component):
                 elif self._elev[t] > self._elev[h]:
                     self._is_pit[t] = False
                 elif self._elev[h] == self._elev[t]:
-                    if self._grid.status_at_node[h] == FIXED_VALUE_BOUNDARY:
+                    if (
+                        self._grid.status_at_node[h]
+                        == self._grid.BC_NODE_IS_FIXED_VALUE
+                    ):
                         self._is_pit[t] = False
-                    elif self._grid.status_at_node[t] == FIXED_VALUE_BOUNDARY:
+                    elif (
+                        self._grid.status_at_node[t]
+                        == self._grid.BC_NODE_IS_FIXED_VALUE
+                    ):
                         self._is_pit[h] = False
 
         # Record the number of pits and the IDs of pit nodes.
@@ -428,7 +430,7 @@ class DepressionFinderAndRouter(Component):
 
         Returns
         -------
-        int
+        lowest_node : int
             The lowest node on the perimeter of a depression.
         """
         # Start with the first node on the list, and an arbitrarily large elev
@@ -527,7 +529,7 @@ class DepressionFinderAndRouter(Component):
         >>> from landlab.components import FlowAccumulator
         >>> from landlab import RasterModelGrid
         >>> rg = RasterModelGrid((7, 7))
-        >>> rg.status_at_node[rg.nodes_at_right_edge] = CLOSED_BOUNDARY
+        >>> rg.status_at_node[rg.nodes_at_right_edge] = rg.BC_NODE_IS_CLOSED
         >>> z = rg.add_zeros('node', 'topographic__elevation')
         >>> z[:] = rg.x_of_node + 0.01 * rg.y_of_node
         >>> lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
@@ -589,7 +591,7 @@ class DepressionFinderAndRouter(Component):
                     (self._elev[nbr] + self._depression_depth[nbr])
                     < self._elev[receiver]
                 )
-                and self._grid.status_at_node[nbr] != CLOSED_BOUNDARY
+                and self._grid.status_at_node[nbr] != self._grid.BC_NODE_IS_CLOSED
             ):
 
                 # Next test: is it the steepest downhill grad so far?
@@ -618,7 +620,7 @@ class DepressionFinderAndRouter(Component):
                         (self._elev[nbr] + self._depression_depth[nbr])
                         < self._elev[receiver]
                     )
-                    and self._grid.status_at_node[nbr] != CLOSED_BOUNDARY
+                    and self._grid.status_at_node[nbr] != self._grid.BC_NODE_IS_CLOSED
                 ):
 
                     # Next test: is it the steepest downhill grad so far?
@@ -710,7 +712,7 @@ class DepressionFinderAndRouter(Component):
         boolean
             ``True`` if the node is a valid outlet. Otherwise, ``False``.
         """
-        if self._grid.status_at_node[the_node] == FIXED_VALUE_BOUNDARY:
+        if self._grid.status_at_node[the_node] == self._grid.BC_NODE_IS_FIXED_VALUE:
             return True
 
         if self.node_can_drain(the_node):
@@ -822,7 +824,10 @@ class DepressionFinderAndRouter(Component):
             # assign_outlet_receiver to find the correct receiver (so that it
             # doesn't simply drain back into the lake)
             elif ("flow__receiver_node" in self._grid.at_node) and reroute_flow:
-                if self._grid.status_at_node[lowest_node_on_perimeter] != CORE_NODE:
+                if (
+                    self._grid.status_at_node[lowest_node_on_perimeter]
+                    != self._grid.BC_NODE_IS_CORE
+                ):
                     self._grid.at_node["flow__receiver_node"][
                         lowest_node_on_perimeter
                     ] = lowest_node_on_perimeter

@@ -7,7 +7,7 @@ DEFAULT_MINIMUM_TIME_STEP = 0.001  # default minimum time step duration
 
 
 class _GeneralizedErosionDeposition(Component):
-    """ Base class for erosion-deposition type components.
+    """Base class for erosion-deposition type components.
 
     More documenation here.
     """
@@ -45,7 +45,7 @@ class _GeneralizedErosionDeposition(Component):
             "optional": False,
             "units": "m3/s",
             "mapping": "node",
-            "doc": "Sediment flux.",
+            "doc": "Sediment flux (volume per unit time of sediment entering each node)",
         },
         "surface_water__discharge": {
             "dtype": float,
@@ -53,7 +53,7 @@ class _GeneralizedErosionDeposition(Component):
             "optional": False,
             "units": "m**2/s",
             "mapping": "node",
-            "doc": "Water discharge at each node",
+            "doc": "Volumetric discharge of surface water",
         },
         "topographic__elevation": {
             "dtype": float,
@@ -69,7 +69,7 @@ class _GeneralizedErosionDeposition(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Topographic slope at each node",
+            "doc": "The steepest *downhill* slope",
         },
     }
 

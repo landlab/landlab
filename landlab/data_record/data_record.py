@@ -19,9 +19,10 @@ class DataRecord(object):
     items, or both.
 
     Thus data variables can vary along one or both of the following dimensions:
+
         - time (model time)
         - item_id: variables can characterize a set of items (each identified
-            by an individual id) that reside on the grid.
+          by an individual id) that reside on the grid.
 
     If an item or set of items is defined, each item must be defined by the
     grid element and the element id at which it resides, e.g.:
@@ -34,10 +35,11 @@ class DataRecord(object):
     0 followed by consecutively increasing integers.**
 
     Examples:
+
         - the variable 'mean_elevation' characterizes the grid and varies with
-            time,
+          time,
         - the variable 'clast__rock_type' characterizes a set of items (clasts)
-            and varies with item_id,
+          and varies with item_id,
         - the variable 'clast__size' can vary with both time and item_id
 
     In the above case, `grid_element` and `element_id` are default data
@@ -75,12 +77,12 @@ class DataRecord(object):
         ----------
         grid : ModelGrid
         dummy_elements : dict
-             Dictionary indicating valid values for dummy grid elements. For
-             example, if you need an "exit" off of a grid with  100 links, you could indicate
-                dummy_elements = {"link": [9999]}
-             to set a link id of 9999 as a dummy link. Multiple dummy elements
-             are possible and we recommend using values larger than the number
-             of grid elements for the dummy values.
+            Dictionary indicating valid values for dummy grid elements. For
+            example, if you need an "exit" off of a grid with  100 links, you
+            could indicate `dummy_elements = {"link": [9999]}`
+            to set a link id of 9999 as a dummy link. Multiple dummy elements
+            are possible and we recommend using values larger than the number
+            of grid elements for the dummy values.
         time : list or 1-D array of float or int (optional)
             The initial time(s) to add to the record. A time dimension is not
             created if the value is 'None' (default).
@@ -88,29 +90,44 @@ class DataRecord(object):
             Generic items that live on grid elements. No item is created if the
             value is 'None' (default). Otherwise, dictionary describes the
             position of generic items on the grid. The structure is:
+
+            .. code-block:: python
+
                 {'grid_element' : [grid_element],
                  'element_id' : [element_id]}
+
             where:
+
                 - [grid_element] is a str or number-of-items-long array
-                containing strings of the grid element(s) on which the items
-                live. Valid locations depend on the grid type. If provided as a
-                string it is assumed that all items live on the same type of
-                grid element.
+                  containing strings of the grid element(s) on which the items
+                  live. Valid locations depend on the grid type. If provided as a
+                  string it is assumed that all items live on the same type of
+                  grid element.
                 - [element_id] is an array of integers identifying the grid
-                element ID on which each item resides.
+                  element ID on which each item resides.
+
             An example argument would be:
+
+            .. code-block:: python
+
                 {'grid_element' : numpy.array(['node'], ['node'], ['link']),
                  'element_id' :   numpy.array([1],      [5],      [1]     )}
+
         data_vars : dict (optional)
             Dictionary of the data variables to be recorded. The structure is:
+
+            .. code-block:: python
+
                 {'variable_name_1' : (['dimensions'], variable_data_1),
                  'variable_name_2' : (['dimensions'], variable_data_2)}
+
             where:
+
                 - 'variable_name...' is a string of the variable name (label)
                 - ['dimensions'] is the dimension(s) over which the variable
-                exists: can be ['time'], ['item_id'] or ['item_id', 'time'].
+                  exists: can be ['time'], ['item_id'] or ['item_id', 'time'].
                 - variable_data is an array containing the data, its size must
-                match that of the variable dimension(s).
+                  match that of the variable dimension(s).
         attrs : dict (optional)
             Dictionary of global attributes on the DataRecord (metadata).
             Example: {'time_units' : 'y'}
@@ -123,6 +140,7 @@ class DataRecord(object):
         >>> grid = RasterModelGrid((3,3))
 
         Example of a DataRecord with time as the only dimension:
+
         >>> dr1 = DataRecord(grid, time=[0.],
         ...                  data_vars={'mean_elevation' : (['time'],
         ...                                                 np.array([100]))},
@@ -145,15 +163,14 @@ class DataRecord(object):
               mean_elevation
         time
         0.0              100
-
         >>> dr1.dataset.time.values
         array([ 0.])
-
         >>> dr1.variable_names
         ['mean_elevation']
-
         >>> dr1.dataset['mean_elevation'].values
         array([100])
+        >>> list(dr1.dataset.attrs.items())
+        [('time_units', 'y')]
 
         >>> list(dr1.dataset.attrs.items())
         [('time_units', 'y')]
@@ -189,6 +206,7 @@ class DataRecord(object):
         item_id time
         0       0.0          node           1
         1       0.0          link           3
+
         """
 
         # save a reference to the grid
@@ -400,18 +418,24 @@ class DataRecord(object):
             Dictionary of the new item location. If the new record is a change
             in the item location (grid_element and/or element_id), this field
             must be provided as:
+
+            .. code-block:: python
+
                 {'grid_element' : [grid_element],
                  'element_id' : [element_id]}
+
             Both must be provided even if only one is being changed.
+
         new_record : dict
             Dictionary containing the new record. Structure should be:
             {'variable_name_1' : (['dimensions'], variable_data_1)}
             with:
+
                 - 'variable_name_1' : name of the (potentially new) variable
                 - ['dimensions'] : dimension(s) along which the new record
-                varies; can be ['time'], ['item_id] or ['item_id', 'time']
+                  varies; can be ['time'], ['item_id] or ['item_id', 'time']
                 - variable_data_1 : new data array, size must match the
-                variable dimension(s)
+                  variable dimension(s)
 
         Examples
         --------
@@ -421,6 +445,7 @@ class DataRecord(object):
         >>> grid = RasterModelGrid((3,3))
 
         Example of a DataRecord with dimensions time and item_id:
+
         >>> my_items3 = {'grid_element': np.array([['node'], ['link']]),
         ...              'element_id': np.array([[1],[3]])}
 
@@ -575,30 +600,45 @@ class DataRecord(object):
             Time step at which the items are to be added.
         new_item : dict
             Structure is:
+
+            .. code-block:: python
+
                 {'grid_element' : [grid_element],
                  'element_id' : [element_id]}
+
             where:
+
                 - [grid_element] is str or number-of-items long array
-                containing strings of the grid element(s) on which the items
-                live. Valid locations depend on the grid type. If provided as
-                a string it is assumed that all items live on the same type of
-                grid element.
+                  containing strings of the grid element(s) on which the items
+                  live. Valid locations depend on the grid type. If provided as
+                  a string it is assumed that all items live on the same type of
+                  grid element.
                 - [element_id] is an array of integers identifying the grid
-                element ID on which each item resides.
+                  element ID on which each item resides.
+
             An example argument would be:
+
+            .. code-block:: python
+
                 {'grid_element' : numpy.array([['node'], ['node'], ['link']]),
                  'element_id' :   numpy.array([[1],      [5],      [1]     ])}
+
         new_item_spec : dict (optional)
             Dictionary containing any data variables (other than
             'grid_element' and 'element_id') relating to the new item(s) to be
             added. Structure is:
+
+            .. code-block:: python
+
                 {'variable_name_1' : (['dimensions'], variable_data_1)}
+
             where:
+
                 - 'variable_name_1' : name of the (potentially new) variable
                 - ['dimensions'] : dimension(s) along which the new record
-                varies; can be ['time'], ['item_id] or ['item_id', 'time']
+                  varies; can be ['time'], ['item_id] or ['item_id', 'time']
                 - variable_data_1 : new data array, size must match the
-                variable dimension(s)
+                  variable dimension(s)
 
         Examples
         --------
@@ -1059,7 +1099,6 @@ class DataRecord(object):
         ...                               fill_value=0.)
         >>> v_f
         array([  8.,   3.,   4.,   5.,  0.,  0.,  0.,  0.,  0.])
-
         """
         filter_at = self._dataset["grid_element"] == at
 
@@ -1134,6 +1173,7 @@ class DataRecord(object):
 
         To fill these values with the last valid value, use the method
         ffill_grid_element_and_id:
+
         >>> dr3.ffill_grid_element_and_id()
         >>> dr3.dataset['grid_element'].values
         array([['node', 'node', 'node'],
@@ -1141,7 +1181,6 @@ class DataRecord(object):
         >>> dr3.dataset['element_id'].values
         array([[ 1.,  1.,  1.],
                [ 3.,  3.,  3.]])
-
         """
         # Forward fill element_id:
         fill_value = []
@@ -1166,14 +1205,13 @@ class DataRecord(object):
 
     @property
     def dataset(self):
-        """The xarray Dataset that serves as the core datastructure.
-        """
+        """The xarray Dataset that serves as the core datastructure."""
         return self._dataset
 
     @property
     def variable_names(self):
-        """Return the name(s) of the data variable(s) in the record as a list.
-        """
+        """Return the name(s) of the data variable(s) in the record as a
+        list."""
         _keys = []
         for key in self._dataset.to_dataframe().keys():
             _keys.append(key)
@@ -1181,44 +1219,37 @@ class DataRecord(object):
 
     @property
     def number_of_items(self):
-        """Return the number of items in the DataRecord.
-        """
+        """Return the number of items in the DataRecord."""
         return len(self._dataset.item_id)
 
     @property
     def item_coordinates(self):
-        """Return a list of the item_id coordinates in the DataRecord.
-        """
+        """Return a list of the item_id coordinates in the DataRecord."""
         return self._dataset.item_id.values.tolist()
 
     @property
     def number_of_timesteps(self):
-        """Return the number of time steps in the DataRecord.
-        """
+        """Return the number of time steps in the DataRecord."""
         return len(self._dataset.time)
 
     @property
     def time_coordinates(self):
-        """Return a list of the time coordinates in the DataRecord.
-        """
+        """Return a list of the time coordinates in the DataRecord."""
         return self._dataset.time.values.tolist()
 
     @property
     def earliest_time(self):
-        """Return the earliest time coordinate in the DataRecord.
-        """
+        """Return the earliest time coordinate in the DataRecord."""
         return min(self._dataset.time.values)
 
     @property
     def latest_time(self):
-        """Return the latest time coordinate in the DataRecord.
-        """
+        """Return the latest time coordinate in the DataRecord."""
         return max(self._dataset.time.values)
 
     @property
     def prior_time(self):
-        """Return the penultimate time coordinate in the DataRecord.
-        """
+        """Return the penultimate time coordinate in the DataRecord."""
         if self.number_of_timesteps < 2:
             return np.nan
         else:
