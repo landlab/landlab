@@ -24,6 +24,168 @@ from landlab.utils.decorators import use_field_name_or_array
 
 
 @use_field_name_or_array("node")
+def calc_diff_at_d8(grid, node_values, out=None):
+    """Calculate differences of node values over links and diagonals.
+
+    Calculates the difference in quantity *node_values* at each link in the
+    grid.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    node_values : ndarray or field name
+        Values at grid nodes.
+    out : ndarray, optional
+        Buffer to hold the result.
+
+    Returns
+    -------
+    ndarray
+        Differences across links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
+    >>> z = [
+    ...     [60.0, 60.0, 60.0, 60.0],
+    ...     [60.0, 60.0,  0.0,  0.0],
+    ...     [60.0,  0.0,  0.0,  0.0],
+    ... ]
+    >>> grid.calc_diff_at_d8(z)
+    array([  0.,   0.,   0.,   0.,   0., -60., -60.,   0., -60.,   0.,   0.,
+           -60.,   0.,   0., -60.,   0.,   0.,   0.,   0., -60.,   0., -60.,
+           -60., -60.,   0., -60.,   0.,   0.,   0.])
+
+    LLCATS: LINF GRAD
+    """
+    if out is None:
+        out = np.empty(grid.number_of_d8)
+    node_values = np.asarray(node_values)
+    return np.subtract(
+        node_values[grid.nodes_at_d8[:, 1]],
+        node_values[grid.nodes_at_d8[:, 0]],
+        out=out,
+    )
+
+
+@use_field_name_or_array("node")
+def calc_diff_at_diagonal(grid, node_values, out=None):
+    """Calculate differences of node values over diagonals.
+
+    Calculates the difference in quantity *node_values* at each link in the
+    grid.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    node_values : ndarray or field name
+        Values at grid nodes.
+    out : ndarray, optional
+        Buffer to hold the result.
+
+    Returns
+    -------
+    ndarray
+        Differences across links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
+    >>> z = [
+    ...     [5.0, 5.0, 5.0, 5.0],
+    ...     [5.0, 5.0, 0.0, 0.0],
+    ...     [5.0, 0.0, 0.0, 0.0],
+    ... ]
+    >>> grid.calc_diff_at_diagonal(z)
+    array([ 0.,  0., -5.,  0., -5., -5., -5.,  0., -5.,  0.,  0.,  0.])
+
+    LLCATS: LINF GRAD
+    """
+    if out is None:
+        out = np.empty(grid.number_of_diagonals)
+    node_values = np.asarray(node_values)
+    return np.subtract(
+        node_values[grid.nodes_at_diagonal[:, 1]],
+        node_values[grid.nodes_at_diagonal[:, 0]],
+        out=out,
+    )
+
+
+def calc_grad_at_d8(grid, node_values, out=None):
+    """Calculate gradients over all diagonals and links.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A grid.
+    node_values : array_like or field name
+        Values at nodes.
+    out : ndarray, optional
+        Buffer to hold result. If `None`, create a new array.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> import numpy as np
+    >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
+    >>> z = [
+    ...     [60.0, 60.0, 60.0, 60.0],
+    ...     [60.0, 60.0,  0.0,  0.0],
+    ...     [60.0,  0.0,  0.0,  0.0],
+    ... ]
+    >>> grid.calc_grad_at_d8(z)
+    array([  0.,   0.,   0.,   0.,   0., -20., -20.,   0., -15.,   0.,   0.,
+           -20.,   0.,   0., -15.,   0.,   0.,   0.,   0., -12.,   0., -12.,
+           -12., -12.,   0., -12.,   0.,   0.,   0.])
+
+    LLCATS: LINF GRAD
+    """
+    grads = calc_diff_at_d8(grid, node_values, out=out)
+    grads /= grid.length_of_d8[: grid.number_of_d8]
+
+    return grads
+
+
+def calc_grad_at_diagonal(grid, node_values, out=None):
+    """Calculate gradients over all diagonals.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A grid.
+    node_values : array_like or field name
+        Values at nodes.
+    out : ndarray, optional
+        Buffer to hold result. If `None`, create a new array.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> import numpy as np
+    >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
+    >>> z = [
+    ...     [5.0, 5.0, 5.0, 5.0],
+    ...     [5.0, 5.0, 0.0, 0.0],
+    ...     [5.0, 0.0, 0.0, 0.0],
+    ... ]
+    >>> grid.calc_grad_at_diagonal(z)
+    array([ 0.,  0., -1.,  0., -1., -1., -1.,  0., -1.,  0.,  0.,  0.])
+
+    LLCATS: LINF GRAD
+    """
+    grads = calc_diff_at_diagonal(grid, node_values, out=out)
+    grads /= grid.length_of_diagonal[: grid.number_of_diagonals]
+
+    return grads
+
+
+@use_field_name_or_array("node")
 def calc_grad_at_link(grid, node_values, out=None):
     """Calculate gradients in node_values at links.
 
