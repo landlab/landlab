@@ -26,7 +26,8 @@ jobs:
     - pushd landlab/tutorials
     - git fetch origin release
     - git checkout -qf release
-    - pip install pytest
+    - conda install --file=requirements.txt
+    - conda install nbformat
     - travis_wait 50 pytest -vvv
 
   - stage: lint
