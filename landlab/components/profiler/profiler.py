@@ -17,10 +17,10 @@ class Profiler(_BaseProfiler):
     profile segment. A profile with one segment is a straight line. The
     segments of a profile with multiple segments meet at endpoints. The grid
     nodes along the profile are sampled, including the segment endpoints. The
-    extracted quantity of the node is retained; no interpolation is conducted
+    extracted quantity of the node is retained. No interpolation is conducted
     even for profile traces that reside between nodes.
 
-    The structure of the profile in a model grid is diagramed below. The grid
+    The structure of the profile in a model grid is diagrammed below. The grid
     contains nine columns and nine rows. The profile is constructed from three
     endpoints that bound two segments. Here, ``o`` indicates a segment
     endpoint, ``.`` and ``*`` are sample nodes of the first and second segment,
