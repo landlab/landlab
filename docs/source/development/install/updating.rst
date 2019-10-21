@@ -120,7 +120,7 @@ packages
 
      $ conda update --all -c landlab
 
-If you prefer to remain with pip, try another pip install::
+If you prefer to remain with pip, try another pip install
 
 .. code-block:: bash
 
