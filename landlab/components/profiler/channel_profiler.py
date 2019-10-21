@@ -115,11 +115,11 @@ class ChannelProfiler(_BaseProfiler):
     model grid boundary that meet the criteria for an outlet based on the
     ``channel_definition_field`` and the ``minimum_outlet_threshold``.
 
-    The node IDs and distances upstream of the channel network are stored in a
-    data structure called ``network_structure``. It is a dictionary with keys
-    indicating the outlet node.
+    The node IDs and distances upstream of the channel network are stored in
+    ``data_structure``. It is a dictionary with keys indicating the outlet
+    node.
 
-    For each watershed outlet, the value in the ``network_structure`` is itself
+    For each watershed outlet, the value in the ``data_structure`` is itself
     a dictionary with keys that are a segment ID tuple of the
     ``(dowstream, upstream)`` nodes IDs of each channel segment.
 
@@ -145,11 +145,11 @@ class ChannelProfiler(_BaseProfiler):
     RGBA tuple indicating the color for the segment.
 
     By default a unique color will be assigned to each watershed. To change the
-    color, a user can change values stored in ``network_structure``.
+    color, a user can change values stored in ``data_structure``.
     Additionally, a ``cmap`` keyword argument can provide some user control
     over the color at the instantiation of the component.
 
-    In the main channel only example, the datastructure will look as follows:
+    In the main channel only example, the data structure will look as follows:
 
     .. code-block:: python
 
@@ -311,71 +311,71 @@ class ChannelProfiler(_BaseProfiler):
     ...     main_channel_only=False)
     >>> profiler.run_one_step()
 
-    The keys of the property ``network_structure`` are the IDs  of the two
+    The keys of the property ``data_structure`` are the IDs  of the two
     outlet nodes.
 
-    >>> profiler.network_structure.keys()
+    >>> profiler.data_structure.keys()
     odict_keys([40, 8])
 
-    Within the network structure, the value at key 40, is a dictionary of the
+    Within the data structure, the value at key 40, is a dictionary of the
     three segments, each specified by a ``(dowstream, upstream)`` tuple:
 
-    >>> profiler.network_structure[40].keys()
+    >>> profiler.data_structure[40].keys()
     odict_keys([(40, 41), (41, 54), (41, 62)])
 
     The value of the segment between nodes 40 and 41 has the following
     components:
 
-    >>> profiler.network_structure[40][(40, 41)]["ids"]
+    >>> profiler.data_structure[40][(40, 41)]["ids"]
     array([40, 41])
-    >>> profiler.network_structure[40][(40, 41)]["distances"]
+    >>> profiler.data_structure[40][(40, 41)]["distances"]
     array([ 0.,  1.])
-    >>> np.round(profiler.network_structure[40][(40, 41)]["color"], decimals=2)
+    >>> np.round(profiler.data_structure[40][(40, 41)]["color"], decimals=2)
     array([ 0.27,  0.  ,  0.33,  1.  ])
 
     A parallel structure exists for the segment between nodes 41 and 54:
 
-    >>> profiler.network_structure[40][(41, 54)]["ids"]
+    >>> profiler.data_structure[40][(41, 54)]["ids"]
     array([41, 42, 43, 44, 54])
-    >>> profiler.network_structure[40][(41, 54)]["distances"]
+    >>> profiler.data_structure[40][(41, 54)]["distances"]
     array([ 1.,  2.,  3.,  4.,  5.])
-    >>> np.round(profiler.network_structure[40][(41, 54)]["color"], decimals=2)
+    >>> np.round(profiler.data_structure[40][(41, 54)]["color"], decimals=2)
     array([ 0.27,  0.  ,  0.33,  1.  ])
 
     And the segment between nodes 41  and 62.
 
-    >>> profiler.network_structure[40][(41, 62)]["ids"]
+    >>> profiler.data_structure[40][(41, 62)]["ids"]
     array([41, 51, 61, 62])
-    >>> profiler.network_structure[40][(41, 62)]["distances"]
+    >>> profiler.data_structure[40][(41, 62)]["distances"]
     array([ 1.,  2.,  3.,  4.])
-    >>> np.round(profiler.network_structure[40][(41, 62)]["color"], decimals=2)
+    >>> np.round(profiler.data_structure[40][(41, 62)]["color"], decimals=2)
     array([ 0.27,  0.  ,  0.33,  1.  ])
 
     The rest of the ``profile_structure`` encodes information about the second
     watershed, which drains to node 8.
 
-    >>> profiler.network_structure[8].keys()
+    >>> profiler.data_structure[8].keys()
     odict_keys([(8, 26), (26, 23), (26, 66)])
 
-    >>> profiler.network_structure[8][(8, 26)]["ids"]
+    >>> profiler.data_structure[8][(8, 26)]["ids"]
     array([ 8, 18, 17, 16, 26])
-    >>> profiler.network_structure[8][(8, 26)]["distances"]
+    >>> profiler.data_structure[8][(8, 26)]["distances"]
     array([ 0.,  1.,  2.,  3.,  4.])
-    >>> np.round(profiler.network_structure[8][(8, 26)]["color"], decimals=2)
+    >>> np.round(profiler.data_structure[8][(8, 26)]["color"], decimals=2)
     array([ 0.13,  0.57,  0.55,  1.  ])
 
-    >>> profiler.network_structure[8][(26, 23)]["ids"]
+    >>> profiler.data_structure[8][(26, 23)]["ids"]
     array([26, 25, 24, 23])
-    >>> profiler.network_structure[8][(26, 23)]["distances"]
+    >>> profiler.data_structure[8][(26, 23)]["distances"]
     array([ 4.,  5.,  6.,  7.])
-    >>> np.round(profiler.network_structure[8][(26, 23)]["color"], decimals=2)
+    >>> np.round(profiler.data_structure[8][(26, 23)]["color"], decimals=2)
     array([ 0.13,  0.57,  0.55,  1.  ])
 
-    >>> profiler.network_structure[8][(26, 66)]["ids"]
+    >>> profiler.data_structure[8][(26, 66)]["ids"]
     array([26, 36, 46, 56, 66])
-    >>> profiler.network_structure[8][(26, 66)]["distances"]
+    >>> profiler.data_structure[8][(26, 66)]["distances"]
     array([ 4.,  5.,  6.,  7.,  8.])
-    >>> np.round(profiler.network_structure[8][(26, 66)]["color"], decimals=2)
+    >>> np.round(profiler.data_structure[8][(26, 66)]["color"], decimals=2)
     array([ 0.13,  0.57,  0.55,  1.  ])
 
     The ChannelProfiler is designed to be flexible, and by careful combination
@@ -597,14 +597,14 @@ class ChannelProfiler(_BaseProfiler):
         self._outlet_nodes = outlet_nodes
 
     @property
-    def network_structure(self):
+    def data_structure(self):
         """OrderedDict defining the channel network.
 
         The node IDs and distances upstream of the channel network are stored
-        in ``network_structure``. It is a dictionary with keys of the outlet
-        node ID.
+        in ``data_structure``. It is a dictionary with keys of the outlet node
+        ID.
 
-        For each watershed outlet, the value in the ``network_structure`` is
+        For each watershed outlet, the value in the ``data_structure`` is
         itself a dictionary with keys that are a segment ID tuple of the
         ``(dowstream, upstream)`` nodes IDs of each channel segment.
 
@@ -616,7 +616,7 @@ class ChannelProfiler(_BaseProfiler):
         mirrors the list in ``"ids"``. Finally, ``"color"`` is an RGBA tuple
         indicating the color for the segment.
         """
-        return self._net_struct
+        return self._data_struct
 
     def _get_channel_segment(self, i):
         """Get channel segment and return additional nodes to process.
@@ -707,20 +707,20 @@ class ChannelProfiler(_BaseProfiler):
     def _create_profile_structure(self):
         """Create the profile_IDs data structure for channel network.
 
-        The bound attribute self._profile structure is the channel
-        segment datastructure. profile structure is a list of length
-        number_of_watersheds. Each element of profile_structure is
-        itself a list of length number of stream segments that drain to
-        each of the starting nodes. Each stream segment list contains
-        the node ids of a stream segment from downstream to upstream.
+        The bound attribute self._profile structure is the channel segment
+        datastructure. profile structure is a list of length
+        number_of_watersheds. Each element of profile_structure is itself a
+        list of length number of stream segments that drain to each of the
+        starting nodes. Each stream segment list contains the node ids of a
+        stream segment from downstream to upstream.
         """
-        self._net_struct = OrderedDict()
+        self._data_struct = OrderedDict()
 
         if self._main_channel_only:
             for i in self._outlet_nodes:
                 (channel_segment, nodes_to_process) = self._get_channel_segment(i)
                 segment_tuple = (channel_segment[0], channel_segment[-1])
-                self._net_struct[i] = {
+                self._data_struct[i] = {
                     segment_tuple: {"ids": as_id_array(channel_segment)}
                 }
 
@@ -738,29 +738,30 @@ class ChannelProfiler(_BaseProfiler):
                         "ids": as_id_array(channel_segment)
                     }
                     queue.extend(nodes_to_process)
-                self._net_struct[i] = channel_network
+                self._data_struct[i] = channel_network
 
         self._calculate_distances()
         self.assign_colors()
         self._create_flat_structures()
 
     def _create_flat_structures(self):
-        """Create expected flattened structures for ids, distances, and
-        colors."""
-        self._net_ids = []
+        """Create expected flattened structures for ids, distances, and colors.
+        """
+        self._nodes = []
+
         self._distance_along_profile = []
         self._colors = []
 
-        for outlet_id in self._net_struct:
-            seg_tuples = self._net_struct[outlet_id].keys()
-            self._net_ids.extend(
-                [self._net_struct[outlet_id][seg]["ids"] for seg in seg_tuples]
+        for outlet_id in self._data_struct:
+            seg_tuples = self._data_struct[outlet_id].keys()
+            self._nodes.extend(
+                [self._data_struct[outlet_id][seg]["ids"] for seg in seg_tuples]
             )
             self._distance_along_profile.extend(
-                [self._net_struct[outlet_id][seg]["distances"] for seg in seg_tuples]
+                [self._data_struct[outlet_id][seg]["distances"] for seg in seg_tuples]
             )
             self._colors.extend(
-                [self._net_struct[outlet_id][seg]["color"] for seg in seg_tuples]
+                [self._data_struct[outlet_id][seg]["color"] for seg in seg_tuples]
             )
 
     def assign_colors(self, color_mapping=None):
@@ -773,27 +774,27 @@ class ChannelProfiler(_BaseProfiler):
         """
 
         if color_mapping is None:
-            num_watersheds = len(self._net_struct)
+            num_watersheds = len(self._data_struct)
             norm = mpl.colors.Normalize(vmin=0, vmax=num_watersheds)
             mappable = cm.ScalarMappable(norm=norm, cmap=self._cmap)
             color_mapping = {
                 outlet_id: mappable.to_rgba(idx)
-                for idx, outlet_id in enumerate(self._net_struct)
+                for idx, outlet_id in enumerate(self._data_struct)
             }
 
-        for outlet_id in self._net_struct:
-            for segment_tuple in self._net_struct[outlet_id]:
-                self._net_struct[outlet_id][segment_tuple]["color"] = color_mapping[
+        for outlet_id in self._data_struct:
+            for segment_tuple in self._data_struct[outlet_id]:
+                self._data_struct[outlet_id][segment_tuple]["color"] = color_mapping[
                     outlet_id
                 ]
 
     def _calculate_distances(self):
-        """Get distances along the network datastructure."""
+        """Get distances along the network data structure."""
         distance_upstream = calculate_flow__distance(self._grid)
-        for outlet_id in self._net_struct:
+        for outlet_id in self._data_struct:
             offset = distance_upstream[outlet_id]
 
-            for segment_tuple in self._net_struct[outlet_id]:
-                ids = self._net_struct[outlet_id][segment_tuple]["ids"]
+            for segment_tuple in self._data_struct[outlet_id]:
+                ids = self._data_struct[outlet_id][segment_tuple]["ids"]
                 d = distance_upstream[ids]
-                self._net_struct[outlet_id][segment_tuple]["distances"] = d - offset
+                self._data_struct[outlet_id][segment_tuple]["distances"] = d - offset

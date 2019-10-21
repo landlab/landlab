@@ -275,7 +275,7 @@ def test_plotting_and_structure(profile_example_grid):
         ]
     )
     for idx in range(len(correct_structure)):
-        np.testing.assert_array_equal(profiler.network_ids[idx], correct_structure[idx])
+        np.testing.assert_array_equal(profiler.nodes[idx], correct_structure[idx])
 
 
 def test_end_nodes_only(profile_example_grid):
@@ -363,10 +363,10 @@ def test_different_kwargs(profile_example_grid):
             109,
         ]
     )
-    np.testing.assert_array_equal(profiler2.network_ids[0], correct_structure)
+    np.testing.assert_array_equal(profiler2.nodes[0], correct_structure)
 
 
-def test_re_calculating_network_ids_and_distance():
+def test_re_calculating_nodes_and_distance():
     mg = RasterModelGrid((20, 20), xy_spacing=100)
     z = mg.add_zeros("node", "topographic__elevation")
     z += np.random.rand(z.size)
@@ -398,11 +398,11 @@ def test_re_calculating_network_ids_and_distance():
     # make the most complicated profile structure
     profiler = ChannelProfiler(mg, main_channel_only=False, number_of_watersheds=2)
     profiler.run_one_step()
-    p1 = list(profiler.network_ids)
+    p1 = list(profiler.nodes)
     d1 = list(profiler.distance_along_profile)
 
     profiler.run_one_step()
-    p2 = list(profiler.network_ids)
+    p2 = list(profiler.nodes)
     d2 = list(profiler.distance_along_profile)
 
     # assert that these are copies, not pointers to same thing
@@ -451,10 +451,10 @@ def test_getting_all_the_way_to_the_divide(main, nshed):
     profiler.run_one_step()
 
     # assert that with minimum_channel_threshold set to zero, we get all the way to the top of the divide.
-    for outlet_id in profiler._net_struct:
-        seg_tuples = profiler._net_struct[outlet_id].keys()
+    for outlet_id in profiler._data_struct:
+        seg_tuples = profiler._data_struct[outlet_id].keys()
 
-        wshd_ids = [profiler._net_struct[outlet_id][seg]["ids"] for seg in seg_tuples]
+        wshd_ids = [profiler._data_struct[outlet_id][seg]["ids"] for seg in seg_tuples]
 
         nodes = np.concatenate(wshd_ids).ravel()
         da = mg.at_node["drainage_area"][nodes]
