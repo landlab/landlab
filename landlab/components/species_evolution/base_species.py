@@ -7,7 +7,7 @@ class _Species(ABC):
     """Base Species."""
 
     def __init__(self):
-        self._identifier = None
+        self._identifier = ()
         self._parent_species = None
 
     @property

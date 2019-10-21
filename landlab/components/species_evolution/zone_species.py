@@ -142,7 +142,7 @@ class ZoneSpecies(_Species):
 
         child_count = len(child_species)
         speciated = child_count > 0
-        
+
         # Handle extinction.
 
         extinct = self._evaluate_extinction(speciated)
@@ -187,35 +187,35 @@ class ZoneSpecies(_Species):
         if len(destination_zones) == 0:
             # Remove `population` from its zone because it now exists nowhere.
             population._remove_from_zone(self)
-        
+
         elif len(destination_zones) == 1 and population._zone == destination_zones[0]:
             # Population remains in the same zone.
             updated_populations = [population]
-        
+
         elif len(destination_zones) == 1:
-            # Population moved into a different zone. 
+            # Population moved into a different zone.
             destination = destination_zones[0]
             if self not in destination._species:
-                # Add population to new zone only if its not already in.
+                # Add population to new zone only if its not already in it.
                 population._remove_from_zone(self)
                 population._zone = destination
                 destination._species.append(self)
                 updated_populations = [population]
-                
+
         else:
             for zone in destination_zones:
                 if population._zone == zone:
                     # The zone and population remain unchanged.
                     updated_populations.append(population)
-    
+
                     if self._pseudoextinction and len(destination_zones) > 1:
                         population._time_to_allopatric_speciation = self._allopatric_wait_time
-    
+
                 elif self not in zone._species:
-                    zone_pop = _Population(self, zone, 
+                    zone_pop = _Population(self, zone,
                                            self._allopatric_wait_time)
                     updated_populations.append(zone_pop)
-    
+
                 else:
                     Exception('Dispersal condition not determined.')
 
@@ -293,5 +293,5 @@ class ZoneSpecies(_Species):
         no_populations = len(self._populations) == 0
 
         pseudoextinct = self._pseudoextinction and speciation_occurred
-        
+
         return pseudoextinct or no_populations

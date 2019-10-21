@@ -11,9 +11,9 @@ class ZoneSpeciesController(_SpeciesController):
     """A controller for zone-based species.
 
     This implementation of SpeciesController manages a collection of species
-    using 'zones' that characterize the geographic aspect of species. A zone
+    using 'zones' that are the geographic aspect of species. A zone
     represents a portion of a model grid and it is made up of spatially
-    continous nodes. The nodes of all zones of a certain type are identified
+    continuous nodes. The nodes of all zones are identified
     using a function set with ``zone_function``. This function is called by
     SpeciesEvolver at each time step to identify all the zone nodes and then
     delineate individual zones.
@@ -37,7 +37,8 @@ class ZoneSpeciesController(_SpeciesController):
     demonstrate how individual zones are identified. Each zone is marked with a
     ``x``, ``o``, ``+``, or ``@``. Clusters can be identified using ``D8``
     where diagonal neighbors are included or ``D4`` where diagonal neighbors
-    are not included. A minimum zone area can be enforced
+    are not included. A minimum zone area can be enforced with the
+    ``minimum_area`` parameter.
 
     Individual zones are
     identified using the ``neighborhood_structure`` keyword.
@@ -67,7 +68,7 @@ class ZoneSpeciesController(_SpeciesController):
 
     Below are variations of the grid at time 1, ``T1`` in three variations where
     each contains one zone. In ``T1a``, ``T1b``, and ``T1c`` the zone stayed
-    the stayed, moved and changed size, respectively. Species migrated with the
+    the same, moved, and changed size, respectively. Species migrated with the
     zone. However, in ``T1c``, no nodes overlaps, therefore it is assumed species
     did not disperse from the zone in T0 to the zone in T1d.
 
@@ -89,19 +90,26 @@ class ZoneSpeciesController(_SpeciesController):
     x x · · x ·
     x · · · · ·
 
-
     """
-    def __init__(self, species_evolver, zone_function, **kwargs):
+    def __init__(self, species_evolver, zone_function, minimum_area=0,
+                 neighborhood_structure='D8', **kwargs):
         """Initialize a species.
 
         Parameters
         ----------
         species_evolver : SpeciesEvolver
             A Landlab SpeciesEvolver instance.
-        range_function : function
+        zone_function : function
             A function that return a mask of the species range.
+        minimum_area : float, optional
+            The minimum area of zones.
+        neighborhood_structure : {'D8', 'D4'}, optional
+            The structure describes how clusters are identified. The default,
+            'D8' evaluates the eight neighboring nodes. The diagonal
+            neighboring nodes are excluded when 'D4' is selected.
         kwargs
-            Keyword arguments for ``zone_function``.
+            Keyword arguments for ``zone_function``. The grid of
+            `SpeciesEvolver` is automatically added to `kwargs`.
         """
         super(ZoneSpeciesController, self).__init__(species_evolver)
 
@@ -109,13 +117,20 @@ class ZoneSpeciesController(_SpeciesController):
 
         self._zone_func = zone_function
         self._zone_params = kwargs
+        self._min_area = minimum_area
+        self._neighborhood_struct = neighborhood_structure
+
         self._species = []
         self._extinct_species = []
+
+        # Include `grid` in the zone params dictionary.
+
+        self._zone_params['grid'] = self._grid
 
         # Set initial zones.
 
         initial_range = zone_function(**kwargs)
-        self._zones = self._get_zones_with_mask(initial_range, **kwargs)
+        self._zones = self._get_zones_with_mask(initial_range)
 
     @property
     def extant_species(self):
@@ -124,7 +139,7 @@ class ZoneSpeciesController(_SpeciesController):
 
     @property
     def extinct_species(self):
-        """The species that no longer exist at the current model time."""
+        """The species that no longer exist."""
         return self._extinct_species
 
     @property
@@ -132,8 +147,7 @@ class ZoneSpeciesController(_SpeciesController):
         """The zones of the SpeciesController."""
         return self._zones
 
-    def _get_zones_with_mask(self, range_mask, minimum_area=0,
-                             neighborhood_structure='D8', **kwargs):
+    def _get_zones_with_mask(self, range_mask):
         """Get zones using a range mask.
 
         Parameters
@@ -141,25 +155,19 @@ class ZoneSpeciesController(_SpeciesController):
         range_mask : ndarray
             Grid number of nodes array of booleans where `True` values
             indicates a node within the species range.
-        minimum_area : float, optional
-            The minimum area of zones to be returned.
-        neighborhood_structure : {'D8', 'D4'}, optional
-            The structure describes how clusters are identified. The default,
-            'D8' evaluates the eight neighboring nodes. The diagonal
-            neighboring nodes are excluded when 'D4' is selected.
 
         Returns
         -------
         list of Zones
             The discrete zones identified in the range.
         """
-        grid = self._se._grid
+        grid = self._grid
 
         # Label clusters of 'True' values in `range_mask`.
 
-        if neighborhood_structure == 'D4':
+        if self._neighborhood_struct == 'D4':
             s = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]
-        elif neighborhood_structure == 'D8':
+        elif self._neighborhood_struct == 'D8':
             s = 3 * [[1, 1, 1]]
         cluster_array, cluster_count = label(range_mask.reshape(grid.shape),
                                              structure=s)
@@ -171,7 +179,7 @@ class ZoneSpeciesController(_SpeciesController):
         for i in range(1, cluster_count + 1):
             mask = cluster_array == i
 
-            if mask.sum() * grid.cellarea > minimum_area:
+            if mask.sum() * grid.cellarea > self._min_area:
                 # Create a zone if cluster area exceeds the minimum.
                 zones.append(Zone(mask))
 
@@ -195,7 +203,7 @@ class ZoneSpeciesController(_SpeciesController):
         for z in self._zones:
             species.extend([species_type([z], **kwargs) for _ in range(species_count)])
 
-        self._se._introduce_species(species)
+        self._introduce_species(species)
 
         self._species.extend(species)
 
@@ -230,16 +238,7 @@ class ZoneSpeciesController(_SpeciesController):
             that result from the evolutionary processes run. An empty list
             indicates no child species.
         """
-        # Resolve the spatiotemporal connectivity of the prior time step zones
-        # to the new zones. Connectivity is described by `paths`.
-
-        prior_zones = self._zones
-
-        zone_mask = self._zone_func(**self._zone_params)
-        new_zones = self._get_zones_with_mask(zone_mask, **self._zone_params)
-
-        self._zones = _update_zones(self._se._grid, time, prior_zones,
-                                    new_zones, record_add_on)
+        self._zones = self._get_updated_zones(time, record_add_on)
 
         # Evolve species.
 
@@ -255,9 +254,36 @@ class ZoneSpeciesController(_SpeciesController):
                 self._extinct_species.append(es)
 
             if len(child_species) > 0:
-                self._se._introduce_species(child_species)
                 surviving_species.extend(child_species)
 
         self._species = surviving_species
 
         return surviving_species
+
+    def _get_updated_zones(self, time, record_add_on):
+        """Get the zones updated for time.
+
+        Resolve the spatiotemporal connectivity of the prior time step zones
+        to the new zones.
+
+        Parameters
+        ----------
+        time : float
+            The time in the simulation.
+        record_add_on : defaultdict
+            A dictionary to pass values to the SpeciesEvolver record.
+
+        Returns
+        -------
+        list of Zones
+            A list of SpeciesEvolver zone objects updated for `time`.
+        """
+        prior_zones = self._zones
+
+        zone_mask = self._zone_func(**self._zone_params)
+        new_zones = self._get_zones_with_mask(zone_mask)
+
+        updated_zones = _update_zones(self._grid, time, prior_zones,
+                                      new_zones, record_add_on)
+
+        return updated_zones
