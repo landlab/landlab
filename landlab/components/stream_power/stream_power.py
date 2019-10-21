@@ -43,7 +43,6 @@ class StreamPowerEroder(Component):
     --------
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
-    >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
     >>> from landlab.components import FlowAccumulator, StreamPowerEroder
     >>> mg = RasterModelGrid((5, 5), xy_spacing=10.)
     >>> z = np.array([7.,  7.,  7.,  7.,  7.,
@@ -66,10 +65,10 @@ class StreamPowerEroder(Component):
     >>> mg2 = RasterModelGrid((3, 7))
     >>> z = np.array(mg2.node_x**2.)
     >>> z = mg2.add_field('node', 'topographic__elevation', z)
-    >>> mg2.status_at_node[mg2.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY
-    >>> mg2.status_at_node[mg2.nodes_at_top_edge] = CLOSED_BOUNDARY
-    >>> mg2.status_at_node[mg2.nodes_at_bottom_edge] = CLOSED_BOUNDARY
-    >>> mg2.status_at_node[mg2.nodes_at_right_edge] = CLOSED_BOUNDARY
+    >>> mg2.status_at_node[mg2.nodes_at_left_edge] = mg2.BC_NODE_IS_FIXED_VALUE
+    >>> mg2.status_at_node[mg2.nodes_at_top_edge] = mg2.BC_NODE_IS_CLOSED
+    >>> mg2.status_at_node[mg2.nodes_at_bottom_edge] = mg2.BC_NODE_IS_CLOSED
+    >>> mg2.status_at_node[mg2.nodes_at_right_edge] = mg2.BC_NODE_IS_CLOSED
     >>> fr2 = FlowAccumulator(mg2, flow_director='D8')
     >>> sp2 = StreamPowerEroder(mg2, K_sp=0.1, m_sp=0., n_sp=2.,
     ...                         threshold_sp=2.)
@@ -82,10 +81,10 @@ class StreamPowerEroder(Component):
     >>> mg3 = RasterModelGrid((5, 5), xy_spacing=2.)
     >>> z = mg.node_x/100.
     >>> z = mg3.add_field('node', 'topographic__elevation', z)
-    >>> mg3.status_at_node[mg3.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY
-    >>> mg3.status_at_node[mg3.nodes_at_top_edge] = CLOSED_BOUNDARY
-    >>> mg3.status_at_node[mg3.nodes_at_bottom_edge] = CLOSED_BOUNDARY
-    >>> mg3.status_at_node[mg3.nodes_at_right_edge] = CLOSED_BOUNDARY
+    >>> mg3.status_at_node[mg3.nodes_at_left_edge] = mg2.BC_NODE_IS_FIXED_VALUE
+    >>> mg3.status_at_node[mg3.nodes_at_top_edge] = mg2.BC_NODE_IS_CLOSED
+    >>> mg3.status_at_node[mg3.nodes_at_bottom_edge] = mg2.BC_NODE_IS_CLOSED
+    >>> mg3.status_at_node[mg3.nodes_at_right_edge] = mg2.BC_NODE_IS_CLOSED
     >>> mg3.at_node['water__unit_flux_in'] = mg3.node_y
     >>> fr3 = FlowAccumulator(mg3, flow_director='D8')
     >>> sp3 = StreamPowerEroder(
@@ -166,7 +165,7 @@ class StreamPowerEroder(Component):
         discharge_field="drainage_area",
         erode_flooded_nodes=True,
     ):
-        """Initialize the StreamPowerEroder
+        """Initialize the StreamPowerEroder.
 
         Parameters
         ----------
@@ -326,8 +325,7 @@ class StreamPowerEroder(Component):
         self._alpha = self._grid.zeros("node")
 
     def run_one_step(self, dt):
-        """
-        A simple, explicit implementation of a stream power algorithm.
+        """A simple, explicit implementation of a stream power algorithm.
 
         If you are routing across flooded depressions in your flow routing
         scheme, be sure to set *erode_flooded_nodes* flag in the instantiation

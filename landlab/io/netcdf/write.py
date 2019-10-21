@@ -5,7 +5,6 @@ Write netcdf
 ++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.io.netcdf.write.write_netcdf
 """
@@ -262,8 +261,8 @@ def _set_netcdf_structured_dimensions(root, shape):
 def _set_netcdf_variables(root, fields, **kwds):
     """Set the field variables.
 
-    First set the variables that define the grid and then the variables at
-    the grid nodes and cells.
+    First set the variables that define the grid and then the variables
+    at the grid nodes and cells.
     """
     names = kwds.pop("names", None)
 
@@ -274,8 +273,8 @@ def _set_netcdf_variables(root, fields, **kwds):
 def _set_netcdf_raster_variables(root, fields, **kwds):
     """Set the field variables for rasters.
 
-    First set the variables that define the grid and then the variables at
-    the grid nodes and cells.
+    First set the variables that define the grid and then the variables
+    at the grid nodes and cells.
     """
     names = kwds.pop("names", None)
 
@@ -286,8 +285,8 @@ def _set_netcdf_raster_variables(root, fields, **kwds):
 def _set_netcdf_cell_variables(root, fields, **kwds):
     """Set the cell field variables.
 
-    First set the variables that define the grid and then the variables at
-    the grid nodes and cells.
+    First set the variables that define the grid and then the variables
+    at the grid nodes and cells.
     """
     names = kwds.pop("names", None)
 
@@ -764,7 +763,6 @@ def write_raster_netcdf(
     >>> fp.variables['uplift_rate'][:].flatten()
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
-
     """
     from landlab import RasterModelGrid
 

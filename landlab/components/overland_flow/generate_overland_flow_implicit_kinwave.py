@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Landlab component for overland flow using a local implicit solution to the
+"""Landlab component for overland flow using a local implicit solution to the
 kinematic-wave approximation.
 
 Created on Fri May 27 14:26:13 2016
@@ -157,7 +156,7 @@ class KinwaveImplicitOverlandFlow(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "depth of water",
+            "doc": "Depth of water on the surface",
         },
         "surface_water_inflow__discharge": {
             "dtype": float,
@@ -173,7 +172,7 @@ class KinwaveImplicitOverlandFlow(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "elevation of the ground surface relative to some datum",
+            "doc": "Land surface topographic elevation",
         },
         "topographic__gradient": {
             "dtype": float,
@@ -181,7 +180,7 @@ class KinwaveImplicitOverlandFlow(Component):
             "optional": False,
             "units": "m/m",
             "mapping": "link",
-            "doc": "gradient of the ground surface",
+            "doc": "Gradient of the ground surface",
         },
     }
 

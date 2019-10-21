@@ -226,7 +226,8 @@ class FieldDataset(dict):
 
     @property
     def fixed_size(self):
-        """Flag that indicates if arrays added to the dataset must be of a fixed size.
+        """Flag that indicates if arrays added to the dataset must be of a
+        fixed size.
 
         Examples
         --------
@@ -957,7 +958,8 @@ class GraphFields(object):
         return allocated
 
     def add_field(self, *args, **kwds):
-        """add_field(name, value_array, at='node', units='-', copy=False, noclobber=True)
+        """add_field(name, value_array, at='node', units='-', copy=False,
+        noclobber=True)
 
         Add an array of values to the field.
 

@@ -393,7 +393,7 @@ class StructuredQuadGraphTopology:
     @lru_cache()
     @read_only_array
     def nodes(self):
-        """A shaped array of node ids
+        """A shaped array of node ids.
 
         Returns
         -------

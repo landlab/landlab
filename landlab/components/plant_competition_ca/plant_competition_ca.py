@@ -17,9 +17,8 @@ def assert_method_is_valid(method):
 
 
 class VegCA(Component):
-    """
-    Landlab component that simulates inter-species plant competition using
-    a 2D cellular automata model.
+    """Landlab component that simulates inter-species plant competition using a
+    2D cellular automata model.
 
     This code is based on Cellular Automata Tree Grass Shrub Simulator (CATGraSS).
     It simulates spatial competition of multiple plant functional types through
@@ -232,9 +231,9 @@ class VegCA(Component):
         """Flag to indicate whether an optional field is created.
 
         If Edit_VegCov=True, an optional field
-        'vegetation__boolean_vegetated' will be output, (i.e.) if a cell is
-        vegetated the corresponding cell of the field will be 1, otherwise
-        it will be 0.
+        'vegetation__boolean_vegetated' will be output, (i.e.) if a cell
+        is vegetated the corresponding cell of the field will be 1,
+        otherwise it will be 0.
         """
         return self._Edit_VegCov
 
@@ -244,8 +243,7 @@ class VegCA(Component):
         self._Edit_VegCov = Edit_VegCov
 
     def update(self, dt=1):
-        """
-        Update fields with current loading conditions.
+        """Update fields with current loading conditions.
 
         Parameters
         ----------

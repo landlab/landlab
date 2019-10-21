@@ -11,8 +11,7 @@ def assert_method_is_valid(method):
 
 
 class SoilMoisture(Component):
-    """
-    Landlab component that simulates root-zone average soil moisture at each
+    """Landlab component that simulates root-zone average soil moisture at each
     cell using inputs of potential evapotranspiration, live leaf area index,
     and vegetation cover.
 
@@ -137,7 +136,7 @@ class SoilMoisture(Component):
             "optional": False,
             "units": "mm",
             "mapping": "cell",
-            "doc": "potential sum of evaporation and plant transpiration",
+            "doc": "potential sum of evaporation and potential transpiration",
         },
         "surface__runoff": {
             "dtype": float,
@@ -551,11 +550,10 @@ class SoilMoisture(Component):
         )
 
     def update(self):
-        """
-        Update fields with current loading conditions.
+        """Update fields with current loading conditions.
 
-        This method looks to the properties ``current_time``, ``Tb``, and
-        ``Tr``, and uses their values in updating fields.
+        This method looks to the properties ``current_time``, ``Tb``,
+        and ``Tr``, and uses their values in updating fields.
         """
         Tb = self._Tb
         Tr = self._Tr

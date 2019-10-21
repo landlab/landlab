@@ -7,12 +7,8 @@ import itertools
 import numpy as np
 
 from ..core.utils import as_id_array
-from ..grid.base import (
-    BAD_INDEX_VALUE,
-    CLOSED_BOUNDARY,
-    CORE_NODE,
-    FIXED_VALUE_BOUNDARY,
-)
+from ..grid.base import BAD_INDEX_VALUE
+from ..grid.nodestatus import CLOSED_BOUNDARY, CORE_NODE, FIXED_VALUE_BOUNDARY
 
 
 def node_count(shape):
@@ -86,8 +82,8 @@ def active_cell_count(shape):
 def core_cell_count(shape):
     """Number of core cells.
 
-    Number of core cells. By default, all cells are core so this is
-    the same as cell_count.
+    Number of core cells. By default, all cells are core so this is the
+    same as cell_count.
     """
     return cell_count(shape)
 
@@ -159,8 +155,8 @@ def perimeter_node_count(shape):
 def interior_cell_count(shape):
     """Number of interior cells.
 
-    Number of interior cells. Since cells are only defined on interior nodes,
-    this is the same as cell_count.
+    Number of interior cells. Since cells are only defined on interior
+    nodes, this is the same as cell_count.
     """
     return cell_count(shape)
 
@@ -525,9 +521,9 @@ def face_at_link(shape, actives=None, inactive_link_index=BAD_INDEX_VALUE):
 def status_at_node(shape, boundary_status=FIXED_VALUE_BOUNDARY):
     """Array of the statuses of nodes.
 
-    The statuses of the nodes in a structured grid with dimensions, *shape*.
-    Use the *boundary_status* keyword to specify the status of the top,
-    bottom, left and right boundary nodes.
+    The statuses of the nodes in a structured grid with dimensions,
+    *shape*. Use the *boundary_status* keyword to specify the status of
+    the top, bottom, left and right boundary nodes.
     """
     status = np.empty(np.prod(shape), dtype=np.int8)
 
@@ -562,7 +558,7 @@ def active_links(shape, node_status_array=None, link_nodes=None):
     only links attached to the interior nodes are *active*.
 
     >>> from landlab.utils.structured_grid import active_links
-    >>> from landlab import CLOSED_BOUNDARY, CORE_NODE
+    >>> from landlab.grid.nodestatus import CLOSED_BOUNDARY, CORE_NODE
     >>> active_links((3, 4))
     array([ 1,  2,  5,  6, 11, 12, 13])
 

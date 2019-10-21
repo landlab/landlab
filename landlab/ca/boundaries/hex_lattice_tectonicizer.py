@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-hex_lattice_tectonicizer.py.
+"""hex_lattice_tectonicizer.py.
 
 Models discrete normal-fault offset on a 2D hex lattice with a rectangular
 node layout and with one orientation of the nodes being vertical.
@@ -96,8 +95,7 @@ class HexLatticeTectonicizer(object):
         prop_data=None,
         prop_reset_value=None,
     ):
-        """
-        Create and initialize a HexLatticeTectonicizer.
+        """Create and initialize a HexLatticeTectonicizer.
 
         Examples
         --------
@@ -221,8 +219,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         prop_data=None,
         prop_reset_value=None,
     ):
-        """
-        Create and initialize a LatticeNormalFault object.
+        """Create and initialize a LatticeNormalFault object.
 
         Examples
         --------
@@ -561,7 +558,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         self.links_to_update = as_id_array(where(update)[0])
 
     def assign_new_link_state_and_transition(self, link, ca, current_time):
-        """Update state and schedule new transition for given link"""
+        """Update state and schedule new transition for given link."""
         tail_state = ca.node_state[self.grid.node_at_link_tail[link]]
         head_state = ca.node_state[self.grid.node_at_link_head[link]]
         orientation = ca.link_orientation[link]
@@ -781,8 +778,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
 
 class LatticeUplifter(HexLatticeTectonicizer):
     """Handles vertical uplift of interior (not edges) for a hexagonal lattice
-    with vertical node orientation and rectangular node arrangement.
-    """
+    with vertical node orientation and rectangular node arrangement."""
 
     def __init__(
         self,
@@ -798,8 +794,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         layer_left_x=0.0,
         y0_top=0.0,
     ):
-        """
-        Create and initialize a LatticeUplifter
+        """Create and initialize a LatticeUplifter.
 
         Examples
         --------
@@ -885,8 +880,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         )
 
     def _get_new_base_nodes(self, rock_state):
-        """
-        Return an array (or scalar) of states for the newly uplifted bottom
+        """Return an array (or scalar) of states for the newly uplifted bottom
         inner row.
 
         Examples
@@ -1036,9 +1030,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
                 ca.next_trn_id[lk] = -1
 
     def uplift_property_ids(self):
-        """
-        Shift property IDs upward by one row
-        """
+        """Shift property IDs upward by one row."""
         top_row_propid = self.propid[self.inner_top_row_nodes]
         for r in range(self.nr - 1, 0, -1):
             self.propid[self.inner_base_row_nodes + self.nc * r] = self.propid[
@@ -1048,8 +1040,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         self.prop_data[self.propid[self.inner_base_row_nodes]] = self.prop_reset_value
 
     def uplift_interior_nodes(self, ca, current_time, rock_state=1):
-        """
-        Simulate 'vertical' displacement by shifting contents of node_state
+        """Simulate 'vertical' displacement by shifting contents of node_state.
 
         Examples
         --------

@@ -232,20 +232,17 @@ class BaseGrid(object):
 
     @property
     def number_of_links(self):
-        """Number of links.
-        """
+        """Number of links."""
         return self._link_grid.number_of_links
 
     @property
     def number_of_cells(self):
-        """Number of cells.
-        """
+        """Number of cells."""
         return self._cell_grid.number_of_cells
 
     @property
     def number_of_nodes(self):
-        """Number of nodes.
-        """
+        """Number of nodes."""
         return self._node_grid.number_of_nodes
 
     @property

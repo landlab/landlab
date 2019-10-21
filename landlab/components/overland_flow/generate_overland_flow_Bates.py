@@ -1,4 +1,4 @@
-""" generate_overland_flow.py
+"""generate_overland_flow.py.
 
 This component simulates overland flow using
 the 2-D numerical model of shallow-water flow
@@ -8,7 +8,6 @@ algorithm for storage-cell inundation modeling.
 Written by Jordan Adams, based on code written by Greg Tucker.
 
 Last updated: April 21, 2016
-
 """
 import numpy as np
 import scipy.constants
@@ -72,7 +71,7 @@ class OverlandFlowBates(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "The depth of water at each node.",
+            "doc": "Depth of water on the surface",
         },
         "surface_water__discharge": {
             "dtype": float,
@@ -80,7 +79,7 @@ class OverlandFlowBates(Component):
             "optional": False,
             "units": "m3/s",
             "mapping": "link",
-            "doc": "The discharge of water on active links.",
+            "doc": "Volumetric discharge of surface water",
         },
         "topographic__elevation": {
             "dtype": float,
@@ -88,7 +87,7 @@ class OverlandFlowBates(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "The land surface elevation.",
+            "doc": "Land surface topographic elevation",
         },
     }
 
@@ -172,9 +171,8 @@ class OverlandFlowBates(Component):
         return self._dt
 
     def overland_flow(self, dt=None):
-        """
-        For one time step, this generates 'overland flow' across a given grid
-        by calculating discharge at each node.
+        """For one time step, this generates 'overland flow' across a given
+        grid by calculating discharge at each node.
 
         Using the depth slope product, shear stress is calculated at every
         node.

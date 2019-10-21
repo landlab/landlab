@@ -1,8 +1,6 @@
 #! /usr/env/python
 
-"""
-Create 2D grid with randomly generated fractures.
-
+"""Create 2D grid with randomly generated fractures.
 
 Created: September 2013 by Greg Tucker
 Last significant modification: conversion to proper component 7/2019 GT
@@ -74,8 +72,7 @@ def _calc_fracture_orientation(coords, seed):
 
 
 def _calc_fracture_step_sizes(start_yx, ang):
-    """
-    Calculate the sizes of steps dx and dy to be used when "drawing" the
+    """Calculate the sizes of steps dx and dy to be used when "drawing" the
     fracture onto the grid.
 
     Parameters
@@ -141,8 +138,7 @@ def _trace_fracture_through_grid(m, start_yx, spacing):
 
 class FractureGridGenerator(Component):
 
-    """
-    Create a 2D grid with randomly generated fractures.
+    """Create a 2D grid with randomly generated fractures.
 
     The grid contains the value 1 where fractures (one cell wide) exist, and
     0 elsewhere. The idea is to use this for simulations based on weathering
@@ -168,7 +164,7 @@ class FractureGridGenerator(Component):
     Notes
     -----
     Potential improvements:
-    - Add doctests
+
     - Fractures could be defined by links rather than nodes (i.e., return a
         link array with a code indicating whether the link crosses a fracture
         or not)

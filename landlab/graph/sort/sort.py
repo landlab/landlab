@@ -1,6 +1,7 @@
 """Sort the elements of a graph.
 
-This module provides functions that sort the elements of a graph structure.
+This module provides functions that sort the elements of a graph
+structure.
 """
 
 import numpy as np
@@ -187,7 +188,6 @@ def sort_links_at_patch(links_at_patch, nodes_at_link, xy_of_node):
     >>> links_at_patch
     array([[ 2,  1,  0,  3],
            [ 4,  2,  5, -1]])
-
     """
     xy_of_link = np.mean(xy_of_node[nodes_at_link], axis=1)
 

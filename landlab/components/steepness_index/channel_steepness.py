@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Oct 19.
+"""Created on Mon Oct 19.
 
 @author: dejh
 """
@@ -12,21 +11,20 @@ from landlab import Component
 
 
 class SteepnessFinder(Component):
-    """
-    This component calculates steepness indices, sensu Wobus et al. 2006,
-    for a Landlab landscape.
-    Follows broadly the approach used in GeomorphTools, geomorphtools.org.
+    """This component calculates steepness indices, sensu Wobus et al. 2006,
+    for a Landlab landscape. Follows broadly the approach used in
+    GeomorphTools, geomorphtools.org.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+    >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, FastscapeEroder
     >>> from landlab.components import SteepnessFinder
     >>> mg = RasterModelGrid((3, 10), xy_spacing=100.)
     >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
     ...               mg.nodes_at_top_edge):
-    ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+    ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
     >>> _ = mg.add_zeros('node', 'topographic__elevation')
     >>> mg.at_node['topographic__elevation'][mg.core_nodes] = mg.node_x[
     ...     mg.core_nodes]/1000.
@@ -59,7 +57,6 @@ class SteepnessFinder(Component):
     >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
     array([ 0.        ,  1.22673541,  1.2593727 ,  1.27781936,  1.25659369,
             1.12393156,  0.97335328,  0.79473963,  0.56196578,  0.        ])
-
     """
 
     _name = "SteepnessFinder"
@@ -79,7 +76,7 @@ class SteepnessFinder(Component):
             "optional": False,
             "units": "m**2",
             "mapping": "node",
-            "doc": "upstream drainage area",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
         },
         "flow__link_to_receiver_node": {
             "dtype": int,
@@ -95,7 +92,7 @@ class SteepnessFinder(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "the downstream node at the end of the steepest link",
+            "doc": "Node array of receivers (node that receives flow from current node)",
         },
         "flow__upstream_node_order": {
             "dtype": int,
@@ -103,7 +100,7 @@ class SteepnessFinder(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "node order such that nodes must appear in the list after all nodes downstream of them",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
         },
         "topographic__elevation": {
             "dtype": float,
@@ -111,7 +108,7 @@ class SteepnessFinder(Component):
             "optional": False,
             "units": "m",
             "mapping": "node",
-            "doc": "Surface topographic elevation",
+            "doc": "Land surface topographic elevation",
         },
         "topographic__steepest_slope": {
             "dtype": float,
@@ -119,7 +116,7 @@ class SteepnessFinder(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "the steepest downslope rise/run leaving the node",
+            "doc": "The steepest *downhill* slope",
         },
     }
 
@@ -178,9 +175,9 @@ class SteepnessFinder(Component):
         self._elev = self._grid.at_node["topographic__elevation"]
 
     def calculate_steepnesses(self):
-        """
-        This is the main method. Call it to calculate local steepness indices
-        at all points with drainage areas greater than *min_drainage_area*.
+        """This is the main method. Call it to calculate local steepness
+        indices at all points with drainage areas greater than
+        *min_drainage_area*.
 
         This "run" method can optionally take the same parameter set as
         provided at instantiation. If they are provided, they will override
@@ -277,8 +274,7 @@ class SteepnessFinder(Component):
         self._ksn[self._ksn == -1.0] = 0.0
 
     def channel_distances_downstream(self, ch_nodes):
-        """
-        Calculates distances downstream from top node of a defined flowpath.
+        """Calculates distances downstream from top node of a defined flowpath.
 
         Parameters
         ----------
@@ -293,13 +289,13 @@ class SteepnessFinder(Component):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> mg = RasterModelGrid((4,5), xy_spacing=(10., 5.))
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
-        ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
-        >>> mg.status_at_node[[6, 12, 13, 14]] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
+        >>> mg.status_at_node[[6, 12, 13, 14]] = mg.BC_NODE_IS_CLOSED
         >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
@@ -316,8 +312,8 @@ class SteepnessFinder(Component):
         return ch_dists
 
     def interpolate_slopes_with_step(self, ch_nodes, ch_dists, interp_pt_elevs):
-        """
-        Maps slopes to nodes, interpolating withing defined vertical intervals.
+        """Maps slopes to nodes, interpolating withing defined vertical
+        intervals.
 
         This follows Geomorphtools' discretization methods. It is essentially a
         downwind map of the slopes.
@@ -340,12 +336,12 @@ class SteepnessFinder(Component):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> mg = RasterModelGrid((3,10), xy_spacing=(10., 5.))
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
-        ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x**1.1)
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
@@ -386,8 +382,7 @@ class SteepnessFinder(Component):
     def calc_ksn_discretized(
         self, ch_dists, ch_A, ch_S, ref_theta, discretization_length
     ):
-        """
-        Calculate normalized steepness index on defined channel segments.
+        """Calculate normalized steepness index on defined channel segments.
 
         Every segment must have at least 2 nodes along it. If not, segments
         will be automatically merged to achieve this. The channel will be
@@ -420,13 +415,13 @@ class SteepnessFinder(Component):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator
         >>> from landlab.components import SteepnessFinder
         >>> mg = RasterModelGrid((3,10), xy_spacing=(10., 5.))
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
-        ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
@@ -499,24 +494,22 @@ class SteepnessFinder(Component):
 
     @property
     def steepness_indices(self):
-        """
-        Return the array of channel steepness indices.
+        """Return the array of channel steepness indices.
+
         Nodes not in the channel receive zeros.
         """
         return self._ksn
 
     @property
     def hillslope_mask(self):
-        """
-        Return a boolean array, False where steepness indices exist.
-        """
+        """Return a boolean array, False where steepness indices exist."""
         return self._mask
 
     @property
     def masked_steepness_indices(self):
-        """
-        Returns a masked array version of the 'channel__steepness_index' field.
-        This enables easier plotting of the values with
+        """Returns a masked array version of the 'channel__steepness_index'
+        field. This enables easier plotting of the values with.
+
         :func:`landlab.imshow_grid_at_node` or similar.
 
         Examples
@@ -524,13 +517,13 @@ class SteepnessFinder(Component):
         Make a topographic map with an overlay of steepness values:
 
         >>> from landlab import imshow_grid_at_node
-        >>> from landlab import RasterModelGrid, CLOSED_BOUNDARY
+        >>> from landlab import RasterModelGrid
         >>> from landlab.components import FlowAccumulator, FastscapeEroder
         >>> from landlab.components import SteepnessFinder
         >>> mg = RasterModelGrid((5, 5), xy_spacing=100.)
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
-        ...     mg.status_at_node[nodes] = CLOSED_BOUNDARY
+        ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> _ = mg.add_zeros('node', 'topographic__elevation')
         >>> mg.at_node['topographic__elevation'][mg.core_nodes] = mg.node_x[
         ...     mg.core_nodes]/1000.

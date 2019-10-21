@@ -110,9 +110,10 @@ def run_command(commands, args, cwd=None, verbose=False, hide_stderr=False, env=
 def versions_from_parentdir(parentdir_prefix, root, verbose):
     """Try to determine the version from the parent directory name.
 
-    Source tarballs conventionally unpack into a directory that includes both
-    the project name and a version string. We will also support searching up
-    two directory levels for an appropriately named parent directory
+    Source tarballs conventionally unpack into a directory that includes
+    both the project name and a version string. We will also support
+    searching up two directory levels for an appropriately named parent
+    directory
     """
     rootdirs = []
 

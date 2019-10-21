@@ -1,12 +1,12 @@
 #! /usr/bin/env python
-"""The Landlab
+"""The Landlab.
 
 :Package name: TheLandlab
 :Release date: 2018-09-18
 :Authors: Greg Tucker, Nicole Gasparini, Erkan Istanbulluoglu, Daniel Hobley,
     Sai Nudurupati, Jordan Adams, Eric Hutton, Katherine Barnhart, Margaux
     Mouchene, Nathon Lyons
-:URL: http://csdms.colorado.edu/trac/landlab
+:URL: https://landlab.readthedocs.io/en/release/
 :License: MIT
 """
 
@@ -21,7 +21,6 @@ from .field.scalar_data_fields import FieldError
 from .grid import (
     ACTIVE_LINK,
     BAD_INDEX_VALUE,
-    CLOSED_BOUNDARY,
     CORE_NODE,
     FIXED_GRADIENT_BOUNDARY,
     FIXED_LINK,
@@ -53,7 +52,6 @@ __all__ = [
     "ParameterValueError",
     "Component",
     "FieldError",
-    "LandlabTester",
     "load_params",
     "ModelGrid",
     "HexModelGrid",
@@ -66,7 +64,6 @@ __all__ = [
     "FIXED_VALUE_BOUNDARY",
     "FIXED_GRADIENT_BOUNDARY",
     "LOOPED_BOUNDARY",
-    "CLOSED_BOUNDARY",
     "ACTIVE_LINK",
     "FIXED_LINK",
     "INACTIVE_LINK",

@@ -113,8 +113,7 @@ class StructuredQuadGrid(BaseGrid):
 
     @property
     def shape(self):
-        """Shape of the grid as rows, columns.
-        """
+        """Shape of the grid as rows, columns."""
         return self._shape
 
     # @property

@@ -1,6 +1,6 @@
 #!/usr/env/python
-"""Landlab component that simulates landslide probability of failure as well
-as mean relative wetness and probability of saturation.
+"""Landlab component that simulates landslide probability of failure as well as
+mean relative wetness and probability of saturation.
 
 Relative wetness and factor-of-safety are based on the infinite slope
 stability model driven by topographic and soils inputs and recharge provided
@@ -13,13 +13,14 @@ simulation as the number of iterations with factor-of-safety <= 1.0
 divided by the number of iterations.
 
 .. codeauthor:: R.Strauch, E.Istanbulluoglu, & S.S.Nudurupati
+
 University of Washington
 
 Ref 1: Strauch et. al. 2017, 'A hydro-climatological approach to predicting
 regional landslide probability using Landlab, Earth Surface Dynamics, In prep.
 
 Ref 2: 'The Landlab LandslideProbability Component User Manual' @
-https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.docx
+https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.pdf
 
 Created on Thu Aug 20, 2015
 Last edit June 7, 2017
@@ -49,42 +50,55 @@ class LandslideProbability(Component):
     by the user.
 
     The main method of the LandslideProbability class is
-    calculate_landslide_probability(), which calculates the mean soil relative
-    wetness, probability of soil saturation, and probability of failure at
-    each node based on a Monte Carlo simulation.
+    `calculate_landslide_probability()``, which calculates the mean soil
+    relative wetness, probability of soil saturation, and probability of
+    failure at each node based on a Monte Carlo simulation.
 
     **Usage:**
 
-    Option 1 - Uniform recharge::
+    Option 1 - Uniform recharge
 
-        LandslideProbability(grid, number_of_iterations=250,
+    .. code-block:: python
+
+        LandslideProbability(grid,
+                             number_of_iterations=250,
                              groundwater__recharge_distribution='uniform',
                              groundwater__recharge_min_value=5.,
                              groundwater__recharge_max_value=121.)
 
-    Option 2 - Lognormal recharge::
+    Option 2 - Lognormal recharge
 
-        LandslideProbability(grid, number_of_iterations=250,
+    .. code-block:: python
+
+        LandslideProbability(grid,
+                             number_of_iterations=250,
                              groundwater__recharge_distribution='lognormal',
                              groundwater__recharge_mean=30.,
                              groundwater__recharge_standard_deviation=0.25)
 
-    Option 3 - Lognormal_spatial recharge::
+    Option 3 - Lognormal_spatial recharge
 
-        LandslideProbability(grid, number_of_iterations=250,
+    .. code-block:: python
+
+        LandslideProbability(grid,
+                             number_of_iterations=250,
                              groundwater__recharge_distribution='lognormal_spatial',
                              groundwater__recharge_mean=np.random.randint(20, 120, grid_size),
                              groundwater__recharge_standard_deviation=np.random.rand(grid_size))
 
-    Option 4 - Data_driven_spatial recharge::
+    Option 4 - Data_driven_spatial recharge
 
-        LandslideProbability(grid, number_of_iterations=250,
+    .. code-block:: python
+
+        LandslideProbability(grid,
+                             number_of_iterations=250,
                              groundwater__recharge_distribution='data_driven_spatial',
-                             groundwater__recharge_HSD_inputs=[HSD_dict, HSD_id_dict,
-                             fract_dict])
+                             groundwater__recharge_HSD_inputs=[HSD_dict,
+                                                               HSD_id_dict,
+                                                               fract_dict])
 
     Examples
-    ----------
+    --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.landslides import LandslideProbability
     >>> import numpy as np
@@ -280,7 +294,7 @@ class LandslideProbability(Component):
             "optional": False,
             "units": "tan theta",
             "mapping": "node",
-            "doc": "slope of surface at node represented by tan theta",
+            "doc": "gradient of the ground surface",
         },
         "topographic__specific_contributing_area": {
             "dtype": float,
@@ -315,7 +329,7 @@ class LandslideProbability(Component):
         groundwater__recharge_distribution: str, optional
             single word indicating recharge distribution, either 'uniform',
             'lognormal', 'lognormal_spatial,' or 'data_driven_spatial'.
-             (default='uniform')
+            (default='uniform')
         groundwater__recharge_min_value: float, optional (mm/d)
             minium groundwater recharge for 'uniform' (default=20.)
         groundwater__recharge_max_value: float, optional (mm/d)
@@ -528,10 +542,11 @@ class LandslideProbability(Component):
     def calculate_landslide_probability(self):
         """Main method of Landslide Probability class.
 
-        Method creates arrays for output variables then loops through all
-        the core nodes to run the method 'calculate_factor_of_safety.'
-        Output parameters probability of failure, mean relative wetness,
-        and probability of saturation are assigned as fields to nodes.
+        Method creates arrays for output variables then loops through
+        all the core nodes to run the method
+        'calculate_factor_of_safety.' Output parameters probability of
+        failure, mean relative wetness, and probability of saturation
+        are assigned as fields to nodes.
         """
         # Create arrays for data with -9999 as default to store output
         self._mean_Relative_Wetness = np.full(self._grid.number_of_nodes, -9999.0)
@@ -556,10 +571,10 @@ class LandslideProbability(Component):
     def _seed_generator(self, seed=0):
         """Method to initiate random seed.
 
-        Seed the random-number generator. This method will create the same
-        sequence again by re-seeding with the same value (default value is
-        zero). To create a sequence other than the default, assign non-zero
-        value for seed.
+        Seed the random-number generator. This method will create the
+        same sequence again by re-seeding with the same value (default
+        value is zero). To create a sequence other than the default,
+        assign non-zero value for seed.
         """
         np.random.seed(seed)
 
@@ -595,9 +610,9 @@ class LandslideProbability(Component):
         """Method to calculate recharge based on upstream fractions.
 
         This method calculates the resultant recharge at node i of the
-        model domain, using recharge of contributing HSD ids and the areal
-        fractions of upstream contributing HSD ids. Output is a numpy array
-        of recharge at node i.
+        model domain, using recharge of contributing HSD ids and the
+        areal fractions of upstream contributing HSD ids. Output is a
+        numpy array of recharge at node i.
         """
         store_Re = np.zeros(self._n)
         HSD_id_list = self._HSD_id_dict[i]

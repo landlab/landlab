@@ -25,7 +25,7 @@ to track down the source of the problem.
 *  **Use a clear and descriptive title** for the issue that identifies the
    problem.
 *  **Describe the exact steps that reproduce the problem**.
-*  **Provide a [minimal example](https://stackoverflow.com/help/mcve)
+*  **Provide a [minimal example](https://stackoverflow.com/help/minimal-reproducible-example)
    that demonstrates the steps** as, for example, a bash script
    along with input files. This example should reproduce your
    problem with as few lines of code as possible and easily

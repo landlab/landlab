@@ -176,17 +176,26 @@ class PrecipitationDistribution(Component):
 
     @property
     def storm_duration(self):
-        """Duration of storm. [T]"""
+        """Duration of storm.
+
+        [T]
+        """
         return self._storm_duration
 
     @property
     def interstorm_duration(self):
-        """Interstorm duration. [T]"""
+        """Interstorm duration.
+
+        [T]
+        """
         return self._interstorm_duration
 
     @property
     def storm_depth(self):
-        """Depth of water in the storm. [L]"""
+        """Depth of water in the storm.
+
+        [L]
+        """
         return self._storm_depth
 
     def update(self):
@@ -487,8 +496,8 @@ class PrecipitationDistribution(Component):
         Notes
         -----
         One recommended procedure is to instantiate the generator, then call
-        instance.next() (in Python 2) or next(instance) (in Python 3)
-        repeatedly to get the sequence (See Examples, below).
+        next(instance) (in Python 3) repeatedly to get the sequence (See
+        Examples, below).
 
         Examples
         --------
@@ -553,7 +562,6 @@ class PrecipitationDistribution(Component):
         >>> total_t = sum([sum(storm) for storm in allmytimes])
         >>> total_t > 46.
         True
-
         """
         # we must have instantiated with a grid, so check:
         assert hasattr(self, "_grid")
@@ -611,10 +619,11 @@ class PrecipitationDistribution(Component):
         """Seed the random-number generator.
 
         The examples illustrate:
-        (1) that we can get the same sequence again by re-seeding with the
-            same value (the default is zero)
-        (2) when we use a value other than the default, we get a different
-            sequence
+
+        1. That we can get the same sequence again by re-seeding with the
+           same value (the default is zero)
+        2. When we use a value other than the default, we get a different
+           sequence
 
         Examples
         --------
@@ -663,6 +672,5 @@ class PrecipitationDistribution(Component):
 
     @property
     def intensity(self):
-        """Get the intensity of the most recent storm simulated.
-        """
+        """Get the intensity of the most recent storm simulated."""
         return self.get_storm_intensity()

@@ -90,7 +90,7 @@ class ChannelProfiler(_BaseProfiler):
 
     Default behavior of this component is to extract only the largest channel
     in the single largest watershed. This would extract the following channel
-    segment (indicated by the *s).
+    segment (indicated by the `*` s).
     ::
 
         X X X X X X X X X X
@@ -268,7 +268,7 @@ class ChannelProfiler(_BaseProfiler):
         }
 
     Examples
-    ---------
+    --------
 
     Start by importing necessary modules
 
@@ -481,7 +481,7 @@ class ChannelProfiler(_BaseProfiler):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Node array containing ID of link that leads from each node to its receiver, or BAD_INDEX_VALUE if no link",
+            "doc": "ID of link downstream of each node, which carries the discharge",
         },
         "flow__receiver_node": {
             "dtype": int,
@@ -598,8 +598,7 @@ class ChannelProfiler(_BaseProfiler):
 
     @property
     def data_structure(self):
-        """
-        OrderedDict defining the channel network.
+        """OrderedDict defining the channel network.
 
         The node IDs and distances upstream of the channel network are stored
         in ``data_structure``. It is a dictionary with keys of the outlet node
@@ -749,6 +748,7 @@ class ChannelProfiler(_BaseProfiler):
         """Create expected flattened structures for ids, distances, and colors.
         """
         self._nodes = []
+
         self._distance_along_profile = []
         self._colors = []
 

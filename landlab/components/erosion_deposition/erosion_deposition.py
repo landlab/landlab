@@ -12,7 +12,7 @@ DEFAULT_MINIMUM_TIME_STEP = 0.001  # default minimum time step duration
 
 
 class ErosionDeposition(_GeneralizedErosionDeposition):
-    """
+    r"""
     Erosion-Deposition model in the style of Davy and Lague (2009). It uses a
     mass balance approach across the total sediment mass both in the bed and
     in transport coupled with explicit representation of the sediment
@@ -21,20 +21,27 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
     This implementation is close to the Davy & Lague scheme, with a few
     deviations:
-    - Sediment porosity is handled explicitly in this implementation.
-    - A fraction of the eroded sediment is permitted to enter the wash load,
-      and lost to the mass balance (F_f).
-    - Here an incision threshold is permitted, where it was not by Davy &
-      Lague. It is implemented with an exponentially smoothed form to prevent
-      discontinuities in the parameter space. See the
-      StreamPowerSmoothThresholdEroder for more documentation.
-    - This component uses an "effective" settling velocity, v_s, as one of its
-      inputs. This parameter is simply equal to Davy & Lague's `d_star * V`
-      dimensionless number.
+
+        - Sediment porosity is handled explicitly in this implementation.
+
+        - A fraction of the eroded sediment is permitted to enter the wash load,
+          and lost to the mass balance (`F_f`).
+
+        - Here an incision threshold :math:`\omega` is permitted, where it was not by Davy &
+          Lague. It is implemented with an exponentially smoothed form to prevent
+          discontinuities in the parameter space. See the
+          :py:class:`~landlab.components.StreamPowerSmoothThresholdEroder`
+          for more documentation.
+
+        - This component uses an "effective" settling velocity, v_s, as one of its
+          inputs. This parameter is simply equal to Davy & Lague's `d_star * V`
+          dimensionless number.
 
     Erosion of the bed follows a stream power formulation, i.e.,
 
-    E = K * q ** m_sp * S ** n_sp - optional threshold (see above)
+    .. math:
+
+        E = K * q ** m_{sp} * S ** {n_sp} - \omega
 
     Note that the transition between transport-limited and detachment-limited
     behavior is controlled by the dimensionless ratio (v_s/r) where r is the
@@ -82,7 +89,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             "optional": False,
             "units": "m3/s",
             "mapping": "node",
-            "doc": "Sediment flux",
+            "doc": "Sediment flux (volume per unit time of sediment entering each node)",
         },
         "surface_water__discharge": {
             "dtype": float,
@@ -90,7 +97,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             "optional": False,
             "units": "m**2/s",
             "mapping": "node",
-            "doc": "Water discharge at each node",
+            "doc": "Volumetric discharge of surface water",
         },
         "topographic__elevation": {
             "dtype": float,
@@ -106,7 +113,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "Topographic slope at each node",
+            "doc": "The steepest *downhill* slope",
         },
     }
 
@@ -293,7 +300,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             )
 
     def _calc_erosion_rates(self):
-        """Calculate erosion rates"""
+        """Calculate erosion rates."""
         omega = self._K * self._Q_to_the_m * np.power(self._slope, self._n_sp)
         omega_over_sp_crit = np.divide(
             omega, self._sp_crit, out=np.zeros_like(omega), where=self._sp_crit != 0
@@ -302,8 +309,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         self._erosion_term = omega - self._sp_crit * (1.0 - np.exp(-omega_over_sp_crit))
 
     def run_one_step_basic(self, dt=1.0):
-        """Calculate change in rock and alluvium thickness for
-           a time period 'dt'.
+        """Calculate change in rock and alluvium thickness for a time period
+        'dt'.
 
         Parameters
         ----------

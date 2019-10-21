@@ -12,7 +12,7 @@ KRB Feb 2017
 
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE, CLOSED_BOUNDARY
+from landlab import BAD_INDEX_VALUE
 from landlab.core.utils import as_id_array
 from landlab.utils.return_array import return_array_at_node
 
@@ -153,7 +153,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     elevs = return_array_at_node(grid, elevs)
 
     # find where there are closed nodes.
-    closed_nodes = grid.status_at_node == CLOSED_BOUNDARY
+    closed_nodes = grid.status_at_node == grid.BC_NODE_IS_CLOSED
 
     closed_elevation = np.max(elevs[~closed_nodes]) + 1000
 

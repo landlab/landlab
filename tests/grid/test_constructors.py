@@ -5,7 +5,6 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from landlab import (
-    CLOSED_BOUNDARY,
     HexModelGrid,
     NetworkModelGrid,
     RadialModelGrid,
@@ -66,7 +65,7 @@ def test_raster_from_file():
     assert mg.dx == 25
     assert mg.dy == 45
     assert (mg.x_of_node.min(), mg.y_of_node.min()) == (35, 55)
-    assert np.all(mg.status_at_node[mg.boundary_nodes] == CLOSED_BOUNDARY)
+    assert np.all(mg.status_at_node[mg.boundary_nodes] == mg.BC_NODE_IS_CLOSED)
     assert mg.axis_units == ("smoot", "parsec")
     assert mg.axis_name == ("spam", "eggs")
     assert mg.xy_of_reference == (12345, 678910)
@@ -95,7 +94,7 @@ def test_raster_from_dict():
     assert mg.dx == 25
     assert mg.dy == 45
     assert (mg.x_of_node.min(), mg.y_of_node.min()) == (35, 55)
-    assert np.all(mg.status_at_node[mg.boundary_nodes] == CLOSED_BOUNDARY)
+    assert np.all(mg.status_at_node[mg.boundary_nodes] == mg.BC_NODE_IS_CLOSED)
     assert mg.axis_units == ("smoot", "parsec")
     assert mg.axis_name == ("spam", "eggs")
     assert mg.xy_of_reference == (12345, 678910)

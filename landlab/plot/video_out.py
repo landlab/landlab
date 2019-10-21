@@ -32,8 +32,7 @@ from landlab.plot import imshow
 
 class VideoPlotter(object):
 
-    """
-    Create animations of landlab output.
+    """Create animations of landlab output.
 
     Create Landlab movies.
 
@@ -232,10 +231,8 @@ class VideoPlotter(object):
         plt.close()
 
     def _yield_image(self):
-        """
-        Helper function designed to generate image_list items for plotting,
-        rather than storing them all.
-        """
+        """Helper function designed to generate image_list items for plotting,
+        rather than storing them all."""
 
         for i in self.data_list:
             # yield self.grid.node_vector_to_raster(i)

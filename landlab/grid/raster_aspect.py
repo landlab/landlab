@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-"""Calculate slope aspects on a :any:`RasterModelGrid`."""
+"""Calculate slope aspects on a `RasterModelGrid`."""
 import numpy as np
 
 from landlab.utils.decorators import deprecated
