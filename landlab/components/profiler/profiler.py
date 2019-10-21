@@ -369,6 +369,4 @@ class Profiler(_BaseProfiler):
         **kwds : dictionary
             Keyword arguments to pass to imshow_grid.
         """
-        print(endpoints_only)
-        super().plot_profiles_in_map_view(field, endpoints_only=endpoints_only,
-             **kwds)
+        super().plot_profiles_in_map_view(field, endpoints_only=endpoints_only, **kwds)
