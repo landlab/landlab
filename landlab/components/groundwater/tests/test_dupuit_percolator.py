@@ -106,7 +106,7 @@ def test_conservation_of_mass_adaptive_dt():
     this case is only to ~3 significant digits.
     """
 
-    grid = RasterModelGrid((3, 10), spacing=10.0)
+    grid = RasterModelGrid((3, 10), xy_spacing=10.0)
     grid.set_closed_boundaries_at_grid_edges(True, True, False, True)
     elev = grid.add_zeros("node", "topographic__elevation")
     elev[:] = grid.x_of_node / 100 + 1

@@ -83,7 +83,7 @@ class GroundwaterDupuitPercolator(Component):
 
     Initialize the grid and component
 
-    >>> grid = RasterModelGrid((10, 10), spacing=10.0)
+    >>> grid = RasterModelGrid((10, 10), xy_spacing=10.0)
     >>> elev = grid.add_zeros('node', 'topographic__elevation')
     >>> elev[:] = 5.0
     >>> gdp = GroundwaterDupuitPercolator(grid)
@@ -308,8 +308,13 @@ class GroundwaterDupuitPercolator(Component):
 
     @property
     def K(self):
-        """hydraulic conductivity (m/s)"""
+        """hydraulic conductivity at link (m/s)"""
         return self._K
+
+    @K.setter
+    def K(self,new_val):
+        """set hydraulic conductivity at link (m/s)"""
+        self._K = new_val
 
     @property
     def recharge(self):
@@ -318,6 +323,7 @@ class GroundwaterDupuitPercolator(Component):
 
     @recharge.setter
     def recharge(self, new_val):
+        """set recharge rate (m/s)"""
         self._recharge = new_val
 
     @property
