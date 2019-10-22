@@ -8,7 +8,7 @@ Based on our experience of guiding users through the install process so far, we
 have found that the vast majority of technical issues arise due to incorrect
 paths to your Python distribution. Basically, your computer does not know where
 to look for the correct file or program and you need to tell it where to look
-using your system's `$PATH` variable.
+using your system's `$PATH` variable. #attnKaty
 
 Symptoms
 --------

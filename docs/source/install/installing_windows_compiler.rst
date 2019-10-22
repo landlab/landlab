@@ -13,7 +13,7 @@ getting Python talking to them.
 This process is only necessary if you want to build Landlab directly from its
 source code on your PC. Some parts of Landlab use compiled C++ code to
 accelerate things, via Cython. If you are using a binary install, as described
-:ref:` here  <anaconda_install_landlab>`, you don't
+:ref:` here  <anaconda_install_landlab>`, you don't #attnKaty
 need to do this.
 
 Getting the compilers
@@ -23,18 +23,18 @@ Anaconda provides some of the necessary compilers. Install it first.
 
 The easiest way to discover if you have other compiler issues is to attempt an
 install! Follow the
-:ref:` developer installation instructions <developer_install>`
+:ref:` developer installation instructions <developer_install>` #attnKaty
 until you attempt to perform the developer installation ::
 
 .. code-block:: bash
 
-  $ python setup.py develop
+  $ python setup.py develop #attnKaty
 
 If you have compiler issues, you will see the message::
 
   ...building 'landlab.components.flexure.cfuncs' extension
   error: MS VisualC++ 9.0 is required (Unable to find vcvarsall.bat).
-  Get it fromhttps://www.microsoft.com/en-us/download/details.aspx?id=44266
+  Get it fromhttps://www.microsoft.com/en-us/download/details.aspx?id=44266 #attnKaty
 
 Simply go to `that specified Microsoft website <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_ and from
 there download the software needed using the obvious download button.

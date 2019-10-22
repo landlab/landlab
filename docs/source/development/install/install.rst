@@ -78,7 +78,7 @@ Conda Environment Tips
     but you have previously installed them on your computer (e.g., spyder),
     you will need to add them to the environment. Use the standard
     `conda install name_of_package` or
-    `conda install name_of_package -c name_of_channel`
+    `conda install name_of_package -c name_of_channel` #attnKaty
     terminal calls to accomplish this.
 
 Uninstall

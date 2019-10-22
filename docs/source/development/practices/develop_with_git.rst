@@ -155,7 +155,7 @@ Pulling changes from your fork to the Landlab master fork
 Once you've completed whatever modifications you were working on with
 Landlab, we'd like to incorporate your changes back into the main code
 of Landlab so everyone can benefit from your enhancements. This is done
-by creating a \**pull request\* from your fork into the Landlab master
+by creating a \**pull request\* from your fork into the Landlab master #attnKaty
 fork. This is basically the inverse process you use to update your fork
 from the master fork, as described :ref:`here<updating>`
 (but in this case, one of us will review your changes before it gets
