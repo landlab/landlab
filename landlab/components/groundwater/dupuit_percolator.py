@@ -312,7 +312,7 @@ class GroundwaterDupuitPercolator(Component):
         return self._K
 
     @K.setter
-    def K(self,new_val):
+    def K(self, new_val):
         """set hydraulic conductivity at link (m/s)"""
         self._K = new_val
 
