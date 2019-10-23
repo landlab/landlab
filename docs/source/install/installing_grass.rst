@@ -25,7 +25,7 @@ fundamentally incompatible with an inbuilt security widget that is
 embedded in both OSX El Capitan and Sierra. It is nonetheless possible
 to disable this security, however (see below).
 
-Installing GRASS after Anaconda
+Installing GRASS after Anaconda #attnKaty
 -------------------------------
 
 (Before trying this, test that you definitely cannot install GRASS.

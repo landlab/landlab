@@ -74,7 +74,7 @@ that file in your favourite text editor, and add at the end:
 
 Restart the terminal again, and check the version number now. Should be
 right! (You will probably also want to do something similar with ipython,
-but DEJH didn't explore that...)
+but DEJH didn't explore that...) #attnKaty
 
 
 Installing pip
@@ -89,7 +89,7 @@ Get pip by going to `the pip site
 and downloading get_pip.py, which links from that page. Navigate to
 the folder you downloaded it into, and simply run
 
-    $ sudo python get_pip.py
+    $ sudo python get_pip.py #attnKaty
 
 This should give you a trouble free install of pip.
 
