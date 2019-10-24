@@ -60,8 +60,8 @@ class _BaseProfiler(Component, ABC):
         super(_BaseProfiler, self).__init__(grid)
 
     def run_one_step(self):
-        """Calculate the profile datastructure and distances along it."""
-        # calculate the profile IDs datastructure.
+        """Calculate the profile data structure and distances along it."""
+        # calculate the profile IDs data structure.
         self._create_profile_structure()
 
     @abstractmethod
@@ -71,7 +71,7 @@ class _BaseProfiler(Component, ABC):
         Expectation is that this will be overridden to create the following
         three private attributes:
 
-        self._net_ids
+        self._nodes
         self._distance_along_profile
 
         are each lists of numpy arrays, one array per segment.
@@ -81,7 +81,7 @@ class _BaseProfiler(Component, ABC):
         is a list of RGBA tuples, one tuple per segment.
 
         The order of segments is expected to be consistent between each of the
-        three datastructures.
+        three data structures.
         """
         ...  # pragma: no cover
 
@@ -117,7 +117,7 @@ class _BaseProfiler(Component, ABC):
         return self._distance_along_profile
 
     @property
-    def network_ids(self):
+    def nodes(self):
         """List of node ids for each segment.
 
         Examples
@@ -142,10 +142,10 @@ class _BaseProfiler(Component, ABC):
         ...     z[mg.core_nodes] += 0.001 * dt
         >>> profiler = ChannelProfiler(mg)
         >>> profiler.run_one_step()
-        >>> profiler.network_ids
+        >>> profiler.nodes
         [array([59, 58, 57, 56, 46, 45])]
         """
-        return self._net_ids
+        return self._nodes
 
     @property
     def colors(self):
@@ -205,7 +205,7 @@ class _BaseProfiler(Component, ABC):
         segments = []
         qmin = []
         qmax = []
-        for idx, nodes in enumerate(self._net_ids):
+        for idx, nodes in enumerate(self._nodes):
             segments.append(
                 list(zip(self._distance_along_profile[idx], quantity[nodes]))
             )
@@ -237,8 +237,9 @@ class _BaseProfiler(Component, ABC):
             Array of the at-node-field to plot as the 2D map values.
             Default value is the at-node field 'topographic__elevation'.
         endpoints_only : boolean
-            Boolean indicating whether to plot every node along the profile, or
-            a straight line beteween the endpoints.
+            Boolean where False (default) indicates every node along the
+            profile is plotted, or True indicating only segment endpoints are
+            plotted.
         **kwds : dictionary
             Keyword arguments to pass to imshow_grid.
         """
@@ -248,7 +249,7 @@ class _BaseProfiler(Component, ABC):
 
         # create segments the way that line collection likes them.
         segments = []
-        for idx, nodes in enumerate(self._net_ids):
+        for idx, nodes in enumerate(self._nodes):
             if endpoints_only:
                 select_nodes = [nodes[0], nodes[-1]]
                 segments.append(

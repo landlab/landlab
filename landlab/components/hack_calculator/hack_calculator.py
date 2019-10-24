@@ -303,11 +303,11 @@ class HackCalculator(Component):
             internal_df = []
 
         # for watershed in watersheds (in profile structure)
-        for outlet_node in self._profiler._net_struct:
-            seg_tuples = self._profiler._net_struct[outlet_node].keys()
+        for outlet_node in self._profiler._data_struct:
+            seg_tuples = self._profiler._data_struct[outlet_node].keys()
 
             watershed = [
-                self._profiler._net_struct[outlet_node][seg]["ids"]
+                self._profiler._data_struct[outlet_node][seg]["ids"]
                 for seg in seg_tuples
             ]
 
