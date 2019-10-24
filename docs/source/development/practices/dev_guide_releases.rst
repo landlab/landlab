@@ -18,7 +18,7 @@ The Release Checklist
    `release` version of the source code against the `release` version of the
    tutorials repository.
 
-3. Assuming the continuous integration from step 3 passes, merge the pull
+3. Assuming the continuous integration from step 2 passes, merge the pull
    request into `landlab/landlab/release`.
 
 4. Next, decide what new version number is appropriate
@@ -51,26 +51,8 @@ The Release Checklist
    `landlab\tutorial\release` branch with the same number you used for the main
    repo. You can do this locally or with GitHub's website.
 
-   Verify that these builds pass in the tutorials repository.
-
-7. Finally, we need to increment the dirty version number on the branches
-   `landlab\tutorial\next` and `landlab\landlab\master`.
-
-   In the tutorials repository (`landlab\tutorials`):
-
-   .. code-block:: bash
-
-      $ git checkout next
-      $ git merge release
-      $ git push
-
-   In the source code repository (`landlab\landlab`):
-
-   .. code-block:: bash
-
-      $ git checkout master
-      $ git merge release
-      $ git push
+   Verify that these builds pass in the tutorials repository. If they do, you
+   are done.
 
 Notes
 -----
