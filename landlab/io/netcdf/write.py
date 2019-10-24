@@ -570,6 +570,83 @@ def _guess_at_location(fields, names):
     return at
 
 
+def to_netcdf(grid, path, at=None, names=None, ids=None, with_layers=False, format="NETCDF4", mode="w"):
+    """
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.io.netcdf import to_netcdf
+
+    Create a uniform rectilinear grid with four rows and 3 columns, and add
+    some data fields to it.
+
+    >>> rmg = RasterModelGrid((4, 3))
+    >>> rmg.at_node["topographic__elevation"] = np.arange(12.0)
+    >>> rmg.at_node["uplift_rate"] = 2.0 * np.arange(12.0)
+
+    Create a temporary directory to write the netcdf file into.
+
+    >>> import tempfile, os
+    >>> temp_dir = tempfile.mkdtemp()
+    >>> os.chdir(temp_dir)
+
+    Write the grid to a netcdf3 file but only include the *uplift_rate*
+    data in the file.
+
+    >>> to_netcdf(
+    ...     rmg, "test.nc", format="NETCDF3_64BIT", names="uplift_rate"
+    ... )
+
+    Read the file back in and check its contents.
+
+    >>> from scipy.io import netcdf
+    >>> fp = netcdf.netcdf_file('test.nc', 'r')
+    >>> 'uplift_rate' in fp.variables
+    True
+    >>> 'topographic__elevation' in fp.variables
+    False
+    >>> fp.variables['uplift_rate'][:].flatten()
+    array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
+            22.])
+
+    >>> rmg.at_cell["air__temperature"] = np.arange(2.0)
+    >>> to_netcdf(
+    ...     rmg,
+    ...     "test-cell.nc",
+    ...     format="NETCDF3_64BIT",
+    ...     names="air__temperature", at="cell",
+    ... )
+    """
+    if isinstance(names, str):
+        names = [names]
+    if isinstance(at, str):
+        at = [at]
+
+    if with_layers and format != "NETCDF4":
+        raise ValueError("Grid layers are only available with the NETCDF4 format.")
+
+    all_locations = {"node", "link", "patch", "corner", "face", "cell", "grid"}
+    at = at or all_locations
+
+    fields_to_print = {}
+    for at_name in at:
+        if names is None:
+            fields_to_print[at_name] = set(grid[at_name])
+        else:
+            fields_to_print[at_name] = set(grid[at_name]) & set(names)
+
+    data = {}
+    for at_name, field_names in fields_to_print.items():
+        for field_name in field_names:
+            qualified_name = "at_{0}:{1}".format(at_name, field_name)
+            data[qualified_name] = ((at_name,), grid[at_name][field_name])
+
+    ds = grid.ds.copy().update(data)
+    ds.to_netcdf(path, format=format, mode=mode)
+
+
 def write_netcdf(
     path, fields, attrs=None, append=False, format="NETCDF3_64BIT", names=None, at=None
 ):
