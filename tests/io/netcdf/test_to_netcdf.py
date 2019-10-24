@@ -1,16 +1,12 @@
 #! /usr/bin/env python
 """Unit tests for landlab.io.netcdf module."""
-import os
-
-import netCDF4 as nc
 import numpy as np
 import pytest
 import xarray as xr
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.io.netcdf import NotRasterGridError, to_netcdf, write_netcdf
-from landlab.io.netcdf.read import _get_raster_spacing
+from landlab.io.netcdf import to_netcdf
 
 
 def pytest_generate_tests(metafunc):
