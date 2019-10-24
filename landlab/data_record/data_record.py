@@ -117,14 +117,16 @@ class DataRecord(object):
         >>> dr1.dataset['mean_elevation'].values
         array([100])
 
-        >>> dr1.dataset.attrs
-        OrderedDict([('time_units', 'y')])
+        >>> list(dr1.dataset.attrs.items())
+        [('time_units', 'y')]
 
         Example of a DataRecord with item_id as the only dimension:
-        >>> my_items2 = {'grid_element': np.array(('node', 'link'), dtype=str),
-        ...              'element_id': np.array([1, 3])}
-        >>> dr2 = DataRecord(grid,
-        ...                  items=my_items2)
+
+        >>> my_items2 = {
+        ...     'grid_element': np.array(('node', 'link'), dtype=str),
+        ...     'element_id': np.array([1, 3]),
+        ... }
+        >>> dr2 = DataRecord(grid, items=my_items2)
 
         Note that both arrays (grid_element and element_id) have 1 dimension
         as they only vary along the dimension 'item_id'.
@@ -138,9 +140,7 @@ class DataRecord(object):
         Example of a DataRecord with dimensions time and item_id:
         >>> my_items3 = {'grid_element':np.array([['node'], ['link']]),
         ...              'element_id': np.array([[1], [3]])}
-        >>> dr3 = DataRecord(grid,
-        ...                  time=[0.],
-        ...                  items=my_items3)
+        >>> dr3 = DataRecord(grid, time=[0.], items=my_items3)
 
         Note that both arrays have 2 dimensions as they vary along dimensions
         'time' and 'item_id'.
