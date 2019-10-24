@@ -603,11 +603,11 @@ def to_netcdf(grid, path, at=None, names=None, ids=None, with_layers=False, form
 
     >>> from scipy.io import netcdf
     >>> fp = netcdf.netcdf_file('test.nc', 'r')
-    >>> 'uplift_rate' in fp.variables
+    >>> 'at_node:uplift_rate' in fp.variables
     True
-    >>> 'topographic__elevation' in fp.variables
+    >>> 'at_node:topographic__elevation' in fp.variables
     False
-    >>> fp.variables['uplift_rate'][:].flatten()
+    >>> fp.variables['at_node:uplift_rate'][:].flatten()
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
 
