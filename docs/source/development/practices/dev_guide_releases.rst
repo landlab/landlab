@@ -9,8 +9,15 @@ The Release Checklist
 
 1. Start by updating the tutorials repository. To do this, locally checkout
    the tutorials repo and merge `landlab/tutorials/next` into
-   `landlab/tutorials/release`. Push these changes to the tutorials remote.
-   **Note: The CI may fail for the tutorials repository at first.**
+   `landlab/tutorials/release`.
+
+   Edit the commit message to include `[skip ci]` and push these changes to the
+   tutorials remote.
+
+   **Note: We add the `[skip ci]` because if there are changes in
+   `landlab/landlab/master` that are not yet in a distributed version of
+   landlab, we do not expect the tutorials repository to pass continuous
+   integration.**
 
 2. Next go to GitHub and use it to create a pull request that brings the
    changes associated with `landlab/landlab/master` into
