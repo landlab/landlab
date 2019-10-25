@@ -71,7 +71,7 @@ A suggested introduction to Landlab follows roughly this order:
    What makes up a Landlab Component Standard Interface; how to make one
    for your process model.
 
-Notebook tutorials on Landlab's components include: \* Flow Direction
+Notebook tutorials on Landlab's components include: \* Flow Direction #attnKaty
 and Accumulation \* `Introduction to the FlowDirector
 Components <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=flow_direction_and_accumulation/the_FlowDirectors.ipynb>`_
 \* `Introduction to the FlowAccumulator

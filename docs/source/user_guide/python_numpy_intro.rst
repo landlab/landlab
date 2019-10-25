@@ -96,7 +96,7 @@ faster and easier.
 
 In particular, Landlab makes extensive use of the NumPy array data structure.
 Almost all data input and output from Landlab is in the form of an array (see
-:ref:` Landlab Fields <fields>` for more information).
+:ref:` Landlab Fields <fields>` for more information). #attnKaty
 These arrays allow operations to happen much faster on the data than would be
 possible in a pure Python data structure like a list or a dictionary. (This is
 possible because NumPy arrays suppress some of Python's inbuilt type checking
@@ -138,7 +138,8 @@ which will be really slow. Do this:
 
 There is much more information about writing efficient NumPy code online. For
 example, `UW's astronomy department has a great online intro
-<http://depts.washington.edu/astron/>`_.
+<http://depts.washington.edu/astron/>`_. #attnKaty
+
 We also strongly recommend the book "High Performance Python" by Gorelick and
 Ozsvald, published by O'Reilly, if you're looking for a more comprehensive
 treatment.

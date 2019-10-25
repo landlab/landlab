@@ -75,7 +75,7 @@ It's also possible to set the boundary conditions "by hand", if you know the ID 
   9
   grid.status_at_node[my_fixed_node] = grid.BC_NODE_IS_FIXED_GRADIENT  # to fix the node closest to (1.2, 2.3)
 
-See also:
+See also: #attnKaty
 
   :py:func:`RasterModelGrid.set_fixed_value_boundaries_at_grid_edges <landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges>`,
   :py:func:ModelGrid.set_nodata_nodes_to_closed <landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed>`

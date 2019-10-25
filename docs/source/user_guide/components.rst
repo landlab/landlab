@@ -40,7 +40,7 @@ command prompt:
 
 ``landlab list``
 
-See the :ref: `Components section <api.components>` of the Landlab reference
+See the :ref: `Components section <api.components>` of the Landlab reference #attnKaty
 manual for a list of all Landlab components currently available.
 
 Landlab component classes, their import, and their instantiation
@@ -111,7 +111,7 @@ following would work::
 
 .. code-block:: python
 
-    help(LinearDiffuser)
+    help(LinearDiffuser) #attnKaty
     help(dfn)
     LinearDiffuser?
     dfn?

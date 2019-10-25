@@ -540,7 +540,7 @@ As noted earlier, Landlab provides several different types of grid. Available gr
 classes, with more specialized grids inheriting properties and behavior from more
 general types. The class hierarchy is given in the second column, **Inherits from**.
 
-Grid type                 Inherits from             Node arrangement     Cell geometry
+Grid type                 Inherits from             Node arrangement     Cell geometry #attnKaty
 =========                 =============             ================     =============
 ``RasterModelGrid``       ``ModelGrid``             raster               squares
 ``VoronoiDelaunayGrid``   ``ModelGrid``             Delaunay triangles   Voronoi polygons

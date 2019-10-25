@@ -403,7 +403,7 @@ at the desired frame interval using the matplotlib ``savefig`` command, then
 stitching these images together into a video file externally.
 
 DEJH has had a lot of success doing this in Preview on a Mac (which has the great
-advantage that it is always available). Simply open the first image, goto ``Export...``
+advantage that it is always available). Simply open the first image, go to ``Export...``
 under file, then **while holding down alt** click on the ``Format`` button to gain
 access to a list of extra formats, including ``.gif``. Open your new gif file, also
 in preview, then just drag the remaining image files into the sidebar onto the first
