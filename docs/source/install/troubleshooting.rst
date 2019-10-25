@@ -170,7 +170,7 @@ Import error
    :ref:`developer install <developer_install>`
    or wait for the next
    `release <https://github.com/landlab/landlab/releases>`_. (THIS
-   PROBLEM SHOULD NOT HAPPEN ANYMORE)
+   PROBLEM SHOULD NOT HAPPEN ANYMORE) #attnKaty
 
 Other known pb:
 ~~~~~~~~~~~~~~~

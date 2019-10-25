@@ -50,7 +50,7 @@ The most commonly used shell is ``bash``. Both Anaconda and Canopy assume
 you're running the Bash shell and will put the path to your install there.
 
 To find out which shell you're running, open a terminal window and type
-``echo $SHELL`` from the prompt. Anything other than ``/bin/bash`` being
+``echo $SHELL`` from the prompt. Anything other than ``/bin/bash`` being #attnKaty
 returned will require a little more manual set up as described below.
 
 Now that you know which shell you are using, find out where your computer is
@@ -85,7 +85,7 @@ you have *both*, this is probably the root cause of your problem;
 open ``.profile`` and copy everything you find inside across to
 ``.bash_profile``.
 
-For example, your profile likely contains several (repeated?) entries clearly
+For example, your profile likely contains several (repeated?) entries clearly #attnKaty
 referring to Canopy or "EPD" or Anaconda. You can safely comment out any old
 installs or repeated text in this file. (Remember, # is the "comment out"
 symbol in the Bash terminal). Make sure you don't actually delete anything
@@ -95,7 +95,7 @@ Use your favorite Unix editor to make the changes—almost all machines have
 ``nano``, which is super basic, but works. Once you're done, save
 (Ctrl-X, say yes to save in ``nano``), then quit and restart any apps that are
 using Python—including the terminal app itself.
-:ref:` Test <test_landlab_install>`
+:ref:` Test <test_landlab_install>` #attnKaty
 if this solved your problem.
 
 If you only have one of ``.bash_profile`` or ``.profile``, open it in an editor
@@ -129,7 +129,7 @@ your shell's ``.profile`` and ``.rc`` files so that they point to your Anaconda
 binaries. However, your shell's ``.profile`` and ``.rc`` files will have
 different names, so refer to this page for some guidance on the names of
 configuation files for popular shells
-` https://en.wikipedia.org/wiki/Unix_shell  < https://en.wikipedia.org/wiki/Unix_shell >`_.
+` https://en.wikipedia.org/wiki/Unix_shell  < https://en.wikipedia.org/wiki/Unix_shell >`_. #attnKaty
 Note the syntax for the shell commands to do this will probably also be
 different in each shell! But since both Anaconda and Canopy assume you are
 using Bash, another clue will be to start with a copy of the (correct) path
@@ -235,6 +235,6 @@ start again from scratch.
 
 For example, your Anaconda distribution is contained in one folder. You can
 move this folder to the trash and install a fresh version following the
-directions on the ` Anaconda  < https://www.anaconda.com/distribution/ >`_ site.
+directions on the ` Anaconda  < https://www.anaconda.com/distribution/ >`_ site. #attnKaty
 
 Update ``conda`` and ``pip``, uninstall Landlab, and then install a fresh copy.
