@@ -347,7 +347,7 @@ class LateralEroder(Component):
         self._Klr = float(Kl_ratio)  # default ratio of Kv/Kl is 1. Can be overwritten
 
         self._dzdt = grid.add_zeros(
-            "dzdt", at="node", noclobber=False
+            "dzdt", at="node", clobber=True
         )  # elevation change rate (M/Y)
         # optional inputs
         self._inlet_on = inlet_on
@@ -359,7 +359,7 @@ class LateralEroder(Component):
             # Change the runoff at the inlet node to node area + inlet node
             runoffinlet[inlet_node] += inlet_area
             grid.add_field(
-                "water__unit_flux_in", runoffinlet, at="node", noclobber=False
+                "water__unit_flux_in", runoffinlet, at="node", clobber=True
             )
             # set qsinlet at inlet node. This doesn't have to be provided, defaults
             # to 0.
@@ -398,8 +398,8 @@ class LateralEroder(Component):
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
         # clear qsin for next loop
-        qs_in = grid.add_zeros("node", "sediment__flux", noclobber=False)
-        qs = grid.add_zeros("node", "qs", noclobber=False)
+        qs_in = grid.add_zeros("node", "sediment__flux", clobber=True)
+        qs = grid.add_zeros("node", "qs", clobber=True)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
@@ -519,8 +519,8 @@ class LateralEroder(Component):
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
         # clear qsin for next loop
-        qs_in = grid.add_zeros("node", "sediment__flux", noclobber=False)
-        qs = grid.add_zeros("node", "qs", noclobber=False)
+        qs_in = grid.add_zeros("node", "sediment__flux", clobber=True)
+        qs = grid.add_zeros("node", "qs", clobber=True)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
