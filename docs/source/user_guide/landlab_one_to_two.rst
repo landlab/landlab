@@ -32,6 +32,19 @@ Deprecation of some grid methods
 
 TODO List of these, including replacements if any.
 
+Changes to field creation
+-------------------------
+- no more `noclobber`, instead we have `clobber`
+
+Changes to Boundary Condition Flags
+-----------------------------------
+- no more use of unbound flags (e.g., `from landlab import CLOSED_NODE`)
+  now we use `Grid.BC_NODE_IS_CLOSED`.
+
+Changes to Field initialization
+-------------------------------
+- PUT HERE IF THIS HAPPENS
+
 Standardization and deprecation within the component library
 ------------------------------------------------------------
 
@@ -42,7 +55,6 @@ Standardization and deprecation within the component library
   erosion).
 - Removal of old deprecated methods such as (``erode``, ``diffuse``...)
 - Main method now either take ``dt`` or nothing.
-
 
 Some other functions/methods have been removed
 ----------------------------------------------
