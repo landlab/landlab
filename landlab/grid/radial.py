@@ -8,6 +8,7 @@ files `docs/text_for_[gridfile].py.txt`.
 """
 
 import numpy as np
+import xarray as xr
 
 from ..graph import DualRadialGraph
 from .base import ModelGrid
