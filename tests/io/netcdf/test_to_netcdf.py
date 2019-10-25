@@ -5,7 +5,7 @@ import pytest
 import xarray as xr
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid
+from landlab import HexModelGrid, RasterModelGrid
 from landlab.io.netcdf import to_netcdf
 
 
@@ -108,8 +108,45 @@ def test_names_keyword(tmpdir, names, expected):
         assert actual_fields == set(expected)
 
 
-def test_topology(tmpdir, format):
-    grid = RasterModelGrid((4, 3))
+def test_raster_model_grid(tmpdir, format):
+    grid = RasterModelGrid((4, 3), xy_spacing=(2, 5), xy_of_lower_left=(-2.0, 10.0))
     with tmpdir.as_cwd():
         to_netcdf(grid, "test.nc", format=format)
-        assert xr.open_dataset("test.nc") == grid.ds
+        actual = xr.open_dataset("test.nc")
+        assert_array_equal(actual["xy_spacing"], [2.0, 5.0])
+        assert_array_equal(actual["xy_of_lower_left"], [-2.0, 10.0])
+        assert actual.attrs["grid_type"] == "RasterModelGrid"
+
+
+@pytest.mark.parametrize("orientation", ("horizontal", "vertical"))
+@pytest.mark.parametrize("node_layout", ("rect", "hex"))
+def test_hex_model_grid(tmpdir, format, orientation, node_layout):
+    grid = HexModelGrid(
+        shape=(4, 5),
+        spacing=2.0,
+        xy_of_lower_left=(-3, -5),
+        orientation=orientation,
+        node_layout=node_layout,
+    )
+    with tmpdir.as_cwd():
+        to_netcdf(grid, "test.nc", format=format)
+        actual = xr.open_dataset("test.nc")
+        assert actual["spacing"] == 2.0
+        assert_array_equal(actual["xy_of_lower_left"], [-3.0, -5.0])
+        assert actual.attrs == {
+            "grid_type": "HexModelGrid",
+            "orientation": orientation,
+            "node_layout": node_layout,
+        }
+
+
+def test_layers(tmpdir):
+    grid = RasterModelGrid((3, 4))
+    grid.event_layers.add(10.0, water_depth=[1.0, 2.0])
+    with tmpdir.as_cwd():
+        to_netcdf(grid, "test.nc", with_layers=True)
+        actual = xr.open_dataset("test.nc")
+        actual_fields = set(
+            [name for name in actual.variables if name.startswith("at_")]
+        )
+        assert actual_fields == set(["at_layer:water_depth"])
