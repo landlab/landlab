@@ -10,6 +10,7 @@ files `docs/text_for_[gridfile].py.txt`.
 from warnings import warn
 
 import numpy
+import xarray as xr
 
 from ..core.utils import as_id_array
 from ..graph import DualHexGraph
@@ -131,6 +132,30 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     def from_dict(cls, kwds):
         args = (kwds.pop("shape"),)
         return cls(*args, **kwds)
+
+    @classmethod
+    def from_dataset(cls, dataset):
+        return cls(
+            dataset["shape"],
+            spacing=dataset["spacing"],
+            xy_of_lower_left=dataset["xy_of_lower_left"],
+            orientation=dataset.attr["orientation"],
+            node_layout=dataset.attr["node_layout"],
+        )
+
+    def as_dataset(self):
+        return xr.Dataset(
+            {
+                "shape": (("dim",), list(self.shape)),
+                "spacing": self.spacing,
+                "xy_of_lower_left": (("dim",), list(self.xy_of_lower_left)),
+            },
+            attrs={
+                "grid_type": "HexModelGrid",
+                "node_layout": self.node_layout,
+                "orientation": self.orientation,
+            }
+        )
 
     @property
     def xy_of_lower_left(self):

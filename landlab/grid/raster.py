@@ -10,6 +10,7 @@ files `docs/text_for_[gridfile].py.txt`.
 from warnings import warn
 
 import numpy as np
+import xarray as xr
 
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.structured_quad import links as squad_links
@@ -369,6 +370,24 @@ class RasterModelGrid(
         """
         shape = params.pop("shape", None)
         return cls(shape, **params)
+
+    @classmethod
+    def from_dataset(cls, dataset):
+        return cls(
+            dataset["shape"],
+            xy_spacing=dataset["xy_spacing"],
+            xy_of_lower_left=dataset["xy_of_lower_left"],
+        )
+
+    def as_dataset(self):
+        return xr.Dataset(
+            {
+                "shape": (("dim",), list(self.shape)),
+                "xy_spacing": (("dim",), [self.dx, self.dy]),
+                "xy_of_lower_left": (("dim",), list(self.xy_of_lower_left)),
+            },
+            attrs={"grid_type": "RasterModelGrid"},
+        )
 
     @property
     def xy_of_lower_left(self):

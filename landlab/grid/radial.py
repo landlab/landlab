@@ -120,6 +120,26 @@ class RadialModelGrid(DualRadialGraph, ModelGrid):
         args = ()
         return cls(*args, **kwds)
 
+    @classmethod
+    def from_dataset(cls, dataset):
+        return cls(
+            n_rings=dataset["n_rings"],
+            nodes_in_first_ring=dataset["nodes_in_first_ring"],
+            spacing=dataset["spacing"],
+            xy_of_center=dataset["xy_of_center"],
+        )
+
+    def as_dataset(self):
+        return xr.Dataset(
+            {
+                "n_rings": self.n_rings,
+                "nodes_in_first_ring": self.nodes_in_first_ring,
+                "spacing": self.spacing,
+                "xy_of_center": (("dim",), list(self.xy_of_center)),
+            },
+            attrs={"grid_type": "RadialModelGrid"},
+        )
+
     @property
     def xy_of_center(self):
         """Return (x, y) of the reference point."""
