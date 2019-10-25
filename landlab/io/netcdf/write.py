@@ -643,7 +643,17 @@ def to_netcdf(grid, path, at=None, names=None, ids=None, with_layers=False, form
             qualified_name = "at_{0}:{1}".format(at_name, field_name)
             data[qualified_name] = ((at_name,), grid[at_name][field_name])
 
-    ds = grid.ds.copy().update(data)
+    if with_layers:
+        for field_name in grid.event_layers.tracking:
+            qualified_name = "at_layer:{0}".format(field_name)
+            data[qualified_name] = (("layer", "cell"), grid.event_layers[field_name])
+
+    if format == "NETCDF4":
+        data["status_at_node"] = (("node",), grid.status_at_node)
+    else:
+        data["status_at_node"] = (("node",), grid.status_at_node.astype(dtype=int))
+
+    ds = grid.as_dataset().update(data)
     ds.to_netcdf(path, format=format, mode=mode)
 
 
