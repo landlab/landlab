@@ -5,7 +5,7 @@ import numpy as np
 from landlab import BAD_INDEX_VALUE, FieldError, RasterModelGrid
 
 
-def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
+def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
     """Calculate the along flow distance from node to outlet.
 
     This utility calculates the along flow distance based on the results of
@@ -18,9 +18,9 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     add_to_grid : boolean, optional
         Flag to indicate if the stream length field should be added to the
         grid. Default is False. The field name used is ``flow__distance``.
-    noclobber : boolean, optional
+    clobber : boolean, optional
         Flag to indicate if adding the field to the grid should not clobber an
-        existing field with the same name. Default is True.
+        existing field with the same name. Default is False.
 
     Returns
     -------
@@ -46,7 +46,7 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     ...                                        top_is_closed=True)
     >>> fr = FlowAccumulator(mg, flow_director = 'D8')
     >>> fr.run_one_step()
-    >>> flow__distance = calculate_flow__distance(mg, add_to_grid=True, noclobber=False)
+    >>> flow__distance = calculate_flow__distance(mg, add_to_grid=True, clobber=True)
     >>> mg.at_node['flow__distance']
     array([ 0.        ,  0.        ,  0.        ,  0.        ,
             0.        ,  1.        ,  0.        ,  0.        ,
@@ -73,8 +73,7 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     ...                                        top_is_closed=True)
     >>> fr = FlowAccumulator(mg, flow_director = 'D4')
     >>> fr.run_one_step()
-    >>> flow__distance = calculate_flow__distance(mg, add_to_grid=True,
-    ...                                          noclobber=False)
+    >>> flow__distance = calculate_flow__distance(mg, add_to_grid=True, clobber=True)
     >>> mg.at_node['flow__distance']
     array([ 0.,  0.,  0.,  0.,
             0.,  1.,  0.,  0.,
@@ -98,9 +97,7 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     >>> hmg.status_at_node[0] = hmg.BC_NODE_IS_FIXED_VALUE
     >>> fr = FlowAccumulator(hmg, flow_director = 'D4')
     >>> fr.run_one_step()
-    >>> flow__distance = calculate_flow__distance(hmg,
-    ...                                           add_to_grid=True,
-    ...                                           noclobber=False)
+    >>> flow__distance = calculate_flow__distance(hmg, add_to_grid=True, clobber=True)
     >>> hmg.at_node['flow__distance']
     array([ 0.,  0.,  0.,
             0.,  1.,  2.,  0.,
@@ -216,6 +213,6 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
 
     # store on the grid
     if add_to_grid:
-        grid.add_field("node", "flow__distance", flow__distance, noclobber=noclobber)
+        grid.add_field("flow__distance", flow__distance, at="node", clobber=clobber)
 
     return flow__distance
