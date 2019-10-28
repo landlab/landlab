@@ -3,13 +3,13 @@
 """
 Created on Tue Jun  4 16:26:31 2019
 
-@author: gtucker
+@author: G Tucker, D Litwin
 """
 
 import numpy as np
 from numpy.testing import assert_almost_equal, assert_equal
 
-from landlab import RasterModelGrid
+from landlab import HexModelGrid, RasterModelGrid
 from landlab.components import FlowAccumulator, GroundwaterDupuitPercolator
 
 
@@ -106,7 +106,7 @@ def test_conservation_of_mass_adaptive_dt():
     this case is only to ~3 significant digits.
     """
 
-    grid = RasterModelGrid((3, 10), spacing=10.0)
+    grid = RasterModelGrid((3, 10), xy_spacing=10.0)
     grid.set_closed_boundaries_at_grid_edges(True, True, False, True)
     elev = grid.add_zeros("node", "topographic__elevation")
     elev[:] = grid.x_of_node / 100 + 1
@@ -123,7 +123,6 @@ def test_conservation_of_mass_adaptive_dt():
     recharge_flux = 0
     gw_flux = 0
     sw_flux = 0
-    storage = 0
     storage_0 = gdp.calc_total_storage()
 
     dt = 1e4
@@ -139,3 +138,37 @@ def test_conservation_of_mass_adaptive_dt():
     assert_almost_equal(
         (gw_flux + sw_flux + storage - storage_0) / recharge_flux, 1.0, decimal=3
     )
+
+
+def test_symmetry_of_solution():
+    """ test that water table is symmetric under constant recharge
+
+    Notes:
+    ----
+    Under constant recharge with radially symmetric aquifer base elevation,
+    the model should produce a water table that is radially symmetric. This test
+    demonstrates this is the case where topographic elevation and aquifer
+    base elevation are radially symmetric parabolas on a hexagonal grid.
+
+    """
+    hmg = HexModelGrid(shape=(7, 4), dx=10.0)
+    x = hmg.x_of_node
+    y = hmg.y_of_node
+    elev = hmg.add_zeros("node", "topographic__elevation")
+    elev[:] = 1e-3 * (x * (max(x) - x) + y * (max(y) - y)) + 2
+    base = hmg.add_zeros("node", "aquifer_base__elevation")
+    base[:] = elev - 2
+    wt = hmg.add_zeros("node", "water_table__elevation")
+    wt[:] = elev
+    wt[hmg.open_boundary_nodes] = 0.0
+
+    gdp = GroundwaterDupuitPercolator(
+        hmg, recharge_rate=1e-7, hydraulic_conductivity=1e-4
+    )
+    for i in range(1000):
+        gdp.run_one_step(1e3)
+
+    tc = hmg.at_node["aquifer__thickness"]
+    assert_almost_equal(tc[5], tc[31])  # SW-NE
+    assert_almost_equal(tc[29], tc[7])  # NW-SE
+    assert_almost_equal(tc[16], tc[20])  # W-E
