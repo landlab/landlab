@@ -42,7 +42,6 @@ build: false
 
 test_script:
   - "%WITH_COMPILER% pip install numpy"
-  - "%WITH_COMPILER% pip install netcdf4==1.5.2"
   - "%WITH_COMPILER% pip install -e ."
   - pytest -vvv
 
