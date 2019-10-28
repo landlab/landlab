@@ -11,7 +11,7 @@ UW Waterhackweek (Mar 2019): Landlab Modeling Framework and Use Cases
 
 Presented by S.S. Nudurupati, A. Manaster, C. Bandaragoda, and E.
 Istanbulluoglu
-* `View cyberseminar online <https://www.youtube.com/watch?v=m10UA5_gsuM&feature=youtu.be>_
+* `View cyberseminar online <https://www.youtube.com/watch?v=m10UA5_gsuM&feature=youtu.be>_ #attnKaty
 * `Waterhackweek 2019 Landlab materials on HydroShare <https://www.hydroshare.org/resource/0e005873929f41818dd1371da292ba07/>`_
 
 2018
@@ -21,7 +21,7 @@ CSDMS Webinar (Sep 2018): Overview of the Landlab Toolkit
 `````````````````````````````````````````````````````````
 
 Presented by G. Tucker.
-* `View webinar online <https://csdms.colorado.edu/wiki/Presenters-0407>`
+* `View webinar online <https://csdms.colorado.edu/wiki/Presenters-0407>` #attnKaty
 
 Modeling with the Landlab toolkit
 `````````````````````````````````

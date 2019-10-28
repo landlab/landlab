@@ -10,7 +10,7 @@ function names and ways of doing things. In order to minimize the impact
 of these changes on your work, we've provided here a simple guide to
 some of the major changes.
 
-##Quick summary: how to make your Landlab programs work with version
+##Quick summary: how to make your Landlab programs work with version #attnKaty
 1.0beta
 
 ###Grid element and attribute names
@@ -47,7 +47,7 @@ just active links])
 Creating and running components
 -------------------------------
 
-[TO BE ADDED]
+[TO BE ADDED] #attnKaty
 
 New standardized function usage and syntax
 ------------------------------------------

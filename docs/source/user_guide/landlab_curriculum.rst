@@ -6,7 +6,7 @@ Landscape Evolution with Landlab
 
 by Andy Wickert, University of Minnesota
 
-The Code
+The Code #attnKaty
 ~~~~~~~~
 
 ::
@@ -130,7 +130,7 @@ The Code
 
    plt.show()
 
-The Assignment
+The Assignment #attnKaty
 ~~~~~~~~~~~~~~
 
 :download:`download pdf <images/landscape_evolution_assignment_AW.pdf>`

@@ -116,7 +116,7 @@ are some options:
 (1) assign the *average*
 (2) assign the upstream value
 (3) assign the downstream value
-(4) ...
+(4) ... #attnKaty
 
 Look at this
 `Tutorial <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=file=mappers/mappers.ipynb>`_
@@ -160,7 +160,7 @@ Andy Wickert (5/16) suggests the following:
     sudo apt-get remove python-setuptools
     pip install setuptools # add "--upgrade" if needed
 
-And then you can cd to landlab and this works:
+And then you can cd to landlab and this works: #attnKaty
 
 .. code-block:: python
 
@@ -171,15 +171,15 @@ Support: How can I ask more questions and get help?
 
 There are several ways to get help:
 
-(1) Add your own questions to this wiki page using the ``Edit`` button above.
-(2) Join the Landlab User Group on Slack <knuth@colorado.edu?subject=Landlab%20User%20Group&body=Invite%20to%20Slack>
+(1) Add your own questions to this wiki page using the ``Edit`` button above. #attnKaty
+(2) Join the Landlab User Group on Slack <knuth@colorado.edu?subject=Landlab%20User%20Group&body=Invite%20to%20Slack> #attnKaty
 (3) File an issue at `https://github.com/landlab/landlab <https://github.com/landlab/landlab/issues>`__ using the ``New issue`` button in the upper right. Tell us about your issue, and we'll be in touch.
 
 
 How do I keep in touch with Landlab developments?
 -------------------------------------------------
 
-There are a few ways to follow Landlab developments. You can
+There are a few ways to follow Landlab developments. You can #attnKaty
 - contribute questions to this wiki (see below),
 - follow Landlab on `Twitter <https://mobile.twitter.com/landlabtoolkit>`_  @landlabtoolkit,
 - join the Landlab User Group on `Slack <knuth@colorado.edu?subject=Landlab%20User%20Group&body=Invite%20to%20Slack>`_,

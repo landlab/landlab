@@ -16,7 +16,7 @@ Changes include:
 - Some other functions/methods have been removed.
 - No more wiki (all the docs are here).
 
-No more Python 2
+No more Python 2 #attnKaty
 ----------------
 
 TODO: put a link to general 2 to 3 resources
@@ -40,7 +40,7 @@ Standardization and deprecation within the component library
 - Fewer different options for runoff rate, but one, consistent, good option
   (use argument to FlowAccumulator, then use ``surface__water_discharge`` for
   erosion).
-- Removal of old deprecated methods such as (``erode``, ``diffuse``...)
+- Removal of old deprecated methods such as (``erode``, ``diffuse``...) #attnKaty
 - Main method now either take ``dt`` or nothing.
 
 
@@ -48,4 +48,4 @@ Some other functions/methods have been removed
 ----------------------------------------------
 
 ModelParameterDictionary
-plot.channel_profile (use ChannelProfiler)
+plot.channel_profile (use ChannelProfiler) #attnKaty

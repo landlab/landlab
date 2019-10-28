@@ -184,7 +184,7 @@ Step 4. Pre-processing the DEM (*Optional*)
 
 When modeling surface flow across a DEM and the user wants to ensure all water drains out of the system (that is, water is not trapped in pits or holes on the DEM surface), there must be a continuous flow path. In many applications, flow is allowed to exit a node in 8 directions ('D8'): the cardinal directions (East, North, West, South) and the diagonal directions (Northeast, Northwest, Southwest, Southeast). However, this model restricts flow to only the cardinal directions ('D4'). To create a continuous flow network, GIS applications often include a pit-filling regime to remove divots in the DEM surface so water can exit the pit and travel to the outlet. In ArcGIS, this pit-filling regime operates in 'D8':
 
-.. figure:: images/D8_vs_D4.png
+.. figure:: images/D8_vs_D4.png #attnKaty
     :align: center
 
 **Figure 3**: Comparison of 'D8' and 'D4' flow routing methods. The key difference: in 'D8' methods, flow can move diagonally out of a given node.
@@ -341,7 +341,7 @@ Once the model is done running, the hydrograph can be plotted using the matplotl
         plt.xlabel('Discharge, (cms)')
         plt.title('Outlet Hydrograph, Rainfall: 5 mm/hr in 2 hr')
 
-.. figure:: images/OverlandFlow_Manual_Hydrograph.png
+.. figure:: images/OverlandFlow_Manual_Hydrograph.png #attnKaty
     :align: center
 
 **Figure 4**: Sample hydrograph from the test basin, after a storm with intensity of 5 mm/hr for a duration of 2 hr.
@@ -361,7 +361,7 @@ The Landlab plotting library includes a utility ``imshow__grid`` which can easil
 
 **Figure 5**: Map of water depths at time = 2 hr, for the sample storm on the square basin (5 mm/hr over duration of 2 hr).
 
-In this example, the water depths are plotted after 2 hours of model run time ``model_run_time`` = 7200 s in **Step 6**). The method ``imshow__grid`` takes a grid instance and data field by default. Optional methods displayed here include plot title, color bar title (``var__name``), color bar units (``var__units``), grid dimension units (``grid_units``), and matplotlib color map (``cmap``).
+In this example, the water depths are plotted after 2 hours of model run time ``model_run_time`` = 7200 s in **Step 6**). The method ``imshow__grid`` takes a grid instance and data field by default. Optional methods displayed here include plot title, color bar title (``var__name``), color bar units (``var__units``), grid dimension units (``grid_units``), and matplotlib color map (``cmap``). #attnKaty
 
 **Note**: As of right now, ``imshow__grid`` plots data on nodes and cells.
 If the user wants to plot data from link elements, a mapper from link to cell

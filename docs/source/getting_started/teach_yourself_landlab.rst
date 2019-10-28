@@ -6,7 +6,7 @@ Self-study course for learning to use Landlab in your research
 WARNING! WARNING! THIS SELF STUDY COURSE IS UNDER DEVELOPMENT AND
 INITIAL TESTING. THIS WILL BE REMOVED WHEN TESTING IS COMPLETE. UNTIL
 THEN… LINKS MAY BE BROKEN, ORDER OF ACTIVITIES CHANGED, INSTRUCTIONS
-WRONG, COMMENTS INCOMPLETE AND MISSPELLED.
+WRONG, COMMENTS INCOMPLETE AND MISSPELLED. #attnKaty
 
 Introduction and scope
 ----------------------
@@ -14,7 +14,7 @@ Introduction and scope
 The following set of steps is intended as a self-guided journey in which
 you will learn how to use Landlab for your research.
 
-You will : - Get a comprehensive overview of Landlab's model grid,
+You will : - Get a comprehensive overview of Landlab's model grid, #attnKaty
 process components, and utilities. - Make different models. - Practice
 using Landlab to build a model on your own.
 
