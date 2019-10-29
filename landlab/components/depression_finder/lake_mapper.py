@@ -260,9 +260,7 @@ class DepressionFinderAndRouter(Component):
         self._lake_outlets = []  # a list of each unique lake outlet
         # ^note this is nlakes-long
 
-        self._is_pit = self._grid.add_ones(
-            "node", "is_pit", dtype=bool, clobber=True
-        )
+        self._is_pit = self._grid.add_ones("node", "is_pit", dtype=bool, clobber=True)
         self._flood_status = self._grid.add_zeros(
             "node", "flood_status_code", dtype=int, clobber=True
         )
