@@ -56,7 +56,6 @@ def test_netcdf_write_dtype(tmpdir, format, dtype):
         assert actual.dtype == dtype
 
 
-
 def test_at_keyword(tmpdir, at):
     grid = RasterModelGrid((4, 3))
 
