@@ -290,9 +290,7 @@ class ScalarDataFields(dict):
 
         LLCATS: FIELDCR
         """
-        return self.add_field(
-            name, self.empty(**kwds), units=units, clobber=clobber
-        )
+        return self.add_field(name, self.empty(**kwds), units=units, clobber=clobber)
 
     def add_ones(self, name, units=_UNKNOWN_UNITS, clobber=False, **kwds):
         """Create and add an array of values, initialized to 1, to the field.
@@ -373,18 +371,10 @@ class ScalarDataFields(dict):
 
         LLCATS: FIELDCR
         """
-        return self.add_field(
-            name, self.zeros(**kwds), units=units, clobber=clobber
-        )
+        return self.add_field(name, self.zeros(**kwds), units=units, clobber=clobber)
 
     def add_field(
-        self,
-        name,
-        value_array,
-        units=_UNKNOWN_UNITS,
-        copy=False,
-        clobber=False,
-        **kwds
+        self, name, value_array, units=_UNKNOWN_UNITS, copy=False, clobber=False, **kwds
     ):
         """Add an array of values to the field.
 
