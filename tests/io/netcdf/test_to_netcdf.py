@@ -6,14 +6,7 @@ import xarray as xr
 from numpy.testing import assert_array_equal
 
 from landlab import HexModelGrid, RasterModelGrid
-from landlab.io.netcdf import to_netcdf
-
-
-def pytest_generate_tests(metafunc):
-    if "format" in metafunc.fixturenames:
-        metafunc.parametrize("format", ("NETCDF4", "NETCDF4_CLASSIC", "NETCDF3_CLASSIC", "NETCDF3_64BIT"))
-    elif "at" in metafunc.fixturenames:
-        metafunc.parametrize("at", ("node", "link", "patch", "corner", "face", "cell"))
+from landlab.io.netcdf import from_netcdf, to_netcdf
 
 
 def test_netcdf_write_int64(tmpdir, format):
@@ -63,6 +56,7 @@ def test_netcdf_write_dtype(tmpdir, format, dtype):
         assert actual.dtype == dtype
 
 
+
 def test_at_keyword(tmpdir, at):
     grid = RasterModelGrid((4, 3))
 
@@ -70,8 +64,9 @@ def test_at_keyword(tmpdir, at):
     for src_at in {"node", "link", "patch", "corner", "face", "cell"}:
         grid.add_field(name, grid.ones(at=src_at) * 10.0, at=src_at)
 
+    include = "at_{0}:*".format(at)
     with tmpdir.as_cwd():
-        to_netcdf(grid, "test.nc", format="NETCDF4", at=at)
+        to_netcdf(grid, "test.nc", format="NETCDF4", include=include)
 
         actual = xr.open_dataset("test.nc")
         actual_fields = set(
@@ -83,12 +78,16 @@ def test_at_keyword(tmpdir, at):
         assert_array_equal(actual[nc_name], getattr(grid, "at_" + at)[name])
 
 
+@pytest.mark.skip("old way of doing things")
 @pytest.mark.parametrize(
     "names,expected", (
         ("elevs", ("at_link:elevs", "at_node:elevs")),
         ("temp", ("at_link:temp",)),
         (("elevs", "temp"), ("at_link:elevs", "at_node:elevs", "at_link:temp")),
         (None, ("at_link:elevs", "at_node:elevs", "at_link:temp")),
+        ([], ()),
+        ((), ()),
+        (set(), ()),
     ),
 )
 def test_names_keyword(tmpdir, names, expected):
@@ -112,10 +111,9 @@ def test_raster_model_grid(tmpdir, format):
     grid = RasterModelGrid((4, 3), xy_spacing=(2, 5), xy_of_lower_left=(-2.0, 10.0))
     with tmpdir.as_cwd():
         to_netcdf(grid, "test.nc", format=format)
-        actual = xr.open_dataset("test.nc")
-        assert_array_equal(actual["xy_spacing"], [2.0, 5.0])
-        assert_array_equal(actual["xy_of_lower_left"], [-2.0, 10.0])
-        assert actual.attrs["grid_type"] == "RasterModelGrid"
+        actual = from_netcdf("test.nc")
+        assert (actual.dx, actual.dy) == (grid.dx, grid.dy)
+        assert actual.xy_of_lower_left == grid.xy_of_lower_left
 
 
 @pytest.mark.parametrize("orientation", ("horizontal", "vertical"))
@@ -130,14 +128,12 @@ def test_hex_model_grid(tmpdir, format, orientation, node_layout):
     )
     with tmpdir.as_cwd():
         to_netcdf(grid, "test.nc", format=format)
-        actual = xr.open_dataset("test.nc")
-        assert actual["spacing"] == 2.0
-        assert_array_equal(actual["xy_of_lower_left"], [-3.0, -5.0])
-        assert actual.attrs == {
-            "grid_type": "HexModelGrid",
-            "orientation": orientation,
-            "node_layout": node_layout,
-        }
+        actual = from_netcdf("test.nc")
+
+        assert actual.spacing == grid.spacing
+        assert actual.xy_of_lower_left == grid.xy_of_lower_left
+        assert actual.orientation == grid.orientation
+        assert actual.node_layout == grid.node_layout
 
 
 def test_layers(tmpdir):

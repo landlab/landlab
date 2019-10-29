@@ -9,7 +9,7 @@ Write netcdf
     ~landlab.io.netcdf.write.write_netcdf
 """
 
-
+import fnmatch
 import os
 import warnings
 
@@ -570,7 +570,15 @@ def _guess_at_location(fields, names):
     return at
 
 
-def to_netcdf(grid, path, at=None, names=None, ids=None, with_layers=False, format="NETCDF4", mode="w"):
+def to_netcdf(
+    grid,
+    path,
+    include="*",
+    exclude=None,
+    with_layers=False,
+    format="NETCDF4",
+    mode="w"
+):
     """
 
     Examples
@@ -596,7 +604,7 @@ def to_netcdf(grid, path, at=None, names=None, ids=None, with_layers=False, form
     data in the file.
 
     >>> to_netcdf(
-    ...     rmg, "test.nc", format="NETCDF3_64BIT", names="uplift_rate"
+    ...     rmg, "test.nc", format="NETCDF3_64BIT", include="at_node:uplift_rate"
     ... )
 
     Read the file back in and check its contents.
@@ -616,32 +624,33 @@ def to_netcdf(grid, path, at=None, names=None, ids=None, with_layers=False, form
     ...     rmg,
     ...     "test-cell.nc",
     ...     format="NETCDF3_64BIT",
-    ...     names="air__temperature", at="cell",
+    ...     include="at_cell:*",
+    ...     # names="air__temperature", at="cell",
     ... )
     """
-    if isinstance(names, str):
-        names = [names]
-    if isinstance(at, str):
-        at = [at]
+    if isinstance(include, str):
+        include = [include]
+    if isinstance(exclude, str):
+        exclude = [exclude]
 
     if with_layers and format != "NETCDF4":
         raise ValueError("Grid layers are only available with the NETCDF4 format.")
 
     all_locations = {"node", "link", "patch", "corner", "face", "cell", "grid"}
-    at = at or all_locations
+    qualified_names = set()
+    for at in all_locations:
+        qualified_names.update(["at_{0}:{1}".format(at, name) for name in grid[at]])
 
-    fields_to_print = {}
-    for at_name in at:
-        if names is None:
-            fields_to_print[at_name] = set(grid[at_name])
-        else:
-            fields_to_print[at_name] = set(grid[at_name]) & set(names)
+    names = set()
+    for pattern in include:
+        names.update(fnmatch.filter(qualified_names, pattern))
+    for pattern in exclude or []:
+        names.difference_update(fnmatch.filter(qualified_names, pattern))
 
     data = {}
-    for at_name, field_names in fields_to_print.items():
-        for field_name in field_names:
-            qualified_name = "at_{0}:{1}".format(at_name, field_name)
-            data[qualified_name] = ((at_name,), grid[at_name][field_name])
+    for name in names:
+        dim, field_name = name[len("at_"):].split(":")
+        data[name] = ((dim,), grid[dim][field_name])
 
     if with_layers:
         for field_name in grid.event_layers.tracking:
