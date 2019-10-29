@@ -155,7 +155,7 @@ def test_symmetry_of_solution():
     base elevation are radially symmetric parabolas on a hexagonal grid.
 
     """
-    hmg = HexModelGrid(shape=(7, 4), dx=10.0)
+    hmg = HexModelGrid(shape=(7, 4), spacing=10.0)
     x = hmg.x_of_node
     y = hmg.y_of_node
     elev = hmg.add_zeros("node", "topographic__elevation")
