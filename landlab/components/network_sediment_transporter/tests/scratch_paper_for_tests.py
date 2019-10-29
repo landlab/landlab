@@ -178,13 +178,17 @@ for t in range(0, (timesteps * dt), dt):
         
 
 # Parcel volume should decrease according to abrasion rate
-#distance_traveled = XXXX should calculate this properly... add up distance traveled in parcels as we go
-#
-#volume_after_transport = initial_volume * np.exp(distance_traveled*-abrasion_rate)
-#assert_array_equal(
-#        volume_after_transport,
-#        two_parcels.dataset.volume[0:2,-1]
-#        )
+volume_after_transport = (np.squeeze(np.transpose(initial_volume)) 
+                          * np.exp(nst._distance_traveled_cumulative
+                                   *-abrasion_rate)
+                          )
+
+print("volume_after_transport", volume_after_transport)
+                          
+assert_array_almost_equal(
+        volume_after_transport,
+        two_parcels.dataset.volume[0:2,-1]
+        )
 
 
 

@@ -90,7 +90,7 @@ class NetworkSedimentTransporter(Component):
 
     >>> nst = NetworkSedimentTransporter(grid, stuff)
 
-    Finally, we un NetworkSedimentTransporter forward 10 timesteps of size 10
+    Finally, we run NetworkSedimentTransporter forward 10 timesteps of size 10
     time units.
 
     >>> for _ in range(10):
@@ -245,6 +245,7 @@ class NetworkSedimentTransporter(Component):
         self.fluid_density = fluid_density
         self._time_idx = 0
         self._time = 0.0
+        self._distance_traveled_cumulative = np.zeros([self._num_parcels,])
 
         if transport_method in _SUPPORTED_TRANSPORT_METHODS:
             self.transport_method = transport_method
@@ -762,7 +763,7 @@ class NetworkSedimentTransporter(Component):
         self._grid.at_link["sediment__active__volume"] = vol_act
         self._grid.at_link["sediment__active__sand_fraction"] = frac_sand
 
-    def _move_parcel_downstream(self, dt):  # Jon
+    def _move_parcel_downstream(self, dt):  
         """Method to update parcel location for each parcel in the active
         layer.
         """
@@ -780,8 +781,11 @@ class NetworkSedimentTransporter(Component):
         # ^ movement in current and any DS links at this dt is at the same velocity as in the current link
         # ... perhaps modify in the future(?) or ensure this type of travel is kept to a minimum
         # ... or display warnings or create a log file when the parcel jumps far in the next DS link
-
-        # print("distance traveled = ", distance_to_travel_this_timestep)
+        
+        self._distance_traveled_cumulative += distance_to_travel_this_timestep 
+        # ^ accumulates total distanced traveled for testing abrasion
+        
+        print("distance traveled = ", distance_to_travel_this_timestep)
 
         #        if self._time_idx == 1:
         #            print("t", self._time_idx)
