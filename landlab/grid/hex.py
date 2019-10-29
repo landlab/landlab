@@ -136,11 +136,11 @@ class HexModelGrid(DualHexGraph, ModelGrid):
     @classmethod
     def from_dataset(cls, dataset):
         return cls(
-            dataset["shape"],
+            tuple(dataset["shape"].values),
             spacing=dataset["spacing"],
             xy_of_lower_left=dataset["xy_of_lower_left"],
-            orientation=dataset.attr["orientation"],
-            node_layout=dataset.attr["node_layout"],
+            orientation=dataset.attrs["orientation"],
+            node_layout=dataset.attrs["node_layout"],
         )
 
     def as_dataset(self):
