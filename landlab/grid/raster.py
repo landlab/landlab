@@ -19,8 +19,6 @@ from landlab.utils.decorators import deprecated, make_return_array_immutable
 
 from ..core.utils import add_module_functions_to_class, as_id_array
 from ..graph import DualUniformRectilinearGraph
-from ..io import write_esri_ascii
-from ..io.netcdf import write_netcdf
 from . import raster_funcs as rfuncs
 from .base import CORE_NODE, FIXED_VALUE_BOUNDARY, LOOPED_BOUNDARY, ModelGrid
 from .decorators import return_id_array
@@ -1710,6 +1708,9 @@ class RasterModelGrid(
 
         LLCATS: GINF
         """
+        from ..io import write_esri_ascii
+        from ..io.netcdf import write_netcdf
+
         format = format or _guess_format_from_name(path)
         path = _add_format_extension(path, format)
 
