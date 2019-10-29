@@ -21,7 +21,6 @@ No more Python 2
 
 TODO: put a link to general 2 to 3 resources
 
-
 Landlab grid now inherits from the Landlab graph
 ------------------------------------------------
 
@@ -38,12 +37,21 @@ Changes to field creation
 
 Changes to Boundary Condition Flags
 -----------------------------------
+
 - no more use of unbound flags (e.g., `from landlab import CLOSED_NODE`)
   now we use `Grid.BC_NODE_IS_CLOSED`.
 
 Changes to Field initialization
 -------------------------------
+
 - PUT HERE IF THIS HAPPENS
+
+Changes to NetCDF IO
+--------------------
+
+- info about "landlab netcdf" format
+- a statement about how `read_netcdf` won't work the way it did, but that
+  you can basically use xarray to do the same thing.
 
 Standardization and deprecation within the component library
 ------------------------------------------------------------
@@ -60,4 +68,4 @@ Some other functions/methods have been removed
 ----------------------------------------------
 
 ModelParameterDictionary
-plot.channel_profile (use ChannelProfiler)
+plot.channel_profile (use ChannelProfiler component)
