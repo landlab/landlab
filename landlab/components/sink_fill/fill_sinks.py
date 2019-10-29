@@ -147,7 +147,7 @@ class SinkFiller(Component):
 
         # create the only new output field:
         self._sed_fill_depth = self._grid.add_zeros(
-            "node", "sediment_fill__depth", noclobber=False
+            "node", "sediment_fill__depth", clobber=True
         )
 
         self._lf = DepressionFinderAndRouter(

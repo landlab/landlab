@@ -448,7 +448,7 @@ def read_netcdf(
                 add_field = False
 
             if add_field:
-                grid.add_field(field_name, values, at="node", noclobber=False)
+                grid.add_field(field_name, values, at="node", clobber=True)
 
         if (name is not None) and (name not in grid.at_node):
             raise ValueError(
