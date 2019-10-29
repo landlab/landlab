@@ -16,7 +16,10 @@ except ImportError:
 
     warnings.warn("Unable to import netCDF4.", ImportWarning)
 
+import fnmatch
+
 import numpy as np
+import xarray as xr
 from scipy.io import netcdf as nc
 
 from landlab.io import (
@@ -31,6 +34,9 @@ from landlab.io.netcdf._constants import (
 )
 from landlab.io.netcdf.errors import NotRasterGridError
 from landlab.utils import add_halo
+from ...grid.hex import HexModelGrid
+from ...grid.radial import RadialModelGrid
+from ...grid.raster import RasterModelGrid
 
 
 def _length_of_axis_dimension(root, axis_name):
@@ -242,6 +248,49 @@ def _get_raster_spacing(coords):
         raise NotRasterGridError()
 
     return spacing[0]
+
+
+def from_netcdf(filename_or_obj, include="*", exclude=None):
+    """Read a grid from a netcdf file."""
+    include = include or []
+    if isinstance(include, str):
+        include = [include]
+    exclude = exclude or []
+    if isinstance(exclude, str):
+        exclude = [exclude]
+
+    _grid_from_str = {
+        "RasterModelGrid": RasterModelGrid,
+        "HexModelGrid": HexModelGrid,
+        "RadialModelGrid": RadialModelGrid,
+    }
+
+    dataset = xr.open_dataset(filename_or_obj)
+    grid_type = dataset.attrs["grid_type"]
+
+    try:
+        from_dataset = _grid_from_str[grid_type].from_dataset
+    except KeyError:
+        raise RuntimeError("grid type not recognized ({0})".format(grid_type))
+    else:
+        grid = from_dataset(dataset)
+
+    qualified_names = [
+        name for name in dataset.variables if name.startswith("at_")
+    ]
+    names = set()
+    for pattern in include:
+        names.update(fnmatch.filter(qualified_names, pattern))
+    for pattern in exclude:
+        names.difference_update(fnmatch.filter(qualified_names, pattern))
+
+    for name in names:
+        at_name, field_name = name.split(":")
+        getattr(grid, at_name)[field_name] = dataset[name]
+
+    grid.status_at_node = dataset["status_at_node"]
+
+    return grid
 
 
 def read_netcdf(
