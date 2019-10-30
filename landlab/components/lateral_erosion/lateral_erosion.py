@@ -358,9 +358,7 @@ class LateralEroder(Component):
             runoffinlet = np.full(grid.number_of_nodes, grid.dx ** 2, dtype=float)
             # Change the runoff at the inlet node to node area + inlet node
             runoffinlet[inlet_node] += inlet_area
-            grid.add_field(
-                "water__unit_flux_in", runoffinlet, at="node", clobber=True
-            )
+            grid.add_field("water__unit_flux_in", runoffinlet, at="node", clobber=True)
             # set qsinlet at inlet node. This doesn't have to be provided, defaults
             # to 0.
             self._qsinlet = qsinlet

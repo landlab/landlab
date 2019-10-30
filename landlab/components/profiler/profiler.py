@@ -3,8 +3,8 @@
 """profiler.py component to create profiles with user-defined endpoints."""
 from collections import OrderedDict
 
-from matplotlib import cm, colors, pyplot as plt
 import numpy as np
+from matplotlib import cm, colors, pyplot as plt
 
 from landlab.components.profiler.base_profiler import _BaseProfiler
 
@@ -108,6 +108,7 @@ class Profiler(_BaseProfiler):
     Endpoints can also be set with a combination of coordinates and nodes.
     >>> profiler = Profiler(mg, [(10, 10), 16, (10, 70)])
     """
+
     _name = "Profiler"
 
     def __init__(self, grid, endpoints, cmap="viridis"):
@@ -132,9 +133,11 @@ class Profiler(_BaseProfiler):
         self._cmap = plt.get_cmap(cmap)
 
         if not isinstance(endpoints, list) or len(endpoints) < 2:
-            msg = ('`endpoints` must be a list of at least 2 node IDs or a '
-                   'list of at least two tuples where each tuple contains the '
-                   'x, y coordinates of endpoints.')
+            msg = (
+                "`endpoints` must be a list of at least 2 node IDs or a "
+                "list of at least two tuples where each tuple contains the "
+                "x, y coordinates of endpoints."
+            )
             raise ValueError(msg)
 
         # Check if `endpoints` are within grid bounds while setting
@@ -190,15 +193,15 @@ class Profiler(_BaseProfiler):
                 sample_xy = grid.xy_of_node[node]
 
                 pt = self._project_point_onto_line(sample_xy, start_xy, end_xy)
-                d = grid.calc_distances_of_nodes_to_point(pt,
-                                                          node_subset=start_node)
+                d = grid.calc_distances_of_nodes_to_point(pt, node_subset=start_node)
                 sample_distances[i_sample] = d
 
             # Store the segment data.
 
             self._data_struct[i_endpt] = {
-                'ids': np.array(sample_nodes),
-                'distances': sample_distances + cum_dist}
+                "ids": np.array(sample_nodes),
+                "distances": sample_distances + cum_dist,
+            }
 
             cum_dist += max(sample_distances)
 
@@ -223,9 +226,7 @@ class Profiler(_BaseProfiler):
             }
 
         for segment_id in self._data_struct:
-            self._data_struct[segment_id]["color"] = color_mapping[
-                segment_id
-            ]
+            self._data_struct[segment_id]["color"] = color_mapping[segment_id]
 
     def _create_flat_structures(self):
         """Create expected flattened structures for ids, distances, and colors.
@@ -252,9 +253,11 @@ class Profiler(_BaseProfiler):
         elif isinstance(point, (tuple, list, np.ndarray)) and len(point) == 2:
             return self._grid.find_nearest_node(point), point
         else:
-            raise TypeError('each element of `endpoints` must be a number '
-                            'representing a node id or a tuple of node x, y '
-                            'coordinates')
+            raise TypeError(
+                "each element of `endpoints` must be a number "
+                "representing a node id or a tuple of node x, y "
+                "coordinates"
+            )
 
     def _get_sample_nodes(self, start_node, end_node):
         """Get the profile sample nodes using Bresenham's line algorithm.
@@ -296,7 +299,7 @@ class Profiler(_BaseProfiler):
         dx = x1 - x0
         dy = y1 - y0
 
-        error = int(dx / 2.)
+        error = int(dx / 2.0)
 
         if y0 < y1:
             y_step = 1

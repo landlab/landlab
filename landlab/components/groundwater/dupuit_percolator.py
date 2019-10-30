@@ -7,6 +7,7 @@
 import numpy as np
 
 from landlab import Component
+from landlab.grid.base import INACTIVE_LINK
 from landlab.grid.mappers import (
     map_max_of_node_links_to_node,
     map_mean_of_link_nodes_to_link,
@@ -317,8 +318,13 @@ class GroundwaterDupuitPercolator(Component):
 
     @property
     def K(self):
-        """hydraulic conductivity (m/s)"""
+        """hydraulic conductivity at link (m/s)"""
         return self._K
+
+    @K.setter
+    def K(self, new_val):
+        """set hydraulic conductivity at link (m/s)"""
+        self._K = new_val
 
     @property
     def recharge(self):
@@ -327,6 +333,7 @@ class GroundwaterDupuitPercolator(Component):
 
     @recharge.setter
     def recharge(self, new_val):
+        """set recharge rate (m/s)"""
         self._recharge = new_val
 
     @property
@@ -463,9 +470,9 @@ class GroundwaterDupuitPercolator(Component):
         # Calculate groundwater velocity
         self._vel[:] = -self._K * (
             self._hydr_grad * np.cos(np.arctan(abs(self._base_grad)))
-            + np.sin(np.arctan(abs(self._base_grad)))
+            + np.sin(np.arctan(self._base_grad))
         )
-        self._vel[self._grid.status_at_link == 4] = 0.0
+        self._vel[self._grid.status_at_link == INACTIVE_LINK] = 0.0
 
         # Aquifer thickness at links (upwind)
         hlink = map_value_at_max_node_to_link(
@@ -478,10 +485,19 @@ class GroundwaterDupuitPercolator(Component):
         # Groundwater flux divergence
         dqdx = self._grid.calc_flux_div_at_node(self._q)
 
+        # Determine the relative aquifer thickness, 1 if permeable thickness is 0.
+        soil_present = self._elev - self._base > 0.0
+        rel_thickness = np.ones_like(self._elev)
+        rel_thickness[soil_present] = np.minimum(
+            1,
+            self._thickness[soil_present]
+            / (self._elev[soil_present] - self._base[soil_present]),
+        )
+
         # Calculate surface discharge at nodes
-        self._qs[:] = _regularize_G(
-            self._thickness / (self._elev - self._base), self._r
-        ) * _regularize_R(self._recharge - dqdx)
+        self._qs[:] = _regularize_G(rel_thickness, self._r) * _regularize_R(
+            self._recharge - dqdx
+        )
 
         # Mass balance
         self._dhdt[:] = (1 / self._n) * (self._recharge - dqdx - self._qs)
@@ -524,9 +540,9 @@ class GroundwaterDupuitPercolator(Component):
             # Calculate groundwater velocity
             self._vel[:] = -self._K * (
                 self._hydr_grad * np.cos(np.arctan(abs(self._base_grad)))
-                + np.sin(np.arctan(abs(self._base_grad)))
+                + np.sin(np.arctan(self._base_grad))
             )
-            self._vel[self._grid.status_at_link == 4] = 0.0
+            self._vel[self._grid.status_at_link == INACTIVE_LINK] = 0.0
 
             # Aquifer thickness at links (upwind)
             hlink = map_value_at_max_node_to_link(
@@ -539,10 +555,19 @@ class GroundwaterDupuitPercolator(Component):
             # Groundwater flux divergence
             dqdx = self._grid.calc_flux_div_at_node(self._q)
 
+            # Determine the relative aquifer thickness, 1 if permeable thickness is 0.
+            soil_present = self._elev - self._base > 0.0
+            rel_thickness = np.ones_like(self._elev)
+            rel_thickness[soil_present] = np.minimum(
+                1,
+                self._thickness[soil_present]
+                / (self._elev[soil_present] - self._base[soil_present]),
+            )
+
             # Calculate surface discharge at nodes
-            self._qs[:] = _regularize_G(
-                self._thickness / (self._elev - self._base), self._r
-            ) * _regularize_R(self._recharge - dqdx)
+            self._qs[:] = _regularize_G(rel_thickness, self._r) * _regularize_R(
+                self._recharge - dqdx
+            )
 
             # Mass balance
             self._dhdt[:] = (1 / self._n) * (self._recharge - dqdx - self._qs)
