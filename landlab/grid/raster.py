@@ -7,15 +7,12 @@ semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
 
-from warnings import warn
-
 import numpy as np
 import xarray as xr
 
 from landlab.field.scalar_data_fields import FieldError
-from landlab.grid.structured_quad import links as squad_links
 from landlab.utils import structured_grid as sgrid
-from landlab.utils.decorators import deprecated, make_return_array_immutable
+from landlab.utils.decorators import make_return_array_immutable
 
 from ..core.utils import add_module_functions_to_class, as_id_array
 from ..graph import DualUniformRectilinearGraph
@@ -198,10 +195,6 @@ class RasterModelGrid(
         inputs. If this are given, calls initialize() to set up the grid.
         At the moment, num_rows and num_cols MUST be specified. Both must be
         >=3 to allow correct automated setup of boundary conditions.
-
-        *Deprecation Warning*: The keywords *spacing* and *origin* have been
-        deprecated as of Landlab v1.5.5. They will be removed in v2.0.
-        Additionally, passing spacing as an argument has been deprecated.
 
         Parameters
         ----------
@@ -580,35 +573,6 @@ class RasterModelGrid(
         return self.shape[0] - 2
 
     @property
-    @deprecated(use="dx", version="0.5")
-    def node_spacing(self):
-        """Spacing betweem node rows and columns.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> grid.node_spacing
-        1.0
-        >>> grid = RasterModelGrid((4, 5), 3.0)
-        >>> grid.node_spacing
-        3.0
-
-        LLCATS: DEPR GINF NINF MEAS
-        """
-        if self.dx != self.dy:
-            raise RuntimeError("dx and dy are not the same")
-        return self.dx
-
-    @property
-    @deprecated(use="cells_at_corners_of_grid", version=1.0)
-    def corner_cells(self):
-        """
-        LLCATS: DEPR GINF CINF SUBSET
-        """
-        return self.cells_at_corners_of_grid
-
-    @property
     def cells_at_corners_of_grid(self):
         """Get array of cells in cellular grid (grid with only cells) corners.
 
@@ -910,9 +874,7 @@ class RasterModelGrid(
         from the field values ***at the time you call this method***. If no
         values are present in the field, the module will complain but accept
         this, warning that it will be unable to automatically update boundary
-        conditions (and such methods, e.g.,
-        ``RasterModelGrid.update_boundary_nodes()``, will raise exceptions
-        if you try).
+        conditions.
 
         The status of links (active or inactive) is automatically updated to
         reflect the changes.
@@ -1195,130 +1157,6 @@ class RasterModelGrid(
                 "result in bad BC handling! Bailing out..."
             )
 
-    @deprecated(use="_update_links_nodes_cells_to_new_BCs", version=1.0)
-    def update_boundary_nodes(self):
-        """Update the boundary nodes.
-
-        This method updates all the boundary nodes in the grid field on which
-        they are set (i.e., it updates the field
-        rmg.at_node[rmg.fixed_gradient_node_properties['fixed_gradient_of']]).
-        It currently works only with fixed value (type 1) and fixed gradient
-        (type 2) conditions. Looping must be handled internally to a component,
-        and is not dealt with here.
-
-        LLCATS: DEPR NINF BC
-        """
-        try:
-            self.fixed_value_node_properties["boundary_node_IDs"]
-        except AttributeError:
-            # no fixed value boundaries have been set
-            pass
-        else:
-            assert self.fixed_value_node_properties["internal_flag"], (
-                "Values were not supplied to the method that set the "
-                "boundary conditions! You cant update automatically!"
-            )
-            values_val = self.at_node[
-                self.fixed_value_node_properties["fixed_value_of"]
-            ]
-            values_val[
-                self.fixed_value_node_properties["boundary_node_IDs"]
-            ] = self.fixed_value_node_properties["values"]
-
-        try:
-            values_grad = self.at_node[
-                self.fixed_gradient_node_properties["fixed_gradient_of"]
-            ]
-            values_grad[self.fixed_gradient_node_properties["boundary_node_IDs"]] = (
-                values_grad[self.fixed_gradient_node_properties["anchor_node_IDs"]]
-                + self.fixed_gradient_node_properties["values_to_add"]
-            )
-        except AttributeError:
-            # no fixed grad boundaries have been set
-            pass
-
-    # DEJH believes this needs deprecating, but it's pretty hard wired into
-    # the flow router. So I've restored it for now.
-    def _calculate_gradients_at_d8_active_links(self, node_values):
-        """Calculate gradients over D8 active links.
-
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-
-        Parameters
-        ----------
-        node_values : ndarray
-            Values at nodes.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> import numpy as np
-        >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
-        >>> z = np.array([3., 3., 3., 3.,
-        ...               3., 3., 0., 0.,
-        ...               3., 0., 0., 0.])
-        >>> grid._calculate_gradients_at_d8_active_links(z)
-        ...     # doctest: +NORMALIZE_WHITESPACE
-        array([ 0.  , -1.  ,  0.  , -0.75,  0.  , -1.  ,  0.  ,  0.  , -0.6 ,
-                0.  , -0.6 ,  0.  , -0.6 ,  0.  , 0. ])
-
-        LLCATS: LINF GRAD
-        """
-        active_links = self.active_d8
-        diagonal_links = squad_links.is_diagonal_link(self.shape, active_links)
-        active_links = active_links[~diagonal_links]
-
-        vertical_links = squad_links.is_vertical_link(self.shape, active_links)
-        horizontal_links = squad_links.is_horizontal_link(self.shape, active_links)
-
-        diffs = np.diff(node_values[self.nodes_at_link[self.active_links]], axis=1)
-
-        diffs[vertical_links] /= self.dy
-        diffs[horizontal_links] /= self.dx
-
-        diag_dist = np.sqrt(self.dy ** 2.0 + self.dx ** 2.0)
-        diagonal_link_slopes = (
-            np.diff(node_values[self.nodes_at_diagonal[self.active_diagonals]], axis=1)
-            / diag_dist
-        )
-
-        return np.concatenate((diffs.flatten(), diagonal_link_slopes.flatten()))
-
-    def _calculate_gradients_at_d8_links(self, node_values):
-        """Calculate gradients over all D8 links.
-
-        MAY 16: Landlab's handling of diagonal links may soon be enhanced;
-        methods like this may be soon superceded.
-
-        Parameters
-        ----------
-        node_values : ndarray
-            Values at nodes.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> import numpy as np
-        >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
-        >>> z = np.array([3., 3., 3., 3.,
-        ...               3., 3., 0., 0.,
-        ...               3., 0., 0., 0.])
-        >>> grid._calculate_gradients_at_d8_links(z)
-        ...     # doctest: +NORMALIZE_WHITESPACE
-        array([ 0. ,  0. , -0.6,  0. , -0.6, -0.6, -0.6,  0. , -0.6,  0. ,  0. ,
-                0. ])
-
-        LLCATS: LINF GRAD
-        """
-        diag_dist = np.sqrt(self.dy ** 2.0 + self.dx ** 2.0)
-        diagonal_link_slopes = (
-            node_values[self.nodes_at_diagonal[:, 1]]
-            - node_values[self.nodes_at_diagonal[:, 0]]
-        ) / diag_dist
-
-        return diagonal_link_slopes
-
     def node_vector_to_raster(self, u, flip_vertically=False):
         """Unravel an array of node values.
 
@@ -1474,13 +1312,6 @@ class RasterModelGrid(
         for i in range(0, shift):
             data[ncols * i + offset : ncols * (i + 1) - offset] = top_rows_to_move[i, :]
 
-    @deprecated(use="node_has_boundary_neighbor", version=1.0)
-    def has_boundary_neighbor(self, ids, method="d8"):
-        """
-        LLCATS: DEPR NINF CONN BC
-        """
-        return self.node_has_boundary_neighbor(ids, method=method)
-
     def node_has_boundary_neighbor(self, ids, method="d8"):
         """Check if nodes have neighbors that are boundary nodes.
 
@@ -1574,7 +1405,6 @@ class RasterModelGrid(
             "`_calc_unit_normals_to_patch_subtriangles` instead."
         )
 
-    @deprecated(use="calc_slope_at_node, calc_aspect_at_node", version=1.0)
     def calculate_slope_aspect_at_nodes_burrough(self, ids=None, vals="Elevation"):
         """Calculate topographic slope.
 
@@ -1609,26 +1439,27 @@ class RasterModelGrid(
         >>> z = np.array([0., 0., 0., 0.,
         ...               3., 3., 3., 3,
         ...               6., 6., 6., 6.])
-        >>> with pytest.deprecated_call():
-        ...     (slope, aspect) = (
-        ...              grid.calculate_slope_aspect_at_nodes_burrough(vals=z))
+        >>> slope, aspect = grid.calculate_slope_aspect_at_nodes_burrough(vals=z)
         >>> np.tan(slope)
         array([ 0.75,  0.75])
         >>> np.degrees(aspect)
         array([ 180.,  180.])
 
-        This method is *deprecated*. Use ``calc_slope_at_node`` and
-        ``calc_aspect_at_node`` instead. Notice that ``calc_slope_at_node``
-        and ``calc_aspect_at_node`` return values for all nodes, not just
-        core nodes. In addition, ``calc_aspect_at_node`` returns compass-style
-        angles in degrees.
+        We recommend using the following functions instead of this one:
+        - :py:meth:`~landlab.grid.RasterModelGrid.calc_slope_at_node`
+        - :py:meth:`~landlab.grid.RasterModelGrid.calc_aspect_at_node`
+        Notice that :py:meth:`~landlab.grid.RasterModelGrid.calc_slope_at_node`
+        and `:py:meth:`~landlab.grid.RasterModelGrid.calc_aspect_at_node` return
+        values for all nodes, not just core nodes. In addition,
+        `:py:meth:`~landlab.grid.RasterModelGrid.calc_aspect_at_node` returns
+        compass-style angles in degrees.
 
         >>> np.tan(grid.calc_slope_at_node(elevs=z)[grid.core_nodes])
         array([ 0.75,  0.75])
         >>> grid.calc_aspect_at_node(elevs=z)[grid.core_nodes]
         array([ 180.,  180.])
 
-        LLCATS: DEPR NINF SURF GRAD
+        LLCATS: NINF SURF GRAD
         """
         if ids is None:
             ids = self.node_at_cell
@@ -1970,246 +1801,6 @@ class RasterModelGrid(
 
         self._looped_second_ring_cell_neighbor_list_created = True
         return second_ring
-
-    # This is deprecated as link status should only be changed by
-    # changing node status.
-    def set_fixed_link_boundaries_at_grid_edges(
-        self,
-        right_is_fixed,
-        top_is_fixed,
-        left_is_fixed,
-        bottom_is_fixed,
-        link_value=None,
-        node_value=None,
-        fixed_node_value_of="topographic__elevation",
-        fixed_link_value_of="topographic__slope",
-    ):
-        """Create fixed link boundaries at the grid edges.
-
-        Sets the status of links along the specified side(s) of a raster
-        grid--- bottom vertical links, right horizontal, top vertical links,
-        and/or left horizontal links ---to ``FIXED_LINK``.
-
-        By definition, fixed links exist between fixed gradient nodes
-        (status_at_node == 2) and core nodes (status_at_node == 0). Because the
-        outer ring of nodes are fixed gradient (status_at_node == 2), the links
-        between them are inactive (status_at_link == 4) and are not set using
-        this function (the inactive links are the top and bottom horizontal
-        edge links, and left and right edge vertical edge links.)
-
-        Arguments are booleans indicating whether the bottom, right, top, and
-        left sides are to be set (True) or not (False).
-
-        *node_value* controls what values are held constant at the fixed
-        gradient nodes (status_at_node == 2). It can be either a float, an
-        array of length number_of_fixed_nodes or number_of_nodes (total), or
-        left blank. If left blank, the values will be set from the those
-        already in the grid fields, according to 'fixed_node_value_of'.
-
-        *link_value* controls what values are held constant at the fixed
-        links (status_at_link == 2). It can be either a float, an array of
-        length number_of_fixed_links or number_of_links (total), or
-        left blank. If left blank, the values will be set from the those
-        already in the grid fields, according to 'fixed_link_value_of'.
-
-        *fixed_node_value_of* controls the name of the model field that
-        contains the node values. Remember, if you don't set value, the fixed
-        gradient node values will be set from the field values ***at the time
-        you call this method***. If no values are present in the field, the
-        module will complain but accept this, warning that it will be unable to
-        automatically update boundary conditions (and such methods, e.g.,
-        ``RasterModelGrid.update_boundary_nodes()``, will raise exceptions
-        if you try).
-
-        *fixed_link_value_of* controls the name of the model field that
-        contains the fixed link values. Remember, if you don't set value, the
-        fixed link values will be set from the field values ***at the time you
-        call this method***. If no values are present in the field, the module
-        will complain but accept this, warning that it will be unable to
-        automatically update boundary conditions (and such methods, e.g.,
-        ``RasterModelGrid.update_boundary_nodes()``, will raise exceptions
-        if you try).
-
-        The following example sets the bottom and right link boundaries as
-        fixed-value in a four-row by nine-column grid that initially has all
-        boundaries set to fixed_gradient (nodes, i.e. flagged at
-        (status_at_node == 2) and fixed_link (links, i.e., flagged as
-        (status_at_link == 2).
-
-        Parameters
-        ----------
-        right_is_fixed : boolean
-            Set right edge  horizontal links as fixed boundary.
-        top_is_fixed : boolean
-            Set top edge vertical links as fixed boundary.
-        left_is_fixed : boolean
-            Set left edge horizontal links as fixed boundary.
-        bottom_is_fixed : boolean
-            Set bottom edge vertical links as fixed boundary.
-        link_value : float, array or None (default).
-            Override value to be kept constant at links.
-        node_value : float, array or None (default).
-            Override value to be kept constant at nodes.
-        fixed_node_value_of : string.
-            The name of the grid field containing the values of interest at
-            nodes.
-        fixed_link_value_of : string.
-            The name of the grid field containing the values of interest at
-            links.
-
-        Examples
-        --------
-
-        The following grid is used in the example::
-
-            *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*
-            ^       ^       ^       ^       ^       ^       ^       ^       ^
-            I       X       X       X       X       X       X       X       I
-            |       |       |       |       |       |       |       |       |
-            *--X--->o       o       o       o       o       o       o--X--->*
-            ^       ^       ^       ^       ^       ^       ^       ^       ^
-            I       |       |       |       |       |       |       |       I
-            |       |       |       |       |       |       |       |       |
-            *--X--->o       o       o       o       o       o       o--X--->*
-            ^       ^       ^       ^       ^       ^       ^       ^       ^
-            I       X       X       X       X       X       X       X       I
-            |       |       |       |       |       |       |       |       |
-            *--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*--I--->*
-
-        .. note::
-
-          Links set to `ACTIVE_LINK` are not indicated in this diagram.
-
-        ``*`` indicates the nodes that are set to
-        `FIXED_GRADIENT BOUNDARY`
-
-        ``o`` indicates the nodes that are set to `CORE_NODE`
-
-        ``I`` indicates the links that are set to `INACTIVE_LINK`
-
-        ``X`` indicates the links that are set to `FIXED_LINK`
-
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 9), xy_spacing=1.0)
-        >>> import numpy as np
-        >>> z = np.arange(0, rmg.number_of_nodes)
-        >>> s = np.arange(0, rmg.number_of_links)
-        >>> rmg['node']['topographic__elevation'] = z
-        >>> rmg['link']['topographic__slope'] = s
-        >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
-        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0,
-               0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2], dtype=uint8)
-        >>> rmg.status_at_link # doctest: +NORMALIZE_WHITESPACE
-        array([4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0, 0, 0,
-               0, 0, 0, 2, 4, 0, 0, 0, 0, 0, 0, 0, 4, 2, 0, 0, 0, 0, 0, 0, 2,
-               4, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 4], dtype=uint8)
-        >>> rmg.fixed_link_properties['fixed_gradient_of']
-        'topographic__slope'
-        >>> rmg.fixed_gradient_node_properties['fixed_gradient_of']
-        'topographic__elevation'
-
-        LLCATS: BC SUBSET
-        """
-        # Fixed link boundaries are found between core nodes (node_status==0)
-        # and fixed gradient nodes (node_status==2). To assure these conditions
-        # are met, we store link and node boundary IDs in arrays...
-        fixed_nodes = np.array([], dtype=int)
-
-        # Based on the inputs, we then assign boundary status. Starting
-        # from the right edge (east edge) we look to see if the boolean input
-        # is True or False. If true, we find the appropriate links and nodes
-        # and set them to the boundary condition of FIXED_GRADIENT_BOUNDARY
-        # for nodes and FIXED_LINK for links.
-        if right_is_fixed:
-            fixed_nodes = np.append(fixed_nodes, self.nodes_at_right_edge)
-
-        if top_is_fixed:
-            fixed_nodes = np.append(fixed_nodes, self.nodes_at_top_edge)
-
-        if left_is_fixed:
-            fixed_nodes = np.append(fixed_nodes, self.nodes_at_left_edge)
-
-        if bottom_is_fixed:
-            fixed_nodes = np.append(fixed_nodes, self.nodes_at_bottom_edge)
-
-        fixed_nodes = np.unique(fixed_nodes)
-        fixed_nodes = np.sort(fixed_nodes)
-
-        self.status_at_node[fixed_nodes] = self.BC_NODE_IS_FIXED_GRADIENT
-
-        # Now we are testing to see what values will be assigned to these
-        # boundaries
-
-        fixed_links = self.fixed_links
-
-        # For links, the default is topographic slope ('topographic__slope')
-        # First, see if there is a scalar value...
-        if link_value is None:
-
-            # if not, we assign the link values from the field of
-            # 'topographic_slope'. If it does not exists, an error will be
-            # kicked out.
-            assigned_link_values = self.at_link[fixed_link_value_of][fixed_links]
-
-        else:
-
-            # If there IS a scalar link value, it is instead set here.
-            assigned_link_values = np.ones(fixed_links.size) * link_value
-
-        # For nodes, the default value is 'topographic__elevation'.
-        if node_value is None:
-
-            # If no scalar is found, the field values for
-            # 'topographic__elevation' are used. If this field does not
-            # exist, an error will be returned.
-            assigned_node_values = self.at_node[fixed_node_value_of][fixed_nodes]
-        else:
-
-            # If there is a scalar, it is instead set here.
-            assigned_node_values = np.ones(fixed_nodes.size) * node_value
-
-        # Now we will set the attributes using a Python dictionary.
-        # First, nodes.
-        try:
-            # Simply testing to make sure no boundary conditions exist...
-            self.fixed_gradient_node_properties["boundary_node_IDs"]
-        except AttributeError:
-
-            # If they don't exist, we set them here.
-            self.fixed_gradient_node_properties = {}
-
-            # Setting the node ids in the dictionary.
-            self.fixed_gradient_node_properties["boundary_node_IDs"] = fixed_nodes
-
-            # What gradient was assigned to the nodes? That is set here.
-            self.fixed_gradient_node_properties[
-                "fixed_gradient_of"
-            ] = fixed_node_value_of
-
-            # Assigned gradient values at the nodes set in the dictionary.
-            self.fixed_gradient_node_properties[
-                "boundary_node_gradients"
-            ] = assigned_node_values
-
-        # Then, links
-        try:
-            # First, test to make sure no boundary conditions exist.
-            self.fixed_link_properties["boundary_link_IDs"]
-
-        except AttributeError:
-
-            # If they don't exist, we set them here
-            self.fixed_link_properties = {}
-
-            # Setting the link IDs in the dictionary
-            self.fixed_link_properties["boundary_link_IDs"] = fixed_links
-
-            # What gradient are we assigning to the links? That is set here.
-            self.fixed_link_properties["fixed_gradient_of"] = fixed_link_value_of
-
-            # Assigned gradient values at the links set in the dictionary
-            self.fixed_link_properties["boundary_link_gradients"] = assigned_link_values
 
     def set_watershed_boundary_condition(
         self,
@@ -2749,15 +2340,6 @@ class RasterModelGrid(
         self.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
 
 
-def _is_closed_boundary(boundary_string):
-    """Check if boundary string indicates a closed boundary.
-
-    Helper function, probably depreciated due to changes in BC handling
-    procedures (DEJH, May 14).
-    """
-    return boundary_string.lower() == "closed"
-
-
 def _guess_format_from_name(path):
     """Get file format by name.
 
@@ -2806,50 +2388,6 @@ def _add_format_extension(path, format):
     elif format == "esri-ascii":
         ext = ".asc"
     return base + ext
-
-
-def from_dict(param_dict):
-    """Create a RasterModelGrid from a dict-like object.
-
-    Create a RasterModelGrid from the dictionary-like object, *param_dict*.
-    Required keys of the dictionary are NUM_ROWS, NUM_COLS. Raises a KeyError
-    if either of these are missing is given, use it as the
-    HexModelGrid *dx* parameter, otherwise default to unit spacing.
-
-    Deprecated in version 1.6.X. Will be removed in version 2.0.
-    """
-    msg = (
-        "The non-class method version of 'from_dict' for RasterModelGrid "
-        "was Deprecated in version 1.6.X. Will be removed in version 2.0."
-    )
-    warn(msg, DeprecationWarning)
-
-    # Read and create basic raster grid
-    try:
-        nrows = int(param_dict["NUM_ROWS"])
-        ncols = int(param_dict["NUM_COLS"])
-        spacing = float(param_dict.get("GRID_SPACING", 1.0))
-    except KeyError:
-        raise
-    except ValueError:
-        raise
-    else:
-        grid = RasterModelGrid((nrows, ncols), xy_spacing=spacing)
-
-    # Set boundaries
-    left_boundary_type = param_dict.get("LEFT_BOUNDARY", "open")
-    right_boundary_type = param_dict.get("RIGHT_BOUNDARY", "open")
-    top_boundary_type = param_dict.get("TOP_BOUNDARY", "open")
-    bottom_boundary_type = param_dict.get("BOTTOM_BOUNDARY", "open")
-    grid.set_closed_boundaries_at_grid_edges(
-        _is_closed_boundary(right_boundary_type),
-        _is_closed_boundary(top_boundary_type),
-        _is_closed_boundary(left_boundary_type),
-        _is_closed_boundary(bottom_boundary_type),
-    )
-
-    # Return the created and initialized grid
-    return grid
 
 
 add_module_functions_to_class(RasterModelGrid, "raster_mappers.py", pattern="map_*")

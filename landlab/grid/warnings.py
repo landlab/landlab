@@ -32,35 +32,3 @@ class DeprecatedSignature(DeprecationWarning):
             use = None
 
         return os.linesep + deprecation_message(self.msg, use=use)
-
-
-class DeprecatedRowsColsArguments(DeprecatedSignature):
-
-    msg = """
-Passing num_rows, num_cols as separate arguments
-is deprecated. Instead, pass a tuple of (num_rows, num_cols)
-as the first argument.
-"""
-
-
-class DeprecatedRowsColsKeywords(DeprecatedSignature):
-    msg = """
-Using num_rows, num_cols keywords is deprecated,
-pass a tuple of (num_rows, num_cols) as first argument.
-"""
-
-
-class DeprecatedDxKeyword(DeprecatedSignature):
-    msg = "dx keyword is deprecated, use xy_spacing"
-
-
-class DeprecatedSpacingKeyword(DeprecatedSignature):
-    msg = "spacing keyword is deprecated, use xy_spacing"
-
-
-class DeprecatedSpacingArgument(DeprecatedSignature):
-    msg = "spacing keyword is argument, use xy_spacing"
-
-
-class DeprecatedOriginKeyword(DeprecatedSignature):
-    msg = "origin keyword is deprecated, use xy_of_lower_left"

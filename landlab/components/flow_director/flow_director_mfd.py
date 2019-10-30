@@ -462,27 +462,6 @@ class FlowDirectorMFD(_FlowDirectorToMany):
 
         # Option with diagonals.
         else:
-
-            # need to create a list of diagonal links since it doesn't exist.
-            diag_links = numpy.sort(numpy.unique(self._grid.d8s_at_node[:, 4:]))
-            diag_links = diag_links[diag_links > 0]
-
-            # get diagonal active links (though this actually includes ALL
-            # active links)
-            dal = self._grid.active_d8
-
-            # calculate graidents across diagonals
-            diag_grads = numpy.zeros(diag_links.shape)
-            where_active_diag = dal >= diag_links.min()
-            active_diags_inds = dal[where_active_diag] - diag_links.min()
-            active_diag_grads = self._grid._calculate_gradients_at_d8_active_links(
-                self._surface_values
-            )
-            diag_grads[active_diags_inds] = active_diag_grads[where_active_diag]
-
-            # calculate gradients on orthogonal links
-            ortho_grads = self._grid.calc_grad_at_link(self._surface_values)
-
             # concatenate the diagonal and orthogonal grid elements
             neighbors_at_node = numpy.hstack(
                 (
@@ -490,14 +469,14 @@ class FlowDirectorMFD(_FlowDirectorToMany):
                     self._grid.diagonal_adjacent_nodes_at_node,
                 )
             )
+
             active_link_dir_at_node = numpy.hstack(
                 (
                     self._grid.active_link_dirs_at_node,
                     self._grid.active_diagonal_dirs_at_node,
                 )
             )
-            link_slope = numpy.hstack((ortho_grads, diag_grads))
-
+            link_slope = self._grid.calc_grad_at_d8(self._surface_values)
             links_at_node = self._grid.d8s_at_node
 
         # Step 2. Find and save base level nodes.
