@@ -122,42 +122,71 @@ example_flow_depth = (
 
 
 # %% Ok, now to the tests. 
-### Make a single parcel
+
+#
+y_of_node = (0, 0, 0, 0)
+x_of_node = (0, 100, 200, 300)
+nodes_at_link = ((0,1), (1,2), (2,3))
+
+nmg_constant_slope = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
+
+plt.figure(0)
+graph.plot_graph(nmg_constant_slope, at="node,link")
+
+# add variables to nmg
+nmg_constant_slope.at_node["topographic__elevation"] = [3, 2, 1, 0]
+nmg_constant_slope.at_node["bedrock__elevation"] = [3, 2, 1, 0]
+area = nmg_constant_slope.add_ones("cell_area_at_node", at="node")
+nmg_constant_slope.at_link["drainage_area"] = [10e6, 10e6, 10e6]  # m2
+nmg_constant_slope.at_link["channel_slope"] = [0.001, 0.001, 0.001]
+nmg_constant_slope.at_link["link_length"] = [100, 100, 100]  # m
+
+nmg_constant_slope.at_link["channel_width"] = 15 * np.ones(np.size(nmg_constant_slope.at_link["drainage_area"]))
+
+flow_director = FlowDirectorSteepest(nmg_constant_slope)
+flow_director.run_one_step()
+
+timesteps = 30
+
+example_flow_depth = (
+    np.tile(2, (nmg_constant_slope.number_of_links))
+) * np.tile(1, (timesteps + 1, 1))
+# 2 meter flow depth
 
 time = [0.0]  # probably not the sensible way to do this...
 
 items = {"grid_element": "link",
-         "element_id": np.array([[6],[6]])}
+         "element_id": np.array([[0]])}
 
-initial_volume = np.array([[1],[1]])
-abrasion_rate = np.array([0.0001,0])
+initial_volume = np.array([[1]])
+abrasion_rate = np.array([0])
 
 variables = {
-    "starting_link": (["item_id"], np.array([6,6])),
+    "starting_link": (["item_id"], np.array([0])),
     "abrasion_rate": (["item_id"], abrasion_rate),
-    "density": (["item_id"], np.array([2650,90000])),
-    "time_arrival_in_link": (["item_id", "time"], np.array([[0.5],[0]])),
-    "active_layer": (["item_id", "time"], np.array([[1],[1]])),
-    "location_in_link": (["item_id", "time"], np.array([[0],[0]])),
-    "D": (["item_id", "time"], np.array([[0.05],[0.05]])),
+    "density": (["item_id"], np.array([2650])),
+    "time_arrival_in_link": (["item_id", "time"], np.array([[0.71518937]])),
+    "active_layer": (["item_id", "time"], np.array([[1]])),
+    "location_in_link": (["item_id", "time"], np.array([[0]])),
+    "D": (["item_id", "time"], np.array([[0.05]])),
     "volume": (["item_id", "time"], initial_volume),
 }
 
-two_parcels = DataRecord(
-    example_nmg,
+one_parcel = DataRecord(
+    nmg_constant_slope,
     items=items,
     time=time,
     data_vars=variables,
     dummy_elements={"link": [_OUT_OF_NETWORK]},
 )
-    
-timesteps = 8
 
-example_flow_depth = example_flow_depth*5 # outrageously high transport rate
+timesteps = 11
+
+example_flow_depth = example_flow_depth*5# outrageously high transport rate
 
 nst = NetworkSedimentTransporter(
         example_nmg,
-        two_parcels,
+        one_parcel,
         example_flow_director,
         example_flow_depth,
         bed_porosity=0.03,
@@ -167,28 +196,27 @@ nst = NetworkSedimentTransporter(
         transport_method="WilcockCrowe",
     )
 
-dt = 60 * 60 * 24  # (seconds) daily timestep
+dt = 60 * 15  # (seconds) 15 min timestep
 
 for t in range(0, (timesteps * dt), dt):
-    nst.run_one_step(dt)
-    print("Successfully completed a timestep")
-    # Need to define original_node_elev after a timestep has passed.
-    if t/(60*60*24) == 1:
-        original_parcel_vol = example_parcels.dataset.volume[:,0][0]
-        
+        nst.run_one_step(dt)
 
-# Parcel volume should decrease according to abrasion rate
-volume_after_transport = (np.squeeze(np.transpose(initial_volume)) 
-                          * np.exp(nst._distance_traveled_cumulative
-                                   *-abrasion_rate)
-                          )
+# NEED TO CALCULATE THINGS HERE. 
+        # 2 meter flow depth
+        # 0.01 slope 
+        # link length = 100 m
+        # 0.05 m grain size parcel
+        # 1 m3 parcel volume
+        # timestep = 15 min
+        # notes in notebook. transport distance in 1 min =21.619985271513052
+        # total transport distance = 237.81983798664356 m 
+        # final location in link after 11 timesteps: 0.3781983798664356
+ 
+print("Parcel location in link", 
+      nst._parcels.dataset.location_in_link[0,-1])
 
-print("volume_after_transport", volume_after_transport)
-                          
-assert_array_almost_equal(
-        volume_after_transport,
-        two_parcels.dataset.volume[0:2,-1]
-        )
-
+print("Cumulative distance traveled", 
+      nst._distance_traveled_cumulative)
 
 
+#assert_array_almost_equal(x,y)

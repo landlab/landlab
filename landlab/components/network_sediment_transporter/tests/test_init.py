@@ -282,18 +282,9 @@ def test_abrasion(
             two_parcels.dataset.volume[0:2,-1]
             )
 
-    #
-    # # Parcel should move downstream
-    # assert_equal(
-    #         xxxx,
-    #         xxxx)
-    #
-    # # Parcel should end up out of network
-    # assert_array_equal(
-    #         xxxx,
-    #         xxxx)
-    #
-    # # We should get a 'no parcels' warning
-    # assert_warns(
-    #         xxxx,
-    #         xxxx)
+def test_defined_parcel_transport():
+
+    # NEED TO CALCULATE THINGS HERE. 
+    # Transport distance should match?
+        
+    assert_array_almost_equal(x,y)

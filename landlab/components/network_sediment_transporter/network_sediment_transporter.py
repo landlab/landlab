@@ -11,6 +11,8 @@ Fixes that need to happen:
     -- Check abrasion exponent units (per km or per m?)
 
     -- Channel width-- why is this anything other than a link attribute??
+    
+    -- Flow depth -- double check to make sure we're going through flow depth array correctly
 
     -- JC: I found two items that I think should be changed in the _calc_transport_wilcock_crowe and I made these changes
             - frac_parcels was the inverse of what it should be so instead of a fraction it was a number >1
