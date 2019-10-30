@@ -13,9 +13,10 @@ def test_fixed_link_boundaries_at_grid_edges():
     """test setting fixed link boundaries at grid edges"""
 
     grid = RasterModelGrid((3, 4))
-    grid["node"]["topographic__elevation"] = np.zeros(grid.number_of_nodes)
-    grid["link"]["topographic__slope"] = np.zeros(grid.number_of_links)
-    grid.set_fixed_link_boundaries_at_grid_edges(False, False, False, True)
+    grid.at_node["topographic__elevation"] = np.zeros(grid.number_of_nodes)
+    grid.at_link["topographic__slope"] = np.zeros(grid.number_of_links)
+    grid.status_at_node[grid.nodes_at_bottom_edge] = grid.BC_NODE_IS_FIXED_GRADIENT
+
     assert_array_equal(
         grid.status_at_node, [FG, FG, FG, FG, FV, 0, 0, FV, FV, FV, FV, FV]
     )
