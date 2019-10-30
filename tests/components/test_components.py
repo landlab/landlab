@@ -19,6 +19,7 @@ def test_component_metadata(Comp):
         "HackCalculator",
         "Lithology",
         "LithoLayers",
+        "Profiler",
         "SoilMoisture",
         "Vegetation",
     ):

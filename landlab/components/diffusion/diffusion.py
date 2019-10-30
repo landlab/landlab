@@ -236,14 +236,14 @@ class LinearDiffuser(Component):
             qs = self._grid.zeros(at="link")
             try:
                 self._g = self._grid.add_field(
-                    "link", "topographic__gradient", g, noclobber=True
+                    "topographic__gradient", g, at="link", clobber=False
                 )
                 # ^note this will object if this exists already
             except FieldError:  # keep a ref
                 self._g = self._grid.at_link["topographic__gradient"]
             try:
                 self._qs = self._grid.add_field(
-                    "link", "hillslope_sediment__unit_volume_flux", qs, noclobber=True
+                    "hillslope_sediment__unit_volume_flux", qs, at="link", clobber=False
                 )
             except FieldError:
                 self._qs = self._grid.at_link["hillslope_sediment__unit_volume_flux"]

@@ -17,7 +17,7 @@ def EmptyBaseProfiler():
             return 1
 
         @property
-        def network_ids(self):
+        def nodes(self):
             return 2
 
     return EmptyBaseProfiler
@@ -36,4 +36,4 @@ def test_base_implemented(EmptyBaseProfiler):
     assert isinstance(empty_base, _BaseProfiler)
     empty_base._create_profile_structure()
     assert empty_base.distance_along_profile == 1
-    assert empty_base.network_ids == 2
+    assert empty_base.nodes == 2
