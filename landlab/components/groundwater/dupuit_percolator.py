@@ -321,7 +321,7 @@ class GroundwaterDupuitPercolator(Component):
     @K.setter
     def K(self, new_val):
         """set hydraulic conductivity at link (m/s)"""
-        self._K = new_val
+        self._K = return_array_at_link(self._grid, new_val)
 
     @property
     def recharge(self):
@@ -331,12 +331,18 @@ class GroundwaterDupuitPercolator(Component):
     @recharge.setter
     def recharge(self, new_val):
         """set recharge rate (m/s)"""
-        self._recharge = new_val
+        self._recharge = return_array_at_node(self._grid, new_val)
 
     @property
     def n(self):
         """porosity of the aquifer (-)"""
         return self._n
+
+    @porosity.setter
+    def n(self,new_val):
+        """set aquifer porosity"""
+        self._n = return_array_at_node(self._grid, new_val)
+        self._n_link = map_mean_of_link_nodes_to_link(self._grid, self._n)
 
     def calc_recharge_flux_in(self):
         """
@@ -509,7 +515,7 @@ class GroundwaterDupuitPercolator(Component):
             self._base[self._cores] + self._thickness[self._cores]
         )
 
-    def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.01, **kwds):
+    def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.1, **kwds):
         """
         Advance component by one time step of size dt, subdividing the timestep
         into substeps as necessary to meet a Courant condition.
