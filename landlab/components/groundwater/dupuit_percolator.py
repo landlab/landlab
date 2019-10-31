@@ -132,20 +132,27 @@ class GroundwaterDupuitPercolator(Component):
 
     Notes
     -----
-    Groundwater discharge per unit length, q, is calculated as:
+    Groundwater discharge per unit length, :math:`q`, is calculated as:
 
-        q = - K H ( dH/dx cos(alpha) + sin(alpha) ),
+    .. math::
+        q = -K_{sat} \eta \big( \cos{\alpha} \nabla \eta + \sin{\alpha} \big)
 
-    where K is hydraulic conductivity, H is aquifer thickness, alpha is
-    the slope angle of the aquifer base, and x is horizontal distance.
+    where :math:`K_{sat}` is the saturated hydraulic conductivity, :math:`\eta` is
+    aquifer thickness, and :math:`\alpha` is the slope angle of the aquifer base.
 
-    Surface water discharge per unit area, qs, is calculated as:
+    Surface water discharge per unit area, :math:`q_s`, is calculated as:
 
-        qs = G( H/(Z-Zb) ) * R( f - dq/dx)
+    .. math::
+        q_s = \mathcal{G}_r \bigg( \frac{\eta}{d} \bigg) \mathcal{R} \big(-\nabla \cdot q + f \big)
 
-    where G is a smoothed step function, R is the ramp function, Z is the
-    topographic elevation, Zb is the aquifer base elevation, and f is
-    the recharge rate.
+    where :math:`\mathcal{G}_r` is a smoothed step function, :math:`\mathcal{R}` is the ramp function,
+    :math:`d` is the permeable thickness, and :math:`f` is the recharge rate.
+
+    The evolution of aquifer thickness is then given by:
+    .. math::
+        n \frac{\partial \eta}{\partial t} = - q_s - \nabla \cdot q + f
+
+    where :math:`n` is the drainable porosity.
 
     An explicit forward-in-time finite-volume method is used to implement a
     numerical solution. Flow discharge between neighboring nodes is calculated
