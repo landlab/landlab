@@ -122,7 +122,7 @@ packages
 
 If you prefer to remain with pip, try another pip install
 
-.. code-block:: bash
+.. code-block:: bash #attnKaty
 
     $ pip install landlab
 
