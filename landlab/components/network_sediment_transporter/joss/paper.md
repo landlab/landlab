@@ -1,11 +1,11 @@
 ---
-title: 'NetworkSedimentTransporter: A Landlab submodule for coarse bed material transport through river networks'
+title: 'NetworkSedimentTransporter: A Landlab submodule for bed material transport through river networks'
 tags:
   - Python
   - Landlab
 authors:
   - name: Allison M. Pfeiffer
-    orcid: --
+    orcid: 0000-0002-3974-132X
     affiliation: 1
 
   - name: Katherine R. Barnhart
@@ -13,7 +13,7 @@ authors:
     affiliation: 2, 3
 
   - name: Jon Czuba
-    orcid: ---
+    orcid: 0000-0002-9485-2604
     affiliation: 4
 
 affiliations:
@@ -32,46 +32,28 @@ bibliography: papers.bib
 
 # Summary
 
-Coarse sediment transports downstream through river networks. The transport rate of any particular sediment grain on the river bed surface is a function of both the hydraulics of that reach of river and the size distribution of the other grains in the reach. As sediment transports, grains may be deposited or eroded, burying and exposing other grains, and in the process changing the elevation and slope of each segment of river. This process of river channel evolution through the process of sediment transport is referred to as morphodynamics. Computational morphodynamic models allow for the prediction of sediment pulse transport, such as that which occurs after dam removal or catastrophic landsliding events, as well as the prediction of changes in river channel bed surface grain size.
+Coarse sediment transports downstream through river networks. The transport rate of any particular sediment grain on the river bed surface is a function of both the hydraulics of that reach of river and the size distribution of the other grains in the reach. As sediment transports, grains may be deposited or eroded, burying and exposing other grains, and in the process changing the elevation and slope of each segment of river. This process of river channel evolution through the process of sediment transport is referred to as morphodynamics [@cite]. Computational morphodynamic models allow for the prediction of sediment pulse transport, such as that which occurs after dam removal [@citeCui] or landsliding events[@An2017], as well as the prediction of changes in river channel bed surface grain size.
 
 Over the past two decades, computational morphodynamic models have ...
-[**JON, could you write this paragraph?** ]
-Cui et al. [2006] developed and tested a model for sediment transport following dam removal, separately tracking the grain size of the active layer, subsurface, and bedload.
+[**JON, could you write two sentences here about the history of morphodynamic models?** ]
+Cui et al. [2006] ; Ferguson et al. [2015]
+Enter network models:CASCADE...
+Czuba (2018) introduced a network-based, Lagrangian bed material morphodynamic model that tracks the motion of individual units (referred to as “parcels”) of sediment through the river network. This approach improves on the existing morphodynamic models by: (1) accounting for the full river network, rather than a single longitudinal profile, (2) allowing the user to ‘tag’ particular sediment inputs and track their fate through time. These existing network sediment transport models, however, have two notable drawbacks: 1) they are written in a proprietary scripting language, and 2) they are not explicitly designed to be interoperable with other earth surface models, such as streamflow or landslide models.
 
-Ferguson et al. [2015] developed (**did they really develop, or did that happen in an earlier paper?**)
-a similar model workflow to model the propagation of placer mine tailings through 500 km of the Fraser River in the absence of knowledge of initial channel bed grain size.
-Enter network models:
-CASCADE toolbox..
-Czuba (2018) introduced a network-based, Lagrangian bed material morphodynamic model that tracks the motion of individuals “parcels” of sediment through the river network. This approach improves on the existing morphodynamic models by: (1) accounting for the full river network, rather than a single longitudinal profile, (2) allowing the user to ‘tag’ particular sediment inputs and track their fate through time.
+Here, we present software that overcomes these two drawbacks, translating the Czuba [@Czuba2018] network sediment transport model into Landlab, a modular, Python-based package for the modeling of earth surface dynamics. Landlab is an Open Source Python package for modeling earth surface processes [@Hobley2017Creative]. It was designed as a modular framework, hosting a variety of process components such as flow routing, hillslope diffusion, and stream power erosion that function on a common set of landscape model grids. ``NetworkSedimentTransporter`` is the newest of these components.
 
+In the ``NetworkSedimentTransporter``, sediment 'parcels' are represented as items within the DataRecord, an xarray dataset-based landlab utility [@cite]. Each parcel represents a package of sediment grains of common attributes such as grain diameter, lithology, and density. The parcel transports, is buried, and is eroded as a coherent unit. The river network is represented by the NetworkModelGrid, a landlab [something???], in which segments of river are represented as links, which are joined as nodes.   As parcels transport through links on the network, the elevation of nodes and slope of the links evolves according to addition and removal (deposition and erosion) of parcels from the surrounding links.
 
-These existing models, however, have two notable drawbacks: 1) they are written in a proprietary scripting language, and 2) they are not explicitly designed to be interoperable with other earth surface models, such as streamflow or landslide models. Here, we present software that overcomes these two drawbacks, translating the Czuba network sediment transport model into Landlab, a modular, Python-based package for the modeling of earth surface dynamics.  
+The ``NetworkSedimentTransporter`` builds on the Czuba (2018) model with a small number of minor added functionalities. We have incorporated variable sediment parcel density as well as bed material abrasion, calculating the loss of particle mass during transport downstream as:
+[Sternberg EQUATION: Wx = Wo e^(alpha x)]
+Where x is the downstream transport distance, alpha is the abrasion rate, and Wx and Wo are the resulting and original sediment parcel masses, respectively. In addition, we have incorporated a method for calculating the [active layer thickness]. As in many sediment transport models, Czuba (2018) represents the mobile portion of the grains on the riverbed at any given time as an "active layer" of constant thickness. All grains in this layer are transported, while all grains below this layer remain unmoved. Here, we incorporate the formulation of Wong et al. (2007) to calculate an active layer thickness for each link in the network at each timestep as a function of Shields stress and median grain diameter.
+[Anything else we added?]
 
-The model presented here is nearly identical to the Czuba model, with a small number of minor added functionalities:
-Abrasion
-Active layer depth that varies with shear stress
-
-
-
-Paragraph about Landlab:
-Open Source Python package
-Earth surface dynamics
-[@Hobley2017Creative].
-modular framework built of process components, primarily used for landscape evolution
-New: Network model grid.
-
-
-
-This contribution describes ``NetworkSedimentTransporter``, the Landlab submodule designed to model the motion of sediment "parcels" through the river network. Sediment 'parcels' are represented as items within the DataRecord, an xarray dataset-based landlab utility [cite]. Each parcel represents a package of sediment grains of common attributes such as grain diameter, lithology, and density. The parcel transports, is buried, and is eroded as a coherent unit. The river network is represented by the NetworkModelGrid, a landlab [something???], in which segments of river are represented as links, which are joined as nodes.   As parcels transport through links on the network, the elevation of nodes and slope of the links evolves according to addition and removal (deposition and erosion) of parcels from the surrounding links.
-
-
-
-*********[All I did here was replace  words...]
+**Copied from lithology paper... will need to fill in**
 Source code for ``NetworkSedimentTransporter`` is available as part of the [Landlab python package](https://github.com/landlab/landlab) and can be found in
 the [``NetworkSedimentTransporter`` submodule](https://github.com/landlab/landlab/tree/release/landlab/components/network_sediment_transporter).
 The ``NetworkSedimentTransporter`` submodule is documented using Docstrings, and the documentation can be found on the Landlab [ReadTheDocs site] (https://landlab.readthedocs.io/en/release/landlab.components.lithology.html).
 Unit and docstring tests provide XXX% coverage of this submodule. [Pull Request # XXX](https://github.com/landlab/landlab/pull/XXX) brought the ``NetworkSedimentTransporter`` submodule into the core Landlab source code. The first release version of Landlab that includes the ``NetworkSedimentTransporter`` submodule is tagged as v2.??.
-
 
 The Landlab project maintains a separate repository containing tutorials that
 introduce core concepts and the use of individual submodules. In addition to the
