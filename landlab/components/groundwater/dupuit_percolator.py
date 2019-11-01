@@ -344,6 +344,19 @@ class GroundwaterDupuitPercolator(Component):
         self._n = return_array_at_node(self._grid, new_val)
         self._n_link = map_mean_of_link_nodes_to_link(self._grid, self._n)
 
+    @property
+    def number_of_substeps(self):
+        """
+        The numer of substeps used by the run_with_adaptive_time_step_solver
+        method in the latest method call.
+        """
+        if self._num_substeps:
+            return self._num_substeps
+        else:
+            print('The method run_with_adaptive_time_step_solver has not been used')
+
+        return self._num_substeps
+
     def calc_recharge_flux_in(self):
         """
         Calculate flux into the domain from recharge. Includes recharge that
@@ -415,7 +428,7 @@ class GroundwaterDupuitPercolator(Component):
         Calculate the shear stress Tau based upon the equations: (N/m2)
 
             Tau = rho g S d
-            d = n q / ( dx S^1/2)^3/5
+            d = ( n Q / ( dx S^1/2))^3/5
 
         where rho is the density of water, g is the gravitational constant,
         S is the slope, d is the water depth calculated with manning's equation,
