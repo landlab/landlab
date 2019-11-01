@@ -161,7 +161,7 @@ class GroundwaterDupuitPercolator(Component):
             "optional": False,
             "units": "m/m",
             "mapping": "link",
-            "doc": "gradient of the aquifer base in the link directio",
+            "doc": "gradient of the aquifer base in the link direction",
         },
         "groundwater__specific_discharge": {
             "dtype": float,
