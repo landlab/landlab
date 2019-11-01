@@ -40,7 +40,7 @@ The Release Checklist
 
       $ git tag vX.X.X
 
-   Then, push your tag on `landlab\landlab\release` to the remote.
+   Then, push your tag on `landlab/landlab/release` to the remote.
 
    .. code-block:: bash
 
