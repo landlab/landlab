@@ -475,7 +475,7 @@ class GroundwaterDupuitPercolator(Component):
         """
         if (self._wtable > self._elev).any():
             print('Water table found above ground surface. Reducing water table elevation to ground elevation')
-            self._wtable[self._wtable>self._elev] = self.elev[self._wtable>self._elev]
+            self._wtable[self._wtable>self._elev] = self._elev[self._wtable>self._elev]
             self._thickness[self._cores] = self._wtable[self._cores] - self._aquifer_base__elevation[self._cores]
 
         # Calculate base gradient
@@ -549,7 +549,7 @@ class GroundwaterDupuitPercolator(Component):
 
         if (self._wtable > self._elev).any():
             print('Water table found above ground surface. Reducing water table elevation to ground elevation')
-            self._wtable[self._wtable>self._elev] = self.elev[self._wtable>self._elev]
+            self._wtable[self._wtable>self._elev] = self._elev[self._wtable>self._elev]
             self._thickness[self._cores] = self._wtable[self._cores] - self._aquifer_base__elevation[self._cores]
 
         remaining_time = dt
