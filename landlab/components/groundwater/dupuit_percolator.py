@@ -338,7 +338,7 @@ class GroundwaterDupuitPercolator(Component):
         """porosity of the aquifer (-)"""
         return self._n
 
-    @porosity.setter
+    @n.setter
     def n(self,new_val):
         """set aquifer porosity"""
         self._n = return_array_at_node(self._grid, new_val)
