@@ -172,3 +172,41 @@ def test_symmetry_of_solution():
     assert_almost_equal(tc[5], tc[31])  # SW-NE
     assert_almost_equal(tc[29], tc[7])  # NW-SE
     assert_almost_equal(tc[16], tc[20])  # W-E
+
+
+def test_wt_above_surface():
+    """ test that water tables above the topogrpahic elevation are
+    set to the topographic elevation.
+
+    Notes:
+    ----
+    Water tables above the land surface represent a non-physical condition.
+    The GroundwaterDupuitPercolator will not produce this state when it
+    is the only component operating on water table elevation or topogrpahic
+    elevation, however, when combined with components that do, this may occur.
+    If the water table is above the ground surface at a node, it is set to the ground
+    surface elevation at that node.
+
+    """
+
+    grid = RasterModelGrid((3, 3))
+    grid.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    elev = grid.add_ones("node", "topographic__elevation")
+    wt = grid.add_zeros("node", "water_table__elevation")
+    wt[:] = elev + 1
+
+    # initialize the groundwater model
+    gdp = GroundwaterDupuitPercolator(grid, recharge_rate=0.0)
+    gdp.run_one_step(1)
+    assert_equal(wt[4], 1)
+
+    grid = RasterModelGrid((3, 3))
+    grid.set_closed_boundaries_at_grid_edges(True, True, True, False)
+    elev = grid.add_ones("node", "topographic__elevation")
+    wt = grid.add_zeros("node", "water_table__elevation")
+    wt[:] = elev + 1
+
+    # initialize the groundwater model
+    gdp = GroundwaterDupuitPercolator(grid, recharge_rate=0.0)
+    gdp.run_with_adaptive_time_step_solver(1)
+    assert_equal(wt[4], 1)

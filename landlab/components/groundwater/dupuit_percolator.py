@@ -339,7 +339,7 @@ class GroundwaterDupuitPercolator(Component):
         return self._n
 
     @n.setter
-    def n(self,new_val):
+    def n(self, new_val):
         """set aquifer porosity"""
         self._n = return_array_at_node(self._grid, new_val)
         self._n_link = map_mean_of_link_nodes_to_link(self._grid, self._n)
@@ -353,7 +353,7 @@ class GroundwaterDupuitPercolator(Component):
         if self._num_substeps:
             return self._num_substeps
         else:
-            print('The method run_with_adaptive_time_step_solver has not been used')
+            print("The method run_with_adaptive_time_step_solver has not been used")
 
         return self._num_substeps
 
@@ -474,9 +474,15 @@ class GroundwaterDupuitPercolator(Component):
             The imposed timestep.
         """
         if (self._wtable > self._elev).any():
-            print('Water table found above ground surface. Reducing water table elevation to ground elevation')
-            self._wtable[self._wtable>self._elev] = self._elev[self._wtable>self._elev]
-            self._thickness[self._cores] = self._wtable[self._cores] - self._base[self._cores]
+            print(
+                "Water table found above ground surface. Reducing water table elevation to ground elevation"
+            )
+            self._wtable[self._wtable > self._elev] = self._elev[
+                self._wtable > self._elev
+            ]
+            self._thickness[self._cores] = (
+                self._wtable[self._cores] - self._base[self._cores]
+            )
 
         # Calculate base gradient
         self._base_grad[self._grid.active_links] = self._grid.calc_grad_at_link(
@@ -548,9 +554,15 @@ class GroundwaterDupuitPercolator(Component):
         """
 
         if (self._wtable > self._elev).any():
-            print('Water table found above ground surface. Reducing water table elevation to ground elevation')
-            self._wtable[self._wtable>self._elev] = self._elev[self._wtable>self._elev]
-            self._thickness[self._cores] = self._wtable[self._cores] - self._base[self._cores]
+            print(
+                "Water table found above ground surface. Reducing water table elevation to ground elevation"
+            )
+            self._wtable[self._wtable > self._elev] = self._elev[
+                self._wtable > self._elev
+            ]
+            self._thickness[self._cores] = (
+                self._wtable[self._cores] - self._base[self._cores]
+            )
 
         remaining_time = dt
         self._num_substeps = 0
