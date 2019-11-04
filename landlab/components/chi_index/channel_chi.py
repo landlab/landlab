@@ -171,19 +171,22 @@ class ChiFinder(Component):
             A landlab RasterModelGrid.
         reference_concavity : float
             The reference concavity to use in the calculation.
-        min_drainage_area : float (m**2)
-            The drainage area down to which to calculate chi.
-        reference_area : float or None (m**2)
+        min_drainage_area : float
+            The drainage area down to which to calculate chi (m**2).
+        reference_area : float or None
+            The reference area to which to scale chi (m**2).
             If None, will default to the mean core cell area on the grid.
-            Else, provide a value to use. Essentially becomes a prefactor on the
-            value of chi.
-        use_true_dx : bool (default False)
-            If True, integration to give chi is performed using each value of node
-            spacing along the channel (which can lead to a quantization effect,
-            and is not preferred by Taylor & Royden). If False, the mean value of
-            node spacing along the all channels is assumed everywhere.
-        clobber : bool (default False)
-            Raise an exception if adding an already existing field.
+            Else, provide a value to use. Essentially becomes a prefactor on
+            the value of chi.
+        use_true_dx : bool
+            If True, integration to give chi is performed using each value of
+            node spacing along the channel (which can lead to a quantization
+            effect, and is not preferred by Taylor & Royden). If False, the
+            mean value of node spacing along the all channels is assumed
+            everywhere. Default False.
+        clobber : bool
+            Raise an exception if adding an already existing field. Default
+            False.
 
         """
         super(ChiFinder, self).__init__(grid)
@@ -209,7 +212,9 @@ class ChiFinder(Component):
         self._set_up_reference_area(reference_area)
 
         self._use_true_dx = use_true_dx
-        self._chi = self._grid.add_zeros("node", "channel__chi_index", clobber=clobber)
+        self._chi = self._grid.add_zeros(
+            "node", "channel__chi_index", clobber=clobber
+        )
         self._mask = self._grid.ones("node", dtype=bool)
         self._elev = self._grid.at_node["topographic__elevation"]
 
@@ -245,7 +250,8 @@ class ChiFinder(Component):
         valid_upstr_order = upstr_order[
             self._grid.at_node["drainage_area"][upstr_order] >= min_drainage
         ]
-        valid_upstr_areas = self._grid.at_node["drainage_area"][valid_upstr_order]
+        valid_upstr_areas = self._grid.at_node["drainage_area"][
+            valid_upstr_order]
         if not use_true_dx:
             chi_integrand = (self._A0 / valid_upstr_areas) ** reftheta
             mean_dx = self.mean_channel_node_spacing(valid_upstr_order)
@@ -257,10 +263,13 @@ class ChiFinder(Component):
             chi_integrand[valid_upstr_order] = (
                 self._A0 / valid_upstr_areas
             ) ** reftheta
-            self.integrate_chi_each_dx(valid_upstr_order, chi_integrand, self._chi)
+            self.integrate_chi_each_dx(
+                valid_upstr_order, chi_integrand, self._chi
+            )
         # stamp over the closed nodes, as it's possible they can receive infs
         # if min_drainage_area < grid.cell_area_at_node
-        self._chi[self._grid.status_at_node == self._grid.BC_NODE_IS_CLOSED] = 0.0
+        self._chi[self._grid.status_at_node
+                  == self._grid.BC_NODE_IS_CLOSED] = 0.0
         self._mask[valid_upstr_order] = False
 
     def integrate_chi_avg_dx(
@@ -611,7 +620,9 @@ class ChiFinder(Component):
             )
             good_nodes = ch_nodes
         if plot_line:
-            coeffs = self.best_fit_chi_elevation_gradient_and_intercept(good_nodes)
+            coeffs = self.best_fit_chi_elevation_gradient_and_intercept(
+                good_nodes
+            )
             p = np.poly1d(coeffs)
             chirange = np.linspace(
                 self._chi[good_nodes].min(), self._chi[good_nodes].max(), 100
