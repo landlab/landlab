@@ -161,7 +161,7 @@ class GroundwaterDupuitPercolator(Component):
             "optional": False,
             "units": "m/m",
             "mapping": "link",
-            "doc": "gradient of the aquifer base in the link directio",
+            "doc": "gradient of the aquifer base in the link direction",
         },
         "groundwater__specific_discharge": {
             "dtype": float,
@@ -237,17 +237,17 @@ class GroundwaterDupuitPercolator(Component):
         grid: ModelGrid
             Landlab ModelGrid object
         hydraulic_conductivity: float, field name, or array of float
-                saturated hydraulic conductivity, m/s
-                Default = 0.001 m/s
+            saturated hydraulic conductivity, m/s
+            Default = 0.001 m/s
         porosity: float, field name or array of float
-                the porosity of the aquifer [-]
-                Default = 0.2
+            the porosity of the aquifer [-]
+            Default = 0.2
         recharge_rate: float, field name, or array of float
-                Rate of recharge, m/s
-                Default = 1.0e-8 m/s
+            Rate of recharge, m/s
+            Default = 1.0e-8 m/s
         regularization_f: float
-                factor controlling the smoothness of the transition between
-                surface and subsurface flow
+            factor controlling the smoothness of the transition between
+            surface and subsurface flow
         courant_coefficient: float (-)
             The muliplying factor on the condition that the timestep is
             smaller than the minimum link length over groundwater flow
