@@ -52,7 +52,9 @@ class TaylorNonLinearDiffuser(Component):
     >>> initial_slope=1.0
     >>> leftmost_elev=1000.
     >>> z[:] = leftmost_elev
-    >>> z[:] += (initial_slope * np.amax(mg.x_of_node)) - (initial_slope * mg.x_of_node)
+    >>> z[:] += (
+    ...    (initial_slope * np.amax(mg.x_of_node)) -
+    ...    (initial_slope * mg.x_of_node))
     >>> mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
     >>> cubicflux = TaylorNonLinearDiffuser(mg, slope_crit=0.1)
     >>> cubicflux.run_one_step(1.)
@@ -82,7 +84,8 @@ class TaylorNonLinearDiffuser(Component):
     (if_unstable = 'warn') and a boolean flag that turns on dynamic
     timesteppping (dynamic_dt = False).
 
-    >>> cubicflux.soilflux(2., if_unstable='warn')
+    >>> cubicflux = TaylorNonLinearDiffuser(mg, slope_crit=0.1, if_unstable='warn')
+    >>> cubicflux.run_one_step(2.)
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
@@ -101,14 +104,17 @@ class TaylorNonLinearDiffuser(Component):
     We'll use a steep slope.
 
     >>> z += mg.node_x.copy()**2
-    >>> cubicflux = TaylorNonLinearDiffuser(mg)
+    >>> cubicflux = TaylorNonLinearDiffuser(
+    ...     mg,
+    ...     if_unstable='warn',
+    ...     dynamic_dt=False)
 
     Lets try to move the soil with a large timestep. Without dynamic time
     steps, this gives a warning that we've exceeded the dynamic timestep size
     and should use a smaller timestep. We could either use the smaller timestep,
     or specify that we want to use a dynamic timestep.
 
-    >>> cubicflux.run_one_step(10., if_unstable='warn', dynamic_dt=False)
+    >>> cubicflux.run_one_step(10.)
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
@@ -122,8 +128,11 @@ class TaylorNonLinearDiffuser(Component):
     >>> mg = RasterModelGrid((5, 5))
     >>> z = mg.add_zeros('node', 'topographic__elevation')
     >>> z += mg.node_x.copy()**2
-    >>> cubicflux = TaylorNonLinearDiffuser(mg)
-    >>> cubicflux.run_one_step(10., if_unstable='warn', dynamic_dt=True)
+    >>> cubicflux = TaylorNonLinearDiffuser(
+    ...     mg,
+    ...     if_unstable='warn',
+    ...     dynamic_dt=True)
+    >>> cubicflux.run_one_step(10.)
     >>> np.any(np.isnan(z))
     False
     """
@@ -157,7 +166,16 @@ class TaylorNonLinearDiffuser(Component):
         },
     }
 
-    def __init__(self, grid, linear_diffusivity=1.0, slope_crit=1.0, nterms=2):
+    def __init__(
+        self,
+        grid,
+        linear_diffusivity=1.0,
+        slope_crit=1.0,
+        nterms=2,
+        dynamic_dt=False,
+        if_unstable="pass",
+        courant_factor=0.2,
+    ):
         """Initialize the TaylorNonLinearDiffuser.
 
         Parameters
@@ -174,6 +192,15 @@ class TaylorNonLinearDiffuser(Component):
             number of terms in the Taylor expansion.
             Two terms (Default) gives the behavior
             described in Ganti et al. (2012).
+        dynamic_dt : boolean (optional, default is False)
+            Keyword argument to turn on or off dynamic time-stepping.
+        if_unstable : string (optional, default is "pass")
+            Keyword argument to determine how potential instability due to
+            slopes that are too high is handled. Options are "pass", "warn",
+            and "raise".
+        courant_factor : float (optional, default = 0.2)
+            Factor to identify stable time-step duration when using dynamic
+            timestepping.
         """
         super(TaylorNonLinearDiffuser, self).__init__(grid)
 
@@ -182,6 +209,9 @@ class TaylorNonLinearDiffuser(Component):
         self._K = linear_diffusivity
         self._slope_crit = slope_crit
         self._nterms = nterms
+        self._dynamic_dt = dynamic_dt
+        self._courant_factor = courant_factor
+        self._if_unstable = if_unstable
 
         # Create fields:
 
@@ -200,22 +230,13 @@ class TaylorNonLinearDiffuser(Component):
         else:
             self._flux = self._grid.add_zeros("link", "soil__flux")
 
-    def soilflux(self, dt, dynamic_dt=False, if_unstable="pass", courant_factor=0.2):
+    def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.
 
         Parameters
         ----------
         dt: float (time)
             The imposed timestep.
-        dynamic_dt : boolean (optional, default is False)
-            Keyword argument to turn on or off dynamic time-stepping.
-        if_unstable : string (optional, default is "pass")
-            Keyword argument to determine how potential instability due to
-            slopes that are too high is handled. Options are "pass", "warn",
-            and "raise".
-        courant_factor : float (optional, default = 0.2)
-            Factor to identify stable time-step duration when using dynamic
-            timestepping.
         """
         # establish time left as all of dt
         time_left = dt
@@ -242,11 +263,15 @@ class TaylorNonLinearDiffuser(Component):
             # Calculate De Max
             De_max = self._K * (courant_slope_term)
             # Calculate longest stable timestep
-            self._dt_max = courant_factor * (self._grid.dx ** 2) / De_max
+            self._dt_max = self._courant_factor * (self._grid.dx ** 2) / De_max
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
-            if (self._dt_max < dt) and (not dynamic_dt) and (if_unstable != "pass"):
+            if (
+                (self._dt_max < dt)
+                and (not self._dynamic_dt)
+                and (self._if_unstable != "pass")
+            ):
                 message = (
                     "Topographic slopes are high enough such that the "
                     "Courant condition is exceeded AND you have not "
@@ -257,13 +282,13 @@ class TaylorNonLinearDiffuser(Component):
                     "Courant condition recommends a timestep of "
                     "" + str(self._dt_max) + " or smaller."
                 )
-                if if_unstable == "raise":
+                if self._if_unstable == "raise":
                     raise RuntimeError(message)
-                if if_unstable == "warn":
+                if self._if_unstable == "warn":
                     print(message)
 
             # if dynamic dt is selected, use it, otherwise, use the entire time
-            if dynamic_dt:
+            if self._dynamic_dt:
                 self._sub_dt = np.min([dt, self._dt_max])
                 time_left -= self._sub_dt
             else:
@@ -299,14 +324,5 @@ class TaylorNonLinearDiffuser(Component):
         ----------
         dt: float (time)
             The imposed timestep.
-        dynamic_dt : boolean (optional, default is False)
-            Keyword argument to turn on or off dynamic time-stepping.
-        if_unstable : string (optional, default is "pass")
-            Keyword argument to determine how potential instability due to
-            slopes that are too high is handled. Options are "pass", "warn",
-            and "raise".
-        courant_factor : float (optional, default = 0.2)
-            Factor to identify stable time-step duration when using dynamic
-            timestepping.
         """
         self.soilflux(dt)
