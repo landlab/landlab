@@ -48,7 +48,7 @@ def get_link_hydraulic_conductivity(grid, K):
 
 
 class GroundwaterDupuitPercolator(Component):
-    """
+    r"""
     Simulate groundwater flow in a shallow unconfined aquifer.
 
     The GroundwaterDupuitPercolator solves the Boussinesq equation for
