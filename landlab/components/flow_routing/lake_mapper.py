@@ -24,6 +24,8 @@ from landlab.core.model_parameter_dictionary import MissingKeyError
 from landlab.core.utils import as_id_array
 from landlab.grid.base import BAD_INDEX_VALUE as LOCAL_BAD_INDEX_VALUE
 
+from .cfuncs import find_lowest_node_on_lake_perimeter_c
+
 # Codes for depression status
 _UNFLOODED = 0
 _PIT = 1
@@ -415,6 +417,24 @@ class DepressionFinderAndRouter(Component):
         -------
         int
             The lowest node on the perimeter of a depression.
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator, DepressionFinderAndRouter
+        >>> mg = RasterModelGrid((7, 7), xy_spacing=0.5)
+        >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
+        >>> z += 0.01 * mg.node_y
+        >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
+        >>> fr = FlowAccumulator(mg, flow_director='D8')
+        >>> fr.run_one_step()  # the flow "gets stuck" in the hole
+        >>> df = DepressionFinderAndRouter(mg)
+        >>> nodes_this_depression = [16, ]
+        >>> df.find_lowest_node_on_lake_perimeter(nodes_this_depression)
+        23
+        >>> nodes_this_depression.append(8)
+        >>> df.find_lowest_node_on_lake_perimeter(nodes_this_depression)
+        0
         """
         # Start with the first node on the list, and an arbitrarily large elev
         lowest_node = nodes_this_depression[0]
@@ -770,11 +790,6 @@ class DepressionFinderAndRouter(Component):
         pit_node : int
             The node that is the lowest point of a pit.
         """
-
-        # Place pit_node at top of depression list
-        nodes_this_depression = []
-        nodes_this_depression.insert(0, pit_node)
-
         # Flag the pit as being _CURRENT_LAKE (it's the first node in the
         # current lake)
         self.flood_status[pit_node] = _CURRENT_LAKE
@@ -786,9 +801,19 @@ class DepressionFinderAndRouter(Component):
         count = 0
         max_count = self._grid.number_of_nodes + 1
 
+        # Place pit_node at top of depression list
+        nodes_this_depression = self.grid.zeros('node', dtype=int)
+        nodes_this_depression[0] = pit_node
+        pit_count = 1
+
         while not found_outlet:
-            lowest_node_on_perimeter = self.find_lowest_node_on_lake_perimeter(
-                nodes_this_depression
+            lowest_node_on_perimeter, pit_count = find_lowest_node_on_lake_perimeter_c(
+                self._node_nbrs,
+                self.flood_status,
+                self._elev,
+                nodes_this_depression,
+                pit_count,
+                self._BIG_ELEV
             )
             # note this can return the supplied node, if - somehow - the
             # surrounding nodes are all LOCAL_BAD_INDEX_VALUE
@@ -798,8 +823,9 @@ class DepressionFinderAndRouter(Component):
             # If we haven't found an outlet, add lowest_node to the lake list
             # and flag it as being part of the current lake/depression
             if not found_outlet:
-                nodes_this_depression.append(lowest_node_on_perimeter)
+                nodes_this_depression[pit_count] = lowest_node_on_perimeter
                 self.flood_status[lowest_node_on_perimeter] = _CURRENT_LAKE
+                pit_count += 1
 
             # If we HAVE found an outlet, and we are re-routing flow, then
             # assign the proper flow direction to the outlet node. If it is an
@@ -822,7 +848,7 @@ class DepressionFinderAndRouter(Component):
         # Now that we've mapped this depression, record it in the arrays
         # depression_depth, depression_outlet, and flood_status
         self._record_depression_depth_and_outlet(
-            nodes_this_depression, lowest_node_on_perimeter, pit_node
+            nodes_this_depression[:pit_count], lowest_node_on_perimeter, pit_node
         )
 
         # TODO: ideally we need a way to keep track of the number, area extent,
