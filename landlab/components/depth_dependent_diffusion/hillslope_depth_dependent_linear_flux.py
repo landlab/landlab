@@ -30,9 +30,9 @@ class DepthDependentDiffuser(Component):
     ----------
     grid: ModelGrid
         Landlab ModelGrid object
-    linear_diffusivity: float
+    linear_diffusivity: float. Default is 1.
         Hillslope diffusivity, m**2/yr
-    soil_transport_decay_depth: float
+    soil_transport_decay_depth: float. Default is 1.
         Characteristic transport soil depth, m
 
     Examples
@@ -50,7 +50,7 @@ class DepthDependentDiffuser(Component):
     >>> expweath.calc_soil_prod_rate()
     >>> np.allclose(mg.at_node['soil_production__rate'][mg.core_nodes], 1.)
     True
-    >>> DDdiff.soilflux(2.)
+    >>> DDdiff.run_one_step(2.)
     >>> np.allclose(mg.at_node['topographic__elevation'][mg.core_nodes], 0.)
     True
     >>> np.allclose(mg.at_node['bedrock__elevation'][mg.core_nodes], -2.)
@@ -74,7 +74,7 @@ class DepthDependentDiffuser(Component):
     ...     mg.at_node['soil_production__rate'][mg.core_nodes],
     ...     np.array([ 0.60653066,  0.36787944,  0.22313016]))
     True
-    >>> DDdiff.soilflux(2.)
+    >>> DDdiff.run_one_step(2.)
     >>> np.allclose(
     ...     mg.at_node['topographic__elevation'][mg.core_nodes],
     ...     np.array([ 1.47730244,  2.28949856,  3.17558975]))
@@ -96,14 +96,16 @@ class DepthDependentDiffuser(Component):
     >>> soilTh[:] = z - BRz
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentDiffuser(mg, soil_transport_decay_depth = 0.1)
-    >>> DDdiff.soilflux(1)
-    >>> soil_decay_depth_point1 = mg.at_node['topographic__elevation'][mg.core_nodes]
+    >>> DDdiff.run_one_step(1.)
+    >>> soil_decay_depth_point1 = (
+    ...     mg.at_node['topographic__elevation'][mg.core_nodes]
+    ... )
     >>> z[:] = 0
     >>> z += mg.node_x.copy()**0.5
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
     >>> DDdiff = DepthDependentDiffuser(mg, soil_transport_decay_depth = 1.0)
-    >>> DDdiff.soilflux(1)
+    >>> DDdiff.run_one_step(1.)
     >>> soil_decay_depth_1 = mg.at_node['topographic__elevation'][mg.core_nodes]
     >>> np.greater(soil_decay_depth_1[1], soil_decay_depth_point1[1])
     False
@@ -162,8 +164,21 @@ class DepthDependentDiffuser(Component):
         },
     }
 
-    def __init__(self, grid, linear_diffusivity=1.0, soil_transport_decay_depth=1.0):
-        """Initialize the DepthDependentDiffuser."""
+    def __init__(self,
+                 grid,
+                 linear_diffusivity=1.0,
+                 soil_transport_decay_depth=1.0):
+        """
+        Initialize the DepthDependentDiffuser.
+        Parameters
+        ----------
+        grid: ModelGrid
+            Landlab ModelGrid object
+        linear_diffusivity: float
+            Hillslope diffusivity, m**2/yr
+        soil_transport_decay_depth: float
+            Characteristic transport soil depth, m
+        """
         super(DepthDependentDiffuser, self).__init__(grid)
         # Store grid and parameters
 
@@ -195,11 +210,11 @@ class DepthDependentDiffuser(Component):
             self._bedrock = self._grid.add_zeros("node", "bedrock__elevation")
 
     def soilflux(self, dt):
-        """Calculate soil flux for a time period 'dt'.
+        """Calculate soil flux for a time period 'dt'. This is wrapped by the
+        :func:`run_one_step` method for consistency in Landlab v.2.
 
         Parameters
         ----------
-
         dt: float (time)
             The imposed timestep.
         """
@@ -246,11 +261,13 @@ class DepthDependentDiffuser(Component):
 
         # Update topography
         self._elev[self._grid.core_nodes] = (
-            self._depth[self._grid.core_nodes] + self._bedrock[self._grid.core_nodes]
+            self._depth[self._grid.core_nodes]
+            + self._bedrock[self._grid.core_nodes]
         )
 
     def run_one_step(self, dt):
-        """
+        """Calculate soil flux for a time period 'dt'. This is the primary
+        method of the component.
 
         Parameters
         ----------
