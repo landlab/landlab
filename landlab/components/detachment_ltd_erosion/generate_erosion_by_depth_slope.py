@@ -1,26 +1,31 @@
 """Calculates erosion rate as a function of the depth-slope product.
 
-Erosion rate = k_e * ((Tau**a - Tau_crit**a))
+.. math::
 
-k_e = erodibility coefficient
-Tau = bed shear stress
-    = density of fluid (rho) * gravitational acceleration (g) * water depths (h) * slopes (S)
-Tau_crit = critical shear stress
-a = positive exponent
+    E = k_e ((\tau ^ a - \tau_crit ^ a))
+    \tau = \rho g h S
 
-Note this equation was presented in Tucker, G.T., 2004, Drainage basin
-sensitivityto tectonic and climatic forcing: Implications of a stochastic
+where :math:`E` is erosion rate, :math:`k_e` is an erodibility coefficient,
+:math:`\tau` is bed shear stress,
+:math:`\tau_crit` is a critical bed shear stress, :math:`a` is a
+positive exponent, :math:`\rho` is density of fluid, :math:`g` is gravitational
+acceleration, :math:`h` is water depth, and :math:`S` is bed slope.
+
+This equation was presented in Tucker, G.T., 2004, Drainage basin
+sensitivity to tectonic and climatic forcing: Implications of a stochastic
 model for the role of entrainment and erosion thresholds,
 Earth Surface Processes and Landforms.
 
-More generalized than other erosion components, as it doesn't require the
+This component is more generalized than other erosion components, as it
+doesn't require the
 upstream node order, links to flow receiver and flow receiver fields. Instead,
 takes in the water depth and slope fields on NODES calculated by the
 OverlandFlow class and erodes the landscape in response to the hydrograph
 generted by that method.
 
-As of right now, this component relies on the OverlandFlow component
-for stability. There are no stability criteria implemented in this class.
+As of this most recent version, this component relies on the OverlandFlow
+component for stability. There are no stability criteria implemented in this
+class.
 To ensure model stability, use StreamPowerEroder or FastscapeEroder
 components instead.
 
@@ -64,11 +69,16 @@ Now we'll add an arbitrary water depth field on top of that topography.
 Using the set topography, now we will calculate slopes on all nodes.
 
 First calculating slopes on links
->>> grid.at_link['water_surface__slope'] = grid.calc_grad_at_link('surface_water__depth')
+>>> grid.at_link['water_surface__slope'] = grid.calc_grad_at_link(
+...     'surface_water__depth'
+... )
 
 Now putting slopes on nodes
 
->>> grid['node']['water_surface__slope'] = (grid['link']['water_surface__slope'][grid.links_at_node] * grid.active_link_dirs_at_node).max(axis=1) # doctest: +NORMALIZE_WHITESPACE
+>>> grid['node']['water_surface__slope'] = (
+...     grid['link']['water_surface__slope'][grid.links_at_node]
+...     * grid.active_link_dirs_at_node
+... ).max(axis=1) # doctest: +NORMALIZE_WHITESPACE
 >>> grid.at_node['water_surface__slope']
 array([ 0.,  1.,  1.,  1.,  0., -0.,  1.,  1.,  1.,  0., -0.,  1.,  1.,
         1.,  0., -0.,  1.,  1.,  1.,  0.,  0.,  0.,  0.,  0.,  0.])
@@ -146,17 +156,15 @@ class DepthSlopeProductErosion(Component):
         },
     }
 
-    def __init__(
-        self,
-        grid,
-        k_e=0.001,
-        fluid_density=1000.0,
-        g=scipy.constants.g,
-        a_exp=1.0,
-        tau_crit=0.0,
-        uplift_rate=0.0,
-        slope="topographic__slope",
-    ):
+    def __init__(self,
+                 grid,
+                 k_e=0.001,
+                 fluid_density=1000.0,
+                 g=scipy.constants.g,
+                 a_exp=1.0,
+                 tau_crit=0.0,
+                 uplift_rate=0.0,
+                 slope="topographic__slope"):
         """Calculate detachment limited erosion rate on nodes using the shear
         stress equation, solved using the depth slope product.
 
@@ -171,19 +179,19 @@ class DepthSlopeProductErosion(Component):
         ----------
         grid : RasterModelGrid
             A landlab grid.
-        k_e : float
+        k_e : float. Default is 0.001.
             Erodibility parameter, (m^(1+a_exp)*s^(2*a_exp-1)/kg^a_exp)
-        fluid_density : float, optional
+        fluid_density : float, optional. Default is 1000.
             Density of fluid, default set to water density of 1000 kg / m^3
-        g : float, optional
+        g : float, optional. Default is Earth g.
             Acceleration due to gravity (m/s^2).
-        a_exp : float, optional
+        a_exp : float, optional. Default is 1.
             exponent on shear stress, positive, unitless
-        tau_crit : float, optional
+        tau_crit : float, optional. Default is 0.
             threshold for sediment movement, (kg/m/s^2)
-        uplift_rate : float, optional
+        uplift_rate : float, optional. Default is 0.
             uplift rate applied to the topographic surface, m/s
-        slope : str
+        slope : str. Default is 'topographic__slope'
             Field name of an at-node field that contains the slope.
         """
         super(DepthSlopeProductErosion, self).__init__(grid)
