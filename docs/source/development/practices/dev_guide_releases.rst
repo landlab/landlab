@@ -4,113 +4,76 @@
 How to create a Landlab release
 ===============================
 
-New releases are built and uploaded to
-`Anaconda.org <https://anaconda.org/landlab/landlab>`_ whenever a new tag
-that starts with the letter ``v`` is
-`created and pushed to <https://git-scm.com/book/en/v2/Git-Basics-Tagging>`_
-`GitHub <https://github.com/landlab/landlab>`_. As an example, the following
-will cause a new release to be built:
-
-.. code-block:: bash
-
-    $ git tag v0.1.1 # Create the tag locally
-    $ git push --tags # Push the tag to the remote
-
-A new release is created (``v0.1.1``) and the tag pushed to GitHub.
-`Travis-CI <https://travis-ci.org/landlab/landlab>`_ notices the tagged commit,
-and after building and testing the package, creates a fresh new package that
-is uploaded to `Anaconda.org <https://anaconda.org/landlab/landlab>`_.
-
-.. note::
-
-  Although you can create such a tag on any branch, releases should **only**
-  come from the ``release`` branch. Make sure that when you create a tag
-  you are doing so on ``release`` (and all your changes are committed).
-
-A couple notes about creating a new version:
-
-1. Landlab follows `Semantic Versioning <https://semver.org/>`_
-   rules for version assignment and formatting. Please stick to them.
-
-2. The version given in the tag name must match that in
-   ``landlab/__init__.py``. The version must also be changed in
-   ``.conda-recipe/meta.yaml``. However, ``meta.yaml`` doesn't like dashes
-   so if your version contains a dash just leave it out in this file
-   (for example ``1.0.0-beta.6`` becomes ``1.0.0beta.6``).
-
-3. If you mess up (forget to update all the version strings scattered
-   throughout the code, for example), you can always `delete the tag and
-   recreate it <https://git-scm.com/docs/git-tag>`_. To do this, you'll
-   need to delete both the remote tag and the local tag.
-
-   .. code-block:: bash
-
-      $ git push --delete origin <tagname> # Delete the tag on the remote repository
-      $ git tag --delete <tagname> # Delete the tag from the local repository
-
-   where ``<tagname>`` is the name of your tag (``v0.1.1``, for example).
-
-4. If your new tag was successfully pushed to GitHub, you will be able to see
-   it with the rest of the
-   `releases <https://github.com/landlab/landlab/releases>`_ and
-   `tags <https://github.com/landlab/landlab/tags>`_.
-
-5. To see if your new release was created successfully, you can do one or all
-   of the following:
-
-   *  Check the logs for the build of your tagged commit on
-      `Travis-CI <https://travis-ci.org/landlab/landlab>`_.
-   *  Check `Anaconda.org <https://anaconda.org/landlab/landlab>`_ to see
-      if your release appears there.
-   *  Check if `conda` can see your new release with
-      ``conda search landlab -c landlab``. See the
-      `conda docs <https://docs.conda.io/en/latest/>`_
-      for a description of ``conda`` and how to use it, or you can always use
-      ``conda -h`` from the command line.
-
 The Release Checklist
-=====================
-1. Make sure you are on the ``release`` branch.
+---------------------
+
+1. Start by updating the tutorials repository. To do this, locally checkout
+   the tutorials repo and merge `landlab/tutorials/next` into
+   `landlab/tutorials/release`.
+
+   Edit the commit message to include `[skip ci]` and push these changes to the
+   tutorials remote.
+
+   **Note: We add the `[skip ci]` because if there are changes in
+   `landlab/landlab/master` that are not yet in a distributed version of
+   landlab, we do not expect the tutorials repository to pass continuous
+   integration.**
+
+2. Next go to GitHub and use it to create a pull request that brings the
+   changes associated with `landlab/landlab/master` into
+   `landlab/landlab/release`. This pull request will include testing the
+   `release` version of the source code against the `release` version of the
+   tutorials repository.
+
+3. Assuming the continuous integration from step 2 passes, merge the pull
+   request into `landlab/landlab/release`.
+
+4. Next, decide what new version number is appropriate
+   based on `Semantic Versioning <https://semver.org/>`_.
+
+   This can either be done locally or on the GitHub website. Here are
+   instructions to do this locally:
+
+   In the `landlab/landlab` repository, checkout the release branch and tag it.
 
    .. code-block:: bash
 
-      $ git checkout release
+      $ git tag vX.X.X
 
-2. Merge ``master`` into release.
-
-.. code-block:: bash
-
-   $ git merge master
-
-3. Decide what new version number is appropriate based on
-   `Semantic Versioning <https://semver.org/>`_. Previously
-   updating the version number was done by hand, but now
-   this is done automatically.
-
-4. Commit your changes.
-
-5. Create a tag for this release that matches the string in ``__init__.py``
-   but that starts with the letter ``v``.
-
-   .. code-block:: bash
-
-      $ git tag v0.1.1
-
-6. Push your tag to the remote.
+   Then, push your tag on `landlab/landlab/release` to the remote.
 
    .. code-block:: bash
 
       $ git push --tags
 
-7. Checkout ``master`` and merge ``release`` into it.
+5. This will trigger both standard Landlab CI and a deploy stage that uploads
+   wheels to PyPI. A new PR will be autogenerated in the landlab-feedstock on
+   conda-forge.
 
-.. code-block:: bash
+   * Assuming its tests pass, merge the PR autogenerated in the landlab-feedstock.
 
-   $ git checkout master
-   $ git merge release
+   * Verify the builds on PyPI and on conda-forge.
+
+6. Once the builds are available, go to the tutorials repo and tag the
+   `landlab\tutorial\release` branch with the same number you used for the main
+   repo. You can do this locally or with GitHub's website.
+
+   Verify that these builds pass in the tutorials repository. If they do, you
+   are done.
+
+Notes
+-----
+
+1. Although you can create such a tag on any branch, releases should **only**
+   come from the ``release`` branch. Make sure that when you create a tag
+   you are doing so on ``release`` (and all your changes are committed).
+
+2. Landlab follows `Semantic Versioning <https://semver.org/>`_
+   rules for version assignment and formatting. Please stick to them.
+
 
 Helpful links
-=============
+-------------
 
 1. `Using conda <https://docs.conda.io/en/latest/>`_: What
    `conda` is and how to use it.

@@ -93,7 +93,7 @@ class _FlowDirector(Component):
         self._surface = surface
         self._surface_values = return_array_at_node(grid, surface)
 
-        grid.add_zeros("flow__sink_flag", at="node", dtype=bool, noclobber=False)
+        grid.add_zeros("flow__sink_flag", at="node", dtype=bool, clobber=True)
 
     @property
     def surface_values(self):

@@ -78,7 +78,7 @@ class ChiFinder(Component):
     ...     use_true_dx=True,
     ...     reference_concavity=0.5,
     ...     reference_area=mg2.at_node['drainage_area'].max(),
-    ...     noclobber=False)
+    ...     clobber=True)
     >>> cf3.calculate_chi()
     >>> cf3.chi_indices.reshape(mg2.shape)  # doctest: +NORMALIZE_WHITESPACE
     array([[   0. ,   0.        ,   0.        ,   0. ,   0. ],
@@ -162,7 +162,7 @@ class ChiFinder(Component):
         min_drainage_area=1.0e6,
         reference_area=1.0,
         use_true_dx=False,
-        noclobber=True,
+        clobber=False,
     ):
         """
         Parameters
@@ -182,7 +182,7 @@ class ChiFinder(Component):
             spacing along the channel (which can lead to a quantization effect,
             and is not preferred by Taylor & Royden). If False, the mean value of
             node spacing along the all channels is assumed everywhere.
-        noclobber : bool (default True)
+        clobber : bool (default False)
             Raise an exception if adding an already existing field.
 
         """
@@ -209,9 +209,7 @@ class ChiFinder(Component):
         self._set_up_reference_area(reference_area)
 
         self._use_true_dx = use_true_dx
-        self._chi = self._grid.add_zeros(
-            "node", "channel__chi_index", noclobber=noclobber
-        )
+        self._chi = self._grid.add_zeros("node", "channel__chi_index", clobber=clobber)
         self._mask = self._grid.ones("node", dtype=bool)
         self._elev = self._grid.at_node["topographic__elevation"]
 

@@ -236,14 +236,14 @@ class LinearDiffuser(Component):
             qs = self._grid.zeros(at="link")
             try:
                 self._g = self._grid.add_field(
-                    "link", "topographic__gradient", g, noclobber=True
+                    "topographic__gradient", g, at="link", clobber=False
                 )
                 # ^note this will object if this exists already
             except FieldError:  # keep a ref
                 self._g = self._grid.at_link["topographic__gradient"]
             try:
                 self._qs = self._grid.add_field(
-                    "link", "hillslope_sediment__unit_volume_flux", qs, noclobber=True
+                    "hillslope_sediment__unit_volume_flux", qs, at="link", clobber=False
                 )
             except FieldError:
                 self._qs = self._grid.at_link["hillslope_sediment__unit_volume_flux"]
@@ -343,7 +343,7 @@ class LinearDiffuser(Component):
         True
         >>> mg.at_link['topographic__slope'] = mg.calc_grad_at_link(
         ...     'topographic__elevation')
-        >>> mg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+        >>> mg.status_at_node[mg.perimeter_nodes] = mg.BC_NODE_IS_FIXED_GRADIENT
         >>> ld.updated_boundary_conditions()
         >>> ld.fixed_grad_nodes
         array([ 1,  2,  3,  5,  9, 10, 14, 16, 17, 18])

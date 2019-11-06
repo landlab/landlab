@@ -97,7 +97,7 @@ def test_flow__distance_regular_grid_d8():
 
     # calculating flow distance map
 
-    flow__distance = calculate_flow__distance(mg, add_to_grid=True, noclobber=False)
+    flow__distance = calculate_flow__distance(mg, add_to_grid=True, clobber=True)
     flow__distance = np.reshape(
         flow__distance, mg.number_of_node_rows * mg.number_of_node_columns
     )
@@ -153,7 +153,7 @@ def test_flow__distance_regular_grid_d4():
 
     # calculating flow distance map
 
-    flow__distance = calculate_flow__distance(mg, add_to_grid=True, noclobber=False)
+    flow__distance = calculate_flow__distance(mg, add_to_grid=True, clobber=True)
     flow__distance = np.reshape(
         flow__distance, mg.number_of_node_rows * mg.number_of_node_columns
     )
@@ -214,7 +214,7 @@ def test_flow__distance_irregular_grid_d4():
 
     # calculating flow distance map
 
-    flow__distance = calculate_flow__distance(hmg, add_to_grid=True, noclobber=False)
+    flow__distance = calculate_flow__distance(hmg, add_to_grid=True, clobber=True)
 
     # test that the flow__distance utility works as expected
 
@@ -274,7 +274,7 @@ def test_flow__distance_raster_MFD_diagonals_true():
 
     # calculating flow distance map
 
-    flow__distance = calculate_flow__distance(mg, add_to_grid=True, noclobber=False)
+    flow__distance = calculate_flow__distance(mg, add_to_grid=True, clobber=True)
 
     # test that the flow__distance utility works as expected
 
@@ -328,7 +328,7 @@ def test_flow__distance_raster_MFD_diagonals_false():
 
     # calculating flow distance map
 
-    flow__distance = calculate_flow__distance(mg, add_to_grid=True, noclobber=False)
+    flow__distance = calculate_flow__distance(mg, add_to_grid=True, clobber=True)
 
     # test that the flow__distance utility works as expected
 
@@ -378,7 +378,7 @@ def test_flow__distance_raster_D_infinity():
     # calculating flow distance map
 
     flow__distance = calculate_flow__distance(
-        mg, add_to_grid=True, noclobber=False
+        mg, add_to_grid=True, clobber=True
     ).reshape(mg.shape)
 
     # test that the flow__distance utility works as expected
