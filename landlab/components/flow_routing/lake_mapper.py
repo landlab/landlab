@@ -27,6 +27,8 @@ from landlab.grid.base import BAD_INDEX_VALUE as LOCAL_BAD_INDEX_VALUE
 from .cfuncs import find_lowest_node_on_lake_perimeter_c
 
 # Codes for depression status
+# Note these are also hard-coded in the cfuncs, so if changed here be sure to
+# change there as well
 _UNFLOODED = 0
 _PIT = 1
 _CURRENT_LAKE = 2
@@ -158,7 +160,8 @@ class DepressionFinderAndRouter(Component):
     _var_doc = {
         "topographic__elevation": "Surface topographic elevation",
         "depression__depth": "Depth of depression below its spillway point",
-        "depression__outlet_node": "If a depression, the id of the outlet node for that depression, "
+        "depression__outlet_node": """If a depression, the id of the outlet
+            node for that depression, """
         "otherwise BAD_INDEX_VALUE",
     }
 
@@ -807,13 +810,13 @@ class DepressionFinderAndRouter(Component):
         pit_count = 1
 
         while not found_outlet:
-            lowest_node_on_perimeter, pit_count = find_lowest_node_on_lake_perimeter_c(
-                self._node_nbrs,
-                self.flood_status,
-                self._elev,
-                nodes_this_depression,
-                pit_count,
-                self._BIG_ELEV
+            lowest_node_on_perimeter, pit_count = (
+                find_lowest_node_on_lake_perimeter_c(self._node_nbrs,
+                                                     self.flood_status,
+                                                     self._elev,
+                                                     nodes_this_depression,
+                                                     pit_count,
+                                                     self._BIG_ELEV)
             )
             # note this can return the supplied node, if - somehow - the
             # surrounding nodes are all LOCAL_BAD_INDEX_VALUE
@@ -833,7 +836,8 @@ class DepressionFinderAndRouter(Component):
             # assign_outlet_receiver to find the correct receiver (so that it
             # doesn't simply drain back into the lake)
             elif ("flow__receiver_node" in self._grid.at_node) and reroute_flow:
-                if self._grid.status_at_node[lowest_node_on_perimeter] != CORE_NODE:
+                if self._grid.status_at_node[
+                        lowest_node_on_perimeter] != CORE_NODE:
                     self._grid.at_node["flow__receiver_node"][
                         lowest_node_on_perimeter
                     ] = lowest_node_on_perimeter
@@ -848,7 +852,8 @@ class DepressionFinderAndRouter(Component):
         # Now that we've mapped this depression, record it in the arrays
         # depression_depth, depression_outlet, and flood_status
         self._record_depression_depth_and_outlet(
-            nodes_this_depression[:pit_count], lowest_node_on_perimeter, pit_node
+            nodes_this_depression[:pit_count],
+            lowest_node_on_perimeter, pit_node
         )
 
         # TODO: ideally we need a way to keep track of the number, area extent,
@@ -876,7 +881,8 @@ class DepressionFinderAndRouter(Component):
 
         assert len(self.depression_outlets) == self._unique_pits.size
 
-        self.unique_lake_outlets = np.array(self.depression_outlets)[self._unique_pits]
+        self.unique_lake_outlets = np.array(self.depression_outlets)[
+            self._unique_pits]
 
     def map_depressions(self, pits="flow__sink_flag", reroute_flow=True):
         """Map depressions/lakes in a topographic surface.

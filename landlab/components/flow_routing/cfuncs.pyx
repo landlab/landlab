@@ -25,13 +25,26 @@ cpdef find_lowest_node_on_lake_perimeter_c(
 
     Parameters
     ----------
+    node_nbrs : (nnodes, 4) or (nnodes, 8) array of int
+        The node neighbors, as stored by a DepressionFinderAndRouter
+        component
+    flood_status : nnodes array of int
+        The node flooded status at the point of the function call, as stored
+        by a DepressionFinderAndRouter component
+    elev : nnodes array of float
+        The elevations of each node in the grid
     nodes_this_depression : nnodes array of int
-        Nodes that form a pit, passed as the pit id then arbitrary values
+        Nodes that form a pit, followed by padding values to make up a nnodes-
+        long array. This should be passed in with the first value as the
+        pit node, then padding values, but it will be updated in place to
+        reflect the nodes in the lake.
+    pit_count : int
+        The number of nodes currently in the lake. 
 
     Returns
     -------
-    int, int
-        The lowest node on the perimeter of a depression, updated pit_count
+    (int, int)
+        (Lowest node on the perimeter of a depression, updated pit_count)
 
     Examples
     --------
@@ -70,18 +83,20 @@ cpdef find_lowest_node_on_lake_perimeter_c(
     # Start with the first node on the list, and an arbitrarily large elev
     cdef int lowest_node = nodes_this_depression[0]
     cdef float lowest_elev = BIG_ELEV
+
     # set up a worst-case scanario array for the pits, and a counter to pull
     # the good entries later:
     cdef int current_iter = 0
 
-    cdef int n
-    cdef int nbr
-    cdef int i
     # Codes for depression status
     cdef int _UNFLOODED = 0
     cdef int _PIT = 1
     cdef int _CURRENT_LAKE = 2
     cdef int _FLOODED = 3
+
+    cdef int n
+    cdef int nbr
+    cdef int i
 
     while current_iter < pit_count:
         n = nodes_this_depression[current_iter]
@@ -120,103 +135,4 @@ cpdef find_lowest_node_on_lake_perimeter_c(
             set_open_nodes_disconnected_from_watershed_to_closed
             which will remove isolated open nodes."""
         )
-
-    # assert lowest_elev < BIG_ELEV, "failed to find lowest perim node"
     return lowest_node, pit_count
-
-
-
-
-@cython.boundscheck(False)
-cpdef _accumulate_to_n(DTYPE_INT_t np, DTYPE_INT_t q,
-                       np.ndarray[DTYPE_INT_t, ndim=1] s,
-                       np.ndarray[DTYPE_INT_t, ndim=2] r,
-                       np.ndarray[DTYPE_FLOAT_t, ndim=2] p,
-                       np.ndarray[DTYPE_FLOAT_t, ndim=1] drainage_area,
-                       np.ndarray[DTYPE_FLOAT_t, ndim=1] discharge):
-    """
-    Accumulates drainage area and discharge, permitting transmission losses.
-    """
-    cdef int donor, recvr, i, v
-    cdef float accum, proportion
-
-    # Iterate backward through the list, which means we work from upstream to
-    # downstream.
-    for i in range(np-1, -1, -1):
-        donor = s[i]
-        for v in range(q):
-            recvr = r[donor, v]
-            proportion = p[donor, v]
-            if proportion > 0.:
-                if donor != recvr:
-                    drainage_area[recvr] += proportion*drainage_area[donor]
-                    accum = discharge[recvr] + proportion*discharge[donor]
-                    if accum < 0.:
-                        accum = 0.
-                    discharge[recvr] = accum
-
-
-
-
-
-
-
-
-
-@cython.boundscheck(False)
-cpdef _accumulate_bw(DTYPE_INT_t np,
-                     np.ndarray[DTYPE_INT_t, ndim=1] s,
-                     np.ndarray[DTYPE_INT_t, ndim=1] r,
-                     np.ndarray[DTYPE_FLOAT_t, ndim=1] drainage_area,
-                     np.ndarray[DTYPE_FLOAT_t, ndim=1] discharge):
-    """
-    Accumulates drainage area and discharge, permitting transmission losses.
-    """
-    cdef int donor, recvr, i
-    cdef float accum
-
-    # Iterate backward through the list, which means we work from upstream to
-    # downstream.
-    for i in range(np-1, -1, -1):
-        donor = s[i]
-        recvr = r[donor]
-        if donor != recvr:
-            drainage_area[recvr] += drainage_area[donor]
-            accum = discharge[recvr] + discharge[donor]
-            if accum < 0.:
-                accum = 0.
-            discharge[recvr] = accum
-
-
-@cython.boundscheck(False)
-cpdef _make_donors(DTYPE_INT_t np,
-                   np.ndarray[DTYPE_INT_t, ndim=1] w,
-                   np.ndarray[DTYPE_INT_t, ndim=1] D,
-                   np.ndarray[DTYPE_INT_t, ndim=1] delta,
-                   np.ndarray[DTYPE_INT_t, ndim=1] r):
-    """Determines number of donors"""
-    cdef int ri, i
-    for i in range(np):
-        ri = r[i]
-        D[delta[ri] + w[ri]] = i
-        w[ri] += 1
-
-
-@cython.boundscheck(False)
-cpdef _make_donors_to_n(DTYPE_INT_t np,
-                  DTYPE_INT_t q,
-                  np.ndarray[DTYPE_INT_t, ndim=1] w,
-                  np.ndarray[DTYPE_INT_t, ndim=1] D,
-                  np.ndarray[DTYPE_INT_t, ndim=1] delta,
-                  np.ndarray[DTYPE_INT_t, ndim=2] r,
-                  np.ndarray[DTYPE_FLOAT_t, ndim=2] p,
-                  ):
-    """Determines number of donors for route to n"""
-    cdef int ri, i, v, ind
-    for v in range(q):
-        for i in range(np):
-            ri = r[i, v]
-            if p[i, v] > 0:
-                ind = delta[ri] + w[ri]
-                D[ind] = i
-                w[ri] += 1
