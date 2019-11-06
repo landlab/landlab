@@ -14,6 +14,7 @@ from pytest import approx
 
 from landlab import BAD_INDEX_VALUE as XX, RasterModelGrid
 from landlab.components import DepressionFinderAndRouter, FlowAccumulator
+from landlab.components.flow_routing.cfuncs import find_lowest_node_on_lake_perimeter_c
 
 NUM_GRID_ROWS = 8
 NUM_GRID_COLS = 8
@@ -1949,3 +1950,38 @@ def test_D8_D4_route(d4_grid):
     assert d4_grid.mg1.at_node["drainage_area"].reshape((7, 7))[:, 0].sum() == approx(
         d4_grid.mg2.at_node["drainage_area"].reshape((7, 7))[:, 0].sum()
     )
+
+
+def test_find_lowest_node_on_lake_perimeter_c():
+    """
+    Ensures the key functionality of the cfunc is working.
+    """
+    from landlab import RasterModelGrid
+    from landlab.components import FlowAccumulator, DepressionFinderAndRouter
+    from landlab.components.flow_routing.cfuncs import find_lowest_node_on_lake_perimeter_c
+    mg = RasterModelGrid((7, 7), xy_spacing=0.5)
+    z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
+    z += 0.01 * mg.node_y
+    mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
+    fr = FlowAccumulator(mg, flow_director='D8')
+    fr.run_one_step()  # the flow "gets stuck" in the hole
+    df = DepressionFinderAndRouter(mg)
+
+    node_nbrs = df._node_nbrs
+    flood_status = df.flood_status
+    elev = df._elev
+    BIG_ELEV = df._BIG_ELEV
+    nodes_this_depression = mg.zeros('node', dtype=int)
+    nodes_this_depression[0] = 16
+    pit_count = 1
+
+    assert find_lowest_node_on_lake_perimeter_c(
+        node_nbrs, flood_status, elev, nodes_this_depression, pit_count,
+        BIG_ELEV
+    ) == (23, 1)
+    nodes_this_depression[1] = 8
+    pit_count = 2
+    assert find_lowest_node_on_lake_perimeter_c(
+        node_nbrs, flood_status, elev, nodes_this_depression, pit_count,
+        BIG_ELEV
+    ) == (0, 2)
