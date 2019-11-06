@@ -48,10 +48,20 @@ class DepthDependentTaylorDiffuser(Component):
     soil_transport_decay_depth: float, optional
         characteristic transport soil depth, m
         Default = 1.0
-    nterms: int, optional. default = 2
+    nterms: int, optional. Default is 2
         number of terms in the Taylor expansion.
         Two terms (default) gives the behavior
         described in Ganti et al. (2012).
+    dynamic_dt : bool. Default is False
+        If True, component will internally subdivide timestep to enforce
+        model stability.
+    if_unstable: {"pass", "raise", "warn"}. Default "pass"
+        Action to take if the imposed timestep of the model will lead to
+        numerical instability. If "pass", no action is taken and execution
+        will silently continue. If "raise", a RuntimeError is raised. If
+        "warn", a warning is printed to screen.
+    courant_factor : float. Default is 0.2
+        The Courant factor for the model stability calculation.
 
     Examples
     --------
@@ -70,7 +80,7 @@ class DepthDependentTaylorDiffuser(Component):
     >>> expweath.calc_soil_prod_rate()
     >>> np.allclose(mg.at_node['soil_production__rate'][mg.core_nodes], 1.)
     True
-    >>> DDdiff.soilflux(2.)
+    >>> DDdiff.run_one_step(2.)
     >>> np.allclose(mg.at_node['topographic__elevation'][mg.core_nodes], 0.)
     True
     >>> np.allclose(mg.at_node['bedrock__elevation'][mg.core_nodes], -2.)
@@ -94,7 +104,7 @@ class DepthDependentTaylorDiffuser(Component):
     ...     mg.at_node['soil_production__rate'][mg.core_nodes],
     ...     np.array([ 0.60653066, 0.36787944, 0.22313016]))
     True
-    >>> DDdiff.soilflux(0.1)
+    >>> DDdiff.run_one_step(0.1)
     >>> np.allclose(
     ...     mg.at_node['topographic__elevation'][mg.core_nodes],
     ...     np.array([ 1.04773024, 2.02894986, 3.01755898]))
@@ -105,12 +115,12 @@ class DepthDependentTaylorDiffuser(Component):
     >>> np.allclose(mg.at_node['soil__depth'], z - BRz)
     True
 
-    The DepthDependentTaylorDiffuser makes and moves soil at a rate proportional
-    to slope, this means that there is a characteristic time scale for soil
-    transport and an associated stability criteria for the timestep. The
-    maximum characteristic time scale, :math:`De_{max}`, is given as a function of the
-    hillslope diffustivity, :math:`D`, the maximum slope, :math:`S_{max}`, and the critical slope
-    :math:`S_c`.
+    The DepthDependentTaylorDiffuser makes and moves soil at a rate
+    proportional to slope, this means that there is a characteristic time scale
+    for soil transport and an associated stability criteria for the timestep.
+    The maximum characteristic time scale, :math:`De_{max}`, is given as a
+    function of the hillslope diffustivity, :math:`D`, the maximum slope,
+    :math:`S_{max}`, and the critical slope :math:`S_c`.
 
     .. math::
 
@@ -137,7 +147,8 @@ class DepthDependentTaylorDiffuser(Component):
     (dynamic_dt = False).
 
     >>> DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable='warn')
-    >>> DDdiff.soilflux(2.)
+    >>> DDdiff.run_one_step(2.)
+
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
@@ -167,9 +178,12 @@ class DepthDependentTaylorDiffuser(Component):
     and should use a smaller timestep. We could either use the smaller timestep,
     or specify that we want to use a dynamic timestep.
 
-    >>> DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable='warn', dynamic_dt=False)
+    >>> DDdiff = DepthDependentTaylorDiffuser(
+    ...     mg, if_unstable='warn', dynamic_dt=False
+    ... )
     >>> expweath.calc_soil_prod_rate()
-    >>> DDdiff.soilflux(10)
+    >>> DDdiff.run_one_step(10.)
+
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
@@ -187,9 +201,11 @@ class DepthDependentTaylorDiffuser(Component):
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
     >>> expweath = ExponentialWeatherer(mg)
-    >>> DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable='warn', dynamic_dt=True)
+    >>> DDdiff = DepthDependentTaylorDiffuser(
+    ...     mg, if_unstable='warn', dynamic_dt=True
+    ... )
     >>> expweath.calc_soil_prod_rate()
-    >>> DDdiff.soilflux(10)
+    >>> DDdiff.run_one_step(10.)
     >>> np.any(np.isnan(z))
     False
 
@@ -203,15 +219,21 @@ class DepthDependentTaylorDiffuser(Component):
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
     >>> expweath = ExponentialWeatherer(mg)
-    >>> DDdiff = DepthDependentTaylorDiffuser(mg, soil_transport_decay_depth = 0.1)
-    >>> DDdiff.soilflux(1)
-    >>> soil_decay_depth_point1 = mg.at_node['topographic__elevation'][mg.core_nodes]
+    >>> DDdiff = DepthDependentTaylorDiffuser(
+    ...     mg, soil_transport_decay_depth = 0.1
+    ... )
+    >>> DDdiff.run_one_step(1.)
+    >>> soil_decay_depth_point1 = (
+    ...     mg.at_node['topographic__elevation'][mg.core_nodes]
+    ... )
     >>> z[:] = 0
     >>> z += mg.node_x.copy()**0.5
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
-    >>> DDdiff = DepthDependentTaylorDiffuser(mg, soil_transport_decay_depth = 1.0)
-    >>> DDdiff.soilflux(1)
+    >>> DDdiff = DepthDependentTaylorDiffuser(
+    ...     mg, soil_transport_decay_depth = 1.0
+    ... )
+    >>> DDdiff.run_one_step(1.)
     >>> soil_decay_depth_1 = mg.at_node['topographic__elevation'][mg.core_nodes]
     >>> np.greater(soil_decay_depth_1[1], soil_decay_depth_point1[1])
     False
@@ -296,15 +318,20 @@ class DepthDependentTaylorDiffuser(Component):
         soil_transport_decay_depth: float, optional
             characteristic transport soil depth, m
             Default = 1.0
-        nterms: int, optional. default = 2
+        nterms: int, optional. Default is 2
             number of terms in the Taylor expansion.
             Two terms (default) gives the behavior
             described in Ganti et al. (2012).
-        dynamic_dt :
-            False,
-        if_unstable:
-        "pass",
-        courant_factor=0.2
+        dynamic_dt : bool. Default is False
+            If True, component will internally subdivide timestep to enforce
+            model stability.
+        if_unstable: {"pass", "raise", "warn"}. Default "pass"
+            Action to take if the imposed timestep of the model will lead to
+            numerical instability. If "pass", no action is taken and execution
+            will silently continue. If "raise", a RuntimeError is raised. If
+            "warn", a warning is printed to screen.
+        courant_factor : float. Default is 0.2
+            The Courant factor for the model stability calculation.
         """
         super(DepthDependentTaylorDiffuser, self).__init__(grid)
         # Store grid and parameters
@@ -315,6 +342,9 @@ class DepthDependentTaylorDiffuser(Component):
         self._nterms = nterms
 
         self._dynamic_dt = dynamic_dt
+        assert if_unstable in ("pass", "raise", "warn"), """the model
+            parameter if_unstable must be "pass", "raise", or "warn"."""
+
         self._if_unstable = if_unstable
         self._courant_factor = courant_factor
 
@@ -343,21 +373,13 @@ class DepthDependentTaylorDiffuser(Component):
             self._bedrock = self._grid.add_zeros("node", "bedrock__elevation")
 
     def soilflux(self, dt):
-        """Calculate soil flux for a time period 'dt'.
+        """Calculate soil flux for a time period 'dt'. :func:`run_one_step`
+        wraps this function to present a consistent Landlab interface.
 
         Parameters
         ----------
         dt: float (time)
             The imposed timestep.
-        dynamic_dt : boolean (optional, default is False)
-            Keyword argument to turn on or off dynamic time-stepping
-        if_unstable : string (optional, default is "pass")
-            Keyword argument to determine how potential instability due to
-            slopes that are too high is handled. Options are "pass", "warn",
-            and "raise".
-        courant_factor : float (optional, default = 0.2)
-            Factor to identify stable time-step duration when using dynamic
-            timestepping.
         """
         # establish time left as all of dt
         time_left = dt
@@ -459,7 +481,9 @@ class DepthDependentTaylorDiffuser(Component):
         dhdt = self._soil_prod_rate - dqdx
 
         # Calculate soil depth at nodes
-        self._depth[self._grid.core_nodes] += dhdt[self._grid.core_nodes] * self._sub_dt
+        self._depth[self._grid.core_nodes] += (
+            dhdt[self._grid.core_nodes] * self._sub_dt
+        )
 
         # prevent negative soil thickness
         self._depth[self._depth < 0.0] = 0.0
@@ -471,11 +495,14 @@ class DepthDependentTaylorDiffuser(Component):
 
         # Update topography
         self._elev[self._grid.core_nodes] = (
-            self._depth[self._grid.core_nodes] + self._bedrock[self._grid.core_nodes]
+            self._depth[self._grid.core_nodes]
+            + self._bedrock[self._grid.core_nodes]
         )
 
     def run_one_step(self, dt):
         """
+        The primary method of the component. Calculate soil flux for a time
+        period 'dt'.
 
         Parameters
         ----------

@@ -111,6 +111,22 @@ def test_infinite_taylor_error():
         DDdiff.soilflux(10)
 
 
+def test_assertion_error_for_if_unstable():
+    mg = RasterModelGrid((5, 5))
+    soilTh = mg.add_zeros("node", "soil__depth")
+    z = mg.add_zeros("node", "topographic__elevation")
+    BRz = mg.add_zeros("node", "bedrock__elevation")
+    z += mg.node_x.copy() ** 4
+    BRz = z.copy() - 1.0
+    soilTh[:] = z - BRz
+    expweath = ExponentialWeatherer(mg)
+    DDdiff = DepthDependentTaylorDiffuser(mg, nterms=400)
+    expweath.calc_soil_prod_rate()
+    with pytest.raises(AssertionError):
+        DepthDependentTaylorDiffuser(mg, linear_diffusivity=1., if_unstable='nope')
+
+
+
 # def test_warn():
 #    mg = RasterModelGrid((5, 5))
 #    soilTh = mg.add_zeros('node', 'soil__depth')
