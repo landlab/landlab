@@ -1,48 +1,80 @@
 #!/usr/bin/env python
 """ZoneSpecies object of SpeciesEvolver."""
-
 import numpy as np
 
-from landlab.components.species_evolution import _Species
+from .base_species import _Species
 
 
-class _Population(object):
-    """A ZoneSpecies population of a zone."""
+class Population(object):
+    """A population of ZoneSpecies.
 
+    Instances of this class are intended to be created and used directly by
+    ZoneSpecies.
+    """
     def __init__(self, species, zone, time_to_allopatric_speciation=None):
-        self._zone = zone
-        self._zone._species.append(species)
+        """Initialize a population.
+
+        Parameters
+        ----------
+        species : ZoneSpecies
+            The population belongs to ``species``.
+        zone : Zone
+            The population inhabits ``zone``.
+        time_to_allopatric_speciation : float, optional
+            The time until speciation due to allopatry occurs. The default
+            value of `None` indicates the population is not tending towards
+            speciation.
+        """
+        self._species = species
+        self.zone = zone
         self._time_to_allopatric_speciation = time_to_allopatric_speciation
 
-    def _remove_from_zone(self, species):
-        """Remove a species from a zone."""
-        self._zone._species.remove(species)
-        self._zone = None
+    @property
+    def zone(self):
+        """The zone of the population."""
+        return self._zone
+
+    @zone.setter
+    def zone(self, new_zone):
+        """Set the population zone and update the species of the zone."""
+        if new_zone == None:
+            self._zone.species.discard(self._species)
+        elif new_zone != None:
+            new_zone.species.add(self._species)
+
+        self._zone = new_zone
 
 
 class ZoneSpecies(_Species):
     """A species based in zones.
 
-    A species can reside in one or multiple zones. The total extent of the
-    species is depicted by the ``range_mask`` attribute. The evolution of this
-    species type is carried out in the following three processes: dispersal,
-    speciation, and extinction.
+    This implementation of SpeciesEvolver species is associated with ``Zone``
+    objects. A species can reside in one or multiple zones. Internally, a
+    ZoneSpecies is made up of Population objects where each population
+    represents the species in a zone. The total extent of all populations of
+    the species is depicted by the ``range_mask`` attribute.
+
+    The evolution of this species type is carried out by the following methods,
+    in the following order: ``_evaluate_dispersal``, ``_evaluate_speciation``,
+    and ``_evaluate_extinction``. Dispersal and speciation are evaluated for
+    each population. Extinction is evaluated for the entire species. These
+    methods are intended to be expanded or overwritten.
 
     Dispersal is dictated by the spatial connectivity of zones over two
-    successive time steps.
+    successive time steps resolved by zones. Population zones are updated prior
+    to ``evaluate_dispersal`` in the ``_update_populations`` method. However,
+    the zones thus dispersal can be modified in ``evaluate_dispersal`` to
+    modify the species spatial distribution prior to speciation and extinction.
 
-
-
-    Speciation occurs when a species exists in multiple
-    zones following a delay set by the `allopatric_wait_time` initialization
-    parameter. A clock counts down for each zone of the species where the
-    species dispersed beyond one zone. The clock starts when a zone in the
-    earlier time step overlaps multiple zones in the later time step. The clock
-    is tracked by `_zones['time_to_allopatric_speciation'].
+    Speciation occurs when a species exists in multiple zones following a delay
+    set by the `allopatric_wait_time` initialization parameter. A clock counts
+    down for each zone of the species where the species dispersed beyond one
+    zone. The clock starts when a zone in the earlier time step overlaps
+    multiple zones in the later time step. The clock is tracked by
+    `_zones['time_to_allopatric_speciation'].
 
     Extinction occurs when the species exists in no zones. Extinction also
-    occurs if ``pseudoextinction`` is True and the
-    species speciates.
+    occurs if ``pseudoextinction`` is True and the species speciates.
     """
     def __init__(self, initial_zones, parent_species=None,
                  allopatric_wait_time=0, pseudoextinction=True):
@@ -73,13 +105,10 @@ class ZoneSpecies(_Species):
 
         # Set initial populations.
 
-        pops = []
+        self._populations = []
 
         for zone in initial_zones:
-            pops.append(_Population(self, zone))
-            zone._species.append(self)
-
-        self._populations = pops
+            self._populations.append(Population(self, zone))
 
         self._mask_len = len(initial_zones[0].mask)
 
@@ -87,28 +116,47 @@ class ZoneSpecies(_Species):
     def range_mask(self):
         """A mask representing the geographic extent of the species.
 
-        Returns
-        -------
-        ndarray
-            An array with a length of grid number of nodes. The species exists
-            at nodes where mask elements are ``True``.
+        The mask is an array with a length of grid number of nodes. The species
+        exists at nodes where mask elements are ``True``.
         """
         template = np.zeros(self._mask_len, bool)
         if self._populations:
-            masks = [pop._zone.mask for pop in self._populations]
+            masks = [pop.zone.mask for pop in self._populations]
             if len(masks) == 1:
                 masks.append(template)
             return np.any(masks, 0)
         else:
             return template
 
-    def _evolve(self, time, dt, record_add_on):
-        """Run the evolutionary processes of the species.
+    def _evolve_stage_1(self, dt, record_add_on):
+        """Run evolutionary processes in preperation of stage 2.
+
+        The species populations are updated in this stage so that the zones are
+        updated for all zones at the current time prior to stage 2.
 
         Parameters
         ----------
-        time : float
-            The time in the simulation.
+        dt : float
+            The model time step duration.
+        record_add_on : defaultdict
+            A dictionary to pass values to the SpeciesEvolver record.
+        """
+        updated_pops = []
+
+        for pop in self._populations:
+            updated_pops.extend(self._disperse_population(pop))
+
+        self._populations = updated_pops
+
+    def _evolve_stage_2(self, dt, record_add_on):
+        """Complete evolutionary processes for the time.
+
+        In this stage, dispersal resolved during stage 1 can be modified by
+        extending or overriding the dispersal evaluation method, as can
+        speciation and extinction that are also evaluated in this stage.
+
+        Parameters
+        ----------
         dt : float
             The model time step duration.
         record_add_on : defaultdict
@@ -116,20 +164,16 @@ class ZoneSpecies(_Species):
 
         Returns
         -------
-        tuple of boolean and Species list
-            Tuple of  A list of SpeciesEvolver species objects that are the child species
-            that result from the macroevolutionary processes run. An empty list
+        tuple of boolean and list of Species
+            The first element of the returned tuple is boolean indicating if
+            the species persists at the current time step. The second element
+            of the returned tuple is a list of the child species. An empty list
             indicates no child species.
         """
-        # Handle dispersal and update zone data structure.
-
-        updated_pops = []
+        # Evaluate dispersal by population.
 
         for pop in self._populations:
-            new_pops = self._evaluate_dispersal(pop, time)
-            updated_pops.extend(new_pops)
-
-        self._populations = updated_pops
+            self._evaluate_dispersal(pop)
 
         # Handle speciation.
 
@@ -150,7 +194,7 @@ class ZoneSpecies(_Species):
 
         if extinct and self._populations:
             for pop in self._populations:
-                pop._remove_from_zone(self)
+                pop.zone = None
             self._populations = []
 
         # Update record add on.
@@ -161,65 +205,95 @@ class ZoneSpecies(_Species):
 
         return not extinct, child_species
 
-    def _evaluate_dispersal(self, population, time):
-        """Set the range of the species as it results from dispersal.
+    def _disperse_population(self, population):
+        """Update the population zone and create new zones if necessary.
 
-        The default implementation returns all of the potential zones.
+        Handle species by the number of successors.
 
         Parameters
         ----------
-        prior_zone : Zone
-            A zone of the species in the prior time step.
-        potential_zones : list of Zones
-            The  zones where the species can potentially disperse.
+        population : Population
+            A population of the species.
 
         Returns
         -------
-        list of Zones
-            The zones where the species will disperse.
+        list of Populations
+            The populations that remain extant.
         """
-        destination_zones = population._zone.path[time][1]
+        successors = population.zone.successors
+        n_succ = len(successors)
 
         updated_populations = []
 
-        # Handle species by the number of destinations.
-
-        if len(destination_zones) == 0:
+        if n_succ == 0:
             # Remove `population` from its zone because it now exists nowhere.
-            population._remove_from_zone(self)
+            population.zone = None
 
-        elif len(destination_zones) == 1 and population._zone == destination_zones[0]:
+        elif n_succ == 1 and population.zone == successors[0]:
             # Population remains in the same zone.
             updated_populations = [population]
 
-        elif len(destination_zones) == 1:
+        elif n_succ == 1:
             # Population moved into a different zone.
-            destination = destination_zones[0]
-            if self not in destination._species:
-                # Add population to new zone only if its not already in it.
-                population._remove_from_zone(self)
-                population._zone = destination
-                destination._species.append(self)
+            successor = successors[0]
+            if self not in successor._species:
+                # Add population to the successor zone only if the species does
+                # not already inhabit this zone.
+                population.zone = successor
                 updated_populations = [population]
 
         else:
-            for zone in destination_zones:
-                if population._zone == zone:
+            # Population moves into multiple zones.
+            for zone in successors:
+                if population.zone == zone:
                     # The zone and population remain unchanged.
                     updated_populations.append(population)
 
-                    if self._pseudoextinction and len(destination_zones) > 1:
+                    if self._pseudoextinction:
                         population._time_to_allopatric_speciation = self._allopatric_wait_time
 
                 elif self not in zone._species:
-                    zone_pop = _Population(self, zone,
-                                           self._allopatric_wait_time)
+                    zone_pop = Population(self, zone,
+                                          self._allopatric_wait_time)
                     updated_populations.append(zone_pop)
 
                 else:
                     Exception('Dispersal condition not determined.')
 
         return updated_populations
+
+    def _speciate(self, zones):
+        """Get the species resulting from speciation in zones.
+
+        The default implementation returns a species of the same type as
+        `self`. This child species is initialized with the values of `self` for
+        the default initialization parameters. At minimum in derived
+        implementations, the parent species of the child should be set to
+        `self` to correctly record the lineage.
+
+        Parameters
+        ----------
+        zones : list of Zones
+            The zones where the new species will exist.
+
+        Returns
+        -------
+        Species
+            The child species.
+        """
+        species_type = type(self)
+
+        return species_type(zones, parent_species=self,
+                            allopatric_wait_time=self._allopatric_wait_time,
+                            pseudoextinction=self._pseudoextinction)
+
+    def _evaluate_dispersal(self, population):
+        """Set the range of the species as it results from dispersal.
+
+        The default implementation does not modify population dispersal in
+        stage 1.
+        """
+        ...  # pragma: no cover
 
     def _evaluate_speciation(self, dt, population):
         """Determine if speciation occurs.
@@ -250,31 +324,6 @@ class ZoneSpecies(_Species):
                 population._time_to_allopatric_speciation -= dt
 
         return speciate
-
-    def _speciate(self, zones):
-        """Get the species resulting from speciation in zones.
-
-        The default implementation returns a species of the same type as
-        `self`. This child species is initialized with the values of `self` for
-        the default initialization parameters. At minimum in derived
-        implementations, the parent species of the child should be set to
-        `self` to correctly record the lineage.
-
-        Parameters
-        ----------
-        zones : list of Zones
-            The zones where the new species will exist.
-
-        Returns
-        -------
-        Species
-            The child species.
-        """
-        species_type = type(self)
-
-        return species_type(zones, parent_species=self,
-                            allopatric_wait_time=self._allopatric_wait_time,
-                            pseudoextinction=self._pseudoextinction)
 
     def _evaluate_extinction(self, speciation_occurred):
         """Determine if extinction occurs.
