@@ -6,9 +6,11 @@ Do NOT add new documentation here. Grid documentation is now built in a
 semi- automated fashion. To modify the text seen on the web, edit the
 files `docs/text_for_[gridfile].py.txt`.
 """
+import fnmatch
 from functools import lru_cache
 
 import numpy as np
+import xarray as xr
 
 from landlab.utils.decorators import make_return_array_immutable
 
@@ -418,6 +420,88 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         self._axis_units = tuple(np.broadcast_to(axis_units, self.ndim))
         self._axis_name = tuple(np.broadcast_to(axis_name, self.ndim))
+
+    def fields(self, include="*", exclude=None):
+        """List of fields held by the grid.
+
+        Parameters
+        ----------
+        include : str, or iterable of str, optional
+            Glob-style pattern for field names to include.
+        exclude : str, or iterable of str, optional
+            Glob-style pattern for field names to exclude.
+
+        Returns
+        -------
+        set
+            Filtered set of canonical field names held by the grid
+
+        Examples
+        --------
+        >>> from landlab import RasterModelGrid
+        >>> grid = RasterModelGrid((3, 4))
+        >>> _ = grid.add_full("elevation", 3.0, at="node")
+        >>> _ = grid.add_full("elevation", 4.0, at="link")
+        >>> _ = grid.add_full("temperature", 5.0, at="node")
+
+        >>> sorted(grid.fields())
+        ['at_link:elevation', 'at_node:elevation', 'at_node:temperature']
+        >>> sorted(grid.fields(include="at_node*"))
+        ['at_node:elevation', 'at_node:temperature']
+        >>> sorted(grid.fields(include="at_node*", exclude="*temp*"))
+        ['at_node:elevation']
+        """
+        if isinstance(include, str):
+            include = [include]
+        if isinstance(exclude, str):
+            exclude = [exclude]
+
+        canonical_names = set()
+        for at in self.groups | set(["layer"]):
+            canonical_names.update(
+                ["at_{0}:{1}".format(at, name) for name in self[at]]
+            )
+
+        names = set()
+        for pattern in include:
+            names.update(fnmatch.filter(canonical_names, pattern))
+        for pattern in exclude or []:
+            names.difference_update(fnmatch.filter(canonical_names, pattern))
+
+        return names
+
+    def as_dataset(self, include="*", exclude=None):
+        """Create an xarray Dataset representation of a grid.
+
+        Parameters
+        ----------
+        include : str or iterable or str
+            Glob-style patterns of fields to include in the dataset.
+        exclude : str or iterable or str
+            Glob-style patterns of fields to exclude from the dataset.
+
+        Returns
+        -------
+        Dataset
+            An xarray Dataset representation of a *ModelGrid*.
+        """
+        names = self.fields(include=include, exclude=exclude)
+
+        layer_names = set([name for name in names if name.startswith("at_layer")])
+        names.difference_update(layer_names)
+
+        data = {}
+        for name in names:
+            dim, field_name = name[len("at_"):].split(":")
+            data[name] = ((dim,), getattr(self, "at_" + dim)[field_name])
+
+        for name in layer_names:
+            dim, field_name = name[len("at_"):].split(":")
+            data[name] = (("layer", "cell"), self.at_layer[field_name])
+
+        data["status_at_node"] = (("node",), self.status_at_node)
+
+        return xr.Dataset(data)
 
     @property
     def xy_of_reference(self):
