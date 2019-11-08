@@ -8,12 +8,12 @@ Write netcdf
 
     ~landlab.io.netcdf.write.write_netcdf
 """
-
-import fnmatch
 import os
+import pathlib
 import warnings
 
 import numpy as np
+import xarray as xr
 from scipy.io import netcdf as nc
 
 from landlab.io.netcdf._constants import (
@@ -556,7 +556,7 @@ def _guess_at_location(fields, names):
     cell_fields = set(fields["cell"].keys())
 
     if names is None or len(names) == 0:
-        if len(fields["node"].keys()) > 0:
+        if len(node_fields) > 0:
             at = "node"
         else:
             at = "cell"
@@ -571,16 +571,42 @@ def _guess_at_location(fields, names):
 
 
 def to_netcdf(
-    grid,
-    path,
-    include="*",
-    exclude=None,
-    with_layers=False,
-    format="NETCDF4",
-    mode="w"
+    grid, path, include="*", exclude=None, time=None, format="NETCDF4", mode="w"
 ):
-    """
+    """Write landlab a grid to a netcdf file.
 
+    Write the data and grid information for *grid* to *path* as NetCDF.
+    If the *append* keyword argument in True, append the data to an existing
+    file, if it exists. Otherwise, clobber an existing files.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        Landlab grid object that holds a grid and field values.
+    path : str
+        Path to which to save this grid.
+    include : str or iterable of str, optional
+        A list of unix-style glob patterns of field names to include. Fully
+        qualified field names that match any of these patterns will be
+        written to the output file. A fully qualified field name is one that
+        that has a prefix that indicates what grid element is defined on
+        (e.g. "at_node:topographic__elevation"). The default is to include
+        all fields.
+    exclude : str or iterable of str, optional
+        Like the *include* keyword but, instead, fields matching these
+        patterns will be excluded from the output file.
+    format : {'NETCDF3_CLASSIC', 'NETCDF3_64BIT', 'NETCDF4_CLASSIC', 'NETCDF4'}
+        Format of output netcdf file.
+    attrs : dict
+        Attributes to add to netcdf file.
+    mode : {"w", "a"}, optional
+        Write ("w") or append ("a") mode. If mode="w", any existing file at
+        this location will be overwritten. If mode="a", existing variables
+        will be overwritten.
+
+
+    Parameters
+    ----------
     Examples
     --------
     >>> import numpy as np
@@ -628,50 +654,72 @@ def to_netcdf(
     ...     # names="air__temperature", at="cell",
     ... )
     """
-    if isinstance(include, str):
-        include = [include]
-    if isinstance(exclude, str):
-        exclude = [exclude]
+    path = pathlib.Path(path)
 
-    if with_layers and format != "NETCDF4":
-        raise ValueError("Grid layers are only available with the NETCDF4 format.")
+    ds = grid.as_dataset(include=include, exclude=exclude)
+    new_fields = set([name for name in ds.variables if name.startswith("at_")])
+    if time is not None:
+        for name in new_fields:
+            dim, _ = name[len("at_") :].split(":")
+            ds[name] = (("time",) + ds[name].dims, ds[name].values[None])
+        ds["time"] = (("time",), [time])
 
-    all_locations = {"node", "link", "patch", "corner", "face", "cell", "grid"}
-    qualified_names = set()
-    for at in all_locations:
-        qualified_names.update(["at_{0}:{1}".format(at, name) for name in grid[at]])
+    if format != "NETCDF4":
+        ds["status_at_node"] = (
+            ("node",),
+            ds["status_at_node"].values.astype(dtype=int),
+        )
 
-    names = set()
-    for pattern in include:
-        names.update(fnmatch.filter(qualified_names, pattern))
-    for pattern in exclude or []:
-        names.difference_update(fnmatch.filter(qualified_names, pattern))
+    if mode == "a" and path.is_file():
+        with xr.open_dataset(path) as dataset:
+            try:
+                times = dataset["time"].values
+            except KeyError:
+                times = [0.0]
+            if time is None:
+                time = times[-1] + 1.0
 
-    data = {}
-    for name in names:
-        dim, field_name = name[len("at_"):].split(":")
-        data[name] = ((dim,), grid[dim][field_name])
+            data = {
+                "time": (("time",), np.concatenate([times, [time]])),
+            }
 
-    if with_layers:
-        for field_name in grid.event_layers.tracking:
-            qualified_name = "at_layer:{0}".format(field_name)
-            data[qualified_name] = (("layer", "cell"), grid.event_layers[field_name])
+            existing_fields = set(
+                [name for name in dataset.variables if name.startswith("at_")]
+            )
+            for name in existing_fields:
+                dims, array = dataset[name].dims, dataset[name].values
+                if "time" not in dims:
+                    dims, array = ("time",) + dims, array[None]
+                data[name] = (dims, np.concatenate([array, ds[name].values]))
 
-    if format == "NETCDF4":
-        data["status_at_node"] = (("node",), grid.status_at_node)
-    else:
-        data["status_at_node"] = (("node",), grid.status_at_node.astype(dtype=int))
+            for name in new_fields - existing_fields:
+                dims, array = ds[name].dims, ds[name].values
+                if "time" not in dims:
+                    dims, array = ("time",) + dims, array[None]
+                padded_array = np.empty_like(
+                    array, shape=(array.shape[0] + 1,) + array.shape[1:],
+                )
+                padded_array[-1] = array
+                data[name] = (dims, padded_array)
 
-    ds = grid.as_dataset().update(data)
-    ds.to_netcdf(path, format=format, mode=mode)
+            ds.update(data)
+
+    ds.to_netcdf(path, format=format, mode="w", unlimited_dims=("time",))
 
 
 def write_netcdf(
-    path, fields, attrs=None, append=False, format="NETCDF3_64BIT", names=None, at=None
+    path,
+    grid,
+    attrs=None,
+    append=False,
+    format="NETCDF3_64BIT",
+    names=None,
+    at=None,
+    time=None,
 ):
     """Write landlab fields to netcdf.
 
-    Write the data and grid information for *fields* to *path* as NetCDF.
+    Write the data and grid information for *grid* to *path* as NetCDF.
     If the *append* keyword argument in True, append the data to an existing
     file, if it exists. Otherwise, clobber an existing files.
 
@@ -679,8 +727,8 @@ def write_netcdf(
     ----------
     path : str
         Path to output file.
-    fields : field-like
-        Landlab field object that holds a grid and associated values.
+    grid : RasterModelGrid
+        Landlab RasterModelGrid object that holds a grid and associated values.
     append : boolean, optional
         Append data to an existing file, otherwise clobber the file.
     format : {'NETCDF3_CLASSIC', 'NETCDF3_64BIT', 'NETCDF4_CLASSIC', 'NETCDF4'}
@@ -715,8 +763,7 @@ def write_netcdf(
     Write the grid to a netcdf3 file but only include the *uplift_rate*
     data in the file.
 
-    >>> write_netcdf('test.nc', rmg, format='NETCDF3_64BIT',
-    ...     names='uplift_rate')
+    >>> write_netcdf("test.nc", rmg, format="NETCDF3_64BIT", names="uplift_rate")
 
     Read the file back in and check its contents.
 
@@ -734,46 +781,76 @@ def write_netcdf(
     >>> write_netcdf("test-cell.nc", rmg, format="NETCDF3_64BIT",
     ...     names="air__temperature", at="cell")
     """
-    if format not in _VALID_NETCDF_FORMATS:
-        raise ValueError("format not understood")
+    path = pathlib.Path(path)
+    if append and not path.exists():
+        append = False
+
     if at not in (None, "cell", "node"):
         raise ValueError("value location not understood")
 
     if isinstance(names, str):
         names = (names,)
 
-    at = at or _guess_at_location(fields, names) or "node"
-    names = names or fields[at].keys()
+    at = at or _guess_at_location(grid, names) or "node"
+    if names is None:
+        names = grid[at].keys()
 
-    if not set(fields[at].keys()).issuperset(names):
+    if not set(grid[at].keys()).issuperset(names):
         raise ValueError("values must be on either cells or nodes, not both")
 
     attrs = attrs or {}
 
-    if os.path.isfile(path) and append:
-        mode = "a"
+    dims = ("nt", "nj", "ni")
+    shape = grid.shape
+    if at == "cell":
+        shape = shape[0] - 2, shape[1] - 2
+
+    data = {}
+    if append:
+        with xr.open_dataset(path) as dataset:
+            time_varying_names = [
+                name for name in dataset.variables if "nt" in dataset[name].dims
+            ]
+            for name in set(time_varying_names) & set(names):
+                values = getattr(grid, "at_" + at)[name].reshape((1,) + shape)
+                data[name] = (dims, np.concatenate([dataset[name].values, values]))
+
+            if "t" not in dataset.variables:
+                times = np.arange(len(dataset["nt"]) + 1)
+            else:
+                times = np.concatenate((dataset["t"].values, [0.0]))
+
+        if time is None:
+            times[-1] = times[-2] + 1.0
+        else:
+            times[-1] = time
+        data["t"] = (("nt",), times)
+
+    if at == "cell":
+        data["x_bnds"] = (
+            ("nj", "ni", "nv"),
+            grid.x_of_corner[grid.corners_at_cell].reshape(shape + (4,)),
+        )
+        data["y_bnds"] = (
+            ("nj", "ni", "nv"),
+            grid.y_of_corner[grid.corners_at_cell].reshape(shape + (4,)),
+        )
     else:
-        mode = "w"
+        data["x"] = (("nj", "ni"), grid.x_of_node.reshape(shape))
+        data["y"] = (("nj", "ni"), grid.y_of_node.reshape(shape))
 
-    if format == "NETCDF3_CLASSIC":
-        root = nc.netcdf_file(path, mode, version=1)
-    elif format == "NETCDF3_64BIT":
-        root = nc.netcdf_file(path, mode, version=2)
-    else:
-        root = nc4.Dataset(path, mode, format=format)
+    if not append:
+        if time is not None:
+            data["t"] = (("nt",), [time])
+        for name in names:
+            data[name] = (
+                dims,
+                getattr(grid, "at_" + at)[name].reshape((-1,) + shape),
+            )
 
-    _set_netcdf_attributes(root, attrs)
-    if at == "node":
-        _set_netcdf_structured_dimensions(root, fields.shape)
-        _set_netcdf_variables(root, fields, names=names)
-    else:
-        _set_netcdf_cell_structured_dimensions(root, fields.shape)
-        _set_netcdf_cell_variables(root, fields, names=names)
+    dataset = xr.Dataset(data, attrs=attrs)
 
-    if hasattr(fields, "grid_mapping"):
-        _set_netcdf_grid_mapping_variable(root, fields.grid_mapping)
-
-    root.close()
+    dataset.to_netcdf(path, mode="w", format=format, unlimited_dims=("nt",))
 
 
 def write_raster_netcdf(
@@ -860,82 +937,13 @@ def write_raster_netcdf(
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
     """
-    from landlab import RasterModelGrid
-
-    if isinstance(fields, RasterModelGrid):
-        pass
-    else:
-        raise NotImplementedError(
-            "This method only supports grids of type Raster, "
-            "for other grid types use write_netcdf"
-        )
-
-    if format not in _VALID_NETCDF_FORMATS:
-        raise ValueError("format not understood")
-    if at not in (None, "cell", "node"):
-        raise ValueError("value location not understood")
-
-    if isinstance(names, str):
-        names = (names,)
-
-    at = "node"
-
-    names = names or fields[at].keys()
-
-    if not set(fields[at].keys()).issuperset(names):
-        raise ValueError("values must be on either cells or nodes, not both")
-
-    attrs = attrs or {}
-
-    if os.path.isfile(path) and append:
-        mode = "a"
-    else:
-        mode = "w"
-
-    if format == "NETCDF3_CLASSIC":
-        root = nc.netcdf_file(path, mode, version=1)
-    elif format == "NETCDF3_64BIT":
-        root = nc.netcdf_file(path, mode, version=2)
-    else:
-        root = nc4.Dataset(path, mode, format=format)
-
-    _set_netcdf_attributes(root, attrs)
-
-    _set_netcdf_structured_dimensions(root, fields.shape)
-    if time is not None:
-        _add_time_variable(root, time)
-    _set_netcdf_raster_variables(root, fields, names=names)
-
-    if hasattr(fields, "grid_mapping"):
-        _set_netcdf_grid_mapping_variable(root, fields.grid_mapping)
-
-    #    if hasattr(fields, 'esri_ascii_projection'):
-    #        if _HAS_PYCRS:
-    #            message = ('This RasterModelGrid has a projection and was read in '
-    #                       'as an Esri ASCII and is being written out as a NetCDF. '
-    #                       'You have the pure python pycrs library which will now '
-    #                       'be used to translate the projection.\nNote that '
-    #                       'currently only the crs_wkt attribute will be written '
-    #                       'to the grid_mapping variable. We are working on fully '
-    #                       'supporting this conversion, but it is in active '
-    #                       'development.')
-    #
-    #            print(warning_message(message))
-    #
-    #            projection = pycrs.parser.from_proj4(fields.esri_ascii_projection)
-    #            crs_wkt = projection.to_ogc_wkt()
-    #            grid_mapping = {'name':'name',
-    #                            'crs_wkt': crs_wkt}
-    #
-    #            _set_netcdf_grid_mapping_variable(root, grid_mapping)
-    #
-    #        else:
-    # message = ('This RasterModelGrid has a projection and was read in '
-    #                'as an Esri ASCII and is being written out as a NetCDF. '
-    #                'Landlab does not presently have the ability to '
-    #                'translate the projection information used by these two '
-    #                'formats.')
-    #
-    # print(warning_message(message))
-
-    root.close()
+    return write_netcdf(
+        path,
+        fields,
+        attrs=attrs,
+        append=append,
+        format=format,
+        names=names,
+        at=at,
+        time=time,
+    )
