@@ -67,43 +67,14 @@ def test_at_keyword(tmpdir, at):
     with tmpdir.as_cwd():
         to_netcdf(grid, "test.nc", format="NETCDF4", include=include)
 
-        actual = xr.open_dataset("test.nc")
-        actual_fields = set(
-            [name for name in actual.variables if name.startswith("at_")]
-        )
-        nc_name = "at_{0}:{1}".format(at, name)
+        with xr.open_dataset("test.nc") as actual:
+            actual_fields = set(
+                [name for name in actual.variables if name.startswith("at_")]
+            )
+            nc_name = "at_{0}:{1}".format(at, name)
 
-        assert actual_fields == set([nc_name])
-        assert_array_equal(actual[nc_name], getattr(grid, "at_" + at)[name])
-
-
-@pytest.mark.skip("old way of doing things")
-@pytest.mark.parametrize(
-    "names,expected", (
-        ("elevs", ("at_link:elevs", "at_node:elevs")),
-        ("temp", ("at_link:temp",)),
-        (("elevs", "temp"), ("at_link:elevs", "at_node:elevs", "at_link:temp")),
-        (None, ("at_link:elevs", "at_node:elevs", "at_link:temp")),
-        ([], ()),
-        ((), ()),
-        (set(), ()),
-    ),
-)
-def test_names_keyword(tmpdir, names, expected):
-    grid = RasterModelGrid((4, 3))
-
-    grid.add_field("elevs", grid.ones(at="node"), at="node")
-    grid.add_field("elevs", grid.zeros(at="link"), at="link")
-    grid.add_field("temp", grid.ones(at="link"), at="link")
-
-    with tmpdir.as_cwd():
-        to_netcdf(grid, "test.nc", format="NETCDF4", names=names)
-
-        actual = xr.open_dataset("test.nc")
-        actual_fields = set(
-            [name for name in actual.variables if name.startswith("at_")]
-        )
-        assert actual_fields == set(expected)
+            assert actual_fields == set([nc_name])
+            assert_array_equal(actual[nc_name], getattr(grid, "at_" + at)[name])
 
 
 def test_raster_model_grid(tmpdir, format):
@@ -135,13 +106,41 @@ def test_hex_model_grid(tmpdir, format, orientation, node_layout):
         assert actual.node_layout == grid.node_layout
 
 
-def test_layers(tmpdir):
+def test_layers(tmpdir, format):
     grid = RasterModelGrid((3, 4))
     grid.event_layers.add(10.0, water_depth=[1.0, 2.0])
     with tmpdir.as_cwd():
-        to_netcdf(grid, "test.nc", with_layers=True)
+        to_netcdf(grid, "test.nc", include="at_layer*", format=format)
         actual = xr.open_dataset("test.nc")
         actual_fields = set(
             [name for name in actual.variables if name.startswith("at_")]
         )
         assert actual_fields == set(["at_layer:water_depth"])
+
+
+@pytest.mark.parametrize("mode", ("w", "a"))
+def test_with_and_without_time(tmpdir, format, mode):
+    grid = RasterModelGrid((3, 4))
+    grid.add_full("elevation", 1.0, at="node")
+    with tmpdir.as_cwd():
+        to_netcdf(grid, "test-without-time.nc", format=format, mode=mode)
+        with xr.open_dataset("test-without-time.nc") as actual:
+            assert "time" not in actual.dims
+            assert "time" not in actual.variables
+            assert actual["at_node:elevation"].dims == ("node",)
+
+        to_netcdf(grid, "test-with-time.nc", format=format, time=10.0, mode=mode)
+        with xr.open_dataset("test-with-time.nc") as actual:
+            assert "time" in actual.dims
+            assert "time" in actual.variables
+            assert actual["time"] == [10.0]
+            assert actual["at_node:elevation"].dims == ("time", "node")
+
+
+def test_append_with_new_field(tmpdir, format):
+    grid = RasterModelGrid((3, 4))
+    grid.add_full("elevation", 1.0, at="node")
+    with tmpdir.as_cwd():
+        to_netcdf(grid, "test.nc", format=format)
+        grid.add_full("temperature", 2.0, at="node")
+        to_netcdf(grid, "test.nc", format=format, mode="a", time=10.0)
