@@ -8,31 +8,16 @@ Write netcdf
 
     ~landlab.io.netcdf.write.write_netcdf
 """
-import os
 import pathlib
-import warnings
 
 import numpy as np
 import xarray as xr
-from scipy.io import netcdf as nc
 
 from landlab.io.netcdf._constants import (
     _AXIS_COORDINATE_NAMES,
     _AXIS_DIMENSION_NAMES,
     _NP_TO_NC_TYPE,
 )
-
-try:
-    import netCDF4 as nc4
-except ImportError:
-    warnings.warn("Unable to import netCDF4.", ImportWarning)
-
-# try:
-#     import pycrs
-#     _HAS_PYCRS = True
-# except ImportError:
-#     warnings.warn('Unable to import pycrs.', ImportWarning)
-#     _HAS_PYCRS = False
 
 
 def _set_netcdf_attributes(root, attrs):
