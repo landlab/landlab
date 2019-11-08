@@ -141,18 +141,21 @@ class HexModelGrid(DualHexGraph, ModelGrid):
             node_layout=dataset.attrs["node_layout"],
         )
 
-    def as_dataset(self):
-        return xr.Dataset(
+    def as_dataset(self, include="*", exclude=None):
+        dataset = xr.Dataset(
             {
                 "shape": (("dim",), list(self.shape)),
                 "spacing": self.spacing,
                 "xy_of_lower_left": (("dim",), list(self.xy_of_lower_left)),
             },
             attrs={
-                "grid_type": "HexModelGrid",
+                "grid_type": "triangular",
                 "node_layout": self.node_layout,
                 "orientation": self.orientation,
             }
+        )
+        return dataset.update(
+            super(HexModelGrid, self).as_dataset(include=include, exclude=exclude)
         )
 
     @property
