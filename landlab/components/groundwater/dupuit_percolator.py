@@ -149,6 +149,7 @@ class GroundwaterDupuitPercolator(Component):
     :math:`d` is the permeable thickness, and :math:`f` is the recharge rate.
 
     The evolution of aquifer thickness is then given by:
+
     .. math::
         n \frac{\partial \eta}{\partial t} = - q_s - \nabla \cdot q + f
 
