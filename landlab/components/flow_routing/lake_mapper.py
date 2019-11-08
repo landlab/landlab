@@ -575,10 +575,8 @@ class DepressionFinderAndRouter(Component):
         # We only call this method after is_valid_outlet has evaluated True,
         # so in theory it should NEVER be the case that we fail to find a
         # receiver. However, let's make sure.
-        assert (
-            receiver != outlet_node,
-            "failed to find receiver with ID: %r" % receiver
-        )
+        assert receiver != outlet_node, ("failed to find receiver with ID: %r"
+                                         % receiver)
 
         # Finally, let's assign it
 
