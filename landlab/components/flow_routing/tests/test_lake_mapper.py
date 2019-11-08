@@ -1956,9 +1956,6 @@ def test_find_lowest_node_on_lake_perimeter_c():
     """
     Ensures the key functionality of the cfunc is working.
     """
-    from landlab import RasterModelGrid
-    from landlab.components import FlowAccumulator, DepressionFinderAndRouter
-    from landlab.components.flow_routing.cfuncs import find_lowest_node_on_lake_perimeter_c
     mg = RasterModelGrid((7, 7), xy_spacing=0.5)
     z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
     z += 0.01 * mg.node_y
