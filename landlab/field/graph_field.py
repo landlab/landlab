@@ -1277,12 +1277,13 @@ class GraphFields(object):
         LLCATS: FIELDCR
         """
         if len(args) == 3:
-            fill_value = args[2]
+            at, name, fill_value = args
         elif len(args) == 2:
-            fill_value = args[1]
+            at = kwds.get("at", "node")
+            name, fill_value = args
         else:
             raise ValueError("number of arguments must be 2 or 3")
 
-        data = self.add_empty(*args, **kwds)
+        data = self.add_empty(name, at=at)
         data.fill(fill_value)
         return data
