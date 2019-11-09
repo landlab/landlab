@@ -115,9 +115,9 @@ def imshow_grid_at_node(grid, values, **kwds):
         grid.status_at_node == grid.BC_NODE_IS_CLOSED, values_at_node
     )
 
-    try:
+    if isinstance(grid, RasterModelGrid):
         shape = grid.shape
-    except AttributeError:
+    else:
         shape = (-1,)
 
     _imshow_grid_values(grid, values_at_node.reshape(shape), **kwds)
