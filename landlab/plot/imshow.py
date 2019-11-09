@@ -336,7 +336,7 @@ def _imshow_grid_values(
             xy = np.vstack((x, y)).T
             patches.append(Polygon(xy, closed=True, fill=True))
 
-        patchcollection = PatchCollection(patches, facecolor=colorVal, edgecolor=None)
+        patchcollection = PatchCollection(patches, facecolor=colorVal, edgecolor=colorVal)
 
         ax = plt.gca()
         ax.add_collection(patchcollection)
