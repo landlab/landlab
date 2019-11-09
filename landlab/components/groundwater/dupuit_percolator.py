@@ -317,8 +317,6 @@ class GroundwaterDupuitPercolator(Component):
         self._n = return_array_at_node(grid, porosity)
         self._n_link = map_mean_of_link_nodes_to_link(self._grid, self._n)
         self._r = regularization_f
-        self._S = abs(grid.calc_grad_at_link(self._elev))
-        self._S_node = map_max_of_node_links_to_node(grid, self._S)
 
     @property
     def K(self):
@@ -431,15 +429,16 @@ class GroundwaterDupuitPercolator(Component):
         # return map_max_of_node_links_to_node(self._grid,self._grid.dx* abs(self._grid.at_link['groundwater__specific_discharge']))
 
     def calc_shear_stress_at_node(self, n_manning=0.05):
-        """
-        Calculate the shear stress Tau based upon the equations: (N/m2)
+        r"""
+        Calculate the shear stress :math:`\tau` based upon the equations: (N/m2)
 
-            Tau = rho g S d
-            d = ( n Q / ( dx S^1/2))^3/5
+        .. math::
+            \tau = \rho g S d
+            d = \bigg( \frac{n Q}{S^{1/2} dx} \bigg)^{3/2}
 
-        where rho is the density of water, g is the gravitational constant,
-        S is the slope, d is the water depth calculated with manning's equation,
-        n is Manning's n, q is surface water discharge, and dx is the grid cell
+        where :math:`\rho` is the density of water, :math:`g` is the gravitational constant,
+        :math:`S` is the topographic slope, :math:`d` is the water depth calculated with Manning's equation,
+        :math:`n` is Manning's n, :math:`q` is surface water discharge, and :math:`dx` is the grid cell
         width.
 
         Parameters
