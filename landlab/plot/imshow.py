@@ -474,7 +474,6 @@ def imshow_grid(grid, values, **kwds):
         plt.savefig([string]) itself. If True, the function will call
         plt.show() itself once plotting is complete.
     """
-    show = kwds.pop("show", False)
     values_at = kwds.pop("values_at", "node")
     values_at = kwds.pop("at", values_at)
 
@@ -490,7 +489,3 @@ def imshow_grid(grid, values, **kwds):
         imshow_grid_at_cell(grid, values, **kwds)
     else:
         raise TypeError("value location %s not understood" % values_at)
-
-    # retained for backwards compatibility:
-    if show:
-        plt.show()
