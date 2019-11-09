@@ -52,9 +52,13 @@ class GroundwaterDupuitPercolator(Component):
     Simulate groundwater flow in a shallow unconfined aquifer.
 
     The GroundwaterDupuitPercolator solves the Boussinesq equation for
-    flow in an unconfined aquifer over an impermeable aquifer base that may
-    have uneven slope. This method uses the Dupuit approximation that the
-    hydraulic gradient is equal to the slope of the water table.
+    flow in an unconfined aquifer over an impermeable aquifer base and
+    calculates groundwater return flow to the surface. This method uses the
+    Dupuit approximation that the hydraulic gradient is zero in the direction
+    normal to the aquifer base. For this reason, aquifer thickness
+    and regolith thickness are calculated in the direction normal to the
+    aquifer base. The hydraulic gradient also reflects the gradient relative
+    to the aquifer base. For more details, see component documentation.
 
     Parameters
     ----------
@@ -94,9 +98,9 @@ class GroundwaterDupuitPercolator(Component):
     >>> for i in range(100):
     ...     gdp.run_one_step(dt)
 
-    In an example that generates surface water leakage, the surface water flux
+    When the model generates groundwater return flow, the surface water flux
     out of the domain can be calculated only after a FlowAccumulator is run.
-    Here is a more advanced example with a sloping aquifer that returns surface water flow.
+    Below is a more complex model that demonstrates this case.
 
     >>> from landlab.components import FlowAccumulator
 
@@ -138,7 +142,9 @@ class GroundwaterDupuitPercolator(Component):
         q = -K_{sat} \eta \big( \cos{\alpha} \nabla \eta + \sin{\alpha} \big)
 
     where :math:`K_{sat}` is the saturated hydraulic conductivity, :math:`\eta` is
-    aquifer thickness, and :math:`\alpha` is the slope angle of the aquifer base.
+    aquifer thickness normal to the aquifer base, and :math:`\alpha` is the
+    slope angle of the aquifer base. Note that :math:`\nabla \eta` is the gradient
+    in the direction along the aquifer base.
 
     Surface water discharge per unit area, :math:`q_s`, is calculated as:
 
@@ -146,7 +152,7 @@ class GroundwaterDupuitPercolator(Component):
         q_s = \mathcal{G}_r \bigg( \frac{\eta}{d} \bigg) \mathcal{R} \big(-\nabla \cdot q + f \big)
 
     where :math:`\mathcal{G}_r` is a smoothed step function, :math:`\mathcal{R}` is the ramp function,
-    :math:`d` is the permeable thickness, and :math:`f` is the recharge rate.
+    :math:`d` is the regolith thickness, and :math:`f` is the recharge rate.
 
     The evolution of aquifer thickness is then given by:
     .. math::
@@ -156,7 +162,8 @@ class GroundwaterDupuitPercolator(Component):
 
     An explicit forward-in-time finite-volume method is used to implement a
     numerical solution. Flow discharge between neighboring nodes is calculated
-    using the saturated thickness at the up-gradient node.
+    using the saturated thickness at the up-gradient node. For more details
+    see the component documentation.
 
     """
 
