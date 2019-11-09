@@ -64,6 +64,15 @@ class Space(_GeneralizedErosionDeposition):
                 prevent slopes from reversing and alluvium from going
                 negative.
 
+    If an external sediment flux is desired by the user, then the user
+    should update the at-node model grid field "external_sediment__flux".
+    By default this field is created on the instatiation of the SPACE component
+    and set to all zeros. Note that the SPACE component uses this field but does
+    not modify it. Thus if a user wanted to have a constant external sediment
+    flux for a number of time steps and then turn off the external sediment flux
+    it would be their responsibility to re-set "external_sediment__flux" to
+    all zeros at the correct time in running the model.
+
     Examples
     ---------
     >>> import numpy as np
@@ -330,7 +339,7 @@ class Space(_GeneralizedErosionDeposition):
         self._calc_hydrology()
         self._calc_erosion_rates()
 
-        self.qs_in[:] = 0
+        self.qs_in[:] = self.qs_ext
 
         # iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
@@ -519,7 +528,7 @@ class Space(_GeneralizedErosionDeposition):
             self.Er[flooded_nodes] = 0.0
 
             # Zero out sediment influx for new iteration
-            self.qs_in[:] = 0
+            self.qs_in[:] = self.qs_ext
 
             calculate_qs_in(
                 np.flipud(self.stack),

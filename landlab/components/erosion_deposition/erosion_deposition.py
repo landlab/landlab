@@ -131,6 +131,16 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                     stable step size based on the shortest time to "flattening"
                     among all upstream-downstream node pairs.
 
+        If an external sediment flux is desired by the user, then the user
+        should update the at-node model grid field "external_sediment__flux".
+        By default this field is created on the instatiation of the
+        ErosionDeposition component and set to all zeros. Note that the
+        ErosionDeposition component uses this field but does not modify it.
+        Thus if a user wanted to have a constant external_sediment__flux for
+        a number of time steps and then turn off the external sediment flux
+        it would be their responsibility to re-set "external_sediment__flux" to
+        all zeros at the correct time in running the model.
+
         Examples
         ---------
         >>> import numpy as np
@@ -273,7 +283,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         self._calc_erosion_rates()
 
         self.erosion_term[flooded_nodes] = 0.0
-        self.qs_in[:] = 0.0
+        self.qs_in[:] = self.qs_ext
 
         # iterate top to bottom through the stack, calculate qs
         # cythonized version of calculating qs_in
@@ -340,7 +350,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             self._calc_hydrology()
             self._calc_erosion_rates()
             self.erosion_term[flooded_nodes] = 0.0
-            self.qs_in[:] = 0.0
+            self.qs_in[:] = self.qs_ext
 
             # Sweep through nodes from upstream to downstream, calculating Qs.
             calculate_qs_in(
