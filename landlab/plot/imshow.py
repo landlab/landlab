@@ -10,10 +10,6 @@ Plotting functions
     ~landlab.plot.imshow.imshow_grid_at_cell
     ~landlab.plot.imshow.imshow_grid_at_node
 """
-
-
-import inspect
-
 import numpy as np
 
 from landlab.field.scalar_data_fields import FieldError
