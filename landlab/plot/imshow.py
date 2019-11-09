@@ -18,7 +18,6 @@ import numpy as np
 
 from landlab.field.scalar_data_fields import FieldError
 from landlab.grid.raster import RasterModelGrid
-from landlab.grid.voronoi import VoronoiDelaunayGrid
 from landlab.plot.event_handler import query_grid_on_button_press
 
 try:
@@ -254,9 +253,6 @@ def _imshow_grid_values(
     color_for_background=None,
     output=None,
 ):
-
-    gridtypes = inspect.getmro(grid.__class__)
-
     cmap = plt.get_cmap(cmap)
     if color_for_closed is not None:
         cmap.set_bad(color=color_for_closed)
