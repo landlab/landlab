@@ -221,9 +221,12 @@ def imshow_grid_at_cell(grid, values, **kwds):
     values_at_cell.mask = True
     values_at_cell.mask[grid.core_cells] = False
 
-    myimage = _imshow_grid_values(
-        grid, values_at_cell.reshape(grid.cell_grid_shape), **kwds
-    )
+    try:
+        values_at_cell = values_at_cell.reshape(grid.cell_grid_shape)
+    except AttributeError:
+        pass
+
+    myimage = _imshow_grid_values(grid, values_at_cell, **kwds)
 
     if isinstance(values, str):
         plt.title(values)
@@ -303,65 +306,44 @@ def _imshow_grid_values(
             cb = plt.colorbar(norm=norm, shrink=shrink)
             if colorbar_label:
                 cb.set_label(colorbar_label)
-    elif VoronoiDelaunayGrid in gridtypes:
-
+    else:
         import matplotlib.colors as colors
         import matplotlib.cm as cmx
 
         cm = plt.get_cmap(cmap)
 
-        if (limits is None) and ((vmin is None) and (vmax is None)):
-            if symmetric_cbar:
-                (var_min, var_max) = (
-                    values.flat[grid.core_nodes].min(),
-                    values.flat[grid.core_nodes].max(),
-                )
-                limit = max(abs(var_min), abs(var_max))
-                (vmin, vmax) = (-limit, limit)
-            else:
-                (vmin, vmax) = (
-                    values.flat[grid.core_nodes].min(),
-                    values.flat[grid.core_nodes].max(),
-                )
-        elif limits is not None:
+        if limits is not None:
             (vmin, vmax) = (limits[0], limits[1])
         else:
+            core_cells = grid.cell_at_node[grid.core_nodes]
             if vmin is None:
-                vmin = values.flat[grid.core_nodes].min()
+                vmin = values.flat[core_cells].min()
             if vmax is None:
-                vmax = values.flat[grid.core_nodes].max()
+                vmax = values.flat[core_cells].max()
+            if symmetric_cbar:
+                vmin, vmax = -max(abs(vmin), abs(vmax)), max(abs(vmin), abs(vmax))
 
         cNorm = colors.Normalize(vmin, vmax)
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
         colorVal = scalarMap.to_rgba(values)
 
-        mycolors = (i for i in colorVal)
-
         patches = []
 
         for id in grid.core_nodes:
 
-            colortouse = next(mycolors)
-
-            neighbors = grid.grid.adjacent_nodes_at_node[id]
+            neighbors = grid.adjacent_nodes_at_node[id]
             valid_neighbors = neighbors[neighbors != grid.BAD_INDEX_VALUE]
 
-            closed_loop_neighbors = valid_neighbors + [valid_neighbors[0]]
+            closed_loop_neighbors = np.concatenate(
+                [valid_neighbors, [valid_neighbors[0]]]
+            )
 
             x = grid.x_of_node[closed_loop_neighbors]
             y = grid.y_of_node[closed_loop_neighbors]
             xy = np.vstack((x, y)).T
-            patches.append(
-                Polygon(
-                    xy,
-                    edgecolor=colortouse,
-                    fillcolor=colortouse,
-                    closed=True,
-                    fill=True,
-                )
-            )
+            patches.append(Polygon(xy, closed=True, fill=True))
 
-        patchcollection = PatchCollection(patches)
+        patchcollection = PatchCollection(patches, facecolor=colorVal, edgecolor=None)
 
         ax = plt.gca()
         ax.add_collection(patchcollection)
