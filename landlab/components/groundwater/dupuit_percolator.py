@@ -278,7 +278,9 @@ class GroundwaterDupuitPercolator(Component):
             self._alpha = self.grid.at_node["aquifer_base__angle"]
         else:
             self._alpha = self.grid.add_zeros("node", "aquifer_base__angle")
-            self._alpha[:] = np.arctan(map_max_of_node_links_to_node(self._grid, "aquifer_base__gradient"))
+            self._alpha[:] = np.arctan(
+                map_max_of_node_links_to_node(self._grid, "aquifer_base__gradient")
+            )
 
         if "water_table__elevation" in self.grid.at_node:
             self._wtable = self.grid.at_node["water_table__elevation"]
@@ -290,14 +292,14 @@ class GroundwaterDupuitPercolator(Component):
             self._thickness = self.grid.at_node["aquifer__thickness"]
         else:
             self._thickness = self.grid.add_zeros("node", "aquifer__thickness")
-            self._thickness[:] = (self._wtable - self._base)*np.cos(self._alpha)
+            self._thickness[:] = (self._wtable - self._base) * np.cos(self._alpha)
         self._thickness[grid.closed_boundary_nodes] = 0
 
         if "regolith__thickness" in self.grid.at_node:
             self._reg_thickness = self.grid.at_node["regolith__thickness"]
         else:
             self._reg_thickness = self.grid.add_zeros("node", "regolith__thickness")
-            self._reg_thickness[:] = (self._elev - self._base)*np.cos(self._alpha)
+            self._reg_thickness[:] = (self._elev - self._base) * np.cos(self._alpha)
 
         if "hydraulic__gradient" in self.grid.at_link:
             self._hydr_grad = self.grid.at_link["hydraulic__gradient"]
@@ -502,15 +504,18 @@ class GroundwaterDupuitPercolator(Component):
         cosa_link = np.cos(np.arctan(self._base_grad))
         sina_link = np.sin(np.arctan(self._base_grad))
 
-        #calculate base angle at nodes
+        # calculate base angle at nodes
         self._alpha[self._cores] = np.arctan(
-                map_max_of_node_links_to_node(self._grid,
-                "aquifer_base__gradient")[self._cores])
+            map_max_of_node_links_to_node(self._grid, "aquifer_base__gradient")[
+                self._cores
+            ]
+        )
         cosa_node = np.cos(self._alpha)
 
         # Calculate regolith thickness
-        self._reg_thickness[self._cores] = (self._elev[self._cores] -
-                self._base[self._cores])*cosa_node[self._cores]
+        self._reg_thickness[self._cores] = (
+            self._elev[self._cores] - self._base[self._cores]
+        ) * cosa_node[self._cores]
 
         if (self._wtable > self._elev).any():
 
@@ -519,18 +524,15 @@ class GroundwaterDupuitPercolator(Component):
             ]
             self._thickness[self._cores] = (
                 self._wtable[self._cores] - self._base[self._cores]
-            )*cosa_node[self._cores]
+            ) * cosa_node[self._cores]
 
         # Calculate hydraulic gradient
-        self._hydr_grad[self._grid.active_links] = (self._grid.calc_grad_at_link(
-            self._thickness
-        )*cosa_link)[self._grid.active_links]
+        self._hydr_grad[self._grid.active_links] = (
+            self._grid.calc_grad_at_link(self._thickness) * cosa_link
+        )[self._grid.active_links]
 
         # Calculate groundwater velocity
-        self._vel[:] = -self._K * (
-            self._hydr_grad * cosa_link
-            + sina_link
-        )
+        self._vel[:] = -self._K * (self._hydr_grad * cosa_link + sina_link)
         self._vel[self._grid.status_at_link == INACTIVE_LINK] = 0.0
 
         # Aquifer thickness at links (upwind)
@@ -548,9 +550,8 @@ class GroundwaterDupuitPercolator(Component):
         soil_present = self._reg_thickness > 0.0
         rel_thickness = np.ones_like(self._elev)
         rel_thickness[soil_present] = np.minimum(
-            1,
-            self._thickness[soil_present]
-            / self._reg_thickness[soil_present])
+            1, self._thickness[soil_present] / self._reg_thickness[soil_present]
+        )
 
         # Calculate surface discharge at nodes
         self._qs[:] = _regularize_G(rel_thickness, self._r) * _regularize_R(
@@ -566,7 +567,7 @@ class GroundwaterDupuitPercolator(Component):
 
         # Recalculate water surface height
         self._wtable[self._cores] = (
-            self._base[self._cores] + (self._thickness/cosa_node)[self._cores]
+            self._base[self._cores] + (self._thickness / cosa_node)[self._cores]
         )
 
     def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.1, **kwds):
@@ -591,15 +592,18 @@ class GroundwaterDupuitPercolator(Component):
         cosa_link = np.cos(np.arctan(self._base_grad))
         sina_link = np.sin(np.arctan(self._base_grad))
 
-        #calculate base angle
+        # calculate base angle
         self._alpha[self._cores] = np.arctan(
-                map_max_of_node_links_to_node(self._grid,
-                "aquifer_base__gradient")[self._cores])
+            map_max_of_node_links_to_node(self._grid, "aquifer_base__gradient")[
+                self._cores
+            ]
+        )
         cosa_node = np.cos(self._alpha)
 
         # Calculate regolith thickness
-        self._reg_thickness[self._cores] = (self._elev[self._cores] -
-                self._base[self._cores])*cosa_node[self._cores]
+        self._reg_thickness[self._cores] = (
+            self._elev[self._cores] - self._base[self._cores]
+        ) * cosa_node[self._cores]
 
         # Initialize relative thickness
         soil_present = self._reg_thickness > 0.0
@@ -612,22 +616,19 @@ class GroundwaterDupuitPercolator(Component):
             ]
             self._thickness[self._cores] = (
                 self._wtable[self._cores] - self._base[self._cores]
-            )*cosa_node[self._cores]
+            ) * cosa_node[self._cores]
 
         remaining_time = dt
         self._num_substeps = 0
 
         while remaining_time > 0.0:
             # Calculate hydraulic gradient
-            self._hydr_grad[self._grid.active_links] = (self._grid.calc_grad_at_link(
-                self._thickness
-            )*cosa_link)[self._grid.active_links]
+            self._hydr_grad[self._grid.active_links] = (
+                self._grid.calc_grad_at_link(self._thickness) * cosa_link
+            )[self._grid.active_links]
 
             # Calculate groundwater velocity
-            self._vel[:] = -self._K * (
-                self._hydr_grad * cosa_link
-                + sina_link
-            )
+            self._vel[:] = -self._K * (self._hydr_grad * cosa_link + sina_link)
             self._vel[self._grid.status_at_link == INACTIVE_LINK] = 0.0
 
             # Aquifer thickness at links (upwind)
@@ -643,9 +644,8 @@ class GroundwaterDupuitPercolator(Component):
 
             # Determine the relative aquifer thickness, 1 if permeable thickness is 0.
             rel_thickness[soil_present] = np.minimum(
-                1,
-                self._thickness[soil_present]
-                / self._reg_thickness[soil_present])
+                1, self._thickness[soil_present] / self._reg_thickness[soil_present]
+            )
 
             # Calculate surface discharge at nodes
             self._qs[:] = _regularize_G(rel_thickness, self._r) * _regularize_R(
@@ -668,7 +668,7 @@ class GroundwaterDupuitPercolator(Component):
 
             # Recalculate water surface height
             self._wtable[self._cores] = (
-                self._base[self._cores] + (self._thickness/cosa_node)[self._cores]
+                self._base[self._cores] + (self._thickness / cosa_node)[self._cores]
             )
 
             # calculate the time remaining and advance count of substeps
