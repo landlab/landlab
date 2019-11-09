@@ -263,7 +263,7 @@ class FieldDataset(dict):
         return self._ds
 
     def keys(self):
-        return self._ds.variables
+        return list(self._ds.variables)
 
     def set_value(self, name, value_array, attrs=None):
         attrs = attrs or {}
@@ -1066,7 +1066,8 @@ class GraphFields(object):
             dims += (name + "_per_" + at,)
             value_array = value_array.reshape((value_array.shape[0], -1))
 
-        ds[name] = value_array
+        ds.set_value(name, value_array, attrs=attrs)
+        # ds[name] = value_array
         return ds[name]
 
     def delete_field(self, loc, name):
@@ -1277,12 +1278,13 @@ class GraphFields(object):
         LLCATS: FIELDCR
         """
         if len(args) == 3:
-            fill_value = args[2]
+            at, name, fill_value = args
         elif len(args) == 2:
-            fill_value = args[1]
+            at = kwds.pop("at", "node")
+            name, fill_value = args
         else:
             raise ValueError("number of arguments must be 2 or 3")
 
-        data = self.add_empty(*args, **kwds)
+        data = self.add_empty(name, at=at, **kwds)
         data.fill(fill_value)
         return data
