@@ -285,18 +285,6 @@ def _imshow_grid_values(
             if vmax is not None:
                 kwds["vmax"] = vmax
 
-        if np.isclose(grid.dx, grid.dy):
-            if values.size == grid.number_of_nodes:
-                myimage = plt.imshow(
-                    values.reshape(grid.shape),
-                    origin="lower",
-                    extent=(x[0], x[-1], y[0], y[-1]),
-                    **kwds
-                )
-            else:  # this is a cell grid, and has been reshaped already...
-                myimage = plt.imshow(
-                    values, origin="lower", extent=(x[0], x[-1], y[0], y[-1]), **kwds
-                )
         myimage = plt.pcolormesh(x, y, values, **kwds)
         myimage.set_rasterized(True)
         plt.gca().set_aspect(1.0)
