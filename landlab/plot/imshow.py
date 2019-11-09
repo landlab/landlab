@@ -23,6 +23,8 @@ from landlab.plot.event_handler import query_grid_on_button_press
 
 try:
     import matplotlib.pyplot as plt
+    from matplotlib.patches import Polygon
+    from matplotlib.collections import PatchCollection
 except ImportError:
     import warnings
 
@@ -302,64 +304,71 @@ def _imshow_grid_values(
             if colorbar_label:
                 cb.set_label(colorbar_label)
     elif VoronoiDelaunayGrid in gridtypes:
-        # This is still very much ad-hoc, and needs prettifying.
-        # We should save the modifications needed to plot color all the way
-        # to the diagram edge *into* the grid, for faster plotting.
-        # (see http://stackoverflow.com/questions/20515554/...
-        # colorize-voronoi-diagram)
-        # (This technique is not implemented yet)
-        from scipy.spatial import voronoi_plot_2d
+
         import matplotlib.colors as colors
         import matplotlib.cm as cmx
 
         cm = plt.get_cmap(cmap)
 
         if (limits is None) and ((vmin is None) and (vmax is None)):
-            # only want to work with NOT CLOSED nodes
-            open_nodes = grid.status_at_node != 4
             if symmetric_cbar:
                 (var_min, var_max) = (
-                    values.flat[open_nodes].min(),
-                    values.flat[open_nodes].max(),
+                    values.flat[grid.core_nodes].min(),
+                    values.flat[grid.core_nodes].max(),
                 )
                 limit = max(abs(var_min), abs(var_max))
                 (vmin, vmax) = (-limit, limit)
             else:
                 (vmin, vmax) = (
-                    values.flat[open_nodes].min(),
-                    values.flat[open_nodes].max(),
+                    values.flat[grid.core_nodes].min(),
+                    values.flat[grid.core_nodes].max(),
                 )
         elif limits is not None:
             (vmin, vmax) = (limits[0], limits[1])
         else:
-            open_nodes = grid.status_at_node != 4
             if vmin is None:
-                vmin = values.flat[open_nodes].min()
+                vmin = values.flat[grid.core_nodes].min()
             if vmax is None:
-                vmax = values.flat[open_nodes].max()
+                vmax = values.flat[grid.core_nodes].max()
 
         cNorm = colors.Normalize(vmin, vmax)
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
         colorVal = scalarMap.to_rgba(values)
 
-        #@MCFLUGEN THESE LINES NEED TO BE CHANGED TO USE PATCHCOLLECTION
         mycolors = (i for i in colorVal)
-        for order in grid.vor.point_region:
-            region = grid.vor.regions[order]
+
+        patches = []
+
+        for id in grid.core_nodes:
+
             colortouse = next(mycolors)
-            if -1 not in region:
-                polygon = [grid.vor.vertices[i] for i in region]
-                plt.fill(*zip(*polygon), color=colortouse)
-        # MCFLUGEN END OF LINES
-        
-        plt.gca().set_aspect(1.0)
-        # plt.autoscale(tight=True)
-        # Tempting though it is to move the boundary outboard of the outermost
-        # nodes (e.g., to the outermost corners), this is a bad idea, as the
-        # outermost cells tend to have highly elongated shapes which make the
-        # plot look stupid
-        plt.xlim((np.min(grid.node_x), np.max(grid.node_x)))
-        plt.ylim((np.min(grid.node_y), np.max(grid.node_y)))
+
+            neighbors = grid.grid.adjacent_nodes_at_node[id]
+            valid_neighbors = neighbors[neighbors != grid.BAD_INDEX_VALUE]
+
+            closed_loop_neighbors = valid_neighbors + [valid_neighbors[0]]
+
+            x = grid.x_of_node[closed_loop_neighbors]
+            y = grid.y_of_node[closed_loop_neighbors]
+            xy = np.vstack((x, y)).T
+            patches.append(
+                Polygon(
+                    xy,
+                    edgecolor=colortouse,
+                    fillcolor=colortouse,
+                    closed=True,
+                    fill=True,
+                )
+            )
+
+        patchcollection = PatchCollection(patches)
+
+        ax = plt.gca()
+        ax.add_collection(patchcollection)
+        ax.set_aspect(1.0)
+
+        plt.xlim((np.min(grid.x_of_node), np.max(grid.x_of_node)))
+        plt.ylim((np.min(grid.y_of_node), np.max(grid.y_of_node)))
 
         scalarMap.set_array(values)
         if allow_colorbar:
