@@ -259,8 +259,8 @@ def _imshow_grid_values(
         if values.ndim != 2:
             raise ValueError("values must have ndim == 2")
 
-        y = np.arange(values.shape[0] + 1) * grid.dy - grid.dy * 0.5
-        x = np.arange(values.shape[1] + 1) * grid.dx - grid.dx * 0.5
+        y = np.arange(values.shape[0] + 1) * grid.dy - grid.dy * 0.5 + grid.xy_of_lower_left[1]
+        x = np.arange(values.shape[1] + 1) * grid.dx - grid.dx * 0.5 + grid.xy_of_lower_left[0]
 
         kwds = dict(cmap=cmap)
         (kwds["vmin"], kwds["vmax"]) = (values.min(), values.max())
