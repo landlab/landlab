@@ -310,8 +310,6 @@ def _imshow_grid_values(
         import matplotlib.colors as colors
         import matplotlib.cm as cmx
 
-        cm = plt.get_cmap(cmap)
-
         if limits is not None:
             (vmin, vmax) = (limits[0], limits[1])
         else:
@@ -323,7 +321,7 @@ def _imshow_grid_values(
                 vmin, vmax = -max(abs(vmin), abs(vmax)), max(abs(vmin), abs(vmax))
 
         cNorm = colors.Normalize(vmin, vmax)
-        scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
+        scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
         colorVal = scalarMap.to_rgba(values)[grid.core_nodes]
 
         patches = []
