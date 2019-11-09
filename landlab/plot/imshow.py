@@ -342,6 +342,7 @@ def _imshow_grid_values(
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cm)
         colorVal = scalarMap.to_rgba(values)
 
+        #@MCFLUGEN THESE LINES NEED TO BE CHANGED TO USE PATCHCOLLECTION
         mycolors = (i for i in colorVal)
         for order in grid.vor.point_region:
             region = grid.vor.regions[order]
@@ -349,7 +350,8 @@ def _imshow_grid_values(
             if -1 not in region:
                 polygon = [grid.vor.vertices[i] for i in region]
                 plt.fill(*zip(*polygon), color=colortouse)
-
+        # MCFLUGEN END OF LINES
+        
         plt.gca().set_aspect(1.0)
         # plt.autoscale(tight=True)
         # Tempting though it is to move the boundary outboard of the outermost
