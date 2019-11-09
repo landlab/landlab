@@ -346,6 +346,7 @@ def _imshow_grid_values(
         ax = plt.gca()
         ax.add_collection(patchcollection)
         ax.set_aspect(1.0)
+        ax.set_rasterized(True)
 
         plt.xlim((np.min(grid.x_of_node), np.max(grid.x_of_node)))
         plt.ylim((np.min(grid.y_of_node), np.max(grid.y_of_node)))
