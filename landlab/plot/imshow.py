@@ -259,8 +259,16 @@ def _imshow_grid_values(
         if values.ndim != 2:
             raise ValueError("values must have ndim == 2")
 
-        y = np.arange(values.shape[0] + 1) * grid.dy - grid.dy * 0.5 + grid.xy_of_lower_left[1]
-        x = np.arange(values.shape[1] + 1) * grid.dx - grid.dx * 0.5 + grid.xy_of_lower_left[0]
+        y = (
+            np.arange(values.shape[0] + 1) * grid.dy
+            - grid.dy * 0.5
+            + grid.xy_of_lower_left[1]
+        )
+        x = (
+            np.arange(values.shape[1] + 1) * grid.dx
+            - grid.dx * 0.5
+            + grid.xy_of_lower_left[0]
+        )
 
         kwds = dict(cmap=cmap)
         (kwds["vmin"], kwds["vmax"]) = (values.min(), values.max())
@@ -327,9 +335,7 @@ def _imshow_grid_values(
             corners = grid.corners_at_cell[cell]
             valid_corners = corners[corners != grid.BAD_INDEX_VALUE]
 
-            closed_loop_corners = np.concatenate(
-                [valid_corners, [valid_corners[0]]]
-            )
+            closed_loop_corners = np.concatenate([valid_corners, [valid_corners[0]]])
 
             x = grid.x_of_corner[closed_loop_corners]
             y = grid.y_of_corner[closed_loop_corners]
