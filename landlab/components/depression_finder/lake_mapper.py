@@ -13,7 +13,6 @@ from landlab import Component, FieldError, RasterModelGrid
 from landlab.components.flow_accum import flow_accum_bw
 from landlab.core.messages import warning_message
 from landlab.core.utils import as_id_array
-from landlab.grid.base import BAD_INDEX_VALUE as LOCAL_BAD_INDEX_VALUE
 
 # Codes for depression status
 _UNFLOODED = 0
@@ -144,7 +143,7 @@ class DepressionFinderAndRouter(Component):
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "If a depression, the id of the outlet node for that depression, otherwise BAD_INDEX_VALUE",
+            "doc": "If a depression, the id of the outlet node for that depression, otherwise grid.BAD_INDEX_VALUE",
         },
         "flood_status_code": {
             "dtype": int,
@@ -242,14 +241,14 @@ class DepressionFinderAndRouter(Component):
         # Create output variables.
         #
         # Note that we initialize depression
-        # outlet ID to LOCAL_BAD_INDEX_VALUE (which is a major clue!)
+        # outlet ID to self._grid.BAD_INDEX_VALUE (which is a major clue!)
         self._depression_depth = self._grid.add_zeros(
             "depression__depth", at="node", clobber=True
         )
         self._depression_outlet_map = self._grid.add_zeros(
             "depression__outlet_node", at="node", dtype=int, clobber=True
         )
-        self._depression_outlet_map += LOCAL_BAD_INDEX_VALUE
+        self._depression_outlet_map += self._grid.BAD_INDEX_VALUE
 
         # Later on, we'll need a number that's guaranteed to be larger than the
         # highest elevation in the grid.
@@ -265,7 +264,7 @@ class DepressionFinderAndRouter(Component):
             "flood_status_code", at="node", dtype=int, clobber=True
         )
         self._lake_map = np.empty(self._grid.number_of_nodes, dtype=int)
-        self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)
+        self._lake_map.fill(self._grid.BAD_INDEX_VALUE)
 
     def updated_boundary_conditions(self):
         """Call this if boundary conditions on the grid are updated after the
@@ -656,7 +655,7 @@ class DepressionFinderAndRouter(Component):
             ``True`` if the node can drain. Otherwise, ``False``.
         """
         nbrs = self._node_nbrs[the_node]
-        not_bad = nbrs != LOCAL_BAD_INDEX_VALUE
+        not_bad = nbrs != self._grid.BAD_INDEX_VALUE
         not_too_high = self._elev[nbrs] < self._elev[the_node]
         not_current_lake = np.not_equal(self._flood_status[nbrs], _CURRENT_LAKE)
         not_flooded = np.not_equal(self._flood_status[nbrs], _FLOODED)
@@ -744,7 +743,7 @@ class DepressionFinderAndRouter(Component):
         # possible to have two lakes overlapping... We can test this with an
         # assertion that out total # of *tracked* lakes matches the accumulated
         # total of unique vals in lake_map.
-        fresh_nodes = np.equal(self._lake_map[n], LOCAL_BAD_INDEX_VALUE)
+        fresh_nodes = np.equal(self._lake_map[n], self._grid.BAD_INDEX_VALUE)
         if np.all(fresh_nodes):  # a new lake
             self._flood_status[n] = _FLOODED
             self._depression_depth[n] = self._elev[outlet_id] - self._elev[n]
@@ -760,13 +759,13 @@ class DepressionFinderAndRouter(Component):
             self._depression_outlet_map[n] = outlet_id
             # ^these two will just get stamped over as needed
             subsumed_lakes = np.unique(self._lake_map[n])  # IDed by pit_node
-            # the final entry is LOCAL_BAD_INDEX_VALUE
+            # the final entry is self._grid.BAD_INDEX_VALUE
             subs_lakes_where = np.searchsorted(self._pit_node_ids, subsumed_lakes[1:])
             pit_node_where = np.searchsorted(self._pit_node_ids, pit_node)
             self._unique_pits[subs_lakes_where] = False
             self._unique_pits[pit_node_where] = True
             self._pits_flooded -= subsumed_lakes.size - 2
-            # -1 for the LOCAL_BAD_INDEX_VALUE that must be present; another -1
+            # -1 for the self._grid.BAD_INDEX_VALUE that must be present; another -1
             # because a single lake is just replaced by a new lake.
             self._lake_map[n] = pit_node
         else:  # lake is subsumed within an existing lake
@@ -806,7 +805,7 @@ class DepressionFinderAndRouter(Component):
                 nodes_this_depression
             )
             # note this can return the supplied node, if - somehow - the
-            # surrounding nodes are all LOCAL_BAD_INDEX_VALUE
+            # surrounding nodes are all self._grid.BAD_INDEX_VALUE
             # I BELIEVE THE IS_VALID_OUTLET FN SHOULD ASSIGN FLOW DIR
             found_outlet = self.is_valid_outlet(lowest_node_on_perimeter)
 
@@ -859,9 +858,7 @@ class DepressionFinderAndRouter(Component):
         # debug_count = 0
         for pit_node in self._pit_node_ids:
             if self._flood_status[pit_node] != _PIT:
-                from landlab import BAD_INDEX_VALUE
-
-                self._depression_outlets.append(BAD_INDEX_VALUE)
+                self._depression_outlets.append(self._grid.BAD_INDEX_VALUE)
             else:
                 self.find_depression_from_pit(pit_node, reroute_flow)
                 self._pits_flooded += 1
@@ -903,8 +900,8 @@ class DepressionFinderAndRouter(Component):
         if self._bc_set_code != self._grid.bc_set_code:
             self.updated_boundary_conditions()
             self._bc_set_code = self._grid.bc_set_code
-        self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)
-        self._depression_outlet_map.fill(LOCAL_BAD_INDEX_VALUE)
+        self._lake_map.fill(self._grid.BAD_INDEX_VALUE)
+        self._depression_outlet_map.fill(self._grid.BAD_INDEX_VALUE)
         self._depression_depth.fill(0.0)
         self._depression_outlets = []  # reset these
         # Locate nodes with pits
@@ -1167,7 +1164,7 @@ class DepressionFinderAndRouter(Component):
                     new_link = self._grid.links_at_node[outlet_node, find_recs]
 
                 if new_link.size == 0:
-                    new_link = LOCAL_BAD_INDEX_VALUE
+                    new_link = self._grid.BAD_INDEX_VALUE
                 self._links[outlet_node] = new_link
 
                 # make a check
@@ -1292,7 +1289,7 @@ class DepressionFinderAndRouter(Component):
         with a unique (non-consecutive) code corresponding to each unique lake.
 
         The codes used can be obtained with *lake_codes*. Nodes not in a
-        lake are labelled with LOCAL_BAD_INDEX_VALUE.
+        lake are labelled with self._grid.BAD_INDEX_VALUE.
         """
         return self._lake_map
 
@@ -1300,7 +1297,7 @@ class DepressionFinderAndRouter(Component):
     def lake_at_node(self):
         """Return a boolean array, True if the node is flooded, False
         otherwise."""
-        return self._lake_map != LOCAL_BAD_INDEX_VALUE
+        return self._lake_map != self._grid.BAD_INDEX_VALUE
 
     @property
     def lake_areas(self):

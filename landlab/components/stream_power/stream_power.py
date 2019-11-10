@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX, Component, MissingKeyError
+from landlab import Component, MissingKeyError
 from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.lake_mapper import _FLOODED
@@ -347,7 +347,8 @@ class StreamPowerEroder(Component):
         upstream_order_IDs = self._grid["node"]["flow__upstream_node_order"]
 
         defined_flow_receivers = np.not_equal(
-            self._grid["node"]["flow__link_to_receiver_node"], UNDEFINED_INDEX
+            self._grid["node"]["flow__link_to_receiver_node"],
+            self._grid.BAD_INDEX_VALUE,
         )
 
         try:

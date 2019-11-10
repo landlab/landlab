@@ -2,7 +2,7 @@
 """Functions to calculate flow distance from divide."""
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE, FieldError, RasterModelGrid
+from landlab import FieldError, RasterModelGrid
 
 
 def calculate_distance_to_divide(
@@ -212,7 +212,7 @@ def calculate_distance_to_divide(
 
         else:
             # non-existant links are coded with -1
-            useable_receivers = np.where(reciever != BAD_INDEX_VALUE)[0]
+            useable_receivers = np.where(reciever != grid.BAD_INDEX_VALUE)[0]
 
             for idx in range(len(useable_receivers)):
                 r = reciever[useable_receivers][idx]

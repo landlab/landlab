@@ -14,7 +14,6 @@ together.
 import numpy as np
 
 from landlab import (  # for type tests
-    BAD_INDEX_VALUE,
     Component,
     FieldError,
     NetworkModelGrid,
@@ -728,13 +727,13 @@ class FlowAccumulator(Component):
 
         self._upstream_ordered_nodes = grid.at_node["flow__upstream_node_order"]
         if np.all(self._upstream_ordered_nodes == 0):
-            self._upstream_ordered_nodes.fill(BAD_INDEX_VALUE)
+            self._upstream_ordered_nodes.fill(self._grid.BAD_INDEX_VALUE)
 
         self._delta_structure = grid.at_node["flow__data_structure_delta"]
         if np.all(self._delta_structure == 0):
-            self._delta_structure[:] = BAD_INDEX_VALUE
+            self._delta_structure[:] = self._grid.BAD_INDEX_VALUE
 
-        self._D_structure = BAD_INDEX_VALUE * grid.ones(at="link", dtype=int)
+        self._D_structure = self._grid.BAD_INDEX_VALUE * grid.ones(at="link", dtype=int)
         self._nodes_not_in_stack = True
 
         if len(self._kwargs) > 0:
@@ -812,7 +811,7 @@ class FlowAccumulator(Component):
             self._upstream_ordered_nodes
         ]
         out = downstream_links.flatten()
-        return out[out != BAD_INDEX_VALUE]
+        return out[out != self._grid.BAD_INDEX_VALUE]
 
     def headwater_nodes(self):
         """Return the headwater nodes.

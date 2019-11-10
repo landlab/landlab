@@ -4,7 +4,6 @@ import numpy as np
 import scipy.constants
 
 from landlab import Component, MissingKeyError
-from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.utils.decorators import make_return_array_immutable
 
 
@@ -701,7 +700,9 @@ class SedDepEroder(Component):
         steepest_link = "flow__link_to_receiver_node"
         link_length = np.empty(grid.number_of_nodes, dtype=float)
         link_length.fill(np.nan)
-        draining_nodes = np.not_equal(grid.at_node[steepest_link], BAD_INDEX_VALUE)
+        draining_nodes = np.not_equal(
+            grid.at_node[steepest_link], self._grid.BAD_INDEX_VALUE
+        )
         core_draining_nodes = np.intersect1d(
             np.where(draining_nodes)[0], grid.core_nodes, assume_unique=True
         )

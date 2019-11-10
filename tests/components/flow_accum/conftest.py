@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 
 from landlab import RasterModelGrid
-from landlab.grid.base import BAD_INDEX_VALUE as XX
+
+XX = RasterModelGrid.BAD_INDEX_VALUE
 
 
 @pytest.fixture

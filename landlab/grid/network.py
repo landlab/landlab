@@ -3,7 +3,7 @@
 import numpy as np
 
 from landlab.utils.decorators import make_return_array_immutable
-
+from .base import BAD_INDEX_VALUE
 from ..core import load_params
 from ..core.utils import add_module_functions_to_class
 from ..field import GraphFields
@@ -43,6 +43,8 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
            [2, 1],
            [1, 3]])
     """
+    #: Indicates a node is *bad index*.
+    BAD_INDEX_VALUE = BAD_INDEX_VALUE
 
     #: Indicates a node is *core*.
     BC_NODE_IS_CORE = NodeStatus.CORE

@@ -9,11 +9,8 @@ Fill sinks in a landscape to the brim, following the Barnes et al.
 
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE
 from landlab.components import LakeMapperBarnes
 from landlab.utils.return_array import return_array_at_node
-
-LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
 
 
 class SinkFillerBarnes(LakeMapperBarnes):
@@ -263,7 +260,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
         outlet node ID.
 
         Nodes not in a filled area are labelled with
-        LOCAL_BAD_INDEX_VALUE (default -1).
+        BAD_INDEX_VALUE (default -1).
         """
         return super(SinkFillerBarnes, self).lake_map
 

@@ -8,7 +8,7 @@
 
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE as UNDEFINED_INDEX, Component, RasterModelGrid
+from landlab import Component, RasterModelGrid
 from landlab.utils.return_array import return_array_at_node
 
 from ..depression_finder.lake_mapper import _FLOODED
@@ -272,7 +272,8 @@ class FastscapeEroder(Component):
         z = self._grid.at_node["topographic__elevation"]
 
         defined_flow_receivers = np.not_equal(
-            self._grid.at_node["flow__link_to_receiver_node"], UNDEFINED_INDEX
+            self._grid.at_node["flow__link_to_receiver_node"],
+            self._grid.BAD_INDEX_VALUE,
         )
 
         if isinstance(self._grid, RasterModelGrid):

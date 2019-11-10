@@ -26,7 +26,6 @@ from landlab.components import FlowAccumulator
 from landlab.utils import StablePriorityQueue
 from landlab.utils.return_array import return_array_at_node
 
-LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
 LARGE_ELEV = 9999999999.0
 
 # TODO: Needs to have rerouting functionality...
@@ -670,7 +669,7 @@ class LakeMapperBarnes(Component):
         True
         """
         lakemappings = dict()
-        outlet_ID = BAD_INDEX_VALUE
+        outlet_ID = self._grid.BAD_INDEX_VALUE
         while True:
             try:
                 c = heapq.heappop(pitq)
@@ -868,7 +867,7 @@ class LakeMapperBarnes(Component):
         ValueError was raised: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
         """
         lakemappings = dict()
-        outlet_ID = BAD_INDEX_VALUE
+        outlet_ID = self._grid.BAD_INDEX_VALUE
         while True:
             try:
                 topopen = openq.peek_at_task()
@@ -1833,7 +1832,7 @@ class LakeMapperBarnes(Component):
     def lake_map(self):
         """Return an array of ints, where each node within a lake is labelled
         with its outlet node ID. The outlet nodes are NOT part of the lakes.
-        Nodes not in a lake are labelled with LOCAL_BAD_INDEX_VALUE (default
+        Nodes not in a lake are labelled with BAD_INDEX_VALUE (default
         -1).
 
         Examples
@@ -1897,7 +1896,7 @@ class LakeMapperBarnes(Component):
         if self._runcount > self._lastcountforlakemap:
             # things have changed since last call to lake_map
             self._lake_map = np.full(
-                self._grid.number_of_nodes, LOCAL_BAD_INDEX_VALUE, dtype=int
+                self._grid.number_of_nodes, self._grid.BAD_INDEX_VALUE, dtype=int
             )
             for (outlet, lakenodes) in self.lake_dict.items():
                 self._lake_map[lakenodes] = outlet
@@ -1942,7 +1941,7 @@ class LakeMapperBarnes(Component):
         >>> np.all(np.equal(lmb.lake_at_node, lake_at_node))
         True
         """
-        return self.lake_map != LOCAL_BAD_INDEX_VALUE
+        return self.lake_map != self._grid.BAD_INDEX_VALUE
 
     @property
     def lake_depths(self):

@@ -24,7 +24,6 @@ __all__ = [
     "RasterModelGrid",
     "VoronoiDelaunayGrid",
     "NetworkModelGrid",
-    "BAD_INDEX_VALUE",
     "FIXED_VALUE_BOUNDARY",
     "FIXED_GRADIENT_BOUNDARY",
     "LOOPED_BOUNDARY",

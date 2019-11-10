@@ -2,7 +2,7 @@
 """Functions to calculate flow distance."""
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE, FieldError, RasterModelGrid
+from landlab import FieldError, RasterModelGrid
 
 
 def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
@@ -181,7 +181,7 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
 
             else:
                 # non-existant links are coded with -1
-                useable_receivers = np.where(reciever != BAD_INDEX_VALUE)[0]
+                useable_receivers = np.where(reciever != grid.BAD_INDEX_VALUE)[0]
 
                 # we will have the stream flow to the downstream node with the
                 # shortest distance to the outlet.

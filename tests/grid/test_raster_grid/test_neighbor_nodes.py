@@ -3,7 +3,8 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from landlab import RasterModelGrid
-from landlab.grid.base import BAD_INDEX_VALUE as X
+
+X = RasterModelGrid.BAD_INDEX_VALUE
 
 
 def test_all_active_neighbors():

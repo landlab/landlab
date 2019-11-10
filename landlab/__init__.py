@@ -20,7 +20,6 @@ from .core.model_parameter_loader import load_params
 from .field.scalar_data_fields import FieldError
 from .grid import (
     ACTIVE_LINK,
-    BAD_INDEX_VALUE,
     CORE_NODE,
     FIXED_GRADIENT_BOUNDARY,
     FIXED_LINK,
@@ -61,7 +60,6 @@ __all__ = [
     "RasterModelGrid",
     "VoronoiDelaunayGrid",
     "NetworkModelGrid",
-    "BAD_INDEX_VALUE",
     "LinkStatus",
     "NodeStatus",
     "CORE_NODE",

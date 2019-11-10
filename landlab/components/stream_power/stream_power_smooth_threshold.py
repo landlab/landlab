@@ -18,13 +18,9 @@ Created on Sat Nov 26 08:36:49 2016
 
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE
-
 from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import smooth_stream_power_eroder_solver
 from .fastscape_stream_power import FastscapeEroder
-
-UNDEFINED_INDEX = BAD_INDEX_VALUE
 
 
 class StreamPowerSmoothThresholdEroder(FastscapeEroder):
@@ -265,7 +261,8 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         # Get an array of flow-link length for each node that has a defined
         # receiver (i.e., that drains to another node).
         defined_flow_receivers = np.not_equal(
-            self._grid["node"]["flow__link_to_receiver_node"], UNDEFINED_INDEX
+            self._grid["node"]["flow__link_to_receiver_node"],
+            self._grid.BAD_INDEX_VALUE,
         )
         defined_flow_receivers[flow_receivers == node_id] = False
 

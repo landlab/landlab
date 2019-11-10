@@ -12,13 +12,15 @@ from numpy import pi, sin
 from numpy.testing import assert_array_equal
 from pytest import approx
 
-from landlab import BAD_INDEX_VALUE as XX, RasterModelGrid
+from landlab import RasterModelGrid
 from landlab.components import DepressionFinderAndRouter, FlowAccumulator
 
 NUM_GRID_ROWS = 8
 NUM_GRID_COLS = 8
 PERIOD_X = 8.0
 PERIOD_Y = 4.0
+
+XX = RasterModelGrid.BAD_INDEX_VALUE
 
 
 def test_route_to_multiple_error_raised():

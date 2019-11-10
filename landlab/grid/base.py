@@ -303,7 +303,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Units of coordinates
     """
 
-    # Bad index value
+    #: Indicates a node is *bad index*.
     BAD_INDEX_VALUE = BAD_INDEX_VALUE
 
     #: Indicates a node is *core*.
@@ -1519,7 +1519,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid, BAD_INDEX_VALUE
+        >>> from landlab import RasterModelGrid
 
         >>> rmg = RasterModelGrid((3, 4))
         >>> rmg.at_link['grad'] = np.array([-1., -2., -1.,
@@ -1527,7 +1527,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         ...                                 -1., -2., -1.,
         ...                                 -1., -2., -3., -4.,
         ...                                 -1., -2., -1.])
-        >>> rmg.downwind_links_at_node('grad', bad_index=BAD_INDEX_VALUE)
+        >>> rmg.downwind_links_at_node('grad', bad_index=rmg.BAD_INDEX_VALUE)
         array([[ 0,  3],
                [ 1,  4],
                [ 2,  5],

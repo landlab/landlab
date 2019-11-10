@@ -12,11 +12,8 @@ KRB Feb 2017
 
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE
 from landlab.core.utils import as_id_array
 from landlab.utils.return_array import return_array_at_node
-
-UNDEFINED_INDEX = BAD_INDEX_VALUE
 
 
 def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=None):
@@ -43,9 +40,9 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     -------
     receivers : ndarray of size (num nodes, max neighbors at node)
         For each node, the IDs of the nodes that receive its flow. For nodes
-        that do not direct flow to all neighbors, BAD_INDEX_VALUE is given as
-        a placeholder. The ID of the node itself is given if no other receiver
-        is assigned.
+        that do not direct flow to all neighbors, grid.BAD_INDEX_VALUE is given
+        as a placeholder. The ID of the node itself is given if no other
+        receiver is assigned.
     proportions : ndarray of size (num nodes, max neighbors at node)
         For each receiver, the proportion of flow (between 0 and 1) is given.
         A proportion of zero indicates that the link does not have flow along
@@ -58,15 +55,15 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
         The slope value (positive downhill) in the direction of flow.
     steepest_receiver : ndarray
         For each node, the node ID of the node connected by the steepest link.
-        BAD_INDEX_VALUE is given if no flow emmanates from the node.
+        grid.BAD_INDEX_VALUE is given if no flow emmanates from the node.
     sink : ndarray
         IDs of nodes that are flow sinks (they are their own receivers)
     receiver_links : ndarray of size (num nodes, max neighbors at node)
         ID of links that leads from each node to its receiver, or
-        UNDEFINED_INDEX if no flow occurs on this link.
+        grid.BAD_INDEX_VALUE if no flow occurs on this link.
     steepest_link : ndarray
         For each node, the link ID of the steepest link.
-        BAD_INDEX_VALUE is given if no flow emmanates from the node.
+        grid.BAD_INDEX_VALUE is given if no flow emmanates from the node.
 
     Examples
     --------
@@ -275,10 +272,14 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     thresh = np.arctan(d2 / d1)
 
     # Step 4, Initialize receiver and proportion arrays
-    receivers = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
-    receiver_closed = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
+    receivers = grid.BAD_INDEX_VALUE * np.ones((num_nodes, num_receivers), dtype=int)
+    receiver_closed = grid.BAD_INDEX_VALUE * np.ones(
+        (num_nodes, num_receivers), dtype=int
+    )
     proportions = np.zeros((num_nodes, num_receivers), dtype=float)
-    receiver_links = UNDEFINED_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
+    receiver_links = grid.BAD_INDEX_VALUE * np.ones(
+        (num_nodes, num_receivers), dtype=int
+    )
     slopes_to_receivers = np.zeros((num_nodes, num_receivers), dtype=float)
 
     # Step  5  begin the algorithm in earnest
@@ -427,7 +428,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     proportions[closed_nodes, 1] = 0.0
 
     # mask the receiver_links by where flow doesn't occur to return
-    receiver_links[drains_to_self, :] = UNDEFINED_INDEX
+    receiver_links[drains_to_self, :] = grid.BAD_INDEX_VALUE
 
     # identify the steepest link so that the steepest receiver, link, and slope
     # can be returned.
@@ -439,7 +440,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
 
     # identify the steepest link and steepest receiever.
     steepest_link = receiver_links[slope_sort]
-    steepest_link[drains_to_self] = UNDEFINED_INDEX
+    steepest_link[drains_to_self] = grid.BAD_INDEX_VALUE
 
     steepest_receiver = receivers[slope_sort]
     steepest_receiver[drains_to_self] = node_id[drains_to_self]
@@ -450,7 +451,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
         receivers[baselevel_nodes, 1:] = -1
         proportions[baselevel_nodes, 0] = 1
         proportions[baselevel_nodes, 1:] = 0
-        receiver_links[baselevel_nodes, :] = UNDEFINED_INDEX
+        receiver_links[baselevel_nodes, :] = grid.BAD_INDEX_VALUE
         steepest_slope[baselevel_nodes] = 0.0
 
     # ensure that if there is a -1, it is in the second column.

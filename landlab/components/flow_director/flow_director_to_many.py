@@ -8,7 +8,6 @@ grid fields are set up correctly.
 """
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE
 from landlab.components.flow_director.flow_director import _FlowDirector
 
 
@@ -121,11 +120,11 @@ class _FlowDirectorToMany(_FlowDirector):
         self.initialize_output_fields(values_per_element=self._max_receivers)
         self._receivers = grid.at_node["flow__receiver_node"]
         if np.all(self._receivers == 0):
-            self._receivers.fill(BAD_INDEX_VALUE)
+            self._receivers.fill(self._grid.BAD_INDEX_VALUE)
 
         self._receiver_links = grid.at_node["flow__link_to_receiver_node"]
         if np.all(self._receiver_links == 0):
-            self._receiver_links.fill(BAD_INDEX_VALUE)
+            self._receiver_links.fill(self._grid.BAD_INDEX_VALUE)
 
         self._proportions = grid.at_node["flow__receiver_proportions"]
         self._steepest_slope = grid.at_node["topographic__steepest_slope"]

@@ -7,7 +7,7 @@
 
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE, Component, RasterModelGrid
+from landlab import Component, RasterModelGrid
 
 try:
     from itertools import izip
@@ -402,7 +402,7 @@ class ChiFinder(Component):
         for node in valid_upstr_order:
             dstr_node = receivers[node]
             dstr_link = links[node]
-            if dstr_link != BAD_INDEX_VALUE:
+            if dstr_link != self._grid.BAD_INDEX_VALUE:
                 dstr_length = self._link_lengths[dstr_link]
                 half_head_val = half_integrand[node]
                 half_tail_val = half_integrand[dstr_node]
@@ -444,7 +444,7 @@ class ChiFinder(Component):
         2.2761423749153966
         """
         ch_links = self._grid.at_node["flow__link_to_receiver_node"][ch_nodes]
-        ch_links_valid = ch_links[ch_links != BAD_INDEX_VALUE]
+        ch_links_valid = ch_links[ch_links != self._grid.BAD_INDEX_VALUE]
 
         valid_link_lengths = self._link_lengths[ch_links_valid]
         return valid_link_lengths.mean()
