@@ -65,7 +65,7 @@ this self-study course.
 First, read this page on the Landlab User Guide: :ref:`Python NumPy, SciPy, Cython <python_intro>`
 
 Then do this tutorial: \* `Introduction to Python and
-NumPy <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=python_intro/Python_intro.ipynb>`_.
+NumPy <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=python_intro/Python_intro.ipynb>`_.
 *Learn about:* The very basics of Python.
 
 3. Introduction to Landlab
@@ -85,7 +85,7 @@ A motivating example
 ~~~~~~~~~~~~~~~~~~~~
 
 -  `Introduction to Landlab: example model of fault-scarp
-   degradation <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=fault_scarp/landlab-fault-scarp.ipynb>`_.
+   degradation <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=fault_scarp/landlab-fault-scarp.ipynb>`_.
    A short overview of some of the things Landlab can do.
 
 Introduction to the Landlab Grid and Fields
@@ -95,11 +95,11 @@ First, read the :ref:`User Guide page on Landlab
 grids <grid_user_guide>`. Then work through the following tutorials:
 
 -  `Introduction to the model grid
-   object <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=grid_object_demo/grid_object_demo.ipynb>`_.
+   object <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=grid_object_demo/grid_object_demo.ipynb>`_.
    Grid topology; how landlab represents data; connectivity of grid
    elements.
 -  `Introduction to Landlab data
-   fields <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=fields/working_with_fields.ipynb>`_.
+   fields <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=fields/working_with_fields.ipynb>`_.
    How Landlab stores spatial data on the grid; a little on naming
    conventions.
 
@@ -110,7 +110,7 @@ Plotting
 ~~~~~~~~
 
 -  `Introduction to plotting output with
-   Landlab <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=plotting/landlab-plotting.ipynb>`_.
+   Landlab <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=plotting/landlab-plotting.ipynb>`_.
    The basics of plotting with Landlab; combining matplotlib and out
    plots; the all-powerful ``imshow_grid()`` function.
 
@@ -127,7 +127,7 @@ Read the :ref:`Component page in the User
 Guide <landlab_components_page>`.
 
 -  `Introduction to using the Landlab component
-   library <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=component_tutorial/component_tutorial.ipynb>`_.
+   library <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=component_tutorial/component_tutorial.ipynb>`_.
    The basics of working with and coupling components, using
    *diffusion*, *stream power*, and a *storm generator* as examples.
 
@@ -194,11 +194,11 @@ so forth. Work through these tutorials to get a sense of this
 functionality:
 
 -  `Using the gradient and flux-divergence
-   functions <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=gradient_and_divergence/gradient_and_divergence.ipynb>`_.
+   functions <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=gradient_and_divergence/gradient_and_divergence.ipynb>`_.
    Landlab as solving environment for staggered grid finite difference
    differential approximations; functions available to help you do this.
 -  `Mapping values from nodes to
-   links <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=mappers/mappers.ipynb>`_.
+   links <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=mappers/mappers.ipynb>`_.
    Options for getting data on links to nodes, nodes to links, etc.;
    min, max, and mean; upwinding and downwinding schemes; one-to-one,
    one-to-many, and many-to-one mappings.
@@ -207,7 +207,7 @@ Boundary conditions
 ~~~~~~~~~~~~~~~~~~~
 
 -  `Setting boundary conditions on Landlab grids (several
-   tutorials) <https://mybinder.org/v2/gh/landlab/tutorials/release?boundary_conds/>`_
+   tutorials) <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?boundary_conds/>`_
    How Landlab conceptualizes boundary conditions; various ways to
    interact and work with them.
 
@@ -215,7 +215,7 @@ Working with Digital Elevtion Models (DEMs)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  `Reading DEMs into
-   Landlab <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=reading_dem_into_landlab/reading_dem_into_landlab.ipynb>`_
+   Landlab <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=reading_dem_into_landlab/reading_dem_into_landlab.ipynb>`_
    Getting a DEM in ESRI ASCII format into Landlab; getting the boundary
    conditions set right.
 
