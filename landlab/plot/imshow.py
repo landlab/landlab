@@ -19,7 +19,7 @@ from landlab.plot.event_handler import query_grid_on_button_press
 try:
     import matplotlib.pyplot as plt
     from matplotlib.patches import Polygon
-    from matplotlib.collections import PatchCollection
+    from matplotlib.collections import PatchCollection, LineCollection
 except ImportError:
     import warnings
 
@@ -31,7 +31,7 @@ def imshow_grid_at_node(grid, values, **kwds):
     var_units=None, grid_units=None, symmetric_cbar=False, cmap='pink',
     limits=(values.min(), values.max()), vmin=values.min(), vmax=values.max(),
     allow_colorbar=True, norm=[linear], shrink=1., color_for_closed='black',
-    color_for_background=None, output=None)
+    color_for_background=None, show_elements=False, output=None)
 
     Prepare a map view of data over all nodes in the grid.
 
@@ -95,6 +95,10 @@ def imshow_grid_at_node(grid, values, **kwds):
     color_for_background : color str or other color declaration, or None
         Color to use for closed elements (default None). If None, the
         background will be transparent, and appear white.
+    show_elements : bool
+         If True, and grid is a Voronoi, the faces will be plotted in black
+         along with just the colour of the cell, defining the cell outlines
+         (defaults False).
     output : None, string, or bool
         If None (or False), the image is sent to the imaging buffer to await
         an explicit call to show() or savefig() from outside this function.
@@ -135,7 +139,8 @@ def imshow_grid_at_cell(grid, values, **kwds):
     var_units=None, grid_units=None, symmetric_cbar=False, cmap='pink',
     limits=(values.min(), values.max()), vmin=values.min(), vmax=values.max(),
     allow_colorbar=True, colorbar_label=None, norm=[linear], shrink=1.,
-    color_for_closed='black', color_for_background=None, output=None)
+    color_for_closed='black', color_for_background=None, show_elements=False,
+    output=None)
 
     Map view of grid data over all grid cells.
 
@@ -183,6 +188,10 @@ def imshow_grid_at_cell(grid, values, **kwds):
     color_for_background : color str or other color declaration, or None
         Color to use for closed elements (default None). If None, the
         background will be transparent, and appear white.
+    show_elements : bool
+         If True, and grid is a Voronoi, the faces will be plotted in black
+         along with just the colour of the cell, defining the cell outlines
+         (defaults False).
     output : None, string, or bool
         If None (or False), the image is sent to the imaging buffer to await
         an explicit call to show() or savefig() from outside this function.
@@ -248,6 +257,7 @@ def _imshow_grid_values(
     shrink=1.0,
     color_for_closed="black",
     color_for_background=None,
+    show_elements=False,
     output=None,
 ):
     cmap = plt.get_cmap(cmap)
@@ -326,11 +336,21 @@ def _imshow_grid_values(
             patches.append(Polygon(xy, closed=True, fill=True))
 
         patchcollection = PatchCollection(
-            patches, facecolor=colorVal, edgecolor="black"
+            patches, facecolor=colorVal, edgecolor=colorVal
         )
 
         ax = plt.gca()
         ax.add_collection(patchcollection)
+
+        if show_elements:
+            x = grid.x_of_corner[grid.corners_at_face]
+            y = grid.y_of_corner[grid.corners_at_face]
+
+            segs = np.dstack((x, y))
+            line_segments = LineCollection(segs)
+            line_segments.set_color("black")
+            ax.add_collection(line_segments)
+
         ax.set_aspect(1.0)
         ax.set_rasterized(True)
 
@@ -387,7 +407,7 @@ def imshow_grid(grid, values, **kwds):
     grid_units=None, symmetric_cbar=False, cmap='pink', limits=(values.min(),
     values.max()), vmin=values.min(), vmax=values.max(), allow_colorbar=True,
     colorbar_label=None, norm=[linear], shrink=1., color_for_closed='black',
-    color_for_background=None)
+    show_elements=False, color_for_background=None)
 
     Prepare a map view of data over all nodes or cells in the grid.
 
@@ -453,6 +473,10 @@ def imshow_grid(grid, values, **kwds):
     color_for_background : color str or other color declaration, or None
         Color to use for closed elements (default None). If None, the
         background will be transparent, and appear white.
+    show_elements : bool
+        If True, and grid is a Voronoi, the faces will be plotted in black
+        along with just the colour of the cell, defining the cell outlines
+        (defaults False).
     output : None, string, or bool
         If None (or False), the image is sent to the imaging buffer to await
         an explicit call to show() or savefig() from outside this function.
