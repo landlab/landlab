@@ -202,10 +202,15 @@ def map_min_of_link_nodes_to_link(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z',
-    ...                   [[ 0,  1,  2,  3],
-    ...                    [ 7,  6,  5,  4],
-    ...                    [ 8,  9, 10, 11]])
+    >>> _ = rmg.add_field(
+    ...     "z",
+    ...     [
+    ...         [ 0,  1,  2,  3],
+    ...         [ 7,  6,  5,  4],
+    ...         [ 8,  9, 10, 11],
+    ...     ],
+    ...     at="node",
+    ... )
     >>> map_min_of_link_nodes_to_link(rmg, 'z')
     array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   6.,   5.,   4.,   7.,
              6.,   5.,   4.,   8.,   9.,  10.])
@@ -262,10 +267,15 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z',
-    ...                   [[0, 1, 2, 3],
-    ...                    [7, 6, 5, 4],
-    ...                    [8, 9, 10, 11]])
+    >>> _ = rmg.add_field(
+    ...     "z",
+    ...     [
+    ...         [0, 1, 2, 3],
+    ...         [7, 6, 5, 4],
+    ...         [8, 9, 10, 11],
+    ...     ],
+    ...     at="node",
+    ... )
     >>> map_max_of_link_nodes_to_link(rmg, 'z')
     array([  1.,   2.,   3.,   7.,   6.,   5.,   4.,   7.,   6.,   5.,   8.,
              9.,  10.,  11.,   9.,  10.,  11.])
@@ -384,14 +394,24 @@ def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z',
-    ...                   [[0, 1, 2, 3],
-    ...                    [7, 6, 5, 4],
-    ...                    [8, 9, 10, 11]])
-    >>> _ = rmg.add_field('node', 'vals_to_map',
-    ...                   [[0, 10, 20, 30],
-    ...                    [70, 60, 50, 40],
-    ...                    [80, 90, 100, 110]])
+    >>> _ = rmg.add_field(
+    ...     "z",
+    ...     [
+    ...         [0, 1, 2, 3],
+    ...         [7, 6, 5, 4],
+    ...         [8, 9, 10, 11],
+    ...     ],
+    ...     at="node",
+    ... )
+    >>> _ = rmg.add_field(
+    ...     "vals_to_map",
+    ...     [
+    ...         [0, 10, 20, 30],
+    ...         [70, 60, 50, 40],
+    ...         [80, 90, 100, 110],
+    ...     ],
+    ...     at="node",
+    ... )
     >>> map_value_at_min_node_to_link(rmg, 'z', 'vals_to_map')
     array([   0.,   10.,   20.,    0.,   10.,   20.,   30.,   60.,   50.,
              40.,   70.,   60.,   50.,   40.,   80.,   90.,  100.])
@@ -449,14 +469,24 @@ def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z',
-    ...                   [[0, 1, 2, 3],
-    ...                    [7, 6, 5, 4],
-    ...                    [8, 9, 10, 11]])
-    >>> _ = rmg.add_field('node', 'vals_to_map',
-    ...                   [[0, 10, 20, 30],
-    ...                    [70, 60, 50, 40],
-    ...                    [80, 90, 100, 110]])
+    >>> _ = rmg.add_field(
+    ...     "z",
+    ...     [
+    ...         [0, 1, 2, 3],
+    ...         [7, 6, 5, 4],
+    ...         [8, 9, 10, 11],
+    ...     ],
+    ...     at="node",
+    ... )
+    >>> _ = rmg.add_field(
+    ...     "vals_to_map",
+    ...     [
+    ...         [0, 10, 20, 30],
+    ...         [70, 60, 50, 40],
+    ...         [80, 90, 100, 110],
+    ...     ],
+    ...     at="node",
+    ... )
     >>> map_value_at_max_node_to_link(rmg, 'z', 'vals_to_map')
     array([  10.,   20.,   30.,   70.,   60.,   50.,   40.,   70.,   60.,
              50.,   80.,   90.,  100.,  110.,   90.,  100.,  110.])
@@ -509,7 +539,7 @@ def map_node_to_cell(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z', np.arange(12.))
+    >>> _ = rmg.add_field("z", np.arange(12.), at="node")
     >>> map_node_to_cell(rmg, 'z')
     array([ 5.,  6.])
 

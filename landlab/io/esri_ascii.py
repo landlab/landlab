@@ -500,7 +500,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
             shape, xy_spacing=xy_spacing, xy_of_lower_left=xy_of_lower_left
         )
     if name:
-        grid.add_field("node", name, data)
+        grid.add_field(name, data, at="node")
 
     return (grid, data)
 
@@ -532,13 +532,13 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     >>> from landlab.io.esri_ascii import write_esri_ascii
 
     >>> grid = RasterModelGrid((4, 5), xy_spacing=(2., 2.))
-    >>> _ = grid.add_field('node', 'air__temperature', np.arange(20.))
+    >>> _ = grid.add_field("air__temperature", np.arange(20.), at="node")
     >>> with cdtemp() as _:
     ...     files = write_esri_ascii('test.asc', grid)
     >>> files
     ['test.asc']
 
-    >>> _ = grid.add_field('node', 'land_surface__elevation', np.arange(20.))
+    >>> _ = grid.add_field("land_surface__elevation", np.arange(20.), at="node")
     >>> with cdtemp() as _:
     ...     files = write_esri_ascii('test.asc', grid)
     >>> files.sort()

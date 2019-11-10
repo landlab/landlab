@@ -46,7 +46,7 @@ def calculate_distance_to_divide(
     ...                  0., 20., 20., 0.,
     ...                  0., 30., 30., 0.,
     ...                  0.,  0.,  0., 0.])
-    >>> _ = mg.add_field('node','topographic__elevation', elev)
+    >>> _ = mg.add_field("topographic__elevation", elev, at="node")
     >>> mg.set_closed_boundaries_at_grid_edges(
     ...     bottom_is_closed=False,
     ...     left_is_closed=True,
@@ -79,7 +79,7 @@ def calculate_distance_to_divide(
     ...                  0., 20., 20., 0.,
     ...                  0., 30., 30., 0.,
     ...                  0.,  0.,  0., 0.])
-    >>> _ = mg.add_field('node','topographic__elevation', elev)
+    >>> _ = mg.add_field("topographic__elevation", elev, at="node")
     >>> mg.set_closed_boundaries_at_grid_edges(
     ...     bottom_is_closed=False,
     ...     left_is_closed=True,
@@ -109,9 +109,11 @@ def calculate_distance_to_divide(
     ...     calculate_distance_to_divide)
     >>> dx = 1
     >>> hmg = HexModelGrid((5, 3), dx)
-    >>> _ = hmg.add_field('topographic__elevation',
-    ...                   hmg.node_x + np.round(hmg.node_y),
-    ...                   at = 'node')
+    >>> _ = hmg.add_field(
+    ...     "topographic__elevation",
+    ...     hmg.node_x + np.round(hmg.node_y),
+    ...     at="node",
+    ... )
     >>> hmg.status_at_node[hmg.boundary_nodes] = hmg.BC_NODE_IS_CLOSED
     >>> hmg.status_at_node[0] = hmg.BC_NODE_IS_FIXED_VALUE
     >>> fr = FlowAccumulator(hmg, flow_director = 'D4')

@@ -220,7 +220,7 @@ def calc_grad_at_link(grid, node_values, out=None):
     >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
     >>> grid.calc_grad_at_link(node_values)
     array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
-    >>> _ = grid.add_field('node', 'elevation', node_values)
+    >>> _ = grid.add_field("elevation", node_values, at="node")
     >>> grid.calc_grad_at_link('elevation')
     array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
 

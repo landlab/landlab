@@ -1006,7 +1006,7 @@ class GraphFields(object):
         >>> field = GraphFields()
         >>> field.new_field_location('node', 4)
         >>> values = np.ones(4, dtype=int)
-        >>> field.add_field('node', 'topographic__elevation', values)
+        >>> field.add_field("topographic__elevation", values, at="node")
         array([1, 1, 1, 1])
 
         A new field is added to the collection of fields. The saved value

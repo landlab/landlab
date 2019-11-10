@@ -65,7 +65,7 @@ class TransportLengthHillslopeDiffuser(Component):
     ...               0., 1., 1., 1., 0.,
     ...               0., 1., 1., 1., 0.,
     ...               0., 0., 0., 0., 0.])
-    >>> _ = mg.add_field('node', 'topographic__elevation', z)
+    >>> _ = mg.add_field("topographic__elevation", z, at="node")
 
     Instantiate Flow director (steepest slope type) and TL hillslope diffuser
 

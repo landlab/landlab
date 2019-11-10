@@ -59,7 +59,7 @@ class DepressionFinderAndRouter(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator, DepressionFinderAndRouter
     >>> mg = RasterModelGrid((7, 7), xy_spacing=0.5)
-    >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
+    >>> z = mg.add_field("topographic__elevation", mg.node_x.copy(), at="node")
     >>> z += 0.01 * mg.node_y
     >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
     >>> fr = FlowAccumulator(mg, flow_director='D8')

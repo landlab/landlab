@@ -138,9 +138,7 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     >>> mg = RasterModelGrid((3, 5), xy_spacing=(2, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
-    >>> z = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + mg.node_y,
-    ...                  at='node')
+    >>> z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 
     >>> def mylossfunction(qw):
     ...     return 0.5 * qw
@@ -168,9 +166,11 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     >>> dx=(2./(3.**0.5))**0.5  # area to be 100.
     >>> hmg = HexModelGrid((5, 3), spacing=dx, xy_of_lower_left=(-1.0745, 0.))
-    >>> z = hmg.add_field('topographic__elevation',
-    ...                   hmg.node_x**2 + np.round(hmg.node_y)**2,
-    ...                   at = 'node')
+    >>> z = hmg.add_field(
+    ...     "topographic__elevation",
+    ...     hmg.node_x**2 + np.round(hmg.node_y)**2,
+    ...     at="node",
+    ... )
     >>> z[9] = -10.  # poke a hole
     >>> lossy = hmg.add_zeros('node', 'mylossterm', dtype=float)
     >>> lossy[14] = 1.  # suppress all flow from node 14
@@ -236,7 +236,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     >>> from landlab.components import FlowDirectorMFD
     >>> mg = RasterModelGrid((4, 6), xy_spacing=(1, 2))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
-    >>> z = mg.add_field('node', 'topographic__elevation', 2.*mg.node_x)
+    >>> z = mg.add_field("topographic__elevation", 2.0 * mg.node_x, at="node")
     >>> z[9] = 8.
     >>> z[16] = 6.5  # force the first node sideways
 

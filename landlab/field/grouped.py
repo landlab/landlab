@@ -134,8 +134,7 @@ class ModelDataFields(object):
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 12)
 
-        >>> fields.add_field("z", [1.] * 12)
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> fields.add_field("z", [1.] * 12) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ValueError: missing group name
         >>> fields.set_default_group('node')

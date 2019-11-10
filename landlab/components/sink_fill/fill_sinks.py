@@ -43,8 +43,13 @@ class SinkFiller(Component):
     >>> z += mg.node_x  # add a slope
     >>> z[guard_nodes] += 0.001  # forces the flow out of a particular node
     >>> z[lake] = 0.
-    >>> field = mg.add_field('node', 'topographic__elevation', z,
-    ...                      units='-', copy=True)
+    >>> field = mg.add_field(
+    ...     "topographic__elevation",
+    ...     z,
+    ...     at="node",
+    ...     units="-",
+    ...     copy=True,
+    ... )
     >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> fr.run_one_step()
     >>> mg.at_node['flow__sink_flag'][mg.core_nodes].sum()

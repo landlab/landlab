@@ -296,7 +296,7 @@ class SteepnessFinder(Component):
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
         >>> mg.status_at_node[[6, 12, 13, 14]] = mg.BC_NODE_IS_CLOSED
-        >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
+        >>> _ = mg.add_field("topographic__elevation", mg.node_x, at="node")
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
         >>> _ = fr.run_one_step()
@@ -342,7 +342,7 @@ class SteepnessFinder(Component):
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
-        >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x**1.1)
+        >>> _ = mg.add_field("topographic__elevation", mg.node_x**1.1, at="node")
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
         >>> _ = fr.run_one_step()
@@ -422,7 +422,7 @@ class SteepnessFinder(Component):
         >>> for nodes in (mg.nodes_at_right_edge, mg.nodes_at_bottom_edge,
         ...               mg.nodes_at_top_edge):
         ...     mg.status_at_node[nodes] = mg.BC_NODE_IS_CLOSED
-        >>> _ = mg.add_field('node', 'topographic__elevation', mg.node_x)
+        >>> _ = mg.add_field("topographic__elevation", mg.node_x, at="node")
         >>> fr = FlowAccumulator(mg, flow_director='D8')
         >>> sf = SteepnessFinder(mg)
         >>> _ = fr.run_one_step()
