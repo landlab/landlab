@@ -252,11 +252,11 @@ class Lithology(Component):
         # assert that attrs are pointing to fields (or create them)
         for at in self._properties:
             if at not in grid.at_node:
-                self._grid.add_empty("node", at)
+                self._grid.add_empty(at, at="node")
 
         # add a field for the rock type id
         if self._rock_id_name not in self._grid.at_node:
-            self._grid.add_empty("node", self._rock_id_name)
+            self._grid.add_empty(self._rock_id_name, at="node")
 
         # verify that all IDs have attributes.
         self._check_property_dictionary()
@@ -652,7 +652,7 @@ class Lithology(Component):
 
         for at in attrs:
             if at not in self._grid.at_node:
-                self._grid.add_empty("node", at)
+                self._grid.add_empty(at, at="node")
             self._attrs[at] = attrs[at]
             self._properties.append(at)
 

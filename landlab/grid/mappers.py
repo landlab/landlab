@@ -568,7 +568,7 @@ def map_min_of_node_links_to_node(grid, var_name, out=None):
              3.,   4.,   5.,   6.,
             10.,  11.,  12.,  13.])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
     >>> rtn = map_min_of_node_links_to_node(rmg, 'grad', out=values_at_nodes)
     >>> values_at_nodes
     array([  0.,   0.,   1.,   2.,
@@ -629,7 +629,7 @@ def map_max_of_node_links_to_node(grid, var_name, out=None):
             10.,  11.,  12.,  13.,
             14.,  15.,  16.,  16.])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
     >>> rtn = map_max_of_node_links_to_node(rmg, 'grad', out=values_at_nodes)
     >>> values_at_nodes
     array([  3.,   4.,   5.,   6.,
@@ -696,9 +696,8 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
             0.,  1.,  2.,  1.,
             0.,  1.,  2.,  1.])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
-    >>> rtn = map_upwind_node_link_max_to_node(rmg, 'grad',
-    ...                                        out=values_at_nodes)
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
+    >>> rtn = map_upwind_node_link_max_to_node(rmg, 'grad', out=values_at_nodes)
     >>> values_at_nodes
     array([ 0.,  1.,  2.,  1.,
             0.,  1.,  2.,  1.,
@@ -762,9 +761,8 @@ def map_downwind_node_link_max_to_node(grid, var_name, out=None):
             1.,  2.,  1.,  0.,
             1.,  2.,  1.,  0.])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
-    >>> rtn = map_downwind_node_link_max_to_node(rmg, 'grad',
-    ...                                        out=values_at_nodes)
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
+    >>> rtn = map_downwind_node_link_max_to_node(rmg, 'grad', out=values_at_nodes)
     >>> values_at_nodes
     array([ 1.,  2.,  1.,  0.,
             1.,  2.,  1.,  0.,
@@ -829,9 +827,8 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
             2. ,  2. ,  3. ,  3. ,
             1. ,  1.5,  2.5,  2.5])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
-    >>> rtn = map_upwind_node_link_mean_to_node(rmg, 'grad',
-    ...                                         out=values_at_nodes)
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
+    >>> rtn = map_upwind_node_link_mean_to_node(rmg, 'grad', out=values_at_nodes)
     >>> values_at_nodes
     array([ 0. ,  1. ,  2. ,  1. ,
             2. ,  2. ,  3. ,  3. ,
@@ -900,9 +897,8 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
             1. ,  2. ,  2. ,  4. ,
             1. ,  2. ,  1. ,  0. ])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
-    >>> rtn = map_downwind_node_link_mean_to_node(rmg, 'grad',
-    ...                                         out=values_at_nodes)
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
+    >>> rtn = map_downwind_node_link_mean_to_node(rmg, 'grad', out=values_at_nodes)
     >>> values_at_nodes
     array([ 1.5,  2.5,  2.5,  5. ,
             1. ,  2. ,  2. ,  4. ,
@@ -977,9 +973,10 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name, value_name, ou
              0.,   7.,   8.,   9.,
              0.,  14.,  15.,  16.])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
-    >>> rtn = map_value_at_upwind_node_link_max_to_node(rmg, 'grad', 'vals',
-    ...                                                 out=values_at_nodes)
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
+    >>> rtn = map_value_at_upwind_node_link_max_to_node(
+    ...     rmg, 'grad', 'vals', out=values_at_nodes
+    ... )
     >>> values_at_nodes
     array([  0.,   0.,   1.,   2.,
              0.,   7.,   8.,   9.,
@@ -1057,7 +1054,7 @@ def map_value_at_downwind_node_link_max_to_node(
              7.,   8.,   9.,   0.,
             14.,  15.,  16.,   0.])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
     >>> rtn = map_value_at_downwind_node_link_max_to_node(rmg, 'grad', 'vals',
     ...                                                   out=values_at_nodes)
     >>> values_at_nodes

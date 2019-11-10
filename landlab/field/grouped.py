@@ -232,7 +232,7 @@ class ModelDataFields(object):
         >>> fields.new_field_location('node', 4)
         >>> list(fields.keys('node'))
         []
-        >>> _ = fields.add_empty('node', 'topographic__elevation')
+        >>> _ = fields.add_empty("topographic__elevation", at="node")
         >>> list(fields.keys('node'))
         ['topographic__elevation']
 
