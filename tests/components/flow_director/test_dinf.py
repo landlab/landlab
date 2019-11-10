@@ -152,7 +152,7 @@ def test_D_infinity_open_boundary_conditions():
 
 def test_D_infinity_flat():
     mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
 
     fd = FlowDirectorDINF(mg)
     fd.run_one_step()
@@ -172,7 +172,7 @@ def test_D_infinity_flat():
 
 def test_D_infinity_flat_closed_lower():
     mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z[mg.core_nodes] += 1
     mg.set_closed_boundaries_at_grid_edges(
         bottom_is_closed=True,
@@ -199,7 +199,7 @@ def test_D_infinity_flat_closed_lower():
 
 def test_D_infinity_flat_closed_upper():
     mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z[mg.core_nodes] -= 1
     mg.set_closed_boundaries_at_grid_edges(
         bottom_is_closed=True,

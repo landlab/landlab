@@ -83,7 +83,7 @@ def test_shift_link_and_transition_data_upward():
     xnlist.append(Transition((0, 0, 0), (1, 1, 0), 1.0, "frogging"))
     xnlist.append(Transition((0, 0, 1), (1, 1, 1), 1.0, "frogging"))
     xnlist.append(Transition((0, 0, 2), (1, 1, 2), 1.0, "frogging"))
-    nsg = mg.add_zeros("node", "node_state_grid")
+    nsg = mg.add_zeros("node_state_grid", at="node")
     ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
 
     assert_array_equal(

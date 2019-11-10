@@ -23,7 +23,7 @@ PERIOD_Y = 4.0
 
 def test_route_to_multiple_error_raised():
     mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.x_of_node + mg.y_of_node
     fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()
@@ -41,7 +41,7 @@ def create_test_grid():
     rmg = RasterModelGrid((NUM_GRID_ROWS, NUM_GRID_COLS))
 
     # Create topography field
-    z = rmg.add_zeros("node", "topographic__elevation")
+    z = rmg.add_zeros("topographic__elevation", at="node")
 
     # Make topography into sinusoidal hills and depressions
     z[:] = sin(2 * pi * rmg.node_x / PERIOD_X) * sin(2 * pi * rmg.node_y / PERIOD_Y)

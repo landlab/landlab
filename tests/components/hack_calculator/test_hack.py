@@ -7,7 +7,7 @@ from landlab.components import FlowAccumulator, HackCalculator
 @pytest.fixture()
 def simple_hack_test_grid():
     mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.x_of_node + mg.y_of_node
     fa = FlowAccumulator(mg)
     fa.run_one_step()

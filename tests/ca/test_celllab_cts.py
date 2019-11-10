@@ -69,7 +69,7 @@ def test_raster_cts():
     ns_dict = {0: "black", 1: "white"}
     xn_list = []
     xn_list.append(Transition((1, 0, 0), (0, 1, 0), 0.1, "", True, callback_function))
-    pd = mg.add_zeros("node", "property_data", dtype=int)
+    pd = mg.add_zeros("property_data", at="node", dtype=int)
     pd[5] = 50
     ca = RasterCTS(
         mg, ns_dict, xn_list, node_state_grid, prop_data=pd, prop_reset_value=0
@@ -125,7 +125,7 @@ def test_raster_cts():
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     nsg = mg.add_ones("node_state_map", at="node", dtype=int)
     nsg[6] = 0
-    pd = mg.add_zeros("node", "property_data", dtype=int)
+    pd = mg.add_zeros("property_data", at="node", dtype=int)
     pd[5] = 50
     ca = RasterCTS(mg, ns_dict, xn_list, nsg, prop_data=pd, prop_reset_value=0, seed=1)
     prior_first_event_time = event_time
@@ -139,7 +139,7 @@ def test_oriented_raster_cts():
     nsd = {0: "oui", 1: "non"}
     xnlist = []
     xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "hopping"))
-    nsg = mg.add_zeros("node", "node_state_grid")
+    nsg = mg.add_zeros("node_state_grid", at="node")
     orcts = OrientedRasterCTS(mg, nsd, xnlist, nsg)
 
     assert orcts.num_link_states == 8
@@ -159,7 +159,7 @@ def test_hex_cts():
     nsd = {0: "zero", 1: "one"}
     xnlist = []
     xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "transitioning"))
-    nsg = mg.add_zeros("node", "node_state_grid")
+    nsg = mg.add_zeros("node_state_grid", at="node")
     hcts = HexCTS(mg, nsd, xnlist, nsg)
 
     assert hcts.num_link_states == 4
@@ -178,7 +178,7 @@ def test_oriented_hex_cts():
     nsd = {0: "zero", 1: "one"}
     xnlist = []
     xnlist.append(Transition((0, 1, 0), (1, 1, 0), 1.0, "transitioning"))
-    nsg = mg.add_zeros("node", "node_state_grid")
+    nsg = mg.add_zeros("node_state_grid", at="node")
     ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
 
     assert ohcts.num_link_states == 12
@@ -343,7 +343,7 @@ def test_transitions_as_ids():
     nsd = {0: "zero", 1: "one"}
     xnlist = []
     xnlist.append(Transition(2, 3, 1.0, "transitioning"))
-    nsg = mg.add_zeros("node", "node_state_grid")
+    nsg = mg.add_zeros("node_state_grid", at="node")
     cts = HexCTS(mg, nsd, xnlist, nsg)
     assert cts.num_link_states == 4, "wrong number of transitions"
 
@@ -354,7 +354,7 @@ def test_handle_grid_mismatch():
     nsd = {0: "zero", 1: "one"}
     xnlist = []
     xnlist.append(Transition(2, 3, 1.0, "transitioning"))
-    nsg = mg.add_zeros("node", "node_state_grid")
+    nsg = mg.add_zeros("node_state_grid", at="node")
     assert_raises(TypeError, RasterCTS, mg, nsd, xnlist, nsg)
     assert_raises(TypeError, OrientedRasterCTS, mg, nsd, xnlist, nsg)
 

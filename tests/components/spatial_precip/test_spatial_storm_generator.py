@@ -61,7 +61,7 @@ def test_MS_params():
     # mg = RasterModelGrid((12, 26), (1042.3713, 1102.0973))
     # mg.status_at_node[:] = 4
     # mg.status_at_node[isin.flatten()] = 0
-    # z = mg.add_zeros('node', 'topographic__elevation')
+    # z = mg.add_zeros("topographic__elevation", at="node")
     #
     # closest_core_node_in_vdg = []
     # for E, N in zip(Xin, Yin):
