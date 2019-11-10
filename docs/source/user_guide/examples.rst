@@ -26,7 +26,7 @@ Flexure
 .. figure:: images/flexure.png
     :figwidth: 300px
     :align: center
-    :target: https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=flexure/lots_of_loads.ipynb
+    :target: https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=flexure/lots_of_loads.ipynb
 
 Hydrograph of Changing Storm Intensity
 --------------------------------------
@@ -41,7 +41,7 @@ Topographic Elevation
 .. figure:: images/topographic-elevation.png
     :figwidth: 300px
     :align: center
-    :target: https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=component_tutorial/component_tutorial.ipynb
+    :target: https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=component_tutorial/component_tutorial.ipynb
 
 CA Transition
 -------------

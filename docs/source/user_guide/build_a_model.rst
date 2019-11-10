@@ -285,7 +285,7 @@ This means producing a storm series in Landlab is also very easy:
 Notice that the advantage of the generator is that it just stops when the
 desired number of events/time duration has expired! See the end of `this
 tutorial
-<https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=component_tutorial/component_tutorial.ipynb>`_
+<https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=component_tutorial/component_tutorial.ipynb>`_
 for an example of this generator in action.
 
 What exactly "…do the thing" consists of is up to you. You can either design
