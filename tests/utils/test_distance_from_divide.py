@@ -17,8 +17,8 @@ def test_no_flow_receivers():
 def test_no_upstream_array():
     """Test that correct error is raised when no flow__upstream_node_order."""
     mg = RasterModelGrid((30, 70))
-    mg.add_ones("node", "topographic__elevation")
-    mg.add_ones("node", "drainage_area")
+    mg.add_ones("topographic__elevation", at="node")
+    mg.add_ones("drainage_area", at="node")
     fd = FlowDirectorSteepest(mg)
     fd.run_one_step()
     with pytest.raises(FieldError):
@@ -28,8 +28,8 @@ def test_no_upstream_array():
 def test_drainage_area():
     """Test that correct error is raised when no flow__upstream_node_order."""
     mg = RasterModelGrid((30, 70))
-    mg.add_ones("node", "topographic__elevation")
-    mg.add_ones("node", "flow__upstream_node_order")
+    mg.add_ones("topographic__elevation", at="node")
+    mg.add_ones("flow__upstream_node_order", at="node")
     fd = FlowDirectorSteepest(mg)
     fd.run_one_step()
     with pytest.raises(FieldError):

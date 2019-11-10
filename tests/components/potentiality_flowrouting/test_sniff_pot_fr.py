@@ -127,7 +127,7 @@ def test_sheetflow():
     mg.at_node["topographic__elevation"] = z
 
     mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
-    mg.add_ones("node", "water__unit_flux_in")
+    mg.add_ones("water__unit_flux_in", at="node")
 
     pfr = PotentialityFlowRouter(mg)
     pfr.run_one_step()

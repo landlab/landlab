@@ -64,7 +64,7 @@ def test_raster_cts():
     # Set up a small grid with no events scheduled
     mg = RasterModelGrid((4, 4))
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    node_state_grid = mg.add_ones("node", "node_state_map", dtype=int)
+    node_state_grid = mg.add_ones("node_state_map", at="node", dtype=int)
     node_state_grid[6] = 0
     ns_dict = {0: "black", 1: "white"}
     xn_list = []
@@ -123,7 +123,7 @@ def test_raster_cts():
     # a different random seed.
     mg = RasterModelGrid((4, 4))
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    nsg = mg.add_ones("node", "node_state_map", dtype=int)
+    nsg = mg.add_ones("node_state_map", at="node", dtype=int)
     nsg[6] = 0
     pd = mg.add_zeros("node", "property_data", dtype=int)
     pd[5] = 50

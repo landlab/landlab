@@ -32,7 +32,7 @@ def test_no_upstream_array():
 
     # Add a field called topographic__elevation to mg
 
-    mg.add_ones("node", "topographic__elevation")
+    mg.add_ones("topographic__elevation", at="node")
 
     # Run the FlowDirectorSteepest component
 
