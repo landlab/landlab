@@ -35,7 +35,7 @@ def test_lateral_erosion_and_node():
     for edge in mg.nodes_at_bottom_edge:
         mg.status_at_node[edge] = mg.BC_NODE_IS_FIXED_VALUE
 
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     loading_vector = np.linspace(1, 4, num=nr)
     ramp = np.repeat(loading_vector, nc)
     # the tweaks to elevation below make lateral node at node 7
@@ -128,7 +128,7 @@ def test_matches_detlim_solution():
     for edge in mg.nodes_at_bottom_edge:
         mg.status_at_node[edge] = mg.BC_NODE_IS_FIXED_VALUE
 
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     ir2 = np.random.uniform(low=0.0, high=0.5, size=(z.size))
     loading_vector = np.linspace(1, 4, num=nr)
     ramp = np.repeat(loading_vector, nc)
@@ -193,7 +193,7 @@ def test_ss_sed_flux():
     for edge in mg.nodes_at_bottom_edge:
         mg.status_at_node[edge] = mg.BC_NODE_IS_FIXED_VALUE
 
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     ir2 = np.random.uniform(low=0.0, high=0.5, size=(z.size))
     loading_vector = np.linspace(1, 2.5, num=nr)
     ramp = np.repeat(loading_vector, nc)
@@ -257,7 +257,7 @@ def test_variable_bedrock_K():
     for edge in mg.nodes_at_bottom_edge:
         mg.status_at_node[edge] = mg.BC_NODE_IS_FIXED_VALUE
 
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     loading_vector = np.linspace(1, 4, num=nr)
     ramp = np.repeat(loading_vector, nc)
     ramp += np.random.random_sample(nnodes) * 0.8
@@ -329,7 +329,7 @@ def test_latero_steady_inlet():
     for edge in mg.nodes_at_bottom_edge:
         mg.status_at_node[edge] = mg.BC_NODE_IS_FIXED_VALUE
 
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     loading_vector = np.linspace(1, 2.5, num=nr)
     ramp = np.repeat(loading_vector, nc)
     ramp += np.random.random_sample(mg.number_of_nodes) * 0.8

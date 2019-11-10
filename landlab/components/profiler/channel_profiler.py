@@ -290,7 +290,7 @@ class ChannelProfiler(_BaseProfiler):
     ...                0,  0,  0,  0,  0,  0,  0,  0,  0,  0,], dtype=float)
 
     >>> mg = RasterModelGrid((8, 10))
-    >>> z = mg.add_field("node", "topographic__elevation", z)
+    >>> z = mg.add_field("topographic__elevation", z, at="node")
     >>> mg.set_nodata_nodes_to_closed(z, 0)
     >>> fa = FlowAccumulator(mg, flow_director='D4')
     >>> fa.run_one_step()

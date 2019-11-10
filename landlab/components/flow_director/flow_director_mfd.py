@@ -60,9 +60,9 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
-    ...     at = 'node'
+    ...     at="node",
     ... )
 
     The MFD flow director can be uses for raster and irregular grids. For
@@ -153,9 +153,9 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fd = FlowDirectorMFD(mg, 'topographic__elevation')
     >>> fd.run_one_step()
@@ -197,9 +197,9 @@ class FlowDirectorMFD(_FlowDirectorToMany):
     >>> from landlab import HexModelGrid
     >>> mg = HexModelGrid((5, 3))
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + numpy.round(mg.node_y),
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fd = FlowDirectorMFD(
     ...      mg,

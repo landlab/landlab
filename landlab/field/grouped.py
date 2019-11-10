@@ -87,12 +87,12 @@ class ModelDataFields(object):
     fields are in different groups (node and cell), they can have the same
     name.
 
-    >>> fields.add_ones('node', 'topographic__elevation')
+    >>> fields.add_ones("topographic__elevation", at="node")
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
     >>> fields.at_node['topographic__elevation']
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
-    >>> fields.add_ones('cell', 'topographic__elevation')
+    >>> fields.add_ones("topographic__elevation", at="cell")
     array([ 1.,  1.])
     >>> fields.at_cell['topographic__elevation']
     array([ 1.,  1.])
@@ -134,8 +134,7 @@ class ModelDataFields(object):
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 12)
 
-        >>> fields.add_field("z", [1.] * 12)
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> fields.add_field("z", [1.] * 12) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ValueError: missing group name
         >>> fields.set_default_group('node')
@@ -197,7 +196,7 @@ class ModelDataFields(object):
         >>> from landlab.field import ModelDataFields
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 12)
-        >>> _ = fields.add_ones('node', 'topographic__elevation')
+        >>> _ = fields.add_ones("topographic__elevation", at="node")
         >>> fields.has_field('node', 'topographic__elevation')
         True
         >>> fields.has_field('cell', 'topographic__elevation')
@@ -232,7 +231,7 @@ class ModelDataFields(object):
         >>> fields.new_field_location('node', 4)
         >>> list(fields.keys('node'))
         []
-        >>> _ = fields.add_empty('node', 'topographic__elevation')
+        >>> _ = fields.add_empty("topographic__elevation", at="node")
         >>> list(fields.keys('node'))
         ['topographic__elevation']
 
@@ -360,8 +359,8 @@ class ModelDataFields(object):
         to the *node* group. The *field_values* method returns a reference
         to the field's data.
 
-        >>> _ = fields.add_ones('node', 'topographic__elevation')
-        >>> fields.field_values('node', 'topographic__elevation')
+        >>> _ = fields.add_ones("topographic__elevation", at="node")
+        >>> fields.field_values("node", "topographic__elevation")
         array([ 1.,  1.,  1.,  1.])
 
         Raise FieldError if *field* does not exist in *group*.
@@ -424,8 +423,8 @@ class ModelDataFields(object):
         to the *node* group. The *field_values* method returns a reference
         to the field's data.
 
-        >>> _ = fields.add_ones('node', 'topographic__elevation')
-        >>> fields.field_values('node', 'topographic__elevation')
+        >>> _ = fields.add_ones("topographic__elevation", at="node")
+        >>> fields.field_values("node", "topographic__elevation")
         array([ 1.,  1.,  1.,  1.])
 
         Alternatively, if the second argument is an array, its size is
@@ -733,7 +732,7 @@ class ModelDataFields(object):
         >>> from landlab.field import ModelDataFields
         >>> field = ModelDataFields()
         >>> field.new_field_location('node', 4)
-        >>> field.add_ones('node', 'topographic__elevation')
+        >>> field.add_ones("topographic__elevation", at="node")
         array([ 1.,  1.,  1.,  1.])
         >>> list(field.keys('node'))
         ['topographic__elevation']

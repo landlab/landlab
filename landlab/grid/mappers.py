@@ -202,10 +202,15 @@ def map_min_of_link_nodes_to_link(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z',
-    ...                   [[ 0,  1,  2,  3],
-    ...                    [ 7,  6,  5,  4],
-    ...                    [ 8,  9, 10, 11]])
+    >>> _ = rmg.add_field(
+    ...     "z",
+    ...     [
+    ...         [ 0,  1,  2,  3],
+    ...         [ 7,  6,  5,  4],
+    ...         [ 8,  9, 10, 11],
+    ...     ],
+    ...     at="node",
+    ... )
     >>> map_min_of_link_nodes_to_link(rmg, 'z')
     array([  0.,   1.,   2.,   0.,   1.,   2.,   3.,   6.,   5.,   4.,   7.,
              6.,   5.,   4.,   8.,   9.,  10.])
@@ -262,10 +267,15 @@ def map_max_of_link_nodes_to_link(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z',
-    ...                   [[0, 1, 2, 3],
-    ...                    [7, 6, 5, 4],
-    ...                    [8, 9, 10, 11]])
+    >>> _ = rmg.add_field(
+    ...     "z",
+    ...     [
+    ...         [0, 1, 2, 3],
+    ...         [7, 6, 5, 4],
+    ...         [8, 9, 10, 11],
+    ...     ],
+    ...     at="node",
+    ... )
     >>> map_max_of_link_nodes_to_link(rmg, 'z')
     array([  1.,   2.,   3.,   7.,   6.,   5.,   4.,   7.,   6.,   5.,   8.,
              9.,  10.,  11.,   9.,  10.,  11.])
@@ -384,14 +394,24 @@ def map_value_at_min_node_to_link(grid, control_name, value_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z',
-    ...                   [[0, 1, 2, 3],
-    ...                    [7, 6, 5, 4],
-    ...                    [8, 9, 10, 11]])
-    >>> _ = rmg.add_field('node', 'vals_to_map',
-    ...                   [[0, 10, 20, 30],
-    ...                    [70, 60, 50, 40],
-    ...                    [80, 90, 100, 110]])
+    >>> _ = rmg.add_field(
+    ...     "z",
+    ...     [
+    ...         [0, 1, 2, 3],
+    ...         [7, 6, 5, 4],
+    ...         [8, 9, 10, 11],
+    ...     ],
+    ...     at="node",
+    ... )
+    >>> _ = rmg.add_field(
+    ...     "vals_to_map",
+    ...     [
+    ...         [0, 10, 20, 30],
+    ...         [70, 60, 50, 40],
+    ...         [80, 90, 100, 110],
+    ...     ],
+    ...     at="node",
+    ... )
     >>> map_value_at_min_node_to_link(rmg, 'z', 'vals_to_map')
     array([   0.,   10.,   20.,    0.,   10.,   20.,   30.,   60.,   50.,
              40.,   70.,   60.,   50.,   40.,   80.,   90.,  100.])
@@ -449,14 +469,24 @@ def map_value_at_max_node_to_link(grid, control_name, value_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z',
-    ...                   [[0, 1, 2, 3],
-    ...                    [7, 6, 5, 4],
-    ...                    [8, 9, 10, 11]])
-    >>> _ = rmg.add_field('node', 'vals_to_map',
-    ...                   [[0, 10, 20, 30],
-    ...                    [70, 60, 50, 40],
-    ...                    [80, 90, 100, 110]])
+    >>> _ = rmg.add_field(
+    ...     "z",
+    ...     [
+    ...         [0, 1, 2, 3],
+    ...         [7, 6, 5, 4],
+    ...         [8, 9, 10, 11],
+    ...     ],
+    ...     at="node",
+    ... )
+    >>> _ = rmg.add_field(
+    ...     "vals_to_map",
+    ...     [
+    ...         [0, 10, 20, 30],
+    ...         [70, 60, 50, 40],
+    ...         [80, 90, 100, 110],
+    ...     ],
+    ...     at="node",
+    ... )
     >>> map_value_at_max_node_to_link(rmg, 'z', 'vals_to_map')
     array([  10.,   20.,   30.,   70.,   60.,   50.,   40.,   70.,   60.,
              50.,   80.,   90.,  100.,  110.,   90.,  100.,  110.])
@@ -509,7 +539,7 @@ def map_node_to_cell(grid, var_name, out=None):
     >>> from landlab import RasterModelGrid
 
     >>> rmg = RasterModelGrid((3, 4))
-    >>> _ = rmg.add_field('node', 'z', np.arange(12.))
+    >>> _ = rmg.add_field("z", np.arange(12.), at="node")
     >>> map_node_to_cell(rmg, 'z')
     array([ 5.,  6.])
 
@@ -568,7 +598,7 @@ def map_min_of_node_links_to_node(grid, var_name, out=None):
              3.,   4.,   5.,   6.,
             10.,  11.,  12.,  13.])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
     >>> rtn = map_min_of_node_links_to_node(rmg, 'grad', out=values_at_nodes)
     >>> values_at_nodes
     array([  0.,   0.,   1.,   2.,
@@ -629,7 +659,7 @@ def map_max_of_node_links_to_node(grid, var_name, out=None):
             10.,  11.,  12.,  13.,
             14.,  15.,  16.,  16.])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
     >>> rtn = map_max_of_node_links_to_node(rmg, 'grad', out=values_at_nodes)
     >>> values_at_nodes
     array([  3.,   4.,   5.,   6.,
@@ -696,9 +726,8 @@ def map_upwind_node_link_max_to_node(grid, var_name, out=None):
             0.,  1.,  2.,  1.,
             0.,  1.,  2.,  1.])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
-    >>> rtn = map_upwind_node_link_max_to_node(rmg, 'grad',
-    ...                                        out=values_at_nodes)
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
+    >>> rtn = map_upwind_node_link_max_to_node(rmg, 'grad', out=values_at_nodes)
     >>> values_at_nodes
     array([ 0.,  1.,  2.,  1.,
             0.,  1.,  2.,  1.,
@@ -762,9 +791,8 @@ def map_downwind_node_link_max_to_node(grid, var_name, out=None):
             1.,  2.,  1.,  0.,
             1.,  2.,  1.,  0.])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
-    >>> rtn = map_downwind_node_link_max_to_node(rmg, 'grad',
-    ...                                        out=values_at_nodes)
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
+    >>> rtn = map_downwind_node_link_max_to_node(rmg, 'grad', out=values_at_nodes)
     >>> values_at_nodes
     array([ 1.,  2.,  1.,  0.,
             1.,  2.,  1.,  0.,
@@ -829,9 +857,8 @@ def map_upwind_node_link_mean_to_node(grid, var_name, out=None):
             2. ,  2. ,  3. ,  3. ,
             1. ,  1.5,  2.5,  2.5])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
-    >>> rtn = map_upwind_node_link_mean_to_node(rmg, 'grad',
-    ...                                         out=values_at_nodes)
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
+    >>> rtn = map_upwind_node_link_mean_to_node(rmg, 'grad', out=values_at_nodes)
     >>> values_at_nodes
     array([ 0. ,  1. ,  2. ,  1. ,
             2. ,  2. ,  3. ,  3. ,
@@ -900,9 +927,8 @@ def map_downwind_node_link_mean_to_node(grid, var_name, out=None):
             1. ,  2. ,  2. ,  4. ,
             1. ,  2. ,  1. ,  0. ])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
-    >>> rtn = map_downwind_node_link_mean_to_node(rmg, 'grad',
-    ...                                         out=values_at_nodes)
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
+    >>> rtn = map_downwind_node_link_mean_to_node(rmg, 'grad', out=values_at_nodes)
     >>> values_at_nodes
     array([ 1.5,  2.5,  2.5,  5. ,
             1. ,  2. ,  2. ,  4. ,
@@ -977,9 +1003,10 @@ def map_value_at_upwind_node_link_max_to_node(grid, control_name, value_name, ou
              0.,   7.,   8.,   9.,
              0.,  14.,  15.,  16.])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
-    >>> rtn = map_value_at_upwind_node_link_max_to_node(rmg, 'grad', 'vals',
-    ...                                                 out=values_at_nodes)
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
+    >>> rtn = map_value_at_upwind_node_link_max_to_node(
+    ...     rmg, 'grad', 'vals', out=values_at_nodes
+    ... )
     >>> values_at_nodes
     array([  0.,   0.,   1.,   2.,
              0.,   7.,   8.,   9.,
@@ -1057,7 +1084,7 @@ def map_value_at_downwind_node_link_max_to_node(
              7.,   8.,   9.,   0.,
             14.,  15.,  16.,   0.])
 
-    >>> values_at_nodes = rmg.add_empty('node', 'z')
+    >>> values_at_nodes = rmg.add_empty("z", at="node")
     >>> rtn = map_value_at_downwind_node_link_max_to_node(rmg, 'grad', 'vals',
     ...                                                   out=values_at_nodes)
     >>> values_at_nodes

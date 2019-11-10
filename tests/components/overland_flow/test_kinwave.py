@@ -50,8 +50,8 @@ def test_run_one_step():
     from landlab.components.overland_flow import KinwaveOverlandFlowModel
 
     grid = RasterModelGrid((10, 10), xy_spacing=0.5)
-    grid.add_zeros("node", "topographic__elevation", dtype=float)
-    grid.add_zeros("link", "topographic__gradient")
+    grid.add_zeros("topographic__elevation", at="node", dtype=float)
+    grid.add_zeros("topographic__gradient", at="link")
 
     topo_arr = np.ones(100).reshape(10, 10)
     i = 0

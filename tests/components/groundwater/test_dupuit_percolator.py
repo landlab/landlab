@@ -36,8 +36,8 @@ def test_simple_water_table():
     """
     boundaries = {"top": "closed", "left": "closed", "bottom": "closed"}
     rg = RasterModelGrid((3, 3), bc=boundaries)
-    rg.add_zeros("node", "aquifer_base__elevation")
-    rg.add_ones("node", "topographic__elevation")
+    rg.add_zeros("aquifer_base__elevation", at="node")
+    rg.add_ones("topographic__elevation", at="node")
     gdp = GroundwaterDupuitPercolator(
         rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01
     )
@@ -59,8 +59,8 @@ def test_simple_surface_leakage():
     """
     grid = RasterModelGrid((3, 3), xy_spacing=1.0)
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    grid.add_zeros("node", "aquifer_base__elevation")
-    grid.add_ones("node", "topographic__elevation")
+    grid.add_zeros("aquifer_base__elevation", at="node")
+    grid.add_ones("topographic__elevation", at="node")
     gdp = GroundwaterDupuitPercolator(grid, recharge_rate=1.0e-6)
 
     for i in range(1000):
@@ -82,8 +82,8 @@ def test_simple_water_table_adaptive_dt():
     """
     boundaries = {"top": "closed", "left": "closed", "bottom": "closed"}
     rg = RasterModelGrid((3, 3), bc=boundaries)
-    rg.add_zeros("node", "aquifer_base__elevation")
-    rg.add_ones("node", "topographic__elevation")
+    rg.add_zeros("aquifer_base__elevation", at="node")
+    rg.add_ones("topographic__elevation", at="node")
     gdp = GroundwaterDupuitPercolator(
         rg, recharge_rate=1.0e-8, hydraulic_conductivity=0.01, courant_coefficient=0.01
     )
@@ -107,11 +107,11 @@ def test_conservation_of_mass_adaptive_dt():
 
     grid = RasterModelGrid((3, 10), xy_spacing=10.0)
     grid.set_closed_boundaries_at_grid_edges(True, True, False, True)
-    elev = grid.add_zeros("node", "topographic__elevation")
-    grid.add_zeros("node", "aquifer_base__elevation")
+    elev = grid.add_zeros("topographic__elevation", at="node")
+    grid.add_zeros("aquifer_base__elevation", at="node")
 
     elev[:] = grid.x_of_node / 100 + 1
-    wt = grid.add_zeros("node", "water_table__elevation")
+    wt = grid.add_zeros("water_table__elevation", at="node")
     wt[:] = elev
 
     # initialize the groundwater model
@@ -158,11 +158,11 @@ def test_symmetry_of_solution():
     hmg = HexModelGrid(shape=(7, 4), spacing=10.0)
     x = hmg.x_of_node
     y = hmg.y_of_node
-    elev = hmg.add_zeros("node", "topographic__elevation")
+    elev = hmg.add_zeros("topographic__elevation", at="node")
     elev[:] = 1e-3 * (x * (max(x) - x) + y * (max(y) - y)) + 2
-    base = hmg.add_zeros("node", "aquifer_base__elevation")
+    base = hmg.add_zeros("aquifer_base__elevation", at="node")
     base[:] = elev - 2
-    wt = hmg.add_zeros("node", "water_table__elevation")
+    wt = hmg.add_zeros("water_table__elevation", at="node")
     wt[:] = elev
     wt[hmg.open_boundary_nodes] = 0.0
 

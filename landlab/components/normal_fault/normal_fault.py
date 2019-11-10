@@ -123,7 +123,7 @@ class NormalFault(Component):
 
         Add an elevation field.
 
-        >>> z = grid.add_zeros('node', 'topographic__elevation')
+        >>> z = grid.add_zeros("topographic__elevation", at="node")
 
         Set the parameter values for the NormalFault component.
 
@@ -185,7 +185,7 @@ class NormalFault(Component):
 
         >>> from landlab.components import FastscapeEroder, FlowAccumulator
         >>> grid = RasterModelGrid((6, 6), xy_spacing=10)
-        >>> z = grid.add_zeros('node', 'topographic__elevation')
+        >>> z = grid.add_zeros("topographic__elevation", at="node")
         >>> param_dict = {'faulted_surface': 'topographic__elevation',
         ...               'fault_dip_angle': 90.0,
         ...               'fault_throw_rate_through_time': {'time': [0, 900, 1000],
@@ -224,7 +224,7 @@ class NormalFault(Component):
         timestep (or some more seismogenically reasonable set of times).
 
         >>> grid = RasterModelGrid((6, 6), xy_spacing=10)
-        >>> z = grid.add_zeros('node', 'topographic__elevation')
+        >>> z = grid.add_zeros("topographic__elevation", at="node")
         >>> nf = NormalFault(grid, **param_dict)
         >>> fr = FlowAccumulator(grid)
         >>> fs = FastscapeEroder(grid, K_sp=0.01)

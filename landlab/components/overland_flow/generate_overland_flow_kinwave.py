@@ -29,8 +29,8 @@ class KinwaveOverlandFlowModel(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((4, 5), xy_spacing=10.0)
-    >>> z = rg.add_zeros("node", "topographic__elevation")
-    >>> s = rg.add_zeros("link", "topographic__gradient")
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
+    >>> s = rg.add_zeros("topographic__gradient", at="link")
     >>> kw = KinwaveOverlandFlowModel(rg)
     >>> kw.vel_coef
     100.0

@@ -48,7 +48,7 @@ class TaylorNonLinearDiffuser(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.plot.imshow import imshow_grid
     >>> mg = RasterModelGrid((3, 3))
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
     >>> initial_slope=1.0
     >>> leftmost_elev=1000.
     >>> z[:] = leftmost_elev
@@ -99,7 +99,7 @@ class TaylorNonLinearDiffuser(Component):
     Next, lets do an example with dynamic timestepping.
 
     >>> mg = RasterModelGrid((5, 5))
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
 
     We'll use a steep slope.
 
@@ -126,7 +126,7 @@ class TaylorNonLinearDiffuser(Component):
     timesteps.
 
     >>> mg = RasterModelGrid((5, 5))
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
     >>> z += mg.node_x.copy()**2
     >>> cubicflux = TaylorNonLinearDiffuser(
     ...     mg,
@@ -222,13 +222,13 @@ class TaylorNonLinearDiffuser(Component):
         if "topographic__slope" in self._grid.at_link:
             self._slope = self._grid.at_link["topographic__slope"]
         else:
-            self._slope = self._grid.add_zeros("link", "topographic__slope")
+            self._slope = self._grid.add_zeros("topographic__slope", at="link")
 
         # soil flux
         if "soil__flux" in self._grid.at_link:
             self._flux = self._grid.at_link["soil__flux"]
         else:
-            self._flux = self._grid.add_zeros("link", "soil__flux")
+            self._flux = self._grid.add_zeros("soil__flux", at="link")
 
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.

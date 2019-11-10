@@ -13,7 +13,7 @@ from landlab.components import Flexure
 
 def test_method_names():
     grid = RasterModelGrid((20, 20), xy_spacing=10e3)
-    grid.add_zeros("node", "lithosphere__overlying_pressure_increment")
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
     assert Flexure(grid, method="airy").method == "airy"
     assert Flexure(grid, method="flexure").method == "flexure"
     with pytest.raises(ValueError):
@@ -22,7 +22,7 @@ def test_method_names():
 
 def test_eet_attribute():
     grid = RasterModelGrid((20, 20), xy_spacing=10e3)
-    grid.add_zeros("node", "lithosphere__overlying_pressure_increment")
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
     for val in (10e3, 1e3):
         assert Flexure(grid, eet=val).eet == pytest.approx(val)
     with pytest.raises(ValueError):
@@ -31,21 +31,21 @@ def test_eet_attribute():
 
 def test_youngs_attribute():
     grid = RasterModelGrid((20, 20), xy_spacing=10e3)
-    grid.add_zeros("node", "lithosphere__overlying_pressure_increment")
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
     for val in (10e3, 1e3):
         assert Flexure(grid, youngs=val).youngs == pytest.approx(val)
 
 
 def test_gravity_attribute():
     grid = RasterModelGrid((20, 20), xy_spacing=10e3)
-    grid.add_zeros("node", "lithosphere__overlying_pressure_increment")
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
     for val in (10e3, 1e3):
         assert Flexure(grid, gravity=val).gravity == pytest.approx(val)
 
 
 def test_rho_mantle_attribute():
     grid = RasterModelGrid((20, 20), xy_spacing=10e3)
-    grid.add_zeros("node", "lithosphere__overlying_pressure_increment")
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
     for val in (10e3, 1e3):
         assert Flexure(grid, rho_mantle=val).rho_mantle == pytest.approx(val)
 
@@ -109,7 +109,7 @@ def test_update():
     load_0 = 1e9
 
     grid = RasterModelGrid((n, n), xy_spacing=1e3)
-    grid.add_zeros("node", "lithosphere__overlying_pressure_increment")
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
     flex = Flexure(grid, method="flexure")
 
     load = grid.at_node["lithosphere__overlying_pressure_increment"]
@@ -128,7 +128,7 @@ def test_subside_loads():
     n, load_0 = 11, 1e9
 
     grid = RasterModelGrid((n, n), xy_spacing=1e3)
-    grid.add_zeros("node", "lithosphere__overlying_pressure_increment")
+    grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
     flex = Flexure(grid, method="flexure")
 
     grid.at_node["lithosphere__overlying_pressure_increment"][0] = load_0

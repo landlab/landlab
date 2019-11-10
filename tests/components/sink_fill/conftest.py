@@ -68,7 +68,7 @@ def sink_grid3():
     z[guard_nodes] += 0.001
     z[lake] = 0.0
 
-    sink_grid.add_field("node", "topographic__elevation", z, units="-")
+    sink_grid.add_field("topographic__elevation", z, at="node", units="-")
     sink_grid.lake1 = lake1
     sink_grid.lake2 = lake2
 
@@ -101,7 +101,7 @@ def sink_grid4():
     # depr_outlet_target.fill(XX)
     # depr_outlet_target = XX  # not well defined in this simplest case...?
 
-    sink_grid.add_field("node", "topographic__elevation", z, units="-")
+    sink_grid.add_field("topographic__elevation", z, at="node", units="-")
     sink_grid.lake1 = lake1
     sink_grid.lake2 = lake2
 
@@ -150,7 +150,7 @@ def sink_grid5():
     # depr_outlet_target.fill(XX)
     # depr_outlet_target = XX  # not well defined in this simplest case...?
 
-    sink_grid.add_field("node", "topographic__elevation", z, units="-")
+    sink_grid.add_field("topographic__elevation", z, at="node", units="-")
     sink_grid.lake1 = lake1
     sink_grid.lake2 = lake2
 

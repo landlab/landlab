@@ -53,9 +53,9 @@ class FlowDirectorD8(_FlowDirectorToOne):
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fd = FlowDirectorD8(mg, 'topographic__elevation')
     >>> fd.surface_values
@@ -77,9 +77,9 @@ class FlowDirectorD8(_FlowDirectorToOne):
     ...                                    0., 32., 30., 0.,
     ...                                    0.,  0.,  0., 0.])
     >>> _ = mg_2.add_field(
-    ...     'node',
-    ...     'topographic__elevation',
-    ...     topographic__elevation
+    ...     "topographic__elevation",
+    ...     topographic__elevation,
+    ...     at="node",
     ... )
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fd_2 = FlowDirectorD8(mg_2)

@@ -140,7 +140,7 @@ def testing_flux_divergence_with_hex():
     """
     hmg = HexModelGrid(3, 3, reorient_links=True)
 
-    f = hmg.add_zeros("link", "test_flux")
+    f = hmg.add_zeros("test_flux", at="link")
     f[:] = np.arange(hmg.number_of_links)
 
     make_links_at_node_array(hmg)

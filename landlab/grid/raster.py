@@ -1903,7 +1903,7 @@ class RasterModelGrid(
         ...                      -9999.,    67.,    67., -9999.,
         ...                      -9999.,    67.,     0., -9999.,
         ...                      -9999., -9999., -9999., -9999.])
-        >>> _ = rmg.add_field('node', 'topographic__elevation', node_data)
+        >>> _ = rmg.add_field("topographic__elevation", node_data, at="node")
         >>> out_id = rmg.set_watershed_boundary_condition('topographic__elevation',
         ...                                               -9999.,
         ...                                               True)
