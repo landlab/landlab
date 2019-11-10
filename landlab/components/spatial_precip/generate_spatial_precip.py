@@ -1415,7 +1415,7 @@ class SpatialPrecipitationDistribution(Component):
         Examples
         --------
         >>> mg = RasterModelGrid((10, 10), xy_spacing=500.)
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> rain = SpatialPrecipitationDistribution(mg)
         >>> mytotals = []
         >>> for yr in range(5):
@@ -1678,7 +1678,7 @@ if __name__ == "__main__":
     dx = 1000.0
     mg = RasterModelGrid((nx, ny), xy_spacing=dx)
 
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += 1400.0
     rain = SpatialPrecipitationDistribution(mg, number_of_years=1)
     count = 0

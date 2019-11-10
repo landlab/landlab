@@ -609,7 +609,7 @@ class FlowAccumulator(Component):
     >>> x_of_node = (0, 0, -1, 1)
     >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
     >>> nmg = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
-    >>> area = nmg.add_ones('node', 'cell_area_at_node')
+    >>> area = nmg.add_ones("cell_area_at_node", at="node")
     >>> z = nmg.add_field(
     ...     'topographic__elevation',
     ...     nmg.x_of_node + nmg.y_of_node,
@@ -862,7 +862,7 @@ class FlowAccumulator(Component):
             if runoff_rate is None:
                 # assume that if runoff rate is not supplied, that the value
                 # should be set to one everywhere.
-                grid.add_ones("node", "water__unit_flux_in", dtype=float)
+                grid.add_ones("water__unit_flux_in", at="node", dtype=float)
             else:
                 runoff_rate = return_array_at_node(grid, runoff_rate)
                 grid.at_node["water__unit_flux_in"] = runoff_rate

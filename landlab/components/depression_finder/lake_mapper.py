@@ -244,10 +244,10 @@ class DepressionFinderAndRouter(Component):
         # Note that we initialize depression
         # outlet ID to LOCAL_BAD_INDEX_VALUE (which is a major clue!)
         self._depression_depth = self._grid.add_zeros(
-            "node", "depression__depth", clobber=True
+            "depression__depth", at="node", clobber=True
         )
         self._depression_outlet_map = self._grid.add_zeros(
-            "node", "depression__outlet_node", dtype=int, clobber=True
+            "depression__outlet_node", at="node", dtype=int, clobber=True
         )
         self._depression_outlet_map += LOCAL_BAD_INDEX_VALUE
 
@@ -260,9 +260,9 @@ class DepressionFinderAndRouter(Component):
         self._lake_outlets = []  # a list of each unique lake outlet
         # ^note this is nlakes-long
 
-        self._is_pit = self._grid.add_ones("node", "is_pit", dtype=bool, clobber=True)
+        self._is_pit = self._grid.add_ones("is_pit", at="node", dtype=bool, clobber=True)
         self._flood_status = self._grid.add_zeros(
-            "node", "flood_status_code", dtype=int, clobber=True
+            "flood_status_code", at="node", dtype=int, clobber=True
         )
         self._lake_map = np.empty(self._grid.number_of_nodes, dtype=int)
         self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)
@@ -487,7 +487,7 @@ class DepressionFinderAndRouter(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import DepressionFinderAndRouter
         >>> rg = RasterModelGrid((3, 3))
-        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z = rg.add_zeros("topographic__elevation", at="node")
         >>> z[4] = 2.0
         >>> df = DepressionFinderAndRouter(rg, routing='D4')
         >>> (links, nbrs, dnbrs) = df._links_and_nbrs_at_node(4)
@@ -528,7 +528,7 @@ class DepressionFinderAndRouter(Component):
         >>> from landlab import RasterModelGrid
         >>> rg = RasterModelGrid((7, 7))
         >>> rg.status_at_node[rg.nodes_at_right_edge] = rg.BC_NODE_IS_CLOSED
-        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z = rg.add_zeros("topographic__elevation", at="node")
         >>> z[:] = rg.x_of_node + 0.01 * rg.y_of_node
         >>> lake_nodes = np.array([10, 16, 17, 18, 24, 32, 33, 38, 40])
         >>> z[lake_nodes] *= 0.1
@@ -885,7 +885,7 @@ class DepressionFinderAndRouter(Component):
         ...     DepressionFinderAndRouter)
 
         >>> rg = RasterModelGrid((5, 5))
-        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z = rg.add_zeros("topographic__elevation", at="node")
         >>> z[:] = np.array([100., 100.,  95., 100., 100.,
         ...                  100., 101.,  92.,   1., 100.,
         ...                  100., 101.,   2., 101., 100.,
@@ -959,7 +959,7 @@ class DepressionFinderAndRouter(Component):
         >>> from landlab.components import DepressionFinderAndRouter
         >>> from landlab import RasterModelGrid
         >>> rg = RasterModelGrid((7, 8))
-        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z = rg.add_zeros("topographic__elevation", at="node")
         >>> df = DepressionFinderAndRouter(rg)
         >>> rcvr = np.arange(56)
         >>> rcvr[13] = -1
@@ -985,7 +985,7 @@ class DepressionFinderAndRouter(Component):
         >>> from landlab.components import DepressionFinderAndRouter
         >>> from landlab import RasterModelGrid
         >>> rg = RasterModelGrid((7, 8))
-        >>> z = rg.add_zeros('node', 'topographic__elevation')
+        >>> z = rg.add_zeros("topographic__elevation", at="node")
         >>> df = DepressionFinderAndRouter(rg)
         >>> rcvr = np.arange(56)
         >>> rcvr[13] = -1
@@ -1015,8 +1015,8 @@ class DepressionFinderAndRouter(Component):
         >>> import numpy as np
         >>> from landlab.components import DepressionFinderAndRouter
         >>> rg = RasterModelGrid((7, 8))
-        >>> z = rg.add_zeros('node', 'topographic__elevation')
-        >>> rcvr = rg.add_zeros('node', 'flow__receiver_node', dtype=int)
+        >>> z = rg.add_zeros("topographic__elevation", at="node")
+        >>> rcvr = rg.add_zeros("flow__receiver_node", at="node", dtype=int)
         >>> rcvr[:] = np.arange(rg.number_of_nodes)
         >>> lake_nodes = np.array([10, 12, 13, 19, 20, 21, 25, 26, 27, 28, 29, 30, 33, 34, 35, 36, 37, 38, 44, 45, 46])
         >>> rcvr[9] = 1

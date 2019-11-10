@@ -396,8 +396,8 @@ class LateralEroder(Component):
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
         # clear qsin for next loop
-        qs_in = grid.add_zeros("node", "sediment__flux", clobber=True)
-        qs = grid.add_zeros("node", "qs", clobber=True)
+        qs_in = grid.add_zeros("sediment__flux", at="node", clobber=True)
+        qs = grid.add_zeros("qs", at="node", clobber=True)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
@@ -517,8 +517,8 @@ class LateralEroder(Component):
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
         # clear qsin for next loop
-        qs_in = grid.add_zeros("node", "sediment__flux", clobber=True)
-        qs = grid.add_zeros("node", "qs", clobber=True)
+        qs_in = grid.add_zeros("sediment__flux", at="node", clobber=True)
+        qs = grid.add_zeros("qs", at="node", clobber=True)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)

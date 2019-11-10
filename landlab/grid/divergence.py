@@ -30,7 +30,7 @@ def calc_flux_div_at_node(grid, unit_flux, out=None):
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.divergence import calc_flux_div_at_node
     >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> z[5] = 50.0
     >>> z[6] = 36.0
     >>> lg = rg.calc_grad_at_link(z)  # there are 17 links
@@ -103,7 +103,7 @@ def calc_flux_div_at_cell(grid, unit_flux, out=None):
     >>> from landlab.grid.divergence import calc_flux_div_at_cell
     >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
     >>> import numpy as np
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> z[5] = 50.0
     >>> z[6] = 36.0
     >>> lg = rg.calc_grad_at_link(z)  # there are 17 links
@@ -179,7 +179,7 @@ def calc_net_flux_at_node(grid, unit_flux_at_links, out=None):
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> z[5] = 50.0
     >>> z[6] = 36.0
     >>> lg = rg.calc_grad_at_link(z)  # there are 17 links
@@ -257,7 +257,7 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> z[5] = 50.0
     >>> z[6] = 36.0
     >>> lg = rg.calc_grad_at_link(z)
@@ -326,7 +326,7 @@ def _calc_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> z[5] = 50.0
     >>> z[6] = 36.0
     >>> lg = rg.calc_grad_at_link(z)
@@ -376,7 +376,7 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> z[5] = 50.0
     >>> z[6] = 36.0
     >>> fg = rg.calc_grad_at_link(z)[rg.link_at_face]  # there are 7 faces
@@ -446,7 +446,7 @@ def _calc_active_face_flux_divergence_at_cell(grid, unit_flux_at_faces):
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> z[5] = 50.0
     >>> z[6] = 36.0
     >>> fg = rg.calc_grad_at_link(z)[rg.link_at_face]  # there are 7 faces
@@ -496,7 +496,7 @@ def _calc_net_active_link_flux_at_node(grid, unit_flux_at_links, out=None):
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> z[5] = 50.0
     >>> z[6] = 36.0
     >>> lg = rg.calc_grad_at_link(z)  # there are 17 links
@@ -570,7 +570,7 @@ def _calc_active_link_flux_divergence_at_node(grid, unit_flux_at_links, out=None
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> z[5] = 50.0
     >>> z[6] = 36.0
     >>> lg = rg.calc_grad_at_link(z)  # there are 17 links
@@ -626,7 +626,7 @@ def _calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> z[5] = 50.0
     >>> z[6] = 36.0
     >>> fg = rg.calc_grad_at_link(z)[rg.link_at_face]  # there are 7 faces
@@ -696,7 +696,7 @@ def _calc_net_active_face_flux_at_node(grid, unit_flux_at_faces, out=None):
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> z[5] = 50.0
     >>> z[6] = 36.0
     >>> fg = rg.calc_grad_at_link(z)[rg.link_at_face]  # there are 7 faces
@@ -765,7 +765,7 @@ def _calc_active_face_flux_divergence_at_node(grid, unit_flux_at_faces, out=None
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> z[5] = 50.0
     >>> z[6] = 36.0
     >>> fg = rg.calc_grad_at_link(z)[rg.link_at_face]  # there are 7 faces

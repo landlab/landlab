@@ -41,7 +41,7 @@ def calc_grad_at_link(grid, node_values, out=None):
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((3, 4), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> z[5] = 50.0
     >>> z[6] = 36.0
     >>> calc_grad_at_link(rg, z)  # there are 17 links
