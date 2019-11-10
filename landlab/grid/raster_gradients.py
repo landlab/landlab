@@ -1522,7 +1522,6 @@ def calc_slope_at_patch(
            [ 1.24904577,  1.24904577,  1.24904577,  1.24904577],
            [ 1.37340077,  1.37340077,  1.37340077,  1.37340077]])
 
-    >>> from landlab import FIXED_VALUE_BOUNDARY
     >>> z = mg.node_x.copy()
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     >>> mg.status_at_node[11] = mg.BC_NODE_IS_CLOSED

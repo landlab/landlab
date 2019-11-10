@@ -2,7 +2,7 @@ import numpy as np
 
 from ...core.utils import as_id_array
 from ...utils.jaggedarray import JaggedArray
-from .status import CLOSED_BOUNDARY, CORE_NODE
+from ..nodestatus import NodeStatus
 
 
 def _split_link_ends(link_ends):
@@ -46,8 +46,8 @@ def link_is_active(status_at_link_ends):
     (status_at_link_start, status_at_link_end) = _split_link_ends(status_at_link_ends)
 
     return (
-        (status_at_link_start == CORE_NODE) & ~(status_at_link_end == CLOSED_BOUNDARY)
-    ) | ((status_at_link_end == CORE_NODE) & ~(status_at_link_start == CLOSED_BOUNDARY))
+        (status_at_link_start == NodeStatus.CORE) & ~(status_at_link_end == NodeStatus.CLOSED)
+    ) | ((status_at_link_end == NodeStatus.CORE) & ~(status_at_link_start == NodeStatus.CLOSED))
 
 
 def find_active_links(node_status, node_at_link_ends):

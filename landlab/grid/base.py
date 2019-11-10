@@ -20,14 +20,9 @@ from ..layers.materiallayers import MaterialLayersMixIn
 from ..utils.decorators import cache_result_in_object
 from . import grid_funcs as gfuncs
 from .decorators import override_array_setitem_and_reset, return_readonly_id_array
-from .linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK, set_status_at_link
-from .nodestatus import (
-    CLOSED_BOUNDARY,
-    CORE_NODE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
-    LOOPED_BOUNDARY,
-)
+from .linkstatus import LinkStatus, set_status_at_link
+from .nodestatus import NodeStatus
+
 
 #: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = -1
@@ -312,22 +307,22 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     BAD_INDEX_VALUE = BAD_INDEX_VALUE
 
     #: Indicates a node is *core*.
-    BC_NODE_IS_CORE = CORE_NODE
+    BC_NODE_IS_CORE = NodeStatus.CORE
     #: Indicates a boundary node has a fixed value.
-    BC_NODE_IS_FIXED_VALUE = FIXED_VALUE_BOUNDARY
+    BC_NODE_IS_FIXED_VALUE = NodeStatus.FIXED_VALUE
     #: Indicates a boundary node has a fixed gradient.
-    BC_NODE_IS_FIXED_GRADIENT = FIXED_GRADIENT_BOUNDARY
+    BC_NODE_IS_FIXED_GRADIENT = NodeStatus.FIXED_GRADIENT
     #: Indicates a boundary node is wrap-around.
-    BC_NODE_IS_LOOPED = LOOPED_BOUNDARY
+    BC_NODE_IS_LOOPED = NodeStatus.LOOPED
     #: Indicates a boundary node is closed
-    BC_NODE_IS_CLOSED = CLOSED_BOUNDARY
+    BC_NODE_IS_CLOSED = NodeStatus.CLOSED
 
     #: Indicates a link is *active*, and can carry flux
-    BC_LINK_IS_ACTIVE = ACTIVE_LINK
+    BC_LINK_IS_ACTIVE = LinkStatus.ACTIVE
     #: Indicates a link has a fixed gradient value, and behaves as a boundary
-    BC_LINK_IS_FIXED = FIXED_LINK
+    BC_LINK_IS_FIXED = LinkStatus.FIXED
     #: Indicates a link is *inactive*, and cannot carry flux
-    BC_LINK_IS_INACTIVE = INACTIVE_LINK
+    BC_LINK_IS_INACTIVE = LinkStatus.INACTIVE
 
     #: Grid elements on which fields can be placed.
     VALID_LOCATIONS = ("node", "link", "patch", "corner", "face", "cell", "grid")
@@ -466,24 +461,23 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Examples
         --------
         >>> import numpy as np
-        >>> from landlab import RasterModelGrid
-        >>> from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_LINK
+        >>> from landlab import LinkStatus, NodeStatus, RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
         >>> mg.status_at_node.reshape((4, 5))
         array([[1, 1, 1, 1, 1],
                [1, 0, 0, 0, 1],
                [1, 0, 0, 0, 1],
                [1, 1, 1, 1, 1]], dtype=uint8)
-        >>> np.any(mg.status_at_link == FIXED_LINK)
+        >>> np.any(mg.status_at_link == LinkStatus.FIXED)
         False
 
-        >>> mg.status_at_node[mg.nodes_at_left_edge] = FIXED_GRADIENT_BOUNDARY
+        >>> mg.status_at_node[mg.nodes_at_left_edge] = NodeStatus.FIXED_GRADIENT
         >>> mg.status_at_node.reshape((4, 5))
         array([[2, 1, 1, 1, 1],
                [2, 0, 0, 0, 1],
                [2, 0, 0, 0, 1],
                [2, 1, 1, 1, 1]], dtype=uint8)
-        >>> np.any(mg.status_at_link == FIXED_LINK)  # links auto-update
+        >>> np.any(mg.status_at_link == LinkStatus.FIXED)  # links auto-update
         True
 
         LLCATS: NINF BC
@@ -543,7 +537,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         LLCATS: NINF CONN BC
         """
         return np.choose(
-            self.status_at_link[self.links_at_node] == ACTIVE_LINK,
+            self.status_at_link[self.links_at_node] == LinkStatus.ACTIVE,
             (-1, self.adjacent_nodes_at_node),
         )
 
@@ -577,7 +571,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         LLCATS: NINF LINF CONN
         """
         return np.choose(
-            self.link_status_at_node == ACTIVE_LINK, (0, self.link_dirs_at_node)
+            self.link_status_at_node == LinkStatus.ACTIVE, (0, self.link_dirs_at_node)
         )
 
     @property
@@ -601,7 +595,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: NINF BC
         """
-        return np.where(self.status_at_node == CORE_NODE)[0]
+        return np.where(self.status_at_node == NodeStatus.CORE)[0]
 
     @property
     @return_readonly_id_array
@@ -620,7 +614,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         try:
             return self._boundary_nodes
         except AttributeError:
-            (boundary_node_ids,) = np.where(self._node_status != CORE_NODE)
+            (boundary_node_ids,) = np.where(self._node_status != NodeStatus.CORE)
             return boundary_node_ids
 
     @property
@@ -693,14 +687,14 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         nodes.
 
         Note that on a raster, some nodes (notably the corners) can be
-        FIXED_GRADIENT_BOUNDARY, but not have a true FIXED_LINK neighboring
+        `NodeStatus.FIXED_GRADIENT`, but not have a true `LinkStatus.FIXED` neighboring
         link. In such cases, the link returned will be a closed link joining
-        the corner node to a neighboring FIXED_GRADIENT_BOUNDARY node (see
+        the corner node to a neighboring `NodeStatus.FIXED_GRADIENT` node (see
         example).
 
         An AssertionError will be raised if for some reason a
-        FIXED_GRADIENT_BOUNDARY node exists which has neither a
-        FIXED_GRADIENT_BOUNDARY neighbor, or a FIXED_LINK.
+        `NodeStatus.FIXED_GRADIENT` node exists which has neither a
+        `NodeStatus.FIXED_GRADIENT` neighbor, or a `LinkStatus.FIXED`.
 
         Examples
         --------
@@ -725,9 +719,9 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         """Returns the node at the other end of the fixed link for a fixed
         gradient boundary node.
 
-        Degenerate FIXED_GRADIENT_BOUNDARY nodes (e.g., corners) are handled as
+        Degenerate `NodeStatus.FIXED_GRADIENT` nodes (e.g., corners) are handled as
         in :func:`fixed_gradient_boundary_node_fixed_link`, by pointing to a
-        neighboring FIXED_GRADIENT_BOUNDARY node.
+        neighboring `NodeStatus.FIXED_GRADIENT` node.
 
         Examples
         --------
@@ -750,11 +744,11 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
     def _create_fixed_gradient_boundary_node_links(self):
         """Builds a data structure to hold the fixed_links which control the
-        values of any FIXED_GRADIENT_BOUNDARY nodes in the grid.
+        values of any `NodeStatus.FIXED_GRADIENT` nodes in the grid.
 
         An AssertionError will be raised if for some reason a
-        FIXED_GRADIENT_BOUNDARY node exists which has neither a
-        FIXED_GRADIENT_BOUNDARY neighbor, or a FIXED_LINK.
+        `NodeStatus.FIXED_GRADIENT` node exists which has neither a
+        `NodeStatus.FIXED_GRADIENT` neighbor, or a `LinksStatus.FIXED`.
         """
         self._fixed_grad_links_created = True
         self._fixed_gradient_boundary_node_links = np.empty_like(
@@ -764,7 +758,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         neighbor_links = self.links_at_node[fix_nodes]  # -1s
         boundary_exists = self.link_dirs_at_node[fix_nodes]
         # next line retains -1 indexes
-        link_stat_badind = self.status_at_link[neighbor_links] == FIXED_LINK
+        link_stat_badind = self.status_at_link[neighbor_links] == LinkStatus.FIXED
         true_connection = np.logical_and(link_stat_badind, boundary_exists)
         true_fix_nodes = true_connection.sum(axis=1).astype(bool)
         self._fixed_gradient_boundary_node_links[true_fix_nodes] = neighbor_links[
@@ -774,10 +768,10 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         neighbor_nodes = self.adjacent_nodes_at_node[fix_nodes]  # BAD_INDEX_VALUEs
         neighbor_nodes[neighbor_nodes == BAD_INDEX_VALUE] = -1
         fixed_grad_neighbor = np.logical_and(
-            (self.status_at_node[neighbor_nodes] == FIXED_GRADIENT_BOUNDARY),
+            (self.status_at_node[neighbor_nodes] == NodeStatus.FIXED_GRADIENT),
             boundary_exists,
         )
-        # ^True when FIXED_GRADIENT_BOUNDARY for real
+        # ^True when NodeStatus.FIXED_GRADIENT for real
         # winnow it down to only one possibility for fixed_grad neighbor:
         which_neighbor = np.argmax(fixed_grad_neighbor, axis=1)
         indexing_range = np.arange(fixed_grad_neighbor.shape[0])
@@ -790,12 +784,12 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
     def _create_fixed_gradient_boundary_node_anchor_node(self):
         """Builds a data structure to hold the nodes which anchor the values of
-        any FIXED_GRADIENT_BOUNDARY nodes in the grid, i.e., those at the other
-        ends of the FIXED_LINKS.
+        any `NodeStatus.FIXED_GRADIENT` nodes in the grid, i.e., those at the other
+        ends of the `LinkStatus.FIXED`.
 
         An AssertionError will be raised if for some reason a
-        FIXED_GRADIENT_BOUNDARY node exists which has neither a
-        FIXED_GRADIENT_BOUNDARY neighbor, or a FIXED_LINK.
+        `NodeStatus.FIXED_GRADIENT` node exists which has neither a
+        `NodeStatus.FIXED_GRADIENT` neighbor, or a `LinkStatus.FIXED`.
         """
         self._fixed_grad_links_created = True
         fix_grad_nodes = self.fixed_gradient_boundary_nodes
@@ -844,7 +838,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: NINF BC
         """
-        return np.where(self._node_status == FIXED_VALUE_BOUNDARY)[0]
+        return np.where(self._node_status == NodeStatus.FIXED_VALUE)[0]
 
     @property
     @return_readonly_id_array
@@ -882,7 +876,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: LINF BC
         """
-        return np.where(self.status_at_link == ACTIVE_LINK)[0]
+        return np.where(self.status_at_link == LinkStatus.ACTIVE)[0]
 
     @property
     @return_readonly_id_array
@@ -892,7 +886,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, FIXED_GRADIENT_BOUNDARY
+        >>> from landlab import NodeStatus, RasterModelGrid
         >>> grid = RasterModelGrid((3, 4))
         >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([1, 1, 1, 1,
@@ -901,7 +895,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         >>> grid.fixed_links.size
         0
 
-        >>> grid.status_at_node[:4] = FIXED_GRADIENT_BOUNDARY
+        >>> grid.status_at_node[:4] = NodeStatus.FIXED_GRADIENT
         >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
         array([2, 2, 2, 2,
                1, 0, 0, 1,
@@ -911,7 +905,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: LINF BC
         """
-        return np.where(self.status_at_link == FIXED_LINK)[0]
+        return np.where(self.status_at_link == LinkStatus.FIXED)[0]
 
     @property
     @cache_result_in_object()
@@ -939,7 +933,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         LLCATS: NINF CINF BC CONN
         """
-        return np.where(self.status_at_node == CORE_NODE)[0]
+        return np.where(self.status_at_node == NodeStatus.CORE)[0]
 
     @property
     @make_return_array_immutable
@@ -1063,11 +1057,11 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid, FIXED_GRADIENT_BOUNDARY
+        >>> from landlab import NodeStatus, RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
         >>> mg.number_of_fixed_links
         0
-        >>> mg.status_at_node[mg.nodes_at_top_edge] = FIXED_GRADIENT_BOUNDARY
+        >>> mg.status_at_node[mg.nodes_at_top_edge] = NodeStatus.FIXED_GRADIENT
         >>> mg.number_of_fixed_links
         3
 
@@ -1952,7 +1946,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         of *node_data* is equal to the *nodata_value*.
 
         Any links connected to `BC_NODE_IS_CLOSED` nodes are automatically
-        set to `BC_LINK_IS_INACTIVE` boundary.
+        set to `LinkStatus.INACTIVE` boundary.
 
         Parameters
         ----------
@@ -1978,13 +1972,13 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         .. note::
 
-          Links set to `BC_LINK_IS_ACTIVE` are not shown in this diagram.
+          Links set to `LinkStatus.ACTIVE` are not shown in this diagram.
 
-        ``*`` indicates the nodes that are set to `BC_NODE_IS_CLOSED`
+        ``*`` indicates the nodes that are set to `NodeStatus.CLOSED`
 
-        ``o`` indicates the nodes that are set to `BC_NODE_IS_CORE`
+        ``o`` indicates the nodes that are set to `NodeStatus.CORE`
 
-        ``I`` indicates the links that are set to `BC_LINK_IS_INACTIVE`
+        ``I`` indicates the links that are set to `LinkStatus.INACTIVE`
 
         >>> import numpy as np
         >>> import landlab as ll
@@ -2011,7 +2005,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         whose value of *node_data* is equal to *nodata_value*.
 
         Any links between `BC_NODE_IS_FIXED_GRADIENT` nodes and
-        `BC_NODE_IS_CORE` are automatically set to `BC_LINK_IS_FIXED` boundary
+        `BC_NODE_IS_CORE` are automatically set to `LinkStatus.FIXED` boundary
         status.
 
         Parameters
@@ -2042,13 +2036,13 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
         .. note::
 
-            Links set to `BC_LINK_IS_ACTIVE` are not shown in this diagram.
+            Links set to `LinkStatus.ACTIVE` are not shown in this diagram.
 
-        ``X`` indicates the links that are set to `BC_LINK_IS_FIXED`
+        ``X`` indicates the links that are set to `LinkStatus.FIXED`
 
-        ``I`` indicates the links that are set to `BC_LINK_IS_INACTIVE`
+        ``I`` indicates the links that are set to `LinkStatus.INACTIVE`
 
-        ``o`` indicates the nodes that are set to `BC_NODE_IS_CORE`
+        ``o`` indicates the nodes that are set to `NodeStatus.CORE`
 
         ``*`` indicates the nodes that are set to
               `BC_NODE_IS_FIXED_GRADIENT`
@@ -2087,7 +2081,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         # Find locations where value equals the NODATA code and set these nodes
         # as inactive boundaries.
         nodata_locations = np.nonzero(node_data == nodata_value)
-        self.status_at_node[nodata_locations] = FIXED_GRADIENT_BOUNDARY
+        self.status_at_node[nodata_locations] = NodeStatus.FIXED_GRADIENT
 
     @property
     def unit_vector_sum_xcomponent_at_node(self):
@@ -2367,7 +2361,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         LLCATS: NINF BC
         """
         if boundary_flag is None:
-            return ~(self._node_status[ids] == CORE_NODE)
+            return ~(self._node_status[ids] == NodeStatus.CORE)
         else:
             return self._node_status[ids] == boundary_flag
 
@@ -2727,7 +2721,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         LLCATS: NINF CONN BC
         """
         status_of_neighbor = self._node_status[self.adjacent_nodes_at_node]
-        neighbor_not_core = status_of_neighbor != CORE_NODE
+        neighbor_not_core = status_of_neighbor != NodeStatus.CORE
         bad_neighbor = self.adjacent_nodes_at_node == BAD_INDEX_VALUE
         neighbor_not_core[bad_neighbor] = False
         return np.any(neighbor_not_core, axis=1)

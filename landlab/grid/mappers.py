@@ -1362,7 +1362,7 @@ def map_link_vector_sum_to_patch(grid, var_name, ignore_inactive_links=True, out
     >>> np.allclose(ycomp[(6, 9, 10),] / np.sqrt(3.0), [0.0, 0.0, -1.0])
     True
 
-    These are the patches with *INACTIVE_LINK* on all three sides:
+    These are the patches with *LinksStatus.INACTIVE* on all three sides:
 
     >>> absent_patches = np.array([0, 1, 2, 4, 8, 11, 12, 15, 16, 17, 18])
     >>> np.allclose(xcomp[absent_patches], 0.0)

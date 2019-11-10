@@ -10,14 +10,8 @@ from ..field import GraphFields
 from ..graph import NetworkGraph
 from ..utils.decorators import cache_result_in_object
 from .decorators import override_array_setitem_and_reset, return_readonly_id_array
-from .linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK, set_status_at_link
-from .nodestatus import (
-    CLOSED_BOUNDARY,
-    CORE_NODE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
-    LOOPED_BOUNDARY,
-)
+from .linkstatus import LinkStatus, set_status_at_link
+from .nodestatus import NodeStatus
 
 
 class NetworkModelGrid(NetworkGraph, GraphFields):
@@ -51,22 +45,22 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
     """
 
     #: Indicates a node is *core*.
-    BC_NODE_IS_CORE = CORE_NODE
+    BC_NODE_IS_CORE = NodeStatus.CORE
     #: Indicates a boundary node has a fixed value.
-    BC_NODE_IS_FIXED_VALUE = FIXED_VALUE_BOUNDARY
+    BC_NODE_IS_FIXED_VALUE = NodeStatus.FIXED_VALUE
     #: Indicates a boundary node has a fixed gradient.
-    BC_NODE_IS_FIXED_GRADIENT = FIXED_GRADIENT_BOUNDARY
+    BC_NODE_IS_FIXED_GRADIENT = NodeStatus.FIXED_GRADIENT
     #: Indicates a boundary node is wrap-around.
-    BC_NODE_IS_LOOPED = LOOPED_BOUNDARY
+    BC_NODE_IS_LOOPED = NodeStatus.LOOPED
     #: Indicates a boundary node is closed
-    BC_NODE_IS_CLOSED = CLOSED_BOUNDARY
+    BC_NODE_IS_CLOSED = NodeStatus.CLOSED
 
     #: Indicates a link is *active*, and can carry flux
-    BC_LINK_IS_ACTIVE = ACTIVE_LINK
+    BC_LINK_IS_ACTIVE = LinkStatus.ACTIVE
     #: Indicates a link has a fixed gradient value, and behaves as a boundary
-    BC_LINK_IS_FIXED = FIXED_LINK
+    BC_LINK_IS_FIXED = LinkStatus.FIXED
     #: Indicates a link is *inactive*, and cannot carry flux
-    BC_LINK_IS_INACTIVE = INACTIVE_LINK
+    BC_LINK_IS_INACTIVE = LinkStatus.INACTIVE
 
     #: Grid elements on which fields can be placed.
     VALID_LOCATIONS = ("node", "link", "grid")
@@ -324,7 +318,6 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
         Examples
         --------
         >>> from landlab import NetworkModelGrid
-        >>> from landlab import FIXED_LINK
 
         >>> y_of_node = (0, 1, 2, 2)
         >>> x_of_node = (0, 0, -1, 1)
@@ -335,7 +328,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
 
         LLCATS: NINF BC SUBSET
         """
-        return np.where(self.status_at_link == ACTIVE_LINK)[0]
+        return np.where(self.status_at_link == LinkStatus.ACTIVE)[0]
 
     @property
     @cache_result_in_object()

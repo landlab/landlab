@@ -1,12 +1,12 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid
-from landlab.grid.nodestatus import (
-    CLOSED_BOUNDARY as CB,
-    FIXED_GRADIENT_BOUNDARY as FG,
-    FIXED_VALUE_BOUNDARY as FV,
-)
+from landlab import NodeStatus, RasterModelGrid
+
+
+FG = NodeStatus.FIXED_GRADIENT
+CB = NodeStatus.CLOSED
+FV = NodeStatus.FIXED_VALUE
 
 
 def test_fixed_link_boundaries_at_grid_edges():

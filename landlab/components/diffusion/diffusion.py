@@ -8,13 +8,8 @@ style
 
 import numpy as np
 
-from landlab import (
-    FIXED_GRADIENT_BOUNDARY,
-    INACTIVE_LINK,
-    Component,
-    FieldError,
-    RasterModelGrid,
-)
+from landlab import Component, FieldError, LinkStatus, NodeStatus, RasterModelGrid
+
 
 _ALPHA = 0.15  # time-step stability factor
 # ^0.25 not restrictive enough at meter scales w S~1 (possible cases)
@@ -356,7 +351,7 @@ class LinearDiffuser(Component):
         True
         """
         fixed_grad_nodes = np.where(
-            self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY
+            self._grid.status_at_node == NodeStatus.FIXED_GRADIENT
         )[0]
         heads = self._grid.node_at_link_head[self._grid.fixed_links]
         tails = self._grid.node_at_link_tail[self._grid.fixed_links]
@@ -389,11 +384,11 @@ class LinearDiffuser(Component):
                 mg.node_at_link_tail[self._vert], 0:3:2
             ]
             self._vert_link_badlinks = np.logical_or(
-                mg.status_at_link[self._vert_link_neighbors] == INACTIVE_LINK,
+                mg.status_at_link[self._vert_link_neighbors] == LinkStatus.INACTIVE,
                 self._vert_link_neighbors == -1,
             )
             self._hoz_link_badlinks = np.logical_or(
-                mg.status_at_link[self._hoz_link_neighbors] == INACTIVE_LINK,
+                mg.status_at_link[self._hoz_link_neighbors] == LinkStatus.INACTIVE,
                 self._hoz_link_neighbors == -1,
             )
 
@@ -445,7 +440,7 @@ class LinearDiffuser(Component):
             # need this else diffusivities on inactive links deform off-angle
             # calculations
             kd_links = kd_links.copy()
-            kd_links[self._grid.status_at_link == INACTIVE_LINK] = 0.0
+            kd_links[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
         # Take the smaller of delt or built-in time-step size self._dt
         self._tstep_ratio = dt / self._dt

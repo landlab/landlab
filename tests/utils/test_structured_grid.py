@@ -4,6 +4,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 
 import landlab.utils.structured_grid as sgrid
+from landlab.grid.nodestatus import NodeStatus
 
 
 def test_node_x_2d():
@@ -244,7 +245,7 @@ def test_4_by_5():
 
 def test_with_status_at_node():
     status = sgrid.status_at_node((4, 5))
-    status[6] = sgrid.CLOSED_BOUNDARY
+    status[6] = NodeStatus.CLOSED
     active_links = sgrid.active_links((4, 5), node_status_array=status)
 
     assert_array_equal(

@@ -12,7 +12,7 @@ Created on Fri Feb 20 09:32:27 2015
 
 import numpy as np
 
-from landlab import FIXED_LINK, INACTIVE_LINK, Component, RasterModelGrid
+from landlab import Component, LinkStatus, RasterModelGrid
 
 
 class PotentialityFlowRouter(Component):
@@ -222,7 +222,7 @@ class PotentialityFlowRouter(Component):
 
             upwind_K = grid.map_value_at_max_node_to_link(z, self._K)
             self._discharges_at_link[:] = upwind_K * g
-            self._discharges_at_link[grid.status_at_link == INACTIVE_LINK] = 0.0
+            self._discharges_at_link[grid.status_at_link == LinkStatus.INACTIVE] = 0.0
         else:
             # grad on diags:
             gwd = np.empty(grid.number_of_d8, dtype=float)
@@ -259,7 +259,7 @@ class PotentialityFlowRouter(Component):
             )
             self._discharges_at_link[: grid.number_of_links] = upwind_K * g
             self._discharges_at_link[grid.number_of_links :] = upwind_diag_K * gd
-            self._discharges_at_link[grid.status_at_d8 == FIXED_LINK] = 0.0
+            self._discharges_at_link[grid.status_at_d8 == LinkStatus.FIXED] = 0.0
 
         np.multiply(self._K, outgoing_sum, out=self._Qw)
         # there is no sensible way to save discharges at links, if we route

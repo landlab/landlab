@@ -1,13 +1,14 @@
-from .base import (
+from .base import BAD_INDEX_VALUE, ModelGrid
+from .linkstatus import (
     ACTIVE_LINK,
-    BAD_INDEX_VALUE,
+    FIXED_LINK,
+    INACTIVE_LINK,
+)
+from .nodestatus import (
     CORE_NODE,
     FIXED_GRADIENT_BOUNDARY,
-    FIXED_LINK,
     FIXED_VALUE_BOUNDARY,
-    INACTIVE_LINK,
     LOOPED_BOUNDARY,
-    ModelGrid,
 )
 from .create import create_grid
 from .hex import HexModelGrid

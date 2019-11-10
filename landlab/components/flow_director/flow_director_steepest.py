@@ -11,12 +11,7 @@ use FlowDirectorD8.
 
 import numpy as np
 
-from landlab import (
-    BAD_INDEX_VALUE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
-    VoronoiDelaunayGrid,
-)
+from landlab import BAD_INDEX_VALUE, NodeStatus, VoronoiDelaunayGrid
 from landlab.components.flow_director import flow_direction_DN
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
@@ -372,8 +367,8 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         # Step 2. Find and save base level nodes.
         (baselevel_nodes,) = np.where(
             np.logical_or(
-                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+                self._grid.status_at_node == NodeStatus.FIXED_VALUE,
+                self._grid.status_at_node == NodeStatus.FIXED_GRADIENT,
             )
         )
 

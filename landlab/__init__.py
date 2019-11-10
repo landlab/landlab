@@ -35,6 +35,8 @@ from .grid import (
     VoronoiDelaunayGrid,
     create_grid,
 )
+from .grid.linkstatus import LinkStatus
+from .grid.nodestatus import NodeStatus
 from .plot import imshow_grid, imshow_grid_at_node
 
 try:
@@ -60,6 +62,8 @@ __all__ = [
     "VoronoiDelaunayGrid",
     "NetworkModelGrid",
     "BAD_INDEX_VALUE",
+    "LinkStatus",
+    "NodeStatus",
     "CORE_NODE",
     "FIXED_VALUE_BOUNDARY",
     "FIXED_GRADIENT_BOUNDARY",

@@ -18,10 +18,8 @@ import numpy as np
 
 from landlab import (
     BAD_INDEX_VALUE,
-    CORE_NODE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
     Component,
+    NodeStatus,
     RasterModelGrid,
 )
 from landlab.components import FlowAccumulator
@@ -360,8 +358,8 @@ class LakeMapperBarnes(Component):
         # of outlet!!
         self._edges = np.where(
             np.logical_or(
-                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+                self._grid.status_at_node == NodeStatus.FIXED_VALUE,
+                self._grid.status_at_node == NodeStatus.FIXED_GRADIENT,
             )
         )[0]
         if self._edges.size == 0:
@@ -992,7 +990,7 @@ class LakeMapperBarnes(Component):
         --------
         >>> import numpy as np
         >>> from collections import deque
-        >>> from landlab import RasterModelGrid
+        >>> from landlab import NodeStatus, RasterModelGrid
         >>> from landlab.components import (
         ...     LakeMapperBarnes,
         ...     FlowDirectorSteepest,
@@ -1042,7 +1040,7 @@ class LakeMapperBarnes(Component):
 
         Note flow doesn't make it to the outlets:
 
-        >>> outlets = np.where(mg.status_at_node == mg.BC_NODE_IS_FIXED_VALUE)
+        >>> outlets = np.where(mg.status_at_node == NodeStatus.FIXED_VALUE)
         >>> drainage_area[outlets].sum() == mg.cell_area_at_node[
         ...     mg.core_nodes].sum()
         False
@@ -1101,7 +1099,7 @@ class LakeMapperBarnes(Component):
         # (0), lake margin (1), and closed (2). This lets us work the
         # perimeter too. Open each lake as needed.
         # close the known boundary nodes:
-        closedq[self._grid.status_at_node != CORE_NODE] = 2
+        closedq[self._grid.status_at_node != NodeStatus.CORE] = 2
 
         # now the actual loop. Work forward lake by lake to avoid unnecessary
         # processing (nodes outside lakes are already correct, by definition).
@@ -1115,7 +1113,7 @@ class LakeMapperBarnes(Component):
             # it's possible the outlet used to drain *into* the lake,
             # so it needs separate consideration. Likewise, the gradients
             # of the perimeter nodes are likely to be wrong.
-            if self._grid.status_at_node[outlet] != CORE_NODE:
+            if self._grid.status_at_node[outlet] != NodeStatus.CORE:
                 # don't do anything if the outlet happens to be a boundary
                 pass
             else:
@@ -1167,7 +1165,7 @@ class LakeMapperBarnes(Component):
                                 continue
                             elif n == -1:
                                 continue
-                            elif self._grid.status_at_node[n] != CORE_NODE:
+                            elif self._grid.status_at_node[n] != NodeStatus.CORE:
                                 closedq[n] = 2
                                 continue
                             else:

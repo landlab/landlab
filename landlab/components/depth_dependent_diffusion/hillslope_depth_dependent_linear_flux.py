@@ -6,7 +6,7 @@
 
 import numpy as np
 
-from landlab import INACTIVE_LINK, Component
+from landlab import Component, LinkStatus
 
 
 class DepthDependentDiffuser(Component):
@@ -217,7 +217,7 @@ class DepthDependentDiffuser(Component):
 
         # Calculate gradients
         slope = self._grid.calc_grad_at_link(self._elev)
-        slope[self._grid.status_at_link == INACTIVE_LINK] = 0.0
+        slope[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
         # Calculate flux
         self._flux[:] = (
