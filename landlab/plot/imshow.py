@@ -304,9 +304,9 @@ def _imshow_grid_values(
             (vmin, vmax) = (limits[0], limits[1])
         else:
             if vmin is None:
-                vmin = values.flat[grid.core_nodes].min()
+                vmin = values.min()
             if vmax is None:
-                vmax = values.flat[grid.core_nodes].max()
+                vmax = values.max()
             if symmetric_cbar:
                 vmin, vmax = -max(abs(vmin), abs(vmax)), max(abs(vmin), abs(vmax))
 
