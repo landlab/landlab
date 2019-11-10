@@ -162,7 +162,7 @@ class KinwaveOverlandFlowModel(Component):
         )
 
         # Calculate discharge
-        self._disch = H_link * self._vel
+        self._disch[:] = H_link * self._vel
 
         # Flux divergence
         dqda = self._grid.calc_flux_div_at_node(self._disch)
