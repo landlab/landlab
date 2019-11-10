@@ -66,8 +66,8 @@ class GroundwaterDupuitPercolator(Component):
     Initialize the grid and component
 
     >>> grid = RasterModelGrid((10, 10), xy_spacing=10.0)
-    >>> elev = grid.add_zeros('node', 'topographic__elevation')
-    >>> abe = grid.add_zeros('node', 'aquifer_base__elevation')
+    >>> elev = grid.add_zeros("topographic__elevation", at="node")
+    >>> abe = grid.add_zeros("aquifer_base__elevation", at="node")
     >>> elev[:] = 5.0
     >>> gdp = GroundwaterDupuitPercolator(grid)
 
@@ -90,11 +90,11 @@ class GroundwaterDupuitPercolator(Component):
 
     Make a sloping, 3 m thick aquifer, initially fully saturated
 
-    >>> elev = grid.add_zeros('node', 'topographic__elevation')
+    >>> elev = grid.add_zeros("topographic__elevation", at="node")
     >>> elev[:] = grid.x_of_node/100+3
-    >>> base = grid.add_zeros('node', 'aquifer_base__elevation')
+    >>> base = grid.add_zeros("aquifer_base__elevation", at="node")
     >>> base[:] = grid.x_of_node/100
-    >>> wt = grid.add_zeros('node', 'water_table__elevation')
+    >>> wt = grid.add_zeros("water_table__elevation", at="node")
     >>> wt[:] = grid.x_of_node/100 + 3
 
     Initialize components

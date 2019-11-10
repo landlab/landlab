@@ -13,7 +13,7 @@ from landlab.components import TaylorNonLinearDiffuser
 
 def test_raise_stability_error():
     mg = RasterModelGrid((5, 5))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.node_x.copy() ** 2
     Cdiff = TaylorNonLinearDiffuser(mg, if_unstable="raise")
     with pytest.raises(RuntimeError):
@@ -22,7 +22,7 @@ def test_raise_stability_error():
 
 def test_raise_kwargs_error():
     mg = RasterModelGrid((5, 5))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.node_x.copy() ** 2
     with pytest.raises(TypeError):
         TaylorNonLinearDiffuser(mg, bad_name="true")
@@ -30,7 +30,7 @@ def test_raise_kwargs_error():
 
 def test_infinite_taylor_error():
     mg = RasterModelGrid((5, 5))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.node_x.copy() ** 4
     Cdiff = TaylorNonLinearDiffuser(mg, nterms=400)
     with pytest.raises(RuntimeError):
@@ -39,7 +39,7 @@ def test_infinite_taylor_error():
 
 # def test_warn():
 #    mg = RasterModelGrid((5, 5))
-#    z = mg.add_zeros('node', 'topographic__elevation')
+#    z = mg.add_zeros("topographic__elevation", at="node")
 #    z += mg.node_x.copy()**2
 #    Cdiff = TaylorNonLinearDiffuser(mg)
 #

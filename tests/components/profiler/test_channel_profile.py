@@ -368,7 +368,7 @@ def test_different_kwargs(profile_example_grid):
 
 def test_re_calculating_nodes_and_distance():
     mg = RasterModelGrid((20, 20), xy_spacing=100)
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += np.random.rand(z.size)
     mg.set_closed_boundaries_at_grid_edges(
         bottom_is_closed=False,
@@ -427,7 +427,7 @@ def test_re_calculating_nodes_and_distance():
 def test_getting_all_the_way_to_the_divide(main, nshed):
     np.random.seed(42)
     mg = RasterModelGrid((10, 12))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += np.random.rand(z.size)
 
     fa = FlowAccumulator(mg, flow_director="D8")

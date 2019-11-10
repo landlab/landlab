@@ -24,9 +24,9 @@ class SoilInfiltrationGreenAmpt(Component):
     >>> mg = RasterModelGrid((4,3), xy_spacing=10.)
     >>> hydraulic_conductivity = mg.ones('node')*1.e-6
     >>> hydraulic_conductivity.reshape((4,3))[0:2,:] *= 10000.
-    >>> h = mg.add_ones('node', 'surface_water__depth')
+    >>> h = mg.add_ones("surface_water__depth", at="node")
     >>> h *= 0.01
-    >>> d = mg.add_ones('node', 'soil_water_infiltration__depth', dtype=float)
+    >>> d = mg.add_ones("soil_water_infiltration__depth", at="node", dtype=float)
     >>> d *= 0.2
     >>> SI = SoilInfiltrationGreenAmpt(
     ...     mg,hydraulic_conductivity=hydraulic_conductivity)

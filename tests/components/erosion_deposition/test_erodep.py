@@ -16,7 +16,7 @@ from landlab.components import ErosionDeposition, FlowAccumulator
 
 def test_route_to_multiple_error_raised():
     mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.x_of_node + mg.y_of_node
     fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()
@@ -35,7 +35,7 @@ def test_bad_solver_name():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
 
     mg["node"]["topographic__elevation"] += (
         mg.node_y / 10000 + mg.node_x / 10000 + np.random.rand(len(mg.node_y)) / 10000
@@ -83,7 +83,7 @@ def test_steady_state_with_basic_solver_option():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
 
     mg["node"]["topographic__elevation"] += (
         mg.node_y / 100000 + mg.node_x / 100000 + np.random.rand(len(mg.node_y)) / 10000
@@ -175,7 +175,7 @@ def test_can_run_with_hex():
 
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     mg = HexModelGrid((7, 7))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z[:] = 0.01 * mg.x_of_node
 
     # Create a D8 flow handler
@@ -215,7 +215,7 @@ def test_phi_affects_transience():
 
     # Set up one 5x5 grid with open boundaries and low initial elevations.
     mg1 = HexModelGrid((7, 7))
-    z1 = mg1.add_zeros("node", "topographic__elevation")
+    z1 = mg1.add_zeros("topographic__elevation", at="node")
     z1[:] = 0.01 * mg1.x_of_node
 
     # Create a D8 flow handler
@@ -241,7 +241,7 @@ def test_phi_affects_transience():
 
     # Set up a second 5x5 grid with open boundaries and low initial elevations.
     mg2 = HexModelGrid((7, 7))
-    z2 = mg2.add_zeros("node", "topographic__elevation")
+    z2 = mg2.add_zeros("topographic__elevation", at="node")
     z2[:] = 0.01 * mg2.x_of_node
 
     # Create a D8 flow handler

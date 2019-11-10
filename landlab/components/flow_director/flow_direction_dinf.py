@@ -78,9 +78,11 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     triangular facets around a central raster node.
 
     >>> grid = RasterModelGrid((3,3), xy_spacing=(1, 1))
-    >>> _ = grid.add_field('topographic__elevation',
-    ...                     2.*grid.node_x+grid.node_y,
-    ...                     at = 'node')
+    >>> _ = grid.add_field(
+    ...     "topographic__elevation",
+    ...     2.*grid.node_x+grid.node_y,
+    ...     at="node",
+    ... )
     >>> (receivers, proportions, slopes,
     ... steepest_slope, steepest_receiver,
     ... sink, receiver_links, steepest_link) = flow_directions_dinf(grid)

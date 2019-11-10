@@ -47,7 +47,7 @@ class LinearDiffuser(Component):
     >>> from landlab import RasterModelGrid
     >>> import numpy as np
     >>> mg = RasterModelGrid((9, 9))
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
     >>> z.reshape((9, 9))[4, 4] = 1.
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
     >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
@@ -56,7 +56,7 @@ class LinearDiffuser(Component):
     >>> np.isclose(z[mg.core_nodes].sum(), 1.)
     True
     >>> mg2 = RasterModelGrid((5, 30))
-    >>> z2 = mg2.add_zeros('node', 'topographic__elevation')
+    >>> z2 = mg2.add_zeros("topographic__elevation", at="node")
     >>> z2.reshape((5, 30))[2, 8] = 1.
     >>> z2.reshape((5, 30))[2, 22] = 1.
     >>> mg2.set_closed_boundaries_at_grid_edges(True, True, True, True)
@@ -73,11 +73,11 @@ class LinearDiffuser(Component):
 
     >>> mg1 = RasterModelGrid((10, 10), xy_spacing=100.)
     >>> mg2 = RasterModelGrid((10, 10), xy_spacing=100.)
-    >>> z1 = mg1.add_zeros('node', 'topographic__elevation')
-    >>> z2 = mg2.add_zeros('node', 'topographic__elevation')
+    >>> z1 = mg1.add_zeros("topographic__elevation", at="node")
+    >>> z2 = mg2.add_zeros("topographic__elevation", at="node")
     >>> dt = 1.
     >>> nt = 10
-    >>> kappa_links = mg2.add_ones('link', 'surface_water__discharge')
+    >>> kappa_links = mg2.add_ones("surface_water__discharge", at="link")
     >>> kappa_links *= 10000.
     >>> dfn1 = LinearDiffuser(mg1, linear_diffusivity=10000.)
     >>> dfn2 = LinearDiffuser(mg2, linear_diffusivity='surface_water__discharge')
@@ -332,7 +332,7 @@ class LinearDiffuser(Component):
         >>> from landlab import RasterModelGrid
         >>> import numpy as np
         >>> mg = RasterModelGrid((4, 5))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> z[mg.core_nodes] = 1.
         >>> ld = LinearDiffuser(mg, linear_diffusivity=1.)
         >>> ld.fixed_grad_nodes.size == 0

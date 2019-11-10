@@ -34,7 +34,7 @@ class PerronNLDiffuse(Component):
     >>> from landlab import RasterModelGrid
     >>> import numpy as np
     >>> mg = RasterModelGrid((5, 5))
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
     >>> nl = PerronNLDiffuse(mg, nonlinear_diffusivity=1.)
     >>> dt = 100.
     >>> nt = 20

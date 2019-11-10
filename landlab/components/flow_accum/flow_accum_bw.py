@@ -368,7 +368,7 @@ def find_drainage_area_and_discharge_lossy(
     >>> np.isclose(mg.at_node['surface_water__discharge_loss'][4], 0.)
     True
 
-    >>> lossfield = mg.add_ones('node', 'loss_field', dtype=float)
+    >>> lossfield = mg.add_ones("loss_field", at="node", dtype=float)
     >>> lossfield *= 0.5
     >>> def lossfunc2(Qw, nodeID, dummyl, grid):
     ...     return grid.at_node['loss_field'][nodeID] * Qw

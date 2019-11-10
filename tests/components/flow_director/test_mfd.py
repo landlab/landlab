@@ -30,7 +30,7 @@ def test_bad_argument_mfd():
 
 def test_mfd_on_flat_terrain():
     mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
 
     fd = FlowDirectorMFD(mg)
     fd.run_one_step()
@@ -50,7 +50,7 @@ def test_mfd_on_flat_terrain():
 
 def test_mfd_flat_closed_lower():
     mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z[mg.core_nodes] += 1
     mg.set_closed_boundaries_at_grid_edges(
         bottom_is_closed=True,
@@ -77,7 +77,7 @@ def test_mfd_flat_closed_lower():
 
 def test_mfd_flat_closed_upper():
     mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z[mg.core_nodes] -= 1
     mg.set_closed_boundaries_at_grid_edges(
         bottom_is_closed=True,

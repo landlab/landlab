@@ -574,7 +574,7 @@ class GraphFields(object):
         >>> from landlab.field import GraphFields
         >>> fields = GraphFields()
         >>> fields.new_field_location('node', 12)
-        >>> _ = fields.add_ones('node', 'topographic__elevation')
+        >>> _ = fields.add_ones("topographic__elevation", at="node")
         >>> fields.has_field('node', 'topographic__elevation')
         True
         >>> fields.has_field('cell', 'topographic__elevation')
@@ -679,7 +679,7 @@ class GraphFields(object):
         to the *node* group. The *field_values* method returns a reference
         to the field's data.
 
-        >>> _ = fields.add_ones('node', 'topographic__elevation')
+        >>> _ = fields.add_ones("topographic__elevation", at="node")
         >>> fields.field_values('node', 'topographic__elevation')
         array([ 1.,  1.,  1.,  1.])
 
@@ -750,7 +750,7 @@ class GraphFields(object):
         to the *node* group. The *field_values* method returns a reference
         to the field's data.
 
-        >>> _ = fields.add_ones('node', 'topographic__elevation')
+        >>> _ = fields.add_ones("topographic__elevation", at="node")
         >>> fields.field_values('node', 'topographic__elevation')
         array([ 1.,  1.,  1.,  1.])
 
@@ -1006,7 +1006,7 @@ class GraphFields(object):
         >>> field = GraphFields()
         >>> field.new_field_location('node', 4)
         >>> values = np.ones(4, dtype=int)
-        >>> field.add_field('node', 'topographic__elevation', values)
+        >>> field.add_field("topographic__elevation", values, at="node")
         array([1, 1, 1, 1])
 
         A new field is added to the collection of fields. The saved value
@@ -1194,7 +1194,7 @@ class GraphFields(object):
         >>> from landlab.field import GraphFields
         >>> field = GraphFields()
         >>> field.new_field_location('node', 4)
-        >>> field.add_ones('node', 'topographic__elevation')
+        >>> field.add_ones("topographic__elevation", at="node")
         array([ 1.,  1.,  1.,  1.])
         >>> list(field.keys('node'))
         ['topographic__elevation']

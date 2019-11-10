@@ -380,7 +380,7 @@ class Component:
                 init_vals = np.zeros(size, dtype=type_in)
                 units_in = self.var_units(name)
 
-                self.grid.add_field(at, name, init_vals, units=units_in, copy=False)
+                self.grid.add_field(name, init_vals, at=at, units=units_in, copy=False)
 
     def initialize_optional_output_fields(self):
         """Create fields for a component based on its optional field outputs,
@@ -403,7 +403,7 @@ class Component:
                 init_vals = self.grid.zeros(at, dtype=type_in)
                 units_in = self.var_units(name)
 
-                self.grid.add_field(at, name, init_vals, units=units_in, copy=False)
+                self.grid.add_field(name, init_vals, at=at, units=units_in, copy=False)
 
     @property
     def shape(self):

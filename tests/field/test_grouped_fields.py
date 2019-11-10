@@ -173,7 +173,7 @@ def test_delete_field():
     with pytest.raises(AttributeError):
         fields.at_node
 
-    fields.add_zeros("link", "vals")
+    fields.add_zeros("vals", at="link")
     assert_array_equal(np.zeros(17), fields.at_link["vals"])
 
     with pytest.raises(KeyError):

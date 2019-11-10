@@ -20,7 +20,7 @@ from landlab.components import (
 
 def test_route_to_multiple_error_raised():
     mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.x_of_node + mg.y_of_node
     fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()
@@ -75,7 +75,7 @@ def test_tl_hill_diff():
             0.0,
         ]
     )
-    mg.add_field("node", "topographic__elevation", z)
+    mg.add_field("topographic__elevation", z, at="node")
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
     # Parameter values for test
