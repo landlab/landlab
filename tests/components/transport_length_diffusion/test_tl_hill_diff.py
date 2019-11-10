@@ -75,7 +75,7 @@ def test_tl_hill_diff():
             0.0,
         ]
     )
-    mg.add_field("node", "topographic__elevation", z)
+    mg.add_field("topographic__elevation", z, at="node")
     mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
     # Parameter values for test

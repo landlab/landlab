@@ -62,7 +62,7 @@ def test_flow__distance_regular_grid_d8():
 
     # add the elevation field to the grid
 
-    mg.add_field("node", "topographic__elevation", z)
+    mg.add_field("topographic__elevation", z, at="node")
 
     # instantiate the expected flow__distance array
     # considering flow directions calculated with D8 algorithm
@@ -124,7 +124,7 @@ def test_flow__distance_regular_grid_d4():
 
     # add the elevation field to the grid
 
-    mg.add_field("node", "topographic__elevation", z)
+    mg.add_field("topographic__elevation", z, at="node")
 
     # instantiate the expected flow__distance array
     # considering flow directions calculated with D4 algorithm
@@ -237,7 +237,7 @@ def test_flow__distance_raster_MFD_diagonals_true():
 
     # add the elevation field to the grid
 
-    mg.add_field("node", "topographic__elevation", z)
+    mg.add_field("topographic__elevation", z, at="node")
 
     # instantiate the expected flow__distance array
     # considering flow directions calculated with MFD algorithm
@@ -297,7 +297,7 @@ def test_flow__distance_raster_MFD_diagonals_false():
 
     # add the elevation field to the grid
 
-    mg.add_field("node", "topographic__elevation", z)
+    mg.add_field("topographic__elevation", z, at="node")
 
     # instantiate the expected flow__distance array
     # considering flow directions calculated with MFD algorithm
@@ -346,7 +346,7 @@ def test_flow__distance_raster_D_infinity():
 
     # add the elevation field to the grid
 
-    mg.add_field("node", "topographic__elevation", z)
+    mg.add_field("topographic__elevation", z, at="node")
 
     # instantiate the expected flow_length array
 

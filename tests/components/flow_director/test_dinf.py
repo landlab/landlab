@@ -21,7 +21,7 @@ def test_D_infinity_low_closed_boundary_conditions():
         [[0, 0, 0, 0], [0, 21, 10, 0], [0, 31, 20, 0], [0, 32, 30, 0], [0, 0, 0, 0]],
         dtype="float64",
     )
-    mg.add_field("node", "topographic__elevation", z)
+    mg.add_field("topographic__elevation", z, at="node")
     mg.set_closed_boundaries_at_grid_edges(
         bottom_is_closed=True,
         left_is_closed=True,
@@ -90,7 +90,7 @@ def test_D_infinity_low_closed_boundary_conditions():
 def test_D_infinity_open_boundary_conditions():
     mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     z = mg.x_of_node + 2.0 * mg.y_of_node
-    mg.add_field("node", "topographic__elevation", z)
+    mg.add_field("topographic__elevation", z, at="node")
 
     fd = FlowDirectorDINF(mg)
     fd.run_one_step()

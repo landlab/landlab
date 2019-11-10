@@ -12,7 +12,7 @@ except ImportError:
 
 def test_append_with_time(tmpdir):
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", np.ones(12, dtype=np.int64))
+    field.add_field("topographic__elevation", np.ones(12, dtype=np.int64), at="node")
 
     with tmpdir.as_cwd():
         write_raster_netcdf("test.nc", field, append=False, format="NETCDF4", time=0)
@@ -42,7 +42,7 @@ def test_append_with_time(tmpdir):
 
 def test_without_time(tmpdir):
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", np.ones(12, dtype=np.int64))
+    field.add_field("topographic__elevation", np.ones(12, dtype=np.int64), at="node")
 
     with tmpdir.as_cwd():
         write_raster_netcdf("test.nc", field, append=False, format="NETCDF4")
@@ -65,7 +65,7 @@ def test_without_time(tmpdir):
 
 def test_with_time(tmpdir):
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", np.ones(12, dtype=np.int64))
+    field.add_field("topographic__elevation", np.ones(12, dtype=np.int64), at="node")
 
     with tmpdir.as_cwd():
         write_raster_netcdf("test.nc", field, append=False, format="NETCDF4", time=0.0)
@@ -89,8 +89,8 @@ def test_with_time(tmpdir):
 
 def test_with_time_netcdf3(tmpdir):
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", 2.0 * np.arange(12.0))
-    field.add_field("node", "uplift_rate", 2.0 * np.arange(12.0))
+    field.add_field("topographic__elevation", 2.0 * np.arange(12.0), at="node")
+    field.add_field("uplift_rate", 2.0 * np.arange(12.0), at="node")
 
     with tmpdir.as_cwd():
         write_raster_netcdf("test.nc", field, format="NETCDF3_64BIT", time=10.0)
@@ -178,8 +178,8 @@ def test_append_without_time_netcdf3(tmpdir):
 
 def test_without_time_netcdf3(tmpdir):
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", 2.0 * np.arange(12.0))
-    field.add_field("node", "uplift_rate", 2.0 * np.arange(12.0))
+    field.add_field("topographic__elevation", 2.0 * np.arange(12.0), at="node")
+    field.add_field("uplift_rate", 2.0 * np.arange(12.0), at="node")
 
     with tmpdir.as_cwd():
         write_raster_netcdf("test.nc", field, format="NETCDF3_64BIT")
@@ -209,8 +209,8 @@ def test_without_time_netcdf3(tmpdir):
 
 def test_names_keyword(tmpdir):
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", np.arange(12.0))
-    field.add_field("node", "uplift_rate", 2.0 * np.arange(12.0))
+    field.add_field("topographic__elevation", np.arange(12.0), at="node")
+    field.add_field("uplift_rate", 2.0 * np.arange(12.0), at="node")
 
     with tmpdir.as_cwd():
         write_raster_netcdf(

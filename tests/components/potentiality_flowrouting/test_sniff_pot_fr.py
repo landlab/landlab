@@ -454,11 +454,11 @@ def test_in_network():
 
     mg = RasterModelGrid((NROWS, NCOLS), xy_spacing=(DX, DX))
 
-    mg.add_field("node", "topographic__elevation", z)
+    mg.add_field("topographic__elevation", z, at="node")
 
     Qin = np.ones_like(z) * 100.0 / (60.0 * 60.0 * 24.0 * 365.25)
     # ^remember, flux is /s, so this is a small number!
-    mg.add_field("node", "water__unit_flux_in", Qin)
+    mg.add_field("water__unit_flux_in", Qin, at="node")
 
     pfr = PotentialityFlowRouter(mg, flow_equation="Manning")
     pfr.run_one_step()
