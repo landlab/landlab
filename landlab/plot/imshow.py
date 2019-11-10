@@ -311,16 +311,12 @@ def _imshow_grid_values(
 
         cNorm = colors.Normalize(vmin, vmax)
         scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=cmap)
-        colorVal = scalarMap.to_rgba(values)[grid.core_nodes]
+        colorVal = scalarMap.to_rgba(values)[grid.node_at_cell]
 
         patches = []
 
-        for id in grid.core_nodes:
-
-            cell = grid.cell_at_node[id]
-            corners = grid.corners_at_cell[cell]
+        for corners in grid.corners_at_cell:
             valid_corners = corners[corners != grid.BAD_INDEX_VALUE]
-
             closed_loop_corners = np.concatenate([valid_corners, [valid_corners[0]]])
 
             x = grid.x_of_corner[closed_loop_corners]
@@ -329,7 +325,7 @@ def _imshow_grid_values(
             patches.append(Polygon(xy, closed=True, fill=True))
 
         patchcollection = PatchCollection(
-            patches, facecolor=colorVal, edgecolor=colorVal
+            patches, facecolor=colorVal, edgecolor="black"
         )
 
         ax = plt.gca()
