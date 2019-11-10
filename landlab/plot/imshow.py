@@ -250,6 +250,7 @@ def _imshow_grid_values(
     output=None,
 ):
     cmap = plt.get_cmap(cmap)
+
     if color_for_closed is not None:
         cmap.set_bad(color=color_for_closed)
     else:
@@ -327,7 +328,9 @@ def _imshow_grid_values(
             xy = np.vstack((x, y)).T
             patches.append(Polygon(xy, closed=True, fill=True))
 
-        patchcollection = PatchCollection(patches, facecolor=colorVal, edgecolor=colorVal)
+        patchcollection = PatchCollection(
+            patches, facecolor=colorVal, edgecolor=colorVal
+        )
 
         ax = plt.gca()
         ax.add_collection(patchcollection)
