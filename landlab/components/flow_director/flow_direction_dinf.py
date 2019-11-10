@@ -150,7 +150,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
             "Dinfinity is currently implemented for Raster grids only"
         )
     # get elevs
-    elevs = return_array_at_node(grid, elevs)
+    elevs = np.copy(return_array_at_node(grid, elevs))
 
     # find where there are closed nodes.
     closed_nodes = grid.status_at_node == grid.BC_NODE_IS_CLOSED
