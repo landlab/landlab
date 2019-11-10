@@ -96,9 +96,9 @@ def imshow_grid_at_node(grid, values, **kwds):
         Color to use for closed elements (default None). If None, the
         background will be transparent, and appear white.
     show_elements : bool
-         If True, and grid is a Voronoi, the faces will be plotted in black
-         along with just the colour of the cell, defining the cell outlines
-         (defaults False).
+        If True, and grid is a Voronoi, the faces will be plotted in black
+        along with just the colour of the cell, defining the cell outlines
+        (defaults False).
     output : None, string, or bool
         If None (or False), the image is sent to the imaging buffer to await
         an explicit call to show() or savefig() from outside this function.
@@ -189,9 +189,9 @@ def imshow_grid_at_cell(grid, values, **kwds):
         Color to use for closed elements (default None). If None, the
         background will be transparent, and appear white.
     show_elements : bool
-         If True, and grid is a Voronoi, the faces will be plotted in black
-         along with just the colour of the cell, defining the cell outlines
-         (defaults False).
+        If True, and grid is a Voronoi, the faces will be plotted in black
+        along with just the colour of the cell, defining the cell outlines
+        (defaults False).
     output : None, string, or bool
         If None (or False), the image is sent to the imaging buffer to await
         an explicit call to show() or savefig() from outside this function.
