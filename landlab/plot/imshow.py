@@ -196,6 +196,8 @@ def imshow_grid_at_cell(grid, values, **kwds):
     ValueError
         If input grid is not uniform rectilinear.
     """
+    kwds.setdefault("color_for_closed", None)
+
     if isinstance(values, str):
         try:
             values_at_cell = grid.at_cell[values]
@@ -212,16 +214,15 @@ def imshow_grid_at_cell(grid, values, **kwds):
             "number of values must match number of cells or " "number of nodes"
         )
 
-    values_at_cell = np.ma.asarray(values_at_cell)
-    values_at_cell.mask = True
-    values_at_cell.mask[grid.core_cells] = False
+    values_at_node = np.ma.masked_array(grid.empty(at="node"))
+    values_at_node.mask = True
+    values_at_node[grid.node_at_cell] = values_at_cell
+    values_at_node.mask[grid.node_at_cell] = False
 
-    try:
-        values_at_cell = values_at_cell.reshape(grid.cell_grid_shape)
-    except AttributeError:
-        pass
+    if isinstance(grid, RasterModelGrid):
+        values_at_node = values_at_node.reshape(grid.shape)
 
-    myimage = _imshow_grid_values(grid, values_at_cell, **kwds)
+    myimage = _imshow_grid_values(grid, values_at_node, **kwds)
 
     if isinstance(values, str):
         plt.title(values)
