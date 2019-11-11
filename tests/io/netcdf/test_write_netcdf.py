@@ -17,7 +17,7 @@ _TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
 def test_netcdf_write_int64_field_netcdf4(tmpdir):
     """Test write_netcdf with a grid that has an int64 field."""
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", np.arange(12, dtype=np.int64))
+    field.add_field("topographic__elevation", np.arange(12, dtype=np.int64), at="node")
 
     with tmpdir.as_cwd():
         write_netcdf("test.nc", field, format="NETCDF4")
@@ -35,7 +35,7 @@ def test_netcdf_write_int64_field_netcdf4(tmpdir):
 def test_netcdf_write_uint8_field_netcdf4(tmpdir):
     """Test write_netcdf with a grid that has an uint8 field."""
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", np.arange(12, dtype=np.uint8))
+    field.add_field("topographic__elevation", np.arange(12, dtype=np.uint8), at="node")
 
     with tmpdir.as_cwd():
         write_netcdf("test.nc", field, format="NETCDF4")
@@ -55,8 +55,8 @@ def test_netcdf_write_as_netcdf3_64bit(tmpdir):
     from scipy.io import netcdf
 
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", np.arange(12.0))
-    field.add_field("node", "uplift_rate", 2.0 * np.arange(12.0))
+    field.add_field("topographic__elevation", np.arange(12.0), at="node")
+    field.add_field("uplift_rate", 2.0 * np.arange(12.0), at="node")
 
     with tmpdir.as_cwd():
         write_netcdf("test.nc", field, format="NETCDF3_64BIT")
@@ -75,8 +75,8 @@ def test_netcdf_write_as_netcdf3_classic(tmpdir):
     from scipy.io import netcdf
 
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", np.arange(12.0))
-    field.add_field("node", "uplift_rate", 2.0 * np.arange(12.0))
+    field.add_field("topographic__elevation", np.arange(12.0), at="node")
+    field.add_field("uplift_rate", 2.0 * np.arange(12.0), at="node")
 
     with tmpdir.as_cwd():
         write_netcdf("test.nc", field, format="NETCDF3_CLASSIC")
@@ -93,7 +93,7 @@ def test_netcdf_write_as_netcdf3_classic(tmpdir):
 def test_netcdf_write(tmpdir):
     """Test generic write_netcdf."""
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", np.arange(12.0))
+    field.add_field("topographic__elevation", np.arange(12.0), at="node")
 
     with tmpdir.as_cwd():
         write_netcdf("test.nc", field, format="NETCDF4")
@@ -126,8 +126,8 @@ def test_netcdf_write(tmpdir):
 def test_netcdf_write_as_netcdf4_classic(tmpdir):
     """Test write_netcdf to netcdf4 classic format."""
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", np.arange(12.0))
-    field.add_field("node", "uplift_rate", np.arange(12.0))
+    field.add_field("topographic__elevation", np.arange(12.0), at="node")
+    field.add_field("uplift_rate", np.arange(12.0), at="node")
 
     with tmpdir.as_cwd():
         write_netcdf("test.nc", field, format="NETCDF4_CLASSIC")
@@ -143,8 +143,8 @@ def test_netcdf_write_as_netcdf4_classic(tmpdir):
 def test_netcdf_write_names_keyword_as_list(tmpdir):
     """Test write_netcdf using a list for the *names* keyword."""
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", np.arange(12.0))
-    field.add_field("node", "uplift_rate", np.arange(12.0))
+    field.add_field("topographic__elevation", np.arange(12.0), at="node")
+    field.add_field("uplift_rate", np.arange(12.0), at="node")
 
     with tmpdir.as_cwd():
         write_netcdf(
@@ -165,8 +165,8 @@ def test_netcdf_write_names_keyword_as_list(tmpdir):
 def test_netcdf_write_names_keyword_as_str(tmpdir):
     """Test write_netcdf using a ``str`` for the *names* keyword."""
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", np.arange(12.0))
-    field.add_field("node", "uplift_rate", np.arange(12.0))
+    field.add_field("topographic__elevation", np.arange(12.0), at="node")
+    field.add_field("uplift_rate", np.arange(12.0), at="node")
 
     with tmpdir.as_cwd():
         write_netcdf("test.nc", field, names="uplift_rate", format="NETCDF4")
@@ -184,8 +184,8 @@ def test_netcdf_write_names_keyword_as_str(tmpdir):
 def test_netcdf_write_names_keyword_as_none(tmpdir):
     """Test write_netcdf using ``None`` for the *names* keyword."""
     field = RasterModelGrid((4, 3))
-    field.add_field("node", "topographic__elevation", np.arange(12.0))
-    field.add_field("node", "uplift_rate", np.arange(12.0))
+    field.add_field("topographic__elevation", np.arange(12.0), at="node")
+    field.add_field("uplift_rate", np.arange(12.0), at="node")
 
     with tmpdir.as_cwd():
         write_netcdf("test.nc", field, names=None, format="NETCDF4")
@@ -259,8 +259,12 @@ def test_1d_uneven_spacing():
 def test_netcdf_write_at_cells(tmpdir):
     """Test write_netcdf using with cell fields"""
     field = RasterModelGrid((4, 3))
-    field.add_field("cell", "topographic__elevation", np.arange(field.number_of_cells))
-    field.add_field("cell", "uplift_rate", np.arange(field.number_of_cells))
+    field.add_field(
+        "topographic__elevation",
+        np.arange(field.number_of_cells),
+        at="cell",
+    )
+    field.add_field("uplift_rate", np.arange(field.number_of_cells), at="cell")
 
     with tmpdir.as_cwd():
         write_netcdf("test-cells.nc", field, format="NETCDF4")

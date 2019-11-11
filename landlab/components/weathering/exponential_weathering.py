@@ -42,8 +42,8 @@ class ExponentialWeatherer(Component):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import ExponentialWeatherer
     >>> mg = RasterModelGrid((5, 5))
-    >>> soilz = mg.add_zeros('node', 'soil__depth')
-    >>> soilrate = mg.add_ones('node', 'soil_production__rate')
+    >>> soilz = mg.add_zeros("soil__depth", at="node")
+    >>> soilrate = mg.add_ones("soil_production__rate", at="node")
     >>> expw = ExponentialWeatherer(mg)
     >>> expw.calc_soil_prod_rate()
     >>> np.allclose(mg.at_node['soil_production__rate'], 1.)
@@ -89,7 +89,7 @@ class ExponentialWeatherer(Component):
         if "soil_production__rate" in grid.at_node:
             self._soil_prod_rate = grid.at_node["soil_production__rate"]
         else:
-            self._soil_prod_rate = grid.add_zeros("node", "soil_production__rate")
+            self._soil_prod_rate = grid.add_zeros("soil_production__rate", at="node")
 
     def calc_soil_prod_rate(self):
         """Calculate soil production rate."""

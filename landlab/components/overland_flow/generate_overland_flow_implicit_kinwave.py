@@ -137,7 +137,7 @@ class KinwaveImplicitOverlandFlow(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> rg = RasterModelGrid((4, 5), xy_spacing=10.0)
-    >>> z = rg.add_zeros('node', 'topographic__elevation')
+    >>> z = rg.add_zeros("topographic__elevation", at="node")
     >>> kw = KinwaveImplicitOverlandFlow(rg)
     >>> round(kw.runoff_rate * 1.0e7, 2)
     2.78

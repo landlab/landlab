@@ -114,8 +114,8 @@ class OverlandFlowBates(Component):
         # For water discharge
 
         self._surface_water__discharge = grid.add_zeros(
-            "link",
             "surface_water__discharge",
+            at="link",
             units=self._info["surface_water__discharge"]["units"],
         )
 

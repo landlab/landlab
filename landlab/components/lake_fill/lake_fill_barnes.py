@@ -471,7 +471,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
@@ -531,7 +531,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((3, 7))
         >>> for edge in ('top', 'right', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
         ...                                 1.0000000000000004, 1.5]
         >>> z_init = z.copy()
@@ -649,7 +649,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
         >>> z[7] = 2.  # is a lake on its own
@@ -759,7 +759,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
@@ -846,7 +846,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((3, 7))
         >>> for edge in ('top', 'right', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
         ...                                 1.0000000000000004, 1.5]
         >>> z_init = z.copy()
@@ -952,8 +952,8 @@ class LakeMapperBarnes(Component):
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import LakeMapperBarnes, FlowAccumulator
         >>> mg = RasterModelGrid((5, 6), xy_spacing=2.)
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
-        >>> z_new = mg.add_zeros('node', 'topographic__fill', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
+        >>> z_new = mg.add_zeros("topographic__fill", at="node", dtype=float)
         >>> fa = FlowAccumulator(mg)
         >>> lmb = LakeMapperBarnes(mg, method='D8',
         ...                        surface='topographic__elevation',
@@ -1000,7 +1000,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((5, 6), xy_spacing=2.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[23] = 1.3
         >>> z[15] = -2.  # this deep pit causes the outlet to first drain *in*
@@ -1260,7 +1260,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((5, 6), xy_spacing=2.)
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
@@ -1432,7 +1432,7 @@ class LakeMapperBarnes(Component):
 
         >>> from landlab import HexModelGrid, FieldError
         >>> hmg = HexModelGrid((5, 4), spacing=2.)
-        >>> z_hex = hmg.add_zeros('node', 'topographic__elevation')
+        >>> z_hex = hmg.add_zeros("topographic__elevation", at="node")
         >>> z_hex[:] = hmg.node_x
         >>> z_hex[11] = -3.
         >>> z_hex[12] = -1.
@@ -1458,7 +1458,7 @@ class LakeMapperBarnes(Component):
         True
 
         >>> hmg = HexModelGrid((5, 4), spacing=2.0)
-        >>> z_hex = hmg.add_zeros('node', 'topographic__elevation')
+        >>> z_hex = hmg.add_zeros("topographic__elevation", at="node")
         >>> z_hex[:] = z_hex_init
         >>> try:
         ...     lmb = LakeMapperBarnes(hmg, method='Steepest',
@@ -1508,14 +1508,12 @@ class LakeMapperBarnes(Component):
         elevation though, since the LakeMapper will need it. We start them
         equal (i.e., topo starts dry).
 
-        >>> z_water = mg.add_zeros(
-        ...     'node', 'topographic__elevation', dtype=float)
+        >>> z_water = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z_water[:] = mg.node_x
         >>> z_water[11] = 1.5
         >>> z_water[19] = 0.5
         >>> z_water[34] = 1.1
-        >>> z_bed = mg.add_zeros(
-        ...     'node', 'bedrock__elevation', dtype=float)
+        >>> z_bed = mg.add_zeros("bedrock__elevation", at="node", dtype=float)
         >>> z_bed[:] = z_water  # topo starts dry
 
         Let's just take a look:
@@ -1714,7 +1712,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
@@ -1756,7 +1754,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z.reshape(mg.shape)[2, 1:-1] = [2., 1., 0.5, 1.5]
         >>> z.reshape(mg.shape)[1, 1:-1] = [2.1, 1.1, 0.6, 1.6]
         >>> z.reshape(mg.shape)[3, 1:-1] = [2.2, 1.2, 0.7, 1.7]
@@ -1799,7 +1797,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
         >>> z[7] = 2.  # is a lake on its own
@@ -1848,7 +1846,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
         >>> z[7] = 2.  # is a lake on its own
@@ -1923,7 +1921,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
         >>> z[7] = 2.  # is a lake on its own
@@ -1962,7 +1960,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
         >>> z[7] = 2.  # is a lake on its own
@@ -2022,7 +2020,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
         >>> z[7] = 2.  # is a lake on its own
@@ -2077,7 +2075,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((5, 6))
         >>> for edge in ('left', 'top', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z[:] = mg.node_x.max() - mg.node_x
         >>> z[[10, 23]] = 1.1  # raise "guard" exit nodes
         >>> z[7] = 2.  # is a lake on its own
@@ -2129,7 +2127,7 @@ class LakeMapperBarnes(Component):
         >>> mg = RasterModelGrid((3, 7))
         >>> for edge in ('top', 'right', 'bottom'):
         ...     mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-        >>> z = mg.add_zeros('node', 'topographic__elevation', dtype=float)
+        >>> z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
         >>> z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1,
         ...                                 1.0000000000000004, 1.5]
         >>> z_init = z.copy()

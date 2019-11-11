@@ -84,7 +84,7 @@ the ``**`` operator.
 
 We have a very short tutorial on Python and NumPy from the point of view of
 Landlab (and the key differences with Matlab)
-`here <https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=python_intro/python_intro.ipynb>`_.
+`here <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=python_intro/python_intro.ipynb>`_.
 
 NumPy, SciPy, and Efficient Coding Style
 ----------------------------------------

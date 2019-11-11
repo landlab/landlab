@@ -8,7 +8,7 @@ from landlab.components import DrainageDensity, FastscapeEroder, FlowAccumulator
 
 def test_route_to_multiple_error_raised():
     mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.x_of_node + mg.y_of_node
     fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()
@@ -21,7 +21,7 @@ def test_route_to_multiple_error_raised():
 
 def test_mask_is_stable():
     mg = RasterModelGrid((10, 10))
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
     np.random.seed(3542)
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
@@ -49,7 +49,7 @@ def test_mask_is_stable():
 
 def test_float_mask():
     mg = RasterModelGrid((10, 10))
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
@@ -62,7 +62,7 @@ def test_float_mask():
 
 def test_bool_mask():
     mg = RasterModelGrid((10, 10))
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
@@ -75,7 +75,7 @@ def test_bool_mask():
 
 def test_missing_fields():
     mg = RasterModelGrid((10, 10))
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
     with pytest.raises(FieldError):
         DrainageDensity(
             mg,
@@ -89,7 +89,7 @@ def test_missing_fields():
 
 def test_updating_with_array_provided():
     mg = RasterModelGrid((10, 10))
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
@@ -103,8 +103,8 @@ def test_updating_with_array_provided():
 
 def test_mask_field_exists():
     mg = RasterModelGrid((10, 10))
-    mg.add_zeros("node", "topographic__elevation")
-    mg.add_zeros("node", "channel__mask", dtype=np.uint8)
+    mg.add_zeros("topographic__elevation", at="node")
+    mg.add_zeros("channel__mask", at="node", dtype=np.uint8)
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
@@ -117,7 +117,7 @@ def test_mask_field_exists():
 
 def test_bad_mask_size():
     mg = RasterModelGrid((10, 10))
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
@@ -131,7 +131,7 @@ def test_bad_mask_size():
 
 def test_providing_array_and_kwargs():
     mg = RasterModelGrid((10, 10))
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
@@ -152,7 +152,7 @@ def test_providing_array_and_kwargs():
 
 def test_missing_channel_threshold():
     mg = RasterModelGrid((10, 10))
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
@@ -169,7 +169,7 @@ def test_missing_channel_threshold():
 
 def test_missing_slope_exponent():
     mg = RasterModelGrid((10, 10))
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
@@ -186,7 +186,7 @@ def test_missing_slope_exponent():
 
 def test_missing_slope_coefficient():
     mg = RasterModelGrid((10, 10))
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
@@ -203,7 +203,7 @@ def test_missing_slope_coefficient():
 
 def test_missing_area_exponent():
     mg = RasterModelGrid((10, 10))
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
@@ -220,7 +220,7 @@ def test_missing_area_exponent():
 
 def test_missing_area_coefficient():
     mg = RasterModelGrid((10, 10))
-    mg.add_zeros("node", "topographic__elevation")
+    mg.add_zeros("topographic__elevation", at="node")
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")

@@ -608,7 +608,7 @@ def find_drainage_area_and_discharge_to_n_lossy(
 
     >>> mg = RasterModelGrid((3, 3))
     >>> _ = mg.add_zeros('node', 'surface_water__discharge_loss', dtype=float)
-    >>> lossy = mg.add_ones('link', 'lossy', dtype=float)
+    >>> lossy = mg.add_ones("lossy", at="link", dtype=float)
     >>> lossy *= 0.5
     >>> def lossfunc(Qw, dummyn, linkID, grid):
     ...     return grid.at_link['lossy'][linkID] * Qw

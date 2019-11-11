@@ -16,7 +16,7 @@ from landlab.components import FlowAccumulator, SinkFiller, SinkFillerBarnes
 
 def test_route_to_multiple_error_raised_init():
     mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.x_of_node + mg.y_of_node
     fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()
@@ -26,7 +26,7 @@ def test_route_to_multiple_error_raised_init():
 
 def test_route_to_multiple_error_raised_run():
     mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.x_of_node + mg.y_of_node
     sfb = SinkFillerBarnes(mg)
     fa = FlowAccumulator(mg, flow_director="MFD")
@@ -37,7 +37,7 @@ def test_route_to_multiple_error_raised_run():
 
 def test_route_to_multiple_error_raised():
     mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.x_of_node + mg.y_of_node
     fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()

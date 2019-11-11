@@ -59,8 +59,8 @@ def test_Bates_analytical():
     from landlab import RasterModelGrid
 
     grid = RasterModelGrid((32, 240), xy_spacing=25)
-    grid.add_zeros("node", "surface_water__depth")
-    grid.add_zeros("node", "topographic__elevation")
+    grid.add_zeros("surface_water__depth", at="node")
+    grid.add_zeros("topographic__elevation", at="node")
     grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
     bates = OverlandFlowBates(grid, mannings_n=0.01, h_init=0.001)
     time = 0.0

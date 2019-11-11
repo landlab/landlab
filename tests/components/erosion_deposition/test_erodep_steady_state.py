@@ -18,7 +18,7 @@ def test_erodep_slope_area_small_vs():
 
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     rg = RasterModelGrid((5, 5))
-    z = rg.add_zeros("node", "topographic__elevation")
+    z = rg.add_zeros("topographic__elevation", at="node")
     z[:] = 0.01 * rg.x_of_node
 
     # Create a D8 flow handler
@@ -58,7 +58,7 @@ def test_erodep_slope_area_big_vs():
 
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     rg = RasterModelGrid((5, 5))
-    z = rg.add_zeros("node", "topographic__elevation")
+    z = rg.add_zeros("topographic__elevation", at="node")
     z[:] = 0.01 * rg.x_of_node
 
     # Create a D8 flow handler
@@ -97,7 +97,7 @@ def test_erodep_slope_area_with_vs_unity():
 
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     rg = RasterModelGrid((5, 5))
-    z = rg.add_zeros("node", "topographic__elevation")
+    z = rg.add_zeros("topographic__elevation", at="node")
     z[:] = 0.01 * rg.x_of_node
 
     # Create a D8 flow handler
@@ -137,7 +137,7 @@ def test_erodep_slope_area_shear_stress_scaling():
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     rg = RasterModelGrid((5, 5))
     rg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    z = rg.add_zeros("node", "topographic__elevation")
+    z = rg.add_zeros("topographic__elevation", at="node")
     z[:] = 0.01 * rg.x_of_node
 
     # Create a D8 flow handler
@@ -177,7 +177,7 @@ def test_erodep_slope_area_with_threshold():
 
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     rg = RasterModelGrid((5, 5))
-    z = rg.add_zeros("node", "topographic__elevation")
+    z = rg.add_zeros("topographic__elevation", at="node")
     z[:] = 0.01 * rg.x_of_node
 
     # Create a D8 flow handler

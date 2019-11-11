@@ -352,7 +352,7 @@ evaluated between pairs of adjacent nodes. ModelGrid makes these calculations
 easier for programmers by providing built-in functions to calculate gradients
 along links and allowing applications to associate an array of gradient values
 with their corresponding links or edges. The `tutorial examples
-<https://mybinder.org/v2/gh/landlab/tutorials/release>`_
+<https://mybinder.org/v2/gh/landlab/tutorials/v2_dev>`_
 illustrate how this capability can be used to create models of processes
 such as diffusion and overland flow.
 
@@ -461,7 +461,7 @@ is one that joins either two core nodes, or one *core* and one
 *open boundary* node (Figure 3). You can use this
 distinction in models to implement closed boundaries by performing flow
 calculations only on active links, as seen in `this tutorial
-<https://mybinder.org/v2/gh/landlab/tutorials/release?filepath=fault_scarp_notebook/landlab-fault-scarp.ipynb>`_.
+<https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=fault_scarp_notebook/landlab-fault-scarp.ipynb>`_.
 
 
 .. _bc_details:

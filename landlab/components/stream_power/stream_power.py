@@ -50,7 +50,7 @@ class StreamPowerEroder(Component):
     ...               7.,  2.,  3.,  5.,  7.,
     ...               7.,  1., 1.9,  4.,  7.,
     ...               7.,  0.,  7.,  7.,  7.])
-    >>> z = mg.add_field('node', 'topographic__elevation', z)
+    >>> z = mg.add_field("topographic__elevation", z, at="node")
     >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> sp = StreamPowerEroder(mg, K_sp=1.)
     >>> fr.run_one_step()
@@ -64,7 +64,7 @@ class StreamPowerEroder(Component):
 
     >>> mg2 = RasterModelGrid((3, 7))
     >>> z = np.array(mg2.node_x**2.)
-    >>> z = mg2.add_field('node', 'topographic__elevation', z)
+    >>> z = mg2.add_field("topographic__elevation", z, at="node")
     >>> mg2.status_at_node[mg2.nodes_at_left_edge] = mg2.BC_NODE_IS_FIXED_VALUE
     >>> mg2.status_at_node[mg2.nodes_at_top_edge] = mg2.BC_NODE_IS_CLOSED
     >>> mg2.status_at_node[mg2.nodes_at_bottom_edge] = mg2.BC_NODE_IS_CLOSED
@@ -80,7 +80,7 @@ class StreamPowerEroder(Component):
 
     >>> mg3 = RasterModelGrid((5, 5), xy_spacing=2.)
     >>> z = mg.node_x/100.
-    >>> z = mg3.add_field('node', 'topographic__elevation', z)
+    >>> z = mg3.add_field("topographic__elevation", z, at="node")
     >>> mg3.status_at_node[mg3.nodes_at_left_edge] = mg2.BC_NODE_IS_FIXED_VALUE
     >>> mg3.status_at_node[mg3.nodes_at_top_edge] = mg2.BC_NODE_IS_CLOSED
     >>> mg3.status_at_node[mg3.nodes_at_bottom_edge] = mg2.BC_NODE_IS_CLOSED

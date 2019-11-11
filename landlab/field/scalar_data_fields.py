@@ -123,8 +123,12 @@ class ScalarDataFields(dict):
     >>> from landlab import RasterModelGrid
     >>> import numpy as np
     >>> mg = RasterModelGrid((4, 5))
-    >>> z = mg.add_field('cell', 'topographic__elevation', np.random.rand(
-    ...         mg.number_of_cells), units='m')
+    >>> z = mg.add_field(
+    ...     "topographic__elevation",
+    ...     np.random.rand(mg.number_of_cells),
+    ...     at="cell",
+    ...     units="m",
+    ... )
     >>> mg.at_cell['topographic__elevation'].size == mg.number_of_cells
     True
 

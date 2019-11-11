@@ -123,9 +123,11 @@ class FlowAccumulator(Component):
     >>> from landlab.components import FlowAccumulator
     >>> mg = RasterModelGrid((3,3))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
-    >>> _ = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + mg.node_y,
-    ...                  at = 'node')
+    >>> _ = mg.add_field(
+    ...     "topographic__elevation",
+    ...     mg.node_x + mg.node_y,
+    ...     at="node",
+    ... )
 
     The FlowAccumulator component accumulates flow and calculates drainage using
     all of the different methods for directing flow in Landlab. These include
@@ -191,11 +193,7 @@ class FlowAccumulator(Component):
     ...                                    0., 31., 20., 0.,
     ...                                    0., 32., 30., 0.,
     ...                                    0.,  0.,  0., 0.])
-    >>> _ = mg.add_field(
-    ...     'node',
-    ...     'topographic__elevation',
-    ...     topographic__elevation
-    ... )
+    >>> _ = mg.add_field("topographic__elevation", topographic__elevation, at="node")
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fa = FlowAccumulator(
     ...      mg,
@@ -222,11 +220,7 @@ class FlowAccumulator(Component):
 
     Put the data back into the new grid.
 
-    >>> _ = mg.add_field(
-    ...     'node',
-    ...     'topographic__elevation',
-    ...     topographic__elevation
-    ... )
+    >>> _ = mg.add_field("topographic__elevation", topographic__elevation, at="node")
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fa = FlowAccumulator(
     ...      mg,
@@ -234,12 +228,7 @@ class FlowAccumulator(Component):
     ...      flow_director=FlowDirectorSteepest
     ...      )
     >>> runoff_rate = np.arange(mg.number_of_nodes, dtype=float)
-    >>> rnff = mg.add_field(
-    ...        'node',
-    ...        'water__unit_flux_in',
-    ...        runoff_rate,
-    ...        clobber=True,
-    ... )
+    >>> rnff = mg.add_field("water__unit_flux_in", runoff_rate, at="node", clobber=True)
     >>> fa.run_one_step()
     >>> mg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
     array([    0.,   500.,  5200.,     0.,
@@ -284,10 +273,10 @@ class FlowAccumulator(Component):
     >>> from landlab import HexModelGrid
     >>> hmg = HexModelGrid((5, 3), xy_of_lower_left=(-1., 0.))
     >>> _ = hmg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     hmg.node_x + np.round(hmg.node_y),
-    ...     at = 'node'
-    ...     )
+    ...     at="node",
+    ... )
     >>> fa = FlowAccumulator(
     ...      hmg,
     ...      'topographic__elevation',
@@ -309,11 +298,7 @@ class FlowAccumulator(Component):
 
     >>> mg = RasterModelGrid((5, 5))
     >>> topographic__elevation = mg.node_y+mg.node_x
-    >>> _ = mg.add_field(
-    ...     'node',
-    ...     'topographic__elevation',
-    ...     topographic__elevation
-    ... )
+    >>> _ = mg.add_field("topographic__elevation", topographic__elevation, at="node")
     >>> fa = FlowAccumulator(
     ...      mg,
     ...      'topographic__elevation',
@@ -374,9 +359,9 @@ class FlowAccumulator(Component):
     >>> dx=(2./(3.**0.5))**0.5
     >>> hmg = HexModelGrid((5, 3), spacing=dx, xy_of_lower_left=(-1.0745, 0.))
     >>> _ = hmg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     hmg.node_x**2 + np.round(hmg.node_y)**2,
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fa = FlowAccumulator(
     ...      hmg,
@@ -404,9 +389,9 @@ class FlowAccumulator(Component):
     Put the data back into the new grid.
 
     >>> _ = hmg.add_field(
-    ...     'topographic__elevation',
-    ...     hmg.node_x**2 + np.round(hmg.node_y)**2,
-    ...     at = 'node'
+    ...     "topographic__elevation",
+    ...     hmg.node_x ** 2 + np.round(hmg.node_y) ** 2,
+    ...     at="node",
     ... )
     >>> fa = FlowAccumulator(
     ...      hmg,
@@ -424,7 +409,7 @@ class FlowAccumulator(Component):
     Next, let's see what happens to a raster grid when there is a depression.
 
     >>> mg = RasterModelGrid((7, 7), xy_spacing=0.5)
-    >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
+    >>> z = mg.add_field("topographic__elevation", mg.node_x.copy(), at="node")
     >>> z += 0.01 * mg.node_y
     >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
@@ -528,7 +513,7 @@ class FlowAccumulator(Component):
     class DepressionFinderAndRouter to the parameter `depression_finder`.
 
     >>> mg = RasterModelGrid((7, 7), xy_spacing=0.5)
-    >>> z = mg.add_field('node', 'topographic__elevation', mg.node_x.copy())
+    >>> z = mg.add_field("topographic__elevation", mg.node_x.copy(), at="node")
     >>> z += 0.01 * mg.node_y
     >>> mg.at_node['topographic__elevation'].reshape(mg.shape)[2:5, 2:5] *= 0.1
     >>> fa = FlowAccumulator(
@@ -609,11 +594,12 @@ class FlowAccumulator(Component):
     >>> x_of_node = (0, 0, -1, 1)
     >>> nodes_at_link = ((1, 0), (2, 1), (3, 1))
     >>> nmg = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
-    >>> area = nmg.add_ones('node', 'cell_area_at_node')
+    >>> area = nmg.add_ones("cell_area_at_node", at="node")
     >>> z = nmg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     nmg.x_of_node + nmg.y_of_node,
-    ...     at = 'node')
+    ...     at="node",
+    ... )
     >>> fa = FlowAccumulator(nmg)
     >>> fa.run_one_step()
     >>> nmg.at_node['flow__receiver_node']
@@ -797,10 +783,10 @@ class FlowAccumulator(Component):
         >>> mg = RasterModelGrid((5, 5))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> _ = mg.add_field(
-        ...     'topographic__elevation',
+        ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
-        ...     at = 'node'
-        ...     )
+        ...     at="node",
+        ... )
         >>> fa = FlowAccumulator(mg, 'topographic__elevation')
         >>> fa.run_one_step()
         >>> fa.link_order_upstream()
@@ -811,9 +797,9 @@ class FlowAccumulator(Component):
         >>> mg = RasterModelGrid((5, 5))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> _ = mg.add_field(
-        ...     'topographic__elevation',
+        ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
-        ...     at = 'node'
+        ...     at="node",
         ... )
         >>> fa = FlowAccumulator(mg,
         ...      'topographic__elevation',
@@ -841,9 +827,9 @@ class FlowAccumulator(Component):
         >>> mg = RasterModelGrid((5, 5))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> _ = mg.add_field(
-        ...     'topographic__elevation',
+        ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
-        ...     at = 'node'
+        ...     at="node",
         ... )
         >>> fa = FlowAccumulator(mg, 'topographic__elevation')
         >>> fa.run_one_step()
@@ -862,7 +848,7 @@ class FlowAccumulator(Component):
             if runoff_rate is None:
                 # assume that if runoff rate is not supplied, that the value
                 # should be set to one everywhere.
-                grid.add_ones("node", "water__unit_flux_in", dtype=float)
+                grid.add_ones("water__unit_flux_in", at="node", dtype=float)
             else:
                 runoff_rate = return_array_at_node(grid, runoff_rate)
                 grid.at_node["water__unit_flux_in"] = runoff_rate

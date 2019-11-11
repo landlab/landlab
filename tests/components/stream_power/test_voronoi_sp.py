@@ -21,7 +21,10 @@ def test_sp_voronoi():
 
     np.random.seed(2)
     z = mg.add_field(
-        "node", "topographic__elevation", np.random.rand(nnodes) / 10000.0, copy=False
+        "topographic__elevation",
+        np.random.rand(nnodes) / 10000.0,
+        at="node",
+        copy=False,
     )
 
     fr = FlowAccumulator(mg)

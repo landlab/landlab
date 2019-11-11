@@ -23,7 +23,7 @@ def test_check_fields(dans_grid1):
 def test_check_field_input(dans_grid1):
     """Check we can successfully pass water__discharge_in."""
     dans_grid1.mg.add_field(
-        "node", "water__unit_flux_in", np.full(25, 3.0), units="m**3/s"
+        "water__unit_flux_in", np.full(25, 3.0), at="node", units="m**3/s"
     )
     FlowAccumulator(dans_grid1.mg, flow_director="D8")
 
@@ -60,7 +60,7 @@ def test_variable_Qin(dans_grid1):
     """Test variable Qin field."""
     Qin_local = np.zeros(25, dtype=float)
     Qin_local[13] = 2.0
-    dans_grid1.mg.add_field("node", "water__unit_flux_in", Qin_local, units="m**3/s")
+    dans_grid1.mg.add_field("water__unit_flux_in", Qin_local, at="node", units="m**3/s")
     fr = FlowAccumulator(dans_grid1.mg, flow_director="D8")
 
     fr.run_one_step()

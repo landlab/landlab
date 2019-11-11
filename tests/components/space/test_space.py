@@ -8,7 +8,7 @@ from landlab.components import FlowAccumulator, Space
 
 def test_route_to_multiple_error_raised():
     mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.x_of_node + mg.y_of_node
     fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()
@@ -39,9 +39,9 @@ def test_bad_solver_name():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    z = mg.add_zeros("node", "topographic__elevation")
-    br = mg.add_zeros("node", "bedrock__elevation")
-    soil = mg.add_zeros("node", "soil__depth")
+    z = mg.add_zeros("topographic__elevation", at="node")
+    br = mg.add_zeros("bedrock__elevation", at="node")
+    soil = mg.add_zeros("soil__depth", at="node")
 
     mg["node"]["topographic__elevation"] += (
         mg.node_y / 10000 + mg.node_x / 10000 + np.random.rand(len(mg.node_y)) / 10000
@@ -88,9 +88,9 @@ def test_soil_field_already_on_grid():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    z = mg.add_zeros("node", "topographic__elevation")
-    br = mg.add_zeros("node", "bedrock__elevation")
-    soil = mg.add_zeros("node", "soil__depth")
+    z = mg.add_zeros("topographic__elevation", at="node")
+    br = mg.add_zeros("bedrock__elevation", at="node")
+    soil = mg.add_zeros("soil__depth", at="node")
     soil += 1.0  # add 1m of soil everywehre
 
     mg["node"]["topographic__elevation"] += (
@@ -145,10 +145,10 @@ def test_br_field_already_on_grid():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    z = mg.add_zeros("node", "topographic__elevation")
-    br = mg.add_zeros("node", "bedrock__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
+    br = mg.add_zeros("bedrock__elevation", at="node")
     br += 1.0  # make bedrock elevation 5m below surface
-    soil = mg.add_zeros("node", "soil__depth")
+    soil = mg.add_zeros("soil__depth", at="node")
 
     mg["node"]["topographic__elevation"] += (
         mg.node_y / 10000 + mg.node_x / 10000 + np.random.rand(len(mg.node_y)) / 10000
@@ -202,9 +202,9 @@ def test_matches_detachment_solution():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    z = mg.add_zeros("node", "topographic__elevation")
-    br = mg.add_zeros("node", "bedrock__elevation")
-    soil = mg.add_zeros("node", "soil__depth")
+    z = mg.add_zeros("topographic__elevation", at="node")
+    br = mg.add_zeros("bedrock__elevation", at="node")
+    soil = mg.add_zeros("soil__depth", at="node")
 
     mg["node"]["topographic__elevation"] += (
         mg.node_y / 10000 + mg.node_x / 10000 + np.random.rand(len(mg.node_y)) / 10000
@@ -285,9 +285,9 @@ def test_matches_transport_solution():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    z = mg.add_zeros("node", "topographic__elevation")
-    br = mg.add_zeros("node", "bedrock__elevation")
-    soil = mg.add_zeros("node", "soil__depth")
+    z = mg.add_zeros("topographic__elevation", at="node")
+    br = mg.add_zeros("bedrock__elevation", at="node")
+    soil = mg.add_zeros("soil__depth", at="node")
 
     mg["node"]["topographic__elevation"] += (
         mg.node_y / 100000 + mg.node_x / 100000 + np.random.rand(len(mg.node_y)) / 10000
@@ -400,9 +400,9 @@ def test_matches_bedrock_alluvial_solution():
     nc = 5
     mg = RasterModelGrid((nr, nc), xy_spacing=10.0)
 
-    z = mg.add_zeros("node", "topographic__elevation")
-    br = mg.add_zeros("node", "bedrock__elevation")
-    soil = mg.add_zeros("node", "soil__depth")
+    z = mg.add_zeros("topographic__elevation", at="node")
+    br = mg.add_zeros("bedrock__elevation", at="node")
+    soil = mg.add_zeros("soil__depth", at="node")
 
     mg["node"]["topographic__elevation"] += (
         mg.node_y / 100000 + mg.node_x / 100000 + np.random.rand(len(mg.node_y)) / 10000
@@ -499,8 +499,8 @@ def test_can_run_with_hex():
 
     # Set up a 5x5 grid with open boundaries and low initial elevations.
     mg = HexModelGrid((7, 7))
-    z = mg.add_zeros("node", "topographic__elevation")
-    _ = mg.add_zeros("node", "soil__depth")
+    z = mg.add_zeros("topographic__elevation", at="node")
+    _ = mg.add_zeros("soil__depth", at="node")
     z[:] = 0.01 * mg.x_of_node
 
     # Create a D8 flow handler

@@ -23,7 +23,7 @@ PERIOD_Y = 4.0
 
 def test_route_to_multiple_error_raised():
     mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.x_of_node + mg.y_of_node
     fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()
@@ -41,7 +41,7 @@ def create_test_grid():
     rmg = RasterModelGrid((NUM_GRID_ROWS, NUM_GRID_COLS))
 
     # Create topography field
-    z = rmg.add_zeros("node", "topographic__elevation")
+    z = rmg.add_zeros("topographic__elevation", at="node")
 
     # Make topography into sinusoidal hills and depressions
     z[:] = sin(2 * pi * rmg.node_x / PERIOD_X) * sin(2 * pi * rmg.node_y / PERIOD_Y)
@@ -1279,7 +1279,7 @@ def test_edge_draining():
         ]
     ).flatten()
 
-    mg.add_field("node", "topographic__elevation", z, units="-")
+    mg.add_field("topographic__elevation", z, at="node", units="-")
 
     fr = FlowAccumulator(mg, flow_director="D8")
     lf = DepressionFinderAndRouter(mg)
@@ -1302,7 +1302,7 @@ def test_degenerate_drainage():
     z_init[22] = 0.0  # the common spill pt for both lakes
     z_init[21] = 0.1  # an adverse bump in the spillway
     z_init[20] = -0.2  # the spillway
-    mg.add_field("node", "topographic__elevation", z_init)
+    mg.add_field("topographic__elevation", z_init, at="node")
 
     fr = FlowAccumulator(mg, flow_director="D8")
     lf = DepressionFinderAndRouter(mg)
@@ -1378,7 +1378,7 @@ def test_three_pits():
     multiple pits.
     """
     mg = RasterModelGrid((10, 10))
-    z = mg.add_field("node", "topographic__elevation", mg.node_x.copy())
+    z = mg.add_field("topographic__elevation", mg.node_x.copy(), at="node")
     # a sloping plane
     # np.random.seed(seed=0)
     # z += np.random.rand(100)/10000.
@@ -1530,7 +1530,7 @@ def test_composite_pits():
     multiple pits, inset into each other.
     """
     mg = RasterModelGrid((10, 10))
-    z = mg.add_field("node", "topographic__elevation", mg.node_x.copy())
+    z = mg.add_field("topographic__elevation", mg.node_x.copy(), at="node")
     # a sloping plane
     # np.random.seed(seed=0)
     # z += np.random.rand(100)/10000.

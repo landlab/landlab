@@ -295,9 +295,9 @@ class DischargeDiffuser(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((3, 4), xy_spacing=(1., 0.5))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
-        >>> z = mg.add_zeros('node', 'water__discharge_in')
-        >>> z = mg.add_zeros('node', 'sediment__discharge_in')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
+        >>> z = mg.add_zeros("water__discharge_in", at="node")
+        >>> z = mg.add_zeros("sediment__discharge_in", at="node")
         >>> z[:] = np.array([[1, 2, 3, 4, 2, 3, 4, 5, 3, 4, 5, 6]])
         >>> zpad = np.pad(z.reshape((3, 4)), ((1, 1), (1, 1)), 'edge')
         >>> dd = DischargeDiffuser(mg, 0.25)
@@ -382,9 +382,9 @@ if __name__ == "__main__":
 
     S_crit = 0.25
     mg = RasterModelGrid((20, 20), 0.5)
-    mg.add_zeros("node", "topographic__elevation")
-    Qw_in = mg.add_zeros("node", "water__discharge_in")
-    Qs_in = mg.add_zeros("node", "sediment__discharge_in")
+    mg.add_zeros("topographic__elevation", at="node")
+    Qw_in = mg.add_zeros("water__discharge_in", at="node")
+    Qs_in = mg.add_zeros("sediment__discharge_in", at="node")
     Qw_in[0] = 0.5 * np.pi
     Qs_in[0] = (1.0 - S_crit) * 0.5 * np.pi
     dd = DischargeDiffuser(mg, S_crit)

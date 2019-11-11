@@ -22,7 +22,7 @@ various docstrings.
 
 def test_route_to_multiple_error_raised_init():
     mg = RasterModelGrid((10, 10))
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += mg.x_of_node + mg.y_of_node
     fa = FlowAccumulator(mg, flow_director="MFD")
     fa.run_one_step()
@@ -32,7 +32,7 @@ def test_route_to_multiple_error_raised_init():
 
 def test_bad_init_method1():
     rmg = RasterModelGrid((5, 5), xy_spacing=2.0)
-    rmg.add_zeros("node", "topographic__elevation", dtype=float)
+    rmg.add_zeros("topographic__elevation", at="node", dtype=float)
     _ = FlowAccumulator(rmg, flow_director="D8")
     with pytest.raises(ValueError):
         LakeMapperBarnes(rmg, method="Nope")
@@ -40,7 +40,7 @@ def test_bad_init_method1():
 
 def test_bad_init_method2():
     rmg = RasterModelGrid((5, 5), xy_spacing=2.0)
-    rmg.add_zeros("node", "topographic__elevation", dtype=float)
+    rmg.add_zeros("topographic__elevation", at="node", dtype=float)
     _ = FlowAccumulator(rmg, flow_director="D8")
     with pytest.raises(ValueError):
         LakeMapperBarnes(rmg, method="d8")
@@ -48,7 +48,7 @@ def test_bad_init_method2():
 
 def test_bad_init_gridmethod():
     hmg = HexModelGrid((30, 29), spacing=3.0)
-    hmg.add_zeros("node", "topographic__elevation", dtype=float)
+    hmg.add_zeros("topographic__elevation", at="node", dtype=float)
     _ = FlowAccumulator(hmg, flow_director="Steepest")
     with pytest.raises(ValueError):
         LakeMapperBarnes(hmg, method="D8")
@@ -58,7 +58,7 @@ def test_closed_up_grid():
     mg = RasterModelGrid((5, 5))
     for edge in ("left", "right", "top", "bottom"):
         mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-    mg.add_zeros("node", "topographic__elevation", dtype=float)
+    mg.add_zeros("topographic__elevation", at="node", dtype=float)
     _ = FlowAccumulator(mg, flow_director="D8")
     with pytest.raises(ValueError):
         LakeMapperBarnes(mg)
@@ -66,14 +66,14 @@ def test_closed_up_grid():
 
 def test_neighbor_shaping_no_fldir():
     mg = RasterModelGrid((5, 5))
-    mg.add_zeros("node", "topographic__elevation", dtype=float)
+    mg.add_zeros("topographic__elevation", at="node", dtype=float)
     with pytest.raises(FieldError):
         LakeMapperBarnes(mg, method="D8", redirect_flow_steepest_descent=True)
 
 
 def test_neighbor_shaping_no_creation():
     mg = RasterModelGrid((5, 5))
-    mg.add_zeros("node", "topographic__elevation", dtype=float)
+    mg.add_zeros("topographic__elevation", at="node", dtype=float)
     _ = FlowAccumulator(mg)
     lmb = LakeMapperBarnes(mg, method="D8", redirect_flow_steepest_descent=False)
     with pytest.raises(AttributeError):
@@ -82,7 +82,7 @@ def test_neighbor_shaping_no_creation():
 
 def test_neighbor_shaping_D8():
     mg = RasterModelGrid((5, 5))
-    mg.add_zeros("node", "topographic__elevation", dtype=float)
+    mg.add_zeros("topographic__elevation", at="node", dtype=float)
     _ = FlowAccumulator(mg)
     lmb = LakeMapperBarnes(mg, method="D8", redirect_flow_steepest_descent=True)
     for arr in (lmb._neighbor_arrays, lmb._link_arrays):
@@ -94,7 +94,7 @@ def test_neighbor_shaping_D8():
 
 def test_neighbor_shaping_D4():
     mg = RasterModelGrid((5, 5))
-    mg.add_zeros("node", "topographic__elevation", dtype=float)
+    mg.add_zeros("topographic__elevation", at="node", dtype=float)
     _ = FlowAccumulator(mg)
     lmb = LakeMapperBarnes(mg, method="Steepest", redirect_flow_steepest_descent=True)
     for arr in (lmb._neighbor_arrays, lmb._link_arrays):
@@ -105,7 +105,7 @@ def test_neighbor_shaping_D4():
 
 def test_neighbor_shaping_hex():
     hmg = HexModelGrid((6, 5), spacing=1.0)
-    hmg.add_zeros("node", "topographic__elevation", dtype=float)
+    hmg.add_zeros("topographic__elevation", at="node", dtype=float)
     _ = FlowAccumulator(hmg)
     lmb = LakeMapperBarnes(hmg, redirect_flow_steepest_descent=True)
     for arr in (lmb._neighbor_arrays, lmb._link_arrays):
@@ -116,7 +116,7 @@ def test_neighbor_shaping_hex():
 
 def test_accum_wo_reroute():
     mg = RasterModelGrid((5, 5))
-    mg.add_zeros("node", "topographic__elevation", dtype=float)
+    mg.add_zeros("topographic__elevation", at="node", dtype=float)
     _ = FlowAccumulator(mg)
     with pytest.raises(ValueError):
         LakeMapperBarnes(
@@ -129,7 +129,7 @@ def test_accum_wo_reroute():
 
 def test_redirect_no_lakes():
     mg = RasterModelGrid((5, 5))
-    mg.add_zeros("node", "topographic__elevation", dtype=float)
+    mg.add_zeros("topographic__elevation", at="node", dtype=float)
     _ = FlowAccumulator(mg)
     with pytest.raises(ValueError):
         LakeMapperBarnes(
@@ -139,7 +139,7 @@ def test_redirect_no_lakes():
 
 def test_route_to_many():
     mg = RasterModelGrid((5, 5))
-    mg.add_zeros("node", "topographic__elevation", dtype=float)
+    mg.add_zeros("topographic__elevation", at="node", dtype=float)
     fd = FlowDirectorDINF(mg, "topographic__elevation")
     _ = FlowAccumulator(mg)
     fd.run_one_step()
@@ -152,7 +152,7 @@ def test_permitted_overfill():
     mg = RasterModelGrid((3, 7))
     for edge in ("top", "right", "bottom"):
         mg.status_at_node[mg.nodes_at_edge(edge)] = mg.BC_NODE_IS_CLOSED
-    z = mg.add_zeros("node", "topographic__elevation", dtype=float)
+    z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
     z.reshape(mg.shape)[1, 1:-1] = [1.0, 0.2, 0.1, 1.0000000000000004, 1.5]
     _ = FlowAccumulator(mg)
     lmb = LakeMapperBarnes(mg, method="Steepest")
@@ -173,7 +173,7 @@ def test_permitted_overfill():
 
 def test_no_reroute():
     mg = RasterModelGrid((5, 5), xy_spacing=2.0)
-    z = mg.add_zeros("node", "topographic__elevation", dtype=float)
+    z = mg.add_zeros("topographic__elevation", at="node", dtype=float)
     z[1] = -1.0
     z[6] = -2.0
     z[19] = -2.0

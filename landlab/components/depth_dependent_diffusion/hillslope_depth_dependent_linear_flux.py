@@ -42,9 +42,9 @@ class DepthDependentDiffuser(Component):
     >>> from landlab.components import ExponentialWeatherer
     >>> from landlab.components import DepthDependentDiffuser
     >>> mg = RasterModelGrid((5, 5))
-    >>> soilTh = mg.add_zeros('node', 'soil__depth')
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
-    >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
+    >>> soilTh = mg.add_zeros("soil__depth", at="node")
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> BRz = mg.add_zeros("bedrock__elevation", at="node")
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentDiffuser(mg)
     >>> expweath.calc_soil_prod_rate()
@@ -61,9 +61,9 @@ class DepthDependentDiffuser(Component):
     Now with a slope:
 
     >>> mg = RasterModelGrid((3, 5))
-    >>> soilTh = mg.add_zeros('node', 'soil__depth')
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
-    >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
+    >>> soilTh = mg.add_zeros("soil__depth", at="node")
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> BRz = mg.add_zeros("bedrock__elevation", at="node")
     >>> z += mg.node_x.copy()
     >>> BRz += mg.node_x/2.
     >>> soilTh[:] = z - BRz
@@ -88,9 +88,9 @@ class DepthDependentDiffuser(Component):
     Now, we'll test that changing the transport decay depth behaves as expected.
 
     >>> mg = RasterModelGrid((3, 5))
-    >>> soilTh = mg.add_zeros('node', 'soil__depth')
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
-    >>> BRz = mg.add_zeros('node', 'bedrock__elevation')
+    >>> soilTh = mg.add_zeros("soil__depth", at="node")
+    >>> z = mg.add_zeros("topographic__elevation", at="node")
+    >>> BRz = mg.add_zeros("bedrock__elevation", at="node")
     >>> z += mg.node_x.copy()**0.5
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
@@ -180,19 +180,19 @@ class DepthDependentDiffuser(Component):
         if "topographic__slope" in self._grid.at_link:
             self._slope = self._grid.at_link["topographic__slope"]
         else:
-            self._slope = self._grid.add_zeros("link", "topographic__slope")
+            self._slope = self._grid.add_zeros("topographic__slope", at="link")
 
         # soil flux
         if "soil__flux" in self._grid.at_link:
             self._flux = self._grid.at_link["soil__flux"]
         else:
-            self._flux = self._grid.add_zeros("link", "soil__flux")
+            self._flux = self._grid.add_zeros("soil__flux", at="link")
 
         # bedrock elevation
         if "bedrock__elevation" in self._grid.at_node:
             self._bedrock = self._grid.at_node["bedrock__elevation"]
         else:
-            self._bedrock = self._grid.add_zeros("node", "bedrock__elevation")
+            self._bedrock = self._grid.add_zeros("bedrock__elevation", at="node")
 
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.

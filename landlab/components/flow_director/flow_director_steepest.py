@@ -57,9 +57,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
     >>> fd.surface_values
@@ -80,9 +80,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     ...                                    0., 32., 30., 0.,
     ...                                    0.,  0.,  0., 0.])
     >>> _ = mg_2.add_field(
-    ...     'node',
-    ...     'topographic__elevation',
-    ...     topographic__elevation
+    ...     "topographic__elevation",
+    ...     topographic__elevation,
+    ...     at="node",
     ... )
     >>> mg_2.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> fd_2 = FlowDirectorSteepest(mg_2)
@@ -206,9 +206,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     >>> from landlab import HexModelGrid
     >>> mg = HexModelGrid((5, 3))
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + np.round(mg.node_y),
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
     >>> fd.surface_values
@@ -463,9 +463,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> mg = RasterModelGrid((3,3))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> _ = mg.add_field(
-        ...     'topographic__elevation',
+        ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
-        ...     at = 'node'
+        ...     at="node",
         ... )
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
@@ -487,9 +487,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> from landlab.components import FlowAccumulator
         >>> mg1 = RasterModelGrid((5, 5))
         >>> z1 = mg1.add_field(
-        ...      'node',
-        ...      'topographic__elevation',
-        ...      mg1.x_of_node+2 * mg1.y_of_node
+        ...     "topographic__elevation",
+        ...     mg1.x_of_node+2 * mg1.y_of_node,
+        ...     at="node",
         ... )
         >>> z1[12] -= 5
         >>> mg1.set_closed_boundaries_at_grid_edges(True, True, True, False)
@@ -532,9 +532,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
         >>> mg2 = RasterModelGrid((5, 5))
         >>> z2 = mg2.add_field(
-        ...      'node',
-        ...      'topographic__elevation',
-        ...      mg2.x_of_node+2 * mg2.y_of_node
+        ...     "topographic__elevation",
+        ...     mg2.x_of_node+2 * mg2.y_of_node,
+        ...     at="node",
         ... )
         >>> z2[12] -= 5
         >>> mg2.set_closed_boundaries_at_grid_edges(True, True, True, False)
@@ -602,9 +602,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> mg = RasterModelGrid((3,3))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> _ = mg.add_field(
-        ...     'topographic__elevation',
+        ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
-        ...     at = 'node'
+        ...     at="node",
         ... )
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
@@ -654,9 +654,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> mg = RasterModelGrid((3,3))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> _ = mg.add_field(
-        ...     'topographic__elevation',
+        ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
-        ...     at = 'node'
+        ...     at="node",
         ... )
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
@@ -677,9 +677,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> mg = RasterModelGrid((3,3))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> _ = mg.add_field(
-        ...     'topographic__elevation',
+        ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
-        ...     at = 'node'
+        ...     at="node",
         ... )
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()
@@ -707,9 +707,9 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         >>> mg = RasterModelGrid((3,3))
         >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
         >>> _ = mg.add_field(
-        ...     'topographic__elevation',
+        ...     "topographic__elevation",
         ...     mg.node_x + mg.node_y,
-        ...     at = 'node'
+        ...     at="node",
         ... )
         >>> fd = FlowDirectorSteepest(mg, 'topographic__elevation')
         >>> fd.run_one_step()

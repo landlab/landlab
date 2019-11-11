@@ -34,8 +34,8 @@ Examples
 >>> from landlab.components import Flexure
 
 >>> grid = RasterModelGrid((4, 5))
->>> _ = grid.add_zeros("node", "lithosphere__overlying_pressure_increment")
->>> _ = grid.add_zeros("node", "lithosphere_surface__elevation_increment")
+>>> _ = grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
+>>> _ = grid.add_zeros("lithosphere_surface__elevation_increment", at="node")
 >>> flexure = Flexure(grid)
 >>> print(registry.format_citations())
 # Citations
