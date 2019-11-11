@@ -9,6 +9,7 @@ from .nodestatus import NodeStatus
 @unique
 class LinkStatus(IntEnum):
     """Define the link types"""
+
     ACTIVE = 0
     FIXED = 2
     INACTIVE = 4

@@ -458,7 +458,8 @@ class DiagonalsMixIn(object):
     @make_return_array_immutable
     def active_diagonal_dirs_at_node(self):
         return np.choose(
-            self.diagonal_status_at_node == LinkStatus.ACTIVE, (0, self.diagonal_dirs_at_node)
+            self.diagonal_status_at_node == LinkStatus.ACTIVE,
+            (0, self.diagonal_dirs_at_node),
         )
 
     @property

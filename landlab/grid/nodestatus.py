@@ -5,6 +5,7 @@ from enum import IntEnum, unique
 @unique
 class NodeStatus(IntEnum):
     """Define the boundary-type codes"""
+
     CORE = 0
     FIXED_VALUE = 1
     FIXED_GRADIENT = 2

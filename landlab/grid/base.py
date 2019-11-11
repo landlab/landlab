@@ -23,7 +23,6 @@ from .decorators import override_array_setitem_and_reset, return_readonly_id_arr
 from .linkstatus import LinkStatus, set_status_at_link
 from .nodestatus import NodeStatus
 
-
 #: Indicates an index is, in some way, *bad*.
 BAD_INDEX_VALUE = -1
 # DEJH thinks the user should be able to override this value if they want

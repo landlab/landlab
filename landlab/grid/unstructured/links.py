@@ -46,8 +46,12 @@ def link_is_active(status_at_link_ends):
     (status_at_link_start, status_at_link_end) = _split_link_ends(status_at_link_ends)
 
     return (
-        (status_at_link_start == NodeStatus.CORE) & ~(status_at_link_end == NodeStatus.CLOSED)
-    ) | ((status_at_link_end == NodeStatus.CORE) & ~(status_at_link_start == NodeStatus.CLOSED))
+        (status_at_link_start == NodeStatus.CORE)
+        & ~(status_at_link_end == NodeStatus.CLOSED)
+    ) | (
+        (status_at_link_end == NodeStatus.CORE)
+        & ~(status_at_link_start == NodeStatus.CLOSED)
+    )
 
 
 def find_active_links(node_status, node_at_link_ends):

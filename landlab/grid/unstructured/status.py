@@ -46,7 +46,8 @@ class StatusGrid(object):
     def open_boundary_nodes(self):
         """Node id of all open boundary nodes."""
         (open_boundary_node_ids,) = np.where(
-            (self.node_status != NodeStatus.CLOSED) & (self.node_status != NodeStatus.CORE)
+            (self.node_status != NodeStatus.CLOSED)
+            & (self.node_status != NodeStatus.CORE)
         )
         return open_boundary_node_ids
 

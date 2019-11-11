@@ -260,9 +260,7 @@ def test_netcdf_write_at_cells(tmpdir):
     """Test write_netcdf using with cell fields"""
     field = RasterModelGrid((4, 3))
     field.add_field(
-        "topographic__elevation",
-        np.arange(field.number_of_cells),
-        at="cell",
+        "topographic__elevation", np.arange(field.number_of_cells), at="cell"
     )
     field.add_field("uplift_rate", np.arange(field.number_of_cells), at="cell")
 

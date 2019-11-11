@@ -3,12 +3,13 @@
 import numpy as np
 
 from landlab.utils.decorators import make_return_array_immutable
-from .base import BAD_INDEX_VALUE
+
 from ..core import load_params
 from ..core.utils import add_module_functions_to_class
 from ..field import GraphFields
 from ..graph import NetworkGraph
 from ..utils.decorators import cache_result_in_object
+from .base import BAD_INDEX_VALUE
 from .decorators import override_array_setitem_and_reset, return_readonly_id_array
 from .linkstatus import LinkStatus, set_status_at_link
 from .nodestatus import NodeStatus
@@ -43,6 +44,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
            [2, 1],
            [1, 3]])
     """
+
     #: Indicates a node is *bad index*.
     BAD_INDEX_VALUE = BAD_INDEX_VALUE
 

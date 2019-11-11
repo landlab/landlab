@@ -2095,7 +2095,9 @@ class RasterModelGrid(
         if outlet_id is None:
             # verify that there is one and only one node with the status
             # BC_NODE_IS_FIXED_VALUE.
-            possible_outlets = np.where(self.status_at_node == NodeStatus.FIXED_VALUE)[0]
+            possible_outlets = np.where(self.status_at_node == NodeStatus.FIXED_VALUE)[
+                0
+            ]
 
             if len(possible_outlets) > 1:
                 raise ValueError(

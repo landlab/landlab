@@ -10,8 +10,8 @@ Modified Feb 2014
 """
 import numpy as np
 
-from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.core.utils import as_id_array
+from landlab.grid.base import BAD_INDEX_VALUE
 
 from .cfuncs import adjust_flow_receivers
 

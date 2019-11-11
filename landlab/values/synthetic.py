@@ -80,7 +80,6 @@ from landlab.grid.linkstatus import LinkStatus
 from landlab.grid.network import NetworkModelGrid
 from landlab.grid.nodestatus import NodeStatus
 
-
 _STATUS = defaultdict(
     dict,
     {

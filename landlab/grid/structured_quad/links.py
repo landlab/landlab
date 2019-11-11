@@ -683,8 +683,14 @@ def is_active_link(shape, node_status):
     status_at_link_end = node_status.flat[node_id_at_link_end(shape)]
 
     return (
-        ((status_at_link_start == NodeStatus.CORE) & (status_at_link_end == NodeStatus.CORE))
-        | ((status_at_link_end == NodeStatus.CORE) & (status_at_link_start == NodeStatus.CORE))
+        (
+            (status_at_link_start == NodeStatus.CORE)
+            & (status_at_link_end == NodeStatus.CORE)
+        )
+        | (
+            (status_at_link_end == NodeStatus.CORE)
+            & (status_at_link_start == NodeStatus.CORE)
+        )
         | (
             (status_at_link_end == NodeStatus.CORE)
             & (status_at_link_start == NodeStatus.FIXED_VALUE)

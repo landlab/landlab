@@ -16,12 +16,7 @@ from collections import deque
 
 import numpy as np
 
-from landlab import (
-    BAD_INDEX_VALUE,
-    Component,
-    NodeStatus,
-    RasterModelGrid,
-)
+from landlab import Component, NodeStatus, RasterModelGrid
 from landlab.components import FlowAccumulator
 from landlab.utils import StablePriorityQueue
 from landlab.utils.return_array import return_array_at_node

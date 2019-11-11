@@ -11,7 +11,7 @@ use FlowDirectorD8.
 
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE, NodeStatus, VoronoiDelaunayGrid
+from landlab import NodeStatus, VoronoiDelaunayGrid
 from landlab.components.flow_director import flow_direction_DN
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 

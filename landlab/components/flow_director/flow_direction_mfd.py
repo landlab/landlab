@@ -10,8 +10,8 @@ KRB Jan 2017
 
 import numpy as np
 
-from landlab.grid.base import BAD_INDEX_VALUE
 from landlab.core.utils import as_id_array
+from landlab.grid.base import BAD_INDEX_VALUE
 
 
 def flow_directions_mfd(

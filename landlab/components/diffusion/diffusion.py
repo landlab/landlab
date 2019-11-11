@@ -10,7 +10,6 @@ import numpy as np
 
 from landlab import Component, FieldError, LinkStatus, NodeStatus, RasterModelGrid
 
-
 _ALPHA = 0.15  # time-step stability factor
 # ^0.25 not restrictive enough at meter scales w S~1 (possible cases)
 
