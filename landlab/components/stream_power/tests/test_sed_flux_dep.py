@@ -1278,7 +1278,7 @@ def test_equivalence_across_tsteps():
     """
     first_stable_step = 0.1
     total_t = 0.15
-    simple_stab = True
+    simple_stab = False
     for sed_dep_type in ('None', 'linear_decline', 'almost_parabolic'):
         crude_z_store = []
         crude_th_store = []
@@ -1316,7 +1316,7 @@ def test_equivalence_across_tsteps():
         # ^seconds to yr, and dt for total volume
         sde.run_one_step(total_t - first_stable_step)
         accum_vol_out += (
-            31557600. * (total_t-first_stable_step)
+            31557600. * (total_t - first_stable_step)
             * mg.at_node['channel_sediment__volumetric_discharge'][6]
         )
         crude_z_store.append(z.copy())
@@ -1370,6 +1370,82 @@ def test_equivalence_across_tsteps():
         # version
 
 
+def test_equivalence_across_tsteps_w_flood():
+    """
+    This test ensures that mass balance and, more importantly, key field
+    values are equivalent whether a time interval is covered with internal
+    or external timestep dicing up for stability.
+
+    Note that because of the ways both the sff convergence and the external
+    sediment supply are handled, the field values are not precisely
+    equivalent. Parts in 1000 variation is permitted here.
+    """
+    import os
+    import numpy as np
+    from numpy.testing import assert_array_almost_equal, assert_equal
+    from six.moves import range
+    from matplotlib.pyplot import gca, clf
+    import pytest
+
+    from landlab import RasterModelGrid, VoronoiDelaunayGrid
+    from landlab import CLOSED_BOUNDARY, ModelParameterDictionary, FieldError
+    from landlab.components import FlowAccumulator
+    from landlab.components import SedDepEroder
+    from landlab.components import FastscapeEroder
+    from landlab.components import DepressionFinderAndRouter
+    from landlab.components import LinearDiffuser
+
+    from landlab.components.stream_power.cfuncs import (
+        sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
+        sed_flux_fn_gen_almostparabolic, sed_flux_fn_gen_const,
+        get_sed_flux_function_pseudoimplicit_bysedout,
+        iterate_sde_downstream
+    )
+
+    total_t = 100.
+    simple_stab = False
+    #for sed_dep_type in ('None', 'linear_decline', 'almost_parabolic'):
+    for sed_dep_type in ('None', ):
+        crude_z_store = []
+        crude_th_store = []
+        accum_vol_out = 0.
+        if not simple_stab:
+            crude_br_z_store = []
+        mg = RasterModelGrid((3, 4), xy_spacing=1.)
+        closed_nodes = np.array(
+            [True,  True,  True,  True,
+             True, False, False, False,
+             True,  True,  True,  True], dtype=bool
+        )
+        mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
+        z_init = np.array(
+            [0.,    0.,    0.,    0.,
+             0.,    3.,    2.,    2.-np.spacing(2.),
+             0.,    0.,    0.,    0.]
+        )
+
+        z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
+        fa = FlowAccumulator(mg, routing='D8')
+        pit = DepressionFinderAndRouter(mg, routing='D8')
+        sde = SedDepEroder(
+            mg, K_sp=1., K_t=1., m_sp=0., n_sp=1., m_t=0.,
+            sed_dependency_type=sed_dep_type, simple_stab=simple_stab
+        )
+        fa.run_one_step()
+        pit.map_depressions()
+        mg.at_node['channel_sediment__depth'][5] += 10.
+        sde.run_one_step(total_t, flooded_nodes=pit.lake_at_node)
+        accum_vol_out += (
+            31557600. * total_t
+            * mg.at_node['channel_sediment__volumetric_discharge'][6]
+        )
+        assert np.isclose((
+            (z_init - z).sum()
+        ), accum_vol_out)
+# In this condition, with a long single step run time, the gradient on the second node gets stuck at 2.25, which is the condition after the first stable internal step. However, it does rise above this during the run!!
+# Calculations of the intermediate params (worst_case_time_avg_sed_dep_rate_at_end_of_substep etc) are flawed
+
+
 def full_run_smoketest():
     """
     This is a run on a "normal"-style grid with a small external sed
@@ -1377,8 +1453,8 @@ def full_run_smoketest():
     option also.
     """
     np.random.seed = 100
-    dt = 5000.
-    total_t = 3000000.
+    dt = 50000.
+    total_t = 300000.
     U = 0.001
     dimension = 100
     rmg = RasterModelGrid((dimension, dimension), xy_spacing=500.)
@@ -1389,11 +1465,12 @@ def full_run_smoketest():
     vdg_z_at_X = np.array([])
     grids = (rmg, )#vdg)
     ans = (rmg_z_at_X, )#vdg_z_at_X)
+    accum_vol_out = 0.
     for mg, z_to_match in zip(grids, ans):
         z_init = mg.x_of_node / 1000.
         z = mg.add_field('node', 'topographic__elevation', z_init,
                          copy=True)
-        z += np.random.rand(dimension**2)/1.e6
+        #z += np.random.rand(dimension**2)/1.e6
         th = mg.add_zeros('node', 'channel_sediment__depth')
         if isinstance(mg, RasterModelGrid):
             fa = FlowAccumulator(mg, routing='D8')
@@ -1401,19 +1478,20 @@ def full_run_smoketest():
         else:
             fa = FlowAccumulator(mg)
             pit = DepressionFinderAndRouter(mg)
-        dfn = LinearDiffuser(mg, linear_diffusivity=1.e-2)
-        sde = SedDepEroder(mg, K_sp=1.e-4, K_t=1.e-4, simple_stab=False)
+        dfn = LinearDiffuser(mg, linear_diffusivity=1.e-3)
+        sde = SedDepEroder(mg, K_sp=1.e-5, K_t=1.e-5, simple_stab=False)
         elapsed_t = 0.
         while elapsed_t < total_t:
             print(elapsed_t)
             z_pre = z.copy()
             dfn.run_one_step(dt)
-            # th += 0.001 * dt
+            th += 0.0001 * dt
             # th[mg.core_nodes] += 0.001 * dt
-            # th[mg.core_nodes] += (z[mg.core_nodes] - z_pre[mg.core_nodes]).clip(0.)
+            #th[mg.core_nodes] += z[mg.core_nodes] - z_pre[mg.core_nodes]
+            #th[:] = th.clip(0.)
             fa.run_one_step()
-            #pit.map_depressions()
-            sde.run_one_step(dt)#, flooded_nodes=pit.lake_at_node)
+            pit.map_depressions()
+            sde.run_one_step(dt, flooded_nodes=pit.lake_at_node)
             z[mg.core_nodes] += U * dt
             elapsed_t += dt
 
@@ -1423,3 +1501,6 @@ def full_run_smoketest():
 # This is definitely related to the dicing up of timesteps: dt=0.1 ten
 # times over will not crash (dt below stab limit), whereas dt=1. would.
 
+
+if __name__ == '__main__':
+    test_equivalence_across_tsteps_w_flood()

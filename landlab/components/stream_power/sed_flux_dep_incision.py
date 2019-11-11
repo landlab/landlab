@@ -18,7 +18,7 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
 
 WAVE_STABILITY_PREFACTOR = 0.2
 CONV_FACTOR_LOOSE = 0.1  # controls the convergence of node elevs in the loop
-CONV_FACTOR_SED = 0.3
+CONV_FACTOR_SED = 0.5
 YEAR_SECS = 31557600.
 
 # NB: The inline documentation of this component freely (& incorrectly!)
@@ -854,7 +854,7 @@ class SedDepEroder(Component):
         # it in the first node
         if not self._simple_stab:
             br_z = node_z - self._hillslope_sediment
-            br_S = np.empty_like(br_z, dtype=float)
+            br_S = np.zeros_like(br_z, dtype=float)
             br_S[core_draining_nodes] = (
                 (br_z - br_z[flow_receiver])[core_draining_nodes] /
                 link_length[core_draining_nodes]
@@ -867,6 +867,8 @@ class SedDepEroder(Component):
         sed_rate_in_cells = sed_in_cells / dt_secs
         sed_rate_at_nodes[grid.node_at_cell] = sed_rate_in_cells
         flux_in_cells = sed_rate_in_cells * self.grid.area_of_cell
+        worst_case_time_avg_sed_dep_rate_at_end_of_substep = sed_rate_at_nodes
+        actual_time_avg_sed_dep_rate = sed_rate_at_nodes
         self._hillslope_sediment_flux_wzeros[
             self.grid.node_at_cell] = flux_in_cells
         self._voldroprate = self.grid.zeros('node', dtype=float)
@@ -895,7 +897,7 @@ class SedDepEroder(Component):
         vQs.fill(0.)
         vQc.fill(0.)
         QbyQs.fill(0.)
-        time_avg_sed_dep_rate = grid.zeros('node', dtype=float)
+        time_avg_sed_dep_rate_frag = grid.zeros('node', dtype=float)
         self._loopcounter = 0
         while 1:
             downward_slopes[is_flooded] = 0.
@@ -968,7 +970,8 @@ class SedDepEroder(Component):
             except ValueError:  # no node pair converges
                 t_to_converge = dt_secs
             if t_to_converge < 3600.:
-                t_to_converge = 3600.  # forbid tsteps < 1hr; a bit hacky
+                raise ValueError('Component has ground to a halt...')
+                # forbid tsteps < 1hr; a bit hacky
             # without this, it's possible for the component to get stuck in
             # a loop, presumably when the gradient is "supposed" to level
             # out. We make exception got nodes that need to be filled in
@@ -983,12 +986,10 @@ class SedDepEroder(Component):
                 # Now, remember, this is the sed dep rate relative to the
                 # fully swept bedrock. So this value will always be +ve,
                 # regardless of convergence or otherwise of the surface.
-                relative_sed_dep_rate = sed_dep_rate - sed_rate_at_nodes
+                worst_case_time_avg_sed_dep_rate_at_end_of_substep = worst_case_time_avg_sed_dep_rate_at_end_of_substep*t_elapsed_internal/dt_secs + sed_dep_rate * (dt_secs - t_elapsed_internal)/dt_secs
+                # here we assume that the new sed_dep_rate is broadly representative of the whole interval to come (worst case scenario)
+                relative_sed_dep_rate = worst_case_time_avg_sed_dep_rate_at_end_of_substep - sed_rate_at_nodes
                 ratediff += relative_sed_dep_rate[flow_receiver] - relative_sed_dep_rate
-                print(sed_dep_rate.reshape(grid.shape))
-                print(relative_sed_dep_rate.reshape(grid.shape))
-                print(ratediff.reshape(grid.shape))
-                print('***')
                 downstr_vert_diff = node_z - node_z[flow_receiver]
                 botharepositive = np.logical_and(ratediff > 0.,
                                                  downstr_vert_diff > 0.)
@@ -1005,7 +1006,6 @@ class SedDepEroder(Component):
                 t_to_converge = min((t_to_converge, t_to_converge_surf))
                 # if t_to_converge*1000. < dt_secs:  # Are we going crazy here?
                 #     raise ValueError(str(t_to_converge/dt_secs))
-
             this_tstep = min((t_to_converge, dt_secs))
             self._t_to_converge = t_to_converge/YEAR_SECS
             t_elapsed_internal += this_tstep
@@ -1014,6 +1014,7 @@ class SedDepEroder(Component):
                 t_to_converge = dt_secs - t_elapsed_internal + this_tstep
                 self.t_to_converge = t_to_converge
                 this_tstep -= t_elapsed_internal - dt_secs
+# assume the convergence bit just works, for now
 
             # better, cleaner approach?: maintain the hillslope flux
             # throughout, and time weight the sed dep rate...
@@ -1029,20 +1030,13 @@ class SedDepEroder(Component):
             vQc += time_fraction * transport_capacities
             vQs += time_fraction * river_volume_flux_out_of_node
             QbyQs += time_fraction * rel_sed_flux
-            time_avg_sed_dep_rate += time_fraction * sed_dep_rate
+            time_avg_sed_dep_rate_frag += time_fraction * sed_dep_rate
+            actual_time_avg_sed_dep_rate = (actual_time_avg_sed_dep_rate*(t_elapsed_internal-this_tstep) + sed_dep_rate * this_tstep) / t_elapsed_internal
 
             if not self._simple_stab:
-                #node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep  # feels changes to BR
-                #node_z[grid.core_nodes] += sed_dep_rate[grid.core_nodes] * dt_secs / this_tstep  # ...but also changes to sed dep rate
+                relative_sed_dep_rate = actual_time_avg_sed_dep_rate - sed_rate_at_nodes
                 node_z[grid.core_nodes] += (dzbydt + relative_sed_dep_rate)[grid.core_nodes] * this_tstep
-                #sed_rate_at_nodes = sed_dep_rate + relative_sed_dep_rate
-                sed_rate_at_nodes += relative_sed_dep_rate * this_tstep/dt_secs
-### This is now working in the first tstep, but mass balance fails immediately after - so problem is probably here
-                print(this_tstep/YEAR_SECS)
-                print(sed_dep_rate*dt_secs)
-                print(br_z)
-                print(node_z)
-                print ('***********')
+                #node_z[grid.core_nodes] = (br_z + actual_time_avg_sed_dep_rate * dt_secs)[grid.core_nodes]
 
             node_S[core_draining_nodes] = (
                 (node_z - node_z[flow_receiver])[core_draining_nodes] /
@@ -1060,13 +1054,25 @@ class SedDepEroder(Component):
                 break
             else:
                 self._loopcounter += 1
+                print(self._loopcounter)
+                print("z ", node_z[grid.core_nodes])
+                print("S ", node_S[grid.core_nodes])
+                print("dep rate ", sed_dep_rate[grid.core_nodes]*YEAR_SECS)
+                print("worst case dep rate ", worst_case_time_avg_sed_dep_rate_at_end_of_substep[grid.core_nodes]*YEAR_SECS)
+                print("relative dep rate ", relative_sed_dep_rate[grid.core_nodes]*YEAR_SECS)
 
         self._hillslope_sediment[grid.core_nodes] = (
-            time_avg_sed_dep_rate[grid.core_nodes] * dt_secs
+            time_avg_sed_dep_rate_frag[grid.core_nodes] * dt_secs
         )  # doesn't need to be blanked, above, if we fill like this.
+        # self._hillslope_sediment[grid.core_nodes] = (
+        #     actual_time_avg_sed_dep_rate[grid.core_nodes] * dt_secs
+        # )  # doesn't need to be blanked, above, if we fill like this.
+        # ^^ these two options appear very similar in outcome! Which is good
         if not self._simple_stab:
             node_z[grid.core_nodes] = br_z[grid.core_nodes] + self._hillslope_sediment[grid.core_nodes]
+            print("z full ", node_z)
             self._br_z = br_z
+            self._br_S = br_downward_slopes
 
         return grid, grid.at_node["topographic__elevation"]
 
@@ -1117,24 +1123,3 @@ class SedDepEroder(Component):
         """
         return self._is_it_TL.view(dtype=np.bool)
 
-    def calc_sed_discharge_from_node(self):
-        """
-        Calculate the sediment discharge from each node, based on
-        the already calculated total discharge into the node, and
-        the already calculated relative sediment flux.
-
-        Returns
-        -------
-        Qout : nnode-long array of floats
-            The sediment discharge (in m3/s !) leaving the node.
-        """
-        rsf = self.grid.at_node['channel_sediment__relative_flux']
-        Qc_out = self.grid.at_node[
-            'channel_sediment__volumetric_transport_capacity'
-        ]
-        # now remember, the rsf reflects the OUT sediment flux
-        # at the node, so
-        Qout = rsf * Qc_out
-        # assert np.all(np.greater_equal(Qout, 0.))
-        # assert np.all(np.less_equal(Qout, 1.))
-        return Qout
