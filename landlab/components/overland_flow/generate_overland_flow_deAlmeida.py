@@ -856,14 +856,12 @@ def find_active_neighbors_for_fixed_links(grid):
     Examples
     --------
     >>> from landlab.grid.structured_quad.links import neighbors_at_link
-    >>> from landlab import RasterModelGrid
+    >>> from landlab import NodeStatus, RasterModelGrid
     >>> from landlab.components.overland_flow.generate_overland_flow_deAlmeida import find_active_neighbors_for_fixed_links
 
-    >>> from landlab import RasterModelGrid, FIXED_GRADIENT_BOUNDARY
-
     >>> grid = RasterModelGrid((4, 5))
-    >>> grid.status_at_node[:5] = FIXED_GRADIENT_BOUNDARY
-    >>> grid.status_at_node[::5] = FIXED_GRADIENT_BOUNDARY
+    >>> grid.status_at_node[:5] = NodeStatus.FIXED_GRADIENT
+    >>> grid.status_at_node[::5] = NodeStatus.FIXED_GRADIENT
     >>> grid.status_at_node # doctest: +NORMALIZE_WHITESPACE
     array([2, 2, 2, 2, 2,
            2, 0, 0, 0, 1,

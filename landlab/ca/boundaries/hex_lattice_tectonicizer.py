@@ -30,7 +30,7 @@ from numpy import (
     zeros,
 )
 
-from landlab import HexModelGrid
+from landlab import HexModelGrid, LinkStatus
 from landlab.core.utils import as_id_array
 
 from ..cfuncs import get_next_event_new  # , update_link_state_new
@@ -534,14 +534,14 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         g = self.grid
         lower_active = logical_and(
             arange(g.number_of_links) < self.first_link_shifted_to,
-            g.status_at_link == g.BC_LINK_IS_ACTIVE,
+            g.status_at_link == LinkStatus.ACTIVE,
         )
         link_in_fw = logical_or(
             in_footwall[g.node_at_link_tail], in_footwall[g.node_at_link_head]
         )
         lower_active_fw = logical_and(lower_active, link_in_fw)
         active_bnd = logical_and(
-            g.status_at_link == g.BC_LINK_IS_ACTIVE,
+            g.status_at_link == LinkStatus.ACTIVE,
             logical_or(
                 g.status_at_node[g.node_at_link_tail] != 0,
                 g.status_at_node[g.node_at_link_head] != 0,
@@ -549,7 +549,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         )
         active_bnd_fw = logical_and(active_bnd, link_in_fw)
         crosses_fw = logical_and(
-            g.status_at_link == g.BC_LINK_IS_ACTIVE,
+            g.status_at_link == LinkStatus.ACTIVE,
             logical_xor(
                 in_footwall[g.node_at_link_tail], in_footwall[g.node_at_link_head]
             ),

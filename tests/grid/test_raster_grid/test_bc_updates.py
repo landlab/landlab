@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal
 
-from landlab import RasterModelGrid
+from landlab import LinkStatus, RasterModelGrid
 
 
 def test_issue_428_a():
@@ -38,14 +38,14 @@ def test_issue_428_b():
 def test_link_update_with_nodes_closed():
     rmg = RasterModelGrid((4, 5))
     rmg.status_at_node[rmg.nodes_at_bottom_edge] = rmg.BC_NODE_IS_CLOSED
-    inactive_array = np.array([rmg.BC_LINK_IS_INACTIVE] * 5)
+    inactive_array = np.array([LinkStatus.INACTIVE] * 5)
     assert_array_equal(rmg.status_at_link[4:9], inactive_array)
 
 
 def test_link_update_with_nodes_fixed_grad():
     rmg = RasterModelGrid((4, 5))
     rmg.status_at_node[rmg.nodes_at_bottom_edge] = rmg.BC_NODE_IS_FIXED_GRADIENT
-    fixed_array = np.array([rmg.BC_LINK_IS_FIXED] * 3)
+    fixed_array = np.array([LinkStatus.FIXED] * 3)
     assert_array_equal(rmg.status_at_link[5:8], fixed_array)
 
 

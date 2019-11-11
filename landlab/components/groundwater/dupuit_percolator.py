@@ -6,8 +6,7 @@
 
 import numpy as np
 
-from landlab import Component
-from landlab.grid.base import INACTIVE_LINK
+from landlab import Component, LinkStatus
 from landlab.grid.mappers import (
     map_max_of_node_links_to_node,
     map_mean_of_link_nodes_to_link,
@@ -472,7 +471,7 @@ class GroundwaterDupuitPercolator(Component):
             self._hydr_grad * np.cos(np.arctan(abs(self._base_grad)))
             + np.sin(np.arctan(self._base_grad))
         )
-        self._vel[self._grid.status_at_link == INACTIVE_LINK] = 0.0
+        self._vel[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
         # Aquifer thickness at links (upwind)
         hlink = map_value_at_max_node_to_link(
@@ -542,7 +541,7 @@ class GroundwaterDupuitPercolator(Component):
                 self._hydr_grad * np.cos(np.arctan(abs(self._base_grad)))
                 + np.sin(np.arctan(self._base_grad))
             )
-            self._vel[self._grid.status_at_link == INACTIVE_LINK] = 0.0
+            self._vel[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
             # Aquifer thickness at links (upwind)
             hlink = map_value_at_max_node_to_link(

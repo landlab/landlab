@@ -2,7 +2,7 @@ import itertools
 
 import numpy as np
 
-from ..base import CLOSED_BOUNDARY, CORE_NODE
+from ..nodestatus import NodeStatus
 
 
 def number_of_nodes(shape):
@@ -271,7 +271,7 @@ def perimeter(shape):
     return np.fromiter(perimeter_iter(shape), dtype=np.int)
 
 
-def status_with_perimeter_as_boundary(shape, node_status=CLOSED_BOUNDARY):
+def status_with_perimeter_as_boundary(shape, node_status=NodeStatus.CLOSED):
     """Node status for a grid whose boundary is along its perimeter.
 
     Parameters
@@ -299,7 +299,7 @@ def status_with_perimeter_as_boundary(shape, node_status=CLOSED_BOUNDARY):
            [-1, -1, -1, -1]])
     """
     status = np.empty(shape, dtype=int)
-    status.fill(CORE_NODE)
+    status.fill(NodeStatus.CORE)
     status.flat[perimeter(shape)] = node_status
 
     return status

@@ -30,7 +30,6 @@ def set_status_at_node_on_edges(grid, right=None, top=None, left=None, bottom=No
            1, 0, 0, 4,
            1, 1, 1, 4], dtype=uint8)
 
-    >>> from landlab import FIXED_GRADIENT_BOUNDARY
     >>> grid = RasterModelGrid((3, 4))
 
     The status of a corner is set along with its clockwise edge. That is,

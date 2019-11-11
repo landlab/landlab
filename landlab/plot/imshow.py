@@ -327,7 +327,7 @@ def _imshow_grid_values(
         patches = []
 
         for corners in grid.corners_at_cell:
-            valid_corners = corners[corners != grid.BAD_INDEX_VALUE]
+            valid_corners = corners[corners != grid.BAD_INDEX]
             closed_loop_corners = np.concatenate([valid_corners, [valid_corners[0]]])
 
             x = grid.x_of_corner[closed_loop_corners]

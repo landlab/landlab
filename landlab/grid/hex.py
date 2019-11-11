@@ -428,13 +428,13 @@ class HexModelGrid(DualHexGraph, ModelGrid):
         value.  Can return the outlet id as a one element numpy array if
         return_outlet_id is set to True.
 
-        All nodes with nodata_value are set to BC_NODE_IS_CLOSED
+        All nodes with nodata_value are set to `NodeStatus.CLOSED`
         (grid.status_at_node == 4). All nodes with data values are set to
-        CORE_NODES (grid.status_at_node == 0), with the exception that the
-        outlet node is set to a FIXED_VALUE_BOUNDARY (grid.status_at_node == 1).
+        `NodeStatus.CORE` (grid.status_at_node == 0), with the exception that the
+        outlet node is set to a `NodeStatus.FIXED_VALUE` (grid.status_at_node == 1).
 
         Note that the outer ring (perimeter) of the grid is set to
-        BC_NODE_IS_CLOSED, even if there are nodes that have values. The only
+        `NodeStatus.CLOSED`, even if there are nodes that have values. The only
         exception to this would be if the outlet node is on the perimeter, which
         is acceptable.
 

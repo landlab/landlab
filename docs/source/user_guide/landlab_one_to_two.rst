@@ -35,15 +35,26 @@ TODO List of these, including replacements if any.
 Changes to field creation
 -------------------------
 - no more `noclobber`, instead we have `clobber`
+- recommended field init (eg. at="")
 
 Changes to Boundary Condition Flags
 -----------------------------------
-- no more use of unbound flags (e.g., `from landlab import CLOSED_NODE`)
+- no more use of unbound flags AND unbound flags are not importable
+  from top level or grid submodule (e.g., `from landlab import CLOSED_NODE`)
   now we use `Grid.BC_NODE_IS_CLOSED`.
 
-Changes to Field initialization
--------------------------------
-- PUT HERE IF THIS HAPPENS
+  Old name                  New name
+  ========================= ====================================
+  BAD_INDEX_VALUE           ModelGrid.BAD_INDEX
+  CORE_NODE                 ModelGrid.BC_NODE_IS_CORE
+  FIXED_VALUE_BOUNDARY      ModelGrid.BC_NODE_IS_FIXED_VALUE
+  FIXED_GRADIENT_BOUNDARY   ModelGrid.BC_NODE_IS_FIXED_GRADIENT
+  LOOPED_BOUNDARY           ModelGrid.BC_NODE_IS_LOOPED
+  CLOSED_BOUNDARY           ModelGrid.BC_NODE_IS_CLOSED
+  ACTIVE_LINK               ModelGrid.BC_LINK_IS_ACTIVE
+  INACTIVE_LINK             ModelGrid.BC_LINK_IS_INACTIVE
+  FIXED_LINK                ModelGrid.BC_LINK_IS_FIXED
+
 
 Standardization and deprecation within the component library
 ------------------------------------------------------------
