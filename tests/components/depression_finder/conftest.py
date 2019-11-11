@@ -4,7 +4,7 @@ import pytest
 from landlab import RasterModelGrid
 from landlab.components import DepressionFinderAndRouter, FlowAccumulator
 
-XX = RasterModelGrid.BAD_INDEX_VALUE
+XX = RasterModelGrid.BAD_INDEX
 
 
 @pytest.fixture

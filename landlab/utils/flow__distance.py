@@ -181,7 +181,7 @@ def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
 
             else:
                 # non-existant links are coded with -1
-                useable_receivers = np.where(reciever != grid.BAD_INDEX_VALUE)[0]
+                useable_receivers = np.where(reciever != grid.BAD_INDEX)[0]
 
                 # we will have the stream flow to the downstream node with the
                 # shortest distance to the outlet.

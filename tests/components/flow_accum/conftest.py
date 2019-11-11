@@ -5,7 +5,7 @@ import pytest
 
 from landlab import RasterModelGrid
 
-XX = RasterModelGrid.BAD_INDEX_VALUE
+XX = RasterModelGrid.BAD_INDEX
 
 
 @pytest.fixture

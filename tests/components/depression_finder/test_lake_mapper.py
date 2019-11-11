@@ -20,7 +20,7 @@ NUM_GRID_COLS = 8
 PERIOD_X = 8.0
 PERIOD_Y = 4.0
 
-XX = RasterModelGrid.BAD_INDEX_VALUE
+XX = RasterModelGrid.BAD_INDEX
 
 
 def test_route_to_multiple_error_raised():

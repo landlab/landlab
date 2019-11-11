@@ -275,7 +275,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         Values at faces.
     at_grid: dict-like
         Global values
-    BAD_INDEX_VALUE : int
+    BAD_INDEX : int
         Indicates a grid element is undefined.
     BC_NODE_IS_CORE : int
         Indicates a node is *core*.
@@ -303,7 +303,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
     """
 
     #: Indicates a node is *bad index*.
-    BAD_INDEX_VALUE = BAD_INDEX_VALUE
+    BAD_INDEX = BAD_INDEX_VALUE
 
     #: Indicates a node is *core*.
     BC_NODE_IS_CORE = NodeStatus.CORE
@@ -765,7 +765,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         ]
         # resolve any corner nodes
         neighbor_nodes = self.adjacent_nodes_at_node[fix_nodes]  # BAD_INDEX_VALUEs
-        neighbor_nodes[neighbor_nodes == BAD_INDEX_VALUE] = -1
+        neighbor_nodes[neighbor_nodes == self.BAD_INDEX] = -1
         fixed_grad_neighbor = np.logical_and(
             (self.status_at_node[neighbor_nodes] == NodeStatus.FIXED_GRADIENT),
             boundary_exists,
@@ -1526,7 +1526,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         ...                                 -1., -2., -1.,
         ...                                 -1., -2., -3., -4.,
         ...                                 -1., -2., -1.])
-        >>> rmg.downwind_links_at_node('grad', bad_index=rmg.BAD_INDEX_VALUE)
+        >>> rmg.downwind_links_at_node('grad', bad_index=rmg.BAD_INDEX)
         array([[ 0,  3],
                [ 1,  4],
                [ 2,  5],
@@ -2721,7 +2721,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         """
         status_of_neighbor = self._node_status[self.adjacent_nodes_at_node]
         neighbor_not_core = status_of_neighbor != NodeStatus.CORE
-        bad_neighbor = self.adjacent_nodes_at_node == BAD_INDEX_VALUE
+        bad_neighbor = self.adjacent_nodes_at_node == self.BAD_INDEX
         neighbor_not_core[bad_neighbor] = False
         return np.any(neighbor_not_core, axis=1)
 

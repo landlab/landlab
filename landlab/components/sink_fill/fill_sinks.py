@@ -256,7 +256,7 @@ class SinkFiller(Component):
         else:
             all_poss = np.unique(self._grid.active_adjacent_nodes_at_node[lake_nodes])
         lake_ext_edge = np.setdiff1d(all_poss, lake_nodes)
-        return lake_ext_edge[lake_ext_edge != self._grid.BAD_INDEX_VALUE]
+        return lake_ext_edge[lake_ext_edge != self._grid.BAD_INDEX]
 
     def _get_lake_int_margin(self, lake_nodes, lake_ext_edge):
         """Returns the nodes forming the internal margin of the lake, honoring
@@ -270,7 +270,7 @@ class SinkFiller(Component):
         else:
             all_poss_int = np.unique(self._grid.active_adjacent_nodes_at_node[lee])
         lake_int_edge = np.intersect1d(all_poss_int, lake_nodes)
-        return lake_int_edge[lake_int_edge != self._grid.BAD_INDEX_VALUE]
+        return lake_int_edge[lake_int_edge != self._grid.BAD_INDEX]
 
     def _apply_slope_current_lake(self, apply_slope, outlet_node, lake_code, sublake):
         """Wraps the _add_slopes method to allow handling of conditions where
@@ -309,7 +309,7 @@ class SinkFiller(Component):
             )
         else:
             edge_neighbors = self._grid.active_adjacent_nodes_at_node[ext_edge].copy()
-        edge_neighbors[edge_neighbors == self._grid.BAD_INDEX_VALUE] = -1
+        edge_neighbors[edge_neighbors == self._grid.BAD_INDEX] = -1
         # ^value irrelevant
         old_neighbor_elevs = old_elevs[edge_neighbors]
         new_neighbor_elevs = new_elevs[edge_neighbors]

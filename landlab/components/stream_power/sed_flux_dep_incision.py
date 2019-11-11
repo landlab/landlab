@@ -701,7 +701,7 @@ class SedDepEroder(Component):
         link_length = np.empty(grid.number_of_nodes, dtype=float)
         link_length.fill(np.nan)
         draining_nodes = np.not_equal(
-            grid.at_node[steepest_link], self._grid.BAD_INDEX_VALUE
+            grid.at_node[steepest_link], self._grid.BAD_INDEX
         )
         core_draining_nodes = np.intersect1d(
             np.where(draining_nodes)[0], grid.core_nodes, assume_unique=True

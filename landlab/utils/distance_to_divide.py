@@ -212,7 +212,7 @@ def calculate_distance_to_divide(
 
         else:
             # non-existant links are coded with -1
-            useable_receivers = np.where(reciever != grid.BAD_INDEX_VALUE)[0]
+            useable_receivers = np.where(reciever != grid.BAD_INDEX)[0]
 
             for idx in range(len(useable_receivers)):
                 r = reciever[useable_receivers][idx]

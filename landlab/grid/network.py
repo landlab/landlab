@@ -46,7 +46,7 @@ class NetworkModelGrid(NetworkGraph, GraphFields):
     """
 
     #: Indicates a node is *bad index*.
-    BAD_INDEX_VALUE = BAD_INDEX_VALUE
+    BAD_INDEX = BAD_INDEX_VALUE
 
     #: Indicates a node is *core*.
     BC_NODE_IS_CORE = NodeStatus.CORE

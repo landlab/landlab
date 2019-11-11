@@ -127,11 +127,11 @@ class _FlowDirectorToOne(_FlowDirector):
 
         self._links_to_receiver = grid.at_node["flow__link_to_receiver_node"]
         if np.all(self._links_to_receiver == 0):
-            self._links_to_receiver.fill(self._grid.BAD_INDEX_VALUE)
+            self._links_to_receiver.fill(self._grid.BAD_INDEX)
 
         self._receiver = grid.at_node["flow__receiver_node"]
         if np.all(self._receiver == 0):
-            self._receiver.fill(self._grid.BAD_INDEX_VALUE)
+            self._receiver.fill(self._grid.BAD_INDEX)
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""

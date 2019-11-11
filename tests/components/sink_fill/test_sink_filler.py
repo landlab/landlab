@@ -13,7 +13,7 @@ from numpy.testing import assert_array_almost_equal, assert_array_equal
 from landlab import FieldError, RasterModelGrid
 from landlab.components import FlowAccumulator, SinkFiller, SinkFillerBarnes
 
-XX = RasterModelGrid.BAD_INDEX_VALUE
+XX = RasterModelGrid.BAD_INDEX
 
 
 def test_route_to_multiple_error_raised_init():

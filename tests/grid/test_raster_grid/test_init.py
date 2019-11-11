@@ -3,7 +3,7 @@ import pytest
 
 from landlab import RasterModelGrid
 
-X = RasterModelGrid.BAD_INDEX_VALUE
+X = RasterModelGrid.BAD_INDEX
 
 
 def test_init_new_style():
