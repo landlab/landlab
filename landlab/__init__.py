@@ -19,13 +19,6 @@ from .core.model_component import Component
 from .core.model_parameter_loader import load_params
 from .field.scalar_data_fields import FieldError
 from .grid import (
-    ACTIVE_LINK,
-    CORE_NODE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_LINK,
-    FIXED_VALUE_BOUNDARY,
-    INACTIVE_LINK,
-    LOOPED_BOUNDARY,
     HexModelGrid,
     ModelGrid,
     NetworkModelGrid,
@@ -62,13 +55,6 @@ __all__ = [
     "NetworkModelGrid",
     "LinkStatus",
     "NodeStatus",
-    "CORE_NODE",
-    "FIXED_VALUE_BOUNDARY",
-    "FIXED_GRADIENT_BOUNDARY",
-    "LOOPED_BOUNDARY",
-    "ACTIVE_LINK",
-    "FIXED_LINK",
-    "INACTIVE_LINK",
     "create_grid",
     "imshow_grid",
     "imshow_grid_at_node",
