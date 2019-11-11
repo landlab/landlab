@@ -116,7 +116,7 @@ def test_active_neighbor_list_boundary():
         (0, 1, 2, 3, 4, 7, 8, 11, 12, 15, 16, 17, 18, 19),
     ] = rmg.BC_NODE_IS_CLOSED
 
-    for node_id in sgrid.boundary_iter(rmg.shape):
+    for node_id in sgrid.perimeter_iter(rmg.shape):
         assert_array_equal(
             rmg.active_adjacent_nodes_at_node[node_id], np.array([X, X, X, X])
         )

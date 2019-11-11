@@ -89,32 +89,32 @@ def test_add_existing_field_default():
         fields.add_zeros("z", at="node")
 
 
-def test_add_existing_field_with_noclobber():
-    """Test noclobber raises an error with an existing field."""
+def test_add_existing_field_with_clobber_off():
+    """Test clobber raises an error with an existing field."""
     fields = ModelDataFields()
     fields.new_field_location("node", 12)
     fields.add_empty("z", at="node")
 
     with pytest.raises(FieldError):
-        fields.add_empty("z", at="node", noclobber=True)
+        fields.add_empty("z", at="node", clobber=False)
     with pytest.raises(FieldError):
-        fields.add_ones("z", at="node", noclobber=True)
+        fields.add_ones("z", at="node", clobber=False)
     with pytest.raises(FieldError):
-        fields.add_zeros("z", at="node", noclobber=True)
+        fields.add_zeros("z", at="node", clobber=False)
 
 
-def test_add_field_with_noclobber():
-    """Test noclobber does not raise an error with an new field."""
+def test_add_field_with_clobber_off():
+    """Test clobber does not raise an error with an new field."""
     fields = ModelDataFields()
     fields.new_field_location("node", 12)
 
-    fields.add_empty("a", at="node", noclobber=True)
+    fields.add_empty("a", at="node", clobber=False)
     assert "a" in fields["node"]
 
-    fields.add_ones("b", at="node", noclobber=True)
+    fields.add_ones("b", at="node", clobber=False)
     assert "b" in fields["node"]
 
-    fields.add_zeros("c", at="node", noclobber=True)
+    fields.add_zeros("c", at="node", clobber=False)
     assert "c" in fields["node"]
 
 
@@ -124,13 +124,13 @@ def test_add_field_with_clobber():
     fields.new_field_location("node", 12)
 
     assert fields.add_empty("a", at="node") is not fields.add_empty(
-        "a", at="node", noclobber=False
+        "a", at="node", clobber=True
     )
     assert fields.add_ones("b", at="node") is not fields.add_ones(
-        "b", at="node", noclobber=False
+        "b", at="node", clobber=True
     )
     assert fields.add_zeros("c", at="node") is not fields.add_zeros(
-        "c", at="node", noclobber=False
+        "c", at="node", clobber=True
     )
 
 

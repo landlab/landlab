@@ -168,7 +168,7 @@ class SteepnessFinder(Component):
         self._elev_step = elev_step
         self._discretization = discretization_length
         self._ksn = self._grid.add_zeros(
-            "node", "channel__steepness_index", noclobber=False
+            "node", "channel__steepness_index", clobber=True
         )
         self._mask = self._grid.ones("node", dtype=bool)
         # this one needs modifying if smooth_elev

@@ -959,7 +959,7 @@ class GraphFields(object):
 
     def add_field(self, *args, **kwds):
         """add_field(name, value_array, at='node', units='-', copy=False,
-        noclobber=True)
+        clobber=False)
 
         Add an array of values to the field.
 
@@ -984,7 +984,7 @@ class GraphFields(object):
         copy : boolean, optional
             If True, add a *copy* of the array to the field. Otherwise save add
             a reference to the array.
-        noclobber : boolean, optional
+        clobber : boolean, optional
             Raise an exception if adding to an already existing field.
 
         Returns
@@ -1017,16 +1017,18 @@ class GraphFields(object):
 
         If you want to save a copy of the array, use the *copy* keyword. In
         addition, adding values to an existing field will remove the reference
-        to the previously saved array. The *noclobber* keyword changes this
+        to the previously saved array. The *clobber=False* keyword changes this
         behavior to raise an exception in such a case.
 
-        >>> field.add_field('node', 'topographic__elevation', values,
-        ...     copy=True, noclobber=False)
+        >>> field.add_field(
+        ...     "topographic__elevation", values, at="node", copy=True, clobber=True
+        ... )
         array([1, 1, 1, 1])
         >>> field.at_node['topographic__elevation'] is values
         False
-        >>> field.add_field('node', 'topographic__elevation', values,
-        ...     noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> field.add_field(
+        ...     "topographic__elevation", values, at="node", clobber=False
+        ... ) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         FieldError: topographic__elevation
 
@@ -1041,7 +1043,7 @@ class GraphFields(object):
 
         units = kwds.get("units", "?")
         copy = kwds.get("copy", False)
-        noclobber = kwds.get("noclobber", True)
+        clobber = kwds.get("clobber", False)
         value_array = np.asarray(value_array)
 
         at = at or self.default_group
@@ -1056,7 +1058,7 @@ class GraphFields(object):
 
         ds = getattr(self, "at_" + at)
 
-        if noclobber and name in ds:
+        if not clobber and name in ds:
             raise FieldError("{name}@{at}".format(name=name, at=at))
 
         dims = (at,)
@@ -1091,7 +1093,7 @@ class GraphFields(object):
         ds._ds = ds._ds.drop(name)
 
     def add_empty(self, *args, **kwds):
-        """add_empty(name, at='node', units='-', noclobber=True)
+        """add_empty(name, at='node', units='-', clobber=False)
 
         Create and add an uninitialized array of values to the field.
 
@@ -1111,7 +1113,7 @@ class GraphFields(object):
             assumed to be on `node`.
         units : str, optional
             Optionally specify the units of the field.
-        noclobber : boolean, optional
+        clobber : boolean, optional
             Raise an exception if adding to an already existing field.
 
         Returns
@@ -1137,18 +1139,18 @@ class GraphFields(object):
             raise ValueError("number of arguments must be 1 or 2")
         units = kwds.pop("units", "?")
         copy = kwds.pop("copy", False)
-        noclobber = kwds.pop("noclobber", True)
+        clobber = kwds.pop("clobber", False)
         return self.add_field(
             name,
             self.empty(at=loc, **kwds),
             at=loc,
             units=units,
             copy=copy,
-            noclobber=noclobber,
+            clobber=clobber,
         )
 
     def add_ones(self, *args, **kwds):
-        """add_ones(name, at='node', units='-', noclobber=True)
+        """add_ones(name, at='node', units='-', clobber=False)
 
         Create and add an array of values, initialized to 1, to the field.
 
@@ -1168,7 +1170,7 @@ class GraphFields(object):
             assumed to be on `node`.
         units : str, optional
             Optionally specify the units of the field.
-        noclobber : boolean, optional
+        clobber : boolean, optional
             Raise an exception if adding to an already existing field.
 
         Returns
@@ -1207,7 +1209,7 @@ class GraphFields(object):
         return data
 
     def add_zeros(self, *args, **kwds):
-        """add_zeros(name, at='node', units='-', noclobber=True)
+        """add_zeros(name, at='node', units='-', clobber=False)
 
         Create and add an array of values, initialized to 0, to the field.
 
@@ -1225,7 +1227,7 @@ class GraphFields(object):
             assumed to be on `node`.
         units : str, optional
             Optionally specify the units of the field.
-        noclobber : boolean, optional
+        clobber : boolean, optional
             Raise an exception if adding to an already existing field.
 
         Returns
@@ -1264,7 +1266,7 @@ class GraphFields(object):
         copy : boolean, optional
             If True, add a *copy* of the array to the field. Otherwise save add
             a reference to the array.
-        noclobber : boolean, optional
+        clobber : boolean, optional
             Raise an exception if adding to an already existing field.
 
         Returns

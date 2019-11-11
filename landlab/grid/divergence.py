@@ -200,7 +200,7 @@ def calc_net_flux_at_node(grid, unit_flux_at_links, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid((3, 3), spacing=10.0)
-    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros("topographic__elevation", at="node", clobber=True)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> lg = hg.calc_grad_at_link(z)  # there are ? links
@@ -275,7 +275,7 @@ def _calc_net_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid((3, 3), spacing=10.0)
-    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros("topographic__elevation", at="node", clobber=True)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> lg = hg.calc_grad_at_link(z)
@@ -391,7 +391,7 @@ def _calc_net_active_face_flux_at_cell(grid, unit_flux_at_faces, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid((3, 3), spacing=10.0)
-    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros("topographic__elevation", at="node", clobber=True)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> fg = hg.calc_grad_at_link(z)[hg.link_at_face]  # there are 11 faces
@@ -515,7 +515,7 @@ def _calc_net_active_link_flux_at_node(grid, unit_flux_at_links, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid((3, 3), spacing=10.0)
-    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros("topographic__elevation", at="node", clobber=True)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> lg = hg.calc_grad_at_link(z)  # there are ? links
@@ -645,7 +645,7 @@ def _calc_net_face_flux_at_node(grid, unit_flux_at_faces, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid((3, 3), spacing=10.0)
-    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros("topographic__elevation", at="node", clobber=True)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> fg = hg.calc_grad_at_link(z)[hg.link_at_face]  # there are 11 faces
@@ -713,7 +713,7 @@ def _calc_net_active_face_flux_at_node(grid, unit_flux_at_faces, out=None):
 
     >>> from landlab import HexModelGrid
     >>> hg = HexModelGrid((3, 3), spacing=10.0)
-    >>> z = hg.add_zeros('node', 'topographic__elevation', noclobber=False)
+    >>> z = hg.add_zeros("topographic__elevation", at="node", clobber=True)
     >>> z[4] = 50.0
     >>> z[5] = 36.0
     >>> fg = hg.calc_grad_at_link(z)[hg.link_at_face]  # there are 11 faces

@@ -91,14 +91,18 @@ import scipy.constants
 
 from landlab import Component, FieldError
 from landlab.grid.structured_quad import links
-from landlab.utils.decorators import deprecated
 
 _SEVEN_OVER_THREE = 7.0 / 3.0
 
 
-@deprecated(use="vals[links_at_node]*active_link_dirs_at_node", version=1.0)
 def _active_links_at_node(grid, *args):
     """_active_links_at_node([node_ids]) Active links of a node.
+
+    .. note::
+
+        This function returns links that are in *clockwise* order,
+        rather than the standard *counterclockwise* ordering that
+        landlab uses everywhere else.
 
     Parameters
     ----------
@@ -878,8 +882,7 @@ def find_active_neighbors_for_fixed_links(grid):
 
     >>> rmg.at_node['topographic__elevation'] = rmg.zeros(at='node')
     >>> rmg.at_link['topographic__slope'] = rmg.zeros(at='link')
-
-    >>> rmg.set_fixed_link_boundaries_at_grid_edges(True, True, True, True)
+    >>> rmg.status_at_node[rmg.perimeter_nodes] = rmg.BC_NODE_IS_FIXED_GRADIENT
     >>> find_active_neighbors_for_fixed_links(rmg)
     array([20, 21, 22, 23, 24, 14, 17, 27, 30, 20, 21, 22, 23, 24])
     """

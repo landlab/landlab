@@ -10,7 +10,7 @@ from functools import lru_cache
 
 import numpy as np
 
-from landlab.utils.decorators import deprecated, make_return_array_immutable
+from landlab.utils.decorators import make_return_array_immutable
 
 from ..core import load_params
 from ..core.utils import add_module_functions_to_class
@@ -1294,18 +1294,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         """
         return gfuncs.resolve_values_on_links(self, link_values, out=out)
 
-    @deprecated(use="no replacement", version=1.0)
-    def resolve_values_on_active_links(self, link_values, out=None):
-        """Resolve the xy-components of active links.
-
-        Resolves values provided defined on active links into the x and y
-        directions.
-        Returns values_along_x, values_along_y
-
-        LLCATS: LINF
-        """
-        return gfuncs.resolve_values_on_active_links(self, link_values, out=out)
-
     def link_at_node_is_upwind(self, values, out=None):
         """Return a boolean the same shape as :func:`links_at_node` which flags
         links which are upwind of the node as True.
@@ -1921,91 +1909,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         cell_area_at_node[self.node_at_cell] = self.area_of_cell
         return cell_area_at_node
 
-    @deprecated(use="no replacement", version=1.0)
-    def active_link_connecting_node_pair(self, node1, node2):
-        """Get the active link that connects a pair of nodes.
-
-        Returns the ID number of the active link that connects the given pair
-        of nodes, or BAD_INDEX_VALUE if not found.
-        This method is slow, and can only take single ints as *node1* and
-        *node2*. It should ideally be overridden for optimal functionality in
-        more specialized grid modules (e.g., raster).
-
-        Examples
-        --------
-        >>> import pytest
-        >>> import landlab as ll
-        >>> rmg = ll.RasterModelGrid((4, 5))
-        >>> with pytest.deprecated_call():
-        ...     rmg.active_link_connecting_node_pair(8, 3)
-        array([2])
-
-        LLCATS: DEPR LINF NINF CONN
-        """
-        active_link = BAD_INDEX_VALUE
-        fromnode = self.nodes_at_link[self.active_links, 0]
-        tonode = self.nodes_at_link[self.active_links, 1]
-        for alink in range(0, len(self.active_links)):
-            link_connects_nodes = (
-                fromnode[alink] == node1 and tonode[alink] == node2
-            ) or (tonode[alink] == node1 and fromnode[alink] == node2)
-            # (self._activelink_fromnode[alink] == node1 and
-            #  self._activelink_tonode[alink] == node2) or
-            # (self._activelink_tonode[alink] == node1 and
-            #  self._activelink_fromnode[alink] == node2))
-            if link_connects_nodes:
-                active_link = alink
-                break
-        return np.array([active_link])
-
-    @deprecated(use="map_max_of_link_nodes_to_link", version=1.0)
-    def _assign_upslope_vals_to_active_links(self, u, v=None):
-        """Assign upslope node value to link.
-
-        Assigns to each active link the value of *u* at whichever of its
-        neighbors has a higher value of *v*. If *v* is omitted, uses *u* for
-        both. The order of the link values is by link ID.
-
-        Parameters
-        ----------
-        u : array-like
-            Node values to assign to links.
-        v : array-like, optional
-            Node values to test for upslope-ness.
-
-        Returns
-        -------
-        ndarray
-            Values at active links.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> import numpy as np
-        >>> grid = RasterModelGrid((3, 3))
-        >>> u = np.arange(9.)
-        >>> grid._assign_upslope_vals_to_active_links(u)
-        array([ 4.,  4.,  5.,  7.])
-
-        LLCATS: DEPR NINF LINF CONN
-        """
-        if v is None:
-            v = np.array((0.0,))
-
-        fv = np.zeros(len(self.active_links))
-        fromnode = self.nodes_at_link[self.active_links, 0]
-        tonode = self.nodes_at_link[self.active_links, 1]
-        if len(v) < len(u):
-            for i in range(0, len(self.active_links)):
-                fv[i] = max(u[fromnode[i]], u[tonode[i]])
-        else:
-            for i in range(0, len(self.active_links)):
-                if v[fromnode[i]] > v[tonode[i]]:
-                    fv[i] = u[fromnode[i]]
-                else:
-                    fv[i] = u[tonode[i]]
-        return fv
-
     def reset_status_at_node(self):
         attrs = [
             "_active_link_dirs_at_node",
@@ -2185,51 +2088,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         # as inactive boundaries.
         nodata_locations = np.nonzero(node_data == nodata_value)
         self.status_at_node[nodata_locations] = FIXED_GRADIENT_BOUNDARY
-
-    @deprecated(use="map_max_of_link_nodes_to_link", version=1.0)
-    def max_of_link_end_node_values(self, node_data):
-        """Maximum value at the end of links.
-
-        For each active link, finds and returns the maximum value of node_data
-        at either of the two ends. Use this, for example, if you want to find
-        the maximum value of water depth at linked pairs of nodes (by passing
-        in an array of water depth values at nodes).
-
-        Parameters
-        ----------
-        node_data : ndarray
-            Values at grid nodes.
-
-        Returns
-        -------
-        ndarray :
-            Maximum values whose length is the number of active links.
-
-        Examples
-        --------
-        >>> import pytest
-        >>> import numpy as np
-        >>> from landlab import RasterModelGrid
-
-        >>> grid = RasterModelGrid((3, 4), xy_spacing=(1., 1.))
-        >>> h = np.array([ 2., 2., 8., 0.,
-        ...                8., 0., 3., 0.,
-        ...                5., 6., 8., 3.])
-
-        >>> with pytest.deprecated_call():
-        ...     grid.max_of_link_end_node_values(h)
-        array([ 2.,  8.,  8.,  3.,  3.,  6.,  8.])
-
-        Note that this method is *deprecatd*. The alternative is to use
-        ``map_max_of_link_nodes_to_link``.
-
-        >>> vals = grid.map_max_of_link_nodes_to_link(h)
-        >>> vals[grid.active_links]
-        array([ 2.,  8.,  8.,  3.,  3.,  6.,  8.])
-
-        LLCATS: DEPR LINF NINF CONN
-        """
-        return np.max(node_data[self.nodes_at_link[self.active_links]], axis=1)
 
     @property
     def unit_vector_sum_xcomponent_at_node(self):
@@ -2478,57 +2336,6 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         return np.divide(
             unit_vec_at_node, self.unit_vector_at_node, out=unit_vec_at_node
         )
-
-    @deprecated(use="plot.imshow_grid", version=1.0)
-    def display_grid(self, draw_voronoi=False):
-        """Display the grid.
-
-        LLCATS: DEPR GINF
-        """
-        import matplotlib.pyplot as plt
-
-        # Plot nodes, colored by boundary vs interior
-        plt.plot(self.node_x[self.core_nodes], self.node_y[self.core_nodes], "go")
-        plt.plot(
-            self.node_x[self.boundary_nodes], self.node_y[self.boundary_nodes], "ro"
-        )
-
-        # Draw links
-        for i in range(self.number_of_links):
-            plt.plot(
-                [
-                    self.node_x[self.node_at_link_tail[i]],
-                    self.node_x[self.node_at_link_head[i]],
-                ],
-                [
-                    self.node_y[self.node_at_link_tail[i]],
-                    self.node_y[self.node_at_link_head[i]],
-                ],
-                "k-",
-            )
-
-        # Draw active links
-        for link in self.active_links:
-            plt.plot(
-                [
-                    self.node_x[self.node_at_link_tail[link]],
-                    self.node_x[self.node_at_link_head[link]],
-                ],
-                [
-                    self.node_y[self.node_at_link_tail[link]],
-                    self.node_y[self.node_at_link_head[link]],
-                ],
-                "g-",
-            )
-
-        # If caller asked for a voronoi diagram, draw that too
-        if draw_voronoi:
-            from scipy.spatial import Voronoi, voronoi_plot_2d
-
-            vor = Voronoi(self.xy_of_node)
-            voronoi_plot_2d(vor)
-
-        plt.show()
 
     def node_is_boundary(self, ids, boundary_flag=None):
         """Check if nodes are boundary nodes.

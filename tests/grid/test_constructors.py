@@ -11,24 +11,6 @@ from landlab import (
     RasterModelGrid,
     VoronoiDelaunayGrid,
 )
-from landlab.grid.hex import from_dict as hex_from_dict
-from landlab.grid.raster import from_dict as raster_from_dict
-
-
-def test_raster_old_from_dict_deprecated():
-    params = {"NUM_COLS": 10, "NUM_ROWS": 5, "GRID_SPACING": 4}
-    with pytest.deprecated_call():
-        mg = raster_from_dict(params)
-    assert mg.shape == (5, 10)
-    assert mg.dx == 4
-    assert mg.dy == 4
-
-
-def test_hex_old_from_dict_deprecated():
-    params = {"NUM_COLS": 10, "NUM_ROWS": 5, "GRID_SPACING": 4}
-    with pytest.deprecated_call():
-        mg = hex_from_dict(params)
-    assert mg.number_of_nodes == 54
 
 
 def test_raster_from_file():

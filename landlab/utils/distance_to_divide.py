@@ -6,7 +6,7 @@ from landlab import BAD_INDEX_VALUE, FieldError, RasterModelGrid
 
 
 def calculate_distance_to_divide(
-    grid, longest_path=True, add_to_grid=False, noclobber=True
+    grid, longest_path=True, add_to_grid=False, clobber=False
 ):
     """Calculate the along flow distance from drainage divide to point.
 
@@ -23,9 +23,9 @@ def calculate_distance_to_divide(
     add_to_grid : boolean, optional
         Flag to indicate if the stream length field should be added to the
         grid. Default is False. The field name used is ``distance_to_divide``.
-    noclobber : boolean, optional
+    clobber : boolean, optional
         Flag to indicate if adding the field to the grid should not clobber an
-        existing field with the same name. Default is True.
+        existing field with the same name. Default is False.
 
     Returns
     -------
@@ -57,7 +57,8 @@ def calculate_distance_to_divide(
     >>> distance_to_divide = calculate_distance_to_divide(
     ...     mg,
     ...     add_to_grid=True,
-    ...     noclobber=False)
+    ...     clobber=True,
+    ... )
     >>> mg.at_node['distance_to_divide']
     array([ 0.,  3.,  3.,  0.,
             0.,  2.,  2.,  0.,
@@ -89,7 +90,8 @@ def calculate_distance_to_divide(
     >>> distance_to_divide = calculate_distance_to_divide(
     ...     mg,
     ...     add_to_grid=True,
-    ...     noclobber=False)
+    ...     clobber=True,
+    ... )
     >>> mg.at_node['distance_to_divide']
     array([ 0.,  3.,  3.,  0.,
             0.,  2.,  2.,  0.,
@@ -117,7 +119,8 @@ def calculate_distance_to_divide(
     >>> distance_to_divide = calculate_distance_to_divide(
     ...     hmg,
     ...     add_to_grid=True,
-    ...     noclobber=False)
+    ...     clobber=True,
+    ... )
     >>> hmg.at_node['distance_to_divide']
     array([ 3.,  0.,  0.,
          0.,  2.,  1.,  0.,
@@ -227,7 +230,7 @@ def calculate_distance_to_divide(
     # store on the grid
     if add_to_grid:
         grid.add_field(
-            "node", "distance_to_divide", distance_to_divide, noclobber=noclobber
+            "distance_to_divide", distance_to_divide, at="node", clobber=clobber
         )
 
     return distance_to_divide

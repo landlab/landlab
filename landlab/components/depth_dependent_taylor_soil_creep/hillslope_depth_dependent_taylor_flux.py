@@ -70,7 +70,7 @@ class DepthDependentTaylorDiffuser(Component):
     >>> expweath.calc_soil_prod_rate()
     >>> np.allclose(mg.at_node['soil_production__rate'][mg.core_nodes], 1.)
     True
-    >>> DDdiff.soilflux(2.)
+    >>> DDdiff.run_one_step(2.)
     >>> np.allclose(mg.at_node['topographic__elevation'][mg.core_nodes], 0.)
     True
     >>> np.allclose(mg.at_node['bedrock__elevation'][mg.core_nodes], -2.)
@@ -94,7 +94,7 @@ class DepthDependentTaylorDiffuser(Component):
     ...     mg.at_node['soil_production__rate'][mg.core_nodes],
     ...     np.array([ 0.60653066, 0.36787944, 0.22313016]))
     True
-    >>> DDdiff.soilflux(0.1)
+    >>> DDdiff.run_one_step(0.1)
     >>> np.allclose(
     ...     mg.at_node['topographic__elevation'][mg.core_nodes],
     ...     np.array([ 1.04773024, 2.02894986, 3.01755898]))
@@ -137,7 +137,7 @@ class DepthDependentTaylorDiffuser(Component):
     (dynamic_dt = False).
 
     >>> DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable='warn')
-    >>> DDdiff.soilflux(2.)
+    >>> DDdiff.run_one_step(2.)
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
@@ -169,7 +169,7 @@ class DepthDependentTaylorDiffuser(Component):
 
     >>> DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable='warn', dynamic_dt=False)
     >>> expweath.calc_soil_prod_rate()
-    >>> DDdiff.soilflux(10)
+    >>> DDdiff.run_one_step(10)
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
@@ -189,7 +189,7 @@ class DepthDependentTaylorDiffuser(Component):
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable='warn', dynamic_dt=True)
     >>> expweath.calc_soil_prod_rate()
-    >>> DDdiff.soilflux(10)
+    >>> DDdiff.run_one_step(10)
     >>> np.any(np.isnan(z))
     False
 
@@ -204,14 +204,14 @@ class DepthDependentTaylorDiffuser(Component):
     >>> soilTh[:] = z - BRz
     >>> expweath = ExponentialWeatherer(mg)
     >>> DDdiff = DepthDependentTaylorDiffuser(mg, soil_transport_decay_depth = 0.1)
-    >>> DDdiff.soilflux(1)
+    >>> DDdiff.run_one_step(1)
     >>> soil_decay_depth_point1 = mg.at_node['topographic__elevation'][mg.core_nodes]
     >>> z[:] = 0
     >>> z += mg.node_x.copy()**0.5
     >>> BRz = z.copy() - 1.0
     >>> soilTh[:] = z - BRz
     >>> DDdiff = DepthDependentTaylorDiffuser(mg, soil_transport_decay_depth = 1.0)
-    >>> DDdiff.soilflux(1)
+    >>> DDdiff.run_one_step(1)
     >>> soil_decay_depth_1 = mg.at_node['topographic__elevation'][mg.core_nodes]
     >>> np.greater(soil_decay_depth_1[1], soil_decay_depth_point1[1])
     False
@@ -349,15 +349,6 @@ class DepthDependentTaylorDiffuser(Component):
         ----------
         dt: float (time)
             The imposed timestep.
-        dynamic_dt : boolean (optional, default is False)
-            Keyword argument to turn on or off dynamic time-stepping
-        if_unstable : string (optional, default is "pass")
-            Keyword argument to determine how potential instability due to
-            slopes that are too high is handled. Options are "pass", "warn",
-            and "raise".
-        courant_factor : float (optional, default = 0.2)
-            Factor to identify stable time-step duration when using dynamic
-            timestepping.
         """
         # establish time left as all of dt
         time_left = dt

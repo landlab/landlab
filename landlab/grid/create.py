@@ -5,10 +5,10 @@ from ..core import load_params
 from ..io import read_esri_ascii
 from ..io.netcdf import read_netcdf
 from ..values import constant, plane, random, sine
-from .hex import HexModelGrid, from_dict as hex_from_dict
+from .hex import HexModelGrid
 from .network import NetworkModelGrid
 from .radial import RadialModelGrid
-from .raster import RasterModelGrid, from_dict as raster_from_dict
+from .raster import RasterModelGrid
 from .voronoi import VoronoiDelaunayGrid
 
 _MODEL_GRIDS = {
@@ -43,9 +43,6 @@ class BadGridTypeError(Error):
 
     def __str__(self):
         return self._type  # TODO: not tested.
-
-
-_GRID_READERS = {"raster": raster_from_dict, "hex": hex_from_dict}
 
 
 def grid_from_dict(grid_type, params):

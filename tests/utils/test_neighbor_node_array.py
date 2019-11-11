@@ -141,7 +141,7 @@ def test_open_boundary_on_perimeter():
     X = -1
 
     neighbors = sgrid.neighbor_node_array(
-        (5, 4), open_boundary_nodes=sgrid.boundary_nodes((5, 4)), inactive=X
+        (5, 4), open_boundary_nodes=sgrid.perimeter_nodes((5, 4)), inactive=X
     )
 
     expected = np.array(
@@ -175,7 +175,7 @@ def test_closed_boundary_on_perimeter():
     X = -1
 
     neighbors = sgrid.neighbor_node_array(
-        (5, 4), closed_boundary_nodes=sgrid.boundary_nodes((5, 4)), inactive=X
+        (5, 4), closed_boundary_nodes=sgrid.perimeter_nodes((5, 4)), inactive=X
     )
 
     expected = np.array(
@@ -209,7 +209,7 @@ def test_closed_boundaries_in_middle():
     X = -1
 
     neighbors = sgrid.neighbor_node_array(
-        (5, 4), closed_boundary_nodes=sgrid.boundary_nodes((5, 4)), inactive=X
+        (5, 4), closed_boundary_nodes=sgrid.perimeter_nodes((5, 4)), inactive=X
     )
 
     expected = np.array(

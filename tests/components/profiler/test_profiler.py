@@ -64,11 +64,11 @@ def test_multi_segment_profile_structure():
 
     ds = profiler.data_structure
 
-    np.testing.assert_array_equal(ds[0]['ids'], [6, 7, 8])
-    np.testing.assert_array_equal(ds[1]['ids'], [8, 13, 18])
+    np.testing.assert_array_equal(ds[0]["ids"], [6, 7, 8])
+    np.testing.assert_array_equal(ds[1]["ids"], [8, 13, 18])
 
-    np.testing.assert_array_equal(ds[0]['distances'], [0, 1, 2])
-    np.testing.assert_array_equal(ds[1]['distances'], [2, 3, 4])
+    np.testing.assert_array_equal(ds[0]["distances"], [0, 1, 2])
+    np.testing.assert_array_equal(ds[1]["distances"], [2, 3, 4])
 
 
 def test_endpoint_options():
@@ -85,7 +85,8 @@ def test_endpoint_options():
     profiler_by_coords.run_one_step()
 
     np.testing.assert_array_equal(
-        profiler_by_nodes.nodes[0], profiler_by_coords.nodes[0])
+        profiler_by_nodes.nodes[0], profiler_by_coords.nodes[0]
+    )
 
 
 def test_incorrect_endpoints_type():

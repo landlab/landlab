@@ -244,10 +244,10 @@ class DepressionFinderAndRouter(Component):
         # Note that we initialize depression
         # outlet ID to LOCAL_BAD_INDEX_VALUE (which is a major clue!)
         self._depression_depth = self._grid.add_zeros(
-            "node", "depression__depth", noclobber=False
+            "node", "depression__depth", clobber=True
         )
         self._depression_outlet_map = self._grid.add_zeros(
-            "node", "depression__outlet_node", dtype=int, noclobber=False
+            "node", "depression__outlet_node", dtype=int, clobber=True
         )
         self._depression_outlet_map += LOCAL_BAD_INDEX_VALUE
 
@@ -260,11 +260,9 @@ class DepressionFinderAndRouter(Component):
         self._lake_outlets = []  # a list of each unique lake outlet
         # ^note this is nlakes-long
 
-        self._is_pit = self._grid.add_ones(
-            "node", "is_pit", dtype=bool, noclobber=False
-        )
+        self._is_pit = self._grid.add_ones("node", "is_pit", dtype=bool, clobber=True)
         self._flood_status = self._grid.add_zeros(
-            "node", "flood_status_code", dtype=int, noclobber=False
+            "node", "flood_status_code", dtype=int, clobber=True
         )
         self._lake_map = np.empty(self._grid.number_of_nodes, dtype=int)
         self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)

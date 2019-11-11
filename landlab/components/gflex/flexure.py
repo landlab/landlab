@@ -232,7 +232,7 @@ class gFlex(Component):
             "lithosphere_surface__elevation_increment",
             at="node",
             dtype=float,
-            noclobber=False,
+            clobber=True,
         )
 
     def flex_lithosphere(self):

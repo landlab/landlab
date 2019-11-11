@@ -238,7 +238,7 @@ class FlowAccumulator(Component):
     ...        'node',
     ...        'water__unit_flux_in',
     ...        runoff_rate,
-    ...        noclobber=False
+    ...        clobber=True,
     ... )
     >>> fa.run_one_step()
     >>> mg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE

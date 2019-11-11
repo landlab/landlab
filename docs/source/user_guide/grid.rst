@@ -196,13 +196,18 @@ There are currently no data values (fields) assigned to the links, as shown by t
 It is also possible, and indeed, often quite useful, to initialize a field from an
 existing NumPy array of data. You can do this with the
 :py:func:`add_field <landlab.field.grouped.ModelDataFields.add_field>` method.
-This method allows slightly more granular control over how the field gets created. In addition to the grid element and field name, this method takes an array of values to assign to the field. Optional arguments include: ``units=`` to assign a unit of measurement (as a string) to the value, ``copy=`` a boolean to determine whether to make a copy of the data, and ``noclobber=`` a boolean that prevents accidentally overwriting an existing field.
+This method allows slightly more granular control over how the field gets
+created. In addition to the grid element and field name, this method takes an
+array of values to assign to the field. Optional arguments include: ``units=``
+to assign a unit of measurement (as a string) to the value, ``copy=`` a boolean
+to determine whether to make a copy of the data, and ``clobber=`` a boolean
+that prevents accidentally overwriting an existing field.
 
 .. code-block:: python
 
     import numpy as np
     elevs_in = np.random.rand(mg.number_of_nodes)
-    mg.add_field('node', 'elevation', elevs_in, units='m', copy=True, noclobber=True)
+    mg.add_field('node', 'elevation', elevs_in, units='m', copy=True, clobber=False)
 
 Fields can store data at nodes, cells, links, faces, patches, junctions, and corners (though the
 latter two or three are very rarely, if ever, used). The grid element you select is
@@ -273,9 +278,9 @@ The following gives an overview of the commands you can use to interact with the
 Field initialization
 ^^^^^^^^^^^^^^^^^^^^
 
-* ``grid.add_empty(group, name, units='-')``
-* ``grid.add_ones(group, name, units='-')``
-* ``grid.add_zeros(group, name, units='-')``
+* ``grid.add_empty(name, at="group", units='-')``
+* ``grid.add_ones(name, at="group", units='-')``
+* ``grid.add_zeros(name, at="group", units='-')``
 
 "group" is one of 'node', 'link', 'cell', 'face', 'corner', 'junction', 'patch'
 
@@ -287,7 +292,7 @@ Field initialization
 Field creation from existing data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* ``grid.add_field(group, name, value_array, units='-', copy=False, noclobber=False)``
+* ``grid.add_field(name, value_array, at="group", units='-', copy=False, clobber=True)``
 
 Arguments as above, plus:
 
@@ -295,7 +300,7 @@ Arguments as above, plus:
 
 "copy" (optional) if True adds a *copy* of value_array to the field; if False, creates a reference to value_array.
 
-"noclobber" (optional) if True, raises an exception if a field called name already exists.
+"clobber" (optional) if `False`, raises an exception if a field called name already exists.
 
 
 Field access

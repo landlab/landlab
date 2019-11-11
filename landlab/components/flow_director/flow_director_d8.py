@@ -177,7 +177,7 @@ class FlowDirectorD8(_FlowDirectorToOne):
         Call this if boundary conditions on the grid are updated after
         the component is instantiated.
         """
-        self._active_links = self._grid.active_d8
+        self._active_links = numpy.arange(self._grid.number_of_d8)
         nodes_at_d8 = self._grid.nodes_at_d8[self._active_links]
         self._activelink_tail = nodes_at_d8[:, 0]
         self._activelink_head = nodes_at_d8[:, 1]
@@ -214,9 +214,8 @@ class FlowDirectorD8(_FlowDirectorToOne):
         self._changed_surface()
 
         # step 1. Calculate link slopes.
-        link_slope = -self._grid._calculate_gradients_at_d8_active_links(
-            self._surface_values
-        )
+        link_slope = -self._grid.calc_grad_at_d8(self._surface_values)
+        link_slope[self._grid.status_at_d8 != self._grid.BC_LINK_IS_ACTIVE] = 0
 
         # Step 2. Find and save base level nodes.
         (baselevel_nodes,) = numpy.where(

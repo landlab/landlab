@@ -240,7 +240,7 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
     diag_links = diag_links[diag_links > 0]
 
     # calculate graidents across diagonals and orthogonals
-    diag_grads = grid._calculate_gradients_at_d8_links(elevs)
+    diag_grads = grid.calc_grad_at_diagonal(elevs)
     ortho_grads = grid.calc_grad_at_link(elevs)
 
     # finally compile link slopes
