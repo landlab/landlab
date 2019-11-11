@@ -10,18 +10,12 @@ from .nodestatus import NodeStatus
 class LinkStatus(IntEnum):
     """Define the link types"""
 
+    #: Indicate a link is *active*, and can carry flux
     ACTIVE = 0
+    #: Indicate a link has a fixed (gradient) value, & behaves as a boundary
     FIXED = 2
+    #: Indicate a link is *inactive*, and cannot carry flux
     INACTIVE = 4
-
-
-# Define the link types
-#: Indicates a link is *active*, and can carry flux
-ACTIVE_LINK = 0
-#: Indicates a link has a fixed (gradient) value, & behaves as a boundary
-FIXED_LINK = 2
-#: Indicates a link is *inactive*, and cannot carry flux
-INACTIVE_LINK = 4
 
 
 def is_fixed_link(node_status_at_link):
