@@ -804,8 +804,8 @@ class SedDepEroder(Component):
             and deposition may still occur beneath the apparent water level.
         """
         grid = self.grid
-        node_z = grid.at_node['topographic__elevation']
-        node_S = grid.at_node['topographic__steepest_slope']
+        node_z = grid.at_node['topographic__elevation'].copy()
+        node_S = grid.at_node['topographic__steepest_slope'].copy()
         node_A = grid.at_node['drainage_area']
         flow_receiver = grid.at_node['flow__receiver_node']
         s_in = grid.at_node['flow__upstream_node_order']
@@ -986,10 +986,8 @@ class SedDepEroder(Component):
                 # Now, remember, this is the sed dep rate relative to the
                 # fully swept bedrock. So this value will always be +ve,
                 # regardless of convergence or otherwise of the surface.
-                worst_case_time_avg_sed_dep_rate_at_end_of_substep = worst_case_time_avg_sed_dep_rate_at_end_of_substep*t_elapsed_internal/dt_secs + sed_dep_rate * (dt_secs - t_elapsed_internal)/dt_secs
-                # here we assume that the new sed_dep_rate is broadly representative of the whole interval to come (worst case scenario)
-                relative_sed_dep_rate = worst_case_time_avg_sed_dep_rate_at_end_of_substep - sed_rate_at_nodes
-                ratediff += relative_sed_dep_rate[flow_receiver] - relative_sed_dep_rate
+
+                ratediff += sed_dep_rate[flow_receiver] - sed_dep_rate
                 downstr_vert_diff = node_z - node_z[flow_receiver]
                 botharepositive = np.logical_and(ratediff > 0.,
                                                  downstr_vert_diff > 0.)
@@ -1004,16 +1002,11 @@ class SedDepEroder(Component):
                 except ValueError:  # no node pair converges
                     t_to_converge_surf = dt_secs
                 t_to_converge = min((t_to_converge, t_to_converge_surf))
-                # if t_to_converge*1000. < dt_secs:  # Are we going crazy here?
-                #     raise ValueError(str(t_to_converge/dt_secs))
             this_tstep = min((t_to_converge, dt_secs))
             self._t_to_converge = t_to_converge/YEAR_SECS
-            t_elapsed_internal += this_tstep
-            if t_elapsed_internal >= dt_secs:
+            if t_to_converge > dt_secs:
                 break_flag = True
-                t_to_converge = dt_secs - t_elapsed_internal + this_tstep
-                self.t_to_converge = t_to_converge
-                this_tstep -= t_elapsed_internal - dt_secs
+                this_tstep = dt_secs
 # assume the convergence bit just works, for now
 
             # better, cleaner approach?: maintain the hillslope flux
@@ -1021,22 +1014,12 @@ class SedDepEroder(Component):
             # see work w time_avg_sed_dep_rate below
 
             if self._simple_stab:
-                node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
+                node_z[grid.core_nodes] = self.grid.at_node['topographic__elevation'][grid.core_nodes] + dzbydt[grid.core_nodes] * this_tstep
             else:
-                br_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
-            # the field outputs also need to be set proportionately w/i the
-            # loop:
-            time_fraction = this_tstep / dt_secs
-            vQc += time_fraction * transport_capacities
-            vQs += time_fraction * river_volume_flux_out_of_node
-            QbyQs += time_fraction * rel_sed_flux
-            time_avg_sed_dep_rate_frag += time_fraction * sed_dep_rate
-            actual_time_avg_sed_dep_rate = (actual_time_avg_sed_dep_rate*(t_elapsed_internal-this_tstep) + sed_dep_rate * this_tstep) / t_elapsed_internal
+                br_z[grid.core_nodes] = grid.at_node['topographic__elevation'][grid.core_nodes] - self._hillslope_sediment[grid.core_nodes] + dzbydt[grid.core_nodes] * this_tstep
 
             if not self._simple_stab:
-                relative_sed_dep_rate = actual_time_avg_sed_dep_rate - sed_rate_at_nodes
-                node_z[grid.core_nodes] += (dzbydt + relative_sed_dep_rate)[grid.core_nodes] * this_tstep
-                #node_z[grid.core_nodes] = (br_z + actual_time_avg_sed_dep_rate * dt_secs)[grid.core_nodes]
+                node_z[grid.core_nodes] = br_z[grid.core_nodes] + sed_dep_rate[grid.core_nodes] * this_tstep
 
             node_S[core_draining_nodes] = (
                 (node_z - node_z[flow_receiver])[core_draining_nodes] /
@@ -1056,10 +1039,10 @@ class SedDepEroder(Component):
                 self._loopcounter += 1
                 print(self._loopcounter)
                 print("z ", node_z[grid.core_nodes])
+                print("br_z ", br_z[grid.core_nodes])
                 print("S ", node_S[grid.core_nodes])
                 print("dep rate ", sed_dep_rate[grid.core_nodes]*YEAR_SECS)
-                print("worst case dep rate ", worst_case_time_avg_sed_dep_rate_at_end_of_substep[grid.core_nodes]*YEAR_SECS)
-                print("relative dep rate ", relative_sed_dep_rate[grid.core_nodes]*YEAR_SECS)
+                print("times ", this_tstep, dt_secs)
 
         self._hillslope_sediment[grid.core_nodes] = (
             time_avg_sed_dep_rate_frag[grid.core_nodes] * dt_secs
