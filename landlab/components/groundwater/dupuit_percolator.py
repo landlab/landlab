@@ -137,7 +137,7 @@ class GroundwaterDupuitPercolator(Component):
 
     Notes
     -----
-    Below is a summary of the theory an numerical implementation of
+    Below is a summary of the theory and numerical implementation of
     the ``GroundwaterDupuitPercolator``. A complete description can be found
     :doc:`here <../../../docs/dupuit_theory.rst>`.
 
@@ -454,7 +454,7 @@ class GroundwaterDupuitPercolator(Component):
 
         .. math::
             \tau = \rho g S d
-            
+
         .. math::
             d = \bigg( \frac{n Q}{S^{1/2} dx} \bigg)^{3/2}
 
