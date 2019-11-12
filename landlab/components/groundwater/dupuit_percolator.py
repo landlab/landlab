@@ -66,7 +66,7 @@ class GroundwaterDupuitPercolator(Component):
     grid: ModelGrid
             Landlab ModelGrid object
     hydraulic_conductivity: float, field name, or array of float
-            saturated hydraulic conductivity, m/s. 
+            saturated hydraulic conductivity, m/s.
             Default = 0.001 m/s
     porosity: float, field name or array of float
             the porosity of the aquifer [-].
@@ -241,7 +241,7 @@ class GroundwaterDupuitPercolator(Component):
         recharge_rate=1.0e-8,
         regularization_f=1e-2,
     ):
-        """Initialize the GroundwaterDupuitPercolator.
+        """
 
         Parameters
         ----------
