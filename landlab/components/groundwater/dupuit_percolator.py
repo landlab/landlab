@@ -66,17 +66,17 @@ class GroundwaterDupuitPercolator(Component):
     grid: ModelGrid
             Landlab ModelGrid object
     hydraulic_conductivity: float, field name, or array of float
-            saturated hydraulic conductivity, m/s
+            saturated hydraulic conductivity, m/s. 
             Default = 0.001 m/s
     porosity: float, field name or array of float
-            the porosity of the aquifer [-]
+            the porosity of the aquifer [-].
             Default = 0.2
     recharge_rate: float, field name, or array of float
-            Rate of recharge, m/s
+            Rate of recharge, m/s.
             Default = 1.0e-8 m/s
     regularization_f: float
             factor controlling the smoothness of the transition between
-            surface and subsurface flow
+            surface and subsurface flow.
             Default = 1e-2
 
     Examples
@@ -166,7 +166,7 @@ class GroundwaterDupuitPercolator(Component):
 
     where :math:`n` is the drainable porosity.
 
-    An explicit forward-in-time finite-volume method is used to implement a
+    An explicit forward in time finite volume method is used to implement a
     numerical solution. Flow discharge between neighboring nodes is calculated
     using the saturated thickness at the up-gradient node.
 
