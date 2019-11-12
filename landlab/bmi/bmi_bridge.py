@@ -195,6 +195,8 @@ def wrap_as_bmi(cls):
     >>> flexure = BmiFlexure()
     >>> sorted(flexure.get_input_var_names())
     ['boundary_condition_flag', 'lithosphere__overlying_pressure_increment']
+    >>> flexure.get_var_units("lithosphere__overlying_pressure_increment")
+    'Pa'
 
     >>> config = \"\"\"
     ... flexure:
