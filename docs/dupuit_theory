@@ -53,7 +53,7 @@ between surface and subsurface flow.
 
    \centering
 
-.. figure:: wt_fig_2.PNG
+.. figure:: ./images/water_table_schematic.PNG
    :alt: Schematic of aquifer thickness :math:`\eta` and water table
    elevation :math:`z`.
    :width: 4in
@@ -105,7 +105,7 @@ where :math:`r` is a user-specified regularization factor and
 
    \centering
 
-.. figure:: Reg_fig.png
+.. figure:: ./images/GDP_regularization.png
    :alt: Regularization functions
    :width: 4.5in
 
