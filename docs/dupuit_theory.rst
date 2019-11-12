@@ -1,3 +1,4 @@
+.. _dupuit_theory:
 
 ========================================================
 Theory and Implementation of GroundwaterDupuitPercolator
