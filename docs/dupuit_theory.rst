@@ -47,8 +47,8 @@ flow to the surface, and recharge from precipitation. Implementations of
 the Dupuit-Forcheimer model often encounter numerical instabilities as
 the water table intersects the surface. To alleviate this problem, we
 use the regularization approach introduced by
-Marcais et al (2017) which smooths the transition
-between surface and subsurface flow [1]_.
+Marcais et al. (2017) which smooths the transition
+between surface and subsurface flow ([1]_).
 
 .. figure:: ./images/water_table_schematic.png
    :alt: Schematic of aquifer thickness :math:`\eta` and water table
@@ -150,6 +150,7 @@ at node :math:`i`). The groundwater flux on the link is :math:`q_{ij}`
 and the width of the face through which :math:`q_{ij}` passes is
 :math:`\lambda_{ij}`.
 
-.. [1] Marçais, J., de Dreuzy, J. R. & Erhel, J. Dynamic coupling of subsurface
-and seepage flows solved within a regularized partition formulation.
-Advances in Water Resources 109, 94–105 (2017).
+References:
+
+.. [1] Marçais, J., de Dreuzy, J. R. & Erhel, J. Dynamic coupling of subsurface and seepage flows solved within a regularized partition formulation.
+        Advances in Water Resources 109, 94–105 (2017).
