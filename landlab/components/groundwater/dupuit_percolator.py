@@ -138,12 +138,12 @@ class GroundwaterDupuitPercolator(Component):
     -----
     Below is a summary of the theory an numerical implementation of
     the ``GroundwaterDupuitPercolator``. A complete description can be found
-    :ref:`dupuit_theory <here>`.
+    :doc:`here <../../../docs/dupuit_theory>`.
 
     Groundwater discharge per unit length, :math:`q`, is calculated as:
 
     .. math::
-        q = -K_{sat} \eta ( \nabla \z )
+        q = -K_{sat} \eta ( \nabla z )
 
     where :math:`K_{sat}` is the saturated hydraulic conductivity, :math:`\eta` is
     aquifer thickness normal to the aquifer base, and :math:`\alpha` is the
