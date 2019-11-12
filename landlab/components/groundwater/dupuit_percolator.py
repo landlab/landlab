@@ -136,6 +136,10 @@ class GroundwaterDupuitPercolator(Component):
 
     Notes
     -----
+    Below is a summary of the theory an numerical implementation of
+    the ``GroundwaterDupuitPercolator``. A complete description can be found
+    :ref:`dupuit_theory <here>`.
+
     Groundwater discharge per unit length, :math:`q`, is calculated as:
 
     .. math::
@@ -163,8 +167,7 @@ class GroundwaterDupuitPercolator(Component):
 
     An explicit forward-in-time finite-volume method is used to implement a
     numerical solution. Flow discharge between neighboring nodes is calculated
-    using the saturated thickness at the up-gradient node. For more details
-    see the component documentation.
+    using the saturated thickness at the up-gradient node.
 
     """
 
