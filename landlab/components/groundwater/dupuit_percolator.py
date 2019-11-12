@@ -58,7 +58,8 @@ class GroundwaterDupuitPercolator(Component):
     normal to the aquifer base. For this reason, aquifer thickness
     and regolith thickness are calculated in the direction normal to the
     aquifer base. The hydraulic gradient is also calculated relative
-    to the aquifer base. For more details, see component documentation.
+    to the aquifer base. For more details, see component documentation
+    :doc:`here <../../../docs/dupuit_theory.rst>`.
 
     Parameters
     ----------
@@ -138,7 +139,7 @@ class GroundwaterDupuitPercolator(Component):
     -----
     Below is a summary of the theory an numerical implementation of
     the ``GroundwaterDupuitPercolator``. A complete description can be found
-    :doc:`here <../../../docs/dupuit_theory>`.
+    :doc:`here <../../../docs/dupuit_theory.rst>`.
 
     Groundwater discharge per unit length, :math:`q`, is calculated as:
 
@@ -453,6 +454,8 @@ class GroundwaterDupuitPercolator(Component):
 
         .. math::
             \tau = \rho g S d
+            
+        .. math::
             d = \bigg( \frac{n Q}{S^{1/2} dx} \bigg)^{3/2}
 
         where :math:`\rho` is the density of water, :math:`g` is the gravitational constant,
