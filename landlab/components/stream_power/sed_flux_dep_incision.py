@@ -872,6 +872,7 @@ class SedDepEroder(Component):
         actual_time_avg_sed_dep_rate = sed_rate_at_nodes
         self._hillslope_sediment_flux_wzeros[
             self.grid.node_at_cell] = flux_in_cells
+        evolving_hillslope_sediment_flux = self._hillslope_sediment_flux_wzeros
         self._voldroprate = self.grid.zeros('node', dtype=float)
         # self._hillslope_sediment.fill(0.)
         # ^ this will get refilled below. For now, the sed has been "fully
@@ -935,7 +936,7 @@ class SedDepEroder(Component):
                 self.grid.number_of_nodes, dtype=np.int8)
 
             iterate_sde_downstream(s_in, self.cell_areas,
-                                   self._hillslope_sediment_flux_wzeros,
+                                   evolving_hillslope_sediment_flux,
                                    self._porosity,
                                    river_volume_flux_out_of_node,
                                    transport_capacities,
@@ -1060,6 +1061,8 @@ class SedDepEroder(Component):
 
             if not self._simple_stab:
                 node_z[grid.core_nodes] = br_z[grid.core_nodes] + self._hillslope_sediment[grid.core_nodes] + time_avg_sed_dep_rate_frag[grid.core_nodes] * t_elapsed_internal
+                evolving_hillslope_sediment_flux = self._hillslope_sediment_flux_wzeros + time_avg_sed_dep_rate_frag
+                print("evolving hillsl flux ", evolving_hillslope_sediment_flux)
 
             node_S[core_draining_nodes] = (
                 (node_z - node_z[flow_receiver])[core_draining_nodes] /
@@ -1148,4 +1151,3 @@ class SedDepEroder(Component):
         """Return a map of where erosion is purely transport-limited.
         """
         return self._is_it_TL.view(dtype=np.bool)
-
