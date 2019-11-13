@@ -32,6 +32,60 @@ YEAR_SECS = 31557600.
 # abnormally flat profiles seem to result.
 
 
+def limit_transport_capacities(transport_capacities,
+                               downstream_nodes, z, cell_areas,
+                               dt):
+    """
+    A helper function to prevent incision below the next node by transport.
+
+    It shouldn't be possible for a node to be so good at transporting
+    sediment that it strips so much sed that it lowers below the next
+    node downstream.
+
+    This isn't possible to stop completely, since the downstream node
+    can subsequently deposit. However, we can limit it.
+
+    Parameters
+    ----------
+    transport_capacities : nnode array of float
+        The "raw" transport capacities as calculated from an equation.
+    downstream_nodes : nnode array of int
+        The downstream node of each node.
+    z : nnode array of float
+        The elevation of each node.
+    cell_areas : nnode array of float
+        The area of the cell at each node, padded with 0 as needed.
+    dt : float
+        The time over which the transport capacities apply.
+
+    Returns
+    -------
+    modified_transport_capacities : nnodes array
+        The thresholded transport capacities.
+
+    Examples
+    --------
+    Very steep, low capacities:
+    >>> capacities = np.array([1., 2., 3.])
+    >>> dstr_nodes = np.array([0, 0, 1])
+    >>> z = np.array([10., 20., 40.])
+    >>> areas = np.array([2., 2., 2.])
+    >>> limit_transport_capacities(capacities, dstr_nodes, z, areas, 2.)
+    array([0., 2., 3])
+
+    Not very steep, high capacities:
+    >>> capacities = np.array([100., 100., 100.])
+    >>> dstr_nodes = np.array([0, 0, 1])
+    >>> z = np.array([1., 2., 4.])
+    >>> areas = np.array([0.1, 0.1, 0.1])
+    >>> limit_transport_capacities(capacities, dstr_nodes, z, areas, 2.)
+    array([0., 0.05, 0.1])
+    """
+    excess_z = (z - z[downstream_nodes]).clip(0.)
+    max_flux = (excess_z * cell_areas) / dt
+    return np.minimum(transport_capacities, max_flux)
+
+
 class power_law_eroder():
     """
     This helper class provides a simple interface for the simplest possible
@@ -806,6 +860,7 @@ class SedDepEroder(Component):
         grid = self.grid
         node_z = grid.at_node['topographic__elevation'].copy()
         node_S = grid.at_node['topographic__steepest_slope'].copy()
+        node_br_init = node_z - self._hillslope_sediment
         node_A = grid.at_node['drainage_area']
         flow_receiver = grid.at_node['flow__receiver_node']
         s_in = grid.at_node['flow__upstream_node_order']
@@ -872,7 +927,7 @@ class SedDepEroder(Component):
         self._hillslope_sediment_flux_wzeros[
             self.grid.node_at_cell] = flux_in_cells
         self._voldroprate = self.grid.zeros('node', dtype=float)
-        self._hillslope_sediment.fill(0.)
+        # self._hillslope_sediment.fill(0.)
         # ^ this will get refilled below. For now, the sed has been "fully
         # mobilised" off the bed; at the end of the step it can resettle.
 
@@ -898,7 +953,10 @@ class SedDepEroder(Component):
         vQc.fill(0.)
         QbyQs.fill(0.)
         time_avg_sed_dep_rate_frag = grid.zeros('node', dtype=float)
+        time_avg_dzbydt_frag = grid.zeros('node', dtype=float)
+        first_step = True
         self._loopcounter = 0
+        last_sed_dep_rate = sed_rate_at_nodes
         while 1:
             downward_slopes[is_flooded] = 0.
             if not self._simple_stab:
@@ -930,6 +988,13 @@ class SedDepEroder(Component):
             self._is_it_TL = np.zeros(
                 self.grid.number_of_nodes, dtype=np.int8)
 
+            # prevent the system from massively lowering below dstr nodes
+###### shouldn't be necessary if convergence is working...
+            transport_capacities = limit_transport_capacities(
+                transport_capacities, s_in, node_z, self.cell_areas,
+                dt_secs - t_elapsed_internal
+            )
+
             iterate_sde_downstream(s_in, self.cell_areas,
                                    self._hillslope_sediment_flux_wzeros,
                                    self._porosity,
@@ -944,9 +1009,17 @@ class SedDepEroder(Component):
                                    self.phi, self.norm)
 
             sed_dep_rate = self._voldroprate / self.cell_areas
+            print("river flux out ", river_volume_flux_out_of_node)
+            print("sdr ", sed_dep_rate)
 
-            # now perform a CHILD-like convergence-based stability test:
-            ratediff = dzbydt[flow_receiver] - dzbydt
+            # now perform a CHILD-like convergence-based stability test.
+            # This uses the historic rates as a guide to the future, i.e.,
+            # we use the time avged rates so far to set the stability this
+            # step.
+            if first_step:
+                ratediff = dzbydt[flow_receiver] - dzbydt
+            else:
+                ratediff = (time_avg_dzbydt_frag[flow_receiver] - time_avg_dzbydt_frag) * dt_secs / t_elapsed_internal
             # if this is +ve, the nodes are converging
             if self._simple_stab:
                 downstr_vert_diff = node_z - node_z[flow_receiver]
@@ -986,40 +1059,63 @@ class SedDepEroder(Component):
                 # Now, remember, this is the sed dep rate relative to the
                 # fully swept bedrock. So this value will always be +ve,
                 # regardless of convergence or otherwise of the surface.
-
-                ratediff += sed_dep_rate[flow_receiver] - sed_dep_rate
+                # Having some regrets about this design - it makes the
+                # following much worse...
+                if first_step:
+                    relative_sed_dep_rate = sed_dep_rate - sed_rate_at_nodes
+                    ratediff = relative_sed_dep_rate[flow_receiver] - relative_sed_dep_rate
+                else:
+                    ratediff = (time_avg_sed_dep_rate_frag[flow_receiver] - time_avg_sed_dep_rate_frag) * dt_secs / t_elapsed_internal
+                print("sran ", sed_rate_at_nodes * dt_secs)
+                print("ratediff ", ratediff * dt_secs)
                 downstr_vert_diff = node_z - node_z[flow_receiver]
+                print("dz ", downstr_vert_diff)
                 botharepositive = np.logical_and(ratediff > 0.,
                                                  downstr_vert_diff > 0.)
                 try:
-                    times_to_converge = (
+                    times_to_converge_sed = (
                         downstr_vert_diff[botharepositive] /
                         ratediff[botharepositive]
                     )
-                    times_to_converge *= CONV_FACTOR_SED
-                    # ^arbitrary safety factor; CHILD uses 0.3 for SP
-                    t_to_converge_surf = np.amin(times_to_converge)
                 except ValueError:  # no node pair converges
-                    t_to_converge_surf = dt_secs
-                t_to_converge = min((t_to_converge, t_to_converge_surf))
+                    t_to_converge_sed = dt_secs
+                else:
+                    times_to_converge_sed *= CONV_FACTOR_SED
+                    # ^arbitrary safety factor; CHILD uses 0.3 for SP
+                    t_to_converge_sed = np.amin(times_to_converge_sed)
+                print("t_to_converge_sed ", t_to_converge_sed/dt_secs)
+                t_to_converge = min((t_to_converge, t_to_converge_sed))
+
             this_tstep = min((t_to_converge, dt_secs))
             self._t_to_converge = t_to_converge/YEAR_SECS
-            if t_to_converge > dt_secs:
+            t_elapsed_internal += this_tstep
+            if t_elapsed_internal >= dt_secs:
                 break_flag = True
-                this_tstep = dt_secs
-# assume the convergence bit just works, for now
+                t_to_converge = dt_secs - t_elapsed_internal + this_tstep
+                self.t_to_converge = t_to_converge
+                this_tstep -= t_elapsed_internal - dt_secs
 
             # better, cleaner approach?: maintain the hillslope flux
             # throughout, and time weight the sed dep rate...
-            # see work w time_avg_sed_dep_rate below
+            time_fraction = this_tstep / dt_secs
+            print("time_fraction ", time_fraction)
+            time_avg_sed_dep_rate_frag += time_fraction * (sed_dep_rate - sed_rate_at_nodes)
+            last_sed_dep_rate = sed_dep_rate
+            print("time_avg_sed_dep_rate_frag ", time_avg_sed_dep_rate_frag)
+            time_avg_dzbydt_frag += time_fraction * dzbydt
+            print(time_avg_sed_dep_rate_frag * t_elapsed_internal)
+            print(time_avg_dzbydt_frag * t_elapsed_internal)
+            print(node_br_init)
 
+            # This is a pseudo-implicit-ish approach. So we want to average
+            # everything out over the step so far to prevent oscillations
             if self._simple_stab:
-                node_z[grid.core_nodes] = self.grid.at_node['topographic__elevation'][grid.core_nodes] + dzbydt[grid.core_nodes] * this_tstep
+                node_z[grid.core_nodes] = self.grid.at_node['topographic__elevation'][grid.core_nodes] + time_avg_dzbydt_frag[grid.core_nodes] * t_elapsed_internal
             else:
-                br_z[grid.core_nodes] = grid.at_node['topographic__elevation'][grid.core_nodes] - self._hillslope_sediment[grid.core_nodes] + dzbydt[grid.core_nodes] * this_tstep
+                br_z[grid.core_nodes] = node_br_init[grid.core_nodes] + time_avg_dzbydt_frag[grid.core_nodes] * t_elapsed_internal
 
             if not self._simple_stab:
-                node_z[grid.core_nodes] = br_z[grid.core_nodes] + sed_dep_rate[grid.core_nodes] * this_tstep
+                node_z[grid.core_nodes] = br_z[grid.core_nodes] + self._hillslope_sediment[grid.core_nodes] + time_avg_sed_dep_rate_frag[grid.core_nodes] * t_elapsed_internal
 
             node_S[core_draining_nodes] = (
                 (node_z - node_z[flow_receiver])[core_draining_nodes] /
@@ -1033,16 +1129,18 @@ class SedDepEroder(Component):
                 )
                 br_downward_slopes = br_S.clip(np.spacing(0.))
 
+            self._loopcounter += 1
+            print(self._loopcounter)
+            print("z ", node_z[grid.core_nodes])
+            print("br_z ", br_z[grid.core_nodes])
+            print("S ", node_S[grid.core_nodes])
+            print("br_S ", br_S[grid.core_nodes])
+            print("dep rate ", sed_dep_rate[grid.core_nodes]*YEAR_SECS)
+            print("times ", this_tstep, dt_secs)
             if break_flag:
                 break
             else:
-                self._loopcounter += 1
-                print(self._loopcounter)
-                print("z ", node_z[grid.core_nodes])
-                print("br_z ", br_z[grid.core_nodes])
-                print("S ", node_S[grid.core_nodes])
-                print("dep rate ", sed_dep_rate[grid.core_nodes]*YEAR_SECS)
-                print("times ", this_tstep, dt_secs)
+                first_step = False
 
         self._hillslope_sediment[grid.core_nodes] = (
             time_avg_sed_dep_rate_frag[grid.core_nodes] * dt_secs
