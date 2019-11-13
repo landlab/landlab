@@ -32,60 +32,6 @@ YEAR_SECS = 31557600.
 # abnormally flat profiles seem to result.
 
 
-def limit_transport_capacities(transport_capacities,
-                               downstream_nodes, z, cell_areas,
-                               dt):
-    """
-    A helper function to prevent incision below the next node by transport.
-
-    It shouldn't be possible for a node to be so good at transporting
-    sediment that it strips so much sed that it lowers below the next
-    node downstream.
-
-    This isn't possible to stop completely, since the downstream node
-    can subsequently deposit. However, we can limit it.
-
-    Parameters
-    ----------
-    transport_capacities : nnode array of float
-        The "raw" transport capacities as calculated from an equation.
-    downstream_nodes : nnode array of int
-        The downstream node of each node.
-    z : nnode array of float
-        The elevation of each node.
-    cell_areas : nnode array of float
-        The area of the cell at each node, padded with 0 as needed.
-    dt : float
-        The time over which the transport capacities apply.
-
-    Returns
-    -------
-    modified_transport_capacities : nnodes array
-        The thresholded transport capacities.
-
-    Examples
-    --------
-    Very steep, low capacities:
-    >>> capacities = np.array([1., 2., 3.])
-    >>> dstr_nodes = np.array([0, 0, 1])
-    >>> z = np.array([10., 20., 40.])
-    >>> areas = np.array([2., 2., 2.])
-    >>> limit_transport_capacities(capacities, dstr_nodes, z, areas, 2.)
-    array([0., 2., 3])
-
-    Not very steep, high capacities:
-    >>> capacities = np.array([100., 100., 100.])
-    >>> dstr_nodes = np.array([0, 0, 1])
-    >>> z = np.array([1., 2., 4.])
-    >>> areas = np.array([0.1, 0.1, 0.1])
-    >>> limit_transport_capacities(capacities, dstr_nodes, z, areas, 2.)
-    array([0., 0.05, 0.1])
-    """
-    excess_z = (z - z[downstream_nodes]).clip(0.)
-    max_flux = (excess_z * cell_areas) / dt
-    return np.minimum(transport_capacities, max_flux)
-
-
 class power_law_eroder():
     """
     This helper class provides a simple interface for the simplest possible
@@ -988,13 +934,6 @@ class SedDepEroder(Component):
             self._is_it_TL = np.zeros(
                 self.grid.number_of_nodes, dtype=np.int8)
 
-            # prevent the system from massively lowering below dstr nodes
-###### shouldn't be necessary if convergence is working...
-            transport_capacities = limit_transport_capacities(
-                transport_capacities, s_in, node_z, self.cell_areas,
-                dt_secs - t_elapsed_internal
-            )
-
             iterate_sde_downstream(s_in, self.cell_areas,
                                    self._hillslope_sediment_flux_wzeros,
                                    self._porosity,
@@ -1009,8 +948,13 @@ class SedDepEroder(Component):
                                    self.phi, self.norm)
 
             sed_dep_rate = self._voldroprate / self.cell_areas
+            print("capacities ", transport_capacities)
+            print("is it TL ", self._is_it_TL)
+            print("hillslope flux in ", self._hillslope_sediment_flux_wzeros)
             print("river flux out ", river_volume_flux_out_of_node)
             print("sdr ", sed_dep_rate)
+# it appears the flux out never rises at the 2nd node, despite the rising slope. Why??
+# the critical node 6 doesn't register as TL, which is bizarre given the sed loading
 
             # now perform a CHILD-like convergence-based stability test.
             # This uses the historic rates as a guide to the future, i.e.,
@@ -1137,6 +1081,7 @@ class SedDepEroder(Component):
             print("br_S ", br_S[grid.core_nodes])
             print("dep rate ", sed_dep_rate[grid.core_nodes]*YEAR_SECS)
             print("times ", this_tstep, dt_secs)
+            print("fraction t_elapsed ", t_elapsed_internal/dt_secs)
             if break_flag:
                 break
             else:

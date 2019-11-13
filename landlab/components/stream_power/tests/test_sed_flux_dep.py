@@ -1442,7 +1442,6 @@ def test_equivalence_across_tsteps_w_flood():
         assert np.isclose((
             (z_init - z).sum()
         ), accum_vol_out)
-# In this condition, with a long single step run time, the gradient on the second node gets stuck at 2.25, which is the condition after the first stable internal step. However, it does rise above this during the run!!
 
 
 def full_run_smoketest():
