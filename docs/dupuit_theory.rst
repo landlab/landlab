@@ -52,8 +52,9 @@ which smooths the transition between surface and subsurface flow ([1]_).
 .. figure:: ./images/water_table_schematic.png
    :alt: Schematic of aquifer thickness :math:`\eta`, water table
    elevation :math:`z`, and vertical thickness :math:`h`.
-   :align: center
-   :width: 4in
+   :align: center;
+   :width: 4in;
+   margin:0px auto;
 
    Schematic of aquifer thickness :math:`\eta`, water table
    elevation :math:`z`, and vertical thickness :math:`h`.
@@ -62,16 +63,17 @@ When the aquifer base is sloping, the governing equations must be adjusted.
 Childs (1971) provides the governing equation for the groundwater specific
 discharge as:
 
-.. math:: q_x' = k \eta \frac{\partial z}{\partial x'}
+.. math:: q_{x'} = k \eta \frac{\partial z}{\partial x'}
 
 where :math:`x'` is the coordinate parallel to the impermeable base, and :math:`\eta`
 is the aquifer thickness perpendicular to the impermeable base ([2]_). The complete governing
 equations in the bed-normal reference frame :math:`(x',y')` are:
 
-\begin{aligned}
-n \frac{\partial \eta}{\partial t} &= f - q_s - \nabla' \cdot q \\
-q &= -K_{sat} \eta \big( \nabla' z ) \\
-q_s &= \mathcal{G}_r \bigg( \frac{\eta}{d} \bigg) \mathcal{R} \big(-\nabla' \cdot q + f \big) \\\end{aligned}
+.. math::
+  \begin{aligned}
+  n \frac{\partial \eta}{\partial t} &= f - q_s - \nabla' \cdot q \\
+  q &= -K_{sat} \eta \big( \nabla' z ) \\
+  q_s &= \mathcal{G}_r \bigg( \frac{\eta}{d} \bigg) \mathcal{R} \big(-\nabla' \cdot q + f \big) \\\end{aligned}
 
 where :math:`q_s` is surface runoff per unit area, :math:`f` is the
 recharge per unit area, :math:`q` is groundwater flux per unit width,
@@ -98,7 +100,7 @@ where :math:`d` is the vertical regolith thickness, and the gradient operator
 respect to the horizontal coordinate system :math:`(x,y)`. Note that the surface runoff
 is the sum of both groundwater return flow and precipitation on saturated area.
 The expression for :math:`q_s` utilizes two regularization functions
-:math:`\mathcal{G}_r` and :math:`\mathcal{R}`: ([1]_)
+:math:`\mathcal{G}_r` and :math:`\mathcal{R}`:
 
 .. math:: \mathcal{G}_r(r,u) = \exp \bigg( - \frac{1-u}{r} \bigg)
 
@@ -118,8 +120,9 @@ where :math:`r` is a user-specified regularization factor and
 
 .. figure:: ./images/GDP_regularization.png
    :alt: Regularization functions
-   :align: center
-   :width: 4.5in
+   :align: center;
+   :width: 4.5in;
+   margin:0px auto;
 
    Regularization functions
 
