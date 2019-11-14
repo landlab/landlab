@@ -445,7 +445,7 @@ class GroundwaterDupuitPercolator(Component):
 
         """
         self._S = abs(grid.calc_grad_at_link(self._elev))
-        self._S_node = map_max_of_node_links_to_node(grid, self._S)
+        self._S_node = map_max_of_node_links_to_node(self._grid, self._S)
         rho = 1000  # kg/m3
         g = 9.81  # m/s2
         return (
