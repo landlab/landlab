@@ -183,6 +183,7 @@ class GroundwaterDupuitPercolator(Component):
             "groundwater__specific_discharge",
             "groundwater__velocity",
             "surface_water__specific_discharge",
+            "average_surface_water__specific_discharge",
             "",
         )
     )
@@ -197,6 +198,7 @@ class GroundwaterDupuitPercolator(Component):
         "groundwater__specific_discharge": "m2/s",
         "groundwater__velocity": "m/s",
         "surface_water__specific_discharge": "m/s",
+        "average_surface_water__specific_discharge": "m/s",
     }
 
     _var_mapping = {
@@ -209,6 +211,7 @@ class GroundwaterDupuitPercolator(Component):
         "groundwater__specific_discharge": "link",
         "groundwater__velocity": "link",
         "surface_water__specific_discharge": "node",
+        "average_surface_water__specific_discharge": "node",
     }
 
     _var_doc = {
@@ -221,6 +224,7 @@ class GroundwaterDupuitPercolator(Component):
         "groundwater__specific_discharge": "discharge per width in link dir",
         "groundwater__velocity": "groundwater darcy flux in link direction",
         "surface_water__specific_discharge": "rate of groundwater return flow plus recharge on saturated area",
+        "average_surface_water__specific_discharge": "average surface water specific discharge over variable timesteps"
     }
 
     def __init__(
@@ -305,6 +309,11 @@ class GroundwaterDupuitPercolator(Component):
             self._qs = self.grid.at_node["surface_water__specific_discharge"]
         else:
             self._qs = self.grid.add_zeros("node", "surface_water__specific_discharge")
+
+        if "average_surface_water__specific_discharge" in self.grid.at_node:
+            self._qsavg = self.grid.at_node["average_surface_water__specific_discharge"]
+        else:
+            self._qsavg = self.grid.add_zeros("node", "average_surface_water__specific_discharge")
 
         # Convert parameters to fields if needed, and store a reference
         self._K = return_array_at_link(grid, hydraulic_conductivity)
@@ -552,6 +561,7 @@ class GroundwaterDupuitPercolator(Component):
             smaller than the minimum link length over linear groundwater flow velocity
         """
 
+        # check water table above surface
         if (self._wtable > self._elev).any():
             self._wtable[self._wtable > self._elev] = self._elev[
                 self._wtable > self._elev
@@ -560,9 +570,6 @@ class GroundwaterDupuitPercolator(Component):
                 self._wtable[self._cores] - self._base[self._cores]
             )
 
-        remaining_time = dt
-        self._num_substeps = 0
-
         # Calculate base gradient
         self._base_grad[self._grid.active_links] = self._grid.calc_grad_at_link(
             self._base
@@ -570,10 +577,17 @@ class GroundwaterDupuitPercolator(Component):
         cosa = np.cos(np.arctan(self._base_grad))
         cosa_node = map_max_of_node_links_to_node(self._grid,cosa)
 
-        # Instantiate reg_thickness, rel_thickness
+        # Initialize reg_thickness, rel_thickness
         reg_thickness = self._elev - self._base
         soil_present = reg_thickness > 0.0
         rel_thickness = np.ones_like(self._elev)
+
+        # Initialize for average surface discharge
+        qs_cumulative = np.zeros_like(self._elev)
+
+        # Initialize variable timestep
+        remaining_time = dt
+        self._num_substeps = 0
 
         while remaining_time > 0.0:
 
@@ -625,6 +639,11 @@ class GroundwaterDupuitPercolator(Component):
             self._wtable[self._cores] = (
                 self._base + self._thickness )[self._cores]
 
+            # add cumulative sw discharge in substeps
+            qs_cumulative += self._qs * substep_dt
+
             # calculate the time remaining and advance count of substeps
             remaining_time -= substep_dt
             self._num_substeps += 1
+
+        self._qsavg[:] = qs_cumulative / dt
