@@ -559,12 +559,17 @@ class NetworkSedimentTransporter(Component):
         number_of_contributors = np.sum(
             self.fd.flow_link_incoming_at_node() == 1, axis=1
         )
-        downstream_link_id = self.fd.link_to_flow_receiving_node[
-            self.fd.downstream_node_at_link()
-        ]
+        downstream_link_id = self.fd.link_to_flow_receiving_node
+# USED TO BE      downstream_link_id = self.fd.link_to_flow_receiving_node[
+#            self.fd.downstream_node_at_link()
+#        ]
         upstream_contributing_links_at_node = np.where(
             self.fd.flow_link_incoming_at_node() == 1, self._grid.links_at_node, -1
         )
+
+        print("number of contributing links", number_of_contributors)
+        print("downstream link id", downstream_link_id)
+        print("upstream contributing links", upstream_contributing_links_at_node)
 
         # Update the node topographic elevations depending on the quantity of stored sediment
         for n in range(self._grid.number_of_nodes):
@@ -579,19 +584,34 @@ class NetworkSedimentTransporter(Component):
                 length_of_upstream_links = self._grid.length_of_link[
                     real_upstream_links
                 ]
+                
+#                ALERT: Moved this to the "else" statement below. AP yr11/11/19
+#                length_of_downstream_link = self._grid.length_of_link[
+#                    downstream_link_id
+#                ][n]
+#                width_of_downstream_link = self._grid.at_link["channel_width"][
+#                    downstream_link_id
+#                ][n]
 
-                width_of_downstream_link = self._grid.at_link["channel_width"][
-                    downstream_link_id
-                ][n]
-                length_of_downstream_link = self._grid.length_of_link[
-                    downstream_link_id
-                ][n]
 
                 if (
                     downstream_link_id[n] == BAD_INDEX_VALUE
                 ):  # I'm sure there's a better way to do this, but...
                     length_of_downstream_link = 0
-
+                    width_of_downstream_link = 0
+                else: 
+                    length_of_downstream_link = self._grid.length_of_link[
+                        downstream_link_id
+                    ][n]
+                    width_of_downstream_link = self._grid.at_link["channel_width"][
+                        downstream_link_id
+                    ][n]
+                    
+                print("Downstream link id = ",downstream_link_id)
+                print("We are looking at node ",n, ".  We are pointing to downstream link number ", 
+                      downstream_link_id[n], " .  And we are pointing to upstream link number(s)",
+                      real_upstream_links)
+                
                 alluvium__depth = _calculate_alluvium_depth(
                         self.vol_stor[downstream_link_id][n],
                         width_of_upstream_links,
@@ -600,7 +620,6 @@ class NetworkSedimentTransporter(Component):
                         length_of_downstream_link, 
                         self.bed_porosity
                         )
-
 
                 #                print("alluvium depth = ",alluvium__depth)
                 #                print("Volume stored at n = ",n,"=",self.vol_stor[downstream_link_id][n])
@@ -787,7 +806,7 @@ class NetworkSedimentTransporter(Component):
         self._distance_traveled_cumulative += distance_to_travel_this_timestep 
         # ^ accumulates total distanced traveled for testing abrasion
         
-        print("distance traveled = ", distance_to_travel_this_timestep)
+        #print("distance traveled = ", distance_to_travel_this_timestep)
 
         #        if self._time_idx == 1:
         #            print("t", self._time_idx)

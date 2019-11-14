@@ -68,7 +68,7 @@ bed_porosity = 0.3  # porosity of the bed material
 # Ultimately,
 # parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
 
-timesteps = 3
+timesteps = 1
 
 element_id = np.repeat(np.array([0, 1, 2, 3, 4, 5, 6], dtype=int),
                        100
@@ -144,7 +144,7 @@ parcels = DataRecord(
 
 # Made up hydraulic geometry
 
-Qgage = 100000.0  # (m3/s)
+Qgage = 1000000.0  # (m3/s)
 dt = 60 * 60 * 24  # (seconds) daily timestep
 
 Bgage = 30.906 * Qgage ** 0.1215
