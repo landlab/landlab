@@ -455,7 +455,7 @@ class GroundwaterDupuitPercolator(Component):
             Manning's n at nodes, giving surface roughness.
 
         """
-        self._S = abs(grid.calc_grad_at_link(self._elev))
+        self._S = abs(self._grid.calc_grad_at_link(self._elev))
         self._S_node = map_max_of_node_links_to_node(self._grid, self._S)
         rho = 1000  # kg/m3
         g = 9.81  # m/s2
