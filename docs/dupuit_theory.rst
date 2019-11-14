@@ -46,42 +46,59 @@ two additional fluxes that affect aquifer storage: groundwater return
 flow to the surface, and recharge from precipitation. Implementations of
 the Dupuit-Forcheimer model often encounter numerical instabilities as
 the water table intersects the surface. To alleviate this problem, we
-use the regularization approach introduced by
-Marcais et al. (2017) which smooths the transition
-between surface and subsurface flow ([1]_).
+use the regularization approach introduced by Marcais et al. (2017)
+which smooths the transition between surface and subsurface flow ([1]_).
 
 .. figure:: ./images/water_table_schematic.png
-   :alt: Schematic of aquifer thickness :math:`\eta` and water table
-   elevation :math:`z`.
+   :alt: Schematic of aquifer thickness :math:`\eta`, water table
+   elevation :math:`z`, and vertical thickness :math:`h`.
    :align: center
    :width: 4in
 
-   Schematic of aquifer thickness :math:`\eta` and water table elevation
-   :math:`z`.
+   Schematic of aquifer thickness :math:`\eta`, water table
+   elevation :math:`z`, and vertical thickness :math:`h`.
 
-In order to treat a sloping aquifer base, we recast the problem in terms
-of evolving aquifer thickness normal to the aquifer base :math:`\eta`.
-Combining all of these elements together, we arrive at the governing
-equations:
+When the aquifer base is sloping, the governing equations must be adjusted.
+Childs (1971) provides the governing equation for the groundwater specific
+discharge as:
+
+.. math:: q_x' = k \eta \frac{\partial z}{\partial x'}
+
+where :math:`x'` is the coordinate parallel to the impermeable base, and :math:`\eta`
+is the aquifer thickness perpendicular to the impermeable base ([2]_). The complete governing
+equations in the bed-normal reference frame :math:`(x',y')` are:
+
+\begin{aligned}
+n \frac{\partial \eta}{\partial t} &= f - q_s - \nabla' \cdot q \\
+q &= -K_{sat} \eta \big( \nabla' z ) \\
+q_s &= \mathcal{G}_r \bigg( \frac{\eta}{d} \bigg) \mathcal{R} \big(-\nabla' \cdot q + f \big) \\\end{aligned}
+
+where :math:`q_s` is surface runoff per unit area, :math:`f` is the
+recharge per unit area, :math:`q` is groundwater flux per unit width,
+:math:`\alpha` is the slope angle of aquifer base, and :math:`d'` is the
+permeable thickness normal to the aquifer base. Here the gradient operator
+:math:`\nabla'` and divergence operator :math:`\nabla' \cdot` are calculated
+with respect to the bed-normal coordinate system.
+
+
+To recast the problem in terms of the horizontal coordinate system used by landlab,
+we make the substitutions :math:`\eta = h \cos(\alpha)`, :math:`x = x' \cos(\alpha)`,
+and :math:`y = y' \cos(\alpha)`. In the horizontal coordinate system :math:`(x,y)`, the
+governing equations are:
 
 .. math::
 
    \begin{aligned}
-   n \frac{\partial \eta}{\partial t} &= - q_s - \nabla \cdot q + f \\
-   q &= -K_{sat} \eta \big( \nabla z ) \\
-   q_s &= \mathcal{G}_r \bigg( \frac{\eta}{d} \bigg) \mathcal{R} \big(-\nabla \cdot q + f \big) \\\end{aligned}
+   n \cos(\alpha) \frac{\partial h}{\partial t} &= f - q_s - \cos(\alpha) \nabla \cdot q \\
+   q &= -K_{sat} \cos^2(\alpha) h \big( \nabla z ) \\
+   q_s &= \mathcal{G}_r \bigg( \frac{h}{d} \bigg) \mathcal{R} \big(f - \cos(\alpha) \nabla \cdot q \big) \\\end{aligned}
 
-where :math:`q_s` is surface runoff per unit area, :math:`f` is the
-recharge per unit area, :math:`q` is groundwater flux per unit width,
-:math:`\alpha` is the slope angle of aquifer base, and :math:`d` is the
-permeable thickness normal to the aquifer base. The hydraulic gradient
-:math:`\nabla z` is calculated normal relative to the aquifer base, that
-is,
-:math:`\nabla z = \delta z/ \delta x = \cos(\alpha) \, \delta z/ \delta x'`.
-Note that the surface runoff is the sum of both groundwater return flow
-and precipitation on saturated area. The expression for :math:`q_s`
-utilizes two regularization functions :math:`\mathcal{G}_r` and
-:math:`\mathcal{R}`:
+where :math:`d` is the vertical regolith thickness, and the gradient operator
+:math:`\nabla` and divergence operator :math:`\nabla \cdot` are calculated with
+respect to the horizontal coordinate system :math:`(x,y)`. Note that the surface runoff
+is the sum of both groundwater return flow and precipitation on saturated area.
+The expression for :math:`q_s` utilizes two regularization functions
+:math:`\mathcal{G}_r` and :math:`\mathcal{R}`: ([1]_)
 
 .. math:: \mathcal{G}_r(r,u) = \exp \bigg( - \frac{1-u}{r} \bigg)
 
@@ -115,7 +132,7 @@ governing equations. In this method, gradients are calculated at links
 (at volume centers). The governing equation with timestep
 :math:`\Delta t` is:
 
-.. math:: n \bigg( \frac{\eta^{t+\Delta t} - \eta^t}{\Delta t} \bigg) = -q_s^t - \nabla \cdot q^t + f^t
+.. math:: n \cos(\alpha_i) \bigg( \frac{h^{t+\Delta t} - h^t}{\Delta t} \bigg) = -q_s^t - \cos(\alpha_i) \nabla \cdot q^t + f^t
 
 Below is a description of the components needed to calculate the right
 side of this equation. To calculate the groundwater flux :math:`q`, the
@@ -131,10 +148,11 @@ calculated from the aquifer base elevation :math:`b`:
 
 where the subscripts :math:`i` and :math:`j` indicate the nodes at the
 head and tail of the link respectively, and :math:`L_{ij}` is the length
-of the link. The gradient :math:`\nabla z` is calculated on link
-:math:`k` relative to the aquifer base as:
+of the link. The angle :math:`\alpha_i` is the maximum of the angles :math:`\alpha_{ij}`
+for all :math:`j` connecting to :math:`i`. The gradient :math:`\nabla z` is
+calculated on link :math:`ij` as:
 
-.. math:: \big( \nabla z \big)_{ij} = \frac{z_{i} - z_{j}}{L_{ij}} \cos(\alpha_{ij})
+.. math:: \big( \nabla z \big)_{ij} = \frac{z_{i} - z_{j}}{L_{ij}}
 
 Flux divergence is calculated by summing the fluxes into an out of the
 links that connect to a node. The divergence of the groundwater flux is:
@@ -154,3 +172,4 @@ References:
 
 .. [1] Marçais, J., de Dreuzy, J. R. & Erhel, J. Dynamic coupling of subsurface and seepage flows solved within a regularized partition formulation.
         Advances in Water Resources 109, 94–105 (2017).
+.. [2] Childs, E. C. Drainage of Groundwater Resting on a Sloping Bed. Water Resources Research 7, 1256–1263 (1971).
