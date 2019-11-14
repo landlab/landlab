@@ -224,7 +224,7 @@ class GroundwaterDupuitPercolator(Component):
         "groundwater__specific_discharge": "discharge per width in link dir",
         "groundwater__velocity": "groundwater darcy flux in link direction",
         "surface_water__specific_discharge": "rate of groundwater return flow plus recharge on saturated area",
-        "average_surface_water__specific_discharge": "average surface water specific discharge over variable timesteps"
+        "average_surface_water__specific_discharge": "average surface water specific discharge over variable timesteps",
     }
 
     def __init__(
@@ -313,7 +313,9 @@ class GroundwaterDupuitPercolator(Component):
         if "average_surface_water__specific_discharge" in self.grid.at_node:
             self._qsavg = self.grid.at_node["average_surface_water__specific_discharge"]
         else:
-            self._qsavg = self.grid.add_zeros("node", "average_surface_water__specific_discharge")
+            self._qsavg = self.grid.add_zeros(
+                "node", "average_surface_water__specific_discharge"
+            )
 
         # Convert parameters to fields if needed, and store a reference
         self._K = return_array_at_link(grid, hydraulic_conductivity)
@@ -501,21 +503,25 @@ class GroundwaterDupuitPercolator(Component):
             self._base
         )[self._grid.active_links]
         cosa = np.cos(np.arctan(self._base_grad))
-        cosa_node = map_max_of_node_links_to_node(self._grid,cosa)
+        cosa_node = map_max_of_node_links_to_node(self._grid, cosa)
 
         # Calculate hydraulic gradient
-        self._hydr_grad[self._grid.active_links] = self._grid.calc_grad_at_link(
-            self._wtable
-        )[self._grid.active_links] * cosa[self._grid.active_links]
+        self._hydr_grad[self._grid.active_links] = (
+            self._grid.calc_grad_at_link(self._wtable)[self._grid.active_links]
+            * cosa[self._grid.active_links]
+        )
 
         # Calculate groundwater velocity
         self._vel[:] = -self._K * self._hydr_grad
         self._vel[self._grid.status_at_link == INACTIVE_LINK] = 0.0
 
         # Aquifer thickness at links (upwind)
-        hlink = map_value_at_max_node_to_link(
-            self._grid, "water_table__elevation", "aquifer__thickness"
-        ) * cosa
+        hlink = (
+            map_value_at_max_node_to_link(
+                self._grid, "water_table__elevation", "aquifer__thickness"
+            )
+            * cosa
+        )
 
         # Calculate specific discharge
         self._q[:] = hlink * self._vel
@@ -527,7 +533,9 @@ class GroundwaterDupuitPercolator(Component):
         soil_present = (self._elev - self._base) > 0.0
         rel_thickness = np.ones_like(self._elev)
         rel_thickness[soil_present] = np.minimum(
-            1, self._thickness[soil_present] / (self._elev[soil_present] - self._base[soil_present])
+            1,
+            self._thickness[soil_present]
+            / (self._elev[soil_present] - self._base[soil_present]),
         )
 
         # Calculate surface discharge at nodes
@@ -543,8 +551,7 @@ class GroundwaterDupuitPercolator(Component):
         self._thickness[self._thickness < 0] = 0.0
 
         # Recalculate water surface height
-        self._wtable[self._cores] = (
-            self._base + self._thickness )[self._cores]
+        self._wtable[self._cores] = (self._base + self._thickness)[self._cores]
 
     def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.1, **kwds):
         """
@@ -575,7 +582,7 @@ class GroundwaterDupuitPercolator(Component):
             self._base
         )[self._grid.active_links]
         cosa = np.cos(np.arctan(self._base_grad))
-        cosa_node = map_max_of_node_links_to_node(self._grid,cosa)
+        cosa_node = map_max_of_node_links_to_node(self._grid, cosa)
 
         # Initialize reg_thickness, rel_thickness
         reg_thickness = self._elev - self._base
@@ -592,18 +599,22 @@ class GroundwaterDupuitPercolator(Component):
         while remaining_time > 0.0:
 
             # Calculate hydraulic gradient
-            self._hydr_grad[self._grid.active_links] = self._grid.calc_grad_at_link(
-                self._wtable
-            )[self._grid.active_links] * cosa[self._grid.active_links]
+            self._hydr_grad[self._grid.active_links] = (
+                self._grid.calc_grad_at_link(self._wtable)[self._grid.active_links]
+                * cosa[self._grid.active_links]
+            )
 
             # Calculate groundwater velocity
             self._vel[:] = -self._K * self._hydr_grad
             self._vel[self._grid.status_at_link == INACTIVE_LINK] = 0.0
 
             # Aquifer thickness at links (upwind)
-            hlink = map_value_at_max_node_to_link(
-                self._grid, "water_table__elevation", "aquifer__thickness"
-            ) * cosa
+            hlink = (
+                map_value_at_max_node_to_link(
+                    self._grid, "water_table__elevation", "aquifer__thickness"
+                )
+                * cosa
+            )
 
             # Calculate specific discharge
             self._q[:] = hlink * self._vel
@@ -636,8 +647,7 @@ class GroundwaterDupuitPercolator(Component):
             self._thickness[self._thickness < 0] = 0.0
 
             # Recalculate water surface height
-            self._wtable[self._cores] = (
-                self._base + self._thickness )[self._cores]
+            self._wtable[self._cores] = (self._base + self._thickness)[self._cores]
 
             # add cumulative sw discharge in substeps
             qs_cumulative += self._qs * substep_dt
