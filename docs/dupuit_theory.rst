@@ -50,14 +50,10 @@ use the regularization approach introduced by Marcais et al. (2017)
 which smooths the transition between surface and subsurface flow ([1]_).
 
 .. figure:: ./images/water_table_schematic.png
-   :alt: Schematic of aquifer thickness :math:`\eta`, water table
-   elevation :math:`z`, and vertical thickness :math:`h`.
+   :alt: Aquifer schematic.
    :align: center;
    :width: 4in;
    margin:0px auto;
-
-   Schematic of aquifer thickness :math:`\eta`, water table
-   elevation :math:`z`, and vertical thickness :math:`h`.
 
 When the aquifer base is sloping, the governing equations must be adjusted.
 Childs (1971) provides the governing equation for the groundwater specific
@@ -70,10 +66,11 @@ is the aquifer thickness perpendicular to the impermeable base ([2]_). The compl
 equations in the bed-normal reference frame :math:`(x',y')` are:
 
 .. math::
-  \begin{aligned}
-  n \frac{\partial \eta}{\partial t} &= f - q_s - \nabla' \cdot q \\
-  q &= -K_{sat} \eta \big( \nabla' z ) \\
-  q_s &= \mathcal{G}_r \bigg( \frac{\eta}{d} \bigg) \mathcal{R} \big(-\nabla' \cdot q + f \big) \\\end{aligned}
+
+   \begin{aligned}
+   n \frac{\partial \eta}{\partial t} &= f - q_s - \nabla' \cdot q \\
+   q &= -K_{sat} \eta \big( \nabla' z ) \\
+   q_s &= \mathcal{G}_r \bigg( \frac{\eta}{d} \bigg) \mathcal{R} \big(-\nabla' \cdot q + f \big) \\\end{aligned}
 
 where :math:`q_s` is surface runoff per unit area, :math:`f` is the
 recharge per unit area, :math:`q` is groundwater flux per unit width,
