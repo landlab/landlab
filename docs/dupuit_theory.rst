@@ -4,14 +4,6 @@
 Theory and Implementation of GroundwaterDupuitPercolator
 ========================================================
 
-.. role:: raw-latex(raw)
-   :format: latex
-..
-
-.. raw:: latex
-
-   \maketitle
-
 Governing Equations
 ===================
 
@@ -41,63 +33,41 @@ evolution of the water table elevation:
 where :math:`n` is the drainable porosity, and :math:`k_{sat}` is the
 saturated hydraulic conductivity.
 
-In addition to groundwater flux, the GroundwaterDupuitPercolator treats
-two additional fluxes that affect aquifer storage: groundwater return
-flow to the surface, and recharge from precipitation. Implementations of
-the Dupuit-Forcheimer model often encounter numerical instabilities as
-the water table intersects the surface. To alleviate this problem, we
-use the regularization approach introduced by Marcais et al. (2017)
-which smooths the transition between surface and subsurface flow ([1]_).
-
 .. figure:: ./images/water_table_schematic.png
    :alt: Aquifer schematic.
    :align: center;
    :width: 4in;
-   margin:0px auto;
 
 When the aquifer base is sloping, the governing equations must be adjusted.
-Childs (1971) provides the governing equation for the groundwater specific
-discharge as:
+Childs (1971) provides the governing equation for the groundwater specific discharge as:
 
 .. math:: q_{x'} = k \eta \frac{\partial z}{\partial x'}
 
 where :math:`x'` is the coordinate parallel to the impermeable base, and :math:`\eta`
-is the aquifer thickness perpendicular to the impermeable base ([2]_). The complete governing
-equations in the bed-normal reference frame :math:`(x',y')` are:
+is the aquifer thickness perpendicular to the impermeable base ([2]_).
+The `GroundwaterDupuitPercolator` treats two additional fluxes that affect
+aquifer storage: groundwater return flow to the surface :math:`q_s`, and
+recharge from precipitation :math:`f`. Implementations of the Dupuit-Forcheimer
+model often encounter numerical instabilities as the water table intersects the
+land surface. To alleviate this problem, we use the regularization approach
+introduced by Marcais et al. (2017), which smooths the transition between
+surface and subsurface flow ([1]_). The complete governing equations in the
+base-parallel reference frame :math:`(x',y')` are:
 
 .. math::
 
    \begin{aligned}
    n \frac{\partial \eta}{\partial t} &= f - q_s - \nabla' \cdot q \\
-   q &= -K_{sat} \eta \big( \nabla' z ) \\
-   q_s &= \mathcal{G}_r \bigg( \frac{\eta}{d} \bigg) \mathcal{R} \big(-\nabla' \cdot q + f \big) \\\end{aligned}
+   q &= -k_{sat} \eta \big( \nabla' z ) \\
+   q_s &= \mathcal{G}_r \bigg( \frac{\eta}{d'} \bigg) \mathcal{R} \big(-\nabla' \cdot q + f \big) \\\end{aligned}
 
-where :math:`q_s` is surface runoff per unit area, :math:`f` is the
-recharge per unit area, :math:`q` is groundwater flux per unit width,
-:math:`\alpha` is the slope angle of aquifer base, and :math:`d'` is the
-permeable thickness normal to the aquifer base. Here the gradient operator
+where :math:`\alpha` is the slope angle of aquifer base, and :math:`d'` is the
+permeable thickness normal to the aquifer base. The gradient operator
 :math:`\nabla'` and divergence operator :math:`\nabla' \cdot` are calculated
-with respect to the bed-normal coordinate system.
-
-
-To recast the problem in terms of the horizontal coordinate system used by landlab,
-we make the substitutions :math:`\eta = h \cos(\alpha)`, :math:`x = x' \cos(\alpha)`,
-and :math:`y = y' \cos(\alpha)`. In the horizontal coordinate system :math:`(x,y)`, the
-governing equations are:
-
-.. math::
-
-   \begin{aligned}
-   n \cos(\alpha) \frac{\partial h}{\partial t} &= f - q_s - \cos(\alpha) \nabla \cdot q \\
-   q &= -K_{sat} \cos^2(\alpha) h \big( \nabla z ) \\
-   q_s &= \mathcal{G}_r \bigg( \frac{h}{d} \bigg) \mathcal{R} \big(f - \cos(\alpha) \nabla \cdot q \big) \\\end{aligned}
-
-where :math:`d` is the vertical regolith thickness, and the gradient operator
-:math:`\nabla` and divergence operator :math:`\nabla \cdot` are calculated with
-respect to the horizontal coordinate system :math:`(x,y)`. Note that the surface runoff
+with respect to the base-parallel coordinate system. Note that the surface runoff
 is the sum of both groundwater return flow and precipitation on saturated area.
-The expression for :math:`q_s` utilizes two regularization functions
-:math:`\mathcal{G}_r` and :math:`\mathcal{R}`:
+
+The expression for :math:`q_s` utilizes two regularization functions :math:`\mathcal{G}_r` and :math:`\mathcal{R}`:
 
 .. math:: \mathcal{G}_r(r,u) = \exp \bigg( - \frac{1-u}{r} \bigg)
 
@@ -119,9 +89,24 @@ where :math:`r` is a user-specified regularization factor and
    :alt: Regularization functions
    :align: center;
    :width: 4.5in;
-   margin:0px auto;
 
    Regularization functions
+
+To recast the problem in terms of the horizontal coordinate system used by Landlab,
+we make the substitutions :math:`\eta = h \cos(\alpha)`, :math:`x = x' \cos(\alpha)`,
+and :math:`y = y' \cos(\alpha)`. In the horizontal coordinate system :math:`(x,y)`, the
+governing equations are:
+
+.. math::
+
+   \begin{aligned}
+   n \cos(\alpha) \frac{\partial h}{\partial t} &= f - q_s - \cos(\alpha) \nabla \cdot q \\
+   q &= -k_{sat} \cos^2(\alpha) h \big( \nabla z ) \\
+   q_s &= \mathcal{G}_r \bigg( \frac{h}{d} \bigg) \mathcal{R} \big(f - \cos(\alpha) \nabla \cdot q \big) \\\end{aligned}
+
+where :math:`d` is the vertical regolith thickness, and the gradient operator
+:math:`\nabla` and divergence operator :math:`\nabla \cdot` are calculated with
+respect to the horizontal coordinate system :math:`(x,y)`.
 
 Numerical Implementation
 ========================
