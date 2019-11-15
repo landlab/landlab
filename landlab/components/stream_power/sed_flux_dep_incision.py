@@ -950,6 +950,22 @@ class SedDepEroder(Component):
 
             sed_dep_rate = self._voldroprate / self.cell_areas
 
+# A fundamental problem is that for a large tstep the first node in the simple
+# test thinks it's DL, since it could in principle strip all the sed in one
+# go. However, in practice, in the first part of such a step it behaves TL,
+# then switches mid-step, so this should be honoured in a subdivision - and
+# indeed it would be if only a short timestep were provided externally.
+# This may not have a solution - the component may be inherently timestep-
+# dependent.
+# An escape *could* be to run a single iteration as pure TL, i.e., dt -> 0 and
+# every node can pass the capacity flux, if only for a vanishing instant.
+# This could enable a mixing line approach - over the imposed dt, each node
+# proceeds at dzbydt_TL for the time needed to remove the cover (which could
+# be > dt), then at a slower rate (?) such that over the whole timestep, each
+# node has proceeded at the necessary rate to look like it would have if taken
+# as one big step. This would be absolutely killer for working out the actual
+# steps though.
+
             # now perform a CHILD-like convergence-based stability test.
             # This uses the historic rates as a guide to the future, i.e.,
             # we use the time avged rates so far to set the stability this
