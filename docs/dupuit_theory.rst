@@ -36,7 +36,8 @@ saturated hydraulic conductivity.
 .. figure:: /images/water_table_schematic.png
    :alt: Aquifer schematic.
    :align: center
-   :width: 4in
+   :scale: 75%
+
 
 When the aquifer base is sloping, the governing equations must be adjusted.
 Childs (1971) provides the governing equation for the groundwater specific discharge as:
@@ -88,7 +89,7 @@ where :math:`r` is a user-specified regularization factor and
 .. figure:: /images/GDP_regularization.png
    :alt: Regularization functions
    :align: center
-   :width: 4.5in
+   :scale: 75%
 
    Regularization functions
 
