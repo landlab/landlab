@@ -60,7 +60,7 @@ class HexCTS(CellLabCTSModel):
         initial_node_states,
         prop_data=None,
         prop_reset_value=None,
-        seed=0
+        seed=0,
     ):
         """
         HexCTS constructor: sets number of orientations to 1 and calls
@@ -103,5 +103,5 @@ class HexCTS(CellLabCTSModel):
             initial_node_states,
             prop_data,
             prop_reset_value,
-            seed
+            seed,
         )

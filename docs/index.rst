@@ -188,8 +188,8 @@ Shallow water hydrodynamics
 
    landlab.components.overland_flow
 
-Land surface hydrology
-----------------------
+Land surface and groundwater hydrology
+--------------------------------------
 
 .. toctree::
   :maxdepth: 4
@@ -198,6 +198,7 @@ Land surface hydrology
   landlab.components.pet
   landlab.components.soil_moisture
   landlab.components.greenampt
+  landlab.components.groundwater
 
 Landslides
 ----------

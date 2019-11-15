@@ -210,7 +210,3 @@ def test_erodep_slope_area_with_threshold():
     s12 = sa_factor * (a12 ** -0.5)
     assert_equal(np.round(s[11], 2), np.round(s11, 2))
     assert_equal(np.round(s[12], 2), np.round(s12, 2))
-
-
-if __name__ == "__main__":
-    test_erodep_slope_area_shear_stress_scaling()

@@ -9,6 +9,7 @@ env:
   - CONDA_ENV=2.7
   global:
   - MPLBACKEND=Agg
+  - secure: exvIFiQjIunvyGXJB27wUskWoXOL/qgu1tLjpgSopZz34WRK7kszqD0fPBLpX7wWgvBuUPYt9tXjdj80gXsouhW/R44AxauRpeAvrcodOwKpFIKM5DOyLmBs+YHQvS1UDJ/n8Lr+n6Q0H36l3pwZC269UKQkpwDwUuGkobeMqXQ=
 sudo: false
 jobs:
   include:
@@ -17,6 +18,7 @@ jobs:
     script:
     - pip install flake8
     - make lint
+
   - stage: docs
     os: linux
     install:
@@ -25,17 +27,39 @@ jobs:
     - pip install -e .
     script:
     - make -C docs clean html
-  - stage: deploy
+
+  - &deploy
+    stage: deploy
     if: tag =~ v.*$
-    script: skip
+    os: osx
+    env: CONDA_ENV=3.7
+    script:
+    - pip install twine wheel
+    - python setup.py bdist_wheel
+    - twine upload -u landlab -p$PYPI_PASS dist/*landlab*
+  - <<: *deploy
+    os: osx
+    env: CONDA_ENV=3.6
+  - <<: *deploy
+    os: osx
+    env: CONDA_ENV=2.7
+
+  - <<: *deploy
+    sudo: required
     os: linux
-    deploy:
-      on:
-        all_branches: true
-      provider: pypi
-      user: landlab
-      password:
-        secure: mu6PQeSsPAzHfiPDn9P9yDnnekeAQdXXGjPFhReKbd/fvpiNjop678RUIIXIC9uw6K5bfX27NquR+pl5B0XR0bNoiHK7dEAmtb4JP6Z56XTWq6znfDThXRH9QPCELyMArpUh3wZPd6EUiIyFJV2IwSt/60yf48/H/VbttdsduF4=
+    services:
+    - docker
+    env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
+         PLAT=manylinux1_x86_64
+         CONDA_ENV=3.7
+    install:
+    - docker pull $DOCKER_IMAGE
+    script:
+    - docker run --rm -e PLAT=$PLAT -v `pwd`:/io $DOCKER_IMAGE /io/.ci/travis/build_wheels.sh
+    - ls wheelhouse/
+    - pip install twine
+    - twine upload -u landlab -p$PYPI_PASS wheelhouse/*landlab*manylinux*
+
 before_install:
 - |
   if [[ $TRAVIS_OS_NAME == "osx" ]]; then
@@ -52,8 +76,8 @@ before_install:
   else
     curl https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh > $HOME/miniconda.sh
   fi
-- bash $HOME/miniconda.sh -b -p $HOME/anaconda
-- export PATH="$HOME/anaconda/bin:$PATH"
+- bash $HOME/miniconda.sh -b -p $(pwd)/anaconda
+- export PATH="$(pwd)/anaconda/bin:$PATH"
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
 - conda create -n test_env python=$CONDA_ENV

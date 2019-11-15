@@ -305,7 +305,10 @@ class use_field_name_or_array(object):
         def _wrapped(grid, vals, *args, **kwds):
             """Convert the second argument to an array."""
             if isinstance(vals, six.string_types):
-                vals = grid[self._at][vals]
+                if vals in grid[self._at]:
+                    vals = grid[self._at][vals]
+                else:
+                    raise FieldError(vals)
             else:
                 vals = np.asarray(vals).flatten()
 
