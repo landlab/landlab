@@ -973,13 +973,13 @@ class SedDepEroder(Component):
                     downward_slopes, br_downward_slopes, is_flooded
                 )
             )
-            dzbydt = dzbydt_rtfs_byrates * erosion_prefactor_withS
+            dzbydt_loop = dzbydt_rtfs_byrates * erosion_prefactor_withS
             sdr_rel_to_1st_surface = sdr_rtfs_byrates * transport_capacities
             # now perform a CHILD-like convergence-based stability test.
             # This uses the historic rates as a guide to the future, i.e.,
             # we use the time avged rates so far to set the stability this
             # step.
-            ratediff = dzbydt[flow_receiver] - dzbydt
+            ratediff = dzbydt_loop[flow_receiver] - dzbydt_loop
             if self._simple_stab:
                 downstr_vert_diff = node_z - node_z[flow_receiver]
             else:  # because our definitions differ in this mode
@@ -1026,16 +1026,16 @@ class SedDepEroder(Component):
                 # with rel_sed_flux=1.)
                 # Note no incision can ever happen here, since we set the
                 # BR slopes to zero elsewhere
-                print("dzbydt ", dzbydt[grid.core_nodes]*YEAR_SECS)
+                print("dzbydt_loop ", dzbydt_loop[grid.core_nodes]*YEAR_SECS)
                 #print("capacities ", transport_capacities[grid.core_nodes]*YEAR_SECS)
                 print("sdr_rtfs", sdr_rel_to_1st_surface[grid.core_nodes]*YEAR_SECS)
                 receiver_sdr_rtfs = sdr_rel_to_1st_surface[flow_receiver]
-                ratediff_first = receiver_sdr_rtfs + dzbydt[flow_receiver] - sdr_rel_to_1st_surface - dzbydt
+                ratediff_first = receiver_sdr_rtfs + dzbydt_loop[flow_receiver] - sdr_rel_to_1st_surface - dzbydt_loop
                 # a 2nd order solution is required;
                 # if not, we can lock up the nodes since a node can't tell
                 # its downstream node is doing to drop enough to let it
                 # proceed anyway
-                ratediff_next = receiver_sdr_rtfs[flow_receiver] + dzbydt[flow_receiver][flow_receiver] - receiver_sdr_rtfs - dzbydt[flow_receiver]
+                ratediff_next = receiver_sdr_rtfs[flow_receiver] + dzbydt_loop[flow_receiver][flow_receiver] - receiver_sdr_rtfs - dzbydt_loop[flow_receiver]
                 ratediff = ratediff_first - ratediff_next
                 downstr_vert_diff = node_z - node_z[flow_receiver]
                 print("ratediff ", ratediff[grid.core_nodes]*YEAR_SECS)
@@ -1072,14 +1072,14 @@ class SedDepEroder(Component):
                 this_tstep -= t_elapsed_internal - dt_secs
 
             if self._simple_stab:
-                node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
+                node_z[grid.core_nodes] += dzbydt_loop[grid.core_nodes] * this_tstep
             else:
-                br_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
+                br_z[grid.core_nodes] += dzbydt_loop[grid.core_nodes] * this_tstep
 
             if not self._simple_stab:
                 node_z[grid.core_nodes] += (
                     sdr_rel_to_1st_surface[grid.core_nodes]
-                    + dzbydt[grid.core_nodes]
+                    + dzbydt_loop[grid.core_nodes]
                 )* this_tstep
 
             node_S[core_draining_nodes] = (
