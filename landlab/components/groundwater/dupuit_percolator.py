@@ -144,7 +144,7 @@ class GroundwaterDupuitPercolator(Component):
     Groundwater discharge per unit length, :math:`q`, is calculated as:
 
     .. math::
-        q = -K_{sat} h \big( \nabla z} \big) \cos^2 (\alpha)
+        q = -K_{sat} h \big( \nabla z \big) \cos^2 (\alpha)
 
     where :math:`K_{sat}` is the saturated hydraulic conductivity, :math:`h` is
     the aquifer thickness, and :math:`\alpha` is the slope angle of the aquifer base.
