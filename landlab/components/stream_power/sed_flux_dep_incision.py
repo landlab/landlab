@@ -949,8 +949,6 @@ class SedDepEroder(Component):
                                    self.phi, self.norm)
 
             sed_dep_rate = self._voldroprate / self.cell_areas
-# it appears the flux out never rises at the 2nd node, despite the rising slope. Why??
-# the critical node 6 doesn't register as TL, which is bizarre given the sed loading
 
             # now perform a CHILD-like convergence-based stability test.
             # This uses the historic rates as a guide to the future, i.e.,
@@ -1017,7 +1015,7 @@ class SedDepEroder(Component):
                 self._is_it_TL[adverse_slope] = True
                 rel_sed_flux[adverse_slope] = 1.  # are these justified...?
                 if True:
-                    sed_dep_rate += bonus_flux
+                    #sed_dep_rate += bonus_flux  # this miscounts the total sed
                     print("dzbydt ", dzbydt[grid.core_nodes]*YEAR_SECS)
                     print("rel_sed_flux", rel_sed_flux)
                     print("capacities ", transport_capacities[grid.core_nodes]*YEAR_SECS)
@@ -1041,7 +1039,7 @@ class SedDepEroder(Component):
                 print("sran ", sed_rate_at_nodes[grid.core_nodes]*YEAR_SECS)
                 print("ratediff ", ratediff[grid.core_nodes]*YEAR_SECS)
 
-                print("dz ", downstr_vert_diff[grid.core_nodes]*YEAR_SECS)
+                print("dz ", downstr_vert_diff[grid.core_nodes])
                 botharepositive = np.logical_and(ratediff_first > 0.,
                                                  ratediff > 0.)
                 botharepositive = np.logical_and(botharepositive,
