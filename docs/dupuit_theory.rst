@@ -36,13 +36,16 @@ saturated hydraulic conductivity.
 .. figure:: /images/water_table_schematic.png
    :alt: Aquifer schematic.
    :align: center
-   :scale: 75%
+   :scale: 50%
+   
+   Aquifer schematic showing vertical aquifer thickness :math:`h`, bed-normal
+   aquifer thickness :math:`\eta`, and water table elevation :math:`z`.
 
 
 When the aquifer base is sloping, the governing equations must be adjusted.
 Childs (1971) provides the governing equation for the groundwater specific discharge as:
 
-.. math:: q_{x'} = k \eta \frac{\partial z}{\partial x'}
+.. math:: q_{x'} = - k_{sat} \eta \frac{\partial z}{\partial x'}
 
 where :math:`x'` is the coordinate parallel to the impermeable base, and :math:`\eta`
 is the aquifer thickness perpendicular to the impermeable base ([2]_).
@@ -89,7 +92,7 @@ where :math:`r` is a user-specified regularization factor and
 .. figure:: /images/GDP_regularization.png
    :alt: Regularization functions
    :align: center
-   :scale: 75%
+   :scale: 40%
 
    Regularization functions
 
