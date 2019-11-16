@@ -125,7 +125,6 @@ Information about links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_fixed_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.number_of_patches_present_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.patches_present_at_link
-    ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_active_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.resolve_values_on_links
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.status_at_link
     ~landlab.grid.voronoi.VoronoiDelaunayGrid.upwind_links_at_node

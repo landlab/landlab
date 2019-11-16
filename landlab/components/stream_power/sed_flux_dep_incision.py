@@ -700,9 +700,7 @@ class SedDepEroder(Component):
         steepest_link = "flow__link_to_receiver_node"
         link_length = np.empty(grid.number_of_nodes, dtype=float)
         link_length.fill(np.nan)
-        draining_nodes = np.not_equal(
-            grid.at_node[steepest_link], self._grid.BAD_INDEX
-        )
+        draining_nodes = np.not_equal(grid.at_node[steepest_link], self._grid.BAD_INDEX)
         core_draining_nodes = np.intersect1d(
             np.where(draining_nodes)[0], grid.core_nodes, assume_unique=True
         )

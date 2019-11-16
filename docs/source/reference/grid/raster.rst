@@ -145,7 +145,6 @@ Information about links
     ~landlab.grid.raster.RasterModelGrid.number_of_fixed_links
     ~landlab.grid.raster.RasterModelGrid.number_of_patches_present_at_link
     ~landlab.grid.raster.RasterModelGrid.patches_present_at_link
-    ~landlab.grid.raster.RasterModelGrid.resolve_values_on_active_links
     ~landlab.grid.raster.RasterModelGrid.resolve_values_on_links
     ~landlab.grid.raster.RasterModelGrid.status_at_link
     ~landlab.grid.raster.RasterModelGrid.upwind_links_at_node
@@ -301,13 +300,16 @@ methods tend to start with `calc_`.
 
 .. autosummary::
 
+    ~landlab.grid.raster.RasterModelGrid.calc_diff_at_d8
+    ~landlab.grid.raster.RasterModelGrid.calc_diff_at_diagonal
     ~landlab.grid.raster.RasterModelGrid.calc_diff_at_link
     ~landlab.grid.raster.RasterModelGrid.calc_flux_div_at_cell
     ~landlab.grid.raster.RasterModelGrid.calc_flux_div_at_node
     ~landlab.grid.raster.RasterModelGrid.calc_grad_across_cell_corners
     ~landlab.grid.raster.RasterModelGrid.calc_grad_across_cell_faces
     ~landlab.grid.raster.RasterModelGrid.calc_grad_along_node_links
-    ~landlab.grid.raster.RasterModelGrid.calc_grad_at_active_link
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_at_d8
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_at_diagonal
     ~landlab.grid.raster.RasterModelGrid.calc_grad_at_link
     ~landlab.grid.raster.RasterModelGrid.calc_grad_at_patch
     ~landlab.grid.raster.RasterModelGrid.calc_net_flux_at_node
@@ -317,6 +319,7 @@ methods tend to start with `calc_`.
     ~landlab.grid.raster.RasterModelGrid.calc_unit_normal_at_patch
     ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_cell_subtriangles
     ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_patch_subtriangles
+    ~landlab.grid.raster.RasterModelGrid.calculate_slope_aspect_at_nodes_burrough
 
 Mappers
 -------
@@ -399,7 +402,6 @@ defined at other grid elements automatically.
     ~landlab.grid.raster.RasterModelGrid.open_boundary_nodes
     ~landlab.grid.raster.RasterModelGrid.second_ring_looped_neighbors_at_cell
     ~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
-    ~landlab.grid.raster.RasterModelGrid.set_fixed_link_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_looped_boundaries
     ~landlab.grid.raster.RasterModelGrid.set_nodata_nodes_to_closed
@@ -428,7 +430,6 @@ to a point; nodes at edges.
     ~landlab.grid.raster.RasterModelGrid.is_point_on_grid
     ~landlab.grid.raster.RasterModelGrid.nodes_around_point
     ~landlab.grid.raster.RasterModelGrid.set_closed_boundaries_at_grid_edges
-    ~landlab.grid.raster.RasterModelGrid.set_fixed_link_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges
     ~landlab.grid.raster.RasterModelGrid.set_looped_boundaries
 
@@ -446,6 +447,7 @@ find in GIS software.
     ~landlab.grid.raster.RasterModelGrid.calc_aspect_at_node
     ~landlab.grid.raster.RasterModelGrid.calc_hillshade_at_node
     ~landlab.grid.raster.RasterModelGrid.calc_slope_at_node
+    ~landlab.grid.raster.RasterModelGrid.calculate_slope_aspect_at_nodes_burrough
 
 Notes
 -----

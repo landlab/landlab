@@ -272,8 +272,7 @@ class FastscapeEroder(Component):
         z = self._grid.at_node["topographic__elevation"]
 
         defined_flow_receivers = np.not_equal(
-            self._grid.at_node["flow__link_to_receiver_node"],
-            self._grid.BAD_INDEX,
+            self._grid.at_node["flow__link_to_receiver_node"], self._grid.BAD_INDEX
         )
 
         if isinstance(self._grid, RasterModelGrid):

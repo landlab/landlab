@@ -273,13 +273,9 @@ def flow_directions_dinf(grid, elevs="topographic__elevation", baselevel_nodes=N
 
     # Step 4, Initialize receiver and proportion arrays
     receivers = grid.BAD_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
-    receiver_closed = grid.BAD_INDEX * np.ones(
-        (num_nodes, num_receivers), dtype=int
-    )
+    receiver_closed = grid.BAD_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
     proportions = np.zeros((num_nodes, num_receivers), dtype=float)
-    receiver_links = grid.BAD_INDEX * np.ones(
-        (num_nodes, num_receivers), dtype=int
-    )
+    receiver_links = grid.BAD_INDEX * np.ones((num_nodes, num_receivers), dtype=int)
     slopes_to_receivers = np.zeros((num_nodes, num_receivers), dtype=float)
 
     # Step  5  begin the algorithm in earnest

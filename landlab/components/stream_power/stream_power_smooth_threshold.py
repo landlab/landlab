@@ -261,8 +261,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         # Get an array of flow-link length for each node that has a defined
         # receiver (i.e., that drains to another node).
         defined_flow_receivers = np.not_equal(
-            self._grid["node"]["flow__link_to_receiver_node"],
-            self._grid.BAD_INDEX,
+            self._grid["node"]["flow__link_to_receiver_node"], self._grid.BAD_INDEX
         )
         defined_flow_receivers[flow_receivers == node_id] = False
 

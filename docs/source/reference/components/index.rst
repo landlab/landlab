@@ -107,6 +107,7 @@ Terrain Analysis
   steepness_index
   chi_index
   drainage_density
+  profile
   channel_profiler
   hack_calculator
 

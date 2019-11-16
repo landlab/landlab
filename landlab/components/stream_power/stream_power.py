@@ -347,8 +347,7 @@ class StreamPowerEroder(Component):
         upstream_order_IDs = self._grid["node"]["flow__upstream_node_order"]
 
         defined_flow_receivers = np.not_equal(
-            self._grid["node"]["flow__link_to_receiver_node"],
-            self._grid.BAD_INDEX,
+            self._grid["node"]["flow__link_to_receiver_node"], self._grid.BAD_INDEX
         )
 
         try:
