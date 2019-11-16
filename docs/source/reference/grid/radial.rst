@@ -128,7 +128,6 @@ Information about links
     ~landlab.grid.radial.RadialModelGrid.number_of_fixed_links
     ~landlab.grid.radial.RadialModelGrid.number_of_patches_present_at_link
     ~landlab.grid.radial.RadialModelGrid.patches_present_at_link
-    ~landlab.grid.radial.RadialModelGrid.resolve_values_on_active_links
     ~landlab.grid.radial.RadialModelGrid.resolve_values_on_links
     ~landlab.grid.radial.RadialModelGrid.status_at_link
     ~landlab.grid.radial.RadialModelGrid.upwind_links_at_node
