@@ -32,7 +32,7 @@ class Profiler(_BaseProfiler):
     sampled). The segments share the second endpoint. Segment and sample
     ordering is dictated by the ordering of endpoints. If the horizontal
     segment is the first segment, the endpoints used to construct this profile
-    must be ordered: lower-left, lower-right, and then upper-left.
+    must be ordered: lower-left, lower-right, and then upper-left.::
 
         X X X X X X X X X
         X o X X X X X X X
@@ -69,9 +69,11 @@ class Profiler(_BaseProfiler):
             }
         }
 
+
     Examples
     --------
     Create a model grid with the same dimensions as the diagram above.
+
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import Profiler
     >>> import numpy as np
@@ -80,16 +82,19 @@ class Profiler(_BaseProfiler):
 
     Create a profile with three endpoints. This profile is laid out the same as
     the diagram above.
+
     >>> endpoints = [10, 16, 64]
     >>> profiler = Profiler(mg, endpoints)
     >>> profiler.run_one_step()
 
     The keys of the data structure are the segment ids.
+
     >>> profiler.data_structure.keys()
     odict_keys([0, 1])
 
     The data structure contains data of segment samples. Below is the first
     segment.
+
     >>> profiler.data_structure[0]['ids']
     array([10, 11, 12, 13, 14, 15, 16])
     >>> profiler.data_structure[0]['distances']
@@ -99,13 +104,16 @@ class Profiler(_BaseProfiler):
 
     Note that the first node of the second segment is the same as the final
     node of the first segment.
+
     >>> profiler.data_structure[1]['ids']
     array([16, 26, 35, 45, 54, 64])
 
     Alternative to nodes, profiles can be instantiated with coordinates.
+
     >>> profiler = Profiler(mg, [(10, 10), (70, 10), (10, 70)])
 
     Endpoints can also be set with a combination of coordinates and nodes.
+
     >>> profiler = Profiler(mg, [(10, 10), 16, (10, 70)])
     """
 
