@@ -33,7 +33,7 @@ class Lithology(Component):
           year={2018},
           doi={10.21105/joss.00979}
         }
-        
+
     A Lithology is a three dimentional representation of material operated on
     by landlab components. Material can be removed through erosion or added to
     through deposition. Rock types can have multiple attributes (e.g. age,
