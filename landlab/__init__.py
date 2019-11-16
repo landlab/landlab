@@ -19,14 +19,6 @@ from .core.model_component import Component
 from .core.model_parameter_loader import load_params
 from .field.scalar_data_fields import FieldError
 from .grid import (
-    ACTIVE_LINK,
-    BAD_INDEX_VALUE,
-    CORE_NODE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_LINK,
-    FIXED_VALUE_BOUNDARY,
-    INACTIVE_LINK,
-    LOOPED_BOUNDARY,
     HexModelGrid,
     ModelGrid,
     NetworkModelGrid,
@@ -35,6 +27,8 @@ from .grid import (
     VoronoiDelaunayGrid,
     create_grid,
 )
+from .grid.linkstatus import LinkStatus
+from .grid.nodestatus import NodeStatus
 from .plot import imshow_grid, imshow_grid_at_node
 
 try:
@@ -59,14 +53,8 @@ __all__ = [
     "RasterModelGrid",
     "VoronoiDelaunayGrid",
     "NetworkModelGrid",
-    "BAD_INDEX_VALUE",
-    "CORE_NODE",
-    "FIXED_VALUE_BOUNDARY",
-    "FIXED_GRADIENT_BOUNDARY",
-    "LOOPED_BOUNDARY",
-    "ACTIVE_LINK",
-    "FIXED_LINK",
-    "INACTIVE_LINK",
+    "LinkStatus",
+    "NodeStatus",
     "create_grid",
     "imshow_grid",
     "imshow_grid_at_node",

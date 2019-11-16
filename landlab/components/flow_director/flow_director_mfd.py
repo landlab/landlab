@@ -11,7 +11,7 @@ use FlowDirectorD8.
 
 import numpy
 
-from landlab import FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY, VoronoiDelaunayGrid
+from landlab import NodeStatus, VoronoiDelaunayGrid
 from landlab.components.flow_director import flow_direction_mfd
 from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 
@@ -482,8 +482,8 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         # Step 2. Find and save base level nodes.
         (baselevel_nodes,) = numpy.where(
             numpy.logical_or(
-                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+                self._grid.status_at_node == NodeStatus.FIXED_VALUE,
+                self._grid.status_at_node == NodeStatus.FIXED_GRADIENT,
             )
         )
 

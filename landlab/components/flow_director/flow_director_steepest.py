@@ -11,12 +11,7 @@ use FlowDirectorD8.
 
 import numpy as np
 
-from landlab import (
-    BAD_INDEX_VALUE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
-    VoronoiDelaunayGrid,
-)
+from landlab import NodeStatus, VoronoiDelaunayGrid
 from landlab.components.flow_director import flow_direction_DN
 from landlab.components.flow_director.flow_director_to_one import _FlowDirectorToOne
 
@@ -37,7 +32,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
     -  Node array of steepest downhill slopes:
        *'topographic__steepest_slope'*
     -  Node array containing ID of link that leads from each node to its
-       receiver, or BAD_INDEX_VALUE if no link:
+       receiver, or grid.BAD_INDEX if no link:
        *'flow__link_to_receiver_node'*
     -  Boolean node array of all local lows: *'flow__sink_flag'*
     -  Link array identifing if flow goes with (1) or against (-1) the link
@@ -372,8 +367,8 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         # Step 2. Find and save base level nodes.
         (baselevel_nodes,) = np.where(
             np.logical_or(
-                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+                self._grid.status_at_node == NodeStatus.FIXED_VALUE,
+                self._grid.status_at_node == NodeStatus.FIXED_GRADIENT,
             )
         )
 
@@ -412,7 +407,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         self._flow_link_direction[:] = 0
 
         # identify where flow is active on links
-        is_active_flow_link = self._links_to_receiver != BAD_INDEX_VALUE
+        is_active_flow_link = self._links_to_receiver != self._grid.BAD_INDEX
 
         # make an array that says which link ID is active
         active_flow_links = self._links_to_receiver[is_active_flow_link]
@@ -581,7 +576,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         flow_link_direction_at_node = self._flow_link_direction[
             self._grid.links_at_node
         ]
-        flow_to_bad = self._grid.links_at_node == BAD_INDEX_VALUE
+        flow_to_bad = self._grid.links_at_node == self._grid.BAD_INDEX
         flow_link_direction_at_node[flow_to_bad] = 0
 
         return flow_link_direction_at_node

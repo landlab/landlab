@@ -16,19 +16,11 @@ from collections import deque
 
 import numpy as np
 
-from landlab import (
-    BAD_INDEX_VALUE,
-    CORE_NODE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
-    Component,
-    RasterModelGrid,
-)
+from landlab import Component, NodeStatus, RasterModelGrid
 from landlab.components import FlowAccumulator
 from landlab.utils import StablePriorityQueue
 from landlab.utils.return_array import return_array_at_node
 
-LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
 LARGE_ELEV = 9999999999.0
 
 # TODO: Needs to have rerouting functionality...
@@ -360,8 +352,8 @@ class LakeMapperBarnes(Component):
         # of outlet!!
         self._edges = np.where(
             np.logical_or(
-                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+                self._grid.status_at_node == NodeStatus.FIXED_VALUE,
+                self._grid.status_at_node == NodeStatus.FIXED_GRADIENT,
             )
         )[0]
         if self._edges.size == 0:
@@ -672,7 +664,7 @@ class LakeMapperBarnes(Component):
         True
         """
         lakemappings = dict()
-        outlet_ID = BAD_INDEX_VALUE
+        outlet_ID = self._grid.BAD_INDEX
         while True:
             try:
                 c = heapq.heappop(pitq)
@@ -870,7 +862,7 @@ class LakeMapperBarnes(Component):
         ValueError was raised: Pit is overfilled due to creation of two outlets as the minimum gradient gets applied. Suppress this Error with the ignore_overfill flag at component instantiation.
         """
         lakemappings = dict()
-        outlet_ID = BAD_INDEX_VALUE
+        outlet_ID = self._grid.BAD_INDEX
         while True:
             try:
                 topopen = openq.peek_at_task()
@@ -992,7 +984,7 @@ class LakeMapperBarnes(Component):
         --------
         >>> import numpy as np
         >>> from collections import deque
-        >>> from landlab import RasterModelGrid
+        >>> from landlab import NodeStatus, RasterModelGrid
         >>> from landlab.components import (
         ...     LakeMapperBarnes,
         ...     FlowDirectorSteepest,
@@ -1042,7 +1034,7 @@ class LakeMapperBarnes(Component):
 
         Note flow doesn't make it to the outlets:
 
-        >>> outlets = np.where(mg.status_at_node == mg.BC_NODE_IS_FIXED_VALUE)
+        >>> outlets = np.where(mg.status_at_node == NodeStatus.FIXED_VALUE)
         >>> drainage_area[outlets].sum() == mg.cell_area_at_node[
         ...     mg.core_nodes].sum()
         False
@@ -1101,7 +1093,7 @@ class LakeMapperBarnes(Component):
         # (0), lake margin (1), and closed (2). This lets us work the
         # perimeter too. Open each lake as needed.
         # close the known boundary nodes:
-        closedq[self._grid.status_at_node != CORE_NODE] = 2
+        closedq[self._grid.status_at_node != NodeStatus.CORE] = 2
 
         # now the actual loop. Work forward lake by lake to avoid unnecessary
         # processing (nodes outside lakes are already correct, by definition).
@@ -1115,7 +1107,7 @@ class LakeMapperBarnes(Component):
             # it's possible the outlet used to drain *into* the lake,
             # so it needs separate consideration. Likewise, the gradients
             # of the perimeter nodes are likely to be wrong.
-            if self._grid.status_at_node[outlet] != CORE_NODE:
+            if self._grid.status_at_node[outlet] != NodeStatus.CORE:
                 # don't do anything if the outlet happens to be a boundary
                 pass
             else:
@@ -1167,7 +1159,7 @@ class LakeMapperBarnes(Component):
                                 continue
                             elif n == -1:
                                 continue
-                            elif self._grid.status_at_node[n] != CORE_NODE:
+                            elif self._grid.status_at_node[n] != NodeStatus.CORE:
                                 closedq[n] = 2
                                 continue
                             else:
@@ -1835,7 +1827,7 @@ class LakeMapperBarnes(Component):
     def lake_map(self):
         """Return an array of ints, where each node within a lake is labelled
         with its outlet node ID. The outlet nodes are NOT part of the lakes.
-        Nodes not in a lake are labelled with LOCAL_BAD_INDEX_VALUE (default
+        Nodes not in a lake are labelled with BAD_INDEX_VALUE (default
         -1).
 
         Examples
@@ -1899,7 +1891,7 @@ class LakeMapperBarnes(Component):
         if self._runcount > self._lastcountforlakemap:
             # things have changed since last call to lake_map
             self._lake_map = np.full(
-                self._grid.number_of_nodes, LOCAL_BAD_INDEX_VALUE, dtype=int
+                self._grid.number_of_nodes, self._grid.BAD_INDEX, dtype=int
             )
             for (outlet, lakenodes) in self.lake_dict.items():
                 self._lake_map[lakenodes] = outlet
@@ -1944,7 +1936,7 @@ class LakeMapperBarnes(Component):
         >>> np.all(np.equal(lmb.lake_at_node, lake_at_node))
         True
         """
-        return self.lake_map != LOCAL_BAD_INDEX_VALUE
+        return self.lake_map != self._grid.BAD_INDEX
 
     @property
     def lake_depths(self):

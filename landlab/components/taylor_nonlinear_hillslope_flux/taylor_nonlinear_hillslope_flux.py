@@ -10,7 +10,7 @@
 
 import numpy as np
 
-from landlab import INACTIVE_LINK, Component
+from landlab import Component, LinkStatus
 
 
 class TaylorNonLinearDiffuser(Component):
@@ -246,7 +246,7 @@ class TaylorNonLinearDiffuser(Component):
 
             # Calculate gradients
             self._slope[:] = self._grid.calc_grad_at_link(self._elev)
-            self._slope[self._grid.status_at_link == INACTIVE_LINK] = 0.0
+            self._slope[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
             # Test for time stepping courant condition
             courant_slope_term = 0.0

@@ -129,12 +129,13 @@ from landlab.ca.cfuncs import (
     push_transitions_to_event_queue,
     run_cts_new,
 )
+from landlab.grid.nodestatus import NodeStatus
 
 _NEVER = 1e50
 
 _DEBUG = False
 
-_CORE = landlab.grid.base.CORE_NODE
+_CORE = NodeStatus.CORE
 
 
 class Transition(object):

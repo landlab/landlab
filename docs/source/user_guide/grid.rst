@@ -452,7 +452,7 @@ either *active* or *inactive* (Figure 3).
 A closed boundary is one at which no flux is permitted enter or leave, ever.
 By definition, all links coming into or out of a closed boundary node must be inactive.
 There is effectively no value assigned to a closed boundary; it will probably have a
-BAD_INDEX_VALUE or null value of some kind.
+grid.BAD_INDEX_VALUE or null value of some kind.
 An open boundary is one at which flux can enter or leave, but whose value is controlled
 by some boundary condition rule, updated at the end of each timestep.
 
