@@ -122,9 +122,9 @@ packages
 
 If you prefer to remain with pip, try another pip install
 
-.. code-block:: bash #attnKaty
+.. code-block:: bash
 
-    $ pip install landlab
+     $ pip install landlab
 
 This should now take.
 
