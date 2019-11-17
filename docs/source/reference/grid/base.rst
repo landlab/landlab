@@ -109,7 +109,6 @@ Information about links
     ~landlab.grid.base.ModelGrid.number_of_fixed_links
     ~landlab.grid.base.ModelGrid.number_of_patches_present_at_link
     ~landlab.grid.base.ModelGrid.patches_present_at_link
-    ~landlab.grid.base.ModelGrid.resolve_values_on_active_links
     ~landlab.grid.base.ModelGrid.resolve_values_on_links
     ~landlab.grid.base.ModelGrid.status_at_link
     ~landlab.grid.base.ModelGrid.upwind_links_at_node

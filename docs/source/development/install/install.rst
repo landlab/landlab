@@ -76,10 +76,13 @@ Conda Environment Tips
     you open a new terminal instance.
 *   If you use python tools for your work that are not in the conda environment
     but you have previously installed them on your computer (e.g., spyder),
-    you will need to add them to the environment. Use the standard
-    `conda install name_of_package` or
-    `conda install name_of_package -c name_of_channel` #attnKaty
-    terminal calls to accomplish this.
+    you will need to add them to the environment. Use the standard terminal
+    calls to accomplish this.
+
+.. code-block:: bash
+
+   $ conda install name_of_package
+   $ conda install name_of_package -c name_of_channel
 
 Uninstall
 ---------

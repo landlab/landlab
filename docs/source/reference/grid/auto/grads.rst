@@ -34,13 +34,16 @@ Raster
 
 .. autosummary::
 
+    ~landlab.grid.raster.RasterModelGrid.calc_diff_at_d8
+    ~landlab.grid.raster.RasterModelGrid.calc_diff_at_diagonal
     ~landlab.grid.raster.RasterModelGrid.calc_diff_at_link
     ~landlab.grid.raster.RasterModelGrid.calc_flux_div_at_cell
     ~landlab.grid.raster.RasterModelGrid.calc_flux_div_at_node
     ~landlab.grid.raster.RasterModelGrid.calc_grad_across_cell_corners
     ~landlab.grid.raster.RasterModelGrid.calc_grad_across_cell_faces
     ~landlab.grid.raster.RasterModelGrid.calc_grad_along_node_links
-    ~landlab.grid.raster.RasterModelGrid.calc_grad_at_active_link
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_at_d8
+    ~landlab.grid.raster.RasterModelGrid.calc_grad_at_diagonal
     ~landlab.grid.raster.RasterModelGrid.calc_grad_at_link
     ~landlab.grid.raster.RasterModelGrid.calc_grad_at_patch
     ~landlab.grid.raster.RasterModelGrid.calc_net_flux_at_node
@@ -50,6 +53,7 @@ Raster
     ~landlab.grid.raster.RasterModelGrid.calc_unit_normal_at_patch
     ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_cell_subtriangles
     ~landlab.grid.raster.RasterModelGrid.calc_unit_normals_at_patch_subtriangles
+    ~landlab.grid.raster.RasterModelGrid.calculate_slope_aspect_at_nodes_burrough
 
 
 

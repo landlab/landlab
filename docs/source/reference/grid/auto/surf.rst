@@ -32,6 +32,7 @@ Raster
     ~landlab.grid.raster.RasterModelGrid.calc_aspect_at_node
     ~landlab.grid.raster.RasterModelGrid.calc_hillshade_at_node
     ~landlab.grid.raster.RasterModelGrid.calc_slope_at_node
+    ~landlab.grid.raster.RasterModelGrid.calculate_slope_aspect_at_nodes_burrough
 
 
 

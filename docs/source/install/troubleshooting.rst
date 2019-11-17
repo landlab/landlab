@@ -10,7 +10,7 @@ First, make sure you:
 
    -  :ref:`Install Landlab using Anaconda <anaconda_install>`
       if you are just going to **use** Landlab
-   -  `Install from source code <developer_install>`
+   -  :ref:`Install from source code <developer_install>`
       if you are going to **modify** Landlab's source code
 
 -  Follow the instructions relating to the system you are using
@@ -25,15 +25,17 @@ Try the following commands
 
 On Mac:
 
-``> which python``
+.. code-block:: bash
 
-``> which ipython``
+  $ which python
+  $ which ipython
 
 On Windows:
 
-``> where python``
+.. code-block:: bash
 
-``> where ipython``
+  $ where python
+  $ where ipython
 
 python and ipython should show the same path and clearly refer to
 Anaconda, looking something like ``/anaconda/bin/python`` \* Update:
@@ -95,9 +97,10 @@ Sorry, Landlab is not available (yet) for Linux 32-bit!
 To test your install, use a command prompt, navigate to your landlab
 directory and type:
 
-``$ conda install pytest``
+.. code-block:: bash
 
-``$ pytest``
+  $ conda install pytest
+  $ pytest
 
 This tests whatever version of landlab you have installed. If this
 produces errors for which you cannot find a fix in this page, please
@@ -111,14 +114,17 @@ AttributeError
 
 -  Symptoms: Test fails with:
 
-``AttributeError: 'LandlabTester' object has no attribute 'check_fpu_mode'``
+.. code-block:: python
+
+  AttributeError: 'LandlabTester' object has no attribute 'check_fpu_mode'
 
 -  This is a known error, probably due to numpy version 1.14., to check
    your version:
 
-``import numpy``
+.. code-block:: python
 
-``numpy.__version__``
+  import numpy
+  numpy.__version__
 
 Although tests currently fail, you should be able to run Landlab
 normally, you can ignore this error. \* Similar issues:
@@ -168,9 +174,7 @@ Import error
 -  Symptom: ``Cannot import name 'ModuleName'`` This is because a module
    used by the tutorial is not included in the latest release: do the
    :ref:`developer install <developer_install>`
-   or wait for the next
-   `release <https://github.com/landlab/landlab/releases>`_. (THIS
-   PROBLEM SHOULD NOT HAPPEN ANYMORE) #attnKaty
+   or wait for the next `release <https://github.com/landlab/landlab/releases>`_.
 
 Other known pb:
 ~~~~~~~~~~~~~~~

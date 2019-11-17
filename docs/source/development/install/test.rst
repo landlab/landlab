@@ -8,8 +8,8 @@ Testing Your Installation
 -------------------------
 
 In order to test your installation you'll need to install the
-```pytest`` <https://docs.pytest.org/en/latest/>`_ package that is used #attnKaty
-to run the tests. This is included in the conda environment described above.
+`pytest <https://docs.pytest.org/en/latest/>`_ package that is used to run the
+tests. This is included in the conda environment described above.
 
 .. code-block:: bash
 
@@ -28,11 +28,11 @@ on), you would run:
 
 .. code-block:: bash
 
-   $ pytest path\to\directory\you\want\to\test
+   $ pytest path/to/directory/you/want/to/test
 
 You may also want to see the code coverage of different parts of
 Landlab. To do this, you'll first need to install
-```pytest-cov`` <https://pytest-cov.readthedocs.io/en/latest/readme.html>`_. #attnKaty
+`pytest-cov <https://pytest-cov.readthedocs.io/en/latest/readme.html>`_.
 
 .. code-block:: bash
 

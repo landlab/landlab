@@ -6,7 +6,7 @@ Landscape Evolution with Landlab
 
 by Andy Wickert, University of Minnesota
 
-The Code #attnKaty
+The Code #attnKaty:WHY
 ~~~~~~~~
 
 ::

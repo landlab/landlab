@@ -54,16 +54,14 @@ To build an OverlandFlow model, first the necessary Landlab components and utili
 
 .. code-block:: python
 
-	"""
-	overland_flow_driver.py
+	"""overland_flow_driver.py
 
   OverlandFlow component example, initializing a 36 km^2 square watershed with a
   grid resolution of 30 m, from an ESRI ASCII file, simulating a 5 mm/hr rainfall
   intensity over 2 hours, the standard storm example from Adams et al.,
   in prep for Geoscientific Model Development
 
-  Written by Jordan Adams, August 2016
-  """
+  Written by Jordan Adams, August 2016"""
   ## Landlab components
   from landlab.components import OverlandFlow, SinkFiller # SinkFiller is optional
 
@@ -88,8 +86,9 @@ Step 2. Defining the model domain
 
 As previously stated, the algorithm used in the OverlandFlow component was derived to work on remotely-sensed data and, as such, only works on the RasterModelGrid instance in Landlab (e.g. Bates et al., 2010, de Almeida et al., 2012). Shown here is an example of a Landlab raster grid:
 
-.. figure:: images/RasterGrid_Directions.png
-    :align: center
+.. image:: images/RasterGrid_Directions.png
+		:width: 300px
+		:align: center
 
 **Figure** 1: Example of a Landlab RasterModelGrid instance. Each RasterModelGrid is composed of 3 core elements: nodes, which are points in (x, y) space; cells, a polygon with an area around a node; and links, ordered lines which connect neighboring pairs of node that store directionality.
 
@@ -170,8 +169,9 @@ status. Then, boundary links can be updated with some input discharge value:
 
 This boundary condition can be useful because of how the underlying algorithm in OverlandFlow (de Almeida et al., 2012) updates discharge at each time step. In this model, discharge is calculated as a function of the neighboring discharge values:
 
-.. figure:: images/deAlmeidaGridExample.png
-    :align: center
+.. image:: images/deAlmeidaGridExample.png
+		:width: 300px
+		:align: center
 
 **Figure 2**: The algorithm from de Almeida et al., (2012) uses discharge information on neighboring links to calculate discharge. Fixed link boundary conditions allow the user to set discharge on links along the boundary, so that the interior discharges can be updated using those manually-set fluxes.
 
@@ -184,8 +184,9 @@ Step 4. Pre-processing the DEM (*Optional*)
 
 When modeling surface flow across a DEM and the user wants to ensure all water drains out of the system (that is, water is not trapped in pits or holes on the DEM surface), there must be a continuous flow path. In many applications, flow is allowed to exit a node in 8 directions ('D8'): the cardinal directions (East, North, West, South) and the diagonal directions (Northeast, Northwest, Southwest, Southeast). However, this model restricts flow to only the cardinal directions ('D4'). To create a continuous flow network, GIS applications often include a pit-filling regime to remove divots in the DEM surface so water can exit the pit and travel to the outlet. In ArcGIS, this pit-filling regime operates in 'D8':
 
-.. figure:: images/D8_vs_D4.png #attnKaty
-    :align: center
+.. image:: images/D8_vs_D4.png
+		:width: 300px
+		:align: center
 
 **Figure 3**: Comparison of 'D8' and 'D4' flow routing methods. The key difference: in 'D8' methods, flow can move diagonally out of a given node.
 
@@ -341,8 +342,9 @@ Once the model is done running, the hydrograph can be plotted using the matplotl
         plt.xlabel('Discharge, (cms)')
         plt.title('Outlet Hydrograph, Rainfall: 5 mm/hr in 2 hr')
 
-.. figure:: images/OverlandFlow_Manual_Hydrograph.png #attnKaty
-    :align: center
+.. image:: images/OverlandFlow_Manual_Hydrograph.png
+		:width: 300px
+		:align: center
 
 **Figure 4**: Sample hydrograph from the test basin, after a storm with intensity of 5 mm/hr for a duration of 2 hr.
 
@@ -356,12 +358,18 @@ The Landlab plotting library includes a utility ``imshow__grid`` which can easil
 	imshow_grid(rmg, 'surface_water__depth', plot_name='Water depth at time = 2 hr',
                 var_name='Water Depth', var_units='m', grid_units=('m', 'm'), cmap='Blues')
 
-.. figure:: images/OverlandFlow_Manual_WaterDepth.png
-    :align: center
+.. image:: images/OverlandFlow_Manual_WaterDepth.png
+		:width: 300px
+		:align: center
 
 **Figure 5**: Map of water depths at time = 2 hr, for the sample storm on the square basin (5 mm/hr over duration of 2 hr).
 
-In this example, the water depths are plotted after 2 hours of model run time ``model_run_time`` = 7200 s in **Step 6**). The method ``imshow__grid`` takes a grid instance and data field by default. Optional methods displayed here include plot title, color bar title (``var__name``), color bar units (``var__units``), grid dimension units (``grid_units``), and matplotlib color map (``cmap``). #attnKaty
+In this example, the water depths are plotted after 2 hours of model run time
+``model_run_time`` = 7200 s in **Step 6**). The method ``imshow__grid`` takes a
+grid instance and data field by default. Optional methods displayed here
+include plot title, color bar title (``var__name``), color bar units
+(``var__units``), grid dimension units (``grid_units``), and
+matplotlib color map (``cmap``).
 
 **Note**: As of right now, ``imshow__grid`` plots data on nodes and cells.
 If the user wants to plot data from link elements, a mapper from link to cell
