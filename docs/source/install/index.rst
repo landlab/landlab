@@ -28,6 +28,14 @@ In a terminal type:
 
   $ conda install landlab -c conda-forge
 
+
+If you want to use the new 2.0 beta version use the following command
+
+.. code-block:: bash
+
+  $ conda install landlab -c conda-forge/label/dev
+
+
 If you work with many different packages that require conflicting dependencies,
 consider reading about (and using)
 `conda environments <https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#managing-environments>`_.
