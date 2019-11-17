@@ -195,6 +195,8 @@ class FastscapeEroder(Component):
             m in the stream power equation (power on drainage area).
         n_sp : float, optional
             n in the stream power equation (power on slope).
+        threshold_sp : float, array, or field name
+            Erosion threshold in the stream power equation.
         discharge_field : float, field name, or array, optional
             Discharge [L^2/T]. The default is to use the grid field
             'drainage_area'. To use custom spatially/temporally varying
