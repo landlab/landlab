@@ -70,11 +70,11 @@ that file in your favourite text editor, and add at the end:
 
 .. code-block:: bash
 
-    alias python="python2.7"
+    $ alias python="python2.7"
 
 Restart the terminal again, and check the version number now. Should be
 right! (You will probably also want to do something similar with ipython,
-but DEJH didn't explore that...) #attnKaty
+but DEJH didn't explore that...) #attnKaty:WHY
 
 
 Installing pip
@@ -89,11 +89,15 @@ Get pip by going to `the pip site
 and downloading get_pip.py, which links from that page. Navigate to
 the folder you downloaded it into, and simply run
 
-    $ sudo python get_pip.py #attnKaty
+.. code-block:: bash
+
+    $ sudo python get_pip.py
 
 This should give you a trouble free install of pip.
 
 Once you have it, make sure you're fully up-to-date:
+
+.. code-block:: bash
 
     $ pip install --upgrade pip
 
@@ -110,26 +114,26 @@ Downloading the packages
 Now you have pip and it's bound correctly to your Python install,
 adding packages should be trouble free:
 
+.. code-block:: bash
+
     $ sudo pip install numpy
-
     $ sudo pip install scipy
-
     $ sudo pip install matplotlib
-
     $ sudo pip install sympy
-
     $ sudo pip install netCDF4
 
 Note in future, you can update these packages to new versions by:
+
+.. code-block:: bash
 
     $ sudo pip install --upgrade [package_name]
 
 Now test the versions like this:
 
+.. code-block:: bash
+
     $ python
-
     >>> import numpy
-
     >>> numpy.__version__
 
 And everything should now be great. You can now continue to install
@@ -138,17 +142,22 @@ a clone or downloaded copy of Landlab you want to install in
 developer mode, just navigate to the download's top level directory
 and run
 
+.. code-block:: bash
+
     $ python setup.py develop
 
 and test:
 
-    $ python
+.. code-block:: bash
 
+    $ python
     >>> import landlab
     >>> landlab.test()
 
 Or alternatively, just grab the release version using pip, as in the
 main instructions:
+
+.. code-block:: bash
 
     $ pip install landlab
 

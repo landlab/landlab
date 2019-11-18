@@ -16,7 +16,7 @@ Changes include:
 - Some other functions/methods have been removed.
 - No more wiki (all the docs are here).
 
-No more Python 2 #attnKaty
+No more Python 2 
 ----------------
 
 TODO: put a link to general 2 to 3 resources
@@ -43,17 +43,27 @@ Changes to Boundary Condition Flags
   from top level or grid submodule (e.g., `from landlab import CLOSED_NODE`)
   now we use `Grid.BC_NODE_IS_CLOSED`.
 
-  Old name                  New name
-  ========================= ====================================
-  BAD_INDEX_VALUE           ModelGrid.BAD_INDEX
-  CORE_NODE                 ModelGrid.BC_NODE_IS_CORE
-  FIXED_VALUE_BOUNDARY      ModelGrid.BC_NODE_IS_FIXED_VALUE
-  FIXED_GRADIENT_BOUNDARY   ModelGrid.BC_NODE_IS_FIXED_GRADIENT
-  LOOPED_BOUNDARY           ModelGrid.BC_NODE_IS_LOOPED
-  CLOSED_BOUNDARY           ModelGrid.BC_NODE_IS_CLOSED
-  ACTIVE_LINK               ModelGrid.BC_LINK_IS_ACTIVE
-  INACTIVE_LINK             ModelGrid.BC_LINK_IS_INACTIVE
-  FIXED_LINK                ModelGrid.BC_LINK_IS_FIXED
++-------------------------+-------------------------------------+
+| Old name                | New name                            |
++=========================+=====================================+
+| BAD_INDEX_VALUE         | ModelGrid.BAD_INDEX                 |
++-------------------------+-------------------------------------+
+| CORE_NODE               | ModelGrid.BC_NODE_IS_CORE           |
++-------------------------+-------------------------------------+
+| FIXED_VALUE_BOUNDARY    | ModelGrid.BC_NODE_IS_FIXED_VALUE    |
++-------------------------+-------------------------------------+
+| FIXED_GRADIENT_BOUNDARY | ModelGrid.BC_NODE_IS_FIXED_GRADIENT |
++-------------------------+-------------------------------------+
+| LOOPED_BOUNDARY         | ModelGrid.BC_NODE_IS_LOOPED         |
++-------------------------+-------------------------------------+
+| CLOSED_BOUNDARY         | ModelGrid.BC_NODE_IS_CLOSED         |
++-------------------------+-------------------------------------+
+| ACTIVE_LINK             | ModelGrid.BC_LINK_IS_ACTIVE         |
++-------------------------+-------------------------------------+
+| INACTIVE_LINK           | ModelGrid.BC_LINK_IS_INACTIVE       |
++-------------------------+-------------------------------------+
+| FIXED_LINK              | ModelGrid.BC_LINK_IS_FIXED          |
++-------------------------+-------------------------------------+
 
 
 Standardization and deprecation within the component library
@@ -64,11 +74,11 @@ Standardization and deprecation within the component library
 - Fewer different options for runoff rate, but one, consistent, good option
   (use argument to FlowAccumulator, then use ``surface__water_discharge`` for
   erosion).
-- Removal of old deprecated methods such as (``erode``, ``diffuse``...) #attnKaty
+- Removal of old deprecated methods such as (``erode``, ``diffuse``)
 - Main method now either take ``dt`` or nothing.
 
 Some other functions/methods have been removed
 ----------------------------------------------
 
-ModelParameterDictionary
-plot.channel_profile (use ChannelProfiler) #attnKaty
+- ModelParameterDictionary
+- plot.channel_profile (use ChannelProfiler)

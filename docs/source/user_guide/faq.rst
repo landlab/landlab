@@ -75,10 +75,10 @@ It's also possible to set the boundary conditions "by hand", if you know the ID 
   9
   grid.status_at_node[my_fixed_node] = grid.BC_NODE_IS_FIXED_GRADIENT  # to fix the node closest to (1.2, 2.3)
 
-See also: #attnKaty
+See also:
 
-  :py:func:`RasterModelGrid.set_fixed_value_boundaries_at_grid_edges <landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges>`,
-  :py:func:ModelGrid.set_nodata_nodes_to_closed <landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed>`
+  - :py:func:`RasterModelGrid.set_fixed_value_boundaries_at_grid_edges <landlab.grid.raster.RasterModelGrid.set_fixed_value_boundaries_at_grid_edges>`
+  - :py:func:`ModelGrid.set_nodata_nodes_to_closed <landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed>`
 
 
 Can I import Landlab output into ParaView or VisIt?
@@ -116,7 +116,6 @@ are some options:
 (1) assign the *average*
 (2) assign the upstream value
 (3) assign the downstream value
-(4) ... #attnKaty
 
 Look at this
 `Tutorial <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=file=mappers/mappers.ipynb>`_
@@ -160,7 +159,7 @@ Andy Wickert (5/16) suggests the following:
     sudo apt-get remove python-setuptools
     pip install setuptools # add "--upgrade" if needed
 
-And then you can cd to landlab and this works: #attnKaty
+And then you can cd to landlab and this works:
 
 .. code-block:: python
 
@@ -169,21 +168,17 @@ And then you can cd to landlab and this works: #attnKaty
 Support: How can I ask more questions and get help?
 ---------------------------------------------------
 
-There are several ways to get help:
-
-(1) Add your own questions to this wiki page using the ``Edit`` button above. #attnKaty
-(2) Join the Landlab User Group on Slack <knuth@colorado.edu?subject=Landlab%20User%20Group&body=Invite%20to%20Slack> #attnKaty
-(3) File an issue at `https://github.com/landlab/landlab <https://github.com/landlab/landlab/issues>`__ using the ``New issue`` button in the upper right. Tell us about your issue, and we'll be in touch.
-
+File an issue at
+`https://github.com/landlab/landlab <https://github.com/landlab/landlab/issues>`__
+using the ``New issue`` button in the upper right.
+Tell us about your issue, and we'll be in touch.
 
 How do I keep in touch with Landlab developments?
 -------------------------------------------------
 
-There are a few ways to follow Landlab developments. You can #attnKaty
-- contribute questions to this wiki (see below),
+There are a few ways to follow Landlab developments. You can
+
 - follow Landlab on `Twitter <https://mobile.twitter.com/landlabtoolkit>`_  @landlabtoolkit,
-- join the Landlab User Group on `Slack <knuth@colorado.edu?subject=Landlab%20User%20Group&body=Invite%20to%20Slack>`_,
-- follow `releases <https://github.com/landlab/landlab/releases>`_,
 - "watch" Landlab's GitHub repository,
 - file a pull request or an issue at `https://github.com/landlab/landlab <https://github.com/landlab/landlab>`__,
 - sign up to the `Landlab Lookout newsletter <https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7>`_ to get the latest news, tips, publications and more.

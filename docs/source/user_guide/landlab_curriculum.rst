@@ -130,7 +130,7 @@ The Code #attnKaty:WHY
 
    plt.show()
 
-The Assignment #attnKaty
+The Assignment #attnKaty:WHY
 ~~~~~~~~~~~~~~
 
 :download:`download pdf <images/landscape_evolution_assignment_AW.pdf>`

@@ -12,7 +12,7 @@ enable the sharing of data between the components, and we aim to have a
 relatively standardized way of interacting with and using each different one.
 
 Landlab components exist as classes, and can be imported from
-*landlab.components*.
+``landlab.components``.
 
     We emphasize that at the moment most Landlab components are under active
     development, and it is possible that    changes may occur to things such as
@@ -40,7 +40,7 @@ command prompt:
 
 ``landlab list``
 
-See the :ref: `Components section <api.components>` of the Landlab reference #attnKaty
+See the :ref:`Components section <api.components>` of the Landlab reference
 manual for a list of all Landlab components currently available.
 
 Landlab component classes, their import, and their instantiation
@@ -107,11 +107,11 @@ It should probably be emphasized here to **always read the documentation for
 the component you are using**! You can get at this documentation either on this
 website, or in a dynamic Python session by getting help for either the imported
 class or the instantiated component object. i.e., in this case, any of the
-following would work::
+following would work
 
 .. code-block:: python
 
-    help(LinearDiffuser) #attnKaty
+    help(LinearDiffuser)
     help(dfn)
     LinearDiffuser?
     dfn?
