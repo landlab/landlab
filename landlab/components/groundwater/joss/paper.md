@@ -9,7 +9,7 @@ authors:
     affiliation: 1
   - name: Gregory E. Tucker
     orcid: 0000-0003-0364-5800
-    affiliation: 2,3,4
+    affiliation: 2, 3, 4
   - name: Katherine R. Barnhart
     orcid: 0000-0001-5682-455X
     affiliation: 2, 3
@@ -27,7 +27,7 @@ affiliations:
     index: 4
   - name: Johns Hopkins University, Department of Earth and Planetary Science
   - index: 5  
-date:
+date: 18 November 2019
 bibliography: papers.bib
 ---
 
@@ -43,5 +43,6 @@ The ``GroundwaterDupuitPercolator`` is implemented in Landlab, a Python-based op
 
 # Acknowledgements
 
+Acknowledgements here.
 
 # References
