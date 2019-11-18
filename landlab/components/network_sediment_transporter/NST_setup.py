@@ -195,6 +195,11 @@ for t in range(0, (timesteps * dt), dt):
     nst.run_one_step(dt)
     print("timestep ", t, "completed!")
 
+
+#%%
+#from landlab.plot.network import plot_pathway
+#plot_pathway(nst, time=3, link=4)
+
 # %% A few plot outputs, just to get started.
 
 plt.figure(1)
