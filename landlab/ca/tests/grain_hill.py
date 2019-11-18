@@ -95,7 +95,7 @@ class GrainHill(CTSModel):
             grid_size=grid_size,
             report_interval=report_interval,
             grid_orientation="vertical",
-            grid_shape="rect",
+            node_layout="rect",
             show_plots=show_plots,
             cts_type="oriented_hex",
             run_duration=run_duration,
@@ -302,7 +302,7 @@ class GrainHill(CTSModel):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> hg = HexModelGrid(4, 5, shape='rect', orientation='vert')
+        >>> hg = HexModelGrid(4, 5, node_layout='rect', orientation='vert')
         >>> ns = hg.add_zeros('node', 'node_state', dtype=int)
         >>> ns[[0, 3, 1, 6, 4, 9, 2]] = 8
         >>> ns[[8, 13, 11, 16, 14]] = 7

@@ -17,7 +17,7 @@ from landlab import HexModelGrid
 # Case 1: Make and display a hex-shaped grid with horizontal rows of nodes
 
 # Create the grid
-hg1 = HexModelGrid(5, 3, 1.0, orientation="horizontal", shape="hex")
+hg1 = HexModelGrid(5, 3, 1.0, orientation="horizontal", node_layout="hex")
 
 # Make some data
 d = hg1.add_zeros("node", "mydata")
@@ -33,7 +33,7 @@ show()
 # Case 2: Make and display a hex-shaped grid with vertical columns of nodes
 
 # Create the grid
-hg2 = HexModelGrid(3, 5, 1.0, orientation="vertical", shape="hex")
+hg2 = HexModelGrid(3, 5, 1.0, orientation="vertical", node_layout="hex")
 
 # Make some data
 d = hg2.add_zeros("node", "mydata")
@@ -50,7 +50,7 @@ show()
 # of nodes
 
 # Create the grid
-hg3 = HexModelGrid(5, 5, 1.0, orientation="horizontal", shape="rect")
+hg3 = HexModelGrid(5, 5, 1.0, orientation="horizontal", node_layout="rect")
 
 # Make some data
 d = hg3.add_zeros("node", "mydata")
@@ -67,7 +67,7 @@ show()
 # nodes
 
 # Create the grid
-hg4 = HexModelGrid(5, 5, 1.0, orientation="vertical", shape="rect")
+hg4 = HexModelGrid(5, 5, 1.0, orientation="vertical", node_layout="rect")
 
 # Make some data
 d = hg4.add_zeros("node", "mydata")

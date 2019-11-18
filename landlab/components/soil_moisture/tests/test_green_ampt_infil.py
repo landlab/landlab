@@ -9,7 +9,7 @@ import numpy as np
 from landlab import RasterModelGrid
 from landlab.components.soil_moisture import SoilInfiltrationGreenAmpt
 
-(_SHAPE, _SPACING, _ORIGIN) = ((10, 10), (25, 25), (0., 0.))
+(_SHAPE, _SPACING, _ORIGIN) = ((10, 10), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
@@ -61,9 +61,9 @@ def test_calc_soil_head(si):
 def test_calc_moisture_deficit(si):
     np.testing.assert_almost_equal(
         si.calc_moisture_deficit(
-            soil_bulk_density=1700.,
-            rock_density=2650.,
-            volume_fraction_coarse_fragments=0.,
+            soil_bulk_density=1700.0,
+            rock_density=2650.0,
+            volume_fraction_coarse_fragments=0.0,
             soil_moisture_content=0.2,
         ),
         0.15849056603,
@@ -81,13 +81,13 @@ def test_run_one_step():
     SI = SoilInfiltrationGreenAmpt(
         grid,
         hydraulic_conductivity=hydraulic_conductivity,
-        soil_bulk_density=1700.,
-        rock_density=2650.,
+        soil_bulk_density=1700.0,
+        rock_density=2650.0,
         initial_soil_moisture_content=0.2,
         soil_type="silt loam",
         volume_fraction_coarse_fragments=0.6,
         coarse_sed_flag=False,
-        surface_water_minimum_depth=1.e-7,
+        surface_water_minimum_depth=1.0e-7,
         soil_pore_size_distribution_index=None,
         soil_bubbling_pressure=None,
         wetting_front_capillary_pressure_head=None,

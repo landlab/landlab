@@ -15,7 +15,7 @@ from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components.flow_routing import FlowAccumulator
 from landlab.components.gFlex.flexure import gFlex
 from landlab.components.stream_power import FastscapeEroder, StreamPowerEroder
-from landlab.plot.imshow import imshow_node_grid
+from landlab.plot.imshow import imshow_grid
 
 inputs = ModelParameterDictionary("./coupled_SP_gflex_params.txt")
 nrows = inputs.read_int("nrows")
@@ -27,7 +27,7 @@ init_elev = inputs.read_float("init_elev")
 uplift_perstep = inputs.read_float("uplift_rate") * dt
 rock_stress_param = inputs.read_float("rock_density") * 9.81
 
-mg = RasterModelGrid(nrows, ncols, xy_spacing=dx)
+mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
 
 # create the fields in the grid
 mg.add_zeros("topographic__elevation", at="node")
@@ -68,7 +68,7 @@ while elapsed_time < time_to_run:
     elapsed_time += dt
 
 pylab.figure(1)
-im = imshow_node_grid(mg, "topographic__elevation")  # display a colored image
+im = imshow_grid(mg, "topographic__elevation")  # display a colored image
 
 pylab.figure(2)
-im = imshow_node_grid(mg, "lithosphere_surface__elevation_increment")
+im = imshow_grid(mg, "lithosphere_surface__elevation_increment")

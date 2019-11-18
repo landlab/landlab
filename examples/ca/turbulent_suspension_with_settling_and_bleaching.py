@@ -22,7 +22,7 @@ from pylab import clf, figure, show
 from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components.cellular_automata.celllab_cts import CAPlotter, Transition
 from landlab.components.cellular_automata.oriented_raster_cts import OrientedRasterCTS
-from landlab.plot.imshow import imshow_node_grid
+from landlab.plot.imshow import imshow_grid
 
 
 class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
@@ -428,7 +428,7 @@ class TurbulentSuspensionAndBleachingModel(OrientedRasterCTS):
                 figure(3)
                 clf()
                 self.osl_display[:] = self.osl[self.propid] + self.node_state
-                imshow_node_grid(
+                imshow_grid(
                     self.grid, "osl_display", limits=(0.0, 2.0), cmap=self.cmap_for_osl
                 )
                 show()

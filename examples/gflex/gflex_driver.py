@@ -13,7 +13,7 @@ import pylab
 
 from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components.gflex.flexure import gFlex
-from landlab.plot.imshow import imshow_node_grid
+from landlab.plot.imshow import imshow_grid
 
 inputs = ModelParameterDictionary("./AW_gflex_params.txt")
 nrows = inputs.read_int("nrows")
@@ -23,7 +23,7 @@ dt = inputs.read_float("dt")
 time_to_run = inputs.read_float("run_time")
 init_elev = inputs.read_float("init_elev")
 
-mg = RasterModelGrid(nrows, ncols, xy_spacing=dx)
+mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
 
 # create the fields in the grid
 mg.add_zeros("topographic__elevation", at="node")
@@ -49,7 +49,7 @@ while elapsed_time < time_to_run:
     elapsed_time += dt
 
 pylab.figure(1)
-im = imshow_node_grid(mg, "topographic__elevation")  # display a colored image
+im = imshow_grid(mg, "topographic__elevation")  # display a colored image
 
 pylab.figure(2)
-im = imshow_node_grid(mg, "lithosphere_surface__elevation_increment")
+im = imshow_grid(mg, "lithosphere_surface__elevation_increment")

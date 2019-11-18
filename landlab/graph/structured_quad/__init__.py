@@ -1,14 +1,13 @@
-from .structured_quad import (
-    StructuredQuadGraph,
-    RectilinearGraph,
-    UniformRectilinearGraph,
-)
 from .dual_structured_quad import (
-    DualUniformRectilinearGraph,
     DualRectilinearGraph,
     DualStructuredQuadGraph,
+    DualUniformRectilinearGraph,
 )
-
+from .structured_quad import (
+    RectilinearGraph,
+    StructuredQuadGraph,
+    UniformRectilinearGraph,
+)
 
 __all__ = [
     "StructuredQuadGraph",

@@ -42,21 +42,21 @@ def test_route_to_multiple_error_raised_run():
 
 
 def test_bad_init_method1():
-    rmg = RasterModelGrid((5, 5), xy_spacing=2.)
+    rmg = RasterModelGrid((5, 5), xy_spacing=2.0)
     rmg.add_zeros("node", "topographic__elevation", dtype=float)
     with pytest.raises(ValueError):
         LakeMapperBarnes(rmg, method="Nope")
 
 
 def test_bad_init_method2():
-    rmg = RasterModelGrid((5, 5), xy_spacing=2.)
+    rmg = RasterModelGrid((5, 5), xy_spacing=2.0)
     rmg.add_zeros("node", "topographic__elevation", dtype=float)
     with pytest.raises(ValueError):
         LakeMapperBarnes(rmg, method="d8")
 
 
 def test_bad_init_gridmethod():
-    hmg = HexModelGrid(30, 29, dx=3.)
+    hmg = HexModelGrid(30, 29, dx=3.0)
     hmg.add_zeros("node", "topographic__elevation", dtype=float)
     with pytest.raises(ValueError):
         LakeMapperBarnes(hmg, method="D8")
@@ -117,7 +117,7 @@ def test_neighbor_shaping_D4():
 
 
 def test_neighbor_shaping_hex():
-    hmg = HexModelGrid(6, 5, dx=1.)
+    hmg = HexModelGrid(6, 5, dx=1.0)
     hmg.add_zeros("node", "topographic__elevation", dtype=float)
     hmg.add_zeros("node", "topographic__steepest_slope", dtype=float)
     hmg.add_zeros("node", "flow__receiver_node", dtype=int)
@@ -171,7 +171,7 @@ def test_permitted_overfill():
     for edge in ("top", "right", "bottom"):
         mg.status_at_node[mg.nodes_at_edge(edge)] = CLOSED_BOUNDARY
     z = mg.add_zeros("node", "topographic__elevation", dtype=float)
-    z.reshape(mg.shape)[1, 1:-1] = [1., 0.2, 0.1, 1.0000000000000004, 1.5]
+    z.reshape(mg.shape)[1, 1:-1] = [1.0, 0.2, 0.1, 1.0000000000000004, 1.5]
     lmb = LakeMapperBarnes(mg, method="Steepest")
     lmb._closed = mg.zeros("node", dtype=bool)
     lmb._closed[mg.status_at_node == CLOSED_BOUNDARY] = True
@@ -189,13 +189,13 @@ def test_permitted_overfill():
 
 
 def test_no_reroute():
-    mg = RasterModelGrid((5, 5), xy_spacing=2.)
+    mg = RasterModelGrid((5, 5), xy_spacing=2.0)
     z = mg.add_zeros("node", "topographic__elevation", dtype=float)
-    z[1] = -1.
-    z[6] = -2.
-    z[19] = -2.
-    z[18] = -1.
-    z[17] = -3.
+    z[1] = -1.0
+    z[6] = -2.0
+    z[19] = -2.0
+    z[18] = -1.0
+    z[17] = -3.0
     fd = FlowDirectorSteepest(mg)
     fa = FlowAccumulator(mg)
     lmb = LakeMapperBarnes(

@@ -50,7 +50,7 @@ def ugrid_from_rectilinear(coords):
     return ugrid_from_structured_quad(node_y_and_x)
 
 
-def ugrid_from_uniform_rectilinear(shape, spacing=1., origin=0.):
+def ugrid_from_uniform_rectilinear(shape, spacing=1.0, origin=0.0):
     from .structured_quad.structured_quad import setup_node_coords
 
     node_y_and_x = setup_node_coords(shape, spacing, origin)

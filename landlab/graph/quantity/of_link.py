@@ -39,7 +39,7 @@ def get_angle_of_link(graph, out=None):
 
     np.arctan2(np.diff(y).flat, np.diff(x).flat, out=out)
 
-    return np.mod(out, 2. * np.pi, out=out)
+    return np.mod(out, 2.0 * np.pi, out=out)
 
 
 def get_midpoint_of_link(graph, out=None):

@@ -160,7 +160,7 @@ class Flexure1D(Component):
         "surface) in one timestep",
     }
 
-    POISSON = .25
+    POISSON = 0.25
 
     @use_file_name_or_kwds
     def __init__(
@@ -169,8 +169,8 @@ class Flexure1D(Component):
         eet=65e3,
         youngs=7e10,
         method="airy",
-        rho_mantle=3300.,
-        rho_water=1030.,
+        rho_mantle=3300.0,
+        rho_water=1030.0,
         gravity=9.80665,
         rows=None,
         **kwds
@@ -300,7 +300,7 @@ class Flexure1D(Component):
         try:
             self._alpha
         except AttributeError:
-            self._alpha = np.power(4 * self.rigidity / self.gamma_mantle, .25)
+            self._alpha = np.power(4 * self.rigidity / self.gamma_mantle, 0.25)
         finally:
             return self._alpha
 
@@ -311,7 +311,7 @@ class Flexure1D(Component):
             self._rigidity
         except AttributeError:
             self._rigidity = (
-                self._eet ** 3. * self._youngs / (12. * (1. - self.POISSON ** 2.))
+                self._eet ** 3.0 * self._youngs / (12.0 * (1.0 - self.POISSON ** 2.0))
             )
         finally:
             return self._rigidity

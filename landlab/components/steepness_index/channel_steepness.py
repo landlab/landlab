@@ -118,9 +118,9 @@ class SteepnessFinder(Component):
         self,
         grid,
         reference_concavity=0.5,
-        min_drainage_area=1.e6,
-        elev_step=0.,
-        discretization_length=0.,
+        min_drainage_area=1.0e6,
+        elev_step=0.0,
+        discretization_length=0.0,
         **kwds
     ):
         """
@@ -157,7 +157,7 @@ class SteepnessFinder(Component):
         self._grid = grid
         self._reftheta = reference_concavity
         self.min_drainage = min_drainage_area
-        assert elev_step >= 0., "elev_step must be >= 0!"
+        assert elev_step >= 0.0, "elev_step must be >= 0!"
         self._elev_step = elev_step
         self._discretization = discretization_length
         self.ksn = self._grid.add_zeros("node", "channel__steepness_index")
@@ -179,7 +179,7 @@ class SteepnessFinder(Component):
         :func:`hillslope_mask`.
         """
         self._mask.fill(True)
-        self.ksn.fill(0.)
+        self.ksn.fill(0.0)
         # test for new kwds:
         reftheta = kwds.get("reference_concavity", self._reftheta)
         min_drainage = kwds.get("min_drainage_area", self.min_drainage)
@@ -240,7 +240,7 @@ class SteepnessFinder(Component):
                     ch_dists = self.channel_distances_downstream(ch_nodes)
                     ch_A = self.grid.at_node["drainage_area"][ch_nodes]
                     ch_S = self.grid.at_node["topographic__steepest_slope"][ch_nodes]
-                    assert np.all(ch_S >= 0.)
+                    assert np.all(ch_S >= 0.0)
                 # if we're doing spatial discretization, do it here:
                 if discretization_length:
                     ch_ksn = self.calc_ksn_discretized(
@@ -252,15 +252,15 @@ class SteepnessFinder(Component):
                     log_S = np.log10(ch_S[:-1])
                     # we're potentially propagating nans here if S<=0
                     log_ksn = log_S + reftheta * log_A
-                    ch_ksn = 10. ** log_ksn
+                    ch_ksn = 10.0 ** log_ksn
                 # save the answers into the main arrays:
                 assert np.all(self._mask[ch_nodes[:-1]])
                 # Final node gets trimmed off...
                 self.ksn[ch_nodes[:-1]] = ch_ksn
                 self._mask[ch_nodes] = False
         # now a final sweep to remove any undefined ksn values:
-        self._mask[self.ksn == -1.] = True
-        self.ksn[self.ksn == -1.] = 0.
+        self._mask[self.ksn == -1.0] = True
+        self.ksn[self.ksn == -1.0] = 0.0
 
     def channel_distances_downstream(self, ch_nodes):
         """
@@ -297,7 +297,7 @@ class SteepnessFinder(Component):
         ch_links = self.grid.at_node["flow__link_to_receiver_node"][ch_nodes]
         ch_dists = np.empty_like(ch_nodes, dtype=float)
         # dists from ch head, NOT drainage divide
-        ch_dists[0] = 0.
+        ch_dists[0] = 0.0
         np.cumsum(self.grid.length_of_d8[ch_links[:-1]], out=ch_dists[1:])
         return ch_dists
 
@@ -443,7 +443,7 @@ class SteepnessFinder(Component):
         # need to remove the influence of the final node in the seg,
         # as it reflects either the edge of the grid (S=0) or a point
         # after a confluence - hence the 0.000001
-        seg_ends = np.arange(ch_dists[-1] - 0.000001, 0., -discretization_length)[::-1]
+        seg_ends = np.arange(ch_dists[-1] - 0.000001, 0.0, -discretization_length)[::-1]
         # ^ counts up from 0, but terminates at the far end cleanly
         pts_in_each_seg = np.searchsorted(seg_ends, ch_dists)
         num_segs = pts_in_each_seg[-1]
@@ -469,7 +469,7 @@ class SteepnessFinder(Component):
             if num_pts_in_seg < 2:
                 # must be at the end of the seg...
                 # nodes in invalid segs at the end get ksn = -1.
-                ch_ksn[pts_in_seg] = -1.
+                ch_ksn[pts_in_seg] = -1.0
                 break
             seg_A = ch_A[pts_in_seg]
             seg_S = ch_S[pts_in_seg]
@@ -478,7 +478,7 @@ class SteepnessFinder(Component):
             meanlogseg_A = np.mean(logseg_A)
             meanlogseg_S = np.mean(logseg_S)
             logseg_ksn = meanlogseg_S + ref_theta * meanlogseg_A
-            ch_ksn[pts_in_seg] = 10. ** logseg_ksn
+            ch_ksn[pts_in_seg] = 10.0 ** logseg_ksn
             i -= 1
 
         return ch_ksn[:-1]

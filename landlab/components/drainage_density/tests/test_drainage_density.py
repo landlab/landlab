@@ -26,11 +26,11 @@ def test_mask_is_stable():
     noise = np.random.rand(mg.size("node"))
     mg.at_node["topographic__elevation"] += noise
     fr = FlowAccumulator(mg, flow_director="D8")
-    fsc = FastscapeEroder(mg, K_sp=.01, m_sp=.5, n_sp=1)
+    fsc = FastscapeEroder(mg, K_sp=0.01, m_sp=0.5, n_sp=1)
     for x in range(2):
         fr.run_one_step()
         fsc.run_one_step(dt=10.0)
-        mg.at_node["topographic__elevation"][mg.core_nodes] += .01
+        mg.at_node["topographic__elevation"][mg.core_nodes] += 0.01
 
     mask = np.zeros(len(mg.at_node["topographic__elevation"]), dtype=np.uint8)
     mask[np.where(mg.at_node["drainage_area"] > 0)] = 1

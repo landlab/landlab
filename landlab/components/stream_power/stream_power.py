@@ -157,10 +157,10 @@ class StreamPowerEroder(Component):
         self,
         grid,
         K_sp=None,
-        threshold_sp=0.,
+        threshold_sp=0.0,
         sp_type="set_mn",
         m_sp=0.5,
-        n_sp=1.,
+        n_sp=1.0,
         a_sp=None,
         b_sp=None,
         c_sp=None,
@@ -247,7 +247,7 @@ class StreamPowerEroder(Component):
                 else:
                     self._K_unit_time = grid.at_node[K_sp]
 
-        assert np.all(threshold_sp >= 0.)
+        assert np.all(threshold_sp >= 0.0)
         # for now, enforce threshold as a float
         assert type(threshold_sp) in (float, int)
         try:
@@ -258,7 +258,7 @@ class StreamPowerEroder(Component):
             except TypeError:  # was an array
                 self.sp_crit = threshold_sp
                 assert self.sp_crit.size == self.grid.number_of_nodes
-        if np.any(threshold_sp != 0.):
+        if np.any(threshold_sp != 0.0):
             self.set_threshold = True
             # ^flag for sed_flux_dep_incision to see if the threshold was
             # manually set.
@@ -297,8 +297,8 @@ class StreamPowerEroder(Component):
                 self._Q = use_Q
         self._type = sp_type
         if sp_type == "set_mn":
-            assert (float(m_sp) >= 0.) and (
-                float(n_sp) >= 0.
+            assert (float(m_sp) >= 0.0) and (
+                float(n_sp) >= 0.0
             ), "m and n must be positive"
             self._m = float(m_sp)
             self._n = float(n_sp)
@@ -311,32 +311,32 @@ class StreamPowerEroder(Component):
                 + "'Unit', or 'Shear_stress'."
             )
             assert (
-                m_sp == 0.5 and n_sp == 1.
+                m_sp == 0.5 and n_sp == 1.0
             ), "Do not set m and n if sp_type is not 'set_mn'!"
-            assert float(a_sp) >= 0., "a must be positive"
+            assert float(a_sp) >= 0.0, "a must be positive"
             self._a = float(a_sp)
             if b_sp is not None:
-                assert float(b_sp) >= 0., "b must be positive"
+                assert float(b_sp) >= 0.0, "b must be positive"
                 self._b = float(b_sp)
             else:
                 assert self.use_W, "b was not set"
-                self._b = 0.
+                self._b = 0.0
             if c_sp is not None:
-                assert float(c_sp) >= 0., "c must be positive"
+                assert float(c_sp) >= 0.0, "c must be positive"
                 self._c = float(c_sp)
             else:
                 assert self.use_Q, "c was not set"
-                self._c = 1.
+                self._c = 1.0
             if self._type == "Total":
                 self._n = self._a
                 self._m = self._a * self._c  # ==_a if use_Q
             elif self._type == "Unit":
                 self._n = self._a
-                self._m = self._a * self._c * (1. - self._b)
+                self._m = self._a * self._c * (1.0 - self._b)
                 # ^ ==_a iff use_Q&use_W etc
             elif self._type == "Shear_stress":
-                self._m = 2. * self._a * self._c * (1. - self._b) / 3.
-                self._n = 2. * self._a / 3.
+                self._m = 2.0 * self._a * self._c * (1.0 - self._b) / 3.0
+                self._n = 2.0 * self._a / 3.0
             else:
                 raise MissingKeyError(
                     "Not enough information was provided " + "on the exponents to use!"
@@ -529,7 +529,7 @@ class StreamPowerEroder(Component):
 
         # Disable incision in flooded nodes, as appropriate
         if flooded_nodes is not None:
-            _K_unit_time[flooded_nodes] = 0.
+            _K_unit_time[flooded_nodes] = 0.0
 
         # Operate the main function:
         if self.use_W is False and self.use_Q is False:  # normal case
@@ -541,11 +541,11 @@ class StreamPowerEroder(Component):
             )
             # Handle flooded nodes, if any (no erosion there)
             if flooded_nodes is not None:
-                self.alpha[flooded_nodes] = 0.
+                self.alpha[flooded_nodes] = 0.0
             reversed_flow = z < z[flow_receivers]
             # this check necessary if flow has been routed across
             # depressions
-            self.alpha[reversed_flow] = 0.
+            self.alpha[reversed_flow] = 0.0
 
             threshdt = self.sp_crit * dt
 
@@ -574,11 +574,11 @@ class StreamPowerEroder(Component):
                 )
                 # Handle flooded nodes, if any (no erosion there)
                 if flooded_nodes is not None:
-                    self.alpha[flooded_nodes] = 0.
+                    self.alpha[flooded_nodes] = 0.0
                 reversed_flow = z < z[flow_receivers]
                 # this check necessary if flow has been routed across
                 # depressions
-                self.alpha[reversed_flow] = 0.
+                self.alpha[reversed_flow] = 0.0
 
                 threshdt = self.sp_crit * dt
 
@@ -592,11 +592,11 @@ class StreamPowerEroder(Component):
                 )
                 # Handle flooded nodes, if any (no erosion there)
                 if flooded_nodes is not None:
-                    self.alpha[flooded_nodes] = 0.
+                    self.alpha[flooded_nodes] = 0.0
                 reversed_flow = z < z[flow_receivers]
                 # this check necessary if flow has been routed across
                 # depressions
-                self.alpha[reversed_flow] = 0.
+                self.alpha[reversed_flow] = 0.0
 
                 threshdt = self.sp_crit * dt
 
@@ -617,11 +617,11 @@ class StreamPowerEroder(Component):
             )
             # Handle flooded nodes, if any (no erosion there)
             if flooded_nodes is not None:
-                self.alpha[flooded_nodes] = 0.
+                self.alpha[flooded_nodes] = 0.0
             reversed_flow = z < z[flow_receivers]
             # this check necessary if flow has been routed across
             # depressions
-            self.alpha[reversed_flow] = 0.
+            self.alpha[reversed_flow] = 0.0
 
             threshdt = self.sp_crit * dt
 

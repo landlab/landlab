@@ -4,7 +4,7 @@ Unit tests for landlab.components.overland_flow.KinwaveOverlandFlowModel
 
 last updated: 3/14/16
 """
-(_SHAPE, _SPACING, _ORIGIN) = ((10, 10), (25, 25), (0., 0.))
+(_SHAPE, _SPACING, _ORIGIN) = ((10, 10), (25, 25), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
@@ -61,7 +61,7 @@ def test_run_one_step():
     topo_arr = topo_arr.flatten()
     grid["node"]["topographic__elevation"] = topo_arr
     KinWaveOF = KinwaveOverlandFlowModel(
-        grid, precip_rate=100., precip_duration=1.0, roughness=0.02
+        grid, precip_rate=100.0, precip_duration=1.0, roughness=0.02
     )
 
     KinWaveOF.run_one_step(60)
@@ -70,5 +70,5 @@ def test_run_one_step():
     # from Heng et. al, (2009): "Modeling overland flow and soil eroion on
     # non uniform hillslopes: A finite volume scheme." They do not provide the
     # numerical solution but the plots match...
-    max_h_mm = max(grid["node"]["surface_water__depth"]) * 1000.
+    max_h_mm = max(grid["node"]["surface_water__depth"]) * 1000.0
     np.testing.assert_almost_equal(max_h_mm, 1.66666666667)

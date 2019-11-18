@@ -71,7 +71,7 @@ class DualGraph(Graph):
         }
         self._ds = xr.merge([self._ds, self._dual.ds.rename(rename)])
 
-        self._origin = (0., 0.)
+        self._origin = (0.0, 0.0)
 
         self._frozen = False
         self.freeze()

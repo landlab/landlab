@@ -33,7 +33,7 @@ time_to_run = inputs.read_float("run_time")
 uplift = inputs.read_float("uplift_rate")
 init_elev = inputs.read_float("init_elev")
 
-mg = RasterModelGrid(nrows, ncols, xy_spacing=dx)
+mg = RasterModelGrid((nrows, ncols), xy_spacing=dx)
 
 # create the fields in the grid
 mg.add_zeros("topographic__elevation", at="node")
@@ -170,7 +170,7 @@ pylab.close()
 # Plot topography
 pylab.figure("topo")
 # im = pylab.imshow(elev_r, cmap=pylab.cm.RdBu)  # display a colored image
-im = llplot.imshow_node_grid(mg, "topographic__elevation")
+im = llplot.imshow_grid(mg, "topographic__elevation")
 # print elev_r
 # pylab.colorbar(im)
 # pylab.title('Topography')

@@ -140,7 +140,7 @@ def reorder_links_at_patch(graph):
     before = graph.links_at_patch.copy()
     area_before = get_area_of_patch(graph)
 
-    negative_areas = as_id_array(np.where(get_area_of_patch(graph) < 0.)[0])
+    negative_areas = as_id_array(np.where(get_area_of_patch(graph) < 0.0)[0])
     reverse_element_order(graph.links_at_patch, negative_areas)
     # reverse_element_order(graph._links_at_patch, negative_areas)
 
@@ -148,7 +148,7 @@ def reorder_links_at_patch(graph):
     if "nodes_at_patch" in graph._ds:
         graph._ds = graph._ds.drop("nodes_at_patch")
 
-    if np.any(get_area_of_patch(graph) < 0.):
+    if np.any(get_area_of_patch(graph) < 0.0):
         raise ValueError(
             (graph.links_at_patch, before, get_area_of_patch(graph), area_before)
         )
@@ -161,7 +161,7 @@ def reorient_link_dirs(graph):
         return
 
     angles = get_angle_of_link(graph)
-    links_to_swap = (angles < 7. * np.pi / 4.) & (angles > np.pi * .75)
+    links_to_swap = (angles < 7.0 * np.pi / 4.0) & (angles > np.pi * 0.75)
     graph.nodes_at_link[links_to_swap, :] = graph.nodes_at_link[links_to_swap, ::-1]
 
 
@@ -629,7 +629,7 @@ def calc_angle_of_spoke(graph, spoke=None, at="node", badval=None):
     dy = (y_of_spoke.T - y_of_hub).T
 
     angle_of_spoke = np.arctan2(dy, dx)
-    angle_of_spoke[angle_of_spoke < 0.] += np.pi * 2.
+    angle_of_spoke[angle_of_spoke < 0.0] += np.pi * 2.0
 
     if badval is not None:
         try:

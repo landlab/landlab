@@ -902,7 +902,7 @@ class DepressionFinderAndRouter(Component):
             self._bc_set_code = self.grid.bc_set_code
         self._lake_map.fill(LOCAL_BAD_INDEX_VALUE)
         self.depression_outlet_map.fill(LOCAL_BAD_INDEX_VALUE)
-        self.depression_depth.fill(0.)
+        self.depression_depth.fill(0.0)
         self.depression_outlets = []  # reset these
         # Locate nodes with pits
         if type(pits) == str:
@@ -1186,7 +1186,7 @@ class DepressionFinderAndRouter(Component):
         # Calculate drainage area, discharge, and downstr->upstr order
         Q_in = self._grid.at_node["water__unit_flux_in"]
         areas = self._grid.cell_area_at_node.copy()
-        areas[self._grid.closed_boundary_nodes] = 0.
+        areas[self._grid.closed_boundary_nodes] = 0.0
 
         self.a, q, s = flow_accum_bw.flow_accumulation(
             self.receivers, node_cell_area=areas, runoff_rate=Q_in

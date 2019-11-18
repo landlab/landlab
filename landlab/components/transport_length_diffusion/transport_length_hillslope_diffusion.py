@@ -117,6 +117,7 @@ class TransportLengthHillslopeDiffuser(Component):
 
     _var_mapping = {
         "topographic__elevation": "node",
+        "flow__receiver_node": "node",
         "topographic__steepest_slope": "node",
         "sediment__deposition_rate": "node",
         "sediment__transfer_rate": "node",
@@ -141,7 +142,7 @@ class TransportLengthHillslopeDiffuser(Component):
         "sediment__erosion_rate": "Erosion rate on node",
     }
 
-    def __init__(self, grid, erodibility, slope_crit=1.):
+    def __init__(self, grid, erodibility, slope_crit=1.0):
 
         """Initialize Diffuser.
 
@@ -223,10 +224,10 @@ class TransportLengthHillslopeDiffuser(Component):
         """
 
         # Reset erosion, depo, trans and flux_in to 0
-        self.erosion[:] = 0.
-        self.depo[:] = 0.
-        self.trans[:] = 0.
-        self.flux_in[:] = 0.
+        self.erosion[:] = 0.0
+        self.depo[:] = 0.0
+        self.trans[:] = 0.0
+        self.flux_in[:] = 0.0
 
         # Downstream steepest slope at node:
         self.steepest = self.grid.at_node["topographic__steepest_slope"]
@@ -246,7 +247,7 @@ class TransportLengthHillslopeDiffuser(Component):
             # When S ~ Scrit, d_coeff is set to "infinity", for stability and
             # so that there is no deposition
             if self.steepest[i] >= self.slope_crit:
-                self.d_coeff[i] = 1000000000.
+                self.d_coeff[i] = 1000000000.0
             else:
                 self.d_coeff[i] = 1 / (
                     1 - (np.power(((self.steepest[i]) / self.slope_crit), 2))

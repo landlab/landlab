@@ -155,7 +155,7 @@ class Flexure(Component):
         eet=65e3,
         youngs=7e10,
         method="airy",
-        rho_mantle=3300.,
+        rho_mantle=3300.0,
         gravity=9.80665,
         **kwds
     ):
@@ -270,7 +270,7 @@ class Flexure(Component):
 
         new_load = load.copy()
 
-        deflection.fill(0.)
+        deflection.fill(0.0)
 
         if self.method == "airy":
             deflection[:] = new_load / self.gamma_mantle

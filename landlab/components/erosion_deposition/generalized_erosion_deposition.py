@@ -52,11 +52,11 @@ class _GeneralizedErosionDeposition(Component):
     def __init__(
         self,
         grid,
-        m_sp=None,
-        n_sp=None,
-        phi=None,
-        F_f=None,
-        v_s=None,
+        m_sp,
+        n_sp,
+        phi,
+        F_f,
+        v_s,
         discharge_field="surface_water__discharge",
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
     ):

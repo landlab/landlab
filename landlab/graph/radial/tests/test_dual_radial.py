@@ -23,7 +23,7 @@ def test_spacing():
     graph = DualRadialGraph((1, 4))
 
     assert_array_almost_equal(
-        graph.xy_of_node, [[0., -1.], [-1., 0.], [0., 0.], [1., 0.], [0., 1.]]
+        graph.xy_of_node, [[0.0, -1.0], [-1.0, 0.0], [0.0, 0.0], [1.0, 0.0], [0.0, 1.0]]
     )
 
     assert_array_almost_equal(
@@ -33,27 +33,28 @@ def test_spacing():
 
 def test_spacing_keyword():
     """Test the spacing keyword for raster."""
-    graph = DualRadialGraph((1, 4), spacing=2.)
+    graph = DualRadialGraph((1, 4), spacing=2.0)
 
     assert_array_almost_equal(
-        graph.xy_of_node, [[0., -2.], [-2., 0.], [0., 0.], [2., 0.], [0., 2.]]
+        graph.xy_of_node, [[0.0, -2.0], [-2.0, 0.0], [0.0, 0.0], [2.0, 0.0], [0.0, 2.0]]
     )
 
     assert_array_almost_equal(
-        graph.xy_of_corner, [[-1., -1.], [1., -1.], [-1., 1.], [1., 1.]]
+        graph.xy_of_corner, [[-1.0, -1.0], [1.0, -1.0], [-1.0, 1.0], [1.0, 1.0]]
     )
 
 
 def test_origin():
     """Test the origin keyword for raster."""
-    graph = DualRadialGraph((1, 4), spacing=2., origin=(-1., 2))
+    graph = DualRadialGraph((1, 4), spacing=2.0, origin=(-1.0, 2))
 
     assert_array_almost_equal(
-        graph.xy_of_node, [[2., -3.], [0., -1.], [2., -1.], [4., -1.], [2., 1.]]
+        graph.xy_of_node,
+        [[2.0, -3.0], [0.0, -1.0], [2.0, -1.0], [4.0, -1.0], [2.0, 1.0]],
     )
 
     assert_array_almost_equal(
-        graph.xy_of_corner, [[1., -2.], [3., -2.], [1., 0.], [3., 0.]]
+        graph.xy_of_corner, [[1.0, -2.0], [3.0, -2.0], [1.0, 0.0], [3.0, 0.0]]
     )
 
 
@@ -67,22 +68,22 @@ def test_origin():
 
 def test_length_of_face_and_link():
     """Test length of faces and links."""
-    ROOT_2 = np.sqrt(2.)
+    ROOT_2 = np.sqrt(2.0)
 
     graph = DualRadialGraph((1, 4))
 
     assert_array_almost_equal(
-        graph.length_of_link, [ROOT_2, 1., ROOT_2, 1., 1., ROOT_2, 1., ROOT_2]
+        graph.length_of_link, [ROOT_2, 1.0, ROOT_2, 1.0, 1.0, ROOT_2, 1.0, ROOT_2]
     )
-    assert_array_almost_equal(graph.length_of_face, [1., 1., 1., 1.])
+    assert_array_almost_equal(graph.length_of_face, [1.0, 1.0, 1.0, 1.0])
 
 
 def test_area_of_cell_and_patch():
     """Test areas of cells patches."""
     graph = DualRadialGraph((1, 4))
 
-    assert_array_almost_equal(graph.area_of_patch, [.5, .5, .5, .5])
-    assert_array_almost_equal(graph.area_of_cell, [1.])
+    assert_array_almost_equal(graph.area_of_patch, [0.5, 0.5, 0.5, 0.5])
+    assert_array_almost_equal(graph.area_of_cell, [1.0])
 
 
 def test_corners_at_cell():

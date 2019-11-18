@@ -123,7 +123,7 @@ def flow_directions(
     if baselevel_nodes is not None:
         receiver[baselevel_nodes] = node_id[baselevel_nodes]
         receiver_link[baselevel_nodes] = UNDEFINED_INDEX
-        steepest_slope[baselevel_nodes] = 0.
+        steepest_slope[baselevel_nodes] = 0.0
 
     # The sink nodes are those that are their own receivers (this will normally
     # include boundary nodes as well as interior ones; "pits" would be sink

@@ -58,7 +58,7 @@ def test_4x7_grid_vs_analytical_solution():
     # calculations.
     my_nodes = mg.nodes[2, :]
     assert_array_equal(
-        np.round(z[my_nodes], 1), np.array([0.0, 4.0, 6.7, 7.7, 6.7, 4.0, 0.0])
+        np.round(z[my_nodes], 1), np.array([0.0, 6.2, 10.7, 12.6, 10.7, 6.2, 0.0])
     )
     assert_array_equal(
         np.round(mg.at_node["soil__depth"][8:13], 2),

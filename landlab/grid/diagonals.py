@@ -342,7 +342,7 @@ class DiagonalsMixIn(object):
     @make_return_array_immutable
     def length_of_diagonal(self):
         return np.sqrt(
-            np.power(np.diff(self.xy_of_node[self.nodes_at_diagonal], axis=1), 2.).sum(
+            np.power(np.diff(self.xy_of_node[self.nodes_at_diagonal], axis=1), 2.0).sum(
                 axis=2
             )
         ).flatten()

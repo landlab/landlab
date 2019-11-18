@@ -44,7 +44,7 @@ runtime = inputs.read_float("total_time")
 dt = inputs.read_float("dt")
 
 # check we have a plaubible grid
-mg = RasterModelGrid(nrows, ncols, dx)
+mg = RasterModelGrid((nrows, ncols), dx)
 assert mg.number_of_nodes == nrows * ncols
 assert mg.dx == dx
 
@@ -186,7 +186,7 @@ time_off = time()
 # Finalize and plot
 
 elev = mg["node"]["topographic__elevation"]
-# imshow.imshow_node_grid(mg, elev)
+# imshow.imshow_grid(mg, elev)
 
 print("Done.")
 print("Time: {0}".format(time_off - time_on))

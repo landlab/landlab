@@ -33,7 +33,7 @@ from landlab.utils import StablePriorityQueue
 from landlab.utils.return_array import return_array_at_node
 
 LOCAL_BAD_INDEX_VALUE = BAD_INDEX_VALUE
-LARGE_ELEV = 9999999999.
+LARGE_ELEV = 9999999999.0
 
 # TODO: Needs to have rerouting functionality...
 
@@ -1174,7 +1174,7 @@ class LakeMapperBarnes(Component):
                                 if closedq[n] == 0:
                                     self._receivers[n] = c
                                     self._receiverlinks[n] = l
-                                    self._steepestslopes[n] = 0.
+                                    self._steepestslopes[n] = 0.0
                                     closedq[n] = 2  # close it
                                     openq.add_task(n, priority=surface[n])
                                 else:  # it's liminal (1); grads likely wrong

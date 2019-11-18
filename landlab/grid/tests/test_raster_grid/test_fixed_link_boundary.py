@@ -12,7 +12,7 @@ from landlab import (
 def test_fixed_link_boundaries_at_grid_edges():
     """test setting fixed link boundaries at grid edges"""
 
-    grid = RasterModelGrid(3, 4)
+    grid = RasterModelGrid((3, 4))
     grid["node"]["topographic__elevation"] = np.zeros(grid.number_of_nodes)
     grid["link"]["topographic__slope"] = np.zeros(grid.number_of_links)
     grid.set_fixed_link_boundaries_at_grid_edges(False, False, False, True)
@@ -27,7 +27,7 @@ def test_fixed_link_boundaries_at_grid_edges():
 
 def test_nodata_fixed_links():
     """test setting nodata nodes to fixed gradient"""
-    grid = RasterModelGrid(3, 4)
+    grid = RasterModelGrid((3, 4))
     grid["node"]["topographic__elevation"] = np.zeros(grid.number_of_nodes)
     grid["link"]["topographic__slope"] = np.zeros(grid.number_of_links)
     z = grid["node"]["topographic__elevation"]
@@ -44,7 +44,7 @@ def test_nodata_fixed_links():
 
 def test_fixed_gradient_and_value_boundary():
     """testing multiple boundary conditions with fixed links"""
-    grid = RasterModelGrid(3, 4)
+    grid = RasterModelGrid((3, 4))
     grid["node"]["topographic__elevation"] = np.zeros(grid.number_of_nodes)
     grid["link"]["topographic__slope"] = np.zeros(grid.number_of_links)
 

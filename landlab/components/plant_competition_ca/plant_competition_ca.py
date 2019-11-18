@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from landlab import Component
@@ -104,7 +103,7 @@ class VegCA(Component):
         self,
         grid,
         Pemaxg=0.35,
-        ING=2.,
+        ING=2.0,
         ThetaGrass=0.62,
         PmbGrass=0.05,
         Pemaxsh=0.2,
@@ -259,8 +258,8 @@ class VegCA(Component):
         Tr_WS_sr = WS_PFT(veg_type_sr, TREE, self._live_index[second_ring])
 
         n = count(veg_type_fr, SHRUB)
-        Phi_sh = Sh_WS_fr / 8.
-        Phi_tr = (Tr_WS_fr + Tr_WS_sr / 2.) / 8.
+        Phi_sh = Sh_WS_fr / 8.0
+        Phi_tr = (Tr_WS_fr + Tr_WS_sr / 2.0) / 8.0
         Phi_g = np.mean(self._live_index[np.where(self._VegType == GRASS)])
         Pemaxg = self._Pemaxg * np.ones(n_bare)
         Pemaxsh = self._Pemaxsh * np.ones(n_bare)
@@ -286,7 +285,7 @@ class VegCA(Component):
             [self._th_g, self._th_sh, self._th_tr, 0, self._th_sh_s, self._th_tr_s],
         )
         PMd = self._CumWS[plant_cells] - Theta
-        PMd[PMd < 0.] = 0.
+        PMd[PMd < 0.0] = 0.0
         tpmax = np.choose(
             self._VegType[plant_cells],
             [
@@ -316,7 +315,7 @@ class VegCA(Component):
             ],
         )
         PM = PMd + PMa + PMb
-        PM[PM > 1.] = 1.
+        PM[PM > 1.0] = 1.0
         R_Mor = np.random.rand(n_plant)  # Random number for comparison to kill
         Mortality = np.int32(np.where(np.greater_equal(PM, R_Mor))[0])
         self._VegType[plant_cells[Mortality]] = BARE

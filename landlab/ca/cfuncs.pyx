@@ -1008,10 +1008,6 @@ cpdef double run_cts_new(double run_to, double current_time,
             # If so, pick the next transition event from the event queue
             (ev_time, ev_idx, ev_link) = priority_queue.pop()
 
-            if _DEBUG:
-                print('event:', ev_time, ev_link, trn_to[next_trn_id[ev_link]])
-                print('pq top is now:', priority_queue._queue[0])
-
             # ... and execute the transition
             do_transition_new(ev_link, ev_time, priority_queue, next_update,
                               node_at_link_tail,
@@ -1045,9 +1041,6 @@ cpdef double run_cts_new(double run_to, double current_time,
         # advance current_time to the end of the current run period.
         else:
             current_time = run_to
-
-        if _DEBUG:
-            print(node_state)
 
     return current_time
 

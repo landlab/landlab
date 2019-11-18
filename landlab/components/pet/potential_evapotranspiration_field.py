@@ -1,4 +1,3 @@
-
 import numpy as np
 
 from landlab import Component
@@ -120,13 +119,13 @@ class PotentialEvapotranspiration(Component):
         psychometric_const=0.066,
         stefan_boltzmann_const=0.0000000567,
         solar_const=1366.67,
-        latitude=34.,
+        latitude=34.0,
         elevation_of_measurement=300,
         adjustment_coeff=0.18,
-        lt=0.,
-        nd=365.,
-        MeanTmaxF=12.,
-        delta_d=5.,
+        lt=0.0,
+        nd=365.0,
+        MeanTmaxF=12.0,
+        delta_d=5.0,
         **kwds
     ):
         """
@@ -172,7 +171,7 @@ class PotentialEvapotranspiration(Component):
         self._y = psychometric_const
         self._sigma = stefan_boltzmann_const
         self._Gsc = solar_const
-        self._phi = (np.pi / 180.) * latitude
+        self._phi = (np.pi / 180.0) * latitude
         self._z = elevation_of_measurement
         self._Krs = adjustment_coeff
         self._LT = lt
@@ -196,11 +195,11 @@ class PotentialEvapotranspiration(Component):
     def update(
         self,
         current_time=None,
-        const_potential_evapotranspiration=12.,
-        Tmin=0.,
-        Tmax=1.,
+        const_potential_evapotranspiration=12.0,
+        Tmin=0.0,
+        Tmax=1.0,
         Tavg=0.5,
-        obs_radiation=350.,
+        obs_radiation=350.0,
         **kwds
     ):
         """Update fields with current conditions.
@@ -243,12 +242,12 @@ class PotentialEvapotranspiration(Component):
             Robs = obs_radiation
             self._PET_value = self._MeasuredRadPT(Tavg, (1 - self._a) * Robs)
         elif self._method == "Cosine":
-            self._J = np.floor((current_time - np.floor(current_time)) * 365.)
+            self._J = np.floor((current_time - np.floor(current_time)) * 365.0)
             self._PET_value = max(
                 (
                     self._TmaxF_mean
                     + self._DeltaD
-                    / 2.
+                    / 2.0
                     * np.cos(
                         (2 * np.pi) * (self._J - self._LT - self._ND / 2) / self._ND
                     )

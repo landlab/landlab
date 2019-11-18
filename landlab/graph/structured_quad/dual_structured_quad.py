@@ -122,7 +122,7 @@ class DualUniformRectilinearGraph(DualRectilinearGraph):
            [5, 6, 4, 3]])
     """
 
-    def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):
+    def __init__(self, shape, spacing=(1.0, 1.0), origin=(0.0, 0.0)):
         spacing = np.broadcast_to(spacing, 2)
         origin = np.broadcast_to(origin, 2)
 
@@ -186,13 +186,13 @@ def get_corners(node_y_and_x, shape):
         + x_of_node[:-1, 1:]
         + x_of_node[1:, :-1]
         + x_of_node[1:, 1:]
-    ) * .25
+    ) * 0.25
     y_of_corner = (
         y_of_node[:-1, :-1]
         + y_of_node[:-1, 1:]
         + y_of_node[1:, :-1]
         + y_of_node[1:, 1:]
-    ) * .25
+    ) * 0.25
 
     return y_of_corner, x_of_corner
 

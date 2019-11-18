@@ -14,14 +14,14 @@ from pylab import close, figure, show
 
 from landlab import ModelParameterDictionary, RasterModelGrid
 from landlab.components import FastscapeEroder, FlowAccumulator, PotentialityFlowRouter
-from landlab.plot.imshow import imshow_node_grid
+from landlab.plot.imshow import imshow_grid
 
 nrows = 100
 ncols = 100
 dx = 1000.
 
 close("all")
-mg = RasterModelGrid(nrows, ncols, dx)
+mg = RasterModelGrid((nrows, ncols), dx)
 z = (3000. - mg.node_x) * 0.5
 # z = -mg.node_x-mg.node_y
 # z = np.sqrt(mg.node_x**2 + mg.node_y**2)
@@ -33,7 +33,7 @@ mg.at_node["topographic__elevation"] = z
 # mg.set_fixed_value_boundaries_at_grid_edges(True, True, True, True)
 mg.set_closed_boundaries_at_grid_edges(False, True, True, True)
 figure(3)
-imshow_node_grid(mg, mg.status_at_node)
+imshow_grid(mg, mg.status_at_node)
 
 mg.at_node["water__unit_flux_in"] = np.ones_like(z)
 
@@ -42,9 +42,9 @@ pfr = PotentialityFlowRouter(mg, "pot_fr_params.txt")
 pfr.route_flow(route_on_diagonals=True)
 
 figure(1)
-imshow_node_grid(mg, "surface_water__discharge")
+imshow_grid(mg, "surface_water__discharge")
 figure(2)
-imshow_node_grid(mg, "topographic__elevation")
+imshow_grid(mg, "topographic__elevation")
 
 out_sum = np.sum(mg.at_node["surface_water__discharge"].reshape((nrows, ncols))[-3, :])
 print(out_sum)
@@ -63,7 +63,7 @@ print(
 
 # now a run with a grid...
 
-# mg = RasterModelGrid(nrows, ncols, dx)
+# mg = RasterModelGrid((nrows, ncols), dx)
 # # make a topo to test on:
 # mg.at_node['topographic__elevation'] = np.zeros(mg.number_of_nodes)
 # fr = FlowRouter(mg)
@@ -97,7 +97,7 @@ time_to_run = inputs.read_float("run_time")
 uplift = inputs.read_float("uplift_rate")
 init_elev = inputs.read_float("init_elev")
 
-mg = RasterModelGrid(nrows, ncols, dx)
+mg = RasterModelGrid((nrows, ncols), dx)
 
 # create the fields in the grid
 mg.add_zeros("topographic__elevation", at="node")
@@ -141,23 +141,23 @@ pfr = PotentialityFlowRouter(mg, "pot_fr_params.txt")
 pfr.route_flow(return_components=True)  # route_on_diagonals=False)
 
 figure("Topo")
-imshow_node_grid(mg, "topographic__elevation")
+imshow_grid(mg, "topographic__elevation")
 figure("Potentiality flow fluxes")
-imshow_node_grid(mg, "surface_water__discharge")
+imshow_grid(mg, "surface_water__discharge")
 figure("D8 drainage areas")
-imshow_node_grid(mg, "drainage_area")
+imshow_grid(mg, "drainage_area")
 figure("K (core only)")
 mg.at_node["flow__potential"][mg.boundary_nodes] = 0.
-imshow_node_grid(mg, "flow__potential")
+imshow_grid(mg, "flow__potential")
 depths = np.where(
     mg.at_node["surface_water__depth"] > 1.e6, 0., mg.at_node["surface_water__depth"]
 )
 figure("depths")
-imshow_node_grid(mg, depths, var_name="depths (Manning)")
+imshow_grid(mg, depths, var_name="depths (Manning)")
 figure("xcomp")
-imshow_node_grid(mg, "water__discharge_x_component")
+imshow_grid(mg, "water__discharge_x_component")
 figure("ycomp")
-imshow_node_grid(mg, "water__discharge_y_component")
+imshow_grid(mg, "water__discharge_y_component")
 
 print("flux in per node: ", mg.at_node["water__unit_flux_in"][0])
 print(

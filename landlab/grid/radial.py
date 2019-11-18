@@ -7,6 +7,7 @@ Do NOT add new documentation here. Grid documentation is now built in a semi-
 automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
+from __future__ import absolute_import
 
 from warnings import warn
 
@@ -67,7 +68,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
     20
     """
 
-    def __init__(self, num_shells=0, dr=1.0, xy_of_center=(0., 0.), **kwds):
+    def __init__(self, num_shells=0, dr=1.0, xy_of_center=(0.0, 0.0), **kwds):
         """Create a circular grid.
 
         Create a circular grid in which grid nodes are placed at regular
@@ -152,7 +153,7 @@ class RadialModelGrid(VoronoiDelaunayGrid):
         self._dr = dr
         super(RadialModelGrid, self)._initialize(pts[:, 0], pts[:, 1])
 
-    def _create_radial_points(self, num_shells, dr, xy_of_center=(0., 0.)):
+    def _create_radial_points(self, num_shells, dr, xy_of_center=(0.0, 0.0)):
         """Create a set of points on concentric circles.
 
         Creates and returns a set of (x,y) points placed in a series of
@@ -172,10 +173,10 @@ class RadialModelGrid(VoronoiDelaunayGrid):
                 i + 1
             )
             ycoord = r[i] * numpy.sin(theta)
-            if numpy.isclose(ycoord[-1], 0.):
+            if numpy.isclose(ycoord[-1], 0.0):
                 # this modification necessary to force the first ring to
                 # follow our new CCW from E numbering convention (DEJH, Nov15)
-                ycoord[-1] = 0.
+                ycoord[-1] = 0.0
                 pts[startpt : (startpt + int(n_pts_in_shell[i])), 0] = numpy.roll(
                     r[i] * numpy.cos(theta), 1
                 )
@@ -240,7 +241,9 @@ class RadialModelGrid(VoronoiDelaunayGrid):
             return self._nnodes_inshell
         except AttributeError:
             n_pts_in_shell = numpy.round(
-                2. * numpy.pi * (numpy.arange(self.number_of_shells, dtype=float) + 1.)
+                2.0
+                * numpy.pi
+                * (numpy.arange(self.number_of_shells, dtype=float) + 1.0)
             )
             self._nnodes_inshell = n_pts_in_shell.astype(int)
             return self._nnodes_inshell

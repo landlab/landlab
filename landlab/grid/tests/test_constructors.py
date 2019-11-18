@@ -104,7 +104,7 @@ def test_hex_from_dict():
     params = {
         "base_num_rows": 5,
         "base_num_cols": 4,
-        "dx": 2.,
+        "dx": 2.0,
         "xy_of_lower_left": (35, 55),
         "axis_name": ("spam", "eggs"),
         "axis_units": ("smoot", "parsec"),
@@ -116,30 +116,30 @@ def test_hex_from_dict():
     # assert things.
     true_x_node = np.array(
         [
-            37.,
-            39.,
-            41.,
-            43.,
-            36.,
-            38.,
-            40.,
-            42.,
-            44.,
-            35.,
-            37.,
-            39.,
-            41.,
-            43.,
-            45.,
-            36.,
-            38.,
-            40.,
-            42.,
-            44.,
-            37.,
-            39.,
-            41.,
-            43.,
+            37.0,
+            39.0,
+            41.0,
+            43.0,
+            36.0,
+            38.0,
+            40.0,
+            42.0,
+            44.0,
+            35.0,
+            37.0,
+            39.0,
+            41.0,
+            43.0,
+            45.0,
+            36.0,
+            38.0,
+            40.0,
+            42.0,
+            44.0,
+            37.0,
+            39.0,
+            41.0,
+            43.0,
         ]
     )
     assert_array_equal(true_x_node, mg.x_of_node)
@@ -152,7 +152,7 @@ def test_hex_from_dict():
 def test_radial_from_dict():
     params = {
         "num_shells": 5,
-        "dr": 2.,
+        "dr": 2.0,
         "xy_of_center": (35, 55),
         "axis_name": ("spam", "eggs"),
         "axis_units": ("smoot", "parsec"),
@@ -179,8 +179,8 @@ def test_network_from_dict():
         "xy_of_reference": (12345, 678910),
     }
     mg = NetworkModelGrid.from_dict(params)
-    assert_array_equal(mg.x_of_node, np.array([0., 0., -1., 1.]))
-    assert_array_equal(mg.y_of_node, np.array([0., 1., 2., 2.]))
+    assert_array_equal(mg.x_of_node, np.array([0.0, 0.0, -1.0, 1.0]))
+    assert_array_equal(mg.y_of_node, np.array([0.0, 1.0, 2.0, 2.0]))
     assert_array_equal(mg.nodes_at_link, np.array([[0, 1], [2, 1], [1, 3]]))
     assert mg.axis_units == ("smoot", "parsec")
     assert mg.axis_name == ("spam", "eggs")
@@ -209,8 +209,8 @@ def test_network_from_file():
     file_like = StringIO(file_strn)
     mg = NetworkModelGrid.from_file(file_like)
 
-    assert_array_equal(mg.x_of_node, np.array([0., 0., -1., 1.]))
-    assert_array_equal(mg.y_of_node, np.array([0., 1., 2., 2.]))
+    assert_array_equal(mg.x_of_node, np.array([0.0, 0.0, -1.0, 1.0]))
+    assert_array_equal(mg.y_of_node, np.array([0.0, 1.0, 2.0, 2.0]))
     assert_array_equal(mg.nodes_at_link, np.array([[0, 1], [2, 1], [1, 3]]))
     assert mg.axis_units == ("smoot", "parsec")
     assert mg.axis_name == ("spam", "eggs")
@@ -233,8 +233,8 @@ def test_voronoi_from_dict():
     assert mg.axis_name == ("spam", "eggs")
     assert mg.xy_of_reference == (12345, 678910)
 
-    true_x = np.array([0., 1., 2., 0.1, 1.1, 2.1, 0.2, 1.2, 2.2, 0.3, 1.3, 2.3])
-    true_y = np.array([0., 0., 0., 1., 1., 1., 2., 2., 2., 3., 3., 3.])
+    true_x = np.array([0.0, 1.0, 2.0, 0.1, 1.1, 2.1, 0.2, 1.2, 2.2, 0.3, 1.3, 2.3])
+    true_y = np.array([0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0])
     true_nodes_at_node = np.array(
         [
             [1, 3, -1, -1, -1, -1],

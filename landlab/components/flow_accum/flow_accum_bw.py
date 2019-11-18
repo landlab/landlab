@@ -281,7 +281,7 @@ def find_drainage_area_and_discharge(
     # transmission losses
     _accumulate_bw(np, s, r, drainage_area, discharge)
     # nodes at channel heads can still be negative with this method, so...
-    discharge = discharge.clip(0.)
+    discharge = discharge.clip(0.0)
 
     return drainage_area, discharge
 
@@ -416,7 +416,7 @@ def find_drainage_area_and_discharge_lossy(
         if donor != recvr:
             drainage_area[recvr] += drainage_area[donor]
             discharge_remaining = numpy.clip(
-                loss_function(discharge[donor], donor, lrec, grid), 0., float("inf")
+                loss_function(discharge[donor], donor, lrec, grid), 0.0, float("inf")
             )
             grid.at_node["surface_water__discharge_loss"][donor] = (
                 discharge[donor] - discharge_remaining

@@ -7,16 +7,18 @@ Created on Sun May 20 15:54:03 2018
 
 @authors: Jon Czuba, Allison Pfeiffer, Katy Barnhart
 """
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 # from landlab.components import NetworkSedimentTransporter
-from landlab.components import FlowDirectorSteepest
+from landlab import BAD_INDEX_VALUE
+from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 from landlab.plot import graph
+from landlab.plot.network_sediment_transporter import *  # Note-- this is an example. it loads plotting scripts that don't exist yet.
 
-from landlab.components import NetworkSedimentTransporter
+_OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
 
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
 
@@ -29,8 +31,8 @@ grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 plt.figure(0)
 graph.plot_graph(grid, at="node,link")
 
-grid.at_node["topographic__elevation"] = [0.0, 0.1, 0.3, 0.2, 0.3, 0.4, 0.41, 0.5]
-grid.at_node["bedrock__elevation"] = [0.0, 0.1, 0.3, 0.2, 0.3, 0.4, 0.41, 0.5]
+grid.at_node["topographic__elevation"] = [0.0, 0.1, 0.3, 0.3, 0.45, 0.45, 0.7, 0.8]
+grid.at_node["bedrock__elevation"] = [0.0, 0.1, 0.3, 0.3, 0.45, 0.45, 0.7, 0.8]
 
 area = grid.add_ones("cell_area_at_node", at="node")
 
@@ -53,11 +55,10 @@ grid.at_link["channel_width"][3] = 10
 
 g = 9.81  # m/s2
 rho = 1000  # kg/m3
-active_layer_thickness = 0.5
 
 bed_porosity = 0.3  # porosity of the bed material
 
-# %% initialize bed sediment (will become its own component)
+# %% initialize bed sediment (may become its own component)
 
 # NOTE: inputs to DataRecord need to have the same shape as the time/item inputs
 # So, if a parcel attribute is being tracked in time, it needs to have
@@ -67,15 +68,21 @@ bed_porosity = 0.3  # porosity of the bed material
 # Ultimately,
 # parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
 
+timesteps = 1
 
-timesteps = 10
+element_id = np.repeat(np.array([0, 1, 2, 3, 4, 5, 6], dtype=int),
+                       100
+                       )
 
-element_id = np.array(
-    [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 1], dtype=int
-)  # current link for each parcel
+#  
+#element_id = np.array(
+#    [0, 0, 1, 1, 1, 
+#     5, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 2, 3, 4, 4, 4, 3, 4, 5],
+#    dtype=int,
+#) # current link for each parcel
 
 element_id = np.expand_dims(element_id, axis=1)
-#%%
+
 starting_link = np.squeeze(element_id)  # starting link for each parcel
 
 np.random.seed(0)
@@ -88,7 +95,7 @@ D = 0.05 * np.ones(np.shape(element_id))  # (m) the diameter of grains in each p
 lithology = ["quartzite"] * np.size(
     element_id
 )  # a lithology descriptor for each parcel
-abrasion_rate = np.zeros(
+abrasion_rate = 0.0001 * np.ones(
     np.size(element_id)
 )  # 0 = no abrasion; abrasion rates are positive mass loss coefficients (mass loss / METER)
 active_layer = np.ones(
@@ -122,7 +129,13 @@ variables = {
     "volume": (["item_id", "time"], volume),
 }
 
-parcels = DataRecord(grid, items=items, time=time, data_vars=variables)
+parcels = DataRecord(
+    grid,
+    items=items,
+    time=time,
+    data_vars=variables,
+    dummy_elements={"link": [_OUT_OF_NETWORK]},
+)
 
 
 # Add parcels in at a given time --> attribute in the item collection
@@ -131,9 +144,9 @@ parcels = DataRecord(grid, items=items, time=time, data_vars=variables)
 
 # Made up hydraulic geometry
 
-Qgage = 2000.0  #
-dt = 60 * 60 * 24
-# (seconds) daily timestep
+Qgage = 1000000.0  # (m3/s)
+dt = 60 * 60 * 24  # (seconds) daily timestep
+
 Bgage = 30.906 * Qgage ** 0.1215
 # (m)
 Hgage = 1.703 * Qgage ** 0.3447
@@ -146,12 +159,10 @@ channel_width = (np.tile(Bgage, (grid.number_of_links)) / (Agage ** 0.5)) * np.t
 ) ** 0.5
 
 flow_depth = (np.tile(Hgage, (grid.number_of_links)) / (Agage ** 0.4)) * np.tile(
-    grid.at_link["drainage_area"], (timesteps, 1)
+    grid.at_link["drainage_area"], (timesteps + 1, 1)
 ) ** 0.4
 
-
 Btmax = np.amax(channel_width, axis=0)  # CURRENTLY UNUSED
-
 
 # %% Instantiate component(s)
 # dis = ExteralDischargeSetter(grid, filename, model='dhsvm')
@@ -162,7 +173,6 @@ Btmax = np.amax(channel_width, axis=0)  # CURRENTLY UNUSED
 # sc = SyntheticChannelGeomMaker(hydraulic_geometry_scaling_rules,discharge)
 #
 
-
 fd = FlowDirectorSteepest(grid, "topographic__elevation")
 fd.run_one_step()
 
@@ -171,7 +181,6 @@ nst = NetworkSedimentTransporter(
     parcels,
     fd,
     flow_depth,
-    active_layer_thickness,
     bed_porosity,
     g=9.81,
     fluid_density=1000,
@@ -182,7 +191,8 @@ nst = NetworkSedimentTransporter(
 # %% Run the component(s)
 
 for t in range(0, (timesteps * dt), dt):
-    print("timestep ", [t], "started")
+    #print("timestep ", [t], "started")
+    print("Model time: ", t/(60*60*24), "days passed")
     # move any sediment additions from forcing Item collector to bed item collector
 
     # sq.run_one_step
@@ -193,7 +203,6 @@ for t in range(0, (timesteps * dt), dt):
 
     # Run our component
     nst.run_one_step(dt)
-    print("timestep ", t, "completed!")
 
 
 #%%
@@ -202,16 +211,33 @@ for t in range(0, (timesteps * dt), dt):
 
 # %% A few plot outputs, just to get started.
 
+
 plt.figure(1)
-plt.plot(parcels.time_coordinates, parcels.location_in_link.values[6, :], ".")
-plt.plot(parcels.time_coordinates, parcels.location_in_link.values[5, :], ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.location_in_link.values[0, :], ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.location_in_link.values[14, :], ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.location_in_link.values[16, :], ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.location_in_link.values[17, :], ".")
+
 plt.title("Tracking link location for a single parcel")
 plt.xlabel("time")
 plt.ylabel("location in link")
 
 
 plt.figure(2)
-plt.plot(parcels.time_coordinates, np.sum(parcels["volume"].values, axis=0), ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.element_id.values[0, :], ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.element_id.values[14, :], ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.element_id.values[16, :], ".")
+plt.plot(parcels.time_coordinates, parcels.dataset.element_id.values[17, :], ".")
+
+plt.title("Tracking link location for a single parcel")
+plt.xlabel("time")
+plt.ylabel("link")
+
+
+plt.figure(3)
+plt.plot(
+    parcels.time_coordinates, np.sum(parcels.dataset["volume"].values, axis=0), "."
+)
 plt.title("Silly example: total volume, all parcels through time")
 plt.xlabel("time")
 plt.ylabel("total volume of parcels")

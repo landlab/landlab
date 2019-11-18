@@ -9,7 +9,7 @@ Created on Fri Feb 20 13:45:52 2015
 from __future__ import print_function
 
 # from landlab import RasterModelGrid
-# from landlab.plot.imshow import imshow_node_grid
+# from landlab.plot.imshow import imshow_grid
 import numpy as np
 from matplotlib.ticker import MaxNLocator
 from pylab import clabel, contour, figure, imshow
@@ -174,7 +174,7 @@ for i in range(nt):
         pR[core][mask] = 0.
 
 X, Y = np.meshgrid(np.arange(n), np.arange(n))
-# imshow_node_grid(mg, h)
+# imshow_grid(mg, h)
 figure(1)
 f1 = imshow(hR[core])
 figure(2)
