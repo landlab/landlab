@@ -17,7 +17,7 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
                      iterate_sde_downstream)
 
 WAVE_STABILITY_PREFACTOR = 0.2
-CONV_FACTOR_LOOSE = 0.1  # controls the convergence of node elevs in the loop
+CONV_FACTOR_LOOSE = 0.5  # controls the convergence of node elevs in the loop
 CONV_FACTOR_SED = 0.5
 YEAR_SECS = 31557600.
 
@@ -952,15 +952,15 @@ class SedDepEroder(Component):
             # component) once we have the rates.
             # This won't be "correct", but it will be stable.
             sdr_rel_to_1st_surface = sed_dep_rate - sed_rate_at_nodes
-            print("dzbydt ", dzbydt[grid.core_nodes]*YEAR_SECS)
-            print("rel_sed_flux", rel_sed_flux)
-            print("capacities ", transport_capacities[grid.core_nodes]*YEAR_SECS)
-            print("is it TL ", self._is_it_TL)
-            print("hillslope flux in ", self._hillslope_sediment_flux_wzeros[grid.core_nodes]*YEAR_SECS)
-            print("river flux out ", river_volume_flux_out_of_node[grid.core_nodes]*YEAR_SECS)
-            print('sdr', sed_dep_rate[grid.core_nodes]*YEAR_SECS)
-            print('sran', sed_rate_at_nodes[grid.core_nodes]*YEAR_SECS)
-            print("sdr_rtfs", sdr_rel_to_1st_surface[grid.core_nodes]*YEAR_SECS)
+#            print("dzbydt ", dzbydt[grid.core_nodes]*YEAR_SECS)
+#            print("rel_sed_flux", rel_sed_flux)
+#            print("capacities ", transport_capacities[grid.core_nodes]*YEAR_SECS)
+#            print("is it TL ", self._is_it_TL)
+#            print("hillslope flux in ", self._hillslope_sediment_flux_wzeros[grid.core_nodes]*YEAR_SECS)
+#            print("river flux out ", river_volume_flux_out_of_node[grid.core_nodes]*YEAR_SECS)
+#            print('sdr', sed_dep_rate[grid.core_nodes]*YEAR_SECS)
+#            print('sran', sed_rate_at_nodes[grid.core_nodes]*YEAR_SECS)
+#            print("sdr_rtfs", sdr_rel_to_1st_surface[grid.core_nodes]*YEAR_SECS)
 
             # now perform a CHILD-like convergence-based stability test.
             # This uses the historic rates as a guide to the future, i.e.,
@@ -1013,9 +1013,9 @@ class SedDepEroder(Component):
                 # with rel_sed_flux=1.)
                 # Note no incision can ever happen here, since we set the
                 # BR slopes to zero elsewhere
-                print("dzbydt", dzbydt[grid.core_nodes]*YEAR_SECS)
+#                print("dzbydt", dzbydt[grid.core_nodes]*YEAR_SECS)
                 #print("capacities ", transport_capacities[grid.core_nodes]*YEAR_SECS)
-                print("sdr_rtfs", sdr_rel_to_1st_surface[grid.core_nodes]*YEAR_SECS)
+#                print("sdr_rtfs", sdr_rel_to_1st_surface[grid.core_nodes]*YEAR_SECS)
                 receiver_sdr_rtfs = sdr_rel_to_1st_surface[flow_receiver]
                 ratediff_first = receiver_sdr_rtfs + dzbydt[flow_receiver] - sdr_rel_to_1st_surface - dzbydt
                 # a 2nd order solution is required;
@@ -1025,9 +1025,9 @@ class SedDepEroder(Component):
                 ratediff_next = receiver_sdr_rtfs[flow_receiver] + dzbydt[flow_receiver][flow_receiver] - receiver_sdr_rtfs - dzbydt[flow_receiver]
                 ratediff = ratediff_first - ratediff_next
                 downstr_vert_diff = node_z - node_z[flow_receiver]
-                print("ratediff ", ratediff[grid.core_nodes]*YEAR_SECS)
+#                print("ratediff ", ratediff[grid.core_nodes]*YEAR_SECS)
 
-                print("dz ", downstr_vert_diff[grid.core_nodes])
+#                print("dz ", downstr_vert_diff[grid.core_nodes])
                 botharepositive = np.logical_and(ratediff_first > 0.,
                                                  ratediff > 0.)
                 botharepositive = np.logical_and(botharepositive,
@@ -1046,7 +1046,7 @@ class SedDepEroder(Component):
                         t_to_converge_sed = np.amin(times_to_converge_sed)
                     except ValueError:  # empty array
                         t_to_converge_sed = dt_secs
-                print("t_to_converge_sed ", t_to_converge_sed/dt_secs)
+#                print("t_to_converge_sed ", t_to_converge_sed/dt_secs)
                 t_to_converge = min((t_to_converge, t_to_converge_sed))
 
             this_tstep = min((t_to_converge, dt_secs))
@@ -1085,14 +1085,14 @@ class SedDepEroder(Component):
                 br_downward_slopes = br_S.clip(np.spacing(0.))
 
             self._loopcounter += 1
-            print("z ", node_z[grid.core_nodes])
-            print("br_z ", br_z[grid.core_nodes])
-            print("S ", node_S[grid.core_nodes])
-            print("br_S ", br_S[grid.core_nodes])
-            print("dep rate ", sed_dep_rate[grid.core_nodes]*YEAR_SECS)
-            print("times ", this_tstep, dt_secs)
-            print("fraction t_elapsed ", t_elapsed_internal/dt_secs)
-            print(self._loopcounter)
+#            print("z ", node_z[grid.core_nodes])
+#            print("br_z ", br_z[grid.core_nodes])
+#            print("S ", node_S[grid.core_nodes])
+#            print("br_S ", br_S[grid.core_nodes])
+#            print("dep rate ", sed_dep_rate[grid.core_nodes]*YEAR_SECS)
+#            print("times ", this_tstep, dt_secs)
+#            print("fraction t_elapsed ", t_elapsed_internal/dt_secs)
+#            print(self._loopcounter)
             if break_flag:
                 break
             else:
@@ -1113,6 +1113,10 @@ class SedDepEroder(Component):
         #     print("z full ", node_z)
         #     self._br_z = br_z
         #     self._br_S = br_downward_slopes
+        grid.at_node['topographic__elevation'][:] = node_z
+        grid.at_node['channel_sediment__relative_flux'][:] = rel_sed_flux
+        grid.at_node['channel_sediment__volumetric_transport_capacity'][:] = transport_capacities
+        grid.at_node['channel_sediment__volumetric_discharge'][:] = river_volume_flux_out_of_node
 
         return grid, grid.at_node["topographic__elevation"]
 

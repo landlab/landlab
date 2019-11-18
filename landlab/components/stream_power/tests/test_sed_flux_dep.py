@@ -581,11 +581,13 @@ def test_correct_field_input_responses():
     z = mg.add_zeros('node', 'topographic__elevation')
     z += np.random.rand(25) * 1.e-6
     fa = FlowAccumulator(mg)
+    pit = DepressionFinderAndRouter(mg)
     d = mg.add_ones('node', 'channel_sediment__depth')
     sde = SedDepEroder(mg)
     assert sde._hillslope_sediment is d
     # check binding is retained through a run cycle
     fa.run_one_step()
+    pit.map_depressions()
     sde.run_one_step(1.e-6)
     assert sde._hillslope_sediment is d
 
