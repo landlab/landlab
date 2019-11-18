@@ -583,7 +583,7 @@ def test_correct_field_input_responses():
     fa = FlowAccumulator(mg)
     pit = DepressionFinderAndRouter(mg)
     d = mg.add_ones('node', 'channel_sediment__depth')
-    sde = SedDepEroder(mg)
+    sde = SedDepEroder(mg, simple_stab=False)
     assert sde._hillslope_sediment is d
     # check binding is retained through a run cycle
     fa.run_one_step()
@@ -1206,11 +1206,11 @@ def test_flooding_w_field():
 #          0.,    0.,    3.,    4.,    0.,    0.,    0.,
 #          0.,    0.,    0.,    0.,    0.,    0.,    0.]
 #     )
-# 
+#
 #     mg.status_at_node[closed_nodes] = CLOSED_BOUNDARY
 #     np.random.seed(0)
 #     z_init = np.random.rand(5 * 7) / 1.
-# 
+#
 #     z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
 #     fa = FlowAccumulator(mg, routing='D8')
 #     pit = DepressionFinderAndRouter(mg, routing='D8')
@@ -1223,10 +1223,10 @@ def test_flooding_w_field():
 #         pit.map_depressions()
 #         sde.run_one_step(1000.)
 #     # This locks up at loop 924
-# 
+#
 #     # it would appear sed can continue to move about while underwater - not
 #     # just when shore-adjacent, but everywhere.
-# 
+#
 # # a possible issue is that a boundary-adjacent node attempts to lower itself
 # # below the rim, and so is forbidden. Test this:
 
