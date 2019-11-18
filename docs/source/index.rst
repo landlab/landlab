@@ -54,9 +54,15 @@ by the following grants:
     * TODO: Add CSDMS grants, add any other grant.
 
 Citing Landlab
---------------
+==============
+
+If you use any portion of Landlab, you must cite the following paper:
 
 `Hobley, D. E. J. <https://www.earth-surf-dynam.net/5/21/2017/>`_, Adams, J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu, E. and Tucker, G. E., 2017, Creative computing with Landlab: an open-source toolkit for building, coupling, and exploring two-dimensional numerical models of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46, 10.5194/esurf-5-21-2017.
+
+In addition, many components have an additional citation. The table below lists
+these. We also provide a handy way to get a bibtex file of the components you
+use. It is descrdibed below.
 
 BibTeX format:
 ::
@@ -76,17 +82,53 @@ BibTeX format:
           Pages = {21-46},
           Doi = {10.5194/esurf-5-21-2017}}
 
-If you are working with existing Landlab components, please also read the
-:ref:`component documentation <api.components>`
-to see if there are also specific publications linked to them. An example might be
-`Adams et al. (2017) <https://www.geosci-model-dev-discuss.net/gmd-2016-277/>`_
-for the OverlandFlow components. Table 5 in Hobley et al. (2017) also lists
-many of these papers, as of the start of 2017.
+If you are working with Landlab components and utilities, many of them have
+their own publication. Please cite it to acknowledge the component authors.
+
+The following is a summary table of component and utility citations:
+
+TODO: we need to add to citations from Table 5 in Hobley et al. (2017) to this
+table.
+
++----------------------------------+-----------------------------------------------------------------------------------------------------+
+| Component                        | Citation                                                                                            |
++==================================+=====================================================================================================+
+| Celular Automaton                | `Tucker et al. (2015) <https://www.geosci-model-dev.net/9/823/2016/>`_                              |
++----------------------------------+-----------------------------------------------------------------------------------------------------+
+| Flexure                          | `Hutton and Syvitski (2008) <https://www.sciencedirect.com/science/article/pii/S0098300408000587>`_ |
++----------------------------------+-----------------------------------------------------------------------------------------------------+
+| LakeMapperBarnes                 | `Barnes et al. (2014) <https://doi.org/10.1016/j.cageo.2013.04.024>`_                               |
++----------------------------------+-----------------------------------------------------------------------------------------------------+
+| LandslideProbability             | `Strauch et al. (2017) <https://www.earth-surf-dynam.net/6/49/2018/esurf-6-49-2018.html>`_          |
++----------------------------------+-----------------------------------------------------------------------------------------------------+
+| LateralEroder                    | `Langston and Tucker (2018) <https://www.earth-surf-dynam.net/6/1/2018/>`_                          |
++----------------------------------+-----------------------------------------------------------------------------------------------------+
+| Lithology                        | `Barnhart et al. (2018) <https://joss.theoj.org/papers/10.21105/joss.00979>`_                       |
++----------------------------------+-----------------------------------------------------------------------------------------------------+
+| LithoLayers                      | `Barnhart et al. (2018) <https://joss.theoj.org/papers/10.21105/joss.00979>`_                       |
++----------------------------------+-----------------------------------------------------------------------------------------------------+
+| OverlandFlow                     | `Adams et al. (2017) <https://www.geosci-model-dev-discuss.net/gmd-2016-277/>`_                     |
++----------------------------------+-----------------------------------------------------------------------------------------------------+
+| SPACE                            | `Shobe, et al (2017) <https://www.geosci-model-dev.net/10/4577/2017/>`_                             |
++----------------------------------+-----------------------------------------------------------------------------------------------------+
+| SpatialPrecipitationDistribution | `Singer et al. (2018) <https://www.geosci-model-dev.net/11/3713/2018/gmd-11-3713-2018.html>`_       |
++----------------------------------+-----------------------------------------------------------------------------------------------------+
+
+
 
 A relatively new interface also automates the process of extracting citations
-for landlab. `import landlab` when you write your model, then a call to
-`landlab.registry.format_citations()` will list Bibtex-formatted citations for
-all Landlab components that you currently have instantiated.
+for landlab.
+
+.. code-block:: python
+
+  import landlab
+
+  # do you work in landlab when you write your model, then a call to
+
+  landlab.registry.format_citations() # will produce a Bibtex-formatted
+                                      # citations for all Landlab components
+                                      # that you currently have instantiated.
+
 
 The Landlab Team:
  - Greg Tucker (CU)

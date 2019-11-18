@@ -195,6 +195,8 @@ class FastscapeEroder(Component):
             m in the stream power equation (power on drainage area).
         n_sp : float, optional
             n in the stream power equation (power on slope).
+        threshold_sp : float, array, or field name
+            Erosion threshold in the stream power equation.
         discharge_field : float, field name, or array, optional
             Discharge [L^2/T]. The default is to use the grid field
             'drainage_area'. To use custom spatially/temporally varying
@@ -272,8 +274,7 @@ class FastscapeEroder(Component):
         z = self._grid.at_node["topographic__elevation"]
 
         defined_flow_receivers = np.not_equal(
-            self._grid.at_node["flow__link_to_receiver_node"],
-            self._grid.BAD_INDEX,
+            self._grid.at_node["flow__link_to_receiver_node"], self._grid.BAD_INDEX
         )
 
         if isinstance(self._grid, RasterModelGrid):
