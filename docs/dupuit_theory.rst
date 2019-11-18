@@ -37,7 +37,7 @@ saturated hydraulic conductivity.
    :alt: Aquifer schematic.
    :align: center
    :scale: 50%
-   
+
    Aquifer schematic showing vertical aquifer thickness :math:`h`, bed-normal
    aquifer thickness :math:`\eta`, and water table elevation :math:`z`.
 
@@ -61,7 +61,7 @@ base-parallel reference frame :math:`(x',y')` are:
 .. math::
 
    \begin{aligned}
-   n \frac{\partial \eta}{\partial t} &= f - q_s - \nabla' \cdot q \\
+   n \frac{\partial \eta}{\partial t} &= f \cos(\alpha) - q_s \cos(\alpha) - \nabla' \cdot q \\
    q &= -k_{sat} \eta \big( \nabla' z ) \\
    q_s &= \mathcal{G}_r \bigg( \frac{\eta}{d'} \bigg) \mathcal{R} \big(-\nabla' \cdot q + f \big) \\\end{aligned}
 
@@ -104,7 +104,7 @@ governing equations are:
 .. math::
 
    \begin{aligned}
-   n \cos(\alpha) \frac{\partial h}{\partial t} &= f - q_s - \cos(\alpha) \nabla \cdot q \\
+   n \frac{\partial h}{\partial t} &= f - q_s - \nabla \cdot q \\
    q &= -k_{sat} \cos^2(\alpha) h \big( \nabla z ) \\
    q_s &= \mathcal{G}_r \bigg( \frac{h}{d} \bigg) \mathcal{R} \big(f - \cos(\alpha) \nabla \cdot q \big) \\\end{aligned}
 
@@ -121,7 +121,7 @@ governing equations. In this method, gradients are calculated at links
 (at volume centers). The governing equation with timestep
 :math:`\Delta t` is:
 
-.. math:: n \cos(\alpha_i) \bigg( \frac{h^{t+\Delta t} - h^t}{\Delta t} \bigg) = -q_s^t - \cos(\alpha_i) \nabla \cdot q^t + f^t
+.. math:: n \bigg( \frac{h^{t+\Delta t} - h^t}{\Delta t} \bigg) = -q_s^t - \nabla \cdot q^t + f^t
 
 Below is a description of the components needed to calculate the right
 side of this equation. To calculate the groundwater flux :math:`q`, the
@@ -137,9 +137,7 @@ calculated from the aquifer base elevation :math:`b`:
 
 where the subscripts :math:`i` and :math:`j` indicate the nodes at the
 head and tail of the link respectively, and :math:`L_{ij}` is the length
-of the link. The angle :math:`\alpha_i` is the maximum of the angles :math:`\alpha_{ij}`
-for all :math:`j` connecting to :math:`i`. The gradient :math:`\nabla z` is
-calculated on link :math:`ij` as:
+of the link. The gradient :math:`\nabla z` is calculated on link :math:`ij` as:
 
 .. math:: \big( \nabla z \big)_{ij} = \frac{z_{i} - z_{j}}{L_{ij}}
 

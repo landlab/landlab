@@ -160,7 +160,7 @@ class GroundwaterDupuitPercolator(Component):
     The evolution of aquifer thickness is then given by:
 
     .. math::
-        n \cos(\alpha) \frac{\partial h}{\partial t} = f - q_s - \cos(\alpha) \nabla \cdot q
+        n \frac{\partial h}{\partial t} = f - q_s - \nabla \cdot q
 
     where :math:`n` is the drainable porosity.
 
@@ -503,7 +503,6 @@ class GroundwaterDupuitPercolator(Component):
             self._base
         )[self._grid.active_links]
         cosa = np.cos(np.arctan(self._base_grad))
-        cosa_node = map_max_of_node_links_to_node(self._grid, cosa)
 
         # Calculate hydraulic gradient
         self._hydr_grad[self._grid.active_links] = (
@@ -527,7 +526,7 @@ class GroundwaterDupuitPercolator(Component):
         self._q[:] = hlink * self._vel
 
         # Groundwater flux divergence
-        dqdx = self._grid.calc_flux_div_at_node(self._q) * cosa_node
+        dqdx = self._grid.calc_flux_div_at_node(self._q)
 
         # Determine the relative aquifer thickness, 1 if permeable thickness is 0.
         soil_present = (self._elev - self._base) > 0.0
@@ -544,7 +543,7 @@ class GroundwaterDupuitPercolator(Component):
         )
 
         # Mass balance
-        dhdt = (1 / (self._n * cosa_node)) * (self._recharge - self._qs - dqdx)
+        dhdt = (1 / self._n) * (self._recharge - self._qs - dqdx)
 
         # Update
         self._thickness[self._cores] += dhdt[self._cores] * dt
@@ -582,7 +581,6 @@ class GroundwaterDupuitPercolator(Component):
             self._base
         )[self._grid.active_links]
         cosa = np.cos(np.arctan(self._base_grad))
-        cosa_node = map_max_of_node_links_to_node(self._grid, cosa)
 
         # Initialize reg_thickness, rel_thickness
         reg_thickness = self._elev - self._base
@@ -620,7 +618,7 @@ class GroundwaterDupuitPercolator(Component):
             self._q[:] = hlink * self._vel
 
             # Groundwater flux divergence
-            dqdx = self._grid.calc_flux_div_at_node(self._q) * cosa_node
+            dqdx = self._grid.calc_flux_div_at_node(self._q)
 
             # calculate relative thickness
             rel_thickness[soil_present] = np.minimum(
@@ -633,7 +631,7 @@ class GroundwaterDupuitPercolator(Component):
             )
 
             # Mass balance
-            dhdt = (1 / (self._n * cosa_node)) * (self._recharge - self._qs - dqdx)
+            dhdt = (1 / self._n) * (self._recharge - self._qs - dqdx)
 
             # calculate criteria for timestep
             max_vel = max(abs(self._vel / self._n_link))
