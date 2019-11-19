@@ -367,17 +367,6 @@ class SedDepEroder(Component):
     >>> np.isclose(th[4], 0.)  # ...but not here, the next node down
     True
 
-    If you want the thickness of sediment to be included, add it yourself
-    (but beware unrealistic in the thickness of the sed layer, and of double-
-    counting the sediment as it accumulates if running multiple components
-    together).
-
-    >>> z += th
-    >>> z[7] > mg.node_y[7]/10000.
-    True
-    >>> np.isclose(z[4], mg.node_y[4]/10000.)
-    True
-
     Pleasingly, the solution for a constant f(Qs) is very close to the stream
     power solution:
 
