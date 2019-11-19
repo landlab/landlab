@@ -1084,6 +1084,9 @@ class SedDepEroder(Component):
                 )
                 br_downward_slopes = br_S.clip(np.spacing(0.))
 
+            time_fraction = this_tstep / dt_secs
+            vQc += time_fraction * transport_capacities
+            vQs += time_fraction * river_volume_flux_out_of_node
             self._loopcounter += 1
 #            print("z ", node_z[grid.core_nodes])
 #            print("br_z ", br_z[grid.core_nodes])
@@ -1115,8 +1118,8 @@ class SedDepEroder(Component):
         #     self._br_S = br_downward_slopes
         grid.at_node['topographic__elevation'][:] = node_z
         grid.at_node['channel_sediment__relative_flux'][:] = rel_sed_flux
-        grid.at_node['channel_sediment__volumetric_transport_capacity'][:] = transport_capacities
-        grid.at_node['channel_sediment__volumetric_discharge'][:] = river_volume_flux_out_of_node
+        #grid.at_node['channel_sediment__volumetric_transport_capacity'][:] = transport_capacities
+        #grid.at_node['channel_sediment__volumetric_discharge'][:] = river_volume_flux_out_of_node
         if self._simple_stab:
             grid.at_node['channel_sediment__depth'][:] = sed_rate_at_nodes * dt_secs
         else:
