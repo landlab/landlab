@@ -1087,6 +1087,7 @@ class SedDepEroder(Component):
             time_fraction = this_tstep / dt_secs
             vQc += time_fraction * transport_capacities
             vQs += time_fraction * river_volume_flux_out_of_node
+            QbyQs += time_fraction * rel_sed_flux
             self._loopcounter += 1
 #            print("z ", node_z[grid.core_nodes])
 #            print("br_z ", br_z[grid.core_nodes])
@@ -1117,9 +1118,7 @@ class SedDepEroder(Component):
         #     self._br_z = br_z
         #     self._br_S = br_downward_slopes
         grid.at_node['topographic__elevation'][:] = node_z
-        grid.at_node['channel_sediment__relative_flux'][:] = rel_sed_flux
-        #grid.at_node['channel_sediment__volumetric_transport_capacity'][:] = transport_capacities
-        #grid.at_node['channel_sediment__volumetric_discharge'][:] = river_volume_flux_out_of_node
+        #grid.at_node['channel_sediment__relative_flux'][:] = rel_sed_flux
         if self._simple_stab:
             grid.at_node['channel_sediment__depth'][:] = sed_rate_at_nodes * dt_secs
         else:
@@ -1202,24 +1201,3 @@ class SedDepEroder(Component):
         """Return a map of where erosion is purely transport-limited.
         """
         return self._is_it_TL.view(dtype=np.bool)
-
-    def calc_sed_discharge_from_node(self):
-        """
-        Calculate the sediment discharge from each node, based on
-        the already calculated total discharge into the node, and
-        the already calculated relative sediment flux.
-        Returns
-        -------
-        Qout : nnode-long array of floats
-            The sediment discharge (in m3/s !) leaving the node.
-        """
-        rsf = self.grid.at_node['channel_sediment__relative_flux']
-        Qc_out = self.grid.at_node[
-            'channel_sediment__volumetric_transport_capacity'
-        ]
-        # now remember, the rsf reflects the OUT sediment flux
-        # at the node, so
-        Qout = rsf * Qc_out
-        # assert np.all(np.greater_equal(Qout, 0.))
-        # assert np.all(np.less_equal(Qout, 1.))
-        return Qout
