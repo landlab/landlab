@@ -270,19 +270,13 @@ class SedDepEroder(Component):
     modified by the user, but will be created by the component if not found.
     However, under some conditions, modification of this field "manually" may
     induce model instability, i.e., the component is not unconditionally
-    stable.
+    stable. (It is hoped this will not occur often!)
     Tools-driven bedrock erosion is permitted only when this layer thickness
-    is reduced to zero. The sediment recorded in channel_sediment__depth is
+    is reduced to zero, which may occur during a timestep - i.e., if all the
+    sediment in the node could be transported, erosion can occur, regardless
+    of whether the bed is again left blanketed at the end of the step.
+    The sediment recorded in channel_sediment__depth is
     considered loose, and freely transportable by clearwater flow.
-    HOWEVER
-    Note that, unusually for Landlab, this component regards the
-    topographic__elevation as the bedrock surface, not the sediment surface.
-    It retains this name for clean interface with other components. This
-    adjustment is made to enhance model stability while retaining sensible
-    run times. In practical terms, this means the sediment thickness as
-    understood by this model is "virtual", and although spatial variation in
-    thickness could develop, the model bakes in the hard assumption that in
-    topographic terms, the thickness is mathematically thin and constant.
 
     The component is able to handle flooded nodes, if created by a lake
     filler. It assumes the flow paths found in the fields already reflect
@@ -290,6 +284,9 @@ class SedDepEroder(Component):
     *flooded_nodes* be passed to the run method. A flooded depression
     acts as a perfect sediment trap, and so only nodes at the periphery of
     a flooded region can receive sediment from this component.
+
+    Large numbers of flooded nodes on your grid is likely to result in painful
+    model run speeds. And in general, this component runs slowly!
 
     Examples
     --------
@@ -315,6 +312,7 @@ class SedDepEroder(Component):
     >>> z[:] = mg.node_y/10000.
 
     >>> initz = z.copy()
+    >>> br_init = initz - th
 
     >>> dt = 100.
     >>> up = 0.05
@@ -323,13 +321,11 @@ class SedDepEroder(Component):
     ...     fr.run_one_step()
     ...     sde.run_one_step(dt)
 
-    In this model, the sediment layer is "virtualised", and in practical
-    terms, the topographic__surface corresponds to the bedrock surface.
-    So, in a simple model like this, where we have TL conditions there can
+    In a simple model like this, where we have TL conditions there can
     be no incision, and we can simply assert
 
     >>> TLs = mg.core_nodes[sde.is_it_TL[mg.core_nodes]]
-    >>> np.allclose((initz - z)[TLs], 0.)
+    >>> np.allclose((br_init - (z - th))[TLs], 0.)
     True
 
     Similarly, a node in DL condition without any external supply must by
@@ -346,7 +342,7 @@ class SedDepEroder(Component):
     Otherwise, incision procedes in the naked nodes according to the sediment
     dependent bedrock incision rules:
 
-    >>> np.all(np.greater_equal((initz - z)[DLs], 0.))
+    >>> np.all(np.greater_equal((br_init - (z - th))[DLs], 0.))
     True
 
     The component will dump all sediment in transit if it encounters flooded
@@ -369,12 +365,6 @@ class SedDepEroder(Component):
     >>> th[7] > 0.  # sed ends up here
     True
     >>> np.isclose(th[4], 0.)  # ...but not here, the next node down
-    True
-
-    However, note that the topo itself does not evolve while this is
-    happening, because the sediment is handled virtually (see above):
-
-    >>> np.allclose(z[7], mg.node_y[7]/10000.)
     True
 
     If you want the thickness of sediment to be included, add it yourself
@@ -1162,4 +1152,9 @@ class SedDepEroder(Component):
     def is_it_TL(self):
         """Return a map of where erosion is purely transport-limited.
         """
-        return self._is_it_TL.view(dtype=np.bool)
+        # return self._is_it_TL.view(dtype=np.bool)
+        # This needs to be done off the field, not the property, since this
+        # property could evolve during component step subdivision:
+        return np.isclose(
+            self.grid.at_node['channel_sediment__relative_flux'], 1.
+        )
