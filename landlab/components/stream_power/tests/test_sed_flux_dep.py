@@ -981,17 +981,16 @@ def full_run_smoketest():
     rmg = RasterModelGrid((dimension, dimension), xy_spacing=500.)
     x = np.random.rand(dimension**2) * 5000.
     y = np.random.rand(dimension**2) * 5000.
-    #vdg = VoronoiDelaunayGrid(x=x, y=y)
+    vdg = VoronoiDelaunayGrid(x=x, y=y)
     rmg_z_at_X = np.array([])
     vdg_z_at_X = np.array([])
-    grids = (rmg, )#vdg)
-    ans = (rmg_z_at_X, )#vdg_z_at_X)
+    grids = (rmg, vdg)
+    ans = (rmg_z_at_X, vdg_z_at_X)
     accum_vol_out = 0.
     for mg, z_to_match in zip(grids, ans):
         z_init = mg.x_of_node / 1000.
         z = mg.add_field('node', 'topographic__elevation', z_init,
                          copy=True)
-        #z += np.random.rand(dimension**2)/1.e6
         th = mg.add_zeros('node', 'channel_sediment__depth')
         if isinstance(mg, RasterModelGrid):
             fa = FlowAccumulator(mg, routing='D8')
@@ -1007,9 +1006,6 @@ def full_run_smoketest():
             z_pre = z.copy()
             dfn.run_one_step(dt)
             th += 0.0001 * dt
-            # th[mg.core_nodes] += 0.001 * dt
-            #th[mg.core_nodes] += z[mg.core_nodes] - z_pre[mg.core_nodes]
-            #th[:] = th.clip(0.)
             fa.run_one_step()
             pit.map_depressions()
             sde.run_one_step(dt, flooded_nodes=pit.lake_at_node)
