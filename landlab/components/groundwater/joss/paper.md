@@ -46,6 +46,6 @@ The ``GroundwaterDupuitPercolator`` is implemented in Landlab, a Python-based op
 
 # Acknowledgements
 
-Acknowledgements here.
+D. Litwin acknowledges the support of a Horton Research Award from AGU for development of this model. K. Barnhart was supported by NSF EAR Postdoctoral Fellowship (NSF 1725774). 
 
 # References
