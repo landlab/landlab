@@ -16,9 +16,9 @@ from .cfuncs import (sed_flux_fn_gen_genhump, sed_flux_fn_gen_lindecl,
                      sed_flux_fn_gen_almostparabolic, sed_flux_fn_gen_const,
                      iterate_sde_downstream)
 
-WAVE_STABILITY_PREFACTOR = 0.2
-CONV_FACTOR_LOOSE = 0.5  # controls the convergence of node elevs in the loop
-CONV_FACTOR_SED = 0.5
+WAVE_STABILITY_PREFACTOR = 0.3
+CONV_FACTOR_LOOSE = 0.3  # controls the convergence of node elevs in the loop
+CONV_FACTOR_SED = 0.3
 YEAR_SECS = 31557600.
 
 # NB: The inline documentation of this component freely (& incorrectly!)
@@ -192,7 +192,9 @@ class power_law_transporter():
         >>> np.allclose(np.array([0.05, 0.2, 0.75]), rates)
         True
 
-        >>> ple = power_law_transporter(0.5, 1., 0.5, np.array([10., 20., 30.]))
+        >>> ple = power_law_transporter(
+        ...     0.5, 1., 0.5, np.array([10., 20., 30.])
+        ... )
         >>> ple.update_prefactors_without_slope_terms()
         >>> rates = ple.calc_erosion_rates(
         ...     np.array([0.01, 0.04, 0.09]),
@@ -203,7 +205,9 @@ class power_law_transporter():
 
         Now test flooding. Note effect only present if n ~ 0.
 
-        >>> ple = power_law_transporter(0.5, 1., 0.5, np.array([10., 20., 30.]))
+        >>> ple = power_law_transporter(
+        ...     0.5, 1., 0.5, np.array([10., 20., 30.])
+        ... )
         >>> ple.update_prefactors_without_slope_terms()
         >>> rates = ple.calc_erosion_rates(
         ...     np.array([0.01, 0.04, 0.09]),
@@ -212,7 +216,9 @@ class power_law_transporter():
         >>> np.allclose(np.array([0.5, 2., 4.5]), rates)
         True
 
-        >>> ple = power_law_transporter(0.5, 1., 0., np.array([10., 20., 30.]))
+        >>> ple = power_law_transporter(
+        ...     0.5, 1., 0., np.array([10., 20., 30.])
+        ... )
         >>> ple.update_prefactors_without_slope_terms()
         >>> rates = ple.calc_erosion_rates(
         ...     np.array([0.01, 0.04, 0.09]),
@@ -615,8 +621,6 @@ class SedDepEroder(Component):
         self._grid = grid
         self._pseudoimplicit_repeats = pseudoimplicit_repeats
 
-        # # set gravity
-        # self._g = g
         self._rock_density = rock_density
         self._sed_density = sediment_density
         # self._fluid_density = fluid_density
@@ -678,13 +682,6 @@ class SedDepEroder(Component):
                     "instantiating the SedDepEroder."
                 )
 
-        # if type(runoff_rate) in (float, int):
-        #     self.runoff_rate = float(runoff_rate)
-        # elif type(runoff_rate) is str:
-        #     self.runoff_rate = self.grid.at_node[runoff_rate]
-        # else:
-        #     self.runoff_rate = np.array(runoff_rate)
-        #     assert runoff_rate.size == self.grid.number_of_nodes
         if erosion_law not in ['power_law', ]:
             raise NameError("erosion_law must currently be set to 'power_law'")
         if erosion_law == 'power_law':
@@ -704,13 +701,6 @@ class SedDepEroder(Component):
             self._nt = n_t
         elif Qc == 'Voller_generalized':
             raise NameError('Voller_generalized not yet supported!')
-            # self._m = m_sp
-            # self._n = n_sp
-            # self._Kt = K_t/YEAR_SECS  # in sec
-            # self._mt = m_t
-            # self._nt = n_t
-            # self._bt = b_t
-            # self._Scrit = S_crit
         else:
             msg = (
                 "Supplied transport law form, Qc, not recognised. Use " +
@@ -800,11 +790,7 @@ class SedDepEroder(Component):
         elif type(flooded_nodes) is np.ndarray:
             assert (flooded_nodes.size == self.grid.number_of_nodes
                     or flooded_nodes.dtype == np.integer)
-            # if (flooded_nodes.size == self.grid.number_of_nodes
-            #         and flooded_nodes.dtype != np.integer):
-            #     flooded_nodes = np.where(flooded_nodes)[0]
             is_flooded = flooded_nodes
-            # need an *updateable* record of the pit depths
         else:
             # if None, handle in loop
             is_flooded = np.array([], dtype=bool)
@@ -844,9 +830,6 @@ class SedDepEroder(Component):
         self._hillslope_sediment_flux_wzeros[
             self.grid.node_at_cell] = flux_in_cells
         self._voldroprate = self.grid.zeros('node', dtype=float)
-        # self._hillslope_sediment.fill(0.)
-        # ^ this will get refilled below. For now, the sed has been "fully
-        # mobilised" off the bed; at the end of the step it can resettle.
 
         self._sed_transport_func.update_prefactors_without_slope_terms()
         self._erosion_func.update_prefactors_without_slope_terms()
@@ -856,8 +839,6 @@ class SedDepEroder(Component):
         erosion_prefactor_withA = (
             self._erosion_func.erosion_prefactor_withA
         )
-
-        # ^adding additional scaling per CHILD; CHILD uses 0.2
 
         self.link_length = link_length
 
@@ -901,37 +882,16 @@ class SedDepEroder(Component):
 
             sed_dep_rate = self._voldroprate / self.cell_areas
 
-# A fundamental problem is that for a large tstep the first node in the simple
-# test thinks it's DL, since it could in principle strip all the sed in one
-# go. However, in practice, in the first part of such a step it behaves TL,
-# then switches mid-step, so this should be honoured in a subdivision - and
-# indeed it would be if only a short timestep were provided externally.
-# This may not have a solution - the component may be inherently timestep-
-# dependent.
-# An escape *could* be to run a single iteration as pure TL, i.e., dt -> 0 and
-# every node can pass the capacity flux, if only for a vanishing instant.
-# This could enable a mixing line approach - over the imposed dt, each node
-# proceeds at dzbydt_TL for the time needed to remove the cover (which could
-# be > dt), then at a slower rate (?) such that over the whole timestep, each
-# node has proceeded at the necessary rate to look like it would have if taken
-# as one big step. This would be absolutely killer for working out the actual
-# steps though.
+            # A fundamental problem is that for a large tstep the first node in
+            # the simple test thinks it's DL, since it could in principle strip
+            # all the sed in one go. However, in practice, in the first part of
+            # such a step it behaves TL, then switches mid-step, so this should
+            # be honoured in a subdivision - and indeed it would be if only a
+            # short timestep were provided externally. This may not have a
+            # solution - the component may be inherently timestep-dependent.
+            # We proceed under this conclusion.
 
-            # The only rational approach here is to assume this is all time
-            # invariant across the step, and that things work basically
-            # linearly with S (according to the declared funcs in the
-            # component) once we have the rates.
-            # This won't be "correct", but it will be stable.
             sdr_rel_to_1st_surface = sed_dep_rate - sed_rate_at_nodes
-#            print("dzbydt ", dzbydt[grid.core_nodes]*YEAR_SECS)
-#            print("rel_sed_flux", rel_sed_flux)
-#            print("capacities ", transport_capacities[grid.core_nodes]*YEAR_SECS)
-#            print("is it TL ", self._is_it_TL)
-#            print("hillslope flux in ", self._hillslope_sediment_flux_wzeros[grid.core_nodes]*YEAR_SECS)
-#            print("river flux out ", river_volume_flux_out_of_node[grid.core_nodes]*YEAR_SECS)
-#            print('sdr', sed_dep_rate[grid.core_nodes]*YEAR_SECS)
-#            print('sran', sed_rate_at_nodes[grid.core_nodes]*YEAR_SECS)
-#            print("sdr_rtfs", sdr_rel_to_1st_surface[grid.core_nodes]*YEAR_SECS)
 
             # now perform a CHILD-like convergence-based stability test.
             # This uses the historic rates as a guide to the future, i.e.,
@@ -959,12 +919,6 @@ class SedDepEroder(Component):
             if t_to_converge < 3600.:
                 raise ValueError('Component has ground to a halt...')
                 # forbid tsteps < 1hr; a bit hacky
-            # without this, it's possible for the component to get stuck in
-            # a loop, presumably when the gradient is "supposed" to level
-            # out. We make exception got nodes that need to be filled in
-            # "just so"
-            # the new handling of flooded nodes as of 25/10/16 should make
-            # this redundant, but retained to help ensure stability
 
             # now, if we're doing both surfaces, we need to enforce a
             # stability condition on both. The above handles the BR
@@ -972,29 +926,21 @@ class SedDepEroder(Component):
             # Now, remember, this is the sed dep rate relative to the
             # fully swept bedrock. So this value will always be +ve,
             # regardless of convergence or otherwise of the surface.
-            # Having some regrets about this design - it makes the
+            # DEJH is having some regrets about this design - it makes the
             # following much worse...
-            # First, correct for the fact that any node with "overdeepened"
-            # BR gets a 0 sdr, but actually should receive an sdr capable
-            # of refilling it to the level point (it also should be TL and
-            # with rel_sed_flux=1.)
-            # Note no incision can ever happen here, since we set the
-            # BR slopes to zero elsewhere
-#                print("dzbydt", dzbydt[grid.core_nodes]*YEAR_SECS)
-            #print("capacities ", transport_capacities[grid.core_nodes]*YEAR_SECS)
-#                print("sdr_rtfs", sdr_rel_to_1st_surface[grid.core_nodes]*YEAR_SECS)
             receiver_sdr_rtfs = sdr_rel_to_1st_surface[flow_receiver]
-            ratediff_first = receiver_sdr_rtfs + dzbydt[flow_receiver] - sdr_rel_to_1st_surface - dzbydt
+            ratediff_first = (receiver_sdr_rtfs + dzbydt[flow_receiver]
+                              - sdr_rel_to_1st_surface - dzbydt)
             # a 2nd order solution is required;
             # if not, we can lock up the nodes since a node can't tell
             # its downstream node is doing to drop enough to let it
             # proceed anyway
-            ratediff_next = receiver_sdr_rtfs[flow_receiver] + dzbydt[flow_receiver][flow_receiver] - receiver_sdr_rtfs - dzbydt[flow_receiver]
+            ratediff_next = (receiver_sdr_rtfs[flow_receiver]
+                             + dzbydt[flow_receiver][flow_receiver]
+                             - receiver_sdr_rtfs
+                             - dzbydt[flow_receiver])
             ratediff = ratediff_first - ratediff_next
             downstr_vert_diff = node_z - node_z[flow_receiver]
-#                print("ratediff ", ratediff[grid.core_nodes]*YEAR_SECS)
-
-#                print("dz ", downstr_vert_diff[grid.core_nodes])
             botharepositive = np.logical_and(ratediff_first > 0.,
                                              ratediff > 0.)
             botharepositive = np.logical_and(botharepositive,
@@ -1013,7 +959,6 @@ class SedDepEroder(Component):
                     t_to_converge_sed = np.amin(times_to_converge_sed)
                 except ValueError:  # empty array
                     t_to_converge_sed = dt_secs
-#                print("t_to_converge_sed ", t_to_converge_sed/dt_secs)
             t_to_converge = min((t_to_converge, t_to_converge_sed))
 
             this_tstep = min((t_to_converge, dt_secs))
@@ -1032,8 +977,12 @@ class SedDepEroder(Component):
                 + dzbydt[grid.core_nodes]
             ) * this_tstep
 
-            sed_rate_at_nodes = (node_z - br_z) / (dt_secs - t_elapsed_internal)
-            self._hillslope_sediment_flux_wzeros[:] = sed_rate_at_nodes * self.cell_areas
+            sed_rate_at_nodes = (
+                (node_z - br_z) / (dt_secs - t_elapsed_internal)
+            )
+            self._hillslope_sediment_flux_wzeros[:] = (
+                sed_rate_at_nodes * self.cell_areas
+            )
 
             node_S[core_draining_nodes] = (
                 (node_z - node_z[flow_receiver])[core_draining_nodes] /
@@ -1051,14 +1000,6 @@ class SedDepEroder(Component):
             vQs += time_fraction * river_volume_flux_out_of_node
             QbyQs += time_fraction * rel_sed_flux
             self._loopcounter += 1
-#            print("z ", node_z[grid.core_nodes])
-#            print("br_z ", br_z[grid.core_nodes])
-#            print("S ", node_S[grid.core_nodes])
-#            print("br_S ", br_S[grid.core_nodes])
-#            print("dep rate ", sed_dep_rate[grid.core_nodes]*YEAR_SECS)
-#            print("times ", this_tstep, dt_secs)
-#            print("fraction t_elapsed ", t_elapsed_internal/dt_secs)
-#            print(self._loopcounter)
             if break_flag:
                 break
             else:
@@ -1138,7 +1079,6 @@ class SedDepEroder(Component):
     def is_it_TL(self):
         """Return a map of where erosion is purely transport-limited.
         """
-        # return self._is_it_TL.view(dtype=np.bool)
         # This needs to be done off the field, not the property, since this
         # property could evolve during component step subdivision:
         return np.isclose(

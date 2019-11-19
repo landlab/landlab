@@ -921,7 +921,7 @@ def test_mass_balance():
     for sed_dep_type in ('None', 'linear_decline', 'almost_parabolic'):
         # force us to be well within a single stable internal step, then go
         # over this threshold
-        for dt in (0.01, 0.3, 0.4):  # 1, 2, 3 internal loops
+        for dt in (0.01, 0.15, 0.3):  # 1, 2, 3 internal loops
             mg = RasterModelGrid((3, 4), xy_spacing=1.)
             closed_nodes = np.array(
                 [True,  True,  True,  True,
