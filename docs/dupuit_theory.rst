@@ -106,7 +106,7 @@ governing equations are:
    \begin{aligned}
    n \frac{\partial h}{\partial t} &= f - q_s - \nabla \cdot q \\
    q &= -k_{sat} \cos^2(\alpha) h \big( \nabla z ) \\
-   q_s &= \mathcal{G}_r \bigg( \frac{h}{d} \bigg) \mathcal{R} \big(f - \cos(\alpha) \nabla \cdot q \big) \\\end{aligned}
+   q_s &= \mathcal{G}_r \bigg( \frac{h}{d} \bigg) \mathcal{R} \big(f - \nabla \cdot q \big) \\\end{aligned}
 
 where :math:`d` is the vertical regolith thickness, and the gradient operator
 :math:`\nabla` and divergence operator :math:`\nabla \cdot` are calculated with
