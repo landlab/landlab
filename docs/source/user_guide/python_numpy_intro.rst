@@ -136,9 +136,7 @@ which will be really slow. Do this:
 
     myarray[myarray < 0] = 0
 
-There is much more information about writing efficient NumPy code online. For
-example, `UW's astronomy department has a great online intro
-<http://depts.washington.edu/astron/>`_. #attnKaty:WHY #couldn't find this online intro
+There is much more information about writing efficient NumPy code online.
 
 We also strongly recommend the book "High Performance Python" by Gorelick and
 Ozsvald, published by O'Reilly, if you're looking for a more comprehensive

@@ -25,7 +25,7 @@ Landlab!)
 `Click here to download all the
 tutorials <https://codeload.github.com/landlab/tutorials/zip/release>`_
 
-A suggested introduction to Landlab follows roughly this order: #attnKaty:WHY #couldn't load any tutorials
+A suggested introduction to Landlab follows roughly this order:
 
 - `Introduction to Python and
   NumPy <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=python_intro/Python_intro.ipynb>`_.
