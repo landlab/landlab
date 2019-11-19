@@ -85,7 +85,7 @@ you have *both*, this is probably the root cause of your problem;
 open ``.profile`` and copy everything you find inside across to
 ``.bash_profile``.
 
-For example, your profile likely contains several (repeated?) entries clearly #attnKaty:WHY
+For example, your profile likely contains several (repeated?) entries clearly #attnKaty:WHY #thought section looked like an incomplete draft due to (repeated?)
 referring to Canopy or "EPD" or Anaconda. You can safely comment out any old
 installs or repeated text in this file. (Remember, # is the "comment out"
 symbol in the Bash terminal). Make sure you don't actually delete anything

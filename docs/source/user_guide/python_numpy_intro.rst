@@ -138,7 +138,7 @@ which will be really slow. Do this:
 
 There is much more information about writing efficient NumPy code online. For
 example, `UW's astronomy department has a great online intro
-<http://depts.washington.edu/astron/>`_. #attnKaty:WHY
+<http://depts.washington.edu/astron/>`_. #attnKaty:WHY #couldn't find this online intro
 
 We also strongly recommend the book "High Performance Python" by Gorelick and
 Ozsvald, published by O'Reilly, if you're looking for a more comprehensive
