@@ -21,7 +21,7 @@ However, DEJH found it wasn't the right version in his case. The problem
 is that the stable Python (and Python package) versions that are
 maintained through the Debian package repository that *apt-get* looks at
 tend not to be up to date. This is problematic, as Landlab needs at least
-Python 2.7, Numpy 1.8, and Scipy 0.12. So first, check your version:
+Python 2.7, Numpy 1.8, and Scipy 0.12. So first, check your version: #attnKaty: should this section be changed to encourage 3.x use?
 
 .. code-block:: bash
 
@@ -74,7 +74,7 @@ that file in your favourite text editor, and add at the end:
 
 Restart the terminal again, and check the version number now. Should be
 right! (You will probably also want to do something similar with ipython,
-but DEJH didn't explore that...) #attnKaty:WHY
+but DEJH didn't explore that...) #attnKaty:WHY #parenthetical comment makes it look like an incomplete draft
 
 
 Installing pip
