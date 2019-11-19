@@ -9,18 +9,19 @@ code.
 
 Changes include:
 
-- Drop python 2 support.
+- Landlab now requires Python 3 and no longer supports Python 2.
 - The Landlab grid now inherits from the Landlab graph.
-- Deprecation of some grid methods.
-- Standardization and deprecation within the component library.
+- Some grid methods have been removed.
+- Standardization of the component interface.
 - Some other functions/methods have been removed.
-- No more wiki (all the docs are here).
+- No more GitHub Wiki, all the docs are on this page.
 
-No more Python 2 
+These are described in more detail below.
+
+No more Python 2
 ----------------
 
 TODO: put a link to general 2 to 3 resources
-
 
 Landlab grid now inherits from the Landlab graph
 ------------------------------------------------
@@ -34,14 +35,34 @@ TODO List of these, including replacements if any.
 
 Changes to field creation
 -------------------------
+
+TODO Describe these better.
+
 - no more `noclobber`, instead we have `clobber`
 - recommended field init (eg. at="")
 
 Changes to Boundary Condition Flags
 -----------------------------------
-- no more use of unbound flags AND unbound flags are not importable
-  from top level or grid submodule (e.g., `from landlab import CLOSED_NODE`)
-  now we use `Grid.BC_NODE_IS_CLOSED`.
+
+- Landlab no longer exposes unbound flags for boundary conditions. Instead
+  these flags are bound to the grid object. So to close the node with ID 1,
+  instead of
+
+  .. code-block:: python
+
+      from landlab import CLOSED_NODE, RasterModelGrid
+      grid = RasterModelGrid((10, 5))
+      grid.status_at_node[0] = CLOSED_NODE
+
+  now we use the bound attribute `Grid.BC_NODE_IS_CLOSED`.
+
+  .. code-block:: python
+
+      from landlab import RasterModelGrid
+      grid = RasterModelGrid((10, 5))
+      grid.status_at_node[0] = grid.BC_NODE_IS_CLOSED
+
+A complete mapping is found in this table.
 
 +-------------------------+-------------------------------------+
 | Old name                | New name                            |
@@ -69,6 +90,8 @@ Changes to Boundary Condition Flags
 Standardization and deprecation within the component library
 ------------------------------------------------------------
 
+TODO: Finish and write more.
+
 - FlowRouter deprecated. Use FlowAccumulator
 - No more flooded_nodes (use ``erode_flooded_nodes=True`` at init)
 - Fewer different options for runoff rate, but one, consistent, good option
@@ -80,5 +103,7 @@ Standardization and deprecation within the component library
 Some other functions/methods have been removed
 ----------------------------------------------
 
+TODO: Finish and write more.
+
 - ModelParameterDictionary
-- plot.channel_profile (use ChannelProfiler)
+- plot.channel_profile (use ChannelProfiler component)
