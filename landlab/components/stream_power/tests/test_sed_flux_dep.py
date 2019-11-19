@@ -587,8 +587,8 @@ def test_correct_field_input_responses():
     assert sde._hillslope_sediment is d
     # check binding is retained through a run cycle
     fa.run_one_step()
-    pit.map_depressions()
-    sde.run_one_step(1.e-6)
+    #pit.map_depressions()
+    sde.run_one_step(1.)
     assert sde._hillslope_sediment is d
 
 
@@ -988,7 +988,7 @@ def full_run_smoketest():
     ans = (rmg_z_at_X, vdg_z_at_X)
     accum_vol_out = 0.
     for mg, z_to_match in zip(grids, ans):
-        z_init = mg.x_of_node / 1000.
+        z_init = np.random.rand(mg.number_of_nodes)/1000.
         z = mg.add_field('node', 'topographic__elevation', z_init,
                          copy=True)
         th = mg.add_zeros('node', 'channel_sediment__depth')
