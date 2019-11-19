@@ -560,7 +560,6 @@ class SedDepEroder(Component):
         n_t=1.,
         # params for model numeric behavior:
         pseudoimplicit_repeats=50,
-        simple_stab=True,  # for exploratory work; to remove
         **kwds
     ):
         """Constructor for the class.
@@ -639,7 +638,6 @@ class SedDepEroder(Component):
                 raise NotImplementedError(msg)
         self._grid = grid
         self._pseudoimplicit_repeats = pseudoimplicit_repeats
-        self._simple_stab = simple_stab
 
         # # set gravity
         # self._g = g
@@ -853,16 +851,13 @@ class SedDepEroder(Component):
         # a convergent flow node
         # ...worst that can happen is that the river can't move it, and dumps
         # it in the first node
-        if not self._simple_stab:
-            br_z = node_z - self._hillslope_sediment
-            br_S = np.zeros_like(br_z, dtype=float)
-            br_S[core_draining_nodes] = (
-                (br_z - br_z[flow_receiver])[core_draining_nodes] /
-                link_length[core_draining_nodes]
-            )
-            br_downward_slopes = br_S.clip(np.spacing(0.))
-        else:
-            br_downward_slopes = None  # dummy for later
+        br_z = node_z - self._hillslope_sediment
+        br_S = np.zeros_like(br_z, dtype=float)
+        br_S[core_draining_nodes] = (
+            (br_z - br_z[flow_receiver])[core_draining_nodes] /
+            link_length[core_draining_nodes]
+        )
+        br_downward_slopes = br_S.clip(np.spacing(0.))
         # Take care to add this sed to the cover, but not to actually move it.
         # turn depth into a supply flux:
         sed_rate_at_nodes = grid.zeros('node', dtype=float)
@@ -967,10 +962,7 @@ class SedDepEroder(Component):
             # we use the time avged rates so far to set the stability this
             # step.
             ratediff = dzbydt[flow_receiver] - dzbydt
-            if self._simple_stab:
-                downstr_vert_diff = node_z - node_z[flow_receiver]
-            else:  # because our definitions differ in this mode
-                downstr_vert_diff = br_z - br_z[flow_receiver]
+            downstr_vert_diff = br_z - br_z[flow_receiver]
             botharepositive = np.logical_and(ratediff > 0.,
                                              downstr_vert_diff > 0.)
             # this ignores possibility of flooded nodes dstr, and so
@@ -998,56 +990,55 @@ class SedDepEroder(Component):
             # the new handling of flooded nodes as of 25/10/16 should make
             # this redundant, but retained to help ensure stability
 
-            if not self._simple_stab:
-                # now, if we're doing both surfaces, we need to enforce a
-                # stability condition on both. The above handles the BR
-                # interface, so we need to add one for the surface
-                # Now, remember, this is the sed dep rate relative to the
-                # fully swept bedrock. So this value will always be +ve,
-                # regardless of convergence or otherwise of the surface.
-                # Having some regrets about this design - it makes the
-                # following much worse...
-                # First, correct for the fact that any node with "overdeepened"
-                # BR gets a 0 sdr, but actually should receive an sdr capable
-                # of refilling it to the level point (it also should be TL and
-                # with rel_sed_flux=1.)
-                # Note no incision can ever happen here, since we set the
-                # BR slopes to zero elsewhere
+            # now, if we're doing both surfaces, we need to enforce a
+            # stability condition on both. The above handles the BR
+            # interface, so we need to add one for the surface
+            # Now, remember, this is the sed dep rate relative to the
+            # fully swept bedrock. So this value will always be +ve,
+            # regardless of convergence or otherwise of the surface.
+            # Having some regrets about this design - it makes the
+            # following much worse...
+            # First, correct for the fact that any node with "overdeepened"
+            # BR gets a 0 sdr, but actually should receive an sdr capable
+            # of refilling it to the level point (it also should be TL and
+            # with rel_sed_flux=1.)
+            # Note no incision can ever happen here, since we set the
+            # BR slopes to zero elsewhere
 #                print("dzbydt", dzbydt[grid.core_nodes]*YEAR_SECS)
-                #print("capacities ", transport_capacities[grid.core_nodes]*YEAR_SECS)
+            #print("capacities ", transport_capacities[grid.core_nodes]*YEAR_SECS)
 #                print("sdr_rtfs", sdr_rel_to_1st_surface[grid.core_nodes]*YEAR_SECS)
-                receiver_sdr_rtfs = sdr_rel_to_1st_surface[flow_receiver]
-                ratediff_first = receiver_sdr_rtfs + dzbydt[flow_receiver] - sdr_rel_to_1st_surface - dzbydt
-                # a 2nd order solution is required;
-                # if not, we can lock up the nodes since a node can't tell
-                # its downstream node is doing to drop enough to let it
-                # proceed anyway
-                ratediff_next = receiver_sdr_rtfs[flow_receiver] + dzbydt[flow_receiver][flow_receiver] - receiver_sdr_rtfs - dzbydt[flow_receiver]
-                ratediff = ratediff_first - ratediff_next
-                downstr_vert_diff = node_z - node_z[flow_receiver]
+            receiver_sdr_rtfs = sdr_rel_to_1st_surface[flow_receiver]
+            ratediff_first = receiver_sdr_rtfs + dzbydt[flow_receiver] - sdr_rel_to_1st_surface - dzbydt
+            # a 2nd order solution is required;
+            # if not, we can lock up the nodes since a node can't tell
+            # its downstream node is doing to drop enough to let it
+            # proceed anyway
+            ratediff_next = receiver_sdr_rtfs[flow_receiver] + dzbydt[flow_receiver][flow_receiver] - receiver_sdr_rtfs - dzbydt[flow_receiver]
+            ratediff = ratediff_first - ratediff_next
+            downstr_vert_diff = node_z - node_z[flow_receiver]
 #                print("ratediff ", ratediff[grid.core_nodes]*YEAR_SECS)
 
 #                print("dz ", downstr_vert_diff[grid.core_nodes])
-                botharepositive = np.logical_and(ratediff_first > 0.,
-                                                 ratediff > 0.)
-                botharepositive = np.logical_and(botharepositive,
-                                                 downstr_vert_diff > 0.)
+            botharepositive = np.logical_and(ratediff_first > 0.,
+                                             ratediff > 0.)
+            botharepositive = np.logical_and(botharepositive,
+                                             downstr_vert_diff > 0.)
+            try:
+                times_to_converge_sed = (
+                    downstr_vert_diff[botharepositive] /
+                    ratediff[botharepositive]
+                )
+            except ValueError:  # no node pair converges
+                t_to_converge_sed = dt_secs
+            else:
+                times_to_converge_sed *= CONV_FACTOR_SED
+                # ^arbitrary safety factor; CHILD uses 0.3 for SP
                 try:
-                    times_to_converge_sed = (
-                        downstr_vert_diff[botharepositive] /
-                        ratediff[botharepositive]
-                    )
-                except ValueError:  # no node pair converges
+                    t_to_converge_sed = np.amin(times_to_converge_sed)
+                except ValueError:  # empty array
                     t_to_converge_sed = dt_secs
-                else:
-                    times_to_converge_sed *= CONV_FACTOR_SED
-                    # ^arbitrary safety factor; CHILD uses 0.3 for SP
-                    try:
-                        t_to_converge_sed = np.amin(times_to_converge_sed)
-                    except ValueError:  # empty array
-                        t_to_converge_sed = dt_secs
 #                print("t_to_converge_sed ", t_to_converge_sed/dt_secs)
-                t_to_converge = min((t_to_converge, t_to_converge_sed))
+            t_to_converge = min((t_to_converge, t_to_converge_sed))
 
             this_tstep = min((t_to_converge, dt_secs))
             self._t_to_converge = t_to_converge/YEAR_SECS
@@ -1058,18 +1049,14 @@ class SedDepEroder(Component):
                 self.t_to_converge = t_to_converge
                 this_tstep -= t_elapsed_internal - dt_secs
 
-            if self._simple_stab:
-                node_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
-            else:
-                br_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
+            br_z[grid.core_nodes] += dzbydt[grid.core_nodes] * this_tstep
 
-            if not self._simple_stab:
-                node_z[grid.core_nodes] += (
-                    sdr_rel_to_1st_surface[grid.core_nodes]
-                    + dzbydt[grid.core_nodes]
-                ) * this_tstep
+            node_z[grid.core_nodes] += (
+                sdr_rel_to_1st_surface[grid.core_nodes]
+                + dzbydt[grid.core_nodes]
+            ) * this_tstep
 
-                sed_rate_at_nodes = (node_z - br_z) / (dt_secs - t_elapsed_internal)
+            sed_rate_at_nodes = (node_z - br_z) / (dt_secs - t_elapsed_internal)
             self._hillslope_sediment_flux_wzeros[:] = sed_rate_at_nodes * self.cell_areas
 
             node_S[core_draining_nodes] = (
@@ -1077,12 +1064,11 @@ class SedDepEroder(Component):
                 link_length[core_draining_nodes]
             )
             downward_slopes = node_S.clip(np.spacing(0.))
-            if not self._simple_stab:
-                br_S[core_draining_nodes] = (
-                    (br_z - br_z[flow_receiver])[core_draining_nodes] /
-                    link_length[core_draining_nodes]
-                )
-                br_downward_slopes = br_S.clip(np.spacing(0.))
+            br_S[core_draining_nodes] = (
+                (br_z - br_z[flow_receiver])[core_draining_nodes] /
+                link_length[core_draining_nodes]
+            )
+            br_downward_slopes = br_S.clip(np.spacing(0.))
 
             time_fraction = this_tstep / dt_secs
             vQc += time_fraction * transport_capacities
@@ -1105,24 +1091,8 @@ class SedDepEroder(Component):
                         downward_slopes, br_downward_slopes, is_flooded
                     )
                 )
-        # self._hillslope_sediment[grid.core_nodes] = (
-        #     time_avg_sed_dep_rate_frag[grid.core_nodes] * dt_secs
-        # )  # doesn't need to be blanked, above, if we fill like this.
-        # # self._hillslope_sediment[grid.core_nodes] = (
-        # #     actual_time_avg_sed_dep_rate[grid.core_nodes] * dt_secs
-        # # )  # doesn't need to be blanked, above, if we fill like this.
-        # # ^^ these two options appear very similar in outcome! Which is good
-        # if not self._simple_stab:
-        #     node_z[grid.core_nodes] = br_z[grid.core_nodes] + self._hillslope_sediment[grid.core_nodes]
-        #     print("z full ", node_z)
-        #     self._br_z = br_z
-        #     self._br_S = br_downward_slopes
         grid.at_node['topographic__elevation'][:] = node_z
-        #grid.at_node['channel_sediment__relative_flux'][:] = rel_sed_flux
-        if self._simple_stab:
-            grid.at_node['channel_sediment__depth'][:] = sed_rate_at_nodes * dt_secs
-        else:
-            grid.at_node['channel_sediment__depth'][:] = node_z - br_z
+        grid.at_node['channel_sediment__depth'][:] = node_z - br_z
 
         return grid, grid.at_node["topographic__elevation"]
 
@@ -1153,26 +1123,18 @@ class SedDepEroder(Component):
         component's declared functions, acknowledging flooded nodes.
         """
         downward_slopes[is_flooded] = 0.
-        if not self._simple_stab:
-            br_downward_slopes[is_flooded] = 0.
+        br_downward_slopes[is_flooded] = 0.
 
         transport_capacities = (
             self._sed_transport_func.calc_erosion_rates(
                 downward_slopes, is_flooded
             )
         )
-        if self._simple_stab:
-            erosion_prefactor_withS = (
-                self._erosion_func.calc_erosion_rates(
-                    downward_slopes, is_flooded
-                )
-            )  # no time, no fqs
-        else:
-            erosion_prefactor_withS = (
-                self._erosion_func.calc_erosion_rates(
-                    br_downward_slopes, is_flooded
-                )
+        erosion_prefactor_withS = (
+            self._erosion_func.calc_erosion_rates(
+                br_downward_slopes, is_flooded
             )
+        )
         return erosion_prefactor_withS, transport_capacities
 
     def show_sed_flux_function(self, **kwds):

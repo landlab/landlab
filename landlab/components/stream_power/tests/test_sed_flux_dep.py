@@ -176,7 +176,7 @@ def test_sff_convergence():
         z = mg.add_zeros('node', 'topographic__elevation')
         fa = FlowAccumulator(mg)
         out_array = np.empty(4, dtype=float)
-        sde = SedDepEroder(mg, sed_dependency_type=sff_style, simple_stab=False)
+        sde = SedDepEroder(mg, sed_dependency_type=sff_style)
         # special case
         get_sed_flux_function_pseudoimplicit_bysedout(1000., 0., 1., 1.,
                                                       sde._sed_flux_fn_gen,
@@ -275,7 +275,7 @@ def test_sff_convergence():
     z = mg.add_zeros('node', 'topographic__elevation')
     fa = FlowAccumulator(mg)
     out_array = np.empty(4, dtype=float)
-    sde = SedDepEroder(mg, sed_dependency_type='linear_decline', simple_stab=False)
+    sde = SedDepEroder(mg, sed_dependency_type='linear_decline')
     get_sed_flux_function_pseudoimplicit_bysedout(
         2500., 5000., 2500., 100000./3.,
         sde._sed_flux_fn_gen,
@@ -583,7 +583,7 @@ def test_correct_field_input_responses():
     fa = FlowAccumulator(mg)
     pit = DepressionFinderAndRouter(mg)
     d = mg.add_ones('node', 'channel_sediment__depth')
-    sde = SedDepEroder(mg, simple_stab=False)
+    sde = SedDepEroder(mg)
     assert sde._hillslope_sediment is d
     # check binding is retained through a run cycle
     fa.run_one_step()
@@ -617,7 +617,7 @@ def test_basic_functionality():
         z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
         fa = FlowAccumulator(mg)
         sde = SedDepEroder(
-            mg, K_sp=1.e-6, K_t=1.e10, m_sp=1., sed_dependency_type=sff_type, simple_stab=False
+            mg, K_sp=1.e-6, K_t=1.e10, m_sp=1., sed_dependency_type=sff_type
         )
         fa.run_one_step()
         sde.run_one_step(1.)
@@ -683,7 +683,7 @@ def test_basic_functionality():
     fa = FlowAccumulator(mg)
     sde = SedDepEroder(
         mg, K_sp=1.e-5, K_t=1.e10, m_sp=1.,
-        sed_dependency_type='almost_parabolic', simple_stab=False
+        sed_dependency_type='almost_parabolic'
     )  # note 1.e-5 not 1.e-6 now
     fa.run_one_step()
     sde.run_one_step(1.)
@@ -716,7 +716,7 @@ def test_basic_functionality():
     z = mg.add_field('node', 'topographic__elevation', z_init, copy=True)
     fa = FlowAccumulator(mg)
     sde = SedDepEroder(
-        mg, K_sp=1., K_t=1.e-20, sed_dependency_type='linear_decline', simple_stab=False
+        mg, K_sp=1., K_t=1.e-20, sed_dependency_type='linear_decline'
     )
     fa.run_one_step()
     sde.run_one_step(1.)
@@ -749,7 +749,7 @@ def test_supplied_sediment():
     fa = FlowAccumulator(mg)
     sde = SedDepEroder(
         mg, K_sp=1.e10, K_t=1., m_sp=0., n_sp=1., m_t=0., n_t=1.,
-        sed_dependency_type='linear_decline', simple_stab=False
+        sed_dependency_type='linear_decline'
     )
     fa.run_one_step()
     sde.run_one_step(10.)
@@ -794,7 +794,7 @@ def test_diagonal_route():
     fa = FlowAccumulator(mg, flow_director="D8")
     sde = SedDepEroder(
         mg, K_sp=1.e-4, K_t=1., m_sp=0., n_sp=1., m_t=0., n_t=1.,
-        sed_dependency_type='linear_decline', simple_stab=False
+        sed_dependency_type='linear_decline'
     )
     fa.run_one_step()
     sde.run_one_step(10.)
@@ -816,7 +816,7 @@ def test_flooding():
     z[mg.core_nodes] = np.array([2.01, 1.999, 1.998, 2., 1.])
     fa = FlowAccumulator(mg, flow_director="D8")
     pit = DepressionFinderAndRouter(mg, routing="D8")
-    sde = SedDepEroder(mg, K_sp=1.e-3, K_t=1.e-4, simple_stab=False)
+    sde = SedDepEroder(mg, K_sp=1.e-3, K_t=1.e-4)
 
     fa.run_one_step()
     pit.map_depressions()
@@ -863,7 +863,7 @@ def test_flooding_w_ints():
     z[mg.core_nodes] = np.array([2.01, 1.999, 1.998, 2., 1.])
     fa = FlowAccumulator(mg, flow_director="D8")
     pit = DepressionFinderAndRouter(mg, routing="D8")
-    sde = SedDepEroder(mg, K_sp=1.e-3, K_t=1.e-4, simple_stab=False)
+    sde = SedDepEroder(mg, K_sp=1.e-3, K_t=1.e-4)
 
     fa.run_one_step()
     pit.map_depressions()
@@ -896,7 +896,7 @@ def test_flooding_w_field():
     lakes = mg.add_zeros('node', 'mylake', dtype=bool)
     fa = FlowAccumulator(mg, flow_director="D8")
     pit = DepressionFinderAndRouter(mg, routing="D8")
-    sde = SedDepEroder(mg, K_sp=1.e-3, K_t=1.e-4, simple_stab=False)
+    sde = SedDepEroder(mg, K_sp=1.e-3, K_t=1.e-4)
 
     fa.run_one_step()
     pit.map_depressions()
@@ -940,7 +940,7 @@ def test_mass_balance():
             fa = FlowAccumulator(mg, routing='D8')
             sde = SedDepEroder(
                 mg, K_sp=1., K_t=1., m_sp=0., n_sp=1.,
-                sed_dependency_type=sed_dep_type, simple_stab=False
+                sed_dependency_type=sed_dep_type
             )
             th = mg.at_node['channel_sediment__depth']
             th[5] += 10.
@@ -999,7 +999,7 @@ def full_run_smoketest():
             fa = FlowAccumulator(mg)
             pit = DepressionFinderAndRouter(mg)
         dfn = LinearDiffuser(mg, linear_diffusivity=1.e-3)
-        sde = SedDepEroder(mg, K_sp=1.e-5, K_t=1.e-5, simple_stab=False)
+        sde = SedDepEroder(mg, K_sp=1.e-5, K_t=1.e-5)
         elapsed_t = 0.
         while elapsed_t < total_t:
             print(elapsed_t)
