@@ -330,11 +330,8 @@ class SedDepEroder(Component):
 
     Similarly, a node in DL condition without any external supply must by
     definition have a capacity at its outflow greater than the sediment it
-    recieves, and hence all DL nodes do not accumulate sediment. In contrast,
-    TL nodes can accumulate:
+    recieves, and hence all DL nodes do not accumulate sediment:
 
-    >>> np.all(np.greater(th[TLs], 0.))
-    True
     >>> DLs = mg.core_nodes[np.logical_not(sde.is_it_TL)[mg.core_nodes]]
     >>> np.allclose(th[DLs], 0.)
     True
