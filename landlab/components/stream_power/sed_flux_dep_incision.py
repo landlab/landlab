@@ -1118,7 +1118,7 @@ class SedDepEroder(Component):
         grid.at_node['channel_sediment__volumetric_transport_capacity'][:] = transport_capacities
         grid.at_node['channel_sediment__volumetric_discharge'][:] = river_volume_flux_out_of_node
         if self._simple_stab:
-            grid.at_node['channel_sediment__depth'][:] =
+            grid.at_node['channel_sediment__depth'][:] = sed_rate_at_nodes * dt_secs
         else:
             grid.at_node['channel_sediment__depth'][:] = node_z - br_z
 

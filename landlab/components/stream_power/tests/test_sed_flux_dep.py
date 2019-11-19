@@ -816,13 +816,13 @@ def test_flooding():
     z[mg.core_nodes] = np.array([2.01, 1.999, 1.998, 2., 1.])
     fa = FlowAccumulator(mg, flow_director="D8")
     pit = DepressionFinderAndRouter(mg, routing="D8")
-    sde = SedDepEroder(mg, K_sp=1.e-3, K_t=1.e-4)
+    sde = SedDepEroder(mg, K_sp=1.e-3, K_t=1.e-4, simple_stab=False)
 
     fa.run_one_step()
     pit.map_depressions()
     sde.run_one_step(100., flooded_nodes=pit.lake_at_node)
     assert np.allclose(z[mg.core_nodes], np.array(
-        [2.00997276, 1.999, 1.998, 1.99504662, 0.95735666]
+        [2.00997276, 1.99902724, 1.998, 1.99504662, 0.95735666]
     ))  # sed enters 1st node, and is dropped there
     assert np.allclose(
         mg.at_node['channel_sediment__volumetric_transport_capacity'][
@@ -839,7 +839,7 @@ def test_flooding():
     pit.map_depressions()
     sde.run_one_step(100., flooded_nodes=pit.lake_at_node)
     assert np.allclose(z[mg.core_nodes], np.array(
-        [2.00994558,  1.999, 1.99787482, 1.98887236, 0.90435114])
+        [2.00994558, 1.99902536, 1.99787559, 1.98887236, 0.90435114])
     )
     assert np.all(np.greater(
         mg.at_node['channel_sediment__volumetric_transport_capacity'][
@@ -848,7 +848,7 @@ def test_flooding():
     )
     assert np.allclose(
         mg.at_node['channel_sediment__depth'][mg.core_nodes],
-        np.array([0., 2.61354757e-05, 0., 0., 0.])
+        np.array([0., 2.53649100e-05, 0., 0., 0.])
     )
 
 
@@ -863,14 +863,14 @@ def test_flooding_w_ints():
     z[mg.core_nodes] = np.array([2.01, 1.999, 1.998, 2., 1.])
     fa = FlowAccumulator(mg, flow_director="D8")
     pit = DepressionFinderAndRouter(mg, routing="D8")
-    sde = SedDepEroder(mg, K_sp=1.e-3, K_t=1.e-4)
+    sde = SedDepEroder(mg, K_sp=1.e-3, K_t=1.e-4, simple_stab=False)
 
     fa.run_one_step()
     pit.map_depressions()
     lakey_lakey = np.where(pit.lake_at_node)[0]
     sde.run_one_step(100., flooded_nodes=lakey_lakey)
     assert np.allclose(z[mg.core_nodes], np.array(
-        [2.00997276, 1.999, 1.998, 1.99504662, 0.95735666]
+        [2.00997276, 1.99902724, 1.998, 1.99504662, 0.95735666]
     ))  # sed enters 1st node, and is dropped there
     assert np.allclose(
         mg.at_node['channel_sediment__volumetric_transport_capacity'][
@@ -896,14 +896,14 @@ def test_flooding_w_field():
     lakes = mg.add_zeros('node', 'mylake', dtype=bool)
     fa = FlowAccumulator(mg, flow_director="D8")
     pit = DepressionFinderAndRouter(mg, routing="D8")
-    sde = SedDepEroder(mg, K_sp=1.e-3, K_t=1.e-4)
+    sde = SedDepEroder(mg, K_sp=1.e-3, K_t=1.e-4, simple_stab=False)
 
     fa.run_one_step()
     pit.map_depressions()
     lakes[:] = pit.lake_at_node
     sde.run_one_step(100., flooded_nodes='mylake')
     assert np.allclose(z[mg.core_nodes], np.array(
-        [2.00997276, 1.999, 1.998, 1.99504662, 0.95735666]
+        [2.00997276, 1.99902724, 1.998, 1.99504662, 0.95735666]
     ))  # sed enters 1st node, and is dropped there
     assert np.allclose(
         mg.at_node['channel_sediment__volumetric_transport_capacity'][
@@ -1235,7 +1235,7 @@ def test_mass_balance():
     for sed_dep_type in ('None', 'linear_decline', 'almost_parabolic'):
         # force us to be well within a single stable internal step, then go
         # over this threshold
-        for dt in (0.01, 0.15, 0.3):  # 1, 2, 3 internal loops
+        for dt in (0.01, 0.3, 0.4):  # 1, 2, 3 internal loops
             mg = RasterModelGrid((3, 4), xy_spacing=1.)
             closed_nodes = np.array(
                 [True,  True,  True,  True,
