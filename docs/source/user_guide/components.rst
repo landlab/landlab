@@ -107,9 +107,7 @@ It should probably be emphasized here to **always read the documentation for
 the component you are using**! You can get at this documentation either on this
 website, or in a dynamic Python session by getting help for either the imported
 class or the instantiated component object. i.e., in this case, any of the
-following would work
-
-.. code-block:: python
+following would work::
 
     help(LinearDiffuser)
     help(dfn)
