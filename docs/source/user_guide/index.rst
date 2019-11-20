@@ -79,8 +79,6 @@ Presentations, Clinics, and Classroom Use
 
     papers_presentations
     clinics_workshops
-    landlab_curriculum
-
 
 Overland flow User Guide
 ------------------------

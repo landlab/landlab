@@ -9,43 +9,43 @@ Welcome to the **Landlab** gallery of examples!
 Overland Flow
 -------------
 
-.. figure:: images/SS_vs_OverlandFlow_Cartoon.jpg
-    :figwidth: 80%
+.. image:: images/SS_vs_OverlandFlow_Cartoon.jpg
+    :width: 300px
     :align: center
 
 Square Basin
 ------------
 
-.. figure:: images/SquareBasin.jpg
-    :figwidth: 300px
+.. image:: images/SquareBasin.jpg
+    :width: 300px
     :align: center
 
 Flexure
 -------
 
-.. figure:: images/flexure.png
-    :figwidth: 300px
+.. image:: images/flexure.png
+    :width: 300px
     :align: center
     :target: https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=flexure/lots_of_loads.ipynb
 
 Hydrograph of Changing Storm Intensity
 --------------------------------------
 
-.. figure:: images/Hydrograph_ChangingIntensity.jpg
-    :figwidth: 300px
+.. image:: images/Hydrograph_ChangingIntensity.jpg
+    :width: 300px
     :align: center
 
 Topographic Elevation
 ---------------------
 
-.. figure:: images/topographic-elevation.png
-    :figwidth: 300px
+.. image:: images/topographic-elevation.png
+    :width: 300px
     :align: center
     :target: https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=component_tutorial/component_tutorial.ipynb
 
 CA Transition
 -------------
 
-.. figure:: images/transition_example.png
-    :figwidth: 300px
+.. image:: images/transition_example.png
+    :width: 300px
     :align: center

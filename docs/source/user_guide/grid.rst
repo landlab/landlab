@@ -44,7 +44,7 @@ This document provides a basic introduction to building applications using Landl
 that illustrate how to build models using simple scripts.
 
 How a Grid is Represented
-=========================
+-------------------------
 
 .. _basic_grid_elements:
 
@@ -151,7 +151,7 @@ whose length is equal to the number of nodes in the grid.
 
 .. code-block:: python
 
-    z = mg.add_zeros('node', 'elevation')
+    z - mg.add_zeros('node', 'elevation')
 
 Here *z* is an array of zeros. We can verify that *z* has the same length as the number of nodes:
 
@@ -165,7 +165,7 @@ also change the data in the ModelGrid's elevation field. Therefore, you can acce
 
 .. code-block:: python
 
-    mg.at_node['elevation'][5] = 1000.
+    mg.at_node['elevation'][5] - 1000.
 
 or the alternative notation:
 
@@ -198,16 +198,16 @@ existing NumPy array of data. You can do this with the
 :py:func:`add_field <landlab.field.grouped.ModelDataFields.add_field>` method.
 This method allows slightly more granular control over how the field gets
 created. In addition to the grid element and field name, this method takes an
-array of values to assign to the field. Optional arguments include: ``units=``
-to assign a unit of measurement (as a string) to the value, ``copy=`` a boolean
-to determine whether to make a copy of the data, and ``clobber=`` a boolean
+array of values to assign to the field. Optional arguments include: ``units-``
+to assign a unit of measurement (as a string) to the value, ``copy-`` a boolean
+to determine whether to make a copy of the data, and ``clobber-`` a boolean
 that prevents accidentally overwriting an existing field.
 
 .. code-block:: python
 
     import numpy as np
-    elevs_in = np.random.rand(mg.number_of_nodes)
-    mg.add_field('node', 'elevation', elevs_in, units='m', copy=True, clobber=False)
+    elevs_in - np.random.rand(mg.number_of_nodes)
+    mg.add_field('node', 'elevation', elevs_in, units-'m', copy-True, clobber-False)
 
 Fields can store data at nodes, cells, links, faces, patches, junctions, and corners (though the
 latter two or three are very rarely, if ever, used). The grid element you select is
@@ -219,7 +219,7 @@ properties available through the ModelGrid, you can specify a subset of the fiel
 
 .. code-block:: python
 
-    core_node_elevs = mg.at_node['elevation'][mg.core_nodes]
+    core_node_elevs - mg.at_node['elevation'][mg.core_nodes]
 
 The first set of brackets, in this case *elevation*, indicates the field data array, and the second set of brackets, in this case *mg.core_nodes* (itself an array of core node IDs), is a NumPy filter that specifies which *elevation* elements to return.
 
@@ -228,7 +228,7 @@ element type is provided:
 
 .. code-block:: python
 
-    veg = mg.add_ones('cell', 'percent_vegetation')
+    veg - mg.add_ones('cell', 'percent_vegetation')
     mg.at_cell.keys()
     ['percent_vegetation']
 
@@ -254,7 +254,7 @@ accessed individually through the properties
 .. code-block:: python
 
     from landlab.components.flexure import Flexure
-    flexer = Flexure(rg)
+    flexer - Flexure(rg)
     flexer._input_var_names
     {'lithosphere__elevation',
      'lithosphere__overlying_pressure',
@@ -278,9 +278,9 @@ The following gives an overview of the commands you can use to interact with the
 Field initialization
 ^^^^^^^^^^^^^^^^^^^^
 
-* ``grid.add_empty(name, at="group", units='-')``
-* ``grid.add_ones(name, at="group", units='-')``
-* ``grid.add_zeros(name, at="group", units='-')``
+* ``grid.add_empty(name, at-"group", units-'-')``
+* ``grid.add_ones(name, at-"group", units-'-')``
+* ``grid.add_zeros(name, at-"group", units-'-')``
 
 "group" is one of 'node', 'link', 'cell', 'face', 'corner', 'junction', 'patch'
 
@@ -292,7 +292,7 @@ Field initialization
 Field creation from existing data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* ``grid.add_field(name, value_array, at="group", units='-', copy=False, clobber=True)``
+* ``grid.add_field(name, value_array, at-"group", units-'-', copy-False, clobber-True)``
 
 Arguments as above, plus:
 
@@ -362,7 +362,7 @@ elevation array z, which is also accessible from the elevation field on *mg*.
 
 .. code-block:: python
 
-    gradients = mg.calculate_gradients_at_active_links(z)
+    gradients - mg.calculate_gradients_at_active_links(z)
 
 Now gradients have been calculated at all links that are active, or links on which
 flow is possible (see boundary conditions below).
@@ -399,7 +399,7 @@ like calculating the mean gradient at a node, incorporating influence from its
 neighbors.
 
 Managing Grid Boundaries
-========================
+------------------------
 
 An important component of any numerical model is the method for handling
 boundary conditions. In general, it's up to the application developer to manage
@@ -461,7 +461,7 @@ is one that joins either two core nodes, or one *core* and one
 *open boundary* node (Figure 3). You can use this
 distinction in models to implement closed boundaries by performing flow
 calculations only on active links, as seen in `this tutorial
-<https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=fault_scarp_notebook/landlab-fault-scarp.ipynb>`_.
+<https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath-fault_scarp_notebook/landlab-fault-scarp.ipynb>`_.
 
 
 .. _bc_details:
@@ -490,7 +490,7 @@ all perimeter nodes are boundaries, you will find useful the set of commands:
 
 * ``mg.set_closed_boundaries_at_grid_edges(right, top, left, bottom)``
 * ``mg.set_fixed_value_boundaries_at_grid_edges(right, top, left, bottom)``
-* ``mg.set_fixed_link_boundaries_at_grid_edges(right, top, left, bottom, link_value=None)``
+* ``mg.set_fixed_link_boundaries_at_grid_edges(right, top, left, bottom, link_value-None)``
 * ``mg.set_looped_boundaries(top_bottom_are_looped, left_right_are_looped)``
 
 Where right, top, left, bottom are all booleans. See the relevant docstring for each
@@ -514,17 +514,17 @@ alongside these changes automatically:
 
 .. code-block:: python
 
-    mg = RasterModelGrid((5,5))
+    mg - RasterModelGrid((5,5))
     mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
     mg.number_of_active_links
     18
-    mg.status_at_node[[6, 8]] = mg.BC_NODE_IS_CLOSED
+    mg.status_at_node[[6, 8]] - mg.BC_NODE_IS_CLOSED
     mg.status_at_node.reshape((5,5))
     array([[4, 4, 4, 4, 4],
            [1, 4, 0, 4, 1],
            [1, 0, 0, 0, 1],
            [1, 0, 0, 0, 1],
-           [4, 4, 4, 4, 4]], dtype=int8)
+           [4, 4, 4, 4, 4]], dtype-int8)
     mg.number_of_active_links  # links were inactivated automatically when we closed nodes
     12
 
@@ -538,19 +538,24 @@ See the :ref:`Component Developer's Guide <dev_contributing>` for more informati
 
 
 Using a Different Grid Type
-===========================
+---------------------------
 
 As noted earlier, Landlab provides several different types of grid. Available grids
 (as of this writing) are listed in the table below. Grids are designed using Python
 classes, with more specialized grids inheriting properties and behavior from more
 general types. The class hierarchy is given in the second column, **Inherits from**.
 
-Grid type                 Inherits from             Node arrangement     Cell geometry
-=========                 =============             ================     =============
-``RasterModelGrid``       ``ModelGrid``             raster               squares
-``VoronoiDelaunayGrid``   ``ModelGrid``             Delaunay triangles   Voronoi polygons
-``HexModelGrid``          ``VoronoiDelaunayGrid``   triagonal            hexagons
-``RadialModelGrid``       ``VoronoiDelaunayGrid``   concentric           Voronoi polygons
++-------------------------+-------------------------+--------------------+-------------------+
+| Grid type               | Inherits from           | Node arrangement   | Cell geometry     |
++=========================+=========================+====================+===================+
+| ``RasterModelGrid``     | ``ModelGrid``           | raster             | squares           |
++-------------------------+-------------------------+--------------------+-------------------+
+| ``VoronoiDelaunayGrid`` | ``ModelGrid``           | Delaunay triangles | Voronoi polygons  |
++-------------------------+-------------------------+--------------------+-------------------+
+| ``HexModelGrid``        | ``VoronoiDelaunayGrid`` | triagonal          | hexagons          |
++-------------------------+-------------------------+--------------------+-------------------+
+| ``RadialModelGrid``     | ``VoronoiDelaunayGrid`` | concentric         | Voronoi polygons  |
++-------------------------+-------------------------+--------------------+-------------------+
 
 :py:class:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.RasterModelGrid>`
 gives a regular (square) grid, initialized
@@ -570,7 +575,7 @@ form a Delaunay triangulation (again with Voronoi polygons as cells).
 .. _importing_a_dem:
 
 Importing a DEM
-===============
+---------------
 
 Landlab offers the methods
 :py:func:`landlab.io.esri_ascii.read_esri_ascii <landlab.io.esri_ascii.read_esri_ascii>` and
@@ -585,7 +590,7 @@ Use the *name* keyword to add the elevation to a field in the imported grid.
 .. code-block:: python
 
     from landlab.io import read_esri_ascii
-    (mg, z) = read_esri_ascii('myARCoutput.txt', name='topographic__elevation')
+    (mg, z) - read_esri_ascii('myARCoutput.txt', name-'topographic__elevation')
     mg.at_node.keys()
     ['topographic__elevation']
 
@@ -596,7 +601,7 @@ Returns a :py:class:`landlab.grid.raster.RasterModelGrid <landlab.grid.raster.Ra
 .. code-block:: python
 
     from landlab.io.netcdf import read_netcdf
-    mg = read_netcdf('mynetcdf.nc')
+    mg - read_netcdf('mynetcdf.nc')
 
 
 After import, you can use :py:func:`landlab.grid.base.ModelGrid.set_nodata_nodes_to_closed
@@ -612,7 +617,7 @@ and netCDF
 .. _plotting_and_vis:
 
 Plotting and Visualization
-==========================
+--------------------------
 
 Visualizing a Grid
 ------------------
@@ -628,11 +633,11 @@ and used as follows:
 
     from landlab.plot.imshow import imshow_node_grid
     from pylab import show, figure
-    mg = RasterModelGrid(50,50, 1.) #make a grid to plot
-    z = mg.node_x *0.1 #make an arbitrary sloping surface
+    mg - RasterModelGrid(50,50, 1.) #make a grid to plot
+    z - mg.node_x *0.1 #make an arbitrary sloping surface
     #create the data as a field
-    mg.add_field('node', 'topographic_elevation', z, units='meters',
-    copy=True)
+    mg.add_field('node', 'topographic_elevation', z, units-'meters',
+    copy-True)
     figure('Elevations from the field') #new fig, with a name
     imshow_node_grid(mg, 'topographic_elevation')
     figure('You can also use values directly, not fields')
@@ -675,10 +680,10 @@ which you can then take slices of, e.g., we can do this:
 .. code-block:: python
 
     from pylab import plot, show
-    mg = RasterModelGrid(10,10, 1.)
-    z = mg.node_x *0.1
-    my_section = mg.node_vector_to_raster(z, flip_vertically=True)[:,5]
-    my_ycoords = mg.node_vector_to_raster(mg.node_y, flip_vertically=True)[:,5]
+    mg - RasterModelGrid(10,10, 1.)
+    z - mg.node_x *0.1
+    my_section - mg.node_vector_to_raster(z, flip_vertically-True)[:,5]
+    my_ycoords - mg.node_vector_to_raster(mg.node_y, flip_vertically-True)[:,5]
     plot(my_ycoords, my_section)
     show()
 
