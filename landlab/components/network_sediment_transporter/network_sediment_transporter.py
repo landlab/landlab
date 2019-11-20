@@ -567,9 +567,9 @@ class NetworkSedimentTransporter(Component):
             self.fd.flow_link_incoming_at_node() == 1, self._grid.links_at_node, -1
         )
 
-        print("number of contributing links", number_of_contributors)
-        print("downstream link id", downstream_link_id)
-        print("upstream contributing links", upstream_contributing_links_at_node)
+#        print("number of contributing links", number_of_contributors)
+#        print("downstream link id", downstream_link_id)
+#        print("upstream contributing links", upstream_contributing_links_at_node)
 
         # Update the node topographic elevations depending on the quantity of stored sediment
         for n in range(self._grid.number_of_nodes):
@@ -607,10 +607,10 @@ class NetworkSedimentTransporter(Component):
                         downstream_link_id
                     ][n]
                     
-                print("Downstream link id = ",downstream_link_id)
-                print("We are looking at node ",n, ".  We are pointing to downstream link number ", 
-                      downstream_link_id[n], " .  And we are pointing to upstream link number(s)",
-                      real_upstream_links)
+#                print("Downstream link id = ",downstream_link_id)
+#                print("We are looking at node ",n, ".  We are pointing to downstream link number ", 
+#                      downstream_link_id[n], " .  And we are pointing to upstream link number(s)",
+#                      real_upstream_links)
                 
                 alluvium__depth = _calculate_alluvium_depth(
                         self.vol_stor[downstream_link_id][n],
@@ -776,7 +776,11 @@ class NetworkSedimentTransporter(Component):
             / R[Activearray == 1]
             / active_layer_thickness_array[Activearray == 1]
         )
-
+        
+        self.frac_parcel = frac_parcel
+        self.active_layer_thickness_array = active_layer_thickness_array
+        
+        
         self.pvelocity[np.isnan(self.pvelocity)] = 0
 
         # Assign those things to the grid -- might be useful for plotting later...?

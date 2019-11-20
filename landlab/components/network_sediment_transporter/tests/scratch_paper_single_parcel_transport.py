@@ -39,7 +39,7 @@ p_vel = W*(Tau**(3/2))/((rho**(3/2))*g*R*L_a)
 
 distance_to_travel = p_vel * dt
 
-timestep = np.arange(0,12)
+timestep = np.arange(0,11)
 
 total_distance_traveled = distance_to_travel*timestep
 
