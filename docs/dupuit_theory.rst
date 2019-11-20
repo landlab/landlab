@@ -63,7 +63,7 @@ base-parallel reference frame :math:`(x',y')` are:
    \begin{aligned}
    n \frac{\partial \eta}{\partial t} &= f \cos(\alpha) - q_s \cos(\alpha) - \nabla' \cdot q \\
    q &= -k_{sat} \eta \big( \nabla' z ) \\
-   q_s &= \mathcal{G}_r \bigg( \frac{\eta}{d'} \bigg) \mathcal{R} \big(-\nabla' \cdot q + f \big) \\\end{aligned}
+   q_s &= \mathcal{G}_r \bigg( \frac{\eta}{d'} \bigg) \mathcal{R} \big(-\nabla' \cdot q + f \cos(\alpha) \big) \\\end{aligned}
 
 where :math:`\alpha` is the slope angle of aquifer base, and :math:`d'` is the
 permeable thickness normal to the aquifer base. The gradient operator
@@ -121,7 +121,7 @@ governing equations. In this method, gradients are calculated at links
 (at volume centers). The governing equation with timestep
 :math:`\Delta t` is:
 
-.. math:: n \bigg( \frac{h^{t+\Delta t} - h^t}{\Delta t} \bigg) = -q_s^t - \nabla \cdot q^t + f^t
+.. math:: n \bigg( \frac{h^{t+\Delta t} - h^t}{\Delta t} \bigg) = f^t - q_s^t - \nabla \cdot q^t
 
 Below is a description of the components needed to calculate the right
 side of this equation. To calculate the groundwater flux :math:`q`, the
