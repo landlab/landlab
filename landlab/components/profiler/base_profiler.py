@@ -201,7 +201,7 @@ class _BaseProfiler(Component, ABC):
             Plot title, default value is "Extracted Profiles".
         color : RGBA tuple or color string
             Color to use in order to plot all profiles the same color. Default
-            is None, and the colors assigned to each profile are used. 
+            is None, and the colors assigned to each profile are used.
         """
         quantity = return_array_at_node(self._grid, field)
 
