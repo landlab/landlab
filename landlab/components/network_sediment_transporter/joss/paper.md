@@ -16,6 +16,10 @@ authors:
     orcid: 0000-0002-9485-2604
     affiliation: 4
 
+  - name: Eric Hutton
+    orcid: 0000-0002-5864-6459
+    affiliation: 3, 5
+
 affiliations:
   - name: Western Washington University, Geology Department
     index: 1
@@ -25,7 +29,8 @@ affiliations:
     index: 3
   - name: Virginia Tech
     index: 4
-
+  - name: University of Colorado at Boulder, Community Surface Dynamics Modeling System Integration Facility
+    index: 5
 date: 0 November 2019
 bibliography: papers.bib
 ---
