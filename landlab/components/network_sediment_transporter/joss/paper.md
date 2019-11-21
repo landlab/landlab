@@ -71,4 +71,6 @@ XX](https://github.com/landlab/tutorials/pull/19).
 
 The authors thank ____________ for _________
 
+Barnhart supported by an NSF EAR Postdoctoral Fellowship (NSF Award Number 1725774).
+
 # References
