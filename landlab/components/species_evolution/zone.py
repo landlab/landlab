@@ -13,19 +13,20 @@ _MANY_TO_ONE = 'many-to-one'
 _MANY_TO_MANY = 'many-to-many'
 
 
-def _update_zones(grid, prior_zones, new_zones, record_add_on):
+def _update_zones(grid, prior_zones, new_zones, record):
     """Resolve the spatial connectivity of zones across two time steps.
 
-    This methods iterates over each zone of the prior time step, the
-    predessor, to identify the zones of the current time step it spatially
-    intersects, the successor zones.
+    This methods iterates over each zone of the prior time step, the predessor,
+    to identify the zones of the current time step it spatially intersects, the
+    successor zones.
 
-    Connection type is determined by the number of predessors and successors
-    that overlap each other. The connection type is represented by a string
-    with the pattern, x-to-y where x and y are the descriptive counts (none,
-    one, or many) of zone(s) at the prior and current time step, respectively.
-    For example, a connection type of one-to-many is a zone in the prior time
-    step that spatially overlaps multiple zones in the current time step.
+    The type of connection between predessor and successor zones is described
+    by the number of predessors and successors that overlap each other. The
+    connection type is represented by a string with the pattern, x-to-y where x
+    and y are the descriptive counts (none, one, or many) of zone(s) at the
+    prior and current time step, respectively. For example, a connection type
+    of one-to-many is a zone in the prior time step that spatially overlaps
+    multiple zones in the current time step.
 
     In the `many` connections, a rule determines which of the prior zones
     persist as the zone in the current time step. The zone with the greatest
@@ -40,8 +41,8 @@ def _update_zones(grid, prior_zones, new_zones, record_add_on):
         The zones of the prior timestep.
     new_zones : Zone list
         The zones of the current timestep.
-    record_add_on : defaultdict
-        A dictionary to pass values to the SpeciesEvolver record.
+    record : Record
+        The ZoneController record.
 
     Returns
     -------
@@ -49,7 +50,8 @@ def _update_zones(grid, prior_zones, new_zones, record_add_on):
         The successor zones. The zones determined to exist at the current time
         step with an updated ``successors`` attribute.
     """
-    # Stats are calculated for `record_add_on`.
+    # Stats are calculated for `record`.
+
     fragment_ct = 0
     capture_ct = 0
     area_captured = [0]
@@ -135,14 +137,18 @@ def _update_zones(grid, prior_zones, new_zones, record_add_on):
 
         successors = list(set(successors))
 
-    # Update record add on.
+    # Update the record.
 
-    record_add_on['capture_count'] += capture_ct
+    record.increment_value('capture_count', capture_ct)
+    record.increment_value('area_captured_sum', sum(area_captured))
+    record.increment_value('fragmentation_count', fragment_ct)
 
-    if max(area_captured) > record_add_on['area_captured_max']:
-        record_add_on['area_captured_max'] = max(area_captured)
-    record_add_on['area_captured_sum'] += sum(area_captured)
-    record_add_on['fragmentation_count'] += fragment_ct
+    old_value = record.get_value('area_captured_max')
+    old_value_is_nan = np.isnan(old_value)
+    new_value_is_greater = max(area_captured) > old_value
+
+    if old_value_is_nan or new_value_is_greater:
+        record.set_value('area_captured_max', max(area_captured))
 
     return successors
 

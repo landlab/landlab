@@ -6,7 +6,9 @@ from abc import ABC, abstractmethod
 class _Species(ABC):
     """Base Species of SpeciesEvolver.
 
-    This class is intended to be subclassed to create species.
+    This class is intended to be subclassed to create species. Subclasses must
+    implement the properties and methods of this base class that are designated
+    as abstract.
     """
 
     def __init__(self):
@@ -46,11 +48,16 @@ class _Species(ABC):
         ...  # pragma: no cover
 
     @abstractmethod
-    def _evolve_step_1(self):
-        """ """
+    def _evolve_stage_1(self):
+        """Run evolutionary processes in preperation of stage 2.
+
+        SpeciesEvolver loops through extant species twice in the component's
+        ``run_one_step`` method. Any processing that should be conducted upon
+        on all species before additional processing should be done in stage 1.
+        """
         ...  # pragma: no cover
 
     @abstractmethod
-    def _evolve_step_2(self):
-        """ """
+    def _evolve_stage_2(self):
+        """Complete evolutionary processes for the time."""
         ...  # pragma: no cover

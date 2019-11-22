@@ -14,7 +14,7 @@ class ZoneController(object):
     of species. A zone represents a portion of a model grid. It is made up of
     spatially continuous grid nodes.
 
-    This controller creates zones using the parameter, ``function`` set at
+    This controller creates zones using the parameter, ``zone_function`` set at
     initialization. This function identifies all of the grid nodes where zones
     are to be created. A zone is created for each cluster of spatially
     continuous nodes. The function is called and zones are updated when this
@@ -58,12 +58,12 @@ class ZoneController(object):
     that zone (see ZoneSpecies documention for more about allopatric wait
     time).
 
-    Here a different example grid demonstrates the temporal connectivity of
+    Here, a different example grid demonstrates the temporal connectivity of
     zones. The grid represents the time, ``T0`` with the nodes of a zone
-    marked with ``x``. In the rest of the document, examples will use D8
-    neighborhoods and a minimum zone area of 0.
+    marked with ``x``. The following examples will use D8 neighborhoods and a
+    minimum zone area of 0.
 
-        T0
+    T0
     · · · · · ·
     · · · · · ·
     · x x x x ·
@@ -71,7 +71,7 @@ class ZoneController(object):
     · · · · · ·
     · · · · · ·
 
-    Below are variations of the grid at a later time, ``T1`` in three
+    Below are variations of the grid at a later time, ``T1`` in four
     variations where each contains one zone. In ``T1a``, ``T1b``, and ``T1c``
     the zone stayed the same, moved, and changed size, respectively. Species
     migrate with the zone when at least one zone node overlaps between the two
@@ -108,12 +108,12 @@ class ZoneController(object):
     cluster overlapped only one node, therefore the right cluster became the
     star zone. However, this is merely for creating new zones objects.
 
-    The grid below continues from T1e. The continuous nodes overlapped two
-    zones in T1e. When multiple zones overlap, one zone is assumed to be the
-    prior zone and the others are considered captured zones. The number of zone
-    captures can be viewed in the ``record`` attribute.
+    The grid diagrammed below continues from T1e. The continuous nodes
+    overlapped two zones in T1e. When multiple zones overlap, one zone is
+    assumed to be the prior zone and the others are considered captured zones.
+    The number of zone captures can be viewed in the ``record`` attribute.
 
-        T2
+    T2
     · · · · · ·
     · · · · · ·
     · · · · · ·
@@ -129,7 +129,69 @@ class ZoneController(object):
     the earlier time step. In this example, the cluster to the left overlapped
     two nodes and the right cluster overlapped only one node, therefore the new
     zone keeps the designation of the left cluster. However, this is merely for
-    creating new zones objects.
+    creating new zone objects.
+
+    Note in the example above that zones are created throughout the grid,
+    including boundaries, wherever nodes meet the conditions within the
+    ``zone_function``. Boundaries can be excluded in zones by evaluating if
+    nodes are boundaries in ``zone_function``.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> from landlab.components.species_evolution import ZoneController
+
+    # Create a model grid and an elevation field for this grid.
+    >>> mg = RasterModelGrid((3, 7))
+    >>> z = mg.add_zeros('node', 'topographic__elevation')
+
+    # Set elevation to 1 for some nodes.
+    >>> z[[9, 10, 11, 12]] = 1
+
+    # Define a zone function that returns a boolean array where `True` values
+    # indicate the nodes where zones can be created.
+    >>> def zone_func(grid):
+    ...     z = grid.at_node['topographic__elevation']
+    ...     return z == 1
+
+    # Instantiate ZoneController. Only one zone exists because the nodes that
+    # were set to one are adjacent to each other in the grid.
+    >>> sc = ZoneController(mg, zone_func)
+    >>> sc.record
+       time  zone_count
+    0     0           1
+
+    # Populate each zone with one species.
+    >>> species = sc.populate_zones_uniformly(1)
+    >>> len(species)
+    1
+
+    # A change in elevation is forced to demonstrate a zone fragmentation, and
+    # then the zones are updated by advancing the ZoneController by 1000 time
+    units.
+    >>> z[10] = 0
+    >>> sc.run_one_step(1000)
+
+    # Two zones now exist because the zone in time 0 fragmented into two zones.
+    >>> sc.record[['time', 'zone_count', 'fragmentation_count']]
+       time  zone_count  fragmentation_count
+    0     0           1                  NaN
+    1  1000           2                  1.0
+
+    # A change in elevation is forced again, this time to demonstrate zone
+    # capture where multiple zones are overlapped by a zone in the later time
+    # step. Statistics of the area captured are stored in the ZoneController
+    # record.
+    >>> z[10] = 1
+    >>> sc.run_one_step(1000)
+    >>> sc.record[['time', 'zone_count', 'capture_count', 'area_captured_sum',
+    ...     'area_captured_max']]
+       time  zone_count  capture_count  area_captured_sum  area_captured_max
+    0     0           1            NaN                NaN                NaN
+    1  1000           2            0.0                0.0                0.0
+    2  2000           1            1.0                2.0                2.0
+
+
     """
     def __init__(self, grid, zone_function, minimum_area=0,
                  neighborhood_structure='D8', initial_time=0, **kwargs):
@@ -140,7 +202,8 @@ class ZoneController(object):
         species_evolver : SpeciesEvolver
             A Landlab SpeciesEvolver instance.
         zone_function : function
-            A function that return a mask of the species range.
+            A function that return a mask of the total zone extent. The first
+            input parameter of this function must be `grid`.
         minimum_area : float, optional
             The minimum area of zones.
         neighborhood_structure : {'D8', 'D4'}, optional
@@ -160,8 +223,11 @@ class ZoneController(object):
         self._zone_func = zone_function
         self._zone_params = kwargs
         self._min_area = minimum_area
-        self._neighborhood_struct = neighborhood_structure
         self._record = Record(initial_time)
+        if neighborhood_structure in ['D8', 'D4']:
+            self._neighborhood_struct = neighborhood_structure
+        else:
+            raise ValueError("`neighborhood_structure` must be 'D8' or 'D4'")
 
         # Include `grid` in the zone params dictionary.
 
@@ -171,6 +237,8 @@ class ZoneController(object):
 
         initial_range = zone_function(**kwargs)
         self._zones = self._get_zones_with_mask(initial_range)
+
+        self._record.set_value('zone_count', len(self._zones))
 
     @property
     def zones(self):
@@ -214,11 +282,7 @@ class ZoneController(object):
             The model time step duration. The first time step begins at 0.
             Following time steps are advanced by ``dt``.
         """
-        self._record.iterate_time(dt)
-
-        # Create an add on to insert into `record`.
-
-        add_on = self._record.get_empty_add_on()
+        self._record.advance_time(dt)
 
         # Resolve the spatiotemporal connectivity of the prior time step zones
         # to the new zones.
@@ -228,10 +292,10 @@ class ZoneController(object):
         zone_mask = self._zone_func(**self._zone_params)
         new_zones = self._get_zones_with_mask(zone_mask)
 
-        self._zones = _update_zones(self._grid, prior_zones, new_zones, add_on)
+        self._zones = _update_zones(self._grid, prior_zones, new_zones,
+                                    self._record)
 
-        add_on['zone_count'] = len(self._zones)
-        self._record.insert_add_on(add_on)
+        self._record.set_value('zone_count', len(self._zones))
 
     def _get_zones_with_mask(self, range_mask):
         """Get zones using a range mask.
@@ -251,10 +315,11 @@ class ZoneController(object):
 
         # Label clusters of 'True' values in `range_mask`.
 
-        if self._neighborhood_struct == 'D4':
-            s = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]
-        elif self._neighborhood_struct == 'D8':
+        if self._neighborhood_struct == 'D8':
             s = 3 * [[1, 1, 1]]
+        elif self._neighborhood_struct == 'D4':
+            s = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]
+
         cluster_array, cluster_count = label(range_mask.reshape(grid.shape),
                                              structure=s)
 
@@ -265,8 +330,8 @@ class ZoneController(object):
         for i in range(1, cluster_count + 1):
             mask = cluster_array == i
 
-            if mask.sum() * grid.cellarea > self._min_area:
-                # Create a zone if cluster area exceeds the minimum.
+            if mask.sum() * grid.cellarea >= self._min_area:
+                # Create a zone if cluster area exceeds the minimum area.
                 zones.append(Zone(mask))
 
         return zones
