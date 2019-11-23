@@ -108,9 +108,9 @@ class TaylorNonLinearDiffuser(Component):
     Lets try to move the soil with a large timestep. Without dynamic time
     steps, this gives a warning that we've exceeded the dynamic timestep size
     and should use a smaller timestep. We could either use the smaller timestep,
-    or specify that we want to use adynamic timestep.
+    or specify that we want to use a dynamic timestep.
 
-    >>> cubicflux.soilflux(10, if_unstable='warn', dynamic_dt=False)
+    >>> cubicflux.run_one_step(10., if_unstable='warn', dynamic_dt=False)
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
@@ -118,13 +118,14 @@ class TaylorNonLinearDiffuser(Component):
     timestepping. The Courant condition recommends a timestep of
     0.004 or smaller.
 
-    Now, we'll re-build the grid and do the same exapmle with dynamic timesteps.
+    Now, we'll re-build the grid and do the same example with dynamic
+    timesteps.
 
     >>> mg = RasterModelGrid((5, 5))
     >>> z = mg.add_zeros('node', 'topographic__elevation')
     >>> z += mg.node_x.copy()**2
     >>> cubicflux = TaylorNonLinearDiffuser(mg)
-    >>> cubicflux.soilflux(10, if_unstable='warn', dynamic_dt=True)
+    >>> cubicflux.run_one_step(10., if_unstable='warn', dynamic_dt=True)
     >>> np.any(np.isnan(z))
     False
     """
@@ -198,7 +199,12 @@ class TaylorNonLinearDiffuser(Component):
         else:
             self.flux = self.grid.add_zeros("link", "soil__flux")
 
-    def soilflux(self, dt, dynamic_dt=False, if_unstable="pass", courant_factor=0.2):
+    def soilflux(
+            self,
+            dt,
+            dynamic_dt=False,
+            if_unstable="pass",
+            courant_factor=0.2):
         """Calculate soil flux for a time period 'dt'.
 
         Parameters
@@ -206,7 +212,7 @@ class TaylorNonLinearDiffuser(Component):
         dt: float (time)
             The imposed timestep.
         dynamic_dt : boolean (optional, default is False)
-            Keyword argument to turn on or off dynamic time-stepping
+            Keyword argument to turn on or off dynamic time-stepping.
         if_unstable : string (optional, default is "pass")
             Keyword argument to determine how potential instability due to
             slopes that are too high is handled. Options are "pass", "warn",
@@ -244,7 +250,8 @@ class TaylorNonLinearDiffuser(Component):
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
-            if (self.dt_max < dt) and (not dynamic_dt) and (if_unstable != "pass"):
+            if (self.dt_max < dt) and (not dynamic_dt) and (
+                    if_unstable != "pass"):
                 message = (
                     "Topographic slopes are high enough such that the "
                     "Courant condition is exceeded AND you have not "
@@ -286,7 +293,9 @@ class TaylorNonLinearDiffuser(Component):
             dqdx = self.grid.calc_flux_div_at_node(self.flux)
 
             # Update topography
-            self.elev[self.grid.core_nodes] -= dqdx[self.grid.core_nodes] * self.sub_dt
+            self.elev[self.grid.core_nodes] -= (
+                dqdx[self.grid.core_nodes] * self.sub_dt
+            )
 
     def run_one_step(self, dt, **kwds):
         """
@@ -296,5 +305,14 @@ class TaylorNonLinearDiffuser(Component):
         ----------
         dt: float (time)
             The imposed timestep.
+        dynamic_dt : boolean (optional, default is False)
+            Keyword argument to turn on or off dynamic time-stepping.
+        if_unstable : string (optional, default is "pass")
+            Keyword argument to determine how potential instability due to
+            slopes that are too high is handled. Options are "pass", "warn",
+            and "raise".
+        courant_factor : float (optional, default = 0.2)
+            Factor to identify stable time-step duration when using dynamic
+            timestepping.
         """
         self.soilflux(dt, **kwds)
