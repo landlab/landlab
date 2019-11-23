@@ -206,9 +206,6 @@ class ZoneSpecies(_Species):
         record.increment_value('speciation_count', child_count)
         record.increment_value('extinction_count', extinct)
         record.increment_value('pseudoextinction_count', pseudoextinct)
-#        record_entry['speciation_count'] += child_count
-#        record_entry['extinction_count'] += extinct
-#        record_entry['pseudoextinction_count'] += pseudoextinct
 
         return not not_extant, child_species
 
@@ -262,7 +259,7 @@ class ZoneSpecies(_Species):
 
                 elif self not in zone._species:
                     zone_pop = Population(self, zone,
-                                          self._allopatric_wait_time)
+                        self._allopatric_wait_time)
                     updated_populations.append(zone_pop)
 
                 else:
@@ -292,8 +289,8 @@ class ZoneSpecies(_Species):
         species_type = type(self)
 
         return species_type(zones, parent_species=self,
-                            allopatric_wait_time=self._allopatric_wait_time,
-                            pseudoextinction=self._pseudoextinction)
+            allopatric_wait_time=self._allopatric_wait_time,
+            pseudoextinction=self._pseudoextinction)
 
     def _evaluate_dispersal(self, population):
         """Set the range of the species as it results from dispersal.

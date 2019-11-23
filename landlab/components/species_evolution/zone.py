@@ -2,6 +2,7 @@
 """Zone functions and class of SpeciesEvolver."""
 import numpy as np
 
+
 # Define connection types.
 
 _NONE_TO_NONE = 'none_to_none'
@@ -92,13 +93,12 @@ def _update_zones(grid, prior_zones, new_zones, record):
 
             # Get the new zones that intersect (`i`) the prior zone.
             ns_i_p = _intersecting_zones(ps_index_map == i_p, ns_index_map,
-                                         new_zones)
+                new_zones)
             ns_i_p_ct = len(ns_i_p)
 
             # Get the other prior zones that intersect the new zones.
             ns_mask = np.any([n.mask for n in ns_i_p], axis=0)
-            ps_i_ns = _intersecting_zones(ns_mask, ps_index_map,
-                                          prior_zones)
+            ps_i_ns = _intersecting_zones(ns_mask, ps_index_map, prior_zones)
             ps_i_ns_ct = len(ps_i_ns)
 
             # Get successors depending on connection type.
@@ -106,8 +106,7 @@ def _update_zones(grid, prior_zones, new_zones, record):
             conn_type = _determine_connection_type(ps_i_ns_ct, ns_i_p_ct)
 
             p_successors = _get_successors(p, conn_type, ps_i_ns, ns_i_p,
-                                           prior_zones, ps_index_map,
-                                           replacements, successors)
+                prior_zones, ps_index_map, replacements, successors)
 
             # Update statistics.
 
@@ -139,9 +138,9 @@ def _update_zones(grid, prior_zones, new_zones, record):
 
     # Update the record.
 
+    record.increment_value('fragmentation_count', fragment_ct)
     record.increment_value('capture_count', capture_ct)
     record.increment_value('area_captured_sum', sum(area_captured))
-    record.increment_value('fragmentation_count', fragment_ct)
 
     old_value = record.get_value('area_captured_max')
     old_value_is_nan = np.isnan(old_value)
@@ -194,7 +193,7 @@ def _determine_connection_type(prior_zone_count, new_zone_count):
 
 
 def _get_successors(p, conn_type, ps_i_ns, ns_i_p, prior_zones,
-                    ps_index_map, replacements, all_successors):
+    ps_index_map, replacements, all_successors):
     if conn_type in [_NONE_TO_NONE, _ONE_TO_NONE]:
         successors = []
 
@@ -210,13 +209,13 @@ def _get_successors(p, conn_type, ps_i_ns, ns_i_p, prior_zones,
         # Although, replace the dominant n with p.
 
         dn = p._get_largest_intersection(ns_i_p,
-                                         exclusions=list(replacements.values()))
+            exclusions=list(replacements.values()))
 
         successors = []
 
         for i,n in enumerate(ns_i_p):
             dp = n._get_largest_intersection(ps_i_ns,
-                                             exclusions=list(replacements.keys()))
+                exclusions=list(replacements.keys()))
 
             if n == dn and n in replacements.values():
                 d = _get_replacement(replacements, n)
@@ -249,17 +248,19 @@ def _get_successors(p, conn_type, ps_i_ns, ns_i_p, prior_zones,
 
     return successors
 
+
 def _get_replacement(replacements, new_zone):
     for key, value in replacements.items():
         if value == new_zone:
             return key
     return None
 
+
 class Zone(object):
     """Zone object of SpeciesEvolver.
 
-    The nodes and attributes of the entities that species populate. This class
-    is not intended to be managed directly.
+    The nodes and attributes of the spatial entities that species populate.
+    This class is not intended to be managed directly.
     """
     def __init__(self, mask):
         """Initialize a zone.
@@ -273,7 +274,7 @@ class Zone(object):
         self._mask = mask.flatten()
         self._species = set()
         self._conn_type = None
-        self._successors = None
+        self._successors = []
 
     @property
     def mask(self):

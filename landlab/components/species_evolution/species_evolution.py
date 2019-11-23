@@ -52,7 +52,7 @@ class SpeciesEvolver(Component):
     ``run_one_step`` method.
 
     The ``run_one_step`` method evolves the species extant at the current time.
-    The persistance or extinction of a species is determined by the species.
+    The persistence or extinction of a species is determined by the species.
     Creation of child species is also determined by species. Species metadata
     of a component instance can be accessed with the attribute, ``species``.
 
@@ -83,7 +83,7 @@ class SpeciesEvolver(Component):
     same throughout the grid at model outset.
 
     >>> mg = RasterModelGrid((3, 7), 1000)
-    >>> z = mg.add_ones('node', 'topographic__elevation')
+    >>> z = mg.add_ones('topographic__elevation', at='node')
     >>> z.reshape(mg.shape)
     array([[ 1.,  1.,  1.,  1.,  1.,  1.,  1.],
            [ 1.,  1.,  1.,  1.,  1.,  1.,  1.],
@@ -107,15 +107,15 @@ class SpeciesEvolver(Component):
     initial zones are created at instantiation. In this example, one zone is
     created because all nodes of the zone mask are adjacent to each other.
 
-    >>> sc = ZoneController(mg, zone_func)
-    >>> len(sc.zones) == 1
+    >>> zc = ZoneController(mg, zone_func)
+    >>> len(zc.zones) == 1
     True
 
     The mask of the sole zone is True where the conditions of the zone function
-    are met. All nodes of the grid are included because the elevation of each node
-    is below 100 units.
+    are met. All nodes of the grid are included because the elevation of each
+    node is below 100 units.
 
-    >>> sc.zones[0].mask
+    >>> zc.zones[0].mask
     array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
             True,  True,  True,  True,  True,  True,  True,  True,  True,
             True,  True,  True], dtype=bool)
@@ -123,13 +123,13 @@ class SpeciesEvolver(Component):
     Introduce a species to the zone. The component attribute, ``species``
     indicates only the one species exists.
 
-    >>> species = sc.populate_zones_uniformly(1)
+    >>> species = zc.populate_zones_uniformly(1)
     >>> se.introduce_species(species)
     >>> se.species
       clade  number  time_appeared  latest_time
     0     A       0              0            0
 
-    Drive a change in the zone mask to demonstrate component functionality.
+    Force a change in the zone mask to demonstrate component functionality.
     Here we begin a new time step where topography is uplifted by 200 length
     units forming a ridge that trends north-south in the center of the grid.
 
@@ -147,13 +147,13 @@ class SpeciesEvolver(Component):
     . . . x . . .               x node outside of zone mask
     . . . x . . .
 
-    Run a step of both the ZoneController and SpeciesEvolver. Two zones
-    now exits.
+    Run a step of both the ZoneController and SpeciesEvolver. Two zones now
+    exits.
 
     >>> dt = 1000
-    >>> sc.run_one_step(dt)
+    >>> zc.run_one_step(dt)
     >>> se.run_one_step(dt)
-    >>> zones = sc.zones
+    >>> zones = zc.zones
     >>> len(zones) == 2
     True
 
@@ -221,8 +221,8 @@ class SpeciesEvolver(Component):
         cols.remove('object')
         sort_cols = ['clade', 'number']
         return DataFrame(
-                self._species,
-                columns=cols).sort_values(by=sort_cols).reset_index(drop=True)
+            self._species,
+            columns=cols).sort_values(by=sort_cols).reset_index(drop=True)
 
     def run_one_step(self, dt):
         """Update the species for a single timestep.
@@ -282,7 +282,7 @@ class SpeciesEvolver(Component):
         Create a model grid with flat topography.
 
         >>> mg = RasterModelGrid((3, 7), 1000)
-        >>> z = mg.add_ones('node', 'topographic__elevation')
+        >>> z = mg.add_ones('topographic__elevation', at='node')
 
         Instantiate SpeciesEvolver and a ZoneController. Instantiate the
         latter with a function that delineates the low elevation zone extent.
@@ -291,11 +291,11 @@ class SpeciesEvolver(Component):
         >>> se = SpeciesEvolver(mg)
         >>> def zone_func(grid):
         ...     return grid.at_node['topographic__elevation'] < 100
-        >>> sc = ZoneController(mg, zone_func)
+        >>> zc = ZoneController(mg, zone_func)
 
         Introduce a species to the one zone.
 
-        >>> introduced_species = sc.populate_zones_uniformly(1)
+        >>> introduced_species = zc.populate_zones_uniformly(1)
         >>> se.introduce_species(introduced_species)
         """
         if not isinstance(species, list):
@@ -410,7 +410,7 @@ class SpeciesEvolver(Component):
         Create a model grid with flat topography.
 
         >>> mg = RasterModelGrid((3, 7), 1000)
-        >>> z = mg.add_ones('node', 'topographic__elevation')
+        >>> z = mg.add_ones('topographic__elevation', at='node')
 
         Instantiate SpeciesEvolver and a ZoneController. Instantiate the
         latter with a function that delineates the low elevation zone extent.
@@ -419,11 +419,11 @@ class SpeciesEvolver(Component):
         >>> se = SpeciesEvolver(mg)
         >>> def zone_func(grid):
         ...     return grid.at_node['topographic__elevation'] < 100
-        >>> sc = ZoneController(mg, zone_func)
+        >>> zc = ZoneController(mg, zone_func)
 
         Introduce a species to the one zone.
 
-        >>> introduced_species = sc.populate_zones_uniformly(1)
+        >>> introduced_species = zc.populate_zones_uniformly(1)
         >>> se.introduce_species(introduced_species)
 
         Get the species at the initial and only time. The species returned by
@@ -492,7 +492,7 @@ class SpeciesEvolver(Component):
         Create a model grid with flat topography.
 
         >>> mg = RasterModelGrid((3, 7), 1000)
-        >>> z = mg.add_ones('node', 'topographic__elevation')
+        >>> z = mg.add_ones('topographic__elevation', at='node')
 
         Instantiate SpeciesEvolver and a ZoneController. Instantiate the
         latter with a function that delineates the low elevation zone extent.
@@ -501,22 +501,22 @@ class SpeciesEvolver(Component):
         >>> se = SpeciesEvolver(mg)
         >>> def zone_func(grid):
         ...     return grid.at_node['topographic__elevation'] < 100
-        >>> sc = ZoneController(mg, zone_func)
+        >>> zc = ZoneController(mg, zone_func)
 
         Introduce two species to the one zone.
 
-        >>> introduced_species = sc.populate_zones_uniformly(2)
+        >>> introduced_species = zc.populate_zones_uniformly(2)
         >>> se.introduce_species(introduced_species)
 
         Increment the model time, force mountain range formation to demonstrate
         this method, and then increment model time again.
 
-        >>> sc.run_one_step(1000)
+        >>> zc.run_one_step(1000)
         >>> se.run_one_step(1000)
 
         >>> z[[3, 10, 17]] = 200
 
-        >>> sc.run_one_step(1000)
+        >>> zc.run_one_step(1000)
         >>> se.run_one_step(1000)
 
         Display data of all the species.
@@ -558,11 +558,10 @@ class SpeciesEvolver(Component):
             num = identifier_element[1]
 
             if not np.all([len(identifier_element) == 2,
-                           isinstance(clade, str), isinstance(num, int)], 0):
+                isinstance(clade, str), isinstance(num, int)], 0):
                 raise TypeError('`identifier_element` when it is a tuple must '
-                                'have a length of 2. The first element must '
-                                'be a string, and the second must be an '
-                                'integer.')
+                    'have a length of 2. The first element must be a string, '
+                    'and the second must be an integer.')
 
             clade_mask = np.array(s['clade']) == clade
             num_mask = np.array(s['number']) == num
@@ -578,6 +577,6 @@ class SpeciesEvolver(Component):
 
         else:
             raise TypeError('`identifier_element` must be a tuple, string, or '
-                            'integer.')
+                'integer.')
 
         return np.array(s['object'])[mask].tolist()

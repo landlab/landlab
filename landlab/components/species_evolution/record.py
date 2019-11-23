@@ -114,8 +114,8 @@ class Record(object):
         Returns
         -------
         T
-            The value of `var_name` that has the type, T. `nan` is returned
-            if `var_name` does not exist in the record.
+            The value of `var_name` that has the type, T. `nan` is returned if
+            `var_name` does not exist in the record.
         """
         if var_name not in self.variables:
             return np.nan

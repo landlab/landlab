@@ -10,7 +10,6 @@ class _Species(ABC):
     implement the properties and methods of this base class that are designated
     as abstract.
     """
-
     def __init__(self):
         self._identifier = (None, None)
         self._parent_species = None
@@ -53,7 +52,7 @@ class _Species(ABC):
 
         SpeciesEvolver loops through extant species twice in the component's
         ``run_one_step`` method. Any processing that should be conducted upon
-        on all species before additional processing should be done in stage 1.
+        all species before additional processing should be done in stage 1.
         """
         ...  # pragma: no cover
 

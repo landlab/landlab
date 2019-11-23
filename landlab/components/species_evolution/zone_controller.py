@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Zone-based SpeciesController of SpeciesEvolver."""
+import numpy as np
 from scipy.ndimage.measurements import label
 
 from landlab.components.species_evolution import ZoneSpecies, Zone
@@ -24,8 +25,8 @@ class ZoneController(object):
     how zones are created. The grid contains six columns and six rows. In this
     example, the function returns True where node values are greater than 0.
     Nodes marked with an ``*`` are nodes where a zone exists and the mask is
-    True. All other nodes are marked with a ``·``. A zone is created for
-    each cluster of continuous nodes where the mask is True.
+    True. All other nodes are marked with a ``·``. A zone is created for each
+    cluster of continuous nodes where the mask is True.
 
     values         function
     evaluated      result
@@ -55,7 +56,7 @@ class ZoneController(object):
     Typically, ``ZoneSpecies`` are used with this controller, and the following
     paragraphs make that assumption. Speciation occurs when the species exists
     in more than one zone once the allopatric wait time has been exceeded in
-    that zone (see ZoneSpecies documention for more about allopatric wait
+    that zone (see ZoneSpecies documentation for more about allopatric wait
     time).
 
     Here, a different example grid demonstrates the temporal connectivity of
@@ -89,7 +90,8 @@ class ZoneController(object):
     Another ``T1`` variation, now demonstrating two zones, ``*`` and ``x``.
     Multiple zones overlapping a one zone in the prior time step can be
     interpreted as a zone that fragmented, which may affect resident species.
-    The number of zone fragmentions can be viewed in the ``record`` attribute.
+    The number of zone fragmentations can be viewed in the ``record``
+    attribute.
 
     T1e
     · · · · · ·
@@ -124,10 +126,10 @@ class ZoneController(object):
     The controller had to again decide which of the two clusters of continuous
     nodes in T1e should be designated as the same zone in T2. This decision
     must be made in general when multiple clusters in the prior time step
-    overlap the a zone in the current time step. The zone in the prior time
-    step that overlaps the current time step zone the most becomes the zone in
-    the earlier time step. In this example, the cluster to the left overlapped
-    two nodes and the right cluster overlapped only one node, therefore the new
+    overlap a zone in the current time step. The zone in the prior time step
+    that overlaps the current time step zone the most becomes the zone in the
+    earlier time step. In this example, the cluster to the left overlapped two
+    nodes and the right cluster overlapped only one node, therefore the new
     zone keeps the designation of the left cluster. However, this is merely for
     creating new zone objects.
 
@@ -138,12 +140,13 @@ class ZoneController(object):
 
     Examples
     --------
+    # First, an example with default ZoneController parameters.
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.species_evolution import ZoneController
 
     # Create a model grid and an elevation field for this grid.
     >>> mg = RasterModelGrid((3, 7))
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
+    >>> z = mg.add_zeros('topographic__elevation', at='node')
 
     # Set elevation to 1 for some nodes.
     >>> z[[9, 10, 11, 12]] = 1
@@ -156,13 +159,13 @@ class ZoneController(object):
 
     # Instantiate ZoneController. Only one zone exists because the nodes that
     # were set to one are adjacent to each other in the grid.
-    >>> sc = ZoneController(mg, zone_func)
-    >>> sc.record
+    >>> zc = ZoneController(mg, zone_func)
+    >>> zc.record[['time', 'zone_count']]
        time  zone_count
     0     0           1
 
     # Populate each zone with one species.
-    >>> species = sc.populate_zones_uniformly(1)
+    >>> species = zc.populate_zones_uniformly(1)
     >>> len(species)
     1
 
@@ -170,10 +173,10 @@ class ZoneController(object):
     # then the zones are updated by advancing the ZoneController by 1000 time
     units.
     >>> z[10] = 0
-    >>> sc.run_one_step(1000)
+    >>> zc.run_one_step(1000)
 
     # Two zones now exist because the zone in time 0 fragmented into two zones.
-    >>> sc.record[['time', 'zone_count', 'fragmentation_count']]
+    >>> zc.record[['time', 'zone_count', 'fragmentation_count']]
        time  zone_count  fragmentation_count
     0     0           1                  NaN
     1  1000           2                  1.0
@@ -183,31 +186,53 @@ class ZoneController(object):
     # step. Statistics of the area captured are stored in the ZoneController
     # record.
     >>> z[10] = 1
-    >>> sc.run_one_step(1000)
-    >>> sc.record[['time', 'zone_count', 'capture_count', 'area_captured_sum',
+    >>> zc.run_one_step(1000)
+    >>> zc.record[['time', 'zone_count', 'capture_count', 'area_captured_sum',
     ...     'area_captured_max']]
        time  zone_count  capture_count  area_captured_sum  area_captured_max
     0     0           1            NaN                NaN                NaN
     1  1000           2            0.0                0.0                0.0
     2  2000           1            1.0                2.0                2.0
 
+    # The follow example demonstrates non-default ZoneController parameters.
+    >>> mg = RasterModelGrid((3, 7))
+    >>> z = mg.add_zeros('topographic__elevation', at='node')
 
+    # Also as done in the prior example, define a zone function that returns a
+    # boolean array where `True` values indicate the nodes where zones can be
+    created.
+    >>> def zone_func(grid):
+    ...     z = grid.at_node['topographic__elevation']
+    ...     return z == 1
+
+    # Set elevation to 1 for nodes such that two clusters of .
+    >>> z[[9, 10, 12]] = 1
+
+    # Instantiate ZoneController with options.
+    >>> zc = ZoneController(mg, zone_func, minimum_area=2, initial_time=100)
+
+    # Only one zone exist, despite two clusters of nodes meeting the zone
+    # definition, because the ``minimum_area`` was set to 2. Also, the first
+    # time in the record was set by the ``initial_time`` parameter.
+    zc.record[['time', 'zone_count']]
+       time  zone_count
+    0   100           1
     """
     def __init__(self, grid, zone_function, minimum_area=0,
-                 neighborhood_structure='D8', initial_time=0, **kwargs):
+        neighborhood_structure='D8', initial_time=0, **kwargs):
         """Initialize a species.
 
         Parameters
         ----------
-        species_evolver : SpeciesEvolver
-            A Landlab SpeciesEvolver instance.
+        grid : ModelGrid
+            A Landlab ModelGrid.
         zone_function : function
             A function that return a mask of the total zone extent. The first
             input parameter of this function must be `grid`.
         minimum_area : float, optional
-            The minimum area of zones.
+            The minimum area of the zones that will be created.
         neighborhood_structure : {'D8', 'D4'}, optional
-            The structure describes how clusters are identified. The default,
+            The structure describes how zones are identified. The default,
             'D8' evaluates the eight neighboring nodes. The diagonal
             neighboring nodes are excluded when 'D4' is selected.
         initial_time : float, int, optional
@@ -229,14 +254,22 @@ class ZoneController(object):
         else:
             raise ValueError("`neighborhood_structure` must be 'D8' or 'D4'")
 
+        # Set record initial values.
+
+        self._record.set_value('zone_count', np.nan)
+        self._record.set_value('fragmentation_count', np.nan)
+        self._record.set_value('capture_count', np.nan)
+        self._record.set_value('area_captured_sum', np.nan)
+        self._record.set_value('area_captured_max', np.nan)
+
         # Include `grid` in the zone params dictionary.
 
         self._zone_params['grid'] = self._grid
 
         # Set initial zones.
 
-        initial_range = zone_function(**kwargs)
-        self._zones = self._get_zones_with_mask(initial_range)
+        initial_zone_extent = zone_function(**kwargs)
+        self._zones = self._get_zones_with_mask(initial_zone_extent)
 
         self._record.set_value('zone_count', len(self._zones))
 
@@ -251,7 +284,7 @@ class ZoneController(object):
         return self._record.dataframe
 
     def populate_zones_uniformly(self, count, species_type=ZoneSpecies,
-                                 **kwargs):
+        **kwargs):
         """Populate each zone with the same species count.
 
         Parameters
@@ -273,14 +306,13 @@ class ZoneController(object):
     def run_one_step(self, dt):
         """Update the zones for a single timestep.
 
-        determines the connectivity of zones between `time` and the
-                prior time step
+        This method advances time in the record and determines the connectivity
+        of zones between the current and prior time steps.
 
         Parameters
         ----------
         dt : float
-            The model time step duration. The first time step begins at 0.
-            Following time steps are advanced by ``dt``.
+            The model time step duration.
         """
         self._record.advance_time(dt)
 
@@ -293,42 +325,41 @@ class ZoneController(object):
         new_zones = self._get_zones_with_mask(zone_mask)
 
         self._zones = _update_zones(self._grid, prior_zones, new_zones,
-                                    self._record)
+            self._record)
 
         self._record.set_value('zone_count', len(self._zones))
 
-    def _get_zones_with_mask(self, range_mask):
-        """Get zones using a range mask.
+    def _get_zones_with_mask(self, mask):
+        """Get zones using a mask.
 
         Parameters
         ----------
-        range_mask : ndarray
-            Grid number of nodes array of booleans where `True` values
-            indicates a node within the species range.
+        mask : ndarray
+            An boolean array with the grid number of nodes where `True` values
+            are nodes within the extent of all the zones to be created.
 
         Returns
         -------
         list of Zones
-            The discrete zones identified in the range.
+            The discrete zones identified in the mask.
         """
         grid = self._grid
 
-        # Label clusters of 'True' values in `range_mask`.
+        # Label clusters of `True` values in `mask`.
 
         if self._neighborhood_struct == 'D8':
             s = 3 * [[1, 1, 1]]
         elif self._neighborhood_struct == 'D4':
             s = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]
 
-        cluster_array, cluster_count = label(range_mask.reshape(grid.shape),
-                                             structure=s)
+        cluster_arr, cluster_ct = label(mask.reshape(grid.shape), structure=s)
 
         # Create zones for clusters.
 
         zones = []
 
-        for i in range(1, cluster_count + 1):
-            mask = cluster_array == i
+        for i in range(1, cluster_ct + 1):
+            mask = cluster_arr == i
 
             if mask.sum() * grid.cellarea >= self._min_area:
                 # Create a zone if cluster area exceeds the minimum area.
