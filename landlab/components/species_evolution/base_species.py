@@ -44,7 +44,7 @@ class _Species(ABC):
         the species is located in the model grid associated with a
         SpeciesEvolver instance.
         """
-        ...  # pragma: no cover
+        # pragma: no cover
 
     @abstractmethod
     def _evolve_stage_1(self):
@@ -54,9 +54,9 @@ class _Species(ABC):
         ``run_one_step`` method. Any processing that should be conducted upon
         all species before additional processing should be done in stage 1.
         """
-        ...  # pragma: no cover
+        # pragma: no cover
 
     @abstractmethod
     def _evolve_stage_2(self):
         """Complete evolutionary processes for the time."""
-        ...  # pragma: no cover
+        # pragma: no cover
