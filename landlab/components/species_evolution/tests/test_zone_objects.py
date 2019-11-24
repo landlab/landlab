@@ -207,7 +207,7 @@ def test_one_to_many(zone_example_grid):
     expected_df = DataFrame({
         'time': [0, 1],
         'zone_count': [1, 2],
-        'fragmentation_count': [np.nan, 1],
+        'fragmentation_count': [np.nan, 2],
         'capture_count': [np.nan, 0],
         'area_captured_sum': [np.nan, 0],
         'area_captured_max': [np.nan, 0]

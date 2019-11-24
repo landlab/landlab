@@ -179,7 +179,7 @@ class ZoneController(object):
     >>> zc.record[['time', 'zone_count', 'fragmentation_count']]
        time  zone_count  fragmentation_count
     0     0           1                  NaN
-    1  1000           2                  1.0
+    1  1000           2                  2.0
 
     # A change in elevation is forced again, this time to demonstrate zone
     # capture where multiple zones are overlapped by a zone in the later time
