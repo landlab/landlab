@@ -184,6 +184,7 @@ class _BaseProfiler(Component, ABC):
         xlabel="Distance Along Profile",
         ylabel="Plotted Quantity",
         title="Extracted Profiles",
+        color=None,
     ):
         """Plot distance-upstream vs at at-node or size (nnodes,) quantity.
 
@@ -198,6 +199,9 @@ class _BaseProfiler(Component, ABC):
             Y-axis label, default value is "Plotted Quantity".
         title : str, optional
             Plot title, default value is "Extracted Profiles".
+        color : RGBA tuple or color string
+            Color to use in order to plot all profiles the same color. Default
+            is None, and the colors assigned to each profile are used.
         """
         quantity = return_array_at_node(self._grid, field)
 
@@ -220,14 +224,16 @@ class _BaseProfiler(Component, ABC):
         )
         ax.set_ylim(min(qmin), max(qmax))
 
-        line_segments = LineCollection(segments, colors=self._colors)
+        line_segments = LineCollection(segments)
+        colors = color or self._colors
+        line_segments.set_color(colors)
         ax.add_collection(line_segments)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
         ax.set_title(title)
 
     def plot_profiles_in_map_view(
-        self, field="topographic__elevation", endpoints_only=False, **kwds
+        self, field="topographic__elevation", endpoints_only=False, color=None, **kwds
     ):
         """Plot profile locations in map view.
 
@@ -240,6 +246,9 @@ class _BaseProfiler(Component, ABC):
             Boolean where False (default) indicates every node along the
             profile is plotted, or True indicating only segment endpoints are
             plotted.
+        color : RGBA tuple or color string
+            Color to use in order to plot all profiles the same color. Default
+            is None, and the colors assigned to each profile are used.
         **kwds : dictionary
             Keyword arguments to pass to imshow_grid.
         """
@@ -266,5 +275,7 @@ class _BaseProfiler(Component, ABC):
                     list(zip(self._grid.x_of_node[nodes], self._grid.y_of_node[nodes]))
                 )
 
-        line_segments = LineCollection(segments, colors=self._colors)
+        line_segments = LineCollection(segments)
+        colors = color or self._colors
+        line_segments.set_color(colors)
         ax.add_collection(line_segments)
