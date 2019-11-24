@@ -2,7 +2,7 @@
 """
 GroundwaterDupuitPercolator Component
 
-@author: G Tucker, D Litwin
+@author: G Tucker, D Litwin, K Barnhart
 """
 
 import numpy as np
