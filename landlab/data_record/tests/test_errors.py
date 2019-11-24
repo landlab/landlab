@@ -15,142 +15,143 @@ import pytest
 from landlab import HexModelGrid, RadialModelGrid, RasterModelGrid, VoronoiDelaunayGrid
 from landlab.data_record import DataRecord
 
-grid = RasterModelGrid((3, 3))
 
+def test_misc():
+    grid = RasterModelGrid((3, 3))
 
-# test bad dimension:
-with pytest.raises(ValueError):
-    DataRecord(
-        grid,
-        time=[0.0],
-        data_vars={"mean_elev": (["time"], [100.0]), "test": (["bad_dim"], [12])},
-    )
-# should return ValueError('Data variable dimensions must be time and/or'
-#                              'item_id')
-# test bad time format:
-with pytest.raises(TypeError):
-    DataRecord(grid=grid, time="bad_time")
-# should return TypeError: Time must be a list or an array of length 1
+    # test bad dimension:
+    with pytest.raises(ValueError):
+        DataRecord(
+            grid,
+            time=[0.0],
+            data_vars={"mean_elev": (["time"], [100.0]), "test": (["bad_dim"], [12])},
+        )
+    # should return ValueError('Data variable dimensions must be time and/or'
+    #                              'item_id')
+    # test bad time format:
+    with pytest.raises(TypeError):
+        DataRecord(grid=grid, time="bad_time")
+    # should return TypeError: Time must be a list or an array of length 1
 
-# test bad datavars format:
-with pytest.raises(TypeError):
-    DataRecord(grid, time=[0.0], data_vars=["not a dict"])
-# should return TypeError(('Data variables (data_vars) passed to'
-#                                 ' DataRecord must be a dictionary (see '
-#                                 'documentation for valid structure)'))
+    # test bad datavars format:
+    with pytest.raises(TypeError):
+        DataRecord(grid, time=[0.0], data_vars=["not a dict"])
+    # should return TypeError(('Data variables (data_vars) passed to'
+    #                                 ' DataRecord must be a dictionary (see '
+    #                                 'documentation for valid structure)'))
 
-# test bad items format:
-with pytest.raises(TypeError):
-    DataRecord(
-        grid,
-        time=[0.0],
-        items=["not a dict"],
-        data_vars={"mean_elevation": (["time"], np.array([100]))},
-        attrs={"time_units": "y"},
-    )
-# Should return TypeError(('You must provide an ''items'' dictionary '
-#                                 '(see documentation for required format)'))
-#
-with pytest.raises(TypeError):
-    """Test bad items keys"""
-    DataRecord(
-        grid,
-        time=[0.0],
-        items={
-            "grid_element": np.array([["node"], ["link"]]),
-            "bad_key": np.array([[1], [3]]),
-        },
-        data_vars={"mean_elevation": (["time"], np.array([100]))},
-        attrs={"time_units": "y"},
-    )
-# Should return TypeError(('You must provide an ''items'' dictionary '
-#                                  '(see documentation for required format)'))
-with pytest.raises(TypeError):
-    """Test bad attrs"""
-    DataRecord(
-        grid,
-        time=[0.0],
-        items={
-            "grid_element": np.array([["node"], ["link"]]),
-            "element_id": np.array([[1], [3]]),
-        },
-        data_vars={"mean_elevation": (["time"], np.array([100]))},
-        attrs=["not a dict"],
-    )
-# Should return except AttributeError:
-#                 raise TypeError(('Attributes (attrs) passed to DataRecord'
-#                                 'must be a dictionary'))
-#
-# test bad loc and id:
-rmg = RasterModelGrid((3, 3))
-hmg = HexModelGrid(3, 2, 1.0)
-radmg = RadialModelGrid(num_shells=1, dr=1.0, xy_of_center=(0.0, 0.0))
-vdmg = VoronoiDelaunayGrid(np.random.rand(25), np.random.rand(25))
-my_items_bad_loc = {
-    "grid_element": np.array(["node", "bad_loc"]),
-    "element_id": np.array([1, 3]),
-}
-my_items_bad_loc2 = {"grid_element": "bad_loc", "element_id": np.array([1, 3])}
-my_items_bad_loc3 = {
-    "grid_element": np.array(["node", "node", "node"]),
-    "element_id": np.array([1, 3]),
-}
-my_items_bad_id = {
-    "grid_element": np.array(["node", "link"]),
-    "element_id": np.array([1, 300]),
-}
-my_items_bad_id2 = {
-    "grid_element": np.array(["node", "link"]),
-    "element_id": np.array([1, -300]),
-}
-my_items_bad_id3 = {
-    "grid_element": np.array(["node", "link"]),
-    "element_id": np.array([1, 2.0]),
-}
-my_items_bad_id4 = {
-    "grid_element": np.array(["node", "link"]),
-    "element_id": np.array([1, 2, 3]),
-}
-with pytest.raises(ValueError):
-    DataRecord(rmg, items=my_items_bad_loc)
-with pytest.raises(ValueError):
-    DataRecord(hmg, items=my_items_bad_loc)
-with pytest.raises(ValueError):
-    DataRecord(radmg, items=my_items_bad_loc)
-with pytest.raises(ValueError):
-    DataRecord(vdmg, items=my_items_bad_loc)
-# should return ValueError(('One or more of the grid elements provided is/are'
-#                             ' not permitted location for this grid type.'))
-with pytest.raises(ValueError):
-    DataRecord(rmg, items=my_items_bad_loc2)
-# should return ValueError: Location provided: bad_loc is not a permitted
-#  location for this grid type.
-with pytest.raises(ValueError):
-    DataRecord(rmg, items=my_items_bad_loc3)
-# should return ValueError(('grid_element passed to DataRecord must be '
-#  ' the same length as the number of items or 1.'))
-with pytest.raises(ValueError):
-    DataRecord(rmg, items=my_items_bad_id)
-with pytest.raises(ValueError):
-    DataRecord(hmg, items=my_items_bad_id)
-with pytest.raises(ValueError):
-    DataRecord(radmg, items=my_items_bad_id)
-with pytest.raises(ValueError):
-    DataRecord(vdmg, items=my_items_bad_id)
-# should return ValueError(('An item residing at ' + at + ' has an '
-#  'element_id larger than the number of'+ at + 'on the grid.'))
-with pytest.raises(ValueError):
-    DataRecord(rmg, items=my_items_bad_id2)
-#  should return ValueError(('An item residing at ' + at + ' has '
-# 'an element id below zero. This is not permitted.'))
-with pytest.raises(ValueError):
-    DataRecord(rmg, items=my_items_bad_id3)
-# should return ValueError(('You have passed a non-integer element_id to '
-#                              'DataRecord, this is not permitted.'))
-with pytest.raises(ValueError):
-    DataRecord(rmg, items=my_items_bad_id4)
-# should return ValueError(('The number of grid_element passed '
-#  ' to Datarecord must be 1 or equal  to the number of element_id '))
+    # test bad items format:
+    with pytest.raises(TypeError):
+        DataRecord(
+            grid,
+            time=[0.0],
+            items=["not a dict"],
+            data_vars={"mean_elevation": (["time"], np.array([100]))},
+            attrs={"time_units": "y"},
+        )
+    # Should return TypeError(('You must provide an ''items'' dictionary '
+    #                                 '(see documentation for required format)'))
+    #
+    with pytest.raises(TypeError):
+        """Test bad items keys"""
+        DataRecord(
+            grid,
+            time=[0.0],
+            items={
+                "grid_element": np.array([["node"], ["link"]]),
+                "bad_key": np.array([[1], [3]]),
+            },
+            data_vars={"mean_elevation": (["time"], np.array([100]))},
+            attrs={"time_units": "y"},
+        )
+    # Should return TypeError(('You must provide an ''items'' dictionary '
+    #                                  '(see documentation for required format)'))
+    with pytest.raises(TypeError):
+        """Test bad attrs"""
+        DataRecord(
+            grid,
+            time=[0.0],
+            items={
+                "grid_element": np.array([["node"], ["link"]]),
+                "element_id": np.array([[1], [3]]),
+            },
+            data_vars={"mean_elevation": (["time"], np.array([100]))},
+            attrs=["not a dict"],
+        )
+    # Should return except AttributeError:
+    #                 raise TypeError(('Attributes (attrs) passed to DataRecord'
+    #                                 'must be a dictionary'))
+    #
+    # test bad loc and id:
+    rmg = RasterModelGrid((3, 3))
+    hmg = HexModelGrid(3, 2, 1.0)
+    radmg = RadialModelGrid(num_shells=1, dr=1.0, xy_of_center=(0.0, 0.0))
+    vdmg = VoronoiDelaunayGrid(np.random.rand(25), np.random.rand(25))
+    my_items_bad_loc = {
+        "grid_element": np.array(["node", "bad_loc"]),
+        "element_id": np.array([1, 3]),
+    }
+    my_items_bad_loc2 = {"grid_element": "bad_loc", "element_id": np.array([1, 3])}
+    my_items_bad_loc3 = {
+        "grid_element": np.array(["node", "node", "node"]),
+        "element_id": np.array([1, 3]),
+    }
+    my_items_bad_id = {
+        "grid_element": np.array(["node", "link"]),
+        "element_id": np.array([1, 300]),
+    }
+    my_items_bad_id2 = {
+        "grid_element": np.array(["node", "link"]),
+        "element_id": np.array([1, -300]),
+    }
+    my_items_bad_id3 = {
+        "grid_element": np.array(["node", "link"]),
+        "element_id": np.array([1, 2.0]),
+    }
+    my_items_bad_id4 = {
+        "grid_element": np.array(["node", "link"]),
+        "element_id": np.array([1, 2, 3]),
+    }
+    with pytest.raises(ValueError):
+        DataRecord(rmg, items=my_items_bad_loc)
+    with pytest.raises(ValueError):
+        DataRecord(hmg, items=my_items_bad_loc)
+    with pytest.raises(ValueError):
+        DataRecord(radmg, items=my_items_bad_loc)
+    with pytest.raises(ValueError):
+        DataRecord(vdmg, items=my_items_bad_loc)
+    # should return ValueError(('One or more of the grid elements provided is/are'
+    #                             ' not permitted location for this grid type.'))
+    with pytest.raises(ValueError):
+        DataRecord(rmg, items=my_items_bad_loc2)
+    # should return ValueError: Location provided: bad_loc is not a permitted
+    #  location for this grid type.
+    with pytest.raises(ValueError):
+        DataRecord(rmg, items=my_items_bad_loc3)
+    # should return ValueError(('grid_element passed to DataRecord must be '
+    #  ' the same length as the number of items or 1.'))
+    with pytest.raises(ValueError):
+        DataRecord(rmg, items=my_items_bad_id)
+    with pytest.raises(ValueError):
+        DataRecord(hmg, items=my_items_bad_id)
+    with pytest.raises(ValueError):
+        DataRecord(radmg, items=my_items_bad_id)
+    with pytest.raises(ValueError):
+        DataRecord(vdmg, items=my_items_bad_id)
+    # should return ValueError(('An item residing at ' + at + ' has an '
+    #  'element_id larger than the number of'+ at + 'on the grid.'))
+    with pytest.raises(ValueError):
+        DataRecord(rmg, items=my_items_bad_id2)
+    #  should return ValueError(('An item residing at ' + at + ' has '
+    # 'an element id below zero. This is not permitted.'))
+    with pytest.raises(ValueError):
+        DataRecord(rmg, items=my_items_bad_id3)
+    # should return ValueError(('You have passed a non-integer element_id to '
+    #                              'DataRecord, this is not permitted.'))
+    with pytest.raises(ValueError):
+        DataRecord(rmg, items=my_items_bad_id4)
+    # should return ValueError(('The number of grid_element passed '
+    #  ' to Datarecord must be 1 or equal  to the number of element_id '))
 
 
 # TIME ONLY

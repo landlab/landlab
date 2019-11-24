@@ -20,6 +20,7 @@ from .gflex import gFlex
 from .groundwater import GroundwaterDupuitPercolator
 from .lake_fill import LakeMapperBarnes
 from .landslides import LandslideProbability
+from .lateral_erosion import LateralEroder
 from .lithology import LithoLayers, Lithology
 from .nonlinear_diffusion import PerronNLDiffuse
 from .normal_fault import NormalFault
@@ -54,6 +55,7 @@ COMPONENTS = [
     ChiFinder,
     GroundwaterDupuitPercolator,
     LinearDiffuser,
+    LateralEroder,
     Flexure,
     FlowRouter,
     DepressionFinderAndRouter,
