@@ -122,7 +122,7 @@ def _update_zones(grid, prior_zones, new_zones, record):
                     area_captured.append(number_of_captured_nodes * cell_area)
 
             elif conn_type in [_ONE_TO_MANY, _MANY_TO_MANY]:
-                fragment_ct += len(ps_i_ns)
+                fragment_ct += ns_i_p_ct
 
             # Set connection.
 
