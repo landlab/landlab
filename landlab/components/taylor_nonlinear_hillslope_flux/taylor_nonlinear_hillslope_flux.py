@@ -199,12 +199,7 @@ class TaylorNonLinearDiffuser(Component):
         else:
             self.flux = self.grid.add_zeros("link", "soil__flux")
 
-    def soilflux(
-            self,
-            dt,
-            dynamic_dt=False,
-            if_unstable="pass",
-            courant_factor=0.2):
+    def soilflux(self, dt, dynamic_dt=False, if_unstable="pass", courant_factor=0.2):
         """Calculate soil flux for a time period 'dt'.
 
         Parameters
@@ -250,8 +245,7 @@ class TaylorNonLinearDiffuser(Component):
 
             # Test for the Courant condition and print warning if user intended
             # for it to be printed.
-            if (self.dt_max < dt) and (not dynamic_dt) and (
-                    if_unstable != "pass"):
+            if (self.dt_max < dt) and (not dynamic_dt) and (if_unstable != "pass"):
                 message = (
                     "Topographic slopes are high enough such that the "
                     "Courant condition is exceeded AND you have not "
@@ -293,9 +287,7 @@ class TaylorNonLinearDiffuser(Component):
             dqdx = self.grid.calc_flux_div_at_node(self.flux)
 
             # Update topography
-            self.elev[self.grid.core_nodes] -= (
-                dqdx[self.grid.core_nodes] * self.sub_dt
-            )
+            self.elev[self.grid.core_nodes] -= dqdx[self.grid.core_nodes] * self.sub_dt
 
     def run_one_step(self, dt, **kwds):
         """

@@ -198,7 +198,7 @@ Land surface and groundwater hydrology
   landlab.components.pet
   landlab.components.soil_moisture
   landlab.components.greenampt
-  landlab.components.groundwater
+  landlab.components.groundwater_dupuit_percolator
 
 Landslides
 ----------
