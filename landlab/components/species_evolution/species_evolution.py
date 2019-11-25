@@ -216,7 +216,7 @@ class SpeciesEvolver(Component):
 
     @property
     def species(self):
-        """A DataFrame of species variables."""
+        """A DataFrame of species metadata."""
         cols = list(self._species.keys())
         cols.remove('object')
         sort_cols = ['clade', 'number']

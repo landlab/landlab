@@ -172,8 +172,6 @@ def _intersecting_zones(condition, zone_index_map, zone_list):
 def _determine_connection_type(prior_zone_count, new_zone_count):
     """Get the connection type based on the count of prior and new zones."""
     if prior_zone_count == 0:
-        if new_zone_count == 0:
-            return _NONE_TO_NONE
         if new_zone_count == 1:
             return _NONE_TO_ONE
 
@@ -194,10 +192,8 @@ def _determine_connection_type(prior_zone_count, new_zone_count):
 
 def _get_successors(p, conn_type, ps_i_ns, ns_i_p, prior_zones,
     ps_index_map, replacements, all_successors):
-    if conn_type in [_NONE_TO_NONE, _ONE_TO_NONE]:
-        successors = []
 
-    elif conn_type == _ONE_TO_ONE:
+    if conn_type == _ONE_TO_ONE:
         # The prior zone is set as the new zone because only the one new
         # and the one prior overlap.
         n = ns_i_p[0]
@@ -220,7 +216,7 @@ def _get_successors(p, conn_type, ps_i_ns, ns_i_p, prior_zones,
             if n == dn and n in replacements.values():
                 d = _get_replacement(replacements, n)
                 successors.append(d)
-            if n == dn:
+            elif n == dn:
                 replacements[dp] = n
                 successors.append(dp)
             elif n in replacements.values():
