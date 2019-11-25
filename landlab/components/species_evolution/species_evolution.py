@@ -46,10 +46,10 @@ class SpeciesEvolver(Component):
     zones are not required for other species types.
 
     Time and other variables can be accessed with the class attribute,
-    ``record``. Model time is tracked to construct phylogeny. The unit of time
-    is not considered within the component and can be thought of as in years or
-    whatever unit is needed. Time is advanced using the `dt` parameter of the
-    ``run_one_step`` method.
+    ``record_data_frame``. Model time is tracked to construct phylogeny. The
+    unit of time is not considered within the component and can be thought of
+    as in years or whatever unit is needed. Time is advanced using the `dt`
+    parameter of the ``run_one_step`` method.
 
     The ``run_one_step`` method evolves the species extant at the current time.
     The persistence or extinction of a species is determined by the species.
@@ -125,7 +125,7 @@ class SpeciesEvolver(Component):
 
     >>> species = zc.populate_zones_uniformly(1)
     >>> se.introduce_species(species)
-    >>> se.species
+    >>> se.species_data_frame
       clade  number  time_appeared  latest_time
     0     A       0              0            0
 
@@ -166,7 +166,7 @@ class SpeciesEvolver(Component):
     The split of the initial zone triggered speciation. Species A.0 became
     extinct as it speciated to child species, A.1 and A.2.
 
-    >>> se.species
+    >>> se.species_data_frame
       clade  number  time_appeared  latest_time
     0     A       0              0            0
     1     A       1           1000         1000
@@ -210,12 +210,12 @@ class SpeciesEvolver(Component):
         self._clade_generator = _get_next_clade_name()
 
     @property
-    def record(self):
+    def record_data_frame(self):
         """A DataFrame of SpeciesEvolver variables over time."""
         return self._record.dataframe
 
     @property
-    def species(self):
+    def species_data_frame(self):
         """A DataFrame of species metadata."""
         cols = list(self._species.keys())
         cols.remove('object')
@@ -521,7 +521,7 @@ class SpeciesEvolver(Component):
 
         Display data of all the species.
 
-        >>> se.species
+        >>> se.species_data_frame
           clade  number  time_appeared  latest_time
         0     A       0              0         1000
         1     A       1           2000         2000

@@ -90,8 +90,8 @@ class ZoneController(object):
     Another ``T1`` variation, now demonstrating two zones, ``*`` and ``x``.
     Multiple zones overlapping a one zone in the prior time step can be
     interpreted as a zone that fragmented, which may affect resident species.
-    The number of zone fragmentations can be viewed in the ``record``
-    attribute.
+    The number of zone fragmentations can be viewed in the
+    ``record_data_frame`` attribute.
 
     T1e
     · · · · · ·
@@ -160,7 +160,7 @@ class ZoneController(object):
     # Instantiate ZoneController. Only one zone exists because the nodes that
     # were set to one are adjacent to each other in the grid.
     >>> zc = ZoneController(mg, zone_func)
-    >>> zc.record[['time', 'zone_count']]
+    >>> zc.record_data_frame[['time', 'zone_count']]
        time  zone_count
     0     0           1
 
@@ -176,7 +176,7 @@ class ZoneController(object):
     >>> zc.run_one_step(1000)
 
     # Two zones now exist because the zone in time 0 fragmented into two zones.
-    >>> zc.record[['time', 'zone_count', 'fragmentation_count']]
+    >>> zc.record_data_frame[['time', 'zone_count', 'fragmentation_count']]
        time  zone_count  fragmentation_count
     0     0           1                  NaN
     1  1000           2                  2.0
@@ -187,8 +187,8 @@ class ZoneController(object):
     # record.
     >>> z[10] = 1
     >>> zc.run_one_step(1000)
-    >>> zc.record[['time', 'zone_count', 'capture_count', 'area_captured_sum',
-    ...     'area_captured_max']]
+    >>> zc.record_data_frame[['time', 'zone_count', 'capture_count',
+    ...     'area_captured_sum', 'area_captured_max']]
        time  zone_count  capture_count  area_captured_sum  area_captured_max
     0     0           1            NaN                NaN                NaN
     1  1000           2            0.0                0.0                0.0
@@ -214,7 +214,7 @@ class ZoneController(object):
     # Only one zone exist, despite two clusters of nodes meeting the zone
     # definition, because the ``minimum_area`` was set to 2. Also, the first
     # time in the record was set by the ``initial_time`` parameter.
-    zc.record[['time', 'zone_count']]
+    zc.record_data_frame[['time', 'zone_count']]
        time  zone_count
     0   100           1
     """
@@ -279,7 +279,7 @@ class ZoneController(object):
         return self._zones
 
     @property
-    def record(self):
+    def record_data_frame(self):
         """A DataFrame of SpeciesEvolver variables over time."""
         return self._record.dataframe
 

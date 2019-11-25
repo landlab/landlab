@@ -59,13 +59,13 @@ def test_introduce_species_and_component_attributes(zone_example_grid):
         'time_appeared': [0, 0, 0],
         'latest_time': [0, 0, 0]
     })
-    np.testing.assert_array_equal(se.species, expected_df)
+    np.testing.assert_array_equal(se.species_data_frame, expected_df)
 
     expected_df = DataFrame({
         'time': [0],
         'species_count': [3]
     })
-    np.testing.assert_array_equal(se.record, expected_df)
+    np.testing.assert_array_equal(se.record_data_frame, expected_df)
 
     # Test attributes at a later time.
 
@@ -77,13 +77,13 @@ def test_introduce_species_and_component_attributes(zone_example_grid):
         'time_appeared': [0, 10, 0, 10, 0, 10],
         'latest_time': [10, 10, 10, 10, 10, 10]
     })
-    np.testing.assert_array_equal(se.species, expected_df)
+    np.testing.assert_array_equal(se.species_data_frame, expected_df)
 
     expected_df = DataFrame({
         'time': [0, 10],
         'species_count': [3, 6]
     })
-    np.testing.assert_array_equal(se.record, expected_df)
+    np.testing.assert_array_equal(se.record_data_frame, expected_df)
 
 
 def test_species_at_time(zone_example_grid):
@@ -121,7 +121,6 @@ def test_species_with_identifier(zone_example_grid):
     introduced_species = [SpeciesTest(), SpeciesTest()]
     se.introduce_species(introduced_species)
     se.run_one_step(10)
-    se.species
 
     queried_species = se.species_with_identifier(('B', 1))
     np.testing.assert_equal(queried_species[0].identifier, ('B', 1))
