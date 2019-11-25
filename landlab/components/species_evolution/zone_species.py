@@ -305,7 +305,7 @@ class ZoneSpecies(_Species):
         population : Population
             A population of the species.
         """
-        ...  # pragma: no cover
+        # pragma: no cover
 
     def _evaluate_speciation(self, dt, population):
         """Determine if speciation occurs.
