@@ -192,6 +192,22 @@ class SpeciesEvolver(Component):
     """
     _name = 'SpeciesEvolver'
 
+    _output_var_names = (
+        'species__richness'
+    )
+
+    _var_units = {
+        'species__richness': 'None'
+    }
+
+    _var_mapping = {
+        'species__richness': 'node',
+    }
+
+    _var_doc = {
+        'species__richness': 'The number of species at each node.'
+    }
+
     def __init__(self, grid, initial_time=0):
         """Instantiate SpeciesEvolver.
 
@@ -224,6 +240,10 @@ class SpeciesEvolver(Component):
                     yield ''.join(s)
 
         self._clade_generator = _get_next_clade_name()
+
+        # Create a species richness field.
+
+        _ = grid.add_zeros('species__richness', at='node')
 
     @property
     def record_data_frame(self):
@@ -274,6 +294,8 @@ class SpeciesEvolver(Component):
                 survivors.extend(child_species)
 
         self._update_species_data(survivors)
+
+        self._grid.at_node['species__richness'] = self._get_species_richness_map()
 
     def introduce_species(self, species):
         """Add species to SpeciesEvolver.
@@ -601,3 +623,15 @@ class SpeciesEvolver(Component):
                 'integer.')
 
         return np.array(self._species['object'])[mask].tolist()
+
+    def _get_species_richness_map(self):
+        """Get a map of the number of species."""
+        species = self.species_at_time(self._record.latest_time)
+
+        if species:
+            masks = np.stack([s.range_mask for s in species])
+            richness_mask = sum(masks)
+        else:
+            richness_mask = np.zeros(self._grid.number_of_nodes)
+
+        return richness_mask

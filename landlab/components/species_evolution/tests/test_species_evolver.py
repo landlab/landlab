@@ -20,7 +20,8 @@ class SpeciesTest(_Species):
 
     @property
     def range_mask(self):
-        pass
+        return np.array([False, False, False, True, True, True, False, False,
+            False])
 
     def _evolve_stage_1(self, dt, record):
         pass
@@ -134,3 +135,21 @@ def test_species_with_identifier(zone_example_grid):
     np.testing.assert_raises(TypeError, se.species_with_identifier, (1, 'A'))
 
     np.testing.assert_raises(TypeError, se.species_with_identifier, {})
+
+
+def test_species_richness_field(zone_example_grid):
+    mg = zone_example_grid
+
+    se = SpeciesEvolver(mg)
+
+    expected_field = np.zeros(mg.number_of_nodes)
+    np.testing.assert_array_equal(mg.at_node['species__richness'],
+        expected_field)
+
+    introduced_species = [SpeciesTest(), SpeciesTest()]
+    se.introduce_species(introduced_species)
+    se.run_one_step(10)
+
+    expected_field = np.array([0, 0, 0, 4, 4, 4, 0, 0, 0])
+    np.testing.assert_array_equal(mg.at_node['species__richness'],
+        expected_field)
