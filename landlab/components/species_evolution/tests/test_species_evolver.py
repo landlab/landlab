@@ -4,7 +4,7 @@
 from collections import Counter
 
 import numpy as np
-from pandas import DataFrame
+import pandas as pd
 import pytest
 
 from landlab import RasterModelGrid
@@ -52,37 +52,37 @@ def test_introduce_species_and_component_attributes(zone_example_grid):
 
     # Test attributes at initial time step.
 
-    expected_df = DataFrame({
+    expected_df = pd.DataFrame({
         'clade': ['A', 'B', 'C'],
         'number': [0, 0, 0],
         'time_appeared': [0, 0, 0],
         'latest_time': [0, 0, 0]
     })
-    np.testing.assert_array_equal(se.species_data_frame, expected_df)
+    pd.testing.assert_frame_equal(se.species_data_frame, expected_df)
 
-    expected_df = DataFrame({
+    expected_df = pd.DataFrame({
         'time': [0],
         'species_count': [3]
     })
-    np.testing.assert_array_equal(se.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(se.record_data_frame, expected_df)
 
     # Test attributes at a later time.
 
     se.run_one_step(10)
 
-    expected_df = DataFrame({
+    expected_df = pd.DataFrame({
         'clade': ['A', 'A', 'B', 'B', 'C', 'C'],
         'number': [0, 1, 0, 1, 0, 1],
         'time_appeared': [0, 10, 0, 10, 0, 10],
         'latest_time': [10, 10, 10, 10, 10, 10]
     })
-    np.testing.assert_array_equal(se.species_data_frame, expected_df)
+    pd.testing.assert_frame_equal(se.species_data_frame, expected_df)
 
-    expected_df = DataFrame({
+    expected_df = pd.DataFrame({
         'time': [0, 10],
         'species_count': [3, 6]
     })
-    np.testing.assert_array_equal(se.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(se.record_data_frame, expected_df)
 
 
 def test_species_at_time(zone_example_grid):

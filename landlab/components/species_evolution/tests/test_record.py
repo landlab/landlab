@@ -4,7 +4,7 @@
 from collections import OrderedDict
 
 import numpy as np
-from pandas import DataFrame
+import pandas as pd
 
 from landlab.components.species_evolution.record import Record
 
@@ -26,8 +26,10 @@ def test_attributes():
     np.testing.assert_equal(record.count_of_time_steps, 2)
     np.testing.assert_equal(len(record), 2)
 
-    df = DataFrame({'time': [0, 10], 'vara': [np.nan, 1], 'varb': [np.nan, 2]})
-    np.testing.assert_array_equal(record.dataframe, df)
+    df = pd.DataFrame(
+        {'time': [0, 10], 'vara': [np.nan, 1], 'varb': [np.nan, 2]}
+    )
+    pd.testing.assert_frame_equal(record.dataframe, df)
 
 
 def test_get_value():
@@ -75,7 +77,9 @@ def test_increment_value():
 
     record.increment_value('varb', 200, time=0)
 
-    d = OrderedDict([('time', [0, 10]), ('vara', [101, 100]), ('varb', [200, np.nan])])
+    d = OrderedDict(
+        [('time', [0, 10]), ('vara', [101, 100]), ('varb', [200, np.nan])]
+    )
     np.testing.assert_equal(record._dict, d)
 
 
