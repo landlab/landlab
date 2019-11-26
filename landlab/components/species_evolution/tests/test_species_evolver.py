@@ -1,9 +1,5 @@
 #!/usr/bin/env python
-"""
-Created on Tue Nov 19 08:46:21 2019
-
-@author: njlyons
-"""
+"""SpeciesEvolver tests."""
 from collections import Counter
 
 import numpy as np

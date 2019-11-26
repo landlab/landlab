@@ -17,12 +17,14 @@ _MANY_TO_MANY = 'many-to-many'
 def _update_zones(grid, prior_zones, new_zones, record):
     """Resolve the spatial connectivity of zones across two time steps.
 
-    This methods iterates over each zone of the prior time step, the predessor,
-    to identify the zones of the current time step it spatially intersects, the
-    successor zones.
+    This method iterates over each zone of the prior time step to identify the
+    zones of the current time step it spatially intersects. This method updates
+    the zone attribute, ``successors``. Successor zones are the new zones
+    existing at the current time step that are the continuation of prior time
+    step zones referred to as the predecessor zones.
 
-    The type of connection between predessor and successor zones is described
-    by the number of predessors and successors that overlap each other. The
+    The type of connection between predecessor and successor zones is described
+    by the number of predecessors and successors that overlap each other. The
     connection type is represented by a string with the pattern, x-to-y where x
     and y are the descriptive counts (none, one, or many) of zone(s) at the
     prior and current time step, respectively. For example, a connection type

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Zone-based SpeciesController of SpeciesEvolver."""
+"""ZoneController of SpeciesEvolver."""
 import numpy as np
 from scipy.ndimage.measurements import label
 
@@ -18,8 +18,8 @@ class ZoneController(object):
     This controller creates zones using the parameter, ``zone_function`` set at
     initialization. This function identifies all of the grid nodes where zones
     are to be created. A zone is created for each cluster of spatially
-    continuous nodes. The function is called and zones are updated when this
-    controller is initialized and when the ``run_one_step`` method is called.
+    continuous nodes. Zones are updated also using this function when the
+    ``run_one_step`` method of this controller is called.
 
     The structure of an example model grid is diagrammed below to demonstrate
     how zones are created. The grid contains six columns and six rows. In this
@@ -28,8 +28,8 @@ class ZoneController(object):
     True. All other nodes are marked with a ``·``. A zone is created for each
     cluster of continuous nodes where the mask is True.
 
-    values         function
-    evaluated      result
+    values         mask returned
+    evaluated      by zone function
     0 0 0 0 0 0    · · · · · ·
     0 0 4 5 4 0    · · * * * ·
     0 0 6 3 0 0    · · * * · ·
@@ -53,11 +53,11 @@ class ZoneController(object):
     · x x · o ·    · @ @ · o ·    · x x · · ·    · x x · · ·
     x · · · · ·    x · · · · ·    x · · · · ·    · · · · · ·
 
-    Typically, ``ZoneSpecies`` are used with this controller, and the following
-    paragraphs make that assumption. Speciation occurs when the species exists
-    in more than one zone once the allopatric wait time has been exceeded in
-    that zone (see ZoneSpecies documentation for more about allopatric wait
-    time).
+    By default, ``ZoneSpecies`` are used with this controller, and the
+    following paragraphs make that assumption. Speciation occurs when the
+    species exists in more than one zone once the allopatric wait time has been
+    exceeded in that zone. See ZoneSpecies documentation for more about
+    allopatric wait time.
 
     Here, a different example grid demonstrates the temporal connectivity of
     zones. The grid represents the time, ``T0`` with the nodes of a zone
@@ -88,10 +88,9 @@ class ZoneController(object):
     · · · · · ·    · · · · · ·    · · · · · ·    * * * * · ·
 
     Another ``T1`` variation, now demonstrating two zones, ``*`` and ``x``.
-    Multiple zones overlapping a one zone in the prior time step can be
-    interpreted as a zone that fragmented, which may affect resident species.
-    The number of zone fragmentations can be viewed in the
-    ``record_data_frame`` attribute.
+    Multiple zones overlapping a zone in the prior time step can be interpreted
+    as a zone that fragmented, which may affect resident species. The number of
+    zone fragmentations can be viewed in the ``record_data_frame`` attribute.
 
     T1e
     · · · · · ·
@@ -113,7 +112,8 @@ class ZoneController(object):
     The grid diagrammed below continues from T1e. The continuous nodes
     overlapped two zones in T1e. When multiple zones overlap, one zone is
     assumed to be the prior zone and the others are considered captured zones.
-    The number of zone captures can be viewed in the ``record`` attribute.
+    The number of zone captures can be viewed in the ``record_data_frame``
+    attribute.
 
     T2
     · · · · · ·
@@ -134,57 +134,66 @@ class ZoneController(object):
     creating new zone objects.
 
     Note in the example above that zones are created throughout the grid,
-    including boundaries, wherever nodes meet the conditions within the
+    including boundaries, wherever nodes meet the conditions set within the
     ``zone_function``. Boundaries can be excluded in zones by evaluating if
     nodes are boundaries in ``zone_function``.
 
     Examples
     --------
-    # First, an example with default ZoneController parameters.
+    Import modules used in the following examples.
+
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.species_evolution import ZoneController
 
-    # Create a model grid and an elevation field for this grid.
+    The first example uses the default parameters of ZoneController.
+
+    Create a model grid and an elevation field for this grid.
+
     >>> mg = RasterModelGrid((3, 7))
     >>> z = mg.add_zeros('topographic__elevation', at='node')
 
-    # Set elevation to 1 for some nodes.
+    Set elevation to 1 for some nodes.
+
     >>> z[[9, 10, 11, 12]] = 1
 
-    # Define a zone function that returns a boolean array where `True` values
-    # indicate the nodes where zones can be created.
+    Define a zone function that returns a boolean array where `True` values
+    indicate the nodes where zones can be created.
+
     >>> def zone_func(grid):
     ...     z = grid.at_node['topographic__elevation']
     ...     return z == 1
 
-    # Instantiate ZoneController. Only one zone exists because the nodes that
-    # were set to one are adjacent to each other in the grid.
+    Instantiate ZoneController. Only one zone exists because the nodes that
+    were set to one are adjacent to each other in the grid.
+
     >>> zc = ZoneController(mg, zone_func)
     >>> zc.record_data_frame[['time', 'zone_count']]
        time  zone_count
     0     0           1
 
-    # Populate each zone with one species.
+    Populate each zone with one species.
+
     >>> species = zc.populate_zones_uniformly(1)
     >>> len(species)
     1
 
-    # A change in elevation is forced to demonstrate a zone fragmentation, and
-    # then the zones are updated by advancing the ZoneController by 1000 time
-    units.
+    A change in elevation is forced to demonstrate a zone fragmentation, and
+    then the zones are updated by advancing the record time by 1000.
+
     >>> z[10] = 0
     >>> zc.run_one_step(1000)
 
-    # Two zones now exist because the zone in time 0 fragmented into two zones.
+    Two zones now exist because the zone in time 0 fragmented into two zones.
+
     >>> zc.record_data_frame[['time', 'zone_count', 'fragmentation_count']]
        time  zone_count  fragmentation_count
     0     0           1                  NaN
     1  1000           2                  2.0
 
-    # A change in elevation is forced again, this time to demonstrate zone
-    # capture where multiple zones are overlapped by a zone in the later time
-    # step. Statistics of the area captured are stored in the ZoneController
-    # record.
+    A change in elevation is forced again, this time to demonstrate zone
+    capture where multiple zones are overlapped by a zone in the later time
+    step. Statistics of the capture can be attained with ``record_data_frame``.
+
     >>> z[10] = 1
     >>> zc.run_one_step(1000)
     >>> zc.record_data_frame[['time', 'zone_count', 'capture_count',
@@ -194,26 +203,30 @@ class ZoneController(object):
     1  1000           2            0.0                0.0                0.0
     2  2000           1            1.0                2.0                2.0
 
-    # The follow example demonstrates non-default ZoneController parameters.
+    The follow example demonstrates non-default ZoneController parameters.
+
     >>> mg = RasterModelGrid((3, 7))
     >>> z = mg.add_zeros('topographic__elevation', at='node')
 
-    # Also as done in the prior example, define a zone function that returns a
-    # boolean array where `True` values indicate the nodes where zones can be
-    created.
+    Similar to the prior example, define a zone function that returns a boolean
+    array where `True` values indicate the nodes where zones can be created.
+
     >>> def zone_func(grid):
     ...     z = grid.at_node['topographic__elevation']
     ...     return z == 1
 
-    # Set elevation to 1 for nodes such that two clusters of .
+    Set elevation to 1 for nodes so that two clusters of nodes within the zone
+    mask exist.
     >>> z[[9, 10, 12]] = 1
 
-    # Instantiate ZoneController with options.
+    Instantiate ZoneController with options.
+
     >>> zc = ZoneController(mg, zone_func, minimum_area=2, initial_time=100)
 
-    # Only one zone exist, despite two clusters of nodes meeting the zone
-    # definition, because the ``minimum_area`` was set to 2. Also, the first
-    # time in the record was set by the ``initial_time`` parameter.
+    Only one zone exist, despite two clusters of nodes meeting the zone
+    definition, because the ``minimum_area`` was set to 2. Also, the first
+    time in the record was set by the ``initial_time`` parameter.
+
     zc.record_data_frame[['time', 'zone_count']]
        time  zone_count
     0   100           1
@@ -239,8 +252,9 @@ class ZoneController(object):
             The initial time. The unit of time is unspecified within the
             controller. The default is 0.
         kwargs
-            Keyword arguments for ``zone_function``. Note that the grid of
-            `SpeciesEvolver` is automatically added to `kwargs`.
+            Keyword arguments for ``zone_function``. Do not include ``grid``
+            in kwargs because ``grid``, the first parameter of this method, is
+            automatically added to ``kwargs``.
         """
         # Set parameters.
 
@@ -335,7 +349,7 @@ class ZoneController(object):
         Parameters
         ----------
         mask : ndarray
-            An boolean array with the grid number of nodes where `True` values
+            A boolean array with the grid number of nodes where `True` values
             are nodes within the extent of all the zones to be created.
 
         Returns

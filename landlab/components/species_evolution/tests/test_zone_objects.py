@@ -1,9 +1,5 @@
 #!/usr/bin/env python
-"""
-Created on Sun Nov 10 12:44:12 2019
-
-@author: njlyons
-"""
+"""Tests for SpeciesEvolver zone objects."""
 import numpy as np
 from pandas import DataFrame
 import pytest

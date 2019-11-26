@@ -1,9 +1,5 @@
 #!/usr/bin/env python
-"""
-Created on Tue Nov 19 13:13:50 2019
-
-@author: njlyons
-"""
+"""Tests for the base species of SpeciesEvolver."""
 from collections import OrderedDict
 
 import numpy as np

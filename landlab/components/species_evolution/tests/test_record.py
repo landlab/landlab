@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Nov 17 16:18:36 2019
-
-@author: njlyons
-"""
+#!/usr/bin/env python
+"""Tests for Record of SpeciesEvolver."""
 from collections import OrderedDict
 
 import numpy as np

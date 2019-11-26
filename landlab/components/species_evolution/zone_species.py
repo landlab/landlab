@@ -21,9 +21,8 @@ class Population(object):
         zone : Zone
             The population inhabits ``zone``.
         time_to_allopatric_speciation : float, optional
-            The time until speciation due to allopatry occurs. The default
-            value of `None` indicates the population is not tending towards
-            speciation.
+            The time until speciation due to allopatry. The default value of
+            `None` indicates the population is not tending towards speciation.
         """
         self._species = species
         self.zone = zone
@@ -61,17 +60,16 @@ class ZoneSpecies(_Species):
     methods are intended to be expanded or overwritten.
 
     Dispersal is dictated by the spatial connectivity of zones over two
-    successive time steps resolved by zones. Population zones are updated prior
-    to ``evaluate_dispersal`` in the ``_update_populations`` method. However,
-    the zones thus dispersal can be modified in ``evaluate_dispersal`` to
-    modify the species spatial distribution prior to speciation and extinction.
+    successive time steps. Population zones are updated prior to
+    ``evaluate_dispersal`` in the ``_update_populations`` method. However, the
+    zones thus dispersal can be modified in ``evaluate_dispersal`` to modify
+    the species spatial distribution prior to speciation and extinction.
 
     Speciation occurs when a species exists in multiple zones following a delay
     set by the `allopatric_wait_time` initialization parameter. A clock counts
     down for each zone of the species where the species dispersed beyond one
     zone. The clock starts when a zone in the earlier time step overlaps
-    multiple zones in the later time step. The clock is tracked by
-    `_zones['time_to_allopatric_speciation'].
+    multiple zones in the later time step.
 
     Extinction occurs when the species exists in no zones. Extinction also
     occurs if ``pseudoextinction`` is True and the species speciates.
@@ -90,8 +88,8 @@ class ZoneSpecies(_Species):
         allopatric_wait_time : float, optional
             The delay in model time between geographic seperation and
             speciation. Speciation occurs at the first time step when the delay
-            is exceeded. The default value of 0 indicates speciation occurs at
-            the same time step when geographic serperation occurs.
+            is reached or exceeded. The default value of 0 indicates speciation
+            occurs at the same time step when geographic serperation occurs.
         pseudoextinction : boolean, optional
             When 'True', species become extinct when it speciates into child
             species.
@@ -131,8 +129,8 @@ class ZoneSpecies(_Species):
     def _evolve_stage_1(self, dt, record):
         """Run evolutionary processes in preperation of stage 2.
 
-        The species populations are updated in this stage so that the zones are
-        updated for all zones at the current time prior to stage 2.
+        The initial species dispersal is updated in this stage so that all
+        species are updated at the current time prior to stage 2.
 
         Parameters
         ----------
