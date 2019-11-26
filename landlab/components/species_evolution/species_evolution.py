@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """Simulate the development of species lineages in a landscape.
 
 Component written by Nathan Lyons beginning August 2017.
