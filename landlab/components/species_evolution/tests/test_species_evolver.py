@@ -91,26 +91,23 @@ def test_species_at_time(zone_example_grid):
 
     # Test time steps in the SpeciesEvolver record.
 
-    queried_species = se.species_at_time(0)
+    queried_species = se.species_at_time(time=0)
     np.testing.assert_equal(Counter(queried_species),
         Counter(introduced_species))
 
-    queried_species = se.species_at_time(10)
+    queried_species = se.species_at_time()
     ids = [s.identifier for s in queried_species]
     expected_ids = [('A', 0), ('A', 1), ('B', 0), ('B', 1)]
     np.testing.assert_equal(Counter(ids), Counter(expected_ids))
 
     # Test time steps in between and outside of the SpeciesEvolver record.
 
-    queried_species = se.species_at_time(5)
+    queried_species = se.species_at_time(time=5)
     np.testing.assert_equal(Counter(queried_species),
         Counter(introduced_species))
 
-    queried_species = se.species_at_time(-1)
-    np.testing.assert_equal(queried_species, np.nan)
-
-    queried_species = se.species_at_time(11)
-    np.testing.assert_equal(queried_species, np.nan)
+    np.testing.assert_raises(ValueError, se.species_at_time, time=-1)
+    np.testing.assert_raises(ValueError, se.species_at_time, time=11)
 
 
 def test_species_with_identifier(zone_example_grid):
@@ -133,7 +130,6 @@ def test_species_with_identifier(zone_example_grid):
     np.testing.assert_equal(Counter(ids), Counter(expected_ids))
 
     np.testing.assert_raises(TypeError, se.species_with_identifier, (1, 'A'))
-
     np.testing.assert_raises(TypeError, se.species_with_identifier, {})
 
 

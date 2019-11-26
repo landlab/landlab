@@ -421,7 +421,7 @@ class SpeciesEvolver(Component):
             clades = np.append(clades, clade)
             nums = np.append(nums, num)
 
-    def species_at_time(self, time):
+    def species_at_time(self, time=np.nan):
         """Get the species that exist at a time.
 
         This method returns nan when `time` is less than or greater than the
@@ -431,8 +431,8 @@ class SpeciesEvolver(Component):
 
         Parameters
         ----------
-        time : float
-            The model time.
+        time : float, int, optional
+            The model time. The latest time in the record is the default.
 
         Returns
         -------
@@ -470,17 +470,43 @@ class SpeciesEvolver(Component):
         >>> introduced_species = zc.populate_zones_uniformly(1)
         >>> se.introduce_species(introduced_species)
 
-        Get the species at the initial and only time. The species returned by
-        this method is the only species at time 0, which is the same species
-        that was introduced.
+        Fragment the zone by forcing uplift in the center of the grid. Advance
+        the ZoneController and SpeciesEvolver by a time step. The zone
+        fragmentation led species A.0 to produce two child species, A.1 and
+        A.2. Species A.0 effectively became extinct when it speciated.
 
-        >>> returned_species = se.species_at_time(0)
-        >>> returned_species == introduced_species
-        True
+        >>> z[[3, 10, 17]] = 200
+        >>> zc.run_one_step(1000)
+        >>> se.run_one_step(1000)
+        >>> se.species_data_frame
+          clade  number  time_appeared  latest_time
+        0     A       0              0            0
+        1     A       1           1000         1000
+        2     A       2           1000         1000
+
+        Get the species at the latest, current model time by calling the
+        ``species_at_time`` method without any parameters. Species A.1 and A.2
+        are the species extant at the latest time of 1000.
+
+        >>> returned_species = se.species_at_time()
+        >>> [s.identifier for s in returned_species]
+        [('A', 1), ('A', 2)]
+
+        The species extant at a time other than the latest can be attained by
+        inputting a time into the ``species_at_time`` method. Species A.0 is
+        the only species extant at time 0.
+
+        >>> returned_species = se.species_at_time(time=0)
+        >>> [s.identifier for s in returned_species]
+        [('A', 0)]
         """
+        if np.isnan(time):
+            time = self._record.latest_time
+
         if (time < self._record.earliest_time or
             time > self._record.latest_time):
-            return np.nan
+            msg = 'The time, {} is not within the bounds of the record.'
+            raise ValueError(msg.format(time))
 
         t_appeared = np.array(self._species['time_appeared'])
         t_latest = np.array(self._species['latest_time'])

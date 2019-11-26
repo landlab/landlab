@@ -100,7 +100,7 @@ class Record(object):
         for var in self.variables:
             self._dict[var].append(np.nan)
 
-    def get_value(self, var_name, time=None):
+    def get_value(self, var_name, time=np.nan):
         """Get the value of a variable.
 
         Parameters
@@ -125,7 +125,7 @@ class Record(object):
         idx = self._get_time_index(time)
         return self._dict[var_name][idx]
 
-    def set_value(self, var_name, value, time=None):
+    def set_value(self, var_name, value, time=np.nan):
         """Set the value of a variable.
 
         Parameters
@@ -148,7 +148,7 @@ class Record(object):
         idx = self._get_time_index(time)
         self._dict[var_name][idx] = value
 
-    def increment_value(self, var_name, increase, time=None):
+    def increment_value(self, var_name, increase, time=np.nan):
         """Increment the value of a variable.
 
         Parameters
@@ -181,7 +181,7 @@ class Record(object):
         return np.where(np.array(self.times) == time)[0][0]
 
     def _check_time(self, time):
-        if time == None:
+        if np.isnan(time):
             time = self.latest_time
         elif time not in self.times:
             raise ValueError('the time, {} not in record'.format(time))

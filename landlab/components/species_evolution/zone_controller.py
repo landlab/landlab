@@ -3,7 +3,7 @@
 import numpy as np
 from scipy.ndimage.measurements import label
 
-from landlab.components.species_evolution import ZoneSpecies, Zone
+from . import ZoneSpecies, Zone
 from .record import Record
 from .zone import _update_zones
 
