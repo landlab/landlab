@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """Zone functions and class of SpeciesEvolver."""
 import numpy as np
 

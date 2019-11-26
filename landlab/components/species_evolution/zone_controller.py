@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """ZoneController of SpeciesEvolver."""
 import numpy as np
 from scipy.ndimage.measurements import label

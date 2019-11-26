@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """Base Species of SpeciesEvolver."""
 from abc import ABCMeta, abstractmethod
 

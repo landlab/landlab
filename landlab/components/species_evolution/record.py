@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """Structure to store data over time for SpeciesEvolver."""
 from collections import OrderedDict
 
