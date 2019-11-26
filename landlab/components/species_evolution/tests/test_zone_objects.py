@@ -57,7 +57,9 @@ def test_none_to_one(zone_example_grid):
         'area_captured_sum': [np.nan],
         'area_captured_max': [np.nan]}
     )
-    pd.testing.assert_frame_equal(sc.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        sc.record_data_frame, expected_df, check_like=True
+    )
 
     # Create a zone for time 1.
 
@@ -77,7 +79,9 @@ def test_none_to_one(zone_example_grid):
         'area_captured_sum': [np.nan, 0],
         'area_captured_max': [np.nan, 0]}
     )
-    pd.testing.assert_frame_equal(sc.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        sc.record_data_frame, expected_df, check_like=True
+    )
 
     np.testing.assert_equal(se.record_data_frame.species_count.sum(), 0)
 
@@ -105,7 +109,9 @@ def test_one_to_none(zone_example_grid):
         'area_captured_sum': [np.nan],
         'area_captured_max': [np.nan]}
     )
-    pd.testing.assert_frame_equal(sc.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        sc.record_data_frame, expected_df, check_like=True
+    )
 
     # No zones for time 1.
 
@@ -125,7 +131,9 @@ def test_one_to_none(zone_example_grid):
         'area_captured_sum': [np.nan, 0],
         'area_captured_max': [np.nan, 0]}
     )
-    pd.testing.assert_frame_equal(sc.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        sc.record_data_frame, expected_df, check_like=True
+    )
 
     np.testing.assert_equal(se.record_data_frame.species_count.sum(), 1)
 
@@ -153,7 +161,9 @@ def test_one_to_one(zone_example_grid):
         'area_captured_sum': [np.nan],
         'area_captured_max': [np.nan]}
     )
-    pd.testing.assert_frame_equal(sc.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        sc.record_data_frame, expected_df, check_like=True
+    )
 
     # Modify elevation, although  there is still one zone in time 1.
 
@@ -174,7 +184,9 @@ def test_one_to_one(zone_example_grid):
         'area_captured_sum': [np.nan, 0],
         'area_captured_max': [np.nan, 0]}
     )
-    pd.testing.assert_frame_equal(sc.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        sc.record_data_frame, expected_df, check_like=True
+    )
 
     np.testing.assert_equal(len(se.species_at_time()), 1)
 
@@ -199,7 +211,9 @@ def test_one_to_many(zone_example_grid):
         'area_captured_sum': [np.nan],
         'area_captured_max': [np.nan]}
     )
-    pd.testing.assert_frame_equal(sc.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        sc.record_data_frame, expected_df, check_like=True
+    )
 
     np.testing.assert_equal(len(se.species_at_time()), 1)
 
@@ -223,7 +237,9 @@ def test_one_to_many(zone_example_grid):
         'area_captured_sum': [np.nan, 0],
         'area_captured_max': [np.nan, 0]}
     )
-    pd.testing.assert_frame_equal(sc.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        sc.record_data_frame, expected_df, check_like=True
+    )
 
     np.testing.assert_equal(len(se.species_at_time()), 2)
 
@@ -248,7 +264,9 @@ def test_many_to_one(zone_example_grid):
         'area_captured_sum': [np.nan],
         'area_captured_max': [np.nan]}
     )
-    pd.testing.assert_frame_equal(sc.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        sc.record_data_frame, expected_df, check_like=True
+    )
 
     np.testing.assert_equal(len(se.species_at_time()), 2)
 
@@ -271,7 +289,9 @@ def test_many_to_one(zone_example_grid):
         'area_captured_sum': [np.nan, 12],
         'area_captured_max': [np.nan, 12]}
     )
-    pd.testing.assert_frame_equal(sc.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        sc.record_data_frame, expected_df, check_like=True
+    )
 
     np.testing.assert_equal(len(se.species_at_time()), 2)
 
@@ -296,7 +316,9 @@ def test_many_to_many(zone_example_grid):
         'area_captured_sum': [np.nan],
         'area_captured_max': [np.nan]}
     )
-    pd.testing.assert_frame_equal(sc.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        sc.record_data_frame, expected_df, check_like=True
+    )
 
     np.testing.assert_equal(len(se.species_at_time()), 2)
 
@@ -320,7 +342,9 @@ def test_many_to_many(zone_example_grid):
         'area_captured_sum': [np.nan, 24],
         'area_captured_max': [np.nan, 12]}
     )
-    pd.testing.assert_frame_equal(sc.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        sc.record_data_frame, expected_df, check_like=True
+    )
 
     np.testing.assert_equal(len(se.species_at_time()), 4)
 
@@ -422,4 +446,6 @@ def test_allopatric_wait_time(zone_example_grid):
         'time_appeared': [0, 30, 30],
         'latest_time': [20, 30, 30]}
     )
-    pd.testing.assert_frame_equal(se.species_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        se.species_data_frame, expected_df, check_like=True
+    )

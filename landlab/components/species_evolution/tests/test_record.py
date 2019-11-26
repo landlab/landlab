@@ -29,7 +29,7 @@ def test_attributes():
     df = pd.DataFrame(
         {'time': [0, 10], 'vara': [np.nan, 1], 'varb': [np.nan, 2]}
     )
-    pd.testing.assert_frame_equal(record.dataframe, df)
+    pd.testing.assert_frame_equal(record.dataframe, df, check_like=True)
 
 
 def test_get_value():

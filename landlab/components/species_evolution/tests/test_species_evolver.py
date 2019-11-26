@@ -58,13 +58,17 @@ def test_introduce_species_and_component_attributes(zone_example_grid):
         'time_appeared': [0, 0, 0],
         'latest_time': [0, 0, 0]
     })
-    pd.testing.assert_frame_equal(se.species_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        se.species_data_frame, expected_df, check_like=True
+    )
 
     expected_df = pd.DataFrame({
         'time': [0],
         'species_count': [3]
     })
-    pd.testing.assert_frame_equal(se.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        se.record_data_frame, expected_df, check_like=True
+    )
 
     # Test attributes at a later time.
 
@@ -76,13 +80,17 @@ def test_introduce_species_and_component_attributes(zone_example_grid):
         'time_appeared': [0, 10, 0, 10, 0, 10],
         'latest_time': [10, 10, 10, 10, 10, 10]
     })
-    pd.testing.assert_frame_equal(se.species_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        se.species_data_frame, expected_df, check_like=True
+    )
 
     expected_df = pd.DataFrame({
         'time': [0, 10],
         'species_count': [3, 6]
     })
-    pd.testing.assert_frame_equal(se.record_data_frame, expected_df)
+    pd.testing.assert_frame_equal(
+        se.record_data_frame, expected_df, check_like=True
+    )
 
 
 def test_species_at_time(zone_example_grid):
