@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """Tests for SpeciesEvolver zone objects."""
 import numpy as np
 from pandas import DataFrame
