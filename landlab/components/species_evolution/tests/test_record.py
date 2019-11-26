@@ -44,6 +44,7 @@ def test_get_value():
     value = record.get_value('varb')
     np.testing.assert_equal(value, np.nan)
 
+
 def test_set_value():
     record = Record()
     record.advance_time(10)

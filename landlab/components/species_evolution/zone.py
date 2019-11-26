@@ -94,8 +94,9 @@ def _update_zones(grid, prior_zones, new_zones, record):
             p_mask_copy = p.mask.copy()
 
             # Get the new zones that intersect (`i`) the prior zone.
-            ns_i_p = _intersecting_zones(ps_index_map == i_p, ns_index_map,
-                new_zones)
+            ns_i_p = _intersecting_zones(
+                ps_index_map == i_p, ns_index_map, new_zones
+            )
             ns_i_p_ct = len(ns_i_p)
 
             # Get the other prior zones that intersect the new zones.
@@ -107,8 +108,10 @@ def _update_zones(grid, prior_zones, new_zones, record):
 
             conn_type = _determine_connection_type(ps_i_ns_ct, ns_i_p_ct)
 
-            p_successors = _get_successors(p, conn_type, ps_i_ns, ns_i_p,
-                prior_zones, ps_index_map, replacements, successors)
+            p_successors = _get_successors(
+                p, conn_type, ps_i_ns, ns_i_p, prior_zones, ps_index_map,
+                replacements, successors
+            )
 
             # Update statistics.
 
@@ -192,8 +195,10 @@ def _determine_connection_type(prior_zone_count, new_zone_count):
             return _MANY_TO_MANY
 
 
-def _get_successors(p, conn_type, ps_i_ns, ns_i_p, prior_zones,
-    ps_index_map, replacements, all_successors):
+def _get_successors(
+    p, conn_type, ps_i_ns, ns_i_p, prior_zones, ps_index_map, replacements,
+    all_successors
+):
 
     if conn_type == _ONE_TO_ONE:
         # The prior zone is set as the new zone because only the one new
@@ -206,14 +211,16 @@ def _get_successors(p, conn_type, ps_i_ns, ns_i_p, prior_zones,
         # Set the successors to the new zones that overlap p.
         # Although, replace the dominant n with p.
 
-        dn = p._get_largest_intersection(ns_i_p,
-            exclusions=list(replacements.values()))
+        dn = p._get_largest_intersection(
+            ns_i_p, exclusions=list(replacements.values())
+        )
 
         successors = []
 
-        for i,n in enumerate(ns_i_p):
-            dp = n._get_largest_intersection(ps_i_ns,
-                exclusions=list(replacements.keys()))
+        for i, n in enumerate(ns_i_p):
+            dp = n._get_largest_intersection(
+                ps_i_ns, exclusions=list(replacements.keys())
+            )
 
             if n == dn and n in replacements.values():
                 d = _get_replacement(replacements, n)

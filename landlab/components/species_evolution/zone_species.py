@@ -36,9 +36,9 @@ class Population(object):
     @zone.setter
     def zone(self, new_zone):
         """Set the population zone and update the species of the zone."""
-        if new_zone == None:
+        if new_zone is None:
             self._zone.species.discard(self._species)
-        elif new_zone != None:
+        elif new_zone is not None:
             new_zone.species.add(self._species)
 
         self._zone = new_zone
@@ -256,8 +256,9 @@ class ZoneSpecies(_Species):
                         population._time_to_allopatric_speciation = awt
 
                 elif self not in zone._species:
-                    zone_pop = Population(self, zone,
-                        self._allopatric_wait_time)
+                    zone_pop = Population(
+                        self, zone, self._allopatric_wait_time
+                    )
                     updated_populations.append(zone_pop)
 
                 else:
@@ -286,9 +287,12 @@ class ZoneSpecies(_Species):
         """
         species_type = type(self)
 
-        return species_type(zones, parent_species=self,
+        return species_type(
+            zones,
+            parent_species=self,
             allopatric_wait_time=self._allopatric_wait_time,
-            pseudoextinction=self._pseudoextinction)
+            pseudoextinction=self._pseudoextinction
+        )
 
     def _evaluate_dispersal(self, population):
         """Set the range of the species as it results from dispersal.

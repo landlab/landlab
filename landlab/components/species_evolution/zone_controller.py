@@ -231,8 +231,10 @@ class ZoneController(object):
        time  zone_count
     0   100           1
     """
-    def __init__(self, grid, zone_function, minimum_area=0,
-        neighborhood_structure='D8', initial_time=0, **kwargs):
+    def __init__(
+        self, grid, zone_function, minimum_area=0, neighborhood_structure='D8',
+        initial_time=0, **kwargs
+    ):
         """Initialize a species.
 
         Parameters
@@ -297,8 +299,9 @@ class ZoneController(object):
         """A DataFrame of SpeciesEvolver variables over time."""
         return self._record.dataframe
 
-    def populate_zones_uniformly(self, count, species_type=ZoneSpecies,
-        **kwargs):
+    def populate_zones_uniformly(
+        self, count, species_type=ZoneSpecies, **kwargs
+    ):
         """Populate each zone with the same species count.
 
         Parameters
@@ -338,8 +341,9 @@ class ZoneController(object):
         zone_mask = self._zone_func(**self._zone_params)
         new_zones = self._get_zones_with_mask(zone_mask)
 
-        self._zones = _update_zones(self._grid, prior_zones, new_zones,
-            self._record)
+        self._zones = _update_zones(
+            self._grid, prior_zones, new_zones, self._record
+        )
 
         self._record.set_value('zone_count', len(self._zones))
 

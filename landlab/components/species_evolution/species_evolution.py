@@ -243,7 +243,7 @@ class SpeciesEvolver(Component):
 
         # Create a species richness field.
 
-        _ = grid.add_zeros('species__richness', at='node')
+        _ = grid.add_zeros('species__richness', at='node', noclobber=False)
 
     @property
     def record_data_frame(self):
@@ -277,7 +277,7 @@ class SpeciesEvolver(Component):
 
         # Process species.
 
-        extant_species = self.species_at_time(self._record.prior_time)
+        extant_species = self.species_at_time(time=self._record.prior_time)
 
         for es in extant_species:
             es._evolve_stage_1(dt, self._record)
@@ -407,7 +407,7 @@ class SpeciesEvolver(Component):
         for s in species:
             # Set species identifier.
 
-            if s.parent_species == None:
+            if s.parent_species is None:
                 clade = next(self._clade_generator)
                 num = 0
             else:
@@ -503,8 +503,9 @@ class SpeciesEvolver(Component):
         if np.isnan(time):
             time = self._record.latest_time
 
-        if (time < self._record.earliest_time or
-            time > self._record.latest_time):
+        if (time < self._record.earliest_time) or (
+            time > self._record.latest_time
+        ):
             msg = 'The time, {} is not within the bounds of the record.'
             raise ValueError(msg.format(time))
 
@@ -626,11 +627,15 @@ class SpeciesEvolver(Component):
             clade = identifier_element[0]
             num = identifier_element[1]
 
-            if not np.all([len(identifier_element) == 2,
-                isinstance(clade, str), isinstance(num, int)], 0):
-                raise TypeError('`identifier_element` when it is a tuple must '
-                    'have a length of 2. The first element must be a string, '
-                    'and the second must be an integer.')
+            if not np.all([
+                len(identifier_element) == 2,
+                isinstance(clade, str), isinstance(num, int)], 0
+            ):
+                raise TypeError(
+                    '`identifier_element` when it is a tuple must have a '
+                    'length of 2. The first element must be a string, and the '
+                    'second must be an integer.'
+                )
 
             clade_mask = np.array(self._species['clade']) == clade
             num_mask = np.array(self._species['number']) == num
@@ -645,14 +650,15 @@ class SpeciesEvolver(Component):
             mask = np.array(self._species['number']) == identifier_element
 
         else:
-            raise TypeError('`identifier_element` must be a tuple, string, or '
-                'integer.')
+            raise TypeError(
+                '`identifier_element` must be a tuple, string, or integer.'
+            )
 
         return np.array(self._species['object'])[mask].tolist()
 
     def _get_species_richness_map(self):
         """Get a map of the number of species."""
-        species = self.species_at_time(self._record.latest_time)
+        species = self.species_at_time()
 
         if species:
             masks = np.stack([s.range_mask for s in species])

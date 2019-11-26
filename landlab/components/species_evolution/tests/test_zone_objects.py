@@ -172,7 +172,7 @@ def test_one_to_one(zone_example_grid):
     })
     np.testing.assert_array_equal(sc.record_data_frame, expected_df)
 
-    np.testing.assert_equal(len(se.species_at_time(1)), 1)
+    np.testing.assert_equal(len(se.species_at_time()), 1)
 
 
 def test_one_to_many(zone_example_grid):
@@ -196,7 +196,7 @@ def test_one_to_many(zone_example_grid):
         'area_captured_max': [np.nan]})
     np.testing.assert_array_equal(sc.record_data_frame, expected_df)
 
-    np.testing.assert_equal(len(se.species_at_time(0)), 1)
+    np.testing.assert_equal(len(se.species_at_time()), 1)
 
     # Break the zone in two for time 1.
 
@@ -206,8 +206,9 @@ def test_one_to_many(zone_example_grid):
     se.run_one_step(1)
 
     np.testing.assert_equal(len(sc.zones), 2)
-    np.testing.assert_equal(set([z._conn_type for z in sc.zones]),
-        set([None, zn._ONE_TO_MANY]))
+    np.testing.assert_equal(
+        set([z._conn_type for z in sc.zones]), set([None, zn._ONE_TO_MANY])
+    )
 
     expected_df = DataFrame({
         'time': [0, 1],
@@ -219,7 +220,7 @@ def test_one_to_many(zone_example_grid):
     })
     np.testing.assert_array_equal(sc.record_data_frame, expected_df)
 
-    np.testing.assert_equal(len(se.species_at_time(1)), 2)
+    np.testing.assert_equal(len(se.species_at_time()), 2)
 
 
 def test_many_to_one(zone_example_grid):
@@ -243,7 +244,7 @@ def test_many_to_one(zone_example_grid):
         'area_captured_max': [np.nan]})
     np.testing.assert_array_equal(sc.record_data_frame, expected_df)
 
-    np.testing.assert_equal(len(se.species_at_time(0)), 2)
+    np.testing.assert_equal(len(se.species_at_time()), 2)
 
     # Modify elevation such that two zones each overlap the original two zones.
 
@@ -266,7 +267,7 @@ def test_many_to_one(zone_example_grid):
     })
     np.testing.assert_array_equal(sc.record_data_frame, expected_df)
 
-    np.testing.assert_equal(len(se.species_at_time(1)), 2)
+    np.testing.assert_equal(len(se.species_at_time()), 2)
 
 
 def test_many_to_many(zone_example_grid):
@@ -290,7 +291,7 @@ def test_many_to_many(zone_example_grid):
         'area_captured_max': [np.nan]})
     np.testing.assert_array_equal(sc.record_data_frame, expected_df)
 
-    np.testing.assert_equal(len(se.species_at_time(0)), 2)
+    np.testing.assert_equal(len(se.species_at_time()), 2)
 
     # Modify elevation such that two zones each overlap the original two zones.
 
@@ -314,7 +315,7 @@ def test_many_to_many(zone_example_grid):
     })
     np.testing.assert_array_equal(sc.record_data_frame, expected_df)
 
-    np.testing.assert_equal(len(se.species_at_time(1)), 4)
+    np.testing.assert_equal(len(se.species_at_time()), 4)
 
 
 def test_min_area(zone_example_grid):
@@ -339,8 +340,9 @@ def test_neighborhood_structure(zone_example_grid):
     sc = ZoneController(mg, zone_func, neighborhood_structure='D4')
     np.testing.assert_equal(len(sc.zones), 2)
 
-    np.testing.assert_raises(ValueError, ZoneController, mg, zone_func,
-        neighborhood_structure='D')
+    np.testing.assert_raises(
+        ValueError, ZoneController, mg, zone_func, neighborhood_structure='D'
+    )
 
 
 def test_zone_func_kwargs(zone_example_grid):
@@ -348,9 +350,10 @@ def test_zone_func_kwargs(zone_example_grid):
     z[:] = 1
     sc = ZoneController(mg, zone_func_with_vars, var1=1, var2=2)
 
-    expected_mask = np.array([False, False, False, False, False, False, False,
-       False, False, False, False, False, False, False, False, True, True,
-       True, True, True, True])
+    expected_mask = np.array(
+        [False, False, False, False, False, False, False, False, False, False,
+         False, False, False, False, False, True, True, True, True, True, True]
+    )
     np.testing.assert_array_equal(sc.zones[0].mask, expected_mask)
 
     z[-2:] = 0
@@ -388,7 +391,7 @@ def test_zone_species_range_mask(zone_example_grid):
     np.testing.assert_array_equal(species[0].range_mask, expected_mask)
 
 
-def test_allopatric_speciation(zone_example_grid):
+def test_allopatric_wait_time(zone_example_grid):
     mg, z = zone_example_grid
 
     # Create a zone for time 0.

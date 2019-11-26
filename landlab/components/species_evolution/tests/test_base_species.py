@@ -47,6 +47,7 @@ def test_base():
     np.testing.assert_equal(species_persists, True)
     np.testing.assert_equal(type(child_species[0]), SpeciesTest)
 
-    d = OrderedDict([('time', [0, 10]), ('vara', [np.nan, 1]),
-        ('varb', [np.nan, 2])])
+    d = OrderedDict(
+        [('time', [0, 10]), ('vara', [np.nan, 1]), ('varb', [np.nan, 2])]
+    )
     np.testing.assert_equal(record._dict, d)
