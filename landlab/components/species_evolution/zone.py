@@ -117,7 +117,8 @@ def _update_zones(grid, prior_zones, new_zones, record):
             # Update statistics.
 
             if conn_type in [_MANY_TO_ONE, _MANY_TO_MANY]:
-                captured_zones = p_successors.copy()
+                # Copy successors to be `captured_zones`.
+                captured_zones = list(p_successors)
                 if p in captured_zones:
                     captured_zones.remove(p)
                 capture_ct += len(captured_zones)
