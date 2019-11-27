@@ -64,42 +64,97 @@ class NetworkSedimentTransporter(Component):
                              )
 
     Examples
-    ----------
-    >>> from landlab import RasterModelGrid
-    >>> from landlab.components import FlowDirectorSteepest, FlowAccumulator, NetworkSedimentTransporter
-    >>> from landlab.components.landslides import LandslideProbability
+    ----------  
     >>> import numpy as np
+    >>> from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
+    >>> from landlab.grid.network import NetworkModelGrid
+    >>> from landlab import BAD_INDEX_VALUE
+    >>> from landlab.data_record import DataRecord
+    >>> _OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
+    
+    The NetworkSedimentTransporter moves "parcels" of sediment down a network 
+    based on a given flow and a given sediment transport formulation. The river
+    network is represented by a landlab NetworkModelGrid. Flow direction in the
+    network is determined using a landlab flow director. Sediment parcels are 
+    represented as items within a landlab ``DataRecord``. 
+    
+    Create a ``NetworkModelGrid`` to represent the river channel network. In this 
+    case, the grid is a single line of 4 nodes connected by 3 links. Each link represents a reach of river. 
+    >>> y_of_node = (0, 0, 0, 0)
+    >>> x_of_node = (0, 100, 200, 300)
+    >>> nodes_at_link = ((0,1), (1,2), (2,3))
+    
+    >>> nmg = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
+    
+    Add channel and topographic variables to the NetworkModelGrid. 
+    >>> nmg.at_node["topographic__elevation"] = [3., 2., 1., 0.] # m
+    >>> nmg.at_node["bedrock__elevation"] = [3., 2., 1., 0.] # m
+    >>> nmg.at_link["drainage_area"] = [10e6, 10e6, 10e6]  # m2
+    >>> nmg.at_link["channel_slope"] = [0.001, 0.001, 0.001]
+    >>> nmg.at_link["link_length"] = [100, 100, 100]  # m
+    >>> nmg.at_link["channel_width"] = (15 * np.ones(np.size(nmg.at_link["drainage_area"])))
+    
+    Run ``FlowDirectorSteepest`` to determine the direction of sediment transport through the network.
+    >>> flow_director = FlowDirectorSteepest(nmg)
+    >>> flow_director.run_one_step()
+    
+    Define the starting time and the number of timesteps for this model run.
+    >>> timesteps = 10
+    >>> time = [0.0]
+    
+    Define the flow depth for each link and timestep. 
+    >>> example_flow_depth = (
+    >>>     np.tile(2, (nmg.number_of_links))
+    >>> ) * np.tile(1, (timesteps + 1, 1)) # 2 meter flow depth
+    
+    Define the sediment characteristics that will be used to create the parcels ``DataRecord``
+    >>> items = {"grid_element": "link",
+    >>>          "element_id": np.array([[0]])}
+    
+    >>> variables = {
+    >>>     "starting_link": (["item_id"], np.array([0])),
+    >>>     "abrasion_rate": (["item_id"], np.array([0])),
+    >>>     "density": (["item_id"], np.array([2650])),
+    >>>     "time_arrival_in_link": (["item_id", "time"], np.array([[0]])),
+    >>>     "active_layer": (["item_id", "time"], np.array([[1]])),
+    >>>     "location_in_link": (["item_id", "time"], np.array([[0]])),
+    >>>     "D": (["item_id", "time"], np.array([[0.05]])),
+    >>>     "volume": (["item_id", "time"], np.array([[1]])),
+    >>> }
+    
+    Create the sediment parcel DataRecord. In this case, we are creating a single 
+    sediment parcel with all of the required attributes. 
+    >>> one_parcel = DataRecord(
+    >>>     nmg,
+    >>>     items=items,
+    >>>     time=time,
+    >>>     data_vars=variables,
+    >>>     dummy_elements={"link": [_OUT_OF_NETWORK]},
+    >>> )
+    
+    Instantiate the model run
+    >>> nst = NetworkSedimentTransporter(
+    >>>         nmg,
+    >>>         one_parcel,
+    >>>         flow_director,
+    >>>         example_flow_depth,
+    >>>         bed_porosity=0.03,
+    >>>         g=9.81,
+    >>>         fluid_density=1000,
+    >>>         channel_width="channel_width",
+    >>>         transport_method="WilcockCrowe",
+    >>>     )
+    
+    >>> dt = 60  # (seconds) 1 min timestep
+    Run the model
+    >>> for t in range(0, (timesteps * dt), dt):
+    >>>         nst.run_one_step(dt)
+    >>> 
+    We can the link location of the parcel at each timestep
+    >>> print(one_parcel.dataset.element_id.values)
+    
+    [[ 0.  0.  0.  0.  0.  1.  1.  1.  1.  1.  2.]]
 
-    The NetworkSedimentTransporter moves parcels of sediment based on a given
-    flow and a given sediment transport formulation. Thus we must first create
-    parcels. The parcels must be a ``DataRecord`` with the following attributes
-
-    - name
-    - other thing
-    -
-
-    For example:
-
-    >>> parcels = ...
-
-    Next we must have a NetworkModelGrid on which the parcels are transported:
-
-    >>> make nmg
-
-    We are now ready to set up NetworkSedimentTransporter
-
-    >>> nst = NetworkSedimentTransporter(grid, stuff)
-
-    Finally, we run NetworkSedimentTransporter forward 10 timesteps of size 10
-    time units.
-
-    >>> for _ in range(10):
-    ...     nst.run_one_step(10.)
-
-    Look! Parcel 10 moved!
-
-    >>>
-    >>>
 
     """
 
