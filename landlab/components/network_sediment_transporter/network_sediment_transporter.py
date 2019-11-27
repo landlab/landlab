@@ -6,8 +6,6 @@ info about the component here
 
 Fixes that need to happen:
 
-    -- (9/16/19) Something is wrong with abrasion (or at least that's where
-    it's obvious). See test comparing actual abrasion to calculated. Hmm..
     -- Check abrasion exponent units (per km or per m?)
 
     -- Channel width-- why is this anything other than a link attribute??
@@ -474,7 +472,17 @@ class NetworkSedimentTransporter(Component):
                                   *(3.09
                                     *(taustar-0.0549)**0.56)
                                   ) # in units of m
-
+                                  
+        self.active_layer_thickness[np.isnan(self.active_layer_thickness)==1]=(
+                np.average(self.active_layer_thickness
+                           [np.isnan(self.active_layer_thickness)==0]
+                           )) # assign links with no parcels an average value
+        
+        if np.sum(np.isfinite(self.active_layer_thickness)) == 0:
+            self.active_layer_thickness = 0.03116362 * np.ones(
+                    np.shape(self.active_layer_thickness))
+            # handles the case of the first timestep -- assigns modest value
+        
         capacity = (self._grid.at_link["channel_width"]
                     *self._grid.at_link["link_length"]
                     *self.active_layer_thickness

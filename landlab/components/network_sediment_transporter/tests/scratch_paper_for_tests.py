@@ -23,6 +23,7 @@ _OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
 
 # %%  
 
+
 #
 y_of_node = (0, 0, 0, 0)
 x_of_node = (0, 100, 200, 300)
@@ -58,24 +59,29 @@ example_flow_depth = (
 
 time = [0.0]  # probably not the sensible way to do this...
 
-items = {"grid_element": "link",
-         "element_id": np.array([[0]])}
+element_id = np.zeros(100, dtype=int)
+element_id = np.expand_dims(element_id, axis=1)
 
-initial_volume = np.array([[1]])
-abrasion_rate = np.array([0])
+items = {"grid_element": "link",
+         "element_id": element_id}
+
+abrasion_rate = np.zeros(np.size(element_id))
+initial_volume = np.ones(np.shape(element_id))
+time_arrival_in_link = np.arange(0,0.1,0.001)
+time_arrival_in_link = np.expand_dims(time_arrival_in_link,axis=1)
 
 variables = {
-    "starting_link": (["item_id"], np.array([0])),
+    "starting_link": (["item_id"], np.squeeze(element_id)),
     "abrasion_rate": (["item_id"], abrasion_rate),
-    "density": (["item_id"], np.array([2650])),
-    "time_arrival_in_link": (["item_id", "time"], np.array([[0.71518937]])),
-    "active_layer": (["item_id", "time"], np.array([[1]])),
-    "location_in_link": (["item_id", "time"], np.array([[0]])),
-    "D": (["item_id", "time"], np.array([[0.05]])),
+    "density": (["item_id"], 2650*np.ones(np.size(element_id))),
+    "time_arrival_in_link": (["item_id", "time"], time_arrival_in_link),
+    "active_layer": (["item_id", "time"],initial_volume),
+    "location_in_link": (["item_id", "time"], element_id),
+    "D": (["item_id", "time"], initial_volume*0.05),
     "volume": (["item_id", "time"], initial_volume),
 }
 
-one_parcel = DataRecord(
+hundred_boring_parcels = DataRecord(
     nmg_constant_slope,
     items=items,
     time=time,
@@ -87,7 +93,7 @@ one_parcel = DataRecord(
 
 nst = NetworkSedimentTransporter(
         nmg_constant_slope,
-        one_parcel,
+        hundred_boring_parcels,
         flow_director,
         example_flow_depth,
         bed_porosity=0.03,
@@ -97,37 +103,26 @@ nst = NetworkSedimentTransporter(
         transport_method="WilcockCrowe",
     )
 
-dt = 60  # (seconds) 1 min timestep
+dt = 60 *60 # (seconds) 1 hour timestep
 
 distance_traveled = np.arange(0.,timesteps)
 pvelocity = np.arange(0.,timesteps)
 active_layer_thickness_array = np.arange(0.,timesteps)
-#distance_traveled = np.arange(0.,timesteps)
+
 
 for t in range(0, (timesteps * dt), dt):
         nst.run_one_step(dt)
-        distance_traveled[np.int(t/dt)]= nst._distance_traveled_cumulative
-        active_layer_thickness_array[np.int(t/dt)]=nst.active_layer_thickness_array
-# COMPARE TO: 
-        # 2 meter flow depth
-        # 0.01 slope 
-        # link length = 100 m
-        # 0.05 m grain size parcel
-        # 1 m3 parcel volume
-        # timestep = 1 min
-        # notes in notebook. transport distance in 1 min =21.619985271513052
-        # total transport distance = 237.81983798664356 m 
-        # final location in link after 11 timesteps: 0.3781983798664356
- 
-print("Parcel location in link", 
-      nst._parcels.dataset.location_in_link[0,-1])
+        distance_traveled[np.int(t/dt)]= nst._distance_traveled_cumulative[-1]
+        print('distance_traveled_cumulative', nst._distance_traveled_cumulative)
+        active_layer_thickness_array[np.int(t/dt)]=nst.active_layer_thickness_array[-1]
 
 #print("Cumulative distance traveled", 
 #      nst._distance_traveled_cumulative)
 
 #assert_array_almost_equal(x,y)
 
-plt.plot(one_parcel.time_coordinates, 
-         one_parcel.dataset.location_in_link.values[0, :], ".")
+plt.plot(hundred_boring_parcels.time_coordinates, 
+         hundred_boring_parcels.dataset.location_in_link.values[-1, :], ".")
 
-plt.plot(active_layer_thickness_array,'.')
+#plt.plot(active_layer_thickness_array,'.')
+plt.plot(hundred_boring_parcels.dataset.time_arrival_in_link.values[-1,:],'.')
