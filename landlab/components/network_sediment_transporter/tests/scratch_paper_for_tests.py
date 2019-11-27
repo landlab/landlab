@@ -25,9 +25,9 @@ _OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
 
 
 #
-y_of_node = (0, 0, 0, 0)
-x_of_node = (0, 100, 200, 300)
-nodes_at_link = ((0,1), (1,2), (2,3))
+y_of_node = (0, 0, 0, 0, 0, 0)
+x_of_node = (0, 100, 200, 300, 400, 500)
+nodes_at_link = ((0,1), (1,2), (2,3), (3,4), (4,5))
 
 nmg_constant_slope = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 
@@ -35,23 +35,23 @@ plt.figure(0)
 graph.plot_graph(nmg_constant_slope, at="node,link")
 
 # add variables to nmg
-nmg_constant_slope.at_node["topographic__elevation"] = [3., 2., 1., 0.]
-nmg_constant_slope.at_node["bedrock__elevation"] = [3., 2., 1., 0.]
+nmg_constant_slope.at_node["topographic__elevation"] = [5., 4., 3., 2., 1., 0.]
+nmg_constant_slope.at_node["bedrock__elevation"] = [5., 4., 3., 2., 1., 0.]
 area = nmg_constant_slope.add_ones("cell_area_at_node", at="node")
-nmg_constant_slope.at_link["drainage_area"] = [10e6, 10e6, 10e6]  # m2
-nmg_constant_slope.at_link["channel_slope"] = [0.001, 0.001, 0.001]
-nmg_constant_slope.at_link["link_length"] = [100, 100, 100]  # m
+nmg_constant_slope.at_link["drainage_area"] = [10e6, 10e6, 10e6, 10e6, 10e6]  # m2
+nmg_constant_slope.at_link["channel_slope"] = [0.001, 0.001, 0.001, 0.001, 0.001]
+nmg_constant_slope.at_link["link_length"] = [100, 100, 100, 100, 100]  # m
 
 nmg_constant_slope.at_link["channel_width"] = 15 * np.ones(np.size(nmg_constant_slope.at_link["drainage_area"]))
 
 flow_director = FlowDirectorSteepest(nmg_constant_slope)
 flow_director.run_one_step()
 
-timesteps = 11
+timesteps = 20
 #timesteps = 33 # playing to demonstrate issue...
 
 example_flow_depth = (
-    np.tile(2, (nmg_constant_slope.number_of_links))
+    np.tile(1.75, (nmg_constant_slope.number_of_links))
 ) * np.tile(1, (timesteps + 1, 1))
 # 2 meter flow depth
 
@@ -108,21 +108,43 @@ dt = 60 *60 # (seconds) 1 hour timestep
 distance_traveled = np.arange(0.,timesteps)
 pvelocity = np.arange(0.,timesteps)
 active_layer_thickness_array = np.arange(0.,timesteps)
+sed_volume_each_link = np.zeros((timesteps,nmg_constant_slope.number_of_links))
 
 
 for t in range(0, (timesteps * dt), dt):
         nst.run_one_step(dt)
         distance_traveled[np.int(t/dt)]= nst._distance_traveled_cumulative[-1]
-        print('distance_traveled_cumulative', nst._distance_traveled_cumulative)
+        #print('distance_traveled_cumulative', nst._distance_traveled_cumulative)
         active_layer_thickness_array[np.int(t/dt)]=nst.active_layer_thickness_array[-1]
+        sed_volume_each_link[np.int(t/dt),:]=nst._grid.at_link["sediment_total_volume"]
+
+
+first_in_parcel= np.argmin(time_arrival_in_link)
+last_in_parcel= np.argmax(time_arrival_in_link)
+link_of_first_in_parcel = hundred_boring_parcels.dataset.element_id.values[first_in_parcel,:]
+link_of_last_in_parcel = hundred_boring_parcels.dataset.element_id.values[last_in_parcel,:]
+
+First_in_lags_behind = np.greater_equal(link_of_last_in_parcel,link_of_first_in_parcel)
+
+assert_array_equal(SO_TRUE,)
 
 #print("Cumulative distance traveled", 
 #      nst._distance_traveled_cumulative)
 
 #assert_array_almost_equal(x,y)
+        
+# %%
+parcel = 99
+plt.scatter(hundred_boring_parcels.time_coordinates, 
+         hundred_boring_parcels.dataset.location_in_link.values[parcel, :],
+         c = hundred_boring_parcels.dataset.element_id.values[parcel,:],
+         s = 500)
+plt.viridis()
+plt.imshow
 
-plt.plot(hundred_boring_parcels.time_coordinates, 
-         hundred_boring_parcels.dataset.location_in_link.values[-1, :], ".")
+#count number of parcels in a link
+
+plt.plot(sed_volume_each_link)
 
 #plt.plot(active_layer_thickness_array,'.')
-plt.plot(hundred_boring_parcels.dataset.time_arrival_in_link.values[-1,:],'.')
+#plt.plot(hundred_boring_parcels.dataset.time_arrival_in_link.values[-1,:],'.')

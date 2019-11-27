@@ -867,6 +867,9 @@ class NetworkSedimentTransporter(Component):
 
                     # update current link to the next link DS
                     current_link[p] = downstream_link_id
+                    
+                    # update arrival time in link
+                    self._parcels.dataset.time_arrival_in_link[p, self._time_idx]=self._time_idx
 
                     if downstream_link_id == -1:  # parcel has exited the network
                         # (downstream_link_id == -1) and (distance_left_to_travel <= 0):  # parcel has exited the network
@@ -928,17 +931,8 @@ class NetworkSedimentTransporter(Component):
                     p, self._time_idx
                 ] = location_in_link[p]
                 self._parcels.dataset.element_id[p, self._time_idx] = current_link[p]
-                self._parcels.dataset.active_layer[p, self._time_idx] = 1
+#                self._parcels.dataset.active_layer[p, self._time_idx] = 1
                 # ^ reset to 1 (active) to be recomputed/determined at next timestep
-
-                # Jon -- I suggest we do this after the fact when plotting to reduce model runtime:
-                # calculate the x and y value of each parcel at this time (based on squiggly shape file)
-                # could also create a function that calculates the x and y value for all parcels at all time
-                # that is just called once at the end of running the model.
-
-                # self._parcels.dataset["x"] = x_value
-                # self._parcels.dataset["y"] = y_value
-
                 self._parcels.dataset.D[p, self._time_idx] = D
                 self._parcels.dataset.volume[p, self._time_idx] = vol
 
