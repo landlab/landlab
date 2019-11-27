@@ -5,11 +5,11 @@ from collections import OrderedDict
 
 import numpy as np
 
-from landlab.components.species_evolution import _Species
+from landlab.components.species_evolution.base_species import Species
 from landlab.components.species_evolution.record import Record
 
 
-class SpeciesTest(_Species):
+class SpeciesTest(Species):
     """Species to test SpeciesEvolver."""
 
     def __init__(self, parent_species=None):
@@ -32,7 +32,7 @@ class SpeciesTest(_Species):
 
 def test_base():
     ts = SpeciesTest()
-    assert isinstance(ts, _Species)
+    assert isinstance(ts, Species)
     np.testing.assert_equal(ts.range_mask, True)
 
     record = Record()

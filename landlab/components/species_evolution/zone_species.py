@@ -3,7 +3,7 @@
 """ZoneSpecies object of SpeciesEvolver."""
 import numpy as np
 
-from .base_species import _Species
+from .base_species import Species
 
 
 class Population(object):
@@ -45,7 +45,7 @@ class Population(object):
         self._zone = new_zone
 
 
-class ZoneSpecies(_Species):
+class ZoneSpecies(Species):
     """A species based in zones.
 
     This implementation of SpeciesEvolver species is associated with ``Zone``

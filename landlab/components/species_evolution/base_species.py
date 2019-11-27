@@ -7,7 +7,7 @@ from abc import ABCMeta, abstractmethod
 ABC = ABCMeta('ABC', (object,), {'__slots__': ()})
 
 
-class _Species(ABC):
+class Species(ABC):
     """Base Species of SpeciesEvolver.
 
     This class is intended to be subclassed to create species. Subclasses must

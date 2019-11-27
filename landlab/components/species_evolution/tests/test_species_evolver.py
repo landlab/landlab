@@ -9,10 +9,10 @@ import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import SpeciesEvolver
-from landlab.components.species_evolution import _Species
+from landlab.components.species_evolution.base_species import Species
 
 
-class SpeciesTest(_Species):
+class SpeciesTest(Species):
     """Species to test SpeciesEvolver."""
 
     def __init__(self, parent_species=None):
