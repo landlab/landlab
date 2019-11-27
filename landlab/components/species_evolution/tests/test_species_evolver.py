@@ -29,7 +29,7 @@ class SpeciesTest(Species):
         pass
 
     def _evolve_stage_2(self, dt, record):
-        species_persists = True
+        species_persists = False
         child_species = [SpeciesTest(parent_species=self)]
         return species_persists, child_species
 
@@ -78,7 +78,7 @@ def test_introduce_species_and_component_attributes(zone_example_grid):
         'clade': ['A', 'A', 'B', 'B', 'C', 'C'],
         'number': [0, 1, 0, 1, 0, 1],
         'time_appeared': [0, 10, 0, 10, 0, 10],
-        'latest_time': [10, 10, 10, 10, 10, 10]
+        'latest_time': [0, 10, 0, 10, 0, 10]
     })
     pd.testing.assert_frame_equal(
         se.species_data_frame, expected_df, check_like=True
@@ -86,63 +86,114 @@ def test_introduce_species_and_component_attributes(zone_example_grid):
 
     expected_df = pd.DataFrame({
         'time': [0, 10],
-        'species_count': [3, 6]
+        'species_count': [3, 3]
     })
     pd.testing.assert_frame_equal(
         se.record_data_frame, expected_df, check_like=True
     )
 
 
-def test_species_at_time(zone_example_grid):
+def test_filter_species(zone_example_grid):
     se = SpeciesEvolver(zone_example_grid)
+
     introduced_species = [SpeciesTest(), SpeciesTest()]
     se.introduce_species(introduced_species)
     se.run_one_step(10)
 
-    # Test time steps in the SpeciesEvolver record.
+    # Test no parameters.
 
-    queried_species = se.species_at_time(time=0)
+    queried_species = se.filter_species()
+    np.testing.assert_equal(
+        Counter(queried_species), Counter(se._species['object'])
+    )
+
+    # Test `time` parameter.
+
+    queried_species = se.filter_species(time=0)
     np.testing.assert_equal(
         Counter(queried_species), Counter(introduced_species)
     )
 
-    queried_species = se.species_at_time()
-    ids = [s.identifier for s in queried_species]
-    expected_ids = [('A', 0), ('A', 1), ('B', 0), ('B', 1)]
-    np.testing.assert_equal(Counter(ids), Counter(expected_ids))
-
-    # Test time steps in between and outside of the SpeciesEvolver record.
-
-    queried_species = se.species_at_time(time=5)
+    queried_species = se.filter_species(time=10)
+    child_species = set(se._species['object']) - set(introduced_species)
     np.testing.assert_equal(
-        Counter(queried_species), Counter(introduced_species)
+        Counter(queried_species), Counter(child_species)
     )
 
-    np.testing.assert_raises(ValueError, se.species_at_time, time=-1)
-    np.testing.assert_raises(ValueError, se.species_at_time, time=11)
+    np.testing.assert_raises(ValueError, se.filter_species, time=5)
+    np.testing.assert_raises(ValueError, se.filter_species, time=11)
 
+    # Test `identifier_element` parameter.
 
-def test_species_with_identifier(zone_example_grid):
-    se = SpeciesEvolver(zone_example_grid)
-    introduced_species = [SpeciesTest(), SpeciesTest()]
-    se.introduce_species(introduced_species)
-    se.run_one_step(10)
+    queried_species = se.filter_species(identifier_element=('B', 1))
+    np.testing.assert_equal(
+        queried_species[0].identifier, ('B', 1)
+    )
 
-    queried_species = se.species_with_identifier(('B', 1))
-    np.testing.assert_equal(queried_species[0].identifier, ('B', 1))
-
-    queried_species = se.species_with_identifier('B')
+    queried_species = se.filter_species(identifier_element='B')
     ids = [s.identifier for s in queried_species]
     expected_ids = [('B', 0), ('B', 1)]
     np.testing.assert_equal(Counter(ids), Counter(expected_ids))
 
-    queried_species = se.species_with_identifier(1)
+    queried_species = se.filter_species(identifier_element=1)
     ids = [s.identifier for s in queried_species]
     expected_ids = [('A', 1), ('B', 1)]
     np.testing.assert_equal(Counter(ids), Counter(expected_ids))
 
-    np.testing.assert_raises(TypeError, se.species_with_identifier, (1, 'A'))
-    np.testing.assert_raises(TypeError, se.species_with_identifier, {})
+    np.testing.assert_raises(
+        TypeError, se.filter_species, identifier_element=(1, 'A')
+    )
+    np.testing.assert_raises(
+        TypeError, se.filter_species, identifier_element={}
+    )
+
+    # Test both parameters.
+
+    queried_species = se.filter_species(time=0, identifier_element=('B', 1))
+    np.testing.assert_equal(queried_species, [])
+
+    queried_species = se.filter_species(time=10, identifier_element=('B', 1))
+    np.testing.assert_equal(
+        queried_species[0].identifier, ('B', 1)
+    )
+
+    queried_species = se.filter_species(time=0, identifier_element=1)
+    np.testing.assert_equal(queried_species, [])
+
+    queried_species = se.filter_species(time=10, identifier_element=1)
+    np.testing.assert_equal(
+        Counter(queried_species), Counter(child_species)
+    )
+
+    queried_species = se.filter_species(time=0, identifier_element='B')
+    np.testing.assert_equal(
+        queried_species[0].identifier, ('B', 0)
+    )
+
+    queried_species = se.filter_species(time=10, identifier_element='B')
+    np.testing.assert_equal(
+        queried_species[0].identifier, ('B', 1)
+    )
+
+    np.testing.assert_raises(
+        ValueError, se.filter_species, time=5, identifier_element='B'
+    )
+
+    # Test `species_subset` parameter.
+
+    queried_species_1 = se.filter_species(time=0)
+    queried_species_2 = se.filter_species(species_subset=queried_species_1)
+    np.testing.assert_equal(
+        Counter(queried_species_1), Counter(queried_species_2)
+    )
+    queried_species_3 = se.filter_species(
+        species_subset=queried_species_1, time=10
+    )
+    np.testing.assert_equal(queried_species_3, [])
+    queried_species_4 = se.filter_species(
+        species_subset=queried_species_1, identifier_element='B'
+    )
+    np.testing.assert_equal(queried_species_4[0].identifier, ('B', 0))
 
 
 def test_species_richness_field(zone_example_grid):
@@ -159,7 +210,7 @@ def test_species_richness_field(zone_example_grid):
     se.introduce_species(introduced_species)
     se.run_one_step(10)
 
-    expected_field = np.array([0, 0, 0, 4, 4, 4, 0, 0, 0])
+    expected_field = np.array([0, 0, 0, 2, 2, 2, 0, 0, 0])
     np.testing.assert_array_equal(
         mg.at_node['species__richness'], expected_field
     )

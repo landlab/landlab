@@ -188,7 +188,7 @@ def test_one_to_one(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(len(se.species_at_time()), 1)
+    np.testing.assert_equal(len(se.filter_species(time=1)), 1)
 
 
 def test_one_to_many(zone_example_grid):
@@ -215,7 +215,7 @@ def test_one_to_many(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(len(se.species_at_time()), 1)
+    np.testing.assert_equal(len(se.filter_species(time=0)), 1)
 
     # Break the zone in two for time 1.
 
@@ -241,7 +241,7 @@ def test_one_to_many(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(len(se.species_at_time()), 2)
+    np.testing.assert_equal(len(se.filter_species(time=1)), 2)
 
 
 def test_many_to_one(zone_example_grid):
@@ -268,7 +268,7 @@ def test_many_to_one(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(len(se.species_at_time()), 2)
+    np.testing.assert_equal(len(se.filter_species(time=0)), 2)
 
     # Modify elevation such that two zones each overlap the original two zones.
 
@@ -293,7 +293,7 @@ def test_many_to_one(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(len(se.species_at_time()), 2)
+    np.testing.assert_equal(len(se.filter_species(time=1)), 2)
 
 
 def test_many_to_many(zone_example_grid):
@@ -320,7 +320,7 @@ def test_many_to_many(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(len(se.species_at_time()), 2)
+    np.testing.assert_equal(len(se.filter_species(time=0)), 2)
 
     # Modify elevation such that two zones each overlap the original two zones.
 
@@ -346,7 +346,7 @@ def test_many_to_many(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(len(se.species_at_time()), 4)
+    np.testing.assert_equal(len(se.filter_species(time=1)), 4)
 
 
 def test_min_area(zone_example_grid):

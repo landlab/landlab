@@ -9,10 +9,10 @@ from itertools import count, product
 from string import ascii_uppercase
 
 import numpy as np
-from pandas import DataFrame
+from pandas import DataFrame, isnull
 
 from landlab import Component
-from .record import Record
+from landlab.components.species_evolution.record import Record
 
 
 class SpeciesEvolver(Component):
@@ -278,7 +278,7 @@ class SpeciesEvolver(Component):
 
         # Process species.
 
-        extant_species = self.species_at_time(time=self._record.prior_time)
+        extant_species = self.filter_species(time=self._record.prior_time)
 
         for es in extant_species:
             es._evolve_stage_1(dt, self._record)
@@ -296,7 +296,9 @@ class SpeciesEvolver(Component):
 
         self._update_species_data(survivors)
 
-        self._grid.at_node['species__richness'] = self._get_species_richness_map()
+        self._grid.at_node['species__richness'] = (
+            self._get_species_richness_map()
+        )
 
     def introduce_species(self, species):
         """Add species to SpeciesEvolver.
@@ -422,133 +424,51 @@ class SpeciesEvolver(Component):
             clades = np.append(clades, clade)
             nums = np.append(nums, num)
 
-    def species_at_time(self, time=np.nan):
-        """Get the species that exist at a time.
+    def filter_species(
+        self, species_subset=np.nan, time=np.nan, identifier_element=np.nan
+    ):
+        """Get species objects.
 
-        This method returns nan when `time` is less than or greater than the
-        time in the record of this component. The method returns the species
-        extant at the prior time step when `time` is between time steps in the
-        record.
+        This method returns all of the species introduced to the component when
+        no optional parameters are included. Optionally, the species in
+        ``species_subset`` are filtered by the other parameters of this method.
+
+        The parameter, ``time`` filters species by the time the species is
+        known to exist as indicated in ``species_data_frame``. An exception is
+        raised when ``time`` is not in the component record.
+
+        The parameter, ``identifier_element`` filters species by their
+        identifier. When ``identifier_element`` is a two-element tuple, a list
+        of a single species with the matching identifier is returned. The tuple
+        is the complete identifier of a species. An empty list is returned if
+        no species have identifier that matches ``identifier_element``.
+
+        A list of one or more species objects are returned when
+        ``identifier_element`` is a string or integer. The species of a clade
+        are returned when ``identifier_element`` is a string that matches a
+        clade name. The species that share a species number are returned when
+        ``identifier_element`` is an integer that matches the species number.
+        An empty list is returned if no species have an identifier that matches
+        ``identifier_element``.
 
         Parameters
         ----------
+        species_subset : list of Species, optional
+            The species to filter. By default, all species introduced to the
+            component are included.
         time : float, int, optional
-            The model time. The latest time in the record is the default.
+            The model time.  By default, all species extant at all times in the
+            component record can be returned.
+        identifier_element : tuple, string, or integer, optional
+            The identifier element of the species to return. The default is
+            the species with any and all identifiers can be returned.
 
         Returns
         -------
-        species : Species list
-            The SpeciesEvolver species that exist at `time`.
-
-        Examples
-        --------
-        ZoneSpecies are used to demonstrate this method.
-
-        Import modules used in the following examples.
-
-        >>> from landlab import RasterModelGrid
-        >>> from landlab.components import SpeciesEvolver
-        >>> from landlab.components.species_evolution import ZoneController
-
-        Create a model grid with flat topography.
-
-        >>> mg = RasterModelGrid((3, 7), 1000)
-        >>> z = mg.add_ones('topographic__elevation', at='node')
-
-        Instantiate SpeciesEvolver and a ZoneController. Instantiate the
-        latter with a function that masks the low elevation zone extent. Only
-        one zone is created.
-
-        >>> se = SpeciesEvolver(mg)
-        >>> def zone_func(grid):
-        ...     return grid.at_node['topographic__elevation'] < 100
-        >>> zc = ZoneController(mg, zone_func)
-        >>> len(zc.zones) == 1
-        True
-
-        Introduce a species to the one zone.
-
-        >>> introduced_species = zc.populate_zones_uniformly(1)
-        >>> se.introduce_species(introduced_species)
-
-        Fragment the zone by forcing uplift in the center of the grid. Advance
-        the ZoneController and SpeciesEvolver by a time step. The zone
-        fragmentation led species A.0 to produce two child species, A.1 and
-        A.2. Species A.0 effectively became extinct when it speciated.
-
-        >>> z[[3, 10, 17]] = 200
-        >>> zc.run_one_step(1000)
-        >>> se.run_one_step(1000)
-        >>> se.species_data_frame
-          clade  number  time_appeared  latest_time
-        0     A       0              0            0
-        1     A       1           1000         1000
-        2     A       2           1000         1000
-
-        Get the species at the latest, current model time by calling the
-        ``species_at_time`` method without any parameters. Species A.1 and A.2
-        are the species extant at the latest time of 1000.
-
-        >>> returned_species = se.species_at_time()
-        >>> [s.identifier for s in returned_species]
-        [('A', 1), ('A', 2)]
-
-        The species extant at a time other than the latest can be attained by
-        inputting a time into the ``species_at_time`` method. Species A.0 is
-        the only species extant at time 0.
-
-        >>> returned_species = se.species_at_time(time=0)
-        >>> [s.identifier for s in returned_species]
-        [('A', 0)]
-        """
-        if np.isnan(time):
-            time = self._record.latest_time
-
-        if (time < self._record.earliest_time) or (
-            time > self._record.latest_time
-        ):
-            msg = 'The time, {} is not within the bounds of the record.'
-            raise ValueError(msg.format(time))
-
-        t_appeared = np.array(self._species['time_appeared'])
-        t_latest = np.array(self._species['latest_time'])
-
-        t_prior = t_appeared <= time
-        t_later = t_latest >= time
-        idx_extant_at_time = np.all([t_prior, t_later], 0)
-
-        objects = np.array(self._species['object'])[idx_extant_at_time]
-
-        return objects.tolist()
-
-    def species_with_identifier(self, identifier_element):
-        """Get species using their identifiers.
-
-        A singular species is returned when `identifier_element` is a two-
-        element tuple. The tuple represents the complete identifier of a
-        species. The object returned is the species with the matching
-        identifier listed in the `species_data_frame` attribute. The first
-        element of the tuple is the clade name and the second element is the
-        species number.
-
-        A list of species objects are returned when `identifier_element` is a
-        string or integer. The species of a clade are returned when
-        `identifier_element` is a string that matches a clade name in
-        `species_data_frame`. The species that share a species number are
-        returned when `identifier_element` is an integer that matches species
-        number in `species_data_frame`.
-
-        Parameters
-        ----------
-        identifier_element : tuple, string, or integer
-            The identifier element of the species to return.
-
-        Returns
-        -------
-        a list of Species
-            The species with identifiers that matched `identifier_element`. An
-            empty list is returned if no entries in `species_data_frame` match
-            `identifier_element`.
+        species : a list of Species
+            The SpeciesEvolver species that pass through the filter. An
+            empty list is returned if no species pass through the filter. The
+            list is sorted first by clade, then by species number.
 
         Examples
         --------
@@ -592,7 +512,7 @@ class SpeciesEvolver(Component):
         >>> zc.run_one_step(1000)
         >>> se.run_one_step(1000)
 
-        Display data of all the species.
+        Display metadata of all the species.
 
         >>> se.species_data_frame
           clade  number  time_appeared  latest_time
@@ -603,23 +523,146 @@ class SpeciesEvolver(Component):
         4     B       1           2000         2000
         5     B       2           2000         2000
 
-        Get the species, B.0. The one species with this identifier is returned.
+        All species objects are returned when no parameters are inputted.
 
-        >>> species = se.species_with_identifier(('B', 0))
-        >>> [s.identifier for s in species]
-        [('B', 0)]
+        >>> filtered_species = se.filter_species()
+        >>> [s.identifier for s in filtered_species]
+        [('A', 0), ('A', 1), ('A', 2), ('B', 0), ('B', 1), ('B', 2)]
+
+        The species extant at a time are returned when ``time`` is specified.
+        Here we get the species extant at time 0. Species A.0 and B.0 are the
+        species extant at this time.
+
+        >>> filtered_species = se.filter_species(time=0)
+        >>> [s.identifier for s in filtered_species]
+        [('A', 0), ('B', 0)]
+
+        Get the species, B.2. The one species with this identifier is returned.
+
+        >>> filtered_species = se.filter_species(identifier_element=('B', 2))
+        >>> [s.identifier for s in filtered_species]
+        [('B', 2)]
 
         Get all of the species of clade, B.
 
-        >>> species = se.species_with_identifier('B')
-        >>> [s.identifier for s in species]
+        >>> filtered_species = se.filter_species(identifier_element='B')
+        >>> [s.identifier for s in filtered_species]
         [('B', 0), ('B', 1), ('B', 2)]
 
         Get all of the species with the same number, 0, despite the clade.
 
-        >>> species = se.species_with_identifier(0)
-        >>> [s.identifier for s in species]
+        >>> filtered_species = se.filter_species(identifier_element=0)
+        >>> [s.identifier for s in filtered_species]
         [('A', 0), ('B', 0)]
+
+        An empty list is return when no species match a valid value type of
+        ``identifier element.``
+
+        >>> se.filter_species(identifier_element='C')
+        []
+
+        Parameters, ``time`` and ``identifier_element`` can both be included.
+        >>> filtered_species = se.filter_species(
+        ...      time=2000, identifier_element='B'
+        ... )
+        >>> [s.identifier for s in filtered_species]
+        [('B', 1), ('B', 2)]
+
+        By default, this method filters all species introduced to
+        SpeciesEvolver. The initial collection of filtered objects can be
+        limited using ``species_subset``, which makes possible iterative use of
+        this method.
+
+        >>> filtered_species_1 = se.filter_species(time=2000)
+        >>> [s.identifier for s in filtered_species_1]
+        [('A', 1), ('A', 2), ('B', 1), ('B', 2)]
+
+        >>> filtered_species_2 = se.filter_species(identifier_element=1)
+        >>> [s.identifier for s in filtered_species_2]
+        [('A', 1), ('B', 1)]
+        """
+        # Handle inputted species.
+
+        if type(species_subset) is list:
+            all_objects = self._species['object']
+            idx = [i for i, e in enumerate(all_objects) if e in species_subset]
+
+            input_species = OrderedDict()
+            for k, v in self._species.items():
+                input_species[k] = np.array(v)[idx].tolist()
+        elif isnull(species_subset):
+            input_species = self._species
+
+        # Handle time.
+
+        if isnull(time):
+            # Get the indices of all species.
+            idx_time = np.ones(len(input_species['number']), dtype=bool)
+        else:
+            idx_time = self._mask_species_by_time(input_species, time)
+
+        # Handle identifier.
+
+        if isnull(identifier_element):
+            # Get the indices of all species.
+            idx_id = np.ones(len(input_species['number']), dtype=bool)
+        else:
+            idx_id = self._mask_species_by_identifier(
+                input_species, identifier_element
+            )
+
+        # Get the species objects.
+
+        idx = np.all([idx_time, idx_id], 0)
+        species = np.array(input_species['object'])[idx].tolist()
+
+        species.sort(key=lambda s: (s.identifier[0], s.identifier[1]))
+
+        return species
+
+    def _mask_species_by_time(self, species, time):
+        """Get a mask of ``species`` that exist at ``time``.
+
+        Parameters
+        ----------
+        species : a list of Species
+            The species to query.
+        time : float, int
+            The model time of ``species`` existence to mask.
+
+        Returns
+        -------
+        ndarray
+            A mask of ``species`` extant at ``time``.
+        """
+        if time not in self._record.times:
+            raise ValueError('The time, {} is not in the record.'.format(time))
+
+        # Get indices of species within time bounds.
+
+        t_appeared = np.array(species['time_appeared'])
+        t_latest = np.array(species['latest_time'])
+
+        t_prior = t_appeared <= time
+        t_later = t_latest >= time
+        species_mask = np.all([t_prior, t_later], 0)
+
+        return species_mask
+
+    def _mask_species_by_identifier(self, species, identifier_element):
+        """Get a mask of ``species`` using ``identifier_element``.
+
+        Parameters
+        ----------
+        species : a list of Species
+            The species to query.
+        identifier_element : tuple, string, or integer
+            An element of the identifiers in ``species`` to mask.
+
+        Returns
+        -------
+        ndarray
+            A mask of ``species`` extant at ``time``.
         """
         element_type = type(identifier_element)
 
@@ -638,28 +681,28 @@ class SpeciesEvolver(Component):
                     'second must be an integer.'
                 )
 
-            clade_mask = np.array(self._species['clade']) == clade
-            num_mask = np.array(self._species['number']) == num
+            clade_mask = np.array(species['clade']) == clade
+            num_mask = np.array(species['number']) == num
             mask = np.all([clade_mask, num_mask], 0)
 
         elif element_type == str:
             # Get the species of a clade.
-            mask = np.array(self._species['clade']) == identifier_element
+            mask = np.array(species['clade']) == identifier_element
 
         elif element_type == int:
             # Get the species with a number.
-            mask = np.array(self._species['number']) == identifier_element
+            mask = np.array(species['number']) == identifier_element
 
         else:
             raise TypeError(
                 '`identifier_element` must be a tuple, string, or integer.'
             )
 
-        return np.array(self._species['object'])[mask].tolist()
+        return mask
 
     def _get_species_richness_map(self):
         """Get a map of the number of species."""
-        species = self.species_at_time()
+        species = self.filter_species(time=self._record.latest_time)
 
         if species:
             masks = np.stack([s.range_mask for s in species])
