@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Simulate the development of species lineages in a landscape.
+"""Evolve species in a landscape.
 
 Component written by Nathan Lyons beginning August 2017.
 """
@@ -16,7 +16,7 @@ from .record import Record
 
 
 class SpeciesEvolver(Component):
-    """Simulate the development of species lineages in a landscape.
+    """Evolve species in a landscape.
 
     This component along with ``Species`` objects can be used in models to
     develop organismal lineages as they develop in response to landscape
