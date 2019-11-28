@@ -425,7 +425,7 @@ class SpeciesEvolver(Component):
             nums = np.append(nums, num)
 
     def filter_species(
-        self, species_subset=np.nan, time=np.nan, identifier_element=np.nan
+        self, species_subset=np.nan, time=np.nan, clade=np.nan, number=np.nan
     ):
         """Get species objects.
 
@@ -435,21 +435,10 @@ class SpeciesEvolver(Component):
 
         The parameter, ``time`` filters species by the time the species is
         known to exist as indicated in ``species_data_frame``. An exception is
-        raised when ``time`` is not in the component record.
-
-        The parameter, ``identifier_element`` filters species by their
-        identifier. When ``identifier_element`` is a two-element tuple, a list
-        of a single species with the matching identifier is returned. The tuple
-        is the complete identifier of a species. An empty list is returned if
-        no species have identifier that matches ``identifier_element``.
-
-        A list of one or more species objects are returned when
-        ``identifier_element`` is a string or integer. The species of a clade
-        are returned when ``identifier_element`` is a string that matches a
-        clade name. The species that share a species number are returned when
-        ``identifier_element`` is an integer that matches the species number.
+        raised when ``time`` is not in the component record. The parameter,
+        ``clade`` and ``number`` filter species by their identifier elements.
         An empty list is returned if no species have an identifier that matches
-        ``identifier_element``.
+        these parameters. Multiple parameters can be combined to limit results.
 
         Parameters
         ----------
@@ -459,9 +448,12 @@ class SpeciesEvolver(Component):
         time : float, int, optional
             The model time.  By default, all species extant at all times in the
             component record can be returned.
-        identifier_element : tuple, string, or integer, optional
-            The identifier element of the species to return. The default is
-            the species with any and all identifiers can be returned.
+        clade : string, optional
+            Species of this clade will be returned. By default, species of all
+            clades can be returned.
+        number : int, optional
+            Species with this identifier number will be returned. By default,
+            species with all numbers can be returned.
 
         Returns
         -------
@@ -539,32 +531,30 @@ class SpeciesEvolver(Component):
 
         Get the species, B.2. The one species with this identifier is returned.
 
-        >>> filtered_species = se.filter_species(identifier_element=('B', 2))
+        >>> filtered_species = se.filter_species(clade='B', number=2)
         >>> [s.identifier for s in filtered_species]
         [('B', 2)]
 
         Get all of the species of clade, B.
 
-        >>> filtered_species = se.filter_species(identifier_element='B')
+        >>> filtered_species = se.filter_species(clade='B')
         >>> [s.identifier for s in filtered_species]
         [('B', 0), ('B', 1), ('B', 2)]
 
         Get all of the species with the same number, 0, despite the clade.
 
-        >>> filtered_species = se.filter_species(identifier_element=0)
+        >>> filtered_species = se.filter_species(number=0)
         >>> [s.identifier for s in filtered_species]
         [('A', 0), ('B', 0)]
 
         An empty list is return when no species match a valid value type of
         ``identifier element.``
 
-        >>> se.filter_species(identifier_element='C')
+        >>> se.filter_species(clade='C')
         []
 
-        Parameters, ``time`` and ``identifier_element`` can both be included.
-        >>> filtered_species = se.filter_species(
-        ...      time=2000, identifier_element='B'
-        ... )
+        Parameters, ``time`` and species identifier elements can be combined.
+        >>> filtered_species = se.filter_species(time=2000, clade='B')
         >>> [s.identifier for s in filtered_species]
         [('B', 1), ('B', 2)]
 
@@ -577,7 +567,7 @@ class SpeciesEvolver(Component):
         >>> [s.identifier for s in filtered_species_1]
         [('A', 1), ('A', 2), ('B', 1), ('B', 2)]
 
-        >>> filtered_species_2 = se.filter_species(identifier_element=1)
+        >>> filtered_species_2 = se.filter_species(number=1)
         >>> [s.identifier for s in filtered_species_2]
         [('A', 1), ('B', 1)]
         """
@@ -601,19 +591,23 @@ class SpeciesEvolver(Component):
         else:
             idx_time = self._mask_species_by_time(input_species, time)
 
-        # Handle identifier.
+        # Handle clade.
 
-        if isnull(identifier_element):
-            # Get the indices of all species.
-            idx_id = np.ones(len(input_species['number']), dtype=bool)
+        if isnull(clade):
+            idx_clade = np.ones(len(input_species['number']), dtype=bool)
         else:
-            idx_id = self._mask_species_by_identifier(
-                input_species, identifier_element
-            )
+            idx_clade = np.array(input_species['clade']) == clade
+
+        # Handle number.
+
+        if isnull(number):
+            idx_number = np.ones(len(input_species['number']), dtype=bool)
+        else:
+            idx_number = np.array(input_species['number']) == number
 
         # Get the species objects.
 
-        idx = np.all([idx_time, idx_id], 0)
+        idx = np.all([idx_time, idx_clade, idx_number], 0)
         species = np.array(input_species['object'])[idx].tolist()
 
         species.sort(key=lambda s: (s.identifier[0], s.identifier[1]))
@@ -648,57 +642,6 @@ class SpeciesEvolver(Component):
         species_mask = np.all([t_prior, t_later], 0)
 
         return species_mask
-
-    def _mask_species_by_identifier(self, species, identifier_element):
-        """Get a mask of ``species`` using ``identifier_element``.
-
-        Parameters
-        ----------
-        species : a list of Species
-            The species to query.
-        identifier_element : tuple, string, or integer
-            An element of the identifiers in ``species`` to mask.
-
-        Returns
-        -------
-        ndarray
-            A mask of ``species`` extant at ``time``.
-        """
-        element_type = type(identifier_element)
-
-        if element_type == tuple:
-            # Get a singular species with a clade name and number.
-            clade = identifier_element[0]
-            num = identifier_element[1]
-
-            if not np.all([
-                len(identifier_element) == 2,
-                isinstance(clade, str), isinstance(num, int)], 0
-            ):
-                raise TypeError(
-                    '`identifier_element` when it is a tuple must have a '
-                    'length of 2. The first element must be a string, and the '
-                    'second must be an integer.'
-                )
-
-            clade_mask = np.array(species['clade']) == clade
-            num_mask = np.array(species['number']) == num
-            mask = np.all([clade_mask, num_mask], 0)
-
-        elif element_type == str:
-            # Get the species of a clade.
-            mask = np.array(species['clade']) == identifier_element
-
-        elif element_type == int:
-            # Get the species with a number.
-            mask = np.array(species['number']) == identifier_element
-
-        else:
-            raise TypeError(
-                '`identifier_element` must be a tuple, string, or integer.'
-            )
-
-        return mask
 
     def _get_species_richness_map(self):
         """Get a map of the number of species."""

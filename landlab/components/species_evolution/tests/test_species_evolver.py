@@ -123,60 +123,44 @@ def test_filter_species(zone_example_grid):
     np.testing.assert_raises(ValueError, se.filter_species, time=5)
     np.testing.assert_raises(ValueError, se.filter_species, time=11)
 
-    # Test `identifier_element` parameter.
+    # Test `clade` parameter.
 
-    queried_species = se.filter_species(identifier_element=('B', 1))
-    np.testing.assert_equal(
-        queried_species[0].identifier, ('B', 1)
-    )
-
-    queried_species = se.filter_species(identifier_element='B')
+    queried_species = se.filter_species(clade='B')
     ids = [s.identifier for s in queried_species]
     expected_ids = [('B', 0), ('B', 1)]
     np.testing.assert_equal(Counter(ids), Counter(expected_ids))
 
-    queried_species = se.filter_species(identifier_element=1)
-    ids = [s.identifier for s in queried_species]
-    expected_ids = [('A', 1), ('B', 1)]
-    np.testing.assert_equal(Counter(ids), Counter(expected_ids))
-
-    np.testing.assert_raises(
-        TypeError, se.filter_species, identifier_element=(1, 'A')
-    )
-    np.testing.assert_raises(
-        TypeError, se.filter_species, identifier_element={}
-    )
-
-    # Test both parameters.
-
-    queried_species = se.filter_species(time=0, identifier_element=('B', 1))
+    queried_species = se.filter_species(clade='C')
     np.testing.assert_equal(queried_species, [])
 
-    queried_species = se.filter_species(time=10, identifier_element=('B', 1))
-    np.testing.assert_equal(
-        queried_species[0].identifier, ('B', 1)
-    )
+    # Test `number` parameter.
 
-    queried_species = se.filter_species(time=0, identifier_element=1)
-    np.testing.assert_equal(queried_species, [])
-
-    queried_species = se.filter_species(time=10, identifier_element=1)
+    queried_species = se.filter_species(number=1)
     np.testing.assert_equal(
         Counter(queried_species), Counter(child_species)
     )
 
-    queried_species = se.filter_species(time=0, identifier_element='B')
-    np.testing.assert_equal(
-        queried_species[0].identifier, ('B', 0)
-    )
+    queried_species = se.filter_species(time=10, number=3)
+    np.testing.assert_equal(queried_species, [])
 
-    queried_species = se.filter_species(time=10, identifier_element='B')
+    # Test multiple parameters.
+
+    queried_species = se.filter_species(clade='B', number=1)
     np.testing.assert_equal(
         queried_species[0].identifier, ('B', 1)
     )
 
-    np.testing.assert_raises(
-        ValueError, se.filter_species, time=5, identifier_element='B'
+    queried_species = se.filter_species(time=10, number=1)
+    ids = [s.identifier for s in queried_species]
+    expected_ids = [('A', 1), ('B', 1)]
+    np.testing.assert_equal(Counter(ids), Counter(expected_ids))
+
+    queried_species = se.filter_species(time=10, number=0)
+    np.testing.assert_equal(queried_species, [])
+
+    queried_species = se.filter_species(time=10, clade='B', number=1)
+    np.testing.assert_equal(
+        queried_species[0].identifier, ('B', 1)
     )
 
     # Test `species_subset` parameter.
@@ -191,7 +175,7 @@ def test_filter_species(zone_example_grid):
     )
     np.testing.assert_equal(queried_species_3, [])
     queried_species_4 = se.filter_species(
-        species_subset=queried_species_1, identifier_element='B'
+        species_subset=queried_species_1, clade='B'
     )
     np.testing.assert_equal(queried_species_4[0].identifier, ('B', 0))
 
