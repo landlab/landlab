@@ -178,7 +178,7 @@ nmg.at_link["channel_width"] = (15 * np.ones(np.size(nmg.at_link["drainage_area"
 flow_director = FlowDirectorSteepest(nmg)
 flow_director.run_one_step()
 
-timesteps = 15
+timesteps = 10
 
 example_flow_depth = (
     np.tile(2, (nmg.number_of_links))

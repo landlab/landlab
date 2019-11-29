@@ -8,179 +8,77 @@ Temporary file for use while writing tests
 @author: pfeif
 """
 import numpy as np
+from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
+from landlab.grid.network import NetworkModelGrid
+from landlab import BAD_INDEX_VALUE
+from landlab.data_record import DataRecord
+_OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
 
+#Create a network model grid to represent the channel network
+y_of_node = (0, 0, 0, 0)
+x_of_node = (0, 100, 200, 300)
+nodes_at_link = ((0,1), (1,2), (2,3))
 
-def _calculate_alluvium_depth(stored_volume,width_of_upstream_links, length_of_upstream_links, width_of_downstream_link, length_of_downstream_link, porosity):
-    """Calculate alluvium depth based on adjacent link inactive parcel volumes.
+nmg = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 
-    Parameters
-    ----------
-    stored_volume : float
-        Total volume of inactive parcels in this link.
-    width_of_upstream_links : float
-        Channel widths of upstream links.
-    length_of_upstream_link : float
-        Channel lengths of upstream links.
-    width_of_downstream_link : float
-        Channel widths of downstream links.
-    length_of_downstream_link : float
-        Channel lengths of downstream links.
-    porosity: float
-        Channel bed sediment porosity.
+# Add variables to the NetworkModelGrid
+nmg.at_node["topographic__elevation"] = [3., 2., 1., 0.] # m
+nmg.at_node["bedrock__elevation"] = [3., 2., 1., 0.] # m
+nmg.at_link["drainage_area"] = [10e6, 10e6, 10e6]  # m2
+nmg.at_link["channel_slope"] = [0.001, 0.001, 0.001]
+nmg.at_link["link_length"] = [100, 100, 100]  # m
+nmg.at_link["channel_width"] = (15 * np.ones(np.size(nmg.at_link["drainage_area"])))
 
-    Examples
-    --------
-    >>> from landlab.components.network_sediment_transporter.network_sediment_transporter import _calculate_alluvium_depth
-    >>> import pytest
-    >>> _calculate_alluvium_depth(100,np.array([0.5,1]),np.array([10,10]) 1, 10, 0.2)
-    10.0
-    >>>_calculate_alluvium_depth(x, x, x, x, x)
-    0.0001
-    >>> with pytest.raises(ValueError):
-    ...     _calculate_alluvium_depth(x, x, x, x, x)
+flow_director = FlowDirectorSteepest(nmg)
+flow_director.run_one_step()
 
-    """
-    import numpy as np
-    alluvium__depth = (
-        2
-        * stored_volume
-        / (
-            np.sum(width_of_upstream_links * length_of_upstream_links)
-            + width_of_downstream_link * length_of_downstream_link
-        )
-        /(1-porosity)
-    )
-    # NOTE: Jon, porosity was left out in earlier version of the LL component,
-    # but it seems it should be in here. Check me: is the eqn correct?
+timesteps = 10
 
-    if alluvium__depth < 0.0:
-        raise ValueError("NST Alluvium Depth Negative")
+example_flow_depth = (
+    np.tile(2, (nmg.number_of_links))
+) * np.tile(1, (timesteps + 1, 1)) # 2 meter flow depth
 
-    return alluvium__depth
+time = [0.0]
 
-alluvium__depth = _calculate_alluvium_depth(24,np.array([0.1,3]),np.array([10,10]), 1, 1, 0.5)
+# Set up sediment parcels DataRecord
+items = {"grid_element": "link",
+         "element_id": np.array([[0]])}
 
-# %%
+variables = {
+    "starting_link": (["item_id"], np.array([0])),
+    "abrasion_rate": (["item_id"], np.array([0])),
+    "density": (["item_id"], np.array([2650])),
+    "time_arrival_in_link": (["item_id", "time"], np.array([[0]])),
+    "active_layer": (["item_id", "time"], np.array([[1]])),
+    "location_in_link": (["item_id", "time"], np.array([[0]])),
+    "D": (["item_id", "time"], np.array([[0.05]])),
+    "volume": (["item_id", "time"], np.array([[1]])),
+}
 
-def _calculate_reference_shields_stress(
-                        thing
-                        ):
-    """Calculate reference shields stress (taursg) using the sand content of
-    the bed surface, as per Wilcock and Crowe (2003).
-
-    Parameters
-    ----------
-    fluid_density : float
-        Density of fluid (generally, water).
-    R: float
-        Specific weight..?
-    mean_active_grain_size: float
-        Mean grain size of the 'active' sediment parcels.
-    frac_sand: float
-        Fraction of the bed surface grain size composed of sand sized parcels.
-
-    Examples
-    --------
-    >>> from landlab.components.network_sediment_transporter.network_sediment_transporter _calculate_reference_shields_stress
-    >>> import pytest
-    >>> _calculate_reference_shields_stress(x, x, x, x, x)
-    1.0
-    >>>_calculate_reference_shields_stress(x, x, x, x, x)
-    0.0001
-    >>> with pytest.raises(ValueError):
-    ...     _calculate_reference_shields_stress(x, x, x, x, x)
-
-    """
-
-    taursg = (
-        fluid_density
-        * R
-        * self.g
-        * mean_active_grain_size
-        * (0.021 + 0.015 * np.exp(-20.0 * frac_sand))
+one_parcel = DataRecord(
+    nmg,
+    items=items,
+    time=time,
+    data_vars=variables,
+    dummy_elements={"link": [_OUT_OF_NETWORK]},
+)
+# Instantiate the model run
+nst = NetworkSedimentTransporter(
+        nmg,
+        one_parcel,
+        flow_director,
+        example_flow_depth,
+        bed_porosity=0.03,
+        g=9.81,
+        fluid_density=1000,
+        channel_width="channel_width",
+        transport_method="WilcockCrowe",
     )
 
-    if taursg < 0.0:
-        raise ValueError("NST reference Shields stress is negative")
-    if taursg > 0.05:
-        raise ValueError("NST reference Shields stress is unreasonably high")
-    return taursg
+dt = 60  # (seconds) 1 min timestep
+
+# Run the model
+for t in range(0, (timesteps * dt), dt):
+        nst.run_one_step(dt)
 
 
-
-
-def _calculate_parcel_volume_post_abrasion(
-                        starting_volume,
-                        travel_distance,
-                        abrasion_rate
-                        ):
-    """Calculate parcel volumes after abrasion, according to classic
-    Sternberg exponential abrasion.
-
-    Parameters
-    ----------
-    starting_volume : float
-        Starting volume of each parcel.
-    travel_distance: float
-        Travel distance for each parcel during this timestep, in ___.
-    abrasion_rate: float
-        Mean grain size of the 'active' sediment parcels.
-
-    Examples
-    --------
-    >>> from landlab.components.network_sediment_transporter.network_sediment_transporter import _calculate_parcel_volume_post_abrasion
-    >>> import pytest
-    >>> _calculate_parcel_volume_post_abrasion(x, x, x, x, x)
-    1.0
-    >>>_calculate_parcel_volume_post_abrasion(x, x, x, x, x)
-    0.0001
-    >>> with pytest.raises(ValueError):
-    ...     _calculate_parcel_volume_post_abrasion(x, x, x, x, x)
-
-    """
-
-    volume = starting_volume * np.exp(travel_distance * (-abrasion_rate))
-
-    if volume < 0.0:
-        raise ValueError("NST parcel volume is negative")
-
-    return volume
-
-
-def _calculate_parcel_grain_diameter_post_abrasion(
-                        starting_diameter,
-                        pre_abrasion_volume,
-                        post_abrasion_volume
-                        ):
-    """Calculate parcel grain diameters after abrasion, according to classic
-    Sternberg exponential abrasion.
-
-    Parameters
-    ----------
-    starting_diameter : float
-        Starting volume of each parcel.
-    pre_abrasion_volume: float
-        xxx
-    post_abrasion_volume: float
-        xxx
-
-    Examples
-    --------
-    >>> from landlab.components.network_sediment_transporter.network_sediment_transporter import _calculate_parcel_grain_diameter_post_abrasion
-    >>> import pytest
-    >>> _calculate_parcel_volume_post_abrasion(x, x, x, x, x)
-    1.0
-    >>>_calculate_parcel_volume_post_abrasion(x, x, x, x, x)
-    0.0001
-    >>> with pytest.raises(ValueError):
-    ...     _calculate_parcel_volume_post_abrasion(x, x, x, x, x)
-
-    """
-
-    grain_size = (starting_diameter
-            * (post_abrasion_volume
-            / pre_abrasion_volume
-            ) ** (1 / 3)
-            )
-
-    return grain_size
