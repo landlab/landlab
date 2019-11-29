@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Zone functions and class of SpeciesEvolver."""
+from collections import OrderedDict
+
 import numpy as np
 
 
@@ -87,7 +89,7 @@ def _update_zones(grid, prior_zones, new_zones, record):
         ps_index_map = _create_index_map(grid, prior_zones)
         ns_index_map = _create_index_map(grid, new_zones)
 
-        replacements = {}
+        replacements = OrderedDict()
 
         for i_p, p in enumerate(prior_zones):
             # Retain a copy of the prior zone mask to compare with the new zone
@@ -141,7 +143,10 @@ def _update_zones(grid, prior_zones, new_zones, record):
         for key, value in replacements.items():
             key._mask = value.mask
 
-        successors = list(set(successors))
+        # Get unique list of successors, preserving order.
+
+        ss = set()
+        successors = [x for x in successors if not (x in ss or ss.add(x))]
 
     # Update the record.
 
@@ -290,7 +295,10 @@ class Zone(object):
 
     @property
     def species(self):
-        """The set of species that inhabit the zone."""
+        """The set of species that inhabit the zone.
+
+        The order that species were added to this attribute is not preserved.
+        """
         return self._species
 
     @property

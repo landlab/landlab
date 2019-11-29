@@ -362,14 +362,14 @@ class SpeciesEvolver(Component):
         """
         time = self._record.latest_time
 
-        s_at_time = set(species_at_time)
-        s_recorded = set(self._species['object'])
+        s_at_time = species_at_time
+        s_recorded = self._species['object']
 
         # Identify species previously introduced.
-        s_introduced = list(s_at_time.intersection(s_recorded))
+        s_introduced = [s for s in s_at_time if s in s_recorded]
 
         # Identify new species.
-        s_new = list(s_at_time - s_recorded)
+        s_new = [s for s in s_at_time if s not in s_recorded]
 
         # Update previously introduced species.
         for s in s_introduced:
