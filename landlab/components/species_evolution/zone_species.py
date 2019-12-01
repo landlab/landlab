@@ -179,7 +179,7 @@ class ZoneSpecies(Species):
         child_species = []
 
         for pop in self._populations:
-            speciates = self._evaluate_speciation(dt, pop)
+            speciates = self._evaluate_speciation(pop, dt)
             if speciates:
                 child_species.append(self._speciate([pop._zone]))
 
@@ -310,7 +310,7 @@ class ZoneSpecies(Species):
         """
         # pragma: no cover
 
-    def _evaluate_speciation(self, dt, population):
+    def _evaluate_speciation(self, population, dt):
         """Determine if speciation occurs.
 
         Speciation is triggered during stage 1 dispersal. This speciation
@@ -323,6 +323,9 @@ class ZoneSpecies(Species):
         ----------
         population : Population
             A population of the species.
+        dt : float, int
+            The time step duration to increment time to allopatric speciation,
+            if speciation was previously triggered.
 
         Returns
         -------

@@ -265,7 +265,6 @@ def _get_replacement(replacements, new_zone):
     for key, value in replacements.items():
         if value == new_zone:
             return key
-    return None
 
 
 class Zone(object):
