@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 def plot_network_average(
     grid, parcels, time, color="attribute_name", line_width=1, **kwargs
 ):
@@ -25,3 +27,4 @@ def plot_network_parcels(
     # the correct color, size, etc.
     #
     # have multiple options to save or return plot instance.
+

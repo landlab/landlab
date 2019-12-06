@@ -27,7 +27,7 @@ affiliations:
     index: 2
   - name: University of Colorado at Boulder, Cooperative Institute for Research in Environmental Sciences
     index: 3
-  - name: Virginia Tech
+  - name: Virginia Tech, Department of Biological Systems Engineering and The Global Change Center
     index: 4
   - name: University of Colorado at Boulder, Community Surface Dynamics Modeling System Integration Facility
     index: 5

@@ -16,7 +16,10 @@ from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 from landlab.plot import graph
-from landlab.plot.network_sediment_transporter import *  # Note-- this is an example. it loads plotting scripts that don't exist yet.
+
+from landlab.plot.network_sediment_transporter import plot_network_links
+from landlab.plot.network_sediment_transporter import plot_network_parcels
+#from landlab.plot.network_sediment_transporter import *  # Note-- this is an example. it loads plotting scripts that don't exist yet.
 
 _OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
 
@@ -241,3 +244,61 @@ plt.plot(
 plt.title("Silly example: total volume, all parcels through time")
 plt.xlabel("time")
 plt.ylabel("total volume of parcels")
+
+# %% Plotting routines to step through
+# %%
+# %% 1. Run "import_shapefile.py" ideally, we should be reading a shapefile at the outset of NST_setup to gather our network properties from the shapefile attribute table. This would also include loading in, early on, the squiggly line network. For now this needs to be done here before plotting because it has not been done yet.
+
+# %% 2. Plot an attribute on the delineated network
+
+# determine link attribute to plot
+
+# This is really a time index to plot, so likely change the name
+parcel_time = 5
+
+# NEXT NEXT: Put these next few lines into a function: composite_parcel_attributes_at_links
+# Also make the inverse: map_link_attributes_to_parcels
+# Initialize array of a composite link attribute
+lnkvol = np.empty([len(grid.at_link),])
+lnkvol[:] = np.nan
+# Composite link attributes
+for i in range(len(grid.at_link)):
+    lnkvol[i]=np.sum(parcels.dataset.volume[(parcels.dataset.element_id[:,parcel_time])==i, parcel_time])        
+link_attribute = lnkvol
+#link_attribute = grid.at_link["GridID"]
+
+# plot_network_links(nmg, nmg.at_link["channel_width"])
+# plot_network_links(nmg, an_array_I_made_from_fancy_calculations)
+plot_network_links(grid, link_attribute)
+
+# %% 3. Plot parcels as dots on the delineated network
+
+# NOTE: We could also easily plot a single parcel at all times. Currently, this code is just set up to plot all parcels at a single time.
+
+# This is really a time index to plot, so likely change the name
+parcel_time = 3
+
+# Determine color and size of parcels based on a parcel attribute
+parcel_color = parcels.dataset.element_id[:,parcel_time]
+parcel_size = 15
+
+# Determine color and size of parcels based on a link attribute
+# Need to map link attributes back to parcels based on element id
+# NEXT NEXT: based on the code above it will be worthwhile to write a function that maps link attributes to parcels and another function that compiles link attributes from parcels. Then we can just call that function above and here.
+#parcel_color = parcels.dataset.element_id[:,parcel_time]
+#parcel_size = 15
+
+plot_network_parcels(grid, parcels, parcel_time, parcel_color, parcel_size)
+
+# %% 4. Plot link attributes along a pathway through the network.
+
+# NEXT NEXT: link 4 drains to link 2 and it should connect with link 3
+# See:
+graph.plot_graph(grid, at="node,link")
+# and look at how the parcels move in #3
+# also see:
+link_number = 4
+downstream_link_id = fd.link_to_flow_receiving_node[
+        fd.downstream_node_at_link()[link_number]]
+
+# %% 5. Develop GUI to more quickly interface with calling these plotting functions.
