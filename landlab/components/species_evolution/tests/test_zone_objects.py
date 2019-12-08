@@ -382,8 +382,8 @@ def test_zone_func_kwargs(zone_example_grid):
 
     expected_mask = np.array(
         [False, False, False, False, False, False, False, False, False, False,
-         False, False, False, False, False,  True,  True,  True, True, True,
-         False, False,  True,  True,  True,  True,  True, False, False, False,
+         False, False, False, False, False, True, True, True, True, True,
+         False, False, True, True, True, True, True, False, False, False,
          False, False, False, False, False]
     )
     np.testing.assert_array_equal(sc.zones[0].mask, expected_mask)
