@@ -75,7 +75,7 @@ class Record(object):
         return variables
 
     @property
-    def dataframe(self):
+    def data_frame(self):
         """A Pandas DataFrame of the record."""
         return DataFrame(self._dict)
 

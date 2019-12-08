@@ -249,7 +249,7 @@ class SpeciesEvolver(Component):
     @property
     def record_data_frame(self):
         """A Pandas DataFrame of SpeciesEvolver variables over time."""
-        return self._record.dataframe
+        return self._record.data_frame
 
     @property
     def species_data_frame(self):

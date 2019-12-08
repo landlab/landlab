@@ -59,7 +59,7 @@ class ZoneController(object):
     that have area, boundary nodes do not contribute to the area summation of
     clusters. The area summation only takes into account the cells associated
     with core nodes.
-    
+
     Creation of zones along boundaries is illustrated below. A zone extent mask
     different from the above example was produced by the hypothetical zone
     function here. Again ``*`` indicates where a zone can exist. Distinct zones
@@ -68,7 +68,7 @@ class ZoneController(object):
     Individual zone masks and the count of zones are affected by the use of
     ``D8`` or ``D4`` along with the minimum area parameter, especially when
     zone clusters are along grid boundaries.
-    
+
     zone function  D8             D4             D8             D4
     returned mask  min area = 0   min area = 0   min_area = 2   min_area = 2
     * · · * * ·    + · · x x ·    + · · x x ·    + · · · · ·    · · · · · ·
@@ -159,9 +159,9 @@ class ZoneController(object):
     nodes and the right cluster overlapped only one node, therefore the new
     zone keeps the designation of the left cluster. However, this is merely for
     creating new zone objects.
-    
+
     ZoneController is currently tested only for use with a RasterModelGrid.
-    
+
     Examples
     --------
     Import modules used in the following examples.
@@ -321,7 +321,7 @@ class ZoneController(object):
     @property
     def record_data_frame(self):
         """A DataFrame of SpeciesEvolver variables over time."""
-        return self._record.dataframe
+        return self._record.data_frame
 
     def populate_zones_uniformly(
         self, count, species_type=ZoneSpecies, **kwargs
@@ -403,7 +403,7 @@ class ZoneController(object):
         for i in range(1, cluster_ct + 1):
             mask = (cluster_arr == i).flatten()
             cluster_area = sum(self._grid.cell_area_at_node[mask])
-            
+
             if cluster_area >= self._min_area:
                 zones.append(Zone(mask))
 
