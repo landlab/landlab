@@ -13,7 +13,7 @@ from landlab.components.species_evolution import zone as zn
 
 @pytest.fixture()
 def zone_example_grid():
-    mg = RasterModelGrid((3, 7), 2)
+    mg = RasterModelGrid((5, 7), 2)
     z = mg.add_zeros('node', 'topographic__elevation')
     return mg, z
 
@@ -249,10 +249,10 @@ def test_many_to_one(zone_example_grid):
 
     # Create two zones for time 0.
 
-    z[[2, 3, 4, 17, 18]] = 1
+    z[[8, 9, 10, 12]] = 1
 
     se = SpeciesEvolver(mg)
-    sc = ZoneController(mg, zone_func)
+    sc = ZoneController(mg, zone_func, minimum_area=1)
     species = sc.populate_zones_uniformly(1)
     se.introduce_species(species)
 
@@ -272,8 +272,7 @@ def test_many_to_one(zone_example_grid):
 
     # Modify elevation such that two zones each overlap the original two zones.
 
-    z[[2, 3, 17]] = 0
-    z[[11, 18]] = 1
+    z[11] = 1
 
     sc.run_one_step(1)
     se.run_one_step(1)
@@ -301,7 +300,7 @@ def test_many_to_many(zone_example_grid):
 
     # Create two zones for time 0.
 
-    z[[2, 3, 4, 16, 17, 18]] = 1
+    z[[10, 12, 17, 19, 24, 26]] = 1
 
     se = SpeciesEvolver(mg)
     sc = ZoneController(mg, zone_func)
@@ -324,8 +323,8 @@ def test_many_to_many(zone_example_grid):
 
     # Modify elevation such that two zones each overlap the original two zones.
 
-    z[[3, 17]] = 0
-    z[[9, 11]] = 1
+    z[[17, 19]] = 0
+    z[[11, 25]] = 1
 
     sc.run_one_step(1)
     se.run_one_step(1)
@@ -378,12 +377,14 @@ def test_neighborhood_structure(zone_example_grid):
 
 def test_zone_func_kwargs(zone_example_grid):
     mg, z = zone_example_grid
-    z[:] = 1
+    z[mg.core_nodes] = 1
     sc = ZoneController(mg, zone_func_with_vars, var1=1, var2=2)
 
     expected_mask = np.array(
         [False, False, False, False, False, False, False, False, False, False,
-         False, False, False, False, False, True, True, True, True, True, True]
+         False, False, False, False, False,  True,  True,  True, True, True,
+         False, False,  True,  True,  True,  True,  True, False, False, False,
+         False, False, False, False, False]
     )
     np.testing.assert_array_equal(sc.zones[0].mask, expected_mask)
 

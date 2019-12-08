@@ -32,11 +32,11 @@ class ZoneController(object):
     values         mask returned
     evaluated      by zone function
     0 0 0 0 0 0    · · · · · ·
-    0 0 4 5 4 0    · · * * * ·
-    0 0 6 3 0 0    · · * * · ·
+    0 0 0 5 4 2    · · · * * *
+    0 6 0 4 6 0    · * · * * ·
+    0 2 0 0 0 0    · * · · · ·
+    0 0 4 0 4 0    · · * · * ·
     0 0 0 0 0 0    · · · · · ·
-    0 6 4 0 4 0    · * * · * ·
-    2 0 0 0 0 0    * · · · · ·
 
     The above example is continued in the following four diagrams that
     demonstrate how individual zones are identified. Each zone is marked with a
@@ -48,11 +48,35 @@ class ZoneController(object):
     D8             D4             D8             D4
     min area = 0   min area = 0   min area = 2   min area = 2
     · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
-    · · + + + ·    · · + + + ·    · · + + + ·    · · + + + ·
-    · · + + · ·    · · + + · ·    · · + + · ·    · · + + · ·
+    · · · + + +    · · · + + +    · · · + + +    · · · + + +
+    · x · + + ·    · x · + + ·    · x · + + ·    · x · + + ·
+    · x · · · ·    · x · · · ·    · x · · · ·    · x · · · ·
+    · · x · o ·    · · @ · o ·    · · x · · ·    · · · · · ·
     · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
-    · x x · o ·    · @ @ · o ·    · x x · · ·    · x x · · ·
-    x · · · · ·    x · · · · ·    x · · · · ·    · · · · · ·
+
+    The grid boundary affects zone creation. Zones can include nodes along the
+    boundary, although because boundary nodes are not associated with cells
+    that have area, boundary nodes do not contribute to the area summation of
+    clusters. The area summation only takes into account the cells associated
+    with core nodes.
+    
+    Creation of zones along boundaries is illustrated below. A zone extent mask
+    different from the above example was produced by the hypothetical zone
+    function here. Again ``*`` indicates where a zone can exist. Distinct zones
+    that are created are in the other four grid schematics, where the symbols,
+    ``$`` and ``#`` indicate zones in addition to the symbols defined above.
+    Individual zone masks and the count of zones are affected by the use of
+    ``D8`` or ``D4`` along with the minimum area parameter, especially when
+    zone clusters are along grid boundaries.
+    
+    zone function  D8             D4             D8             D4
+    returned mask  min area = 0   min area = 0   min_area = 2   min_area = 2
+    * · · * * ·    + · · x x ·    + · · x x ·    + · · · · ·    · · · · · ·
+    · * · · * ·    · + · · x ·    · # · · x ·    · + · · · ·    · # · · · ·
+    · * · · · ·    · + · · · ·    · # · · · ·    · + · · · ·    · # · · · ·
+    * · · · * *    + · · · o o    $ · · · o o    + · · · o o    · · · · o o
+    · · · · * ·    · · · · o ·    · · · · o ·    · · · · o ·    · · · · o ·
+    · * * · · ·    · @ @ · · ·    · @ @ · · ·    · · · · · ·    · · · · · ·
 
     By default, ``ZoneSpecies`` are used with this controller, and the
     following paragraphs make that assumption. Speciation occurs when the
@@ -82,24 +106,26 @@ class ZoneController(object):
 
     T1a            T1b            T1c            T1d
     · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
-    · · · · · ·    · · · · · ·    · · · * · *    · · · · · ·
-    · * * * * ·    · · · · · ·    · · * * * *    · · · · · ·
-    · * * * * ·    * * * * · ·    · · · · · ·    · · · · · ·
-    · · · · · ·    * * * * · ·    · · · · · ·    * * * * · ·
-    · · · · · ·    · · · · · ·    · · · · · ·    * * * * · ·
+    · + + + + ·    · · · · · ·    · · + + · ·    · · · · · ·
+    · + + + + ·    · + + + + ·    · + + + + ·    · · · · · ·
+    · · · · · ·    · + + + + ·    · · · · + ·    · + + + + ·
+    · · · · · ·    · · · · · ·    · · · · · ·    · + + + + ·
+    · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
 
-    Another ``T1`` variation, now demonstrating two zones, ``*`` and ``x``.
+    Another ``T1`` variation, now demonstrating two zones, ``+`` and ``x``.
     Multiple zones overlapping a zone in the prior time step can be interpreted
     as a zone that fragmented, which may affect resident species. The number of
     zone fragmentations can be viewed in the ``record_data_frame`` attribute.
+    In the T1e example, the fragmentation count for time 1 would be 2 because
+    2 zones that fragmented from a prior zone were recognized at this time.
 
     T1e
     · · · · · ·
+    · · · · + ·
+    · x · · + ·
+    · x x · · ·
+    · x x · · ·
     · · · · · ·
-    · · · * * *
-    x x · * * ·
-    x x · · · ·
-    x x · · · ·
 
     The controller had to decide which of the two clusters of continuous nodes
     in T1 should be designated as the same zone in T0. This decision must be
@@ -119,9 +145,9 @@ class ZoneController(object):
     T2
     · · · · · ·
     · · · · · ·
+    · x x x x ·
+    · x x x · ·
     · · · · · ·
-    · x x x · ·
-    · x x x · ·
     · · · · · ·
 
     The controller had to again decide which of the two clusters of continuous
@@ -133,12 +159,9 @@ class ZoneController(object):
     nodes and the right cluster overlapped only one node, therefore the new
     zone keeps the designation of the left cluster. However, this is merely for
     creating new zone objects.
-
-    Note in the example above that zones are created throughout the grid,
-    including boundaries, wherever nodes meet the conditions set within the
-    ``zone_function``. Boundaries can be excluded in zones by evaluating if
-    nodes are boundaries in ``zone_function``.
-
+    
+    ZoneController is currently tested only for use with a RasterModelGrid.
+    
     Examples
     --------
     Import modules used in the following examples.
@@ -285,7 +308,7 @@ class ZoneController(object):
 
         # Set initial zones.
 
-        initial_zone_extent = zone_function(**kwargs)
+        initial_zone_extent = self._zone_func(**self._zone_params)
         self._zones = self._get_zones_with_mask(initial_zone_extent)
 
         self._record.set_value('zone_count', len(self._zones))
@@ -362,8 +385,6 @@ class ZoneController(object):
         list of Zones
             The discrete zones identified in the mask.
         """
-        grid = self._grid
-
         # Label clusters of `True` values in `mask`.
 
         if self._neighborhood_struct == 'D8':
@@ -371,17 +392,19 @@ class ZoneController(object):
         elif self._neighborhood_struct == 'D4':
             s = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]
 
-        cluster_arr, cluster_ct = label(mask.reshape(grid.shape), structure=s)
+        cluster_arr, cluster_ct = label(
+            mask.reshape(self._grid.shape), structure=s
+        )
 
         # Create zones for clusters.
 
         zones = []
 
         for i in range(1, cluster_ct + 1):
-            mask = cluster_arr == i
-
-            if mask.sum() * grid.cellarea >= self._min_area:
-                # Create a zone if cluster area exceeds the minimum area.
+            mask = (cluster_arr == i).flatten()
+            cluster_area = sum(self._grid.cell_area_at_node[mask])
+            
+            if cluster_area >= self._min_area:
                 zones.append(Zone(mask))
 
         return zones

@@ -61,7 +61,6 @@ def _update_zones(grid, prior_zones, new_zones, record):
     fragment_ct = 0
     capture_ct = 0
     area_captured = [0]
-    cell_area = grid.cellarea
 
     # Get `successors`, the zones of `time`.
 
@@ -126,9 +125,9 @@ def _update_zones(grid, prior_zones, new_zones, record):
                 capture_ct += len(captured_zones)
 
                 for z in captured_zones:
-                    captured_nodes = np.all([~p_mask_copy, z.mask], 0)
-                    number_of_captured_nodes = len(np.where(captured_nodes)[0])
-                    area_captured.append(number_of_captured_nodes * cell_area)
+                    captured_mask = np.all([~p_mask_copy, z.mask], 0)
+                    area = sum(grid.cell_area_at_node[captured_mask.flatten()])
+                    area_captured.append(area)
 
             elif conn_type in [_ONE_TO_MANY, _MANY_TO_MANY]:
                 fragment_ct += ns_i_p_ct
