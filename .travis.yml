@@ -87,5 +87,5 @@ install:
 - pip install -e .
 script:
 - pip install pytest pytest-cov pytest-datadir coveralls
-- pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml --test-notebook -vvv
+- pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml --run-notebook -vvv
 after_success: coveralls
