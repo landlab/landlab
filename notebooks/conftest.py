@@ -27,12 +27,6 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("notebook", _all_notebooks(_TEST_DIR))
 
 
-def pytest_addoption(parser):
-    parser.addoption(
-        "--run-notebook", action="store_true", default=False, help="run notebook tests"
-    )
-
-
 def pytest_configure(config):
     config.addinivalue_line("markers", "notebook: mark test as a notebook to run")
 
