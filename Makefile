@@ -52,7 +52,7 @@ clean-test: ## remove test and coverage artifacts
 
 lint: ## check style with flake8
 	flake8 landlab tests
-	
+
 pretty: ## reformat files to make them look pretty
 	find landlab tests -name '*.py' | xargs isort
 	black setup.py landlab tests
@@ -64,9 +64,10 @@ coverage: ## check code coverage quickly with the default Python
 	pytest --cov --cov-report=html
 	$(BROWSER) htmlcov/index.html
 
-docs: ## generate Sphinx HTML documentation, including API docs
+docs: ## generate Sphinx HTML documentation, including API docs and link check
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
+	$(MAKE) -C docs linkcheck
 	$(BROWSER) docs/build/html/index.html
 
 install: clean ## install the package to the active Python's site-packages

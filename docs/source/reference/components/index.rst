@@ -52,8 +52,8 @@ Shallow water hydrodynamics
 
    overland_flow
 
-Land surface and groundwater hydrology
---------------------------------------
+Land surface hydrology
+----------------------
 
 .. toctree::
   :maxdepth: 2
@@ -62,6 +62,13 @@ Land surface and groundwater hydrology
   pet
   soil_moisture
   greenampt
+
+Groundwater hydrology
+---------------------
+
+.. toctree::
+  :maxdepth: 2
+
   groundwater
 
 Landslides
