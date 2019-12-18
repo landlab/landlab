@@ -178,7 +178,7 @@ def test_symmetry_of_solution():
     assert_almost_equal(tc[16], tc[20])  # W-E
 
 
-def test_wt_above_surface():
+def test_wt_above_surface_standard_run_step():
     """ test that water tables above the topogrpahic elevation are
     set to the topographic elevation.
 
@@ -205,6 +205,8 @@ def test_wt_above_surface():
     gdp.run_one_step(1)
     assert_equal(wt[4], 1)
 
+
+def test_wt_above_surface_adaptive_run_step():
     grid = RasterModelGrid((3, 3))
     grid.set_closed_boundaries_at_grid_edges(True, True, True, False)
     elev = grid.add_ones("node", "topographic__elevation")
