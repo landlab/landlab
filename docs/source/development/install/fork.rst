@@ -26,7 +26,7 @@ Create a Github account
 1. You can create a GitHub account by going to the `GitHub
    website <https://github.com>`_.
 2. If you haven't already, `Install
-   Git <https://help.github.com/en/articles/set-up-git>`_. Note that if
+   Git <https://help.github.com/en/github/getting-started-with-github/set-up-git>`_. Note that if
    you are using a mac with OS lower than 10.7, we have found it
    difficult to setup git, and you may want to upgrade your OS.
    Alternatively, you can do this in a more user-friendly fashion by
