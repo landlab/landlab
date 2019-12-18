@@ -1,5 +1,7 @@
 .. _dupuit_theory:
 
+:orphan:
+
 ========================================================
 Theory and Implementation of GroundwaterDupuitPercolator
 ========================================================
@@ -33,7 +35,7 @@ evolution of the water table elevation:
 where :math:`n` is the drainable porosity, and :math:`k_{sat}` is the
 saturated hydraulic conductivity.
 
-.. figure:: /images/water_table_schematic.png
+.. figure:: images/water_table_schematic.png
    :alt: Aquifer schematic.
    :align: center
    :scale: 50%
@@ -89,7 +91,7 @@ where :math:`r` is a user-specified regularization factor and
    \end{array}
    \right.
 
-.. figure:: /images/GDP_regularization.png
+.. figure:: images/GDP_regularization.png
    :alt: Regularization functions
    :align: center
    :scale: 40%
