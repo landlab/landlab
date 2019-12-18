@@ -581,10 +581,10 @@ class GroundwaterDupuitPercolator(Component):
         )
 
         # Mass balance
-        dhdt = (1 / self._n) * (self._recharge - self._qs - dqdx)
+        self._dhdt[:] = (1 / self._n) * (self._recharge - self._qs - dqdx)
 
         # Update
-        self._thickness[self._cores] += dhdt[self._cores] * dt
+        self._thickness[self._cores] += self._dhdt[self._cores] * dt
         self._thickness[self._thickness < 0] = 0.0
 
         # Recalculate water surface height
@@ -669,7 +669,7 @@ class GroundwaterDupuitPercolator(Component):
             )
 
             # Mass balance
-            dhdt = (1 / self._n) * (self._recharge - self._qs - dqdx)
+            self._dhdt[:] = (1 / self._n) * (self._recharge - self._qs - dqdx)
 
             # calculate criteria for timestep
             max_vel = max(abs(self._vel / self._n_link))
@@ -679,7 +679,7 @@ class GroundwaterDupuitPercolator(Component):
             )
 
             # Update
-            self._thickness[self._cores] += dhdt[self._cores] * substep_dt
+            self._thickness[self._cores] += self._dhdt[self._cores] * substep_dt
             self._thickness[self._thickness < 0] = 0.0
 
             # Recalculate water surface height
