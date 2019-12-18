@@ -546,10 +546,7 @@ class GroundwaterDupuitPercolator(Component):
         )
 
         # Calculate groundwater velocity
-        self._vel[:] = -self._K * (
-            self._hydr_grad * np.cos(np.arctan(abs(self._base_grad)))
-            + np.sin(np.arctan(self._base_grad))
-        )
+        self._vel[:] = -self._K * self._hydr_grad
         self._vel[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
         # Aquifer thickness at links (upwind)
@@ -638,10 +635,7 @@ class GroundwaterDupuitPercolator(Component):
             )
 
             # Calculate groundwater velocity
-            self._vel[:] = -self._K * (
-                self._hydr_grad * np.cos(np.arctan(abs(self._base_grad)))
-                + np.sin(np.arctan(self._base_grad))
-            )
+            self._vel[:] = -self._K * self._hydr_grad
             self._vel[self._grid.status_at_link == LinkStatus.INACTIVE] = 0.0
 
             # Aquifer thickness at links (upwind)
