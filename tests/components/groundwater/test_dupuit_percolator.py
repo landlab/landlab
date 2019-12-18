@@ -197,6 +197,7 @@ def test_wt_above_surface():
     grid.set_closed_boundaries_at_grid_edges(True, True, True, False)
     elev = grid.add_ones("node", "topographic__elevation")
     wt = grid.add_zeros("node", "water_table__elevation")
+    _ = grid.add_zeros("aquifer_base__elevation", at="node")
     wt[:] = elev + 1
 
     # initialize the groundwater model
@@ -208,6 +209,8 @@ def test_wt_above_surface():
     grid.set_closed_boundaries_at_grid_edges(True, True, True, False)
     elev = grid.add_ones("node", "topographic__elevation")
     wt = grid.add_zeros("node", "water_table__elevation")
+    _ = grid.add_zeros("aquifer_base__elevation", at="node")
+
     wt[:] = elev + 1
 
     # initialize the groundwater model

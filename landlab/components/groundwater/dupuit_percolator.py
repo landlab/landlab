@@ -198,6 +198,14 @@ class GroundwaterDupuitPercolator(Component):
             "mapping": "link",
             "doc": "gradient of the aquifer base in the link direction",
         },
+        "average_surface_water__specific_discharge": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m/s",
+            "mapping": "node",
+            "doc": "average surface water specific discharge over variable timesteps",
+        },
         "groundwater__specific_discharge": {
             "dtype": float,
             "intent": "out",
@@ -314,6 +322,7 @@ class GroundwaterDupuitPercolator(Component):
 
         self._q = self._grid.at_link["groundwater__specific_discharge"]
         self._qs = self._grid.at_node["surface_water__specific_discharge"]
+        self._qsavg = self.grid.at_node["average_surface_water__specific_discharge"]
 
         self._vel = self._grid.at_link["groundwater__velocity"]
 
@@ -327,7 +336,7 @@ class GroundwaterDupuitPercolator(Component):
         self._r = regularization_f
 
         # save courant_coefficient (and test)
-        self.courant_coefficient = courant_coefficient
+        self._courant_coefficient = courant_coefficient
 
     @property
     def courant_coefficient(self):
@@ -342,6 +351,7 @@ class GroundwaterDupuitPercolator(Component):
             ``run_with_adaptive_time_step_solver`` and must be greater than
             zero.
         """
+        return self._courant_coefficient
 
     @courant_coefficient.setter
     def courant_coefficient(self, new_val):
@@ -580,7 +590,7 @@ class GroundwaterDupuitPercolator(Component):
         # Recalculate water surface height
         self._wtable[self._cores] = (self._base + self._thickness)[self._cores]
 
-    def run_with_adaptive_time_step_solver(self, dt, courant_coefficient=0.1, **kwds):
+    def run_with_adaptive_time_step_solver(self, dt):
         """
         Advance component by one time step of size dt, subdividing the timestep
         into substeps as necessary to meet a Courant condition.
@@ -590,9 +600,6 @@ class GroundwaterDupuitPercolator(Component):
         ----------
         dt: float (time in seconds)
             The imposed timestep.
-        courant_coefficient: float (-)
-            The muliplying factor on the condition that the timestep is
-            smaller than the minimum link length over linear groundwater flow velocity
         """
 
         # check water table above surface
