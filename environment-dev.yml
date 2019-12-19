@@ -9,6 +9,10 @@ dependencies:
 - pytest
 - pytest-cov
 - pytest-datadir
+# for notebooks
+- jupyter
+- holoviews
+- dask
 # for the package
 - matplotlib
 - netcdf4

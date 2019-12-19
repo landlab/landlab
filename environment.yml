@@ -1,0 +1,7 @@
+name: landlab_env
+channels:
+  - conda-forge
+dependencies:
+  - jupyter
+  - dask
+  - holoviews
