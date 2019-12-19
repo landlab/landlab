@@ -86,6 +86,6 @@ install:
 - pip install numpy
 - pip install -e .
 script:
-- pip install -r requirements-testing.txt -r notebooks/requirements.txt
+- pip install -r requirements-testing.txt -r requirements-notebooks.txt
 - pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml --run-notebook -vvv
 after_success: coveralls

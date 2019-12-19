@@ -5,4 +5,4 @@ dependencies:
 - landlab
 - pip
 - pip:
-  - -r file:requirements.txt
+  - -r file:requirements-notebooks.txt
