@@ -3,6 +3,7 @@
 
 [![Build Status](https://travis-ci.org/landlab/landlab_teaching_tools.svg?branch=master)](https://travis-ci.org/landlab/landlab_teaching_tools)
 
+# TODO: This page needs to be revised post: LL2.0 transition.
 
 # Landlab teaching tools :raising_hand:
 
@@ -20,13 +21,13 @@ The notebooks can be run locally by installing Landlab on your computer or they 
 
 # To install Landlab and run locally: :octocat::computer:
 
-If following this method, every student will need to install Landlab on their personal computer, or it will need to be installed on classroom computers. All software needed to run Landlab locally is opensource (so free!). This link (https://landlab.github.io/#/) will take you to directions on how to install Landlab and information on preferred Python distributions. 
+If following this method, every student will need to install Landlab on their personal computer, or it will need to be installed on classroom computers. All software needed to run Landlab locally is opensource (so free!). This link (https://landlab.github.io/#/) will take you to directions on how to install Landlab and information on preferred Python distributions.
 
 The next step would be for the class instructor to hit the _Clone or download_ button (on this webpage (https://github.com/landlab/landlab_teaching_tools), green, upper right) and download this repository locally. Choose which Jupyter Notebooks you would like the students to run, and then distribute the notebook to the students. You can edit them to your class' needs if you use this method. Note that some notebooks require supporting files to run, so make sure those are copied to the students.
 
 # To use the notebooks on Hydroshare: :umbrella::computer:
 
-These notebooks can all be run remotely using HydroShare, an online collaboration environment for sharing data, models, and code (there are no costs, fees or subscriptions). To have your students run the Notebooks without any software installation required, all of your students will need to join HydroShare.  For the first time set up, follow these steps: 
+These notebooks can all be run remotely using HydroShare, an online collaboration environment for sharing data, models, and code (there are no costs, fees or subscriptions). To have your students run the Notebooks without any software installation required, all of your students will need to join HydroShare.  For the first time set up, follow these steps:
 
 Initiation steps:
 1. Go to https://www.hydroshare.org/
@@ -47,4 +48,4 @@ After you and your students have successfully run through the steps above, in th
 
 If you have suggestions on improving these notebooks and developing new ones, or are having trouble running them, please leave us a question in our GitHub Issues page - https://github.com/landlab/landlab/issues. Please make sure you include that you are working with a Landlab Teaching Notebook and include the name of the notebook and as much information as possible. If you are getting an error, please taking a screenshot and upload it.
 
-The development of these Notebooks has been made possible by the Landlab project funded by the National Science Foundation (OAC 1450338 to N. Gasparini, OAC 1450409 to G. Tucker, OAC 1450412 to E. Istanbulluoglu). Launching these Notebooks from HydroShare is made possible by a collaboration between HydroShare researchers, the Consortium of Universities Allied for Hydrologic Science, Inc. (CUAHSI), and National SuperComputer A (NCSA) and funding by the National Science Foundation. For more details on the software architecuture behind how to run Jupyter Notebooks from HydroShare, please contact [support@hydroshare(dot)org]. 
+The development of these Notebooks has been made possible by the Landlab project funded by the National Science Foundation (OAC 1450338 to N. Gasparini, OAC 1450409 to G. Tucker, OAC 1450412 to E. Istanbulluoglu). Launching these Notebooks from HydroShare is made possible by a collaboration between HydroShare researchers, the Consortium of Universities Allied for Hydrologic Science, Inc. (CUAHSI), and National SuperComputer A (NCSA) and funding by the National Science Foundation. For more details on the software architecuture behind how to run Jupyter Notebooks from HydroShare, please contact [support@hydroshare(dot)org].

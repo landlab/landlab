@@ -219,8 +219,8 @@ class DepthSlopeProductErosion(Component):
 
         self._tau = self._rho * self._g * h * S
 
-        greater_than_tc, = np.where(self._tau >= self._tau_crit)
-        less_than_tc, = np.where(self._tau < self._tau_crit)
+        (greater_than_tc,) = np.where(self._tau >= self._tau_crit)
+        (less_than_tc,) = np.where(self._tau < self._tau_crit)
 
         self._E[less_than_tc] = 0.0
 

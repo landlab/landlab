@@ -8,13 +8,6 @@ import pytest
 import yaml
 
 
-# _EXCLUDE = []
-#     "animate-landlab-output.ipynb",
-#     "cellular_automaton_vegetation_flat_domain.ipynb",
-#     "cellular_automaton_vegetation_DEM.ipynb",
-#     "stream_power_channels_class_notebook.ipynb",
-# ]
-
 _exclude_file = pathlib.Path(__file__).absolute().parent / "exclude.yml"
 with open(_exclude_file, "r") as fp:
     _EXCLUDE = dict([(item["file"], item["reason"]) for item in yaml.safe_load(fp)])

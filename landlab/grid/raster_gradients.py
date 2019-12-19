@@ -1028,9 +1028,16 @@ def _calc_subtriangle_slopes_at_node(
         else:
             ValueError("Subtriangles must be of lenght nnodes or ncells")
     else:
-        n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = _calc_subtriangle_unit_normals_at_node(
-            grid, elevs
-        )
+        (
+            n_ENE,
+            n_NNE,
+            n_NNW,
+            n_WNW,
+            n_WSW,
+            n_SSW,
+            n_SSE,
+            n_ESE,
+        ) = _calc_subtriangle_unit_normals_at_node(grid, elevs)
         reshape_size = grid.number_of_nodes
 
     # combine z direction element of all eight so that the arccosine portion
@@ -1276,9 +1283,16 @@ def _calc_subtriangle_aspect_at_node(
 
     # otherwise create it.
     else:
-        n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = _calc_subtriangle_unit_normals_at_node(
-            grid, elevs
-        )
+        (
+            n_ENE,
+            n_NNE,
+            n_NNW,
+            n_WNW,
+            n_WSW,
+            n_SSW,
+            n_SSE,
+            n_ESE,
+        ) = _calc_subtriangle_unit_normals_at_node(grid, elevs)
         reshape_size = grid.number_of_nodes
     # calculate the aspect as an angle ccw from the x axis (math angle)
     angle_from_x_ccw_ENE = np.reshape(
