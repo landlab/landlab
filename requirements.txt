@@ -1,4 +1,4 @@
-bmipy
+bmipy<1
 matplotlib
 netcdf4
 pyyaml
