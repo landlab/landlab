@@ -102,7 +102,7 @@ def setup_patches_at_link(shape):
     return patches_at_link
 
 
-def setup_node_coords(shape, spacing=1., origin=0.):
+def setup_node_coords(shape, spacing=1.0, origin=0.0):
     spacing = np.broadcast_to(spacing, 2)
     origin = np.broadcast_to(origin, 2)
 
@@ -323,7 +323,7 @@ class UniformRectilinearGraph(StructuredQuadGraph):
            [10,  9,  6,  7], [11, 10,  7,  8]])
     """
 
-    def __init__(self, shape, spacing=1., origin=0.):
+    def __init__(self, shape, spacing=1.0, origin=0.0):
         node_y_and_x = setup_node_coords(shape, spacing, origin)
 
         super(UniformRectilinearGraph, self).__init__(node_y_and_x)

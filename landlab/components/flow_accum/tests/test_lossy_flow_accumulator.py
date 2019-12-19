@@ -25,29 +25,29 @@ _THIS_DIR = os.path.abspath(os.path.dirname(__file__))
 
 def test_loss_func_arguments():
     """Check the loss_function only has one argument."""
-    mg = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node")
 
     def funcgood(x):
-        return 0.
+        return 0.0
 
     def funcgood2(x, y):
-        return 0.
+        return 0.0
 
     def funcgood3(x, y, z):
-        return 0.
+        return 0.0
 
     def funcgood4(x, y, z, grid):
-        return 0.
+        return 0.0
 
     def funcbad(x, y, z, grid, K):
-        return 0.
+        return 0.0
 
     def funcbad2(x):
         return "booooooo"
 
     def funcbad3(x, y):
-        return np.array([0.])
+        return np.array([0.0])
 
     def funcbad4(x, y, z):
         return (0, 1)
@@ -67,7 +67,7 @@ def test_loss_func_arguments():
 
 
 def test_run_with_2_fn_args():
-    mg = RasterModelGrid((3, 5), (1, 2))
+    mg = RasterModelGrid((3, 5), xy_spacing=(2, 1))
     mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 
@@ -85,7 +85,13 @@ def test_run_with_2_fn_args():
 
     assert np.allclose(
         mg.at_node["drainage_area"].reshape(mg.shape),
-        np.array([[0., 0., 0., 0., 0.], [6., 6., 4., 2., 0.], [0., 0., 0., 0., 0.]]),
+        np.array(
+            [
+                [0.0, 0.0, 0.0, 0.0, 0.0],
+                [6.0, 6.0, 4.0, 2.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0],
+            ]
+        ),
     )
     assert np.allclose(
         mg.at_node["surface_water__discharge"].reshape(mg.shape),
@@ -100,7 +106,7 @@ def test_run_with_2_fn_args():
 
 
 def test_run_with_3_fn_args():
-    mg = RasterModelGrid((3, 5), (1, 2))
+    mg = RasterModelGrid((3, 5), xy_spacing=(2, 1))
     mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 
@@ -118,7 +124,13 @@ def test_run_with_3_fn_args():
 
     assert np.allclose(
         mg.at_node["drainage_area"].reshape(mg.shape),
-        np.array([[0., 0., 0., 0., 0.], [6., 6., 4., 2., 0.], [0., 0., 0., 0., 0.]]),
+        np.array(
+            [
+                [0.0, 0.0, 0.0, 0.0, 0.0],
+                [6.0, 6.0, 4.0, 2.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0],
+            ]
+        ),
     )
     assert np.allclose(
         mg.at_node["surface_water__discharge"].reshape(mg.shape),
@@ -135,7 +147,7 @@ def test_run_with_3_fn_args():
 def test_check_fields():
     """Check to make sure the right fields have been created."""
 
-    mg = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     z = mg.add_field(
         "topographic__elevation", mg.node_x ** 2 + mg.node_y ** 2, at="node"
     )
@@ -146,42 +158,42 @@ def test_check_fields():
     assert_array_equal(np.ones(100), mg.at_node["water__unit_flux_in"])
     assert_array_equal(np.zeros(100), mg.at_node["surface_water__discharge_loss"])
 
-    LossyFlowAccumulator(mg, runoff_rate=2.)
-    assert_array_equal(np.full(100, 2.), mg.at_node["water__unit_flux_in"])
+    LossyFlowAccumulator(mg, runoff_rate=2.0)
+    assert_array_equal(np.full(100, 2.0), mg.at_node["water__unit_flux_in"])
 
     # quick test that the component binds correctly to an existing field:
     L = mg.at_node["surface_water__discharge_loss"]
     fa = LossyFlowAccumulator(mg)
     fa.run_one_step()  # this line is padding to make flake8 happy
-    L[0] = 1.
+    L[0] = 1.0
     assert mg.at_node["surface_water__discharge_loss"] is L
 
 
 def test_director_adding_methods_are_equivalent_Steepest():
     """Check that different methods to specifying the director are the same."""
 
-    mg0 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg0 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg0.add_field(
         "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
     )
     fa0 = LossyFlowAccumulator(mg0, flow_director="D4")
     fa0.run_one_step()
 
-    mg1 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg1.add_field(
         "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
     )
     fa1 = LossyFlowAccumulator(mg1, flow_director="Steepest")
     fa1.run_one_step()
 
-    mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field(
         "topographic__elevation", mg2.node_x ** 2 + mg2.node_y ** 2, at="node"
     )
     fa2 = LossyFlowAccumulator(mg2, flow_director=FlowDirectorSteepest)
     fa2.run_one_step()
 
-    mg3 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg3 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg3.add_field(
         "topographic__elevation", mg3.node_x ** 2 + mg3.node_y ** 2, at="node"
     )
@@ -200,28 +212,28 @@ def test_director_adding_methods_are_equivalent_Steepest():
 def test_director_adding_methods_are_equivalent_D8():
     """Check that different methods to specifying the director are the same."""
 
-    mg0 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg0 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg0.add_field(
         "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
     )
     fa0 = LossyFlowAccumulator(mg0, flow_director="D8")
     fa0.run_one_step()
 
-    mg1 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg1.add_field(
         "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
     )
     fa1 = LossyFlowAccumulator(mg1, flow_director="FlowDirectorD8")
     fa1.run_one_step()
 
-    mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field(
         "topographic__elevation", mg2.node_x ** 2 + mg2.node_y ** 2, at="node"
     )
     fa2 = LossyFlowAccumulator(mg2, flow_director=FlowDirectorD8)
     fa2.run_one_step()
 
-    mg3 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg3 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg3.add_field(
         "topographic__elevation", mg3.node_x ** 2 + mg3.node_y ** 2, at="node"
     )
@@ -240,28 +252,28 @@ def test_director_adding_methods_are_equivalent_D8():
 def test_director_adding_methods_are_equivalent_Dinf():
     """Check that different methods to specifying the director are the same."""
 
-    mg0 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg0 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg0.add_field(
         "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
     )
     fa0 = LossyFlowAccumulator(mg0, flow_director="DINF")
     fa0.run_one_step()
 
-    mg1 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg1.add_field(
         "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
     )
     fa1 = LossyFlowAccumulator(mg1, flow_director="FlowDirectorDINF")
     fa1.run_one_step()
 
-    mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field(
         "topographic__elevation", mg2.node_x ** 2 + mg2.node_y ** 2, at="node"
     )
     fa2 = LossyFlowAccumulator(mg2, flow_director=FlowDirectorDINF)
     fa2.run_one_step()
 
-    mg3 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg3 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg3.add_field(
         "topographic__elevation", mg3.node_x ** 2 + mg3.node_y ** 2, at="node"
     )
@@ -280,28 +292,28 @@ def test_director_adding_methods_are_equivalent_Dinf():
 def test_director_adding_methods_are_equivalent_MFD():
     """Check that different methods to specifying the director are the same."""
 
-    mg0 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg0 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg0.add_field(
         "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
     )
     fa0 = LossyFlowAccumulator(mg0, flow_director="MFD")
     fa0.run_one_step()
 
-    mg1 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg1.add_field(
         "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
     )
     fa1 = LossyFlowAccumulator(mg1, flow_director="FlowDirectorMFD")
     fa1.run_one_step()
 
-    mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field(
         "topographic__elevation", mg2.node_x ** 2 + mg2.node_y ** 2, at="node"
     )
     fa2 = LossyFlowAccumulator(mg2, flow_director=FlowDirectorMFD)
     fa2.run_one_step()
 
-    mg3 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg3 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg3.add_field(
         "topographic__elevation", mg3.node_x ** 2 + mg3.node_y ** 2, at="node"
     )
@@ -321,7 +333,7 @@ def test_passing_a_bad_component():
     """Check that a random component can't be a director."""
     from landlab.components import ChiFinder
 
-    mg = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
@@ -332,12 +344,12 @@ def test_passing_a_bad_component():
 def test_error_for_to_many_with_depression():
     """Check that an error is thrown when to_many methods started DF."""
 
-    mg0 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg0 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg0.add_field(
         "topographic__elevation", mg0.node_x ** 2 + mg0.node_y ** 2, at="node"
     )
 
-    mg1 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg1 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg1.add_field(
         "topographic__elevation", mg1.node_x ** 2 + mg1.node_y ** 2, at="node"
     )
@@ -367,7 +379,7 @@ def test_fields():
 
     Check that the sizes are also correct.
     """
-    mg = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     fa = LossyFlowAccumulator(mg)
     fa.run_one_step()
@@ -387,7 +399,7 @@ def test_fields():
     ]
     assert sorted(list(mg.at_grid.keys())) == ["flow__data_structure_D"]
 
-    mg2 = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg2 = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg2.add_field("topographic__elevation", mg2.node_x + mg2.node_y, at="node")
     fa2 = LossyFlowAccumulator(mg2, flow_director="MFD")
     fa2.run_one_step()
@@ -415,7 +427,7 @@ def test_accumulated_area_closes():
     fds = ["Steepest", "D8", "MFD", "DINF"]
 
     for fd in fds:
-        mg = RasterModelGrid((10, 10), spacing=(1, 1))
+        mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
         mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
         fa = LossyFlowAccumulator(mg)
         fa.run_one_step()
@@ -428,7 +440,7 @@ def test_accumulated_area_closes():
 
 # def test_passing_unnecessary_kwarg():
 #     """Test that passing a bad kwarg raises a ValueError."""
-#     mg = RasterModelGrid((10,10), spacing=(1, 1))
+#     mg = RasterModelGrid((10,10), xy_spacing=(1, 1))
 #     z = mg.add_field('topographic__elevation', mg.node_x + mg.node_y, at = 'node')
 #     with pytest.raises(ValueError):
 #         LossyFlowAccumulator(mg, bad_kwarg='woo')
@@ -436,7 +448,7 @@ def test_accumulated_area_closes():
 
 def test_specifying_routing_method_wrong():
     """Test specifying incorrect method for routing compatability with DepressionFinderAndRouter."""
-    mg = RasterModelGrid((10, 10), spacing=(1, 1))
+    mg = RasterModelGrid((10, 10), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 
     with pytest.raises(ValueError):
@@ -451,37 +463,37 @@ def test_specifying_routing_method_wrong():
 
 def test_field_name_array_float_case1():
     """Topography as field, runoff rate as float"""
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     topographic__elevation = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            21.,
-            10.,
-            0.,
-            0.,
-            31.,
-            20.,
-            0.,
-            0.,
-            32.,
-            30.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            21.0,
+            10.0,
+            0.0,
+            0.0,
+            31.0,
+            20.0,
+            0.0,
+            0.0,
+            32.0,
+            30.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
     mg.add_field("node", "topographic__elevation", topographic__elevation)
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
-    fa = LossyFlowAccumulator(mg, "topographic__elevation", runoff_rate=10.)
+    fa = LossyFlowAccumulator(mg, "topographic__elevation", runoff_rate=10.0)
     assert_array_equal(
-        mg.at_node["water__unit_flux_in"], 10. * np.ones(mg.size("node"))
+        mg.at_node["water__unit_flux_in"], 10.0 * np.ones(mg.size("node"))
     )
 
     fa.run_one_step()
@@ -490,31 +502,52 @@ def test_field_name_array_float_case1():
     )
 
     da = np.array(
-        [0., 1., 5., 0., 0., 1., 5., 0., 0., 1., 4., 0., 0., 1., 2., 0., 0., 0., 0., 0.]
+        [
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            4.0,
+            0.0,
+            0.0,
+            1.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
     )
 
     q = np.array(
         [
-            0.,
-            10.,
-            50.,
-            0.,
-            0.,
-            10.,
-            50.,
-            0.,
-            0.,
-            10.,
-            40.,
-            0.,
-            0.,
-            10.,
-            20.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            10.0,
+            50.0,
+            0.0,
+            0.0,
+            10.0,
+            50.0,
+            0.0,
+            0.0,
+            10.0,
+            40.0,
+            0.0,
+            0.0,
+            10.0,
+            20.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -525,53 +558,53 @@ def test_field_name_array_float_case1():
 
 def test_field_name_array_float_case2():
     """Topography as field, runoff rate as field name"""
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     topographic__elevation = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            21.,
-            10.,
-            0.,
-            0.,
-            31.,
-            20.,
-            0.,
-            0.,
-            32.,
-            30.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            21.0,
+            10.0,
+            0.0,
+            0.0,
+            31.0,
+            20.0,
+            0.0,
+            0.0,
+            32.0,
+            30.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
     runoff_rate = [
-        1.,
-        1.,
-        1.,
-        1.,
-        2.,
-        2.,
-        2.,
-        2.,
-        3.,
-        3.,
-        3.,
-        3.,
-        4.,
-        4.,
-        4.,
-        4.,
-        5.,
-        5.,
-        5.,
-        5.,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        5.0,
+        5.0,
+        5.0,
+        5.0,
     ]
 
     mg.add_field("node", "topographic__elevation", topographic__elevation)
@@ -587,31 +620,52 @@ def test_field_name_array_float_case2():
     )
 
     da = np.array(
-        [0., 1., 5., 0., 0., 1., 5., 0., 0., 1., 4., 0., 0., 1., 2., 0., 0., 0., 0., 0.]
+        [
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            4.0,
+            0.0,
+            0.0,
+            1.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
     )
 
     q = np.array(
         [
-            0.,
-            2.,
-            16.,
-            0.,  # KRB double checked these numbers by hand 5/15/18 - OK
-            0.,
-            2.,
-            16.,
-            0.,
-            0.,
-            3.,
-            14.,
-            0.,
-            0.,
-            4.,
-            8.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            2.0,
+            16.0,
+            0.0,  # KRB double checked these numbers by hand 5/15/18 - OK
+            0.0,
+            2.0,
+            16.0,
+            0.0,
+            0.0,
+            3.0,
+            14.0,
+            0.0,
+            0.0,
+            4.0,
+            8.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -622,53 +676,53 @@ def test_field_name_array_float_case2():
 
 def test_field_name_array_float_case3():
     """Topography as field, runoff rate as array"""
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     topographic__elevation = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            21.,
-            10.,
-            0.,
-            0.,
-            31.,
-            20.,
-            0.,
-            0.,
-            32.,
-            30.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            21.0,
+            10.0,
+            0.0,
+            0.0,
+            31.0,
+            20.0,
+            0.0,
+            0.0,
+            32.0,
+            30.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
     runoff_rate = [
-        1.,
-        1.,
-        1.,
-        1.,
-        2.,
-        2.,
-        2.,
-        2.,
-        3.,
-        3.,
-        3.,
-        3.,
-        4.,
-        4.,
-        4.,
-        4.,
-        5.,
-        5.,
-        5.,
-        5.,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        5.0,
+        5.0,
+        5.0,
+        5.0,
     ]
 
     mg.add_field("node", "topographic__elevation", topographic__elevation)
@@ -683,31 +737,52 @@ def test_field_name_array_float_case3():
     )
 
     da = np.array(
-        [0., 1., 5., 0., 0., 1., 5., 0., 0., 1., 4., 0., 0., 1., 2., 0., 0., 0., 0., 0.]
+        [
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            4.0,
+            0.0,
+            0.0,
+            1.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
     )
 
     q = np.array(
         [
-            0.,
-            2.,
-            16.,
-            0.,  # KRB double checked these numbers by hand 5/15/18 - OK
-            0.,
-            2.,
-            16.,
-            0.,
-            0.,
-            3.,
-            14.,
-            0.,
-            0.,
-            4.,
-            8.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            2.0,
+            16.0,
+            0.0,  # KRB double checked these numbers by hand 5/15/18 - OK
+            0.0,
+            2.0,
+            16.0,
+            0.0,
+            0.0,
+            3.0,
+            14.0,
+            0.0,
+            0.0,
+            4.0,
+            8.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -718,37 +793,37 @@ def test_field_name_array_float_case3():
 
 def test_field_name_array_float_case4():
     """Topography as array, runoff rate as float"""
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     topographic__elevation = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            21.,
-            10.,
-            0.,
-            0.,
-            31.,
-            20.,
-            0.,
-            0.,
-            32.,
-            30.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            21.0,
+            10.0,
+            0.0,
+            0.0,
+            31.0,
+            20.0,
+            0.0,
+            0.0,
+            32.0,
+            30.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
     mg.add_field("node", "topographic__elevation", topographic__elevation)
     mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
 
-    fa = LossyFlowAccumulator(mg, topographic__elevation, runoff_rate=10.)
+    fa = LossyFlowAccumulator(mg, topographic__elevation, runoff_rate=10.0)
     assert_array_equal(
-        mg.at_node["water__unit_flux_in"], 10. * np.ones(mg.size("node"))
+        mg.at_node["water__unit_flux_in"], 10.0 * np.ones(mg.size("node"))
     )
 
     fa.run_one_step()
@@ -757,31 +832,52 @@ def test_field_name_array_float_case4():
     )
 
     da = np.array(
-        [0., 1., 5., 0., 0., 1., 5., 0., 0., 1., 4., 0., 0., 1., 2., 0., 0., 0., 0., 0.]
+        [
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            4.0,
+            0.0,
+            0.0,
+            1.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
     )
 
     q = np.array(
         [
-            0.,
-            10.,
-            50.,
-            0.,
-            0.,
-            10.,
-            50.,
-            0.,
-            0.,
-            10.,
-            40.,
-            0.,
-            0.,
-            10.,
-            20.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            10.0,
+            50.0,
+            0.0,
+            0.0,
+            10.0,
+            50.0,
+            0.0,
+            0.0,
+            10.0,
+            40.0,
+            0.0,
+            0.0,
+            10.0,
+            20.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -792,53 +888,53 @@ def test_field_name_array_float_case4():
 
 def test_field_name_array_float_case5():
     """Topography as array, runoff rate as field name"""
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     topographic__elevation = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            21.,
-            10.,
-            0.,
-            0.,
-            31.,
-            20.,
-            0.,
-            0.,
-            32.,
-            30.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            21.0,
+            10.0,
+            0.0,
+            0.0,
+            31.0,
+            20.0,
+            0.0,
+            0.0,
+            32.0,
+            30.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
     runoff_rate = [
-        1.,
-        1.,
-        1.,
-        1.,
-        2.,
-        2.,
-        2.,
-        2.,
-        3.,
-        3.,
-        3.,
-        3.,
-        4.,
-        4.,
-        4.,
-        4.,
-        5.,
-        5.,
-        5.,
-        5.,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        5.0,
+        5.0,
+        5.0,
+        5.0,
     ]
 
     mg.add_field("node", "topographic__elevation", topographic__elevation)
@@ -854,31 +950,52 @@ def test_field_name_array_float_case5():
     )
 
     da = np.array(
-        [0., 1., 5., 0., 0., 1., 5., 0., 0., 1., 4., 0., 0., 1., 2., 0., 0., 0., 0., 0.]
+        [
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            4.0,
+            0.0,
+            0.0,
+            1.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
     )
 
     q = np.array(
         [
-            0.,
-            2.,
-            16.,
-            0.,  # KRB double checked these numbers by hand 5/15/18 - OK
-            0.,
-            2.,
-            16.,
-            0.,
-            0.,
-            3.,
-            14.,
-            0.,
-            0.,
-            4.,
-            8.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            2.0,
+            16.0,
+            0.0,  # KRB double checked these numbers by hand 5/15/18 - OK
+            0.0,
+            2.0,
+            16.0,
+            0.0,
+            0.0,
+            3.0,
+            14.0,
+            0.0,
+            0.0,
+            4.0,
+            8.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -889,53 +1006,53 @@ def test_field_name_array_float_case5():
 
 def test_field_name_array_float_case6():
     """Topography as array, runoff rate as array"""
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     topographic__elevation = np.array(
         [
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            21.,
-            10.,
-            0.,
-            0.,
-            31.,
-            20.,
-            0.,
-            0.,
-            32.,
-            30.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            21.0,
+            10.0,
+            0.0,
+            0.0,
+            31.0,
+            20.0,
+            0.0,
+            0.0,
+            32.0,
+            30.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
     runoff_rate = [
-        1.,
-        1.,
-        1.,
-        1.,
-        2.,
-        2.,
-        2.,
-        2.,
-        3.,
-        3.,
-        3.,
-        3.,
-        4.,
-        4.,
-        4.,
-        4.,
-        5.,
-        5.,
-        5.,
-        5.,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        2.0,
+        2.0,
+        2.0,
+        2.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        5.0,
+        5.0,
+        5.0,
+        5.0,
     ]
 
     mg.add_field("node", "topographic__elevation", topographic__elevation)
@@ -950,31 +1067,52 @@ def test_field_name_array_float_case6():
     )
 
     da = np.array(
-        [0., 1., 5., 0., 0., 1., 5., 0., 0., 1., 4., 0., 0., 1., 2., 0., 0., 0., 0., 0.]
+        [
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            5.0,
+            0.0,
+            0.0,
+            1.0,
+            4.0,
+            0.0,
+            0.0,
+            1.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        ]
     )
 
     q = np.array(
         [
-            0.,
-            2.,
-            16.,
-            0.,  # KRB double checked these numbers by hand 5/15/18 - OK
-            0.,
-            2.,
-            16.,
-            0.,
-            0.,
-            3.,
-            14.,
-            0.,
-            0.,
-            4.,
-            8.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            2.0,
+            16.0,
+            0.0,  # KRB double checked these numbers by hand 5/15/18 - OK
+            0.0,
+            2.0,
+            16.0,
+            0.0,
+            0.0,
+            3.0,
+            14.0,
+            0.0,
+            0.0,
+            4.0,
+            8.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -984,38 +1122,38 @@ def test_field_name_array_float_case6():
 
 
 def test_flow_accumulator_properties():
-    mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     fa = LossyFlowAccumulator(mg)
     fa.run_one_step()
 
     node_drainage_area = np.array(
         [
-            0.,
-            3.,
-            3.,
-            3.,
-            0.,
-            0.,
-            3.,
-            3.,
-            3.,
-            0.,
-            0.,
-            2.,
-            2.,
-            2.,
-            0.,
-            0.,
-            1.,
-            1.,
-            1.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
-            0.,
+            0.0,
+            3.0,
+            3.0,
+            3.0,
+            0.0,
+            0.0,
+            3.0,
+            3.0,
+            3.0,
+            0.0,
+            0.0,
+            2.0,
+            2.0,
+            2.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
         ]
     )
 
@@ -1055,7 +1193,7 @@ def test_flow_accumulator_properties():
 
 
 def test_water_discharge_in_supplied():
-    mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     mg.add_field("water__discharge_in", mg.node_x + mg.node_y, at="node")
     with pytest.deprecated_call():
@@ -1063,22 +1201,22 @@ def test_water_discharge_in_supplied():
 
 
 def test_bad_director_name():
-    mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(ValueError):
         LossyFlowAccumulator(mg, flow_director="spam")
 
 
 def test_bad_director_instance():
-    mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    ld = LinearDiffuser(mg, linear_diffusivity=1.)
+    ld = LinearDiffuser(mg, linear_diffusivity=1.0)
     with pytest.raises(ValueError):
         LossyFlowAccumulator(mg, flow_director=ld)
 
 
 def test_instantiated_director_with_kwargs():
-    mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     fd = FlowDirectorSteepest(mg)
     with pytest.raises(ValueError):
@@ -1086,14 +1224,14 @@ def test_instantiated_director_with_kwargs():
 
 
 def test_depression_finder_as_bad_string():
-    mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(ValueError):
         LossyFlowAccumulator(mg, flow_director="D8", depression_finder="spam")
 
 
 def test_depression_finder_as_string():
-    mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     LossyFlowAccumulator(
         mg, flow_director="D8", depression_finder="DepressionFinderAndRouter"
@@ -1101,22 +1239,22 @@ def test_depression_finder_as_string():
 
 
 def test_depression_finder_as_instance():
-    mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     df = DepressionFinderAndRouter(mg)
     LossyFlowAccumulator(mg, flow_director="D8", depression_finder=df)
 
 
 def test_depression_finder_bad_instance():
-    mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
-    ld = LinearDiffuser(mg, linear_diffusivity=1.)
+    ld = LinearDiffuser(mg, linear_diffusivity=1.0)
     with pytest.raises(ValueError):
         LossyFlowAccumulator(mg, flow_director="D8", depression_finder=ld)
 
 
 def test_instantiated_depression_finder_with_kwargs():
-    mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     df = DepressionFinderAndRouter(mg)
     with pytest.raises(ValueError):
@@ -1126,7 +1264,7 @@ def test_instantiated_depression_finder_with_kwargs():
 
 
 def test_depression_finder_bad_uninstantiated_component():
-    mg = RasterModelGrid((5, 5), spacing=(1, 1))
+    mg = RasterModelGrid((5, 5), xy_spacing=(1, 1))
     mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
     with pytest.raises(ValueError):
         LossyFlowAccumulator(mg, flow_director="D8", depression_finder=LinearDiffuser)

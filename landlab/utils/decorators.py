@@ -21,6 +21,8 @@ from functools import wraps
 import numpy as np
 import six
 
+from landlab import FieldError
+
 from ..core.model_parameter_loader import load_params
 
 try:
@@ -247,7 +249,7 @@ class use_field_name_or_array(object):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=(1, 2))
 
     >>> def my_func(grid, vals):
     ...     return grid.area_of_cell * vals
@@ -303,7 +305,10 @@ class use_field_name_or_array(object):
         def _wrapped(grid, vals, *args, **kwds):
             """Convert the second argument to an array."""
             if isinstance(vals, six.string_types):
-                vals = grid[self._at][vals]
+                if vals in grid[self._at]:
+                    vals = grid[self._at][vals]
+                else:
+                    raise FieldError(vals)
             else:
                 vals = np.asarray(vals).flatten()
 
@@ -333,7 +338,7 @@ class use_field_name_array_or_value(object):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=(1, 2))
 
     >>> def my_func(grid, vals):
     ...     return grid.area_of_cell * vals
@@ -394,7 +399,10 @@ class use_field_name_array_or_value(object):
         def _wrapped(grid, vals, *args, **kwds):
             """Convert the second argument to an array."""
             if isinstance(vals, six.string_types):
-                vals = grid[self._at][vals]
+                if vals in grid[self._at]:
+                    vals = grid[self._at][vals]
+                else:
+                    raise FieldError(vals)
             else:
                 expected_size = grid.size(self._at)
                 vals = np.asarray(vals).flatten()
@@ -437,36 +445,6 @@ def make_return_array_immutable(func):
         return immutable_array
 
     return _wrapped
-
-
-# def deprecated(use, version):
-#     """Mark a function as deprecated.
-#
-#     Parameters
-#     ----------
-#     use : str
-#         Name of replacement function to use.
-#     version : str
-#         Version number when function was marked as deprecated.
-#
-#     Returns
-#     -------
-#     func
-#         A wrapped function that issues a deprecation warning.
-#     """
-#     def real_decorator(func):
-#
-#         def _wrapped(*args, **kwargs):
-#             """Warn that the function is deprecated before calling it."""
-#             warnings.warn(
-#                 "Call to deprecated function {name}.".format(
-#                     name=func.__name__), category=DeprecationWarning)
-#             return func(*args, **kwargs)
-#         _wrapped.__dict__.update(func.__dict__)
-#
-#         return _wrapped
-#
-#     return real_decorator
 
 
 def deprecated(use, version):

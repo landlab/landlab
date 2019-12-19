@@ -1,4 +1,3 @@
-
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -17,7 +16,7 @@ def test_not_implemented_voroni():
 
 
 def test_D_infinity_low_closed_boundary_conditions():
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     z = np.array(
         [[0, 0, 0, 0], [0, 21, 10, 0], [0, 31, 20, 0], [0, 32, 30, 0], [0, 0, 0, 0]],
         dtype="float64",
@@ -60,26 +59,26 @@ def test_D_infinity_low_closed_boundary_conditions():
 
     true_proportions = np.array(
         [
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
             [0.06058469, 0.93941531],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
         ]
     )
     assert_array_equal(fd.receivers, true_recievers)
@@ -89,8 +88,8 @@ def test_D_infinity_low_closed_boundary_conditions():
 
 
 def test_D_infinity_open_boundary_conditions():
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
-    z = mg.x_of_node + 2. * mg.y_of_node
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
+    z = mg.x_of_node + 2.0 * mg.y_of_node
     mg.add_field("node", "topographic__elevation", z)
 
     fd = FlowDirectorDINF(mg)
@@ -123,26 +122,26 @@ def test_D_infinity_open_boundary_conditions():
 
     true_proportions = np.array(
         [
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
             [0.40966553, 0.59033447],
             [0.40966553, 0.59033447],
-            [1., 0.],
-            [1., 0.],
+            [1.0, 0.0],
+            [1.0, 0.0],
             [0.40966553, 0.59033447],
             [0.40966553, 0.59033447],
-            [1., 0.],
-            [1., 0.],
+            [1.0, 0.0],
+            [1.0, 0.0],
             [0.40966553, 0.59033447],
             [0.40966553, 0.59033447],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
-            [1., 0.],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 0.0],
         ]
     )
     assert_array_equal(fd.receivers, true_recievers)
@@ -152,7 +151,7 @@ def test_D_infinity_open_boundary_conditions():
 
 
 def test_D_infinity_flat():
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     mg.add_zeros("node", "topographic__elevation")
 
     fd = FlowDirectorDINF(mg)
@@ -172,7 +171,7 @@ def test_D_infinity_flat():
 
 
 def test_D_infinity_flat_closed_lower():
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     z = mg.add_zeros("node", "topographic__elevation")
     z[mg.core_nodes] += 1
     mg.set_closed_boundaries_at_grid_edges(
@@ -199,7 +198,7 @@ def test_D_infinity_flat_closed_lower():
 
 
 def test_D_infinity_flat_closed_upper():
-    mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     z = mg.add_zeros("node", "topographic__elevation")
     z[mg.core_nodes] -= 1
     mg.set_closed_boundaries_at_grid_edges(
@@ -226,7 +225,7 @@ def test_D_infinity_flat_closed_upper():
 
 
 def test_D_infinity_SW_slope():
-    mg = RasterModelGrid(10, 10, spacing=(1, 1))
+    mg = RasterModelGrid((10, 10))
     mg.add_field("topographic__elevation", mg.node_y + mg.node_x, at="node")
     fa = FlowAccumulator(mg, flow_director="FlowDirectorDINF")
     fa.run_one_step()
@@ -246,9 +245,9 @@ def test_D_infinity_SW_slope():
 
 
 def test_D_infinity_WSW_slope():
-    mg = RasterModelGrid(10, 10, spacing=(1, 1))
+    mg = RasterModelGrid((10, 10))
     mg.add_field(
-        "topographic__elevation", mg.node_y * (2 ** 0.5 - 1.) + mg.node_x, at="node"
+        "topographic__elevation", mg.node_y * (2 ** 0.5 - 1.0) + mg.node_x, at="node"
     )
     fa = FlowAccumulator(mg, flow_director="FlowDirectorDINF")
     fa.run_one_step()

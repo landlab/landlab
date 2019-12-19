@@ -17,7 +17,7 @@ def test_4x7_grid_vs_analytical_solution():
     """Test against known analytical solution."""
 
     # Create a 4-row by 7-column grid with 10 m spacing
-    mg = RasterModelGrid((4, 7), 10.0)
+    mg = RasterModelGrid((4, 7), xy_spacing=10.0)
 
     # Close off top and bottom (N and S) boundaries so it becomes a 1D problem
     mg.set_closed_boundaries_at_grid_edges(False, True, False, True)
@@ -58,7 +58,7 @@ def test_4x7_grid_vs_analytical_solution():
     # calculations.
     my_nodes = mg.nodes[2, :]
     assert_array_equal(
-        np.round(z[my_nodes], 1), np.array([0.0, 4.0, 6.7, 7.7, 6.7, 4.0, 0.0])
+        np.round(z[my_nodes], 1), np.array([0.0, 6.2, 10.7, 12.6, 10.7, 6.2, 0.0])
     )
     assert_array_equal(
         np.round(mg.at_node["soil__depth"][8:13], 2),

@@ -15,20 +15,20 @@ def _one_line_slopes(input_array, grid, vals):
 
     try:
         slope_we = (
-            (vals[diagonals[1]] + 2. * vals[neighbors[2]] + vals[diagonals[2]])
-            - (vals[diagonals[0]] + 2. * vals[neighbors[0]] + vals[diagonals[3]])
-        ) / (8. * grid.dx)
+            (vals[diagonals[1]] + 2.0 * vals[neighbors[2]] + vals[diagonals[2]])
+            - (vals[diagonals[0]] + 2.0 * vals[neighbors[0]] + vals[diagonals[3]])
+        ) / (8.0 * grid.dx)
         slope_sn = (
-            (vals[diagonals[2]] + 2. * vals[neighbors[3]] + vals[diagonals[3]])
-            - (vals[diagonals[1]] + 2. * vals[neighbors[:, 1]] + vals[diagonals[0]])
-        ) / (8. * grid.dy)
+            (vals[diagonals[2]] + 2.0 * vals[neighbors[3]] + vals[diagonals[3]])
+            - (vals[diagonals[1]] + 2.0 * vals[neighbors[:, 1]] + vals[diagonals[0]])
+        ) / (8.0 * grid.dy)
         return slope_we, slope_sn
     except IndexError:
         C = vals[node]
-        weighting_verticals = 4.
-        weighting_horizontals = 4.
+        weighting_verticals = 4.0
+        weighting_horizontals = 4.0
         try:
-            vertical_grad = (vals[neighbors[3]] - vals[neighbors[1]]) / (2. * grid.dy)
+            vertical_grad = (vals[neighbors[3]] - vals[neighbors[1]]) / (2.0 * grid.dy)
         except IndexError:
             try:
                 vertical_grad = (C - vals[neighbors[1]]) / grid.dy
@@ -36,10 +36,12 @@ def _one_line_slopes(input_array, grid, vals):
                 try:
                     vertical_grad = (vals[neighbors[3]] - C) / grid.dy
                 except IndexError:
-                    vertical_grad = 0.
-                    weighting_verticals -= 2.
+                    vertical_grad = 0.0
+                    weighting_verticals -= 2.0
         try:
-            horizontal_grad = (vals[neighbors[2]] - vals[neighbors[0]]) / (2. * grid.dx)
+            horizontal_grad = (vals[neighbors[2]] - vals[neighbors[0]]) / (
+                2.0 * grid.dx
+            )
         except IndexError:
             try:
                 horizontal_grad = (C - vals[neighbors[0]]) / grid.dx
@@ -47,55 +49,55 @@ def _one_line_slopes(input_array, grid, vals):
                 try:
                     horizontal_grad = (vals[neighbors[2]] - C) / grid.dx
                 except IndexError:
-                    horizontal_grad = 0.
-                    weighting_horizontals -= 2.
+                    horizontal_grad = 0.0
+                    weighting_horizontals -= 2.0
         try:
-            left_grad = (vals[diagonals[2]] - vals[diagonals[1]]) / (2. * grid.dx)
+            left_grad = (vals[diagonals[2]] - vals[diagonals[1]]) / (2.0 * grid.dx)
         except IndexError:
             try:
                 C = vals[neighbors[2]]
             except IndexError:
-                left_grad = 0.
-                weighting_verticals -= 1.
+                left_grad = 0.0
+                weighting_verticals -= 1.0
             else:
                 try:
                     left_grad = (C - vals[diagonals[1]]) / grid.dx
                 except IndexError:
                     left_grad = (vals[diagonals[2]] - C) / grid.dx
         try:
-            right_grad = (vals[diagonals[3]] - vals[diagonals[0]]) / (2. * grid.dx)
+            right_grad = (vals[diagonals[3]] - vals[diagonals[0]]) / (2.0 * grid.dx)
         except IndexError:
             try:
                 C = vals[neighbors[0]]
             except IndexError:
-                right_grad = 0.
-                weighting_verticals -= 1.
+                right_grad = 0.0
+                weighting_verticals -= 1.0
             else:
                 try:
                     right_grad = (C - vals[diagonals[0]]) / grid.dx
                 except IndexError:
                     right_grad = (vals[diagonals[3]] - C) / grid.dx
         try:
-            top_grad = (vals[diagonals[1]] - vals[diagonals[0]]) / (2. * grid.dy)
+            top_grad = (vals[diagonals[1]] - vals[diagonals[0]]) / (2.0 * grid.dy)
         except IndexError:
             try:
                 C = vals[neighbors[1]]
             except IndexError:
-                top_grad = 0.
-                weighting_horizontals -= 1.
+                top_grad = 0.0
+                weighting_horizontals -= 1.0
             else:
                 try:
                     top_grad = (C - vals[diagonals[0]]) / grid.dy
                 except IndexError:
                     top_grad = (vals[diagonals[1]] - C) / grid.dy
         try:
-            bottom_grad = (vals[diagonals[2]] - vals[diagonals[3]]) / (2. * grid.dy)
+            bottom_grad = (vals[diagonals[2]] - vals[diagonals[3]]) / (2.0 * grid.dy)
         except IndexError:
             try:
                 C = vals[neighbors[3]]
             except IndexError:
-                bottom_grad = 0.
-                weighting_horizontals -= 1.
+                bottom_grad = 0.0
+                weighting_horizontals -= 1.0
             else:
                 try:
                     bottom_grad = (C - vals[diagonals[3]]) / grid.dy
@@ -103,9 +105,9 @@ def _one_line_slopes(input_array, grid, vals):
                     bottom_grad = (vals[diagonals[2]] - C) / grid.dy
 
         slope_we = (
-            top_grad + 2. * horizontal_grad + bottom_grad
+            top_grad + 2.0 * horizontal_grad + bottom_grad
         ) / weighting_horizontals
-        slope_sn = (left_grad + 2. * vertical_grad + right_grad) / weighting_verticals
+        slope_sn = (left_grad + 2.0 * vertical_grad + right_grad) / weighting_verticals
 
         return slope_we, slope_sn
 
@@ -243,17 +245,17 @@ def calc_slope_aspect_of_nodes_horn(grid, ids=None, vals="topographic__elevation
     slope = np.sqrt(slope_we * slope_we + slope_sn * slope_sn)
     # aspect = np.empty_like(slope)
     aspect = np.ones(slope.size, dtype=float)
-    simple_cases = slope_we != 0.
+    simple_cases = slope_we != 0.0
     complex_cases = np.logical_not(simple_cases)
 
     complex_aspects = aspect[complex_cases]
-    complex_aspects[slope_sn[complex_cases] < 0.] = np.pi
-    complex_aspects[slope_sn[complex_cases] >= 0.] = 0.
+    complex_aspects[slope_sn[complex_cases] < 0.0] = np.pi
+    complex_aspects[slope_sn[complex_cases] >= 0.0] = 0.0
     aspect[complex_cases] = complex_aspects
 
     # +ve is CCW rotation from x axis
     angle_to_xaxis = np.arctan(slope_sn[simple_cases] / slope_we[simple_cases])
-    aspect[simple_cases] = ((1. - np.sign(slope_we[simple_cases])) * 0.5) * np.pi + (
+    aspect[simple_cases] = ((1.0 - np.sign(slope_we[simple_cases])) * 0.5) * np.pi + (
         0.5 * np.pi - angle_to_xaxis
     )
 

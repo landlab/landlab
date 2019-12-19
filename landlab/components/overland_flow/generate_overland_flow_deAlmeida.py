@@ -146,14 +146,14 @@ class OverlandFlow(Component):
 
     _var_mapping = {
         "surface_water__depth": "node",
-        "topographic__elevtation": "node",
+        "topographic__elevation": "node",
         "surface_water__discharge": "link",
         "water_surface__gradient": "link",
     }
 
     _var_doc = {
         "surface_water__depth": "The depth of water at each node.",
-        "topographic__elevtation": "The land surface elevation.",
+        "topographic__elevation": "The land surface elevation.",
         "surface_water__discharge": "The discharge of water on active links.",
         "water_surface__gradient": "Downstream gradient of the water surface.",
     }
@@ -192,6 +192,9 @@ class OverlandFlow(Component):
             Weighting factor from de Almeida et al., 2012.
         rainfall_intensity : float, optional
             Rainfall intensity.
+        steep_slopes : bool, optional
+            Modify the algorithm to handle steeper slopes at the expense of
+            speed. If model runs become unstable, consider setting to True.
         """
         super(OverlandFlow, self).__init__(grid, **kwds)
 
@@ -223,7 +226,7 @@ class OverlandFlow(Component):
         except FieldError:
             # Field was already set; still, fill it with zeros
             self.q = grid.at_link["surface_water__discharge"]
-            self.q.fill(0.)
+            self.q.fill(0.0)
 
         # For water depths calculated at links
         try:
@@ -234,7 +237,7 @@ class OverlandFlow(Component):
             )
         except FieldError:
             self.h_links = grid.at_link["surface_water__depth"]
-            self.h_links.fill(0.)
+            self.h_links.fill(0.0)
 
         self.h_links += self.h_init
 
@@ -258,7 +261,7 @@ class OverlandFlow(Component):
             )
         except FieldError:
             self.water_surface_slope = grid.at_link["water_surface__gradient"]
-            self.water_surface_slope.fill(0.)
+            self.water_surface_slope.fill(0.0)
 
         # Start time of simulation is at 1.0 s
         self.elapsed_time = 1.0
@@ -424,7 +427,7 @@ class OverlandFlow(Component):
         every point in the input grid.
         """
         # DH adds a loop to enable an imposed tstep while maintaining stability
-        local_elapsed_time = 0.
+        local_elapsed_time = 0.0
         if dt is None:
             dt = np.inf  # to allow the loop to begin
         while local_elapsed_time < dt:
@@ -493,8 +496,8 @@ class OverlandFlow(Component):
             try:
                 self.q[horiz] = (
                     self.theta * self.q[horiz]
-                    + (1. - self.theta)
-                    / 2.
+                    + (1.0 - self.theta)
+                    / 2.0
                     * (self.q[self.west_neighbors] + self.q[self.east_neighbors])
                     - self.g
                     * self.h_links[horiz]
@@ -504,7 +507,7 @@ class OverlandFlow(Component):
                     1
                     + self.g
                     * self.dt
-                    * self.mannings_n ** 2.
+                    * self.mannings_n ** 2.0
                     * abs(self.q[horiz])
                     / self.h_links[horiz] ** _SEVEN_OVER_THREE
                 )
@@ -513,7 +516,7 @@ class OverlandFlow(Component):
                 self.q[vert] = (
                     self.theta * self.q[vert]
                     + (1 - self.theta)
-                    / 2.
+                    / 2.0
                     * (self.q[self.north_neighbors] + self.q[self.south_neighbors])
                     - self.g
                     * self.h_links[vert]
@@ -523,7 +526,7 @@ class OverlandFlow(Component):
                     1
                     + self.g
                     * self.dt
-                    * self.mannings_n ** 2.
+                    * self.mannings_n ** 2.0
                     * abs(self.q[vert])
                     / self.h_links[vert] ** _SEVEN_OVER_THREE
                 )
@@ -534,8 +537,8 @@ class OverlandFlow(Component):
                 # calc discharge in horizontal
                 self.q[horiz] = (
                     self.theta * self.q[horiz]
-                    + (1. - self.theta)
-                    / 2.
+                    + (1.0 - self.theta)
+                    / 2.0
                     * (self.q[self.west_neighbors] + self.q[self.east_neighbors])
                     - self.g
                     * self.h_links[horiz]
@@ -545,7 +548,7 @@ class OverlandFlow(Component):
                     1
                     + self.g
                     * self.dt
-                    * self.mannings_n[horiz] ** 2.
+                    * self.mannings_n[horiz] ** 2.0
                     * abs(self.q[horiz])
                     / self.h_links[horiz] ** _SEVEN_OVER_THREE
                 )
@@ -554,7 +557,7 @@ class OverlandFlow(Component):
                 self.q[vert] = (
                     self.theta * self.q[vert]
                     + (1 - self.theta)
-                    / 2.
+                    / 2.0
                     * (self.q[self.north_neighbors] + self.q[self.south_neighbors])
                     - self.g
                     * self.h_links[vert]
@@ -564,7 +567,7 @@ class OverlandFlow(Component):
                     1
                     + self.g
                     * self.dt
-                    * self.mannings_n[vert] ** 2.
+                    * self.mannings_n[vert] ** 2.0
                     * abs(self.q[vert])
                     / self.h_links[vert] ** _SEVEN_OVER_THREE
                 )
@@ -592,7 +595,7 @@ class OverlandFlow(Component):
                 q_courant = self.q * self.dt / self.grid.dx
 
                 # Water depth split equally between four links..
-                water_div_4 = self.h_links / 4.
+                water_div_4 = self.h_links / 4.0
 
                 # IDs where water discharge is positive...
                 (positive_q,) = np.where(self.q > 0)
@@ -628,7 +631,7 @@ class OverlandFlow(Component):
                     np.sqrt(self.g * self.h_links[self.if_statement_1]) * Fr
                 )
 
-                self.q[self.if_statement_2] = 0. - (
+                self.q[self.if_statement_2] = 0.0 - (
                     self.h_links[self.if_statement_2]
                     * np.sqrt(self.g * self.h_links[self.if_statement_2])
                     * Fr
@@ -636,12 +639,12 @@ class OverlandFlow(Component):
 
                 # Rules 3 and 4 reduce discharge by the Courant number.
                 self.q[self.if_statement_3] = (
-                    (self.h_links[self.if_statement_3] * self.grid.dx) / 5.
+                    (self.h_links[self.if_statement_3] * self.grid.dx) / 5.0
                 ) / self.dt
 
                 self.q[self.if_statement_4] = (
-                    0.
-                    - (self.h_links[self.if_statement_4] * self.grid.dx / 5.) / self.dt
+                    0.0
+                    - (self.h_links[self.if_statement_4] * self.grid.dx / 5.0) / self.dt
                 )
 
             # Once stability has been restored, we calculate the change in

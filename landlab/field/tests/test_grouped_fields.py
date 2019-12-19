@@ -194,10 +194,10 @@ def test_scalar_field():
     with pytest.raises(AttributeError):
         fields.at_cell
 
-    fields.at_all_over_the_place["const"] = 1.
-    assert_array_equal(np.array(1.), fields.at_all_over_the_place["const"])
+    fields.at_all_over_the_place["const"] = 1.0
+    assert_array_equal(np.array(1.0), fields.at_all_over_the_place["const"])
 
-    val = np.array(2.)
+    val = np.array(2.0)
     fields.at_all_over_the_place["const"] = val
     assert val is fields.at_all_over_the_place["const"]
 
@@ -207,16 +207,16 @@ def test_grid_field_as_array():
     fields = ModelDataFields()
     fields.new_field_location("grid", 1)
 
-    fields.at_grid["const"] = [1., 2.]
-    assert_array_equal(np.array([1., 2.]), fields.at_grid["const"])
+    fields.at_grid["const"] = [1.0, 2.0]
+    assert_array_equal(np.array([1.0, 2.0]), fields.at_grid["const"])
 
-    val = np.array([1., 2.])
+    val = np.array([1.0, 2.0])
     fields.at_grid["const"] = val
     assert val is fields.at_grid["const"]
 
     val.shape = (1, 1, 2, 1)
     fields.at_grid["const"] = val
-    assert_array_equal(np.array([1., 2.]), fields.at_grid["const"])
+    assert_array_equal(np.array([1.0, 2.0]), fields.at_grid["const"])
     assert val is fields.at_grid["const"].base
 
 

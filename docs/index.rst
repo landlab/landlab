@@ -17,6 +17,10 @@ A guide to Landlab's classes and code.
 Grids
 =====
 
+An extensive index to the Landlab grid and its methods is found on
+:py:mod:`the following page <landlab.grid>`. Below is a short hyperlinked
+summary.
+
 Grid types
 ----------
 
@@ -94,16 +98,28 @@ inherits from ``VoronoiDelauneyGrid`` and adds the following:
    landlab.grid.radial
 
 
- Specialized methods and properties for network grids
- ----------------------------------------------------
+Specialized methods and properties for network grids
+----------------------------------------------------
 
- Landlab's network grids are implemented by the class ``NetworkModelGrid``,
- which inherits from ``Graph`` and ``GraphFields`` and adds the following:
+Landlab's network grids are implemented by the class ``NetworkModelGrid``,
+which inherits from ``Graph`` and ``GraphFields`` and adds the following:
 
- .. toctree::
-    :maxdepth: 3
+.. toctree::
+   :maxdepth: 3
 
-    landlab.grid.network
+   landlab.grid.network
+
+Values
+======
+
+The Landlab values submodule provides capabilities to generate synthetic values for
+model grid fields.
+
+.. toctree::
+   :maxdepth: 2
+
+   landlab.values
+
 
 Layers
 ======
@@ -161,6 +177,7 @@ Flow routing
    landlab.components.flow_director
    landlab.components.flow_accum
    landlab.components.flow_routing
+   landlab.components.lake_fill
    landlab.components.sink_fill
 
 Shallow water hydrodynamics
@@ -171,8 +188,8 @@ Shallow water hydrodynamics
 
    landlab.components.overland_flow
 
-Land surface hydrology
-----------------------
+Land surface and groundwater hydrology
+--------------------------------------
 
 .. toctree::
   :maxdepth: 4
@@ -181,6 +198,7 @@ Land surface hydrology
   landlab.components.pet
   landlab.components.soil_moisture
   landlab.components.greenampt
+  landlab.components.groundwater_dupuit_percolator
 
 Landslides
 ----------
@@ -284,6 +302,18 @@ The Component base class
   :maxdepth: 4
 
   landlab.core.model_component
+
+Data Structure
+==============
+
+DataRecord
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+  landlab.data_record.data_record
+
 
 Input/Output (IO)
 =================

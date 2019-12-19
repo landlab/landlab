@@ -81,7 +81,7 @@ class Space(_GeneralizedErosionDeposition):
     *  Initial topography is plane tilted up to the upper right with
        noise
 
-    >>> mg = RasterModelGrid((5, 5), spacing=10.0)
+    >>> mg = RasterModelGrid((5, 5), xy_spacing=10.0)
     >>> _ = mg.add_zeros('topographic__elevation', at='node')
     >>> mg.at_node['topographic__elevation'] += (mg.node_y / 10. +
     ...     mg.node_x / 10. + np.random.rand(len(mg.node_y)) / 10.)
@@ -134,15 +134,17 @@ class Space(_GeneralizedErosionDeposition):
     Now we test to see if soil depth and topography are right:
 
     >>> np.around(mg.at_node['soil__depth'], decimals=3) # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.495,  0.493,
-            0.492,  0.5  ,  0.5  ,  0.493,  0.493,  0.491,  0.5  ,  0.5  ,
-            0.492,  0.491,  0.486,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ])
+    array([ 0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.495,  0.492,
+            0.491,  0.5  ,  0.5  ,  0.492,  0.492,  0.49 ,  0.5  ,  0.5  ,
+            0.491,  0.49 ,  0.484,  0.5  ,  0.5  ,  0.5  ,  0.5  ,  0.5  ,
+            0.5  ])
 
     >>> np.around(mg.at_node['topographic__elevation'], decimals=3) # doctest: +NORMALIZE_WHITESPACE
-    array([ 0.423,  1.536,  2.573,  3.511,  4.561,  1.582,  0.424,  0.429,
-            0.438,  5.51 ,  2.54 ,  0.429,  0.429,  0.439,  6.526,  3.559,
-            0.438,  0.439,  0.451,  7.553,  4.559,  5.541,  6.57 ,  7.504,
+    array([ 0.423,  1.536,  2.573,  3.511,  4.561,  1.582,  0.424,  0.428,
+            0.438,  5.51 ,  2.54 ,  0.428,  0.428,  0.438,  6.526,  3.559,
+            0.438,  0.438,  0.45 ,  7.553,  4.559,  5.541,  6.57 ,  7.504,
             8.51 ])
+
     """
 
     _name = "Space"
@@ -202,16 +204,16 @@ class Space(_GeneralizedErosionDeposition):
     def __init__(
         self,
         grid,
-        K_sed=None,
-        K_br=None,
-        F_f=None,
-        phi=None,
-        H_star=None,
-        v_s=None,
-        m_sp=None,
-        n_sp=None,
-        sp_crit_sed=None,
-        sp_crit_br=None,
+        K_sed=0.02,
+        K_br=0.02,
+        F_f=0.0,
+        phi=0.3,
+        H_star=0.1,
+        v_s=1.0,
+        m_sp=0.5,
+        n_sp=1.0,
+        sp_crit_sed=0.0,
+        sp_crit_br=0.0,
         discharge_field="surface_water__discharge",
         solver="basic",
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
@@ -343,7 +345,6 @@ class Space(_GeneralizedErosionDeposition):
             self.Er,
             self.v_s,
             self.F_f,
-            self.phi,
         )
 
         self.depo_rate[self.q > 0] = self.qs[self.q > 0] * (
@@ -363,7 +364,7 @@ class Space(_GeneralizedErosionDeposition):
         # positive slopes, not flooded
         pos_not_flood = (self.q > 0) & (blowup) & (self.slope > 0) & (~flooded)
         self.soil__depth[pos_not_flood] = self.H_star * np.log(
-            (self.sed_erosion_term[pos_not_flood] / self.H_star) * dt
+            ((self.sed_erosion_term[pos_not_flood] / (1 - self.phi)) / self.H_star) * dt
             + np.exp(self.soil__depth[pos_not_flood] / self.H_star)
         )
         # positive slopes, flooded
@@ -384,7 +385,7 @@ class Space(_GeneralizedErosionDeposition):
                 1
                 / (
                     (self.depo_rate[pos_not_flood] / (1 - self.phi))
-                    / (self.sed_erosion_term[pos_not_flood])
+                    / (self.sed_erosion_term[pos_not_flood] / (1 - self.phi))
                     - 1
                 )
             )
@@ -392,7 +393,7 @@ class Space(_GeneralizedErosionDeposition):
                 np.exp(
                     (
                         self.depo_rate[pos_not_flood] / (1 - self.phi)
-                        - (self.sed_erosion_term[pos_not_flood])
+                        - (self.sed_erosion_term[pos_not_flood] / (1 - self.phi))
                     )
                     * (dt / self.H_star)
                 )
@@ -401,7 +402,7 @@ class Space(_GeneralizedErosionDeposition):
                         (
                             self.depo_rate[pos_not_flood]
                             / (1 - self.phi)
-                            / (self.sed_erosion_term[pos_not_flood])
+                            / (self.sed_erosion_term[pos_not_flood] / (1 - self.phi))
                         )
                         - 1
                     )
@@ -531,7 +532,6 @@ class Space(_GeneralizedErosionDeposition):
                 self.Er,
                 self.v_s,
                 self.F_f,
-                self.phi,
             )
 
             self.depo_rate[self.q > 0] = self.qs[self.q > 0] * (
@@ -558,7 +558,7 @@ class Space(_GeneralizedErosionDeposition):
 
             # Next we consider time to exhaust regolith
             time_to_zero_alluv[:] = remaining_time
-            dHdt = self.porosity_factor * (self.depo_rate) - self.Es
+            dHdt = self.porosity_factor * (self.depo_rate - self.Es)
             decreasing_H = np.where(dHdt < 0.0)[0]
             time_to_zero_alluv[decreasing_H] = -(
                 TIME_STEP_FACTOR * H[decreasing_H] / dHdt[decreasing_H]
@@ -568,9 +568,7 @@ class Space(_GeneralizedErosionDeposition):
             dt_max2 = np.amin(time_to_zero_alluv)
 
             # Take the smaller of the limits
-            dt_max = min(dt_max1, dt_max2)
-            if dt_max < self.dt_min:
-                dt_max = self.dt_min
+            dt_max = max(self.dt_min, min(dt_max1, dt_max2))
 
             # Now a vector operation: apply dzdt and dhdt to all nodes
             br[cores] -= self.Er[cores] * dt_max

@@ -1,39 +1,19 @@
 #! /usr/env/python
 
-"""Create 2D grid with randomly generated fractures.
+"""
+Create 2D grid with randomly generated fractures.
 
-fracture_grid: creates and returns a 2D grid with randomly generated fractures.
-The grid contains the value 1 where fractures (one cell wide) exist, and
-0 elsewhere. The idea is to use this for simulations based on weathering and
-erosion of, and/or flow within, fracture networks.
-
-The entry point is the function::
-
-    make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None)
-
-If called with a Landlab RasterModelGrid, the function returns the fracture
-grid as a node array. Otherwise, it returns a numrows x numcols Numpy array.
-
-Potential improvements:
-    - Add doctests
-    - Fractures could be defined by links rather than nodes (i.e., return a
-        link array with a code indicating whether the link crosses a fracture
-        or not)
-    - Fractures could have a finite length rather than extending all the way
-        across the grid
-    - Use of starting position along either x or y axis makes fracture net
-        somewhat asymmetric. One would need a different algorithm to make it
-        fully (statistically) symmetric.
 
 Created: September 2013 by Greg Tucker
-Last significant modification: cleanup and unit tests Oct 2015 GT
+Last significant modification: conversion to proper component 7/2019 GT
 """
 
 import numpy as np
-from numpy import pi, size, tan, zeros
+
+from landlab import Component
 
 
-def calculate_fracture_starting_position(shape, seed):
+def _calc_fracture_starting_position(shape, seed):
     """Choose a random starting position along the x or y axis (random choice).
 
     Parameters
@@ -60,7 +40,7 @@ def calculate_fracture_starting_position(shape, seed):
     return (y, x)
 
 
-def calculate_fracture_orientation(coords, seed):
+def _calc_fracture_orientation(coords, seed):
     """Choose a random orientation for the fracture.
 
     Parameters
@@ -77,23 +57,23 @@ def calculate_fracture_orientation(coords, seed):
 
     Notes
     -----
-    If the fracture starts along the bottom of the grid (y=0), then the angle
-    will be between 45 and 135 degrees from horizontal (counter-clockwise).
-    Otherwise, it will be between -45 and 45 degrees.
+    If the fracture starts along the bottom of the grid (y=0), then the
+    angle will be between 45 and 135 degrees from horizontal
+    (counter-clockwise). Otherwise, it will be between -45 and 45 degrees.
     """
     y, x = coords
 
     np.random.seed(seed)
-    ang = (pi / 2) * np.random.rand()
+    ang = (np.pi / 2) * np.random.rand()
     if y == 0:
-        ang += pi / 4
+        ang += np.pi / 4
     else:
-        ang -= pi / 4
+        ang -= np.pi / 4
 
     return ang
 
 
-def calculate_fracture_step_sizes(start_yx, ang):
+def _calc_fracture_step_sizes(start_yx, ang):
     """
     Calculate the sizes of steps dx and dy to be used when "drawing" the
     fracture onto the grid.
@@ -114,19 +94,20 @@ def calculate_fracture_step_sizes(start_yx, ang):
     starty, startx = start_yx
     if startx == 0:  # frac starts on left side
         dx = 1
-        dy = tan(ang)
+        dy = np.tan(ang)
     else:  # frac starts on bottom side
         dy = 1
-        dx = -tan(ang - pi / 2)
+        dx = -np.tan(ang - np.pi / 2)
 
     return (dy, dx)
 
 
-def trace_fracture_through_grid(m, start_yx, spacing):
+def _trace_fracture_through_grid(m, start_yx, spacing):
     """Create a 2D fracture in a grid.
 
-    Creates a "fracture" in a 2D grid, m, by setting cell values to unity along
-    the trace of the fracture (i.e., "drawing" a line throuh the grid).
+    Creates a "fracture" in a 2D grid, m, by setting cell values to unity
+    along the trace of the fracture (i.e., "drawing" a line throuh the
+    grid).
 
     Parameters
     ----------
@@ -148,8 +129,8 @@ def trace_fracture_through_grid(m, start_yx, spacing):
     y = y0
 
     while (
-        round(x) < size(m, 1)
-        and round(y) < size(m, 0)
+        round(x) < np.size(m, 1)
+        and round(y) < np.size(m, 0)
         and round(x) >= 0
         and round(y) >= 0
     ):
@@ -158,55 +139,101 @@ def trace_fracture_through_grid(m, start_yx, spacing):
         y += dy
 
 
-def make_frac_grid(frac_spacing, numrows=50, numcols=50, model_grid=None, seed=0):
-    """Create a grid that contains a network of random fractures.
+class FractureGridGenerator(Component):
 
-    Creates and returns a grid containing a network of random fractures, which
-    are represented as 1's embedded in a grid of 0's.
+    """
+    Create a 2D grid with randomly generated fractures.
+
+    The grid contains the value 1 where fractures (one cell wide) exist, and
+    0 elsewhere. The idea is to use this for simulations based on weathering
+    and erosion of, and/or flow within, fracture networks.
 
     Parameters
     ----------
-    frac_spacing : int
-        Average spacing of fractures (in grid cells)
-    numrows : int, optional
-        Number of rows in grid (if model_grid parameter is given,
-        uses values from the model grid instead)
-    numcols : int, optional
-        Number of columns in grid (if model_grid parameter is given,
-        uses values from the model grid instead)
-    model_grid : Landlab RasterModelGrid object, optiona
-        RasterModelGrid to use for grid size
+    frac_spacing : int, optional
+        Average spacing of fractures (in grid cells) (default = 10)
     seed : int, optional
-        Seed used for random number generator
+        Seed used for random number generator (default = 0)
 
-    Returns
-    -------
-    m : Numpy array
-        Array containing fracture grid, represented as 0's (matrix) and 1's
-        (fractures). If model_grid parameter is given, returns a 1D array
-        corresponding to a node-based array in the model grid. Otherwise,
-        returns a 2D array with dimensions given by numrows, numcols.
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid((5, 5))
+    >>> fg = FractureGridGenerator(grid=grid, frac_spacing=3)
+    >>> fg.run_one_step()
+    >>> grid.at_node['fracture_at_node']
+    array([1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+           0, 0], dtype=int8)
+
+    Notes
+    -----
+    Potential improvements:
+    - Add doctests
+    - Fractures could be defined by links rather than nodes (i.e., return a
+        link array with a code indicating whether the link crosses a fracture
+        or not)
+    - Fractures could have a finite length rather than extending all the way
+        across the grid
+    - Use of starting position along either x or y axis makes fracture net
+        somewhat asymmetric. One would need a different algorithm to make it
+        fully (statistically) symmetric.
     """
-    # Make an initial grid of all zeros. If user specified a model grid,
-    # use that. Otherwise, use the given dimensions.
-    if model_grid is not None:
-        numrows = model_grid.number_of_node_rows
-        numcols = model_grid.number_of_node_columns
-    m = zeros((numrows, numcols), dtype=int)
 
-    # Add fractures to grid
-    nfracs = (numrows + numcols) // frac_spacing
-    for i in range(nfracs):
+    _name = "FractureGridGenerator"
 
-        (y, x) = calculate_fracture_starting_position((numrows, numcols), seed + i)
-        ang = calculate_fracture_orientation((y, x), seed + i)
-        (dy, dx) = calculate_fracture_step_sizes((y, x), ang)
+    _input_var_names = ()
 
-        trace_fracture_through_grid(m, (y, x), (dy, dx))
+    _output_var_names = ("fracture_at_node",)
 
-    # If we have a model_grid, flatten the frac grid so it's equivalent to
-    # a node array.
-    if model_grid is not None:
-        m.shape = m.shape[0] * m.shape[1]
+    _var_units = {"fracture_at_node": "-"}
 
-    return m
+    _var_mapping = {"fracture_at_node": "node"}
+
+    _var_doc = {"fracture_at_node": "presence (1) or absence (0) of fracture"}
+
+    def __init__(self, grid, frac_spacing=10.0, seed=0):
+        """Initialize the FractureGridGenerator."""
+
+        self._grid = grid
+        self.frac_spacing = frac_spacing
+        self.seed = seed
+        super(FractureGridGenerator, self).__init__(grid)
+
+        # TODO: delete this once we have generation of output fields in
+        # base class
+        if "fracture_at_node" not in grid.at_node:
+            grid.add_zeros("node", "fracture_at_node", dtype=np.int8)
+
+    def run_one_step(self):
+        """Run FractureGridGenerator and create a random fracture grid."""
+        self._make_frac_grid(self.frac_spacing, self.seed)
+
+    def _make_frac_grid(self, frac_spacing, seed):
+        """Create a grid that contains a network of random fractures.
+
+        Creates a grid containing a network of random fractures, which are
+        represented as 1's embedded in a grid of 0's. The grid is stored in
+        the "fracture_at_node" field.
+
+        Parameters
+        ----------
+        frac_spacing : int
+            Average spacing of fractures (in grid cells)
+        seed : int
+            Seed used for random number generator
+        """
+        # Make an initial grid of all zeros. If user specified a model grid,
+        # use that. Otherwise, use the given dimensions.
+        nr = self._grid.number_of_node_rows
+        nc = self._grid.number_of_node_columns
+        m = self._grid.at_node["fracture_at_node"].reshape((nr, nc))
+
+        # Add fractures to grid
+        nfracs = (nr + nc) // frac_spacing
+        for i in range(nfracs):
+
+            (y, x) = _calc_fracture_starting_position((nr, nc), seed + i)
+            ang = _calc_fracture_orientation((y, x), seed + i)
+            (dy, dx) = _calc_fracture_step_sizes((y, x), ang)
+
+            _trace_fracture_through_grid(m, (y, x), (dy, dx))

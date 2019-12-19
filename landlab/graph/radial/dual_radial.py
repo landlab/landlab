@@ -18,7 +18,7 @@ class DualRadialGraph(DualVoronoiGraph):
     array([-0.5,  0.5, -0.5,  0.5])
     """
 
-    def __init__(self, shape, spacing=1., origin=(0., 0.)):
+    def __init__(self, shape, spacing=1.0, origin=(0.0, 0.0)):
         """Create a structured grid of triangles arranged radially.
 
         Parameters

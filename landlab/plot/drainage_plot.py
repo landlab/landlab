@@ -3,6 +3,7 @@
 """
 import matplotlib.pylab as plt
 import numpy as np
+
 # KRB, FEB 2017.
 import six
 
@@ -12,7 +13,7 @@ from landlab import (
     FIXED_GRADIENT_BOUNDARY,
     FIXED_VALUE_BOUNDARY,
 )
-from landlab.plot.imshow import imshow_node_grid
+from landlab.plot.imshow import imshow_grid
 
 
 def drainage_plot(
@@ -29,7 +30,7 @@ def drainage_plot(
         colorbar_label = surface
     else:
         colorbar_label = "topographic_elevation"
-    imshow_node_grid(mg, surface, cmap=surf_cmap, colorbar_label=colorbar_label)
+    imshow_grid(mg, surface, cmap=surf_cmap, colorbar_label=colorbar_label)
 
     if receivers is None:
         receivers = mg.at_node["flow__receiver_node"]
@@ -55,12 +56,12 @@ def drainage_plot(
         if proportions is None:
             proportions = np.ones_like(receivers, dtype=float)
 
-        is_bad[proportions[:, j] == 0.] = True
+        is_bad[proportions[:, j] == 0.0] = True
 
         xdist[is_bad] = np.nan
         ydist[is_bad] = np.nan
 
-        prop = proportions[:, j] * 256.
+        prop = proportions[:, j] * 256.0
         lu = np.floor(prop)
         colors = propColor(lu.astype(int))
 

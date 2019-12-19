@@ -10,7 +10,7 @@ from landlab.components.overland_flow import (
 
 @pytest.fixture
 def deAlm():
-    grid = RasterModelGrid((32, 240), spacing=25)
+    grid = RasterModelGrid((32, 240), xy_spacing=25)
     grid.add_zeros("surface_water__depth", at="node")
     grid.add_zeros("topographic__elevation", at="node")
     grid.add_zeros("surface_water__discharge", at="link")
@@ -19,7 +19,7 @@ def deAlm():
 
 @pytest.fixture
 def kin_wave_of():
-    grid = RasterModelGrid((10, 10), spacing=0.5)
+    grid = RasterModelGrid((10, 10), xy_spacing=0.5)
     grid.add_zeros("topographic__elevation", at="node", dtype=float)
     grid.add_zeros("topographic__gradient", at="node")
 
@@ -28,7 +28,7 @@ def kin_wave_of():
 
 @pytest.fixture
 def bates():
-    grid = RasterModelGrid((32, 240), spacing=25)
+    grid = RasterModelGrid((32, 240), xy_spacing=25)
     grid.add_zeros("surface_water__depth", at="node")
     grid.add_zeros("topographic__elevation", at="node")
     return OverlandFlowBates(grid, mannings_n=0.01, h_init=0.001)

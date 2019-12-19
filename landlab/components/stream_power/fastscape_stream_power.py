@@ -67,7 +67,7 @@ class FastscapeEroder(Component):
     >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
     >>> from landlab.components import FlowAccumulator, FastscapeEroder
 
-    >>> grid = RasterModelGrid((5, 5), spacing=10.)
+    >>> grid = RasterModelGrid((5, 5), xy_spacing=10.)
     >>> z = np.array([7.,  7.,  7.,  7.,  7.,
     ...               7.,  5., 3.2,  6.,  7.,
     ...               7.,  2.,  3.,  5.,  7.,
@@ -85,7 +85,7 @@ class FastscapeEroder(Component):
             7.        ,  0.28989795,  0.85403051,  2.42701526,  7.        ,
             7.        ,  0.        ,  7.        ,  7.        ,  7.        ])
 
-    >>> grid = RasterModelGrid((3, 7), spacing=1.)
+    >>> grid = RasterModelGrid((3, 7), xy_spacing=1.)
     >>> z = np.array(grid.node_x ** 2.)
     >>> z = grid.add_field('topographic__elevation', z, at='node')
     >>> grid.status_at_node[grid.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY
@@ -101,7 +101,7 @@ class FastscapeEroder(Component):
     array([  0.        ,   1.        ,   4.        ,   8.52493781,
             13.29039716,  18.44367965,  36.        ])
 
-    >>> grid = RasterModelGrid((3, 7), spacing=1.)
+    >>> grid = RasterModelGrid((3, 7), xy_spacing=1.)
     >>> z = np.array(grid.node_x ** 2.)
     >>> z = grid.add_field('topographic__elevation', z, at='node')
     >>> grid.status_at_node[grid.nodes_at_left_edge] = FIXED_VALUE_BOUNDARY
@@ -169,9 +169,9 @@ class FastscapeEroder(Component):
         grid,
         K_sp=None,
         m_sp=0.5,
-        n_sp=1.,
-        threshold_sp=0.,
-        rainfall_intensity=1.,
+        n_sp=1.0,
+        threshold_sp=0.0,
+        rainfall_intensity=1.0,
         discharge_name="drainage_area",
         **kwds
     ):
@@ -402,11 +402,11 @@ class FastscapeEroder(Component):
 
         # Handle flooded nodes, if any (no erosion there)
         if flooded_nodes is not None:
-            alpha[flooded_nodes] = 0.
+            alpha[flooded_nodes] = 0.0
         else:
             reversed_flow = z < z[flow_receivers]
             # this check necessary if flow has been routed across depressions
-            alpha[reversed_flow] = 0.
+            alpha[reversed_flow] = 0.0
 
         threshsdt = self.thresholds * dt
 

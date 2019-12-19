@@ -5,7 +5,7 @@ from landlab import RasterModelGrid
 
 
 def test_boundary_node():
-    rmg = RasterModelGrid(5, 6)
+    rmg = RasterModelGrid((5, 6))
     assert rmg.node_has_boundary_neighbor(0)
     assert not rmg.node_has_boundary_neighbor(14)
 
@@ -52,7 +52,7 @@ def test_id_as_array():
 
 
 def test_id_as_array_with_one_interior():
-    rmg = RasterModelGrid(5, 5)
+    rmg = RasterModelGrid((5, 5))
     assert_array_equal(
         rmg.node_has_boundary_neighbor(np.arange(25)),
         np.array(

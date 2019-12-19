@@ -7,7 +7,7 @@ from landlab import RasterModelGrid
 @pytest.fixture
 def sink_grid1():
     """Create a 7x7 test grid with a well defined hole in it."""
-    sink_grid = RasterModelGrid((7, 7), spacing=1.)
+    sink_grid = RasterModelGrid((7, 7), xy_spacing=1.0)
 
     z = np.array(
         [
@@ -36,12 +36,12 @@ def sink_grid2():
     Create a 10x10 test grid with a well defined hole in it, from a flat
     surface.
     """
-    sink_grid = RasterModelGrid((10, 10), spacing=1.)
+    sink_grid = RasterModelGrid((10, 10), xy_spacing=1.0)
 
     lake = np.array([44, 45, 46, 54, 55, 56, 64, 65, 66])
 
     z = np.ones(100, dtype=float)
-    z[lake] = 0.
+    z[lake] = 0.0
 
     sink_grid.add_field("topographic__elevation", z, at="node", units="-")
     sink_grid.lake = lake
@@ -55,7 +55,7 @@ def sink_grid3():
     Create a 10x10 test grid with two well defined holes in it, into an
     inclined surface.
     """
-    sink_grid = RasterModelGrid((10, 10), spacing=1.)
+    sink_grid = RasterModelGrid((10, 10), xy_spacing=1.0)
 
     lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56])
     lake2 = np.array([77, 78, 87, 88])
@@ -66,7 +66,7 @@ def sink_grid3():
     # add slope
     z += sink_grid.node_x
     z[guard_nodes] += 0.001
-    z[lake] = 0.
+    z[lake] = 0.0
 
     sink_grid.add_field("node", "topographic__elevation", z, units="-")
     sink_grid.lake1 = lake1
@@ -82,7 +82,7 @@ def sink_grid4():
     inclined surface. This time, one of the holes is a stupid shape, which
     will require the component to arrange flow back "uphill".
     """
-    sink_grid = RasterModelGrid((10, 10), spacing=1.)
+    sink_grid = RasterModelGrid((10, 10), xy_spacing=1.0)
 
     lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
     lake2 = np.array([78, 87, 88])
@@ -95,7 +95,7 @@ def sink_grid4():
     # add slope
     z += sink_grid.node_x
     z[guard_nodes] += 0.001  # forces the flow out of a particular node
-    z[lake] = 0.
+    z[lake] = 0.0
 
     # depr_outlet_target = np.empty(100, dtype=float)
     # depr_outlet_target.fill(XX)
@@ -131,7 +131,7 @@ def sink_grid5():
     1.      2.      3.      4.001   5.      6.      7.      0.      0.     10.
     1.      2.      3.      4.      5.      6.      7.      8.      9.     10.
     """
-    sink_grid = RasterModelGrid((10, 10), spacing=1.)
+    sink_grid = RasterModelGrid((10, 10), xy_spacing=1.0)
 
     lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
     lake2 = np.array([78, 87, 88])
@@ -144,7 +144,7 @@ def sink_grid5():
     # add slope
     z += sink_grid.node_x
     z[guard_nodes] += 0.001  # forces the flow out of a particular node
-    z[lake] = 0.
+    z[lake] = 0.0
 
     # depr_outlet_target = np.empty(100, dtype=float)
     # depr_outlet_target.fill(XX)

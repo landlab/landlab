@@ -443,15 +443,15 @@ cpdef get_next_event_new(DTYPE_INT_t link, DTYPE_INT_t current_state,
     return (next_time + current_time, this_trn_id)
 
 
-cpdef push_transitions_to_event_queue_new(int number_of_active_links,
-                                          np.ndarray[DTYPE_INT_t, ndim=1] active_links,
-                                          np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
-                                          np.ndarray[DTYPE_INT_t, ndim=1] link_state,
-                                          np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
-                                          np.ndarray[DTYPE_t, ndim=1] trn_rate,
-                                          np.ndarray[DTYPE_t, ndim=1] next_update,
-                                          np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,
-                                          PriorityQueue priority_queue):
+cpdef push_transitions_to_event_queue(int number_of_active_links,
+                                      np.ndarray[DTYPE_INT_t, ndim=1] active_links,
+                                      np.ndarray[DTYPE_INT_t, ndim=1] n_trn,
+                                      np.ndarray[DTYPE_INT_t, ndim=1] link_state,
+                                      np.ndarray[DTYPE_INT_t, ndim=2] trn_id,
+                                      np.ndarray[DTYPE_t, ndim=1] trn_rate,
+                                      np.ndarray[DTYPE_t, ndim=1] next_update,
+                                      np.ndarray[DTYPE_INT_t, ndim=1] next_trn_id,
+                                      PriorityQueue priority_queue):
     """
     Initializes the event queue by creating transition events for each
     cell pair that has one or more potential transitions and pushing these
@@ -1008,10 +1008,6 @@ cpdef double run_cts_new(double run_to, double current_time,
             # If so, pick the next transition event from the event queue
             (ev_time, ev_idx, ev_link) = priority_queue.pop()
 
-            if _DEBUG:
-                print('event:', ev_time, ev_link, trn_to[next_trn_id[ev_link]])
-                print('pq top is now:', priority_queue._queue[0])
-
             # ... and execute the transition
             do_transition_new(ev_link, ev_time, priority_queue, next_update,
                               node_at_link_tail,
@@ -1045,9 +1041,6 @@ cpdef double run_cts_new(double run_to, double current_time,
         # advance current_time to the end of the current run period.
         else:
             current_time = run_to
-
-        if _DEBUG:
-            print(node_state)
 
     return current_time
 

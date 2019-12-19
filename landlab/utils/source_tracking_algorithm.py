@@ -163,7 +163,7 @@ def track_source(grid, hsd_ids, flow_directions=None):
         # Check 2: If the visited node is a sink
         if r[i] == i:
             hsd_upstr.update({i: [hsd_ids[i]]})
-            flow_accum[i] += 1.
+            flow_accum[i] += 1.0
             alr_counted.append(i)
             continue
         # Check 3: Now, if the node is not a sink and hasn't been visited, it
@@ -174,7 +174,7 @@ def track_source(grid, hsd_ids, flow_directions=None):
         stream_buffer = []
         j = i
         switch_i = True
-        a = 0.
+        a = 0.0
         # Loop below will traverse the segment of the stream until an outlet
         # is reached.
         while True:
@@ -186,8 +186,8 @@ def track_source(grid, hsd_ids, flow_directions=None):
                     break
             # If this node is being visited for the first time,
             # this 'if statement' will executed.
-            if flow_accum[j] == 0.:
-                a += 1.
+            if flow_accum[j] == 0.0:
+                a += 1.0
                 alr_counted.append(j)
                 stream_buffer.append(hsd_ids[j])
             # Update number of upstream nodes.

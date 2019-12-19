@@ -47,7 +47,7 @@ def depth_dependent_mannings_n(
     water_depths="surface_water__depth",
     min_mannings_n=0.06,
     index_flow_depth=0.003,
-    veg_drag_exponent=(-1. / 3.),
+    veg_drag_exponent=(-1.0 / 3.0),
 ):
     """
     Method to create or overwrite a Manning's n field

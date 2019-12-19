@@ -34,7 +34,7 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils.flow__distance import calculate_flow__distance
-    >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     >>> elev = np.array([0.,  0.,  0., 0.,
     ...                  0., 21., 10., 0.,
     ...                  0., 31., 20., 0.,
@@ -61,7 +61,7 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils.flow__distance import calculate_flow__distance
-    >>> mg = RasterModelGrid((5, 4), spacing=(1, 1))
+    >>> mg = RasterModelGrid((5, 4), xy_spacing=(1, 1))
     >>> elev = np.array([0.,  0.,  0., 0.,
     ...                  0., 21., 10., 0.,
     ...                  0., 31., 20., 0.,

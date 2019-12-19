@@ -63,7 +63,7 @@ def simple_poly_area(x, y):
     # For short arrays (less than about 100 elements) it seems that the
     # Python sum is faster than the numpy sum. Likewise for the Python
     # built-in abs.
-    return .5 * abs(sum(x[:-1] * y[1:] - x[1:] * y[:-1]) + x[-1] * y[0] - x[0] * y[-1])
+    return 0.5 * abs(sum(x[:-1] * y[1:] - x[1:] * y[:-1]) + x[-1] * y[0] - x[0] * y[-1])
 
 
 class VoronoiDelaunayGrid(ModelGrid):
@@ -146,6 +146,9 @@ class VoronoiDelaunayGrid(ModelGrid):
             y-coordinate of points
         reorient_links (optional) : bool
             whether to point all links to the upper-right quadrant
+        xy_of_reference : tuple, optional
+            Coordinate value in projected space of (0., 0.)
+            Default is (0., 0.)
 
         Returns
         -------
@@ -170,6 +173,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         Creates an unstructured grid around the given (x,y) points.
         """
         x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+
         if x.size != y.size:
             raise ValueError("x and y arrays must have the same size")
 
@@ -613,7 +617,7 @@ class VoronoiDelaunayGrid(ModelGrid):
         for i in range(num_links):
             link_midpoints[i][:] = (
                 vor.points[vor.ridge_points[i, 0]] + vor.points[vor.ridge_points[i, 1]]
-            ) / 2.
+            ) / 2.0
         ind = argsort_points_by_x_then_y(link_midpoints)
 
         # Loop through the list of ridges. For each ridge, there is a link, and
@@ -681,7 +685,7 @@ class VoronoiDelaunayGrid(ModelGrid):
 
         # Find locations where the angle is negative; these are the ones we
         # want to flip
-        (flip_locs,) = np.where(link_angle < 0.)
+        (flip_locs,) = np.where(link_angle < 0.0)
 
         # If there are any flip locations, proceed to switch their fromnodes
         # and tonodes; otherwise, we're done

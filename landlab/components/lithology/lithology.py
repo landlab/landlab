@@ -6,10 +6,11 @@ import numpy as np
 import xarray as xr
 from scipy.interpolate import interp1d
 
+from landlab import Component
 from landlab.layers import EventLayers, MaterialLayers
 
 
-class Lithology(object):
+class Lithology(Component):
 
     """Create a Lithology object.
 
@@ -91,7 +92,7 @@ class Lithology(object):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
-        >>> mg = RasterModelGrid(3, 3)
+        >>> mg = RasterModelGrid((3, 3))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
 
         Create a Lithology with uniform thicknesses that alternates between
@@ -275,7 +276,7 @@ class Lithology(object):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
-        >>> mg = RasterModelGrid(3, 3)
+        >>> mg = RasterModelGrid((3, 3))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
@@ -296,7 +297,7 @@ class Lithology(object):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
-        >>> mg = RasterModelGrid(3, 3)
+        >>> mg = RasterModelGrid((3, 3))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
@@ -316,7 +317,7 @@ class Lithology(object):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
-        >>> mg = RasterModelGrid(3, 3)
+        >>> mg = RasterModelGrid((3, 3))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
@@ -339,7 +340,7 @@ class Lithology(object):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
-        >>> mg = RasterModelGrid(3, 3)
+        >>> mg = RasterModelGrid((3, 3))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
@@ -365,7 +366,7 @@ class Lithology(object):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
-        >>> mg = RasterModelGrid(3, 3)
+        >>> mg = RasterModelGrid((3, 3))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
@@ -392,7 +393,7 @@ class Lithology(object):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
-        >>> mg = RasterModelGrid(3, 3)
+        >>> mg = RasterModelGrid((3, 3))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
@@ -448,7 +449,7 @@ class Lithology(object):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
-        >>> mg = RasterModelGrid(3, 3)
+        >>> mg = RasterModelGrid((3, 3))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
@@ -539,7 +540,7 @@ class Lithology(object):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
-        >>> mg = RasterModelGrid(3, 3)
+        >>> mg = RasterModelGrid((3, 3))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
@@ -600,7 +601,7 @@ class Lithology(object):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
-        >>> mg = RasterModelGrid(3, 3)
+        >>> mg = RasterModelGrid((3, 3))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
@@ -665,7 +666,7 @@ class Lithology(object):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
-        >>> mg = RasterModelGrid(3, 3)
+        >>> mg = RasterModelGrid((3, 3))
         >>> z = mg.add_zeros('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
@@ -792,7 +793,7 @@ class Lithology(object):
         --------
         >>> from landlab import RasterModelGrid
         >>> from landlab.components import Lithology
-        >>> mg = RasterModelGrid(3, 3)
+        >>> mg = RasterModelGrid((3, 3))
         >>> z = mg.add_ones('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]
@@ -851,7 +852,7 @@ class Lithology(object):
         These two methods differ only in the details of the data structure they
         use to store the layer information.
 
-        >>> mg = RasterModelGrid(3, 3)
+        >>> mg = RasterModelGrid((3, 3))
         >>> z = mg.add_ones('node', 'topographic__elevation')
         >>> thicknesses = [1, 2, 4, 1]
         >>> ids = [1, 2, 1, 2]

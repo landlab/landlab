@@ -8,5 +8,5 @@ from landlab.components.pet.potential_evapotranspiration_field import (
 
 @pytest.fixture
 def pet():
-    grid = RasterModelGrid((20, 20), spacing=10e0)
+    grid = RasterModelGrid((20, 20), xy_spacing=10e0)
     return PotentialEvapotranspiration(grid)

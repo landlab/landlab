@@ -37,6 +37,8 @@ class RasterCTS(CellLabCTSModel):
     prop_reset_value : number or object, optional
         Default or initial value for a node/cell property (e.g., 0.0).
         Must be same type as *prop_data*.
+    seed : int (default 0)
+        Seed for random number generator
 
     Examples
     --------
@@ -44,7 +46,7 @@ class RasterCTS(CellLabCTSModel):
     >>> from landlab.ca.celllab_cts import Transition
     >>> from landlab.ca.raster_cts import RasterCTS
 
-    >>> mg = RasterModelGrid(3, 4, 1.0)
+    >>> mg = RasterModelGrid((3, 4))
     >>> nsd = {0 : 'yes', 1 : 'no'}
     >>> xnlist = []
     >>> xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'frogging'))
@@ -60,6 +62,7 @@ class RasterCTS(CellLabCTSModel):
         initial_node_states,
         prop_data=None,
         prop_reset_value=None,
+        seed=0,
     ):
         """
         RasterLCA constructor: sets number of orientations to 1 and calls
@@ -99,10 +102,5 @@ class RasterCTS(CellLabCTSModel):
             initial_node_states,
             prop_data,
             prop_reset_value,
+            seed,
         )
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()

@@ -26,8 +26,7 @@ def flow_directions_mfd(
     partition_method="slope",
 ):
 
-    """
-    Find multiple-flow-direction flow directions on a grid.
+    """Find multiple-flow-direction flow directions on a grid.
 
     Finds and returns flow directions and proportions for a given elevation
     grid. Each node is assigned multiple flow directions, toward all of the N
@@ -91,7 +90,7 @@ def flow_directions_mfd(
     >>> import numpy as np
     >>> from landlab.components.flow_director.flow_direction_mfd import(
     ...                                           flow_directions_mfd)
-    >>> grid = RasterModelGrid((3,3), spacing=(1, 1))
+    >>> grid = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> elev = grid.add_field('topographic__elevation', grid.node_x+grid.node_y, at = 'node')
 
     For the first example, we will not pass any diagonal elements to the flow
@@ -281,8 +280,8 @@ def flow_directions_mfd(
     # Copy slope array and mask by where flow is not occuring and where the
     # link is inactive.
     flow_slopes = slopes_to_neighbors_at_node.copy()
-    flow_slopes[flow_does_not_occur] = 0.
-    flow_slopes[inactive_link_to_neighbor] = 0.
+    flow_slopes[flow_does_not_occur] = 0.0
+    flow_slopes[inactive_link_to_neighbor] = 0.0
 
     if partition_method == "square_root_of_slope":
         values_for_partitioning = flow_slopes ** 0.5
@@ -324,7 +323,7 @@ def flow_directions_mfd(
         proportions[baselevel_nodes, 0] = 1
         proportions[baselevel_nodes, 1:] = 0
         receiver_links[baselevel_nodes, :] = UNDEFINED_INDEX
-        steepest_slope[baselevel_nodes] = 0.
+        steepest_slope[baselevel_nodes] = 0.0
 
     # The sink nodes are those that are their own receivers (this will normally
     # include boundary nodes as well as interior ones; "pits" would be sink

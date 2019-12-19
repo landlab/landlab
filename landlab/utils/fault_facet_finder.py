@@ -62,10 +62,10 @@ class find_facets(object):
         y = self.grid.node_y[fault_trace_node_ids]
         (grad, offset) = np.polyfit(x, y, 1)
         angle = np.arctan(grad)
-        if grad >= 0.:
-            self.az = np.pi / 2. - angle
+        if grad >= 0.0:
+            self.az = np.pi / 2.0 - angle
         else:
-            self.az = -np.pi / 2. - angle
+            self.az = -np.pi / 2.0 - angle
 
         return self.az
 
@@ -74,7 +74,7 @@ class find_facets(object):
         self.aspect = self.grid.calc_aspect_of_node(elevs=self.elevs)
         print("Calculated and stored slopes and aspects...")
 
-    def define_aspect_node_subset(self, angle_tolerance=5.):
+    def define_aspect_node_subset(self, angle_tolerance=5.0):
         """
         This method sets and returns a list of all nodes in the landscape which
         have an
@@ -90,24 +90,24 @@ class find_facets(object):
         presumably because we use only a single ft angle for what's really
         a 2d trace. Need to work with local aspect.
         """
-        perp_to_az = np.pi / 2. + self.az
-        five_degrees = np.pi / 180. * angle_tolerance  # note the silly naming
-        perp_plus_five = (perp_to_az + five_degrees) % (2. * np.pi)
-        perp_minus_five = (perp_to_az - five_degrees) % (2. * np.pi)
-        other_dip_plus_five = (perp_to_az + np.pi + five_degrees) % (2. * np.pi)
-        other_dip_minus_five = (perp_to_az + np.pi - five_degrees) % (2. * np.pi)
+        perp_to_az = np.pi / 2.0 + self.az
+        five_degrees = np.pi / 180.0 * angle_tolerance  # note the silly naming
+        perp_plus_five = (perp_to_az + five_degrees) % (2.0 * np.pi)
+        perp_minus_five = (perp_to_az - five_degrees) % (2.0 * np.pi)
+        other_dip_plus_five = (perp_to_az + np.pi + five_degrees) % (2.0 * np.pi)
+        other_dip_minus_five = (perp_to_az + np.pi - five_degrees) % (2.0 * np.pi)
 
         # need to be careful near the 2pi->0 discontinuity...
         greater_condition = np.greater(self.aspect, perp_minus_five)
         lesser_condition = np.less(self.aspect, perp_plus_five)
-        if (perp_to_az - five_degrees) < 0.:
+        if (perp_to_az - five_degrees) < 0.0:
             condition_first_dip = np.logical_or(greater_condition, lesser_condition)
         else:
             condition_first_dip = np.logical_and(greater_condition, lesser_condition)
         greater_condition_2 = np.greater(self.aspect, other_dip_minus_five)
         lesser_condition_2 = np.less(self.aspect, other_dip_plus_five)
         if (perp_to_az + np.pi + five_degrees) // (
-            2. * np.pi
+            2.0 * np.pi
         ):  # top condition exceeds 2pi
             condition_opposite_dip = np.logical_or(
                 greater_condition_2, lesser_condition_2
@@ -124,7 +124,7 @@ class find_facets(object):
         return self.aspect_close_nodes
 
     def define_aspect_node_subset_local(
-        self, dist_tolerance=4., angle_tolerance=15., dip_dir="E"
+        self, dist_tolerance=4.0, angle_tolerance=15.0, dip_dir="E"
     ):
         """
         """
@@ -162,7 +162,7 @@ class find_facets(object):
         # angle_to_ft is actually the angle_from_ft! So we need to adjust.
         # a second problem is that pts downslope (opposite az) can also be on the line.
         # solution - take a dip_dir input...
-        angle_to_ft = (angle_to_ft + np.pi) % (2. * np.pi)
+        angle_to_ft = (angle_to_ft + np.pi) % (2.0 * np.pi)
         self.angle_to_ft[subset] = angle_to_ft
         # gridshow.imshow_grid_at_node(self.grid, self.distance_to_ft)
         # show()
@@ -183,7 +183,7 @@ class find_facets(object):
         diff_angles = np.min(
             [
                 np.fabs(angle_to_ft - self.aspect[subset]),
-                np.fabs(np.fabs(angle_to_ft - self.aspect[subset]) - 2. * np.pi),
+                np.fabs(np.fabs(angle_to_ft - self.aspect[subset]) - 2.0 * np.pi),
             ],
             axis=0,
         )
@@ -194,9 +194,9 @@ class find_facets(object):
         # show()
         figure(6)
         gridshow.imshow_grid_at_node(
-            self.grid, np.where(self.diff_angles < 100000., self.diff_angles, -1.)
+            self.grid, np.where(self.diff_angles < 100000.0, self.diff_angles, -1.0)
         )
-        condition2 = np.less(diff_angles, angle_tolerance * np.pi / 180.)
+        condition2 = np.less(diff_angles, angle_tolerance * np.pi / 180.0)
         condition = np.logical_and(condition, condition2)
         core_nodes_size_condition = np.zeros(grid.core_nodes.size, dtype=bool)
         core_nodes_size_condition[subset] = condition
@@ -210,7 +210,7 @@ class find_facets(object):
         print("Calculated and stored nodes with aspects compatible with fault trace...")
         return self.aspect_close_nodes
 
-    def define_steep_nodes(self, threshold_in_degrees=5.):
+    def define_steep_nodes(self, threshold_in_degrees=5.0):
         """
         This method sets and returns a list of all nodes in the landscape which
         are "steep" and could be part of a facet.
@@ -221,7 +221,7 @@ class find_facets(object):
         which self.slope is set.
         The returned boolean array is num_core_nodes long.
         """
-        threshold_in_rads = threshold_in_degrees * np.pi / 180.
+        threshold_in_rads = threshold_in_degrees * np.pi / 180.0
         self.steep_nodes = np.greater(self.slopes, threshold_in_rads)
         print("Calculated and stored nodes with slopes exceeding slope threshold...")
         # gridshow.imshow_grid_at_node(self.grid, self.steep_nodes)
@@ -245,7 +245,7 @@ class find_facets(object):
         gridshow.imshow_grid_at_node(self.grid, possible_core_nodes)
         show()
 
-    def find_coherent_facet_patches(self, tolerance=3., threshold_num_px=12):
+    def find_coherent_facet_patches(self, tolerance=3.0, threshold_num_px=12):
         """
         This method searches the (already determined) possible pixels for
         patches with coherent slope angles, within a *tolerance* (in degrees).
@@ -289,7 +289,7 @@ class find_facets(object):
         self.consistent_slope_patches = consistent_slope_patches
         return consistent_slope_patches
 
-    def find_slope_lines(self, tolerance=1.):
+    def find_slope_lines(self, tolerance=1.0):
         """
         This method attempts to find slope-consistent line profiles up facets,
         perpendicular to the fault.
@@ -318,14 +318,14 @@ class find_facets(object):
             ft_pt_distances_to_node = self.grid.calc_distances_of_nodes_to_point(
                 (grid.node_x[i], grid.node_y[i]), node_subset=self.ft_trace_node_ids
             )
-            close_ft_nodes = np.less(ft_pt_distances_to_node, 5. * grid.dx)
+            close_ft_nodes = np.less(ft_pt_distances_to_node, 5.0 * grid.dx)
             x = grid.node_x[self.ft_trace_node_ids[close_ft_nodes]]
             y = grid.node_y[self.ft_trace_node_ids[close_ft_nodes]]
             (grad, offset) = np.polyfit(x, y, 1)
             condition = np.equal(self.closest_ft_node[pcn], i)
             nodes_possible = pcn[condition]
             print(nodes_possible.size, " nodes")
-            if nodes_possible.size > 10.:
+            if nodes_possible.size > 10.0:
                 # their_az = self.angle_to_ft[nodes_possible]
                 # their_diff_angles = self.diff_angles[nodes_possible]
                 their_elevs = self.elevs[grid.core_nodes][nodes_possible]
@@ -333,7 +333,7 @@ class find_facets(object):
                 # need to make new distances so we remove the ambiguity of angle around the ft point (i.e., dists from a far-field pt on the ft normal)
                 # now make a multiplier to make sure the reference point for
                 # new distances is far from the actual pts:
-                multiplier = 10. * np.ptp(grid.node_y[grid.core_nodes[nodes_possible]])
+                multiplier = 10.0 * np.ptp(grid.node_y[grid.core_nodes[nodes_possible]])
                 # derive the position:
                 x_ref = grid.node_x[i] + cmp(
                     grid.node_x[i],
@@ -368,9 +368,9 @@ class find_facets(object):
                 # max_diff = 3.*np.median(dist_diffs) #######this might need
                 # attention if there's a heavy tail on the distances
                 if grad < 1:
-                    mod = np.sqrt(1. + grad ** 2.)
+                    mod = np.sqrt(1.0 + grad ** 2.0)
                 else:
-                    mod = np.sqrt(1. + (1. / grad) ** 2.)
+                    mod = np.sqrt(1.0 + (1.0 / grad) ** 2.0)
                 max_diff = 1.9 * mod * grid.dx
                 locs_of_large_diffs = np.where(dist_diffs > max_diff)[0]
                 # there should only be 1 place on the line where there's a cluster, i.e., a large pts_betw_of_max_diffs.
@@ -383,7 +383,7 @@ class find_facets(object):
                     biggest_interval_loc = np.argmax(pts_betw_large_diffs)
                 elif locs_of_large_diffs.size == 1:
                     # one side or the other must be bigger:
-                    if 2. * locs_of_large_diffs[0] < dists_along_profile.size - 1:
+                    if 2.0 * locs_of_large_diffs[0] < dists_along_profile.size - 1:
                         locs_of_large_diffs = np.array(
                             [locs_of_large_diffs[0], (dists_along_profile.size - 1)]
                         )
@@ -402,7 +402,7 @@ class find_facets(object):
                     patch_size = pts_betw_large_diffs[biggest_interval_loc]
                 except IndexError:  # pts_betw_large_diffs is empty
                     patch_size = locs_of_large_diffs[1] - locs_of_large_diffs[0]
-                if patch_size > 10.:
+                if patch_size > 10.0:
                     start_pt_of_cluster = locs_of_large_diffs[biggest_interval_loc] + 1
                     end_pt_of_cluster = (
                         locs_of_large_diffs[biggest_interval_loc + 1] + 1
@@ -458,7 +458,7 @@ class find_facets(object):
             z = self.profile_z_facet_pts[i]
             (grad, offset) = np.polyfit(x, z, 1)
             coeffs, residuals = np.polyfit(x, z, polynomial_degree, full=True)[:2]
-            rsqd = 1. - residuals / (z.size * z.var())
+            rsqd = 1.0 - residuals / (z.size * z.var())
             # differentiate the coeffs to get slope:
             diff_multiplier = np.arange(polynomial_degree + 1)[::-1]
             curv_multiplier = np.arange(polynomial_degree)[::-1]

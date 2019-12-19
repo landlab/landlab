@@ -7,6 +7,9 @@ Do NOT add new documentation here. Grid documentation is now built in a semi-
 automated fashion. To modify the text seen on the web, edit the files
 `docs/text_for_[gridfile].py.txt`.
 """
+from __future__ import absolute_import
+
+from warnings import warn
 
 import numpy as np
 import six
@@ -21,11 +24,11 @@ from landlab.grid.structured_quad import (
 from landlab.utils import structured_grid as sgrid
 from landlab.utils.decorators import deprecated, make_return_array_immutable
 
-from . import raster_funcs as rfuncs
 from ..core.utils import add_module_functions_to_class, as_id_array
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf
 from ..utils.decorators import cache_result_in_object
+from . import raster_funcs as rfuncs
 from .base import (
     BAD_INDEX_VALUE,
     CLOSED_BOUNDARY,
@@ -36,9 +39,16 @@ from .base import (
 )
 from .decorators import return_id_array, return_readonly_id_array
 from .diagonals import DiagonalsMixIn
+from .warnings import (
+    DeprecatedDxKeyword,
+    DeprecatedOriginKeyword,
+    DeprecatedRowsColsArguments,
+    DeprecatedRowsColsKeywords,
+    DeprecatedSpacingArgument,
+    DeprecatedSpacingKeyword,
+)
 
 
-@deprecated(use="grid.node_has_boundary_neighbor", version="0.2")
 def _node_has_boundary_neighbor(mg, id, method="d8"):
     """Test if a RasterModelGrid node is next to a boundary.
 
@@ -284,12 +294,19 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     "closed". If an edge location key is missing, that edge is assumed to be
     *open*.
 
+    *Deprecation Warning*: The keywords *spacing* and *origin* have been
+    deprecated as of Landlab v1.5.5. They will be removed in v2.0.
+
     Parameters
     ----------
     shape : tuple of int
         Shape of the grid in nodes.
-    spacing : float, optional
-        Row and column node spacing.
+    xy_spacing : tuple or float, optional
+        dx and dy spacing. Either provided as a float or a
+        (dx, dy) tuple. Default is (1., 1.)
+    xy_of_lower_left: tuple, optional
+        (x, y) coordinates of the lower left corner. Default
+        is (0., 0.)
     bc : dict, optional
         Edge boundary conditions.
 
@@ -300,7 +317,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     nodes to core nodes are *active*.
 
     >>> from landlab import RasterModelGrid
-    >>> rmg = RasterModelGrid((4, 5), 1.0)
+    >>> rmg = RasterModelGrid((4, 5))
     >>> rmg.number_of_node_rows, rmg.number_of_node_columns
     (4, 5)
     >>> rmg.number_of_active_links
@@ -309,7 +326,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     Set the nodes along the top edge of the grid to be *closed* boundaries.
     This means that any links touching these nodes will be *inactive*.
 
-    >>> rmg = RasterModelGrid((4, 5), 1.0, bc={'top': 'closed'})
+    >>> rmg = RasterModelGrid((4, 5), bc={'top': 'closed'})
     >>> rmg.number_of_node_rows, rmg.number_of_node_columns
     (4, 5)
     >>> rmg.number_of_active_links
@@ -318,9 +335,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     A `RasterModelGrid` can have different node spacings in the *x* and *y*
     directions.
 
-    >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
-    >>> grid.dy, grid.dx
-    (1.0, 2.0)
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=(2, 1))
+    >>> grid.dx, grid.dy
+    (2.0, 1.0)
     >>> grid.node_y # doctest: +NORMALIZE_WHITESPACE
     array([ 0., 0., 0., 0., 0.,
             1., 1., 1., 1., 1.,
@@ -340,6 +357,53 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     or set it up such that one can create a zero-node grid.
     """
 
+    @staticmethod
+    def _parse_parameters(args, kwds):
+        """Parse __init__ parameters into new-style parameters."""
+        old = (args, kwds)
+        deprecation_warning = None
+        try:
+            shape = kwds.pop("num_rows"), kwds.pop("num_cols")
+        except KeyError:
+            shape = _parse_grid_shape_from_args(args)
+            if len(args) >= 2:
+                deprecation_warning = DeprecatedRowsColsArguments
+        else:
+            deprecation_warning = DeprecatedRowsColsKeywords
+            if args:
+                raise ValueError(
+                    "number of args must be 0 when using keywords for grid shape"
+                )
+
+        new_kwds = kwds.copy()
+        new = ((shape,), new_kwds)
+
+        xy_spacing = None
+        if "dx" in kwds:
+            deprecation_warning = DeprecatedDxKeyword
+            xy_spacing = new_kwds.pop("dx")
+        if "spacing" in kwds:
+            deprecation_warning = DeprecatedSpacingKeyword
+            xy_spacing = new_kwds.pop("spacing")
+        if _parse_grid_spacing_from_args(args) is not None:
+            deprecation_warning = DeprecatedSpacingArgument
+            xy_spacing = _parse_grid_spacing_from_args(args)
+
+        if "xy_spacing" not in kwds and xy_spacing is not None:
+            try:
+                new_kwds.setdefault("xy_spacing", xy_spacing[::-1])
+            except TypeError:
+                new_kwds.setdefault("xy_spacing", xy_spacing)
+
+        if "origin" in kwds:
+            deprecation_warning = DeprecatedOriginKeyword
+            new_kwds.setdefault("xy_of_lower_left", new_kwds.pop("origin"))
+
+        if deprecation_warning:
+            warn(deprecation_warning("RasterModelGrid", old=old, new=new))
+
+        return new
+
     def __init__(self, *args, **kwds):
         """Create a 2D grid with equal spacing.
 
@@ -348,18 +412,24 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         At the moment, num_rows and num_cols MUST be specified. Both must be
         >=3 to allow correct automated setup of boundary conditions.
 
+        *Deprecation Warning*: The keywords *spacing* and *origin* have been
+        deprecated as of Landlab v1.5.5. They will be removed in v2.0.
+        Additionally, passing spacing as an argument has been deprecated.
+
         Parameters
         ----------
         shape : tuple of int
-            Shape of the grid in nodes.
-        spacing : tuple or float, optional
-            Row and column node spacing.
+            Shape of the grid in nodes as (nrows, ncols).
+        xy_spacing : tuple or float, optional
+            dx and dy spacing. Either provided as a float or a
+            (dx, dy) tuple.
+        xy_of_lower_left: tuple, optional
+            (x, y) coordinates of the lower left corner.
+        xy_of_reference : tuple, optional
+            Coordinate value in projected space of the reference point,
+            `xy_of_lower_left`. Default is (0., 0.)
         bc : dict, optional
             Edge boundary conditions.
-        origin : tuple, optional
-            Provides the values (x, y) of the
-            lower left corner of the grid. Default
-            value is (0.0, 0.0)
 
         Returns
         -------
@@ -373,28 +443,27 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         defined. Either we force users to give arguments on instantiation,
         or set it up such that one can create a zero-node grid.
         """
-        dx = kwds.pop("dx", None)
-        num_rows = kwds.pop("num_rows", None)
-        num_cols = kwds.pop("num_cols", None)
-        origin = kwds.pop("origin", None) or (0., 0.)
+        args, kwds = self._parse_parameters(args, kwds)
 
-        if num_rows is None and num_cols is None:
-            num_rows, num_cols = _parse_grid_shape_from_args(args)
-        elif len(args) > 0:
-            raise ValueError(
-                "number of args must be 0 when using keywords for grid shape"
-            )
+        shape = args[0]
+        xy_spacing = np.broadcast_to(kwds.get("xy_spacing", 1.0), 2)
+        xy_of_lower_left = kwds.get("xy_of_lower_left", (0.0, 0.0))
 
-        if dx is None:
-            dx = kwds.pop("spacing", _parse_grid_spacing_from_args(args) or 1.)
-
-        if num_rows <= 0 or num_cols <= 0:
+        if shape[0] <= 0 or shape[1] <= 0:
             raise ValueError("number of rows and columns must be positive")
 
-        self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
+        if len(xy_of_lower_left) != 2:
+            raise ValueError("xy_of_lower_left must be size two")
+
+        self._xy_of_lower_left = tuple(xy_of_lower_left)
+
+        # Node Status
+        self._node_status = np.empty(shape[0] * shape[1], dtype=np.uint8)
 
         # Set number of nodes, and initialize if caller has given dimensions
-        self._initialize(num_rows, num_cols, dx, origin)
+        self._initialize(
+            shape[0], shape[1], xy_spacing, (xy_of_lower_left[0], xy_of_lower_left[1])
+        )
 
         self.set_closed_boundaries_at_grid_edges(
             *grid_edge_is_closed_from_dict(kwds.pop("bc", {}))
@@ -404,12 +473,18 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         self.looped_node_properties = {}
 
+    def __repr__(self):
+        return "RasterModelGrid({0}, xy_spacing={1}, xy_of_lower_left={2})".format(
+            repr(self.shape), repr((self.dx, self.dy)), repr(self.xy_of_lower_left)
+        )
+
     def __setstate__(self, state_dict):
         """Set state for of RasterModelGrid from pickled state_dict."""
         if state_dict["type"] != "RasterModelGrid":
-            assert TypeError("Saved model instance not of " "RasterModelGrid type.")
+            assert TypeError(("Saved model instance not of " "RasterModelGrid type."))
 
         dx = state_dict["dx"]
+        dy = state_dict["dy"]
         shape = state_dict["shape"]
         origin = state_dict["origin"]
         num_rows = shape[0]
@@ -418,7 +493,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self._node_status = np.empty(num_rows * num_cols, dtype=np.uint8)
 
         # Set number of nodes, and initialize if caller has given dimensions
-        self._initialize(num_rows, num_cols, dx, origin)
+        self._initialize(num_rows, num_cols, (dx, dy), origin)
 
         super(RasterModelGrid, self).__init__()
 
@@ -538,20 +613,33 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: GINF
         """
-        shape = params["shape"]
-        spacing = params.get("spacing", (1.,) * len(shape))
-        bc = params.get("bc", {})
+        shape = params.pop("shape", None)
+        return cls(shape, **params)
 
-        return cls(shape, spacing=spacing, bc=bc)
+    @property
+    def xy_of_lower_left(self):
+        """Return (x, y) of the reference point."""
+        return self._xy_of_lower_left
 
-    def _initialize(self, num_rows, num_cols, spacing, origin):
+    @xy_of_lower_left.setter
+    def xy_of_lower_left(self, xy_of_lower_left):
+        """Set a new value for the xy_of_lower_left."""
+        dx = self.x_of_node[0] - xy_of_lower_left[0]
+        dy = self.y_of_node[0] - xy_of_lower_left[1]
+        self._xy_of_node -= (dx, dy)
+        self._xy_of_lower_left = xy_of_lower_left
+
+    def _initialize(self, num_rows, num_cols, xy_spacing, xy_of_lower_left):
         """Set up a raster grid.
 
-        Sets up a *num_rows* by *num_cols* grid with cell *spacing* and
+        Sets up a *num_rows* by *num_cols* grid with cell *spacing*  and
         (by default) regular boundaries (that is, all perimeter cells are
         boundaries and all interior cells are active).
 
-        The lower left corner is set through *origin*, which is a
+        Spacing may be provided as a value for square cells or as a tuple
+        (dx, dy) for rectangular cells.
+
+        The lower left corner is set through *xy_of_lower_left*, which is a
         (lower left corner x, lower left corner y) tuple.
 
         To be consistent with unstructured grids, the raster grid is
@@ -575,7 +663,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> numrows = 20          # number of rows in the grid
         >>> numcols = 30          # number of columns in the grid
         >>> dx = 10.0             # grid cell spacing
-        >>> rmg = RasterModelGrid((numrows, numcols), dx)
+        >>> rmg = RasterModelGrid((numrows, numcols), xy_spacing=dx)
         >>> (rmg.number_of_nodes, rmg.number_of_cells, rmg.number_of_links,
         ...  rmg.number_of_active_links)
         (600, 504, 1150, 1054)
@@ -603,14 +691,14 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         array([ 5,  6,  7,  9, 10, 11, 12, 14, 15, 16, 18, 19, 20, 21, 23, 24,
                25])
         """
-        if isinstance(spacing, float) or isinstance(spacing, int):
-            spacing = (spacing, spacing)
+        if isinstance(xy_spacing, (float, int)):
+            xy_spacing = (xy_spacing, xy_spacing)
 
         # Basic info about raster size and shape
         self._nrows = num_rows
         self._ncols = num_cols
 
-        self._dy, self._dx = float(spacing[0]), float(spacing[1])
+        self._dx, self._dy = float(xy_spacing[0]), float(xy_spacing[1])
         self.cellarea = self._dy * self._dx
 
         self._node_at_cell = sgrid.node_at_cell(self.shape)
@@ -642,7 +730,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         #  0-------1-------2-------3-------4
         #
         (x_of_node, y_of_node) = sgrid.node_coords(
-            (num_rows, num_cols), (self._dy, self._dx), origin
+            (num_rows, num_cols),
+            (self._dy, self._dx),
+            (xy_of_lower_left[1], xy_of_lower_left[0]),
         )
 
         self._xy_of_node = np.hstack(
@@ -920,8 +1010,8 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         It is not meant to be called manually.
         """
         self._forced_cell_areas = np.full(self.shape, self.dx * self.dy, dtype=float)
-        self._forced_cell_areas[(0, -1), :] = 0.
-        self._forced_cell_areas[:, (0, -1)] = 0.
+        self._forced_cell_areas[(0, -1), :] = 0.0
+        self._forced_cell_areas[:, (0, -1)] = 0.0
         self._forced_cell_areas.shape = (-1,)
         return self._forced_cell_areas
 
@@ -981,7 +1071,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.dx
         1.0
-        >>> grid = RasterModelGrid((4, 5), 2.0)
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=2.0)
         >>> grid.dx
         2.0
 
@@ -1006,7 +1096,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> grid = RasterModelGrid((4, 5))
         >>> grid.dy
         1.0
-        >>> grid = RasterModelGrid((4, 5), spacing=(2, 4))
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=(4, 2))
         >>> grid.dy
         2.0
 
@@ -1382,7 +1472,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         rows (only one vertical link).
 
         >>> from landlab import RasterModelGrid
-        >>> mg = RasterModelGrid((3, 4), spacing=(2.0, 2.0))
+        >>> mg = RasterModelGrid((3, 4), xy_spacing=(2., 2.))
 
         >>> mg.unit_vector_at_link[:, 0] # doctest: +NORMALIZE_WHITESPACE
         array([ 1.,  1.,  1.,  0.,  0.,  0.,  0.,
@@ -1399,8 +1489,8 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         array([ 1.,  1.,  1.,  1.,  2.,  2.,  2.,  2.,  1.,  1.,  1.,  1.])
         """
         unit_vec_at_link = np.zeros((self.number_of_links + 1, 2), dtype=float)
-        unit_vec_at_link[self.horizontal_links, 0] = 1.
-        unit_vec_at_link[self.vertical_links, 1] = 1.
+        unit_vec_at_link[self.horizontal_links, 0] = 1.0
+        unit_vec_at_link[self.vertical_links, 1] = 1.0
 
         self._unit_vec_at_node = unit_vec_at_link[self.links_at_node].sum(axis=1)
         self._unit_vec_at_link = unit_vec_at_link[:-1, :]
@@ -1479,11 +1569,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> grid.extent
         (3.0, 4.0)
 
-        >>> grid = RasterModelGrid((4, 5), 2.)
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=2.)
         >>> grid.extent
         (6.0, 8.0)
 
-        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=(3, 2))
         >>> grid.extent
         (6.0, 12.0)
 
@@ -1515,11 +1605,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> grid.grid_xdimension
         4.0
 
-        >>> grid = RasterModelGrid((4, 5), 0.5)
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=0.5)
         >>> grid.grid_xdimension
         2.0
 
-        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=(3, 2))
         >>> grid.grid_xdimension
         12.0
 
@@ -1546,11 +1636,11 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> grid.grid_ydimension
         3.0
 
-        >>> grid = RasterModelGrid((4, 5), 0.5)
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=0.5)
         >>> grid.grid_ydimension
         1.5
 
-        >>> grid = RasterModelGrid((4, 5), spacing=(2, 3))
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=(3, 2))
         >>> grid.grid_ydimension
         6.0
 
@@ -1663,27 +1753,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         return (self._nrows - 1) * (self._ncols - 1)
 
     @property
-    @deprecated(use="dx", version="0.5")
-    def node_spacing(self):
-        """Spacing betweem node rows and columns.
-
-        Examples
-        --------
-        >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5))
-        >>> grid.node_spacing
-        1.0
-        >>> grid = RasterModelGrid((4, 5), 3.0)
-        >>> grid.node_spacing
-        3.0
-
-        LLCATS: DEPR GINF NINF MEAS
-        """
-        if self._dx != self._dy:
-            raise RuntimeError("dx and dy are not the same")
-        return self._dx
-
-    @property
     @deprecated(use="nodes_at_corners_of_grid", version=1.0)
     def corner_nodes(self):
         """
@@ -1768,7 +1837,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((4, 5), spacing=(2, 1))
+        >>> grid = RasterModelGrid((4, 5), xy_spacing=(1, 2))
         >>> grid.is_point_on_grid(1, 1)
         True
         >>> grid.is_point_on_grid((1, 1, 1,), (1, 3.1, 6.1))
@@ -1780,8 +1849,8 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         """
         xcoord, ycoord = np.asarray(xcoord), np.asarray(ycoord)
 
-        x_condition = (xcoord > 0.) & (xcoord < (self.shape[1] - 1) * self.dx)
-        y_condition = (ycoord > 0.) & (ycoord < (self.shape[0] - 1) * self.dy)
+        x_condition = (xcoord > 0.0) & (xcoord < (self.shape[1] - 1) * self.dx)
+        y_condition = (ycoord > 0.0) & (ycoord < (self.shape[0] - 1) * self.dy)
 
         if np.all(self._node_status[self.nodes_at_left_edge] == 3) or np.all(
             self._node_status[self.nodes_at_right_edge] == 3
@@ -1835,7 +1904,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                [ 9, 10],
                [ 5,  6]])
 
-        >>> grid = RasterModelGrid((3, 4), spacing=(2, 1))
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=(1, 2))
         >>> grid.nodes_around_point(.5, 1.5)
         array([0, 4, 5, 1])
         >>> grid = RasterModelGrid((3, 4))
@@ -1922,7 +1991,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 3), spacing=(3, 4))
+        >>> grid = RasterModelGrid((3, 3), xy_spacing=(4, 3))
         >>> grid.length_of_link
         array([ 4.,  4.,  3.,  3.,  3.,  4.,  4.,  3.,  3.,  3.,  4.,  4.])
 
@@ -1940,7 +2009,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 4), spacing=(2, 3))
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=(3, 2))
         >>> grid._create_length_of_link() # doctest: +NORMALIZE_WHITESPACE
         array([ 3., 3., 3.,
                 2., 2., 2., 2.,
@@ -1948,7 +2017,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
                 2., 2., 2., 2.,
                 3., 3., 3.])
 
-        >>> grid = RasterModelGrid((3, 3), spacing=(1, 2))
+        >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
         >>> grid._create_length_of_link() # doctest: +NORMALIZE_WHITESPACE
         array([ 2., 2.,
                 1., 1., 1.,
@@ -1967,110 +2036,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             self._link_length[self.horizontal_links] = self.dx
 
         return self._link_length
-
-    @deprecated(use="set_closed_boundaries_at_grid_edges", version="0.5")
-    def set_inactive_boundaries(
-        self, right_is_inactive, top_is_inactive, left_is_inactive, bottom_is_inactive
-    ):
-        """Set boundary nodes to be inactive.
-
-        Handles boundary conditions by setting each of the four sides of the
-        rectangular grid to either 'inactive' or 'active (fixed value)' status.
-        Arguments are booleans indicating whether the bottom, right, top, and
-        left are inactive (True) or not (False).
-
-        For an inactive boundary:
-
-        *  the nodes are flagged CLOSED_BOUNDARY (normally status type 4)
-        *  the links between them and the adjacent interior nodes are
-           inactive (so they appear on link-based lists, but not
-           active_link-based lists)
-
-        This means that if you call the calc_grad_at_active_link
-        method, the inactive boundaries will be ignored: there can be no
-        gradients or fluxes calculated, because the links that connect to that
-        edge of the grid are not included in the calculation. So, setting a
-        grid edge to CLOSED_BOUNDARY is a convenient way to impose a no-flux
-        boundary condition. Note, however, that this applies to the grid as a
-        whole, rather than a particular variable that you might use in your
-        application. In other words, if you want a no-flux boundary in one
-        variable but a different boundary condition for another, then use
-        another method.
-
-        Examples
-        --------
-        The following example sets the top and left boundaries as inactive in a
-        four-row by five-column grid that initially has all boundaries active
-        and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
-
-        >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5), 1.0) # rows, columns, spacing
-        >>> rmg.number_of_active_links
-        17
-        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1],
-              dtype=uint8)
-        >>> rmg.set_inactive_boundaries(False, True, True, False)
-        >>> rmg.number_of_active_links
-        12
-        >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
-        array([1, 1, 1, 1, 1, 4, 0, 0, 0, 1, 4, 0, 0, 0, 1, 4, 4, 4, 4, 4],
-              dtype=uint8)
-
-        Notes
-        -----
-        The four corners are treated as follows:
-
-        - bottom left = BOTTOM
-        - bottom right = BOTTOM
-        - top right = TOP
-        - top left = TOP
-
-        This scheme is necessary for internal consistency with looped
-        boundaries.
-
-        LLCATS: DEPR BC SUBSET
-        """
-        if self._DEBUG_TRACK_METHODS:
-            six.print_("ModelGrid.set_inactive_boundaries")
-
-        bottom_edge = range(0, self.number_of_node_columns)
-        right_edge = range(
-            2 * self.number_of_node_columns - 1,
-            self.number_of_nodes - 1,
-            self.number_of_node_columns,
-        )
-        top_edge = range(
-            (self.number_of_node_rows - 1) * self.number_of_node_columns,
-            self.number_of_nodes,
-        )
-        left_edge = range(
-            self.number_of_node_columns,
-            self.number_of_nodes - self.number_of_node_columns,
-            self.number_of_node_columns,
-        )
-
-        if bottom_is_inactive:
-            self._node_status[bottom_edge] = CLOSED_BOUNDARY
-        else:
-            self._node_status[bottom_edge] = FIXED_VALUE_BOUNDARY
-
-        if right_is_inactive:
-            self._node_status[right_edge] = CLOSED_BOUNDARY
-        else:
-            self._node_status[right_edge] = FIXED_VALUE_BOUNDARY
-
-        if top_is_inactive:
-            self._node_status[top_edge] = CLOSED_BOUNDARY
-        else:
-            self._node_status[top_edge] = FIXED_VALUE_BOUNDARY
-
-        if left_is_inactive:
-            self._node_status[left_edge] = CLOSED_BOUNDARY
-        else:
-            self._node_status[left_edge] = FIXED_VALUE_BOUNDARY
-
-        self.reset_status_at_node()
 
     def set_closed_boundaries_at_grid_edges(
         self, right_is_closed, top_is_closed, left_is_closed, bottom_is_closed
@@ -2100,10 +2065,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         might use in your application. In other words, if you want a no-flux
         boundary in one variable but a different boundary condition for
         another, then use another method.
-
-        This method is a replacement for the now-deprecated method
-        set_inactive_boundaries(). Unlike that method, this one ONLY sets nodes
-        to CLOSED_BOUNDARY; it does not set any nodes to FIXED_VALUE_BOUNDARY.
 
         Parameters
         ----------
@@ -2135,7 +2096,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         and all boundary nodes coded as FIXED_VALUE_BOUNDARY (=1):
 
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5), 1.0) # rows, columns, spacing
+        >>> rmg = RasterModelGrid((4, 5)) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
@@ -2240,7 +2201,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5), spacing=(1, 1))
+        >>> rmg = RasterModelGrid((4, 5), xy_spacing=(1, 1))
         >>> rmg.number_of_active_links
         17
 
@@ -2395,7 +2356,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5), 1.0) # rows, columns, spacing
+        >>> rmg = RasterModelGrid((4, 5)) # rows, columns, spacing
         >>> rmg.number_of_active_links
         17
         >>> rmg.status_at_node # doctest: +NORMALIZE_WHITESPACE
@@ -2518,9 +2479,10 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             # no fixed value boundaries have been set
             pass
         else:
-            assert self.fixed_value_node_properties[
-                "internal_flag"
-            ], "Values were not supplied to the method that set the " "boundary conditions! You cant update automatically!"
+            assert self.fixed_value_node_properties["internal_flag"], (
+                "Values were not supplied to the method that set the "
+                "boundary conditions! You cant update automatically!"
+            )
             values_val = self.at_node[
                 self.fixed_value_node_properties["fixed_value_of"]
             ]
@@ -2557,7 +2519,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> import numpy as np
-        >>> grid = RasterModelGrid((3, 4), spacing=(3, 4))
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
         >>> z = np.array([3., 3., 3., 3.,
         ...               3., 3., 0., 0.,
         ...               3., 0., 0., 0.])
@@ -2580,7 +2542,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         diffs[vertical_links] /= self.dy
         diffs[horizontal_links] /= self.dx
 
-        diag_dist = np.sqrt(self.dy ** 2. + self.dx ** 2.)
+        diag_dist = np.sqrt(self.dy ** 2.0 + self.dx ** 2.0)
         diagonal_link_slopes = (
             np.diff(node_values[self.nodes_at_diagonal[self.active_diagonals]], axis=1)
             / diag_dist
@@ -2603,7 +2565,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> import numpy as np
-        >>> grid = RasterModelGrid((3, 4), spacing=(3, 4))
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
         >>> z = np.array([3., 3., 3., 3.,
         ...               3., 3., 0., 0.,
         ...               3., 0., 0., 0.])
@@ -2614,32 +2576,13 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: LINF GRAD
         """
-        diag_dist = np.sqrt(self.dy ** 2. + self.dx ** 2.)
+        diag_dist = np.sqrt(self.dy ** 2.0 + self.dx ** 2.0)
         diagonal_link_slopes = (
             node_values[self.nodes_at_diagonal[:, 1]]
             - node_values[self.nodes_at_diagonal[:, 0]]
         ) / diag_dist
 
         return diagonal_link_slopes
-
-    @deprecated(use="set_closed_boundaries_at_grid_edges", version="0.1")
-    def update_noflux_boundaries(self, u, bc=None):
-        """Deprecated.
-
-        Sets the value of u at all noflux boundary cells equal to the
-        value of their interior neighbors, as recorded in the
-        "boundary_nbrs" array.
-
-        LLCATS: DEPR BC
-        """
-
-        if bc is None:
-            bc = self.default_bc
-
-        inds = bc.boundary_code[id] == bc.LOOPED_BOUNDARY
-        u[self.boundary_cells[inds]] = u[bc.tracks_cell[inds]]
-
-        return u
 
     def node_vector_to_raster(self, u, flip_vertically=False):
         """Unravel an array of node values.
@@ -2664,7 +2607,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5), 1.0)
+        >>> rmg = RasterModelGrid((4, 5))
         >>> u = rmg.zeros(centering='node')
         >>> u = u + range(0, len(u))
         >>> u # doctest: +NORMALIZE_WHITESPACE
@@ -2701,7 +2644,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 5), 1.0)
+        >>> rmg = RasterModelGrid((4, 5))
         >>> u = rmg.zeros(centering='cell')
         >>> u = u + range(0, len(u))
         >>> u
@@ -2743,7 +2686,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         Examples
         --------
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 3), 1.)
+        >>> rmg = RasterModelGrid((4, 3))
         >>> data = rmg.add_zeros('test_data', at='node')
         >>> data[:] = np.arange(12)
         >>> rmg.roll_nodes_ud('test_data', 1)
@@ -2862,30 +2805,6 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         else:
             return ans
 
-    @deprecated(use="node_is_core", version="0.5")
-    def is_interior(self, *args):
-        """is_interior([ids])
-        Check of a node is an interior node.
-
-        Returns an boolean array of truth values for each node ID provided;
-        True if the node is an interior node, False otherwise.
-        If no IDs are provided, method returns a boolean array for every node.
-
-        (Interior status is typically indicated by a value of 0 in
-        node_status.)
-
-        LLCATS: DEPR NINF BC
-        """
-        # NG changed this.
-        # Modified DEJH May 2014 to accept simulaneous tests of multiple nodes;
-        # should still be back-conmpatible.
-        try:
-            node_ids = args[0]
-        except IndexError:  # return all nodes
-            return np.equal(self._node_status, CORE_NODE)
-        else:
-            return np.equal(self._node_status[node_ids], CORE_NODE)
-
     @deprecated(use="node_is_core", version=1.0)
     def is_core(self, *args):
         """
@@ -2962,11 +2881,14 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> import pytest
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((4, 5))
-        >>> mg.face_connecting_cell_pair(0, 1)
+        >>> with pytest.deprecated_call():
+        ...     mg.face_connecting_cell_pair(0, 1)
         array([4])
-        >>> mg.face_connecting_cell_pair(0, 2).size  # empty array returned
+        >>> with pytest.deprecated_call():
+        ...     mg.face_connecting_cell_pair(0, 2).size  # empty array returned
         0
 
         LLCATS: DEPR FINF CINF CONN
@@ -3209,14 +3131,16 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         Examples
         --------
+        >>> import pytest
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> grid = RasterModelGrid((3, 4), (4, 4))
+        >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 4))
         >>> z = np.array([0., 0., 0., 0.,
         ...               3., 3., 3., 3,
         ...               6., 6., 6., 6.])
-        >>> (slope,
-        ...  aspect) = grid.calculate_slope_aspect_at_nodes_burrough(vals=z)
+        >>> with pytest.deprecated_call():
+        ...     (slope, aspect) = (
+        ...              grid.calculate_slope_aspect_at_nodes_burrough(vals=z))
         >>> np.tan(slope)
         array([ 0.75,  0.75])
         >>> np.degrees(aspect)
@@ -3263,18 +3187,18 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         dz_dx = (
             (top_right + 2 * right + bottom_right) - (top_left + 2 * left + bottom_left)
-        ) / (8. * self._dx)
+        ) / (8.0 * self._dx)
         dz_dy = (
             (bottom_left + 2 * bottom + bottom_right) - (top_left + 2 * top + top_right)
-        ) / (8. * self._dy)
+        ) / (8.0 * self._dy)
 
         slope = np.zeros([ids.shape[0]], dtype=float)
         aspect = np.zeros([ids.shape[0]], dtype=float)
         slope = np.arctan(np.sqrt(dz_dx ** 2 + dz_dy ** 2))
         aspect = np.arctan2(dz_dy, -dz_dx)
-        aspect = np.pi * .5 - aspect
-        aspect[aspect < 0.] = aspect[aspect < 0.] + 2. * np.pi
-        aspect[slope == 0.] = -1.
+        aspect = np.pi * 0.5 - aspect
+        aspect[aspect < 0.0] = aspect[aspect < 0.0] + 2.0 * np.pi
+        aspect[slope == 0.0] = -1.0
 
         return slope, aspect
 
@@ -3370,9 +3294,14 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         --------
         >>> from landlab import RasterModelGrid
         >>> import os
-        >>> rmg = RasterModelGrid((4, 5))
-        >>> rmg.save('./mysave.nc')
-        >>> os.remove('mysave.nc') #to remove traces of this test
+        >>> from tempfile import mkdtemp
+
+        >>> grid = RasterModelGrid((4, 5))
+        >>> fname = os.path.join(mkdtemp(), "mysave.nc")
+        >>> grid.save(fname)
+        >>> os.path.isfile(fname)
+        True
+        >>> os.remove(fname)
 
         LLCATS: GINF
         """
@@ -3756,7 +3685,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         ``X`` indicates the links that are set to :any:`FIXED_LINK`
 
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4, 9), 1.0) # rows, columns, spacing
+        >>> rmg = RasterModelGrid((4, 9), xy_spacing=1.0)
         >>> import numpy as np
         >>> z = np.arange(0, rmg.number_of_nodes)
         >>> s = np.arange(0, rmg.number_of_links)
@@ -3880,7 +3809,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
     def set_watershed_boundary_condition(
         self,
         node_data,
-        nodata_value=-9999.,
+        nodata_value=-9999.0,
         return_outlet_id=False,
         remove_disconnected=False,
         adjacency_method="D8",
@@ -3934,8 +3863,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         Parameters
         ----------
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
         return_outlet_id : boolean, optional
@@ -3970,7 +3900,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4,4),1.)
+        >>> rmg = RasterModelGrid((4,4))
         >>> node_data = np.array([-9999., -9999., -9999., -9999.,
         ...                      -9999.,    67.,    67., -9999.,
         ...                      -9999.,    67.,     0., -9999.,
@@ -3981,7 +3911,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         array([10])
         >>> rmg.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=uint8)
-        >>> rmg2 = RasterModelGrid((4,4),1.)
+        >>> rmg2 = RasterModelGrid((4,4))
         >>> node_data2 = np.array([-9999., -9999., -9999., -9999.,
         ...                      -9999.,    67.,    67.,    -2.,
         ...                      -9999.,    67.,     0., -9999.,
@@ -3990,8 +3920,27 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> rmg2.status_at_node
         array([4, 4, 4, 4, 4, 0, 0, 1, 4, 0, 0, 4, 4, 4, 4, 4], dtype=uint8)
 
+        The node data can also be provided as a model grid field.
+
+        >>> rmg = RasterModelGrid((4,4))
+        >>> node_data = np.array([-9999., -9999., -9999., -9999.,
+        ...                      -9999.,    67.,    67., -9999.,
+        ...                      -9999.,    67.,     0., -9999.,
+        ...                      -9999., -9999., -9999., -9999.])
+        >>> _ = rmg.add_field('node', 'topographic__elevation', node_data)
+        >>> out_id = rmg.set_watershed_boundary_condition('topographic__elevation',
+        ...                                               -9999.,
+        ...                                               True)
+        >>> out_id
+        array([10])
+        >>> rmg.status_at_node
+        array([4, 4, 4, 4, 4, 0, 0, 4, 4, 0, 1, 4, 4, 4, 4, 4], dtype=uint8)
+
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # For this to be a watershed, need to make sure that there is a ring
         # of closed boundary nodes around the outside of the watershed,
         # barring the outlet location.  So enforce that all perimeter nodes
@@ -4089,7 +4038,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
             return as_id_array(np.array([outlet_loc]))
 
     def set_open_nodes_disconnected_from_watershed_to_closed(
-        self, node_data, outlet_id=None, nodata_value=-9999., adjacency_method="D8"
+        self, node_data, outlet_id=None, nodata_value=-9999.0, adjacency_method="D8"
     ):
         """
         Identifys all non-closed nodes that are disconnected from the node given in
@@ -4111,18 +4060,16 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         Parameters
         ----------
-        node_data : ndarray
-            Data values.
-
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         outlet_id : one element numpy array, optional.
             The node ID of the outlet that all open nodes must be connected to.
             If a node ID is provided, it does not need have the status
             FIXED_VALUE_BOUNDARY. However, it must not have the status of
             CLOSED_BOUNDARY.
-
         nodata_value : float, optional, default is -9999.
             Value that indicates an invalid value.
-
         adjacency_method : string, optional. Default is 'D8'.
             Sets the connection method.
 
@@ -4144,9 +4091,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         >>> mg2.set_watershed_boundary_condition(z2)
         >>> mg2.status_at_node.reshape(mg2.shape)
         array([[4, 4, 4, 4, 4, 4],
-              [4, 0, 0, 4, 0, 4],
-              [4, 0, 1, 4, 4, 4],
-              [4, 4, 4, 4, 4, 4]], dtype=uint8)
+               [4, 0, 0, 4, 0, 4],
+               [4, 0, 1, 4, 4, 4],
+               [4, 4, 4, 4, 4, 4]], dtype=uint8)
         >>> mg2.set_open_nodes_disconnected_from_watershed_to_closed(z2)
         >>> np.allclose(mg1.status_at_node, mg2.status_at_node)
         True
@@ -4165,6 +4112,8 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
 
         if outlet_id is None:
             # verify that there is one and only one node with the status
@@ -4183,7 +4132,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
             outlet_id = possible_outlets
 
-        elif outlet_id.size != 1 or not isinstance(outlet_id, np.ndarray):
+        elif outlet_id.size != 1 or (isinstance(outlet_id, np.ndarray) is False):
             # check that the value given by outlet_id is an integer
             raise ValueError("outlet_id must be a length 1 numpy array")
         else:
@@ -4257,7 +4206,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
 
     def set_watershed_boundary_condition_outlet_coords(
-        self, outlet_coords, node_data, nodata_value=-9999.
+        self, outlet_coords, node_data, nodata_value=-9999.0
     ):
         """
         Set the boundary conditions for a watershed.
@@ -4283,8 +4232,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         ----------
         outlet_coords : list - two integer values
             row, column of outlet, NOT THE ABSOLUTE X AND Y LOCATIONS
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
 
@@ -4300,7 +4250,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4,4),1.)
+        >>> rmg = RasterModelGrid((4,4))
         >>> rmg.status_at_node
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
         >>> node_data = np.array([-9999., -9999., -9999., -9999.,
@@ -4314,6 +4264,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # make ring of no data nodes
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)
 
@@ -4326,7 +4279,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         self.status_at_node[outlet_node] = FIXED_VALUE_BOUNDARY
 
     def set_watershed_boundary_condition_outlet_id(
-        self, outlet_id, node_data, nodata_value=-9999.
+        self, outlet_id, node_data, nodata_value=-9999.0
     ):
         """
         Set the boundary conditions for a watershed.
@@ -4347,8 +4300,9 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
         ----------
         outlet_id : integer
             id of the outlet node
-        node_data : ndarray
-            Data values.
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
         nodata_value : float, optional
             Value that indicates an invalid value.
 
@@ -4364,7 +4318,7 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
-        >>> rmg = RasterModelGrid((4,4),1.)
+        >>> rmg = RasterModelGrid((4,4))
         >>> rmg.status_at_node
         array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
         >>> node_data = np.array([-9999., -9999., -9999., -9999.,
@@ -4378,10 +4332,15 @@ class RasterModelGrid(DiagonalsMixIn, ModelGrid, RasterModelGridPlotter):
 
         LLCATS: BC
         """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
         # make ring of no data nodes
         self.set_closed_boundaries_at_grid_edges(True, True, True, True)
+
         # set no data nodes to inactive boundaries
         self.set_nodata_nodes_to_closed(node_data, nodata_value)
+
         # set the boundary condition (fixed value) at the outlet_node
         self.status_at_node[outlet_id] = FIXED_VALUE_BOUNDARY
 
@@ -4452,25 +4411,33 @@ def from_dict(param_dict):
     Required keys of the dictionary are NUM_ROWS, NUM_COLS. Raises a KeyError
     if either of these are missing is given, use it as the
     HexModelGrid *dx* parameter, otherwise default to unit spacing.
+
+    Deprecated in version 1.6.X. Will be removed in version 2.0.
     """
+    msg = (
+        "The non-class method version of 'from_dict' for RasterModelGrid "
+        "was Deprecated in version 1.6.X. Will be removed in version 2.0."
+    )
+    warn(msg, DeprecationWarning)
+
     # Read and create basic raster grid
     try:
         nrows = int(param_dict["NUM_ROWS"])
         ncols = int(param_dict["NUM_COLS"])
-        spacing = float(param_dict.get("GRID_SPACING", 1.))
+        spacing = float(param_dict.get("GRID_SPACING", 1.0))
     except KeyError:
         raise
     except ValueError:
         raise
     else:
-        grid = RasterModelGrid(nrows, ncols, spacing)
+        grid = RasterModelGrid((nrows, ncols), xy_spacing=spacing)
 
     # Set boundaries
     left_boundary_type = param_dict.get("LEFT_BOUNDARY", "open")
     right_boundary_type = param_dict.get("RIGHT_BOUNDARY", "open")
     top_boundary_type = param_dict.get("TOP_BOUNDARY", "open")
     bottom_boundary_type = param_dict.get("BOTTOM_BOUNDARY", "open")
-    grid.set_inactive_boundaries(
+    grid.set_closed_boundaries_at_grid_edges(
         _is_closed_boundary(right_boundary_type),
         _is_closed_boundary(top_boundary_type),
         _is_closed_boundary(left_boundary_type),

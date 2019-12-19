@@ -29,7 +29,7 @@ class KinwaveOverlandFlowModel(Component):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> rg = RasterModelGrid((4, 5), 10.0)
+    >>> rg = RasterModelGrid((4, 5), xy_spacing=10.0)
     >>> kw = KinwaveOverlandFlowModel(rg)
     >>> kw.vel_coef
     100.0

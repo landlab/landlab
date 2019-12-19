@@ -1,7 +1,7 @@
 import numpy as np
 
-from . import links
 from ..base import BAD_INDEX_VALUE
+from . import links
 
 
 def number_of_faces(shape):

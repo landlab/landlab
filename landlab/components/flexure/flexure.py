@@ -11,7 +11,7 @@ Create a grid on which we will run the flexure calculations.
 
 >>> from landlab import RasterModelGrid
 >>> from landlab.components.flexure import Flexure
->>> grid = RasterModelGrid((5, 4), spacing=(1.e4, 1.e4))
+>>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
 
 Check the fields that are used as input to the flexure component.
 
@@ -75,7 +75,7 @@ class Flexure(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flexure import Flexure
-    >>> grid = RasterModelGrid((5, 4), spacing=(1.e4, 1.e4))
+    >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
 
     >>> flex = Flexure(grid)
     >>> flex.name
@@ -155,7 +155,7 @@ class Flexure(Component):
         eet=65e3,
         youngs=7e10,
         method="airy",
-        rho_mantle=3300.,
+        rho_mantle=3300.0,
         gravity=9.80665,
         **kwds
     ):
@@ -248,11 +248,11 @@ class Flexure(Component):
         )
 
     @staticmethod
-    def _create_kei_func_grid(shape, spacing, alpha):
+    def _create_kei_func_grid(shape, xy_spacing, alpha):
         from scipy.special import kei
 
         dx, dy = np.meshgrid(
-            np.arange(shape[1]) * spacing[1], np.arange(shape[0]) * spacing[0]
+            np.arange(shape[1]) * xy_spacing[1], np.arange(shape[0]) * xy_spacing[0]
         )
 
         return kei(np.sqrt(dx ** 2 + dy ** 2) / alpha)
@@ -270,7 +270,7 @@ class Flexure(Component):
 
         new_load = load.copy()
 
-        deflection.fill(0.)
+        deflection.fill(0.0)
 
         if self.method == "airy":
             deflection[:] = new_load / self.gamma_mantle

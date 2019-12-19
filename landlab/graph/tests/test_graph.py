@@ -35,16 +35,16 @@ def test_create_graph_with_nodes():
     """Create a graph of unconnected nodes."""
     graph = Graph((NODE_Y, NODE_X))
 
-    assert_array_almost_equal(graph.x_of_node, [0., 1., 2., 0., 1., 2.])
-    assert_array_almost_equal(graph.y_of_node, [0., 0., 0., 1., 1., 1.])
+    assert_array_almost_equal(graph.x_of_node, [0.0, 1.0, 2.0, 0.0, 1.0, 2.0])
+    assert_array_almost_equal(graph.y_of_node, [0.0, 0.0, 0.0, 1.0, 1.0, 1.0])
 
 
 def test_create_graph_with_links():
     """Create a graph of connected nodes."""
     graph = Graph((NODE_Y, NODE_X), links=NODES_AT_LINK)
 
-    assert_array_almost_equal(graph.x_of_node, [0., 1., 2., 0., 1., 2.])
-    assert_array_almost_equal(graph.y_of_node, [0., 0., 0., 1., 1., 1.])
+    assert_array_almost_equal(graph.x_of_node, [0.0, 1.0, 2.0, 0.0, 1.0, 2.0])
+    assert_array_almost_equal(graph.y_of_node, [0.0, 0.0, 0.0, 1.0, 1.0, 1.0])
     assert_array_almost_equal(
         graph.nodes_at_link, [[0, 1], [1, 2], [0, 3], [1, 4], [2, 5], [3, 4], [4, 5]]
     )

@@ -11,7 +11,7 @@ from numpy.testing import (
 from landlab import RasterModelGrid
 from landlab.components.flexure import Flexure1D
 
-(_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e3, 10e3), (0., 0.))
+(_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e3, 10e3), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
 
 
@@ -71,16 +71,16 @@ def test_calc_airy():
     flex = Flexure1D(RasterModelGrid((3, 5)), method="airy")
     flex.load_at_node[:] = flex.gamma_mantle
 
-    assert_array_equal(flex.dz_at_node, 0.)
+    assert_array_equal(flex.dz_at_node, 0.0)
     flex.update()
-    assert_array_equal(flex.dz_at_node, 1.)
+    assert_array_equal(flex.dz_at_node, 1.0)
 
 
 def test_with_method_flexure():
     n = 101
     i_mid = (n - 1) // 2
     flex = Flexure1D(RasterModelGrid((3, n)), method="flexure")
-    flex.load_at_node[1, i_mid] = 1.
+    flex.load_at_node[1, i_mid] = 1.0
 
     flex.update()
 
@@ -95,9 +95,9 @@ def test_run_one_step():
     flex = Flexure1D(RasterModelGrid((3, 5)), method="airy")
     flex.load_at_node[:] = flex.gamma_mantle
 
-    assert_array_equal(flex.dz_at_node, 0.)
+    assert_array_equal(flex.dz_at_node, 0.0)
     flex.run_one_step()
-    assert_array_equal(flex.dz_at_node, 1.)
+    assert_array_equal(flex.dz_at_node, 1.0)
 
 
 def test_with_one_row():
@@ -105,11 +105,11 @@ def test_with_one_row():
     flex = Flexure1D(RasterModelGrid((3, 5)), method="airy", rows=1)
     flex.load_at_node[:] = flex.gamma_mantle
 
-    assert_array_equal(flex.dz_at_node, 0.)
+    assert_array_equal(flex.dz_at_node, 0.0)
     flex.update()
-    assert_array_equal(flex.dz_at_node[0], 0.)
-    assert_array_equal(flex.dz_at_node[1], 1.)
-    assert_array_equal(flex.dz_at_node[2], 0.)
+    assert_array_equal(flex.dz_at_node[0], 0.0)
+    assert_array_equal(flex.dz_at_node[1], 1.0)
+    assert_array_equal(flex.dz_at_node[2], 0.0)
 
 
 def test_with_two_row():
@@ -117,11 +117,11 @@ def test_with_two_row():
     flex = Flexure1D(RasterModelGrid((3, 5)), method="airy", rows=(0, 2))
     flex.load_at_node[:] = -flex.gamma_mantle
 
-    assert_array_equal(flex.dz_at_node, 0.)
+    assert_array_equal(flex.dz_at_node, 0.0)
     flex.update()
-    assert_array_equal(flex.dz_at_node[0], -1.)
-    assert_array_equal(flex.dz_at_node[1], 0.)
-    assert_array_equal(flex.dz_at_node[2], -1.)
+    assert_array_equal(flex.dz_at_node[0], -1.0)
+    assert_array_equal(flex.dz_at_node[1], 0.0)
+    assert_array_equal(flex.dz_at_node[2], -1.0)
 
 
 def test_field_is_updated():
@@ -129,7 +129,7 @@ def test_field_is_updated():
     flex = Flexure1D(RasterModelGrid((3, 5)), method="airy", rows=(0, 2))
     flex.load_at_node[:] = -flex.gamma_mantle
 
-    assert_array_equal(flex.dz_at_node, 0.)
+    assert_array_equal(flex.dz_at_node, 0.0)
     flex.update()
 
     dz = flex.grid.at_node["lithosphere_surface__increment_of_elevation"]
@@ -138,11 +138,11 @@ def test_field_is_updated():
 
 def test_calc_flexure():
     """Test calc_flexure function."""
-    x = np.arange(100.)
+    x = np.arange(100.0)
     loads = np.ones(100)
-    dz = Flexure1D.calc_flexure(x, loads, 1., 1.)
+    dz = Flexure1D.calc_flexure(x, loads, 1.0, 1.0)
 
-    assert_array_less(0., dz)
+    assert_array_less(0.0, dz)
     assert isinstance(dz, np.ndarray)
     assert dz.shape == loads.shape
     assert dz.dtype == loads.dtype
@@ -150,20 +150,20 @@ def test_calc_flexure():
 
 def test_calc_flexure_with_out_keyword():
     """Test calc_flexure out keyword."""
-    x = np.arange(100.)
+    x = np.arange(100.0)
     loads = np.ones(100)
     buffer = np.empty_like(x)
-    dz = Flexure1D.calc_flexure(x, loads, 1., 1., out=buffer)
+    dz = Flexure1D.calc_flexure(x, loads, 1.0, 1.0, out=buffer)
     assert np.may_share_memory(dz, buffer)
 
 
 def test_calc_flexure_with_multiple_rows():
     """Test calc_flexure with multiple rows of loads."""
-    x = np.arange(100.) * 1e3
+    x = np.arange(100.0) * 1e3
     loads = np.ones(500).reshape((5, 100))
-    dz = Flexure1D.calc_flexure(x, loads, 1e4, 1.)
+    dz = Flexure1D.calc_flexure(x, loads, 1e4, 1.0)
 
-    assert_array_less(0., dz)
+    assert_array_less(0.0, dz)
     assert isinstance(dz, np.ndarray)
     assert dz.shape == loads.shape
     assert dz.dtype == loads.dtype
@@ -186,10 +186,10 @@ def test_setters(flexure_keyword):
     flex = Flexure1D(RasterModelGrid((3, 5)))
     val_before = {}
     for name in DEPENDS_ON[flexure_keyword]:
-        val_before[name] = 1. * getattr(flex, name)
+        val_before[name] = 1.0 * getattr(flex, name)
     for name in DEPENDS_ON[flexure_keyword]:
         setattr(
-            flex, flexure_keyword, getattr(flex, flexure_keyword) * (1. + EPS) + EPS
+            flex, flexure_keyword, getattr(flex, flexure_keyword) * (1.0 + EPS) + EPS
         )
         assert val_before[name] != getattr(flex, name)
 
@@ -205,8 +205,8 @@ def test_method_keyword():
 
 
 def test_flexure_keywords(flexure_keyword):
-    flex = Flexure1D(RasterModelGrid((3, 5)), **{flexure_keyword: 1.})
-    assert getattr(flex, flexure_keyword) == 1.
+    flex = Flexure1D(RasterModelGrid((3, 5)), **{flexure_keyword: 1.0})
+    assert getattr(flex, flexure_keyword) == 1.0
     assert isinstance(getattr(flex, flexure_keyword), float)
     with pytest.raises(ValueError):
         flex = Flexure1D(RasterModelGrid((3, 5)), **{flexure_keyword: -1})
@@ -218,7 +218,11 @@ def test_x_at_node():
 
     assert_array_equal(
         flex.x_at_node,
-        [[0., 1., 2., 3., 4.], [0., 1., 2., 3., 4.], [0., 1., 2., 3., 4.]],
+        [
+            [0.0, 1.0, 2.0, 3.0, 4.0],
+            [0.0, 1.0, 2.0, 3.0, 4.0],
+            [0.0, 1.0, 2.0, 3.0, 4.0],
+        ],
     )
 
 
@@ -227,7 +231,7 @@ def test_dz_at_node():
     flex = Flexure1D(RasterModelGrid((3, 5)))
 
     vals = flex.grid.at_node["lithosphere_surface__increment_of_elevation"]
-    assert_array_equal(vals, 0.)
+    assert_array_equal(vals, 0.0)
 
     assert np.may_share_memory(vals, flex.dz_at_node)
     assert flex.dz_at_node.shape == (3, 5)
@@ -238,7 +242,7 @@ def test_load_at_node():
     flex = Flexure1D(RasterModelGrid((3, 5)))
 
     vals = flex.grid.at_node["lithosphere__increment_of_overlying_pressure"]
-    assert_array_equal(vals, 0.)
+    assert_array_equal(vals, 0.0)
 
     assert np.may_share_memory(vals, flex.load_at_node)
     assert flex.load_at_node.shape == (3, 5)
@@ -264,12 +268,12 @@ def test_load_is_contiguous():
 
 def test_subside_loads():
     flex = Flexure1D(RasterModelGrid((3, 5)), method="airy")
-    dz_airy = flex.subside_loads([0., 0., flex.gamma_mantle, 0., 0])
+    dz_airy = flex.subside_loads([0.0, 0.0, flex.gamma_mantle, 0.0, 0])
     assert dz_airy.shape == flex.grid.shape
-    assert np.all(dz_airy == [0., 0., 1., 0., 0])
+    assert np.all(dz_airy == [0.0, 0.0, 1.0, 0.0, 0])
 
     flex = Flexure1D(RasterModelGrid((3, 5)), method="flexure")
-    dz_flexure = flex.subside_loads([0., 0., flex.gamma_mantle, 0., 0])
+    dz_flexure = flex.subside_loads([0.0, 0.0, flex.gamma_mantle, 0.0, 0])
 
     assert dz_flexure.shape == flex.grid.shape
     assert np.argmax(dz_flexure) == 2
