@@ -71,28 +71,28 @@ def drainage_plot(
         )
 
     # Plot differen types of nodes:
-    o, = plt.plot(
+    (o,) = plt.plot(
         mg.x_of_node[mg.status_at_node == mg.BC_NODE_IS_CORE],
         mg.y_of_node[mg.status_at_node == mg.BC_NODE_IS_CORE],
         "b.",
         label="Core Nodes",
         zorder=4,
     )
-    fg, = plt.plot(
+    (fg,) = plt.plot(
         mg.x_of_node[mg.status_at_node == mg.BC_NODE_IS_FIXED_VALUE],
         mg.y_of_node[mg.status_at_node == mg.BC_NODE_IS_FIXED_VALUE],
         "c.",
         label="Fixed Gradient Nodes",
         zorder=5,
     )
-    fv, = plt.plot(
+    (fv,) = plt.plot(
         mg.x_of_node[mg.status_at_node == mg.BC_NODE_IS_FIXED_GRADIENT],
         mg.y_of_node[mg.status_at_node == mg.BC_NODE_IS_FIXED_GRADIENT],
         "g.",
         label="Fixed Value Nodes",
         zorder=6,
     )
-    c, = plt.plot(
+    (c,) = plt.plot(
         mg.x_of_node[mg.status_at_node == mg.BC_NODE_IS_CLOSED],
         mg.y_of_node[mg.status_at_node == mg.BC_NODE_IS_CLOSED],
         "r.",
@@ -103,7 +103,7 @@ def drainage_plot(
     node_id = np.arange(mg.number_of_nodes)
     flow_to_self = receivers[:, 0] == node_id
 
-    fts, = plt.plot(
+    (fts,) = plt.plot(
         mg.x_of_node[flow_to_self],
         mg.y_of_node[flow_to_self],
         "kx",
