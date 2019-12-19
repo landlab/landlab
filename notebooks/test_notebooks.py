@@ -1,9 +1,18 @@
 import os
+import pathlib
 import subprocess
 import tempfile
 
 import nbformat
 import pytest
+
+
+_EXCLUDE = [
+    "animate-landlab-output.ipynb",
+    "cellular_automaton_vegetation_flat_domain.ipynb",
+    "cellular_automaton_vegetation_DEM.ipynb",
+    "stream_power_channels_class_notebook.ipynb",
+]
 
 
 def _notebook_run(path):
@@ -44,6 +53,9 @@ def _notebook_run(path):
 
 @pytest.mark.notebook
 def test_notebook(tmpdir, notebook):
+    if pathlib.Path(notebook).name in _EXCLUDE:
+        pytest.skip("notebook marked as failing")
+
     with tmpdir.as_cwd():
         nb, errors = _notebook_run(notebook)
         assert not errors

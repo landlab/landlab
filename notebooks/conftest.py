@@ -5,11 +5,6 @@ import pytest
 
 
 _TEST_DIR = pathlib.Path(__file__).absolute().parent
-_EXCLUDE = [
-    "animate-landlab-output.ipynb",
-    "cellular_automaton_vegetation_flat_domain.ipynb",
-    "cellular_automaton_vegetation_DEM.ipynb",
-]
 
 
 def collect_notebooks(src):
@@ -29,7 +24,7 @@ def iter_notebooks_in_dir(path, root):
             normalized_path += "/"
         if p.is_dir() and p.name not in (".git", ".ipynb_checkpoints"):
             yield from iter_notebooks_in_dir(p, root)
-        elif p.is_file() and p.suffix == ".ipynb" and p.name not in _EXCLUDE:
+        elif p.is_file() and p.suffix == ".ipynb":
             yield p
 
 
