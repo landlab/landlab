@@ -75,17 +75,7 @@ setup(
     description="Plugin-based component modeling tool.",
     long_description=open("README.rst").read(),
     setup_requires=["cython", "numpy"],
-    install_requires=[
-        "bmipy<1",
-        "matplotlib",
-        "netcdf4",
-        "pyyaml",
-        "pyshp",
-        "scipy",
-        "statsmodels",
-        "pandas",
-        "xarray",
-    ],
+    install_requires=open("requirements.txt", "r").read().splitlines(),
     classifiers=[
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: MIT License",
