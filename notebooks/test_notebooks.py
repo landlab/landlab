@@ -11,7 +11,6 @@ _EXCLUDE = [
     "animate-landlab-output.ipynb",
     "cellular_automaton_vegetation_flat_domain.ipynb",
     "cellular_automaton_vegetation_DEM.ipynb",
-    "stream_power_channels_class_notebook.ipynb",
 ]
 
 
