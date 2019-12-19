@@ -2,9 +2,9 @@ name: landlab_dev
 channels:
   - conda-forge
 dependencies:
-- black
-- flake8
-- isort
+- pip
 - pip:
   - -r file:requirements.txt
   - -r file:requirements-testing.txt
+  - -r file:requirements-dev.txt
+  - -r file:requirements-notebooks.txt
