@@ -5,13 +5,19 @@ import tempfile
 
 import nbformat
 import pytest
+import yaml
 
 
-_EXCLUDE = [
-    "animate-landlab-output.ipynb",
-    "cellular_automaton_vegetation_flat_domain.ipynb",
-    "cellular_automaton_vegetation_DEM.ipynb",
-]
+# _EXCLUDE = []
+#     "animate-landlab-output.ipynb",
+#     "cellular_automaton_vegetation_flat_domain.ipynb",
+#     "cellular_automaton_vegetation_DEM.ipynb",
+#     "stream_power_channels_class_notebook.ipynb",
+# ]
+
+_exclude_file = pathlib.Path(__file__).absolute().parent / "exclude.yml"
+with open(_exclude_file, "r") as fp:
+    _EXCLUDE = dict([(item["file"], item["reason"]) for item in yaml.safe_load(fp)])
 
 
 def _notebook_run(path):
@@ -52,8 +58,10 @@ def _notebook_run(path):
 
 @pytest.mark.notebook
 def test_notebook(tmpdir, notebook):
-    if pathlib.Path(notebook).name in _EXCLUDE:
-        pytest.skip("notebook marked as failing")
+    try:
+        pytest.skip(_EXCLUDE[pathlib.Path(notebook).name])
+    except KeyError:
+        pass
 
     with tmpdir.as_cwd():
         nb, errors = _notebook_run(notebook)
