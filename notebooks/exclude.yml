@@ -4,5 +4,3 @@
   reason: "not v2 compatible"
 - file: cellular_automaton_vegetation_DEM.ipynb
   reason: "not v2 compatible"
-- file: stream_power_channels_class_notebook.ipynb
-  reason: "not v2 compatible"
