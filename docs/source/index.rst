@@ -18,13 +18,17 @@ terrain. With its robust, reusable components, Landlab allows scientists
 to quickly build landscape model experiments and compute mass balance
 across scales.
 
-The most current source code is always available from our git
-repository:
-
-https://github.com/landlab/landlab
+The most current source code is always available from our `git
+repository <https://github.com/landlab/landlab>`_.
 
 We compile ongoing development :ref:`here <ongoing_development>` and good first
 issues :ref:`here <desired_contributions>`.
+
+Many Jupyter notebooks exist describing use of Landlab. Find an overview
+:ref:`here <tutorials>`. A subset of these notebooks are designed specifically
+for the classroom. Information about them and how to set them up for classroom 
+use is described :ref:`on this page <teaching_tutorials>`.
+
 
 .. toctree::
    :maxdepth: 2
