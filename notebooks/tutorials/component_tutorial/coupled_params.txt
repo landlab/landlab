@@ -1,0 +1,11 @@
+nrows: 100
+ncols: 100
+dx: 0.02
+dt: 0.5
+total_time: 100.
+uplift_rate: 0.001
+stream_power:
+  K_sp: 0.3
+  m_sp: 0.5
+linear_diffuser:
+  linear_diffusivity: 0.0001

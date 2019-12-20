@@ -533,7 +533,10 @@ class DataRecord(object):
                             )
                         # check that grid_element and element_id exist
                         # on the grid and have valid format:
-                        new_grid_element, new_element_id = self._check_grid_element_and_id(
+                        (
+                            new_grid_element,
+                            new_element_id,
+                        ) = self._check_grid_element_and_id(
                             new_grid_element, new_element_id
                         )
 

@@ -12,23 +12,6 @@ env:
 sudo: false
 jobs:
   include:
-  - stage: tutorials
-    if: branch = release
-    os: linux
-    install:
-    - conda env create --file environment-dev.yml
-    - conda activate landlab_dev
-    - pip install -e .
-    script:
-    - pushd ../..
-    - git clone https://github.com/landlab/tutorials.git landlab/tutorials
-    - pushd landlab/tutorials
-    - git fetch origin release
-    - git checkout -qf release
-    - conda install --file=requirements.txt
-    - conda install nbformat
-    - travis_wait 50 pytest -vvv
-
   - stage: lint
     os: linux
     script:
@@ -103,6 +86,6 @@ install:
 - pip install numpy
 - pip install -e .
 script:
-- pip install pytest pytest-cov pytest-datadir coveralls
-- pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml -vvv
+- pip install -r requirements-testing.txt -r requirements-notebooks.txt
+- pytest --cov=landlab --cov-report=xml:$(pwd)/coverage.xml --run-notebook -vvv
 after_success: coveralls
