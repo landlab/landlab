@@ -18,6 +18,11 @@ terrain. With its robust, reusable components, Landlab allows scientists
 to quickly build landscape model experiments and compute mass balance
 across scales.
 
+The most current source code is always available from our git
+repository:
+
+https://github.com/landlab/landlab
+
 .. toctree::
    :maxdepth: 2
 
