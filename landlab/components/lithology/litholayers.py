@@ -11,6 +11,25 @@ class LithoLayers(Lithology):
 
     """Create LithoLayers component.
 
+    If you use the LithoLayers component, cite the
+    `JOSS paper that describes it
+    <https://joss.theoj.org/papers/10.21105/joss.00979>`.
+
+    ::
+
+        @article{barnhart2018lithology,
+          title={Lithology: A Landlab submodule for spatially variable
+                 rock properties.},
+          author={Barnhart, Katherine R and Hutton, Eric WH and Gasparini,
+                  Nicole M and Tucker, Gregory E},
+          journal={J. Open Source Software},
+          volume={3},
+          number={30},
+          pages={979},
+          year={2018},
+          doi={10.21105/joss.00979}
+        }
+
     A LithoLayers is a three dimentional representation of material operated on
     by landlab components. Material can be removed through erosion or added to
     through deposition. Rock types can have multiple attributes (e.g. age,
@@ -38,7 +57,6 @@ class LithoLayers(Lithology):
     Where ``'K_sp'`` and ``'D'`` are properties to track, and ``1`` and ``2``
     are rock type IDs. The rock type IDs can be any type that is valid as a
     python dictionary key.
-
     """
 
     _name = "LithoLayers"
@@ -53,6 +71,8 @@ class LithoLayers(Lithology):
                     author = "Katherine R. Barnhart and Eric Hutton and Nicole M. Gasparini and Gregory E. Tucker",
                     }"""
 
+    _info = {}
+
     def __init__(
         self,
         grid,
@@ -63,6 +83,8 @@ class LithoLayers(Lithology):
         y0=0,
         function=lambda x, y: 0 * x + 0 * y,
         layer_type="EventLayers",
+        dz_advection=0,
+        rock_id=None,
     ):
         """Create a new instance of a LithoLayers.
 
@@ -83,7 +105,7 @@ class LithoLayers(Lithology):
             y value of anchor point for all layers.
         function : function, optional
             Functional form of layers as a function of two variables, x and y.
-            Default value is lambda x, y: 0*x + 0*y for flatlying layers.
+            Default value is `lambda x, y: 0*x + 0*y` for flatlying layers.
         layer_type : str, optional
             Type of Landlab layers object used to store the layers. If
             MaterialLayers (default) is specified, then erosion removes material
@@ -91,6 +113,12 @@ class LithoLayers(Lithology):
             used, then erosion removes material and creates layers of thickness
             zero. Thus, EventLayers may be appropriate if the user is interested
             in chronostratigraphy.
+        dz_advection : float, `(n_nodes, )` shape array, or at-node field array optional
+            Change in rock elevation due to advection by some external process.
+            This can be changed using the property setter.
+        rock_id : value or `(n_nodes, )` shape array, optional
+            Rock type id for new material if deposited.
+            This can be changed using the property setter.
 
         Examples
         --------
@@ -140,7 +168,6 @@ class LithoLayers(Lithology):
         array([ 0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,  0.001 ,  0.0001,
                 0.001 ,  0.0001])
         """
-        self._grid = grid
 
         function_args = function.__code__.co_varnames
         if len(function_args) != 2:
@@ -155,10 +182,10 @@ class LithoLayers(Lithology):
             msg = "LithoLayers: Bad layer depth order passed."
             raise ValueError(msg)
 
-        z_surf = function(self._grid.x_of_node - x0, self._grid.y_of_node - y0)
+        z_surf = function(grid.x_of_node - x0, grid.y_of_node - y0)
 
         if hasattr(z_surf, "shape"):
-            if z_surf.shape != self._grid.x_of_node.shape:
+            if z_surf.shape != grid.x_of_node.shape:
                 msg = "LithoLayers: function must return an array of shape (n_nodes,)"
                 raise ValueError(msg)
         else:
@@ -170,7 +197,7 @@ class LithoLayers(Lithology):
 
         num_layers = np.asarray(z0s).size
 
-        last_layer_elev = np.zeros(self._grid.number_of_nodes)
+        last_layer_elev = np.zeros(grid.number_of_nodes)
 
         # create layers (here listed from the top to the bottom.)
         for i in range(num_layers):
@@ -186,5 +213,11 @@ class LithoLayers(Lithology):
             layer_ids.append(ids[i] * np.ones(z_surf.size))
 
         super(LithoLayers, self).__init__(
-            grid, layer_thicknesses, layer_ids, attrs, layer_type=layer_type
+            grid,
+            layer_thicknesses,
+            layer_ids,
+            attrs,
+            layer_type=layer_type,
+            dz_advection=dz_advection,
+            rock_id=rock_id,
         )

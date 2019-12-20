@@ -1,4 +1,4 @@
-""" generate_overland_flow.py
+"""generate_overland_flow.py.
 
 This component simulates overland flow using
 the 2-D numerical model of shallow-water flow
@@ -8,9 +8,9 @@ algorithm for storage-cell inundation modeling.
 Written by Jordan Adams, based on code written by Greg Tucker.
 
 Last updated: April 21, 2016
-
 """
 import numpy as np
+import scipy.constants
 
 from landlab import Component
 
@@ -64,33 +64,31 @@ class OverlandFlowBates(Component):
 
     _name = "OverlandFlowBates"
 
-    _input_var_names = ("surface_water__depth", "topographic__elevation")
-
-    _output_var_names = (
-        "surface_water__depth",
-        "surface_water__discharge",
-        "water_surface__gradient",
-    )
-
-    _var_units = {
-        "surface_water__depth": "m",
-        "surface_water__discharge": "m3/s",
-        "water_surface__gradient": "m/m",
-        "topographic__elevation": "m",
-    }
-
-    _var_mapping = {
-        "surface_water__depth": "node",
-        "topographic__elevtation": "node",
-        "surface_water__discharge": "active_link",
-        "water_surface__gradient": "node",
-    }
-
-    _var_mapping = {
-        "surface_water__depth": "The depth of water at each node.",
-        "topographic__elevtation": "The land surface elevation.",
-        "surface_water__discharge": "The discharge of water on active links.",
-        "water_surface__gradient": "The slope of the water surface at each node.",
+    _info = {
+        "surface_water__depth": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Depth of water on the surface",
+        },
+        "surface_water__discharge": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/s",
+            "mapping": "link",
+            "doc": "Volumetric discharge of surface water",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
     }
 
     def __init__(
@@ -99,66 +97,82 @@ class OverlandFlowBates(Component):
         h_init=0.00001,
         alpha=0.7,
         mannings_n=0.03,
-        g=9.81,
+        g=scipy.constants.g,
         rainfall_intensity=0.0,
-        **kwds
     ):
-
-        super(OverlandFlowBates, self).__init__(grid, **kwds)
+        super(OverlandFlowBates, self).__init__(grid)
 
         # First we copy our grid
-        self._grid = grid
 
-        self.h_init = h_init
-        self.alpha = alpha
-        self.mannings_n = mannings_n
-        self.g = g
-        self.rainfall_intensity = rainfall_intensity
+        self._h_init = h_init
+        self._alpha = alpha
+        self._mannings_n = mannings_n
+        self._g = g
+        self._rainfall_intensity = rainfall_intensity
 
         # Now setting up fields at the links...
         # For water discharge
 
-        self.surface_water__discharge = grid.add_zeros(
-            "link",
+        self._surface_water__discharge = grid.add_zeros(
             "surface_water__discharge",
-            units=self._var_units["surface_water__discharge"],
+            at="link",
+            units=self._info["surface_water__discharge"]["units"],
         )
 
         # Pre-calculated values included for speed.
-        self.ten_thirds = 10.0 / 3.0
-        self.mannings_n_squared = self.mannings_n * self.mannings_n
+        self._ten_thirds = 10.0 / 3.0
+        self._mannings_n_squared = self._mannings_n * self._mannings_n
 
         # Start time of simulation is at 1.0 s
-        self.elapsed_time = 1.0
+        self._elapsed_time = 1.0
 
         # Assigning a class variable to the water depth field and adding the
         # initial thin water depth
-        self.h = self._grid["node"]["surface_water__depth"] = (
-            self._grid["node"]["surface_water__depth"] + self.h_init
+        self._h = self._grid["node"]["surface_water__depth"] = (
+            self._grid["node"]["surface_water__depth"] + self._h_init
         )
 
         # Assigning a class variable to the water discharge field.
-        self.q = self._grid["link"]["surface_water__discharge"]
+        self._q = self._grid["link"]["surface_water__discharge"]
 
         # Assiging a class variable to the elevation field.
-        self.z = self._grid.at_node["topographic__elevation"]
+        self._z = self._grid.at_node["topographic__elevation"]
+
+    @property
+    def surface_water__discharge(self):
+        """The discharge of water on active links."""
+        return self._surface_water__discharge
+
+    @property
+    def h(self):
+        """The depth of water at each node."""
+        return self._h
+
+    @property
+    def dt(self):
+        """dt: component timestep."""
+        return self._dt
+
+    @dt.setter
+    def dt(self, dt):
+        assert dt > 0
+        self._dt = dt
 
     def calc_time_step(self):
 
         # Adaptive time stepper from Bates et al., 2010 and de Almeida et al.,
         # 2012
-        self.dt = (
-            self.alpha
+        self._dt = (
+            self._alpha
             * self._grid.dx
-            / np.sqrt(self.g * np.amax(self._grid.at_node["surface_water__depth"]))
+            / np.sqrt(self._g * np.amax(self._grid.at_node["surface_water__depth"]))
         )
 
-        return self.dt
+        return self._dt
 
-    def overland_flow(self, dt=None, **kwds):
-        """
-        For one time step, this generates 'overland flow' across a given grid
-        by calculating discharge at each node.
+    def overland_flow(self, dt=None):
+        """For one time step, this generates 'overland flow' across a given
+        grid by calculating discharge at each node.
 
         Using the depth slope product, shear stress is calculated at every
         node.
@@ -177,26 +191,26 @@ class OverlandFlowBates(Component):
         """
 
         # If no dt is provided, one will be calculated using
-        # self.gear_time_step()
+        # self._gear_time_step()
         if dt is None:
             self.calc_time_step()
 
         # In case another component has added data to the fields, we just reset
         # our water depths, topographic elevations and water discharge
         # variables to the fields.
-        # self.h = self._grid['node']['surface_water__depth']
-        self.z = self._grid["node"]["topographic__elevation"]
-        self.q = self._grid["link"]["surface_water__discharge"]
+        # self._h = self._grid['node']['surface_water__depth']
+        self._z = self._grid["node"]["topographic__elevation"]
+        self._q = self._grid["link"]["surface_water__discharge"]
 
         # Here we identify the core nodes and active link ids for later use.
-        self.core_nodes = self._grid.core_nodes
-        self.active_links = self._grid.active_links
+        self._core_nodes = self._grid.core_nodes
+        self._active_links = self._grid.active_links
 
         # Per Bates et al., 2010, this solution needs to find the difference
         # between the highest water surface in the two cells and the highest
         # bed elevation
-        zmax = self._grid.map_max_of_link_nodes_to_link(self.z)
-        w = self.h + self.z
+        zmax = self._grid.map_max_of_link_nodes_to_link(self._z)
+        w = self._h + self._z
         wmax = self._grid.map_max_of_link_nodes_to_link(w)
         hflow = wmax[self._grid.active_links] - zmax[self._grid.active_links]
 
@@ -206,25 +220,26 @@ class OverlandFlowBates(Component):
 
         # Here we calculate discharge at all active links using Eq. 11 from
         # Bates et al., 2010
-        self.q[self.active_links] = (
-            self.q[self.active_links] - self.g * hflow * self.dt * water_surface_slope
+        self._q[self._active_links] = (
+            self._q[self._active_links]
+            - self._g * hflow * self._dt * water_surface_slope
         ) / (
             1.0
-            + self.g
+            + self._g
             * hflow
-            * self.dt
-            * self.mannings_n_squared
-            * abs(self.q[self.active_links])
-            / hflow ** self.ten_thirds
+            * self._dt
+            * self._mannings_n_squared
+            * abs(self._q[self._active_links])
+            / hflow ** self._ten_thirds
         )
 
         # Update our water depths
-        dhdt = self.rainfall_intensity - self._grid.calc_flux_div_at_node(self.q)
+        dhdt = self._rainfall_intensity - self._grid.calc_flux_div_at_node(self._q)
 
-        self.h[self.core_nodes] = (
-            self.h[self.core_nodes] + dhdt[self.core_nodes] * self.dt
+        self._h[self._core_nodes] = (
+            self._h[self._core_nodes] + dhdt[self._core_nodes] * self._dt
         )
 
         # And reset our field values with the newest water depth and discharge.
-        self._grid.at_node["surface_water__depth"] = self.h
-        self._grid.at_link["surface_water__discharge"] = self.q
+        self._grid.at_node["surface_water__depth"] = self._h
+        self._grid.at_link["surface_water__discharge"] = self._q

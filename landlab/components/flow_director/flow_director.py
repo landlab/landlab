@@ -7,11 +7,6 @@ the surface over which flow will be routed to the component, and sets up
 part of the boundary condition testing.
 """
 
-from __future__ import print_function
-
-import numpy
-import six
-
 from landlab import RasterModelGrid  # for type tests
 from landlab import Component
 from landlab.utils.return_array import return_array_at_node
@@ -28,7 +23,7 @@ class _FlowDirector(Component):
     It also creates the following field used by all FlowDirectors.
 
     -  Link array identifing if flow goes with (1) or against (-1) the link
-       direction: *'flow_link_direction'*
+       direction: *'flow__link_direction'*
 
     The primary method of this class, :func:`run_one_step` is not implemented.
 
@@ -47,10 +42,10 @@ class _FlowDirector(Component):
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
-    ...     at = 'node'
-    ...     )
+    ...     at="node",
+    ... )
     >>> fd = _FlowDirector(mg, 'topographic__elevation')
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
@@ -71,24 +66,39 @@ class _FlowDirector(Component):
 
     _name = "_FlowDirector"
 
+    _info = {
+        "flow__sink_flag": {
+            "dtype": bool,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Boolean array, True at local lows",
+        }
+    }
+
     def __init__(self, grid, surface):
         """Initialize the _FlowDirector class."""
         # We keep a local reference to the grid
         super(_FlowDirector, self).__init__(grid)
 
-        self._grid = grid
-        self._bc_set_code = self.grid.bc_set_code
+        self._bc_set_code = self._grid.bc_set_code
 
         # set up the grid type testing
         self._is_raster = isinstance(self._grid, RasterModelGrid)
         if not self._is_raster:
-            self.method = None
+            self._method = None
 
         # save elevations as class properites.
-        self.surface = surface
-        self.surface_values = return_array_at_node(grid, surface)
+        self._surface = surface
+        self._surface_values = return_array_at_node(grid, surface)
 
-        grid.add_zeros("flow__sink_flag", at="node", dtype=numpy.int8, noclobber=False)
+        grid.add_zeros("flow__sink_flag", at="node", dtype=bool, clobber=True)
+
+    @property
+    def surface_values(self):
+        """Values of the surface over which flow is directed."""
+        return self._surface_values
 
     def _changed_surface(self):
         """Check if the surface values have changed.
@@ -96,14 +106,14 @@ class _FlowDirector(Component):
         If the surface values are stored as a field, it is important to
         check if they have changed since the component was instantiated.
         """
-        if isinstance(self.surface, six.string_types):
-            self.surface_values = return_array_at_node(self._grid, self.surface)
+        if isinstance(self._surface, str):
+            self._surface_values = return_array_at_node(self._grid, self._surface)
 
     def _check_updated_bc(self):
         # step 0. Check and update BCs
-        if self._bc_set_code != self.grid.bc_set_code:
+        if self._bc_set_code != self._grid.bc_set_code:
             self.updated_boundary_conditions()
-            self._bc_set_code = self.grid.bc_set_code
+            self._bc_set_code = self._grid.bc_set_code
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""

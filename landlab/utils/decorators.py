@@ -4,9 +4,7 @@ General Landlab decorators
 ++++++++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
-    ~landlab.utils.decorators.use_file_name_or_kwds
     ~landlab.utils.decorators.use_field_name_or_array
     ~landlab.utils.decorators.make_return_array_immutable
     ~landlab.utils.decorators.deprecated
@@ -19,11 +17,8 @@ import warnings
 from functools import wraps
 
 import numpy as np
-import six
 
 from landlab import FieldError
-
-from ..core.model_parameter_loader import load_params
 
 try:
     from inspect import getfullargspec
@@ -130,7 +125,6 @@ def add_signature_to_doc(func):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.utils.decorators import add_signature_to_doc
 
     >>> def foo(arg1, kwd=None):
@@ -149,83 +143,6 @@ def add_signature_to_doc(func):
         argspec=inspect.formatargspec(*argspec),
         body=inspect.getdoc(func),
     )
-
-
-def use_file_name_or_kwds(func):
-
-    """Decorate a method so that it takes a file name or keywords.
-
-    Parameters
-    ----------
-    func : A function
-        A method function that accepts a ModelGrid as a first argument.
-
-    Returns
-    -------
-    function
-        A function that takes an optional second argument, a file, from which
-        to read keywords.
-
-    Examples
-    --------
-    >>> from landlab import RasterModelGrid
-    >>> from landlab.utils.decorators import use_file_name_or_kwds
-
-    >>> class MyClass(object):
-    ...     @use_file_name_or_kwds
-    ...     def __init__(self, grid, kw=0.):
-    ...         self.kw = kw
-
-    >>> grid = RasterModelGrid((4, 5))
-    >>> foo = MyClass(grid)
-    >>> foo.kw
-    0.0
-
-    >>> foo = MyClass(grid, "kw: 1945")
-    >>> foo.kw
-    1945
-    >>> foo = MyClass(grid, "kw: 1945", kw=1973)
-    >>> foo.kw
-    1973
-
-    >>> mpd = \"\"\"
-    ... kw: kw value
-    ... 1e6
-    ... \"\"\"
-    >>> foo = MyClass(grid, mpd)
-    >>> foo.kw
-    1000000.0
-    """
-
-    func.__doc__ = add_signature_to_doc(func)
-
-    @wraps(func)
-    def _wrapped(self, *args, **kwds):
-        from ..grid import ModelGrid
-
-        if not isinstance(args[0], ModelGrid):
-            raise ValueError("first argument must be a ModelGrid")
-
-        if len(args) == 2:
-            warnings.warn(
-                "Passing a file to a component's __init__ method is "
-                "deprecated. Instead, pass parameters as keywords.",
-                category=DeprecationWarning,
-            )
-
-            if os.path.isfile(args[1]):
-                with open(args[1], "r") as fp:
-                    params = load_params(fp)
-            else:
-                params = load_params(args[1])
-        else:
-            params = {}
-
-        params.update(kwds)
-
-        func(self, args[0], **params)
-
-    return _wrapped
 
 
 class use_field_name_or_array(object):
@@ -280,7 +197,7 @@ class use_field_name_or_array(object):
 
     The array of values can be a field name.
 
-    >>> _ = grid.add_field('cell', 'elevation', [0, 1, 2, 3, 4, 5])
+    >>> _ = grid.add_field("elevation", [0, 1, 2, 3, 4, 5], at="cell")
     >>> my_func(grid, 'elevation')
     array([  0.,   2.,   4.,   6.,   8.,  10.])
     """
@@ -304,7 +221,7 @@ class use_field_name_or_array(object):
         @wraps(func)
         def _wrapped(grid, vals, *args, **kwds):
             """Convert the second argument to an array."""
-            if isinstance(vals, six.string_types):
+            if isinstance(vals, str):
                 if vals in grid[self._at]:
                     vals = grid[self._at][vals]
                 else:
@@ -369,7 +286,7 @@ class use_field_name_array_or_value(object):
 
     The array of values can be a field name.
 
-    >>> _ = grid.add_field('cell', 'elevation', [0, 1, 2, 3, 4, 5])
+    >>> _ = grid.add_field("elevation", [0, 1, 2, 3, 4, 5], at="cell")
     >>> my_func(grid, 'elevation')
     array([  0.,   2.,   4.,   6.,   8.,  10.])
 
@@ -398,14 +315,14 @@ class use_field_name_array_or_value(object):
         @wraps(func)
         def _wrapped(grid, vals, *args, **kwds):
             """Convert the second argument to an array."""
-            if isinstance(vals, six.string_types):
+            if isinstance(vals, str):
                 if vals in grid[self._at]:
                     vals = grid[self._at][vals]
                 else:
                     raise FieldError(vals)
             else:
                 expected_size = grid.size(self._at)
-                vals = np.asarray(vals).flatten()
+                vals = np.asarray(vals).ravel()
                 if vals.size == 1:
                     vals = np.broadcast_to(vals, (expected_size,))
 

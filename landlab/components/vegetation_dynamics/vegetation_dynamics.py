@@ -2,8 +2,6 @@ import numpy as np
 
 from landlab import Component
 
-from ...utils.decorators import use_file_name_or_kwds
-
 _VALID_METHODS = set(["Grid"])
 
 
@@ -13,10 +11,9 @@ def assert_method_is_valid(method):
 
 
 class Vegetation(Component):
-    """
-    Landlab component that simulates net primary productivity, biomass
-    and leaf area index at each cell based on inputs of root-zone
-    average soil moisture.
+    """Landlab component that simulates net primary productivity, biomass and
+    leaf area index at each cell based on inputs of root-zone average soil
+    moisture.
 
     Ref: Zhou, X., Istanbulluoglu, E., & Vivoni, E. R. (2013). Modeling the
     ecohydrological role of aspect controlled radiation on tree grass shrub
@@ -101,66 +98,89 @@ class Vegetation(Component):
 
     _name = "Vegetation"
 
-    _input_var_names = (
-        "surface__evapotranspiration",
-        "vegetation__water_stress",
-        "surface__potential_evapotranspiration_rate",
-        "surface__potential_evapotranspiration_30day_mean",
-        "vegetation__plant_functional_type",
-    )
-
-    _output_var_names = (
-        "vegetation__live_leaf_area_index",
-        "vegetation__dead_leaf_area_index",
-        "vegetation__cover_fraction",
-        "vegetation__live_biomass",
-        "vegetation__dead_biomass",
-    )
-
-    _var_units = {
-        "vegetation__live_leaf_area_index": "None",
-        "vegetation__dead_leaf_area_index": "None",
-        "vegetation__cover_fraction": "None",
-        "surface__evapotranspiration": "mm",
-        "surface__potential_evapotranspiration_rate": "mm",
-        "surface__potential_evapotranspiration_30day_mean": "mm",
-        "vegetation__water_stress": "None",
-        "vegetation__live_biomass": "g m^-2 d^-1",
-        "vegetation__dead_biomass": "g m^-2 d^-1",
-        "vegetation__plant_functional_type": "None",
+    _info = {
+        "surface__evapotranspiration": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "actual sum of evaporation and plant transpiration",
+        },
+        "surface__potential_evapotranspiration_30day_mean": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "30 day mean of surface__potential_evapotranspiration",
+        },
+        "surface__potential_evapotranspiration_rate": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "potential sum of evaporation and potential transpiration",
+        },
+        "vegetation__cover_fraction": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "fraction of land covered by vegetation",
+        },
+        "vegetation__dead_biomass": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "g m^-2 d^-1",
+            "mapping": "cell",
+            "doc": "weight of dead organic mass per unit area - measured in terms of dry matter",
+        },
+        "vegetation__dead_leaf_area_index": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "one-sided dead leaf area per unit ground surface area",
+        },
+        "vegetation__live_biomass": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "g m^-2 d^-1",
+            "mapping": "cell",
+            "doc": "weight of green organic mass per unit area - measured in terms of dry matter",
+        },
+        "vegetation__live_leaf_area_index": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "one-sided green leaf area per unit ground surface area",
+        },
+        "vegetation__plant_functional_type": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "classification of plants (int), grass=0, shrub=1, tree=2, bare=3, shrub_seedling=4, tree_seedling=5",
+        },
+        "vegetation__water_stress": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "parameter that represents nonlinear effects of water deficit on plants",
+        },
     }
 
-    _var_mapping = {
-        "vegetation__live_leaf_area_index": "cell",
-        "vegetation__dead_leaf_area_index": "cell",
-        "vegetation__cover_fraction": "cell",
-        "surface__evapotranspiration": "cell",
-        "surface__potential_evapotranspiration_rate": "cell",
-        "surface__potential_evapotranspiration_30day_mean": "cell",
-        "vegetation__water_stress": "cell",
-        "vegetation__live_biomass": "cell",
-        "vegetation__dead_biomass": "cell",
-        "vegetation__plant_functional_type": "cell",
-    }
-
-    _var_doc = {
-        "vegetation__live_leaf_area_index": "one-sided green leaf area per unit ground surface area",
-        "vegetation__dead_leaf_area_index": "one-sided dead leaf area per unit ground surface area",
-        "vegetation__cover_fraction": "fraction of land covered by vegetation",
-        "surface__evapotranspiration": "actual sum of evaporation and plant transpiration",
-        "surface__potential_evapotranspiration_rate": "potential sum of evaporation and platnt transpiration",
-        "surface__potential_evapotranspiration_30day_mean": "30 day mean of surface__potential_evapotranspiration",
-        "vegetation__water_stress": "parameter that represents nonlinear effects of water defecit \
-             on plants",
-        "vegetation__live_biomass": "weight of green organic mass per unit area - measured in terms \
-             of dry matter",
-        "vegetation__dead_biomass": "weight of dead organic mass per unit area - measured in terms \
-             of dry matter",
-        "vegetation__plant_functional_type": "classification of plants (int), grass=0, shrub=1, tree=2, \
-             bare=3, shrub_seedling=4, tree_seedling=5",
-    }
-
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -198,7 +218,10 @@ class Vegetation(Component):
         ksg_bare=0.012,
         kdd_bare=0.013,
         kws_bare=0.02,
-        **kwds
+        method="Grid",
+        PETthreshold_switch=0,
+        Tb=24.0,
+        Tr=0.01,
     ):
         """
         Parameters
@@ -233,12 +256,25 @@ class Vegetation(Component):
             Decay coefficient of aboveground dead biomass (d-1).
         kws: float, optional
             Maximum drought induced foliage loss rate (d-1).
+        method: str
+            Method name.
+        Tr: float, optional
+            Storm duration (hours).
+        Tb: float, optional
+            Inter-storm duration (hours).
+        PETthreshold_switch: int, optional
+            Flag to indiate the PET threshold. This controls whether the
+            threshold is for growth (1) or dormancy (any other value).
         """
-        self._method = kwds.pop("method", "Grid")
+        super(Vegetation, self).__init__(grid)
+
+        self.Tb = Tb
+        self.Tr = Tr
+        self.PETthreshold_switch = PETthreshold_switch
+
+        self._method = method
 
         assert_method_is_valid(self._method)
-
-        super(Vegetation, self).__init__(grid)
 
         self.initialize(
             Blive_init=Blive_init,
@@ -275,21 +311,48 @@ class Vegetation(Component):
             ksg_bare=ksg_bare,
             kdd_bare=kdd_bare,
             kws_bare=kws_bare,
-            **kwds
         )
 
-        for name in self._input_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
+        self.initialize_output_fields()
 
-        for name in self._output_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
+        self._cell_values = self._grid["cell"]
 
-        self._cell_values = self.grid["cell"]
+        self._Blive_ini = self._Blive_init * np.ones(self._grid.number_of_cells)
+        self._Bdead_ini = self._Bdead_init * np.ones(self._grid.number_of_cells)
 
-        self._Blive_ini = self._Blive_init * np.ones(self.grid.number_of_cells)
-        self._Bdead_ini = self._Bdead_init * np.ones(self.grid.number_of_cells)
+    @property
+    def Tb(self):
+        """Storm duration (hours)."""
+        return self._Tb
+
+    @Tb.setter
+    def Tb(self, Tb):
+        if Tb < 0.0:
+            raise ValueError("Tb must be non-negative")
+        self._Tb = Tb
+
+    @property
+    def Tr(self):
+        """Inter-storm duration (hours)."""
+        return self._Tr
+
+    @Tr.setter
+    def Tr(self, Tr):
+        assert Tr >= 0
+        self._Tr = Tr
+
+    @property
+    def PETthreshold_switch(self):
+        """Flag to indiate the PET threshold.
+
+        This controls whether the threshold is for growth (1) or
+        dormancy (any other value).
+        """
+        return self._PETthreshold_switch
+
+    @PETthreshold_switch.setter
+    def PETthreshold_switch(self, PETthreshold_switch):
+        self._PETthreshold_switch = PETthreshold_switch
 
     def initialize(
         self,
@@ -327,7 +390,6 @@ class Vegetation(Component):
         ksg_bare=0.012,
         kdd_bare=0.013,
         kws_bare=0.02,
-        **kwds
     ):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
@@ -365,7 +427,7 @@ class Vegetation(Component):
         kws: float, optional
             Maximum drought induced foliage loss rate (d-1).
         """
-        self._vegtype = self.grid["cell"]["vegetation__plant_functional_type"]
+        self._vegtype = self._grid["cell"]["vegetation__plant_functional_type"]
         self._WUE = np.choose(
             self._vegtype,
             [WUE_grass, WUE_shrub, WUE_tree, WUE_bare, WUE_shrub, WUE_tree],
@@ -413,21 +475,20 @@ class Vegetation(Component):
         self._Tdmax = Tdmax  # Constant for dead biomass loss adjustment
         self._w = w  # Conversion factor of CO2 to dry biomass
 
-        self._Blive_ini = self._Blive_init * np.ones(self.grid.number_of_cells)
-        self._Bdead_ini = self._Bdead_init * np.ones(self.grid.number_of_cells)
+        self._Blive_ini = self._Blive_init * np.ones(self._grid.number_of_cells)
+        self._Bdead_ini = self._Bdead_init * np.ones(self._grid.number_of_cells)
 
-    def update(self, PETthreshold_switch=0, Tb=24.0, Tr=0.01, **kwds):
-        """
-        Update fields with current loading conditions.
+    def update(self):
+        """Update fields with current loading conditions.
 
-        Parameters
-        ----------
-        Tr: float, optional
-            Storm duration (hours).
-        Tb: float, optional
-            Inter-storm duration (hours).
+        This method looks to the properties ``PETthreshold_switch``,
+        ``Tb``, and ``Tr`` and uses their values to calculate the new
+        field values.
         """
-        PETthreshold_ = PETthreshold_switch
+        PETthreshold_ = self._PETthreshold_switch
+        Tb = self._Tb
+        Tr = self._Tr
+
         PET = self._cell_values["surface__potential_evapotranspiration_rate"]
         PET30_ = self._cell_values["surface__potential_evapotranspiration_30day_mean"]
         ActualET = self._cell_values["surface__evapotranspiration"]
@@ -444,7 +505,7 @@ class Vegetation(Component):
         else:
             PETthreshold = self._ETthresholddown
 
-        for cell in range(0, self.grid.number_of_cells):
+        for cell in range(0, self._grid.number_of_cells):
 
             WUE = self._WUE[cell]
             LAImax = self._LAI_max[cell]

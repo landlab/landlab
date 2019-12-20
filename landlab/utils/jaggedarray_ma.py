@@ -1,15 +1,15 @@
 """Store arrays of variable-length arrays implemented with masked arrays.
 
-Implements a JaggedArray class using numpy masked arrays.
+Implements a MaskedJaggedArray class using numpy masked arrays.
 
 Examples
 --------
 
-Create a JaggedArray that stores link IDs for the links attached to the
+Create a MaskedJaggedArray that stores link IDs for the links attached to the
 nodes of a 3x3 grid.
 
->>> from landlab.utils.jaggedarray_ma import JaggedArray
->>> links_at_node = JaggedArray([
+>>> from landlab.utils.jaggedarray_ma import MaskedJaggedArray
+>>> links_at_node = MaskedJaggedArray([
 ...     [0, 6],
 ...     [1, 7, 0],
 ...     [8, 1],
@@ -24,10 +24,10 @@ Make up some data that provides values at each of the links.
 
 >>> value_at_link = np.arange(12, dtype=float)
 
-Create another JaggedArray. Here we store the values at each of the links
+Create another MaskedJaggedArray. Here we store the values at each of the links
 attached to nodes of the grid.
 
->>> values_at_node = JaggedArray.empty_like(links_at_node, dtype=float)
+>>> values_at_node = MaskedJaggedArray.empty_like(links_at_node, dtype=float)
 >>> values_at_node.array = value_at_link[links_at_node.array]
 
 Now operate on the link values for each node.
@@ -40,50 +40,47 @@ array([ 0.,  0.,  1.,  2.,  2.,  3.,  4.,  4.,  5.])
 array([ 6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 """
 import numpy as np
-from six.moves import range
 
 
-class JaggedArray(object):
+class MaskedJaggedArray(object):
 
-    """
-    A container for an array of variable-length arrays.
+    """A container for an array of variable-length arrays.
 
-    JaggedArray([row0, row1, ...])
-    JaggedArray(values, values_per_row)
+    MaskedJaggedArray([row0, row1, ...])
+    MaskedJaggedArray(values, values_per_row)
 
     Examples
     --------
-    Create a JaggedArray with an array of arrays.
+    Create a MaskedJaggedArray with an array of arrays.
 
-    >>> from landlab.utils.jaggedarray_ma import JaggedArray
-    >>> x = JaggedArray([[0, 1, 2], [3, 4]])
+    >>> from landlab.utils.jaggedarray_ma import MaskedJaggedArray
+    >>> x = MaskedJaggedArray([[0, 1, 2], [3, 4]])
     >>> x.array
     array([0, 1, 2, 3, 4])
 
-    Create a JaggedArray as a 1D array and a list or row lengths.
+    Create a MaskedJaggedArray as a 1D array and a list or row lengths.
 
-    >>> x = JaggedArray([0, 1, 2, 3, 4], (3, 2))
+    >>> x = MaskedJaggedArray([0, 1, 2, 3, 4], (3, 2))
     >>> x.array
     array([0, 1, 2, 3, 4])
     """
 
     def __init__(self, *args):
-        """
-        JaggedArray([row0, row1, ...])
-        JaggedArray(values, values_per_row)
+        """MaskedJaggedArray([row0, row1, ...]) MaskedJaggedArray(values,
+        values_per_row)
 
         Examples
         --------
-        Create a JaggedArray with an array of arrays.
+        Create a MaskedJaggedArray with an array of arrays.
 
-        >>> from landlab.utils.jaggedarray_ma import JaggedArray
-        >>> x = JaggedArray([[0, 1, 2], [3, 4]])
+        >>> from landlab.utils.jaggedarray_ma import MaskedJaggedArray
+        >>> x = MaskedJaggedArray([[0, 1, 2], [3, 4]])
         >>> x.array
         array([0, 1, 2, 3, 4])
 
-        Create a JaggedArray as a 1D array and a list or row lengths.
+        Create a MaskedJaggedArray as a 1D array and a list or row lengths.
 
-        >>> x = JaggedArray([0, 1, 2, 3, 4], (3, 2))
+        >>> x = MaskedJaggedArray([0, 1, 2, 3, 4], (3, 2))
         >>> x.array
         array([0, 1, 2, 3, 4])
         """
@@ -91,9 +88,9 @@ class JaggedArray(object):
             if isinstance(args[0], np.ma.core.MaskedArray):
                 mat = args[0]
             else:
-                mat = JaggedArray.ma_from_list_of_lists(args[0])
+                mat = MaskedJaggedArray.ma_from_list_of_lists(args[0])
         else:
-            mat = JaggedArray.ma_from_flat_array(args[0], args[1])
+            mat = MaskedJaggedArray.ma_from_flat_array(args[0], args[1])
 
         self._values = mat
         self._number_of_rows = mat.shape[0]
@@ -160,8 +157,8 @@ class JaggedArray(object):
 
         Examples
         --------
-        >>> from landlab.utils.jaggedarray_ma import JaggedArray
-        >>> x = JaggedArray([[0, 1, 2], [3, 4]])
+        >>> from landlab.utils.jaggedarray_ma import MaskedJaggedArray
+        >>> x = MaskedJaggedArray([[0, 1, 2], [3, 4]])
         >>> x.array
         array([0, 1, 2, 3, 4])
 
@@ -204,8 +201,8 @@ class JaggedArray(object):
 
         Examples
         --------
-        >>> from landlab.utils.jaggedarray_ma import JaggedArray
-        >>> x = JaggedArray([[0, 1, 2], [3, 4]])
+        >>> from landlab.utils.jaggedarray_ma import MaskedJaggedArray
+        >>> x = MaskedJaggedArray([[0, 1, 2], [3, 4]])
         >>> x.size
         5
         """
@@ -222,8 +219,8 @@ class JaggedArray(object):
 
         Examples
         --------
-        >>> from landlab.utils.jaggedarray_ma import JaggedArray
-        >>> x = JaggedArray([[0, 1, 2], [3, 4]])
+        >>> from landlab.utils.jaggedarray_ma import MaskedJaggedArray
+        >>> x = MaskedJaggedArray([[0, 1, 2], [3, 4]])
         >>> x.number_of_rows == 2
         True
         """
@@ -236,7 +233,7 @@ class JaggedArray(object):
         Parameters
         ----------
         values_per_row : array of int
-            The number of values in each row of the JaggedArray.
+            The number of values in each row of the MaskedJaggedArray.
 
         Returns
         -------
@@ -250,21 +247,21 @@ class JaggedArray(object):
 
     @staticmethod
     def empty_like(jagged, dtype=None):
-        """Create a new JaggedArray that is like another one.
+        """Create a new MaskedJaggedArray that is like another one.
 
         Parameters
         ----------
-        jagged : JaggedArray
-            A JaggedArray to copy.
+        jagged : MaskedJaggedArray
+            A MaskedJaggedArray to copy.
         dtype : np.dtype
-            The data type of the new JaggedArray.
+            The data type of the new MaskedJaggedArray.
 
         Returns
         -------
-        JaggedArray
-            A new JaggedArray.
+        MaskedJaggedArray
+            A new MaskedJaggedArray.
         """
-        return JaggedArray(np.ma.empty_like(jagged.masked_array, dtype=dtype))
+        return MaskedJaggedArray(np.ma.empty_like(jagged.masked_array, dtype=dtype))
 
     def length_of_row(self, row):
         """Number of values in a given row.
@@ -281,8 +278,8 @@ class JaggedArray(object):
 
         Examples
         --------
-        >>> from landlab.utils.jaggedarray_ma import JaggedArray
-        >>> x = JaggedArray([[0, 1, 2], [3, 4]])
+        >>> from landlab.utils.jaggedarray_ma import MaskedJaggedArray
+        >>> x = MaskedJaggedArray([[0, 1, 2], [3, 4]])
         >>> x.length_of_row(0)
         3
         >>> x.length_of_row(1)
@@ -305,8 +302,8 @@ class JaggedArray(object):
 
         Examples
         --------
-        >>> from landlab.utils.jaggedarray_ma import JaggedArray
-        >>> x = JaggedArray([[0, 1, 2], [3, 4]])
+        >>> from landlab.utils.jaggedarray_ma import MaskedJaggedArray
+        >>> x = MaskedJaggedArray([[0, 1, 2], [3, 4]])
         >>> x.row(0)
         array([0, 1, 2])
         >>> x.row(1)
@@ -319,8 +316,8 @@ class JaggedArray(object):
 
         Examples
         --------
-        >>> from landlab.utils.jaggedarray_ma import JaggedArray
-        >>> x = JaggedArray([[0, 1, 2], [3, 4]])
+        >>> from landlab.utils.jaggedarray_ma import MaskedJaggedArray
+        >>> x = MaskedJaggedArray([[0, 1, 2], [3, 4]])
         >>> for row in x: row
         array([0, 1, 2])
         array([3, 4])
@@ -333,8 +330,8 @@ class JaggedArray(object):
 
         Examples
         --------
-        >>> from landlab.utils.jaggedarray_ma import JaggedArray
-        >>> x = JaggedArray([[0, 1, 2], [3, 4]])
+        >>> from landlab.utils.jaggedarray_ma import MaskedJaggedArray
+        >>> x = MaskedJaggedArray([[0, 1, 2], [3, 4]])
         >>> x.foreach_row(np.sum)
         array([3, 7])
 

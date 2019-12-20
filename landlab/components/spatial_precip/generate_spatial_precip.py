@@ -1,8 +1,7 @@
 import numpy as np
 from scipy.stats import fisk, genextreme
-from six.moves import range
 
-from landlab import CLOSED_BOUNDARY, Component, RasterModelGrid
+from landlab import Component, RasterModelGrid
 
 
 class SpatialPrecipitationDistribution(Component):
@@ -60,6 +59,7 @@ class SpatialPrecipitationDistribution(Component):
     distributions.
 
     Key methods are:
+
     yield_storms
         Generate a timeseries of storm:interstorm duration pairs, alongside
         a field that describes the spatial distribution of rain during that
@@ -78,52 +78,54 @@ class SpatialPrecipitationDistribution(Component):
 
     A large number of properties are available to access storm properties
     during generation:
-    - current_year
-    - current_season
-    - storm_depth_last_storm
-    - storm_recession_value_last_storm
-    - storm_duration_last_storm
-    - storm_area_last_storm
-    - storm_intensity_last_storm
-    - total_rainfall_this_season
-    - total_rainfall_this_year
-    - total_rainfall_last_season
-    - total_rainfall_last_year
-    - median_total_rainfall_this_season
-    - median_total_rainfall_this_year
-    - median_total_rainfall_last_season
-    - median_total_rainfall_last_year
-    - number_of_nodes_under_storm
-    - nodes_under_storm
-    - target_median_total_rainfall_this_season
+
+        - current_year
+        - current_season
+        - storm_depth_last_storm
+        - storm_recession_value_last_storm
+        - storm_duration_last_storm
+        - storm_area_last_storm
+        - storm_intensity_last_storm
+        - total_rainfall_this_season
+        - total_rainfall_this_year
+        - total_rainfall_last_season
+        - total_rainfall_last_year
+        - median_total_rainfall_this_season
+        - median_total_rainfall_this_year
+        - median_total_rainfall_last_season
+        - median_total_rainfall_last_year
+        - number_of_nodes_under_storm
+        - nodes_under_storm
+        - target_median_total_rainfall_this_season
 
     Note that becuase these are medians not means,
     median_total_rainfall_last_season + median_total_rainfall_this_season
     != median_total_rainfall_this_year.
 
     Significant differences between this component and the Singer code are:
-    - The component does not model evapotranspiration. Use a separate
-        Landlab component for this.
-    - The component runs only over a LL grid; there is no such thing as a
-        validation or simulation run.
-    - It produces "fuzz" around intensity values using a continuous
-        distribution; Singer does this with integer steps.
-    - Step changes mid-run cannot be explicitly modelled. Instead, run the
-        component for a fixed duration, make the change to the
-        distribution input parameter, then run it again.
-    - Storms can be centred at any spatial coordinate, not just over nodes.
-    - Edge buffering is now dynamic; i.e., big storms have a bigger edge
-        buffer than smaller storms. Storms can be centered off the grid
-        edges.
-    - Storms are never discarded - once a storm is drawn, it must hit the
-        catchment, and positions are repeatedly selected until this can
-        happen. Singer's method would discard such a storm and draw a new
-        one.
-    - Durations are not rescaled to ensure both total duration and total
-        precip are both satisfied at the same time, as in Singer's method.
-        Instead, the component either matches a year's duration, *or*
-        exactly a year's worth of rain. This choice is dictated by the
-        `limit` parameter in the yield methods.
+
+        - The component does not model evapotranspiration. Use a separate
+            Landlab component for this.
+        - The component runs only over a LL grid; there is no such thing as a
+            validation or simulation run.
+        - It produces "fuzz" around intensity values using a continuous
+            distribution; Singer does this with integer steps.
+        - Step changes mid-run cannot be explicitly modelled. Instead, run the
+            component for a fixed duration, make the change to the
+            distribution input parameter, then run it again.
+        - Storms can be centred at any spatial coordinate, not just over nodes.
+        - Edge buffering is now dynamic; i.e., big storms have a bigger edge
+            buffer than smaller storms. Storms can be centered off the grid
+            edges.
+        - Storms are never discarded - once a storm is drawn, it must hit the
+            catchment, and positions are repeatedly selected until this can
+            happen. Singer's method would discard such a storm and draw a new
+            one.
+        - Durations are not rescaled to ensure both total duration and total
+            precip are both satisfied at the same time, as in Singer's method.
+            Instead, the component either matches a year's duration, *or*
+            exactly a year's worth of rain. This choice is dictated by the
+            `limit` parameter in the yield methods.
 
     Examples
     --------
@@ -255,26 +257,31 @@ class SpatialPrecipitationDistribution(Component):
         doi={10.5194/gmd-2018-86}
         }"""
 
-    _input_var_names = ("topographic__elevation",)
-
-    _output_var_names = ("rainfall__flux", "rainfall__total_depth_per_year")
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "rainfall__flux": "mm/hr",
-        "rainfall__total_depth_per_year": "mm/yr",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "rainfall__flux": "node",
-        "rainfall__total_depth_per_year": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "rainfall__flux": "Depth of water delivered per unit time in each storm",
-        "rainfall__total_depth_per_year": "Depth of water delivered in total in each model year",
+    _info = {
+        "rainfall__flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "mm/hr",
+            "mapping": "node",
+            "doc": "Depth of water delivered per unit time in each storm",
+        },
+        "rainfall__total_depth_per_year": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "mm/yr",
+            "mapping": "node",
+            "doc": "Depth of water delivered in total in each model year",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
     }
 
     def __init__(
@@ -294,10 +301,10 @@ class SpatialPrecipitationDistribution(Component):
             here that turns the provided elevation of the storm center into
             a length-11 curve weighting to select which orographic scenario
             to apply.
-
         """
-        self._grid = grid
-        gaugecount = (grid.status_at_node != CLOSED_BOUNDARY).sum()
+        super(SpatialPrecipitationDistribution, self).__init__(grid)
+
+        gaugecount = (grid.status_at_node != grid.BC_NODE_IS_CLOSED).sum()
         self._gauge_dist_km = np.zeros(gaugecount, dtype="float")
         self._temp_dataslots1 = np.zeros(gaugecount, dtype="float")
         self._temp_dataslots2 = np.zeros(gaugecount, dtype="float")
@@ -313,21 +320,21 @@ class SpatialPrecipitationDistribution(Component):
         # build LL fields:
         self.initialize_output_fields()
         # bind the field to the internal variable:
-        self._rain_int_gauge = self.grid.at_node["rainfall__flux"]
-        self._total_rf_year = self.grid.at_node["rainfall__total_depth_per_year"]
+        self._rain_int_gauge = self._grid.at_node["rainfall__flux"]
+        self._total_rf_year = self._grid.at_node["rainfall__total_depth_per_year"]
 
         # store some info on the open node grid extent:
-        open_nodes = self.grid.status_at_node != CLOSED_BOUNDARY
-        self._minx = self.grid.node_x[open_nodes].min()
-        self._maxx = self.grid.node_x[open_nodes].max()
-        self._miny = self.grid.node_y[open_nodes].min()
-        self._maxy = self.grid.node_y[open_nodes].max()
+        open_nodes = self._grid.status_at_node != self._grid.BC_NODE_IS_CLOSED
+        self._minx = self._grid.node_x[open_nodes].min()
+        self._maxx = self._grid.node_x[open_nodes].max()
+        self._miny = self._grid.node_y[open_nodes].min()
+        self._maxy = self._grid.node_y[open_nodes].max()
         self._widthx = self._maxx - self._minx
         self._widthy = self._maxy - self._miny
-        self._running_total_rainfall_this_year = self.grid.zeros("node")
-        self._running_total_rainfall_this_season = self.grid.zeros("node")
+        self._running_total_rainfall_this_year = self._grid.zeros("node")
+        self._running_total_rainfall_this_season = self._grid.zeros("node")
 
-        self._open_area = self.grid.cell_area_at_node[open_nodes].sum()
+        self._open_area = self._grid.cell_area_at_node[open_nodes].sum()
         self._scaling_to_WG = self._open_area / 275710702.0
         # ^ this is the relative size of the catchment compared to WG
 
@@ -382,24 +389,25 @@ class SpatialPrecipitationDistribution(Component):
             "trunc_interval": (0.15, 0.67),
         },
     ):
-        """
-        Yield a timeseries giving the number if storms occurring each year in
-        a rainfall simulation.
+        """Yield a timeseries giving the number of storms occurring each year
+        in a rainfall simulation.
 
         All default distributions specified as parameters reflect values for
         Walnut Gulch, see Singer & Michaelides, 2017 & Singer et al, submitted.
 
         Parameters
         ----------
-        limit : ('total_time', 'total_rainfall')
+        limit : str
             Controls whether a season is defined based on its total rainfall
             (and can be any length), or by its duration (and can have any
-            amount of rainfall). If 'total_time', monsoon_fraction_of_year
+            amount of rainfall). One of 'total_time' or 'total_rainfall'.
+            If 'total_time', monsoon_fraction_of_year
             sets the fraction of a year occupied by the monsoon.
-        style : ('whole_year', 'monsoonal', 'winter')
+        style : str
             Controls whether the component seeks to simulate a western US-
             style "monsoonal" climate, a western US-style winter climate,
-            or a full year combining both. These distributions are by default
+            or a full year combining both. One of 'whole_year', 'monsoonal',
+            or 'winter' These distributions are by default
             based on Singer et al.'s calibrations. Note if 'monsoonal',
             the total duration of a "year" will appear to be only
             `monsoon_fraction_of_year`, and the opposite for `winter`.
@@ -419,17 +427,20 @@ class SpatialPrecipitationDistribution(Component):
             If limit == 'total_time', sets the fraction of one year occupied
             by the monsoon season. If not, ignored. Singer's monsoon runs from
             May to September, inclusive, and the default reflects this.
-
-       monsoon_total_rf_gaussian is a normal distribution controlling the total
+        monsoon_total_rf_gaussian : dict
+            Parameters defining the normal distribution controlling the total
             rainfall expected in each year. S&M use 'mu' in {143., 271.} for
             step changes up/down in rainfall totals.
-        monsoon_storm_duration_GEV is a generalised extreme value distribution
-            controlling the duration of each storm. In MIN.
-        monsoon_storm_area_GEV is a generalised extreme value distribution
+        monsoon_storm_duration_GEV : dict
+            Parameters defining a generalised extreme value distribution
+            controlling the duration of each storm. In minutes.
+        monsoon_storm_area_GEV : dict
+            Parameters defining a generalised extreme value distribution
             controlling the plan view area of each storm. S&M use 'shape': 0.,
             which collapses the distribution to a plain extreme value
             distribution.
-        monsoon_storm_interarrival_GEV is a generalised extreme value
+        monsoon_storm_interarrival_GEV : dict
+            Parameters defining a generalised extreme value
             distribution controlling the interarrival time between each storm.
             In HRS. Note that this calibration is specifically to Walnut Gulch,
             which has an area of 275 km**2. The generator directly scales this
@@ -439,26 +450,30 @@ class SpatialPrecipitationDistribution(Component):
             tail on this distribution means the default distribution shape
             will not be trustworthy for catchments with big differences in
             size from Walnut Gulch.
-        monsoon_storm_radial_weakening_gaussian is a normal distribution
+        monsoon_storm_radial_weakening_gaussian : dict
+            Parameters defining a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
             et al., 2005.
-
-        winter_total_rf_gaussian is a normal distribution controlling the total
+        winter_total_rf_gaussian : dict
+            Parameters defining a normal distribution controlling the total
             rainfall expected in each year. S&M use 'mu' in {143., 271.} for
             step changes up/down in rainfall totals.
-        winter_storm_duration_fisk is a Fisk (i.e., log-logistic) distribution
+        winter_storm_duration_fisk : dict
+            Parameters defining a Fisk (i.e., log-logistic) distribution
             controlling the duration of each storm. Note this differs from the
-            summer scaling. In MIN.
+            summer scaling. In Minutes.
         winter_storm_area_GEV is a generalised extreme value distribution
             controlling the plan view area of each storm. S&M use 'shape': 0.,
             which collapses the distribution to a plain extreme value
             distribution.
-        winter_storm_interarrival_GEV is a generalised extreme value
+        winter_storm_interarrival_GEV : dict
+            Parameters defining a generalised extreme value
             distribution controlling the interarrival time between each storm.
             In HRS. The same considerations apply here as for the monsoonal
             interstorm equivalent.
-        winter_storm_radial_weakening_gaussian is a normal distribution
+        winter_storm_radial_weakening_gaussian : dict
+            Parameters defining a normal distribution
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
             et al., 2005.
@@ -551,9 +566,8 @@ class SpatialPrecipitationDistribution(Component):
             "trunc_interval": (0.15, 0.67),
         },
     ):
-        """
-        Yield a timeseries giving the number if storms occurring each year in
-        a rainfall simulation.
+        """Yield a timeseries giving the number if storms occurring each year
+        in a rainfall simulation.
 
         All default distributions specified as parameters reflect values for
         Walnut Gulch, see Singer & Michaelides, 2017 & Singer et al, submitted.
@@ -717,10 +731,9 @@ class SpatialPrecipitationDistribution(Component):
             "trunc_interval": (0.15, 0.67),
         },
     ):
-        """
-        Yield a timeseries giving the number if storms occurring each season in
-        a rainfall simulation. Only meaningfully different from yield_years if
-        style=='whole_year'.
+        """Yield a timeseries giving the number if storms occurring each season
+        in a rainfall simulation. Only meaningfully different from yield_years
+        if style=='whole_year'.
 
         All default distributions specified as parameters reflect values for
         Walnut Gulch, see Singer & Michaelides, 2017 & Singer et al, submitted.
@@ -890,9 +903,9 @@ class SpatialPrecipitationDistribution(Component):
             "trunc_interval": (0.15, 0.67),
         },
     ):
-        """
-        This is the underlying process that runs the component, but it should
-        be run by a user through the yield_storms and yield_years methods.
+        """This is the underlying process that runs the component, but it
+        should be run by a user through the yield_storms and yield_years
+        methods.
 
         Fuzz to the chosen values is now selected from a continuous
         distribution, not from integer values.
@@ -953,15 +966,14 @@ class SpatialPrecipitationDistribution(Component):
             controlling the rate of intensity decline with distance from storm
             center. For more detail see Rodriguez-Iturbe et al., 1986; Morin
             et al., 2005.
-
         """
         FUZZMETHOD = "DEJH"
         FUZZWIDTH = 5.0  # if DEJH
         self._phantom_storm_count = 0
         # ^this property tracks the number of storms in the run that received
         # zero intensity (and thus didn't really exist)
-        self._opennodes = self.grid.status_at_node != CLOSED_BOUNDARY
-        self._total_rainfall_last_season = self.grid.zeros("node")
+        self._opennodes = self._grid.status_at_node != self._grid.BC_NODE_IS_CLOSED
+        self._total_rainfall_last_season = self._grid.zeros("node")
 
         # safety check for init conds:
         if yield_storms:
@@ -993,12 +1005,12 @@ class SpatialPrecipitationDistribution(Component):
         opennodes = self._opennodes
         num_opennodes = np.sum(opennodes)
         IDs_open = np.where(opennodes)[0]  # need this later
-        X1 = self.grid.node_x
-        Y1 = self.grid.node_y
+        X1 = self._grid.node_x
+        Y1 = self._grid.node_y
         Xin = X1[opennodes]
         Yin = Y1[opennodes]
         try:
-            Zz = self.grid.at_node["topographic__elevation"][opennodes]
+            Zz = self._grid.at_node["topographic__elevation"][opennodes]
         except KeyError:
             assert self._orographic_scenario is None
         numgauges = Xin.size  # number of rain gauges in the basin.
@@ -1382,8 +1394,7 @@ class SpatialPrecipitationDistribution(Component):
         monsoon_total_rf_gaussian={"sigma": 64.0, "mu": 207.0},
         winter_total_rf_gaussian={"sigma": 52.0, "mu": 1.65},
     ):
-        """
-        Return a tuple of rainfall totals (mm) for the year, with entries
+        """Return a tuple of rainfall totals (mm) for the year, with entries
         subdividing the yearly total into seasons as appropriate.
 
         Parameters
@@ -1404,7 +1415,7 @@ class SpatialPrecipitationDistribution(Component):
         Examples
         --------
         >>> mg = RasterModelGrid((10, 10), xy_spacing=500.)
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
         >>> rain = SpatialPrecipitationDistribution(mg)
         >>> mytotals = []
         >>> for yr in range(5):
@@ -1460,10 +1471,10 @@ class SpatialPrecipitationDistribution(Component):
             return (summer_rf_limit, winter_rf_limit)
 
     def _locate_storm(self, storm_radius):
-        """
-        Because of the way the stats fall out, any simulated storm from the
-        distribution must intersect the catchment somewhere. Note written in a
-        grid-agnostic fashion.
+        """Because of the way the stats fall out, any simulated storm from the
+        distribution must intersect the catchment somewhere.
+
+        Note written in a grid-agnostic fashion.
         """
         stormposx = np.random.rand() * (self._widthx + 2.0 * storm_radius)
         stormposy = np.random.rand() * (self._widthy + 2.0 * storm_radius)
@@ -1478,7 +1489,10 @@ class SpatialPrecipitationDistribution(Component):
 
     @property
     def current_season(self):
-        """Get the current season. 'M' is monsoon, 'W' is winter."""
+        """Get the current season.
+
+        'M' is monsoon, 'W' is winter.
+        """
         return self._current_season
 
     @property
@@ -1503,35 +1517,32 @@ class SpatialPrecipitationDistribution(Component):
 
     @property
     def storm_intensity_last_storm(self):
-        """
-        Get the intensity (mm/hr) of the last storm, averaged under the storm
+        """Get the intensity (mm/hr) of the last storm, averaged under the
+        storm.
+
         footprint. Note that duration * intensity != storm max depth.
         """
         return self._intensity_val
 
     @property
     def total_rainfall_last_season(self):
-        """
-        Get the total recorded rainfall over the last (completed) simulated
-        season, spatially resolved (mm).
-        """
+        """Get the total recorded rainfall over the last (completed) simulated
+        season, spatially resolved (mm)."""
         return self._total_rainfall_last_season
 
     @property
     def total_rainfall_last_year(self):
-        """
-        Get the total recorded rainfall over the last (completed) simulated
-        year, spatially resolved (mm). Equivalent to the field
-        'rainfall__total_depth_per_year'.
+        """Get the total recorded rainfall over the last (completed) simulated
+        year, spatially resolved (mm).
+
+        Equivalent to the field 'rainfall__total_depth_per_year'.
         """
         return self._total_rf_year
 
     @property
     def total_rainfall_this_season(self):
-        """
-        Get the accumulated, spatially resolved total rainfall over the
-        grid for the season so far (mm).
-        """
+        """Get the accumulated, spatially resolved total rainfall over the grid
+        for the season so far (mm)."""
         self._running_total_rainfall_this_season[
             self._opennodes
         ] = self._Storm_running_sum_seas
@@ -1539,10 +1550,8 @@ class SpatialPrecipitationDistribution(Component):
 
     @property
     def total_rainfall_this_year(self):
-        """
-        Get the accumulated, spatially resolved total rainfall over the
-        grid for the year so far (mm).
-        """
+        """Get the accumulated, spatially resolved total rainfall over the grid
+        for the year so far (mm)."""
         self._running_total_rainfall_this_year[self._opennodes] = (
             self._storm_running_sum_1st_seas + self._Storm_running_sum_seas
         )
@@ -1550,34 +1559,26 @@ class SpatialPrecipitationDistribution(Component):
 
     @property
     def median_total_rainfall_last_season(self):
-        """
-        Get the median total rainfall recorded over the open nodes of the grid
-        during the last (completed) simulated season (mm).
-        """
+        """Get the median total rainfall recorded over the open nodes of the
+        grid during the last (completed) simulated season (mm)."""
         return np.nanmedian(self._total_rainfall_last_season[self._opennodes])
 
     @property
     def median_total_rainfall_last_year(self):
-        """
-        Get the median total rainfall recorded over the open nodes of the grid
-        during the last (completed) simulated year (mm).
-        """
+        """Get the median total rainfall recorded over the open nodes of the
+        grid during the last (completed) simulated year (mm)."""
         return np.nanmedian(self.total_rainfall_last_year[self._opennodes])
 
     @property
     def median_total_rainfall_this_season(self):
-        """
-        Get the accumulated median total rainfall over the open nodes of the
-        grid so far this season (mm).
-        """
+        """Get the accumulated median total rainfall over the open nodes of the
+        grid so far this season (mm)."""
         return self._median_seas_rf_total
 
     @property
     def median_total_rainfall_this_year(self):
-        """
-        Get the accumulated median total rainfall over the open nodes of the
-        grid so far this year (mm).
-        """
+        """Get the accumulated median total rainfall over the open nodes of the
+        grid so far this year (mm)."""
         return np.nanmedian(self.total_rainfall_this_year[self._opennodes])
 
     @property
@@ -1592,30 +1593,26 @@ class SpatialPrecipitationDistribution(Component):
 
     @property
     def coordinates_of_last_storm_center(self):
-        """
-        Get the coordinates of the center of the last storm as (x, y).
-        """
+        """Get the coordinates of the center of the last storm as (x, y)."""
         return (self._x, self._y)
 
     @property
     def target_median_total_rainfall_this_season(self):
-        """
-        Get the stochastically generated "target" average total rainfall
-        amount over the catchment for the current season. If limit ==
-        'total_rainfall', this will be very close to
-        median_total_rainfall_last_season. If 'total_time', it will diverge
-        from this value.
+        """Get the stochastically generated "target" average total rainfall
+        amount over the catchment for the current season.
+
+        If limit == 'total_rainfall', this will be very close to
+        median_total_rainfall_last_season. If 'total_time', it will
+        diverge from this value.
         """
         return self._season_rf_limit
 
 
 def Singer_orographic_rainfall(z_closest_node_to_center):
-    """
-    Return a set of curve weights for a provided z, assuming an orographic
-    rule following that presented in Singer & Michaelides 2017 & Singer et
-    al. 2018 and applicable specifically to Walnut Gulch.
-    i.e., there are three orographic divisions, divided at 1350 m and
-    1500 m.
+    """Return a set of curve weights for a provided z, assuming an orographic
+    rule following that presented in Singer & Michaelides 2017 & Singer et al.
+    2018 and applicable specifically to Walnut Gulch. i.e., there are three
+    orographic divisions, divided at 1350 m and 1500 m.
 
     Parameters
     ----------
@@ -1680,15 +1677,8 @@ if __name__ == "__main__":
     ny = 8
     dx = 1000.0
     mg = RasterModelGrid((nx, ny), xy_spacing=dx)
-    # closed_nodes = np.zeros((nx, ny), dtype=bool)
-    # closed_nodes[:, :10] = True
-    # closed_nodes[:, 30:] = True
-    # closed_nodes[30:, :] = True
-    # mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
-    # imshow_grid_at_node(mg, mg.status_at_node)
-    # show()
 
-    z = mg.add_zeros("node", "topographic__elevation")
+    z = mg.add_zeros("topographic__elevation", at="node")
     z += 1400.0
     rain = SpatialPrecipitationDistribution(mg, number_of_years=1)
     count = 0
@@ -1698,72 +1688,10 @@ if __name__ == "__main__":
         total_t += dt + interval_t
         print(dt, interval_t)
         if count % 100 == 0:
-            # imshow_grid_at_node(mg, rain.total_rainfall_this_year,
-            #                     cmap='Blues')
             print("Season:", rain.current_season, "of yr", rain.current_year)
             print("Current storm:", count)
-            # print('MEANS')
-            # print(rain.total_rainfall_this_season[rain._opennodes].mean())
-            # print(rain.total_rainfall_last_season[rain._opennodes].mean())
-            # print(rain.total_rainfall_this_year[rain._opennodes].mean())
-            # print(rain.total_rainfall_last_year[rain._opennodes].mean())
-            # print('-----')
-            # print('MEDIANS')
-            # print(rain.median_total_rainfall_this_season)
-            # print(rain.median_total_rainfall_last_season)
-            # print(rain.median_total_rainfall_this_year)
-            # print(rain.median_total_rainfall_last_year)
-            # print('*****')
             show()
     print("Effective total years:")
     print(total_t / 24.0 / 365.0)
     print("Storms simulated:")
     print(count)
-
-    # mg = RasterModelGrid((100, 100), xy_spacing=500.)
-    # # mg.status_at_node[closed_nodes.flatten()] = CLOSED_BOUNDARY
-    # # imshow_grid_at_node(mg, mg.status_at_node)
-    # # show()
-    # z = mg.add_zeros('node', 'topographic__elevation')
-    # z += 1000.
-    # rain = SpatialPrecipitationDistribution(mg, number_of_years=2)
-    # count = 0
-    # total_storms = 0.
-    # for storms_in_year in rain.yield_years():
-    #     count += 1
-    #     total_storms += storms_in_year
-    #     print(storms_in_year)
-    #     imshow_grid_at_node(mg, 'rainfall__total_depth_per_year', cmap='jet')
-    #     show()
-    #
-    # _ = mg.at_node.pop('rainfall__total_depth_per_year')
-    # _ = mg.at_node.pop('rainfall__flux')
-    # rain = SpatialPrecipitationDistribution(mg, number_of_years=1)
-    # for storms_in_season in rain.yield_seasons():
-    #     print(storms_in_season)
-    #     imshow_grid_at_node(mg, rain.total_rainfall_last_season, cmap='jet')
-    #     show()
-    #
-    # for yr in range(30):
-    #     print(rain.calc_annual_rainfall(style='whole_year'))
-    #
-    # from landlab import VoronoiDelaunayGrid
-    #
-    # x = np.random.rand(2000)*50000.
-    # y = np.random.rand(2000)*50000.
-    # vdg = VoronoiDelaunayGrid(x, y)
-    # vdg.add_zeros('node', 'topographic__elevation')
-    # rain = SpatialPrecipitationDistribution(vdg, number_of_years=2)
-    # count = 0
-    # total_storms = 0.
-    # for storms_in_year in rain.yield_years(limit='total_rainfall'):
-    #     count += 1
-    #     total_storms += storms_in_year
-    #     print(storms_in_year)
-    #     imshow_grid_at_node(vdg, 'rainfall__total_depth_per_year',
-    #     cmap='jet')
-    #     print('Stochastically-set expected rainfall last season')
-    #     print()
-    #     print('Actual rainfall last season')
-    #     print()
-    #     show()

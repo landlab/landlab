@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-This is an implementation of Vaughan Voller's experimental boundary method
+"""This is an implementation of Vaughan Voller's experimental boundary method
 reduced complexity flow router. Credit: Voller, Hobley, Paola.
 
 Created on Fri Feb 20 09:32:27 2015
@@ -8,12 +7,9 @@ Created on Fri Feb 20 09:32:27 2015
 @author: danhobley (SiccarPoint), after volle001@umn.edu
 """
 
-import inspect
-
 import numpy as np
-from six.moves import range
 
-from landlab import Component, FieldError, RasterModelGrid
+from landlab import Component, RasterModelGrid
 
 
 class DischargeDiffuser(Component):
@@ -45,86 +41,66 @@ class DischargeDiffuser(Component):
     This is a "research grade" component, and is subject to dramatic change
     with little warning. No guarantees are made regarding its accuracy or
     utility. It is not recommended for user use yet!
-
-    Examples
-    --------
-    >>> from landlab import HexModelGrid
-    >>> from landlab.components import PotentialityFlowRouter
-    >>> import numpy as np
-    >>> mg = HexModelGrid(4, 6, dx=2., node_layout='rect', orientation='vertical')
-    >>> z = mg.add_zeros('node', 'topographic__elevation')
-    >>> Q_in = mg.add_ones('node', 'water__unit_flux_in')
-    >>> z += mg.node_y.copy()
-    >>> potfr = PotentialityFlowRouter(mg)
-    >>> potfr.run_one_step()
-    >>> Q_at_core_nodes = np.array(
-    ...     [ 13.57233404,  13.93522481,  11.52216193,  11.29307277,
-    ...        8.80884751,   8.86380667,   6.47446459,   6.82161521])
-    >>> np.allclose(mg.at_node['surface_water__discharge'][mg.core_nodes],
-    ...             Q_at_core_nodes)
-    True
     """
 
     _name = "DischargeDiffuser"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "water__discharge_in",
-        "sediment__discharge_in",
-    )
-
-    _output_var_names = (
-        "topographic__elevation",
-        "surface_water__discharge",
-        "flow__potential",
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "water__unit_flux_in": "m/s",
-        "surface_water__discharge": "m**3/s",
-        "flow__potential": "m**3/s",
-        "surface_water__depth": "m",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "water__unit_flux_in": "node",
-        "surface_water__discharge": "node",
-        "flow__potential": "node",
-        "surface_water__depth": "node",
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "water__unit_flux_in": (
-            "External volume water per area per time input to each node "
-            + "(e.g., rainfall rate)"
-        ),
-        "surface_water__discharge": (
-            "Magnitude of volumetric water flux out of each node"
-        ),
-        "flow__potential": (
-            'Value of the hypothetical field "K", used to force water flux '
-            + "to flow downhill"
-        ),
-        "surface_water__depth": (
-            "If Manning or Chezy specified, the depth of flow in the cell, "
-            + "calculated assuming flow occurs over the whole surface"
-        ),
+    _info = {
+        "flow__potential": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Value of the hypothetical field 'K', used to force water flux to flow downhill",
+        },
+        "sediment__discharge_in": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Sediment discharge into a node.",
+        },
+        "surface_water__discharge": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Volumetric discharge of surface water",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "water__discharge_in": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Incoming water discharge at node.",
+        },
     }
 
     _min_slope_thresh = 1.0e-24
     # if your flow isn't connecting up, this probably needs to be reduced
 
-    def __init__(self, grid, slope, flat_thresh=1.0e-4, **kwds):
+    def __init__(self, grid, slope=0.25, flat_thresh=1.0e-4):
         """
         Parameters
         ----------
         grid : ModelGrid
             A grid.
         """
-        if RasterModelGrid in inspect.getmro(grid.__class__):
+        super(DischargeDiffuser, self).__init__(grid)
+
+        if isinstance(grid, RasterModelGrid):
             assert grid.number_of_node_rows >= 3
             assert grid.number_of_node_columns >= 3
             self._raster = True
@@ -133,25 +109,12 @@ class DischargeDiffuser(Component):
 
         assert self._raster is True  # ...for now
 
-        self._grid = grid
         self._slope = slope
         self._flat_thresh = flat_thresh
 
         # hacky fix because water__discharge is defined on both links and nodes
-        for out_field in self._output_var_names:
-            if self._var_mapping[out_field] == "node":
-                try:
-                    self.grid.add_zeros(
-                        self._var_mapping[out_field], out_field, dtype=float
-                    )
-                except FieldError:
-                    pass
-            else:
-                pass
-            try:
-                self.grid.add_zeros("node", "surface_water__discharge", dtype=float)
-            except FieldError:
-                pass
+        self.initialize_output_fields()
+
         ni = grid.number_of_node_rows
         nj = grid.number_of_node_columns
 
@@ -188,10 +151,14 @@ class DischargeDiffuser(Component):
         self._Qsed_n = np.empty((ni, nj), dtype=float)
         self._Qsed_s = np.empty((ni, nj), dtype=float)
 
-    def run_one_step(self, dt, **kwds):
+    def run_one_step(self, dt):
+        """Run forward a duration of time, dt.
+
+        Parameters
+        ----------
+        dt: float
         """
-        """
-        grid = self.grid
+        grid = self._grid
         ni = grid.number_of_node_rows
         nj = grid.number_of_node_columns
         z = grid.at_node["topographic__elevation"]
@@ -311,14 +278,14 @@ class DischargeDiffuser(Component):
     def discharges_at_links(self):
         """Return the discharges at links.
 
-        Note that if diagonal routing, this will return number_of_d8_links.
-        Otherwise, it will be number_of_links.
+        Note that if diagonal routing, this will return
+        number_of_d8_links. Otherwise, it will be number_of_links.
         """
         return self._discharges_at_link
 
     def _grad_on_link(self, padded_eta, direction):
-        """
-        Updates slx and sly with link gradient values according to `direction`.
+        """Updates slx and sly with link gradient values according to
+        `direction`.
 
         eta = elevations in grid form
         direction = {'E', 'N', 'S', 'W'}
@@ -328,7 +295,9 @@ class DischargeDiffuser(Component):
         >>> import numpy as np
         >>> from landlab import RasterModelGrid
         >>> mg = RasterModelGrid((3, 4), xy_spacing=(1., 0.5))
-        >>> z = mg.add_zeros('node', 'topographic__elevation')
+        >>> z = mg.add_zeros("topographic__elevation", at="node")
+        >>> z = mg.add_zeros("water__discharge_in", at="node")
+        >>> z = mg.add_zeros("sediment__discharge_in", at="node")
         >>> z[:] = np.array([[1, 2, 3, 4, 2, 3, 4, 5, 3, 4, 5, 6]])
         >>> zpad = np.pad(z.reshape((3, 4)), ((1, 1), (1, 1)), 'edge')
         >>> dd = DischargeDiffuser(mg, 0.25)
@@ -336,48 +305,47 @@ class DischargeDiffuser(Component):
         """
         core = (slice(1, -1, 1), slice(1, -1, 1))
         if direction == "W":
-            self._slx[:] = (padded_eta[1:-1, :-2] - padded_eta[core]) / self.grid.dx
+            self._slx[:] = (padded_eta[1:-1, :-2] - padded_eta[core]) / self._grid.dx
             self._sly[:] = padded_eta[:-2, :-2]
             self._sly -= padded_eta[2:, :-2]
             self._sly += padded_eta[:-2, 1:-1]
             self._sly -= padded_eta[2:, 1:-1]
             self._sly *= 0.25
-            self._sly /= self.grid.dy
+            self._sly /= self._grid.dy
 
         elif direction == "E":
-            self._slx[:] = (padded_eta[1:-1, 2:] - padded_eta[core]) / self.grid.dx
+            self._slx[:] = (padded_eta[1:-1, 2:] - padded_eta[core]) / self._grid.dx
             self._sly[:] = padded_eta[:-2, 2:]
             self._sly -= padded_eta[2:, 2:]
             self._sly += padded_eta[:-2, 1:-1]
             self._sly -= padded_eta[2:, 1:-1]
             self._sly *= 0.25
-            self._sly /= self.grid.dy
+            self._sly /= self._grid.dy
 
         elif direction == "S":
-            self._sly[:] = (padded_eta[:-2, 1:-1] - padded_eta[core]) / self.grid.dy
+            self._sly[:] = (padded_eta[:-2, 1:-1] - padded_eta[core]) / self._grid.dy
             self._slx[:] = padded_eta[:-2, :-2]
             self._slx -= padded_eta[:-2, 2:]
             self._slx += padded_eta[1:-1, :-2]
             self._slx -= padded_eta[1:-1, 2:]
             self._slx *= 0.25
-            self._slx /= self.grid.dx
+            self._slx /= self._grid.dx
 
         elif direction == "N":
-            self._sly[:] = (padded_eta[2:, 1:-1] - padded_eta[core]) / self.grid.dy
+            self._sly[:] = (padded_eta[2:, 1:-1] - padded_eta[core]) / self._grid.dy
             self._slx[:] = padded_eta[2:, :-2]
             self._slx -= padded_eta[2:, 2:]
             self._slx += padded_eta[1:-1, :-2]
             self._slx -= padded_eta[1:-1, 2:]
             self._slx *= 0.25
-            self._slx /= self.grid.dx
+            self._slx /= self._grid.dx
 
         else:
             raise NameError("direction must be {'E', 'N', 'S', 'W'}")
 
     def _link_sed_flux_from_slope(self, S_val, S_thresh, direction):
-        """
-        Update the sed flux array for a given link dir, assuming a critical S.
-        """
+        """Update the sed flux array for a given link dir, assuming a critical
+        S."""
         if direction == "W":
             dir_sed_flux = self._Qsed_w
             dir_water_flux = self._Qw
@@ -404,9 +372,8 @@ class DischargeDiffuser(Component):
         dir_sed_flux[thisslice] = dir_water_flux[thisslice] * slope_diff[thisslice]
         dir_sed_flux[deadedge] = 0.0
 
-    def diffuse_sediment(self, Qw_in, Qsed_in, **kwds):
-        """
-        """
+    def diffuse_sediment(self, Qw_in, Qsed_in):
+        """"""
         pass
 
 
@@ -415,9 +382,9 @@ if __name__ == "__main__":
 
     S_crit = 0.25
     mg = RasterModelGrid((20, 20), 0.5)
-    mg.add_zeros("node", "topographic__elevation")
-    Qw_in = mg.add_zeros("node", "water__discharge_in")
-    Qs_in = mg.add_zeros("node", "sediment__discharge_in")
+    mg.add_zeros("topographic__elevation", at="node")
+    Qw_in = mg.add_zeros("water__discharge_in", at="node")
+    Qs_in = mg.add_zeros("sediment__discharge_in", at="node")
     Qw_in[0] = 0.5 * np.pi
     Qs_in[0] = (1.0 - S_crit) * 0.5 * np.pi
     dd = DischargeDiffuser(mg, S_crit)

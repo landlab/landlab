@@ -1,31 +1,25 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Oct 19.
+"""Created on Mon Oct 19.
 
 @author: dejh
 """
-from __future__ import print_function
+
 
 import numpy as np
 
-import landlab
-from landlab import Component, FieldError, ModelParameterDictionary
+from landlab import Component, FieldError, RasterModelGrid
 from landlab.components import DepressionFinderAndRouter, FlowAccumulator
-from landlab.core.model_parameter_dictionary import MissingKeyError
-from landlab.grid.base import BAD_INDEX_VALUE
-from landlab.utils.decorators import deprecated, use_file_name_or_kwds
 
 # TODO: this should probably follow Barnes et al., 2014 for max efficiency
 
 
 class SinkFiller(Component):
-    """
-    This component identifies depressions in a topographic surface, then fills
-    them in in the topography.  No attempt is made to conserve sediment mass.
-    User may specify whether the holes should be filled to flat, or with a
-    gradient downwards towards the depression outlet. The gradient can be
-    spatially variable, and is chosen to not reverse any drainage directions
-    at the perimeter of each lake.
+    """This component identifies depressions in a topographic surface, then
+    fills them in in the topography.  No attempt is made to conserve sediment
+    mass. User may specify whether the holes should be filled to flat, or with
+    a gradient downwards towards the depression outlet. The gradient can be
+    spatially variable, and is chosen to not reverse any drainage directions at
+    the perimeter of each lake.
 
     The primary method of this class is 'run_one_step'. 'fill_pits' is a
     synonym.
@@ -36,7 +30,6 @@ class SinkFiller(Component):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab import BAD_INDEX_VALUE as XX
     >>> from landlab.components import FlowAccumulator, SinkFiller
     >>> import numpy as np
     >>> lake1 = np.array([34, 35, 36, 44, 45, 46, 54, 55, 56, 65, 74])
@@ -48,8 +41,13 @@ class SinkFiller(Component):
     >>> z += mg.node_x  # add a slope
     >>> z[guard_nodes] += 0.001  # forces the flow out of a particular node
     >>> z[lake] = 0.
-    >>> field = mg.add_field('node', 'topographic__elevation', z,
-    ...                      units='-', copy=True)
+    >>> field = mg.add_field(
+    ...     "topographic__elevation",
+    ...     z,
+    ...     at="node",
+    ...     units="-",
+    ...     copy=True,
+    ... )
     >>> fr = FlowAccumulator(mg, flow_director='D8')
     >>> fr.run_one_step()
     >>> mg.at_node['flow__sink_flag'][mg.core_nodes].sum()
@@ -81,23 +79,26 @@ class SinkFiller(Component):
 
     _name = "SinkFiller"
 
-    _input_var_names = ("topographic__elevation",)
-
-    _output_var_names = ("topographic__elevation", "sediment_fill__depth")
-
-    _var_units = {"topographic__elevation": "m", "sediment_fill__depth": "m"}
-
-    _var_mapping = {"topographic__elevation": "node", "sediment_fill__depth": "node"}
-
-    _var_doc = {
-        "topographic__elevation": "Surface topographic elevation",
-        "sediment_fill__depth": "Depth of sediment added at each" + "node",
+    _info = {
+        "sediment_fill__depth": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Depth of sediment added at eachnode",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
     }
 
-    @use_file_name_or_kwds
-    def __init__(
-        self, grid, routing="D8", apply_slope=False, fill_slope=1.0e-5, **kwds
-    ):
+    def __init__(self, grid, routing="D8", apply_slope=False, fill_slope=1.0e-5):
         """
         Parameters
         ----------
@@ -118,6 +119,8 @@ class SinkFiller(Component):
             The slope added to the top surface of filled pits to allow flow
             routing across them, if apply_slope.
         """
+        super(SinkFiller, self).__init__(grid)
+
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
                 msg = (
@@ -129,96 +132,42 @@ class SinkFiller(Component):
                 )
                 raise NotImplementedError(msg)
 
-        self._grid = grid
         if routing != "D8":
             assert routing == "D4"
         self._routing = routing
-        if (type(self._grid) is landlab.grid.raster.RasterModelGrid) and (
-            routing == "D8"
-        ):
+        if isinstance(self._grid, RasterModelGrid) and (routing == "D8"):
             self._D8 = True
-            self.num_nbrs = 8
+            self._num_nbrs = 8
         else:
             self._D8 = False  # useful shorthand for thia test we do a lot
-            if type(self._grid) is landlab.grid.raster.RasterModelGrid:
-                self.num_nbrs = 4
+            if isinstance(self._grid, RasterModelGrid):
+                self._num_nbrs = 4
         self._fill_slope = fill_slope
         self._apply_slope = apply_slope
-        self.initialize()
 
-    def initialize(self, input_stream=None):
-        """
-        The BMI-style initialize method takes an optional input_stream
-        parameter, which may be either a ModelParameterDictionary object or
-        an input stream from which a ModelParameterDictionary can read values.
-        """
-        # Create a ModelParameterDictionary for the inputs
-        if input_stream is None:
-            inputs = None
-        elif type(input_stream) == ModelParameterDictionary:
-            inputs = input_stream
-        else:
-            inputs = ModelParameterDictionary(input_stream)
+        self._elev = self._grid.at_node["topographic__elevation"]
+        self._topo_field_name = "topographic__elevation"
 
-        # Make sure the grid includes elevation data. This means either:
-        #  1. The grid has a node field called 'topographic__elevation', or
-        #  2. The input file has an item called 'ELEVATION_FIELD_NAME' *and*
-        #     a field by this name exists in the grid.
-        try:
-            self._elev = self._grid.at_node["topographic__elevation"]
-        except FieldError:
-            try:
-                self.topo_field_name = inputs.read_string("ELEVATION_" + "FIELD_NAME")
-            except AttributeError:
-                print("Error: Because your grid does not have a node field")
-                print('called "topographic__elevation", you need to pass the')
-                print("name of a text input file or ModelParameterDictionary,")
-                print("and this file or dictionary needs to include the name")
-                print("of another field in your grid that contains your")
-                print("elevation data.")
-                raise AttributeError
-            except MissingKeyError:
-                print("Error: Because your grid does not have a node field")
-                print('called "topographic__elevation", your input file (or')
-                print("ModelParameterDictionary) must include an entry with")
-                print('the key "ELEVATION_FIELD_NAME", which gives the name')
-                print("of a field in your grid that contains your elevation")
-                print("data.")
-                raise MissingKeyError("ELEVATION_FIELD_NAME")
-            try:
-                self._elev = self._grid.at_node[self.topo_field_name]
-            except AttributeError:
-                print(
-                    "Your grid does not seem to have a node field called",
-                    self.topo_field_name,
-                )
-        else:
-            self.topo_field_name = "topographic__elevation"
         # create the only new output field:
-        self.sed_fill_depth = self._grid.add_zeros(
-            "node", "sediment_fill__depth", noclobber=False
+        self._sed_fill_depth = self._grid.add_zeros(
+            "node", "sediment_fill__depth", clobber=True
         )
 
-        self._lf = DepressionFinderAndRouter(self._grid, routing=self._routing)
+        self._lf = DepressionFinderAndRouter(
+            self._grid, routing=self._routing, reroute_flow=True
+        )
         self._fr = FlowAccumulator(self._grid, flow_director=self._routing)
 
-    def fill_pits(self, **kwds):
-        """
-        This is a synonym for the main method :func:`run_one_step`.
-        """
-        self.run_one_step(**kwds)
+    def fill_pits(self):
+        """This is a synonym for the main method :func:`run_one_step`."""
+        self.run_one_step()
 
-    def run_one_step(self, **kwds):
+    def run_one_step(self):
+        """This is the main method.
+
+        Call it to fill depressions in a starting topography.
         """
-        This is the main method. Call it to fill depressions in a starting
-        topography.
-        """
-        # added for back-compatibility with old formats
-        try:
-            self._apply_slope = kwds["apply_slope"]
-        except KeyError:
-            pass
-        self.original_elev = self._elev.copy()
+        self._original_elev = self._elev.copy()
         # We need this, as we'll have to do ALL this again if we manage
         # to jack the elevs too high in one of the "subsidiary" lakes.
         # We're going to implement the lake_mapper component to do the heavy
@@ -229,7 +178,7 @@ class SinkFiller(Component):
         spurious_fields = set()
         set_of_outputs = set(self._lf.output_var_names) | set(self._fr.output_var_names)
         try:
-            set_of_outputs.remove(self.topo_field_name)
+            set_of_outputs.remove(self._topo_field_name)
         except KeyError:
             pass
         for field in set_of_outputs:
@@ -239,9 +188,7 @@ class SinkFiller(Component):
                 spurious_fields.add(field)
 
         self._fr.run_one_step()
-        self._lf.map_depressions(
-            pits=self._grid.at_node["flow__sink_flag"], reroute_flow=True
-        )
+        self._lf.map_depressions()
         # add the depression depths to get up to flat:
         self._elev += self._grid.at_node["depression__depth"]
         # if apply_slope is none, we're now done! But if not...
@@ -278,161 +225,42 @@ class SinkFiller(Component):
             if delete_me in self._grid.at_node:
                 self._grid.delete_field("node", delete_me)
         for update_me in existing_fields.keys():
-            self.grid.at_node[update_me][:] = existing_fields[update_me]
+            self._grid.at_node[update_me][:] = existing_fields[update_me]
         # fill the output field
-        self.sed_fill_depth[:] = self._elev - self.original_elev
-
-    @deprecated(use="fill_pits", version=1.0)
-    def _fill_pits_old(self, apply_slope=None):
-        """
-
-        .. deprecated:: 0.1.38
-            Use :func:`fill_pits` instead.
-
-        This is the main method. Call it to fill depressions in a starting
-        topography.
-
-        **Output fields**
-
-        *  `topographic__elevation` : the updated elevations
-        *  `sediment_fill__depth` : the depth of sediment added at each node
-
-        Parameters
-        ----------
-        apply_slope : None, bool, or float
-            If a float is provided this is the slope of the surface down
-            towards the lake outlet. Supply a small positive number, e.g.,
-            1.e-5 (or True, to use this default value).
-            A test is performed to ensure applying this slope will not alter
-            the drainage structure at the edge of the filled region (i.e.,
-            that we are not accidentally reversing the flow direction far
-            from the outlet.) The component will automatically decrease the
-            (supplied or default) gradient a number of times to try to
-            accommodate this, but will eventually raise an OverflowError
-            if it can't deal with it. If you pass True, the method will use
-            the default value of 1.e-5.
-        """
-        self.original_elev = self._elev.copy()
-        # We need this, as we'll have to do ALL this again if we manage
-        # to jack the elevs too high in one of the "subsidiary" lakes.
-        # We're going to implement the lake_mapper component to do the heavy
-        # lifting here, then delete its fields. This means we first need to
-        # test if these fields already exist, in which case, we should *not*
-        # delete them!
-        existing_fields = {}
-        spurious_fields = set()
-        set_of_outputs = self._lf.output_var_names | self._fr.output_var_names
-        try:
-            set_of_outputs.remove(self.topo_field_name)
-        except KeyError:
-            pass
-        for field in set_of_outputs:
-            try:
-                existing_fields[field] = self._grid.at_node[field].copy()
-            except FieldError:  # not there; good!
-                spurious_fields.add(field)
-
-        self._fr.run_one_step()
-        self._lf.map_depressions(
-            pits=self._grid.at_node["flow__sink_flag"], reroute_flow=False
-        )
-        # add the depression depths to get up to flat:
-        self._elev += self._grid.at_node["depression__depth"]
-        # if apply_slope is none, we're now done! But if not...
-        if apply_slope is True:
-            apply_slope = self._fill_slope
-        elif type(apply_slope) in (float, int):
-            assert apply_slope >= 0.0
-        if apply_slope:
-            # this isn't very efficient, but OK as we're only running this
-            # code ONCE in almost all use cases
-            sublake = False
-            unstable = True
-            stability_increment = 0
-            self.lake_nodes_treated = np.array([], dtype=int)
-            while unstable:
-                while 1:
-                    for (outlet_node, lake_code) in zip(
-                        self._lf.lake_outlets, self._lf.lake_codes
-                    ):
-                        self._apply_slope_current_lake(
-                            apply_slope, outlet_node, lake_code, sublake
-                        )
-                    # Call the mapper again here. Bail out if no core pits are
-                    # found.
-                    # This is necessary as there are some configs where adding
-                    # the slope could create subsidiary pits in the topo
-                    self._lf.map_depressions(pits=None, reroute_flow=False)
-                    if len(self._lf.lake_outlets) == 0.0:
-                        break
-                    self._elev += self._grid.at_node["depression__depth"]
-                    sublake = True
-                    self.lake_nodes_treated = np.array([], dtype=int)
-                # final test that all lakes are not reversing flow dirs
-                all_lakes = np.where(self._lf.flood_status < BAD_INDEX_VALUE)[0]
-                unstable = self.drainage_directions_change(
-                    all_lakes, self.original_elev, self._elev
-                )
-                if unstable:
-                    apply_slope *= 0.1
-                    sublake = False
-                    self.lake_nodes_treated = np.array([], dtype=int)
-                    self._elev[:] = self.original_elev  # put back init conds
-                    stability_increment += 1
-                    if stability_increment == 10:
-                        raise OverflowError(
-                            "Filler could not find a stable "
-                            + "condition with a sloping "
-                            + "surface!"
-                        )
-        # now put back any fields that were present initially, and wipe the
-        # rest:
-        for delete_me in spurious_fields:
-            if delete_me in self.grid.at_node:
-                self._grid.delete_field("node", delete_me)
-        for update_me in existing_fields.keys():
-            self.grid.at_node[update_me] = existing_fields[update_me]
-        # fill the output field
-        self.sed_fill_depth[:] = self._elev - self.original_elev
+        self._sed_fill_depth[:] = self._elev - self._original_elev
 
     def _add_slopes(self, slope, outlet_node, lake_code):
-        """
-        Assuming you have already run the lake_mapper, adds an incline towards
-        the outlet to the nodes in the lake.
-        """
+        """Assuming you have already run the lake_mapper, adds an incline
+        towards the outlet to the nodes in the lake."""
         new_elevs = self._elev.copy()
         outlet_coord = (self._grid.node_x[outlet_node], self._grid.node_y[outlet_node])
         lake_nodes = np.where(self._lf.lake_map == lake_code)[0]
-        lake_nodes = np.setdiff1d(lake_nodes, self.lake_nodes_treated)
+        lake_nodes = np.setdiff1d(lake_nodes, self._lake_nodes_treated)
         # lake_ext_margin = self._get_lake_ext_margin(lake_nodes)
         d = self._grid.calc_distances_of_nodes_to_point(
             outlet_coord, node_subset=lake_nodes
         )
         add_vals = slope * d
         new_elevs[lake_nodes] += add_vals
-        self.lake_nodes_treated = np.union1d(self.lake_nodes_treated, lake_nodes)
+        self._lake_nodes_treated = np.union1d(self._lake_nodes_treated, lake_nodes)
         return new_elevs, lake_nodes
 
     def _get_lake_ext_margin(self, lake_nodes):
-        """
-        Returns the nodes forming the external margin of the lake, honoring
-        the *routing* method (D4/D8) if applicable.
-        """
+        """Returns the nodes forming the external margin of the lake, honoring
+        the *routing* method (D4/D8) if applicable."""
         if self._D8 is True:
             all_poss = np.union1d(
-                self.grid.active_adjacent_nodes_at_node[lake_nodes],
-                self.grid.diagonal_adjacent_nodes_at_node[lake_nodes],
+                self._grid.active_adjacent_nodes_at_node[lake_nodes],
+                self._grid.diagonal_adjacent_nodes_at_node[lake_nodes],
             )
         else:
-            all_poss = np.unique(self.grid.active_adjacent_nodes_at_node[lake_nodes])
+            all_poss = np.unique(self._grid.active_adjacent_nodes_at_node[lake_nodes])
         lake_ext_edge = np.setdiff1d(all_poss, lake_nodes)
-        return lake_ext_edge[lake_ext_edge != BAD_INDEX_VALUE]
+        return lake_ext_edge[lake_ext_edge != self._grid.BAD_INDEX]
 
     def _get_lake_int_margin(self, lake_nodes, lake_ext_edge):
-        """
-        Returns the nodes forming the internal margin of the lake, honoring
-        the *routing* method (D4/D8) if applicable.
-        """
+        """Returns the nodes forming the internal margin of the lake, honoring
+        the *routing* method (D4/D8) if applicable."""
         lee = lake_ext_edge
         if self._D8 is True:
             all_poss_int = np.union1d(
@@ -442,13 +270,12 @@ class SinkFiller(Component):
         else:
             all_poss_int = np.unique(self._grid.active_adjacent_nodes_at_node[lee])
         lake_int_edge = np.intersect1d(all_poss_int, lake_nodes)
-        return lake_int_edge[lake_int_edge != BAD_INDEX_VALUE]
+        return lake_int_edge[lake_int_edge != self._grid.BAD_INDEX]
 
     def _apply_slope_current_lake(self, apply_slope, outlet_node, lake_code, sublake):
-        """
-        Wraps the _add_slopes method to allow handling of conditions where the
-        drainage structure would be changed or we're dealing with a sublake.
-        """
+        """Wraps the _add_slopes method to allow handling of conditions where
+        the drainage structure would be changed or we're dealing with a
+        sublake."""
         while 1:
             starting_elevs = self._elev.copy()
             self._elev[:], lake_nodes = self._add_slopes(
@@ -470,20 +297,19 @@ class SinkFiller(Component):
         # if we get here, either sublake, or drainage dirs are stable
 
     def drainage_directions_change(self, lake_nodes, old_elevs, new_elevs):
-        """
-        True if the drainage structure at lake margin changes, False otherwise.
-        """
+        """True if the drainage structure at lake margin changes, False
+        otherwise."""
         ext_edge = self._get_lake_ext_margin(lake_nodes)
         if self._D8:
             edge_neighbors = np.hstack(
                 (
-                    self.grid.active_adjacent_nodes_at_node[ext_edge],
-                    self.grid.diagonal_adjacent_nodes_at_node[ext_edge],
+                    self._grid.active_adjacent_nodes_at_node[ext_edge],
+                    self._grid.diagonal_adjacent_nodes_at_node[ext_edge],
                 )
             )
         else:
-            edge_neighbors = self.grid.active_adjacent_nodes_at_node[ext_edge].copy()
-        edge_neighbors[edge_neighbors == BAD_INDEX_VALUE] = -1
+            edge_neighbors = self._grid.active_adjacent_nodes_at_node[ext_edge].copy()
+        edge_neighbors[edge_neighbors == self._grid.BAD_INDEX] = -1
         # ^value irrelevant
         old_neighbor_elevs = old_elevs[edge_neighbors]
         new_neighbor_elevs = new_elevs[edge_neighbors]

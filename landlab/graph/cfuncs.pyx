@@ -177,8 +177,8 @@ def _calc_center_of_patch(np.ndarray[DTYPE_t, ndim=1] links_at_patch,
     cdef int offset
     cdef int n_links
     cdef int n_patches = len(xy_at_patch)
-    cdef float x
-    cdef float y
+    cdef double x
+    cdef double y
 
     for patch in range(n_patches):
         offset = offset_to_patch[patch]

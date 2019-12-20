@@ -5,14 +5,10 @@ Gradient calculators for raster grids
 +++++++++++++++++++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.grid.raster_gradients.calc_grad_at_link
-    ~landlab.grid.raster_gradients.calc_grad_at_active_link
     ~landlab.grid.raster_gradients.calc_grad_across_cell_faces
     ~landlab.grid.raster_gradients.calc_grad_across_cell_corners
-    ~landlab.grid.raster_gradients.alculate_gradient_along_node_links
-
 """
 from collections import deque
 
@@ -20,8 +16,169 @@ import numpy as np
 
 from landlab.core.utils import make_optional_arg_into_id_array, radians_to_degrees
 from landlab.grid import gradients
-from landlab.grid.base import BAD_INDEX_VALUE, CLOSED_BOUNDARY
 from landlab.utils.decorators import use_field_name_or_array
+
+
+@use_field_name_or_array("node")
+def calc_diff_at_d8(grid, node_values, out=None):
+    """Calculate differences of node values over links and diagonals.
+
+    Calculates the difference in quantity *node_values* at each link in the
+    grid.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    node_values : ndarray or field name
+        Values at grid nodes.
+    out : ndarray, optional
+        Buffer to hold the result.
+
+    Returns
+    -------
+    ndarray
+        Differences across links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
+    >>> z = [
+    ...     [60.0, 60.0, 60.0, 60.0],
+    ...     [60.0, 60.0,  0.0,  0.0],
+    ...     [60.0,  0.0,  0.0,  0.0],
+    ... ]
+    >>> grid.calc_diff_at_d8(z)
+    array([  0.,   0.,   0.,   0.,   0., -60., -60.,   0., -60.,   0.,   0.,
+           -60.,   0.,   0., -60.,   0.,   0.,   0.,   0., -60.,   0., -60.,
+           -60., -60.,   0., -60.,   0.,   0.,   0.])
+
+    LLCATS: LINF GRAD
+    """
+    if out is None:
+        out = np.empty(grid.number_of_d8)
+    node_values = np.asarray(node_values)
+    return np.subtract(
+        node_values[grid.nodes_at_d8[:, 1]],
+        node_values[grid.nodes_at_d8[:, 0]],
+        out=out,
+    )
+
+
+@use_field_name_or_array("node")
+def calc_diff_at_diagonal(grid, node_values, out=None):
+    """Calculate differences of node values over diagonals.
+
+    Calculates the difference in quantity *node_values* at each link in the
+    grid.
+
+    Parameters
+    ----------
+    grid : ModelGrid
+        A ModelGrid.
+    node_values : ndarray or field name
+        Values at grid nodes.
+    out : ndarray, optional
+        Buffer to hold the result.
+
+    Returns
+    -------
+    ndarray
+        Differences across links.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab import RasterModelGrid
+    >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
+    >>> z = [
+    ...     [5.0, 5.0, 5.0, 5.0],
+    ...     [5.0, 5.0, 0.0, 0.0],
+    ...     [5.0, 0.0, 0.0, 0.0],
+    ... ]
+    >>> grid.calc_diff_at_diagonal(z)
+    array([ 0.,  0., -5.,  0., -5., -5., -5.,  0., -5.,  0.,  0.,  0.])
+
+    LLCATS: LINF GRAD
+    """
+    if out is None:
+        out = np.empty(grid.number_of_diagonals)
+    node_values = np.asarray(node_values)
+    return np.subtract(
+        node_values[grid.nodes_at_diagonal[:, 1]],
+        node_values[grid.nodes_at_diagonal[:, 0]],
+        out=out,
+    )
+
+
+def calc_grad_at_d8(grid, node_values, out=None):
+    """Calculate gradients over all diagonals and links.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A grid.
+    node_values : array_like or field name
+        Values at nodes.
+    out : ndarray, optional
+        Buffer to hold result. If `None`, create a new array.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> import numpy as np
+    >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
+    >>> z = [
+    ...     [60.0, 60.0, 60.0, 60.0],
+    ...     [60.0, 60.0,  0.0,  0.0],
+    ...     [60.0,  0.0,  0.0,  0.0],
+    ... ]
+    >>> grid.calc_grad_at_d8(z)
+    array([  0.,   0.,   0.,   0.,   0., -20., -20.,   0., -15.,   0.,   0.,
+           -20.,   0.,   0., -15.,   0.,   0.,   0.,   0., -12.,   0., -12.,
+           -12., -12.,   0., -12.,   0.,   0.,   0.])
+
+    LLCATS: LINF GRAD
+    """
+    grads = calc_diff_at_d8(grid, node_values, out=out)
+    grads /= grid.length_of_d8[: grid.number_of_d8]
+
+    return grads
+
+
+def calc_grad_at_diagonal(grid, node_values, out=None):
+    """Calculate gradients over all diagonals.
+
+    Parameters
+    ----------
+    grid : RasterModelGrid
+        A grid.
+    node_values : array_like or field name
+        Values at nodes.
+    out : ndarray, optional
+        Buffer to hold result. If `None`, create a new array.
+
+    Examples
+    --------
+    >>> from landlab import RasterModelGrid
+    >>> import numpy as np
+    >>> grid = RasterModelGrid((3, 4), xy_spacing=(4, 3))
+    >>> z = [
+    ...     [5.0, 5.0, 5.0, 5.0],
+    ...     [5.0, 5.0, 0.0, 0.0],
+    ...     [5.0, 0.0, 0.0, 0.0],
+    ... ]
+    >>> grid.calc_grad_at_diagonal(z)
+    array([ 0.,  0., -1.,  0., -1., -1., -1.,  0., -1.,  0.,  0.,  0.])
+
+    LLCATS: LINF GRAD
+    """
+    grads = calc_diff_at_diagonal(grid, node_values, out=out)
+    grads /= grid.length_of_diagonal[: grid.number_of_diagonals]
+
+    return grads
 
 
 @use_field_name_or_array("node")
@@ -62,7 +219,7 @@ def calc_grad_at_link(grid, node_values, out=None):
     >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
     >>> grid.calc_grad_at_link(node_values)
     array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
-    >>> _ = grid.add_field('node', 'elevation', node_values)
+    >>> _ = grid.add_field("elevation", node_values, at="node")
     >>> grid.calc_grad_at_link('elevation')
     array([ 0.,  0.,  1.,  3.,  1.,  1., -1.,  1., -1.,  1.,  0.,  0.])
 
@@ -70,97 +227,7 @@ def calc_grad_at_link(grid, node_values, out=None):
     """
     grads = gradients.calc_diff_at_link(grid, node_values, out=out)
     grads /= grid.length_of_link[: grid.number_of_links]
-
-    #    n_vertical_links = (grid.shape[0] - 1) * grid.shape[1]
-    #    diffs[:n_vertical_links] /= grid.dy
-    #    diffs[n_vertical_links:] /= grid.dx
-
     return grads
-
-
-@use_field_name_or_array("node")
-def calc_grad_at_active_link(grid, node_values, out=None):
-    """Calculate gradients over active links.
-
-    .. deprecated:: 0.1
-        Use :func:`calc_grad_across_cell_faces`
-                or :func:`calc_grad_across_cell_corners` instead
-
-    Calculates the gradient in quantity s at each active link in the grid.
-    This is nearly identical to the method of the same name in ModelGrid,
-    except that it uses a constant node spacing for link length to improve
-    efficiency.
-
-    Note that a negative gradient corresponds to a lower node in the
-    direction of the link.
-
-    Returns
-    -------
-    ndarray
-        Gradients of the nodes values for each link.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab import RasterModelGrid
-    >>> grid = RasterModelGrid((4, 5), xy_spacing=1.0)
-    >>> u = [0., 1., 2., 3., 0.,
-    ...      1., 2., 3., 2., 3.,
-    ...      0., 1., 2., 1., 2.,
-    ...      0., 0., 2., 2., 0.]
-    >>> grad = grid.calc_grad_at_active_link(u)
-    >>> grad # doctest: +NORMALIZE_WHITESPACE
-    array([ 1.,  1., -1.,
-            1.,  1., -1.,  1.,
-           -1., -1., -1.,
-            1.,  1., -1.,  1.,
-           -1.,  0.,  1.])
-
-    For greater speed, sending a pre-created numpy array as an argument
-    avoids having to create a new one with each call:
-
-    >>> grad = np.empty(grid.number_of_active_links)
-    >>> rtn = grid.calc_grad_at_active_link(u, out=grad)
-    >>> grad # doctest: +NORMALIZE_WHITESPACE
-    array([ 1.,  1., -1.,
-            1.,  1., -1.,  1.,
-           -1., -1., -1.,
-            1.,  1., -1.,  1.,
-           -1.,  0.,  1.])
-    >>> rtn is grad
-    True
-
-    >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
-    >>> node_values = [0., 0., 0.,
-    ...                1., 3., 1.,
-    ...                2., 2., 2.]
-    >>> grid.calc_grad_at_active_link(node_values)
-    array([ 3.,  1., -1., -1.])
-
-    This function is *deprecated*. Instead, use ``calc_grad_at_link``.
-
-    >>> grid = RasterModelGrid((3, 3), xy_spacing=(2, 1))
-    >>> node_values = [0., 0., 0.,
-    ...                1., 3., 1.,
-    ...                2., 2., 2.]
-    >>> grid.calc_grad_at_link(node_values)[grid.active_links]
-    array([ 3.,  1., -1., -1.])
-
-    LLCATS: LINF GRAD
-    """
-    if out is None:
-        out = np.empty(len(grid.active_links), dtype=float)
-
-    if len(out) != len(grid.active_links):
-        raise ValueError("output buffer does not match that of the grid.")
-
-    # grads = gradients.calc_diff_at_link(grid, node_values,
-    #                                                  out=out)
-    grads = gradients.calc_diff_at_link(grid, node_values)
-    out[:] = grads[grid.active_links]
-    out /= grid.length_of_link[grid.active_links]
-
-    return out
 
 
 @use_field_name_or_array("node")
@@ -226,17 +293,17 @@ def calc_grad_across_cell_faces(grid, node_values, *args, **kwds):
     LLCATS: FINF GRAD
     """
     padded_node_values = np.empty(node_values.size + 1, dtype=float)
-    padded_node_values[-1] = BAD_INDEX_VALUE
+    padded_node_values[-1] = grid.BAD_INDEX
     padded_node_values[:-1] = node_values
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
 
     neighbors = grid.active_adjacent_nodes_at_node[node_ids]
-    if BAD_INDEX_VALUE != -1:
-        neighbors = np.where(neighbors == BAD_INDEX_VALUE, -1, neighbors)
+    if grid.BAD_INDEX != -1:
+        neighbors = np.where(neighbors == grid.BAD_INDEX, -1, neighbors)
     values_at_neighbors = padded_node_values[neighbors]
     masked_neighbor_values = np.ma.array(
-        values_at_neighbors, mask=neighbors == BAD_INDEX_VALUE
+        values_at_neighbors, mask=neighbors == grid.BAD_INDEX
     )
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
@@ -408,14 +475,14 @@ def calc_grad_along_node_links(grid, node_values, *args, **kwds):
     LLCATS: NINF LINF GRAD
     """
     padded_node_values = np.empty(node_values.size + 1, dtype=float)
-    padded_node_values[-1] = BAD_INDEX_VALUE
+    padded_node_values[-1] = grid.BAD_INDEX
     padded_node_values[:-1] = node_values
     node_ids = make_optional_arg_into_id_array(grid.number_of_nodes, *args)
 
     neighbors = grid.active_adjacent_nodes_at_node[node_ids]
     values_at_neighbors = padded_node_values[neighbors]
     masked_neighbor_values = np.ma.array(
-        values_at_neighbors, mask=values_at_neighbors == BAD_INDEX_VALUE
+        values_at_neighbors, mask=values_at_neighbors == grid.BAD_INDEX
     )
     values_at_nodes = node_values[node_ids].reshape(len(node_ids), 1)
 
@@ -539,7 +606,8 @@ def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation")
     >>> import numpy as np
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.raster_gradients import(
-    ...       _calc_subtriangle_unit_normals_at_node)
+    ...     _calc_subtriangle_unit_normals_at_node
+    ... )
     >>> mg = RasterModelGrid((3, 3))
     >>> z = mg.node_x ** 2
     >>> eight_tris = _calc_subtriangle_unit_normals_at_node(mg, z)
@@ -551,18 +619,17 @@ def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation")
     True
     >>> eight_tris[0] # doctest: +NORMALIZE_WHITESPACE
     array([[-0.70710678,  0.        ,  0.70710678],
-               [-0.9486833 ,  0.        ,  0.31622777],
-               [        nan,         nan,         nan],
-               [-0.70710678,  0.        ,  0.70710678],
-               [-0.9486833 ,  0.        ,  0.31622777],
-               [        nan,         nan,         nan],
-               [        nan,         nan,         nan],
-               [        nan,         nan,         nan],
-               [        nan,         nan,         nan]])
+           [-0.9486833 ,  0.        ,  0.31622777],
+           [        nan,         nan,         nan],
+           [-0.70710678,  0.        ,  0.70710678],
+           [-0.9486833 ,  0.        ,  0.31622777],
+           [        nan,         nan,         nan],
+           [        nan,         nan,         nan],
+           [        nan,         nan,         nan],
+           [        nan,         nan,         nan]])
 
     LLCATS: CINF GRAD
     """
-
     try:
         z = grid.at_node[elevs]
     except TypeError:
@@ -689,70 +756,47 @@ def _calc_subtriangle_unit_normals_at_node(grid, elevs="topographic__elevation")
 
     # now remove the bad subtriangles based on parts of the grid
     # make the bad subtriangle of length greater than one.
-    bad = np.nan * np.ones((3,))
+    bad = np.nan
 
     # first, corners:
-    corners = grid.nodes_at_corners_of_grid
+    (northeast, northwest, southwest, southeast) = grid.nodes_at_corners_of_grid
+
     # lower left corner only has NNE and ENE
-    nhat_NNW[corners[0], :] = bad
-    nhat_WNW[corners[0], :] = bad
-    nhat_WSW[corners[0], :] = bad
-    nhat_SSW[corners[0], :] = bad
-    nhat_SSE[corners[0], :] = bad
-    nhat_ESE[corners[0], :] = bad
+    for array in (nhat_NNW, nhat_WNW, nhat_WSW, nhat_SSW, nhat_SSE, nhat_ESE):
+        array[southwest] = bad
 
     # lower right corner only has NNW and WNW
-    nhat_ENE[corners[1], :] = bad
-    nhat_NNE[corners[1], :] = bad
-    nhat_WSW[corners[1], :] = bad
-    nhat_SSW[corners[1], :] = bad
-    nhat_SSE[corners[1], :] = bad
-    nhat_ESE[corners[1], :] = bad
+    for array in (nhat_ENE, nhat_NNE, nhat_WSW, nhat_SSW, nhat_SSE, nhat_ESE):
+        array[southeast] = bad
 
     # upper left corner only has ESE and SSE
-    nhat_ENE[corners[2], :] = bad
-    nhat_NNE[corners[2], :] = bad
-    nhat_NNW[corners[2], :] = bad
-    nhat_WNW[corners[2], :] = bad
-    nhat_WSW[corners[2], :] = bad
-    nhat_SSW[corners[2], :] = bad
+    for array in (nhat_ENE, nhat_NNE, nhat_NNW, nhat_WNW, nhat_WSW, nhat_SSW):
+        array[northwest] = bad
 
     # upper right corner only has WSW and SSW
-    nhat_ENE[corners[3], :] = bad
-    nhat_NNE[corners[3], :] = bad
-    nhat_NNW[corners[3], :] = bad
-    nhat_WNW[corners[3], :] = bad
-    nhat_SSE[corners[3], :] = bad
-    nhat_ESE[corners[3], :] = bad
+    for array in (nhat_ENE, nhat_NNE, nhat_NNW, nhat_WNW, nhat_SSE, nhat_ESE):
+        array[northeast] = bad
 
     # next, sizes:
     # bottom row only has Norths
     bottom = grid.nodes_at_bottom_edge
-    nhat_WSW[bottom, :] = bad
-    nhat_SSW[bottom, :] = bad
-    nhat_SSE[bottom, :] = bad
-    nhat_ESE[bottom, :] = bad
+    for array in (nhat_WSW, nhat_SSW, nhat_SSE, nhat_ESE):
+        array[bottom] = bad
 
     # left side only has Easts
     left = grid.nodes_at_left_edge
-    nhat_NNW[left, :] = bad
-    nhat_WNW[left, :] = bad
-    nhat_WSW[left, :] = bad
-    nhat_SSW[left, :] = bad
+    for array in (nhat_NNW, nhat_WNW, nhat_WSW, nhat_SSW):
+        array[left] = bad
 
     # top row only has Souths
     top = grid.nodes_at_top_edge
-    nhat_ENE[top, :] = bad
-    nhat_NNE[top, :] = bad
-    nhat_NNW[top, :] = bad
-    nhat_WNW[top, :] = bad
+    for array in (nhat_ENE, nhat_NNE, nhat_NNW, nhat_WNW):
+        array[top] = bad
 
     # right side only has Wests
     right = grid.nodes_at_right_edge
-    nhat_ENE[right, :] = bad
-    nhat_NNE[right, :] = bad
-    nhat_SSE[right, :] = bad
-    nhat_ESE[right, :] = bad
+    for array in (nhat_ENE, nhat_NNE, nhat_SSE, nhat_ESE):
+        array[right] = bad
 
     # calculate magnitude of cross product so that the result is a unit normal
     nmag_ENE = np.sqrt(np.square(nhat_ENE).sum(axis=1))
@@ -984,9 +1028,16 @@ def _calc_subtriangle_slopes_at_node(
         else:
             ValueError("Subtriangles must be of lenght nnodes or ncells")
     else:
-        n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = _calc_subtriangle_unit_normals_at_node(
-            grid, elevs
-        )
+        (
+            n_ENE,
+            n_NNE,
+            n_NNW,
+            n_WNW,
+            n_WSW,
+            n_SSW,
+            n_SSE,
+            n_ESE,
+        ) = _calc_subtriangle_unit_normals_at_node(grid, elevs)
         reshape_size = grid.number_of_nodes
 
     # combine z direction element of all eight so that the arccosine portion
@@ -1232,9 +1283,16 @@ def _calc_subtriangle_aspect_at_node(
 
     # otherwise create it.
     else:
-        n_ENE, n_NNE, n_NNW, n_WNW, n_WSW, n_SSW, n_SSE, n_ESE = _calc_subtriangle_unit_normals_at_node(
-            grid, elevs
-        )
+        (
+            n_ENE,
+            n_NNE,
+            n_NNW,
+            n_WNW,
+            n_WSW,
+            n_SSW,
+            n_SSE,
+            n_ESE,
+        ) = _calc_subtriangle_unit_normals_at_node(grid, elevs)
         reshape_size = grid.number_of_nodes
     # calculate the aspect as an angle ccw from the x axis (math angle)
     angle_from_x_ccw_ENE = np.reshape(
@@ -1477,11 +1535,10 @@ def calc_slope_at_patch(
            [ 1.24904577,  1.24904577,  1.24904577,  1.24904577],
            [ 1.37340077,  1.37340077,  1.37340077,  1.37340077]])
 
-    >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
     >>> z = mg.node_x.copy()
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> mg.status_at_node[11] = CLOSED_BOUNDARY
-    >>> mg.status_at_node[9] = FIXED_VALUE_BOUNDARY
+    >>> mg.status_at_node[11] = mg.BC_NODE_IS_CLOSED
+    >>> mg.status_at_node[9] = mg.BC_NODE_IS_FIXED_VALUE
     >>> z[11] = 100.  # this should get ignored now
     >>> z[9] = 2.  # this should be felt by patch 7 only
     >>> mg.calc_slope_at_patch(elevs=z, ignore_closed_nodes=True).reshape(
@@ -1510,7 +1567,7 @@ def calc_slope_at_patch(
     slopes_at_patch_TR = np.arccos(dotprod_TR)  # 0
     slopes_at_patch_BL = np.arccos(dotprod_BL)  # 2
     if ignore_closed_nodes:
-        badnodes = grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY
+        badnodes = grid.status_at_node[grid.nodes_at_patch] == grid.BC_NODE_IS_CLOSED
         tot_bad = badnodes.sum(axis=1)
         tot_tris = 4.0 - 3.0 * (tot_bad > 0)  # 4 where all good, 1 where not
         # now shut down the bad tris. Remember, one bad node => 3 bad tris.
@@ -1591,11 +1648,10 @@ def calc_grad_at_patch(
     >>> np.allclose(x_grad, 0.)
     True
 
-    >>> from landlab import CLOSED_BOUNDARY, FIXED_VALUE_BOUNDARY
     >>> z = mg.node_x.copy()
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, True)
-    >>> mg.status_at_node[11] = CLOSED_BOUNDARY
-    >>> mg.status_at_node[[9, 2]] = FIXED_VALUE_BOUNDARY
+    >>> mg.status_at_node[11] = mg.BC_NODE_IS_CLOSED
+    >>> mg.status_at_node[[9, 2]] = mg.BC_NODE_IS_FIXED_VALUE
     >>> z[11] = 100.  # this should get ignored now
     >>> z[9] = 2.  # this should be felt by patch 7 only
     >>> z[2] = 1.  # should be felt by patches 1 and 2
@@ -1628,7 +1684,7 @@ def calc_grad_at_patch(
         )
 
     if ignore_closed_nodes:
-        badnodes = grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY
+        badnodes = grid.status_at_node[grid.nodes_at_patch] == grid.BC_NODE_IS_CLOSED
         corners_rot = deque([n_BR, n_TR, n_TL, n_BL])
         # note initial offset so we are centered around TR on first slice
         for i in range(4):
@@ -1749,9 +1805,9 @@ def calc_slope_at_node(
                 copy=False,
             )
     # now, we also want to mask any "closed" patches (any node closed)
-    closed_patches = (grid.status_at_node[grid.nodes_at_patch] == CLOSED_BOUNDARY).sum(
-        axis=1
-    ) > 0
+    closed_patches = (
+        grid.status_at_node[grid.nodes_at_patch] == grid.BC_NODE_IS_CLOSED
+    ).sum(axis=1) > 0
     closed_patch_mask = np.logical_or(
         patches_at_node.mask, closed_patches[patches_at_node.data]
     )
@@ -1800,7 +1856,7 @@ def calc_slope_at_node(
         orthos = grid.adjacent_nodes_at_node.copy()
         # these have closed node neighbors...
         for dirs in (diags, orthos):
-            dirs[dirs == BAD_INDEX_VALUE] = -1  # indexing to work
+            dirs[dirs == grid.BAD_INDEX] = -1  # indexing to work
         # now make an array like patches_at_node to store the interim calcs
         patch_slopes_x = np.ma.zeros(patches_at_node.shape, dtype=float)
         patch_slopes_y = np.ma.zeros(patches_at_node.shape, dtype=float)

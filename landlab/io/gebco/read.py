@@ -90,7 +90,7 @@ def read_netcdf(nc_file, just_grid=False):
     Returns
     -------
     RasterModelGrid
-        A newly-created :any:`RasterModelGrid`.
+        A newly-created `RasterModelGrid`.
     """
     try:
         root = nc.netcdf_file(nc_file, "r", version=2)
@@ -110,7 +110,7 @@ def read_netcdf(nc_file, just_grid=False):
     if not just_grid:
         fields = _read_netcdf_structured_data(root)
         for (name, values) in fields.items():
-            grid.add_field("node", name, values)
+            grid.add_field(name, values, at="node")
 
     root.close()
 

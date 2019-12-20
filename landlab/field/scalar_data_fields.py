@@ -123,8 +123,12 @@ class ScalarDataFields(dict):
     >>> from landlab import RasterModelGrid
     >>> import numpy as np
     >>> mg = RasterModelGrid((4, 5))
-    >>> z = mg.add_field('cell', 'topographic__elevation', np.random.rand(
-    ...         mg.number_of_cells), units='m')
+    >>> z = mg.add_field(
+    ...     "topographic__elevation",
+    ...     np.random.rand(mg.number_of_cells),
+    ...     at="cell",
+    ...     units="m",
+    ... )
     >>> mg.at_cell['topographic__elevation'].size == mg.number_of_cells
     True
 
@@ -258,7 +262,7 @@ class ScalarDataFields(dict):
         """
         return np.zeros(self.size, **kwds)
 
-    def add_empty(self, name, units=_UNKNOWN_UNITS, noclobber=True, **kwds):
+    def add_empty(self, name, units=_UNKNOWN_UNITS, clobber=False, **kwds):
         """Create and add an uninitialized array of values to the field.
 
         Create a new array of the data field size, without initializing
@@ -272,7 +276,7 @@ class ScalarDataFields(dict):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
-        noclobber : boolean, optional
+        clobber : boolean, optional
             Raise an exception if adding to an already existing field.
 
         Returns
@@ -290,11 +294,9 @@ class ScalarDataFields(dict):
 
         LLCATS: FIELDCR
         """
-        return self.add_field(
-            name, self.empty(**kwds), units=units, noclobber=noclobber
-        )
+        return self.add_field(name, self.empty(**kwds), units=units, clobber=clobber)
 
-    def add_ones(self, name, units=_UNKNOWN_UNITS, noclobber=True, **kwds):
+    def add_ones(self, name, units=_UNKNOWN_UNITS, clobber=False, **kwds):
         """Create and add an array of values, initialized to 1, to the field.
 
         Create a new array of the data field size, filled with ones, and
@@ -308,7 +310,7 @@ class ScalarDataFields(dict):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
-        noclobber : boolean, optional
+        clobber : boolean, optional
             Raise an exception if adding to an already existing field.
 
         Returns
@@ -339,9 +341,9 @@ class ScalarDataFields(dict):
 
         LLCATS: FIELDCR
         """
-        return self.add_field(name, self.ones(**kwds), units=units, noclobber=noclobber)
+        return self.add_field(name, self.ones(**kwds), units=units, clobber=clobber)
 
-    def add_zeros(self, name, units=_UNKNOWN_UNITS, noclobber=True, **kwds):
+    def add_zeros(self, name, units=_UNKNOWN_UNITS, clobber=False, **kwds):
         """Create and add an array of values, initialized to 0, to the field.
 
         Create a new array of the data field size, filled with zeros, and
@@ -355,7 +357,7 @@ class ScalarDataFields(dict):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
-        noclobber : boolean, optional
+        clobber : boolean, optional
             Raise an exception if adding to an already existing field.
 
         Returns
@@ -373,18 +375,10 @@ class ScalarDataFields(dict):
 
         LLCATS: FIELDCR
         """
-        return self.add_field(
-            name, self.zeros(**kwds), units=units, noclobber=noclobber
-        )
+        return self.add_field(name, self.zeros(**kwds), units=units, clobber=clobber)
 
     def add_field(
-        self,
-        name,
-        value_array,
-        units=_UNKNOWN_UNITS,
-        copy=False,
-        noclobber=True,
-        **kwds
+        self, name, value_array, units=_UNKNOWN_UNITS, copy=False, clobber=False, **kwds
     ):
         """Add an array of values to the field.
 
@@ -403,7 +397,7 @@ class ScalarDataFields(dict):
         copy : boolean, optional
             If True, add a *copy* of the array to the field. Otherwise save add
             a reference to the array.
-        noclobber : boolean, optional
+        clobber : boolean, optional
             Raise an exception if adding to an already existing field.
 
         Returns
@@ -435,22 +429,23 @@ class ScalarDataFields(dict):
 
         If you want to save a copy of the array, use the *copy* keyword. In
         addition, adding values to an existing field will remove the reference
-        to the previously saved array. The *noclobber* keyword changes this
+        to the previously saved array. The *clobber=False* keyword changes this
         behavior to raise an exception in such a case.
 
-        >>> field.add_field('topographic__elevation', values, copy=True,
-        ...                 noclobber=False)
+        >>> field.add_field(
+        ...     "topographic__elevation", values, copy=True, clobber=True
+        ... )
         array([1, 1, 1, 1])
         >>> field['topographic__elevation'] is values
         False
-        >>> field.add_field('topographic__elevation', values, noclobber=True)
+        >>> field.add_field('topographic__elevation', values, clobber=False)
         ...     # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         FieldError: topographic__elevation already exists
 
         LLCATS: FIELDCR
         """
-        if noclobber and name in self:
+        if not clobber and name in self:
             raise FieldError("{name}: already exists".format(name=name))
 
         value_array = np.asarray(value_array)
