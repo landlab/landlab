@@ -1,8 +1,11 @@
 #!/usr/env/python
 
-"""Landlab component that simulates xxxxxx
-
-info about the component here
+"""    
+Landlab component that simulates the transport of bed material
+sediment through a 1-D river network, while tracking the resulting changes 
+in bed material grain size and river bed elevation. Model framework 
+described in Czuba (2018). Additions include: particle abrasion, variable 
+active layer thickness (Wong et al., 2007). 
 
 Fixes that need to happen:
 
@@ -23,9 +26,7 @@ Fixes that need to happen:
               Plus, I think one day we will have a better way to parameterize parcel virtual velocity and this will then be
               easy to incorporate/update.
 
-    -- Fix inelegant time indexing
-
-.. codeauthor:: Jon Allison Katy
+.. codeauthor:: Allison Pfeiffer, Katy Barnhart, Jon Czuba
 
 Created on Tu May 8, 2018
 Last edit ---
@@ -49,10 +50,13 @@ _ACTIVE = 1
 _INACTIVE = 0
 
 class NetworkSedimentTransporter(Component):
-    """Network bedload morphodynamic component.
-
-    Landlab component designed to calculate _____.
-    info info info
+    """
+    Landlab component that simulates the transport of bed material
+    sediment through a 1-D river network, while tracking the resulting changes 
+    in bed material grain size and river bed elevation. Model framework 
+    described in Czuba (2018). Additions include: particle abrasion, variable 
+    active layer thickness (Wong et al., 2007). 
+    
 
     **Usage:**
     Option 1 - Basic::
@@ -202,9 +206,7 @@ class NetworkSedimentTransporter(Component):
         "flow_depth": "Depth of stream flow in each reach",
     }
 
-    # Run Component
     #    @use_file_name_or_kwds
-    #   Katy! We had to comment out ^ that line in order to get NST to instantiate. Back end changes needed.
 
     def __init__(
         self,
@@ -419,12 +421,6 @@ class NetworkSedimentTransporter(Component):
         if self._time_idx != 0:
 
             self._parcels.add_record(time=[self._time])
-            # ^ what's the best way to handle time?
-            #            self._parcels.dataset['grid_element'].values[:,self._time_idx] = self._parcels.dataset[
-            #                    'grid_element'].values[:,self._time_idx-1]
-            #
-            #            self._parcels.dataset['element_id'].values[:,self._time_idx] = self._parcels.dataset[
-            #                    'element_id'].values[:,self._time_idx-1]
 
             self._parcels.ffill_grid_element_and_id()
 
@@ -445,10 +441,8 @@ class NetworkSedimentTransporter(Component):
         self._this_timesteps_parcels[self._parcels_off_grid, -1] = False
 
     def _update_channel_slopes(self):
-        """text Can be simple-- this is what this does. 'private' functions can
-        have very simple examples, explanations. Essentially note to yourself"""
-        # Katy think this can be vectorized
-        # Jon agrees, but is not sure yet how to do that
+        """Re-calculate channel slopes during each timestep."""
+
         for i in range(self._grid.number_of_links):
 
             upstream_node_id = self.fd.upstream_node_at_link()[i]
@@ -462,7 +456,8 @@ class NetworkSedimentTransporter(Component):
 
     def _partition_active_and_storage_layers(self, **kwds):
         """For each parcel in the network, determines whether it is in the
-        active or storage layer during this timestep, then updates node elevations
+        active or storage layer during this timestep, then updates node 
+        elevations. 
         """
 
         vol_tot = self._parcels.calc_aggregate_value(
@@ -536,17 +531,13 @@ class NetworkSedimentTransporter(Component):
         if np.sum(np.isfinite(self.active_layer_thickness)) == 0:
             self.active_layer_thickness = 0.03116362 * np.ones(
                     np.shape(self.active_layer_thickness))
-            # handles the case of the first timestep -- assigns modest value
+            # handles the case of the first timestep -- assigns a modest value
         
         capacity = (self._grid.at_link["channel_width"]
                     *self._grid.at_link["link_length"]
                     *self.active_layer_thickness
                     ) # in units of m^3
 
-#       OLD capacity calculation
-#       capacity = 2 * np.ones(
-#            self._grid.number_of_links
-#        )  # in units of m^
 
         for i in range(self._grid.number_of_links):
 
@@ -576,11 +567,6 @@ class NetworkSedimentTransporter(Component):
 
                 idxinactive = np.where(cumvol > capacity[i])
                 make_inactive = parcel_id_time_sorted[idxinactive]
-                # idxbedabrade = np.where(cumvol < 2*capacity[i] and cumvol > capacity[i])
-                # ^ syntax is wrong, but this is where we can identify the surface of the bed
-                # for abrasion, I think we would abrade the particles in the active layer in active transport
-                # and abrade the particles sitting on the bed. This line would identify those particles on
-                # the bed that also need to abrade due to impacts from the sediment moving above.
 
                 self._parcels.set_data(
                     time=[self._time],
@@ -648,7 +634,7 @@ class NetworkSedimentTransporter(Component):
                     real_upstream_links
                 ]
                 
-#                ALERT: Moved this to the "else" statement below. AP yr11/11/19
+#                ALERT: Moved this to the "else" statement below. AP 11/11/19
 #                length_of_downstream_link = self._grid.length_of_link[
 #                    downstream_link_id
 #                ][n]
@@ -772,7 +758,6 @@ class NetworkSedimentTransporter(Component):
                 )
             else:
                 self.rhos_mean_active[i] = np.nan
-
             D_mean_activearray[Linkarray == i] = self.d_mean_active[i]
             frac_sand_array[Linkarray == i] = frac_sand[i]
             vol_act_array[Linkarray == i] = vol_act[i]
