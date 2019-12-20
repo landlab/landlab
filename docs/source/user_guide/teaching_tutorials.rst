@@ -25,7 +25,7 @@ on-the-fly in the classroom.
 The easiest way to see what is in the notebooks is through the
 `Binder welcome page for the teaching notebooks <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb>`_.
 
-For an introduction to using Jupyter Notebooks, see this `webpage <http://jupyter-notebook-beginner-guide.readthedocs.io/en/latest/execute.html>`_.
+For an introduction to using Jupyter Notebooks, see this `webpage <https://jupyter-notebook-beginner-guide.readthedocs.io/en/latest/execute.html>`_.
 [Quick Summary: The way to launch a Jupyter notebook is to enter
 'jupyter notebook' from a command line prompt. Jupyter notebooks can also be
 launched from within Anaconda.]
@@ -41,7 +41,7 @@ personal computer, or it will need to be installed on classroom computers. All
 <install>` will take you to directions on how to install
 Landlab and information on preferred Python distributions.
 
-TODO REVISE: The next step would be for the class instructor to hit the _Clone or download_
+TODO REVISE: The next step would be for the class instructor to hit the Clone or download
 button (on this webpage (https://github.com/landlab/landlab_teaching_tools),
 green, upper right) and download this repository locally. Choose which Jupyter
 Notebooks you would like the students to run, and then distribute the notebook
@@ -58,18 +58,20 @@ any software installation required, all of your students will need to join
 HydroShare.  For the first time set up, follow these steps:
 
 Initiation steps:
-1. Go to https://www.hydroshare.org/
-2. Hit blue button _Sign up now_ and follow steps. (remember your user name and password!)
-3. Once signed up, on the top bar hit _Collaborate_ and hite on the _Groups_ button.
-4. Search for the Landlab Group and _Ask to join_
-5. Once you have permission, enter the Landlab Group page.
-6. Search for _classroom\_notebooks_ in the search bar.
-7. Enter the collection _Landlab\_classroom\_notebooks_.
-8. Scroll down to _Collection Contents_ and hit on whatever notebook you want to run.
-9. Hit the blue _Open with..._ button on the top right, and choose CUAHSI JupyterHub.
-10. You will come to a screen with the notebook name (ending in .ipynb). Click that and you are now running the notebook remotely!
+
+  1. Go to https://www.hydroshare.org/
+  2. Hit blue button *Sign up now* and follow steps. (remember your user name and password!)
+  3. Once signed up, on the top bar hit *Collaborate* and hit on the *Groups* button.
+  4. Search for the Landlab Group and *Ask to join*
+  5. Once you have permission, enter the Landlab Group page.
+  6. Search for *classroom\notebooks* in the search bar.
+  7. Enter the collection *Landlab\classroom\notebooks*.
+  8. Scroll down to *Collection Contents* and hit on whatever notebook you want to run.
+  9. Hit the blue *Open with...* button on the top right, and choose CUAHSI JupyterHub.
+  10. You will come to a screen with the notebook name (ending in .ipynb). Click that and you are now running the notebook remotely!
 
 Streamlined access:
+
 After you and your students have successfully run through the steps above, in
 the next work sessions you can also access your personal user space on the
 supercomputer that makes this magic happen, simply by typing in this URL into

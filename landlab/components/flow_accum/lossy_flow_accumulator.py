@@ -59,7 +59,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             *flow__data_structure_delta*. The first element is always zero.
 
     The FlowDirector component will add additional ModelGrid fields; see the
-    `FlowAccumulator component <https://landlab.readthedocs.io/en/latest/landlab.components.flow_accum.html>`_
+    `FlowAccumulator component <https://landlab.readthedocs.io/en/release/reference/components/flow_accum.html>`_
     for full details. These are:
 
         -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
