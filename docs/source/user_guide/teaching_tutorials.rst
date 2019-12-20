@@ -23,7 +23,7 @@ laboratory assignments. However, they can be used to illustrate concepts
 on-the-fly in the classroom.
 
 The easiest way to see what is in the notebooks is through the
-`Binder welcome page for the teaching notebooks <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb>`_.
+`Binder welcome page for the teaching notebooks <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/teaching/welcome_teaching.ipynb>`_.
 
 For an introduction to using Jupyter Notebooks, see this `webpage <https://jupyter-notebook-beginner-guide.readthedocs.io/en/latest/execute.html>`_.
 [Quick Summary: The way to launch a Jupyter notebook is to enter
