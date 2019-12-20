@@ -324,14 +324,5 @@ class TaylorNonLinearDiffuser(Component):
         ----------
         dt: float (time)
             The imposed timestep.
-        dynamic_dt : boolean (optional, default is False)
-            Keyword argument to turn on or off dynamic time-stepping.
-        if_unstable : string (optional, default is "pass")
-            Keyword argument to determine how potential instability due to
-            slopes that are too high is handled. Options are "pass", "warn",
-            and "raise".
-        courant_factor : float (optional, default = 0.2)
-            Factor to identify stable time-step duration when using dynamic
-            timestepping.
         """
         self.soilflux(dt)
