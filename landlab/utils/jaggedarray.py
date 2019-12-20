@@ -38,7 +38,6 @@ array([ 0.,  0.,  1.,  2.,  2.,  3.,  4.,  4.,  5.])
 array([ 6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 """
 import numpy as np
-from six.moves import range
 
 
 def flatten_jagged_array(jagged, dtype=None):
@@ -116,8 +115,7 @@ def unravel(data, offset, out=None, pad=None):
 
 class JaggedArray(object):
 
-    """
-    A container for an array of variable-length arrays.
+    """A container for an array of variable-length arrays.
 
     JaggedArray([row0, row1, ...])
     JaggedArray(values, values_per_row)
@@ -139,9 +137,7 @@ class JaggedArray(object):
     """
 
     def __init__(self, *args):
-        """
-        JaggedArray([row0, row1, ...])
-        JaggedArray(values, values_per_row)
+        """JaggedArray([row0, row1, ...]) JaggedArray(values, values_per_row)
 
         Examples
         --------

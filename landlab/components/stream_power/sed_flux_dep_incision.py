@@ -1,13 +1,9 @@
-from __future__ import print_function
-
 import warnings
 
 import numpy as np
-from six.moves import range
+import scipy.constants
 
-from landlab import Component
-from landlab.core.model_parameter_dictionary import MissingKeyError
-from landlab.grid.base import BAD_INDEX_VALUE
+from landlab import Component, MissingKeyError
 from landlab.utils.decorators import make_return_array_immutable
 
 
@@ -76,124 +72,118 @@ class SedDepEroder(Component):
 
     _name = "SedDepEroder"
 
-    _input_var_names = (
-        "topographic__elevation",
-        "drainage_area",
-        "flow__receiver_node",
-        "flow__upstream_node_order",
-        "topographic__steepest_slope",
-        "flow__link_to_receiver_node",
-    )
-
-    _output_var_names = (
-        "topographic__elevation",
-        "channel__bed_shear_stress",
-        "channel_sediment__volumetric_transport_capacity",
-        "channel_sediment__volumetric_flux",
-        "channel_sediment__relative_flux",
-        "channel__discharge",
-        "channel__width",  # optional
-        "channel__depth",  # optional
-    )
-
-    _optional_var_names = ("channel__width", "channel__depth")
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "drainage_area": "m**2",
-        "flow__receiver_node": "-",
-        "topographic__steepest_slope": "-",
-        "flow__upstream_node_order": "-",
-        "flow__link_to_receiver_node": "-",
-        "channel__bed_shear_stress": "Pa",
-        "channel_sediment__volumetric_transport_capacity": "m**3/s",
-        "channel_sediment__volumetric_flux": "m**3/s",
-        "channel_sediment__relative_flux": "-",
-        "channel__discharge": "m**3/s",
-        "channel__width": "m",
-        "channel__depth": "m",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "drainage_area": "node",
-        "flow__receiver_node": "node",
-        "topographic__steepest_slope": "node",
-        "flow__upstream_node_order": "node",
-        "flow__link_to_receiver_node": "node",
-        "channel__bed_shear_stress": "node",
-        "channel_sediment__volumetric_transport_capacity": "node",
-        "channel_sediment__volumetric_flux": "node",
-        "channel_sediment__relative_flux": "node",
-        "channel__discharge": "node",
-        "channel__width": "node",
-        "channel__depth": "node",
-    }
-
-    _var_type = {
-        "topographic__elevation": float,
-        "drainage_area": float,
-        "flow__receiver_node": int,
-        "topographic__steepest_slope": float,
-        "flow__upstream_node_order": int,
-        "flow__link_to_receiver_node": int,
-        "channel__bed_shear_stress": float,
-        "channel_sediment__volumetric_transport_capacity": float,
-        "channel_sediment__volumetric_flux": float,
-        "channel_sediment__relative_flux": float,
-        "channel__discharge": float,
-        "channel__width": float,
-        "channel__depth": float,
-    }
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "drainage_area": (
-            "Upstream accumulated surface area contributing to the node's "
-            + "discharge"
-        ),
-        "flow__receiver_node": (
-            "Node array of receivers (node that receives flow from current " + "node)"
-        ),
-        "topographic__steepest_slope": "Node array of steepest *downhill* slopes",
-        "flow__upstream_node_order": (
-            "Node array containing downstream-to-upstream ordered list of " + "node IDs"
-        ),
-        "flow__link_to_receiver_node": "ID of link downstream of each node, which carries the discharge",
-        "channel__bed_shear_stress": (
-            "Shear exerted on the bed of the channel, assuming all "
-            + "discharge travels along a single, self-formed channel"
-        ),
-        "channel_sediment__volumetric_transport_capacity": (
-            "Volumetric transport capacity of a channel carrying all runoff"
-            + " through the node, assuming the Meyer-Peter Muller transport "
-            + "equation"
-        ),
-        "channel_sediment__volumetric_flux": (
-            "Total volumetric fluvial sediment flux brought into the node "
-            + "from upstream"
-        ),
-        "channel_sediment__relative_flux": (
-            "The fluvial_sediment_flux_into_node divided by the fluvial_"
-            + "sediment_transport_capacity"
-        ),
-        "channel__discharge": (
-            "Volumetric water flux of the a single channel carrying all "
-            + "runoff through the node"
-        ),
-        "channel__width": (
-            "Width of the a single channel carrying all runoff through the " + "node"
-        ),
-        "channel__depth": (
-            "Depth of the a single channel carrying all runoff through the " + "node"
-        ),
+    _info = {
+        "channel__bed_shear_stress": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "Pa",
+            "mapping": "node",
+            "doc": "Shear exerted on the bed of the channel, assuming all discharge travels along a single, self-formed channel",
+        },
+        "channel__depth": {
+            "dtype": float,
+            "intent": "out",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Depth of the a single channel carrying all runoff through the node",
+        },
+        "channel__discharge": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Volumetric water flux of the a single channel carrying all runoff through the node",
+        },
+        "channel__width": {
+            "dtype": float,
+            "intent": "out",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Width of the a single channel carrying all runoff through the node",
+        },
+        "channel_sediment__relative_flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "The fluvial_sediment_flux_into_node divided by the fluvial_sediment_transport_capacity",
+        },
+        "channel_sediment__volumetric_flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Total volumetric fluvial sediment flux brought into the node from upstream",
+        },
+        "channel_sediment__volumetric_transport_capacity": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Volumetric transport capacity of a channel carrying all runoff through the node, assuming the Meyer-Peter Muller transport equation",
+        },
+        "drainage_area": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m**2",
+            "mapping": "node",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
+        },
+        "flow__link_to_receiver_node": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__upstream_node_order": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__steepest_slope": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "The steepest *downhill* slope",
+        },
     }
 
     def __init__(
         self,
         grid,
         K_sp=1.0e-6,
-        g=9.81,
+        g=scipy.constants.g,
         rock_density=2700,
         sediment_density=2700,
         fluid_density=1000,
@@ -226,7 +216,8 @@ class SedDepEroder(Component):
         # params for model numeric behavior:
         pseudoimplicit_repeats=5,
         return_stream_properties=False,
-        **kwds
+        # flooded node info
+        flooded_depths=None,
     ):
         """Constructor for the class.
 
@@ -340,7 +331,14 @@ class SedDepEroder(Component):
         slope_sensitive_threshold : bool
             If True, the threshold_Shields will be set according to
             0.15 * S ** 0.25, per Lamb et al., 2008 & Hobley et al., 2011.
+        flooded_depths : array or field name (m)
+            Depths of flooding at each node, zero where no lake. Note that the
+            component will dynamically update this array as it fills nodes
+            with sediment (...but does NOT update any other related lake
+            fields).
         """
+        super(SedDepEroder, self).__init__(grid)
+
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
                 msg = (
@@ -351,92 +349,94 @@ class SedDepEroder(Component):
                     "to start this process."
                 )
                 raise NotImplementedError(msg)
-        self._grid = grid
-        self.pseudoimplicit_repeats = pseudoimplicit_repeats
+        self._flooded_depths = flooded_depths
+        self._pseudoimplicit_repeats = pseudoimplicit_repeats
 
-        self.link_S_with_trailing_blank = np.zeros(grid.number_of_links + 1)
+        self._link_S_with_trailing_blank = np.zeros(grid.number_of_links + 1)
         # ^needs to be filled with values in execution
-        self.count_active_links = np.zeros_like(
-            self.link_S_with_trailing_blank, dtype=int
+        self._countactive_links = np.zeros_like(
+            self._link_S_with_trailing_blank, dtype=int
         )
-        self.count_active_links[:-1] = 1
+        self._countactive_links[:-1] = 1
 
         self._K_unit_time = K_sp / 31557600.0
         # ^...because we work with dt in seconds
         # set gravity
-        self.g = g
-        self.rock_density = rock_density
-        self.sed_density = sediment_density
-        self.fluid_density = fluid_density
-        self.relative_weight = (
-            (self.sed_density - self.fluid_density) / self.fluid_density * self.g
+        self._g = g
+        self._rock_density = rock_density
+        self._sed_density = sediment_density
+        self._fluid_density = fluid_density
+        self._relative_weight = (
+            (self._sed_density - self._fluid_density) / self._fluid_density * self._g
         )
         # ^to accelerate MPM calcs
-        self.rho_g = self.fluid_density * self.g
-        self.type = sed_dependency_type
-        assert self.type in (
+        self._rho_g = self._fluid_density * self._g
+        self._type = sed_dependency_type
+        assert self._type in (
             "generalized_humped",
             "None",
             "linear_decline",
             "almost_parabolic",
         )
-        self.Qc = Qc
-        assert self.Qc in ("MPM", "power_law")
-        self.return_ch_props = return_stream_properties
+        self._Qc = Qc
+        assert self._Qc in ("MPM", "power_law")
+        self._return_ch_props = return_stream_properties
         if return_stream_properties:
-            assert self.Qc == "MPM", "Qc must be 'MPM' to return stream " + "properties"
-        if type(runoff_rate) in (float, int):
-            self.runoff_rate = float(runoff_rate)
-        elif type(runoff_rate) is str:
-            self.runoff_rate = self.grid.at_node[runoff_rate]
+            assert self._Qc == "MPM", (
+                "Qc must be 'MPM' to return stream " + "properties"
+            )
+        if isinstance(runoff_rate, (float, int)):
+            self._runoff_rate = float(runoff_rate)
+        elif isinstance(runoff_rate, str):
+            self._runoff_rate = self._grid.at_node[runoff_rate]
         else:
-            self.runoff_rate = np.array(runoff_rate)
-            assert runoff_rate.size == self.grid.number_of_nodes
+            self._runoff_rate = np.array(runoff_rate)
+            assert runoff_rate.size == self._grid.number_of_nodes
 
-        if self.Qc == "MPM":
+        if self._Qc == "MPM":
             if threshold_shear_stress is not None:
-                self.thresh = threshold_shear_stress
-                self.set_threshold = True
+                self._thresh = threshold_shear_stress
+                self._set_threshold = True
                 # ^flag for sed_flux_dep_incision to see if the threshold was
                 # manually set.
-                # print("Found a shear stress threshold to use: ", self.thresh)
+                # print("Found a shear stress threshold to use: ", self._thresh)
             else:
                 warnings.warn("Found no incision threshold to use.")
-                self.thresh = 0.0
-                self.set_threshold = False
+                self._thresh = 0.0
+                self._set_threshold = False
             self._a = a_sp
             self._b = b_sp
             self._c = c_sp
 
-            self.k_Q = k_Q
-            self.k_w = k_w
-            self.mannings_n = mannings_n
+            self._k_Q = k_Q
+            self._k_w = k_w
+            self._mannings_n = mannings_n
             if mannings_n < 0.0 or mannings_n > 0.2:
                 warnings.warn("Manning's n outside it's typical range")
 
-            self.diffusivity_power_on_A = 0.9 * self._c * (1.0 - self._b)
+            self._diffusivity_power_on_A = 0.9 * self._c * (1.0 - self._b)
             # ^i.e., q/D**(1/6)
 
-            self.override_threshold = set_threshold_from_Dchar
-            self.override_Dchar = set_Dchar_from_threshold
-            if self.override_threshold:
-                assert self.set_threshold is False, (
+            self._override_threshold = set_threshold_from_Dchar
+            self._override_Dchar = set_Dchar_from_threshold
+            if self._override_threshold:
+                assert self._set_threshold is False, (
                     "If set_threshold_from_Dchar, threshold_Shields must be "
                     + "set to None"
                 )
-                assert self.override_Dchar is False
-            if self.override_Dchar:
-                assert self.override_threshold is False
+                assert self._override_Dchar is False
+            if self._override_Dchar:
+                assert self._override_threshold is False
 
-            self.shields_crit = threshold_Shields
-            self.lamb_flag = slope_sensitive_threshold
-            if self.lamb_flag:
-                assert self.shields_crit is None, (
+            self._shields_crit = threshold_Shields
+            self._lamb_flag = slope_sensitive_threshold
+            if self._lamb_flag:
+                assert self._shields_crit is None, (
                     "If slope_sensitive_threshold, threshold_Shields must "
                     + "be set to None"
                 )
 
-        elif self.Qc == "power_law":
+        elif self._Qc == "power_law":
             self._m = m_sp
             self._n = n_sp
             self._Kt = K_t / 31557600.0  # in sec
@@ -444,133 +444,141 @@ class SedDepEroder(Component):
             self._nt = n_t
 
         # now conditional inputs
-        if self.type == "generalized_humped":
-            self.kappa = kappa_hump
-            self.nu = nu_hump
-            self.phi = phi_hump
-            self.c = c_hump
+        if self._type == "generalized_humped":
+            self._kappa = kappa_hump
+            self._nu = nu_hump
+            self._phi = phi_hump
+            self._c = c_hump
 
-        if self.Qc == "MPM":
+        if self._Qc == "MPM":
             if Dchar is not None:
-                if type(Dchar) in (int, float):
-                    self.Dchar_in = float(Dchar)
-                elif type(Dchar) is str:
-                    self.Dchar_in = self.grid.at_node[Dchar]
+                if isinstance(Dchar, (int, float)):
+                    self._Dchar_in = float(Dchar)
+                elif isinstance(Dchar, str):
+                    self._Dchar_in = self._grid.at_node[Dchar]
                 else:
-                    self.Dchar_in = np.array(Dchar)
-                    assert self.Dchar_in.size == self.grid.number_of_nodes
+                    self._Dchar_in = np.array(Dchar)
+                    assert self._Dchar_in.size == self._grid.number_of_nodes
                 assert (
-                    not self.override_Dchar
+                    not self._override_Dchar
                 ), "If set_Dchar_from_threshold, Dchar must be set to None"
             else:
-                assert self.override_Dchar
+                assert self._override_Dchar
                 # remember the threshold getting set is already tau**a
-                if not self.lamb_flag:
-                    self.Dchar_in = (
-                        self.thresh
-                        / self.g
-                        / (self.sed_density - self.fluid_density)
-                        / self.shields_crit
+                if not self._lamb_flag:
+                    self._Dchar_in = (
+                        self._thresh
+                        / self._g
+                        / (self._sed_density - self._fluid_density)
+                        / self._shields_crit
                     )
                 else:
-                    self.Dchar_in = None
-            self.C_MPM = C_MPM
+                    self._Dchar_in = None
+            self._C_MPM = C_MPM
 
-            if self.override_threshold:
+            if self._override_threshold:
                 # print("Overriding any supplied threshold...")
                 try:
-                    self.thresh = (
-                        self.shields_crit
-                        * self.g
-                        * (self.sed_density - self.fluid_density)
-                        * self.Dchar_in
+                    self._thresh = (
+                        self._shields_crit
+                        * self._g
+                        * (self._sed_density - self._fluid_density)
+                        * self._Dchar_in
                     )
                 except AttributeError:
-                    self.thresh = (
-                        self.shields_crit
-                        * self.g
-                        * (self.sed_density - self.fluid_density)
+                    self._thresh = (
+                        self._shields_crit
+                        * self._g
+                        * (self._sed_density - self._fluid_density)
                         * Dchar
                     )
 
             # new 11/12/14
-            self.point6onelessb = 0.6 * (1.0 - self._b)
-            self.shear_stress_prefactor = (
-                self.fluid_density * self.g * (self.mannings_n / self.k_w) ** 0.6
+            self._point6onelessb = 0.6 * (1.0 - self._b)
+            self._shear_stress_prefactor = (
+                self._fluid_density * self._g * (self._mannings_n / self._k_w) ** 0.6
             )
 
-            if self.set_threshold is False or self.override_threshold:
+            if self._set_threshold is False or self._override_threshold:
                 try:
-                    self.shields_prefactor_to_shear = (
-                        (self.sed_density - self.fluid_density) * self.g * self.Dchar_in
+                    self._shields_prefactor_to_shear = (
+                        (self._sed_density - self._fluid_density)
+                        * self._g
+                        * self._Dchar_in
                     )
                 except AttributeError:  # no Dchar
-                    self.shields_prefactor_to_shear_noDchar = (
-                        self.sed_density - self.fluid_density
-                    ) * self.g
+                    self._shields_prefactor_to_shear_noDchar = (
+                        self._sed_density - self._fluid_density
+                    ) * self._g
 
             twothirds = 2.0 / 3.0
-            self.Qs_prefactor = (
+            self._Qs_prefactor = (
                 4.0
-                * self.C_MPM ** twothirds
-                * self.fluid_density ** twothirds
-                / (self.sed_density - self.fluid_density) ** twothirds
-                * self.g ** (twothirds / 2.0)
+                * self._C_MPM ** twothirds
+                * self._fluid_density ** twothirds
+                / (self._sed_density - self._fluid_density) ** twothirds
+                * self._g ** (twothirds / 2.0)
                 * mannings_n ** 0.6
-                * self.k_w ** (1.0 / 15.0)
-                * self.k_Q ** (0.6 + self._b / 15.0)
-                / self.sed_density ** twothirds
+                * self._k_w ** (1.0 / 15.0)
+                * self._k_Q ** (0.6 + self._b / 15.0)
+                / self._sed_density ** twothirds
             )
-            self.Qs_thresh_prefactor = (
+            self._Qs_thresh_prefactor = (
                 4.0
                 * (
-                    self.C_MPM
-                    * self.k_w
-                    * self.k_Q ** self._b
-                    / self.fluid_density ** 0.5
-                    / (self.sed_density - self.fluid_density)
-                    / self.g
-                    / self.sed_density
+                    self._C_MPM
+                    * self._k_w
+                    * self._k_Q ** self._b
+                    / self._fluid_density ** 0.5
+                    / (self._sed_density - self._fluid_density)
+                    / self._g
+                    / self._sed_density
                 )
                 ** twothirds
             )
             # both these are divided by sed density to give a vol flux
-            self.Qs_power_onA = self._c * (0.6 + self._b / 15.0)
-            self.Qs_power_onAthresh = twothirds * self._b * self._c
+            self._Qs_power_onA = self._c * (0.6 + self._b / 15.0)
+            self._Qs_power_onAthresh = twothirds * self._b * self._c
 
-        self.cell_areas = np.empty(grid.number_of_nodes)
-        self.cell_areas.fill(np.mean(grid.area_of_cell))
-        self.cell_areas[grid.node_at_cell] = grid.area_of_cell
+        self._cell_areas = np.empty(grid.number_of_nodes)
+        self._cell_areas.fill(np.mean(grid.area_of_cell))
+        self._cell_areas[grid.node_at_cell] = grid.area_of_cell
 
         # set up the necessary fields:
         self.initialize_output_fields()
-        if self.return_ch_props:
+        if self._return_ch_props:
             self.initialize_optional_output_fields()
 
     def get_sed_flux_function(self, rel_sed_flux):
-        if self.type == "generalized_humped":
-            "Returns K*f(qs,qc)"
+        """Get the sediment flux function.
+
+        Parameters
+        ----------
+        rel_sed_flux
+        """
+        if self._type == "generalized_humped":
+            """Returns K*f(qs,qc)"""
             sed_flux_fn = (
-                self.kappa
-                * (rel_sed_flux ** self.nu + self.c)
-                * np.exp(-self.phi * rel_sed_flux)
+                self._kappa
+                * (rel_sed_flux ** self._nu + self._c)
+                * np.exp(-self._phi * rel_sed_flux)
             )
-        elif self.type == "linear_decline":
+        elif self._type == "linear_decline":
             sed_flux_fn = 1.0 - rel_sed_flux
-        elif self.type == "parabolic":
+        elif self._type == "parabolic":
             raise MissingKeyError(
                 "Pure parabolic (where intersect at zero flux is exactly "
                 + "zero) is currently not supported, sorry. Try "
                 + "almost_parabolic instead?"
             )
             sed_flux_fn = 1.0 - 4.0 * (rel_sed_flux - 0.5) ** 2.0
-        elif self.type == "almost_parabolic":
+        elif self._type == "almost_parabolic":
             sed_flux_fn = np.where(
                 rel_sed_flux > 0.1,
                 1.0 - 4.0 * (rel_sed_flux - 0.5) ** 2.0,
                 2.6 * rel_sed_flux + 0.1,
             )
-        elif self.type == "None":
+        elif self._type == "None":
             sed_flux_fn = 1.0
         else:
             raise MissingKeyError(
@@ -582,25 +590,34 @@ class SedDepEroder(Component):
     def get_sed_flux_function_pseudoimplicit(
         self, sed_in, trans_cap_vol_out, prefactor_for_volume, prefactor_for_dz
     ):
+        """Get the pseudoimplicit sediment flux function.
+
+        Parameters
+        ----------
+        sed_in
+        trans_cap_vol_out
+        prefactor_for_volume
+        prefactor_for_dz
+        """
         rel_sed_flux_in = sed_in / trans_cap_vol_out
         rel_sed_flux = rel_sed_flux_in
 
-        if self.type == "generalized_humped":
-            "Returns K*f(qs,qc)"
+        if self._type == "generalized_humped":
+            """Returns K*f(qs,qc)"""
 
             def sed_flux_fn_gen(rel_sed_flux_in):
                 return (
-                    self.kappa
-                    * (rel_sed_flux_in ** self.nu + self.c)
-                    * np.exp(-self.phi * rel_sed_flux_in)
+                    self._kappa
+                    * (rel_sed_flux_in ** self._nu + self._c)
+                    * np.exp(-self._phi * rel_sed_flux_in)
                 )
 
-        elif self.type == "linear_decline":
+        elif self._type == "linear_decline":
 
             def sed_flux_fn_gen(rel_sed_flux_in):
                 return 1.0 - rel_sed_flux_in
 
-        elif self.type == "parabolic":
+        elif self._type == "parabolic":
             raise MissingKeyError(
                 "Pure parabolic (where intersect at zero flux is exactly "
                 + "zero) is currently not supported, sorry. Try "
@@ -610,7 +627,7 @@ class SedDepEroder(Component):
             def sed_flux_fn_gen(rel_sed_flux_in):
                 return 1.0 - 4.0 * (rel_sed_flux_in - 0.5) ** 2.0
 
-        elif self.type == "almost_parabolic":
+        elif self._type == "almost_parabolic":
 
             def sed_flux_fn_gen(rel_sed_flux_in):
                 return np.where(
@@ -619,7 +636,7 @@ class SedDepEroder(Component):
                     2.6 * rel_sed_flux_in + 0.1,
                 )
 
-        elif self.type == "None":
+        elif self._type == "None":
 
             def sed_flux_fn_gen(rel_sed_flux_in):
                 return 1.0
@@ -630,7 +647,7 @@ class SedDepEroder(Component):
                 + "recognised!"
             )
 
-        for i in range(self.pseudoimplicit_repeats):
+        for i in range(self._pseudoimplicit_repeats):
             sed_flux_fn = sed_flux_fn_gen(rel_sed_flux)
             sed_vol_added = prefactor_for_volume * sed_flux_fn
             rel_sed_flux = rel_sed_flux_in + sed_vol_added / trans_cap_vol_out
@@ -649,46 +666,33 @@ class SedDepEroder(Component):
         sed_flux_out = rel_sed_flux * trans_cap_vol_out
         return dz, sed_flux_out, rel_sed_flux, error_in_sed_flux_fn
 
-    def erode(self, dt, flooded_depths=None, **kwds):
-        """Erode and deposit on the channel bed for a duration of *dt*.
+    def run_one_step(self, dt):
+        """Run the component across one timestep increment, dt.
 
         Erosion occurs according to the sediment dependent rules specified
-        during initialization.
+        during initialization. Method is fully equivalent to the :func:`erode`
+        method.
 
         Parameters
         ----------
         dt : float (years, only!)
             Timestep for which to run the component.
-        flooded_depths : array or field name (m)
-            Depths of flooding at each node, zero where no lake. Note that the
-            component will dynamically update this array as it fills nodes
-            with sediment (...but does NOT update any other related lake
-            fields).
         """
-        if self._grid.at_node["flow__receiver_node"].size != self._grid.size("node"):
-            msg = (
-                "A route-to-multiple flow director has been "
-                "run on this grid. The landlab development team has not "
-                "verified that SedDepEroder is compatible with "
-                "route-to-multiple methods. Please open a GitHub Issue "
-                "to start this process."
-            )
-            raise NotImplementedError(msg)
 
-        grid = self.grid
+        grid = self._grid
         node_z = grid.at_node["topographic__elevation"]
         node_A = grid.at_node["drainage_area"]
         flow_receiver = grid.at_node["flow__receiver_node"]
         s_in = grid.at_node["flow__upstream_node_order"]
         node_S = grid.at_node["topographic__steepest_slope"]
 
-        if type(flooded_depths) is str:
-            flooded_depths = grid.at_node[flooded_depths]
+        if isinstance(self._flooded_depths, str):
+            flooded_depths = grid.at_node[self._flooded_depths]
             # also need a map of initial flooded conds:
             flooded_nodes = flooded_depths > 0.0
-        elif type(flooded_depths) is np.ndarray:
-            assert flooded_depths.size == self.grid.number_of_nodes
-            flooded_nodes = flooded_depths > 0.0
+        elif isinstance(self._flooded_depths, np.ndarray):
+            assert self._flooded_depths.size == self._grid.number_of_nodes
+            flooded_nodes = self._flooded_depths > 0.0
             # need an *updateable* record of the pit depths
         else:
             # if None, handle in loop
@@ -696,7 +700,7 @@ class SedDepEroder(Component):
         steepest_link = "flow__link_to_receiver_node"
         link_length = np.empty(grid.number_of_nodes, dtype=float)
         link_length.fill(np.nan)
-        draining_nodes = np.not_equal(grid.at_node[steepest_link], BAD_INDEX_VALUE)
+        draining_nodes = np.not_equal(grid.at_node[steepest_link], self._grid.BAD_INDEX)
         core_draining_nodes = np.intersect1d(
             np.where(draining_nodes)[0], grid.core_nodes, assume_unique=True
         )
@@ -704,14 +708,14 @@ class SedDepEroder(Component):
             grid.at_node[steepest_link][core_draining_nodes]
         ]
 
-        if self.Qc == "MPM":
-            if self.Dchar_in is not None:
-                self.Dchar = self.Dchar_in
+        if self._Qc == "MPM":
+            if self._Dchar_in is not None:
+                self._Dchar = self._Dchar_in
             else:
-                assert not self.set_threshold, (
+                assert not self._set_threshold, (
                     "Something is seriously wrong with your model " + "initialization."
                 )
-                assert self.override_threshold, (
+                assert self._override_threshold, (
                     "You need to confirm to the module you intend it to "
                     + "internally calculate a shear stress threshold, "
                     + "with set_threshold_from_Dchar in the input file."
@@ -719,47 +723,47 @@ class SedDepEroder(Component):
                 # we need to adjust the thresholds for the Shields number
                 # & gs dynamically:
                 variable_thresh = (
-                    self.shields_crit
-                    * self.g
-                    * (self.sed_density - self.fluid_density)
-                    * self.Dchar
+                    self._shields_crit
+                    * self._g
+                    * (self._sed_density - self._fluid_density)
+                    * self._Dchar
                 )
-            if self.lamb_flag:
+            if self._lamb_flag:
                 variable_shields_crit = 0.15 * node_S ** 0.25
                 try:
                     variable_thresh = (
-                        variable_shields_crit * self.shields_prefactor_to_shear
+                        variable_shields_crit * self._shields_prefactor_to_shear
                     )
                 except AttributeError:
                     variable_thresh = (
                         variable_shields_crit
-                        * self.shields_prefactor_to_shear_noDchar
-                        * self.Dchar
+                        * self._shields_prefactor_to_shear_noDchar
+                        * self._Dchar
                     )
 
-            node_Q = self.k_Q * self.runoff_rate * node_A ** self._c
+            node_Q = self._k_Q * self._runoff_rate * node_A ** self._c
             shear_stress_prefactor_timesAparts = (
-                self.shear_stress_prefactor * node_Q ** self.point6onelessb
+                self._shear_stress_prefactor * node_Q ** self._point6onelessb
             )
             try:
                 transport_capacities_thresh = (
-                    self.thresh
-                    * self.Qs_thresh_prefactor
-                    * self.runoff_rate ** (0.66667 * self._b)
-                    * node_A ** self.Qs_power_onAthresh
+                    self._thresh
+                    * self._Qs_thresh_prefactor
+                    * self._runoff_rate ** (0.66667 * self._b)
+                    * node_A ** self._Qs_power_onAthresh
                 )
             except AttributeError:
                 transport_capacities_thresh = (
                     variable_thresh
-                    * self.Qs_thresh_prefactor
-                    * self.runoff_rate ** (0.66667 * self._b)
-                    * node_A ** self.Qs_power_onAthresh
+                    * self._Qs_thresh_prefactor
+                    * self._runoff_rate ** (0.66667 * self._b)
+                    * node_A ** self._Qs_power_onAthresh
                 )
 
             transport_capacity_prefactor_withA = (
-                self.Qs_prefactor
-                * self.runoff_rate ** (0.6 + self._b / 15.0)
-                * node_A ** self.Qs_power_onA
+                self._Qs_prefactor
+                * self._runoff_rate ** (0.6 + self._b / 15.0)
+                * node_A ** self._Qs_power_onA
             )
 
             internal_t = 0.0
@@ -799,13 +803,13 @@ class SedDepEroder(Component):
 
                 sed_into_node = np.zeros(grid.number_of_nodes, dtype=float)
                 dz = np.zeros(grid.number_of_nodes, dtype=float)
-                cell_areas = self.cell_areas
+                cell_areas = self._cell_areas
                 try:
                     raise NameError
                     # ^tripped out deliberately for now; doesn't appear to
                     # accelerate much
                     weave.inline(
-                        self.routing_code,
+                        self._routing_code,
                         [
                             "len_s_in",
                             "sed_into_node",
@@ -839,7 +843,7 @@ class SedDepEroder(Component):
                             try:
                                 thresh = variable_thresh
                             except NameError:  # it doesn't exist
-                                thresh = self.thresh
+                                thresh = self._thresh
                             dz_prefactor = (
                                 self._K_unit_time
                                 * dt_this_step
@@ -915,7 +919,7 @@ class SedDepEroder(Component):
                 ] / link_length[core_draining_nodes]
                 internal_t += dt_this_step  # still in seconds, remember
 
-        elif self.Qc == "power_law":
+        elif self._Qc == "power_law":
             transport_capacity_prefactor_withA = self._Kt * node_A ** self._mt
             erosion_prefactor_withA = self._K_unit_time * node_A ** self._m
             # ^doesn't include S**n*f(Qc/Qc)
@@ -945,7 +949,7 @@ class SedDepEroder(Component):
 
                 sed_into_node = np.zeros(grid.number_of_nodes, dtype=float)
                 dz = np.zeros(grid.number_of_nodes, dtype=float)
-                cell_areas = self.cell_areas
+                cell_areas = self._cell_areas
                 for i in s_in[::-1]:  # work downstream
                     cell_area = cell_areas[i]
                     if flooded_nodes is not None:
@@ -1027,11 +1031,11 @@ class SedDepEroder(Component):
                 ] / link_length[core_draining_nodes]
                 internal_t += dt_this_step  # still in seconds, remember
 
-        if self.return_ch_props:
+        if self._return_ch_props:
             # add the channel property field entries,
             # 'channel__width', 'channel__depth', and 'channel__discharge'
-            W = self.k_w * node_Q ** self._b
-            H = shear_stress / self.rho_g / node_S  # ...sneaky!
+            W = self._k_w * node_Q ** self._b
+            H = shear_stress / self._rho_g / node_S  # ...sneaky!
             grid.at_node["channel__width"][:] = W
             grid.at_node["channel__depth"][:] = H
             grid.at_node["channel__discharge"][:] = node_Q
@@ -1043,28 +1047,9 @@ class SedDepEroder(Component):
         grid.at_node["channel_sediment__volumetric_flux"][:] = sed_into_node
         grid.at_node["channel_sediment__relative_flux"][:] = rel_sed_flux
         # elevs set automatically to the name used in the function call.
-        self.iterations_in_dt = counter
+        self._iterations_in_dt = counter
 
         return grid, grid.at_node["topographic__elevation"]
-
-    def run_one_step(self, dt, flooded_depths=None, **kwds):
-        """Run the component across one timestep increment, dt.
-
-        Erosion occurs according to the sediment dependent rules specified
-        during initialization. Method is fully equivalent to the :func:`erode`
-        method.
-
-        Parameters
-        ----------
-        dt : float (years, only!)
-            Timestep for which to run the component.
-        flooded_depths : array or field name (m)
-            Depths of flooding at each node, zero where no lake. Note that the
-            component will dynamically update this array as it fills nodes
-            with sediment (...but does NOT update any other related lake
-            fields).
-        """
-        self.erode(dt=dt, flooded_depths=flooded_depths, **kwds)
 
     @property
     @make_return_array_immutable
@@ -1081,43 +1066,58 @@ class SedDepEroder(Component):
         Examples
         --------
         >>> from landlab import RasterModelGrid
+        >>> from landlab.components import FlowAccumulator, SedDepEroder
         >>> mg1 = RasterModelGrid((3,4))
+        >>> z1 = mg1.add_zeros("node", "topographic__elevation")
+        >>> fa1 = FlowAccumulator(mg1)
         >>> thresh_shields = np.arange(1, mg1.number_of_nodes+1, dtype=float)
         >>> thresh_shields /= 100.
-        >>> sde1 = SedDepEroder(mg1, threshold_shear_stress=100., Qc='MPM',
-        ...                     Dchar=None, set_threshold_from_Dchar=False,
-        ...                     set_Dchar_from_threshold=True,
-        ...                     threshold_Shields=thresh_shields)
+        >>> sde1 = SedDepEroder(
+        ...     mg1,
+        ...     threshold_shear_stress=100.,
+        ...     Qc='MPM',
+        ...     Dchar=None,
+        ...     set_threshold_from_Dchar=False,
+        ...     set_Dchar_from_threshold=True,
+        ...     threshold_Shields=thresh_shields,
+        ...     g=9.81)
         >>> sde1.characteristic_grainsize
         array([ 0.59962823,  0.29981412,  0.19987608,  0.14990706,  0.11992565,
                 0.09993804,  0.08566118,  0.07495353,  0.06662536,  0.05996282,
                 0.05451166,  0.04996902])
 
         >>> mg2 = RasterModelGrid((3,4))
-        >>> sde2 = SedDepEroder(mg2, threshold_shear_stress=100., Qc='MPM',
-        ...                     Dchar=None, set_threshold_from_Dchar=False,
-        ...                     set_Dchar_from_threshold=True,
-        ...                     threshold_Shields=None,
-        ...                     slope_sensitive_threshold=True)
-        >>> S = mg2.add_ones('node', 'topographic__steepest_slope')
-        >>> S *= 0.05  # thresh = 100 Pa @ 5pc slope
+        >>> z2 = mg2.add_zeros("node", "topographic__elevation")
+        >>> fa2 = FlowAccumulator(mg2)
+        >>> sde2 = SedDepEroder(
+        ...     mg2,
+        ...     threshold_shear_stress=100.,
+        ...     Qc='MPM',
+        ...     Dchar=None,
+        ...     set_threshold_from_Dchar=False,
+        ...     set_Dchar_from_threshold=True,
+        ...     threshold_Shields=None,
+        ...     slope_sensitive_threshold=True,
+        ...     g=9.81)
+        >>> S = mg2['node']['topographic__steepest_slope']
+        >>> S[:] = 0.05  # thresh = 100 Pa @ 5pc slope
         >>> sde2.characteristic_grainsize  # doctest: +NORMALIZE_WHITESPACE
         array([ 0.08453729,  0.08453729,  0.08453729,  0.08453729,
                 0.08453729,  0.08453729,  0.08453729,  0.08453729,
                 0.08453729,  0.08453729,  0.08453729,  0.08453729])
         """
-        # Dchar is None means self.lamb_flag, Dchar is spatially variable,
+        # Dchar is None means self._lamb_flag, Dchar is spatially variable,
         # and not calculated until the main loop
-        assert self.Qc == "MPM", (
+        assert self._Qc == "MPM", (
             "Characteristic grainsize is only " + "calculated if Qc == 'MPM'"
         )
-        if self.Dchar_in is not None:
-            return self.Dchar_in
+        if self._Dchar_in is not None:
+            return self._Dchar_in
         else:
             taustarcrit = (
-                0.15 * self.grid.at_node["topographic__steepest_slope"] ** 0.25
+                0.15 * self._grid.at_node["topographic__steepest_slope"] ** 0.25
             )
-            Dchar = self.thresh / (
-                self.g * (self.sed_density - self.fluid_density) * taustarcrit
+            Dchar = self._thresh / (
+                self._g * (self._sed_density - self._fluid_density) * taustarcrit
             )
             return Dchar

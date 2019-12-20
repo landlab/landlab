@@ -1,45 +1,42 @@
 #! /usr/bin/env python
 
-"""
-This class is designed to provide functions to allow the automated
+"""This class is designed to provide functions to allow the automated
 identification of planar facet surfaces above fault traces.
-Module is SLOW (e.g., minutes+ per full analysis of a "large" data set). It is
-only intended for model post-analysis or DEM analysis. Do not loop this class!!
-This is part of the NSF funded project investigating fault scarp degradation,
-Tucker, Hobley, McCoy.
+
+Module is SLOW (e.g., minutes+ per full analysis of a "large" data set).
+It is only intended for model post-analysis or DEM analysis. Do not loop
+this class!! This is part of the NSF funded project investigating fault
+scarp degradation, Tucker, Hobley, McCoy.
 """
-from __future__ import print_function
+
 
 import sys
 
 import numpy as np
-import six
 from pylab import figure, plot, show
 
 from landlab.plot import imshow as gridshow
 
-if six.PY3:
 
-    def cmp(a, b):
-        return (a > b) - (a < b)
+def cmp(a, b):
+    return (a > b) - (a < b)
 
 
 class find_facets(object):
-    """
-    Note that this class assumes the grid does not change during the model
+    """Note that this class assumes the grid does not change during the model
     run. Changes to data stored in the grid should (?) update automatically.
 
-    If *fault_azimuth* is supplied, it should be -pi/2 < az <= pi/2 (i.e.,
-    we don't consider fault dip, even if it's known).
+    If *fault_azimuth* is supplied, it should be -pi/2 < az <= pi/2
+    (i.e., we don't consider fault dip, even if it's known).
     """
 
     def __init__(self, grid, elev_field="topographic__elevation", fault_azimuth=None):
-        """
-        Note that this class assumes the grid does not change during the model
-        run. Changes to data stored in the grid should (?) update automatically.
+        """Note that this class assumes the grid does not change during the
+        model run. Changes to data stored in the grid should (?) update
+        automatically.
 
-        If *fault_azimuth* is supplied, it should be -pi/2 < az <= pi/2 (i.e.,
-        we don't consider fault dip, even if it's known).
+        If *fault_azimuth* is supplied, it should be -pi/2 < az <= pi/2
+        (i.e., we don't consider fault dip, even if it's known).
         """
         if not np.isclose(grid.dx, grid.dy):
             raise ValueError("row and column spacing must be the same")
@@ -49,9 +46,9 @@ class find_facets(object):
         self.az = fault_azimuth
 
     def analyse_fault_trace(self, fault_trace_node_ids):
-        """
-        This method takes the grid and an array listing the (contiguous) node
-        ids of cells that contain a single fault segment trace of interest.
+        """This method takes the grid and an array listing the (contiguous)
+        node ids of cells that contain a single fault segment trace of
+        interest.
 
         It sets and returns the azimuth of the fault trace, az,
         -pi/2 < az <= pi/2.
@@ -75,10 +72,9 @@ class find_facets(object):
         print("Calculated and stored slopes and aspects...")
 
     def define_aspect_node_subset(self, angle_tolerance=5.0):
-        """
-        This method sets and returns a list of all nodes in the landscape which
-        have an
-        aspect within 5 degrees of perpendicular to the fault trace.
+        """This method sets and returns a list of all nodes in the landscape
+        which have an aspect within 5 degrees of perpendicular to the fault
+        trace.
 
         It assumes self.az, the angle between north and the fault trace, has
         already been set, and also that self.slopes and self.aspect are also
@@ -126,8 +122,7 @@ class find_facets(object):
     def define_aspect_node_subset_local(
         self, dist_tolerance=4.0, angle_tolerance=15.0, dip_dir="E"
     ):
-        """
-        """
+        """"""
         grid = self.grid
         try:
             print("using subset")
@@ -211,15 +206,13 @@ class find_facets(object):
         return self.aspect_close_nodes
 
     def define_steep_nodes(self, threshold_in_degrees=5.0):
-        """
-        This method sets and returns a list of all nodes in the landscape which
-        are "steep" and could be part of a facet.
-        The critical hillslope angle is set by *threshold_in_degrees*, and
-        defaults to 5.
+        """This method sets and returns a list of all nodes in the landscape
+        which are "steep" and could be part of a facet. The critical hillslope
+        angle is set by *threshold_in_degrees*, and defaults to 5.
 
-        This assumes you have already called define_aspect_node_subset, in
-        which self.slope is set.
-        The returned boolean array is num_core_nodes long.
+        This assumes you have already called define_aspect_node_subset,
+        in which self.slope is set. The returned boolean array is
+        num_core_nodes long.
         """
         threshold_in_rads = threshold_in_degrees * np.pi / 180.0
         self.steep_nodes = np.greater(self.slopes, threshold_in_rads)
@@ -229,11 +222,9 @@ class find_facets(object):
         return self.steep_nodes
 
     def show_possible_nodes(self):
-        """
-        Once the subsets by aspect and slope have been set, call this function
-        to see both the whole elevation map, and the subset of nodes that
-        will be searched.
-        """
+        """Once the subsets by aspect and slope have been set, call this
+        function to see both the whole elevation map, and the subset of nodes
+        that will be searched."""
         possible_core_nodes = np.logical_and(self.steep_nodes, self.aspect_close_nodes)
         figure(1)
         gridshow.imshow_grid_at_node(self.grid, self.elevs)
@@ -246,8 +237,7 @@ class find_facets(object):
         show()
 
     def find_coherent_facet_patches(self, tolerance=3.0, threshold_num_px=12):
-        """
-        This method searches the (already determined) possible pixels for
+        """This method searches the (already determined) possible pixels for
         patches with coherent slope angles, within a *tolerance* (in degrees).
         A patch is only recorded if it consists of at least *threshold_num_px*.
 
@@ -290,9 +280,9 @@ class find_facets(object):
         return consistent_slope_patches
 
     def find_slope_lines(self, tolerance=1.0):
-        """
-        This method attempts to find slope-consistent line profiles up facets,
-        perpendicular to the fault.
+        """This method attempts to find slope-consistent line profiles up
+        facets, perpendicular to the fault.
+
         Assumes you used define_aspect_node_subset_local().
         """
         grid = self.grid
@@ -442,10 +432,8 @@ class find_facets(object):
     def fit_slopes_to_facet_lines(
         self, polynomial_degree=4, curvature_threshold=0.0004
     ):
-        """
-        Fits (linear) lines of best fit to extracted profiles, already stored as
-        class properties.
-        """
+        """Fits (linear) lines of best fit to extracted profiles, already
+        stored as class properties."""
         avg_slopes_linear = []
         avg_slopes_poly = []
         curv_of_flattest_part_list = []
@@ -453,7 +441,7 @@ class find_facets(object):
         rsqd_list = []
         big_slope_small_curv = []
         elev_at_bssc = []
-        for i in six.range(len(self.profile_x_facet_pts)):
+        for i in range(len(self.profile_x_facet_pts)):
             x = self.profile_x_facet_pts[i]
             z = self.profile_z_facet_pts[i]
             (grad, offset) = np.polyfit(x, z, 1)

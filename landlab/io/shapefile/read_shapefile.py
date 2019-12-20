@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Functions to read shapefiles and create a NetworkModelGrid.
-"""
+"""Functions to read shapefiles and create a NetworkModelGrid."""
 import shapefile as ps
 from shapefile import ShapefileException
 
@@ -43,7 +41,7 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True):
     --------
     First, we make a simple shapefile
 
-    >>> from six import BytesIO
+    >>> from io import BytesIO
     >>> import shapefile
     >>> shp = BytesIO()
     >>> shx = BytesIO()
@@ -73,7 +71,7 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True):
     array([  0.,   5.,  10.,  10.])
     >>> grid.nodes_at_link
     array([[0, 1],
-           [1, 2],
+           [2, 1],
            [1, 3]])
     >>> assert "spam" in grid.at_link
     >>> grid.at_link["spam"]

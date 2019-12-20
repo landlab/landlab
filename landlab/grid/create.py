@@ -1,17 +1,14 @@
 #! /usr/bin/env python
 """Create landlab model grids."""
-from __future__ import absolute_import
 
-from warnings import warn
-
-from ..core import load_params, model_parameter_dictionary as mpd
+from ..core import load_params
 from ..io import read_esri_ascii
 from ..io.netcdf import read_netcdf
 from ..values import constant, plane, random, sine
-from .hex import HexModelGrid, from_dict as hex_from_dict
+from .hex import HexModelGrid
 from .network import NetworkModelGrid
 from .radial import RadialModelGrid
-from .raster import RasterModelGrid, from_dict as raster_from_dict
+from .raster import RasterModelGrid
 from .voronoi import VoronoiDelaunayGrid
 
 _MODEL_GRIDS = {
@@ -46,71 +43,6 @@ class BadGridTypeError(Error):
 
     def __str__(self):
         return self._type  # TODO: not tested.
-
-
-_GRID_READERS = {"raster": raster_from_dict, "hex": hex_from_dict}
-
-
-def create_and_initialize_grid(input_source):
-    """Create and initialize a grid from a file.
-
-    Creates, initializes, and returns a new grid object using parameters
-    specified in *input_source*. *input_source* is either a
-    ModelParameterDictionary instance (or, really, just dict-like) or a
-    named input file.
-
-    Parameters
-    ----------
-    input_source : str or dict
-        Input file or ``dict`` of parameter values.
-
-    Raises
-    ------
-    KeyError
-        If missing a key from the input file.
-
-    Examples
-    --------
-    >>> from six import StringIO
-    >>> import pytest
-    >>> test_file = StringIO('''
-    ... GRID_TYPE:
-    ... raster
-    ... NUM_ROWS:
-    ... 4
-    ... NUM_COLS:
-    ... 5
-    ... GRID_SPACING:
-    ... 2.5
-    ... ''')
-    >>> from landlab import create_and_initialize_grid
-    >>> with pytest.deprecated_call():
-    ...    grid = create_and_initialize_grid(test_file)
-    >>> grid.number_of_nodes
-    20
-    """
-    msg = (
-        "create_and_initialize_grid is deprecated and will be removed "
-        "in landlab 2.0. Use create_grid instead."
-    )
-    warn(msg, DeprecationWarning)
-    if isinstance(input_source, dict):
-        param_dict = input_source  # TODO: not tested.
-    else:
-        param_dict = mpd.ModelParameterDictionary(from_file=input_source)
-
-    grid_type = param_dict["GRID_TYPE"]
-
-    grid_type.strip().lower()
-
-    # Read parameters appropriate to that type, create it, and initialize it
-    try:
-        grid_reader = _GRID_READERS[grid_type]
-    except KeyError:  # TODO: not tested.
-        raise BadGridTypeError(grid_type)  # TODO: not tested.
-
-    # Return the created and initialized grid
-    return grid_reader(param_dict)
 
 
 def grid_from_dict(grid_type, params):

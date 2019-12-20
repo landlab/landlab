@@ -1,5 +1,4 @@
-"""
-synthetic.py provides functions to add synthetic values to a model grid.
+"""synthetic.py provides functions to add synthetic values to a model grid.
 
 Values can be added to any valid grid element (e.g. link or node). If no field
 exists, a field of float zeros will be initialized.
@@ -17,8 +16,7 @@ nodes, this could be acomplished as follows:
 Examples
 --------
 >>> import numpy as np
->>> from landlab import RasterModelGrid
->>> from landlab import CORE_NODE
+>>> from landlab import NodeStatus, RasterModelGrid
 >>> from landlab.values import random, plane
 >>> np.random.seed(42)
 
@@ -51,9 +49,9 @@ array([ 0.,  1.,  2.,  3.,  2.,  1.,  0.,
 
 Next add uniformly distributed noise.
 
->>> noise = random(mg, 'topographic__elevation',
-...                where=CORE_NODE,
-...                distribution='uniform')
+>>> noise = random(
+...     mg, "topographic__elevation", where=NodeStatus.CORE, distribution='uniform'
+... )
 >>> np.round(mg.at_node['topographic__elevation'], decimals=3)
 array([ 0.   ,  1.   ,  2.   ,  3.   ,  2.   ,  1.   ,  0.   ,
         1.   ,  2.375,  3.951,  4.732,  3.599,  2.156,  1.   ,
@@ -77,32 +75,25 @@ Additional keyword arguments are required as needed by each function.
 from collections import defaultdict
 
 import numpy as np
-import six
 
-from landlab.grid.linkstatus import ACTIVE_LINK, FIXED_LINK, INACTIVE_LINK
+from landlab.grid.linkstatus import LinkStatus
 from landlab.grid.network import NetworkModelGrid
-from landlab.grid.nodestatus import (
-    CLOSED_BOUNDARY,
-    CORE_NODE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
-    LOOPED_BOUNDARY,
-)
+from landlab.grid.nodestatus import NodeStatus
 
 _STATUS = defaultdict(
     dict,
     {
         "link": {
-            "ACTIVE_LINK": ACTIVE_LINK,
-            "FIXED_LINK": FIXED_LINK,
-            "INACTIVE_LINK": INACTIVE_LINK,
+            "ACTIVE_LINK": LinkStatus.ACTIVE,
+            "FIXED_LINK": LinkStatus.FIXED,
+            "INACTIVE_LINK": LinkStatus.INACTIVE,
         },
         "node": {
-            "CLOSED_BOUNDARY": CLOSED_BOUNDARY,
-            "CORE_NODE": CORE_NODE,
-            "FIXED_GRADIENT_BOUNDARY": FIXED_GRADIENT_BOUNDARY,
-            "FIXED_VALUE_BOUNDARY": FIXED_VALUE_BOUNDARY,
-            "LOOPED_BOUNDARY": LOOPED_BOUNDARY,
+            "CLOSED_BOUNDARY": NodeStatus.CLOSED,
+            "CORE_NODE": NodeStatus.CORE,
+            "FIXED_GRADIENT_BOUNDARY": NodeStatus.FIXED_GRADIENT,
+            "FIXED_VALUE_BOUNDARY": NodeStatus.FIXED_VALUE,
+            "LOOPED_BOUNDARY": NodeStatus.LOOPED,
         },
     },
 )
@@ -133,7 +124,7 @@ def _where_to_add_values(grid, at, where):
     ndarray
         IDs that indicate where values are to be placed.
     """
-    if isinstance(where, (six.string_types, int)):
+    if isinstance(where, (str, int)):
         where = [where]
 
     if isinstance(where, (list, tuple)):
@@ -184,7 +175,7 @@ def random(grid, name, at="node", where=None, distribution="uniform", **kwargs):
     where : optional
         The keyword ``where`` indicates where synthetic values
         should be placed. It is either (1) a single value or list
-        of values indicating a grid-element status (e.g. CORE_NODE),
+        of values indicating a grid-element status (e.g. `NodeStatus.CORE`),
         or (2) a (number-of-grid-element,) sized boolean array.
     distribution : str, optional
         Name of the distribution provided by the np.random
@@ -205,13 +196,15 @@ def random(grid, name, at="node", where=None, distribution="uniform", **kwargs):
     >>> from landlab.values import random
     >>> np.random.seed(42)
     >>> mg = RasterModelGrid((4, 4))
-    >>> values = random(mg,
-    ...                 'soil__depth',
-    ...                 'node',
-    ...                 where='CORE_NODE',
-    ...                 distribution='uniform',
-    ...                 high=3.,
-    ...                 low=2.)
+    >>> values = random(
+    ...     mg,
+    ...     "soil__depth",
+    ...     "node",
+    ...     where="CORE_NODE",
+    ...     distribution="uniform",
+    ...     high=3.0,
+    ...     low=2.0,
+    ... )
     >>> mg.at_node['soil__depth']
     array([ 0.        ,  0.        ,  0.        ,  0.        ,
             0.        ,  2.37454012,  2.95071431,  0.        ,
@@ -247,7 +240,7 @@ def plane(
     where : optional
         The keyword ``where`` indicates where synthetic values
         should be placed. It is either (1) a single value or list
-        of values indicating a grid-element status (e.g. CORE_NODE),
+        of values indicating a grid-element status (e.g. `NodeStatus.CORE`),
         or (2) a (number-of-grid-element,) sized boolean array.
     point : tuple, optional
         A tuple defining a point the plane goes through in the
@@ -277,7 +270,6 @@ def plane(
             1.,  2.,  3.,  4.,
             2.,  3.,  4.,  5.,
             3.,  4.,  5.,  6.])
-
     """
     x, y = _get_x_and_y(grid, at)
 
@@ -290,7 +282,7 @@ def plane(
 
 
 def _plane_function(x, y, point, normal):
-    """calculate the plane function"""
+    """calculate the plane function."""
     if np.isclose(normal[2], 0):
         raise ValueError("")
 
@@ -312,17 +304,13 @@ def _get_x_and_y(grid, at):
             )
             raise ValueError(msg)
     if at == "node":
-        x = grid.x_of_node
-        y = grid.y_of_node
+        x, y = grid.xy_of_node[:, 0], grid.xy_of_node[:, 1]
     elif at == "link":
-        x = grid.x_of_link
-        y = grid.y_of_link
+        x, y = grid.xy_of_link[:, 0], grid.xy_of_link[:, 1]
     elif at == "cell":
-        x = grid.x_of_cell
-        y = grid.y_of_cell
+        x, y = grid.xy_of_cell[:, 0], grid.xy_of_cell[:, 1]
     elif at == "face":
-        x = grid.x_of_face
-        y = grid.y_of_face
+        x, y = grid.xy_of_face[:, 0], grid.xy_of_face[:, 1]
     else:
         msg = (
             "landlab.values.synthetic: ",
@@ -347,7 +335,7 @@ def constant(grid, name, at="node", where=None, value=0.0, dtype=None):
     where : optional
         The keyword ``where`` indicates where synthetic values
         should be placed. It is either (1) a single value or list
-        of values indicating a grid-element status (e.g. CORE_NODE),
+        of values indicating a grid-element status (e.g. `NodeStatus.CORE`),
         or (2) a (number-of-grid-element,) sized boolean array.
     value : float, optional
         Constant value to add to the grid. Default is 0.
@@ -366,13 +354,12 @@ def constant(grid, name, at="node", where=None, value=0.0, dtype=None):
     >>> from landlab.values import constant
     >>> mg = RasterModelGrid((4, 4))
     >>> values = constant(
-    ...     mg, 'some_flux', 'link', where='ACTIVE_LINK', value=10.0
+    ...     mg, "some_flux", "link", where="ACTIVE_LINK", value=10.0
     ... )
     >>> mg.at_link['some_flux']
     array([  0.,   0.,   0.,   0.,  10.,  10.,   0.,  10.,  10.,  10.,   0.,
             10.,  10.,   0.,  10.,  10.,  10.,   0.,  10.,  10.,   0.,   0.,
              0.,   0.])
-
     """
     dtype = dtype or type(value)
     where = _where_to_add_values(grid, at, where)
@@ -418,7 +405,7 @@ def sine(
     where : optional
         The keyword ``where`` indicates where synthetic values
         should be placed. It is either (1) a single value or list
-        of values indicating a grid-element status (e.g. CORE_NODE),
+        of values indicating a grid-element status (e.g. `NodeStatus.CORE`),
         or (2) a (number-of-grid-element,) sized boolean array.
     amplitude : p
     wavelength :
@@ -435,7 +422,6 @@ def sine(
     --------
     >>> from numpy.testing import assert_array_almost_equal
     >>> from landlab import RasterModelGrid
-    >>> from landlab import ACTIVE_LINK
     >>> from landlab.values import sine
     >>> mg = RasterModelGrid((5, 5))
     >>> values = sine(mg,

@@ -2,7 +2,6 @@
 """Store collections of data fields."""
 
 import numpy as np
-import six
 
 from .scalar_data_fields import ScalarDataFields
 
@@ -88,12 +87,12 @@ class ModelDataFields(object):
     fields are in different groups (node and cell), they can have the same
     name.
 
-    >>> fields.add_ones('node', 'topographic__elevation')
+    >>> fields.add_ones("topographic__elevation", at="node")
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
     >>> fields.at_node['topographic__elevation']
     array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 
-    >>> fields.add_ones('cell', 'topographic__elevation')
+    >>> fields.add_ones("topographic__elevation", at="cell")
     array([ 1.,  1.])
     >>> fields.at_cell['topographic__elevation']
     array([ 1.,  1.])
@@ -135,12 +134,11 @@ class ModelDataFields(object):
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 12)
 
-        >>> fields.add_field('z', [1.] * 12)
-        ...     # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> fields.add_field("z", [1.] * 12) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         ValueError: missing group name
         >>> fields.set_default_group('node')
-        >>> _ = fields.add_field('z', [1.] * 12)
+        >>> _ = fields.add_field("z", [1.] * 12)
         >>> 'z' in fields.at_node
         True
         """
@@ -198,7 +196,7 @@ class ModelDataFields(object):
         >>> from landlab.field import ModelDataFields
         >>> fields = ModelDataFields()
         >>> fields.new_field_location('node', 12)
-        >>> _ = fields.add_ones('node', 'topographic__elevation')
+        >>> _ = fields.add_ones("topographic__elevation", at="node")
         >>> fields.has_field('node', 'topographic__elevation')
         True
         >>> fields.has_field('cell', 'topographic__elevation')
@@ -233,7 +231,7 @@ class ModelDataFields(object):
         >>> fields.new_field_location('node', 4)
         >>> list(fields.keys('node'))
         []
-        >>> _ = fields.add_empty('node', 'topographic__elevation')
+        >>> _ = fields.add_empty("topographic__elevation", at="node")
         >>> list(fields.keys('node'))
         ['topographic__elevation']
 
@@ -361,8 +359,8 @@ class ModelDataFields(object):
         to the *node* group. The *field_values* method returns a reference
         to the field's data.
 
-        >>> _ = fields.add_ones('node', 'topographic__elevation')
-        >>> fields.field_values('node', 'topographic__elevation')
+        >>> _ = fields.add_ones("topographic__elevation", at="node")
+        >>> fields.field_values("node", "topographic__elevation")
         array([ 1.,  1.,  1.,  1.])
 
         Raise FieldError if *field* does not exist in *group*.
@@ -425,8 +423,8 @@ class ModelDataFields(object):
         to the *node* group. The *field_values* method returns a reference
         to the field's data.
 
-        >>> _ = fields.add_ones('node', 'topographic__elevation')
-        >>> fields.field_values('node', 'topographic__elevation')
+        >>> _ = fields.add_ones("topographic__elevation", at="node")
+        >>> fields.field_values("node", "topographic__elevation")
         array([ 1.,  1.,  1.,  1.])
 
         Alternatively, if the second argument is an array, its size is
@@ -460,7 +458,7 @@ class ModelDataFields(object):
 
         LLCATS: FIELDIO
         """
-        if isinstance(field, six.string_types):
+        if isinstance(field, str):
             vals = self.field_values(group, field)
         else:
             vals = np.asarray(field)
@@ -635,7 +633,7 @@ class ModelDataFields(object):
         return self[group].zeros(**kwds)
 
     def add_empty(self, *args, **kwds):
-        """add_empty(group, name, units='-', noclobber=True)
+        """add_empty(group, name, units='-', clobber=False)
 
         Create and add an uninitialized array of values to the field.
 
@@ -654,7 +652,7 @@ class ModelDataFields(object):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
-        noclobber : boolean, optional
+        clobber : boolean, optional
             Raise an exception if adding to an already existing field.
 
         Returns
@@ -687,12 +685,12 @@ class ModelDataFields(object):
             )
 
         numpy_kwds = kwds.copy()
-        numpy_kwds.pop("units", 0.0)
-        numpy_kwds.pop("noclobber", 0.0)
+        numpy_kwds.pop("units", None)
+        numpy_kwds.pop("clobber", None)
         return self.add_field(group, name, self.empty(group, **numpy_kwds), **kwds)
 
     def add_ones(self, *args, **kwds):
-        """add_ones(group, name, units='-', noclobber=True)
+        """add_ones(group, name, units='-', clobber=False)
 
         Create and add an array of values, initialized to 1, to the field.
 
@@ -711,7 +709,7 @@ class ModelDataFields(object):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
-        noclobber : boolean, optional
+        clobber : boolean, optional
             Raise an exception if adding to an already existing field.
 
         Returns
@@ -734,7 +732,7 @@ class ModelDataFields(object):
         >>> from landlab.field import ModelDataFields
         >>> field = ModelDataFields()
         >>> field.new_field_location('node', 4)
-        >>> field.add_ones('node', 'topographic__elevation')
+        >>> field.add_ones("topographic__elevation", at="node")
         array([ 1.,  1.,  1.,  1.])
         >>> list(field.keys('node'))
         ['topographic__elevation']
@@ -760,12 +758,12 @@ class ModelDataFields(object):
             )
 
         numpy_kwds = kwds.copy()
-        numpy_kwds.pop("units", 0.0)
-        numpy_kwds.pop("noclobber", 0.0)
+        numpy_kwds.pop("units", None)
+        numpy_kwds.pop("clobber", None)
         return self.add_field(group, name, self.ones(group, **numpy_kwds), **kwds)
 
     def add_zeros(self, *args, **kwds):
-        """add_zeros(group, name, units='-', noclobber=True)
+        """add_zeros(group, name, units='-', clobber=False)
 
         Create and add an array of values, initialized to 0, to the field.
 
@@ -782,7 +780,7 @@ class ModelDataFields(object):
             Name of the new field to add.
         units : str, optional
             Optionally specify the units of the field.
-        noclobber : boolean, optional
+        clobber : boolean, optional
             Raise an exception if adding to an already existing field.
 
         Returns
@@ -815,12 +813,12 @@ class ModelDataFields(object):
             )
 
         numpy_kwds = kwds.copy()
-        numpy_kwds.pop("units", 0.0)
-        numpy_kwds.pop("noclobber", 0.0)
+        numpy_kwds.pop("units", None)
+        numpy_kwds.pop("clobber", None)
         return self.add_field(group, name, self.zeros(group, **numpy_kwds), **kwds)
 
     def add_field(self, *args, **kwds):
-        """add_field(group, name, value_array, units='-', copy=False, noclobber=True)
+        """add_field(group, name, value_array, units='-', copy=False, clobber=False)
 
         Add an array of values to the field.
 
@@ -844,7 +842,7 @@ class ModelDataFields(object):
         copy : boolean, optional
             If True, add a *copy* of the array to the field. Otherwise save add
             a reference to the array.
-        noclobber : boolean, optional
+        clobber : boolean, optional
             Raise an exception if adding to an already existing field.
 
         Returns
@@ -866,7 +864,7 @@ class ModelDataFields(object):
         >>> field = ModelDataFields()
         >>> field.new_field_location('node', 4)
         >>> values = np.ones(4, dtype=int)
-        >>> field.add_field('node', 'topographic__elevation', values)
+        >>> field.add_field("topographic__elevation", values, at="node")
         array([1, 1, 1, 1])
 
         A new field is added to the collection of fields. The saved value
@@ -877,16 +875,18 @@ class ModelDataFields(object):
 
         If you want to save a copy of the array, use the *copy* keyword. In
         addition, adding values to an existing field will remove the reference
-        to the previously saved array. The *noclobber* keyword changes this
+        to the previously saved array. The *clobber=False* keyword changes this
         behavior to raise an exception in such a case.
 
-        >>> field.add_field('node', 'topographic__elevation', values,
-        ...     copy=True, noclobber=False)
+        >>> field.add_field(
+        ...     "topographic__elevation", values, at="node", copy=True, clobber=True
+        ... )
         array([1, 1, 1, 1])
         >>> field.at_node['topographic__elevation'] is values
         False
-        >>> field.add_field('node', 'topographic__elevation', values,
-        ...     noclobber=True) # doctest: +IGNORE_EXCEPTION_DETAIL
+        >>> field.add_field(
+        ...     "topographic__elevation", values, at="node", clobber=False
+        ... ) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         FieldError: topographic__elevation
 

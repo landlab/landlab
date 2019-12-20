@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import numpy as np
 
 from landlab.layers.eventlayers import (
@@ -186,10 +184,6 @@ class MaterialLayers(EventLayers):
         >>> np.all(layers['size'] == [['sand', 'sand', 'sand'],
         ...                           ['sand', 'sand', 'sand']])
         True
-
-        array([['sand', 'sand', 'sand'],
-               ['sand', 'sand', 'sand']],
-              dtype='<U4')
 
         Attributes for each layer will exist even if part the the layer is
         associated with erosion.

@@ -2,12 +2,11 @@
 """Functions to calculate flow distance."""
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE, FieldError, RasterModelGrid
+from landlab import FieldError, RasterModelGrid
 
 
-def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
-    """
-    Calculate the along flow distance from node to outlet.
+def calculate_flow__distance(grid, add_to_grid=False, clobber=False):
+    """Calculate the along flow distance from node to outlet.
 
     This utility calculates the along flow distance based on the results of
     running flow accumulation on the grid. It will use the connectivity
@@ -19,9 +18,9 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     add_to_grid : boolean, optional
         Flag to indicate if the stream length field should be added to the
         grid. Default is False. The field name used is ``flow__distance``.
-    noclobber : boolean, optional
+    clobber : boolean, optional
         Flag to indicate if adding the field to the grid should not clobber an
-        existing field with the same name. Default is True.
+        existing field with the same name. Default is False.
 
     Returns
     -------
@@ -40,14 +39,14 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     ...                  0., 31., 20., 0.,
     ...                  0., 32., 30., 0.,
     ...                  0.,  0.,  0., 0.])
-    >>> _ = mg.add_field('node','topographic__elevation', elev)
+    >>> _ = mg.add_field("topographic__elevation", elev, at="node")
     >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
     ...                                        left_is_closed=True,
     ...                                        right_is_closed=True,
     ...                                        top_is_closed=True)
     >>> fr = FlowAccumulator(mg, flow_director = 'D8')
     >>> fr.run_one_step()
-    >>> flow__distance = calculate_flow__distance(mg, add_to_grid=True, noclobber=False)
+    >>> flow__distance = calculate_flow__distance(mg, add_to_grid=True, clobber=True)
     >>> mg.at_node['flow__distance']
     array([ 0.        ,  0.        ,  0.        ,  0.        ,
             0.        ,  1.        ,  0.        ,  0.        ,
@@ -67,15 +66,16 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     ...                  0., 31., 20., 0.,
     ...                  0., 32., 30., 0.,
     ...                  0.,  0.,  0., 0.])
-    >>> _ = mg.add_field('node','topographic__elevation', elev)
-    >>> mg.set_closed_boundaries_at_grid_edges(bottom_is_closed=True,
-    ...                                        left_is_closed=True,
-    ...                                        right_is_closed=True,
-    ...                                        top_is_closed=True)
+    >>> _ = mg.add_field("topographic__elevation", elev, at="node")
+    >>> mg.set_closed_boundaries_at_grid_edges(
+    ...     bottom_is_closed=True,
+    ...     left_is_closed=True,
+    ...     right_is_closed=True,
+    ...     top_is_closed=True,
+    ... )
     >>> fr = FlowAccumulator(mg, flow_director = 'D4')
     >>> fr.run_one_step()
-    >>> flow__distance = calculate_flow__distance(mg, add_to_grid=True,
-    ...                                          noclobber=False)
+    >>> flow__distance = calculate_flow__distance(mg, add_to_grid=True, clobber=True)
     >>> mg.at_node['flow__distance']
     array([ 0.,  0.,  0.,  0.,
             0.,  1.,  0.,  0.,
@@ -87,21 +87,21 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
     will use a Hexagonal Model Grid, a special type of Voroni Grid that has
     regularly spaced hexagonal cells.
 
-    >>> from landlab import HexModelGrid, FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY
+    >>> from landlab import HexModelGrid
     >>> from landlab.components import FlowAccumulator
     >>> from landlab.utils.flow__distance import calculate_flow__distance
     >>> dx = 1
-    >>> hmg = HexModelGrid(5,3, dx)
-    >>> _ = hmg.add_field('topographic__elevation',
-    ...                   hmg.node_x + np.round(hmg.node_y),
-    ...                   at = 'node')
-    >>> hmg.status_at_node[hmg.boundary_nodes] = CLOSED_BOUNDARY
-    >>> hmg.status_at_node[0] = FIXED_VALUE_BOUNDARY
+    >>> hmg = HexModelGrid((5, 3), spacing=dx)
+    >>> _ = hmg.add_field(
+    ...     "topographic__elevation",
+    ...     hmg.node_x + np.round(hmg.node_y),
+    ...     at="node",
+    ... )
+    >>> hmg.status_at_node[hmg.boundary_nodes] = hmg.BC_NODE_IS_CLOSED
+    >>> hmg.status_at_node[0] = hmg.BC_NODE_IS_FIXED_VALUE
     >>> fr = FlowAccumulator(hmg, flow_director = 'D4')
     >>> fr.run_one_step()
-    >>> flow__distance = calculate_flow__distance(hmg,
-    ...                                           add_to_grid=True,
-    ...                                           noclobber=False)
+    >>> flow__distance = calculate_flow__distance(hmg, add_to_grid=True, clobber=True)
     >>> hmg.at_node['flow__distance']
     array([ 0.,  0.,  0.,
             0.,  1.,  2.,  0.,
@@ -181,7 +181,7 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
 
             else:
                 # non-existant links are coded with -1
-                useable_recievers = np.where(reciever != BAD_INDEX_VALUE)[0]
+                useable_receivers = np.where(reciever != grid.BAD_INDEX)[0]
 
                 # we will have the stream flow to the downstream node with the
                 # shortest distance to the outlet.
@@ -190,12 +190,12 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
                 # get the flow distances of the downstream nodes
                 potential_downstream_stream_lengths = flow__distance[
                     flow__receiver_node[node]
-                ][useable_recievers]
+                ][useable_receivers]
 
                 # get the stream segment lengths from this node to its downstream
                 # neighbor
                 potential_stream_increment_lengths = flow_link_lengths[node][
-                    useable_recievers
+                    useable_receivers
                 ]
 
                 # get the lowest downstream stream length.
@@ -217,6 +217,6 @@ def calculate_flow__distance(grid, add_to_grid=False, noclobber=True):
 
     # store on the grid
     if add_to_grid:
-        grid.add_field("node", "flow__distance", flow__distance, noclobber=noclobber)
+        grid.add_field("flow__distance", flow__distance, at="node", clobber=clobber)
 
     return flow__distance

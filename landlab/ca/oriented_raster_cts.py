@@ -1,5 +1,5 @@
 #! /usr/env/python
-""" Simple raster Landlab cellular automaton.
+"""Simple raster Landlab cellular automaton.
 
 Simple raster Landlab cellular automaton, with
 cell-pair transitions that depend on orientation (vertical or horizontal)
@@ -11,7 +11,7 @@ stochastic, pair-based CA.
 
 Created GT Sep 2014
 """
-from __future__ import print_function
+
 
 import numpy as np
 
@@ -69,8 +69,7 @@ class OrientedRasterCTS(CellLabCTSModel):
         prop_reset_value=None,
         seed=0,
     ):
-        """
-        RasterCTS constructor: sets number of orientations to 2 and calls
+        """RasterCTS constructor: sets number of orientations to 2 and calls
         base-class constructor.
 
         Parameters
@@ -112,9 +111,8 @@ class OrientedRasterCTS(CellLabCTSModel):
         )
 
     def setup_array_of_orientation_codes(self):
-        """
-        Creates and configures an array that contain the orientation code for
-        each active link (and corresponding cell pair).
+        """Creates and configures an array that contain the orientation code
+        for each active link (and corresponding cell pair).
 
         Notes
         -----

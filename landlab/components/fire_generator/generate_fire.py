@@ -22,11 +22,12 @@ Written by Jordan M. Adams, 2013. Updated April 2016.
 Examples
 --------
 >>> from landlab.components.fire_generator import FireGenerator
+>>> from landlab import RasterModelGrid
 
 Create an instance of the FireGenerator component
 
-
->>> fg = FireGenerator(mean_fire_recurrence = 15.0, shape_parameter = 4.5)
+>>> mg = RasterModelGrid((10, 10))
+>>> fg = FireGenerator(mg, mean_fire_recurrence = 15.0, shape_parameter = 4.5)
 
 This creates an instance of the component that has a mean_fire_recurrence, or
 average interval between fires of 15 years. We gave it a shape parameter of
@@ -42,7 +43,6 @@ To get a time to next fire:
 
 >>> fg.generate_fire_recurrence()  # doctest: +SKIP
 10.68
-
 """
 
 from random import weibullvariate
@@ -75,23 +75,16 @@ class FireGenerator(Component):
 
     _name = "FireGenerator"
 
-    _input_var_names = tuple()
-
-    _output_var_names = tuple()
-
-    _var_units = dict()
-
-    _var_mapping = dict()
-
-    _var_doc = dict()
+    _info = {}
 
     def __init__(
-        self, mean_fire_recurrence=0.0, shape_parameter=0.0, scale_parameter=None
+        self, grid, mean_fire_recurrence=1.0, shape_parameter=3.5, scale_parameter=None
     ):
         """Generate a random fire event in time.
 
         Parameters
         ----------
+        grid: landlab model grid
         mean_fire_recurrence : float
             Average time between fires for a given location
         shape_parameter : float
@@ -105,16 +98,21 @@ class FireGenerator(Component):
             it can be found using mean fire recurrence value and the
             get_scale_parameter().
         """
+        super(FireGenerator, self).__init__(grid)
+        self._mean_fire_recurrence = mean_fire_recurrence
 
-        self.mean_fire_recurrence = mean_fire_recurrence
-
-        self.shape_parameter = shape_parameter
+        self._shape_parameter = shape_parameter
 
         if scale_parameter is None:
             self.get_scale_parameter()
 
         else:
-            self.scale_parameter = scale_parameter
+            self._scale_parameter = scale_parameter
+
+    @property
+    def scale_parameter(self):
+        """Scale parameter for the random distribution."""
+        return self._scale_parameter
 
     def get_scale_parameter(self):
         """Get the scale parameter.
@@ -126,9 +124,9 @@ class FireGenerator(Component):
         sets the scale parameter.
         """
 
-        shape_in_gamma_func = float(1 + (1 / self.shape_parameter))
+        shape_in_gamma_func = float(1 + (1 / self._shape_parameter))
         gamma_func = special.gamma(shape_in_gamma_func)
-        self.scale_parameter = self.mean_fire_recurrence / gamma_func
+        self._scale_parameter = self._mean_fire_recurrence / gamma_func
 
     def generate_fire_recurrence(self):
         """Get time to next fire.
@@ -144,9 +142,8 @@ class FireGenerator(Component):
         -------
         float
             Updated value for the time to next fire.
-
         """
-        self.time_to_next_fire = round(
-            weibullvariate(self.scale_parameter, self.shape_parameter), 2
+        self._time_to_next_fire = round(
+            weibullvariate(self._scale_parameter, self._shape_parameter), 2
         )
-        return self.time_to_next_fire
+        return self._time_to_next_fire

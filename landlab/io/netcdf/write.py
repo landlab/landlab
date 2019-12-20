@@ -5,7 +5,6 @@ Write netcdf
 ++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.io.netcdf.write.write_netcdf
 """
@@ -15,7 +14,6 @@ import os
 import warnings
 
 import numpy as np
-import six
 from scipy.io import netcdf as nc
 
 from landlab.io.netcdf._constants import (
@@ -263,8 +261,8 @@ def _set_netcdf_structured_dimensions(root, shape):
 def _set_netcdf_variables(root, fields, **kwds):
     """Set the field variables.
 
-    First set the variables that define the grid and then the variables at
-    the grid nodes and cells.
+    First set the variables that define the grid and then the variables
+    at the grid nodes and cells.
     """
     names = kwds.pop("names", None)
 
@@ -275,8 +273,8 @@ def _set_netcdf_variables(root, fields, **kwds):
 def _set_netcdf_raster_variables(root, fields, **kwds):
     """Set the field variables for rasters.
 
-    First set the variables that define the grid and then the variables at
-    the grid nodes and cells.
+    First set the variables that define the grid and then the variables
+    at the grid nodes and cells.
     """
     names = kwds.pop("names", None)
 
@@ -287,8 +285,8 @@ def _set_netcdf_raster_variables(root, fields, **kwds):
 def _set_netcdf_cell_variables(root, fields, **kwds):
     """Set the cell field variables.
 
-    First set the variables that define the grid and then the variables at
-    the grid nodes and cells.
+    First set the variables that define the grid and then the variables
+    at the grid nodes and cells.
     """
     names = kwds.pop("names", None)
 
@@ -323,11 +321,11 @@ def _add_cell_spatial_variables(root, grid, **kwds):
 
         axis = grid.axis_name.index(name[0])
 
-        var.units = grid.axis_units[axis]
+        var.units = str(grid.axis_units[axis])
         try:
-            var.long_name = long_name[name]
+            var.long_name = str(long_name[name])
         except KeyError:
-            var.long_name = grid.axis_name[axis]
+            var.long_name = str(grid.axis_name[axis])
 
 
 def _add_spatial_variables(root, grid, **kwds):
@@ -362,11 +360,11 @@ def _add_spatial_variables(root, grid, **kwds):
         coords.shape = var.shape
         var[:] = coords
 
-        var.units = grid.axis_units[axis]
+        var.units = grid.axis_units[axis].encode("utf-8")
         try:
-            var.long_name = long_name[name]
+            var.long_name = long_name[name].encode("utf-8")
         except KeyError:
-            var.long_name = grid.axis_name[axis]
+            var.long_name = grid.axis_name[axis].encode("utf-8")
 
 
 def _add_raster_spatial_variables(root, grid, **kwds):
@@ -408,15 +406,15 @@ def _add_raster_spatial_variables(root, grid, **kwds):
 
         var[:] = coords
 
-        var.units = grid.axis_units[axis]
+        var.units = str(grid.axis_units[axis])
         try:
-            var.long_name = long_name[name]
+            var.long_name = str(long_name[name])
         except KeyError:
-            var.long_name = grid.axis_name[axis]
+            var.long_name = str(grid.axis_name[axis])
 
 
 def _add_variables_at_points(root, fields, names=None):
-    if isinstance(names, six.string_types):
+    if isinstance(names, str):
         names = [names]
     names = names or fields["node"].keys()
 
@@ -460,7 +458,7 @@ def _add_variables_at_points(root, fields, names=None):
 
 
 def _add_variables_at_cells(root, fields, names=None):
-    if isinstance(names, six.string_types):
+    if isinstance(names, str):
         names = [names]
     names = names or fields["cell"].keys()
 
@@ -496,8 +494,8 @@ def _add_variables_at_cells(root, fields, names=None):
         else:
             var[n_times] = cell_fields[var_name].flat[0]
 
-        var.units = cell_fields.units[var_name] or "?"
-        var.long_name = var_name
+        var.units = str(cell_fields.units[var_name] or "?")
+        var.long_name = str(var_name)
 
 
 def _add_time_variable(root, time, **kwds):
@@ -558,7 +556,7 @@ def _guess_at_location(fields, names):
     cell_fields = set(fields["cell"].keys())
 
     if names is None or len(names) == 0:
-        if len(fields["node"]) > 0:
+        if len(fields["node"].keys()) > 0:
             at = "node"
         else:
             at = "cell"
@@ -609,8 +607,8 @@ def write_netcdf(
     some data fields to it.
 
     >>> rmg = RasterModelGrid((4, 3))
-    >>> _ = rmg.add_field('node', 'topographic__elevation', np.arange(12.))
-    >>> _ = rmg.add_field('node', 'uplift_rate', 2. * np.arange(12.))
+    >>> rmg.at_node["topographic__elevation"] = np.arange(12.0)
+    >>> rmg.at_node["uplift_rate"] = 2.0 * np.arange(12.0)
 
     Create a temporary directory to write the netcdf file into.
 
@@ -636,16 +634,16 @@ def write_netcdf(
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
 
-    >>> _ = rmg.add_field('cell', 'air__temperature', np.arange(2.))
-    >>> write_netcdf('test-cell.nc', rmg, format='NETCDF3_64BIT',
-    ...     names='air__temperature', at='cell')
+    >>> rmg.at_cell["air__temperature"] = np.arange(2.0)
+    >>> write_netcdf("test-cell.nc", rmg, format="NETCDF3_64BIT",
+    ...     names="air__temperature", at="cell")
     """
     if format not in _VALID_NETCDF_FORMATS:
         raise ValueError("format not understood")
     if at not in (None, "cell", "node"):
         raise ValueError("value location not understood")
 
-    if isinstance(names, six.string_types):
+    if isinstance(names, str):
         names = (names,)
 
     at = at or _guess_at_location(fields, names) or "node"
@@ -735,8 +733,8 @@ def write_raster_netcdf(
     some data fields to it.
 
     >>> rmg = RasterModelGrid((4, 3))
-    >>> _ = rmg.add_field('node', 'topographic__elevation', np.arange(12.))
-    >>> _ = rmg.add_field('node', 'uplift_rate', 2. * np.arange(12.))
+    >>> rmg.at_node["topographic__elevation"] = np.arange(12.0)
+    >>> rmg.at_node["uplift_rate"] = 2.0 * np.arange(12.0)
 
     Create a temporary directory to write the netcdf file into.
 
@@ -747,8 +745,12 @@ def write_raster_netcdf(
     Write the grid to a netcdf4 file but only include the *uplift_rate*
     data in the file.
 
-    >>> write_raster_netcdf('test.nc', rmg, format='NETCDF3_64BIT',
-    ...     names='uplift_rate')
+    >>> write_raster_netcdf(
+    ...     "test.nc",
+    ...     rmg,
+    ...     format="NETCDF3_64BIT",
+    ...     names="uplift_rate",
+    ... )
 
     Read the file back in and check its contents.
 
@@ -761,7 +763,6 @@ def write_raster_netcdf(
     >>> fp.variables['uplift_rate'][:].flatten()
     array([  0.,   2.,   4.,   6.,   8.,  10.,  12.,  14.,  16.,  18.,  20.,
             22.])
-
     """
     from landlab import RasterModelGrid
 
@@ -778,7 +779,7 @@ def write_raster_netcdf(
     if at not in (None, "cell", "node"):
         raise ValueError("value location not understood")
 
-    if isinstance(names, six.string_types):
+    if isinstance(names, str):
         names = (names,)
 
     at = "node"
