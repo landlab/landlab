@@ -1,5 +1,5 @@
 #! /usr/env/python
-"""Simple hexagonal Landlab cellular automaton
+"""Simple hexagonal Landlab cellular automaton.
 
 This file defines the HexCTS class, which is a sub-class of
 CellLabCTSModel that implements a simple, non-oriented, hex-grid
@@ -15,8 +15,7 @@ from .celllab_cts import CellLabCTSModel
 
 
 class HexCTS(CellLabCTSModel):
-    """
-    Class HexCTS implements a non-oriented hex-grid CellLab-CTS model.
+    """Class HexCTS implements a non-oriented hex-grid CellLab-CTS model.
 
     HexCTS constructor: sets number of orientations to 1 and calls
     base-class constructor.
@@ -44,7 +43,7 @@ class HexCTS(CellLabCTSModel):
     >>> from landlab.ca.celllab_cts import Transition
     >>> from landlab.ca.hex_cts import HexCTS
 
-    >>> mg = HexModelGrid(4, 3, 1.0)
+    >>> mg = HexModelGrid((4, 3), spacing=1.0)
     >>> nsd = {0 : 'yes', 1 : 'no'}
     >>> xnlist = []
     >>> xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'frogging'))
@@ -62,9 +61,8 @@ class HexCTS(CellLabCTSModel):
         prop_reset_value=None,
         seed=0,
     ):
-        """
-        HexCTS constructor: sets number of orientations to 1 and calls
-        base-class constructor.
+        """HexCTS constructor: sets number of orientations to 1 and calls base-
+        class constructor.
 
         Parameters
         ----------

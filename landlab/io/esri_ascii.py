@@ -5,7 +5,6 @@ ESRI ASCII functions
 ++++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.io.esri_ascii.read_asc_header
     ~landlab.io.esri_ascii.read_esri_ascii
@@ -13,10 +12,10 @@ ESRI ASCII functions
 """
 
 import os
+import pathlib
 import re
 
 import numpy as np
-import six
 
 from landlab.utils import add_halo
 
@@ -290,7 +289,7 @@ def read_asc_header(asc_file):
 
     Examples
     --------
-    >>> from six import StringIO
+    >>> from io import StringIO
     >>> from landlab.io.esri_ascii import read_asc_header
     >>> contents = StringIO('''
     ...     nrows 100
@@ -438,7 +437,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
 
     # if the asc_file is provided as a string, open it and pass the pointer to
     # _read_asc_header, and _read_asc_data
-    if isinstance(asc_file, six.string_types):
+    if isinstance(asc_file, (str, pathlib.Path)):
         with open(asc_file, "r") as f:
             header = read_asc_header(f)
             data = _read_asc_data(f)
@@ -501,7 +500,7 @@ def read_esri_ascii(asc_file, grid=None, reshape=False, name=None, halo=0):
             shape, xy_spacing=xy_spacing, xy_of_lower_left=xy_of_lower_left
         )
     if name:
-        grid.add_field("node", name, data)
+        grid.add_field(name, data, at="node")
 
     return (grid, data)
 
@@ -533,13 +532,13 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     >>> from landlab.io.esri_ascii import write_esri_ascii
 
     >>> grid = RasterModelGrid((4, 5), xy_spacing=(2., 2.))
-    >>> _ = grid.add_field('node', 'air__temperature', np.arange(20.))
+    >>> _ = grid.add_field("air__temperature", np.arange(20.), at="node")
     >>> with cdtemp() as _:
     ...     files = write_esri_ascii('test.asc', grid)
     >>> files
     ['test.asc']
 
-    >>> _ = grid.add_field('node', 'land_surface__elevation', np.arange(20.))
+    >>> _ = grid.add_field("land_surface__elevation", np.arange(20.), at="node")
     >>> with cdtemp() as _:
     ...     files = write_esri_ascii('test.asc', grid)
     >>> files.sort()
@@ -549,7 +548,7 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     if os.path.exists(path) and not clobber:
         raise ValueError("file exists")
 
-    if isinstance(names, six.string_types):
+    if isinstance(names, (str, pathlib.Path)):
         names = [names]
 
     names = names or fields.at_node.keys()

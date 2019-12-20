@@ -1,7 +1,6 @@
 import numpy as np
 
-from landlab.grid.base import BAD_INDEX_VALUE
-
+from ..base import BAD_INDEX_VALUE
 from . import nodes
 
 

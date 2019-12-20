@@ -37,7 +37,7 @@ http://landlab.github.io
 
 This open-source manuscript is a gateway for entering the Landlab world:
 
-http://www.earth-surf-dynam.net/5/21/2017/
+https://www.earth-surf-dynam.net/5/21/2017/
 
 Two main installation options exist for Landlab. Most people will likely want to 
 `install the conda package <https://github.com/landlab/landlab/wiki/Installing-Landlab-with-Anaconda>`_. Individuals interested in modifying the Landlab source code should follow the `developer installation instructions <https://github.com/landlab/landlab/wiki/Installing-Landlab-from-source-code-(%22developer-install%22)>`_. 
@@ -45,4 +45,4 @@ Two main installation options exist for Landlab. Most people will likely want to
 The most current source code is always available from our git
 repository:
 
-http://github.com/landlab/landlab
+https://github.com/landlab/landlab

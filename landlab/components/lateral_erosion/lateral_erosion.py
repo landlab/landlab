@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Grid-based simulation of lateral erosion by channels in a drainage network.
+"""Grid-based simulation of lateral erosion by channels in a drainage network.
+
 ALangston
-
-
 """
 
 import numpy as np
@@ -20,18 +18,19 @@ wid_exp = 0.35  # exponent for calculating channel width
 
 
 class LateralEroder(Component):
-    """
-    Laterally erode neighbor node through fluvial erosion.
+    """Laterally erode neighbor node through fluvial erosion.
 
     Landlab component that finds a neighbor node to laterally erode and
     calculates lateral erosion.
     See the publication:
+
     Langston, A.L., Tucker, G.T.: Developing and exploring a theory for the
     lateral erosion of bedrock channels for use in landscape evolution models.
-    Earth Surface Dynamics, 6, 1-27, https://doi.org/10.5194/esurf-6-1-2018
+    Earth Surface Dynamics, 6, 1-27,
+    `https://doi.org/10.5194/esurf-6-1-2018 <https://www.earth-surf-dynam.net/6/1/2018/>`_
 
-    Parameteters
-    ------------
+    Parameters
+    ----------
     grid : ModelGrid
         A Landlab square cell raster grid object
     latero_mech : string, optional (defaults to UC)
@@ -182,49 +181,71 @@ class LateralEroder(Component):
 
     _name = "LateralEroder"
 
-    _input_var_names = set(
-        (
-            "topographic__elevation",
-            "drainage_area",
-            "flow__receiver_node",
-            "flow__upstream_node_order",
-            "topographic__steepest_slope",
-        )
-    )
-
-    _output_var_names = set(
-        (
-            "topographic__elevation",
-            "lateral_erosion__depth_increment",
-            "volume__lateral_erosion",
-            "sediment__flux",
-        )
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "drainage_area": "m2",
-        "flow__receiver_node": "-",
-        "flow__upstream_node_order": "-",
-        "topographic__steepest_slope": "-",
-        "lateral_erosion__depth_increment": "m",
-        "volume__lateral_erosion": "m3",
-        "sediment__flux": "m3/y",
-    }
-
-    _var_doc = {
-        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
-        "node)",
-        "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
-        "node IDs",
-        "topographic__steepest_slope": "Topographic slope at each node",
-        "drainage_area": "Upstream accumulated surface area contributing to the node's "
-        "discharge",
-        "soil__depth": "Depth of sediment above bedrock",
-        "topographic__elevation": "Land surface topographic elevation",
-        "lateral_erosion__depth_increment": "Change in elevation at each node from lateral erosion during time step",
-        "volume__lateral_erosion": "Array tracking volume eroded at each node from lateral erosion",
-        "sediment__flux": "Volume per unit time of sediment entering each node",
+    _info = {
+        "drainage_area": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m**2",
+            "mapping": "node",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
+        },
+        "flow__receiver_node": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__upstream_node_order": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
+        },
+        "lateral_erosion__depth_increment": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Change in elevation at each node from lateral erosion during time step",
+        },
+        "sediment__flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/y",
+            "mapping": "node",
+            "doc": "Sediment flux (volume per unit time of sediment entering each node)",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__steepest_slope": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "The steepest *downhill* slope",
+        },
+        "volume__lateral_erosion": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m3",
+            "mapping": "node",
+            "doc": "Array tracking volume eroded at each node from lateral erosion",
+        },
     }
 
     def __init__(
@@ -232,7 +253,7 @@ class LateralEroder(Component):
         grid,
         latero_mech="UC",
         alph=0.8,
-        Kv=None,
+        Kv=0.001,
         Kl_ratio=1.0,
         solver="basic",
         inlet_on=False,
@@ -326,7 +347,7 @@ class LateralEroder(Component):
         self._Klr = float(Kl_ratio)  # default ratio of Kv/Kl is 1. Can be overwritten
 
         self._dzdt = grid.add_zeros(
-            "dzdt", at="node", noclobber=False
+            "dzdt", at="node", clobber=True
         )  # elevation change rate (M/Y)
         # optional inputs
         self._inlet_on = inlet_on
@@ -337,9 +358,7 @@ class LateralEroder(Component):
             runoffinlet = np.full(grid.number_of_nodes, grid.dx ** 2, dtype=float)
             # Change the runoff at the inlet node to node area + inlet node
             runoffinlet[inlet_node] += inlet_area
-            grid.add_field(
-                "water__unit_flux_in", runoffinlet, at="node", noclobber=False
-            )
+            grid.add_field("water__unit_flux_in", runoffinlet, at="node", clobber=True)
             # set qsinlet at inlet node. This doesn't have to be provided, defaults
             # to 0.
             self._qsinlet = qsinlet
@@ -350,14 +369,12 @@ class LateralEroder(Component):
         self._Kv = np.ones(self._grid.number_of_nodes, dtype=float) * Kv
 
     def run_one_step_basic(self, dt=1.0):
-        """Calculate vertical and lateral erosion for
-        a time period 'dt'.
+        """Calculate vertical and lateral erosion for a time period 'dt'.
 
         Parameters
         ----------
         dt : float
             Model timestep [T]
-
         """
         Klr = self._Klr
         grid = self._grid
@@ -379,8 +396,8 @@ class LateralEroder(Component):
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
         # clear qsin for next loop
-        qs_in = grid.add_zeros("node", "sediment__flux", noclobber=False)
-        qs = grid.add_zeros("node", "qs", noclobber=False)
+        qs_in = grid.add_zeros("sediment__flux", at="node", clobber=True)
+        qs = grid.add_zeros("qs", at="node", clobber=True)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)
@@ -482,9 +499,8 @@ class LateralEroder(Component):
         return grid, self._dzlat
 
     def run_one_step_adaptive(self, dt=1.0):
-        """Run time step with adaptive time stepping to prevent
-        slope flattening.
-        """
+        """Run time step with adaptive time stepping to prevent slope
+        flattening."""
         Klr = self._Klr
         grid = self._grid
         UC = self._UC
@@ -501,8 +517,8 @@ class LateralEroder(Component):
         Kl = Kv * Klr
         z = grid.at_node["topographic__elevation"]
         # clear qsin for next loop
-        qs_in = grid.add_zeros("node", "sediment__flux", noclobber=False)
-        qs = grid.add_zeros("node", "qs", noclobber=False)
+        qs_in = grid.add_zeros("sediment__flux", at="node", clobber=True)
+        qs = grid.add_zeros("qs", at="node", clobber=True)
         lat_nodes = np.zeros(grid.number_of_nodes, dtype=int)
         dzver = np.zeros(grid.number_of_nodes)
         vol_lat_dt = np.zeros(grid.number_of_nodes)

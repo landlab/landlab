@@ -1,9 +1,8 @@
 import itertools
 
 import numpy as np
-from six.moves import range
 
-from ..base import CLOSED_BOUNDARY, CORE_NODE
+from ..nodestatus import NodeStatus
 
 
 def number_of_nodes(shape):
@@ -170,8 +169,7 @@ def right_iter(shape):
 
 
 def left_right_iter(shape, *args):
-    """left_right_iter(shape, stop)
-    left_right_iter(shape, start, stop[, step])
+    """left_right_iter(shape, stop) left_right_iter(shape, start, stop[, step])
 
     Iterator for left and right perimeter nodes.
 
@@ -269,12 +267,11 @@ def perimeter(shape):
     >>> from landlab.grid.structured_quad.nodes import perimeter
     >>> perimeter((3, 4))
     array([ 0,  1,  2,  3,  4,  7,  8,  9, 10, 11])
-
     """
     return np.fromiter(perimeter_iter(shape), dtype=np.int)
 
 
-def status_with_perimeter_as_boundary(shape, node_status=CLOSED_BOUNDARY):
+def status_with_perimeter_as_boundary(shape, node_status=NodeStatus.CLOSED):
     """Node status for a grid whose boundary is along its perimeter.
 
     Parameters
@@ -302,7 +299,7 @@ def status_with_perimeter_as_boundary(shape, node_status=CLOSED_BOUNDARY):
            [-1, -1, -1, -1]])
     """
     status = np.empty(shape, dtype=int)
-    status.fill(CORE_NODE)
+    status.fill(NodeStatus.CORE)
     status.flat[perimeter(shape)] = node_status
 
     return status

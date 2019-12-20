@@ -18,12 +18,9 @@ Created on Sat Nov 26 08:36:49 2016
 
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE
-
+from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import smooth_stream_power_eroder_solver
 from .fastscape_stream_power import FastscapeEroder
-
-UNDEFINED_INDEX = BAD_INDEX_VALUE
 
 
 class StreamPowerSmoothThresholdEroder(FastscapeEroder):
@@ -42,8 +39,17 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         HONORED BY StreamPowerSmoothThresholdEroder (TODO)
     threshold_sp : float (TODO: array, or field name)
         The threshold stream power.
-    rainfall_intensity : float; optional
-        NOT PRESENTLY HONORED (TODO)
+    discharge_field : float, field name, or array, optional
+        Discharge [L^2/T]. The default is to use the grid field
+        'drainage_area'. To use custom spatially/temporally varying
+        rainfall, use 'water__unit_flux_in' to specify water input to the
+        FlowAccumulator and use "surface_water__discharge" for this
+        keyword argument.
+    erode_flooded_nodes : bool (optional)
+        Whether erosion occurs in flooded nodes identified by a
+        depression/lake mapper (e.g., DepressionFinderAndRouter). When set
+        to false, the field *flood_status_code* must be present on the grid
+        (this is created by the DepressionFinderAndRouter). Default True.
 
     Examples
     --------
@@ -69,11 +75,56 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
     >>> import numpy as np
     >>> q = np.zeros(rg.number_of_nodes) + 0.25
     >>> q[6] = 100.0
-    >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0, use_Q=q)
+    >>> sp = StreamPowerSmoothThresholdEroder(rg, K_sp=1.0, discharge_field=q)
     >>> sp.run_one_step(dt=1.0)
     >>> np.round(z[5:7], 3)
     array([ 1.754,  0.164])
     """
+
+    _name = "StreamPowerSmoothThresholdEroder"
+
+    _info = {
+        "drainage_area": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m**2",
+            "mapping": "node",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
+        },
+        "flow__link_to_receiver_node": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__upstream_node_order": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+    }
 
     def __init__(
         self,
@@ -82,9 +133,8 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         m_sp=0.5,
         n_sp=1.0,
         threshold_sp=1.0,
-        rainfall_intensity=1.0,
-        use_Q=None,
-        **kwargs
+        discharge_field="drainage_area",
+        erode_flooded_nodes=True,
     ):
         """Initialize StreamPowerSmoothThresholdEroder."""
         if "flow__receiver_node" in grid.at_node:
@@ -98,6 +148,15 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
                 )
                 raise NotImplementedError(msg)
 
+        if not erode_flooded_nodes:
+            if "flood_status_code" not in self._grid.at_node:
+                msg = (
+                    "In order to not erode flooded nodes another component "
+                    "must create the field *flood_status_code*. You want to "
+                    "run a lake mapper/depression finder."
+                )
+                raise ValueError(msg)
+
         if n_sp != 1.0:
             raise ValueError(
                 ("StreamPowerSmoothThresholdEroder currently only " "supports n_sp = 1")
@@ -110,36 +169,57 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
             m_sp=m_sp,
             n_sp=n_sp,
             threshold_sp=threshold_sp,
-            rainfall_intensity=rainfall_intensity,
-            **kwargs
+            discharge_field=discharge_field,
         )
 
-        # Handle "use_Q" option (ideally should be done by base class, but
-        # FastscapeEroder, unlike StreamPowerEroder, lacks this option)
-        if use_Q is not None:
-            if type(use_Q) is str:  # if str, assume it's a field name
-                self.area_or_discharge = self._grid.at_node[use_Q]
-            elif type(use_Q) is np.ndarray:  # if array, use it
-                self.area_or_discharge = use_Q
-            else:
-                print("Warning: use_Q must be field name or array")
-                self.area_or_discharge = self._grid.at_node["drainage_area"]
-        else:
-            self.area_or_discharge = self._grid.at_node["drainage_area"]
-
         # Arrays with parameters for use in implicit solver
-        self.gamma = grid.empty(at="node")
-        self.delta = grid.empty(at="node")
+        self._gamma = grid.empty(at="node")
+        self._delta = grid.empty(at="node")
 
-    def run_one_step(self, dt, flooded_nodes=None, runoff_rate=None, **kwds):
+    @property
+    def alpha(self):
+        """Erosion term divided by link length.
+
+        Alpha is given as::
+
+            alpha = K A^m dt / L
+
+        where K is the erodibility, A is the drainage area, m is the
+        drainage area exponent, dt is the timestep, and L is the link length.
+        """
+        return self._alpha
+
+    @property
+    def gamma(self):
+        """Erosion threshold times timestep."""
+        return self._gamma
+
+    @property
+    def thresholds(self):
+        """Erosion thresholds."""
+        return self._thresholds
+
+    @property
+    def delta(self):
+        """Erosion term divided by link length and erosion threshold.
+
+        delta is given as::
+
+            delta = K A^m dt / (L * omega_c)
+
+        where K is the erodibility, A is the drainage area, m is the
+        drainage area exponent, dt is the timestep, L is the link length, and
+        omega_c is the erosion threshold.
+        """
+        return self._delta
+
+    def run_one_step(self, dt, runoff_rate=None):
         """Run one forward iteration of duration dt.
 
         Parameters
         ----------
         dt : float
             Time step size
-        flooded_nodes : ndarray of int (optional)
-            Indices of nodes in lakes/depressions
         runoff_rate : (not used yet)
             (to be added later)
 
@@ -163,15 +243,12 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         >>> sp.delta
         array([ 0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.])
         """
-        if self._grid.at_node["flow__receiver_node"].size != self._grid.size("node"):
-            msg = (
-                "A route-to-multiple flow director has been "
-                "run on this grid. The landlab development team has not "
-                "verified that StreamPowerSmoothThresholdEroder is compatible "
-                "with route-to-multiple methods. Please open a GitHub Issue "
-                "to start this process."
-            )
-            raise NotImplementedError(msg)
+        if not self._erode_flooded_nodes:
+            flood_status = self._grid.at_node["flood_status_code"]
+            flooded_nodes = np.nonzero(flood_status == _FLOODED)[0]
+        else:
+            flooded_nodes = []
+
         # Set up needed arrays
         #
         # Get shorthand for elevation field ("z"), and for up-to-downstream
@@ -184,63 +261,59 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
         # Get an array of flow-link length for each node that has a defined
         # receiver (i.e., that drains to another node).
         defined_flow_receivers = np.not_equal(
-            self._grid["node"]["flow__link_to_receiver_node"], UNDEFINED_INDEX
+            self._grid["node"]["flow__link_to_receiver_node"], self._grid.BAD_INDEX
         )
         defined_flow_receivers[flow_receivers == node_id] = False
+
         if flooded_nodes is not None:
             defined_flow_receivers[flooded_nodes] = False
         flow_link_lengths = self._grid.length_of_d8[
             self._grid.at_node["flow__link_to_receiver_node"][defined_flow_receivers]
         ]
 
-        # (Later on, add functionality for a runoff rate, or discharge, or
-        # variable K)
-
-        # Handle possibility of spatially varying K
-        if type(self.K) is np.ndarray:
-            K = self.K[defined_flow_receivers]
-        else:
-            K = self.K
-
-        # Handle possibility of spatially varying threshold
-        if isinstance(self.thresholds, np.ndarray):
-            thresh = self.thresholds[defined_flow_receivers]
-        else:
-            thresh = self.thresholds
-
         # Set up alpha, beta, delta arrays
         #
         #   First, compute drainage area or discharge raised to the power m.
-        np.power(self.area_or_discharge, self.m, out=self.A_to_the_m)
+        np.power(self._A, self._m, out=self._A_to_the_m)
 
         #   Alpha
-        self.alpha[~defined_flow_receivers] = 0.0
-        self.alpha[defined_flow_receivers] = (
-            K * dt * self.A_to_the_m[defined_flow_receivers] / flow_link_lengths
+        self._alpha[~defined_flow_receivers] = 0.0
+        self._alpha[defined_flow_receivers] = (
+            self._K[defined_flow_receivers]
+            * dt
+            * self._A_to_the_m[defined_flow_receivers]
+            / flow_link_lengths
         )
 
         #   Gamma
-        self.gamma[~defined_flow_receivers] = 0.0
-        self.gamma[defined_flow_receivers] = dt * thresh
+        self._gamma[~defined_flow_receivers] = 0.0
 
         #   Delta
-        self.delta[~defined_flow_receivers] = 0.0
-        if isinstance(self.thresholds, np.ndarray):
-            self.delta[defined_flow_receivers] = (
-                K * self.A_to_the_m[defined_flow_receivers]
-            ) / (thresh * flow_link_lengths)
+        self._delta[~defined_flow_receivers] = 0.0
 
-            self.delta[defined_flow_receivers][thresh == 0.0] = 0.0
+        if isinstance(self._thresholds, np.ndarray):
+            self._gamma[defined_flow_receivers] = (
+                dt * self._thresholds[defined_flow_receivers]
+            )
+
+            self._delta[defined_flow_receivers] = (
+                self._K[defined_flow_receivers]
+                * self._A_to_the_m[defined_flow_receivers]
+            ) / (self._thresholds[defined_flow_receivers] * flow_link_lengths)
+
+            self._delta[defined_flow_receivers][self._thresholds == 0.0] = 0.0
         else:
-            if thresh == 0:
-                self.delta[defined_flow_receivers] = 0.0
+            self._gamma[defined_flow_receivers] = dt * self._thresholds
+            if self._thresholds == 0:
+                self._delta[defined_flow_receivers] = 0.0
             else:
-                self.delta[defined_flow_receivers] = (
-                    K * self.A_to_the_m[defined_flow_receivers]
-                ) / (thresh * flow_link_lengths)
+                self._delta[defined_flow_receivers] = (
+                    self._K[defined_flow_receivers]
+                    * self._A_to_the_m[defined_flow_receivers]
+                ) / (self._thresholds * flow_link_lengths)
 
         # Iterate over nodes from downstream to upstream, using scipy's
         # 'newton' function to find new elevation at each node in turn.
         smooth_stream_power_eroder_solver(
-            upstream_order_IDs, flow_receivers, z, self.alpha, self.gamma, self.delta
+            upstream_order_IDs, flow_receivers, z, self._alpha, self._gamma, self._delta
         )

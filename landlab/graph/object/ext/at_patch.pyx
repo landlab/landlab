@@ -18,7 +18,7 @@ def get_rightmost_edge_at_patch(
     cdef int link
     cdef int n
     cdef int max_n
-    cdef float max_x
+    cdef double max_x
 
     for patch in range(n_patches):
         link = links_at_patch[patch, 0]

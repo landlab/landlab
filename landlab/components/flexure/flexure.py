@@ -12,6 +12,7 @@ Create a grid on which we will run the flexure calculations.
 >>> from landlab import RasterModelGrid
 >>> from landlab.components.flexure import Flexure
 >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
+>>> lith_press = grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
 
 Check the fields that are used as input to the flexure component.
 
@@ -60,7 +61,6 @@ import numpy as np
 
 from landlab import Component
 
-from ...utils.decorators import use_file_name_or_kwds
 from .funcs import get_flexure_parameter
 
 
@@ -73,9 +73,13 @@ class Flexure(Component):
 
     Examples
     --------
+
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.flexure import Flexure
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(1.e4, 1.e4))
+    >>> lith_press = grid.add_zeros(
+    ...     "lithosphere__overlying_pressure_increment", at="node"
+    ... )
 
     >>> flex = Flexure(grid)
     >>> flex.name
@@ -128,27 +132,25 @@ class Flexure(Component):
         publisher={Pergamon}
         }"""
 
-    _input_var_names = ("lithosphere__overlying_pressure_increment",)
-
-    _output_var_names = ("lithosphere_surface__elevation_increment",)
-
-    _var_units = {
-        "lithosphere__overlying_pressure_increment": "Pa",
-        "lithosphere_surface__elevation_increment": "m",
+    _info = {
+        "lithosphere__overlying_pressure_increment": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "Pa",
+            "mapping": "node",
+            "doc": "Applied pressure to the lithosphere over a time step",
+        },
+        "lithosphere_surface__elevation_increment": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "The change in elevation of the top of the lithosphere (the land surface) in one timestep",
+        },
     }
 
-    _var_mapping = {
-        "lithosphere__overlying_pressure_increment": "node",
-        "lithosphere_surface__elevation_increment": "node",
-    }
-
-    _var_doc = {
-        "lithosphere__overlying_pressure_increment": "Applied pressure to the lithosphere over a time step",
-        "lithosphere_surface__elevation_increment": "The change in elevation of the top of the lithosphere (the land "
-        "surface) in one timestep",
-    }
-
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -157,7 +159,7 @@ class Flexure(Component):
         method="airy",
         rho_mantle=3300.0,
         gravity=9.80665,
-        **kwds
+        n_procs=1,
     ):
         """Initialize the flexure component.
 
@@ -175,30 +177,25 @@ class Flexure(Component):
             Density of the mantle (kg / m^3).
         gravity : float, optional
             Acceleration due to gravity (m / s^2).
+        n_procs : int, optional
+            Number of processors to use for calculations.
         """
         if method not in ("airy", "flexure"):
             raise ValueError("{method}: method not understood".format(method=method))
 
-        self._grid = grid
+        super(Flexure, self).__init__(grid)
 
         self._youngs = youngs
         self._method = method
         self._rho_mantle = rho_mantle
         self._gravity = gravity
         self.eet = eet
+        self._n_procs = n_procs
 
-        super(Flexure, self).__init__(grid, **kwds)
-
-        for name in self._input_var_names:
-            if name not in self.grid.at_node:
-                self.grid.add_zeros("node", name, units=self._var_units[name])
-
-        for name in self._output_var_names:
-            if name not in self.grid.at_node:
-                self.grid.add_zeros("node", name, units=self._var_units[name])
+        self.initialize_output_fields()
 
         self._r = self._create_kei_func_grid(
-            self._grid.shape, (self.grid.dy, self.grid.dx), self.alpha
+            self._grid.shape, (self._grid.dy, self._grid.dx), self.alpha
         )
 
     @property
@@ -212,7 +209,7 @@ class Flexure(Component):
             raise ValueError("Effective elastic thickness must be positive.")
         self._eet = new_val
         self._r = self._create_kei_func_grid(
-            self._grid.shape, (self.grid.dy, self.grid.dx), self.alpha
+            self._grid.shape, (self._grid.dy, self._grid.dx), self.alpha
         )
 
     @property
@@ -257,16 +254,10 @@ class Flexure(Component):
 
         return kei(np.sqrt(dx ** 2 + dy ** 2) / alpha)
 
-    def update(self, n_procs=1):
-        """Update fields with current loading conditions.
-
-        Parameters
-        ----------
-        n_procs : int, optional
-            Number of processors to use for calculations.
-        """
-        load = self.grid.at_node["lithosphere__overlying_pressure_increment"]
-        deflection = self.grid.at_node["lithosphere_surface__elevation_increment"]
+    def update(self):
+        """Update fields with current loading conditions."""
+        load = self._grid.at_node["lithosphere__overlying_pressure_increment"]
+        deflection = self._grid.at_node["lithosphere_surface__elevation_increment"]
 
         new_load = load.copy()
 
@@ -275,9 +266,9 @@ class Flexure(Component):
         if self.method == "airy":
             deflection[:] = new_load / self.gamma_mantle
         else:
-            self.subside_loads(new_load, out=deflection, n_procs=n_procs)
+            self.subside_loads(new_load, out=deflection)
 
-    def subside_loads(self, loads, out=None, n_procs=1):
+    def subside_loads(self, loads, out=None):
         """Subside surface due to multiple loads.
 
         Parameters
@@ -286,8 +277,6 @@ class Flexure(Component):
             Loads applied to each grid node.
         out : ndarray of float, optional
             Buffer to place resulting deflection values.
-        n_procs : int, optional
-            Number of processors to use for calculations.
 
         Returns
         -------
@@ -295,19 +284,19 @@ class Flexure(Component):
             Deflections caused by the loading.
         """
         if out is None:
-            out = np.zeros(self.grid.shape, dtype=np.float)
-        dz = out.reshape(self.grid.shape)
-        load = loads.reshape(self.grid.shape)
+            out = np.zeros(self._grid.shape, dtype=np.float)
+        dz = out.reshape(self._grid.shape)
+        load = loads.reshape(self._grid.shape)
 
         from .cfuncs import subside_grid_in_parallel
 
         subside_grid_in_parallel(
             dz,
-            load * self.grid.dx * self.grid.dy,
+            load * self._grid.dx * self._grid.dy,
             self._r,
             self.alpha,
             self.gamma_mantle,
-            n_procs,
+            self._n_procs,
         )
 
         return out
