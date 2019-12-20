@@ -23,6 +23,9 @@ repository:
 
 https://github.com/landlab/landlab
 
+We compile ongoing development :ref:`here <ongoing_development>` and good first
+issues :ref:`here <desired_contributions>`.
+
 .. toctree::
    :maxdepth: 2
 
