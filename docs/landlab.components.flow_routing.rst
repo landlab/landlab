@@ -1,11 +1,3 @@
-FlowRouter: Calculate flow direction and accumulation from topography
----------------------------------------------------------------------
-
-.. automodule:: landlab.components.flow_routing.route_flow_dn
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 DepressionFinderAndRouter: Handle depressions in terrain by calculating extent and drainage of "lakes"
 ------------------------------------------------------------------------------------------------------
 

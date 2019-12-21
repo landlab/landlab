@@ -4,15 +4,13 @@ Utility functions for loading components for The Landlab.
 """
 
 import os
+
 from landlab.framework.interfaces import BmiBase
 
-
-_COMPONENT_PATH = [
-    os.path.join(os.path.dirname(__file__), '..', 'components'),
-]
+_COMPONENT_PATH = [os.path.join(os.path.dirname(__file__), "..", "components")]
 
 try:
-    paths = os.environ['LANDLAB_PATH'].split(os.pathsep)
+    paths = os.environ["LANDLAB_PATH"].split(os.pathsep)
 except KeyError:
     pass
 else:
@@ -27,9 +25,11 @@ def iscomponent(value, cls):
     Returns ``True`` if *value* is a component, otherwise ``False``.
     """
     try:
-        return (cls in value.__implements__ or
-                cls.__name__ in value.__implements__ or
-                isinstance(value, cls))
+        return (
+            cls in value.__implements__
+            or cls.__name__ in value.__implements__
+            or isinstance(value, cls)
+        )
     except AttributeError:
         return False
 
@@ -49,8 +49,8 @@ def load_components_from_dir(path, cls):
     cwd = os.getcwd()
 
     os.chdir(path)
-    for file_name in os.listdir('.'):
-        if os.path.isfile(file_name) and file_name.endswith('.py'):
+    for file_name in os.listdir("."):
+        if os.path.isfile(file_name) and file_name.endswith(".py"):
             (mod_name, _) = os.path.splitext(file_name)
             mod = imp.load_module(mod_name, *imp.find_module(mod_name))
             for (name, value) in mod.__dict__.items():

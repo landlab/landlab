@@ -1,9 +1,12 @@
 import re
 
-from pygments.lexer import RegexLexer
-from pygments.token import Text, Comment, String, Generic
-from sphinx import addnodes
 from docutils import nodes
+from jinja2 import TemplateNotFound
+from pygments.lexer import RegexLexer
+from pygments.token import Comment, Generic, String, Text
+from sphinx import addnodes
+# this is hack is needed to use our layout.html on ReadTheDocs
+from sphinx.jinja2glue import BuiltinTemplateLoader
 
 
 class LandlabLexer(RegexLexer):
@@ -57,9 +60,6 @@ def setup(app):
     app.add_role('ftype', role_ftype)
 
 
-# this is hack is needed to use our layout.html on ReadTheDocs
-from sphinx.jinja2glue import BuiltinTemplateLoader
-from jinja2 import TemplateNotFound
 
 
 class MyTemplateLoader(BuiltinTemplateLoader):

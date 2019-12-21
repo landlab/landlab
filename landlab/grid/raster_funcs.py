@@ -1,9 +1,15 @@
 import numpy as np
-import six
 from six.moves import range
 
 from ..core.utils import make_optional_arg_into_id_array
-from .structured_quad import links as squad_links
+
+
+def _swap(a, b):
+    return (b, a)
+
+
+def _iround(x):
+    return int(round(x))
 
 
 def neighbor_active_link_at_cell(grid, inds, *args):
@@ -62,7 +68,7 @@ def neighbor_node_at_cell(grid, inds, *args):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.raster_funcs import neighbor_node_at_cell
-    >>> grid = RasterModelGrid(4, 5, 1.0)
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=1.0)
     >>> neighbor_node_at_cell(grid, 0, 0)
     array([1])
 
@@ -82,185 +88,13 @@ def neighbor_node_at_cell(grid, inds, *args):
     """
     cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
     node_ids = grid.node_at_cell[cell_ids]
-    neighbors = grid.active_neighbors_at_node[node_ids]
+    neighbors = grid.active_adjacent_nodes_at_node[node_ids]
 
     if not isinstance(inds, np.ndarray):
         inds = np.array(inds)
 
     # return neighbors[range(len(cell_ids)), 3 - inds]
-    return (
-        np.take(np.take(neighbors, range(len(cell_ids)), axis=0),
-                3 - inds, axis=1))
-
-
-def corner_node_at_cell(grid, inds, *args):
-    """node_id_of_cell_corner(grid, corner_ids [, cell_ids])
-
-    Return an array of the node ids for diagonal neighbors of *cell_id* cells.
-    *corner_ids* is an index into the corners of a cell as measured
-    clockwise starting from the southeast.
-
-    If *cell_ids* is not given, return neighbors for all cells in the grid.
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        Input grid.
-    corner_ids : array_like
-        IDs of the corner nodes.
-    cell_ids : array_like, optional
-        IDs of cell about which to get corners
-
-    Examples
-    --------
-    >>> from landlab import RasterModelGrid
-    >>> from landlab.grid.raster_funcs import corner_node_at_cell
-    >>> grid = RasterModelGrid(4, 5, 1.0)
-    >>> corner_node_at_cell(grid, 0, 0)
-    array([2])
-
-    Get the lower-right and the the upper-left corners for all the cells.
-
-    >>> corner_node_at_cell(grid, 0)
-    array([2, 3, 4, 7, 8, 9])
-    >>> corner_node_at_cell(grid, 2)
-    array([10, 11, 12, 15, 16, 17])
-
-    As an alternative to the above, use fancy-indexing to get both sets of
-    corners with one call.
-
-    >>> corner_node_at_cell(grid, np.array([0, 2]), [1, 4])
-    array([[ 3, 11],
-           [ 8, 16]])
-    """
-    cell_ids = make_optional_arg_into_id_array(grid.number_of_cells, *args)
-    node_ids = grid.node_at_cell[cell_ids]
-    diagonals = grid._get_diagonal_list(node_ids)
-
-    if not isinstance(inds, np.ndarray):
-        inds = np.array(inds)
-
-    return (
-        np.take(np.take(diagonals, range(len(cell_ids)), axis=0),
-                3 - inds, axis=1))
-    # return diagonals[range(len(cell_ids)), 3 - inds]
-
-
-def calculate_flux_divergence_at_nodes(grid, active_link_flux, out=None):
-    """Net flux into or out of nodes.
-
-    Same as calculate_flux_divergence_at_core_cells, but works with and
-    returns a list of net unit fluxes that corresponds to all nodes, rather
-    than just core nodes.
-
-    Parameters
-    ----------
-    grid : RasterModelGrid
-        Input grid.
-    active_link_flux : array_like
-        Flux values at links.
-    out : ndarray, optional
-        Alternative output array in which to place the result.  Must
-        be of the same shape and buffer length as the expected output.
-
-    See Also
-    --------
-    calculate_flux_divergence_at_active_cells
-
-    Notes
-    -----
-    Note that we DO compute net unit fluxes at boundary nodes (even though
-    these don't have active cells associated with them, and often don't have
-    cells of any kind, because they are on the perimeter). It's up to the
-    user to decide what to do with these boundary values.
-
-    Examples
-    --------
-    Calculate the gradient of values at a grid's nodes.
-
-    >>> from landlab import RasterModelGrid
-    >>> rmg = RasterModelGrid((4, 5), spacing=1.0)
-    >>> u = np.array([0., 1., 2., 3., 0.,
-    ...               1., 2., 3., 2., 3.,
-    ...               0., 1., 2., 1., 2.,
-    ...               0., 0., 2., 2., 0.])
-    >>> grad = rmg.calc_grad_at_link(u)[rmg.active_links]
-    >>> grad # doctest: +NORMALIZE_WHITESPACE
-    array([ 1.,  1., -1.,
-            1.,  1., -1.,  1.,
-           -1., -1., -1.,
-            1.,  1., -1.,  1.,
-           -1.,  0.,  1.])
-
-    Calculate the divergence of the gradients at each node.
-
-    >>> flux = - grad    # downhill flux proportional to gradient
-    >>> rmg.calculate_flux_divergence_at_nodes(flux)
-    ...     # doctest: +NORMALIZE_WHITESPACE
-    array([ 0., -1., -1.,  1.,  0.,
-           -1.,  2.,  4., -2.,  1.,
-           -1.,  0.,  1., -4.,  1.,
-            0., -1.,  0.,  1.,  0.])
-
-    If calculate_gradients_at_nodes is called inside a loop, you can
-    improve speed by creating an array outside the loop. For example, do
-    this once, before the loop:
-
-    >>> df = rmg.zeros(centering='node') # outside loop
-    >>> rmg.number_of_nodes
-    20
-
-    Then do this inside the loop so that the function will not have to create
-    the df array but instead puts values into the *df* array.
-
-    >>> df = rmg.calculate_flux_divergence_at_nodes(flux, out=df)
-
-    >>> grid = RasterModelGrid((4, 5), spacing=(1, 2))
-    >>> u = np.array([0., 1., 2., 3., 0.,
-    ...               1., 2., 3., 2., 3.,
-    ...               0., 1., 2., 1., 2.,
-    ...               0., 0., 2., 2., 0.])
-    >>> grad = grid.calc_grad_at_link(2 * u)[grid.active_links]
-    >>> grad # doctest: +NORMALIZE_WHITESPACE
-    array([ 2.,  2., -2.,
-            1.,  1., -1.,  1.,
-           -2., -2., -2.,
-            1.,  1., -1., 1.,
-           -2.,  0.,  2.])
-    >>> grid.calculate_flux_divergence_at_nodes(- grad)
-    ...     # doctest: +NORMALIZE_WHITESPACE
-    array([ 0., -1., -1.,  1.,  0.,
-           -1.,  2.,  4., -2.,  1.,
-           -1.,  0.,  1., -4.,  1.,
-            0., -1.,  0.,  1.,  0.])
-    """
-    assert len(active_link_flux) == grid.number_of_active_links, \
-        "incorrect length of active_link_flux array"
-
-    # If needed, create net_unit_flux array
-    if out is None:
-        out = grid.empty(centering='node')
-    out.fill(0.)
-    net_unit_flux = out
-
-    assert len(net_unit_flux) == grid.number_of_nodes
-
-    is_vert_link = squad_links.is_vertical_link(grid.shape, grid.active_links)
-    vert_links = grid.active_links[is_vert_link]
-    horiz_links = grid.active_links[~ is_vert_link]
-
-    flux = np.zeros(grid.number_of_links + 1)
-
-    flux[vert_links] = active_link_flux[is_vert_link] * grid.dy
-    flux[horiz_links] = active_link_flux[~ is_vert_link] * grid.dx
-
-    net_unit_flux[:] = (
-        (flux[grid._node_active_outlink_matrix2[0][:]] +
-         flux[grid._node_active_outlink_matrix2[1][:]]) -
-        (flux[grid._node_active_inlink_matrix2[0][:]] +
-         flux[grid._node_active_inlink_matrix2[1][:]])) / grid.cellarea
-
-    return net_unit_flux
+    return np.take(np.take(neighbors, range(len(cell_ids)), axis=0), 3 - inds, axis=1)
 
 
 def calculate_slope_aspect_bfp(xs, ys, zs):
@@ -280,7 +114,7 @@ def calculate_slope_aspect_bfp(xs, ys, zs):
         than a plane.
     """
     if not len(xs) == len(ys) == len(zs):
-        raise ValueError('array must be the same length')
+        raise ValueError("array must be the same length")
 
     # step 1: subtract the centroid from the points
     # step 2: create a 3XN matrix of the points for SVD
@@ -300,7 +134,7 @@ def calculate_slope_aspect_bfp(xs, ys, zs):
     return slp, asp
 
 
-def find_nearest_node(rmg, coords, mode='raise'):
+def find_nearest_node(rmg, coords, mode="raise"):
     """Find the node nearest a point.
 
     Find the index to the node nearest the given x, y coordinates.
@@ -334,7 +168,7 @@ def find_nearest_node(rmg, coords, mode='raise'):
 
     >>> import landlab
     >>> from landlab.grid.raster_funcs import find_nearest_node
-    >>> rmg = landlab.RasterModelGrid(4, 5)
+    >>> rmg = landlab.RasterModelGrid((4, 5))
 
     The points can be either a tuple of scalars or of arrays.
 
@@ -359,10 +193,11 @@ def find_nearest_node(rmg, coords, mode='raise'):
         return _find_nearest_node_ndarray(rmg, coords, mode=mode)
     else:
         return find_nearest_node(
-            rmg, (np.array(coords[0]), np.array(coords[1])), mode=mode)
+            rmg, (np.array(coords[0]), np.array(coords[1])), mode=mode
+        )
 
 
-def _find_nearest_node_ndarray(rmg, coords, mode='raise'):
+def _find_nearest_node_ndarray(rmg, coords, mode="raise"):
     """Find the node nearest to a point.
 
     Parameters
@@ -391,14 +226,12 @@ def _find_nearest_node_ndarray(rmg, coords, mode='raise'):
     >>> _find_nearest_node_ndarray(grid, (.75, 2.25))
     11
 
-    >>> grid = RasterModelGrid((4, 5), spacing=(3, 4))
+    >>> grid = RasterModelGrid((4, 5), xy_spacing=(3, 4))
     >>> _find_nearest_node_ndarray(grid, (3.1, 4.1))
     6
     """
-    column_indices = np.int_(
-        np.around((coords[0] - rmg.node_x[0]) / rmg.dx))
-    row_indices = np.int_(
-        np.around((coords[1] - rmg.node_y[0]) / rmg.dy))
+    column_indices = np.int_(np.around((coords[0] - rmg.node_x[0]) / rmg.dx))
+    row_indices = np.int_(np.around((coords[1] - rmg.node_y[0]) / rmg.dy))
 
     return rmg.grid_coords_to_node_id(row_indices, column_indices, mode=mode)
 
@@ -489,7 +322,7 @@ def is_coord_on_grid(rmg, coords, axes=(0, 1)):
 
     >>> from landlab import RasterModelGrid
     >>> from landlab.grid.raster_funcs import is_coord_on_grid
-    >>> grid = RasterModelGrid(4, 5)
+    >>> grid = RasterModelGrid((4, 5))
     >>> is_coord_on_grid(grid, (3.999, 2.999))
     True
 
@@ -504,10 +337,84 @@ def is_coord_on_grid(rmg, coords, axes=(0, 1)):
     """
     coords = np.broadcast_arrays(*coords)
 
-    is_in_bounds = _value_is_within_axis_bounds(rmg, coords[1 - axes[0]],
-                                                axes[0])
+    is_in_bounds = _value_is_within_axis_bounds(rmg, coords[1 - axes[0]], axes[0])
     for axis in axes[1:]:
-        is_in_bounds &= _value_is_within_axis_bounds(rmg, coords[1 - axis],
-                                                     axis)
+        is_in_bounds &= _value_is_within_axis_bounds(rmg, coords[1 - axis], axis)
 
     return is_in_bounds
+
+
+def line_to_grid_coords(c0, r0, c1, r1):
+    """Return integer grid coords forming line segment (c0, r0)->(c1, r1).
+
+    Parameters
+    ----------
+    c0, r0 : int
+        column and row coordinates of "starting" endpoint
+    c1, r1 : int
+        column and row coordinates of "ending" endpoint
+
+    Returns
+    -------
+    rr, cc : (N,) ndarray of int
+        row and column coordinates of nodes in the line
+
+    Examples
+    --------
+    >>> line_to_grid_coords(0, 0, 4, 1)
+    (array([0, 0, 0, 1, 1]), array([0, 1, 2, 3, 4]))
+
+    Notes
+    -----
+    Inputs must be grid coordinates rather than actual (x, y) values (unless
+    the grid has unit spacing, in which case they are the same). To convert
+    from real (x, y) to (x_grid, y_grid) use x_grid = x / Dx, where Dx is
+    horizontal grid spacing (and similarly for y).
+        To convert a raster-grid node ID to column and row coords, use
+    numpy.unravel_index(node_id, (num_rows, num_cols)).
+        To convert the returned grid coordinates to node IDs, use the
+    RasterModelGrid method grid_coords_to_node_id().
+        This function uses an incremental algorithm for line scan-conversion
+    (see, e.g., Foley et al., 1990, chapter 3). For a line with a slope
+    0 > m > 1, start with the x coordinates for a set of grid columns that span
+    the line. The corresponding y of the first one is just y0. The y for the
+    next one is y0 + m, for the next y0 + 2m, etc. If m > 1, you use y instead
+    of x. In the below, any line segments that "point" toward the lower-left
+    half-grid (i.e., with azimuth between 135o and 315o) have their endpoints
+    flipped first.
+    """
+
+    dx = c1 - c0
+    dy = r1 - r0
+
+    # Flip endpoints if needed to have segment point to up/right
+    if (dx + dy) < 0:
+        (c0, c1) = _swap(c0, c1)
+        (r0, r1) = _swap(r0, r1)
+        dx = -dx
+        dy = -dy
+        flip_array = True
+    else:
+        flip_array = False
+
+    if dx > dy:  # more horizontal than vertical
+        npts = _iround(c1 - c0) + 1
+        cc = np.zeros(npts, dtype=int)
+        rr = np.zeros(npts, dtype=int)
+        cc[:] = np.arange(npts)
+        rr[:] = np.round(r0 + (float(dy) / dx) * cc)
+        cc[:] += _iround(c0)
+    else:
+        npts = _iround(r1 - r0) + 1
+        cc = np.zeros(npts, dtype=int)
+        rr = np.zeros(npts, dtype=int)
+        rr[:] = np.arange(npts)
+        cc[:] = np.round(c0 + (float(dx) / dy) * rr)
+        rr[:] += _iround(r0)
+
+    # If endpoints were flipped, here we "un-flip" again
+    if flip_array:
+        rr = np.flipud(rr)
+        cc = np.flipud(cc)
+
+    return rr, cc

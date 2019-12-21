@@ -1,4 +1,3 @@
-from .fracture_grid import make_frac_grid
+from .fracture_grid import FractureGridGenerator
 
-
-__all__ = ['make_frac_grid', ]
+__all__ = ["FractureGridGenerator"]

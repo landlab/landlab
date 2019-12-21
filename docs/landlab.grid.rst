@@ -107,6 +107,15 @@ Miscellaneous raster-grid functions
       :undoc-members:
       :show-inheritance:
 
+Network Grids (`NetworkModelGrid`)
+===================================
+Inherits from `ModelGrid` and adds:
+
+.. automodule:: landlab.grid.network
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Voronoi-DeLaunay Grids (`VoronoiDelaunayGrid`)
 ==============================================
 Inherits from `ModelGrid` and adds:

@@ -35,7 +35,7 @@ def get_links(nodes_at_link, sort=True):
     >>> offset_to_node
     array([ 0,  2,  5,  7, 10, 12])
     """
-    sorted = np.argsort(nodes_at_link.reshape((-1, )))
+    sorted = np.argsort(nodes_at_link.reshape((-1,)))
 
     links_at_node = sorted // 2
     link_dirs_at_node = sorted % 2
@@ -47,5 +47,4 @@ def get_links(nodes_at_link, sort=True):
     offset_to_node[0] = 0
     links_per_node.cumsum(out=offset_to_node[1:])
 
-    return (as_id_array(links_at_node), as_id_array(link_dirs_at_node),
-            offset_to_node)
+    return (as_id_array(links_at_node), as_id_array(link_dirs_at_node), offset_to_node)

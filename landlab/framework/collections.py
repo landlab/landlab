@@ -5,9 +5,10 @@ Collections of components
 
 import inspect
 
-#from landlab.interfaces import BmiBase
-from .interfaces import BmiBase
 from .decorators import is_implementation
+
+# from landlab.interfaces import BmiBase
+from .interfaces import BmiBase
 
 
 class Error(Exception):
@@ -37,7 +38,7 @@ class MultipleProvidersError(Error):
         self._name = var_name
 
     def __str__(self):
-        return 'Multiple component provide variable %s' % self._name
+        return "Multiple component provide variable %s" % self._name
 
 
 class NoProvidersError(Error):
@@ -49,7 +50,7 @@ class NoProvidersError(Error):
         self._name = var_name
 
     def __str__(self):
-        return 'No components provide variable %s' % self._name
+        return "No components provide variable %s" % self._name
 
 
 class BadVarNameError(Error):
@@ -61,22 +62,22 @@ class BadVarNameError(Error):
         self._name = var_name
 
     def __str__(self):
-        return 'Component does not contain variable %s' % self._name
+        return "Component does not contain variable %s" % self._name
 
 
-def get_var_names(component, intent='input'):
+def get_var_names(component, intent="input"):
     """
     Get a list of input or output variable names from *component* (a BMI-like
     object). Use the *intent* keyword to specify whether to return input or
     output variable names. *intent* must be one of *input* or *output*.
     """
-    assert(intent in ['input', 'output'])
+    assert intent in ["input", "output"]
 
-    func = getattr(component, 'get_' + intent + '_var_names')
+    func = getattr(component, "get_" + intent + "_var_names")
     try:
         var_names = func()
     except TypeError:
-        var_names = getattr(component, '_' + intent + '_var_names')
+        var_names = getattr(component, "_" + intent + "_var_names")
 
     return var_names
 
@@ -89,7 +90,7 @@ class Collection(dict):
     def __init__(self, **kwds):
         super(Collection, self).__init__(**kwds)
         for (_, component) in self.items():
-            assert(is_implementation(component, BmiBase))
+            assert is_implementation(component, BmiBase)
 
     def list(self):
         """
@@ -101,14 +102,14 @@ class Collection(dict):
         """
         Get a list of variable names that components in the collection uses.
         """
-        return self._var_names(intent='input')
+        return self._var_names(intent="input")
 
     def provides(self):
         """
         Get a list of variable names that components in the collection
         provides.
         """
-        return self._var_names(intent='output')
+        return self._var_names(intent="output")
 
     def find_provider(self, var_name):
         """
@@ -116,7 +117,7 @@ class Collection(dict):
         *var_name*. The returned list contains the names of the components
         providing *var_name*.
         """
-        return self._find_var_name(var_name, intent='output')
+        return self._find_var_name(var_name, intent="output")
 
     def find_user(self, var_name):
         """
@@ -124,7 +125,7 @@ class Collection(dict):
         variable name, *var_name*. The returned list contains the names of the
         components using *var_name*.
         """
-        return self._find_var_name(var_name, intent='input')
+        return self._find_var_name(var_name, intent="input")
 
     def find_connections(self):
         """
@@ -142,16 +143,14 @@ class Collection(dict):
                 raise NoProvidersError(var_name)
             else:
                 try:
-                    connections[providers[0]].update({
-                        var_name: self.find_user(var_name),
-                    })
+                    connections[providers[0]].update(
+                        {var_name: self.find_user(var_name)}
+                    )
                 except KeyError:
-                    connections[providers[0]] = {
-                        var_name: self.find_user(var_name),
-                    }
+                    connections[providers[0]] = {var_name: self.find_user(var_name)}
         return connections
 
-    def _find_var_name(self, needle, intent='input'):
+    def _find_var_name(self, needle, intent="input"):
         """
         Find a variable either used or provided by components in the
         collection.
@@ -161,7 +160,7 @@ class Collection(dict):
 
         :returns: List of component names
         """
-        assert(intent in ['input', 'output'])
+        assert intent in ["input", "output"]
 
         names = set()
         for (name, component) in self.items():
@@ -173,7 +172,7 @@ class Collection(dict):
                 pass
         return list(names)
 
-    def _var_names(self, intent='input'):
+    def _var_names(self, intent="input"):
         """
         Get variable names either used or provided by components in the
         collection.
@@ -182,7 +181,7 @@ class Collection(dict):
 
         :returns: List of variable names
         """
-        assert(intent in ['input', 'output'])
+        assert intent in ["input", "output"]
 
         names = set()
         for (name, component) in self.items():
@@ -225,11 +224,10 @@ class Arena(Collection):
             self[name] = cls
 
         try:
-            assert(is_implementation(type(self[name]), BmiBase))
+            assert is_implementation(type(self[name]), BmiBase)
         except AssertionError:
             self.pop(name)
-            raise TypeError(
-                'Class is not an implementation of cmt.bmi.BmiBase')
+            raise TypeError("Class is not an implementation of cmt.bmi.BmiBase")
         else:
             self._connections[name] = dict()
 

@@ -30,15 +30,7 @@ landlab.ca.hex_cts module
 landlab.ca.hex_lattice_tectonicizer module
 ------------------------------------------
 
-.. automodule:: landlab.ca.hex_lattice_tectonicizer
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.ca.landlab_ca module
-----------------------------
-
-.. automodule:: landlab.ca.landlab_ca
+.. automodule:: landlab.ca.boundaries.hex_lattice_tectonicizer
     :members:
     :undoc-members:
     :show-inheritance:

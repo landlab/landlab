@@ -6,10 +6,10 @@ order, links to flow receiver and flow receiver fields. Instead, takes in
 the discharge values on NODES calculated by the OverlandFlow class and
 erodes the landscape in response to the output discharge.
 
-As of right now, this component relies on the OverlandFlow component 
-for stability. There are no stability criteria implemented in this class. 
+As of right now, this component relies on the OverlandFlow component
+for stability. There are no stability criteria implemented in this class.
 To ensure model stability, use StreamPowerEroder or FastscapeEroder
-components instead. 
+components instead.
 
 .. codeauthor:: Jordan Adams
 
@@ -78,16 +78,15 @@ rate.
 
 >>> grid.at_node['topographic__elevation'] # doctest: +NORMALIZE_WHITESPACE
 array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.99993675,  0.99991056,  0.99991056,  0.99991056,  0.99993675,
-        1.99995528,  1.99993675,  1.99993675,  1.99993675,  1.99995528,
-        2.99996838,  2.99995528,  2.99995528,  2.99995528,  2.99996838])
+        0.99936754,  0.99910557,  0.99910557,  0.99910557,  0.99936754,
+        1.99955279,  1.99936754,  1.99936754,  1.99936754,  1.99955279,
+        2.99968377,  2.99955279,  2.99955279,  2.99955279,  2.99968377])
 
 """
 
-from landlab import Component
-import pylab
 import numpy as np
-from matplotlib import pyplot as plt
+
+from landlab import Component
 from landlab.field.scalar_data_fields import FieldError
 
 
@@ -99,38 +98,44 @@ class DetachmentLtdErosion(Component):
     incision.
     """
 
-    _name = 'DetachmentLtdErosion'
+    _name = "DetachmentLtdErosion"
 
     _input_var_names = (
-        'topographic__elevation',
-        'topographic__slope',
-        'surface_water__discharge',
+        "topographic__elevation",
+        "topographic__slope",
+        "surface_water__discharge",
     )
 
-    _output_var_names = (
-        'topographic__elevation',
-    )
+    _output_var_names = ("topographic__elevation",)
 
     _var_units = {
-        'topographic__elevation': 'm',
-        'topographic__slope': '-',
-        'surface_water__discharge': 'm^3/s',
+        "topographic__elevation": "m",
+        "topographic__slope": "-",
+        "surface_water__discharge": "m^3/s",
     }
 
     _var_mapping = {
-        'topographic__elevation': 'node',
-        'topographic__slope': 'node',
-        'surface_water__discharge': 'node',
+        "topographic__elevation": "node",
+        "topographic__slope": "node",
+        "surface_water__discharge": "node",
     }
 
     _var_doc = {
-        'topographic__elevation': 'Land surface topographic elevation',
-        'topographic__slope': 'Slope of ',
-        'surface_water__discharge': 'node',
+        "topographic__elevation": "Land surface topographic elevation",
+        "topographic__slope": "Slope of ",
+        "surface_water__discharge": "node",
     }
 
-    def __init__(self, grid, K_sp = 0.00002, m_sp = 0.5, n_sp = 1.0,
-                 uplift_rate = 0.0, entraiment_threshold = 0.0, **kwds):
+    def __init__(
+        self,
+        grid,
+        K_sp=0.00002,
+        m_sp=0.5,
+        n_sp=1.0,
+        uplift_rate=0.0,
+        entrainment_threshold=0.0,
+        **kwds
+    ):
         """Calculate detachment limited erosion rate on nodes.
 
         Landlab component that generalizes the detachment limited erosion
@@ -163,14 +168,19 @@ class DetachmentLtdErosion(Component):
         self.m = m_sp
         self.n = n_sp
 
-        self.I = self._grid.zeros(at='node')
+        self.I = self._grid.zeros(at="node")  # noqa: E741
         self.uplift_rate = uplift_rate
-        self.entraiment_threshold = entraiment_threshold
+        self.entrainment_threshold = entrainment_threshold
 
-        self.dzdt = self._grid.zeros(at='node')
+        self.dzdt = self._grid.zeros(at="node")
 
-    def erode(self, dt, discharge_cms='surface_water__discharge',
-              slope='topographic__slope'):
+    def erode(
+        self,
+        dt,
+        elevs="topographic__elevation",
+        discharge_cms="surface_water__discharge",
+        slope="topographic__slope",
+    ):
         """Erode into grid topography.
 
         For one time step, this erodes into the grid topography using
@@ -191,7 +201,7 @@ class DetachmentLtdErosion(Component):
         try:
             S = self._grid.at_node[slope]
         except FieldError:
-            raise ValueError('missing field for slope')
+            raise ValueError("missing field for slope")
 
         if type(discharge_cms) is str:
             Q = self._grid.at_node[discharge_cms]
@@ -202,10 +212,10 @@ class DetachmentLtdErosion(Component):
 
         S_to_n = np.power(S, self.n)
 
-        self.I = (self.K * (Q_to_m * S_to_n - self.entraiment_threshold))
+        self.I = (self.K * Q_to_m * S_to_n) - self.entrainment_threshold  # noqa: E741
 
         self.I[self.I < 0.0] = 0.0
 
-        self.dzdt = (self.uplift_rate - self.I)
+        self.dz = (self.uplift_rate - self.I) * dt
 
-        self._grid['node']['topographic__elevation'] += self.dzdt
+        self._grid["node"][elevs] += self.dz

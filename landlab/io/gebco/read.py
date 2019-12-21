@@ -6,16 +6,16 @@ try:
     import netCDF4 as nc4
 except ImportError:
     import warnings
-    warnings.warn('Unable to import netCDF4.', ImportWarning)
+
+    warnings.warn("Unable to import netCDF4.", ImportWarning)
 
 from scipy.io import netcdf as nc
 
 from landlab import RasterModelGrid
 from landlab.io.netcdf.errors import NotRasterGridError
 
-
-_COORDINATE_NAMES = ['x_range', 'y_range', 'z_range', 'spacing', 'dimension']
-_AXIS_NAMES = ['x', 'y']
+_COORDINATE_NAMES = ["x_range", "y_range", "z_range", "spacing", "dimension"]
+_AXIS_NAMES = ["x", "y"]
 
 
 def _read_netcdf_grid_shape(root):
@@ -31,7 +31,7 @@ def _read_netcdf_grid_shape(root):
     tuple of int
         The shape of the grid as number of rows, then columns.
     """
-    return root.variables['dimension'][:]
+    return root.variables["dimension"][:]
 
 
 def _read_netcdf_grid_spacing(root):
@@ -47,7 +47,7 @@ def _read_netcdf_grid_spacing(root):
     tuple of float
         The spacing of the grid between rows, then columns.
     """
-    return root.variables['spacing'][:]
+    return root.variables["spacing"][:]
 
 
 def _read_netcdf_structured_data(root):
@@ -68,7 +68,7 @@ def _read_netcdf_structured_data(root):
     for (name, var) in root.variables.items():
         if name not in _COORDINATE_NAMES:
             fields[name] = var[:] * var.scale_factor + var.add_offset
-            fields[name].shape = (fields[name].size, )
+            fields[name].shape = (fields[name].size,)
     return fields
 
 
@@ -93,9 +93,9 @@ def read_netcdf(nc_file, just_grid=False):
         A newly-created :any:`RasterModelGrid`.
     """
     try:
-        root = nc.netcdf_file(nc_file, 'r', version=2)
+        root = nc.netcdf_file(nc_file, "r", version=2)
     except TypeError:
-        root = nc4.Dataset(nc_file, 'r', format='NETCDF4')
+        root = nc4.Dataset(nc_file, "r", format="NETCDF4")
 
     shape = _read_netcdf_grid_shape(root)
     spacing = _read_netcdf_grid_spacing(root)
@@ -105,12 +105,12 @@ def read_netcdf(nc_file, just_grid=False):
     if spacing[0] != spacing[1]:
         raise NotRasterGridError()
 
-    grid = RasterModelGrid(shape, spacing=spacing)
+    grid = RasterModelGrid(shape, xy_spacing=spacing)
 
     if not just_grid:
         fields = _read_netcdf_structured_data(root)
         for (name, values) in fields.items():
-            grid.add_field('node', name, values)
+            grid.add_field("node", name, values)
 
     root.close()
 

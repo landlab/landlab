@@ -8,6 +8,7 @@ Subpackages
 
     landlab.io.gebco
     landlab.io.netcdf
+    landlab.io.shapefile
     landlab.io.vtk
 
 Submodules

@@ -11,14 +11,9 @@ This result in two bound voronoi polygons (12 total) centered on points
 5 and 6.
 """
 
-from nose.tools import (assert_true, assert_false, assert_equal)
-try:
-    from nose.tools import assert_tuple_equal, assert_is_instance
-except ImportError:
-    from landlab.testing.tools import assert_tuple_equal, assert_is_instance
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-from scipy.spatial import Voronoi
 import numpy as np
+from numpy.testing import assert_array_equal
+from scipy.spatial import Voronoi
 
 from landlab.graph.voronoi.voronoi_helpers import VoronoiConverter
 
@@ -28,12 +23,8 @@ from landlab.graph.voronoi.voronoi_helpers import VoronoiConverter
 #     get_links_at_patch, get_corner_at_patch)
 
 
-NODE_X = (0. , 1. , 2. , 3. ,
-           .1, 1.1, 2.1, 3.1,
-           .2, 1.2, 2.2, 3.2)
-NODE_Y = (0. , 0. , 0. , 0. ,
-          1. , 1. , 1. , 1. ,
-          2. , 2. , 2. , 2.)
+NODE_X = (0.0, 1.0, 2.0, 3.0, 0.1, 1.1, 2.1, 3.1, 0.2, 1.2, 2.2, 3.2)
+NODE_Y = (0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0)
 POINTS = list(zip(NODE_X, NODE_Y))
 
 
@@ -43,18 +34,18 @@ def test_get_finite_regions():
 
     regions = converter.get_finite_regions()
 
-    assert_equal(len(regions), 13) # There's one extra "empty" region
-    assert_equal(len(regions[regions == 0]), 11)
-    assert_equal(len(regions[regions == 1]), 2)
+    assert len(regions) == 13  # There's one extra "empty" region
+    assert len(regions[regions == 0]) == 11
+    assert len(regions[regions == 1]) == 2
 
 
 def test_is_patch():
     """Test if a region is a patch."""
     converter = VoronoiConverter(None)
 
-    assert_true(converter.is_patch([1, 2, 3]))
-    assert_false(converter.is_patch([1, 2, 3, -1]))
-    assert_false(converter.is_patch([]))
+    assert converter.is_patch([1, 2, 3])
+    assert not converter.is_patch([1, 2, 3, -1])
+    assert not converter.is_patch([])
 
 
 def test_is_link():
@@ -64,7 +55,7 @@ def test_is_link():
 
     links = [converter.is_link(r) for r in range(len(v.ridge_vertices))]
 
-    assert_equal(sum(links), 11)
+    assert sum(links) == 11
 
 
 def test_patch_at_region():
@@ -74,8 +65,8 @@ def test_patch_at_region():
 
     patch_at_region = converter.get_patch_at_region()
 
-    assert_equal(patch_at_region.shape, (len(v.regions), ))
-    assert_equal(sum(patch_at_region >= 0), 2)
+    assert patch_at_region.shape == (len(v.regions),)
+    assert sum(patch_at_region >= 0) == 2
 
 
 def test_link_at_ridge():
@@ -85,8 +76,8 @@ def test_link_at_ridge():
 
     link_at_ridge = converter.get_link_at_ridge()
 
-    assert_equal(link_at_ridge.shape, (len(v.ridge_vertices), ))
-    assert_equal(sum(link_at_ridge >= 0), 11)
+    assert link_at_ridge.shape == (len(v.ridge_vertices),)
+    assert sum(link_at_ridge >= 0) == 11
 
 
 def test_patches_at_link():
@@ -95,9 +86,9 @@ def test_patches_at_link():
 
     patches_at_link = converter.get_patches_at_link()
 
-    assert_tuple_equal(patches_at_link.shape, (11, 2))
+    assert patches_at_link.shape == (11, 2)
     for patches in patches_at_link:
-        assert_true(patches[0] != -1 or patches[1] != -1)
+        assert patches[0] != -1 or patches[1] != -1
 
 
 def test_node_at_vertex():
@@ -107,8 +98,8 @@ def test_node_at_vertex():
 
     node_at_vertex = converter.get_node_at_vertex()
 
-    assert_tuple_equal(node_at_vertex.shape, (len(v.vertices), ))
-    assert_equal(sum(node_at_vertex >= 0), 10)
+    assert node_at_vertex.shape == (len(v.vertices),)
+    assert sum(node_at_vertex >= 0) == 10
 
     node_at_vertex = node_at_vertex[node_at_vertex >= 0]
     node_at_vertex.sort()
@@ -121,12 +112,11 @@ def test_nodes_at_link():
 
     nodes_at_link = converter.get_nodes_at_link()
 
-    assert_tuple_equal(nodes_at_link.shape, (11, 2))
-    assert_true(np.all(nodes_at_link >= 0))
-    assert_true(np.all(nodes_at_link < 10))
+    assert nodes_at_link.shape == (11, 2)
+    assert np.all(nodes_at_link >= 0)
+    assert np.all(nodes_at_link < 10)
 
-    assert_array_equal(np.unique(nodes_at_link),
-                       [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    assert_array_equal(np.unique(nodes_at_link), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 
 
 def test_nodes():
@@ -135,8 +125,8 @@ def test_nodes():
 
     nodes = converter.get_nodes()
 
-    assert_tuple_equal(nodes.shape, (10, 2))
-    assert_is_instance(nodes[0, 0], float)
+    assert nodes.shape == (10, 2)
+    assert isinstance(nodes[0, 0], float)
 
 
 def test_ridges_at_region():
@@ -146,8 +136,8 @@ def test_ridges_at_region():
 
     ridges_at_region = converter.get_ridges_at_region()
 
-    assert_tuple_equal(ridges_at_region.shape, (len(v.regions), 6))
-    assert_is_instance(ridges_at_region[0, 0], np.int_)
+    assert ridges_at_region.shape == (len(v.regions), 6)
+    assert isinstance(ridges_at_region[0, 0], np.int_)
     assert_array_equal(ridges_at_region[0], [-1] * 6)
 
 
@@ -157,9 +147,9 @@ def test_links_at_patch():
 
     links_at_patch = converter.get_links_at_patch()
 
-    assert_tuple_equal(links_at_patch.shape, (2, 6))
-    assert_true(np.all(links_at_patch >= 0))
-    assert_true(np.all(links_at_patch < 11))
+    assert links_at_patch.shape == (2, 6)
+    assert np.all(links_at_patch >= 0)
+    assert np.all(links_at_patch < 11)
 
 
 def test_corner_at_patch():
@@ -169,6 +159,6 @@ def test_corner_at_patch():
 
     corner_at_patch = converter.get_corner_at_patch()
 
-    assert_tuple_equal(corner_at_patch.shape, (2, ))
-    assert_true(np.all(corner_at_patch >= 0))
-    assert_true(np.all(corner_at_patch < len(v.points)))
+    assert corner_at_patch.shape == (2,)
+    assert np.all(corner_at_patch >= 0)
+    assert np.all(corner_at_patch < len(v.points))

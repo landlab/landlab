@@ -3,7 +3,7 @@ import itertools
 import numpy as np
 from six.moves import range
 
-from ..base import CORE_NODE, CLOSED_BOUNDARY
+from ..base import CLOSED_BOUNDARY, CORE_NODE
 
 
 def number_of_nodes(shape):
@@ -70,8 +70,9 @@ def corners(shape):
     array([ 0,  3,  8, 11])
     """
     node_count = number_of_nodes(shape)
-    return np.array([0, shape[1] - 1, node_count - shape[1], node_count - 1],
-                    dtype=np.int)
+    return np.array(
+        [0, shape[1] - 1, node_count - shape[1], node_count - 1], dtype=np.int
+    )
 
 
 def node_ids(shape):
@@ -245,9 +246,9 @@ def perimeter_iter(shape):
     >>> np.fromiter(perimeter_iter((4, 3)), dtype=np.int)
     array([ 0,  1,  2,  3,  5,  6,  8,  9, 10, 11])
     """
-    return itertools.chain(bottom_iter(shape),
-                           left_right_iter(shape, 1, shape[0] - 1),
-                           top_iter(shape))
+    return itertools.chain(
+        bottom_iter(shape), left_right_iter(shape, 1, shape[0] - 1), top_iter(shape)
+    )
 
 
 def perimeter(shape):
@@ -273,8 +274,7 @@ def perimeter(shape):
     return np.fromiter(perimeter_iter(shape), dtype=np.int)
 
 
-def status_with_perimeter_as_boundary(shape,
-                                      node_status=CLOSED_BOUNDARY):
+def status_with_perimeter_as_boundary(shape, node_status=CLOSED_BOUNDARY):
     """Node status for a grid whose boundary is along its perimeter.
 
     Parameters

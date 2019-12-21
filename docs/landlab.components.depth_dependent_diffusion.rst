@@ -1,20 +1,5 @@
-landlab.components.depth_dependent_diffusion package
-====================================================
-
-Submodules
-----------
-
-landlab.components.depth_dependent_diffusion.hillslope_depth_dependent_linear_flux module
------------------------------------------------------------------------------------------
-
-.. automodule:: landlab.components.depth_dependent_diffusion.hillslope_depth_dependent_linear_flux
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
+DepthDependentDiffuser: depth dependent diffusion after Johnstone and Hilley (2014)
+-----------------------------------------------------------------------------------
 
 .. automodule:: landlab.components.depth_dependent_diffusion
     :members:

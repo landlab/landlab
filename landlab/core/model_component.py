@@ -31,11 +31,13 @@ Base component class methods
 
 from __future__ import print_function
 
+import inspect
 import os
 import textwrap
 import warnings
-import inspect
 
+from .. import registry
+from .model_parameter_loader import load_params
 
 _VAR_HELP_MESSAGE = """
 name: {name}
@@ -56,8 +58,7 @@ class Component(object):
     """
     Defines the base component class from which Landlab components inherit.
 
-    Base component class methods
-    ++++++++++++++++++++++++++++
+    **Base component class methods**
 
     .. autosummary::
         :toctree: generated/
@@ -82,10 +83,15 @@ class Component(object):
         ~landlab.core.model_component.Component.coords
         ~landlab.core.model_component.Component.imshow
     """
+
     _input_var_names = set()
     _output_var_names = set()
     _optional_var_names = set()
     _var_units = dict()
+
+    def __new__(cls, *args, **kwds):
+        registry.add(cls)
+        return object.__new__(cls)
 
     def __init__(self, grid, map_vars=None, **kwds):
         map_vars = map_vars or {}
@@ -93,14 +99,14 @@ class Component(object):
 
         for (location, vars) in map_vars.items():
             for (dest, src) in vars.items():
-                grid.add_field(location, dest,
-                               grid.field_values(location, src))
+                grid.add_field(location, dest, grid.field_values(location, src))
 
         for key in kwds:
             component_name = inspect.getmro(self.__class__)[0].__name__
             warnings.warn(
                 "Ingnoring unrecognized input parameter, '{param}', for "
-                "{name} component".format(name=component_name, param=key))
+                "{name} component".format(name=component_name, param=key)
+            )
 
     @classmethod
     def from_path(cls, grid, path):
@@ -120,7 +126,7 @@ class Component(object):
             A newly-created component.
         """
         if os.path.isfile(path):
-            with open(path, 'r') as fp:
+            with open(path, "r") as fp:
                 params = load_params(fp)
         else:
             params = load_params(path)
@@ -265,20 +271,23 @@ class Component(object):
         name : str
             A field name.
         """
-        desc = os.linesep.join(textwrap.wrap(cls._var_doc[name],
-                                             initial_indent='  ',
-                                             subsequent_indent='  '))
+        desc = os.linesep.join(
+            textwrap.wrap(
+                cls._var_doc[name], initial_indent="  ", subsequent_indent="  "
+            )
+        )
         units = cls._var_units[name]
         loc = cls._var_mapping[name]
 
-        intent = ''
+        intent = ""
         if name in cls._input_var_names:
-            intent = 'in'
+            intent = "in"
         if name in cls._output_var_names:
-            intent += 'out'
+            intent += "out"
 
-        help = _VAR_HELP_MESSAGE.format(name=name, desc=desc, units=units,
-                                        loc=loc, intent=intent)
+        help = _VAR_HELP_MESSAGE.format(
+            name=name, desc=desc, units=units, loc=loc, intent=intent
+        )
 
         print(help.strip())
 
@@ -320,19 +329,18 @@ class Component(object):
         _optional_var_names. New fields are created as arrays of floats, unless
         the component also contains the specifying property _var_type.
         """
-        for field_to_set in (set(self.output_var_names) -
-                             set(self.input_var_names) -
-                             set(self.optional_var_names)):
+        for field_to_set in (
+            set(self.output_var_names)
+            - set(self.input_var_names)
+            - set(self.optional_var_names)
+        ):
             grp = self.var_loc(field_to_set)
             type_in = self.var_type(field_to_set)
             init_vals = self.grid.zeros(grp, dtype=type_in)
             units_in = self.var_units(field_to_set)
-            self.grid.add_field(grp,
-                                field_to_set,
-                                init_vals,
-                                units=units_in,
-                                copy=False,
-                                noclobber=True)
+            self.grid.add_field(
+                grp, field_to_set, init_vals, units=units_in, copy=False, noclobber=True
+            )
 
     def initialize_optional_output_fields(self):
         """
@@ -344,14 +352,14 @@ class Component(object):
         initialized to zero. New fields are created as arrays of floats, unless
         the component also contains the specifying property _var_type.
         """
-        for field_to_set in (set(self.optional_var_names) -
-                             set(self.input_var_names)):
-            self.grid.add_field(self.var_loc(field_to_set),
-                                field_to_set,
-                                self.grid.zeros(
-                                    dtype=self.var_type(field_to_set)),
-                                units=self.var_units(field_to_set),
-                                noclobber=True)
+        for field_to_set in set(self.optional_var_names) - set(self.input_var_names):
+            self.grid.add_field(
+                self.var_loc(field_to_set),
+                field_to_set,
+                self.grid.zeros(dtype=self.var_type(field_to_set)),
+                units=self.var_units(field_to_set),
+                noclobber=True,
+            )
 
     @property
     def shape(self):

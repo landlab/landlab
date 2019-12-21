@@ -6,18 +6,21 @@ import yaml
 
 from .model_parameter_dictionary import ModelParameterDictionary
 
-
 _loader = yaml.SafeLoader
 _loader.add_implicit_resolver(
-    u'tag:yaml.org,2002:float',
-    re.compile(u'''^(?:
+    u"tag:yaml.org,2002:float",
+    re.compile(
+        u"""^(?:
                [-+]?(?:[0-9][0-9_]*)\\.[0-9_]*(?:[eE][-+]?[0-9]+)?
                |[-+]?(?:[0-9][0-9_]*)(?:[eE][-+]?[0-9]+)
                |\\.[0-9_]+(?:[eE][-+][0-9]+)?
                |[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\\.[0-9_]*
                |[-+]?\\.(?:inf|Inf|INF)
-               |\\.(?:nan|NaN|NAN))$''', re.X),
-    list(u'-+0123456789.'))
+               |\\.(?:nan|NaN|NAN))$""",
+        re.X,
+    ),
+    list(u"-+0123456789."),
+)
 
 
 def load_file_contents(file_like):
@@ -38,7 +41,7 @@ def load_file_contents(file_like):
         contents = file_like.read()
     except AttributeError:  # was a str
         if os.path.isfile(file_like):
-            with open(file_like, 'r') as fp:
+            with open(file_like, "r") as fp:
                 contents = fp.read()
         else:
             contents = file_like
@@ -97,7 +100,6 @@ def load_params(file_like):
         params = ModelParameterDictionary(from_file=file_like, auto_type=True)
 
     if not isinstance(params, dict):
-        raise ValueError(
-            'parsing of parameter file did not produce a dict-like object')
+        raise ValueError("parsing of parameter file did not produce a dict-like object")
 
     return params

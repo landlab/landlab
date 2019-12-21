@@ -2,7 +2,7 @@
 {# "!" (which is handled by sphinx BuiltinTemplateLoader is not used here,
    to enable nesting in ReadTheDocs build.
 #}
-   
+
 {#
     basic/layout.html
     ~~~~~~~~~~~~~~~~~
@@ -71,6 +71,8 @@ accesskey("U") }}{% endif %}>{{ parent.title }}</a>{{ reldelim1 }}</li>
 alt="Logo"/>
             </a></p>
           {%- endif %}
+          <h3>INDEX</h3>
+          <a href="{{ pathto('genindex') }}">Search</a>
           {%- endblock %}
           {%- if sidebars != None %}
             {#- new style sidebar: explicitly include/exclude templates #}
@@ -220,7 +222,7 @@ pathto("_static/landlab_banner.png", 1) }}" border="0" alt="landlab"/></a>
       {%- if render_sidebar %}
         </div>
       {%- endif %}
-      </div>
+    </div>
   {%- endblock %}
 
       <div class="clearer"></div>

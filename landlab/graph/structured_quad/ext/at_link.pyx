@@ -7,6 +7,36 @@ ctypedef np.int_t DTYPE_t
 
 
 @cython.boundscheck(False)
+def fill_horizontal_links(shape, np.ndarray[DTYPE_t, ndim=1] horizontal_links):
+    cdef int n_rows = shape[0]
+    cdef int n_cols = shape[1]
+    cdef int n_links = n_rows * (n_cols - 1) + (n_rows - 1) * n_cols
+    cdef int link_stride = 2 * n_cols - 1
+    cdef int i, n
+
+    i = 0
+    for link in range(0, n_links, link_stride):
+        for n in range(n_cols - 1):
+            horizontal_links[i] = link + n
+            i += 1
+
+
+@cython.boundscheck(False)
+def fill_vertical_links(shape, np.ndarray[DTYPE_t, ndim=1] vertical_links):
+    cdef int n_rows = shape[0]
+    cdef int n_cols = shape[1]
+    cdef int link_stride = 2 * n_cols - 1
+    cdef int n_links = n_rows * (n_cols - 1) + (n_rows - 1) * n_cols
+    cdef int i, n
+
+    i = 0
+    for link in range(n_cols - 1, n_links, link_stride):
+        for n in range(n_cols):
+            vertical_links[i] = link + n
+            i += 1
+
+
+@cython.boundscheck(False)
 def fill_patches_at_link(shape, np.ndarray[DTYPE_t, ndim=2] patches_at_link):
     cdef int link
     cdef int patch

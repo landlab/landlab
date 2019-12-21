@@ -3,7 +3,7 @@ from six.moves import range
 
 from ...core.utils import as_id_array
 from ...utils.jaggedarray import JaggedArray
-from .status import CORE_NODE, CLOSED_BOUNDARY
+from .status import CLOSED_BOUNDARY, CORE_NODE
 
 
 def _split_link_ends(link_ends):
@@ -45,13 +45,11 @@ def link_is_active(status_at_link_ends):
     ndarray, boolean :
         Boolean array that indicates if a link is active.
     """
-    (status_at_link_start,
-     status_at_link_end) = _split_link_ends(status_at_link_ends)
+    (status_at_link_start, status_at_link_end) = _split_link_ends(status_at_link_ends)
 
-    return (((status_at_link_start == CORE_NODE) &
-             ~ (status_at_link_end == CLOSED_BOUNDARY)) |
-            ((status_at_link_end == CORE_NODE) &
-             ~ (status_at_link_start == CLOSED_BOUNDARY)))
+    return (
+        (status_at_link_start == CORE_NODE) & ~(status_at_link_end == CLOSED_BOUNDARY)
+    ) | ((status_at_link_end == CORE_NODE) & ~(status_at_link_start == CLOSED_BOUNDARY))
 
 
 def find_active_links(node_status, node_at_link_ends):
@@ -81,18 +79,20 @@ def find_active_links(node_status, node_at_link_ends):
     node_at_link_start, node_at_link_end = _split_link_ends(node_at_link_ends)
 
     if len(node_at_link_end) != len(node_at_link_start):
-        raise ValueError('Link arrays must be the same length')
+        raise ValueError("Link arrays must be the same length")
 
-    status_at_link_ends = (node_status[node_at_link_start],
-                           node_status[node_at_link_end])
+    status_at_link_ends = (
+        node_status[node_at_link_start],
+        node_status[node_at_link_end],
+    )
 
-    (active_link_ids, ) = np.where(link_is_active(status_at_link_ends))
+    (active_link_ids,) = np.where(link_is_active(status_at_link_ends))
 
     return as_id_array(active_link_ids)
 
 
-def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
-    """in_link_count_per_node((node0, node1), number_of_nodes=None)
+def in_link_count_per_node(node_at_link_ends, number_of_nodes=0):
+    """in_link_count_per_node((node0, node1), number_of_nodes=0)
     Number of links entering nodes.
 
     Parameters
@@ -121,8 +121,8 @@ def in_link_count_per_node(node_at_link_ends, number_of_nodes=None):
     return as_id_array(np.bincount(node_at_link_end, minlength=number_of_nodes))
 
 
-def out_link_count_per_node(node_at_link_ends, number_of_nodes=None):
-    """out_link_count_per_node((node0, node1), number_of_nodes=None)
+def out_link_count_per_node(node_at_link_ends, number_of_nodes=0):
+    """out_link_count_per_node((node0, node1), number_of_nodes=0)
     Number of links leaving nodes.
 
     Parameters
@@ -148,9 +148,8 @@ def out_link_count_per_node(node_at_link_ends, number_of_nodes=None):
     """
     node_at_link_start, node_at_link_end = _split_link_ends(node_at_link_ends)
     if len(node_at_link_end) != len(node_at_link_start):
-        raise ValueError('Link arrays must be the same length')
-    return as_id_array(np.bincount(node_at_link_start,
-                                   minlength=number_of_nodes))
+        raise ValueError("Link arrays must be the same length")
+    return as_id_array(np.bincount(node_at_link_start, minlength=number_of_nodes))
 
 
 def link_count_per_node(node_at_link_ends, number_of_nodes=None):
@@ -181,11 +180,9 @@ def link_count_per_node(node_at_link_ends, number_of_nodes=None):
     node_count = number_of_nodes or max(len(in_count), len(out_count))
 
     if len(in_count) < node_count:
-        in_count = np.pad(in_count, (0, node_count - len(in_count)),
-                          mode='constant')
+        in_count = np.pad(in_count, (0, node_count - len(in_count)), mode="constant")
     if len(out_count) < node_count:
-        out_count = np.pad(out_count, (0, node_count - len(out_count)),
-                           mode='constant')
+        out_count = np.pad(out_count, (0, node_count - len(out_count)), mode="constant")
 
     return in_count + out_count
 
@@ -199,8 +196,8 @@ def _sort_links_by_node(node_at_link_ends, link_ids=None, sortby=0):
         return as_id_array(sorted_links)
 
 
-def in_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None):
-    """in_link_ids_at_node((node0, node1), number_of_nodes=None)
+def in_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=0):
+    """in_link_ids_at_node((node0, node1), number_of_nodes=0)
     Links entering nodes.
 
     Parameters
@@ -236,10 +233,10 @@ def in_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None):
     """
     node_at_link_ends = _split_link_ends(node_at_link_ends)
 
-    link_ids = _sort_links_by_node(node_at_link_ends, link_ids=link_ids,
-                                   sortby=1)
-    links_per_node = in_link_count_per_node(node_at_link_ends,
-                                            number_of_nodes=number_of_nodes)
+    link_ids = _sort_links_by_node(node_at_link_ends, link_ids=link_ids, sortby=1)
+    links_per_node = in_link_count_per_node(
+        node_at_link_ends, number_of_nodes=number_of_nodes
+    )
     return link_ids, links_per_node
 
 
@@ -280,10 +277,10 @@ def out_link_ids_at_node(node_at_link_ends, link_ids=None, number_of_nodes=None)
     """
     node_at_link_ends = _split_link_ends(node_at_link_ends)
 
-    link_ids = _sort_links_by_node(node_at_link_ends, link_ids=link_ids,
-                                   sortby=0)
-    links_per_node = out_link_count_per_node(node_at_link_ends,
-                                             number_of_nodes=number_of_nodes)
+    link_ids = _sort_links_by_node(node_at_link_ends, link_ids=link_ids, sortby=0)
+    links_per_node = out_link_count_per_node(
+        node_at_link_ends, number_of_nodes=number_of_nodes
+    )
     return link_ids, links_per_node
 
 
@@ -313,22 +310,24 @@ def link_ids_at_node(node_at_link_ends, number_of_nodes=None):
     >>> count
     array([1, 1, 1, 2, 2, 2, 1, 1, 1])
     """
-    links_per_node = link_count_per_node(node_at_link_ends,
-                                         number_of_nodes=number_of_nodes)
+    links_per_node = link_count_per_node(
+        node_at_link_ends, number_of_nodes=number_of_nodes
+    )
 
     in_links = JaggedArray(
-        *in_link_ids_at_node(node_at_link_ends,
-                             number_of_nodes=number_of_nodes))
+        *in_link_ids_at_node(node_at_link_ends, number_of_nodes=number_of_nodes)
+    )
     out_links = JaggedArray(
-        *out_link_ids_at_node(node_at_link_ends,
-                              number_of_nodes=number_of_nodes))
+        *out_link_ids_at_node(node_at_link_ends, number_of_nodes=number_of_nodes)
+    )
 
     links = np.empty(in_links.size + out_links.size, dtype=int)
 
     offset = 0
     for node, link_count in enumerate(links_per_node):
-        links[offset:offset + link_count] = np.concatenate(
-            (in_links.row(node), out_links.row(node)))
+        links[offset : offset + link_count] = np.concatenate(
+            (in_links.row(node), out_links.row(node))
+        )
         offset += link_count
 
     return links, links_per_node
@@ -381,8 +380,7 @@ class LinkGrid(object):
     array([0, 2])
     """
 
-    def __init__(self, link_ends, number_of_nodes, link_ids=None,
-                 node_status=None):
+    def __init__(self, link_ends, number_of_nodes, link_ids=None, node_status=None):
         """Create a grid of links that enter and leave nodes.
         __init__((node0, node1), number_of_nodes=None)
 
@@ -431,13 +429,14 @@ class LinkGrid(object):
         link_ends = _split_link_ends(link_ends)
 
         self._in_link_at_node = JaggedArray(
-            *in_link_ids_at_node(link_ends, link_ids=link_ids,
-                                 number_of_nodes=number_of_nodes)
-
+            *in_link_ids_at_node(
+                link_ends, link_ids=link_ids, number_of_nodes=number_of_nodes
+            )
         )
         self._out_link_at_node = JaggedArray(
-            *out_link_ids_at_node(link_ends, link_ids=link_ids,
-                                  number_of_nodes=number_of_nodes)
+            *out_link_ids_at_node(
+                link_ends, link_ids=link_ids, number_of_nodes=number_of_nodes
+            )
         )
         self._link_ends = np.array(link_ends)
         if link_ids is not None:
@@ -525,8 +524,9 @@ class LinkGrid(object):
         >>> [lgrid.number_of_links_at_node(node) for node in range(4)]
         [2, 2, 2, 2]
         """
-        return (self.number_of_in_links_at_node(node) +
-                self.number_of_out_links_at_node(node))
+        return self.number_of_in_links_at_node(node) + self.number_of_out_links_at_node(
+            node
+        )
 
     @property
     def node_at_link_start(self):
@@ -620,10 +620,9 @@ class LinkGrid(object):
         array([1, 3])
         """
         for node in range(self.number_of_nodes):
-            yield np.concatenate((
-                self.in_link_at_node(node),
-                self.out_link_at_node(node),
-            ))
+            yield np.concatenate(
+                (self.in_link_at_node(node), self.out_link_at_node(node))
+            )
 
     @property
     def node_status_at_link_start(self):

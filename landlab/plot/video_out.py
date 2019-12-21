@@ -23,10 +23,11 @@ PYTHONPATH to allow .mp4 compilation (try a google search for the warning
 raised by this method for some hints). These (known) issues are apparently
 likely to resolve themselves in a future release of matplotlib.
 """
-import six
-import numpy as np
-import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+import numpy as np
+import six
+
 from landlab.plot import imshow
 
 
@@ -51,8 +52,7 @@ class VideoPlotter(object):
         Model time frequency at which frames are made.
     """
 
-    def __init__(self, grid, data_centering='node', start=None, stop=None,
-                 step=None):
+    def __init__(self, grid, data_centering="node", start=None, stop=None, step=None):
         """Create Landlab movies.
 
         Parameters
@@ -95,34 +95,33 @@ class VideoPlotter(object):
         step : float
             Model time frequency at which frames are made.
         """
-        options_for_data_centering = ['node', 'cell']
+        options_for_data_centering = ["node", "cell"]
 
         if data_centering not in options_for_data_centering:
-            raise ValueError('data_centering not valid')
+            raise ValueError("data_centering not valid")
 
         self.grid = grid
-        #self.image_list = []
+        # self.image_list = []
         self.data_list = []
 
         # this controls the intervals at which to plot
-        self.last_remainder = float('inf')
-        self.last_t = float('-inf')
+        self.last_remainder = float("inf")
+        self.last_t = float("-inf")
         if start is None:
-            start = float('-inf')
+            start = float("-inf")
         if stop is None:
-            stop = float('inf')
+            stop = float("inf")
         self.step_control_tuple = (start, stop, step)
 
         # initialize the plots for the vid
-        if data_centering == 'node':
-            self.centering = 'n'
+        if data_centering == "node":
+            self.centering = "n"
             self.plotfunc = imshow.imshow_grid_at_node
-        elif data_centering == 'cell':
-            self.centering = 'c'
+        elif data_centering == "cell":
+            self.centering = "c"
             self.plotfunc = imshow.imshow_cell_grid
 
-        self.randomized_name = ("my_animation_" +
-                                str(int(np.random.random() * 10000)))
+        self.randomized_name = "my_animation_" + str(int(np.random.random() * 10000))
         self.fig = plt.figure(self.randomized_name)  # randomized name
 
     def add_frame(self, grid, data, elapsed_t, **kwds):
@@ -134,9 +133,9 @@ class VideoPlotter(object):
         kwds can be any of the usual plotting keywords, e.g., cmap.
         """
         if type(data) == str:
-            if self.centering == 'n':
+            if self.centering == "n":
                 data_in = grid.at_node[data]
-            elif self.centering == 'c':
+            elif self.centering == "c":
                 data_in = grid.at_cell[data]
         else:
             data_in = data
@@ -148,33 +147,37 @@ class VideoPlotter(object):
                 normalized_elapsed_t = elapsed_t - self.start_t
             except AttributeError:
                 self.start_t = elapsed_t
-                normalized_elapsed_t = 0.
+                normalized_elapsed_t = 0.0
         else:  # time has apparently gone "backwards"; reset the module
-            #...note a *forward* jump in time wouldn't register
+            # ...note a *forward* jump in time wouldn't register
             self.clear_module()
             self.start_t = elapsed_t
-            normalized_elapsed_t = 0.
+            normalized_elapsed_t = 0.0
 
         # we're between start & stop
         if self.step_control_tuple[0] <= elapsed_t < self.step_control_tuple[1]:
             if not self.step_control_tuple[2]:  # no step provided
-                six.print_('Adding frame to video at elapsed time %f' %
-                           elapsed_t)
+                six.print_("Adding frame to video at elapsed time %f" % elapsed_t)
                 self.data_list.append(data_in.copy())
             else:
-                excess_fraction = (normalized_elapsed_t %
-                                   self.step_control_tuple[2])
+                excess_fraction = normalized_elapsed_t % self.step_control_tuple[2]
                 # Problems with rounding errors make this double check
                 # necessary
-                if excess_fraction < self.last_remainder or np.allclose(excess_fraction, self.step_control_tuple[2]):
-                    six.print_(
-                        'Adding frame to video at elapsed time %f' % elapsed_t)
+                if excess_fraction < self.last_remainder or np.allclose(
+                    excess_fraction, self.step_control_tuple[2]
+                ):
+                    six.print_("Adding frame to video at elapsed time %f" % elapsed_t)
                     self.data_list.append(data_in.copy())
                 self.last_remainder = excess_fraction
         self.last_t = elapsed_t
 
-    def produce_video(self, interval=200, repeat_delay=2000,
-                      filename='video_output.gif', override_min_max=None):
+    def produce_video(
+        self,
+        interval=200,
+        repeat_delay=2000,
+        filename="video_output.gif",
+        override_min_max=None,
+    ):
         """Finalize and save the video of the data.
 
         Parameters
@@ -198,7 +201,7 @@ class VideoPlotter(object):
             self.max_limit = np.amax(self.data_list[0])
 
             if len(self.data_list) <= 1:
-                raise ValueError('Animation must have at least one frame.')
+                raise ValueError("Animation must have at least one frame.")
 
             # assumes there is more than one frame in the loop
             for i in self.data_list[1:]:
@@ -209,15 +212,24 @@ class VideoPlotter(object):
             self.max_limit = override_min_max[1]
 
         self.fig.colorbar(
-            self.plotfunc(self.grid, self.data_list[0],
-                          limits=(self.min_limit, self.max_limit),
-                          allow_colorbar=False, **self.kwds))
+            self.plotfunc(
+                self.grid,
+                self.data_list[0],
+                limits=(self.min_limit, self.max_limit),
+                allow_colorbar=False,
+                **self.kwds
+            )
+        )
 
-        ani = animation.FuncAnimation(self.fig, _make_image,
-                                      frames=self._yield_image,
-                                      interval=interval, blit=True,
-                                      repeat_delay=repeat_delay)
-        ani.save(filename, fps=1000. / interval)
+        ani = animation.FuncAnimation(
+            self.fig,
+            _make_image,
+            frames=self._yield_image,
+            interval=interval,
+            blit=True,
+            repeat_delay=repeat_delay,
+        )
+        ani.save(filename, fps=1000.0 / interval)
         plt.close()
 
     def _yield_image(self):
@@ -228,8 +240,13 @@ class VideoPlotter(object):
 
         for i in self.data_list:
             # yield self.grid.node_vector_to_raster(i)
-            yield (i, self.plotfunc, (self.min_limit, self.max_limit),
-                   self.grid, self.kwds)
+            yield (
+                i,
+                self.plotfunc,
+                (self.min_limit, self.max_limit),
+                self.grid,
+                self.kwds,
+            )
 
     def clear_module(self):
         """Clear internally held data.
@@ -246,6 +263,7 @@ def _make_image(yielded_tuple):
     limits_in = yielded_tuple[2]
     grid = yielded_tuple[3]
     kwds = yielded_tuple[4]
-    im = plotfunc(grid, yielded_raster_data, limits=limits_in,
-                  allow_colorbar=False, **kwds)
+    im = plotfunc(
+        grid, yielded_raster_data, limits=limits_in, allow_colorbar=False, **kwds
+    )
     return im

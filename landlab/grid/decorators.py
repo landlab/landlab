@@ -62,6 +62,7 @@ class override_array_setitem_and_reset(object):
 
         def _wrapped(grid):
             """Embed a grid into a numpy array and override set methods."""
+
             class array(np.ndarray):
 
                 """Override numpy setters and reset grid topology."""
@@ -112,10 +113,12 @@ def return_id_array(func):
     func
         A wrapped function that returns an id array.
     """
+
     @wraps(func)
     def _wrapped(self, *args, **kwds):
         """Create a function that returns an id array."""
         return as_id_array(func(self, *args, **kwds))
+
     return _wrapped
 
 
@@ -132,6 +135,7 @@ def return_readonly_id_array(func):
     func
         A wrapped function that returns an id array.
     """
+
     @wraps(func)
     def _wrapped(self, *args, **kwds):
         """Create a function that returns an id array."""
@@ -143,4 +147,5 @@ def return_readonly_id_array(func):
             return id_array
         else:
             return immutable_array
+
     return _wrapped

@@ -1,3 +1,3 @@
 from .diffusion import LinearDiffuser
 
-__all__ = ['LinearDiffuser', ]
+__all__ = ["LinearDiffuser"]

@@ -1,9 +1,9 @@
 Read and Write netCDF Files
-=========================
+===========================
 
 
 Reading
------------------------------
+-------
 
 .. automodule:: landlab.io.netcdf.read
     :members:
@@ -11,7 +11,7 @@ Reading
     :show-inheritance:
 
 Writing
-------------------------------
+-------
 
 .. automodule:: landlab.io.netcdf.write
     :members:
@@ -20,7 +20,7 @@ Writing
 
 
 Error Handling
-------------------------------
+--------------
 .. automodule:: landlab.io.netcdf.errors
     :members:
     :undoc-members:

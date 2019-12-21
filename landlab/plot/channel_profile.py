@@ -15,25 +15,44 @@ using the number_of_channels parameter in the channel_nodes function (default
 is 1). This may lead to strange outputs if the drainage structure of the output
 changes mid-run (e.g., channel piracy). This may be modified in the future.
 """
+import numpy
+
 # DEJH, March 2014.
 from six.moves import range
 
-import numpy
 try:
     import matplotlib.pyplot as plt
 except ImportError:
     import warnings
-    warnings.warn('matplotlib not found', ImportWarning)
+
+    warnings.warn("matplotlib not found", ImportWarning)
 
 
-def channel_nodes(grid, steepest_nodes, drainage_area, flow_receiver, number_of_channels=1, threshold=None):
-    if threshold == None:
-        threshold = 2. * numpy.amin(grid.area_of_cell)
+def channel_nodes(
+    grid,
+    steepest_nodes,
+    drainage_area,
+    flow_receiver,
+    number_of_channels=1,
+    threshold=None,
+):
+    if grid.at_node["flow__receiver_node"].size != grid.size("node"):
+        msg = (
+            "A route-to-multiple flow director has been "
+            "run on this grid. The landlab development team has not "
+            "verified that the channel profiler utility is compatible with "
+            "route-to-multiple methods. Please open a GitHub Issue "
+            "to start this process."
+        )
+        raise NotImplementedError(msg)
+    if threshold is None:
+        threshold = 2.0 * numpy.amin(grid.area_of_cell)
     boundary_nodes = grid.boundary_nodes
-    #top_two_pc = len(boundary_nodes)//50
-    #starting_nodes = boundary_nodes[numpy.argsort(drainage_area[boundary_nodes])[-top_two_pc:]]
-    starting_nodes = boundary_nodes[numpy.argsort(
-        drainage_area[boundary_nodes])[-number_of_channels:]]
+    # top_two_pc = len(boundary_nodes)//50
+    # starting_nodes = boundary_nodes[numpy.argsort(drainage_area[boundary_nodes])[-top_two_pc:]]
+    starting_nodes = boundary_nodes[
+        numpy.argsort(drainage_area[boundary_nodes])[-number_of_channels:]
+    ]
 
     profile_IDs = []
     for i in starting_nodes:
@@ -42,8 +61,7 @@ def channel_nodes(grid, steepest_nodes, drainage_area, flow_receiver, number_of_
         while 1:
             data_store.append(j)
             supplying_nodes = numpy.where(flow_receiver == j)[0]
-            supplying_nodes = supplying_nodes[
-                numpy.where(supplying_nodes != i)]
+            supplying_nodes = supplying_nodes[numpy.where(supplying_nodes != i)]
             max_drainage = numpy.argmax(drainage_area[supplying_nodes])
             if drainage_area[supplying_nodes[max_drainage]] < threshold:
                 break
@@ -53,16 +71,16 @@ def channel_nodes(grid, steepest_nodes, drainage_area, flow_receiver, number_of_
     return profile_IDs
 
 
-def get_distances_upstream(grid, len_node_arrays, profile_IDs,
-                           links_to_flow_receiver):
+def get_distances_upstream(grid, len_node_arrays, profile_IDs, links_to_flow_receiver):
     distances_upstream = []
     for i in range(len(profile_IDs)):
         data_store = []
-        total_distance = 0.
+        total_distance = 0.0
         data_store.append(total_distance)
         for j in range(len(profile_IDs[i]) - 1):
-            total_distance += grid._length_of_link_with_diagonals[
-                links_to_flow_receiver[profile_IDs[i][j + 1]]]
+            total_distance += grid.length_of_d8[
+                links_to_flow_receiver[profile_IDs[i][j + 1]]
+            ]
             data_store.append(total_distance)
         distances_upstream.append(numpy.array(data_store))
     return distances_upstream
@@ -74,13 +92,16 @@ def plot_profiles(distances_upstream, profile_IDs, elevations):
         plt.plot(distances_upstream[i], elevations[the_nodes])
 
 
-def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
-                                     drainage_area='drainage_area',
-                                     flow_receiver='flow__receiver_node',
-                                     links_to_flow_receiver='flow__link_to_receiver_node',
-                                     number_of_channels=1,
-                                     starting_nodes=None,
-                                     threshold=None):
+def analyze_channel_network_and_plot(
+    grid,
+    elevations="topographic__elevation",
+    drainage_area="drainage_area",
+    flow_receiver="flow__receiver_node",
+    links_to_flow_receiver="flow__link_to_receiver_node",
+    number_of_channels=1,
+    starting_nodes=None,
+    threshold=None,
+):
     """analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
                                      drainage_area='drainage_area',
                                      flow_receiver='flow__receiver_node',
@@ -106,24 +127,37 @@ def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
         -
     """
     internal_list = [
-        0, 0, 0, 0]  # we're going to put the input arrays in here; must be a better way but this will do
+        0,
+        0,
+        0,
+        0,
+    ]  # we're going to put the input arrays in here; must be a better way but this will do
     inputs = (elevations, drainage_area, flow_receiver, links_to_flow_receiver)
     for i in range(4):
         j = inputs[i]
         if type(j) == str:
             internal_list[i] = grid.at_node[j]
         else:
-            assert j.size == grid.number_of_nodes, "Inputs must be field names or nnode-long numpy arrays!"
+            assert (
+                j.size == grid.number_of_nodes
+            ), "Inputs must be field names or nnode-long numpy arrays!"
             internal_list[i] = j
 
-    if starting_nodes == None:
-        profile_IDs = channel_nodes(grid, None, internal_list[1], internal_list[
-                                    2], number_of_channels, threshold)
+    if starting_nodes is None:
+        profile_IDs = channel_nodes(
+            grid,
+            None,
+            internal_list[1],
+            internal_list[2],
+            number_of_channels,
+            threshold,
+        )
     else:
-        assert len(
-            starting_nodes) == number_of_channels, "Length of starting_nodes must equal the number_of_channels!"
-        if threshold == None:
-            threshold = 2. * numpy.amin(grid.area_of_cell)
+        assert (
+            len(starting_nodes) == number_of_channels
+        ), "Length of starting_nodes must equal the number_of_channels!"
+        if threshold is None:
+            threshold = 2.0 * numpy.amin(grid.area_of_cell)
         profile_IDs = []
         for i in starting_nodes:
             j = i
@@ -131,8 +165,7 @@ def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
             while 1:
                 data_store.append(j)
                 supplying_nodes = numpy.where(flow_receiver == j)[0]
-                supplying_nodes = supplying_nodes[
-                    numpy.where(supplying_nodes != i)]
+                supplying_nodes = supplying_nodes[numpy.where(supplying_nodes != i)]
                 max_drainage = numpy.argmax(internal_list[1][supplying_nodes])
                 if internal_list[1][supplying_nodes[max_drainage]] < threshold:
                     break
@@ -141,7 +174,8 @@ def analyze_channel_network_and_plot(grid, elevations='topographic__elevation',
             profile_IDs.append(numpy.array(data_store))
 
     dists_upstr = get_distances_upstream(
-        grid, internal_list[1].size, profile_IDs, internal_list[3])
+        grid, internal_list[1].size, profile_IDs, internal_list[3]
+    )
     plot_profiles(dists_upstr, profile_IDs, internal_list[0])
 
     return (profile_IDs, dists_upstr)

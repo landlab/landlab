@@ -25,11 +25,11 @@ node :
 corner :
     Same as a point.
 """
-from six.moves import range
 import numpy as np
+from six.moves import range
 
-from ..sort.sort import remap
 from ...core.utils import as_id_array
+from ..sort.sort import remap
 
 
 def flatten_vertices_at_region(regions):
@@ -50,8 +50,7 @@ def flatten_vertices_at_region(regions):
     array([3, 0, 4, 2, 4, 4, 3, 2, 6, 4])
     """
     vertices_at_region = np.array(np.concatenate(regions), dtype=int)
-    vertices_per_region = np.array(
-        [len(region) for region in regions], dtype=int)
+    vertices_per_region = np.array([len(region) for region in regions], dtype=int)
 
     return vertices_at_region, vertices_per_region
 
@@ -101,11 +100,16 @@ class VoronoiConverter(object):
 
             n_regions = self.n_regions
             vertices_at_region, vertices_per_region = flatten_vertices_at_region(
-                self.regions)
+                self.regions
+            )
 
             is_finite_region = np.empty(n_regions, dtype=int)
-            _is_finite_region(vertices_at_region, vertices_per_region,
-                              is_finite_region, self._min_patch_size)
+            _is_finite_region(
+                vertices_at_region,
+                vertices_per_region,
+                is_finite_region,
+                self._min_patch_size,
+            )
 
             self._is_finite_region = is_finite_region
             return self._is_finite_region
@@ -324,8 +328,7 @@ class VoronoiConverter(object):
         n_regions = self.n_regions
         max_links_per_patch = self.max_patch_size
 
-        ridges_at_region = np.full((n_regions, max_links_per_patch), -1,
-                                   dtype=int)
+        ridges_at_region = np.full((n_regions, max_links_per_patch), -1, dtype=int)
 
         ridge_at_vertices = {}
         for ridge, vertices in enumerate(self._voronoi.ridge_vertices):
@@ -370,8 +373,7 @@ class VoronoiConverter(object):
         patches = self.get_patch_at_region() >= 0
         links_at_patch = ridges_at_region[patches]
 
-        remap_graph_element_ignore(links_at_patch.reshape((-1, )),
-                                   link_at_ridge, -1)
+        remap_graph_element_ignore(links_at_patch.reshape((-1,)), link_at_ridge, -1)
         return links_at_patch
 
     def get_corner_at_patch(self):
@@ -390,7 +392,7 @@ class VoronoiConverter(object):
         finite_regions = self.get_finite_regions()
         n_patches = finite_regions.sum()
 
-        region_at_patch = np.argsort(self.get_patch_at_region())[- n_patches:]
+        region_at_patch = np.argsort(self.get_patch_at_region())[-n_patches:]
         point_at_region = np.argsort(self._voronoi.point_region)
 
         return point_at_region[region_at_patch - 1]

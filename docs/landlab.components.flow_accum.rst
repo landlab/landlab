@@ -1,30 +1,16 @@
-landlab.components.flow_accum package
-=====================================
+FlowAccumulator: Component to do FlowAccumulation with the FlowDirectors
+------------------------------------------------------------------------
 
-Submodules
-----------
-
-landlab.components.flow_accum.flow_accum_bw module
---------------------------------------------------
-
-.. automodule:: landlab.components.flow_accum.flow_accum_bw
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-landlab.components.flow_accum.flow_accumulation2 module
--------------------------------------------------------
-
-.. automodule:: landlab.components.flow_accum.flow_accumulation2
+.. automodule:: landlab.components.flow_accum.flow_accumulator
     :members:
     :undoc-members:
     :show-inheritance:
 
 
-Module contents
----------------
+LossyFlowAccumulator: Component to accumulate flow with the FlowDirectors, while water is lost or gained downstream
+-------------------------------------------------------------------------------------------------------------------
 
-.. automodule:: landlab.components.flow_accum
+.. automodule:: landlab.components.flow_accum.lossy_flow_accumulator
     :members:
     :undoc-members:
     :show-inheritance:

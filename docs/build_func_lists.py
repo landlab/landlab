@@ -21,10 +21,12 @@ Information about the grid as a whole
 
 '''
 """
-from landlab.core.utils import get_categories_from_grid_methods
-from copy import copy
 import re
+from copy import copy
+
 import numpy as np
+
+from landlab.core.utils import get_categories_from_grid_methods
 
 grid_types = ('ModelGrid', 'RasterModelGrid', 'VoronoiDelaunayGrid',
               'HexModelGrid', 'RadialModelGrid')

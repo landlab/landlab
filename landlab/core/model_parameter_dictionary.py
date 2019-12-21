@@ -75,13 +75,12 @@ command line (e.g., read_float_cmdline( 'PI' ) )
 
 
 import warnings
-import six
 
 import numpy as np
+import six
 
-
-_VALID_TRUE_VALUES = set(['TRUE', '1', 1])
-_VALID_FALSE_VALUES = set(['FALSE', '0', 0])
+_VALID_TRUE_VALUES = set(["TRUE", "1", 1])
+_VALID_FALSE_VALUES = set(["FALSE", "0", 0])
 _VALID_BOOLEAN_VALUES = _VALID_TRUE_VALUES | _VALID_FALSE_VALUES
 
 
@@ -121,7 +120,7 @@ class ParameterValueError(Error):
         self._type = expected_type
 
     def __str__(self):
-        return '%s: %s is not of type %s' % (self._key, self._val, self._type)
+        return "%s: %s is not of type %s" % (self._key, self._val, self._type)
 
 
 def _to_bool(string):
@@ -132,15 +131,10 @@ def _to_bool(string):
     elif upper in _VALID_FALSE_VALUES:
         return False
     else:
-        raise ValueError('invalid literal for _to_bool()')
+        raise ValueError("invalid literal for _to_bool()")
 
 
-_CONVERT_FROM_STR = {
-    'float': float,
-    'int': int,
-    'str': str,
-    'bool': _to_bool,
-}
+_CONVERT_FROM_STR = {"float": float, "int": int, "str": str, "bool": _to_bool}
 
 
 _VALID_VALUE_TYPES = set(_CONVERT_FROM_STR)
@@ -159,7 +153,7 @@ def _value_is_array(value):
     bool
         ``True`` if the value is an array. Otherwise, ``False``.
     """
-    return ',' in value
+    return "," in value
 
 
 def _value_to_array(value):
@@ -181,9 +175,9 @@ def _value_to_array(value):
         An array of values.
     """
     try:
-        return np.array(value.split(','), np.int)
+        return np.array(value.split(","), np.int)
     except ValueError:
-        return np.array(value.split(','), np.float)
+        return np.array(value.split(","), np.float)
 
 
 def _value_to_numeric(value):
@@ -338,7 +332,7 @@ class ModelParameterDictionary(dict):
         """
         if isinstance(param_file, six.string_types):
             try:
-                with open(param_file, 'r') as opened_file:
+                with open(param_file, "r") as opened_file:
                     self._read_from_file_like(opened_file)
             except IOError:
                 raise
@@ -368,8 +362,8 @@ class ModelParameterDictionary(dict):
         """
         stripped_line_list = []
         for line in param_file:
-            line = line.strip()   # strip leading spaces
-            if len(line) > 0 and line[0] != '#':
+            line = line.strip()  # strip leading spaces
+            if len(line) > 0 and line[0] != "#":
                 stripped_line_list.append(line)
         return stripped_line_list
 
@@ -390,10 +384,10 @@ class ModelParameterDictionary(dict):
         for line in stripped_line_list:
             if iskey:
                 # Strip out everything after the first space or colon
-                first_colon = line.find(':')
+                first_colon = line.find(":")
                 if first_colon == -1:
                     first_colon = len(line)
-                first_space = line.find(' ')
+                first_space = line.find(" ")
                 if first_space == -1:
                     first_space = len(line)
                 last_key_char = min(first_colon, first_space)
@@ -516,14 +510,15 @@ class ModelParameterDictionary(dict):
         >>> params.get('MY_BOOL', ptype='bool')
         False
         """
-        ptype = kwds.pop('ptype', str)
+        ptype = kwds.pop("ptype", str)
         assert len(kwds) == 0
 
         if ptype is bool:
             warnings.warn(
                 "Using bool function to convert value. This probably isn't "
                 "what you want. Use ptype='bool' instead.",
-                RuntimeWarning)
+                RuntimeWarning,
+            )
 
         value = super(ModelParameterDictionary, self).get(key, *args)
         if value is None:
@@ -622,7 +617,7 @@ class ModelParameterDictionary(dict):
         except KeyError:
             raise MissingKeyError(key)
         except ValueError:
-            raise ParameterValueError(key, self[key], 'float')
+            raise ParameterValueError(key, self[key], "float")
         else:
             return my_float
 
@@ -708,7 +703,7 @@ class ModelParameterDictionary(dict):
         elif my_value.upper() in _VALID_FALSE_VALUES:
             return False
         else:
-            raise ParameterValueError(key, my_value, 'boolean')
+            raise ParameterValueError(key, my_value, "boolean")
 
     def read_int_cmdline(self, key):
         """Read an integer from the command line.
@@ -731,10 +726,10 @@ class ModelParameterDictionary(dict):
         ParameterValueError
             If the value is not an int.
         """
-        my_value = raw_input(key + ': ')
+        my_value = six.moves.input(key + ": ")
         self[key] = my_value
         if not isinstance(my_value, int):
-            raise ParameterValueError(key, my_value, 'int')
+            raise ParameterValueError(key, my_value, "int")
         return my_value
 
     def read_float_cmdline(self, key):
@@ -758,12 +753,12 @@ class ModelParameterDictionary(dict):
         ParameterValueError
             If the value is not an float.
         """
-        my_value = raw_input(key + ': ')
+        my_value = six.moves.input(key + ": ")
         self[key] = my_value
         try:
             my_float = float(my_value)
         except ValueError:
-            raise ParameterValueError(key, my_value, 'float')
+            raise ParameterValueError(key, my_value, "float")
         else:
             return my_float
 
@@ -783,7 +778,7 @@ class ModelParameterDictionary(dict):
         str
             The parameter value.
         """
-        my_str = raw_input(key + ': ')
+        my_str = six.moves.input(key + ": ")
         self[key] = my_str
         return my_str
 
@@ -804,10 +799,10 @@ class ModelParameterDictionary(dict):
         bool
             The parameter value.
         """
-        my_value = raw_input(key + ': ')
+        my_value = six.moves.input(key + ": ")
         if my_value.upper() in _VALID_TRUE_VALUES:
             return True
         elif my_value.upper() in _VALID_FALSE_VALUES:
             return False
         else:
-            raise ParameterValueError(key, my_value, 'boolean')
+            raise ParameterValueError(key, my_value, "boolean")
