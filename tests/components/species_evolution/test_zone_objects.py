@@ -252,7 +252,7 @@ def test_many_to_one(zone_example_grid):
     z[[8, 9, 10, 12]] = 1
 
     se = SpeciesEvolver(mg)
-    sc = ZoneController(mg, zone_func, minimum_area=1)
+    sc = ZoneController(mg, zone_func)
     species = sc.populate_zones_uniformly(1)
     se.introduce_species(species)
 
