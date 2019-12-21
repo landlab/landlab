@@ -71,6 +71,7 @@ bed_porosity = 0.3  # porosity of the bed material
 # Ultimately,
 # parcels = SedimentParcels(grid,initialization_info_including_future_forcing)
 
+
 timesteps = 8
 
 element_id = np.repeat(np.array([0, 1, 2, 3, 4, 5, 6], dtype=int),
@@ -147,7 +148,7 @@ parcels = DataRecord(
 
 # Made up hydraulic geometry
 
-Qgage = 10000000.0  # (m3/s)
+Qgage = 1000.0  # (m3/s)
 dt = 60 * 60 * 24  # (seconds) daily timestep
 
 Bgage = 30.906 * Qgage ** 0.1215
@@ -213,7 +214,6 @@ for t in range(0, (timesteps * dt), dt):
 #plot_pathway(nst, time=3, link=4)
 
 # %% A few plot outputs, just to get started.
-
 
 plt.figure(1)
 plt.plot(parcels.time_coordinates, parcels.dataset.location_in_link.values[0, :], ".")

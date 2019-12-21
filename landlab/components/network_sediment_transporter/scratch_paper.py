@@ -8,10 +8,12 @@ Temporary file for use while writing tests
 @author: pfeif
 """
 import numpy as np
+import matplotlib.pyplot as plt
 from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
 from landlab.grid.network import NetworkModelGrid
 from landlab import BAD_INDEX_VALUE
 from landlab.data_record import DataRecord
+from landlab.plot import graph
 _OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
 
 #Create a network model grid to represent the channel network
@@ -21,6 +23,10 @@ nodes_at_link = ((0,1), (1,2), (2,3))
 
 nmg = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 
+plt.figure(0)
+graph.plot_graph(nmg, at="node,link")
+
+# %%
 # Add variables to the NetworkModelGrid
 nmg.at_node["topographic__elevation"] = [3., 2., 1., 0.] # m
 nmg.at_node["bedrock__elevation"] = [3., 2., 1., 0.] # m

@@ -14,7 +14,7 @@ def plot_network_links(grid, link_attribute, *args, **kwargs):
     # Need to verify that the link_attribute is valid, 
     # error messages if that's not the case
     
-    if np.shape(link_attribute) != np.shape(grid.at_link["GridID"]):
+    if np.size(link_attribute) != grid.number_of_links:
         msg = "Plot Network Links: attribute must be of shape (links,)"
         raise ValueError(msg)
     
