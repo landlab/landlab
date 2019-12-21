@@ -11,3 +11,5 @@ Please review the :ref:`development practices <development_practices>`.
 
    develop_a_component
    recommendations
+   ongoing_development
+   desired_contributions
