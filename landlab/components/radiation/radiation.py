@@ -153,45 +153,16 @@ class Radiation(Component):
 
         for name in self._output_var_names:
             if name not in self.grid.at_cell:
-##<<<<<<< HEAD
-                self.grid.add_zeros(name, at='cell',
+                self.grid.add_zeros(name, at="cell",
                                     units=self._var_units[name])
-
-        if 'Slope' not in self.grid.at_cell:
-            self.grid.add_zeros('Slope', at='cell', units='radians')
-
-        if 'Aspect' not in self.grid.at_cell:
-            self.grid.add_zeros('Aspect', at='cell', units='radians')
-
-        self._nodal_values = self.grid['node']
-        self._cell_values = self.grid['cell']
-        (self._slope, self._aspect) = (
-            grid.calculate_slope_aspect_at_nodes_burrough(
-                vals='topographic__elevation'))
-
-    def update(self, current_time, hour=12., **kwds):
-##=======
-                self.grid.add_zeros(name, at="cell", units=self._var_units[name])
-
-        if "Slope" not in self.grid.at_cell:
-            self.grid.add_zeros("Slope", at="cell", units="radians")
-
-        if "Aspect" not in self.grid.at_cell:
-            self.grid.add_zeros("Aspect", at="cell", units="radians")
 
         self._nodal_values = self.grid["node"]
         self._cell_values = self.grid["cell"]
-        self._slope, self._aspect = grid.calculate_slope_aspect_at_nodes_burrough(
-            vals="topographic__elevation"
-        )
-        #        self._slope = grid.calc_slope_of_node( \
-        #                                elevs = 'topographic__elevation')
-        #        self._aspect =
-        self._cell_values["Slope"] = self._slope
-        self._cell_values["Aspect"] = self._aspect
+        (self._slope, self._aspect) = (
+            grid.calculate_slope_aspect_at_nodes_burrough(
+                vals="topographic__elevation"))
 
-    def update(self, current_time, hour=12.0, **kwds):
-##>>>>>>> origin/v1
+    def update(self, current_time, hour=12., **kwds):
         """Update fields with current loading conditions.
 
         Parameters
