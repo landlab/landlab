@@ -1,3 +1,4 @@
+
 import numpy as np
 
 from landlab import Component
@@ -460,25 +461,6 @@ class Vegetation(Component):
 
             if self._vegtype[cell] == 0:
                 if PET30_[cell] > PETthreshold:
-##<<<<<<< HEAD
-                                # Growing Season
-                    Bmax = (LAImax - LAIdead)/cb
-                    Yconst = (1/((1/Bmax)+(((kws*Water_stress[cell]) +
-                              ksg)/NPP)))
-                    Blive = ((self._Blive_ini[cell] - Yconst) *
-                             np.exp(-(NPP/Yconst) * ((Tb+Tr)/24.)) + Yconst)
-                    Bdead = ((self._Bdead_ini[cell] + (Blive - max(Blive *
-                             np.exp(-1 * ksg * Tb/24.), 0.00001))) *
-                             np.exp(-1 * kdd *
-                             min(PET[cell]/self._Tdmax, 1.) * Tb/24.))
-                else:                                 # Senescense
-                    Blive = max(self._Blive_ini[cell] * np.exp((-2) * ksg *
-                                Tb/24.), 1)
-                    Bdead = max((self._Bdead_ini[cell]+(self._Blive_ini[cell] -
-                                (max(self._Blive_ini[cell]*np.exp((-2) *
-                                 ksg*Tb/24.), 0.000001))))*np.exp((-1)*kdd *
-                                 min(PET[cell]/self._Tdmax, 1.) * Tb/24.), 0.)
-##=======
                     # Growing Season
                     Bmax = (LAImax - LAIdead) / cb
                     Yconst = 1 / (
@@ -518,7 +500,6 @@ class Vegetation(Component):
                             0.0,
                         )
                     )
-##>>>>>>> origin/v1
 
             elif self._vegtype[cell] == 3:
                 Blive = 0.0
