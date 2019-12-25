@@ -1,22 +1,15 @@
 import numpy as np
-
 from landlab import Component
-##<<<<<<< HEAD
 from ...utils.decorators import use_file_name_or_kwds
-import numpy as np
 import math
-##=======
-##>>>>>>> origin/v1
 
 from ...utils.decorators import use_file_name_or_kwds
 
-##<<<<<<< HEAD
-_VALID_METHODS = set(['Constant', 'PriestleyTaylor', 'MeasuredRadiationPT',
-                      'Cosine', 'PenmanMonteith'])
-##=======
-_VALID_METHODS = set(["Constant", "PriestleyTaylor", "MeasuredRadiationPT", "Cosine"])
-##>>>>>>> origin/v1
-
+_VALID_METHODS = set(['Constant',
+                      'Cosine',
+                      'MeasuredRadiationPT',
+                      'PenmanMonteith',
+                      'PriestleyTaylor'])
 
 def _assert_method_is_valid(method):
     if method not in _VALID_METHODS:
@@ -24,7 +17,6 @@ def _assert_method_is_valid(method):
 
 
 class PotentialEvapotranspiration(Component):
-
     """
     Potential Evapotranspiration Component calculates spatially distributed
     potential evapotranspiration based on input radiation factor (spatial
@@ -51,59 +43,6 @@ class PotentialEvapotranspiration(Component):
 
     .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 
-##<<<<<<< HEAD
-    Construction::
-
-        PotentialEvapotranspiration(grid, method='Cosine',
-            Priestley_taylor_const=1.26, albedo=0.6,
-            latent_heat_of_vaporization=28.34, psychometric_const=0.066,
-            stefan_boltzmann_const=0.0000000567, solar_const=1366.67,
-            latitude=34., elevation_of_measurement=300, adjustment_coeff=0.18,
-            lt=0., nd=365., MeanTmaxF=12., delta_d=5., **kwds)
-
-    Parameters
-    ----------
-    grid: RasterModelGrid
-        A grid.
-    method: {'Constant', 'PriestleyTaylor', 'MeasuredRadiationPT',
-             'Cosine'}, optional
-        Priestley Taylor method will spit out radiation outputs too.
-    priestley_taylor_constant: float, optional
-        Alpha used in Priestley Taylor method.
-    albedo: float, optional
-        Albedo.
-    latent_heat_of_vaporization: float, optional
-        Latent heat of vaporization for water Pwhv (Wd/(m*mm^2)).
-    psychometric_const: float, optional
-        Psychometric constant (kPa (deg C)^-1).
-    stefan_boltzmann_const: float, optional
-        Stefan Boltzmann's constant (W/(m^2K^-4)).
-    solar_const: float, optional
-        Solar constant (W/m^2).
-    latitude: float, optional
-        Latitude (radians).
-    elevation_of_measurement: float, optional
-        Elevation at which measurement was taken (m).
-    adjustment_coeff: float, optional
-        adjustment coeff to predict Rs from air temperature (deg C)^-0.5.
-    lt: float, optional
-        lag between peak TmaxF and solar forcing (days).
-    nd: float, optional
-        Number of days in year (days).
-    MeanTmaxF: float, optional
-        Mean annual rate of TmaxF (mm/d).
-    delta_d: float, optional
-        Calibrated difference between max & min daily TmaxF (mm/d).
-    zm: float, required only for method(s): PenmanMonteith
-        Wind speed anemometer height (m).
-    zh: float, required only for method(s): PenmanMonteith (with
-    correction for Relative Humidity measurement elevation)
-        Relative Humidity measurement height (m).
-    rl: float, required only for method(s): PenmanMonteith
-        Stomatal resistance of a well-illuminated leaf (s/m)
-
-##=======
-##>>>>>>> origin/v1
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -188,47 +127,35 @@ class PotentialEvapotranspiration(Component):
     }
 
     @use_file_name_or_kwds
-##<<<<<<< HEAD
-    def __init__(self, grid, method='Cosine', priestley_taylor_const=1.26,
-                 albedo=0.12, latent_heat_of_vaporization=28.34,
-                 psychometric_const=0.066, stefan_boltzmann_const=0.0000000567,
-                 solar_const=1366.67, latitude=34.,
-                 elevation_of_measurement=300, adjustment_coeff=0.18,
-                 lt=0., nd=365., MeanTmaxF=12., delta_d=5.,
-                 rl=130, zveg=0.3, LAI=2., zm=3.3, zh=None,
-                 air_density = 1.22, **kwds):
-##=======
-    def __init__(
-        self,
-        grid,
-        method="Cosine",
-        priestley_taylor_const=1.26,
-        albedo=0.6,
-        latent_heat_of_vaporization=28.34,
-        psychometric_const=0.066,
-        stefan_boltzmann_const=0.0000000567,
-        solar_const=1366.67,
-        latitude=34.0,
-        elevation_of_measurement=300,
-        adjustment_coeff=0.18,
-        lt=0.0,
-        nd=365.0,
-        MeanTmaxF=12.0,
-        delta_d=5.0,
-        **kwds
-    ):
-##>>>>>>> origin/v1
+    def __init__(self,
+                 grid,
+                 method='Cosine',
+                 priestley_taylor_const=1.26,
+                 albedo=0.12,
+                 latent_heat_of_vaporization=28.34,
+                 psychometric_const=0.066,
+                 stefan_boltzmann_const=0.0000000567,
+                 solar_const=1366.67,
+                 latitude=34.,
+                 elevation_of_measurement=300,
+                 adjustment_coeff=0.18,
+                 lt=0., nd=365.,
+                 MeanTmaxF=12.,
+                 delta_d=5.,
+                 rl=130,
+                 zveg=0.3,
+                 LAI=2.,
+                 zm=3.3,
+                 zh=None,
+                 air_density = 1.22,
+                 **kwds):
         """
         Parameters
         ----------
         grid: RasterModelGrid
             A grid.
-##<<<<<<< HEAD
         method: {'Constant', 'PriestleyTaylor', 'MeasuredRadiationPT',
                  'Cosine', 'PenmanMonteith'}, optional
-##=======
-        method: {'Constant', 'PriestleyTaylor', 'MeasuredRadiationPT', 'Cosine'}, optional
-##>>>>>>> origin/v1
             Priestley Taylor method will spit out radiation outputs too.
         priestley_taylor_constant: float, optional
             Alpha used in Priestley Taylor method.
@@ -299,31 +226,23 @@ class PotentialEvapotranspiration(Component):
 
         for name in self._output_var_names:
             if name not in self.grid.at_cell:
-##<<<<<<< HEAD
                 self.grid.add_zeros('cell', name, units=self._var_units[name])
 
         self._cell_values = self.grid['cell']
 
-    def update(self, current_time=None, const_potential_evapotranspiration=12.,
-               Tmin=None, Tmax=None, Tavg=None, obs_radiation=None,
-               relative_humidity=None, wind_speed=None,
-               co2_concentration=300., **kwds):
-##=======
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
-
-        self._cell_values = self.grid["cell"]
-
     def update(
-        self,
-        current_time=None,
-        const_potential_evapotranspiration=12.0,
-        Tmin=0.0,
-        Tmax=1.0,
-        Tavg=0.5,
-        obs_radiation=350.0,
-        **kwds
+           self,
+           current_time=None,
+           const_potential_evapotranspiration=12.,
+           Tmin=None,
+           Tmax=None,
+           Tavg=None,
+           obs_radiation=None,
+           relative_humidity=None,
+           wind_speed=None,
+           co2_concentration=300.,
+           **kwds
     ):
-##>>>>>>> origin/v1
         """Update fields with current conditions.
 
         Parameters
@@ -350,16 +269,11 @@ class PotentialEvapotranspiration(Component):
         co2_concentration: float (default=300.),
             CO2 concentration (ppm)
         """
-##<<<<<<< HEAD
         if self._method in ['PriestleyTaylor', 'MeasuredRadiationPT',
                             'PenmanMonteith']:
             if Tavg == None:
                 Tavg = (Tmax+Tmin)/2.
         if self._method == 'Constant':
-##=======
-
-        if self._method == "Constant":
-##>>>>>>> origin/v1
             self._PET_value = const_potential_evapotranspiration
         elif self._method == "PriestleyTaylor":
             self._PET_value = self._PriestleyTaylor(current_time, Tmax, Tmin, Tavg)
@@ -377,14 +291,18 @@ class PotentialEvapotranspiration(Component):
             )
         elif self._method == "MeasuredRadiationPT":
             Robs = obs_radiation
-##<<<<<<< HEAD
             self._PET_value = self._MeasuredRadPT(Tavg, (1-self._a)*Robs)
         elif self._method == 'Cosine':
             self._J = np.floor((current_time - np.floor(current_time)) * 365.)
             self._PET_value = (
-                max((self._TmaxF_mean + self._DeltaD / 2. *
-                     np.cos((2 * np.pi) * (self._J - self._LT - self._ND / 2) /
-                            self._ND)), 0.0))
+                max(
+                    (self._TmaxF_mean + self._DeltaD / 2.
+                     * np.cos((2 * np.pi)
+                     * (self._J - self._LT - self._ND / 2)
+                     / self._ND)),
+                     0.0,
+                )
+            )
         elif self._method == 'PenmanMonteith':
             self._PET_value = self._PenmanMonteith(Tavg, obs_radiation,
                                                    wind_speed,
@@ -396,23 +314,6 @@ class PotentialEvapotranspiration(Component):
                 self._PET_value = 0.
 
         # Spatially distributing PET
-##=======
-            self._PET_value = self._MeasuredRadPT(Tavg, (1 - self._a) * Robs)
-        elif self._method == "Cosine":
-            self._J = np.floor((current_time - np.floor(current_time)) * 365.0)
-            self._PET_value = max(
-                (
-                    self._TmaxF_mean
-                    + self._DeltaD
-                    / 2.0
-                    * np.cos(
-                        (2 * np.pi) * (self._J - self._LT - self._ND / 2) / self._ND
-                    )
-                ),
-                0.0,
-            )
-
-##>>>>>>> origin/v1
         self._PET = (
             self._PET_value * self._cell_values["radiation__ratio_to_flat_surface"]
         )
@@ -456,23 +357,13 @@ class PotentialEvapotranspiration(Component):
         # Extraterrestrial radmodel.docx - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 21, (48)
         # 11.57 converts 1 MJ/m^2/day to W/m^2
-##<<<<<<< HEAD
-        self._Ra = (11.57 * (24.0 / np.pi) * 4.92 * self._dr *
-                    ((self._ws * np.sin(self._phi) * np.sin(self._sdecl)) +
-                     (np.cos(self._phi) * np.cos(self._sdecl) *
-                     (np.sin(self._ws)))))
-##=======
         self._Ra = (
-            11.57
-            * (24.0 / np.pi)
-            * 4.92
-            * self._dr
+            (11.57 * (24.0 / np.pi) * 4.92 * self._dr)
             * (
                 (self._ws * np.sin(self._phi) * np.sin(self._sdecl))
                 + (np.cos(self._phi) * np.cos(self._sdecl) * (np.sin(self._ws)))
             )
         )
-##>>>>>>> origin/v1
 
         # Clear-sky Solar Radiation - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 19, (47)
