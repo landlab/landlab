@@ -1,7 +1,6 @@
+
 import numpy as np
-
 from landlab import Component
-
 from ...utils.decorators import use_file_name_or_kwds
 
 _VALID_METHODS = set(["Grid"])
@@ -187,7 +186,6 @@ class VegCA(Component):
         assert_method_is_valid(self._method)
 
         super(VegCA, self).__init__(grid)
-##<<<<<<< HEAD
         """
         Note: If the field 'vegetation__plant_functional_type' is not
         input, a random field will be generated.
@@ -222,13 +220,6 @@ class VegCA(Component):
             VegType[locs_shrubs[tp[
                 locs_shrubs] < self._tpmax_sh_s]] = SHRUBSEEDLING
             grid.at_cell['plant__age'] = tp
-##=======
-
-        if "vegetation__plant_functional_type" not in self.grid.at_cell:
-            grid["cell"]["vegetation__plant_functional_type"] = np.random.randint(
-                0, 6, grid.number_of_cells
-            )
-##>>>>>>> origin/v1
 
         for name in self._input_var_names:
             if name not in self.grid.at_cell:
@@ -240,25 +231,7 @@ class VegCA(Component):
 
         self._cell_values = self.grid["cell"]
 
-##<<<<<<< HEAD
     def update(self, time_elapsed=1, edit_vegcov=False):
-##=======
-        VegType = grid["cell"]["vegetation__plant_functional_type"]
-        tp = np.zeros(grid.number_of_cells, dtype=int)
-        tp[VegType == TREE] = np.random.randint(
-            0, self._tpmax_tr, np.where(VegType == TREE)[0].shape
-        )
-        tp[VegType == SHRUB] = np.random.randint(
-            0, self._tpmax_sh, np.where(VegType == SHRUB)[0].shape
-        )
-        locs_trees = np.where(VegType == TREE)[0]
-        locs_shrubs = np.where(VegType == SHRUB)[0]
-        VegType[locs_trees[tp[locs_trees] < self._tpmax_tr_s]] = TREESEEDLING
-        VegType[locs_shrubs[tp[locs_shrubs] < self._tpmax_sh_s]] = SHRUBSEEDLING
-        grid["cell"]["plant__age"] = tp
-
-    def update(self, time_elapsed=1, Edit_VegCov=True):
-##>>>>>>> origin/v1
         """
         Update fields with current loading conditions.
 
@@ -271,24 +244,16 @@ class VegCA(Component):
             will be output, (i.e.) if a cell is vegetated the corresponding
             cell of the field will be 1, otherwise it will be 0.
         """
-##<<<<<<< HEAD
         self._VegType = self._cell_values['vegetation__plant_functional_type']
         self._CumWS = self._cell_values[
             'vegetation__cumulative_water_stress']
         self._live_index = self._cell_values['plant__live_index']
         self._tp = self._cell_values['plant__age'] + time_elapsed
 #        self._tp_check_1 = np.copy(self._tp)
-##=======
-        self._VegType = self._cell_values["vegetation__plant_functional_type"]
-        self._CumWS = self._cell_values["vegetation__cumulative_water_stress"]
-        self._live_index = self._cell_values["plant__live_index"]
-        self._tp = self._cell_values["plant__age"] + time_elapsed
-##>>>>>>> origin/v1
 
         # Check if shrub and tree seedlings have matured
         shrub_seedlings = np.where(self._VegType == SHRUBSEEDLING)[0]
         tree_seedlings = np.where(self._VegType == TREESEEDLING)[0]
-##<<<<<<< HEAD
         self._shrub_seedlings = np.copy(shrub_seedlings)
         self._tree_seedlings = np.copy(tree_seedlings)
         matured_shrubs = np.where(self._tp[shrub_seedlings] >
@@ -297,10 +262,6 @@ class VegCA(Component):
         matured_trees = np.where(self._tp[tree_seedlings] >
                                  self._tpmax_tr_s)[0]
         self._matured_trees = np.copy(matured_trees)
-##=======
-        matured_shrubs = np.where(self._tp[shrub_seedlings] > self._tpmax_sh_s)[0]
-        matured_trees = np.where(self._tp[tree_seedlings] > self._tpmax_tr_s)[0]
-##>>>>>>> origin/v1
         self._VegType[shrub_seedlings[matured_shrubs]] = SHRUB
         self._VegType[tree_seedlings[matured_trees]] = TREE
         self._tp[shrub_seedlings[matured_shrubs]] = 0
@@ -313,12 +274,7 @@ class VegCA(Component):
         plant_cells = np.where(self._VegType != BARE)[0]        
 
         # Establishment
-##<<<<<<< HEAD
         self._live_index = 1 - self._CumWS      # Plant live index = 1 - WS
-##=======
-        self._live_index = 1 - self._CumWS  # Plant live index = 1 - WS
-        bare_cells = np.where(self._VegType == BARE)[0]
-##>>>>>>> origin/v1
         n_bare = len(bare_cells)
         first_ring = self.grid.looped_neighbors_at_cell[bare_cells]
         second_ring = self.grid.second_ring_looped_neighbors_at_cell[bare_cells]
@@ -329,16 +285,10 @@ class VegCA(Component):
         tr_phi_sr = phi_pft(veg_type_sr, TREE, self._live_index[second_ring])
 
         n = count(veg_type_fr, SHRUB)
-##<<<<<<< HEAD
         n[n==0] = 1./self._INg    # to avoid divide by zero errors for Peg calculation
         Phi_sh = sh_phi_fr/8.
         Phi_tr = (tr_phi_fr + tr_phi_sr/2.)/8.
         Phi_g = np.mean(self._live_index[np.where(self._VegType == GRASS)])   # Need to check how to deal with empty veg plot
-##=======
-        Phi_sh = Sh_WS_fr / 8.0
-        Phi_tr = (Tr_WS_fr + Tr_WS_sr / 2.0) / 8.0
-        Phi_g = np.mean(self._live_index[np.where(self._VegType == GRASS)])
-##>>>>>>> origin/v1
         Pemaxg = self._Pemaxg * np.ones(n_bare)
         Pemaxsh = self._Pemaxsh * np.ones(n_bare)
         Pemaxtr = self._Pemaxtr * np.ones(n_bare)
@@ -358,44 +308,13 @@ class VegCA(Component):
 
         # Mortality
         n_plant = len(plant_cells)
-##<<<<<<< HEAD
-        Theta = np.choose(self._VegType[plant_cells], [
-                          self._th_g, self._th_sh, self._th_tr,
-                          0, self._th_sh_s, self._th_tr_s])        
-        PMd = self._CumWS[plant_cells] - Theta
-        PMd[PMd < 0.] = 0.
-        # Multiplied 2 below to not kill seedlings
-        tpmax = np.choose(self._VegType[plant_cells], [
-                          200000, self._tpmax_sh, self._tpmax_tr,
-                          0, 2 * self._tpmax_sh_s, 2 * self._tpmax_tr_s])        
-        PMa = np.zeros(n_plant)
-        tp_plant = self._tp[plant_cells]
-        tp_greater = np.where(tp_plant > 0.5*tpmax)[0]        
-        PMa[tp_greater] = ((tp_plant[tp_greater] - 0.5 * tpmax[tp_greater]) /
-                           (0.5 * tpmax[tp_greater]))        
-        PMb = np.choose(self._VegType[plant_cells], [
-                        self._Pmb_g, self._Pmb_sh, self._Pmb_tr, 0,
-                        self._Pmb_sh_s, self._Pmb_tr_s])        
-        PM = PMd + PMa + PMb
-        PM[PM > 1.] = 1.        
-        R_Mor = np.random.rand(n_plant)  # Random number for comparison to kill        
-        Mortality = np.int32(np.where(np.greater_equal(PM, R_Mor) == True)[0])
-        self._VegType[plant_cells[Mortality]] = BARE
-        self._tp[plant_cells[Mortality]] = 0
-        self._cell_values['plant__age'] = self._tp
-
-        if edit_vegcov:
-            self.grid['cell']['vegetation__boolean_vegetated'] =             \
-                        np.zeros(self.grid.number_of_cells, dtype=int)
-            self.grid['cell']['vegetation__boolean_vegetated'][
-                        self._VegType != BARE] = 1
-##=======
         Theta = np.choose(
             self._VegType[plant_cells],
             [self._th_g, self._th_sh, self._th_tr, 0, self._th_sh_s, self._th_tr_s],
-        )
+        )        
         PMd = self._CumWS[plant_cells] - Theta
-        PMd[PMd < 0.0] = 0.0
+        PMd[PMd < 0.] = 0.
+        # Multiplied 2 below to not kill seedlings
         tpmax = np.choose(
             self._VegType[plant_cells],
             [
@@ -403,16 +322,19 @@ class VegCA(Component):
                 self._tpmax_sh,
                 self._tpmax_tr,
                 0,
-                self._tpmax_sh_s,
-                self._tpmax_tr_s,
+                2 * self._tpmax_sh_s,
+                2 * self._tpmax_tr_s,
             ],
-        )
+        )        
         PMa = np.zeros(n_plant)
         tp_plant = self._tp[plant_cells]
-        tp_greater = np.where(tp_plant > 0.5 * tpmax)[0]
+        tp_greater = np.where(tp_plant > 0.5*tpmax)[0]        
         PMa[tp_greater] = (
-            (tp_plant[tp_greater] - 0.5 * tpmax[tp_greater]) / (0.5 * tpmax[tp_greater])
-        ) - 1
+            (
+                tp_plant[tp_greater] - 0.5 * tpmax[tp_greater]
+            )
+            / (0.5 * tpmax[tp_greater])
+        )        
         PMb = np.choose(
             self._VegType[plant_cells],
             [
@@ -423,24 +345,22 @@ class VegCA(Component):
                 self._Pmb_sh_s,
                 self._Pmb_tr_s,
             ],
-        )
+        )        
         PM = PMd + PMa + PMb
-        PM[PM > 1.0] = 1.0
-        R_Mor = np.random.rand(n_plant)  # Random number for comparison to kill
-        Mortality = np.int32(np.where(np.greater_equal(PM, R_Mor))[0])
+        PM[PM > 1.] = 1.        
+        R_Mor = np.random.rand(n_plant)  # Random number for comparison to kill        
+        Mortality = np.int32(np.where(np.greater_equal(PM, R_Mor) == True)[0])
         self._VegType[plant_cells[Mortality]] = BARE
         self._tp[plant_cells[Mortality]] = 0
+        self._cell_values['plant__age'] = self._tp
 
-        self._cell_values["plant__age"] = self._tp
-
-        if Edit_VegCov:
-            self.grid["cell"]["vegetation__boolean_vegetated"] = np.zeros(
+        if edit_vegcov:
+            self.grid['cell']['vegetation__boolean_vegetated'] = np.zeros(
                 self.grid.number_of_cells, dtype=int
             )
-            self.grid["cell"]["vegetation__boolean_vegetated"][
+            self.grid['cell']['vegetation__boolean_vegetated'][
                 self._VegType != BARE
             ] = 1
-##>>>>>>> origin/v1
 
         # For debugging purposes
 #        self._n = n
