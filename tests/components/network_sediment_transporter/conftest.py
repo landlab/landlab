@@ -3,13 +3,12 @@ import numpy as np
 import pytest
 
 # from landlab.components import NetworkSedimentTransporter
-from landlab import BAD_INDEX_VALUE
 from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 from landlab.plot import graph
 
-_OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
+_OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
 
 @pytest.fixture()
@@ -26,16 +25,24 @@ def example_nmg():
     area = grid.add_ones("cell_area_at_node", at="node")
     grid.at_link["drainage_area"] = [100e6, 10e6, 70e6, 20e6, 70e6, 30e6, 40e6]  # m2
     grid.at_link["channel_slope"] = [0.01, 0.02, 0.01, 0.02, 0.02, 0.03, 0.03]
-    grid.at_link["link_length"] = [10000, 10000, 10000, 10000, 10000, 10000, 10000]  # m
+    grid.at_link["link_length"] = [
+        10000.0,
+        10000.0,
+        10000.0,
+        10000.0,
+        10000.0,
+        10000.0,
+        10000.0,
+    ]  # m
 
     grid.at_link["channel_width"] = 15 * np.ones(np.size(grid.at_link["drainage_area"]))
     return grid
 
+
 @pytest.fixture()
 def example_parcels(example_nmg):
     element_id = np.array(
-        [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 6],
-        dtype=int,
+        [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 6], dtype=int,
     )  # current link for each parcel
 
     element_id = np.expand_dims(element_id, axis=1)
