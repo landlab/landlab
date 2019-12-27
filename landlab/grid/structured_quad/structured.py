@@ -20,9 +20,7 @@ array([ 0,  4, 15, 19])
 """
 import numpy as np
 
-from landlab.utils.decorators import deprecated
-
-from ..base import FIXED_VALUE_BOUNDARY
+from ..nodestatus import NodeStatus
 from ..unstructured.base import BaseGrid
 from . import cells as quad_cells, faces as quad_faces, links as quad_links, nodes
 from .cells import StructuredQuadCellGrid
@@ -68,7 +66,7 @@ class StructuredQuadGrid(BaseGrid):
 
         if node_status is None:
             self._status = nodes.status_with_perimeter_as_boundary(
-                self.shape, node_status=FIXED_VALUE_BOUNDARY
+                self.shape, node_status=NodeStatus.FIXED_VALUE
             )
         else:
             self._status = node_status
@@ -113,8 +111,7 @@ class StructuredQuadGrid(BaseGrid):
 
     @property
     def shape(self):
-        """Shape of the grid as rows, columns.
-        """
+        """Shape of the grid as rows, columns."""
         return self._shape
 
     # @property
@@ -138,11 +135,6 @@ class StructuredQuadGrid(BaseGrid):
         Returns the number of rows, including boundaries.
         """
         return self.shape[0]
-
-    @property
-    @deprecated(use="nodes_at_corners_of_grid", version=1.0)
-    def corner_nodes(self):
-        return self.nodes_at_corners_of_grid
 
     @property
     def nodes_at_corners_of_grid(self):

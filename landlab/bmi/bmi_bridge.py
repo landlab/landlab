@@ -193,6 +193,10 @@ def wrap_as_bmi(cls):
 
     >>> BmiFlexure = wrap_as_bmi(Flexure)
     >>> flexure = BmiFlexure()
+    >>> sorted(flexure.get_input_var_names())
+    ['boundary_condition_flag', 'lithosphere__overlying_pressure_increment']
+    >>> flexure.get_var_units("lithosphere__overlying_pressure_increment")
+    'Pa'
 
     >>> config = \"\"\"
     ... flexure:
@@ -206,6 +210,11 @@ def wrap_as_bmi(cls):
     ...     RasterModelGrid:
     ...     - [20, 40]
     ...     - xy_spacing: [2000., 1000.]
+    ...     - fields:
+    ...        node:
+    ...          lithosphere__overlying_pressure_increment:
+    ...            constant:
+    ...              - value: 0.0
     ... \"\"\"
     >>> flexure.initialize(config)
     >>> sorted(flexure.get_output_var_names())
@@ -252,20 +261,20 @@ def wrap_as_bmi(cls):
             super(BmiWrapper, self).__init__()
 
             self._input_var_names = tuple(
-                set(self._cls._input_var_names) | {"boundary_condition_flag"}
+                set(self._cls.input_var_names) | {"boundary_condition_flag"}
             )
             self._output_var_names = tuple(
-                set(self._cls._output_var_names) | {"boundary_condition_flag"}
+                set(self._cls.output_var_names) | {"boundary_condition_flag"}
             )
-            self._var_mapping = self._cls._var_mapping.copy()
-            self._var_units = self._cls._var_units.copy()
-            self._var_doc = self._cls._var_doc.copy()
+            self._info = self._cls._info.copy()
 
-            self._var_mapping["boundary_condition_flag"] = "node"
-            self._var_units["boundary_condition_flag"] = ""
-            self._var_doc[
-                "boundary_condition_flag"
-            ] = "boundary condition flag of grid nodes"
+            self._info["boundary_condition_flag"] = {
+                "mapping": "node",
+                "units": "",
+                "dtype": int,
+                "intent": None,
+                "doc": "boundary condition flag of grid nodes",
+            }
 
         def get_component_name(self):
             """Name of the component."""
@@ -386,36 +395,36 @@ def wrap_as_bmi(cls):
 
         def get_var_grid(self, name):
             """Get the grid id for a variable."""
-            at = self._var_mapping[name]
+            at = self._info[name]["mapping"]
             return BMI_GRID[at]
 
         def get_var_itemsize(self, name):
             """Get the size of elements of a variable."""
-            at = self._var_mapping[name]
+            at = self._info[name]["mapping"]
             return self._base.grid[at][name].itemsize
 
         def get_var_nbytes(self, name):
             """Get the total number of bytes used by a variable."""
-            at = self._var_mapping[name]
+            at = self._info[name]["mapping"]
             return self._base.grid[at][name].nbytes
 
         def get_var_type(self, name):
             """Get the data type for a variable."""
-            at = self._var_mapping[name]
+            at = self._info[name]["mapping"]
             return str(self._base.grid[at][name].dtype)
 
         def get_var_units(self, name):
             """Get the unit used by a variable."""
-            return self._var_units[name]
+            return self._info[name]["units"]
 
         def get_value_ref(self, name):
             """Get a reference to a variable's data."""
-            at = self._var_mapping[name]
+            at = self._info[name]["mapping"]
             return self._base.grid[at][name]
 
         def get_value(self, name, dest):
             """Get a copy of a variable's data."""
-            at = self._var_mapping[name]
+            at = self._info[name]["mapping"]
             dest[:] = self._base.grid[at][name]
             return dest
 
@@ -425,7 +434,7 @@ def wrap_as_bmi(cls):
                 if name == "boundary_condition_flag":
                     self._base.grid.status_at_node = values
                 else:
-                    at = self._var_mapping[name]
+                    at = self._info[name]["mapping"]
                     self._base.grid[at][name][:] = values.flat
             else:
                 raise KeyError("{name} is not an input item".format(name=name))
@@ -536,19 +545,19 @@ def wrap_as_bmi(cls):
             # Only should be implemented for presently non-existant 3D grids.
 
         def get_value_at_indices(self, name, dest, inds):
-            at = self._var_mapping[name]
+            at = self._info[name]["mapping"]
             dest[:] = self._base.grid[at][name][inds]
             return dest
 
         def get_value_ptr(self, name):
-            at = self._var_mapping[name]
+            at = self._info[name]["mapping"]
             return self._base.grid[at][name]
 
         def get_var_location(self, name):
-            return BMI_LOCATION[self._var_mapping[name]]
+            return BMI_LOCATION[self._info[name]["mapping"]]
 
         def set_value_at_indices(self, name, inds, src):
-            at = self._var_mapping[name]
+            at = self._info[name]["mapping"]
             self._base.grid[at][name][inds] = src
 
     BmiWrapper.__name__ = cls.__name__

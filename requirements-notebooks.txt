@@ -1,0 +1,4 @@
+dask
+jupyter
+holoviews
+nbformat

@@ -7,46 +7,70 @@ DEFAULT_MINIMUM_TIME_STEP = 0.001  # default minimum time step duration
 
 
 class _GeneralizedErosionDeposition(Component):
-    """ Base class for erosion-deposition type components.
+    """Base class for erosion-deposition type components.
 
     More documenation here.
     """
 
-    _name = "ErosionDeposition"
+    _name = "_GeneralizedErosionDeposition"
 
-    _input_var_names = (
-        "flow__receiver_node",
-        "flow__upstream_node_order",
-        "topographic__steepest_slope",
-        "surface_water__discharge",
-    )
-
-    _output_var_names = "topographic__elevation"
-
-    _var_units = {
-        "flow__receiver_node": "-",
-        "flow__upstream_node_order": "-",
-        "topographic__steepest_slope": "-",
-        "surface_water__discharge": "m**2/s",
-        "topographic__elevation": "m",
-    }
-
-    _var_mapping = {
-        "flow__receiver_node": "node",
-        "flow__upstream_node_order": "node",
-        "topographic__steepest_slope": "node",
-        "surface_water__discharge": "node",
-        "topographic__elevation": "node",
-    }
-
-    _var_doc = {
-        "flow__receiver_node": "Node array of receivers (node that receives flow from current "
-        "node)",
-        "flow__upstream_node_order": "Node array containing downstream-to-upstream ordered list of "
-        "node IDs",
-        "topographic__steepest_slope": "Topographic slope at each node",
-        "surface_water__discharge": "Water discharge at each node",
-        "topographic__elevation": "Land surface topographic elevation",
+    _info = {
+        "flow__link_to_receiver_node": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__upstream_node_order": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
+        },
+        "sediment__flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m3/s",
+            "mapping": "node",
+            "doc": "Sediment flux (volume per unit time of sediment entering each node)",
+        },
+        "surface_water__discharge": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m**2/s",
+            "mapping": "node",
+            "doc": "Volumetric discharge of surface water",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "inout",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__steepest_slope": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "The steepest *downhill* slope",
+        },
     }
 
     def __init__(
@@ -58,6 +82,7 @@ class _GeneralizedErosionDeposition(Component):
         F_f,
         v_s,
         discharge_field="surface_water__discharge",
+        erode_flooded_nodes=True,
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
     ):
         """Initialize the ErosionDeposition model.
@@ -83,42 +108,56 @@ class _GeneralizedErosionDeposition(Component):
             Only applies when adaptive solver is used. Minimum timestep that
             adaptive solver will use when subdividing unstable timesteps.
             Default values is 0.001. [T].
+        erode_flooded_nodes : bool (optional)
+            Whether erosion occurs in flooded nodes identified by a
+            depression/lake mapper (e.g., DepressionFinderAndRouter). When set
+            to false, the field *flood_status_code* must be present on the grid
+            (this is created by the DepressionFinderAndRouter). Default True.
         """
         super(_GeneralizedErosionDeposition, self).__init__(grid)
 
-        self.flow_receivers = grid.at_node["flow__receiver_node"]
-        self.stack = grid.at_node["flow__upstream_node_order"]
-        self.topographic__elevation = grid.at_node["topographic__elevation"]
-        self.slope = grid.at_node["topographic__steepest_slope"]
-        self.link_to_reciever = grid.at_node["flow__link_to_receiver_node"]
-        self.cell_area_at_node = grid.cell_area_at_node
+        if not erode_flooded_nodes:
+            if "flood_status_code" not in self._grid.at_node:
+                msg = (
+                    "In order to not erode flooded nodes another component "
+                    "must create the field *flood_status_code*. You want to "
+                    "run a lake mapper/depression finder."
+                )
+                raise ValueError(msg)
+
+        self._erode_flooded_nodes = erode_flooded_nodes
+
+        self._flow_receivers = grid.at_node["flow__receiver_node"]
+        self._stack = grid.at_node["flow__upstream_node_order"]
+        self._topographic__elevation = grid.at_node["topographic__elevation"]
+        self._slope = grid.at_node["topographic__steepest_slope"]
+        self._link_to_reciever = grid.at_node["flow__link_to_receiver_node"]
+        self._cell_area_at_node = grid.cell_area_at_node
 
         if isinstance(grid, RasterModelGrid):
-            self.link_lengths = grid.length_of_d8
+            self._link_lengths = grid.length_of_d8
         else:
-            self.link_lengths = grid.length_of_link
+            self._link_lengths = grid.length_of_link
 
-        if "sediment__flux" in grid.at_node:
-            self.qs = grid.at_node["sediment__flux"]
-        else:
-            self.qs = grid.add_zeros("sediment__flux", at="node", dtype=float)
+        self.initialize_output_fields()
 
-        self.q = return_array_at_node(grid, discharge_field)
+        self._qs = grid.at_node["sediment__flux"]
+        self._q = return_array_at_node(grid, discharge_field)
 
         # Create arrays for sediment influx at each node, discharge to the
         # power "m", and deposition rate
-        self.qs_in = np.zeros(grid.number_of_nodes)
-        self.Q_to_the_m = np.zeros(grid.number_of_nodes)
-        self.S_to_the_n = np.zeros(grid.number_of_nodes)
-        self.depo_rate = np.zeros(grid.number_of_nodes)
+        self._qs_in = np.zeros(grid.number_of_nodes)
+        self._Q_to_the_m = np.zeros(grid.number_of_nodes)
+        self._S_to_the_n = np.zeros(grid.number_of_nodes)
+        self._depo_rate = np.zeros(grid.number_of_nodes)
 
         # store other constants
-        self.m_sp = float(m_sp)
-        self.n_sp = float(n_sp)
-        self.phi = float(phi)
-        self.v_s = float(v_s)
-        self.dt_min = dt_min
-        self.F_f = float(F_f)
+        self._m_sp = float(m_sp)
+        self._n_sp = float(n_sp)
+        self._phi = float(phi)
+        self._v_s = float(v_s)
+        self._dt_min = dt_min
+        self._F_f = float(F_f)
 
         if phi >= 1.0:
             raise ValueError("Porosity must be < 1.0")
@@ -157,10 +196,10 @@ class _GeneralizedErosionDeposition(Component):
         >>> rg.at_node['topographic__steepest_slope'][5:7]
         array([ 0.14142136,  0.14142136])
         """
-        self.slope[:] = (
-            self.topographic__elevation
-            - self.topographic__elevation[self.flow_receivers]
-        ) / self.link_lengths[self.link_to_reciever]
+        self._slope[:] = (
+            self._topographic__elevation
+            - self._topographic__elevation[self._flow_receivers]
+        ) / self._link_lengths[self._link_to_reciever]
 
     def _calc_hydrology(self):
-        self.Q_to_the_m[:] = np.power(self.q, self.m_sp)
+        self._Q_to_the_m[:] = np.power(self._q, self._m_sp)

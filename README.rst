@@ -1,6 +1,6 @@
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.154179.svg
    :target: https://doi.org/10.5281/zenodo.154179
-   
+
 .. image:: https://readthedocs.org/projects/landlab/badge/?version=latest
     :target: https://readthedocs.org/projects/landlab/?badge=latest
 
@@ -16,6 +16,8 @@
 .. image:: https://landscape.io/github/landlab/landlab/master/landscape.svg
     :target: https://landscape.io/github/landlab/landlab/master
 
+.. image:: https://mybinder.org/badge_logo.svg
+ :target: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb
 
 =======
 landlab
@@ -37,12 +39,14 @@ http://landlab.github.io
 
 This open-source manuscript is a gateway for entering the Landlab world:
 
-http://www.earth-surf-dynam.net/5/21/2017/
+https://www.earth-surf-dynam.net/5/21/2017/
 
-Two main installation options exist for Landlab. Most people will likely want to 
-`install the conda package <https://github.com/landlab/landlab/wiki/Installing-Landlab-with-Anaconda>`_. Individuals interested in modifying the Landlab source code should follow the `developer installation instructions <https://github.com/landlab/landlab/wiki/Installing-Landlab-from-source-code-(%22developer-install%22)>`_. 
+Two main installation options exist for Landlab. Most people will likely want to
+`install the conda package <https://landlab.readthedocs.io/en/latest/install/index.html>`_.
+Individuals interested in modifying the Landlab source code should follow the
+`developer installation instructions <https://landlab.readthedocs.io/en/latest/development/install/index.html>`_.
 
 The most current source code is always available from our git
 repository:
 
-http://github.com/landlab/landlab
+https://github.com/landlab/landlab

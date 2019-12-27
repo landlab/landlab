@@ -2,8 +2,6 @@ import numpy as np
 
 from landlab import Component
 
-from ...utils.decorators import use_file_name_or_kwds
-
 _VALID_METHODS = set(["Constant", "PriestleyTaylor", "MeasuredRadiationPT", "Cosine"])
 
 
@@ -31,9 +29,13 @@ class PotentialEvapotranspiration(Component):
     >>> from landlab.components.pet import PotentialEvapotranspiration
 
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
+    >>> grid['cell']['radiation__ratio_to_flat_surface'] = np.array([
+    ...       0.38488566, 0.38488566,
+    ...       0.33309785, 0.33309785,
+    ...       0.37381705, 0.37381705])
     >>> PET = PotentialEvapotranspiration(grid)
     >>> PET.name
-    'Potential Evapotranspiration'
+    'PotentialEvapotranspiration'
     >>> PET.input_var_names
     ('radiation__ratio_to_flat_surface',)
     >>> sorted(PET.output_var_names)
@@ -58,57 +60,65 @@ class PotentialEvapotranspiration(Component):
     >>> pet_rate = grid.at_cell['surface__potential_evapotranspiration_rate']
     >>> np.allclose(pet_rate, 0.)
     True
-    >>> grid['cell']['radiation__ratio_to_flat_surface'] = np.array([
-    ...       0.38488566, 0.38488566,
-    ...       0.33309785, 0.33309785,
-    ...       0.37381705, 0.37381705])
-    >>> current_time = 0.5
-    >>> PET.update(current_time)
+    >>> PET.current_time = 0.5
+    >>> PET.update()
     >>> np.allclose(pet_rate, 0.)
     False
     """
 
-    _name = "Potential Evapotranspiration"
+    _name = "PotentialEvapotranspiration"
 
-    _input_var_names = ("radiation__ratio_to_flat_surface",)
-
-    _output_var_names = (
-        "surface__potential_evapotranspiration_rate",
-        "radiation__incoming_shortwave_flux",
-        "radiation__net_shortwave_flux",
-        "radiation__net_longwave_flux",
-        "radiation__net_flux",
-    )
-
-    _var_units = {
-        "radiation__ratio_to_flat_surface": "None",
-        "surface__potential_evapotranspiration_rate": "mm",
-        "radiation__incoming_shortwave_flux": "W/m^2",
-        "radiation__net_shortwave_flux": "W/m^2",
-        "radiation__net_longwave_flux": "W/m^2",
-        "radiation__net_flux": "W/m^2",
+    _info = {
+        "radiation__incoming_shortwave_flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "W/m^2",
+            "mapping": "cell",
+            "doc": "total incident shortwave radiation over the time step",
+        },
+        "radiation__net_flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "W/m^2",
+            "mapping": "cell",
+            "doc": "net total radiation over the time step",
+        },
+        "radiation__net_longwave_flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "W/m^2",
+            "mapping": "cell",
+            "doc": "net incident longwave radiation over the time step",
+        },
+        "radiation__net_shortwave_flux": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "W/m^2",
+            "mapping": "cell",
+            "doc": "net incident shortwave radiation over the time step",
+        },
+        "radiation__ratio_to_flat_surface": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "ratio of total incident shortwave radiation on sloped surface to flat surface",
+        },
+        "surface__potential_evapotranspiration_rate": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "potential sum of evaporation and potential transpiration",
+        },
     }
 
-    _var_mapping = {
-        "radiation__ratio_to_flat_surface": "cell",
-        "surface__potential_evapotranspiration_rate": "cell",
-        "radiation__incoming_shortwave_flux": "cell",
-        "radiation__net_shortwave_flux": "cell",
-        "radiation__net_longwave_flux": "cell",
-        "radiation__net_flux": "cell",
-    }
-
-    _var_doc = {
-        "radiation__ratio_to_flat_surface": "ratio of total incident shortwave radiation on sloped surface \
-             to flat surface",
-        "surface__potential_evapotranspiration_rate": "potential sum of evaporation and potential transpiration",
-        "radiation__incoming_shortwave_flux": "total incident shortwave radiation over the time step",
-        "radiation__net_shortwave_flux": "net incident shortwave radiation over the time step",
-        "radiation__net_longwave_flux": "net incident longwave radiation over the time step",
-        "radiation__net_flux": "net total radiation over the time step",
-    }
-
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -126,7 +136,12 @@ class PotentialEvapotranspiration(Component):
         nd=365.0,
         MeanTmaxF=12.0,
         delta_d=5.0,
-        **kwds
+        current_time=None,
+        const_potential_evapotranspiration=12.0,
+        Tmin=0.0,
+        Tmax=1.0,
+        Tavg=0.5,
+        obs_radiation=350.0,
     ):
         """
         Parameters
@@ -161,7 +176,29 @@ class PotentialEvapotranspiration(Component):
             Mean annual rate of TmaxF (mm/d).
         delta_d: float, optional
             Calibrated difference between max & min daily TmaxF (mm/d).
+        current_time: float, required only for 'Cosine' method
+            Current time (Years)
+        const_potential_evapotranspiration: float, optional for
+            'Constant' method
+            Constant PET value to be spatially distributed.
+        Tmin: float, required for 'Priestley Taylor' method
+            Minimum temperature of the day (deg C)
+        Tmax: float, required for 'Priestley Taylor' method
+            Maximum temperature of the day (deg C)
+        Tavg: float, required for 'Priestley Taylor' and 'MeasuredRadiationPT'
+            methods
+            Average temperature of the day (deg C)
+        obs_radiation float, required for 'MeasuredRadiationPT' method
+            Observed radiation (W/m^2)
         """
+        super(PotentialEvapotranspiration, self).__init__(grid)
+
+        self.current_time = current_time
+        self.const_potential_evapotranspiration = const_potential_evapotranspiration
+        self.Tmin = Tmin
+        self.Tmax = Tmax
+        self.Tavg = Tavg
+        self.obs_radiation = obs_radiation
 
         self._method = method
         # For Priestley Taylor
@@ -180,52 +217,90 @@ class PotentialEvapotranspiration(Component):
         self._DeltaD = delta_d
         _assert_method_is_valid(self._method)
 
-        super(PotentialEvapotranspiration, self).__init__(grid, **kwds)
+        self.initialize_output_fields()
 
-        for name in self._input_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
+        self._cell_values = self._grid["cell"]
 
-        for name in self._output_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
+    @property
+    def const_potential_evapotranspiration(self):
+        """Constant PET value to be spatially distributed.
 
-        self._cell_values = self.grid["cell"]
+        Used by 'Constant' method.
+        """
+        return self._const_potential_evapotranspiration
 
-    def update(
-        self,
-        current_time=None,
-        const_potential_evapotranspiration=12.0,
-        Tmin=0.0,
-        Tmax=1.0,
-        Tavg=0.5,
-        obs_radiation=350.0,
-        **kwds
-    ):
+    @const_potential_evapotranspiration.setter
+    def const_potential_evapotranspiration(self, const_potential_evapotranspiration):
+        self._const_potential_evapotranspiration = const_potential_evapotranspiration
+
+    @property
+    def obs_radiation(self):
+        """Observed radiation (W/m^2)
+
+        obs_radiation float, required for 'MeasuredRadiationPT' method.
+        """
+        return self._obs_radiation
+
+    @obs_radiation.setter
+    def obs_radiation(self, obs_radiation):
+        self._obs_radiation = obs_radiation
+
+    @property
+    def Tmin(self):
+        """Minimum temperature of the day (deg C)
+
+        Tmin: float, required for 'Priestley Taylor' method.
+        """
+        return self._Tmin
+
+    @Tmin.setter
+    def Tmin(self, Tmin):
+        self._Tmin = Tmin
+
+    @property
+    def Tmax(self):
+        """Maximum temperature of the day (deg C)
+
+        Tmax: float, required for 'Priestley Taylor' method.
+        """
+        return self._Tmax
+
+    @Tmax.setter
+    def Tmax(self, Tmax):
+        self._Tmax = Tmax
+
+    @property
+    def Tavg(self):
+        """Average temperature of the day (deg C)
+
+        Tavg: float, required for 'Priestley Taylor' and 'MeasuredRadiationPT'
+        methods.
+        """
+        return self._Tavg
+
+    @Tavg.setter
+    def Tavg(self, Tavg):
+        self._Tavg = Tavg
+
+    def update(self):
         """Update fields with current conditions.
 
-        Parameters
-        ----------
-        current_time: float, required only for 'Cosine' method
-            Current time (Years)
-        constant_potential_evapotranspiration: float, optional for
-            'Constant' method
-            Constant PET value to be spatially distributed.
-        Tmin: float, required for 'Priestley Taylor' method
-            Minimum temperature of the day (deg C)
-        Tmax: float, required for 'Priestley Taylor' method
-            Maximum temperature of the day (deg C)
-        Tavg: float, required for 'Priestley Taylor' and 'MeasuredRadiationPT'
-            methods
-            Average temperature of the day (deg C)
-        obs_radiation float, required for 'MeasuredRadiationPT' method
-            Observed radiation (W/m^2)
+        If the 'Constant' method is used, this method looks to the value of
+        the ``const_potential_evapotranspiration`` property.
+
+        If the 'PriestleyTaylor' method is used, this method looks to the
+        values of the ``Tmin``, ``Tmax``, and ``Tavg`` properties.
+
+        If the 'MeasuredRadiationPT' method is use this method looks to the
+        values of the ``Tavg`` and ``obs_radiation`` property.
         """
 
         if self._method == "Constant":
-            self._PET_value = const_potential_evapotranspiration
+            self._PET_value = self._const_potential_evapotranspiration
         elif self._method == "PriestleyTaylor":
-            self._PET_value = self._PriestleyTaylor(current_time, Tmax, Tmin, Tavg)
+            self._PET_value = self._PriestleyTaylor(
+                self._current_time, self._Tmax, self._Tmin, self._Tavg
+            )
             self._cell_values["radiation__incoming_shortwave_flux"] = (
                 self._Rs * self._cell_values["radiation__ratio_to_flat_surface"]
             )
@@ -239,10 +314,12 @@ class PotentialEvapotranspiration(Component):
                 self._Rn * self._cell_values["radiation__ratio_to_flat_surface"]
             )
         elif self._method == "MeasuredRadiationPT":
-            Robs = obs_radiation
-            self._PET_value = self._MeasuredRadPT(Tavg, (1 - self._a) * Robs)
+            Robs = self._obs_radiation
+            self._PET_value = self._MeasuredRadPT(self._Tavg, (1 - self._a) * Robs)
         elif self._method == "Cosine":
-            self._J = np.floor((current_time - np.floor(current_time)) * 365.0)
+            self._J = np.floor(
+                (self._current_time - np.floor(self._current_time)) * 365.0
+            )
             self._PET_value = max(
                 (
                     self._TmaxF_mean

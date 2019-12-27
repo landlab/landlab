@@ -2,8 +2,6 @@ import numpy as np
 
 from landlab import Component
 
-from ...utils.decorators import use_file_name_or_kwds
-
 _VALID_METHODS = set(["Grid", "Multi"])
 
 
@@ -13,8 +11,7 @@ def assert_method_is_valid(method):
 
 
 class SoilMoisture(Component):
-    """
-    Landlab component that simulates root-zone average soil moisture at each
+    """Landlab component that simulates root-zone average soil moisture at each
     cell using inputs of potential evapotranspiration, live leaf area index,
     and vegetation cover.
 
@@ -58,6 +55,11 @@ class SoilMoisture(Component):
      ('vegetation__water_stress', 'None')]
     >>> grid['cell']['vegetation__plant_functional_type']= (
     ...            np.zeros(grid.number_of_cells, dtype=int))
+    >>> _ = grid.add_zeros("vegetation__cover_fraction", at="cell")
+    >>> _ = grid.add_zeros("vegetation__live_leaf_area_index", at="cell")
+    >>> _ = grid.add_zeros("surface__potential_evapotranspiration_rate", at="cell")
+    >>> _ = grid.add_zeros("soil_moisture__initial_saturation_fraction", at="cell")
+    >>> _ = grid.add_zeros("rainfall__daily_depth", at="cell")
     >>> SM = SoilMoisture(grid)
     >>> SM.grid.number_of_cell_rows
     3
@@ -77,80 +79,107 @@ class SoilMoisture(Component):
     ...        2. * np.ones(grid.number_of_cells))
     >>> grid['cell']['vegetation__cover_fraction']= (
     ...        np.ones(grid.number_of_cells))
-    >>> current_time = 0.5
     >>> grid['cell']['rainfall__daily_depth'] = (
     ...        25. * np.ones(grid.number_of_cells))
-    >>> current_time = SM.update(current_time)
+    >>> SM.current_time = 0.5
+    >>> current_time = SM.update()
     >>> np.allclose(grid.at_cell['soil_moisture__saturation_fraction'], 0.)
     False
     """
 
     _name = "Soil Moisture"
 
-    _input_var_names = (
-        "vegetation__cover_fraction",
-        "vegetation__live_leaf_area_index",
-        "surface__potential_evapotranspiration_rate",
-        "soil_moisture__initial_saturation_fraction",
-        "vegetation__plant_functional_type",
-        "rainfall__daily_depth",
-    )
-
-    _output_var_names = (
-        "vegetation__water_stress",
-        "soil_moisture__saturation_fraction",
-        "soil_moisture__root_zone_leakage",
-        "surface__runoff",
-        "surface__evapotranspiration",
-    )
-
-    _var_units = {
-        "vegetation__cover_fraction": "None",
-        "vegetation__live_leaf_area_index": "None",
-        "surface__potential_evapotranspiration_rate": "mm",
-        "vegetation__plant_functional_type": "None",
-        "vegetation__water_stress": "None",
-        "soil_moisture__saturation_fraction": "None",
-        "soil_moisture__initial_saturation_fraction": "None",
-        "soil_moisture__root_zone_leakage": "mm",
-        "surface__runoff": "mm",
-        "surface__evapotranspiration": "mm",
-        "rainfall__daily_depth": "mm",
+    _info = {
+        "rainfall__daily_depth": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "Rain in (mm) as a field, allowing spatio-temporal soil moisture saturation analysis.",
+        },
+        "soil_moisture__initial_saturation_fraction": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "initial soil_moisture__saturation_fraction",
+        },
+        "soil_moisture__root_zone_leakage": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "leakage of water into deeper portions of the soil not accessible to the plant",
+        },
+        "soil_moisture__saturation_fraction": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "relative volumetric water content (theta) - limits=[0,1]",
+        },
+        "surface__evapotranspiration": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "actual sum of evaporation and plant transpiration",
+        },
+        "surface__potential_evapotranspiration_rate": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "potential sum of evaporation and potential transpiration",
+        },
+        "surface__runoff": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "mm",
+            "mapping": "cell",
+            "doc": "runoff from ground surface",
+        },
+        "vegetation__cover_fraction": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "fraction of land covered by vegetation",
+        },
+        "vegetation__live_leaf_area_index": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "one-sided green leaf area per unit ground surface area",
+        },
+        "vegetation__plant_functional_type": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "classification of plants (int), grass=0, shrub=1, tree=2, bare=3, shrub_seedling=4, tree_seedling=5",
+        },
+        "vegetation__water_stress": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "parameter that represents nonlinear effects of water deficit on plants",
+        },
     }
 
-    _var_mapping = {
-        "vegetation__cover_fraction": "cell",
-        "vegetation__live_leaf_area_index": "cell",
-        "surface__potential_evapotranspiration_rate": "cell",
-        "vegetation__plant_functional_type": "cell",
-        "vegetation__water_stress": "cell",
-        "soil_moisture__saturation_fraction": "cell",
-        "soil_moisture__initial_saturation_fraction": "cell",
-        "soil_moisture__root_zone_leakage": "cell",
-        "surface__runoff": "cell",
-        "surface__evapotranspiration": "cell",
-        "rainfall__daily_depth": "cell",
-    }
-
-    _var_doc = {
-        "vegetation__cover_fraction": "fraction of land covered by vegetation",
-        "vegetation__live_leaf_area_index": "one-sided green leaf area per unit ground surface area",
-        "surface__potential_evapotranspiration_rate": "potential sum of evaporation and plant transpiration",
-        "vegetation__plant_functional_type": "classification of plants (int), grass=0, shrub=1, tree=2, \
-             bare=3, shrub_seedling=4, tree_seedling=5",
-        "vegetation__water_stress": "parameter that represents nonlinear effects of water deficit \
-             on plants",
-        "soil_moisture__saturation_fraction": "relative volumetric water content (theta) - limits=[0,1]",
-        "soil_moisture__initial_saturation_fraction": "initial soil_moisture__saturation_fraction",
-        "soil_moisture__root_zone_leakage": "leakage of water into deeper portions of the soil not accessible \
-             to the plant",
-        "surface__runoff": "runoff from ground surface",
-        "surface__evapotranspiration": "actual sum of evaporation and plant transpiration",
-        "rainfall__daily_depth": "Rain in (mm) as a field, allowing spatio-temporal soil moisture \
-             saturation analysis.",
-    }
-
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -205,7 +234,10 @@ class SoilMoisture(Component):
         beta_bare=13.8,
         LAI_max_bare=0.01,
         LAIR_max_bare=0.01,
-        **kwds
+        method="Grid",
+        Tb=24.0,
+        Tr=0.0,
+        current_time=0,
     ):
         """
         Parameters
@@ -244,12 +276,22 @@ class SoilMoisture(Component):
             Maximum leaf area index (m^2/m^2).
         LAIR_max: float, optional
             Reference leaf area index (m^2/m^2).
+        method: str
+            Method used
+        Tr: float, optional
+            Storm duration (hours).
+        Tb: float, optional
+            Inter-storm duration (hours).
+        current_time: float
+              Current time (years).
         """
-        self._method = kwds.pop("method", "Grid")
-
-        assert_method_is_valid(self._method)
-
         super(SoilMoisture, self).__init__(grid)
+
+        self.current_time = 0
+        self._method = method
+        self.Tr = Tr
+        self.Tb = Tb
+        assert_method_is_valid(self._method)
 
         self.initialize(
             runon=runon,
@@ -303,20 +345,33 @@ class SoilMoisture(Component):
             beta_bare=beta_bare,
             LAI_max_bare=LAI_max_bare,
             LAIR_max_bare=LAIR_max_bare,
-            **kwds
         )
 
-        for name in self._input_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
+        self.initialize_output_fields()
 
-        for name in self._output_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
+        self._nodal_values = self._grid["node"]
 
-        self._nodal_values = self.grid["node"]
+        self._cell_values = self._grid["cell"]
 
-        self._cell_values = self.grid["cell"]
+    @property
+    def Tb(self):
+        """Storm duration (hours)."""
+        return self._Tb
+
+    @Tb.setter
+    def Tb(self, Tb):
+        assert Tb >= 0
+        self._Tb = Tb
+
+    @property
+    def Tr(self):
+        """Inter-storm duration (hours)."""
+        return self._Tr
+
+    @Tr.setter
+    def Tr(self, Tr):
+        assert Tr >= 0
+        self._Tr = Tr
 
     def initialize(
         self,
@@ -371,7 +426,6 @@ class SoilMoisture(Component):
         beta_bare=13.8,
         LAI_max_bare=0.01,
         LAIR_max_bare=0.01,
-        **kwds
     ):
         # GRASS = 0; SHRUB = 1; TREE = 2; BARE = 3;
         # SHRUBSEEDLING = 4; TREESEEDLING = 5
@@ -415,7 +469,7 @@ class SoilMoisture(Component):
             Reference leaf area index (m^2/m^2).
         """
 
-        self._vegtype = self.grid["cell"]["vegetation__plant_functional_type"]
+        self._vegtype = self._grid["cell"]["vegetation__plant_functional_type"]
         self._runon = runon
         self._fbare = f_bare
         self._interception_cap = np.choose(
@@ -495,19 +549,16 @@ class SoilMoisture(Component):
             ],
         )
 
-    def update(self, current_time=0.0, Tb=24.0, Tr=0.0, **kwds):
-        """
-        Update fields with current loading conditions.
+    def update(self):
+        """Update fields with current loading conditions.
 
-        Parameters
-        ----------
-        current_time: float
-            Current time (years).
-        Tr: float, optional
-            Storm duration (hours).
-        Tb: float, optional
-            Inter-storm duration (hours).
+        This method looks to the properties ``current_time``, ``Tb``,
+        and ``Tr``, and uses their values in updating fields.
         """
+        Tb = self._Tb
+        Tr = self._Tr
+        current_time = self._current_time
+
         P_ = self._cell_values["rainfall__daily_depth"]
         self._PET = self._cell_values["surface__potential_evapotranspiration_rate"]
         self._SO = self._cell_values["soil_moisture__initial_saturation_fraction"]
@@ -523,14 +574,14 @@ class SoilMoisture(Component):
         # LAIl = self._cell_values['vegetation__live_leaf_area_index']
         # LAIt = LAIl+self._cell_values['DeadLeafAreaIndex']
         # if LAIt.all() == 0.:
-        #     self._fr = np.zeros(self.grid.number_of_cells)
+        #     self._fr = np.zeros(self._grid.number_of_cells)
         # else:
         #     self._fr = (self._vegcover[0]*LAIl/LAIt)
         self._fr[self._fr > 1.0] = 1.0
         self._Sini = np.zeros(self._SO.shape)
         self._ETmax = np.zeros(self._SO.shape)
 
-        for cell in range(0, self.grid.number_of_cells):
+        for cell in range(0, self._grid.number_of_cells):
             P = P_[cell]
             # print cell
             s = self._SO[cell]
@@ -696,5 +747,5 @@ class SoilMoisture(Component):
             self._SO[cell] = s
             self._Sini[cell] = sini
 
-        current_time += (Tb + Tr) / (24.0 * 365.25)
+        self.current_time += (Tb + Tr) / (24.0 * 365.25)
         return current_time

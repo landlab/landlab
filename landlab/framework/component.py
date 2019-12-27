@@ -1,7 +1,5 @@
 #! /usr/bin/env python
-"""
-Utility functions for loading components for The Landlab.
-"""
+"""Utility functions for loading components for The Landlab."""
 
 import os
 
@@ -18,8 +16,7 @@ else:
 
 
 def iscomponent(value, cls):
-    """
-    Check if *value* is a component for The Landlab. *value* is a component
+    """Check if *value* is a component for The Landlab. *value* is a component
     if it implements the *cls* or it is an instance of *cls*.
 
     Returns ``True`` if *value* is a component, otherwise ``False``.
@@ -35,10 +32,11 @@ def iscomponent(value, cls):
 
 
 def load_components_from_dir(path, cls):
-    """
-    Look for components for Landlab in *path*. Identify components as being an
-    instance of *cls*. Returns a dictionary of discovered component names as
-    keys and component classes as values.
+    """Look for components for Landlab in *path*.
+
+    Identify components as being an instance of *cls*. Returns a
+    dictionary of discovered component names as keys and component
+    classes as values.
     """
     import sys
     import imp
@@ -64,8 +62,7 @@ def load_components_from_dir(path, cls):
 
 
 def load_components(cls, paths=None):
-    """
-    Load components from a series of directories.
+    """Load components from a series of directories.
 
     Components found earlier in the search path order override those
     discovered later. Use the *paths* keyword to specify a list of paths to
@@ -85,9 +82,9 @@ def load_components(cls, paths=None):
 
 
 def load_landlab_components(paths=None):
-    """
-    Load components for The Landlab. These are classes that implement BmiBase.
-    See :func:`load_components_from_dir` for the meaning of *paths* keyword.
+    """Load components for The Landlab. These are classes that implement
+    BmiBase. See :func:`load_components_from_dir` for the meaning of *paths*
+    keyword.
 
     .. seealso::
 

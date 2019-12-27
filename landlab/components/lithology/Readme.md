@@ -7,9 +7,9 @@ Software](http://joss.theoj.org) publication. Click the badge above to be
 directed to the paper.
 
 There is a [jupyter notebook in the Landlab Tutorials
-repository](https://nbviewer.jupyter.org/github/landlab/tutorials/blob/next/lithology/lithology_and_litholayers.ipynb)
+repository](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/lithology/lithology_and_litholayers.ipynb)
 that describes the use of this submodule.
 
 If you have any questions, comments, issues, or bugs related to this submodule,
-please [open an Issue](https://github.com/landlab/landlab/issues/new) so we can
+please [open an Issue](https://github.com/landlab/landlab/issues) so we can
 respond.
