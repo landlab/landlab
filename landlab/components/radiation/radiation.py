@@ -56,7 +56,6 @@ class Radiation(Component):
     True
     >>> np.all(grid.at_node['topographic__elevation'] == 0.)
     True
-
     >>> grid['node']['topographic__elevation'] = np.array([
     ...       0., 0., 0., 0.,
     ...       1., 1., 1., 1.,

@@ -1,5 +1,4 @@
 from .chi_index import ChiFinder
-from .cubic_nonlinear_hillslope_flux import CubicNonLinearDiffuser
 from .depth_dependent_diffusion import DepthDependentDiffuser
 from .depth_dependent_taylor_soil_creep import DepthDependentTaylorDiffuser
 from .detachment_ltd_erosion import DepthSlopeProductErosion, DetachmentLtdErosion
@@ -56,7 +55,6 @@ from .weathering import ExponentialWeatherer
 
 COMPONENTS = [
     ChiFinder,
-    CubicNonLinearDiffuser,
     GroundwaterDupuitPercolator,
     LinearDiffuser,
     LateralEroder,
