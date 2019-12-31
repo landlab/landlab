@@ -8,9 +8,8 @@ import numpy as np
 
 
 class StablePriorityQueue:
-    """
-    Implements a stable priority queue, that tracks insertion order; i.e., this
-    is used to break ties.
+    """Implements a stable priority queue, that tracks insertion order; i.e.,
+    this is used to break ties.
 
     See https://docs.python.org/2/library/heapq.html#priority-queue-implementation-notes
     & https://www.sciencedirect.com/science/article/pii/S0098300413001337
@@ -66,7 +65,7 @@ class StablePriorityQueue:
         # last one tracks all nodes that have ever been added
 
     def add_task(self, task, priority=0):
-        "Add a new task or update the priority of an existing task."
+        """Add a new task or update the priority of an existing task."""
         if task == self._REMOVED:
             raise ValueError("StablePriorityQueue cannot accept tasks equal to INF!")
         if task in self._entry_finder:
@@ -78,12 +77,18 @@ class StablePriorityQueue:
         self._tasks_ever_in_queue.append(task)
 
     def remove_task(self, task):
-        "Mark an existing task as _REMOVED.  Raise KeyError if not found."
+        """Mark an existing task as _REMOVED.
+
+        Raise KeyError if not found.
+        """
         entry = self._entry_finder.pop(task)
         entry[-1] = self._REMOVED
 
     def pop_task(self):
-        "Remove and return the lowest priority task. Raise KeyError if empty."
+        """Remove and return the lowest priority task.
+
+        Raise KeyError if empty.
+        """
         while self._pq:
             priority, count, task = heapq.heappop(self._pq)
             if task is not self._REMOVED:
@@ -92,9 +97,9 @@ class StablePriorityQueue:
         raise KeyError("pop from an empty priority queue")
 
     def peek_at_task(self):
-        """
-        Return the lowest priority task without removal. Raise KeyError if
-        empty.
+        """Return the lowest priority task without removal.
+
+        Raise KeyError if empty.
         """
         while self._pq:
             priority, count, task = self._pq[0]
@@ -103,15 +108,15 @@ class StablePriorityQueue:
         raise KeyError("peeked at an empty priority queue")
 
     def tasks_currently_in_queue(self):
-        "Return array of nodes currently in the queue."
+        """Return array of nodes currently in the queue."""
         mynodes = [
             task for (priority, count, task) in self._pq if task is not self._REMOVED
         ]
         return np.array(mynodes)
 
     def tasks_ever_in_queue(self):
-        """
-        Return array of all nodes ever added to this queue object. Repeats
-        are permitted.
+        """Return array of all nodes ever added to this queue object.
+
+        Repeats are permitted.
         """
         return np.array(self._tasks_ever_in_queue)

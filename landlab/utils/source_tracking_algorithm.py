@@ -3,7 +3,7 @@
 Source Tracking Algorithm
 +++++++++++++++++++++++++
 .. autosummary::
-    :toctree: generated/
+
     ~landlab.utils.source_tracking_algorithm.convert_arc_flow_directions_to_landlab_node_ids
     ~landlab.utils.source_tracking_algorithm.track_source
     ~landlab.utils.source_tracking_algorithm.find_unique_upstream_hsd_ids_and_fractions
@@ -11,11 +11,17 @@ Source Tracking Algorithm
 Authors: Sai Nudurupati & Erkan Istanbulluoglu
 
 Ref 1: 'The Landlab LandslideProbability Component User Manual' @
-https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.docx
+https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.pdf
 
-MD - Modeling Domain - Raster grid that is being analyzed/worked upon.
-HSD - Hydrologic Source Domain - Grid that is at least as coarse as MD. For
-      more info, refer Ref 1
++----------+-------------------------------------------------------------------+
+| Notation | Definition                                                        |
++==========+===================================================================+
+| MD       | Modeling Domain - Raster grid that is being analyzed/worked upon. |
++----------+-------------------------------------------------------------------+
++ HSD      | Hydrologic Source Domain - Grid that is at least as coarse as MD. |
+|          | For more info, refer Ref 1                                        |
++----------+-------------------------------------------------------------------+
+
 """
 import copy
 from collections import Counter
@@ -24,7 +30,7 @@ import numpy as np
 
 
 def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
-    """Convert Arc flow_directions to RasterModelGrid node ids
+    """Convert Arc flow_directions to RasterModelGrid node ids.
 
     This function receives flow directions (D8) from ESRI ArcGIS and converts
     them to Landlab's RasterModelGrid node id. ESRI ArcGIS D8 flow directions
@@ -32,7 +38,7 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
     adjacent cells into which flow could travel. The valid output directions
     are powers of 2 starting from 2^0 (1) in the Eastern neighbor going
     clockwise to 2^7 (128) at Northeastern neighbor. For more information
-    refer 'http://pro.arcgis.com/en/pro-app/tool-reference/spatial-analyst/
+    refer 'https://pro.arcgis.com/en/pro-app/tool-reference/spatial-analyst/
     how-flow-direction-works.htm'
 
     Parameters
@@ -75,7 +81,7 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
 # have neighbors that are real values and not -1s.
 # Note 2: Nodes in the following comments in this section refer to core nodes.
 def track_source(grid, hsd_ids, flow_directions=None):
-    """Track all contributing upstream core nodes for each core node
+    """Track all contributing upstream core nodes for each core node.
 
     This algorithm traverses the grid based on information of flow directions
     at nodes and at every node identifies all the nodes upstream of a given

@@ -26,8 +26,8 @@ cdef calc_area_of_patch(long * nodes_at_patch, long n_vertices,
                         double * x_of_node, double * y_of_node):
     cdef int n
     cdef int node
-    cdef float * x_of_vertex = <float *>malloc(n_vertices * sizeof(float))
-    cdef float * y_of_vertex = <float *>malloc(n_vertices * sizeof(float))
+    cdef double * x_of_vertex = <double *>malloc(n_vertices * sizeof(double))
+    cdef double * y_of_vertex = <double *>malloc(n_vertices * sizeof(double))
 
     try:
         for n in range(n_vertices):
@@ -63,8 +63,8 @@ cdef calc_centroid_of_patch(long * nodes_at_patch, long n_vertices,
                             double * x_of_node, double * y_of_node, double * out):
     cdef int n
     cdef int node
-    cdef float * x = <float *>malloc(n_vertices * sizeof(float))
-    cdef float * y = <float *>malloc(n_vertices * sizeof(float))
+    cdef double * x = <double *>malloc(n_vertices * sizeof(double))
+    cdef double * y = <double *>malloc(n_vertices * sizeof(double))
 
     try:
         for n in range(n_vertices):
@@ -80,12 +80,12 @@ cdef calc_centroid_of_patch(long * nodes_at_patch, long n_vertices,
         free(x)
 
 
-cdef calc_centroid_of_polygon(float * x, float * y, long n_vertices,
+cdef calc_centroid_of_polygon(double * x, double * y, long n_vertices,
                               double * out):
-    cdef float x_of_centroid = 0.
-    cdef float y_of_centroid = 0.
-    cdef float area = calc_area_of_polygon(x, y, n_vertices)
-    cdef float c
+    cdef double x_of_centroid = 0.
+    cdef double y_of_centroid = 0.
+    cdef double area = calc_area_of_polygon(x, y, n_vertices)
+    cdef double c
     cdef int n
 
     c = x[n_vertices - 1] * y[0] - x[0] * y[n_vertices - 1]
@@ -108,8 +108,8 @@ cdef calc_centroid_of_polygon(float * x, float * y, long n_vertices,
     out[1] = y_of_centroid
 
 
-cdef calc_area_of_polygon(float * x, float * y, long n_vertices):
-    cdef float area = 0.
+cdef calc_area_of_polygon(double * x, double * y, long n_vertices):
+    cdef double area = 0.
     cdef int n
 
     for n in range(n_vertices - 1):

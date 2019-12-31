@@ -10,12 +10,10 @@ Modified Feb 2014
 """
 import numpy as np
 
-from landlab import BAD_INDEX_VALUE
 from landlab.core.utils import as_id_array
+from landlab.grid.base import BAD_INDEX_VALUE
 
 from .cfuncs import adjust_flow_receivers
-
-UNDEFINED_INDEX = BAD_INDEX_VALUE
 
 
 def flow_directions(
@@ -60,7 +58,7 @@ def flow_directions(
         IDs of nodes that are flow sinks (they are their own receivers)
     receiver_link : ndarray
         ID of link that leads from each node to its receiver, or
-        UNDEFINED_INDEX if none.
+        BAD_INDEX_VALUE if none.
 
     Examples
     --------
@@ -69,7 +67,7 @@ def flow_directions(
     re-created.
 
     >>> import numpy as np
-    >>> from landlab.components.flow_routing import flow_directions
+    >>> from landlab.components.flow_director import flow_directions
     >>> z = np.array([2.4, 1.0, 2.2, 3.0, 0.0, 1.1, 2.0, 2.3, 3.1, 3.2])
     >>> fn = np.array([1,4,4,0,1,2,5,1,5,6,7,7,8,6,3,3,2,0])
     >>> tn = np.array([4,5,7,1,2,5,6,5,7,7,8,9,9,8,8,6,3,3])
@@ -94,7 +92,7 @@ def flow_directions(
     num_nodes = len(elev)
     steepest_slope = np.zeros(num_nodes)
     receiver = np.arange(num_nodes)
-    receiver_link = UNDEFINED_INDEX + np.zeros(num_nodes, dtype=np.int)
+    receiver_link = BAD_INDEX_VALUE + np.zeros(num_nodes, dtype=np.int)
 
     # For each link, find the higher of the two nodes. The higher is the
     # potential donor, and the lower is the potential receiver. If the slope
@@ -122,7 +120,7 @@ def flow_directions(
     # Optionally, handle baselevel nodes: they are their own receivers
     if baselevel_nodes is not None:
         receiver[baselevel_nodes] = node_id[baselevel_nodes]
-        receiver_link[baselevel_nodes] = UNDEFINED_INDEX
+        receiver_link[baselevel_nodes] = BAD_INDEX_VALUE
         steepest_slope[baselevel_nodes] = 0.0
 
     # The sink nodes are those that are their own receivers (this will normally

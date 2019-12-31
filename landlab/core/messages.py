@@ -11,10 +11,6 @@ This module also provides convenience functions for print
 particular types of messages. Warning and error messages,
 for instance.
 
-Examples
---------
->>> from __future__ import print_function
-
 Oftentimes when writing code we may need to print a lengthy
 message for the user. This may result in code that looks like
 the following.
@@ -89,18 +85,16 @@ Traceback (most recent call last):
 ...
 AssertionError
 """
-from __future__ import print_function
+
 
 import os
 import re
 import sys
 import textwrap
 
-import six
-
 
 def indent_and_wrap(content, indent=""):
-    """Indent and wrap some text
+    """Indent and wrap some text.
 
     Lines are first dedented to remove common leading whitespace,
     then indented according to the value of *indent*, and then
@@ -122,7 +116,6 @@ def indent_and_wrap(content, indent=""):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.core.messages import indent_and_wrap
     >>> content = '''@book{knuth1998art,
     ...     title={The art of computer programming: sorting and searching},
@@ -219,7 +212,6 @@ def format_message(msg, header=None, footer=None, linesep=os.linesep):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.core.messages import format_message
     >>> text = '''
     ... Lorem ipsum dolor sit amet, consectetur
@@ -241,11 +233,11 @@ def format_message(msg, header=None, footer=None, linesep=os.linesep):
     Dictumst vestibulum rhoncus est pellentesque. Sed viverra tellus in
     hac habitasse platea dictumst vestibulum rhoncus.
     """
-    if isinstance(header, six.string_types):
+    if isinstance(header, str):
         header = [header]
     header = header or []
 
-    if isinstance(footer, six.string_types):
+    if isinstance(footer, str):
         footer = [footer]
     footer = footer or []
 
@@ -275,7 +267,6 @@ def deprecation_message(msg=None, **kwds):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.core.messages import deprecation_message
     >>> print(deprecation_message("Dictumst vestibulum rhoncus est pellentesque."))
     DEPRECATION WARNING
@@ -324,7 +315,6 @@ def warning_message(msg=None, **kwds):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.core.messages import warning_message
     >>> print(warning_message('Dictumst vestibulum rhoncus est pellentesque.'))
     WARNING
@@ -353,7 +343,6 @@ def error_message(msg=None, **kwds):
 
     Examples
     --------
-    >>> from __future__ import print_function
     >>> from landlab.core.messages import error_message
     >>> print(error_message('Dictumst vestibulum rhoncus est pellentesque.'))
     ERROR
@@ -372,10 +361,11 @@ def assert_or_print(cond, msg=None, onerror="raise", file=sys.stdout):
 
     Specify an action to take if an assertion fails, depending on
     the values of *onerror*. *onerror* must be one of:
-        *  "pass": do nothing if the assertion passes or fails.
-        *  "warn": print a warning message if the assertion fails.
-        *  "error": print an error message and raise an `AssertionError`
-           on failure.
+
+    * "pass": do nothing if the assertion passes or fails.
+    * "warn": print a warning message if the assertion fails.
+    * "error": print an error message and raise an `AssertionError`
+      on failure.
 
     Parameters
     ----------

@@ -53,8 +53,7 @@ class RectilinearGrid(StructuredQuadGrid):
 
     @property
     def coord(self):
-        """Node row and column coordinates.
-        """
+        """Node row and column coordinates."""
         return self._coord
 
     @property
@@ -135,20 +134,17 @@ class UniformRectilinearGrid(RectilinearGrid):
 
     @property
     def spacing(self):
-        """Spacing of rows and columns of grid nodes.
-        """
+        """Spacing of rows and columns of grid nodes."""
         return self._spacing
 
     @property
     def dy(self):
-        """Spacing between rows of grid nodes.
-        """
+        """Spacing between rows of grid nodes."""
         return self._spacing[0]
 
     @property
     def dx(self):
-        """Spacing between columns of grid nodes.
-        """
+        """Spacing between columns of grid nodes."""
         return self._spacing[1]
 
 

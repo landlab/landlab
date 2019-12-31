@@ -11,17 +11,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # from landlab.components import NetworkSedimentTransporter
-from landlab import BAD_INDEX_VALUE
 from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 from landlab.plot import graph
+from landlab.plot.network_sediment_transporter import (
+    plot_network_links,
+    plot_network_parcels,
+)
 
-from landlab.plot.network_sediment_transporter import plot_network_links
-from landlab.plot.network_sediment_transporter import plot_network_parcels
-#from landlab.plot.network_sediment_transporter import *  # Note-- this is an example. it loads plotting scripts that don't exist yet.
+# from landlab.plot.network_sediment_transporter import *  # Note-- this is an example. it loads plotting scripts that don't exist yet.
 
-_OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
+_OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
 # %% Set the geometry using Network model grid (should be able to read in a shapefile here)
 
@@ -46,7 +47,18 @@ area = grid.add_ones("cell_area_at_node", at="node")
 
 grid.at_link["drainage_area"] = [100e6, 10e6, 70e6, 20e6, 70e6, 30e6, 40e6]  # m2
 grid.at_link["channel_slope"] = [0.01, 0.02, 0.01, 0.02, 0.02, 0.03, 0.03]
-grid.at_link["link_length"] = [10000, 10000, 10000, 10000, 10000, 10000, 10000]  # m
+grid.at_link["link_length"] = [
+    10000.0,
+    10000.0,
+    10000.0,
+    10000.0,
+    10000.0,
+    10000.0,
+    10000.0,
+]  # m
+## Why are we not using grid.length_of_link? Is it because this is the full
+# squiggly path rather than the node-to-node.
+
 
 grid.at_link["channel_width"] = 15 * np.ones(
     np.size(grid.at_link["drainage_area"])
@@ -74,16 +86,14 @@ bed_porosity = 0.3  # porosity of the bed material
 
 timesteps = 8
 
-element_id = np.repeat(np.array([0, 1, 2, 3, 4, 5, 6], dtype=int),
-                       100
-                       )
+element_id = np.repeat(np.array([0, 1, 2, 3, 4, 5, 6], dtype=int), 100)
 
-#  
-#element_id = np.array(
-#    [0, 0, 1, 1, 1, 
+#
+# element_id = np.array(
+#    [0, 0, 1, 1, 1,
 #     5, 2, 2, 3, 3, 4, 4, 5, 5, 5, 5, 6, 6, 2, 3, 4, 4, 4, 3, 4, 5],
 #    dtype=int,
-#) # current link for each parcel
+# ) # current link for each parcel
 
 element_id = np.expand_dims(element_id, axis=1)
 
@@ -195,8 +205,8 @@ nst = NetworkSedimentTransporter(
 # %% Run the component(s)
 
 for t in range(0, (timesteps * dt), dt):
-    #print("timestep ", [t], "started")
-    print("Model time: ", t/(60*60*24), "days passed")
+    # print("timestep ", [t], "started")
+    print("Model time: ", t / (60 * 60 * 24), "days passed")
     # move any sediment additions from forcing Item collector to bed item collector
 
     # sq.run_one_step
@@ -210,8 +220,8 @@ for t in range(0, (timesteps * dt), dt):
 
 
 #%%
-#from landlab.plot.network import plot_pathway
-#plot_pathway(nst, time=3, link=4)
+# from landlab.plot.network import plot_pathway
+# plot_pathway(nst, time=3, link=4)
 
 # %% A few plot outputs, just to get started.
 
@@ -263,9 +273,13 @@ lnkvol = np.empty([len(grid.at_link),])
 lnkvol[:] = np.nan
 # Composite link attributes
 for i in range(len(grid.at_link)):
-    lnkvol[i]=np.sum(parcels.dataset.volume[(parcels.dataset.element_id[:,parcel_time])==i, parcel_time])        
+    lnkvol[i] = np.sum(
+        parcels.dataset.volume[
+            (parcels.dataset.element_id[:, parcel_time]) == i, parcel_time
+        ]
+    )
 link_attribute = lnkvol
-#link_attribute = grid.at_link["GridID"]
+# link_attribute = grid.at_link["GridID"]
 
 # plot_network_links(nmg, nmg.at_link["channel_width"])
 # plot_network_links(nmg, an_array_I_made_from_fancy_calculations)
@@ -279,14 +293,14 @@ plot_network_links(grid, link_attribute)
 parcel_time = 3
 
 # Determine color and size of parcels based on a parcel attribute
-parcel_color = parcels.dataset.element_id[:,parcel_time]
+parcel_color = parcels.dataset.element_id[:, parcel_time]
 parcel_size = 15
 
 # Determine color and size of parcels based on a link attribute
 # Need to map link attributes back to parcels based on element id
 # NEXT NEXT: based on the code above it will be worthwhile to write a function that maps link attributes to parcels and another function that compiles link attributes from parcels. Then we can just call that function above and here.
-#parcel_color = parcels.dataset.element_id[:,parcel_time]
-#parcel_size = 15
+# parcel_color = parcels.dataset.element_id[:,parcel_time]
+# parcel_size = 15
 
 plot_network_parcels(grid, parcels, parcel_time, parcel_color, parcel_size)
 
@@ -299,6 +313,7 @@ graph.plot_graph(grid, at="node,link")
 # also see:
 link_number = 4
 downstream_link_id = fd.link_to_flow_receiving_node[
-        fd.downstream_node_at_link()[link_number]]
+    fd.downstream_node_at_link()[link_number]
+]
 
 # %% 5. Develop GUI to more quickly interface with calling these plotting functions.

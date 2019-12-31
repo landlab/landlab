@@ -10,23 +10,25 @@ This code has been adapted from Katy's "Example import of Network Data.ipynb":
 @author: Jon Czuba, Allison Pfeiffer, Katy Barnhart
 """
 import os
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.collections import LineCollection
-    
+
 from landlab.io import read_shapefile
+from landlab.plot import graph
 
-# %%   
-DATA_DIR = './data/'
+# %%
+DATA_DIR = "./data/"
 
 
-file = os.path.join(DATA_DIR, 'Test_Network.shp')
+file = os.path.join(DATA_DIR, "Test_Network.shp")
 grid = read_shapefile(file)
 
 # %%
 # for plotting and testing
-x_of_polylines = grid['link']['x_of_polyline']
-y_of_polylines = grid['link']['y_of_polyline']
+x_of_polylines = grid["link"]["x_of_polyline"]
+y_of_polylines = grid["link"]["y_of_polyline"]
 
 segments = []
 
@@ -37,15 +39,15 @@ for i in range(len(x_of_polylines)):
     segments.append(segment)
 
 
-from landlab.plot import graph
-fig, ax = plt.subplots(figsize=(8,8), dpi=300)
+fig, ax = plt.subplots(figsize=(8, 8), dpi=300)
 
 
-graph.plot_links(grid, color='c', linestyle='solid', with_id=False,
-               as_arrow=False, linewidth=1)
-graph.plot_nodes(grid, color='r', with_id=False, markersize=1)
+graph.plot_links(
+    grid, color="c", linestyle="solid", with_id=False, as_arrow=False, linewidth=1
+)
+graph.plot_nodes(grid, color="r", with_id=False, markersize=1)
 
-line_segments = LineCollection(segments, color='b', linewidth=0.5)
+line_segments = LineCollection(segments, color="b", linewidth=0.5)
 ax.add_collection(line_segments)
 
 fig.show()

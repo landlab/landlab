@@ -1,142 +1,382 @@
+from abc import ABC, abstractmethod
+from functools import lru_cache
+
 import numpy as np
 
-from ...utils.decorators import store_result_in_grid
+from ...utils.decorators import read_only_array
 from ..graph import Graph
-from .ext.at_link import fill_nodes_at_link, fill_patches_at_link
-from .ext.at_node import (
-    fill_link_dirs_at_node,
-    fill_links_at_node,
-    fill_patches_at_node,
-    fill_perimeter_nodes,
-)
-from .ext.at_patch import fill_links_at_patch
 
 
-def setup_horizontal_links(shape):
-    from .ext.at_link import fill_horizontal_links
+class StructuredQuadLayout(ABC):
+    @staticmethod
+    def corner_nodes(shape):
+        n_rows, n_cols = shape
+        return (n_rows * n_cols - 1, (n_rows - 1) * n_cols, 0, n_cols - 1)
 
-    n_horizontal_links = shape[0] * (shape[1] - 1)
-    horizontal_links = np.empty(n_horizontal_links, dtype=int)
-    fill_horizontal_links(shape, horizontal_links)
-    return horizontal_links
+    @abstractmethod
+    def links_at_patch(shape):
+        ...
 
+    @abstractmethod
+    def nodes_at_link(shape):
+        ...
 
-def setup_vertical_links(shape):
-    from .ext.at_link import fill_vertical_links
+    @abstractmethod
+    def horizontal_links(shape):
+        ...
 
-    n_vertical_links = (shape[0] - 1) * shape[1]
-    vertical_links = np.empty(n_vertical_links, dtype=int)
-    fill_vertical_links(shape, vertical_links)
-    return vertical_links
+    @abstractmethod
+    def vertical_links(shape):
+        ...
 
+    @abstractmethod
+    def perimeter_nodes(shape):
+        ...
 
-def setup_perimeter_nodes(shape):
-    n_perimeter_nodes = 2 * shape[0] + 2 * (shape[1] - 2)
-    perimeter_nodes = np.empty(n_perimeter_nodes, dtype=int)
-    fill_perimeter_nodes(shape, perimeter_nodes)
-    return perimeter_nodes
+    @abstractmethod
+    def links_at_node(shape):
+        ...
 
+    @abstractmethod
+    def patches_at_link(shape):
+        ...
 
-def setup_link_dirs_at_node(shape):
-    n_nodes = shape[0] * shape[1]
-    link_dirs_at_node = np.empty((n_nodes, 4), dtype=int)
-    fill_link_dirs_at_node(shape, link_dirs_at_node)
-    return link_dirs_at_node
+    @abstractmethod
+    def link_dirs_at_node(shape):
+        ...
 
-
-def setup_links_at_node(shape):
-    n_nodes = shape[0] * shape[1]
-    links_at_node = np.empty((n_nodes, 4), dtype=int)
-    fill_links_at_node(shape, links_at_node)
-    return links_at_node
-
-
-def setup_links_at_patch(shape):
-    """Get links that define patches for a raster grid.
-
-    Examples
-    --------
-    >>> from landlab.graph.structured_quad.structured_quad import setup_links_at_patch
-    >>> setup_links_at_patch((3, 4)) # doctest: +NORMALIZE_WHITESPACE
-    array([[ 4,  7,  3,  0], [ 5,  8,  4,  1], [ 6,  9,  5,  2],
-           [11, 14, 10,  7], [12, 15, 11,  8], [13, 16, 12,  9]])
-    """
-    n_patches = (shape[0] - 1) * (shape[1] - 1)
-    links_at_patch = np.empty((n_patches, 4), dtype=int)
-    fill_links_at_patch(shape, links_at_patch)
-    return links_at_patch
+    @abstractmethod
+    def patches_at_node(shape):
+        ...
 
 
-def setup_nodes_at_link(shape):
-    """
-    Examples
-    --------
-    >>> from landlab.graph.structured_quad.structured_quad import setup_nodes_at_link
-    >>> setup_nodes_at_link((3, 4)) # doctest: +NORMALIZE_WHITESPACE
-    array([[ 0,  1], [ 1,  2], [ 2,  3],
-           [ 0,  4], [ 1,  5], [ 2,  6], [ 3,  7],
-           [ 4,  5], [ 5,  6], [ 6,  7],
-           [ 4,  8], [ 5,  9], [ 6, 10], [ 7, 11],
-           [ 8,  9], [ 9, 10], [10, 11]])
-    """
-    n_links = shape[0] * (shape[1] - 1) + (shape[0] - 1) * shape[1]
-    nodes_at_link = np.empty((n_links, 2), dtype=int)
-    fill_nodes_at_link(shape, nodes_at_link)
+class StructuredQuadLayoutCython(StructuredQuadLayout):
+    @staticmethod
+    def links_at_patch(shape):
+        """Get links that define patches for a raster grid.
 
-    return nodes_at_link
+        Examples
+        --------
+        >>> from landlab.graph.structured_quad.structured_quad import StructuredQuadLayoutCython
+        >>> StructuredQuadLayoutCython.links_at_patch((3, 4))
+        array([[ 4,  7,  3,  0], [ 5,  8,  4,  1], [ 6,  9,  5,  2],
+               [11, 14, 10,  7], [12, 15, 11,  8], [13, 16, 12,  9]])
+        """
+        from .ext.at_patch import fill_links_at_patch
+
+        n_patches = (shape[0] - 1) * (shape[1] - 1)
+        links_at_patch = np.empty((n_patches, 4), dtype=int)
+        fill_links_at_patch(shape, links_at_patch)
+        return links_at_patch
+
+    @staticmethod
+    def nodes_at_link(shape):
+        """
+        Examples
+        --------
+        >>> from landlab.graph.structured_quad.structured_quad import StructuredQuadLayoutCython
+        >>> StructuredQuadLayoutCython.nodes_at_link((3, 4))
+        array([[ 0,  1], [ 1,  2], [ 2,  3],
+               [ 0,  4], [ 1,  5], [ 2,  6], [ 3,  7],
+               [ 4,  5], [ 5,  6], [ 6,  7],
+               [ 4,  8], [ 5,  9], [ 6, 10], [ 7, 11],
+               [ 8,  9], [ 9, 10], [10, 11]])
+        """
+        from .ext.at_link import fill_nodes_at_link
+
+        n_links = shape[0] * (shape[1] - 1) + (shape[0] - 1) * shape[1]
+        nodes_at_link = np.empty((n_links, 2), dtype=int)
+        fill_nodes_at_link(shape, nodes_at_link)
+
+        return nodes_at_link
+
+    @staticmethod
+    def horizontal_links(shape):
+        from .ext.at_link import fill_horizontal_links
+
+        n_horizontal_links = shape[0] * (shape[1] - 1)
+        horizontal_links = np.empty(n_horizontal_links, dtype=int)
+        fill_horizontal_links(shape, horizontal_links)
+
+        return horizontal_links
+
+    @staticmethod
+    def vertical_links(shape):
+        from .ext.at_link import fill_vertical_links
+
+        n_vertical_links = (shape[0] - 1) * shape[1]
+        vertical_links = np.empty(n_vertical_links, dtype=int)
+        fill_vertical_links(shape, vertical_links)
+
+        return vertical_links
+
+    @staticmethod
+    def perimeter_nodes(shape):
+        from .ext.at_node import fill_perimeter_nodes
+
+        n_perimeter_nodes = 2 * shape[0] + 2 * (shape[1] - 2)
+        perimeter_nodes = np.empty(n_perimeter_nodes, dtype=int)
+        fill_perimeter_nodes(shape, perimeter_nodes)
+
+        return perimeter_nodes
+
+    @staticmethod
+    def links_at_node(shape):
+        from .ext.at_node import fill_links_at_node
+
+        n_nodes = shape[0] * shape[1]
+        links_at_node = np.empty((n_nodes, 4), dtype=int)
+        fill_links_at_node(shape, links_at_node)
+
+        return links_at_node
+
+    @staticmethod
+    def patches_at_link(shape):
+        from .ext.at_link import fill_patches_at_link
+
+        n_links = shape[0] * (shape[1] - 1) + (shape[0] - 1) * shape[1]
+        patches_at_link = np.empty((n_links, 2), dtype=int)
+        fill_patches_at_link(shape, patches_at_link)
+
+        return patches_at_link
+
+    @staticmethod
+    def link_dirs_at_node(shape):
+        from .ext.at_node import fill_link_dirs_at_node
+
+        n_nodes = shape[0] * shape[1]
+        link_dirs_at_node = np.empty((n_nodes, 4), dtype=np.int8)
+        fill_link_dirs_at_node(shape, link_dirs_at_node)
+        return link_dirs_at_node
+
+    @staticmethod
+    def patches_at_node(shape):
+        from .ext.at_node import fill_patches_at_node
+
+        n_nodes = shape[0] * shape[1]
+        patches_at_node = np.empty((n_nodes, 4), dtype=int)
+        fill_patches_at_node(shape, patches_at_node)
+
+        return patches_at_node
 
 
-def setup_patches_at_node(shape):
-    n_nodes = shape[0] * shape[1]
-    patches_at_node = np.empty((n_nodes, 4), dtype=int)
-    fill_patches_at_node(shape, patches_at_node)
+class StructuredQuadLayoutPython(StructuredQuadLayout):
+    @staticmethod
+    def links_at_patch(shape):
+        n_rows, n_cols = shape
+        n_patches = (shape[0] - 1) * (shape[1] - 1)
+        links_at_patch = np.empty((4, n_patches), dtype=int)
 
-    return patches_at_node
+        patches = np.arange(n_patches, dtype=int).reshape((n_rows - 1, n_cols - 1))
+        south_links = patches + np.arange(n_rows - 1).reshape((n_rows - 1, 1)) * n_cols
+        links_at_patch[3, :] = south_links.flat
+        links_at_patch[2, :] = links_at_patch[3, :] + n_cols - 1
+        links_at_patch[1, :] = links_at_patch[3, :] + 2 * n_cols - 1
+        links_at_patch[0, :] = links_at_patch[2, :] + 1
+
+        return links_at_patch.T
+
+    @staticmethod
+    def nodes_at_link(shape):
+        n_rows, n_cols = shape
+
+        nodes_at_link = np.empty(
+            (2, n_rows * (n_cols - 1) + (n_rows - 1) * n_cols), dtype=int
+        )
+        nodes = np.arange(n_rows * n_cols, dtype=int).reshape((n_rows, n_cols))
+
+        nodes_at_link[0, -(n_cols - 1) :] = nodes[-1, :-1]
+        nodes_at_link[1, -(n_cols - 1) :] = nodes[-1, 1:]
+
+        head_nodes = nodes_at_link[0, : -(n_cols - 1)].reshape(
+            (n_rows - 1, 2 * n_cols - 1)
+        )
+        head_nodes[:, : n_cols - 1] = nodes[:-1, :-1]
+        head_nodes[:, n_cols - 1 :] = nodes[:-1, :]
+
+        tail_nodes = nodes_at_link[1, : -(n_cols - 1)].reshape(
+            (n_rows - 1, 2 * n_cols - 1)
+        )
+        tail_nodes[:, : n_cols - 1] = nodes[:-1, 1:]
+        tail_nodes[:, n_cols - 1 :] = nodes[1:, :]
+
+        return nodes_at_link.T
+
+    @staticmethod
+    def horizontal_links(shape):
+        n_rows, n_cols = shape
+        horizontal_links = np.empty((n_rows, n_cols - 1), dtype=int)
+        horizontal_links[:, :] = np.arange(n_cols - 1)
+        horizontal_links[:, :] += np.arange(n_rows).reshape((n_rows, 1)) * (
+            2 * n_cols - 1
+        )
+
+        return horizontal_links.reshape(-1)
+
+    @staticmethod
+    def vertical_links(shape):
+        n_rows, n_cols = shape
+
+        vertical_links = np.empty((n_rows - 1, n_cols), dtype=int)
+        vertical_links[:, :] = np.arange(n_cols) + n_cols - 1
+        vertical_links[:, :] += np.arange(n_rows - 1).reshape((n_rows - 1, 1)) * (
+            2 * n_cols - 1
+        )
+
+        return vertical_links.reshape(-1)
+
+    @staticmethod
+    def perimeter_nodes(shape):
+        n_rows, n_cols = shape
+        (
+            northeast,
+            northwest,
+            southwest,
+            southeast,
+        ) = StructuredQuadLayout.corner_nodes(shape)
+
+        return np.concatenate(
+            (
+                np.arange(southeast, northeast, n_cols),
+                np.arange(northeast, northwest, -1),
+                np.arange(northwest, southwest, -n_cols),
+                np.arange(southwest, southeast, 1),
+            )
+        )
+
+    @staticmethod
+    def links_at_node(shape):
+        n_rows, n_cols = shape
+
+        links_at_node = np.empty((n_rows * n_cols, 4), dtype=int)
+
+        east_links_at_node = links_at_node[:, 0].reshape((n_rows, n_cols))[:, :-1]
+        east_links_at_node[:] = StructuredQuadLayoutPython.horizontal_links(
+            shape
+        ).reshape((n_rows, n_cols - 1))
+        west_links_at_node = links_at_node[:, 2].reshape((n_rows, n_cols))[:, 1:]
+        west_links_at_node[:] = StructuredQuadLayoutPython.horizontal_links(
+            shape
+        ).reshape((n_rows, n_cols - 1))
+
+        north_links_at_node = links_at_node[:, 1].reshape((n_rows, n_cols))[:-1, :]
+        north_links_at_node[:] = StructuredQuadLayoutPython.vertical_links(
+            shape
+        ).reshape((n_rows - 1, n_cols))
+        south_links_at_node = links_at_node[:, 3].reshape((n_rows, n_cols))[1:, :]
+        south_links_at_node[:] = StructuredQuadLayoutPython.vertical_links(
+            shape
+        ).reshape((n_rows - 1, n_cols))
+
+        (
+            northeast,
+            northwest,
+            southwest,
+            southeast,
+        ) = StructuredQuadLayout.corner_nodes(shape)
+        bottom = slice(southwest, southeast + 1)
+        top = slice(northwest, northeast + 1)
+        left = slice(southwest, northwest + n_cols, n_cols)
+        right = slice(southeast, northeast + n_cols, n_cols)
+
+        for col, edge in enumerate((right, top, left, bottom)):
+            links_at_node[edge, col] = -1
+
+        return links_at_node
+
+    @staticmethod
+    def patches_at_link(shape):
+        n_rows, n_cols = shape
+        n_links = shape[0] * (shape[1] - 1) + (shape[0] - 1) * shape[1]
+        n_patches = (n_rows - 1) * (n_cols - 1)
+        patches = np.arange(n_patches, dtype=int).reshape((n_rows - 1, n_cols - 1))
+
+        patches_at_link = np.empty((2, n_links), dtype=int)
+        patches_at_link[0, : n_cols - 1] = -1
+        patches_at_link[1, -(n_cols - 1) :] = -1
+
+        right = (0, slice(n_cols - 1, n_links))
+        left = (1, slice(0, -(n_cols - 1)))
+        for edge in (right, left):
+            edge_patches = patches_at_link[edge].reshape((n_rows - 1, 2 * n_cols - 1))
+            edge_patches[:, : n_cols - 1] = patches
+            edge_patches[:, n_cols - 1] = -1
+            edge_patches[:, -(n_cols - 1) :] = patches
+
+        return patches_at_link.T
+
+    @staticmethod
+    def link_dirs_at_node(shape):
+        n_rows, n_cols = shape
+        (
+            northeast,
+            northwest,
+            southwest,
+            southeast,
+        ) = StructuredQuadLayout.corner_nodes(shape)
+
+        link_dirs_at_node = np.empty((n_rows * n_cols, 4), dtype=np.int8)
+        link_dirs_at_node[:, 0] = -1
+        link_dirs_at_node[:, 1] = -1
+        link_dirs_at_node[:, 2] = 1
+        link_dirs_at_node[:, 3] = 1
+
+        bottom = slice(southwest, southeast + 1)
+        top = slice(northwest, northeast + 1)
+        left = slice(southwest, northwest + n_cols, n_cols)
+        right = slice(southeast, northeast + n_cols, n_cols)
+
+        for col, edge in enumerate((right, top, left, bottom)):
+            link_dirs_at_node[edge, col] = 0
+
+        return link_dirs_at_node
+
+    @staticmethod
+    def patches_at_node(shape):
+        n_rows, n_cols = shape
+
+        patches_at_node = np.empty((4, n_rows * n_cols), dtype=int)
+
+        ne = (slice(n_rows - 1), slice(n_cols - 1))
+        nw = (slice(n_rows - 1), slice(1, n_cols))
+        sw = (slice(1, n_rows), slice(1, n_cols))
+        se = (slice(1, n_rows), slice(n_cols - 1))
+
+        patches = np.arange((n_rows - 1) * (n_cols - 1), dtype=int).reshape(
+            (n_rows - 1, n_cols - 1)
+        )
+        for col, nodes in enumerate((ne, nw, sw, se)):
+            patches_at_node[col].reshape((n_rows, n_cols))[nodes] = patches
+
+        (
+            northeast,
+            northwest,
+            southwest,
+            southeast,
+        ) = StructuredQuadLayout.corner_nodes(shape)
+        bottom = slice(southwest, southeast + 1)
+        top = slice(northwest, northeast + 1)
+        left = slice(southwest, northwest + n_cols, n_cols)
+        right = slice(southeast, northeast + n_cols, n_cols)
+
+        patches_at_node[0, right] = -1
+        patches_at_node[0, top] = -1
+        patches_at_node[1, left] = -1
+        patches_at_node[1, top] = -1
+        patches_at_node[2, left] = -1
+        patches_at_node[2, bottom] = -1
+        patches_at_node[3, right] = -1
+        patches_at_node[3, bottom] = -1
+
+        return patches_at_node.T
 
 
-def setup_patches_at_link(shape):
-    n_links = shape[0] * (shape[1] - 1) + (shape[0] - 1) * shape[1]
-    patches_at_link = np.empty((n_links, 2), dtype=int)
-    fill_patches_at_link(shape, patches_at_link)
+class StructuredQuadGraphTopology:
+    _layout = StructuredQuadLayoutCython
 
-    return patches_at_link
+    def __init__(self, shape):
+        self._shape = tuple(shape)
 
-
-def setup_node_coords(shape, spacing=1.0, origin=0.0):
-    spacing = np.broadcast_to(spacing, 2)
-    origin = np.broadcast_to(origin, 2)
-
-    rows = np.arange(shape[0], dtype=float) * spacing[0] + origin[0]
-    cols = np.arange(shape[1], dtype=float) * spacing[1] + origin[1]
-
-    return setup_node_coords_rectilinear((rows, cols))
-
-
-def setup_node_coords_rectilinear(coords):
-    rows = np.asarray(coords[0], dtype=float)
-    cols = np.asarray(coords[1], dtype=float)
-
-    node_y_and_x = np.meshgrid(rows, cols, indexing="ij")
-    return setup_node_coords_structured(node_y_and_x)
-
-
-def setup_node_coords_structured(coords, shape=None):
-    node_y = np.asarray(coords[0], dtype=float)
-    node_x = np.asarray(coords[1], dtype=float)
-
-    if shape:
-        node_y.shape = shape
-        node_x.shape = shape
-    else:
-        node_x.shape = node_y.shape
-
-    if node_y.shape != node_x.shape:
-        raise ValueError("shape mismatch in node x and y coordinates")
-
-    return (node_y, node_x)
-
-
-class StructuredQuadGraphExtras(object):
     @property
     def shape(self):
         return self._shape
@@ -150,18 +390,40 @@ class StructuredQuadGraphExtras(object):
         return self._shape[1]
 
     @property
+    @lru_cache()
+    @read_only_array
+    def nodes(self):
+        """A shaped array of node ids.
+
+        Returns
+        -------
+        ndarray
+            Node IDs in an array shaped as *number_of_node_rows* by
+            *number_of_node_columns*.
+        """
+        return np.arange(self.shape[0] * self.shape[1]).reshape(self.shape)
+
+    @property
+    @lru_cache()
+    @read_only_array
     def nodes_at_right_edge(self):
-        return np.arange(self.shape[1] - 1, self.number_of_nodes, self.shape[1])
+        return np.arange(self.shape[1] - 1, np.prod(self.shape), self.shape[1])
 
     @property
+    @lru_cache()
+    @read_only_array
     def nodes_at_top_edge(self):
-        return np.arange(self.number_of_nodes - self.shape[1], self.number_of_nodes)
+        return np.arange(self.number_of_nodes - self.shape[1], np.prod(self.shape))
 
     @property
+    @lru_cache()
+    @read_only_array
     def nodes_at_left_edge(self):
-        return np.arange(0, self.number_of_nodes, self.shape[1])
+        return np.arange(0, np.prod(self.shape), self.shape[1])
 
     @property
+    @lru_cache()
+    @read_only_array
     def nodes_at_bottom_edge(self):
         return np.arange(self.shape[1])
 
@@ -171,86 +433,122 @@ class StructuredQuadGraphExtras(object):
         return getattr(self, "nodes_at_{edge}_edge".format(edge=edge))
 
     @property
-    def horizontal_links(self):
-        return setup_horizontal_links(self.shape)
+    def nodes_at_corners_of_grid(self):
+        """Nodes at corners of grid.
 
-    @property
-    def vertical_links(self):
-        return setup_vertical_links(self.shape)
+        The nodes at at the corners of the grid. The nodes are returned
+        counterclockwise starting with the upper-right.
 
+        Return
+        ------
+        tuple of int
+            Nodes at the four corners.
 
-class StructuredQuadGraph(StructuredQuadGraphExtras, Graph):
-
-    """Graph of a structured grid of quadrilaterals.
-
-    Examples
-    --------
-    >>> from landlab.graph import StructuredQuadGraph
-    >>> node_y = [-1, -2, -3,
-    ...            0,  0,  0,
-    ...            1,  2,  3]
-    >>> node_x = [ 0,  1,  2,
-    ...            0,  2,  3,
-    ...            0,  1,  2]
-    >>> graph = StructuredQuadGraph((node_y, node_x), shape=(3, 3))
-    >>> graph.number_of_nodes
-    9
-    >>> graph.y_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([-3., -2., -1.,
-            0.,  0.,  0.,
-            1.,  2.,  3.])
-    >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([ 2.,  1.,  0.,
-            0.,  2.,  3.,
-            0.,  1.,  2.])
-    """
-
-    def __init__(self, node_y_and_x, shape=None):
-        """Create a structured grid of quadrilaterals.
-
-        Parameters
-        ----------
-        nodes : tuple of array_like
-            Coordinates of every node. First *y*, then *x*.
-        shape : tuple, optional
-            Shape of the grid. Otherwise, use the shape of coordinate arrays.
+        Examples
+        --------
+        >>> from landlab.graph import UniformRectilinearGraph
+        >>> graph = UniformRectilinearGraph((4, 5))
+        >>> graph.nodes_at_corners_of_grid
+        (19, 15, 0, 4)
         """
-        from ..ugrid import ugrid_from_structured_quad
-
-        if shape is None:
-            self._shape = node_y_and_x[0].shape
-        else:
-            self._shape = shape
-        mesh = ugrid_from_structured_quad(node_y_and_x, shape=shape)
-        Graph.__init__(self, mesh)
+        return (
+            self.number_of_nodes - 1,
+            self.number_of_nodes - self.number_of_node_columns,
+            0,
+            self.number_of_node_columns - 1,
+        )
 
     @property
-    # @store_result_in_grid()
+    @lru_cache()
+    def horizontal_links(self):
+        return self._layout.horizontal_links(self.shape)
+
+    @property
+    @lru_cache()
+    def vertical_links(self):
+        return self._layout.vertical_links(self.shape)
+
+    @property
+    def corner_nodes(self):
+        n_rows, n_cols = self.shape
+        return (n_rows * n_cols - 1, (n_rows - 1) * n_cols, 0, n_cols - 1)
+
+    @property
+    @lru_cache()
     def perimeter_nodes(self):
-        return setup_perimeter_nodes(self.shape)
+        return self._layout.perimeter_nodes(self.shape)
 
     @property
-    @store_result_in_grid()
+    @lru_cache()
     def links_at_node(self):
-        return setup_links_at_node(self.shape)
+        return self._layout.links_at_node(self.shape)
 
     @property
-    # @store_result_in_grid()
+    @lru_cache()
     def link_dirs_at_node(self):
-        return setup_link_dirs_at_node(self.shape)
+        return self._layout.link_dirs_at_node(self.shape)
 
     @property
-    @store_result_in_grid()
-    def patches_at_node(self):
-        return setup_patches_at_node(self.shape)
-
-    @property
-    @store_result_in_grid()
+    @lru_cache()
+    @read_only_array
     def patches_at_link(self):
-        return setup_patches_at_link(self.shape)
+        return self._layout.patches_at_link(self.shape)
+
+    @property
+    @lru_cache()
+    @read_only_array
+    def patches_at_node(self):
+        return self._layout.patches_at_node(self.shape)
 
 
-class RectilinearGraph(StructuredQuadGraph):
+class StructuredQuadGraphExtras(StructuredQuadGraphTopology, Graph):
+    def __init__(self, node_y_and_x, sort=False):
+        StructuredQuadGraphTopology.__init__(self, node_y_and_x[0].shape)
+        Graph.__init__(
+            self,
+            node_y_and_x,
+            links=StructuredQuadLayoutCython.nodes_at_link(self.shape),
+            patches=StructuredQuadLayoutCython.links_at_patch(self.shape),
+            sort=sort,
+        )
+
+
+class StructuredQuadGraph(StructuredQuadGraphExtras):
+    def __init__(self, coords, shape=None, sort=False):
+        node_y, node_x = (
+            np.asarray(coords[0], dtype=float),
+            np.asarray(coords[1], dtype=float),
+        )
+
+        if shape:
+            node_y.shape = shape
+            node_x.shape = shape
+        else:
+            node_x.shape = node_y.shape
+
+        if node_y.shape != node_x.shape:
+            raise ValueError("shape mismatch in node x and y coordinates")
+
+        StructuredQuadGraphExtras.__init__(self, (node_y, node_x), sort=sort)
+
+    @staticmethod
+    def setup_node_y_and_x(yx_at_node, shape=None):
+        node_y = np.asarray(yx_at_node[0], dtype=float)
+        node_x = np.asarray(yx_at_node[1], dtype=float)
+
+        if shape:
+            node_y.shape = shape
+            node_x.shape = shape
+        else:
+            node_x.shape = node_y.shape
+
+        if node_y.shape != node_x.shape:
+            raise ValueError("shape mismatch in node x and y coordinates")
+
+        return (node_y, node_x)
+
+
+class RectilinearGraph(StructuredQuadGraphExtras):
 
     """Graph of a rectlinear grid of nodes.
 
@@ -272,13 +570,22 @@ class RectilinearGraph(StructuredQuadGraph):
             1., 4., 8.])
     """
 
-    def __init__(self, nodes):
-        node_y_and_x = setup_node_coords_rectilinear(nodes)
+    def __init__(self, nodes, sort=False):
+        rows = np.asarray(nodes[0], dtype=float)
+        cols = np.asarray(nodes[1], dtype=float)
+        node_y_and_x = np.meshgrid(rows, cols, indexing="ij")
 
-        super(RectilinearGraph, self).__init__(node_y_and_x)
+        StructuredQuadGraphExtras.__init__(self, node_y_and_x, sort=sort)
+
+    @staticmethod
+    def setup_node_y_and_x(coords):
+        rows = np.asarray(coords[0], dtype=float)
+        cols = np.asarray(coords[1], dtype=float)
+
+        return np.meshgrid(rows, cols, indexing="ij")
 
 
-class UniformRectilinearGraph(StructuredQuadGraph):
+class UniformRectilinearGraph(StructuredQuadGraphExtras):
 
     """Graph of a structured grid of quadrilaterals.
 
@@ -307,7 +614,7 @@ class UniformRectilinearGraph(StructuredQuadGraph):
     array([[-1, -1,  0,  0], [-1, -1,  1,  0], [ 0, -1,  1,  0],
            [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
            [-1, -1,  0,  1], [-1, -1,  1,  1], [ 0, -1,  1,  1],
-           [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]])
+           [-1,  0,  0,  1], [-1,  0,  1,  1], [ 0,  0,  1,  1]], dtype=int8)
     >>> graph.nodes_at_link # doctest: +NORMALIZE_WHITESPACE
     array([[ 0,  1], [ 1,  2], [ 0,  3], [ 1,  4], [ 2,  5],
            [ 3,  4], [ 4,  5], [ 3,  6], [ 4,  7], [ 5,  8],
@@ -323,7 +630,32 @@ class UniformRectilinearGraph(StructuredQuadGraph):
            [10,  9,  6,  7], [11, 10,  7,  8]])
     """
 
-    def __init__(self, shape, spacing=1.0, origin=0.0):
-        node_y_and_x = setup_node_coords(shape, spacing, origin)
+    def __init__(self, shape, spacing=1.0, origin=0.0, sort=False):
+        spacing = np.broadcast_to(spacing, 2)
+        origin = np.broadcast_to(origin, 2)
 
-        super(UniformRectilinearGraph, self).__init__(node_y_and_x)
+        rows = np.arange(shape[0], dtype=float) * spacing[0] + origin[0]
+        cols = np.arange(shape[1], dtype=float) * spacing[1] + origin[1]
+
+        node_y_and_x = np.meshgrid(rows, cols, indexing="ij")
+
+        StructuredQuadGraphExtras.__init__(self, node_y_and_x, sort=sort)
+
+        self._spacing = tuple(spacing)
+        self._origin = tuple(origin)
+
+    @property
+    def spacing(self):
+        return self._spacing
+
+    @property
+    def origin(self):
+        return self._origin
+
+    @property
+    def dx(self):
+        return self._spacing[1]
+
+    @property
+    def dy(self):
+        return self._spacing[0]

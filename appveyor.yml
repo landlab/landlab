@@ -8,11 +8,6 @@ environment:
     WITH_COMPILER: "cmd /E:ON /V:ON /C .\\.ci\\appveyor\\run_with_env.cmd"
 
   matrix:
-    - TARGET_ARCH: x64
-      CONDA_NPY: 111
-      CONDA_PY: 2.7
-      CONDA_INSTALL_LOCN: C:\\Miniconda-x64
-      DISTUTILS_USE_SDK: 1
 
     - TARGET_ARCH: x64
       CONDA_NPY: 111
@@ -39,7 +34,7 @@ install:
   - cmd: conda update --yes --quiet conda
   - cmd: set PYTHONUNBUFFERED=1
   - cmd: conda config --set always_yes yes
-  - cmd: pip install twine pytest pytest-cov pytest-datadir
+  - cmd: pip install twine -r requirements-testing.txt -r requirements-notebooks.txt
   - cmd: conda info
   - cmd: conda list
 
@@ -47,6 +42,7 @@ build: false
 
 test_script:
   - "%WITH_COMPILER% pip install numpy"
+  - "%WITH_COMPILER% pip install netcdf4==1.5.2"
   - "%WITH_COMPILER% pip install -e ."
   - pytest -vvv
 

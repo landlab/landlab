@@ -1,18 +1,18 @@
 #!/usr/env/python
 
-"""    
+"""
 Landlab component that simulates the transport of bed material
-sediment through a 1-D river network, while tracking the resulting changes 
-in bed material grain size and river bed elevation. Model framework 
-described in Czuba (2018). Additions include: particle abrasion, variable 
-active layer thickness (Wong et al., 2007). 
+sediment through a 1-D river network, while tracking the resulting changes
+in bed material grain size and river bed elevation. Model framework
+described in Czuba (2018). Additions include: particle abrasion, variable
+active layer thickness (Wong et al., 2007).
 
 Fixes that need to happen:
 
     -- Check abrasion exponent units (per km or per m?)
 
     -- Channel width-- why is this anything other than a link attribute??
-    
+
     -- Flow depth -- double check to make sure we're going through flow depth array correctly
 
     -- JC: I found two items that I think should be changed in the _calc_transport_wilcock_crowe and I made these changes
@@ -35,28 +35,28 @@ Last edit ---
 import numpy as np
 
 # %% Import Libraries
-from landlab import BAD_INDEX_VALUE, Component
+from landlab import Component
+from landlab.components import FlowDirectorSteepest
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
-from landlab.components import FlowDirectorSteepest
-from landlab.utils.decorators import use_file_name_or_kwds
 
 _SUPPORTED_TRANSPORT_METHODS = ["WilcockCrowe"]
 
-_OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
+_OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
 
 _ACTIVE = 1
 _INACTIVE = 0
 
+
 class NetworkSedimentTransporter(Component):
     """
     Landlab component that simulates the transport of bed material
-    sediment through a 1-D river network, while tracking the resulting changes 
-    in bed material grain size and river bed elevation. Model framework 
-    described in Czuba (2018). Additions include: particle abrasion, variable 
-    active layer thickness (Wong et al., 2007). 
-    
+    sediment through a 1-D river network, while tracking the resulting changes
+    in bed material grain size and river bed elevation. Model framework
+    described in Czuba (2018). Additions include: particle abrasion, variable
+    active layer thickness (Wong et al., 2007).
+
 
     **Usage:**
     Option 1 - Basic::
@@ -68,75 +68,75 @@ class NetworkSedimentTransporter(Component):
                              )
 
     Examples
-    ----------  
+    ----------
     >>> import numpy as np
     >>> from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
-    >>> from landlab.grid.network import NetworkModelGrid
-    >>> from landlab import BAD_INDEX_VALUE
+    >>> from landlab import NetworkModelGrid
     >>> from landlab.data_record import DataRecord
-    >>> _OUT_OF_NETWORK = BAD_INDEX_VALUE - 1
-    
-    The NetworkSedimentTransporter moves "parcels" of sediment down a network 
+    >>> _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
+
+    The NetworkSedimentTransporter moves "parcels" of sediment down a network
     based on a given flow and a given sediment transport formulation. The river
     network is represented by a landlab NetworkModelGrid. Flow direction in the
-    network is determined using a landlab flow director. Sediment parcels are 
-    represented as items within a landlab ``DataRecord``. 
-    
-    Create a ``NetworkModelGrid`` to represent the river channel network. In this 
-    case, the grid is a single line of 4 nodes connected by 3 links. Each link represents a reach of river. 
+    network is determined using a landlab flow director. Sediment parcels are
+    represented as items within a landlab ``DataRecord``.
+
+    Create a ``NetworkModelGrid`` to represent the river channel network. In this
+    case, the grid is a single line of 4 nodes connected by 3 links. Each link represents a reach of river.
     >>> y_of_node = (0, 0, 0, 0)
     >>> x_of_node = (0, 100, 200, 300)
     >>> nodes_at_link = ((0,1), (1,2), (2,3))
-    
+
     >>> nmg = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
-    
-    Add channel and topographic variables to the NetworkModelGrid. 
+
+    Add channel and topographic variables to the NetworkModelGrid.
     >>> nmg.at_node["topographic__elevation"] = [3., 2., 1., 0.] # m
     >>> nmg.at_node["bedrock__elevation"] = [3., 2., 1., 0.] # m
     >>> nmg.at_link["drainage_area"] = [10e6, 10e6, 10e6]  # m2
     >>> nmg.at_link["channel_slope"] = [0.001, 0.001, 0.001]
-    >>> nmg.at_link["link_length"] = [100, 100, 100]  # m
+    >>> nmg.at_link["link_length"] = [100., 100., 100.]  # m
     >>> nmg.at_link["channel_width"] = (15 * np.ones(np.size(nmg.at_link["drainage_area"])))
-    
+
     Run ``FlowDirectorSteepest`` to determine the direction of sediment transport through the network.
     >>> flow_director = FlowDirectorSteepest(nmg)
     >>> flow_director.run_one_step()
-    
+
     Define the starting time and the number of timesteps for this model run.
     >>> timesteps = 10
     >>> time = [0.0]
-    
-    Define the flow depth for each link and timestep. 
+
+    Define the flow depth for each link and timestep.
     >>> example_flow_depth = (
-    >>>     np.tile(2, (nmg.number_of_links))
-    >>> ) * np.tile(1, (timesteps + 1, 1)) # 2 meter flow depth
-    
+    ...     np.tile(2, (nmg.number_of_links)) *
+    ...     np.tile(1, (timesteps + 1, 1))) # 2 meter flow depth
+
     Define the sediment characteristics that will be used to create the parcels ``DataRecord``
     >>> items = {"grid_element": "link",
-    >>>          "element_id": np.array([[0]])}
-    
+    ...          "element_id": np.array([[0]])}
+
     >>> variables = {
-    >>>     "starting_link": (["item_id"], np.array([0])),
-    >>>     "abrasion_rate": (["item_id"], np.array([0])),
-    >>>     "density": (["item_id"], np.array([2650])),
-    >>>     "time_arrival_in_link": (["item_id", "time"], np.array([[0]])),
-    >>>     "active_layer": (["item_id", "time"], np.array([[1]])),
-    >>>     "location_in_link": (["item_id", "time"], np.array([[0]])),
-    >>>     "D": (["item_id", "time"], np.array([[0.05]])),
-    >>>     "volume": (["item_id", "time"], np.array([[1]])),
-    >>> }
-    
-    Create the sediment parcel DataRecord. In this case, we are creating a single 
-    sediment parcel with all of the required attributes. 
+    ...     "starting_link": (["item_id"], np.array([0])),
+    ...     "abrasion_rate": (["item_id"], np.array([0])),
+    ...     "density": (["item_id"], np.array([2650])),
+    ...     "time_arrival_in_link": (["item_id", "time"], np.array([[0]])),
+    ...     "active_layer": (["item_id", "time"], np.array([[1]])),
+    ...     "location_in_link": (["item_id", "time"], np.array([[0]])),
+    ...     "D": (["item_id", "time"], np.array([[0.05]])),
+    ...     "volume": (["item_id", "time"], np.array([[1]])),
+    ... }
+
+    Create the sediment parcel DataRecord. In this case, we are creating a single
+    sediment parcel with all of the required attributes.
     >>> one_parcel = DataRecord(
-    >>>     nmg,
-    >>>     items=items,
-    >>>     time=time,
-    >>>     data_vars=variables,
-    >>>     dummy_elements={"link": [_OUT_OF_NETWORK]},
-    >>> )
-    
+    ...     nmg,
+    ...     items=items,
+    ...     time=time,
+    ...     data_vars=variables,
+    ...     dummy_elements={"link": [_OUT_OF_NETWORK]},
+    ... )
+
     Instantiate the model run
+
     >>> nst = NetworkSedimentTransporter(
     >>>         nmg,
     >>>         one_parcel,
@@ -147,65 +147,57 @@ class NetworkSedimentTransporter(Component):
     >>>         fluid_density=1000,
     >>>         transport_method="WilcockCrowe",
     >>>     )
-    
+
     >>> dt = 60  # (seconds) 1 min timestep
+
     Run the model
+
     >>> for t in range(0, (timesteps * dt), dt):
-    >>>         nst.run_one_step(dt)
-    >>> 
+    ...     nst.run_one_step(dt)
+
     We can the link location of the parcel at each timestep
     >>> print(one_parcel.dataset.element_id.values)
-    
     [[ 0.  0.  0.  0.  0.  1.  1.  1.  1.  1.  2.]]
-
 
     """
 
-    # component name
     _name = "NetworkSedimentTransporter"
     __version__ = "1.0"
 
-    # component requires these values to do its calculation, get from driver
-    _input_var_names = (
-        "topographic__elevation",
-        "channel_slope",
-        "link_length",
-        "channel_width",
-        "flow_depth",
-    )
-
-    #  component creates these output values
-    _output_var_names = ("thing", "thing")
-
-    # units for each parameter and output
-    _var_units = {
-        "topographic__elevation": "m",
-        "channel_slope": "m/m",
-        "link_length": "m",
-        "channel_width": "m",
-        "flow_depth": "m",
+    _info = {
+        "channel_slope": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m/m",
+            "mapping": "link",
+            "doc": "Slope of the river channel through each reach",
+        },
+        "channel_width": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "link",
+            "doc": "Flow width of the channel, assuming constant width",
+        },
+        "link_length": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "link",
+            "doc": "Length of each reach",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
     }
-
-    # grid centering of each field and variable
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "channel_slope": "link",
-        "link_length": "link",
-        "channel_width": "link",
-        "flow_depth": "link",
-    }
-
-    # short description of each field
-    _var_doc = {
-        "surface_water__depth": "Depth of streamflow on the surface",
-        "topographic__elevation": "Topographic elevation at that node",
-        "channel_slope": "Slope of the river channel through each reach",
-        "link_length": "Length of each reach",
-        "channel_width": "Flow width of the channel, assuming constant width",
-        "flow_depth": "Depth of stream flow in each reach",
-    }
-
-    #    @use_file_name_or_kwds
 
     def __init__(
         self,
@@ -217,7 +209,6 @@ class NetworkSedimentTransporter(Component):
         g=9.81,
         fluid_density=1000.,
         transport_method="WilcockCrowe",
-        **kwds
     ):
         """
         Parameters
@@ -248,13 +239,11 @@ class NetworkSedimentTransporter(Component):
             Sediment transport equation option. Default (and currently only)
             option is "WilcockCrowe".
         """
-        super(NetworkSedimentTransporter, self).__init__(grid, **kwds)
-
-        self._grid = grid
-
         if not isinstance(grid, NetworkModelGrid):
             msg = "NetworkSedimentTransporter: grid must be NetworkModelGrid"
             raise ValueError(msg)
+
+        super(NetworkSedimentTransporter, self).__init__(grid)
 
         self._parcels = parcels
 
@@ -354,53 +343,56 @@ class NetworkSedimentTransporter(Component):
             self._channel_slope = self._grid.at_link["channel_slope"]
 
         if "time_arrival_in_link" not in self._parcels.dataset:
-            msg = ("NetworkSedimentTransporter: time_arrival_in_link must be"
-                   "assigned to the parcels"
-                   )
+            msg = (
+                "NetworkSedimentTransporter: time_arrival_in_link must be"
+                "assigned to the parcels"
+            )
             raise ValueError(msg)
 
         if "starting_link" not in self._parcels.dataset:
-            msg = ("NetworkSedimentTransporter: starting_link must be"
-                   "assigned to the parcels"
-                   )
+            msg = (
+                "NetworkSedimentTransporter: starting_link must be"
+                "assigned to the parcels"
+            )
             raise ValueError(msg)
 
         if "abrasion_rate" not in self._parcels.dataset:
-            msg = ("NetworkSedimentTransporter: abrasion_rate must be"
-                   "assigned to the parcels"
-                   )
+            msg = (
+                "NetworkSedimentTransporter: abrasion_rate must be"
+                "assigned to the parcels"
+            )
             raise ValueError(msg)
 
         if "density" not in self._parcels.dataset:
-            msg = ("NetworkSedimentTransporter: density must be"
-                   "assigned to the parcels"
-                   )
+            msg = (
+                "NetworkSedimentTransporter: density must be" "assigned to the parcels"
+            )
             raise ValueError(msg)
 
         if "active_layer" not in self._parcels.dataset:
-            msg = ("NetworkSedimentTransporter: active_layer must be"
-                   "assigned to the parcels"
-                   )
+            msg = (
+                "NetworkSedimentTransporter: active_layer must be"
+                "assigned to the parcels"
+            )
             raise ValueError(msg)
 
         if "location_in_link" not in self._parcels.dataset:
-            msg = ("NetworkSedimentTransporter: location_in_link must be"
-                   "assigned to the parcels"
-                   )
+            msg = (
+                "NetworkSedimentTransporter: location_in_link must be"
+                "assigned to the parcels"
+            )
             raise ValueError(msg)
 
         if "D" not in self._parcels.dataset:
-            msg = ("NetworkSedimentTransporter: D (grain size) must be"
-                   "assigned to the parcels"
-                   )
+            msg = (
+                "NetworkSedimentTransporter: D (grain size) must be"
+                "assigned to the parcels"
+            )
             raise ValueError(msg)
 
         if "volume" not in self._parcels.dataset:
-            msg = ("NetworkSedimentTransporter: volume must be"
-                   "assigned to the parcels"
-                   )
+            msg = "NetworkSedimentTransporter: volume must be" "assigned to the parcels"
             raise ValueError(msg)
-
 
     @property
     def time(self):
@@ -452,8 +444,8 @@ class NetworkSedimentTransporter(Component):
 
     def _partition_active_and_storage_layers(self, **kwds):
         """For each parcel in the network, determines whether it is in the
-        active or storage layer during this timestep, then updates node 
-        elevations. 
+        active or storage layer during this timestep, then updates node
+        elevations.
         """
 
         vol_tot = self._parcels.calc_aggregate_value(
@@ -477,7 +469,7 @@ class NetworkSedimentTransporter(Component):
             # has already been calculated (e.g. during 'zeroing' runs)
             Linkarray = self._parcels.dataset.element_id[
                 :, self._time_idx
-                ].values  # current link of each parcel
+            ].values  # current link of each parcel
             Darray = self._parcels.dataset.D[:, self._time_idx]
             Rhoarray = self._parcels.dataset.density.values
             Volarray = self._parcels.dataset.volume[:, self._time_idx].values
@@ -486,54 +478,49 @@ class NetworkSedimentTransporter(Component):
             rhos_mean_active = np.nan * np.zeros(self._grid.number_of_links)
 
             for i in range(self._grid.number_of_links):
-                d_i = Darray[Linkarray ==i]
-                vol_i = Volarray[Linkarray ==i]
-                rhos_i = Rhoarray[Linkarray ==i]
+                d_i = Darray[Linkarray == i]
+                vol_i = Volarray[Linkarray == i]
+                rhos_i = Rhoarray[Linkarray == i]
                 vol_tot_i = np.sum(vol_i)
 
-                d_mean_active[i] = np.sum(d_i * vol_i) / (
-                    vol_tot_i
-                )
+                d_mean_active[i] = np.sum(d_i * vol_i) / (vol_tot_i)
                 self.d_mean_active = d_mean_active
 
-                rhos_mean_active[i] = np.sum(rhos_i * vol_i) / (
-                    vol_tot_i
-                )
+                rhos_mean_active[i] = np.sum(rhos_i * vol_i) / (vol_tot_i)
                 self.rhos_mean_active = rhos_mean_active
 
-        tau = (self.fluid_density
-               * self.g
-               * self._grid.at_link["channel_slope"]
-               * self.flow_depth[self._time_idx, :]
-               )
+        tau = (
+            self.fluid_density
+            * self.g
+            * self._grid.at_link["channel_slope"]
+            * self.flow_depth[self._time_idx, :]
+        )
 
-        taustar = (tau
-                   /((self.rhos_mean_active-self.fluid_density)
-                   *self.g
-                   *self.d_mean_active)
-                   )
+        taustar = tau / (
+            (self.rhos_mean_active - self.fluid_density) * self.g * self.d_mean_active
+        )
 
-        self.active_layer_thickness = (0.515
-                                  *self.d_mean_active
-                                  *(3.09
-                                    *(taustar-0.0549)**0.56)
-                                  ) # in units of m
-                                  
-        self.active_layer_thickness[np.isnan(self.active_layer_thickness)==1]=(
-                np.average(self.active_layer_thickness
-                           [np.isnan(self.active_layer_thickness)==0]
-                           )) # assign links with no parcels an average value
-        
+        self.active_layer_thickness = (
+            0.515 * self.d_mean_active * (3.09 * (taustar - 0.0549) ** 0.56)
+        )  # in units of m
+
+        self.active_layer_thickness[
+            np.isnan(self.active_layer_thickness) == 1
+        ] = np.average(
+            self.active_layer_thickness[np.isnan(self.active_layer_thickness) == 0]
+        )  # assign links with no parcels an average value
+
         if np.sum(np.isfinite(self.active_layer_thickness)) == 0:
             self.active_layer_thickness = 0.03116362 * np.ones(
-                    np.shape(self.active_layer_thickness))
+                np.shape(self.active_layer_thickness)
+            )
             # handles the case of the first timestep -- assigns a modest value
-        
-        capacity = (self._grid.at_link["channel_width"]
-                    *self._grid.at_link["link_length"]
-                    *self.active_layer_thickness
-                    ) # in units of m^3
 
+        capacity = (
+            self._grid.at_link["channel_width"]
+            * self._grid.at_link["link_length"]
+            * self.active_layer_thickness
+        )  # in units of m^3
 
         for i in range(self._grid.number_of_links):
 
@@ -605,16 +592,16 @@ class NetworkSedimentTransporter(Component):
             self.fd.flow_link_incoming_at_node() == 1, axis=1
         )
         downstream_link_id = self.fd.link_to_flow_receiving_node
-# USED TO BE      downstream_link_id = self.fd.link_to_flow_receiving_node[
-#            self.fd.downstream_node_at_link()
-#        ]
+        # USED TO BE      downstream_link_id = self.fd.link_to_flow_receiving_node[
+        #            self.fd.downstream_node_at_link()
+        #        ]
         upstream_contributing_links_at_node = np.where(
             self.fd.flow_link_incoming_at_node() == 1, self._grid.links_at_node, -1
         )
 
-#        print("number of contributing links", number_of_contributors)
-#        print("downstream link id", downstream_link_id)
-#        print("upstream contributing links", upstream_contributing_links_at_node)
+        #        print("number of contributing links", number_of_contributors)
+        #        print("downstream link id", downstream_link_id)
+        #        print("upstream contributing links", upstream_contributing_links_at_node)
 
         # Update the node topographic elevations depending on the quantity of stored sediment
         for n in range(self._grid.number_of_nodes):
@@ -622,49 +609,50 @@ class NetworkSedimentTransporter(Component):
             if number_of_contributors[n] > 0:  # we don't update head node elevations
 
                 upstream_links = upstream_contributing_links_at_node[n]
-                real_upstream_links = upstream_links[upstream_links != BAD_INDEX_VALUE]
+                real_upstream_links = upstream_links[
+                    upstream_links != self._grid.BAD_INDEX
+                ]
                 width_of_upstream_links = self._grid.at_link["channel_width"][
                     real_upstream_links
                 ]
                 length_of_upstream_links = self._grid.length_of_link[
                     real_upstream_links
                 ]
-                
-#                ALERT: Moved this to the "else" statement below. AP 11/11/19
-#                length_of_downstream_link = self._grid.length_of_link[
-#                    downstream_link_id
-#                ][n]
-#                width_of_downstream_link = self._grid.at_link["channel_width"][
-#                    downstream_link_id
-#                ][n]
 
+                #                ALERT: Moved this to the "else" statement below. AP 11/11/19
+                #                length_of_downstream_link = self._grid.length_of_link[
+                #                    downstream_link_id
+                #                ][n]
+                #                width_of_downstream_link = self._grid.at_link["channel_width"][
+                #                    downstream_link_id
+                #                ][n]
 
                 if (
-                    downstream_link_id[n] == BAD_INDEX_VALUE
+                    downstream_link_id[n] == self._grid.BAD_INDEX
                 ):  # I'm sure there's a better way to do this, but...
                     length_of_downstream_link = 0
                     width_of_downstream_link = 0
-                else: 
+                else:
                     length_of_downstream_link = self._grid.length_of_link[
                         downstream_link_id
                     ][n]
                     width_of_downstream_link = self._grid.at_link["channel_width"][
                         downstream_link_id
                     ][n]
-                    
-#                print("Downstream link id = ",downstream_link_id)
-#                print("We are looking at node ",n, ".  We are pointing to downstream link number ", 
-#                      downstream_link_id[n], " .  And we are pointing to upstream link number(s)",
-#                      real_upstream_links)
-                
+
+                #                print("Downstream link id = ",downstream_link_id)
+                #                print("We are looking at node ",n, ".  We are pointing to downstream link number ",
+                #                      downstream_link_id[n], " .  And we are pointing to upstream link number(s)",
+                #                      real_upstream_links)
+
                 alluvium__depth = _calculate_alluvium_depth(
-                        self.vol_stor[downstream_link_id][n],
-                        width_of_upstream_links,
-                        length_of_upstream_links,
-                        width_of_downstream_link,
-                        length_of_downstream_link, 
-                        self.bed_porosity
-                        )
+                    self.vol_stor[downstream_link_id][n],
+                    width_of_upstream_links,
+                    length_of_upstream_links,
+                    width_of_downstream_link,
+                    length_of_downstream_link,
+                    self.bed_porosity,
+                )
 
                 #                print("alluvium depth = ",alluvium__depth)
                 #                print("Volume stored at n = ",n,"=",self.vol_stor[downstream_link_id][n])
@@ -700,8 +688,8 @@ class NetworkSedimentTransporter(Component):
         Larray = np.zeros(self._num_parcels)
         D_mean_activearray = np.zeros(self._num_parcels) * (np.nan)
         active_layer_thickness_array = np.zeros(self._num_parcels) * np.nan
-#        rhos_mean_active = np.zeros(self._num_parcels)
-#        rhos_mean_active.fill(np.nan)
+        #        rhos_mean_active = np.zeros(self._num_parcels)
+        #        rhos_mean_active.fill(np.nan)
         self.Ttimearray = np.zeros(self._num_parcels)
         # ^ Ttimearray is the time to move through the entire length of a link
         self.pvelocity = np.zeros(self._num_parcels)
@@ -745,10 +733,8 @@ class NetworkSedimentTransporter(Component):
             rhos_act_i = Rhoarray[active_here]
             vol_act_tot_i = np.sum(vol_act_i)
             # ^ this behaves as expected. filterarray to create vol_tot above does not. --> FIXED?
-            self.d_mean_active[i] = np.sum(d_act_i * vol_act_i) / (
-                vol_act_tot_i
-            )
-            if vol_act_tot_i >0:
+            self.d_mean_active[i] = np.sum(d_act_i * vol_act_i) / (vol_act_tot_i)
+            if vol_act_tot_i > 0:
                 self.rhos_mean_active[i] = np.sum(rhos_act_i * vol_act_i) / (
                     vol_act_tot_i
                 )
@@ -760,9 +746,9 @@ class NetworkSedimentTransporter(Component):
             Sarray[Linkarray == i] = self._grid.at_link["channel_slope"][i]
             Harray[Linkarray == i] = self.flow_depth[self._time_idx, i]
             Larray[Linkarray == i] = self._grid.at_link["link_length"][i]
-            active_layer_thickness_array[Linkarray == i] = (
-                    self.active_layer_thickness[i]
-                    )
+            active_layer_thickness_array[Linkarray == i] = self.active_layer_thickness[
+                i
+            ]
 
         Sarray = np.squeeze(Sarray)
         Harray = np.squeeze(Harray)
@@ -771,12 +757,8 @@ class NetworkSedimentTransporter(Component):
 
         # Wilcock and crowe claculate transport for all parcels (active and inactive)
         taursg = _calculate_reference_shear_stress(
-                self.fluid_density,
-                R,
-                self.g,
-                D_mean_activearray,
-                frac_sand_array
-                )
+            self.fluid_density, R, self.g, D_mean_activearray, frac_sand_array
+        )
 
         #        print("d_mean_active = ", d_mean_active)
         #        print("taursg = ", taursg)
@@ -792,11 +774,7 @@ class NetworkSedimentTransporter(Component):
 
         b = 0.67 / (1 + np.exp(1.5 - Darray / D_mean_activearray))
 
-        tau = (self.fluid_density
-               * self.g
-               * Harray
-               * Sarray
-               )
+        tau = self.fluid_density * self.g * Harray * Sarray
         tau = np.atleast_1d(tau)
 
         taur = taursg * (Darray / D_mean_activearray) ** b
@@ -820,11 +798,10 @@ class NetworkSedimentTransporter(Component):
             / R[Activearray == 1]
             / active_layer_thickness_array[Activearray == 1]
         )
-        
+
         self.frac_parcel = frac_parcel
         self.active_layer_thickness_array = active_layer_thickness_array
-        
-        
+
         self.pvelocity[np.isnan(self.pvelocity)] = 0
 
         # Assign those things to the grid -- might be useful for plotting later...?
@@ -832,7 +809,7 @@ class NetworkSedimentTransporter(Component):
         self._grid.at_link["sediment__active__volume"] = vol_act
         self._grid.at_link["sediment__active__sand_fraction"] = frac_sand
 
-    def _move_parcel_downstream(self, dt):  
+    def _move_parcel_downstream(self, dt):
         """Method to update parcel location for each parcel in the active
         layer.
         """
@@ -850,11 +827,11 @@ class NetworkSedimentTransporter(Component):
         # ^ movement in current and any DS links at this dt is at the same velocity as in the current link
         # ... perhaps modify in the future(?) or ensure this type of travel is kept to a minimum
         # ... or display warnings or create a log file when the parcel jumps far in the next DS link
-        
-        self._distance_traveled_cumulative += distance_to_travel_this_timestep 
+
+        self._distance_traveled_cumulative += distance_to_travel_this_timestep
         # ^ accumulates total distanced traveled for testing abrasion
-        
-        #print("distance traveled = ", distance_to_travel_this_timestep)
+
+        # print("distance traveled = ", distance_to_travel_this_timestep)
 
         #        if self._time_idx == 1:
         #            print("t", self._time_idx)
@@ -903,9 +880,11 @@ class NetworkSedimentTransporter(Component):
 
                     # update current link to the next link DS
                     current_link[p] = downstream_link_id
-                    
+
                     # update arrival time in link
-                    self._parcels.dataset.time_arrival_in_link[p, self._time_idx]=self._time_idx
+                    self._parcels.dataset.time_arrival_in_link[
+                        p, self._time_idx
+                    ] = self._time_idx
 
                     if downstream_link_id == -1:  # parcel has exited the network
                         # (downstream_link_id == -1) and (distance_left_to_travel <= 0):  # parcel has exited the network
@@ -951,23 +930,23 @@ class NetworkSedimentTransporter(Component):
 
                 # reduce D and volume due to abrasion
                 vol = _calculate_parcel_volume_post_abrasion(
-                        self._parcels.dataset.volume[p, self._time_idx],
-                        distance_to_travel_this_timestep[p],
-                        self._parcels.dataset.abrasion_rate[p]
-                        )
+                    self._parcels.dataset.volume[p, self._time_idx],
+                    distance_to_travel_this_timestep[p],
+                    self._parcels.dataset.abrasion_rate[p],
+                )
 
                 D = _calculate_parcel_grain_diameter_post_abrasion(
-                        self._parcels.dataset.D[p, self._time_idx],
-                        self._parcels.dataset.volume[p, self._time_idx],
-                        vol
-                        )
-   
+                    self._parcels.dataset.D[p, self._time_idx],
+                    self._parcels.dataset.volume[p, self._time_idx],
+                    vol,
+                )
+
                 # update parcel attributes
                 self._parcels.dataset.location_in_link[
                     p, self._time_idx
                 ] = location_in_link[p]
                 self._parcels.dataset.element_id[p, self._time_idx] = current_link[p]
-#                self._parcels.dataset.active_layer[p, self._time_idx] = 1
+                #                self._parcels.dataset.active_layer[p, self._time_idx] = 1
                 # ^ reset to 1 (active) to be recomputed/determined at next timestep
                 self._parcels.dataset.D[p, self._time_idx] = D
                 self._parcels.dataset.volume[p, self._time_idx] = vol
@@ -1011,7 +990,9 @@ class NetworkSedimentTransporter(Component):
             msg = "No more parcels on grid"
             raise RuntimeError(msg)
 
+
 # %% Methods referenced above, separated for purposes of testing
+
 
 def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
     """Recalculate channel slope based on elevation.
@@ -1041,7 +1022,7 @@ def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
 
     if chan_slope < 0.0:
         chan_slope = 0.0
-        # DANGER DANGER ^ that is probably a bad idea. 
+        # DANGER DANGER ^ that is probably a bad idea.
         #raise ValueError("NST Channel Slope Negative")
 
     if chan_slope < threshold:
@@ -1051,13 +1032,13 @@ def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
 
 
 def _calculate_alluvium_depth(
-                        stored_volume,
-                        width_of_upstream_links,
-                        length_of_upstream_links,
-                        width_of_downstream_link,
-                        length_of_downstream_link,
-                        porosity
-                        ):
+    stored_volume,
+    width_of_upstream_links,
+    length_of_upstream_links,
+    width_of_downstream_link,
+    length_of_downstream_link,
+    porosity,
+):
     """Calculate alluvium depth based on adjacent link inactive parcel volumes.
 
     Parameters
@@ -1079,9 +1060,9 @@ def _calculate_alluvium_depth(
     --------
     >>> from landlab.components.network_sediment_transporter.network_sediment_transporter import _calculate_alluvium_depth
     >>> import pytest
-    >>> _calculate_alluvium_depth(100,np.array([0.5,1]),np.array([10,10]) 1, 10, 0.2)
+    >>> _calculate_alluvium_depth(100,np.array([0.5,1]),np.array([10,10]), 1, 10, 0.2)
     10.0
-    >>>_calculate_alluvium_depth(24,np.array([0.1,3]),np.array([10,10]), 1, 1, 0.5)
+    >>> _calculate_alluvium_depth(24,np.array([0.1,3]),np.array([10,10]), 1, 1, 0.5)
     3.0
     >>> with pytest.raises(ValueError):
     ...     _calculate_alluvium_depth(24,np.array([0.1,3]),np.array([10,10]), 1, 1, 2)
@@ -1095,7 +1076,7 @@ def _calculate_alluvium_depth(
             np.sum(width_of_upstream_links * length_of_upstream_links)
             + width_of_downstream_link * length_of_downstream_link
         )
-        /(1-porosity)
+        / (1 - porosity)
     )
     # NOTE: Jon, porosity was left out in earlier version of the LL component,
     # but it seems it should be in here. Check me: is the eqn correct?
@@ -1107,12 +1088,8 @@ def _calculate_alluvium_depth(
 
 
 def _calculate_reference_shear_stress(
-                        fluid_density, 
-                        R, 
-                        g,
-                        mean_active_grain_size,
-                        frac_sand
-                        ):
+    fluid_density, R, g, mean_active_grain_size, frac_sand
+):
     """Calculate reference shields stress (taursg) using the sand content of
     the bed surface, as per Wilcock and Crowe (2003).
 
@@ -1131,14 +1108,17 @@ def _calculate_reference_shear_stress(
 
     Examples
     --------
-    >>> from landlab.components.network_sediment_transporter.network_sediment_transporter _calculate_reference_shear_stress
-    >>> import pytest
-    >>> _calculate_reference_shear_stress(1, 1, 1, 1, 0)
-    0.036
-    # Katy: I'm running in to a float representation issue here. The python 
-    # result is 0.036000000000000004 , should be 0.036
-    >>>_calculate_reference_shear_stress(1000, 1.65, 9.8, 0.1, 0.9)
-    33.957000369403168
+    >>> from landlab.components.network_sediment_transporter.network_sediment_transporter import (
+    ... _calculate_reference_shear_stress)
+    >>> from numpy.testing import assert_almost_equal
+    >>> assert_almost_equal(
+    ...     _calculate_reference_shear_stress(1, 1, 1, 1, 0),
+    ...     0.036,
+    ...     decimal=2)
+    >>> assert_almost_equal(
+    ...     _calculate_reference_shear_stress(1000, 1.65, 9.8, 0.1, 0.9),
+    ...     33.957,
+    ...     decimal=2)
 
     """
 
@@ -1150,17 +1130,16 @@ def _calculate_reference_shear_stress(
         * (0.021 + 0.015 * np.exp(-20.0 * frac_sand))
     )
 
-    if any(n < 0 for n in taursg):
+    if np.any(np.asarray(taursg < 0)):
         raise ValueError("NST reference Shields stress is negative")
-        
+
     return taursg
 
+
 def _calculate_parcel_volume_post_abrasion(
-                        starting_volume,
-                        travel_distance,
-                        abrasion_rate
-                        ):
-    """Calculate parcel volumes after abrasion, according to Sternberg 
+    starting_volume, travel_distance, abrasion_rate
+):
+    """Calculate parcel volumes after abrasion, according to Sternberg
     exponential abrasion.
 
     Parameters
@@ -1178,7 +1157,7 @@ def _calculate_parcel_volume_post_abrasion(
     >>> import pytest
     >>> _calculate_parcel_volume_post_abrasion(10,100,0.003)
     7.4081822068171785
-    >>>_calculate_parcel_volume_post_abrasion(10,300,0.1)
+    >>> _calculate_parcel_volume_post_abrasion(10,300,0.1)
     9.3576229688401746e-13
     >>> with pytest.raises(ValueError):
     ...     _calculate_parcel_volume_post_abrasion(10,300,-3)
@@ -1194,11 +1173,9 @@ def _calculate_parcel_volume_post_abrasion(
 
 
 def _calculate_parcel_grain_diameter_post_abrasion(
-                        starting_diameter,
-                        pre_abrasion_volume,
-                        post_abrasion_volume
-                        ):
-    """Calculate parcel grain diameters after abrasion, according to Sternberg 
+    starting_diameter, pre_abrasion_volume, post_abrasion_volume
+):
+    """Calculate parcel grain diameters after abrasion, according to Sternberg
     exponential abrasion.
 
     Parameters
@@ -1206,25 +1183,39 @@ def _calculate_parcel_grain_diameter_post_abrasion(
     starting_diameter : float
         Starting volume of each parcel.
     pre_abrasion_volume: float
-        Parcel volume before abrasion. 
+        Parcel volume before abrasion.
     post_abrasion_volume: float
-        Parcel volume after abrasion. 
+        Parcel volume after abrasion.
 
     Examples
     --------
     >>> from landlab.components.network_sediment_transporter.network_sediment_transporter import _calculate_parcel_grain_diameter_post_abrasion
-    >>> import pytest
-    >>> _calculate_parcel_grain_diameter_post_abrasion(10,1,1)
+    >>> import numpy as np
+    >>> from numpy.testing import assert_almost_equal
+
+    If no abrasion happens, we should get the same value.
+
+    >>> _calculate_parcel_grain_diameter_post_abrasion(10, 1, 1)
     10.0
-    >>>_calculate_parcel_grain_diameter_post_abrasion(10,1,2)
-    0.0001
+
+    If some abrasion happens, test the value.
+
+    >>> starting_diameter = 10
+    >>> pre_abrasion_volume = 2
+    >>> post_abrasion_volume = 1
+    >>> expected_value = (
+    ...     starting_diameter *
+    ...     ( post_abrasion_volume / pre_abrasion_volume) ** (1. / 3.))
+    >>> print(np.round(expected_value, decimals=3))
+    7.937
+    >>> assert_almost_equal(
+    ...    _calculate_parcel_grain_diameter_post_abrasion(10, 2, 1),
+    ...    expected_value)
 
     """
 
-    abraded_grain_diameter = (starting_diameter
-            * (post_abrasion_volume
-            / pre_abrasion_volume
-            ) ** (1 / 3)
-            )
+    abraded_grain_diameter = starting_diameter * (
+        post_abrasion_volume / pre_abrasion_volume
+    ) ** (1.0 / 3.0)
 
     return abraded_grain_diameter

@@ -2,8 +2,6 @@ import numpy as np
 
 from landlab import Component
 
-from ...utils.decorators import use_file_name_or_kwds
-
 _VALID_METHODS = set(["Grid"])
 GRASS = 0
 SHRUB = 1
@@ -19,9 +17,8 @@ def assert_method_is_valid(method):
 
 
 class VegCA(Component):
-    """
-    Landlab component that simulates inter-species plant competition using
-    a 2D cellular automata model.
+    """Landlab component that simulates inter-species plant competition using a
+    2D cellular automata model.
 
     This code is based on Cellular Automata Tree Grass Shrub Simulator (CATGraSS).
     It simulates spatial competition of multiple plant functional types through
@@ -69,36 +66,41 @@ class VegCA(Component):
 
     _name = "Cellular Automata Plant Competition"
 
-    _input_var_names = (
-        "vegetation__cumulative_water_stress",
-        "vegetation__plant_functional_type",
-    )
-
-    _output_var_names = ("plant__live_index", "plant__age")
-
-    _var_units = {
-        "vegetation__cumulative_water_stress": "None",
-        "vegetation__plant_functional_type": "None",
-        "plant__live_index": "None",
-        "plant__age": "Years",
+    _info = {
+        "plant__age": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "Years",
+            "mapping": "cell",
+            "doc": "Age of plant",
+        },
+        "plant__live_index": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "1 - vegetation__cumulative_water_stress",
+        },
+        "vegetation__cumulative_water_stress": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "cumulative vegetation__water_stress over the growing season",
+        },
+        "vegetation__plant_functional_type": {
+            "dtype": int,
+            "intent": "in",
+            "optional": False,
+            "units": "None",
+            "mapping": "cell",
+            "doc": "classification of plants (int), grass=0, shrub=1, tree=2, bare=3, shrub_seedling=4, tree_seedling=5",
+        },
     }
 
-    _var_mapping = {
-        "vegetation__cumulative_water_stress": "cell",
-        "vegetation__plant_functional_type": "cell",
-        "plant__live_index": "cell",
-        "plant__age": "cell",
-    }
-
-    _var_doc = {
-        "vegetation__cumulative_water_stress": "cumulative vegetation__water_stress over the growing season",
-        "vegetation__plant_functional_type": "classification of plants (int), grass=0, shrub=1, tree=2, \
-             bare=3, shrub_seedling=4, tree_seedling=5",
-        "plant__live_index": "1 - vegetation__cumulative_water_stress",
-        "plant__age": "Age of plant",
-    }
-
-    @use_file_name_or_kwds
     def __init__(
         self,
         grid,
@@ -120,7 +122,8 @@ class VegCA(Component):
         ThetaTreeSeedling=0.64,
         PmbTreeSeedling=0.03,
         tpmaxTreeSeedling=18,
-        **kwds
+        method="Grid",
+        Edit_VegCov=True,
     ):
         """
         Parameters
@@ -163,8 +166,19 @@ class VegCA(Component):
             Background mortality probability of tree seedling.
         tpmaxTreeSeedling: float, optional
             Maximum age of tree seedling (years).
+        method: str, optional
+            Method used.
+        Edit_VegCov: bool, optional
+            If Edit_VegCov=True, an optional field
+            'vegetation__boolean_vegetated' will be output, (i.e.) if a cell is
+            vegetated the corresponding cell of the field will be 1, otherwise
+            it will be 0.
+
         """
-        self._method = kwds.pop("method", "Grid")
+        super(VegCA, self).__init__(grid)
+
+        self.Edit_VegCov = Edit_VegCov
+
         self._Pemaxg = Pemaxg  # Pe-max-grass - max probability
         self._Pemaxsh = Pemaxsh  # Pe-max-shrub
         self._Pemaxtr = Pemaxtr  # Pe-max-tree
@@ -184,26 +198,21 @@ class VegCA(Component):
         self._tpmax_sh_s = tpmaxShrubSeedling  # Maximum age - shrub seedling
         self._tpmax_tr_s = tpmaxTreeSeedling  # Maximum age - tree seedling
 
+        self._method = method
+
         assert_method_is_valid(self._method)
 
-        super(VegCA, self).__init__(grid)
+        # if "vegetation__plant_functional_type" not in self._grid.at_cell:
+        #     grid["cell"]["vegetation__plant_functional_type"] = np.random.randint(
+        #         0, 6, grid.number_of_cells
+        #     )
 
-        if "vegetation__plant_functional_type" not in self.grid.at_cell:
-            grid["cell"]["vegetation__plant_functional_type"] = np.random.randint(
-                0, 6, grid.number_of_cells
-            )
+        self.initialize_output_fields()
 
-        for name in self._input_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
-
-        for name in self._output_var_names:
-            if name not in self.grid.at_cell:
-                self.grid.add_zeros("cell", name, units=self._var_units[name])
-
-        self._cell_values = self.grid["cell"]
+        self._cell_values = self._grid["cell"]
 
         VegType = grid["cell"]["vegetation__plant_functional_type"]
+
         tp = np.zeros(grid.number_of_cells, dtype=int)
         tp[VegType == TREE] = np.random.randint(
             0, self._tpmax_tr, np.where(VegType == TREE)[0].shape
@@ -215,25 +224,36 @@ class VegCA(Component):
         locs_shrubs = np.where(VegType == SHRUB)[0]
         VegType[locs_trees[tp[locs_trees] < self._tpmax_tr_s]] = TREESEEDLING
         VegType[locs_shrubs[tp[locs_shrubs] < self._tpmax_sh_s]] = SHRUBSEEDLING
-        grid["cell"]["plant__age"] = tp
+        grid["cell"]["plant__age"] = tp.astype(float)
 
-    def update(self, time_elapsed=1, Edit_VegCov=True):
+    @property
+    def Edit_VegCov(self):
+        """Flag to indicate whether an optional field is created.
+
+        If Edit_VegCov=True, an optional field
+        'vegetation__boolean_vegetated' will be output, (i.e.) if a cell
+        is vegetated the corresponding cell of the field will be 1,
+        otherwise it will be 0.
         """
-        Update fields with current loading conditions.
+        return self._Edit_VegCov
+
+    @Edit_VegCov.setter
+    def Edit_VegCov(self, Edit_VegCov):
+        assert isinstance(Edit_VegCov, bool)
+        self._Edit_VegCov = Edit_VegCov
+
+    def update(self, dt=1):
+        """Update fields with current loading conditions.
 
         Parameters
         ----------
-        time_elapsed: int, optional
+        dt: int, optional
             Time elapsed - time step (years).
-        Edit_VegCov: switch (0 or 1), optional
-            If Edit_VegCov=1, an optional field 'vegetation__boolean_vegetated'
-            will be output, (i.e.) if a cell is vegetated the corresponding
-            cell of the field will be 1, otherwise it will be 0.
         """
         self._VegType = self._cell_values["vegetation__plant_functional_type"]
         self._CumWS = self._cell_values["vegetation__cumulative_water_stress"]
         self._live_index = self._cell_values["plant__live_index"]
-        self._tp = self._cell_values["plant__age"] + time_elapsed
+        self._tp = self._cell_values["plant__age"] + dt
 
         # Check if shrub and tree seedlings have matured
         shrub_seedlings = np.where(self._VegType == SHRUBSEEDLING)[0]
@@ -249,8 +269,8 @@ class VegCA(Component):
         self._live_index = 1 - self._CumWS  # Plant live index = 1 - WS
         bare_cells = np.where(self._VegType == BARE)[0]
         n_bare = len(bare_cells)
-        first_ring = self.grid.looped_neighbors_at_cell[bare_cells]
-        second_ring = self.grid.second_ring_looped_neighbors_at_cell[bare_cells]
+        first_ring = self._grid.looped_neighbors_at_cell[bare_cells]
+        second_ring = self._grid.second_ring_looped_neighbors_at_cell[bare_cells]
         veg_type_fr = self._VegType[first_ring]
         veg_type_sr = self._VegType[second_ring]
         Sh_WS_fr = WS_PFT(veg_type_fr, SHRUB, self._live_index[first_ring])
@@ -323,11 +343,11 @@ class VegCA(Component):
 
         self._cell_values["plant__age"] = self._tp
 
-        if Edit_VegCov:
-            self.grid["cell"]["vegetation__boolean_vegetated"] = np.zeros(
-                self.grid.number_of_cells, dtype=int
+        if self._Edit_VegCov:
+            self._grid["cell"]["vegetation__boolean_vegetated"] = np.zeros(
+                self._grid.number_of_cells, dtype=int
             )
-            self.grid["cell"]["vegetation__boolean_vegetated"][
+            self._grid["cell"]["vegetation__boolean_vegetated"][
                 self._VegType != BARE
             ] = 1
 

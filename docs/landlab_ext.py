@@ -21,9 +21,7 @@ class LandlabLexer(RegexLexer):
                 ],
             }
 
-
 comment_re = re.compile(r'(\(\*.*?\*\))')
-
 
 def doctree_read(app, doctree):
     env = app.builder.env
@@ -53,14 +51,10 @@ def role_ftype(name, rawtext, text, lineno, inliner, options=None, content=()):
     node['ids'] = [match.group(1) if match else text]
     return [node], []
 
-
 def setup(app):
     app.add_lexer('landlab', LandlabLexer())
     app.connect('doctree-read', doctree_read)
     app.add_role('ftype', role_ftype)
-
-
-
 
 class MyTemplateLoader(BuiltinTemplateLoader):
     def get_source(self, environment, template):

@@ -9,12 +9,7 @@ Tarboton 1997.
 
 import numpy
 
-from landlab import (
-    BAD_INDEX_VALUE,
-    FIXED_GRADIENT_BOUNDARY,
-    FIXED_VALUE_BOUNDARY,
-    VoronoiDelaunayGrid,
-)
+from landlab import NodeStatus
 from landlab.components.flow_director import flow_direction_dinf
 from landlab.components.flow_director.flow_director_to_many import _FlowDirectorToMany
 
@@ -45,7 +40,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
        uphill or flat, the value is assigned zero.
     -  Boolean node array of all local lows: *'flow__sink_flag'*
     -  Link array identifing if flow goes with (1) or against (-1) the link
-       direction: *'flow_link_direction'*
+       direction: *'flow__link_direction'*
 
     The primary method of this class is :func:`run_one_step`.
 
@@ -61,9 +56,9 @@ class FlowDirectorDINF(_FlowDirectorToMany):
     >>> mg = RasterModelGrid((4,4), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x**2 + mg.node_y**2,
-    ...     at = 'node'
+    ...     at="node",
     ... )
 
     The DINF flow director can be uses for raster grids only.
@@ -155,8 +150,8 @@ class FlowDirectorDINF(_FlowDirectorToMany):
 
     Finally, FlowDirectorDINF identifies sinks, or local lows.
 
-    >>> mg.at_node['flow__sink_flag']
-    array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=int8)
+    >>> mg.at_node['flow__sink_flag'].astype(int)
+    array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1])
 
     The flow directors also have the ability to return the flow receiver nodes
     through a function called direct_flow()
@@ -209,6 +204,57 @@ class FlowDirectorDINF(_FlowDirectorToMany):
 
     _name = "FlowDirectorDINF"
 
+    _info = {
+        "flow__link_to_receiver_node": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__receiver_proportions": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of proportion of flow sent to each receiver.",
+        },
+        "flow__sink_flag": {
+            "dtype": bool,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Boolean array, True at local lows",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__steepest_slope": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "The steepest *downhill* slope",
+        },
+    }
+
     def __init__(self, grid, surface="topographic__elevation"):
         """
         Parameters
@@ -217,16 +263,21 @@ class FlowDirectorDINF(_FlowDirectorToMany):
             A grid.
         surface : field name at node or array of length node, optional
             The surface to direct flow across, default is field at node:
-            topographic__self.surface_valuesation.
+            topographic__elevation.
         partition_method: string, optional
             Method for partitioning flow. Options include 'slope' (default) and
             'square_root_of_slope'.
         """
 
-        self.method = "DINF"
-        self.max_receivers = 2
+        self._method = "DINF"
+        self._max_receivers = 2
         super(FlowDirectorDINF, self).__init__(grid, surface)
-        self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
+        try:
+            self._grid.nodes_at_d8
+        except AttributeError:
+            self._is_Voroni = True
+        else:
+            self._is_Voroni = False
         if self._is_Voroni:
             raise NotImplementedError(
                 "FlowDirectorDINF is not implemented" " for irregular grids."
@@ -234,59 +285,21 @@ class FlowDirectorDINF(_FlowDirectorToMany):
 
         self.updated_boundary_conditions()
 
-        # set the number of recievers, proportions, and receiver links with the
-        # right size.
-        self.receivers = grid.add_field(
-            "flow__receiver_node",
-            BAD_INDEX_VALUE
-            * numpy.ones((self._grid.number_of_nodes, self.max_receivers), dtype=int),
-            at="node",
-            dtype=int,
-            noclobber=False,
-        )
-
-        self.steepest_slope = grid.add_field(
-            "topographic__steepest_slope",
-            BAD_INDEX_VALUE
-            * numpy.ones((self._grid.number_of_nodes, self.max_receivers), dtype=float),
-            at="node",
-            dtype=float,
-            noclobber=False,
-        )
-
-        self.receiver_links = grid.add_field(
-            "flow__link_to_receiver_node",
-            BAD_INDEX_VALUE
-            * numpy.ones((self._grid.number_of_nodes, self.max_receivers), dtype=int),
-            at="node",
-            dtype=int,
-            noclobber=False,
-        )
-
-        self.proportions = grid.add_field(
-            "flow__receiver_proportions",
-            BAD_INDEX_VALUE
-            * numpy.ones((self._grid.number_of_nodes, self.max_receivers), dtype=float),
-            at="node",
-            dtype=int,
-            noclobber=False,
-        )
-
     def updated_boundary_conditions(self):
         """Method to update FlowDirectorDINF when boundary conditions change.
 
         Call this if boundary conditions on the grid are updated after
         the component is instantiated.
         """
-        self._active_links = self.grid.active_links
-        self._activelink_tail = self.grid.node_at_link_tail[self.grid.active_links]
-        self._activelink_head = self.grid.node_at_link_head[self.grid.active_links]
+        self._active_links = self._grid.active_links
+        self._activelink_tail = self._grid.node_at_link_tail[self._grid.active_links]
+        self._activelink_head = self._grid.node_at_link_head[self._grid.active_links]
 
     def run_one_step(self):
         """Find flow directions and save to the model grid.
 
         run_one_step() checks for updated boundary conditions, calculates
-        slopes on links, finds basself.surface_valuesel nodes based on the status at node,
+        slopes on links, finds basself._surface_valuesel nodes based on the status at node,
         calculates flow directions, and saves results to the grid.
 
         An alternative to direct_flow() is direct_flow() which does the same
@@ -298,7 +311,7 @@ class FlowDirectorDINF(_FlowDirectorToMany):
         """Find flow directions, save to the model grid, and return receivers.
 
         direct_flow() checks for updated boundary conditions, calculates
-        slopes on links, finds basself.surface_valuesel nodes based on the status at node,
+        slopes on links, finds basself._surface_valuesel nodes based on the status at node,
         calculates flow directions, saves results to the grid, and returns a
         at-node array  of receiver nodes. This array is stored in the grid at:
         grid['node']['flow__receiver_nodes']
@@ -313,15 +326,15 @@ class FlowDirectorDINF(_FlowDirectorToMany):
         # Step 1. Find and save base level nodes.
         (baselevel_nodes,) = numpy.where(
             numpy.logical_or(
-                self._grid.status_at_node == FIXED_VALUE_BOUNDARY,
-                self._grid.status_at_node == FIXED_GRADIENT_BOUNDARY,
+                self._grid.status_at_node == NodeStatus.FIXED_VALUE,
+                self._grid.status_at_node == NodeStatus.FIXED_GRADIENT,
             )
         )
 
         # Calculate flow directions
         (
-            self.receivers,
-            self.proportions,
+            self._receivers,
+            self._proportions,
             slopes_to_receivers,
             steepest_slope,
             steepest_receiver,
@@ -329,18 +342,18 @@ class FlowDirectorDINF(_FlowDirectorToMany):
             receiver_links,
             steepest_link,
         ) = flow_direction_dinf.flow_directions_dinf(
-            self._grid, self.surface_values, baselevel_nodes=baselevel_nodes
+            self._grid, self._surface_values, baselevel_nodes=baselevel_nodes
         )
 
         # Save the four ouputs of this component.
-        self._grid["node"]["flow__receiver_node"][:] = self.receivers
-        self._grid["node"]["flow__receiver_proportions"][:] = self.proportions
+        self._grid["node"]["flow__receiver_node"][:] = self._receivers
+        self._grid["node"]["flow__receiver_proportions"][:] = self._proportions
         self._grid["node"]["topographic__steepest_slope"][:] = slopes_to_receivers
         self._grid["node"]["flow__link_to_receiver_node"][:] = receiver_links
         self._grid["node"]["flow__sink_flag"][:] = False
         self._grid["node"]["flow__sink_flag"][sink] = True
 
-        return (self.receivers, self.proportions)
+        return (self._receivers, self._proportions)
 
 
 if __name__ == "__main__":  # pragma: no cover
