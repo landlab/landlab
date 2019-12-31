@@ -589,8 +589,10 @@ class SoilMoisture(Component):
         self._S = self._cell_values['soil_moisture__saturation_fraction']
         self._D = self._cell_values['soil_moisture__root_zone_leakage']
         self._ETA = self._cell_values['surface__evapotranspiration']
-        self._fr = (self._cell_values['vegetation__live_leaf_area_index'] /
-                    self._LAIR_max)
+        self._fr = (
+            self._cell_values['vegetation__live_leaf_area_index']
+            / self._LAIR_max
+        )
         self._runoff = self._cell_values['surface__runoff']
         self._runon = self._cell_values['surface__runon']
         self._runoff[:] = 0.   # Initializing runoff to zero

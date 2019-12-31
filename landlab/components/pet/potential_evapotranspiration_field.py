@@ -20,17 +20,83 @@ class PotentialEvapotranspiration(Component):
     """
     Potential Evapotranspiration Component calculates spatially distributed
     potential evapotranspiration based on input radiation factor (spatial
-    distribution of incoming radiation) using chosen method such as constant
-    or Priestley Taylor. Ref: Xiaochi et. al. 2013 for 'Cosine' method and
-    ASCE-EWRI Task Committee Report Jan 2005 for 'PriestleyTaylor' method.
+    distribution of incoming radiation) using one of the five ways
+    to calculate potential evapotranspiration. The methods
+    are 'Constant','Cosine', 'MeasuredRadiationPT',
+    'PenmanMonteith', and 'PriestleyTaylor'.
 
-    Note: Calling 'PriestleyTaylor' method would generate/overwrite shortwave &
-    longwave radiation fields.
+    Note: Calling 'PriestleyTaylor' or 'PenmanMonteith' methods
+    will overwrite the following fields:
+        "radiation__incoming_shortwave_flux",
+        "radiation__net_shortwave_flux",
+        "radiation__net_longwave_flux", and
+        "radiation__net_flux".
+    
+    As mentioned above, this component can be configured to use
+    one of the five ways to calculate potential evapotranspiration.
+    The methods are 'Constant','Cosine', 'MeasuredRadiationPT',
+    'PenmanMonteith', and 'PriestleyTaylor'.
+
+    'Constant' method: Receives the user-input const_potential_evapotranspiration
+    during a call to the 'update' method. This value is
+    then distributed spatially using the 'radiation__ratio_to_flat_surface'
+    field.
+
+    'Cosine' method: This method calculates the flat surface potential
+    evapotranspiration value as a sinusoidal function of the day of the year.
+    This method uses the inputs of MeanTmaxF, delta_d, lt, and nd
+    obtained during instantiation of the component or during a call
+    to the 'initialize' method, and current_time during a call to the
+    'update' method. This value is then distributed spatially using the
+    'radiation__ratio_to_flat_surface' field. [Equation 28 - Zhou et al. 2013]
+
+    'MeasuredRadiationPET' method: This method calculates the flat surface
+    potential evapotranspiration value using the inputs of
+    obs_radiation, albedo, and Tavg obtained during the call to
+    'update' method. This value is then distributed spatially
+    using the 'radiation__ratio_to_flat_surface' field.
+    [ASCE-EWRI Task Committee Report Jan 2005]
+
+    'PenmanMonteith' method: This method calculates the flat surface
+    potential evapotranspiration values using Penman equation.
+    This method uses the inputs of zm, zh, zveg, rl,
+    air_density, latent_heat_of_vaporization,
+    stefan_boltzmann_const, and albedo obtained during
+    instantiation of the component or during a call
+    to the 'initialize' method, and Tavg, radiation_sw,
+    wind_speed, relative_humidity, and co2_concentration
+    during a call to the 'update' method. This value is then
+    distributed spatially using the
+    'radiation__ratio_to_flat_surface' field.[Penman 1948]
+
+    'PriestleyTaylor' method: This method calculates the flat surface
+    potential evapotranspiration values using Priestley-Taylor
+    equation. This method uses the inputs of
+    stefan_boltzmann_const, latitude, elevation_of_measurement,
+    adjustment_coeff, priestley_taylor_constant, albedo,
+    psychometric_const, and latent_heat_of_vaporization obtained during
+    instantiation of the component or during a call
+    to the 'initialize' method, and current_time, Tmax,
+    Tmin, and Tavg during a call to the 'update' method.
+    This value is then distributed spatially using the
+    'radiation__ratio_to_flat_surface' field.
+    [Priestley and Taylor 1972; ASCE-EWRI Task Committee Report Jan 2005]
+
+
+    Suggested References:
 
     Allen, R. G., Walter, I. A., Elliot, R., Howell, T., Itenfisu,
     D., Jensen, M., & Snyder, R. (2005). The ASCE standardized
     reference evapotranspiration equation. ASCE-EWRI task committee
     final report.
+
+    Penman, H. L. (1948). Natural evaporation from open water, bare
+    soil and grass. Proceedings of the Royal Society of London.
+    Series A. Mathematical and Physical Sciences, 193(1032), 120-145.
+
+    Priestley, C. H. B., & Taylor, R. J. (1972). On the assessment of
+    surface heat flux and evaporation using large-scale parameters.
+    Monthly weather review, 100(2), 81-92.
 
     Yang, Y., Roderick, M. L., Zhang, S., McVicar, T. R., & Donohue,
     R. J. (2019). Hydrologic implications of vegetation response to
@@ -76,7 +142,7 @@ class PotentialEvapotranspiration(Component):
     >>> pet_rate = grid.at_cell['surface__potential_evapotranspiration_rate']
     >>> np.allclose(pet_rate, 0.)
     True
-    >>> grid['cell']['radiation__ratio_to_flat_surface'] = np.array([
+    >>> grid.at_cell['radiation__ratio_to_flat_surface'] = np.array([
     ...       0.38488566, 0.38488566,
     ...       0.33309785, 0.33309785,
     ...       0.37381705, 0.37381705])
@@ -304,14 +370,30 @@ class PotentialEvapotranspiration(Component):
                 )
             )
         elif self._method == 'PenmanMonteith':
-            self._PET_value = self._PenmanMonteith(Tavg, obs_radiation,
-                                                   wind_speed,
-                                                   relative_humidity,
-                                                   co2_concentration)
+            self._PET_value = self._PenmanMonteith(
+                Tavg, obs_radiation, wind_speed,
+                relative_humidity, co2_concentration)
             if math.isnan(self._PET_value):
                 self._PET_value = 0.
             if self._PET_value < 0.:
                 self._PET_value = 0.
+            self._cell_values["radiation__incoming_shortwave_flux"] = (
+                obs_radiation
+                * self._cell_values["radiation__ratio_to_flat_surface"]
+            )
+            self._cell_values["radiation__net_shortwave_flux"] = (
+                obs_radiation
+                * (1 - self._a)
+                * self._cell_values["radiation__ratio_to_flat_surface"]
+            )
+            self._cell_values["radiation__net_longwave_flux"] = (
+                self._radiation_lw
+                * self._cell_values["radiation__ratio_to_flat_surface"]
+            )
+            self._cell_values["radiation__net_flux"] = (
+                self._net_radiation
+                * self._cell_values["radiation__ratio_to_flat_surface"]
+            )
 
         # Spatially distributing PET
         self._PET = (
@@ -433,34 +515,44 @@ class PotentialEvapotranspiration(Component):
         self._ea = (self._es * relative_humidity * 0.01)
         # Slope of Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 5, (36)
-        self._delta = (4098.0 * self._es)/((237.3 + Tavg) ** 2.0)
-        self._ra = ((np.log((zm - zd)/z0))**2)/(kv**2 * wind_speed)
+        self._delta = (4098.0 * self._es) / ((237.3 + Tavg) ** 2.0)
+        self._ra = ((np.log((zm - zd) / z0)) ** 2)/((kv ** 2) * wind_speed)
         if self._zh != None:
-            self._ra = (((np.log((zm - zd)/z0))*(np.log((zh-zd)/z0h)))/
-                         (kv**2 * wind_speed))  # Correction for RH
+            self._ra = (
+                ((np.log((zm - zd) / z0)) * (np.log((zh - zd) / z0h)))
+                / (kv**2 * wind_speed)
+            )  # Correction for RH
             
-        self._Kat = (2.158/(self._rho_w * (273.3 + Tavg)))
+        self._Kat = (2.158 / (self._rho_w * (273.3 + Tavg)))
         # Evaporation
-        self._E = (self._Kat * (1./self._ra) * (self._es - self._ea) *
-                   86400. * 1000.)
+        self._E = (
+            self._Kat * (1./self._ra) * (self._es - self._ea) * 86400. * 1000.
+        )
         # Potential Evapotranspiration
-        self._E2 = (radiation_sw/self._pwhv)
-        self._Ts = (Tavg + 273.15 - 0.825 * np.exp(3.54 * 10.**(-3) *
-                                                         radiation_sw))
-        self._radiation_lw = (self._sigma * (self._Ts**4 - (Tavg +
-                                                            273.15)**4))
-        self._net_radiation = max(((1-self._a) * radiation_sw +
-                                      self._radiation_lw), 0.)
-        self._penman_numerator = ((self._delta * self._net_radiation) +
-                                  (self._rho_a * self._ca *
-                                   (self._es - self._ea)/self._ra))
-        self._rs = (self._rl/(0.5*self._LAI) +
-                    0.05 * (co2_concentration - 300.))  # Yang et al. 2019
-        self._penman_denominator = (self._pwhv * (self._delta + self._y *
-                                                  (1 + (self._rs)/
-                                                   self._ra)))
-        self._ETp = (self._penman_numerator/self._penman_denominator)
-                                  
+        self._E2 = (radiation_sw / self._pwhv)
+        self._Ts = (
+            Tavg + 273.15 - 0.825 * np.exp(3.54 * (10. ** (-3)) * radiation_sw)
+        )
+        self._radiation_lw = (
+            self._sigma * (self._Ts ** 4 - (Tavg + 273.15) ** 4)
+        )
+        self._net_radiation = max(
+            ((1-self._a) * radiation_sw + self._radiation_lw), 0.,
+        )
+        self._penman_numerator = (
+            (self._delta * self._net_radiation)
+            + (self._rho_a * self._ca * (self._es - self._ea)
+            / self._ra)
+        )
+        self._rs = (
+            self._rl / (0.5*self._LAI)
+            + 0.05 * (co2_concentration - 300.)
+        )  # Yang et al. 2019
+        self._penman_denominator = (
+            self._pwhv
+            * (self._delta + self._y * (1 + self._rs / self._ra))
+        )
+        self._ETp = (self._penman_numerator / self._penman_denominator)                                  
         return self._ETp
 
     def _MeasuredRadPT(self, Tavg, Rnobs):
