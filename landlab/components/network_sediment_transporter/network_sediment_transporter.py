@@ -145,7 +145,6 @@ class NetworkSedimentTransporter(Component):
     >>>         bed_porosity=0.03,
     >>>         g=9.81,
     >>>         fluid_density=1000,
-    >>>         channel_width="channel_width",
     >>>         transport_method="WilcockCrowe",
     >>>     )
     
@@ -217,7 +216,6 @@ class NetworkSedimentTransporter(Component):
         bed_porosity=0.3,
         g=9.81,
         fluid_density=1000.,
-        channel_width="channel_width",
         transport_method="WilcockCrowe",
         **kwds
     ):
@@ -246,8 +244,6 @@ class NetworkSedimentTransporter(Component):
         fluid_density: float, optional
             Density of the fluid (generally, water) in which sediment is
             moving. Default value is 1000 (kg/m^3)
-        channel_width: float, optional
-            DANGER DANGER-- Why don't we have this attached to the grid?
         transport_method: string
             Sediment transport equation option. Default (and currently only)
             option is "WilcockCrowe".
@@ -313,7 +309,7 @@ class NetworkSedimentTransporter(Component):
         if self.transport_method == "WilcockCrowe":
             self.update_transport_time = self._calc_transport_wilcock_crowe
 
-        self._width = self._grid.at_link[channel_width]
+        self._width = self._grid.at_link["channel_width"]
 
         if "channel_width" not in self._grid.at_link:
             msg = (
@@ -331,7 +327,7 @@ class NetworkSedimentTransporter(Component):
 
         if "bedrock__elevation" not in self._grid.at_node:
             msg = (
-                "NetworkSedimentTransporter: topographic__elevation must be "
+                "NetworkSedimentTransporter: bedrock__elevation must be "
                 "assigned to the grid nodes"
             )
             raise ValueError(msg)
@@ -345,7 +341,7 @@ class NetworkSedimentTransporter(Component):
 
         if "drainage_area" not in self._grid.at_link:
             msg = (
-                "NetworkSedimentTransporter: channel_width must be assigned"
+                "NetworkSedimentTransporter: drainage_area must be assigned"
                 "to the grid links"
             )
             raise ValueError(msg)
@@ -1044,7 +1040,9 @@ def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
     chan_slope = (z_up - z_down) / dx
 
     if chan_slope < 0.0:
-        raise ValueError("NST Channel Slope Negative")
+        chan_slope = 0.0
+        # DANGER DANGER ^ that is probably a bad idea. 
+        #raise ValueError("NST Channel Slope Negative")
 
     if chan_slope < threshold:
         chan_slope = threshold
