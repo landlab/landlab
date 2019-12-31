@@ -45,6 +45,7 @@ class SoilMoisture(Component):
      'soil_moisture__saturation_fraction',
      'surface__evapotranspiration',
      'surface__runoff',
+     'surface__runon',
      'vegetation__water_stress']
     >>> sorted(SoilMoisture.units) # doctest: +NORMALIZE_WHITESPACE
     [('rainfall__daily_depth', 'mm'),
@@ -53,12 +54,14 @@ class SoilMoisture(Component):
      ('soil_moisture__saturation_fraction', 'None'),
      ('surface__evapotranspiration', 'mm'),
      ('surface__potential_evapotranspiration_rate', 'mm'),
+     ('surface__potential_evapotranspiration_rate__grass', 'mm'),
      ('surface__runoff', 'mm'),
+     ('surface__runon', 'mm'),
      ('vegetation__cover_fraction', 'None'),
      ('vegetation__live_leaf_area_index', 'None'),
      ('vegetation__plant_functional_type', 'None'),
      ('vegetation__water_stress', 'None')]
-    >>> grid['cell']['vegetation__plant_functional_type']= (
+    >>> grid.at_cell["vegetation__plant_functional_type"] = (
     ...            np.zeros(grid.number_of_cells, dtype=int))
     >>> SM = SoilMoisture(grid)
     >>> SM.grid.number_of_cell_rows
@@ -68,110 +71,110 @@ class SoilMoisture(Component):
     >>> SM.grid is grid
     True
     >>> import numpy as np
-    >>> np.allclose(grid.at_cell['soil_moisture__saturation_fraction'], 0.)
+    >>> np.allclose(grid.at_cell["soil_moisture__saturation_fraction"], 0.)
     True
-    >>> grid['cell']['surface__potential_evapotranspiration_rate']= np.array([
+    >>> grid.at_cell["surface__potential_evapotranspiration_rate"]= np.array([
     ...            0.2554777, 0.2554777 , 0.22110221, 0.22110221,
     ...            0.24813062, 0.24813062])
-    >>> grid['cell']['soil_moisture__initial_saturation_fraction']= (
+    >>> grid.at_cell["soil_moisture__initial_saturation_fraction"]= (
     ...        0.75 * np.ones(grid.number_of_cells))
-    >>> grid['cell']['vegetation__live_leaf_area_index']= (
+    >>> grid.at_cell["vegetation__live_leaf_area_index"]= (
     ...        2. * np.ones(grid.number_of_cells))
-    >>> grid['cell']['vegetation__cover_fraction']= (
+    >>> grid.at_cell["vegetation__cover_fraction"]= (
     ...        np.ones(grid.number_of_cells))
     >>> current_time = 0.5
-    >>> grid['cell']['rainfall__daily_depth'] = (
+    >>> grid.at_cell["rainfall__daily_depth"] = (
     ...        25. * np.ones(grid.number_of_cells))
     >>> current_time = SM.update(current_time)
-    >>> np.allclose(grid.at_cell['soil_moisture__saturation_fraction'], 0.)
+    >>> np.allclose(grid.at_cell["soil_moisture__saturation_fraction"], 0.)
     False
     """
 
     _name = "Soil Moisture"
 
     _input_var_names = (
-        'vegetation__cover_fraction',
-        'vegetation__live_leaf_area_index',
-        'surface__potential_evapotranspiration_rate',
-        'surface__potential_evapotranspiration_rate__grass',
-        'soil_moisture__initial_saturation_fraction',
-        'vegetation__plant_functional_type',
-        'rainfall__daily_depth',
+        "vegetation__cover_fraction",
+        "vegetation__live_leaf_area_index",
+        "surface__potential_evapotranspiration_rate",
+        "surface__potential_evapotranspiration_rate__grass",
+        "soil_moisture__initial_saturation_fraction",
+        "vegetation__plant_functional_type",
+        "rainfall__daily_depth",
     )
 
     _output_var_names = (
-        'vegetation__water_stress',
-        'soil_moisture__saturation_fraction',
-        'soil_moisture__root_zone_leakage',
-        'surface__runoff',
-        'surface__runon',
-        'surface__evapotranspiration',
+        "vegetation__water_stress",
+        "soil_moisture__saturation_fraction",
+        "soil_moisture__root_zone_leakage",
+        "surface__runoff",
+        "surface__runon",
+        "surface__evapotranspiration",
     )
 
     _var_units = {
-        'vegetation__cover_fraction': 'None',
-        'vegetation__live_leaf_area_index': 'None',
-        'surface__potential_evapotranspiration_rate': 'mm',
-        'surface__potential_evapotranspiration_rate__grass': 'mm',
-        'vegetation__plant_functional_type': 'None',
-        'vegetation__water_stress': 'None',
-        'soil_moisture__saturation_fraction': 'None',
-        'soil_moisture__initial_saturation_fraction': 'None',
-        'soil_moisture__root_zone_leakage': 'mm',
-        'surface__runoff': 'mm',
-        'surface__runon': 'mm',
-        'surface__evapotranspiration': 'mm',
-        'rainfall__daily_depth': 'mm',
+        "vegetation__cover_fraction": "None",
+        "vegetation__live_leaf_area_index": "None",
+        "surface__potential_evapotranspiration_rate": "mm",
+        "surface__potential_evapotranspiration_rate__grass": "mm",
+        "vegetation__plant_functional_type": "None",
+        "vegetation__water_stress": "None",
+        "soil_moisture__saturation_fraction": "None",
+        "soil_moisture__initial_saturation_fraction": "None",
+        "soil_moisture__root_zone_leakage": "mm",
+        "surface__runoff": "mm",
+        "surface__runon": "mm",
+        "surface__evapotranspiration": "mm",
+        "rainfall__daily_depth": "mm",
     }
 
     _var_mapping = {
-        'vegetation__cover_fraction': 'cell',
-        'vegetation__live_leaf_area_index': 'cell',
-        'surface__potential_evapotranspiration_rate': 'cell',
-        'surface__potential_evapotranspiration_rate__grass': 'cell',
-        'vegetation__plant_functional_type': 'cell',
-        'vegetation__water_stress': 'cell',
-        'soil_moisture__saturation_fraction': 'cell',
-        'soil_moisture__initial_saturation_fraction': 'cell',
-        'soil_moisture__root_zone_leakage': 'cell',
-        'surface__runoff': 'cell',
-        'surface__runon': 'cell',
-        'surface__evapotranspiration': 'cell',
-        'rainfall__daily_depth': 'cell',
+        "vegetation__cover_fraction": "cell",
+        "vegetation__live_leaf_area_index": "cell",
+        "surface__potential_evapotranspiration_rate": "cell",
+        "surface__potential_evapotranspiration_rate__grass": "cell",
+        "vegetation__plant_functional_type": "cell",
+        "vegetation__water_stress": "cell",
+        "soil_moisture__saturation_fraction": "cell",
+        "soil_moisture__initial_saturation_fraction": "cell",
+        "soil_moisture__root_zone_leakage": "cell",
+        "surface__runoff": "cell",
+        "surface__runon": "cell",
+        "surface__evapotranspiration": "cell",
+        "rainfall__daily_depth": "cell",
     }
 
     _var_doc = {
-        'vegetation__cover_fraction':
-            'fraction of land covered by vegetation',
-        'vegetation__live_leaf_area_index':
-            'one-sided green leaf area per unit ground surface area',
-        'surface__potential_evapotranspiration_rate':
-            'potential sum of evaporation and plant transpiration',
-        'surface__potential_evapotranspiration_rate__grass':
-            'potential sum of evaporation and grass transpiration, \
-             for partitioning bare soil evapotranspiration rate',
-        'vegetation__plant_functional_type':
-            'classification of plants (int), grass=0, shrub=1, tree=2, \
-             bare=3, shrub_seedling=4, tree_seedling=5',
-        'vegetation__water_stress':
-            'parameter that represents nonlinear effects of water deficit \
-             on plants',
-        'soil_moisture__saturation_fraction':
-            'relative volumetric water content (theta) - limits=[0,1]',
-        'soil_moisture__initial_saturation_fraction':
-            'initial soil_moisture__saturation_fraction',
-        'soil_moisture__root_zone_leakage':
-            'leakage of water into deeper portions of the soil not accessible \
-             to the plant',
-        'surface__runoff':
-            'infiltration excess runoff from ground surface',
-        'surface__runon':
-            'infiltration excess runon',
-        'surface__evapotranspiration':
-            'actual sum of evaporation and plant transpiration',
-        'rainfall__daily_depth':
-            'Rain in (mm) as a field, allowing spatio-temporal soil moisture \
-             saturation analysis.',
+        "vegetation__cover_fraction":
+            "fraction of land covered by vegetation",
+        "vegetation__live_leaf_area_index":
+            "one-sided green leaf area per unit ground surface area",
+        "surface__potential_evapotranspiration_rate":
+            "potential sum of evaporation and plant transpiration",
+        "surface__potential_evapotranspiration_rate__grass":
+            "potential sum of evaporation and grass transpiration, \
+             for partitioning bare soil evapotranspiration rate",
+        "vegetation__plant_functional_type":
+            "classification of plants (int), grass=0, shrub=1, tree=2, \
+             bare=3, shrub_seedling=4, tree_seedling=5",
+        "vegetation__water_stress":
+            "parameter that represents nonlinear effects of water deficit \
+             on plants",
+        "soil_moisture__saturation_fraction":
+            "relative volumetric water content (theta) - limits=[0,1]",
+        "soil_moisture__initial_saturation_fraction":
+            "initial soil_moisture__saturation_fraction",
+        "soil_moisture__root_zone_leakage":
+            "leakage of water into deeper portions of the soil not accessible \
+             to the plant",
+        "surface__runoff":
+            "infiltration excess runoff from ground surface",
+        "surface__runon":
+            "infiltration excess runon",
+        "surface__evapotranspiration":
+            "actual sum of evaporation and plant transpiration",
+        "rainfall__daily_depth":
+            "Rain in (mm) as a field, allowing spatio-temporal soil moisture \
+             saturation analysis.",
     }
 
     @use_file_name_or_kwds
@@ -284,7 +287,7 @@ class SoilMoisture(Component):
 
         assert_method_is_valid(self._method)
 
-        super(SoilMoisture, self).__init__(grid)
+        super(SoilMoisture, self).__init__(grid, **kwds)
 
         self.initialize(
             ordered_cells=ordered_cells,
@@ -351,11 +354,11 @@ class SoilMoisture(Component):
 
         for name in self._output_var_names:
             if name not in self.grid.at_cell:
-                self.grid.add_zeros('cell', name, units=self._var_units[name])
+                self.grid.add_zeros("cell", name, units=self._var_units[name])
 
-        self._nodal_values = self.grid['node']
+        self._nodal_values = self.grid["node"]
 
-        self._cell_values = self.grid['cell']
+        self._cell_values = self.grid["cell"]
 
     def initialize(
         self,
@@ -465,7 +468,7 @@ class SoilMoisture(Component):
             Reference leaf area index (m^2/m^2).
         """
 
-        self._vegtype = self.grid.at_cell['vegetation__plant_functional_type']
+        self._vegtype = self.grid.at_cell["vegetation__plant_functional_type"]
         self._runon_switch = runon_switch
         self._fbare = f_bare
         self.ordered_cells = ordered_cells
@@ -577,29 +580,29 @@ class SoilMoisture(Component):
         Tb: float, optional
             Inter-storm duration (hours).
         """
-        P_ = self._cell_values['rainfall__daily_depth']
+        P_ = self._cell_values["rainfall__daily_depth"]
         self._PET = (
-            self._cell_values['surface__potential_evapotranspiration_rate'])
+            self._cell_values["surface__potential_evapotranspiration_rate"])
         self._pet_g = (
-            self._cell_values['surface__potential_evapotranspiration_rate__grass'])
+            self._cell_values["surface__potential_evapotranspiration_rate__grass"])
         self._SO = (
-            self._cell_values['soil_moisture__initial_saturation_fraction'])
-        self._vegcover = self._cell_values['vegetation__cover_fraction']
-        self._water_stress = self._cell_values['vegetation__water_stress']
-        self._S = self._cell_values['soil_moisture__saturation_fraction']
-        self._D = self._cell_values['soil_moisture__root_zone_leakage']
-        self._ETA = self._cell_values['surface__evapotranspiration']
+            self._cell_values["soil_moisture__initial_saturation_fraction"])
+        self._vegcover = self._cell_values["vegetation__cover_fraction"]
+        self._water_stress = self._cell_values["vegetation__water_stress"]
+        self._S = self._cell_values["soil_moisture__saturation_fraction"]
+        self._D = self._cell_values["soil_moisture__root_zone_leakage"]
+        self._ETA = self._cell_values["surface__evapotranspiration"]
         self._fr = (
-            self._cell_values['vegetation__live_leaf_area_index']
+            self._cell_values["vegetation__live_leaf_area_index"]
             / self._LAIR_max
         )
-        self._runoff = self._cell_values['surface__runoff']
-        self._runon = self._cell_values['surface__runon']
+        self._runoff = self._cell_values["surface__runoff"]
+        self._runon = self._cell_values["surface__runon"]
         self._runoff[:] = 0.   # Initializing runoff to zero
         self._runon[:] = 0.    # Initializing runon to zero
 
-        # LAIl = self._cell_values['vegetation__live_leaf_area_index']
-        # LAIt = LAIl+self._cell_values['DeadLeafAreaIndex']
+        # LAIl = self._cell_values["vegetation__live_leaf_area_index"]
+        # LAIt = LAIl+self._cell_values["DeadLeafAreaIndex"]
         # if LAIt.all() == 0.:
         #     self._fr = np.zeros(self.grid.number_of_cells)
         # else:
@@ -613,7 +616,7 @@ class SoilMoisture(Component):
         if self._runon_switch:
             # Make sure that flow_router has been called before
             r_cell = (self.grid.cell_at_node[
-                self.grid.at_node['flow__receiver_node']])
+                self.grid.at_node["flow__receiver_node"]])
             r_cell = r_cell[r_cell != -1]
             # finding cells that aren't part of
             # ordered cells (delineated watershed)

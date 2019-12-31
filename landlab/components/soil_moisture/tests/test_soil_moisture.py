@@ -19,6 +19,7 @@ def test_input_var_names(sm):
         "rainfall__daily_depth",
         "soil_moisture__initial_saturation_fraction",
         "surface__potential_evapotranspiration_rate",
+        "surface__potential_evapotranspiration_rate__grass",
         "vegetation__cover_fraction",
         "vegetation__live_leaf_area_index",
         "vegetation__plant_functional_type",
@@ -31,6 +32,7 @@ def test_output_var_names(sm):
         "soil_moisture__saturation_fraction",
         "surface__evapotranspiration",
         "surface__runoff",
+        "surface__runon",
         "vegetation__water_stress",
     ]
 

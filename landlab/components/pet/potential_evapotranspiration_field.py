@@ -3,8 +3,6 @@ from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
 import math
 
-from ...utils.decorators import use_file_name_or_kwds
-
 _VALID_METHODS = set(['Constant',
                       'Cosine',
                       'MeasuredRadiationPT',
