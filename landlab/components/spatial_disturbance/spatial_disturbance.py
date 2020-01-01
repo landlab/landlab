@@ -15,15 +15,14 @@ from landlab import FieldError, Component
 from ...utils.decorators import use_file_name_or_kwds
 from .funcs import (convert_phy_pft_to_distr_pft,
                    convert_distr_pft_to_phy_pft)
-#from __future__ import print_function
 
 
-_VALID_SCHEMES = set(['zhou_et_al_2013', 'ravi_et_al_2009'])
+_VALID_SCHEMES = set(["zhou_et_al_2013", "ravi_et_al_2009"])
 
 
 def _assert_pft_scheme_is_valid(scheme):
     if scheme not in _VALID_SCHEMES:
-        raise ValueError('%s: Invalid PFT scheme' % scheme)
+        raise ValueError("%s: Invalid PFT scheme" % scheme)
 
 
 # %% Declare Global Variables (If any)
@@ -92,40 +91,40 @@ class SpatialDisturbance(Component):
     Deal with them!
     """
 
-    _name = 'Spatial Disturbance'
+    _name = "Spatial Disturbance"
 
     _input_var_names = (
-            'vegetation__plant_functional_type',
+            "vegetation__plant_functional_type",
             )
 
     _output_var_names = (
-            'vegetation__plant_functional_type',
+            "vegetation__plant_functional_type",
             )
 
     _var_units = {
-            'vegetation__plant_functional_type': 'None',
+            "vegetation__plant_functional_type": "None",
             }
 
     _var_mapping = {
-            'vegetation__plant_functional_type': 'cell',
+            "vegetation__plant_functional_type": "cell",
             }
 
     _var_doc = {
-            'vegetation__plant_functional_type':
-                'classification of plant type - zhou_et_al_2013 (int)'
-                + 'grass=0, shrub=1, tree=2, bare=3,'
-                + 'shrub_seedling=4, tree_seedling=5',
+            "vegetation__plant_functional_type":
+                "classification of plant type - zhou_et_al_2013 (int)"
+                + "grass=0, shrub=1, tree=2, bare=3,"
+                + "shrub_seedling=4, tree_seedling=5",
             }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, pft_scheme='zhou_et_al_2013',
+    def __init__(self, grid, pft_scheme="zhou_et_al_2013",
                  **kwds):
         self._pft_scheme = pft_scheme
         _assert_pft_scheme_is_valid(self._pft_scheme)
         super(SpatialDisturbance, self).__init__(grid, **kwds)
 
-        if self._pft_scheme == 'zhou_et_al_2013':
-            if 'vegetation__plant_functional_type' not in self.grid.at_cell:
+        if self._pft_scheme == "zhou_et_al_2013":
+            if "vegetation__plant_functional_type" not in self.grid.at_cell:
                 raise FieldError("Cellular field of 'Plant Functional Type'" +
                                  " is required!")
 
@@ -133,10 +132,10 @@ class SpatialDisturbance(Component):
         """
         Function to implement grazing
         """
-        if self._pft_scheme == 'zhou_et_al_2013':
-            vegtype = self._grid.at_cell['vegetation__plant_functional_type']
+        if self._pft_scheme == "zhou_et_al_2013":
+            vegtype = self._grid.at_cell["vegetation__plant_functional_type"]
             V = convert_phy_pft_to_distr_pft(self._grid, vegtype)
-        elif self._pft_scheme == 'ravi_et_al_2009':
+        elif self._pft_scheme == "ravi_et_al_2009":
             if V is None:
                 raise ValueError("Cellular field of 'Plant Functional Type'" +
                                  " should be provided!")
@@ -146,9 +145,9 @@ class SpatialDisturbance(Component):
         compute_ = np.random.random(grass_cells.shape)
         grazed_cells = grass_cells[compute_ < grz_prob]
         V[grazed_cells] = 0
-        if self._pft_scheme == 'zhou_et_al_2013':
+        if self._pft_scheme == "zhou_et_al_2013":
             vegtype = convert_distr_pft_to_phy_pft(self._grid, V)
-            self._grid.at_cell['vegetation__plant_functional_type'] = vegtype
+            self._grid.at_cell["vegetation__plant_functional_type"] = vegtype
         return (V, grazed_cells)
 
     def initiate_fires(self, V=None, n_fires=2, fire_area_mean=0.0625,
@@ -190,10 +189,10 @@ class SpatialDisturbance(Component):
         tr_seed_susc: float, optional
             susceptibility of tree seedlings to burn
         """
-        if self._pft_scheme == 'zhou_et_al_2013':
-            vegtype = self._grid.at_cell['vegetation__plant_functional_type']
+        if self._pft_scheme == "zhou_et_al_2013":
+            vegtype = self._grid.at_cell["vegetation__plant_functional_type"]
             V = convert_phy_pft_to_distr_pft(self._grid, vegtype)
-        elif self._pft_scheme == 'ravi_et_al_2009':
+        elif self._pft_scheme == "ravi_et_al_2009":
             if V is None:
                 raise ValueError("Cellular field of 'Plant Functional Type'" +
                                  " should be provided!")
@@ -221,9 +220,9 @@ class SpatialDisturbance(Component):
             burnt_locs += fire_locs
             ignition_cells += list(ignition_cell)
 
-        if self._pft_scheme == 'zhou_et_al_2013':
+        if self._pft_scheme == "zhou_et_al_2013":
             vegtype = convert_distr_pft_to_phy_pft(self._grid, V)
-            self._grid.at_cell['vegetation__plant_functional_type'] = vegtype
+            self._grid.at_cell["vegetation__plant_functional_type"] = vegtype
         return (V, burnt_locs, ignition_cells)
 
     def _spread_fire(self, V, ignition_cell, fire_area_mean=0.0625,
