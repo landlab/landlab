@@ -54,9 +54,6 @@ class SpatialDisturbance(Component):
     2: Shrub; 3: Burnt Grass; 4: Burnt Shrub; 5: Trees;
     6: Burnt Trees; 7: Shrub Seed; 8: Tree Seed
 
-    Construction::
-        SpatialDisturbance()
-
     Parameters:
     ----------
     grid: RasterModelGrid
@@ -95,9 +92,7 @@ class SpatialDisturbance(Component):
     Deal with them!
     """
 
-    _name = 'SpatialDisturbance'
-
-    __version__ = 'landlab version in which this component is created in'
+    _name = 'Spatial Disturbance'
 
     _input_var_names = (
             'vegetation__plant_functional_type',
@@ -117,9 +112,9 @@ class SpatialDisturbance(Component):
 
     _var_doc = {
             'vegetation__plant_functional_type':
-            'classification of plant type - zhou_et_al_2013 (int)' +
-            'grass=0, shrub=1, tree=2, bare=3,' +
-            'shrub_seedling=4, tree_seedling=5',
+                'classification of plant type - zhou_et_al_2013 (int)'
+                + 'grass=0, shrub=1, tree=2, bare=3,'
+                + 'shrub_seedling=4, tree_seedling=5',
             }
 
     @use_file_name_or_kwds

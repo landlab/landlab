@@ -34,9 +34,6 @@ class ResourceRedistribution(Component):
     What does this component output? Are there multiple
     processes? What are the key methods?
 
-    Construction::
-        ResourceRedistribution()
-
     Parameters:
     ----------
     grid: RasterModelGrid
@@ -75,35 +72,33 @@ class ResourceRedistribution(Component):
     Deal with them!
     """
 
-    _name = 'SpatialDisturbance'
-
-    __version__ = 'landlab version in which this component is created in'
+    _name = "Resource Redistribution"
 
     _input_var_names = (
-            'vegetation__plant_functional_type',
-            'soil__resources',
+            "vegetation__plant_functional_type",
+            "soil__resources",
             )
 
     _output_var_names = (
-            'vegetation__plant_functional_type',
-            'soil__resources',
+            "vegetation__plant_functional_type",
+            "soil__resources",
             )
 
     _var_units = {
-            'vegetation__plant_functional_type': None,
-            'soil__resources': None,
+            "vegetation__plant_functional_type": "None",
+            "soil__resources": "None",
             }
 
     _var_mapping = {
-            'vegetation__plant_functional_type': 'cell',
-            'soil__resources': 'cell',
+            "vegetation__plant_functional_type": "cell",
+            "soil__resources": "cell",
             }
 
     _var_doc = {
-            'vegetation__plant_functional_type':
-            'classification of plant type - bare=0, grass=1,' +
-            'shrub=2, burntgrass=3, burntshrub=4',
-            'soil__resources': 'level of soil resources',
+            "vegetation__plant_functional_type":
+                "classification of plant type - bare=0, grass=1,"
+                + "shrub=2, burntgrass=3, burntshrub=4",
+            "soil__resources": "level of soil resources",
             }
 
     @use_file_name_or_kwds
@@ -119,18 +114,18 @@ class ResourceRedistribution(Component):
                  **kwds):
         super(ResourceRedistribution, self).__init__(grid, **kwds)
 
-        name = 'vegetation__plant_functional_type'
+        name = "vegetation__plant_functional_type"
         if name not in self.grid.at_cell:
-            print('Since a cellular field of PFTs ' +
-                  'is not provided, the field ' +
-                  name + ' is initialized to 0 - all bare cells!')
-            self.grid.add_zeros('cell', name, units=self._var_units[name])
-        name = 'soil__resources'
+            print("Since a cellular field of PFTs " +
+                  "is not provided, the field " +
+                  name + " is initialized to 0 - all bare cells!")
+            self.grid.add_zeros("cell", name, units=self._var_units[name])
+        name = "soil__resources"
         if name not in self.grid.at_cell:
-            print('Since a cellular field for Resources ' +
-                  'is not provided, the field ' +
-                  name + ' is initialized to 1!')
-            self.grid.add_ones('cell', name, units=self._var_units[name])
+            print("Since a cellular field for Resources " +
+                  "is not provided, the field " +
+                  name + " is initialized to 1!")
+            self.grid.add_ones("cell", name, units=self._var_units[name])
 
         self.initialize(e=e, R_low_threshold=R_low_threshold,
                         R_threshold=R_threshold,
@@ -182,8 +177,8 @@ class ResourceRedistribution(Component):
         self._gr_mor_ws_thresh = gr_mor_ws_thresh
 
     def erode(self):
-        V = self.grid.at_cell['vegetation__plant_functional_type']
-        R = self.grid.at_cell['soil__resources']
+        V = self.grid.at_cell["vegetation__plant_functional_type"]
+        R = self.grid.at_cell["soil__resources"]
         Elig_R = np.where(R > self._R_low_threshold)[0]
         # Deal with shrubs first
         burnt_shrubs = Elig_R[V[Elig_R] == BURNTSHRUB]
@@ -200,8 +195,8 @@ class ResourceRedistribution(Component):
                 burnt_grass, bare_cells)
 
     def deposit(self, eroded_soil, eroded_soil_shrub):
-        V = self.grid.at_cell['vegetation__plant_functional_type']
-        R = self.grid.at_cell['soil__resources']
+        V = self.grid.at_cell["vegetation__plant_functional_type"]
+        R = self.grid.at_cell["soil__resources"]
         exclusive = np.arange(0, self.grid.number_of_cells)
         burnt_shrubs = np.where(V == BURNTSHRUB)[0]
         if int(burnt_shrubs.shape[0]) > 0:
@@ -231,7 +226,7 @@ class ResourceRedistribution(Component):
                 grass_exclusive, bare_exclusive, eroded_soil_part)
 
     def re_adjust_resource(self):
-        R = self.grid.at_cell['soil__resources']
+        R = self.grid.at_cell["soil__resources"]
     ## Resource exceeding R_threshold will be distributed to its neighbors                                
         resource_adjusted = 0.
         eligible_locs_to_adj_neigh = np.array([])
@@ -261,8 +256,8 @@ class ResourceRedistribution(Component):
                 Elig_locs, sed_to_borrow)
 
     def establish(self, V_age):
-        V = self.grid.at_cell['vegetation__plant_functional_type']
-        R = self.grid.at_cell['soil__resources']
+        V = self.grid.at_cell["vegetation__plant_functional_type"]
+        R = self.grid.at_cell["soil__resources"]
         burnt_shrubs = np.where(V == BURNTSHRUB)[0]
         burnt_grass = np.where(V == BURNTGRASS)[0]
         ## Regrowth in burnt area
@@ -305,7 +300,7 @@ class ResourceRedistribution(Component):
         return (V_age, est_1, est_2, est_3, est_4, est_5)
 
     def _np_ndarray_count(self, neigh_sh_grz_regrwth):
-        V = self.grid.at_cell['vegetation__plant_functional_type']
+        V = self.grid.at_cell["vegetation__plant_functional_type"]
         ns_sh = np.zeros(neigh_sh_grz_regrwth.shape[0], dtype=int)
         for i in range(0, ns_sh.shape[0]):
             ns_sh[i] = (
@@ -314,7 +309,7 @@ class ResourceRedistribution(Component):
         return (ns_sh)
 
     def _compute_Prob_mortality_age(self, V_age, Pmor_age):
-        V = self.grid.at_cell['vegetation__plant_functional_type']
+        V = self.grid.at_cell["vegetation__plant_functional_type"]
         # Age mortality for Vegetation other than shrub = 0.
         # Shrub seedling
         shrubs_ = np.where(V == SHRUB)[0]
@@ -335,7 +330,7 @@ class ResourceRedistribution(Component):
         return (Pmor_age)
 
     def mortality(self, V_age):
-        V = self.grid.at_cell['vegetation__plant_functional_type']
+        V = self.grid.at_cell["vegetation__plant_functional_type"]
         # Killing burnt vegetation    
         burnt_shrubs = np.where(V == BURNTSHRUB)[0]
         P_check_1 = np.random.random(burnt_shrubs.shape)
@@ -370,12 +365,12 @@ class ResourceRedistribution(Component):
         return (V_age, Pmor_age, Pmor_age_ws)
 
     def initialize_Veg_age(self, V_age):
-        V = self.grid.at_cell['vegetation__plant_functional_type']
+        V = self.grid.at_cell["vegetation__plant_functional_type"]
         V_age[V == SHRUB] = np.random.randint(0, self._sh_max_age,
                                               V_age[V == SHRUB].shape)
         return (V_age)
         
     def update_Veg_age(self, V_age):
-        V = self.grid.at_cell['vegetation__plant_functional_type']
+        V = self.grid.at_cell["vegetation__plant_functional_type"]
         V_age[V != BARE] += 1
         return (V_age)
