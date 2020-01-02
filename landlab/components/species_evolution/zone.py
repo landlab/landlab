@@ -2,19 +2,29 @@
 # -*- coding: utf-8 -*-
 """Zone functions and class of SpeciesEvolver."""
 from collections import OrderedDict
+from enum import IntEnum, unique
 
 import numpy as np
 
 
-# Define connection types.
+@unique
+class Connection(IntEnum):
+    """Zone connection type.
 
-_NONE_TO_NONE = 'none_to_none'
-_NONE_TO_ONE = 'none_to_one'
-_ONE_TO_NONE = 'one-to-none'
-_ONE_TO_ONE = 'one-to-one'
-_ONE_TO_MANY = 'one-to-many'
-_MANY_TO_ONE = 'many-to-one'
-_MANY_TO_MANY = 'many-to-many'
+    Connection type represents the connectivity of zones in two time steps. It
+    is described with the pattern, x-to-y where x and y are the descriptive
+    counts (none, one, or many) of zone(s) at the earlier and later time step,
+    respectively. For example, a connection type of one-to-many is a zone in
+    the earlier time step that spatially overlaps multiple zones in the later
+    time step.
+    """
+    NONE_TO_NONE = 0
+    NONE_TO_ONE = 1
+    ONE_TO_NONE = 2
+    ONE_TO_ONE = 3
+    ONE_TO_MANY = 4
+    MANY_TO_ONE = 5
+    MANY_TO_MANY = 6
 
 
 def _update_zones(grid, prior_zones, new_zones, record):
@@ -27,12 +37,7 @@ def _update_zones(grid, prior_zones, new_zones, record):
     step zones referred to as the predecessor zones.
 
     The type of connection between predecessor and successor zones is described
-    by the number of predecessors and successors that overlap each other. The
-    connection type is represented by a string with the pattern, x-to-y where x
-    and y are the descriptive counts (none, one, or many) of zone(s) at the
-    prior and current time step, respectively. For example, a connection type
-    of one-to-many is a zone in the prior time step that spatially overlaps
-    multiple zones in the current time step.
+    ``Connection``. The `_conn_type` property of zones are set by this method.
 
     In the `many` connections, a rule determines which of the prior zones
     persist as the zone in the current time step. The zone with the greatest
@@ -62,17 +67,10 @@ def _update_zones(grid, prior_zones, new_zones, record):
     capture_ct = 0
     area_captured = [0]
 
-    # Get `successors`, the zones of `time`.
+    # Get `successors`.
 
     if len(prior_zones) == 0 and len(new_zones) == 0:
         successors = []
-
-    elif len(prior_zones) > 0 and len(new_zones) == 0:
-        successors = []
-        conn_type = _determine_connection_type(1, 0)
-        for p in prior_zones:
-            p._conn_type = conn_type
-            p._successors = []
 
     elif len(prior_zones) == 0 and len(new_zones) > 0:
         successors = new_zones
@@ -80,6 +78,13 @@ def _update_zones(grid, prior_zones, new_zones, record):
         for n in new_zones:
             n._conn_type = conn_type
             n._successors = [n]
+
+    elif len(prior_zones) > 0 and len(new_zones) == 0:
+        successors = []
+        conn_type = _determine_connection_type(1, 0)
+        for p in prior_zones:
+            p._conn_type = conn_type
+            p._successors = []
 
     elif len(prior_zones) > 0 and len(new_zones) > 0:
         successors = []
@@ -106,6 +111,10 @@ def _update_zones(grid, prior_zones, new_zones, record):
             ps_i_ns = _intersecting_zones(ns_mask, ps_index_map, prior_zones)
             ps_i_ns_ct = len(ps_i_ns)
 
+            if ps_i_ns_ct == 0:
+                ps_i_ns_ct = 1
+                ps_i_ns = p
+
             # Get successors depending on connection type.
 
             conn_type = _determine_connection_type(ps_i_ns_ct, ns_i_p_ct)
@@ -117,7 +126,7 @@ def _update_zones(grid, prior_zones, new_zones, record):
 
             # Update statistics.
 
-            if conn_type in [_MANY_TO_ONE, _MANY_TO_MANY]:
+            if conn_type in [Connection.MANY_TO_ONE, Connection.MANY_TO_MANY]:
                 # Copy successors to be `captured_zones`.
                 captured_zones = list(p_successors)
                 if p in captured_zones:
@@ -129,7 +138,9 @@ def _update_zones(grid, prior_zones, new_zones, record):
                     area = sum(grid.cell_area_at_node[captured_mask.flatten()])
                     area_captured.append(area)
 
-            elif conn_type in [_ONE_TO_MANY, _MANY_TO_MANY]:
+            elif conn_type in [
+                Connection.ONE_TO_MANY, Connection.MANY_TO_MANY
+            ]:
                 fragment_ct += ns_i_p_ct
 
             # Set connection.
@@ -149,8 +160,8 @@ def _update_zones(grid, prior_zones, new_zones, record):
 
     # Update the record.
 
-    record.increment_value('fragmentation_count', fragment_ct)
-    record.increment_value('capture_count', capture_ct)
+    record.increment_value('fragmentations', fragment_ct)
+    record.increment_value('captures', capture_ct)
     record.increment_value('area_captured_sum', sum(area_captured))
 
     old_value = record.get_value('area_captured_max')
@@ -184,36 +195,38 @@ def _determine_connection_type(prior_zone_count, new_zone_count):
     """Get the connection type based on the count of prior and new zones."""
     if prior_zone_count == 0:
         if new_zone_count == 1:
-            return _NONE_TO_ONE
+            return Connection.NONE_TO_ONE
 
     elif prior_zone_count == 1:
         if new_zone_count == 0:
-            return _ONE_TO_NONE
+            return Connection.ONE_TO_NONE
         elif new_zone_count == 1:
-            return _ONE_TO_ONE
+            return Connection.ONE_TO_ONE
         elif new_zone_count > 1:
-            return _ONE_TO_MANY
+            return Connection.ONE_TO_MANY
 
     elif prior_zone_count > 1:
         if new_zone_count == 1:
-            return _MANY_TO_ONE
+            return Connection.MANY_TO_ONE
         elif new_zone_count > 1:
-            return _MANY_TO_MANY
+            return Connection.MANY_TO_MANY
 
 
 def _get_successors(
     p, conn_type, ps_i_ns, ns_i_p, prior_zones, ps_index_map, replacements,
     all_successors
 ):
+    if conn_type == Connection.ONE_TO_NONE:
+        successors = []
 
-    if conn_type == _ONE_TO_ONE:
+    if conn_type == Connection.ONE_TO_ONE:
         # The prior zone is set as the new zone because only the one new
         # and the one prior overlap.
         n = ns_i_p[0]
         replacements[p] = n
         successors = [p]
 
-    elif conn_type in [_ONE_TO_MANY, _MANY_TO_MANY]:
+    elif conn_type in [Connection.ONE_TO_MANY, Connection.MANY_TO_MANY]:
         # Set the successors to the new zones that overlap p.
         # Although, replace the dominant n with p.
 
@@ -241,7 +254,7 @@ def _get_successors(
                 successors.append(dp)
                 replacements[dp] = n
 
-    elif conn_type == _MANY_TO_ONE:
+    elif conn_type == Connection.MANY_TO_ONE:
         # Set the successor to the prior zone that intersects n the most.
         n = ns_i_p[0]
         dp = n._get_largest_intersection(ps_i_ns)
@@ -269,8 +282,8 @@ def _get_replacement(replacements, new_zone):
 class Zone(object):
     """Zone object of SpeciesEvolver.
 
-    The nodes and attributes of the spatial entities that species populate.
-    This class is not intended to be managed directly.
+    The nodes and attributes of the spatial entities that taxa populate. This
+    class is not intended to be managed directly.
     """
     def __init__(self, mask):
         """Initialize a zone.
@@ -282,7 +295,7 @@ class Zone(object):
             grid nodes of the zone.
         """
         self._mask = mask.flatten()
-        self._species = set()
+        self._taxa = []
         self._conn_type = None
         self._successors = []
 
@@ -292,12 +305,20 @@ class Zone(object):
         return self._mask
 
     @property
-    def species(self):
-        """The set of species that inhabit the zone.
+    def taxa(self):
+        """The list of taxa that inhabit the zone."""
+        return self._taxa
 
-        The order that species were added to this attribute is not preserved.
+    @taxa.setter
+    def taxa(self, updated_taxa):
+        """Set the taxa that inhabit the zone.
+
+        This attribute should be set only by taxa. Setting this attribute
+        ensures that the list is unique.
         """
-        return self._species
+        ss = set()
+        unique = [x for x in updated_taxa if not (x in ss or ss.add(x))]
+        self._taxa = list(dict.fromkeys(unique))
 
     @property
     def successors(self):

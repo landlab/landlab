@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Evolve species in a landscape.
+"""Evolve life in a landscape.
 
 Component written by Nathan Lyons beginning August 2017.
 """
 from collections import OrderedDict
-from itertools import count, product
-from string import ascii_uppercase
 
 import numpy as np
 from pandas import DataFrame, isnull
@@ -16,54 +14,49 @@ from landlab.components.species_evolution.record import Record
 
 
 class SpeciesEvolver(Component):
-    """Evolve species in a landscape.
+    """Evolve life in a landscape.
 
-    This component along with ``Species`` objects can be used in models to
-    develop organismal lineages as they develop in response to landscape
-    change. The history of lineages (phylogeny) are tracked through species.
-    Evolution processes are conducted by Species objects. The species type,
-    ``ZoneSpecies`` is distributed with SpeciesEvolver. Species are intended
-    to be subclassed for unique species behavior, attributes, and model
-    approaches. The component stores species objects and calls the species
-    evolutionary process methods.
+    This component develops simulated organismal lineages of ``Taxon`` objects
+    as they evolve in response to landscape change. The history of lineages
+    (phylogeny) are tracked through the taxa. Evolution processes are conducted
+    by the Taxon objects. The taxon type, ``ZoneTaxon`` is distributed with
+    SpeciesEvolver. ``Taxon`` are intended to be subclassed for unique
+    behavior, attributes, and model approaches. The component stores Taxon
+    objects and calls their evolutionary process methods.
 
     The general workflow to use this component in a model is
 
     1. Instantiate the component.
-    2. Instantiate species.
-    3. Introduce species using the SpeciesEvolver ``introduce_species`` method.
-    4. Advance the model in time using the ``run_one_step`` method.
+    2. Instantiate taxa.
+    3. Introduce taxa to SpeciesEvolver using the ``track_taxon`` method.
+    4. Advance the component instance in time using ``run_one_step`` method.
 
-    Species can be introduced at model onset and later time steps. Species can
-    be ``ZoneSpecies`` and other ``Species`` subclass types, and multiple types
-    may be introduced to the same SpeciesEvolver instance.
+    Taxa can be introduced at model onset and later time steps. Taxa can be
+    ``ZoneTaxon`` and other ``Taxon`` subclass types. Multiple types can be
+    tracked by the same SpeciesEvolver instance.
 
-    ``ZoneSpecies`` evolves through the processes of dispersal, speciation,
-    and extinction. The spatial aspect of these processes is determined using
-    ``Zone`` objects. A ``ZoneController`` is used to create and manage
-    zones as well as efficiently create multiple ZoneSpecies. See the
-    documentation of ``ZoneController`` for more information. SpeciesEvolver
-    knows nothing about zones and their controller, meaning the concept of
-    zones are not required for other species types.
+    The spatial aspect of ``ZoneTaxon`` macroevolutionary processes is
+    determined using ``Zone`` objects. A ``ZoneController`` is used to create
+    and manage zones as well as efficiently create multiple ZoneTaxon objects.
+    See the documentation of ``ZoneController`` and ``ZoneTaxon`` for more
+    information. SpeciesEvolver knows nothing about zones and their controller,
+    meaning the concept of zones are not required for other taxon types.
 
     Model time and other variables can be accessed with the class attribute,
-    ``record_data_frame``. Rime is tracked to construct phylogeny. The unit of
-    time is not considered within the component and can be thought of as in
-    years or whatever unit is needed. Time is advanced using the `dt` parameter
-    of the ``run_one_step`` method.
+    ``record_data_frame``. Time is tracked to construct phylogeny. The unit of
+    time is not considered within the component other than the record, and can
+    be thought of as in years or whatever unit is needed. Time is advanced
+    with the ``dt`` parameter of the ``run_one_step`` method.
 
-    The species extant at the current model time are evolved during the
-    ``run_one_step`` method. The persistence or extinction of a species is
-    determined by the species. Creation of child species is also determined by
-    species. Species metadata can be accessed with the attribute,
-    ``species_data_frame``.
+    The geographic ranges of the taxa at the current model time are evaluated
+    during the ``run_one_step`` method. Taxa persistence or extinction is
+    determined by the taxon objects. Creation of child taxa is also determined
+    by these objects. Taxa metadata can be accessed with the attribute,
+    ``taxa_data_frame``.
 
-    Species are automatically assigned identifiers. The identifier of a species
-    is a two element tuple. The first element is the clade id. Clades are
-    lettered from A to Z then AA to AZ and so forth as more clades are created.
-    The second identifier element designates the clade members numbered in the
-    order of appearance. For example, the first species introduced is A.0 and
-    if that species speciates, the first child species is A.1.
+    Taxa are automatically assigned unique identifiers, ``uid``. Identifiers
+    are used to reference and retrieve taxon objects. Identifiers are assigned
+    in the order taxa are introduced to SpeciesEvolver.
 
     The development of this component was inspired by SEAMLESS (Spatially
     Explicit Area Model of Landscape Evolution by SimulationS). See Albert et
@@ -71,10 +64,9 @@ class SpeciesEvolver(Component):
 
     Examples
     --------
-    The evolution of a lowland species lineage in response to mountain range
-    formation is simulated using ZoneSpecies managed by ZoneController.
-    Mountain range formation is forced without processes for simplicity in this
-    example.
+    The evolution of a lowland taxa lineage in response to mountain range
+    formation is simulated using ZoneTaxon managed by ZoneController. Mountain
+    range formation is forced without processes for simplicity in this example.
 
     Import modules used in the following examples.
 
@@ -96,25 +88,26 @@ class SpeciesEvolver(Component):
 
     >>> se = SpeciesEvolver(mg)
 
-    ZoneController requires a function that returns a mask of the total
-    extent of species habitat. The mask is a boolean array where `True` values
-    represent nodes that satisfy habitat conditions. Zone objects of species
-    are not created here. The mask only masks the extent where species can
-    exist. This function returns `True` where elevation is below 100, which is
-    where the simulated lowland species of this model can inhabit.
+    ZoneController requires a function that returns a mask of the total extent
+    of taxa habitat. The mask is a boolean array where `True` values represent
+    nodes that satisfy habitat conditions. Zone objects are not created here.
+    The mask only maps the extent where taxa can exist. This function returns
+    `True` where elevation is below 100, which is where the simulated lowland
+    taxa of this model can inhabit.
 
     >>> def zone_func(grid):
     ...     return grid.at_node['topographic__elevation'] < 100
 
-    Instantiate ZoneController with the grid and zone function. The
-    initial zones are created at instantiation. In this example, one zone is
+    Instantiate ZoneController with the grid and zone function. The initial
+    zones are created at controller instantiation. In this example, one zone is
     created because all nodes of the zone mask are adjacent to each other.
 
     >>> zc = ZoneController(mg, zone_func)
     >>> len(zc.zones) == 1
     True
 
-    Additional examples of controller usage are provided in ZoneController.
+    Additional examples of controller usage are provided in ZoneController
+    documentation.
 
     The ``mask`` of the zone is True where the conditions of the zone function
     are met. All nodes of the grid are included because the elevation of each
@@ -125,15 +118,16 @@ class SpeciesEvolver(Component):
             True,  True,  True,  True,  True,  True,  True,  True,  True,
             True,  True,  True], dtype=bool)
 
-    Introduce a species to the zone. The attribute, ``species_data_frame``
-    indicates only the one species exists because we indicated to populate each
-    one with one species, and only one zone exists.
+    Populate a taxon to the zone. The attribute, ``taxa_data_frame`` indicates
+    only the one taxon exists because we populated each zone with one taxon,
+    and only one zone exists.
 
-    >>> species = zc.populate_zones_uniformly(1)
-    >>> se.introduce_species(species)
-    >>> se.species_data_frame
-      clade  number  time_appeared  latest_time
-    0     A       0              0            0
+    >>> taxon = zc.populate_zones_uniformly(1)
+    >>> se.track_taxa(taxon)
+    >>> se.taxa_data_frame
+         appeared  latest_time  extant
+    uid
+    0           0            0    True
 
     Force a change in the zone mask to demonstrate component functionality.
     Here we begin a new time step where topography is uplifted by 200 that
@@ -172,21 +166,23 @@ class SpeciesEvolver(Component):
     . . . ^ * * *               * another zone
     . . . ^ * * *               ^ mountain range
 
-    The split of the initial zone triggered speciation. Species A.0 became
-    extinct as it speciated to child species, A.1 and A.2.
+    The split of the initial zone triggered speciation. Taxon 0 became extinct
+    as it speciated to child taxa, 1 and 2.
 
-    >>> se.species_data_frame
-      clade  number  time_appeared  latest_time
-    0     A       0              0            0
-    1     A       1           1000         1000
-    2     A       2           1000         1000
+    >>> se.taxa_data_frame
+         appeared  latest_time  extant
+    uid
+    0           0         1000   False
+    1        1000         1000    True
+    2        1000         1000    True
 
-    The phylogeny of the species is represented below.
+    The phylogeny model taxa is represented below. The number at the line tips
+    are the taxa identifiers.
     ::
 
-                   ┌─ A.1
-        A.0 ───────┤
-                   └─ A.2
+                   ┌─ 1
+          0 ───────┤
+                   └─ 2
             _________
             0    1000
               time
@@ -194,13 +190,13 @@ class SpeciesEvolver(Component):
     _name = 'SpeciesEvolver'
 
     _info = {
-        "species__richness": {
+        "taxa__richness": {
             "dtype": int,
             "intent": "out",
             "optional": False,
             "units": "-",
             "mapping": "node",
-            "doc": "The number of species at each node",
+            "doc": "The number of taxa at each node",
         },
     }
 
@@ -212,57 +208,75 @@ class SpeciesEvolver(Component):
         grid : ModelGrid
             A Landlab ModelGrid.
         initial_time : float, int, optional
-            The initial time. The unit of time is unspecified within the
-            component. The default is 0.
+            The initial time. The unit of time is not considered within the
+            component, except in the record. The default is 0.
         """
         super(SpeciesEvolver, self).__init__(grid)
 
         # Create data structures.
 
         self._record = Record(initial_time)
-        self._record.set_value('species_count', 0)
+        self._record.set_value('taxa', 0)
 
-        self._species = OrderedDict([('clade', []),
-                                     ('number', []),
-                                     ('time_appeared', []),
-                                     ('latest_time', []),
-                                     ('object', [])])
+        self._taxa = OrderedDict([
+            ('uid', []),
+            ('appeared', []),
+            ('latest_time', []),
+            ('extant', []),
+            ('object', [])]
+        )
 
-        # Create clade name generator.
-
-        def _get_next_clade_name():
-            for size in count(1):
-                for s in product(ascii_uppercase, repeat=size):
-                    yield ''.join(s)
-
-        self._clade_generator = _get_next_clade_name()
-
-        # Create a species richness field.
+        # Create a taxa richness field.
 
         _ = grid.add_zeros(
-            'species__richness', at='node', dtype=int, clobber=True
+            'taxa__richness', at='node', dtype=int, clobber=True
         )
 
     @property
     def record_data_frame(self):
-        """A Pandas DataFrame of SpeciesEvolver variables over time."""
+        """A Pandas DataFrame of SpeciesEvolver variables over time.
+
+        Each row is data of a model time step. The step time is recorded in the
+        `time` column. `taxa` is the count of taxa extant at a time. Additional
+        columns can be added and updated by SpeciesEvolver objects during the
+        component ``run_one_step`` method. For example, ``ZoneTaxon`` add the
+        columns, 'speciations', 'extinctions', and 'pseudoextinctions' that are
+        the counts of these variables for this type. Other types may also
+        increment these values.
+
+        The DataFrame is created a dictionary associated with a SpeciesEvolver
+        ``Record`` object. nan values in Pandas DataFrame force the column to
+        become float values even when data are integers. The original value
+        type is retained in the Record object.
+        """
         return self._record.data_frame
 
     @property
-    def species_data_frame(self):
-        """A Pandas DataFrame of species metadata."""
-        cols = list(self._species.keys())
+    def taxa_data_frame(self):
+        """A Pandas DataFrame of taxa metadata.
+
+        Each row is the metadata of a taxon. The 'uid' is the unique
+        identifier. The column, `appeared` is the first model time that the
+        taxon was tracked by the component. The column, `latest_time` is the
+        latest model time the taxon was extant. The column, `extant` indicates
+        if the taxon is extant or extant at the latest (current) time in the
+        model.
+
+        The DataFrame is created from a data structure within the component.
+        """
+        cols = list(self._taxa.keys())
+        cols.remove('uid')
         cols.remove('object')
-        sort_cols = ['clade', 'number']
-        return DataFrame(
-            self._species,
-            columns=cols).sort_values(by=sort_cols).reset_index(drop=True)
+        df = DataFrame(self._taxa, columns=cols, index=self._taxa['uid'])
+        df.index.name = 'uid'
+
+        return df
 
     def run_one_step(self, dt):
-        """Update the species for a single time step.
+        """Update the taxa for a single time step.
 
         This method advances the model time in the component record, calls the
-        evolve functions of species extant at the current time, and updates the
+        evolve functions of taxa extant at the current time, and updates the
         variables in the record.
 
         Parameters
@@ -273,45 +287,54 @@ class SpeciesEvolver(Component):
         """
         self._record.advance_time(dt)
 
-        # Process species.
+        # Create a dictionary of the taxa to update, `taxa_evolving`.
 
-        extant_species = self.filter_species(time=self._record.prior_time)
+        extant_taxa = np.array(self._taxa['object'])[self._taxa['extant']]
+        taxa_evolving = OrderedDict.fromkeys(extant_taxa, True)
 
-        for es in extant_species:
-            es._evolve_stage_1(dt, self._record)
+        # Run stages of taxa evolution.
 
-        survivors = []
+        stage = 0
 
-        for es in extant_species:
-            es_persists, child_species = es._evolve_stage_2(dt, self._record)
+        while any(taxa_evolving.values()):
+            # Run stage for the evolving taxa.
 
-            if es_persists:
-                survivors.append(es)
+            evolving_list = filter(taxa_evolving.get, taxa_evolving)
+            stage_children = []
 
-            if len(child_species) > 0:
-                survivors.extend(child_species)
+            for taxon in evolving_list:
+                taxon_is_evolving = taxon._evolve(dt, stage, self._record)
 
-        self._update_species_data(survivors)
+                if len(taxon.children) > 0:
+                    stage_children.extend(taxon.children)
 
-        self._grid.at_node['species__richness'] = (
-            self._get_species_richness_map()
-        )
+                taxa_evolving[taxon] = taxon_is_evolving and taxon.extant
 
-    def introduce_species(self, species):
-        """Add species to SpeciesEvolver.
+            children_dict = OrderedDict(
+                zip(stage_children, [c.extant for c in stage_children])
+            )
+            children_dict.update(taxa_evolving)
+            taxa_evolving = children_dict
 
-        The species are introduced at the latest time in the record. Each
-        species is assigned an identifier and is included in
-        ``species_data_structure``.
+            stage += 1
+
+        self._update_taxa_data(taxa_evolving.keys())
+
+    def track_taxa(self, taxa):
+        """Add taxa to be tracked over time by SpeciesEvolver.
+
+        The taxon/taxa are introduced at the latest time in the record and
+        tracked during following times. Each taxon is assigned an identifier
+        and then can be viewed in ``taxa_data_frame``.
 
         Parameters
         ----------
-        species : Species or list of Species
-            The species to introduce.
+        taxa : Taxon or list of Taxon
+            The taxa to introduce.
 
         Examples
         --------
-        ZoneSpecies are used to demonstrate this method.
+        ZoneTaxon are used to demonstrate this method.
 
         Import modules used in the following examples.
 
@@ -335,133 +358,117 @@ class SpeciesEvolver(Component):
         >>> len(zc.zones) == 1
         True
 
-        Introduce a species to the one zone.
+        Introduce a taxon to the one zone.
 
-        >>> introduced_species = zc.populate_zones_uniformly(1)
-        >>> se.introduce_species(introduced_species)
+        >>> taxon = zc.populate_zones_uniformly(1)
+        >>> se.track_taxa(taxon)
+
+        The one taxon is now tracked by SpeciesEvolver as indicated by the taxa
+        DataFrame.
+
+        >>> se.taxa_data_frame
+             appeared  latest_time  extant
+        uid
+        0           0            0    True
         """
-        if not isinstance(species, list):
-            species = [species]
+        if not isinstance(taxa, list):
+            taxa = [taxa]
 
-        self._update_species_data(species)
+        self._update_taxa_data(taxa)
 
-    def _update_species_data(self, species_at_time):
-        """Update the species data structure and set identifiers, if needed.
+    def _update_taxa_data(self, taxa_at_time):
+        """Update the taxa data structure, set identifiers, and taxa stats.
 
-        This method sets identifiers and species metadata for the newly
-        introduced species. For the previously introduced, this method updates
-        the 'latest_time` value of the species metadata.
+        This method sets identifiers and metadata for the newly introduced
+        taxa. For the previously introduced, this method updates the
+        'latest_time` value of the taxa metadata.
 
         Parameters
         ----------
-        species_at_time : list of species
-            The species at the current model time.
+        taxa_at_time : list of Taxon
+            The taxa at the current model time.
         """
         time = self._record.latest_time
 
-        s_at_time = species_at_time
-        s_recorded = self._species['object']
+        t_recorded = self._taxa['object']
 
-        # Identify species previously introduced.
-        s_introduced = [s for s in s_at_time if s in s_recorded]
+        # Update previously introduced taxa.
 
-        # Identify new species.
-        s_new = [s for s in s_at_time if s not in s_recorded]
+        t_introduced = [taxon for taxon in taxa_at_time if taxon in t_recorded]
 
-        # Update previously introduced species.
-        for s in s_introduced:
-            idx = self._species['object'].index(s)
-            self._species['latest_time'][idx] = time
+        for taxon in t_introduced:
+            # Update taxon data.
 
-        # Set the data of new species.
-        if s_new:
-            self._set_species_identifiers(s_new)
+            idx = self._taxa['object'].index(taxon)
+            self._taxa['latest_time'][idx] = time
+            self._taxa['extant'][idx] = taxon.extant
 
-            clade = [s.identifier[0] for s in s_new]
-            s_number = [s.identifier[1] for s in s_new]
+        # Set the data of new taxa.
 
-            t = [time] * len(s_new)
+        t_new = [taxon for taxon in taxa_at_time if taxon not in t_recorded]
 
-            self._species['clade'].extend(clade)
-            self._species['number'].extend(s_number)
-            self._species['time_appeared'].extend(t)
-            self._species['latest_time'].extend(t)
-            self._species['object'].extend(s_new)
+        for taxon in t_new:
+            # Set identifiers.
 
-        # Update species count.
-        self._record.increment_value('species_count', len(species_at_time))
-
-    def _set_species_identifiers(self, species):
-        """Set identifiers of species.
-
-        Parameters
-        ----------
-        species : a list of Species
-            The species to set identifiers.
-        """
-        # Get existing identifiers.
-
-        clades = np.array(self._species['clade'])
-        nums = np.array(self._species['number'])
-
-        for s in species:
-            # Set species identifier.
-
-            if s.parent_species is None:
-                clade = next(self._clade_generator)
-                num = 0
+            if self._taxa['uid']:
+                taxon._uid = max(self._taxa['uid']) + 1
             else:
-                clade = s.parent_species.identifier[0]
-                num = nums[np.where(clades == clade)[0]].max() + 1
+                taxon._uid = 0
 
-            s._identifier = (clade, num)
+            # Append taxon data.
 
-            # Update existing identifiers.
+            self._taxa['uid'].append(taxon.uid)
+            self._taxa['appeared'].append(time)
+            self._taxa['latest_time'].append(time)
+            self._taxa['extant'].append(taxon.extant)
+            self._taxa['object'].append(taxon)
 
-            clades = np.append(clades, clade)
-            nums = np.append(nums, num)
+        # Update taxa stats.
 
-    def filter_species(
-        self, species_subset=np.nan, time=np.nan, clade=np.nan, number=np.nan
+        self._record.set_value('taxa', sum(self._taxa['extant']))
+
+        self._grid.at_node['taxa__richness'] = self._get_taxa_richness_map()
+
+    def get_taxon_objects(
+        self, uid=np.nan, time=np.nan, extant_at_latest_time=np.nan,
+        ancestor=np.nan
     ):
-        """Get species objects.
+        """Get taxon objects filtered by parameters.
 
-        This method returns all of the species introduced to the component when
-        no optional parameters are included. Optionally, the species in
-        ``species_subset`` are filtered by the other parameters of this method.
-
-        The parameter, ``time`` filters species by the time the species is
-        known to exist as indicated in ``species_data_frame``. An exception is
-        raised when ``time`` is not in the component record. The parameter,
-        ``clade`` and ``number`` filter species by their identifier elements.
-        An empty list is returned if no species have an identifier that matches
-        these parameters. Multiple parameters can be combined to limit results.
+        This method returns all taxon objects tracked by the component when no
+        optional parameters are included. The objects returned can be limited
+        using one or more parameters. An exception is raised when ``time`` is
+        not in the component record. An empty list is returned if no taxon
+        match the parameters.
 
         Parameters
         ----------
-        species_subset : list of Species, optional
-            The species to filter. By default, all species introduced to the
-            component are included.
+        uid : int, optional
+            The taxon with this identifier will be returned. An object is
+            returned in a list if this identifier exists. By default, taxa with
+            any identifier can be returned.
         time : float, int, optional
-            The model time.  By default, all species extant at all times in the
-            component record can be returned.
-        clade : string, optional
-            Species of this clade will be returned. By default, species of all
-            clades can be returned.
-        number : int, optional
-            Species with this identifier number will be returned. By default,
-            species with all numbers can be returned.
+            Limit the taxa returned to those that existed at this time as
+            indicated in ``taxa_data_frame``. By default, taxa at all times in
+            the component record can be returned.
+        extant_at_latest_time : boolean, optional
+            Limit the taxa returned to taxa extant state at the latest time in
+            the record. By default, taxa with any extant state can be returned.
+        ancestor : int, optional
+            Limit the taxa returned to those descending from the taxon
+            designated as the ancestor. The ancestor is designated using its
+            ``uid``. By default, taxa with any or no ancestors are returned.
 
         Returns
         -------
-        species : a list of Species
-            The SpeciesEvolver species that pass through the filter. An
-            empty list is returned if no species pass through the filter. The
-            list is sorted first by clade, then by species number.
+        taxa : a list of Taxon
+            The Taxon objects that pass through the filter. The list is sorted
+            by ``uid``. An empty list is returned if no taxa pass through the
+            filter.
 
         Examples
         --------
-        ZoneSpecies are used to demonstrate this method.
+        ZoneTaxon are used to demonstrate this method.
 
         Import modules used in the following examples.
 
@@ -475,8 +482,8 @@ class SpeciesEvolver(Component):
         >>> z = mg.add_ones('topographic__elevation', at='node')
 
         Instantiate SpeciesEvolver and a ZoneController. Instantiate the
-        latter with a function that masks the low elevation zone extent.
-        Only one zone is created.
+        latter with a function that masks the low elevation zone extent. Only
+        one zone is created.
 
         >>> se = SpeciesEvolver(mg)
         >>> def zone_func(grid):
@@ -485,167 +492,180 @@ class SpeciesEvolver(Component):
         >>> len(zc.zones) == 1
         True
 
-        Introduce two species to the one zone.
+        Introduce two taxa to the one zone.
 
-        >>> introduced_species = zc.populate_zones_uniformly(2)
-        >>> se.introduce_species(introduced_species)
+        >>> taxa = zc.populate_zones_uniformly(2)
+        >>> se.track_taxa(taxa)
 
         Increment the model time, force mountain range formation to demonstrate
-        this method, and then increment model time again.
-
-        >>> zc.run_one_step(1000)
-        >>> se.run_one_step(1000)
+        this method, and then advance model time again.
 
         >>> z[[3, 10, 17]] = 200
-
         >>> zc.run_one_step(1000)
         >>> se.run_one_step(1000)
 
-        Display metadata of all the species.
+        Remove the westernmost zone. Advance model time once again.
 
-        >>> se.species_data_frame
-          clade  number  time_appeared  latest_time
-        0     A       0              0         1000
-        1     A       1           2000         2000
-        2     A       2           2000         2000
-        3     B       0              0         1000
-        4     B       1           2000         2000
-        5     B       2           2000         2000
+        >>> z[mg.node_x < 3000] = 200
+        >>> zc.run_one_step(1000)
+        >>> se.run_one_step(1000)
 
-        All species objects are returned when no parameters are inputted.
+        Display taxa metadata.
 
-        >>> filtered_species = se.filter_species()
-        >>> [s.identifier for s in filtered_species]
-        [('A', 0), ('A', 1), ('A', 2), ('B', 0), ('B', 1), ('B', 2)]
+        >>> se.taxa_data_frame
+             appeared  latest_time  extant
+        uid
+        0           0         1000   False
+        1           0         1000   False
+        2        1000         2000   False
+        3        1000         2000    True
+        4        1000         2000   False
+        5        1000         2000    True
+
+        All taxon objects are returned when no parameters are inputted.
+
+        >>> taxa = se.get_taxon_objects()
+        >>> [t.uid for t in taxa]
+        [0, 1, 2, 3, 4, 5]
+
+        Get the taxon with the identifier, 4.
+
+        >>> se.get_taxon_objects(uid=4)
+        [<ZoneTaxon, uid=4>]
 
         The species extant at a time are returned when ``time`` is specified.
-        Here we get the species extant at time 0. Species A.0 and B.0 are the
+        Here we get the species extant at time 0. Species 0 and 1 are the
         species extant at this time.
 
-        >>> filtered_species = se.filter_species(time=0)
-        >>> [s.identifier for s in filtered_species]
-        [('A', 0), ('B', 0)]
+        >>> se.get_taxon_objects(time=0)
+        [<ZoneTaxon, uid=0>, <ZoneTaxon, uid=1>]
 
-        Get the species, B.2. The one species with this identifier is returned.
+        Get the taxa that descended from species 0.
 
-        >>> filtered_species = se.filter_species(clade='B', number=2)
-        >>> [s.identifier for s in filtered_species]
-        [('B', 2)]
+        >>> se.get_taxon_objects(ancestor=0)
+        [<ZoneTaxon, uid=2>, <ZoneTaxon, uid=3>]
 
-        Get all of the species of clade, B.
+        Get the taxa that descended from species 0 and that are currently
+        extant. The latest time of taxa 2 and 3 is equal to the latest time in
+        the record, altough only one of these taxa are extant.
 
-        >>> filtered_species = se.filter_species(clade='B')
-        >>> [s.identifier for s in filtered_species]
-        [('B', 0), ('B', 1), ('B', 2)]
+        >>> se.get_taxon_objects(extant_at_latest_time=True, ancestor=0)
+        [<ZoneTaxon, uid=3>]
 
-        Get all of the species with the same number, 0, despite the clade.
+        Note that combining `extant_at_latest_time` with `time` does not return
+        the taxa extant at the inputted time. Rather the taxa present at `time`
+        that are still extant are returned. An empty list is returned if no
+        taxa match the criteria.
 
-        >>> filtered_species = se.filter_species(number=0)
-        >>> [s.identifier for s in filtered_species]
-        [('A', 0), ('B', 0)]
-
-        An empty list is return when no species match a valid value type of
-        ``identifier element.``
-
-        >>> se.filter_species(clade='C')
+        >>> se.get_taxon_objects(extant_at_latest_time=True, time=0)
         []
 
-        Parameters, ``time`` and species identifier elements can be combined.
-        >>> filtered_species = se.filter_species(time=2000, clade='B')
-        >>> [s.identifier for s in filtered_species]
-        [('B', 1), ('B', 2)]
+        An empty list is also return when no taxa match a valid value of
+        ``uid.``
 
-        By default, this method filters all species introduced to
-        SpeciesEvolver. The initial collection of filtered objects can be
-        limited using ``species_subset``, which makes possible iterative use of
-        this method.
-
-        >>> filtered_species_1 = se.filter_species(time=2000)
-        >>> [s.identifier for s in filtered_species_1]
-        [('A', 1), ('A', 2), ('B', 1), ('B', 2)]
-
-        >>> filtered_species_2 = se.filter_species(number=1)
-        >>> [s.identifier for s in filtered_species_2]
-        [('A', 1), ('B', 1)]
+        >>> se.get_taxon_objects(uid=11)
+        []
         """
-        # Handle inputted species.
+        # Handle ancestor.
 
-        if type(species_subset) is list:
-            all_objects = self._species['object']
-            idx = [i for i, e in enumerate(all_objects) if e in species_subset]
+        if isnull(ancestor):
+            taxa = self._taxa
+        elif ancestor in self._taxa['uid']:
+            idx_number = self._taxa['uid'].index(ancestor)
+            taxon = self._taxa['object'][idx_number]
 
-            input_species = OrderedDict()
-            for k, v in self._species.items():
-                input_species[k] = np.array(v)[idx].tolist()
-        elif isnull(species_subset):
-            input_species = self._species
+            descendants = []
+            stack = [taxon]
+
+            while stack:
+                if taxon.children:
+                    descendants.extend(taxon.children)
+                    stack.extend(taxon.children)
+
+                stack.remove(taxon)
+
+                if stack:
+                    taxon = stack[0]
+
+            descendants = list(set(descendants))
+            taxa = self._subset_taxa_data_structure(descendants)
+        else:
+            return []
+
+        # Handle identifier.
+
+        if isnull(uid):
+            idx_id = np.ones(len(taxa['uid']), dtype=bool)
+        else:
+            idx_id = np.array(taxa['uid']) == uid
 
         # Handle time.
 
         if isnull(time):
-            # Get the indices of all species.
-            idx_time = np.ones(len(input_species['number']), dtype=bool)
+            idx_time = np.ones(len(taxa['uid']), dtype=bool)
         else:
-            idx_time = self._mask_species_by_time(input_species, time)
+            idx_time = self._mask_taxa_by_time(taxa, time)
 
-        # Handle clade.
+        # Handle extant state.
 
-        if isnull(clade):
-            idx_clade = np.ones(len(input_species['number']), dtype=bool)
+        if isnull(extant_at_latest_time):
+            idx_ext = np.ones(len(taxa['uid']), dtype=bool)
         else:
-            idx_clade = np.array(input_species['clade']) == clade
+            idx_ext = np.array(taxa['extant']) == extant_at_latest_time
 
-        # Handle number.
+        # Get the Taxon list.
 
-        if isnull(number):
-            idx_number = np.ones(len(input_species['number']), dtype=bool)
-        else:
-            idx_number = np.array(input_species['number']) == number
+        idx = np.all([idx_time, idx_id, idx_ext], 0)
+        taxa = np.array(taxa['object'])[idx].tolist()
+        taxa.sort(key=lambda taxon: taxon.uid)
 
-        # Get the species objects.
+        return taxa
 
-        idx = np.all([idx_time, idx_clade, idx_number], 0)
-        species = np.array(input_species['object'])[idx].tolist()
+    def _subset_taxa_data_structure(self, subset):
+        all_objects = self._taxa['object']
+        idx = [i for i, e in enumerate(all_objects) if e in subset]
 
-        species.sort(key=lambda s: (s.identifier[0], s.identifier[1]))
+        structure = OrderedDict()
+        for k, v in self._taxa.items():
+            structure[k] = np.array(v)[idx].tolist()
 
-        return species
+        return structure
 
-    def _mask_species_by_time(self, species, time):
-        """Get a mask of ``species`` that exist at ``time``.
+    def _mask_taxa_by_time(self, taxa, time):
+        """Get a mask of ``taxa`` that exist at ``time``.
 
         Parameters
         ----------
-        species : a list of Species
-            The species to query.
+        taxa : a list of Taxon
+            The taxa to query.
         time : float, int
-            The model time of ``species`` existence to mask.
+            The model time of ``taxa`` existence to mask.
 
         Returns
         -------
         ndarray
-            A mask of ``species`` extant at ``time``.
+            A mask of ``taxa`` extant at ``time``.
         """
         if time not in self._record.times:
             raise ValueError('The time, {} is not in the record.'.format(time))
 
-        # Get indices of species within time bounds.
+        # Create a mask of taxa within time bounds.
 
-        t_appeared = np.array(species['time_appeared'])
-        t_latest = np.array(species['latest_time'])
+        t_appeared = np.array(taxa['appeared'])
+        t_latest = np.array(taxa['latest_time'])
 
         t_prior = t_appeared <= time
         t_later = t_latest >= time
-        species_mask = np.all([t_prior, t_later], 0)
+        taxa_mask = np.all([t_prior, t_later], 0)
 
-        return species_mask
+        return taxa_mask
 
-    def _get_species_richness_map(self):
-        """Get a map of the number of species."""
-        species = self.filter_species(time=self._record.latest_time)
+    def _get_taxa_richness_map(self):
+        """Get a map of the number of taxa."""
+        taxa = self.get_taxon_objects(extant_at_latest_time=True)
 
-        if species:
-            masks = np.stack([s.range_mask for s in species])
+        if taxa:
+            masks = np.stack([taxon.range_mask for taxon in taxa])
             richness_mask = sum(masks).astype(int)
         else:
             richness_mask = np.zeros(self._grid.number_of_nodes, dtype=int)

@@ -4,16 +4,16 @@
 import numpy as np
 from scipy.ndimage.measurements import label
 
-from . import ZoneSpecies, Zone
+from . import ZoneTaxon, Zone
 from .record import Record
 from .zone import _update_zones
 
 
 class ZoneController(object):
-    """Controls zones and populates them with species.
+    """Controls zones and populates them with taxa.
 
     This object manages 'zones' that are used to evaluate the spatial aspect
-    of species. A zone represents a portion of a model grid. It is made up of
+    of taxa. A zone represents a portion of a model grid. It is made up of
     spatially continuous grid nodes.
 
     This controller creates zones using the parameter, ``zone_function`` set at
@@ -78,10 +78,10 @@ class ZoneController(object):
     · · · · * ·    · · · · o ·    · · · · o ·    · · · · o ·    · · · · o ·
     · * * · · ·    · @ @ · · ·    · @ @ · · ·    · · · · · ·    · · · · · ·
 
-    By default, ``ZoneSpecies`` are used with this controller, and the
+    By default, ``ZoneTaxon`` are used with this controller, and the
     following paragraphs make that assumption. Speciation occurs when the
-    species exists in more than one zone once the allopatric wait time has been
-    exceeded in that zone. See ZoneSpecies documentation for more about
+    taxon exists in more than one zone once the allopatric wait time has been
+    exceeded in that zone. See ZoneTaxon documentation for more about
     allopatric wait time.
 
     Here, a different example grid demonstrates the temporal connectivity of
@@ -99,9 +99,9 @@ class ZoneController(object):
 
     Below are variations of the grid at a later time, ``T1`` in four
     variations where each contains one zone. In ``T1a``, ``T1b``, and ``T1c``
-    the zone stayed the same, moved, and changed size, respectively. Species
+    the zone stayed the same, moved, and changed size, respectively. Taxon
     migrate with the zone when at least one zone node overlaps between the two
-    time steps. However, in ``T1d``, no nodes overlaps, therefore species
+    time steps. However, in ``T1d``, no nodes overlaps, therefore taxon
     do not disperse from the zone in T0 to the zone in T1d.
 
     T1a            T1b            T1c            T1d
@@ -114,7 +114,7 @@ class ZoneController(object):
 
     Another ``T1`` variation, now demonstrating two zones, ``+`` and ``x``.
     Multiple zones overlapping a zone in the prior time step can be interpreted
-    as a zone that fragmented, which may affect resident species. The number of
+    as a zone that fragmented, which may affect resident taxa. The number of
     zone fragmentations can be viewed in the ``record_data_frame`` attribute.
     In the T1e example, the fragmentation count for time 1 would be 2 because
     2 zones that fragmented from a prior zone were recognized at this time.
@@ -191,14 +191,14 @@ class ZoneController(object):
     were set to one are adjacent to each other in the grid.
 
     >>> zc = ZoneController(mg, zone_func)
-    >>> zc.record_data_frame[['time', 'zone_count']]
-       time  zone_count
-    0     0           1
+    >>> zc.record_data_frame[['time', 'zones']]
+       time  zones
+    0     0      1
 
-    Populate each zone with one species.
+    Populate each zone with a taxon.
 
-    >>> species = zc.populate_zones_uniformly(1)
-    >>> len(species)
+    >>> taxon = zc.populate_zones_uniformly(1)
+    >>> len(taxon)
     1
 
     A change in elevation is forced to demonstrate a zone fragmentation, and
@@ -209,10 +209,10 @@ class ZoneController(object):
 
     Two zones now exist because the zone in time 0 fragmented into two zones.
 
-    >>> zc.record_data_frame[['time', 'zone_count', 'fragmentation_count']]
-       time  zone_count  fragmentation_count
-    0     0           1                  NaN
-    1  1000           2                  2.0
+    >>> zc.record_data_frame[['time', 'zones', 'fragmentations']]
+       time  zones  fragmentations
+    0     0      1             NaN
+    1  1000      2             2.0
 
     A change in elevation is forced again, this time to demonstrate zone
     capture where multiple zones are overlapped by a zone in the later time
@@ -220,12 +220,12 @@ class ZoneController(object):
 
     >>> z[10] = 1
     >>> zc.run_one_step(1000)
-    >>> zc.record_data_frame[['time', 'zone_count', 'capture_count',
+    >>> zc.record_data_frame[['time', 'zones', 'captures',
     ...     'area_captured_sum', 'area_captured_max']]
-       time  zone_count  capture_count  area_captured_sum  area_captured_max
-    0     0           1            NaN                NaN                NaN
-    1  1000           2            0.0                0.0                0.0
-    2  2000           1            1.0                2.0                2.0
+       time  zones  captures  area_captured_sum  area_captured_max
+    0     0      1       NaN                NaN                NaN
+    1  1000      2       0.0                0.0                0.0
+    2  2000      1       1.0                2.0                2.0
 
     The follow example demonstrates non-default ZoneController parameters.
 
@@ -251,15 +251,15 @@ class ZoneController(object):
     definition, because the ``minimum_area`` was set to 2. Also, the first
     time in the record was set by the ``initial_time`` parameter.
 
-    zc.record_data_frame[['time', 'zone_count']]
-       time  zone_count
-    0   100           1
+    zc.record_data_frame[['time', 'zones']]
+       time  zones
+    0   100      1
     """
     def __init__(
         self, grid, zone_function, minimum_area=0, neighborhood_structure='D8',
         initial_time=0, **kwargs
     ):
-        """Initialize a species.
+        """Initialize the controller.
 
         Parameters
         ----------
@@ -296,9 +296,9 @@ class ZoneController(object):
 
         # Set record initial values.
 
-        self._record.set_value('zone_count', np.nan)
-        self._record.set_value('fragmentation_count', np.nan)
-        self._record.set_value('capture_count', np.nan)
+        self._record.set_value('zones', np.nan)
+        self._record.set_value('fragmentations', np.nan)
+        self._record.set_value('captures', np.nan)
         self._record.set_value('area_captured_sum', np.nan)
         self._record.set_value('area_captured_max', np.nan)
 
@@ -311,38 +311,43 @@ class ZoneController(object):
         initial_zone_extent = self._zone_func(**self._zone_params)
         self._zones = self._get_zones_with_mask(initial_zone_extent)
 
-        self._record.set_value('zone_count', len(self._zones))
+        self._record.set_value('zones', len(self._zones))
 
     @property
     def zones(self):
-        """The zones of the SpeciesController."""
+        """The zones of the ZoneController."""
         return self._zones
 
     @property
     def record_data_frame(self):
-        """A DataFrame of SpeciesEvolver variables over time."""
+        """A DataFrame of ZoneController variables over time.
+
+        Each row is data of a model time step. The step time is recorded in the
+        `time` column. The columns, `zones`, `fragmentations`, and `captures`
+        are the count of these variables at a given time. `area_captured_sum`
+        is the summation of captures over a time. `area_captured_max` is the
+        maximum area captured of a single capture during a time.
+        """
         return self._record.data_frame
 
-    def populate_zones_uniformly(
-        self, count, species_type=ZoneSpecies, **kwargs
-    ):
-        """Populate each zone with the same species count.
+    def populate_zones_uniformly(self, count, taxon_type=ZoneTaxon, **kwargs):
+        """Populate each zone with the same type and count of taxa.
 
         Parameters
         ----------
         count : int
-            The count of species to populate to each zone.
-        species_type : type of Species
-            A Species type that takes a list of Zones as its first parameter.
+            The count of taxon to populate to each zone.
+        taxon_type : type of Taxon
+            A Taxon type that takes a Zone as its first parameter.
         kwargs : dictionary
-            Keyword arguments of ``species_type``.
+            Keyword arguments of ``taxon_type``.
         """
-        species = []
+        taxa = []
 
         for z in self._zones:
-            species.extend([species_type([z], **kwargs) for _ in range(count)])
+            taxa.extend([taxon_type([z], **kwargs) for _ in range(count)])
 
-        return species
+        return taxa
 
     def run_one_step(self, dt):
         """Update the zones for a single timestep.
@@ -369,7 +374,7 @@ class ZoneController(object):
             self._grid, prior_zones, new_zones, self._record
         )
 
-        self._record.set_value('zone_count', len(self._zones))
+        self._record.set_value('zones', len(self._zones))
 
     def _get_zones_with_mask(self, mask):
         """Get zones using a mask.

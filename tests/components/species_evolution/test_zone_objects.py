@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Tests for SpeciesEvolver zone objects."""
+from collections import Counter
+
 import numpy as np
 import pandas as pd
 import pytest
 
 from landlab import RasterModelGrid
 from landlab.components import SpeciesEvolver
-from landlab.components.species_evolution import ZoneController
 from landlab.components.species_evolution import zone as zn
+from landlab.components.species_evolution import ZoneController
+from landlab.components.species_evolution import ZoneTaxon
 
 
 @pytest.fixture()
@@ -44,16 +47,16 @@ def test_none_to_one(zone_example_grid):
 
     se = SpeciesEvolver(mg)
     sc = ZoneController(mg, zone_func)
-    species = sc.populate_zones_uniformly(1)
-    se.introduce_species(species)
+    taxa = sc.populate_zones_uniformly(1)
+    se.track_taxa(taxa)
 
     np.testing.assert_equal(len(sc.zones), 0)
 
     expected_df = pd.DataFrame({
         'time': [0],
-        'zone_count': [0],
-        'fragmentation_count': [np.nan],
-        'capture_count': [np.nan],
+        'zones': [0],
+        'fragmentations': [np.nan],
+        'captures': [np.nan],
         'area_captured_sum': [np.nan],
         'area_captured_max': [np.nan]}
     )
@@ -69,13 +72,13 @@ def test_none_to_one(zone_example_grid):
     se.run_one_step(1)
 
     np.testing.assert_equal(len(sc.zones), 1)
-    np.testing.assert_equal(sc.zones[0]._conn_type, zn._NONE_TO_ONE)
+    np.testing.assert_equal(sc.zones[0]._conn_type, zn.Connection.NONE_TO_ONE)
 
     expected_df = pd.DataFrame({
         'time': [0, 1],
-        'zone_count': [0, 1],
-        'fragmentation_count': [np.nan, 0],
-        'capture_count': [np.nan, 0],
+        'zones': [0, 1],
+        'fragmentations': [np.nan, 0],
+        'captures': [np.nan, 0],
         'area_captured_sum': [np.nan, 0],
         'area_captured_max': [np.nan, 0]}
     )
@@ -83,7 +86,7 @@ def test_none_to_one(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(se.record_data_frame.species_count.sum(), 0)
+    np.testing.assert_equal(se.record_data_frame.taxa.sum(), 0)
 
 
 def test_one_to_none(zone_example_grid):
@@ -95,17 +98,17 @@ def test_one_to_none(zone_example_grid):
 
     se = SpeciesEvolver(mg)
     sc = ZoneController(mg, zone_func)
-    species = sc.populate_zones_uniformly(1)
-    se.introduce_species(species)
+    taxa = sc.populate_zones_uniformly(1)
+    se.track_taxa(taxa)
 
     np.testing.assert_equal(len(sc.zones), 1)
     zone = sc.zones[0]
 
     expected_df = pd.DataFrame({
         'time': [0],
-        'zone_count': [1],
-        'fragmentation_count': [np.nan],
-        'capture_count': [np.nan],
+        'zones': [1],
+        'fragmentations': [np.nan],
+        'captures': [np.nan],
         'area_captured_sum': [np.nan],
         'area_captured_max': [np.nan]}
     )
@@ -121,13 +124,13 @@ def test_one_to_none(zone_example_grid):
     se.run_one_step(1)
 
     np.testing.assert_equal(len(sc.zones), 0)
-    np.testing.assert_equal(zone._conn_type, zn._ONE_TO_NONE)
+    np.testing.assert_equal(zone._conn_type, zn.Connection.ONE_TO_NONE)
 
     expected_df = pd.DataFrame({
         'time': [0, 1],
-        'zone_count': [1, 0],
-        'fragmentation_count': [np.nan, 0],
-        'capture_count': [np.nan, 0],
+        'zones': [1, 0],
+        'fragmentations': [np.nan, 0],
+        'captures': [np.nan, 0],
         'area_captured_sum': [np.nan, 0],
         'area_captured_max': [np.nan, 0]}
     )
@@ -135,7 +138,7 @@ def test_one_to_none(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(se.record_data_frame.species_count.sum(), 1)
+    np.testing.assert_equal(se.record_data_frame.taxa.sum(), 1)
 
 
 def test_one_to_one(zone_example_grid):
@@ -147,17 +150,17 @@ def test_one_to_one(zone_example_grid):
 
     se = SpeciesEvolver(mg)
     sc = ZoneController(mg, zone_func)
-    species = sc.populate_zones_uniformly(1)
-    se.introduce_species(species)
+    taxa = sc.populate_zones_uniformly(1)
+    se.track_taxa(taxa)
 
     np.testing.assert_equal(len(sc.zones), 1)
     zone = sc.zones[0]
 
     expected_df = pd.DataFrame({
         'time': [0],
-        'zone_count': [1],
-        'fragmentation_count': [np.nan],
-        'capture_count': [np.nan],
+        'zones': [1],
+        'fragmentations': [np.nan],
+        'captures': [np.nan],
         'area_captured_sum': [np.nan],
         'area_captured_max': [np.nan]}
     )
@@ -174,13 +177,13 @@ def test_one_to_one(zone_example_grid):
 
     np.testing.assert_equal(len(sc.zones), 1)
     np.testing.assert_equal(zone, sc.zones[0])
-    np.testing.assert_equal(sc.zones[0]._conn_type, zn._ONE_TO_ONE)
+    np.testing.assert_equal(sc.zones[0]._conn_type, zn.Connection.ONE_TO_ONE)
 
     expected_df = pd.DataFrame({
         'time': [0, 1],
-        'zone_count': [1, 1],
-        'fragmentation_count': [np.nan, 0],
-        'capture_count': [np.nan, 0],
+        'zones': [1, 1],
+        'fragmentations': [np.nan, 0],
+        'captures': [np.nan, 0],
         'area_captured_sum': [np.nan, 0],
         'area_captured_max': [np.nan, 0]}
     )
@@ -188,7 +191,7 @@ def test_one_to_one(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(len(se.filter_species(time=1)), 1)
+    np.testing.assert_equal(len(se.get_taxon_objects(time=1)), 1)
 
 
 def test_one_to_many(zone_example_grid):
@@ -200,14 +203,14 @@ def test_one_to_many(zone_example_grid):
 
     se = SpeciesEvolver(mg)
     sc = ZoneController(mg, zone_func)
-    species = sc.populate_zones_uniformly(1)
-    se.introduce_species(species)
+    taxa = sc.populate_zones_uniformly(1)
+    se.track_taxa(taxa)
 
     expected_df = pd.DataFrame({
         'time': [0],
-        'zone_count': [1],
-        'fragmentation_count': [np.nan],
-        'capture_count': [np.nan],
+        'zones': [1],
+        'fragmentations': [np.nan],
+        'captures': [np.nan],
         'area_captured_sum': [np.nan],
         'area_captured_max': [np.nan]}
     )
@@ -215,7 +218,7 @@ def test_one_to_many(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(len(se.filter_species(time=0)), 1)
+    np.testing.assert_equal(len(se.get_taxon_objects(time=0)), 1)
 
     # Break the zone in two for time 1.
 
@@ -226,14 +229,15 @@ def test_one_to_many(zone_example_grid):
 
     np.testing.assert_equal(len(sc.zones), 2)
     np.testing.assert_equal(
-        set([z._conn_type for z in sc.zones]), set([None, zn._ONE_TO_MANY])
+        set([z._conn_type for z in sc.zones]),
+        set([None, zn.Connection.ONE_TO_MANY])
     )
 
     expected_df = pd.DataFrame({
         'time': [0, 1],
-        'zone_count': [1, 2],
-        'fragmentation_count': [np.nan, 2],
-        'capture_count': [np.nan, 0],
+        'zones': [1, 2],
+        'fragmentations': [np.nan, 2],
+        'captures': [np.nan, 0],
         'area_captured_sum': [np.nan, 0],
         'area_captured_max': [np.nan, 0]}
     )
@@ -241,7 +245,9 @@ def test_one_to_many(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(len(se.filter_species(time=1)), 2)
+    np.testing.assert_equal(
+        len(se.get_taxon_objects(extant_at_latest_time=True)), 2
+    )
 
 
 def test_many_to_one(zone_example_grid):
@@ -253,14 +259,14 @@ def test_many_to_one(zone_example_grid):
 
     se = SpeciesEvolver(mg)
     sc = ZoneController(mg, zone_func)
-    species = sc.populate_zones_uniformly(1)
-    se.introduce_species(species)
+    taxa = sc.populate_zones_uniformly(1)
+    se.track_taxa(taxa)
 
     expected_df = pd.DataFrame({
         'time': [0],
-        'zone_count': [2],
-        'fragmentation_count': [np.nan],
-        'capture_count': [np.nan],
+        'zones': [2],
+        'fragmentations': [np.nan],
+        'captures': [np.nan],
         'area_captured_sum': [np.nan],
         'area_captured_max': [np.nan]}
     )
@@ -268,7 +274,7 @@ def test_many_to_one(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(len(se.filter_species(time=0)), 2)
+    np.testing.assert_equal(len(se.get_taxon_objects(time=0)), 2)
 
     # Modify elevation such that two zones each overlap the original two zones.
 
@@ -278,13 +284,13 @@ def test_many_to_one(zone_example_grid):
     se.run_one_step(1)
 
     np.testing.assert_equal(len(sc.zones), 1)
-    np.testing.assert_equal(sc.zones[0]._conn_type, zn._MANY_TO_ONE)
+    np.testing.assert_equal(sc.zones[0]._conn_type, zn.Connection.MANY_TO_ONE)
 
     expected_df = pd.DataFrame({
         'time': [0, 1],
-        'zone_count': [2, 1],
-        'fragmentation_count': [np.nan, 0],
-        'capture_count': [np.nan, 1],
+        'zones': [2, 1],
+        'fragmentations': [np.nan, 0],
+        'captures': [np.nan, 1],
         'area_captured_sum': [np.nan, 12],
         'area_captured_max': [np.nan, 12]}
     )
@@ -292,7 +298,7 @@ def test_many_to_one(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(len(se.filter_species(time=1)), 2)
+    np.testing.assert_equal(len(se.get_taxon_objects(time=1)), 2)
 
 
 def test_many_to_many(zone_example_grid):
@@ -304,14 +310,14 @@ def test_many_to_many(zone_example_grid):
 
     se = SpeciesEvolver(mg)
     sc = ZoneController(mg, zone_func)
-    species = sc.populate_zones_uniformly(1)
-    se.introduce_species(species)
+    taxa = sc.populate_zones_uniformly(1)
+    se.track_taxa(taxa)
 
     expected_df = pd.DataFrame({
         'time': [0],
-        'zone_count': [2],
-        'fragmentation_count': [np.nan],
-        'capture_count': [np.nan],
+        'zones': [2],
+        'fragmentations': [np.nan],
+        'captures': [np.nan],
         'area_captured_sum': [np.nan],
         'area_captured_max': [np.nan]}
     )
@@ -319,7 +325,7 @@ def test_many_to_many(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(len(se.filter_species(time=0)), 2)
+    np.testing.assert_equal(len(se.get_taxon_objects(time=0)), 2)
 
     # Modify elevation such that two zones each overlap the original two zones.
 
@@ -331,13 +337,13 @@ def test_many_to_many(zone_example_grid):
 
     np.testing.assert_equal(len(sc.zones), 2)
     for z in sc.zones:
-        np.testing.assert_equal(z._conn_type, zn._MANY_TO_MANY)
+        np.testing.assert_equal(z._conn_type, zn.Connection.MANY_TO_MANY)
 
     expected_df = pd.DataFrame({
         'time': [0, 1],
-        'zone_count': [2, 2],
-        'fragmentation_count': [np.nan, 0],
-        'capture_count': [np.nan, 2],
+        'zones': [2, 2],
+        'fragmentations': [np.nan, 0],
+        'captures': [np.nan, 2],
         'area_captured_sum': [np.nan, 24],
         'area_captured_max': [np.nan, 12]}
     )
@@ -345,7 +351,32 @@ def test_many_to_many(zone_example_grid):
         sc.record_data_frame, expected_df, check_like=True
     )
 
-    np.testing.assert_equal(len(se.filter_species(time=1)), 4)
+    np.testing.assert_equal(
+        len(se.get_taxon_objects(extant_at_latest_time=True)), 4
+    )
+
+
+def test_one_to_many_to_one(zone_example_grid):
+    mg, z = zone_example_grid
+
+    z[[9, 10, 11, 12]] = 1
+
+    se = SpeciesEvolver(mg)
+    sc = ZoneController(mg, zone_func)
+    taxa = sc.populate_zones_uniformly(1, allopatric_wait_time=1)
+    se.track_taxa(taxa)
+
+    z[11] = 0
+    sc.run_one_step(1)
+    se.run_one_step(1)
+
+    z[11] = 1
+    sc.run_one_step(1)
+    se.run_one_step(1)
+
+    np.testing.assert_equal(
+        len(se.get_taxon_objects(extant_at_latest_time=True)), 1
+    )
 
 
 def test_min_area(zone_example_grid):
@@ -396,7 +427,7 @@ def test_zone_func_kwargs(zone_example_grid):
     np.testing.assert_array_equal(sc.zones[0].mask, expected_mask)
 
 
-def test_zone_species_range_mask(zone_example_grid):
+def test_zone_taxon_range_mask(zone_example_grid):
     mg, z = zone_example_grid
 
     # Create a zone for time 0.
@@ -406,21 +437,21 @@ def test_zone_species_range_mask(zone_example_grid):
 
     se = SpeciesEvolver(mg)
     sc = ZoneController(mg, zone_func)
-    species = sc.populate_zones_uniformly(1)
-    se.introduce_species(species)
+    taxa = sc.populate_zones_uniformly(1)
+    se.track_taxa(taxa)
 
     expected_mask = np.zeros(mg.number_of_nodes, bool)
     expected_mask[ids] = True
-    np.testing.assert_array_equal(species[0].range_mask, expected_mask)
+    np.testing.assert_array_equal(taxa[0].range_mask, expected_mask)
 
-    # Remove extent so species range mask is all False.
+    # Remove extent so taxa range mask is all False.
 
     z[ids] = 0
     sc.run_one_step(1)
     se.run_one_step(1)
 
     expected_mask = np.zeros(mg.number_of_nodes, bool)
-    np.testing.assert_array_equal(species[0].range_mask, expected_mask)
+    np.testing.assert_array_equal(taxa[0].range_mask, expected_mask)
 
 
 def test_allopatric_wait_time(zone_example_grid):
@@ -432,21 +463,33 @@ def test_allopatric_wait_time(zone_example_grid):
 
     se = SpeciesEvolver(mg)
     sc = ZoneController(mg, zone_func)
-    species = sc.populate_zones_uniformly(1, allopatric_wait_time=20)
-    se.introduce_species(species)
+    taxa = sc.populate_zones_uniformly(1, allopatric_wait_time=20)
+    se.track_taxa(taxa)
 
     z[[11]] = 0
 
-    while len(se.species_data_frame) == 1:
+    while len(se.taxa_data_frame) == 1:
         sc.run_one_step(10)
         se.run_one_step(10)
 
     expected_df = pd.DataFrame({
-        'clade': ['A', 'A', 'A'],
-        'number': [0, 1, 2],
-        'time_appeared': [0, 30, 30],
-        'latest_time': [20, 30, 30]}
+        'appeared': [0, 30, 30],
+        'latest_time': [30, 30, 30],
+        'extant': [False, True, True]},
+        index=[0, 1, 2]
     )
     pd.testing.assert_frame_equal(
-        se.species_data_frame, expected_df, check_like=True
+        se.taxa_data_frame, expected_df, check_like=True
     )
+
+
+def test_zone_taxa_setter():
+    mask = np.array([])
+    zone = zn.Zone(mask)
+    zt0 = ZoneTaxon([zone])
+    zt1 = ZoneTaxon([zone])
+
+    np.testing.assert_equal(Counter(zone.taxa), Counter([zt0, zt1]))
+
+    zone.taxa = [zt0, zt0]
+    np.testing.assert_equal([zt0], [zt0])
