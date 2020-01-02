@@ -37,6 +37,7 @@ bibliography: papers.bib
 
 # Summary
 
+# Jan. 2 quick change to test Czuba updates
 Coarse sediment moves downstream through river networks. The transport rate of any particular sediment grain on the river bed surface is a function of both the hydraulics of that reach of river and the size distribution of the other grains in the reach. As sediment moves through a river system, grains may be deposited or eroded, burying and exposing other grains, and in the process changing the elevation and slope of each segment of river. This process of river channel evolution through the process of sediment transport is referred to as morphodynamics [@cite]. Computational morphodynamic models allow for the prediction of sediment pulse transport, such as that which occurs after dam removal [@citeCui] or landsliding events[@An2017; @Benda&Dunne1997], as well as the prediction of changes in river channel bed surface grain size[@cite].
 
 Over the past two decades, computational morphodynamic models have ...
