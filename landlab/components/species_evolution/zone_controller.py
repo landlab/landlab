@@ -241,6 +241,7 @@ class ZoneController(object):
 
     Set elevation to 1 for nodes so that two clusters of nodes within the zone
     mask exist.
+
     >>> z[[9, 10, 12]] = 1
 
     Instantiate ZoneController with options.
@@ -251,7 +252,7 @@ class ZoneController(object):
     definition, because the ``minimum_area`` was set to 2. Also, the first
     time in the record was set by the ``initial_time`` parameter.
 
-    zc.record_data_frame[['time', 'zones']]
+    >>> zc.record_data_frame[['time', 'zones']]
        time  zones
     0   100      1
     """
