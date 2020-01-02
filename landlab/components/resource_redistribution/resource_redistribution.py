@@ -9,11 +9,9 @@ Sujith Ravi's 2009 Landscape Ecology paper.
 0: Bare; 1: Grass; 2: Shrub; 3: Burnt Grass; 4: Burnt Shrub;
 """
 
-#%% Import Packages
 import numpy as np
 from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
-#from __future__ import print_function
 
 
 #%% Declare Global Variables (If any)
@@ -24,7 +22,7 @@ SHRUB = 2
 BURNTGRASS = 3
 BURNTSHRUB = 4
 
-#%%
+
 class ResourceRedistribution(Component):
     """
     What is this component (brief description)?
@@ -33,31 +31,6 @@ class ResourceRedistribution(Component):
 
     What does this component output? Are there multiple
     processes? What are the key methods?
-
-    Parameters:
-    ----------
-    grid: RasterModelGrid
-        grid, Landlab's RasterModelGrid object
-    V: array_like
-        Vegetation Plant Functional Type; shape = [grid.number_of_cells]
-        BARE = 0; GRASS = 1; SHRUB = 2; BURNTGRASS = 3; BURNTSHRUB = 4;
-        TREE = 5; BURNTTREE = 6; SHRUBSEED = 7; TREESEED = 8
-    n_fires: int, optional
-        Number of fires to be created
-    fire_area_mean: float, optional
-        mean area of uniform distribution to sample fire size
-    fire_area_dev: float, optional
-        standard deviation of uniform distribution to sample fire size
-    sh_susc: float, optional
-        susceptibility of shrubs to burn
-    tr_susc: float, optional
-        susceptibility of trees to burn
-    gr_susc: float, optional
-        susceptibility of grass to burn
-    sh_seed_susc: float, optional
-        susceptibility of shrub seedlings to burn
-    tr_seed_susc: float, optional
-        susceptibility of tree seedlings to burn
 
     Examples
     --------
@@ -102,16 +75,86 @@ class ResourceRedistribution(Component):
             }
 
     @use_file_name_or_kwds
-    def __init__(self, grid, e=0.1, R_low_threshold=-2.,
-                 R_threshold=2., R_dep_threshold=1.,
-                 Rth_gr=0.4, Rth_sh=0.8, P_gr_regrwth=0.25,
-                 P_sh_regrwth=0.25, Pen=0.05, Pgrz=0.01,
-                 P_gr=0.5, sh_max_age=600, sh_seedling_max_age=18,
-                 sh_seedling_mor_dis=0., sh_mor_dis_low_thresh_age=300,
-                 sh_mor_dis_low_slp=0.01, sh_mor_dis_high_slp=0.99,
-                 P_sh_fire_mor=0.75, P_gr_fire_mor=1.,
-                 sh_mor_ws_thresh=0.01, gr_mor_ws_thresh=0.08,
-                 **kwds):
+    def __init__(
+         self,
+         grid,
+         e=0.1,
+         R_low_threshold=-2.,
+         R_threshold=2.,
+         R_dep_threshold=1.,
+         Rth_gr=0.4,
+         Rth_sh=0.8,
+         P_gr_regrwth=0.25,
+         P_sh_regrwth=0.25,
+         Pen=0.05,
+         Pgrz=0.01,
+         P_gr=0.5,
+         sh_max_age=600,
+         sh_seedling_max_age=18,
+         sh_seedling_mor_dis=0.,
+         sh_mor_dis_low_thresh_age=300,
+         sh_mor_dis_low_slp=0.01,
+         sh_mor_dis_high_slp=0.99,
+         P_sh_fire_mor=0.75,
+         P_gr_fire_mor=1.,
+         sh_mor_ws_thresh=0.01,
+         gr_mor_ws_thresh=0.08,
+         **kwds,
+    ):
+        """
+        Parameters:
+        ----------
+        grid: RasterModelGrid
+            grid, Landlab's RasterModelGrid object
+        e: float, optional
+            soil erosion at bare soil cell (-)
+        R_low_threshold: float, optional
+            Minimum value of R (-)
+        R_threshold: float, optional
+            Maximum value of R (-)
+        R_dep_threshold: float, optional
+            threshold for deposition during adjustment (-)
+        Rth_gr: float, optional
+            Minimum R for establishment of Grass (-)
+        Rth_sh: float, optional
+            Minimum R for establishment of Shrub (-)
+        P_gr_regrwth: float, optional
+            Probability of grass regrowth in burnt grass patches (-)
+        P_sh_regrwth: float, optional
+            Probability of shrub regrowth in burnt shrub patches (-)
+        Pen: float, optional
+            Probability of shrub establishment (neighborhood) (-)
+        Pgrz: float, optional
+            Probability of shrub establishment
+            (seed dispersal due to herbivores) (-)
+        P_gr: float, optional
+            Probability of grass establishment (-)
+        sh_max_age: int, optional
+            Maximum age of shrubs (yr)
+        sh_seedling_max_age: int, optional
+            Maximum age of shrub seedlings (yr)
+        sh_seedling_mor_dis: float, optional
+            Probability of mortality of shrub seedlings due to disease (-)
+        sh_mor_dis_low_thresh_age: int, optional
+            Age at which shrubs start experiencing disease (yr)
+        sh_mor_dis_low_slp: float, optional
+            Probability of mortality of shrubs due to disease
+            at  sh_mor_dis_low_thresh_age (-)
+        sh_mor_dis_high_slp: float, optional
+            Probability of mortality of shrubs due to disease
+            at sh_max_age (-)
+        P_sh_fire_mor: float, optional
+            Probability of shrub mortality due to fire (-)
+        P_gr_fire_mor: float, optional
+            Probability of grass mortality due to fire (-)
+        sh_mor_ws_thresh: float, optional
+            Background mortality probability of shrubs due
+            to waterstress (P_mor_ws) (-)
+        gr_mor_ws_thresh: float, optional
+            Background mortality probability of grass due
+            to waterstress (-)
+        """
+
         super(ResourceRedistribution, self).__init__(grid, **kwds)
 
         name = "vegetation__plant_functional_type"
@@ -127,33 +170,109 @@ class ResourceRedistribution(Component):
                   name + " is initialized to 1!")
             self.grid.add_ones("cell", name, units=self._var_units[name])
 
-        self.initialize(e=e, R_low_threshold=R_low_threshold,
-                        R_threshold=R_threshold,
-                        R_dep_threshold=R_dep_threshold, Rth_gr=Rth_gr,
-                        Rth_sh=Rth_sh, P_gr_regrwth=P_gr_regrwth,
-                        P_sh_regrwth=P_sh_regrwth, Pen=Pen, Pgrz=Pgrz,
-                        P_gr=P_gr, sh_max_age=sh_max_age,
-                        sh_seedling_max_age=sh_seedling_max_age,
-                        sh_seedling_mor_dis=sh_seedling_mor_dis,
-                        sh_mor_dis_low_thresh_age=sh_mor_dis_low_thresh_age,
-                        sh_mor_dis_low_slp=sh_mor_dis_low_slp,
-                        sh_mor_dis_high_slp=sh_mor_dis_high_slp,
-                        P_sh_fire_mor=P_sh_fire_mor,
-                        P_gr_fire_mor=P_gr_fire_mor,
-                        sh_mor_ws_thresh=sh_mor_ws_thresh,
-                        gr_mor_ws_thresh=gr_mor_ws_thresh,
-                        **kwds)
+        self.initialize(
+            e=e,
+            R_low_threshold=R_low_threshold,
+            R_threshold=R_threshold,
+            R_dep_threshold=R_dep_threshold,
+            Rth_gr=Rth_gr,
+            Rth_sh=Rth_sh,
+            P_gr_regrwth=P_gr_regrwth,
+            P_sh_regrwth=P_sh_regrwth,
+            Pen=Pen,
+            Pgrz=Pgrz,
+            P_gr=P_gr,
+            sh_max_age=sh_max_age,
+            sh_seedling_max_age=sh_seedling_max_age,
+            sh_seedling_mor_dis=sh_seedling_mor_dis,
+            sh_mor_dis_low_thresh_age=sh_mor_dis_low_thresh_age,
+            sh_mor_dis_low_slp=sh_mor_dis_low_slp,
+            sh_mor_dis_high_slp=sh_mor_dis_high_slp,
+            P_sh_fire_mor=P_sh_fire_mor,
+            P_gr_fire_mor=P_gr_fire_mor,
+            sh_mor_ws_thresh=sh_mor_ws_thresh,
+            gr_mor_ws_thresh=gr_mor_ws_thresh,
+            **kwds,
+        )
 
-    def initialize(self, e=0.1, R_low_threshold=-2.,
-                   R_threshold=2., R_dep_threshold=1.,
-                   Rth_gr=0.4, Rth_sh=0.8, P_gr_regrwth=0.25,
-                   P_sh_regrwth=0.25, Pen=0.05, Pgrz=0.01,
-                   P_gr=0.5, sh_max_age=600, sh_seedling_max_age=18,
-                   sh_seedling_mor_dis=0., sh_mor_dis_low_thresh_age=300,
-                   sh_mor_dis_low_slp=0.01, sh_mor_dis_high_slp=0.99,
-                   P_sh_fire_mor=0.75, P_gr_fire_mor=1.,
-                   sh_mor_ws_thresh=0.01, gr_mor_ws_thresh=0.08,
-                   **kwds):
+    def initialize(
+        self,
+        e=0.1,
+        R_low_threshold=-2.,
+        R_threshold=2.,
+        R_dep_threshold=1.,
+        Rth_gr=0.4,
+        Rth_sh=0.8,
+        P_gr_regrwth=0.25,
+        P_sh_regrwth=0.25,
+        Pen=0.05,
+        Pgrz=0.01,
+        P_gr=0.5,
+        sh_max_age=600,
+        sh_seedling_max_age=18,
+        sh_seedling_mor_dis=0.,
+        sh_mor_dis_low_thresh_age=300,
+        sh_mor_dis_low_slp=0.01,
+        sh_mor_dis_high_slp=0.99,
+        P_sh_fire_mor=0.75,
+        P_gr_fire_mor=1.,
+        sh_mor_ws_thresh=0.01,
+        gr_mor_ws_thresh=0.08,
+        **kwds,
+    ):
+        """
+        Parameters:
+        ----------
+        grid: RasterModelGrid
+            grid, Landlab's RasterModelGrid object
+        e: float, optional
+            soil erosion at bare soil cell (-)
+        R_low_threshold: float, optional
+            Minimum value of R (-)
+        R_threshold: float, optional
+            Maximum value of R (-)
+        R_dep_threshold: float, optional
+            threshold for deposition during adjustment (-)
+        Rth_gr: float, optional
+            Minimum R for establishment of Grass (-)
+        Rth_sh: float, optional
+            Minimum R for establishment of Shrub (-)
+        P_gr_regrwth: float, optional
+            Probability of grass regrowth in burnt grass patches (-)
+        P_sh_regrwth: float, optional
+            Probability of shrub regrowth in burnt shrub patches (-)
+        Pen: float, optional
+            Probability of shrub establishment (neighborhood) (-)
+        Pgrz: float, optional
+            Probability of shrub establishment
+            (seed dispersal due to herbivores) (-)
+        P_gr: float, optional
+            Probability of grass establishment (-)
+        sh_max_age: int, optional
+            Maximum age of shrubs (yr)
+        sh_seedling_max_age: int, optional
+            Maximum age of shrub seedlings (yr)
+        sh_seedling_mor_dis: float, optional
+            Probability of mortality of shrub seedlings due to disease (-)
+        sh_mor_dis_low_thresh_age: int, optional
+            Age at which shrubs start experiencing disease (yr)
+        sh_mor_dis_low_slp: float, optional
+            Probability of mortality of shrubs due to disease
+            at  sh_mor_dis_low_thresh_age (-)
+        sh_mor_dis_high_slp: float, optional
+            Probability of mortality of shrubs due to disease
+            at sh_max_age (-)
+        P_sh_fire_mor: float, optional
+            Probability of shrub mortality due to fire (-)
+        P_gr_fire_mor: float, optional
+            Probability of grass mortality due to fire (-)
+        sh_mor_ws_thresh: float, optional
+            Background mortality probability of shrubs due
+            to waterstress (P_mor_ws) (-)
+        gr_mor_ws_thresh: float, optional
+            Background mortality probability of grass due
+            to waterstress (-)
+        """
         self._e = e
         self._R_low_threshold = R_low_threshold
         self._R_threshold = R_threshold
@@ -177,6 +296,10 @@ class ResourceRedistribution(Component):
         self._gr_mor_ws_thresh = gr_mor_ws_thresh
 
     def erode(self):
+        """
+        This method removes resource R from a cell depending on the
+        PFT occupying that cell in discrete units of e.
+        """
         V = self.grid.at_cell["vegetation__plant_functional_type"]
         R = self.grid.at_cell["soil__resources"]
         Elig_R = np.where(R > self._R_low_threshold)[0]
@@ -189,12 +312,33 @@ class ResourceRedistribution(Component):
         bare_cells = Elig_R[V[Elig_R]==BARE]
         R[burnt_grass] -= (0.2 * self._e)
         R[bare_cells] -= self._e
-        eroded_soil = (np.int(burnt_grass.shape[0]) * 0.2 * self._e +
-                       np.int(bare_cells.shape[0]) * self._e)
-        return (eroded_soil, eroded_soil_shrub, burnt_shrubs,
-                burnt_grass, bare_cells)
+        eroded_soil = (
+            np.int(burnt_grass.shape[0]) * 0.2 * self._e
+            + np.int(bare_cells.shape[0]) * self._e
+        )
+        return (
+            eroded_soil,
+            eroded_soil_shrub,
+            burnt_shrubs,
+            burnt_grass,
+            bare_cells
+        )
 
     def deposit(self, eroded_soil, eroded_soil_shrub):
+        """
+        This method deposits resource R (generally eroded using
+        the erode method) in discrete units of e.
+
+        Parameters
+        ----------
+        eroded_soil: float, (-)
+            R eroded from cells with burnt grass and bare cells.
+            This R is deposited based on the algorithm described
+            in Ravi et. al 2009.
+        eroded_soil_shrub: float, (-)
+            R eroded from cells with burnt shrubs. This R
+            is deposited in the cells neighboring burnt shrubs.
+        """
         V = self.grid.at_cell["vegetation__plant_functional_type"]
         R = self.grid.at_cell["soil__resources"]
         exclusive = np.arange(0, self.grid.number_of_cells)
@@ -215,9 +359,11 @@ class ResourceRedistribution(Component):
         bare_exclusive = exclusive[np.where(V[exclusive] == BARE)[0]]
         ## Calculating how much each bare cell will get from eroded_soil 'Eb'
         ## Shrubs will receive thrice Es = 3*Eb && Eg = 2*Eb
-        weighted_parts = (1 * int(bare_exclusive.shape[0]) +
-                          3 * int(shrub_exclusive.shape[0]) +
-                          2 * int(grass_exclusive.shape[0]))
+        weighted_parts = (
+                1 * int(bare_exclusive.shape[0])
+                + 3 * int(shrub_exclusive.shape[0])
+                + 2 * int(grass_exclusive.shape[0])
+        )
         eroded_soil_part = (eroded_soil / float(weighted_parts))
         R[bare_exclusive] += eroded_soil_part
         R[shrub_exclusive] += (3. * eroded_soil_part)
@@ -226,6 +372,10 @@ class ResourceRedistribution(Component):
                 grass_exclusive, bare_exclusive, eroded_soil_part)
 
     def re_adjust_resource(self):
+        """
+        This method re-adjusts resource R based on the
+        user-set maximum and minimum thresholds.
+        """
         R = self.grid.at_cell["soil__resources"]
     ## Resource exceeding R_threshold will be distributed to its neighbors                                
         resource_adjusted = 0.
@@ -256,6 +406,17 @@ class ResourceRedistribution(Component):
                 Elig_locs, sed_to_borrow)
 
     def establish(self, V_age):
+        """
+        This method implements the establishment algorithm for PFT
+        based on the rules outlined in Ravi et al. 2009. This
+        method updates the field "vegetation__plant_functional_type".
+
+        Parameters
+        ----------
+        V_age: int, array, shape=[number_of_cells] (yrs)
+            Age of the PFT (V) occupying each cell. This
+            array is updated by this method.
+        """
         V = self.grid.at_cell["vegetation__plant_functional_type"]
         R = self.grid.at_cell["soil__resources"]
         burnt_shrubs = np.where(V == BURNTSHRUB)[0]
@@ -330,6 +491,17 @@ class ResourceRedistribution(Component):
         return (Pmor_age)
 
     def mortality(self, V_age):
+        """
+        This method implements the mortality algorithm for PFT
+        based on the rules outlined in Ravi et al. 2009. This
+        method updates the field "vegetation__plant_functional_type".
+
+        Parameters
+        ----------
+        V_age: int, array, shape=[number_of_cells] (yrs)
+            Age of the PFT (V) occupying each cell. This
+            array is updated by this method.
+        """
         V = self.grid.at_cell["vegetation__plant_functional_type"]
         # Killing burnt vegetation    
         burnt_shrubs = np.where(V == BURNTSHRUB)[0]

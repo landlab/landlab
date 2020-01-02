@@ -119,7 +119,7 @@ class VegCA(Component):
         ThetaTreeSeedling=0.64,
         PmbTreeSeedling=0.03,
         tpmaxTreeSeedling=18,
-        **kwds
+        **kwds,
     ):
         """
         Parameters

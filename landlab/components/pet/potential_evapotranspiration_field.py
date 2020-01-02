@@ -212,7 +212,8 @@ class PotentialEvapotranspiration(Component):
                  zm=3.3,
                  zh=None,
                  air_density = 1.22,
-                 **kwds):
+                 **kwds,
+    ):
         """
         Parameters
         ----------
