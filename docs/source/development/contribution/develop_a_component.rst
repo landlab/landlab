@@ -20,7 +20,7 @@ Once you have installed Landlab (:ref:`developer install <developer_install>`)
 and :ref:`created your own branch <landlab_develop_with_git>`, you can start
 writing a Python script for your component.
 
-See `this tutorial <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=making_components/making_components.ipynb>`_
+See `this tutorial <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/making_components/making_components.ipynb>`_
 for instructions on the structure and content of your component code. See also
 `this example pull request <https://github.com/landlab/landlab/pull/678>`_, which
 shows you the common set of files (such as ``__init__.py`` and documentation
@@ -64,7 +64,7 @@ For your new component, you should create a folder in
   tests are run every time changes are pushed to the Landlab repository. They
   should go through every line of your code (e.g. test every possible scenario in
   if/else loops, exceptions, etc.). See
-  `the tutorial on making a component <https://mybinder.org/v2/gh/landlab/tutorials/v2_dev?filepath=making_components/making_components.ipynb>`_
+  `the tutorial on making a component <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/making_components/making_components.ipynb>`_
   for instructions about making docstring tests and the next section for more
   information about making the unit tests.
 
@@ -112,10 +112,7 @@ and is included in a Landlab release, please
 You can link directly to the source code on Github. Just fill out the questionnaire.
 
 Have you written up some tutorials or Jupyter notebooks to help teach new users
-about your component? Consider submitting to the
-`Landlab tutorials <https://github.com/landlab/tutorials>`_ repository.
-Contact a Landlab developer for more information on how to share your teaching
-tools.
+about your component? Consider submitting a tutorial along with your component.
 
 If you've presented a poster or submitted a paper about your Landlab component,
 advertise your work on the :ref:`Landlab Papers and Presentations <papers>`

@@ -58,6 +58,7 @@ Landlab Tutorial Library
     :maxdepth: 2
 
     tutorials
+    teaching_tutorials
 
 Additional resources
 --------------------
