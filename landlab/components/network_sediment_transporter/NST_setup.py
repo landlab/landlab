@@ -20,8 +20,6 @@ from landlab.plot.network_sediment_transporter import (
     plot_network_parcels,
 )
 
-# Jan. 2 test that Czuba changes are updating properly
-
 # from landlab.plot.network_sediment_transporter import *  # Note-- this is an example. it loads plotting scripts that don't exist yet.
 
 _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
