@@ -54,11 +54,11 @@ class ZoneController(object):
     · · x · o ·    · · @ · o ·    · · x · · ·    · · · · · ·
     · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
 
-    The grid boundary affects zone creation. Zones can include nodes along the
-    boundary, although because boundary nodes are not associated with cells
-    that have area, boundary nodes do not contribute to the area summation of
-    clusters. The area summation only takes into account the cells associated
-    with core nodes.
+    The grid perimeter affects zone creation. Zones can include perimeter nodes
+    (the nodes along grid edges), although because perimeter nodes are not
+    associated with cells that have area, perimeter nodes do not contribute to
+    the area summation of clusters. The area summation only takes into account
+    the cells associated with core nodes.
 
     Creation of zones along boundaries is illustrated below. A zone extent mask
     different from the above example was produced by the hypothetical zone
@@ -97,12 +97,12 @@ class ZoneController(object):
     · · · · · ·
     · · · · · ·
 
-    Below are variations of the grid at a later time, ``T1`` in four
-    variations where each contains one zone. In ``T1a``, ``T1b``, and ``T1c``
-    the zone stayed the same, moved, and changed size, respectively. Taxon
-    migrate with the zone when at least one zone node overlaps between the two
-    time steps. However, in ``T1d``, no nodes overlaps, therefore taxon
-    do not disperse from the zone in T0 to the zone in T1d.
+    Below are variations of the grid at a later time, ``T1`` in four variations
+    where each contains one zone. In ``T1a``, ``T1b``, and ``T1c`` the zone
+    stayed the same, moved, and changed size, respectively. Taxa migrate with
+    the zone when at least one zone node overlaps between the two time steps.
+    However, in ``T1d``, no nodes overlaps, therefore taxa do not disperse from
+    the zone in T0 to the zone in T1d.
 
     T1a            T1b            T1c            T1d
     · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
@@ -264,8 +264,8 @@ class ZoneController(object):
 
         Parameters
         ----------
-        grid : ModelGrid
-            A Landlab ModelGrid.
+        grid : RasterModelGrid
+            A Landlab RasterModelGrid.
         zone_function : function
             A function that return a mask of the total zone extent. The first
             input parameter of this function must be `grid`.

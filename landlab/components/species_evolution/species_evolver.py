@@ -49,10 +49,9 @@ class SpeciesEvolver(Component):
     with the ``dt`` parameter of the ``run_one_step`` method.
 
     The geographic ranges of the taxa at the current model time are evaluated
-    during the ``run_one_step`` method. Taxa persistence or extinction is
-    determined by the taxon objects. Creation of child taxa is also determined
-    by these objects. Taxa metadata can be accessed with the attribute,
-    ``taxa_data_frame``.
+    during the ``run_one_step`` method. Each taxon object determines if it
+    persists or becomes extinct, and if it creates child ``Taxon`` objects.
+    Taxa metadata can be accessed with the attribute, ``taxa_data_frame``.
 
     Taxa are automatically assigned unique identifiers, ``uid``. Identifiers
     are used to reference and retrieve taxon objects. Identifiers are assigned
@@ -111,7 +110,9 @@ class SpeciesEvolver(Component):
 
     The ``mask`` of the zone is True where the conditions of the zone function
     are met. All nodes of the grid are included because the elevation of each
-    node is below 100.
+    node is below 100. The `zone` attribute of ZoneController returns a list of
+    current zones. Below we return the mask of the single zone by indexing this
+    list.
 
     >>> zc.zones[0].mask
     array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
@@ -151,23 +152,24 @@ class SpeciesEvolver(Component):
     . . . x . . .               x node outside of zone mask
     . . . x . . .
 
-    Run a step of both the ZoneController and SpeciesEvolver. Two zones exist
-    following this time step.
-
+    Run a step of both the ZoneController and SpeciesEvolver.
     >>> delta_time = 1000
     >>> zc.run_one_step(delta_time)
     >>> se.run_one_step(delta_time)
+
+    Two zones exist following this time step.
+
     >>> len(zc.zones) == 2
     True
 
-    A additional zone was created because the zone mask was not continuous.
+    An additional zone was created because the zone mask was not continuous.
 
     . . . ^ * * *       key:    . a zone
     . . . ^ * * *               * another zone
     . . . ^ * * *               ^ mountain range
 
     The split of the initial zone triggered speciation. Taxon 0 became extinct
-    as it speciated to child taxa, 1 and 2.
+    as it speciated to child taxa 1 and 2.
 
     >>> se.taxa_data_frame
          appeared  latest_time  extant
@@ -176,8 +178,8 @@ class SpeciesEvolver(Component):
     1        1000         1000    True
     2        1000         1000    True
 
-    The phylogeny model taxa is represented below. The number at the line tips
-    are the taxa identifiers.
+    The phylogenetic tree of the simulated taxa is represented below. The
+    number at the line tips are the taxa identifiers.
     ::
 
                    ┌─ 1
@@ -186,6 +188,10 @@ class SpeciesEvolver(Component):
             _________
             0    1000
               time
+
+    The split of the initial zone into two zones at time 1000 triggered taxon 0
+    to evolve into two child taxon objects. Taxon 1 occupies a zone on one side
+    of the mountain range, and taxon 2 occupies a zone on the other side.
     """
     _name = 'SpeciesEvolver'
 
