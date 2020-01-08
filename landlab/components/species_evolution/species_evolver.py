@@ -21,7 +21,8 @@ class SpeciesEvolver(Component):
     (phylogeny) are tracked through the taxa. Evolution processes are conducted
     by the Taxon objects. The taxon type, ``ZoneTaxon`` is distributed with
     SpeciesEvolver. ``Taxon`` are intended to be subclassed for unique
-    behavior, attributes, and model approaches. The component stores Taxon
+    behavior, attributes, and model approaches, including different
+    implementations of evolutionary processes. The component stores Taxon
     objects and calls their evolutionary process methods.
 
     The general workflow to use this component in a model is
@@ -191,7 +192,11 @@ class SpeciesEvolver(Component):
 
     The split of the initial zone into two zones at time 1000 triggered taxon 0
     to evolve into two child taxon objects. Taxon 1 occupies a zone on one side
-    of the mountain range, and taxon 2 occupies a zone on the other side.
+    of the mountain range, and taxon 2 occupies a zone on the other side. This
+    outcome is the result of the evolutionary processes programmed within
+    ``ZoneTaxon`` as well as the parameters used in this example (default
+    values were used because optional parameters were not set). Different
+    behavior can be achieved by subclassing ``ZoneTaxon`` or ``Taxon``.
     """
     _name = 'SpeciesEvolver'
 
