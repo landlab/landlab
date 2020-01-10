@@ -3,15 +3,18 @@
 Tutorials
 =========
 
-The Landlab tutorials are Jupyter notebooks that give examples of Landlab core
+The Landlab Tutorials are Jupyter notebooks that give examples of Landlab core
 concepts, component introductions, and teaching exercises.
 
-Landlab's tutorials are located within the main Landlab repository in the
+You can run the Tutorials using your local Landlab installation. The Tutorials
+are located within the main Landlab repository in the
 `notebooks <https://github.com/landlab/landlab/tree/master/notebooks>`_ folder.
-They can also be accessed using
+
+Landlab Tutorials can also be accessed online with the source code stored on
+Github. Launch these notebooks with the following link:
 `Binder <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb>`_.
 
-If you write a Landlab tutorial or Gist, please contribute it via a pull request.
+If you write a Landlab Tutorial or Gist, please contribute it via a pull request.
 
 Landlab clinics and workshops
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -39,9 +39,6 @@ jobs:
   - <<: *deploy
     os: osx
     env: CONDA_ENV=3.6
-  - <<: *deploy
-    os: osx
-    env: CONDA_ENV=2.7
 
   - <<: *deploy
     sudo: required
