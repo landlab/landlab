@@ -198,7 +198,6 @@ nst = NetworkSedimentTransporter(
     bed_porosity,
     g=9.81,
     fluid_density=1000,
-    channel_width="channel_width",
     transport_method="WilcockCrowe",
 )
 

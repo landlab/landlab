@@ -11,8 +11,6 @@ Fixes that need to happen:
 
     -- Check abrasion exponent units (per km or per m?)
 
-    -- Channel width-- why is this anything other than a link attribute??
-
     -- Flow depth -- double check to make sure we're going through flow depth array correctly
 
     -- JC: I found two items that I think should be changed in the _calc_transport_wilcock_crowe and I made these changes
@@ -1021,9 +1019,9 @@ def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
     chan_slope = (z_up - z_down) / dx
 
     if chan_slope < 0.0:
-        chan_slope = 0.0
+        # chan_slope = 0.0
         # DANGER DANGER ^ that is probably a bad idea.
-        #raise ValueError("NST Channel Slope Negative")
+        raise ValueError("NST Channel Slope Negative")
 
     if chan_slope < threshold:
         chan_slope = threshold
