@@ -753,7 +753,7 @@ class NetworkSedimentTransporter(Component):
         Larray = np.squeeze(Larray)
         frac_sand_array = np.squeeze(frac_sand_array)
 
-        # Wilcock and crowe claculate transport for all parcels (active and inactive)
+        # Wilcock and Crowe calculate transport for all parcels (active and inactive)
         taursg = _calculate_reference_shear_stress(
             self.fluid_density, R, self.g, D_mean_activearray, frac_sand_array
         )
@@ -1088,7 +1088,7 @@ def _calculate_alluvium_depth(
 def _calculate_reference_shear_stress(
     fluid_density, R, g, mean_active_grain_size, frac_sand
 ):
-    """Calculate reference shields stress (taursg) using the sand content of
+    """Calculate reference Shields stress (taursg) using the sand content of
     the bed surface, as per Wilcock and Crowe (2003).
 
     Parameters
