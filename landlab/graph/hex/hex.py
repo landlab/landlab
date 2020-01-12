@@ -688,12 +688,16 @@ class HexGraphExtras:
         array([ 2,  7, 12, 17, 22])
         """
 
-        shift = ((self.orientation[0]=='v')  # if vertical orientation...
-                 * (self.shape[1] % 2)   # ...and odd number of columns...
-                 * (self.shape[1] // 2))  # ...then shift by nc//2 (else 0)
+        shift = (
+            (self.orientation[0] == "v")  # if vertical orientation...
+            * (self.shape[1] % 2)  # ...and odd number of columns...
+            * (self.shape[1] // 2)
+        )  # ...then shift by nc//2 (else 0)
         return np.arange(
-            self.shape[1] - (1 + shift), self.shape[0] * self.shape[1],
-            self.shape[1], dtype=int
+            self.shape[1] - (1 + shift),
+            self.shape[0] * self.shape[1],
+            self.shape[1],
+            dtype=int,
         )
 
     @property
