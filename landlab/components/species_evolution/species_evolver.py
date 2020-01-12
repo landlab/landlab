@@ -10,20 +10,17 @@ import numpy as np
 from pandas import DataFrame, isnull
 
 from landlab import Component
-from landlab.components.species_evolution.record import Record
+from .record import Record
 
 
 class SpeciesEvolver(Component):
     """Evolve life in a landscape.
 
-    This component develops simulated organismal lineages of ``Taxon`` objects
-    as they evolve in response to landscape change. The history of lineages
-    (phylogeny) are tracked through the taxa. Evolution processes are conducted
-    by the Taxon objects. The taxon type, ``ZoneTaxon`` is distributed with
-    SpeciesEvolver. ``Taxon`` are intended to be subclassed for unique
-    behavior, attributes, and model approaches, including different
-    implementations of evolutionary processes. The component stores Taxon
-    objects and calls their evolutionary process methods.
+    This component tracks ``Taxon`` objects as they evolve in a landscape. The
+    component calls the evolutionary process methods of tracked ``Taxon``
+    objects. ``Taxon`` are intended to be subclassed for unique behavior,
+    attributes, and model approaches, including different implementations of
+    evolutionary processes.
 
     The general workflow to use this component in a model is
 
@@ -32,35 +29,31 @@ class SpeciesEvolver(Component):
     3. Introduce taxa to SpeciesEvolver using the ``track_taxon`` method.
     4. Advance the component instance in time using ``run_one_step`` method.
 
-    Taxa can be introduced at model onset and later time steps. Taxa can be
-    ``ZoneTaxon`` and other ``Taxon`` subclass types. Multiple types can be
-    tracked by the same SpeciesEvolver instance.
+    Taxa can be introduced at model onset and later time steps. Multiple types
+    can be tracked by the same SpeciesEvolver instance.
 
-    The spatial aspect of ``ZoneTaxon`` macroevolutionary processes is
-    determined using ``Zone`` objects. A ``ZoneController`` is used to create
-    and manage zones as well as efficiently create multiple ZoneTaxon objects.
-    See the documentation of ``ZoneController`` and ``ZoneTaxon`` for more
-    information. SpeciesEvolver knows nothing about zones and their controller,
-    meaning the concept of zones are not required for other taxon types.
+    The taxon type, ``ZoneTaxon`` is distributed with SpeciesEvolver. The
+    spatial aspect of ``ZoneTaxon`` macroevolutionary processes is determined
+    using ``Zone`` objects. A ``ZoneController`` is used to create and manage
+    zones as well as efficiently create multiple ZoneTaxon objects. See the
+    documentation of ``ZoneController`` and ``ZoneTaxon`` for more information.
+    SpeciesEvolver knows nothing about zones and their controller, meaning the
+    concept of zones are not required for other taxon types.
 
-    Model time and other variables can be accessed with the class attribute,
-    ``record_data_frame``. Time is tracked to construct phylogeny. The unit of
-    time is not considered within the component other than the record, and can
-    be thought of as in years or whatever unit is needed. Time is advanced
-    with the ``dt`` parameter of the ``run_one_step`` method.
+    Model time and other variables can be viewed with the class attribute,
+    ``record_data_frame``. Time is recorded to track the history of taxa
+    lineages. The unit of time is not considered within the component other than
+    the record, and can be thought of as in years or whatever unit is needed.
+    Time is advanced with the ``dt`` parameter of the ``run_one_step`` method.
 
     The geographic ranges of the taxa at the current model time are evaluated
     during the ``run_one_step`` method. Each taxon object determines if it
     persists or becomes extinct, and if it creates child ``Taxon`` objects.
-    Taxa metadata can be accessed with the attribute, ``taxa_data_frame``.
+    Taxa metadata can be viewed with the attribute, ``taxa_data_frame``.
 
     Taxa are automatically assigned unique identifiers, ``uid``. Identifiers
     are used to reference and retrieve taxon objects. Identifiers are assigned
     in the order taxa are introduced to SpeciesEvolver.
-
-    The development of this component was inspired by SEAMLESS (Spatially
-    Explicit Area Model of Landscape Evolution by SimulationS). See Albert et
-    al., 2017, Systematic Biology 66.
 
     Examples
     --------
@@ -84,7 +77,7 @@ class SpeciesEvolver(Component):
            [ 1.,  1.,  1.,  1.,  1.,  1.,  1.],
            [ 1.,  1.,  1.,  1.,  1.,  1.,  1.]])
 
-    Instantiate the component with the grid.
+    Instantiate the component with the grid as the first parameter.
 
     >>> se = SpeciesEvolver(mg)
 
@@ -106,14 +99,14 @@ class SpeciesEvolver(Component):
     >>> len(zc.zones) == 1
     True
 
-    Additional examples of controller usage are provided in ZoneController
+    Additional examples of controller usage are provided in ``ZoneController``
     documentation.
 
     The ``mask`` of the zone is True where the conditions of the zone function
     are met. All nodes of the grid are included because the elevation of each
-    node is below 100. The `zone` attribute of ZoneController returns a list of
-    current zones. Below we return the mask of the single zone by indexing this
-    list.
+    node is below 100. The ``zone`` attribute of ``ZoneController`` returns a
+    list of the zones that currently exist in the model. Below we return the
+    mask of the single zone by indexing this list.
 
     >>> zc.zones[0].mask
     array([ True,  True,  True,  True,  True,  True,  True,  True,  True,
@@ -122,7 +115,7 @@ class SpeciesEvolver(Component):
 
     Populate a taxon to the zone. The attribute, ``taxa_data_frame`` indicates
     only the one taxon exists because we populated each zone with one taxon,
-    and only one zone exists.
+    and only the one zone exists.
 
     >>> taxon = zc.populate_zones_uniformly(1)
     >>> se.track_taxa(taxon)
@@ -132,8 +125,8 @@ class SpeciesEvolver(Component):
     0           0            0    True
 
     Force a change in the zone mask to demonstrate component functionality.
-    Here we begin a new time step where topography is uplifted by 200 that
-    forms a ridge trending north-south in the center of the grid.
+    Here we begin a new time step where topography is uplifted by 200 that forms
+    a ridge trending north-south in the center of the grid.
 
     >>> z[[3, 10, 17]] = 200
     >>> z.reshape(mg.shape)
@@ -153,7 +146,9 @@ class SpeciesEvolver(Component):
     . . . x . . .               x node outside of zone mask
     . . . x . . .
 
-    Run a step of both the ZoneController and SpeciesEvolver.
+    Run a step of both the ZoneController and SpeciesEvolver. Both are run to
+    keep time in sync between the ``ZoneController``and ``SpeciesEvolver``
+    instances.
     >>> delta_time = 1000
     >>> zc.run_one_step(delta_time)
     >>> se.run_one_step(delta_time)
@@ -247,18 +242,18 @@ class SpeciesEvolver(Component):
     def record_data_frame(self):
         """A Pandas DataFrame of SpeciesEvolver variables over time.
 
-        Each row is data of a model time step. The step time is recorded in the
-        `time` column. `taxa` is the count of taxa extant at a time. Additional
-        columns can be added and updated by SpeciesEvolver objects during the
-        component ``run_one_step`` method. For example, ``ZoneTaxon`` add the
-        columns, 'speciations', 'extinctions', and 'pseudoextinctions' that are
-        the counts of these variables for this type. Other types may also
-        increment these values.
+        Each row is data of a model time step. The time of the step is recorded
+        in the `time` column. `taxa` is the count of taxa extant at a time.
+        Additional columns can be added and updated by SpeciesEvolver objects
+        during the component ``run_one_step`` method. For example, ``ZoneTaxon``
+        add the columns, 'speciations', 'extinctions', and 'pseudoextinctions'
+        that are the counts of these variables for this type. Other types may
+        also increment these values.
 
-        The DataFrame is created a dictionary associated with a SpeciesEvolver
-        ``Record`` object. nan values in Pandas DataFrame force the column to
-        become float values even when data are integers. The original value
-        type is retained in the Record object.
+        The DataFrame is created from a dictionary associated with a
+        SpeciesEvolver ``Record`` object. nan values in Pandas DataFrame force
+        the column to become float values even when data are integers. The
+        original value type is retained in the ``Record`` object.
         """
         return self._record.data_frame
 
@@ -266,12 +261,12 @@ class SpeciesEvolver(Component):
     def taxa_data_frame(self):
         """A Pandas DataFrame of taxa metadata.
 
-        Each row is the metadata of a taxon. The 'uid' is the unique
+        Each row is the metadata of a taxon. The column, 'uid' is the unique
         identifier. The column, `appeared` is the first model time that the
         taxon was tracked by the component. The column, `latest_time` is the
         latest model time the taxon was extant. The column, `extant` indicates
-        if the taxon is extant or extant at the latest (current) time in the
-        model.
+        if the taxon is extant or not (extinct) at the latest (current) time in
+        the model.
 
         The DataFrame is created from a data structure within the component.
         """
@@ -335,8 +330,8 @@ class SpeciesEvolver(Component):
         """Add taxa to be tracked over time by SpeciesEvolver.
 
         The taxon/taxa are introduced at the latest time in the record and
-        tracked during following times. Each taxon is assigned an identifier
-        and then can be viewed in ``taxa_data_frame``.
+        also tracked during following model times. Each taxon is assigned an
+        identifier and then can be viewed in ``taxa_data_frame``.
 
         Parameters
         ----------
@@ -369,7 +364,7 @@ class SpeciesEvolver(Component):
         >>> len(zc.zones) == 1
         True
 
-        Introduce a taxon to the one zone.
+        Track the taxon of the one zone.
 
         >>> taxon = zc.populate_zones_uniformly(1)
         >>> se.track_taxa(taxon)
@@ -388,7 +383,7 @@ class SpeciesEvolver(Component):
         self._update_taxa_data(taxa)
 
     def _update_taxa_data(self, taxa_at_time):
-        """Update the taxa data structure, set identifiers, and taxa stats.
+        """Update the taxa data structure, set identifiers, and taxa statistics.
 
         This method sets identifiers and metadata for the newly introduced
         taxa. For the previously introduced, this method updates the
@@ -456,15 +451,16 @@ class SpeciesEvolver(Component):
         ----------
         uid : int, optional
             The taxon with this identifier will be returned. An object is
-            returned in a list if this identifier exists. By default, taxa with
-            any identifier can be returned.
+            returned in a list if a taxon with this identifier exists. By
+            default, taxa with any identifier can be returned.
         time : float, int, optional
             Limit the taxa returned to those that existed at this time as
-            indicated in ``taxa_data_frame``. By default, taxa at all times in
-            the component record can be returned.
+            listed in ``taxa_data_frame``. By default, taxa at all of the times
+            listed in the component record can be returned.
         extant_at_latest_time : boolean, optional
-            Limit the taxa returned to taxa extant state at the latest time in
-            the record. By default, taxa with any extant state can be returned.
+            Limit the taxa returned to the extant state of taxa at the latest
+            time in the record. By default, taxa with any extant state can be
+            returned.
         ancestor : int, optional
             Limit the taxa returned to those descending from the taxon
             designated as the ancestor. The ancestor is designated using its

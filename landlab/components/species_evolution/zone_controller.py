@@ -12,12 +12,12 @@ from .zone import _update_zones
 class ZoneController(object):
     """Controls zones and populates them with taxa.
 
-    This object manages 'zones' that are used to evaluate the spatial aspect
-    of taxa. A zone represents a portion of a model grid. It is made up of
+    This object manages 'zones' that are used to evaluate the spatial aspect of
+    taxa. A zone represents a portion of a model grid. It is made up of
     spatially continuous grid nodes.
 
-    This controller creates zones using the parameter, ``zone_function`` set at
-    initialization. This function identifies all of the grid nodes where zones
+    This controller creates zones using the initialization parameter,
+    zone_function``. This function identifies all of the grid nodes where zones
     are to be created. A zone is created for each cluster of spatially
     continuous nodes. Zones are updated also using this function when the
     ``run_one_step`` method of this controller is called.
@@ -25,9 +25,9 @@ class ZoneController(object):
     The structure of an example model grid is diagrammed below to demonstrate
     how zones are created. The grid contains six columns and six rows. In this
     example, the function returns True where node values are greater than 0.
-    Nodes marked with an ``*`` are nodes where a zone exists and the mask is
-    True. All other nodes are marked with a ``·``. A zone is created for each
-    cluster of continuous nodes where the mask is True.
+    Nodes marked with an ``*`` are nodes that will belong to a zone because the
+    mask is True at these nodes. All other nodes are marked with a ``·``. A zone
+    is created for each cluster of continuous nodes where the mask is True.
 
     values         mask returned
     evaluated      by zone function
@@ -43,7 +43,7 @@ class ZoneController(object):
     ``x``, ``o``, ``+``, or ``@``. Clusters can be identified using ``D8``
     where diagonal neighbors are included or ``D4`` where diagonal neighbors
     are excluded. A minimum zone area can be enforced with the ``minimum_area``
-    parameter.
+    initialization parameter.
 
     D8             D4             D8             D4
     min area = 0   min area = 0   min area = 2   min area = 2
@@ -62,12 +62,11 @@ class ZoneController(object):
 
     Creation of zones along boundaries is illustrated below. A zone extent mask
     different from the above example was produced by the hypothetical zone
-    function here. Again ``*`` indicates where a zone can exist. Distinct zones
-    that are created are in the other four grid schematics, where the symbols,
-    ``$`` and ``#`` indicate zones in addition to the symbols defined above.
-    Individual zone masks and the count of zones are affected by the use of
-    ``D8`` or ``D4`` along with the minimum area parameter, especially when
-    zone clusters are along grid boundaries.
+    function in this example. Again ``*`` indicates where a zone can exist.
+    Distinct zones include the symbols, ``$`` and ``#`` in addition to the
+    symbols defined above. Individual zone masks and the count of zones are
+    affected by the use of ``D8`` or ``D4`` along with the minimum area
+    parameter, especially when zone clusters are along the grid parameter.
 
     zone function  D8             D4             D8             D4
     returned mask  min area = 0   min area = 0   min_area = 2   min_area = 2
@@ -79,12 +78,13 @@ class ZoneController(object):
     · * * · · ·    · @ @ · · ·    · @ @ · · ·    · · · · · ·    · · · · · ·
 
     By default, ``ZoneTaxon`` are used with this controller, and the
-    following paragraphs make that assumption. Speciation occurs when the
-    taxon exists in more than one zone once the allopatric wait time has been
-    exceeded in that zone. See ZoneTaxon documentation for more about
-    allopatric wait time.
+    following paragraphs make that assumption. See the documentation of the
+    populate methods to learn how to use other types. Speciation of
+    ``ZoneTaxon`` objects occurs when the taxon exists in more than one zone
+    once the allopatric wait time has been exceeded in that zone. See
+    ``ZoneTaxon`` documentation for more about allopatric wait time.
 
-    Here, a different example grid demonstrates the temporal connectivity of
+    A different example grid demonstrates here the temporal connectivity of
     zones. The grid represents the time, ``T0`` with the nodes of a zone
     marked with ``x``. The following examples will use D8 neighborhoods and a
     minimum zone area of 0.
@@ -134,7 +134,7 @@ class ZoneController(object):
     step zone the most becomes the same zone in the earlier time step. In this
     example, the cluster to the right overlapped four nodes and the left
     cluster overlapped only one node, therefore the right cluster became the
-    star zone. However, this is merely for creating new zones objects.
+    star zone. This is merely for creating new zones objects.
 
     The grid diagrammed below continues from T1e. The continuous nodes
     overlapped two zones in T1e. When multiple zones overlap, one zone is
@@ -160,7 +160,8 @@ class ZoneController(object):
     zone keeps the designation of the left cluster. However, this is merely for
     creating new zone objects.
 
-    ZoneController is currently tested only for use with a RasterModelGrid.
+    ZoneController is currently designed for use with only the grid type,
+    ``RasterModelGrid``.
 
     Examples
     --------

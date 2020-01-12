@@ -1,8 +1,8 @@
-SpeciesEvolver: Evolve life in a landscape
-==========================================
+Species Evolution
+=================
 
-SpeciesEvolver component
-------------------------
+SpeciesEvolver: Component to evolve life in a landscape
+-------------------------------------------------------
 
 .. automodule:: landlab.components.species_evolution.species_evolver
     :members:
@@ -10,7 +10,7 @@ SpeciesEvolver component
     :show-inheritance:
 
 ZoneController: Control zones and populates them with taxa
------------------------------------------------------------
+----------------------------------------------------------
 
 .. automodule:: landlab.components.species_evolution.zone_controller
     :members:
