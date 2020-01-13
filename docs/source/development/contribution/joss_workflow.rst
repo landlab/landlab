@@ -38,7 +38,7 @@ journal.
 - Create a pull request to merge the JOSS review branch into the ``master``
   branch.
 - Merge ``master`` into ``release``, and update version number. See
-  :ref:`Create a Landlab release <dev_guide_releases>`.
+  :ref:`Create a Landlab release <dev_releases>`.
 - Ensure that the release is correctly created and distributed.
 - Update the JOSS review pull request with the correct archive DOI and
   version number.
