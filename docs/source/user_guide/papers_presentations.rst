@@ -23,11 +23,15 @@ Barnhart, K. R., Glade, R. C., Shobe, C. M., and Tucker, G. E. (2019)
 long-term drainage basin evolution.** *Geosci. Model Dev.*, v. 12,
 p. 1267-1297, `doi:10.5194/gmd-12-1267-2019 <https://www.geosci-model-dev.net/12/1267/2019/>`__.
 
+Barnhart, K.R., Hutton, E., and Tucker, G.E. (2019) **umami: a Python package for Earth surface dynamics objective function construction**, *Journal of Open Source Software*, 4(42), 1776, `doi:10.21105/joss.01776 <https://doi.org/10.21105/joss.01776>`__.
+
 Glade, R.C.*, Shobe, C.M.*, Anderson, R.S., and Tucker, G.E. (2019)
 **Canyon shape and erosion dynamics governed by channel-hillslope
 feedbacks.** *Geology*,
 `doi:10.1130/G46219.1 <https://pubs.geoscienceworld.org/gsa/geology/article/47/7/650/570313/Canyon-shape-and-erosion-dynamics-governed-by>`__. \*Equal
 contributions
+
+Reitman, N.G., Mueller, K.J., Tucker, G.E., Gold, R.D., Briggs, R.D., and Barnhart, K.R. (2019) **Landscape Evolution Models Demonstrate that Offset Channels are Incomplete Records of Strike-Slip Fault Displacement.** *Journal of Geophysical Research*, 124, `doi:10.1029/2019JB018596 <https://doi.org/10.1029/2019JB018596>`__.
 
 Sharman, G. R., Sylvester, Z., & Covault, J. A. (2019). **Conversion of
 tectonic and climatic forcings into records of sediment supply and
@@ -168,6 +172,14 @@ Presentations
 2018
 ````
 
+Barnhart, K.R., Tucker, G.E., Doty, S., Hill, M.C., Rossi, M.W., Shobe, C.M., and Glade, R.C. (2018, June) Uncertainty in the prediction of erosion on geologic time scales. Paper presented at International Congress on Environmental Modeling and Software, Fort Collins, CO.
+
+Barnhart, K.R., Tucker, G.E., Doty, S.G., Hill, M.C., Rossi, M.W., Shobe, C.M., and Glade, R.C. (2018, December) Inverting topography for landscape evolution model process representation. Paper presented at American Geophysical Union fall meeting, Washington, DC.
+
+Carriere, A., Le Bouteiller, C., Tucker, G., and Naaim, M. (2018, April) How does vegetation impact the erosion by modelling landscape evolution of marly catchments in the Southern Alps of France? Paper presented at European Geosciences Union General Assembly.
+
+Hobley, D., Gasparini, N., Bandaragoda, C., Barnhart, K., Adams, J., and Tucker, G. (2018, September) How can the Landlab modelling toolkit help in communicating geomorphology? Paper presented at British Society for Geomorphology, Aberystwyth, UK.
+
 Istanbulluoglu E., Strauch R., Nudurupati S.S., Bandaragoda C.,
 Gasparini N.M., and G.E. Tucker (2018). A hydro-climatological approach
 to predicting regional landslide probability using Landlab. Community
@@ -180,6 +192,22 @@ for Modeling Earth Surface Dynamics. Pardee Keynote Symposia, GSA
 National Meeting, November 4–7, 2018, Indianapolis, IN.
 `abstract <https://gsa.confex.com/gsa/2018AM/webprogram/Paper324626.html>`__
 `poster <https://drive.google.com/file/d/16_hRtF6DsBKQGSHE3E2zkYUwovUQEiVZ/view?usp=drive_open>`__
+
+Mouchene, M., Tucker, G.E., Barnhart, K.R., and Gasparini, N.M. (2018, December) The Clast-Tracker: a new tool for numerical modeling of the motion of individual particles. Paper presented at American Geophysical Union fall meeting, Washington, DC.
+
+Reitman, N., Mueller, K.J., and Tucker, G.E. (2018, December) Are offset channels accurate representations of strike-slip fault displacement? Implications from landscape evolution modeling. Paper presented at American Geophysical Union fall meeting, Washington, DC.
+
+Shobe, C.M., Glade, R.C., Tucker, G.E., and Anderson, R.S. (2018, December) Chaotic Chasms: Canyon Evolution Governed by Autogenic Channel-Hillslope Feedbacks. Paper presented at American Geophysical Union fall meeting, Washington, DC.
+
+Tucker, G.E. (2018, January) Tales from Computational Geomorphology. Lecture presentation at Knuth80: Algorithms, Combinatorics, Information; Piteå, Sweden.
+
+Tucker, G.E., McCoy, S.W., and Hobley, D.E.J. (2018, April) A Landlab-built cellular automaton model of hillslope evolution. Paper presented at SI2 Principal Investigators’ meeting, Washington, DC.
+
+Tucker, G.E., Barnhart, K.R., Bandaragoda, C., Gasparini, N.M., Hobley, D.E.J., Hutton, E., Istanbulluoglu, E., Mouchene, M., and Siddhartha Nudurupati, S. (2018, June) Design and applications of Landlab: a modular Python-language framework for building 2D numerical models of earth-surface processes. Paper presented at International Congress on Environmental Modeling and Software, Fort Collins, CO.
+
+Tucker, G.E., Barnhart, K.R., Doty, S.G., Glade, R.C., Hill, M.C., Rossi, M., Shobe, C.M. (2018, August) Landlab meets Lidar: Using digital topography to test and calibrate long-term erosion models. Invited keynote lecture, Geomorphometry 2018, Boulder, Colorado.
+
+Tucker, G.E., McCoy, S.W., and Hobley, D.E.J. (2018, December) A Stochastic Cellular Model of Hillslope Morphology and Evolution. Paper presented at American Geophysical Union fall meeting, Washington, DC.
 
 2017
 ~~~~
