@@ -10,27 +10,27 @@ below has been developed for those who choose to submit their Landlab
 contribution (e.g., a Landlab component, utility) to this journal.
 
 - Create a pull request to merge the contribution into Landlab. See
-:ref:`Develop your own component or utility <developer_a_component>`.
+  :ref:`Develop your own component or utility <developer_a_component>`.
 - Following the above merge, create a new branch for the JOSS review process.
-Name the paper ``paper.md``, which follows JOSS requirements, and place this
-file in a new folder, ``/landlab/joss/<name_of_contribution>/`` with your other
-JOSS submission materials (e.g., bib, figures if any).
+  Name the paper ``paper.md``, which follows JOSS requirements, and place this
+  file in a new folder, ``/landlab/joss/<name_of_contribution>/`` with your other
+  JOSS submission materials (e.g., bib, figures if any).
 - Submit to JOSS. The submitting author must comment on the pre-review issue
-that the paper is on a branch, and they should build the branch with this
-command
-```
-@whedon prepare pdf from branch my-custom-branch-name
-```
+  that the paper is on a branch, and they should build the branch with this
+  command
+  ```
+  @whedon prepare pdf from branch my-custom-branch-name
+  ```
 - Once the JOSS review is complete and if the paper is accepted:
-    - Create a pull request to merge the JOSS review branch into the ``master``
+  - Create a pull request to merge the JOSS review branch into the ``master``
     branch.
-    - Merge ``master`` into ``release``, and update version number. See
+  - Merge ``master`` into ``release``, and update version number. See
     :ref:`Create a Landlab release <dev_guide_releases>`.
-    - Ensure that the release is correctly created and distributed.
-    - Update the JOSS review pull request with the correct archive DOI and
+  - Ensure that the release is correctly created and distributed.
+  - Update the JOSS review pull request with the correct archive DOI and
     version number.
-    - JOSS publishes the paper.
-    - Once publication is complete, make another pull request to move and rename
+  - JOSS publishes the paper.
+  - Once publication is complete, make another pull request to move and rename
     the ``paper.md`` to ``landlab/joss/published/<name_of_module_or_component>/<new_paper_name>.md``.
     The paper can no longer be named ``paper.md`` because JOSS expects paper in
     review to have this name, and to avoid conflicts with other Landlab paper
