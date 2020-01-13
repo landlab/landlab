@@ -29,9 +29,11 @@ journal.
 - Submit to JOSS. The submitting author must comment on the pre-review issue
   that the paper is on a branch, and they should build the branch with this
   command
-  ```
-  @whedon prepare pdf from branch my-custom-branch-name
-  ```
+
+  .. code-block:: bash
+
+      $ @whedon prepare pdf from branch my-custom-branch-name
+
 - Once the JOSS review is complete and if the paper is accepted:
   - Create a pull request to merge the JOSS review branch into the ``master``
     branch.
