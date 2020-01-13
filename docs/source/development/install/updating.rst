@@ -28,17 +28,18 @@ managing remotes might be helpful.
 
 If we have added a dependency, you may see an import error. Similarly, if we
 have added a dependency, you may see some tests break. A likely fix is to
-ensure you have all the requirements specified in the
-`requirements-dev.txt` file
+ensure you have all the requirements specified in the Landlab development
+environment described by the `environment-dev.yml` file
 
 .. code-block:: bash
 
-   $ conda install --yes --file=requirements-dev.txt
+   $ conda env update landlab_dev  --file environment-dev.yml
+   $ conda activate landlab_dev
    $ pip install -e .
 
-The first of these installs any new requirements for development (in
-requirements-dev.txt). The second will install any additional requirements for
-landlab (which are indicated in the setup.py file used by pip install).
+The first of these installs any new requirements for development. The second
+line activates the environment (called "landlab_dev").  The third will verify
+that all requirements are met and recompile Landlab.
 
 If the Cython code has changed since you last updated, you will probably see
 errors associated with files named `cfuncs.pyx` (or similar). These changes

@@ -25,7 +25,7 @@ If you are interested in the state of current development, we compile
 :ref:`ongoing development <ongoing_development>`. If you are interested in
 contributing but don't know how to get started (THANK YOU!),
 we compile :ref:`desired contributions <desired_contributions>` and have a
-:ref:`page all about development <development>`. 
+:ref:`page all about development <development>`.
 
 Many Jupyter notebooks exist describing use of Landlab. Find an overview
 :ref:`here <tutorials>`. A subset of these notebooks are designed specifically
@@ -77,7 +77,7 @@ If you use any portion of Landlab, you must cite the following paper:
 
 In addition, many components have an additional citation. The table below lists
 these. We also provide a handy way to get a bibtex file of the components you
-use. It is descrdibed below.
+use. It is described below.
 
 BibTeX format:
 ::
@@ -108,7 +108,7 @@ table.
 +----------------------------------+-----------------------------------------------------------------------------------------------------+
 | Component                        | Citation                                                                                            |
 +==================================+=====================================================================================================+
-| Celular Automaton                | `Tucker et al. (2015) <https://www.geosci-model-dev.net/9/823/2016/>`_                              |
+| Cellular Automaton               | `Tucker et al. (2015) <https://www.geosci-model-dev.net/9/823/2016/>`_                              |
 +----------------------------------+-----------------------------------------------------------------------------------------------------+
 | Flexure                          | `Hutton and Syvitski (2008) <https://www.sciencedirect.com/science/article/pii/S0098300408000587>`_ |
 +----------------------------------+-----------------------------------------------------------------------------------------------------+
@@ -124,7 +124,7 @@ table.
 +----------------------------------+-----------------------------------------------------------------------------------------------------+
 | OverlandFlow                     | `Adams et al. (2017) <https://www.geosci-model-dev-discuss.net/gmd-2016-277/>`_                     |
 +----------------------------------+-----------------------------------------------------------------------------------------------------+
-| SPACE                            | `Shobe, et al (2017) <https://www.geosci-model-dev.net/10/4577/2017/>`_                             |
+| SPACE                            | `Shobe et al. (2017) <https://www.geosci-model-dev.net/10/4577/2017/>`_                             |
 +----------------------------------+-----------------------------------------------------------------------------------------------------+
 | SpatialPrecipitationDistribution | `Singer et al. (2018) <https://www.geosci-model-dev.net/11/3713/2018/gmd-11-3713-2018.html>`_       |
 +----------------------------------+-----------------------------------------------------------------------------------------------------+
@@ -138,7 +138,7 @@ for landlab.
 
   import landlab
 
-  # do you work in landlab when you write your model, then a call to
+  # the code of your model built with landlab goes here, then add a call to
 
   landlab.registry.format_citations() # will produce a Bibtex-formatted
                                       # citations for all Landlab components
