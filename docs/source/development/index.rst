@@ -22,3 +22,4 @@ The most important things to remember are to:
    install/index
    contribution/index
    practices/index
+   joss_workflow
