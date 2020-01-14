@@ -42,9 +42,10 @@ class SpeciesEvolver(Component):
 
     Model time and other variables can be viewed with the class attribute,
     ``record_data_frame``. Time is recorded to track the history of taxa
-    lineages. The unit of time is not considered within the component other than
-    the record, and can be thought of as in years or whatever unit is needed.
-    Time is advanced with the ``dt`` parameter of the ``run_one_step`` method.
+    lineages. The unit of time is not considered within the component other
+    than the record, and can be thought of as in years or whatever unit is
+    needed. Time is advanced with the ``dt`` parameter of the ``run_one_step``
+    method.
 
     The geographic ranges of the taxa at the current model time are evaluated
     during the ``run_one_step`` method. Each taxon object determines if it
@@ -135,12 +136,14 @@ class SpeciesEvolver(Component):
            [   1.,    1.,    1.,  200.,    1.,    1.,    1.]])
 
     The current elevation, the elevation following uplift, is represented here.
+    ::
 
     - - - ^ - - -       elevation:  - 1
     - - - ^ - - -                   ^ 200
     - - - ^ - - -
 
     The updated zone mask is below.
+    ::
 
     . . . x . . .       key:    . node in zone mask
     . . . x . . .               x node outside of zone mask
@@ -159,6 +162,7 @@ class SpeciesEvolver(Component):
     True
 
     An additional zone was created because the zone mask was not continuous.
+    ::
 
     . . . ^ * * *       key:    . a zone
     . . . ^ * * *               * another zone
