@@ -138,16 +138,16 @@ class SpeciesEvolver(Component):
     The current elevation, the elevation following uplift, is represented here.
     ::
 
-    - - - ^ - - -       elevation:  - 1
-    - - - ^ - - -                   ^ 200
-    - - - ^ - - -
+        - - - ^ - - -       elevation:  - 1
+        - - - ^ - - -                   ^ 200
+        - - - ^ - - -
 
     The updated zone mask is below.
     ::
 
-    . . . x . . .       key:    . node in zone mask
-    . . . x . . .               x node outside of zone mask
-    . . . x . . .
+        . . . x . . .       key:    . node in zone mask
+        . . . x . . .               x node outside of zone mask
+        . . . x . . .
 
     Run a step of both the ZoneController and SpeciesEvolver. Both are run to
     keep time in sync between the ``ZoneController``and ``SpeciesEvolver``
@@ -164,9 +164,9 @@ class SpeciesEvolver(Component):
     An additional zone was created because the zone mask was not continuous.
     ::
 
-    . . . ^ * * *       key:    . a zone
-    . . . ^ * * *               * another zone
-    . . . ^ * * *               ^ mountain range
+        . . . ^ * * *       key:    . a zone
+        . . . ^ * * *               * another zone
+        . . . ^ * * *               ^ mountain range
 
     The split of the initial zone triggered speciation. Taxon 0 became extinct
     as it speciated to child taxa 1 and 2.
