@@ -13,3 +13,4 @@ Please review the :ref:`development practices <development_practices>`.
    recommendations
    ongoing_development
    desired_contributions
+   joss_workflow
