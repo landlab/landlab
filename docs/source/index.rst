@@ -16,7 +16,7 @@ Landlab provides components to compute flows (such as water, sediment,
 glacial ice, volcanic material, or landslide debris) across a gridded
 terrain. With its robust, reusable components, Landlab allows scientists
 to quickly build landscape model experiments and compute mass balance
-across scales.
+across scales. Watch the webinar `Landlab Toolkit Overview <https://csdms.colorado.edu/wiki/Presenters-0407>`_ at CSDMS to learn more.
 
 The most current source code is always available from our `git
 repository <https://github.com/landlab/landlab>`_.
