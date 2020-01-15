@@ -47,6 +47,6 @@ Landscape connectivity of ``ZoneTaxon`` is determined by the spatiotemporal rela
 
 # Figures
 
-![Schematics of zone creation and connectivity. Zone creation and connectivity types are explained in the text.](fig_zones.png)
+![Schematics of zone creation and connectivity. Zone creation and connectivity types are explained in the text.](https://raw.githubusercontent.com/landlab/landlab/nathanlyons_species_evolver_joss_review/joss/species_evolver/fig_zones.png)
 
 # References
