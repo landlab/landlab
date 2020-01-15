@@ -52,6 +52,11 @@ you need to install it. To install Landlab in developer mode, navigate
 to the root Landlab folder (it will be landlab with a small ``l`` and
 will contain the file ``setup.py``) and run the commands below.
 
+Landlab has a number of dependencies to run, test, and develop with. These are
+described in more detail :ref:`here <dependencies>`. We have created a conda
+environment file which contains everything you will need for development. The
+next step is it create this environment:
+
 Install all of the dependencies required by Landlab into a new environment
 called *landlab_dev*. Read more about
 `conda environments <https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#managing-environments>`_.

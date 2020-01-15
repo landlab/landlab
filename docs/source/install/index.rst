@@ -17,6 +17,12 @@ You can install Landlab using either the pip or conda package management tools.
 We distribute Landlab through `PyPI <https://pypi.org/project/landlab/>`_
 and `conda-forge <https://anaconda.org/conda-forge/landlab>`_.
 
+The following instructions will just install Landlab and its dependencies.
+There may be some additional dependencies necessary to run the Landlab
+notebooks or develop a model with Landlab (e.g., spyder). Below we also provide
+instructions to install a conda environment which includes everythin you need
+to run the notebooks.
+
 Conda instructions
 ------------------
 
@@ -28,18 +34,9 @@ In a terminal type:
 
   $ conda install landlab -c conda-forge
 
-
-If you want to use the new 2.0 beta version use the following command
-
-.. code-block:: bash
-
-  $ conda install landlab -c conda-forge/label/dev
-
-
 If you work with many different packages that require conflicting dependencies,
 consider reading about (and using)
 `conda environments <https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#managing-environments>`_.
-
 
 Updating
 ````````
@@ -68,7 +65,7 @@ In a terminal type:
 
 .. code-block:: bash
 
-  $ pip install landlab
+  $ pip install --pre landlab 
 
 Updating
 ````````
@@ -88,6 +85,27 @@ In a terminal type:
 
     $ pip uninstall landlab
 
+Conda Environment
+-----------------
+
+We have specified a conda environment which will install Landlab and everything
+else you need to run the notebooks. To use it you will first need to have conda
+installed on your machine. Then create the environment with the following
+command.
+
+.. code-block:: bash
+
+   $ conda env create --file=environment.yml
+
+This will create a Landlab environment called ``landlab_notebooks``. Activate
+that environment so that you will be using that version of python and all of
+the dependencies you just installed.
+
+.. code-block:: bash
+
+   $ conda activate landlab_notebooks
+
+You will need to activate this environment every time you want to use it.
 
 Additional Resources
 --------------------

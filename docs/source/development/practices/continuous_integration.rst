@@ -13,10 +13,10 @@ Landlab uses `Travis <https://travis-ci.org>`_ for continuous integration
 testing. The `landlab page on Travis <https://travis-ci.org/landlab/landlab>`_
 shows the latest testing results. A new set of tests are executed whenever
 any changes are pushed to the Landlab repository and with every pull request.
-We currently run test suites for Python versions 2.7, 3.5, and 3.6.
+We currently run test suites for Python versions 3.5, and 3.6.
 
 Continuous integration for Windows is done on
-`Appveyor <https://ci.appveyor.com>`_ and also tests with Python 2.7, 3.5, and 3.6.
+`Appveyor <https://ci.appveyor.com>`_ and also tests with Python 3.5, and 3.6.
 
 Once you send a pull request from GitHub, you will be taken to the Landlab
 pull request page and all unit tests are run. You will see the status
@@ -38,6 +38,5 @@ which may or may not be the one you are working on in your current working
 directory. These test will not work with numpy 1.14.
 
 Additional options for running tests are provided :ref:`here<testing>`
-
 
 TODO: Add information about coverage here.
