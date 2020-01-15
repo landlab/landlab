@@ -2,7 +2,7 @@
 
 ## Documentation
 
-Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.readthedocs.io/en/master), including Landlab installation instructions. SpeciesEvolver is included with Landlab.
+Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.readthedocs.io/en/master), including Landlab installation instructions. SpeciesEvolver is installed with Landlab.
 
 SpeciesEvolver documentation is located [here](https://landlab.readthedocs.io/en/master/reference/components/species_evolution.html).
 
