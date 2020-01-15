@@ -1,4 +1,4 @@
-# SpeciesEvolver: evolve life in a simulated landscape
+# SpeciesEvolver: evolve life in simulated landscapes
 
 ## Documentation
 
