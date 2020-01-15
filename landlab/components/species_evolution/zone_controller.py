@@ -17,8 +17,8 @@ class ZoneController(object):
     spatially continuous grid nodes.
 
     This controller creates zones using the initialization parameter,
-    zone_function``. This function identifies all of the grid nodes where zones
-    are to be created. A zone is created for each cluster of spatially
+    ``zone_function``. This function identifies all of the grid nodes where
+    zones are to be created. A zone is created for each cluster of spatially
     continuous nodes. Zones are updated also using this function when the
     ``run_one_step`` method of this controller is called.
 
@@ -26,17 +26,18 @@ class ZoneController(object):
     how zones are created. The grid contains six columns and six rows. In this
     example, the function returns True where node values are greater than 0.
     Nodes marked with an ``*`` are nodes that will belong to a zone because the
-    mask is True at these nodes. All other nodes are marked with a ``·``. A zone
-    is created for each cluster of continuous nodes where the mask is True.
+    mask is True at these nodes. All other nodes are marked with a ``·``. A
+    zone is created for each cluster of continuous nodes where the mask is True.
+    ::
 
-    values         mask returned
-    evaluated      by zone function
-    0 0 0 0 0 0    · · · · · ·
-    0 0 0 5 4 2    · · · * * *
-    0 6 0 4 6 0    · * · * * ·
-    0 2 0 0 0 0    · * · · · ·
-    0 0 4 0 4 0    · · * · * ·
-    0 0 0 0 0 0    · · · · · ·
+        values         mask returned
+        evaluated      by zone function
+        0 0 0 0 0 0    · · · · · ·
+        0 0 0 5 4 2    · · · * * *
+        0 6 0 4 6 0    · * · * * ·
+        0 2 0 0 0 0    · * · · · ·
+        0 0 4 0 4 0    · · * · * ·
+        0 0 0 0 0 0    · · · · · ·
 
     The above example is continued in the following four diagrams that
     demonstrate how individual zones are identified. Each zone is marked with a
@@ -44,15 +45,16 @@ class ZoneController(object):
     where diagonal neighbors are included or ``D4`` where diagonal neighbors
     are excluded. A minimum zone area can be enforced with the ``minimum_area``
     initialization parameter.
+    ::
 
-    D8             D4             D8             D4
-    min area = 0   min area = 0   min area = 2   min area = 2
-    · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
-    · · · + + +    · · · + + +    · · · + + +    · · · + + +
-    · x · + + ·    · x · + + ·    · x · + + ·    · x · + + ·
-    · x · · · ·    · x · · · ·    · x · · · ·    · x · · · ·
-    · · x · o ·    · · @ · o ·    · · x · · ·    · · · · · ·
-    · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
+        D8             D4             D8             D4
+        min area = 0   min area = 0   min area = 2   min area = 2
+        · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
+        · · · + + +    · · · + + +    · · · + + +    · · · + + +
+        · x · + + ·    · x · + + ·    · x · + + ·    · x · + + ·
+        · x · · · ·    · x · · · ·    · x · · · ·    · x · · · ·
+        · · x · o ·    · · @ · o ·    · · x · · ·    · · · · · ·
+        · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
 
     The grid perimeter affects zone creation. Zones can include perimeter nodes
     (the nodes along grid edges), although because perimeter nodes are not
@@ -67,15 +69,16 @@ class ZoneController(object):
     symbols defined above. Individual zone masks and the count of zones are
     affected by the use of ``D8`` or ``D4`` along with the minimum area
     parameter, especially when zone clusters are along the grid parameter.
+    ::
 
-    zone function  D8             D4             D8             D4
-    returned mask  min area = 0   min area = 0   min_area = 2   min_area = 2
-    * · · * * ·    + · · x x ·    + · · x x ·    + · · · · ·    · · · · · ·
-    · * · · * ·    · + · · x ·    · # · · x ·    · + · · · ·    · # · · · ·
-    · * · · · ·    · + · · · ·    · # · · · ·    · + · · · ·    · # · · · ·
-    * · · · * *    + · · · o o    $ · · · o o    + · · · o o    · · · · o o
-    · · · · * ·    · · · · o ·    · · · · o ·    · · · · o ·    · · · · o ·
-    · * * · · ·    · @ @ · · ·    · @ @ · · ·    · · · · · ·    · · · · · ·
+        zone function  D8             D4             D8             D4
+        returned mask  min area = 0   min area = 0   min_area = 2   min_area = 2
+        * · · * * ·    + · · x x ·    + · · x x ·    + · · · · ·    · · · · · ·
+        · * · · * ·    · + · · x ·    · # · · x ·    · + · · · ·    · # · · · ·
+        · * · · · ·    · + · · · ·    · # · · · ·    · + · · · ·    · # · · · ·
+        * · · · * *    + · · · o o    $ · · · o o    + · · · o o    · · · · o o
+        · · · · * ·    · · · · o ·    · · · · o ·    · · · · o ·    · · · · o ·
+        · * * · · ·    · @ @ · · ·    · @ @ · · ·    · · · · · ·    · · · · · ·
 
     By default, ``ZoneTaxon`` are used with this controller, and the
     following paragraphs make that assumption. See the documentation of the
@@ -88,14 +91,15 @@ class ZoneController(object):
     zones. The grid represents the time, ``T0`` with the nodes of a zone
     marked with ``x``. The following examples will use D8 neighborhoods and a
     minimum zone area of 0.
+    ::
 
-    T0
-    · · · · · ·
-    · · · · · ·
-    · x x x x ·
-    · x x x x ·
-    · · · · · ·
-    · · · · · ·
+        T0
+        · · · · · ·
+        · · · · · ·
+        · x x x x ·
+        · x x x x ·
+        · · · · · ·
+        · · · · · ·
 
     Below are variations of the grid at a later time, ``T1`` in four variations
     where each contains one zone. In ``T1a``, ``T1b``, and ``T1c`` the zone
@@ -103,14 +107,15 @@ class ZoneController(object):
     the zone when at least one zone node overlaps between the two time steps.
     However, in ``T1d``, no nodes overlaps, therefore taxa do not disperse from
     the zone in T0 to the zone in T1d.
+    ::
 
-    T1a            T1b            T1c            T1d
-    · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
-    · + + + + ·    · · · · · ·    · · + + · ·    · · · · · ·
-    · + + + + ·    · + + + + ·    · + + + + ·    · · · · · ·
-    · · · · · ·    · + + + + ·    · · · · + ·    · + + + + ·
-    · · · · · ·    · · · · · ·    · · · · · ·    · + + + + ·
-    · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
+        T1a            T1b            T1c            T1d
+        · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
+        · + + + + ·    · · · · · ·    · · + + · ·    · · · · · ·
+        · + + + + ·    · + + + + ·    · + + + + ·    · · · · · ·
+        · · · · · ·    · + + + + ·    · · · · + ·    · + + + + ·
+        · · · · · ·    · · · · · ·    · · · · · ·    · + + + + ·
+        · · · · · ·    · · · · · ·    · · · · · ·    · · · · · ·
 
     Another ``T1`` variation, now demonstrating two zones, ``+`` and ``x``.
     Multiple zones overlapping a zone in the prior time step can be interpreted
@@ -118,14 +123,15 @@ class ZoneController(object):
     zone fragmentations can be viewed in the ``record_data_frame`` attribute.
     In the T1e example, the fragmentation count for time 1 would be 2 because
     2 zones that fragmented from a prior zone were recognized at this time.
+    ::
 
-    T1e
-    · · · · · ·
-    · · · · + ·
-    · x · · + ·
-    · x x · · ·
-    · x x · · ·
-    · · · · · ·
+        T1e
+        · · · · · ·
+        · · · · + ·
+        · x · · + ·
+        · x x · · ·
+        · x x · · ·
+        · · · · · ·
 
     The controller had to decide which of the two clusters of continuous nodes
     in T1 should be designated as the same zone in T0. This decision must be
@@ -141,14 +147,15 @@ class ZoneController(object):
     assumed to be the prior zone and the others are considered captured zones.
     The number of zone captures can be viewed in the ``record_data_frame``
     attribute.
+    ::
 
-    T2
-    · · · · · ·
-    · · · · · ·
-    · x x x x ·
-    · x x x · ·
-    · · · · · ·
-    · · · · · ·
+        T2
+        · · · · · ·
+        · · · · · ·
+        · x x x x ·
+        · x x x · ·
+        · · · · · ·
+        · · · · · ·
 
     The controller had to again decide which of the two clusters of continuous
     nodes in T1e should be designated as the same zone in T2. This decision
