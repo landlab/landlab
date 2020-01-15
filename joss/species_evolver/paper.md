@@ -46,12 +46,4 @@ Landscape connectivity of ``ZoneTaxon`` is determined by the spatiotemporal rela
 @Lyons:2019 used the built-in taxon type, ``ZoneTaxon`` to investigate how changes in stream network connectivity impacted the diversity of simulated riverine species in this first application of ``SpeciesEvolver``. The species were populated to stream grid nodes and diversification emerged where stream connectivity changed. The flexibility of ``SpeciesEvolver`` with the growing library of surface processes in Landlab provides ample opportunities to discover links between landscapes and its biota. Links to ``SpeciesEvolver`` documentation and Jupyter Notebook tutorials are provided in the component
 [README](https://github.com/landlab/landlab/tree/master/landlab/components/species_evolution).
 
-# Figures
-
-![Schematics of zone creation and connectivity. Zone creation and connectivity types are explained in the text.](fig_zones.png)
-
-# Acknowledgements
-
-Test text.
-
 # References
