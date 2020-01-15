@@ -15,10 +15,10 @@ authors:
     orcid: 0000-0002-0803-3697
     affiliation: 1
 affiliations:
- - name: Tulane University, Department of Earth and Environmental Sciences
-   index: 1
- - name: University of Louisiana Lafayette, Department of Biology
-   index: 2
+  - name: Tulane University, Department of Earth and Environmental Sciences
+    index: 1
+  - name: University of Louisiana Lafayette, Department of Biology
+    index: 2
 date: 15 January 2020
 bibliography: paper.bib
 ---
@@ -39,6 +39,9 @@ Landscape connectivity of ``ZoneTaxon`` is determined by the spatiotemporal rela
 
 * one-to-one: This relationship occurs where a zone in the prior time step either (a) precisely overlaps one zone in the current time step, (b) partially overlaps one zone in the current step, or (c) intersects one zone in the current step with a different shape and/or size. This relationship triggers only dispersal of the ``ZoneTaxon`` to the zone location updated in the current time step.
 * one-to-many: A zone in the prior time step is overlapped by multiple zones in the current time step. The taxa in the prior step zone disperse across the multiple zones in the current step. Speciation is triggered following a duration set by the ``allopatric_wait_time`` parameter set for instances of ``ZoneTaxon``, as described in the documentation of this class.
+* many-to-one: Multiple zones in the prior time step are overlapped by a zone in the current time step. Taxa extant across the multiple prior step zones exist within the same zone of the current step. By default, taxa in a zone do not affect each other, although predatory and resource-limited dynamics, for example, can be implemented in subclasses of ``ZoneTaxon``.
+* many-to-many: Multiple zones in the prior step are overlapped by multiple zones in the current step. Taxa extant in prior step zones are relocated to current step zones. Speciation occurs following the ``allopatric_wait_time`` parameter set for the taxon.
+* one-to-none: A zone in the prior step overlaps no zones in the current step. Taxa in the zone of the prior step become extinct as of the current time step.
 
 @Lyons:2019 used the built-in taxon type, ``ZoneTaxon`` to investigate how changes in stream network connectivity impacted the diversity of simulated riverine species in this first application of ``SpeciesEvolver``. The species were populated to stream grid nodes and diversification emerged where stream connectivity changed. The flexibility of ``SpeciesEvolver`` with the growing library of surface processes in Landlab provides ample opportunities to discover links between landscapes and its biota. Links to ``SpeciesEvolver`` documentation and Jupyter Notebook tutorials are provided in the component
 [README](https://github.com/landlab/landlab/tree/master/landlab/components/species_evolution).
