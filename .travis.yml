@@ -4,6 +4,7 @@ os:
 - osx
 env:
   matrix:
+  - CONDA_ENV=3.8
   - CONDA_ENV=3.7
   - CONDA_ENV=3.6
   global:
