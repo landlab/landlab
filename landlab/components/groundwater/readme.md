@@ -1,5 +1,16 @@
 ## Welcome to the README for the GroundwaterDupuitPercolator component submodule.
 
+Markdown: [![status](https://joss.theoj.org/papers/6936ca6851c622de48b2c5f6cf45a7bd/status.svg)](https://joss.theoj.org/papers/6936ca6851c622de48b2c5f6cf45a7bd)
+
+The GroundwaterDupuitPercolator is a component in Landlab for simulating shallow
+subsurface flow. A [paper describing it](https://joss.theoj.org/papers/6936ca6851c622de48b2c5f6cf45a7bd)
+is currently under review at the Journal of Open Source Software. Here we
+summarize installation, documentation, tutorials, tests, and getting help with
+this component.
+
+As this component lives within the larger Landlab package ecosystem, most of the
+information below provides links into the [main Landlab documentation](https://landlab.readthedocs.io/).
+
 ### Installation
 To use this component, you will need to install Landlab. Two options for
 installation are available:
@@ -7,7 +18,7 @@ installation are available:
 distributed through PyPI or conda-forge and a
 [source code installation](https://landlab.readthedocs.io/en/master/development/install/index.html#developer-install).
 
-The dependencies of the Landlab package are described [here]().
+The dependencies of the Landlab package are described [here]().  **TODO: update link when this page exists, its currently in a PR**
 
 ### Documentation
 The documentation specific to this component is housed within the Landlab
@@ -27,11 +38,16 @@ that describes the use of the `GroundwaterDupuitPercolator`.
 The link takes you to a binder instance of this notebook. Its filepath within
 the repository is `notebooks/tutorials/groundwater/groundwater_flow.ipynb`
 
+A directory of all Landlab notebooks can be found (as a binder instance) [here](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=welcome.ipynb)
+
 ### Tests of this Component
 Along with the rest of the Landlab package, this component uses
-[`pytest`](https://docs.pytest.org/en/latest/) 
+[`pytest`](https://docs.pytest.org/en/latest/)
 to  discover and run its tests. General information about running the Landlab
 tests can be found [here](https://landlab.readthedocs.io/en/master/development/install/test.html#testing).
+
+If you want to run the tests locally, you will need to use a
+[source code installation](https://landlab.readthedocs.io/en/master/development/install/index.html#developer-install).
 
 ### Getting Help
 If you have any questions, comments, issues, or bugs related to this submodule,
