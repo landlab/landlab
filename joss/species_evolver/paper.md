@@ -50,4 +50,8 @@ Landscape connectivity of ``ZoneTaxon`` is determined by the spatiotemporal rela
 
 ![Schematics of zone creation and connectivity. Zone creation and connectivity types are explained in the text.](fig_zones.png)
 
+# Acknowledgements
+
+Test text.
+
 # References
