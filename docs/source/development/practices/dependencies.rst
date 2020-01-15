@@ -5,7 +5,7 @@ How Landlab Specifies Dependencies
 ==================================
 
 The Landlab package dependencies are found in the top-level directory file
-``requirements.txt`.
+``requirements.txt``.
 
 The ``setup.py`` file looks to this file and reads it when compiling the
 package. In this way, we only state the dependencies in one location.
