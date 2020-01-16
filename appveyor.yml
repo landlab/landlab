@@ -35,13 +35,8 @@ init:
   - "ECHO %APPVEYOR_REPO_BRANCH%"
 
 install:
-  - cmd: call %CONDA_INSTALL_LOCN%\Scripts\activate.bat
-  - cmd: conda update --yes --quiet conda
-  - cmd: set PYTHONUNBUFFERED=1
-  - cmd: conda config --set always_yes yes
   - cmd: pip install twine -r requirements-testing.txt -r requirements-notebooks.txt
-  - cmd: conda info
-  - cmd: conda list
+  - cmd: python -VV
 
 build: false
 
