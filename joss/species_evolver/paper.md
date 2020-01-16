@@ -4,6 +4,9 @@ tags:
   - Python
   - Jupyter Notebook
   - Landlab
+  - Landscape evolution
+  - Phylogeography
+  - Biodiversity
 authors:
   - name: Nathan J. Lyons
     orcid: 0000-0001-6965-3374
@@ -29,13 +32,13 @@ The surface of the Earth and its biota evolve together. Climate and tectonics ul
 
 Biodiversity is influenced by changes in landscape connectivity, nevertheless linking the evolution of a landscape with its biota is complicated by limited landform and genetic preservation, disparate timescales of surface and macroevolutionary processes, and landscape heterogeneity (e.g., species-dense assemblages, lithological variability), among numerous other factors. Discovery of surface dynamics has been aided by numerical landscape evolution models [@Tucker:2010]. These models act as digital laboratories where researchers can apply current theory to simulate complex surface dynamics while quantitatively exploring new ideas. Yet to be developed and widely shared is a modeling tool that integrates macroevolutionary processes with numerical representations of surface processes. Such a tool can help research communities overcome the complications of linking the evolution of life and landscapes.
 
-We built ``SpeciesEvolver`` to simulate taxa that evolve at geologic and macroevolutionary timescales in two-dimensional landscapes. This software is adapted from SEAMLESS (Spatially Explicit Area Model of Landscape Evolution by SimulationS) that models organismal diversification in one-dimensional space [@Albert:2016]. ``SpeciesEvolver`` operates in two dimensions, built for extension, and is a component of the Landlab modeling toolkit.
+We built ``SpeciesEvolver`` to simulate biotic evolution at geologic and macroevolutionary timescales. This software is adapted from SEAMLESS (Spatially Explicit Area Model of Landscape Evolution by SimulationS) that models organismal diversification in one-dimensional space [@Albert:2016]. ``SpeciesEvolver`` operates in two-dimensional landscapes, is built for extension, and is a component of the ``Landlab`` modeling toolkit.
 
-Landlab is an open source Python package that provides tools to build numerical models of surface dynamics [@Hobley:2017]. A landscape is represented by a model grid with configurable spatial dimensions. The surface processes components of Landlab drive change in landscape attributes (e.g. topographic elevation). The use of multiple components in a model effectively couples the processes because the processes work with the same grid and its landscape attributes. Building ``SpeciesEvolver`` into Landlab allows its users to examine taxa evolution alongside surface processes-driven landscape changes.
+``Landlab`` is an open source Python package that provides tools to build numerical models of surface dynamics [@Hobley:2017]. A landscape is represented by a model grid with configurable spatial dimensions. The surface processes components of ``Landlab`` drive change in landscape attributes (e.g. topographic elevation). The use of multiple components in a model effectively couples the processes because the processes work with the same grid and its landscape attributes. Building ``SpeciesEvolver`` into ``Landlab`` allows its users to examine taxa evolution alongside surface processes-driven landscape changes.
 
 # Software Extensibility
 
-``SpeciesEvolver`` is adaptable to various taxa and modeling approaches. The simulated taxa are implemented as classes with methods for macroevolutionary processes. The base class, ``Taxon`` provides abstract methods and properties that can be expanded or overridden. Software users can readily subclass ``Taxon`` for specialty properties (e.g. body size) and behaviors (e.g. dispersal as a function of least cost paths)  designed for their model.
+``SpeciesEvolver`` is adaptable to various modeling approaches and taxa, defined as a group of organisms (e.g., a population, species, or broader taxonomic level). The simulated taxa are implemented as classes with methods for macroevolutionary processes. The base class, ``Taxon`` provides abstract methods and properties that can be expanded or overridden. Software users can readily subclass ``Taxon`` designed for their model, including specialty properties (e.g. body size), behaviors (e.g. dispersal as a function of least cost paths), and taxon composition (e.g. composed of individual organisms).
 
 The built-in implementation of taxon, ``ZoneTaxon`` evaluates macroevolutionary processes using a concept of landscape connectivity analyzed with ``Zone`` objects that manage the location of taxa in the model grid. The software user creates a function that returns the total extent of zones in the grid. Individual zones are automatically identified as the adjacent grid nodes within the total zone extent. In the example in Fig. 1a, zones are created where a grid variable—a variable selected by the user—is greater than 1. Two zones are created in this example because the nodes that meet this condition cluster in two discrete areas.
 
@@ -47,7 +50,7 @@ Landscape connectivity of ``ZoneTaxon`` is determined by the spatiotemporal rela
 * many-to-many: Multiple zones in the prior step are overlapped by multiple zones in the current step. Taxa extant in prior step zones are relocated to current step zones. Speciation occurs following the ``allopatric_wait_time`` parameter set for the taxon.
 * one-to-none: A zone in the prior step overlaps no zones in the current step. Taxa in the zone of the prior step become extinct as of the current time step.
 
-@Lyons:2019 used the built-in taxon type, ``ZoneTaxon`` to investigate how changes in stream network connectivity impacted the diversity of simulated riverine species in this first application of ``SpeciesEvolver``. The species were populated to stream grid nodes and diversification emerged where stream connectivity changed. The flexibility of ``SpeciesEvolver`` with the growing library of surface processes in Landlab provides ample opportunities to discover links between landscapes and its biota. Links to ``SpeciesEvolver`` documentation and Jupyter Notebook tutorials are provided in the component [README](https://github.com/landlab/landlab/tree/master/landlab/components/species_evolution).
+@Lyons:2019 used the built-in taxon type, ``ZoneTaxon`` to investigate how changes in stream network connectivity impacted the diversity of simulated riverine species in this first application of ``SpeciesEvolver``. The species were populated to stream grid nodes and diversification emerged where stream connectivity changed. The flexibility of ``SpeciesEvolver`` with the growing library of surface processes in ``Landlab`` provides ample opportunities to discover links between landscapes and its biota. Links to ``SpeciesEvolver`` documentation and Jupyter Notebook tutorials are provided in the component [README](https://github.com/landlab/landlab/tree/master/landlab/components/species_evolution).
 
 # Figures
 
