@@ -20,7 +20,7 @@ and `conda-forge <https://anaconda.org/conda-forge/landlab>`_.
 The following instructions will just install Landlab and its dependencies.
 There may be some additional dependencies necessary to run the Landlab
 notebooks or develop a model with Landlab (e.g., spyder). Below we also provide
-instructions to install a conda environment which includes everythin you need
+instructions to install a conda environment which includes everything you need
 to run the notebooks.
 
 Conda instructions
@@ -65,7 +65,7 @@ In a terminal type:
 
 .. code-block:: bash
 
-  $ pip install --pre landlab 
+  $ pip install --pre landlab
 
 Updating
 ````````

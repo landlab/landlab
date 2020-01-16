@@ -10,13 +10,14 @@ should have an associated set of unit tests to verify that the new features
 are working properly.
 
 Landlab uses `Travis <https://travis-ci.org>`_ for continuous integration
-testing. The `landlab page on Travis <https://travis-ci.org/landlab/landlab>`_
+testing on OSX and Linux. The `landlab page on Travis <https://travis-ci.org/landlab/landlab>`_
 shows the latest testing results. A new set of tests are executed whenever
 any changes are pushed to the Landlab repository and with every pull request.
-We currently run test suites for Python versions 3.5, and 3.6.
+We currently run test suites for Python versions 3.6 and 3.7 (soon to include 3.8).
 
 Continuous integration for Windows is done on
-`Appveyor <https://ci.appveyor.com>`_ and also tests with Python 3.5, and 3.6.
+`Appveyor <https://ci.appveyor.com>`_ and also tests for the same
+Python versions as OSX and Linux.
 
 Once you send a pull request from GitHub, you will be taken to the Landlab
 pull request page and all unit tests are run. You will see the status
