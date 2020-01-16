@@ -1,8 +1,7 @@
-.. _cite_components
+.. _cite_components:
 
 How to Cite Components
 ======================
-
 
 In addition, many components have an additional citation. The table below lists
 these. We also provide a handy way to get a bibtex file of the components you

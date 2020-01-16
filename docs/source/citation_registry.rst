@@ -1,5 +1,4 @@
-.. _cite_as
-
+.. _cite_as:
 
 Landlab Citation Registry
 -------------------------
