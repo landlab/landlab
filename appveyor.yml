@@ -30,7 +30,7 @@ init:
 
 install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - "%WITH_COMPILER% pip install twine -r requirements-testing.txt -r requirements-notebooks.txt"
+  - "%WITH_COMPILER% pip install twine wheel -r requirements-testing.txt -r requirements-notebooks.txt"
   - "%WITH_COMPILER% python -VV"
 
 build: false
