@@ -96,8 +96,6 @@ conventions that we would like you to follow.
 
 * Create a new folder under `landlab/components` that will hold your
   new component.
-* Be aware that your component will have to be able to work with both
-  Python 2 and Python 3.
 
 ### Landlab 2 is Python >3.6 only.
 
