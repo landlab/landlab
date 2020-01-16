@@ -6,17 +6,29 @@
 Landlab: A modular Earth Surface Dynamics modeling library
 ==========================================================
 
+Landlab is an open-source Python-language package for numerical modeling of
+Earth surface dynamics. it contains
 
-Landlab is a Python-based library that allows scientists and students to
-build numerical landscape models. Designed for disciplines that quantify
-earth surface dynamics such as geomorphology, hydrology, glaciology, and
-stratigraphy, it can also be used in related fields.
+* A gridding engine which represents the model domain. Regular and irregular
+  grids are supported.
+* A library of process components, each of which represents a physical process
+  (e.g., generation of rain, erosion by flowing water). These components have
+  a common interface and can be combined based on a users needs.
+* Utilities which support general numerical methods, file input/output, and
+  visualization.
 
-Landlab provides components to compute flows (such as water, sediment,
-glacial ice, volcanic material, or landslide debris) across a gridded
-terrain. With its robust, reusable components, Landlab allows scientists
-to quickly build landscape model experiments and compute mass balance
-across scales. Watch the webinar `Landlab Toolkit Overview <https://csdms.colorado.edu/wiki/Presenters-0407>`_ at CSDMS to learn more.
+In addition Landlab contains a set of Jupyter notebook tutorials providing
+introduction to core concepts and examples of use.
+
+Landlab was desiged for disciplines that quantify Earth surface dynamics such
+as geomorphology, hydrology, glaciology, and stratigraphy, it can also be used
+in related fields. Scientists who want to use a this type of model often build
+their own unique model from the ground up, re-coding the basic building blocks
+of their landscape model rather than taking advantage of codes that have
+already been written.
+
+Watch the webinar `Landlab Toolkit Overview <https://csdms.colorado.edu/wiki/Presenters-0407>`_
+ at CSDMS to learn more.
 
 The most current source code is always available from our `git
 repository <https://github.com/landlab/landlab>`_.
@@ -66,18 +78,19 @@ by the following grants:
       `1450412 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450412&HistoricalAwards=false>`_).
     * A NSF EAR Postdoctoral Fellowship to Katy Barnhart
       (`1725774 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1725774&HistoricalAwards=false>`_).
-    * TODO: Add CSDMS grants, add any other grant.
 
 Citing Landlab
 ==============
 
 If you use any portion of Landlab, you must cite the following paper:
 
-`Hobley, D. E. J. <https://www.earth-surf-dynam.net/5/21/2017/>`_, Adams, J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu, E. and Tucker, G. E., 2017, Creative computing with Landlab: an open-source toolkit for building, coupling, and exploring two-dimensional numerical models of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46, 10.5194/esurf-5-21-2017.
+`Hobley, D. E. J. <https://www.earth-surf-dynam.net/5/21/2017/>`__, Adams,
+J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu,
+E. and Tucker, G. E., 2017, Creative computing with Landlab: an open-source
+toolkit for building, coupling, and exploring two-dimensional numerical models
+of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46,
+10.5194/esurf-5-21-2017.
 
-In addition, many components have an additional citation. The table below lists
-these. We also provide a handy way to get a bibtex file of the components you
-use. It is described below.
 
 BibTeX format:
 ::
@@ -100,49 +113,6 @@ BibTeX format:
 If you are working with Landlab components and utilities, many of them have
 their own publication. Please cite it to acknowledge the component authors.
 
-The following is a summary table of component and utility citations:
-
-TODO: we need to add to citations from Table 5 in Hobley et al. (2017) to this
-table.
-
-+----------------------------------+-----------------------------------------------------------------------------------------------------+
-| Component                        | Citation                                                                                            |
-+==================================+=====================================================================================================+
-| Cellular Automaton               | `Tucker et al. (2015) <https://www.geosci-model-dev.net/9/823/2016/>`_                              |
-+----------------------------------+-----------------------------------------------------------------------------------------------------+
-| Flexure                          | `Hutton and Syvitski (2008) <https://www.sciencedirect.com/science/article/pii/S0098300408000587>`_ |
-+----------------------------------+-----------------------------------------------------------------------------------------------------+
-| LakeMapperBarnes                 | `Barnes et al. (2014) <https://linkinghub.elsevier.com/retrieve/pii/S0098300413001337>`_            |
-+----------------------------------+-----------------------------------------------------------------------------------------------------+
-| LandslideProbability             | `Strauch et al. (2017) <https://www.earth-surf-dynam.net/6/49/2018/esurf-6-49-2018.html>`_          |
-+----------------------------------+-----------------------------------------------------------------------------------------------------+
-| LateralEroder                    | `Langston and Tucker (2018) <https://www.earth-surf-dynam.net/6/1/2018/>`_                          |
-+----------------------------------+-----------------------------------------------------------------------------------------------------+
-| Lithology                        | `Barnhart et al. (2018) <https://joss.theoj.org/papers/10.21105/joss.00979>`_                       |
-+----------------------------------+-----------------------------------------------------------------------------------------------------+
-| LithoLayers                      | `Barnhart et al. (2018) <https://joss.theoj.org/papers/10.21105/joss.00979>`_                       |
-+----------------------------------+-----------------------------------------------------------------------------------------------------+
-| OverlandFlow                     | `Adams et al. (2017) <https://www.geosci-model-dev-discuss.net/gmd-2016-277/>`_                     |
-+----------------------------------+-----------------------------------------------------------------------------------------------------+
-| SPACE                            | `Shobe et al. (2017) <https://www.geosci-model-dev.net/10/4577/2017/>`_                             |
-+----------------------------------+-----------------------------------------------------------------------------------------------------+
-| SpatialPrecipitationDistribution | `Singer et al. (2018) <https://www.geosci-model-dev.net/11/3713/2018/gmd-11-3713-2018.html>`_       |
-+----------------------------------+-----------------------------------------------------------------------------------------------------+
-
-
-
-A relatively new interface also automates the process of extracting citations
-for landlab.
-
-.. code-block:: python
-
-  import landlab
-
-  # the code of your model built with landlab goes here, then add a call to
-
-  landlab.registry.format_citations() # will produce a Bibtex-formatted
-                                      # citations for all Landlab components
-                                      # that you currently have instantiated.
 
 
 The Landlab Team:

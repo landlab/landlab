@@ -1,0 +1,4 @@
+.. _organization
+
+Package Organization
+--------------------
