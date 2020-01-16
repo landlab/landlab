@@ -10,13 +10,13 @@ environment:
   matrix:
 
     - TARGET_ARCH: x64
-      PYTHON: C:\\Python38-x64
+      PYTHON: "C:\\Python38-x64"
 
     - TARGET_ARCH: x64
-      PYTHON: C:\\Python37-x64
+      PYTHON: "C:\\Python37-x64"
 
     - TARGET_ARCH: x64
-      PYTHON: C:\\Python36-x64
+      PYTHON: "C:\\Python36-x64"
 
 platform:
   - x64
@@ -29,27 +29,27 @@ init:
   - "ECHO %APPVEYOR_REPO_BRANCH%"
 
 install:
-  - set Path=%PYTHON%\Scripts;%Path%
-  - cmd: '%PYTHON%\Scripts\pip install twine -r requirements-testing.txt -r requirements-notebooks.txt'
-  - cmd: '%PYTHON%\Scripts\python -VV'
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "pip install twine -r requirements-testing.txt -r requirements-notebooks.txt"
+  - "python -VV"
 
 build: false
 
 test_script:
-  - '%WITH_COMPILER% %PYTHON%\Scripts\pip install numpy'
-  - '%WITH_COMPILER% %PYTHON%\Scripts\pip install netcdf4==1.5.2'
-  - '%WITH_COMPILER% %PYTHON%\Scripts\pip install -e .'
-  - cmd: '%PYTHON%\Scripts\pytest -vvv'
+  - "%WITH_COMPILER% pip install numpy"
+  - "pip install netcdf4==1.5.2"
+  - "pip install -e ."
+  - "pytest -vvv"
 
 after_test:
-  - cmd: '%PYTHON%\Scripts\python setup.py bdist_wheel'
+  - "python setup.py bdist_wheel"
 
 artifacts:
   # Archive the generated conda package in the ci.appveyor.com build report.
   - path: 'dist\*'
 
 deploy_script:
-  - cmd: '%PYTHON%\Scripts\python .ci/appveyor/pypi_upload.py'
+  - cmd: "python .ci/appveyor/pypi_upload.py"
 
 notifications:
   - provider: Slack
