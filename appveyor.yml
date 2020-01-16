@@ -36,13 +36,13 @@ install:
 build: false
 
 test_script:
-  - "%WITH_COMPILER% pip install numpy"
-  - "%WITH_COMPILER% pip install netcdf4==1.5.2"
-  - "%WITH_COMPILER% pip install -e ."
+  - '%WITH_COMPILER% %PYTHON%\Scripts\pip install numpy'
+  - '%WITH_COMPILER% %PYTHON%\Scripts\pip install netcdf4==1.5.2'
+  - '%WITH_COMPILER% %PYTHON%\Scripts\pip install -e .'
   - cmd: '%PYTHON%\Scripts\pytest -vvv'
 
 after_test:
-  - cmd: "%PYTHON%\Scripts\python setup.py bdist_wheel"
+  - cmd: '%PYTHON%\Scripts\python setup.py bdist_wheel'
 
 artifacts:
   # Archive the generated conda package in the ci.appveyor.com build report.
