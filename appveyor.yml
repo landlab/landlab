@@ -10,19 +10,13 @@ environment:
   matrix:
 
     - TARGET_ARCH: x64
-      CONDA_NPY: 111
-      CONDA_INSTALL_LOCN: C:\\Python38
-      CONDA_PY: 3.8
+      PYTHON: C:\\Python38-x64
 
     - TARGET_ARCH: x64
-      CONDA_NPY: 111
-      CONDA_INSTALL_LOCN: C:\\Miniconda37-x64
-      CONDA_PY: 3.7
+      PYTHON: C:\\Python37-x64
 
     - TARGET_ARCH: x64
-      CONDA_NPY: 111
-      CONDA_INSTALL_LOCN: C:\\Miniconda36-x64
-      CONDA_PY: 3.6
+      PYTHON: C:\\Python36-x64
 
 platform:
   - x64
@@ -31,30 +25,31 @@ os: Previous Visual Studio 2015
 # os: Visual Studio 2013
 
 init:
-  - "ECHO %CONDA_INSTALL_LOCN% %CONDA_PY% %HOME% %PLATFORM%"
+  - "ECHO %PYTHON% %HOME% %PLATFORM%"
   - "ECHO %APPVEYOR_REPO_BRANCH%"
 
 install:
-  - cmd: pip install twine -r requirements-testing.txt -r requirements-notebooks.txt
-  - cmd: python -VV
+  - set Path=%PYTHON%\Scripts;%Path%
+  - cmd: '%PYTHON%\Scripts\pip install twine -r requirements-testing.txt -r requirements-notebooks.txt'
+  - cmd: '%PYTHON%\Scripts\python -VV'
 
 build: false
 
 test_script:
-  - "%WITH_COMPILER% pip install numpy"
-  - "%WITH_COMPILER% pip install netcdf4==1.5.2"
-  - "%WITH_COMPILER% pip install -e ."
-  - pytest -vvv
+  - "%WITH_COMPILER% %PYTHON%\Scripts\pip install numpy"
+  - "%WITH_COMPILER% %PYTHON%\Scripts\pip install netcdf4==1.5.2"
+  - "%WITH_COMPILER% %PYTHON%\Scripts\pip install -e ."
+  - cmd: '%PYTHON%\Scripts\pytest -vvv'
 
 after_test:
-  - cmd: python setup.py bdist_wheel
+  - cmd: "%PYTHON%\Scripts\python setup.py bdist_wheel"
 
 artifacts:
   # Archive the generated conda package in the ci.appveyor.com build report.
   - path: 'dist\*'
 
 deploy_script:
-  - cmd: python .ci/appveyor/pypi_upload.py
+  - cmd: '%PYTHON%\Scripts\python .ci/appveyor/pypi_upload.py'
 
 notifications:
   - provider: Slack
