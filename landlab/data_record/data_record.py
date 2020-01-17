@@ -1102,6 +1102,27 @@ class DataRecord(object):
         ...                               fill_value=0.)
         >>> v_f
         array([  8.,   3.,   4.,   5.,  0.,  0.,  0.,  0.,  0.])
+
+        An array of np.nan is returned when ``filter_array`` is all `False` and
+        ``fill_value`` is not specified.
+
+        >>> f = dr.dataset['ages'] > 4000.
+        >>> v_f = dr.calc_aggregate_value(func=np.sum,
+        ...                               data_variable='volumes',
+        ...                               filter_array=f)
+        >>> v_f
+        array([  nan,   nan,   nan,   nan,  nan,  nan,  nan,  nan,  nan])
+
+        An array of ``fill_value`` is returned when this parameter is
+        specified and ``filter_array`` is all `False`.
+
+        >>> f = dr.dataset['ages'] > 4000.
+        >>> v_f = dr.calc_aggregate_value(func=np.sum,
+        ...                               data_variable='volumes',
+        ...                               filter_array=f,
+        ...                               fill_value=0.)
+        >>> v_f
+        array([  0.,   0.,   0.,   0.,  0.,  0.,  0.,  0.,  0.])
         """
         filter_at = self._dataset["grid_element"] == at
 
@@ -1113,6 +1134,8 @@ class DataRecord(object):
 
         if filter_array is None:
             my_filter = filter_at & filter_valid_element
+        elif np.all(filter_array == False):
+            return np.repeat(fill_value, self._grid[at].size)
         else:
             my_filter = filter_at & filter_array & filter_valid_element
 
