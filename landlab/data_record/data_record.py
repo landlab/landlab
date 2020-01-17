@@ -1134,7 +1134,7 @@ class DataRecord(object):
 
         if filter_array is None:
             my_filter = filter_at & filter_valid_element
-        elif np.all(filter_array == False):
+        elif np.all(filter_array is False):
             return np.repeat(fill_value, self._grid[at].size)
         else:
             my_filter = filter_at & filter_array & filter_valid_element
