@@ -113,21 +113,13 @@ BibTeX format:
 If you are working with Landlab components and utilities, many of them have
 their own publication. Please cite it to acknowledge the component authors.
 
+Citation information for each component can be found as follows:
 
-
-The Landlab Team:
- - Greg Tucker (CU)
- - Nicole Gasparini (Tulane)
- - Erkan Istanbulluoglu (UW)
- - Daniel Hobley (Cardiff)
- - Sai S. Nudurupati (UW)
- - Jordan Adams (Tulane)
- - Eric Hutton (CU)
- - Jenny Knuth (CU)
- - Katy Barnhart (CU)
- - Margaux Mouchene (CU)
- - Christina Bandaragoda (UW)
- - Nathan Lyons (Tulane)
+- Where relevant, software citation and general references, are listed in the
+  Component API documentation under the References section.
+- Software citations are included in component metadata. We have created a
+  tool called the "Citation Registry" which creates a .bib file for software
+  citations used in an application. See example usage :ref:`here <cite_as>`
 
 .. _contact:
 
@@ -150,3 +142,17 @@ To keep in touch with the latest Landlab news:
 
 During workshops and clinics, we often use the
 `Landlab Slack channel <https://landlab.slack.com>`_
+
+The Landlab Team:
+ - Greg Tucker (CU)
+ - Nicole Gasparini (Tulane)
+ - Erkan Istanbulluoglu (UW)
+ - Daniel Hobley (Cardiff)
+ - Sai S. Nudurupati (UW)
+ - Jordan Adams (Tulane)
+ - Eric Hutton (CU)
+ - Jenny Knuth (CU)
+ - Katy Barnhart (CU)
+ - Margaux Mouchene (CU)
+ - Christina Bandaragoda (UW)
+ - Nathan Lyons (Tulane)
