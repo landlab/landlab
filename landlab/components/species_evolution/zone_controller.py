@@ -4,9 +4,9 @@
 import numpy as np
 from scipy.ndimage.measurements import label
 
-from . import Zone, ZoneTaxon
 from .record import Record
-from .zone import _update_zones
+from .zone import Zone, _update_zones
+from .zone_taxon import ZoneTaxon
 
 
 class ZoneController(object):
