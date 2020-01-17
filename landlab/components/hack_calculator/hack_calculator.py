@@ -154,6 +154,17 @@ class HackCalculator(Component):
     238                39.0    10000.0     0.0    71.61
     239                39.0  2160000.0  3000.0  2894.22
     240                39.0    10000.0     0.0    71.61
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "HackCalculator"

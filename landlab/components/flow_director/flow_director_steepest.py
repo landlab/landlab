@@ -244,6 +244,17 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
         7,  3,  4,  5, 11,
          12,  8,  9, 15,
           16, 17, 18])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "FlowDirectorSteepest"

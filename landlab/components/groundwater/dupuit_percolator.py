@@ -154,7 +154,7 @@ class GroundwaterDupuitPercolator(Component):
 
     References
     ----------
-    **Required Citation(s) Specific to this Component**
+    **Required Software Citation(s) Specific to this Component**
 
     A publication is currently under review at the Journal of Open Source Software
 
@@ -166,7 +166,6 @@ class GroundwaterDupuitPercolator(Component):
 
     Childs, E. C. Drainage of Groundwater Resting on a Sloping Bed. Water
     Resources Research 7, 1256–1263 (1971).
-
     """
 
     _name = "GroundwaterDupuitPercolator"
@@ -294,7 +293,7 @@ class GroundwaterDupuitPercolator(Component):
             velocity. This parameter is only used with
             ``run_with_adaptive_time_step_solver`` and must be greater than
             zero.
-            """
+        """
         super(GroundwaterDupuitPercolator, self).__init__(grid)
 
         # Shorthand

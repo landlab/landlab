@@ -37,6 +37,17 @@ class KinwaveOverlandFlowModel(Component):
     >>> rg.at_node['surface_water__depth']
     array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
             0.,  0.,  0.,  0.,  0.,  0.,  0.])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "KinwaveOverlandFlowModel"

@@ -62,6 +62,17 @@ class DrainageDensity(Component):
 
     where :math:`\overline{L}` is the mean L for the model domain.
 
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Tucker, G., Catani, F., Rinaldo, A., Bras, R. (2001). Statistical analysis
+    of drainage density from digital terrain data. Geomorphology 36(3-4),
+    187-202. https://dx.doi.org/10.1016/s0169-555x(00)00056-8
     """
 
     _name = "DrainageDensity"

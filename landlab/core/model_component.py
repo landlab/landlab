@@ -56,6 +56,7 @@ class Component:
     _info = {}
     _name = None
     _cite_as = ""
+
     def __new__(cls, *args, **kwds):
         registry.add(cls)
         return object.__new__(cls)

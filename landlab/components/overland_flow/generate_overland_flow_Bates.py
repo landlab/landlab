@@ -60,6 +60,20 @@ class OverlandFlowBates(Component):
     >>> DEM_name = 'DEM_name.asc'
     >>> (rg, z) = read_esri_ascii(DEM_name) # doctest: +SKIP
     >>> of = OverlandFlowBates(rg) # doctest: +SKIP
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Bates, P., Horritt, M., Fewtrell, T. (2010). A simple inertial formulation
+    of the shallow water equations for efficient two-dimensional flood
+    inundation modelling Journal of Hydrology  387(1-2), 33-45.
+    https://dx.doi.org/10.1016/j.jhydrol.2010.03.027
+
     """
 
     _name = "OverlandFlowBates"
