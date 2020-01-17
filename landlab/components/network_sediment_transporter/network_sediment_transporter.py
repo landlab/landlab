@@ -252,7 +252,7 @@ class NetworkSedimentTransporter(Component):
             )
             raise ValueError(msg)
 
-        self._num_parcels = self._parcels.dataset.element_id.size
+        self._num_parcels = self._parcels.number_of_items
 
         self.parcel_attributes = [
             "time_arrival_in_link",
@@ -326,13 +326,6 @@ class NetworkSedimentTransporter(Component):
             )
             raise ValueError(msg)
 
-        if "drainage_area" not in self._grid.at_link:
-            msg = (
-                "NetworkSedimentTransporter: drainage_area must be assigned"
-                "to the grid links"
-            )
-            raise ValueError(msg)
-
         # create field for channel slope if it doesnt exist yet.
         if "channel_slope" not in self._grid.at_link:
             self._channel_slope = self._grid.zeros(at="node")
@@ -343,13 +336,6 @@ class NetworkSedimentTransporter(Component):
         if "time_arrival_in_link" not in self._parcels.dataset:
             msg = (
                 "NetworkSedimentTransporter: time_arrival_in_link must be"
-                "assigned to the parcels"
-            )
-            raise ValueError(msg)
-
-        if "starting_link" not in self._parcels.dataset:
-            msg = (
-                "NetworkSedimentTransporter: starting_link must be"
                 "assigned to the parcels"
             )
             raise ValueError(msg)
@@ -425,6 +411,9 @@ class NetworkSedimentTransporter(Component):
             self._parcels.dataset.element_id[:, -1] == _OUT_OF_NETWORK
         )
         self._this_timesteps_parcels[self._parcels_off_grid, -1] = False
+        
+        self._num_parcels = self._parcels.number_of_items
+        # ^ needs to run just in case we've added more parcels
 
     def _update_channel_slopes(self):
         """Re-calculate channel slopes during each timestep."""
@@ -570,13 +559,17 @@ class NetworkSedimentTransporter(Component):
             self._parcels.dataset.active_layer == _ACTIVE
         ) * (self._this_timesteps_parcels)
 
-        # print("active_parcel_records",self._active_parcel_records)
-
-        vol_act = self._parcels.calc_aggregate_value(
-            np.sum, "volume", at="link", filter_array=self._active_parcel_records
-        )
-
-        vol_act[np.isnan(vol_act) == 1] = 0
+       #print("active_parcel_records",self._active_parcel_records)
+        
+        if np.any(self._active_parcel_records)== True:         
+            vol_act = self._parcels.calc_aggregate_value(
+                np.sum, "volume", at="link", 
+                filter_array=self._active_parcel_records
+            )
+            vol_act[np.isnan(vol_act) == 1] = 0
+            
+        else:
+            vol_act = np.zeros_like(vol_tot)
 
         self.vol_stor = (vol_tot - vol_act) / (1 - self.bed_porosity)
 
@@ -699,10 +692,15 @@ class NetworkSedimentTransporter(Component):
         )
         vol_tot[np.isnan(vol_tot) == 1] = 0
 
-        vol_act = self._parcels.calc_aggregate_value(
-            np.sum, "volume", at="link", filter_array=self._active_parcel_records
-        )
-        vol_act[np.isnan(vol_act) == 1] = 0
+        if np.any(self._active_parcel_records)== True:         
+            vol_act = self._parcels.calc_aggregate_value(
+                np.sum, "volume", at="link", 
+                filter_array=self._active_parcel_records
+            )
+            vol_act[np.isnan(vol_act) == 1] = 0
+            
+        else:
+            vol_act = np.zeros_like(vol_tot)
 
         # find active sand.
         findactivesand = (
@@ -754,7 +752,7 @@ class NetworkSedimentTransporter(Component):
         frac_sand_array = np.squeeze(frac_sand_array)
 
         # Wilcock and Crowe calculate transport for all parcels (active and inactive)
-        taursg = _calculate_reference_shear_stress(
+        self.taursg = _calculate_reference_shear_stress(
             self.fluid_density, R, self.g, D_mean_activearray, frac_sand_array
         )
 
@@ -775,7 +773,7 @@ class NetworkSedimentTransporter(Component):
         tau = self.fluid_density * self.g * Harray * Sarray
         tau = np.atleast_1d(tau)
 
-        taur = taursg * (Darray / D_mean_activearray) ** b
+        taur =self.taursg * (Darray / D_mean_activearray) ** b
         tautaur = tau / taur
         tautaur_cplx = tautaur.astype(np.complex128)
         # ^ work around needed b/c np fails with non-integer powers of negative numbers
@@ -825,11 +823,20 @@ class NetworkSedimentTransporter(Component):
         # ^ movement in current and any DS links at this dt is at the same velocity as in the current link
         # ... perhaps modify in the future(?) or ensure this type of travel is kept to a minimum
         # ... or display warnings or create a log file when the parcel jumps far in the next DS link
+        if np.size(self._distance_traveled_cumulative)!=np.size(distance_to_travel_this_timestep):
+            dist_array = distance_to_travel_this_timestep
+            dist_array[:self._num_parcels] += distance_to_travel_this_timestep
+            self._distance_traveled_cumulative = dist_array
+        else:    
+            self._distance_traveled_cumulative += distance_to_travel_this_timestep
+            # ^ accumulates total distanced traveled for testing abrasion
 
-        self._distance_traveled_cumulative += distance_to_travel_this_timestep
-        # ^ accumulates total distanced traveled for testing abrasion
-
-        # print("distance traveled = ", distance_to_travel_this_timestep)
+        print("Median travel distance of active layer parcels this timestep = ",
+              np.median(
+                      distance_to_travel_this_timestep[
+                              self._parcels.dataset.active_layer[:,-1]==1
+                              ]
+                      ))
 
         #        if self._time_idx == 1:
         #            print("t", self._time_idx)
@@ -851,9 +858,6 @@ class NetworkSedimentTransporter(Component):
             # if parcel in network at end of last timestep
 
             if self._parcels.dataset.element_id[p, self._time_idx] != _OUT_OF_NETWORK:
-                # calc travel distances for all parcels on the network in this timestep
-
-                # distance remaining before leaving current link
 
                 while (
                     running_travel_distance_in_dt + distance_to_exit_current_link
@@ -887,15 +891,6 @@ class NetworkSedimentTransporter(Component):
                     if downstream_link_id == -1:  # parcel has exited the network
                         # (downstream_link_id == -1) and (distance_left_to_travel <= 0):  # parcel has exited the network
                         current_link[p] = _OUT_OF_NETWORK  # overwrite current link
-
-                        # Keep parcel in data record but update its attributes so it is no longer accessed.
-                        # Moving parcels into a separate exit array seems to be too computationally expensive.
-                        # Probably worthwhile to update the following upon exit:
-                        # parcels.dataset.element_id
-                        # parcels.dataset.D
-                        # parcels.dataset.volume
-                        # and compute sub-dt time of exit
-
                         break  # break out of while loop
 
                     # ARRIVAL TIME in this link ("current_link") =
