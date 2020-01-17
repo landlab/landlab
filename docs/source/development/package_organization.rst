@@ -39,7 +39,7 @@ shown down to two levels.
     ├── environment-dev.yml # Developer conda environment
     ├── environment.yml # User/Notebook conda environment
     ├── readthedocs.yml # Documentation buidling conda environment
-
+    |
     | # Continuous Integration
     |
     ├── appveyor.yml # Specification for Appveyor Continuous Integration
@@ -79,15 +79,16 @@ shown down to two levels.
     ├── scripts
     |
     └── tests # The unit tests, structured to mirror landlab/landab
-        ├── ca
-        ├── components
-        ├── core
-        ├── data_record
-        ├── field
-        ├── graph
-        ├── grid
-        ├── io
-        ├── layers
-        ├── plot
-        ├── utils
-        └── values
+    |   ├── ca
+    |   ├── components
+    |   ├── core
+    |   ├── data_record
+    |   ├── field
+    |   ├── graph
+    |   ├── grid
+    |   ├── io
+    |   ├── layers
+    |   ├── plot
+    |   ├── utils
+    |   └── values
+    ├── END
