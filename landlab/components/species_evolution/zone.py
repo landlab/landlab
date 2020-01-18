@@ -18,7 +18,6 @@ class Connection(IntEnum):
     the earlier time step that spatially overlaps multiple zones in the later
     time step.
     """
-
     NONE_TO_NONE = 0
     NONE_TO_ONE = 1
     ONE_TO_NONE = 2
@@ -102,7 +101,9 @@ def _update_zones(grid, prior_zones, new_zones, record):
             p_mask_copy = p.mask.copy()
 
             # Get the new zones that intersect (`i`) the prior zone.
-            ns_i_p = _intersecting_zones(ps_index_map == i_p, ns_index_map, new_zones)
+            ns_i_p = _intersecting_zones(
+                ps_index_map == i_p, ns_index_map, new_zones
+            )
             ns_i_p_ct = len(ns_i_p)
 
             # Get the other prior zones that intersect the new zones.
@@ -119,14 +120,8 @@ def _update_zones(grid, prior_zones, new_zones, record):
             conn_type = _determine_connection_type(ps_i_ns_ct, ns_i_p_ct)
 
             p_successors = _get_successors(
-                p,
-                conn_type,
-                ps_i_ns,
-                ns_i_p,
-                prior_zones,
-                ps_index_map,
-                replacements,
-                successors,
+                p, conn_type, ps_i_ns, ns_i_p, prior_zones, ps_index_map,
+                replacements, successors
             )
 
             # Update statistics.
@@ -143,7 +138,9 @@ def _update_zones(grid, prior_zones, new_zones, record):
                     area = sum(grid.cell_area_at_node[captured_mask.flatten()])
                     area_captured.append(area)
 
-            elif conn_type in [Connection.ONE_TO_MANY, Connection.MANY_TO_MANY]:
+            elif conn_type in [
+                Connection.ONE_TO_MANY, Connection.MANY_TO_MANY
+            ]:
                 fragment_ct += ns_i_p_ct
 
             # Set connection.
@@ -163,16 +160,16 @@ def _update_zones(grid, prior_zones, new_zones, record):
 
     # Update the record.
 
-    record.increment_value("fragmentations", fragment_ct)
-    record.increment_value("captures", capture_ct)
-    record.increment_value("area_captured_sum", sum(area_captured))
+    record.increment_value('fragmentations', fragment_ct)
+    record.increment_value('captures', capture_ct)
+    record.increment_value('area_captured_sum', sum(area_captured))
 
-    old_value = record.get_value("area_captured_max")
+    old_value = record.get_value('area_captured_max')
     old_value_is_nan = np.isnan(old_value)
     new_value_is_greater = max(area_captured) > old_value
 
     if old_value_is_nan or new_value_is_greater:
-        record.set_value("area_captured_max", max(area_captured))
+        record.set_value('area_captured_max', max(area_captured))
 
     return successors
 
@@ -216,14 +213,8 @@ def _determine_connection_type(prior_zone_count, new_zone_count):
 
 
 def _get_successors(
-    p,
-    conn_type,
-    ps_i_ns,
-    ns_i_p,
-    prior_zones,
-    ps_index_map,
-    replacements,
-    all_successors,
+    p, conn_type, ps_i_ns, ns_i_p, prior_zones, ps_index_map, replacements,
+    all_successors
 ):
     if conn_type == Connection.ONE_TO_NONE:
         successors = []
@@ -239,7 +230,9 @@ def _get_successors(
         # Set the successors to the new zones that overlap p.
         # Although, replace the dominant n with p.
 
-        dn = p._get_largest_intersection(ns_i_p, exclusions=list(replacements.values()))
+        dn = p._get_largest_intersection(
+            ns_i_p, exclusions=list(replacements.values())
+        )
 
         successors = []
 
@@ -292,7 +285,6 @@ class Zone(object):
     The nodes and attributes of the spatial entities that taxa populate. This
     class is not intended to be managed directly.
     """
-
     def __init__(self, mask):
         """Initialize a zone.
 
