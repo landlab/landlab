@@ -11,9 +11,12 @@ attribute called ``cite_as``.
 
 .. code-block:: python
 
-    >>> from landlab.components import OverlandFlow
-    >>> OverlandFlow.cite_as
-    '@article{adams2017landlab,
+    from landlab.components import OverlandFlow
+    OverlandFlow.cite_as
+
+This will give::
+
+    @article{adams2017landlab,
            title={The Landlab v1.0 OverlandFlow component: a Python
                   tool for computing shallow-water flow across watersheds},
                   author={Adams, Jordan M and Gasparini, Nicole M and
@@ -26,7 +29,7 @@ attribute called ``cite_as``.
                   pages={1645},
                   year={2017},
                   publisher={Copernicus GmbH}
-                  }'
+                  }
 
 In addition, you can use the "citation registry" to make a .bib file of all
 citations you've used in script.
@@ -34,21 +37,13 @@ citations you've used in script.
 .. code-block:: python
 
     import landlab
-
-    # Do your work, using the parts of
-    # Landlab you need.
-
-    # When you are done, write citations
-    # to a file.
     w = landlab.registry.format_citations()
-    with open(``citations.bib'', ``w'') as f:
-    f.write(w)
+    with open("citations.bib", "w") as f:
+        f.write(w)
 
-    # This will produce a Bibtex-formatted
-    # citations for all Landlab components
-    # that you currently have instantiated.
-
-This last example would have given::
+This will produce a Bibtex-formatted citations for all Landlab components
+that you currently have instantiated. This last example would have given the
+main Landlab citation::
 
     # Citations
     ## landlab

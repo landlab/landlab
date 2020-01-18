@@ -28,7 +28,7 @@ of their landscape model rather than taking advantage of codes that have
 already been written.
 
 Watch the webinar `Landlab Toolkit Overview <https://csdms.colorado.edu/wiki/Presenters-0407>`_
- at CSDMS to learn more.
+at CSDMS to learn more.
 
 The most current source code is always available from our `git
 repository <https://github.com/landlab/landlab>`_.
@@ -119,7 +119,7 @@ Citation information for each component can be found as follows:
   Component API documentation under the References section.
 - Software citations are included in component metadata. We have created a
   tool called the "Citation Registry" which creates a .bib file for software
-  citations used in an application. See example usage :ref:`here <cite_as>`
+  citations used in an application. See example usage :ref:`here <cite_as>`.
 
 .. _contact:
 
