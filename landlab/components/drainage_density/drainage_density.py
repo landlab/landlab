@@ -8,7 +8,7 @@ from landlab import Component
 
 
 class DrainageDensity(Component):
-    """
+    r"""
     Calculate drainage density over a DEM.
 
     Landlab component that implements the distance to channel algorithm of
@@ -54,7 +54,7 @@ class DrainageDensity(Component):
 
     .. math::
 
-       D_d = \\frac{1}{2\overline{L}}
+       D_d = \frac{1}{2\overline{L}}
 
     where :math:`\overline{L}` is the mean L for the model domain.
 
