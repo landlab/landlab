@@ -259,5 +259,3 @@ The core development team is currently composed of:
  - Margaux Mouchene (CU)
  - Christina Bandaragoda (UW)
  - Nathan Lyons (Tulane)
-
-We welcome all community contributions.
