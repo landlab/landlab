@@ -22,7 +22,7 @@ introduction to core concepts and examples of use.
 
 Landlab was desiged for disciplines that quantify Earth surface dynamics such
 as geomorphology, hydrology, glaciology, and stratigraphy, it can also be used
-in related fields. Scientists who want to use a this type of model often build
+in related fields. Scientists who use this type of model often build
 their own unique model from the ground up, re-coding the basic building blocks
 of their landscape model rather than taking advantage of codes that have
 already been written.
@@ -138,7 +138,7 @@ The recommended way to contact the Landlab development team is with a
 To keep in touch with the latest Landlab news:
 
 -  Get the `Landlab Lookout Newsletter <https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7>`_
--  Landlab is on `Twitter <https://mobile.twitter.com/landlabtoolkit>`_!
+-  Landlab is on `Twitter <https://twitter.com/landlabtoolkit>`_!
 
 During workshops and clinics, we often use the
 `Landlab Slack channel <https://landlab.slack.com>`_
