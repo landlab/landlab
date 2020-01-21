@@ -24,17 +24,18 @@ nodes_at_link = ((0, 1), (1, 2), (2, 3))
 
 nmg = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 
-plt.figure(0)
-graph.plot_graph(nmg, at="node,link")
+#plt.figure(0)
+#graph.plot_graph(nmg, at="node,link")
 
 # %%
 # Add variables to the NetworkModelGrid
-nmg.at_node["topographic__elevation"] = [3.0, 2.0, 1.0, 0.0]  # m
 nmg.at_node["bedrock__elevation"] = [3.0, 2.0, 1.0, 0.0]  # m
-nmg.at_link["drainage_area"] = [10e6, 10e6, 10e6]  # m2
-nmg.at_link["channel_slope"] = [0.001, 0.001, 0.001]
-nmg.at_link["link_length"] = [100.0, 100.0, 100.0]  # m
-nmg.at_link["channel_width"] = 15 * np.ones(np.size(nmg.at_link["drainage_area"]))
+nmg.at_link["reach_length"] = [100.0, 100.0, 100.0]  # m
+nmg.at_link["channel_width"] = 15 * np.ones(nmg.size("link"))
+
+
+nmg.at_node["topographic__elevation"] = np.copy(nmg.at_node["bedrock__elevation"])
+
 
 flow_director = FlowDirectorSteepest(nmg)
 flow_director.run_one_step()
@@ -77,7 +78,6 @@ nst = NetworkSedimentTransporter(
     bed_porosity=0.03,
     g=9.81,
     fluid_density=1000,
-    channel_width="channel_width",
     transport_method="WilcockCrowe",
 )
 
