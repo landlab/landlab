@@ -756,15 +756,16 @@ class NetworkSedimentTransporter(Component):
         )
         W = W.real
 
+        active_parcel_idx = Activearray == _ACTIVE
         # compute parcel virtual velocity, m/s
-        self._pvelocity[Activearray == 1] = (
-            W[Activearray == 1]
-            * (tau[Activearray == 1] ** (3 / 2))
-            * frac_parcel[Activearray == 1]
-            / (self._fluid_density ** (3 / 2))
+        self._pvelocity[active_parcel_idx] = (
+            W[active_parcel_idx]
+            * (tau[active_parcel_idx] ** (3. / 2.))
+            * frac_parcel[active_parcel_idx]
+            / (self._fluid_density ** (3. / 2.))
             / self._g
-            / R[Activearray == 1]
-            / active_layer_thickness_array[Activearray == 1]
+            / R[active_parcel_idx]
+            / active_layer_thickness_array[active_parcel_idx]
         )
 
         self._active_layer_thickness_array = active_layer_thickness_array
