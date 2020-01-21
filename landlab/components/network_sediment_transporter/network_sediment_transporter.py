@@ -318,7 +318,7 @@ class NetworkSedimentTransporter(Component):
         self._fluid_density = fluid_density
         self._time_idx = 0
         self._time = 0.0
-        self._distance_traveled_cumulative = np.zeros([self._num_parcels,])
+        self._distance_traveled_cumulative = np.zeros([self._num_parcels])
 
         # check the transport method is valid.
         if transport_method in _SUPPORTED_TRANSPORT_METHODS:
@@ -535,7 +535,7 @@ class NetworkSedimentTransporter(Component):
 
         # print("active_parcel_records",self._active_parcel_records)
 
-        if np.any(self._active_parcel_records) == True:
+        if np.any(self._active_parcel_records):
             vol_act = self._parcels.calc_aggregate_value(
                 np.sum, "volume", at="link", filter_array=self._active_parcel_records
             )
@@ -665,7 +665,7 @@ class NetworkSedimentTransporter(Component):
         )
         vol_tot[np.isnan(vol_tot) == 1] = 0
 
-        if np.any(self._active_parcel_records) == True:
+        if np.any(self._active_parcel_records):
             vol_act = self._parcels.calc_aggregate_value(
                 np.sum, "volume", at="link", filter_array=self._active_parcel_records
             )
@@ -684,13 +684,13 @@ class NetworkSedimentTransporter(Component):
             vol_act_sand = self._parcels.calc_aggregate_value(
                 np.sum, "volume", at="link", filter_array=findactivesand
             )
-            vol_act_sand[np.isnan(vol_act_sand) == True] = 0
+            vol_act_sand[np.isnan(vol_act_sand)] = 0
         else:
             vol_act_sand = np.zeros(self._grid.number_of_links)
 
         frac_sand = np.zeros_like(vol_act)
         frac_sand[vol_act != 0] = vol_act_sand[vol_act != 0] / vol_act[vol_act != 0]
-        frac_sand[np.isnan(frac_sand) == True] = 0
+        frac_sand[np.isnan(frac_sand)] = 0
 
         # Calc attributes for each link, map to parcel arrays
         for i in range(self._grid.number_of_links):

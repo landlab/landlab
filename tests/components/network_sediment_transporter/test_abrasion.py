@@ -1,8 +1,7 @@
 import numpy as np
-import pytest
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_almost_equal
 
-from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
+from landlab.components import NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 
@@ -57,17 +56,11 @@ def test_abrasion(
 
     for t in range(0, (timesteps * dt), dt):
         nst.run_one_step(dt)
-        print("Successfully completed a timestep")
-        # Need to define original_node_elev after a timestep has passed.
-        if t / (60 * 60 * 24) == 1:
-            original_parcel_vol = example_parcels.dataset.volume[:, 0][0]
 
     # Parcel volume should decrease according to abrasion rate
     volume_after_transport = np.squeeze(np.transpose(initial_volume)) * np.exp(
         nst._distance_traveled_cumulative * -abrasion_rate
     )
-
-    # print("volume_after_transport", volume_after_transport)
 
     assert_array_almost_equal(
         volume_after_transport, two_parcels.dataset.volume[0:2, -1]

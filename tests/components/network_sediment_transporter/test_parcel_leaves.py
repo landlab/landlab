@@ -1,8 +1,7 @@
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
+from landlab.components import NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 
@@ -11,7 +10,7 @@ _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
 def test_parcel_leaves(example_nmg, example_flow_depth, example_flow_director):
 
-    example_nmg.at_link["reach_length"] = [10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0,],
+    example_nmg.at_link["reach_length"] = ([10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0],)
 
     time = [0.0]  # probably not the sensible way to do this...
 

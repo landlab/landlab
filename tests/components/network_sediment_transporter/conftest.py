@@ -1,12 +1,9 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
-# from landlab.components import NetworkSedimentTransporter
-from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
+from landlab.components import FlowDirectorSteepest
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
-from landlab.plot import graph
 
 _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
@@ -28,7 +25,7 @@ def example_nmg():
     )
     _ = grid.add_field(
         "reach_length",
-        [10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 10000.0,],
+        [10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 10000.0],
         at="link",
     )  # m
 
@@ -54,9 +51,6 @@ def example_parcels(example_nmg):
     D = 0.05 * np.ones(
         np.shape(element_id)
     )  # (m) the diameter of grains in each parcel
-    lithology = ["quartzite"] * np.size(
-        element_id
-    )  # a lithology descriptor for each parcel
     abrasion_rate = 0.0001 * np.ones(
         np.size(element_id)
     )  # 0 = no abrasion; abrasion rates are positive mass loss coefficients (mass loss / METER)
@@ -113,7 +107,6 @@ def example_flow_depth(example_nmg):
     timesteps = 30
 
     Qgage = 8000.0  # (m3/s)
-    dt = 60 * 60 * 24  # (seconds) daily timestep
 
     Hgage = 1.703 * Qgage ** 0.3447
     # (m)

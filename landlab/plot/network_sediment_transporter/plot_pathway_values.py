@@ -12,9 +12,9 @@ link_number = 4
 
 # def plot_pathway_values(nst_instance)
 
-downstream_link_id = fd.link_to_flow_receiving_node[
-    fd.downstream_node_at_link()[link_number]
-]
+# downstream_link_id = fd.link_to_flow_receiving_node[
+#    fd.downstream_node_at_link()[link_number]
+# ]
 
 # determine the pathway (set of links) from that link to the outlet
 

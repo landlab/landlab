@@ -49,9 +49,7 @@ def locate_parcel_xy(grid, parcels, parcel_time, parcel_number, *args, **kwargs)
         # add condition if 0?
 
         # determine which two points on squiggly line bound parcel location in that link
-        upper_loc_idx = np.array(
-            np.where(np.greater(link_rel_dist - parcel_loc, 0) == True)
-        )
+        upper_loc_idx = np.array(np.where(np.greater(link_rel_dist - parcel_loc, 0)))
 
         to_interp_link_loc = link_rel_dist[
             upper_loc_idx[0, 0] - 1 : upper_loc_idx[0, 0] + 1
