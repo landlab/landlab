@@ -7,7 +7,7 @@ Introduction to Python
 Why Python?
 -----------
 
-Landlab is coded in Python and exploits and includes as dependencies a number
+Landlab is coded in Python and includes as dependencies a number
 of widely used scientific Python packages—in particular, NumPy and SciPy. The
 decision to code in Python was explicitly made to lower the bar to entry for
 Landlab; to increase the flexibility and reusability of the code base; and to
@@ -76,8 +76,8 @@ the block. e.g.,
 Lines don't need to end with the semicolon to suppress output; Python won't
 print output unless you explicitly call ``print``.
 
-Finally, but importantly, Python doesn't use the hat ``^`` as its r
-aise-to-the-power symbol. Instead, it uses a double star ``**``. Simple, but
+Finally, but importantly, Python doesn't use the hat ``^`` as its
+raise-to-the-power symbol. Instead, it uses a double star ``**``. Simple, but
 typically very frustrating for a day or two during transition! There's also the
 NumPy method, ``np.square``, which if you're using arrays typically outperforms
 the ``**`` operator.

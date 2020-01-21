@@ -1,6 +1,4 @@
 name: landlab_dev
-channels:
-  - conda-forge
 dependencies:
 - pip
 - pip:

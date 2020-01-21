@@ -88,6 +88,14 @@ Vegetation
   vegetation_dynamics
   plant_competition_ca
 
+Biota
+-----
+
+.. toctree::
+  :maxdepth: 2
+
+  species_evolution
+
 Precipitation
 -------------
 
@@ -207,6 +215,7 @@ Alphabetical Listing of Modules
    soil_moisture
    space
    spatial_precip
+   species_evolution
    steepness_index
    stream_power
    taylor_nonlinear_hillslope_flux

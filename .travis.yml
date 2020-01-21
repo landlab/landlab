@@ -4,6 +4,7 @@ os:
 - osx
 env:
   matrix:
+  - CONDA_ENV=3.8
   - CONDA_ENV=3.7
   - CONDA_ENV=3.6
   global:
@@ -31,17 +32,17 @@ jobs:
     stage: deploy
     if: tag =~ v.*$
     os: osx
-    env: CONDA_ENV=3.7
+    env: CONDA_ENV=3.8
     script:
     - pip install twine wheel
     - python setup.py bdist_wheel
     - twine upload -u landlab -p$PYPI_PASS dist/*landlab*
   - <<: *deploy
     os: osx
-    env: CONDA_ENV=3.6
+    env: CONDA_ENV=3.7
   - <<: *deploy
     os: osx
-    env: CONDA_ENV=2.7
+    env: CONDA_ENV=3.6
 
   - <<: *deploy
     sudo: required
