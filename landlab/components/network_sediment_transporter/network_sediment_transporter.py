@@ -767,7 +767,6 @@ class NetworkSedimentTransporter(Component):
             / active_layer_thickness_array[Activearray == 1]
         )
 
-        self.frac_parcel = frac_parcel
         self._active_layer_thickness_array = active_layer_thickness_array
 
         self._pvelocity[np.isnan(self._pvelocity)] = 0
