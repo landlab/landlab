@@ -421,7 +421,8 @@ class NetworkSedimentTransporter(Component):
         # size of the active layer before determining which grains are in the
         # active layer.
 
-        if self._time_idx == 0:
+        if self._time_idx == 0: #KRB-Q: Why only the first timestep. Parcels will move around... so shouldn't this happen every timestep.
+
             # In the first full timestep, we need to calc grain size & rho_sed.
             # Assume all parcels are in the active layer for the purposes of
             # grain size and mean sediment density calculations
