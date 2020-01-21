@@ -110,7 +110,8 @@ your install with
     $ pytest
 
 from within the ``landlab_dev`` conda environment. Additional instructions
-can be found `here <>`_.
+can be found
+`here <https://landlab.readthedocs.io/en/master/development/install/test.html>`_.
 
 What are Landlab's dependencies?
 --------------------------------
@@ -119,7 +120,8 @@ The core package dependencies are specified by ``requirements.txt`` and used
 by ``setup.py``. There are some additional dependencies that exist for
 running the notebooks or modifying the source code and testing.
 
-Details of how we structure our dependencies can be found `here <>`_.
+Details of how we structure our dependencies can be found
+`here <https://landlab.readthedocs.io/en/master/development/practices/dependencies.html>`_.
 
 How do I learn more about Landlab?
 ----------------------------------
@@ -193,7 +195,8 @@ BibTeX format:
 
 In addition, depending on what parts of Landlab you use, you may need to cite
 component-specific. Refer to the References section of each component and
-`this page <>`_ which compiles component references.
+`this page <https://landlab.readthedocs.io/en/master/development/citation_registry.html#cite-as>`_
+which discusses the Landlab Citation Registry tool.
 
 I think I found a bug. What should I do?
 ----------------------------------------
@@ -219,7 +222,9 @@ page in the documentation that describes contribution guidelines.
 How is the Landlab package structured?
 --------------------------------------
 
-The `following page <>` in the documentation describes the package structure.
+The
+`following page <https://landlab.readthedocs.io/en/master/development/package_organization.html>`_
+in the documentation describes the package structure.
 
 How was Landlab funded?
 -----------------------
