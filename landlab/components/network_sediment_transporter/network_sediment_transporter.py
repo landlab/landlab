@@ -410,10 +410,8 @@ class NetworkSedimentTransporter(Component):
         """
 
         vol_tot = self._parcels.calc_aggregate_value(
-            np.sum, "volume", at="link", filter_array=self._this_timesteps_parcels
+            np.sum, "volume", at="link", filter_array=self._this_timesteps_parcels, fill_value=0.
         )
-        vol_tot[np.isnan(vol_tot) == 1] = 0
-
         # Wong et al. (2007) approximation for active layer thickness.
         # NOTE: calculated using grain size and grain density calculated for
         # the active layer grains in each link at the **previous** timestep.
@@ -421,6 +419,7 @@ class NetworkSedimentTransporter(Component):
         # size of the active layer before determining which grains are in the
         # active layer.
 
+        current_parcels = self._parcels.dataset.isel(time=self._time_idx)
         if self._time_idx == 0: #KRB-Q: Why only the first timestep. Parcels will move around... so shouldn't this happen every timestep.
 
             # In the first full timestep, we need to calc grain size & rho_sed.
@@ -430,8 +429,7 @@ class NetworkSedimentTransporter(Component):
             # FUTURE: make it possible to circumvent this if mean grain size
             # has already been calculated (e.g. during 'zeroing' runs)
 
-            # Calculate mean values for density and grain size (weighted by volume). 
-            current_parcels = self._parcels.dataset.isel(time=self._time_idx)
+            # Calculate mean values for density and grain size (weighted by volume).
             sel_parcels = current_parcels.where(current_parcels.element_id != _OUT_OF_NETWORK)
 
             d_weighted = sel_parcels.D*sel_parcels.volume
@@ -470,9 +468,7 @@ class NetworkSedimentTransporter(Component):
             0.515 * self._d_mean_active * (3.09 * (taustar - 0.0549) ** 0.56)
         )  # in units of m
 
-        self._active_layer_thickness[
-            np.isnan(self._active_layer_thickness) == 1
-        ] = np.average(
+        self._active_layer_thickness[np.isnan(self._active_layer_thickness)] = np.average(
             self._active_layer_thickness[np.isnan(self._active_layer_thickness) == 0]
         )  # assign links with no parcels an average value
 
@@ -488,14 +484,14 @@ class NetworkSedimentTransporter(Component):
             * self._active_layer_thickness
         )  # in units of m^3
 
+        active_inactive = np.zeros(self._num_parcels)
+
         for i in range(self._grid.number_of_links):
 
             if vol_tot[i] > 0:  # only do this check capacity if parcels are in link
 
                 # First In Last Out.
-                parcel_id_thislink = np.where(
-                    self._parcels.dataset.element_id[:, self._time_idx] == i
-                )[0]
+                parcel_id_thislink = np.where(current_parcels.element_id == i)[0]
 
                 time_arrival_sort = np.flip(
                     np.argsort(
@@ -517,19 +513,9 @@ class NetworkSedimentTransporter(Component):
                 idxinactive = np.where(cumvol > capacity[i])
                 make_inactive = parcel_id_time_sorted[idxinactive]
 
-                self._parcels.set_data(
-                    time=[self._time],
-                    item_id=parcel_id_thislink,
-                    data_variable="active_layer",
-                    new_value=_ACTIVE,
-                )
+                active_inactive[parcel_id_thislink] = _ACTIVE
 
-                self._parcels.set_data(
-                    time=[self._time],
-                    item_id=make_inactive,
-                    data_variable="active_layer",
-                    new_value=_INACTIVE,
-                )
+        self._parcels.dataset.active_layer[:, -1] = active_inactive
 
         # Update Node Elevations
 
@@ -538,14 +524,11 @@ class NetworkSedimentTransporter(Component):
             self._parcels.dataset.active_layer == _ACTIVE
         ) * (self._this_timesteps_parcels)
 
-        # print("active_parcel_records",self._active_parcel_records)
 
         if np.any(self._active_parcel_records):
             vol_act = self._parcels.calc_aggregate_value(
-                np.sum, "volume", at="link", filter_array=self._active_parcel_records
+                np.sum, "volume", at="link", filter_array=self._active_parcel_records, fill_value=0.
             )
-            vol_act[np.isnan(vol_act) == 1] = 0
-
         else:
             vol_act = np.zeros_like(vol_tot)
 
@@ -781,9 +764,8 @@ class NetworkSedimentTransporter(Component):
         location_in_link = self._parcels.dataset.location_in_link[:, self._time_idx]
 
         # determine how far each parcel needs to travel this timestep.
-        distance_to_travel_this_timestep = (
-            self._pvelocity * dt
-        )  # total distance traveled in dt at parcel virtual velocity
+        distance_to_travel_this_timestep = self._pvelocity * dt
+        # total distance traveled in dt at parcel virtual velocity
         # ^ movement in current and any DS links at this dt is at the same velocity as in the current link
         # ... perhaps modify in the future(?) or ensure this type of travel is kept to a minimum
         # ... or display warnings or create a log file when the parcel jumps far in the next DS link
