@@ -443,7 +443,6 @@ class NetworkSedimentTransporter(Component):
                 vol_i = Volarray[Linkarray == i]
                 rhos_i = Rhoarray[Linkarray == i]
 
-
                 vol_tot_i = np.sum(vol_i)
 
                 d_mean_active[i] = np.sum(d_i * vol_i) / (vol_tot_i)
@@ -692,7 +691,9 @@ class NetworkSedimentTransporter(Component):
             vol_act_sand = np.zeros(self._grid.number_of_links)
 
         frac_sand = np.zeros_like(vol_act)
-        frac_sand[vol_act != 0.0] = vol_act_sand[vol_act != 0.0] / vol_act[vol_act != 0.0]
+        frac_sand[vol_act != 0.0] = (
+            vol_act_sand[vol_act != 0.0] / vol_act[vol_act != 0.0]
+        )
         frac_sand[np.isnan(frac_sand)] = 0.0
 
         # Calc attributes for each link, map to parcel arrays
@@ -757,9 +758,9 @@ class NetworkSedimentTransporter(Component):
         # compute parcel virtual velocity, m/s
         self._pvelocity[active_parcel_idx] = (
             W.real[active_parcel_idx]
-            * (tau[active_parcel_idx] ** (3. / 2.))
+            * (tau[active_parcel_idx] ** (3.0 / 2.0))
             * frac_parcel[active_parcel_idx]
-            / (self._fluid_density ** (3. / 2.))
+            / (self._fluid_density ** (3.0 / 2.0))
             / self._g
             / R[active_parcel_idx]
             / active_layer_thickness_array[active_parcel_idx]
@@ -777,14 +778,10 @@ class NetworkSedimentTransporter(Component):
         layer.
         """
         # determine where parcels are starting
-        current_link = self._parcels.dataset.element_id[
-            :, self._time_idx
-        ]
+        current_link = self._parcels.dataset.element_id[:, self._time_idx]
 
         # determine location within link where parcels are starting.
-        location_in_link = self._parcels.dataset.location_in_link[
-            :, self._time_idx
-        ]
+        location_in_link = self._parcels.dataset.location_in_link[:, self._time_idx]
 
         # determine how far each parcel needs to travel this timestep.
         distance_to_travel_this_timestep = (
@@ -807,12 +804,17 @@ class NetworkSedimentTransporter(Component):
             # ^ accumulates total distanced traveled for testing abrasion
 
         # get the downstream link at link:
-        downstream_link_at_link = self._fd.link_to_flow_receiving_node[self._fd.downstream_node_at_link()]
+        downstream_link_at_link = self._fd.link_to_flow_receiving_node[
+            self._fd.downstream_node_at_link()
+        ]
 
         # active parcels on the network:
-        in_network = self._parcels.dataset.element_id.values[:, self._time_idx] != _OUT_OF_NETWORK
-        active = distance_to_travel_this_timestep>0.0
-        active_parcel_ids = np.nonzero(in_network*active)[0] # this line broken.
+        in_network = (
+            self._parcels.dataset.element_id.values[:, self._time_idx]
+            != _OUT_OF_NETWORK
+        )
+        active = distance_to_travel_this_timestep > 0.0
+        active_parcel_ids = np.nonzero(in_network * active)[0]  # this line broken.
 
         # for each parcel.
         for p in active_parcel_ids:
@@ -910,7 +912,9 @@ class NetworkSedimentTransporter(Component):
             active_parcel_ids, self._time_idx
         ] = location_in_link[active_parcel_ids]
 
-        self._parcels.dataset.element_id[active_parcel_ids, self._time_idx] = current_link[active_parcel_ids]
+        self._parcels.dataset.element_id[
+            active_parcel_ids, self._time_idx
+        ] = current_link[active_parcel_ids]
         #                self._parcels.dataset.active_layer[p, self._time_idx] = 1
         # ^ reset to 1 (active) to be recomputed/determined at next timestep
         self._parcels.dataset.D[active_parcel_ids, self._time_idx] = D
