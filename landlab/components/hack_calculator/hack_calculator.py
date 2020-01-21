@@ -166,7 +166,7 @@ class HackCalculator(Component):
     Hack, J. T. Studies of longitudinal stream profiles in Virginia and
     Maryland (Vol. 294). U.S. Geological Survey Professional Paper 294-B (1957).
     https://doi.org/10.3133/pp294B
-    
+
     """
 
     _name = "HackCalculator"
