@@ -42,7 +42,7 @@ introduction to core concepts and examples of use.
 
 Landlab was desiged for disciplines that quantify Earth surface dynamics such
 as geomorphology, hydrology, glaciology, and stratigraphy, it can also be used
-in related fields. Scientists who want to use a this type of model often build
+in related fields. Scientists who use this type of model often build
 their own unique model from the ground up, re-coding the basic building blocks
 of their landscape model rather than taking advantage of codes that have
 already been written.
@@ -55,7 +55,7 @@ How do I install Landlab?
 
 First you'll need a Python distribution and either the conda or pip package
 manager. If you don't know what you want, we recommend the Anaconda Python
-distribtuion.
+distribution.
 
 Two main installation options exist for Landlab. Most people will likely want
 to
@@ -146,8 +146,14 @@ the notebooks and is the recommended starting place. To launch an instance of
 Binder and explore the notebooks click
 `here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb>_`.
 
-In addition there are a set of curated teaching notebooks located in
+In addition there are a set of notebooks curated to teach physical processes
+located in the directory.
+
 ``landlab/notebooks/teaching``.
+
+To launch an Binder instance that goes straight to these teaching notebooks
+click `here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/teaching/welcome_teaching.ipynb>_`.
+
 
 What License does Landlab use?
 ------------------------------
@@ -213,7 +219,7 @@ page in the documentation that describes contribution guidelines.
 How is the Landlab package structured?
 --------------------------------------
 
-The `following page <>` in the documentation describes the package structure. 
+The `following page <>` in the documentation describes the package structure.
 
 How was Landlab funded?
 -----------------------

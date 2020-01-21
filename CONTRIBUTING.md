@@ -97,9 +97,10 @@ conventions that we would like you to follow.
 * Create a new folder under `landlab/components` that will hold your
   new component.
 
-### Landlab 2 is Python >3.6 only.
+### Landlab 2 is Python >=3.6 only.
 
-* All tests will be run with Python 3.6, and 3.7.
+* Landlab 2 is the standard starting in January 2020.
+* All tests will be run with Python 3.6, 3.7, 3.8.
 * If you need to introduce a new dependency, that dependency must
   be compatible with Python  3.6+.
 
