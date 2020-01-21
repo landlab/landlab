@@ -781,20 +781,26 @@ class NetworkSedimentTransporter(Component):
         """Method to update parcel location for each parcel in the active
         layer.
         """
-
-        # we need to make sure we are pointing to the array rather than making copies
+        # determine where parcels are starting
         current_link = self._parcels.dataset.element_id[
             :, self._time_idx
-        ]  # same as Linkarray, this will be updated below
+        ]
+
+        # determine location within link where parcels are starting.
         location_in_link = self._parcels.dataset.location_in_link[
             :, self._time_idx
-        ]  # updated below
+        ]
+
+        # determine how far each parcel needs to travel this timestep.
         distance_to_travel_this_timestep = (
             self._pvelocity * dt
         )  # total distance traveled in dt at parcel virtual velocity
         # ^ movement in current and any DS links at this dt is at the same velocity as in the current link
         # ... perhaps modify in the future(?) or ensure this type of travel is kept to a minimum
         # ... or display warnings or create a log file when the parcel jumps far in the next DS link
+
+        # Accumulate the total distance traveled by a parcel for abrasion rate
+        # calculations.
         if np.size(self._distance_traveled_cumulative) != np.size(
             distance_to_travel_this_timestep
         ):
@@ -805,18 +811,18 @@ class NetworkSedimentTransporter(Component):
             self._distance_traveled_cumulative += distance_to_travel_this_timestep
             # ^ accumulates total distanced traveled for testing abrasion
 
-        # print("Median travel distance of active layer parcels this timestep = ",
-        #       np.median(
-        #               distance_to_travel_this_timestep[
-        #                       self._parcels.dataset.active_layer[:,-1]==1
-        #                       ]
-        #               ))
+        # get the downstream link at link:
+        downstream_link_at_link = self._fd.link_to_flow_receiving_node[self._fd.downstream_node_at_link()]
 
-        #        if self._time_idx == 1:
-        #            print("t", self._time_idx)
+        # active parcels on the network:
+        in_network = self._parcels.dataset.element_id.values[:, self._time_idx] != _OUT_OF_NETWORK
+        active = distance_to_travel_this_timestep>0.0
+        active_parcel_ids = np.nonzero(in_network*active)[0] # this line broken.
 
-        for p in range(self._parcels.number_of_items):
+        # for each parcel.
+        for p in active_parcel_ids:
 
+            # Step 1: Move parcel far enough downstream.
             distance_to_exit_current_link = self._grid.at_link["reach_length"][
                 int(current_link[p])
             ] * (1 - location_in_link[p])
@@ -827,96 +833,93 @@ class NetworkSedimentTransporter(Component):
             ] * (location_in_link[p])
 
             running_travel_distance_in_dt = 0  # initialize to 0
-
             distance_left_to_travel = distance_to_travel_this_timestep[p]
-            # if parcel in network at end of last timestep
+            while (
+                running_travel_distance_in_dt + distance_to_exit_current_link
+            ) <= distance_to_travel_this_timestep[p]:
+                # distance_left_to_travel > 0:
+                # ^ loop through until you find the link the parcel will reside in after moving
+                # ... the total travel distance
 
-            if self._parcels.dataset.element_id[p, self._time_idx] != _OUT_OF_NETWORK:
-
-                while (
+                # update running travel distance now that you know the parcel will move through the
+                # ... current link
+                running_travel_distance_in_dt = (
                     running_travel_distance_in_dt + distance_to_exit_current_link
-                ) <= distance_to_travel_this_timestep[p]:
-                    # distance_left_to_travel > 0:
-                    # ^ loop through until you find the link the parcel will reside in after moving
-                    # ... the total travel distance
-
-                    # update running travel distance now that you know the parcel will move through the
-                    # ... current link
-                    running_travel_distance_in_dt = (
-                        running_travel_distance_in_dt + distance_to_exit_current_link
-                    )
-
-                    # now in DS link so this is reset
-                    distance_within_current_link = 0
-
-                    # determine downstream link
-                    downstream_link_id = self._fd.link_to_flow_receiving_node[
-                        self._fd.downstream_node_at_link()[int(current_link[p])]
-                    ]
-
-                    # update current link to the next link DS
-                    current_link[p] = downstream_link_id
-
-                    # update arrival time in link
-                    self._parcels.dataset.time_arrival_in_link[
-                        p, self._time_idx
-                    ] = self._time_idx
-
-                    if downstream_link_id == -1:  # parcel has exited the network
-                        # (downstream_link_id == -1) and (distance_left_to_travel <= 0):  # parcel has exited the network
-                        current_link[p] = _OUT_OF_NETWORK  # overwrite current link
-                        break  # break out of while loop
-
-                    # ARRIVAL TIME in this link ("current_link") =
-                    # (running_travel_distance_in_dt[p] / distance_to_travel_this_timestep[p]) * dt + "t" running time
-                    # ^ DANGER DANGER ... if implemented make sure "t" running time + a fraction of dt
-                    # ... correctly steps through time.
-
-                    distance_to_exit_current_link = self._grid.at_link["reach_length"][
-                        int(current_link[p])
-                    ]
-
-                    distance_left_to_travel -= distance_to_exit_current_link
-
-                # At this point, we have progressed to the link where the parcel will reside after dt
-                distance_to_resting_in_link = (
-                    distance_within_current_link  # zero if parcel in DS link
-                    + distance_to_travel_this_timestep[p]
-                    - running_travel_distance_in_dt  # zero if parcel in same link
                 )
 
-                # update location in current link
-                if current_link[p] == _OUT_OF_NETWORK:
-                    location_in_link[p] = np.nan
+                # now in DS link so this is reset
+                distance_within_current_link = 0
 
-                else:
-                    location_in_link[p] = (
-                        distance_to_resting_in_link
-                        / self._grid.at_link["reach_length"][int(current_link[p])]
-                    )
+                # determine downstream link
+                downstream_link_id = downstream_link_at_link[int(current_link[p])]
 
-                # reduce D and volume due to abrasion
-                vol = _calculate_parcel_volume_post_abrasion(
-                    self._parcels.dataset.volume[p, self._time_idx],
-                    distance_to_travel_this_timestep[p],
-                    self._parcels.dataset.abrasion_rate[p],
+                # update current link to the next link DS
+                current_link[p] = downstream_link_id
+
+                if downstream_link_id == -1:  # parcel has exited the network
+                    # (downstream_link_id == -1) and (distance_left_to_travel <= 0):  # parcel has exited the network
+                    current_link[p] = _OUT_OF_NETWORK  # overwrite current link
+                    break  # break out of while loop
+
+                # ARRIVAL TIME in this link ("current_link") =
+                # (running_travel_distance_in_dt[p] / distance_to_travel_this_timestep[p]) * dt + "t" running time
+                # ^ DANGER DANGER ... if implemented make sure "t" running time + a fraction of dt
+                # ... correctly steps through time.
+
+                distance_to_exit_current_link = self._grid.at_link["reach_length"][
+                    int(current_link[p])
+                ]
+
+                distance_left_to_travel -= distance_to_exit_current_link
+
+            distance_to_resting_in_link = (
+                distance_within_current_link  # zero if parcel in DS link
+                + distance_to_travel_this_timestep[p]
+                - running_travel_distance_in_dt  # zero if parcel in same link
+            )
+
+            # update location in current link
+            if current_link[p] == _OUT_OF_NETWORK:
+                location_in_link[p] = np.nan
+
+            else:
+                location_in_link[p] = (
+                    distance_to_resting_in_link
+                    / self._grid.at_link["reach_length"][int(current_link[p])]
                 )
 
-                D = _calculate_parcel_grain_diameter_post_abrasion(
-                    self._parcels.dataset.D[p, self._time_idx],
-                    self._parcels.dataset.volume[p, self._time_idx],
-                    vol,
-                )
+        # Step 2: Parcel is at rest... Now update its information.
 
-                # update parcel attributes
-                self._parcels.dataset.location_in_link[
-                    p, self._time_idx
-                ] = location_in_link[p]
-                self._parcels.dataset.element_id[p, self._time_idx] = current_link[p]
-                #                self._parcels.dataset.active_layer[p, self._time_idx] = 1
-                # ^ reset to 1 (active) to be recomputed/determined at next timestep
-                self._parcels.dataset.D[p, self._time_idx] = D
-                self._parcels.dataset.volume[p, self._time_idx] = vol
+        # reduce D and volume due to abrasion
+        vol = _calculate_parcel_volume_post_abrasion(
+            self._parcels.dataset.volume[active_parcel_ids, self._time_idx],
+            distance_to_travel_this_timestep[active_parcel_ids],
+            self._parcels.dataset.abrasion_rate[active_parcel_ids],
+        )
+
+        D = _calculate_parcel_grain_diameter_post_abrasion(
+            self._parcels.dataset.D[active_parcel_ids, self._time_idx],
+            self._parcels.dataset.volume[active_parcel_ids, self._time_idx],
+            vol,
+        )
+
+        # update parcel attributes
+
+        # arrival time in link
+        self._parcels.dataset.time_arrival_in_link[
+            active_parcel_ids, self._time_idx
+        ] = self._time_idx
+
+        # location in link
+        self._parcels.dataset.location_in_link[
+            active_parcel_ids, self._time_idx
+        ] = location_in_link[active_parcel_ids]
+
+        self._parcels.dataset.element_id[active_parcel_ids, self._time_idx] = current_link[active_parcel_ids]
+        #                self._parcels.dataset.active_layer[p, self._time_idx] = 1
+        # ^ reset to 1 (active) to be recomputed/determined at next timestep
+        self._parcels.dataset.D[active_parcel_ids, self._time_idx] = D
+        self._parcels.dataset.volume[active_parcel_ids, self._time_idx] = vol
 
     def run_one_step(self, dt):
         """Run NetworkSedimentTransporter forward in time.
@@ -1111,11 +1114,11 @@ def _calculate_parcel_volume_post_abrasion(
 
     Parameters
     ----------
-    starting_volume : float
+    starting_volume : float or array
         Starting volume of each parcel.
-    travel_distance: float
+    travel_distance: float or array
         Travel distance for each parcel during this timestep, in ___.
-    abrasion_rate: float
+    abrasion_rate: float or array
         Mean grain size of the 'active' sediment parcels.
 
     Examples
@@ -1133,7 +1136,7 @@ def _calculate_parcel_volume_post_abrasion(
 
     volume = starting_volume * np.exp(travel_distance * (-abrasion_rate))
 
-    if volume > starting_volume:
+    if np.any(volume > starting_volume):
         raise ValueError("NST parcel volume *increases* due to abrasion")
 
     return volume
@@ -1147,11 +1150,11 @@ def _calculate_parcel_grain_diameter_post_abrasion(
 
     Parameters
     ----------
-    starting_diameter : float
+    starting_diameter : float or array
         Starting volume of each parcel.
-    pre_abrasion_volume: float
+    pre_abrasion_volume: float or array
         Parcel volume before abrasion.
-    post_abrasion_volume: float
+    post_abrasion_volume: float or array
         Parcel volume after abrasion.
 
     Examples
