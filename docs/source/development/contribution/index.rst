@@ -17,6 +17,8 @@ Please review the :ref:`development practices <development_practices>`.
 Contributions that change high level Landlab organization should update
 :ref:`this page <organization>` in the documentation.
 
+Publication of Landlab Contributions
+------------------------------------
 
 A number of researchers have used the Journal of Open Source Software (JOSS)
 and Geoscientific Model Development as a journal outlet to publish their

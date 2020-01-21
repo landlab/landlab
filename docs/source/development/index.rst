@@ -19,6 +19,13 @@ The most important things to remember are to:
     :ref:`ongoing development <ongoing_development>` so that others know what
     you are working on.
 
+Supported Python Versions
+-------------------------
+Python 3.6, 3.7, and 3.8
+
+If you need to introduce a new dependency, that dependency must be compatible
+with Python  3.6+.
+
 .. toctree::
    :maxdepth: 2
 
@@ -26,7 +33,7 @@ The most important things to remember are to:
    contribution/index
    practices/index
    package_organization
-   
+
 There are a few pages that are particularly important for the maintenance of
 the package. These are:
 

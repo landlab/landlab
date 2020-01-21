@@ -44,6 +44,19 @@ Many Jupyter notebooks exist describing use of Landlab. Find an overview
 for the classroom. Information about them and how to set them up for classroom
 use is described :ref:`on this page <teaching_tutorials>`.
 
+Landlab 2.0
+-----------
+
+In late December 2019 Landlab switched to version 2.0-beta. Landlab will be
+in 2.0-beta until the Landlab 2.0 publication is finalized.
+
+Supported Python Versions
+-------------------------
+
+Python 3.6, 3.7, and 3.8
+
+Documentation Outline
+---------------------
 
 .. toctree::
    :maxdepth: 2
