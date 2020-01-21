@@ -27,25 +27,26 @@ What does Landlab do?
 ---------------------
 
 Landlab is an open-source Python-language package for numerical modeling of
-Earth surface dynamics. it contains
+Earth surface dynamics. It contains
 
 * A gridding engine which represents the model domain. Regular and irregular
   grids are supported.
 * A library of process components, each of which represents a physical process
   (e.g., generation of rain, erosion by flowing water). These components have
-  a common interface and can be combined based on a users needs.
-* Utilities which support general numerical methods, file input/output, and
+  a common interface and can be combined based on a user's needs.
+* Utilities that support general numerical methods, file input/output, and
   visualization.
 
 In addition Landlab contains a set of Jupyter notebook tutorials providing
-introduction to core concepts and examples of use.
+an introduction to core concepts and examples of use.
 
 Landlab was desiged for disciplines that quantify Earth surface dynamics such
-as geomorphology, hydrology, glaciology, and stratigraphy, it can also be used
+as geomorphology, hydrology, glaciology, and stratigraphy. It can also be used
 in related fields. Scientists who use this type of model often build
 their own unique model from the ground up, re-coding the basic building blocks
 of their landscape model rather than taking advantage of codes that have
-already been written.
+already been written. Landlab saves practitioners from the need for this kind
+ of re-invention by providing standardized components that they can re-use.
 
 Watch the webinar `Landlab Toolkit Overview <https://csdms.colorado.edu/wiki/Presenters-0407>`_
  at CSDMS to learn more.
