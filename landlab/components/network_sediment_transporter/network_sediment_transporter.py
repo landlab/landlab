@@ -124,6 +124,7 @@ class NetworkSedimentTransporter(Component):
     ...     np.tile(1, (timesteps + 1, 1))) # 2 meter flow depth
 
     Define the sediment characteristics that will be used to create the parcels ``DataRecord``
+
     >>> items = {"grid_element": "link",
     ...          "element_id": np.array([[0]])}
 
@@ -140,6 +141,7 @@ class NetworkSedimentTransporter(Component):
 
     Create the sediment parcel DataRecord. In this case, we are creating a single
     sediment parcel with all of the required attributes.
+
     >>> one_parcel = DataRecord(
     ...     nmg,
     ...     items=items,
@@ -318,7 +320,7 @@ class NetworkSedimentTransporter(Component):
         self._fluid_density = fluid_density
         self._time_idx = 0
         self._time = 0.0
-        self._distance_traveled_cumulative = np.zeros([self._num_parcels])
+        self._distance_traveled_cumulative = np.zeros(self._num_parcels)
 
         # check the transport method is valid.
         if transport_method in _SUPPORTED_TRANSPORT_METHODS:
@@ -440,10 +442,12 @@ class NetworkSedimentTransporter(Component):
                 d_i = Darray[Linkarray == i]
                 vol_i = Volarray[Linkarray == i]
                 rhos_i = Rhoarray[Linkarray == i]
+
+
                 vol_tot_i = np.sum(vol_i)
 
                 d_mean_active[i] = np.sum(d_i * vol_i) / (vol_tot_i)
-                self.d_mean_active = d_mean_active
+                self._d_mean_active = d_mean_active
 
                 rhos_mean_active[i] = np.sum(rhos_i * vol_i) / (vol_tot_i)
                 self._rhos_mean_active = rhos_mean_active
@@ -458,11 +462,11 @@ class NetworkSedimentTransporter(Component):
         taustar = tau / (
             (self._rhos_mean_active - self._fluid_density)
             * self._g
-            * self.d_mean_active
+            * self._d_mean_active
         )
 
         self._active_layer_thickness = (
-            0.515 * self.d_mean_active * (3.09 * (taustar - 0.0549) ** 0.56)
+            0.515 * self._d_mean_active * (3.09 * (taustar - 0.0549) ** 0.56)
         )  # in units of m
 
         self._active_layer_thickness[
@@ -546,7 +550,6 @@ class NetworkSedimentTransporter(Component):
 
         self._vol_stor = (vol_tot - vol_act) / (1 - self._bed_porosity)
 
-    # %%
     def _adjust_node_elevation(self):
         """Adjusts slope for each link based on parcel motions from last
         timestep and additions from this timestep.
@@ -689,8 +692,8 @@ class NetworkSedimentTransporter(Component):
             vol_act_sand = np.zeros(self._grid.number_of_links)
 
         frac_sand = np.zeros_like(vol_act)
-        frac_sand[vol_act != 0] = vol_act_sand[vol_act != 0] / vol_act[vol_act != 0]
-        frac_sand[np.isnan(frac_sand)] = 0
+        frac_sand[vol_act != 0.0] = vol_act_sand[vol_act != 0.0] / vol_act[vol_act != 0.0]
+        frac_sand[np.isnan(frac_sand)] = 0.0
 
         # Calc attributes for each link, map to parcel arrays
         for i in range(self._grid.number_of_links):
@@ -701,14 +704,14 @@ class NetworkSedimentTransporter(Component):
             rhos_act_i = Rhoarray[active_here]
             vol_act_tot_i = np.sum(vol_act_i)
             # ^ this behaves as expected. filterarray to create vol_tot above does not. --> FIXED?
-            self.d_mean_active[i] = np.sum(d_act_i * vol_act_i) / (vol_act_tot_i)
+            self._d_mean_active[i] = np.sum(d_act_i * vol_act_i) / (vol_act_tot_i)
             if vol_act_tot_i > 0:
                 self._rhos_mean_active[i] = np.sum(rhos_act_i * vol_act_i) / (
                     vol_act_tot_i
                 )
             else:
                 self._rhos_mean_active[i] = np.nan
-            D_mean_activearray[Linkarray == i] = self.d_mean_active[i]
+            D_mean_activearray[Linkarray == i] = self._d_mean_active[i]
             frac_sand_array[Linkarray == i] = frac_sand[i]
             vol_act_array[Linkarray == i] = vol_act[i]
             Sarray[Linkarray == i] = self._grid.at_link["channel_slope"][i]
@@ -718,13 +721,8 @@ class NetworkSedimentTransporter(Component):
                 i
             ]
 
-        Sarray = np.squeeze(Sarray)
-        Harray = np.squeeze(Harray)
-        Larray = np.squeeze(Larray)
-        frac_sand_array = np.squeeze(frac_sand_array)
-
         # Wilcock and Crowe calculate transport for all parcels (active and inactive)
-        self.taursg = _calculate_reference_shear_stress(
+        taursg = _calculate_reference_shear_stress(
             self._fluid_density, R, self._g, D_mean_activearray, frac_sand_array
         )
 
@@ -736,16 +734,16 @@ class NetworkSedimentTransporter(Component):
         # ^ This is not a fraction
         # Instead I think it should be this but CHECK CHECK
         frac_parcel = np.nan * np.zeros_like(Volarray)
-        frac_parcel[vol_act_array != 0] = (
-            Volarray[vol_act_array != 0] / vol_act_array[vol_act_array != 0]
+        frac_parcel[vol_act_array != 0.0] = (
+            Volarray[vol_act_array != 0.0] / vol_act_array[vol_act_array != 0.0]
         )
 
-        b = 0.67 / (1 + np.exp(1.5 - Darray / D_mean_activearray))
+        b = 0.67 / (1.0 + np.exp(1.5 - Darray / D_mean_activearray))
 
         tau = self._fluid_density * self._g * Harray * Sarray
         tau = np.atleast_1d(tau)
 
-        taur = self.taursg * (Darray / D_mean_activearray) ** b
+        taur = taursg * (Darray / D_mean_activearray) ** b
         tautaur = tau / taur
         tautaur_cplx = tautaur.astype(np.complex128)
         # ^ work around needed b/c np fails with non-integer powers of negative numbers
@@ -754,12 +752,11 @@ class NetworkSedimentTransporter(Component):
         W[tautaur >= 1.35] = 14 * np.power(
             (1 - (0.894 / np.sqrt(tautaur_cplx.real[tautaur >= 1.35]))), 4.5
         )
-        W = W.real
 
         active_parcel_idx = Activearray == _ACTIVE
         # compute parcel virtual velocity, m/s
         self._pvelocity[active_parcel_idx] = (
-            W[active_parcel_idx]
+            W.real[active_parcel_idx]
             * (tau[active_parcel_idx] ** (3. / 2.))
             * frac_parcel[active_parcel_idx]
             / (self._fluid_density ** (3. / 2.))
@@ -768,9 +765,7 @@ class NetworkSedimentTransporter(Component):
             / active_layer_thickness_array[active_parcel_idx]
         )
 
-        self._active_layer_thickness_array = active_layer_thickness_array
-
-        self._pvelocity[np.isnan(self._pvelocity)] = 0
+        self._pvelocity[np.isnan(self._pvelocity)] = 0.0
 
         # Assign those things to the grid -- might be useful for plotting later...?
         self._grid.at_link["sediment_total_volume"] = vol_tot
