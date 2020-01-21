@@ -31,8 +31,8 @@ Last edit ---
 """
 
 import numpy as np
+import xarray as xr
 
-# %% Import Libraries
 from landlab import Component
 from landlab.components import FlowDirectorSteepest
 from landlab.data_record import DataRecord
@@ -429,28 +429,29 @@ class NetworkSedimentTransporter(Component):
 
             # FUTURE: make it possible to circumvent this if mean grain size
             # has already been calculated (e.g. during 'zeroing' runs)
-            Linkarray = self._parcels.dataset.element_id[
-                :, self._time_idx
-            ].values  # current link of each parcel
-            Darray = self._parcels.dataset.D[:, self._time_idx]
-            Rhoarray = self._parcels.dataset.density.values
-            Volarray = self._parcels.dataset.volume[:, self._time_idx].values
 
-            d_mean_active = np.nan * np.zeros(self._grid.number_of_links)
-            rhos_mean_active = np.nan * np.zeros(self._grid.number_of_links)
+            # Calculate mean values for density and grain size (weighted by volume). 
+            current_parcels = self._parcels.dataset.isel(time=self._time_idx)
+            sel_parcels = current_parcels.where(current_parcels.element_id != _OUT_OF_NETWORK)
 
-            for i in range(self._grid.number_of_links):
-                d_i = Darray[Linkarray == i]
-                vol_i = Volarray[Linkarray == i]
-                rhos_i = Rhoarray[Linkarray == i]
+            d_weighted = sel_parcels.D*sel_parcels.volume
+            rho_weighted = sel_parcels.density*sel_parcels.volume
+            d_weighted.name = "d_weighted"
+            rho_weighted.name = "rho_weighted"
 
-                vol_tot_i = np.sum(vol_i)
+            grouped_by_element = xr.merge((sel_parcels.element_id,
+                             sel_parcels.volume,
+                             d_weighted,
+                             rho_weighted)).groupby("element_id")
 
-                d_mean_active[i] = np.sum(d_i * vol_i) / (vol_tot_i)
-                self._d_mean_active = d_mean_active
+            d_avg = grouped_by_element.sum().d_weighted/grouped_by_element.sum().volume
+            rho_avg = grouped_by_element.sum().rho_weighted/grouped_by_element.sum().volume
 
-                rhos_mean_active[i] = np.sum(rhos_i * vol_i) / (vol_tot_i)
-                self._rhos_mean_active = rhos_mean_active
+            self._d_mean_active = np.zeros(self._grid.size("link"))
+            self._d_mean_active[d_avg.element_id.values.astype(int)] = d_avg.values
+
+            self._rhos_mean_active = np.zeros(self._grid.size("link"))
+            self._rhos_mean_active[rho_avg.element_id.values.astype(int)] = rho_avg.values
 
         tau = (
             self._fluid_density
