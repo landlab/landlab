@@ -12,3 +12,4 @@ Software Development Practices
    style_conventions
    writing_tests
    dev_guide_releases
+   dependencies
