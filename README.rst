@@ -193,7 +193,7 @@ BibTeX format:
 
 In addition, depending on what parts of Landlab you use, you may need to cite
 component-specific. Refer to the References section of each component and
-`this page <https://landlab.readthedocs.io/en/master/development/citation_registry.html#cite-as>`_
+`this page <https://landlab.readthedocs.io/en/master/citation_registry.html#cite-as>`_
 which discusses the Landlab Citation Registry tool.
 
 I think I found a bug. What should I do?
