@@ -1,4 +1,3 @@
-
 import numpy as np
 import six
 from landlab import Component
@@ -245,7 +244,7 @@ class SoilMoisture(Component):
         grid: RasterModelGrid
             A grid.
         runon_switch: int, optional
-            To indicate whether runon needs to considered (mm);
+            To indicate whether runon needs to be considered (mm);
             0 - No runon, 1 - runon.
         ordered_cells: numpy.array, required if runon_switch = 1
             ordered_cells has the grid cells sorted in an order of descending
