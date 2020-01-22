@@ -451,12 +451,10 @@ class NetworkSedimentTransporter(Component):
         """
         current_parcels = self._parcels.dataset.isel(time=self._time_idx)
 
-        try:
-            self._vol_tot = self._parcels.calc_aggregate_value(
+        self._vol_tot = self._parcels.calc_aggregate_value(
                 np.sum, "volume", at="link", filter_array=self._this_timesteps_parcels, fill_value=0.
             )
-        except ValueError:
-            self._vol_tot = np.zeros(self._grid.size("link"))
+
         # Wong et al. (2007) approximation for active layer thickness.
         # NOTE: calculated using grain size and grain density calculated for
         # the active layer grains in each link at the **previous** timestep.
@@ -535,13 +533,10 @@ class NetworkSedimentTransporter(Component):
             self._parcels.dataset.active_layer == _ACTIVE
         ) * (self._this_timesteps_parcels)
 
-
-        if np.any(self._active_parcel_records):
-            vol_act = self._parcels.calc_aggregate_value(
+        vol_act = self._parcels.calc_aggregate_value(
                 np.sum, "volume", at="link", filter_array=self._active_parcel_records, fill_value=0.
             )
-        else:
-            vol_act = np.zeros_like(self._vol_tot)
+
 
         self._vol_stor = (self._vol_tot - vol_act) / (1 - self._bed_porosity)
 
@@ -634,12 +629,9 @@ class NetworkSedimentTransporter(Component):
         self._pvelocity = np.zeros(self._num_parcels)
 
         # Calculate active volume of sediment at each link.
-        if np.any(self._active_parcel_records):
-            vol_act = self._parcels.calc_aggregate_value(
+        vol_act = self._parcels.calc_aggregate_value(
                 np.sum, "volume", at="link", filter_array=self._active_parcel_records, fill_value=0.0
             )
-        else:
-            vol_act = np.zeros_like(self._vol_tot)
 
         # parcel attribute arrays from DataRecord
 
@@ -667,11 +659,7 @@ class NetworkSedimentTransporter(Component):
             self._parcels.dataset.D < _SAND_SIZE
         ) * self._active_parcel_records  # since find active already sets all prior timesteps to False, we can use D for all timesteps here.
 
-        if np.any(findactivesand):
-            # print("there's active sand!")
-            vol_act_sand = self._parcels.calc_aggregate_value(np.sum, "volume", at="link", filter_array=findactivesand, fill_value=0.)
-        else:
-            vol_act_sand = np.zeros(self._grid.number_of_links)
+        vol_act_sand = self._parcels.calc_aggregate_value(np.sum, "volume", at="link", filter_array=findactivesand, fill_value=0.)
 
         frac_sand = np.zeros_like(vol_act)
         frac_sand[vol_act != 0.0] = (
