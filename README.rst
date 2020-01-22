@@ -46,10 +46,10 @@ in related fields. Scientists who use this type of model often build
 their own unique model from the ground up, re-coding the basic building blocks
 of their landscape model rather than taking advantage of codes that have
 already been written. Landlab saves practitioners from the need for this kind
- of re-invention by providing standardized components that they can re-use.
+of re-invention by providing standardized components that they can re-use.
 
 Watch the webinar `Landlab Toolkit Overview <https://csdms.colorado.edu/wiki/Presenters-0407>`_
- at CSDMS to learn more.
+at CSDMS to learn more.
 
 How do I install Landlab?
 -------------------------
@@ -77,10 +77,10 @@ within the top level directory and use the following command:
 Then activate the environment and open the welcome notebook execute the
 following:
 
-  .. code-block:: bash
+.. code-block:: bash
 
-      $ conda activate landlab_notebooks
-      $ jupyter notebook notebooks/welcome.ipynb
+    $ conda activate landlab_notebooks
+    $ jupyter notebook notebooks/welcome.ipynb
 
 Developer Installation
 ``````````````````````
@@ -147,15 +147,13 @@ Jupyter notebooks describe core concepts and give examples of using components.
 The file ``landlab/notebooks/welcome.ipynb`` provides a table of contents to
 the notebooks and is the recommended starting place. To launch an instance of
 Binder and explore the notebooks click
-`here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb>_`.
+`here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb>`_.
 
 In addition there are a set of notebooks curated to teach physical processes
-located in the directory.
-
-``landlab/notebooks/teaching``.
+located in the directory ``landlab/notebooks/teaching``.
 
 To launch an Binder instance that goes straight to these teaching notebooks
-click `here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/teaching/welcome_teaching.ipynb>_`.
+click `here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/teaching/welcome_teaching.ipynb>`_.
 
 
 What License does Landlab use?
@@ -192,7 +190,6 @@ BibTeX format:
           Number = {5},
           Pages = {21-46},
           Doi = {10.5194/esurf-5-21-2017}}
-
 
 In addition, depending on what parts of Landlab you use, you may need to cite
 component-specific. Refer to the References section of each component and
@@ -233,35 +230,35 @@ How was Landlab funded?
 Landlab is funded by the US National Science Foundation. It has been supported
 by the following grants:
 
-    * A Collaborative NSF SI2-SSE proposal to
-      University of Colorado (Greg Tucker,
-      `1147454 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1147454&HistoricalAwards=false>`_),
-      and the University of Washington (Erkan Istanbulluoglu,
-      `1148305 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1148305&HistoricalAwards=false>`_)
-    * A Collaborative NSF SI2-SSI proposal to
-      University of Colorado (Greg Tucker and Dan Hobley,
-      `1450409 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450409&HistoricalAwards=false>`_),
-      Tulane University (Nicole Gasparini,
-      `1450338 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450338&HistoricalAwards=false>`_),
-      and the University of Washington (Erkan Istanbulluoglu,
-      `1450412 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450412&HistoricalAwards=false>`_).
-    * A NSF EAR Postdoctoral Fellowship to Katy Barnhart
-      (`1725774 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1725774&HistoricalAwards=false>`_).
+* A Collaborative NSF SI2-SSE proposal to
+  University of Colorado (Greg Tucker,
+  `1147454 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1147454&HistoricalAwards=false>`_),
+  and the University of Washington (Erkan Istanbulluoglu,
+  `1148305 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1148305&HistoricalAwards=false>`_)
+* A Collaborative NSF SI2-SSI proposal to
+  University of Colorado (Greg Tucker and Dan Hobley,
+  `1450409 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450409&HistoricalAwards=false>`_),
+  Tulane University (Nicole Gasparini,
+  `1450338 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450338&HistoricalAwards=false>`_),
+  and the University of Washington (Erkan Istanbulluoglu,
+  `1450412 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450412&HistoricalAwards=false>`_).
+* A NSF EAR Postdoctoral Fellowship to Katy Barnhart
+  (`1725774 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1725774&HistoricalAwards=false>`_).
 
 Who made Landlab?
 -----------------
 
 The core development team is currently composed of:
 
- - Greg Tucker (CU)
- - Nicole Gasparini (Tulane)
- - Erkan Istanbulluoglu (UW)
- - Daniel Hobley (Cardiff)
- - Sai S. Nudurupati (UW)
- - Jordan Adams (Tulane)
- - Eric Hutton (CU)
- - Jenny Knuth (CU)
- - Katy Barnhart (CU)
- - Margaux Mouchene (CU)
- - Christina Bandaragoda (UW)
- - Nathan Lyons (Tulane)
+- Greg Tucker (CU)
+- Nicole Gasparini (Tulane)
+- Erkan Istanbulluoglu (UW)
+- Daniel Hobley (Cardiff)
+- Sai S. Nudurupati (UW)
+- Jordan Adams (Tulane)
+- Eric Hutton (CU)
+- Jenny Knuth (CU)
+- Katy Barnhart (CU)
+- Margaux Mouchene (CU)
+- Christina Bandaragoda (UW)
+- Nathan Lyons (Tulane)
