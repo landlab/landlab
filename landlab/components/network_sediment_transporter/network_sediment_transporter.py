@@ -526,8 +526,8 @@ class NetworkSedimentTransporter(Component):
                 idxinactive = np.where(cumvol > capacity[i])
                 make_inactive = parcel_id_time_sorted[idxinactive]
 
-                active_inactive[parcel_id_thislink] = _ACTIVE # KRB-Q I think that this is an error. This is setting all parcels on this link to active.
-                active_inactive[make_inactive] = _INACTIVE # KRB-Q I think that this additional line is necessary... RIGHT???
+                active_inactive[parcel_id_thislink] = _ACTIVE
+                active_inactive[make_inactive] = _INACTIVE 
 
         self._parcels.dataset.active_layer[:, -1] = active_inactive
 
