@@ -535,12 +535,12 @@ class NetworkSedimentTransporter(Component):
             self._parcels.dataset.active_layer == _ACTIVE
         ) * (self._this_timesteps_parcels)
 
-        vol_act = self._parcels.calc_aggregate_value(
+        self._vol_act = self._parcels.calc_aggregate_value(
                 np.sum, "volume", at="link", filter_array=self._active_parcel_records, fill_value=0.
             )
 
 
-        self._vol_stor = (self._vol_tot - vol_act) / (1 - self._bed_porosity)
+        self._vol_stor = (self._vol_tot - self._vol_act) / (1 - self._bed_porosity)
 
     def _adjust_node_elevation(self):
         """Adjusts slope for each link based on parcel motions from last
@@ -630,11 +630,6 @@ class NetworkSedimentTransporter(Component):
         # Initialize _pvelocity, the virtual velocity of each parcel (link length / link travel time)
         self._pvelocity = np.zeros(self._num_parcels)
 
-        # Calculate active volume of sediment at each link.
-        vol_act = self._parcels.calc_aggregate_value(
-                np.sum, "volume", at="link", filter_array=self._active_parcel_records, fill_value=0.0
-            )
-
         # parcel attribute arrays from DataRecord
 
         Darray = self._parcels.dataset.D[:, self._time_idx]
@@ -663,9 +658,9 @@ class NetworkSedimentTransporter(Component):
 
         vol_act_sand = self._parcels.calc_aggregate_value(np.sum, "volume", at="link", filter_array=findactivesand, fill_value=0.)
 
-        frac_sand = np.zeros_like(vol_act)
-        frac_sand[vol_act != 0.0] = (
-            vol_act_sand[vol_act != 0.0] / vol_act[vol_act != 0.0]
+        frac_sand = np.zeros_like(self._vol_act)
+        frac_sand[self._vol_act != 0.0] = (
+            vol_act_sand[self._vol_act != 0.0] / self._vol_act[self._vol_act != 0.0]
         )
         frac_sand[np.isnan(frac_sand)] = 0.0
 
@@ -687,7 +682,7 @@ class NetworkSedimentTransporter(Component):
                 self._rhos_mean_active[i] = np.nan
             D_mean_activearray[Linkarray == i] = self._d_mean_active[i]
             frac_sand_array[Linkarray == i] = frac_sand[i]
-            vol_act_array[Linkarray == i] = vol_act[i]
+            vol_act_array[Linkarray == i] = self._vol_act[i]
             Sarray[Linkarray == i] = self._grid.at_link["channel_slope"][i]
             Harray[Linkarray == i] = self._flow_depth[self._time_idx, i]
             Larray[Linkarray == i] = self._grid.at_link["reach_length"][i]
@@ -743,7 +738,7 @@ class NetworkSedimentTransporter(Component):
 
         # Assign those things to the grid -- might be useful for plotting later...?
         self._grid.at_link["sediment_total_volume"] = self._vol_tot
-        self._grid.at_link["sediment__active__volume"] = vol_act
+        self._grid.at_link["sediment__active__volume"] = self._vol_act
         self._grid.at_link["sediment__active__sand_fraction"] = frac_sand
 
     def _move_parcel_downstream(self, dt):
