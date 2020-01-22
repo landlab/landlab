@@ -56,6 +56,8 @@ _ACTIVE = 1
 _INACTIVE = 0
 
 _SAND_SIZE = 0.002
+_INIT_ACTIVE_LAYER_THICKNESS = 0.03116362
+
 
 class NetworkSedimentTransporter(Component):
     """
@@ -487,7 +489,7 @@ class NetworkSedimentTransporter(Component):
         )  # assign links with no parcels an average value
 
         if np.sum(np.isfinite(self._active_layer_thickness)) == 0:
-            self._active_layer_thickness = 0.03116362 * np.ones(
+            self._active_layer_thickness = _INIT_ACTIVE_LAYER_THICKNESS * np.ones(
                 np.shape(self._active_layer_thickness)
             )
             # handles the case of the first timestep -- assigns a modest value
