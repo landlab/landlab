@@ -92,6 +92,22 @@ class TransportLengthHillslopeDiffuser(Component):
     ...                0.,  0.        ,  0.        ,  0.        ,  0.]))
     True
 
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Carretier, S., Martinod, P., Reich, M., Godderis, Y. (2016). Modelling
+    sediment clasts transport during landscape evolution. Earth Surface Dynamics
+    4(1), 237-251. https://dx.doi.org/10.5194/esurf-4-237-2016
+
+    Davy, P., Lague, D. (2009). Fluvial erosion/transport equation of landscape
+    evolution models revisited. Journal of Geophysical Research  114(F3),
+    F03007. https://dx.doi.org/10.1029/2008jf001146
+
     """
 
     _name = "TransportLengthHillslopeDiffuser"

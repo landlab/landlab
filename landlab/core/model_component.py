@@ -55,6 +55,7 @@ class Component:
 
     _info = {}
     _name = None
+    _cite_as = ""
 
     def __new__(cls, *args, **kwds):
         registry.add(cls)
@@ -133,6 +134,23 @@ class Component:
         else:
             params = load_params(path)
         return cls(grid, **params)
+
+    @classproperty
+    @classmethod
+    def cite_as(cls):
+        """Citation information for component.
+
+        Return required software citation, if any. An empty string indicates
+        that no citations other than the standard Landlab package citations are
+        needed for the component.
+
+        Citations are provided in BibTeX format.
+
+        Returns
+        -------
+        cite_as
+        """
+        return cls._cite_as
 
     @property
     def current_time(self):

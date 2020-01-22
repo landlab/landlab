@@ -135,60 +135,18 @@ class LakeMapperBarnes(Component):
     surface in a fluvial landscape (interacting with, e.g., the
     StreamPowerEroder). See the run_one_step docstring for an example.
 
-    Parameters
+    References
     ----------
-    grid : ModelGrid
-        A grid.
-    surface : field name at node or array of length node
-        The surface to direct flow across.
-    method : {'Steepest', 'D8'}
-        Whether or not to recognise diagonals as valid flow paths, if a raster.
-        Otherwise, no effect.
-    fill_flat : bool
-        If True, pits will be filled to perfectly horizontal. If False, the new
-        surface will be slightly inclined to give steepest descent flow paths
-        to the outlet.
-    fill_surface : bool
-        Sets the field or array to fill. If fill_surface is surface, this
-        operation occurs in place, and is faster.
-        Note that the component will overwrite fill_surface if it exists; to
-        supply an existing water level to it, supply that water level field as
-        surface, not fill_surface.
-    redirect_flow_steepest_descent : bool
-        If True, the component outputs modified versions of the
-        'flow__receiver_node', 'flow__link_to_receiver_node',
-        'flow__sink_flag', and 'topographic__steepest_slope' fields. These
-        are the fields output by the FlowDirector components, so set to
-        True if you wish to pass this LakeFiller to the FlowAccumulator,
-        or if you wish to work directly with the new, correct flow directions
-        and slopes without rerunning these components on your new surface.
-        Ensure the necessary fields already exist, and have already been
-        calculated by a FlowDirector! This also means you need to instantiate
-        your FlowDirector **before** you instantiate the LakeMapperBarnes.
-        Note that the new topographic__steepest_slope will always be set to
-        zero, even if fill_flat=False (i.e., there is actually a miniscule
-        gradient on the new topography, which gets ignored).
-    reaccumulate_flow : bool
-        If True, and redirect_flow_steepest_descent is True, the run method
-        will (re-)accumulate the flow after redirecting the flow. This means
-        the 'drainage_area', 'surface_water__discharge',
-        'flow__upstream_node_order', and the other various flow accumulation
-        fields (see output field names) will now reflect the new drainage
-        patterns without having to manually reaccumulate the discharge. If
-        True but redirect_flow_steepest_descent is False, raises an
-        ValueError.
-    ignore_overfill : bool
-        If True, suppresses the Error that would normally be raised during
-        creation of a gentle incline on a fill surface (i.e., if not
-        fill_flat). Typically this would happen on a synthetic DEM where more
-        than one outlet is possible at the same elevation. If True, the
-        was_there_overfill property can still be used to see if this has
-        occurred.
-    track_lakes : bool
-        If True, the component permits a slight hit to performance in order to
-        explicitly track which nodes have been filled, and to enable queries
-        on that data in retrospect. Set to False to simply fill the surface
-        and be done with it.
+    **Required Software Citation(s) Specific to this Component**
+
+    Barnes, R., Lehman, C., Mulla, D. (2014). Priority-flood: An optimal
+    depression-filling and watershed-labeling algorithm for digital elevation
+    models. Computers and Geosciences  62(C), 117 - 127.
+    https://dx.doi.org/10.1016/j.cageo.2013.04.024
+
+    **Additional References**
+
+    None Listed
     """
 
     _name = "LakeMapperBarnes"
@@ -285,7 +243,64 @@ class LakeMapperBarnes(Component):
         ignore_overfill=False,
         track_lakes=True,
     ):
-        """Initialize the component."""
+        """Initialize the component.
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid.
+        surface : field name at node or array of length node
+            The surface to direct flow across.
+        method : {'Steepest', 'D8'}
+            Whether or not to recognise diagonals as valid flow paths, if a raster.
+            Otherwise, no effect.
+        fill_flat : bool
+            If True, pits will be filled to perfectly horizontal. If False, the new
+            surface will be slightly inclined to give steepest descent flow paths
+            to the outlet.
+        fill_surface : bool
+            Sets the field or array to fill. If fill_surface is surface, this
+            operation occurs in place, and is faster.
+            Note that the component will overwrite fill_surface if it exists; to
+            supply an existing water level to it, supply that water level field as
+            surface, not fill_surface.
+        redirect_flow_steepest_descent : bool
+            If True, the component outputs modified versions of the
+            'flow__receiver_node', 'flow__link_to_receiver_node',
+            'flow__sink_flag', and 'topographic__steepest_slope' fields. These
+            are the fields output by the FlowDirector components, so set to
+            True if you wish to pass this LakeFiller to the FlowAccumulator,
+            or if you wish to work directly with the new, correct flow directions
+            and slopes without rerunning these components on your new surface.
+            Ensure the necessary fields already exist, and have already been
+            calculated by a FlowDirector! This also means you need to instantiate
+            your FlowDirector **before** you instantiate the LakeMapperBarnes.
+            Note that the new topographic__steepest_slope will always be set to
+            zero, even if fill_flat=False (i.e., there is actually a miniscule
+            gradient on the new topography, which gets ignored).
+        reaccumulate_flow : bool
+            If True, and redirect_flow_steepest_descent is True, the run method
+            will (re-)accumulate the flow after redirecting the flow. This means
+            the 'drainage_area', 'surface_water__discharge',
+            'flow__upstream_node_order', and the other various flow accumulation
+            fields (see output field names) will now reflect the new drainage
+            patterns without having to manually reaccumulate the discharge. If
+            True but redirect_flow_steepest_descent is False, raises an
+            ValueError.
+        ignore_overfill : bool
+            If True, suppresses the Error that would normally be raised during
+            creation of a gentle incline on a fill surface (i.e., if not
+            fill_flat). Typically this would happen on a synthetic DEM where more
+            than one outlet is possible at the same elevation. If True, the
+            was_there_overfill property can still be used to see if this has
+            occurred.
+        track_lakes : bool
+            If True, the component permits a slight hit to performance in order to
+            explicitly track which nodes have been filled, and to enable queries
+            on that data in retrospect. Set to False to simply fill the surface
+            and be done with it.
+
+        """
         super(LakeMapperBarnes, self).__init__(grid)
 
         if "flow__receiver_node" in grid.at_node:

@@ -27,15 +27,6 @@ class ExponentialWeatherer(Component):
 
     The `ExponentialWeatherer` only calculates soil production at core nodes.
 
-    Parameters
-    ----------
-    grid: ModelGrid
-        Landlab ModelGrid object
-    soil_production__maximum_rate : float
-        Characteristic weathering depth
-    soil_production__decay_depth : float
-        Maximum weathering rate for bare bedrock
-
     Examples
     --------
     >>> import numpy as np
@@ -48,9 +39,41 @@ class ExponentialWeatherer(Component):
     >>> expw.calc_soil_prod_rate()
     >>> np.allclose(mg.at_node['soil_production__rate'], 1.)
     True
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Barnhart, K., Glade, R., Shobe, C., Tucker, G. (2019). Terrainbento 1.0: a
+    Python package for multi-model analysis in long-term drainage basin
+    evolution. Geoscientific Model Development  12(4), 1267--1297.
+    https://dx.doi.org/10.5194/gmd-12-1267-2019
+
+    **Additional References**
+
+    Ahnert, F. (1976). Brief description of a comprehensive three-dimensional
+    process-response model of landform development Z. Geomorphol. Suppl.  25,
+    29 - 49.
+
+    Armstrong, A. (1976). A three dimensional simulation of slope forms.
+    Zeitschrift für Geomorphologie  25, 20 - 28.
+
     """
 
     _name = "ExponentialWeatherer"
+
+    _cite_as = """
+    @article{barnhart2019terrain,
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      doi = {10.5194/gmd-12-1267-2019},
+      pages = {1267---1297},
+      number = {4},
+      volume = {12},
+      journal = {Geoscientific Model Development},
+      year = {2019},
+    }
+    """
 
     _info = {
         "soil__depth": {
@@ -74,6 +97,16 @@ class ExponentialWeatherer(Component):
     def __init__(
         self, grid, soil_production__maximum_rate=1.0, soil_production__decay_depth=1.0
     ):
+        """
+        Parameters
+        ----------
+        grid: ModelGrid
+            Landlab ModelGrid object
+        soil_production__maximum_rate : float
+            Characteristic weathering depth
+        soil_production__decay_depth : float
+            Maximum weathering rate for bare bedrock
+        """
         super(ExponentialWeatherer, self).__init__(grid)
 
         # Store grid and parameters
