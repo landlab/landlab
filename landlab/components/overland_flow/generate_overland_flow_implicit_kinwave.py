@@ -145,6 +145,17 @@ class KinwaveImplicitOverlandFlow(Component):
     100.0
     >>> rg.at_node['surface_water__depth'][6:9]
     array([ 0.,  0.,  0.])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "KinwaveImplicitOverlandFlow"

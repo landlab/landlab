@@ -43,6 +43,16 @@ class NormalFault(Component):
     the **run_one_step** and **run_one_earthquake** methods. It is encumbent
     upon the user, however, to ensure that these two methods are used in
     combination correctly for their specific use case.
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    None Listed
     """
 
     _name = "NormalFault"

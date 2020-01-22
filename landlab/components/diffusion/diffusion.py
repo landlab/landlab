@@ -90,6 +90,18 @@ class LinearDiffuser(Component):
     ...     dfn2.run_one_step(dt)
     >>> np.all(z2[mg2.core_nodes] < z1[mg2.core_nodes])
     True
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Culling, W. (1963). Soil Creep and the Development of Hillside Slopes.
+    The Journal of Geology  71(2), 127-161. https://dx.doi.org/10.1086/626891
+
     """
 
     _name = "LinearDiffuser"

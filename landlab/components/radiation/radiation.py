@@ -66,6 +66,18 @@ class Radiation(Component):
     >>> rad.update()
     >>> np.all(grid.at_cell['radiation__ratio_to_flat_surface'] == 0.)
     False
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Bras, R. L.: Hydrology: an introduction to hydrologic science, Addison
+    Wesley Publishing Company, Boston, Mass., USA, 643 pp., 1990.
+
     """
 
     _name = "Radiation"

@@ -41,9 +41,37 @@ class SoilInfiltrationGreenAmpt(Component):
     array([ 0.20999999,  0.20999999,  0.20999999,  0.20999999,  0.20999999,
             0.20999999,  0.2001147 ,  0.2001147 ,  0.2001147 ,  0.2001147 ,
             0.2001147 ,  0.2001147 ])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Rengers, F. K., McGuire, L. A., Kean, J. W., Staley, D. M., and Hobley, D.:
+    Model simulations of flood and debris flow timing in steep catchments after
+    wildfire, Water Resour. Res., 52, 6041–6061, doi:10.1002/2015WR018176, 2016.
+
+    **Additional References**
+
+    Julien, P. Y., Saghaﬁan, B., and Ogden, F. L.: Raster-based hydrologic
+    modeling of spatially-varied surface runoff, J. Am. Water Resour. As., 31,
+    523–536, doi:10.1111/j.17521688.1995.tb04039.x, 1995.
+
     """
 
     _name = "SoilInfiltrationGreenAmpt"
+
+    _cite_as = """
+    @article{rengers2016model,
+      author = {Rengers, F K and McGuire, L A and Kean, J W and Staley, D M and Hobley, D E J},
+      title = {{Model simulations of flood and debris flow timing in steep catchments after wildfire}},
+      doi = {10.1002/2015wr018176},
+      pages = {6041 -- 6061},
+      number = {8},
+      volume = {52},
+      journal = {Water Resources Research},
+      year = {2016},
+    }
+    """
 
     _info = {
         "soil_water_infiltration__depth": {

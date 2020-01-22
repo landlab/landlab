@@ -462,6 +462,17 @@ class ChannelProfiler(_BaseProfiler):
     ...     number_of_watersheds=4,
     ...     main_channel_only=False,
     ...     minimum_channel_threshold=20)
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "ChannelProfiler"
