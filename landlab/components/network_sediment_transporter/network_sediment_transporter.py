@@ -484,14 +484,11 @@ class NetworkSedimentTransporter(Component):
             0.515 * self._d_mean_active * (3.09 * (taustar - 0.0549) ** 0.56)
         )  # in units of m
 
-        self._active_layer_thickness[np.isnan(self._active_layer_thickness)] = np.average(
-            self._active_layer_thickness[np.isnan(self._active_layer_thickness) == 0]
-        )  # assign links with no parcels an average value
+        links_with_no_active_layer = np.isnan(self._active_layer_thickness)
+        self._active_layer_thickness[links_with_no_active_layer] = np.mean(self._active_layer_thickness[links_with_no_active_layer==0])  # assign links with no parcels an average value
 
         if np.sum(np.isfinite(self._active_layer_thickness)) == 0:
-            self._active_layer_thickness = _INIT_ACTIVE_LAYER_THICKNESS * np.ones(
-                np.shape(self._active_layer_thickness)
-            )
+            self._active_layer_thickness.fill(_INIT_ACTIVE_LAYER_THICKNESS)
             # handles the case of the first timestep -- assigns a modest value
 
         capacity = (
