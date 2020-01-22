@@ -1125,9 +1125,7 @@ class DataRecord(object):
         """
         filter_at = self._dataset["grid_element"] == at
 
-        filter_valid_element = np.isin(
-            self._dataset["element_id"], np.arange(self._grid[at].size)
-        )
+        filter_valid_element = (self._dataset["element_id"] > 0) and (self._dataset["element_id"] < self._grid[at].size - 1)
 
         if filter_array is None:
             my_filter = filter_at & filter_valid_element
@@ -1135,13 +1133,13 @@ class DataRecord(object):
             my_filter = filter_at & filter_array & filter_valid_element
 
         if np.any(my_filter):
-
             # Filter DataRecord with my_filter and groupby element_id:
             filtered = self._dataset.where(my_filter).groupby("element_id")
 
+            # Calculate values
             vals = filtered.apply(func, *args, **kwargs)  # .reduce
 
-            # create a nan array that we will fill with the results of the sum
+            # Create a nan array that we will fill with the results of the sum
             # this should be the size of the number of elements, even if there are
             # no items living at some grid elements.
             out = fill_value * np.ones(self._grid[at].size)
