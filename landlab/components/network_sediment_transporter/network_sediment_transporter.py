@@ -499,35 +499,33 @@ class NetworkSedimentTransporter(Component):
 
         active_inactive = np.zeros(self._num_parcels)
 
+        current_link = self._parcels.dataset.element_id.values[:, -1].astype(int)
+        time_arrival = self._parcels.dataset.time_arrival_in_link.values[:, -1]
+
         for i in range(self._grid.number_of_links):
 
             if self._vol_tot[i] > 0:  # only do this check capacity if parcels are in link
 
                 # First In Last Out.
-                parcel_id_thislink = np.where(current_parcels.element_id == i)[0]
 
-                time_arrival_sort = np.flip(
-                    np.argsort(
-                        self._parcels.get_data(
-                            time=[self._time],
-                            item_id=parcel_id_thislink,
-                            data_variable="time_arrival_in_link",
-                        ),
-                        0,
-                    )
-                )
+                # Find parcels on this link.
+                this_links_parcels = np.where(current_link == i)[0]
 
-                parcel_id_time_sorted = parcel_id_thislink[time_arrival_sort]
+                # sort them by arrival time.
+                time_arrival_sort = np.flip(np.argsort(time_arrival[this_links_parcels], 0,))
+                parcel_id_time_sorted = this_links_parcels[time_arrival_sort]
 
+                # calculate the cumulative volume (in sorted order.)
                 cumvol = np.cumsum(
                     self._parcels.dataset.volume[parcel_id_time_sorted, self._time_idx]
                 )
 
+                # determine which parcels are over capacity.
                 idxinactive = np.where(cumvol > capacity[i])
                 make_inactive = parcel_id_time_sorted[idxinactive]
 
-                active_inactive[parcel_id_thislink] = _ACTIVE
-                active_inactive[make_inactive] = _INACTIVE 
+                active_inactive[this_links_parcels] = _ACTIVE
+                active_inactive[make_inactive] = _INACTIVE
 
         self._parcels.dataset.active_layer[:, -1] = active_inactive
 
