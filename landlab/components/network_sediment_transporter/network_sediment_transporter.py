@@ -375,7 +375,6 @@ class NetworkSedimentTransporter(Component):
                     :, self._time_idx
                 ] = self._parcels.dataset[at].values[:, self._time_idx - 1]
 
-        self._find_now = self._parcels.dataset.time == self._time
         self._this_timesteps_parcels = np.zeros_like(
             self._parcels.dataset.element_id, dtype=bool
         )
@@ -409,15 +408,11 @@ class NetworkSedimentTransporter(Component):
         elevations.
         """
         try:
-            vol_tot = self._parcels.calc_aggregate_value(
-                np.sum,
-                "volume",
-                at="link",
-                filter_array=self._this_timesteps_parcels,
-                fill_value=0.0,
+            self._vol_tot = self._parcels.calc_aggregate_value(
+                np.sum, "volume", at="link", filter_array=self._this_timesteps_parcels, fill_value=0.
             )
         except ValueError:
-            vol_tot = np.zeros(self._grid.size("link"))
+            self._vol_tot = np.zeros(self._grid.size("link"))
         # Wong et al. (2007) approximation for active layer thickness.
         # NOTE: calculated using grain size and grain density calculated for
         # the active layer grains in each link at the **previous** timestep.
@@ -426,9 +421,7 @@ class NetworkSedimentTransporter(Component):
         # active layer.
 
         current_parcels = self._parcels.dataset.isel(time=self._time_idx)
-        if (
-            self._time_idx == 0
-        ):  # KRB-Q: Why only the first timestep. Parcels will move around... so shouldn't this happen every timestep.
+        if self._time_idx == 0: #KRB-Q: Why only the first timestep. Parcels will move around... so shouldn't this happen every timestep.
 
             # In the first full timestep, we need to calc grain size & rho_sed.
             # Assume all parcels are in the active layer for the purposes of
@@ -438,33 +431,26 @@ class NetworkSedimentTransporter(Component):
             # has already been calculated (e.g. during 'zeroing' runs)
 
             # Calculate mean values for density and grain size (weighted by volume).
-            sel_parcels = current_parcels.where(
-                current_parcels.element_id != _OUT_OF_NETWORK
-            )
+            sel_parcels = current_parcels.where(current_parcels.element_id != _OUT_OF_NETWORK)
 
-            d_weighted = sel_parcels.D * sel_parcels.volume
-            rho_weighted = sel_parcels.density * sel_parcels.volume
+            d_weighted = sel_parcels.D*sel_parcels.volume
+            rho_weighted = sel_parcels.density*sel_parcels.volume
             d_weighted.name = "d_weighted"
             rho_weighted.name = "rho_weighted"
 
-            grouped_by_element = xr.merge(
-                (sel_parcels.element_id, sel_parcels.volume, d_weighted, rho_weighted)
-            ).groupby("element_id")
+            grouped_by_element = xr.merge((sel_parcels.element_id,
+                             sel_parcels.volume,
+                             d_weighted,
+                             rho_weighted)).groupby("element_id")
 
-            d_avg = (
-                grouped_by_element.sum().d_weighted / grouped_by_element.sum().volume
-            )
-            rho_avg = (
-                grouped_by_element.sum().rho_weighted / grouped_by_element.sum().volume
-            )
+            d_avg = grouped_by_element.sum().d_weighted/grouped_by_element.sum().volume
+            rho_avg = grouped_by_element.sum().rho_weighted/grouped_by_element.sum().volume
 
             self._d_mean_active = np.zeros(self._grid.size("link"))
             self._d_mean_active[d_avg.element_id.values.astype(int)] = d_avg.values
 
             self._rhos_mean_active = np.zeros(self._grid.size("link"))
-            self._rhos_mean_active[
-                rho_avg.element_id.values.astype(int)
-            ] = rho_avg.values
+            self._rhos_mean_active[rho_avg.element_id.values.astype(int)] = rho_avg.values
 
         tau = (
             self._fluid_density
@@ -483,9 +469,7 @@ class NetworkSedimentTransporter(Component):
             0.515 * self._d_mean_active * (3.09 * (taustar - 0.0549) ** 0.56)
         )  # in units of m
 
-        self._active_layer_thickness[
-            np.isnan(self._active_layer_thickness)
-        ] = np.average(
+        self._active_layer_thickness[np.isnan(self._active_layer_thickness)] = np.average(
             self._active_layer_thickness[np.isnan(self._active_layer_thickness) == 0]
         )  # assign links with no parcels an average value
 
@@ -505,10 +489,10 @@ class NetworkSedimentTransporter(Component):
 
         for i in range(self._grid.number_of_links):
 
-            if vol_tot[i] > 0:  # only do this check capacity if parcels are in link
+            if self._vol_tot[i] > 0:  # only do this check capacity if parcels are in link
 
                 # First In Last Out.
-                parcel_id_thislink = np.where(current_parcels.element_id == i)[0]
+                parcel_id_thislink = np.nonzero(current_parcels.element_id == i)[0]
 
                 time_arrival_sort = np.flip(
                     np.argsort(
@@ -539,18 +523,15 @@ class NetworkSedimentTransporter(Component):
             self._parcels.dataset.active_layer == _ACTIVE
         ) * (self._this_timesteps_parcels)
 
+
         if np.any(self._active_parcel_records):
             vol_act = self._parcels.calc_aggregate_value(
-                np.sum,
-                "volume",
-                at="link",
-                filter_array=self._active_parcel_records,
-                fill_value=0.0,
+                np.sum, "volume", at="link", filter_array=self._active_parcel_records, fill_value=0.
             )
         else:
-            vol_act = np.zeros_like(vol_tot)
+            vol_act = np.zeros_like(self._vol_tot)
 
-        self._vol_stor = (vol_tot - vol_act) / (1 - self._bed_porosity)
+        self._vol_stor = (self._vol_tot - vol_act) / (1 - self._bed_porosity)
 
     def _adjust_node_elevation(self):
         """Adjusts slope for each link based on parcel motions from last
@@ -640,25 +621,13 @@ class NetworkSedimentTransporter(Component):
         # Initialize _pvelocity, the virtual velocity of each parcel (link length / link travel time)
         self._pvelocity = np.zeros(self._num_parcels)
 
-        # Calculate total volume of sediment at each link.
-        try:
-            vol_tot = self._parcels.calc_aggregate_value(
-                np.sum, "volume", at="link", filter_array=self._find_now, fill_value=0.0
-            )
-        except ValueError:
-            vol_tot = np.zeros(self._grid.size("link"))
-
         # Calculate active volume of sediment at each link.
         if np.any(self._active_parcel_records):
             vol_act = self._parcels.calc_aggregate_value(
-                np.sum,
-                "volume",
-                at="link",
-                filter_array=self._active_parcel_records,
-                fill_value=0.0,
+                np.sum, "volume", at="link", filter_array=self._active_parcel_records, fill_value=0.0
             )
         else:
-            vol_act = np.zeros_like(vol_tot)
+            vol_act = np.zeros_like(self._vol_tot)
 
         # parcel attribute arrays from DataRecord
 
@@ -666,9 +635,7 @@ class NetworkSedimentTransporter(Component):
         Activearray = self._parcels.dataset.active_layer[:, self._time_idx].values
         Rhoarray = self._parcels.dataset.density.values
         Volarray = self._parcels.dataset.volume[:, self._time_idx].values
-        Linkarray = self._parcels.dataset.element_id[
-            :, self._time_idx
-        ].values  # link that the parcel is currently in
+        Linkarray = self._parcels.dataset.element_id[:, self._time_idx].values  # link that the parcel is currently in
 
         R = (Rhoarray - self._fluid_density) / self._fluid_density
 
@@ -706,14 +673,12 @@ class NetworkSedimentTransporter(Component):
         # Calc attributes for each link, map to parcel arrays
         for i in range(self._grid.number_of_links):
 
-            active_here = np.nonzero(
-                np.logical_and(Linkarray == i, Activearray == _ACTIVE)
-            )[0]
+            active_here = np.nonzero(np.logical_and(Linkarray == i, Activearray == _ACTIVE))[0]
             d_act_i = Darray[active_here]
             vol_act_i = Volarray[active_here]
             rhos_act_i = Rhoarray[active_here]
             vol_act_tot_i = np.sum(vol_act_i)
-            # ^ this behaves as expected. filterarray to create vol_tot above does not. --> FIXED?
+            # ^ this behaves as expected. filterarray to create self._vol_tot above does not. --> FIXED?
             self._d_mean_active[i] = np.sum(d_act_i * vol_act_i) / (vol_act_tot_i)
             if vol_act_tot_i > 0:
                 self._rhos_mean_active[i] = np.sum(rhos_act_i * vol_act_i) / (
@@ -778,7 +743,7 @@ class NetworkSedimentTransporter(Component):
         self._pvelocity[np.isnan(self._pvelocity)] = 0.0
 
         # Assign those things to the grid -- might be useful for plotting later...?
-        self._grid.at_link["sediment_total_volume"] = vol_tot
+        self._grid.at_link["sediment_total_volume"] = self._vol_tot
         self._grid.at_link["sediment__active__volume"] = vol_act
         self._grid.at_link["sediment__active__sand_fraction"] = frac_sand
 
@@ -820,14 +785,14 @@ class NetworkSedimentTransporter(Component):
         active_parcel_ids = np.nonzero(in_network * active)[0]
 
         distance_left_to_travel = distance_to_travel_this_timestep.copy()
-        while np.any(distance_left_to_travel > 0.0):
+        while np.any(distance_left_to_travel>0.):
 
             # Step 1: Move parcels downstream.
             on_network = current_link != _OUT_OF_NETWORK
 
-            moving_parcels = (distance_left_to_travel > 0.0) * on_network
+            moving_parcels = (distance_left_to_travel>0.) * on_network
 
-            # print('t={t}, moving {x} parcels'.format(t=self._time_idx, x=np.sum(moving_parcels)))
+            #print('t={t}, moving {x} parcels'.format(t=self._time_idx, x=np.sum(moving_parcels)))
 
             ## Figure out which parcels are moving within their links, and which
             # are moving beyond their links.
@@ -836,48 +801,30 @@ class NetworkSedimentTransporter(Component):
             current_link_lengths = self._grid.at_link["reach_length"][current_link]
 
             # Determine where they are in the current link.
-            distance_to_exit_current_link = current_link_lengths * (
-                1.0 - location_in_link
-            )
+            distance_to_exit_current_link = current_link_lengths * (1.0 - location_in_link)
 
             # Identify which ones will come to rest in the current link.
-            rest_this_link = (
-                (distance_left_to_travel < distance_to_exit_current_link)
-                * on_network
-                * (distance_left_to_travel > 0.0)
-            )
+            rest_this_link = (distance_left_to_travel < distance_to_exit_current_link) * on_network * (distance_left_to_travel>0.)
 
             ## Deal with those staying in the current link.
             if np.any(rest_this_link):
-                # print('  {x} coming to rest'.format(x=np.sum(rest_this_link)))
+                #print('  {x} coming to rest'.format(x=np.sum(rest_this_link)))
 
                 # for those staying in this link, calculate the location in link
                 # (note that this is a proportional distance). AND change distance_left_to_travel to 0.0
-                location_in_link[rest_this_link] = 1.0 - (
-                    (
-                        distance_to_exit_current_link[rest_this_link]
-                        - distance_left_to_travel[rest_this_link]
-                    )
-                    / current_link_lengths[rest_this_link]
-                )
+                location_in_link[rest_this_link] = 1.0 - ((distance_to_exit_current_link[rest_this_link]-distance_left_to_travel[rest_this_link])/current_link_lengths[rest_this_link])
 
                 distance_left_to_travel[rest_this_link] = 0.0
 
             ## Deal with those moving to a downstream link.
-            moving_downstream = (
-                (distance_left_to_travel >= distance_to_exit_current_link)
-                * on_network
-                * (distance_left_to_travel > 0.0)
-            )
+            moving_downstream = (distance_left_to_travel >= distance_to_exit_current_link) * on_network * (distance_left_to_travel>0.)
             if np.any(moving_downstream):
-                # print('  {x} next link'.format(x=np.sum(moving_downstream)))
+                #print('  {x} next link'.format(x=np.sum(moving_downstream)))
                 # change location in link to 0
                 location_in_link[moving_downstream] = 0.0
 
                 # decrease distance to travel.
-                distance_left_to_travel[
-                    moving_downstream
-                ] -= distance_to_exit_current_link[moving_downstream]
+                distance_left_to_travel[moving_downstream] -= distance_to_exit_current_link[moving_downstream]
 
                 # change current link to the downstream link.
 
@@ -892,12 +839,12 @@ class NetworkSedimentTransporter(Component):
                 moved_oon = downstream_link == self._grid.BAD_INDEX
 
                 if np.any(moved_oon):
-                    # print('  {x} exiting network'.format(x=np.sum(moved_oon)))
+                    #print('  {x} exiting network'.format(x=np.sum(moved_oon)))
 
                     current_link[moved_oon] = _OUT_OF_NETWORK
                     # assign location in link of np.nan to those which moved oon
                     location_in_link[moved_oon] = np.nan
-                    distance_left_to_travel[moved_oon] = 0.0
+                    distance_left_to_travel[moved_oon] = 0.
 
         # Step 2: Parcel is at rest... Now update its information.
 
