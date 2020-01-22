@@ -37,6 +37,9 @@ have finished reading the documentation, consider making an
 `Issue <https://github.com/landlab/landlab/issues/>`_ to ask the
 development team for help.
 
+
+We recommend that you review the Landlab development practices:
+
 .. toctree::
    :maxdepth: 2
 
@@ -45,7 +48,7 @@ development team for help.
 Files structure
 ---------------
 For your new component, you should create a folder in
-`landlab/landlab/components` that contains:
+``landlab/landlab/components`` caled ``<my_component_name>`` that contains:
 
 - Your Python script `my_component_name.py`
 - `_init_.py` which is structured as
@@ -60,13 +63,24 @@ For your new component, you should create a folder in
       - `'.my_component_name'` is the name of the python script.
       - `'MyComponent'` is as defined in the _name header of your python script
 
-- a folder in the `tests/components/` directory containing unit tests. The unit
-  tests are run every time changes are pushed to the Landlab repository. They
-  should go through every line of your code (e.g. test every possible scenario in
-  if/else loops, exceptions, etc.). See
+  See `this tutorial <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/making_components/making_components.ipynb>`_
+  on making a component for additional document requirements.
+
+  In addition there are a number of recommendations and requirements for
+  Landlab components :ref:`summarized here <dev_component_rules>`.
+
+- a folder in the ``landlab/tests/components/<my_component_name>`` directory containing
+  unit tests. The unit tests are run every time changes are pushed to the
+  Landlab repository. They should go through every line of your code (e.g.
+  test every possible scenario in if/else loops, exceptions, etc.). See
   `the tutorial on making a component <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/making_components/making_components.ipynb>`_
   for instructions about making docstring tests and the next section for more
   information about making the unit tests.
+
+- a document in ``docs/source/reference/components`` called ``my_component_name.rst``.
+  Look at other documents in that folder to get a sense of the typical format.
+  This document is what will put your component's documentation on the
+  ReadTheDocs page. See more below.
 
 Once everything is working, you can :ref:`create a pull request <landlab_develop_with_git>`
 to have your branch merged into the master so that your component can be

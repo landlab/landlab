@@ -57,6 +57,22 @@ class SteepnessFinder(Component):
     >>> mg.at_node['channel__steepness_index'].reshape((3, 10))[1, :]
     array([ 0.        ,  1.22673541,  1.2593727 ,  1.27781936,  1.25659369,
             1.12393156,  0.97335328,  0.79473963,  0.56196578,  0.        ])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Wobus, C. W., Whipple, K. X., Kirby, E., Snyder, N. P., Johnson, J.,
+    Spyropolou, K., Crosby, B. T., and Sheenan, D.: Tectonics from topography:
+    Procedures, promise, and pitfalls, in: Tectonics, Climate, and Landscape
+    Evolution, edited by: Willett, S. D., Hovius, N., Brandon, M. T., and
+    Fisher, D., Geological Society of America Special Paper 398, Geological
+    Society of America, Boulder, CO, USA, 55–74, 2006.
+
     """
 
     _name = "SteepnessFinder"

@@ -43,6 +43,19 @@ To get a time to next fire:
 
 >>> fg.generate_fire_recurrence()  # doctest: +SKIP
 10.68
+
+References
+----------
+**Required Software Citation(s) Specific to this Component**
+
+None Listed
+
+**Additional References**
+
+Polakow, D., Dunne, T. (1999). Modelling fire-return interval T: stochasticity
+and censoring in the two-parameter Weibull model Ecological Modelling  121(1),
+79-102. https://dx.doi.org/10.1016/s0304-3800(99)00074-5
+
 """
 
 from random import weibullvariate

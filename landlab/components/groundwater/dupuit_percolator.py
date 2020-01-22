@@ -61,24 +61,6 @@ class GroundwaterDupuitPercolator(Component):
     to the aquifer base. For more details, see component documentation
     :ref:`here <dupuit_theory>`.
 
-    Parameters
-    ----------
-    grid: ModelGrid
-            Landlab ModelGrid object
-    hydraulic_conductivity: float, field name, or array of float
-            saturated hydraulic conductivity, m/s.
-            Default = 0.001 m/s
-    porosity: float, field name or array of float
-            the porosity of the aquifer [-].
-            Default = 0.2
-    recharge_rate: float, field name, or array of float
-            Rate of recharge, m/s.
-            Default = 1.0e-8 m/s
-    regularization_f: float
-            factor controlling the smoothness of the transition between
-            surface and subsurface flow.
-            Default = 1e-2
-
     Examples
     --------
     Import the grid class and component
@@ -169,6 +151,21 @@ class GroundwaterDupuitPercolator(Component):
     An explicit forward in time finite volume method is used to implement a
     numerical solution. Flow discharge between neighboring nodes is calculated
     using the saturated thickness at the up-gradient node.
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    A publication is currently under review at the Journal of Open Source Software
+
+    **Additional References**
+
+    Marçais, J., de Dreuzy, J. R. & Erhel, J. Dynamic coupling of subsurface
+    and seepage flows solved within a regularized partition formulation.
+    Advances in Water Resources 109, 94–105 (2017).
+
+    Childs, E. C. Drainage of Groundwater Resting on a Sloping Bed. Water
+    Resources Research 7, 1256–1263 (1971).
     """
 
     _name = "GroundwaterDupuitPercolator"
@@ -274,7 +271,6 @@ class GroundwaterDupuitPercolator(Component):
         courant_coefficient=0.01,
     ):
         """
-
         Parameters
         ----------
         grid: ModelGrid
