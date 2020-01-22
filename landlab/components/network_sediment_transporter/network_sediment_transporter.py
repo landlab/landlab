@@ -55,6 +55,7 @@ _REQUIRED_PARCEL_ATTRIBUTES = [
 _ACTIVE = 1
 _INACTIVE = 0
 
+_SAND_SIZE = 0.002
 
 class NetworkSedimentTransporter(Component):
     """
@@ -64,6 +65,9 @@ class NetworkSedimentTransporter(Component):
     described in Czuba (2018). Additions include: particle abrasion, variable
     active layer thickness (Wong et al., 2007).
 
+    This component cares about units.
+
+    TODO: statement about what units are required, including for dt (seconds)
 
     **Usage:**
     Option 1 - Basic::
@@ -347,7 +351,10 @@ class NetworkSedimentTransporter(Component):
         # Note that at present FlowDirector is just used for network connectivity.
 
         # get alluvium depth and calculate topography from br+alluvium, then update slopes.
+
         self._create_new_parcel_time()
+        self._calculate_mean_D_and_rho()
+
         self._partition_active_and_storage_layers()
         self._adjust_node_elevation()
         self._update_channel_slopes()
@@ -380,10 +387,10 @@ class NetworkSedimentTransporter(Component):
         )
         self._this_timesteps_parcels[:, -1] = True
 
-        self._parcels_off_grid = (
+        parcels_off_grid = (
             self._parcels.dataset.element_id[:, -1] == _OUT_OF_NETWORK
         )
-        self._this_timesteps_parcels[self._parcels_off_grid, -1] = False
+        self._this_timesteps_parcels[parcels_off_grid, -1] = False
 
         self._num_parcels = self._parcels.number_of_items
         # ^ needs to run just in case we've added more parcels
@@ -402,11 +409,48 @@ class NetworkSedimentTransporter(Component):
                 self._grid.at_link["reach_length"][i],
             )
 
+    def _calculate_mean_D_and_rho(self):
+        """Calculate mean grain size and density on each link"""
+
+        current_parcels = self._parcels.dataset.isel(time=self._time_idx)
+
+        # In the first full timestep, we need to calc grain size & rho_sed.
+        # Assume all parcels are in the active layer for the purposes of
+        # grain size and mean sediment density calculations
+
+        # FUTURE: make it possible to circumvent this if mean grain size
+        # has already been calculated (e.g. during 'zeroing' runs)
+
+        # Calculate mean values for density and grain size (weighted by volume).
+        sel_parcels = current_parcels.where(current_parcels.element_id != _OUT_OF_NETWORK)
+
+        d_weighted = sel_parcels.D*sel_parcels.volume
+        rho_weighted = sel_parcels.density*sel_parcels.volume
+        d_weighted.name = "d_weighted"
+        rho_weighted.name = "rho_weighted"
+
+        grouped_by_element = xr.merge((sel_parcels.element_id,
+                         sel_parcels.volume,
+                         d_weighted,
+                         rho_weighted)).groupby("element_id")
+
+        d_avg = grouped_by_element.sum().d_weighted/grouped_by_element.sum().volume
+        rho_avg = grouped_by_element.sum().rho_weighted/grouped_by_element.sum().volume
+
+        self._d_mean_active = np.zeros(self._grid.size("link"))
+        self._d_mean_active[d_avg.element_id.values.astype(int)] = d_avg.values
+
+        self._rhos_mean_active = np.zeros(self._grid.size("link"))
+        self._rhos_mean_active[rho_avg.element_id.values.astype(int)] = rho_avg.values
+
     def _partition_active_and_storage_layers(self, **kwds):
         """For each parcel in the network, determines whether it is in the
         active or storage layer during this timestep, then updates node
         elevations.
+
         """
+        current_parcels = self._parcels.dataset.isel(time=self._time_idx)
+
         try:
             self._vol_tot = self._parcels.calc_aggregate_value(
                 np.sum, "volume", at="link", filter_array=self._this_timesteps_parcels, fill_value=0.
@@ -419,38 +463,6 @@ class NetworkSedimentTransporter(Component):
         # This circumvents the need for an iterative scheme to determine grain
         # size of the active layer before determining which grains are in the
         # active layer.
-
-        current_parcels = self._parcels.dataset.isel(time=self._time_idx)
-        if self._time_idx == 0: #KRB-Q: Why only the first timestep. Parcels will move around... so shouldn't this happen every timestep.
-
-            # In the first full timestep, we need to calc grain size & rho_sed.
-            # Assume all parcels are in the active layer for the purposes of
-            # grain size and mean sediment density calculations
-
-            # FUTURE: make it possible to circumvent this if mean grain size
-            # has already been calculated (e.g. during 'zeroing' runs)
-
-            # Calculate mean values for density and grain size (weighted by volume).
-            sel_parcels = current_parcels.where(current_parcels.element_id != _OUT_OF_NETWORK)
-
-            d_weighted = sel_parcels.D*sel_parcels.volume
-            rho_weighted = sel_parcels.density*sel_parcels.volume
-            d_weighted.name = "d_weighted"
-            rho_weighted.name = "rho_weighted"
-
-            grouped_by_element = xr.merge((sel_parcels.element_id,
-                             sel_parcels.volume,
-                             d_weighted,
-                             rho_weighted)).groupby("element_id")
-
-            d_avg = grouped_by_element.sum().d_weighted/grouped_by_element.sum().volume
-            rho_avg = grouped_by_element.sum().rho_weighted/grouped_by_element.sum().volume
-
-            self._d_mean_active = np.zeros(self._grid.size("link"))
-            self._d_mean_active[d_avg.element_id.values.astype(int)] = d_avg.values
-
-            self._rhos_mean_active = np.zeros(self._grid.size("link"))
-            self._rhos_mean_active[rho_avg.element_id.values.astype(int)] = rho_avg.values
 
         tau = (
             self._fluid_density
@@ -492,7 +504,7 @@ class NetworkSedimentTransporter(Component):
             if self._vol_tot[i] > 0:  # only do this check capacity if parcels are in link
 
                 # First In Last Out.
-                parcel_id_thislink = np.nonzero(current_parcels.element_id == i)[0]
+                parcel_id_thislink = np.where(current_parcels.element_id == i)[0]
 
                 time_arrival_sort = np.flip(
                     np.argsort(
@@ -652,15 +664,12 @@ class NetworkSedimentTransporter(Component):
 
         # find active sand.
         findactivesand = (
-            self._parcels.dataset.D < 0.002
+            self._parcels.dataset.D < _SAND_SIZE
         ) * self._active_parcel_records  # since find active already sets all prior timesteps to False, we can use D for all timesteps here.
 
         if np.any(findactivesand):
             # print("there's active sand!")
-            vol_act_sand = self._parcels.calc_aggregate_value(
-                np.sum, "volume", at="link", filter_array=findactivesand
-            )
-            vol_act_sand[np.isnan(vol_act_sand)] = 0
+            vol_act_sand = self._parcels.calc_aggregate_value(np.sum, "volume", at="link", filter_array=findactivesand, fill_value=0.)
         else:
             vol_act_sand = np.zeros(self._grid.number_of_links)
 
