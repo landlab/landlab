@@ -63,8 +63,8 @@ to
 `install a prepackaged binary <https://landlab.readthedocs.io/en/latest/install/index.html>`_.
 We distribute through both conda-forge and pip.
 
-Conda Environment with Binary
-`````````````````````````````
+Conda Environment with Pre-packaged Binary Distribution
+```````````````````````````````````````````````````````
 
 To create a conda environment that installs a pre-packaged binary and all the
 dependencies necessary to run the notebooks, clone the repository, navigate to
@@ -102,16 +102,18 @@ the following commands:
 How do I verify I've installed Landlab correctly?
 -------------------------------------------------
 
-Landlab uses pytest to discover and run tests. Presuming you have used a source
-code installation with the above conda environment, you will be able to test
-your install with
+Landlab uses pytest to discover and run tests. These include docstring tests
+located within the core source code (``landlab\landlab`` directory) and unit
+tests located within the ``landlab\tests`` directory. Presuming you have used a
+source code installation with the above conda environment, you will be able to
+test your install with
 
 .. code-block::
 
     $ pytest
 
-from within the ``landlab_dev`` conda environment. Additional instructions
-can be found
+from within the ``landlab_dev`` conda environment. Additional instructions,
+including how the unit tests directory is structured can be found
 `here <https://landlab.readthedocs.io/en/master/development/install/test.html>`_.
 
 What are Landlab's dependencies?
@@ -130,7 +132,7 @@ How do I learn more about Landlab?
 Our documentation is hosted on ReadTheDocs at https://landlab.readthedocs.io/.
 This includes a User Guide and API reference.
 
-Hobley et al. (2017) describes the design of Landlab.
+The following paper describes the design of Landlab.
 
 `Hobley, D. E. J. <https://www.earth-surf-dynam.net/5/21/2017/>`__, Adams,
 J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu,
@@ -142,7 +144,7 @@ of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46,
 Are there any examples of using Landlab I can look at?
 ------------------------------------------------------
 
-The Landlab package contains a directory called ``notebook`` which contains
+The Landlab package contains a directory at ``landlab/notebooks`` which contains
 Jupyter notebooks describe core concepts and give examples of using components.
 The file ``landlab/notebooks/welcome.ipynb`` provides a table of contents to
 the notebooks and is the recommended starting place. To launch an instance of
