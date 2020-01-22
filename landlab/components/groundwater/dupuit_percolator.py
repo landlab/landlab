@@ -54,11 +54,12 @@ class GroundwaterDupuitPercolator(Component):
     The GroundwaterDupuitPercolator solves the Boussinesq equation for
     flow in an unconfined aquifer over an impermeable aquifer base and
     calculates groundwater return flow to the surface. This method uses the
-    Dupuit approximation that the hydraulic gradient is zero in the direction
-    normal to the aquifer base. For this reason, aquifer thickness
-    and regolith thickness are calculated in the direction normal to the
-    aquifer base. The hydraulic gradient is also calculated relative
-    to the aquifer base. For more details, see component documentation
+    Dupuit-Forcheimer approximation. This means that the model assumes the
+    aquifer is laterally extensive in comparison to its thickness, such that
+    the vertical component of flow is negligible. It also assumes that the
+    capillary fringe is small, such that the water table can be modeled as a
+    free surface. Please consider the applicability of these assumptions when
+    using this model. For more details, see component documentation
     :ref:`here <dupuit_theory>`.
 
     Examples
