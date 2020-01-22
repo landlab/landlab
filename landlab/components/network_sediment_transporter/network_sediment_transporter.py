@@ -462,6 +462,7 @@ class NetworkSedimentTransporter(Component):
         # size of the active layer before determining which grains are in the
         # active layer.
 
+        # calculate tau
         tau = (
             self._fluid_density
             * self._g
@@ -469,12 +470,14 @@ class NetworkSedimentTransporter(Component):
             * self._flow_depth[self._time_idx, :]
         )
 
+        # calcuate taustar
         taustar = tau / (
             (self._rhos_mean_active - self._fluid_density)
             * self._g
             * self._d_mean_active
         )
 
+        # calculate active layer thickness
         self._active_layer_thickness = (
             0.515 * self._d_mean_active * (3.09 * (taustar - 0.0549) ** 0.56)
         )  # in units of m
