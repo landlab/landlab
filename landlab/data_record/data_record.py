@@ -1126,8 +1126,6 @@ class DataRecord(object):
         """
         filter_at = self._dataset["grid_element"] == at
 
-        filter_at = self._dataset["grid_element"] == at
-
         valid = np.arange(self._grid[at].size)
 
         filter_valid_element = np.isin(self._dataset["element_id"], valid)
