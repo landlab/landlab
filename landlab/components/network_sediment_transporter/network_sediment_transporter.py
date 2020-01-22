@@ -497,10 +497,11 @@ class NetworkSedimentTransporter(Component):
             * self._active_layer_thickness
         )  # in units of m^3
 
-        active_inactive = np.zeros(self._num_parcels)
+        active_inactive = _INACTIVE * np.ones(self._num_parcels)
 
         current_link = self._parcels.dataset.element_id.values[:, -1].astype(int)
         time_arrival = self._parcels.dataset.time_arrival_in_link.values[:, -1]
+        volumes = self._parcels.dataset.volume.values[:, -1]
 
         for i in range(self._grid.number_of_links):
 
@@ -516,16 +517,13 @@ class NetworkSedimentTransporter(Component):
                 parcel_id_time_sorted = this_links_parcels[time_arrival_sort]
 
                 # calculate the cumulative volume (in sorted order.)
-                cumvol = np.cumsum(
-                    self._parcels.dataset.volume[parcel_id_time_sorted, self._time_idx]
-                )
+                cumvol = np.cumsum(volumes[parcel_id_time_sorted])
 
-                # determine which parcels are over capacity.
-                idxinactive = np.where(cumvol > capacity[i])
-                make_inactive = parcel_id_time_sorted[idxinactive]
+                # determine which parcels are within capacity and set those to
+                # active.
+                make_active = parcel_id_time_sorted[cumvol <= capacity[i]]
 
-                active_inactive[this_links_parcels] = _ACTIVE
-                active_inactive[make_inactive] = _INACTIVE
+                active_inactive[make_active] = _ACTIVE
 
         self._parcels.dataset.active_layer[:, -1] = active_inactive
 
