@@ -80,6 +80,19 @@ class PrecipitationDistribution(Component):
     >>> steps = [(dt + istorm_dt) for (dt, istorm_dt) in precip.yield_storms()]
     >>> np.isclose(sum(steps), 46.)
     True
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Eagleson, P. (1978). Climate, soil, and vegetation: 2. The distribution of
+    annual precipitation derived from observed storm sequences. Water Resources
+    Research  14(5), 713-721. https://dx.doi.org/10.1029/wr014i005p00713
+
     """
 
     _name = "PrecipitationDistribution"

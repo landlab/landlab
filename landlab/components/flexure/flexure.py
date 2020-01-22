@@ -117,6 +117,21 @@ class Flexure(Component):
     >>> flex.update()
     >>> np.all(grid.at_node['lithosphere_surface__elevation_increment'] == 0.)
     False
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Hutton, E., Syvitski, J. (2008). Sedflux 2.0: An advanced process-response
+    model that generates three-dimensional stratigraphy. Computers &
+    Geosciences.  34(10), 1319-1337.
+    https://dx.doi.org/10.1016/j.cageo.2008.02.013
+
+    **Additional References**
+
+    Lambeck, K.: Geophysical Geodesy, The Slow Deformations of the Earth,
+    Clarendon Press, Oxford, UK, 718 pp., 1988.
+
     """
 
     _name = "Flexure"

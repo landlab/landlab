@@ -7,9 +7,14 @@ Writing docstring and unit tests for your component (or utility)
 All contributed code should be well tested. This should be done through both
 doctests and standard unit tests using `pytest <https://docs.pytest.org/en/latest/>`_.
 
-Doctests should be short, easy-to-read tests that are instructive to a user.
-These tests are included as examples in the Landlab
+All public functions, classes, methods, etc. must have a docstring that follows
+the `numpydoc <https://numpydoc.readthedocs.io/en/latest/format.html>`_
+conventions. Docstring tests should be short, easy-to-read tests that are
+instructive to a user. These tests are included as examples in the Landlab
 :ref:`Reference Manual <landlab>`.
+
+Every ``.py`` file must contain a module-level docstring at the top of the file
+that describes what the purpose of the file is.
 
 Unit tests should be more extensive than doctests and give your new code
 thorough testing. Ideally your tests will cover what happens within every

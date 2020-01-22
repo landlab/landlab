@@ -27,29 +27,35 @@ class SinkFillerBarnes(LakeMapperBarnes):
     The locations and depths etc. of the fills will be tracked, and properties
     are provided to access this information.
 
-    Parameters
+    References
     ----------
-    grid : ModelGrid
-        A grid.
-    surface : field name at node or array of length node
-        The surface to fill.
-    method : {'Steepest', 'D8'}
-        Whether or not to recognise diagonals as valid flow paths, if a raster.
-        Otherwise, no effect.
-    fill_flat : bool
-        If True, pits will be filled to perfectly horizontal. If False, the new
-        surface will be slightly inclined (at machine precision) to give
-        steepest descent flow paths to the outlet, once they are calculated.
-    ignore_overfill : bool
-        If True, suppresses the Error that would normally be raised during
-        creation of a gentle incline on a fill surface (i.e., if not
-        fill_flat). Typically this would happen on a synthetic DEM where more
-        than one outlet is possible at the same elevation. If True, the
-        was_there_overfill property can still be used to see if this has
-        occurred.
+    **Required Software Citation(s) Specific to this Component**
+
+    Barnes, R., Lehman, C., Mulla, D. (2014). Priority-flood: An optimal
+    depression-filling and watershed-labeling algorithm for digital elevation
+    models. Computers and Geosciences  62(C), 117 - 127.
+    https://dx.doi.org/10.1016/j.cageo.2013.04.024
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "SinkFillerBarnes"
+
+    _cite_as = """@article{BARNES2014117,
+        title = "Priority-flood: An optimal depression-filling and watershed-labeling algorithm for digital elevation models",
+        journal = "Computers & Geosciences",
+        volume = "62",
+        pages = "117 - 127",
+        year = "2014",
+        issn = "0098-3004",
+        doi = "https://doi.org/10.1016/j.cageo.2013.04.024",
+        url = "http://www.sciencedirect.com/science/article/pii/S0098300413001337",
+        author = "Richard Barnes and Clarence Lehman and David Mulla",
+        keywords = "Pit filling, Terrain analysis, Hydrology, Drainage network, Modeling, GIS"
+        }"""
 
     _info = {
         "sediment_fill__depth": {
@@ -78,7 +84,30 @@ class SinkFillerBarnes(LakeMapperBarnes):
         fill_flat=False,
         ignore_overfill=False,
     ):
-        """Initialise the component."""
+        """Initialise the component.
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            A grid.
+        surface : field name at node or array of length node
+            The surface to fill.
+        method : {'Steepest', 'D8'}
+            Whether or not to recognise diagonals as valid flow paths, if a raster.
+            Otherwise, no effect.
+        fill_flat : bool
+            If True, pits will be filled to perfectly horizontal. If False, the new
+            surface will be slightly inclined (at machine precision) to give
+            steepest descent flow paths to the outlet, once they are calculated.
+        ignore_overfill : bool
+            If True, suppresses the Error that would normally be raised during
+            creation of a gentle incline on a fill surface (i.e., if not
+            fill_flat). Typically this would happen on a synthetic DEM where more
+            than one outlet is possible at the same elevation. If True, the
+            was_there_overfill property can still be used to see if this has
+            occurred.
+
+        """
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
                 msg = (
