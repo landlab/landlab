@@ -74,7 +74,7 @@ In a terminal type:
 
 .. code-block:: bash
 
-  $ pip update landlab
+  $ pip install --upgrade --pre landlab
 
 Uninstall
 `````````
