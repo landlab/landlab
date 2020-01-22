@@ -1127,10 +1127,10 @@ class DataRecord(object):
 
         filter_valid_element = (self._dataset["element_id"] >= 0) * (self._dataset["element_id"] < self._grid[at].size)
 
-        if np.any(filter_array):
-            my_filter = filter_at & filter_array & filter_valid_element
+        if filter_array is None:
+            my_filter = filter_at * filter_valid_element
         else:
-            my_filter = filter_at & filter_valid_element
+            my_filter = filter_at * filter_valid_element * filter_array
 
         if np.any(my_filter):
             # Filter DataRecord with my_filter and groupby element_id:
