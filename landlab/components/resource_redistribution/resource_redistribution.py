@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 """
 06 Jul 2018
@@ -25,12 +26,26 @@ BURNTSHRUB = 4
 
 class ResourceRedistribution(Component):
     """
-    What is this component (brief description)?
+    Landlab component that implements a two-state cellular automata
+    model, that couples categorical vegetation (V) states and soil
+    resource level (R), conceptualized by Ravi and D'Odorico (2009). 
     
-    A little more information about this component!
+    Each cell in the RasterModelGrid object can take an integer from
+    0 through 4 to represent the cell states for bare soil [0],
+    grass [1], shrub [2], burnt grass [3], and burnt shrub [4].
+    R is conceptualized to represent a soil resource value relative
+    to the mean resource level of a productiive ecosystem (default:
+    -2 to 2).
 
-    What does this component output? Are there multiple
-    processes? What are the key methods?
+    There are four key process representing methods in this
+    component: establish(), mortality(), erode(), and deposit().
+    re_adjust_resource() is a helpful utility function that helps
+    limit R within the thresholds.
+    
+    Ref: Ravi, S., & D’Odorico, P. (2009). Post-fire 
+    resource redistribution and fertility island dynamics
+    in shrub encroached desert grasslands: a modeling approach.
+    Landscape Ecology, 24(3), 325-335.
 
     Examples
     --------
@@ -298,7 +313,7 @@ class ResourceRedistribution(Component):
     def erode(self):
         """
         This method removes resource R from a cell depending on the
-        PFT occupying that cell in discrete units of e.
+        vegetation (PFT) occupying that cell in discrete units of e.
         """
         V = self.grid.at_cell["vegetation__plant_functional_type"]
         R = self.grid.at_cell["soil__resources"]
