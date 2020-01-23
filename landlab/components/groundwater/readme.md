@@ -1,6 +1,6 @@
 ## Welcome to the README for the GroundwaterDupuitPercolator component submodule.
 
-Markdown: [![status](https://joss.theoj.org/papers/6936ca6851c622de48b2c5f6cf45a7bd/status.svg)](https://joss.theoj.org/papers/6936ca6851c622de48b2c5f6cf45a7bd)
+[![status](https://joss.theoj.org/papers/6936ca6851c622de48b2c5f6cf45a7bd/status.svg)](https://joss.theoj.org/papers/6936ca6851c622de48b2c5f6cf45a7bd)
 
 The GroundwaterDupuitPercolator is a component in Landlab for simulating shallow
 subsurface flow. A [paper describing it](https://joss.theoj.org/papers/6936ca6851c622de48b2c5f6cf45a7bd)
@@ -18,7 +18,7 @@ installation are available:
 distributed through PyPI or conda-forge and a
 [source code installation](https://landlab.readthedocs.io/en/master/development/install/index.html#developer-install).
 
-The dependencies of the Landlab package are described [here]().  **TODO: update link when this page exists, its currently in a PR**
+The dependencies of the Landlab package are described [here](https://landlab.readthedocs.io/en/master/development/practices/dependencies.html).  
 
 ### Documentation
 The documentation specific to this component is housed within the Landlab
