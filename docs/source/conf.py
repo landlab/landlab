@@ -54,7 +54,8 @@ source_suffix = '.rst'
 
 # Regex for links that we know work in browser, but do not work in sphinx/CI (BE VERY CAREFUL ADDING LINKS TO THIS LIST)
 linkcheck_ignore = [
-    r'https://pubs.geoscienceworld.org/gsa/geology.*' # Added by KRB Dec 2019, at this point two links match this pattern
+    r'https://pubs.geoscienceworld.org/gsa/geology.*', # Added by KRB Dec 2019, at this point two links match this pattern
+    r'https://dx.doi.org/10.1130/*', # added by KRB Jan 2019. Four links match this pattern
     ]
 
 # The master toctree document.

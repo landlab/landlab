@@ -241,6 +241,20 @@ class SpatialPrecipitationDistribution(Component):
     >>> np.isclose(mean_rf_last_year[2],
     ...            mean_rf_season[0] + mean_rf_season[1])
     True
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Singer, M., Michaelides, K., Hobley, D. (2018). STORM 1.0: a simple,
+    flexible, and parsimonious stochastic rainfall generator for simulating
+    climate and climate change. Geoscientific Model Development  11(9),
+    3713-3726. https://dx.doi.org/10.5194/gmd-11-3713-2018
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "SpatialPrecipitationDistribution"

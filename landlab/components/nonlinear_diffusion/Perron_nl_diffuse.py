@@ -50,6 +50,19 @@ class PerronNLDiffuse(Component):
     ...       0.        ,  0.        ,  0.        ,  0.        ,  0.        ])
     >>> np.allclose(z, z_target)
     True
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Perron, J. (2011). Numerical methods for nonlinear hillslope transport laws.
+    Journal of Geophysical Research  116(F2), 23 - 13.
+    https://dx.doi.org/10.1029/2010jf001801
+
     """
 
     _name = "PerronNLDiffuse"

@@ -26,21 +26,6 @@ class TaylorNonLinearDiffuser(Component):
     The default behavior uses two terms to produce a flux law as described by
     Equation 6 of Ganti et al., (2012).
 
-    Parameters
-    ----------
-    grid: ModelGrid
-        Landlab ModelGrid object
-    linear_diffusivity: float, optional
-        Hillslope diffusivity, m**2/yr
-        Default = 1.0
-    slope_crit: float, optional
-        Critical slope
-        Default = 1.0
-    nterms: int, optional
-        number of terms in the Taylor expansion.
-        Two terms (Default) gives the behavior
-        described in Ganti et al. (2012).
-
     Examples
     --------
     >>> import numpy as np
@@ -135,9 +120,39 @@ class TaylorNonLinearDiffuser(Component):
     >>> cubicflux.run_one_step(10.)
     >>> np.any(np.isnan(z))
     False
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Barnhart, K., Glade, R., Shobe, C., Tucker, G. (2019). Terrainbento 1.0: a
+    Python package for multi-model analysis in long-term drainage basin
+    evolution. Geoscientific Model Development  12(4), 1267--1297.
+    https://dx.doi.org/10.5194/gmd-12-1267-2019
+
+    **Additional References**
+
+    Ganti, V., Passalacqua, P., Foufoula-Georgiou, E. (2012). A sub-grid scale
+    closure for nonlinear hillslope sediment transport models Journal of
+    Geophysical Research: Earth Surface  117(F2).
+    https://dx.doi.org/10.1029/2011jf002181
+
     """
 
     _name = "TaylorNonLinearDiffuser"
+
+    _cite_as = """
+    @article{barnhart2019terrain,
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      doi = {10.5194/gmd-12-1267-2019},
+      pages = {1267---1297},
+      number = {4},
+      volume = {12},
+      journal = {Geoscientific Model Development},
+      year = {2019},
+    }
+    """
 
     _info = {
         "soil__flux": {

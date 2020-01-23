@@ -98,6 +98,19 @@ class FlowDirectorD8(_FlowDirectorToOne):
     array([0, 1, 2,
            3, 0, 5,
            6, 7, 8])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    O'Callaghan, J., Mark, D. (1984). The extraction of drainage networks from
+    digital elevation data. Computer Vision, Graphics, and Image Processing
+    28(3), 323 - 344. https://dx.doi.org/10.1016/s0734-189x(84)80011-0
+
     """
 
     _name = "FlowDirectorD8"

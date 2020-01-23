@@ -52,14 +52,29 @@ you need to install it. To install Landlab in developer mode, navigate
 to the root Landlab folder (it will be landlab with a small ``l`` and
 will contain the file ``setup.py``) and run the commands below.
 
-Install all of the dependencies required by Landlab into a new environment
-called *landlab_dev*. Read more about
+Landlab has a number of dependencies to run, test, and develop with. These are
+described in more detail :ref:`here <dependencies>`. We have created a conda
+environment file which contains everything you will need for development.
+
+Read more about
 `conda environments <https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html#managing-environments>`_.
 on the conda webpage.
+
+The next step is it create this environment, called *landlab_dev*.
 
 .. code-block:: bash
 
    $ conda env create --file=environment-dev.yml
+
+The conda environment described by ``environment-dev.yml`` contains the minimal
+set of dependencies necessary to run the Landlab tests and notebooks, and keep
+the codebase clean and tidy. It may not include some of your favorite
+development tools (e.g., spyder). See below for how to install additional
+packages into the conda environment.
+
+In addition, this environment does not have everything needed to build the
+documentation. These requirements are specified in the file
+``landlab/docs/environment.yml``.
 
 Activate that environment so that you will be using that version of python and
 all of the dependencies you just installed.
@@ -82,6 +97,7 @@ Conda Environment Tips
 
 *   In order to use the ``landlab_dev`` environment created during installation,
     you will need to activate it every time you open a new terminal instance.
+    Use the command: ``conda activate landlab_dev``.
 *   If you use python tools for your work that are not in the conda environment
     but you have previously installed them on your computer (e.g., spyder),
     you will need to add them to the environment. Use the standard terminal
