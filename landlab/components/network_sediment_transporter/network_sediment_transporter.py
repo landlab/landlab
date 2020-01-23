@@ -934,7 +934,7 @@ def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
     1.0
     >>> _recalculate_channel_slope(0., 0., 10.)
     0.0001
-    >>> with pytest.raises(ValueError):
+    >>> with pytest.raises(RuntimeError):
     ...     _recalculate_channel_slope(0., 10., 10.)
 
     """
