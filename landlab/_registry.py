@@ -30,6 +30,9 @@ Examples
     publisher={Copernicus GmbH}
     }
 
+When a component contains citation information, and the component has been
+instantiated (not just imported) the component citation is also included.
+
 >>> from landlab import RasterModelGrid
 >>> from landlab.components import Flexure
 
@@ -67,6 +70,23 @@ Examples
     year={2008},
     publisher={Pergamon}
     }
+
+Finally, the component's citation information is accessible through an
+attribute called ``cite_as``:
+
+>>> print(Flexure.cite_as)
+    @article{hutton2008sedflux,
+    title={Sedflux 2.0: An advanced process-response model that
+        generates three-dimensional stratigraphy},
+    author={Hutton, Eric WH and Syvitski, James PM},
+    journal={Computers \& Geosciences},
+    volume={34},
+    number={10},
+    pages={1319--1337},
+    year={2008},
+    publisher={Pergamon}
+    }
+
 """
 
 import os
@@ -181,6 +201,7 @@ class ComponentRegistry(object):
         """Get the display name for an object.
 
         Examples
+        --------
         >>> from landlab._registry import ComponentRegistry
         >>> class MontyPython(object):
         ...     name = "Eric Idle"
@@ -195,7 +216,6 @@ class ComponentRegistry(object):
         >>> ComponentRegistry.get_name(MontyPython)
         'MontyPython'
 
-        --------
         """
         name = "Unknown"
         for attr in ("name", "_name", "__name__"):

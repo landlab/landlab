@@ -75,6 +75,20 @@ class SinkFiller(Component):
     >>> fr.run_one_step()
     >>> mg.at_node['flow__sink_flag'][mg.core_nodes].sum()
     0
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Tucker, G., Lancaster, S., Gasparini, N., Bras, R., Rybarczyk, S. (2001).
+    An object-oriented framework for distributed hydrologic and geomorphic
+    modeling using triangulated irregular networks. Computers & Geosciences
+    27(8), 959-973. https://dx.doi.org/10.1016/s0098-3004(00)00134-5
+
     """
 
     _name = "SinkFiller"

@@ -144,13 +144,6 @@ class FractureGridGenerator(Component):
     0 elsewhere. The idea is to use this for simulations based on weathering
     and erosion of, and/or flow within, fracture networks.
 
-    Parameters
-    ----------
-    frac_spacing : int, optional
-        Average spacing of fractures (in grid cells) (default = 10)
-    seed : int, optional
-        Seed used for random number generator (default = 0)
-
     Examples
     --------
     >>> from landlab import RasterModelGrid
@@ -173,6 +166,17 @@ class FractureGridGenerator(Component):
     - Use of starting position along either x or y axis makes fracture net
         somewhat asymmetric. One would need a different algorithm to make it
         fully (statistically) symmetric.
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "FractureGridGenerator"
@@ -189,7 +193,16 @@ class FractureGridGenerator(Component):
     }
 
     def __init__(self, grid, frac_spacing=10.0, seed=0):
-        """Initialize the FractureGridGenerator."""
+        """Initialize the FractureGridGenerator.
+
+        Parameters
+        ----------
+        frac_spacing : int, optional
+            Average spacing of fractures (in grid cells) (default = 10)
+        seed : int, optional
+            Seed used for random number generator (default = 0)
+
+        """
 
         self._frac_spacing = frac_spacing
         self._seed = seed

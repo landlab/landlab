@@ -103,6 +103,20 @@ class StreamPowerEroder(Component):
             0.        ,  0.02240092,  0.06879049,  0.14586033,  0.4       ,
             0.        ,  0.01907436,  0.05960337,  0.12929386,  0.4       ,
             0.        ,  0.1       ,  0.2       ,  0.3       ,  0.4       ])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Braun, J., Willett, S. (2013). A very efficient O(n), implicit and parallel
+    method to solve the stream power equation governing fluvial incision and
+    landscape evolution. Geomorphology  180-181(C), 170-179.
+    https://dx.doi.org/10.1016/j.geomorph.2012.10.008
+
     """
 
     _name = "StreamPowerEroder"

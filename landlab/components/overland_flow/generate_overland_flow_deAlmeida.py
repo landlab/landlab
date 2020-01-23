@@ -166,6 +166,24 @@ class OverlandFlow(Component):
     landlab.components.overland_flow folder.
 
     The primary method of this class is :func:`run_one_step`.
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Adams, J., Gasparini, N., Hobley, D., Tucker, G., Hutton, E., Nudurupati,
+    S., Istanbulluoglu, E. (2017). The Landlab v1. 0 OverlandFlow component:
+    a Python tool for computing shallow-water flow across watersheds.
+    Geoscientific Model Development  10(4), 1645.
+    https://dx.doi.org/10.5194/gmd-10-1645-2017
+
+    **Additional References**
+
+    de Almeida, G., Bates, P., Freer, J., Souvignet, M. (2012). Improving the
+    stability of a simple formulation of the shallow water equations for 2-D
+    flood modeling. Water Resources Research 48(5)
+    https://dx.doi.org/10.1029/2011wr011570
+
     """
 
     _name = "OverlandFlow"

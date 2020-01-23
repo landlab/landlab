@@ -124,6 +124,20 @@ class DepressionFinderAndRouter(Component):
     created by the :py:class:`~landlab.components.flow_accum.FlowAccumulator`
     will have now been modified to route flow over the depressions in the
     surface. The topogrphy itself is not modified.
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Tucker, G. E., Lancaster, S. T., Gasparini, N. M., and Bras, R. L.: The
+    Channel-Hillslope Integrated Landscape Development Model (CHILD), in:
+    Landscape Erosion and Evolution Modeling, Springer US, Boston, MA, USA,
+    349–388, 2001.
+
     """
 
     _name = "DepressionFinderAndRouter"
