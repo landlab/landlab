@@ -24,7 +24,7 @@ class DepthDependentTaylorDiffuser(Component):
 
     .. math::
 
-        q_s = DSH^* ( 1 + (S/S_c)^2 + (S/Sc_)^4 + .. + (S/S_c)^2(n-1) ) (1.0 - exp( H / H^*)
+        q_s = - DSH^* ( 1 + (S/S_c)^2 + (S/Sc_)^4 + .. + (S/S_c)^2(n-1) ) (1.0 - exp( - H / H^*)
 
     where :math:`D` is is the diffusivity, :math:`S` is the slope, :math:`S_c`
     is the critical slope, :math:`n` is the number of terms, :math:`H` is the

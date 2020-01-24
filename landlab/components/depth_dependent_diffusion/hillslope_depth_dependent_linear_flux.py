@@ -19,7 +19,7 @@ class DepthDependentDiffuser(Component):
 
     .. math::
 
-        q_s = D S H^* (1.0 - exp( H / H^*)
+        q_s = - D S H^* (1.0 - exp( - H / H^*)
 
     where :math:`D` is is the diffusivity, :math:`S` is the slope, :math:`H` is
     the soil depth on links, and :math:`H^*` is the soil transport decay depth.
