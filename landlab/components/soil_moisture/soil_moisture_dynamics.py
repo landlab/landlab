@@ -73,8 +73,8 @@ class SoilMoisture(Component):
     >>> np.allclose(grid.at_cell["soil_moisture__saturation_fraction"], 0.)
     True
     >>> grid.at_cell["surface__potential_evapotranspiration_rate"]= np.array([
-...            0.2554777, 0.2554777 , 0.22110221, 0.22110221,
-...            0.24813062, 0.24813062])
+    ...        0.2554777, 0.2554777 , 0.22110221, 0.22110221,
+    ...        0.24813062, 0.24813062])
     >>> grid.at_cell["soil_moisture__initial_saturation_fraction"]= (
     ...        0.75 * np.ones(grid.number_of_cells))
     >>> grid.at_cell["vegetation__live_leaf_area_index"]= (

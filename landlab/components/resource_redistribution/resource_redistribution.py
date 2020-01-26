@@ -1,14 +1,5 @@
 
 # -*- coding: utf-8 -*-
-"""
-06 Jul 2018
-Authors: Sai Nudurupati & Erkan Istanbulluoglu
-
-Resource Redistribution component for landlab. This component
-has erode, deposit, establishment and mortality routines from
-Sujith Ravi's 2009 Landscape Ecology paper.
-0: Bare; 1: Grass; 2: Shrub; 3: Burnt Grass; 4: Burnt Shrub;
-"""
 
 import numpy as np
 from landlab import Component
@@ -37,7 +28,7 @@ class ResourceRedistribution(Component):
     to the mean resource level of a productiive ecosystem (default:
     -2 to 2).
 
-    There are four key process representing methods in this
+    There are four key process-representing methods in this
     component: establish(), mortality(), erode(), and deposit().
     re_adjust_resource() is a helpful utility function that helps
     limit R within the thresholds.
@@ -49,15 +40,74 @@ class ResourceRedistribution(Component):
 
     Examples
     --------
-    - Add an example usage of this class.
-    - Make sure that this example is run as if
-    you are running commands from 'python command window'
-    or 'ipython command window'.
-    - The goal here is to familiarize user with different
-    *input_fields*, and *output_fields*. More detailed
-    the examples are, the better!
-    Note: there might be issues with formatting this area.
-    Deal with them!
+    >>> import numpy as np
+    >>> np.random.seed(0)
+    >>> from landlab import RasterModelGrid as rmg
+    >>> from landlab.components import ResourceRedistribution
+    >>> grid = rmg((5, 4), xy_spacing=(0.2, 0.2))
+    >>> ResourceRedistribution.name
+    'Resource Redistribution'
+    >>> sorted(ResourceRedistribution.output_var_names)
+    ['soil__resources',
+     'vegetation__plant_functional_type']
+    >>> sorted(ResourceRedistribution.units)
+    [('soil__resources', 'None'),
+     ('vegetation__plant_functional_type', 'None')]
+    >>> grid.at_cell["vegetation__plant_functional_type"] = (
+    ...     np.random.randint(0, 5, size=grid.number_of_cells))
+    >>> np.allclose(
+    ...    grid.at_cell["vegetation__plant_functional_type"],
+    ...    np.array([4, 0, 3, 3, 3, 1]))
+    True
+    >>> grid.at_cell["soil__resources"] = (
+    ...     np.ones(grid.number_of_cells, dtype=float))
+    >>> rr = ResourceRedistribution(grid)
+    >>> rr.grid.number_of_cell_rows
+    3
+    >>> rr.grid.number_of_cell_columns
+    2
+    >>> rr.grid is grid
+    True
+    >>> (eroded_soil,
+    ...  eroded_soil_shrub,
+    ...  burnt_shrub,
+    ...  burnt_grass,
+    ...  bare_cells) = rr.erode()
+    >>> np.round(eroded_soil, decimals=2) == 0.16
+    True
+    >>> burnt_shrub.shape == (1,)
+    True
+    >>> (burnt_shrubs_neigh,
+    ...  exclusive,
+    ...  shrub_exclusive,
+    ...  grass_exclusive,
+    ...  bare_exclusive,
+    ...  eroded_soil_part) = rr.deposit(eroded_soil, eroded_soil_shrub)
+    >>> np.allclose(burnt_shrubs_neigh, np.array([1, 2, 3, 4, 5]))
+    True
+    >>> eroded_soil_part == 0
+    True
+    >>> (resource_adjusted,
+    ...  eligible_locs_to_adj_neigh,
+    ...  elig_locs,
+    ...  sed_to_borrow) = rr.re_adjust_resource()
+    >>> resource_adjusted == 0.
+    True
+    >>> V_age = np.zeros(rr.grid.number_of_cells, dtype=int)
+    >>> V_age = rr.initialize_Veg_age(V_age=V_age)
+    >>> np.allclose(V_age, np.zeros(rr.grid.number_of_cells, dtype=int))
+    True
+    >>> (V_age, est_1, est_2, est_3, est_4, est_5) = rr.establish(V_age)
+    >>> np.allclose(grid.at_cell["vegetation__plant_functional_type"],
+    ...             np.array([4, 1, 3, 3, 3, 1]))
+    True
+    >>> (V_age, Pmor_age, Pmor_age_ws) = rr.mortality(V_age)
+    >>> np.allclose(grid.at_cell["vegetation__plant_functional_type"],
+    ...             np.array([4, 1, 0, 0, 0, 1]))
+    True
+    >>> V_age = rr.update_Veg_age(V_age)
+    >>> np.allclose(V_age, np.array([1, 1, 0, 0, 0, 1]))
+    True
     """
 
     _name = "Resource Redistribution"
@@ -379,7 +429,10 @@ class ResourceRedistribution(Component):
                 + 3 * int(shrub_exclusive.shape[0])
                 + 2 * int(grass_exclusive.shape[0])
         )
-        eroded_soil_part = (eroded_soil / float(weighted_parts))
+        if weighted_parts != 0:
+            eroded_soil_part = (eroded_soil / float(weighted_parts))
+        else:
+            eroded_soil_part = 0
         R[bare_exclusive] += eroded_soil_part
         R[shrub_exclusive] += (3. * eroded_soil_part)
         R[grass_exclusive] += (2. * eroded_soil_part)
@@ -552,6 +605,17 @@ class ResourceRedistribution(Component):
         return (V_age, Pmor_age, Pmor_age_ws)
 
     def initialize_Veg_age(self, V_age):
+        """
+        This method initializes random age for shrubs. The input
+        array, is used for shape. TODO: Use self.grid.number_of_cells
+        for shape.
+
+        Parameters
+        ----------
+        V_age: int, array, shape=[number_of_cells] (yrs)
+            Age of the PFT (V) occupying each cell. This
+            array is updated by this method.
+        """
         V = self.grid.at_cell["vegetation__plant_functional_type"]
         V_age[V == SHRUB] = np.random.randint(0, self._sh_max_age,
                                               V_age[V == SHRUB].shape)
