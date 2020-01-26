@@ -363,7 +363,7 @@ class ResourceRedistribution(Component):
     def erode(self):
         """
         This method removes resource R from a cell depending on the
-        vegetation (PFT) occupying that cell in discrete units of e.
+        vegetation (PFT) occupying each cell in discrete units of e.
         """
         V = self.grid.at_cell["vegetation__plant_functional_type"]
         R = self.grid.at_cell["soil__resources"]
@@ -403,6 +403,30 @@ class ResourceRedistribution(Component):
         eroded_soil_shrub: float, (-)
             R eroded from cells with burnt shrubs. This R
             is deposited in the cells neighboring burnt shrubs.
+
+        Returns
+        -------
+        A tuple: (burnt_shrubs_neigh,
+                  exclusive,
+                  shrub_exclusive,
+                  grass_exclusive,
+                  bare_exclusive,
+                  eroded_soil_part);
+        burnt_shrubs_neigh: numpy array of ints, (-)
+            cell_ids of looped shrub neighbors (neighbors of cells
+            occupied by BURNTSHRUB).
+        exclusive: numpy array of ints, (-)
+            cell_ids of cells except those occupied by BURNTSHRUB and
+            burnt_shrubs_neigh. (purpose - debugging)
+        shrub_exclusive: numpy array of ints, (-)
+            cell_ids of cells within exclusive that are occupied
+            by SHRUB. (purpose - debugging)
+        grass_exclusive: numpy array of ints, (-)
+            cell_ids of cells within exclusive that are occupied
+            by GRASS. (purpose - debugging)
+        bare_exclusive: numpy array of ints, (-)
+            cell_ids of cells within exclusive that are occupied
+            by BARE. (purpose - debugging)
         """
         V = self.grid.at_cell["vegetation__plant_functional_type"]
         R = self.grid.at_cell["soil__resources"]
@@ -443,6 +467,24 @@ class ResourceRedistribution(Component):
         """
         This method re-adjusts resource R based on the
         user-set maximum and minimum thresholds.
+        Returns
+        -------
+        A tuple: (resource_adjusted,
+                  eligible_locs_to_adj_neigh,
+                  Elig_locs,
+                  sed_to_borrow);
+        resource_adjusted: float, (-)
+            cumulative amount of R in excess of R_threshold.
+            (purpose - debugging)
+        eligible_locs_to_adj_neigh: numpy array of ints, (-)
+            cell_ids of neighbors of cells with
+            R > R_threshold. (purpose - debugging)
+        Elig_locs: numpy array of ints, (-)
+            cell_ids of cells where R < R_threshold.
+            R is deposited into these cells. (purpose - debugging)
+        sed_to_borrow: float, (-)
+            cumulative amount of R < R_threshold that
+            is borrowed. (purpose - debugging)
         """
         R = self.grid.at_cell["soil__resources"]
     ## Resource exceeding R_threshold will be distributed to its neighbors                                
@@ -481,17 +523,38 @@ class ResourceRedistribution(Component):
 
         Parameters
         ----------
-        V_age: int, array, shape=[number_of_cells] (yrs)
-            Age of the PFT (V) occupying each cell. This
+        V_age: numpy array of ints, shape=[number_of_cells] (yrs)
+            age of the PFT (V) occupying each cell.
+
+        Returns
+        -------
+        A tuple: (V_age, est_1, est_2, est_3, est_4, est_5);
+        V_age: numpy array of ints, (yrs)
+            age of the PFT (V) occupying each cell. This
             array is updated by this method.
+        est_1: numpy array of ints, (-)
+            cell_ids of BURNTSHRUB cells where SHRUB regrows
+            (established). (purpose - debugging)
+        est_2: numpy array of ints, (-)
+            cell_ids of BURNTGRASS cells where GRASS regrows
+            (established). (purpose - debugging)
+        est_3: numpy array of ints, (-)
+            cell_ids of BARE cells where SHRUB establishes
+            due to seed dispersal. (purpose - debugging)
+        est_4: numpy array of ints, (-)
+            cell_ids of BARE cells where SHRUB establishes
+            due to grazing. (purpose - debugging)
+        est_5: numpy array of ints, (-)
+            cell_ids of BARE cells where GRASS establishes
+            due to seed dispersal. (purpose - debugging)
         """
         V = self.grid.at_cell["vegetation__plant_functional_type"]
         R = self.grid.at_cell["soil__resources"]
         burnt_shrubs = np.where(V == BURNTSHRUB)[0]
         burnt_grass = np.where(V == BURNTGRASS)[0]
         ## Regrowth in burnt area
-        shrubs_r_regrwth = burnt_shrubs[np.where(R[burnt_shrubs] >  self._Rth_sh)[0]]
-        grass_r_regrwth = burnt_grass[np.where(R[burnt_grass] >  self._Rth_gr)[0]]
+        shrubs_r_regrwth = burnt_shrubs[np.where(R[burnt_shrubs] > self._Rth_sh)[0]]
+        grass_r_regrwth = burnt_grass[np.where(R[burnt_grass] > self._Rth_gr)[0]]
         P_check_1 = np.random.random(shrubs_r_regrwth.shape)
         est_1 = shrubs_r_regrwth[np.where(P_check_1 <  self._P_sh_regrwth)[0]]
         V[est_1] = SHRUB
@@ -566,9 +629,27 @@ class ResourceRedistribution(Component):
 
         Parameters
         ----------
-        V_age: int, array, shape=[number_of_cells] (yrs)
+        V_age: numpy array of ints, shape=[number_of_cells] (yrs)
             Age of the PFT (V) occupying each cell. This
             array is updated by this method.
+
+        Returns
+        -------
+        A tuple: (V_age, Pmor_age, Pmor_age_ws);
+        V_age: numpy array of ints, (yrs)
+            age of the PFT (V) occupying each cell. This
+            array is updated by this method.
+        Pmor_age: numpy array of floats, (-)
+            probability of mortality due to age
+            at each cell. Note that only SHRUB are
+            susceptible to this probability.
+            (purpose - debugging)
+        Pmor_age_ws: numpy array of floats, (-)
+            probability of mortality due to age and
+            water stress at each cell. Note that
+            probability of mortality due to waterstress
+            can be obtained by Pmor_age_ws - Pmor_age.
+            (purpose - debugging)
         """
         V = self.grid.at_cell["vegetation__plant_functional_type"]
         # Killing burnt vegetation    
@@ -612,8 +693,13 @@ class ResourceRedistribution(Component):
 
         Parameters
         ----------
-        V_age: int, array, shape=[number_of_cells] (yrs)
-            Age of the PFT (V) occupying each cell. This
+        V_age: numpy array of ints, shape=[number_of_cells] (yrs)
+            Age of the PFT (V) occupying each cell.
+
+        Returns
+        -------
+        V_age: numpy array of ints, (yrs)
+            age of the PFT (V) occupying each cell. This
             array is updated by this method.
         """
         V = self.grid.at_cell["vegetation__plant_functional_type"]
@@ -622,6 +708,21 @@ class ResourceRedistribution(Component):
         return (V_age)
         
     def update_Veg_age(self, V_age):
+        """
+        This method updates V_age by one year at
+        each vegetated cell (V != BARE)
+
+        Parameters
+        ----------
+        V_age: numpy array of ints, shape=[number_of_cells] (yrs)
+            Age of the PFT (V) occupying each cell.
+
+        Returns
+        -------
+        V_age: numpy array of ints, (yrs)
+            age of the PFT (V) occupying each cell. This
+            array is updated by this method.
+        """
         V = self.grid.at_cell["vegetation__plant_functional_type"]
         V_age[V != BARE] += 1
         return (V_age)
