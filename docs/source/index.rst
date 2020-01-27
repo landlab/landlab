@@ -49,12 +49,17 @@ Landlab 2.0
 -----------
 
 In late December 2019 Landlab switched to version 2.0-beta. Landlab will be
-in 2.0-beta until the Landlab 2.0 publication is finalized.
+in 2.0-beta until the Landlab 2.0 publication is finalized. Landlab dropped
+support of Python 2.7 with this transition. 
 
 Supported Python Versions
 -------------------------
 
-Python 3.6, 3.7, and 3.8
+Landlab supports Python versions >= 3.6. Landlab distributes pre-packaged
+binaries through `conda-forge <https://anaconda.org/conda-forge/landlab>`_
+and `PyPI <https://pypi.org/project/landlab/>`_ for versions 3.6 and 3.7
+(3.8 coming soon). Note that on  PyPI, the ``--pre`` flag is necessary while
+Landlab v2.0 is in beta release.
 
 Documentation Outline
 ---------------------
