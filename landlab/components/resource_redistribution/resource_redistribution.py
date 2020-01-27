@@ -6,7 +6,7 @@ from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
 
 
-#%% Declare Global Variables (If any)
+# Declare Global Variables (If any)
 # 'ravi_et_al_2009' pft_scheme - used internally
 BARE = 0
 GRASS = 1
@@ -37,6 +37,8 @@ class ResourceRedistribution(Component):
     resource redistribution and fertility island dynamics
     in shrub encroached desert grasslands: a modeling approach.
     Landscape Ecology, 24(3), 325-335.
+
+    .. codeauthor:: Sai Nudurupati and Erkan Istanbulluoglu
 
     Examples
     --------
