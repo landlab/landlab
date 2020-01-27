@@ -26,9 +26,10 @@ class DepthDependentTaylorDiffuser(Component):
 
         q_s = - DSH^* ( 1 + (S/S_c)^2 + (S/Sc_)^4 + .. + (S/S_c)^2(n-1) ) (1.0 - exp( - H / H^*)
 
-    where :math:`D` is is the diffusivity, :math:`S` is the slope, :math:`S_c`
-    is the critical slope, :math:`n` is the number of terms, :math:`H` is the
-    soil depth on links, and :math:`H^*` is the soil transport decay depth.
+    where :math:`D` is is the diffusivity, :math:`S` is the slope (defined as
+    negative downward), :math:`S_c` is the critical slope, :math:`n` is the
+    number of terms, :math:`H` is the soil depth on links, and :math:`H^*` is
+    the soil transport decay depth.
 
     The default behavior uses two terms to produce a slope dependence as
     described by Equation 6 of Ganti et al., (2012).

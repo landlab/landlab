@@ -21,8 +21,9 @@ class DepthDependentDiffuser(Component):
 
         q_s = - D S H^* (1.0 - exp( - H / H^*)
 
-    where :math:`D` is is the diffusivity, :math:`S` is the slope, :math:`H` is
-    the soil depth on links, and :math:`H^*` is the soil transport decay depth.
+    where :math:`D` is is the diffusivity, :math:`S` is the slope (defined as
+    negative downward), :math:`H` is the soil depth on links, and :math:`H^*` 
+    is the soil transport decay depth.
 
     This component will ignore soil thickness located at non-core nodes.
 
