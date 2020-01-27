@@ -406,7 +406,7 @@ class GroundwaterDupuitPercolator(Component):
         Includes recharge that may immediately become saturation excess
         overland flow. (m3/s)
         """
-        return np.sum(self._grid.area_of_cell * self._recharge[self._cores])
+        return np.sum(self._grid.cell_area_at_node[self._cores] * self._recharge[self._cores])
 
     def calc_gw_flux_out(self):
         """Groundwater flux through open boundaries may be positive (out of the
@@ -509,7 +509,7 @@ class GroundwaterDupuitPercolator(Component):
         """calculate the current water storage in the aquifer (m3)"""
         return np.sum(
             self._n[self._cores]
-            * self._grid.area_of_cell
+            * self._grid.cell_area_at_node[self._cores]
             * self._grid.at_node["aquifer__thickness"][self._cores]
         )
 
