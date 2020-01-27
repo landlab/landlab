@@ -269,7 +269,8 @@ class GroundwaterDupuitPercolator(Component):
         porosity=0.2,
         recharge_rate=1.0e-8,
         regularization_f=1e-2,
-        courant_coefficient=0.01,
+        courant_coefficient=0.5,
+        vn_coefficient = 0.8,
     ):
         """
         Parameters
@@ -334,6 +335,7 @@ class GroundwaterDupuitPercolator(Component):
 
         # save courant_coefficient (and test)
         self._courant_coefficient = courant_coefficient
+        self._vn_coefficient = vn_coefficient
 
     @property
     def courant_coefficient(self):
@@ -663,10 +665,11 @@ class GroundwaterDupuitPercolator(Component):
             self._dhdt[:] = (1 / self._n) * (self._recharge - self._qs - dqdx)
 
             # calculate criteria for timestep
-            max_vel = max(abs(self._vel / self._n_link))
-            grid_dist = min(self._grid.length_of_link)
+            self._dt_vn = self._vn_coefficient * min(self._n_link * self._grid.length_of_link**2 / (2*self._K * hlink * cosa))
+            self._dt_courant = self._courant_coefficient * min(self._grid.length_of_link / abs(self._vel / self._n_link))
+            dt_stability = min(self._dt_courant,self._dt_vn)
             substep_dt = np.nanmin(
-                [self._courant_coefficient * grid_dist / max_vel, remaining_time]
+                [dt_stability, remaining_time]
             )
 
             # Update
