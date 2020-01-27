@@ -18,6 +18,7 @@ from landlab.plot import graph
 from landlab.plot.network_sediment_transporter import (
     plot_network_links,
     plot_network_parcels,
+    plot_pathway_values,
 )
 
 # from landlab.plot.network_sediment_transporter import *  # Note-- this is an example. it loads plotting scripts that don't exist yet.
@@ -268,10 +269,10 @@ parcel_time = 5
 # NEXT NEXT: Put these next few lines into a function: composite_parcel_attributes_at_links
 # Also make the inverse: map_link_attributes_to_parcels
 # Initialize array of a composite link attribute
-lnkvol = np.empty([len(grid.at_link),])
+lnkvol = np.empty(grid.at_link.size)
 lnkvol[:] = np.nan
 # Composite link attributes
-for i in range(len(grid.at_link)):
+for i in range(grid.at_link.size):
     lnkvol[i] = np.sum(
         parcels.dataset.volume[
             (parcels.dataset.element_id[:, parcel_time]) == i, parcel_time
@@ -289,7 +290,7 @@ plot_network_links(grid, link_attribute)
 # NOTE: We could also easily plot a single parcel at all times. Currently, this code is just set up to plot all parcels at a single time.
 
 # This is really a time index to plot, so likely change the name
-parcel_time = 3
+parcel_time = 8
 
 # Determine color and size of parcels based on a parcel attribute
 parcel_color = parcels.dataset.element_id[:, parcel_time]
@@ -305,14 +306,12 @@ plot_network_parcels(grid, parcels, parcel_time, parcel_color, parcel_size)
 
 # %% 4. Plot link attributes along a pathway through the network.
 
-# NEXT NEXT: link 4 drains to link 2 and it should connect with link 3
-# See:
-graph.plot_graph(grid, at="node,link")
-# and look at how the parcels move in #3
-# also see:
+# determine a specific link on the network
 link_number = 4
-downstream_link_id = fd.link_to_flow_receiving_node[
-    fd.downstream_node_at_link()[link_number]
-]
+# determine an attribute on the grid to plot
+link_attribute = "GridID"
+
+plot_pathway_values(link_number, link_attribute, fd, grid)
+
 
 # %% 5. Develop GUI to more quickly interface with calling these plotting functions.

@@ -24,8 +24,8 @@ def locate_parcel_xy(grid, parcels, parcel_time, parcel_number, *args, **kwargs)
         # determine the location of that parcel in its link
         parcel_loc = parcels.dataset.location_in_link[parcel_number, parcel_time].values
 
-        # DANGER DANGER: This code assumes the verticies of links are ordered from upstream to downstream. Jon believes this will be the case for delineated river networks, so this line should not be necessary. For the test network, the links are ordered from downstream to upstream. The quickest and easiest fix is the following, but ideally we will not want this in the final code.
-        parcel_loc = 0.9999 - parcel_loc
+        # DANGER DANGER: This code assumes the verticies of links are ordered from upstream to downstream. This should be the case for delineated river networks, so this line should not be necessary. A quick work-around is the following, but ideally verticies should be flipped in GIS.
+        #parcel_loc = 0.9999 - parcel_loc
 
         # get the X, Y vertices of the squiggly line for that link (loaded by import_shapefile.py)
 
