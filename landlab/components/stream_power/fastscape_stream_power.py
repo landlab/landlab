@@ -247,7 +247,9 @@ class FastscapeEroder(Component):
 
         self._erode_flooded_nodes = erode_flooded_nodes
 
+        # use setter for K defined below
         self.K = K_sp
+
         self._m = float(m_sp)
         self._n = float(n_sp)
 

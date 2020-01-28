@@ -321,6 +321,7 @@ class Space(_GeneralizedErosionDeposition):
         self._Er = np.zeros(grid.number_of_nodes)
 
         # K's and critical values can be floats, grid fields, or arrays
+        # use setters defined below
         self.K_sed = K_sed
         self.K_br = K_br
 

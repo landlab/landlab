@@ -262,8 +262,10 @@ class StreamPowerEroder(Component):
 
         self._A = return_array_at_node(grid, discharge_field)
         self._elevs = return_array_at_node(grid, "topographic__elevation")
-        self.K = return_array_at_node(grid, K_sp)
         self._sp_crit = return_array_at_node(grid, threshold_sp)
+
+        # use setter for K defined below
+        self.K = K_sp
 
         assert np.all(self._sp_crit >= 0.0)
 

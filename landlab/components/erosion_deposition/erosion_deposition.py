@@ -314,6 +314,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         # E/D specific inits.
 
         # K's and critical values can be floats, grid fields, or arrays
+        # use setter for K defined below
         self.K = K
         self._sp_crit = return_array_at_node(grid, sp_crit)
 
