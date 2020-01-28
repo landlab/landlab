@@ -314,7 +314,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         # E/D specific inits.
 
         # K's and critical values can be floats, grid fields, or arrays
-        self._K = return_array_at_node(grid, K)
+        self.K = K
         self._sp_crit = return_array_at_node(grid, sp_crit)
 
         # Handle option for solver
@@ -327,6 +327,15 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             raise ValueError(
                 "Parameter 'solver' must be one of: " + "'basic', 'adaptive'"
             )
+
+    @property
+    def K(self):
+        """Erodibility (units depend on m_sp)."""
+        return self._K
+
+    @K.setter
+    def K(self, new_val):
+        self._K = return_array_at_node(self._grid, new_val)
 
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""

@@ -247,7 +247,7 @@ class FastscapeEroder(Component):
 
         self._erode_flooded_nodes = erode_flooded_nodes
 
-        self._K = return_array_at_node(grid, K_sp)
+        self.K = K_sp
         self._m = float(m_sp)
         self._n = float(n_sp)
 
@@ -261,6 +261,15 @@ class FastscapeEroder(Component):
         # make storage variables
         self._A_to_the_m = grid.zeros(at="node")
         self._alpha = grid.empty(at="node")
+
+    @property
+    def K(self):
+        """Erodibility (units depend on m_sp)."""
+        return self._K
+
+    @K.setter
+    def K(self, new_val):
+        self._K = return_array_at_node(self._grid, new_val)
 
     def run_one_step(self, dt):
         """Erode for a single time step.
