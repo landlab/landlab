@@ -59,7 +59,7 @@ $D_x = D_0 * (Vol_x / Vol_0) ^ (1/3)
 
 Where $D_x$ and $D_0$ are the resulting and original sediment parcel diameters, respectively.
 
-The final element of new functionality is a method for calculating the [active layer thickness]. As in many sediment transport models [e.g., @Cui2007b], [@Czuba2018] represents the mobile portion of the grains on the riverbed at any given time as an "active layer" of constant thickness. All grains in this layer are transported, whereas all grains below this layer are immobile. Within ``NetworkSedimentTransporter`` the user has the option to specify active layer thickness as a constant value. Alternatively, we incorporated the formulation of Wong et al. (2007) to calculate an active layer thickness for each link in the network at each timestep as a function of Shields stress and median grain diameter. 
+The final element of new functionality is a method for calculating the [active layer thickness]. As in many sediment transport models [e.g., @Cui2007b], [@Czuba2018] represents the mobile portion of the grains on the riverbed at any given time as an "active layer" of constant thickness. All grains in this layer are transported, whereas all grains below this layer are immobile. Within ``NetworkSedimentTransporter`` the user has the option to specify active layer thickness as a constant value. Alternatively, we incorporated the formulation of Wong et al. (2007) to calculate an active layer thickness for each link in the network at each timestep as a function of Shields stress and median grain diameter.
 [Anything else we added? Czuba thinks that is it, the other items will go in setup files not NST itself]
 
 The ``NetworkSedimentTransporter`` component of Landlab is capable of routing mixed grain size sediment through river networks to answer questions about how sediment pulses move through river networks and when, where, and how they affect downstream reaches. The accessibility of this code within the Landlab framework will make it easier for future users to modify and contribute to its continual evolution. An overview of ongoing and planned future developments is available at XXXXX. [seemed like we needed a "conclusions" section, so I added this here]
@@ -79,5 +79,7 @@ The authors thank ____________ for _________
 Barnhart supported by an NSF EAR Postdoctoral Fellowship (NSF Award Number 1725774).
 
 Czuba was partially supported by NSF-EAR (1848672), Virginia Agricultural Experiment Station, and USDA Hatch program (1017457).
+
+Pfeiffer was supported by NCED II Synthesis Postdoctoral program.
 
 # References
