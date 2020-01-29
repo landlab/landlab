@@ -48,7 +48,7 @@ area = grid.add_ones("cell_area_at_node", at="node")
 
 grid.at_link["drainage_area"] = [100e6, 10e6, 70e6, 20e6, 70e6, 30e6, 40e6]  # m2
 grid.at_link["channel_slope"] = [0.01, 0.02, 0.01, 0.02, 0.02, 0.03, 0.03]
-grid.at_link["link_length"] = [
+grid.at_link["reach_length"] = [
     10000.0,
     10000.0,
     10000.0,

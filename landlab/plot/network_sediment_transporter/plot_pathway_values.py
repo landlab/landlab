@@ -5,7 +5,7 @@ Created on Fri Oct 18 13:08:22 2019
 This code takes a link number and an attribute of the links on the grid and
 (1) determines the pathway from that link to the outlet, (2) compiles the
 desired attribute of the links along that pathway, and (3) creates a 2-D line
-plot of the desired attributes along the pathway from the input link to the 
+plot of the desired attributes along the pathway from the input link to the
 outlet.
 
 @author: jczuba
@@ -22,7 +22,7 @@ def plot_pathway_values(start_link_number, link_attribute, fd, grid, *args, **kw
     if start_link_number < 0:
         msg = "Plot Pathway Values: link number must be >= 0"
         raise ValueError(msg)
-        
+
     if start_link_number > max(grid.at_link["GridID"]):
         msg = "Plot Pathway Values: link number must be an existing link"
         raise ValueError(msg)
@@ -39,18 +39,18 @@ def plot_pathway_values(start_link_number, link_attribute, fd, grid, *args, **kw
 
     # determine the pathway (set of links) from that link to the outlet
     while downstream_link_id != grid.BAD_INDEX:
-    
+
         # determine downstream link
         downstream_link_id = fd.link_to_flow_receiving_node[
                 fd.downstream_node_at_link()[link_number]
         ]
-    
+
         # append downstream link id to pathway
         link_pathway.append(downstream_link_id)
-    
-        # "move" to the downstream link 
+
+        # "move" to the downstream link
         link_number = downstream_link_id
-                       
+
     # remove bad index value at the end of the pathway
     link_pathway.remove(-1)
 
@@ -64,13 +64,13 @@ def plot_pathway_values(start_link_number, link_attribute, fd, grid, *args, **kw
 
     current_distance = 0
 
-    for i in range(len(link_pathway)):
 
+    for i in range(len(link_pathway)):
         x = np.append(x,current_distance)
         y = np.append(y,grid.at_link[link_attribute][link_pathway[i]])
         x = np.append(x,current_distance+grid.at_link["Length"][link_pathway[i]])
         y = np.append(y,grid.at_link[link_attribute][link_pathway[i]])
-    
+
         current_distance = current_distance+grid.at_link["Length"][link_pathway[i]]
 
     x = np.append(x,current_distance)
