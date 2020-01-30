@@ -179,7 +179,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
                 raise NotImplementedError(msg)
 
         if not erode_flooded_nodes:
-            if "flood_status_code" not in self._grid.at_node:
+            if "flood_status_code" not in grid.at_node:
                 msg = (
                     "In order to not erode flooded nodes another component "
                     "must create the field *flood_status_code*. You want to "
