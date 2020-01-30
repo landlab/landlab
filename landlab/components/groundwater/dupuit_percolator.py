@@ -336,15 +336,14 @@ class GroundwaterDupuitPercolator(Component):
         self._dhdt = self._grid.at_node["water_table__velocity"]
 
         # Convert parameters to fields if needed, and store a reference
-        self._K = return_array_at_link(grid, hydraulic_conductivity)
-        self._recharge = return_array_at_node(grid, recharge_rate)
-        self._n = return_array_at_node(grid, porosity)
-        self._n_link = map_mean_of_link_nodes_to_link(self._grid, self._n)
+        self.K = hydraulic_conductivity
+        self.recharge = recharge_rate
+        self.n = porosity
         self._r = regularization_f
 
         # save courant_coefficient (and test)
-        self._courant_coefficient = courant_coefficient
-        self._vn_coefficient = vn_coefficient
+        self.courant_coefficient = courant_coefficient
+        self.vn_coefficient = vn_coefficient
 
     @property
     def courant_coefficient(self):
