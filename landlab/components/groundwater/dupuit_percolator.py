@@ -281,7 +281,7 @@ class GroundwaterDupuitPercolator(Component):
             saturated hydraulic conductivity, m/s
             Default = 0.001 m/s
         porosity: float, field name or array of float
-            the porosity of the aquifer [-]
+            the drainable porosity of the aquifer [-]
             Default = 0.2
         recharge_rate: float, field name, or array of float
             Rate of recharge, m/s
@@ -295,6 +295,15 @@ class GroundwaterDupuitPercolator(Component):
             velocity. This parameter is only used with
             ``run_with_adaptive_time_step_solver`` and must be greater than
             zero.
+            Default = 0.5
+        vn_coefficient: float (-)
+            The multiplying factor C for the condition dt >= C*dx^2/(4D),
+            where D = Kh/n is the diffusivity of the Boussinesq
+            equation. This arises from a von Neumann stability analysis of
+            the Boussinesq equation when the hydraulic gradient is small.
+            This parameter is only used with ``run_with_adaptive_time_step_solver``
+            and must be greater than zero.
+            Default = 0.8
         """
         super(GroundwaterDupuitPercolator, self).__init__(grid)
 
@@ -359,6 +368,31 @@ class GroundwaterDupuitPercolator(Component):
         self._courant_coefficient = new_val
 
     @property
+    def vn_coefficient(self):
+        """ Coefficient for the diffusive timestep condition in
+        the adaptive timestep solver.
+
+        Parameters
+        ----------
+        vn_coefficient: float (-)
+            The multiplying factor C for the condition dt >= C*dx^2/(4D),
+            where D = Kh/n is the diffusivity of the Boussinesq
+            equation. This arises from a von Neumann stability analysis of
+            the Boussinesq equation when the hydraulic gradient is small.
+            This parameter is only used with ``run_with_adaptive_time_step_solver``
+            and must be greater than zero.
+        """
+        return self._vn_coefficient
+
+    @vn_coefficient.setter
+    def vn_coefficient(self,new_val):
+        """ set coefficient for the diffusive timestep condition in
+        the adaptive timestep solver. """
+        if new_val <= 0:
+            raise ValueError("courant_coefficient must be > 0.")
+        self._vn_coefficient = new_val
+
+    @property
     def K(self):
         """hydraulic conductivity at link (m/s)"""
         return self._K
@@ -380,12 +414,12 @@ class GroundwaterDupuitPercolator(Component):
 
     @property
     def n(self):
-        """porosity of the aquifer (-)"""
+        """drainable porosity of the aquifer (-)"""
         return self._n
 
     @n.setter
     def n(self, new_val):
-        """set aquifer porosity"""
+        """set aquifer drainable porosity"""
         self._n = return_array_at_node(self._grid, new_val)
         self._n_link = map_mean_of_link_nodes_to_link(self._grid, self._n)
 
@@ -589,7 +623,7 @@ class GroundwaterDupuitPercolator(Component):
     def run_with_adaptive_time_step_solver(self, dt):
         """
         Advance component by one time step of size dt, subdividing the timestep
-        into substeps as necessary to meet a Courant condition.
+        into substeps as necessary to meet stability conditions.
         Note this method only returns the fluxes at the last subtimestep.
 
         Parameters
