@@ -270,7 +270,7 @@ class GroundwaterDupuitPercolator(Component):
         recharge_rate=1.0e-8,
         regularization_f=1e-2,
         courant_coefficient=0.5,
-        vn_coefficient = 0.8,
+        vn_coefficient=0.8,
     ):
         """
         Parameters
@@ -384,7 +384,7 @@ class GroundwaterDupuitPercolator(Component):
         return self._vn_coefficient
 
     @vn_coefficient.setter
-    def vn_coefficient(self,new_val):
+    def vn_coefficient(self, new_val):
         """ set coefficient for the diffusive timestep condition in
         the adaptive timestep solver. """
         if new_val <= 0:
@@ -441,7 +441,9 @@ class GroundwaterDupuitPercolator(Component):
         Includes recharge that may immediately become saturation excess
         overland flow. (m3/s)
         """
-        return np.sum(self._grid.cell_area_at_node[self._cores] * self._recharge[self._cores])
+        return np.sum(
+            self._grid.cell_area_at_node[self._cores] * self._recharge[self._cores]
+        )
 
     def calc_gw_flux_out(self):
         """Groundwater flux through open boundaries may be positive (out of the
@@ -698,12 +700,14 @@ class GroundwaterDupuitPercolator(Component):
             self._dhdt[:] = (1 / self._n) * (self._recharge - self._qs - dqdx)
 
             # calculate criteria for timestep
-            self._dt_vn = self._vn_coefficient * min(self._n_link * self._grid.length_of_link**2 / (4 * self._K * hlink ))
-            self._dt_courant = self._courant_coefficient * min(self._grid.length_of_link / abs(self._vel / self._n_link))
-            dt_stability = min(self._dt_courant,self._dt_vn)
-            substep_dt = min(
-                [dt_stability, remaining_time]
+            self._dt_vn = self._vn_coefficient * min(
+                self._n_link * self._grid.length_of_link ** 2 / (4 * self._K * hlink)
             )
+            self._dt_courant = self._courant_coefficient * min(
+                self._grid.length_of_link / abs(self._vel / self._n_link)
+            )
+            dt_stability = min(self._dt_courant, self._dt_vn)
+            substep_dt = min([dt_stability, remaining_time])
 
             # Update
             self._thickness[self._cores] += self._dhdt[self._cores] * substep_dt
