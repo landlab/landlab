@@ -56,12 +56,18 @@ class SpatialDisturbance(Component):
     tree [5], burnt tree [6], shrub seed [7], and tree seed [8].
     This scheme is an extended version of the PFTs used in 
     Ravi and D'Odorico (2009).
-    'zhou_et_al_2013': Each cell in the RasterModelGrid object
-    can take an integer from 0 through 5 to
-    represent the cell states for grass [0],
-    shrub [1], tree [2], bare soil [3], shrub seedling [4],
-    and tree seedling [5]. This is the default scheme
-    used in the component.
+    'zhou_et_al_2013' (default): Each cell in the
+    RasterModelGrid object can take an integer
+    from 0 through 5 to represent the cell states
+    for grass [0], shrub [1], tree [2], bare soil [3],
+    shrub seedling [4], and tree seedling [5].
+    To use the 'zhou_et_al_2013' scheme,
+    select this scheme while instantiating the
+    component and pass the input vegetation field
+    "vegetation__plant_functional_type". To use
+    the other scheme, pass the vegetation
+    field as input to the methods (i.e.,
+    SpatialDisturbance.initiate_fires(V=veg_field)).
 
     There are two key process-representing methods in this
     component: graze(), and initiate_fires().
@@ -188,10 +194,8 @@ class SpatialDisturbance(Component):
         grid: RasterModelGrid
             grid, Landlab's RasterModelGrid object
         pft_scheme: str
-            Vegetation Plant Functional Type (PFT);
-            shape = [grid.number_of_cells]
-            BARE = 0; GRASS = 1; SHRUB = 2; BURNTGRASS = 3; BURNTSHRUB = 4;
-            TREE = 5; BURNTTREE = 6; SHRUBSEED = 7; TREESEED = 8.
+            Vegetation Plant Functional Type (PFT) scheme;
+            Either 'ravi_et_al_2009' or 'zhou_et_al_2013'.
         """
         self._pft_scheme = pft_scheme
         _assert_pft_scheme_is_valid(self._pft_scheme)
@@ -242,13 +246,20 @@ class SpatialDisturbance(Component):
         tr_seed_vuln=0.,
     ):
         """
-        - Add description to this method. If this is the main method or
-        one of the main methods, i.e. if this method performs a
-        process for which this component is written, make sure you
-        mention it.
-        - Search for BasicModelInterface (BMI) on CSDMS website.
-        We try to follow this interface to enable easier coupling
-        with other models.
+        This method simulates a desired number of lightning strikes
+        by randomly placing them across the grid. Fire starts depenging
+        on the vegetation occupying the cell struck by lightning and
+        it's vulnerability. For example, fire starts with a probability
+        of 90% if lightning strikes a cell occupied by SHRUB
+        when sh_vuln is 0.9. BARE cells cannot start a fire.
+        Fire spreads to the neighbors based on 'susceptibility'
+        of the vegetated neighbor. For example, fire spreads
+        with a probability of 75% to a TREE neighbor with
+        tr_susc of 0.75. Fire does not spread to a BARE cell.
+        The size of the fire is limited
+        by fire_area_mean (i.e., the fire stops
+        spreading if the burnt area exceeds fire_area_mean).
+        This method updaes the field "vegetation__plant_functional_type".
 
         Parameters:
         ----------
@@ -259,7 +270,7 @@ class SpatialDisturbance(Component):
             BARE = 0; GRASS = 1; SHRUB = 2; BURNTGRASS = 3; BURNTSHRUB = 4;
             TREE = 5; BURNTTREE = 6; SHRUBSEED = 7; TREESEED = 8
         n_fires: int, optional
-            Number of fires to be created
+            Number of lightning strikes to be created
         fire_area_mean: float, optional
             mean area of uniform distribution to sample fire size
         fire_area_dev: float, optional
@@ -289,6 +300,19 @@ class SpatialDisturbance(Component):
         tr_seed_vuln: float, optional
             probability of TREESEED cell to catch fire due to
             lightning
+
+        Returns:
+        -------
+        A tuple: (V, burnt_locs, ignition_cells);
+        burnt_shrubs_neigh: numpy array of ints, (-)
+            cell_ids of looped shrub neighbors (neighbors of cells
+            occupied by BURNTSHRUB).
+        exclusive: numpy array of ints, (-)
+            cell_ids of cells except those occupied by BURNTSHRUB and
+            burnt_shrubs_neigh. (purpose - debugging)
+        shrub_exclusive: numpy array of ints, (-)
+            cell_ids of cells within exclusive that are occupied
+            by SHRUB. (purpose - debugging)
         """
         if self._pft_scheme == "zhou_et_al_2013":
             vegtype = self._grid.at_cell["vegetation__plant_functional_type"]
@@ -344,35 +368,7 @@ class SpatialDisturbance(Component):
         susc=None
     ):
         """
-        - An underscore in the front signals the user to stay away
-        from using this method (is intended for internal use).
-        - Works just like a regular method but implies a hidden method.
-        - You should still document these methods though.
-
-        Parameters:
-        ----------
-        grid: RasterModelGrid
-            grid, Landlab's RasterModelGrid object
-        V: array_like
-            Vegetation Plant Functional Type; shape = [grid.number_of_cells]
-            BARE = 0; GRASS = 1; SHRUB = 2; BURNTGRASS = 3; BURNTSHRUB = 4;
-            TREE = 5; BURNTTREE = 6; SHRUBSEED = 7; TREESEED = 8
-        ignition_cell: int
-            cell id where the fire starts
-        fire_area_mean: float, optional
-            mean area of uniform distribution to sample fire size
-        fire_area_dev: float, optional
-            standard deviation of uniform distribution to sample fire size
-        sh_susc: float, optional
-            susceptibility of shrubs to burn
-        tr_susc: float, optional
-            susceptibility of trees to burn
-        gr_susc: float, optional
-            susceptibility of grass to burn
-        sh_seed_susc: float, optional
-            susceptibility of shrub seedlings to burn
-        tr_seed_susc: float, optional
-            susceptibility of tree seedlings to burn
+        This private method implements the fire algorithm.
         """
         if susc == None:
             susc = np.ones(self.grid.number_of_cells)
