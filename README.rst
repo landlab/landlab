@@ -129,8 +129,10 @@ test your install with
     $ pytest
 
 from within the ``landlab_dev`` conda environment. Additional instructions,
-including how the unit tests directory is structured can be found
-`here <https://landlab.readthedocs.io/en/master/development/install/test.html>`_.
+including how the unit tests directory is structured can be found under the
+`testing section`_ of the landlab documentation.
+
+.. _testing section: https://landlab.readthedocs.io/en/master/development/install/test.html
 
 What are Landlab's dependencies?
 --------------------------------
@@ -139,8 +141,10 @@ The core package dependencies are specified by ``requirements.txt`` and used
 by ``setup.py``. There are some additional dependencies that exist for
 running the notebooks or modifying the source code and testing.
 
-Details of how we structure our dependencies can be found
-`here <https://landlab.readthedocs.io/en/master/development/practices/dependencies.html>`_.
+Details of how we structure our dependencies can be found under the
+`dependencies section`_ of the landlab documentation.
+
+.. _dependencies section: https://landlab.readthedocs.io/en/master/development/practices/dependencies.html
 
 How do I learn more about Landlab?
 ----------------------------------
@@ -164,14 +168,16 @@ The Landlab package contains a directory at ``landlab/notebooks`` which contains
 Jupyter notebooks describe core concepts and give examples of using components.
 The file ``landlab/notebooks/welcome.ipynb`` provides a table of contents to
 the notebooks and is the recommended starting place. To launch an instance of
-Binder and explore the notebooks click
-`here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb>`_.
+Binder and `explore the notebooks click here`_.
+
+.. _explore the notebooks click here: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb
 
 In addition there are a set of notebooks curated to teach physical processes
 located in the directory ``landlab/notebooks/teaching``.
 
-To launch an Binder instance that goes straight to these teaching notebooks
-click `here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/teaching/welcome_teaching.ipynb>`_.
+To launch an Binder instance that goes straight to these `teaching notebooks click here`_.
+
+.. _teaching notebooks click here: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/teaching/welcome_teaching.ipynb
 
 
 What License does Landlab use?
