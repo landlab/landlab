@@ -64,6 +64,28 @@ class PotentialEvapotranspiration(Component):
     >>> PET.update()
     >>> np.allclose(pet_rate, 0.)
     False
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    ASCE-EWRI: The ASCE standardized reference evapotranspiration equation, in:
+    Standardization of Reference Evapotranspiration Task Committee Final Report,
+    edited by: Allen, R. G., Walter, I. A., Elliot, R. L., Howell, T. A.,
+    Itenﬁsu, D., Jensen, M. E., and Snyder, R. L., Technical Committee report
+    to the Environmental and Water Resources Institute of the American Society
+    of Civil Engineers from the Task Committee on Standardization of Reference
+    Evapotranspiration, Reston, VA, USA, 2005.
+
+    Zhou, X., Istanbulluoglu, E., and Vivoni, E. R.: Modeling the
+    ecohydrological role of aspect-controlled radiation on tree-grass-shrub
+    coexistence in a semiarid climate, Water Resour. Res., 49, 2872– 2895,
+    doi:10.1002/wrcr.20259, 2013.
+
     """
 
     _name = "PotentialEvapotranspiration"

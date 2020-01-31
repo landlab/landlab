@@ -19,21 +19,13 @@ class DepthDependentDiffuser(Component):
 
     .. math::
 
-        q_s = D S H^* (1.0 - exp( H / H^*)
+        q_s = - D S H^* (1.0 - exp( - H / H^*)
 
-    where :math:`D` is is the diffusivity, :math:`S` is the slope, :math:`H` is
-    the soil depth on links, and :math:`H^*` is the soil transport decay depth.
+    where :math:`D` is is the diffusivity, :math:`S` is the slope (defined as
+    negative downward), :math:`H` is the soil depth on links, and :math:`H^*`
+    is the soil transport decay depth.
 
     This component will ignore soil thickness located at non-core nodes.
-
-    Parameters
-    ----------
-    grid: ModelGrid
-        Landlab ModelGrid object
-    linear_diffusivity: float
-        Hillslope diffusivity, m**2/yr
-    soil_transport_decay_depth: float
-        Characteristic transport soil depth, m
 
     Examples
     --------
@@ -107,9 +99,38 @@ class DepthDependentDiffuser(Component):
     >>> soil_decay_depth_1 = mg.at_node['topographic__elevation'][mg.core_nodes]
     >>> np.greater(soil_decay_depth_1[1], soil_decay_depth_point1[1])
     False
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Barnhart, K., Glade, R., Shobe, C., Tucker, G. (2019). Terrainbento 1.0: a
+    Python package for multi-model analysis in long-term drainage basin
+    evolution. Geoscientific Model Development  12(4), 1267--1297.
+    https://dx.doi.org/10.5194/gmd-12-1267-2019
+
+    **Additional References**
+
+    Johnstone, S., Hilley, G. (2015). Lithologic control on the form of
+    soil-mantled hillslopes Geology  43(1), 83-86.
+    https://dx.doi.org/10.1130/g36052.1
+
     """
 
     _name = "DepthDependentDiffuser"
+
+    _cite_as = """
+    @article{barnhart2019terrain,
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      doi = {10.5194/gmd-12-1267-2019},
+      pages = {1267---1297},
+      number = {4},
+      volume = {12},
+      journal = {Geoscientific Model Development},
+      year = {2019},
+    }
+    """
 
     _info = {
         "bedrock__elevation": {
@@ -163,36 +184,32 @@ class DepthDependentDiffuser(Component):
     }
 
     def __init__(self, grid, linear_diffusivity=1.0, soil_transport_decay_depth=1.0):
-        """Initialize the DepthDependentDiffuser."""
+        """
+        Parameters
+        ----------
+        grid: ModelGrid
+            Landlab ModelGrid object
+        linear_diffusivity: float
+            Hillslope diffusivity, m**2/yr
+        soil_transport_decay_depth: float
+            Characteristic transport soil depth, m
+        """
         super(DepthDependentDiffuser, self).__init__(grid)
         # Store grid and parameters
 
         self._K = linear_diffusivity
         self._soil_transport_decay_depth = soil_transport_decay_depth
 
-        # create fields
-        # elevation
+        # get reference to inputs
         self._elev = self._grid.at_node["topographic__elevation"]
-        self._depth = self._grid.at_node["soil__depth"]
         self._soil_prod_rate = self._grid.at_node["soil_production__rate"]
+        self._depth = self._grid.at_node["soil__depth"]
 
-        # slope
-        if "topographic__slope" in self._grid.at_link:
-            self._slope = self._grid.at_link["topographic__slope"]
-        else:
-            self._slope = self._grid.add_zeros("topographic__slope", at="link")
-
-        # soil flux
-        if "soil__flux" in self._grid.at_link:
-            self._flux = self._grid.at_link["soil__flux"]
-        else:
-            self._flux = self._grid.add_zeros("soil__flux", at="link")
-
-        # bedrock elevation
-        if "bedrock__elevation" in self._grid.at_node:
-            self._bedrock = self._grid.at_node["bedrock__elevation"]
-        else:
-            self._bedrock = self._grid.add_zeros("bedrock__elevation", at="node")
+        # create outputs if necessary and get reference.
+        self.initialize_output_fields()
+        self._slope = self._grid.at_link["topographic__slope"]
+        self._flux = self._grid.at_link["soil__flux"]
+        self._bedrock = self._grid.at_node["bedrock__elevation"]
 
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.

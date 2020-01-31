@@ -115,6 +115,17 @@ class Profiler(_BaseProfiler):
     Endpoints can also be set with a combination of coordinates and nodes.
 
     >>> profiler = Profiler(mg, [(10, 10), 16, (10, 70)])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    None Listed
+
     """
 
     _name = "Profiler"

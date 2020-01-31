@@ -1102,35 +1102,55 @@ class DataRecord(object):
         ...                               fill_value=0.)
         >>> v_f
         array([  8.,   3.,   4.,   5.,  0.,  0.,  0.,  0.,  0.])
+
+        An array of ``fill_value`` is returned when ``filter_array`` is all
+        ``False`` (np.nan is the default value).
+
+        >>> f = dr.dataset['ages'] > 4000.
+        >>> v_f = dr.calc_aggregate_value(func=np.sum,
+        ...                               data_variable='volumes',
+        ...                               filter_array=f)
+        >>> v_f
+        array([  nan,   nan,   nan,   nan,  nan,  nan,  nan,  nan,  nan])
+
+        Other values can be specified for ``fill_value``.
+
+        >>> f = dr.dataset['ages'] > 4000.
+        >>> v_f = dr.calc_aggregate_value(func=np.sum,
+        ...                               data_variable='volumes',
+        ...                               filter_array=f,
+        ...                               fill_value=0.)
+        >>> v_f
+        array([  0.,   0.,   0.,   0.,  0.,  0.,  0.,  0.,  0.])
         """
         filter_at = self._dataset["grid_element"] == at
 
-        filter_at = self._dataset["grid_element"] == at
-
-        valid = np.arange(self._grid[at].size)
-
-        filter_valid_element = np.isin(self._dataset["element_id"], valid)
+        filter_valid_element = (self._dataset["element_id"] >= 0) * (self._dataset["element_id"] < self._grid[at].size)
 
         if filter_array is None:
-            my_filter = filter_at & filter_valid_element
+            my_filter = filter_at * filter_valid_element
         else:
-            my_filter = filter_at & filter_array & filter_valid_element
+            my_filter = filter_at * filter_valid_element * filter_array
 
-        # Filter DataRecord with my_filter and groupby element_id:
-        filtered = self._dataset.where(my_filter).groupby("element_id")
+        if np.any(my_filter):
+            # Filter DataRecord with my_filter and groupby element_id:
+            filtered = self._dataset.where(my_filter).groupby("element_id")
 
-        vals = filtered.apply(func, *args, **kwargs)  # .reduce
+            # Calculate values
+            vals = filtered.apply(func, *args, **kwargs)  # .reduce
 
-        # create a nan array that we will fill with the results of the sum
-        # this should be the size of the number of elements, even if there are
-        # no items living at some grid elements.
-        out = fill_value * np.ones(self._grid[at].size)
+            # Create a nan array that we will fill with the results of the sum
+            # this should be the size of the number of elements, even if there are
+            # no items living at some grid elements.
+            out = fill_value * np.ones(self._grid[at].size)
 
-        # put the values of the specified variable into the correct location
-        # of the out array.
-        out[vals.element_id.values.astype(int)] = vals[data_variable]
+            # put the values of the specified variable into the correct location
+            # of the out array.
+            out[vals.element_id.values.astype(int)] = vals[data_variable]
 
-        return out
+            return out
+        else:
+            return np.repeat(fill_value, self._grid[at].size)
 
     def ffill_grid_element_and_id(self):
         """Fill NaN values of the fields 'grid_element' and 'element_id'.

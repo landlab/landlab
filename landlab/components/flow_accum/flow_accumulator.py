@@ -603,6 +603,20 @@ class FlowAccumulator(Component):
     >>> fa.run_one_step()
     >>> nmg.at_node['flow__receiver_node']
     array([0, 0, 2, 1])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Braun, J., Willett, S. (2013). A very efficient O(n), implicit and parallel
+    method to solve the stream power equation governing fluvial incision and
+    landscape evolution. Geomorphology  180-181(C), 170-179.
+    https://dx.doi.org/10.1016/j.geomorph.2012.10.008
+
     """
 
     _name = "FlowAccumulator"

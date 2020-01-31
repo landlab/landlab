@@ -67,9 +67,11 @@ test-results.xml
 
 *.pdf
 !docs/**/*.pdf
+!joss/**/*.pdf
 
 *.png
 !docs/**/*.png
+!joss/**/*.png
 
 *.aux
 

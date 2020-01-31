@@ -74,6 +74,7 @@ setup(
     url="https://github.com/landlab",
     description="Plugin-based component modeling tool.",
     long_description=open("README.rst").read(),
+    python_requires=">=3.6",
     setup_requires=["cython", "numpy"],
     install_requires=open("requirements.txt", "r").read().splitlines(),
     classifiers=[
@@ -83,6 +84,7 @@ setup(
         "Programming Language :: Cython",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Scientific/Engineering :: Physics",
     ],

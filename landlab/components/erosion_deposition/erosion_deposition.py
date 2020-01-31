@@ -54,9 +54,38 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
     transport and erosion, and a hybrid response as described by Davy & Lague.
 
     Component written by C. Shobe, K. Barnhart, and G. Tucker.
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Barnhart, K., Glade, R., Shobe, C., Tucker, G. (2019). Terrainbento 1.0: a
+    Python package for multi-model analysis in long-term drainage basin
+    evolution. Geoscientific Model Development  12(4), 1267--1297.
+    https://dx.doi.org/10.5194/gmd-12-1267-2019
+
+    **Additional References**
+
+    Davy, P., Lague, D. (2009). Fluvial erosion/transport equation of landscape
+    evolution models revisited Journal of Geophysical Research  114(F3),
+    F03007. https://dx.doi.org/10.1029/2008jf001146
+
     """
 
     _name = "ErosionDeposition"
+
+    _cite_as = """
+    @article{barnhart2019terrain,
+      author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
+      title = {{Terrainbento 1.0: a Python package for multi-model analysis in long-term drainage basin evolution}},
+      doi = {10.5194/gmd-12-1267-2019},
+      pages = {1267---1297},
+      number = {4},
+      volume = {12},
+      journal = {Geoscientific Model Development},
+      year = {2019},
+    }
+    """
 
     _info = {
         "flow__link_to_receiver_node": {
@@ -285,7 +314,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         # E/D specific inits.
 
         # K's and critical values can be floats, grid fields, or arrays
-        self._K = return_array_at_node(grid, K)
+        # use setter for K defined below
+        self.K = K
         self._sp_crit = return_array_at_node(grid, sp_crit)
 
         # Handle option for solver
@@ -298,6 +328,15 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             raise ValueError(
                 "Parameter 'solver' must be one of: " + "'basic', 'adaptive'"
             )
+
+    @property
+    def K(self):
+        """Erodibility (units depend on m_sp)."""
+        return self._K
+
+    @K.setter
+    def K(self, new_val):
+        self._K = return_array_at_node(self._grid, new_val)
 
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""

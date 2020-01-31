@@ -103,6 +103,20 @@ class StreamPowerEroder(Component):
             0.        ,  0.02240092,  0.06879049,  0.14586033,  0.4       ,
             0.        ,  0.01907436,  0.05960337,  0.12929386,  0.4       ,
             0.        ,  0.1       ,  0.2       ,  0.3       ,  0.4       ])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Braun, J., Willett, S. (2013). A very efficient O(n), implicit and parallel
+    method to solve the stream power equation governing fluvial incision and
+    landscape evolution. Geomorphology  180-181(C), 170-179.
+    https://dx.doi.org/10.1016/j.geomorph.2012.10.008
+
     """
 
     _name = "StreamPowerEroder"
@@ -248,8 +262,10 @@ class StreamPowerEroder(Component):
 
         self._A = return_array_at_node(grid, discharge_field)
         self._elevs = return_array_at_node(grid, "topographic__elevation")
-        self._K_unit_time = return_array_at_node(grid, K_sp)
         self._sp_crit = return_array_at_node(grid, threshold_sp)
+
+        # use setter for K defined below
+        self.K = K_sp
 
         assert np.all(self._sp_crit >= 0.0)
 
@@ -324,6 +340,15 @@ class StreamPowerEroder(Component):
         self._stream_power_erosion = self._grid.zeros(centering="node")
         self._alpha = self._grid.zeros("node")
 
+    @property
+    def K(self):
+        """Erodibility (units depend on m_sp)."""
+        return self._K
+
+    @K.setter
+    def K(self, new_val):
+        self._K = return_array_at_node(self._grid, new_val)
+
     def run_one_step(self, dt):
         """A simple, explicit implementation of a stream power algorithm.
 
@@ -363,7 +388,7 @@ class StreamPowerEroder(Component):
         # Operate the main function:
         if self._use_W:
             self._alpha[defined_flow_receivers] = (
-                self._K_unit_time[defined_flow_receivers]
+                self._K[defined_flow_receivers]
                 * dt
                 * self._A[defined_flow_receivers] ** self._m
                 / self._W[defined_flow_receivers]
@@ -372,7 +397,7 @@ class StreamPowerEroder(Component):
 
         else:
             self._alpha[defined_flow_receivers] = (
-                self._K_unit_time[defined_flow_receivers]
+                self._K[defined_flow_receivers]
                 * dt
                 * self._A[defined_flow_receivers] ** self._m
                 / (flow_link_lengths ** self._n)

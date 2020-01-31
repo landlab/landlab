@@ -154,6 +154,19 @@ class HackCalculator(Component):
     238                39.0    10000.0     0.0    71.61
     239                39.0  2160000.0  3000.0  2894.22
     240                39.0    10000.0     0.0    71.61
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Hack, J. T. Studies of longitudinal stream profiles in Virginia and
+    Maryland (Vol. 294). U.S. Geological Survey Professional Paper 294-B (1957).
+    https://doi.org/10.3133/pp294B
+
     """
 
     _name = "HackCalculator"

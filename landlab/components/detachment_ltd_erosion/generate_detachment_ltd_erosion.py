@@ -81,6 +81,17 @@ array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
         0.99936754,  0.99910557,  0.99910557,  0.99910557,  0.99936754,
         1.99955279,  1.99936754,  1.99936754,  1.99936754,  1.99955279,
         2.99968377,  2.99955279,  2.99955279,  2.99955279,  2.99968377])
+
+References
+----------
+**Required Software Citation(s) Specific to this Component**
+
+None Listed
+
+**Additional References**
+
+Howard, A. (1994). A detachment-limited model of drainage basin evolution. Water
+Resources Research  30(7), 2261-2285. https://dx.doi.org/10.1029/94wr00757
 """
 
 import numpy as np
