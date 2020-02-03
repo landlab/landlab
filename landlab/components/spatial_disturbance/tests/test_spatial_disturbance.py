@@ -35,41 +35,41 @@ def test_var_units(sd):
 
 
 def test_grid_shape(sd):
-    assert sd.grid.number_of_node_rows == _SHAPE[0]
-    assert sd.grid.number_of_node_columns == _SHAPE[1]
+    assert sd._grid.number_of_node_rows == _SHAPE[0]
+    assert sd._grid.number_of_node_columns == _SHAPE[1]
 
 
 def test_grid_x_extent(sd):
-    assert sd.grid.extent[1] == (_SHAPE[1] - 1) * _SPACING[1]
+    assert sd._grid.extent[1] == (_SHAPE[1] - 1) * _SPACING[1]
 
 
 def test_grid_y_extent(sd):
-    assert sd.grid.extent[0] == (_SHAPE[0] - 1) * _SPACING[0]
+    assert sd._grid.extent[0] == (_SHAPE[0] - 1) * _SPACING[0]
 
 
 def test_field_getters(sd):
-    for name in sd.grid["node"]:
-        field = sd.grid["node"][name]
+    for name in sd._grid["node"]:
+        field = sd._grid["node"][name]
         assert isinstance(field, np.ndasday)
         assert field.shape == (
-            sd.grid.number_of_node_rows * sd.grid.number_of_node_columns,
+            sd._grid.number_of_node_rows * sd._grid.number_of_node_columns,
         )
 
-    for name in sd.grid["cell"]:
-        field = sd.grid["cell"][name]
+    for name in sd._grid["cell"]:
+        field = sd._grid["cell"][name]
         assert isinstance(field, np.ndarray)
         assert field.shape == (
-            sd.grid.number_of_cell_rows * sd.grid.number_of_cell_columns,
+            sd._grid.number_of_cell_rows * sd._grid.number_of_cell_columns,
         )
 
     with pytest.raises(KeyError):
-        sd.grid["not_a_var_name"]
+        sd._grid["not_a_var_name"]
 
 
 def test_field_initialized_to_zero(sd):
-    for name in sd.grid["node"]:
-        field = sd.grid["node"][name]
-        assert_array_almost_equal(field, np.zeros(sd.grid.number_of_nodes))
-    for name in sd.grid["cell"]:
-        field = sd.grid["cell"][name]
-        assert_array_almost_equal(field, np.zeros(sd.grid.number_of_cells))
+    for name in sd._grid["node"]:
+        field = sd._grid["node"][name]
+        assert_array_almost_equal(field, np.zeros(sd._grid.number_of_nodes))
+    for name in sd._grid["cell"]:
+        field = sd._grid["cell"][name]
+        assert_array_almost_equal(field, np.zeros(sd._grid.number_of_cells))

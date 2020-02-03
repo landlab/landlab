@@ -1,14 +1,4 @@
 
-##############################################################################
-## 21 May 2017
-## Authors: Sai Nudurupati & Erkan Istanbulluoglu
-## 
-## This is to replicate create_fires function from
-## Sujith Ravi's model as implemented in resource_redistribution_funcs.py.
-## In this fire creation method, we will also consider trees. Also, we
-## introduce fire suscessibility thresholds for shrubs and trees.
-##############################################################################
-
 # Import Packages
 import numpy as np
 from landlab import FieldError, Component
@@ -68,6 +58,12 @@ class SpatialDisturbance(Component):
     the other scheme, pass the vegetation
     field as input to the methods (i.e.,
     SpatialDisturbance.initiate_fires(V=veg_field)).
+    NOTE: The methods of this component internally
+    convert the input PFTs in 'zhou_et_al_2013' scheme
+    to 'ravi_et_al_2009', implement the algorithm,
+    and convert the PFTs back to 'zhou_et_al_2013'
+    when the component is instantiated with
+    'zhou_et_al_2013' scheme.
 
     There are two key process-representing methods in this
     component: graze(), and initiate_fires().
@@ -89,71 +85,117 @@ class SpatialDisturbance(Component):
     >>> import numpy as np
     >>> np.random.seed(0)
     >>> from landlab import RasterModelGrid as rmg
-    >>> from landlab.components import ResourceRedistribution
-    >>> grid = rmg((5, 4), xy_spacing=(0.2, 0.2))
-    >>> ResourceRedistribution.name
-    'Resource Redistribution'
-    >>> sorted(ResourceRedistribution.output_var_names)
-    ['soil__resources',
-     'vegetation__plant_functional_type']
-    >>> sorted(ResourceRedistribution.units)
-    [('soil__resources', 'None'),
-     ('vegetation__plant_functional_type', 'None')]
+    >>> from landlab.components import SpatialDisturbance
+    >>> grid = rmg((10, 10), xy_spacing=(0.2, 0.2))
+    >>> SpatialDisturbance.name
+    'Spatial Disturbance'
+    >>> sorted(SpatialDisturbance.output_var_names)
+    ['vegetation__plant_functional_type']
+    >>> sorted(SpatialDisturbance.units)
+    [('vegetation__plant_functional_type', 'None')]
+
+    Let us look at an example using the default
+    'zhou_et_al_2013' PFT scheme.
+
     >>> grid.at_cell["vegetation__plant_functional_type"] = (
-    ...     np.random.randint(0, 5, size=grid.number_of_cells))
-    >>> np.allclose(
-    ...    grid.at_cell["vegetation__plant_functional_type"],
-    ...    np.array([4, 0, 3, 3, 3, 1]))
+    ...     np.random.randint(0, 4, size=grid.number_of_cells))
+    >>> np.where(
+    ...     grid.at_cell["vegetation__plant_functional_type"]==0)[0].shape
+    (15,)
+    >>> sd = SpatialDisturbance(grid)
+    >>> sd._grid.number_of_cell_rows
+    8
+    >>> sd._grid.number_of_cell_columns
+    8
+    >>> sd._grid is grid
     True
-    >>> grid.at_cell["soil__resources"] = (
-    ...     np.ones(grid.number_of_cells, dtype=float))
-    >>> rr = ResourceRedistribution(grid)
-    >>> rr.grid.number_of_cell_rows
-    3
-    >>> rr.grid.number_of_cell_columns
-    2
-    >>> rr.grid is grid
-    True
-    >>> (eroded_soil,
-    ...  eroded_soil_shrub,
-    ...  burnt_shrub,
-    ...  burnt_grass,
-    ...  bare_cells) = rr.erode()
-    >>> np.round(eroded_soil, decimals=2) == 0.16
-    True
-    >>> burnt_shrub.shape == (1,)
-    True
-    >>> (burnt_shrubs_neigh,
-    ...  exclusive,
-    ...  shrub_exclusive,
-    ...  grass_exclusive,
-    ...  bare_exclusive,
-    ...  eroded_soil_part) = rr.deposit(eroded_soil, eroded_soil_shrub)
-    >>> np.allclose(burnt_shrubs_neigh, np.array([1, 2, 3, 4, 5]))
-    True
-    >>> eroded_soil_part == 0
-    True
-    >>> (resource_adjusted,
-    ...  eligible_locs_to_adj_neigh,
-    ...  elig_locs,
-    ...  sed_to_borrow) = rr.re_adjust_resource()
-    >>> resource_adjusted == 0.
-    True
-    >>> V_age = np.zeros(rr.grid.number_of_cells, dtype=int)
-    >>> V_age = rr.initialize_Veg_age(V_age=V_age)
-    >>> np.allclose(V_age, np.zeros(rr.grid.number_of_cells, dtype=int))
-    True
-    >>> (V_age, est_1, est_2, est_3, est_4, est_5) = rr.establish(V_age)
-    >>> np.allclose(grid.at_cell["vegetation__plant_functional_type"],
-    ...             np.array([4, 1, 3, 3, 3, 1]))
-    True
-    >>> (V_age, Pmor_age, Pmor_age_ws) = rr.mortality(V_age)
-    >>> np.allclose(grid.at_cell["vegetation__plant_functional_type"],
-    ...             np.array([4, 1, 0, 0, 0, 1]))
-    True
-    >>> V_age = rr.update_Veg_age(V_age)
-    >>> np.allclose(V_age, np.array([1, 1, 0, 0, 0, 1]))
-    True
+    >>> (V, grazed_cells) = sd.graze(grazing_pressure=0.5)
+    >>> np.where(
+    ...     grid.at_cell["vegetation__plant_functional_type"]==0)[0].shape
+    (9,)
+    >>> grid.at_cell["vegetation__plant_functional_type"] = (
+    ...     np.random.randint(0, 3, size=grid.number_of_cells))
+    >>> np.where(
+    ...     grid.at_cell["vegetation__plant_functional_type"]==0)[0].shape
+    (21,)
+    >>> np.where(
+    ...     grid.at_cell["vegetation__plant_functional_type"]==1)[0].shape
+    (18,)
+    >>> np.where(
+    ...     grid.at_cell["vegetation__plant_functional_type"]==2)[0].shape
+    (25,)
+    >>> np.where(
+    ...     grid.at_cell["vegetation__plant_functional_type"]==3)[0].shape
+    (0,)
+    >>> (V, burnt_locs, ignition_cells) = sd.initiate_fires(
+    ...        n_fires=10,
+    ...        fire_area_mean=0.0625,
+    ...        sh_susc=0.8,
+    ...        gr_susc=1.,
+    ...        tr_susc=0.,
+    ... )
+    >>> np.where(
+    ...     grid.at_cell["vegetation__plant_functional_type"]==0)[0].shape
+    (11,)
+    >>> np.where(
+    ...     grid.at_cell["vegetation__plant_functional_type"]==1)[0].shape
+    (15,)
+    >>> np.where(
+    ...     grid.at_cell["vegetation__plant_functional_type"]==2)[0].shape
+    (25,)
+    >>> np.where(
+    ...     grid.at_cell["vegetation__plant_functional_type"]==3)[0].shape
+    (13,)
+
+    Let us look at an example using the
+    'ravi_et_al_2009' PFT scheme.
+
+    >>> new_grid = rmg((10, 10), xy_spacing=(0.2, 0.2))
+    >>> V = (np.random.randint(1, 3, size=new_grid.number_of_cells))
+    >>> np.where(V == GRASS)[0].shape
+    (25,)
+    >>> np.where(V == BARE)[0].shape
+    (0,)
+    >>> new_sd = SpatialDisturbance(new_grid, pft_scheme="ravi_et_al_2009")
+    >>> (V, grazed_cells) = new_sd.graze(V=V, grazing_pressure=0.5)
+    >>> np.where(V == GRASS)[0].shape
+    (16,)
+    >>> np.where(V == BARE)[0].shape
+    (9,)
+    >>> V = (np.random.randint(1, 3, size=new_grid.number_of_cells))
+    >>> np.where(V == GRASS)[0].shape
+    (27,)
+    >>> np.where(V == SHRUB)[0].shape
+    (37,)
+    >>> np.where(V == BARE)[0].shape
+    (0,)
+    >>> np.where(V == BURNTGRASS)[0].shape
+    (0,)
+    >>> np.where(V == BURNTSHRUB)[0].shape
+    (0,)
+    >>> (V, burnt_locs, ignition_cells) = new_sd.initiate_fires(
+    ...        V=V,
+    ...        n_fires=10,
+    ...        fire_area_mean=0.0625,
+    ...        sh_susc=0.8,
+    ...        gr_susc=1.,
+    ... )
+    >>> np.where(V == GRASS)[0].shape
+    (17,)
+    >>> np.where(V == SHRUB)[0].shape
+    (16,)
+    >>> np.where(V == BARE)[0].shape
+    (0,)
+    >>> np.where(V == BURNTGRASS)[0].shape
+    (10,)
+    >>> np.where(V == BURNTSHRUB)[0].shape
+    (21,)
+
+    Note that the initiate_fires method converted
+    grass and shrubs, to burnt_grass and burnt_shrubs
+    respectively, when we used 'ravi_et_al_2009' PFT scheme
+    but grass and shrubs were converted to bare cells
+    when we used 'zhou_et_al_2013' PFT scheme.
     """
 
     _name = "Spatial Disturbance"
@@ -199,16 +241,43 @@ class SpatialDisturbance(Component):
         """
         self._pft_scheme = pft_scheme
         _assert_pft_scheme_is_valid(self._pft_scheme)
-        super(SpatialDisturbance, self).__init__(grid, **kwds)
+#        super(SpatialDisturbance, self).__init__(grid, **kwds)
+        self._grid = grid
 
         if self._pft_scheme == "zhou_et_al_2013":
-            if "vegetation__plant_functional_type" not in self.grid.at_cell:
+            if "vegetation__plant_functional_type" not in self._grid.at_cell:
                 raise FieldError("Cellular field of 'Plant Functional Type'" +
                                  " is required!")
 
     def graze(self, V=None, grazing_pressure=0.01):
         """
-        Function to implement grazing
+        removes grass from  a cell where grazing_pressure at
+        grass-occupied cell is greater than a
+        uniformly distributed random number U[0, 1]
+        generated at each grass cell.
+
+        Parameters:
+        ----------
+        V: numpy array, shape = [grid.number_of_cells],
+           compulsory if pft_scheme = 'ravi_et_al_2009'.
+            Vegetation Plant Functional Type;
+            BARE = 0; GRASS = 1; SHRUB = 2; BURNTGRASS = 3; BURNTSHRUB = 4;
+            TREE = 5; BURNTTREE = 6; SHRUBSEED = 7; TREESEED = 8
+        grazing_pressure: float , optional
+            Probability of grazing at GRASS cells [0, 1].
+
+        Returns:
+        -------
+        A tuple: (V, grazed_cells);
+        V: numpy array, shape = [grid.number_of_cells],
+           Useful only if pft_scheme = 'ravi_et_al_2009'.
+            Vegetation Plant Functional Type;
+            BARE = 0; GRASS = 1; SHRUB = 2; BURNTGRASS = 3; BURNTSHRUB = 4;
+            TREE = 5; BURNTTREE = 6; SHRUBSEED = 7; TREESEED = 8
+        grazed_cells: numpy array of ints, (-)
+            cell_ids of cells where GRASS cells have
+            been converted to BARE due to
+            grazing. (purpose - debugging)
         """
         if self._pft_scheme == "zhou_et_al_2013":
             vegtype = self._grid.at_cell["vegetation__plant_functional_type"]
@@ -265,8 +334,9 @@ class SpatialDisturbance(Component):
         ----------
         grid: RasterModelGrid
             grid, Landlab's RasterModelGrid object
-        V: array_like
-            Vegetation Plant Functional Type; shape = [grid.number_of_cells]
+        V: numpy array, shape = [grid.number_of_cells],
+           compulsory if pft_scheme = 'ravi_et_al_2009'.
+            Vegetation Plant Functional Type;
             BARE = 0; GRASS = 1; SHRUB = 2; BURNTGRASS = 3; BURNTSHRUB = 4;
             TREE = 5; BURNTTREE = 6; SHRUBSEED = 7; TREESEED = 8
         n_fires: int, optional
@@ -304,15 +374,15 @@ class SpatialDisturbance(Component):
         Returns:
         -------
         A tuple: (V, burnt_locs, ignition_cells);
-        burnt_shrubs_neigh: numpy array of ints, (-)
-            cell_ids of looped shrub neighbors (neighbors of cells
-            occupied by BURNTSHRUB).
-        exclusive: numpy array of ints, (-)
-            cell_ids of cells except those occupied by BURNTSHRUB and
-            burnt_shrubs_neigh. (purpose - debugging)
-        shrub_exclusive: numpy array of ints, (-)
-            cell_ids of cells within exclusive that are occupied
-            by SHRUB. (purpose - debugging)
+        V: numpy array, shape = [grid.number_of_cells],
+           Useful only if pft_scheme = 'ravi_et_al_2009'.
+            Vegetation Plant Functional Type;
+            BARE = 0; GRASS = 1; SHRUB = 2; BURNTGRASS = 3; BURNTSHRUB = 4;
+            TREE = 5; BURNTTREE = 6; SHRUBSEED = 7; TREESEED = 8
+        burnt_locs: numpy array of ints, (-)
+            cell_ids of cells where fire has spread. (purpose - debugging)
+        ignition_cells: numpy array of ints, (-)
+            cell_ids of cells where lightning struck. (purpose - debugging)
         """
         if self._pft_scheme == "zhou_et_al_2013":
             vegtype = self._grid.at_cell["vegetation__plant_functional_type"]
@@ -370,8 +440,8 @@ class SpatialDisturbance(Component):
         """
         This private method implements the fire algorithm.
         """
-        if susc == None:
-            susc = np.ones(self.grid.number_of_cells)
+        if susc is None:
+            susc = np.ones(self._grid.number_of_cells)
         fire_burnt = 0    # To check how many cells are being burnt
         grass_cells = np.where(V == GRASS)[0]
         if int(grass_cells.shape[0]) == 1:
@@ -441,7 +511,7 @@ class SpatialDisturbance(Component):
         sh_seed_susc=1.,
         tr_seed_susc=1.
     ):
-        susc = np.zeros(self.grid.number_of_cells)
+        susc = np.zeros(self._grid.number_of_cells)
         susc[V==SHRUB] = sh_susc
         susc[V==TREE] = tr_susc
         susc[V==GRASS] = gr_susc
