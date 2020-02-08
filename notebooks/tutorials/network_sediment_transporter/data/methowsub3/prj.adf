@@ -1,0 +1,7 @@
+Projection    UTM
+Zone          10
+Datum         NAD83
+Spheroid      GRS80
+Units         METERS
+Zunits        NO
+Parameters    
