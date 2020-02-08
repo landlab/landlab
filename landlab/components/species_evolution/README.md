@@ -1,5 +1,14 @@
 # SpeciesEvolver: evolve life in simulated landscapes
 
+Life evolves alongside landscapes as biotic and abiotic processes integrate
+under complex dynamics at Earth's surface. Researchers who wish to explore
+these dynamics can use this component as a tool for them to build
+landscape-life evolution models. Landlab components, including SpeciesEvolver
+are designed to work with a shared model grid. Researchers can build novel
+models using plug-and-play surface process components to evolve the grid's
+landscape alongside the life tracked by SpeciesEvolver. The simulated life
+evolves following customizable processes.
+
 ## Documentation
 
 Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.readthedocs.io/en/master), including Landlab installation instructions. SpeciesEvolver is installed with Landlab.
