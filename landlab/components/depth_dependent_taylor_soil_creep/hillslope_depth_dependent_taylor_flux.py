@@ -24,11 +24,12 @@ class DepthDependentTaylorDiffuser(Component):
 
     .. math::
 
-        q_s = DSH^* ( 1 + (S/S_c)^2 + (S/Sc_)^4 + .. + (S/S_c)^2(n-1) ) (1.0 - exp( H / H^*)
+        q_s = - DSH^* ( 1 + (S/S_c)^2 + (S/Sc_)^4 + .. + (S/S_c)^2(n-1) ) (1.0 - exp( - H / H^*)
 
-    where :math:`D` is is the diffusivity, :math:`S` is the slope, :math:`S_c`
-    is the critical slope, :math:`n` is the number of terms, :math:`H` is the
-    soil depth on links, and :math:`H^*` is the soil transport decay depth.
+    where :math:`D` is is the diffusivity, :math:`S` is the slope (defined as
+    negative downward), :math:`S_c` is the critical slope, :math:`n` is the
+    number of terms, :math:`H` is the soil depth on links, and :math:`H^*` is
+    the soil transport decay depth.
 
     The default behavior uses two terms to produce a slope dependence as
     described by Equation 6 of Ganti et al., (2012).
@@ -336,29 +337,16 @@ class DepthDependentTaylorDiffuser(Component):
         self._if_unstable = if_unstable
         self._courant_factor = courant_factor
 
-        # create fields
-        # elevation
+        # get reference to inputs
         self._elev = self._grid.at_node["topographic__elevation"]
         self._soil_prod_rate = self._grid.at_node["soil_production__rate"]
         self._depth = self._grid.at_node["soil__depth"]
 
-        # slope
-        if "topographic__slope" in self._grid.at_link:
-            self._slope = self._grid.at_link["topographic__slope"]
-        else:
-            self._slope = self._grid.add_zeros("link", "topographic__slope")
-
-        # soil flux
-        if "soil__flux" in self._grid.at_link:
-            self._flux = self._grid.at_link["soil__flux"]
-        else:
-            self._flux = self._grid.add_zeros("link", "soil__flux")
-
-        # bedrock elevation
-        if "bedrock__elevation" in self._grid.at_node:
-            self._bedrock = self._grid.at_node["bedrock__elevation"]
-        else:
-            self._bedrock = self._grid.add_zeros("node", "bedrock__elevation")
+        # create outputs if necessary and get reference.
+        self.initialize_output_fields()
+        self._slope = self._grid.at_link["topographic__slope"]
+        self._flux = self._grid.at_link["soil__flux"]
+        self._bedrock = self._grid.at_node["bedrock__elevation"]
 
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.
