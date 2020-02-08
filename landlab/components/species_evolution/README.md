@@ -1,5 +1,7 @@
 # SpeciesEvolver: evolve life in simulated landscapes
 
+[![status](https://joss.theoj.org/papers/446f3d17d642682b234ffed2b53198f6/status.svg)](https://joss.theoj.org/papers/446f3d17d642682b234ffed2b53198f6)
+
 Life evolves alongside landscapes as biotic and abiotic processes integrate
 under complex dynamics at Earth's surface. Researchers who wish to explore
 these dynamics can use this component as a tool for them to build
