@@ -3,7 +3,52 @@ import numpy as np
 from ...core.utils import as_id_array
 from ..nodestatus import NodeStatus
 from ..unstructured.links import LinkGrid
-from . import nodes
+
+
+def _number_of_nodes(shape):
+    """Number of nodes is a structured quad grid.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    int :
+        Number of nodes in the grid.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.links import _number_of_nodes
+    >>> _number_of_nodes((3, 4))
+    12
+    """
+    return np.prod(shape, dtype=np.int)
+
+
+def _node_ids(shape):
+    """IDs of nodes.
+
+    Parameters
+    ----------
+    shape : tuple of int
+        Shape of grid of nodes.
+
+    Returns
+    -------
+    ndarray :
+        IDs of the nodes.
+
+    Examples
+    --------
+    >>> from landlab.grid.structured_quad.links import _node_ids
+    >>> _node_ids((3, 4))
+    array([[ 0,  1,  2,  3],
+           [ 4,  5,  6,  7],
+           [ 8,  9, 10, 11]])
+    """
+    return np.arange(_number_of_nodes(shape), dtype=np.int).reshape(shape)
 
 
 def neighbors_at_link(shape, links):
@@ -410,7 +455,7 @@ def node_in_link_ids(shape):
     _node_link_ids = np.vstack((in_vert.flat, in_horiz.flat)).T
     # offset = np.cumsum(number_of_in_links_per_node(shape))
 
-    offset = np.empty(nodes.number_of_nodes(shape) + 1, dtype=int)
+    offset = np.empty(_number_of_nodes(shape) + 1, dtype=int)
     np.cumsum(number_of_in_links_per_node(shape), out=offset[1:])
     offset[0] = 0
     return _node_link_ids[_node_link_ids >= 0], offset
@@ -449,7 +494,7 @@ def node_out_link_ids(shape):
     """
     (out_vert, out_horiz) = _node_out_link_ids(shape)
     _node_link_ids = np.vstack((out_vert.flat, out_horiz.flat)).T
-    offset = np.empty(nodes.number_of_nodes(shape) + 1, dtype=int)
+    offset = np.empty(_number_of_nodes(shape) + 1, dtype=int)
     np.cumsum(number_of_out_links_per_node(shape), out=offset[1:])
     offset[0] = 0
     return _node_link_ids[_node_link_ids >= 0], offset
@@ -574,7 +619,7 @@ def node_link_ids(shape):
         (out_horiz.flat, out_vert.flat, in_horiz.flat, in_vert.flat)
     ).T
 
-    offset = np.empty(nodes.number_of_nodes(shape) + 1, dtype=int)
+    offset = np.empty(_number_of_nodes(shape) + 1, dtype=int)
     np.cumsum(number_of_links_per_node(shape), out=offset[1:])
     offset[0] = 0
 
@@ -604,7 +649,7 @@ def node_id_at_link_start(shape):
             4, 5, 6, 7,
             8, 9, 10])
     """
-    all_node_ids = nodes.node_ids(shape)
+    all_node_ids = _node_ids(shape)
     link_tails_with_extra_row = np.hstack((all_node_ids[:, :-1], all_node_ids)).reshape(
         (-1,)
     )
@@ -634,7 +679,7 @@ def node_id_at_link_end(shape):
             8, 9, 10, 11,
             9, 10, 11])
     """
-    all_node_ids = nodes.node_ids(shape)
+    all_node_ids = _node_ids(shape)
     link_heads_missing_row = np.hstack(
         (all_node_ids[:-1, 1:], all_node_ids[1:, :])
     ).reshape((-1,))
@@ -658,21 +703,25 @@ def is_active_link(shape, node_status):
 
     Examples
     --------
-    >>> from landlab.grid.structured_quad.nodes import (
-    ...     status_with_perimeter_as_boundary)
     >>> from landlab.grid.structured_quad.links import is_active_link
-    >>> status = status_with_perimeter_as_boundary((3, 4))
-    >>> status # doctest: +NORMALIZE_WHITESPACE
-    array([[4, 4, 4, 4],
-           [4, 0, 0, 4],
-           [4, 4, 4, 4]])
-    >>> is_active_link((3, 4), status) # doctest: +NORMALIZE_WHITESPACE
-    array([False, False, False,
-           False, False, False, False,
+    >>> from landlab.grid.nodestatus import NodeStatus
+
+    >>> status = [
+    ...     [NodeStatus.CLOSED, NodeStatus.CLOSED, NodeStatus.CLOSED],
+    ...     [NodeStatus.CLOSED, NodeStatus.CORE, NodeStatus.CLOSED],
+    ...     [NodeStatus.CLOSED, NodeStatus.CORE, NodeStatus.CLOSED],
+    ...     [NodeStatus.CLOSED, NodeStatus.CLOSED, NodeStatus.CLOSED],
+    ... ]
+    >>> is_active_link((4, 3), status) # doctest: +NORMALIZE_WHITESPACE
+    array([False, False,
+           False, False, False,
+           False, False,
            False, True, False,
-           False, False, False, False,
-           False, False, False], dtype=bool)
+           False, False,
+           False, False, False,
+           False, False], dtype=bool)
     """
+    node_status = np.asarray(node_status)
     if np.prod(shape) != node_status.size:
         raise ValueError(
             "node status array does not match size of grid "
