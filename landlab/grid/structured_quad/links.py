@@ -51,29 +51,6 @@ def _node_ids(shape):
     return np.arange(_number_of_nodes(shape), dtype=np.int).reshape(shape)
 
 
-def neighbors_at_link(shape, links):
-    """Get neighbor links.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab.grid.structured_quad.links import neighbors_at_link
-
-    >>> neighbors_at_link((3, 2), np.arange(7)) # doctest: +NORMALIZE_WHITESPACE
-    array([[-1,  3, -1, -1],
-           [ 2,  4, -1, -1], [-1,  5,  1, -1],
-           [-1,  6, -1,  0],
-           [ 5,  7, -1,  1], [-1, -1,  4,  2],
-           [-1, -1, -1,  3]])
-    """
-    from .cfuncs import _neighbors_at_link
-
-    links = np.asarray(links, dtype=int)
-    out = np.full((links.size, 4), -1, dtype=int)
-    _neighbors_at_link(links, shape, out)
-    return out
-
-
 def shape_of_vertical_links(shape):
     """Shape of vertical link grid.
 
@@ -418,86 +395,6 @@ def _node_in_link_ids(shape):
     node_vertical_link_ids[0, :] = -1
 
     return node_vertical_link_ids, node_horizontal_link_ids
-
-
-def node_in_link_ids(shape):
-    """Links entering each node.
-
-    Parameters
-    ----------
-    shape : tuple of int
-        Shape of grid of nodes.
-
-    Returns
-    -------
-    tuple :
-        Tuple of array of link IDs as (vertical_links, horizontal_links).
-
-    Examples
-    --------
-    >>> from landlab.grid.structured_quad.links import node_in_link_ids
-    >>> (links, offset) = node_in_link_ids((3, 4))
-    >>> links
-    array([ 0,  1,  2,  3,  4,  7,  5,  8,  6,  9, 10, 11, 14, 12, 15, 13, 16])
-    >>> offset
-    array([ 0,  0,  1,  2,  3,  4,  6,  8, 10, 11, 13, 15, 17])
-
-    The links entering the 1st, 5th, and last node. The first node does not
-    have any links entering it.
-
-    >>> offset[0] == offset[1]
-    True
-    >>> for link in [4, 11]: links[offset[link]:offset[link + 1]]
-    array([3])
-    array([13, 16])
-    """
-    (in_vert, in_horiz) = _node_in_link_ids(shape)
-    _node_link_ids = np.vstack((in_vert.flat, in_horiz.flat)).T
-    # offset = np.cumsum(number_of_in_links_per_node(shape))
-
-    offset = np.empty(_number_of_nodes(shape) + 1, dtype=int)
-    np.cumsum(number_of_in_links_per_node(shape), out=offset[1:])
-    offset[0] = 0
-    return _node_link_ids[_node_link_ids >= 0], offset
-
-
-def node_out_link_ids(shape):
-    """Links leaving each node.
-
-    Parameters
-    ----------
-    shape : tuple of int
-        Shape of grid of nodes.
-
-    Returns
-    -------
-    tuple :
-        Tuple of array of link IDs as (vertical_links, horizontal_links).
-
-    Examples
-    --------
-    >>> from landlab.grid.structured_quad.links import node_out_link_ids
-    >>> (links, offset) = node_out_link_ids((3, 4))
-    >>> links
-    array([ 3,  0,  4,  1,  5,  2,  6, 10,  7, 11,  8, 12,  9, 13, 14, 15, 16])
-    >>> offset
-    array([ 0,  2,  4,  6,  7,  9, 11, 13, 14, 15, 16, 17, 17])
-
-    The links leaving the 1st, 8th, and last node. The last node does not have
-    any links leaving it.
-
-    >>> offset[11] == offset[12]
-    True
-    >>> for link in [0, 7]: links[offset[link]:offset[link + 1]]
-    array([3, 0])
-    array([13])
-    """
-    (out_vert, out_horiz) = _node_out_link_ids(shape)
-    _node_link_ids = np.vstack((out_vert.flat, out_horiz.flat)).T
-    offset = np.empty(_number_of_nodes(shape) + 1, dtype=int)
-    np.cumsum(number_of_out_links_per_node(shape), out=offset[1:])
-    offset[0] = 0
-    return _node_link_ids[_node_link_ids >= 0], offset
 
 
 def links_at_node(shape):
