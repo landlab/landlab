@@ -36,3 +36,22 @@ the source code of the computation are assumptions or conversions about the
 units of inputs.
 
 When it doubt, the best approach is to open a GitHub issue.
+
+Below is a list of non-unit agnostic components current as of February 2020:
+
+* :py:class:`~landlab.components.GroundwaterDupuitPercolator`
+* :py:class:`~landlab.components.KinwaveImplicitOverlandFlow`
+* :py:class:`~landlab.components.KinwaveOverlandFlowModel`
+* :py:class:`~landlab.components.LandslideProbability`
+* :py:class:`~landlab.components.LateralEroder`
+* :py:class:`~landlab.components.OverlandFlow`
+* :py:class:`~landlab.components.OverlandFlowBates`
+* :py:class:`~landlab.components.PotentialEvapotranspiration`
+* :py:class:`~landlab.components.PotentialityFlowRouter`
+* :py:class:`~landlab.components.Radiation`
+* :py:class:`~landlab.components.SedDepEroder`
+* :py:class:`~landlab.components.SoilMoisture`
+* :py:class:`~landlab.components.SoilInfiltrationGreenAmpt`
+* :py:class:`~landlab.components.SpatialPrecipitationDistribution`
+* :py:class:`~landlab.components.VegCA`
+* :py:class:`~landlab.components.Vegetation`
