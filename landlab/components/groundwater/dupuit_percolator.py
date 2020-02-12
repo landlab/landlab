@@ -157,7 +157,9 @@ class GroundwaterDupuitPercolator(Component):
     ----------
     **Required Software Citation(s) Specific to this Component**
 
-    A publication is currently under review at the Journal of Open Source Software
+    Litwin, D. G., Tucker, G.E., Barnhart, K. R., Harman, C. J. (2020).
+    GroundwaterDupuitPercolator: A Landlab component for groundwater flow.
+    Journal of Open Source Software, 5(46), 1935, https://doi.org/10.21105/joss.01935
 
     **Additional References**
 
