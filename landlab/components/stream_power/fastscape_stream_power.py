@@ -142,6 +142,8 @@ class FastscapeEroder(Component):
 
     _name = "FastscapeEroder"
 
+    _unit_agnostic = True
+    
     _info = {
         "drainage_area": {
             "dtype": float,

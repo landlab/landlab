@@ -86,6 +86,8 @@ class PotentialityFlowRouter(Component):
 
     _name = "PotentialityFlowRouter"
 
+    _unit_agnostic = False
+    
     _info = {
         "flow__potential": {
             "dtype": float,

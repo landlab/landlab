@@ -106,6 +106,8 @@ class LinearDiffuser(Component):
 
     _name = "LinearDiffuser"
 
+    _unit_agnostic = True
+    
     _info = {
         "hillslope_sediment__unit_volume_flux": {
             "dtype": float,

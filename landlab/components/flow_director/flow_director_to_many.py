@@ -56,6 +56,8 @@ class _FlowDirectorToMany(_FlowDirector):
 
     _name = "FlowDirectorToMany"
 
+    _unit_agnostic = True
+    
     _info = {
         "flow__link_to_receiver_node": {
             "dtype": int,

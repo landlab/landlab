@@ -621,6 +621,8 @@ class FlowAccumulator(Component):
 
     _name = "FlowAccumulator"
 
+    _unit_agnostic = True
+
     _info = {
         "drainage_area": {
             "dtype": float,

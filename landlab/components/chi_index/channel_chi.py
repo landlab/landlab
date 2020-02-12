@@ -109,6 +109,8 @@ class ChiFinder(Component):
 
     _name = "ChiFinder"
 
+    _unit_agnostic = True
+    
     _info = {
         "channel__chi_index": {
             "dtype": float,

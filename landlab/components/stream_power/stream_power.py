@@ -121,6 +121,8 @@ class StreamPowerEroder(Component):
 
     _name = "StreamPowerEroder"
 
+    _unit_agnostic = True
+    
     _info = {
         "drainage_area": {
             "dtype": float,

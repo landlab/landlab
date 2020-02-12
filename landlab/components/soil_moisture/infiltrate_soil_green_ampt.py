@@ -60,6 +60,8 @@ class SoilInfiltrationGreenAmpt(Component):
 
     _name = "SoilInfiltrationGreenAmpt"
 
+    _unit_agnostic = False
+
     _cite_as = """
     @article{rengers2016model,
       author = {Rengers, F K and McGuire, L A and Kean, J W and Staley, D M and Hobley, D E J},

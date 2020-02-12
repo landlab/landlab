@@ -198,6 +198,8 @@ class SpeciesEvolver(Component):
     behavior can be achieved by subclassing ``ZoneTaxon`` or ``Taxon``.
     """
     _name = 'SpeciesEvolver'
+    
+    _unit_agnostic = True
 
     _info = {
         "taxa__richness": {

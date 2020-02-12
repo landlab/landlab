@@ -171,6 +171,8 @@ class GroundwaterDupuitPercolator(Component):
 
     _name = "GroundwaterDupuitPercolator"
 
+    _unit_agnostic = False
+
     _info = {
         "aquifer__thickness": {
             "dtype": float,
@@ -406,7 +408,9 @@ class GroundwaterDupuitPercolator(Component):
         Includes recharge that may immediately become saturation excess
         overland flow. (m3/s)
         """
-        return np.sum(self._grid.cell_area_at_node[self._cores] * self._recharge[self._cores])
+        return np.sum(
+            self._grid.cell_area_at_node[self._cores] * self._recharge[self._cores]
+        )
 
     def calc_gw_flux_out(self):
         """Groundwater flux through open boundaries may be positive (out of the

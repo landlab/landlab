@@ -14,6 +14,8 @@ class _GeneralizedErosionDeposition(Component):
 
     _name = "_GeneralizedErosionDeposition"
 
+    _unit_agnostic = True
+    
     _info = {
         "flow__link_to_receiver_node": {
             "dtype": int,

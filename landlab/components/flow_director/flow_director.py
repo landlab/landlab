@@ -66,6 +66,8 @@ class _FlowDirector(Component):
 
     _name = "_FlowDirector"
 
+    _unit_agnostic = True
+    
     _info = {
         "flow__sink_flag": {
             "dtype": bool,

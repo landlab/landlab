@@ -55,6 +55,8 @@ class LithoLayers(Lithology):
 
     _name = "LithoLayers"
 
+    _unit_agnostic = True
+    
     _cite_as = """@article{barnhart2018lithology,
                     title = "Lithology: A Landlab submodule for spatially variable rock properties",
                     journal = "Journal of Open Source Software",
