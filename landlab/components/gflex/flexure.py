@@ -102,7 +102,7 @@ class gFlex(Component):
     _name = "gFlex"
 
     _unit_agnostic = True
-    
+
     _cite_as = """
     @article{wickert2016open,
       author = {Wickert, A. D.},

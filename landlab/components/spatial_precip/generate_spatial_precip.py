@@ -260,7 +260,7 @@ class SpatialPrecipitationDistribution(Component):
     _name = "SpatialPrecipitationDistribution"
 
     _unit_agnostic = False
-    
+
     _cite_as = """@Article{gmd-2018-86,
         title={STORM: A simple, flexible, and parsimonious stochastic rainfall
                generator for simulating climate and climate change},

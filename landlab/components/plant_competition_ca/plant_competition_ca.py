@@ -81,7 +81,7 @@ class VegCA(Component):
     _name = "Cellular Automata Plant Competition"
 
     _unit_agnostic = False
-    
+
     _info = {
         "plant__age": {
             "dtype": float,

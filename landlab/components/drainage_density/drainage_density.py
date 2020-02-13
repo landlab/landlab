@@ -144,7 +144,7 @@ class DrainageDensity(Component):
     _name = "DrainageDensity"
 
     _unit_agnostic = True
-    
+
     _info = {
         "area_coefficient": {
             "dtype": float,

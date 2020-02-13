@@ -23,7 +23,7 @@ def test_component_metadata(Comp):
         "SoilMoisture",
         "Vegetation",
     ):
-        #print(Comp.name)
+        # print(Comp.name)
         grid = RasterModelGrid((10, 10))
 
         assert Comp._unit_agnostic in (True, False)

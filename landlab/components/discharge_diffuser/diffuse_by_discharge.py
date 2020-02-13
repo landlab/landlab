@@ -57,7 +57,7 @@ class DischargeDiffuser(Component):
     _name = "DischargeDiffuser"
 
     _unit_agnostic = True
-    
+
     _info = {
         "flow__potential": {
             "dtype": float,

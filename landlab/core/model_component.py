@@ -59,7 +59,7 @@ class Component:
     _name = None
     _cite_as = ""
     _unit_agnostic = None
-    
+
     def __new__(cls, *args, **kwds):
         registry.add(cls)
         return object.__new__(cls)

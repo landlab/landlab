@@ -138,7 +138,7 @@ class Space(_GeneralizedErosionDeposition):
     _name = "Space"
 
     _unit_agnostic = True
-    
+
     _info = {
         "flow__link_to_receiver_node": {
             "dtype": int,

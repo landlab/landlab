@@ -58,7 +58,7 @@ class NormalFault(Component):
     _name = "NormalFault"
 
     _unit_agnostic = True
-    
+
     _info = {
         "topographic__elevation": {
             "dtype": float,

@@ -72,7 +72,7 @@ class _FlowDirectorToOne(_FlowDirector):
     _name = "FlowDirectorToOne"
 
     _unit_agnostic = True
-    
+
     _info = {
         "flow__link_to_receiver_node": {
             "dtype": int,

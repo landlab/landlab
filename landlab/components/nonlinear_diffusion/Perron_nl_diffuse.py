@@ -68,7 +68,7 @@ class PerronNLDiffuse(Component):
     _name = "PerronNLDiffuse"
 
     _unit_agnostic = True
-    
+
     _info = {
         "topographic__elevation": {
             "dtype": float,

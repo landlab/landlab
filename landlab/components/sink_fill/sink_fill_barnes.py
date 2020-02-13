@@ -45,7 +45,7 @@ class SinkFillerBarnes(LakeMapperBarnes):
     _name = "SinkFillerBarnes"
 
     _unit_agnostic = True
-    
+
     _cite_as = """@article{BARNES2014117,
         title = "Priority-flood: An optimal depression-filling and watershed-labeling algorithm for digital elevation models",
         journal = "Computers & Geosciences",

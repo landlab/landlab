@@ -78,7 +78,7 @@ class SteepnessFinder(Component):
     _name = "SteepnessFinder"
 
     _unit_agnostic = True
-    
+
     _info = {
         "channel__steepness_index": {
             "dtype": float,

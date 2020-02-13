@@ -89,7 +89,7 @@ class FireGenerator(Component):
     _name = "FireGenerator"
 
     _unit_agnostic = True
-    
+
     _info = {}
 
     def __init__(

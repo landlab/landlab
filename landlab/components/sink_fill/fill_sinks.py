@@ -94,7 +94,7 @@ class SinkFiller(Component):
     _name = "SinkFiller"
 
     _unit_agnostic = True
-    
+
     _info = {
         "sediment_fill__depth": {
             "dtype": float,

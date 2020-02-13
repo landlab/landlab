@@ -91,7 +91,7 @@ class PotentialEvapotranspiration(Component):
     _name = "PotentialEvapotranspiration"
 
     _unit_agnostic = False
-    
+
     _info = {
         "radiation__incoming_shortwave_flux": {
             "dtype": float,

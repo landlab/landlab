@@ -113,7 +113,7 @@ class TransportLengthHillslopeDiffuser(Component):
     _name = "TransportLengthHillslopeDiffuser"
 
     _unit_agnostic = True
-    
+
     _info = {
         "flow__receiver_node": {
             "dtype": int,
