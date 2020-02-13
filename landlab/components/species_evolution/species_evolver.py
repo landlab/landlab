@@ -205,7 +205,29 @@ class SpeciesEvolver(Component):
     ``ZoneTaxon`` as well as the parameters used in this example (default
     values were used because optional parameters were not set). Different
     behavior can be achieved by subclassing ``ZoneTaxon`` or ``Taxon``.
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Lyons, N.J., Albert, J.S., Gasparini, N.M. (in review). SpeciesEvolver: A
+    Landlab component to evolve life in simulated landscapes. Journal of Open
+    Source Software.
+
+    **Additional References**
+
+    Albert, J.S., Schoolmaster Jr, D.R., Tagliacollo, V., Duke-Sylvester, S.M.
+    (2016). Barrier displacement on a neutral landscape: Toward a theory of
+    continental biogeography. Systematic Biology 66(2), 167–182.
+    https://doi.org/10.1093/sysbio/syw080
+
+    Lyons, N.J., Val, P., Albert, J.S., Willenbring, J.K., Gasparini, N.M., in
+    review. Topographic controls on divide migration, stream capture, and
+    diversification in riverine life. Earth Surface Dynamics.
+    https://doi.org/10.5194/esurf-2019-55
+
     """
+
     _name = 'SpeciesEvolver'
 
     _info = {
@@ -218,6 +240,12 @@ class SpeciesEvolver(Component):
             "doc": "The number of taxa at each node",
         },
     }
+
+    _cite_as = """@article{lyons2020species,
+        author = {Lyons, N.J. and Albert, J.S. and Gasparini, N.M.},
+        title = {SpeciesEvolver: A Landlab component to evolve life in simulated landscapes},
+        journal = {Journal of Open Source Software},
+        }"""
 
     def __init__(self, grid, initial_time=0):
         """Instantiate SpeciesEvolver.
