@@ -11,7 +11,7 @@ models using plug-and-play surface process components to evolve the grid's
 landscape alongside the life tracked by SpeciesEvolver. The simulated life
 evolves following customizable processes.
 
-## Documentation
+## Documentation and installation
 
 Landlab documentation is hosted on this [ReadTheDocs page](https://landlab.readthedocs.io/en/master), including Landlab installation instructions. SpeciesEvolver is installed with Landlab.
 
@@ -24,8 +24,10 @@ located in ``/landlab/notebooks/tutorials`` titled, ``Introduction_to_SpeciesEvo
 
 A static version of the same tutorial can be viewed [here](https://nbviewer.jupyter.org/github/landlab/landlab/blob/master/notebooks/tutorials/species_evolution/Introduction_to_SpeciesEvolver.ipynb).
 
-## Issues
+All Landlab tutorials can be launched from [this directory](https://mybinder.org/v2/gh/landlab/landlab/release?filepath=welcome.ipynb) using binder.
+
+## Get or give help
 
 [Open an Issue here](https://github.com/landlab/landlab/issues) where we can
-respond to your questions, comments, issues, or any identified bugs related to
-Landlab including SpeciesEvolver.
+respond to your questions, comments, issues, suggestions, or any identified
+bugs related to Landlab including SpeciesEvolver.
