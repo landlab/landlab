@@ -220,12 +220,10 @@ class SpeciesEvolver(Component):
     Albert, J.S., Schoolmaster Jr, D.R., Tagliacollo, V., Duke-Sylvester, S.M.
     (2016). Barrier displacement on a neutral landscape: Toward a theory of
     continental biogeography. Systematic Biology 66(2), 167–182.
-    https://doi.org/10.1093/sysbio/syw080
 
     Lyons, N.J., Val, P., Albert, J.S., Willenbring, J.K., Gasparini, N.M., in
     review. Topographic controls on divide migration, stream capture, and
     diversification in riverine life. Earth Surface Dynamics.
-    https://doi.org/10.5194/esurf-2019-55
 
     """
 
