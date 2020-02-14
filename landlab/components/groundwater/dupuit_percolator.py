@@ -173,6 +173,19 @@ class GroundwaterDupuitPercolator(Component):
 
     _name = "GroundwaterDupuitPercolator"
 
+    _cite_as = """@article{litwin2020groundwater,
+      doi = {10.21105/joss.01935},
+      url = {https://doi.org/10.21105/joss.01935},
+      year = {2020},
+      publisher = {The Open Journal},
+      volume = {5},
+      number = {46},
+      pages = {1935},
+      author = {David Litwin and Gregory Tucker and Katherine Barnhart and Ciaran Harman},
+      title = {GroundwaterDupuitPercolator: A Landlab component for groundwater flow},
+      journal = {Journal of Open Source Software}
+    }"""
+
     _info = {
         "aquifer__thickness": {
             "dtype": float,
