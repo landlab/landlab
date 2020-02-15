@@ -2,14 +2,13 @@
 
 [![status](https://joss.theoj.org/papers/446f3d17d642682b234ffed2b53198f6/status.svg)](https://joss.theoj.org/papers/446f3d17d642682b234ffed2b53198f6)
 
-Life evolves alongside landscapes as biotic and abiotic processes integrate
-under complex dynamics at Earth's surface. Researchers who wish to explore
-these dynamics can use this component as a tool for them to build
-landscape-life evolution models. Landlab components, including SpeciesEvolver
-are designed to work with a shared model grid. Researchers can build novel
-models using plug-and-play surface process components to evolve the grid's
-landscape alongside the life tracked by SpeciesEvolver. The simulated life
-evolves following customizable processes.
+Life evolves alongside landscapes by biotic and abiotic processes under complex
+dynamics at Earth's surface. Researchers who wish to explore these dynamics can
+use this component as a tool for them to build landscape-life evolution models.
+Landlab components, including SpeciesEvolver are designed to work with a shared
+model grid. Researchers can build novel models using plug-and-play surface
+process components to evolve the grid's landscape alongside the life tracked by
+SpeciesEvolver. The simulated life evolves following customizable processes.
 
 ## Documentation and installation
 
