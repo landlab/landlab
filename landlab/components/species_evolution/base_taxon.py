@@ -20,6 +20,7 @@ class Taxon(ABC):
     The methods must take the same parameters and both the properties and
     methods must return the values described in their docstrings.
     """
+
     def __init__(self):
         self._extant = True
         self._uid = None
@@ -27,7 +28,7 @@ class Taxon(ABC):
         self._children = []
 
     def __repr__(self):
-        return '<{}, uid={}>'.format(self.__class__.__name__, self.uid)
+        return "<{}, uid={}>".format(self.__class__.__name__, self.uid)
 
     @property
     def uid(self):

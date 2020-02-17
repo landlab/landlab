@@ -4,7 +4,7 @@
 
 The GroundwaterDupuitPercolator is a component in Landlab for simulating shallow
 subsurface flow. A [paper describing it](https://joss.theoj.org/papers/6936ca6851c622de48b2c5f6cf45a7bd)
-is currently under review at the Journal of Open Source Software. Here we
+was published in February 2020 in the Journal of Open Source Software. Here we
 summarize installation, documentation, tutorials, tests, and getting help with
 this component.
 

@@ -2,6 +2,14 @@
 # -*- coding: utf-8 -*-
 """Evolve life in a landscape.
 
+Life evolves alongside landscapes by biotic and abiotic processes under complex
+dynamics at Earth's surface. Researchers who wish to explore these dynamics can
+use this component as a tool for them to build landscape-life evolution models.
+Landlab components, including SpeciesEvolver are designed to work with a shared
+model grid. Researchers can build novel models using plug-and-play surface
+process components to evolve the grid's landscape alongside the life tracked by
+SpeciesEvolver. The simulated life evolves following customizable processes.
+
 Component written by Nathan Lyons beginning August 2017.
 """
 from collections import OrderedDict
@@ -10,6 +18,7 @@ import numpy as np
 from pandas import DataFrame, isnull
 
 from landlab import Component
+
 from .record import Record
 
 
@@ -196,8 +205,28 @@ class SpeciesEvolver(Component):
     ``ZoneTaxon`` as well as the parameters used in this example (default
     values were used because optional parameters were not set). Different
     behavior can be achieved by subclassing ``ZoneTaxon`` or ``Taxon``.
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    Lyons, N.J., Albert, J.S., Gasparini, N.M. (in review). SpeciesEvolver: A
+    Landlab component to evolve life in simulated landscapes. Journal of Open
+    Source Software.
+
+    **Additional References**
+
+    Albert, J.S., Schoolmaster Jr, D.R., Tagliacollo, V., Duke-Sylvester, S.M.
+    (2016). Barrier displacement on a neutral landscape: Toward a theory of
+    continental biogeography. Systematic Biology 66(2), 167–182.
+
+    Lyons, N.J., Val, P., Albert, J.S., Willenbring, J.K., Gasparini, N.M., in
+    review. Topographic controls on divide migration, stream capture, and
+    diversification in riverine life. Earth Surface Dynamics.
+
     """
-    _name = 'SpeciesEvolver'
+
+    _name = "SpeciesEvolver"
 
     _info = {
         "taxa__richness": {
@@ -207,8 +236,14 @@ class SpeciesEvolver(Component):
             "units": "-",
             "mapping": "node",
             "doc": "The number of taxa at each node",
-        },
+        }
     }
+
+    _cite_as = """@article{lyons2020species,
+        author = {Lyons, N.J. and Albert, J.S. and Gasparini, N.M.},
+        title = {SpeciesEvolver: A Landlab component to evolve life in simulated landscapes},
+        journal = {Journal of Open Source Software},
+        }"""
 
     def __init__(self, grid, initial_time=0):
         """Instantiate SpeciesEvolver.
@@ -226,21 +261,21 @@ class SpeciesEvolver(Component):
         # Create data structures.
 
         self._record = Record(initial_time)
-        self._record.set_value('taxa', 0)
+        self._record.set_value("taxa", 0)
 
-        self._taxa = OrderedDict([
-            ('uid', []),
-            ('appeared', []),
-            ('latest_time', []),
-            ('extant', []),
-            ('object', [])]
+        self._taxa = OrderedDict(
+            [
+                ("uid", []),
+                ("appeared", []),
+                ("latest_time", []),
+                ("extant", []),
+                ("object", []),
+            ]
         )
 
         # Create a taxa richness field.
 
-        _ = grid.add_zeros(
-            'taxa__richness', at='node', dtype=int, clobber=True
-        )
+        _ = grid.add_zeros("taxa__richness", at="node", dtype=int, clobber=True)
 
     @property
     def record_data_frame(self):
@@ -275,10 +310,10 @@ class SpeciesEvolver(Component):
         The DataFrame is created from a data structure within the component.
         """
         cols = list(self._taxa.keys())
-        cols.remove('uid')
-        cols.remove('object')
-        df = DataFrame(self._taxa, columns=cols, index=self._taxa['uid'])
-        df.index.name = 'uid'
+        cols.remove("uid")
+        cols.remove("object")
+        df = DataFrame(self._taxa, columns=cols, index=self._taxa["uid"])
+        df.index.name = "uid"
 
         return df
 
@@ -299,7 +334,7 @@ class SpeciesEvolver(Component):
 
         # Create a dictionary of the taxa to update, `taxa_evolving`.
 
-        extant_taxa = np.array(self._taxa['object'])[self._taxa['extant']]
+        extant_taxa = np.array(self._taxa["object"])[self._taxa["extant"]]
         taxa_evolving = OrderedDict.fromkeys(extant_taxa, True)
 
         # Run stages of taxa evolution.
@@ -400,7 +435,7 @@ class SpeciesEvolver(Component):
         """
         time = self._record.latest_time
 
-        t_recorded = self._taxa['object']
+        t_recorded = self._taxa["object"]
 
         # Update previously introduced taxa.
 
@@ -409,9 +444,9 @@ class SpeciesEvolver(Component):
         for taxon in t_introduced:
             # Update taxon data.
 
-            idx = self._taxa['object'].index(taxon)
-            self._taxa['latest_time'][idx] = time
-            self._taxa['extant'][idx] = taxon.extant
+            idx = self._taxa["object"].index(taxon)
+            self._taxa["latest_time"][idx] = time
+            self._taxa["extant"][idx] = taxon.extant
 
         # Set the data of new taxa.
 
@@ -420,28 +455,27 @@ class SpeciesEvolver(Component):
         for taxon in t_new:
             # Set identifiers.
 
-            if self._taxa['uid']:
-                taxon._uid = max(self._taxa['uid']) + 1
+            if self._taxa["uid"]:
+                taxon._uid = max(self._taxa["uid"]) + 1
             else:
                 taxon._uid = 0
 
             # Append taxon data.
 
-            self._taxa['uid'].append(taxon.uid)
-            self._taxa['appeared'].append(time)
-            self._taxa['latest_time'].append(time)
-            self._taxa['extant'].append(taxon.extant)
-            self._taxa['object'].append(taxon)
+            self._taxa["uid"].append(taxon.uid)
+            self._taxa["appeared"].append(time)
+            self._taxa["latest_time"].append(time)
+            self._taxa["extant"].append(taxon.extant)
+            self._taxa["object"].append(taxon)
 
         # Update taxa stats.
 
-        self._record.set_value('taxa', sum(self._taxa['extant']))
+        self._record.set_value("taxa", sum(self._taxa["extant"]))
 
-        self._grid.at_node['taxa__richness'] = self._get_taxa_richness_map()
+        self._grid.at_node["taxa__richness"] = self._get_taxa_richness_map()
 
     def get_taxon_objects(
-        self, uid=np.nan, time=np.nan, extant_at_latest_time=np.nan,
-        ancestor=np.nan
+        self, uid=np.nan, time=np.nan, extant_at_latest_time=np.nan, ancestor=np.nan
     ):
         """Get taxon objects filtered by parameters.
 
@@ -581,9 +615,9 @@ class SpeciesEvolver(Component):
 
         if isnull(ancestor):
             taxa = self._taxa
-        elif ancestor in self._taxa['uid']:
-            idx_number = self._taxa['uid'].index(ancestor)
-            taxon = self._taxa['object'][idx_number]
+        elif ancestor in self._taxa["uid"]:
+            idx_number = self._taxa["uid"].index(ancestor)
+            taxon = self._taxa["object"][idx_number]
 
             descendants = []
             stack = [taxon]
@@ -606,34 +640,34 @@ class SpeciesEvolver(Component):
         # Handle identifier.
 
         if isnull(uid):
-            idx_id = np.ones(len(taxa['uid']), dtype=bool)
+            idx_id = np.ones(len(taxa["uid"]), dtype=bool)
         else:
-            idx_id = np.array(taxa['uid']) == uid
+            idx_id = np.array(taxa["uid"]) == uid
 
         # Handle time.
 
         if isnull(time):
-            idx_time = np.ones(len(taxa['uid']), dtype=bool)
+            idx_time = np.ones(len(taxa["uid"]), dtype=bool)
         else:
             idx_time = self._mask_taxa_by_time(taxa, time)
 
         # Handle extant state.
 
         if isnull(extant_at_latest_time):
-            idx_ext = np.ones(len(taxa['uid']), dtype=bool)
+            idx_ext = np.ones(len(taxa["uid"]), dtype=bool)
         else:
-            idx_ext = np.array(taxa['extant']) == extant_at_latest_time
+            idx_ext = np.array(taxa["extant"]) == extant_at_latest_time
 
         # Get the Taxon list.
 
         idx = np.all([idx_time, idx_id, idx_ext], 0)
-        taxa = np.array(taxa['object'])[idx].tolist()
+        taxa = np.array(taxa["object"])[idx].tolist()
         taxa.sort(key=lambda taxon: taxon.uid)
 
         return taxa
 
     def _subset_taxa_data_structure(self, subset):
-        all_objects = self._taxa['object']
+        all_objects = self._taxa["object"]
         idx = [i for i, e in enumerate(all_objects) if e in subset]
 
         structure = OrderedDict()
@@ -658,12 +692,12 @@ class SpeciesEvolver(Component):
             A mask of ``taxa`` extant at ``time``.
         """
         if time not in self._record.times:
-            raise ValueError('The time, {} is not in the record.'.format(time))
+            raise ValueError("The time, {} is not in the record.".format(time))
 
         # Create a mask of taxa within time bounds.
 
-        t_appeared = np.array(taxa['appeared'])
-        t_latest = np.array(taxa['latest_time'])
+        t_appeared = np.array(taxa["appeared"])
+        t_latest = np.array(taxa["latest_time"])
 
         t_prior = t_appeared <= time
         t_later = t_latest >= time
