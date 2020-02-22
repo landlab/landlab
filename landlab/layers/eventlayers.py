@@ -218,6 +218,7 @@ class _BlockSlice:
     """Slices that divide a matrix into equally sized blocks."""
 
     def __init__(self, *args):
+        """_BlockSlice([start], stop, [step])"""
         if len(args) > 3:
             raise TypeError(
                 "_BlockSlice expected at most 3 arguments, got {0}".format(len(args))
@@ -260,16 +261,34 @@ class _BlockSlice:
         return self._step
 
     def indices(self, n_rows):
-        """
+        """Row indices to blocks within a matrix.
+
+        Parameters
+        ----------
+        n_rows : int
+            The number of rows in the matrix.
+
+        Returns
+        -------
+        (start, stop, step)
+            Tuple of (int* that gives the row of the first block, row of the
+            last block, and the number of rows in each block.
+
         Examples
         --------
         >>> from landlab.layers.eventlayers import _BlockSlice
+
+        The default is one single block that encomapses all the rows.
+
         >>> _BlockSlice().indices(4)
         (0, 4, 4)
+
         >>> _BlockSlice(3).indices(4)
         (0, 3, 3)
+
         >>> _BlockSlice(1, 3).indices(4)
         (1, 3, 2)
+
         >>> _BlockSlice(1, 7, 2).indices(8)
         (1, 7, 2)
         """
@@ -445,7 +464,7 @@ def _allocate_layers_for(array, number_of_layers, number_of_stacks):
     )
 
 
-class EventLayersMixIn(object):
+class EventLayersMixIn:
 
     """MixIn that adds a EventLayers attribute to a ModelGrid."""
 
@@ -460,7 +479,7 @@ class EventLayersMixIn(object):
             return self._event_layers
 
 
-class EventLayers(object):
+class EventLayers:
 
     """Track EventLayers where each event is its own layer.
 
@@ -961,9 +980,36 @@ class EventLayers(object):
 
     @property
     def surface_index(self):
+        """Index to the top non-empty layer.
+
+        Examples
+        --------
+        >>> from landlab.layers.eventlayers import EventLayers
+
+        Create an empty layer stack with 5 stacks.
+
+        >>> layers = EventLayers(3)
+        >>> layers.surface_index
+        array([0, 0, 0])
+
+        Add a layer with a uniform thickness.
+
+        >>> for _ in range(5): layers.add(1.0)
+        >>> layers.surface_index
+        array([4, 4, 4])
+
+        Add a layer with varying thickness. Negative thickness
+        removes thickness from underlying layers, zero thickness adds a
+        layer but doesn't change the surface index.
+
+        >>> layers.add([-1.0, 0.0, 1.0])
+        >>> layers.surface_index
+        array([3, 4, 5])
+        """
         return self._surface_index
 
     def get_surface_values(self, name):
+        """Values of a field on the surface layer."""
         return self._attrs[name][self.surface_index, np.arange(self._number_of_stacks)]
 
     def _add_empty_layer(self):
