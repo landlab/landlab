@@ -146,6 +146,195 @@ def _get_surface_index(layers, n_layers, surface_index):
     get_surface_index(layers, n_layers, surface_index)
 
 
+def _reduce_matrix(array, step, reducer):
+    """Combine rows of a 2D matrix.
+
+    Parameters
+    ----------
+    array : ndarray, shape (m, n)
+        Matrix to reduce.
+    step : int
+        Number of rows in each block to reduce.
+    reducer : ufunc
+        Function to use for combining rows.
+
+    Returns
+    -------
+    ndarray
+        Matrix with rows combined.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from landlab.layers.eventlayers import _reduce_matrix
+    >>> array = np.arange(12).reshape((4, 3))
+    >>> array
+    array([[ 0,  1,  2],
+           [ 3,  4,  5],
+           [ 6,  7,  8],
+           [ 9, 10, 11]])
+    >>> _reduce_matrix(array, 4, np.sum)
+    array([[18, 22, 26]])
+    >>> _reduce_matrix(array, 2, np.sum)
+    array([[ 3,  5,  7],
+           [15, 17, 19]])
+    """
+    return reducer(array.reshape((-1, step) + array.shape[1:]), axis=1).reshape(
+        (-1,) + array.shape[1:]
+    )
+
+
+def _reduce_matrix_rows(array, *args, reducer=np.sum):
+    """Combine rows of a portion of a 2D matrix.
+    """
+    start, stop = 0, len(array)
+    if len(args) == 1:
+        stop = args[0]
+    elif len(args) == 2:
+        start, stop = args
+    elif len(args) == 3:
+        start, stop, step = args
+    if start == stop:
+        return len(array)
+
+    start, stop, _ = slice(start, stop).indices(len(array))
+
+    if len(args) < 3:
+        step = stop - start
+
+    if step == 1:
+        return len(array)
+
+    middle = _reduce_matrix(array[start:stop, :], step, reducer)
+    top = array[stop:, :]
+
+    array[start : start + len(middle), :] = middle
+    array[start + len(middle) : start + len(middle) + len(top)] = top
+
+    return start + len(middle) + len(top)
+
+
+class _BlockSlice:
+    """Slices that divide a matrix into equally sized blocks."""
+
+    def __init__(self, *args):
+        if len(args) > 3:
+            raise TypeError(
+                "_BlockSlice expected at most 3 arguments, got {0}".format(len(args))
+            )
+
+        self._args = tuple(args)
+
+        self._start = 0
+        self._stop = None
+        self._step = None
+
+        if len(args) == 1:
+            self._stop = args[0]
+        elif len(args) == 2:
+            self._start, self._stop = args
+        elif len(args) == 3:
+            self._start, self._stop, self._step = args
+            self._step = min(self._stop - self._start, self._step)
+
+        if self._stop is not None and self._stop < self._start:
+            raise ValueError(
+                "stop ({0}) must be greater than start ({1})".format(
+                    self._stop, self._start
+                )
+            )
+
+    def __repr__(self):
+        return "_BlockSlice({0})".format(", ".join([repr(arg) for arg in self._args]))
+
+    @property
+    def start(self):
+        return self._start
+
+    @property
+    def stop(self):
+        return self._stop
+
+    @property
+    def step(self):
+        return self._step
+
+    def indices(self, n_rows):
+        """
+        Examples
+        --------
+        >>> from landlab.layers.eventlayers import _BlockSlice
+        >>> _BlockSlice().indices(4)
+        (0, 4, 4)
+        >>> _BlockSlice(3).indices(4)
+        (0, 3, 3)
+        >>> _BlockSlice(1, 3).indices(4)
+        (1, 3, 2)
+        >>> _BlockSlice(1, 7, 2).indices(8)
+        (1, 7, 2)
+        """
+        start, stop, step = self.start, self.stop, self.step
+        if stop is None:
+            stop = n_rows
+
+        start, stop, _ = slice(start, stop).indices(n_rows)
+
+        if step is None:
+            step = stop - start
+
+        if step != 0 and (stop - start) % step != 0:
+            stop = (stop - start) // step * step + start
+
+        return start, stop, step
+
+
+def _valid_keywords_or_raise(kwds, required=(), optional=()):
+    """Check for valid keyword arguments.
+
+    Parameters
+    ----------
+    kwds : iterable of str
+        Keywords to check for validity.
+    required : iterable of str, optional
+        Keywords that are required.
+    optional : iterable of str, optional
+        Keywords that are optional.
+
+    Examples
+    --------
+    >>> from landlab.layers.eventlayers import _valid_keywords_or_raise
+    >>> _valid_keywords_or_raise(["foo"], optional=["foo", "bar"])
+    >>> _valid_keywords_or_raise(["foo"], required=["foo", "bar"])
+    Traceback (most recent call last):
+        ...
+    TypeError: missing keyword arguments ('bar')
+    >>> _valid_keywords_or_raise(["baz"], optional=["foo", "bar"])
+    Traceback (most recent call last):
+        ...
+    TypeError: invalid keyword arguments ('baz' not in {'bar', 'foo'})
+    """
+    keys = set(kwds)
+    required = set(required)
+    optional = required | set(optional)
+
+    unknown = keys - optional
+    if unknown:
+        raise TypeError(
+            "invalid keyword arguments ({0} not in {{{1}}})".format(
+                ", ".join(sorted([repr(name) for name in unknown])),
+                ", ".join(sorted([repr(name) for name in optional])),
+            )
+        )
+
+    missing = required - keys
+    if missing:
+        raise TypeError(
+            "missing keyword arguments ({0})".format(
+                ", ".join(sorted([repr(name) for name in missing]))
+            )
+        )
+
+
 def resize_array(array, newsize, exact=False):
     """Increase the size of an array, leaving room to grow.
 
@@ -661,10 +850,114 @@ class EventLayers(object):
             try:
                 self[name][-1] = kwds[name]
             except KeyError:
-                msg = "MaterialLayers: {0} is not being tracked. Error in adding.".format(
-                    name
+                raise ValueError(
+                    "EventLayers: {0} is not being tracked. Error in adding.".format(
+                        name
+                    )
                 )
-                raise ValueError(msg)
+
+    def reduce(self, *args, **kwds):
+        """reduce([start], stop, [step])
+        Combine layers.
+
+        Reduce adjacent layers into a single layer.
+
+        Examples
+        --------
+        >>> from landlab.layers.eventlayers import EventLayers
+
+        Create an empty layer stack with 3 stacks.
+
+        >>> layers = EventLayers(3)
+        >>> layers.number_of_layers
+        0
+
+        To add a layer of uniform thickness to every stack.
+
+        >>> layers.add(1.5)
+        >>> layers.number_of_layers
+        1
+        >>> layers.dz
+        array([[ 1.5,  1.5,  1.5]])
+
+        Add a second layer with uneven thickness.
+
+        >>> layers.add([1., 2., .5])
+        >>> layers.dz
+        array([[ 1.5,  1.5,  1.5],
+               [ 1. ,  2. ,  0.5]])
+
+        >>> layers.reduce()
+        >>> layers.dz
+        array([[ 2.5,  3.5,  2. ]])
+
+        >>> layers.add([1., 2., .5])
+        >>> layers.add([1., 2., .5])
+        >>> layers.dz
+        array([[ 2.5,  3.5,  2. ],
+               [ 1. ,  2. ,  0.5],
+               [ 1. ,  2. ,  0.5]])
+        >>> layers.reduce(1, 3)
+        >>> layers.dz
+        array([[ 2.5,  3.5,  2. ],
+               [ 2. ,  4. ,  1. ]])
+
+        >>> layers.add([1., 2., .5])
+        >>> layers.add([1., 2., .5])
+        >>> layers.dz
+        array([[ 2.5,  3.5,  2. ],
+               [ 2. ,  4. ,  1. ],
+               [ 1. ,  2. ,  0.5],
+               [ 1. ,  2. ,  0.5]])
+        >>> layers.reduce(1, 3)
+        >>> layers.dz
+        array([[ 2.5,  3.5,  2. ],
+               [ 3. ,  6. ,  1.5],
+               [ 1. ,  2. ,  0.5]])
+        >>> layers.add([1., 1., 1.])
+        >>> layers.dz
+        array([[ 2.5,  3.5,  2. ],
+               [ 3. ,  6. ,  1.5],
+               [ 1. ,  2. ,  0.5],
+               [ 1. ,  1. ,  1. ]])
+        >>> layers.reduce(0, 4, 2)
+        >>> layers.dz
+        array([[ 5.5,  9.5,  3.5],
+               [ 2. ,  3. ,  1.5]])
+
+        >>> layers = EventLayers(3)
+        >>> layers.add([1, 1, 1], age=0.)
+        >>> layers.add([1, 2, 5], age=1.)
+        >>> layers.add([2, 2, 2], age=2.)
+        >>> layers.reduce(age=np.sum)
+        >>> layers["age"]
+        array([[ 3.,  3.,  3.]])
+
+        >>> layers.add([2, 2, 2], age=3.)
+        >>> layers.add([2, 2, 2], age=4.)
+        >>> layers.reduce(1, 3, age=np.mean)
+        >>> layers["age"]
+        array([[ 3. ,  3. ,  3. ],
+               [ 3.5,  3.5,  3.5]])
+        """
+        _valid_keywords_or_raise(kwds, required=self.tracking, optional=self._attrs)
+
+        start, stop, step = _BlockSlice(*args).indices(self._number_of_layers)
+
+        if step <= 1:
+            return
+
+        n_blocks = (stop - start) // step
+        n_removed = n_blocks * (step - 1)
+        for name, array in self._attrs.items():
+            middle = _reduce_matrix(array[start:stop, :], step, kwds.get(name, np.sum))
+            top = array[stop : self._number_of_layers, :]
+
+            array[start : start + n_blocks, :] = middle
+            array[start + n_blocks : start + n_blocks + len(top)] = top
+
+        self._number_of_layers -= n_removed
+        self._surface_index[:] -= n_removed
 
     @property
     def surface_index(self):
