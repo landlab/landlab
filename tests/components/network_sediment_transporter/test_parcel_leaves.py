@@ -12,7 +12,7 @@ def test_parcel_leaves(example_nmg, example_flow_depth, example_flow_director):
 
     example_nmg.at_link["reach_length"] = ([10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0],)
 
-    time = [0.0]  # probably not the sensible way to do this...
+    time = [0.0]
 
     items = {"grid_element": "link", "element_id": np.array([[6]])}
 

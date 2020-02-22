@@ -7,31 +7,15 @@ in bed material grain size and river bed elevation. Model framework
 described in Czuba (2018). Additions include: particle abrasion, variable
 active layer thickness (Wong et al., 2007).
 
-Fixes that need to happen:
-
-    -- Check abrasion exponent units (per km or per m?)
-
-    -- Flow depth -- double check to make sure we're going through flow depth array correctly
-
-    -- JC: I found two items that I think should be changed in the _calc_transport_wilcock_crowe and I made these changes
-            - frac_parcels was the inverse of what it should be so instead of a fraction it was a number >1
-            - in unpacking W* we had a (1-frac_sand) this was fine when we were treating sand and gravel separately,
-              but now that we are treating all parcels together, I no longer think this should be there, because if we are trying
-              to move a sand parcel then this (1-frac_sand) does not make sense. I think this is  now equivalent to the original WC2003.
-              Before it was equivalent to WC2003 as implemented in Cui TUGS formulation.
-            - finally, I added the calculation of a parcel velocity instead of the travel time. I think this is
-              better suited to the parcel centric spirit of the code. It was also needed to simplify move_parcel_downstream
-              Plus, I think one day we will have a better way to parameterize parcel virtual velocity and this will then be
-              easy to incorporate/update.
-
 .. codeauthor:: Allison Pfeiffer, Katy Barnhart, Jon Czuba
 
 Created on Tu May 8, 2018
-Last edit ---
+Last edit was sometime after February 2020
 """
 
 import numpy as np
 import xarray as xr
+import warnings
 
 from landlab import Component
 from landlab.components import FlowDirectorSteepest
@@ -554,10 +538,6 @@ class NetworkSedimentTransporter(Component):
             self._fd.flow_link_incoming_at_node() == 1, self._grid.links_at_node, -1
         )
 
-        #        print("number of contributing links", number_of_contributors)
-        #        print("downstream link id", downstream_link_id)
-        #        print("upstream contributing links", upstream_contributing_links_at_node)
-
         # Update the node topographic elevations depending on the quantity of stored sediment
         for n in range(self._grid.number_of_nodes):
 
@@ -595,11 +575,6 @@ class NetworkSedimentTransporter(Component):
                         downstream_link_id
                     ][n]
 
-                #                print("Downstream link id = ",downstream_link_id)
-                #                print("We are looking at node ",n, ".  We are pointing to downstream link number ",
-                #                      downstream_link_id[n], " .  And we are pointing to upstream link number(s)",
-                #                      real_upstream_links)
-
                 alluvium__depth = _calculate_alluvium_depth(
                     self._vol_stor[downstream_link_id][n],
                     width_of_upstream_links,
@@ -609,10 +584,6 @@ class NetworkSedimentTransporter(Component):
                     self._bed_porosity,
                 )
 
-                #                print("alluvium depth = ",alluvium__depth)
-                #                print("Volume stored at n = ",n,"=",self._vol_stor[downstream_link_id][n])
-                #                print("Denomenator",np.sum(width_of_upstream_links * length_of_upstream_links) + width_of_downstream_link * length_of_downstream_link)
-                #
                 self._grid.at_node["topographic__elevation"][n] = (
                     self._grid.at_node["bedrock__elevation"][n] + alluvium__depth
                 )
@@ -691,13 +662,6 @@ class NetworkSedimentTransporter(Component):
             self._fluid_density, R, self._g, D_mean_activearray, frac_sand_array
         )
 
-        #        print("d_mean_active = ", d_mean_active)
-        #        print("taursg = ", taursg)
-
-        # frac_parcel should be the fraction of parcel volume in the active layer volume
-        # frac_parcel = vol_act_array / Volarray
-        # ^ This is not a fraction
-        # Instead I think it should be this but CHECK CHECK
         frac_parcel = np.nan * np.zeros_like(Volarray)
         frac_parcel[vol_act_array != 0.0] = (
             Volarray[vol_act_array != 0.0] / vol_act_array[vol_act_array != 0.0]
@@ -719,6 +683,7 @@ class NetworkSedimentTransporter(Component):
         )
 
         active_parcel_idx = Activearray == _ACTIVE
+        
         # compute parcel virtual velocity, m/s
         self._pvelocity[active_parcel_idx] = (
             W.real[active_parcel_idx]
@@ -731,8 +696,11 @@ class NetworkSedimentTransporter(Component):
         )
 
         self._pvelocity[np.isnan(self._pvelocity)] = 0.0
+        
+        if np.max(self._pvelocity) > 1: 
+            warnings.warn('NetworkSedimentTransporter: Maximum parcel virtual velocity exceeds 1 m/s')
 
-        # Assign those things to the grid -- might be useful for plotting later...?
+        # Assign those things to the grid -- might be useful for plotting 
         self._grid.at_link["sediment_total_volume"] = self._vol_tot
         self._grid.at_link["sediment__active__volume"] = self._vol_act
         self._grid.at_link["sediment__active__sand_fraction"] = frac_sand
@@ -750,9 +718,8 @@ class NetworkSedimentTransporter(Component):
         # determine how far each parcel needs to travel this timestep.
         distance_to_travel_this_timestep = self._pvelocity * dt
         # total distance traveled in dt at parcel virtual velocity
-        # ^ movement in current and any DS links at this dt is at the same velocity as in the current link
-        # ... perhaps modify in the future(?) or ensure this type of travel is kept to a minimum
-        # ... or display warnings or create a log file when the parcel jumps far in the next DS link
+        # Note: movement in current and any DS links at this dt is at the same velocity as in the current link
+        # ... perhaps modify in the future
 
         # Accumulate the total distance traveled by a parcel for abrasion rate
         # calculations.
@@ -781,11 +748,6 @@ class NetworkSedimentTransporter(Component):
             on_network = current_link != _OUT_OF_NETWORK
 
             moving_parcels = (distance_left_to_travel>0.) * on_network
-
-            #print('t={t}, moving {x} parcels'.format(t=self._time_idx, x=np.sum(moving_parcels)))
-
-            ## Figure out which parcels are moving within their links, and which
-            # are moving beyond their links.
 
             # Get current link lengths:
             current_link_lengths = self._grid.at_link["reach_length"][current_link]
@@ -941,9 +903,8 @@ def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
     chan_slope = (z_up - z_down) / dx
 
     if chan_slope < 0.0:
-        # chan_slope = 0.0
-        # DANGER DANGER ^ that is probably a bad idea.
-        raise RuntimeError("NetworkSedimentTransporter: channel slope negative")
+        chan_slope = 0.0
+        warnings.warn('NetworkSedimentTransporter: Negative channel slope encountered.')
 
     if chan_slope < threshold:
         chan_slope = threshold
