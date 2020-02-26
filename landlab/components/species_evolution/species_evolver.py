@@ -210,9 +210,9 @@ class SpeciesEvolver(Component):
     ----------
     **Required Software Citation(s) Specific to this Component**
 
-    Lyons, N.J., Albert, J.S., Gasparini, N.M. (in review). SpeciesEvolver: A
+    Lyons, N.J., Albert, J.S., Gasparini, N.M. (2020). SpeciesEvolver: A
     Landlab component to evolve life in simulated landscapes. Journal of Open
-    Source Software.
+    Source Software 5(46), 2066, https://doi.org/10.21105/joss.02066
 
     **Additional References**
 
@@ -242,7 +242,12 @@ class SpeciesEvolver(Component):
     _cite_as = """@article{lyons2020species,
         author = {Lyons, N.J. and Albert, J.S. and Gasparini, N.M.},
         title = {SpeciesEvolver: A Landlab component to evolve life in simulated landscapes},
+        year = {2020},
         journal = {Journal of Open Source Software},
+        volume = {5},
+        number = {46},
+        doi = {10.21105/joss.02066},
+        url = {https://doi.org/10.21105/joss.02066}
         }"""
 
     def __init__(self, grid, initial_time=0):
