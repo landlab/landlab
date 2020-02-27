@@ -1,3 +1,4 @@
+
 import numpy as np
 from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
@@ -110,32 +111,37 @@ class PotentialEvapotranspiration(Component):
     Examples
     --------
     >>> from landlab import RasterModelGrid
-    >>> from landlab.components.pet import PotentialEvapotranspiration
-
+    >>> from landlab.components import PotentialEvapotranspiration
+    Let's create a raster grid with 5 rows and 4 columns
+    of nodes (therefore, 6 cells).
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
-    >>> PET = PotentialEvapotranspiration(grid)
-    >>> PET.name
+    To run the processes represented by PotentialEvapotranspiration
+    class, we need to instantiate the class.
+    >>> pet_obj = PotentialEvapotranspiration(grid)
+    Note that the default method for PotentialEvapotranspiration
+    is 'Cosine'.
+    >>> pet_obj.name
     'Potential Evapotranspiration'
-    >>> PET.input_var_names
+    >>> pet_obj.input_var_names
     ('radiation__ratio_to_flat_surface',)
-    >>> sorted(PET.output_var_names)
+    >>> sorted(pet_obj.output_var_names)
     ['radiation__incoming_shortwave_flux',
      'radiation__net_flux',
      'radiation__net_longwave_flux',
      'radiation__net_shortwave_flux',
      'surface__potential_evapotranspiration_rate']
-    >>> sorted(PET.units) # doctest: +NORMALIZE_WHITESPACE
+    >>> sorted(pet_obj.units) # doctest: +NORMALIZE_WHITESPACE
     [('radiation__incoming_shortwave_flux', 'W/m^2'),
      ('radiation__net_flux', 'W/m^2'),
      ('radiation__net_longwave_flux', 'W/m^2'),
      ('radiation__net_shortwave_flux', 'W/m^2'),
      ('radiation__ratio_to_flat_surface', 'None'),
      ('surface__potential_evapotranspiration_rate', 'mm')]
-    >>> PET.grid.number_of_cell_rows
+    >>> pet_obj.grid.number_of_cell_rows
     3
-    >>> PET.grid.number_of_cell_columns
+    >>> pet_obj.grid.number_of_cell_columns
     2
-    >>> PET.grid is grid
+    >>> pet_obj.grid is grid
     True
     >>> pet_rate = grid.at_cell['surface__potential_evapotranspiration_rate']
     >>> np.allclose(pet_rate, 0.)
@@ -145,9 +151,108 @@ class PotentialEvapotranspiration(Component):
     ...       0.33309785, 0.33309785,
     ...       0.37381705, 0.37381705])
     >>> current_time = 0.5
-    >>> PET.update(current_time)
-    >>> np.allclose(pet_rate, 0.)
-    False
+    >>> pet_obj.update(current_time)
+    >>> pet_rate = grid.at_cell['surface__potential_evapotranspiration_rate']
+    >>> np.allclose(pet_rate, np.allclose(
+    ...       pet_rate, np.array([
+    ...       5.58, 5.58, 4.83,
+    ...       4.83, 5.42, 5.42]),
+    ...       rtol=1e-02))
+    True
+    A reminder here that potential evapotranspiration is calculated
+    on a flat surface and is distributed over the sloped surface
+    using a grid.at_cell['radiation__ratio_to_flat_surface'] that
+    is passed as an input.
+
+    If daily temperature data is available, we can
+    use Priestly Taylor's method to calculate the
+    potential evapotranspiration. Let us look at an
+    example where:
+    minimum daily temperature = 13.36 C,
+    maximum daily temperature = 25.6 C,
+    Day = 9th June (current_time = 0.438), and
+    Location = Ainsworth, NE (latitude = 42.545 N),
+    elevation = 786 m,
+    albedo = 0.05, and
+    priestly_taylor_constant = 1.26.
+    let's re-initialize the 'surface__potential_evapotranspiration_rate'
+    to zeros.
+    >>> grid.at_cell['surface__potential_evapotranspiration_rate'] = np.zeros(
+    ...     grid.number_of_cells)
+    >>> pet_pt = PotentialEvapotranspiration(
+    ...     grid, method='PriestleyTaylor',
+    ...     albedo=0.05, latitude=42.545,
+    ...     elevation_of_measurement=786,
+    ...     priestley_taylor_const=1.26)
+    >>> pet_pt.update(
+    ...     current_time=0.438, Tmax=25.6,
+    ...     Tmin=13.36, Tavg=19.48)
+    >>> pet_rate = grid.at_cell['surface__potential_evapotranspiration_rate']
+    >>> np.allclose(pet_rate, np.array([
+    ...     3.99, 3.99, 3.46,
+    ...     3.46, 3.88, 3.88]),
+    ...     rtol=2)
+    True
+
+    If we have observed radiation at this location,
+    we can use 'MeasuredRadiationPT' method to calculate
+    Potential Evapotranspiration using Priestly Taylor equation.
+    Let us assume, observed radiation = 361.17 W/m^2.
+    >>> pet_mpt = PotentialEvapotranspiration(
+    ...     grid, method='MeasuredRadiationPT',
+    ...     albedo=0.05, latitude=42.545,
+    ...     elevation_of_measurement=786,
+    ...     priestley_taylor_const=1.26)
+    >>> pet_mpt.update(
+    ...     Tavg=19.48, obs_radiation=361.17)
+    >>> pet_rate = grid.at_cell['surface__potential_evapotranspiration_rate']
+    >>> np.allclose(pet_rate, np.array([
+    ...     3.99, 3.99, 3.46,
+    ...     3.46, 3.88, 3.88]),
+    ...     rtol=2)
+    True
+
+    Now, let's look at an example using 'PenmanMonteith' method
+    to calculate potential evapotranspiration. To reuse the
+    grid, let's re-initialize the 'surface__potential_evapotranspiration_rate'
+    to zeros.
+    >>> grid.at_cell['surface__potential_evapotranspiration_rate'] = np.zeros(
+    ...    grid.number_of_cells)
+
+    For this example, let us consider the following:
+    albedo = 0.05,
+    average air temperature = 19.48 C,
+    observed shortwave radiation = 307 W/m^2,
+    relative humidity = 33% (measured at a height of 2 m),
+    wind speed = 3.12 m/s (measured at a height of 2 m),
+    height of vegetation = 0.12 m,
+    leaf area index of reference crop = 2.88, and
+    stomatal resistance of well illuminated leaf = 70 m/s.
+    >>> pet_pm = PotentialEvapotranspiration(
+    ...     grid, method='PenmanMonteith',
+    ...     zm=2, zveg=0.12, lai=2.88, zh=2,
+    ...     rl=70, albedo=0.05)
+    >>> pet_pm.update(Tavg=19.48, obs_radiation=307,
+    ...               wind_speed=3.12, relative_humidity=33)
+    >>> pet_rate = grid.at_cell['surface__potential_evapotranspiration_rate']
+    >>> np.allclose(pet_rate, np.array([
+    ...     3.56, 3.56, 3.08,
+    ...     3.08, 3.46, 3.46]),
+    ...     rtol=2)
+    True
+
+    If potential evapotranspiration value on a flat
+    surface is already available, we can distribute
+    it on a sloped surface using the 'Constant' method.
+    >>> pet_c = PotentialEvapotranspiration(
+    ... grid, method='Constant')
+    >>> pet_c.update(const_potential_evapotranspiration=5)
+    >>> pet_rate = grid.at_cell['surface__potential_evapotranspiration_rate']
+    >>> np.allclose(pet_rate, np.array([
+    ...     1.92, 1.92, 1.67,
+    ...     1.67, 1.87, 1.87]),
+    ...     rtol=2)
+    True
     """
 
     _name = "Potential Evapotranspiration"
@@ -203,15 +308,16 @@ class PotentialEvapotranspiration(Component):
                  latitude=34.,
                  elevation_of_measurement=300,
                  adjustment_coeff=0.18,
-                 lt=0., nd=365.,
+                 lt=0.,
+                 nd=365.,
                  MeanTmaxF=12.,
                  delta_d=5.,
                  rl=130,
                  zveg=0.3,
-                 LAI=2.,
+                 lai=2.,
                  zm=3.3,
-                 zh=None,
-                 air_density = 1.22,
+                 zh=2,
+                 air_density=1.22,
                  **kwds,
     ):
         """
@@ -251,10 +357,14 @@ class PotentialEvapotranspiration(Component):
         zm: float, required only for method(s): PenmanMonteith
             Wind speed anemometer height (m).
         zh: float, required only for method(s): PenmanMonteith (with
-        correction for Relative Humidity measurement elevation)
+            correction for Relative Humidity measurement elevation)
             Relative Humidity measurement height (m).
         rl: float, required only for method(s): PenmanMonteith
             Stomatal resistance of a well-illuminated leaf (s/m)
+        lai: float, required only for method(s): PenmanMonteith
+            Leaf Area Index of reference crop (-).
+        air_density: float, optional
+            Density of air (Kg/m^3).
         """
 
         self._method = method
@@ -274,11 +384,11 @@ class PotentialEvapotranspiration(Component):
         self._DeltaD = delta_d
         self._zm = zm   # (m) wind speed anemometer height 
         self._zh = zh   # (m) Relative Humidity probe height
-        self._LAI = LAI   # Leaf Area Index
+        self._lai = lai   # Leaf Area Index
         self._zveg = zveg  # (m) Vegetation height
         self._rl = rl    # (sec/m) reverse of conductance
-        self._rho_w = 1000. # (Kg/m^3) Density of water
-        self._rho_a = air_density # (Kg/m^3) Density of Air
+        self._rho_w = 1000.  # (Kg/m^3) Density of water
+        self._rho_a = air_density   # (Kg/m^3) Density of Air
         self._ca = 1000.   # (J/Kg/C) or (Ws/Kg/C) Specific heat of air
         self._von_karman = 0.41  # Von Karman Constant
         _assert_method_is_valid(self._method)
@@ -306,6 +416,7 @@ class PotentialEvapotranspiration(Component):
            relative_humidity=None,
            wind_speed=None,
            co2_concentration=300.,
+           ground_heat_flux=0.,
            **kwds
     ):
         """Update fields with current conditions.
@@ -333,6 +444,8 @@ class PotentialEvapotranspiration(Component):
             Observed wind speed (m/s)
         co2_concentration: float (default=300.),
             CO2 concentration (ppm)
+        ground_heat_flux: float (default=0)
+            Ground heat flux (W/m^2)
         """
         if self._method in ['PriestleyTaylor', 'MeasuredRadiationPT',
                             'PenmanMonteith']:
@@ -371,7 +484,8 @@ class PotentialEvapotranspiration(Component):
         elif self._method == 'PenmanMonteith':
             self._PET_value = self._PenmanMonteith(
                 Tavg, obs_radiation, wind_speed,
-                relative_humidity, co2_concentration)
+                relative_humidity, co2_concentration,
+                ground_heat_flux)
             if math.isnan(self._PET_value):
                 self._PET_value = 0.
             if self._PET_value < 0.:
@@ -499,7 +613,8 @@ class PotentialEvapotranspiration(Component):
 
     def _PenmanMonteith(self, Tavg, radiation_sw,
                         wind_speed, relative_humidity,
-                        co2_concentration):
+                        co2_concentration,
+                        ground_heat_flux):
         zm = self._zm
         zh = self._zh
         zd = (0.7 * self._zveg)  # (m) zero-plane displacement height
@@ -532,11 +647,14 @@ class PotentialEvapotranspiration(Component):
         self._Ts = (
             Tavg + 273.15 - 0.825 * np.exp(3.54 * (10. ** (-3)) * radiation_sw)
         )
-        self._radiation_lw = (
-            self._sigma * (self._Ts ** 4 - (Tavg + 273.15) ** 4)
+        self._radiation_lw = max(
+            self._sigma * (self._Ts ** 4 - (Tavg + 273.15) ** 4),
+            0.
         )
         self._net_radiation = max(
-            ((1-self._a) * radiation_sw + self._radiation_lw), 0.,
+            ((1-self._a) * radiation_sw
+             + self._radiation_lw
+             - ground_heat_flux), 0.,
         )
         self._penman_numerator = (
             (self._delta * self._net_radiation)
@@ -544,7 +662,7 @@ class PotentialEvapotranspiration(Component):
             / self._ra)
         )
         self._rs = (
-            self._rl / (0.5*self._LAI)
+            self._rl / (0.5*self._lai)
             + 0.05 * (co2_concentration - 300.)
         )  # Yang et al. 2019
         self._penman_denominator = (

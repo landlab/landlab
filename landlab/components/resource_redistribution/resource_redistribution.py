@@ -32,7 +32,7 @@ class ResourceRedistribution(Component):
     component: establish(), mortality(), erode(), and deposit().
     re_adjust_resource() is a helpful utility function that helps
     limit R within the thresholds.
-    
+
     Ref: Ravi, S., & D’Odorico, P. (2009). Post-fire 
     resource redistribution and fertility island dynamics
     in shrub encroached desert grasslands: a modeling approach.
