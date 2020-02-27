@@ -12,6 +12,7 @@
 # serve to show the default.
 
 import os
+import re
 import sys
 from datetime import date
 
@@ -56,7 +57,7 @@ source_suffix = '.rst'
 linkcheck_ignore = [
     r"https://pubs.geoscienceworld.org/gsa/geology.*",  # Added by KRB Dec 2019, at this point two links match this pattern
     r"https://dx.doi.org/10.1130/*",  # Added by KRB Jan 2019. Four links match this pattern
-    r"https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7",  # Added by EWHH Feb 2020
+    re.escape(r"https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7"),  # Added by EWHH Feb 2020
 ]
 
 # The master toctree document.
