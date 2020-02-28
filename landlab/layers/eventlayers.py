@@ -184,36 +184,6 @@ def _reduce_matrix(array, step, reducer):
     )
 
 
-def _reduce_matrix_rows(array, *args, reducer=np.sum):
-    """Combine rows of a portion of a 2D matrix.
-    """
-    start, stop = 0, len(array)
-    if len(args) == 1:
-        stop = args[0]
-    elif len(args) == 2:
-        start, stop = args
-    elif len(args) == 3:
-        start, stop, step = args
-    if start == stop:
-        return len(array)
-
-    start, stop, _ = slice(start, stop).indices(len(array))
-
-    if len(args) < 3:
-        step = stop - start
-
-    if step == 1:
-        return len(array)
-
-    middle = _reduce_matrix(array[start:stop, :], step, reducer)
-    top = array[stop:, :]
-
-    array[start : start + len(middle), :] = middle
-    array[start + len(middle) : start + len(middle) + len(top)] = top
-
-    return start + len(middle) + len(top)
-
-
 class _BlockSlice:
     """Slices that divide a matrix into equally sized blocks."""
 
