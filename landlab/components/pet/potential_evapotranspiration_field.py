@@ -112,14 +112,20 @@ class PotentialEvapotranspiration(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components import PotentialEvapotranspiration
+
     Let's create a raster grid with 5 rows and 4 columns
     of nodes (therefore, 6 cells).
+
     >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
+
     To run the processes represented by PotentialEvapotranspiration
     class, we need to instantiate the class.
+
     >>> pet_obj = PotentialEvapotranspiration(grid)
+
     Note that the default method for PotentialEvapotranspiration
     is 'Cosine'.
+
     >>> pet_obj.name
     'Potential Evapotranspiration'
     >>> pet_obj.input_var_names
@@ -159,6 +165,7 @@ class PotentialEvapotranspiration(Component):
     ...       4.83, 5.42, 5.42]),
     ...       rtol=1e-02))
     True
+
     A reminder here that potential evapotranspiration is calculated
     on a flat surface and is distributed over the sloped surface
     using a grid.at_cell['radiation__ratio_to_flat_surface'] that
@@ -177,6 +184,7 @@ class PotentialEvapotranspiration(Component):
     priestly_taylor_constant = 1.26.
     let's re-initialize the 'surface__potential_evapotranspiration_rate'
     to zeros.
+
     >>> grid.at_cell['surface__potential_evapotranspiration_rate'] = np.zeros(
     ...     grid.number_of_cells)
     >>> pet_pt = PotentialEvapotranspiration(
@@ -198,6 +206,7 @@ class PotentialEvapotranspiration(Component):
     we can use 'MeasuredRadiationPT' method to calculate
     Potential Evapotranspiration using Priestly Taylor equation.
     Let us assume, observed radiation = 361.17 W/m^2.
+
     >>> pet_mpt = PotentialEvapotranspiration(
     ...     grid, method='MeasuredRadiationPT',
     ...     albedo=0.05, latitude=42.545,
@@ -216,6 +225,7 @@ class PotentialEvapotranspiration(Component):
     to calculate potential evapotranspiration. To reuse the
     grid, let's re-initialize the 'surface__potential_evapotranspiration_rate'
     to zeros.
+
     >>> grid.at_cell['surface__potential_evapotranspiration_rate'] = np.zeros(
     ...    grid.number_of_cells)
 
@@ -228,6 +238,7 @@ class PotentialEvapotranspiration(Component):
     height of vegetation = 0.12 m,
     leaf area index of reference crop = 2.88, and
     stomatal resistance of well illuminated leaf = 70 m/s.
+
     >>> pet_pm = PotentialEvapotranspiration(
     ...     grid, method='PenmanMonteith',
     ...     zm=2, zveg=0.12, lai=2.88, zh=2,
@@ -244,6 +255,7 @@ class PotentialEvapotranspiration(Component):
     If potential evapotranspiration value on a flat
     surface is already available, we can distribute
     it on a sloped surface using the 'Constant' method.
+
     >>> pet_c = PotentialEvapotranspiration(
     ... grid, method='Constant')
     >>> pet_c.update(const_potential_evapotranspiration=5)
