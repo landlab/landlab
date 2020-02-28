@@ -9,7 +9,7 @@ from landlab.graph.graph import NetworkGraph
 from landlab.grid.network import NetworkModelGrid
 
 
-def read_shapefile(file, dbf=None, store_polyline_vertices=True):
+def read_shapefile(file, dbf=None, store_polyline_vertices=True, points_shapefile=None):
     """Read shapefile and create a NetworkModelGrid.
 
     There are a number of assumptions that are requied about the shapefile.
@@ -31,6 +31,7 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True):
     store_polyline_vertices: bool, optional
         If True (default), store the vertices of the polylines in
         the at_link fields ``x_of_polyline`` and ``y_of_polyline``.
+    points_shapefile: str or file-like
 
     Returns
     -------
@@ -186,4 +187,7 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True):
     for field_name in fields:
         grid.at_link[field_name] = np.asarray(fields[field_name])[sorted_links]
 
+    if points_shapefile:
+        pass
+        
     return grid
