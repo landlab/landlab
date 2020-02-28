@@ -57,10 +57,9 @@ class LossyFlowAccumulator(FlowAccumulator):
            IDs: *'flow__upstream_node_order'*
         -  Node array of all but the first element of the delta data structure:
             *flow__data_structure_delta*. The first element is always zero.
-        -  At-grid D data structure: *flow__data_structure_D*
 
     The FlowDirector component will add additional ModelGrid fields; see the
-    `FlowAccumulator component <https://landlab.readthedocs.io/en/latest/landlab.components.flow_accum.html>`_
+    `FlowAccumulator component <https://landlab.readthedocs.io/en/release/reference/components/flow_accum.html>`_
     for full details. These are:
 
         -  Node array of receivers (nodes that receive flow), or ITS OWN ID if
@@ -77,53 +76,6 @@ class LossyFlowAccumulator(FlowAccumulator):
     True) that determines if the flow_director is re-run before flow is
     accumulated.
 
-    Parameters
-    ----------
-    grid : ModelGrid
-        A Landlab grid.
-    surface : field name at node or array of length node
-        The surface to direct flow across.
-    flow_director : string, class, instance of class.
-        A string of method or class name (e.g. 'D8' or 'FlowDirectorD8'), an
-        uninstantiated FlowDirector class, or an instance of a FlowDirector
-        class. This sets the method used to calculate flow directions.
-        Default is 'FlowDirectorSteepest'
-    runoff_rate : field name, array, or float, optional (m/time)
-        If provided, sets the runoff rate and will be assigned to the grid
-        field 'water__unit_flux_in'. If a spatially and and temporally variable
-        runoff rate is desired, pass this field name and update the field
-        through model run time. If both the field and argument are present at
-        the time of initialization, runoff_rate will *overwrite* the field. If
-        neither are set, defaults to spatially constant unit input.
-    depression_finder : string, class, instance of class, optional
-        A string of class name (e.g., 'DepressionFinderAndRouter'), an
-        uninstantiated DepressionFinder class, or an instance of a
-        DepressionFinder class.
-        This sets the method for depression finding.
-    loss_function : Python function, optional
-        A function of the form f(Qw, [node_ID, [linkID, [grid]]]), where Qw is
-        the discharge at a node, node_ID the ID of the node at which the loss
-        is to be calculated, linkID is the ID of the link down which the
-        outflow drains (or a d8 ID if the routing is d8), and grid is a Landlab
-        ModelGrid. The function then returns the new discharge at the node
-        after the function is applied.
-        Note that if a linkID is needed, a nodeID must also be specified, even
-        if only as a dummy parameter; similarly, if a grid is to be passed, all
-        of the preceding parameters must be specified. Both nodeID and linkID
-        are required to permit spatially variable losses, and also losses
-        dependent on flow path geometry (e.g., flow length). The grid is passed
-        to allow fields or grid properties describing values across the grid
-        to be accessed for the loss calculation (see examples).
-        This function expects (float, [int, [int, [ModelGrid]]]), and
-        return a single float, the new discharge value. This behavior is
-        verified during component instantiation.
-    **kwargs : optional
-        Any additional parameters to pass to a FlowDirector or
-        DepressionFinderAndRouter instance (e.g., partion_method for
-        FlowDirectorMFD). This will have no effect if an instantiated
-        component is passed using the flow_director or depression_finder
-        keywords.
-
     Examples
     --------
     These examples pertain only to the LossyFlowAccumulator. See the main
@@ -139,16 +91,14 @@ class LossyFlowAccumulator(FlowAccumulator):
 
     >>> mg = RasterModelGrid((3, 5), xy_spacing=(2, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
-    >>> z = mg.add_field('topographic__elevation',
-    ...                  mg.node_x + mg.node_y,
-    ...                  at='node')
+    >>> z = mg.add_field("topographic__elevation", mg.node_x + mg.node_y, at="node")
 
     >>> def mylossfunction(qw):
     ...     return 0.5 * qw
 
     >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
     ...                           flow_director=FlowDirectorSteepest,
-    ...                           routing='D4', loss_function=mylossfunction)
+    ...                           loss_function=mylossfunction)
     >>> fa.run_one_step()
 
     >>> mg.at_node['drainage_area'].reshape(mg.shape)
@@ -168,10 +118,12 @@ class LossyFlowAccumulator(FlowAccumulator):
     use a filled, non-raster grid.
 
     >>> dx=(2./(3.**0.5))**0.5  # area to be 100.
-    >>> hmg = HexModelGrid(5,3, dx, xy_of_lower_left=(-1.0745, 0.))
-    >>> z = hmg.add_field('topographic__elevation',
-    ...                   hmg.node_x**2 + np.round(hmg.node_y)**2,
-    ...                   at = 'node')
+    >>> hmg = HexModelGrid((5, 3), spacing=dx, xy_of_lower_left=(-1.0745, 0.))
+    >>> z = hmg.add_field(
+    ...     "topographic__elevation",
+    ...     hmg.node_x**2 + np.round(hmg.node_y)**2,
+    ...     at="node",
+    ... )
     >>> z[9] = -10.  # poke a hole
     >>> lossy = hmg.add_zeros('node', 'mylossterm', dtype=float)
     >>> lossy[14] = 1.  # suppress all flow from node 14
@@ -182,19 +134,19 @@ class LossyFlowAccumulator(FlowAccumulator):
     ...                           flow_director=FlowDirectorSteepest,
     ...                           depression_finder=DepressionFinderAndRouter)
     >>> fa.run_one_step()
-    >>> hmg.at_node['flow__receiver_node'] # doctest: +NORMALIZE_WHITESPACE
+    >>> hmg.at_node['flow__receiver_node']
     array([ 0,  1,  2,
             3,  0,  9,  6,
             7,  9,  4,  9, 11,
            12,  9,  9, 15,
            16, 17, 18])
-    >>> hmg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+    >>> np.round(hmg.at_node['drainage_area'])
     array([ 7.,  0.,  0.,
             0.,  7.,  1.,  0.,
             0.,  1.,  6.,  1.,  0.,
             0., 1.,  1.,  0.,
             0.,  0.,  0.])
-    >>> hmg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
+    >>> np.round(hmg.at_node['surface_water__discharge'])
     array([ 7.,  0.,  0.,
             0.,  7.,  1.,  0.,
             0.,  1.,  6.,  1.,  0.,
@@ -210,20 +162,22 @@ class LossyFlowAccumulator(FlowAccumulator):
     ...                           depression_finder=DepressionFinderAndRouter,
     ...                           loss_function=mylossfunction2)
     >>> fa.run_one_step()
-    >>> hmg.at_node['drainage_area'] # doctest: +NORMALIZE_WHITESPACE
+    >>> np.round(hmg.at_node['drainage_area'])
     array([ 7.,  0.,  0.,
             0.,  7.,  1.,  0.,
             0.,  1.,  6.,  1.,  0.,
             0., 1.,  1.,  0.,
             0.,  0.,  0.])
-    >>> hmg.at_node['surface_water__discharge'] # doctest: +NORMALIZE_WHITESPACE
+    >>> np.round(hmg.at_node['surface_water__discharge'])
     array([ 6.,  0.,  0.,
             0.,  6.,  1.,  0.,
             0.,  1.,  5.,  1.,  0.,
             0., 1.,  1.,  0.,
             0.,  0.,  0.])
-    >>> np.allclose(hmg.at_node['surface_water__discharge_loss'],
-    ...             lossy*hmg.at_node['surface_water__discharge'])
+    >>> np.allclose(
+    ...     hmg.at_node["surface_water__discharge_loss"],
+    ...     lossy * hmg.at_node["surface_water__discharge"],
+    ... )
     True
 
     (Loss is only happening from the node, 14, that we set it to happen at.)
@@ -235,7 +189,7 @@ class LossyFlowAccumulator(FlowAccumulator):
     >>> from landlab.components import FlowDirectorMFD
     >>> mg = RasterModelGrid((4, 6), xy_spacing=(1, 2))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, False, True)
-    >>> z = mg.add_field('node', 'topographic__elevation', 2.*mg.node_x)
+    >>> z = mg.add_field("topographic__elevation", 2.0 * mg.node_x, at="node")
     >>> z[9] = 8.
     >>> z[16] = 6.5  # force the first node sideways
 
@@ -244,13 +198,16 @@ class LossyFlowAccumulator(FlowAccumulator):
     >>> mg.at_node['spatialloss'][13] = 1.
     >>> def fancyloss(Qw, nodeID, linkID, grid):
     ...     # now a true transmission loss:
-    ...     Lt = (1. - 1./grid.length_of_link[linkID]**2)
-    ...     Lsp = grid.at_node['spatialloss'][nodeID]
-    ...     return Qw * (1. - Lt) * (1. - Lsp)
+    ...     Lt = (1.0 - 1.0 / grid.length_of_link[linkID] ** 2)
+    ...     Lsp = grid.at_node["spatialloss"][nodeID]
+    ...     return Qw * (1.0 - Lt) * (1.0 - Lsp)
 
-    >>> fa = LossyFlowAccumulator(mg, 'topographic__elevation',
-    ...                           flow_director=FlowDirectorMFD,
-    ...                           loss_function=fancyloss)
+    >>> fa = LossyFlowAccumulator(
+    ...     mg,
+    ...     "topographic__elevation",
+    ...     flow_director=FlowDirectorMFD,
+    ...     loss_function=fancyloss,
+    ... )
     >>> fa.run_one_step()
 
     >>> mg.at_node['drainage_area'].reshape(mg.shape)
@@ -263,68 +220,81 @@ class LossyFlowAccumulator(FlowAccumulator):
            [ 4. ,  4. ,  2. ,  2. ,  2. ,  0. ],
            [ 0. ,  8.5,  6.5,  4.5,  2.5,  0. ],
            [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ]])
+
+    References
+    ----------
+    **Required Software Citation(s) Specific to this Component**
+
+    None Listed
+
+    **Additional References**
+
+    Braun, J., Willett, S. (2013). A very efficient O(n), implicit and parallel
+    method to solve the stream power equation governing fluvial incision and
+    landscape evolution. Geomorphology  180-181(C), 170-179.
+    https://dx.doi.org/10.1016/j.geomorph.2012.10.008
+
     """
 
     _name = "LossyFlowAccumulator"
 
-    _input_var_names = ("topographic__elevation", "water__unit_flux_in")
-
-    _output_var_names = (
-        "drainage_area",
-        "surface_water__discharge",
-        "surface_water__discharge_loss",
-        "flow__upstream_node_order",
-        "flow__nodes_not_in_stack",
-        "flow__data_structure_delta",
-        "flow__data_structure_D",
-    )
-
-    _var_units = {
-        "topographic__elevation": "m",
-        "flow__receiver_node": "m",
-        "water__unit_flux_in": "m/s",
-        "drainage_area": "m**2",
-        "surface_water__discharge": "m**3/s",
-        "surface_water__discharge_loss": "m**3/s",
-        "flow__upstream_node_order": "-",
-        "flow__data_structure_delta": "-",
-        "flow__data_structure_D": "-",
-        "flow__nodes_not_in_stack": "-",
-    }
-
-    _var_mapping = {
-        "topographic__elevation": "node",
-        "flow__receiver_node": "node",
-        "water__unit_flux_in": "node",
-        "drainage_area": "node",
-        "surface_water__discharge": "node",
-        "surface_water__discharge_loss": "node",
-        "flow__upstream_node_order": "node",
-        "flow__nodes_not_in_stack": "grid",
-        "flow__data_structure_delta": "node",
-        "flow__data_structure_D": "grid",
-    }
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "flow__receiver_node": "Node array of receivers (node that "
-        + "receives flow from current node)",
-        "drainage_area": "Upstream accumulated surface area contributing "
-        + "to the node's discharge",
-        "surface_water__discharge": "Discharge of water through each node",
-        "surface_water__discharge_loss": "Total volume of water per second "
-        + "lost during all flow out of the node",
-        "water__unit_flux_in": "External volume water per area per time "
-        + "input to each node (e.g., rainfall rate)",
-        "flow__upstream_node_order": "Node array containing "
-        + "downstream-to-upstream ordered list of node IDs",
-        "flow__data_structure_delta": "Node array containing the "
-        + "elements delta[1:] of the data structure 'delta' used for "
-        + "construction of the downstream-to-upstream node array",
-        "flow__data_structure_D": "Grid array containing the data structure "
-        + "D used for construction of the downstream-to-upstream node array",
-        "flow__nodes_not_in_stack": "Boolean value indicating if there "
-        + "are any nodes that have not yet been added to the stack stored "
-        + "in flow__upstream_node_order.",
+    _info = {
+        "drainage_area": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**2",
+            "mapping": "node",
+            "doc": "Upstream accumulated surface area contributing to the node's discharge",
+        },
+        "flow__data_structure_delta": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing the elements delta[1:] of the data structure 'delta' used for construction of the downstream-to-upstream node array",
+        },
+        "flow__upstream_node_order": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array containing downstream-to-upstream ordered list of node IDs",
+        },
+        "surface_water__discharge": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Volumetric discharge of surface water",
+        },
+        "surface_water__discharge_loss": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m**3/s",
+            "mapping": "node",
+            "doc": "Total volume of water per second lost during all flow out of the node",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "water__unit_flux_in": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m/s",
+            "mapping": "node",
+            "doc": "External volume water per area per time input to each node (e.g., rainfall rate)",
+        },
     }
 
     def __init__(
@@ -343,7 +313,62 @@ class LossyFlowAccumulator(FlowAccumulator):
         compatability for the flow_director and depression_finder
         keyword arguments, tests the argument of runoff_rate, and
         initializes new fields.
+
+        Parameters
+        ----------
+        grid : ModelGrid
+            A Landlab grid.
+        surface : field name at node or array of length node
+            The surface to direct flow across.
+        flow_director : string, class, instance of class.
+            A string of method or class name (e.g. 'D8' or 'FlowDirectorD8'), an
+            uninstantiated FlowDirector class, or an instance of a FlowDirector
+            class. This sets the method used to calculate flow directions.
+            Default is 'FlowDirectorSteepest'
+        runoff_rate : field name, array, or float, optional (m/time)
+            If provided, sets the runoff rate and will be assigned to the grid
+            field 'water__unit_flux_in'. If a spatially and and temporally variable
+            runoff rate is desired, pass this field name and update the field
+            through model run time. If both the field and argument are present at
+            the time of initialization, runoff_rate will *overwrite* the field. If
+            neither are set, defaults to spatially constant unit input.
+        depression_finder : string, class, instance of class, optional
+            A string of class name (e.g., 'DepressionFinderAndRouter'), an
+            uninstantiated DepressionFinder class, or an instance of a
+            DepressionFinder class.
+            This sets the method for depression finding.
+        loss_function : Python function, optional
+            A function of the form f(Qw, [node_ID, [linkID, [grid]]]), where Qw is
+            the discharge at a node, node_ID the ID of the node at which the loss
+            is to be calculated, linkID is the ID of the link down which the
+            outflow drains (or a d8 ID if the routing is d8), and grid is a Landlab
+            ModelGrid. The function then returns the new discharge at the node
+            after the function is applied.
+            Note that if a linkID is needed, a nodeID must also be specified, even
+            if only as a dummy parameter; similarly, if a grid is to be passed, all
+            of the preceding parameters must be specified. Both nodeID and linkID
+            are required to permit spatially variable losses, and also losses
+            dependent on flow path geometry (e.g., flow length). The grid is passed
+            to allow fields or grid properties describing values across the grid
+            to be accessed for the loss calculation (see examples).
+            This function expects (float, [int, [int, [ModelGrid]]]), and
+            return a single float, the new discharge value. This behavior is
+            verified during component instantiation.
+        **kwargs : optional
+            Any additional parameters to pass to a FlowDirector or
+            DepressionFinderAndRouter instance (e.g., partion_method for
+            FlowDirectorMFD). This will have no effect if an instantiated
+            component is passed using the flow_director or depression_finder
+            keywords.
+
         """
+
+        # add the new loss discharge field if necessary:
+        if "surface_water__discharge_loss" not in grid.at_node:
+            grid.add_zeros(
+                "node", "surface_water__discharge_loss", dtype=float, clobber=True
+            )
+
         super(LossyFlowAccumulator, self).__init__(
             grid,
             surface=surface,
@@ -426,12 +451,6 @@ class LossyFlowAccumulator(FlowAccumulator):
 
             self._lossfunc = lossfunc
 
-        # add the new loss discharge field if necessary:
-        if "surface_water__discharge_loss" not in grid.at_node:
-            self.grid.add_zeros(
-                "node", "surface_water__discharge_loss", dtype=float, noclobber=False
-            )
-
     def _accumulate_A_Q_to_one(self, s, r):
         """Accumulate area and discharge for a route-to-one scheme."""
         link = self._grid.at_node["flow__link_to_receiver_node"]
@@ -441,7 +460,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             link,
             self._lossfunc,
             self._grid,
-            self.node_cell_area,
+            self._node_cell_area,
             self._grid.at_node["water__unit_flux_in"],
         )
         return a, q
@@ -456,7 +475,7 @@ class LossyFlowAccumulator(FlowAccumulator):
             p,
             self._lossfunc,
             self._grid,
-            self.node_cell_area,
+            self._node_cell_area,
             self._grid.at_node["water__unit_flux_in"],
         )
         return a, q

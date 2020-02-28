@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-.. codeauthor:: Eric Hutton <huttone@colorado.edu>
+.. codeauthor:: D Litwin, G Tucker
 
-.. sectionauthor:: Eric Hutton <huttone@colorado.edu>
+.. sectionauthor:: D Litwin, G Tucker
 """
 
 from .dupuit_percolator import GroundwaterDupuitPercolator

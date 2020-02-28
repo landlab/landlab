@@ -1,0 +1,5 @@
+coveralls
+pytest
+pytest-cov
+pytest-datadir
+pyyaml

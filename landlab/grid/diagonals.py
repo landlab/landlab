@@ -3,7 +3,7 @@ import numpy as np
 
 from ..utils.decorators import cache_result_in_object, make_return_array_immutable
 from .decorators import return_readonly_id_array
-from .linkstatus import ACTIVE_LINK, set_status_at_link
+from .linkstatus import LinkStatus, set_status_at_link
 
 
 def create_nodes_at_diagonal(shape, out=None):
@@ -154,7 +154,7 @@ class DiagonalsMixIn(object):
         diagonal is directed away from the node the direction is -1, if the
         diagonal is directed toward the node its direction is 1. Each
         node is assumed to have exactly four diagonals attached to it.
-        However, perimeter nodes will have few diagonals (corner ndoes
+        However, perimeter nodes will have fewer diagonals (corner nodes
         will only have one diagonal and edge nodes two). In such cases,
         placeholders of 0 are used.
 
@@ -407,7 +407,7 @@ class DiagonalsMixIn(object):
 
         Examples
         --------
-        >>> from landlab import RasterModelGrid
+        >>> from landlab import LinkStatus, NodeStatus, RasterModelGrid
         >>> grid = RasterModelGrid((4, 3))
 
         An inactive link (or diagonal) is one that joins two
@@ -418,8 +418,8 @@ class DiagonalsMixIn(object):
                1, 0, 1,
                1, 0, 1,
                1, 1, 1], dtype=uint8)
-        >>> grid.BC_NODE_IS_CORE, grid.BC_NODE_IS_FIXED_VALUE
-        (0, 1)
+        >>> NodeStatus.CORE, NodeStatus.FIXED_VALUE
+        (<NodeStatus.CORE: 0>, <NodeStatus.FIXED_VALUE: 1>)
 
         Diagonals that connect two boundary nodes are inactive.
 
@@ -427,13 +427,13 @@ class DiagonalsMixIn(object):
         array([0, 4, 4, 0,
                0, 0, 0, 0,
                4, 0, 0, 4], dtype=uint8)
-        >>> grid.BC_LINK_IS_ACTIVE, grid.BC_LINK_IS_INACTIVE
-        (0, 4)
+        >>> LinkStatus.ACTIVE, LinkStatus.INACTIVE
+        (<LinkStatus.ACTIVE: 0>, <LinkStatus.INACTIVE: 4>)
 
         By setting a node to closed that wasn't before, a new link
-        become inactive.
+        becomes inactive.
 
-        >>> grid.status_at_node[5] = grid.BC_NODE_IS_CLOSED
+        >>> grid.status_at_node[5] = NodeStatus.CLOSED
         >>> grid.status_at_diagonal
         array([0, 4, 4, 0,
                0, 0, 0, 4,
@@ -451,14 +451,15 @@ class DiagonalsMixIn(object):
     @cache_result_in_object()
     @return_readonly_id_array
     def active_diagonals(self):
-        return np.where(self.status_at_diagonal == ACTIVE_LINK)[0]
+        return np.where(self.status_at_diagonal == LinkStatus.ACTIVE)[0]
 
     @property
     @cache_result_in_object()
     @make_return_array_immutable
     def active_diagonal_dirs_at_node(self):
         return np.choose(
-            self.diagonal_status_at_node == ACTIVE_LINK, (0, self.diagonal_dirs_at_node)
+            self.diagonal_status_at_node == LinkStatus.ACTIVE,
+            (0, self.diagonal_dirs_at_node),
         )
 
     @property
@@ -473,12 +474,12 @@ class DiagonalsMixIn(object):
     @cache_result_in_object()
     @return_readonly_id_array
     def active_d8(self):
-        return np.where(self.status_at_d8 == ACTIVE_LINK)[0]
+        return np.where(self.status_at_d8 == LinkStatus.ACTIVE)[0]
 
     @property
     @cache_result_in_object()
     @make_return_array_immutable
     def active_d8_dirs_at_node(self):
         return np.choose(
-            self.d8_status_at_node == ACTIVE_LINK, (0, self.d8_dirs_at_node)
+            self.d8_status_at_node == LinkStatus.ACTIVE, (0, self.d8_dirs_at_node)
         )

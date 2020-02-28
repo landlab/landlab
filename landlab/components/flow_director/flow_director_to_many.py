@@ -6,6 +6,8 @@ FlowDirectors.
 Provides the _FlowDirectorToMany component which makes sure all model
 grid fields are set up correctly.
 """
+import numpy as np
+
 from landlab.components.flow_director.flow_director import _FlowDirector
 
 
@@ -41,38 +43,91 @@ class _FlowDirectorToMany(_FlowDirector):
     >>> mg = RasterModelGrid((3,3), xy_spacing=(1, 1))
     >>> mg.set_closed_boundaries_at_grid_edges(True, True, True, False)
     >>> _ = mg.add_field(
-    ...     'topographic__elevation',
+    ...     "topographic__elevation",
     ...     mg.node_x + mg.node_y,
-    ...     at = 'node'
+    ...     at="node",
     ... )
     >>> fd = _FlowDirectorToMany(mg, 'topographic__elevation')
     >>> fd.surface_values
     array([ 0.,  1.,  2.,  1.,  2.,  3.,  2.,  3.,  4.])
     >>> sorted(list(mg.at_node.keys()))
-    ['flow__sink_flag', 'topographic__elevation']
+    ['flow__link_to_receiver_node', 'flow__receiver_node', 'flow__receiver_proportions', 'flow__sink_flag', 'topographic__elevation', 'topographic__steepest_slope']
     """
 
     _name = "FlowDirectorToMany"
 
-    _input_var_names = ("topographic__elevation",)
-
-    _output_var_names = ("flow__sink_flag",)
-
-    _var_units = {"topographic__elevation": "m", "flow__sink_flag": "-"}
-
-    _var_mapping = {"topographic__elevation": "node", "flow__sink_flag": "node"}
-
-    _var_doc = {
-        "topographic__elevation": "Land surface topographic elevation",
-        "flow__sink_flag": "Boolean array, True at local lows",
+    _info = {
+        "flow__link_to_receiver_node": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "ID of link downstream of each node, which carries the discharge",
+        },
+        "flow__receiver_node": {
+            "dtype": int,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of receivers (node that receives flow from current node)",
+        },
+        "flow__receiver_proportions": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Node array of proportion of flow sent to each receiver.",
+        },
+        "flow__sink_flag": {
+            "dtype": bool,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "Boolean array, True at local lows",
+        },
+        "topographic__elevation": {
+            "dtype": float,
+            "intent": "in",
+            "optional": True,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Land surface topographic elevation",
+        },
+        "topographic__steepest_slope": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "-",
+            "mapping": "node",
+            "doc": "The steepest *downhill* slope",
+        },
     }
 
+    _max_receivers = 2
+
     def __init__(self, grid, surface):
-        """Initialize the _FlowDirectorTo_One class."""
+        """Initialize the _FlowDirectorToMany class."""
         # run init for the inherited class
         super(_FlowDirectorToMany, self).__init__(grid, surface)
-        self.to_n_receivers = "many"
-        # initialize new fields
+        self._to_n_receivers = "many"
+
+        # set the number of recievers, proportions, and receiver links with the
+        # right size.
+        self.initialize_output_fields(values_per_element=self._max_receivers)
+        self._receivers = grid.at_node["flow__receiver_node"]
+        if np.all(self._receivers == 0):
+            self._receivers.fill(self._grid.BAD_INDEX)
+
+        self._receiver_links = grid.at_node["flow__link_to_receiver_node"]
+        if np.all(self._receiver_links == 0):
+            self._receiver_links.fill(self._grid.BAD_INDEX)
+
+        self._proportions = grid.at_node["flow__receiver_proportions"]
+        self._steepest_slope = grid.at_node["topographic__steepest_slope"]
 
     def run_one_step(self):
         """run_one_step is not implemented for this component."""

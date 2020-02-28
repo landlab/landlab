@@ -67,9 +67,11 @@ test-results.xml
 
 *.pdf
 !docs/**/*.pdf
+!joss/**/*.pdf
 
 *.png
 !docs/**/*.png
+!joss/**/*.png
 
 *.aux
 
@@ -118,3 +120,7 @@ landlab/components/spatial_precip/Durations_winter.csv
 
 
 \.pytest_cache/v/cache/
+
+docs/build_log.txt
+
+.eggs/README.txt

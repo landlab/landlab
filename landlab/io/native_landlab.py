@@ -5,15 +5,13 @@ Read Landlab native
 +++++++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.io.native_landlab.load_grid
     ~landlab.io.native_landlab.save_grid
 """
 
 import os
-
-from six.moves import cPickle
+import pickle
 
 from landlab import ModelGrid
 
@@ -21,7 +19,7 @@ from landlab import ModelGrid
 def save_grid(grid, path, clobber=False):
     """Save a grid and fields to a Landlab "native" format.
 
-    This method uses cPickle to save a grid as a cPickle file.
+    This method uses pickle to save a grid as a pickle file.
     All fields will be saved, along with the grid.
 
     The recommended suffix for the save file is '.grid'. This will
@@ -61,13 +59,13 @@ def save_grid(grid, path, clobber=False):
     path = base + ext
 
     with open(path, "wb") as file_like:
-        cPickle.dump(grid, file_like)
+        pickle.dump(grid, file_like)
 
 
 def load_grid(path):
     """Load a grid and its fields from a Landlab "native" format.
 
-    This method uses cPickle to load a saved grid.
+    This method uses pickle to load a saved grid.
     It assumes you saved using vmg.save() or save_grid, i.e., that the
     pickle file is a .grid file.
 
@@ -98,6 +96,6 @@ def load_grid(path):
         ext = ext + ".grid"
     path = base + ext
     with open(path, "rb") as file_like:
-        loaded_grid = cPickle.load(file_like)
+        loaded_grid = pickle.load(file_like)
     assert issubclass(type(loaded_grid), ModelGrid)
     return loaded_grid

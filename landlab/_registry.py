@@ -8,7 +8,6 @@ all of the components they have used.
 
 Examples
 --------
->>> from __future__ import print_function
 >>> from landlab import registry
 
 >>> registry.registered
@@ -31,10 +30,15 @@ Examples
     publisher={Copernicus GmbH}
     }
 
+When a component contains citation information, and the component has been
+instantiated (not just imported) the component citation is also included.
+
 >>> from landlab import RasterModelGrid
 >>> from landlab.components import Flexure
 
 >>> grid = RasterModelGrid((4, 5))
+>>> _ = grid.add_zeros("lithosphere__overlying_pressure_increment", at="node")
+>>> _ = grid.add_zeros("lithosphere_surface__elevation_increment", at="node")
 >>> flexure = Flexure(grid)
 >>> print(registry.format_citations())
 # Citations
@@ -66,12 +70,26 @@ Examples
     year={2008},
     publisher={Pergamon}
     }
+
+Finally, the component's citation information is accessible through an
+attribute called ``cite_as``:
+
+>>> print(Flexure.cite_as)
+    @article{hutton2008sedflux,
+    title={Sedflux 2.0: An advanced process-response model that
+        generates three-dimensional stratigraphy},
+    author={Hutton, Eric WH and Syvitski, James PM},
+    journal={Computers \& Geosciences},
+    volume={34},
+    number={10},
+    pages={1319--1337},
+    year={2008},
+    publisher={Pergamon}
+    }
+
 """
-from __future__ import absolute_import
 
 import os
-
-import six
 
 from . import _info
 from .core.messages import indent_and_wrap
@@ -113,6 +131,8 @@ class ComponentRegistry(object):
         --------
         >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
+        >>> registry.registered
+        ()
         >>> class FooBar(object):
         ...    pass
         >>> registry.add(FooBar)
@@ -138,7 +158,6 @@ class ComponentRegistry(object):
 
         Examples
         --------
-        >>> from __future__ import print_function
         >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
         >>> class DoNothingComponent(object):
@@ -182,6 +201,7 @@ class ComponentRegistry(object):
         """Get the display name for an object.
 
         Examples
+        --------
         >>> from landlab._registry import ComponentRegistry
         >>> class MontyPython(object):
         ...     name = "Eric Idle"
@@ -196,7 +216,6 @@ class ComponentRegistry(object):
         >>> ComponentRegistry.get_name(MontyPython)
         'MontyPython'
 
-        --------
         """
         name = "Unknown"
         for attr in ("name", "_name", "__name__"):
@@ -219,7 +238,7 @@ class ComponentRegistry(object):
                 pass
             else:
                 break
-        if isinstance(citations, six.string_types):
+        if isinstance(citations, str):
             citations = [citations]
         return citations
 
@@ -233,7 +252,6 @@ class ComponentRegistry(object):
 
         Examples
         --------
-        >>> from __future__ import print_function
         >>> from landlab._registry import ComponentRegistry
         >>> registry = ComponentRegistry()
 

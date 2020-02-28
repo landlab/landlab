@@ -1,0 +1,4 @@
+#these are for the storm generator:
+mean_storm_duration: 0.1
+mean_storm_depth: 0.2
+mean_interstorm_duration: 0.4

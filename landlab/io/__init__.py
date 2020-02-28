@@ -1,6 +1,4 @@
-"""
-Modules that read/write ModelGrids from various file formats.
-"""
+"""Modules that read/write ModelGrids from various file formats."""
 from .esri_ascii import (
     BadHeaderLineError,
     DataSizeError,
