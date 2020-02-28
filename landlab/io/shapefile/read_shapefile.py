@@ -180,9 +180,10 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True, points_shapefil
 
     # use the sorting information to
     grid = NetworkModelGrid(
-        (np.asarray(y_of_node)[sorted_nodes], np.asarray(x_of_node)[sorted_nodes]),
-        np.asarray(links)[sorted_links],
-    )
+        (np.asarray(y_of_node)[sorted_nodes],
+         np.asarray(x_of_node)[sorted_nodes]),
+        np.vstack((graph.node_at_link_head, graph.node_at_link_tail)).T,
+        )
 
     for field_name in fields:
         grid.at_link[field_name] = np.asarray(fields[field_name])[sorted_links]
