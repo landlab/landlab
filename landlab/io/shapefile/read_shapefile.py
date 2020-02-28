@@ -54,12 +54,12 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True, points_shapefil
 
     >>> w.shapeType = 3
     >>> w.field("spam", "N")
+    >>> w.line([[[5,5],[10,10]]])
+    >>> w.record(37)
     >>> w.line([[[5,0],[5,5]]])
     >>> w.record(100)
     >>> w.line([[[5,5],[0,10]]])
     >>> w.record(239)
-    >>> w.line([[[5,5],[10,10]]])
-    >>> w.record(37)
     >>> w.close()
 
     Now create a NetworkModelGrid with read_shapefile:
@@ -190,5 +190,5 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True, points_shapefil
 
     if points_shapefile:
         pass
-        
+
     return grid
