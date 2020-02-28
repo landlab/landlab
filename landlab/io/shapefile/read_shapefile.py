@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Functions to read shapefiles and create a NetworkModelGrid."""
+import numpy as np
 import shapefile as ps
 from shapefile import ShapefileException
 
+from landlab.graph.graph import NetworkGraph
 from landlab.grid.network import NetworkModelGrid
 
 
@@ -165,10 +167,23 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True):
                 )
             )
 
-    # Create a Network Model Grid
+    # Create a Network Model Grid.
     x_of_node, y_of_node = zip(*node_xy)
-    grid = NetworkModelGrid((y_of_node, x_of_node), links)
+
+    # We want to ensure that we maintain sorting, so start by creating an
+    # unsorted network graph and sorting.
+    # The sorting is important to ensure that the fields are assigned to
+    # the correct links.
+    graph = NetworkGraph((y_of_node, x_of_node), links=links, sort=False)
+    sorted_nodes, sorted_links, sorted_patches = graph.sort()
+
+    # use the sorting information to
+    grid = NetworkModelGrid(
+        (np.asarray(y_of_node)[sorted_nodes], np.asarray(x_of_node)[sorted_nodes]),
+        np.asarray(links)[sorted_links],
+    )
+
     for field_name in fields:
-        grid.at_link[field_name] = fields[field_name]
+        grid.at_link[field_name] = np.asarray(fields[field_name])[sorted_links]
 
     return grid
