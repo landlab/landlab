@@ -14,7 +14,7 @@ from pytest import approx
 
 from landlab import RasterModelGrid
 from landlab.components import DepressionFinderAndRouter, FlowAccumulator
-from landlab.components.flow_routing.cfuncs import find_lowest_node_on_lake_perimeter_c
+from landlab.components.depression_finder.cfuncs import find_lowest_node_on_lake_perimeter_c
 
 NUM_GRID_ROWS = 8
 NUM_GRID_COLS = 8
