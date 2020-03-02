@@ -11,7 +11,6 @@ import numpy as np
 import landlab
 from landlab import Component, FieldError, RasterModelGrid
 from landlab.components.flow_accum import flow_accum_bw
-from landlab.core.messages import warning_message
 from landlab.core.utils import as_id_array
 
 from .cfuncs import find_lowest_node_on_lake_perimeter_c
