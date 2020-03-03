@@ -876,9 +876,14 @@ class EventLayers:
         array([[ 1.5,  1.5,  1.5],
                [ 1. ,  2. ,  0.5]])
 
+        Combine all of the layers into a single layer.
+
         >>> layers.reduce()
         >>> layers.dz
         array([[ 2.5,  3.5,  2. ]])
+
+        Add two additional layers to the top. The bottom-most layer is row
+        0, and the two new layers are rows 1 and 2.
 
         >>> layers.add([1., 2., .5])
         >>> layers.add([1., 2., .5])
@@ -886,6 +891,9 @@ class EventLayers:
         array([[ 2.5,  3.5,  2. ],
                [ 1. ,  2. ,  0.5],
                [ 1. ,  2. ,  0.5]])
+
+        Combine the two new layers (layers 1 and 2) into a single layer.
+
         >>> layers.reduce(1, 3)
         >>> layers.dz
         array([[ 2.5,  3.5,  2. ],
@@ -898,6 +906,9 @@ class EventLayers:
                [ 2. ,  4. ,  1. ],
                [ 1. ,  2. ,  0.5],
                [ 1. ,  2. ,  0.5]])
+
+        Combine the middle two layers.
+
         >>> layers.reduce(1, 3)
         >>> layers.dz
         array([[ 2.5,  3.5,  2. ],
@@ -909,18 +920,25 @@ class EventLayers:
                [ 3. ,  6. ,  1.5],
                [ 1. ,  2. ,  0.5],
                [ 1. ,  1. ,  1. ]])
+
+        Combine every two layers (layers 0 and 1 and combined, and layers
+        1 and 2 are combined).
+
         >>> layers.reduce(0, 4, 2)
         >>> layers.dz
         array([[ 5.5,  9.5,  3.5],
                [ 2. ,  3. ,  1.5]])
 
+        When layers are combined, thicknesses are summed but layer attributes
+        can be combined in other ways (e.g. max, or mean)
+
         >>> layers = EventLayers(3)
         >>> layers.add([1, 1, 1], age=0.)
         >>> layers.add([1, 2, 5], age=1.)
         >>> layers.add([2, 2, 2], age=2.)
-        >>> layers.reduce(age=np.sum)
+        >>> layers.reduce(age=np.max)
         >>> layers["age"]
-        array([[ 3.,  3.,  3.]])
+        array([[ 2.,  2.,  2.]])
 
         >>> layers.add([2, 2, 2], age=3.)
         >>> layers.add([2, 2, 2], age=4.)
