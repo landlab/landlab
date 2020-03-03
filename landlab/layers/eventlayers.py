@@ -944,7 +944,7 @@ class EventLayers:
         >>> layers.add([2, 2, 2], age=4.)
         >>> layers.reduce(1, 3, age=np.mean)
         >>> layers["age"]
-        array([[ 3. ,  3. ,  3. ],
+        array([[ 2. ,  2. ,  2. ],
                [ 3.5,  3.5,  3.5]])
         """
         _valid_keywords_or_raise(kwds, required=self.tracking, optional=self._attrs)
