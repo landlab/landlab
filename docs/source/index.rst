@@ -20,7 +20,7 @@ Earth surface dynamics. It contains:
 In addition Landlab contains a set of Jupyter notebook tutorials providing
 an introduction to core concepts and examples of use.
 
-Landlab was desiged for disciplines that quantify Earth surface dynamics such
+Landlab was designed for disciplines that quantify Earth surface dynamics such
 as geomorphology, hydrology, glaciology, and stratigraphy. It can also be used
 in related fields. Scientists who use this type of model often build
 their own unique model from the ground up, re-coding the basic building blocks
@@ -50,7 +50,7 @@ Landlab 2.0
 
 In late December 2019 Landlab switched to version 2.0-beta. Landlab will be
 in 2.0-beta until the Landlab 2.0 publication is finalized. Landlab dropped
-support of Python 2.7 with this transition. 
+support of Python 2.7 with this transition.
 
 Supported Python Versions
 -------------------------
@@ -68,14 +68,11 @@ Documentation Outline
    :maxdepth: 2
 
    install/index
+   getting_started/index
    user_guide/index
    reference/index
-   whatsnew/index
-   getting_started/index
    development/index
-
-Acknowledgements
-================
+   whatsnew/index
 
 Funding
 -------
@@ -99,7 +96,7 @@ by the following grants:
       (`1725774 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1725774&HistoricalAwards=false>`_).
 
 Citing Landlab
-==============
+--------------
 
 If you use any portion of Landlab, you must cite the following paper:
 
@@ -142,10 +139,10 @@ Citation information for each component can be found as follows:
 
 .. _contact:
 
-Contact
-=======
+Get or Give help
+----------------
 
-Questions? Feedbacks?
+Questions? Feedback? Found a bug or something unexpected?
 
 Need an improvement/addition to Landlab?
 
@@ -162,7 +159,11 @@ To keep in touch with the latest Landlab news:
 During workshops and clinics, we often use the
 `Landlab Slack channel <https://landlab.slack.com>`_
 
-The Landlab Team:
+The Landlab Team
+----------------
+
+The core development team is
+
  - Greg Tucker (CU)
  - Nicole Gasparini (Tulane)
  - Erkan Istanbulluoglu (UW)
