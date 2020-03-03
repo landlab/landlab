@@ -164,6 +164,8 @@ class LakeMapperBarnes(Component):
         keywords = "Pit filling, Terrain analysis, Hydrology, Drainage network, Modeling, GIS"
         }"""
 
+    _unit_agnostic = True
+
     _info = {
         "drainage_area": {
             "dtype": float,

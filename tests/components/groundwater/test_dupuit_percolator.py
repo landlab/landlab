@@ -237,11 +237,11 @@ def test_inactive_interior_node():
 
     mg = RasterModelGrid((4, 4), xy_spacing=1.0)
     mg.status_at_node[5] = mg.BC_NODE_IS_FIXED_VALUE
-    elev = mg.add_zeros('node', 'topographic__elevation')
+    elev = mg.add_zeros("node", "topographic__elevation")
     elev[:] = 1
-    base = mg.add_zeros('node', 'aquifer_base__elevation')
+    base = mg.add_zeros("node", "aquifer_base__elevation")
     base[:] = 0
-    wt = mg.add_zeros('node', 'water_table__elevation')
+    wt = mg.add_zeros("node", "water_table__elevation")
     wt[:] = 1
 
     gdp = GroundwaterDupuitPercolator(mg)

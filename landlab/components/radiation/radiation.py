@@ -82,6 +82,8 @@ class Radiation(Component):
 
     _name = "Radiation"
 
+    _unit_agnostic = False
+
     _info = {
         "radiation__incoming_shortwave_flux": {
             "dtype": float,

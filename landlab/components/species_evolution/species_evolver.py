@@ -228,6 +228,8 @@ class SpeciesEvolver(Component):
 
     _name = "SpeciesEvolver"
 
+    _unit_agnostic = True
+
     _info = {
         "taxa__richness": {
             "dtype": int,
