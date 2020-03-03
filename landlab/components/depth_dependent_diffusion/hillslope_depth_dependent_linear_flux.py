@@ -19,10 +19,11 @@ class DepthDependentDiffuser(Component):
 
     .. math::
 
-        q_s = D S H^* (1.0 - exp( H / H^*)
+        q_s = - D S H^* (1.0 - exp( - H / H^*)
 
-    where :math:`D` is is the diffusivity, :math:`S` is the slope, :math:`H` is
-    the soil depth on links, and :math:`H^*` is the soil transport decay depth.
+    where :math:`D` is is the diffusivity, :math:`S` is the slope (defined as
+    negative downward), :math:`H` is the soil depth on links, and :math:`H^*`
+    is the soil transport decay depth.
 
     This component will ignore soil thickness located at non-core nodes.
 
@@ -199,29 +200,16 @@ class DepthDependentDiffuser(Component):
         self._K = linear_diffusivity
         self._soil_transport_decay_depth = soil_transport_decay_depth
 
-        # create fields
-        # elevation
+        # get reference to inputs
         self._elev = self._grid.at_node["topographic__elevation"]
-        self._depth = self._grid.at_node["soil__depth"]
         self._soil_prod_rate = self._grid.at_node["soil_production__rate"]
+        self._depth = self._grid.at_node["soil__depth"]
 
-        # slope
-        if "topographic__slope" in self._grid.at_link:
-            self._slope = self._grid.at_link["topographic__slope"]
-        else:
-            self._slope = self._grid.add_zeros("topographic__slope", at="link")
-
-        # soil flux
-        if "soil__flux" in self._grid.at_link:
-            self._flux = self._grid.at_link["soil__flux"]
-        else:
-            self._flux = self._grid.add_zeros("soil__flux", at="link")
-
-        # bedrock elevation
-        if "bedrock__elevation" in self._grid.at_node:
-            self._bedrock = self._grid.at_node["bedrock__elevation"]
-        else:
-            self._bedrock = self._grid.add_zeros("bedrock__elevation", at="node")
+        # create outputs if necessary and get reference.
+        self.initialize_output_fields()
+        self._slope = self._grid.at_link["topographic__slope"]
+        self._flux = self._grid.at_link["soil__flux"]
+        self._bedrock = self._grid.at_node["bedrock__elevation"]
 
     def soilflux(self, dt):
         """Calculate soil flux for a time period 'dt'.

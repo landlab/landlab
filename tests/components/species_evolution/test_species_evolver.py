@@ -21,9 +21,7 @@ class TestTaxon(Taxon):
 
     @property
     def range_mask(self):
-        return np.array(
-            [False, False, False, True, True, True, False, False, False]
-        )
+        return np.array([False, False, False, True, True, True, False, False, False])
 
     def _evolve(self, dt, stage, record):
         if stage == 1:
@@ -51,46 +49,32 @@ def test_track_taxa_and_component_attributes(zone_example_grid):
 
     # Test attributes at initial time step.
 
-    expected_df = pd.DataFrame({
-        'appeared': [0, 0, 0],
-        'latest_time': [0, 0, 0],
-        'extant': [True, True, True]},
-        index=[0, 1, 2]
+    expected_df = pd.DataFrame(
+        {"appeared": [0, 0, 0], "latest_time": [0, 0, 0], "extant": [True, True, True]},
+        index=[0, 1, 2],
     )
-    expected_df.index.name = 'uid'
-    pd.testing.assert_frame_equal(
-        se.taxa_data_frame, expected_df, check_like=True
-    )
+    expected_df.index.name = "uid"
+    pd.testing.assert_frame_equal(se.taxa_data_frame, expected_df, check_like=True)
 
-    expected_df = pd.DataFrame({
-        'time': [0],
-        'taxa': [3]
-    })
-    pd.testing.assert_frame_equal(
-        se.record_data_frame, expected_df, check_like=True
-    )
+    expected_df = pd.DataFrame({"time": [0], "taxa": [3]})
+    pd.testing.assert_frame_equal(se.record_data_frame, expected_df, check_like=True)
 
     # Test attributes at a later time.
 
     se.run_one_step(10)
 
-    expected_df = pd.DataFrame({
-        'appeared': [0, 0, 0, 10, 10, 10],
-        'latest_time': [10, 10, 10, 10, 10, 10],
-        'extant': [False, False, False, True, True, True]},
-        index=[0, 1, 2, 3, 4, 5]
+    expected_df = pd.DataFrame(
+        {
+            "appeared": [0, 0, 0, 10, 10, 10],
+            "latest_time": [10, 10, 10, 10, 10, 10],
+            "extant": [False, False, False, True, True, True],
+        },
+        index=[0, 1, 2, 3, 4, 5],
     )
-    pd.testing.assert_frame_equal(
-        se.taxa_data_frame, expected_df, check_like=True
-    )
+    pd.testing.assert_frame_equal(se.taxa_data_frame, expected_df, check_like=True)
 
-    expected_df = pd.DataFrame({
-        'time': [0, 10],
-        'taxa': [3, 3]
-    })
-    pd.testing.assert_frame_equal(
-        se.record_data_frame, expected_df, check_like=True
-    )
+    expected_df = pd.DataFrame({"time": [0, 10], "taxa": [3, 3]})
+    pd.testing.assert_frame_equal(se.record_data_frame, expected_df, check_like=True)
 
 
 def test_get_taxon_objects(zone_example_grid):
@@ -104,16 +88,12 @@ def test_get_taxon_objects(zone_example_grid):
     # Test no parameters.
 
     queried_taxa = se.get_taxon_objects()
-    np.testing.assert_equal(
-        Counter(queried_taxa), Counter(se._taxa['object'])
-    )
+    np.testing.assert_equal(Counter(queried_taxa), Counter(se._taxa["object"]))
 
     # Test `time` parameter.
 
     queried_taxa = se.get_taxon_objects(time=0)
-    np.testing.assert_equal(
-        Counter(queried_taxa), Counter(introduced_taxa)
-    )
+    np.testing.assert_equal(Counter(queried_taxa), Counter(introduced_taxa))
 
     queried_taxa = se.get_taxon_objects(time=10)
     ids = [s.uid for s in queried_taxa]
@@ -157,15 +137,11 @@ def test_taxa_richness_field(zone_example_grid):
     se = SpeciesEvolver(mg)
 
     expected_field = np.zeros(mg.number_of_nodes)
-    np.testing.assert_array_equal(
-        mg.at_node['taxa__richness'], expected_field
-    )
+    np.testing.assert_array_equal(mg.at_node["taxa__richness"], expected_field)
 
     introduced_taxa = [TestTaxon(), TestTaxon()]
     se.track_taxa(introduced_taxa)
     se.run_one_step(10)
 
     expected_field = np.array([0, 0, 0, 2, 2, 2, 0, 0, 0])
-    np.testing.assert_array_equal(
-        mg.at_node['taxa__richness'], expected_field
-    )
+    np.testing.assert_array_equal(mg.at_node["taxa__richness"], expected_field)

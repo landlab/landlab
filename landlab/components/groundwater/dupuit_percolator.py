@@ -157,7 +157,9 @@ class GroundwaterDupuitPercolator(Component):
     ----------
     **Required Software Citation(s) Specific to this Component**
 
-    A publication is currently under review at the Journal of Open Source Software
+    Litwin, D. G., Tucker, G.E., Barnhart, K. R., Harman, C. J. (2020).
+    GroundwaterDupuitPercolator: A Landlab component for groundwater flow.
+    Journal of Open Source Software, 5(46), 1935, https://doi.org/10.21105/joss.01935
 
     **Additional References**
 
@@ -170,6 +172,19 @@ class GroundwaterDupuitPercolator(Component):
     """
 
     _name = "GroundwaterDupuitPercolator"
+
+    _cite_as = """@article{litwin2020groundwater,
+      doi = {10.21105/joss.01935},
+      url = {https://doi.org/10.21105/joss.01935},
+      year = {2020},
+      publisher = {The Open Journal},
+      volume = {5},
+      number = {46},
+      pages = {1935},
+      author = {David Litwin and Gregory Tucker and Katherine Barnhart and Ciaran Harman},
+      title = {GroundwaterDupuitPercolator: A Landlab component for groundwater flow},
+      journal = {Journal of Open Source Software}
+    }"""
 
     _info = {
         "aquifer__thickness": {
@@ -406,7 +421,7 @@ class GroundwaterDupuitPercolator(Component):
         Includes recharge that may immediately become saturation excess
         overland flow. (m3/s)
         """
-        return np.sum(self._grid.area_of_cell * self._recharge[self._cores])
+        return np.sum(self._grid.cell_area_at_node[self._cores] * self._recharge[self._cores])
 
     def calc_gw_flux_out(self):
         """Groundwater flux through open boundaries may be positive (out of the
@@ -509,7 +524,7 @@ class GroundwaterDupuitPercolator(Component):
         """calculate the current water storage in the aquifer (m3)"""
         return np.sum(
             self._n[self._cores]
-            * self._grid.area_of_cell
+            * self._grid.cell_area_at_node[self._cores]
             * self._grid.at_node["aquifer__thickness"][self._cores]
         )
 
