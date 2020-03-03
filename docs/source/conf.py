@@ -56,6 +56,7 @@ source_suffix = '.rst'
 linkcheck_ignore = [
     r'https://pubs.geoscienceworld.org/gsa/geology.*', # Added by KRB Dec 2019, at this point two links match this pattern
     r'https://dx.doi.org/10.1130/*', # added by KRB Jan 2019. Four links match this pattern
+    r'https://github.us18.list-manage.com/*', # added by KRB March 2020. this is the link to sign up for the newsletter
     ]
 
 # The master toctree document.
