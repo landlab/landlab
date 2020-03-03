@@ -74,26 +74,25 @@ Documentation Outline
    development/index
    whatsnew/index
 
-Funding
+Contact
 -------
 
-Landlab is funded by the US National Science Foundation. It has been supported
-by the following grants:
+Questions? Feedback? Found a bug or something unexpected?
 
-    * A Collaborative NSF SI2-SSE proposal to
-      University of Colorado (Greg Tucker,
-      `1147454 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1147454&HistoricalAwards=false>`_),
-      and the University of Washington (Erkan Istanbulluoglu,
-      `1148305 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1148305&HistoricalAwards=false>`_)
-    * A Collaborative NSF SI2-SSI proposal to
-      University of Colorado (Greg Tucker and Dan Hobley,
-      `1450409 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450409&HistoricalAwards=false>`_),
-      Tulane University (Nicole Gasparini,
-      `1450338 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450338&HistoricalAwards=false>`_),
-      and the University of Washington (Erkan Istanbulluoglu,
-      `1450412 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450412&HistoricalAwards=false>`_).
-    * A NSF EAR Postdoctoral Fellowship to Katy Barnhart
-      (`1725774 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1725774&HistoricalAwards=false>`_).
+Need an improvement/addition to Landlab?
+
+Want to contribute?
+
+The recommended way to contact the Landlab development team is with a
+`GitHub Issue <https://github.com/landlab/landlab/issues>`_.
+
+Landlab News
+------------
+
+To keep in touch with the latest Landlab news:
+
+-  Get the `Landlab Lookout Newsletter <https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7>`_
+-  Landlab is on `Twitter <https://twitter.com/landlabtoolkit>`_!
 
 Citing Landlab
 --------------
@@ -139,26 +138,6 @@ Citation information for each component can be found as follows:
 
 .. _contact:
 
-Get or Give help
-----------------
-
-Questions? Feedback? Found a bug or something unexpected?
-
-Need an improvement/addition to Landlab?
-
-Want to contribute?
-
-The recommended way to contact the Landlab development team is with a
-`GitHub Issue <https://github.com/landlab/landlab/issues>`_
-
-To keep in touch with the latest Landlab news:
-
--  Get the `Landlab Lookout Newsletter <https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7>`_
--  Landlab is on `Twitter <https://twitter.com/landlabtoolkit>`_!
-
-During workshops and clinics, we often use the
-`Landlab Slack channel <https://landlab.slack.com>`_
-
 The Landlab Team
 ----------------
 
@@ -176,3 +155,30 @@ The core development team is
  - Margaux Mouchene (CU)
  - Christina Bandaragoda (UW)
  - Nathan Lyons (Tulane)
+
+Workshops and Clinics
+---------------------
+
+During :ref:`workshops and clinics <clinics_workshops>`, we sometimes use the
+`Landlab Slack channel <https://landlab.slack.com>`_.
+
+Funding
+-------
+
+Landlab is funded by the US National Science Foundation. It has been supported
+by the following grants:
+
+   * A Collaborative NSF SI2-SSE proposal to
+     University of Colorado (Greg Tucker,
+     `1147454 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1147454&HistoricalAwards=false>`_),
+     and the University of Washington (Erkan Istanbulluoglu,
+     `1148305 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1148305&HistoricalAwards=false>`_)
+   * A Collaborative NSF SI2-SSI proposal to
+     University of Colorado (Greg Tucker and Dan Hobley,
+     `1450409 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450409&HistoricalAwards=false>`_),
+     Tulane University (Nicole Gasparini,
+     `1450338 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450338&HistoricalAwards=false>`_),
+     and the University of Washington (Erkan Istanbulluoglu,
+     `1450412 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450412&HistoricalAwards=false>`_).
+   * A NSF EAR Postdoctoral Fellowship to Katy Barnhart
+     (`1725774 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1725774&HistoricalAwards=false>`_).
