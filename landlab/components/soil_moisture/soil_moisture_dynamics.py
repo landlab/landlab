@@ -104,6 +104,8 @@ class SoilMoisture(Component):
 
     _name = "Soil Moisture"
 
+    _unit_agnostic = False
+
     _info = {
         "rainfall__daily_depth": {
             "dtype": float,

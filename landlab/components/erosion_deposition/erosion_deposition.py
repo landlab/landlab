@@ -74,6 +74,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
     _name = "ErosionDeposition"
 
+    _unit_agnostic = True
+
     _cite_as = """
     @article{barnhart2019terrain,
       author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
