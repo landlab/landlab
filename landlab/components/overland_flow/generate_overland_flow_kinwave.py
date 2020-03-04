@@ -52,6 +52,8 @@ class KinwaveOverlandFlowModel(Component):
 
     _name = "KinwaveOverlandFlowModel"
 
+    _unit_agnostic = False
+
     _info = {
         "surface_water__depth": {
             "dtype": float,

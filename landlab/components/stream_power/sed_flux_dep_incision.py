@@ -85,6 +85,8 @@ class SedDepEroder(Component):
 
     _name = "SedDepEroder"
 
+    _unit_agnostic = False
+
     _info = {
         "channel__bed_shear_stress": {
             "dtype": float,

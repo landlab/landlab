@@ -146,6 +146,7 @@ class LandslideProbability(Component):
       mode rate of water transmitted through a unit width of saturated
       soil - either provided or calculated with Ksat and soil depth
     units: m2/day
+    unit agnostic: False
     at: node
     intent: in
 
@@ -212,6 +213,8 @@ class LandslideProbability(Component):
 
     # component name
     _name = "Landslide Probability"
+
+    _unit_agnostic = False
 
     __version__ = "1.0"
 

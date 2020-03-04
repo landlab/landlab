@@ -171,6 +171,8 @@ class HackCalculator(Component):
 
     _name = "HackCalculator"
 
+    _unit_agnostic = True
+
     _info = {
         "distance_to_divide": {
             "dtype": float,
