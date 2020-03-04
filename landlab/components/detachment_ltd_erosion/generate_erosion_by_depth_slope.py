@@ -119,6 +119,8 @@ class DepthSlopeProductErosion(Component):
 
     _name = "DepthSlopeProductErosion"
 
+    _unit_agnostic = True
+
     _info = {
         "surface_water__depth": {
             "dtype": float,

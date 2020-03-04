@@ -32,6 +32,7 @@ name: lithosphere__overlying_pressure_increment
 description:
   Applied pressure to the lithosphere over a time step
 units: Pa
+unit agnostic: True
 at: node
 intent: in
 
@@ -135,6 +136,8 @@ class Flexure(Component):
     """
 
     _name = "Flexure"
+
+    _unit_agnostic = True
 
     _cite_as = r"""@article{hutton2008sedflux,
         title={Sedflux 2.0: An advanced process-response model that generates three-dimensional stratigraphy},

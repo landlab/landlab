@@ -157,7 +157,9 @@ class GroundwaterDupuitPercolator(Component):
     ----------
     **Required Software Citation(s) Specific to this Component**
 
-    A publication is currently under review at the Journal of Open Source Software
+    Litwin, D. G., Tucker, G.E., Barnhart, K. R., Harman, C. J. (2020).
+    GroundwaterDupuitPercolator: A Landlab component for groundwater flow.
+    Journal of Open Source Software, 5(46), 1935, https://doi.org/10.21105/joss.01935
 
     **Additional References**
 
@@ -170,6 +172,21 @@ class GroundwaterDupuitPercolator(Component):
     """
 
     _name = "GroundwaterDupuitPercolator"
+
+    _cite_as = """@article{litwin2020groundwater,
+      doi = {10.21105/joss.01935},
+      url = {https://doi.org/10.21105/joss.01935},
+      year = {2020},
+      publisher = {The Open Journal},
+      volume = {5},
+      number = {46},
+      pages = {1935},
+      author = {David Litwin and Gregory Tucker and Katherine Barnhart and Ciaran Harman},
+      title = {GroundwaterDupuitPercolator: A Landlab component for groundwater flow},
+      journal = {Journal of Open Source Software}
+    }"""
+
+    _unit_agnostic = False
 
     _info = {
         "aquifer__thickness": {
