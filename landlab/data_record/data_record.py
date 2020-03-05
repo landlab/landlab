@@ -1125,7 +1125,9 @@ class DataRecord(object):
         """
         filter_at = self._dataset["grid_element"] == at
 
-        filter_valid_element = (self._dataset["element_id"] >= 0) * (self._dataset["element_id"] < self._grid[at].size)
+        filter_valid_element = (self._dataset["element_id"] >= 0) * (
+            self._dataset["element_id"] < self._grid[at].size
+        )
 
         if filter_array is None:
             my_filter = filter_at * filter_valid_element

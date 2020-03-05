@@ -11,10 +11,6 @@ Also the best practices tutorial.
 First, thank you for considering contributing a component! The following are
 some rules and recommendations.
 
-
-TODO: Erkan suggests that we write that the reason we do each of these.
-These are mostly for two reasons (better for users with some, but small overhead for developers, and pymt compatiblity)
-
 Rules
 -----
 - ``super`` is called in the init
@@ -36,3 +32,4 @@ Recommendations
 - Arguments and keyword arguments start with lower case letters.
 - Keyword arguments have reasonable default values (and the grid is the only argument to ``__init__``.
 - Can return or not return information. Some recommendations, Nothing, grid, or a ... or a calculated value.
+- If possible, we recommend that components are unit agnostic. 
