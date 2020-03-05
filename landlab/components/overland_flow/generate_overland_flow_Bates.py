@@ -78,6 +78,8 @@ class OverlandFlowBates(Component):
 
     _name = "OverlandFlowBates"
 
+    _unit_agnostic = False
+
     _info = {
         "surface_water__depth": {
             "dtype": float,

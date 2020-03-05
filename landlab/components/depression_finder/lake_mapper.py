@@ -145,6 +145,8 @@ class DepressionFinderAndRouter(Component):
 
     _name = "DepressionFinderAndRouter"
 
+    _unit_agnostic = True
+
     _info = {
         "depression__depth": {
             "dtype": float,
