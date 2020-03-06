@@ -9,7 +9,20 @@ from landlab.graph.graph import NetworkGraph
 from landlab.grid.network import NetworkModelGrid
 
 
-def read_shapefile(file, dbf=None, store_polyline_vertices=True, points_shapefile=None):
+def _read_shapefile(file, dbf):
+    try:
+        sf = ps.Reader(file)
+    except ShapefileException:
+        try:
+            sf = ps.Reader(shp=file, dbf=dbf)
+        except ShapefileException:
+            raise ShapefileException(("Bad file path provided to read_shapefile."))
+    return sf
+
+
+def read_shapefile(
+    file, dbf=None, store_polyline_vertices=True, points_shapefile=None, points_dbf=None
+):
     """Read shapefile and create a NetworkModelGrid.
 
     There are a number of assumptions that are requied about the shapefile.
@@ -24,21 +37,26 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True, points_shapefil
 
     Parameters
     ----------
-    file : str or file-like
-        File path or file-like of a valid shapefile
-    dbf : file-like, optional
+    file: str or file-like
+        File path or file-like of a valid polyline shapefile
+    dbf: file-like, optional
         If file is file-like, the dbf must also be passed.
     store_polyline_vertices: bool, optional
         If True (default), store the vertices of the polylines in
         the at_link fields ``x_of_polyline`` and ``y_of_polyline``.
     points_shapefile: str or file-like
+        File path or file-like of a valid point shapefile.
+    points_dbf: file-like, optional
+        If file is file-like, the dbf must also be passed.
 
     Returns
     -------
     grid : NetworkModelGrid instance
         The network model grid will have nodes at the endpoints of the
         polylines, and links that connect these nodes. Any fields
-        associated with the shapefile will be added as at-link fields.
+        associated with the shapefile will be added as at-link fields. If a
+        point shapefile is provided those values will be added as at-node
+        fields.
 
     Examples
     --------
@@ -49,9 +67,7 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True, points_shapefil
     >>> shp = BytesIO()
     >>> shx = BytesIO()
     >>> dbf = BytesIO()
-
     >>> w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
-
     >>> w.shapeType = 3
     >>> w.field("spam", "N")
     >>> w.line([[[5,5],[10,10]]])
@@ -79,14 +95,60 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True, points_shapefil
     >>> assert "spam" in grid.at_link
     >>> grid.at_link["spam"]
     array([100, 239, 37])
+
+    Next lets also include a points file. First create both shapefiles.
+
+    >>> shp = BytesIO()
+    >>> shx = BytesIO()
+    >>> dbf = BytesIO()
+    >>> w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
+    >>> w.shapeType = 3
+    >>> w.field("spam", "N")
+    >>> w.line([[[5,5],[10,10]]])
+    >>> w.record(37)
+    >>> w.line([[[5,0],[5,5]]])
+    >>> w.record(100)
+    >>> w.line([[[5,5],[0,10]]])
+    >>> w.record(239)
+    >>> w.close()
+
+    >>> p_shp = BytesIO()
+    >>> p_shx = BytesIO()
+    >>> p_dbf = BytesIO()
+    >>> p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
+    >>> p_w.shapeType = 1
+    >>> p_w.field("eggs", "N")
+    >>> p_w.point(5, 0)
+    >>> p_w.record(2)
+    >>> p_w.point(5, 5)
+    >>> p_w.record(4)
+    >>> p_w.point(0, 10)
+    >>> p_w.record(8)
+    >>> p_w.point(10, 10)
+    >>> p_w.record(6)
+    >>> p_w.close()
+
+    Now read in both files together.
+
+    >>> grid = read_shapefile(shp,dbf=dbf,points_shapefile=p_shp,points_dbf=p_dbf)
+    >>> grid.nodes
+    array([0, 1, 2, 3])
+    >>> grid.x_of_node
+    array([  5.,   5.,   0.,  10.])
+    >>> grid.y_of_node
+    array([  0.,   5.,  10.,  10.])
+    >>> grid.nodes_at_link
+    array([[0, 1],
+           [2, 1],
+           [1, 3]])
+    >>> assert "spam" in grid.at_link
+    >>> grid.at_link["spam"]
+    array([100, 239, 37])
+    >>> assert "eggs" in grid.at_node
+    >>> grid.at_node["eggs"]
+    array([2, 4, 8, 6])
     """
-    try:
-        sf = ps.Reader(file)
-    except ShapefileException:
-        try:
-            sf = ps.Reader(shp=file, dbf=dbf)
-        except ShapefileException:
-            raise ShapefileException(("Bad file path provided to read_shapefile."))
+    sf = _read_shapefile(file, dbf)
 
     if sf.shapeType != 3:
         raise ValueError(
@@ -96,6 +158,17 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True, points_shapefil
                 "not meet these requirements."
             )
         )
+
+    if points_shapefile:
+        psf = _read_shapefile(points_shapefile, points_dbf)
+        if psf.shapeType != 1:
+            raise ValueError(
+                (
+                    "landlab.io.shapefile read requires a point "
+                    "type shapefile. The provided shapefile does "
+                    "not meet these requirements."
+                )
+            )
 
     # get record information, the first element is ('DeletionFlag', 'C', 1, 0)
     # which we will ignore.
@@ -178,17 +251,66 @@ def read_shapefile(file, dbf=None, store_polyline_vertices=True, points_shapefil
     graph = NetworkGraph((y_of_node, x_of_node), links=links, sort=False)
     sorted_nodes, sorted_links, sorted_patches = graph.sort()
 
-    # use the sorting information to
+    # use the sorting information to make a new network model grid.
     grid = NetworkModelGrid(
-        (np.asarray(y_of_node)[sorted_nodes],
-         np.asarray(x_of_node)[sorted_nodes]),
+        (np.asarray(y_of_node)[sorted_nodes], np.asarray(x_of_node)[sorted_nodes]),
         np.vstack((graph.node_at_link_head, graph.node_at_link_tail)).T,
-        )
+    )
 
+    # add values to fields.
     for field_name in fields:
         grid.at_link[field_name] = np.asarray(fields[field_name])[sorted_links]
 
+    # if a points shapefile is added, bring in and use.
     if points_shapefile:
-        pass
+        # get ready to store fields.
+        psf_records = psf.fields[1:]
+        psf_record_order = [rec[0] for rec in psf_records]
+        psf_fields = {rec[0]: [] for rec in psf_records}
+
+        # we don't need to store node xy, just need to store which index each
+        # node maps to on the new grid.
+        psf_node_mapping = []
+
+        # loop through each node
+        psf_shapeRecs = psf.shapeRecords()
+        for sr in psf_shapeRecs:
+            # find the closest
+            x_diff = grid.x_of_node - sr.shape.points[0][0]
+            y_diff = grid.y_of_node - sr.shape.points[0][1]
+
+            dist = np.sqrt(x_diff ** 2 + y_diff ** 2)
+            ind = np.nonzero(dist == np.min(dist))[0]
+            try:
+                # verify that there is only one closest.
+                assert len(ind) == 1
+            except:
+                msg = (
+                    "landlab.io.shapefile requires that the points file "
+                    "have a 1-1 mapping to the polylines file."
+                )
+
+                raise ValueError(msg)
+            psf_node_mapping.append(ind[0])
+
+            for i in range(len(sr.record)):
+                field_name = psf_record_order[i]
+                psf_fields[field_name].append(sr.record[i])
+
+        try:
+            assert len(psf_node_mapping) == grid.number_of_nodes
+            assert len(psf_node_mapping) == len(np.unique(psf_node_mapping))
+        except:
+            msg = (
+                "landlab.io.shapefile requires that the points file "
+                "contain the same number of points as polyline junctions."
+            )
+            raise ValueError(msg)
+
+        # add values to nodes.
+        for field_name in psf_fields:
+            grid.at_node[field_name] = np.asarray(psf_fields[field_name])[
+                psf_node_mapping
+            ]
 
     return grid
