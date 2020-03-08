@@ -2,7 +2,6 @@
 import numpy as np
 import six
 from landlab import Component
-from .funcs_for_including_runon_in_soil_moisture import get_ordered_cells_for_soil_moisture
 
 from ...utils.decorators import use_file_name_or_kwds
 
@@ -122,6 +121,7 @@ class SoilMoisture(Component):
     ...         5., 4.5, 3.5, 1.5, 5.,
     ...         5., 4., 3., 1., 5.,
     ...         5., 5., 5., 5., 0.])
+    >>> from landlab.components.soil_moisture.funcs_for_including_runon_in_soil_moisture import get_ordered_cells_for_soil_moisture
     >>> ordered_cells, grid_r = (
     ...     get_ordered_cells_for_soil_moisture(grid_r, outlet_id=24))
     >>> grid_r.at_cell["vegetation__plant_functional_type"] = (
@@ -240,65 +240,65 @@ class SoilMoisture(Component):
 
     @use_file_name_or_kwds
     def __init__(
-         self,
-         grid,
-         ordered_cells=None,
-         runon_switch=0,
-         f_bare=0.7,
-         soil_ew=0.1,
-         intercept_cap_grass=1.,
-         zr_grass=0.3,
-         I_B_grass=20.,
-         I_V_grass=24.,
-         K_s_grass=42.,
-         pc_grass=0.43,
-         fc_grass=0.56,
-         sc_grass=0.33,
-         wp_grass=0.13,
-         hgw_grass=0.1,
-         beta_grass=13.8,
-         LAI_max_grass=2.,
-         LAIR_max_grass=2.88,
-         intercept_cap_shrub=1.5,
-         zr_shrub=0.5,
-         I_B_shrub=20.,
-         I_V_shrub=40.,
-         K_s_shrub=42.,
-         pc_shrub=0.43,
-         fc_shrub=0.56,
-         sc_shrub=0.24,
-         wp_shrub=0.13,
-         hgw_shrub=0.1,
-         beta_shrub=13.8,
-         LAI_max_shrub=2.,
-         LAIR_max_shrub=2.,
-         intercept_cap_tree=2.,
-         zr_tree=1.3,
-         I_B_tree=20.,
-         I_V_tree=40.,
-         K_s_tree=42.,
-         pc_tree=0.43,
-         fc_tree=0.56,
-         sc_tree=0.22,
-         wp_tree=0.15,
-         hgw_tree=0.1,
-         beta_tree=13.8,
-         LAI_max_tree=4.,
-         LAIR_max_tree=4.,
-         intercept_cap_bare=1.,
-         zr_bare=0.15,
-         I_B_bare=20.,
-         I_V_bare=20.,
-         K_s_bare=42.,
-         pc_bare=0.43,
-         fc_bare=0.56,
-         sc_bare=0.33,
-         wp_bare=0.13,
-         hgw_bare=0.1,
-         beta_bare=13.8,
-         LAI_max_bare=0.01,
-         LAIR_max_bare=0.01,
-         **kwds
+        self,
+        grid,
+        ordered_cells=None,
+        runon_switch=0,
+        f_bare=0.7,
+        soil_ew=0.1,
+        intercept_cap_grass=1.,
+        zr_grass=0.3,
+        I_B_grass=20.,
+        I_V_grass=24.,
+        K_s_grass=42.,
+        pc_grass=0.43,
+        fc_grass=0.56,
+        sc_grass=0.33,
+        wp_grass=0.13,
+        hgw_grass=0.1,
+        beta_grass=13.8,
+        LAI_max_grass=2.,
+        LAIR_max_grass=2.88,
+        intercept_cap_shrub=1.5,
+        zr_shrub=0.5,
+        I_B_shrub=20.,
+        I_V_shrub=40.,
+        K_s_shrub=42.,
+        pc_shrub=0.43,
+        fc_shrub=0.56,
+        sc_shrub=0.24,
+        wp_shrub=0.13,
+        hgw_shrub=0.1,
+        beta_shrub=13.8,
+        LAI_max_shrub=2.,
+        LAIR_max_shrub=2.,
+        intercept_cap_tree=2.,
+        zr_tree=1.3,
+        I_B_tree=20.,
+        I_V_tree=40.,
+        K_s_tree=42.,
+        pc_tree=0.43,
+        fc_tree=0.56,
+        sc_tree=0.22,
+        wp_tree=0.15,
+        hgw_tree=0.1,
+        beta_tree=13.8,
+        LAI_max_tree=4.,
+        LAIR_max_tree=4.,
+        intercept_cap_bare=1.,
+        zr_bare=0.15,
+        I_B_bare=20.,
+        I_V_bare=20.,
+        K_s_bare=42.,
+        pc_bare=0.43,
+        fc_bare=0.56,
+        sc_bare=0.33,
+        wp_bare=0.13,
+        hgw_bare=0.1,
+        beta_bare=13.8,
+        LAI_max_bare=0.01,
+        LAIR_max_bare=0.01,
+        **kwds,
     ):
         """
         Parameters
@@ -627,7 +627,6 @@ class SoilMoisture(Component):
             ],
         )
 
-
     def update(self, current_time, Tb=24., Tr=0., **kwds):
         """
         Update fields with current loading conditions.
@@ -717,7 +716,7 @@ class SoilMoisture(Component):
             beta = self._soil_beta[cell]
             Ks = self._soil_Ks[cell]
             if self._vegtype[cell] == 0:   # 0 - GRASS
-                sc = scc*self._fr[cell]+(1-self._fr[cell])*fc
+                sc = scc * self._fr[cell] + (1 - self._fr[cell]) * fc
             else:
                 sc = scc
 
@@ -739,12 +738,12 @@ class SoilMoisture(Component):
                 Ep = max((fbare * self._pet_g[cell]), 0.0001)
             else:
                 Ep = max(
-                  (
-                      self._PET[cell] * self._fr[cell]
-                      + fbare * self._pet_g[cell] * (1. - self._fr[cell])
-                  )
-                  - Int_cap,
-                  0.0001,
+                    (
+                        self._PET[cell] * self._fr[cell]
+                        + fbare * self._pet_g[cell] * (1. - self._fr[cell])
+                    )
+                    - Int_cap,
+                    0.0001,
                 )  # mm/d
             self._ETmax[cell] = Ep
             nu = ((Ep / 24.) / 1000.) / (pc * ZR)   # Loss function parameter
@@ -761,8 +760,8 @@ class SoilMoisture(Component):
                 Ts = np.inf
             else:
                 Ts = (
-                        (1 - self._SO[cell]) * (pc * ZR * 1000.)
-                        / (precip_int * (1 - np.exp((-1) * Inf_cap / precip_int)))
+                    (1 - self._SO[cell]) * (pc * ZR * 1000.)
+                    / (precip_int * (1 - np.exp((-1) * Inf_cap / precip_int)))
                 )
             self._ts[cell] = Ts
             # Computing runoff

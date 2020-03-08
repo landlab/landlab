@@ -1,14 +1,12 @@
-
 import numpy as np
 from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
 import math
 
-_VALID_METHODS = set(['Constant',
-                      'Cosine',
-                      'MeasuredRadiationPT',
-                      'PenmanMonteith',
-                      'PriestleyTaylor'])
+_VALID_METHODS = set(
+    ["Constant", "Cosine", "MeasuredRadiationPT", "PenmanMonteith", "PriestleyTaylor"]
+)
+
 
 def _assert_method_is_valid(method):
     if method not in _VALID_METHODS:
@@ -30,7 +28,7 @@ class PotentialEvapotranspiration(Component):
         "radiation__net_shortwave_flux",
         "radiation__net_longwave_flux", and
         "radiation__net_flux".
-    
+
     As mentioned above, this component can be configured to use
     one of the five ways to calculate potential evapotranspiration.
     The methods are 'Constant','Cosine', 'MeasuredRadiationPT',
@@ -307,29 +305,30 @@ class PotentialEvapotranspiration(Component):
     }
 
     @use_file_name_or_kwds
-    def __init__(self,
-                 grid,
-                 method='Cosine',
-                 priestley_taylor_const=1.26,
-                 albedo=0.12,
-                 latent_heat_of_vaporization=28.34,
-                 psychometric_const=0.066,
-                 stefan_boltzmann_const=0.0000000567,
-                 solar_const=1366.67,
-                 latitude=34.,
-                 elevation_of_measurement=300,
-                 adjustment_coeff=0.18,
-                 lt=0.,
-                 nd=365.,
-                 MeanTmaxF=12.,
-                 delta_d=5.,
-                 rl=130,
-                 zveg=0.3,
-                 lai=2.,
-                 zm=3.3,
-                 zh=2,
-                 air_density=1.22,
-                 **kwds,
+    def __init__(
+        self,
+        grid,
+        method="Cosine",
+        priestley_taylor_const=1.26,
+        albedo=0.12,
+        latent_heat_of_vaporization=28.34,
+        psychometric_const=0.066,
+        stefan_boltzmann_const=0.0000000567,
+        solar_const=1366.67,
+        latitude=34.0,
+        elevation_of_measurement=300,
+        adjustment_coeff=0.18,
+        lt=0.0,
+        nd=365.0,
+        MeanTmaxF=12.0,
+        delta_d=5.0,
+        rl=130,
+        zveg=0.3,
+        lai=2.0,
+        zm=3.3,
+        zh=2,
+        air_density=1.22,
+        **kwds,
     ):
         """
         Parameters
@@ -393,14 +392,14 @@ class PotentialEvapotranspiration(Component):
         self._ND = nd
         self._TmaxF_mean = MeanTmaxF
         self._DeltaD = delta_d
-        self._zm = zm   # (m) wind speed anemometer height 
-        self._zh = zh   # (m) Relative Humidity probe height
-        self._lai = lai   # Leaf Area Index
+        self._zm = zm  # (m) wind speed anemometer height
+        self._zh = zh  # (m) Relative Humidity probe height
+        self._lai = lai  # Leaf Area Index
         self._zveg = zveg  # (m) Vegetation height
-        self._rl = rl    # (sec/m) reverse of conductance
-        self._rho_w = 1000.  # (Kg/m^3) Density of water
-        self._rho_a = air_density   # (Kg/m^3) Density of Air
-        self._ca = 1000.   # (J/Kg/C) or (Ws/Kg/C) Specific heat of air
+        self._rl = rl  # (sec/m) reverse of conductance
+        self._rho_w = 1000.0  # (Kg/m^3) Density of water
+        self._rho_a = air_density  # (Kg/m^3) Density of Air
+        self._ca = 1000.0  # (J/Kg/C) or (Ws/Kg/C) Specific heat of air
         self._von_karman = 0.41  # Von Karman Constant
         _assert_method_is_valid(self._method)
 
@@ -412,23 +411,23 @@ class PotentialEvapotranspiration(Component):
 
         for name in self._output_var_names:
             if name not in self.grid.at_cell:
-                self.grid.add_zeros('cell', name, units=self._var_units[name])
+                self.grid.add_zeros("cell", name, units=self._var_units[name])
 
-        self._cell_values = self.grid['cell']
+        self._cell_values = self.grid["cell"]
 
     def update(
-           self,
-           current_time=None,
-           const_potential_evapotranspiration=12.,
-           Tmin=None,
-           Tmax=None,
-           Tavg=None,
-           obs_radiation=None,
-           relative_humidity=None,
-           wind_speed=None,
-           co2_concentration=300.,
-           ground_heat_flux=0.,
-           **kwds
+        self,
+        current_time=None,
+        const_potential_evapotranspiration=12.0,
+        Tmin=None,
+        Tmax=None,
+        Tavg=None,
+        obs_radiation=None,
+        relative_humidity=None,
+        wind_speed=None,
+        co2_concentration=300.0,
+        ground_heat_flux=0.0,
+        **kwds,
     ):
         """Update fields with current conditions.
 
@@ -443,7 +442,7 @@ class PotentialEvapotranspiration(Component):
             Minimum temperature of the day (deg C)
         Tmax: float, required for method(s): Priestley Taylor
             Maximum temperature of the day (deg C)
-        Tavg: float, required for method(s): Priestley Taylor, 
+        Tavg: float, required for method(s): Priestley Taylor,
         MeasuredRadiationPT, and PenmanMonteith
             Average temperature of the day (deg C)
         obs_radiation: float, required for method(s): MeasuredRadiationPT, and
@@ -458,11 +457,10 @@ class PotentialEvapotranspiration(Component):
         ground_heat_flux: float (default=0)
             Ground heat flux (W/m^2)
         """
-        if self._method in ['PriestleyTaylor', 'MeasuredRadiationPT',
-                            'PenmanMonteith']:
-            if Tavg == None:
-                Tavg = (Tmax+Tmin)/2.
-        if self._method == 'Constant':
+        if self._method in ["PriestleyTaylor", "MeasuredRadiationPT", "PenmanMonteith"]:
+            if Tavg is None:
+                Tavg = (Tmax + Tmin) / 2.0
+        if self._method == "Constant":
             self._PET_value = const_potential_evapotranspiration
         elif self._method == "PriestleyTaylor":
             self._PET_value = self._PriestleyTaylor(current_time, Tmax, Tmin, Tavg)
@@ -480,30 +478,35 @@ class PotentialEvapotranspiration(Component):
             )
         elif self._method == "MeasuredRadiationPT":
             Robs = obs_radiation
-            self._PET_value = self._MeasuredRadPT(Tavg, (1-self._a)*Robs)
-        elif self._method == 'Cosine':
-            self._J = np.floor((current_time - np.floor(current_time)) * 365.)
-            self._PET_value = (
-                max(
-                    (self._TmaxF_mean + self._DeltaD / 2.
-                     * np.cos((2 * np.pi)
-                     * (self._J - self._LT - self._ND / 2)
-                     / self._ND)),
-                     0.0,
-                )
+            self._PET_value = self._MeasuredRadPT(Tavg, (1 - self._a) * Robs)
+        elif self._method == "Cosine":
+            self._J = np.floor((current_time - np.floor(current_time)) * 365.0)
+            self._PET_value = max(
+                (
+                    self._TmaxF_mean
+                    + self._DeltaD
+                    / 2.0
+                    * np.cos(
+                        (2 * np.pi) * (self._J - self._LT - self._ND / 2) / self._ND
+                    )
+                ),
+                0.0,
             )
-        elif self._method == 'PenmanMonteith':
+        elif self._method == "PenmanMonteith":
             self._PET_value = self._PenmanMonteith(
-                Tavg, obs_radiation, wind_speed,
-                relative_humidity, co2_concentration,
-                ground_heat_flux)
+                Tavg,
+                obs_radiation,
+                wind_speed,
+                relative_humidity,
+                co2_concentration,
+                ground_heat_flux,
+            )
             if math.isnan(self._PET_value):
-                self._PET_value = 0.
-            if self._PET_value < 0.:
-                self._PET_value = 0.
+                self._PET_value = 0.0
+            if self._PET_value < 0.0:
+                self._PET_value = 0.0
             self._cell_values["radiation__incoming_shortwave_flux"] = (
-                obs_radiation
-                * self._cell_values["radiation__ratio_to_flat_surface"]
+                obs_radiation * self._cell_values["radiation__ratio_to_flat_surface"]
             )
             self._cell_values["radiation__net_shortwave_flux"] = (
                 obs_radiation
@@ -563,12 +566,9 @@ class PotentialEvapotranspiration(Component):
         # Extraterrestrial radmodel.docx - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 21, (48)
         # 11.57 converts 1 MJ/m^2/day to W/m^2
-        self._Ra = (
-            (11.57 * (24.0 / np.pi) * 4.92 * self._dr)
-            * (
-                (self._ws * np.sin(self._phi) * np.sin(self._sdecl))
-                + (np.cos(self._phi) * np.cos(self._sdecl) * (np.sin(self._ws)))
-            )
+        self._Ra = (11.57 * (24.0 / np.pi) * 4.92 * self._dr) * (
+            (self._ws * np.sin(self._phi) * np.sin(self._sdecl))
+            + (np.cos(self._phi) * np.cos(self._sdecl) * (np.sin(self._ws)))
         )
 
         # Clear-sky Solar Radiation - ASCE-EWRI Task Committee Report,
@@ -621,66 +621,60 @@ class PotentialEvapotranspiration(Component):
 
         return self._ETp
 
-
-    def _PenmanMonteith(self, Tavg, radiation_sw,
-                        wind_speed, relative_humidity,
-                        co2_concentration,
-                        ground_heat_flux):
+    def _PenmanMonteith(
+        self,
+        Tavg,
+        radiation_sw,
+        wind_speed,
+        relative_humidity,
+        co2_concentration,
+        ground_heat_flux,
+    ):
         zm = self._zm
         zh = self._zh
-        zd = (0.7 * self._zveg)  # (m) zero-plane displacement height
-        z0 = (0.123 * self._zveg)
-        z0h = (0.1 * z0)
+        zd = 0.7 * self._zveg  # (m) zero-plane displacement height
+        z0 = 0.123 * self._zveg
+        z0h = 0.1 * z0
         kv = self._von_karman
-        
+
         # Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 6, (37)
-        self._es = 0.6108 * np.exp((17.27 * Tavg)/(237.7 + Tavg))
+        self._es = 0.6108 * np.exp((17.27 * Tavg) / (237.7 + Tavg))
         # Actual Vapor Pressure
-        self._ea = (self._es * relative_humidity * 0.01)
+        self._ea = self._es * relative_humidity * 0.01
         # Slope of Saturation Vapor Pressure - ASCE-EWRI Task Committee Report,
         # Jan-2005 - Eqn 5, (36)
         self._delta = (4098.0 * self._es) / ((237.3 + Tavg) ** 2.0)
-        self._ra = ((np.log((zm - zd) / z0)) ** 2)/((kv ** 2) * wind_speed)
-        if self._zh != None:
-            self._ra = (
-                ((np.log((zm - zd) / z0)) * (np.log((zh - zd) / z0h)))
-                / (kv**2 * wind_speed)
+        self._ra = ((np.log((zm - zd) / z0)) ** 2) / ((kv ** 2) * wind_speed)
+        if self._zh is not None:
+            self._ra = ((np.log((zm - zd) / z0)) * (np.log((zh - zd) / z0h))) / (
+                kv ** 2 * wind_speed
             )  # Correction for RH
-            
-        self._Kat = (2.158 / (self._rho_w * (273.3 + Tavg)))
+
+        self._Kat = 2.158 / (self._rho_w * (273.3 + Tavg))
         # Evaporation
         self._E = (
-            self._Kat * (1./self._ra) * (self._es - self._ea) * 86400. * 1000.
+            self._Kat * (1.0 / self._ra) * (self._es - self._ea) * 86400.0 * 1000.0
         )
         # Potential Evapotranspiration
-        self._E2 = (radiation_sw / self._pwhv)
-        self._Ts = (
-            Tavg + 273.15 - 0.825 * np.exp(3.54 * (10. ** (-3)) * radiation_sw)
-        )
+        self._E2 = radiation_sw / self._pwhv
+        self._Ts = Tavg + 273.15 - 0.825 * np.exp(3.54 * (10.0 ** (-3)) * radiation_sw)
         self._radiation_lw = max(
-            self._sigma * (self._Ts ** 4 - (Tavg + 273.15) ** 4),
-            0.
+            self._sigma * (self._Ts ** 4 - (Tavg + 273.15) ** 4), 0.0
         )
         self._net_radiation = max(
-            ((1-self._a) * radiation_sw
-             + self._radiation_lw
-             - ground_heat_flux), 0.,
+            ((1 - self._a) * radiation_sw + self._radiation_lw - ground_heat_flux), 0.0,
         )
-        self._penman_numerator = (
-            (self._delta * self._net_radiation)
-            + (self._rho_a * self._ca * (self._es - self._ea)
-            / self._ra)
+        self._penman_numerator = (self._delta * self._net_radiation) + (
+            self._rho_a * self._ca * (self._es - self._ea) / self._ra
         )
-        self._rs = (
-            self._rl / (0.5*self._lai)
-            + 0.05 * (co2_concentration - 300.)
+        self._rs = self._rl / (0.5 * self._lai) + 0.05 * (
+            co2_concentration - 300.0
         )  # Yang et al. 2019
-        self._penman_denominator = (
-            self._pwhv
-            * (self._delta + self._y * (1 + self._rs / self._ra))
+        self._penman_denominator = self._pwhv * (
+            self._delta + self._y * (1 + self._rs / self._ra)
         )
-        self._ETp = (self._penman_numerator / self._penman_denominator)                                  
+        self._ETp = self._penman_numerator / self._penman_denominator
         return self._ETp
 
     def _MeasuredRadPT(self, Tavg, Rnobs):

@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 Created on Tue Jan 17 11:48:13 2017
@@ -7,7 +6,7 @@ Created on Tue Jan 17 11:48:13 2017
 """
 
 import numpy as np
-from landlab.components import FlowRouter, DepressionFinderAndRouter
+from landlab.components import FlowRouter  # , DepressionFinderAndRouter
 
 
 def get_ordered_cells_for_soil_moisture(grid, outlet_id=None):
@@ -15,9 +14,9 @@ def get_ordered_cells_for_soil_moisture(grid, outlet_id=None):
     Runs Landlab's FlowRouter and DepressionFinderAndRouter to
     route flow. Also orders the cells in the descending order of
     channel length (upstream cell order).
-    
+
     Parameters:
-    ==========    
+    ==========
     grid: grid object
         RasterModelGrid
     outlet_id: int (Optional)
@@ -31,10 +30,12 @@ def get_ordered_cells_for_soil_moisture(grid, outlet_id=None):
         updated RasterModelGrid
     """
 
-    if outlet_id == None:
+    if outlet_id is None:
         outlet_id = np.argmin(grid.at_node['topographic__elevation'])
-    outlet = grid.set_watershed_boundary_condition_outlet_id(outlet_id,
-        grid.at_node['topographic__elevation'], nodata_value=-9999.,)
+    _ = grid.set_watershed_boundary_condition_outlet_id(
+        outlet_id,
+        grid.at_node['topographic__elevation'],
+        nodata_value=-9999., )
     # grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
     flw_r = FlowRouter(grid)
     flw_r.run_one_step()
@@ -57,8 +58,8 @@ def get_ordered_cells_for_soil_moisture(grid, outlet_id=None):
         np.argsort(channel_length[grid.node_at_core_cell])]
     # Sorting nodes in the descending order of channel length
     ordered_nodes = ordered_nodes[::-1]
-    dd = 1    # switch 2 for while loop
-    count_loops = 0 # No. of loops while runs
+    dd = 1  # switch 2 for while loop
+    count_loops = 0  # No. of loops while runs
     while dd:
         dd = 0
         count_loops += 1
@@ -66,12 +67,12 @@ def get_ordered_cells_for_soil_moisture(grid, outlet_id=None):
         alr_counted_ = []
         for node_ in sorted_order:
             donors = []
-            donors = list(grid.node_at_core_cell[np.where(r==node_)[0]])
+            donors = list(grid.node_at_core_cell[np.where(r == node_)[0]])
             if len(donors) != 0:
                 for k in range(0, len(donors)):
                     if donors[k] not in alr_counted_:
                         sorted_order.insert(donors[k], sorted_order.pop(sorted_order.index(node_)))
-                        dd = 1    
+                        dd = 1
             alr_counted_.append(node_)
         ordered_nodes = np.array(sorted_order)
     ordered_cells = grid.cell_at_node[ordered_nodes]
