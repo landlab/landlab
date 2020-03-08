@@ -3826,7 +3826,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         >>> l
         array([ 7, 3, 12])
         >>> r
-        array([11, 15,  6])
+        array([11, 6,  15])
         >>> t
         array([16, 18, 17])
         >>> b
