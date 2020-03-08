@@ -1,6 +1,8 @@
+
 import numpy as np
 import six
 from landlab import Component
+from .funcs_for_including_runon_in_soil_moisture import get_ordered_cells_for_soil_moisture
 
 from ...utils.decorators import use_file_name_or_kwds
 
@@ -36,7 +38,7 @@ class SoilMoisture(Component):
     --------
     >>> from landlab import RasterModelGrid
     >>> from landlab.components.soil_moisture import SoilMoisture
-    >>> grid = RasterModelGrid((5, 4), xy_spacing=(0.2, 0.2))
+    >>> grid = RasterModelGrid((5, 5), xy_spacing=(0.2, 0.2))
     >>> SoilMoisture.name
     'Soil Moisture'
     >>> sorted(SoilMoisture.output_var_names) # doctest: +NORMALIZE_WHITESPACE
@@ -62,30 +64,90 @@ class SoilMoisture(Component):
      ('vegetation__water_stress', 'None')]
     >>> grid.at_cell["vegetation__plant_functional_type"] = (
     ...            np.zeros(grid.number_of_cells, dtype=int))
-    >>> SM = SoilMoisture(grid)
-    >>> SM.grid.number_of_cell_rows
+
+    Let us look at an example where we don't consider runoff from
+    upstream cells (runon_switch = 0 - default condition).
+
+    >>> sm = SoilMoisture(grid)
+    >>> sm.grid.number_of_cell_rows
     3
-    >>> SM.grid.number_of_cell_columns
-    2
-    >>> SM.grid is grid
+    >>> sm.grid.number_of_cell_columns
+    3
+    >>> sm.grid is grid
     True
     >>> import numpy as np
     >>> np.allclose(grid.at_cell["soil_moisture__saturation_fraction"], 0.)
     True
     >>> grid.at_cell["surface__potential_evapotranspiration_rate"]= np.array([
-    ...        0.2554777, 0.2554777 , 0.22110221, 0.22110221,
-    ...        0.24813062, 0.24813062])
+    ...        7.5, 2., 3.5, 0., 1., 5., 3., 1.8, 0.])
+    >>> grid.at_cell["surface__potential_evapotranspiration_rate__grass"]= np.array([
+    ...        7.5, 2., 3.5, 0., 1., 5., 3., 1.8, 0.])
     >>> grid.at_cell["soil_moisture__initial_saturation_fraction"]= (
-    ...        0.75 * np.ones(grid.number_of_cells))
+    ...        np.full(grid.number_of_cells, 0.4))
     >>> grid.at_cell["vegetation__live_leaf_area_index"]= (
-    ...        2. * np.ones(grid.number_of_cells))
+    ...        np.full(grid.number_of_cells, 0.8))
     >>> grid.at_cell["vegetation__cover_fraction"]= (
     ...        np.ones(grid.number_of_cells))
     >>> current_time = 0.5
     >>> grid.at_cell["rainfall__daily_depth"] = (
-    ...        25. * np.ones(grid.number_of_cells))
-    >>> current_time = SM.update(current_time)
-    >>> np.allclose(grid.at_cell["soil_moisture__saturation_fraction"], 0.)
+    ...        60. * np.ones(grid.number_of_cells))
+    >>> current_time = sm.update(current_time)
+    >>> np.allclose(
+    ...        grid.at_cell["soil_moisture__saturation_fraction"],
+    ...        np.array([ 0.546,  0.575,  0.567,
+    ...                   0.579,  0.579,  0.559,
+    ...                   0.570,  0.576,  0.579]), rtol=1e-02)
+    True
+
+    Now, let's look at an example where we consider runoff
+    from upstream cells (runon_switch=1). Please note that
+    you will need two set of extra inputs to use this method:
+    (1) a numpy array of 'ordered_cells'; and
+    (2) a nodal field of flow receivers, "flow__receiver_node".
+    If you have a DEM or elevation data at each node of the
+    domain, you can use the helpful function
+    'get_ordered_cells_for_soil_moisture' from the file
+    'funcs_for_including_runon_in_soil_moisture.py', that
+    takes the grid and optionally the 'outlet_id' as inputs,
+    and outputs the ordered_cells and the grid. This function
+    also creates the required nodal field "flow__receiver_node"
+    on the grid. Note that the above mentioned function expects the
+    input elevation data to be passed as a nodal field,
+    "topographic__elevation", of the grid.
+
+    >>> grid_r = RasterModelGrid((5, 5), spacing=(10, 10))
+    >>> grid_r.at_node["topographic__elevation"] = np.array([
+    ...         5., 5., 5., 5., 5.,
+    ...         5., 4., 3., 2., 5.,
+    ...         5., 4.5, 3.5, 1.5, 5.,
+    ...         5., 4., 3., 1., 5.,
+    ...         5., 5., 5., 5., 0.])
+    >>> ordered_cells, grid_r = (
+    ...     get_ordered_cells_for_soil_moisture(grid_r, outlet_id=24))
+    >>> grid_r.at_cell["vegetation__plant_functional_type"] = (
+    ...            np.zeros(grid_r.number_of_cells, dtype=int))
+    >>> grid_r.at_cell["surface__potential_evapotranspiration_rate"]= np.array([
+    ...        7.5, 2., 3.5, 0., 1., 5., 3., 1.8, 0.])
+    >>> grid_r.at_cell["surface__potential_evapotranspiration_rate__grass"]= np.array([
+    ...        7.5, 2., 3.5, 0., 1., 5., 3., 1.8, 0.])
+    >>> grid_r.at_cell["soil_moisture__initial_saturation_fraction"]= (
+    ...        np.full(grid_r.number_of_cells, 0.4))
+    >>> grid_r.at_cell["vegetation__live_leaf_area_index"]= (
+    ...        np.full(grid_r.number_of_cells, 0.8))
+    >>> grid_r.at_cell["vegetation__cover_fraction"]= (
+    ...        np.ones(grid_r.number_of_cells))
+    >>> current_time = 0.5
+    >>> grid_r.at_cell["rainfall__daily_depth"] = (
+    ...        60. * np.ones(grid_r.number_of_cells))
+    >>> sm_r = SoilMoisture(grid_r, runon_switch=1, ordered_cells=ordered_cells)
+    >>> current_time = sm_r.update(current_time)
+    >>> np.allclose(
+    ...        grid_r.at_cell["soil_moisture__saturation_fraction"],
+    ...        np.array([ 0.546,  0.575,  0.567,
+    ...                   0.579,  0.579,  0.559,
+    ...                   0.570,  0.576,  0.579]), rtol=1e-02)
+    True
+    >>> np.all(grid_r.at_cell["surface__runon"] == 0)
     False
     """
 
@@ -689,7 +751,10 @@ class SoilMoisture(Component):
             # Loss function parameter
             nuw = ((self._soil_Ew / 24.) / 1000.) / (pc * ZR)
             # Precipitation Intensity
-            precip_int = Peff / Tr
+            if Tr == 0:
+                precip_int = 0.
+            else:
+                precip_int = Peff / Tr
             self._precip_int[cell] = precip_int
             # Time to saturation Ts
             if precip_int <= 0.:

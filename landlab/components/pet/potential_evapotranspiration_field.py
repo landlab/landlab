@@ -159,11 +159,10 @@ class PotentialEvapotranspiration(Component):
     >>> current_time = 0.5
     >>> pet_obj.update(current_time)
     >>> pet_rate = grid.at_cell['surface__potential_evapotranspiration_rate']
-    >>> np.allclose(pet_rate, np.allclose(
-    ...       pet_rate, np.array([
+    >>> np.allclose(pet_rate, np.array([
     ...       5.58, 5.58, 4.83,
     ...       4.83, 5.42, 5.42]),
-    ...       rtol=1e-02))
+    ...       rtol=1e-02)
     True
 
     A reminder here that potential evapotranspiration is calculated
