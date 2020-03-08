@@ -3824,7 +3824,7 @@ class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
         >>> m = ll.HexModelGrid(5, 3, 1.0)
         >>> [r,t,l,b] = m._assign_boundary_nodes_to_grid_sides()
         >>> l
-        array([ 7, 12,  3])
+        array([ 7, 3, 12])
         >>> r
         array([11, 15,  6])
         >>> t
