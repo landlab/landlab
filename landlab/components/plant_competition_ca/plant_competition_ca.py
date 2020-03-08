@@ -271,7 +271,7 @@ class VegCA(Component):
         # Identifying bare_cells and vegetated_cells before executing establishment
         # and mortality.
         bare_cells = np.where(self._VegType == BARE)[0]
-        plant_cells = np.where(self._VegType != BARE)[0]        
+        plant_cells = np.where(self._VegType != BARE)[0]
 
         # Establishment
         self._live_index = 1 - self._CumWS      # Plant live index = 1 - WS

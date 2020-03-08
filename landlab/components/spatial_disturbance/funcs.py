@@ -7,6 +7,7 @@ Created on Mon Jun 11 22:23:12 2018
 """
 import numpy as np
 
+
 def convert_phy_pft_to_distr_pft(grid, vegtype):
     """
     Convert PFT in Physical Ecohyd model to PFT in Create_fires/resource_
