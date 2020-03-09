@@ -6,7 +6,7 @@ from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
 
 
-_VALID_METHODS = set(["Grid", "Multi"])
+_VALID_METHODS = set(["Grid"])
 
 
 def assert_method_is_valid(method):
@@ -149,6 +149,59 @@ class SoilMoisture(Component):
     True
     >>> np.all(grid_r.at_cell["surface__runon"] == 0)
     False
+
+    We can also specify the duration of the storm (Tr), and
+    the duration between the storms (Tb). Remember that the
+    units for Tb and Tr are hours. Let's consider a storm
+    with a depth of 20 mm, Tr = 2 hours, Tb = 480 hrs (20 days).
+
+    >>> grid_r.at_cell["rainfall__daily_depth"] = (
+    ...        20. * np.ones(grid_r.number_of_cells))
+    >>> current_time = sm_r.update(current_time, Tb=480, Tr=2)
+    >>> np.allclose(
+    ...        grid_r.at_cell["soil_moisture__saturation_fraction"],
+    ...        np.array([ 0.195,  0.503,  0.371,
+    ...                   0.560,  0.560,  0.280,
+    ...                   0.411,  0.521,  0.560]), rtol=1e-02)
+    True
+
+    Adding more examples for doctesting.
+
+    >>> grid_r.at_cell["soil_moisture__initial_saturation_fraction"]= (
+    ...        np.full(grid_r.number_of_cells, 0.9))
+    >>> grid_r.at_cell["rainfall__daily_depth"] = (
+    ...        250. * np.ones(grid_r.number_of_cells))
+    >>> current_time = sm_r.update(current_time, Tb=1, Tr=1)
+    >>> np.allclose(
+    ...        grid_r.at_cell["soil_moisture__saturation_fraction"],
+    ...        np.array([ 0.875,  0.876,  0.876,
+    ...                   0.876,  0.876,  0.876,
+    ...                   0.875,  0.876,  0.876]), rtol=1e-02)
+    True
+    >>> grid_r.at_cell["soil_moisture__initial_saturation_fraction"]= (
+    ...        np.full(grid_r.number_of_cells, 0.5))
+    >>> grid_r.at_cell["rainfall__daily_depth"] = (
+    ...        50. * np.ones(grid_r.number_of_cells))
+    >>> current_time = sm_r.update(current_time, Tb=2400, Tr=1)
+    >>> np.allclose(
+    ...        grid_r.at_cell["soil_moisture__saturation_fraction"],
+    ...        np.array([ 0.106,  0.255,  0.123,
+    ...                   0.559,  0.559,  0.111,
+    ...                   0.137,  0.313,  0.559]), rtol=1e-02)
+    True
+    >>> grid_r.at_cell["soil_moisture__initial_saturation_fraction"]= (
+    ...        np.array([ 0.45, 0.45, 0.45,
+    ...                   0.2, 0.2, 0.2,
+    ...                   0.05, 0.05, 0.05]))
+    >>> grid_r.at_cell["rainfall__daily_depth"] = (
+    ...        5. * np.ones(grid_r.number_of_cells))
+    >>> current_time = sm_r.update(current_time, Tb=2400, Tr=1)
+    >>> np.allclose(
+    ...        grid_r.at_cell["soil_moisture__saturation_fraction"],
+    ...        np.array([ 0.106,  0.211,  0.118,
+    ...                   0.168,  0.168,  0.105,
+    ...                   0.098,  0.098,  0.098]), rtol=1e-02)
+    True
     """
 
     _name = "Soil Moisture"
@@ -690,8 +743,7 @@ class SoilMoisture(Component):
             # trvrsl_order is just regular 'all cells' if no runon is computed
             trvrsl_order = range(0, self.grid.number_of_cells)
 
-        for cell in trvrsl_order:
-            # Routine to calculate runon
+        for cell in trvrsl_order:  # Routine to calculate runon
             if self._runon_switch:
                 if cell in self.ordered_cells:
                     donors = []
@@ -818,14 +870,14 @@ class SoilMoisture(Component):
                     )
                     self._ETA[cell] = Tb * (Ep / 24.0)
 
-                elif Tb >= tfc and Tb < tsc:
+                elif tfc <= Tb < tsc:
                     s = fc - (nu * (Tb - tfc))
                     self._D[cell] = ((pc * ZR * 1000.0) * (sini - fc)) - (
                         (tfc) * (Ep / 24.0)
                     )
                     self._ETA[cell] = Tb * (Ep / 24.0)
 
-                elif Tb >= tsc and Tb < twp:
+                elif tsc <= Tb < twp:
                     s = wp + (sc - wp) * (
                         (nu / (nu - nuw))
                         * np.exp((-1) * ((nu - nuw) / (sc - wp)) * (Tb - tsc))
@@ -845,7 +897,7 @@ class SoilMoisture(Component):
                     )
                     self._ETA[cell] = (1000.0 * ZR * pc * (sini - s)) - self._D[cell]
 
-            elif sini < fc and sini >= sc:
+            elif fc > sini >= sc:
                 tfc = 0.0
                 tsc = (sini - sc) / nu
                 twp = ((sc - wp) / (nu - nuw)) * np.log(nu / nuw) + tsc
@@ -855,7 +907,7 @@ class SoilMoisture(Component):
                     self._D[cell] = 0.0
                     self._ETA[cell] = 1000.0 * ZR * pc * (sini - s)
 
-                elif Tb >= tsc and Tb < twp:
+                elif tsc <= Tb < twp:
                     s = wp + (sc - wp) * (
                         (nu / (nu - nuw))
                         * np.exp((-1) * ((nu - nuw) / (sc - wp)) * (Tb - tsc))
@@ -871,7 +923,7 @@ class SoilMoisture(Component):
                     self._D[cell] = 0.0
                     self._ETA[cell] = 1000.0 * ZR * pc * (sini - s)
 
-            elif sini < sc and sini >= wp:
+            elif sc > sini >= wp:
                 tfc = 0
                 tsc = 0
                 twp = ((sc - wp) / (nu - nuw)) * np.log(
