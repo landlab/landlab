@@ -190,17 +190,17 @@ class SoilMoisture(Component):
     ...                   0.137,  0.313,  0.559]), rtol=1e-02)
     True
     >>> grid_r.at_cell["soil_moisture__initial_saturation_fraction"]= (
-    ...        np.array([ 0.45, 0.45, 0.45,
+    ...        np.array([ 0.5, 0.5, 0.33,
     ...                   0.2, 0.2, 0.2,
-    ...                   0.05, 0.05, 0.05]))
+    ...                   0.05, 0.05, 0.5]))
     >>> grid_r.at_cell["rainfall__daily_depth"] = (
     ...        5. * np.ones(grid_r.number_of_cells))
     >>> current_time = sm_r.update(current_time, Tb=2400, Tr=1)
     >>> np.allclose(
     ...        grid_r.at_cell["soil_moisture__saturation_fraction"],
-    ...        np.array([ 0.106,  0.211,  0.118,
+    ...        np.array([ 0.106,  0.230,  0.113,
     ...                   0.168,  0.168,  0.105,
-    ...                   0.098,  0.098,  0.098]), rtol=1e-02)
+    ...                   0.098,  0.098,  0.530]), rtol=1e-02)
     True
     """
 
@@ -751,7 +751,6 @@ class SoilMoisture(Component):
                     if len(donors) != 0:
                         for k in range(0, len(donors)):
                             self._runon[cell] += self._runoff[donors[k]]
-
             P = P_[cell]
             runon = self._runon[cell]
             if runon < 0:
@@ -842,7 +841,6 @@ class SoilMoisture(Component):
                     (precip_int - Inf_cap) * Ts + (precip_int * (Tr - Ts)),
                     0.,
                 )
-
             if sini >= fc:
                 tfc = (1.0 / (beta * (mu - nu))) * (
                     beta * (fc - sini)
