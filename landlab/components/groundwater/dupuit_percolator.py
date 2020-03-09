@@ -185,7 +185,7 @@ class GroundwaterDupuitPercolator(Component):
       journal = {Journal of Open Source Software}
     }"""
 
-    _unit_agnostic = False
+    _unit_agnostic = True
 
     _info = {
         "aquifer__thickness": {
