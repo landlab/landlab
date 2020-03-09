@@ -24,11 +24,11 @@ class TestTaxon(Taxon):
         return np.array([False, False, False, True, True, True, False, False, False])
 
     def _evolve(self, dt, stage, record):
-        if stage == 1:
+        if stage == 0:
             self._extant = False
-            TestTaxon(parent=self)
+            child_taxon = [TestTaxon(parent=self)]
 
-        return stage < 1
+        return False, child_taxon
 
 
 @pytest.fixture()
@@ -50,10 +50,17 @@ def test_track_taxa_and_component_attributes(zone_example_grid):
     # Test attributes at initial time step.
 
     expected_df = pd.DataFrame(
-        {"appeared": [0, 0, 0], "latest_time": [0, 0, 0], "extant": [True, True, True]},
-        index=[0, 1, 2],
+        {
+            "pid": 3 * [np.nan],
+            "type": 3 * [TestTaxon.__name__],
+            "t_first": [0, 0, 0],
+            "t_final": 3 * [np.nan]
+        },
+        index=[0, 1, 2]
     )
-    expected_df.index.name = "uid"
+    expected_df.index.name = "tid"
+    expected_df["pid"] = expected_df["pid"].astype("Int64")
+    expected_df["t_final"] = expected_df["t_final"].astype("Int64")
     pd.testing.assert_frame_equal(se.taxa_data_frame, expected_df, check_like=True)
 
     expected_df = pd.DataFrame({"time": [0], "taxa": [3]})
@@ -65,12 +72,16 @@ def test_track_taxa_and_component_attributes(zone_example_grid):
 
     expected_df = pd.DataFrame(
         {
-            "appeared": [0, 0, 0, 10, 10, 10],
-            "latest_time": [10, 10, 10, 10, 10, 10],
-            "extant": [False, False, False, True, True, True],
+            "pid": 3 * [np.nan] + [0, 1, 2],
+            "type": 6 * [TestTaxon.__name__],
+            "t_first": [0, 0, 0, 10, 10, 10],
+            "t_final": [10, 10, 10] + 3 * [np.nan]
         },
         index=[0, 1, 2, 3, 4, 5],
     )
+    expected_df.index.name = "tid"
+    expected_df["pid"] = expected_df["pid"].astype("Int64")
+    expected_df["t_final"] = expected_df["t_final"].astype("Int64")
     pd.testing.assert_frame_equal(se.taxa_data_frame, expected_df, check_like=True)
 
     expected_df = pd.DataFrame({"time": [0, 10], "taxa": [3, 3]})
@@ -88,7 +99,7 @@ def test_get_taxon_objects(zone_example_grid):
     # Test no parameters.
 
     queried_taxa = se.get_taxon_objects()
-    np.testing.assert_equal(Counter(queried_taxa), Counter(se._taxa["object"]))
+    np.testing.assert_equal(Counter(queried_taxa), Counter(se._taxon_objs))
 
     # Test `time` parameter.
 
@@ -96,7 +107,7 @@ def test_get_taxon_objects(zone_example_grid):
     np.testing.assert_equal(Counter(queried_taxa), Counter(introduced_taxa))
 
     queried_taxa = se.get_taxon_objects(time=10)
-    ids = [s.uid for s in queried_taxa]
+    ids = [t.tid for t in queried_taxa]
     expected_ids = [0, 1, 2, 3]
     np.testing.assert_equal(Counter(ids), Counter(expected_ids))
 
@@ -106,14 +117,14 @@ def test_get_taxon_objects(zone_example_grid):
     # Test `extant_at_latest_time` parameter.
 
     queried_taxa = se.get_taxon_objects(extant_at_latest_time=True)
-    ids = [s.uid for s in queried_taxa]
+    ids = [t.tid for t in queried_taxa]
     expected_ids = [4, 5]
     np.testing.assert_equal(Counter(ids), Counter(expected_ids))
 
     # Test `ancestor` parameter.
 
     queried_taxa = se.get_taxon_objects(ancestor=1)
-    ids = [s.uid for s in queried_taxa]
+    ids = [t.tid for t in queried_taxa]
     expected_ids = [3, 5]
     np.testing.assert_equal(Counter(ids), Counter(expected_ids))
 
@@ -126,7 +137,7 @@ def test_get_taxon_objects(zone_example_grid):
     # Test multiple parameters.
 
     queried_taxa = se.get_taxon_objects(ancestor=1, time=10)
-    ids = [s.uid for s in queried_taxa]
+    ids = [t.tid for t in queried_taxa]
     expected_ids = [3]
     np.testing.assert_equal(Counter(ids), Counter(expected_ids))
 

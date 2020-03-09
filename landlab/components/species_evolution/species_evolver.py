@@ -15,7 +15,7 @@ Component written by Nathan Lyons beginning August 2017.
 from collections import OrderedDict
 
 import numpy as np
-from pandas import DataFrame, isnull
+from pandas import DataFrame
 
 from landlab import Component
 
@@ -61,9 +61,9 @@ class SpeciesEvolver(Component):
     persists or becomes extinct, and if it creates child ``Taxon`` objects.
     Taxa metadata can be viewed with the attribute, ``taxa_data_frame``.
 
-    Taxa are automatically assigned unique identifiers, ``uid``. Identifiers
-    are used to reference and retrieve taxon objects. Identifiers are assigned
-    in the order taxa are introduced to SpeciesEvolver.
+    Taxa are automatically assigned unique taxon identifiers, ``tid``.
+    Identifiers are used to reference and retrieve taxon objects. Identifiers
+    are assigned in the order taxa are introduced to SpeciesEvolver.
 
     Examples
     --------
@@ -130,9 +130,9 @@ class SpeciesEvolver(Component):
     >>> taxon = zc.populate_zones_uniformly(1)
     >>> se.track_taxa(taxon)
     >>> se.taxa_data_frame
-         appeared  latest_time  extant
-    uid
-    0           0            0    True
+          pid       type  t_first  t_final
+    tid
+    0    <NA>  ZoneTaxon        0     <NA>
 
     Force a change in the zone mask to demonstrate component functionality.
     Here we begin a new time step where topography is uplifted by 200 that forms
@@ -181,19 +181,18 @@ class SpeciesEvolver(Component):
     as it speciated to child taxa 1 and 2.
 
     >>> se.taxa_data_frame
-         appeared  latest_time  extant
-    uid
-    0           0         1000   False
-    1        1000         1000    True
-    2        1000         1000    True
+          pid       type  t_first  t_final
+    tid
+    0    <NA>  ZoneTaxon        0     <NA>
+    1       0  ZoneTaxon     1000     <NA>
 
     The phylogenetic tree of the simulated taxa is represented below. The
     number at the line tips are the taxa identifiers.
     ::
 
-                   ┌─ 1
-          0 ───────┤
-                   └─ 2
+          0 ──────┬── 0
+                  │
+                  └── 1
             _________
             0    1000
               time
@@ -259,7 +258,8 @@ class SpeciesEvolver(Component):
             A Landlab ModelGrid.
         initial_time : float, int, optional
             The initial time. The unit of time is not considered within the
-            component, except in the record. The default is 0.
+            component, with the exception that time is logged in the record.
+            The default value of this parameter is 0.
         """
         super(SpeciesEvolver, self).__init__(grid)
 
@@ -268,15 +268,17 @@ class SpeciesEvolver(Component):
         self._record = Record(initial_time)
         self._record.set_value("taxa", 0)
 
-        self._taxa = OrderedDict(
+        self._taxa_data = OrderedDict(
             [
-                ("uid", []),
-                ("appeared", []),
-                ("latest_time", []),
-                ("extant", []),
-                ("object", []),
+                ("tid", []),
+                ("pid", []),
+                ("type", []),
+                ("t_first", []),
+                ("t_final", [])
             ]
         )
+
+        self._taxon_objs = []
 
         # Create a taxa richness field.
 
@@ -289,10 +291,8 @@ class SpeciesEvolver(Component):
         Each row is data of a model time step. The time of the step is recorded
         in the `time` column. `taxa` is the count of taxa extant at a time.
         Additional columns can be added and updated by SpeciesEvolver objects
-        during the component ``run_one_step`` method. For example, ``ZoneTaxon``
-        add the columns, 'speciations', 'extinctions', and 'pseudoextinctions'
-        that are the counts of these variables for this type. Other types may
-        also increment these values.
+        during the component ``run_one_step`` method. See documention of Taxon
+        objects for an explanation of these columns.
 
         The DataFrame is created from a dictionary associated with a
         SpeciesEvolver ``Record`` object. nan values in Pandas DataFrame force
@@ -305,7 +305,7 @@ class SpeciesEvolver(Component):
     def taxa_data_frame(self):
         """A Pandas DataFrame of taxa metadata.
 
-        Each row is the metadata of a taxon. The column, 'uid' is the unique
+        Each row is the metadata of a taxon. The column, 'tid' is the taxon
         identifier. The column, `appeared` is the first model time that the
         taxon was tracked by the component. The column, `latest_time` is the
         latest model time the taxon was extant. The column, `extant` indicates
@@ -314,11 +314,17 @@ class SpeciesEvolver(Component):
 
         The DataFrame is created from a data structure within the component.
         """
-        cols = list(self._taxa.keys())
-        cols.remove("uid")
-        cols.remove("object")
-        df = DataFrame(self._taxa, columns=cols, index=self._taxa["uid"])
-        df.index.name = "uid"
+        data = self._taxa_data
+        cols = list(data.keys())
+        cols.remove("tid")
+        df = DataFrame(data, columns=cols, index=data["tid"])
+        df.index.name = "tid"
+
+        # Change column number type because pandas makes a column float if it
+        # has any nan values.
+        df["pid"] = df["pid"].astype("Int64")
+        if all(isinstance(item, int) for item in data['t_final'] if not np.isnan(item)):
+            df["t_final"] = df["t_final"].astype("Int64")
 
         return df
 
@@ -326,49 +332,51 @@ class SpeciesEvolver(Component):
         """Update the taxa for a single time step.
 
         This method advances the model time in the component record, calls the
-        evolve functions of taxa extant at the current time, and updates the
-        variables in the record.
+        evolve method of taxa extant at the current time, and updates the
+        variables in the record and taxa dataframes.
 
         Parameters
         ----------
         dt : float
-            The model time step duration. Time in the record is advanced by
-            the value of this parameter.
+            The model time step duration. Time in the record is advanced by the
+            value of this parameter.
         """
-        self._record.advance_time(dt)
+        record = self._record
+        record.advance_time(dt)
 
-        # Create a dictionary of the taxa to update, `taxa_evolving`.
+        # Create a dictionary of the taxa to update at the current model time.
+        # Keys are objects of extant taxa. Values are booleans indicating if
+        # stages remain for respective taxon.
 
-        extant_taxa = np.array(self._taxa["object"])[self._taxa["extant"]]
-        taxa_evolving = OrderedDict.fromkeys(extant_taxa, True)
+        time_dict = OrderedDict.fromkeys(self._taxon_objs, True)
 
-        # Run stages of taxa evolution.
+        # Iteratively call taxa ``_evolve`` method until all stages of all taxa
+        # have run.
 
         stage = 0
 
-        while any(taxa_evolving.values()):
-            # Run stage for the evolving taxa.
+        while any(time_dict.values()):
+            # Run evolution stage.
 
-            evolving_list = filter(taxa_evolving.get, taxa_evolving)
-            stage_children = []
+            stage_dict = OrderedDict([])
+            evolving_taxa = filter(time_dict.get, time_dict)
 
-            for taxon in evolving_list:
-                taxon_is_evolving = taxon._evolve(dt, stage, self._record)
+            for taxon in evolving_taxa:
+                # Run evolution stage of taxon with remaining stages.
+                stages_remain, taxon_children = taxon._evolve(dt, stage, record)
 
-                if len(taxon.children) > 0:
-                    stage_children.extend(taxon.children)
+                if taxon_children:
+                    stage_dict.update(
+                        OrderedDict.fromkeys(taxon_children, stages_remain)
+                    )
 
-                taxa_evolving[taxon] = taxon_is_evolving and taxon.extant
+                stage_dict[taxon] = stages_remain and taxon.extant
 
-            children_dict = OrderedDict(
-                zip(stage_children, [c.extant for c in stage_children])
-            )
-            children_dict.update(taxa_evolving)
-            taxa_evolving = children_dict
+            time_dict.update(stage_dict)
 
             stage += 1
 
-        self._update_taxa_data(taxa_evolving.keys())
+        self._update_taxa_data(time_dict.keys())
 
     def track_taxa(self, taxa):
         """Add taxa to be tracked over time by SpeciesEvolver.
@@ -417,9 +425,9 @@ class SpeciesEvolver(Component):
         DataFrame.
 
         >>> se.taxa_data_frame
-             appeared  latest_time  extant
-        uid
-        0           0            0    True
+              pid       type  t_first  t_final
+        tid
+        0    <NA>  ZoneTaxon        0     <NA>
         """
         if not isinstance(taxa, list):
             taxa = [taxa]
@@ -439,81 +447,90 @@ class SpeciesEvolver(Component):
             The taxa at the current model time.
         """
         time = self._record.latest_time
+        data = self._taxa_data
 
-        t_recorded = self._taxa["object"]
+        t_recorded = self._taxon_objs
+        t_introduced = [taxon for taxon in taxa_at_time if taxon in t_recorded]
+        t_new = [taxon for taxon in taxa_at_time if taxon not in t_recorded]
 
         # Update previously introduced taxa.
-
-        t_introduced = [taxon for taxon in taxa_at_time if taxon in t_recorded]
 
         for taxon in t_introduced:
             # Update taxon data.
 
-            idx = self._taxa["object"].index(taxon)
-            self._taxa["latest_time"][idx] = time
-            self._taxa["extant"][idx] = taxon.extant
+            if not taxon.extant:
+                idx = data["tid"].index(taxon.tid)
+                data["t_final"][idx] = time
+                self._taxon_objs.remove(taxon)
 
         # Set the data of new taxa.
-
-        t_new = [taxon for taxon in taxa_at_time if taxon not in t_recorded]
 
         for taxon in t_new:
             # Set identifiers.
 
-            if self._taxa["uid"]:
-                taxon._uid = max(self._taxa["uid"]) + 1
+            if data["tid"]:
+                taxon._tid = max(data["tid"]) + 1
             else:
-                taxon._uid = 0
+                taxon._tid = 0
 
             # Append taxon data.
 
-            self._taxa["uid"].append(taxon.uid)
-            self._taxa["appeared"].append(time)
-            self._taxa["latest_time"].append(time)
-            self._taxa["extant"].append(taxon.extant)
-            self._taxa["object"].append(taxon)
+            data["tid"].append(taxon.tid)
+            if taxon.parent != None:
+                data["pid"].append(taxon.parent.tid)
+            else:
+                data["pid"].append(np.nan)
+            data["type"].append(type(taxon).__name__)
+            data["t_first"].append(time)
+            if taxon.extant:
+                data["t_final"].append(np.nan)
+                self._taxon_objs.append(taxon)
+            else:
+                data["t_final"].append(time)
 
         # Update taxa stats.
 
-        self._record.set_value("taxa", sum(self._taxa["extant"]))
+        self._record.set_value("taxa", len(self._taxon_objs))
 
         self._grid.at_node["taxa__richness"] = self._get_taxa_richness_map()
 
+
     def get_taxon_objects(
-        self, uid=np.nan, time=np.nan, extant_at_latest_time=np.nan, ancestor=np.nan
+        self, tids=np.nan, min_time=np.nan, max_time=np.nan, ancestor=np.nan
     ):
-        """Get taxon objects filtered by parameters.
+        """Get extant taxon objects filtered by parameters.
 
         This method returns all taxon objects tracked by the component when no
         optional parameters are included. The objects returned can be limited
-        using one or more parameters. An exception is raised when ``time`` is
-        not in the component record. An empty list is returned if no taxon
-        match the parameters.
+        using one or more parameters.
 
         Parameters
         ----------
-        uid : int, optional
-            The taxon with this identifier will be returned. An object is
-            returned in a list if a taxon with this identifier exists. By
-            default, taxa with any identifier can be returned.
-        time : float, int, optional
-            Limit the taxa returned to those that existed at this time as
-            listed in ``taxa_data_frame``. By default, taxa at all of the times
-            listed in the component record can be returned.
-        extant_at_latest_time : boolean, optional
-            Limit the taxa returned to the extant state of taxa at the latest
-            time in the record. By default, taxa with any extant state can be
-            returned.
+        tids : list of int, optional
+            The taxa with these identifiers will be returned. A list is
+            returned even if only one object is contained within the list. By
+            default, when `tids` is not specified, extant taxa with any
+            identifier can be returned.
+        min_time : float, int, optional
+            Limit the taxa returned to those extant after this time. By
+            default, extant taxa at all of the times listed in the component
+            record can be returned. Must be less than ``max_time`` if both
+            specified.
+        max_time : float, int, optional
+            Limit the taxa returned to those extant prior to this time. By
+            default, extant taxa at all of the times listed in the component
+            record can be returned. Must be greater than ``min_time`` if both
+            specified.
         ancestor : int, optional
             Limit the taxa returned to those descending from the taxon
             designated as the ancestor. The ancestor is designated using its
-            ``uid``. By default, taxa with any or no ancestors are returned.
+            ``tid``. By default, taxa with any or no ancestors are returned.
 
         Returns
         -------
         taxa : a list of Taxon
             The Taxon objects that pass through the filter. The list is sorted
-            by ``uid``. An empty list is returned if no taxa pass through the
+            by ``tid``. An empty list is returned if no taxa pass through the
             filter.
 
         Examples
@@ -547,60 +564,70 @@ class SpeciesEvolver(Component):
         >>> taxa = zc.populate_zones_uniformly(2)
         >>> se.track_taxa(taxa)
 
-        Increment the model time, force mountain range formation to demonstrate
-        this method, and then advance model time again.
+        Force mountain range formation to demonstrate this method, and then
+        advance model time.
 
-        >>> z[[3, 10, 17]] = 200
+        >>> z[mg.x_of_node == 5000] = 200
         >>> zc.run_one_step(1000)
         >>> se.run_one_step(1000)
 
-        Remove the westernmost zone. Advance model time once again.
+        Form a second mountain range, and advance the model time again.
 
-        >>> z[mg.node_x < 3000] = 200
+        >>> z[mg.x_of_node == 3000] = 200
+        >>> zc.run_one_step(1000)
+        >>> se.run_one_step(1000)
+
+        Uplift the east, forming a high elevation plataue, removing the
+        easternmost zone. Advance model time once again.
+
+        >>> z[mg.x_of_node < 3000] = 200
         >>> zc.run_one_step(1000)
         >>> se.run_one_step(1000)
 
         Display taxa metadata.
 
         >>> se.taxa_data_frame
-             appeared  latest_time  extant
-        uid
-        0           0         1000   False
-        1           0         1000   False
-        2        1000         2000   False
-        3        1000         2000    True
-        4        1000         2000   False
-        5        1000         2000    True
+              pid       type  t_first  t_final
+        tid
+        0    <NA>  ZoneTaxon        0     <NA>
+        1    <NA>  ZoneTaxon        0     <NA>
+        2       0  ZoneTaxon     1000     3000
+        3       1  ZoneTaxon     1000     3000
+        4       0  ZoneTaxon     2000     <NA>
+        5       1  ZoneTaxon     2000     <NA>
 
-        All taxon objects are returned when no parameters are inputted.
+        Objects of all extant taxon are returned when no parameters are
+        inputted.
 
-        >>> taxa = se.get_taxon_objects()
-        >>> [t.uid for t in taxa]
-        [0, 1, 2, 3, 4, 5]
+        >>> se.get_taxon_objects()
+        [<ZoneTaxon, tid=0>,
+         <ZoneTaxon, tid=1>,
+         <ZoneTaxon, tid=4>,
+         <ZoneTaxon, tid=5>]
 
-        Get the taxon with the identifier, 4.
+        Get the taxon objects with identifiers, 0 and 1.
 
-        >>> se.get_taxon_objects(uid=4)
-        [<ZoneTaxon, uid=4>]
+        >>> se.get_taxon_objects(tids=4, 5])
+        [<ZoneTaxon, tid=0>, <ZoneTaxon, tid=1>]
 
         The species extant at a time are returned when ``time`` is specified.
         Here we get the species extant at time 0. Species 0 and 1 are the
         species extant at this time.
 
-        >>> se.get_taxon_objects(time=0)
-        [<ZoneTaxon, uid=0>, <ZoneTaxon, uid=1>]
+        >>> se.get_taxon_objects(time=1000)
+        [<ZoneTaxon, tid=0>, <ZoneTaxon, tid=1>]
 
         Get the taxa that descended from species 0.
 
         >>> se.get_taxon_objects(ancestor=0)
-        [<ZoneTaxon, uid=2>, <ZoneTaxon, uid=3>]
+        [<ZoneTaxon, tid=2>, <ZoneTaxon, tid=3>]
 
         Get the taxa that descended from species 0 and that are currently
         extant. The latest time of taxa 2 and 3 is equal to the latest time in
         the record, altough only one of these taxa are extant.
 
-        >>> se.get_taxon_objects(extant_at_latest_time=True, ancestor=0)
-        [<ZoneTaxon, uid=3>]
+        >>> se.get_taxon_objects(time=1000, ancestor=0)
+        [<ZoneTaxon, tid=3>]
 
         Note that combining `extant_at_latest_time` with `time` does not return
         the taxa extant at the inputted time. Rather the taxa present at `time`
@@ -611,26 +638,63 @@ class SpeciesEvolver(Component):
         []
 
         An empty list is also return when no taxa match a valid value of
-        ``uid.``
+        ``tid.``
 
-        >>> se.get_taxon_objects(uid=11)
+        >>> se.get_taxon_objects(tid=11)
         []
         """
-        # Handle ancestor.
+        # Create `results` where each element is a list tids output by a
+        # parameter query of taxa.
 
-        if isnull(ancestor):
-            taxa = self._taxa
-        elif ancestor in self._taxa["uid"]:
-            idx_number = self._taxa["uid"].index(ancestor)
-            taxon = self._taxa["object"][idx_number]
+        extant_tids = [taxon.tid for taxon in self._taxon_objs]
+        results = [extant_tids]
+
+        data = self._taxa_data
+
+        # Query by identifiers.
+
+        if isinstance(tids, list):
+            results.append(tids)
+
+        # Query by time.
+
+        if not np.isnan(min_time) or not np.isnan(max_time):
+            if min_time > max_time:
+                raise ValueError("`min_time` cannot be greater than `max_time`")
+
+            if not np.isnan(min_time):
+                earliest_time = min_time
+            else:
+                earliest_time = self._record.earliest_time
+
+            if not np.isnan(max_time):
+                latest_time = max_time
+            else:
+                latest_time = self._record.latest_time
+
+            t_first = np.array(data["t_first"])
+            t_latest = np.nan_to_num(data["t_final"], nan=self._record.latest_time)
+
+            mask = np.all([t_first <= latest_time, t_latest >= earliest_time], 0)
+            results.append(np.array(data["tid"])[mask].tolist())
+
+        # Query by ancestor.
+
+        if not np.isnan(ancestor) and ancestor in data["tid"]:
+            df = self.taxa_data_frame
+            df['pid'] = df['pid'].fillna(-1)
+
+            taxon = ancestor
 
             descendants = []
             stack = [taxon]
 
             while stack:
-                if taxon.children:
-                    descendants.extend(taxon.children)
-                    stack.extend(taxon.children)
+                children = df.index[df['pid'] == taxon].tolist()
+
+                if children:
+                    descendants.extend(children)
+                    stack.extend(children)
 
                 stack.remove(taxon)
 
@@ -638,85 +702,23 @@ class SpeciesEvolver(Component):
                     taxon = stack[0]
 
             descendants = list(set(descendants))
-            taxa = self._subset_taxa_data_structure(descendants)
-        else:
-            return []
+            results.append(descendants)
 
-        # Handle identifier.
+        # Get the Taxon objects that match all parameter query results.
 
-        if isnull(uid):
-            idx_id = np.ones(len(taxa["uid"]), dtype=bool)
-        else:
-            idx_id = np.array(taxa["uid"]) == uid
-
-        # Handle time.
-
-        if isnull(time):
-            idx_time = np.ones(len(taxa["uid"]), dtype=bool)
-        else:
-            idx_time = self._mask_taxa_by_time(taxa, time)
-
-        # Handle extant state.
-
-        if isnull(extant_at_latest_time):
-            idx_ext = np.ones(len(taxa["uid"]), dtype=bool)
-        else:
-            idx_ext = np.array(taxa["extant"]) == extant_at_latest_time
-
-        # Get the Taxon list.
-
-        idx = np.all([idx_time, idx_id, idx_ext], 0)
-        taxa = np.array(taxa["object"])[idx].tolist()
-        taxa.sort(key=lambda taxon: taxon.uid)
+        matched_tids = list(set.intersection(*map(set, results)))
+        taxa = [taxon for taxon in self._taxon_objs if taxon.tid in matched_tids]
+        taxa.sort(key=lambda taxon: taxon.tid)
 
         return taxa
 
-    def _subset_taxa_data_structure(self, subset):
-        all_objects = self._taxa["object"]
-        idx = [i for i, e in enumerate(all_objects) if e in subset]
-
-        structure = OrderedDict()
-        for k, v in self._taxa.items():
-            structure[k] = np.array(v)[idx].tolist()
-
-        return structure
-
-    def _mask_taxa_by_time(self, taxa, time):
-        """Get a mask of ``taxa`` that exist at ``time``.
-
-        Parameters
-        ----------
-        taxa : a list of Taxon
-            The taxa to query.
-        time : float, int
-            The model time of ``taxa`` existence to mask.
-
-        Returns
-        -------
-        ndarray
-            A mask of ``taxa`` extant at ``time``.
-        """
-        if time not in self._record.times:
-            raise ValueError("The time, {} is not in the record.".format(time))
-
-        # Create a mask of taxa within time bounds.
-
-        t_appeared = np.array(taxa["appeared"])
-        t_latest = np.array(taxa["latest_time"])
-
-        t_prior = t_appeared <= time
-        t_later = t_latest >= time
-        taxa_mask = np.all([t_prior, t_later], 0)
-
-        return taxa_mask
-
     def _get_taxa_richness_map(self):
         """Get a map of the number of taxa."""
-        taxa = self.get_taxon_objects(extant_at_latest_time=True)
+        taxa = self._taxon_objs
 
         if taxa:
             masks = np.stack([taxon.range_mask for taxon in taxa])
-            richness_mask = sum(masks).astype(int)
+            richness_mask = masks.sum(axis=0).astype(int)
         else:
             richness_mask = np.zeros(self._grid.number_of_nodes, dtype=int)
 
