@@ -8,7 +8,6 @@ import numpy as np
 
 from landlab import Component, LinkStatus
 from landlab.grid.mappers import (
-    map_max_of_node_links_to_node,
     map_mean_of_link_nodes_to_link,
     map_value_at_max_node_to_link,
 )
