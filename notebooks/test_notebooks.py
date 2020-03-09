@@ -3,7 +3,6 @@ import pathlib
 import subprocess
 import tempfile
 
-import nbformat
 import pytest
 import yaml
 
@@ -17,6 +16,8 @@ def _notebook_run(path):
     """Execute a notebook via nbconvert and collect output.
        :returns (parsed nb object, execution errors)
     """
+    import nbformat
+
     _, notebook = os.path.split(path)
     base, ext = os.path.splitext(notebook)
 

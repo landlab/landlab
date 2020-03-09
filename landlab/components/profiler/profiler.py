@@ -130,6 +130,8 @@ class Profiler(_BaseProfiler):
 
     _name = "Profiler"
 
+    _unit_agnostic = True
+
     def __init__(self, grid, endpoints, cmap="viridis"):
         """Instantiate Profiler.
 

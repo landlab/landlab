@@ -164,6 +164,8 @@ class LateralEroder(Component):
 
     _name = "LateralEroder"
 
+    _unit_agnostic = False
+
     _cite_as = """
     @article{langston2018developing,
       author = {Langston, A. L. and Tucker, G. E.},
