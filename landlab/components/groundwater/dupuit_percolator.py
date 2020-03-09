@@ -405,7 +405,7 @@ class GroundwaterDupuitPercolator(Component):
         """ set coefficient for the diffusive timestep condition in
         the adaptive timestep solver. """
         if new_val <= 0:
-            raise ValueError("courant_coefficient must be > 0.")
+            raise ValueError("vn_coefficient must be > 0.")
         self._vn_coefficient = new_val
 
     @property
@@ -521,44 +521,6 @@ class GroundwaterDupuitPercolator(Component):
         gw_out = -np.sum(gw * (gw < 0), axis=1)
         return gw_out
 
-        # Old definition of gw flux at node.
-        # return map_max_of_node_links_to_node(self._grid,self._grid.dx* abs(self._grid.at_link['groundwater__specific_discharge']))
-
-    def calc_shear_stress_at_node(self, n_manning=0.05):
-        r"""
-        Calculate the shear stress :math:`\tau` based upon the equations: (N/m2)
-
-        .. math::
-            \tau = \rho g S d
-
-        .. math::
-            d = \bigg( \frac{n Q}{S^{1/2} dx} \bigg)^{3/2}
-
-        where :math:`\rho` is the density of water, :math:`g` is the gravitational constant,
-        :math:`S` is the topographic slope, :math:`d` is the water depth calculated with Manning's equation,
-        :math:`n` is Manning's n, :math:`q` is surface water discharge, and :math:`dx` is the grid cell
-        width.
-
-        Parameters
-        ----------
-        n_manning: float or array of float (-)
-            Manning's n at nodes, giving surface roughness.
-        """
-        self._S = abs(self._grid.calc_grad_at_link(self._elev))
-        self._S_node = map_max_of_node_links_to_node(self._grid, self._S)
-        rho = 1000  # kg/m3
-        g = 9.81  # m/s2
-        return (
-            rho
-            * g
-            * self._S_node
-            * (
-                (n_manning * self._grid.at_node["surface_water__discharge"] / 3600)
-                / (self._grid.dx * np.sqrt(self._S_node))
-            )
-            ** (3 / 5)
-        )
-
     def calc_total_storage(self):
         """calculate the current water storage in the aquifer (m3)"""
         return np.sum(
@@ -642,7 +604,9 @@ class GroundwaterDupuitPercolator(Component):
         """
         Advance component by one time step of size dt, subdividing the timestep
         into substeps as necessary to meet stability conditions.
-        Note this method only returns the fluxes at the last subtimestep.
+        Note this method returns the fluxes at the last subtimestep, but also
+        returns a new field, average_surface_water__specific_discharge, that is
+        averaged over all subtimesteps.
 
         Parameters
         ----------
