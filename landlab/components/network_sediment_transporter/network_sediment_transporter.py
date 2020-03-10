@@ -711,6 +711,7 @@ class NetworkSedimentTransporter(Component):
         """
         # determine where parcels are starting
         current_link = self._parcels.dataset.element_id.values[:, -1].astype(int)
+        self.current_link = current_link
 
         # determine location within link where parcels are starting.
         location_in_link = self._parcels.dataset.location_in_link.values[:, -1]

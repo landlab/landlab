@@ -60,7 +60,6 @@ grid.at_link["reach_length"] = [
 ## Why are we not using grid.length_of_link? Is it because this is the full
 # squiggly path rather than the node-to-node.
 
-
 grid.at_link["channel_width"] = 15 * np.ones(
     np.size(grid.at_link["drainage_area"])
 )  # m REPLACE with something hydraulically meaningful
