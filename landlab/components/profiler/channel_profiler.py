@@ -477,6 +477,8 @@ class ChannelProfiler(_BaseProfiler):
 
     _name = "ChannelProfiler"
 
+    _unit_agnostic = True
+
     _info = {
         "drainage_area": {
             "dtype": float,

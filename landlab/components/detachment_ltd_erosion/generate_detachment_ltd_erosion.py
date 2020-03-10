@@ -109,6 +109,8 @@ class DetachmentLtdErosion(Component):
 
     _name = "DetachmentLtdErosion"
 
+    _unit_agnostic = True
+
     _info = {
         "surface_water__discharge": {
             "dtype": float,

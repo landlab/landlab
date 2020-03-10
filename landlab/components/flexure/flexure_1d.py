@@ -144,6 +144,8 @@ class Flexure1D(Component):
 
     _name = "1D Flexure Equation"
 
+    _unit_agnostic = True
+
     _info = {
         "lithosphere__increment_of_overlying_pressure": {
             "dtype": float,
