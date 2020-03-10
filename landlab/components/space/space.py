@@ -137,6 +137,8 @@ class Space(_GeneralizedErosionDeposition):
 
     _name = "Space"
 
+    _unit_agnostic = True
+
     _info = {
         "flow__link_to_receiver_node": {
             "dtype": int,
@@ -321,8 +323,9 @@ class Space(_GeneralizedErosionDeposition):
         self._Er = np.zeros(grid.number_of_nodes)
 
         # K's and critical values can be floats, grid fields, or arrays
-        self._K_sed = return_array_at_node(grid, K_sed)
-        self._K_br = return_array_at_node(grid, K_br)
+        # use setters defined below
+        self.K_sed = K_sed
+        self.K_br = K_br
 
         self._sp_crit_sed = return_array_at_node(grid, sp_crit_sed)
         self._sp_crit_br = return_array_at_node(grid, sp_crit_br)
@@ -338,6 +341,24 @@ class Space(_GeneralizedErosionDeposition):
             raise ValueError(
                 "Parameter 'solver' must be one of: " + "'basic', 'adaptive'"
             )
+
+    @property
+    def K_br(self):
+        """Erodibility of bedrock(units depend on m_sp)."""
+        return self._K_br
+
+    @K_br.setter
+    def K_br(self, new_val):
+        self._K_br = return_array_at_node(self._grid, new_val)
+
+    @property
+    def K_sed(self):
+        """Erodibility of sediment(units depend on m_sp)."""
+        return self._K_sed
+
+    @K_sed.setter
+    def K_sed(self, new_val):
+        self._K_sed = return_array_at_node(self._grid, new_val)
 
     def _calc_erosion_rates(self):
         """Calculate erosion rates."""

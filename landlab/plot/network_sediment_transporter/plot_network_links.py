@@ -43,7 +43,7 @@ def plot_network_links(grid, link_attribute, *args, **kwargs):
     line_segments = LineCollection(segments)
     line_segments.set_array(link_attribute)
     ax.add_collection(line_segments)
-    axcb = fig.colorbar(line_segments)
+    fig.colorbar(line_segments)
     # ^not sure why this has a warning...
 
     plt.show()

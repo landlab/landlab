@@ -63,6 +63,22 @@ to
 `install a prepackaged binary <https://landlab.readthedocs.io/en/latest/install/index.html>`_.
 We distribute through both conda-forge and pip.
 
+Landlab 2.0
+```````````
+
+In late December 2019 Landlab switched to version 2.0-beta. Landlab will be
+in 2.0-beta until the Landlab 2.0 publication is finalized. Landlab dropped
+support of Python 2.7 with this transition.
+
+Supported Python Versions
+`````````````````````````
+
+Landlab supports Python versions >= 3.6. Landlab distributes pre-packaged
+binaries through `conda-forge <https://anaconda.org/conda-forge/landlab>`_
+and `PyPI <https://pypi.org/project/landlab/>`_ for versions 3.6 and 3.7
+(3.8 coming soon). Note that on  PyPI, the ``--pre`` flag is necessary while
+Landlab v2.0 is in beta release.
+
 Conda Environment with Pre-packaged Binary Distribution
 ```````````````````````````````````````````````````````
 
@@ -113,8 +129,10 @@ test your install with
     $ pytest
 
 from within the ``landlab_dev`` conda environment. Additional instructions,
-including how the unit tests directory is structured can be found
-`here <https://landlab.readthedocs.io/en/master/development/install/test.html>`_.
+including how the unit tests directory is structured can be found under the
+`testing section`_ of the landlab documentation.
+
+.. _testing section: https://landlab.readthedocs.io/en/master/development/install/test.html
 
 What are Landlab's dependencies?
 --------------------------------
@@ -123,8 +141,10 @@ The core package dependencies are specified by ``requirements.txt`` and used
 by ``setup.py``. There are some additional dependencies that exist for
 running the notebooks or modifying the source code and testing.
 
-Details of how we structure our dependencies can be found
-`here <https://landlab.readthedocs.io/en/master/development/practices/dependencies.html>`_.
+Details of how we structure our dependencies can be found under the
+`dependencies section`_ of the landlab documentation.
+
+.. _dependencies section: https://landlab.readthedocs.io/en/master/development/practices/dependencies.html
 
 How do I learn more about Landlab?
 ----------------------------------
@@ -148,14 +168,16 @@ The Landlab package contains a directory at ``landlab/notebooks`` which contains
 Jupyter notebooks describe core concepts and give examples of using components.
 The file ``landlab/notebooks/welcome.ipynb`` provides a table of contents to
 the notebooks and is the recommended starting place. To launch an instance of
-Binder and explore the notebooks click
-`here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb>`_.
+Binder and `explore the notebooks click here`_.
+
+.. _explore the notebooks click here: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/welcome.ipynb
 
 In addition there are a set of notebooks curated to teach physical processes
 located in the directory ``landlab/notebooks/teaching``.
 
-To launch an Binder instance that goes straight to these teaching notebooks
-click `here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/teaching/welcome_teaching.ipynb>`_.
+To launch an Binder instance that goes straight to these `teaching notebooks click here`_.
+
+.. _teaching notebooks click here: https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/teaching/welcome_teaching.ipynb
 
 
 What License does Landlab use?

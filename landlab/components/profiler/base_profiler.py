@@ -54,6 +54,8 @@ class _BaseProfiler(Component, ABC):
 
     _name = "_BaseProfiler"
 
+    _unit_agnostic = True
+
     _info = {}
 
     def __init__(self, grid):

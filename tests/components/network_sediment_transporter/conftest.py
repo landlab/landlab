@@ -1,12 +1,9 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
-# from landlab.components import NetworkSedimentTransporter
-from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
+from landlab.components import FlowDirectorSteepest
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
-from landlab.plot import graph
 
 _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
@@ -20,22 +17,19 @@ def example_nmg():
     grid = NetworkModelGrid((y_of_node, x_of_node), nodes_at_link)
 
     # add variables to grid
-    grid.at_node["topographic__elevation"] = [0.0, 0.1, 0.3, 0.2, 0.35, 0.45, 0.5, 0.6]
-    grid.at_node["bedrock__elevation"] = [0.0, 0.1, 0.3, 0.2, 0.35, 0.45, 0.5, 0.6]
-    area = grid.add_ones("cell_area_at_node", at="node")
-    grid.at_link["drainage_area"] = [100e6, 10e6, 70e6, 20e6, 70e6, 30e6, 40e6]  # m2
-    grid.at_link["channel_slope"] = [0.01, 0.02, 0.01, 0.02, 0.02, 0.03, 0.03]
-    grid.at_link["link_length"] = [
-        10000.0,
-        10000.0,
-        10000.0,
-        10000.0,
-        10000.0,
-        10000.0,
-        10000.0,
-    ]  # m
+    _ = grid.add_field(
+        "topographic__elevation", [0.0, 0.1, 0.3, 0.2, 0.35, 0.45, 0.5, 0.6], at="node"
+    )
+    _ = grid.add_field(
+        "bedrock__elevation", [0.0, 0.1, 0.3, 0.2, 0.35, 0.45, 0.5, 0.6], at="node"
+    )
+    _ = grid.add_field(
+        "reach_length",
+        [10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 10000.0, 10000.0],
+        at="link",
+    )  # m
 
-    grid.at_link["channel_width"] = 15 * np.ones(np.size(grid.at_link["drainage_area"]))
+    grid.add_field("channel_width", 15 * np.ones(grid.size("link")), at="link")
     return grid
 
 
@@ -57,9 +51,6 @@ def example_parcels(example_nmg):
     D = 0.05 * np.ones(
         np.shape(element_id)
     )  # (m) the diameter of grains in each parcel
-    lithology = ["quartzite"] * np.size(
-        element_id
-    )  # a lithology descriptor for each parcel
     abrasion_rate = 0.0001 * np.ones(
         np.size(element_id)
     )  # 0 = no abrasion; abrasion rates are positive mass loss coefficients (mass loss / METER)
@@ -116,7 +107,6 @@ def example_flow_depth(example_nmg):
     timesteps = 30
 
     Qgage = 8000.0  # (m3/s)
-    dt = 60 * 60 * 24  # (seconds) daily timestep
 
     Hgage = 1.703 * Qgage ** 0.3447
     # (m)
@@ -125,6 +115,6 @@ def example_flow_depth(example_nmg):
 
     flow_depth = (
         np.tile(Hgage, (example_nmg.number_of_links)) / (Agage ** 0.4)
-    ) * np.tile(example_nmg.at_link["drainage_area"], (timesteps + 1, 1)) ** 0.4
+    ) * np.tile(example_nmg.size("link"), (timesteps + 1, 1)) ** 0.4
 
     return flow_depth

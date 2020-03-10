@@ -219,3 +219,31 @@ def test_wt_above_surface_adaptive_run_step():
     gdp = GroundwaterDupuitPercolator(grid, recharge_rate=0.0)
     gdp.run_with_adaptive_time_step_solver(1)
     assert_equal(wt[4], 1)
+
+
+def test_inactive_interior_node():
+
+    """
+    Test that component returns correct values for recharge flux and
+    storage when an interior node is INACTIVE
+
+    Notes:
+    ----
+    When an interior node is inactive, the number of core nodes is not
+    equal to the number of cells. This test confirms that the methods
+    to calculate recharge flux and active storage acknowledge this difference.
+
+    """
+
+    mg = RasterModelGrid((4, 4), xy_spacing=1.0)
+    mg.status_at_node[5] = mg.BC_NODE_IS_FIXED_VALUE
+    elev = mg.add_zeros("node", "topographic__elevation")
+    elev[:] = 1
+    base = mg.add_zeros("node", "aquifer_base__elevation")
+    base[:] = 0
+    wt = mg.add_zeros("node", "water_table__elevation")
+    wt[:] = 1
+
+    gdp = GroundwaterDupuitPercolator(mg)
+    assert_almost_equal(gdp.calc_recharge_flux_in(), 3e-8)
+    assert_almost_equal(gdp.calc_total_storage(), 0.6)

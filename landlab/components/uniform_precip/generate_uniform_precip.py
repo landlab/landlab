@@ -97,6 +97,8 @@ class PrecipitationDistribution(Component):
 
     _name = "PrecipitationDistribution"
 
+    _unit_agnostic = True
+
     _info = {
         "rainfall__flux": {
             "dtype": float,

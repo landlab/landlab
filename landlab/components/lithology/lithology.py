@@ -67,6 +67,8 @@ class Lithology(Component):
 
     _name = "Lithology"
 
+    _unit_agnostic = True
+
     _cite_as = """@article{barnhart2018lithology,
                     title = "Lithology: A Landlab submodule for spatially variable rock properties",
                     journal = "Journal of Open Source Software",

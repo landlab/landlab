@@ -112,6 +112,8 @@ class Vegetation(Component):
 
     _name = "Vegetation"
 
+    _unit_agnostic = False
+
     _info = {
         "surface__evapotranspiration": {
             "dtype": float,

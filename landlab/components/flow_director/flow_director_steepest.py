@@ -259,6 +259,8 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     _name = "FlowDirectorSteepest"
 
+    _unit_agnostic = True
+
     _info = {
         "flow__link_direction": {
             "dtype": np.int8,

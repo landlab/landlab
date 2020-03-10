@@ -13,6 +13,7 @@ class Population(object):
     Instances of this class are intended to be created and used directly by
     ZoneTaxon.
     """
+
     def __init__(self, taxon, zone, time_to_allopatric_speciation=None):
         """Initialize a population.
 
@@ -90,6 +91,7 @@ class ZoneTaxon(Taxon):
     also come to an end when the taxon speciates and ``pseudoextinction`` is
     True.
     """
+
     def __init__(
         self, zones, parent=None, allopatric_wait_time=0, pseudoextinction=True
     ):
@@ -211,9 +213,9 @@ class ZoneTaxon(Taxon):
 
             # Update the record.
 
-            record.increment_value('speciations', child_count)
-            record.increment_value('extinctions', int(extinct))
-            record.increment_value('pseudoextinctions', int(pseudoextinct))
+            record.increment_value("speciations", child_count)
+            record.increment_value("extinctions", int(extinct))
+            record.increment_value("pseudoextinctions", int(pseudoextinct))
 
         return stage < 1
 
@@ -301,7 +303,7 @@ class ZoneTaxon(Taxon):
             zone,
             parent=self,
             allopatric_wait_time=self._allopatric_wait_time,
-            pseudoextinction=self._pseudoextinction
+            pseudoextinction=self._pseudoextinction,
         )
 
         return child_taxon
