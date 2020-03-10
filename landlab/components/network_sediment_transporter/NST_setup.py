@@ -259,6 +259,11 @@ plt.ylabel("total volume of parcels")
 # %%
 # %% 1. Run "import_shapefile.py" ideally, we should be reading a shapefile at the outset of NST_setup to gather our network properties from the shapefile attribute table. This would also include loading in, early on, the squiggly line network. For now this needs to be done here before plotting because it has not been done yet.
 
+DATA_DIR = "./data/"
+
+file = os.path.join(DATA_DIR, "Test_Network.shp")
+grid = read_shapefile(file)
+
 # %% 2. Plot an attribute on the delineated network
 
 # determine link attribute to plot
