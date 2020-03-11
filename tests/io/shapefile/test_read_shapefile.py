@@ -171,6 +171,10 @@ def test_read_methow_subbasin_with_name_mapping():
     assert grid.x_of_node[22] == approx(725029.95616002998)
     assert grid.y_of_node[22] == approx(5374213.8330760002)
 
+    # verify dtype changes.
+    assert isinstance(grid.at_link["ToLink"][0], int)
+    assert isinstance(grid.at_node["ToLink"][0], int)
+
     # verify that fields are mapped correctly. choose two links and two nodes
     # to test.
 
@@ -194,7 +198,7 @@ def test_read_methow_subbasin_with_name_mapping():
 
     # node 1
     assert grid.at_node["GridID"][0] == 267
-    assert grid.at_node["ToLink"][0] == 270.0
+    assert grid.at_node["ToLink"][0] == 270
     assert grid.at_node["drainage_area"][0] == 22.3047
     assert grid.at_node["uselev_m"][0] == 1305.7
     assert grid.at_node["dselev_m"][0] == 1232.77
@@ -202,7 +206,7 @@ def test_read_methow_subbasin_with_name_mapping():
 
     # node 29
     assert grid.at_node["GridID"][29] == 339
-    assert grid.at_node["ToLink"][29] == 341.0
+    assert grid.at_node["ToLink"][29] == 341
     assert grid.at_node["drainage_area"][29] == 15.4314
     assert grid.at_node["uselev_m"][29] == 1534.42
     assert grid.at_node["dselev_m"][29] == 1438.68
