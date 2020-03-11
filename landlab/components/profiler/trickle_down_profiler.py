@@ -36,15 +36,16 @@ class TrickleDownProfiler(_BaseProfiler):
     route-to-multiple flow directing.
 
     To understand how this component works it is useful to define the following
-    terms: *outlet*, *starting node*, *segment*.
+    terms: *outlet*, *starting node*, and *segment*.
 
     Consider the following grid with 10 columns and 7 rows. ``@`` represents
-    the *starting node*, the ``X``s represent the nodes downstream, and the
+    the *starting node*, ``.`` represents the nodes downstream, and the
     watershed outlet node is indicated by ``o``.
 
     In this and the following examples, we will use only D4 connectivity. The
     ChannelProfiler, however, knows nothing of connectivity other than what is
     implied by the two required grid fields.
+    ::
 
         X X X X X X X X X X
         X X X X X X X X X X
