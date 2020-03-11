@@ -270,11 +270,11 @@ def read_shapefile(
 
         # we don't need to store node xy, just need to store which index each
         # node maps to on the new grid.
-        psf_node_mapping = []
+        psf_node_mapping = np.empty(grid.x_of_node.shape, dtype=int)
 
         # loop through each node
         psf_shapeRecs = psf.shapeRecords()
-        for sr in psf_shapeRecs:
+        for node_idx, sr in enumerate(psf_shapeRecs):
             # find the closest
             x_diff = grid.x_of_node - sr.shape.points[0][0]
             y_diff = grid.y_of_node - sr.shape.points[0][1]
@@ -291,11 +291,11 @@ def read_shapefile(
                 )
 
                 raise ValueError(msg)
-            psf_node_mapping.append(ind[0])
+            psf_node_mapping[ind[0]] = node_idx
 
-            for i in range(len(sr.record)):
-                field_name = psf_record_order[i]
-                psf_fields[field_name].append(sr.record[i])
+            for rec_idx in range(len(sr.record)):
+                field_name = psf_record_order[rec_idx]
+                psf_fields[field_name].append(sr.record[rec_idx])
 
         try:
             assert len(psf_node_mapping) == grid.number_of_nodes
