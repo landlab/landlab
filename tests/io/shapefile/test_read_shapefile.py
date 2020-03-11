@@ -133,6 +133,81 @@ def test_read_methow_subbasin():
     assert grid.at_node["dselev_m"][29] == 1438.68
     assert grid.at_node["Elev_m"][29] == 1535.58
 
+def test_read_methow_subbasin_with_name_mapping():
+    # test of the small methow network with
+    file = os.path.join(_TEST_DATA_DIR, "MethowSubBasin.shp")
+    points_shapefile = os.path.join(_TEST_DATA_DIR, "MethowSubBasin_Nodes_4.shp")
+    grid = read_shapefile(file, points_shapefile=points_shapefile,
+        link_field_conversion={"usarea_km2":"drainage_area"},
+        node_field_conversion={"usarea_km2":"drainage_area", "Elev_m":"topographic__elevation"},
+        link_field_dtype={"ToLink": int},
+        node_field_dtype={"ToLink": int},)
+    assert grid.number_of_nodes == 30
+    assert grid.number_of_links == 29
+
+    assert "x_of_polyline" in grid.at_link
+    assert "y_of_polyline" in grid.at_link
+
+    # verify that fields are present.
+    node_fields = ["GridID", "ToLink", "drainage_area", "uselev_m", "dselev_m", "topographic__elevation"]
+    link_fields = [
+        "GridID",
+        "Length_m",
+        "ToLink",
+        "drainage_area",
+        "uselev_m",
+        "dselev_m",
+        "Slope",
+    ]
+    for field in link_fields:
+        assert field in grid.at_link
+    for field in node_fields:
+        assert field in grid.at_node
+
+    # test for node location.
+    assert grid.x_of_node[0] == approx(728390.38284378243)
+    assert grid.y_of_node[0] == approx(5368319.8330760002)
+
+    assert grid.x_of_node[22] == approx(725029.95616002998)
+    assert grid.y_of_node[22] == approx(5374213.8330760002)
+
+    # verify that fields are mapped correctly. choose two links and two nodes
+    # to test.
+
+    # link 1
+    assert grid.at_link["GridID"][0] == 267
+    assert grid.at_link["Length_m"][0] == approx(1799.167)
+    assert grid.at_link["ToLink"][0] == 270
+    assert grid.at_link["drainage_area"][0] == 22.3047
+    assert grid.at_link["uselev_m"][0] == 1305.7
+    assert grid.at_link["dselev_m"][0] == 1232.77
+    assert grid.at_link["Slope"][0] == 0.040535
+
+    # link 16
+    assert grid.at_link["GridID"][16] == 300
+    assert grid.at_link["Length_m"][16] == approx(1487.342911)
+    assert grid.at_link["ToLink"][16] == 263
+    assert grid.at_link["drainage_area"][16] == 75.1707
+    assert grid.at_link["uselev_m"][16] == 1070.98
+    assert grid.at_link["dselev_m"][16] == 986.74
+    assert grid.at_link["Slope"][16] == 0.056638
+
+    # node 1
+    assert grid.at_node["GridID"][0] == 267
+    assert grid.at_node["ToLink"][0] == 270.0
+    assert grid.at_node["drainage_area"][0] == 22.3047
+    assert grid.at_node["uselev_m"][0] == 1305.7
+    assert grid.at_node["dselev_m"][0] == 1232.77
+    assert grid.at_node["topographic__elevation"][0] == 1304.24
+
+    # node 29
+    assert grid.at_node["GridID"][29] == 339
+    assert grid.at_node["ToLink"][29] == 341.0
+    assert grid.at_node["drainage_area"][29] == 15.4314
+    assert grid.at_node["uselev_m"][29] == 1534.42
+    assert grid.at_node["dselev_m"][29] == 1438.68
+    assert grid.at_node["topographic__elevation"][29] == 1535.58
+
 
 def test_bad_file():
     file = os.path.join(_TEST_DATA_DIR, "bad_file.shp")

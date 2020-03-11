@@ -21,7 +21,15 @@ def _read_shapefile(file, dbf):
 
 
 def read_shapefile(
-    file, dbf=None, store_polyline_vertices=True, points_shapefile=None, points_dbf=None
+    file,
+    dbf=None,
+    store_polyline_vertices=True,
+    points_shapefile=None,
+    points_dbf=None,
+    link_field_conversion=None,
+    node_field_conversion=None,
+    link_field_dtype=None,
+    node_field_dtype=None,
 ):
     """Read shapefile and create a NetworkModelGrid.
 
@@ -48,6 +56,18 @@ def read_shapefile(
         File path or file-like of a valid point shapefile.
     points_dbf: file-like, optional
         If file is file-like, the dbf must also be passed.
+    link_field_conversion: dict, optional
+        Dictionary mapping polyline shapefile field names to desired at link
+        field names. Default is no remapping.
+    node_field_conversion: dict, optional
+        Dictionary mapping node shapefile field names to desired at node field
+        names. Default is no remapping.
+    link_field_dtype: dict, optional
+        Dictionary mapping node shapefile field names to desired dtype. Default
+        is no change to dtype.
+    node_field_dtype: dict, optional
+        Dictionary mapping node shapefile field names to desired dtype. Default
+        is no change to dtype.
 
     Returns
     -------
@@ -149,6 +169,11 @@ def read_shapefile(
     array([2, 4, 8, 6])
     """
     sf = _read_shapefile(file, dbf)
+
+    link_field_conversion = link_field_conversion or dict()
+    node_field_conversion = node_field_conversion or dict()
+    link_field_dtype = link_field_dtype or dict()
+    node_field_dtype = node_field_dtype or dict()
 
     if sf.shapeType != 3:
         raise ValueError(
@@ -259,7 +284,11 @@ def read_shapefile(
 
     # add values to fields.
     for field_name in fields:
-        grid.at_link[field_name] = np.asarray(fields[field_name])[sorted_links]
+        mapped_field_name = link_field_conversion.get(field_name, field_name)
+        mapped_dtype = link_field_dtype.get(field_name, None)
+        grid.at_link[mapped_field_name] = np.asarray(
+            fields[field_name], dtype=mapped_dtype
+        )[sorted_links]
 
     # if a points shapefile is added, bring in and use.
     if points_shapefile:
@@ -309,8 +338,11 @@ def read_shapefile(
 
         # add values to nodes.
         for field_name in psf_fields:
-            grid.at_node[field_name] = np.asarray(psf_fields[field_name])[
-                psf_node_mapping
-            ]
+            mapped_field_name = node_field_conversion.get(field_name, field_name)
+            mapped_dtype = node_field_dtype.get(field_name, None)
+
+            grid.at_node[mapped_field_name] = np.asarray(
+                psf_fields[field_name], dtype=mapped_dtype
+            )[psf_node_mapping]
 
     return grid
