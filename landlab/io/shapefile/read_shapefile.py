@@ -26,6 +26,8 @@ def read_shapefile(
     store_polyline_vertices=True,
     points_shapefile=None,
     points_dbf=None,
+    link_fields=None,
+    node_fields=None,
     link_field_conversion=None,
     node_field_conversion=None,
     link_field_dtype=None,
@@ -56,6 +58,12 @@ def read_shapefile(
         File path or file-like of a valid point shapefile.
     points_dbf: file-like, optional
         If file is file-like, the dbf must also be passed.
+    link_fields: list, optional
+        List of polyline shapefile attributes to import as landlab at-link
+        fields. Default is to import all.
+    node_fields: list, optional
+        List of point shapefile attributes to import as landlab at-node
+        fields. Default is to import all.
     link_field_conversion: dict, optional
         Dictionary mapping polyline shapefile field names to desired at link
         field names. Default is no remapping.
@@ -209,6 +217,11 @@ def read_shapefile(
     links = []
     fields = {rec[0]: [] for rec in records}
 
+    # store which link fields to retain
+    link_fields_to_retain = link_fields or list(fields.keys())
+    if store_polyline_vertices:
+        link_fields_to_retain.append("x_of_polyline")
+        link_fields_to_retain.append("y_of_polyline")
     if store_polyline_vertices:
         fields["x_of_polyline"] = []
         fields["y_of_polyline"] = []
@@ -284,11 +297,12 @@ def read_shapefile(
 
     # add values to fields.
     for field_name in fields:
-        mapped_field_name = link_field_conversion.get(field_name, field_name)
-        mapped_dtype = link_field_dtype.get(field_name, None)
-        grid.at_link[mapped_field_name] = np.asarray(
-            fields[field_name], dtype=mapped_dtype
-        )[sorted_links]
+        if field_name in link_fields_to_retain:
+            mapped_field_name = link_field_conversion.get(field_name, field_name)
+            mapped_dtype = link_field_dtype.get(field_name, None)
+            grid.at_link[mapped_field_name] = np.asarray(
+                fields[field_name], dtype=mapped_dtype
+            )[sorted_links]
 
     # if a points shapefile is added, bring in and use.
     if points_shapefile:
@@ -296,6 +310,9 @@ def read_shapefile(
         psf_records = psf.fields[1:]
         psf_record_order = [rec[0] for rec in psf_records]
         psf_fields = {rec[0]: [] for rec in psf_records}
+
+        # store which node fields to retain
+        node_fields_to_retain = node_fields or list(psf_fields.keys())
 
         # we don't need to store node xy, just need to store which index each
         # node maps to on the new grid.
@@ -310,16 +327,14 @@ def read_shapefile(
 
             dist = np.sqrt(x_diff ** 2 + y_diff ** 2)
             ind = np.nonzero(dist == np.min(dist))[0]
-            try:
-                # verify that there is only one closest.
-                assert len(ind) == 1
-            except:
+            # verify that there is only one closest.
+            if len(ind) != 1:
                 msg = (
                     "landlab.io.shapefile requires that the points file "
                     "have a 1-1 mapping to the polylines file."
                 )
-
                 raise ValueError(msg)
+
             psf_node_mapping[ind[0]] = node_idx
 
             for rec_idx in range(len(sr.record)):
@@ -329,7 +344,7 @@ def read_shapefile(
         try:
             assert len(psf_node_mapping) == grid.number_of_nodes
             assert len(psf_node_mapping) == len(np.unique(psf_node_mapping))
-        except:
+        except AssertionError:
             msg = (
                 "landlab.io.shapefile requires that the points file "
                 "contain the same number of points as polyline junctions."
@@ -338,11 +353,12 @@ def read_shapefile(
 
         # add values to nodes.
         for field_name in psf_fields:
-            mapped_field_name = node_field_conversion.get(field_name, field_name)
-            mapped_dtype = node_field_dtype.get(field_name, None)
+            if field_name in node_fields_to_retain:
+                mapped_field_name = node_field_conversion.get(field_name, field_name)
+                mapped_dtype = node_field_dtype.get(field_name, None)
 
-            grid.at_node[mapped_field_name] = np.asarray(
-                psf_fields[field_name], dtype=mapped_dtype
-            )[psf_node_mapping]
+                grid.at_node[mapped_field_name] = np.asarray(
+                    psf_fields[field_name], dtype=mapped_dtype
+                )[psf_node_mapping]
 
     return grid
