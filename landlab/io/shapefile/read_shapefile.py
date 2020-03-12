@@ -316,7 +316,7 @@ def read_shapefile(
 
         # we don't need to store node xy, just need to store which index each
         # node maps to on the new grid.
-        psf_node_mapping = np.empty(grid.x_of_node.shape, dtype=int)
+        psf_node_mapping = -1 * np.ones(grid.x_of_node.shape, dtype=int)
 
         # loop through each node
         psf_shapeRecs = psf.shapeRecords()
@@ -328,10 +328,15 @@ def read_shapefile(
             dist = np.sqrt(x_diff ** 2 + y_diff ** 2)
             ind = np.nonzero(dist == np.min(dist))[0]
             # verify that there is only one closest.
-            if len(ind) != 1:
+
+            if psf_node_mapping[ind[0]] >= 0:
                 msg = (
                     "landlab.io.shapefile requires that the points file "
-                    "have a 1-1 mapping to the polylines file."
+                    "have a 1-1 mapping to the polylines file. More than one "
+                    "at-node point provided maps to the node with Landlab ID "
+                    "{ind}, (x,y). This point has coordinates of ({x}, {y})".format(
+                        ind=ind[0], x=point_x, y=point_y
+                    )
                 )
                 raise ValueError(msg)
 
@@ -341,13 +346,11 @@ def read_shapefile(
                 field_name = psf_record_order[rec_idx]
                 psf_fields[field_name].append(sr.record[rec_idx])
 
-        try:
-            assert len(psf_node_mapping) == grid.number_of_nodes
-            assert len(psf_node_mapping) == len(np.unique(psf_node_mapping))
-        except AssertionError:
+        if np.any(psf_node_mapping < 0):
             msg = (
                 "landlab.io.shapefile requires that the points file "
-                "contain the same number of points as polyline junctions."
+                "contain the same number of points as polyline junctions. "
+                "The points file contains fewer points than polyline junctions."
             )
             raise ValueError(msg)
 
