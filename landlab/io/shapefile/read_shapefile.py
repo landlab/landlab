@@ -77,6 +77,10 @@ def read_shapefile(
     node_field_dtype: dict, optional
         Dictionary mapping node shapefile field names to desired dtype. Default
         is no change to dtype.
+    threshold: float, optional
+        Maximum distance between a point in the point shapefile and a polyline
+        junction in the polyline shapefile. Units are the same as in the
+        shapefiles. Default is zero (requiring perfect overlap).
 
     Returns
     -------
