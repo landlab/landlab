@@ -66,7 +66,7 @@ def test_read_methow_subbasin():
     # test of the small methow network with
     file = os.path.join(_TEST_DATA_DIR, "MethowSubBasin.shp")
     points_shapefile = os.path.join(_TEST_DATA_DIR, "MethowSubBasin_Nodes_4.shp")
-    grid = read_shapefile(file, points_shapefile=points_shapefile, threshold=1.0)
+    grid = read_shapefile(file, points_shapefile=points_shapefile, threshold=0.01)
     assert grid.number_of_nodes == 30
     assert grid.number_of_links == 29
 
@@ -151,7 +151,7 @@ def test_read_methow_subbasin_with_name_mapping_and_field_subsetting():
         },
         link_field_dtype={"ToLink": np.int},
         node_field_dtype={"ToLink": np.int},
-        threshold=1.0,
+        threshold=0.01,
     )
 
     assert grid.number_of_nodes == 30
