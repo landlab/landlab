@@ -32,6 +32,7 @@ def read_shapefile(
     node_field_conversion=None,
     link_field_dtype=None,
     node_field_dtype=None,
+    threshold=0.0,
 ):
     """Read shapefile and create a NetworkModelGrid.
 
@@ -322,10 +323,28 @@ def read_shapefile(
         psf_shapeRecs = psf.shapeRecords()
         for node_idx, sr in enumerate(psf_shapeRecs):
             # find the closest
-            x_diff = grid.x_of_node - sr.shape.points[0][0]
-            y_diff = grid.y_of_node - sr.shape.points[0][1]
+            point_x = sr.shape.points[0][0]
+            point_y = sr.shape.points[0][1]
+            x_diff = grid.x_of_node - point_x
+            y_diff = grid.y_of_node - point_y
 
             dist = np.sqrt(x_diff ** 2 + y_diff ** 2)
+
+            # check that the distance is small.
+            if np.min(dist) > threshold:
+                msg = (
+                    "landlab.io.shapefile: a point in the points shapefile "
+                    "is {dist} away from the closet polyline junction in the ".format(
+                        dist=np.min(dist)
+                    ),
+                    "polyline shapefile. This is larger than the threshold"
+                    "value of {thresh}. This may mean that the threshold".format(
+                        thresh=threshold
+                    ),
+                    "or that something is wrong with the points file.",
+                )
+                raise ValueError(msg)
+
             ind = np.nonzero(dist == np.min(dist))[0]
             # verify that there is only one closest.
 
