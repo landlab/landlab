@@ -66,7 +66,7 @@ def test_read_methow_subbasin():
     # test of the small methow network with
     file = os.path.join(_TEST_DATA_DIR, "MethowSubBasin.shp")
     points_shapefile = os.path.join(_TEST_DATA_DIR, "MethowSubBasin_Nodes_4.shp")
-    grid = read_shapefile(file, points_shapefile=points_shapefile)
+    grid = read_shapefile(file, points_shapefile=points_shapefile, threshold=1.0)
     assert grid.number_of_nodes == 30
     assert grid.number_of_links == 29
 
@@ -151,6 +151,7 @@ def test_read_methow_subbasin_with_name_mapping_and_field_subsetting():
         },
         link_field_dtype={"ToLink": np.int},
         node_field_dtype={"ToLink": np.int},
+        threshold=1.0,
     )
 
     assert grid.number_of_nodes == 30
@@ -242,6 +243,148 @@ def test_multipart():
     file = os.path.join(_TEST_DATA_DIR, "multipartpolyline.shp")
     with raises(ValueError):
         read_shapefile(file)
+
+
+def test_bad_points():
+    shp = BytesIO()
+    shx = BytesIO()
+    dbf = BytesIO()
+    w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
+    w.shapeType = 3
+    w.field("spam", "N")
+    w.line([[[5, 5], [10, 10]]])
+    w.record(37)
+    w.line([[[5, 0], [5, 5]]])
+    w.record(100)
+    w.line([[[5, 5], [0, 10]]])
+    w.record(239)
+    w.close()
+
+    # pass a line shapefile here insted.
+    p_shp = BytesIO()
+    p_shx = BytesIO()
+    p_dbf = BytesIO()
+    p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
+    w.shapeType = 3
+    p_w.field("spam", "N")
+    p_w.line([[[5, 5], [10, 10]]])
+    p_w.record(37)
+    p_w.line([[[5, 0], [5, 5]]])
+    p_w.record(100)
+    p_w.line([[[5, 5], [0, 10]]])
+    p_w.record(239)
+    p_w.close()
+
+    with raises(ValueError):
+        read_shapefile(shp, dbf=dbf, points_shapefile=p_shp, points_dbf=p_dbf)
+
+
+def test_points_but_too_far():
+    shp = BytesIO()
+    shx = BytesIO()
+    dbf = BytesIO()
+    w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
+    w.shapeType = 3
+    w.field("spam", "N")
+    w.line([[[5, 5], [10, 10]]])
+    w.record(37)
+    w.line([[[5, 0], [5, 5]]])
+    w.record(100)
+    w.line([[[5, 5], [0, 10]]])
+    w.record(239)
+    w.close()
+
+    # make a
+    p_shp = BytesIO()
+    p_shx = BytesIO()
+    p_dbf = BytesIO()
+    p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
+    p_w.shapeType = 1
+    p_w.field("eggs", "N")
+    p_w.point(5, 0)
+    p_w.record(2)
+    p_w.point(5, 5)
+    p_w.record(4)
+    p_w.point(0, 10)
+    p_w.record(8)
+    p_w.point(12, 10)
+    p_w.record(6)
+    p_w.close()
+
+    with raises(ValueError):
+        read_shapefile(shp, dbf=dbf, points_shapefile=p_shp, points_dbf=p_dbf)
+
+
+def test_points_but_not_one_one():
+    shp = BytesIO()
+    shx = BytesIO()
+    dbf = BytesIO()
+    w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
+    w.shapeType = 3
+    w.field("spam", "N")
+    w.line([[[5, 5], [10, 10]]])
+    w.record(37)
+    w.line([[[5, 0], [5, 5]]])
+    w.record(100)
+    w.line([[[5, 5], [0, 10]]])
+    w.record(239)
+    w.close()
+
+    # make a
+    p_shp = BytesIO()
+    p_shx = BytesIO()
+    p_dbf = BytesIO()
+    p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
+    p_w.shapeType = 1
+    p_w.field("eggs", "N")
+    p_w.point(5, 0)
+    p_w.record(2)
+    p_w.point(5, 5)
+    p_w.record(4)
+    p_w.point(0, 10)
+    p_w.record(8)
+    p_w.point(10, 10)
+    p_w.record(6)
+    p_w.point(10, 10)
+    p_w.record(7)
+    p_w.close()
+
+    with raises(ValueError):
+        read_shapefile(shp, dbf=dbf, points_shapefile=p_shp, points_dbf=p_dbf)
+
+
+def test_points_but_one_missing():
+    shp = BytesIO()
+    shx = BytesIO()
+    dbf = BytesIO()
+    w = shapefile.Writer(shp=shp, shx=shx, dbf=dbf)
+    w.shapeType = 3
+    w.field("spam", "N")
+    w.line([[[5, 5], [10, 10]]])
+    w.record(37)
+    w.line([[[5, 0], [5, 5]]])
+    w.record(100)
+    w.line([[[5, 5], [0, 10]]])
+    w.record(239)
+    w.close()
+
+    # make a
+    p_shp = BytesIO()
+    p_shx = BytesIO()
+    p_dbf = BytesIO()
+    p_w = shapefile.Writer(shp=p_shp, shx=p_shx, dbf=p_dbf)
+    p_w.shapeType = 1
+    p_w.field("eggs", "N")
+    p_w.point(5, 0)
+    p_w.record(2)
+    p_w.point(5, 5)
+    p_w.record(4)
+    p_w.point(0, 10)
+    p_w.record(8)
+    p_w.close()
+
+    with raises(ValueError):
+        read_shapefile(shp, dbf=dbf, points_shapefile=p_shp, points_dbf=p_dbf)
 
 
 def test_simple_reorder():
