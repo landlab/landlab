@@ -1207,26 +1207,109 @@ class DataRecord(object):
         >>> dr3.dataset['element_id'].values
         array([[ 1.,  1.,  1.],
                [ 3.,  3.,  3.]])
+
+        In some applications, there may be no prior valid value. Under these
+        circumstances, those values will stay as NaN. That is, this only
+        forward fills, and does not backfill.
+
+        >>> my_items3 = {'grid_element':np.array([['node'], ['link']]),
+        ...              'element_id': np.array([[1],[3]])}
+        >>> dr3 = DataRecord(grid,
+        ...                  time=[0.],
+        ...                  items=my_items3)
+        >>> dr3.dataset['element_id'].values
+        array([[1], [3]])
+        >>> dr3.dataset['grid_element'].values
+        array([['node'],
+               ['link']],
+              dtype='<U4')
+
+        Next add some new items at a new time.
+
+        >>> dr3.add_item(time=[1.0],
+        ...              new_item={'grid_element' : np.array(
+        ...                                              [['node'], ['node']]),
+        ...                        'element_id' : np.array([[4],[4]])},
+        ...              new_item_spec={'size': (
+        ...                              ['item_id', 'time'], [[10],[5]])})
+
+        Two items have been added at a new timestep 1.0:
+
+        >>> dr3.number_of_items
+        4
+        >>> dr3.time_coordinates
+        [0.0, 1.0]
+        >>> dr3.dataset['element_id'].values
+        array([[  1.,  nan],
+               [  3.,  nan],
+               [ nan,   4.],
+               [ nan,   4.]])
+        >>> dr3.dataset['grid_element'].values
+        array([['node', nan],
+               ['link', nan],
+               [nan, 'node'],
+               [nan, 'node']], dtype=object)
+
+        We expect that the NaN's to the left of the 4.s will stay NaN. And they
+        do.
+
+        >>> dr3.ffill_grid_element_and_id()
+        >>> dr3.dataset['element_id'].values
+        array([[  1.,   1.],
+               [  3.,   3.],
+               [ nan,   4.],
+               [ nan,   4.]])
+        >>> dr3.dataset['grid_element'].values
+        array([['node', 'node'],
+               ['link', 'link'],
+               [nan, 'node'],
+               [nan, 'node']], dtype=object)
+
+        Finally, if we add a new time, we see that we need to fill in the
+        full time column.
+
+        >>> dr3.add_record(time=[2])
+        >>> dr3.dataset['element_id'].values
+        array([[  1.,   1.,  nan],
+               [  3.,   3.,  nan],
+               [ nan,   4.,  nan],
+               [ nan,   4.,  nan]])
+        >>> dr3.dataset['grid_element'].values
+        array([['node', 'node', nan],
+               ['link', 'link', nan],
+               [nan, 'node', nan],
+               [nan, 'node', nan]], dtype=object)
+
+        And that forward filling fills everything as expected.
+
+        >>> dr3.ffill_grid_element_and_id()
+        >>> dr3.dataset['element_id'].values
+        array([[  1.,   1.,   1.],
+               [  3.,   3.,   3.],
+               [ nan,   4.,   4.],
+               [ nan,   4.,   4.]])
+
+        >>> dr3.dataset['grid_element'].values
+        array([['node', 'node', 'node'],
+               ['link', 'link', 'link'],
+               [nan, 'node', 'node'],
+               [nan, 'node', 'node']], dtype=object)
         """
-        # Forward fill element_id:
-        fill_value = []
+
         ei = self._dataset["element_id"].values
+
         for i in range(ei.shape[0]):
-            for j in range(ei.shape[1]):
+            for j in range(1, ei.shape[1]):
                 if np.isnan(ei[i, j]):
-                    ei[i, j] = fill_value
-                else:
-                    fill_value = ei[i, j]
+                    ei[i, j] = ei[i, j - 1]
+
         self._dataset["element_id"] = (["item_id", "time"], ei)
-        # Can't do ffill to grid_element because str/nan, so:
-        fill_value = ""
+
         ge = self._dataset["grid_element"].values
         for i in range(ge.shape[0]):
-            for j in range(ge.shape[1]):
-                if isinstance(ge[i, j], str):
-                    fill_value = ge[i, j]
-                else:
-                    ge[i, j] = fill_value
+            for j in range(1, ge.shape[1]):
+                if ge[i, j] not in self._permitted_locations:
+                    ge[i, j] = ge[i, j - 1]
         self._dataset["grid_element"] = (["item_id", "time"], ge)
 
     @property
