@@ -392,8 +392,7 @@ class DataRecord(object):
                     msg = "Invalid element_ids provided."
                     raise ValueError(msg)
 
-        dtype = element_id.dtype
-        if dtype != int:
+        if not np.issubdtype(element_id.dtype, np.integer):
             raise ValueError(
                 "You have passed a non-integer element_id to "
                 "DataRecord, this is not permitted"
