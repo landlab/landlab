@@ -54,9 +54,9 @@ def test_track_taxa_and_component_attributes(zone_example_grid):
             "pid": 3 * [np.nan],
             "type": 3 * [TestTaxon.__name__],
             "t_first": [0, 0, 0],
-            "t_final": 3 * [np.nan]
+            "t_final": 3 * [np.nan],
         },
-        index=[0, 1, 2]
+        index=[0, 1, 2],
     )
     expected_df.index.name = "tid"
     expected_df["pid"] = expected_df["pid"].astype("Int64")
@@ -75,7 +75,7 @@ def test_track_taxa_and_component_attributes(zone_example_grid):
             "pid": 3 * [np.nan] + [0, 1, 2],
             "type": 6 * [TestTaxon.__name__],
             "t_first": [0, 0, 0, 10, 10, 10],
-            "t_final": [10, 10, 10] + 3 * [np.nan]
+            "t_final": [10, 10, 10] + 3 * [np.nan],
         },
         index=[0, 1, 2, 3, 4, 5],
     )
@@ -173,12 +173,7 @@ def test_immediate_extinction(zone_example_grid):
     se.track_taxa(taxon)
 
     expected_df = pd.DataFrame(
-        {
-            "pid": [np.nan],
-            "type": [TestTaxon.__name__],
-            "t_first": [0],
-            "t_final": [0]
-        },
+        {"pid": [np.nan], "type": [TestTaxon.__name__], "t_first": [0], "t_final": [0]},
         index=[0],
     )
     expected_df.index.name = "tid"

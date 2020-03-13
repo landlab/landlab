@@ -68,7 +68,11 @@ class ZoneTaxon(Taxon):
     """
 
     def __init__(
-        self, zones, parent=None, time_to_allopatric_speciation=0, persists_post_speciation=True
+        self,
+        zones,
+        parent=None,
+        time_to_allopatric_speciation=0,
+        persists_post_speciation=True,
     ):
         """Initialize a taxon.
 
@@ -248,7 +252,7 @@ class ZoneTaxon(Taxon):
             zones,
             parent=self,
             time_to_allopatric_speciation=self._tas,
-            persists_post_speciation=self._pps
+            persists_post_speciation=self._pps,
         )
 
         return child_taxon

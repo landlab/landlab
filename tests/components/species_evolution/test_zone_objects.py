@@ -499,9 +499,9 @@ def test_time_to_allopatric_speciation(zone_example_grid):
             "pid": [np.nan, 0],
             "type": 2 * [ZoneTaxon.__name__],
             "t_first": [0, 30],
-            "t_final": 2 * [np.nan]
+            "t_final": 2 * [np.nan],
         },
-        index=[0, 1]
+        index=[0, 1],
     )
     expected_df.index.name = "tid"
     expected_df["pid"] = expected_df["pid"].astype("Int64")
@@ -529,9 +529,9 @@ def test_pseudoextinction(zone_example_grid):
             "pid": [np.nan, 0, 0],
             "type": 3 * [ZoneTaxon.__name__],
             "t_first": [0, 1, 1],
-            "t_final": [1, np.nan, np.nan]
+            "t_final": [1, np.nan, np.nan],
         },
-        index=[0, 1, 2]
+        index=[0, 1, 2],
     )
     expected_df.index.name = "tid"
     expected_df["pid"] = expected_df["pid"].astype("Int64")
@@ -545,7 +545,7 @@ def test_pseudoextinction(zone_example_grid):
             "taxa": [1, 2],
             "speciations": [np.nan, 2],
             "extinctions": [np.nan, 0],
-            "pseudoextinctions": [np.nan, 1]
+            "pseudoextinctions": [np.nan, 1],
         }
     )
     pd.testing.assert_frame_equal(se.record_data_frame, expected_df, check_like=True)

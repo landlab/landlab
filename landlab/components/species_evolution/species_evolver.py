@@ -271,13 +271,7 @@ class SpeciesEvolver(Component):
         self._record.set_value("taxa", 0)
 
         self._taxa_data = OrderedDict(
-            [
-                ("tid", []),
-                ("pid", []),
-                ("type", []),
-                ("t_first", []),
-                ("t_final", [])
-            ]
+            [("tid", []), ("pid", []), ("type", []), ("t_first", []), ("t_final", [])]
         )
 
         self._taxon_objs = []
@@ -323,9 +317,9 @@ class SpeciesEvolver(Component):
         df.index.name = "tid"
 
         # Change column number type because pandas makes a column float if it
-        # has any nan values.
+        # includes nan values.
         df["pid"] = df["pid"].astype("Int64")
-        if all(isinstance(item, int) for item in data['t_final'] if not np.isnan(item)):
+        if all(isinstance(item, int) for item in data["t_final"] if not np.isnan(item)):
             df["t_final"] = df["t_final"].astype("Int64")
 
         return df
@@ -348,7 +342,7 @@ class SpeciesEvolver(Component):
 
         # Create a dictionary of the taxa to update at the current model time.
         # Keys are objects of extant taxa. Values are booleans indicating if
-        # stages remain for respective taxon.
+        # stages remain for respective taxa.
 
         time_dict = OrderedDict.fromkeys(self._taxon_objs, True)
 
@@ -450,6 +444,7 @@ class SpeciesEvolver(Component):
         """
         time = self._record.latest_time
         data = self._taxa_data
+        objs = self._taxon_objs
 
         t_recorded = self._taxon_objs
         t_introduced = [taxon for taxon in taxa_at_time if taxon in t_recorded]
@@ -458,17 +453,15 @@ class SpeciesEvolver(Component):
         # Update previously introduced taxa.
 
         for taxon in t_introduced:
-            # Update taxon data.
-
             if not taxon.extant:
                 idx = data["tid"].index(taxon.tid)
                 data["t_final"][idx] = time
-                self._taxon_objs.remove(taxon)
+                objs.remove(taxon)
 
         # Set the data of new taxa.
 
         for taxon in t_new:
-            # Set identifiers.
+            # Set identifier.
 
             if data["tid"]:
                 taxon._tid = max(data["tid"]) + 1
@@ -486,19 +479,17 @@ class SpeciesEvolver(Component):
             data["t_first"].append(time)
             if taxon.extant:
                 data["t_final"].append(np.nan)
-                self._taxon_objs.append(taxon)
+                objs.append(taxon)
             else:
                 data["t_final"].append(time)
 
         # Update taxa stats.
 
-        self._record.set_value("taxa", len(self._taxon_objs))
+        self._record.set_value("taxa", len(objs))
 
         self._grid.at_node["taxa__richness"] = self._get_taxa_richness_map()
 
-    def get_extant_taxon_objects(
-        self, tids=np.nan, ancestor=np.nan, time=np.nan
-    ):
+    def get_extant_taxon_objects(self, tids=np.nan, ancestor=np.nan, time=np.nan):
         """Get extant taxon objects filtered by parameters.
 
         This method returns all taxon objects tracked by the component when no
@@ -641,7 +632,7 @@ class SpeciesEvolver(Component):
 
         if not np.isnan(ancestor) and ancestor in data["tid"]:
             df = self.taxa_data_frame
-            df['pid'] = df['pid'].fillna(-1)
+            df["pid"] = df["pid"].fillna(-1)
 
             taxon = ancestor
 
@@ -649,7 +640,7 @@ class SpeciesEvolver(Component):
             stack = [taxon]
 
             while stack:
-                children = df.index[df['pid'] == taxon].tolist()
+                children = df.index[df["pid"] == taxon].tolist()
 
                 if children:
                     descendants.extend(children)
@@ -681,10 +672,10 @@ class SpeciesEvolver(Component):
 
     def _get_taxa_richness_map(self):
         """Get a map of the number of taxa."""
-        taxa = self._taxon_objs
+        objs = self._taxon_objs
 
-        if taxa:
-            masks = np.stack([taxon.range_mask for taxon in taxa])
+        if objs:
+            masks = np.stack([taxon.range_mask for taxon in objs])
             richness_mask = masks.sum(axis=0).astype(int)
         else:
             richness_mask = np.zeros(self._grid.number_of_nodes, dtype=int)
