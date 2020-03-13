@@ -281,14 +281,18 @@ class DataRecord(object):
             if time is not None:
                 data_vars_dict = {
                     "grid_element": (["item_id", "time"], _grid_elements),
-                    "element_id": (["item_id", "time"], _element_ids, {'dtype': np.int}),
+                    "element_id": (
+                        ["item_id", "time"],
+                        _element_ids,
+                        {"dtype": np.int},
+                    ),
                 }
                 coords = {"time": self._times, "item_id": self._item_ids}
             else:
                 # no time
                 data_vars_dict = {
                     "grid_element": (["item_id"], _grid_elements),
-                    "element_id": (["item_id"], _element_ids, {'dtype': np.int}),
+                    "element_id": (["item_id"], _element_ids, {"dtype": np.int}),
                 }
                 coords = {"item_id": self._item_ids}
 
