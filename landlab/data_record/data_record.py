@@ -275,20 +275,20 @@ class DataRecord(object):
             self._check_element_id_values(_grid_elements, _element_ids)
 
             # create coordinates for the dimension 'item_id':
-            self._item_ids = np.array(range(self._number_of_items))
+            self._item_ids = np.array(range(self._number_of_items), dtype=np.int)
 
             # create initial dictionaries of variables:
             if time is not None:
                 data_vars_dict = {
                     "grid_element": (["item_id", "time"], _grid_elements),
-                    "element_id": (["item_id", "time"], _element_ids),
+                    "element_id": (["item_id", "time"], _element_ids, {'dtype': np.int}),
                 }
                 coords = {"time": self._times, "item_id": self._item_ids}
             else:
                 # no time
                 data_vars_dict = {
                     "grid_element": (["item_id"], _grid_elements),
-                    "element_id": (["item_id"], _element_ids),
+                    "element_id": (["item_id"], _element_ids, {'dtype': np.int}),
                 }
                 coords = {"item_id": self._item_ids}
 
