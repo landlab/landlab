@@ -91,7 +91,7 @@ class SpeciesEvolver(Component):
 
     >>> se = SpeciesEvolver(mg)
 
-    ZoneController requires a function that returns a mask of the total extant
+    ZoneController requires a function that returns a mask of the total extent
     of taxa habitat. The mask is a boolean array where `True` values represent
     nodes that satisfy habitat conditions. Zone objects are not created here.
     The mask only maps the extant where taxa can exist. This function returns
@@ -114,7 +114,7 @@ class SpeciesEvolver(Component):
 
     The ``mask`` of the zone is True where the conditions of the zone function
     are met. All nodes of the grid are included because the elevation of each
-    node is below 100. The ``zone`` attribute of ``ZoneController`` returns a
+    node is below 100. The ``zones`` attribute of ``ZoneController`` returns a
     list of the zones that currently exist in the model. Below we return the
     mask of the single zone by indexing this list.
 
@@ -123,20 +123,30 @@ class SpeciesEvolver(Component):
             True,  True,  True,  True,  True,  True,  True,  True,  True,
             True,  True,  True], dtype=bool)
 
-    Populate a taxon to the zone. The attribute, ``taxa_data_frame`` indicates
-    only the one taxon exists because we populated each zone with one taxon,
-    and only the one zone exists.
+    Populate a taxon to the zone.
 
     >>> taxon = zc.populate_zones_uniformly(1)
     >>> se.track_taxa(taxon)
+
+    The attribute, ``taxa_data_frame`` indicates only the one taxon exists
+    because we populated each zone with one taxon, and only the one zone
+    exists.
+
     >>> se.taxa_data_frame # doctest: +NORMALIZE_WHITESPACE
           pid       type  t_first  t_final
     tid
     0    <NA>  ZoneTaxon        0     <NA>
 
+    The identifier of the taxon, ``tid`` is 0. The identifier of the taxon's
+    parent, ``pid``, is '<NA>' because it does not have a parent taxon given
+    that it was manually introduced using the ``track_taxa`` method. The taxon
+    was introduced at time, ``t_first`` and time, ``t_final`` is '<NA>'
+    because the taxon remains extant. See the documentation of this attribute
+    for further explanation of data frame columns.
+
     Force a change in the zone mask to demonstrate component functionality.
-    Here we begin a new time step where topography is uplifted by 200 that forms
-    a ridge trending north-south in the center of the grid.
+    Here we begin a new time step where topography is uplifted by 200 that
+    forms a ridge trending north-south in the center of the grid.
 
     >>> z[[3, 10, 17]] = 200
     >>> z.reshape(mg.shape)
@@ -177,8 +187,7 @@ class SpeciesEvolver(Component):
         . . . ^ * * *               * another zone
         . . . ^ * * *               ^ mountain range
 
-    The split of the initial zone triggered speciation. Taxon 0 became extinct
-    as it speciated to child taxa 1 and 2.
+    The split of the initial zone triggered speciation of taxon 1 by taxon 0.
 
     >>> se.taxa_data_frame # doctest: +NORMALIZE_WHITESPACE
           pid       type  t_first  t_final
@@ -301,12 +310,16 @@ class SpeciesEvolver(Component):
     def taxa_data_frame(self):
         """A Pandas DataFrame of taxa metadata.
 
-        Each row is the metadata of a taxon. The column, 'tid' is the taxon
-        identifier. The column, `appeared` is the first model time that the
-        taxon was tracked by the component. The column, `latest_time` is the
-        latest model time the taxon was extant. The column, `extant` indicates
-        if the taxon is extant or not (extinct) at the latest (current) time in
-        the model.
+        Each row is the metadata of a taxon. The column, ``tid`` is the taxon
+        identifier assigned when SpeciesEvolver begins tracking the taxon. The
+        column, ``pid`` is the tid of the parent of the taxon. A pid of `<NA>`
+        indicates no parent taxon. ``type`` is the type of ``Taxon`` object.
+        ``t_first`` is the initial model time the taxon was added to
+        SpeciesEvolver. ``t_final`` is the model time the taxon was recognized
+        as extinct. A t_final of `<NA>` indicates the taxon is extant.
+
+        Additional columns may be added by some taxon types. See the
+        documentation of these taxa for column description.
 
         The DataFrame is created from a data structure within the component.
         """
