@@ -328,13 +328,11 @@ class DataRecord(object):
             data_vars_dict.update(data_vars)
 
         # set attributes, if any
-        if attrs is not None:
-            try:
-                attrs.keys()
-            except AttributeError:
-                raise TypeError(
-                    "Attributes (attrs) passed to DataRecord" "must be a dictionary"
-                )
+        attrs = attrs or {}
+        if not isinstance(attrs, dict):
+            raise TypeError(
+                "Attributes (attrs) passed to DataRecord" "must be a dictionary"
+            )
 
         # create an xarray Dataset:
         self._dataset = xr.Dataset(data_vars=data_vars_dict, coords=coords, attrs=attrs)
