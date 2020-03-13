@@ -350,6 +350,16 @@ class NetworkSedimentTransporter(Component):
         """Return current time."""
         return self._time
 
+    @property
+    def d_mean_active(self):
+        """Mean parcel grain size of active parcels aggreggated at link."""
+        return self._d_mean_active
+
+    @property
+    def rhos_mean_active(self):
+        """Mean parcel density of active parcels aggreggated at link."""
+        return self._rhos_mean_active
+
     def _create_new_parcel_time(self):
         """ If we are going to track parcels through time in DataRecord, we
         need to add a new time column to the parcels dataframe. This method simply
