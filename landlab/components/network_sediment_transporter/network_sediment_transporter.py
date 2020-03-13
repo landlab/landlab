@@ -361,7 +361,7 @@ class NetworkSedimentTransporter(Component):
 
             self._parcels.add_record(time=[self._time])
 
-            self._parcels.ffill_grid_element_and_id(time_idx = [self._time_idx])
+            self._parcels.ffill_grid_element_and_id()
 
             for at in self._parcel_attributes:
                 self._parcels.dataset[at].values[
