@@ -91,10 +91,10 @@ class SpeciesEvolver(Component):
 
     >>> se = SpeciesEvolver(mg)
 
-    ZoneController requires a function that returns a mask of the total extent
+    ZoneController requires a function that returns a mask of the total extant
     of taxa habitat. The mask is a boolean array where `True` values represent
     nodes that satisfy habitat conditions. Zone objects are not created here.
-    The mask only maps the extent where taxa can exist. This function returns
+    The mask only maps the extant where taxa can exist. This function returns
     `True` where elevation is below 100, which is where the simulated lowland
     taxa of this model can inhabit.
 
@@ -129,7 +129,7 @@ class SpeciesEvolver(Component):
 
     >>> taxon = zc.populate_zones_uniformly(1)
     >>> se.track_taxa(taxon)
-    >>> se.taxa_data_frame
+    >>> se.taxa_data_frame # doctest: +NORMALIZE_WHITESPACE
           pid       type  t_first  t_final
     tid
     0    <NA>  ZoneTaxon        0     <NA>
@@ -180,7 +180,7 @@ class SpeciesEvolver(Component):
     The split of the initial zone triggered speciation. Taxon 0 became extinct
     as it speciated to child taxa 1 and 2.
 
-    >>> se.taxa_data_frame
+    >>> se.taxa_data_frame # doctest: +NORMALIZE_WHITESPACE
           pid       type  t_first  t_final
     tid
     0    <NA>  ZoneTaxon        0     <NA>
@@ -408,7 +408,7 @@ class SpeciesEvolver(Component):
         >>> z = mg.add_ones('topographic__elevation', at='node')
 
         Instantiate SpeciesEvolver and a ZoneController. Instantiate the
-        latter with a function that masks the low elevation zone extent. Only
+        latter with a function that masks the low elevation zone extant. Only
         one zone is created.
 
         >>> se = SpeciesEvolver(mg)
@@ -426,7 +426,7 @@ class SpeciesEvolver(Component):
         The one taxon is now tracked by SpeciesEvolver as indicated by the taxa
         DataFrame.
 
-        >>> se.taxa_data_frame
+        >>> se.taxa_data_frame # doctest: +NORMALIZE_WHITESPACE
               pid       type  t_first  t_final
         tid
         0    <NA>  ZoneTaxon        0     <NA>
@@ -478,7 +478,7 @@ class SpeciesEvolver(Component):
             # Append taxon data.
 
             data["tid"].append(taxon.tid)
-            if taxon.parent != None:
+            if taxon.parent is not None:
                 data["pid"].append(taxon.parent.tid)
             else:
                 data["pid"].append(np.nan)
@@ -496,9 +496,8 @@ class SpeciesEvolver(Component):
 
         self._grid.at_node["taxa__richness"] = self._get_taxa_richness_map()
 
-
-    def get_taxon_objects(
-        self, tids=np.nan, min_time=np.nan, max_time=np.nan, ancestor=np.nan
+    def get_extant_taxon_objects(
+        self, tids=np.nan, ancestor=np.nan, time=np.nan
     ):
         """Get extant taxon objects filtered by parameters.
 
@@ -513,20 +512,15 @@ class SpeciesEvolver(Component):
             returned even if only one object is contained within the list. By
             default, when `tids` is not specified, extant taxa with any
             identifier can be returned.
-        min_time : float, int, optional
-            Limit the taxa returned to those extant after this time. By
-            default, extant taxa at all of the times listed in the component
-            record can be returned. Must be less than ``max_time`` if both
-            specified.
-        max_time : float, int, optional
-            Limit the taxa returned to those extant prior to this time. By
-            default, extant taxa at all of the times listed in the component
-            record can be returned. Must be greater than ``min_time`` if both
-            specified.
         ancestor : int, optional
             Limit the taxa returned to those descending from the taxon
             designated as the ancestor. The ancestor is designated using its
             ``tid``. By default, taxa with any or no ancestors are returned.
+        time : float, int, optional
+            Limit the taxa returned to those that were extant at the time
+            designated by this parameter as well as extant at the current model
+            time. By default, extant taxa at all of the times listed in the
+            component record can be returned.
 
         Returns
         -------
@@ -545,14 +539,14 @@ class SpeciesEvolver(Component):
         >>> from landlab.components import SpeciesEvolver
         >>> from landlab.components.species_evolution import ZoneController
 
-        Create a model grid with flat topography.
+        Create a model grid.
 
         >>> mg = RasterModelGrid((3, 7), 1000)
         >>> z = mg.add_ones('topographic__elevation', at='node')
 
-        Instantiate SpeciesEvolver and a ZoneController. Instantiate the
-        latter with a function that masks the low elevation zone extent. Only
-        one zone is created.
+        Instantiate SpeciesEvolver and a ZoneController. Instantiate the latter
+        with a function that masks the low elevation zone extant. Only one zone
+        is created.
 
         >>> se = SpeciesEvolver(mg)
         >>> def zone_func(grid):
@@ -561,124 +555,87 @@ class SpeciesEvolver(Component):
         >>> len(zc.zones) == 1
         True
 
-        Introduce two taxa to the one zone.
+        Introduce two taxa to the zone.
 
         >>> taxa = zc.populate_zones_uniformly(2)
         >>> se.track_taxa(taxa)
 
-        Force mountain range formation to demonstrate this method, and then
-        advance model time.
+        Force north-south mountain ranges over two time steps that drives taxa
+        evolution.
 
-        >>> z[mg.x_of_node == 5000] = 200
+        >>> z[mg.x_of_node == 2000] = 200
         >>> zc.run_one_step(1000)
         >>> se.run_one_step(1000)
-
-        Form a second mountain range, and advance the model time again.
-
-        >>> z[mg.x_of_node == 3000] = 200
-        >>> zc.run_one_step(1000)
-        >>> se.run_one_step(1000)
-
-        Uplift the east, forming a high elevation plataue, removing the
-        easternmost zone. Advance model time once again.
-
-        >>> z[mg.x_of_node < 3000] = 200
+        >>> z[mg.x_of_node == 4000] = 200
         >>> zc.run_one_step(1000)
         >>> se.run_one_step(1000)
 
         Display taxa metadata.
 
-        >>> se.taxa_data_frame
+        >>> se.taxa_data_frame # doctest: +NORMALIZE_WHITESPACE
               pid       type  t_first  t_final
         tid
         0    <NA>  ZoneTaxon        0     <NA>
         1    <NA>  ZoneTaxon        0     <NA>
-        2       0  ZoneTaxon     1000     3000
-        3       1  ZoneTaxon     1000     3000
+        2       0  ZoneTaxon     1000     <NA>
+        3       1  ZoneTaxon     1000     <NA>
         4       0  ZoneTaxon     2000     <NA>
         5       1  ZoneTaxon     2000     <NA>
 
         Objects of all extant taxon are returned when no parameters are
         inputted.
 
-        >>> se.get_taxon_objects()
+        >>> se.get_extant_taxon_objects() # doctest: +NORMALIZE_WHITESPACE
         [<ZoneTaxon, tid=0>,
          <ZoneTaxon, tid=1>,
+         <ZoneTaxon, tid=2>,
+         <ZoneTaxon, tid=3>,
          <ZoneTaxon, tid=4>,
          <ZoneTaxon, tid=5>]
 
-        Get the taxon objects with identifiers, 0 and 1.
+        The returned objects of extant species can be limited using parameters.
+        Here, get the taxon objects with identifiers, 4 and 5.
 
-        >>> se.get_taxon_objects(tids=4, 5])
-        [<ZoneTaxon, tid=0>, <ZoneTaxon, tid=1>]
+        >>> se.get_extant_taxon_objects(tids=[4, 5])
+        [<ZoneTaxon, tid=4>, <ZoneTaxon, tid=5>]
 
-        The species extant at a time are returned when ``time`` is specified.
-        Here we get the species extant at time 0. Species 0 and 1 are the
-        species extant at this time.
+        Extant taxon objects descending from a taxon can be obtained using the
+        ``ancestor`` property. Here, get the taxa that descended from taxon 0.
 
-        >>> se.get_taxon_objects(time=1000)
-        [<ZoneTaxon, tid=0>, <ZoneTaxon, tid=1>]
+        >>> se.get_extant_taxon_objects(ancestor=0)
+        [<ZoneTaxon, tid=2>, <ZoneTaxon, tid=4>]
 
-        Get the taxa that descended from species 0.
+        Taxa can be limited to those that were extant ``time``.
 
-        >>> se.get_taxon_objects(ancestor=0)
-        [<ZoneTaxon, tid=2>, <ZoneTaxon, tid=3>]
+        >>> se.get_extant_taxon_objects(time=1000) # doctest: +NORMALIZE_WHITESPACE
+        [<ZoneTaxon, tid=0>,
+         <ZoneTaxon, tid=1>,
+         <ZoneTaxon, tid=2>,
+         <ZoneTaxon, tid=3>]
 
-        Get the taxa that descended from species 0 and that are currently
-        extant. The latest time of taxa 2 and 3 is equal to the latest time in
-        the record, altough only one of these taxa are extant.
+        The returned taxa can be further limited by including multiple
+        method properties.
 
-        >>> se.get_taxon_objects(time=1000, ancestor=0)
-        [<ZoneTaxon, tid=3>]
+        >>> se.get_extant_taxon_objects(ancestor=0, time=1000)
+        [<ZoneTaxon, tid=2>]
 
-        Note that combining `extant_at_latest_time` with `time` does not return
-        the taxa extant at the inputted time. Rather the taxa present at `time`
-        that are still extant are returned. An empty list is returned if no
-        taxa match the criteria.
+        An empty list is returned when no extant taxa match parameter criteria.
 
-        >>> se.get_taxon_objects(extant_at_latest_time=True, time=0)
-        []
-
-        An empty list is also return when no taxa match a valid value of
-        ``tid.``
-
-        >>> se.get_taxon_objects(tid=11)
+        >>> se.get_extant_taxon_objects(tids=[11])
         []
         """
-        # Create `results` where each element is a list tids output by a
-        # parameter query of taxa.
+        # Create `results` that contains tids of the taxa matching parameter
+        # criteria.
 
         extant_tids = [taxon.tid for taxon in self._taxon_objs]
-        results = [extant_tids]
+        results = set(extant_tids)
 
         data = self._taxa_data
 
         # Query by identifiers.
 
         if isinstance(tids, list):
-            results.append(tids)
-
-        # Query by time.
-
-        if not np.isnan(min_time) or not np.isnan(max_time):
-            if min_time > max_time:
-                raise ValueError("`min_time` cannot be greater than `max_time`")
-
-            if not np.isnan(min_time):
-                earliest_time = min_time
-            else:
-                earliest_time = self._record.earliest_time
-
-            if not np.isnan(max_time):
-                latest_time = max_time
-            else:
-                latest_time = self._record.latest_time
-
-            t_first = np.array(data["t_first"])
-            t_latest = np.nan_to_num(data["t_final"], nan=self._record.latest_time)
-
-            mask = np.all([t_first <= latest_time, t_latest >= earliest_time], 0)
-            results.append(np.array(data["tid"])[mask].tolist())
+            results = results.intersection(tids)
 
         # Query by ancestor.
 
@@ -703,13 +660,21 @@ class SpeciesEvolver(Component):
                 if stack:
                     taxon = stack[0]
 
-            descendants = list(set(descendants))
-            results.append(descendants)
+            results = results.intersection(descendants)
+        elif not np.isnan(ancestor):
+            results = []
+
+        # Query by time.
+
+        if not np.isnan(time):
+            t_first = np.array(data["t_first"])
+            t_latest = np.nan_to_num(data["t_final"], nan=self._record.latest_time)
+            mask = np.all([time >= t_first, time <= t_latest], 0)
+            results = results.intersection(np.array(data["tid"])[mask].tolist())
 
         # Get the Taxon objects that match all parameter query results.
 
-        matched_tids = list(set.intersection(*map(set, results)))
-        taxa = [taxon for taxon in self._taxon_objs if taxon.tid in matched_tids]
+        taxa = [taxon for taxon in self._taxon_objs if taxon.tid in results]
         taxa.sort(key=lambda taxon: taxon.tid)
 
         return taxa

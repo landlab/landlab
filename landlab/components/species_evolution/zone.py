@@ -228,7 +228,7 @@ def _get_successors(
     if conn_type == Connection.ONE_TO_NONE:
         successors = []
 
-    if conn_type == Connection.ONE_TO_ONE:
+    elif conn_type == Connection.ONE_TO_ONE:
         # The prior zone is set as the new zone because only the one new
         # and the one prior overlap.
         n = ns_i_p[0]

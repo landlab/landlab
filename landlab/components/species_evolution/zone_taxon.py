@@ -35,9 +35,10 @@ class ZoneTaxon(Taxon):
     expanded or overridden when needed. The primary methods of second stage
     macroevolution are ``_evaluate_dispersal``, ``_evaluate_speciation``, and
     ``_evaluate_extinction``. The evaluate dispersal method is intended to
-    modify dispersal in the first stage and it has no effect unless it is
-    expanded or overridden to have an effect. Processes other than those listed
-    above can be called by expanding or overridding the ``_evolve`` method.
+    modify dispersal conducted in the first stage and it has no effect unless
+    it is expanded or overridden to have an effect. Processes other than those
+    listed above can be called by expanding or overridding the ``_evolve``
+    method.
 
     The taxon is allopatric when it is associated with/exists within multiple
     zones (signifying multiple member populations). A timer is started when a
@@ -177,13 +178,14 @@ class ZoneTaxon(Taxon):
             child_count = len(child_taxa)
 
             extinct = self._evaluate_extinction(dt)
-            pseudoextinct = child_count > 1 and not self._pps and not extinct
+            pseudoextinct = child_count > 1 and not self._pps
             self.extant = not extinct and not pseudoextinct
 
             # Update the record.
 
             record.increment_value("speciations", child_count)
-            record.increment_value("extinctions", int(extinct))
+            record.increment_value("extinctions", int(extinct and not pseudoextinct))
+
             if not self._pps:
                 record.increment_value("pseudoextinctions", int(pseudoextinct))
 
@@ -218,7 +220,7 @@ class ZoneTaxon(Taxon):
             self._time_in_allopatry = None
         elif self._time_in_allopatry is None:
             self._time_in_allopatry = 0
-        elif dt != None:
+        elif dt is not None:
             self._time_in_allopatry += dt
 
     def _produce_child_taxon(self, zones):
@@ -278,7 +280,7 @@ class ZoneTaxon(Taxon):
             indicates no child objects and no allopatric speciation.
         """
         zones = self.zones
-        allopatric = self._time_in_allopatry != None
+        allopatric = self._time_in_allopatry is not None
         children = []
 
         if allopatric and self._time_in_allopatry >= self._tas:

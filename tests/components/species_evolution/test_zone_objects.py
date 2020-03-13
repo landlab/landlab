@@ -187,7 +187,7 @@ def test_one_to_one(zone_example_grid):
     )
     pd.testing.assert_frame_equal(sc.record_data_frame, expected_df, check_like=True)
 
-    np.testing.assert_equal(len(se.get_taxon_objects(time=1)), 1)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects(time=1)), 1)
 
 
 def test_one_to_many(zone_example_grid):
@@ -214,7 +214,7 @@ def test_one_to_many(zone_example_grid):
     )
     pd.testing.assert_frame_equal(sc.record_data_frame, expected_df, check_like=True)
 
-    np.testing.assert_equal(len(se.get_taxon_objects(time=0)), 1)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects(time=0)), 1)
 
     # Break the zone in two for time 1.
 
@@ -240,7 +240,7 @@ def test_one_to_many(zone_example_grid):
     )
     pd.testing.assert_frame_equal(sc.record_data_frame, expected_df, check_like=True)
 
-    np.testing.assert_equal(len(se.get_taxon_objects()), 2)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects()), 2)
 
 
 def test_many_to_one(zone_example_grid):
@@ -267,7 +267,7 @@ def test_many_to_one(zone_example_grid):
     )
     pd.testing.assert_frame_equal(sc.record_data_frame, expected_df, check_like=True)
 
-    np.testing.assert_equal(len(se.get_taxon_objects(time=0)), 2)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects(time=0)), 2)
 
     # Modify elevation such that two zones each overlap the original two zones.
 
@@ -291,7 +291,7 @@ def test_many_to_one(zone_example_grid):
     )
     pd.testing.assert_frame_equal(sc.record_data_frame, expected_df, check_like=True)
 
-    np.testing.assert_equal(len(se.get_taxon_objects(time=1)), 2)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects(time=1)), 2)
 
 
 def test_many_to_many(zone_example_grid):
@@ -318,7 +318,7 @@ def test_many_to_many(zone_example_grid):
     )
     pd.testing.assert_frame_equal(sc.record_data_frame, expected_df, check_like=True)
 
-    np.testing.assert_equal(len(se.get_taxon_objects(time=0)), 2)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects(time=0)), 2)
 
     # Modify elevation such that two zones each overlap the original two zones.
 
@@ -344,7 +344,7 @@ def test_many_to_many(zone_example_grid):
     )
     pd.testing.assert_frame_equal(sc.record_data_frame, expected_df, check_like=True)
 
-    np.testing.assert_equal(len(se.get_taxon_objects()), 4)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects()), 4)
 
 
 def test_one_to_many_to_one(zone_example_grid):
@@ -365,7 +365,7 @@ def test_one_to_many_to_one(zone_example_grid):
     sc.run_one_step(1)
     se.run_one_step(1)
 
-    np.testing.assert_equal(len(se.get_taxon_objects()), 1)
+    np.testing.assert_equal(len(se.get_extant_taxon_objects()), 1)
 
 
 def test_min_area(zone_example_grid):
@@ -508,3 +508,44 @@ def test_time_to_allopatric_speciation(zone_example_grid):
     expected_df["t_final"] = expected_df["t_final"].astype("Int64")
 
     pd.testing.assert_frame_equal(se.taxa_data_frame, expected_df, check_like=True)
+
+
+def test_pseudoextinction(zone_example_grid):
+    mg, z = zone_example_grid
+
+    z[[9, 10, 11, 12]] = 1
+
+    se = SpeciesEvolver(mg)
+    sc = ZoneController(mg, zone_func)
+    taxa = sc.populate_zones_uniformly(1, persists_post_speciation=False)
+    se.track_taxa(taxa)
+
+    z[11] = 0
+    sc.run_one_step(1)
+    se.run_one_step(1)
+
+    expected_df = pd.DataFrame(
+        {
+            "pid": [np.nan, 0, 0],
+            "type": 3 * [ZoneTaxon.__name__],
+            "t_first": [0, 1, 1],
+            "t_final": [1, np.nan, np.nan]
+        },
+        index=[0, 1, 2]
+    )
+    expected_df.index.name = "tid"
+    expected_df["pid"] = expected_df["pid"].astype("Int64")
+    expected_df["t_final"] = expected_df["t_final"].astype("Int64")
+
+    pd.testing.assert_frame_equal(se.taxa_data_frame, expected_df, check_like=True)
+
+    expected_df = pd.DataFrame(
+        {
+            "time": [0, 1],
+            "taxa": [1, 2],
+            "speciations": [np.nan, 2],
+            "extinctions": [np.nan, 0],
+            "pseudoextinctions": [np.nan, 1]
+        }
+    )
+    pd.testing.assert_frame_equal(se.record_data_frame, expected_df, check_like=True)
