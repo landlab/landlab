@@ -683,7 +683,7 @@ class NetworkSedimentTransporter(Component):
         )
 
         active_parcel_idx = Activearray == _ACTIVE
-        
+
         # compute parcel virtual velocity, m/s
         self._pvelocity[active_parcel_idx] = (
             W.real[active_parcel_idx]
@@ -696,11 +696,11 @@ class NetworkSedimentTransporter(Component):
         )
 
         self._pvelocity[np.isnan(self._pvelocity)] = 0.0
-        
-        if np.max(self._pvelocity) > 1: 
+
+        if np.max(self._pvelocity) > 1:
             warnings.warn('NetworkSedimentTransporter: Maximum parcel virtual velocity exceeds 1 m/s')
 
-        # Assign those things to the grid -- might be useful for plotting 
+        # Assign those things to the grid -- might be useful for plotting
         self._grid.at_link["sediment_total_volume"] = self._vol_tot
         self._grid.at_link["sediment__active__volume"] = self._vol_act
         self._grid.at_link["sediment__active__sand_fraction"] = frac_sand
