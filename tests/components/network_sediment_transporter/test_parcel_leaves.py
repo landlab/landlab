@@ -8,7 +8,7 @@ from landlab.grid.network import NetworkModelGrid
 _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
 
-def test_parcel_leaves(example_nmg, example_flow_depth, example_flow_director):
+def test_parcel_leaves(example_nmg, example_flow_director):
 
     example_nmg.at_link["reach_length"] = ([10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0],)
 
@@ -40,13 +40,12 @@ def test_parcel_leaves(example_nmg, example_flow_depth, example_flow_director):
 
     timesteps = 5
 
-    example_flow_depth = example_flow_depth * 20  # outrageously high transport rate
+    example_nmg.at_link['flow_depth']=example_nmg.at_link['flow_depth'] * 20
 
     nst = NetworkSedimentTransporter(
         example_nmg,
         one_parcel,
         example_flow_director,
-        example_flow_depth,
         bed_porosity=0.03,
         g=9.81,
         fluid_density=1000,

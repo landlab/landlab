@@ -53,13 +53,11 @@ class NetworkSedimentTransporter(Component):
 
     This component cares about units.
 
-    TODO: statement about what units are required, including for dt (seconds)
-
     **Usage:**
     Option 1 - Basic::
         NetworkSedimentTransporter(grid,
                              parcels,
-                             transporter = asdfasdf,
+                             transporter = XXXXXX,
                              discharge,
                              channel_geometry
                              )
@@ -91,6 +89,7 @@ class NetworkSedimentTransporter(Component):
     >>> _ = nmg.add_field("bedrock__elevation", [3., 2., 1., 0.], at="node") # m
     >>> _ = nmg.add_field("reach_length", [100., 100., 100.], at="link")  # m
     >>> _ = nmg.add_field("channel_width", (15 * np.ones(nmg.size("link"))), at="link")
+    >>> _ = nmg.add_field("flow_depth", (2 * np.ones(nmg.size("link"))), at="link") # m   
 
     Add ``topographic__elevation`` to the grid because the ``FlowDirectorSteepest``
     will look to it to determine the direction of sediment transport through the
@@ -107,11 +106,6 @@ class NetworkSedimentTransporter(Component):
     Define the starting time and the number of timesteps for this model run.
     >>> timesteps = 10
     >>> time = [0.0]
-
-    Define the flow depth for each link and timestep.
-    >>> example_flow_depth = (
-    ...     np.tile(2, (nmg.number_of_links)) *
-    ...     np.tile(1, (timesteps + 1, 1))) # 2 meter flow depth
 
     Define the sediment characteristics that will be used to create the parcels ``DataRecord``
 
@@ -146,7 +140,6 @@ class NetworkSedimentTransporter(Component):
     ...         nmg,
     ...         one_parcel,
     ...         flow_director,
-    ...         example_flow_depth,
     ...         bed_porosity=0.03,
     ...         g=9.81,
     ...         fluid_density=1000,
@@ -194,6 +187,14 @@ class NetworkSedimentTransporter(Component):
             "mapping": "link",
             "doc": "Flow width of the channel, assuming constant width",
         },
+        "flow_depth": {
+            "dtype": float,
+            "intent": "in",
+            "optional": False,
+            "units": "m",
+            "mapping": "link",
+            "doc": "Flow depth of the channel",
+        },                
         "reach_length": {
             "dtype": float,
             "intent": "in",
@@ -217,7 +218,6 @@ class NetworkSedimentTransporter(Component):
         grid,
         parcels,
         flow_director,
-        flow_depth,
         bed_porosity=0.3,
         g=9.81,
         fluid_density=1000.0,
@@ -232,14 +232,12 @@ class NetworkSedimentTransporter(Component):
         parcels: DataRecord
             A landlab DataRecord describing the characteristics and location of
             sediment "parcels".
-
-            Either put more information about parcels here or put it above and
+            
+            XXXX Either put more information about parcels here or put it above and
             reference it here.
-
+            
         flow_director: FlowDirectorSteepest
             A landlab flow director. Currently, must be FlowDirectorSteepest.
-        flow_depth: float, numpy array of shape (timesteps,links)
-            Flow depth of water in channel at each link at each timestep. (m)
         bed_porosity: float, optional
             Proportion of void space between grains in the river channel bed.
             Default value is 0.3.
@@ -295,9 +293,8 @@ class NetworkSedimentTransporter(Component):
             )
             raise ValueError(msg)
 
-        # save reference to flow director and specified flow depth
+        # save reference to flow director
         self._fd = flow_director
-        self._flow_depth = flow_depth
 
         # verify and save the bed porosity.
         if not 0 <= bed_porosity < 1:
@@ -463,7 +460,7 @@ class NetworkSedimentTransporter(Component):
             self._fluid_density
             * self._g
             * self._grid.at_link["channel_slope"]
-            * self._flow_depth[self._time_idx, :]
+            * self._grid.at_link["flow_depth"]
         )
 
         # calcuate taustar
@@ -661,7 +658,7 @@ class NetworkSedimentTransporter(Component):
             frac_sand_array[Linkarray == i] = frac_sand[i]
             vol_act_array[Linkarray == i] = self._vol_act[i]
             Sarray[Linkarray == i] = self._grid.at_link["channel_slope"][i]
-            Harray[Linkarray == i] = self._flow_depth[self._time_idx, i]
+            Harray[Linkarray == i] = self._grid.at_link["flow_depth"][i]
             Larray[Linkarray == i] = self._grid.at_link["reach_length"][i]
             active_layer_thickness_array[Linkarray == i] = self._active_layer_thickness[
                 i

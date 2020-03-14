@@ -7,7 +7,6 @@ from landlab.grid.network import NetworkModelGrid
 
 _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
-
 def test_first_in_last_out():
     y_of_node = (0, 0, 0, 0, 0, 0)
     x_of_node = (0, 100, 200, 300, 400, 500)
@@ -26,6 +25,7 @@ def test_first_in_last_out():
     ]
     nmg_constant_slope.at_node["bedrock__elevation"] = [5.0, 4.0, 3.0, 2.0, 1.0, 0.0]
     nmg_constant_slope.at_link["channel_slope"] = [0.001, 0.001, 0.001, 0.001, 0.001]
+    nmg_constant_slope.at_link["flow_depth"] = [1.75, 1.75, 1.75, 1.75, 1.75]
     nmg_constant_slope.at_link["reach_length"] = [
         100.0,
         100.0,
@@ -41,10 +41,6 @@ def test_first_in_last_out():
     flow_director.run_one_step()
 
     timesteps = 20
-
-    example_flow_depth = (
-        np.tile(1.75, (nmg_constant_slope.number_of_links))
-    ) * np.tile(1, (timesteps + 1, 1))
 
     time = [0.0]
 
@@ -81,7 +77,6 @@ def test_first_in_last_out():
         nmg_constant_slope,
         hundred_boring_parcels,
         flow_director,
-        example_flow_depth,
         bed_porosity=0.03,
         g=9.81,
         fluid_density=1000,

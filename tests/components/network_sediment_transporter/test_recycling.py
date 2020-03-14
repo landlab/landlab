@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
@@ -7,51 +8,7 @@ from landlab.grid.network import NetworkModelGrid
 
 _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
-
-def test_no_flow_no_transport(example_nmg, example_parcels, example_flow_director):
-
-    timesteps = 3
-    no_flow = np.zeros([(timesteps + 1), (example_nmg.number_of_links)])
-
-    nst = NetworkSedimentTransporter(
-        example_nmg,
-        example_parcels,
-        example_flow_director,
-        no_flow,
-        bed_porosity=0.03,
-        g=9.81,
-        fluid_density=1000,
-    )
-
-    dt = 60 * 60 * 24  # (seconds) daily timestep
-
-    for t in range(0, (timesteps * dt), dt):
-        nst.run_one_step(dt)
-
-        # Need to define original_node_elev after a timestep has passed.
-        if t / (60 * 60 * 24) == 1:
-            original_node_elev = example_nmg.at_node["topographic__elevation"]
-
-    # No flow? Parcels should stay in same locations in links
-    assert_array_almost_equal(
-        example_parcels.dataset.location_in_link[:, 0],
-        example_parcels.dataset.location_in_link[:, 1],
-    )
-
-    # No flow? Total parcel volume should stay the same
-    assert_array_equal(
-        np.sum(example_parcels.dataset["volume"].values, axis=0)[0],
-        np.sum(example_parcels.dataset["volume"].values, axis=0)[1],
-    )
-
-    # No flow? Elevations should stay the same
-    assert_array_equal(
-        original_node_elev, example_nmg.at_node["topographic__elevation"]
-    )
-
-
-def test_defined_parcel_transport():
-
+def test_recycling():
     y_of_node = (0, 0, 0, 0)
     x_of_node = (0, 100, 200, 300)
     nodes_at_link = ((0, 1), (1, 2), (2, 3))
@@ -66,14 +23,12 @@ def test_defined_parcel_transport():
     nmg_constant_slope.at_link["channel_width"] = 15 * np.ones(
         nmg_constant_slope.size("link")
     )
-    nmg_constant_slope.at_link["flow_depth"] = 2 * np.ones(
+    nmg_constant_slope.at_link["flow_depth"] = 3 * np.ones(
             nmg_constant_slope.size("link")
         )
 
     flow_director = FlowDirectorSteepest(nmg_constant_slope)
     flow_director.run_one_step()
-
-    timesteps = 11
 
     time = [0.0]
 
@@ -93,7 +48,7 @@ def test_defined_parcel_transport():
         "volume": (["item_id", "time"], initial_volume),
     }
 
-    one_parcel = DataRecord(
+    parcels = DataRecord(
         nmg_constant_slope,
         items=items,
         time=time,
@@ -103,7 +58,7 @@ def test_defined_parcel_transport():
 
     nst = NetworkSedimentTransporter(
         nmg_constant_slope,
-        one_parcel,
+        parcels,
         flow_director,
         bed_porosity=0.03,
         g=9.81,
@@ -113,29 +68,22 @@ def test_defined_parcel_transport():
 
     dt = 60  # (seconds) 1 min timestep
 
-    distance_traveled = np.arange(0.0, timesteps)
-    active_layer_thickness_array = np.arange(0.0, timesteps)
-    # distance_traveled = np.arange(0.,timesteps)
+    timesteps = 8
 
     for t in range(0, (timesteps * dt), dt):
+        # RECYCLE sediment: what left the network gets added back in at top.
+        parcels.dataset.element_id.values[parcels.dataset.element_id.values == _OUT_OF_NETWORK] = 0
         nst.run_one_step(dt)
-        distance_traveled[np.int(t / dt)] = nst._distance_traveled_cumulative
-    # NEED TO CALCULATE THINGS HERE.
-    # Transport distance should match?
-    Distance_Traveled_Should_Be = [
-        21.61998527,
-        43.23997054,
-        64.85995581,
-        86.47994109,
-        108.09992636,
-        129.71991163,
-        151.3398969,
-        172.95988217,
-        194.57986744,
-        216.19985272,
-        237.81983799,
-    ]
+
+        print('done with another timestep')
+        print(parcels.dataset.element_id.values)
+
+    Parcel_element_id = parcels.dataset.element_id.values
+
+    Parcel_element_id_Should_Be = np.array(
+            [[ 0.,  0.,  0.,  1.,  1.,  2.,  2., -2., 0]]
+            )
 
     assert_array_almost_equal(
-        Distance_Traveled_Should_Be, distance_traveled, decimal=-1
+        Parcel_element_id_Should_Be, Parcel_element_id, decimal=-1
     )

@@ -7,7 +7,6 @@ from landlab.grid.network import NetworkModelGrid
 
 _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
-
 @pytest.fixture()
 def example_nmg():
     y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
@@ -30,8 +29,12 @@ def example_nmg():
     )  # m
 
     grid.add_field("channel_width", 15 * np.ones(grid.size("link")), at="link")
-    return grid
 
+    grid.add_field(
+    "flow_depth", 0.01121871 * np.ones(grid.size("link")), at="link"
+    ) # Why such an odd, low flow depth? Well, it doesn't matter... and oops.-AP
+
+    return grid
 
 @pytest.fixture()
 def example_parcels(example_nmg):
@@ -102,19 +105,19 @@ def example_flow_director(example_nmg):
     return fd
 
 
-@pytest.fixture()
-def example_flow_depth(example_nmg):
-    timesteps = 30
-
-    Qgage = 8000.0  # (m3/s)
-
-    Hgage = 1.703 * Qgage ** 0.3447
-    # (m)
-    Agage = 4.5895e9
-    # (m2)
-
-    flow_depth = (
-        np.tile(Hgage, (example_nmg.number_of_links)) / (Agage ** 0.4)
-    ) * np.tile(example_nmg.size("link"), (timesteps + 1, 1)) ** 0.4
-
-    return flow_depth
+# @pytest.fixture()
+# def example_flow_depth(example_nmg):
+#     timesteps = 30
+#
+#     Qgage = 8000.0  # (m3/s)
+#
+#     Hgage = 1.703 * Qgage ** 0.3447
+#     # (m)
+#     Agage = 4.5895e9
+#     # (m2)
+#
+#     flow_depth = (
+#         np.tile(Hgage, (example_nmg.number_of_links)) / (Agage ** 0.4)
+#     ) * np.tile(example_nmg.size("link"), (timesteps + 1, 1)) ** 0.4
+#
+#     return flow_depth

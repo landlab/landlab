@@ -39,6 +39,7 @@ area = nmg_constant_slope.add_ones("cell_area_at_node", at="node")
 nmg_constant_slope.at_link["drainage_area"] = [10e6, 10e6, 10e6, 10e6, 10e6]  # m2
 nmg_constant_slope.at_link["channel_slope"] = [0.001, 0.001, 0.001, 0.001, 0.001]
 nmg_constant_slope.at_link["link_length"] = [100.0, 100.0, 100.0, 100.0, 100.0]  # m
+nmg_constant_slope.at_link["flow_depth"] = [2.0, 2.0, 2.0, 2.0, 2.0]  # m
 
 nmg_constant_slope.at_link["channel_width"] = 15 * np.ones(
     np.size(nmg_constant_slope.at_link["drainage_area"])
@@ -48,16 +49,8 @@ flow_director = FlowDirectorSteepest(nmg_constant_slope)
 flow_director.run_one_step()
 
 timesteps = 20
-# timesteps = 33 # playing to demonstrate issue...
 
-example_flow_depth = (np.tile(1.75, (nmg_constant_slope.number_of_links))) * np.tile(
-    1, (timesteps + 1, 1)
-)
-# 2 meter flow depth
-
-# example_flow_depth = example_flow_depth*0.5
-
-time = [0.0]  # probably not the sensible way to do this...
+time = [0.0]  #
 
 element_id = np.zeros(100, dtype=int)
 element_id = np.expand_dims(element_id, axis=1)
@@ -88,13 +81,10 @@ hundred_boring_parcels = DataRecord(
     dummy_elements={"link": [_OUT_OF_NETWORK]},
 )
 
-# example_flow_depth = example_flow_depth*5# outrageously high transport rate
-
 nst = NetworkSedimentTransporter(
     nmg_constant_slope,
     hundred_boring_parcels,
     flow_director,
-    example_flow_depth,
     bed_porosity=0.03,
     g=9.81,
     fluid_density=1000,
