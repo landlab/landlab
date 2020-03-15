@@ -278,7 +278,7 @@ class PotentialEvapotranspiration(Component):
 
     _var_units = {
         "radiation__ratio_to_flat_surface": "None",
-        "surface__potential_evapotranspiration_rate": "mm",
+        "surface__potential_evapotranspiration_rate": "mm/d",
         "radiation__incoming_shortwave_flux": "W/m^2",
         "radiation__net_shortwave_flux": "W/m^2",
         "radiation__net_longwave_flux": "W/m^2",

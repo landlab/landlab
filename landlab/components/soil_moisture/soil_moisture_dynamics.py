@@ -228,8 +228,8 @@ class SoilMoisture(Component):
     _var_units = {
         "vegetation__cover_fraction": "None",
         "vegetation__live_leaf_area_index": "None",
-        "surface__potential_evapotranspiration_rate": "mm",
-        "surface__potential_evapotranspiration_rate__grass": "mm",
+        "surface__potential_evapotranspiration_rate": "mm/d",
+        "surface__potential_evapotranspiration_rate__grass": "mm/d",
         "vegetation__plant_functional_type": "None",
         "vegetation__water_stress": "None",
         "soil_moisture__saturation_fraction": "None",
@@ -237,7 +237,7 @@ class SoilMoisture(Component):
         "soil_moisture__root_zone_leakage": "mm",
         "surface__runoff": "mm",
         "surface__runon": "mm",
-        "surface__evapotranspiration": "mm",
+        "surface__evapotranspiration": "mm/d",
         "rainfall__daily_depth": "mm",
     }
 
