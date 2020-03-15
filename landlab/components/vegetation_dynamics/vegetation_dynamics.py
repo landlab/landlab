@@ -47,9 +47,9 @@ class Vegetation(Component):
      'vegetation__water_stress']
 
     >>> sorted(Vegetation.units) # doctest: +NORMALIZE_WHITESPACE
-    [('surface__evapotranspiration', 'mm'),
-     ('surface__potential_evapotranspiration_30day_mean', 'mm'),
-     ('surface__potential_evapotranspiration_rate', 'mm'),
+    [('surface__evapotranspiration', 'mm/d'),
+     ('surface__potential_evapotranspiration_30day_mean', 'mm/d'),
+     ('surface__potential_evapotranspiration_rate', 'mm/d'),
      ('vegetation__cover_fraction', 'None'),
      ('vegetation__dead_biomass', 'g m^-2 d^-1'),
      ('vegetation__dead_leaf_area_index', 'None'),

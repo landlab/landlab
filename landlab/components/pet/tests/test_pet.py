@@ -37,7 +37,7 @@ def test_var_units(pet):
     assert pet.var_units("radiation__net_longwave_flux") == "W/m^2"
     assert pet.var_units("radiation__net_shortwave_flux") == "W/m^2"
     assert pet.var_units("radiation__ratio_to_flat_surface") == "None"
-    assert pet.var_units("surface__potential_evapotranspiration_rate") == "mm"
+    assert pet.var_units("surface__potential_evapotranspiration_rate") == "mm/d"
 
 
 def test_grid_shape(pet):

@@ -44,14 +44,14 @@ def test_var_units(sm):
 
     assert sm.var_units("vegetation__cover_fraction") == "None"
     assert sm.var_units("vegetation__live_leaf_area_index") == "None"
-    assert sm.var_units("surface__potential_evapotranspiration_rate") == "mm"
+    assert sm.var_units("surface__potential_evapotranspiration_rate") == "mm/d"
     assert sm.var_units("vegetation__plant_functional_type") == "None"
     assert sm.var_units("vegetation__water_stress") == "None"
     assert sm.var_units("soil_moisture__saturation_fraction") == "None"
     assert sm.var_units("soil_moisture__initial_saturation_fraction") == "None"
     assert sm.var_units("soil_moisture__root_zone_leakage") == "mm"
     assert sm.var_units("surface__runoff") == "mm"
-    assert sm.var_units("surface__evapotranspiration") == "mm"
+    assert sm.var_units("surface__evapotranspiration") == "mm/d"
     assert sm.var_units("rainfall__daily_depth") == "mm"
 
 

@@ -140,7 +140,7 @@ class PotentialEvapotranspiration(Component):
      ('radiation__net_longwave_flux', 'W/m^2'),
      ('radiation__net_shortwave_flux', 'W/m^2'),
      ('radiation__ratio_to_flat_surface', 'None'),
-     ('surface__potential_evapotranspiration_rate', 'mm')]
+     ('surface__potential_evapotranspiration_rate', 'mm/d')]
     >>> pet_obj.grid.number_of_cell_rows
     3
     >>> pet_obj.grid.number_of_cell_columns
