@@ -57,7 +57,7 @@ class TrickleDownProfiler(_BaseProfiler):
 
     For each starting node, the TrickleDownProfiler follows the network
     downstream until it reaches the outlet. One or more starting nodes can be
-    used, depending on a users needs.
+    used, depending on a user's needs.
 
     The node IDs and distances upstream of the channel network are stored in
     ``data_structure``. It is a dictionary with keys indicating the starting
@@ -309,7 +309,7 @@ class TrickleDownProfiler(_BaseProfiler):
         """Create the profile_IDs data structure for channel network.
 
         The bound attribute self._profile structure is the channel segment
-        datastructure. profile structure is a list of length
+        datastructure. Profile structure is a list of length
         starting_nodes. Each element of profile_structure is itself a
         list of length number of stream segments that drain to each of the
         starting nodes. Each stream segment list contains the node ids of a
