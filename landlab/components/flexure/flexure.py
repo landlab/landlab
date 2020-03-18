@@ -201,7 +201,7 @@ class Flexure(Component):
         if method not in ("airy", "flexure"):
             raise ValueError("{method}: method not understood".format(method=method))
 
-        super(Flexure, self).__init__(grid)
+        super().__init__(grid)
 
         self._youngs = youngs
         self._method = method

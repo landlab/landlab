@@ -144,7 +144,7 @@ class GrainHill(CTSModel):
             self.collapse_rate = 0.0
 
         # Call base class init
-        super(GrainHill, self).initialize(
+        super().initialize(
             grid_size=grid_size,
             report_interval=report_interval,
             grid_orientation="vertical",

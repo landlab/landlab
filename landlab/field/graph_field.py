@@ -186,7 +186,7 @@ class FieldDataset(dict):
 
         self.size = size
 
-        super(FieldDataset, self).__init__()
+        super().__init__()
 
     @property
     def size(self):

@@ -292,7 +292,7 @@ class Space(_GeneralizedErosionDeposition):
             )
             raise NotImplementedError(msg)
 
-        super(Space, self).__init__(
+        super().__init__(
             grid,
             m_sp=m_sp,
             n_sp=n_sp,

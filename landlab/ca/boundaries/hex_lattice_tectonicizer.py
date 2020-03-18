@@ -277,7 +277,7 @@ class LatticeNormalFault(HexLatticeTectonicizer):
         """
 
         # Do the base class init
-        super(LatticeNormalFault, self).__init__(
+        super().__init__(
             grid, node_state, propid, prop_data, prop_reset_value
         )
         # Set up data structures:
@@ -810,7 +810,7 @@ class LatticeUplifter(HexLatticeTectonicizer):
         array([1, 2, 3, 4])
         """
         # Do the base class init
-        super(LatticeUplifter, self).__init__(
+        super().__init__(
             grid, node_state, propid, prop_data, prop_reset_value
         )
 

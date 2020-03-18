@@ -141,7 +141,7 @@ class PrecipitationDistribution(Component):
         random_seed : int or float, optional
             Seed value for random-number generator.
         """
-        super(PrecipitationDistribution, self).__init__(grid)
+        super().__init__(grid)
 
         self._mean_storm_duration = mean_storm_duration
 

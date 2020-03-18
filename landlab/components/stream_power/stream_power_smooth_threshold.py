@@ -195,7 +195,7 @@ class StreamPowerSmoothThresholdEroder(FastscapeEroder):
             )
 
         # Call base-class init
-        super(StreamPowerSmoothThresholdEroder, self).__init__(
+        super().__init__(
             grid,
             K_sp=K_sp,
             m_sp=m_sp,

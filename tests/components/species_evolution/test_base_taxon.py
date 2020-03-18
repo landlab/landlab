@@ -13,7 +13,7 @@ class TestTaxon(Taxon):
     """Taxon to test subclassing the base taxon."""
 
     def __init__(self, parent=None):
-        super(TestTaxon, self).__init__()
+        super().__init__()
         self.parent = parent
 
     @property
