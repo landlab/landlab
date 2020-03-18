@@ -13,7 +13,7 @@ from landlab.utils.flow__distance import calculate_flow__distance
 
 
 class TrickleDownProfiler(_BaseProfiler):
-    """Extract and plot a channel profile from a node ID downstream.
+    """Extract and a profile from one or more node IDs to their downstream termini.
 
     The TrickleDownProfiler extracts channel networks from a landlab grid.
     Unlike the ChannelProfiler which starts at one or more watershed outlets
@@ -56,8 +56,8 @@ class TrickleDownProfiler(_BaseProfiler):
         X X X o X X X X X X
 
     For each starting node, the TrickleDownProfiler follows the network
-    downstream until it reaches the outlet. One or more starting nodes can be
-    used, depending on a user's needs.
+    downstream until it reaches the outlet or sink. One or more starting nodes
+    can be used, depending on a user's needs.
 
     The node IDs and distances upstream of the channel network are stored in
     ``data_structure``. It is a dictionary with keys indicating the starting
@@ -108,15 +108,15 @@ class TrickleDownProfiler(_BaseProfiler):
 
     Note that the distances upstream are relative to the outlet.
 
-    Next consider an example with two starting nodes.
+    Next consider an example with two starting nodes, each noted with an ``@``.
     ::
 
         X X X X X X X X X X
-        X X X X X X . X X X
+        X X X X X X @ X X X
         X X X X @ X . X X X
         o . . . . X . X X X
         X X X X X X . X X X
-        X X X . . . . X X X
+        X X X X X X . X X X
         X X X X X X . . . X
         X X X X X X X X o X
 
@@ -162,8 +162,10 @@ class TrickleDownProfiler(_BaseProfiler):
 
     Create the second example grid we showed above. Note that in order to do
     this we need to enter the elevations starting from the lower left so the
-    elevation order may seem upside-down    .
-
+    elevation order may seem upside-down. In addition, in this example,
+    elevation is only provided along the profiles. The third line of code below
+    sets all nodes with a value of zero to closed, such that these nodes are
+    igored.
     >>> z = np.array([ 0,  0,  0,  0,  0,  0,  0,  0,  1,  0,
     ...                0,  0,  0,  0,  0,  0,  4,  3,  2,  0,
     ...                0,  0,  0,  8,  7,  6,  5,  0,  0,  0,
@@ -193,8 +195,8 @@ class TrickleDownProfiler(_BaseProfiler):
     ...     starting_nodes=[54, 66])
     >>> profiler.run_one_step()
 
-    The keys of the property ``data_structure`` are the IDs  of the two
-    outlet nodes.
+    The keys of the property ``data_structure`` are the IDs of the two outlet
+    nodes.
 
     >>> profiler.data_structure.keys()
     odict_keys([54, 66])
@@ -270,13 +272,13 @@ class TrickleDownProfiler(_BaseProfiler):
         """
         Parameters
         ----------
-        grid : Landlab Model Grid instance, required
+        grid : Landlab Model Grid instance
         starting_nodes : iterable
-        cmap : str
+        cmap : str, optional
             A valid matplotlib cmap string. Default is "viridis".
 
         """
-        super(TrickleDownProfiler, self).__init__(grid)
+        super()
 
         self._cmap = plt.get_cmap(cmap)
 
@@ -285,9 +287,9 @@ class TrickleDownProfiler(_BaseProfiler):
 
     @property
     def data_structure(self):
-        """OrderedDict defining the trickle down channel network.
+        """OrderedDict defining the trickle down network.
 
-        The node IDs and distances upstream of the channel network are stored
+        The IDs and upstream distance of the channel network nodes are stored
         in ``data_structure``. It is a dictionary with keys of the outlet node
         ID.
 
