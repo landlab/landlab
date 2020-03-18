@@ -258,7 +258,7 @@ class SpeciesEvolver(Component):
             The initial time. The unit of time is not considered within the
             component, except in the record. The default is 0.
         """
-        super(SpeciesEvolver, self).__init__(grid)
+        super().__init__(grid)
 
         # Create data structures.
 

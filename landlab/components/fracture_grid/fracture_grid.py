@@ -208,7 +208,7 @@ class FractureGridGenerator(Component):
 
         self._frac_spacing = frac_spacing
         self._seed = seed
-        super(FractureGridGenerator, self).__init__(grid)
+        super().__init__(grid)
 
         if "fracture_at_node" not in grid.at_node:
             grid.add_zeros("node", "fracture_at_node", dtype=np.int8)

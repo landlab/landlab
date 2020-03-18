@@ -278,7 +278,7 @@ class TrickleDownProfiler(_BaseProfiler):
             A valid matplotlib cmap string. Default is "viridis".
 
         """
-        super()
+        super().__init__(grid)
 
         self._cmap = plt.get_cmap(cmap)
 

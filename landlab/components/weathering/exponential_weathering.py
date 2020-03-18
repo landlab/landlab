@@ -109,7 +109,7 @@ class ExponentialWeatherer(Component):
         soil_production__decay_depth : float
             Maximum weathering rate for bare bedrock
         """
-        super(ExponentialWeatherer, self).__init__(grid)
+        super().__init__(grid)
 
         # Store grid and parameters
 

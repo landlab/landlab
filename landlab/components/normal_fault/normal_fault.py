@@ -253,7 +253,7 @@ class NormalFault(Component):
         >>> nf.current_time
         30000.0
         """
-        super(NormalFault, self).__init__(grid)
+        super().__init__(grid)
 
         # save a reference to the grid
 

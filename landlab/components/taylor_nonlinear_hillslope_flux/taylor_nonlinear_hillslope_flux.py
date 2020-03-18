@@ -219,7 +219,7 @@ class TaylorNonLinearDiffuser(Component):
             Factor to identify stable time-step duration when using dynamic
             timestepping.
         """
-        super(TaylorNonLinearDiffuser, self).__init__(grid)
+        super().__init__(grid)
 
         # Store grid and parameters
 
