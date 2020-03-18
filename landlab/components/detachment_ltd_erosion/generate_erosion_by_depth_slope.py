@@ -188,7 +188,7 @@ class DepthSlopeProductErosion(Component):
         slope : str
             Field name of an at-node field that contains the slope.
         """
-        super(DepthSlopeProductErosion, self).__init__(grid)
+        super().__init__(grid)
 
         assert slope in grid.at_node
 

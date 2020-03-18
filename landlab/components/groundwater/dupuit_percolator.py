@@ -321,7 +321,7 @@ class GroundwaterDupuitPercolator(Component):
             and must be greater than zero.
             Default = 0.8
         """
-        super(GroundwaterDupuitPercolator, self).__init__(grid)
+        super().__init__(grid)
 
         # Shorthand
         self._cores = grid.core_nodes

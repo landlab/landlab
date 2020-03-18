@@ -292,7 +292,7 @@ class LateralEroder(Component):
             must be passed. It will be run within sub-timesteps in order to update
             the flow directions and drainage area.
         """
-        super(LateralEroder, self).__init__(grid)
+        super().__init__(grid)
 
         assert isinstance(
             grid, RasterModelGrid

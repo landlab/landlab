@@ -303,7 +303,7 @@ class LakeMapperBarnes(Component):
             and be done with it.
 
         """
-        super(LakeMapperBarnes, self).__init__(grid)
+        super().__init__(grid)
 
         if "flow__receiver_node" in grid.at_node:
             if grid.at_node["flow__receiver_node"].size != grid.size("node"):
