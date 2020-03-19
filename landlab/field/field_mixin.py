@@ -23,7 +23,7 @@ class ModelDataFieldsMixIn(ModelDataFields):
     """
 
     def __init__(self, **kwds):
-        super(ModelDataFieldsMixIn, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     def empty(self, *args, **kwds):
         """Array, filled with unititialized values, for a given element.

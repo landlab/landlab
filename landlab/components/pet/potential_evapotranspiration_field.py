@@ -215,7 +215,7 @@ class PotentialEvapotranspiration(Component):
         obs_radiation float, required for 'MeasuredRadiationPT' method
             Observed radiation (W/m^2)
         """
-        super(PotentialEvapotranspiration, self).__init__(grid)
+        super().__init__(grid)
 
         self.current_time = current_time
         self.const_potential_evapotranspiration = const_potential_evapotranspiration

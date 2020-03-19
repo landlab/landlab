@@ -328,7 +328,7 @@ class GroundwaterDupuitPercolator(Component):
             ModelGrid. Any other arguments should be given as keyword arguments.
             Default behavior is to return the current value of hydraulic conductivity.
         """
-        super(GroundwaterDupuitPercolator, self).__init__(grid)
+        super().__init__(grid)
 
         # Shorthand
         self._cores = grid.core_nodes

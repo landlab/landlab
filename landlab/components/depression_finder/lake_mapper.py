@@ -217,7 +217,7 @@ class DepressionFinderAndRouter(Component):
             will modify the existing flow fields to route the flow across the
             lake surface(s).
         """
-        super(DepressionFinderAndRouter, self).__init__(grid)
+        super().__init__(grid)
 
         self._bc_set_code = self._grid.bc_set_code
 

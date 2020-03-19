@@ -208,7 +208,7 @@ class LithoLayers(Lithology):
             layer_thicknesses.append(layer_thickness)
             layer_ids.append(ids[i] * np.ones(z_surf.size))
 
-        super(LithoLayers, self).__init__(
+        super().__init__(
             grid,
             layer_thicknesses,
             layer_ids,
