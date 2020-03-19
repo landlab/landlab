@@ -277,7 +277,7 @@ class OverlandFlow(Component):
             Modify the algorithm to handle steeper slopes at the expense of
             speed. If model runs become unstable, consider setting to True.
         """
-        super(OverlandFlow, self).__init__(grid)
+        super().__init__(grid)
 
         # First we copy our grid
 

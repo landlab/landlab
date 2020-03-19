@@ -318,7 +318,7 @@ class SpatialPrecipitationDistribution(Component):
             a length-11 curve weighting to select which orographic scenario
             to apply.
         """
-        super(SpatialPrecipitationDistribution, self).__init__(grid)
+        super().__init__(grid)
 
         gaugecount = (grid.status_at_node != grid.BC_NODE_IS_CLOSED).sum()
         self._gauge_dist_km = np.zeros(gaugecount, dtype="float")

@@ -226,7 +226,7 @@ class KinwaveImplicitOverlandFlow(Component):
             Weighting on depth at new time step versus old time step (1 = all
             implicit; 0 = explicit)
         """
-        super(KinwaveImplicitOverlandFlow, self).__init__(grid)
+        super().__init__(grid)
         # Store parameters and do unit conversion
 
         self._runoff_rate = runoff_rate / 3600000.0  # convert to m/s

@@ -17,7 +17,7 @@ class BadVarNameError(Error):
     """Exception to indicate a bad input/output variable name."""
 
     def __init__(self, name):
-        super(BadVarNameError, self).__init__()
+        super().__init__()
         self.name = name
 
     def __str__(self):
@@ -28,7 +28,7 @@ class MissingModelAttributeError(Error):
     """Raise this exception if a component is missing a required attribute."""
 
     def __init__(self, attrib):
-        super(MissingModelAttributeError, self).__init__()
+        super().__init__()
         self.attrib = attrib
 
     def __str__(self):
@@ -49,7 +49,7 @@ class BmiGridType(int):
     """
 
     def __new__(cls, code, name):
-        obj = super(BmiGridType, cls).__new__(cls, code)
+        obj = super().__new__(cls, code)
         obj.name = name
         return obj
 

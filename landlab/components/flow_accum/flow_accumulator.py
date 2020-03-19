@@ -690,7 +690,7 @@ class FlowAccumulator(Component):
         keyword arguments, tests the argument of runoff_rate, and
         initializes new fields.
         """
-        super(FlowAccumulator, self).__init__(grid)
+        super().__init__(grid)
         # Keep a local reference to the grid
 
         # Grid type testing

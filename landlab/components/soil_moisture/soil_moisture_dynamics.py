@@ -302,7 +302,7 @@ class SoilMoisture(Component):
         current_time: float
               Current time (years).
         """
-        super(SoilMoisture, self).__init__(grid)
+        super().__init__(grid)
 
         self.current_time = 0
         self._method = method
