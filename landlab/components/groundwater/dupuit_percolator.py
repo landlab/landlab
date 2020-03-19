@@ -369,7 +369,10 @@ class GroundwaterDupuitPercolator(Component):
         self.vn_coefficient = vn_coefficient
 
         if k_func is not None:
-            if not isinstance(k_func(self._grid), np.ndarray) and len(k_func(self._grid))==self._grid.number_of_links:
+            if (
+                not isinstance(k_func(self._grid), np.ndarray)
+                and len(k_func(self._grid)) == self._grid.number_of_links
+            ):
                 raise TypeError(
                     """The k_func should be a function that takes a ModelGrid
                     and returns an array of length number_of_links."""
@@ -555,7 +558,7 @@ class GroundwaterDupuitPercolator(Component):
             The imposed timestep.
         """
 
-        #update hydraulic conductivity
+        # update hydraulic conductivity
         self.K = self.K if self._k_func is None else self._k_func(self._grid)
 
         if (self._wtable > self._elev).any():
@@ -663,7 +666,7 @@ class GroundwaterDupuitPercolator(Component):
 
         while remaining_time > 0.0:
 
-            #update hydraulic conductivity
+            # update hydraulic conductivity
             self.K = self.K if self._k_func is None else self._k_func(self._grid)
 
             # Calculate hydraulic gradient
