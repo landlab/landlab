@@ -16,7 +16,7 @@ class TestTaxon(Taxon):
     """Taxon to test SpeciesEvolver."""
 
     def __init__(self, parent=None):
-        super(TestTaxon, self).__init__()
+        super().__init__()
         self.parent = parent
 
     @property

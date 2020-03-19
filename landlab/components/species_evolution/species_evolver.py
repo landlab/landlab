@@ -272,7 +272,7 @@ class SpeciesEvolver(Component):
             component, with the exception that time is logged in the record.
             The default value of this parameter is 0.
         """
-        super(SpeciesEvolver, self).__init__(grid)
+        super().__init__(grid)
 
         # Create data structures.
 

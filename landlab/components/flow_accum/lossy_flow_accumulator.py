@@ -369,7 +369,7 @@ class LossyFlowAccumulator(FlowAccumulator):
                 "node", "surface_water__discharge_loss", dtype=float, clobber=True
             )
 
-        super(LossyFlowAccumulator, self).__init__(
+        super().__init__(
             grid,
             surface=surface,
             flow_director=flow_director,

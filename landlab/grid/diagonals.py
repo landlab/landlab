@@ -223,7 +223,7 @@ class DiagonalsMixIn(object):
     def d8_adjacent_nodes_at_node(self):
         return np.vstack(
             (
-                super(DiagonalsMixIn, self).adjacent_nodes_at_node,
+                super().adjacent_nodes_at_node,
                 self.diagonal_adjacent_nodes_at_node,
             )
         )
@@ -269,7 +269,7 @@ class DiagonalsMixIn(object):
         >>> grid.number_of_d8
         29
         """
-        return super(DiagonalsMixIn, self).number_of_links + self.number_of_diagonals
+        return super().number_of_links + self.number_of_diagonals
 
     @property
     @cache_result_in_object()
@@ -321,14 +321,14 @@ class DiagonalsMixIn(object):
         """
         diagonals_at_node = self.diagonals_at_node.copy()
         diagonals_at_node[diagonals_at_node >= 0] += self.number_of_links
-        return np.hstack((super(DiagonalsMixIn, self).links_at_node, diagonals_at_node))
+        return np.hstack((super().links_at_node, diagonals_at_node))
 
     @property
     @cache_result_in_object()
     @make_return_array_immutable
     def d8_dirs_at_node(self):
         return np.hstack(
-            (super(DiagonalsMixIn, self).link_dirs_at_node, self.diagonal_dirs_at_node)
+            (super().link_dirs_at_node, self.diagonal_dirs_at_node)
         )
 
     @property
@@ -378,11 +378,11 @@ class DiagonalsMixIn(object):
         LLCATS: LINF MEAS
         """
         return np.hstack(
-            (super(DiagonalsMixIn, self).length_of_link, self.length_of_diagonal)
+            (super().length_of_link, self.length_of_diagonal)
         )
 
     def reset_status_at_node(self):
-        super(DiagonalsMixIn, self).reset_status_at_node()
+        super().reset_status_at_node()
         attrs = [
             "_status_at_diagonal",
             "_diagonal_status_at_node",
@@ -467,7 +467,7 @@ class DiagonalsMixIn(object):
     @make_return_array_immutable
     def status_at_d8(self):
         return np.hstack(
-            (super(DiagonalsMixIn, self).status_at_link, self.status_at_diagonal)
+            (super().status_at_link, self.status_at_diagonal)
         )
 
     @property

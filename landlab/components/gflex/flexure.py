@@ -182,7 +182,7 @@ class gFlex(Component):
         g : float (m*s**-2)
             The acceleration due to gravity.
         """
-        super(gFlex, self).__init__(grid)
+        super().__init__(grid)
 
         assert isinstance(grid, RasterModelGrid)
 

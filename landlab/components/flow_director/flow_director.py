@@ -82,7 +82,7 @@ class _FlowDirector(Component):
     def __init__(self, grid, surface):
         """Initialize the _FlowDirector class."""
         # We keep a local reference to the grid
-        super(_FlowDirector, self).__init__(grid)
+        super().__init__(grid)
 
         self._bc_set_code = self._grid.bc_set_code
 

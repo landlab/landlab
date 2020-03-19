@@ -301,7 +301,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             )
             raise NotImplementedError(msg)
 
-        super(ErosionDeposition, self).__init__(
+        super().__init__(
             grid,
             m_sp=m_sp,
             n_sp=n_sp,
