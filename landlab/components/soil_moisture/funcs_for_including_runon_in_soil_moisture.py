@@ -6,7 +6,7 @@ Created on Tue Jan 17 11:48:13 2017
 """
 
 import numpy as np
-from landlab.components import FlowRouter  # , DepressionFinderAndRouter
+from landlab.components import FlowRouter
 
 
 def get_ordered_cells_for_soil_moisture(grid, outlet_id=None):
@@ -15,15 +15,15 @@ def get_ordered_cells_for_soil_moisture(grid, outlet_id=None):
     route flow. Also orders the cells in the descending order of
     channel length (upstream cell order).
 
-    Parameters:
-    ==========
+    Parameters
+    ----------
     grid: grid object
         RasterModelGrid
     outlet_id: int (Optional)
         Outlet id to be set
 
-    Returns:
-    =======
+    Returns
+    -------
     ordered_cells: np.array(dtype=int)
         cells ordered in descending order of channel length
     grid: grid object
@@ -32,15 +32,12 @@ def get_ordered_cells_for_soil_moisture(grid, outlet_id=None):
 
     if outlet_id is None:
         outlet_id = np.argmin(grid.at_node['topographic__elevation'])
-    _ = grid.set_watershed_boundary_condition_outlet_id(
+    grid.set_watershed_boundary_condition_outlet_id(
         outlet_id,
         grid.at_node['topographic__elevation'],
         nodata_value=-9999., )
-    # grid.set_closed_boundaries_at_grid_edges(True, True, True, True)
     flw_r = FlowRouter(grid)
     flw_r.run_one_step()
-    # df = DepressionFinderAndRouter(grid)
-    # df.map_depressions()
     r = grid.at_node['flow__receiver_node'][grid.node_at_core_cell]
     R = np.zeros(grid.number_of_nodes, dtype=int)
     R[grid.node_at_core_cell] = r

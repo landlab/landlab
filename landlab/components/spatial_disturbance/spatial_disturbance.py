@@ -229,7 +229,6 @@ class SpatialDisturbance(Component):
         """
         self._pft_scheme = pft_scheme
         _assert_pft_scheme_is_valid(self._pft_scheme)
-        #        super(SpatialDisturbance, self).__init__(grid, **kwds)
         self._grid = grid
 
         if self._pft_scheme == "zhou_et_al_2013":

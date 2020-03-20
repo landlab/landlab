@@ -363,20 +363,6 @@ class VegCA(Component):
             ] = 1
 
         # For debugging purposes
-#        self._n = n
-#        self._phi_g = Phi_g
-#        self._Peg = Peg
-#        self._Pesh = Pesh
-#        self._Petr = Petr
-#        self._selected_pft_e = Select_PFT_E
-#        self._theta = Theta  # shape = plant_cells
-#        self._PMd = PMd
-#        self._tpmax = tpmax
-#        self._tp_greater = tp_greater
-#        self._PMa = PMa
-#        self._PMb = PMb
-#        self._PM = PM
-#        self._R_Mor = R_Mor
         self._bare_cells = bare_cells
         self._Established = bare_cells[Establish]
         self._plant_cells = plant_cells

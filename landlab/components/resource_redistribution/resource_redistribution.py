@@ -3,6 +3,7 @@
 import numpy as np
 from landlab import Component
 from ...utils.decorators import use_file_name_or_kwds
+import warnings
 
 
 # Declare Global Variables (If any)
@@ -224,7 +225,7 @@ class ResourceRedistribution(Component):
 
         name = "vegetation__plant_functional_type"
         if name not in self.grid.at_cell:
-            print(
+            warnings.warn(
                 "Since a cellular field of PFTs "
                 + "is not provided, the field "
                 + name
@@ -233,7 +234,7 @@ class ResourceRedistribution(Component):
             self.grid.add_zeros("cell", name, units=self._var_units[name])
         name = "soil__resources"
         if name not in self.grid.at_cell:
-            print(
+            warnings.warn(
                 "Since a cellular field for Resources "
                 + "is not provided, the field "
                 + name
