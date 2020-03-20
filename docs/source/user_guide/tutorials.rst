@@ -18,6 +18,10 @@ Landlab Notebooks can be accessed online with the following link:
 Here the notebooks are provided within a binder environment that includes
 Landlab.
 
+The welcome page on Binder provides onward links to most of our tutorials;
+you can skip directly to a recommended syllabus for learning Landlab
+`here <https://mybinder.org/v2/gh/landlab/landlab/release?filepath=notebooks/tutorials/syllabus.ipynb>`_.
+
 Launch notebooks locally
 ------------------------
 
