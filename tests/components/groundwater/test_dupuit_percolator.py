@@ -292,7 +292,7 @@ def test_k_func():
         return (hlink/blink)*Ks
 
     #initialize model with given k_func
-    gdp1 = GroundwaterDupuitPercolator(mg,k_func=k_func_test)
+    gdp1 = GroundwaterDupuitPercolator(mg,hydraulic_conductivity=k_func_test)
 
     #run model and assert that K has been updated correctly
     gdp1.run_one_step(0)
