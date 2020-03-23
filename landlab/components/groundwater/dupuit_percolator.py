@@ -412,33 +412,27 @@ class GroundwaterDupuitPercolator(Component):
             raise ValueError("vn_coefficient must be > 0.")
         self._vn_coefficient = new_val
 
-    @K.setter
-    def K(self, new_val):
-        """set hydraulic conductivity at link (m/s)"""
-        if callable(new_val):
-             self._kfunc=True
-
-            if (
-                not isinstance(new_val(self._grid), np.ndarray)
-                and len(new_val(self._grid)) == self._grid.number_of_links
-            ):
-                raise TypeError(
-                    """If a function is provided it must take a ModelGrid
-                    and return an array of length number_of_links."""
-                )
-            else:
-                 self._func = new_val
-                 self._K=return_array_at_link(self._grid, self._func(self._grid))
-       else:
-            self._kfunc=False
-            self._K = return_array_at_link(self._grid, new_val)
-
     @property
     def K(self):
         """hydraulic conductivity at link (m/s)"""
         if self._kfunc:
             self._K=return_array_at_link(self._grid, self._func(self._grid))
-    return self._K
+        return self._K
+
+    @K.setter
+    def K(self, new_val):
+        """set hydraulic conductivity at link (m/s)"""
+        if callable(new_val):
+            self._kfunc=True
+
+            if not isinstance(new_val(self._grid), np.ndarray) and len(new_val(self._grid)) == self._grid.number_of_links:
+                raise TypeError("""If a function is provided it must take a ModelGrid and return an array of length number_of_links.""")
+            else:
+                self._func = new_val
+                self._K=return_array_at_link(self._grid, self._func(self._grid))
+        else:
+            self._kfunc=False
+            self._K = return_array_at_link(self._grid, new_val)
 
     @property
     def recharge(self):
