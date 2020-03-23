@@ -4,10 +4,7 @@ Unit tests for \
 """
 import numpy as np
 import pytest
-from numpy.testing import (assert_array_almost_equal,
-                           assert_equal,
-                           assert_almost_equal,
-                           assert_array_equal)
+from numpy.testing import (assert_array_almost_equal)
 
 from landlab import RasterModelGrid as rmg
 from landlab.components.soil_moisture import SoilMoisture
@@ -123,7 +120,7 @@ def test_soil_moisture():
         np.ones(grid.number_of_cells))
     current_time = 0.5
     grid.at_cell["rainfall__daily_depth"] = (
-            60. * np.ones(grid.number_of_cells))
+        60. * np.ones(grid.number_of_cells))
     current_time = sm.update(current_time)
     assert_array_almost_equal(
         grid.at_cell["soil_moisture__saturation_fraction"],

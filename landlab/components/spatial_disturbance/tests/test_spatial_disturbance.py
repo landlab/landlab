@@ -5,9 +5,7 @@ Unit tests for \
 import numpy as np
 import pytest
 from numpy.testing import (assert_array_almost_equal,
-                           assert_equal,
-                           assert_almost_equal,
-                           assert_array_equal)
+                           assert_equal)
 
 from landlab import RasterModelGrid as rmg
 from landlab.components.spatial_disturbance import SpatialDisturbance
@@ -100,7 +98,7 @@ def test_spatial_disturbance():
         np.random.randint(0, 3, size=grid.number_of_cells)
     )
     assert_equal(
-        np.where(grid.at_cell["vegetation__plant_functional_type"]==0)[0].shape[0],
+        np.where(grid.at_cell["vegetation__plant_functional_type"] == 0)[0].shape[0],
         21
     )
     (V, burnt_locs, ignition_cells) = sd.initiate_fires(
@@ -111,6 +109,6 @@ def test_spatial_disturbance():
         tr_susc=0.,
     )
     assert_equal(
-        np.where(grid.at_cell["vegetation__plant_functional_type"]==0)[0].shape[0],
+        np.where(grid.at_cell["vegetation__plant_functional_type"] == 0)[0].shape[0],
         11
     )
