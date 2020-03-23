@@ -287,15 +287,19 @@ class GroundwaterDupuitPercolator(Component):
         regularization_f=1e-2,
         courant_coefficient=0.5,
         vn_coefficient=0.8,
-        k_func=None,
     ):
         """
         Parameters
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        hydraulic_conductivity: float, field name, or array of float
-            saturated hydraulic conductivity, m/s
+        hydraulic_conductivity: float, field name, array of float or function.
+            the aquifer saturated hydraulic conductivity, m/s.
+            If function is given, it should take a landlab ModelGrid and return
+            an array of floats at link. This may be used if the lateral hydraulic
+            conductivity is not vertically homogenous and the effective hydraulic
+            conductivity needs to be modified based upon on the position of the
+            water table. See component tests for example.
             Default = 0.001 m/s
         porosity: float, field name or array of float
             the drainable porosity of the aquifer [-]
@@ -321,12 +325,6 @@ class GroundwaterDupuitPercolator(Component):
             This parameter is only used with ``run_with_adaptive_time_step_solver``
             and must be greater than zero.
             Default = 0.8
-        k_func: function
-            If the lateral hydraulic conductivity is not vertically homogenous
-            it is necessary to modify the effective hydraulic conductivity based
-            on the position of the water table. The function should take a Landlab
-            ModelGrid. Any other arguments should be given as keyword arguments.
-            Default behavior is to return the current value of hydraulic conductivity.
         """
         super().__init__(grid)
 
@@ -367,20 +365,6 @@ class GroundwaterDupuitPercolator(Component):
         # save courant_coefficient (and test)
         self.courant_coefficient = courant_coefficient
         self.vn_coefficient = vn_coefficient
-
-        if k_func is not None:
-            if (
-                not isinstance(k_func(self._grid), np.ndarray)
-                and len(k_func(self._grid)) == self._grid.number_of_links
-            ):
-                raise TypeError(
-                    """The k_func should be a function that takes a ModelGrid
-                    and returns an array of length number_of_links."""
-                )
-            else:
-                self._k_func = k_func
-        else:
-            self._k_func = None
 
     @property
     def courant_coefficient(self):
@@ -428,15 +412,33 @@ class GroundwaterDupuitPercolator(Component):
             raise ValueError("vn_coefficient must be > 0.")
         self._vn_coefficient = new_val
 
-    @property
-    def K(self):
-        """hydraulic conductivity at link (m/s)"""
-        return self._K
-
     @K.setter
     def K(self, new_val):
         """set hydraulic conductivity at link (m/s)"""
-        self._K = return_array_at_link(self._grid, new_val)
+        if callable(new_val):
+             self._kfunc=True
+
+            if (
+                not isinstance(new_val(self._grid), np.ndarray)
+                and len(new_val(self._grid)) == self._grid.number_of_links
+            ):
+                raise TypeError(
+                    """If a function is provided it must take a ModelGrid
+                    and return an array of length number_of_links."""
+                )
+            else:
+                 self._func = new_val
+                 self._K=return_array_at_link(self._grid, self._func(self._grid))
+       else:
+            self._kfunc=False
+            self._K = return_array_at_link(self._grid, new_val)
+
+    @property
+    def K(self):
+        """hydraulic conductivity at link (m/s)"""
+        if self._kfunc:
+            self._K=return_array_at_link(self._grid, self._func(self._grid))
+    return self._K
 
     @property
     def recharge(self):
@@ -559,8 +561,9 @@ class GroundwaterDupuitPercolator(Component):
         """
 
         # update hydraulic conductivity
-        self.K = self.K if self._k_func is None else self._k_func(self._grid)
+        self.K = self.K
 
+        # check water table above surface
         if (self._wtable > self._elev).any():
             self._wtable[self._wtable > self._elev] = self._elev[
                 self._wtable > self._elev
@@ -667,7 +670,7 @@ class GroundwaterDupuitPercolator(Component):
         while remaining_time > 0.0:
 
             # update hydraulic conductivity
-            self.K = self.K if self._k_func is None else self._k_func(self._grid)
+            self.K = self.K
 
             # Calculate hydraulic gradient
             self._hydr_grad[self._grid.active_links] = (
