@@ -4,7 +4,13 @@ Unit tests for \
 """
 import numpy as np
 import pytest
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import (assert_array_almost_equal,
+                           assert_equal,
+                           assert_almost_equal,
+                           assert_array_equal)
+
+from landlab import RasterModelGrid as rmg
+from landlab.components.spatial_disturbance import SpatialDisturbance
 
 (_SHAPE, _SPACING, _ORIGIN) = ((20, 20), (10e0, 10e0), (0.0, 0.0))
 _ARGS = (_SHAPE, _SPACING, _ORIGIN)
@@ -73,3 +79,38 @@ def test_field_initialized_to_zero(sd):
     for name in sd._grid["cell"]:
         field = sd._grid["cell"][name]
         assert_array_almost_equal(field, np.zeros(sd._grid.number_of_cells))
+
+
+def test_spatial_disturbance():
+    np.random.seed(0)
+    grid = rmg((10, 10), xy_spacing=(0.2, 0.2))
+    grid.at_cell["vegetation__plant_functional_type"] = (
+        np.random.randint(0, 4, size=grid.number_of_cells))
+    assert_equal(
+        np.where(grid.at_cell["vegetation__plant_functional_type"] == 0)[0].shape[0],
+        15
+    )
+    sd = SpatialDisturbance(grid)
+    (V, grazed_cells) = sd.graze(grazing_pressure=0.5)
+    assert_equal(
+        np.where(grid.at_cell["vegetation__plant_functional_type"] == 0)[0].shape[0],
+        9
+    )
+    grid.at_cell["vegetation__plant_functional_type"] = (
+        np.random.randint(0, 3, size=grid.number_of_cells)
+    )
+    assert_equal(
+        np.where(grid.at_cell["vegetation__plant_functional_type"]==0)[0].shape[0],
+        21
+    )
+    (V, burnt_locs, ignition_cells) = sd.initiate_fires(
+        n_fires=10,
+        fire_area_mean=0.0625,
+        sh_susc=0.8,
+        gr_susc=1.,
+        tr_susc=0.,
+    )
+    assert_equal(
+        np.where(grid.at_cell["vegetation__plant_functional_type"]==0)[0].shape[0],
+        11
+    )

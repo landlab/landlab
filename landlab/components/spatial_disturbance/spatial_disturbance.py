@@ -98,7 +98,7 @@ class SpatialDisturbance(Component):
     >>> grid.at_cell["vegetation__plant_functional_type"] = (
     ...     np.random.randint(0, 4, size=grid.number_of_cells))
     >>> np.where(
-    ...     grid.at_cell["vegetation__plant_functional_type"]==0)[0].shape
+    ...     grid.at_cell["vegetation__plant_functional_type"] == 0)[0].shape
     (15,)
     >>> sd = SpatialDisturbance(grid)
     >>> sd._grid.number_of_cell_rows
