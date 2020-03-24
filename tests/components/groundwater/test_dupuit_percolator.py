@@ -249,6 +249,7 @@ def test_inactive_interior_node():
     assert_almost_equal(gdp.calc_recharge_flux_in(), 3e-8)
     assert_almost_equal(gdp.calc_total_storage(), 0.6)
 
+
 def test_k_func():
     """
     Test the use of a function to specify how hydraulic conductivity changes
@@ -262,7 +263,7 @@ def test_k_func():
 
     """
 
-    #initialize model grid
+    # initialize model grid
     mg = RasterModelGrid((4, 4), xy_spacing=1.0)
     elev = mg.add_zeros("node", "topographic__elevation")
     elev[:] = 1
@@ -271,32 +272,35 @@ def test_k_func():
     wt = mg.add_zeros("node", "water_table__elevation")
     wt[:] = 0.5
 
-    #initialize model without giving k_func
+    # initialize model without giving k_func
     gdp = GroundwaterDupuitPercolator(mg)
 
-    #run model and assert that K hasn't changed from the default value
+    # run model and assert that K hasn't changed from the default value
     gdp.run_one_step(0)
-    assert np.equal(0.001,gdp.K).all()
+    assert np.equal(0.001, gdp.K).all()
 
     gdp.run_with_adaptive_time_step_solver(0)
-    assert np.equal(0.001,gdp.K).all()
+    assert np.equal(0.001, gdp.K).all()
 
-    #create a simple k_func, where hydraulic conductivity varies linearly
-    #with depth, from Ks at surface to 0 at aquifer base
-    def k_func_test(grid,Ks=0.01):
-        h = grid.at_node['aquifer__thickness']
-        b = grid.at_node['topographic__elevation']-grid.at_node['aquifer_base__elevation']
-        blink = map_mean_of_link_nodes_to_link(grid,b)
-        hlink = map_mean_of_link_nodes_to_link(grid,h)
+    # create a simple k_func, where hydraulic conductivity varies linearly
+    # with depth, from Ks at surface to 0 at aquifer base
+    def k_func_test(grid, Ks=0.01):
+        h = grid.at_node["aquifer__thickness"]
+        b = (
+            grid.at_node["topographic__elevation"]
+            - grid.at_node["aquifer_base__elevation"]
+        )
+        blink = map_mean_of_link_nodes_to_link(grid, b)
+        hlink = map_mean_of_link_nodes_to_link(grid, h)
 
-        return (hlink/blink)*Ks
+        return (hlink / blink) * Ks
 
-    #initialize model with given k_func
-    gdp1 = GroundwaterDupuitPercolator(mg,hydraulic_conductivity=k_func_test)
+    # initialize model with given k_func
+    gdp1 = GroundwaterDupuitPercolator(mg, hydraulic_conductivity=k_func_test)
 
-    #run model and assert that K has been updated correctly
+    # run model and assert that K has been updated correctly
     gdp1.run_one_step(0)
-    assert np.equal(0.005,gdp1.K).all()
+    assert np.equal(0.005, gdp1.K).all()
 
     gdp1.run_with_adaptive_time_step_solver(0)
-    assert np.equal(0.005,gdp1.K).all()
+    assert np.equal(0.005, gdp1.K).all()
