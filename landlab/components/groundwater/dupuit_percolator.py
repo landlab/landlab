@@ -293,8 +293,13 @@ class GroundwaterDupuitPercolator(Component):
         ----------
         grid: ModelGrid
             Landlab ModelGrid object
-        hydraulic_conductivity: float, field name, or array of float
-            saturated hydraulic conductivity, m/s
+        hydraulic_conductivity: float, field name, array of float or function.
+            the aquifer saturated hydraulic conductivity, m/s.
+            If function is given, it should take a landlab ModelGrid and return
+            an array of floats at link. This may be used if the lateral hydraulic
+            conductivity is not vertically homogenous and the effective hydraulic
+            conductivity needs to be modified based upon on the position of the
+            water table. See component tests for example.
             Default = 0.001 m/s
         porosity: float, field name or array of float
             the drainable porosity of the aquifer [-]
@@ -410,12 +415,29 @@ class GroundwaterDupuitPercolator(Component):
     @property
     def K(self):
         """hydraulic conductivity at link (m/s)"""
+        if self._kfunc:
+            self._K = return_array_at_link(self._grid, self._func(self._grid))
         return self._K
 
     @K.setter
     def K(self, new_val):
         """set hydraulic conductivity at link (m/s)"""
-        self._K = return_array_at_link(self._grid, new_val)
+        if callable(new_val):
+            self._kfunc = True
+
+            if (
+                not isinstance(new_val(self._grid), np.ndarray)
+                and len(new_val(self._grid)) == self._grid.number_of_links
+            ):
+                raise TypeError(
+                    """If a function is provided it must take a ModelGrid and return an array of length number_of_links."""
+                )
+            else:
+                self._func = new_val
+                self._K = return_array_at_link(self._grid, self._func(self._grid))
+        else:
+            self._kfunc = False
+            self._K = return_array_at_link(self._grid, new_val)
 
     @property
     def recharge(self):
@@ -537,6 +559,10 @@ class GroundwaterDupuitPercolator(Component):
             The imposed timestep.
         """
 
+        # update hydraulic conductivity
+        self.K = self.K
+
+        # check water table above surface
         if (self._wtable > self._elev).any():
             self._wtable[self._wtable > self._elev] = self._elev[
                 self._wtable > self._elev
@@ -641,6 +667,9 @@ class GroundwaterDupuitPercolator(Component):
         self._num_substeps = 0
 
         while remaining_time > 0.0:
+
+            # update hydraulic conductivity
+            self.K = self.K
 
             # Calculate hydraulic gradient
             self._hydr_grad[self._grid.active_links] = (
