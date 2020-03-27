@@ -14,7 +14,7 @@ _DEBUG = False
 
 import time
 from landlab import HexModelGrid
-from numpy import where, logical_and
+import numpy as np
 from landlab.ca.celllab_cts import Transition, CAPlotter
 from landlab.ca.hex_cts import HexCTS
 import pylab
@@ -77,7 +77,7 @@ def setup_transition_list(infection_rate):
 def main():
     
     # INITIALIZE
-    
+
     # User-defined parameters
     nr = 80
     nc = 41
@@ -103,12 +103,12 @@ def main():
     xn_list = setup_transition_list(infection_rate)
 
     # Create data and initialize values
-    node_state_grid = hmg.add_zeros('node', 'node_state_grid')
+    node_state_grid = hmg.add_zeros('node', 'node_state_grid', dtype=np.int)
     wid = nc-1.0
     ht = (nr-1.0)*0.866
-    is_middle_rows = logical_and(hmg.node_y>=0.4*ht, hmg.node_y<=0.5*ht)
-    is_middle_cols = logical_and(hmg.node_x>=0.4*wid, hmg.node_x<=0.6*wid)
-    middle_area = where(logical_and(is_middle_rows, is_middle_cols))[0]
+    is_middle_rows = np.logical_and(hmg.node_y>=0.4*ht, hmg.node_y<=0.5*ht)
+    is_middle_cols = np.logical_and(hmg.node_x>=0.4*wid, hmg.node_x<=0.6*wid)
+    middle_area = np.where(np.logical_and(is_middle_rows, is_middle_cols))[0]
     node_state_grid[middle_area] = 1
     node_state_grid[0] = 2  # to force full color range, set lower left to 'recovered'
     
