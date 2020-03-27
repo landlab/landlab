@@ -44,8 +44,8 @@ def flatten_vertices_at_region(regions):
     >>> voronoi = Voronoi(points)
     >>> (vertices, count) = flatten_vertices_at_region(voronoi.regions)
     >>> vertices
-    array([ 1,  0, -1,  4,  2, -1,  3,  3, -1,  4,  0, -1,  3,  7,  5, -1,  6,
-            5,  2, -1,  6, -1,  7,  1,  0,  4,  2,  5,  7,  1, -1,  6])
+    array([ 1,  0, -1,  4,  2, -1,  3,  3, -1,  4,  1, -1,  3,  7,  5, -1,  6,
+            5,  2, -1,  6, -1,  7,  0,  1,  4,  2,  5,  7,  0, -1,  6])
     >>> count
     array([3, 0, 4, 2, 4, 4, 3, 2, 6, 4])
     """

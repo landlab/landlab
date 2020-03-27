@@ -34,9 +34,11 @@ from .pet import PotentialEvapotranspiration
 from .plant_competition_ca import VegCA
 from .potentiality_flowrouting import PotentialityFlowRouter
 from .radiation import Radiation
+from .resource_redistribution import ResourceRedistribution
 from .sink_fill import SinkFiller, SinkFillerBarnes
 from .soil_moisture import SoilInfiltrationGreenAmpt, SoilMoisture
 from .space import Space
+from .spatial_disturbance import SpatialDisturbance
 from .spatial_precip import SpatialPrecipitationDistribution
 from .steepness_index import SteepnessFinder
 from .stream_power import (
@@ -84,6 +86,8 @@ COMPONENTS = [
     SoilMoisture,
     Vegetation,
     VegCA,
+    ResourceRedistribution,
+    SpatialDisturbance,
     DrainageDensity,
     ExponentialWeatherer,
     DepthDependentDiffuser,

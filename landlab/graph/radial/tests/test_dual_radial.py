@@ -91,7 +91,7 @@ def test_corners_at_cell():
     graph = DualRadialGraph((1, 4))
 
     assert_array_equal(
-        graph.nodes_at_patch, [[2, 1, 0], [2, 0, 3], [4, 1, 2], [3, 4, 2]]
+        graph.nodes_at_patch, [[2, 1, 0], [3, 2, 0], [4, 1, 2], [3, 4, 2]]
     )
     assert_array_equal(graph.corners_at_cell, [[3, 2, 0, 1]])
 
@@ -122,7 +122,7 @@ def test_faces_at_cell():
     """Test faces that form cells."""
     graph = DualRadialGraph((1, 4))
     assert_array_equal(
-        graph.links_at_patch, [[1, 3, 0], [4, 1, 2], [6, 5, 3], [4, 7, 6]]
+        graph.links_at_patch, [[1, 3, 0], [2, 4, 1], [6, 5, 3], [4, 7, 6]]
     )
     assert_array_equal(graph.faces_at_cell, [[2, 3, 1, 0]])
 
