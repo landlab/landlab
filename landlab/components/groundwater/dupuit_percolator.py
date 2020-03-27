@@ -559,9 +559,6 @@ class GroundwaterDupuitPercolator(Component):
             The imposed timestep.
         """
 
-        # update hydraulic conductivity
-        self.K = self.K
-
         # check water table above surface
         if (self._wtable > self._elev).any():
             self._wtable[self._wtable > self._elev] = self._elev[
@@ -667,9 +664,6 @@ class GroundwaterDupuitPercolator(Component):
         self._num_substeps = 0
 
         while remaining_time > 0.0:
-
-            # update hydraulic conductivity
-            self.K = self.K
 
             # Calculate hydraulic gradient
             self._hydr_grad[self._grid.active_links] = (
