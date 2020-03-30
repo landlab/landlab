@@ -222,10 +222,7 @@ class DiagonalsMixIn(object):
     @make_return_array_immutable
     def d8_adjacent_nodes_at_node(self):
         return np.vstack(
-            (
-                super().adjacent_nodes_at_node,
-                self.diagonal_adjacent_nodes_at_node,
-            )
+            (super().adjacent_nodes_at_node, self.diagonal_adjacent_nodes_at_node,)
         )
 
     @property
@@ -327,9 +324,7 @@ class DiagonalsMixIn(object):
     @cache_result_in_object()
     @make_return_array_immutable
     def d8_dirs_at_node(self):
-        return np.hstack(
-            (super().link_dirs_at_node, self.diagonal_dirs_at_node)
-        )
+        return np.hstack((super().link_dirs_at_node, self.diagonal_dirs_at_node))
 
     @property
     # @cache_result_in_object()
@@ -377,9 +372,7 @@ class DiagonalsMixIn(object):
 
         LLCATS: LINF MEAS
         """
-        return np.hstack(
-            (super().length_of_link, self.length_of_diagonal)
-        )
+        return np.hstack((super().length_of_link, self.length_of_diagonal))
 
     def reset_status_at_node(self):
         super().reset_status_at_node()
@@ -466,9 +459,7 @@ class DiagonalsMixIn(object):
     @cache_result_in_object()
     @make_return_array_immutable
     def status_at_d8(self):
-        return np.hstack(
-            (super().status_at_link, self.status_at_diagonal)
-        )
+        return np.hstack((super().status_at_link, self.status_at_diagonal))
 
     @property
     @cache_result_in_object()
