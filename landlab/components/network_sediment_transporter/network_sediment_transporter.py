@@ -16,6 +16,7 @@ Last edit was sometime after February 2020
 import numpy as np
 import xarray as xr
 import warnings
+import scipy.constants
 
 from landlab import Component
 from landlab.components import FlowDirectorSteepest
@@ -224,7 +225,7 @@ class NetworkSedimentTransporter(Component):
         parcels,
         flow_director,
         bed_porosity=0.3,
-        g=9.81,
+        g=scipy.constants.g,
         fluid_density=1000.0,
         transport_method="WilcockCrowe",
     ):
