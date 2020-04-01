@@ -11,8 +11,8 @@ outlet.
 @author: jczuba
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def plot_pathway_values(start_link_number, link_attribute, fd, grid, *args, **kwargs):
@@ -34,15 +34,15 @@ def plot_pathway_values(start_link_number, link_attribute, fd, grid, *args, **kw
     link_number = start_link_number
 
     downstream_link_id = fd.link_to_flow_receiving_node[
-            fd.downstream_node_at_link()[link_number]
-            ]
+        fd.downstream_node_at_link()[link_number]
+    ]
 
     # determine the pathway (set of links) from that link to the outlet
     while downstream_link_id != grid.BAD_INDEX:
 
         # determine downstream link
         downstream_link_id = fd.link_to_flow_receiving_node[
-                fd.downstream_node_at_link()[link_number]
+            fd.downstream_node_at_link()[link_number]
         ]
 
         # append downstream link id to pathway
@@ -59,27 +59,26 @@ def plot_pathway_values(start_link_number, link_attribute, fd, grid, *args, **kw
 
     x = []
     y = []
-    x = np.append(x,0)
-    y = np.append(y,0)
+    x = np.append(x, 0)
+    y = np.append(y, 0)
 
     current_distance = 0
 
-
     for i in range(len(link_pathway)):
-        x = np.append(x,current_distance)
-        y = np.append(y,grid.at_link[link_attribute][link_pathway[i]])
-        x = np.append(x,current_distance+grid.at_link["Length"][link_pathway[i]])
-        y = np.append(y,grid.at_link[link_attribute][link_pathway[i]])
+        x = np.append(x, current_distance)
+        y = np.append(y, grid.at_link[link_attribute][link_pathway[i]])
+        x = np.append(x, current_distance + grid.at_link["Length"][link_pathway[i]])
+        y = np.append(y, grid.at_link[link_attribute][link_pathway[i]])
 
-        current_distance = current_distance+grid.at_link["Length"][link_pathway[i]]
+        current_distance = current_distance + grid.at_link["Length"][link_pathway[i]]
 
-    x = np.append(x,current_distance)
-    y = np.append(y,0)
+    x = np.append(x, current_distance)
+    y = np.append(y, 0)
 
     # create a 2-d line plot of some specified attribute (y-axis) along that
     # pathway (distance downstream; x-axis)
     plt.figure(1)
-    plt.plot(x/1000, y) #assume x is m and /1000 converts to km
+    plt.plot(x / 1000, y)  # assume x is m and /1000 converts to km
 
     plt.xlabel("Distance downstream, km")
     plt.ylabel(link_attribute)

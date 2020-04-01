@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_almost_equal
 
 from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 
 _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
+
 
 def test_add_pulse():
 
@@ -25,13 +26,11 @@ def test_add_pulse():
         nmg_constant_slope.size("link")
     )
     nmg_constant_slope.at_link["flow_depth"] = 2 * np.ones(
-            nmg_constant_slope.size("link")
-        )
+        nmg_constant_slope.size("link")
+    )
 
     flow_director = FlowDirectorSteepest(nmg_constant_slope)
     flow_director.run_one_step()
-
-    timesteps = 4
 
     time = [0.0]
 
@@ -78,17 +77,18 @@ def test_add_pulse():
 
     num_pulse_parcels = 2
 
-    newpar_element_id = np.zeros(num_pulse_parcels,dtype=int)
+    newpar_element_id = np.zeros(num_pulse_parcels, dtype=int)
     newpar_element_id = np.expand_dims(newpar_element_id, axis=1)
 
     new_starting_link = np.squeeze(newpar_element_id)
 
     np.random.seed(0)
 
-    new_time_arrival_in_link = nst._time* np.ones(
-        np.shape(newpar_element_id))
+    new_time_arrival_in_link = nst._time * np.ones(np.shape(newpar_element_id))
 
-    new_volume = 0.5*np.ones(np.shape(newpar_element_id))  # (m3) the volume of each parcel
+    new_volume = 0.5 * np.ones(
+        np.shape(newpar_element_id)
+    )  # (m3) the volume of each parcel
 
     new_lithology = ["pulse_material"] * np.size(
         newpar_element_id
@@ -100,23 +100,21 @@ def test_add_pulse():
 
     new_density = 2650 * np.ones(np.size(newpar_element_id))  # (kg/m3)
 
-    new_location_in_link = np.random.rand(
-        np.size(newpar_element_id), 1
-    )
+    new_location_in_link = np.random.rand(np.size(newpar_element_id), 1)
 
     new_abrasion_rate = 0 * np.ones(np.size(newpar_element_id))
 
     new_D = 0.03 * np.ones(np.shape(newpar_element_id))
 
     newpar_grid_elements = np.array(
-        np.empty(
-            (np.shape(newpar_element_id)), dtype=object
-        )
-    ) # BUG: should be able to pass ["link"], but datarecord fills it into an incorrect array shape-- the length of parcels (NOT new parcels)
+        np.empty((np.shape(newpar_element_id)), dtype=object)
+    )  # BUG: should be able to pass ["link"], but datarecord fills it into an incorrect array shape-- the length of parcels (NOT new parcels)
     newpar_grid_elements.fill("link")
 
-    new_parcels = {"grid_element": newpar_grid_elements,
-             "element_id": newpar_element_id}
+    new_parcels = {
+        "grid_element": newpar_grid_elements,
+        "element_id": newpar_element_id,
+    }
 
     new_variables = {
         "starting_link": (["item_id"], new_starting_link),
@@ -131,9 +129,7 @@ def test_add_pulse():
     }
 
     parcels.add_item(
-            time=[nst._time],
-            new_item = new_parcels,
-            new_item_spec = new_variables
+        time=[nst._time], new_item=new_parcels, new_item_spec=new_variables
     )
 
     # print(parcels.dataset.element_id.values)
@@ -144,9 +140,7 @@ def test_add_pulse():
     Parcel_element_id = parcels.dataset.element_id.values
 
     Parcel_element_id_Should_Be = np.array(
-    [[ 0.,  0.,  0.],
-     [ np.nan,  0.,  0.],
-     [ np.nan,  0.,  0.]]
+        [[0.0, 0.0, 0.0], [np.nan, 0.0, 0.0], [np.nan, 0.0, 0.0]]
     )
 
     assert_array_almost_equal(

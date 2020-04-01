@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_array_almost_equal
 
 from landlab.components import FlowDirectorSteepest, NetworkSedimentTransporter
 from landlab.data_record import DataRecord
 from landlab.grid.network import NetworkModelGrid
 
 _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
+
 
 def test_recycling():
     y_of_node = (0, 0, 0, 0)
@@ -24,8 +25,8 @@ def test_recycling():
         nmg_constant_slope.size("link")
     )
     nmg_constant_slope.at_link["flow_depth"] = 3 * np.ones(
-            nmg_constant_slope.size("link")
-        )
+        nmg_constant_slope.size("link")
+    )
 
     flow_director = FlowDirectorSteepest(nmg_constant_slope)
     flow_director.run_one_step()
@@ -72,18 +73,22 @@ def test_recycling():
 
     for t in range(0, (timesteps * dt), dt):
         # RECYCLE sediment: what left the network gets added back in at top.
-        parcels.dataset.location_in_link.values[parcels.dataset.element_id.values == _OUT_OF_NETWORK] = 0
-        parcels.dataset.element_id.values[parcels.dataset.element_id.values == _OUT_OF_NETWORK] = 0
+        parcels.dataset.location_in_link.values[
+            parcels.dataset.element_id.values == _OUT_OF_NETWORK
+        ] = 0
+        parcels.dataset.element_id.values[
+            parcels.dataset.element_id.values == _OUT_OF_NETWORK
+        ] = 0
         nst.run_one_step(dt)
 
-        print('done with another timestep')
+        print("done with another timestep")
         print(parcels.dataset.element_id.values)
 
     Parcel_element_id = parcels.dataset.element_id.values
 
     Parcel_element_id_Should_Be = np.array(
-            [[ 0.,  0.,  0.,  1.,  1.,  2.,  2., 0., 0.]]
-            )
+        [[0.0, 0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 0.0, 0.0]]
+    )
 
     assert_array_almost_equal(
         Parcel_element_id_Should_Be, Parcel_element_id, decimal=-1

@@ -6,9 +6,7 @@ from landlab.grid.network import NetworkModelGrid
 _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
 
-def test_basic_init(
-    example_nmg, example_parcels, example_flow_director
-):
+def test_basic_init(example_nmg, example_parcels, example_flow_director):
 
     _ = NetworkSedimentTransporter(
         example_nmg,
@@ -77,9 +75,7 @@ def test_bad_porosity(example_nmg, example_parcels, example_flow_director):
         )
 
 
-def test_bad_transport_method(
-    example_nmg, example_parcels, example_flow_director
-):
+def test_bad_transport_method(example_nmg, example_parcels, example_flow_director):
 
     with pytest.raises(ValueError):
         NetworkSedimentTransporter(

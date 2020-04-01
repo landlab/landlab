@@ -13,10 +13,11 @@ Created on Tu May 8, 2018
 Last edit was sometime after February 2020
 """
 
-import numpy as np
-import xarray as xr
 import warnings
+
+import numpy as np
 import scipy.constants
+import xarray as xr
 
 from landlab import Component
 from landlab.components import FlowDirectorSteepest
@@ -77,9 +78,9 @@ class NetworkSedimentTransporter(Component):
     based on a given flow and a given sediment transport formulation. The river
     network is represented by a landlab NetworkModelGrid. Flow direction in the
     network is determined using a landlab flow director. Sediment parcels are
-    represented as items within a landlab ``DataRecord``. The landlab 
+    represented as items within a landlab ``DataRecord``. The landlab
     ``DataRecord`` is used to track the location, grain size, sediment density,
-    and total volume of each parcel. 
+    and total volume of each parcel.
 
     Create a ``NetworkModelGrid`` to represent the river channel network. In this
     case, the grid is a single line of 4 nodes connected by 3 links. Each link represents a reach of river.
@@ -94,7 +95,7 @@ class NetworkSedimentTransporter(Component):
     >>> _ = nmg.add_field("bedrock__elevation", [3., 2., 1., 0.], at="node") # m
     >>> _ = nmg.add_field("reach_length", [100., 100., 100.], at="link")  # m
     >>> _ = nmg.add_field("channel_width", (15 * np.ones(nmg.size("link"))), at="link")
-    >>> _ = nmg.add_field("flow_depth", (2 * np.ones(nmg.size("link"))), at="link") # m   
+    >>> _ = nmg.add_field("flow_depth", (2 * np.ones(nmg.size("link"))), at="link") # m
 
     Add ``topographic__elevation`` to the grid because the ``FlowDirectorSteepest``
     will look to it to determine the direction of sediment transport through the
@@ -113,7 +114,7 @@ class NetworkSedimentTransporter(Component):
     >>> time = [0.0]
 
     Define the sediment characteristics that will be used to create the parcels
-    ``DataRecord``. 
+    ``DataRecord``.
 
     >>> items = {"grid_element": "link",
     ...          "element_id": np.array([[0]])}
@@ -200,7 +201,7 @@ class NetworkSedimentTransporter(Component):
             "units": "m",
             "mapping": "link",
             "doc": "Flow depth of the channel",
-        },                
+        },
         "reach_length": {
             "dtype": float,
             "intent": "in",
@@ -237,16 +238,16 @@ class NetworkSedimentTransporter(Component):
             segments.
         parcels: DataRecord
             A landlab DataRecord describing the characteristics and location of
-            sediment "parcels".           
-            At any given timestep, each parcel is located at a specified point 
-            along (location_in_link) a particular link (element_id). Each 
-            parcel has a total sediment volume (volume), sediment grain size (D), 
-            sediment density (density), and bed material abrasion rate 
-            (abrasion_rate). During a given timestep, parcels may be in the 
-            "active layer" of most recently deposited sediment 
-            (active_layer = 1), or they may be burried and not subject to 
-            transport (active_layer = 0). Whether a sediment parcel is active 
-            or not is determined based on flow conditions and parcel attributes 
+            sediment "parcels".
+            At any given timestep, each parcel is located at a specified point
+            along (location_in_link) a particular link (element_id). Each
+            parcel has a total sediment volume (volume), sediment grain size (D),
+            sediment density (density), and bed material abrasion rate
+            (abrasion_rate). During a given timestep, parcels may be in the
+            "active layer" of most recently deposited sediment
+            (active_layer = 1), or they may be burried and not subject to
+            transport (active_layer = 0). Whether a sediment parcel is active
+            or not is determined based on flow conditions and parcel attributes
             in 'run_one_step'
         flow_director: FlowDirectorSteepest
             A landlab flow director. Currently, must be FlowDirectorSteepest.
@@ -392,9 +393,7 @@ class NetworkSedimentTransporter(Component):
         )
         self._this_timesteps_parcels[:, -1] = True
 
-        parcels_off_grid = (
-            self._parcels.dataset.element_id[:, -1] == _OUT_OF_NETWORK
-        )
+        parcels_off_grid = self._parcels.dataset.element_id[:, -1] == _OUT_OF_NETWORK
         self._this_timesteps_parcels[parcels_off_grid, -1] = False
 
         self._num_parcels = self._parcels.number_of_items
@@ -427,20 +426,23 @@ class NetworkSedimentTransporter(Component):
         # has already been calculated (e.g. during 'zeroing' runs)
 
         # Calculate mean values for density and grain size (weighted by volume).
-        sel_parcels = current_parcels.where(current_parcels.element_id != _OUT_OF_NETWORK)
+        sel_parcels = current_parcels.where(
+            current_parcels.element_id != _OUT_OF_NETWORK
+        )
 
-        d_weighted = sel_parcels.D*sel_parcels.volume
-        rho_weighted = sel_parcels.density*sel_parcels.volume
+        d_weighted = sel_parcels.D * sel_parcels.volume
+        rho_weighted = sel_parcels.density * sel_parcels.volume
         d_weighted.name = "d_weighted"
         rho_weighted.name = "rho_weighted"
 
-        grouped_by_element = xr.merge((sel_parcels.element_id,
-                         sel_parcels.volume,
-                         d_weighted,
-                         rho_weighted)).groupby("element_id")
+        grouped_by_element = xr.merge(
+            (sel_parcels.element_id, sel_parcels.volume, d_weighted, rho_weighted)
+        ).groupby("element_id")
 
-        d_avg = grouped_by_element.sum().d_weighted/grouped_by_element.sum().volume
-        rho_avg = grouped_by_element.sum().rho_weighted/grouped_by_element.sum().volume
+        d_avg = grouped_by_element.sum().d_weighted / grouped_by_element.sum().volume
+        rho_avg = (
+            grouped_by_element.sum().rho_weighted / grouped_by_element.sum().volume
+        )
 
         self._d_mean_active = np.zeros(self._grid.size("link"))
         self._d_mean_active[d_avg.element_id.values.astype(int)] = d_avg.values
@@ -454,11 +456,13 @@ class NetworkSedimentTransporter(Component):
         elevations.
 
         """
-        current_parcels = self._parcels.dataset.isel(time=self._time_idx)
-
         self._vol_tot = self._parcels.calc_aggregate_value(
-                np.sum, "volume", at="link", filter_array=self._this_timesteps_parcels, fill_value=0.
-            )
+            np.sum,
+            "volume",
+            at="link",
+            filter_array=self._this_timesteps_parcels,
+            fill_value=0.0,
+        )
 
         # Wong et al. (2007) approximation for active layer thickness.
         # NOTE: calculated using grain size and grain density calculated for
@@ -488,7 +492,9 @@ class NetworkSedimentTransporter(Component):
         )  # in units of m
 
         links_with_no_active_layer = np.isnan(self._active_layer_thickness)
-        self._active_layer_thickness[links_with_no_active_layer] = np.mean(self._active_layer_thickness[links_with_no_active_layer==0])  # assign links with no parcels an average value
+        self._active_layer_thickness[links_with_no_active_layer] = np.mean(
+            self._active_layer_thickness[links_with_no_active_layer == 0]
+        )  # assign links with no parcels an average value
 
         if np.sum(np.isfinite(self._active_layer_thickness)) == 0:
             self._active_layer_thickness.fill(_INIT_ACTIVE_LAYER_THICKNESS)
@@ -508,7 +514,9 @@ class NetworkSedimentTransporter(Component):
 
         for i in range(self._grid.number_of_links):
 
-            if self._vol_tot[i] > 0:  # only do this check capacity if parcels are in link
+            if (
+                self._vol_tot[i] > 0
+            ):  # only do this check capacity if parcels are in link
 
                 # First In Last Out.
 
@@ -516,7 +524,9 @@ class NetworkSedimentTransporter(Component):
                 this_links_parcels = np.where(current_link == i)[0]
 
                 # sort them by arrival time.
-                time_arrival_sort = np.flip(np.argsort(time_arrival[this_links_parcels], 0,))
+                time_arrival_sort = np.flip(
+                    np.argsort(time_arrival[this_links_parcels], 0,)
+                )
                 parcel_id_time_sorted = this_links_parcels[time_arrival_sort]
 
                 # calculate the cumulative volume (in sorted order.)
@@ -536,8 +546,12 @@ class NetworkSedimentTransporter(Component):
         ) * (self._this_timesteps_parcels)
 
         self._vol_act = self._parcels.calc_aggregate_value(
-                np.sum, "volume", at="link", filter_array=self._active_parcel_records, fill_value=0.
-            )
+            np.sum,
+            "volume",
+            at="link",
+            filter_array=self._active_parcel_records,
+            fill_value=0.0,
+        )
 
         self._vol_stor = (self._vol_tot - self._vol_act) / (1 - self._bed_porosity)
 
@@ -622,7 +636,9 @@ class NetworkSedimentTransporter(Component):
         Activearray = self._parcels.dataset.active_layer[:, self._time_idx].values
         Rhoarray = self._parcels.dataset.density.values
         Volarray = self._parcels.dataset.volume[:, self._time_idx].values
-        Linkarray = self._parcels.dataset.element_id[:, self._time_idx].values  # link that the parcel is currently in
+        Linkarray = self._parcels.dataset.element_id[
+            :, self._time_idx
+        ].values  # link that the parcel is currently in
 
         R = (Rhoarray - self._fluid_density) / self._fluid_density
 
@@ -642,7 +658,9 @@ class NetworkSedimentTransporter(Component):
             self._parcels.dataset.D < _SAND_SIZE
         ) * self._active_parcel_records  # since find active already sets all prior timesteps to False, we can use D for all timesteps here.
 
-        vol_act_sand = self._parcels.calc_aggregate_value(np.sum, "volume", at="link", filter_array=findactivesand, fill_value=0.)
+        vol_act_sand = self._parcels.calc_aggregate_value(
+            np.sum, "volume", at="link", filter_array=findactivesand, fill_value=0.0
+        )
 
         frac_sand = np.zeros_like(self._vol_act)
         frac_sand[self._vol_act != 0.0] = (
@@ -653,7 +671,9 @@ class NetworkSedimentTransporter(Component):
         # Calc attributes for each link, map to parcel arrays
         for i in range(self._grid.number_of_links):
 
-            active_here = np.nonzero(np.logical_and(Linkarray == i, Activearray == _ACTIVE))[0]
+            active_here = np.nonzero(
+                np.logical_and(Linkarray == i, Activearray == _ACTIVE)
+            )[0]
             d_act_i = Darray[active_here]
             vol_act_i = Volarray[active_here]
             rhos_act_i = Rhoarray[active_here]
@@ -717,7 +737,9 @@ class NetworkSedimentTransporter(Component):
         self._pvelocity[np.isnan(self._pvelocity)] = 0.0
 
         if np.max(self._pvelocity) > 1:
-            warnings.warn('NetworkSedimentTransporter: Maximum parcel virtual velocity exceeds 1 m/s')
+            warnings.warn(
+                "NetworkSedimentTransporter: Maximum parcel virtual velocity exceeds 1 m/s"
+            )
 
         # Assign those things to the grid -- might be useful for plotting
         self._grid.at_link["sediment_total_volume"] = self._vol_tot
@@ -762,41 +784,57 @@ class NetworkSedimentTransporter(Component):
         active_parcel_ids = np.nonzero(in_network * active)[0]
 
         distance_left_to_travel = distance_to_travel_this_timestep.copy()
-        while np.any(distance_left_to_travel>0.):
+        while np.any(distance_left_to_travel > 0.0):
 
             # Step 1: Move parcels downstream.
             on_network = current_link != _OUT_OF_NETWORK
-
-            moving_parcels = (distance_left_to_travel>0.) * on_network
 
             # Get current link lengths:
             current_link_lengths = self._grid.at_link["reach_length"][current_link]
 
             # Determine where they are in the current link.
-            distance_to_exit_current_link = current_link_lengths * (1.0 - location_in_link)
+            distance_to_exit_current_link = current_link_lengths * (
+                1.0 - location_in_link
+            )
 
             # Identify which ones will come to rest in the current link.
-            rest_this_link = (distance_left_to_travel < distance_to_exit_current_link) * on_network * (distance_left_to_travel>0.)
+            rest_this_link = (
+                (distance_left_to_travel < distance_to_exit_current_link)
+                * on_network
+                * (distance_left_to_travel > 0.0)
+            )
 
-            ## Deal with those staying in the current link.
+            # Deal with those staying in the current link.
             if np.any(rest_this_link):
-                #print('  {x} coming to rest'.format(x=np.sum(rest_this_link)))
+                # print('  {x} coming to rest'.format(x=np.sum(rest_this_link)))
 
                 # for those staying in this link, calculate the location in link
                 # (note that this is a proportional distance). AND change distance_left_to_travel to 0.0
-                location_in_link[rest_this_link] = 1.0 - ((distance_to_exit_current_link[rest_this_link]-distance_left_to_travel[rest_this_link])/current_link_lengths[rest_this_link])
+                location_in_link[rest_this_link] = 1.0 - (
+                    (
+                        distance_to_exit_current_link[rest_this_link]
+                        - distance_left_to_travel[rest_this_link]
+                    )
+                    / current_link_lengths[rest_this_link]
+                )
 
                 distance_left_to_travel[rest_this_link] = 0.0
 
-            ## Deal with those moving to a downstream link.
-            moving_downstream = (distance_left_to_travel >= distance_to_exit_current_link) * on_network * (distance_left_to_travel>0.)
+            # Deal with those moving to a downstream link.
+            moving_downstream = (
+                (distance_left_to_travel >= distance_to_exit_current_link)
+                * on_network
+                * (distance_left_to_travel > 0.0)
+            )
             if np.any(moving_downstream):
-                #print('  {x} next link'.format(x=np.sum(moving_downstream)))
+                # print('  {x} next link'.format(x=np.sum(moving_downstream)))
                 # change location in link to 0
                 location_in_link[moving_downstream] = 0.0
 
                 # decrease distance to travel.
-                distance_left_to_travel[moving_downstream] -= distance_to_exit_current_link[moving_downstream]
+                distance_left_to_travel[
+                    moving_downstream
+                ] -= distance_to_exit_current_link[moving_downstream]
 
                 # change current link to the downstream link.
 
@@ -811,12 +849,12 @@ class NetworkSedimentTransporter(Component):
                 moved_oon = downstream_link == self._grid.BAD_INDEX
 
                 if np.any(moved_oon):
-                    #print('  {x} exiting network'.format(x=np.sum(moved_oon)))
+                    # print('  {x} exiting network'.format(x=np.sum(moved_oon)))
 
                     current_link[moved_oon] = _OUT_OF_NETWORK
                     # assign location in link of np.nan to those which moved oon
                     location_in_link[moved_oon] = np.nan
-                    distance_left_to_travel[moved_oon] = 0.
+                    distance_left_to_travel[moved_oon] = 0.0
 
         # Step 2: Parcel is at rest... Now update its information.
 
@@ -924,7 +962,7 @@ def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
 
     if chan_slope < 0.0:
         chan_slope = 0.0
-        warnings.warn('NetworkSedimentTransporter: Negative channel slope encountered.')
+        warnings.warn("NetworkSedimentTransporter: Negative channel slope encountered.")
 
     if chan_slope < threshold:
         chan_slope = threshold
@@ -1032,7 +1070,9 @@ def _calculate_reference_shear_stress(
     )
 
     if np.any(np.asarray(taursg < 0)):
-        raise ValueError("NetworkSedimentTransporter: Reference Shields stress is negative")
+        raise ValueError(
+            "NetworkSedimentTransporter: Reference Shields stress is negative"
+        )
 
     return taursg
 
