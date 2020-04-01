@@ -53,14 +53,16 @@ class NetworkSedimentTransporter(Component):
 
     This component cares about units.
 
-    **Usage:**
-    Option 1 - Basic::
-        NetworkSedimentTransporter(grid,
-                             parcels,
-                             transporter = XXXXXX,
-                             discharge,
-                             channel_geometry
-                             )
+    Usage:
+                nst = NetworkSedimentTransporter(
+                    nmg_constant_slope,
+                    parcels,
+                    flow_director,
+                    bed_porosity=0.03,
+                    g=9.81,
+                    fluid_density=1000,
+                    transport_method="WilcockCrowe",
+                )
 
     Examples
     ----------
@@ -74,7 +76,9 @@ class NetworkSedimentTransporter(Component):
     based on a given flow and a given sediment transport formulation. The river
     network is represented by a landlab NetworkModelGrid. Flow direction in the
     network is determined using a landlab flow director. Sediment parcels are
-    represented as items within a landlab ``DataRecord``.
+    represented as items within a landlab ``DataRecord``. The landlab 
+    ``DataRecord`` is used to track the location, grain size, sediment density,
+    and total volume of each parcel. 
 
     Create a ``NetworkModelGrid`` to represent the river channel network. In this
     case, the grid is a single line of 4 nodes connected by 3 links. Each link represents a reach of river.
@@ -107,7 +111,8 @@ class NetworkSedimentTransporter(Component):
     >>> timesteps = 10
     >>> time = [0.0]
 
-    Define the sediment characteristics that will be used to create the parcels ``DataRecord``
+    Define the sediment characteristics that will be used to create the parcels
+    ``DataRecord``. 
 
     >>> items = {"grid_element": "link",
     ...          "element_id": np.array([[0]])}
@@ -231,11 +236,17 @@ class NetworkSedimentTransporter(Component):
             segments.
         parcels: DataRecord
             A landlab DataRecord describing the characteristics and location of
-            sediment "parcels".
-            
-            XXXX Either put more information about parcels here or put it above and
-            reference it here.
-            
+            sediment "parcels".           
+            At any given timestep, each parcel is located at a specified point 
+            along (location_in_link) a particular link (element_id). Each 
+            parcel has a total sediment volume (volume), sediment grain size (D), 
+            sediment density (density), and bed material abrasion rate 
+            (abrasion_rate). During a given timestep, parcels may be in the 
+            "active layer" of most recently deposited sediment 
+            (active_layer = 1), or they may be burried and not subject to 
+            transport (active_layer = 0). Whether a sediment parcel is active 
+            or not is determined based on flow conditions and parcel attributes 
+            in 'run_one_step'
         flow_director: FlowDirectorSteepest
             A landlab flow director. Currently, must be FlowDirectorSteepest.
         bed_porosity: float, optional

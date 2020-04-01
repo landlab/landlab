@@ -72,6 +72,7 @@ def test_recycling():
 
     for t in range(0, (timesteps * dt), dt):
         # RECYCLE sediment: what left the network gets added back in at top.
+        parcels.dataset.location_in_link.values[parcels.dataset.element_id.values == _OUT_OF_NETWORK] = 0
         parcels.dataset.element_id.values[parcels.dataset.element_id.values == _OUT_OF_NETWORK] = 0
         nst.run_one_step(dt)
 
@@ -81,7 +82,7 @@ def test_recycling():
     Parcel_element_id = parcels.dataset.element_id.values
 
     Parcel_element_id_Should_Be = np.array(
-            [[ 0.,  0.,  0.,  1.,  1.,  2.,  2., -2., 0]]
+            [[ 0.,  0.,  0.,  1.,  1.,  2.,  2., 0., 0.]]
             )
 
     assert_array_almost_equal(
