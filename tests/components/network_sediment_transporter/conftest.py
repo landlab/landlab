@@ -7,6 +7,7 @@ from landlab.grid.network import NetworkModelGrid
 
 _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
+
 @pytest.fixture()
 def example_nmg():
     y_of_node = (0, 100, 200, 200, 300, 400, 400, 125)
@@ -31,10 +32,11 @@ def example_nmg():
     grid.add_field("channel_width", 15 * np.ones(grid.size("link")), at="link")
 
     grid.add_field(
-    "flow_depth", 0.01121871 * np.ones(grid.size("link")), at="link"
-    ) # Why such an odd, low flow depth? Well, it doesn't matter... and oops.-AP
+        "flow_depth", 0.01121871 * np.ones(grid.size("link")), at="link"
+    )  # Why such an odd, low flow depth? Well, it doesn't matter... and oops.-AP
 
     return grid
+
 
 @pytest.fixture()
 def example_parcels(example_nmg):

@@ -7,6 +7,7 @@ from landlab.grid.network import NetworkModelGrid
 
 _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
+
 def test_first_in_last_out():
     y_of_node = (0, 0, 0, 0, 0, 0)
     x_of_node = (0, 100, 200, 300, 400, 500)

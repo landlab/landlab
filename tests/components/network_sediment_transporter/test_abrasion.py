@@ -8,9 +8,7 @@ from landlab.grid.network import NetworkModelGrid
 _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 
 
-def test_abrasion(
-    example_nmg, example_parcels, example_flow_director
-):
+def test_abrasion(example_nmg, example_parcels, example_flow_director):
     time = [0.0]  # probably not the sensible way to do this...
 
     items = {"grid_element": "link", "element_id": np.array([[6], [6]])}
@@ -39,7 +37,9 @@ def test_abrasion(
 
     timesteps = 8
 
-    example_nmg.at_link['flow_depth'] = example_nmg.at_link['flow_depth'] * 5  # high transport rate
+    example_nmg.at_link["flow_depth"] = (
+        example_nmg.at_link["flow_depth"] * 5
+    )  # high transport rate
 
     nst = NetworkSedimentTransporter(
         example_nmg,

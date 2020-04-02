@@ -40,7 +40,7 @@ def test_parcel_leaves(example_nmg, example_flow_director):
 
     timesteps = 5
 
-    example_nmg.at_link['flow_depth']=example_nmg.at_link['flow_depth'] * 20
+    example_nmg.at_link["flow_depth"] = example_nmg.at_link["flow_depth"] * 20
 
     nst = NetworkSedimentTransporter(
         example_nmg,

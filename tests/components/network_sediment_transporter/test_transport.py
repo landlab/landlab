@@ -68,8 +68,8 @@ def test_defined_parcel_transport():
         nmg_constant_slope.size("link")
     )
     nmg_constant_slope.at_link["flow_depth"] = 2 * np.ones(
-            nmg_constant_slope.size("link")
-        )
+        nmg_constant_slope.size("link")
+    )
 
     flow_director = FlowDirectorSteepest(nmg_constant_slope)
     flow_director.run_one_step()
@@ -115,7 +115,6 @@ def test_defined_parcel_transport():
     dt = 60  # (seconds) 1 min timestep
 
     distance_traveled = np.arange(0.0, timesteps)
-    active_layer_thickness_array = np.arange(0.0, timesteps)
     # distance_traveled = np.arange(0.,timesteps)
 
     for t in range(0, (timesteps * dt), dt):
