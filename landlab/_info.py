@@ -14,7 +14,6 @@ cite_as = [
     year={2017},
     publisher={Copernicus GmbH}
     }
-
     @article{barnhart2020short,
     author = {Barnhart, K. R. and Hutton, E. W. H. and Tucker, G. E.
         and Gasparini, N. M. and Istanbulluoglu, E. and Hobley,
@@ -28,7 +27,5 @@ cite_as = [
     pages = {1--25},
     url = {https://www.earth-surf-dynam-discuss.net/esurf-2020-12/},
     doi = {10.5194/esurf-2020-12}
-    }
-
-    """
+    }"""
 ]
