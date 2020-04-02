@@ -29,7 +29,6 @@ Examples
     year={2017},
     publisher={Copernicus GmbH}
     }
-<BLANKLINE>
     @article{barnhart2020short,
     author = {Barnhart, K. R. and Hutton, E. W. H. and Tucker, G. E.
         and Gasparini, N. M. and Istanbulluoglu, E. and Hobley,
@@ -72,7 +71,6 @@ instantiated (not just imported) the component citation is also included.
     year={2017},
     publisher={Copernicus GmbH}
     }
-<BLANKLINE>
     @article{barnhart2020short,
     author = {Barnhart, K. R. and Hutton, E. W. H. and Tucker, G. E.
         and Gasparini, N. M. and Istanbulluoglu, E. and Hobley,
