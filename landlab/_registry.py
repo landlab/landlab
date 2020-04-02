@@ -43,6 +43,7 @@ Examples
     url = {https://www.earth-surf-dynam-discuss.net/esurf-2020-12/},
     doi = {10.5194/esurf-2020-12}
     }
+<BLANKLINE>
 
 When a component contains citation information, and the component has been
 instantiated (not just imported) the component citation is also included.
