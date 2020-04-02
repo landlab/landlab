@@ -47,7 +47,7 @@ class RectilinearGrid(StructuredQuadGrid):
         shape = (len(coord[0]), len(coord[1]))
         node_coord = np.meshgrid(*coord, indexing="ij")
 
-        super(RectilinearGrid, self).__init__(node_coord, shape, cells=True)
+        super().__init__(node_coord, shape, cells=True)
 
         self._coord = (coord[0], coord[1])
 
@@ -128,7 +128,7 @@ class UniformRectilinearGrid(RectilinearGrid):
             ),
         )
 
-        super(UniformRectilinearGrid, self).__init__(coords)
+        super().__init__(coords)
 
         self._spacing = tuple(spacing)
 
@@ -193,6 +193,4 @@ class RasterGrid(UniformRectilinearGrid):
         origin : tuple, optional
             Coordinates of grid origin.
         """
-        super(RasterGrid, self).__init__(
-            shape, origin=origin, spacing=(spacing,) * len(shape)
-        )
+        super().__init__(shape, origin=origin, spacing=(spacing,) * len(shape))

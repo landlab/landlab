@@ -141,6 +141,8 @@ class TaylorNonLinearDiffuser(Component):
 
     _name = "TaylorNonLinearDiffuser"
 
+    _unit_agnostic = True
+
     _cite_as = """
     @article{barnhart2019terrain,
       author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
@@ -217,7 +219,7 @@ class TaylorNonLinearDiffuser(Component):
             Factor to identify stable time-step duration when using dynamic
             timestepping.
         """
-        super(TaylorNonLinearDiffuser, self).__init__(grid)
+        super().__init__(grid)
 
         # Store grid and parameters
 

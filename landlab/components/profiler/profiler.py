@@ -130,6 +130,8 @@ class Profiler(_BaseProfiler):
 
     _name = "Profiler"
 
+    _unit_agnostic = True
+
     def __init__(self, grid, endpoints, cmap="viridis"):
         """Instantiate Profiler.
 
@@ -147,7 +149,7 @@ class Profiler(_BaseProfiler):
         cmap : str
             A valid matplotlib cmap string. Default is "viridis".
         """
-        super(_BaseProfiler, self).__init__(grid)
+        super().__init__(grid)
 
         self._cmap = plt.get_cmap(cmap)
 

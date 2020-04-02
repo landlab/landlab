@@ -78,7 +78,7 @@ class StructuredQuadGrid(BaseGrid):
         if cells:
             cell_grid = StructuredQuadCellGrid(self.shape)
 
-        # super(StructuredQuadGrid, self).__init__(node_status=node_status)
+        # super().__init__(node_status=node_status)
         BaseGrid.__init__(
             self,
             (node_coord[0].flatten(), node_coord[1].flatten()),

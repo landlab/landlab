@@ -11,6 +11,7 @@ from numpy.testing import assert_almost_equal, assert_equal
 
 from landlab import HexModelGrid, RasterModelGrid
 from landlab.components import FlowAccumulator, GroundwaterDupuitPercolator
+from landlab.grid.mappers import map_mean_of_link_nodes_to_link
 
 
 def test_simple_water_table():
@@ -237,13 +238,69 @@ def test_inactive_interior_node():
 
     mg = RasterModelGrid((4, 4), xy_spacing=1.0)
     mg.status_at_node[5] = mg.BC_NODE_IS_FIXED_VALUE
-    elev = mg.add_zeros('node', 'topographic__elevation')
+    elev = mg.add_zeros("node", "topographic__elevation")
     elev[:] = 1
-    base = mg.add_zeros('node', 'aquifer_base__elevation')
+    base = mg.add_zeros("node", "aquifer_base__elevation")
     base[:] = 0
-    wt = mg.add_zeros('node', 'water_table__elevation')
+    wt = mg.add_zeros("node", "water_table__elevation")
     wt[:] = 1
 
     gdp = GroundwaterDupuitPercolator(mg)
     assert_almost_equal(gdp.calc_recharge_flux_in(), 3e-8)
     assert_almost_equal(gdp.calc_total_storage(), 0.6)
+
+
+def test_k_func():
+    """
+    Test the use of a function to specify how hydraulic conductivity changes
+    with water table position.
+
+    Note:
+    ----
+    Test that component keeps hydraulic conductivity at default value when
+    k_func is None. Then test that a simple function correctly sets the
+    hydraulic conductivity value after run_one_step and run_with_adaptive_time_step_solver.
+
+    """
+
+    # initialize model grid
+    mg = RasterModelGrid((4, 4), xy_spacing=1.0)
+    elev = mg.add_zeros("node", "topographic__elevation")
+    elev[:] = 1
+    base = mg.add_zeros("node", "aquifer_base__elevation")
+    base[:] = 0
+    wt = mg.add_zeros("node", "water_table__elevation")
+    wt[:] = 0.5
+
+    # initialize model without giving k_func
+    gdp = GroundwaterDupuitPercolator(mg)
+
+    # run model and assert that K hasn't changed from the default value
+    gdp.run_one_step(0)
+    assert np.equal(0.001, gdp.K).all()
+
+    gdp.run_with_adaptive_time_step_solver(0)
+    assert np.equal(0.001, gdp.K).all()
+
+    # create a simple k_func, where hydraulic conductivity varies linearly
+    # with depth, from Ks at surface to 0 at aquifer base
+    def k_func_test(grid, Ks=0.01):
+        h = grid.at_node["aquifer__thickness"]
+        b = (
+            grid.at_node["topographic__elevation"]
+            - grid.at_node["aquifer_base__elevation"]
+        )
+        blink = map_mean_of_link_nodes_to_link(grid, b)
+        hlink = map_mean_of_link_nodes_to_link(grid, h)
+
+        return (hlink / blink) * Ks
+
+    # initialize model with given k_func
+    gdp1 = GroundwaterDupuitPercolator(mg, hydraulic_conductivity=k_func_test)
+
+    # run model and assert that K has been updated correctly
+    gdp1.run_one_step(0)
+    assert np.equal(0.005, gdp1.K).all()
+
+    gdp1.run_with_adaptive_time_step_solver(0)
+    assert np.equal(0.005, gdp1.K).all()

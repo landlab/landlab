@@ -258,7 +258,7 @@ def wrap_as_bmi(cls):
         def __init__(self):
             self._base = None
             self._clock = None
-            super(BmiWrapper, self).__init__()
+            super().__init__()
 
             self._input_var_names = tuple(
                 set(self._cls.input_var_names) | {"boundary_condition_flag"}
