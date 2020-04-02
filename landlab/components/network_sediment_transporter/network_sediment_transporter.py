@@ -657,7 +657,7 @@ class NetworkSedimentTransporter(Component):
             vol_act_i = Volarray[active_here]
             rhos_act_i = Rhoarray[active_here]
             vol_act_tot_i = np.sum(vol_act_i)
-            # ^ this behaves as expected. filterarray to create self._vol_tot above does not. --> FIXED?
+
             self._d_mean_active[i] = np.sum(d_act_i * vol_act_i) / (vol_act_tot_i)
             if vol_act_tot_i > 0:
                 self._rhos_mean_active[i] = np.sum(rhos_act_i * vol_act_i) / (
@@ -915,17 +915,18 @@ def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
     1.0
     >>> _recalculate_channel_slope(0., 0., 10.)
     0.0001
-    >>> with pytest.raises(RuntimeError):
+    >>> with pytest.warns(UserWarning): 
     ...     _recalculate_channel_slope(0., 10., 10.)
+    0.0
 
     """
     chan_slope = (z_up - z_down) / dx
 
     if chan_slope < 0.0:
         chan_slope = 0.0
-        warnings.warn('NetworkSedimentTransporter: Negative channel slope encountered.')
+        warnings.warn('NetworkSedimentTransporter: Negative channel slope encountered.',UserWarning)
 
-    if chan_slope < threshold:
+    elif chan_slope < threshold:
         chan_slope = threshold
 
     return chan_slope
