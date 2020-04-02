@@ -191,7 +191,7 @@ class VegCA(Component):
             it will be 0.
 
         """
-        super(VegCA, self).__init__(grid)
+        super().__init__(grid)
 
         self.Edit_VegCov = Edit_VegCov
 

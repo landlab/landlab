@@ -156,7 +156,7 @@ class PotentialityFlowRouter(Component):
         Mannings_n : float (optional)
             Required if flow_equation == 'Manning'.
         """
-        super(PotentialityFlowRouter, self).__init__(grid)
+        super().__init__(grid)
 
         if isinstance(grid, RasterModelGrid):
             assert grid.number_of_node_rows >= 3

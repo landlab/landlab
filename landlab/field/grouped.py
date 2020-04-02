@@ -107,7 +107,7 @@ class ModelDataFields(object):
     def __init__(self, **kwds):
         self._groups = dict()
         self._default_group = None
-        super(ModelDataFields, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     @property
     def groups(self):

@@ -327,7 +327,7 @@ class DepthDependentTaylorDiffuser(Component):
         courant_factor : float
             Courant factor for timestep calculation.
         """
-        super(DepthDependentTaylorDiffuser, self).__init__(grid)
+        super().__init__(grid)
         # Store grid and parameters
 
         self._K = linear_diffusivity

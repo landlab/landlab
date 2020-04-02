@@ -112,7 +112,7 @@ class ZoneTaxon(Taxon):
         pseudoextinction : boolean, optional
             When 'True', taxon becomes extinct when it produces child taxa.
         """
-        super(ZoneTaxon, self).__init__()
+        super().__init__()
 
         self.parent = parent
         self._allopatric_wait_time = allopatric_wait_time

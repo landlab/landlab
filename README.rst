@@ -40,7 +40,7 @@ Earth surface dynamics. It contains
 In addition Landlab contains a set of Jupyter notebook tutorials providing
 an introduction to core concepts and examples of use.
 
-Landlab was desiged for disciplines that quantify Earth surface dynamics such
+Landlab was designed for disciplines that quantify Earth surface dynamics such
 as geomorphology, hydrology, glaciology, and stratigraphy. It can also be used
 in related fields. Scientists who use this type of model often build
 their own unique model from the ground up, re-coding the basic building blocks

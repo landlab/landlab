@@ -116,7 +116,7 @@ class OverlandFlowBates(Component):
         g=scipy.constants.g,
         rainfall_intensity=0.0,
     ):
-        super(OverlandFlowBates, self).__init__(grid)
+        super().__init__(grid)
 
         # First we copy our grid
 

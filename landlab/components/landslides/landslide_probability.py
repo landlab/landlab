@@ -394,7 +394,7 @@ class LandslideProbability(Component):
         # Initialize seeded random number generation
         self._seed_generator(seed)
 
-        super(LandslideProbability, self).__init__(grid)
+        super().__init__(grid)
 
         # Store parameters and do unit conversions
         self._n = int(number_of_iterations)
