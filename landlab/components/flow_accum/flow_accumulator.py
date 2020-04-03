@@ -1067,7 +1067,7 @@ class FlowAccumulator(Component):
         else:
             self._depression_finder = None
 
-    def accumulate_flow(self, update_flow_director=True):
+    def accumulate_flow(self, update_flow_director=True, update_depression_finder=True):
         """Function to make FlowAccumulator calculate drainage area and
         discharge.
 
@@ -1102,11 +1102,12 @@ class FlowAccumulator(Component):
             # At the moment, no depression finders work with to-many, so it
             # lives here
             if self._depression_finder_provided is not None:
-                self._depression_finder.map_depressions()
+                if update_depression_finder:
+                    self._depression_finder.map_depressions()
 
-                # if FlowDirectorSteepest is used, update the link directions
-                if self._flow_director._name == "FlowDirectorSteepest":
-                    self._flow_director._determine_link_directions()
+                    # if FlowDirectorSteepest is used, update the link directions
+                    if self._flow_director._name == "FlowDirectorSteepest":
+                        self._flow_director._determine_link_directions()
 
             # step 3. Stack, D, delta construction
             nd = as_id_array(flow_accum_bw._make_number_of_donors_array(r))
