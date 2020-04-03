@@ -23,11 +23,15 @@ Ref 2: 'The Landlab LandslideProbability Component User Manual' @
 https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.pdf
 
 Created on Thu Aug 20, 2015
-Last edit June 7, 2017
+Last feature edits June 7, 2017
+Landlab v2 and PEP8 updates by mcflugen and kbarnhart 2018-2019
+Component Changes: Add depth to water table as an optional hydrology input; an alternative to recharge; April 3, 2020
+
 """
 
 import copy
 
+import pandas as pd
 import numpy as np
 import scipy.constants
 from scipy import interpolate
@@ -45,14 +49,15 @@ class LandslideProbability(Component):
     stability index (Factor of Safety).
 
     The driving force for failure is provided by the user in the form of
-    groundwater recharge; four options for providing recharge are supported.
+    groundwater recharge OR depth to groundwater. Four options for providing 
+    recharge plus four options of depth to groundwater are supported.
     The model uses topographic and soil characteristics provided as input
     by the user.
 
     The main method of the LandslideProbability class is
-    `calculate_landslide_probability()``, which calculates the mean soil
+    `calculate_landslide_probability()`, which calculates the mean soil
     relative wetness, probability of soil saturation, and probability of
-    failure at each node based on a Monte Carlo simulation.
+    failure at each node based on a Monte Carlo simulation.   
 
     **Usage:**
 
@@ -96,6 +101,41 @@ class LandslideProbability(Component):
                              groundwater__recharge_HSD_inputs=[HSD_dict,
                                                                HSD_id_dict,
                                                                fract_dict])
+    Option 5 - Uniform depth
+
+    .. code-block:: python
+    
+        LandslideProbability(grid, 
+                             number_of_iterations=250,
+                             groundwater__depth_distribution='uniform', 
+                             groundwater__depth_min_value=0.01, 
+                             groundwater__depth_max_value=2.)
+                             
+    Option 6 - Lognormal depth 
+    
+    .. code-block:: python
+        
+        LandslideProbability(grid, number_of_iterations=250,
+                             groundwater__depth_distribution='lognormal', 
+                             groundwater__depth_mean=0.5.,
+                             groundwater__depth_standard_deviation=0.1)
+                             
+    Option 7 - Lognormal_spatial depth 
+    
+    .. code-block:: python
+    
+        LandslideProbability(grid, number_of_iterations=250,
+                             groundwater__depth_distribution='lognormal_spatial', 
+                             groundwater__depth_mean=np.random.randint(0, 2, grid_size),
+                             groundwater__depth_standard_deviation=np.random.rand(grid_size))   
+                             
+    Option 8 - Data_driven_spatial depth to water
+    
+    .. code-block:: python
+    
+        LandslideProbability(grid, number_of_iterations=250, 
+                             groundwater__depth_distribution='data_driven_spatial', 
+                             groundwater__depth_HSD_inputs=[HSD_dict])
 
     Examples
     --------
@@ -188,6 +228,7 @@ class LandslideProbability(Component):
     >>> sorted(ls_prob.output_var_names) # doctest: +NORMALIZE_WHITESPACE
     ['landslide__probability_of_failure',
      'soil__mean_relative_wetness',
+     'soil__mean_watertable_depth',
      'soil__probability_of_saturation']
 
     Check the output from the component, including array at one node.
@@ -207,7 +248,7 @@ class LandslideProbability(Component):
 
     **Additional References**
 
-    None Listed
+    Publication Pending
 
     """
 
@@ -216,7 +257,7 @@ class LandslideProbability(Component):
 
     _unit_agnostic = False
 
-    __version__ = "1.0"
+    __version__ = "2.0"
 
     _cite_as = """
     @article{strauch2018hydroclimatological,
@@ -352,6 +393,12 @@ class LandslideProbability(Component):
         groundwater__recharge_mean=None,
         groundwater__recharge_standard_deviation=None,
         groundwater__recharge_HSD_inputs=[],
+        groundwater__depth_distribution=None,
+        groundwater__depth_min_value=0.01,
+        groundwater__depth_max_value=3.,
+        groundwater__depth_mean=None,
+        groundwater__depth_standard_deviation=None,
+        groundwater__depth_HSD_inputs=[],
         seed=0,
     ):
         """
@@ -383,6 +430,25 @@ class LandslideProbability(Component):
             Note: this input method is a very specific one, and to use this method,
             one has to refer Ref 1 & Ref 2 mentioned above, as this set of
             inputs require rigorous pre-processing of data.
+        groundwater__depth_distribution: str, optional
+            single word indicating depth to water table distribution, either 
+            'uniform', 'lognormal', 'lognormal_spatial,' or 
+            'data_driven_spatial'.
+             (default=None)
+        groundwater__depth_min_value: float, optional (m)
+            minium groundwater depth to water table for 'uniform' (default=0.01)
+        groundwater__depth_max_value: float, optional (m)
+            maximum groundwater depth for 'uniform' (default=2.)
+        groundwater__depth_mean: float, optional (m) 
+            mean groundwater depth to water table for 'lognormal'
+            and 'lognormal_spatial' (default=None)
+        groundwater__depth_standard_deviation: float, optional (m)
+            standard deviation of groundwater depth to water table for 
+            'lognormal' and 'lognormal_spatial' (default=None)
+        groundwater__depth_HSD_inputs: list, optional
+            one dictionary (default=[]) - HSD_dict
+            {Hydrologic Source Domain (HSD) Grid equal size to Landlab 
+            node ID keys: groundwater depth distribution numpy array values}
         g: float, optional (m/sec^2)
             acceleration due to gravity.
         seed: int, optional
