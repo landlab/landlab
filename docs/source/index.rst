@@ -97,7 +97,7 @@ To keep in touch with the latest Landlab news:
 Citing Landlab
 --------------
 
-If you use any portion of Landlab, you must cite the following paper:
+If you use any portion of Landlab, you must cite the following papers:
 
 `Hobley, D. E. J. <https://www.earth-surf-dynam.net/5/21/2017/>`__, Adams,
 J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu,
@@ -106,24 +106,47 @@ toolkit for building, coupling, and exploring two-dimensional numerical models
 of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46,
 10.5194/esurf-5-21-2017.
 
+`Barnhart, K. R. <https://doi.org/10.5194/esurf-2020-12>`__,
+Hutton, E. W. H., Tucker, G. E., Gasparini, N. M., Istanbulluoglu, E.,
+Hobley, D. E. J., Lyons, N. J., Mouchene, M., Nudurupati, S. S., Adams, J. M.,
+and Bandaragoda, C.: Short communication: Landlab v2.0: A software package for
+Earth surface dynamics, Earth Surf. Dynam. Discuss.,
+https://doi.org/10.5194/esurf-2020-12, in review, 2020.
+
 
 BibTeX format:
 ::
 
  @article{Hobley2017,
-          Author = {Hobley, D. E. J. and Adams, J. M. and
+          author = {Hobley, D. E. J. and Adams, J. M. and
                     Nudurupati, S. S. and Hutton, E. W. H.
                     and Gasparini, N. M. and Istanbulluoglu,
                     E. and Tucker, G. E.},
-          Journal = {Earth Surface Dynamics},
-          Year = {2017},
-          Title = {Creative computing with Landlab: an open-source
+          journal = {Earth Surface Dynamics},
+          year = {2017},
+          title = {Creative computing with Landlab: an open-source
                    toolkit for building, coupling, and exploring
                    two-dimensional numerical models of
                    Earth-surface dynamics},
-          Number = {5},
-          Pages = {21-46},
-          Doi = {10.5194/esurf-5-21-2017}}
+          number = {5},
+          pages = {21-46},
+          doi = {10.5194/esurf-5-21-2017}}
+
+ @article{barnhart2020short,
+          author = {Barnhart, K. R. and Hutton, E. W. H. and
+                    Tucker, G. E. and Gasparini, N. M. and
+                    Istanbulluoglu, E. and Hobley, D. E. J. and
+                    Lyons, N. J. and Mouchene, M. and Nudurupati,
+                    S. S. and Adams, J. M. and Bandaragoda, C.},
+          title = {Short communication: Landlab v2.0: A software
+                   package for Earth surface dynamics},
+          journal = {Earth Surface Dynamics Discussions},
+          volume = {2020},
+          year = {2020},
+          pages = {1--25},
+          url = {https://www.earth-surf-dynam-discuss.net/esurf-2020-12/},
+          doi = {10.5194/esurf-2020-12}
+          }
 
 If you are working with Landlab components and utilities, many of them have
 their own publication. Please cite it to acknowledge the component authors.
