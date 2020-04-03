@@ -1,9 +1,8 @@
 import itertools
 
 import numpy as np
-from six.moves import range
 
-from ..base import CORE_NODE, CLOSED_BOUNDARY
+from ..nodestatus import NodeStatus
 
 
 def number_of_nodes(shape):
@@ -70,8 +69,9 @@ def corners(shape):
     array([ 0,  3,  8, 11])
     """
     node_count = number_of_nodes(shape)
-    return np.array([0, shape[1] - 1, node_count - shape[1], node_count - 1],
-                    dtype=np.int)
+    return np.array(
+        [0, shape[1] - 1, node_count - shape[1], node_count - 1], dtype=np.int
+    )
 
 
 def node_ids(shape):
@@ -169,8 +169,7 @@ def right_iter(shape):
 
 
 def left_right_iter(shape, *args):
-    """left_right_iter(shape, stop)
-    left_right_iter(shape, start, stop[, step])
+    """left_right_iter(shape, stop) left_right_iter(shape, start, stop[, step])
 
     Iterator for left and right perimeter nodes.
 
@@ -245,9 +244,9 @@ def perimeter_iter(shape):
     >>> np.fromiter(perimeter_iter((4, 3)), dtype=np.int)
     array([ 0,  1,  2,  3,  5,  6,  8,  9, 10, 11])
     """
-    return itertools.chain(bottom_iter(shape),
-                           left_right_iter(shape, 1, shape[0] - 1),
-                           top_iter(shape))
+    return itertools.chain(
+        bottom_iter(shape), left_right_iter(shape, 1, shape[0] - 1), top_iter(shape)
+    )
 
 
 def perimeter(shape):
@@ -268,13 +267,11 @@ def perimeter(shape):
     >>> from landlab.grid.structured_quad.nodes import perimeter
     >>> perimeter((3, 4))
     array([ 0,  1,  2,  3,  4,  7,  8,  9, 10, 11])
-
     """
     return np.fromiter(perimeter_iter(shape), dtype=np.int)
 
 
-def status_with_perimeter_as_boundary(shape,
-                                      node_status=CLOSED_BOUNDARY):
+def status_with_perimeter_as_boundary(shape, node_status=NodeStatus.CLOSED):
     """Node status for a grid whose boundary is along its perimeter.
 
     Parameters
@@ -302,7 +299,7 @@ def status_with_perimeter_as_boundary(shape,
            [-1, -1, -1, -1]])
     """
     status = np.empty(shape, dtype=int)
-    status.fill(CORE_NODE)
+    status.fill(NodeStatus.CORE)
     status.flat[perimeter(shape)] = node_status
 
     return status

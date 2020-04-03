@@ -1,16 +1,17 @@
 """Sort the elements of a graph.
 
-This module provides functions that sort the elements of a graph structure.
+This module provides functions that sort the elements of a graph
+structure.
 """
 
 import numpy as np
 
-from ...core.utils import as_id_array, argsort_points_by_x_then_y
-from ...utils.jaggedarray import flatten_jagged_array, unravel
+from ...core.utils import argsort_points_by_x_then_y, as_id_array
+from ...utils.jaggedarray import flatten_jagged_array
 from .ext.spoke_sort import sort_spokes_at_wheel
 
 
-def remap(src, mapping, out=None, inplace=False): 
+def remap(src, mapping, out=None, inplace=False):
     """Remap elements in an id array.
 
     Parameters
@@ -48,8 +49,8 @@ def remap(src, mapping, out=None, inplace=False):
             out = src.copy()
         else:
             out[:] = src[:]
-    
-    remap_graph_element(out.reshape((-1, )), mapping)
+
+    remap_graph_element(out.reshape((-1,)), mapping)
 
     return out
 
@@ -79,7 +80,7 @@ def reverse_one_to_one(ids, minlength=None):
 
     if minlength is None:
         minlength = ids.max() + 1
-    out = np.full((minlength, ), -1, dtype=int)
+    out = np.full((minlength,), -1, dtype=int)
 
     reverse_one_to_one(ids, out)
 
@@ -111,7 +112,7 @@ def reverse_one_to_many(ids, min_counts=0):
     """
     from .ext.remap_element import reverse_one_to_many
 
-    counts = np.bincount(ids.reshape((-1, )) + 1)
+    counts = np.bincount(ids.reshape((-1,)) + 1)
     max_counts = np.max((np.max(counts[1:]), min_counts))
 
     out = np.full((ids.max() + 1, max_counts), -1, dtype=int)
@@ -127,7 +128,6 @@ def reorder_links_at_patch(graph):
     from ..matrix.ext.matrix import roll_id_matrix_rows
     from ..object.ext.at_patch import get_rightmost_edge_at_patch
     from .ext.remap_element import reverse_element_order
-    from ..object.at_patch import get_nodes_at_patch
 
     if graph.number_of_patches == 0:
         return
@@ -137,24 +137,23 @@ def reorder_links_at_patch(graph):
     shift = np.empty(graph.number_of_patches, dtype=int)
 
     get_rightmost_edge_at_patch(graph.links_at_patch, xy_of_link, shift)
-    roll_id_matrix_rows(graph.links_at_patch, - shift)
+    roll_id_matrix_rows(graph.links_at_patch, -shift)
 
     before = graph.links_at_patch.copy()
     area_before = get_area_of_patch(graph)
 
-    negative_areas = as_id_array(np.where(get_area_of_patch(graph) < 0.)[0])
+    negative_areas = as_id_array(np.where(get_area_of_patch(graph) < 0.0)[0])
     reverse_element_order(graph.links_at_patch, negative_areas)
     # reverse_element_order(graph._links_at_patch, negative_areas)
 
     # graph._nodes_at_patch = get_nodes_at_patch(graph)
-    if 'nodes_at_patch' in graph._ds:
-        graph._ds = graph._ds.drop('nodes_at_patch')
+    if "nodes_at_patch" in graph._ds:
+        graph._ds = graph._ds.drop("nodes_at_patch")
 
-    if np.any(get_area_of_patch(graph) < 0.):
-        raise ValueError((graph.links_at_patch,
-                          before,
-                          get_area_of_patch(graph),
-                          area_before))
+    if np.any(get_area_of_patch(graph) < 0.0):
+        raise ValueError(
+            (graph.links_at_patch, before, get_area_of_patch(graph), area_before)
+        )
 
 
 def reorient_link_dirs(graph):
@@ -164,21 +163,52 @@ def reorient_link_dirs(graph):
         return
 
     angles = get_angle_of_link(graph)
-    links_to_swap = (angles < 7. * np.pi / 4.) & (angles > np.pi * .75)
-    graph.nodes_at_link[links_to_swap, :] = (
-        graph.nodes_at_link[links_to_swap, ::-1])
+    links_to_swap = (angles < 7.0 * np.pi / 4.0) & (angles >= np.pi * 0.75)
+    graph.nodes_at_link[links_to_swap, :] = graph.nodes_at_link[links_to_swap, ::-1]
+
+
+def sort_links_at_patch(links_at_patch, nodes_at_link, xy_of_node):
+    """Reorder links around a patch to be counterclockwise.
+
+    Examples
+    --------
+    >>> from landlab.graph.sort.sort import sort_links_at_patch
+    >>> import numpy as np
+    >>> xy_of_node = np.array([[0., 0.], [0., 1.], [1., 1.,], [1., 0.]])
+    >>> nodes_at_link = np.array([[0, 1], [1, 2], [2, 3], [3, 0]])
+    >>> links_at_patch = np.array([[0, 1, 3, 2]])
+    >>> sort_links_at_patch(links_at_patch, nodes_at_link, xy_of_node)
+    >>> links_at_patch
+    array([[2, 1, 0, 3]])
+
+    >>> xy_of_node = np.array([[0., 0.], [0., 1.], [1., 1.,], [1., 0.], [2., 0.]])
+    >>> nodes_at_link = np.array([[0, 1], [1, 2], [2, 3], [3, 0], [2, 4], [3, 4]])
+    >>> links_at_patch = np.array([[0, 1, 3, 2], [2, 4, 5, -1]])
+    >>> sort_links_at_patch(links_at_patch, nodes_at_link, xy_of_node)
+    >>> links_at_patch
+    array([[ 2,  1,  0,  3],
+           [ 4,  2,  5, -1]])
+    """
+    xy_of_link = np.mean(xy_of_node[nodes_at_link], axis=1)
+
+    xy_of_patch = np.mean(xy_of_link[links_at_patch], axis=1)
+
+    offset_to_wheel = np.arange(links_at_patch.shape[0] + 1) * links_at_patch.shape[1]
+
+    sort_spokes_at_wheel(
+        links_at_patch.reshape((-1,)), offset_to_wheel, xy_of_patch, xy_of_link
+    )
 
 
 def reindex_by_xy(graph):
     sorted_nodes = reindex_nodes_by_xy(graph)
-    # if hasattr(graph, '_nodes_at_link'):
-    if 'nodes_at_link' in graph.ds:
+
+    if "nodes_at_link" in graph.ds:
         sorted_links = reindex_links_by_xy(graph)
     else:
         sorted_links = None
 
-    # if hasattr(graph, '_links_at_patch'):
-    if 'links_at_patch' in graph.ds:
+    if "links_at_patch" in graph.ds:
         sorted_patches = reindex_patches_by_xy(graph)
     else:
         sorted_patches = None
@@ -193,20 +223,20 @@ def reindex_patches_by_xy(graph):
         return np.array([0], dtype=int)
 
     xy_at_patch = get_centroid_of_patch(graph)
-    xy_at_patch[:, 1] = np.round(xy_at_patch[:, 1], decimals=5)
+
+    y = xy_at_patch[:, 1]
+    y_min, y_max = y.min(), y.max()
+    if np.isclose(y_min, y_max):
+        y_max = y_min + 1.0
 
     sorted_patches = argsort_points_by_x_then_y(
-        (xy_at_patch[:, 0], xy_at_patch[:, 1]))
+        (xy_at_patch[:, 0], np.round((y - y_min) / (y_max - y_min), decimals=5))
+    )
 
     graph.links_at_patch[:] = graph.links_at_patch[sorted_patches, :]
-    # graph._links_at_patch[:] = graph._links_at_patch[sorted_patches, :]
 
-    if 'nodes_at_patch' in graph._ds:
-        graph._ds = graph.ds.drop('nodes_at_patch')
-    # del graph.__dict__['_nodes_at_patch']
-
-    # if hasattr(graph, '_node_at_cell'):
-    #     graph._node_at_cell[:] = graph._node_at_cell[sorted_patches]
+    if "nodes_at_patch" in graph._ds:
+        graph._ds = graph.ds.drop("nodes_at_patch")
 
     return sorted_patches
 
@@ -223,9 +253,12 @@ def reindex_links_by_xy(graph):
     graph.nodes_at_link[:] = graph.nodes_at_link[sorted_links, :]
 
     # if hasattr(graph, '_links_at_patch'):
-    if 'links_at_patch' in graph.ds:
-        remap_graph_element_ignore(graph.links_at_patch.reshape((-1, )),
-                                   as_id_array(np.argsort(sorted_links)), -1)
+    if "links_at_patch" in graph.ds:
+        remap_graph_element_ignore(
+            graph.links_at_patch.reshape((-1,)),
+            as_id_array(np.argsort(sorted_links)),
+            -1,
+        )
 
     return sorted_links
 
@@ -235,19 +268,20 @@ def reindex_nodes_by_xy(graph):
 
     graph.y_of_node[:] = np.round(graph.y_of_node, decimals=6)
 
-    sorted_nodes = argsort_points_by_x_then_y((graph.x_of_node,
-                                               graph.y_of_node))
+    sorted_nodes = argsort_points_by_x_then_y((graph.x_of_node, graph.y_of_node))
 
     graph.y_of_node[:] = graph.y_of_node[sorted_nodes]
     graph.x_of_node[:] = graph.x_of_node[sorted_nodes]
 
-    if 'nodes_at_link' in graph.ds:
-        remap_graph_element(graph.nodes_at_link.reshape((-1, )),
-                            as_id_array(np.argsort(sorted_nodes)))
+    if "nodes_at_link" in graph.ds:
+        remap_graph_element(
+            graph.nodes_at_link.reshape((-1,)), as_id_array(np.argsort(sorted_nodes))
+        )
 
-    if 'nodes_at_patch' in graph.ds:
-        remap_graph_element(graph.nodes_at_patch.reshape((-1, )),
-                            as_id_array(np.argsort(sorted_nodes)))
+    if "nodes_at_patch" in graph.ds:
+        remap_graph_element(
+            graph.nodes_at_patch.reshape((-1,)), as_id_array(np.argsort(sorted_nodes))
+        )
 
     return sorted_nodes
 
@@ -315,7 +349,7 @@ def sort_graph(nodes, links=None, patches=None):
     from .ext.remap_element import remap_graph_element
 
     if patches is not None and links is None:
-        raise ValueError('graph that has patches must also have links')
+        raise ValueError("graph that has patches must also have links")
 
     if links is not None:
         links = as_id_array(links)
@@ -324,27 +358,28 @@ def sort_graph(nodes, links=None, patches=None):
         if len(patches) == 2 and isinstance(patches[0], np.ndarray):
             links_at_patch, offset_to_patch = patches
         else:
-            links_at_patch, offset_to_patch = flatten_jagged_array(patches,
-                                                                   dtype=int)
-        links_at_patch, offset_to_patch = (as_id_array(links_at_patch),
-                                           as_id_array(offset_to_patch))
+            links_at_patch, offset_to_patch = flatten_jagged_array(patches, dtype=int)
+        links_at_patch, offset_to_patch = (
+            as_id_array(links_at_patch),
+            as_id_array(offset_to_patch),
+        )
     else:
         links_at_patch, offset_to_patch = (None, None)
 
     sorted_nodes = sort_nodes(nodes)
 
     if links is not None:
-        remap_graph_element(links.reshape((-1, )),
-                            as_id_array(np.argsort(sorted_nodes,
-                                                   kind='mergesort')))
+        remap_graph_element(
+            links.reshape((-1,)),
+            as_id_array(np.argsort(sorted_nodes, kind="mergesort")),
+        )
         midpoint_of_link = np.empty((len(links), 2), dtype=float)
-        sorted_links = sort_links(links, nodes,
-                                  midpoint_of_link=midpoint_of_link) 
+        sorted_links = sort_links(links, nodes, midpoint_of_link=midpoint_of_link)
 
     if patches is not None:
-        remap_graph_element(links_at_patch,
-                            as_id_array(np.argsort(sorted_links,
-                                                   kind='mergesort')))
+        remap_graph_element(
+            links_at_patch, as_id_array(np.argsort(sorted_links, kind="mergesort"))
+        )
         sort_patches(links_at_patch, offset_to_patch, midpoint_of_link)
 
     if links_at_patch is None:
@@ -429,8 +464,7 @@ def sort_links(nodes_at_link, nodes, midpoint_of_link=None):
     if midpoint_of_link is None:
         midpoint_of_link = np.empty((len(nodes_at_link), 2), dtype=float)
 
-    calc_midpoint_of_link(nodes_at_link, x_of_node, y_of_node,
-                          midpoint_of_link)
+    calc_midpoint_of_link(nodes_at_link, x_of_node, y_of_node, midpoint_of_link)
 
     sorted_links = argsort_points_by_x_then_y(midpoint_of_link)
     nodes_at_link[:] = nodes_at_link[sorted_links]
@@ -471,8 +505,7 @@ def sort_patches(links_at_patch, offset_to_patch, xy_of_link):
     n_patches = len(offset_to_patch) - 1
     xy_at_patch = np.empty((n_patches, 2), dtype=float)
 
-    calc_center_of_patch(links_at_patch, offset_to_patch,
-                         xy_of_link, xy_at_patch)
+    calc_center_of_patch(links_at_patch, offset_to_patch, xy_of_link, xy_at_patch)
 
     sorted_patches = argsort_points_by_x_then_y(xy_at_patch)
     reorder_patches(links_at_patch, offset_to_patch, sorted_patches)
@@ -480,7 +513,7 @@ def sort_patches(links_at_patch, offset_to_patch, xy_of_link):
     return sorted_patches
 
 
-def sort_spokes_at_hub(graph, spoke=None, at='node', inplace=False):
+def sort_spokes_at_hub_on_graph(graph, spoke=None, at="node", inplace=False):
     """Order spokes of a graph clockwise around spokes.
 
     Parameters
@@ -500,11 +533,11 @@ def sort_spokes_at_hub(graph, spoke=None, at='node', inplace=False):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.graph import UniformRectilinearGraph
-    >>> from landlab.graph.sort.sort import sort_spokes_at_hub
+    >>> from landlab.graph import UniformRectilinearGraph, TriGraph
+    >>> from landlab.graph.sort.sort import sort_spokes_at_hub_on_graph
 
     >>> graph = UniformRectilinearGraph((3, 3))
-    >>> sort_spokes_at_hub(graph, 'link', at='node')
+    >>> sort_spokes_at_hub_on_graph(graph, 'link', at='node')
     array([[ 0,  2, -1, -1],
            [ 1,  3,  0, -1],
            [ 4,  1, -1, -1],
@@ -514,14 +547,26 @@ def sort_spokes_at_hub(graph, spoke=None, at='node', inplace=False):
            [10,  7, -1, -1],
            [11, 10,  8, -1],
            [11,  9, -1, -1]])
+
+    >>> graph = TriGraph((3, 3), node_layout="hex", sort=True)
+    >>> sort_spokes_at_hub_on_graph(graph, "patch", at="node")
+    array([[ 0,  2, -1, -1, -1, -1],
+           [ 1,  3,  0, -1, -1, -1],
+           [ 4,  1, -1, -1, -1, -1],
+           [ 5,  2, -1, -1, -1, -1],
+           [ 6,  8,  5,  2,  0,  3],
+           [ 7,  9,  6,  3,  1,  4],
+           [ 7,  4, -1, -1, -1, -1],
+           [ 5,  8, -1, -1, -1, -1],
+           [ 8,  6,  9, -1, -1, -1],
+           [ 9,  7, -1, -1, -1, -1]])
     """
-    sorted_spokes = argsort_spokes_at_hub(graph, spoke=spoke, at=at)
-    if spoke == 'patch':
-        plural = 'patches'
+    sorted_spokes = argsort_spokes_at_hub_on_graph(graph, spoke=spoke, at=at)
+    if spoke == "patch":
+        plural = "patches"
     else:
-        plural = spoke + 's'
-    spokes_at_hub = getattr(graph,
-                            '{plural}_at_{hub}'.format(plural=plural, hub=at))
+        plural = spoke + "s"
+    spokes_at_hub = getattr(graph, "{plural}_at_{hub}".format(plural=plural, hub=at))
 
     if inplace:
         out = spokes_at_hub
@@ -531,7 +576,7 @@ def sort_spokes_at_hub(graph, spoke=None, at='node', inplace=False):
     return np.take(spokes_at_hub, sorted_spokes, out=out)
 
 
-def argsort_spokes_at_hub(graph, spoke=None, at='node'):
+def argsort_spokes_at_hub_on_graph(graph, spoke=None, at="node"):
     """Order spokes clockwise around spokes.
 
     Parameters
@@ -552,10 +597,10 @@ def argsort_spokes_at_hub(graph, spoke=None, at='node'):
     --------
     >>> import numpy as np
     >>> from landlab.graph import UniformRectilinearGraph
-    >>> from landlab.graph.sort.sort import argsort_spokes_at_hub
+    >>> from landlab.graph.sort.sort import argsort_spokes_at_hub_on_graph
 
     >>> graph = UniformRectilinearGraph((3, 3))
-    >>> argsort_spokes_at_hub(graph, 'link', at='node')
+    >>> argsort_spokes_at_hub_on_graph(graph, 'link', at='node')
     array([[ 0,  1,  2,  3],
            [ 4,  5,  6,  7],
            [ 9, 10,  8, 11],
@@ -566,7 +611,7 @@ def argsort_spokes_at_hub(graph, spoke=None, at='node'):
            [28, 30, 31, 29],
            [34, 35, 32, 33]])
     """
-    angles = calc_angle_of_spoke(graph, spoke=spoke, at=at, badval=np.inf)
+    angles = calc_angle_of_spoke_on_graph(graph, spoke=spoke, at=at, badval=np.inf)
     angles[angles < 0] += np.pi
 
     n_hubs, n_spokes = angles.shape
@@ -576,7 +621,7 @@ def argsort_spokes_at_hub(graph, spoke=None, at='node'):
     return as_id_array(ordered_angles)
 
 
-def calc_angle_of_spoke(graph, spoke=None, at='node', badval=None):
+def calc_angle_of_spoke_on_graph(graph, spoke=None, at="node", badval=None):
     """Calculate angles spokes make with a hub.
 
     Parameters
@@ -600,10 +645,12 @@ def calc_angle_of_spoke(graph, spoke=None, at='node', badval=None):
     --------
     >>> import numpy as np
     >>> from landlab.graph import UniformRectilinearGraph
-    >>> from landlab.graph.sort.sort import calc_angle_of_spoke
+    >>> from landlab.graph.sort.sort import calc_angle_of_spoke_on_graph
 
     >>> graph = UniformRectilinearGraph((3, 3))
-    >>> np.rad2deg(calc_angle_of_spoke(graph, 'link', at='node', badval=np.nan))
+    >>> np.rad2deg(
+    ...     calc_angle_of_spoke_on_graph(graph, 'link', at='node', badval=np.nan)
+    ... )
     array([[   0.,   90.,   nan,   nan],
            [   0.,   90.,  180.,   nan],
            [  nan,   90.,  180.,   nan],
@@ -614,15 +661,44 @@ def calc_angle_of_spoke(graph, spoke=None, at='node', badval=None):
            [   0.,   nan,  180.,  270.],
            [  nan,   nan,  180.,  270.]])
     """
-    xy_of_hub = getattr(graph, 'xy_of_{hub}'.format(hub=at))
-    xy_of_spoke = getattr(graph, 'xy_of_{spoke}'.format(spoke=spoke))
-    if spoke == 'patch':
-        plural = 'patches'
+    xy_of_hub = getattr(graph, "xy_of_{hub}".format(hub=at))
+    xy_of_spoke = getattr(graph, "xy_of_{spoke}".format(spoke=spoke))
+    if spoke == "patch":
+        plural = "patches"
     else:
-        plural = spoke + 's'
-    spokes_at_hub = getattr(graph,
-                            '{plural}_at_{hub}'.format(plural=plural, hub=at))
+        plural = spoke + "s"
+    spokes_at_hub = getattr(graph, "{plural}_at_{hub}".format(plural=plural, hub=at))
 
+    angle_of_spoke = calc_angle_of_spoke(
+        spokes_at_hub, xy_of_hub, xy_of_spoke, badval=badval
+    )
+
+    return angle_of_spoke
+
+
+def sort_spokes_at_hub(spokes_at_hub, xy_of_hub, xy_of_spokes, inplace=False):
+    sorted_spokes = argsort_spokes_at_hub(spokes_at_hub, xy_of_hub, xy_of_spokes)
+
+    if inplace:
+        out = spokes_at_hub
+    else:
+        out = np.empty_like(spokes_at_hub)
+
+    return np.take(spokes_at_hub, sorted_spokes, out=out)
+
+
+def argsort_spokes_at_hub(spokes_at_hub, xy_of_hub, xy_of_spokes):
+    angles = calc_angle_of_spoke(spokes_at_hub, xy_of_hub, xy_of_spokes, badval=np.inf)
+    angles[angles < 0] += np.pi
+
+    n_hubs, n_spokes = angles.shape
+    ordered_angles = np.argsort(angles)
+    ordered_angles += np.arange(n_hubs).reshape((-1, 1)) * n_spokes
+
+    return as_id_array(ordered_angles)
+
+
+def calc_angle_of_spoke(spokes_at_hub, xy_of_hub, xy_of_spoke, badval=None):
     xy_of_spoke = xy_of_spoke[spokes_at_hub.flat]
     x_of_spoke = xy_of_spoke[:, 0].reshape(spokes_at_hub.shape)
     y_of_spoke = xy_of_spoke[:, 1].reshape(spokes_at_hub.shape)
@@ -633,7 +709,7 @@ def calc_angle_of_spoke(graph, spoke=None, at='node', badval=None):
     dy = (y_of_spoke.T - y_of_hub).T
 
     angle_of_spoke = np.arctan2(dy, dx)
-    angle_of_spoke[angle_of_spoke < 0.] += np.pi * 2.
+    angle_of_spoke[angle_of_spoke < 0.0] += np.pi * 2.0
 
     if badval is not None:
         try:

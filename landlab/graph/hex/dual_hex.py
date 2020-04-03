@@ -1,17 +1,24 @@
 import numpy as np
 
-from ..voronoi import DualVoronoiGraph
-from .hex import setup_xy_of_node
+from ..dual import DualGraph
+from ..voronoi.dual_voronoi import DualVoronoiGraph
+from .hex import (
+    HorizontalHexTriGraph,
+    HorizontalRectTriGraph,
+    TriGraph,
+    VerticalHexTriGraph,
+    VerticalRectTriGraph,
+)
 
 
-class DualHexGraph(DualVoronoiGraph):
+class DualHexGraph(DualGraph, TriGraph):
 
     """Graph of a structured grid of triangles.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.graph import HexGraph
+    >>> from landlab.graph import DualHexGraph
 
     >>> graph = DualHexGraph((3, 2), node_layout='hex')
     >>> graph.number_of_nodes
@@ -23,11 +30,18 @@ class DualHexGraph(DualVoronoiGraph):
     ...     # doctest: +NORMALIZE_WHITESPACE
     array([ 0.,  0.,  1.,  1.,  1.,  2.,  2.])
     >>> graph.x_of_node # doctest: +NORMALIZE_WHITESPACE
-    array([ 0. ,  1. , -0.5,  0.5,  1.5,  0. ,  1. ])
+    array([ 0.5,  1.5,  0. ,  1. ,  2. ,  0.5,  1.5])
     """
 
-    def __init__(self, shape, spacing=1., origin=(0., 0.),
-                 orientation='horizontal', node_layout='rect'):
+    def __init__(
+        self,
+        shape,
+        spacing=1.0,
+        xy_of_lower_left=(0.0, 0.0),
+        orientation="horizontal",
+        node_layout="rect",
+        sort=False,
+    ):
         """Create a structured grid of triangles.
 
         Parameters
@@ -38,24 +52,52 @@ class DualHexGraph(DualVoronoiGraph):
             number of nodes in the first column.
         spacing : float, optional
             Length of links.
-        origin : tuple of float, optional
+        xy_of_lower_left : tuple of float, optional
             Coordinates of lower-left corner of the grid.
+        orientation: {'horizontal', 'vertical'}
+            Specify if triangles should be laid out in rows or columns.
+        node_layout: {'rect', 'hex'}
+            Specify the overall layout of the nodes. Use *rect* for
+            the layout to approximate a rectangle and *hex* for
+            a hexagon.
         """
+        if node_layout not in ("rect", "hex"):
+            raise ValueError("node_layout not understood")
+
+        if orientation not in ("horizontal", "vertical"):
+            raise ValueError("orientation not understood")
+
+        layouts = {
+            "horizontal_hex": HorizontalHexTriGraph,
+            "vertical_hex": VerticalHexTriGraph,
+            "horizontal_rect": HorizontalRectTriGraph,
+            "vertical_rect": VerticalRectTriGraph,
+        }
+        layout = layouts["_".join([orientation, node_layout])]
+
         try:
             spacing = float(spacing)
         except TypeError:
-            raise TypeError('spacing must be a float')
+            raise TypeError("spacing must be a float")
 
-        x_of_node, y_of_node = setup_xy_of_node(shape, spacing=spacing,
-                                                origin=origin,
-                                                orientation=orientation,
-                                                node_layout=node_layout)
+        self._shape = tuple(shape)
+        self._spacing = spacing
+        self._orientation = orientation
+        self._node_layout = node_layout
 
-        if node_layout == 'hex':
-            max_node_spacing = None
-        else:
-            max_node_spacing = shape[1] + 1
+        x_of_node, y_of_node = layout.xy_of_node(
+            shape, spacing=spacing, xy_of_lower_left=xy_of_lower_left
+        )
+        self._perimeter_nodes = layout.perimeter_nodes(shape)
 
-        DualVoronoiGraph.__init__(self,
-            (y_of_node, x_of_node), xy_sort=True, rot_sort=True,
-            min_cell_size=6, max_node_spacing=max_node_spacing)
+        perimeter_links = np.empty((len(self._perimeter_nodes), 2), dtype=int)
+        perimeter_links[:, 0] = self._perimeter_nodes
+        perimeter_links[:-1, 1] = self._perimeter_nodes[1:]
+        perimeter_links[-1, 1] = self._perimeter_nodes[0]
+
+        DualVoronoiGraph.__init__(
+            self, (y_of_node, x_of_node), perimeter_links=perimeter_links, sort=False
+        )
+
+        if sort:
+            self.sort()

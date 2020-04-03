@@ -1,4 +1,5 @@
 import numpy as np
+
 cimport numpy as np
 cimport cython
 
@@ -12,6 +13,7 @@ ctypedef np.double_t DTYPE_FLOAT_t
 @cython.boundscheck(False)
 def _calc_dists_to_channel(np.ndarray[np.uint8_t, ndim=1] ch_network,
                            np.ndarray[DTYPE_INT_t, ndim=1] flow_receivers,
+                           np.ndarray[DTYPE_INT_t, ndim=1] upstream_order,
                            np.ndarray[DTYPE_FLOAT_t, ndim=1] link_lengths,
                            np.ndarray[DTYPE_INT_t, ndim=1] stack_links,
                            np.ndarray[DTYPE_FLOAT_t, ndim=1] dist_to_ch,
@@ -40,8 +42,9 @@ def _calc_dists_to_channel(np.ndarray[np.uint8_t, ndim=1] ch_network,
     cdef DTYPE_INT_t node_iter
     cdef DTYPE_INT_t flag
     cdef DTYPE_FLOAT_t distance
-    
-    for node in range(num_nodes):
+
+    for i in range(num_nodes):
+        node = upstream_order[i]
         if ch_network[node] == 1:
             # ^we're standing in a channel
             dist_to_ch[node] = 0.

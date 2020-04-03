@@ -1,5 +1,5 @@
 #! /usr/env/python
-"""Simple hexagonal Landlab cellular automaton
+"""Simple hexagonal Landlab cellular automaton.
 
 This file defines the OrientedHexCTS class, which is a sub-class of
 CellLabCTSModel that implements a simple, non-oriented, hex-grid
@@ -12,8 +12,8 @@ Created GT Sep 2014
 """
 import numpy as np
 
-from .celllab_cts import CellLabCTSModel
 from ..grid import HexModelGrid
+from .celllab_cts import CellLabCTSModel
 
 
 class OrientedHexCTS(CellLabCTSModel):
@@ -39,6 +39,8 @@ class OrientedHexCTS(CellLabCTSModel):
     prop_reset_value : number or object, optional
         Default or initial value for a node/cell property (e.g., 0.0).
         Must be same type as *prop_data*.
+    seed : int (default 0)
+        Seed for random number generator
 
     Examples
     --------
@@ -46,7 +48,7 @@ class OrientedHexCTS(CellLabCTSModel):
     >>> from landlab.ca.oriented_hex_cts import OrientedHexCTS
     >>> from landlab.ca.celllab_cts import Transition
 
-    >>> mg = HexModelGrid(4, 3, 1.0)
+    >>> mg = HexModelGrid((4, 3), spacing=1.0)
     >>> nsd = {0 : 'yes', 1 : 'no'}
     >>> xnlist = []
     >>> xnlist.append(Transition((0,1,0), (1,1,0), 1.0, 'frogging'))
@@ -54,8 +56,16 @@ class OrientedHexCTS(CellLabCTSModel):
     >>> ohcts = OrientedHexCTS(mg, nsd, xnlist, nsg)
     """
 
-    def __init__(self, model_grid, node_state_dict, transition_list,
-                 initial_node_states, prop_data=None, prop_reset_value=None):
+    def __init__(
+        self,
+        model_grid,
+        node_state_dict,
+        transition_list,
+        initial_node_states,
+        prop_data=None,
+        prop_reset_value=None,
+        seed=0,
+    ):
         """Initialize a OrientedHexCTS.
 
         OrientedHexCTS constructor: sets number of orientations to 3 and calls
@@ -81,12 +91,7 @@ class OrientedHexCTS(CellLabCTSModel):
 
         # Make sure caller has sent the right grid type
         if not isinstance(model_grid, HexModelGrid):
-            raise TypeError('model_grid must be a Landlab HexModelGrid')
-
-        # Somehow test to make sure the grid links have been re-oriented to
-        # point up/right (-45 to +135 degrees clockwise relative to vertical).
-        # Such orientation is ensured when the argument reorient_grid=True is
-        # passed to the hex grid constructor.
+            raise TypeError("model_grid must be a Landlab HexModelGrid")
 
         # Define the number of distinct cell-pair orientations: here 3,
         # representing
@@ -94,15 +99,19 @@ class OrientedHexCTS(CellLabCTSModel):
 
         # Call the LandlabCellularAutomaton.__init__() method to do the rest of
         # the initialization
-        super(OrientedHexCTS, self).__init__(model_grid, node_state_dict,
-                                             transition_list,
-                                             initial_node_states, prop_data,
-                                             prop_reset_value)
+        super().__init__(
+            model_grid,
+            node_state_dict,
+            transition_list,
+            initial_node_states,
+            prop_data,
+            prop_reset_value,
+            seed,
+        )
 
     def setup_array_of_orientation_codes(self):
-        """
-        Creates and configures an array that contain the orientation code for
-        each active link (and corresponding cell pair).
+        """Creates and configures an array that contain the orientation code
+        for each active link (and corresponding cell pair).
 
         Notes
         -----
@@ -125,23 +134,19 @@ class OrientedHexCTS(CellLabCTSModel):
         * 1 = up and right (30 degrees clockwise from vertical)
         * 2 = horizontal (90 degrees clockwise from vertical)
         """
-        self.link_orientation = np.zeros(self.grid.number_of_links,
-                                         dtype=np.int8)
+        self.link_orientation = np.zeros(self.grid.number_of_links, dtype=np.int8)
         for i in range(self.grid.number_of_links):
-            dy = self.grid.node_y[self.grid.node_at_link_head[
-                i]] - self.grid.node_y[self.grid.node_at_link_tail[i]]
-            dx = self.grid.node_x[self.grid.node_at_link_head[
-                i]] - self.grid.node_x[self.grid.node_at_link_tail[i]]
-            if dx <= 0.:
+            dy = (
+                self.grid.node_y[self.grid.node_at_link_head[i]]
+                - self.grid.node_y[self.grid.node_at_link_tail[i]]
+            )
+            dx = (
+                self.grid.node_x[self.grid.node_at_link_head[i]]
+                - self.grid.node_x[self.grid.node_at_link_tail[i]]
+            )
+            if dx <= 0.0:
                 self.link_orientation[i] = 0
-            elif dy <= 0.:
+            elif dy <= 0.0:
                 self.link_orientation[i] = 2
-            elif dx > 0. and dy > 0.:
+            elif dx > 0.0 and dy > 0.0:
                 self.link_orientation[i] = 1
-            else:
-                assert (False), 'Non-handled link orientation case'
-
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()

@@ -1,7 +1,7 @@
 import numpy as np
 
+from ..base import BAD_INDEX_VALUE
 from . import nodes
-from landlab.grid.base import BAD_INDEX_VALUE
 
 
 def number_of_cells(shape):
@@ -123,7 +123,6 @@ def cell_ids(shape):
 
 
 class StructuredQuadCellGrid(object):
-
     def __init__(self, shape):
         self._shape = shape_of_cells(shape)
         self._number_of_cells = np.prod(self._shape)

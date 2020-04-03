@@ -1,11 +1,9 @@
 import os
 import shutil
 import tempfile
+from distutils.dir_util import mkpath
 
 import numpy as np
-
-from nose.tools import assert_true, assert_equal
-from distutils.dir_util import mkpath
 
 
 class cd(object):
@@ -45,6 +43,7 @@ class cd(object):
     >>> os.getcwd() == this_dir
     True
     """
+
     def __init__(self, path_to_dir):
         self._dir = path_to_dir
 
@@ -79,6 +78,7 @@ class cdtemp(object):
     >>> os.path.exists(wdir)
     False
     """
+
     def __init__(self, **kwds):
         self._kwds = kwds
         self._tmp_dir = None
@@ -95,66 +95,66 @@ class cdtemp(object):
 
 
 def assert_array_is_int(x):
-    assert_true(x.dtype == np.int32 or x.dtype == np.int64)
+    assert x.dtype == np.int32 or x.dtype == np.int64
 
 
 def assert_close(val1, val2, msg=None):
-    assert_true(np.allclose(val1, val2), msg=msg)
+    assert np.allclose(val1, val2), msg
 
 
 def assert_is(expr1, expr2, msg=None):
-    assert_true(expr1 is expr2, msg=msg)
+    assert expr1 is expr2, msg
 
 
 def assert_is_not(expr1, expr2, msg=None):
-    assert_true(expr1 is not expr2, msg=msg)
+    assert expr1 is not expr2, msg
 
 
 def assert_is_none(expr, msg=None):
-    assert_true(expr is None, msg=msg)
+    assert expr is None, msg
 
 
 def assert_is_not_none(expr, msg=None):
-    assert_true(expr is not None, msg=msg)
+    assert expr is not None, msg
 
 
 def assert_in(first, second, msg=None):
-    assert_true(first in second, msg=msg)
+    assert first in second, msg
 
 
 def assert_is_not_in(first, second, msg=None):
-    assert_true(first not in second, msg=msg)
+    assert first not in second, msg
 
 
 def assert_is_instance(obj, cls, msg=None):
-    assert_true(isinstance(obj, cls), msg=msg)
+    assert isinstance(obj, cls), msg
 
 
 def assert_not_is_instance(obj, cls, msg=None):
-    assert_true(not isinstance(obj, cls), msg=msg)
+    assert not isinstance(obj, cls), msg
 
 
 def assert_list_equal(list1, list2, msg=None):
-    assert_true(isinstance(list1, list), msg=msg)
-    assert_true(isinstance(list2, list), msg=msg)
+    assert isinstance(list1, list), msg
+    assert isinstance(list2, list), msg
     for a, b in zip(list1, list2):
-        assert_equal(a, b, msg=msg)
+        assert a == b, msg
 
 
 def assert_tuple_equal(tuple1, tuple2, msg=None):
-    assert_true(isinstance(tuple1, tuple), msg=msg)
-    assert_true(isinstance(tuple1, tuple), msg=msg)
+    assert isinstance(tuple1, tuple), msg
+    assert isinstance(tuple1, tuple), msg
     for a, b in zip(tuple1, tuple2):
-        assert_equal(a, b, msg=msg)
+        assert a == b, msg
 
 
 def assert_dict_equal(dict1, dict2, msg=None):
-    assert_true(isinstance(dict1, dict), msg=msg)
-    assert_true(isinstance(dict2, dict), msg=msg)
-    assert_equal(dict1, dict2, msg=msg)
+    assert isinstance(dict1, dict), msg
+    assert isinstance(dict2, dict), msg
+    assert dict1 == dict2, msg
 
 
 def assert_set_equal(set1, set2, msg=None):
-    assert_true(isinstance(set1, set), msg=msg)
-    assert_true(isinstance(set2, set), msg=msg)
-    assert_equal(set1, set2, msg=msg)
+    assert isinstance(set1, set), msg
+    assert isinstance(set2, set), msg
+    assert set1 == set2, msg

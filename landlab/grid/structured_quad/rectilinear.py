@@ -42,22 +42,18 @@ class RectilinearGrid(StructuredQuadGrid):
             Coordinates of node rows and node columns.
         """
         if len(coord) != 2:
-            raise ValueError('only 2d grids are supported')
+            raise ValueError("only 2d grids are supported")
 
-        shape = (
-            len(coord[0]),
-            len(coord[1]),
-        )
-        node_coord = np.meshgrid(*coord, indexing='ij')
+        shape = (len(coord[0]), len(coord[1]))
+        node_coord = np.meshgrid(*coord, indexing="ij")
 
-        super(RectilinearGrid, self).__init__(node_coord, shape, cells=True)
+        super().__init__(node_coord, shape, cells=True)
 
         self._coord = (coord[0], coord[1])
 
     @property
     def coord(self):
-        """Node row and column coordinates.
-        """
+        """Node row and column coordinates."""
         return self._coord
 
     @property
@@ -103,7 +99,7 @@ class UniformRectilinearGrid(RectilinearGrid):
     array([  1.,   4.,   7.,  10.,  13.])
     """
 
-    def __init__(self, shape, spacing=(1., 1.), origin=(0., 0.)):
+    def __init__(self, shape, spacing=(1.0, 1.0), origin=(0.0, 0.0)):
         """
         Parameters
         ----------
@@ -115,35 +111,40 @@ class UniformRectilinearGrid(RectilinearGrid):
             Coordinates of grid origin.
         """
         if len(shape) != 2:
-            raise ValueError('only 2d grids are supported')
+            raise ValueError("only 2d grids are supported")
 
         coords = (
-            np.arange(origin[0], origin[0] + shape[0] * spacing[0], spacing[0],
-                      dtype=np.float64),
-            np.arange(origin[1], origin[1] + shape[1] * spacing[1], spacing[1],
-                      dtype=np.float64),
+            np.arange(
+                origin[0],
+                origin[0] + shape[0] * spacing[0],
+                spacing[0],
+                dtype=np.float64,
+            ),
+            np.arange(
+                origin[1],
+                origin[1] + shape[1] * spacing[1],
+                spacing[1],
+                dtype=np.float64,
+            ),
         )
 
-        super(UniformRectilinearGrid, self).__init__(coords)
+        super().__init__(coords)
 
         self._spacing = tuple(spacing)
 
     @property
     def spacing(self):
-        """Spacing of rows and columns of grid nodes.
-        """
+        """Spacing of rows and columns of grid nodes."""
         return self._spacing
 
     @property
     def dy(self):
-        """Spacing between rows of grid nodes.
-        """
+        """Spacing between rows of grid nodes."""
         return self._spacing[0]
 
     @property
     def dx(self):
-        """Spacing between columns of grid nodes.
-        """
+        """Spacing between columns of grid nodes."""
         return self._spacing[1]
 
 
@@ -157,7 +158,7 @@ class RasterGrid(UniformRectilinearGrid):
         Spacing between rows and columns.
     origin : tuple, optional
         Coordinates of grid origin.
-        
+
     Examples
     --------
     >>> from landlab.grid.structured_quad.rectilinear import RasterGrid
@@ -181,7 +182,7 @@ class RasterGrid(UniformRectilinearGrid):
     array([ 1.,  3.,  5.,  7.,  9.])
     """
 
-    def __init__(self, shape, spacing=1., origin=0.):
+    def __init__(self, shape, spacing=1.0, origin=0.0):
         """
         Parameters
         ----------
@@ -192,5 +193,4 @@ class RasterGrid(UniformRectilinearGrid):
         origin : tuple, optional
             Coordinates of grid origin.
         """
-        super(RasterGrid, self).__init__(shape, origin=origin,
-                                         spacing=(spacing, ) * len(shape))
+        super().__init__(shape, origin=origin, spacing=(spacing,) * len(shape))

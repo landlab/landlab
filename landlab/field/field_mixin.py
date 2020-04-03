@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from .grouped import ModelDataFields, GroupSizeError
+from .grouped import GroupSizeError, ModelDataFields
 
 
 class ModelDataFieldsMixIn(ModelDataFields):
@@ -23,7 +23,7 @@ class ModelDataFieldsMixIn(ModelDataFields):
     """
 
     def __init__(self, **kwds):
-        super(ModelDataFieldsMixIn, self).__init__(**kwds)
+        super().__init__(**kwds)
 
     def empty(self, *args, **kwds):
         """Array, filled with unititialized values, for a given element.
@@ -55,16 +55,18 @@ class ModelDataFieldsMixIn(ModelDataFields):
         LLCATS: FIELDADD
         """
         if len(args) == 0:
-            group = kwds.pop('at', kwds.pop('centering', 'node'))
+            group = kwds.pop("at", kwds.pop("centering", "node"))
         else:
             group = args[0]
-        
-        if group=='grid':
-            raise ValueError("empty is not supported for at='grid', if you "
-                             "want to create a field at the grid, use\n"
-                             "grid.at_grid['value_name']=value\n"
-                             "instead.")        
-        
+
+        if group == "grid":
+            raise ValueError(
+                "empty is not supported for at='grid', if you "
+                "want to create a field at the grid, use\n"
+                "grid.at_grid['value_name']=value\n"
+                "instead."
+            )
+
         n_elements = self.number_of_elements(group)
 
         if self[group].size is None:
@@ -110,17 +112,19 @@ class ModelDataFieldsMixIn(ModelDataFields):
         LLCATS: FIELDADD
         """
         if len(args) == 0:
-            group = kwds.pop('at', kwds.pop('centering', 'node'))
+            group = kwds.pop("at", kwds.pop("centering", "node"))
         else:
             group = args[0]
-        
-        if group=='grid':
-            raise ValueError("ones is not supported for at='grid', if you "
-                             "want to create a field at the grid, use\n"
-                             "grid.at_grid['value_name']=value\n"
-                             "instead.\nAlternatively, if you want ones"
-                             "of the shape stored at_grid, use np.array(1).")
-                             
+
+        if group == "grid":
+            raise ValueError(
+                "ones is not supported for at='grid', if you "
+                "want to create a field at the grid, use\n"
+                "grid.at_grid['value_name']=value\n"
+                "instead.\nAlternatively, if you want ones"
+                "of the shape stored at_grid, use np.array(1)."
+            )
+
         n_elements = self.number_of_elements(group)
 
         if self[group].size is None:
@@ -161,17 +165,19 @@ class ModelDataFieldsMixIn(ModelDataFields):
         LLCATS: FIELDADD
         """
         if len(args) == 0:
-            group = kwds.pop('at', kwds.pop('centering', 'node'))
+            group = kwds.pop("at", kwds.pop("centering", "node"))
         else:
             group = args[0]
-            
-        if group=='grid':
-            raise ValueError("zeros is not supported for at='grid', if you "
-                             "want to create a field at the grid, use\n"
-                             "grid.at_grid['value_name']=value\n"
-                             "instead.\nAlternatively, if you want zeros"
-                             "of the shape stored at_grid, use np.array(0).")
-                             
+
+        if group == "grid":
+            raise ValueError(
+                "zeros is not supported for at='grid', if you "
+                "want to create a field at the grid, use\n"
+                "grid.at_grid['value_name']=value\n"
+                "instead.\nAlternatively, if you want zeros"
+                "of the shape stored at_grid, use np.array(0)."
+            )
+
         n_elements = self.number_of_elements(group)
 
         if self[group].size is None:

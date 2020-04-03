@@ -1,22 +1,20 @@
 import numpy as np
 
-from .status import StatusGrid
-from .links import link_is_active, find_active_links, LinkGrid
-from .links import _split_link_ends
 from .cells import CellGrid
+from .links import LinkGrid, _split_link_ends, find_active_links
 from .nodes import NodeGrid
-from landlab.utils.decorators import deprecated
+from .status import StatusGrid
 
 
 def _default_axis_names(n_dims):
     """Returns a tuple of the default axis names."""
-    _DEFAULT_NAMES = ('z', 'y', 'x')
-    return _DEFAULT_NAMES[- n_dims:]
+    _DEFAULT_NAMES = ("z", "y", "x")
+    return _DEFAULT_NAMES[-n_dims:]
 
 
 def _default_axis_units(n_dims):
     """Returns a tuple of the default axis units."""
-    return ('-', ) * n_dims
+    return ("-",) * n_dims
 
 
 class BaseGrid(object):
@@ -79,8 +77,15 @@ class BaseGrid(object):
     array([0, 2])
     """
 
-    def __init__(self, nodes, axis_name=None, axis_units=None,
-                 node_status=None, links=None, cells=None):
+    def __init__(
+        self,
+        nodes,
+        axis_name=None,
+        axis_units=None,
+        node_status=None,
+        links=None,
+        cells=None,
+    ):
         """__init__([coord0, coord1, ...], axis_name=None, axis_units=None)
 
         Parameters
@@ -162,13 +167,17 @@ class BaseGrid(object):
         if links is not None and node_status is not None:
             links = _split_link_ends(links)
             self._active_link_grid = BaseGrid.create_active_link_grid(
-                self.status_at_node, links, self.number_of_nodes)
+                self.status_at_node, links, self.number_of_nodes
+            )
 
     @staticmethod
     def create_active_link_grid(node_status, links, number_of_nodes):
         active_link_ids = find_active_links(node_status, links)
-        return LinkGrid((links[0][active_link_ids], links[1][active_link_ids]),
-                        number_of_nodes, link_ids=active_link_ids)
+        return LinkGrid(
+            (links[0][active_link_ids], links[1][active_link_ids]),
+            number_of_nodes,
+            link_ids=active_link_ids,
+        )
 
     @property
     def ndim(self):
@@ -221,20 +230,17 @@ class BaseGrid(object):
 
     @property
     def number_of_links(self):
-        """Number of links.
-        """
+        """Number of links."""
         return self._link_grid.number_of_links
 
     @property
     def number_of_cells(self):
-        """Number of cells.
-        """
+        """Number of cells."""
         return self._cell_grid.number_of_cells
 
     @property
     def number_of_nodes(self):
-        """Number of nodes.
-        """
+        """Number of nodes."""
         return self._node_grid.number_of_nodes
 
     @property
@@ -292,8 +298,10 @@ class BaseGrid(object):
     def status_at_node(self, status):
         self._status_grid.node_status = status
         self._active_link_grid = BaseGrid.create_active_link_grid(
-            self.status_at_node, (self.node_at_link_start,
-                                  self.node_at_link_end), self.number_of_nodes)
+            self.status_at_node,
+            (self.node_at_link_start, self.node_at_link_end),
+            self.number_of_nodes,
+        )
 
     def active_nodes(self):
         return self._status_grid.active_nodes()
@@ -315,10 +323,6 @@ class BaseGrid(object):
 
     def active_links(self):
         return self._active_link_grid.link_id
-
-    @deprecated(use='length_of_link', version=1.0)
-    def link_length(self, link=None):
-        return self.length_of_link(link=link)
 
     def length_of_link(self, link=None):
         """Length of grid links.
@@ -346,8 +350,7 @@ class BaseGrid(object):
         if link is None:
             node0, node1 = (self.node_at_link_start, self.node_at_link_end)
         else:
-            node0, node1 = (self.node_at_link_start[link],
-                            self.node_at_link_end[link])
+            node0, node1 = (self.node_at_link_start[link], self.node_at_link_end[link])
 
         return self.node_to_node_distance(node0, node1)
 
@@ -376,12 +379,16 @@ class BaseGrid(object):
         array([ 0.,  3.,  4.,  5.])
         """
         return point_to_point_distance(
-            self._get_coord_at_node(node0), self._get_coord_at_node(node1),
-            out=out)
+            self._get_coord_at_node(node0), self._get_coord_at_node(node1), out=out
+        )
 
         node0, node1 = np.broadcast_arrays(node0, node1)
-        return np.sqrt(np.sum((self.coord_at_node[:, node1] -
-                               self.coord_at_node[:, node0]) ** 2, axis=0))
+        return np.sqrt(
+            np.sum(
+                (self.coord_at_node[:, node1] - self.coord_at_node[:, node0]) ** 2,
+                axis=0,
+            )
+        )
 
     def point_to_node_distance(self, point, node=None, out=None):
         """Distance from a point to a node.
@@ -412,8 +419,7 @@ class BaseGrid(object):
         >>> out
         array([ 0.,  3.,  4.,  5.])
         """
-        return point_to_point_distance(point, self._get_coord_at_node(node),
-                                       out=out)
+        return point_to_point_distance(point, self._get_coord_at_node(node), out=out)
 
     def point_to_node_angle(self, point, node=None, out=None):
         """Angle from a point to a node.
@@ -444,8 +450,7 @@ class BaseGrid(object):
         >>> out / np.pi
         array([ 0.  ,  0.  ,  0.5 ,  0.25])
         """
-        return point_to_point_angle(point, self._get_coord_at_node(node),
-                                    out=out)
+        return point_to_point_angle(point, self._get_coord_at_node(node), out=out)
 
     def point_to_node_azimuth(self, point, node=None, out=None):
         """Azimuth from a point to a node.
@@ -478,8 +483,7 @@ class BaseGrid(object):
         >>> out
         array([ 90.,  90.,   0.,  45.])
         """
-        return point_to_point_azimuth(point, self._get_coord_at_node(node),
-                                      out=out)
+        return point_to_point_azimuth(point, self._get_coord_at_node(node), out=out)
 
     def point_to_node_vector(self, point, node=None, out=None):
         """Azimuth from a point to a node.
@@ -516,8 +520,7 @@ class BaseGrid(object):
         array([[ 0.],
                [ 1.]])
         """
-        return point_to_point_vector(point, self._get_coord_at_node(node),
-                                     out=out)
+        return point_to_point_vector(point, self._get_coord_at_node(node), out=out)
 
     def _get_coord_at_node(self, node=None):
         if node is None:
@@ -554,10 +557,10 @@ def point_to_point_distance(point0, point1, out=None):
     point0 = np.reshape(point0, (2, -1))
     point1 = np.reshape(point1, (2, -1))
     if out is None:
-        sum_of_squares = np.sum((point1 - point0) ** 2., axis=0)
+        sum_of_squares = np.sum((point1 - point0) ** 2.0, axis=0)
         return np.sqrt(sum_of_squares)
     else:
-        sum_of_squares = np.sum((point1 - point0) ** 2., axis=0, out=out)
+        sum_of_squares = np.sum((point1 - point0) ** 2.0, axis=0, out=out)
         return np.sqrt(sum_of_squares, out=out)
 
 
@@ -615,10 +618,10 @@ def point_to_point_azimuth(point0, point1, out=None):
     """
     azimuth_in_rads = point_to_point_angle(point0, point1, out=out)
     if out is None:
-        return (np.pi * .5 - azimuth_in_rads) * 180. / np.pi
+        return (np.pi * 0.5 - azimuth_in_rads) * 180.0 / np.pi
     else:
-        np.subtract(np.pi * .5, azimuth_in_rads, out=out)
-        return np.multiply(out, 180. / np.pi, out=out)
+        np.subtract(np.pi * 0.5, azimuth_in_rads, out=out)
+        return np.multiply(out, 180.0 / np.pi, out=out)
 
 
 def point_to_point_vector(point0, point1, out=None):

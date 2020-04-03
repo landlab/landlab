@@ -1,46 +1,25 @@
 #! /usr/env/python
-"""
-Python implementation of HexModelGrid, a grid class used to create and manage
-structured Voronoi-Delaunay grids for 2D numerical models.
+"""Python implementation of HexModelGrid, a grid class used to create and
+manage structured Voronoi-Delaunay grids for 2D numerical models.
 
-Do NOT add new documentation here. Grid documentation is now built in a semi-
-automated fashion. To modify the text seen on the web, edit the files
-`docs/text_for_[gridfile].py.txt`.
+Do NOT add new documentation here. Grid documentation is now built in a
+semi- automated fashion. To modify the text seen on the web, edit the
+files `docs/text_for_[gridfile].py.txt`.
 """
 
 import numpy
-import six
 
-from landlab.grid.voronoi import VoronoiDelaunayGrid
-from .decorators import return_readonly_id_array
+from ..core.utils import as_id_array
+from ..graph import DualHexGraph
+from .base import ModelGrid
 
 
-class HexModelGrid(VoronoiDelaunayGrid):
+class HexModelGrid(DualHexGraph, ModelGrid):
     """A grid of hexagonal cells.
 
     This inherited class implements a regular 2D grid with hexagonal cells and
     triangular patches. It is a special type of VoronoiDelaunay grid in which
     the initial set of points is arranged in a triangular/hexagonal lattice.
-
-    Parameters
-    ----------
-    base_num_rows : int
-        Number of rows of nodes in the left column.
-    base_num_cols : int
-        Number of nodes on the first row.
-    dx : float, optional
-        Node spacing.
-    orientation : string, optional
-        One of the 3 cardinal directions in the grid, either 'horizontal'
-        (default) or 'vertical'
-    shape : string, optional
-        Controls the shape of the bounding hull, i.e., are the nodes arranged
-        in a hexagon, or a rectangle? Either 'hex' (default) or 'rect'.
-
-    Returns
-    -------
-    HexModelGrid
-        A newly-created grid.
 
     Examples
     --------
@@ -48,14 +27,38 @@ class HexModelGrid(VoronoiDelaunayGrid):
     have 2 nodes, and the second nodes.
 
     >>> from landlab import HexModelGrid
-    >>> hmg = HexModelGrid(3, 2, 1.0)
-    >>> hmg.number_of_nodes
+    >>> grid = HexModelGrid((3, 2), spacing=1.0)
+    >>> grid.number_of_nodes
     7
+
+    >>> grid = HexModelGrid((3, 3), node_layout="rect", spacing=2.0)
+    >>> grid.status_at_node
+    array([1, 1, 1, 1, 0, 1, 1, 1, 1], dtype=uint8)
+    >>> grid = HexModelGrid((3, 3), node_layout="rect", orientation="vertical")
+    >>> grid.status_at_node
+    array([1, 1, 1, 1, 1, 0, 1, 1, 1], dtype=uint8)
+    >>> grid = HexModelGrid((4, 4), node_layout='rect', orientation="vertical")
+    >>> grid.status_at_node
+    array([1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
+    >>> grid.boundary_nodes
+    array([ 0,  1,  2,  3,  4,  7,  8, 11, 12, 13, 14, 15])
+    >>> grid = HexModelGrid((3, 4), node_layout="rect")
+    >>> grid.status_at_node
+    array([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1], dtype=uint8)
     """
 
-    def __init__(self, base_num_rows=0, base_num_cols=0, dx=1.0,
-                 orientation='horizontal', shape='hex', reorient_links=True,
-                 **kwds):
+    def __init__(
+        self,
+        shape,
+        spacing=1.0,
+        xy_of_lower_left=(0.0, 0.0),
+        orientation="horizontal",
+        node_layout="hex",
+        reorient_links=True,
+        xy_of_reference=(0.0, 0.0),
+        xy_axis_name=("x", "y"),
+        xy_axis_units="-",
+    ):
         """Create a grid of hexagonal cells.
 
         Create a regular 2D grid with hexagonal cells and triangular patches.
@@ -64,15 +67,25 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         Parameters
         ----------
-        base_num_rows : int
-            Number of rows of nodes in the left column.
-        base_num_cols : int
-            Number of nodes on the first row.
-        dx : float, optional
+        shape : tuple of int
+            Number of rows and columns of nodes.
+        spacing : float, optional
             Node spacing.
+        xy_of_lower_left : tuple, optional
+            Minimum x-of-node and y-of-node values. Depending on the grid
+            no node may be present at this coordinate. Default is (0., 0.).
+        xy_of_reference : tuple, optional
+            Coordinate value in projected space of the reference point,
+            `xy_of_lower_left`. Default is (0., 0.)
         orientation : string, optional
             One of the 3 cardinal directions in the grid, either 'horizontal'
             (default) or 'vertical'
+        node_layout : {"hex", "rect"}
+            The grid layout of nodes.
+        reorient_links : bool, optional
+            Whether or not to re-orient all links to point between -45 deg
+            and +135 deg clockwise from "north" (i.e., along y axis). default
+            is True.
 
         Returns
         -------
@@ -85,386 +98,54 @@ class HexModelGrid(VoronoiDelaunayGrid):
         have 2 nodes, and the second nodes.
 
         >>> from landlab import HexModelGrid
-        >>> hmg = HexModelGrid(3, 2, 1.0)
+        >>> hmg = HexModelGrid((3, 2), spacing=1.0)
         >>> hmg.number_of_nodes
         7
         """
-        # Set number of nodes, and initialize if caller has given dimensions
-        if base_num_rows * base_num_cols > 0:
-            self._initialize(base_num_rows, base_num_cols, dx, orientation,
-                             shape, reorient_links)
-        super(HexModelGrid, self).__init__(**kwds)
+        self._xy_of_lower_left = tuple(numpy.asfarray(xy_of_lower_left))
+
+        DualHexGraph.__init__(
+            self,
+            shape,
+            spacing=spacing,
+            xy_of_lower_left=self.xy_of_lower_left,
+            orientation=orientation,
+            node_layout=node_layout,
+            sort=True,
+        )
+        ModelGrid.__init__(
+            self,
+            xy_axis_name=xy_axis_name,
+            xy_axis_units=xy_axis_units,
+            xy_of_reference=xy_of_reference,
+        )
+
+        self._node_status = numpy.full(
+            self.number_of_nodes, self.BC_NODE_IS_CORE, dtype=numpy.uint8
+        )
+        self._node_status[self.perimeter_nodes] = self.BC_NODE_IS_FIXED_VALUE
 
     @classmethod
-    def from_dict(cls, params):
-        """
-        LLCATS: GINF
-        """
-        shape = params['shape']
-        spacing = params.get('spacing', 1.)
+    def from_dict(cls, kwds):
+        args = (kwds.pop("shape"),)
+        return cls(*args, **kwds)
 
-        return cls(shape[0], shape[1], spacing)
+    @property
+    def xy_of_lower_left(self):
+        """Return (x, y) of the reference point."""
+        return self._xy_of_lower_left
 
-    def _initialize(self, base_num_rows, base_num_cols, dx, orientation,
-                    shape, reorient_links=True):
-        r"""Set up a hexagonal grid.
+    @xy_of_lower_left.setter
+    def xy_of_lower_left(self, xy_of_lower_left):
+        """Set a new value for the xy_of_lower_left."""
+        dx = self.xy_of_lower_left[0] - xy_of_lower_left[0]
+        dy = self.xy_of_lower_left[1] - xy_of_lower_left[1]
+        # self._xy_of_node -= (dx, dy)
+        with self.thawed():
+            self.x_of_node[:] -= dx
+            self.y_of_node[:] -= dy
 
-        Sets up a hexagonal grid with cell spacing dx and
-        (by default) regular boundaries (that is, all perimeter cells are
-        boundaries and all interior cells are active).
-
-        Parameters
-        ----------
-        base_num_rows : int
-            Number of rows along left side of grid
-        base_num_cols : int
-            Number of columns along bottom side of grid
-        dx : float
-            Distance between nodes
-        orientation : string
-            Either 'horizontal' (default in __init__) or 'vertical'
-        shape : string
-            Either 'hex' (default in __init__) or 'rect'
-        reorient_links : bool
-            Whether or not to re-orient all links to point between -45 deg
-            and +135 deg clockwise from "north" (i.e., along y axis)
-
-        Returns
-        -------
-        (none)
-
-        Creates/modifies
-        ----------------
-        Creates and initializes and self._dx
-
-        Notes
-        -----
-        To be consistent with unstructured grids, the hex grid is
-        managed not as a 2D array but rather as a set of arrays that
-        describe connectivity information between nodes, links, cells, faces,
-        patches, corners, and junctions.
-
-        'Horizontal' orientation means that one of the 3 axes of the grid is
-        horizontal, whereas the other two are at 30 degree angles to the
-        horizontal, like:
-
-            \ /
-           -----
-            / \
-
-        'Vertical' means that one axis is vertical, with the other
-        two at 30 degree angles to the vertical, more like:
-
-           \   |   /
-             \ | /
-             / | \
-           /   |   \
-
-        (of course, these keyboard characters don't represent the angles quite
-        right)
-
-        Numbers of rows and columns: a hex grid with a rectangular shape will
-        have a fixed number of rows and columns, and so for rectangular shaped
-        grids we record this information in self._nrows and self._ncols. With
-        a hex-shaped grid, either the number of columns (if 'horizontal') or
-        the number of rows (if 'vertical') will vary across the grid.
-        Therefore, for hex-shaped grids we record only self._nrows for
-        'horizontal' grids, and only self._ncols for 'vertical' grids.
-        """
-        if self._DEBUG_TRACK_METHODS:
-            six.print_('HexModelGrid._initialize(' + str(base_num_rows) +
-                       ', ' + str(base_num_cols) + ', ' + str(dx) + ')')
-
-        # Make sure the parameter *orientation* is correct
-        assert (orientation[0].lower() == 'h' or
-                orientation[0].lower() == 'v'), \
-            'orientation must be either "horizontal" (default) or "vertical"'
-
-        # Make sure the parameter *shape* is correct
-        assert (shape[0].lower() == 'h' or shape[0].lower() == 'r'), \
-            'shape must be either "hex" (default) or "rect"'
-
-        # Create a set of hexagonally arranged points. These will be our nodes.
-        if orientation[0].lower() == 'h' and shape[0].lower() == 'h':
-            pts = HexModelGrid._hex_points_with_horizontal_hex(
-                base_num_rows, base_num_cols, dx)
-            self.orientation = 'horizontal'
-            self._nrows = base_num_rows
-        elif orientation[0].lower() == 'h' and shape[0].lower() == 'r':
-            pts = HexModelGrid._hex_points_with_horizontal_rect(
-                base_num_rows, base_num_cols, dx)
-            self.orientation = 'horizontal'
-            self._nrows = base_num_rows
-            self._ncols = base_num_cols
-            self._shape = (self._nrows, self._ncols)
-            self._nodes = numpy.arange(self._nrows * self._ncols,
-                                       dtype=int).reshape(self._shape)
-        elif orientation[0].lower() == 'v' and shape[0].lower() == 'h':
-            pts = HexModelGrid._hex_points_with_vertical_hex(
-                base_num_rows, base_num_cols, dx)
-            self.orientation = 'vertical'
-            self._ncols = base_num_cols
-        else:
-            pts = HexModelGrid._hex_points_with_vertical_rect(
-                base_num_rows, base_num_cols, dx)
-            self.orientation = 'vertical'
-            self._nrows = base_num_rows
-            self._ncols = base_num_cols
-            self._shape = (self._nrows, self._ncols)
-            self._nodes = numpy.arange(self._nrows * self._ncols,
-                                       dtype=int).reshape(self._shape)
-            for col in range(self._ncols):
-                base_node = (col // 2) + (col % 2) * ((self._ncols + 1) // 2)
-                self._nodes[:, col] = numpy.arange(
-                    base_node, self._nrows * self._ncols, self._ncols)
-
-        # Call the VoronoiDelaunayGrid constructor to triangulate/Voronoi
-        # the nodes into a grid.
-        super(HexModelGrid, self)._initialize(
-            pts[:, 0], pts[:, 1], reorient_links)
-
-        # Remember grid spacing
-        self._dx = dx
-
-    def _create_cell_areas_array(self):
-        r"""Create an array of surface areas of hexagonal cells.
-
-        Creates and returns an array containing the surface areas of the
-        hexagonal (Voronoi) cells.
-
-        These cells are perfect hexagons in which the apothem is dx/2. The
-        formula for area is:
-
-        .. math::
-            A = 3 dx^2 / 2 \sqrt{3} \approx 0.866 dx^2
-        """
-        self._area_of_cell = (0.8660254 * self._dx ** 2 +
-                              numpy.zeros(self.number_of_cells))
-        return self._area_of_cell
-
-    @staticmethod
-    def _hex_points_with_horizontal_hex(num_rows, base_num_cols, dxh):
-        """Create a set of points on a staggered grid.
-
-        Creates and returns a set of (x,y) points in a staggered grid in which
-        the points represent the centers of regular hexagonal cells, and the
-        points could be connected to form equilateral triangles. The overall
-        shape of the lattice is hexagonal, and one of the 3 axes is horizontal.
-
-        Parameters
-        ----------
-        num_rows : int
-            Number of rows in lattice
-        base_num_cols : int
-            Number of columns in the bottom and top rows (middle rows have
-            more)
-        dxh : float
-            Horizontal and diagonal spacing between points
-
-        Returns
-        -------
-        poinst : ndarray
-            A 2D numpy array containing point (x,y) coordinates, and total
-            number of points.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_horizontal_hex(3, 2, 1.0)
-        >>> len(points)
-        7
-        >>> points[1, :]
-        array([ 1.,  0.])
-        >>> points[:3, 0]
-        array([ 0. ,  1. , -0.5])
-        """
-        dxv = dxh * numpy.sqrt(3.) / 2.
-        half_dxh = dxh / 2.
-
-        if numpy.mod(num_rows, 2) == 0:  # even number of rows
-            npts = num_rows * base_num_cols + (num_rows * num_rows) // 4
-        else:  # odd number of rows
-            npts = num_rows * base_num_cols + \
-                ((num_rows - 1) // 2) * ((num_rows - 1) // 2)
-        pts = numpy.zeros((npts, 2))
-        middle_row = num_rows // 2
-        extra_cols = 0
-        xshift = 0.
-        i = 0
-        for r in range(num_rows):
-            for c in range(base_num_cols + extra_cols):
-                pts[i, 0] = c * dxh + xshift
-                pts[i, 1] = r * dxv
-                i += 1
-            if r < middle_row:
-                extra_cols += 1
-            else:
-                extra_cols -= 1
-            xshift = - half_dxh * extra_cols
-
-        return pts
-
-    @staticmethod
-    def _hex_points_with_horizontal_rect(num_rows, num_cols, dxh):
-        """Create a set of points in a taggered grid.
-        Creates and returns a set of (x,y) points in a staggered grid in which
-        the points represent the centers of regular hexagonal cells, and the
-        points could be connected to form equilateral triangles. The overall
-        shape of the lattice is rectangular, and one of the 3 axes is
-        horizontal.
-
-        Parameters
-        ----------
-        num_rows : int
-            Number of rows in lattice
-        num_cols : int
-            Number of columns in lattice
-        dxh : float
-            Horizontal and diagonal spacing between points
-
-        Returns
-        -------
-        points : ndarray of shape `(n_points, 2)`
-            A 2D numpy array containing point (x, y) coordinates, and total
-            number of points.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_horizontal_rect(3, 3, 1.0)
-        >>> len(points)
-        9
-        >>> points[1, :]
-        array([ 1.,  0.])
-        >>> points[:3, 0]
-        array([ 0.,  1.,  2.])
-        """
-        dxv = dxh * numpy.sqrt(3.) / 2.
-        half_dxh = dxh / 2.
-
-        npts = num_rows * num_cols
-        pts = numpy.zeros((npts, 2))
-        xshift = 0.
-        i = 0
-        for r in range(num_rows):
-            for c in range(num_cols):
-                xshift = half_dxh * (r % 2)
-                pts[i, 0] = c * dxh + xshift
-                pts[i, 1] = r * dxv
-                i += 1
-
-        return pts
-
-    @staticmethod
-    def _hex_points_with_vertical_hex(base_num_rows, num_cols, dxv):
-        """
-        Creates and returns a set of (x,y) points in a staggered grid in which
-        the points represent the centers of regular hexagonal cells, and the
-        points could be connected to form equilateral triangles. The overall
-        shape of the lattice is hexagonal.
-
-        Parameters
-        ----------
-        base_num_rows : int
-            Number of columns in the left and right columns (middle columns
-            have more)
-        num_cols : int
-            Number of columns in lattice
-        dxv : float
-            Vertical and diagonal spacing between points
-
-        Returns
-        -------
-        points : ndarray of shape `(n_points, 2)`
-            2D numpy array containing point (x,y) coordinates, and total
-            number of points.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_vertical_hex(2, 3, 1.0)
-        >>> len(points)
-        7
-        >>> points[1, :]
-        array([ 0.,  1.])
-        >>> points[:3, 1]
-        array([ 0. ,  1. , -0.5])
-        """
-        dxh = dxv * numpy.sqrt(3.) / 2.
-        half_dxv = dxv / 2.
-
-        if numpy.mod(num_cols, 2) == 0:  # even number of columns
-            npts = base_num_rows * num_cols + (num_cols * num_cols) // 4
-        else:  # odd number of columns
-            npts = base_num_rows * num_cols + \
-                ((num_cols - 1) // 2) * ((num_cols - 1) // 2)
-        pts = numpy.zeros((npts, 2))
-        middle_col = num_cols // 2
-        extra_rows = 0
-        yshift = 0.
-        i = 0
-        for c in range(num_cols):
-            for r in range(base_num_rows + extra_rows):
-                pts[i, 1] = r * dxv + yshift
-                pts[i, 0] = c * dxh
-                i += 1
-            if c < middle_col:
-                extra_rows += 1
-            else:
-                extra_rows -= 1
-            yshift = - half_dxv * extra_rows
-
-        return pts
-
-    @staticmethod
-    def _hex_points_with_vertical_rect(num_rows, num_cols, dxv):
-        """
-        Creates and returns a set of (x,y) points in a staggered grid in which
-        the points represent the centers of regular hexagonal cells, and the
-        points could be connected to form equilateral triangles. The overall
-        shape of the lattice is rectangular.
-
-        Parameters
-        ----------
-        num_rows : int
-            Number of columns in lattice
-        num_cols : int
-            Number of columns in lattice
-        dxv : float
-            Vertical and diagonal spacing between points
-
-        Returns
-        -------
-        points : ndarray of shape `(n_points, 2)`
-            2D numpy array containing point (x,y) coordinates, and total
-            number of points.
-
-        Examples
-        --------
-        >>> from landlab import HexModelGrid
-        >>> points = HexModelGrid._hex_points_with_vertical_rect(3, 3, 1.0)
-        >>> len(points)
-        9
-        >>> points[1, :]
-        array([ 0.,  1.])
-        >>> points[:3, 1]
-        array([ 0.,  1.,  2.])
-        """
-        dxh = dxv * numpy.sqrt(3.) / 2.
-        half_dxv = dxv / 2.
-
-        npts = num_rows * num_cols
-        pts = numpy.zeros((npts, 2))
-        yshift = 0.
-        i = 0
-        for c in range(num_cols):
-            for r in range(num_rows):
-                yshift = half_dxv * (c % 2)
-                pts[i, 1] = r * dxv + yshift
-                pts[i, 0] = c * dxh
-                i += 1
-
-        return pts
+        self._xy_of_lower_left = tuple(xy_of_lower_left)
 
     @property
     def number_of_node_columns(self):
@@ -483,18 +164,18 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(5, 5, shape='rect')
+        >>> grid = HexModelGrid((5, 5), node_layout="rect")
         >>> grid.number_of_node_columns
         5
 
         LLCATS: GINF NINF
         """
-        return self._ncols
+        return self.shape[1]
 
     @property
     def number_of_node_rows(self):
-        """Number of node rows in a rectangular-shaped and/or
-        horizontally oriented hex grid.
+        """Number of node rows in a rectangular-shaped and/or horizontally
+        oriented hex grid.
 
         Returns the number of rows, including boundaries.
 
@@ -506,97 +187,43 @@ class HexModelGrid(VoronoiDelaunayGrid):
         Examples
         --------
         >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(5, 5, shape='rect')
+        >>> grid = HexModelGrid((5, 5), node_layout="rect")
         >>> grid.number_of_node_rows
         5
 
         LLCATS: GINF NINF
         """
-        return self._nrows
+        return self._shape[0]
 
-    @property
-    def nodes_at_left_edge(self):
-        """Get nodes along the left edge of a grid, if grid is rectangular.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(3, 4, shape='rect')
-        >>> grid.nodes_at_left_edge
-        array([0, 4, 8])
-
-        LLCATS: NINF BC SUBSET
-        """
-        try:
-            return self._nodes[:, 0]
-        except AttributeError:
-            raise AttributeError(
-                'Only rectangular Hex grids have defined edges.')
-
-    @property
-    def nodes_at_right_edge(self):
-        """Get nodes along the right edge of a grid, if grid is rectangular.
+    def node_row_and_column(self, node_id):
+        """Row and column from node ID, FOR VERT RECT CONFIGURATION ONLY.
 
         Examples
         --------
-        >>> import numpy as np
         >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(3, 4, shape='rect')
-        >>> grid.nodes_at_right_edge
-        array([ 3,  7, 11])
-
-        LLCATS: NINF BC SUBSET
+        >>> grid = HexModelGrid((3, 4), node_layout='rect', orientation="vertical")
+        >>> grid.node_row_and_column(5)
+        (1, 2)
+        >>> grid = HexModelGrid((3, 5), node_layout='rect', orientation="vertical")
+        >>> grid.node_row_and_column(13)
+        (2, 1)
         """
+        assert self.orientation[0] == "v", "grid orientation must be vertical"
         try:
-            return self._nodes[:, -1]
+            (nr, nc) = self._shape
         except AttributeError:
             raise AttributeError(
-                'Only rectangular Hex grids have defined edges.')
+                "Only rectangular Hex grids have defined rows and columns."
+            )
 
-    @property
-    def nodes_at_top_edge(self):
-        """Get nodes along the top edge of a grid, if grid is rectangular.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(3, 4, shape='rect')
-        >>> grid.nodes_at_top_edge
-        array([ 8,  9, 10, 11])
-
-        LLCATS: NINF BC SUBSET
-        """
-        try:
-            return self._nodes[-1, :]
-        except AttributeError:
-            raise AttributeError(
-                'Only rectangular Hex grids have defined edges.')
-
-    @property
-    def nodes_at_bottom_edge(self):
-        """Get nodes along the bottom edge of a grid, if grid is rectangular.
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from landlab import HexModelGrid
-        >>> grid = HexModelGrid(3, 4, shape='rect')
-        >>> grid.nodes_at_bottom_edge
-        array([0, 1, 2, 3])
-
-        LLCATS: NINF BC SUBSET
-        """
-        try:
-            return self._nodes[0, :]
-        except AttributeError:
-            raise AttributeError(
-                'Only rectangular Hex grids have defined edges.')
+        row = node_id // nc
+        n_mod_nc = node_id % nc
+        half_nc = (nc + 1) // 2
+        col = 2 * (n_mod_nc % half_nc) + n_mod_nc // half_nc
+        return (row, col)
 
     def _configure_hexplot(self, data, data_label=None, color_map=None):
-        """
-        Sets up necessary information for making plots of the hexagonal grid
+        """Sets up necessary information for making plots of the hexagonal grid
         colored by a given data element.
 
         Parameters
@@ -628,7 +255,7 @@ class HexModelGrid(VoronoiDelaunayGrid):
             color_map = matplotlib.cm.jet
 
         # geometry
-        apothem = self._dx / 2.0
+        apothem = self.spacing / 2.0
         # distance from node to each hexagon cell vertex
         radius = 2.0 * apothem / sqrt(3.0)
 
@@ -637,18 +264,30 @@ class HexModelGrid(VoronoiDelaunayGrid):
         poly_verts = zeros((6, 2))
 
         # Figure out whether the orientation is horizontal or vertical
-        if self.orientation[0] == 'h':   # horizontal
-            offsets[:, 0] = array(
-                [0., apothem, apothem, 0., -apothem, -apothem])
+        if self.orientation[0] == "h":  # horizontal
+            offsets[:, 0] = array([0.0, apothem, apothem, 0.0, -apothem, -apothem])
             offsets[:, 1] = array(
-                [radius, radius / 2.0, -radius / 2.0, -radius, -radius / 2.0,
-                 radius / 2.0])
-        else:   # vertical
+                [
+                    radius,
+                    radius / 2.0,
+                    -radius / 2.0,
+                    -radius,
+                    -radius / 2.0,
+                    radius / 2.0,
+                ]
+            )
+        else:  # vertical
             offsets[:, 0] = array(
-                [radius / 2.0, radius, radius / 2.0, -radius / 2.0, -radius,
-                 -radius / 2.0])
-            offsets[:, 1] = array(
-                [apothem, 0., -apothem, -apothem, 0., apothem])
+                [
+                    radius / 2.0,
+                    radius,
+                    radius / 2.0,
+                    -radius / 2.0,
+                    -radius,
+                    -radius / 2.0,
+                ]
+            )
+            offsets[:, 1] = array([apothem, 0.0, -apothem, -apothem, 0.0, apothem])
 
         patches = []
         for i in range(self.number_of_nodes):
@@ -658,7 +297,8 @@ class HexModelGrid(VoronoiDelaunayGrid):
             patches.append(p)
 
         self._hexplot_pc = PatchCollection(
-            patches, cmap=color_map, edgecolor='none', linewidth=0.0)
+            patches, cmap=color_map, edgecolor="none", linewidth=0.0
+        )
 
         self._hexplot_configured = True
 
@@ -691,11 +331,11 @@ class HexModelGrid(VoronoiDelaunayGrid):
 
         try:
             self._hexplot_configured
-        except:
+        except AttributeError:
             self._configure_hexplot(data, data_label, color_map)
         else:
             if self._hexplot_pc.cmap != color_map:
-                self._configure_hexplot(data, data_label, color_map)            
+                self._configure_hexplot(data, data_label, color_map)
 
         # Handle *data*: if it's a numpy array, then we consider it the
         # data to be plotted. If it's a string, we consider it the name of the
@@ -708,29 +348,211 @@ class HexModelGrid(VoronoiDelaunayGrid):
         self._hexplot_pc.set_array(array(data))
         copy_of_pc = copy.copy(self._hexplot_pc)
         ax.add_collection(copy_of_pc)
-        plt.xlim([amin(self.node_x) - self._dx, amax(self.node_x) + self._dx])
-        plt.ylim([amin(self.node_y) - self._dx, amax(self.node_y) + self._dx])
+        plt.xlim([amin(self.node_x) - self.spacing, amax(self.node_x) + self.spacing])
+        plt.ylim([amin(self.node_y) - self.spacing, amax(self.node_y) + self.spacing])
 
         return ax
 
+    def set_watershed_boundary_condition_outlet_id(
+        self, outlet_id, node_data, nodata_value=-9999.0
+    ):
+        """Set the boundary conditions for a watershed on a HexModelGrid.
 
-def from_dict(param_dict):
-    """
-    Create a HexModelGrid from the dictionary-like object, *param_dict*.
-    Required keys of the dictionary are NUM_ROWS, NUM_COLS. Raises a KeyError
-    if either of these are missing.  If GRID_SPACING is given, use it as the
-    HexModelGrid *dx* parameter, otherwise default to unit spacing.
-    """
-    # Read and create a basic HexModelGrid
-    try:
-        n_rows = int(param_dict['NUM_ROWS'])
-        n_cols = int(param_dict['NUM_COLS'])
-        dx = float(param_dict.get('GRID_SPACING', 1.))
-    except KeyError as e:
-        raise
-    except ValueError as e:
-        raise
-    else:
-        hg = HexModelGrid(n_rows, n_cols, dx)
+        All nodes with nodata_value are set to BC_NODE_IS_CLOSED.
+        All nodes with data values are set to BC_NODE_IS_CORE, with the
+        exception that the outlet node is set to a BC_NODE_IS_FIXED_VALUE.
 
-    return hg
+        Note that the outer ring of the HexModelGrid is set to BC_NODE_IS_CLOSED, even
+        if there are nodes that have values.  The only exception to this would
+        be if the outlet node is on the boundary, which is acceptable.
+
+        Assumes that the id of the outlet is already known.
+
+        This assumes that the grid has a single watershed.  If this is not
+        the case this will not work.
+
+        Parameters
+        ----------
+        outlet_id : integer
+            id of the outlet node
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
+        nodata_value : float, optional
+            Value that indicates an invalid value.
+
+        Examples
+        --------
+        The example will use a *HexModelGrid* with node data values
+        as illustrated::
+
+                1. ,  2. ,  3. ,  4. ,
+            0.5,  1.5,  2.5,  3.5,  4.5,
+          0. ,  1. ,  2. ,  3. ,  4. ,  5.,
+            0.5,  1.5,  2.5,  3.5,  4.5,
+                1. ,  2. ,  3. ,  4.
+
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid((5, 4))
+        >>> z = hmg.add_zeros("topographic__elevation", at="node")
+        >>> z += hmg.x_of_node + 1.0
+
+        >>> hmg.status_at_node
+        array([1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1,
+           1], dtype=uint8)
+
+        >>> outlet = hmg.set_watershed_boundary_condition_outlet_id(9, z, -9999.)
+        >>> hmg.status_at_node
+        array([4, 4, 4, 4, 4, 0, 0, 0, 4, 1, 0, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
+           4], dtype=uint8)
+
+        LLCATS: BC
+        """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
+        # make ring of no data nodes
+        self.status_at_node[self.boundary_nodes] = self.BC_NODE_IS_CLOSED
+
+        # set no data nodes to inactive boundaries
+        self.set_nodata_nodes_to_closed(node_data, nodata_value)
+
+        # set the boundary condition (fixed value) at the outlet_node
+        self.status_at_node[outlet_id] = self.BC_NODE_IS_FIXED_VALUE
+
+    def set_watershed_boundary_condition(
+        self, node_data, nodata_value=-9999.0, return_outlet_id=False
+    ):
+        """Finds the node adjacent to a boundary node with the smallest value.
+        This node is set as the outlet.  The outlet node must have a data
+        value.  Can return the outlet id as a one element numpy array if
+        return_outlet_id is set to True.
+
+        All nodes with nodata_value are set to `NodeStatus.CLOSED`
+        (grid.status_at_node == 4). All nodes with data values are set to
+        `NodeStatus.CORE` (grid.status_at_node == 0), with the exception that the
+        outlet node is set to a `NodeStatus.FIXED_VALUE` (grid.status_at_node == 1).
+
+        Note that the outer ring (perimeter) of the grid is set to
+        `NodeStatus.CLOSED`, even if there are nodes that have values. The only
+        exception to this would be if the outlet node is on the perimeter, which
+        is acceptable.
+
+        This routine assumes that all of the nodata_values are on the outside of
+        the data values. In other words, there are no islands of nodata_values
+        surrounded by nodes with data.
+
+        This also assumes that the grid has a single watershed (that is a single
+        outlet node).
+
+        Parameters
+        ----------
+        node_data : field name or ndarray
+            At-node field name or at-node data values to use for identifying
+            watershed location.
+        nodata_value : float, optional
+            Value that indicates an invalid value.
+        return_outlet_id : boolean, optional
+            Indicates whether or not to return the id of the found outlet
+
+        Examples
+        --------
+        The example will use a HexModelGrid with node data values
+        as illustrated::
+
+                1. ,  2. ,  3. ,  4. ,
+            0.5,  1.5,  2.5,  3.5,  4.5,
+          0. ,  1. ,  2. ,  3. ,  4. ,  5.,
+            0.5,  1.5,  2.5,  3.5,  4.5,
+                1. ,  2. ,  3. ,  4.
+
+        >>> from landlab import HexModelGrid
+        >>> hmg = HexModelGrid((5, 4))
+        >>> z = hmg.add_zeros("topographic__elevation", at="node")
+        >>> z += hmg.x_of_node + 1.0
+        >>> out_id = hmg.set_watershed_boundary_condition(z, -9999., True)
+        >>> out_id
+        array([9])
+        >>> hmg.status_at_node
+        array([4, 4, 4, 4, 4, 0, 0, 0, 4, 1, 0, 0, 0, 0, 4, 4, 0, 0, 0, 4, 4, 4, 4,
+           4], dtype=uint8)
+
+        LLCATS: BC
+        """
+        # get node_data if a field name
+        node_data = self.return_array_or_field_values("node", node_data)
+
+        # make ring of no data nodes
+        self.status_at_node[self.boundary_nodes] = self.BC_NODE_IS_CLOSED
+
+        # set no data nodes to inactive boundaries
+        self.set_nodata_nodes_to_closed(node_data, nodata_value)
+
+        # locs is a list that contains locations where
+        # node data is not equal to the nodata value
+        locs = numpy.where(node_data != nodata_value)
+        if len(locs) < 1:
+            raise ValueError("All data values are no_data values")
+
+        # now find minimum of the data values
+        min_val = numpy.min(node_data[locs])
+
+        # now find where minimum values are
+        min_locs = numpy.where(node_data == min_val)[0]
+
+        # check all the locations with the minimum value to see if one
+        not_found = True
+        while not_found:
+            # now check the min locations to see if any are next to
+            # a boundary node
+            local_not_found = True
+            # next_to_boundary = []
+
+            # check all nodes rather than selecting the first node that meets
+            # the criteria
+            # for i in range(len(min_locs)):
+            #     next_to_boundary.append(self.node_has_boundary_neighbor()[min_locs[i])]
+            next_to_boundary = self.node_has_boundary_neighbor()[(min_locs,)]
+            # if any of those nodes were adjacent to the boundary, check
+            # that  there is only one. If only one, set as outlet loc, else,
+            # raise a value error
+            if numpy.any(next_to_boundary):
+                local_not_found = False
+                if sum(next_to_boundary) > 1:
+                    potential_locs = min_locs[
+                        numpy.where(numpy.asarray(next_to_boundary))[0]
+                    ]
+                    raise ValueError(
+                        (
+                            "Grid has two potential outlet nodes."
+                            "They have the following node IDs: \n"
+                            + str(potential_locs)
+                            + "\nUse the method set_watershed_boundary_condition_outlet_id "
+                            "to explicitly select one of these "
+                            "IDs as the outlet node."
+                        )
+                    )
+                else:
+                    outlet_loc = min_locs[numpy.where(next_to_boundary)[0][0]]
+
+            # checked all of the min vals, (so done with inner while)
+            # and none of the min values were outlet candidates
+            if local_not_found:
+                # need to find the next largest minimum value
+                # first find the locations of all values greater
+                # than the old minimum
+                # not done with outer while
+                locs = numpy.where((node_data > min_val) & (node_data != nodata_value))
+                # now find new minimum of these values
+                min_val = numpy.min(node_data[locs])
+                min_locs = numpy.where(node_data == min_val)[0]
+            else:
+                # if locally found, it is also globally found
+                # so done with outer while
+                not_found = False
+
+        # set outlet boundary condition
+        self.status_at_node[outlet_loc] = self.BC_NODE_IS_FIXED_VALUE
+
+        if return_outlet_id:
+            return as_id_array(numpy.array([outlet_loc]))

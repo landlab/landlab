@@ -4,7 +4,6 @@ Grid decorators
 +++++++++++++++
 
 .. autosummary::
-    :toctree: generated/
 
     ~landlab.grid.decorators.override_array_setitem_and_reset
     ~landlab.grid.decorators.return_id_array
@@ -21,7 +20,7 @@ class override_array_setitem_and_reset(object):
 
     """Decorator that calls a grid method after setting array values.
 
-    This decorator wraps :any:`ModelGrid` methods that return a numpy array
+    This decorator wraps `ModelGrid` methods that return a numpy array
     so that it returns a wrapped array that overrides the numpy array
     `__setitem__`, `__setslice__`, and `itemset` methods. The wrapped methods
     set values in the array but then also call a grid method that resets some
@@ -62,6 +61,7 @@ class override_array_setitem_and_reset(object):
 
         def _wrapped(grid):
             """Embed a grid into a numpy array and override set methods."""
+
             class array(np.ndarray):
 
                 """Override numpy setters and reset grid topology."""
@@ -112,10 +112,12 @@ def return_id_array(func):
     func
         A wrapped function that returns an id array.
     """
+
     @wraps(func)
     def _wrapped(self, *args, **kwds):
         """Create a function that returns an id array."""
         return as_id_array(func(self, *args, **kwds))
+
     return _wrapped
 
 
@@ -132,6 +134,7 @@ def return_readonly_id_array(func):
     func
         A wrapped function that returns an id array.
     """
+
     @wraps(func)
     def _wrapped(self, *args, **kwds):
         """Create a function that returns an id array."""
@@ -143,4 +146,5 @@ def return_readonly_id_array(func):
             return id_array
         else:
             return immutable_array
+
     return _wrapped

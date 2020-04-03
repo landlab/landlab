@@ -1,28 +1,21 @@
 #! /usr/bin/env python
+from enum import IntEnum, unique
+
 import numpy as np
 
-from .nodestatus import (CLOSED_BOUNDARY, CORE_NODE, FIXED_GRADIENT_BOUNDARY,
-                         FIXED_VALUE_BOUNDARY)
-from ..utils.decorators import (cache_result_in_object,
-                                make_return_array_immutable)
+from .nodestatus import NodeStatus
 
-# Define the link types
 
-#: Indicates a link is *active*, and can carry flux
-ACTIVE_LINK = 0
+@unique
+class LinkStatus(IntEnum):
+    """Define the link types"""
 
-#: Indicates a link has a fixed (gradient) value, & behaves as a boundary
-FIXED_LINK = 2
-
-#: Indicates a link is *inactive*, and cannot carry flux
-INACTIVE_LINK = 4
-
-LINK_STATUS_FLAGS_LIST = [
-    ACTIVE_LINK,
-    FIXED_LINK,
-    INACTIVE_LINK,
-]
-LINK_STATUS_FLAGS = set(LINK_STATUS_FLAGS_LIST)
+    #: Indicate a link is *active*, and can carry flux
+    ACTIVE = 0
+    #: Indicate a link has a fixed (gradient) value, & behaves as a boundary
+    FIXED = 2
+    #: Indicate a link is *inactive*, and cannot carry flux
+    INACTIVE = 4
 
 
 def is_fixed_link(node_status_at_link):
@@ -43,26 +36,30 @@ def is_fixed_link(node_status_at_link):
 
     Examples
     --------
-    >>> from landlab.grid.diagonals import is_fixed_link
-    >>> from landlab import CORE_NODE, FIXED_GRADIENT_BOUNDARY
-    >>> is_fixed_link([CORE_NODE, FIXED_GRADIENT_BOUNDARY])
+    >>> from landlab.grid.linkstatus import is_fixed_link
+    >>> from landlab import NodeStatus
+    >>> is_fixed_link([NodeStatus.CORE, NodeStatus.FIXED_GRADIENT])
     array([ True], dtype=bool)
 
-    >>> from landlab import FIXED_VALUE_BOUNDARY
-    >>> is_fixed_link([CORE_NODE, FIXED_VALUE_BOUNDARY])
+    >>> is_fixed_link([NodeStatus.CORE, NodeStatus.FIXED_VALUE])
     array([False], dtype=bool)
 
-    >>> is_fixed_link([[FIXED_GRADIENT_BOUNDARY, CORE_NODE],
-    ...                [CORE_NODE, CORE_NODE]])
+    >>> is_fixed_link(
+    ...     [
+    ...         [NodeStatus.FIXED_GRADIENT, NodeStatus.CORE],
+    ...         [NodeStatus.CORE, NodeStatus.CORE]
+    ...     ]
+    ... )
     array([ True, False], dtype=bool)
     """
     node_status_at_link = np.asarray(node_status_at_link).reshape((-1, 2))
 
-    is_core_node = node_status_at_link == CORE_NODE
-    is_fixed_gradient_node = node_status_at_link == FIXED_GRADIENT_BOUNDARY
+    is_core_node = node_status_at_link == NodeStatus.CORE
+    is_fixed_gradient_node = node_status_at_link == NodeStatus.FIXED_GRADIENT
 
-    return ((is_core_node[:, 0] & is_fixed_gradient_node[:, 1]) |
-            (is_fixed_gradient_node[:, 0] & is_core_node[:, 1]))
+    return (is_core_node[:, 0] & is_fixed_gradient_node[:, 1]) | (
+        is_fixed_gradient_node[:, 0] & is_core_node[:, 1]
+    )
 
 
 def is_inactive_link(node_status_at_link):
@@ -83,30 +80,31 @@ def is_inactive_link(node_status_at_link):
 
     Examples
     --------
-    >>> from landlab.grid.diagonals import is_inactive_link
-    >>> from landlab import CORE_NODE, FIXED_GRADIENT_BOUNDARY
-    >>> is_inactive_link([CORE_NODE, CLOSED_BOUNDARY])
+    >>> from landlab.grid.linkstatus import is_inactive_link
+    >>> from landlab import NodeStatus
+    >>> is_inactive_link([NodeStatus.CORE, NodeStatus.CLOSED])
     array([ True], dtype=bool)
 
-    >>> from landlab import FIXED_VALUE_BOUNDARY
-    >>> is_inactive_link([FIXED_GRADIENT_BOUNDARY, FIXED_VALUE_BOUNDARY])
+    >>> is_inactive_link([NodeStatus.FIXED_GRADIENT, NodeStatus.FIXED_VALUE])
     array([ True], dtype=bool)
 
-    >>> is_inactive_link([[FIXED_GRADIENT_BOUNDARY, CLOSED_BOUNDARY],
-    ...                   [CORE_NODE, CORE_NODE]])
+    >>> is_inactive_link([[NodeStatus.FIXED_GRADIENT, NodeStatus.CLOSED],
+    ...                   [NodeStatus.CORE, NodeStatus.CORE]])
     array([ True, False], dtype=bool)
     """
     node_status_at_link = np.asarray(node_status_at_link).reshape((-1, 2))
 
-    is_core = node_status_at_link == CORE_NODE
-    is_fixed_value = node_status_at_link == FIXED_VALUE_BOUNDARY
-    is_fixed_gradient = node_status_at_link == FIXED_GRADIENT_BOUNDARY
-    is_closed = node_status_at_link == CLOSED_BOUNDARY
+    is_core = node_status_at_link == NodeStatus.CORE
+    is_fixed_value = node_status_at_link == NodeStatus.FIXED_VALUE
+    is_fixed_gradient = node_status_at_link == NodeStatus.FIXED_GRADIENT
+    is_closed = node_status_at_link == NodeStatus.CLOSED
     is_boundary_node = is_fixed_value | is_fixed_gradient | is_closed
 
-    return ((is_boundary_node[:, 0] & is_boundary_node[:, 1]) |
-            (is_closed[:, 0] & is_core[:, 1]) |
-            (is_core[:, 0] & is_closed[:, 1]))
+    return (
+        (is_boundary_node[:, 0] & is_boundary_node[:, 1])
+        | (is_closed[:, 0] & is_core[:, 1])
+        | (is_core[:, 0] & is_closed[:, 1])
+    )
 
 
 def is_active_link(node_status_at_link):
@@ -127,27 +125,30 @@ def is_active_link(node_status_at_link):
 
     Examples
     --------
-    >>> from landlab.grid.diagonals import is_active_link
-    >>> from landlab import CORE_NODE, FIXED_GRADIENT_BOUNDARY
-    >>> is_active_link([CORE_NODE, FIXED_GRADIENT_BOUNDARY])
+    >>> from landlab.grid.linkstatus import is_active_link
+    >>> from landlab import NodeStatus
+    >>> is_active_link([NodeStatus.CORE, NodeStatus.FIXED_GRADIENT])
     array([False], dtype=bool)
 
-    >>> from landlab import FIXED_VALUE_BOUNDARY
-    >>> is_active_link([CORE_NODE, FIXED_VALUE_BOUNDARY])
+    >>> is_active_link([NodeStatus.CORE, NodeStatus.FIXED_VALUE])
     array([ True], dtype=bool)
 
-    >>> is_active_link([[FIXED_GRADIENT_BOUNDARY, CORE_NODE],
-    ...                 [CORE_NODE, CORE_NODE]])
+    >>> is_active_link(
+    ...     [
+    ...         [NodeStatus.FIXED_GRADIENT, NodeStatus.CORE],
+    ...         [NodeStatus.CORE, NodeStatus.CORE]
+    ...     ]
+    ... )
     array([False, True], dtype=bool)
     """
     node_status_at_link = np.asarray(node_status_at_link).reshape((-1, 2))
 
-    is_core_node = node_status_at_link == CORE_NODE
-    is_fixed_value_node = node_status_at_link == FIXED_VALUE_BOUNDARY
+    is_core_node = node_status_at_link == NodeStatus.CORE
+    is_fixed_value_node = node_status_at_link == NodeStatus.FIXED_VALUE
     return (
-        (is_core_node[:, 0] & is_core_node[:, 1]) |
-        (is_core_node[:, 0] & is_fixed_value_node[:, 1]) |
-        (is_fixed_value_node[:, 0] & is_core_node[:, 1])
+        (is_core_node[:, 0] & is_core_node[:, 1])
+        | (is_core_node[:, 0] & is_fixed_value_node[:, 1])
+        | (is_fixed_value_node[:, 0] & is_core_node[:, 1])
     )
 
 
@@ -161,13 +162,13 @@ def set_status_at_link(node_status_at_link, out=None):
     _is_active_link = is_active_link(node_status_at_link)
     _is_inactive_link = is_inactive_link(node_status_at_link)
 
-    assert np.all(np.sum(np.vstack((_is_active_link, _is_inactive_link,
-                                    _is_fixed_link)), axis=0) == 1)
+    assert np.all(
+        np.sum(np.vstack((_is_active_link, _is_inactive_link, _is_fixed_link)), axis=0)
+        == 1
+    )
 
-    out[_is_inactive_link] = INACTIVE_LINK
-    out[_is_active_link] = ACTIVE_LINK
-    out[_is_fixed_link] = FIXED_LINK
+    out[_is_inactive_link] = LinkStatus.INACTIVE
+    out[_is_active_link] = LinkStatus.ACTIVE
+    out[_is_fixed_link] = LinkStatus.FIXED
 
     return out
-
-

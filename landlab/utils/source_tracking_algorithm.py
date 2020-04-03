@@ -1,32 +1,36 @@
+#! /usr/bin/env python
 """
 Source Tracking Algorithm
 +++++++++++++++++++++++++
 .. autosummary::
-    :toctree: generated/
+
     ~landlab.utils.source_tracking_algorithm.convert_arc_flow_directions_to_landlab_node_ids
     ~landlab.utils.source_tracking_algorithm.track_source
     ~landlab.utils.source_tracking_algorithm.find_unique_upstream_hsd_ids_and_fractions
-"""
-"""
+
 Authors: Sai Nudurupati & Erkan Istanbulluoglu
 
 Ref 1: 'The Landlab LandslideProbability Component User Manual' @
-https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.docx
+https://github.com/RondaStrauch/pub_strauch_etal_esurf/blob/master/LandslideComponentUsersManual.pdf
 
-MD - Modeling Domain - Raster grid that is being analyzed/worked upon.
-HSD - Hydrologic Source Domain - Grid that is at least as coarse as MD. For
-      more info, refer Ref 1
++----------+-------------------------------------------------------------------+
+| Notation | Definition                                                        |
++==========+===================================================================+
+| MD       | Modeling Domain - Raster grid that is being analyzed/worked upon. |
++----------+-------------------------------------------------------------------+
++ HSD      | Hydrologic Source Domain - Grid that is at least as coarse as MD. |
+|          | For more info, refer Ref 1                                        |
++----------+-------------------------------------------------------------------+
+
 """
-
-# %%
-# Import required libraries
-import numpy as np
 import copy
 from collections import Counter
 
-# %%
+import numpy as np
+
+
 def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
-    """Convert Arc flow_directions to RasterModelGrid node ids
+    """Convert Arc flow_directions to RasterModelGrid node ids.
 
     This function receives flow directions (D8) from ESRI ArcGIS and converts
     them to Landlab's RasterModelGrid node id. ESRI ArcGIS D8 flow directions
@@ -34,39 +38,41 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
     adjacent cells into which flow could travel. The valid output directions
     are powers of 2 starting from 2^0 (1) in the Eastern neighbor going
     clockwise to 2^7 (128) at Northeastern neighbor. For more information
-    refer 'http://pro.arcgis.com/en/pro-app/tool-reference/spatial-analyst/
+    refer 'https://pro.arcgis.com/en/pro-app/tool-reference/spatial-analyst/
     how-flow-direction-works.htm'
-    
+
     Parameters
     ----------
     grid: RasterModelGrid
         A grid.
     flow_dir_arc: ndarray of int, shape (n_nodes, )
         flow directions derived from ESRII ArcGIS.
-    
+
     Returns
     -------
     receiver_nodes: ndarray of int, shape (n_nodes, )
         downstream node at each node. Note that this array gives the
         receiver nodes only for the core nodes. For non-core
-        nodes, a zero is used.  
+        nodes, a zero is used.
     """
     r_arc_raw = np.log2(flow_dir_arc)
-    r_arc_raw = r_arc_raw.astype('int')
-    neigh_ = grid.neighbors_at_node
+    r_arc_raw = r_arc_raw.astype("int")
+    neigh_ = grid.adjacent_nodes_at_node
     diag_ = grid.diagonals_at_node
     neigh_ = np.fliplr(neigh_)
     diag_ = np.fliplr(diag_)
     a_n = np.hsplit(neigh_, 4)
     a_d = np.hsplit(diag_, 4)
-    neighbors = np.hstack((a_n[-1], a_d[0], a_n[0], a_d[1], a_n[1], a_d[2],
-                           a_n[2], a_d[3]))
+    neighbors = np.hstack(
+        (a_n[-1], a_d[0], a_n[0], a_d[1], a_n[1], a_d[2], a_n[2], a_d[3])
+    )
     # Now neighbors has node ids of neighboring nodes in cw order starting at
     # right, hence the order of neighbors = [r, br, b, bl, l, tl, t, tr]
     receiver_nodes = np.zeros(grid.number_of_nodes, dtype=int)
-    receiver_nodes[grid.core_nodes] = np.choose(r_arc_raw[grid.core_nodes],
-                                   np.transpose(neighbors[grid.core_nodes]))
-    return (receiver_nodes)
+    receiver_nodes[grid.core_nodes] = np.choose(
+        r_arc_raw[grid.core_nodes], np.transpose(neighbors[grid.core_nodes])
+    )
+    return receiver_nodes
 
 
 # %%
@@ -75,7 +81,7 @@ def convert_arc_flow_directions_to_landlab_node_ids(grid, flow_dir_arc):
 # have neighbors that are real values and not -1s.
 # Note 2: Nodes in the following comments in this section refer to core nodes.
 def track_source(grid, hsd_ids, flow_directions=None):
-    """Track all contributing upstream core nodes for each core node
+    """Track all contributing upstream core nodes for each core node.
 
     This algorithm traverses the grid based on information of flow directions
     at nodes and at every node identifies all the nodes upstream of a given
@@ -105,9 +111,9 @@ def track_source(grid, hsd_ids, flow_directions=None):
     that is at the same resolution as MD, and represents exactly the same
     landscape. Alternatively, one can use the node ids of MD
     (grid.nodes.flatten()) as input for hsd_ids.
-    
+
     For more information, refer Ref 1.
-    
+
     Parameters
     ----------
     grid: RasterModelGrid
@@ -118,7 +124,7 @@ def track_source(grid, hsd_ids, flow_directions=None):
     flow_directions: ndarray of int, shape (n_nodes, ), optional.
         downstream node at each node. Alternatively, this data can be
         provided as a nodal field 'flow__receiver_node' on the grid.
-    
+
     Returns
     -------
     (hsd_upstr, flow_accum): (dictionary, ndarray of shape (n_nodes))
@@ -129,12 +135,22 @@ def track_source(grid, hsd_ids, flow_directions=None):
         at corresponding node_ids.
         'flow_accum' is an array of the number of upstream contributing
         nodes at each node.
-    """   
+    """
     if flow_directions is None:
-        r = grid.at_node['flow__receiver_node']
+        if grid.at_node["flow__receiver_node"].size != grid.size("node"):
+            msg = (
+                "A route-to-multiple flow director has been "
+                "run on this grid. The landlab development team has not "
+                "verified that the source tracking utility is compatible with "
+                "route-to-multiple methods. Please open a GitHub Issue "
+                "to start this process."
+            )
+            raise NotImplementedError(msg)
+
+        r = grid.at_node["flow__receiver_node"]
     else:
         r = flow_directions
-    z = grid.at_node['topographic__elevation']
+    z = grid.at_node["topographic__elevation"]
     core_nodes = grid.core_nodes
     core_elev = z[core_nodes]
     # Sort all nodes in the descending order of elevation
@@ -153,7 +169,7 @@ def track_source(grid, hsd_ids, flow_directions=None):
         # Check 2: If the visited node is a sink
         if r[i] == i:
             hsd_upstr.update({i: [hsd_ids[i]]})
-            flow_accum[i] += 1.
+            flow_accum[i] += 1.0
             alr_counted.append(i)
             continue
         # Check 3: Now, if the node is not a sink and hasn't been visited, it
@@ -164,7 +180,7 @@ def track_source(grid, hsd_ids, flow_directions=None):
         stream_buffer = []
         j = i
         switch_i = True
-        a = 0.
+        a = 0.0
         # Loop below will traverse the segment of the stream until an outlet
         # is reached.
         while True:
@@ -176,8 +192,8 @@ def track_source(grid, hsd_ids, flow_directions=None):
                     break
             # If this node is being visited for the first time,
             # this 'if statement' will executed.
-            if flow_accum[j] == 0.:
-                a += 1.
+            if flow_accum[j] == 0.0:
+                a += 1.0
                 alr_counted.append(j)
                 stream_buffer.append(hsd_ids[j])
             # Update number of upstream nodes.
@@ -221,13 +237,13 @@ def find_unique_upstream_hsd_ids_and_fractions(hsd_upstr):
     an alternative input. In that case, please refer to the documentation
     of track_source() or refer source_tracking_algorithm_user_manual for
     more information.
-    
+
     Parameters
     ----------
     hsd_upstr: dictionary
         'hsd_upstr' maps each MD grid node to corresponding
         contributing upstream HSD ids.
-        
+
     Returns
     -------
     (unique_ids, fractions): (dictionary, dictionary)
@@ -248,6 +264,6 @@ def find_unique_upstream_hsd_ids_and_fractions(hsd_upstr):
         for k in cnt.keys():
             buf.append(cnt[k])
         C.update({ke: buf})
-        e = [s/float(sum(buf)) for s in buf]
+        e = [s / float(sum(buf)) for s in buf]
         fractions.update({ke: e})
     return (unique_ids, fractions)

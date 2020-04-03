@@ -1,5 +1,3 @@
-
 from .vegetation_dynamics import Vegetation
 
-
-__all__ = ['Vegetation', ]
+__all__ = ["Vegetation"]

@@ -60,14 +60,15 @@ components folder.
 NOTE TO DEJH: This is missing some names; see, e.g., gFlex.
 """
 
-import os.path as path
-from os import walk
+import dircache
 import fnmatch
 import glob
-import landlab.components as comp
-import dircache
+import os.path as path
 import pkgutil
 from copy import copy
+from os import walk
+
+import landlab.components as comp
 
 terminate_chars_map = {'[':']', '{':'}', '(':')'}
 

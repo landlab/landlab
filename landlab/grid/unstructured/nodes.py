@@ -2,8 +2,7 @@ import numpy as np
 
 
 class NodeGrid(object):
-    """__init__((coord0, coord1))
-    Create a grid of nodes.
+    """__init__((coord0, coord1)) Create a grid of nodes.
 
     Parameters
     ----------
@@ -43,8 +42,7 @@ class NodeGrid(object):
     """
 
     def __init__(self, nodes):
-        """__init__((coord0, coord1))
-        Create a grid of nodes.
+        """__init__((coord0, coord1)) Create a grid of nodes.
 
         Parameters
         ----------
@@ -82,10 +80,8 @@ class NodeGrid(object):
         Traceback (most recent call last):
         AttributeError: Grid has no y-coordinate
         """
-        self._coords = np.vstack(
-            [np.array(coord, dtype=float) for coord in nodes]
-        )
-        self._coords.flags['WRITEABLE'] = False
+        self._coords = np.vstack([np.array(coord, dtype=float) for coord in nodes])
+        self._coords.flags["WRITEABLE"] = False
 
         self._number_of_nodes = len(nodes[0])
 
@@ -132,7 +128,7 @@ class NodeGrid(object):
         try:
             return self._coords[-2]
         except IndexError:
-            raise AttributeError('Grid has no y-coordinate')
+            raise AttributeError("Grid has no y-coordinate")
 
     @property
     def z(self):
@@ -148,7 +144,7 @@ class NodeGrid(object):
         try:
             return self._coords[-2]
         except IndexError:
-            raise AttributeError('Grid has no z-coordinate')
+            raise AttributeError("Grid has no z-coordinate")
 
     @property
     def coord(self):

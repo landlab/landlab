@@ -2,13 +2,13 @@
 """Utility functions for structured grid of elements with four neighbors."""
 
 
-import numpy as np
 import itertools
-from six.moves import range
 
-from ..grid.base import (CORE_NODE, FIXED_VALUE_BOUNDARY, CLOSED_BOUNDARY,
-                         BAD_INDEX_VALUE)
+import numpy as np
+
 from ..core.utils import as_id_array
+from ..grid.base import BAD_INDEX_VALUE
+from ..grid.nodestatus import NodeStatus
 
 
 def node_count(shape):
@@ -82,8 +82,8 @@ def active_cell_count(shape):
 def core_cell_count(shape):
     """Number of core cells.
 
-    Number of core cells. By default, all cells are core so this is
-    the same as cell_count.
+    Number of core cells. By default, all cells are core so this is the
+    same as cell_count.
     """
     return cell_count(shape)
 
@@ -136,33 +136,6 @@ def horizontal_link_count(shape):
     return shape[0] * (shape[1] - 1)
 
 
-def boundary_cell_count(shape):
-    """Number of boundary cells.
-
-    .. deprecated:: 0.6
-
-    Deprecated due to imprecise terminology; this function makes little sense.
-    Use perimeter_node_count() instead.
-    Number of cells that are on the perimeter of a structured grid with
-    dimensions, *shape*, and thus boundary cells. In fact, cells centered on
-    boundary nodes are not really cells. If they were, though, this is how
-    many there would be.
-
-    .. note:: SN 30-Nov-14
-        Shouldn't be deprecated. This routine returns the cells on the
-        boundary. Not the cells surrounding boundary nodes because there aren't
-        cells around boundary nodes by definition as previously understood.
-
-    Examples
-    --------
-    >>> from landlab.utils.structured_grid import boundary_cell_count
-    >>> boundary_cell_count((3, 4))
-    10
-    """
-    assert len(shape) == 2
-    return 2 * (shape[0] - 2) + 2 * (shape[1] - 2) + 4
-
-
 def perimeter_node_count(shape):
     """Number of perimeter nodes.
 
@@ -182,8 +155,8 @@ def perimeter_node_count(shape):
 def interior_cell_count(shape):
     """Number of interior cells.
 
-    Number of interior cells. Since cells are only defined on interior nodes,
-    this is the same as cell_count.
+    Number of interior cells. Since cells are only defined on interior
+    nodes, this is the same as cell_count.
     """
     return cell_count(shape)
 
@@ -202,8 +175,7 @@ def face_count(shape):
     """
     assert len(shape) == 2
     if np.min(shape) > 2:
-        return ((shape[0] - 1) * (shape[1] - 2) +
-                (shape[0] - 2) * (shape[1] - 1))
+        return (shape[0] - 1) * (shape[1] - 2) + (shape[0] - 2) * (shape[1] - 1)
     else:
         return 0
 
@@ -285,30 +257,7 @@ def bottom_top_iter(shape):
     >>> np.fromiter(bottom_top_iter((4, 3)), dtype=np.int)
     array([ 0,  1,  2,  9, 10, 11])
     """
-    return itertools.chain(bottom_index_iter(shape),
-                           top_index_iter(shape))
-
-
-def boundary_iter(shape):
-    """Iterator for perimeter nodes.
-
-    .. deprecated:: 0.6
-
-        Deprecated due to imprecise terminology. This is really perimeter_iter
-        (see below).
-        Iterates over all of the boundary node indices of a structured grid in
-        order.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from landlab.utils.structured_grid import boundary_iter
-    >>> np.fromiter(boundary_iter((4, 3)), dtype=np.int)
-    array([ 0,  1,  2,  3,  5,  6,  8,  9, 10, 11])
-    """
-    return itertools.chain(bottom_index_iter(shape),
-                           left_right_iter(shape, 1, shape[0] - 1),
-                           top_index_iter(shape))
+    return itertools.chain(bottom_index_iter(shape), top_index_iter(shape))
 
 
 def perimeter_iter(shape):
@@ -324,27 +273,11 @@ def perimeter_iter(shape):
     >>> np.fromiter(perimeter_iter((4, 3)), dtype=np.int)
     array([ 0,  1,  2,  3,  5,  6,  8,  9, 10, 11])
     """
-    return itertools.chain(bottom_index_iter(shape),
-                           left_right_iter(shape, 1, shape[0] - 1),
-                           top_index_iter(shape))
-
-
-def boundary_nodes(shape):
-    """Array of perimeter nodes.
-
-    .. deprecated:: 0.6
-        Deprecated due to imprecise terminology. This is really perimeter_iter
-        (see below).
-
-    An array of the indices of the boundary nodes.
-
-    Examples
-    --------
-    >>> from landlab.utils.structured_grid import boundary_nodes
-    >>> boundary_nodes((3, 4))
-    array([ 0,  1,  2,  3,  4,  7,  8,  9, 10, 11])
-    """
-    return np.fromiter(boundary_iter(shape), dtype=np.int)
+    return itertools.chain(
+        bottom_index_iter(shape),
+        left_right_iter(shape, 1, shape[0] - 1),
+        top_index_iter(shape),
+    )
 
 
 def perimeter_nodes(shape):
@@ -363,8 +296,9 @@ def perimeter_nodes(shape):
 
 def corners(shape):
     """Array of the indices of the grid corner nodes."""
-    return np.array([0, shape[1] - 1, shape[1] * (shape[0] - 1),
-                     shape[1] * shape[0] - 1])
+    return np.array(
+        [0, shape[1] - 1, shape[1] * (shape[0] - 1), shape[1] * shape[0] - 1]
+    )
 
 
 def bottom_edge_node_ids(shape):
@@ -455,159 +389,10 @@ def node_coords(shape, *args):
 
     (node_x, node_y) = np.meshgrid(col_x, row_y)
 
-    node_x.shape = (node_count_, )
-    node_y.shape = (node_count_, )
+    node_x.shape = (node_count_,)
+    node_y.shape = (node_count_,)
 
     return (node_x, node_y)
-
-
-def active_cell_index(shape):
-    """Array of active cells.
-
-    .. note:: deprecated
-
-    For many instances, core_cell_index() may be preferred.
-    Ordered indices of the active (core+open boundary) cells of a structured
-    grid.
-    """
-    return np.arange(active_cell_count(shape))
-
-
-def core_cell_index(shape):
-    """Array of core cells.
-
-    .. note:: deprecated
-
-    Ordered indices of the core cells of a structured grid.
-    """
-    return np.arange(core_cell_count(shape))
-
-
-def active_cell_node(shape):
-    """Array of nodes at cells.
-
-    .. note:: deprecated
-
-    For many instances, core_cell_node() may be preferred.
-    Indices of the nodes belonging to each active (core + open boundary) cell.
-    Since all cells are active in the default case, this is the same as
-    node_at_cell.
-
-    Examples
-    --------
-    >>> from landlab.utils.structured_grid import active_cell_node
-    >>> active_cell_node((4,3))
-    array([4, 7])
-    """
-    return node_at_cell(shape)
-
-
-def core_cell_node(shape):
-    """Array of nodes at core cells.
-
-    .. note:: deprecated
-
-    Indices of the nodes belonging to each core cell.
-    Since all cells are core in the default case, this is the same as
-    node_at_cell.
-
-    >>> from landlab.utils.structured_grid import core_cell_node
-    >>> core_cell_node((4,3))
-    array([4, 7])
-    """
-    return node_at_cell(shape)
-
-
-def active_cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
-    """Array of active cells at nodes.
-
-    .. deprecated:: 0.6
-
-    Up to date, unambiguous terminology core_cell_index_at_nodes() preferred.
-    Indices of the active cells associated with the nodes of the structured
-    grid.  For nodes that don't have a cell (that is, boundary nodes) set
-    indices to BAD_INDEX_VALUE. Use the *boundary_node_index* keyword to change
-    the value of indices to boundary nodes.
-
-    Note that all three functions ``[X]_cell_index_at_nodes`` are equivalent.
-
-    >>> from landlab.utils.structured_grid import active_cell_index_at_nodes
-    >>> active_cell_index_at_nodes((3, 4), boundary_node_index=-1)
-    ...     # doctest: +NORMALIZE_WHITESPACE
-    array([-1, -1, -1, -1,
-           -1,  0,  1, -1,
-           -1, -1, -1, -1])
-    """
-    n_nodes = node_count(shape)
-
-    node_ids = np.empty(n_nodes, dtype=np.int)
-
-    node_ids[boundary_nodes(shape)] = boundary_node_index
-    node_ids[interior_nodes(shape)] = np.arange(interior_node_count(shape))
-
-    return node_ids
-
-
-def core_cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
-    """Array of core cells at nodes.
-
-    .. note:: deprecated
-
-    Indices of the core cells associated with the nodes of the structured grid.
-    For nodes that don't have a cell (that is, boundary nodes) set indices
-    to BAD_INDEX_VALUE. Use the *boundary_node_index* keyword to change
-    the value of indices to boundary nodes.
-
-    Note that all three functions ``[X]_cell_index_at_nodes`` are equivalent.
-
-    Examples
-    --------
-    >>> from landlab.utils.structured_grid import core_cell_index_at_nodes
-    >>> core_cell_index_at_nodes((3, 4), boundary_node_index=-1)
-    ...     # doctest: +NORMALIZE_WHITESPACE
-    array([-1, -1, -1, -1,
-           -1,  0,  1, -1,
-           -1, -1, -1, -1])
-    """
-    n_nodes = node_count(shape)
-
-    node_ids = np.empty(n_nodes, dtype=np.int)
-
-    node_ids[perimeter_nodes(shape)] = boundary_node_index
-    node_ids[interior_nodes(shape)] = np.arange(interior_node_count(shape))
-
-    return node_ids
-
-
-def cell_index_at_nodes(shape, boundary_node_index=BAD_INDEX_VALUE):
-    """Array of cells at nodes.
-
-    .. note:: deprecated
-
-    Indices of the core cells associated with the nodes of the structured grid.
-    For nodes that don't have a cell (that is, boundary nodes) set indices
-    to BAD_INDEX_VALUE. Use the *boundary_node_index* keyword to change
-    the value of indices to boundary nodes.
-
-    Note that all three functions ``[X]_cell_index_at_nodes`` are equivalent.
-
-    Examples
-    --------
-    >>> from landlab.utils.structured_grid import cell_index_at_nodes
-    >>> cell_index_at_nodes((3, 4), boundary_node_index=-1)
-    ...     # doctest: +NORMALIZE_WHITESPACE
-    array([-1, -1, -1, -1,
-           -1,  0,  1, -1,
-           -1, -1, -1, -1])
-    """
-    n_nodes = node_count(shape)
-
-    node_ids = np.empty(n_nodes, dtype=np.int)
-
-    node_ids[perimeter_nodes(shape)] = boundary_node_index
-    node_ids[interior_nodes(shape)] = np.arange(interior_node_count(shape))
-
-    return node_ids
 
 
 def node_at_cell(shape):
@@ -625,7 +410,7 @@ def node_at_cell(shape):
     node_ids.shape = shape
 
     cell_node = node_ids[1:-1, 1:-1].copy()
-    cell_node.shape = ((shape[0] - 2) * (shape[1] - 2), )
+    cell_node.shape = ((shape[0] - 2) * (shape[1] - 2),)
 
     return cell_node
 
@@ -635,8 +420,7 @@ def node_index_at_link_ends(shape):
     node_ids = np.arange(np.prod(shape))
     node_ids.shape = shape
 
-    return (node_at_link_tail(node_ids),
-            node_at_link_head(node_ids))
+    return (node_at_link_tail(node_ids), node_at_link_head(node_ids))
 
 
 def inlink_index_at_node(shape):
@@ -692,17 +476,17 @@ def face_at_link(shape, actives=None, inactive_link_index=BAD_INDEX_VALUE):
     return link_faces
 
 
-def status_at_node(shape, boundary_status=FIXED_VALUE_BOUNDARY):
+def status_at_node(shape, boundary_status=NodeStatus.FIXED_VALUE):
     """Array of the statuses of nodes.
 
-    The statuses of the nodes in a structured grid with dimensions, *shape*.
-    Use the *boundary_status* keyword to specify the status of the top,
-    bottom, left and right boundary nodes.
+    The statuses of the nodes in a structured grid with dimensions,
+    *shape*. Use the *boundary_status* keyword to specify the status of
+    the top, bottom, left and right boundary nodes.
     """
     status = np.empty(np.prod(shape), dtype=np.int8)
 
-    status[interior_nodes(shape)] = CORE_NODE
-    status[boundary_nodes(shape)] = boundary_status
+    status[interior_nodes(shape)] = NodeStatus.CORE
+    status[perimeter_nodes(shape)] = boundary_status
 
     return status
 
@@ -713,7 +497,7 @@ def active_links(shape, node_status_array=None, link_nodes=None):
     Return the link IDs for links that are *active* in a structured grid of
     quadrilaterals. Use the *node_status_array* keyword to specify the status
     for each of the grid's nodes. If not given, each of the perimeter nodes is
-    assumed to be `FIXED_VALUE_BOUNDARY`.
+    assumed to be `NodeStatus.FIXED_VALUE`.
 
     Use the *link_nodes* keyword to provide, as a tuple of arrays, that give
     the *from-node* and the *to-node* for each for each link in the grid.
@@ -728,19 +512,19 @@ def active_links(shape, node_status_array=None, link_nodes=None):
 
     Examples
     --------
-    Because, by default, the perimeter nodes are `FIXED_VALUE_BOUNDARY` nodes,
+    Because, by default, the perimeter nodes are `NodeStatus.FIXED_VALUE` nodes,
     only links attached to the interior nodes are *active*.
 
     >>> from landlab.utils.structured_grid import active_links
-    >>> from landlab import CLOSED_BOUNDARY, CORE_NODE
+    >>> from landlab.grid.nodestatus import NodeStatus
     >>> active_links((3, 4))
     array([ 1,  2,  5,  6, 11, 12, 13])
 
-    If all the perimeter nodes `CLOSED_BOUNDARY` nodes, the only active link
+    If all the perimeter nodes `NodeStatus.CLOSED` nodes, the only active link
     is between the two core nodes.
 
-    >>> node_status = np.ones(3 * 4) * CLOSED_BOUNDARY
-    >>> node_status[5:7] = CORE_NODE
+    >>> node_status = np.ones(3 * 4) * NodeStatus.CLOSED
+    >>> node_status[5:7] = NodeStatus.CORE
     >>> active_links((3, 4), node_status_array=node_status)
     array([12])
 
@@ -762,12 +546,11 @@ def active_links(shape, node_status_array=None, link_nodes=None):
     from_node_status = node_status_array[link_from_node]
     to_node_status = node_status_array[link_to_node]
 
-    active_links_ = (((from_node_status == CORE_NODE) & ~
-                      (to_node_status == CLOSED_BOUNDARY)) |
-                     ((to_node_status == CORE_NODE) & ~
-                      (from_node_status == CLOSED_BOUNDARY)))
+    active_links_ = (
+        (from_node_status == NodeStatus.CORE) & ~(to_node_status == NodeStatus.CLOSED)
+    ) | ((to_node_status == NodeStatus.CORE) & ~(from_node_status == NodeStatus.CLOSED))
 
-    (active_links_, ) = np.where(active_links_)
+    (active_links_,) = np.where(active_links_)
 
     return as_id_array(active_links_)
 
@@ -793,8 +576,9 @@ def outlinks(shape):
 
 def active_inlinks(shape, node_status=None):
     """Array of active links entering nodes."""
-    links = np.vstack((active_south_links(shape, node_status),
-                       active_west_links(shape, node_status)))
+    links = np.vstack(
+        (active_south_links(shape, node_status), active_west_links(shape, node_status))
+    )
     links.shape = (2, node_count(shape))
     return links
 
@@ -831,16 +615,21 @@ def active_inlinks2(shape, node_status=None):
     if there is none. The second row gives the link ID of the horizontal link
     coming in from the left (or -1).
     """
-    links = np.vstack((active_south_links2(shape, node_status),
-                       active_west_links2(shape, node_status)))
+    links = np.vstack(
+        (
+            active_south_links2(shape, node_status),
+            active_west_links2(shape, node_status),
+        )
+    )
     links.shape = (2, node_count(shape))
     return links
 
 
 def active_outlinks(shape, node_status=None):
     """Array of active links leaving nodes."""
-    links = np.vstack((active_north_links(shape, node_status),
-                       active_east_links(shape, node_status)))
+    links = np.vstack(
+        (active_north_links(shape, node_status), active_east_links(shape, node_status))
+    )
     links.shape = (2, node_count(shape))
     return links
 
@@ -877,8 +666,12 @@ def active_outlinks2(shape, node_status=None):
     if there is none. The second row gives the link ID of the horizontal link
     going out to the right (east) (or -1).
     """
-    links = np.vstack((active_north_links2(shape, node_status),
-                       active_east_links2(shape, node_status)))
+    links = np.vstack(
+        (
+            active_north_links2(shape, node_status),
+            active_east_links2(shape, node_status),
+        )
+    )
     links.shape = (2, node_count(shape))
     return links
 
@@ -888,8 +681,7 @@ def vertical_link_ids(shape):
     link_ids = np.empty((shape[0] - 1, shape[1]), dtype=np.int)
     num_links_per_row = (2 * shape[1]) - 1
     for r in range(shape[0] - 1):
-        link_ids[r, :] = (shape[1] - 1) + (r * num_links_per_row) \
-                         + np.arange(shape[1])
+        link_ids[r, :] = (shape[1] - 1) + (r * num_links_per_row) + np.arange(shape[1])
     return link_ids
 
 
@@ -905,7 +697,7 @@ def horizontal_link_ids(shape):
 def vertical_active_link_count(shape, node_status=None):
     """Number of active links oriented vertically."""
     if node_status is not None:
-        is_inactive = (node_status == 0)
+        is_inactive = node_status == 0
         is_inactive.shape = shape
 
         inactive_outlinks = is_inactive[:-1, 1:-1]
@@ -920,7 +712,7 @@ def vertical_active_link_count(shape, node_status=None):
 def horizontal_active_link_count(shape, node_status=None):
     """Number of active links oriented horizontally."""
     if node_status is not None:
-        is_inactive = (node_status == 0)
+        is_inactive = node_status == 0
         is_inactive.shape = shape
 
         inactive_outlinks = is_inactive[1:-1, :-1]
@@ -969,11 +761,10 @@ def vertical_inactive_link_mask(shape, node_status):
     """
     # Create a 2D boolean matrix indicating whether NODES are closed boundaries
     # GT thinks this should be False, not 0
-    is_closed_node = (node_status == 0)
+    is_closed_node = node_status == 0
     is_closed_node.shape = shape
 
-    inactive_outlinks = is_closed_node[
-        :-1, 1:-1]  # middle cols, all but top row
+    inactive_outlinks = is_closed_node[:-1, 1:-1]  # middle cols, all but top row
     # middle cols, all but bottom row
     inactive_inlinks = is_closed_node[1:, 1:-1]
     # if either node is closed, the link is inactive
@@ -982,7 +773,7 @@ def vertical_inactive_link_mask(shape, node_status):
 
 def horizontal_inactive_link_mask(shape, node_status):
     """Array mask of horizontal links that are inactive."""
-    is_inactive = (node_status == 0)
+    is_inactive = node_status == 0
     is_inactive.shape = shape
 
     inactive_outlinks = is_inactive[1:-1, :-1]
@@ -1004,12 +795,12 @@ def vertical_active_link_ids(shape, node_status=None):
         # return link_ids
     else:
         inactive_links = vertical_inactive_link_mask(shape, node_status)
-        inactive_links.shape = (inactive_links.size, )
+        inactive_links.shape = (inactive_links.size,)
         active_link_count_ = inactive_links.size - np.sum(inactive_links)
 
         link_ids = np.empty(inactive_links.size)
-        link_ids[inactive_links] = - 1
-        link_ids[~ inactive_links] = np.arange(active_link_count_, dtype=int)
+        link_ids[inactive_links] = -1
+        link_ids[~inactive_links] = np.arange(active_link_count_, dtype=int)
 
     link_ids.shape = (shape[0] - 1, shape[1] - 2)
     return link_ids
@@ -1056,8 +847,7 @@ def vertical_active_link_ids2(shape, node_status=None):
     link_ids = np.empty((shape[0] - 1, shape[1] - 2), dtype=np.int)
     num_links_per_row = (2 * shape[1]) - 1
     for r in range(shape[0] - 1):
-        link_ids[r,:] = shape[1] + (r * num_links_per_row) \
-                        + np.arange(shape[1] - 2)
+        link_ids[r, :] = shape[1] + (r * num_links_per_row) + np.arange(shape[1] - 2)
 
     if node_status is not None:
         inactive_links = vertical_inactive_link_mask(shape, node_status)
@@ -1073,19 +863,19 @@ def horizontal_active_link_ids(shape, node_status=None):
         link_ids = np.arange(
             link_id_offset,
             link_id_offset + horizontal_active_link_count(shape),
-            dtype=np.int)
+            dtype=np.int,
+        )
     else:
-        link_id_offset = vertical_active_link_count(shape,
-                                                    node_status=node_status)
+        link_id_offset = vertical_active_link_count(shape, node_status=node_status)
         inactive_links = horizontal_inactive_link_mask(shape, node_status)
-        inactive_links.shape = (inactive_links.size, )
+        inactive_links.shape = (inactive_links.size,)
         active_link_count_ = inactive_links.size - np.sum(inactive_links)
 
         link_ids = np.empty(inactive_links.size)
-        link_ids[inactive_links] = - 1
-        link_ids[~ inactive_links] = np.arange(
-            link_id_offset, link_id_offset + active_link_count_,
-            dtype=np.int)
+        link_ids[inactive_links] = -1
+        link_ids[~inactive_links] = np.arange(
+            link_id_offset, link_id_offset + active_link_count_, dtype=np.int
+        )
     link_ids.shape = (shape[0] - 2, shape[1] - 1)
     return link_ids
 
@@ -1129,7 +919,7 @@ def horizontal_active_link_ids2(shape, node_status=None):
     link_ids = np.empty((shape[0] - 2, shape[1] - 1), dtype=np.int)
     num_links_per_row = (2 * shape[1]) - 1
     for r in range(shape[0] - 2):
-        link_ids[r,:] = ((r + 1) * num_links_per_row) + np.arange(shape[1] - 1)
+        link_ids[r, :] = ((r + 1) * num_links_per_row) + np.arange(shape[1] - 1)
     if node_status is not None:
         inactive_links = horizontal_inactive_link_mask(shape, node_status)
         link_ids[inactive_links] = -1
@@ -1150,7 +940,7 @@ def west_links(shape):
     """
     link_ids = horizontal_link_ids(shape)
     link_ids.shape = (shape[0], shape[1] - 1)
-    return np.hstack((- np.ones((shape[0], 1), dtype=np.int), link_ids))
+    return np.hstack((-np.ones((shape[0], 1), dtype=np.int), link_ids))
 
 
 def north_links(shape):
@@ -1166,7 +956,7 @@ def north_links(shape):
     """
     link_ids = vertical_link_ids(shape)
     link_ids.shape = (shape[0] - 1, shape[1])
-    return np.vstack((link_ids, - np.ones((1, shape[1]), dtype=np.int)))
+    return np.vstack((link_ids, -np.ones((1, shape[1]), dtype=np.int)))
 
 
 def south_links(shape):
@@ -1182,7 +972,7 @@ def south_links(shape):
     """
     link_ids = vertical_link_ids(shape)
     link_ids.shape = (shape[0] - 1, shape[1])
-    return np.vstack((- np.ones((1, shape[1]), dtype=np.int), link_ids))
+    return np.vstack((-np.ones((1, shape[1]), dtype=np.int), link_ids))
 
 
 def east_links(shape):
@@ -1198,7 +988,7 @@ def east_links(shape):
     """
     link_ids = horizontal_link_ids(shape)
     link_ids.shape = (shape[0], shape[1] - 1)
-    return np.hstack((link_ids, - np.ones((shape[0], 1), dtype=int)))
+    return np.hstack((link_ids, -np.ones((shape[0], 1), dtype=int)))
 
 
 def active_north_links(shape, node_status=None):
@@ -1278,8 +1068,7 @@ def active_south_links2(shape, node_status=None):
 
     Notes
     -----
-    Like active_south_links, but returns link IDs rather than (now deprecated)
-    active-link IDs.
+    Like active_south_links, but returns link IDs.
     """
     active_south_links_ = -np.ones(shape, dtype=int)
     links = vertical_active_link_ids2(shape, node_status=node_status)
@@ -1302,7 +1091,8 @@ def active_west_links(shape, node_status=None):
     active_west_links_ = np.empty(shape, dtype=int)
     try:
         active_west_links_[1:-1, 1:] = horizontal_active_link_ids(
-            shape, node_status=node_status)
+            shape, node_status=node_status
+        )
     except ValueError:
         pass
     active_west_links_[(0, -1), :] = -1
@@ -1324,7 +1114,8 @@ def active_west_links2(shape, node_status=None):
     """
     active_west_links_ = -np.ones(shape, dtype=int)
     active_west_links_[1:-1, 1:] = horizontal_active_link_ids2(
-        shape, node_status=node_status)
+        shape, node_status=node_status
+    )
 
     return active_west_links_
 
@@ -1344,7 +1135,8 @@ def active_east_links(shape, node_status=None):
     active_east_links_.fill(-999)
     try:
         active_east_links_[1:-1, :-1] = horizontal_active_link_ids(
-            shape, node_status=node_status)
+            shape, node_status=node_status
+        )
     except ValueError:
         pass
     active_east_links_[(0, -1), :] = -1
@@ -1366,7 +1158,8 @@ def active_east_links2(shape, node_status=None):
     """
     active_east_links_ = -np.ones(shape, dtype=int)
     active_east_links_[1:-1, :-1] = horizontal_active_link_ids2(
-        shape, node_status=node_status)
+        shape, node_status=node_status
+    )
 
     return active_east_links_
 
@@ -1461,7 +1254,7 @@ def setup_active_outlink_matrix2(shape, node_status=None, return_count=True):
 
     Use the *node_status_array* keyword to specify the status for each of the
     grid's nodes. If not given, each of the perimeter nodes is assumed to be
-    `FIXED_VALUE_BOUNDARY`.
+    `NodeStatus.FIXED_VALUE`.
 
     Parameters
     ----------
@@ -1513,7 +1306,7 @@ def setup_active_inlink_matrix(shape, node_status=None, return_count=True):
 
     Use the *node_status_array* keyword to specify the status for each of
     the grid's nodes. If not given, each of the perimeter nodes is assumed
-    to be `FIXED_VALUE_BOUNDARY`.
+    to be `NodeStatus.FIXED_VALUE`.
 
     Parameters
     ----------
@@ -1565,7 +1358,7 @@ def setup_active_inlink_matrix2(shape, node_status=None, return_count=True):
 
     Use the *node_status_array* keyword to specify the status for each of the
     grid's nodes. If not given, each of the perimeter nodes is assumed to be
-    `FIXED_VALUE_BOUNDARY`.
+    `NodeStatus.FIXED_VALUE`.
 
     Parameters
     ----------
@@ -1620,8 +1413,10 @@ def node_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE):
 
     ids = np.empty(shape_with_halo, dtype=np.int)
 
-    (interiors, boundaries) = (interior_nodes(shape_with_halo),
-                               boundary_nodes(shape_with_halo))
+    (interiors, boundaries) = (
+        interior_nodes(shape_with_halo),
+        perimeter_nodes(shape_with_halo),
+    )
 
     ids.flat[interiors] = range(interior_node_count(shape_with_halo))
     ids.flat[boundaries] = halo_indices
@@ -1629,8 +1424,7 @@ def node_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE):
     return ids
 
 
-def cell_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE,
-                         inactive_indices=None):
+def cell_index_with_halo(shape, halo_indices=BAD_INDEX_VALUE, inactive_indices=None):
     """Array of cells with a halo of no-data values.
 
     Examples
@@ -1660,35 +1454,36 @@ def _neighbor_node_ids(ids_with_halo):
     """Matrix of four neighbor nodes for each node."""
     shape = (ids_with_halo.shape[0] - 2, ids_with_halo.shape[1] - 2)
     kwds = {
-        'strides': ids_with_halo.strides,
-        'buffer': ids_with_halo,
-        'dtype': ids_with_halo.dtype,
+        "strides": ids_with_halo.strides,
+        "buffer": ids_with_halo,
+        "dtype": ids_with_halo.dtype,
     }
 
-    kwds['offset'] = ids_with_halo.itemsize * (ids_with_halo.shape[1])
+    kwds["offset"] = ids_with_halo.itemsize * (ids_with_halo.shape[1])
     west_ids = np.ndarray(shape, **kwds)
 
-    kwds['offset'] = ids_with_halo.itemsize * (ids_with_halo.shape[1] + 2)
+    kwds["offset"] = ids_with_halo.itemsize * (ids_with_halo.shape[1] + 2)
     east_ids = np.ndarray(shape, **kwds)
 
-    kwds['offset'] = ids_with_halo.itemsize
+    kwds["offset"] = ids_with_halo.itemsize
     south_ids = np.ndarray(shape, **kwds)
 
-    kwds['offset'] = ids_with_halo.itemsize * (ids_with_halo.shape[1] * 2 + 1)
+    kwds["offset"] = ids_with_halo.itemsize * (ids_with_halo.shape[1] * 2 + 1)
     north_ids = np.ndarray(shape, **kwds)
 
-    return np.vstack(
-        (east_ids.flat, north_ids.flat, west_ids.flat, south_ids.flat))
+    return np.vstack((east_ids.flat, north_ids.flat, west_ids.flat, south_ids.flat))
 
 
 def _centered_node_ids(ids_with_halo):
     """Array of nodes taken from a matrix of nodes with a halo."""
     shape = (ids_with_halo.shape[0] - 2, ids_with_halo.shape[1] - 2)
-    kwds = {'strides': ids_with_halo.strides,
-            'buffer': ids_with_halo,
-            'dtype': ids_with_halo.dtype, }
+    kwds = {
+        "strides": ids_with_halo.strides,
+        "buffer": ids_with_halo,
+        "dtype": ids_with_halo.dtype,
+    }
 
-    kwds['offset'] = ids_with_halo.itemsize * (ids_with_halo.shape[1] + 1)
+    kwds["offset"] = ids_with_halo.itemsize * (ids_with_halo.shape[1] + 1)
     return np.ndarray(shape, **kwds)
 
 
@@ -1697,9 +1492,9 @@ def neighbor_node_ids(shape, inactive=BAD_INDEX_VALUE):
     return linked_neighbor_node_ids(shape, [], inactive=inactive)
 
 
-def linked_neighbor_node_ids(shape, closed_boundary_nodes,
-                             open_boundary_nodes=None,
-                             inactive=BAD_INDEX_VALUE):
+def linked_neighbor_node_ids(
+    shape, closed_boundary_nodes, open_boundary_nodes=None, inactive=BAD_INDEX_VALUE
+):
     """Matrix of four neighbor nodes for each node."""
     if open_boundary_nodes is None:
         open_boundary_nodes = []
@@ -1727,19 +1522,17 @@ def _set_open_boundary_neighbors(neighbors, open_boundary_nodes, value):
     """Set values for open-boundary neighbor-nodes."""
     open_boundary_neighbors = neighbors[:, open_boundary_nodes]
     is_open_boundary_neighbor = _find_open_boundary_neighbors(
-        neighbors, open_boundary_nodes)
-    nodes = np.choose(is_open_boundary_neighbor, (open_boundary_neighbors,
-                                                  value))
+        neighbors, open_boundary_nodes
+    )
+    nodes = np.choose(is_open_boundary_neighbor, (open_boundary_neighbors, value))
     neighbors[:, open_boundary_nodes] = nodes
 
 
 def _find_open_boundary_neighbors(neighbors, open_boundary_nodes):
     """Array of booleans that indicate if a neighbor is an open boundary."""
     open_boundary_neighbors = neighbors[:, open_boundary_nodes]
-    is_open_boundary_neighbor = np.in1d(open_boundary_neighbors,
-                                        open_boundary_nodes)
-    is_open_boundary_neighbor.shape = (neighbors.shape[0],
-                                       len(open_boundary_nodes))
+    is_open_boundary_neighbor = np.in1d(open_boundary_neighbors, open_boundary_nodes)
+    is_open_boundary_neighbor.shape = (neighbors.shape[0], len(open_boundary_nodes))
     return is_open_boundary_neighbor
 
 
@@ -1758,12 +1551,11 @@ def neighbor_node_array(shape, **kwds):
            [ 5, -1,  3,  1],
            [-1, -1,  4,  2]])
     """
-    closed_boundary_nodes = kwds.pop('closed_boundary_nodes', [])
-    open_boundary_nodes = kwds.get('open_boundary_nodes', [])
+    closed_boundary_nodes = kwds.pop("closed_boundary_nodes", [])
+    open_boundary_nodes = kwds.get("open_boundary_nodes", [])
 
     if len(closed_boundary_nodes) > 0 or len(open_boundary_nodes):
-        neighbors = linked_neighbor_node_ids(shape, closed_boundary_nodes,
-                                             **kwds)
+        neighbors = linked_neighbor_node_ids(shape, closed_boundary_nodes, **kwds)
     else:
         neighbors = neighbor_node_ids(shape, **kwds)
 
@@ -1794,11 +1586,14 @@ def neighbor_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
         shape = np.array(shape) - 2
         ids = node_index_with_halo(shape, halo_indices=out_of_bounds)
 
-        neighbors = np.vstack((
-            ids[1:shape[0] + 1, 2:].flat,
-            ids[2:, 1:shape[1] + 1].flat,
-            ids[1:shape[0] + 1, :shape[1]].flat,
-            ids[:shape[0], 1:shape[1] + 1].flat,)).T
+        neighbors = np.vstack(
+            (
+                ids[1 : shape[0] + 1, 2:].flat,
+                ids[2:, 1 : shape[1] + 1].flat,
+                ids[1 : shape[0] + 1, : shape[1]].flat,
+                ids[: shape[0], 1 : shape[1] + 1].flat,
+            )
+        ).T
         if contiguous:
             return neighbors.copy()
         else:
@@ -1807,8 +1602,9 @@ def neighbor_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
         return np.array([], dtype=np.int)
 
 
-def diagonal_node_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True,
-                        boundary_node_mask=None):
+def diagonal_node_array(
+    shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True, boundary_node_mask=None
+):
     """Array of diagonal nodes.
 
     Creates a list of IDs of the diagonal cells to each cell, as a 2D array.
@@ -1836,16 +1632,19 @@ def diagonal_node_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True,
     # NG didn't touch this, but she thinks this should be nodes, not cells.
     ids = node_index_with_halo(shape, halo_indices=out_of_bounds)
 
-    diags = np.vstack((
-        ids[2:, 2:].flat,
-        ids[2:, :shape[1]].flat,
-        ids[:shape[0], :shape[1]].flat,
-        ids[:shape[0], 2:].flat,)).T
+    diags = np.vstack(
+        (
+            ids[2:, 2:].flat,
+            ids[2:, : shape[1]].flat,
+            ids[: shape[0], : shape[1]].flat,
+            ids[: shape[0], 2:].flat,
+        )
+    ).T
 
     if boundary_node_mask is not None:
         boundaries = np.empty(4, dtype=np.int)
         boundaries.fill(boundary_node_mask)
-        diags[boundary_nodes(shape)] = boundaries
+        diags[perimeter_nodes(shape)] = boundaries
 
     if contiguous:
         return diags.copy()
@@ -1889,11 +1688,14 @@ def diagonal_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
         shape = np.array(shape) - 2
         ids = node_index_with_halo(shape, halo_indices=out_of_bounds)
 
-        diags = np.vstack((
-            ids[2:, 2:].flat,
-            ids[2:, :shape[1]].flat,
-            ids[:shape[0], :shape[1]].flat,
-            ids[:shape[0], 2:].flat,)).T
+        diags = np.vstack(
+            (
+                ids[2:, 2:].flat,
+                ids[2:, : shape[1]].flat,
+                ids[: shape[0], : shape[1]].flat,
+                ids[: shape[0], 2:].flat,
+            )
+        ).T
         if contiguous:
             return diags.copy()
         else:
@@ -1902,26 +1704,7 @@ def diagonal_cell_array(shape, out_of_bounds=BAD_INDEX_VALUE, contiguous=True):
         return np.array([], dtype=np.int)
 
 
-def diagonal_array_slow(shape):
-    """Array of diagonal cells (the slow way).
-
-    .. note:: deprecated
-    """
-    (nrows, ncols) = shape
-    ncells = shape[0] * shape[1]
-    diagonal_cells = - np.ones([ncells, 4], dtype=np.int)
-    for row in range(1, nrows - 1):
-        for col in range(1, ncols - 1):
-            cell_id = row * ncols + col
-            diagonal_cells[cell_id, 2] = cell_id - ncols - 1  # bottom left
-            diagonal_cells[cell_id, 0] = cell_id + ncols + 1  # top right
-            diagonal_cells[cell_id, 3] = cell_id - ncols + 1  # bottom right
-            diagonal_cells[cell_id, 1] = cell_id + ncols - 1  # top left
-    return diagonal_cells
-
-
-def node_has_boundary_neighbor(neighbors, diagonals,
-                          out_of_bounds=BAD_INDEX_VALUE):
+def node_has_boundary_neighbor(neighbors, diagonals, out_of_bounds=BAD_INDEX_VALUE):
     """Array of booleans that indicate if a node has a boundary neighbor.
 
     .. note::
@@ -1929,35 +1712,7 @@ def node_has_boundary_neighbor(neighbors, diagonals,
         DEJH thinks this method is broken since terminology update: it returns
         closed neighbors, not boundary neighbors.
     """
-    return (out_of_bounds in neighbors |
-            out_of_bounds in diagonals)
-
-
-def node_has_boundary_neighbor_slow(neighbors, diagonals,
-                               out_of_bounds=BAD_INDEX_VALUE):
-    """Array of booleans that indicate if a node has a boundary neighbor.
-
-    .. note:: deprecated
-    """
-    # nbr_nodes=self.get_neighbor_list(id)
-    # diag_nbrs=self._get_diagonal_list(id)
-
-    in_bounds_count = 0
-    while in_bounds_count < 4 and neighbors[in_bounds_count] != out_of_bounds:
-        in_bounds_count += 1
-
-    if in_bounds_count < 4:
-        return True
-    else:
-        in_bounds_count = 0
-        while (in_bounds_count < 4 and
-               diagonals[in_bounds_count] != out_of_bounds):
-            in_bounds_count += 1
-
-    if in_bounds_count < 4:
-        return True
-    else:
-        return False
+    return out_of_bounds in neighbors | out_of_bounds in diagonals
 
 
 def reshape_array(shape, array, flip_vertically=False, copy=False):
@@ -2012,7 +1767,7 @@ def reshape_array(shape, array, flip_vertically=False, copy=False):
             return reshaped_array
 
 
-def nodes_around_points_on_unit_grid(shape, coords, mode='raise'):
+def nodes_around_points_on_unit_grid(shape, coords, mode="raise"):
     """Array of nodes around x, y points on a grid of unit spacing.
 
     Returns the nodes around a point on a structured grid with unit spacing
@@ -2033,13 +1788,16 @@ def nodes_around_points_on_unit_grid(shape, coords, mode='raise'):
     else:
         (rows, cols) = (int(coords[0]), int(coords[1]))
 
-    return as_id_array(np.ravel_multi_index(((rows, rows + 1, rows + 1, rows),
-                                             (cols, cols, cols + 1, cols + 1)),
-                                            shape, mode=mode).T)
+    return as_id_array(
+        np.ravel_multi_index(
+            ((rows, rows + 1, rows + 1, rows), (cols, cols, cols + 1, cols + 1)),
+            shape,
+            mode=mode,
+        ).T
+    )
 
 
-def nodes_around_points(shape, coords, spacing=(1., 1.),
-                        origin=(0., 0.)):
+def nodes_around_points(shape, coords, spacing=(1.0, 1.0), origin=(0.0, 0.0)):
     """Array of nodes around x, y points on a grid of non-unit spacing.
 
     Returns the nodes around a point on a structured grid with row and column
@@ -2059,49 +1817,21 @@ def nodes_around_points(shape, coords, spacing=(1., 1.),
         ...
     ValueError: invalid entry in coordinates array
     """
-    return as_id_array(nodes_around_points_on_unit_grid(
-        shape,
-        ((coords[0] - origin[0]) / spacing[0],
-         (coords[1] - origin[1]) / spacing[1])))
+    return as_id_array(
+        nodes_around_points_on_unit_grid(
+            shape,
+            (
+                (coords[0] - origin[0]) / spacing[0],
+                (coords[1] - origin[1]) / spacing[1],
+            ),
+        )
+    )
 
 
-def nodes_around_point(shape, coords, spacing=(1., 1.)):
+def nodes_around_point(shape, coords, spacing=(1.0, 1.0)):
     """Array of nodes around a single point on a grid of non-unit spacing."""
     node_id = int(coords[0] // spacing[0] * shape[1] + coords[1] // spacing[1])
     if node_id + shape[1] + 1 >= shape[0] * shape[1] or node_id < 0:
-        raise ValueError('invalid entry in coordinates array')
+        raise ValueError("invalid entry in coordinates array")
 
-    return np.array([node_id, node_id + shape[1], node_id + shape[1] + 1,
-                     node_id + 1])
-
-
-def interior_node_id_to_node_id(shape, core_node_ids):
-    """Map interior nodes to nodes.
-
-    .. note:: deprecated
-
-    Converts the id of an interior node ID (i.e., if just the interior nodes
-    were numbered) to a node ID.
-    """
-    igw = shape[1] - 2
-    real_id = (core_node_ids // igw + 1) * shape[1] + (core_node_ids % igw) + 1
-    assert np.all(real_id < shape[0] * shape[1])
-    return as_id_array(real_id)
-
-
-def node_id_to_interior_node_id(shape, node_ids):
-    """Map nodes to interior nodes.
-
-    .. note:: deprecated
-
-    Converts a node ID to the id of an interior node ID (i.e., if just the
-    interior nodes were numbered)
-    """
-    ncols = shape[1]
-    interior_id = (node_ids // ncols - 1) * \
-        (ncols - 2) + (node_ids % ncols) - 1
-    if np.any(interior_id < 0) or np.any(interior_id >=
-                                         (shape[0] - 2) * (shape[1] - 2)):
-        raise IndexError("A supplied node was outside the interior grid")
-    else:
-        return as_id_array(interior_id)
+    return np.array([node_id, node_id + shape[1], node_id + shape[1] + 1, node_id + 1])

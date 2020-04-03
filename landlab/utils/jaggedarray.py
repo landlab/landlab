@@ -38,7 +38,6 @@ array([ 0.,  0.,  1.,  2.,  2.,  3.,  4.,  4.,  5.])
 array([ 6.,  7.,  7.,  7.,  8.,  8.,  3.,  6.,  6.])
 """
 import numpy as np
-from six.moves import range
 
 
 def flatten_jagged_array(jagged, dtype=None):
@@ -116,8 +115,7 @@ def unravel(data, offset, out=None, pad=None):
 
 class JaggedArray(object):
 
-    """
-    A container for an array of variable-length arrays.
+    """A container for an array of variable-length arrays.
 
     JaggedArray([row0, row1, ...])
     JaggedArray(values, values_per_row)
@@ -139,9 +137,7 @@ class JaggedArray(object):
     """
 
     def __init__(self, *args):
-        """
-        JaggedArray([row0, row1, ...])
-        JaggedArray(values, values_per_row)
+        """JaggedArray([row0, row1, ...]) JaggedArray(values, values_per_row)
 
         Examples
         --------
@@ -165,8 +161,10 @@ class JaggedArray(object):
         array([0, 1, 2, 3, 4])
         """
         if len(args) == 1:
-            values, values_per_row = (np.concatenate(args[0]),
-                                      [len(row) for row in args[0]])
+            values, values_per_row = (
+                np.concatenate(args[0]),
+                [len(row) for row in args[0]],
+            )
             # if len(args[0]) > 1:
             #     values, values_per_row = (np.concatenate(args[0]),
             #                               [len(row) for row in args[0]])
@@ -177,9 +175,8 @@ class JaggedArray(object):
 
         self._values = values
         self._number_of_rows = len(values_per_row)
-        self._offsets = JaggedArray._offsets_from_values_per_row(
-            values_per_row)
-        self._offsets.flags['WRITEABLE'] = False
+        self._offsets = JaggedArray._offsets_from_values_per_row(values_per_row)
+        self._offsets.flags["WRITEABLE"] = False
 
     @property
     def array(self):
@@ -303,8 +300,9 @@ class JaggedArray(object):
         JaggedArray
             A new JaggedArray.
         """
-        return JaggedArray(np.empty_like(jagged.array, dtype=dtype),
-                           np.diff(jagged.offset))
+        return JaggedArray(
+            np.empty_like(jagged.array, dtype=dtype), np.diff(jagged.offset)
+        )
 
     def length_of_row(self, row):
         """Number of values in a given row.
@@ -357,7 +355,7 @@ class JaggedArray(object):
         >>> x.row(0)
         array([1, 1, 2])
         """
-        return self._values[self._offsets[row]:self._offsets[row + 1]]
+        return self._values[self._offsets[row] : self._offsets[row + 1]]
 
     def __iter__(self):
         """Iterate over the rows of the array.

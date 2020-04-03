@@ -1,7 +1,7 @@
 import numpy as np
 
-from . import links
 from ..base import BAD_INDEX_VALUE
+from . import links
 
 
 def number_of_faces(shape):
@@ -24,11 +24,10 @@ def number_of_faces(shape):
     7
     """
     if len(shape) != 2:
-        raise ValueError('shape must be size 2')
+        raise ValueError("shape must be size 2")
 
     if min(shape) > 2:
-        return ((shape[0] - 1) * (shape[1] - 2) +
-                (shape[0] - 2) * (shape[1] - 1))
+        return (shape[0] - 1) * (shape[1] - 2) + (shape[0] - 2) * (shape[1] - 1)
     else:
         return 0
 
@@ -89,7 +88,7 @@ def link_at_face(shape):
        finish a row of horizontal faces (NC-2 of them) with vertical links,
        and again when we finish a row of vertical faces (NC-1 of them) with
        horizontal links. Together, a "row" of horizontal and vertical faces
-       makes up 2NC-3 faces; this is the variable "fpr" (for "faces per 
+       makes up 2NC-3 faces; this is the variable "fpr" (for "faces per
        row") below.
     4. The quantity 2 * (face_ids // fpr) increases by 2 for every "full"
        (horizontal plus vertical) row of faces.
@@ -97,13 +96,17 @@ def link_at_face(shape):
        we shift from a horizontal to a vertical row of faces (because
        each "full row" has NC-2 horizontal faces, then NC-1 vertical ones.)
     6. So, to find the offset, we add the "basic" offset, NC, to the "full
-       row" offset, 2*(face_ids//fpr), and the "mid-row" offset, 
+       row" offset, 2*(face_ids//fpr), and the "mid-row" offset,
        ((face_ids % fpr)>=(NC-2)).
     """
     faces = np.arange(number_of_faces(shape))
 
     faces_per_row = (2 * shape[1]) - 3
-    links = (shape[1] + (2 * (faces // faces_per_row)) +
-             ((faces % faces_per_row) >= (shape[1] - 2)) + faces)
+    links = (
+        shape[1]
+        + (2 * (faces // faces_per_row))
+        + ((faces % faces_per_row) >= (shape[1] - 2))
+        + faces
+    )
 
     return links
