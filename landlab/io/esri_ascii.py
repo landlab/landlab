@@ -527,19 +527,22 @@ def write_esri_ascii(path, fields, names=None, clobber=False):
     Examples
     --------
     >>> import numpy as np
-    >>> from landlab.testing.tools import cdtemp
+    >>> import os
+    >>> import tempfile
     >>> from landlab import RasterModelGrid
     >>> from landlab.io.esri_ascii import write_esri_ascii
 
     >>> grid = RasterModelGrid((4, 5), xy_spacing=(2., 2.))
     >>> _ = grid.add_field("air__temperature", np.arange(20.), at="node")
-    >>> with cdtemp() as _:
+    >>> with tempfile.TemporaryDirectory() as tmpdirname:
+    ...     os.chdir(tmpdirname)
     ...     files = write_esri_ascii('test.asc', grid)
     >>> files
     ['test.asc']
 
     >>> _ = grid.add_field("land_surface__elevation", np.arange(20.), at="node")
-    >>> with cdtemp() as _:
+    >>> with tempfile.TemporaryDirectory() as tmpdirname:
+    ...     os.chdir(tmpdirname)
     ...     files = write_esri_ascii('test.asc', grid)
     >>> files.sort()
     >>> files
