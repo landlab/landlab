@@ -418,9 +418,9 @@ class ZoneController(object):
 
         for i in range(1, cluster_ct + 1):
             mask = (cluster_arr == i).flatten()
-            cluster_area = sum(self._grid.cell_area_at_node[mask])
+            cluster_area = self._grid.cell_area_at_node[mask].sum()
 
             if cluster_area >= self._min_area:
-                zones.append(Zone(mask))
+                zones.append(Zone(self, mask))
 
         return zones
