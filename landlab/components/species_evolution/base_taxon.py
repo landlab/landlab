@@ -86,7 +86,7 @@ class Taxon(ABC):
         # pragma: no cover
 
     @abstractmethod
-    def _evolve(self, dt, stage, record, id):
+    def _evolve(self, dt, stage, record):
         """Run the evolutionary processes of the taxon.
 
         SpeciesEvolver loops through the evolution processes of extant taxa in
@@ -102,7 +102,7 @@ class Taxon(ABC):
         be called in stages subsequent to the stage the child taxon was
         produced. An empty list indicates no child taxon.
 
-        See this method implemented in ``ZoneTaxon`` for an example.
+        See this method in ``ZoneTaxon`` for an example implementation.
 
         This method must be implemented in a subclass.
 

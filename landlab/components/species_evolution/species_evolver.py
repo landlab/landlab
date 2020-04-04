@@ -59,7 +59,8 @@ class SpeciesEvolver(Component):
     The geographic ranges of the taxa at the current model time are evaluated
     during the ``run_one_step`` method. Each taxon object determines if it
     persists or becomes extinct, and if it creates child ``Taxon`` objects.
-    Taxa metadata can be viewed with the attribute, ``taxa_data_frame``.
+    Metadata of all taxa introduced to the component can be viewed with the
+    attribute, ``taxa_data_frame``.
 
     Taxa are automatically assigned unique taxon identifiers, ``tid``.
     Identifiers are used to reference and retrieve taxon objects. Identifiers
@@ -94,7 +95,7 @@ class SpeciesEvolver(Component):
     ZoneController requires a function that returns a mask of the total extent
     of taxa habitat. The mask is a boolean array where `True` values represent
     nodes that satisfy habitat conditions. Zone objects are not created here.
-    The mask only maps the extant where taxa can exist. This function returns
+    The mask only maps the extent where taxa can exist. This function returns
     `True` where elevation is below 100, which is where the simulated lowland
     taxa of this model can inhabit.
 
@@ -207,12 +208,12 @@ class SpeciesEvolver(Component):
               time
 
     The split of the initial zone into two zones at time 1000 triggered taxon 0
-    to evolve into two child taxon objects. Taxon 1 occupies a zone on one side
-    of the mountain range, and taxon 2 occupies a zone on the other side. This
-    outcome is the result of the evolutionary processes programmed within
-    ``ZoneTaxon`` as well as the parameters used in this example (default
-    values were used because optional parameters were not set). Different
-    behavior can be achieved by subclassing ``ZoneTaxon`` or ``Taxon``.
+    to speciate. Taxon 0 occupies a zone on one side of the mountain range, and
+    the child, taxon 1 occupies a zone on the other side. This outcome is the
+    result of the evolutionary processes programmed within ``ZoneTaxon`` as
+    well as the parameters used in this example (default values were used
+    as optional parameters were not set). Different behavior can be achieved by
+    subclassing ``ZoneTaxon`` or ``Taxon``.
 
     References
     ----------
@@ -415,7 +416,7 @@ class SpeciesEvolver(Component):
         >>> z = mg.add_ones('topographic__elevation', at='node')
 
         Instantiate SpeciesEvolver and a ZoneController. Instantiate the
-        latter with a function that masks the low elevation zone extant. Only
+        latter with a function that masks the low elevation zone extent. Only
         one zone is created.
 
         >>> se = SpeciesEvolver(mg)
@@ -549,7 +550,7 @@ class SpeciesEvolver(Component):
         >>> z = mg.add_ones('topographic__elevation', at='node')
 
         Instantiate SpeciesEvolver and a ZoneController. Instantiate the latter
-        with a function that masks the low elevation zone extant. Only one zone
+        with a function that masks the low elevation zone extent. Only one zone
         is created.
 
         >>> se = SpeciesEvolver(mg)

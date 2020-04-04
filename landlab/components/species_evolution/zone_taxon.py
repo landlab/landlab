@@ -140,9 +140,9 @@ class ZoneTaxon(Taxon):
     def _evolve(self, dt, stage, record):
         """Run a step of evolutionary processes.
 
-        Dispersal resolved during stage 1 can be modified by
-        extending or overriding the dispersal evaluation method, as can
-        speciation and extinction that are also evaluated in this stage.
+        Dispersal resolved during stage 1 can be modified by extending or
+        overriding the dispersal evaluation method, as can speciation and
+        extinction that are also evaluated in this stage.
 
         The attribute, ``extant`` is updated by this method.
 
@@ -198,9 +198,9 @@ class ZoneTaxon(Taxon):
     def _update_zones(self):
         """Update the zones of the taxon.
 
-        Dispersal is represented by setting taxon zones to the zones
-        (`successors`) of the current time step that overlap the taxon zones of
-        the prior time step.
+        Dispersal is represented by setting taxon zones to the zones of the
+        current time step that overlap the taxon zones of the prior time step
+        (`successors of a zone`).
         """
         successors = []
 
@@ -212,8 +212,8 @@ class ZoneTaxon(Taxon):
     def _update_allopatry_state(self, dt=None):
         """Update taxon time in allopatry.
 
-        Optionally, ``dt`` can be set to increment time in allopatry if the
-        taxon is already allopatric.
+        Parameter, ``dt`` can optionally be set to increment time in allopatry
+        given that the taxon is already allopatric.
 
         Parameters
         ----------
