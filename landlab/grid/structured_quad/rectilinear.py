@@ -193,6 +193,4 @@ class RasterGrid(UniformRectilinearGrid):
         origin : tuple, optional
             Coordinates of grid origin.
         """
-        super().__init__(
-            shape, origin=origin, spacing=(spacing,) * len(shape)
-        )
+        super().__init__(shape, origin=origin, spacing=(spacing,) * len(shape))
