@@ -519,12 +519,12 @@ class LandslideProbability(Component):
         # Following code will deal with the input distribution and associated
         # parameters for depth to water table hydrologic forcing
         # Depth to water table - Uniform distribution
-        if self.groundwater__depth_distribution == 'uniform':
+        if self._groundwater__depth_distribution == 'uniform':
             self._depth_min = groundwater__depth_min_value
             self._depth_max = groundwater__depth_max_value
             self._De = np.random.uniform(self._depth_min, self._depth_max, size=self.n)
          # Depth to water table - Lognormal Distribution - Uniform in space
-        elif self.groundwater__depth_distribution == "lognormal":
+        elif self._groundwater__depth_distribution == "lognormal":
             assert (
                 groundwater__depth_mean is not None
             ), "Input mean of the distribution!"
@@ -544,7 +544,7 @@ class LandslideProbability(Component):
                 self._mu_lognormal, self._sigma_lognormal, self.n
             )
         # Depth to water table - Lognormal Distribution - Variable in space                                  
-        elif self.groundwater__depth_distribution == "lognormal_spatial":
+        elif self._groundwater__depth_distribution == "lognormal_spatial":
             assert groundwater__depth_mean.shape[0] == (
                 self.grid.number_of_nodes
             ), "Input array should be of the length of grid.number_of_nodes!"
@@ -554,7 +554,7 @@ class LandslideProbability(Component):
             self._depth_mean = groundwater__depth_mean
             self._depth_stdev = groundwater__depth_standard_deviation 
         # Depth to water table - Hydrologic Source Domain -> Model Domain
-        elif self.groundwater__depth_distribution == "data_driven_spatial":
+        elif self._groundwater__depth_distribution == "data_driven_spatial":
             self._HSD_dict = groundwater__depth_HSD_inputs[0]
             
         # Check if all output fields are initialized
