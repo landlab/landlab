@@ -522,7 +522,7 @@ class LandslideProbability(Component):
         if self._groundwater__depth_distribution == 'uniform':
             self._depth_min = groundwater__depth_min_value
             self._depth_max = groundwater__depth_max_value
-            self._De = np.random.uniform(self._depth_min, self._depth_max, size=self.n)
+            self._De = np.random.uniform(self._depth_min, self._depth_max, size=self._n)
          # Depth to water table - Lognormal Distribution - Uniform in space
         elif self._groundwater__depth_distribution == "lognormal":
             assert (
@@ -541,15 +541,15 @@ class LandslideProbability(Component):
                 np.log((self._depth_stdev ** 2) / (self._depth_mean ** 2) + 1)
             )
             self._De = np.random.lognormal(
-                self._mu_lognormal, self._sigma_lognormal, self.n
+                self._mu_lognormal, self._sigma_lognormal, self._n
             )
         # Depth to water table - Lognormal Distribution - Variable in space                                  
         elif self._groundwater__depth_distribution == "lognormal_spatial":
             assert groundwater__depth_mean.shape[0] == (
-                self.grid.number_of_nodes
+                self._grid.number_of_nodes
             ), "Input array should be of the length of grid.number_of_nodes!"
             assert (groundwater__depth_standard_deviation.shape[0] == (
-                self.grid.number_of_nodes
+                self._grid.number_of_nodes
             ), "Input array should be of the length of grid.number_of_nodes!"
             self._depth_mean = groundwater__depth_mean
             self._depth_stdev = groundwater__depth_standard_deviation 
