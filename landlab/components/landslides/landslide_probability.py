@@ -39,7 +39,6 @@ from statsmodels.distributions.empirical_distribution import ECDF
 
 from landlab import Component
 
-
 class LandslideProbability(Component):
     """Landslide probability component using the infinite slope stability
     model.
@@ -101,7 +100,7 @@ class LandslideProbability(Component):
                              groundwater__recharge_HSD_inputs=[HSD_dict,
                                                                HSD_id_dict,
                                                                fract_dict])
-    Option 5 - Uniform depth
+    Option 5 - Uniform depth to groundwater
 
     .. code-block:: python
     
@@ -111,7 +110,7 @@ class LandslideProbability(Component):
                              groundwater__depth_min_value=0.01, 
                              groundwater__depth_max_value=2.)
                              
-    Option 6 - Lognormal depth 
+    Option 6 - Lognormal depth to groundwater 
     
     .. code-block:: python
         
@@ -120,7 +119,7 @@ class LandslideProbability(Component):
                              groundwater__depth_mean=0.5.,
                              groundwater__depth_standard_deviation=0.1)
                              
-    Option 7 - Lognormal_spatial depth 
+    Option 7 - Lognormal_spatial depth to groundwater 
     
     .. code-block:: python
     
@@ -129,7 +128,7 @@ class LandslideProbability(Component):
                              groundwater__depth_mean=np.random.randint(0, 2, grid_size),
                              groundwater__depth_standard_deviation=np.random.rand(grid_size))   
                              
-    Option 8 - Data_driven_spatial depth to water
+    Option 8 - Data_driven_spatial depth to groundwater
     
     .. code-block:: python
     
