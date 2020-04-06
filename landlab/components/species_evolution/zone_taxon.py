@@ -2,164 +2,147 @@
 # -*- coding: utf-8 -*-
 """ZoneTaxon object of SpeciesEvolver."""
 import numpy as np
+from pandas import Series
 
 from .base_taxon import Taxon
-from .zone import Connection
-
-
-class Population(object):
-    """A population of ZoneTaxon.
-
-    Instances of this class are intended to be created and used directly by
-    ZoneTaxon.
-    """
-
-    def __init__(self, taxon, zone, time_to_allopatric_speciation=None):
-        """Initialize a population.
-
-        Parameters
-        ----------
-        taxon : ZoneTaxon
-            The population belongs to ``taxon``.
-        zone : Zone
-            The population inhabits ``zone``.
-        time_to_allopatric_speciation : float, optional
-            The time until speciation due to allopatry. The default value of
-            `None` indicates the population is not tending towards speciation.
-        """
-        self._taxon = taxon
-        self.zone = zone
-        self._time_to_allopatric_speciation = time_to_allopatric_speciation
-
-    @property
-    def zone(self):
-        """The zone of the population."""
-        return self._zone
-
-    @zone.setter
-    def zone(self, new_zone):
-        """Set the population zone and update the taxon of the zone."""
-        if new_zone is None:
-            self._zone.taxa.remove(self._taxon)
-        elif new_zone is not None:
-            new_zone.taxa.append(self._taxon)
-
-        self._zone = new_zone
 
 
 class ZoneTaxon(Taxon):
-    """A taxon based in a zone.
+    """A taxon based in zones.
 
-    A ``ZoneTaxon`` is composed of members of a lower taxonomic level. These
-    members are stored in the ``populations`` attribute as ``Population``
-    objects. Taxonomic rank is not considered in the class despite the use of
-    the term, 'speciation', which is used generally here to indicate creation
-    of a child taxon.
+    A ``ZoneTaxon`` is composed of members of a lower taxonomic level that each
+    exists within a ``Zone`` object. Taxonomic rank is not considered by this
+    class despite the use of the term, 'speciation', which is used herein to
+    generally describe creation of a child taxon object.
 
-    Each population is associated with a ``Zone`` object that characterizes the
-    geographic aspect of the population. The zone of a population, as well as
-    all zones of a model, are created and updated using a ``ZoneController``.
-    At model time steps, the connectivity of zones over time is obtained using
-    the ``Zone`` object. The total geographic extent of all populations of the
-    taxon is depicted by the ``range_mask`` attribute.
+    All zones of the taxon can be obtained with the attribute, ``zones`` that
+    are the objects that manage the geographic aspect of taxon member
+    populations. The total geographic extent of all populations is depicted by
+    the ``range_mask`` attribute. The zones of a ZoneTaxon instance are created
+    and updated using a ``ZoneController``. At model time steps, the
+    connectivity of zones over time is obtained using attributes of the
+    ``Zone`` object.
 
     The evolution of this taxon type is carried out in two stages during a
-    model time step. Macroevolutionary processes are called during these
-    stages. Dispersal and speciation are evaluated for each population.
-    Extinction is evaluated for the taxon. These methods, further described
-    below, are intended to be expanded or overridden when needed. Additional
-    processes can be called by expanding or overridding the evolve method.
+    model time step. In the first stage, the zones of the taxon are updated
+    as the result of zone connectivity between the prior and current step in
+    the method, ``_update_zones``. This method is the primary implementation of
+    taxon dispersal and it is called in a stage prior to other evolutionary
+    processes so that all taxa are positioned in their landscape locations
+    prior to the other processes.
 
-    The method, ``_evaluate_dispersal`` is called in the first stage. Dispersal
-    is dictated by the spatial connectivity of the taxon zone at model time
-    steps over the prior and current times. Dispersal is called in a stage
-    prior to other processes so that all taxa are positioned in their landscape
-    determined locations prior to other processes.
+    In the second stage, processes are carried out in methods that are readily
+    expanded or overridden when needed. The primary methods of second stage
+    macroevolution are ``_evaluate_dispersal``, ``_evaluate_speciation``, and
+    ``_evaluate_extinction``. The evaluate dispersal method is intended to
+    modify dispersal conducted in the first stage and it has no effect unless
+    it is expanded or overridden to have an effect. Processes other than those
+    listed above can be called by expanding or overridding the ``_evolve``
+    method.
 
-    The methods, ``_evaluate_speciation`` and ``_evaluate_extinction`` are
-    called in the second stage. Speciation occurs when members of a broader
-    taxon exist in multiple zones following a delay set by the
-    ``allopatric_wait_time`` initialization parameter. A clock counts down for
-    each zone of the taxon where the taxon dispersed beyond one zone. The clock
-    starts when a zone in the earlier time step overlaps multiple zones in the
-    later time step.
+    The taxon is allopatric when it is associated with/exists within multiple
+    zones (signifying multiple member populations). A timer is started when a
+    taxon becomes allopatric. Allopatric speciation occurs once the timer
+    reaches or exceeds the ``time_to_allopatric_speciation`` initialization
+    parameter. If the initialization parameter, ``persists_post_speciation``
+    is True (default), a child taxon is created in each zone except one zone
+    (the largest by area) that becomes the sole zone of the taxon. If
+    ``persists_post_speciation`` is set to False, a child taxon is created in
+    each and every zone, and the parent no longer occupies any zones, and
+    therefore the parent taxon is no longer extant.
 
-    Extinction occurs when the taxon no longer is associated with a zone. This
-    can occur when the zone in the prior time step overlaps no zones in the
-    current time step, signifying the habitat of the taxon disappeared and no
-    suitable habitat was connected over time. The persistance of the taxon can
-    also come to an end when the taxon speciates and ``pseudoextinction`` is
-    True.
+    Extinction occurs when the taxon is no longer associated with any zones.
+    This occurs when zones in the prior time step do not overlap zones in the
+    current time step, signifying the geographic range of the taxon is no more.
+    A taxon can become no longer extant also when the taxon speciates and
+    ``persists_post_speciation`` is False signifying that the parent taxon
+    has evolved into multiple taxon distinct from the original taxon.
+
+    The following columns will be added to the ``record_data_frame`` of the
+    SpeciesEvolver instance that tracks objects of this Taxon: 'speciations'
+    and 'extinctions', which are the counts of these variables at time steps.
+    Another column, 'pseudoextinctions' will be included when
+    ``persists_post_speciation`` is False. This variable is the count of
+    occurrences when a parent taxon became non-extant due to speciation and not
+    because of an absence of zones.
     """
 
     def __init__(
-        self, zones, parent=None, allopatric_wait_time=0, pseudoextinction=True
+        self,
+        zones,
+        parent=None,
+        time_to_allopatric_speciation=0,
+        persists_post_speciation=True,
     ):
         """Initialize a taxon.
 
         Parameters
         ----------
         zones : list of Zones
-            The SpeciesEvolver Zones where the taxon is located.
-        parent : ZoneTaxon, optional
+            The initial SpeciesEvolver Zones where the taxon is located.
+        parent : Taxon, optional
             A SpeciesEvolver taxon that is the parent taxon. The default value,
             'None' indicates no parent.
-        allopatric_wait_time : float, optional
-            The delay in model time between geographic seperation and
-            speciation. Speciation occurs at the first time step when the delay
-            is reached or exceeded. The default value of 0 indicates speciation
-            occurs at the same time step when geographic serperation occurs.
-        pseudoextinction : boolean, optional
-            When 'True', taxon becomes extinct when it produces child taxa.
+        time_to_allopatric_speciation : float, int, optional
+            The delay in model time to speciate following taxon geographic
+            fragmentation, indicated by multiple objects in the attribute,
+            ``zones``. Speciation occurs at the time step when the delay is
+            reached or exceeded. The default value of 0 indicates speciation
+            occurs at the same time step as geographic fragmentation.
+        persists_post_speciation : boolean, optional
+            When 'True', the default, taxon persists despite speciation. When
+            'False' and following speciation, the taxon is no longer extant.
         """
         super().__init__()
 
         self.parent = parent
-        self._allopatric_wait_time = allopatric_wait_time
-        self._pseudoextinction = pseudoextinction
+        self._tas = time_to_allopatric_speciation
+        self._pps = persists_post_speciation
 
-        # Set initial populations.
+        # Store zones that each represent an instance of a narrower taxonomic
+        # level, e.g. a population.
 
-        self._populations = []
+        self._zones = zones
 
-        for zone in zones:
-            self._populations.append(Population(self, zone))
+        # Set taxon time in allopatry.
 
-        self._mask_len = len(zones[0].mask)
+        self._time_in_allopatry = None
+        self._update_allopatry_state()
 
     @Taxon.extant.setter
-    def extant(self, value):
-        """ """
-        self._extant = value
+    def extant(self, state):
+        """Set the living state of the taxon."""
+        self._extant = state
 
-        if not value:
-            # Ensure the taxon is not associated with zones when not extant.
-            for pop in self._populations:
-                pop.zone = None
-            self._populations = []
+        if not state:
+            # Ensure the taxon is not associated with zones when it is no
+            # longer extant.
+            self._zones = []
 
     @property
     def range_mask(self):
         """A mask representing the geographic extent of the taxon.
 
         The mask is an array with a length of grid number of nodes. The taxon
-        exists at nodes where mask elements are ``True``.
+        exists at nodes where mask elements are ``True``. The mask of a
+        ZoneTaxon object is the union of all of its zone masks.
         """
-        template = np.zeros(self._mask_len, bool)
-        if self._populations:
-            masks = [pop.zone.mask for pop in self._populations]
-            if len(masks) == 1:
-                masks.append(template)
-            return np.any(masks, 0)
-        else:
-            return template
+        masks = [zone.mask for zone in self.zones]
+        mask = np.any(masks, 0)
+
+        return mask
+
+    @property
+    def zones(self):
+        """The zones of the taxon."""
+        return self._zones
 
     def _evolve(self, dt, stage, record):
-        """Run evolutionary processes for the time.
+        """Run a step of evolutionary processes.
 
-        In this stage, dispersal resolved during stage 1 can be modified by
-        extending or overriding the dispersal evaluation method, as can
-        speciation and extinction that are also evaluated in this stage.
+        Dispersal resolved during stage 1 can be modified by extending or
+        overriding the dispersal evaluation method, as can speciation and
+        extinction that are also evaluated in this stage.
 
         The attribute, ``extant`` is updated by this method.
 
@@ -178,119 +161,85 @@ class ZoneTaxon(Taxon):
            Indicates if the taxon is still evolving. When `False` is returned,
            this method will not be called for the taxon in subsequent stages in
            the current model time step.
+        list of Taxon
+            The children produced by the taxon at a given stage. The ``evolve``
+            method of child taxon will be called in stages following the stage
+            the child taxon was produced. An empty list indicates no child
+            taxon.
         """
         if stage == 0:
-            updated_pops = []
-
-            for pop in self._populations:
-                updated_pops.extend(self._disperse(pop))
-
-            self._populations = updated_pops
+            self._update_zones()
+            child_taxa = []
 
         elif stage == 1:
-            # Evaluate dispersal.
+            # Evaluate macroevolutionary processes now that zones of all taxon
+            # objects were updated in stage 1.
 
-            for pop in self._populations:
-                self._evaluate_dispersal(dt, pop)
+            self._evaluate_dispersal(dt)
+            self._update_allopatry_state(dt)
 
-            # Evaluate speciation.
+            child_taxa = self._evaluate_speciation(dt)
+            child_count = len(child_taxa)
 
-            children = []
-
-            for pop in self._populations:
-                speciates = self._evaluate_speciation(dt, pop)
-                if speciates:
-                    children.append(self._produce_child_taxon([pop.zone]))
-
-            child_count = len(children)
-            speciated = child_count > 0
-
-            # Evaluate extinction.
-
-            pseudoextinct = self._pseudoextinction and speciated
-            extinct = self._evaluate_extinction(dt) or pseudoextinct
-            self.extant = not extinct
+            extinct = self._evaluate_extinction(dt)
+            pseudoextinct = child_count > 1 and not self._pps
+            self.extant = not extinct and not pseudoextinct
 
             # Update the record.
 
             record.increment_value("speciations", child_count)
-            record.increment_value("extinctions", int(extinct))
-            record.increment_value("pseudoextinctions", int(pseudoextinct))
+            record.increment_value("extinctions", int(extinct and not pseudoextinct))
 
-        return stage < 1
+            if not self._pps:
+                record.increment_value("pseudoextinctions", int(pseudoextinct))
 
-    def _disperse(self, population):
-        """Update the population zone and create new populations if warranted.
+        return stage < 1, child_taxa
 
-        Dispersal is handled by the connection type of the population zone.
+    def _update_zones(self):
+        """Update the zones of the taxon.
+
+        Dispersal is represented by setting taxon zones to the zones of the
+        current time step that overlap the taxon zones of the prior time step
+        (`successors of a zone`).
+        """
+        successors = []
+
+        for zone in self._zones:
+            successors.extend(zone.successors)
+
+        self._zones = Series(successors).drop_duplicates().tolist()
+
+    def _update_allopatry_state(self, dt=None):
+        """Update taxon time in allopatry.
+
+        Parameter, ``dt`` can optionally be set to increment time in allopatry
+        given that the taxon is already allopatric.
 
         Parameters
         ----------
-        population : Population
-            A population of the taxon.
+        dt : float, int, optional
+            The model time step duration.
         """
-        conn_type = population.zone._conn_type
+        if len(self.zones) < 2:
+            self._time_in_allopatry = None
+        elif self._time_in_allopatry is None:
+            self._time_in_allopatry = 0
+        elif dt is not None:
+            self._time_in_allopatry += dt
 
-        if conn_type == Connection.ONE_TO_NONE:
-            # Remove the zone from the taxon. The taxon exist no where.
-            population.zone = None
-            updated_populations = []
+    def _produce_child_taxon(self, zones):
+        """Get the taxon resulting from speciation.
 
-        elif conn_type == Connection.ONE_TO_ONE:
-            # Population remains in the same zone.
-            updated_populations = [population]
-
-        elif conn_type == Connection.MANY_TO_ONE:
-            # Taxon moves into one zone.
-            if population.zone == population.zone.successors[0]:
-                # Population remains in the same zone.
-                population._time_to_allopatric_speciation = None
-                updated_populations = [population]
-
-            elif self not in population.zone.successors[0].taxa:
-                # Population moves into a zone not yet inhabited by taxon.
-                population.zone = population.zone.successors[0]
-                updated_populations = [population]
-
-            else:
-                # Population moves into a zone already inhabited by taxon. The
-                # population conceptually merges by forgetting this population.
-                updated_populations = []
-
-        elif conn_type in [Connection.ONE_TO_MANY, Connection.MANY_TO_MANY]:
-            # Taxon moves into multiple zones.
-
-            updated_populations = []
-            awt = self._allopatric_wait_time
-
-            for zone in population.zone.successors:
-                if population.zone == zone:
-                    # Population remains in the same zone.
-                    updated_populations.append(population)
-
-                    if self._pseudoextinction:
-                        population._time_to_allopatric_speciation = awt
-
-                elif self not in zone.taxa:
-                    # Create population for this zone new to the taxon.
-                    zone_pop = Population(self, zone, awt)
-                    updated_populations.append(zone_pop)
-
-        return updated_populations
-
-    def _produce_child_taxon(self, zone):
-        """Get the taxon resulting from speciation in zones.
-
-        The default implementation returns a taxon of the same type as
-        `self`. This child taxon is initialized with the values of `self` for
-        the default initialization parameters. At minimum in derived
-        implementations, the parent taxon of the child should be set to
-        `self` to correctly construct the lineage.
+        This method returns a taxon of the same type as the object that
+        speciates. This child taxon is initialized with the initialization
+        parameter values of the parent object. At minimum in derived
+        implementations of this method, the parent taxon of the child should be
+        set to `self` to correctly construct the lineage.
 
         Parameters
         ----------
         zones : list of Zones
-            The zones where the new taxon will exist.
+            The zones where the child taxon will exist.
 
         Returns
         -------
@@ -300,97 +249,109 @@ class ZoneTaxon(Taxon):
         taxon_type = type(self)
 
         child_taxon = taxon_type(
-            zone,
+            zones,
             parent=self,
-            allopatric_wait_time=self._allopatric_wait_time,
-            pseudoextinction=self._pseudoextinction,
+            time_to_allopatric_speciation=self._tas,
+            persists_post_speciation=self._pps,
         )
 
         return child_taxon
 
-    def _evaluate_allopatric_speciation(self, dt, population):
-        """Determine if speciation occurs.
+    def _evaluate_allopatric_speciation(self, dt):
+        """Return child taxa if the taxon is allopatric.
 
-        Speciation is triggered during stage 1 dispersal. This speciation
-        method decrements the time to allopatric speciation of the populations
-        that speciation was triggered. Once the time to allopatric speciation
-        is reached or exceeded, this method will return `True` signaling the
-        population to speciate.
+        A child taxon is returned for each zone except the largest zone if
+        ``persists_post_speciation`` is True. A child taxon is returned for all
+        zones if ``persists_post_speciation`` is False. The ``zones`` attribute
+        is set to a list containing the largest zone or no zone when
+        ``persists_post_speciation`` is True or False, respectively. This
+        method is called by the ``_evaluate_speciation`` method in the second
+        stage of taxon evolution.
 
-        Parameters
-        ----------
-        dt : float, int
-            The time step duration to increment time to allopatric speciation,
-            if speciation was previously triggered.
-        population : Population
-            A population of the taxon.
-
-        Returns
-        -------
-        boolean
-            `True` indicates the taxon speciates. `False` indicates no
-            speciation.
-        """
-        triggered = population._time_to_allopatric_speciation is not None
-
-        if triggered:
-            # Speciation was previously triggered. Determine if allopatric
-            # wait time was reached or exceeded.
-            speciate = population._time_to_allopatric_speciation <= 0
-
-            if not speciate:
-                # Decrement the time to speciation.
-                population._time_to_allopatric_speciation -= dt
-        else:
-            # Speciation was not previously triggered.
-            speciate = False
-
-        return speciate
-
-    def _evaluate_dispersal(self, dt, population):
-        """Set the range of the taxon as it results from dispersal.
-
-        Population dispersal is principally determined in stage 1 by the
-        method, ``_disperse``. This evaluation method is called by the taxon
-        evolve method in stage 2 and allows modification of the stage 1
-        dispersal. The default implementation of this method does not modify
-        stage 1 dispersal. It is intended to be overridden when needed.
+        Parameter ``dt`` is not used in the ZoneTaxon implementation of this
+        method. It is included to follow the pattern of including this
+        parameter in ZoneTaxon evolution methods.
 
         Parameters
         ----------
         dt : float, int
             The model time step duration.
-        population : Population
-            A population of the taxon.
+
+        Returns
+        -------
+        list of taxon objects
+            The taxon objects produced by allopatric speciation. An empty list
+            indicates no child objects and no allopatric speciation.
+        """
+        zones = self.zones
+        allopatric = self._time_in_allopatry is not None
+        children = []
+
+        if allopatric and self._time_in_allopatry >= self._tas:
+            if self._pps:
+                # The zone/member with the greatest zone area remains
+                # associated with the object.
+                idx = np.argmax([zone.area for zone in zones])
+                largest_zone = zones.pop(idx)
+
+            for zone in zones:
+                child = self._produce_child_taxon([zone])
+                children.append(child)
+
+            if self._pps:
+                self._zones = [largest_zone]
+            else:
+                self._zones = []
+
+            self._update_allopatry_state()
+
+        return children
+
+    def _evaluate_dispersal(self, dt):
+        """Modify taxon dispersal.
+
+        Population dispersal is principally determined in stage 1 by the
+        method, ``_update_zones``. This evaluation method is called by the
+        taxon evolve method in stage 2 and allows modification of the stage 1
+        dispersal. This method implemented in ZoneTaxon does not modify stage 1
+        dispersal. It is intended to be overridden when needed.
+
+        Parameters
+        ----------
+        dt : float, int
+            The model time step duration.
         """
         # pragma: no cover
 
-    def _evaluate_speciation(self, dt, population):
-        """Determine if speciation occurs.
+    def _evaluate_speciation(self, dt):
+        """Return child taxa if speciation occurs.
 
-        This method is called by the taxon stage 2 evolve method.
+        This method is called by the taxon stage 2 evolve method. The default
+        implementation of this method solely gets any taxon objects resulting
+        from the method, ``_evaluate_allopatric_speciation``. Other modes of
+        speciation, including sympatric, can be evaluated here by expanded this
+        ``_evaluate_speciation`` method.
 
         Parameters
         ----------
         dt : float, int
             The model time step duration.
-        population : Population
-            A population of the taxon.
 
         Returns
         -------
-        boolean
-            `True` indicates the taxon produces a child taxon. `False`
-            indicates no child taxon is produced.
+        list of taxon objects
+            The taxon objects produced by allopatric speciation. An empty list
+            indicates no child objects and no allopatric speciation.
         """
-        allo_speciate = self._evaluate_allopatric_speciation(dt, population)
+        child_taxa = self._evaluate_allopatric_speciation(dt)
 
-        return allo_speciate
+        return child_taxa
 
     def _evaluate_extinction(self, dt):
         """Determine if extinction occurs.
 
-        Extinction occurs if no populations exist.
+        Extinction occurs if no zone/member populations exist. Other conditions
+        of extinction can be included by expanding or overridding this method.
 
         Parameters
         ----------
@@ -403,6 +364,6 @@ class ZoneTaxon(Taxon):
             `True` indicates the taxon has become extinct. `False` indicates
             the taxon persists.
         """
-        no_populations = len(self._populations) == 0
+        taxon_occupies_no_zones = len(self.zones) == 0
 
-        return no_populations
+        return taxon_occupies_no_zones
