@@ -12,7 +12,7 @@ Probability of failure for each node is also simulated in the Monte Carlo
 simulation as the number of iterations with factor-of-safety <= 1.0
 divided by the number of iterations.
 
-.. codeauthor:: R.Strauch, E.Istanbulluoglu, & S.S.Nudurupati
+.. codeauthor:: R.Strauch, C.Bandaragoda, E.Istanbulluoglu, & S.S.Nudurupati
 
 University of Washington
 
