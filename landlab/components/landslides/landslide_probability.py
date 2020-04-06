@@ -519,7 +519,7 @@ class LandslideProbability(Component):
         # Following code will deal with the input distribution and associated
         # parameters for depth to water table hydrologic forcing
         # Depth to water table - Uniform distribution
-        if self._groundwater__depth_distribution == 'uniform':
+        if self._groundwater__depth_distribution == "uniform":
             self._depth_min = groundwater__depth_min_value
             self._depth_max = groundwater__depth_max_value
             self._De = np.random.uniform(self._depth_min, self._depth_max, size=self._n)
@@ -530,7 +530,7 @@ class LandslideProbability(Component):
             ), "Input mean of the distribution!"
             assert (
                 groundwater__depth_standard_deviation is not None
-            ), "Input standard deviation of the distribution!'"
+            ), "Input standard deviation of the distribution!"
             self._depth_mean = groundwater__depth_mean
             self._depth_stdev = groundwater__depth_standard_deviation
             self._mu_lognormal = np.log(
@@ -552,7 +552,7 @@ class LandslideProbability(Component):
                 self._grid.number_of_nodes
             ), "Input array should be of the length of grid.number_of_nodes!"
             self._depth_mean = groundwater__depth_mean
-            self._depth_stdev = groundwater__depth_standard_deviation 
+            self._depth_stdev = groundwater__depth_standard_deviation        
         # Depth to water table - Hydrologic Source Domain -> Model Domain
         elif self._groundwater__depth_distribution == "data_driven_spatial":
             self._HSD_dict = groundwater__depth_HSD_inputs[0]
