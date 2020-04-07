@@ -137,6 +137,8 @@ class Space(_GeneralizedErosionDeposition):
 
     _name = "Space"
 
+    _unit_agnostic = True
+
     _info = {
         "flow__link_to_receiver_node": {
             "dtype": int,
@@ -290,7 +292,7 @@ class Space(_GeneralizedErosionDeposition):
             )
             raise NotImplementedError(msg)
 
-        super(Space, self).__init__(
+        super().__init__(
             grid,
             m_sp=m_sp,
             n_sp=n_sp,

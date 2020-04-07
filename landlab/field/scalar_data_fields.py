@@ -138,7 +138,7 @@ class ScalarDataFields(dict):
     def __init__(self, size=None):
         self._size = size
 
-        super(ScalarDataFields, self).__init__()
+        super().__init__()
         self._units = dict()
 
     @property
@@ -494,11 +494,11 @@ class ScalarDataFields(dict):
         if name not in self:
             self.set_units(name, None)
 
-        super(ScalarDataFields, self).__setitem__(name, value_array)
+        super().__setitem__(name, value_array)
 
     def __getitem__(self, name):
         """Get a data field by name."""
         try:
-            return super(ScalarDataFields, self).__getitem__(name)
+            return super().__getitem__(name)
         except KeyError:
             raise FieldError(name)

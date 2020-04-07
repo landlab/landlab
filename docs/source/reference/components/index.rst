@@ -124,6 +124,7 @@ Terrain Analysis
   drainage_density
   profile
   channel_profiler
+  trickle_down_profiler
   hack_calculator
 
 Tectonics

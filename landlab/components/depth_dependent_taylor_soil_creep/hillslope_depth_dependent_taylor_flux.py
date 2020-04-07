@@ -223,6 +223,8 @@ class DepthDependentTaylorDiffuser(Component):
 
     _name = "DepthDependentTaylorDiffuser"
 
+    _unit_agnostic = True
+
     _cite_as = """
     @article{barnhart2019terrain,
       author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
@@ -325,7 +327,7 @@ class DepthDependentTaylorDiffuser(Component):
         courant_factor : float
             Courant factor for timestep calculation.
         """
-        super(DepthDependentTaylorDiffuser, self).__init__(grid)
+        super().__init__(grid)
         # Store grid and parameters
 
         self._K = linear_diffusivity
