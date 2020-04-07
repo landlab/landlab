@@ -80,7 +80,7 @@ class StochasticCellularSIRmodel(object):
     model.
     """
     def __init__(self,
-                 infection_rate=4.0,
+                 infection_rate=2.0,
                  number_of_node_rows=80,
                  number_of_base_node_columns=41,
                  run_duration=5.0,
@@ -100,15 +100,7 @@ class StochasticCellularSIRmodel(object):
         # Create node-state field
         node_state_grid = self.grid.add_zeros('node', 'node_state_grid',
                                               dtype=np.int)
-        wid = number_of_base_node_columns - 1.0
-        ht = (number_of_node_rows - 1.0) * 0.866
-        is_middle_rows = np.logical_and(self.grid.y_of_node>=0.4*ht,
-                                        self.grid.y_of_node<=0.5*ht)
-        is_middle_cols = np.logical_and(self.grid.x_of_node>=0.4*wid,
-                                        self.grid.x_of_node<=0.6*wid)
-        middle_area = np.where(np.logical_and(is_middle_rows,
-                                              is_middle_cols))[0]
-        node_state_grid[middle_area] = 1
+        node_state_grid[self.grid.number_of_nodes//2] = 1
         node_state_grid[0] = 2  # full color range: set node 0 to 'recovered'
 
         # Set up the states and pair transitions.
@@ -117,7 +109,8 @@ class StochasticCellularSIRmodel(object):
         xn_list = setup_transition_list(infection_rate)
 
         # Create the CA model
-        self.ca = HexCTS(self.grid, ns_dict, xn_list, node_state_grid)
+        self.ca = HexCTS(self.grid, ns_dict, xn_list, node_state_grid,
+                         seed=seed)
 
         # Set up parameters and timing
         self.run_duration = run_duration
