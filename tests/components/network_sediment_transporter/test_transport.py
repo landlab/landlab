@@ -11,9 +11,7 @@ _OUT_OF_NETWORK = NetworkModelGrid.BAD_INDEX - 1
 def test_no_flow_no_transport(example_nmg, example_parcels, example_flow_director):
 
     timesteps = 3
-    example_nmg.at_link["flow_depth"] = 0 * np.ones(
-            example_nmg.size("link")
-        )
+    example_nmg.at_link["flow_depth"] = 0 * np.ones(example_nmg.size("link"))
 
     nst = NetworkSedimentTransporter(
         example_nmg,
