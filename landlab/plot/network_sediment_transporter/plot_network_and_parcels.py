@@ -11,6 +11,7 @@ import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.collections import LineCollection
+from matplotlib.colors import Normalize
 
 from landlab.plot.network_sediment_transporter.locate_parcel_xy import locate_parcel_xy
 from landlab.utils.return_array import return_array_at_link
@@ -24,23 +25,20 @@ def plot_network_and_parcels(
     network_linewidth=None,
     link_attribute=None,
     link_attribute_title=None,
-    network_cmap="Blues",
+    network_cmap="cividis",
     network_norm=None,
-
     parcel_color=None,
-    parcel_size=None,
     parcel_color_attribute=None,
-    parcel_cmap="cividis",
+    parcel_color_attribute_title=None,
+    parcel_color_cmap="plasma",
     parcel_color_norm=None,
-
+    parcel_size=None,
     parcel_size_attribute=None,
+    parcel_size_attribute_title=None,
     parcel_size_norm=None,
-    parcel_size_min=1,
-    parcel_size_max=3,
-    parcel_size=1,
-
+    parcel_size_min=5,
+    parcel_size_max=40,
     parcel_alpha=0.5,
-
     fig=None,
     **kwargs
 ):
@@ -62,7 +60,7 @@ def plot_network_and_parcels(
     # or
     link_attribute, array or field name at link.
     link_attribute_title
-    network_cmap = "Blues"
+    network_cmap = "cividis"
     network_norm
 
     # to set the parcel size, shape, either provide constant values or attributes.
@@ -125,6 +123,10 @@ def plot_network_and_parcels(
         legend_parcel_color = False
     else:
         legend_parcel_color = True
+        if parcel_color_attribute_title is None and isinstance(
+            parcel_color_attribute, str
+        ):
+            parcel_color_attribute_title = parcel_color_attribute
 
     # only parcel size or parcel_size_attribute
     if (parcel_size_attribute is not None) and (parcel_size is not None):
@@ -135,6 +137,11 @@ def plot_network_and_parcels(
         legend_parcel_size = False
     else:
         legend_parcel_size = True
+
+        if parcel_size_attribute_title is None and isinstance(
+            parcel_size_attribute, str
+        ):
+            parcel_size_attribute_title = parcel_size_attribute
 
     # parcel time:
     # cant use standard or because a value of 0 is valid.
@@ -150,11 +157,29 @@ def plot_network_and_parcels(
         fig = plt.figure(**kwargs)
 
     spec = gridspec.GridSpec(
-        ncols=1, nrows=3, left=0, right=1, top=1, bottom=0, figure=fig,  height_ratios=[1, 0.1, 0.2]
+        ncols=1,
+        nrows=3,
+        left=0,
+        right=1,
+        top=1,
+        bottom=0,
+        figure=fig,
+        height_ratios=[1, 0.1, 0.2],
+    )
+    label_spec = spec[1, 0].subgridspec(
+        ncols=2 * n_legends - 1,
+        nrows=1,
+        wspace=0.1,
+        hspace=1,
+        width_ratios=[1] + (n_legends - 1) * [0.2, 1],
     )
     legend_spec = spec[2, 0].subgridspec(
-            ncols=2 * n_legends - 1, nrows=1, wspace=0.1, hspace=1,
-            width_ratios = [1] + (n_legends-1)*[0.2,1])
+        ncols=2 * n_legends - 1,
+        nrows=1,
+        wspace=0.1,
+        hspace=1,
+        width_ratios=[1] + (n_legends - 1) * [0.2, 1],
+    )
     ax = fig.add_subplot(spec[0, 0])
     legend_idx = 0
     # SET UP LINESEGMENTS FOR NETWORK. If polylines exist use, otherwise use
@@ -167,7 +192,7 @@ def plot_network_and_parcels(
             segment = np.array((np.array(x), np.array(y))).T
             segments.append(segment)
     else:
-        for i in range(grid.size("links")):
+        for i in range(grid.size("link")):
             nal = grid.nodes_at_link[i]
             segment = np.array(
                 (np.array(grid.x_of_node[nal]), np.array(grid.y_of_node[nal]))
@@ -176,14 +201,31 @@ def plot_network_and_parcels(
 
     # Add Linesegments and Configure.
     if link_attribute:
-        line_segments = LineCollection(segments, cmap=network_cmap, zorder=1)
+        line_segments = LineCollection(
+            segments, cmap=network_cmap, norm=network_norm, zorder=1
+        )
         line_segments.set_array(return_array_at_link(grid, link_attribute))
         ax.add_collection(line_segments)
 
-        # create legend.
-        lax = fig.add_subplot(legend_spec[0,legend_idx])
+        # create legend and label.
+        lax = fig.add_subplot(label_spec[0, legend_idx])
+        lax.text(
+            0.5,
+            0.0,
+            "Line Color",
+            transform=lax.transAxes,
+            color="k",
+            ha="center",
+            va="top",
+            size=plt.rcParams["font.size"] + 2,
+        )
+        lax.axis("off")
+
+        lax = fig.add_subplot(legend_spec[0, legend_idx])
         legend_idx += 2
-        link_cax = fig.colorbar(line_segments, cax=lax, orientation="horizontal", label=link_attribute_title)
+        fig.colorbar(
+            line_segments, cax=lax, orientation="horizontal", label=link_attribute_title
+        )
 
         # Todo: add ability to specify color limits.
 
@@ -208,8 +250,15 @@ def plot_network_and_parcels(
 
     # Plot parcels
     if parcel_color_attribute is not None:
-
-        parcel_color = parcels.dataset[parcel_color_attribute].values[:, parcel_time_index]
+        if parcel_color_attribute in parcels.dataset:
+            if "time" in parcels.dataset[parcel_color_attribute].dims:
+                parcel_color = parcels.dataset[parcel_color_attribute].values[
+                    :, parcel_time_index
+                ]
+            else:
+                parcel_color = parcels.dataset[parcel_color_attribute].values
+        else:
+            raise ValueError
 
         # if this is true, then instead of none we need to get the right
         # values from the parcels and scale/normalize them correctly. At present
@@ -217,7 +266,24 @@ def plot_network_and_parcels(
         # categorical.
 
     if parcel_size_attribute is not None:
-        parcel_size = parcels.dataset[parcel_size_attribute].values[:, parcel_time_index]
+        if parcel_size_attribute in parcels.dataset:
+            if "time" in parcels.dataset[parcel_size_attribute].dims:
+                parcel_size_values = parcels.dataset[parcel_size_attribute].values[
+                    :, parcel_time_index
+                ]
+            else:
+                parcel_size_values = parcels.dataset[parcel_size_attribute].values
+
+            if parcel_size_norm is None:
+                parcel_size_norm = Normalize(
+                    vmin=parcel_size_values.min(), vmax=parcel_size_values.max()
+                )
+
+            parcel_size = parcel_size_min + (
+                parcel_size_max - parcel_size_min
+            ) * parcel_size_norm(parcel_size_values)
+        else:
+            raise ValueError
 
         # if this is true, then instead of none we need to get the right
         # values from the parcels and scale/normalize them correctly. At present
@@ -228,10 +294,68 @@ def plot_network_and_parcels(
 
     # Todo: add ability to specify size limits (and size edges).
 
-    ax.scatter(X, Y, s=parcel_size, c=parcel_color, alpha=parcel_alpha, cmap=parcel_color_cmap, norm=parcel_color_norm, zorder=2)
+    scatter = ax.scatter(
+        X,
+        Y,
+        s=parcel_size,
+        c=parcel_color,
+        alpha=parcel_alpha,
+        cmap=parcel_color_cmap,
+        norm=parcel_color_norm,
+        zorder=2,
+    )
 
-    # add parcel size and parcel color legends.
+    # create legends.
+    if legend_parcel_color:
+        lax = fig.add_subplot(label_spec[0, legend_idx])
+        lax.text(
+            0.5,
+            0.0,
+            "Parcel Color",
+            transform=lax.transAxes,
+            color="k",
+            ha="center",
+            va="top",
+            size=plt.rcParams["font.size"] + 2,
+        )
+        lax.axis("off")
 
+        lax = fig.add_subplot(legend_spec[0, legend_idx])
+        legend_idx += 2
+        fig.colorbar(
+            scatter,
+            cax=lax,
+            orientation="horizontal",
+            label=parcel_color_attribute_title,
+        )
+
+    if legend_parcel_size:
+        lax = fig.add_subplot(label_spec[0, legend_idx])
+        lax.text(
+            0.5,
+            0.0,
+            "Parcel Size",
+            transform=lax.transAxes,
+            color="k",
+            ha="center",
+            va="top",
+            size=plt.rcParams["font.size"] + 2,
+        )
+        lax.axis("off")
+
+        lax = fig.add_subplot(legend_spec[0, legend_idx])
+        handles, labels = scatter.legend_elements(prop="sizes", alpha=0.6)
+
+        new_labels = [parcel_size_values.min(), parcel_size_values.max()]
+        lax.legend(
+            handles[:: len(handles) - 1],
+            new_labels,
+            title=parcel_size_attribute_title,
+            loc="center",
+            frameon=False,
+        )
+
+        plt.axis("off")
     # We need to set the plot limits, they will not autoscale
     ax.set_xlim(grid.x_of_node.min(), grid.x_of_node.max())
     ax.set_ylim(grid.y_of_node.min(), grid.y_of_node.max())

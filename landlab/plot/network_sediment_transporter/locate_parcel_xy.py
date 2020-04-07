@@ -40,9 +40,18 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
             link_x = grid["link"]["x_of_polyline"][parcel_link]
             link_y = grid["link"]["y_of_polyline"][parcel_link]
         else:
-            link_x = [0,1]
-            link_y = [0,1]
-            raise ValueError
+            flow_dir = grid.at_link["flow__link_direction"][parcel_link]
+            head_node = grid.node_at_link_head[parcel_link]
+            tail_node = grid.node_at_link_tail[parcel_link]
+            if flow_dir == -1:
+                link_x = [grid.x_of_node[head_node], grid.x_of_node[tail_node]]
+                link_y = [grid.y_of_node[head_node], grid.y_of_node[tail_node]]
+            elif flow_dir == 1:
+                # 1 = with direction of from tail to head.
+                link_x = [grid.x_of_node[tail_node], grid.x_of_node[head_node]]
+                link_y = [grid.y_of_node[tail_node], grid.y_of_node[head_node]]
+            else:
+                raise ValueError
             # eventually need to use x_of_node, y_of_node, and nodes_at_link,
             # but the upstream to downstream ordering also matters.
 
@@ -67,7 +76,9 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
         # np.all(np.diff(to_interp_link_loc) > 0)
 
         # interpolate the X,Y coordinates from the parcel location
-        parcel_x = np.interp(parcel_loc, link_rel_dist, link_x)  # , left=np.nan, right=np.nan)
+        parcel_x = np.interp(
+            parcel_loc, link_rel_dist, link_x
+        )  # , left=np.nan, right=np.nan)
         parcel_y = np.interp(parcel_loc, link_rel_dist, link_y)
         # assert np.isnan(parcel_x) == False
 

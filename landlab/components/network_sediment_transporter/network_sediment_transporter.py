@@ -292,7 +292,7 @@ class NetworkSedimentTransporter(Component):
         # save key information about the parcels.
         self._parcels = parcels
         self._num_parcels = self._parcels.number_of_items
-        self._parcel_attributes = [
+        self._time_variable_parcel_attributes = [
             "time_arrival_in_link",
             "active_layer",
             "location_in_link",
@@ -386,8 +386,10 @@ class NetworkSedimentTransporter(Component):
             self._parcels.ffill_grid_element_and_id()
 
             # copy parcel attributes forward in time.
-            for at in self._parcel_attributes:
-                self._parcels.dataset[at].values[:, self._time_idx] = self._parcels.dataset[at].values[:, self._time_idx - 1]
+            for at in self._time_variable_parcel_attributes:
+                self._parcels.dataset[at].values[
+                    :, self._time_idx
+                ] = self._parcels.dataset[at].values[:, self._time_idx - 1]
 
         self._this_timesteps_parcels = np.zeros_like(
             self._parcels.dataset.element_id, dtype=bool
@@ -963,7 +965,10 @@ def _recalculate_channel_slope(z_up, z_down, dx, threshold=1e-4):
 
     if chan_slope < 0.0:
         chan_slope = 0.0
-        warnings.warn('NetworkSedimentTransporter: Negative channel slope encountered.',UserWarning)
+        warnings.warn(
+            "NetworkSedimentTransporter: Negative channel slope encountered.",
+            UserWarning,
+        )
 
     elif chan_slope < threshold:
         chan_slope = threshold
