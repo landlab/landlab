@@ -23,13 +23,24 @@ def plot_network_and_parcels(
     network_color=None,
     network_linewidth=None,
     link_attribute=None,
-    network_cmap="blues",
+    link_attribute_title=None,
+    network_cmap="Blues",
+    network_norm=None,
+
     parcel_color=None,
     parcel_size=None,
     parcel_color_attribute=None,
-    parcel_cmap=None,
+    parcel_cmap="cividis",
+    parcel_color_norm=None,
+
     parcel_size_attribute=None,
+    parcel_size_norm=None,
+    parcel_size_min=1,
+    parcel_size_max=3,
+    parcel_size=1,
+
     parcel_alpha=0.5,
+
     fig=None,
     **kwargs
 ):
@@ -50,7 +61,9 @@ def plot_network_and_parcels(
 
     # or
     link_attribute, array or field name at link.
-    network_cmap = "blues"
+    link_attribute_title
+    network_cmap = "Blues"
+    network_norm
 
     # to set the parcel size, shape, either provide constant values or attributes.
 
@@ -100,6 +113,8 @@ def plot_network_and_parcels(
         legend_link = False
     else:
         legend_link = True
+        if link_attribute_title is None and isinstance(link_attribute, str):
+            link_attribute_title = link_attribute
 
     # only parcel color OR parcel_color_attribute.
     if (parcel_color_attribute is not None) and (parcel_color is not None):
@@ -122,7 +137,10 @@ def plot_network_and_parcels(
         legend_parcel_size = True
 
     # parcel time:
-    parcel_time_index = parcel_time_index or -1
+    # cant use standard or because a value of 0 is valid.
+    if parcel_time_index is None:
+        parcel_time_index = -1
+
     # also figure out whether the legend will have one, two, or three
     # parts (linewidth, parcel size, parcel color)
     n_legends = legend_link + legend_parcel_size + legend_parcel_color
@@ -132,11 +150,13 @@ def plot_network_and_parcels(
         fig = plt.figure(**kwargs)
 
     spec = gridspec.GridSpec(
-        ncols=1, nrows=1 + n_legends, left=0, right=1, top=1, bottom=0, figure=fig
+        ncols=1, nrows=3, left=0, right=1, top=1, bottom=0, figure=fig,  height_ratios=[1, 0.1, 0.2]
     )
-
+    legend_spec = spec[2, 0].subgridspec(
+            ncols=2 * n_legends - 1, nrows=1, wspace=0.1, hspace=1,
+            width_ratios = [1] + (n_legends-1)*[0.2,1])
     ax = fig.add_subplot(spec[0, 0])
-    legend_idx = 1
+    legend_idx = 0
     # SET UP LINESEGMENTS FOR NETWORK. If polylines exist use, otherwise use
     # endpoints.
     segments = []
@@ -156,15 +176,20 @@ def plot_network_and_parcels(
 
     # Add Linesegments and Configure.
     if link_attribute:
-        line_segments = LineCollection(segments)
+        line_segments = LineCollection(segments, cmap=network_cmap, zorder=1)
         line_segments.set_array(return_array_at_link(grid, link_attribute))
         ax.add_collection(line_segments)
-        lax = fig.add_subplot(spec[legend_idx, 0])
-        legend_idx += 1
-        fig.colorbar(line_segments, cax=lax)
+
+        # create legend.
+        lax = fig.add_subplot(legend_spec[0,legend_idx])
+        legend_idx += 2
+        link_cax = fig.colorbar(line_segments, cax=lax, orientation="horizontal", label=link_attribute_title)
+
+        # Todo: add ability to specify color limits.
+
     else:
         line_segments = LineCollection(
-            segments, colors=network_color, linewidth=network_linewidth
+            segments, colors=network_color, linewidth=network_linewidth, zorder=1
         )
         ax.add_collection(line_segments)
 
@@ -173,26 +198,37 @@ def plot_network_and_parcels(
     Y = np.ones(len(parcels.dataset.element_id)) - 1
 
     # Locate parcel XY for each parcel at a particular time
-    for parcel_number in range(parcels.dataset.item_id.size):
-        XY = locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number)
-        X[parcel_number] = XY[0]
-        Y[parcel_number] = XY[1]
+    for parcel_idx in range(parcels.dataset.item_id.size):
+        XY = locate_parcel_xy(grid, parcels, parcel_time_index, parcel_idx)
+        X[parcel_idx] = XY[0]
+        Y[parcel_idx] = XY[1]
 
     # plot X,Y point on delineated network and color/size point according to a
     # certain attribute of the parcel or the link in which the parcel resides
 
     # Plot parcels
     if parcel_color_attribute is not None:
-        parcel_color = None
+
+        parcel_color = parcels.dataset[parcel_color_attribute].values[:, parcel_time_index]
+
         # if this is true, then instead of none we need to get the right
-        # values from the parcels and scale/normalize them correctly.
+        # values from the parcels and scale/normalize them correctly. At present
+        # plan to support only continuous values. Can be extended to strs as
+        # categorical.
 
     if parcel_size_attribute is not None:
-        parcel_size = None
-        # if this is true, then instead of none we need to get the right
-        # values from the parcels and scale/normalize them correctly.
+        parcel_size = parcels.dataset[parcel_size_attribute].values[:, parcel_time_index]
 
-    ax.scatter(X, Y, s=parcel_size, c=parcel_color, alpha=parcel_alpha)
+        # if this is true, then instead of none we need to get the right
+        # values from the parcels and scale/normalize them correctly. At present
+        # plan to support only continuous values. Can be extended to strs as
+        # categorical.
+
+    # Todo: add ability to specify color limits.
+
+    # Todo: add ability to specify size limits (and size edges).
+
+    ax.scatter(X, Y, s=parcel_size, c=parcel_color, alpha=parcel_alpha, cmap=parcel_color_cmap, norm=parcel_color_norm, zorder=2)
 
     # add parcel size and parcel color legends.
 

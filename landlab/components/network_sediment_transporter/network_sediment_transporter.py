@@ -167,6 +167,9 @@ class NetworkSedimentTransporter(Component):
     """
 
     _name = "NetworkSedimentTransporter"
+
+    _unit_agnostic = False
+
     __version__ = "1.0"
 
     _info = {
@@ -268,7 +271,7 @@ class NetworkSedimentTransporter(Component):
             raise ValueError(msg)
 
         # run super. this will check for required inputs specified by _info
-        super(NetworkSedimentTransporter, self).__init__(grid)
+        super().__init__(grid)
 
         # check key information about the parcels, including that all required
         # attributes are present.
@@ -336,16 +339,15 @@ class NetworkSedimentTransporter(Component):
 
         # save reference to key fields
         self._width = self._grid.at_link["channel_width"]
+        self._topographic__elevation = self._grid.at_node["topographic__elevation"]
 
         # create field for channel_slope and topographic__elevation if they
         # don't yet exist.
         self.initialize_output_fields()
         self._channel_slope = self._grid.at_link["channel_slope"]
-        self._topographic__elevation = self._grid.at_node["topographic__elevation"]
 
         # Adjust topographic elevation based on the parcels present.
         # Note that at present FlowDirector is just used for network connectivity.
-
         # get alluvium depth and calculate topography from br+alluvium, then update slopes.
 
         self._create_new_parcel_time()
@@ -383,10 +385,9 @@ class NetworkSedimentTransporter(Component):
 
             self._parcels.ffill_grid_element_and_id()
 
+            # copy parcel attributes forward in time.
             for at in self._parcel_attributes:
-                self._parcels.dataset[at].values[
-                    :, self._time_idx
-                ] = self._parcels.dataset[at].values[:, self._time_idx - 1]
+                self._parcels.dataset[at].values[:, self._time_idx] = self._parcels.dataset[at].values[:, self._time_idx - 1]
 
         self._this_timesteps_parcels = np.zeros_like(
             self._parcels.dataset.element_id, dtype=bool
@@ -915,7 +916,6 @@ class NetworkSedimentTransporter(Component):
 
         """
         self._time += dt
-
         self._time_idx += 1
         self._create_new_parcel_time()
 

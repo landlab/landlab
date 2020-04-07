@@ -17,7 +17,9 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
         parcel_number, parcel_time_index
     ].values
 
-    # parcels that end their timestep off network have the starting link id recoreded, and np.nan as the distance.
+    # parcels that end their timestep off network have the starting link id
+    # recorded, and np.nan as the distance.
+
     if not np.isnan(parcel_loc):
 
         # get link id
@@ -25,7 +27,10 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
             parcels.dataset.element_id[parcel_number, parcel_time_index].values
         )
 
-        # DANGER DANGER: This code assumes the verticies of links are ordered from upstream to downstream. This should be the case for delineated river networks, so this line should not be necessary. A quick work-around is the following, but ideally verticies should be flipped in GIS.
+        # DANGER DANGER: This code assumes the verticies of links are ordered
+        # from upstream to downstream. This should be the case for delineated
+        # river networks, so this line should not be necessary. A quick
+        # work-around is the following, but ideally verticies should be flipped in GIS.
         # parcel_loc = 0.9999 - parcel_loc
 
         # get the X, Y vertices of the squiggly line for that link (loaded by import_shapefile.py)
@@ -35,7 +40,8 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
             link_x = grid["link"]["x_of_polyline"][parcel_link]
             link_y = grid["link"]["y_of_polyline"][parcel_link]
         else:
-
+            link_x = [0,1]
+            link_y = [0,1]
             raise ValueError
             # eventually need to use x_of_node, y_of_node, and nodes_at_link,
             # but the upstream to downstream ordering also matters.
@@ -50,21 +56,19 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
         # 0 and 1
         link_rel_dist = link_dist / np.max(link_dist)
 
-        # determine which two points on squiggly line bound parcel location in that link
-        upper_loc_idx = np.argmax(link_rel_dist - parcel_loc > 0)
-
-        to_interp_link_loc = link_rel_dist[upper_loc_idx - 1 : upper_loc_idx + 1]
-        to_interp_link_x = link_x[upper_loc_idx - 1 : upper_loc_idx + 1]
-        to_interp_link_y = link_y[upper_loc_idx - 1 : upper_loc_idx + 1]
-
-        # check values are increasing
-        np.all(np.diff(to_interp_link_loc) > 0)
+        # # determine which two points on squiggly line bound parcel location in that link
+        # upper_loc_idx = np.argmax(link_rel_dist - parcel_loc > 0)
+        #
+        # to_interp_link_loc = link_rel_dist[upper_loc_idx - 1 : upper_loc_idx + 1]
+        # to_interp_link_x = link_x[upper_loc_idx - 1 : upper_loc_idx + 1]
+        # to_interp_link_y = link_y[upper_loc_idx - 1 : upper_loc_idx + 1]
+        #
+        # # check values are increasing
+        # np.all(np.diff(to_interp_link_loc) > 0)
 
         # interpolate the X,Y coordinates from the parcel location
-        parcel_x = np.interp(
-            parcel_loc, to_interp_link_loc, to_interp_link_x
-        )  # , left=np.nan, right=np.nan)
-        parcel_y = np.interp(parcel_loc, to_interp_link_loc, to_interp_link_y)
+        parcel_x = np.interp(parcel_loc, link_rel_dist, link_x)  # , left=np.nan, right=np.nan)
+        parcel_y = np.interp(parcel_loc, link_rel_dist, link_y)
         # assert np.isnan(parcel_x) == False
 
         # save data to a single variable. better would be to save this info as an element of parcels.dataset.X and ...Y
