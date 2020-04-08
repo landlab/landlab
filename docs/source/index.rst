@@ -20,7 +20,7 @@ Earth surface dynamics. It contains:
 In addition Landlab contains a set of Jupyter notebook tutorials providing
 an introduction to core concepts and examples of use.
 
-Landlab was desiged for disciplines that quantify Earth surface dynamics such
+Landlab was designed for disciplines that quantify Earth surface dynamics such
 as geomorphology, hydrology, glaciology, and stratigraphy. It can also be used
 in related fields. Scientists who use this type of model often build
 their own unique model from the ground up, re-coding the basic building blocks
@@ -50,7 +50,7 @@ Landlab 2.0
 
 In late December 2019 Landlab switched to version 2.0-beta. Landlab will be
 in 2.0-beta until the Landlab 2.0 publication is finalized. Landlab dropped
-support of Python 2.7 with this transition. 
+support of Python 2.7 with this transition.
 
 Supported Python Versions
 -------------------------
@@ -68,40 +68,36 @@ Documentation Outline
    :maxdepth: 2
 
    install/index
+   getting_started/index
    user_guide/index
    reference/index
-   whatsnew/index
-   getting_started/index
    development/index
+   whatsnew/index
 
-Acknowledgements
-================
-
-Funding
+Contact
 -------
 
-Landlab is funded by the US National Science Foundation. It has been supported
-by the following grants:
+Questions? Feedback? Found a bug or something unexpected?
 
-    * A Collaborative NSF SI2-SSE proposal to
-      University of Colorado (Greg Tucker,
-      `1147454 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1147454&HistoricalAwards=false>`_),
-      and the University of Washington (Erkan Istanbulluoglu,
-      `1148305 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1148305&HistoricalAwards=false>`_)
-    * A Collaborative NSF SI2-SSI proposal to
-      University of Colorado (Greg Tucker and Dan Hobley,
-      `1450409 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450409&HistoricalAwards=false>`_),
-      Tulane University (Nicole Gasparini,
-      `1450338 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450338&HistoricalAwards=false>`_),
-      and the University of Washington (Erkan Istanbulluoglu,
-      `1450412 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450412&HistoricalAwards=false>`_).
-    * A NSF EAR Postdoctoral Fellowship to Katy Barnhart
-      (`1725774 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1725774&HistoricalAwards=false>`_).
+Need an improvement/addition to Landlab?
+
+Want to contribute?
+
+The recommended way to contact the Landlab development team is with a
+`GitHub Issue <https://github.com/landlab/landlab/issues>`_.
+
+Landlab News
+------------
+
+To keep in touch with the latest Landlab news:
+
+-  Get the `Landlab Lookout Newsletter <https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7>`_
+-  Landlab is on `Twitter <https://twitter.com/landlabtoolkit>`_!
 
 Citing Landlab
-==============
+--------------
 
-If you use any portion of Landlab, you must cite the following paper:
+If you use any portion of Landlab, you must cite the following papers:
 
 `Hobley, D. E. J. <https://www.earth-surf-dynam.net/5/21/2017/>`__, Adams,
 J. M., Nudurupati, S. S., Hutton, E. W. H., Gasparini, N. M., Istanbulluoglu,
@@ -110,24 +106,47 @@ toolkit for building, coupling, and exploring two-dimensional numerical models
 of Earth-surface dynamics, Earth Surface Dynamics, 5, p 21-46,
 10.5194/esurf-5-21-2017.
 
+`Barnhart, K. R. <https://doi.org/10.5194/esurf-2020-12>`__,
+Hutton, E. W. H., Tucker, G. E., Gasparini, N. M., Istanbulluoglu, E.,
+Hobley, D. E. J., Lyons, N. J., Mouchene, M., Nudurupati, S. S., Adams, J. M.,
+and Bandaragoda, C.: Short communication: Landlab v2.0: A software package for
+Earth surface dynamics, Earth Surf. Dynam. Discuss.,
+https://doi.org/10.5194/esurf-2020-12, in review, 2020.
+
 
 BibTeX format:
 ::
 
  @article{Hobley2017,
-          Author = {Hobley, D. E. J. and Adams, J. M. and
+          author = {Hobley, D. E. J. and Adams, J. M. and
                     Nudurupati, S. S. and Hutton, E. W. H.
                     and Gasparini, N. M. and Istanbulluoglu,
                     E. and Tucker, G. E.},
-          Journal = {Earth Surface Dynamics},
-          Year = {2017},
-          Title = {Creative computing with Landlab: an open-source
+          journal = {Earth Surface Dynamics},
+          year = {2017},
+          title = {Creative computing with Landlab: an open-source
                    toolkit for building, coupling, and exploring
                    two-dimensional numerical models of
                    Earth-surface dynamics},
-          Number = {5},
-          Pages = {21-46},
-          Doi = {10.5194/esurf-5-21-2017}}
+          number = {5},
+          pages = {21-46},
+          doi = {10.5194/esurf-5-21-2017}}
+
+ @article{barnhart2020short,
+          author = {Barnhart, K. R. and Hutton, E. W. H. and
+                    Tucker, G. E. and Gasparini, N. M. and
+                    Istanbulluoglu, E. and Hobley, D. E. J. and
+                    Lyons, N. J. and Mouchene, M. and Nudurupati,
+                    S. S. and Adams, J. M. and Bandaragoda, C.},
+          title = {Short communication: Landlab v2.0: A software
+                   package for Earth surface dynamics},
+          journal = {Earth Surface Dynamics Discussions},
+          volume = {2020},
+          year = {2020},
+          pages = {1--25},
+          url = {https://www.earth-surf-dynam-discuss.net/esurf-2020-12/},
+          doi = {10.5194/esurf-2020-12}
+          }
 
 If you are working with Landlab components and utilities, many of them have
 their own publication. Please cite it to acknowledge the component authors.
@@ -142,27 +161,11 @@ Citation information for each component can be found as follows:
 
 .. _contact:
 
-Contact
-=======
+The Landlab Team
+----------------
 
-Questions? Feedbacks?
+The core development team is
 
-Need an improvement/addition to Landlab?
-
-Want to contribute?
-
-The recommended way to contact the Landlab development team is with a
-`GitHub Issue <https://github.com/landlab/landlab/issues>`_
-
-To keep in touch with the latest Landlab news:
-
--  Get the `Landlab Lookout Newsletter <https://github.us18.list-manage.com/subscribe?u=2db7cea82e3ea40fcf4c91247&id=b9bad233c7>`_
--  Landlab is on `Twitter <https://twitter.com/landlabtoolkit>`_!
-
-During workshops and clinics, we often use the
-`Landlab Slack channel <https://landlab.slack.com>`_
-
-The Landlab Team:
  - Greg Tucker (CU)
  - Nicole Gasparini (Tulane)
  - Erkan Istanbulluoglu (UW)
@@ -175,3 +178,30 @@ The Landlab Team:
  - Margaux Mouchene (CU)
  - Christina Bandaragoda (UW)
  - Nathan Lyons (Tulane)
+
+Workshops and Clinics
+---------------------
+
+During :ref:`workshops and clinics <clinics_workshops>`, we sometimes use the
+`Landlab Slack channel <https://landlab.slack.com>`_.
+
+Funding
+-------
+
+Landlab is funded by the US National Science Foundation. It has been supported
+by the following grants:
+
+   * A Collaborative NSF SI2-SSE proposal to
+     University of Colorado (Greg Tucker,
+     `1147454 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1147454&HistoricalAwards=false>`_),
+     and the University of Washington (Erkan Istanbulluoglu,
+     `1148305 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1148305&HistoricalAwards=false>`_)
+   * A Collaborative NSF SI2-SSI proposal to
+     University of Colorado (Greg Tucker and Dan Hobley,
+     `1450409 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450409&HistoricalAwards=false>`_),
+     Tulane University (Nicole Gasparini,
+     `1450338 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450338&HistoricalAwards=false>`_),
+     and the University of Washington (Erkan Istanbulluoglu,
+     `1450412 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1450412&HistoricalAwards=false>`_).
+   * A NSF EAR Postdoctoral Fellowship to Katy Barnhart
+     (`1725774 <https://www.nsf.gov/awardsearch/showAward?AWD_ID=1725774&HistoricalAwards=false>`_).

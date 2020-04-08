@@ -259,6 +259,8 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
 
     _name = "FlowDirectorSteepest"
 
+    _unit_agnostic = True
+
     _info = {
         "flow__link_direction": {
             "dtype": np.int8,
@@ -321,7 +323,7 @@ class FlowDirectorSteepest(_FlowDirectorToOne):
             topographic__elevation,.
         """
         self._method = "D4"
-        super(FlowDirectorSteepest, self).__init__(grid, surface)
+        super().__init__(grid, surface)
         self._is_Voroni = isinstance(self._grid, VoronoiDelaunayGrid)
 
         # get 'flow__link_direction' field

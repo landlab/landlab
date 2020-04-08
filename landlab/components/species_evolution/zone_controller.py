@@ -4,9 +4,9 @@
 import numpy as np
 from scipy.ndimage.measurements import label
 
-from . import ZoneTaxon, Zone
 from .record import Record
-from .zone import _update_zones
+from .zone import Zone, _update_zones
+from .zone_taxon import ZoneTaxon
 
 
 class ZoneController(object):
@@ -264,9 +264,15 @@ class ZoneController(object):
        time  zones
     0   100      1
     """
+
     def __init__(
-        self, grid, zone_function, minimum_area=0, neighborhood_structure='D8',
-        initial_time=0, **kwargs
+        self,
+        grid,
+        zone_function,
+        minimum_area=0,
+        neighborhood_structure="D8",
+        initial_time=0,
+        **kwargs
     ):
         """Initialize the controller.
 
@@ -298,29 +304,29 @@ class ZoneController(object):
         self._zone_params = kwargs
         self._min_area = minimum_area
         self._record = Record(initial_time)
-        if neighborhood_structure in ['D8', 'D4']:
+        if neighborhood_structure in ["D8", "D4"]:
             self._neighborhood_struct = neighborhood_structure
         else:
             raise ValueError("`neighborhood_structure` must be 'D8' or 'D4'")
 
         # Set record initial values.
 
-        self._record.set_value('zones', np.nan)
-        self._record.set_value('fragmentations', np.nan)
-        self._record.set_value('captures', np.nan)
-        self._record.set_value('area_captured_sum', np.nan)
-        self._record.set_value('area_captured_max', np.nan)
+        self._record.set_value("zones", np.nan)
+        self._record.set_value("fragmentations", np.nan)
+        self._record.set_value("captures", np.nan)
+        self._record.set_value("area_captured_sum", np.nan)
+        self._record.set_value("area_captured_max", np.nan)
 
         # Include `grid` in the zone params dictionary.
 
-        self._zone_params['grid'] = self._grid
+        self._zone_params["grid"] = self._grid
 
         # Set initial zones.
 
         initial_zone_extent = self._zone_func(**self._zone_params)
         self._zones = self._get_zones_with_mask(initial_zone_extent)
 
-        self._record.set_value('zones', len(self._zones))
+        self._record.set_value("zones", len(self._zones))
 
     @property
     def zones(self):
@@ -379,11 +385,9 @@ class ZoneController(object):
         zone_mask = self._zone_func(**self._zone_params)
         new_zones = self._get_zones_with_mask(zone_mask)
 
-        self._zones = _update_zones(
-            self._grid, prior_zones, new_zones, self._record
-        )
+        self._zones = _update_zones(self._grid, prior_zones, new_zones, self._record)
 
-        self._record.set_value('zones', len(self._zones))
+        self._record.set_value("zones", len(self._zones))
 
     def _get_zones_with_mask(self, mask):
         """Get zones using a mask.
@@ -401,14 +405,12 @@ class ZoneController(object):
         """
         # Label clusters of `True` values in `mask`.
 
-        if self._neighborhood_struct == 'D8':
+        if self._neighborhood_struct == "D8":
             s = 3 * [[1, 1, 1]]
-        elif self._neighborhood_struct == 'D4':
+        elif self._neighborhood_struct == "D4":
             s = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]
 
-        cluster_arr, cluster_ct = label(
-            mask.reshape(self._grid.shape), structure=s
-        )
+        cluster_arr, cluster_ct = label(mask.reshape(self._grid.shape), structure=s)
 
         # Create zones for clusters.
 
@@ -416,9 +418,9 @@ class ZoneController(object):
 
         for i in range(1, cluster_ct + 1):
             mask = (cluster_arr == i).flatten()
-            cluster_area = sum(self._grid.cell_area_at_node[mask])
+            cluster_area = self._grid.cell_area_at_node[mask].sum()
 
             if cluster_area >= self._min_area:
-                zones.append(Zone(mask))
+                zones.append(Zone(self, mask))
 
         return zones

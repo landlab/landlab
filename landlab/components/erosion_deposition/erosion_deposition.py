@@ -74,6 +74,8 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
 
     _name = "ErosionDeposition"
 
+    _unit_agnostic = True
+
     _cite_as = """
     @article{barnhart2019terrain,
       author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
@@ -299,7 +301,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             )
             raise NotImplementedError(msg)
 
-        super(ErosionDeposition, self).__init__(
+        super().__init__(
             grid,
             m_sp=m_sp,
             n_sp=n_sp,

@@ -77,6 +77,8 @@ class SteepnessFinder(Component):
 
     _name = "SteepnessFinder"
 
+    _unit_agnostic = True
+
     _info = {
         "channel__steepness_index": {
             "dtype": float,
@@ -166,7 +168,7 @@ class SteepnessFinder(Component):
             segment, it will be lumped together with the next segment.
             If zero, one value is assigned to each channel node.
         """
-        super(SteepnessFinder, self).__init__(grid)
+        super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             msg = (

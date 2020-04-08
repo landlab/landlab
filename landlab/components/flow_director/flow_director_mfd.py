@@ -340,6 +340,8 @@ class FlowDirectorMFD(_FlowDirectorToMany):
 
     _name = "FlowDirectorMFD"
 
+    _unit_agnostic = True
+
     _info = {
         "flow__link_to_receiver_node": {
             "dtype": int,
@@ -423,7 +425,7 @@ class FlowDirectorMFD(_FlowDirectorToMany):
         else:
             self._max_receivers = grid.adjacent_nodes_at_node.shape[1]
 
-        super(FlowDirectorMFD, self).__init__(grid, surface)
+        super().__init__(grid, surface)
         self.updated_boundary_conditions()
 
     def updated_boundary_conditions(self):

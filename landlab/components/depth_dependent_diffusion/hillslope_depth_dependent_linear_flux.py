@@ -119,6 +119,8 @@ class DepthDependentDiffuser(Component):
 
     _name = "DepthDependentDiffuser"
 
+    _unit_agnostic = True
+
     _cite_as = """
     @article{barnhart2019terrain,
       author = {Barnhart, Katherine R and Glade, Rachel C and Shobe, Charles M and Tucker, Gregory E},
@@ -194,7 +196,7 @@ class DepthDependentDiffuser(Component):
         soil_transport_decay_depth: float
             Characteristic transport soil depth, m
         """
-        super(DepthDependentDiffuser, self).__init__(grid)
+        super().__init__(grid)
         # Store grid and parameters
 
         self._K = linear_diffusivity
