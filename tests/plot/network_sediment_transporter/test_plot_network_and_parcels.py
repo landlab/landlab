@@ -42,7 +42,10 @@ parcel_color_options = [
         "parcel_color_attribute_title": "Diameter [m]",
         "parcel_alpha": 1.0,
     },
-    {"parcel_color_attribute": "abrasion_rate", "parcel_color_cmap": "bone",},
+    {
+        "parcel_color_attribute": "abrasion_rate",
+        "parcel_color_cmap": "bone",
+    },
 ]
 
 parcel_size_options = [
