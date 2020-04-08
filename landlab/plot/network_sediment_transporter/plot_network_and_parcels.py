@@ -21,12 +21,14 @@ def plot_network_and_parcels(
     grid,
     parcels,
     parcel_time_index=None,
+    map_buffer=0.1,
+    parcel_filter=None,
     network_color=None,
-    network_linewidth=None,
     link_attribute=None,
     link_attribute_title=None,
     network_cmap="cividis",
     network_norm=None,
+    network_linewidth=None,
     parcel_color=None,
     parcel_color_attribute=None,
     parcel_color_attribute_title=None,
@@ -47,47 +49,90 @@ def plot_network_and_parcels(
     More descriptive text.
 
 
+    Note, to control limits and scaling of color/shape, provide matplotlib
+    color normaliziers.
+
     Parameters
     ----------
     grid
     parcels
-    parcel_time_index = None. Default is last timestep.
+    parcel_time_index = None. Default is last timestep in parcels.
+    map_buffer=0.1
+        Increase the plot extent by at least this much (b/c of axis equal, may be more)
+    parcel_filter boolean array of shape (number_of_parcels, )
+        Filter only a selection of the parcels.
 
+    # Part 1 Network.
     # to set the link colors provide either:
     network_color="k"
-    network_linewidth=0.1
 
     # or
-    link_attribute, array or field name at link.
-    link_attribute_title
-    network_cmap = "cividis"
-    network_norm
 
+    link_attribute, array or field name at link.
+        Categorical options not supported. Must be continuous.
+    link_attribute_title,
+        string to use as the title, if link_attribute is a string, it is
+        used as the default.
+
+    network_cmap = "cividis"
+    network_norm, matplotlib color normalizer.
+        https://matplotlib.org/3.1.1/tutorials/colors/colormapnorms.html
+        Default is linear between min and max of link_attribute.
+
+    # linewidth will be recognized by either option.
+    network_linewidth = 0.5,
+
+    # Part
     # to set the parcel size, shape, either provide constant values or attributes.
 
-    #for color:
+    #for color use either a constant.
 
     parcel_color = "g"
 
     # or
 
     parcel_color_attribute : parcel attribute name.
-    parcel_color_cmap = "viridis"
+        Categorical options not supported. Must be continuous.
+    parcel_color_attribute_title
+        string to use as the title, if parcel_color_attribute is a string, it is
+        used as the default.
+    parcel_color_cmap="plasma",
+    parcel_color_norm
+        matplotlib color normalizer.
+            https://matplotlib.org/3.1.1/tutorials/colors/colormapnorms.html
+            Default is linear between min and max of link_attribute.
 
-    # for size:
+    # for size use either a constant or
 
     parcel_size = 1
 
     # or
 
     parcel_size_attribute: parcel atribute name.
+        Categorical options not supported. Must be continuous.
+    parcel_size_attribute_title
+        string to use as the title, if parcel_size_attribute is a string, it is
+        used as the default.
+    parcel_size_norm
+        matplotlib color normalizer.
+        https://matplotlib.org/3.1.1/tutorials/colors/colormapnorms.html
+        Default is linear between min and max of parcel_size_attribute.,
+    parcel_size_min=5,
+        The parcel_size_attribute gives a continuous value, but it probably isn't
+        a good size for plotting. You will also want to be able to specify the
+        largest and smallest size of the dots plotted. Use parcel_size_min and
+        parcel_size_max to do this. They will be aligned with the limits of
+        parcel_size_norm.
+    parcel_size_max=40,
 
+    # with constant or not, can set transparency using.
 
-    parcel_alpha
+    parcel_alpha=0.5,
 
     # figure information.
 
     fig, figure object to use.
+        Default is to create a new figure object.
 
     **kwargs Anything else to pass to figure creation.
 
@@ -100,26 +145,28 @@ def plot_network_and_parcels(
     # part 0 checking and default setting.
 
     # only network color/linewidth provided OR link attribute.
-    if (link_attribute is not None) and (
-        (network_color is not None) or (network_linewidth is not None)
-    ):
-        assert ValueError
+    if (link_attribute is not None) and (network_color is not None):
+        msg = "Only one of link_attribute and network_color can be provided."
+        raise ValueError(msg)
 
     if link_attribute is None:
-        network_color = network_color or "b"
+        network_color = network_color or "c"
         network_linewidth = network_linewidth or 0.5
         legend_link = False
     else:
         legend_link = True
         if link_attribute_title is None and isinstance(link_attribute, str):
             link_attribute_title = link_attribute
+        else:
+            link_attribute_title = ""
 
     # only parcel color OR parcel_color_attribute.
     if (parcel_color_attribute is not None) and (parcel_color is not None):
-        assert ValueError
+        msg = "Only one of parcel_color_attribute and parcel_color can be provided."
+        raise ValueError(msg)
 
     if parcel_color_attribute is None:
-        parcel_color = parcel_color or "c"
+        parcel_color = parcel_color or "k"
         legend_parcel_color = False
     else:
         legend_parcel_color = True
@@ -127,10 +174,13 @@ def plot_network_and_parcels(
             parcel_color_attribute, str
         ):
             parcel_color_attribute_title = parcel_color_attribute
+        else:
+            parcel_color_attribute_title = ""
 
     # only parcel size or parcel_size_attribute
     if (parcel_size_attribute is not None) and (parcel_size is not None):
-        assert ValueError
+        msg = "Only one of parcel_size_attribute and parcel_size can be provided."
+        raise ValueError(msg)
 
     if parcel_size_attribute is None:
         parcel_size = parcel_size or 1.0
@@ -142,17 +192,19 @@ def plot_network_and_parcels(
             parcel_size_attribute, str
         ):
             parcel_size_attribute_title = parcel_size_attribute
+        else:
+            parcel_size_attribute_title = ""
 
     # parcel time:
-    # cant use standard or because a value of 0 is valid.
+    # cant use standard value or default because a value of 0 is valid.
     if parcel_time_index is None:
         parcel_time_index = -1
 
-    # also figure out whether the legend will have one, two, or three
+    # Figure out whether the legend will have one, two, or three
     # parts (linewidth, parcel size, parcel color)
     n_legends = legend_link + legend_parcel_size + legend_parcel_color
 
-    # SET UP FIGURE
+    # set up figure, label and legend gridspecs.
     if fig is None:
         fig = plt.figure(**kwargs)
 
@@ -166,32 +218,48 @@ def plot_network_and_parcels(
         figure=fig,
         height_ratios=[1, 0.1, 0.2],
     )
-    label_spec = spec[1, 0].subgridspec(
-        ncols=2 * n_legends - 1,
-        nrows=1,
-        wspace=0.1,
-        hspace=1,
-        width_ratios=[1] + (n_legends - 1) * [0.2, 1],
-    )
-    legend_spec = spec[2, 0].subgridspec(
-        ncols=2 * n_legends - 1,
-        nrows=1,
-        wspace=0.1,
-        hspace=1,
-        width_ratios=[1] + (n_legends - 1) * [0.2, 1],
-    )
     ax = fig.add_subplot(spec[0, 0])
-    legend_idx = 0
+    if n_legends > 0:
+        label_spec = spec[1, 0].subgridspec(
+            ncols=2 * n_legends - 1,
+            nrows=1,
+            wspace=0.1,
+            hspace=1,
+            width_ratios=[1] + (n_legends - 1) * [0.2, 1],
+        )
+        legend_spec = spec[2, 0].subgridspec(
+            ncols=2 * n_legends - 1,
+            nrows=1,
+            wspace=0.1,
+            hspace=1,
+            width_ratios=[1] + (n_legends - 1) * [0.2, 1],
+        )
+        legend_idx = 0
+
     # SET UP LINESEGMENTS FOR NETWORK. If polylines exist use, otherwise use
-    # endpoints.
+    # endpoints. Also get the ranges so a buffer can be placed around the
+    # network.
+
     segments = []
     if "x_of_polyline" in grid.at_link:
+
         x_of_polylines = grid["link"]["x_of_polyline"]
         y_of_polylines = grid["link"]["y_of_polyline"]
         for x, y in zip(x_of_polylines, y_of_polylines):
             segment = np.array((np.array(x), np.array(y))).T
             segments.append(segment)
+
+        xmin, ymin = np.concatenate(segments).min(axis=0)
+        xmax, ymax = np.concatenate(segments).max(axis=0)
+
+        xbuffer = map_buffer * (xmax - xmin)
+        ybuffer = map_buffer * (ymax - ymin)
+
+        xlim = (xmin - xbuffer, xmax + xbuffer)
+        ylim = (ymin - ybuffer, ymax + ybuffer)
+
     else:
+
         for i in range(grid.size("link")):
             nal = grid.nodes_at_link[i]
             segment = np.array(
@@ -199,15 +267,26 @@ def plot_network_and_parcels(
             ).T
             segments.append(segment)
 
+        xbuffer = map_buffer * (grid.x_of_node.max() - grid.x_of_node.min())
+        ybuffer = map_buffer * (grid.y_of_node.max() - grid.y_of_node.min())
+        xlim = (grid.x_of_node.min() - xbuffer, grid.x_of_node.max() + xbuffer)
+        ylim = (grid.y_of_node.min() - ybuffer, grid.y_of_node.max() + ybuffer)
+
     # Add Linesegments and Configure.
-    if link_attribute:
+
+    # if there is a link attribute.
+    if link_attribute is not None:
         line_segments = LineCollection(
-            segments, cmap=network_cmap, norm=network_norm, zorder=1
+            segments,
+            cmap=network_cmap,
+            norm=network_norm,
+            linewidth=network_linewidth,
+            zorder=1,
         )
         line_segments.set_array(return_array_at_link(grid, link_attribute))
         ax.add_collection(line_segments)
 
-        # create legend and label.
+        # create label
         lax = fig.add_subplot(label_spec[0, legend_idx])
         lax.text(
             0.5,
@@ -221,14 +300,14 @@ def plot_network_and_parcels(
         )
         lax.axis("off")
 
+        # add legend.
         lax = fig.add_subplot(legend_spec[0, legend_idx])
         legend_idx += 2
         fig.colorbar(
             line_segments, cax=lax, orientation="horizontal", label=link_attribute_title
         )
 
-        # Todo: add ability to specify color limits.
-
+    # if link values are constant.
     else:
         line_segments = LineCollection(
             segments, colors=network_color, linewidth=network_linewidth, zorder=1
@@ -236,10 +315,16 @@ def plot_network_and_parcels(
         ax.add_collection(line_segments)
 
     # Part 2: Add Parcels.
-    X = np.ones(len(parcels.dataset.element_id)) - 1
-    Y = np.ones(len(parcels.dataset.element_id)) - 1
+    X = np.empty(len(parcels.dataset.element_id))
+    Y = np.empty(len(parcels.dataset.element_id))
 
     # Locate parcel XY for each parcel at a particular time
+    # some aspects of this may be possible to speed up, but at minimum
+    # locate_parcel_xy must be called for each link (since calculating location)
+    # along link requires interpoloation.
+    # if this occurs we must also ensure the parcel order is maintained b/c of
+    # color and shape formatting.
+
     for parcel_idx in range(parcels.dataset.item_id.size):
         XY = locate_parcel_xy(grid, parcels, parcel_time_index, parcel_idx)
         X[parcel_idx] = XY[0]
@@ -248,8 +333,12 @@ def plot_network_and_parcels(
     # plot X,Y point on delineated network and color/size point according to a
     # certain attribute of the parcel or the link in which the parcel resides
 
-    # Plot parcels
+    # if a parcel color attribute is provided.
     if parcel_color_attribute is not None:
+        # if this is true, then instead of none we need to get the right
+        # values from the parcels and scale/normalize them correctly. At present
+        # plan to support only continuous values. Can be extended to strs as
+        # categorical.
         if parcel_color_attribute in parcels.dataset:
             if "time" in parcels.dataset[parcel_color_attribute].dims:
                 parcel_color = parcels.dataset[parcel_color_attribute].values[
@@ -258,14 +347,19 @@ def plot_network_and_parcels(
             else:
                 parcel_color = parcels.dataset[parcel_color_attribute].values
         else:
-            raise ValueError
+            msg = "Parcel color attribute {attribute} not present in parcels.".format(
+                attribute=parcel_color_attribute
+            )
+            raise ValueError(msg)
 
+        if parcel_filter is not None:
+            parcel_color = parcel_color[parcel_filter]
+
+    if parcel_size_attribute is not None:
         # if this is true, then instead of none we need to get the right
         # values from the parcels and scale/normalize them correctly. At present
         # plan to support only continuous values. Can be extended to strs as
         # categorical.
-
-    if parcel_size_attribute is not None:
         if parcel_size_attribute in parcels.dataset:
             if "time" in parcels.dataset[parcel_size_attribute].dims:
                 parcel_size_values = parcels.dataset[parcel_size_attribute].values[
@@ -283,16 +377,18 @@ def plot_network_and_parcels(
                 parcel_size_max - parcel_size_min
             ) * parcel_size_norm(parcel_size_values)
         else:
-            raise ValueError
+            msg = "Parcel size attribute {attribute} not present in parcels.".format(
+                attribute=parcel_size_attribute
+            )
+            raise ValueError(msg)
 
-        # if this is true, then instead of none we need to get the right
-        # values from the parcels and scale/normalize them correctly. At present
-        # plan to support only continuous values. Can be extended to strs as
-        # categorical.
+        if parcel_filter is not None:
+            parcel_size = parcel_size[parcel_filter]
 
-    # Todo: add ability to specify color limits.
-
-    # Todo: add ability to specify size limits (and size edges).
+    # add scatter, filter x and y if necessary.
+    if parcel_filter is not None:
+        X = X[parcel_filter]
+        Y = Y[parcel_filter]
 
     scatter = ax.scatter(
         X,
@@ -344,20 +440,26 @@ def plot_network_and_parcels(
         lax.axis("off")
 
         lax = fig.add_subplot(legend_spec[0, legend_idx])
-        handles, labels = scatter.legend_elements(prop="sizes", alpha=0.6)
+        handles, _ = scatter.legend_elements(prop="sizes", alpha=0.6)
 
-        new_labels = [parcel_size_values.min(), parcel_size_values.max()]
+        if len(handles) - 1 == 0:
+            han = handles
+            lab = [parcel_size_values.min()]
+        else:
+            han = handles[:: len(handles) - 1]
+            lab = [parcel_size_values.min(), parcel_size_values.max()]
+
         lax.legend(
-            handles[:: len(handles) - 1],
-            new_labels,
-            title=parcel_size_attribute_title,
-            loc="center",
-            frameon=False,
+            han, lab, title=parcel_size_attribute_title, loc="center", frameon=False,
         )
 
         plt.axis("off")
-    # We need to set the plot limits, they will not autoscale
-    ax.set_xlim(grid.x_of_node.min(), grid.x_of_node.max())
-    ax.set_ylim(grid.y_of_node.min(), grid.y_of_node.max())
+
+    # Set the plot limits
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+
+    # make axes equal
+    ax.axis("equal")
 
     return fig
