@@ -51,7 +51,8 @@ def locate_parcel_xy(grid, parcels, parcel_time_index, parcel_number):
                 link_x = [grid.x_of_node[tail_node], grid.x_of_node[head_node]]
                 link_y = [grid.y_of_node[tail_node], grid.y_of_node[head_node]]
             else:
-                raise ValueError
+                msg = "trying to plot on an inactive link. this should not happen."
+                raise ValueError(msg)
             # eventually need to use x_of_node, y_of_node, and nodes_at_link,
             # but the upstream to downstream ordering also matters.
 
