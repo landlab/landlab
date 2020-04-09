@@ -30,7 +30,6 @@ landlab.field.grouped module
    :members:
    :undoc-members:
    :show-inheritance:
-   :noindex:
 
 landlab.field.scalar\_data\_fields module
 -----------------------------------------
