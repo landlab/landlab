@@ -42,10 +42,7 @@ parcel_color_options = [
         "parcel_color_attribute_title": "Diameter [m]",
         "parcel_alpha": 1.0,
     },
-    {
-        "parcel_color_attribute": "abrasion_rate",
-        "parcel_color_cmap": "bone",
-    },
+    {"parcel_color_attribute": "abrasion_rate", "parcel_color_cmap": "bone"},
 ]
 
 parcel_size_options = [
@@ -78,8 +75,9 @@ def test_link_options(arg, l_opts, pc_opts, ps_opts, request):
     plot_network_and_parcels(grid, parcels, parcel_time_index=0, **opts)
 
 
+@pytest.mark.parametrize("title", ["A random number", None])
 @pytest.mark.parametrize("arg", ["synthetic", "methow"])
-def test_link_array(arg, request):
+def test_link_array(arg, title, request):
     nst = request.getfixturevalue(arg)
     grid = nst.grid
     parcels = nst._parcels
@@ -90,7 +88,7 @@ def test_link_array(arg, request):
         "link_attribute": random_link,  # use an array of size link.
         "network_cmap": "jet",  # change colormap
         "network_norm": network_norm,  # and normalize
-        "link_attribute_title": "A random number",
+        "link_attribute_title": title,
         "parcel_alpha": 0,
         "network_linewidth": 3,
     }

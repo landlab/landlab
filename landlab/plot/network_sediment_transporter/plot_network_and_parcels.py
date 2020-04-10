@@ -155,10 +155,11 @@ def plot_network_and_parcels(
         legend_link = False
     else:
         legend_link = True
-        if link_attribute_title is None and isinstance(link_attribute, str):
-            link_attribute_title = link_attribute
-        else:
-            link_attribute_title = ""
+        if link_attribute_title is None:
+            if isinstance(link_attribute, str):
+                link_attribute_title = link_attribute
+            else:
+                link_attribute_title = ""
 
     # only parcel color OR parcel_color_attribute.
     if (parcel_color_attribute is not None) and (parcel_color is not None):
@@ -170,12 +171,8 @@ def plot_network_and_parcels(
         legend_parcel_color = False
     else:
         legend_parcel_color = True
-        if parcel_color_attribute_title is None and isinstance(
-            parcel_color_attribute, str
-        ):
+        if parcel_color_attribute_title is None:
             parcel_color_attribute_title = parcel_color_attribute
-        else:
-            parcel_color_attribute_title = ""
 
     # only parcel size or parcel_size_attribute
     if (parcel_size_attribute is not None) and (parcel_size is not None):
@@ -188,12 +185,8 @@ def plot_network_and_parcels(
     else:
         legend_parcel_size = True
 
-        if parcel_size_attribute_title is None and isinstance(
-            parcel_size_attribute, str
-        ):
+        if parcel_size_attribute_title is None:
             parcel_size_attribute_title = parcel_size_attribute
-        else:
-            parcel_size_attribute_title = ""
 
     # parcel time:
     # cant use standard value or default because a value of 0 is valid.
