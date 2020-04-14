@@ -57,6 +57,8 @@ class NormalFault(Component):
 
     _name = "NormalFault"
 
+    _unit_agnostic = True
+
     _info = {
         "topographic__elevation": {
             "dtype": float,
@@ -251,7 +253,7 @@ class NormalFault(Component):
         >>> nf.current_time
         30000.0
         """
-        super(NormalFault, self).__init__(grid)
+        super().__init__(grid)
 
         # save a reference to the grid
 

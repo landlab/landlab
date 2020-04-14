@@ -109,6 +109,8 @@ class ChiFinder(Component):
 
     _name = "ChiFinder"
 
+    _unit_agnostic = True
+
     _info = {
         "channel__chi_index": {
             "dtype": float,
@@ -199,7 +201,7 @@ class ChiFinder(Component):
             Raise an exception if adding an already existing field.
 
         """
-        super(ChiFinder, self).__init__(grid)
+        super().__init__(grid)
 
         if grid.at_node["flow__receiver_node"].size != grid.size("node"):
             msg = (

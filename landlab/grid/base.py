@@ -390,7 +390,7 @@ class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
         axis_units = kwds.pop("xy_axis_units", "-")
         axis_name = kwds.pop("xy_axis_name", ("x", "y"))
 
-        super(ModelGrid, self).__init__()
+        super().__init__()
 
         self.new_field_location("node", self.number_of_nodes)
         self.new_field_location("link", self.number_of_links)

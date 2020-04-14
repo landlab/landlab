@@ -5,6 +5,7 @@ from collections import OrderedDict
 from enum import IntEnum, unique
 
 import numpy as np
+from pandas import Series
 
 
 @unique
@@ -140,7 +141,7 @@ def _update_zones(grid, prior_zones, new_zones, record):
 
                 for z in captured_zones:
                     captured_mask = np.all([~p_mask_copy, z.mask], 0)
-                    area = sum(grid.cell_area_at_node[captured_mask.flatten()])
+                    area = grid.cell_area_at_node[captured_mask.flatten()].sum()
                     area_captured.append(area)
 
             elif conn_type in [Connection.ONE_TO_MANY, Connection.MANY_TO_MANY]:
@@ -158,8 +159,7 @@ def _update_zones(grid, prior_zones, new_zones, record):
 
         # Get unique list of successors, preserving order.
 
-        ss = set()
-        successors = [x for x in successors if not (x in ss or ss.add(x))]
+        successors = Series(successors).drop_duplicates().tolist()
 
     # Update the record.
 
@@ -228,7 +228,7 @@ def _get_successors(
     if conn_type == Connection.ONE_TO_NONE:
         successors = []
 
-    if conn_type == Connection.ONE_TO_ONE:
+    elif conn_type == Connection.ONE_TO_ONE:
         # The prior zone is set as the new zone because only the one new
         # and the one prior overlap.
         n = ns_i_p[0]
@@ -293,17 +293,19 @@ class Zone(object):
     class is not intended to be managed directly.
     """
 
-    def __init__(self, mask):
+    def __init__(self, controller, mask):
         """Initialize a zone.
 
         Parameters
         ----------
+        controller : ZoneController
+            A SpeciesEvolver ZoneController.
         mask : ndarray
             The mask of the zone. True elements of this array correspond to the
             grid nodes of the zone.
         """
+        self._controller = controller
         self._mask = mask.flatten()
-        self._taxa = []
         self._conn_type = None
         self._successors = []
 
@@ -313,25 +315,15 @@ class Zone(object):
         return self._mask
 
     @property
-    def taxa(self):
-        """The list of taxa that inhabit the zone."""
-        return self._taxa
-
-    @taxa.setter
-    def taxa(self, updated_taxa):
-        """Set the taxa that inhabit the zone.
-
-        This attribute should be set only by taxa. Setting this attribute
-        ensures that the list is unique.
-        """
-        ss = set()
-        unique = [x for x in updated_taxa if not (x in ss or ss.add(x))]
-        self._taxa = list(dict.fromkeys(unique))
-
-    @property
     def successors(self):
         """A list of zones connected to zone at the current time step."""
         return self._successors
+
+    @property
+    def area(self):
+        """Zone area calculated as the sum of cell area at grid nodes."""
+        area = self._controller._grid.cell_area_at_node[self._mask].sum()
+        return area
 
     def _get_largest_intersection(self, zones, exclusions=[]):
         node_intersection_count = []
