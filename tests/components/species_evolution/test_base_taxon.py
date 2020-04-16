@@ -33,7 +33,7 @@ class TestTaxon(Taxon):
 def test_base_subclass():
     tt = TestTaxon()
     assert isinstance(tt, Taxon)
-    assert tt.__repr__() == "<TestTaxon, uid=None>"
+    assert tt.__repr__() == "<TestTaxon, tid=None>"
 
     np.testing.assert_equal(tt.range_mask, True)
 
@@ -50,8 +50,6 @@ def test_base_subclass():
     np.testing.assert_equal(output, False)
 
     np.testing.assert_equal(tt.extant, True)
-    np.testing.assert_equal(type(tt.children[0]), TestTaxon)
-    np.testing.assert_equal(tt, tt.children[0].parent)
 
     d = OrderedDict([("time", [0, 10]), ("vara", [np.nan, 1]), ("varb", [np.nan, 2])])
     np.testing.assert_equal(record._dict, d)
