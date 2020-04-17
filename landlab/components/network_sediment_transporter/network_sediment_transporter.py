@@ -248,7 +248,7 @@ class NetworkSedimentTransporter(Component):
             sediment density (density), and bed material abrasion rate
             (abrasion_rate). During a given timestep, parcels may be in the
             "active layer" of most recently deposited sediment
-            (active_layer = 1), or they may be burried and not subject to
+            (active_layer = 1), or they may be buried and not subject to
             transport (active_layer = 0). Whether a sediment parcel is active
             or not is determined based on flow conditions and parcel attributes
             in 'run_one_step'
@@ -364,12 +364,12 @@ class NetworkSedimentTransporter(Component):
 
     @property
     def d_mean_active(self):
-        """Mean parcel grain size of active parcels aggreggated at link."""
+        """Mean parcel grain size of active parcels aggregated at link."""
         return self._d_mean_active
 
     @property
     def rhos_mean_active(self):
-        """Mean parcel density of active parcels aggreggated at link."""
+        """Mean parcel density of active parcels aggregated at link."""
         return self._rhos_mean_active
 
     def _create_new_parcel_time(self):
@@ -532,7 +532,7 @@ class NetworkSedimentTransporter(Component):
                 )
                 parcel_id_time_sorted = this_links_parcels[time_arrival_sort]
 
-                # calculate the cumulative volume (in sorted order.)
+                # calculate the cumulative volume (in sorted order).
                 cumvol = np.cumsum(volumes[parcel_id_time_sorted])
 
                 # determine which parcels are within capacity and set those to
@@ -656,7 +656,7 @@ class NetworkSedimentTransporter(Component):
         #        rhos_mean_active = np.zeros(self._num_parcels)
         #        rhos_mean_active.fill(np.nan)
 
-        # find active sand.
+        # find active sand
         findactivesand = (
             self._parcels.dataset.D < _SAND_SIZE
         ) * self._active_parcel_records  # since find active already sets all prior timesteps to False, we can use D for all timesteps here.
@@ -763,8 +763,8 @@ class NetworkSedimentTransporter(Component):
         # determine how far each parcel needs to travel this timestep.
         distance_to_travel_this_timestep = self._pvelocity * dt
         # total distance traveled in dt at parcel virtual velocity
-        # Note: movement in current and any DS links at this dt is at the same velocity as in the current link
-        # ... perhaps modify in the future
+        # Note: movement in current and any DS links at this dt is at the same
+        # velocity as in the current link perhaps modify in the future
 
         # Accumulate the total distance traveled by a parcel for abrasion rate
         # calculations.
@@ -900,11 +900,11 @@ class NetworkSedimentTransporter(Component):
         When the NetworkSedimentTransporter runs forward in time the following
         steps occur:
 
-            1. A new set of records is created in the Parcels that cooreponds to the new time
-            2. If parcels are remain on the network then:
+            1. A new set of records is created in the Parcels that corresponds to the new time
+            2. If parcels are on the network then:
                 a. Active parcels are identifed based on entrainment critera.
-                b. Effective bed slope is calculated based on inactive parcel volumes
-                c. Transport rate is calculated...
+                b. Effective bed slope is calculated based on inactive parcel volumes.
+                c. Transport rate is calculated.
                 d. Active parcels are moved based on the tranport rate.
 
         Parameters
@@ -1023,8 +1023,6 @@ def _calculate_alluvium_depth(
         )
         / (1 - porosity)
     )
-    # NOTE: Jon, porosity was left out in earlier version of the LL component,
-    # but it seems it should be in here. Check me: is the eqn correct?
 
     if alluvium__depth < 0.0:
         raise ValueError("NST Alluvium Depth Negative")
