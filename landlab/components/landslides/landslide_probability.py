@@ -315,6 +315,14 @@ class LandslideProbability(Component):
             "mapping": "node",
             "doc": "Indicator of soil wetness; relative depth perched water table within the soil layer",
         },
+        "soil__mean_watertable_depth": {
+            "dtype": float,
+            "intent": "out",
+            "optional": False,
+            "units": "m",
+            "mapping": "node",
+            "doc": "Mean depth to water table from surface to perched water table within the soil layer",
+        },
         "soil__minimum_total_cohesion": {
             "dtype": float,
             "intent": "in",
@@ -433,7 +441,7 @@ class LandslideProbability(Component):
             single word indicating depth to water table distribution, either 
             'uniform', 'lognormal', 'lognormal_spatial,' or 
             'data_driven_spatial'.
-             (default=None)
+             (default='uniform')
         groundwater__depth_min_value: float, optional (m)
             minium groundwater depth to water table for 'uniform' (default=0.01)
         groundwater__depth_max_value: float, optional (m)
