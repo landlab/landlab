@@ -9,11 +9,11 @@ files `docs/text_for_[gridfile].py.txt`.
 
 import numpy as np
 
-from landlab.field.scalar_data_fields import FieldError
 from landlab.utils import structured_grid as sgrid
 from landlab.utils.decorators import make_return_array_immutable
 
 from ..core.utils import add_module_functions_to_class, as_id_array
+from ..field import FieldError
 from ..graph import DualUniformRectilinearGraph
 from ..io import write_esri_ascii
 from ..io.netcdf import write_netcdf

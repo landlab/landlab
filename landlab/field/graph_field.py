@@ -347,13 +347,6 @@ class GraphFields:
     ----------
     groups
 
-    See Also
-    --------
-    landlab.field.ScalarDataFields : Data fields within a *group* are
-        stored as :class:`landlab.field.ScalarDataFields`.
-    landlab.field.ModelDataFields : Equivalent data structure for
-        old-style fields.
-
     Examples
     --------
 
