@@ -251,7 +251,6 @@ def find_true_vector_from_link_vector_pair(L1, L2, b1x, b1y, b2x, b2y):
     return ax, ay
 
 
-# class ModelGrid(ModelDataFieldsMixIn, EventLayersMixIn, MaterialLayersMixIn):
 class ModelGrid(GraphFields, EventLayersMixIn, MaterialLayersMixIn):
 
     """Base class for 2D structured or unstructured grids for numerical models.
