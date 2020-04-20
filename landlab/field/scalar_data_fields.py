@@ -3,25 +3,10 @@
 
 import numpy as np
 
+from .errors import FieldError
+
+
 _UNKNOWN_UNITS = "?"
-
-
-class Error(Exception):
-
-    """Base class for errors in this module."""
-
-    pass
-
-
-class FieldError(Error, KeyError):
-
-    """Raise this error for a missing field name."""
-
-    def __init__(self, field):
-        self._field = field
-
-    def __str__(self):
-        return self._field
 
 
 def need_to_reshape_array(array, field_size):

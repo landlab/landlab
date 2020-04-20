@@ -1,5 +1,6 @@
 #! /usr/bin/env python
-from .grouped import GroupSizeError, ModelDataFields
+from .errors import GroupSizeError
+from .grouped import ModelDataFields
 
 
 class ModelDataFieldsMixIn(ModelDataFields):

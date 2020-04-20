@@ -1,8 +1,7 @@
 import numpy as np
 import xarray as xr
 
-from .grouped import GroupError
-from .scalar_data_fields import FieldError
+from .errors import FieldError, GroupError
 
 
 def reshape_for_storage(array, field_size=None):
