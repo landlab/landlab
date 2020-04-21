@@ -148,7 +148,6 @@ class DepthDependentTaylorDiffuser(Component):
 
     >>> DDdiff = DepthDependentTaylorDiffuser(mg, if_unstable='warn')
     >>> DDdiff.run_one_step(2.)
-
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
@@ -183,7 +182,6 @@ class DepthDependentTaylorDiffuser(Component):
     ... )
     >>> expweath.calc_soil_prod_rate()
     >>> DDdiff.run_one_step(10.)
-
     Topographic slopes are high enough such that the Courant condition is
     exceeded AND you have not selected dynamic timestepping with
     dynamic_dt=True. This may lead to infinite and/or nan values for slope,
