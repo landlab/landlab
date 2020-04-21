@@ -19,7 +19,7 @@ def _neighbors_at_link(np.ndarray[DTYPE_t, ndim=1] links, shape,
   stride = 2 * shape[1] - 1
   n_links = (shape[0] - 1) * shape[1] + shape[0] * (shape[1] - 1)
 
-  for i in range(links.size):
+  for i in range(links.shape[0]):
     link = links[i]
 
     is_top = link > (n_links - stride)
