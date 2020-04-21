@@ -18,7 +18,7 @@ def subside_parallel_row(np.ndarray[DTYPE_t, ndim=1] w,
                          np.ndarray[DTYPE_t, ndim=1] r,
                          DTYPE_t alpha,
                          DTYPE_t gamma_mantle):
-  cdef int ncols = w.size
+  cdef int ncols = w.shape[0]
   cdef double inv_c = 1. / (2. * np.pi * gamma_mantle * alpha ** 2.)
   cdef double c
   cdef int i
