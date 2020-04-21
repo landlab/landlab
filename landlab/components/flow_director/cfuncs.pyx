@@ -39,7 +39,7 @@ def adjust_flow_receivers(np.ndarray[DTYPE_INT_t, ndim=1] src_nodes,
     steepest_slope : array_like
         Gradient of steepest descent from nodes.
     """
-    cdef unsigned int n_nodes = src_nodes.size
+    cdef unsigned int n_nodes = src_nodes.shape[0]
     cdef int src_id
     cdef int dst_id
 
