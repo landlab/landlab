@@ -5,7 +5,7 @@ cimport cython
 from libc.stdlib cimport malloc, free, qsort
 from libc.math cimport atan2
 
-from argsort cimport argsort
+from .argsort cimport argsort
 
 
 cdef _calc_spoke_angles(double * hub, double * spokes, np.int_t n_spokes,
@@ -98,7 +98,7 @@ cdef _sort_spokes_around_hub(long * spokes, int n_spokes, double * xy_of_spoke,
 def calc_spoke_angles(np.ndarray[double, ndim=1, mode="c"] hub,
                       np.ndarray[double, ndim=1, mode="c"] spokes,
                       np.ndarray[double, ndim=1, mode="c"] angles):
-    cdef int n_spokes = spokes.size // 2
+    cdef int n_spokes = spokes.shape[0] // 2
     _calc_spoke_angles(&hub[0], &spokes[0], n_spokes, &angles[0])
 
 
@@ -106,7 +106,7 @@ def calc_spoke_angles(np.ndarray[double, ndim=1, mode="c"] hub,
 def sort_spokes_around_hub(np.ndarray[long, ndim=1, mode="c"] spokes,
                            np.ndarray[double, ndim=2, mode="c"] xy_of_spoke,
                            np.ndarray[double, ndim=1, mode="c"] xy_of_hub):
-    cdef int n_spokes = spokes.size
+    cdef int n_spokes = spokes.shape[0]
 
     _sort_spokes_around_hub(&spokes[0], n_spokes, &xy_of_spoke[0, 0],
                             &xy_of_hub[0])
