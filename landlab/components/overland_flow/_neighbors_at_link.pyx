@@ -8,8 +8,11 @@ ctypedef np.int_t DTYPE_t
 
 
 @cython.boundscheck(False)
-def _neighbors_at_link(np.ndarray[DTYPE_t, ndim=1] links, shape,
-                       np.ndarray[DTYPE_t, ndim=2] out):
+def neighbors_at_link(
+    np.ndarray[DTYPE_t, ndim=1] links,
+    shape,
+    np.ndarray[DTYPE_t, ndim=2] out
+):
   cdef int stride
   cdef int n_links
   cdef int link
