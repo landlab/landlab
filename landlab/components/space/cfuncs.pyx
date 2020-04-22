@@ -24,7 +24,7 @@ def calculate_qs_in(np.ndarray[DTYPE_INT_t, ndim=1] stack_flip_ud,
                     DTYPE_FLOAT_t F_f):
     """Calculate and qs and qs_in."""
     # define internal variables
-    cdef unsigned int n_nodes = stack_flip_ud.size
+    cdef unsigned int n_nodes = stack_flip_ud.shape[0]
     cdef unsigned int node_id
     cdef unsigned int i
 
