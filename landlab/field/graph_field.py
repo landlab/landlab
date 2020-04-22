@@ -1,8 +1,7 @@
 import numpy as np
 import xarray as xr
 
-from .grouped import GroupError
-from .scalar_data_fields import FieldError
+from .errors import FieldError, GroupError
 
 
 def reshape_for_storage(array, field_size=None):
@@ -335,7 +334,7 @@ class FieldDataset(dict):
         return iter(self._ds.variables)
 
 
-class GraphFields(object):
+class GraphFields:
 
     """Collection of grouped data-fields.
 
@@ -347,13 +346,6 @@ class GraphFields(object):
     Attributes
     ----------
     groups
-
-    See Also
-    --------
-    landlab.field.ScalarDataFields : Data fields within a *group* are
-        stored as :class:`landlab.field.ScalarDataFields`.
-    landlab.field.ModelDataFields : Equivalent data structure for
-        old-style fields.
 
     Examples
     --------
@@ -742,8 +734,8 @@ class GraphFields(object):
         Create a group of fields called *node*.
 
         >>> import numpy as np
-        >>> from landlab.field import ModelDataFields
-        >>> fields = ModelDataFields()
+        >>> from landlab.field import GraphFields
+        >>> fields = GraphFields()
         >>> fields.new_field_location('node', 4)
 
         Add a field, initialized to ones, called *topographic__elevation*
