@@ -85,7 +85,6 @@ class _GeneralizedErosionDeposition(Component):
         F_f,
         v_s,
         discharge_field="surface_water__discharge",
-        erode_flooded_nodes=True,
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
     ):
         """Initialize the ErosionDeposition model.
@@ -111,24 +110,8 @@ class _GeneralizedErosionDeposition(Component):
             Only applies when adaptive solver is used. Minimum timestep that
             adaptive solver will use when subdividing unstable timesteps.
             Default values is 0.001. [T].
-        erode_flooded_nodes : bool (optional)
-            Whether erosion occurs in flooded nodes identified by a
-            depression/lake mapper (e.g., DepressionFinderAndRouter). When set
-            to false, the field *flood_status_code* must be present on the grid
-            (this is created by the DepressionFinderAndRouter). Default True.
         """
         super().__init__(grid)
-
-        if not erode_flooded_nodes:
-            if "flood_status_code" not in self._grid.at_node:
-                msg = (
-                    "In order to not erode flooded nodes another component "
-                    "must create the field *flood_status_code*. You want to "
-                    "run a lake mapper/depression finder."
-                )
-                raise ValueError(msg)
-
-        self._erode_flooded_nodes = erode_flooded_nodes
 
         self._flow_receivers = grid.at_node["flow__receiver_node"]
         self._stack = grid.at_node["flow__upstream_node_order"]

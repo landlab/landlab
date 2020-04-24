@@ -2,7 +2,6 @@ import numpy as np
 
 from landlab.utils.return_array import return_array_at_node
 
-from ..depression_finder.lake_mapper import _FLOODED
 from .cfuncs import calculate_qs_in
 from .generalized_erosion_deposition import _GeneralizedErosionDeposition
 
@@ -160,7 +159,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         F_f=0.0,
         discharge_field="surface_water__discharge",
         solver="basic",
-        erode_flooded_nodes=True,
         dt_min=DEFAULT_MINIMUM_TIME_STEP,
     ):
         """Initialize the ErosionDeposition model.
@@ -190,11 +188,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             multiplied by the default rainfall rate (1 m/yr). To use custom
             spatially/temporally varying rainfall, use 'water__unit_flux_in'
             to specify water input to the FlowAccumulator.
-        erode_flooded_nodes : bool (optional)
-            Whether erosion occurs in flooded nodes identified by a
-            depression/lake mapper (e.g., DepressionFinderAndRouter). When set
-            to false, the field *flood_status_code* must be present on the grid
-            (this is created by the DepressionFinderAndRouter). Default True.
         solver : string
             Solver to use. Options at present include:
                 (1) 'basic' (default): explicit forward-time extrapolation.
@@ -251,8 +244,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         ...     mg,
         ...     K_sp=.001,
         ...     m_sp=.5,
-        ...     n_sp=1,
-        ...     erode_flooded_nodes=False)
+        ...     n_sp=1)
 
         Burn in an initial drainage network using the Fastscape eroder:
 
@@ -272,8 +264,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
         ...     v_s=0.001,
         ...     m_sp=0.5,
         ...     n_sp = 1.0,
-        ...     sp_crit=0,
-        ...     erode_flooded_nodes=False)
+        ...     sp_crit=0)
 
         Now run the E/D component for 2000 short timesteps:
 
@@ -310,7 +301,6 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
             v_s=v_s,
             dt_min=dt_min,
             discharge_field=discharge_field,
-            erode_flooded_nodes=erode_flooded_nodes,
         )
 
         # E/D specific inits.
