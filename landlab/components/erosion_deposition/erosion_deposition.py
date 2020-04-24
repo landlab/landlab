@@ -427,17 +427,7 @@ class ErosionDeposition(_GeneralizedErosionDeposition):
                 self._update_flow_link_slopes()
                 # update where nodes are flooded. This shouldn't happen bc
                 # of the dynamic timestepper, but just in case, we update here.
-                new_flooded_nodes = np.where(
-                    np.logical_and(
-                        self._slope < 0, self._grid.status_at_node == _FLOODED
-                    )
-                )[0]
-                is_flooded_core_node = np.asarray(
-                    np.unique(
-                        np.concatenate((is_flooded_core_node, new_flooded_nodes))
-                    ),
-                    dtype=np.int64,
-                )
+                is_flooded_core_node[self._slope < 0] = True
             else:
                 first_iteration = False
 
